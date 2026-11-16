@@ -501,7 +501,8 @@ export default function NovaDashboard() {
   const hudRoom = (hudSize?.height ?? height - 300) - 26, hudWide = hudSize?.width ?? width - 300, starSlot = hudRoom <= 520 ? 204 : hudRoom >= 640 ? 252 : 228, starRoom = (hudRoom - starSlot - 124) / 0.46;
   // Session AM-2 (ADR-038 "AM-2", G3): the star is larger — the hero of a calm stage (up to 940 px on a wide window) and
   // still large beside widgets, where its light now lies behind the widgets' glass instead of stopping at its column.
-  const starCalm = width >= 2200 ? 940 : width >= 1700 ? 760 : width >= 1280 ? 600 : 460, starCapWide = hudWide >= 1100 ? starCalm : hudWide >= 960 ? 360 : 300;
+  // Round 7 (both critics: "the calm star fills a quarter of the width; at 1024 it is a thumbnail"): the calm star is a fifth larger, and a narrow stage's star may be 440 px (it was 360).
+  const starCalm = width >= 2200 ? 1120 : width >= 1700 ? 900 : width >= 1280 ? 680 : 480, starCapWide = hudWide >= 1100 ? starCalm : hudWide >= 960 ? 440 : 340;
   // Beside widgets the star keeps to its own column (the widest of the three: holo.css), a little over its width, so the
   // galaxy's arms and its bezel are whole between the wings (the second critique: "the rings are cut by the frames").
   // Session AM-2 (N3a, the third critique: "the star is ~550 px of 2560 with empty bands above and below"): from 1700 px

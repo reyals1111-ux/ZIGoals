@@ -179,7 +179,9 @@ void main(){
   col *= dn(.28,.5, rr);
   // Beside widgets the star may be wider than its column: its light dissolves toward the wings (uEdge: half the column's
   // width in the canvas's own units; 1 where the canvas fits) instead of being cut by their glass.
-  float edge = dn(uEdge - .12, uEdge + .01, abs(uv.x));
+  // Round 7 ("the galaxy is squeezed between the columns"): the fade begins near the column's edge and ends a way past it, so
+  // the arms run on behind the wings' glass (the panels float in front of the galaxy; its bezel and its planet stay inside the column).
+  float edge = dn(uEdge - .05, uEdge + .15, abs(uv.x));
   col *= edge;
   float peak = max(col.r, max(col.g, col.b));
   vec3 soft = 1. - exp(-col*1.35);

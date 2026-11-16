@@ -18,7 +18,9 @@
 /* Round 1 of the critique: the sky read as mid-lavender, and neon cannot bloom on a mid-tone. The night is near black
    now: AK's diagonal haze steps back under the Holo look, and the colour stays close to the star. */
 /* Round 7 (both critics: "a lilac haze instead of black space"): the haze steps back again; the star's own light is the colour. */
-.nova-frame[data-look=holo]:not([data-phone]) > .nova-sky { opacity: .3; }
+/* Round 7 (both critics again: "purple haze, not black glass"): the haze is half of what it was; the night is near black and the neon carries the contrast. */
+.nova-frame[data-look=holo]:not([data-phone]) > .nova-sky { opacity: .14; }
+.nova-frame[data-look=holo]:not([data-phone]) .cc-nebula { opacity: .55; }
 /* The star's thin blue light streak, carried across the whole stage (owner screenshot 4): a line through the star's
    centre, inside its button, so it stays at the star's height. The star draws the bright middle itself; this line takes
    over where the star's own canvas fades and runs out toward both edges. */
@@ -36,11 +38,12 @@
 /* Beside widgets the bezel is drawn inside the star's column (the star's haze may lie behind the wings' glass; its bezel may not be cut by them). */
 .nova-frame[data-stage=set] .nova-orb-button[data-star] { --bz: min(calc(var(--star-size, 440px) * .86), calc(var(--star-col, 440px) * .98)); }
 .cc-bezel > svg { display: block; width: 100%; height: 100%; overflow: visible; fill: none; }
-.cc-bezel-line { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 78%, transparent); stroke-width: .55; }
-.cc-bezel-glow { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 22%, transparent); stroke-width: 2.6; } /* a soft second line: the standby bezel reads as lit, not as a hairline */
-.cc-bezel-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, transparent); stroke-width: 2.4; }
-.cc-bezel-marks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff); stroke-width: 5; }
-.cc-bezel-arc { stroke: color-mix(in oklab, var(--nova-a, #9273ff) 80%, #fff); stroke-width: 1.3; }
+/* Round 7 ("a hairline bezel where the references have rings you can read across a room"): the line, its glow, the ticks and the pillar arc all carry more weight. */
+.cc-bezel-line { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 88%, #fff); stroke-width: 1.05; }
+.cc-bezel-glow { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 26%, transparent); stroke-width: 4.4; } /* a soft second line: the standby bezel reads as lit, not as a hairline */
+.cc-bezel-ticks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 84%, transparent); stroke-width: 3.2; }
+.cc-bezel-marks { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff); stroke-width: 6.4; }
+.cc-bezel-arc { stroke: color-mix(in oklab, var(--nova-a, #9273ff) 80%, #fff); stroke-width: 2.4; }
 /* N3b: the state's own mark on the bezel (static drawings; only their opacity changes, once per change of state). */
 .cc-state { opacity: 0; transition: opacity .35s ease-out; }
 .cc-bezel[data-state=listening] .cc-state-listening, .cc-bezel[data-state=thinking] .cc-state-thinking, .cc-bezel[data-state=speaking] .cc-state-speaking { opacity: 1; }
@@ -124,6 +127,8 @@
 /* ---- Round 1 of the critique: composition ---- */
 /* The band's label starts below the stage's first window (it sat half under the one-tap keys at the fold). */
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit > .nova-orbit-band { padding-top: 30px; }
+/* Round 7 ("the two wings start at different heights"): both wings hang from the same top line (each was centred by itself). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main > .nova-orbit-side { justify-content: flex-start; }
 /* One straight edge per wing: AK's lean along a circle made each panel a different width (a ragged column). */
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main > .nova-orbit-side > .nova-widget[data-holo] { margin-inline: 0; }
 /* On a wide window the two wings turn a little toward the star (a static 1.8 degrees; never pointer-driven): the glass
