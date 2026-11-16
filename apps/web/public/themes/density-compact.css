@@ -4923,6 +4923,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .cc-read:not(#\-) { padding-top: 4px; padding-bottom: 3px; }
 @media (min-height: 1000px) { :where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]):not([data-editing]) .nova-stage-area:not(#\-) { padding-top: 34px; padding-bottom: 36px; } }
 :where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit > .nova-orbit-band:not(#\-) { padding-top: 30px; }
+:where(:root[data-density=compact]) .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side:not(#\-) { gap: var(--tier-gap, 12px); }
 /*  components/nova/stage/phone-stage.css  */
 :where(:root[data-density=compact]) .ps-first:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .ps-first > .nova-stage:not(#\-):not(#\-) { row-gap: 0; padding-top: 0; padding-bottom: 0; }

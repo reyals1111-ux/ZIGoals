@@ -19277,6 +19277,9 @@
     .nova-frame[data-soft] .holo-core *:not(#\-) {
         filter: none !important
     }
+    .nova-frame[data-stage=set] .nova-orbit-main[data-compose] .nova-orb-button[data-star]:not(#\-) {
+        --bz: min(calc(var(--star-size, 440px) * .9), calc(var(--star-col, 440px) * .98))
+    }
 }
 /*  components/nova/stage/phone-stage.css  */
 @scope (:root[data-theme=dark]) {
