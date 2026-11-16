@@ -2159,6 +2159,8 @@
 @container holo-body (min-width: 640px) and (min-height: 380px) { :where(:root[data-text=large]) .nc-bills-card[data-size=L] .nc-bills-next .nc-ring-figure:not(#\-) { font-size: calc(48px * 1.125); } }
 @container holo-body (min-width: 640px) and (min-height: 380px) { :where(:root[data-text=large]) .nc-body.nc-networth-card[data-size=L] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-spending-card[data-size=L] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-bills-card[data-size=L] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-budgets-card[data-size=L] .nc-hero-num:not(#\-) { font-size: calc(60px * 1.125); } }
 @container holo-body (min-width: 640px) and (min-height: 380px) { :where(:root[data-text=large]) .nc-body.nc-networth-card[data-size=L] .nc-hero[data-len=xl] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-spending-card[data-size=L] .nc-hero[data-len=xl] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-bills-card[data-size=L] .nc-hero[data-len=xl] .nc-hero-num:not(#\-) { font-size: calc(46px * 1.125); } }
+:where(:root[data-text=large]) .nc-bills-card .nc-bills-row .nc-bills-amount:not(#\-) { font-size: calc(16px * 1.125); }
+@container holo-body (min-width: 520px) { :where(:root[data-text=large]) .nc-body.nc-bills-card[data-size=M] .nc-hero .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-bills-card[data-size=M] .nc-hero[data-len] .nc-hero-num:not(#\-) { font-size: calc(38px * 1.125); } }
 /*  components/nova/cards/whole-rows.css  */
 :where(:root[data-text=large]) .nova-widget .wr-inline > li.wr-more:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .wr-more:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2346,6 +2348,10 @@
 @container holo-body (min-width: 640px) { :where(:root[data-text=large]) .holo-streaks li:not(#\-), :where(:root[data-text=large]) .holo-streaks .holo-num:not(#\-), :where(:root[data-text=large]) .holo-orbit-line:not(#\-) { font-size: calc(16px * 1.125); } }
 @container holo-body (min-width: 560px) { :where(:root[data-text=large]) .holo-next-box > .holo-next .holo-next-time:not(#\-) { font-size: calc(18px * 1.125); } }
 :where(:root[data-text=large]) .holo-water[data-empty]:is([data-size=M], [data-size=L]) .holo-num-big:not(#\-) { font-size: calc(30px * 1.125); }
+@container holo-body (min-width: 560px) { :where(:root[data-text=large]) .holo-next-box > .holo-rail .holo-next-time:not(#\-) { font-size: calc(20px * 1.125); } }
+@container holo-body (min-width: 560px) { :where(:root[data-text=large]) .holo-next-box > .holo-rail > li a:not(#\-), :where(:root[data-text=large]) .holo-next-box > .holo-rail > li > span:nth-child(2):not(#\-) { font-size: calc(17px * 1.125); } }
+@container holo-body (min-width: 560px) { :where(:root[data-text=large]) .holo-next-box > .holo-rail > li small:not(#\-) { font-size: calc(14px * 1.125); } }
+@container holo-body (min-width: 560px) { :where(:root[data-text=large]) .holo-notes:is([data-size=M], [data-size=L]) .holo-captures a:not(#\-) { font-size: calc(16px * 1.125); } }
 /*  components/nova/holo/holo.css  */
 :where(:root[data-text=large]) .nova-widget[data-holo] .nova-widget-head h3:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-widget[data-holo] .nova-widget-open-arrow:not(#\-) { font-size: calc(18px * 1.125); }
@@ -2508,6 +2514,7 @@
 :where(:root[data-text=large]) .nova-widget[data-holo] .tasks-widget .tasks-status:not([data-empty]):not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .hw-markets-note:not(#\-) { font-size: calc(14px * 1.125); }
 @container holo-body (max-height: 79.98px) { :where(:root[data-text=large]) .nova-widget[data-holo] .hw-markets-box .nova-market-price:not(#\-) { font-size: calc(16px * 1.125); } }
+:where(:root[data-text=large]) .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/nova/workflows/workflows.css  */
 :where(:root[data-text=large]) .nova-wf-title:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .nova-wf-step-head:not(#\-) { font-size: calc(15px * 1.125); }

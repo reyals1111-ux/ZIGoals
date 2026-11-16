@@ -14407,6 +14407,16 @@
     .nc-time-rows.nc-time-inline li:not(#\-) {
         border-color: currentcolor
     }
+    .nc-goal-tag[data-at=target]:not(#\-) {
+        border-left-color: currentcolor;
+        background-image: none;
+        background-color: transparent
+    }
+    .nc-goal-tag[data-at=today]:not(#\-) {
+        border-left-color: currentcolor;
+        background-image: none;
+        background-color: transparent
+    }
 }
 /*  components/nova/cards/nova-cards.css  */
 @scope (:root[data-theme=dark]) {
@@ -14573,6 +14583,9 @@
             color: #d6e0f5
         }
     }
+    .nc-requests:not([data-size=S]) .nc-requests-list:not(#\-)::before {
+        box-shadow: 0 0 8px 1px color-mix(in oklab, var(--neon, #9273ff) 55%, transparent)
+    }
 }
 /*  components/nova/cards/wealth-cards.css  */
 @scope (:root[data-theme=dark]) {
@@ -14615,6 +14628,12 @@
     }
     .nc-bills-row .nc-bills-when[data-over]:not(#\-) {
         color: #ffd9a8
+    }
+    .nc-bills-card .nc-bills-row:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .nc-bills-card .nc-bills-row .nc-bills-amount:not(#\-) {
+        text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ffd27a) 50%, transparent)
     }
 }
 /*  components/nova/cards/whole-rows.css  */
@@ -16949,6 +16968,149 @@
         :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li small:not(#\-) {
             color: #c3cfe6
         }
+    }
+    .holo-next-box > .holo-rail:not(#\-)::before {
+        background-image: linear-gradient(180deg, var(--neon-2, #c4e6ff), var(--neon, #7fc8ff) 45%, color-mix(in oklab, var(--neon, #7fc8ff) 24%, transparent));
+        background-color: transparent;
+        box-shadow: 0 0 8px 1px color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent)
+    }
+    .holo-next-box > .holo-rail > li:not(#\-) {
+        border-top-color: color-mix(in oklab, var(--neon, #7fc8ff) 22%, transparent)
+    }
+    .holo-next-box > .holo-rail > li:not(#\-)::before {
+        background-image: none;
+        background-color: #0c0d13;
+        box-shadow: 0 0 0 2px var(--node), 0 0 9px 1px var(--node)
+    }
+    .holo-next-box > .holo-rail > li[data-lead]:not(#\-)::before {
+        background-image: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 2px var(--node), 0 0 0 5px color-mix(in oklab, var(--node) 30%, transparent), 0 0 14px 3px var(--node)
+    }
+    .holo-next-box > .holo-rail > li[data-lead]:not(#\-)::after {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--node) 15%, transparent), transparent 78%);
+        background-color: transparent;
+        box-shadow: inset 2px 0 0 color-mix(in oklab, var(--node) 80%, transparent)
+    }
+    .holo-rail-hex-rim:not(#\-) {
+        fill: color-mix(in oklab, var(--node, #7fc8ff) 9%, #060a1c);
+        stroke: var(--node, #7fc8ff);
+        filter: drop-shadow(0 0 3px color-mix(in oklab, var(--node, #7fc8ff) 75%, transparent))
+    }
+    .holo-rail-hex-in:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--node, #7fc8ff) 38%, transparent)
+    }
+    .holo-rail-hex-glyph:not(#\-) {
+        fill: none;
+        stroke: #f2f7ff
+    }
+    .holo-rail-hex-glyph[data-fill]:not(#\-) {
+        fill: #fff;
+        stroke: #fff
+    }
+    @container holo-body (min-width: 560px) {
+        .holo-next-box > .holo-rail .holo-next-time:not(#\-) {
+            text-shadow: 0 0 12px color-mix(in oklab, var(--node) 55%, transparent)
+        }
+    }
+    @container holo-body (min-width: 560px) {
+        .holo-next-box > .holo-rail > li small:not(#\-) {
+            border-color: color-mix(in oklab, var(--node) 50%, transparent);
+            background-color: #0a0b11b3;
+            color: #e6eefc
+        }
+    }
+    @container holo-body (min-width: 560px) {
+        .holo-next-box > .holo-rail > li[data-when=next] small:not(#\-) {
+            border-color: var(--node);
+            background-color: color-mix(in oklab, var(--node) 20%, #0a0b11);
+            color: #fff;
+            box-shadow: 0 0 10px -2px var(--node)
+        }
+    }
+    .holo-notes-pips i:not(#\-) {
+        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 13%, #ffffff0a);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #7fc8ff) 24%, transparent)
+    }
+    .holo-notes-pips i[data-lit]:not(#\-) {
+        background-color: var(--neon, #7fc8ff);
+        box-shadow: 0 0 7px color-mix(in oklab, var(--neon, #7fc8ff) 72%, transparent)
+    }
+    .holo-notes-pips i[data-lead]:not(#\-) {
+        background-color: #fff;
+        box-shadow: 0 0 8px 1px var(--neon, #7fc8ff), 0 0 18px 2px color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent)
+    }
+    .holo-notes:is([data-size=M], [data-size=L]) .holo-captures li:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #7fc8ff) 26%, transparent);
+        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 6%, #0a0b1180);
+        box-shadow: inset 3px 0 0 color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent)
+    }
+    .holo-notes:is([data-size=M], [data-size=L]) .holo-captures li:first-child:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #7fc8ff) 48%, transparent);
+        box-shadow: inset 3px 0 0 var(--neon-2, #c4e6ff), 0 0 14px -6px var(--neon, #7fc8ff)
+    }
+    .holo-notes:is([data-size=M], [data-size=L]) .holo-captures li:not(#\-)::before {
+        background-image: none;
+        background-color: #0c0d13;
+        box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 1px var(--neon, #7fc8ff)
+    }
+    .holo-notes:is([data-size=M], [data-size=L]) .holo-captures li:first-child:not(#\-)::before {
+        background-image: none;
+        background-color: #fff
+    }
+    .holo-notes:is([data-size=M], [data-size=L]) .holo-captures small:not(#\-) {
+        color: var(--neon-ink, #e3f3ff)
+    }
+    .holo-heart-track:not(#\-) {
+        fill: color-mix(in oklab, #ff74be 7%, #04071a);
+        stroke: color-mix(in oklab, #ff74be 22%, #ffffff10)
+    }
+    .holo-heart-ticks:not(#\-) {
+        fill: none;
+        stroke: #ffa9d8
+    }
+    .holo-heart-end:not(#\-) {
+        fill: #fff;
+        stroke: #ff74be
+    }
+    .holo-hearts .holo-heart-shell:not(#\-) {
+        fill: #14061c;
+        stroke: #ffa9d8
+    }
+    .holo-hearts .holo-heart-fill:not(#\-) {
+        fill: #ff74be;
+        stroke: #ffd3ea;
+        filter: drop-shadow(0 0 2px #ff4fb8)
+    }
+    .holo-hearts li[data-full] .holo-heart-track:not(#\-) {
+        stroke: color-mix(in oklab, #ff74be 40%, #ffffff10)
+    }
+    .holo-label-chip:not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent);
+        color: var(--neon-ink, #fff0cf)
+    }
+    .holo-wave .holo-wave-plot:not(#\-) {
+        box-shadow: 0 -1px 0 #ffd27a3d, 0 1px 0 #ffd27a3d
+    }
+    .holo-wave .holo-wave-tag:not(#\-) {
+        background-image: none;
+        background-color: #0b0d12;
+        box-shadow: inset 0 0 0 1px #ffd27a52
+    }
+    .holo-arc-box:not(#\-)::before {
+        background-image: radial-gradient(closest-side, color-mix(in oklab, var(--neon, #9273ff) 16%, #07090e), #07090e);
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), 0 0 12px -2px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent)
+    }
+    .holo-arc-box .holo-track-path:not([data-unknown]):not(#\-) {
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 24%, #0a0f2c)
+    }
+    .holo-orbit-ring .holo-track:not(#\-) {
+        stroke: color-mix(in oklab, var(--neon, #7fc8ff) 22%, #0a0f2c)
+    }
+    .holo-clock .holo-track:not(#\-) {
+        stroke: color-mix(in oklab, var(--neon, #7fc8ff) 20%, #0a0f2c)
     }
 }
 /*  components/nova/holo/holo.css  */
@@ -19795,6 +19957,82 @@
     .nova-widget[data-holo] .hw-runway-track:not(#\-) {
         background-image: linear-gradient(color-mix(in oklab, var(--neon, #ffd27a) 70%, transparent), color-mix(in oklab, var(--neon, #ffd27a) 70%, transparent)), repeating-linear-gradient(90deg, color-mix(in oklab, var(--neon, #ffd27a) 60%, transparent) 0 1px, transparent 1px calc(100% * 7 / 60));
         background-color: transparent
+    }
+    .nova-widget[data-holo] .tasks-widget .tasks-add:not(#\-) {
+        background-color: #080a0fcc;
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #9273ff) 50%, transparent), 0 0 16px -6px var(--neon, #9273ff)
+    }
+    .nova-widget[data-holo] .tasks-widget .tasks-add:not(#\-)::before {
+        filter: drop-shadow(0 0 4px var(--neon, #9273ff));
+        background-image: linear-gradient(var(--neon-2, #c0adff), var(--neon-2, #c0adff)), linear-gradient(var(--neon-2, #c0adff), var(--neon-2, #c0adff));
+        background-color: transparent
+    }
+    .nova-widget[data-holo] .tasks-widget .tasks-add:not(#\-)::after {
+        background-image: linear-gradient(90deg, var(--neon, #9273ff), color-mix(in oklab, var(--neon, #9273ff) 18%, transparent));
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: #f2f6ff
+    }
+    .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-):not(:focus-visible):not(#\-) {
+        box-shadow: none
+    }
+    .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-):not(#\-)::placeholder {
+        color: #b9c6e2
+    }
+    .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-):not(#\-) {
+        border-left-color: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)
+    }
+    .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        border-left-color: color-mix(in oklab, var(--neon, #9273ff) 70%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 26%, #0a0b11);
+        color: #fff
+    }
+    .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):not(:focus-visible):not(#\-) {
+        box-shadow: inset 0 1px 0 #ffffff33, inset 0 0 16px -4px var(--neon, #9273ff), 0 0 12px -4px var(--neon, #9273ff)
+    }
+    .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #9273ff) 40%, #060a1c)
+    }
+    .nova-widget[data-holo] .hw-glance > .hw-rows > .hw-row:nth-child(n):not(#\-) {
+        border-color: color-mix(in oklab, var(--neon, #7fc8ff) 24%, transparent);
+        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 6%, #0a0b1180);
+        box-shadow: inset 3px 0 0 color-mix(in oklab, var(--neon, #7fc8ff) 70%, transparent)
+    }
+    .nova-widget[data-holo] .nova-playing .nova-disc i:not(#\-) {
+        box-shadow: inset 0 2px 0 #ffffffd9, inset 0 -2px 0 #ffffff73, 0 0 9px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
+    }
+    .nova-widget[data-holo] .nova-playing > .nova-disc:not(#\-) {
+        background-image: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)), none;
+        background-color: #080a0f
+    }
+    .nova-widget[data-holo] .nova-playing .nova-round:not(#\-) {
+        box-shadow: 0 0 0 1px var(--neon, #7fc8ff), 0 0 14px -2px var(--neon, #7fc8ff), inset 0 0 12px -4px var(--neon, #7fc8ff)
+    }
+    .nova-widget[data-holo] .hw-focus .holo-cols-slot:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 10%, #080a0f);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neon, #7fc8ff) 40%, transparent)
+    }
+    .nova-widget[data-holo] .hw-focus .holo-cols-day[data-today] .holo-cols-slot:not(#\-) {
+        box-shadow: inset 0 0 0 1.5px var(--neon-2, #c4e6ff), 0 0 12px -1px var(--neon, #7fc8ff)
+    }
+    .nova-widget[data-holo] .hw-focus .holo-cols-slot:not(#\-)::after {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--neon, #7fc8ff) 55%, transparent)
+    }
+    @container holo-body (min-height: 150px) {
+        .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not([data-priced]):not(#\-)::after {
+            background-image: linear-gradient(135deg, transparent calc(33.33% - .8px), var(--neon, #ffd27a) calc(33.33% - .8px) calc(33.33% + .8px), transparent calc(33.33% + .8px)), linear-gradient(225deg, transparent calc(33.33% - .8px), var(--neon, #ffd27a) calc(33.33% - .8px) calc(33.33% + .8px), transparent calc(33.33% + .8px)), repeating-linear-gradient(90deg, var(--neon, #ffd27a) 0 6px, transparent 6px 12px);
+            background-color: transparent
+        }
     }
 }
 /*  components/nova/workflows/workflows.css  */

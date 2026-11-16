@@ -4084,6 +4084,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nc-habitweek[data-size=L] .nc-habitweek-top .nc-hero:not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; }
 @container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] .nc-habitweek-top .nc-hero:not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; } }
 @container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-habitweek[data-size=M] > .nc-lattice :is(.nc-lattice-head, .nc-lattice-row):not(#\-) { row-gap: 4.5px; } }
+:where(:root[data-density=compact]) .nc-goal-tag[data-at=target]:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-goal-tag[data-at=today]:not(#\-) { margin-top: 0; padding-top: 0; padding-bottom: 0; }
 /*  components/nova/cards/nova-cards.css  */
 :where(:root[data-density=compact]) .nc-requests-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 0; }
 :where(:root[data-density=compact]) .nc-request:not(#\-) { row-gap: 1px; padding-top: 6px; padding-bottom: 6px; }
@@ -4135,6 +4137,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-density=compact]) .nc-brain[data-size=L] .nc-brain-head:not(#\-) { row-gap: 26px; } }
 @container holo-body (min-width: 520px) and (max-width: 619px) { :where(:root[data-density=compact]) .nc-sees[data-size=M] .nc-sees-grid li:not(#\-) { padding-top: 0; padding-bottom: 0; row-gap: 4.5px; } }
 :where(:root[data-density=compact]) .nc-requests:not([data-size=S]) > .nc-requests-rows:not(#\-) { margin-top: auto; margin-bottom: auto; }
+@container holo-body (min-height: 1px) { :where(:root[data-density=compact]) .nc-requests:not([data-size=S]) > .nc-requests-rows:not(#\-) { margin-top: 0; margin-bottom: 0; } }
 /*  components/nova/cards/wealth-cards.css  */
 :where(:root[data-density=compact]) .nc-body.nc-networth-card:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-spending-card:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-budgets-card:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-bills-card:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nc-body.nc-networth-card[data-size=S]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-spending-card[data-size=S]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-budgets-card[data-size=S]:not(#\-), :where(:root[data-density=compact]) .nc-body.nc-bills-card[data-size=S]:not(#\-) { row-gap: 3px; }
@@ -4192,6 +4195,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nc-budgets-card:is([data-size=M], [data-size=L]) .nc-budgets-top .nc-hero-figure:not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; }
 @container holo-body (max-width: 250px) { :where(:root[data-density=compact]) .nc-budgets-card[data-size=M] .nc-budgets-top .nc-hero-figure:not(#\-) { margin-top: 0; margin-bottom: 0; } }
 :where(:root[data-density=compact]) .nc-body.nc-spending-card:is([data-size=M], [data-size=L]):not(#\-) { padding-top: 4.5px; }
+:where(:root[data-density=compact]) .nc-bills-card .nc-bills-row:not(#\-) { row-gap: 0; padding-top: 3px; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nc-bills-meter:not(#\-) { margin-top: 5px; }
+:where(:root[data-density=compact]) .nc-bills-card .nc-bills-list:not(#\-) { row-gap: 3px; }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-bills-next:not(#\-) { row-gap: 0; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-bills-next .nc-hero-label:not(#\-) { margin-top: 0; margin-bottom: 8px; } }
+@container holo-body (min-width: 520px) { :where(:root[data-density=compact]) .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-when:not(#\-) { margin-top: 6px; } }
 /*  components/nova/cards/whole-rows.css  */
 :where(:root[data-density=compact]) .wr:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .nova-widget .wr-inline > li.wr-more:not(#\-) { padding-top: 2.25px; padding-bottom: 0; }
@@ -4556,6 +4565,18 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-notes:is([data-size=M], [data-size=L]) .holo-notes-head:not(#\-) { row-gap: 4px; } }
 @container holo-next (max-width: 439.98px) { :where(:root[data-density=compact]) :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li:not(#\-) { padding-top: 5px; } }
 @container holo-next (max-width: 439.98px) { :where(:root[data-density=compact]) :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li a:not(#\-), :where(:root[data-density=compact]) :is(.holo-agenda, .holo-orbit)[data-size=M] .holo-next li > span:nth-child(2):not(#\-) { margin-top: -12px; margin-bottom: -6px; } }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-next-box > .holo-rail > li small:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
+:where(:root[data-density=compact]) .holo-notes:is([data-size=M], [data-size=L]) .holo-notes-pips:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .holo-notes:is([data-size=M], [data-size=L]) .holo-captures:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .holo-notes:is([data-size=M], [data-size=L]) .holo-captures li:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .holo-notes:is([data-size=M], [data-size=L]) .holo-captures li:not(#\-)::before { margin-top: -4px; }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-notes:is([data-size=M], [data-size=L]) .holo-notes-pips:not(#\-) { margin-top: 8px; margin-bottom: 0; } }
+:where(:root[data-density=compact]) .holo-label-chip:not(#\-) { padding-top: 0; padding-bottom: 0; }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .holo-wealth:is([data-size=M], [data-size=L]) .holo-wealth-head .holo-label:not(#\-) { row-gap: 4px; } }
+:where(:root[data-density=compact]) .holo-frame.holo-wave:not(#\-) { padding-top: 22px; padding-bottom: 22px; }
+:where(:root[data-density=compact]) .holo-wave .holo-wave-tag:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .holo-arc-box .holo-lead:not(#\-) { margin-top: -4.5px; margin-bottom: 0; }
+@container holo-body (max-width: 559.98px) { :where(:root[data-density=compact]) .nova-orbit-band-grid :is(.holo-agenda, .holo-orbit)[data-size=M]:not(#\-) { row-gap: 10px; } }
 /*  components/nova/holo/holo.css  */
 :where(:root[data-density=compact]) .nova-widget[data-holo]:not(#\-)::after { padding-top: 1.5px; padding-bottom: 1.5px; }
 :where(:root[data-density=compact]) .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):not(#\-)::after { padding-top: 0; padding-bottom: 0; }
@@ -5034,6 +5055,16 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @container holo-body (max-height: 79.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not(#\-) { row-gap: 7.5px; padding-top: 0; padding-bottom: 0; } }
 @container holo-body (max-height: 79.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .hw-markets-box .hw-row > small:not(.sr-only):not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; } }
 @container holo-body (max-height: 79.98px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .hw-markets-box:not(#\-) { row-gap: 2px; padding-top: 2px; } }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-add:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input:not(#\-):not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-):not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):not(#\-) { padding-top: 0; padding-bottom: 0; }
+@container holo-body (max-width: 420px) { :where(:root[data-density=compact]) .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add input[type=time]:not(#\-):not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@container holo-body (max-width: 420px) { :where(:root[data-density=compact]) .nova-root .nova-widget[data-holo] .tasks-widget .tasks-add button:not(#\-):not(#\-) { padding-top: 0; padding-bottom: 0; } }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-glance .hw-rows:not(#\-) { row-gap: 5px; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .hw-glance > .hw-rows > .hw-row:nth-child(n):not(#\-) { padding-top: 3.75px; padding-bottom: 3.75px; }
+@container holo-body (min-width: 300px) { :where(:root[data-density=compact]) .nova-orbit-band-grid .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols:not(#\-) { margin-top: 4px; } }
+@container holo-body (min-height: 150px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .hw-markets-rows > .hw-markets > .hw-row:not([data-priced]):not(#\-) { padding-top: 9px; } }
 /*  components/nova/workflows/workflows.css  */
 :where(:root[data-density=compact]) .nova-workflows:not(#\-), :where(:root[data-density=compact]) .nova-wf-run:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nova-workflows h4:not(#\-), :where(:root[data-density=compact]) .nova-wf-run h3:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit h3:not(#\-) { margin-top: 4px; margin-bottom: 0; }
