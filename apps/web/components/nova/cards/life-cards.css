@@ -404,3 +404,35 @@
 .nc-goal[data-size] > .nc-goal-chart { margin-right: 62px; }
 .nc-goal-tag[data-at=target] { right: auto; left: calc(100% + 8px); transform: translateY(-50%); padding: 0; border-left: 0; background: none; }
 .nc-goal-tag[data-at=today] { top: calc(100% + 5px) !important; margin-top: 0; border-left: 0; padding: 0 2px; background: none; }
+
+/* ---- Session AR (Part 2): Time in a tier of the composed stage (the critics: "a small figure in dead space") ----
+   The dial is the instrument. A row's name is never cut (it may take two lines). Wide (2560): the time and the three
+   rows in a column on the left, the dial the whole height of the body on the right; the strips of the large size are
+   the dial's figures again (decoration) and stand down, the facts stay under the rows. */
+.nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time .nc-time-row-name { white-space: normal; overflow: visible; text-overflow: clip; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time[data-size=M] .nc-hero-label { white-space: normal; overflow: visible; text-overflow: clip; }
+/* Narrow (1440, 1920): a row's name stands over its percent and what is left, so a name never wraps beside the dial. */
+@container holo-body (max-width: 519.98px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time[data-size=M] .nc-time-rows li { grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; padding-block: 3px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time[data-size=M] .nc-time-row-name { grid-column: 1 / -1; white-space: nowrap; letter-spacing: .05em; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time[data-size=M] .nc-time-row-left { grid-column: 2; align-self: baseline; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time[data-size=M] .nc-time-rings { gap: 14px; }
+}
+@container holo-body (max-width: 519.98px) and (min-height: 240px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-time[data-size=M] .nc-time-dial { --nc-size: clamp(104px, min(46cqi, 100cqh - 150px), 200px); }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-time[data-size=M] .nc-time-row-left { display: block; }
+}
+@container holo-body (min-width: 520px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr) auto auto; grid-template-areas: "row dial" "rows dial" "facts dial" "foot foot"; gap: 10px 32px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) > .nc-time-rings { display: contents; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) > .nc-row { grid-area: row; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) .nc-time-rows { grid-area: rows; align-self: center; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) .nc-time-dial { grid-area: dial; align-self: center; --nc-size: clamp(140px, min(100cqh - 90px, 42cqi), 400px); }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) .nc-hero .nc-hero-num { font-size: clamp(44px, 9cqi, 56px); }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) > .nc-facts { grid-area: facts; grid-template-columns: minmax(0, 1fr); }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) > .nc-time-strips { display: none; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) > .nc-foot { grid-area: foot; margin-top: 0; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) .nc-hero { flex-direction: column; align-items: flex-start; flex-wrap: nowrap; gap: 0; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) .nc-hero-label { order: -1; margin: 0 0 6px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-time:is([data-size=M], [data-size=L]) .nc-time-row-left { display: block; }
+}

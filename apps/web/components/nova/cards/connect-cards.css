@@ -380,6 +380,14 @@
 
 @media (forced-colors: active) { .nx-row-node, .nx-key i[data-cell=done], .nx-dots i[data-on], .nx-hour i[data-on], .nx-segs i[data-on] { background: Highlight; box-shadow: none; forced-color-adjust: none; } }
 
+/* ---- Cash flow (Session AR, Part 2): the months are the instrument; this month's in and out one line under the figure ---- */
+.nx-flow-io { display: flex; flex-wrap: wrap; gap: 2px 16px; margin-top: 4px; font-size: 15px; }
+.nx-flow-io b { font-weight: 650; color: var(--neon-ink, #f2f6ff); font-variant-numeric: tabular-nums; }
+.nx-flow .nx-main { gap: 6px; }
+.nx-flow .nx-main > .nc-columns { flex: 1 1 auto; min-height: 0; }
+/* A short supporting panel (1440: about 150 px of body) keeps the figure and the months; in and out are in the table. */
+@container holo-body (max-height: 199.98px) and (max-width: 519.98px) { .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-flow .nx-flow-io { display: none; } }
+
 /* ---- Journal numbers by day (round 6): fourteen columns, each wide enough to read as a bar ---- */
 .nx-journal[data-by=day] :is(.nc-columns-plot, .nc-columns-labels) { gap: 4px; }
 .nx-journal[data-by=day] .nc-column::before, .nx-journal[data-by=day] .nc-column i { width: clamp(8px, 78%, 30px); }

@@ -8,6 +8,7 @@ import {HoloFigure, Orn, Unlit} from '../holo/parts';
 import {WholeRows} from './whole-rows';
 import '../holo/holo-parts.css';
 import './cards.css';
+import './tiers.css';
 
 /**
  * Session AM (ADR-038 D1–D5; art direction §4) and AM-2 (the design language, sections B–E): the kit of the widgets NOVA

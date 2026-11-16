@@ -1,0 +1,97 @@
+/*
+ * Session AR (Part 2, ADR-041 P3, S1–S3; "tiers in the bodies"): the kit's widgets on the composed stage. Each panel beside
+ * the star carries its tier (`data-tier` on `.nova-widget`, worked out by lib/nova/compose.ts, never stored), and its body
+ * is drawn at the tier's size (hero → L or M, supporting → M, compact → S). These rules size what a body draws from its
+ * tier and its own box (container units of `holo-body`), so the same kind is one dominant instrument in a hero, an
+ * instrument and its figure in a supporting panel, and one line in a compact plate:
+ *   HERO        the main figure 36–44 px at 1440 and 48–64 px at 2560; one instrument takes most of the body; the figure's
+ *               label and at most one more line beside it.
+ *   SUPPORTING  the instrument and the figure (30–44 px); nothing cramped.
+ *   COMPACT     the figure and one micro-instrument on one line, and the foot (source and as-of, whole).
+ * Only the composed stage (`.nova-orbit-main[data-compose]`) is touched: Bento, Focus, Minimal, the phone and arranging keep
+ * their sheets. The selectors carry the stage's own prefix so they win over each realm's sheet whichever loads last.
+ * Nothing here animates; every colour is a realm token the other sheets already use.
+ */
+
+/* ---- Every tier: the foot (source and as-of) is whole: it wraps under itself instead of ending in an ellipsis ---- */
+.nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-body > .nc-foot { white-space: normal; overflow: visible; text-overflow: clip; text-wrap: pretty; }
+
+/* A body's lines marked `data-extra` (a third support: who the money went to, a caveat the foot or the table also holds)
+   stand only where the body is tall enough for them beside its instrument. */
+@container holo-body (max-height: 299.98px) { .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-body [data-extra] { display: none; } }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body [data-extra] { display: none; }
+
+/* ================= HERO ================= */
+/* The main figure grows with the panel's width: 36 px in a 280 px body (1440), about 44 px at 1920, 62 px in a 590 px one
+   (2560). A long figure ("€12,345.67") steps down so it stays on its line. */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body .nc-hero .nc-hero-num { font-size: clamp(36px, calc(10px + 9cqi), 64px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body .nc-hero[data-len=l] .nc-hero-num { font-size: clamp(34px, calc(6px + 8.6cqi), 58px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body .nc-hero[data-len=xl] .nc-hero-num { font-size: clamp(28px, calc(4px + 7.2cqi), 50px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body .nc-hero-unit { font-size: clamp(16px, 3.4cqi, 22px); }
+
+/* The connected cards (connect-cards.css): a hero is always stacked, the figure over its instrument, and the instrument
+   takes every pixel the figure and the foot leave (no side-by-side column with a small figure in dead space). */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body.nx-card:is([data-lay=hero], [data-lay=chart]) { display: flex; flex-direction: column; gap: 10px; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body.nx-card:is([data-lay=hero], [data-lay=chart]) > .nx-main { flex: 1 1 0; min-height: 0; justify-content: center; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body.nx-card:is([data-lay=hero], [data-lay=chart]) > .nc-foot { margin-top: 0; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-trend-plot,
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-columns-plot { flex: 1 1 0; min-height: 60px; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nx-main > :is(.nc-trend, .nc-columns) { flex: 1 1 0; }
+/* Meters in a hero are the instrument: thicker tubes, the rows spread over the height they have. */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-bar-track { height: clamp(16px, 4.2cqi, 24px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-bars { gap: 12px; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier]:is([data-tier=hero], [data-tier=supporting]) .nx-card > .nx-main > .nc-bars { flex: 1 1 auto; align-content: space-evenly; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card > .nx-main[data-fit=rows] { flex: 1 1 0; min-height: 0; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-bar-label,
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-bar-value { font-size: 16px; }
+
+/* A dial card in a hero: the ring IS the panel. Narrow (1440, 1920): the ring centred over the full width, its words under
+   it; wide (2560): the ring the whole height on the left, the words and the instrument beside it. The ring's figure is
+   sized from the ring itself (the gauge is a size container): 24 % of its width, 36–64 px. */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body.nx-card[data-lay=dial] { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; grid-template-areas: "dial" "head" "foot"; gap: 10px; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-main:not([data-keep]) { display: none; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-dial { --nc-size: clamp(110px, min(100cqh - 112px, 100cqi - 24px), 340px); align-self: center; justify-self: center; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-head { text-align: center; justify-items: center; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] .nx-dial-figure b { font-size: clamp(30px, 24cqi, 64px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] .nx-dial-figure[data-len=l] b { font-size: clamp(28px, 19cqi, 56px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] .nx-dial-figure[data-len=xl] b { font-size: clamp(24px, 15cqi, 48px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] .nx-dial-figure small { display: block; font-size: clamp(14px, 7cqi, 18px); }
+@container holo-body (min-width: 480px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body.nx-card[data-lay=dial] { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr) auto; grid-template-areas: "dial ." "dial head" "dial main" "dial ." "foot foot"; gap: 0 28px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-dial { --nc-size: clamp(140px, min(100cqh - 52px, 56cqi), 420px); }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-head { text-align: start; justify-items: start; margin-bottom: 10px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-main:not([data-keep]) { display: flex; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nc-foot { margin-top: 8px; }
+}
+
+/* ================= SUPPORTING ================= */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nc-body .nc-hero .nc-hero-num { font-size: clamp(32px, calc(14px + 5cqi), 44px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nc-body .nc-hero[data-len=l] .nc-hero-num { font-size: clamp(28px, calc(10px + 4.6cqi), 40px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nc-body .nc-hero[data-len=xl] .nc-hero-num { font-size: clamp(24px, calc(8px + 4cqi), 34px); }
+/* A short supporting body (1440: about 150 px) keeps the figure and its instrument; a note that is not a row of the
+   instrument leaves first (the table keeps it). */
+@container holo-body (max-height: 199.98px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card > .nx-main > .nx-note,
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card > .nx-note,
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card > .nx-main > .nx-cap { display: none; }
+}
+
+/* ================= COMPACT ================= */
+/* One line: the figure (sized from the plate's height and width, 30–56 px), its label beside it, the small instrument at
+   the row's end, and the foot under them, whole. The label may take two lines; it is never cut. */
+/* The figure leaves room for a foot of two lines (a long source and as-of wraps; it is never cut). */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body .nc-hero .nc-hero-num { font-size: clamp(28px, min(100cqh - 44px, 8px + 7cqi), 56px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body .nc-hero[data-len=l] .nc-hero-num { font-size: clamp(28px, min(100cqh - 44px, 6px + 6cqi), 48px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body .nc-hero[data-len=xl] .nc-hero-num { font-size: clamp(26px, min(100cqh - 46px, 4px + 5.2cqi), 42px); }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body .nc-hero-label { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.2; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nx-card[data-size=S] .nx-head > :is(.nx-cap, .nx-title) { white-space: normal; overflow: visible; text-overflow: clip; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nx-card[data-size=S] .nx-title { font-size: clamp(24px, min(100cqh - 46px, 4px + 5.4cqi), 40px); line-height: 1.1; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body { gap: 4px; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body > .nc-foot { padding-top: 4px; line-height: 1.25; }
+/* A plate under 460 px of body (1920): the panel's own title names the figure, so the label beside it is read out but
+   not drawn (a word cut, or a label squeezed into a column of letters, is worse than none). It stays in the panel for
+   assistive technology. */
+@container holo-body (max-width: 459.98px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body .nc-hero-label,
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nx-card[data-size=S] .nx-head > .nx-cap { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
