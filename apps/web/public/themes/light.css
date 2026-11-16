@@ -16685,9 +16685,9 @@
         border-color: color-mix(in oklab, var(--neon, #9273ff) 78%, transparent);
         --holo-tint: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 16%, transparent) 0, transparent 44px),
     linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 9%, transparent) 0, transparent 30%),
-    linear-gradient(165deg, color-mix(in oklab, var(--neon, #9273ff) 9%, #060a22) 0%, #04071b 42%, #020413 100%);
-        --holo-grid: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 6.5%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 6.5%, transparent) 1px, transparent 1px) 0 0 / 24px 24px;
-        --holo-scan: repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 3px);
+    linear-gradient(165deg, color-mix(in oklab, var(--neon, #9273ff) 5%, #04071a) 0%, #030513 42%, #01020c 100%);
+        --holo-grid: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 3.2%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 3.2%, transparent) 1px, transparent 1px) 0 0 / 24px 24px;
+        --holo-scan: repeating-linear-gradient(0deg, #ffffff03 0 1px, transparent 1px 3px);
         --holo-glass: var(--holo-scan), var(--holo-grid), var(--holo-tint);
         --holo-bloom: 0 0 9px 1px color-mix(in oklab, var(--neon, #9273ff) 78%, transparent), 0 0 38px 3px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent), 0 0 120px 18px color-mix(in oklab, var(--neon, #9273ff) 10%, transparent), 0 34px 60px -22px #000e, 0 64px 50px -46px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent);
         background: var(--holo-glass);
@@ -16709,7 +16709,7 @@
     }
     .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):not(#\-)::before {
         border-color: currentcolor;
-        background: radial-gradient(150px 110px at 0 0, color-mix(in oklab, var(--neon, #9273ff) 20%, transparent), transparent 72%), radial-gradient(190px 120px at 100% 100%, color-mix(in oklab, var(--neon, #9273ff) 15%, transparent), transparent 72%), linear-gradient(128deg, #2424240b 0, #24242405 16%, transparent 16.2%, transparent 100%), var(--holo-glass);
+        background: radial-gradient(150px 110px at 0 0, color-mix(in oklab, var(--neon, #9273ff) 15%, transparent), transparent 72%), radial-gradient(190px 120px at 100% 100%, color-mix(in oklab, var(--neon, #9273ff) 11%, transparent), transparent 72%), linear-gradient(128deg, #24242408 0, #24242403 16%, transparent 16.2%, transparent 100%), var(--holo-glass);
         box-shadow: inset 0 0 24px -9px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), inset 0 1px 0 0 #9e9e9e15, inset 1px 0 0 0 #9e9e9e0a
     }
     .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging]):is(:hover, :focus-within):not(#\-)::after {
@@ -18559,13 +18559,13 @@
         fill: none
     }
     .cc-bezel-line:not(#\-) {
-        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 78%, transparent)
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 88%, #fff)
     }
     .cc-bezel-glow:not(#\-) {
-        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 22%, transparent)
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 26%, transparent)
     }
     .cc-bezel-ticks:not(#\-) {
-        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, transparent)
+        stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 84%, transparent)
     }
     .cc-bezel-marks:not(#\-) {
         stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff)
@@ -18737,7 +18737,7 @@
         background-color: transparent
     }
     .ps-card-name:not(#\-) {
-        color: color-mix(in oklab, color-mix(in srgb, var(--neon) 42%, #000) 36%, #0f0f0f)
+        color: color-mix(in srgb, color-mix(in srgb, var(--neon) 42%, #000) 36%, #0f0f0f)
     }
     .ps-card-figure:not(#\-) {
         color: #0f0f0f
