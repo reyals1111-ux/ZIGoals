@@ -2199,8 +2199,12 @@
 :where(:root[data-text=large]) .ncx-state:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ncx-rx-words:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .nova-turn-local .ncx-rx-words:not([data-gauge]) > div > p:first-child > .ncx-fig:first-of-type:not(#\-) { font-size: calc(22px * 1.125); }
-:where(:root[data-text=large]) .ncx-ring-figure:not(#\-) { font-size: calc(19px * 1.125); }
-:where(:root[data-text=large]) .ncx-ring-figure[data-long]:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .ncx-ring-figure:not(#\-) { font-size: calc(27px * 1.125); }
+:where(:root[data-text=large]) .ncx-ring-figure[data-unit]:not(#\-)::after { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .ncx-ring-figure[data-long]:not(#\-) { font-size: calc(20px * 1.125); }
+:where(:root[data-text=large]) .ncx-ring[data-kind=count] .ncx-ring-figure:not(#\-) { font-size: calc(32px * 1.125); }
+:where(:root[data-text=large]) .ncx-ring[data-kind=count] .ncx-ring-figure[data-long]:not(#\-) { font-size: calc(22px * 1.125); }
+:where(:root[data-text=large]) .ncx-inst-cap:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-chat .ai-turn-kind[data-kind=change]:not(#\-)::before { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-chat .ai-turn-source:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-chat .ai-turn-records:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2216,8 +2220,8 @@
 :where(:root[data-text=large]) .ncx-dock > details:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ncx-requests .ns-onetap > .ns-chip:not(#\-):not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ncx-dock > details > summary:not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .nova-chat-sheet .ncx-ring-figure:not(#\-) { font-size: calc(17px * 1.125); }
-:where(:root[data-text=large]) .nova-chat-sheet .ncx-ring-figure[data-long]:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nova-chat-sheet .ncx-ring-figure:not(#\-) { font-size: calc(23px * 1.125); }
+:where(:root[data-text=large]) .nova-chat-sheet .ncx-ring-figure[data-long]:not(#\-) { font-size: calc(17px * 1.125); }
 /*  components/nova/chat/nova-chat.css  */
 :where(:root[data-text=large]) .nova-chat-eyebrow:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-chat-title:not(#\-) { font-size: calc(24px * 1.125); }
@@ -2225,7 +2229,7 @@
 :where(:root[data-text=large]) .nova-chat-tool:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-welcome-title:not(#\-) { font-size: calc(clamp(28px,4vw,38px) * 1.125); }
 :where(:root[data-text=large]) .nova-turn-who:not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .nova-turn-user .nova-turn-body p:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .nova-turn-user .nova-turn-body p:not(.nova-turn-who):not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .nova-turn-live .nova-turn-body>div:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .nova-voice:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-looked:not(#\-) { font-size: calc(14px * 1.125); }
