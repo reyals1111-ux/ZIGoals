@@ -267,3 +267,7 @@
   .nc-bills-card[data-size=M] .nc-bills-next .nc-hero-figure { grid-area: figure; align-self: end; }
   .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-when { grid-area: when; align-self: start; margin-top: 6px; }
 }
+
+/* Session AR (Part 2): a short narrow supporting panel (1440: about 280 x 150 of body) holds the next bill, its countdown
+   ring and the foot; the bills after it are the hero's and the table's (a row kept there would run over the foot). */
+@container holo-body (max-width: 519.98px) and (max-height: 199.98px) { .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nc-bills-card[data-size=M] > .nc-bills-after { display: none; } }

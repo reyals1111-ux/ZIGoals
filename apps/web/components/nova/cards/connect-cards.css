@@ -388,6 +388,25 @@
 /* A short supporting panel (1440: about 150 px of body) keeps the figure and the months; in and out are in the table. */
 @container holo-body (max-height: 199.98px) and (max-width: 519.98px) { .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-flow .nx-flow-io { display: none; } }
 
+/* ---- Session AR (Part 2): a short narrow supporting panel (1440: about 280 × 150 of body) ----
+   Two read-outs stand side by side, each its small drawing over its label and value; the line under each is in the
+   table. A dial card keeps its ring and its words (the instrument under them is the hero's). */
+@container holo-body (max-width: 519.98px) and (max-height: 199.98px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-size=M] .nx-duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 14px; align-items: start; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-size=M] .nx-inst { grid-template-columns: minmax(0, 1fr); }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-size=M] .nx-inst > :is(.nx-dots, .nx-ring) { display: none; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-size=M] .nx-readout-sub { display: none; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-size=M] .nx-readout-value { font-size: 22px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-lay=dial][data-size=M] > .nx-main:not([data-keep]) { display: none; }
+}
+
+/* Savings challenges in a narrow tiered panel: each card is its ring, its kind and its goal (the sentence under them is
+   in the table), and the cards never spill upward over the head when the panel is short. */
+@container holo-body (max-width: 519.98px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nx-card[data-size=M] .nx-ringcard-sub { display: none; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nx-card[data-size=M] .nx-ringcards { align-content: safe center; }
+}
+
 /* ---- Journal numbers by day (round 6): fourteen columns, each wide enough to read as a bar ---- */
 .nx-journal[data-by=day] :is(.nc-columns-plot, .nc-columns-labels) { gap: 4px; }
 .nx-journal[data-by=day] .nc-column::before, .nx-journal[data-by=day] .nc-column i { width: clamp(8px, 78%, 30px); }
