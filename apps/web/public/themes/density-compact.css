@@ -3862,6 +3862,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nc-columns-plot:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nc-columns-line b:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nc-columns-labels:not(#\-) { row-gap: 6px; margin-top: 5px; }
+:where(:root[data-density=compact]) :is(.nc-action, .nova-widget[data-holo] .holo-empty-action, .nova-widget[data-holo] .nova-empty > .nova-link):not(#\-) { padding-top: 6px; padding-bottom: 6px; }
 /*  components/nova/cards/connect-cards.css  */
 :where(:root[data-density=compact]) .nc-body.nx-card:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nc-body.nx-card[data-size=S]:not(#\-) { row-gap: 3px; }
