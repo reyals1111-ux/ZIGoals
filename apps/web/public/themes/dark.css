@@ -13295,22 +13295,6 @@
         fill: none;
         stroke: var(--neon-ink, #eef3ff)
     }
-    .nc-ghost-grid:not(#\-) {
-        fill: none;
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 24%, transparent)
-    }
-    .nc-ghost-line:not(#\-) {
-        fill: none;
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
-    }
-    .nc-ghost-base:not(#\-) {
-        fill: none;
-        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 48%, transparent)
-    }
-    .nc-ghost-dot:not(#\-) {
-        fill: #050919;
-        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent)
-    }
     .nc-notice-title:not(#\-) {
         color: var(--neon-ink, #f2f6ff);
         text-shadow: 0 0 12px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent)
@@ -13330,11 +13314,22 @@
         background-image: linear-gradient(180deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c), color-mix(in oklab, var(--neon, #9273ff) 24%, #0a0b11));
         background-color: transparent
     }
+    @container holo-body (min-width: 296px) {
+        .nc-notice-ring:not(#\-) {
+            fill: #050919
+        }
+    }
     .nc-g-a:not(#\-) {
         stop-color: var(--neon, #9273ff)
     }
     .nc-g-b:not(#\-) {
         stop-color: var(--neon-2, #c0adff)
+    }
+    .nc-g-c:not(#\-) {
+        stop-color: var(--neon-b, var(--neon, #9273ff))
+    }
+    .nc-gauge[data-tone=over]:not(#\-) {
+        --neon-b: #ffb38a
     }
     .nc-fill-a:not(#\-) {
         stop-color: var(--neon, #9273ff)
@@ -13419,7 +13414,7 @@
         stroke: color-mix(in oklab, var(--neon, #9273ff) 15%, #060a20)
     }
     .nc-gauge .nc-arcmark[data-unknown] .nc-gauge-track:not(#\-) {
-        stroke: #c9d4ea
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 13%, #070b1d)
     }
     .nc-gauge .nc-gauge-glow:not(#\-) {
         filter: blur(4px)
@@ -13693,14 +13688,18 @@
         border-color: color-mix(in oklab, var(--neon-2, #8ff6ff) 60%, transparent)
     }
     .nc-column i:not(#\-) {
-        background-image: linear-gradient(to top, color-mix(in oklab, var(--neon, #23eaff) 35%, #121419), var(--neon, #23eaff) 78%, var(--neon-2, #8ff6ff));
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #23eaff) 46%, #070b22) 0, var(--neon, #23eaff) 24%, var(--neon-2, #8ff6ff) 42%, #fff 50%, var(--neon-2, #8ff6ff) 58%, var(--neon, #23eaff) 76%, color-mix(in oklab, var(--neon, #23eaff) 46%, #070b22) 100%);
         background-color: transparent;
-        box-shadow: 0 0 14px 1px color-mix(in oklab, var(--neon, #23eaff) 60%, transparent), inset 1px 0 0 #ffffff40, inset -1px 0 0 #ffffff1f
+        box-shadow: 0 0 16px 1px color-mix(in oklab, var(--neon, #23eaff) 62%, transparent), 0 0 3px 0 var(--neon-2, #8ff6ff)
     }
     .nc-column i:not(#\-)::after {
         background-image: none;
         background-color: #fff;
-        box-shadow: 0 0 6px 1px #fff, 0 0 12px 3px var(--neon, #23eaff)
+        box-shadow: 0 0 6px 1px #fff, 0 0 14px 4px var(--neon, #23eaff)
+    }
+    .nc-column i:not(#\-)::before {
+        background-image: radial-gradient(closest-side, color-mix(in oklab, var(--neon, #23eaff) 70%, transparent), transparent);
+        background-color: transparent
     }
     .nc-column[data-empty]:not(#\-)::before {
         border-color: #ffffff3d;
@@ -13774,11 +13773,10 @@
         --nc-d: var(--nx-art)
     }
     .nx-card :is(.nx-dial, .nx-ring) .nc-arcmark:not([data-unknown]) .nc-gauge-track:not(#\-) {
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a20)
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 16%, #070b1f)
     }
     .nx-card :is(.nx-dial, .nx-ring):not(#\-)::before {
-        background-image: radial-gradient(circle, color-mix(in oklab, var(--neon, #9273ff) 26%, transparent) 0, color-mix(in oklab, var(--neon, #9273ff) 9%, transparent) 52%, transparent 70%);
-        background-color: transparent
+        border-color: color-mix(in oklab, var(--neon, #9273ff) 30%, transparent)
     }
     .nx-dial-figure b:not(#\-) {
         color: var(--neon-ink, #f4f7ff);
@@ -13926,19 +13924,17 @@
     }
     .nx-dots:not(#\-) {
         --nx-box: calc(var(--nx-art) * 1px);
-        border-color: color-mix(in oklab, var(--neon, #9273ff) 46%, transparent);
-        background-image: none;
-        background-color: color-mix(in oklab, var(--neon, #9273ff) 7%, #080a0f);
-        box-shadow: inset 0 0 18px -6px var(--neon, #9273ff)
+        background-image: linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)), linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)), linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)), linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent));
+        background-color: transparent
     }
     .nx-dots i:not(#\-) {
-        border-color: #ffffff66
+        border-color: #ffffff5c
     }
     .nx-dots i[data-on]:not(#\-) {
         border-color: var(--neon-2, #c0adff);
-        background-image: radial-gradient(circle at 34% 30%, #fff 0, var(--neon-2, #c0adff) 26%, var(--neon, #9273ff) 68%, color-mix(in oklab, var(--neon, #9273ff) 60%, #0a1030) 100%);
+        background-image: radial-gradient(circle, #fff 0 15%, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 19% 30%, transparent 44%);
         background-color: transparent;
-        box-shadow: 0 0 10px 1px color-mix(in oklab, var(--neon, #9273ff) 75%, transparent)
+        box-shadow: 0 0 9px 0 color-mix(in oklab, var(--neon, #9273ff) 80%, transparent), inset 0 0 6px 0 color-mix(in oklab, var(--neon, #9273ff) 60%, transparent)
     }
     .nx-chips li:not(#\-) {
         border-color: color-mix(in oklab, var(--neon, #9273ff) 46%, transparent);
@@ -14097,14 +14093,6 @@
     }
     .nx-mk-note:not(#\-) {
         color: #cdd8ee
-    }
-    .nx-lg-line:not(#\-) {
-        fill: none;
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 52%, transparent)
-    }
-    .nx-lg-dash:not(#\-) {
-        fill: none;
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)
     }
 }
 /*  components/nova/cards/health-cards.css  */
@@ -14750,6 +14738,19 @@
     }
     .nw-cloud-shine:not(#\-) {
         stroke: #fff
+    }
+    .nw-scene .nw-sun-core:not(#\-) {
+        fill: #070b1e;
+        stroke: #ffe9b0
+    }
+    .nw-scene .nw-rays:not(#\-) {
+        stroke: #ffe2a0
+    }
+    .nw-scene .nw-moon-body:not(#\-) {
+        fill: #070b1e
+    }
+    .nw-scene .nw-cloud:not(#\-) {
+        fill: #070b1e
     }
     .nw-fog path:not(#\-) {
         stroke: #dbe6f6
@@ -16105,6 +16106,24 @@
         --neon-2: var(--nova-b, #63e7ff);
         --neon-ink: #f1edff
     }
+    .nova-widget[data-pillar=health]:not(#\-) {
+        --neon-b: #a98bff
+    }
+    .nova-widget[data-pillar=habits]:not(#\-) {
+        --neon-b: #8f7dff
+    }
+    .nova-widget[data-pillar=goals]:not(#\-) {
+        --neon-b: #35d6ff
+    }
+    .nova-widget[data-pillar=wealth]:not(#\-) {
+        --neon-b: #ff9f6e
+    }
+    .nova-widget[data-pillar=orbit]:not(#\-) {
+        --neon-b: #a995ff
+    }
+    .nova-widget[data-pillar=mind]:not(#\-) {
+        --neon-b: #6fd4ff
+    }
     .holo-num:not(#\-) {
         color: var(--neon-ink, #eef3ff);
         text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 28px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent)
@@ -16169,7 +16188,7 @@
     }
     .holo-arc:not(#\-) {
         fill: none;
-        stroke: color-mix(in oklab, var(--neon-2, #c0adff) calc(var(--t, 1) * 72%), var(--neon, #9273ff))
+        stroke: color-mix(in oklab, color-mix(in oklab, var(--neon-2, #c0adff) 58%, var(--neon, #9273ff)) calc(var(--t, 1) * 100%), var(--neon-b, var(--neon, #9273ff)))
     }
     .holo-arc-g:not(#\-) {
         filter: drop-shadow(0 0 1.6px var(--neon, #9273ff)) drop-shadow(0 0 5px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent))
@@ -16184,7 +16203,7 @@
     }
     @supports (color: oklch(from red l c h)) {
         .holo-arc:not(#\-) {
-            stroke: color-mix(in oklab, var(--neon, #9273ff) calc(var(--t, 1) * 100%), oklch(from var(--neon, #9273ff) calc(l - .13) calc(c * 1.25) h))
+            stroke: color-mix(in oklab, var(--neon, #9273ff) calc(var(--t, 1) * 100%), var(--neon-b, oklch(from var(--neon, #9273ff) calc(l - .13) calc(c * 1.25) h)))
         }
     }
     @supports (color: oklch(from red l c h)) {
@@ -16236,6 +16255,9 @@
     }
     :is(.holo-track, .holo-track-path)[data-unknown]:not(#\-), .holo-stack g[data-lead] .holo-track[data-unknown]:not(#\-) {
         stroke: #c9d4ea
+    }
+    .holo-ring > svg > .holo-track[data-unknown]:not(#\-) {
+        stroke: color-mix(in oklab, var(--neon, #9273ff) 15%, #070b1d)
     }
     .holo-unknown-mark:not(#\-) {
         fill: none;
@@ -16940,31 +16962,57 @@
         color: #dfe7f8;
         text-shadow: 0 0 8px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
     }
-    .holo-ghost-rim:not(#\-) {
-        fill: color-mix(in oklab, var(--neon, #9273ff) 10%, #04071a);
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 80%, transparent)
+    .un-bezel:not(#\-) {
+        fill: #040716;
+        stroke: color-mix(in srgb, var(--neon, #9273ff) 30%, transparent)
     }
-    .holo-ghost-ticks:not(#\-) {
+    .un-corner:not(#\-) {
         fill: none;
-        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 70%, transparent)
+        stroke: color-mix(in srgb, var(--neon-2, #c0adff) 78%, transparent)
     }
-    .holo-ghost-track:not(#\-) {
+    .un-tube:not(#\-) {
         fill: none;
-        stroke: color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)
+        stroke: color-mix(in srgb, var(--neon, #9273ff) 15%, #070b1d)
     }
-    .holo-ghost-grid:not(#\-) {
+    .un-rim:not(#\-) {
         fill: none;
-        stroke: color-mix(in oklab, var(--neon, #9273ff) 30%, transparent)
+        stroke: color-mix(in srgb, var(--neon, #9273ff) 52%, transparent)
     }
-    .holo-ghost-lit:not(#\-) {
+    .un-fill:not(#\-) {
+        fill: color-mix(in srgb, var(--neon, #9273ff) 8%, #060a1c)
+    }
+    .un-well:not(#\-) {
+        fill: #03061a
+    }
+    .un-tick:not(#\-) {
         fill: none;
-        stroke: var(--neon-2, #c0adff);
-        filter: drop-shadow(0 0 2.5px var(--neon, #9273ff))
+        stroke: color-mix(in srgb, var(--neon-2, #c0adff) 40%, transparent)
     }
-    .holo-ghost-dot:not(#\-) {
-        fill: #fff;
-        stroke: var(--neon, #9273ff);
-        filter: drop-shadow(0 0 2.5px var(--neon, #9273ff))
+    .un-tick-major:not(#\-) {
+        stroke: color-mix(in srgb, var(--neon-2, #c0adff) 72%, transparent)
+    }
+    .un-slot:not(#\-) {
+        fill: color-mix(in srgb, var(--neon, #9273ff) 10%, #060a1c);
+        stroke: color-mix(in srgb, var(--neon, #9273ff) 46%, transparent)
+    }
+    .un-hair:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon, #9273ff) 20%, transparent)
+    }
+    .un-stub:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon-2, #c0adff) 30%, transparent)
+    }
+    .un-dash:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon-2, #c0adff) 56%, transparent)
+    }
+    .un-node:not(#\-) {
+        fill: #040716;
+        stroke: color-mix(in srgb, var(--neon-2, #c0adff) 66%, transparent)
+    }
+    .un-notch:not(#\-) {
+        fill: color-mix(in srgb, var(--neon-2, #c0adff) 70%, transparent)
     }
     .holo-empty-words:not(#\-) {
         color: #dbe4f6
@@ -20105,6 +20153,15 @@
     .nova-widget[data-holo] .nova-playing > .nova-disc:not(#\-) {
         background-image: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)), none;
         background-color: #080a0f
+    }
+    .nova-widget[data-holo] .nova-playing > .nova-disc:not(#\-) {
+        background-image: linear-gradient(90deg, transparent, color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent) 12%, color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent) 88%, transparent), radial-gradient(60% 26px at 50% calc(100% - 11px), color-mix(in oklab, var(--neon, #9273ff) 46%, transparent), transparent), repeating-linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 10%, transparent) 0 1px, transparent 1px 25%), none;
+        background-color: #06080d
+    }
+    .nova-widget[data-holo] .nova-playing .nova-disc i:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #070b22) 0, var(--neon, #9273ff) 24%, var(--neon-2, #c0adff) 42%, #fff 50%, var(--neon-2, #c0adff) 58%, var(--neon, #9273ff) 76%, color-mix(in oklab, var(--neon, #9273ff) 46%, #070b22) 100%);
+        background-color: transparent;
+        box-shadow: inset 0 3px 0 #fff, 0 -2px 8px 0 #ffffff8c, 0 0 12px 0 color-mix(in oklab, var(--neon, #9273ff) 75%, transparent)
     }
     .nova-widget[data-holo] .nova-playing .nova-round:not(#\-) {
         box-shadow: 0 0 0 1px var(--neon, #7fc8ff), 0 0 14px -2px var(--neon, #7fc8ff), inset 0 0 12px -4px var(--neon, #7fc8ff)
