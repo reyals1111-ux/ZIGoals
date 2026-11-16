@@ -264,6 +264,53 @@ Each carries a `Session AM (<id>, deliberate)` comment and an equally strict rep
 - **This head** (this entry, the habits spec's wait, and one colour in `life-cards.css` written as a plain hex, so the generated Light sheet converts it like its neighbours; the repository's advisory review flagged it twice, the rule never applies inside NOVA): its run had not started when this was written. The session stays subscribed to the PR; what that run shows is reported to the owner, and a failure that is this session's is fixed.
 - **Honest summary:** the gates that judge this session's code (unit, types, lint, build, the Alpha gate, a11y, the twelve main browser shards) have each been green on this app code. The WebKit job has not been green in one piece on this branch: it fails on a different ZIGi spec almost every run (a family recorded since Session Y), which this session did not cause and did not chase beyond the two specs it could explain.
 
+# Session AM-2 and AM-3 — "NOVA, STUNNING" and the brief of 15 Nov (ADR-038 "AM-2", "AM-3") (2026-11-11/16, same branch and [PR #101](https://github.com/reyals1111-ux/ZIGoals/pull/101); pushed, not merged, not deployed)
+**Addition to the Session AM entry above.** `main` is merged in twice by merge commit (`9f8236d4` = PR #102, `b3daf21d` = PR #104); the branch was never rebased or force-pushed. Rules: the owner's AM-2 plan and its additions B1–B3, the brief of 15 Nov (steps 0–6) and the owner's two messages of 15 Nov (main's two failures are Session AQ's; the order when budget is short).
+
+## Outcome in one paragraph
+NOVA has a new look from the star outward and is connected to everything ZIGoals holds. **The owner's bar (10/10 on the star, the widgets and the stage from two independent fresh critics) is not reached:** the last of four two-critic rounds scored star 7 and 8, widgets 7 and 7, stage 6 and 7 ("no" and "nearly"); the widgets have stood at 7 for three rounds although the surfaces each round called weakest were redesigned, not polished. What the next step is, and why it is a new composition and not another polish pass, is in ADR-038 Q12. Steps 0, 1, 3, 4, 5 and 6 of the brief are done; step 2 is done as far as rounds 4–7 took it.
+
+## Parts and their commits (`git log 332f2b50..HEAD`, about 210 commits of this session beside the two merges)
+- **AM-2 (11 Nov): the star, the frame, the instruments, the stage.** The portable shader with a read-back proof, pace rules that slow the star and never hide it, the still picture, the honest line (ADR-038 E1–E5); the hologram frame and Pin / Hide / Close as keys in every head (F1–F3, `babd8fa2` for the release verifier's stage 13); every instrument rebuilt (I1); the stage as a command centre (G1–G4). Critique rounds 1–3 (one critic each): 5.5, 7, 7.5.
+- **Step 0 (15 Nov):** `9f8236d4` (merge), weights `8927faa2`, contrast `41827388`, theme parity `3af25c16`, the keys' spec `575cb36e`; `b3daf21d` (the second merge).
+- **Step 1:** the overlap under the status strip, whole rows only (`464fc896`, `b35c0fa9`), the taste items (`483bdcde`); ZIGi's two faults (`d5e89f50`, TIER 3).
+- **Step 3, NOVA connected:** thirty new kinds, 64 in the catalogue, nine behind the Health switches (`540cb123` TIER 3, `49d0c5b6`); every widget opens its page; actions with Undo; money stays a pre-filled confirm card.
+- **Step 4, NOVA as the person's own agent:** hand-offs as confirm cards, the person's own agent and MCP servers on loopback only, the setup path, weather through the proxy when a build names it (`5ed620d1`, `524e804d`, `f7d77fc4` TIER 3; `e88330d6`).
+- **Step 5, security review by a fresh helper:** `5b9e2608`, `909d2e8e`, `18a7c60a`, `8ccc961b` (all TIER 3).
+- **Step 2, critique rounds 4–7 (two new critics each):** round 4 `31561a22` and before; round 5 on `bee5c082`; round 6 `9e7d580f`, `b8a7957b`, `ebcfec3e`, `f393911f`, `50bcc06b`, `887cffb0`, `f5c1b23d`; round 7 `3ec8a09c`, `94c5f080`, `cff460f0`, `0439f15a`, `5c6f5fc3`, `9faf0bda`, `03b84394` (failed its own unit tests; corrected by `394e03bd` before any build), and the two small faults after the critique. Scores per round: ADR-038 Q1, Q6, Q10, Q11.
+- **Step 6:** ADR-038 "AM-3" K1–K6, L1–L6, M1–M3, N1–N3, O1–O7, P1–P3, Q1–Q13; `docs/handoff/AM_DEMO_TOUR.md` (sections 8–11, the phone); `docs/handoff/AM_RESUME.md`; this entry.
+
+## Tier 3, in plain words (risk → rollback)
+- **AI safety** (`540cb123`, `5ed620d1`, `5b9e2608`, `bee5c082`, `d5e89f50`): new widget kinds enter NOVA's closed catalogue, nine behind the Health switches; a hand-off or a tool of the person's own agent is a card the person presses, never sent by itself; tool results are untrusted text; the stage's gates are known as soon as the stage is. Risk: a gate that opens too early or a card that sends by itself. Each is pinned by unit tests (`lib/nova/agent-bridge/review.test.ts`, the gate tests). Rollback: revert the commit; no stored format depends on it.
+- **CSP / egress** (`524e804d`, `8ccc961b`): `connect-src` gains the weather proxy's origin only when a build names one, and loopback origins for the person's own agent; no new remote host. Rollback: revert; a build without the variable is unchanged.
+- **Stored format** (`f7d77fc4`, `909d2e8e`): two device-only records, `zigoals:nova-outbox:v1` and `zigoals:nova-agent:v1`, in every registry (backup, restore, erase, the device-key list); a restored loopback server gets a new id so a sealed token cannot follow a backup. NOVA and ZIGoals never store or see the person's mail passwords or tokens, and nothing goes through a ZIGoals server. Rollback: revert; older backups restore unchanged.
+- **Weather proxy Worker** (`18a7c60a`): refuses a request without an Origin. Deployed by the owner only.
+- **Release verifier** (`babd8fa2`): stage 13 presses the keys in a widget's head (the More menu is gone). Behaviour-preserving for older Alphas.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries a `Session AM-2 (…, deliberate)` or `Session AM-3 (round N, deliberate)` comment with an equally strict replacement: the star's rules (`governor.test.ts`: slow, never still or hidden), the keys in the head (`nova-stage-am`'s helper, `nova-stage-am2`'s settle loop `575cb36e`), the frame's strings (`hud-elements`, `ci15-perf`), the console (`tests/p3-nova-polish.spec.ts`), and the whole-rows DOM test's harness, which lets one animation frame pass after a render (`887cffb0`) and after a change it makes (`9faf0bda`): every assertion on what is shown, on one read a render and on nothing written is unchanged.
+
+## Evidence (build of `394e03bd`, the last code head before two small CSS fixes; this sandbox draws without graphics hardware)
+- Type-check clean; lint clean on every file this pass changed (CI's checks job lints the whole tree); `lib/nova` 1,544 unit tests and the `scripts` tests (theme sheets, copy rules) green (the whole unit suite was last run in full on `a9ea014e`: 11,630 passed; CI's checks job runs it on every head).
+- Route weights inside every budget: `/app/nova` 432.3 of 458 kB, setup 444.1, the shell 431.3 of 447, Settings 526.9 of 531, Tasks 463.4 of 468, Goals 477.3 of 478.
+- **B2** (Showcase, 2560 × 1440): only `transform` and `opacity` animate; active median 16.7 ms; the processor slowed four times: median 16.7 ms (`hud-perf`'s limit is 20), 3 of 163 frames over 50 ms; at rest 3.6 % of a core; hidden 0 frames (ADR-038 Q13).
+- NOVA browser set, desktop: 137 passed, 1 failed under two workers (`nova-stage-am2` keys at 1024 px in Orbit: passes alone about every second run here; green on CI). Phone: 90 passed, 1 failed under two workers (`hud-motion`, reduced motion on a phone: passes alone). The contrast walk is green on both projects. The earlier full desktop list on `9945c654`: 221 passed, 4 failed, each since fixed or passing alone (ADR-038 Q13).
+- Not verified here: anything on real graphics hardware (the star's frame rate, the glow that rests under software drawing); the owner's Mac check is below.
+
+## CI on the final head
+Every push cancels the run before it, so during the rounds only a few runs finished. Run 1802 on `9945c654` (round 7 before its last fixes): 21 of 24 jobs green; red were `l7-fifth-answers:144` on the phone (the fitter on a phone: fixed by `394e03bd`, 22 s locally) and `polish2-af:35` (Earn's titles, a page this branch does not touch; failed once and passed twice here). Run 1800 on `9faf0bda`: 22 of 24, red `hud-motion` Motion Off on a phone (fixed by `5c6f5fc3`). **The run on this entry's head had not finished when this was written; the session's closing report says what it showed.** Known intermittents on this branch: `polish2-af:35` and `:150` (Earn), `nova-setup:157` on the phone project (it leaves the page the moment the answer is drawn), `nova-workflows:105/150` and `nova-stage-am2` keys at 1024 px under load.
+
+## Not done, or only partly
+- **The 10/10 bar** (above; ADR-038 Q11, Q12). The real faults round 7's critics listed at 1440 px and in the console are open.
+- The stand-in while the star starts is the old small orb, and a star whose code never loads would leave it there with no line (ADR-038 Q12, carried).
+- Nothing was measured on graphics hardware. The weather proxy is not deployed (the owner deploys it).
+- Sync of NOVA's records across devices is as Session AM left it (off on the public Alpha).
+
+## Owner list
+1. **Look at it on the Mac (B1):** `git fetch origin && git checkout feature/session-am-nova && git pull`, `pnpm install --frozen-lockfile --ignore-scripts`, `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, open http://127.0.0.1:3100/app/nova?star=why in Chrome and Safari. The galaxy should turn inside its ring of ticks with the four pillar rings in its plane; the line under "STANDBY" says how it is drawn. If it does not turn, read that line back. Then Settings → Load Showcase Demo, and try: "Show my habits this week", "next bill", "draft an email to my landlord about the rent".
+2. Decide whether the next step toward the bar is the new composition of the populated stage (ADR-038 Q12) or a merge of what is here first.
+3. Merge and deploy are the owner's (Manual Alpha workflow, from `main`); nothing was merged, deployed or dispatched by this session.
+
 # Session AL — "FIX EVERYTHING" (ADR-037) (2026-11-04/09, `feature/session-al-fix-everything`, [PR #100](https://github.com/reyals1111-ux/ZIGoals/pull/100); complete, not merged, not deployed)
 **Base:** `main` `17069c7d` (Merge #99, Session AK; live as Alpha #53). **Rules (owner):** the brief (Parts 0–17, R1–R9, O1–O7), the approved plan and the owner amendments A1–A12 (verbatim in ADR-037). One plan, one approval; no owner step during the session.
 
