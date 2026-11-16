@@ -18,6 +18,9 @@ const OrbitCard = lazy(() => import('../orbit-card/orbit-card'));
 const FirstWeekCard = lazy(() => import('../first-week/first-week-card'));
 // Session AP ("Days until"): the countdowns card loads on its own, only when the person keeps it on Today.
 const CountdownsCard = lazy(() => import('../countdowns/countdowns-card'));
+// Session AR (6b): "Your orbits" loads on its own, only when the person turns it on (its own record, zigoals:today-orbits:v1).
+const TodayOrbitsCard = lazy(() => import('../today-orbits/today-orbits-card'));
+export const TODAY_ORBITS_LABEL = {label: 'Your orbits', description: 'One orbit per goal you set in Health, with its value and target'};
 
 export const TODAY_CARD_LABELS: Record<TodayCardId, {label: string; description: string}> = {
   balance: {label: 'Life balance', description: 'How each life area moved this month'},
@@ -34,8 +37,10 @@ export const TODAY_CARD_LABELS: Record<TodayCardId, {label: string; description:
  * review, in the order the person chose them while arranging Today. Loaded after the page (weights), folded on phones
  * like Today's other widgets. While Today is being arranged, a chooser turns each one on or off.
  */
-export default function TodayDeviceCards({shown, customize, onToggle, platform, quotes, now, today, habits, health, goals}: {
+export default function TodayDeviceCards({shown, customize, onToggle, orbits = null, platform, quotes, now, today, habits, health, goals}: {
   shown: readonly TodayCardId[]; customize: boolean; onToggle: (id: TodayCardId) => void;
+  /** Session AR (6b): "Your orbits" (its own device record): shown or not, and the switch; null when the record is unreadable. */
+  orbits?: {shown: boolean; onToggle: () => void} | null;
   platform: Platform; quotes: readonly MarketQuote[]; now: number; today: string; habits: HabitData; health: HealthData; goals: readonly GoalSummary[];
 }) {
   const card = (id: TodayCardId): ReactNode => {
@@ -55,8 +60,11 @@ export default function TodayDeviceCards({shown, customize, onToggle, platform, 
       <p>These cards stay on this device: they are not part of your synced Today layout.</p>
       <div className="today-device-options">{TODAY_CARD_IDS.map(id => <button key={id} type="button" className="today-device-option" aria-pressed={shown.includes(id)} onClick={() => onToggle(id)}>
         <strong>{TODAY_CARD_LABELS[id].label}</strong><small>{TODAY_CARD_LABELS[id].description}</small>
-      </button>)}</div>
+      </button>)}{orbits && <button type="button" className="today-device-option" aria-pressed={orbits.shown} onClick={orbits.onToggle}>
+        <strong>{TODAY_ORBITS_LABEL.label}</strong><small>{TODAY_ORBITS_LABEL.description}</small>
+      </button>}</div>
     </div>}
-    {shown.length > 0 && <div className="today-device-grid">{shown.map(id => <div key={id} className="today-device-card" data-card={id}><PhoneFold label={TODAY_CARD_LABELS[id].label}>{card(id)}</PhoneFold></div>)}</div>}
+    {(shown.length > 0 || orbits?.shown) && <div className="today-device-grid">{shown.map(id => <div key={id} className="today-device-card" data-card={id}><PhoneFold label={TODAY_CARD_LABELS[id].label}>{card(id)}</PhoneFold></div>)}
+      {orbits?.shown && <div className="today-device-card" data-card="orbits"><PhoneFold label={TODAY_ORBITS_LABEL.label}><LoadBoundary quiet><Suspense fallback={null}><TodayOrbitsCard health={health} /></Suspense></LoadBoundary></PhoneFold></div>}</div>}
   </section>;
 }

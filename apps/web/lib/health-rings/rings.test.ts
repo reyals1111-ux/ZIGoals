@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {createHabit, emptyHabitData, type HabitInput} from '../habits';
 import {createEmptyHealth, type HealthData} from '../health';
 import type {HealthGoal} from '../health-goals/schema';
-import {orbitWords, orbitsFor, weekStart} from './rings';
+import {orbitStatusWords, orbitValueWords, orbitWords, orbitsFor, weekStart} from './rings';
 
 // Session AP (feature 3): orbits from the person's own goals. Fictional records; Saturday 14 November 2026.
 const TODAY = '2026-11-14', AT = '2026-11-01T07:00:00.000Z';
@@ -47,5 +47,24 @@ describe('orbits from the person\'s own goals', () => {
     expect(text).not.toMatch(/kcal|calorie/i);
     expect(r.orbits.map(o => o.label)).toEqual(['Steps', 'Active minutes', 'Workout days']);
     expect(text).not.toMatch(/\b(Move|Exercise|Stand)\b/);
+  });
+  // Session AR (6b): Today's "Your orbits" card says each value and target in words; nothing recorded is not a zero.
+  test('unknown is not zero: with nothing recorded for the period, the words give the target and "Not known yet"', () => {
+    const fmt = (n: number) => n.toLocaleString('en-US');
+    const none = orbitsFor({health: health([{date: '2026-11-13', steps: 9000, minutes: 50}], 8000), goals: [], workouts: null, habits: null, today: TODAY}).orbits[0]!;
+    expect(none).toMatchObject({id: 'steps', known: false, reached: false});
+    expect(orbitValueWords(none, fmt)).toBe('Nothing recorded today yet · target 8,000 steps');
+    expect(orbitStatusWords(none)).toBe('Not known yet');
+    const some = orbitsFor({health: health([{date: TODAY, steps: 6240, minutes: 40}], 8000), goals: [], workouts: null, habits: null, today: TODAY}).orbits[0]!;
+    expect(some.known).toBe(true);
+    expect(orbitValueWords(some, fmt)).toBe('6,240 of 8,000 steps today');
+    expect(orbitStatusWords(some)).toBe('78% of the way');
+    const walked = orbitsFor({health: health([{date: TODAY, steps: 9000, minutes: 40}], 8000), goals: [], workouts: null, habits: null, today: TODAY}).orbits[0]!;
+    expect(orbitStatusWords(walked)).toBe('Reached');
+    // Workout days: an unreadable log is unknown; a readable one with no workout this week is a real 0.
+    expect(orbitsFor({health: createEmptyHealth(), goals: [], workouts: null, habits: habit({}), today: TODAY}).orbits[0]!.known).toBe(false);
+    expect(orbitsFor({health: createEmptyHealth(), goals: [], workouts: {workouts: []}, habits: habit({}), today: TODAY}).orbits[0]).toMatchObject({known: true, value: 0});
+    // Active minutes with no counted day in the goal's window is unknown.
+    expect(orbitsFor({health: createEmptyHealth(), goals: [goal({measure: 'activeMinutes', unit: 'min', target: {value: '150', decimals: 0}})], workouts: null, habits: null, today: TODAY}).orbits[0]!.known).toBe(false);
   });
 });

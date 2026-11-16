@@ -3,7 +3,8 @@ import {useMemo} from 'react';
 import type {HealthData} from '../../../lib/health';
 import {dailyData} from '../../../lib/health-daily';
 import {weightText} from '../../../lib/health-units';
-import {orbitsFor, type Orbit} from '../../../lib/health-rings/rings';
+import {orbitsFor} from '../../../lib/health-rings/rings';
+import {OrbitFigure} from './orbit-figure';
 import {DIRECTION_WORDS, healthTrends, type Trend, type TrendPending} from '../../../lib/health-trends/trends';
 import {hoursMinutes} from '../../../lib/insights/cross-pillar';
 import {formatNumber} from '../../../lib/visual-format';
@@ -19,18 +20,6 @@ import './plus.css';
  */
 export default function ActivityPlus({data, today}: {data: HealthData; today: string}) {
   return <><OrbitsCard data={data} today={today}/><TrendsCard data={data} today={today}/></>;
-}
-
-const R = 44, C = 2 * Math.PI * R;
-/** One goal as a planet on its own orbit: the travelled part of the orbit in the pillar colour, the planet where it is now. */
-function OrbitFigure({o}: {o: Orbit}) {
-  const a = o.share * 2 * Math.PI - Math.PI / 2, x = 60 + R * Math.cos(a), y = 60 + R * Math.sin(a);
-  return <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
-    <circle className="ap-orbit-sun" cx="60" cy="60" r="14"/>
-    <circle className="ap-orbit-track" cx="60" cy="60" r={R}/>
-    {o.share > 0 && <circle className="ap-orbit-arc" cx="60" cy="60" r={R} strokeDasharray={`${o.share * C} ${C}`} transform="rotate(-90 60 60)"/>}
-    <circle className="ap-orbit-planet" cx={x} cy={y} r="8"/>
-  </svg>;
 }
 
 export function OrbitsCard({data, today}: {data: HealthData; today: string}) {
