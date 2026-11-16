@@ -206,6 +206,13 @@
 .nova-tile { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 4px; background: none; color: #dbe3f4; text-decoration: none; cursor: pointer; font: inherit; --k-rim: color-mix(in oklab, var(--sh-c) 66%, transparent); --k-rim-2: color-mix(in oklab, var(--sh-a) 26%, #ffffff1a); --k-plate: #0f173c; --k-plate-2: #060a1e; }
 .nova-tile:is(:hover, :focus-visible, :focus-within), .nova-tile[aria-pressed=true] { color: #fff; --k-rim: #fff; --k-rim-2: var(--sh-b); --k-plate: color-mix(in oklab, var(--sh-b) 36%, #0c1335); --k-plate-2: color-mix(in oklab, var(--sh-a) 40%, #070b20); --k-glow: 0 0 18px -2px var(--sh-b), 0 0 5px -1px var(--sh-b); }
 .nova-tile[aria-pressed=true] { --k-plate: color-mix(in oklab, var(--sh-a) 46%, #0c1335); --k-plate-2: color-mix(in oklab, var(--sh-c) 24%, #070b20); }
+/* Round 6 (both critics: "fifteen boxed icons in the top bar are clutter"): inside the Quick access rail a key at rest is
+   its glyph alone (the rail is the frame; each key is still a 44 px target with its name and tip); its plate is drawn
+   under the pointer, with the focus, or while it is pressed in. */
+@media (hover: hover) {
+  .nova-frame:not([data-phone]) .nova-quick .nova-tile:not(:hover, :focus-visible, :focus-within, [aria-pressed=true]) { --k-rim: transparent; --k-rim-2: transparent; --k-plate: transparent; --k-plate-2: transparent; }
+  .nova-frame:not([data-phone]) .nova-quick .nova-tile:not(:hover, :focus-visible, :focus-within, [aria-pressed=true]) .nova-tile-planet::before { opacity: .45; }
+}
 .nova-tile[data-tip]:is(:hover, :focus-visible, :focus-within), .nova-icon-btn[data-tip]:is(:hover, :focus-visible) { z-index: 7; }
 .nova-tile-planet { display: grid; place-items: center; pointer-events: none; }
 /* The key's light: a short bar under the glyph. */

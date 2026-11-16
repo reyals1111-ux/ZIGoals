@@ -63,7 +63,7 @@ void main(){
   float dens = disc * (.15 + 1.1*arms + .3*spur) * (.14 + 1.6*gas*gas) * (.5+1.05*gas2);
   float lane = up(.42,.78, fbm(g*8.+vec2(4.,1.)+phase*.12));
   dens *= mix(1., .2, lane*up(.07,.3,r));
-  dens *= .78 + .5*noise(g*64. + vec2(uSpin*.3, 1.7));
+  dens *= .88 + .26*noise(g*64. + vec2(uSpin*.3, 1.7));
   // AM-2 (N3c): the fine structure a real disc has, drawn only at the full detail (a governed or software-drawn star
   // keeps the cheaper picture, and does not pay for this one: the branch is on a uniform): fibres that run along the arms (noise that is fine across an arm and slow along it, in
   // the spiral's own coordinates: sin and cos of the phase, so there is no seam), wisps of ridged turbulence, and a dark
@@ -75,7 +75,7 @@ void main(){
     float fibre = sq(1. - abs(f1 + f2 - 1.));
     vec2 wg = g + .05*vec2(gas, gas2);
     float wisp = sq(ridge(wg*19. + vec2(uSpin*.1, 2.))) * (.55 + .9*ridge(wg*41. - vec2(1.7, uSpin*.07)));
-    dens *= mix(1., (.6 + 1.05*fibre) * (.6 + 1.0*wisp), .85);
+    dens *= mix(1., (.6 + 1.05*fibre) * (.6 + 1.0*wisp), .5);
     float edge = sq(max(.5+.5*cos(phase + 1.25), 0.)); edge *= edge;
     float dust = edge * up(.25,.7, fbm(g*15. + vec2(9., 2.) + phase*.2)) * up(.08,.2,r) * dn(.3,.6,r);
     dens *= 1. - .78*dust;
@@ -87,6 +87,8 @@ void main(){
   gasCol = mix(gasCol, uA*.55, lane*.5);
   dens *= .46 + 1.15*up(.06, .7, dens);
   col += gasCol * dens * 2.6;
+  // Round 6 ("ripples around the core, ragged arms"): under the texture each arm is one continuous band of light.
+  col += gasCol * disc * arms * up(.05,.16,r) * (.10 + .16*gas);
   // the arms' crests run hot: a white-violet light where the gas is densest
   col += mix(vec3(1.), uC, .55) * up(.55, 1.5, dens) * arms * disc * .26 * fine;
   // bright knots along the arms (star-forming regions)
@@ -96,10 +98,10 @@ void main(){
   col += mix(mix(uB, uC, step(.87, kh)), vec3(1.), .5) * knot * 1.25;
   // ---- the core: a white heart, a violet bloom, a thin accretion ring ----
   float pulse = 1. + .06*sin(uT*1.1) + .5*uSpeak*uPulse + .12*uThink*sin(uT*5.) + .22*uThink + .08*uListen;
-  float core = exp(-r*r*560./(pulse*pulse)) * 1.25 + exp(-r*19.)*.34*pulse + exp(-r*r*5200.)*2.6 + exp(-rr*rr*90000.)*3.;
+  float core = exp(-r*r*560./(pulse*pulse)) * 1.25 + exp(-r*13.)*.46*pulse + exp(-r*r*5200.)*2.6 + exp(-rr*rr*90000.)*3.;
   col += mix(vec3(1.), uA*1.1+.3, up(0.,.18,r)) * core;
   float bulge = exp(-length(uv*vec2(1.,1.3))*7.5);
-  col += (uA*.6 + uC*.34 + .1) * (bulge * .42 + exp(-rr*7.)*.03) * pulse;
+  col += (uA*.6 + uC*.34 + .1) * (bulge * .62 + exp(-rr*7.)*.03) * pulse;
   float ringR = .085*pulse;
   float acc = dn(0.,.006, abs(r-ringR)) * (.55 + .45*cos(a - uSpin*3.)) + dn(0.,.03, abs(r-ringR))*.12;
   col += mix(uB, vec3(1.), .6) * acc * .7;
@@ -180,7 +182,7 @@ void main(){
   vec3 soft = 1. - exp(-col*1.35);
   vec3 keep = col * ((1. - exp(-peak*1.35)) / max(peak, 1e-4));
   col = mix(keep, soft, up(.5, 2.4, peak)*.9);
-  float alpha = clamp(max(max(col.r, max(col.g, col.b)), solid * edge), 0., 1.);
+  float alpha = clamp(max(max(col.r, max(col.g, col.b)), solid * up(0., .3, edge)), 0., 1.);
   gl_FragColor = vec4(min(col, vec3(alpha)), alpha);
 }`;
 export const STAR_UNIFORMS = ['uRes', 'uT', 'uSpin', 'uListen', 'uThink', 'uSpeak', 'uPulse', 'uBeam', 'uBeamA', 'uDetail', 'uEdge', 'uA', 'uB', 'uC'] as const;

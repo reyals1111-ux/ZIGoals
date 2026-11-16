@@ -20,6 +20,11 @@
   border-top: 5px solid color-mix(in oklab, var(--nova-b, #63e7ff) 80%, #fff);
   background-image: linear-gradient(color-mix(in oklab, var(--nova-b, #63e7ff) 70%, transparent) 2px, transparent 2px), linear-gradient(90deg, color-mix(in oklab, var(--nova-a, #9273ff) 70%, transparent) 2px, transparent 2px);
   -webkit-mask-image: linear-gradient(to top, #000 0%, #000c 30%, #0007 100%); mask-image: linear-gradient(to top, #000 0%, #000c 30%, #0007 100%); }
+/* Round 6 ("the perspective floor is a stock grid: lift it"): finer lines, and the floor is lit where the star and the
+   panels stand over it and falls away into the dark toward the window's sides (a mask in the plane's own space). Static. */
+.nova-frame[data-look=holo]:not([data-phone]) .holo-plane { opacity: .7;
+  background-image: linear-gradient(color-mix(in oklab, var(--nova-b, #63e7ff) 78%, transparent) 1.5px, transparent 1.5px), linear-gradient(90deg, color-mix(in oklab, var(--nova-a, #9273ff) 78%, transparent) 1.5px, transparent 1.5px);
+  -webkit-mask-image: radial-gradient(34% 100% at 50% 100%, #000 0%, #000b 46%, #0003 78%, transparent 100%); mask-image: radial-gradient(34% 100% at 50% 100%, #000 0%, #000b 46%, #0003 78%, transparent 100%); }
 .holo-glow { position: absolute; inset: 0; background: radial-gradient(60% 40% at 50% 108%, color-mix(in oklab, var(--nova-c, #f06dff) 16%, transparent), transparent 70%), radial-gradient(40% 50% at -6% 50%, color-mix(in oklab, var(--nova-b, #63e7ff) 10%, transparent), transparent 70%), radial-gradient(40% 50% at 106% 50%, color-mix(in oklab, var(--nova-a, #9273ff) 12%, transparent), transparent 70%); }
 
 /* ---- The panel (Session AM-2, ADR-038 "AM-2" F1: the hologram) ----
@@ -61,7 +66,11 @@
   --holo-shape: polygon(var(--cut) 0, calc(100% - var(--nick)) 0, 100% var(--nick), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--nick) 100%, 0 calc(100% - var(--nick)), 0 var(--cut)); }
 .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo][data-size=S]:not([data-dragging]) { --cut: 13px; --nick: 5px; }
 .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging])::before { content: ''; position: absolute; inset: -1px; z-index: -1; pointer-events: none; border: 0; border-radius: 0;
-  background: var(--holo-glass); box-shadow: inset 0 0 24px -9px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); clip-path: var(--holo-shape); }
+  /* Round 6 ("the frames need a glass fill, an inner edge light and corner bloom"): on the cut slab the glass is lit from
+     its two white-hot corners (top left, bottom right) and carries one soft diagonal reflection. Static layers, behind the
+     words (this is the back-plate, a pseudo-element: no text sits on it directly). */
+  background: radial-gradient(150px 110px at 0 0, color-mix(in oklab, var(--neon, #9273ff) 20%, transparent), transparent 72%), radial-gradient(190px 120px at 100% 100%, color-mix(in oklab, var(--neon, #9273ff) 15%, transparent), transparent 72%), linear-gradient(128deg, #ffffff0b 0, #ffffff05 16%, transparent 16.2%, transparent 100%), var(--holo-glass);
+  box-shadow: inset 0 0 24px -9px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), inset 0 1px 0 0 #ffffff26, inset 1px 0 0 0 #ffffff12; clip-path: var(--holo-shape); }
 .nova-frame:not([data-phone]):not([data-editing]) .nova-widget[data-holo]:not([data-dragging])::after { border-radius: 0; padding: 0; -webkit-mask: none; mask: none;
   clip-path: polygon(evenodd, var(--cut) 0, calc(100% - var(--nick)) 0, 100% var(--nick), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--nick) 100%, 0 calc(100% - var(--nick)), 0 var(--cut), var(--cut) 0,
     calc(var(--cut) + var(--rim) * .42) var(--rim), var(--rim) calc(var(--cut) + var(--rim) * .42), var(--rim) calc(100% - var(--nick) - var(--rim) * .42), calc(var(--nick) + var(--rim) * .42) calc(100% - var(--rim)), calc(100% - var(--cut) - var(--rim) * .42) calc(100% - var(--rim)), calc(100% - var(--rim)) calc(100% - var(--cut) - var(--rim) * .42), calc(100% - var(--rim)) calc(var(--nick) + var(--rim) * .42), calc(100% - var(--nick) - var(--rim) * .42) var(--rim), calc(var(--cut) + var(--rim) * .42) var(--rim)); }
@@ -107,6 +116,11 @@
 .nova-widget[data-holo] .nova-widget-open::before { content: ''; position: absolute; inset: 8px 5px; border-radius: 7px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 6%, #060a1c); transition: background-color .12s, border-color .12s; }
 .nova-widget[data-holo] .nova-widget-open:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
 .nova-widget[data-holo] .nova-widget-open > span { position: relative; }
+/* Round 6: at rest the bolt and the page link are their glyph and words alone (stage.css says why); the plates come with the pointer or the focus. */
+@media (hover: hover) {
+  .nova-frame:not([data-phone]) .nova-widget[data-holo]:not(:hover, :focus-within) :is(.holo-act, .nova-widget-open)::before { border-color: transparent; background: transparent; }
+  .nova-frame:not([data-phone]) .nova-widget[data-holo]:not(:hover, :focus-within) .holo-act > svg { opacity: .62; }
+}
 .nova-widget[data-holo]:hover { border-color: var(--neon, #9273ff); }
 .nova-widget[data-holo] .nova-figure { background: none; -webkit-text-fill-color: currentColor; color: var(--neon-ink, #eef3ff); text-shadow: 0 0 14px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
 .nova-widget[data-holo] .glass-track { background: color-mix(in oklab, var(--neon, #9273ff) 14%, #ffffff0d); }

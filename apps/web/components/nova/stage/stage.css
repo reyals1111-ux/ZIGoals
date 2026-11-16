@@ -18,6 +18,13 @@
 .ns-act svg { position: relative; width: 17px; height: 17px; }
 .nova-widget:is(:hover, :focus-within) .ns-act::before { border-color: color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 13%, #060a1c); }
 .nova-widget .ns-act:hover::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a1c); }
+/* Round 6 (both critics: "the five keys in every head are louder than the instrument under them"): where a pointer can
+   hover, a key at rest is its glyph alone, a little dimmed (still there, still a 44 px target); its plate is drawn while
+   the widget is under the pointer or holds the focus. A pinned widget's pin keeps its lit plate: a state is never hidden. */
+@media (hover: hover) {
+  .nova-frame:not([data-phone]) .nova-widget:not(:hover, :focus-within) .ns-act:not([aria-pressed=true])::before { border-color: transparent; background: transparent; }
+  .nova-frame:not([data-phone]) .nova-widget:not(:hover, :focus-within) .ns-act:not([aria-pressed=true]) > svg { opacity: .62; }
+}
 .ns-act:active::before { background: color-mix(in oklab, var(--neon, #9273ff) 46%, #060a1c); }
 .ns-act[aria-pressed=true] { color: #fff; }
 .ns-act[aria-pressed=true]::before { border-color: var(--neon, #9273ff); background: color-mix(in oklab, var(--neon, #9273ff) 36%, #060a1c); box-shadow: 0 0 12px -2px var(--neon, #9273ff); }
@@ -32,7 +39,9 @@
 /* Beside five keys in the default column the title needs every pixel: the keys stand a little closer (each still a
    44 px target), so "Health HUD" and "Wealth HUD" are one line. */
 @container holo-panel (max-width: 399px) {
-  .nova-widget[data-holo] .nova-widget-head :is(.ns-act, .holo-act) { margin-inline: -6px; }
+  .nova-widget[data-holo] .nova-widget-head :is(.ns-act, .holo-act) { margin-inline: -8px; }
+  .nova-widget[data-holo] .nova-widget-head :is(.ns-act, .holo-act)::before { inset: 8px 9px; }
+  .nova-widget[data-holo] .nova-widget-head > h3 { padding-right: 6px; }
   .nova-widget[data-holo] .nova-widget-head .nova-widget-open { margin-left: -2px; }
 }
 /* A panel too narrow for the title and the keys on one row: the title takes the first row, the keys the second. */

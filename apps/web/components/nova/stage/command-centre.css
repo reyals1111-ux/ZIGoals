@@ -31,9 +31,10 @@
 /* Round 7 (both critics: the bezel and the state marks ran through "SPEAK NOW", "WORKING ON IT", "ANSWERING" and NOVA's
    name): the bezel hugs the disc (0.9 of the star's box; it was 1.06), every state mark stays inside it, and the star's
    slot in the stack is taller (nova-dashboard.tsx: 0.46 of the star's size), so the words clear the ring. */
-.nova-orb-button > .cc-bezel { position: absolute; inset: auto; left: 50%; top: 50%; width: calc(var(--star-size, 440px) * .9); height: calc(var(--star-size, 440px) * .9); margin: calc(var(--star-size, 440px) * -.45) 0 0 calc(var(--star-size, 440px) * -.45); z-index: 0; pointer-events: none; opacity: .95; }
+.nova-orb-button[data-star] { --bz: calc(var(--star-size, 440px) * .9); }
+.nova-orb-button > .cc-bezel { position: absolute; inset: auto; left: 50%; top: 50%; width: var(--bz); height: var(--bz); margin: calc(var(--bz) * -.5) 0 0 calc(var(--bz) * -.5); z-index: 0; pointer-events: none; opacity: .95; }
 /* Beside widgets the bezel is drawn inside the star's column (the star's haze may lie behind the wings' glass; its bezel may not be cut by them). */
-.nova-frame[data-stage=set] .nova-orb-button > .cc-bezel { --bz: min(calc(var(--star-size, 440px) * .86), calc(var(--star-col, 440px) * .98)); width: var(--bz); height: var(--bz); margin: calc(var(--bz) * -.5) 0 0 calc(var(--bz) * -.5); }
+.nova-frame[data-stage=set] .nova-orb-button[data-star] { --bz: min(calc(var(--star-size, 440px) * .86), calc(var(--star-col, 440px) * .98)); }
 .cc-bezel > svg { display: block; width: 100%; height: 100%; overflow: visible; fill: none; }
 .cc-bezel-line { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 78%, transparent); stroke-width: .55; }
 .cc-bezel-glow { stroke: color-mix(in oklab, var(--nova-b, #63e7ff) 22%, transparent); stroke-width: 2.6; } /* a soft second line: the standby bezel reads as lit, not as a hairline */
@@ -53,7 +54,11 @@
 :root[data-app-motion=off] .cc-state { transition: none; }
 /* Round 7 ("the centre telemetry is four hairline bars: make it pillar arcs around the star"): the four pillar rings are a
    reticle over the galaxy's heart, sized by the star (they were sized by the small orb's box: ~290 px inside a 940 px star). */
-.nova-frame:not([data-phone]) .nova-orb-button[data-star] { --core-size: calc(var(--star-size, 440px) * .47); }
+/* Round 6 (both critics: "the bezel and the pillar rings are not concentric: flat circles over a tilted disc"): the four
+   pillar rings lie in the galaxy's own plane, like the bezel (the same roll and tilt as the shader's disc and the bezel's
+   ellipses), just inside its ticks: one instrument around one star. Static; the ornament inside keeps its own slow turn. */
+.nova-frame:not([data-phone]) .nova-orb-button[data-star] { --core-size: calc(var(--bz) * .86); }
+.nova-frame:not([data-phone]) .nova-orb-button[data-star] > .holo-core { transform: rotate(21.8deg) scaleY(.44); }
 .nova-stage[data-star] > .nova-rings { display: none; }
 /* A phone's star is small and already wears the four pillar rings: no bezel there. */
 .nova-frame[data-phone] .nova-orb-button > .cc-bezel { display: none; }
@@ -109,6 +114,10 @@
   .nova-frame[data-look=holo]:not([data-phone]) .cc-read { display: inline-flex; }
 }
 @container nova-stage (max-width: 1180px) { .cc-read:not(#\-) { display: none; } .cc-rule { display: none; } .cc-corner { width: 22px; height: 22px; } }
+/* Round 6 (both critics: "SHOWCASE EXAMPLE DATA and VIEW ORBIT lie on the bottom widgets"): a stage with widgets scrolls
+   under the frame's lower edge, so the two lower read-outs are shown on the calm stage only (the same words are in the
+   status line and on the View key). The upper two keep the line the stage's padding gives them. */
+.nova-frame[data-stage=set] .cc-read:is([data-at=bl], [data-at=br]):not(#\-) { display: none; }
 .nova-frame[data-phone] .cc-hud, .nova-frame[data-look=classic] .cc-hud, .nova-frame[data-editing] .cc-hud { display: none; }
 @media (forced-colors: active) { .cc-hud, .cc-nebula, .cc-streak, .cc-horizon { display: none; } }
 
