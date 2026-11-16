@@ -19,7 +19,7 @@ import {WholeRows} from '../cards/whole-rows';
 import {useOrbitDay} from '../widgets/use-orbit-day';
 import {NovaEmpty} from '../widgets/empty';
 import TasksWidget from '../widgets/tasks';
-import {Ghost, GradArc, HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, Lead, NotShared, Orn, OrnMarks, SegMeter} from './parts';
+import {GradArc, HoloEmpty, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, Lead, NotShared, Orn, OrnMarks, SegMeter, Unlit} from './parts';
 import {useHealthHud, useHealthShared, usePillarShown} from './use-hud-data';
 import {useAgendaToday} from './use-agenda-today';
 import './holo-parts.css';
@@ -46,7 +46,7 @@ export function HoloWater({size}: {size: WidgetSize}) {
   const w = hud.water;
   // Round 4: with nothing logged yet today the meter's own unlit ring stands beside the figure (decoration; the words say it).
   return <div className="holo-water" data-size={size} data-empty={w.value === null ? '' : undefined}>
-    {w.value === null && <span className="holo-water-ghost" aria-hidden="true"><Ghost kind="ring"/></span>}
+    {w.value === null && <span className="holo-water-ghost" aria-hidden="true"><Unlit kind="ring"/></span>}
     <p className="holo-big-line"><HoloFigure text={w.text} className="holo-num-big"/>{w.targetText ? <small> of {w.targetText}</small> : null}</p>
     <SegMeter label="Today" share={w.share} text={w.share === null ? '—' : formatPercent(w.share * 100)} note={w.note} count={size === 'S' ? 12 : 20} compact={size === 'S'}/>
     {w.value === null && <p className="sr-only">No water logged yet today.</p>}
@@ -61,7 +61,7 @@ export function HoloSleep({size}: {size: WidgetSize}) {
   if (!loaded) return <HoloReading/>;
   if (error || !hud) return <HoloUnread what="Your sleep log"/>;
   const s = hud.sleep, sleep = health.data.sleep, balance = sleep ? sleepBalance(sleep, day) : null;
-  if (!sleep || !sleep.nights.length) return <HoloEmpty kind="ring" href="/app/health?view=sleep" action="Log a night">No nights logged yet.{size === 'S' ? '' : ' Set a sleep goal too, to see your balance.'}</HoloEmpty>;
+  if (!sleep || !sleep.nights.length) return <HoloEmpty kind="meter" href="/app/health?view=sleep" action="Log a night">No nights logged yet.{size === 'S' ? '' : ' Set a sleep goal too, to see your balance.'}</HoloEmpty>;
   return <div className="holo-sleep" data-size={size}>
     <p className="holo-big-line"><HoloFigure text={s.text} className="holo-num-big"/>{s.targetText ? <small> of {s.targetText}</small> : null}</p>
     <SegMeter label="Last night" share={s.share} text={s.share === null ? '—' : formatPercent(s.share * 100)} note={s.note} count={size === 'S' ? 12 : 20} compact={size === 'S'}/>
@@ -156,7 +156,7 @@ export function HoloNotes({size}: {size: WidgetSize}) {
     <p className="holo-label holo-notes-head"><HoloFigure text={String(r.inbox)} className="holo-num-big"/> <span>in your inbox</span>
       <span className="holo-notes-pips" aria-hidden="true">{Array.from({length: 8}, (_, i) => <i key={i} data-lit={i < r.inbox || undefined} data-lead={i === Math.min(8, r.inbox) - 1 || undefined}/>)}</span></p>
     <WholeRows as="ol" wrapClassName="holo-notes-rows" className="holo-captures" aria-label={r.of === 'inbox' ? 'Waiting in your inbox' : 'Recent captures'} extra={r.more} min={1} more={(hidden, shown) => moreWords(hidden, {shown, ...(size === 'S' ? {} : {where: 'the Notes page'})})}>
-      {r.rows.map(n => <li key={n.id}><Link href="/app/notes" prefetch={false} title={n.label}>{n.label}</Link><small>{noteRowWhen(n.at, today)}</small></li>)}
+      {r.rows.map(n => <li key={n.id}><Link href="/app/notes" prefetch={false} title={n.label}><span className="holo-capture-name">{n.label}</span></Link><small>{noteRowWhen(n.at, today)}</small></li>)}
     </WholeRows>
   </div>;
 }

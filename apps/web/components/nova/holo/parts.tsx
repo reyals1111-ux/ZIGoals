@@ -274,7 +274,8 @@ export function Histogram({values, line, lineLabel, labels, width = 280, height 
 export function Columns({shares, labels, today}: {shares: readonly (number | null)[]; labels?: readonly string[]; today?: number}) {
   return <span className="holo-cols" aria-hidden="true">{shares.map((s, i) => <span key={i} className="holo-cols-day" data-today={i === today || undefined}>
     <span className="holo-cols-slot">{s !== null && s > 0 ? <i style={{'--v': Math.round(clamp01(s) * 100) / 100, '--n': i} as CSSProperties}/> : null}</span>
-    {labels ? <small>{labels[i]}</small> : null}
+    {/* Round 7: a label's letters after the first may be dropped where the columns are narrow (the sheets decide), so two labels never touch. */}
+    {labels ? <small>{(labels[i] ?? '').slice(0, 1)}<span className="holo-cols-l2">{(labels[i] ?? '').slice(1)}</span></small> : null}
   </span>)}</span>;
 }
 
@@ -334,18 +335,82 @@ export function Hearts({hearts}: {hearts: readonly {key: string; label: string; 
   </div>;
 }
 
-/** AM-2: an unlit instrument (a teaching state's mark): its shape in dim hairlines — a tick bezel, a dashed track — never a figure. */
-export function Ghost({kind}: {kind: 'ring' | 'arcs' | 'wave' | 'stack' | 'bars' | 'rows' | 'clock'}) {
-  return <svg className="holo-ghost" data-kind={kind} viewBox="-30 -30 60 60" aria-hidden="true" focusable="false">
-    <path className="holo-ghost-ticks" d={tickPath(0, 0, 25.5, 28, 36)}/>
-    <circle className="holo-ghost-rim" r="29.2"/>
-    {kind === 'ring' && <><circle className="holo-ghost-track" r="19"/><path className="holo-ghost-lit" d={arcPath(0, 0, 19, 0, 42)}/></>}
-    {kind === 'stack' && <>{[21, 15.5, 10].map(r => <circle key={r} className="holo-ghost-track" r={r}/>)}<path className="holo-ghost-lit" d={arcPath(0, 0, 21, 0, 38)}/></>}
-    {kind === 'arcs' && <><path className="holo-ghost-track" d={arcPath(0, 0, 19, -135, 135)}/><path className="holo-ghost-lit" d={arcPath(0, 0, 19, -135, -96)}/><path className="holo-ghost-track" d={arcPath(0, 0, 12, -135, 135)}/></>}
-    {kind === 'wave' && <><path className="holo-ghost-grid" d="M-18 -9H18M-18 0H18M-18 9H18M-9 -15V15M0 -15V15M9 -15V15"/><path className="holo-ghost-track" d="M-18 8C-11 8 -9 -2 -3 -1S6 -9 18 -11"/><circle className="holo-ghost-dot" cx="18" cy="-11" r="2"/></>}
-    {kind === 'bars' && <>{[-15, -7.5, 0, 7.5, 15].map((x, i) => <rect key={x} className="holo-ghost-track" x={x - 2.4} y={[-2, -9, 3, -13, -6][i]} width="4.8" height={14 - [-2, -9, 3, -13, -6][i]!} rx="1"/>)}<path className="holo-ghost-lit" d="M-19 14H19"/></>}
-    {kind === 'rows' && <>{[-10, 0, 10].map(y => <g key={y}><circle className="holo-ghost-dot" cx="-15" cy={y} r="1.8"/><path className="holo-ghost-track" d={`M-9 ${y}H${y === 0 ? 10 : 17}`}/></g>)}</>}
-    {kind === 'clock' && <><circle className="holo-ghost-track" r="19"/><path className="holo-ghost-lit" d="M0 0L0 -13M0 0L9 5"/><circle className="holo-ghost-dot" r="1.8"/></>}
+/**
+ * Session AM-3 (round 7): a powered-down instrument, at the size the live one is drawn. A dark glass tube between two
+ * hairline rims with dead ticks (a ring, a dial, a stack of rings, a clock), or an empty bezel that holds unlit slots
+ * (columns, meters, a lattice, a plot, rows, a segmented meter, the sky, the sun's arc). A FIXED drawing chosen by `kind`
+ * alone: it reads nothing and shows no value, so it may stand behind a lock. Decoration, hidden from assistive technology.
+ */
+export type UnlitKind = 'ring' | 'arcs' | 'stack' | 'clock' | 'columns' | 'bars' | 'lattice' | 'trend' | 'rows' | 'meter' | 'sky' | 'arc';
+const UNLIT_ROUND: ReadonlySet<UnlitKind> = new Set(['ring', 'arcs', 'stack', 'clock']);
+const UNLIT_BEZEL = 'M7 .5H193L199.5 7V103L193 109.5H7L.5 103V7Z';
+function unlitRound(kind: UnlitKind) {
+  if (kind === 'arcs') return <>
+    <path className="un-tick" d={tickPath(0, 0, 50, 53.5, 46, -135, 270)}/><path className="un-tick un-tick-major" d={tickPath(0, 0, 49, 56, 10, -135, 270)}/>
+    <path className="un-tube" d={arcPath(0, 0, 40, -135, 135)}/><path className="un-rim" d={arcPath(0, 0, 45.5, -135, 135)}/><path className="un-rim" d={arcPath(0, 0, 34.5, -135, 135)}/>
+    <path className="un-hair" d="M-22 34H22"/><path className="un-notch" d="M0 -47.5l-3.2 -5.5h6.4z"/>
+  </>;
+  if (kind === 'stack') return <>
+    <path className="un-tick" d={tickPath(0, 0, 53, 56, 60)}/><path className="un-tick un-tick-major" d={tickPath(0, 0, 52, 58, 12)}/>
+    {[46, 35.5, 25].map(r => <circle key={r} className="un-tube un-tube-thin" r={r}/>)}
+    {[49.6, 42.4, 39.1, 31.9, 28.6, 21.4].map(r => <circle key={r} className="un-rim" r={r}/>)}
+    <circle className="un-well" r="21"/>
+  </>;
+  if (kind === 'clock') return <>
+    <path className="un-tick" d={tickPath(0, 0, 50, 53.5, 60)}/><path className="un-tick un-tick-major" d={tickPath(0, 0, 49, 56, 12)}/>
+    <circle className="un-tube un-tube-thin" r="43"/><circle className="un-rim" r="46.6"/><circle className="un-rim" r="39.4"/><circle className="un-well" r="39"/>
+    <path className="un-tick un-tick-major" d={tickPath(0, 0, 30, 35, 12)}/><path className="un-dash" d="M0 0V-24M0 0L15 9"/><circle className="un-node" r="3"/>
+  </>;
+  return <>
+    <path className="un-tick" d={tickPath(0, 0, 50, 53.5, 60)}/><path className="un-tick un-tick-major" d={tickPath(0, 0, 49, 56, 12)}/>
+    <circle className="un-tube" r="40"/><circle className="un-rim" r="45.5"/><circle className="un-rim" r="34.5"/><circle className="un-well" r="34"/>
+    <path className="un-notch" d="M0 -47.5l-3.2 -5.5h6.4z"/><path className="un-hair" d="M-58 0H-51M51 0H58"/>
+  </>;
+}
+function unlitWide(kind: UnlitKind) {
+  switch (kind) {
+    case 'columns': return <>
+      <path className="un-hair" d="M12 30H188M12 52H188M12 74H188"/>
+      {Array.from({length: 7}, (_, i) => <g key={i}><rect className="un-slot" x={17 + i * 25} y="13" width="15" height="77" rx="3.5"/><path className="un-tick" d={`M${19 + i * 25} 99H${30 + i * 25}`}/></g>)}
+      <path className="un-rim" d="M10 93.5H190"/>
+    </>;
+    case 'bars': return <>{[0, 1, 2].map(i => <g key={i}>
+      <path className="un-stub" d={`M14 ${17 + i * 31}H${[62, 48, 70][i]}M${[164, 170, 158][i]} ${17 + i * 31}H186`}/>
+      <rect className="un-slot" x="14" y={23 + i * 31} width="172" height="10" rx="2.5"/><path className="un-tick" d={`M57 ${23 + i * 31}v10M100 ${23 + i * 31}v10M143 ${23 + i * 31}v10`}/>
+    </g>)}</>;
+    case 'lattice': return <>
+      {[0, 1, 2, 3].map(r => <g key={r}><path className="un-stub" d={`M13 ${23 + r * 22}H${[44, 36, 46, 40][r]}`}/>{Array.from({length: 7}, (_, c) => <rect key={c} className="un-slot" x={56 + c * 19.5} y={15 + r * 22} width="15" height="15" rx="3.5"/>)}</g>)}
+    </>;
+    case 'rows': return <>
+      <path className="un-rim" d="M22 26V84"/>
+      {[0, 1, 2].map(i => <g key={i}><rect className="un-slot" x="38" y={15 + i * 29} width="148" height="22" rx="3"/><path className="un-stub" d={`M48 ${26 + i * 29}H${[118, 96, 128][i]}M${[160, 164, 156][i]} ${26 + i * 29}H176`}/><circle className="un-node" cx="22" cy={26 + i * 29} r="5"/></g>)}
+    </>;
+    case 'meter': return <>
+      {[0, 1, 2].map(i => <rect key={i} className="un-slot" x={14 + i * 27} y="14" width="21" height="34" rx="3"/>)}
+      <path className="un-stub" d="M100 41H142M14 62H52M168 62H186"/>
+      <g transform="skewX(-16)">{Array.from({length: 15}, (_, i) => <rect key={i} className="un-slot" x={38 + i * 11.6} y="72" width="9" height="20" rx="1.5"/>)}</g>
+    </>;
+    case 'sky': return <>
+      <circle className="un-rim" cx="38" cy="38" r="11"/><path className="un-tick un-tick-major" d={tickPath(38, 38, 16, 21, 8)}/>
+      <path className="un-rim un-fill" d="M40 78a12 12 0 0 1 1.6-23.9A16.5 16.5 0 0 1 73 50.5a13.8 13.8 0 0 1 9.5 27.5Z"/>
+      {[0, 1, 2, 3].map(i => <g key={i}><rect className="un-slot" x={104 + i * 22.5} y="26" width="11" height="52" rx="5.5"/><path className="un-stub" d={`M${102 + i * 22.5} 16h15M${102 + i * 22.5} 90h15`}/></g>)}
+    </>;
+    case 'arc': return <>
+      <path className="un-tick" d={tickPath(100, 90, 80, 84, 24, -90, 180)}/>
+      <path className="un-tube un-tube-thin" d="M30 90A70 70 0 0 1 170 90"/><path className="un-rim" d="M26.4 90A73.6 73.6 0 0 1 173.6 90"/><path className="un-rim" d="M33.6 90A66.4 66.4 0 0 1 166.4 90"/>
+      <path className="un-rim" d="M10 90.5H190"/><circle className="un-node" cx="50.5" cy="40.5" r="6"/><path className="un-tick un-tick-major" d="M30 86v9M170 86v9M100 86v9"/>
+    </>;
+    default: return <>
+      <path className="un-hair" d="M12 28H188M12 50H188M12 72H188M56 12V94M100 12V94M144 12V94"/>
+      <path className="un-dash" d="M14 76H60L78 64H122L140 52H184"/><circle className="un-node" cx="186" cy="52" r="4.5"/>
+      <path className="un-rim" d="M10 94.5H190"/><path className="un-tick" d="M12 94v5M56 94v5M100 94v5M144 94v5M188 94v5"/>
+    </>;
+  }
+}
+export function Unlit({kind, className = ''}: {kind: UnlitKind; className?: string}) {
+  const round = UNLIT_ROUND.has(kind);
+  return <svg className={`holo-unlit ${className}`.trim()} data-kind={kind} data-round={round || undefined} viewBox={round ? '-60 -60 120 120' : '0 0 200 110'} aria-hidden="true" focusable="false">
+    {round ? unlitRound(kind) : <><path className="un-bezel" d={UNLIT_BEZEL}/><path className="un-corner" d="M.5 16V7L7 .5H16M184 .5H193L199.5 7V16M199.5 94V103L193 109.5H184M16 109.5H7L.5 103V94"/>{unlitWide(kind)}</>}
   </svg>;
 }
 /**
@@ -353,10 +418,11 @@ export function Ghost({kind}: {kind: 'ring' | 'arcs' | 'wave' | 'stack' | 'bars'
  * track, faint empty slots, "—"), never a zero, with the reason in words and where to start. `kind` picks the shape.
  * AM-2: the unlit shape is the instrument's ghost in a tick bezel, with "—" where its figure will be.
  */
-export function HoloEmpty({kind, children, href, action}: {kind: 'ring' | 'arcs' | 'wave' | 'stack'; children: ReactNode; href?: string; action?: string}) {
-  return <div className="holo-empty" data-kind={kind}>
+export function HoloEmpty({kind, children, href, action}: {kind: 'ring' | 'arcs' | 'wave' | 'stack' | 'meter'; children: ReactNode; href?: string; action?: string}) {
+  // Round 7: the mark is the instrument itself, powered down (`Unlit`), with "—" where its figure will be.
+  return <div className="holo-empty" data-kind={kind} data-wide={kind === 'wave' || kind === 'meter' ? '' : undefined}>
     <span className="holo-empty-shape" aria-hidden="true">
-      <span className={kind === 'arcs' ? 'holo-empty-arc' : kind === 'wave' ? 'holo-empty-frame' : 'holo-empty-ring'}><Ghost kind={kind}/><b>—</b></span>
+      <span className={kind === 'arcs' ? 'holo-empty-arc' : kind === 'wave' || kind === 'meter' ? 'holo-empty-frame' : 'holo-empty-ring'}><Unlit kind={kind === 'wave' ? 'trend' : kind}/><b>—</b></span>
     </span>
     <p className="holo-empty-words">{children}</p>
     {href && action && <Link className="nova-link holo-empty-action" href={href} prefetch={false}>{action} <span aria-hidden="true">→</span></Link>}

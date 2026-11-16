@@ -103,7 +103,7 @@
 .nova-widget[data-holo] .nova-round:hover { background: color-mix(in oklab, var(--neon, #9273ff) 32%, #060a1c); }
 /* An unlit instrument in a teaching state: the Holo stage shows the widget's ghost, the Classic cards the pillar's art. */
 .nova-empty-ghost { display: none; }
-.nova-empty-ghost > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.nova-empty-ghost > svg { display: block; width: 100%; height: 100%; aspect-ratio: auto; overflow: visible; }
 .nova-widget[data-holo] .nova-empty > .nova-empty-ghost { display: block; grid-column: 1; grid-row: 1 / span 2; align-self: start; width: 48px; height: 48px; }
 .nova-widget[data-holo] .nova-empty > .nova-empty-art { display: none; }
 /* A small ring gauge beside words (Day at a glance, a running focus phase). */
@@ -204,6 +204,9 @@
    2 px of margin over the key's own 6 px inset, so 10 px of air to the lit key) are 67.3 px; a body under 68 px keeps
    the key in the row's own space (59.3 px). The band and a phone have no height to fit: there the key has its air. */
 .hw-focus[data-size=S] > .holo-cols { display: none; }
+/* Round 7: in a small panel the days are one letter each (two-letter names touched: "WeTh"). */
+.hw-focus[data-size=S] .holo-cols-l2 { display: none; }
+.hw-focus .holo-cols-day small { max-width: 100%; overflow: hidden; white-space: nowrap; }
 .hw-focus[data-size=S] > .nova-chip-link { margin-block: 2px -6px; }
 @container holo-body (max-height: 67.98px) { .hw-focus[data-size=S] > .nova-chip-link { margin-block: -6px; } }
 /* From 420 px of body (round 2: at 2560 the columns sat on a second line, cut by the panel's edge, with no letters in
@@ -217,6 +220,16 @@
   .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-chip-link { grid-area: 2 / 1; justify-self: start; }
   .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > [role=alert] { grid-area: 3 / 1 / 4 / 3; }
   .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols { display: grid; grid-area: 1 / 2 / 3 / 3; align-self: center; width: clamp(150px, 36cqi, 250px); max-width: none; --cols-h: clamp(18px, calc(100cqh - 22px), 64px); }
+}
+/* Round 7 (a blank middle at 1024): a small Focus panel under 420 px of body keeps its week too: seven short columns
+   beside the figure, without letters (the days are named where the panel is wider, and on the Focus page). */
+@container holo-body (min-width: 250px) and (max-width: 419.98px) {
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; column-gap: 12px; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-big { grid-area: 1 / 1; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .nova-chip-link { grid-area: 2 / 1 / 3 / 3; justify-self: start; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > [role=alert] { grid-area: 3 / 1 / 4 / 3; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols { display: grid; grid-area: 1 / 2; width: 98px; gap: 3px; --cols-h: 26px; }
+  .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) > .holo-cols small { display: none; }
 }
 @container holo-body (min-width: 640px) {
   .nova-widget[data-holo]:is([data-size=M], [data-size=L]) .nova-big .nova-figure { font-size: clamp(26px, min(8cqi, 30cqh), 56px); }
@@ -239,6 +252,8 @@
 @container holo-body (max-width: 559.98px) {
   .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) { display: flex; flex-direction: column; gap: 6px; }
   .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .nova-chip-link { margin-top: auto; align-self: flex-start; }
+  /* Round 7: in a narrow medium panel the week's columns stand in the middle at the height the panel leaves (they had no height of their own there: a blank band). */
+  .nova-widget[data-holo] .hw-focus:not([data-running]):is([data-size=M], [data-size=L]) > .holo-cols { flex: none; width: 100%; max-width: none; --cols-h: clamp(40px, calc(100cqh - 172px), 120px); }
 }
 @container holo-body (min-width: 420px) { .nova-widget[data-holo][data-size=S] .hw-focus:not([data-running]) { align-content: center; } }
 @container holo-body (min-width: 560px) {
@@ -270,6 +285,8 @@
 .nova-widget[data-holo] .holo-tasks > .tasks-widget { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
 /* The lists: side by side where each has 360 px, else one under the other; a list that left whole leaves no empty column. */
 .nova-widget[data-holo] .tasks-widget > .tasks-lists { flex: 0 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); align-items: start; align-content: start; gap: 6px 28px; }
+/* Round 7 (a dead band above the add field): in a medium or large panel the rows stand in the middle of the room between the counters and the field. */
+.nova-widget[data-holo] .holo-tasks:is([data-size=M], [data-size=L]) .tasks-widget > .tasks-lists { flex: 1 1 auto; align-content: safe center; }
 .nova-widget[data-holo] .tasks-widget > .nova-empty { flex: none; }
 .nova-widget[data-holo] .tasks-widget > .tasks-foot { flex: none; margin-top: auto; }
 /* The counters say what the headline says (overdue, due today, open): the line stays for assistive technology. */
@@ -536,6 +553,16 @@
 /* Now playing, at rest: the level strip is lit (its columns at 90 %, white caps, a centre line), not a dim grey strip. */
 .nova-widget[data-holo] .nova-playing .nova-disc i { opacity: .92; box-shadow: inset 0 2px 0 #ffffffd9, inset 0 -2px 0 #ffffff73, 0 0 9px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
 .nova-widget[data-holo] .nova-playing > .nova-disc { position: relative; background: linear-gradient(color-mix(in oklab, var(--neon, #9273ff) 34%, transparent), color-mix(in oklab, var(--neon, #9273ff) 34%, transparent)) 0 50% / 100% 1px no-repeat, #050919; }
+/* Session AM-3 (round 7; refs 33, 06): the level strip is a row of lit tubes standing on a floor. Each column is dark
+   glass at its edges with a white core, a white-hot cap, and the strip's floor carries their light (static layers; a
+   playing column still only scales, now from its foot). */
+.nova-widget[data-holo] .nova-playing > .nova-disc { align-items: end; padding: 8px 10px 12px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent) 12%, color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent) 88%, transparent) 0 calc(100% - 11px) / 100% 1px no-repeat,
+    radial-gradient(60% 26px at 50% calc(100% - 11px), color-mix(in oklab, var(--neon, #9273ff) 46%, transparent), transparent) 0 0 / 100% 100% no-repeat,
+    repeating-linear-gradient(0deg, color-mix(in oklab, var(--neon, #9273ff) 10%, transparent) 0 1px, transparent 1px 25%), #040716; }
+.nova-widget[data-holo] .nova-playing .nova-disc i { opacity: 1; border-radius: 3px 3px 0 0; transform-origin: 50% 100%;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #9273ff) 46%, #070b22) 0, var(--neon, #9273ff) 24%, var(--neon-2, #c0adff) 42%, #fff 50%, var(--neon-2, #c0adff) 58%, var(--neon, #9273ff) 76%, color-mix(in oklab, var(--neon, #9273ff) 46%, #070b22) 100%);
+  box-shadow: inset 0 3px 0 #fff, 0 -2px 8px 0 #ffffff8c, 0 0 12px 0 color-mix(in oklab, var(--neon, #9273ff) 75%, transparent); }
 .nova-widget[data-holo] .nova-playing .nova-round { box-shadow: 0 0 0 1px var(--neon, #7fc8ff), 0 0 14px -2px var(--neon, #7fc8ff), inset 0 0 12px -4px var(--neon, #7fc8ff); }
 
 /* Focus, at rest: the week's columns are a lit instrument (brighter slots, today's slot ringed), and the figure glows. */

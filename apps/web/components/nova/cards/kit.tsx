@@ -4,7 +4,7 @@ import {useId, type CSSProperties, type ReactNode} from 'react';
 import {HEART_PATH, arcPath, clamp01, linePath, polar, smoothPath, tickPath} from '../../../lib/nova/holo/geometry';
 import type {WidgetParams} from '../../../lib/nova/stage/record';
 import type {WidgetSize} from '../../../lib/nova/store';
-import {HoloFigure, Orn} from '../holo/parts';
+import {HoloFigure, Orn, Unlit} from '../holo/parts';
 import {WholeRows} from './whole-rows';
 import '../holo/holo-parts.css';
 import './cards.css';
@@ -40,29 +40,20 @@ export function CardFoot({source, asOf, children, wrap}: {source: string; asOf?:
   return <p className="nc-foot" data-wrap={wrap || undefined} title={wrap ? undefined : `${source}${asOf ? ` · ${asOf}` : ''}`}><i className="nc-foot-dot" aria-hidden="true"/><span className="nc-foot-source">{source}</span>{asOf ? <span className="nc-foot-asof"> · {asOf}</span> : null}{children}</p>;
 }
 
-/** The unlit shape of an instrument, for a state that has no figure to draw yet: hairlines and dashes only. */
+/** The unlit shape of an instrument, for a state that has no figure to draw yet: the instrument itself, powered down (`Unlit`, ../holo/parts). */
 export type Ghost = 'ring' | 'trend' | 'columns' | 'bars' | 'lattice' | 'rows' | 'sky' | 'arc';
-function GhostShape({kind}: {kind: Ghost}) {
-  const body = kind === 'trend' ? <><path className="nc-ghost-grid" d="M0 16H160M0 32H160M0 48H160M40 0V64M80 0V64M120 0V64"/><path className="nc-ghost-line" d="M4 50C24 46 34 30 52 34S84 52 100 36s30-24 54-22"/><circle className="nc-ghost-dot" cx="154" cy="14" r="4"/></>
-    : kind === 'columns' ? <><path className="nc-ghost-grid" d="M0 16H160M0 32H160M0 48H160"/>{[30, 44, 22, 52, 36, 48, 26].map((h, i) => <rect key={i} className="nc-ghost-line" x={8 + i * 22} y={63 - h} width="12" height={h} rx="2"/>)}<path className="nc-ghost-base" d="M0 63.5H160"/></>
-    : kind === 'bars' ? <>{[0, 1, 2].map(i => <g key={i}><rect className="nc-ghost-line" x="4" y={8 + i * 20} width="152" height="8" rx="2"/><path className="nc-ghost-base" d={`M6 ${12 + i * 20}H${[96, 58, 124][i]}`}/></g>)}</>
-    : kind === 'lattice' ? <>{Array.from({length: 21}, (_, i) => <rect key={i} className="nc-ghost-line" x={22 + (i % 7) * 18} y={6 + Math.floor(i / 7) * 18} width="13" height="13" rx="3"/>)}</>
-    : kind === 'rows' ? <>{[0, 1, 2].map(i => <g key={i}><circle className="nc-ghost-dot" cx="10" cy={12 + i * 20} r="3.5"/><path className="nc-ghost-base" d={`M24 ${12 + i * 20}H${[120, 96, 132][i]}`}/><path className="nc-ghost-grid" d={`M0 ${22 + i * 20}H160`}/></g>)}<path className="nc-ghost-line" d="M10 16V48"/></>
-    : kind === 'sky' ? <><circle className="nc-ghost-line" cx="52" cy="26" r="13"/><path className="nc-ghost-base" d={tickPath(52, 26, 18, 23, 12)}/><path className="nc-ghost-line" d="M70 54a11 11 0 0 1 2-21.8A15 15 0 0 1 100 30a12 12 0 0 1 11 24Z"/></>
-    : kind === 'arc' ? <><path className="nc-ghost-line" d="M20 56A60 50 0 0 1 140 56"/><path className="nc-ghost-base" d="M6 56H154"/><circle className="nc-ghost-dot" cx="52" cy="19" r="4.5"/></>
-    : <><circle className="nc-ghost-line" cx="80" cy="32" r="24"/><path className="nc-ghost-base" d={tickPath(80, 32, 28, 31, 40)}/><path className="nc-ghost-grid" d="M0 32H44M116 32H160"/></>;
-  return <svg className="nc-notice-ghost" viewBox="0 0 160 64" aria-hidden="true" focusable="false">{body}</svg>;
-}
 /**
- * A state that shows no figure (locked, off, nothing yet): never a plain paragraph — a small unlit dial with the state's
- * mark, the dim ghost of the instrument that would be here, one line of words and at most one action, as a key.
+ * A state that shows no figure (locked, off, nothing yet): never a plain paragraph. Session AM-3 (round 7): the widget's
+ * own instrument stands there at its real size, powered down (a dark tube with dead ticks, an empty bezel with unlit
+ * slots), with the state's small mark on it as its one lit lamp (a lock, a power mark, a plus), one line of words and at
+ * most one action, as a key. The drawing is fixed by `ghost` (or, behind a lock, by the widget's kind): it reads nothing.
  */
 export function CardNotice({kind, title, children, href, action, onAction, behind, ghost = kind === 'locked' ? 'none' : kind === 'off' ? 'sky' : 'trend'}: {kind: 'locked' | 'off' | 'empty'; title: string; children: ReactNode; href?: string; action?: string; onAction?: () => void;
-  /** The unlit instrument at the far end. A locked widget has none (round 3: an empty dashed ring floated alone beside the words; the lock's own dial is the mark). */ ghost?: Ghost | 'none';
-  /** Round 6: a decoration drawn behind the notice, inside it (the notice stays the body's only child). It takes no room. */ behind?: ReactNode}) {
+  /** The unlit instrument. A locked widget passes none here: its frame gives the kind's own drawing as `behind`. */ ghost?: Ghost | 'none';
+  /** Round 6: a decoration drawn inside the notice (the notice stays the body's only child): a locked widget's unlit instrument. */ behind?: ReactNode}) {
   return <div className="nc-notice" data-kind={kind} data-bare={ghost === 'none' ? '' : undefined}>
     {behind}
-    {ghost !== 'none' && <GhostShape kind={ghost}/>}
+    {ghost !== 'none' && <Unlit kind={ghost} className="nc-notice-ghost"/>}
     <svg className="nc-notice-glyph" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
       <path className="nc-notice-ticks" d={tickPath(24, 24, 20.5, 23.5, 36)}/>
       <circle cx="24" cy="24" r="17.5" className="nc-notice-ring"/>
@@ -111,7 +102,7 @@ export function ArcMark({share, r, w, start = 0, sweep = 360, k}: {share: number
   // The gradient runs along the last half-turn of the arc, so its leading end is always the brightest part.
   const half = Math.min(span, 180) / 2, phi = (a1 - half) * Math.PI / 180, ext = Math.max(1, r * Math.sin(half * Math.PI / 180)), gx = f2(Math.cos(phi) * ext), gy = f2(Math.sin(phi) * ext);
   return <g className="nc-arcmark" data-unknown={share === null || undefined} style={k ? {'--nc-wk': k} as CSSProperties : undefined}>
-    <defs><linearGradient id={`${id}g`} gradientUnits="userSpaceOnUse" x1={-gx} y1={-gy} x2={gx} y2={gy}><stop offset="0" className="nc-g-a"/><stop offset="1" className="nc-g-b"/></linearGradient></defs>
+    <defs><linearGradient id={`${id}g`} gradientUnits="userSpaceOnUse" x1={-gx} y1={-gy} x2={gx} y2={gy}><stop offset="0" className="nc-g-c"/><stop offset=".62" className="nc-g-a"/><stop offset="1" className="nc-g-b"/></linearGradient></defs>
     <path className="nc-gauge-track" d={arcPath(0, 0, r, start, start + sweep)}/>
     {lit && <>
       <path className="nc-gauge-glow nc-glow" d={lit}/>

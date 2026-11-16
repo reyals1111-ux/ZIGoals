@@ -72,12 +72,12 @@
 .nx-card[data-size=L] { --nx-d: 116; --nx-art: 92; }
 .nx-dial { --nc-d: var(--nx-d); }
 .nx-ring { --nc-d: var(--nx-art); }
-/* Round 6: a heavier ring. The band is 16 % of the diameter (nx-parts.tsx), its track is lit glass, and a soft disc of the
-   realm's light stands behind the figure (a layer of its own: static, never under the words' own box). */
-.nx-card :is(.nx-dial, .nx-ring) .nc-arcmark:not([data-unknown]) .nc-gauge-track { stroke: color-mix(in oklab, var(--neon, #9273ff) 30%, #060a20); stroke-dasharray: 2.7 1.35; }
-.nx-card :is(.nx-dial, .nx-ring)::before { content: ''; position: absolute; inset: 15%; border-radius: 50%; background: radial-gradient(circle, color-mix(in oklab, var(--neon, #9273ff) 26%, transparent) 0, color-mix(in oklab, var(--neon, #9273ff) 9%, transparent) 52%, transparent 70%); }
+/* Round 7 (refs 12, 27): a clean gradient arc. The band is 10 % of the diameter (nx-parts.tsx) on a dark glass tube with
+   a hairline rim; no dashed grey track and no haze behind the figure, so a small share reads as a short lit arc. */
+.nx-card :is(.nx-dial, .nx-ring) .nc-arcmark:not([data-unknown]) .nc-gauge-track { stroke: color-mix(in oklab, var(--neon, #9273ff) 16%, #070b1f); }
+.nx-card :is(.nx-dial, .nx-ring)::before { content: ''; position: absolute; inset: 14.5%; border-radius: 50%; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); }
 .nx-dial-figure { position: relative; display: grid; justify-items: center; line-height: 1; }
-.nx-dial-figure b { font-size: calc(var(--nx-d) * .26px); font-weight: 700; letter-spacing: -.01em; color: var(--neon-ink, #f4f7ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
+.nx-dial-figure b { font-size: calc(var(--nx-d) * .27px); font-weight: 400; letter-spacing: .01em; color: var(--neon-ink, #f4f7ff); font-variant-numeric: tabular-nums; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); }
 .nx-dial-figure[data-len] b { font-size: calc(var(--nx-d) * .2px); }
 .nx-dial-figure[data-len=xl] b { font-size: calc(var(--nx-d) * .155px); }
 .nx-ring .nx-dial-figure b { font-size: calc(var(--nx-art) * .24px); }
@@ -100,8 +100,14 @@
 @container holo-body (min-width: 520px) { .nx-grid2 .nc-bars { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; } }
 /* A fitted list (widgets/nx-rows.tsx) is its own limit inside its column: it takes the height the column leaves. */
 .nx-main > .nx-wr { flex: 0 1 auto; min-height: 0; }
+/* Round 7: the last line ("+N more") is never squeezed by the rows above it (its own 3 px of air and its 20 px line). */
+.nx-main > .nx-wr > .wr-more { box-sizing: border-box; min-height: 23px; }
 /* Round 6: beside a figure (a wide panel) the list takes the column's whole height, and its rows share it. */
-@container holo-body (min-width: 520px) { .nx-card:is([data-lay=hero], [data-lay=chart]) > .nx-main[data-fit=rows] > .nx-wr { flex: 1 1 auto; grid-template-rows: minmax(min-content, 1fr) auto; align-content: stretch; } .nx-card:is([data-lay=hero], [data-lay=chart]) > .nx-main[data-fit=rows] > .nx-wr > .nx-rows { grid-auto-rows: minmax(min-content, 78px); align-content: center; } }
+/* Round 7 (a cut "+3 more" line in Accounts and debts): the rows' tracks are elastic from their own height (they were
+   78 px at least to the box's sum, so the box never shrank and the last line was squeezed under the foot's rule). Now
+   the box is at least the rows at their own height plus the whole last line: rows that fit share the column (up to
+   78 px each), and rows that do not fit run past the box, which the measure sees. */
+@container holo-body (min-width: 520px) { .nx-card:is([data-lay=hero], [data-lay=chart]) > .nx-main[data-fit=rows] > .nx-wr { flex: 1 1 auto; grid-template-rows: minmax(min-content, 1fr) auto; align-content: stretch; } .nx-card:is([data-lay=hero], [data-lay=chart]) > .nx-main[data-fit=rows] > .nx-wr > .nx-rows { grid-auto-rows: minmax(min-content, 1fr); align-content: stretch; } }
 @container holo-body (min-width: 520px) and (min-height: 196px) { .nx-card:is([data-lay=hero], [data-lay=chart]) .nx-rows { gap: 6px; } .nx-card:is([data-lay=hero], [data-lay=chart]):is([data-size=M], [data-size=L]) .nx-row { padding-block: 6px; } }
 /* Under a ring's words, and in a narrow panel, the rows are slim (as many whole rows as before round 6): the lamps stay, a row's meter and the tally under the figure need the room a wide panel has. */
 .nx-card[data-lay=dial][data-size=M] .nx-rows { gap: 2px; }
@@ -185,9 +191,11 @@
 .nx-card[data-size=S] .nx-inst { column-gap: 10px; }
 @container holo-body (max-width: 519px) { .nx-card:is([data-size=M], [data-size=L]) .nx-duo { grid-template-columns: minmax(0, 1fr); } }
 /* A dot meter: lit dots in a framed square the size of the dial beside it. */
-.nx-dots { --nx-box: calc(var(--nx-art) * 1px); box-sizing: border-box; flex: none; width: var(--nx-box); height: var(--nx-box); padding: calc(var(--nx-box) * .14); display: grid; grid-template-columns: repeat(var(--nx-cols, 3), minmax(0, 1fr)); gap: calc(var(--nx-box) * .08); align-content: center; border-radius: 6px 16px 6px 16px; border: 1px solid color-mix(in oklab, var(--neon, #9273ff) 46%, transparent); background: color-mix(in oklab, var(--neon, #9273ff) 7%, #050919); box-shadow: inset 0 0 18px -6px var(--neon, #9273ff); }
-.nx-dots i { aspect-ratio: 1; border-radius: 50%; border: 1.5px dashed #ffffff66; }
-.nx-dots i[data-on] { border: 1px solid var(--neon-2, #c0adff); background: radial-gradient(circle at 34% 30%, #fff 0, var(--neon-2, #c0adff) 26%, var(--neon, #9273ff) 68%, color-mix(in oklab, var(--neon, #9273ff) 60%, #0a1030) 100%); box-shadow: 0 0 10px 1px color-mix(in oklab, var(--neon, #9273ff) 75%, transparent); }
+.nx-dots { --nx-box: calc(var(--nx-art) * 1px); box-sizing: border-box; flex: none; width: var(--nx-box); height: var(--nx-box); padding: calc(var(--nx-box) * .1); display: grid; grid-template-columns: repeat(var(--nx-cols, 3), minmax(0, 1fr)); gap: calc(var(--nx-box) * .09); align-content: center; border-radius: 6px 16px 6px 16px;
+  background: linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)) 0 0 / 12px 1.5px no-repeat, linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)) 0 0 / 1.5px 12px no-repeat, linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)) 100% 100% / 12px 1.5px no-repeat, linear-gradient(color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent), color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)) 100% 100% / 1.5px 12px no-repeat; }
+/* Round 7 (ref 24): each dot is a neon line glyph: a thin lit ring with a small white-hot core; an unlit dot is a dim dashed ring. */
+.nx-dots i { aspect-ratio: 1; border-radius: 50%; border: 1.5px dashed #ffffff5c; }
+.nx-dots i[data-on] { border: 1.5px solid var(--neon-2, #c0adff); background: radial-gradient(circle, #fff 0 15%, color-mix(in oklab, var(--neon, #9273ff) 70%, transparent) 19% 30%, transparent 44%); box-shadow: 0 0 9px 0 color-mix(in oklab, var(--neon, #9273ff) 80%, transparent), inset 0 0 6px 0 color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); }
 .nx-card[data-size=S] .nx-dots { border-radius: 4px 10px 4px 10px; }
 
 /* A narrow small panel: the read-outs alone (their drawings need the room the words need more). */
@@ -328,6 +336,8 @@
   .nx-card[data-lay=dial][data-size=M] .nx-dial-figure small { display: none; }
 }
 @container holo-body (min-width: 520px) and (min-height: 150px) and (max-height: 171px) { .nx-card[data-size=M] { --nx-d: 112; --nx-art: 92; } }
+/* Round 7 (larger hero rings): a medium panel of 180–195 px (2560 × 1440) no longer keeps the 132 px dial of a 172 px one. */
+@container holo-body (min-width: 520px) and (min-height: 180px) and (max-height: 195.98px) { .nx-card[data-size=M] { --nx-d: 148; --nx-art: 104; } }
 @container holo-body (min-width: 520px) and (min-height: 196px) {
   .nx-card:is([data-size=M], [data-size=L]) { --nx-d: 152; --nx-art: 112; }
   .nx-card[data-size=M] .nx-month :is(.nc-lattice-head, .nc-lattice-row) { --nc-cell: 28px; }
@@ -399,15 +409,9 @@
 @container holo-body (max-height: 139.98px) { .nx-mk:not([data-size=S]) .nx-mk-note { display: none; } }
 @container holo-body (max-width: 330px) { .nx-mk[data-size=S] .nx-ghostplot { display: none; } }
 
-/* ---- Behind a locked strip (round 6): the faint silhouette of the kind's instrument ----
-   A fixed drawing (widgets/nx-lock-ghost.tsx): no value is read or shown. It stands in the free room of the strip:
-   between the words and the Permissions key on a wide body, beside the key where the key is the second row. It never
-   sits under words, takes no room (a box of no height) and no pointer. */
-.nx-lockghost { position: relative; flex: none; display: block; height: 0; pointer-events: none; }
-/* Inside the notice (it stays the body's only child, so the frame still hugs it): the same origin, out of the notice's grid. */
-.nc-notice > .nx-lockghost { position: absolute; left: 0; top: 0; width: 100%; }
-.nx-lockghost > svg { position: absolute; top: 1px; left: 280px; height: 42px; overflow: hidden; display: none; }
-.nx-lg-line { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 52%, transparent); stroke-width: 1.5px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.nx-lg-dash { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 34%, transparent); stroke-width: 1px; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
-@container holo-body (min-width: 560px) { .nx-lockghost > svg { display: block; width: min(168px, 100% - 474px); } }
-@container holo-body (min-width: 296px) and (max-width: 419.98px) { .nx-lockghost > svg { display: block; top: 47px; left: 244px; width: calc(100% - 246px); } }
+/* ---- A locked widget's own instrument, powered down (round 6; redrawn at real size in round 7) ----
+   A fixed drawing (widgets/nx-lock-ghost.tsx): no value is read or shown. It is the notice's first column (cards.css
+   lays the notice out and gives the height, `--un-h`); under 296 px of body there is no room for it. */
+.nx-lockghost { display: none; flex: none; pointer-events: none; }
+.nx-lockghost > svg { height: 100%; width: auto; }
+@container holo-body (min-width: 296px) { .nx-lockghost { display: block; grid-column: 1; grid-row: 1 / span 2; align-self: center; justify-self: center; height: var(--un-h, 60px); } .nx-lockghost:not([data-shape=ring], [data-shape=arcs], [data-shape=stack]) { height: calc(var(--un-h, 60px) * .82); } }

@@ -12,11 +12,11 @@ import {Gauge, HeartTrace} from '../cards/kit';
  */
 
 /**
- * The dial of a card: one thick ring as large as the panel allows (the sheet sets its diameter in steps from the panel's
+ * The dial of a card (round 7: a clean gradient arc on a dark tube, refs 12 and 27): one ring as large as the panel allows (the sheet sets its diameter in steps from the panel's
  * height), the figure inside it with a word under it. `share` null is an unlit ring (unknown, never zero).
  */
 export function NxDial({share, figure, caption, tone, ticks, start, spin}: {share: number | null; figure: string; caption?: string | null; tone?: 'over'; ticks?: number; start?: number; spin?: boolean}) {
-  return <Gauge share={share} size={100} thick={16} bezel ticks={ticks} start={start} spin={spin} tone={tone} decor className="nx-dial">
+  return <Gauge share={share} size={100} thick={10} bezel ticks={ticks} start={start} spin={spin} tone={tone} decor className="nx-dial">
     <span className="nx-dial-figure" data-len={figure.length > 4 ? 'xl' : figure.length > 2 ? 'l' : undefined}><b>{figure}</b>{caption ? <small>{caption}</small> : null}</span>
   </Gauge>;
 }
@@ -73,7 +73,7 @@ export function NxInstrument({art, label, value, sub}: {art: ReactNode; label: s
 /** Ring cards (savings challenges): a ring with its share inside, a name that stays whole, what it is and where it stands. */
 export function NxRingCards({items, label}: {items: readonly {key: string; share: number | null; figure: string; name: string; kind: string; words: string}[]; label: string}) {
   return <ul className="nx-ringcards" aria-label={label}>{items.map((it, i) => <li key={it.key} className="nx-ringcard nc-rise" style={{'--nc-i': i} as CSSProperties}>
-    <Gauge share={it.share} size={100} thick={16} bezel decor className="nx-ring"><span className="nx-dial-figure" data-len={it.figure.length > 2 ? 'l' : undefined}><b>{it.figure}</b></span></Gauge>
+    <Gauge share={it.share} size={100} thick={10} bezel decor className="nx-ring"><span className="nx-dial-figure" data-len={it.figure.length > 2 ? 'l' : undefined}><b>{it.figure}</b></span></Gauge>
     <span className="nx-ringcard-words"><b>{it.name}</b><span className="nx-ringcard-kind">{it.kind}</span><span className="nx-ringcard-sub">{it.words}</span></span>
     <NxSegs share={it.share} n={20}/>
   </li>)}</ul>;

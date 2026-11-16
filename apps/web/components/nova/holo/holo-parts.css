@@ -19,6 +19,10 @@
 .nova-widget[data-pillar=mind] { --neon: #d59bff; --neon-2: #ecd2ff; --neon-ink: #f6e9ff; }
 .nova-widget[data-pillar=world] { --neon: #5aa2ff; --neon-2: #ffd9a0; --neon-ink: #e6f0ff; }
 .nova-widget[data-pillar=nova] { --neon: var(--nova-a, #9273ff); --neon-2: var(--nova-b, #63e7ff); --neon-ink: #f1edff; }
+/* Session AM-3 (round 7; refs 42, 43): a ring's arc is two-tone. It starts in the realm's partner colour (`--neon-b`) and
+   runs into the realm's own light at its leading end (holo `.holo-arc`, the kit's `.nc-g-c`). Decoration only. */
+.nova-widget[data-pillar=health] { --neon-b: #a98bff; } .nova-widget[data-pillar=habits] { --neon-b: #8f7dff; } .nova-widget[data-pillar=goals] { --neon-b: #35d6ff; }
+.nova-widget[data-pillar=wealth] { --neon-b: #ff9f6e; } .nova-widget[data-pillar=orbit] { --neon-b: #a995ff; } .nova-widget[data-pillar=mind] { --neon-b: #6fd4ff; }
 
 /*
  * Session AM-2 ("NOVA, stunning"; docs/design/NOVA_AM_ART_DIRECTION.md, AM-2 A–F): the instruments are holograms.
@@ -36,7 +40,8 @@
 /* ---- Figures and words ---- */
 .holo-num { color: var(--neon-ink, #eef3ff); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .01em; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent), 0 0 28px color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); }
 /* The hero figure: as large as its panel's width lets its characters be (HoloFigure's --chars), 26–46 px. */
-.holo-num-big { font-size: clamp(26px, min(calc(100cqi / (var(--chars, 6) * .58)), 19cqh), 46px); line-height: 1.04; font-weight: 680; letter-spacing: -.012em; }
+/* Round 7: a hero figure is an instrument numeral: light and open (weight and tracking only; the family is the app's own). */
+.holo-num-big { font-size: clamp(26px, min(calc(100cqi / (var(--chars, 6) * .58)), 19cqh), 46px); line-height: 1.04; font-weight: 300; letter-spacing: .012em; }
 .nova-widget[data-size=S] .holo-num-big { font-size: clamp(22px, calc(100cqi / (var(--chars, 6) * .58)), 30px); }
 /* Design review AM-D10: while a figure counts (once, when its widget is made), a hidden copy of the final text holds its width and the count draws over it. */
 .holo-num[data-counting] { position: relative; display: inline-block; }
@@ -44,7 +49,7 @@
 .holo-num-size { visibility: hidden; }
 .holo-num-run { position: absolute; inset-inline-start: 0; top: 0; white-space: nowrap; }
 .holo-num-arc .holo-num-run { inset: 0; display: grid; place-items: center; }
-.holo-num-ring { font-size: 22px; line-height: 1.05; }
+.holo-num-ring { font-size: 22px; line-height: 1.05; font-weight: 400; letter-spacing: .02em; }
 .nova-widget[data-size=S] .holo-num-ring { font-size: 16px; }
 .holo-num-arc { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; }
 .holo-label { margin: 0; font-size: 14px; line-height: 18px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #cdd8ee; }
@@ -76,9 +81,12 @@
 .holo-orn-hair { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); stroke-width: .5; }
 .holo-track, .holo-track-path { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 17%, #ffffff0d); stroke-width: 4.6; stroke-linecap: round; }
 /* A data arc: steps of one gradient (GradArc's --t), the bloom on their group (one static filter, never animated). */
-.holo-arc { fill: none; stroke: color-mix(in oklab, var(--neon-2, #c0adff) calc(var(--t, 1) * 72%), var(--neon, #9273ff)); stroke-width: 4.6; stroke-linecap: round; }
+.holo-arc { fill: none; stroke: color-mix(in oklab, color-mix(in oklab, var(--neon-2, #c0adff) 58%, var(--neon, #9273ff)) calc(var(--t, 1) * 100%), var(--neon-b, var(--neon, #9273ff))); stroke-width: 4.6; stroke-linecap: round; }
+/* Round 7: a ring's own band has weight (6.4 of its 120 units: 8 px on a 150 px ring), as the references' rings have. */
+.holo-ring > svg > .holo-track, .holo-ring > svg > .holo-arc-g > .holo-arc { stroke-width: 6.4; }
+.holo-ring > svg > .holo-arc-g > .holo-glint { stroke-width: 1.3; }
 .holo-arc-g { filter: drop-shadow(0 0 1.6px var(--neon, #9273ff)) drop-shadow(0 0 5px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)); }
-.holo-ring[data-small] :is(.holo-track, .holo-arc) { stroke-width: 6.4; }
+.holo-ring[data-small] > svg > .holo-track, .holo-ring[data-small] > svg > .holo-arc-g > .holo-arc { stroke-width: 8; }
 .holo-ring[data-small] .holo-orn-hair, .holo-ring[data-small] > .holo-orn { display: none; }
 /* Review "flat" 5 (lane L8d): a thin white core over every data arc and line (a lit tube), the wide halo above. */
 .holo-glint { fill: none; stroke: #ffffffc4; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
@@ -87,7 +95,7 @@
 /* Full-strength neon: where the browser can derive it, a data mark starts in a deeper, more saturated tone of its neon and
    ends in the neon itself (the lit dot is its white-hot end); elsewhere it runs from the neon to its lighter second colour. */
 @supports (color: oklch(from red l c h)) {
-  .holo-arc { stroke: color-mix(in oklab, var(--neon, #9273ff) calc(var(--t, 1) * 100%), oklch(from var(--neon, #9273ff) calc(l - .13) calc(c * 1.25) h)); }
+  .holo-arc { stroke: color-mix(in oklab, var(--neon, #9273ff) calc(var(--t, 1) * 100%), var(--neon-b, oklch(from var(--neon, #9273ff) calc(l - .13) calc(c * 1.25) h))); }
   .holo-segs i[data-lit] { background-color: color-mix(in oklab, var(--neon, #9273ff) calc(var(--k) * 100%), oklch(from var(--neon, #9273ff) calc(l - .12) calc(c * 1.25) h)); }
   .holo-gauge-fill, .holo-slider-fill { background: linear-gradient(90deg, oklch(from var(--neon, #9273ff) calc(l - .14) calc(c * 1.25) h / .7), var(--neon, #9273ff) 70%, var(--neon-2, #c0adff)); }
   .holo-cols-slot i { background: linear-gradient(0deg, oklch(from var(--neon, #23eaff) calc(l - .16) calc(c * 1.2) h / .55), var(--neon, #23eaff) 80%, var(--neon-2, #8ff6ff)); }
@@ -108,6 +116,8 @@
 /* Review M4 (lane L8d): an unknown figure is one faint hairline — never dashed like an ornament nor segmented like data —
    and the core marks it with a short dash in its opening. */
 :is(.holo-track, .holo-track-path)[data-unknown], .holo-stack g[data-lead] .holo-track[data-unknown] { stroke: #c9d4ea; stroke-dasharray: none; stroke-width: .6; opacity: .45; }
+/* Round 7: a ring with no figure is powered down: its dark tube inside the dead ticks (unlit, never a zero), not a lone hairline. */
+.holo-ring > svg > .holo-track[data-unknown] { stroke: color-mix(in oklab, var(--neon, #9273ff) 15%, #070b1d); stroke-width: 8; opacity: 1; }
 .holo-unknown-mark { fill: none; stroke: #dfe7f8; stroke-width: 1.2; stroke-linecap: round; opacity: .75; }
 .holo-dial-label { fill: #c9d4ea; font-size: 8px; text-anchor: middle; font-weight: 600; }
 .holo-hand { stroke: #ffffffd9; stroke-width: 1.3; stroke-linecap: round; }
@@ -604,13 +614,26 @@
 .holo-empty-ring, .holo-empty-arc, .holo-empty-frame { position: relative; display: grid; place-items: center; width: 56px; height: 56px; }
 .holo-empty-ring svg, .holo-empty-arc svg, .holo-empty-frame svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .holo-empty-frame b, .holo-empty-arc b { opacity: 0; }
-.holo-ghost { display: block; overflow: visible; }
-.holo-ghost-rim { fill: color-mix(in oklab, var(--neon, #9273ff) 10%, #04071a); fill-opacity: .7; stroke: color-mix(in oklab, var(--neon, #9273ff) 80%, transparent); stroke-width: 1; }
-.holo-ghost-ticks { fill: none; stroke: color-mix(in oklab, var(--neon-2, #c0adff) 70%, transparent); stroke-width: .8; }
-.holo-ghost-track { fill: none; stroke: color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent); stroke-width: 1.6; stroke-dasharray: 2.2 2.4; stroke-linecap: round; }
-.holo-ghost-grid { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 30%, transparent); stroke-width: .5; }
-.holo-ghost-lit { fill: none; stroke: var(--neon-2, #c0adff); stroke-width: 2.2; stroke-linecap: round; filter: drop-shadow(0 0 2.5px var(--neon, #9273ff)); }
-.holo-ghost-dot { fill: #fff; stroke: var(--neon, #9273ff); stroke-width: .8; filter: drop-shadow(0 0 2.5px var(--neon, #9273ff)); }
+/* ---- Session AM-3 (round 7): a powered-down instrument (`Unlit`, parts.tsx) ----
+   The instrument a state without a figure would draw, at its real size and dark: a glass tube between two hairline rims
+   with dead ticks, or an empty bezel with unlit slots. Static, no bloom, no value: a fixed drawing per kind. */
+.holo-unlit { display: block; flex: none; aspect-ratio: 200 / 110; overflow: visible; pointer-events: none; }
+.holo-unlit[data-round] { aspect-ratio: 1; }
+.un-bezel { fill: #040716; fill-opacity: .62; stroke: color-mix(in srgb, var(--neon, #9273ff) 30%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.un-corner { fill: none; stroke: color-mix(in srgb, var(--neon-2, #c0adff) 78%, transparent); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.un-tube { fill: none; stroke: color-mix(in srgb, var(--neon, #9273ff) 15%, #070b1d); stroke-width: 11; }
+.un-tube-thin { stroke-width: 7.2; }
+.un-rim { fill: none; stroke: color-mix(in srgb, var(--neon, #9273ff) 52%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.un-fill { fill: color-mix(in srgb, var(--neon, #9273ff) 8%, #060a1c); }
+.un-well { fill: #03061a; fill-opacity: .7; }
+.un-tick { fill: none; stroke: color-mix(in srgb, var(--neon-2, #c0adff) 40%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.un-tick-major { stroke: color-mix(in srgb, var(--neon-2, #c0adff) 72%, transparent); stroke-width: 1.5px; }
+.un-slot { fill: color-mix(in srgb, var(--neon, #9273ff) 10%, #060a1c); stroke: color-mix(in srgb, var(--neon, #9273ff) 46%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.un-hair { fill: none; stroke: color-mix(in srgb, var(--neon, #9273ff) 20%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.un-stub { fill: none; stroke: color-mix(in srgb, var(--neon-2, #c0adff) 30%, transparent); stroke-width: 3px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.un-dash { fill: none; stroke: color-mix(in srgb, var(--neon-2, #c0adff) 56%, transparent); stroke-width: 1.5px; stroke-dasharray: 4 5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.un-node { fill: #040716; stroke: color-mix(in srgb, var(--neon-2, #c0adff) 66%, transparent); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.un-notch { fill: color-mix(in srgb, var(--neon-2, #c0adff) 70%, transparent); }
 .holo-empty-words { grid-column: 2; margin: 0; font-size: 15px; line-height: 1.4; color: #dbe4f6; }
 .holo-empty-action { grid-column: 2; justify-self: start; display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
 /* Design review AM-D22: on the Holo stage every teaching state is ONE layout (cards/cards.css): the unlit shape is one 48 px mark in the icon's place, at every size. */
@@ -895,9 +918,13 @@
 /* Round 4: a teaching state that is the whole body (nothing under it: no add form, no key of the panel's own) takes a
    full-size ghost, up to 190 px. */
 .nova-widget[data-holo]:is([data-size=M], [data-size=L]) .nova-widget-inner > :is(.holo-empty, .nova-empty) { --ghost: clamp(64px, min(100cqh - 24px, 30cqi), 190px); }
-.nova-widget[data-holo]:is([data-size=M], [data-size=L]) :is(.holo-empty-shape, .nova-empty > .nova-empty-ghost) { width: var(--ghost); height: var(--ghost); align-self: center; opacity: .85; }
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) :is(.holo-empty-shape, .nova-empty > .nova-empty-ghost) { width: var(--ghost); height: var(--ghost); align-self: center; }
 .nova-widget[data-holo]:is([data-size=M], [data-size=L]) .holo-empty-shape :is(.holo-empty-ring, .holo-empty-arc, .holo-empty-frame) { width: var(--ghost); height: var(--ghost); }
 .nova-widget[data-holo]:is([data-size=M], [data-size=L]) .holo-empty-shape b { font-size: clamp(15px, calc(var(--ghost) * .2), 26px); }
+/* Round 7: a wide instrument (a plot, a meter, rows) keeps its own proportions, 1.7 times as wide as a ring is. */
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) :is(.holo-empty, .nova-empty)[data-wide] { --ghost: clamp(64px, min(100cqh - 24px, 24cqi), 150px); grid-template-columns: calc(var(--ghost) * 1.7) minmax(0, 1fr); }
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) [data-wide] > :is(.holo-empty-shape, .nova-empty-ghost) { width: calc(var(--ghost) * 1.7); height: calc(var(--ghost) * .935); }
+.nova-widget[data-holo]:is([data-size=M], [data-size=L]) [data-wide] > .holo-empty-shape .holo-empty-frame { width: 100%; height: 100%; }
 .nova-widget[data-holo]:is([data-size=M], [data-size=L]) :is(.holo-empty-words, .nova-empty > p) { font-size: 16px; }
 
 /* m2: the core's names and reasons wrap onto a second line instead of "Emerge…" / "No water logged yet t…". */
@@ -1024,6 +1051,10 @@
   .holo-health[data-size=M] .holo-ring { --ring: clamp(56px, min(100cqh - 70px - var(--note), 100cqi - 206px), 190px); }
   .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 168px) / 3), 9px); }
 }
+/* Round 7 (a dead band under the strip at 1440 × 900): in a body of 350 px or less, while the meters' reasons are not
+   shown (under 300 px of height), the meters share the panel's height: their gap may grow past 9 px, by the sum above
+   with 4 px to spare. (A wider body keeps 9 px: with its hearts' row a larger gap cut the panel at 1920 × 1080.) */
+@container holo-body (max-width: 350px) and (min-height: 179px) and (max-height: 299px) { .holo-health[data-size=M] { --mgap: clamp(3px, calc((100cqh - 172px) / 3), 24px); } }
 @container holo-body (max-width: 350px) and (max-height: 178px) {
   .holo-health[data-size=M] .holo-tag { display: none; }
   .holo-health[data-size=M] .holo-ring { --ring: clamp(56px, min(100cqh - 20px - var(--note), 100cqi - 206px), 190px); }
@@ -1049,7 +1080,11 @@
   .holo-agenda[data-size=M] .holo-clock, .holo-orbit[data-size=M] .holo-orbit-ring { --ring: clamp(84px, min(100cqh - 10px, 30cqi), 220px); }
   .holo-wealth:is([data-size=M], [data-size=L]) { grid-template-columns: minmax(0, 48%) minmax(0, 1fr); }
   .holo-wealth:is([data-size=M], [data-size=L]) .holo-num-big { font-size: clamp(24px, min(calc(46cqi / (var(--chars, 6) * .58)), 27cqh), 64px); }
-  :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]) .holo-num-big { font-size: clamp(30px, min(calc(100cqi / (var(--chars, 6) * .58)), 31cqh), 64px); }
+  /* Round 7 (an empty upper half): the figure and its meter take the panel's height (the figure up to 88 px, the meter's cells up to 28 px). */
+  :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]) .holo-num-big { font-size: clamp(30px, min(calc(100cqi / (var(--chars, 6) * .58)), 40cqh), 88px); }
+  :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]):not([data-empty]) .holo-segs { height: clamp(14px, 13cqh, 28px); gap: 4px; }
+  :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]):not([data-empty]) .holo-meter { row-gap: 6px; }
+  :is(.holo-water, .holo-sleep):is([data-size=M], [data-size=L]):not([data-empty]) :is(.holo-meter-label, .holo-meter-value) { font-size: 16px; line-height: 20px; }
   .holo-counters dd { font-size: 40px; }
   .holo-notes:is([data-size=M], [data-size=L]) .holo-notes-head .holo-num-big { font-size: 48px; }
   .holo-streaks li, .holo-streaks .holo-num, .holo-orbit-line { font-size: 16px; }
@@ -1104,7 +1139,7 @@
    instrument waiting, not a dash and a line. */
 .holo-water-ghost { display: none; }
 .holo-water[data-empty] { grid-template-columns: auto minmax(0, 1fr); column-gap: 16px; align-items: center; }
-.holo-water[data-empty] > .holo-water-ghost { display: block; grid-row: 1 / span 5; --ghost: clamp(44px, min(100cqh - 24px, 30cqi), 190px); width: var(--ghost); height: var(--ghost); opacity: .85; }
+.holo-water[data-empty] > .holo-water-ghost { display: block; grid-row: 1 / span 5; --ghost: clamp(44px, min(100cqh - 24px, 30cqi), 190px); width: var(--ghost); height: var(--ghost); }
 .holo-water[data-empty]:is([data-size=M], [data-size=L]) { column-gap: 20px; align-content: center; }
 .holo-water[data-empty]:is([data-size=M], [data-size=L]) .holo-num-big { font-size: 30px; }
 .holo-water[data-empty] > .holo-empty-action { justify-self: start; }
@@ -1195,6 +1230,9 @@
 .holo-notes:is([data-size=M], [data-size=L]) .holo-captures li::before { left: 15px; width: 8px; height: 8px; margin-top: -4px; border-radius: 1px; transform: rotate(45deg); background: #070b22; box-shadow: 0 0 0 1.5px var(--neon, #7fc8ff), 0 0 8px 1px var(--neon, #7fc8ff); }
 .holo-notes:is([data-size=M], [data-size=L]) .holo-captures li:first-child::before { background: #fff; }
 .holo-notes:is([data-size=M], [data-size=L]) .holo-captures a { font-weight: 600; }
+/* Round 7 (a cut name in the inbox): in a medium or large panel a capture's name may take two lines in its row (the row is 44 px or taller). */
+.holo-notes:is([data-size=M], [data-size=L]) .holo-captures a { display: flex; align-items: center; line-height: 21px; white-space: normal; }
+.holo-notes:is([data-size=M], [data-size=L]) .holo-capture-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
 .holo-notes:is([data-size=M], [data-size=L]) .holo-captures small { color: var(--neon-ink, #e3f3ff); font-weight: 600; }
 @container holo-body (min-height: 1px) {
   .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > .holo-notes:is([data-size=M], [data-size=L]) { height: 100cqh; }

@@ -242,6 +242,10 @@
 .nc-bills-card .nc-bills-row .nc-bills-name { grid-area: name; }
 .nc-bills-card .nc-bills-row .nc-bills-amount { grid-area: amount; font-size: 16px; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ffd27a) 50%, transparent); }
 .nc-bills-card .nc-bills-row .nc-bills-when { grid-area: when; contain: inline-size; }
+/* Round 7 (a cut name: "Energy · SHOWCAS…"): in a medium or large panel a bill's name may take a second line beside its
+   amount; it is never cut while it fits in two. */
+.nc-bills-card:is([data-size=M], [data-size=L]) .nc-bills-row .nc-bills-name { white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.25; }
+.nc-bills-card:is([data-size=M], [data-size=L]) .nc-bills-row .nc-bills-amount { align-self: start; }
 .nc-bills-meter { grid-area: meter; margin-top: 5px; height: 4px; }
 .nc-bills-card .nc-bills-list { gap: 4px; }
 @container holo-body (min-height: 1px) {

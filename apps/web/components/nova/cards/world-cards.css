@@ -40,6 +40,15 @@
 .nw-cloud-glow { stroke: color-mix(in oklab, var(--neon, #7fb6ff) 42%, transparent); stroke-width: 5.5; }
 .nw-cloud-shine { stroke: #fff; stroke-width: 1.3; opacity: .85; }
 .nw-cloud-back { opacity: .62; }
+/* Session AM-3 (round 7; ref 24): the sky is a neon line glyph. The sun is a hollow ring of light with its rays, the moon
+   and a cloud are one lit outline over dark glass (the glass hides what is behind a cloud); no filled disc, no shine. */
+.nw-scene .nw-sun-core { fill: #070b1e; fill-opacity: .5; stroke: #ffe9b0; stroke-width: 1.7; }
+.nw-scene .nw-sun-ring { opacity: .34; stroke-width: .7; }
+.nw-scene .nw-orb-halo { opacity: .5; }
+.nw-scene .nw-rays { stroke: #ffe2a0; stroke-width: 1.7; }
+.nw-scene .nw-moon-body { fill: #070b1e; fill-opacity: .5; stroke-width: 1.7; }
+.nw-scene .nw-cloud { fill: #070b1e; fill-opacity: .78; stroke-width: 1.7; }
+.nw-scene .nw-cloud-shine { display: none; }
 .nw-fog path { stroke: #dbe6f6; stroke-width: 2; stroke-dasharray: 12 5 3 5; }
 .nw-fog path:nth-child(2n) { stroke: #a9bbd8; }
 .nw-rain path { stroke: #7ff1ff; stroke-width: 1.8; }

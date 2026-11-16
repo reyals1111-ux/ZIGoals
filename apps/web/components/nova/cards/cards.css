@@ -51,17 +51,12 @@
 .nc-notice-ring { fill: color-mix(in oklab, var(--neon, #9273ff) 9%, #050919); stroke: color-mix(in oklab, var(--neon, #9273ff) 55%, transparent); stroke-width: 1.2px; vector-effect: non-scaling-stroke; stroke-dasharray: 4 5; }
 .nc-notice-arc { fill: none; stroke: var(--neon, #9273ff); stroke-width: 2.2; stroke-linecap: round; filter: drop-shadow(0 0 3px var(--neon, #9273ff)); }
 .nc-notice-mark { fill: none; stroke: var(--neon-ink, #eef3ff); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-/* The ghost of the widget's own instrument stands in a column of its own, beside the words, never under them: it shows
-   only where the panel is wide enough to give it one (480 px or more). */
-.nc-notice-ghost { display: none; grid-column: 3; grid-row: 1; align-self: center; justify-self: end; width: 100%; max-width: 300px; height: auto; overflow: visible; pointer-events: none; }
+/* Round 7: the widget's own instrument, powered down, is the notice's first column where the body is 296 px or wider
+   (`Unlit`, holo/parts.tsx; `--un-h` is its height); the state's mark is the one lit lamp on it. */
+.nc-notice-ghost { display: none; grid-column: 1; grid-row: 1; align-self: center; justify-self: center; height: calc(var(--un-h, 60px) * .82); width: auto; }
+.nc-notice-ghost[data-round] { height: var(--un-h, 60px); }
 .nc-notice-glyph { grid-column: 1; grid-row: 1; }
 .nc-notice-words { grid-column: 2; grid-row: 1; }
-/* A notice without a ghost (a locked widget): the words take the ghost's column too. */
-@container holo-body (min-width: 233px) { .nc-notice[data-bare] .nc-notice-words { grid-column: 2 / -1; } }
-.nc-ghost-grid { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 24%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
-.nc-ghost-line { fill: none; stroke: color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); stroke-width: 1.5px; vector-effect: non-scaling-stroke; stroke-dasharray: 5 5; stroke-linecap: round; }
-.nc-ghost-base { fill: none; stroke: color-mix(in oklab, var(--neon-2, #c0adff) 48%, transparent); stroke-width: 1px; vector-effect: non-scaling-stroke; }
-.nc-ghost-dot { fill: #050919; stroke: color-mix(in oklab, var(--neon-2, #c0adff) 85%, transparent); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
 .nc-notice-words { position: relative; min-width: 0; }
 .nc-notice-title { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: .02em; color: var(--neon-ink, #f2f6ff); text-shadow: 0 0 12px color-mix(in oklab, var(--neon, #9273ff) 60%, transparent); }
 .nc-notice-text, .nova-widget[data-holo] .holo-empty-words, .nova-widget[data-holo] .nova-empty > p { margin: 2px 0 0; font-size: 15px; line-height: 1.45; color: #d6e0f5; }
@@ -85,44 +80,64 @@
    (widget-grid.tsx reads that when the body's size changes). In a fitted panel the notice is therefore one pixel taller
    than its panel: that change of size is what tells the frame, whatever the body held before ("Reading…"). */
 @container holo-body (min-height: 1px) { .nova-widget-inner > .nc-notice { min-height: calc(100cqh + 1px); align-content: center; } }
-/* A wide notice: a larger dial, 16 px words, and the instrument's ghost in its own column at the far end. */
-@container holo-body (min-width: 480px) {
-  .nc-notice { grid-template-columns: 76px minmax(0, 1fr) minmax(120px, 28%); column-gap: 18px; }
-  .nc-notice-glyph { width: 76px; height: 76px; }
-  .nc-notice-text { font-size: 16px; max-width: 62ch; }
+/* The instrument column. 296–479 px of body: a ring 76 px, a plot 62 px tall; the lamp 32 px on it. */
+@container holo-body (min-width: 296px) {
+  .nc-notice { --un-h: 76px; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; }
   .nc-notice-ghost { display: block; }
+  .nc-notice-glyph { width: 32px; height: 32px; align-self: center; justify-self: center; }
+  .nc-notice-ring { fill: #050919; stroke-dasharray: none; }
 }
-/* A notice in a panel that kept its size (a fitted body 150 px or taller: the bento and focus arrangements): the unlit
-   dial 96–150 px, the ghost larger in its column, the key larger. */
+/* A wide notice (480 px or more): the instrument at the size the live one is drawn (a ring 124 px, a plot 102 px tall), 16 px words. */
+@container holo-body (min-width: 480px) {
+  .nc-notice { --un-h: 124px; column-gap: 24px; padding: 6px 0; }
+  .nc-notice-glyph { width: 40px; height: 40px; }
+  .nc-notice-title { font-size: 17px; }
+  .nc-notice-text { font-size: 16px; max-width: 58ch; }
+  .nc-notice .nc-action { margin-top: 8px; }
+}
+/* A notice in a panel that kept its size (a fitted body 150 px or taller: the bento and focus arrangements): the
+   instrument grows with the panel, the key is larger. */
 @container holo-body (min-height: 150px) {
-  .nc-notice { grid-template-columns: clamp(96px, 58cqh, 150px) minmax(0, 1fr); column-gap: 22px; padding: 0; }
   .nc-body > .nc-notice { flex: 1 1 auto; min-height: 0; align-content: center; }
-  .nc-notice-glyph { width: 100%; height: auto; aspect-ratio: 1; align-self: center; }
+  .nc-notice { padding: 0; }
   .nc-notice-title { font-size: 18px; }
   .nc-notice-text { font-size: 16px; max-width: 56ch; }
   .nc-notice .nc-action { min-height: 48px; margin-top: 10px; padding: 0 20px; font-size: 16px; }
 }
-@container holo-body (min-height: 150px) and (min-width: 480px) { .nc-notice { grid-template-columns: clamp(96px, 58cqh, 150px) minmax(0, 1fr) minmax(160px, 36%); } .nc-notice-ghost { max-width: 420px; max-height: 80cqh; } }
-@container holo-body (min-height: 150px) and (max-width: 420px) { .nc-notice { grid-template-columns: 84px minmax(0, 1fr); column-gap: 14px; } }
+@container holo-body (min-height: 150px) and (min-width: 296px) { .nc-notice { --un-h: clamp(76px, 56cqh, 96px); } }
+@container holo-body (min-height: 150px) and (min-width: 480px) { .nc-notice { --un-h: clamp(124px, 70cqh, 200px); } .nc-notice-glyph { width: 48px; height: 48px; } }
 @container holo-body (max-width: 232px) { .nc-notice { grid-template-columns: minmax(0, 1fr); } .nc-notice-glyph { display: none; } .nc-notice-words { grid-column: 1; } }
-/* Round 4 (the critics: seven locked panels read as "a wall of error cards"): a locked widget is quiet. One slim strip,
-   one unit tall at every size: the lock's small dial, which switch is off ("Health is off for NOVA"), and the Permissions
-   key, on one row (under 420 px of body the key is the second row). The sentence that explains the switch stays in the
-   panel for assistive technology and is the strip's tooltip; nothing else is drawn. */
-.nc-notice[data-kind=locked] { grid-template-columns: 40px minmax(0, 1fr) auto; column-gap: 12px; row-gap: 2px; align-items: center; align-content: center; padding: 0; }
-.nc-notice[data-kind=locked] .nc-notice-glyph { width: 40px; height: 40px; aspect-ratio: auto; align-self: center; }
+/* Round 4 (the critics: seven locked panels read as "a wall of error cards"): a locked widget is quiet: which switch is
+   off ("Health is off for NOVA") and the Permissions key. The sentence that explains the switch stays in the panel for
+   assistive technology. Round 7 (the critics again: "six identical strips"): each locked panel shows ITS OWN instrument,
+   powered down, at its real size (widgets/nx-lock-ghost.tsx; a fixed drawing per kind, nothing is read), so a stage of
+   them is a cockpit with the power off: the instrument, and beside it the words over the key. Under 296 px of body the
+   lock's own small dial stands in the instrument's place. */
+.nc-notice[data-kind=locked] { grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; row-gap: 2px; align-items: center; align-content: center; padding: 0; }
+.nc-notice[data-kind=locked] .nc-notice-glyph { grid-row: 1 / span 2; width: 40px; height: 40px; aspect-ratio: auto; align-self: center; }
 .nc-notice[data-kind=locked] .nc-notice-words { display: contents; }
 .nc-notice[data-kind=locked] .nc-notice-title { grid-column: 2; grid-row: 1; font-size: 15px; }
 .nc-notice[data-kind=locked] .nc-notice-text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.nc-notice[data-kind=locked] .nc-action { grid-column: 3; grid-row: 1; min-height: 44px; margin-top: 0; padding: 0 14px; font-size: 15px; }
-@container holo-body (max-width: 419.98px) {
-  .nc-notice[data-kind=locked] { grid-template-columns: 40px minmax(0, 1fr); }
-  .nc-notice[data-kind=locked] .nc-action { grid-column: 2; grid-row: 2; justify-self: start; }
+.nc-notice[data-kind=locked] .nc-action { grid-column: 2; grid-row: 2; justify-self: start; min-height: 44px; margin-top: 0; padding: 0 14px; font-size: 15px; }
+@container holo-body (min-width: 296px) {
+  .nc-notice[data-kind=locked] { grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; row-gap: 8px; padding: 4px 0; }
+  .nc-notice[data-kind=locked] .nc-notice-glyph { width: 32px; height: 32px; justify-self: center; }
+  .nc-notice[data-kind=locked] .nc-notice-title { align-self: end; }
+  .nc-notice[data-kind=locked] .nc-action { align-self: start; }
+}
+@container holo-body (min-width: 480px) {
+  .nc-notice[data-kind=locked] { column-gap: 24px; row-gap: 10px; padding: 6px 0; }
+  .nc-notice[data-kind=locked] .nc-notice-glyph { width: 40px; height: 40px; }
+  .nc-notice[data-kind=locked] .nc-notice-title { font-size: 17px; }
+  .nc-notice[data-kind=locked] .nc-action { padding: 0 18px; font-size: 16px; }
 }
 
 /* ---- Shared light: gradient stops, bloom layers, glints ---- */
 .nc-g-a { stop-color: var(--neon, #9273ff); }
 .nc-g-b { stop-color: var(--neon-2, #c0adff); }
+/* Round 7: a gauge's arc is two-tone: it starts in the realm's partner colour and runs into the realm's own light. */
+.nc-g-c { stop-color: var(--neon-b, var(--neon, #9273ff)); }
+.nc-gauge[data-tone=over] { --neon-b: #ffb38a; }
 .nc-fill-a { stop-color: var(--neon, #9273ff); stop-opacity: .56; }
 .nc-fill-m { stop-color: var(--neon, #9273ff); stop-opacity: .16; }
 .nc-fill-b { stop-color: var(--neon, #9273ff); stop-opacity: 0; }
@@ -137,7 +152,7 @@
 .nc-hero-figure::before { content: ''; position: absolute; z-index: -1; inset: -10px -6px; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, color-mix(in oklab, var(--neon, #9273ff) 30%, transparent), transparent); filter: blur(10px); }
 .nova-widget .nc-hero-num, .nova-widget .nw-temp-num { text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #9273ff) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #9273ff) 62%, transparent); }
 .nova-frame[data-look=classic] .nc-hero-figure::before { content: none; }
-.nc-hero-num { font-size: clamp(36px, 3.1vw, 44px); font-weight: 680; letter-spacing: -.012em; white-space: nowrap; }
+.nc-hero-num { font-size: clamp(36px, 3.1vw, 44px); font-weight: 300; letter-spacing: .012em; white-space: nowrap; }
 .nova-widget[data-size=S] .nc-hero-num { font-size: 36px; }
 .nova-widget[data-size=L] .nc-hero-num { font-size: clamp(42px, 3.8vw, 56px); }
 /* The label and what follows it are one group: laid out with the figure in a tall widget (display: contents), a column
@@ -198,14 +213,15 @@
    the gauge's own 100-unit box (`--nc-t`: 11 with a bezel, 13 without), so the band is the same share of the ring at
    every size: a dark framed track, the lit band over it, a white-hot cap at its leading end, a static bloom behind. */
 .nc-gauge .nc-gauge-track { stroke: color-mix(in oklab, var(--neon, #9273ff) 15%, #060a20); stroke-width: calc(var(--nc-t, 11) * 1px); }
-.nc-gauge .nc-arcmark[data-unknown] .nc-gauge-track { stroke: #c9d4ea; stroke-width: 1.4px; stroke-dasharray: 2 5; opacity: .55; }
+/* Round 7: a gauge with no figure is powered down: its dark tube inside the dead bezel, no dashes (unknown is unlit, never zero). */
+.nc-gauge .nc-arcmark[data-unknown] .nc-gauge-track { stroke: color-mix(in oklab, var(--neon, #9273ff) 13%, #070b1d); stroke-width: calc(var(--nc-t, 11) * 1px); stroke-dasharray: none; opacity: 1; }
 .nc-gauge .nc-gauge-glow { stroke-width: calc(var(--nc-t, 11) * var(--nc-wk, 1) * 1.5px); opacity: .5; filter: blur(4px); }
 .nc-gauge .nc-gauge-arc { stroke-width: calc(var(--nc-t, 11) * var(--nc-wk, 1) * 1px); }
 .nc-gauge .nc-gauge-glint { stroke-width: calc(var(--nc-t, 11) * var(--nc-wk, 1) * .1px); }
 .nc-gauge .nc-gauge-end { r: calc(var(--nc-t, 11) * var(--nc-wk, 1) * .3px); stroke-width: .7px; }
 /* A figure in a gauge is sized from the ring's own opening (its inner diameter is 60 % of the ring: 26cqi is a 3-character figure at ease). */
 .nc-ring-words { position: relative; display: grid; justify-items: center; gap: 2px; line-height: 1; }
-.nc-ring-words .nc-ring-figure { font-size: clamp(15px, 26cqi, 60px); line-height: 1; }
+.nc-ring-words .nc-ring-figure { font-size: clamp(15px, 28cqi, 64px); line-height: 1; font-weight: 400; letter-spacing: .02em; }
 .nc-ring-unit { font-size: clamp(14px, 10cqi, 18px); font-weight: 600; color: #d6e0f5; white-space: nowrap; }
 @container nc-gauge (max-width: 87.98px) { .nc-ring-unit { display: none; } }
 .nc-gauge > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -313,8 +329,11 @@
 .nc-column { position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
 .nc-column::before { content: ''; position: absolute; left: 50%; bottom: 0; top: 0; width: clamp(8px, 46%, 34px); transform: translateX(-50%); border: 1px solid color-mix(in oklab, var(--neon, #23eaff) 20%, transparent); border-bottom: 0; border-radius: 3px 3px 0 0; background: linear-gradient(to top, color-mix(in oklab, var(--neon, #23eaff) 10%, transparent), transparent 80%); }
 .nc-column[data-mark]::before { border-color: color-mix(in oklab, var(--neon-2, #8ff6ff) 60%, transparent); }
-.nc-column i { position: relative; display: block; width: clamp(8px, 46%, 34px); height: calc(var(--nc-share, 0) * 100%); min-height: 3px; border-radius: 3px 3px 0 0; background: linear-gradient(to top, color-mix(in oklab, var(--neon, #23eaff) 35%, #0a1030), var(--neon, #23eaff) 78%, var(--neon-2, #8ff6ff)); box-shadow: 0 0 14px 1px color-mix(in oklab, var(--neon, #23eaff) 60%, transparent), inset 1px 0 0 #ffffff40, inset -1px 0 0 #ffffff1f; transform-origin: 50% 100%; }
-.nc-column i::after { content: ''; position: absolute; left: -1px; right: -1px; top: -1px; height: 2px; border-radius: 1px; background: #fff; box-shadow: 0 0 6px 1px #fff, 0 0 12px 3px var(--neon, #23eaff); }
+/* Round 7 (ref 33): a column is a lit tube: dark glass at its edges, the realm's light, a white core down its middle, a
+   white-hot cap, and its light on the floor under it (static layers: only the column's own scale moves, once). */
+.nc-column i { position: relative; display: block; width: clamp(8px, 46%, 34px); height: calc(var(--nc-share, 0) * 100%); min-height: 3px; border-radius: 4px 4px 0 0; background: linear-gradient(90deg, color-mix(in oklab, var(--neon, #23eaff) 46%, #070b22) 0, var(--neon, #23eaff) 24%, var(--neon-2, #8ff6ff) 42%, #fff 50%, var(--neon-2, #8ff6ff) 58%, var(--neon, #23eaff) 76%, color-mix(in oklab, var(--neon, #23eaff) 46%, #070b22) 100%); box-shadow: 0 0 16px 1px color-mix(in oklab, var(--neon, #23eaff) 62%, transparent), 0 0 3px 0 var(--neon-2, #8ff6ff); transform-origin: 50% 100%; }
+.nc-column i::after { content: ''; position: absolute; left: -1px; right: -1px; top: -1px; height: 3px; border-radius: 2px; background: #fff; box-shadow: 0 0 6px 1px #fff, 0 0 14px 4px var(--neon, #23eaff); }
+.nc-column i::before { content: ''; position: absolute; left: -70%; right: -70%; bottom: -5px; height: 10px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in oklab, var(--neon, #23eaff) 70%, transparent), transparent); pointer-events: none; }
 .nc-column[data-empty] i { display: none; }
 .nc-column[data-empty]::before { border-style: dashed; border-color: #ffffff3d; background: none; }
 .nc-columns-line { position: absolute; left: 0; right: 0; border-top: 1px dashed color-mix(in oklab, var(--neon-ink, #eef3ff) 80%, transparent); }
@@ -361,4 +380,13 @@
 @media (forced-colors: active) {
   .nc-glow, .nc-hero-figure::before { display: none; }
   .nc-lattice-row i[data-cell=done], .nc-bar-track i, .nc-column i, .nc-capsule-track i, .nc-stack i { background: Highlight; box-shadow: none; forced-color-adjust: none; }
+}
+
+/* ---- Session AM-3 (round 7; refs 39, 42, 43): larger hero rings ----
+   In a wide medium panel with 180 px or more of body the hero ring takes the height the foot leaves (144–148 px, was
+   124–136), so its figure stands at 40 px or more. Each ring keeps its band's share of the diameter (the kit's rule).
+   (`.nova-widget` in front: these win over each realm's own sheet whichever loads last.) */
+@container holo-body (min-width: 520px) and (min-height: 180px) and (max-height: 319.98px) {
+  .nova-widget .nc-budgets-card[data-size=M] .nc-budgets-ring, .nova-widget .nc-habitweek[data-size=M] .nc-habitweek-ring, .nova-widget .nc-steps[data-size=M] .nc-steps-ring { --nc-d: 144; }
+  .nova-widget .nc-goal[data-size=M] .nc-goal-ring, .nova-widget .nc-time[data-size=M] .nc-time-dial { --nc-d: 148; }
 }

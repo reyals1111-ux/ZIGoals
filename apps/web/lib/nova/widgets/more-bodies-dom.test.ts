@@ -99,6 +99,22 @@ describe('round 3: what the captures at 2560 × 1440 showed', () => {
     await act(async () => root.render(createElement(NxLockGhost, {id: 'cycle'})));
     expect(host.querySelector('.nx-lockghost')!.innerHTML).toBe(drawn[0]);
   });
+  it('Session AM-3 (round 7): a locked widget shows its own instrument, powered down: a fixed drawing per kind, with no words, no figure and nothing to focus', async () => {
+    const kinds = new Set<string>();
+    for (const id of ['water', 'weight', 'steps', 'food-days', 'supplements', 'symptoms', 'cycle', 'habits-hud', 'goals-hud']) {
+      await act(async () => root.render(createElement(WidgetLocked, {id})));
+      const notice = host.querySelector('.nc-notice')!, unlit = notice.querySelector('.nx-lockghost > svg.holo-unlit')!;
+      expect(host.childElementCount, id).toBe(1); // the notice stays the body's only child
+      expect(host.firstElementChild, id).toBe(notice);
+      expect(unlit.getAttribute('aria-hidden'), id).toBe('true');
+      expect(unlit.textContent, id).toBe(''); // nothing of the person's is read or shown behind a lock
+      expect(unlit.querySelector('text, a, button, [tabindex]'), id).toBeNull();
+      expect(notice.querySelector('.nc-notice-title')!.textContent, id).toMatch(/ off/);
+      expect(notice.querySelector('a.nc-action')!.textContent, id).toContain('Open Permissions');
+      kinds.add(unlit.getAttribute('data-kind')!);
+    }
+    expect(kinds.size).toBeGreaterThanOrEqual(7); // a stage of locked widgets is not one strip seven times
+  });
   it('a ring kind is one dial with its words; a wide Large card has one column for its instrument, never two over each other', async () => {
     showcase();
     // Round 4: a ring kind is one thick dial with its figure inside, the words beside it (the figure in words too).
