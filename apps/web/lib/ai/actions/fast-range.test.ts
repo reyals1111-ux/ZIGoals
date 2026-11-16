@@ -11,6 +11,7 @@ import {localAnswer, type LocalReply} from '../local-answers/engine';
 import {noModelReply} from '../local-answers/no-model';
 import {fastTooLong, quickCommand} from '../quick-commands/commands';
 import {SPECIALISTS, ACTION_PROTOCOL} from '../context/specialists';
+import {HELP_NOTES} from '../context/builders';
 import {toolEnv} from '../tools/env';
 import {gatesFor, showcaseSources} from '../tools/fixtures';
 import {AUTO_ACCEPT_NEVER} from './auto-accept';
@@ -115,4 +116,7 @@ test('what the person\'s AI is told: the same range, the same stop, the same not
   expect(SPECIALISTS.health.prompt).toContain('keep to the app\'s limits (up to 24 hours, stopped automatically at 24)');
   expect(SPECIALISTS.health.prompt).toContain('talk to a doctor first');
   expect(`${ACTION_PROTOCOL}${SPECIALISTS.health.prompt}`).not.toMatch(/12 to 18/);
+  // Session AR (NOVA leftover): the app notes every model reads (ZIGi and NOVA) say the same range; they still said "12 to 18 hours".
+  expect(HELP_NOTES.join(' ')).toContain(`a fasting timer (a target of up to ${MAX_TARGET_HOURS} hours, stopped automatically at ${MAX_HOURS})`);
+  expect(HELP_NOTES.join(' ')).not.toMatch(/12 to 18/);
 });
