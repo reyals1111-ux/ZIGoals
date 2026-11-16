@@ -1998,6 +1998,7 @@
 :where(:root[data-text=large]) .nx-row-name:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .nx-row-value:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .nx-row-sub:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nx-scale-marks:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nx-row-value[data-chip]:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nx-row-go:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .nx-readout-label:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2025,6 +2026,11 @@
 @container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-text=large]) .nx-card[data-size=L] .nx-readout-value:not(#\-) { font-size: calc(36px * 1.125); } }
 :where(:root[data-text=large]) .nx-card[data-size] .nx-readout-value[data-long]:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .nx-card[data-size=L] .nx-readout-value[data-long]:not(#\-) { font-size: calc(28px * 1.125); }
+:where(:root[data-text=large]) .nx-mk-figure:not(#\-) { font-size: calc(40px * 1.125); }
+:where(:root[data-text=large]) .nx-mk-unit:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .nx-mk-key:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nx-mk-note:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nx-mk[data-size=S] .nx-mk-figure:not(#\-) { font-size: calc(30px * 1.125); }
 /*  components/nova/cards/health-cards.css  */
 :where(:root[data-text=large]) .nc-weight-note:not(#\-), :where(:root[data-text=large]) .nc-steps-note:not(#\-), :where(:root[data-text=large]) .nc-workouts-note:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .nova-widget[data-size=S] .nc-weight .nc-delta:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2443,6 +2449,11 @@
 :where(:root[data-text=large]) .nb-lives:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/nova/stage/command-centre.css  */
 :where(:root[data-text=large]) .cc-read:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/nova/stage/phone-stage.css  */
+:where(:root[data-text=large]) .ps-card-name:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .ps-card-figure:not(#\-) { font-size: calc(23px * 1.125); }
+:where(:root[data-text=large]) .ps-card-caption:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .ps-card-caption[data-alone]:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/nova/stage/stage.css  */
 :where(:root[data-text=large]) .ns-dock-label:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ns-chip:not(#\-) { font-size: calc(15px * 1.125); }
@@ -2453,6 +2464,7 @@
 :where(:root[data-text=large]) .ns-answer-meta:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ns-link:not(#\-) { font-size: calc(14px * 1.125); }
 @container nova-stage (max-height: 520px) { :where(:root[data-text=large]) .ns-fig-lead:not(#\-) { font-size: calc(20px * 1.125); } }
+@container ns-answer (max-width: 430px) { :where(:root[data-text=large]) .ns-answer-text:not(#\-) { font-size: calc(16px * 1.125); } }
 /*  components/nova/widgets/widgets.css  */
 :where(:root[data-text=large]) .nova-line:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .nova-quiet:not(#\-) { font-size: calc(14px * 1.125); }
