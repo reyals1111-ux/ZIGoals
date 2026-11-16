@@ -390,3 +390,6 @@
   .nova-widget .nc-budgets-card[data-size=M] .nc-budgets-ring, .nova-widget .nc-habitweek[data-size=M] .nc-habitweek-ring, .nova-widget .nc-steps[data-size=M] .nc-steps-ring { --nc-d: 144; }
   .nova-widget .nc-goal[data-size=M] .nc-goal-ring, .nova-widget .nc-time[data-size=M] .nc-time-dial { --nc-d: 148; }
 }
+/* Round 7 (both critics: "Turn it on in Permissions runs 30 px outside its frame" at 1440): a notice's key is never wider than
+   the room it stands in; in a narrow panel its words take two lines (it stays a 44 px target). */
+:is(.nc-action, .nova-widget[data-holo] .holo-empty-action, .nova-widget[data-holo] .nova-empty > .nova-link) { max-width: 100%; min-width: 0; white-space: normal; text-wrap: balance; padding-block: 6px; line-height: 1.2; }

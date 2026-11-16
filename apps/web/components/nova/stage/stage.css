@@ -198,7 +198,7 @@
    1440 px "UPCOMING BILLS", "TRACKED WEALTH" and "AGENDA CLOCK" wrapped and neighbouring heads no longer lined up. The
    letters stand a little closer, so more of the title shows; its whole text is still the heading (the widget's
    accessible name, `aria-labelledby`) and its tooltip. */
-@container holo-panel (max-width: 399px) { .nova-frame .nova-widget[data-holo] .nova-widget-head h3 { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0; padding-left: 15px; } }
+@container holo-panel (max-width: 399px) { .nova-frame .nova-widget[data-holo] .nova-widget-head h3 { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0; padding-left: 19px; /* round 7: the diamond touched the title's first letter in a narrow panel */ } }
 /* Round 4: with its letters at their own spacing and its marker 4 px closer, "UPCOMING BILLS" (the longest title of the catalogue's first kinds: about 131 px) is whole beside five keys in a 348 px panel (138 px). */
 /* A panel body that scrolls is a keyboard stop (axe scrollable-region-focusable); its ring sits inside the frame. */
 .nova-widget-body:focus-visible { outline: 3px solid var(--nova-focus, #63e7ff); outline-offset: -3px; border-radius: 10px; }
