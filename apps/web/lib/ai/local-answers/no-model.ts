@@ -1,5 +1,6 @@
 import type {ToolEnv} from '../tools/env';
-import {exactFallback, localAnswer, zigiOverview, type LocalReply} from './engine';
+import {exactFallback, exactLocal, localAnswer, zigiOverview, type LocalReply} from './engine';
+import {noModelFirst} from './exact';
 import {alFirst, alMoreAnswer, fixTypos, rewriteQuestion} from './al-more';
 import {normalizeSpoken} from '../spoken/normalize';
 import {alFactsAnswer} from './al-facts';
@@ -161,6 +162,11 @@ export function noModelReply(text: string, env: ToolEnv | null, previous: string
   // Session AL fifth pass (L7-5b; Lisbon #337/338): an "add …" longer than any record holds gets the limits, not the list.
   const long = tooLongAdd(text, lang);
   if (long) return {kind: 'answer', text: long, calls: []};
+  // Session AS (ADR-042 Part 1): a Dutch question the exact layer reads is answered here, in Dutch, before the paths below
+  // can take its words for a line to log.
+  // NOVA's own overview answers in Dutch come first where they exist (in ZIGi's words here), so ZIGi and NOVA say the same (A1).
+  if (env && lang === 'nl') { const same = zigiOverview(normalizeSpoken(text), env); if (same && same.kind !== 'none') return same; }
+  if (env) { const first = exactLocal(text, env, undefined, noModelFirst); if (first) return first; }
   // Session AI (ZI11): a simple command gets its card here, with no model ("Create a habit called Yoga").
   // Session AL (lane L7; DV-074, P-DV-83): with no model, ZIGi answers the questions NOVA's overview answers (English; a whole
   // Dutch question keeps the Dutch introduction and the examples, as the golden pins nl-question / x-nl-whole hold).

@@ -139,13 +139,89 @@ One fresh-critic round on the new families (no loop); one production build per i
 - B2 again at 2560 × 1440 with new widgets on the stage: only transform and opacity animate, 0 animations hidden, idle near zero.
 
 ## Decisions (made by the session; D-numbers are referenced from code comments)
-*(added as the work goes)*
+
+### Part 1 — answers that are exactly right
+- **D1 One reading, one answer.** `apps/web/lib/ai/local-answers/exact/`: `understand.ts` reads a question into the part
+  of life, what is asked about it, the shape of the answer and the period; each part of life answers from the pages' own
+  engines (`habits.ts`, `health.ts`, `money.ts`, `day.ts`). A habit, a Health measure, the journal and focus are all one
+  kind of thing, a *track* of days (`series.ts`, `track.ts`), so each answers the same questions the same way: which days
+  not done (missed and skipped said apart), how often done, a day's own state, totals, averages, best and lowest day,
+  the run of days, one period beside another, the last time.
+- **D2 Where it answers** (`index.ts` `strictClaim`, `noModelFirst`; `engine.ts` `exactLocal`, `exactFallback`). The older
+  layers hold some 3,300 pinned tests and answer many questions well, so the exact layer answers *before* them only for
+  the classes they answered with something else: what was missed, skipped, not done or late; which days; a weekday; one
+  day of a log ("did I work out yesterday" was "there is no habit called work out"); a named period they did not keep to
+  (workouts, focus, the journal, finished tasks, spending "yesterday" was the month's total); sleep's average and best
+  night; "how is my health" (was "no goal is called health"); one period beside another; where the money went; bills due
+  this week; goals closest, furthest, next date. With no model, a Dutch question and a comparison are answered before the
+  older no-model path can take their words for a line to log (it made a food card of "hoeveel calorieën heb ik vandaag
+  gegeten"), and anything else the exact layer reads comes back to it before the examples list. Everything else is the
+  older layers', word for word.
+- **D3 Honest where the records cannot say.** "Why …" and a judgement ("is my sleep normal for my age") are never
+  answered as if the records said so: with no model the reply is one honest line and what the records do show, with that
+  part's widget; with a model the question goes to it with the same facts (`lib/ai/context/question.ts`).
+- **D4 Typos.** A word is set right only against the layer's own vocabulary and the person's record names, never against
+  a general dictionary: five letters and more first; a four-letter slip ("wgat") only to a question word and only when
+  nothing else reads the question; the first letter must be right; everyday words that sit one slip from a known word
+  are never touched. A misspelt question the exact layer reads but does not claim is asked of the older layers in the
+  fixed words (`fixedWords`), so a typo costs no answer there either.
+- **D5 ZIGi and NOVA say the same (A1).** One function for both; only the place a permission is changed is named
+  differently. With no model, NOVA's own Dutch overview answers are given on ZIGi too (in ZIGi's words) before the exact
+  layer, so a Dutch "welke gewoontes zijn vandaag nog open" reads the same on both. The corpus checks it.
+- **D6 `life_facts` on both surfaces** (changes approval item 4's "NOVA's surface only", following A1). The device's
+  exact answer names this lookup as its call on ZIGi too, so it is registered for every surface, with its own mark
+  (`surface: 'facts'`): each part of life's own switch is checked inside it. It carries the question's own words
+  (`words`), so "tomorrow" or "perfect days" is read from a model's call as from the device's. `ToolEnv.purpose`
+  (additive) keeps the journal's days on the device unless the person shares the journal.
+- **D7 The widgets of an answer** travel with its lookup as short strings (`showOf`), each with a stand-in: a kind this
+  build does not have yet gives way to an existing widget, so Part 1 ships before Part 2's kinds exist.
+- **D8 What "today" means.** Today's open habit is "still open", never missed; a log's day with nothing logged is said
+  apart ("nothing logged on 2 days: …"), never counted as below the target; a night belongs to the day it ends on.
+- **D9 Known limits** (not fixed here): a Dutch answer writes its dates in the app's display locale (English by default),
+  as every page does; a judgement asked about spending in English still gets the older layer's plain month figures (true
+  figures, but without the honest line); "best day" is said of a night too.
 
 ## Tests changed (deliberate; none weakened)
-*(added as the work goes; each carries "Session AS (<id>, deliberate)")*
+Each carries "Session AS (<id>, deliberate)" with an equally strict replacement.
+- `lib/ai/local-answers/ai-session.test.ts` **RR-13** ("Which habits did I miss yesterday?"): the exact sentence, the
+  missed habit named, and the lookup's facts (`count`, the habit, its missed day); ZIGi and NOVA.
+- `lib/ai/local-answers/nova.test.ts` **LA-021** ("Do I have overdue tasks?"): overdue by the Tasks page's one rule (the
+  day and, today, the time): at 19:00 the task due at 18:00 is overdue; the older answer compared days only. **N4** ("How
+  much did I focus this week?"): this week, not the last seven days; the seven-day answer stays on the question that
+  asks for seven days.
+- `lib/ai/local-answers/no-model.test.ts` (the Dutch introduction): with no model a Dutch question is now answered in
+  Dutch from the records; a Dutch question the device cannot answer keeps the Dutch introduction and the examples.
+  `localAnswer` itself still says none for these (the golden pins `nl-question`, `x-nl-whole`, `x-nl-sleep` are untouched).
+- `lib/nova/summon/lines.test.ts` **AM-D3** ("Did I journal this month?"): the device answers it, and the answer's own
+  widget is made beside it.
+- `lib/ai/tools/hand-off.test.ts`, `lib/ai/tools/tools.test.ts`: `life_facts` in the surface list and its sample arguments.
+No golden set, eval corpus or older pinned answer was changed beyond these.
 
 ## The corpus, per pillar
-*(added with Part 1)*
+`apps/web/lib/ai/evals/as/`: 132 questions people ask, in 611 phrasings (English and Dutch, typos and casual forms),
+each on the Showcase of 17 November 2026 and on a fresh profile. `expected.json` holds every lead answer as a literal
+(the sentence in both languages, the lookup's facts, the widgets, the empty-state answers); `says.ts` holds, written by
+hand, the facts every phrasing must state; `oracle.test.ts` recomputes the key facts from the raw stored records with
+plain loops (no page engine, no exact layer). Result on the head that carries this entry:
+
+| Pillar | Phrasings passing |
+|---|---|
+| Habits | 157 of 157 |
+| Health | 165 of 165 |
+| Wealth | 105 of 105 |
+| Goals | 34 of 34 |
+| Tasks | 38 of 38 |
+| Journal | 27 of 27 |
+| Notes | 4 of 4 |
+| Agenda | 13 of 13 |
+| Checklist | 4 of 4 |
+| Focus | 29 of 29 |
+| NOVA itself, "how am I doing", why and unknown | 35 of 35 |
+
+Every lead answer was read against the Showcase's records before the file was committed; that reading found and fixed,
+among others: a habit whose name holds "late" read as a late question; "which days did I not meditate" answered with the
+days it was done; a day with nothing logged counted as below the water target; Dutch amount questions turned into log
+cards by the older no-model path; "how is my health" answered as a goal called health.
 
 ## The widget families
 *(added with Part 2)*

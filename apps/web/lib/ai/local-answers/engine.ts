@@ -27,7 +27,7 @@ import {unitFor} from '../../plural';
 import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 import {healthGoalAsk} from './al-final';
-import {answerQuery, exactQuery, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
+import {answerQuery, exactQuery, fixedWords, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
 import type {Query} from './exact';
 
 /**
@@ -201,7 +201,12 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   // days; a weekday; a log's own day; a named period they did not keep to), in English and Dutch, ZIGi and NOVA alike (A1).
   // Anything else is theirs, word for word; with no model, what they have no answer for comes back to the exact layer
   // (`exactFallback`, from no-model.ts).
-  return exactLocal(question, env, subject, strictClaim) ?? layeredAnswer(question, env, subject);
+  const strict = exactLocal(question, env, subject, strictClaim);
+  if (strict) return strict;
+  // A misspelt question the exact layer reads once its slips are fixed is asked of the layers below in the fixed words.
+  const fixed = subject ? null : fixedWords(question, env);
+  if (fixed) { try { const again = layeredAnswer(`${fixed}?`, env); if (again.kind === 'answer' || again.kind === 'refusal') return again; } catch { /* the words as typed stand */ } }
+  return layeredAnswer(question, env, subject);
 }
 /** The exact layer's answer as the engine's reply: its lookup is the one `life_facts` call a connected model would get. */
 export function exactLocal(question: string, env: ToolEnv, subject: Subject | undefined, claims: (q: Query) => boolean): LocalReply | null {

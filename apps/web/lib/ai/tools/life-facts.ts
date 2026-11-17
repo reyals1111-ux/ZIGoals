@@ -18,6 +18,8 @@ import type {ToolDefinition} from './types';
 const args = z.object({
   about: z.enum(DOMAINS), ask: z.enum(ASKS), shape: z.enum(SHAPES).optional(), period: z.string().max(24).optional(), versus: z.string().max(24).optional(),
   weekday: z.number().int().min(0).max(6).optional(), name: z.string().max(120).optional(), language: z.enum(['en', 'nl']).optional(),
+  /** The question's own words, so details the other arguments do not carry are read too ("tomorrow", "perfect days", "on which weekday"). */
+  words: z.string().max(300).optional(),
   /** The widgets of the device's own answer (lib/ai/local-answers/exact/index.ts `showOf`); a model does not set it. */
   show: z.array(z.string().max(200)).max(3).optional(),
 });
@@ -35,7 +37,7 @@ function subjectOf(a: LifeFactsArgs, env: ToolEnv): QuerySubject | null {
 }
 export function lifeFactsQuery(a: LifeFactsArgs, env: ToolEnv): Query {
   const shape = a.shape ?? (a.ask === 'status' ? 'overview' : a.ask === 'total' || a.ask === 'average' ? 'amount' : 'list');
-  return {domain: a.about, ask: a.ask, shape, lang: a.language ?? 'en', period: isPeriodToken(a.period) ? a.period : null, versus: isPeriodToken(a.versus) ? a.versus : null, weekday: a.weekday ?? null, subject: subjectOf(a, env), read: fold(`${a.about} ${a.ask} ${a.name ?? ''}`)};
+  return {domain: a.about, ask: a.ask, shape, lang: a.language ?? 'en', period: isPeriodToken(a.period) ? a.period : null, versus: isPeriodToken(a.versus) ? a.versus : null, weekday: a.weekday ?? null, subject: subjectOf(a, env), read: fold(a.words ?? `${a.about} ${a.ask} ${a.name ?? ''}`)};
 }
 export const lifeFactsTool: ToolDefinition<LifeFactsArgs> = {
   name: 'life_facts', title: 'Life facts', area: 'today', surface: 'facts',
@@ -49,6 +51,7 @@ export const lifeFactsTool: ToolDefinition<LifeFactsArgs> = {
     weekday: {type: 'integer', description: '0 (Sunday) to 6: only that weekday across the period.'},
     name: {type: 'string', description: 'One record by its name: a habit, a goal, a spending category or a bill.'},
     language: {type: 'string', enum: ['en', 'nl'], description: 'The language of the sentence in the result.'},
+    words: {type: 'string', description: 'The person’s question in their own words, so details such as "tomorrow" or "perfect days" are read too.'},
   }, required: ['about', 'ask']},
   args,
   label: (a, env) => { try { return queryLabel(lifeFactsQuery(a, env), env.habitDay); } catch { return 'Life facts'; } },

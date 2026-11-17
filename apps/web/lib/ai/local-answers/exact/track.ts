@@ -59,6 +59,8 @@ function daySentence(track: Track, point: DayPoint, label: string, lang: Lang): 
   }
 }
 export function trackAnswer(q: Query, track: Track, today: string): Exact | null {
+  // Only a habit's day can be marked as skipped: for a log, "which days did I skip" asks which days are without it.
+  if (q.ask === 'skipped' && track.kind !== 'habit') q = {...q, ask: 'not-done'};
   const lang = q.lang, nl = lang === 'nl', p = periodFor(q, today), points = track.points(p.days), T = tally(points);
   const span = periodSpan(p, lang, today), words = periodWords(p, lang, today), day = (d: string) => dayWords(d, today), m = track.measure;
   const did = track.did[nl ? 1 : 0], not = track.not[nl ? 1 : 0], n = track.name;
@@ -105,26 +107,26 @@ export function trackAnswer(q: Query, track: Track, today: string): Exact | null
     // Missed: the due days without it. For a target that is logged: the logged days below it; a day with nothing logged is said apart.
     const missed = track.kind === 'habit' ? T.dates.missed : track.kind === 'event' ? T.dates.none : T.dates.part.filter(d => d !== today);
     const partPast = track.kind === 'habit' ? T.dates.part.filter(d => d !== today) : [];
-    const main = (q.ask === 'missed' ? missed : q.ask === 'skipped' ? T.dates.skipped : [...missed, ...T.dates.skipped, ...partPast, ...(track.kind === 'log' ? T.dates.none : [])]).slice().sort();
+    const main = (q.ask === 'missed' || (q.ask === 'not-done' && track.kind === 'log') ? missed : q.ask === 'skipped' ? T.dates.skipped : [...missed, ...T.dates.skipped, ...partPast]).slice().sort();
     const count = main.length, list = count ? `: ${dayList(main, day, lang)}` : '';
     let text: string;
     if (q.ask === 'skipped') text = count ? t(lang, `${n}: skipped on ${days(count, 'en')} ${span}${list}.`, `${n}: overgeslagen op ${days(count, 'nl')} ${span}${list}.`) : t(lang, `${n}: no skipped day ${span}.`, `${n}: geen overgeslagen dag ${span}.`);
-    else if (q.ask === 'missed') {
+    else if (q.ask === 'missed' || track.kind === 'log') {
       const word = track.kind === 'habit' ? t(lang, 'missed', 'gemist') : not;
       text = count ? `${n}: ${word} ${t(lang, 'on', 'op')} ${days(count, lang)} ${span}${list}.` : track.kind === 'habit' ? t(lang, `${n}: no missed day ${span}.`, `${n}: geen gemiste dag ${span}.`) : t(lang, `${n}: no day ${not} ${span}.`, `${n}: geen dag ${not} ${span}.`);
       if (T.skipped) text += t(lang, ` Skipped (not counted as missed): ${dayList(T.dates.skipped, day, 'en')}.`, ` Overgeslagen (telt niet als gemist): ${dayList(T.dates.skipped, day, 'nl')}.`);
-      if (track.kind === 'log' && T.none) text += t(lang, ` Nothing logged on ${days(T.none, 'en')}.`, ` Niets gelogd op ${days(T.none, 'nl')}.`);
+      // A day with nothing logged is unknown, not below the target: said apart, with its days.
+      if (track.kind === 'log' && T.none) text += t(lang, ` Nothing logged on ${days(T.none, 'en')}: ${dayList(T.dates.none, day, 'en', 8)}.`, ` Niets gelogd op ${days(T.none, 'nl')}: ${dayList(T.dates.none, day, 'nl', 8)}.`);
     } else {
       text = count ? `${n}: ${not} ${t(lang, 'on', 'op')} ${days(count, lang)} ${span}${list}.` : t(lang, `${n}: ${did} on every due day ${span} (${T.done} of ${T.decided}).`, `${n}: ${did} op elke geplande dag ${span} (${T.done} van ${T.decided}).`);
       if (count && track.kind === 'habit') {
         if (missed.length && T.skipped) text += t(lang, ` ${missed.length} missed, ${T.skipped} skipped.`, ` ${missed.length} gemist, ${T.skipped} overgeslagen.`);
         else if (T.skipped && !partPast.length) text += count === 1 ? t(lang, ' It was marked as skipped.', ' Die was als overgeslagen gemarkeerd.') : count === 2 ? t(lang, ' Both were marked as skipped.', ' Beide waren als overgeslagen gemarkeerd.') : t(lang, ' All were marked as skipped.', ' Allemaal als overgeslagen gemarkeerd.');
       }
-      if (count && track.kind === 'log' && T.none && T.part) text += t(lang, ` ${T.dates.part.filter(d => d !== today).length} below your target, ${T.none} with nothing logged.`, ` ${T.dates.part.filter(d => d !== today).length} onder je doel, ${T.none} zonder log.`);
     }
     return done(text + openNote, {count, days: main});
   }
-  if (q.ask === 'done' || q.ask === 'open' || (q.ask === 'total' && !m) || (q.ask === 'status' && !m)) {
+  if (q.ask === 'done' || q.ask === 'open' || (q.ask === 'total' && (!m || (!!track.events && q.shape === 'count'))) || (q.ask === 'status' && !m)) {
     const list = q.shape === 'dates' && T.done && T.done <= 16 ? `: ${dayList(T.dates.done, day, lang)}` : '';
     const total = m && m.kind === 'sum' && T.valued ? t(lang, ` ${m.text(T.total, 'en')} in total.`, ` ${m.text(T.total, 'nl')} in totaal.`) : '';
     const extra = q.ask === 'status' && track.kind === 'habit' && (T.missed || T.skipped) ? ` ${t(lang, `${T.missed} missed, ${T.skipped} skipped.`, `${T.missed} gemist, ${T.skipped} overgeslagen.`)}` : '';

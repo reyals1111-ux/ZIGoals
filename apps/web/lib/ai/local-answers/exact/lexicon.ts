@@ -13,16 +13,16 @@ export const DOMAIN_WORDS: readonly [Domain, RegExp][] = [
   ['vitals', w('heart rate|resting heart rate|heartrate|pulse|bpm|hartslag|rusthartslag|polsslag')],
   ['sleep', w('sleep|slept|sleeping|asleep|bedtime|nights|night|slaap|geslapen|slapen|slaapt|slaapdoel|nacht|nachten|bedtijd|nachtrust')],
   ['weight', w('weight|weigh|weighed|kilos|kilo|pounds|heavier|lighter|gewicht|weeg|woog|gewogen|afgevallen|aangekomen|zwaarder|lichter')],
-  ['water', w('water|hydration|hydrated|glasses|glazen')],
+  ['water', w('water|waterdoel|hydration|hydrated|glasses|glazen')],
   ['steps', w('steps|step|step count|stappen|stappendoel')],
-  ['protein', w('protein|eiwit|eiwitten')],
-  ['calories', w('calories|calorie|kcal|calorieen|ate|eaten|eat|food|gegeten|eten|voeding')],
+  ['protein', w('protein|eiwit|eiwitten|eiwitdoel')],
+  ['calories', w('calories|calorie|kcal|calorieen|caloriedoel|ate|eaten|eat|food|gegeten|eten|voeding')],
   ['meditation', w('meditate|meditated|meditating|meditation|mindful|mindfulness|mediteren|gemediteerd|mediteer|meditatie')],
   ['workouts', w('workout|workouts|worked out|work out|working out|exercise|exercised|exercising|training|trained|gym|gesport|sporten|sport|getraind|trainen|sportschool|hardgelopen|hardlopen')],
   ['budgets', w('budget|budgets|budgetten')],
   ['bills', w('bill|bills|subscription|subscriptions|rent|invoice|invoices|rekening|rekeningen|abonnement|abonnementen|huur|factuur|facturen|vaste lasten')],
   ['income', w('income|earned|earnings|earn|salary|paycheck|inkomen|inkomsten|verdiend|verdien|salaris|loon')],
-  ['spending', w('spend|spent|spending|expense|expenses|paid|purchases|bought|uitgegeven|uitgaven|uitgeven|besteed|betaald|gekocht|kosten')],
+  ['spending', w('spend|spent|spending|expense|expenses|paid|purchases|purchase|bought|uitgegeven|uitgaven|uitgave|uitgeven|uitgeef|uitgaf|geef ik|gaf ik|besteed|betaald|gekocht|kosten|aankoop|money go|my money went|geld naartoe|geld heen')],
   ['networth', w('net worth|networth|worth|wealth|assets|portfolio|how rich|vermogen|nettovermogen|waard|bezit|bezittingen|portefeuille')],
   ['goals', w('goal|goals|on track|saving for|doel|doelen|op schema|spaardoel|spaardoelen')],
   ['tasks', w('task|tasks|todo|todos|to do list|to-do|chores|taak|taken|takenlijst|klusjes')],
@@ -46,19 +46,19 @@ export const ASK_WORDS: readonly [Ask, RegExp][] = [
   ['skipped', w('skip|skipped|skips|skipping|overgeslagen|overslaan|geskipt|oversloeg')],
   ['missed', w('miss|missed|missing|misses|failed|fail|blew|gemist|mis|misgelopen|mislukt|gefaald|misser|missers')],
   ['not-done', w('forgot|forget|forgotten|forgetting|didnt|did not|havent|have not|hasnt|wasnt|not done|not do|not finished|not completed|not completing|undone|without|never|no entry|under my|below my|under goal|below target|short of|fell short|vergeten|vergat|niet|geen|nooit|zonder|onder mijn|onder het doel|onder doel|te weinig')],
-  ['best', w('best|most|highest|biggest|longest|strongest|top|record|beste|meeste|meest|hoogste|grootste|langste|sterkste')],
-  ['worst', w('worst|least|lowest|fewest|weakest|shortest|smallest|slechtste|minste|minst|laagste|kortste|zwakste|kleinste')],
+  ['best', w('best|most|highest|biggest|largest|longest|strongest|top|record|closest|nearest|beste|meeste|meest|hoogste|grootste|langste|sterkste|dichtst|dichtste')],
+  ['worst', w('worst|least|lowest|fewest|weakest|shortest|smallest|furthest|farthest|slechtste|minste|minst|laagste|kortste|zwakste|kleinste|verst|verste')],
   ['average', w('average|avg|mean|typical|typically|usually|per day|a day|per night|a night|gemiddeld|gemiddelde|meestal|per dag|per nacht')],
   ['trend', w('trend|trending|going up|going down|over time|improving|improved|getting better|getting worse|changed|change|progress|progressing|up or down|stijgt|daalt|vooruitgang|verloop|ontwikkeling|veranderd|verandering|omhoog|omlaag|vooruit gegaan')],
   ['open', w('left|open|remaining|still|pending|to go|need to|have to|outstanding|due|to pay|have to pay|betalen|nog|over|resterend|openstaand|openstaande|moet ik|te gaan|te doen')],
   ['done', w('done|did|completed|complete|finished|finish|hit|reached|reach|checked off|ticked|made|kept|gedaan|gehaald|afgerond|voltooid|klaar|afgevinkt|gelukt|volgehouden')],
   ['total', w('total|sum|altogether|in all|totaal|bij elkaar|in totaal|opgeteld|alles bij elkaar')],
-  ['status', w('how am i doing|how is|how are|hows|how was|how were|how did|how do|going|doing|overview|summary|status|update|recap|hoe gaat|hoe staat|hoe was|hoe ging|hoe is|hoe zijn|hoe doe ik|hoe sta ik|hoe heb ik|overzicht|samenvatting|stand van zaken')],
+  ['status', w('how am i doing|how is|how are|hows|how was|how were|how did|how do|going|doing|overview|summary|status|update|recap|hoe gaat|hoe gaan|hoe staat|hoe staan|hoe lopen|hoe loopt|hoe was|hoe waren|hoe ging|hoe gingen|hoe is|hoe zijn|hoe doe ik|hoe sta ik|hoe heb ik|overzicht|samenvatting|stand van zaken')],
 ];
 /** The shape of the answer the words ask for. */
 export const SHAPE_WORDS: readonly [Shape, RegExp][] = [
   ['dates', w('what day|what days|which day|which days|what date|what dates|which dates|on what days|on which days|when|welke dag|welke dagen|welke datum|welke data|welke datums|op welke dag|op welke dagen|wanneer')],
-  ['count', w('how many times|how often|how many days|how many nights|number of|count|hoe vaak|hoeveel keer|hoeveel dagen|hoeveel nachten|aantal|hoe dikwijls')],
+  ['count', w('how many times|how often|how many days|how many nights|on how many days|number of|count|hoe vaak|hoeveel keer|hoeveel dagen|op hoeveel dagen|hoeveel nachten|aantal|hoe dikwijls|hoeveel workouts|hoeveel sessies|hoeveel focus sessies|hoeveel focussessies|hoeveel taken|hoeveel gewoontes|hoeveel doelen|hoeveel notities|hoeveel rekeningen|hoeveel budgetten')],
   ['amount', w('how much|how long|how many minutes|how many hours|how many steps|how many glasses|how many calories|how many kilos|how far|how heavy|hoeveel|hoe lang|hoe ver|hoe zwaar|hoeveel minuten|hoeveel uur|hoeveel stappen|hoeveel glazen')],
   ['count', w('how many')],
   ['list', w('which|what|list|show|welke|welk|wat|toon|laat zien|noem')],
@@ -83,7 +83,7 @@ export const HABIT_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
 export const NOT_A_LOOKUP = {
   action: /^(?:please |can you |could you |ok |okay |kun je |wil je |graag )?(?:log|add|track|record|mark|skip|create|make|set|remind|start|stop|delete|remove|plan|schedule|change|update|edit|rename|move|buy|sell|send|transfer|undo|turn|write|draft|tick|check off|open|go to|go back to|take me to|navigate to|switch to|run|estimate|scan|summarize|summarise|review|suggest|give me a|give me an|export|import|connect|voeg|zet|maak|vink|sla|noteer|registreer|verwijder|wijzig|verander|herinner|stuur|schrijf|ga naar|ga terug naar|breng me naar|geef me een|vat|exporteer)\b|^(?:nova |zigi )?(?:open|toon de pagina|ga naar)\b|\b(?:page|pagina|screen|scherm|tab) ?$|\b(?:openen|open doen)$/,
   /** A sentence about oneself ("I didn't drink water today", "ik heb gesport") is a line to log or a remark, not a question. */
-  statement: /^(?:i|ive|im|we|ik|wij) (?!wonder|want to know|would like to know|vraag me af|wil weten)/,
+  statement: /^(?:i|ive|im|we|ik|wij) (?!wonder|want to know|would like to know|vraag me af|wil weten)|^\d/,
   mixed: /(?:,|;|\band\b|\bthen\b|\balso\b|\ben\b|\bdan\b|\book\b) (?:please |also |ook |even )?(?:log|add|track|record|mark|tick|skip|create|make|set|remind|start|stop|delete|remove|note|put|save|zet|voeg|noteer|vink|sla|registreer|verwijder|maak|plan)\b/,
   /** A food's own figures ("how many calories in a banana") ask about the food, not the diary. */
   food: /\b(?:calories|calorie|kcal|calorieen|protein|eiwit|carbs|koolhydraten) (?:are |is |zitten er |zit er )?in\b|\bfrom a photo\b|\bvan een foto\b/,
@@ -91,13 +91,13 @@ export const NOT_A_LOOKUP = {
   other: /\b(?:steht|meiner|meinem|wieviel|wie viel|habe ich|heute|gestern|gewohnheiten|combien|quelle|quels|aujourdhui|coche|comme|pour|avec|cuanto|cuantos|cuantas|habitos|ayer|est ce que)\b/,
   /** What is still to come, or a standing fact ("when do I get paid"): not something the records of past days answer. */
   ahead: /\b(?:when do i|when will|when should|when is my next pay|wanneer krijg|wanneer moet|wanneer ga|wanneer word)\b|^(?:alert|notify|warn|waarschuw|meld)\b/,
-  advice: /\b(?:should|suggest|recommend|advice|advise|tips|tip|help me|how can i|how do i|how to|what if|motivate|motivation|is that good|is that bad|is that ok|is that enough|is it good|is it bad|too much|too little|moet ik|zou ik|advies|adviseer|aanraden|hoe kan ik|help me|is dat goed|is dat slecht|is dat genoeg|te veel|te weinig)\b/,
+  advice: /\b(?:should|suggest|recommend|advice|advise|tips|tip|help me|how can i|how do i|how to|what if|motivate|motivation|is that good|is that bad|is that ok|is that enough|is it good|is it bad|too much|too little|zou ik|wat moet ik|moet ik doen|advies|adviseer|aanraden|hoe kan ik|help me|is dat goed|is dat slecht|is dat genoeg|te veel|te weinig|normal|for my age|other people|compared to others|someone like me|average person|good enough|healthy enough|normaal|voor mijn leeftijd|andere mensen|iemand zoals ik|goed genoeg|gezond genoeg)\b/,
 };
 /** Words that are never a record's name by themselves (so "this" or "days" never names a habit). */
 export const GENERIC = new Set('habit habits goal goals today done left open all and also only with the for this that what how many much are your did miss missed days day week month times time last have was were not which when showcase data fund plan gewoonte gewoontes doel doelen vandaag dag dagen week maand keer niet welke wanneer mijn deze heb ik'.split(' '));
 
 const sources = [...DOMAIN_WORDS, ...ASK_WORDS, ...SHAPE_WORDS].map(([, re]) => re.source).join(' ') + ' ' + Object.entries(HABIT_SYNONYMS).flat(2).join(' ')
-  + ' today yesterday week month year monday tuesday wednesday thursday friday saturday sunday january february march april june july august september october november december vandaag gisteren maand jaar maandag dinsdag woensdag donderdag vrijdag zaterdag zondag januari februari maart augustus oktober mondays tuesdays wednesdays thursdays fridays saturdays sundays maandagen dinsdagen woensdagen donderdagen vrijdagen zaterdagen zondagen anything something everything days times dagen keer this last since deze vorige afgelopen sinds what which when where have many much often welke hoeveel wanneer habits tasks goals bills notes';
+  + ' today yesterday week month year monday tuesday wednesday thursday friday saturday sunday january february march april june july august september october november december vandaag gisteren maand jaar maandag dinsdag woensdag donderdag vrijdag zaterdag zondag januari februari maart augustus oktober mondays tuesdays wednesdays thursdays fridays saturdays sundays maandagen dinsdagen woensdagen donderdagen vrijdagen zaterdagen zondagen anything something everything payment entry betaling days times dagen keer this last since deze vorige afgelopen sinds what which when where have many much often welke hoeveel wanneer habits tasks goals bills notes';
 /** Every word of four letters or more the tables hold: what a misspelt word may be set right to. */
 export const VOCABULARY: ReadonlySet<string> = new Set(sources.match(/[a-z]{4,}/g) ?? []);
 /** The few short words a four-letter slip may be set right to ("wgat" → "what"): question words only, never a record's word. */

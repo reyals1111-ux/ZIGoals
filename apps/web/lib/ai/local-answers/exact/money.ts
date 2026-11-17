@@ -55,11 +55,6 @@ export function spendingAnswer(q: Query, env: ToolEnv): Exact | null {
     const hit = now.own.reduce((a, e) => (q.ask === 'best' ? cents(e.amount) > cents(a.amount) : cents(e.amount) < cents(a.amount)) ? e : a);
     return out(t(lang, `Your ${q.ask === 'best' ? 'largest' : 'smallest'} ${income ? 'income entry' : 'expense'} ${span}: ${money(cents(hit.amount), cur)} on ${day(hit.date)} (${plain(hit.note?.trim() || hit.category)}).`, `Je ${q.ask === 'best' ? 'grootste' : 'kleinste'} ${income ? 'inkomst' : 'uitgave'} ${span}: ${money(cents(hit.amount), cur)} op ${day(hit.date)} (${plain(hit.note?.trim() || hit.category)}).`), {...base, entry: {day: hit.date, cents: cents(hit.amount), category: hit.category}}, widgets, p);
   }
-  // Where the money went: the categories by size.
-  if (!category && (q.ask === 'best' || q.ask === 'worst' || q.shape === 'list' || /\b(?:category|categories|categorie|categorieen|on what|waaraan|where did|waar ging|most on)\b/.test(q.read))) {
-    const ranked = q.ask === 'worst' ? [...cats].reverse() : cats, top = ranked.slice(0, 4).map(c => `${plain(c.category)} ${money(c.total, cur)} (${formatPercent(c.total / now.total * 100)})`);
-    return out(t(lang, `${money(now.total, cur)} ${verb} ${span}; ${q.ask === 'worst' ? 'least' : 'most'} on ${listWords(top, 'en')}.${others}`, `${money(now.total, cur)} ${verb} ${span}; het ${q.ask === 'worst' ? 'minst' : 'meest'} aan ${listWords(top, 'nl')}.${others}`), base, widgets, p);
-  }
   // Days without an entry, or with one.
   if (q.ask === 'not-done' || q.ask === 'missed' || q.shape === 'dates') {
     const dates = [...new Set(now.own.map(e => e.date))].sort(), free = p.days.filter(d => !dates.includes(d) && d !== today), none = q.ask === 'not-done' || q.ask === 'missed';
@@ -69,6 +64,11 @@ export function spendingAnswer(q: Query, env: ToolEnv): Exact | null {
   if (q.ask === 'average') {
     const per = Math.round(now.total / Math.max(1, p.days.length));
     return out(t(lang, `${what}${money(per, cur)} a day on average ${span} (${money(now.total, cur)} over ${p.days.length} days).${others}`, `${what}Gemiddeld ${money(per, cur)} per dag ${span} (${money(now.total, cur)} over ${p.days.length} dagen).${others}`), {...base, averageCents: per}, widgets, p);
+  }
+  // Where the money went: the categories by size.
+  if (!category && (q.ask === 'best' || q.ask === 'worst' || q.shape === 'list' || /\b(?:category|categories|categorie|categorieen|on what|waaraan|where did|waar ging|most on|money go)\b/.test(q.read))) {
+    const ranked = q.ask === 'worst' ? [...cats].reverse() : cats, top = ranked.slice(0, 4).map(c => `${plain(c.category)} ${money(c.total, cur)} (${formatPercent(c.total / now.total * 100)})`);
+    return out(t(lang, `${money(now.total, cur)} ${verb} ${span}; ${q.ask === 'worst' ? 'least' : 'most'} on ${listWords(top, 'en')}.${others}`, `${money(now.total, cur)} ${verb} ${span}; het ${q.ask === 'worst' ? 'minst' : 'meest'} aan ${listWords(top, 'nl')}.${others}`), base, widgets, p);
   }
   const top = !category && cats[0] ? t(lang, `; most on ${plain(cats[0].category)} (${formatPercent(cats[0].total / now.total * 100)})`, `; het meest aan ${plain(cats[0].category)} (${formatPercent(cats[0].total / now.total * 100)})`) : '';
   return out(`${what}${money(now.total, cur)} ${verb} ${span}${income ? '' : top}, ${t(lang, `in ${now.own.length} ${now.own.length === 1 ? 'entry' : 'entries'}`, `in ${now.own.length} ${now.own.length === 1 ? 'boeking' : 'boekingen'}`)}.${others}`, base, widgets, p);
@@ -106,7 +106,9 @@ export function billsAnswer(q: Query, env: ToolEnv): Exact | null {
     const late = card.lines.filter(l => l.overdue);
     return out(late.length ? t(lang, `${late.length} ${late.length === 1 ? 'bill is' : 'bills are'} overdue: ${listWords(late.map(line), 'en')}.`, `${late.length} ${late.length === 1 ? 'rekening is' : 'rekeningen zijn'} te laat: ${listWords(late.map(line), 'nl')}.`) : t(lang, `No bill is overdue. Next: ${line(card.next!)}.`, `Geen rekening is te laat. De volgende: ${line(card.next!)}.`), {...facts, overdue: late.map(l => plain(l.title))});
   }
-  if (q.ask === 'next' || (q.shape !== 'list' && q.shape !== 'count' && q.ask !== 'total' && !q.period)) return out(t(lang, `Next bill: ${line(card.next!)}${card.lines.length > 1 ? `; ${card.lines.length - 1} more after it` : ''}.`, `Volgende rekening: ${line(card.next!)}${card.lines.length > 1 ? `; daarna nog ${card.lines.length - 1}` : ''}.`), {...facts, next: plain(card.next!.title)});
+  // "My next bill" is one bill; "my upcoming bills" is the list.
+  const several = /\b(?:bills|rekeningen|facturen|abonnementen)\b/.test(q.read);
+  if ((q.ask === 'next' && !several) || (q.shape !== 'list' && q.shape !== 'count' && q.ask !== 'total' && q.ask !== 'next' && !q.period)) return out(t(lang, `Next bill: ${line(card.next!)}${card.lines.length > 1 ? `; ${card.lines.length - 1} more after it` : ''}.`, `Volgende rekening: ${line(card.next!)}${card.lines.length > 1 ? `; daarna nog ${card.lines.length - 1}` : ''}.`), {...facts, next: plain(card.next!.title)});
   if (q.ask === 'total' || q.shape === 'amount') return out(t(lang, `Your bills come to about ${listWords(card.typical.map(x => x.text), 'en')} in a typical month (an estimate); ${listWords(card.month.map(m => `${m.text} in ${m.count} ${m.count === 1 ? 'bill' : 'bills'}`), 'en')} fall due in the next 30 days.`, `Je rekeningen komen op ongeveer ${listWords(card.typical.map(x => x.text), 'nl')} in een gewone maand (een schatting); ${listWords(card.month.map(m => `${m.text} in ${m.count} ${m.count === 1 ? 'rekening' : 'rekeningen'}`), 'nl')} in de komende 30 dagen.`), {...facts, typical: card.typical, next30: card.month});
   // Which bills are due: within the week when the words say so, else the next 30 days.
   const horizon = /\b(?:week)\b/.test(q.read) || q.period === 'this-week' ? 7 : 30, soon = card.lines.filter(l => l.days <= horizon);

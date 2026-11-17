@@ -8,7 +8,7 @@ import type {Lang} from './types';
 export const fold = (text: string): string => text.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[’'`]/g, '')
   .replace(/[^a-z0-9%-]+/g, ' ').replace(/(?<!\d)-|-(?!\d)/g, ' ').replace(/\s+/g, ' ').trim();
 
-const NL = new Set('ik je jij mijn hoeveel hoe wat welke waar waarom wanneer heb hebt heeft ben bent is zijn het een van voor niet geen met deze dit vandaag gisteren maand jaar gedaan kan kun nog op de dagen keer vaak vorige afgelopen gemist vergeten overgeslagen gehaald deze week dag dagen staat gaat mij ging was waren al sinds dan te laat welk hoelang'.split(' '));
+const NL = new Set('hebben taken taak gewoonte gewoontes doel doelen rekening rekeningen budget budgetten uitgegeven uitgaven geslapen gedronken gegeten gemediteerd gesport gewandeld gelezen geschreven gefocust gewogen dagboek notities agenda afspraak gezondheid vermogen stappen gewicht slaap hoge lage prioriteit volgende morgen nachten per gemiddeld beste slechtste langste kortste meeste minste meer minder mijn ik je jij mijn hoeveel hoe wat welke waar waarom wanneer heb hebt heeft ben bent is zijn het een van voor niet geen met deze dit vandaag gisteren maand jaar gedaan kan kun nog op de dagen keer vaak vorige afgelopen gemist vergeten overgeslagen gehaald deze week dag dagen staat gaat mij ging was waren al sinds dan te laat welk hoelang'.split(' '));
 const EN = new Set('i my me you your how what which where why when have has had did do does the a an of for not no with this that today yesterday month year can many much often on days times last was were am are is since than late still any there'.split(' '));
 /** Dutch when the words are more Dutch than English (two Dutch words at least, or one in a very short question). */
 export function langOf(folded: string): Lang {
@@ -44,12 +44,14 @@ const REAL = new Set('mind wait hate mass bell tusk talk walk then them they thi
 export function fixSlips(folded: string, vocabulary: ReadonlySet<string>, least = 4): string | null {
   let changed = false;
   const out = folded.split(' ').map(word => {
-    if (word.length < least || /\d/.test(word) || vocabulary.has(word) || REAL.has(word) || /^(?:zigoals|zigi|nova|zignaly|zigchain|zig)/.test(word)) return word;
+    // A four-letter word with a letter dropped ("spnd") may be set right in the first pass, to a five-letter word only.
+    const dropped = least === 5 && word.length === 4;
+    if ((word.length < least && !dropped) || /\d/.test(word) || vocabulary.has(word) || REAL.has(word) || /^(?:zigoals|zigi|nova|zignaly|zigchain|zig)/.test(word)) return word;
     const max = word.length >= 8 ? 2 : 1;
     let best: string | null = null, bestD = max + 1, tie = false;
     for (const v of vocabulary) {
       // The first letter is right in nearly every slip of the hand; a word that differs there is another word.
-      if (v.length < 4 || Math.abs(v.length - word.length) > max || (v[0] !== word[0] && !(v[0] === word[1] && v[1] === word[0]))) continue;
+      if (v.length < 4 || (dropped && v.length !== 5) || Math.abs(v.length - word.length) > max || (v[0] !== word[0] && !(v[0] === word[1] && v[1] === word[0]))) continue;
       const d = distance(word, v, max);
       if (d < bestD) { best = v; bestD = d; tie = false; } else if (d === bestD && v !== best) tie = true;
     }
@@ -70,6 +72,8 @@ export function root(word: string): string {
 export function sameWord(a: string, b: string): boolean {
   const x = root(a), y = root(b);
   if (x === y) return true;
+  // A compound is another word ("waterdoel" is not "water"): the two may differ by three letters at most.
+  if (Math.abs(a.length - b.length) > 3) return false;
   let i = 0; while (i < x.length && i < y.length && x[i] === y[i]) i++;
   return i >= 5 && i >= Math.min(x.length, y.length) - 2;
 }

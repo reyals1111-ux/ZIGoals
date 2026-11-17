@@ -1,0 +1,5610 @@
+{
+ "hab-missed-week": {
+  "en": "You missed no habit this week (Mon, Nov 16 to Tue, Nov 17): 11 of 11 due check-ins done. Still open today: Exercise, Meditate and Drink water.",
+  "nl": "Je hebt geen gewoonte gemist deze week (Mon, Nov 16 t/m Tue, Nov 17): 11 van 11 geplande check-ins gedaan. Vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": {
+   "about": "habits",
+   "ask": "missed",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "count": 0,
+   "habits": [],
+   "totals": {
+    "due": 14,
+    "done": 11,
+    "missed": 0,
+    "skipped": 0,
+    "open": 3
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 2,
+     "done": 2,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 2,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 2,
+     "done": 2,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 2,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 2,
+     "done": 2,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 2,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 2,
+     "done": 2,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    }
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "med-notdone-month": {
+  "en": "Meditate: not done on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Tue, Nov 3 and Thu, Nov 12. Both were marked as skipped. Today is still open.",
+  "nl": "Meditate: niet gedaan op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Tue, Nov 3 en Thu, Nov 12. Beide waren als overgeslagen gemarkeerd. Vandaag staat nog open.",
+  "facts": {
+   "about": "Meditate",
+   "subject": "92000000-0000-4000-8000-000000000004",
+   "ask": "not-done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 14,
+   "missed": 0,
+   "skipped": 2,
+   "part": 0,
+   "open": 1,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-03",
+     "2026-11-12"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16"
+    ]
+   },
+   "count": 2,
+   "days": [
+    "2026-11-03",
+    "2026-11-12"
+   ]
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "No meditation logged yet.",
+  "freshNl": "Nog geen meditatie gelogd."
+ },
+ "hab-missed-month": {
+  "en": "You missed 1 of 7 habits this month (Sun, Nov 1 to Tue, Nov 17): Late-night snacks (2 days). Skipped (not counted as missed): Read (2 days), Exercise (2 days), Walk (2 days), Meditate (2 days), Contribute (2 days), Drink water (2 days) and Late-night snacks (3 days). Still open today: Exercise, Meditate and Drink water.",
+  "nl": "Je hebt 1 van je 7 gewoontes gemist deze maand (Sun, Nov 1 t/m Tue, Nov 17): Late-night snacks (2 dagen). Overgeslagen (telt niet als gemist): Read (2 dagen), Exercise (2 dagen), Walk (2 dagen), Meditate (2 dagen), Contribute (2 dagen), Drink water (2 dagen) en Late-night snacks (3 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": {
+   "about": "habits",
+   "ask": "missed",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "count": 1,
+   "habits": [
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "days": 2,
+     "missed": 2,
+     "skipped": 3,
+     "missedDays": [
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ],
+   "totals": {
+    "due": 119,
+    "done": 99,
+    "missed": 2,
+    "skipped": 15,
+    "open": 3
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 17,
+     "done": 15,
+     "missed": 0,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-06",
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 17,
+     "done": 14,
+     "missed": 0,
+     "skipped": 2,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-05",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 17,
+     "done": 15,
+     "missed": 0,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-04",
+      "2026-11-13"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 17,
+     "done": 14,
+     "missed": 0,
+     "skipped": 2,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-03",
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 17,
+     "done": 15,
+     "missed": 0,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 17,
+     "done": 14,
+     "missed": 0,
+     "skipped": 2,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-01",
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 17,
+     "done": 12,
+     "missed": 2,
+     "skipped": 3,
+     "open": 0,
+     "missedDays": [
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-missed-yesterday": {
+  "en": "You missed no habit yesterday (Mon, Nov 16): 7 of 7 due check-ins done.",
+  "nl": "Je hebt geen gewoonte gemist gisteren (Mon, Nov 16): 7 van 7 geplande check-ins gedaan.",
+  "facts": {
+   "about": "habits",
+   "ask": "missed",
+   "period": {
+    "token": "yesterday",
+    "from": "2026-11-16",
+    "to": "2026-11-16"
+   },
+   "count": 0,
+   "habits": [],
+   "totals": {
+    "due": 7,
+    "done": 7,
+    "missed": 0,
+    "skipped": 0,
+    "open": 0
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 1,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 1,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 1,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 1,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 1,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 1,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 1,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    }
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-skipped-month": {
+  "en": "You skipped 7 of 7 habits this month (Sun, Nov 1 to Tue, Nov 17): Late-night snacks (3 days), Contribute (2 days), Drink water (2 days), Exercise (2 days), Meditate (2 days), Read (2 days) and Walk (2 days). Still open today: Exercise, Meditate and Drink water.",
+  "nl": "Je hebt 7 van je 7 gewoontes overgeslagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Late-night snacks (3 dagen), Contribute (2 dagen), Drink water (2 dagen), Exercise (2 dagen), Meditate (2 dagen), Read (2 dagen) en Walk (2 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": {
+   "about": "habits",
+   "ask": "skipped",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "count": 7,
+   "habits": [
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "days": 3,
+     "missed": 2,
+     "skipped": 3,
+     "missedDays": [
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "days": 2,
+     "missed": 0,
+     "skipped": 2,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "days": 2,
+     "missed": 0,
+     "skipped": 2,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-01",
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "days": 2,
+     "missed": 0,
+     "skipped": 2,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-05",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "days": 2,
+     "missed": 0,
+     "skipped": 2,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-03",
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "days": 2,
+     "missed": 0,
+     "skipped": 2,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-06",
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "days": 2,
+     "missed": 0,
+     "skipped": 2,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-04",
+      "2026-11-13"
+     ]
+    }
+   ],
+   "totals": {
+    "due": 119,
+    "done": 99,
+    "missed": 2,
+    "skipped": 15,
+    "open": 3
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 17,
+     "done": 15,
+     "missed": 0,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-06",
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 17,
+     "done": 14,
+     "missed": 0,
+     "skipped": 2,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-05",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 17,
+     "done": 15,
+     "missed": 0,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-04",
+      "2026-11-13"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 17,
+     "done": 14,
+     "missed": 0,
+     "skipped": 2,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-03",
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 17,
+     "done": 15,
+     "missed": 0,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 17,
+     "done": 14,
+     "missed": 0,
+     "skipped": 2,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-01",
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 17,
+     "done": 12,
+     "missed": 2,
+     "skipped": 3,
+     "open": 0,
+     "missedDays": [
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-notdone-lastweek": {
+  "en": "7 of 7 habits were not done on some day last week (Mon, Nov 9 to Sun, Nov 15): Late-night snacks (3 days, 1 missed and 2 skipped), Contribute (1 day, skipped), Drink water (1 day, skipped), Exercise (1 day, skipped), Meditate (1 day, skipped), Read (1 day, skipped) and Walk (1 day, skipped).",
+  "nl": "7 van je 7 gewoontes zijn op een dag niet gedaan vorige week (Mon, Nov 9 t/m Sun, Nov 15): Late-night snacks (3 dagen, 1 gemist en 2 overgeslagen), Contribute (1 dag, overgeslagen), Drink water (1 dag, overgeslagen), Exercise (1 dag, overgeslagen), Meditate (1 dag, overgeslagen), Read (1 dag, overgeslagen) en Walk (1 dag, overgeslagen).",
+  "facts": {
+   "about": "habits",
+   "ask": "not-done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "count": 7,
+   "habits": [
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "days": 3,
+     "missed": 1,
+     "skipped": 2,
+     "missedDays": [
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-13"
+     ]
+    }
+   ],
+   "totals": {
+    "due": 49,
+    "done": 40,
+    "missed": 1,
+    "skipped": 8,
+    "open": 0
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-13"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 7,
+     "done": 4,
+     "missed": 1,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-missed-days-month": {
+  "en": "A habit was missed on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 8 (Late-night snacks) and Fri, Nov 13 (Late-night snacks). Still open today: Exercise, Meditate and Drink water.",
+  "nl": "Op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17) was een gewoonte gemist: Sun, Nov 8 (Late-night snacks) en Fri, Nov 13 (Late-night snacks). Vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": {
+   "about": "habits",
+   "ask": "missed",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "count": 1,
+   "habits": [
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "days": 2,
+     "missed": 2,
+     "skipped": 3,
+     "missedDays": [
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ],
+   "totals": {
+    "due": 119,
+    "done": 99,
+    "missed": 2,
+    "skipped": 15,
+    "open": 3
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 17,
+     "done": 15,
+     "missed": 0,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-06",
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 17,
+     "done": 14,
+     "missed": 0,
+     "skipped": 2,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-05",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 17,
+     "done": 15,
+     "missed": 0,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-04",
+      "2026-11-13"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 17,
+     "done": 14,
+     "missed": 0,
+     "skipped": 2,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-03",
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 17,
+     "done": 15,
+     "missed": 0,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 17,
+     "done": 14,
+     "missed": 0,
+     "skipped": 2,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-01",
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 17,
+     "done": 12,
+     "missed": 2,
+     "skipped": 3,
+     "open": 0,
+     "missedDays": [
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ],
+   "days": [
+    "2026-11-08",
+    "2026-11-13"
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "med-missed-month": {
+  "en": "Meditate: no missed day this month (Sun, Nov 1 to Tue, Nov 17). Skipped (not counted as missed): Tue, Nov 3 and Thu, Nov 12. Today is still open.",
+  "nl": "Meditate: geen gemiste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Tue, Nov 3 en Thu, Nov 12. Vandaag staat nog open.",
+  "facts": {
+   "about": "Meditate",
+   "subject": "92000000-0000-4000-8000-000000000004",
+   "ask": "missed",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 14,
+   "missed": 0,
+   "skipped": 2,
+   "part": 0,
+   "open": 1,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-03",
+     "2026-11-12"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16"
+    ]
+   },
+   "count": 0,
+   "days": []
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "No meditation logged yet.",
+  "freshNl": "Nog geen meditatie gelogd."
+ },
+ "med-skipped-month": {
+  "en": "Meditate: skipped on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Tue, Nov 3 and Thu, Nov 12. Today is still open.",
+  "nl": "Meditate: overgeslagen op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Tue, Nov 3 en Thu, Nov 12. Vandaag staat nog open.",
+  "facts": {
+   "about": "Meditate",
+   "subject": "92000000-0000-4000-8000-000000000004",
+   "ask": "skipped",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 14,
+   "missed": 0,
+   "skipped": 2,
+   "part": 0,
+   "open": 1,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-03",
+     "2026-11-12"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16"
+    ]
+   },
+   "count": 2,
+   "days": [
+    "2026-11-03",
+    "2026-11-12"
+   ]
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "No meditation logged yet.",
+  "freshNl": "Nog geen meditatie gelogd."
+ },
+ "snacks-missed-month": {
+  "en": "Late-night snacks: missed on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 8 and Fri, Nov 13. Skipped (not counted as missed): Mon, Nov 2, Mon, Nov 9 and Sat, Nov 14.",
+  "nl": "Late-night snacks: gemist op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 8 en Fri, Nov 13. Overgeslagen (telt niet als gemist): Mon, Nov 2, Mon, Nov 9 en Sat, Nov 14.",
+  "facts": {
+   "about": "Late-night snacks",
+   "subject": "92000000-0000-4000-8000-000000000007",
+   "ask": "missed",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 12,
+   "missed": 2,
+   "skipped": 3,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [
+     "2026-11-08",
+     "2026-11-13"
+    ],
+    "skipped": [
+     "2026-11-02",
+     "2026-11-09",
+     "2026-11-14"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-01",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "count": 2,
+   "days": [
+    "2026-11-08",
+    "2026-11-13"
+   ]
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "No nights logged yet.",
+  "freshNl": "Nog geen nachten gelogd."
+ },
+ "read-notdone-lastweek": {
+  "en": "Read: not done on 1 day last week (Mon, Nov 9 to Sun, Nov 15): Sun, Nov 15. It was marked as skipped.",
+  "nl": "Read: niet gedaan op 1 dag vorige week (Mon, Nov 9 t/m Sun, Nov 15): Sun, Nov 15. Die was als overgeslagen gemarkeerd.",
+  "facts": {
+   "about": "Read",
+   "subject": "92000000-0000-4000-8000-000000000001",
+   "ask": "not-done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 6,
+   "missed": 0,
+   "skipped": 1,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-15"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-14"
+    ]
+   },
+   "count": 1,
+   "days": [
+    "2026-11-15"
+   ]
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "exercise-notdone-month": {
+  "en": "Exercise: not done on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Thu, Nov 5 and Sat, Nov 14. Both were marked as skipped. Today is still open.",
+  "nl": "Exercise: niet gedaan op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Thu, Nov 5 en Sat, Nov 14. Beide waren als overgeslagen gemarkeerd. Vandaag staat nog open.",
+  "facts": {
+   "about": "Exercise",
+   "subject": "92000000-0000-4000-8000-000000000002",
+   "ask": "not-done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 14,
+   "missed": 0,
+   "skipped": 2,
+   "part": 0,
+   "open": 1,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-05",
+     "2026-11-14"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-15",
+     "2026-11-16"
+    ]
+   },
+   "count": 2,
+   "days": [
+    "2026-11-05",
+    "2026-11-14"
+   ]
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "No workouts logged yet.",
+  "freshNl": "Nog geen workouts gelogd."
+ },
+ "read-done-dates-week": {
+  "en": "Read: done on 2 of 2 due days this week (Mon, Nov 16 to Tue, Nov 17): Mon, Nov 16 and Tue, Nov 17. 60 minutes in total.",
+  "nl": "Read: gedaan op 2 van 2 geplande dagen deze week (Mon, Nov 16 t/m Tue, Nov 17): Mon, Nov 16 en Tue, Nov 17. 60 minutes in totaal.",
+  "facts": {
+   "about": "Read",
+   "subject": "92000000-0000-4000-8000-000000000001",
+   "ask": "done",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "due": 2,
+   "done": 2,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "count": 2,
+   "days": [
+    "2026-11-16",
+    "2026-11-17"
+   ],
+   "total": 60,
+   "rate": 100
+  },
+  "widgets": [
+   "habit-done-days"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "walk-done-count-lastweek": {
+  "en": "Walk: 48,000 steps last week (Mon, Nov 9 to Sun, Nov 15).\n- 6 check-ins on 6 days; 7 scheduled days\n- Best day: Mon, Nov 9 (8,000 steps)",
+  "nl": "Walk: gedaan op 6 van 7 geplande dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15). 48,000 steps in totaal.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "I’m not sure I read that right. The closest question I can answer here is “Average steps last week?”:\n\nNo steps are recorded last week (Mon, Nov 9 to Sun, Nov 15).",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-open-today": {
+  "en": "3 habits left today:\n• Exercise: 15 of 30 minutes\n• Meditate: 5 of 10 minutes\n• Drink water: 1 of 2 liters",
+  "nl": "3 gewoontes nog open vandaag:\n• Exercise: 15 van 30 minuten\n• Meditate: 5 van 10 minuten\n• Drink water: 1 van 2 liters",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit is kept yet: Habits → New habit, or ask me to create one.",
+  "freshNl": "Er is nog geen gewoonte: Habits → New habit, of vraag mij er een te maken."
+ },
+ "hab-notdone-today": {
+  "en": "3 of 7 habits are still open today: Exercise, Meditate and Drink water.",
+  "nl": "3 van je 7 gewoontes staan vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": {
+   "about": "habits",
+   "ask": "not-done",
+   "period": {
+    "token": "today",
+    "from": "2026-11-17",
+    "to": "2026-11-17"
+   },
+   "day": "2026-11-17",
+   "due": 7,
+   "done": [
+    "Read",
+    "Walk",
+    "Contribute",
+    "Late-night snacks"
+   ],
+   "open": [
+    "Exercise",
+    "Meditate",
+    "Drink water"
+   ],
+   "missed": [],
+   "skipped": []
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-missed-days-lastweek": {
+  "en": "A habit was missed on 1 day last week (Mon, Nov 9 to Sun, Nov 15): Fri, Nov 13 (Late-night snacks).",
+  "nl": "Op 1 dag vorige week (Mon, Nov 9 t/m Sun, Nov 15) was een gewoonte gemist: Fri, Nov 13 (Late-night snacks).",
+  "facts": {
+   "about": "habits",
+   "ask": "missed",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "count": 1,
+   "habits": [
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "days": 1,
+     "missed": 1,
+     "skipped": 2,
+     "missedDays": [
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ],
+   "totals": {
+    "due": 49,
+    "done": 40,
+    "missed": 1,
+    "skipped": 8,
+    "open": 0
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-13"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 7,
+     "done": 4,
+     "missed": 1,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ],
+   "days": [
+    "2026-11-13"
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-most-missed": {
+  "en": "You missed 1 of 7 habits in the last 30 days (Mon, Oct 19 to Tue, Nov 17): Late-night snacks (4 days). Skipped (not counted as missed): Read (4 days), Exercise (3 days), Walk (3 days), Meditate (3 days), Contribute (3 days), Drink water (3 days) and Late-night snacks (4 days). Still open today: Exercise, Meditate and Drink water.",
+  "nl": "Je hebt 1 van je 7 gewoontes gemist in de afgelopen 30 dagen (Mon, Oct 19 t/m Tue, Nov 17): Late-night snacks (4 dagen). Overgeslagen (telt niet als gemist): Read (4 dagen), Exercise (3 dagen), Walk (3 dagen), Meditate (3 dagen), Contribute (3 dagen), Drink water (3 dagen) en Late-night snacks (4 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": {
+   "about": "habits",
+   "ask": "missed",
+   "period": {
+    "token": "last-30-days",
+    "from": "2026-10-19",
+    "to": "2026-11-17"
+   },
+   "count": 1,
+   "habits": [
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "days": 4,
+     "missed": 4,
+     "skipped": 4,
+     "missedDays": [
+      "2026-10-22",
+      "2026-10-31",
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-10-24",
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ],
+   "totals": {
+    "due": 210,
+    "done": 180,
+    "missed": 4,
+    "skipped": 23,
+    "open": 3
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 30,
+     "done": 26,
+     "missed": 0,
+     "skipped": 4,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-19",
+      "2026-10-28",
+      "2026-11-06",
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 30,
+     "done": 26,
+     "missed": 0,
+     "skipped": 3,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-27",
+      "2026-11-05",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 30,
+     "done": 27,
+     "missed": 0,
+     "skipped": 3,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-26",
+      "2026-11-04",
+      "2026-11-13"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 30,
+     "done": 26,
+     "missed": 0,
+     "skipped": 3,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-25",
+      "2026-11-03",
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 30,
+     "done": 27,
+     "missed": 0,
+     "skipped": 3,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-24",
+      "2026-11-02",
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 30,
+     "done": 26,
+     "missed": 0,
+     "skipped": 3,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-23",
+      "2026-11-01",
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 30,
+     "done": 22,
+     "missed": 4,
+     "skipped": 4,
+     "open": 0,
+     "missedDays": [
+      "2026-10-22",
+      "2026-10-31",
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-10-24",
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-skipped-lastweek": {
+  "en": "You skipped 7 of 7 habits last week (Mon, Nov 9 to Sun, Nov 15): Late-night snacks (2 days), Contribute (1 day), Drink water (1 day), Exercise (1 day), Meditate (1 day), Read (1 day) and Walk (1 day).",
+  "nl": "Je hebt 7 van je 7 gewoontes overgeslagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Late-night snacks (2 dagen), Contribute (1 dag), Drink water (1 dag), Exercise (1 dag), Meditate (1 dag), Read (1 dag) en Walk (1 dag).",
+  "facts": {
+   "about": "habits",
+   "ask": "skipped",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "count": 7,
+   "habits": [
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "days": 2,
+     "missed": 1,
+     "skipped": 2,
+     "missedDays": [
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "days": 1,
+     "missed": 0,
+     "skipped": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-13"
+     ]
+    }
+   ],
+   "totals": {
+    "due": 49,
+    "done": 40,
+    "missed": 1,
+    "skipped": 8,
+    "open": 0
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-13"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 7,
+     "done": 6,
+     "missed": 0,
+     "skipped": 1,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 7,
+     "done": 4,
+     "missed": 1,
+     "skipped": 2,
+     "open": 0,
+     "missedDays": [
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "read-mondays": {
+  "en": "Read: no missed day on Mondays in the last 90 days (Thu, Aug 20 to Tue, Nov 17). Skipped (not counted as missed): Mon, Oct 19.",
+  "nl": "Read: geen gemiste dag op maandag in de afgelopen 90 dagen (Thu, Aug 20 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Mon, Oct 19.",
+  "facts": {
+   "about": "Read",
+   "subject": "92000000-0000-4000-8000-000000000001",
+   "ask": "missed",
+   "period": {
+    "token": "last-90-days@1",
+    "from": "2026-08-20",
+    "to": "2026-11-17"
+   },
+   "due": 5,
+   "done": 4,
+   "missed": 0,
+   "skipped": 1,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-10-19"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-10-26",
+     "2026-11-02",
+     "2026-11-09",
+     "2026-11-16"
+    ]
+   },
+   "count": 0,
+   "days": []
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "water-habit-skipped-month": {
+  "en": "Drink water: skipped on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 1 and Tue, Nov 10. Today is still open.",
+  "nl": "Drink water: overgeslagen op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.",
+  "facts": {
+   "about": "Drink water",
+   "subject": "92000000-0000-4000-8000-000000000006",
+   "ask": "skipped",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 14,
+   "missed": 0,
+   "skipped": 2,
+   "part": 0,
+   "open": 1,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-01",
+     "2026-11-10"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16"
+    ]
+   },
+   "count": 2,
+   "days": [
+    "2026-11-01",
+    "2026-11-10"
+   ]
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "No water logged yet.",
+  "freshNl": "Nog geen water gelogd."
+ },
+ "contribute-notdone-month": {
+  "en": "Contribute: not done on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Mon, Nov 2 and Wed, Nov 11. Both were marked as skipped.",
+  "nl": "Contribute: niet gedaan op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Mon, Nov 2 en Wed, Nov 11. Beide waren als overgeslagen gemarkeerd.",
+  "facts": {
+   "about": "Contribute",
+   "subject": "92000000-0000-4000-8000-000000000005",
+   "ask": "not-done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 15,
+   "missed": 0,
+   "skipped": 2,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-02",
+     "2026-11-11"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-01",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "count": 2,
+   "days": [
+    "2026-11-02",
+    "2026-11-11"
+   ]
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "walk-missed-since": {
+  "en": "Walk: no missed day since Sun, Nov 1. Skipped (not counted as missed): Wed, Nov 4 and Fri, Nov 13.",
+  "nl": "Walk: geen gemiste dag sinds Sun, Nov 1. Overgeslagen (telt niet als gemist): Wed, Nov 4 en Fri, Nov 13.",
+  "facts": {
+   "about": "Walk",
+   "subject": "92000000-0000-4000-8000-000000000003",
+   "ask": "missed",
+   "period": {
+    "token": "since:2026-11-01",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 15,
+   "missed": 0,
+   "skipped": 2,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-04",
+     "2026-11-13"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "count": 0,
+   "days": []
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-weekday": {
+  "en": "Most habit days not done fall on Mondays: 7 of 35 in the last 90 days.",
+  "nl": "De meeste niet gedane gewoontedagen vallen op maandag: 7 van 35 in de afgelopen 90 dagen.",
+  "facts": {
+   "about": "habits",
+   "ask": "missed",
+   "period": {
+    "token": "last-90-days",
+    "from": "2026-08-20",
+    "to": "2026-11-17"
+   },
+   "byWeekday": [
+    5,
+    7,
+    4,
+    4,
+    4,
+    6,
+    5
+   ],
+   "weekday": 1
+  },
+  "widgets": [
+   "habit-weekdays"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-compare-weeks": {
+  "en": "Habits this week: 11 of 11 due check-ins done (100%); last week: 40 of 41 (98%).",
+  "nl": "Gewoontes deze week: 11 van 11 geplande check-ins gedaan (100%); vorige week: 40 van 41 (98%).",
+  "facts": {
+   "about": "habits",
+   "ask": "compare",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "compare": {
+    "now": {
+     "from": "2026-11-16",
+     "to": "2026-11-17",
+     "done": 11,
+     "due": 11,
+     "rate": 100
+    },
+    "before": {
+     "from": "2026-11-09",
+     "to": "2026-11-15",
+     "done": 40,
+     "due": 41,
+     "rate": 98
+    }
+   }
+  },
+  "widgets": [
+   "compare-periods"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-perfect-days": {
+  "en": "14 days this month (Sun, Nov 1 to Tue, Nov 17) had every due habit done. Still open today: Exercise, Meditate and Drink water.",
+  "nl": "Op 14 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17) is elke geplande gewoonte gedaan. Vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": {
+   "about": "habits",
+   "ask": "done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "count": 14,
+   "days": [
+    "2026-11-01",
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04",
+    "2026-11-05",
+    "2026-11-06",
+    "2026-11-07",
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-14",
+    "2026-11-15",
+    "2026-11-16"
+   ]
+  },
+  "widgets": [
+   "perfect-days"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "hab-done-today-nl": {
+  "en": "4 of 7 habits done today, 3 partly.\n- Done: Read, Walk, Contribute, Late-night snacks (Showcase)\n- Partly: Exercise, Meditate, Drink water",
+  "nl": "Vandaag (Tue, Nov 17) 3 van 7 geplande gewoontes zijn nog niet voltooid:\n• Exercise (15 of 30)\n• Meditate (5 of 10)\n• Drink water (1 of 2)\nVoltooid: Read, Walk, Contribute, Late-night snacks (Showcase).\nUit je gewoontegegevens op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit yet: Habits → New habit, or ask me to create one.",
+  "freshNl": "Vandaag (Tue, Nov 17) stond er geen gewoonte gepland."
+ },
+ "hab-streaks-nl": {
+  "en": "Your longest streak ever is 27 days, shared by 2 habits: Walk (current 27 days), Contribute (current 27 days).\n- Read: longest 26 days, current 26 days\n- Exercise: longest 26 days, current 26 days",
+  "nl": "Je reeksen nu: Contribute 27 dagen, Walk 27 dagen, Drink water 26 dagen en Exercise 26 dagen en nog 3. Langste ooit: Walk, 27 dagen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "That isn’t something I can answer from your records here. Without a brain I answer about your habits, Checklist, tasks, goals, Health (once you share it) and money, and I prepare cards you confirm for check-offs, tasks and new habits.\nUntil you give me a brain, I answer from your own records on this device. For example:",
+  "freshNl": "Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:"
+ },
+ "hab-week-nl": {
+  "en": "This week: 12 check-ins over 7 habits.\n• Read: 2 of 2 planned days done\n• Exercise: 1 of 2 planned days done\n• Walk: 2 of 2 planned days done\n• Meditate: 1 of 2 planned days done\n• Contribute: 2 of 2 planned days done\n• Drink water: 1 of 2 planned days done\n• Late-night snacks (Showcase): 2 of 2 planned days done",
+  "nl": "Gewoontes deze week (Mon, Nov 16 t/m Tue, Nov 17): 11 van 11 geplande check-ins gedaan (100%); 0 gemist, 0 overgeslagen. Vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit is kept yet: Habits → New habit, or say “Create a habit called Walk”.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "med-count-lastweek-nl": {
+  "en": "You checked in Meditate 6 times last week (Mon, Nov 9 to Sun, Nov 15).\n- 7 scheduled days in this period",
+  "nl": "Meditate: gedaan op 6 van 7 geplande dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15). 60 minutes in totaal.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No meditation session is logged last week (Mon, Nov 9 to Sun, Nov 15).",
+  "freshNl": "Nog geen meditatie gelogd."
+ },
+ "water-today": {
+  "en": "You logged 1,000 mL of water today (Tue, Nov 17).",
+  "nl": "Water: 1,000 mL vandaag, van je doel van 2,000 mL. Nog 1,000 mL te gaan.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No water is logged today (Tue, Nov 17).",
+  "freshNl": "Nog geen water gelogd."
+ },
+ "water-yesterday": {
+  "en": "You logged 2,100 mL of water yesterday (Mon, Nov 16).",
+  "nl": "Water: 2,100 mL gisteren, van je doel van 2,000 mL. Doel gehaald.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No water is logged yesterday (Mon, Nov 16).",
+  "freshNl": "Nog geen water gelogd."
+ },
+ "water-notreached-month": {
+  "en": "Water: no day below your target this month (Sun, Nov 1 to Tue, Nov 17). Nothing logged on 2 days: Sun, Nov 1 and Tue, Nov 10. Today is still open.",
+  "nl": "Water: geen dag onder je doel deze maand (Sun, Nov 1 t/m Tue, Nov 17). Niets gelogd op 2 dagen: Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.",
+  "facts": {
+   "about": "Water",
+   "ask": "not-done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 14,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 2,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-01",
+     "2026-11-10"
+    ],
+    "done": [
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16"
+    ]
+   },
+   "count": 0,
+   "days": []
+  },
+  "widgets": [
+   "water-days"
+  ],
+  "fresh": "No water logged yet.",
+  "freshNl": "Nog geen water gelogd."
+ },
+ "water-notreached-lastweek": {
+  "en": "Water: no day below your target last week (Mon, Nov 9 to Sun, Nov 15). Nothing logged on 1 day: Tue, Nov 10.",
+  "nl": "Water: geen dag onder je doel vorige week (Mon, Nov 9 t/m Sun, Nov 15). Niets gelogd op 1 dag: Tue, Nov 10.",
+  "facts": {
+   "about": "Water",
+   "ask": "missed",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 6,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 1,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-10"
+    ],
+    "done": [
+     "2026-11-09",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15"
+    ]
+   },
+   "count": 0,
+   "days": []
+  },
+  "widgets": [
+   "water-days"
+  ],
+  "fresh": "No water logged yet.",
+  "freshNl": "Nog geen water gelogd."
+ },
+ "water-average-week": {
+  "en": "You logged 14,500 mL of water the last 7 days (Wed, Nov 11 to Tue, Nov 17).\n- On average 2,071 mL on the 7 days with water logged",
+  "nl": "Water: gemiddeld 2,071 mL per dag in de afgelopen 7 dagen (Wed, Nov 11 t/m Tue, Nov 17) (7 dagen gelogd).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You logged 0 mL of water the last 7 days (Wed, Nov 11 to Tue, Nov 17).\n- 7 days without water logged (not counted as 0)",
+  "freshNl": "Nog geen water gelogd."
+ },
+ "water-compare-weeks": {
+  "en": "Water: 3,100 mL this week (Mon, Nov 16 to Tue, Nov 17), and 13,500 mL last week (Mon, Nov 9 to Sun, Nov 15).\n- 10,400 mL less this week than last week.",
+  "nl": "Water: 3,100 mL deze week; 13,500 mL vorige week, 10,400 mL minder.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Water: 0 mL this week (Mon, Nov 16 to Tue, Nov 17), and 0 mL last week (Mon, Nov 9 to Sun, Nov 15).\n- The same in both periods.",
+  "freshNl": "Nog geen water gelogd."
+ },
+ "steps-today": {
+  "en": "You logged 8,800 steps today (Tue, Nov 17).",
+  "nl": "Stappen: 8,800 stappen vandaag, van je doel van 8,000 stappen. Doel gehaald.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No steps are recorded today (Tue, Nov 17).",
+  "freshNl": "Nog geen stappen gelogd."
+ },
+ "steps-yesterday": {
+  "en": "You logged 8,100 steps yesterday (Mon, Nov 16).",
+  "nl": "Stappen: 8,100 stappen gisteren, van je doel van 8,000 stappen. Doel gehaald.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No steps are recorded yesterday (Mon, Nov 16).",
+  "freshNl": "Nog geen stappen gelogd."
+ },
+ "steps-missed-days-month": {
+  "en": "Steps: below your target on 9 days this month (Sun, Nov 1 to Tue, Nov 17): Tue, Nov 3, Wed, Nov 4, Thu, Nov 5, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Fri, Nov 13, Sat, Nov 14 and Sun, Nov 15.",
+  "nl": "Stappen: onder je doel op 9 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Tue, Nov 3, Wed, Nov 4, Thu, Nov 5, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Fri, Nov 13, Sat, Nov 14 en Sun, Nov 15.",
+  "facts": {
+   "about": "Steps",
+   "ask": "missed",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 8,
+   "missed": 0,
+   "skipped": 0,
+   "part": 9,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15"
+    ],
+    "notLogged": [],
+    "done": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "count": 9,
+   "days": [
+    "2026-11-03",
+    "2026-11-04",
+    "2026-11-05",
+    "2026-11-08",
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-13",
+    "2026-11-14",
+    "2026-11-15"
+   ]
+  },
+  "widgets": [
+   "steps-days"
+  ],
+  "fresh": "No steps logged yet.",
+  "freshNl": "Nog geen stappen gelogd."
+ },
+ "steps-missed-lastweek": {
+  "en": "Steps: below your target on 5 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Fri, Nov 13, Sat, Nov 14 and Sun, Nov 15.",
+  "nl": "Stappen: onder je doel op 5 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Fri, Nov 13, Sat, Nov 14 en Sun, Nov 15.",
+  "facts": {
+   "about": "Steps",
+   "ask": "missed",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 2,
+   "missed": 0,
+   "skipped": 0,
+   "part": 5,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15"
+    ],
+    "notLogged": [],
+    "done": [
+     "2026-11-11",
+     "2026-11-12"
+    ]
+   },
+   "count": 5,
+   "days": [
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-13",
+    "2026-11-14",
+    "2026-11-15"
+   ]
+  },
+  "widgets": [
+   "steps-days"
+  ],
+  "fresh": "No steps logged yet.",
+  "freshNl": "Nog geen stappen gelogd."
+ },
+ "steps-compare-weeks": {
+  "en": "Steps: 16,900 steps this week; 51,100 steps last week, 34,200 steps less.",
+  "nl": "Stappen: 16,900 stappen deze week; 51,100 stappen vorige week, 34,200 stappen minder.",
+  "facts": {
+   "about": "Steps",
+   "ask": "compare",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "due": 2,
+   "done": 2,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "compare": {
+    "now": {
+     "from": "2026-11-16",
+     "to": "2026-11-17",
+     "value": 16900,
+     "done": 2,
+     "due": 2
+    },
+    "before": {
+     "from": "2026-11-09",
+     "to": "2026-11-15",
+     "value": 51100,
+     "done": 2,
+     "due": 7
+    }
+   }
+  },
+  "widgets": [
+   "compare-periods"
+  ],
+  "fresh": "No steps logged yet.",
+  "freshNl": "Nog geen stappen gelogd."
+ },
+ "steps-average-month": {
+  "en": "You averaged 7,524 steps a day this month (Sun, Nov 1 to Tue, Nov 17), over the 17 days with steps recorded.\n- Total: 127,900 steps",
+  "nl": "Stappen: gemiddeld 7,524 stappen per dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) (17 dagen gelogd).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No steps are recorded this month (Sun, Nov 1 to Tue, Nov 17).",
+  "freshNl": "Nog geen stappen gelogd."
+ },
+ "steps-best-month": {
+  "en": "Your best day for steps this month (Sun, Nov 1 to Tue, Nov 17) was Mon, Nov 2 with 8,800 steps.",
+  "nl": "Stappen: je beste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) was Mon, Nov 2 (8,800 stappen).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No steps are recorded this month (Sun, Nov 1 to Tue, Nov 17).",
+  "freshNl": "Nog geen stappen gelogd."
+ },
+ "sleep-lastnight": {
+  "en": "Last night: 7 h 17 min asleep, 8 h 00 min in bed, from 23:20 to 07:20.\n- You rated it 3 of 5",
+  "nl": "Slaap: 7 h 17 min afgelopen nacht, van je doel van 8 h.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No night is logged that ended today.",
+  "freshNl": "Nog geen nachten gelogd."
+ },
+ "sleep-under-goal-month": {
+  "en": "Sleep: under your sleep goal on 13 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 1, Mon, Nov 2, Tue, Nov 3, Wed, Nov 4, Thu, Nov 5, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Thu, Nov 12, Sat, Nov 14, Sun, Nov 15 and 1 more. Nothing logged on 2 days: Fri, Nov 6 and Fri, Nov 13.",
+  "nl": "Slaap: onder je slaapdoel op 13 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 1, Mon, Nov 2, Tue, Nov 3, Wed, Nov 4, Thu, Nov 5, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Thu, Nov 12, Sat, Nov 14, Sun, Nov 15 en nog 1. Niets gelogd op 2 dagen: Fri, Nov 6 en Fri, Nov 13.",
+  "facts": {
+   "about": "Sleep",
+   "ask": "not-done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 1,
+   "missed": 0,
+   "skipped": 0,
+   "part": 14,
+   "open": 0,
+   "notLogged": 2,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ],
+    "notLogged": [
+     "2026-11-06",
+     "2026-11-13"
+    ],
+    "done": [
+     "2026-11-07"
+    ]
+   },
+   "count": 13,
+   "days": [
+    "2026-11-01",
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04",
+    "2026-11-05",
+    "2026-11-08",
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-14",
+    "2026-11-15",
+    "2026-11-16"
+   ]
+  },
+  "widgets": [
+   "sleep-nights"
+  ],
+  "fresh": "No nights logged yet.",
+  "freshNl": "Nog geen nachten gelogd."
+ },
+ "sleep-under-goal-lastweek": {
+  "en": "Sleep: under your sleep goal on 6 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Thu, Nov 12, Sat, Nov 14 and Sun, Nov 15. Nothing logged on 1 day: Fri, Nov 13.",
+  "nl": "Slaap: onder je slaapdoel op 6 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Thu, Nov 12, Sat, Nov 14 en Sun, Nov 15. Niets gelogd op 1 dag: Fri, Nov 13.",
+  "facts": {
+   "about": "Sleep",
+   "ask": "not-done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 0,
+   "missed": 0,
+   "skipped": 0,
+   "part": 6,
+   "open": 0,
+   "notLogged": 1,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15"
+    ],
+    "notLogged": [
+     "2026-11-13"
+    ],
+    "done": []
+   },
+   "count": 6,
+   "days": [
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-14",
+    "2026-11-15"
+   ]
+  },
+  "widgets": [
+   "sleep-nights"
+  ],
+  "fresh": "No nights logged yet.",
+  "freshNl": "Nog geen nachten gelogd."
+ },
+ "sleep-average-week": {
+  "en": "Sleep: 6 h 57 min a day on average this week (Mon, Nov 16 to Tue, Nov 17) (2 days logged).",
+  "nl": "Slaap: gemiddeld 6 h 57 min per dag deze week (Mon, Nov 16 t/m Tue, Nov 17) (2 dagen gelogd).",
+  "facts": {
+   "about": "Sleep",
+   "ask": "average",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "due": 2,
+   "done": 0,
+   "missed": 0,
+   "skipped": 0,
+   "part": 2,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-16",
+     "2026-11-17"
+    ],
+    "notLogged": [],
+    "done": []
+   },
+   "average": 417,
+   "logged": 2
+  },
+  "widgets": [
+   "sleep-trend"
+  ],
+  "fresh": "No nights logged yet.",
+  "freshNl": "Nog geen nachten gelogd."
+ },
+ "sleep-average-lastweek": {
+  "en": "Sleep: 6 h 51 min a day on average last week (Mon, Nov 9 to Sun, Nov 15) (6 days logged).",
+  "nl": "Slaap: gemiddeld 6 h 51 min per dag vorige week (Mon, Nov 9 t/m Sun, Nov 15) (6 dagen gelogd).",
+  "facts": {
+   "about": "Sleep",
+   "ask": "average",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 0,
+   "missed": 0,
+   "skipped": 0,
+   "part": 6,
+   "open": 0,
+   "notLogged": 1,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15"
+    ],
+    "notLogged": [
+     "2026-11-13"
+    ],
+    "done": []
+   },
+   "average": 410.8333333333333,
+   "logged": 6
+  },
+  "widgets": [
+   "sleep-trend"
+  ],
+  "fresh": "No nights logged yet.",
+  "freshNl": "Nog geen nachten gelogd."
+ },
+ "sleep-best-month": {
+  "en": "Sleep: your best day this month (Sun, Nov 1 to Tue, Nov 17) was Sat, Nov 7 (8 h 5 min).",
+  "nl": "Slaap: je beste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) was Sat, Nov 7 (8 h 5 min).",
+  "facts": {
+   "about": "Sleep",
+   "ask": "best",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 1,
+   "missed": 0,
+   "skipped": 0,
+   "part": 14,
+   "open": 0,
+   "notLogged": 2,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ],
+    "notLogged": [
+     "2026-11-06",
+     "2026-11-13"
+    ],
+    "done": [
+     "2026-11-07"
+    ]
+   },
+   "day": "2026-11-07",
+   "value": 485
+  },
+  "widgets": [
+   "sleep-trend"
+  ],
+  "fresh": "No nights logged yet.",
+  "freshNl": "Nog geen nachten gelogd."
+ },
+ "sleep-worst-month": {
+  "en": "Sleep: your lowest day this month (Sun, Nov 1 to Tue, Nov 17) was Thu, Nov 12 (6 h 18 min), of 15 days logged.",
+  "nl": "Slaap: je laagste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) was Thu, Nov 12 (6 h 18 min), van 15 dagen gelogd.",
+  "facts": {
+   "about": "Sleep",
+   "ask": "worst",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 1,
+   "missed": 0,
+   "skipped": 0,
+   "part": 14,
+   "open": 0,
+   "notLogged": 2,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ],
+    "notLogged": [
+     "2026-11-06",
+     "2026-11-13"
+    ],
+    "done": [
+     "2026-11-07"
+    ]
+   },
+   "day": "2026-11-12",
+   "value": 378
+  },
+  "widgets": [
+   "sleep-trend"
+  ],
+  "fresh": "No nights logged yet.",
+  "freshNl": "Nog geen nachten gelogd."
+ },
+ "sleep-compare-weeks": {
+  "en": "Sleep: 6 h 57 min a day on average this week; 6 h 51 min a day on average last week, 6 min more.",
+  "nl": "Slaap: 6 h 57 min per dag gemiddeld deze week; 6 h 51 min per dag gemiddeld vorige week, 6 min meer.",
+  "facts": {
+   "about": "Sleep",
+   "ask": "compare",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "due": 2,
+   "done": 0,
+   "missed": 0,
+   "skipped": 0,
+   "part": 2,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-16",
+     "2026-11-17"
+    ],
+    "notLogged": [],
+    "done": []
+   },
+   "compare": {
+    "now": {
+     "from": "2026-11-16",
+     "to": "2026-11-17",
+     "value": 417,
+     "done": 0,
+     "due": 2
+    },
+    "before": {
+     "from": "2026-11-09",
+     "to": "2026-11-15",
+     "value": 410.8333333333333,
+     "done": 0,
+     "due": 7
+    }
+   }
+  },
+  "widgets": [
+   "compare-periods"
+  ],
+  "fresh": "No nights logged yet.",
+  "freshNl": "Nog geen nachten gelogd."
+ },
+ "weight-now": {
+  "en": "Your latest weight is 73.5 kg, on Mon, Nov 16.\n- Change from Mon, Oct 19 to Mon, Nov 16: -1.1 kg\n- 8 readings the last 30 days (Mon, Oct 19 to Tue, Nov 17)",
+  "nl": "Gewicht: 73.48 kg (Mon, Nov 16), 1.12 kg lager dan op Oct 19. Je doel is 72 kg.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No weight is recorded the last 30 days (Mon, Oct 19 to Tue, Nov 17).",
+  "freshNl": "Nog geen gewicht gelogd."
+ },
+ "weight-last-weighin": {
+  "en": "Your latest weight is 73.5 kg, on Mon, Nov 16.\n- Change from Mon, Oct 19 to Mon, Nov 16: -1.1 kg\n- 8 readings the last 30 days (Mon, Oct 19 to Tue, Nov 17)",
+  "nl": "Gewicht: voor het laatst gewogen op Mon, Nov 16 (gisteren), 73.48 kg.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No weight is recorded the last 30 days (Mon, Oct 19 to Tue, Nov 17).",
+  "freshNl": "Nog geen gewicht gelogd."
+ },
+ "weight-days-month": {
+  "en": "Weight: weighed in on 4 days this month (Sun, Nov 1 to Tue, Nov 17): Wed, Nov 4, Sun, Nov 8, Thu, Nov 12 and Mon, Nov 16.",
+  "nl": "Gewicht: gewogen op 4 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Wed, Nov 4, Sun, Nov 8, Thu, Nov 12 en Mon, Nov 16.",
+  "facts": {
+   "about": "Weight",
+   "ask": "done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 4,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 12,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15"
+    ],
+    "done": [
+     "2026-11-04",
+     "2026-11-08",
+     "2026-11-12",
+     "2026-11-16"
+    ]
+   },
+   "count": 4,
+   "days": [
+    "2026-11-04",
+    "2026-11-08",
+    "2026-11-12",
+    "2026-11-16"
+   ],
+   "total": 294880,
+   "rate": 25
+  },
+  "widgets": [
+   "weight-trend"
+  ],
+  "fresh": "No weight logged yet.",
+  "freshNl": "Nog geen gewicht gelogd."
+ },
+ "weight-notlogged-lastweek": {
+  "en": "Weight: no weigh-in on 6 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Fri, Nov 13, Sat, Nov 14 and Sun, Nov 15.",
+  "nl": "Gewicht: geen weging op 6 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Fri, Nov 13, Sat, Nov 14 en Sun, Nov 15.",
+  "facts": {
+   "about": "Weight",
+   "ask": "not-done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 1,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 6,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15"
+    ],
+    "done": [
+     "2026-11-12"
+    ]
+   },
+   "count": 6,
+   "days": [
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-11",
+    "2026-11-13",
+    "2026-11-14",
+    "2026-11-15"
+   ]
+  },
+  "widgets": [
+   "weight-trend"
+  ],
+  "fresh": "No weight logged yet.",
+  "freshNl": "Nog geen gewicht gelogd."
+ },
+ "workouts-month": {
+  "en": "Workouts: 9 workouts on 9 days this month (Sun, Nov 1 to Tue, Nov 17). 420 minutes in total.",
+  "nl": "Workouts: 9 workouts op 9 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17). 420 minuten in totaal.",
+  "facts": {
+   "about": "Workouts",
+   "ask": "done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 9,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 7,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-07",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-14"
+    ],
+    "done": [
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-08",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-15",
+     "2026-11-16"
+    ]
+   },
+   "count": 9,
+   "days": [
+    "2026-11-04",
+    "2026-11-05",
+    "2026-11-06",
+    "2026-11-08",
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-13",
+    "2026-11-15",
+    "2026-11-16"
+   ],
+   "events": 9,
+   "total": 420,
+   "rate": 56
+  },
+  "widgets": [
+   "workout-days"
+  ],
+  "fresh": "No workouts logged yet.",
+  "freshNl": "Nog geen workouts gelogd."
+ },
+ "workouts-lastweek": {
+  "en": "Workouts: 4 workouts on 4 days last week (Mon, Nov 9 to Sun, Nov 15). 188 minutes in total.",
+  "nl": "Workouts: 4 workouts op 4 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15). 188 minuten in totaal.",
+  "facts": {
+   "about": "Workouts",
+   "ask": "done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 4,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 3,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-14"
+    ],
+    "done": [
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-15"
+    ]
+   },
+   "count": 4,
+   "days": [
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-13",
+    "2026-11-15"
+   ],
+   "events": 4,
+   "total": 188,
+   "rate": 57
+  },
+  "widgets": [
+   "workout-days"
+  ],
+  "fresh": "No workouts logged yet.",
+  "freshNl": "Nog geen workouts gelogd."
+ },
+ "workouts-yesterday": {
+  "en": "Workouts: 49 minutes yesterday.",
+  "nl": "Workouts: 49 minuten gisteren.",
+  "facts": {
+   "about": "Workouts",
+   "ask": "done",
+   "period": {
+    "token": "yesterday",
+    "from": "2026-11-16",
+    "to": "2026-11-16"
+   },
+   "due": 1,
+   "done": 1,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-16"
+    ]
+   },
+   "day": "2026-11-16",
+   "state": "done",
+   "value": 49,
+   "target": null
+  },
+  "widgets": [
+   "workouts"
+  ],
+  "fresh": "No workouts logged yet.",
+  "freshNl": "Nog geen workouts gelogd."
+ },
+ "workouts-none-lastweek": {
+  "en": "Workouts: no workout on 3 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10 and Sat, Nov 14.",
+  "nl": "Workouts: geen workout op 3 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10 en Sat, Nov 14.",
+  "facts": {
+   "about": "Workouts",
+   "ask": "not-done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 4,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 3,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-14"
+    ],
+    "done": [
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-15"
+    ]
+   },
+   "count": 3,
+   "days": [
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-14"
+   ]
+  },
+  "widgets": [
+   "workout-days"
+  ],
+  "fresh": "No workouts logged yet.",
+  "freshNl": "Nog geen workouts gelogd."
+ },
+ "workouts-days-month": {
+  "en": "Workouts: a workout logged on 9 days this month (Sun, Nov 1 to Tue, Nov 17): Wed, Nov 4, Thu, Nov 5, Fri, Nov 6, Sun, Nov 8, Wed, Nov 11, Thu, Nov 12, Fri, Nov 13, Sun, Nov 15 and Mon, Nov 16. 420 minutes in total.",
+  "nl": "Workouts: een workout gelogd op 9 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Wed, Nov 4, Thu, Nov 5, Fri, Nov 6, Sun, Nov 8, Wed, Nov 11, Thu, Nov 12, Fri, Nov 13, Sun, Nov 15 en Mon, Nov 16. 420 minuten in totaal.",
+  "facts": {
+   "about": "Workouts",
+   "ask": "done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 9,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 7,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-07",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-14"
+    ],
+    "done": [
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-08",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-15",
+     "2026-11-16"
+    ]
+   },
+   "count": 9,
+   "days": [
+    "2026-11-04",
+    "2026-11-05",
+    "2026-11-06",
+    "2026-11-08",
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-13",
+    "2026-11-15",
+    "2026-11-16"
+   ],
+   "events": 9,
+   "total": 420,
+   "rate": 56
+  },
+  "widgets": [
+   "workout-days"
+  ],
+  "fresh": "No workouts logged yet.",
+  "freshNl": "Nog geen workouts gelogd."
+ },
+ "calories-today": {
+  "en": "Energy today (Tue, Nov 17): 1,970 kcal from 4 diary entries.",
+  "nl": "Calorieën: 1,970 kcal vandaag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Energy today (Tue, Nov 17): no entries.",
+  "freshNl": "Nog geen eten gelogd."
+ },
+ "protein-today": {
+  "en": "Protein today (Tue, Nov 17): 131 g from 4 diary entries.",
+  "nl": "Eiwit: 131 g vandaag, van je doel van 120 g. Doel gehaald.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Protein today (Tue, Nov 17): no entries.",
+  "freshNl": "Nog geen eten gelogd."
+ },
+ "protein-missed-lastweek": {
+  "en": "Protein: below your target on 1 day last week (Mon, Nov 9 to Sun, Nov 15): Fri, Nov 13.",
+  "nl": "Eiwit: onder je doel op 1 dag vorige week (Mon, Nov 9 t/m Sun, Nov 15): Fri, Nov 13.",
+  "facts": {
+   "about": "Protein",
+   "ask": "missed",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 6,
+   "missed": 0,
+   "skipped": 0,
+   "part": 1,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-13"
+    ],
+    "notLogged": [],
+    "done": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15"
+    ]
+   },
+   "count": 1,
+   "days": [
+    "2026-11-13"
+   ]
+  },
+  "widgets": [
+   "food-days"
+  ],
+  "fresh": "No food logged yet.",
+  "freshNl": "Nog geen eten gelogd."
+ },
+ "food-notlogged-month": {
+  "en": "Calories: logged on every due day this month (Sun, Nov 1 to Tue, Nov 17) (17 of 17).",
+  "nl": "Calorieën: gelogd op elke geplande dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) (17 van 17).",
+  "facts": {
+   "about": "Calories",
+   "ask": "not-done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 17,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "count": 0,
+   "days": []
+  },
+  "widgets": [
+   "food-days"
+  ],
+  "fresh": "No food logged yet.",
+  "freshNl": "Nog geen eten gelogd."
+ },
+ "heart-rate": {
+  "en": "No vitals are recorded the last 7 days (Wed, Nov 11 to Tue, Nov 17); they arrive with an import or a linked device.",
+  "nl": "Er is nog geen hartslag vastgelegd.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No vitals are recorded the last 7 days (Wed, Nov 11 to Tue, Nov 17); they arrive with an import or a linked device.",
+  "freshNl": "Er is nog geen hartslag vastgelegd."
+ },
+ "health-overall": {
+  "en": "Your health, from what is recorded: sleep 7 h 17 min of 8 h; steps today 8,800 of 8,000 steps; water today 1,000 of 2,000 mL; weight 73.48 kg (Mon, Nov 16); 1 workout this week. Nothing recorded for: resting heart rate.",
+  "nl": "Je gezondheid, uit wat er is vastgelegd: slaap 7 h 17 min van 8 h; stappen vandaag 8,800 van 8,000 stappen; water vandaag 1,000 van 2,000 mL; gewicht 73.48 kg (Mon, Nov 16); 1 workout deze week. Niets vastgelegd voor: rusthartslag.",
+  "facts": {
+   "about": "health",
+   "ask": "status",
+   "sleep": {
+    "day": "2026-11-17",
+    "value": 437,
+    "target": 480
+   },
+   "steps": {
+    "day": "2026-11-17",
+    "value": 8800,
+    "target": 8000
+   },
+   "water": {
+    "day": "2026-11-17",
+    "value": 1000,
+    "target": 2000
+   },
+   "weight": {
+    "day": "2026-11-16",
+    "value": 73480,
+    "target": null
+   },
+   "vitals": null,
+   "workoutsThisWeek": 1
+  },
+  "widgets": [
+   "health-scan"
+  ],
+  "fresh": "Nothing is recorded on Health yet.",
+  "freshNl": "Er is nog niets vastgelegd bij Health."
+ },
+ "spend-month": {
+  "en": "You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
+  "nl": "Je gaf deze maand 435.59 EUR uit. Grootste: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged in Wealth → Spending yet.",
+  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+ },
+ "spend-lastmonth": {
+  "en": "You spent 176.40 EUR last month. Biggest: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
+  "nl": "Je gaf vorige maand 176.40 EUR uit. Grootste: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged in Wealth → Spending yet.",
+  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+ },
+ "spend-week": {
+  "en": "You spent 55.60 EUR this week. Biggest: Groceries 38.90 EUR, Food & drink 16.70 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
+  "nl": "Je gaf deze week 55.60 EUR uit. Grootste: Groceries 38.90 EUR, Food & drink 16.70 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged in Wealth → Spending yet.",
+  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+ },
+ "spend-yesterday": {
+  "en": "€51.40 spent yesterday (Mon, Nov 16); most on Groceries (76%), in 2 entries.",
+  "nl": "€51.40 uitgegeven gisteren (Mon, Nov 16); het meest aan Groceries (76%), in 2 boekingen.",
+  "facts": {
+   "about": "spending",
+   "ask": "done",
+   "period": {
+    "token": "yesterday",
+    "from": "2026-11-16",
+    "to": "2026-11-16"
+   },
+   "currency": "EUR",
+   "totalCents": 5140,
+   "entries": 2,
+   "categories": [
+    {
+     "category": "Groceries",
+     "cents": 3890
+    },
+    {
+     "category": "Food & drink",
+     "cents": 1250
+    }
+   ]
+  },
+  "widgets": [
+   "spending",
+   "spending-radar"
+  ],
+  "fresh": "No spending logged yet.",
+  "freshNl": "Nog geen uitgaven gelogd."
+ },
+ "spend-top-month": {
+  "en": "€435.59 spent this month (Sun, Nov 1 to Tue, Nov 17); most on Groceries €187.10 (43%), Bills €120.00 (28%), Food & drink €49.10 (11%) and Shopping €35.00 (8%).",
+  "nl": "€435.59 uitgegeven deze maand (Sun, Nov 1 t/m Tue, Nov 17); het meest aan Groceries €187.10 (43%), Bills €120.00 (28%), Food & drink €49.10 (11%) en Shopping €35.00 (8%).",
+  "facts": {
+   "about": "spending",
+   "ask": "best",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "currency": "EUR",
+   "totalCents": 43559,
+   "entries": 14,
+   "categories": [
+    {
+     "category": "Groceries",
+     "cents": 18710
+    },
+    {
+     "category": "Bills",
+     "cents": 12000
+    },
+    {
+     "category": "Food & drink",
+     "cents": 4910
+    },
+    {
+     "category": "Shopping",
+     "cents": 3500
+    },
+    {
+     "category": "Fun",
+     "cents": 2400
+    },
+    {
+     "category": "Transport",
+     "cents": 1040
+    },
+    {
+     "category": "Subscriptions",
+     "cents": 999
+    }
+   ]
+  },
+  "widgets": [
+   "spending-ranks",
+   "spending-radar"
+  ],
+  "fresh": "No spending logged yet.",
+  "freshNl": "Nog geen uitgaven gelogd."
+ },
+ "spend-top-lastmonth": {
+  "en": "€176.40 spent last month (Thu, Oct 1 to Sat, Oct 31); most on Groceries €80.90 (46%), Gifts €58.00 (33%), Food & drink €22.50 (13%) and Health €15.00 (9%).",
+  "nl": "€176.40 uitgegeven vorige maand (Thu, Oct 1 t/m Sat, Oct 31); het meest aan Groceries €80.90 (46%), Gifts €58.00 (33%), Food & drink €22.50 (13%) en Health €15.00 (9%).",
+  "facts": {
+   "about": "spending",
+   "ask": "best",
+   "period": {
+    "token": "last-month",
+    "from": "2026-10-01",
+    "to": "2026-10-31"
+   },
+   "currency": "EUR",
+   "totalCents": 17640,
+   "entries": 5,
+   "categories": [
+    {
+     "category": "Groceries",
+     "cents": 8090
+    },
+    {
+     "category": "Gifts",
+     "cents": 5800
+    },
+    {
+     "category": "Food & drink",
+     "cents": 2250
+    },
+    {
+     "category": "Health",
+     "cents": 1500
+    }
+   ]
+  },
+  "widgets": [
+   "spending-ranks",
+   "spending-radar"
+  ],
+  "fresh": "No spending logged yet.",
+  "freshNl": "Nog geen uitgaven gelogd."
+ },
+ "spend-groceries-month": {
+  "en": "You spent 187.10 EUR on groceries this month. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
+  "nl": "Je gaf deze maand 187.10 EUR aan groceries uit. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged in Wealth → Spending yet.",
+  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+ },
+ "spend-biggest-expense": {
+  "en": "Your largest expense this month (Sun, Nov 1 to Tue, Nov 17): €120.00 on Sun, Nov 8 (Energy).",
+  "nl": "Je grootste uitgave deze maand (Sun, Nov 1 t/m Tue, Nov 17): €120.00 op Sun, Nov 8 (Energy).",
+  "facts": {
+   "about": "spending",
+   "ask": "best",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "currency": "EUR",
+   "totalCents": 43559,
+   "entries": 14,
+   "categories": [
+    {
+     "category": "Groceries",
+     "cents": 18710
+    },
+    {
+     "category": "Bills",
+     "cents": 12000
+    },
+    {
+     "category": "Food & drink",
+     "cents": 4910
+    },
+    {
+     "category": "Shopping",
+     "cents": 3500
+    },
+    {
+     "category": "Fun",
+     "cents": 2400
+    },
+    {
+     "category": "Transport",
+     "cents": 1040
+    },
+    {
+     "category": "Subscriptions",
+     "cents": 999
+    }
+   ],
+   "entry": {
+    "day": "2026-11-08",
+    "cents": 12000,
+    "category": "Bills"
+   }
+  },
+  "widgets": [
+   "spending-ranks",
+   "spending-radar"
+  ],
+  "fresh": "No spending logged yet.",
+  "freshNl": "Nog geen uitgaven gelogd."
+ },
+ "spend-compare-months": {
+  "en": "€435.59 spent this month; €176.40 last month, €259.19 more.",
+  "nl": "€435.59 uitgegeven deze maand; €176.40 vorige maand, €259.19 meer.",
+  "facts": {
+   "about": "spending",
+   "ask": "compare",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "currency": "EUR",
+   "totalCents": 43559,
+   "entries": 14,
+   "categories": [
+    {
+     "category": "Groceries",
+     "cents": 18710
+    },
+    {
+     "category": "Bills",
+     "cents": 12000
+    },
+    {
+     "category": "Food & drink",
+     "cents": 4910
+    },
+    {
+     "category": "Shopping",
+     "cents": 3500
+    },
+    {
+     "category": "Fun",
+     "cents": 2400
+    },
+    {
+     "category": "Transport",
+     "cents": 1040
+    },
+    {
+     "category": "Subscriptions",
+     "cents": 999
+    }
+   ],
+   "compare": {
+    "now": {
+     "from": "2026-11-01",
+     "to": "2026-11-17",
+     "cents": 43559
+    },
+    "before": {
+     "from": "2026-10-01",
+     "to": "2026-10-31",
+     "cents": 17640
+    }
+   }
+  },
+  "widgets": [
+   "compare-periods"
+  ],
+  "fresh": "No spending logged yet.",
+  "freshNl": "Nog geen uitgaven gelogd."
+ },
+ "spend-days-month": {
+  "en": "€435.59 spent on 13 days this month (Sun, Nov 1 to Tue, Nov 17): Mon, Nov 2, Tue, Nov 3, Thu, Nov 5, Sat, Nov 7, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Thu, Nov 12, Fri, Nov 13, Sat, Nov 14, Sun, Nov 15, Mon, Nov 16 and 1 more.",
+  "nl": "€435.59 uitgegeven op 13 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Mon, Nov 2, Tue, Nov 3, Thu, Nov 5, Sat, Nov 7, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Thu, Nov 12, Fri, Nov 13, Sat, Nov 14, Sun, Nov 15, Mon, Nov 16 en nog 1.",
+  "facts": {
+   "about": "spending",
+   "ask": "done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "currency": "EUR",
+   "totalCents": 43559,
+   "entries": 14,
+   "categories": [
+    {
+     "category": "Groceries",
+     "cents": 18710
+    },
+    {
+     "category": "Bills",
+     "cents": 12000
+    },
+    {
+     "category": "Food & drink",
+     "cents": 4910
+    },
+    {
+     "category": "Shopping",
+     "cents": 3500
+    },
+    {
+     "category": "Fun",
+     "cents": 2400
+    },
+    {
+     "category": "Transport",
+     "cents": 1040
+    },
+    {
+     "category": "Subscriptions",
+     "cents": 999
+    }
+   ],
+   "days": [
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-05",
+    "2026-11-07",
+    "2026-11-08",
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-12",
+    "2026-11-13",
+    "2026-11-14",
+    "2026-11-15",
+    "2026-11-16",
+    "2026-11-17"
+   ]
+  },
+  "widgets": [
+   "spending-days"
+  ],
+  "fresh": "No spending logged yet.",
+  "freshNl": "Nog geen uitgaven gelogd."
+ },
+ "spend-none-days-lastweek": {
+  "en": "No spending logged on 1 day last week (Mon, Nov 9 to Sun, Nov 15): Wed, Nov 11.",
+  "nl": "Geen uitgaven gelogd op 1 dag vorige week (Mon, Nov 9 t/m Sun, Nov 15): Wed, Nov 11.",
+  "facts": {
+   "about": "spending",
+   "ask": "not-done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "currency": "EUR",
+   "totalCents": 15419,
+   "entries": 6,
+   "categories": [
+    {
+     "category": "Groceries",
+     "cents": 10340
+    },
+    {
+     "category": "Fun",
+     "cents": 2400
+    },
+    {
+     "category": "Food & drink",
+     "cents": 1400
+    },
+    {
+     "category": "Subscriptions",
+     "cents": 999
+    },
+    {
+     "category": "Transport",
+     "cents": 280
+    }
+   ],
+   "days": [
+    "2026-11-11"
+   ]
+  },
+  "widgets": [
+   "spending-days"
+  ],
+  "fresh": "No spending logged yet.",
+  "freshNl": "Nog geen uitgaven gelogd."
+ },
+ "spend-average-month": {
+  "en": "€25.62 a day on average this month (Sun, Nov 1 to Tue, Nov 17) (€435.59 over 17 days).",
+  "nl": "Gemiddeld €25.62 per dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) (€435.59 over 17 dagen).",
+  "facts": {
+   "about": "spending",
+   "ask": "average",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "currency": "EUR",
+   "totalCents": 43559,
+   "entries": 14,
+   "categories": [
+    {
+     "category": "Groceries",
+     "cents": 18710
+    },
+    {
+     "category": "Bills",
+     "cents": 12000
+    },
+    {
+     "category": "Food & drink",
+     "cents": 4910
+    },
+    {
+     "category": "Shopping",
+     "cents": 3500
+    },
+    {
+     "category": "Fun",
+     "cents": 2400
+    },
+    {
+     "category": "Transport",
+     "cents": 1040
+    },
+    {
+     "category": "Subscriptions",
+     "cents": 999
+    }
+   ],
+   "averageCents": 2562
+  },
+  "widgets": [
+   "spending",
+   "spending-radar"
+  ],
+  "fresh": "No spending logged yet.",
+  "freshNl": "Nog geen uitgaven gelogd."
+ },
+ "income-month": {
+  "en": "€2,550.00 came in this month (Sun, Nov 1 to Tue, Nov 17), in 2 entries.",
+  "nl": "€2,550.00 binnengekomen deze maand (Sun, Nov 1 t/m Tue, Nov 17), in 2 boekingen.",
+  "facts": {
+   "about": "income",
+   "ask": "done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "currency": "EUR",
+   "totalCents": 255000,
+   "entries": 2,
+   "categories": [
+    {
+     "category": "Salary",
+     "cents": 240000
+    },
+    {
+     "category": "Freelance",
+     "cents": 15000
+    }
+   ]
+  },
+  "widgets": [
+   "cash-river"
+  ],
+  "fresh": "No income logged yet.",
+  "freshNl": "Nog geen inkomsten gelogd."
+ },
+ "income-lastmonth": {
+  "en": "No income logged last month (Thu, Oct 1 to Sat, Oct 31).",
+  "nl": "Geen inkomsten gelogd vorige maand (Thu, Oct 1 t/m Sat, Oct 31).",
+  "facts": {
+   "about": "income",
+   "ask": "done",
+   "period": {
+    "token": "last-month",
+    "from": "2026-10-01",
+    "to": "2026-10-31"
+   },
+   "total": 0,
+   "entries": 0
+  },
+  "widgets": [
+   "cash-river"
+  ],
+  "fresh": "No income logged yet.",
+  "freshNl": "Nog geen inkomsten gelogd."
+ },
+ "budgets-over": {
+  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
+  "nl": "Geen budget is deze maand overschreden: alle 3 zitten binnen plan.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No budget is set yet (Wealth → Spending → Budgets).",
+  "freshNl": "Je hebt nog geen budgetten."
+ },
+ "budgets-status": {
+  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
+  "nl": "3 van 3 budgetten binnen plan deze maand: Groceries €187.10 van €250.00, Food & drink €49.10 van €120.00 en Fun €24.00 van €60.00.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No budget is set yet (Wealth → Spending → Budgets).",
+  "freshNl": "Je hebt nog geen budgetten."
+ },
+ "budget-fun-left": {
+  "en": "This month, from your own entries (per currency, never converted):\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left",
+  "nl": "Fun: €24.00 van €60.00 deze maand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No budget is set yet (Wealth → Spending → Budgets).",
+  "freshNl": "Je hebt nog geen budgetten."
+ },
+ "bills-next": {
+  "en": "Next bill: Rent €950.00, in 14 days (Tue, Dec 1); 3 more after it.",
+  "nl": "Volgende rekening: Rent €950.00, over 14 dagen (Tue, Dec 1); daarna nog 3.",
+  "facts": {
+   "about": "bills",
+   "ask": "next",
+   "count": 4,
+   "bills": [
+    {
+     "bill": "Rent",
+     "amount": "€950.00",
+     "due": "2026-12-01",
+     "days": 14,
+     "overdue": false
+    },
+    {
+     "bill": "Energy",
+     "amount": "€120.00",
+     "due": "2026-12-08",
+     "days": 21,
+     "overdue": false
+    },
+    {
+     "bill": "Music",
+     "amount": "€9.99",
+     "due": "2026-12-14",
+     "days": 27,
+     "overdue": false
+    },
+    {
+     "bill": "Home insurance",
+     "amount": "€180.00",
+     "due": "2027-01-01",
+     "days": 45,
+     "overdue": false
+    }
+   ],
+   "next": "Rent"
+  },
+  "widgets": [
+   "bill-timeline"
+  ],
+  "fresh": "No bill reminders yet.",
+  "freshNl": "Nog geen rekeningen als herinnering."
+ },
+ "bills-overdue": {
+  "en": "No bill is overdue. Next: Rent €950.00, in 14 days (Tue, Dec 1).",
+  "nl": "Geen rekening is te laat. De volgende: Rent €950.00, over 14 dagen (Tue, Dec 1).",
+  "facts": {
+   "about": "bills",
+   "ask": "late",
+   "count": 4,
+   "bills": [
+    {
+     "bill": "Rent",
+     "amount": "€950.00",
+     "due": "2026-12-01",
+     "days": 14,
+     "overdue": false
+    },
+    {
+     "bill": "Energy",
+     "amount": "€120.00",
+     "due": "2026-12-08",
+     "days": 21,
+     "overdue": false
+    },
+    {
+     "bill": "Music",
+     "amount": "€9.99",
+     "due": "2026-12-14",
+     "days": 27,
+     "overdue": false
+    },
+    {
+     "bill": "Home insurance",
+     "amount": "€180.00",
+     "due": "2027-01-01",
+     "days": 45,
+     "overdue": false
+    }
+   ],
+   "overdue": []
+  },
+  "widgets": [
+   "bill-timeline"
+  ],
+  "fresh": "No bill reminders yet.",
+  "freshNl": "Nog geen rekeningen als herinnering."
+ },
+ "bills-week": {
+  "en": "No bill falls due in the next 7 days. Next: Rent €950.00, in 14 days (Tue, Dec 1).",
+  "nl": "Geen rekening vervalt in de komende 7 dagen. De volgende: Rent €950.00, over 14 dagen (Tue, Dec 1).",
+  "facts": {
+   "about": "bills",
+   "ask": "open",
+   "count": 4,
+   "bills": [
+    {
+     "bill": "Rent",
+     "amount": "€950.00",
+     "due": "2026-12-01",
+     "days": 14,
+     "overdue": false
+    },
+    {
+     "bill": "Energy",
+     "amount": "€120.00",
+     "due": "2026-12-08",
+     "days": 21,
+     "overdue": false
+    },
+    {
+     "bill": "Music",
+     "amount": "€9.99",
+     "due": "2026-12-14",
+     "days": 27,
+     "overdue": false
+    },
+    {
+     "bill": "Home insurance",
+     "amount": "€180.00",
+     "due": "2027-01-01",
+     "days": 45,
+     "overdue": false
+    }
+   ],
+   "dueSoon": [],
+   "horizon": 7
+  },
+  "widgets": [
+   "bill-timeline"
+  ],
+  "fresh": "No bill reminders yet.",
+  "freshNl": "Nog geen rekeningen als herinnering."
+ },
+ "bills-list": {
+  "en": "4 bill reminders; next due:\n• Rent · SHOWCASE DATA: 2026-12-01, 950.00 EUR (monthly)\n• Energy · SHOWCASE DATA: 2026-12-08, 120.00 EUR (monthly)\n• Music · SHOWCASE DATA: 2026-12-14, 9.99 EUR (monthly)\nReminders only; nothing is paid. Per currency, never converted.",
+  "nl": "3 rekeningen vervallen in de komende 30 dagen: Rent €950.00, over 14 dagen (Tue, Dec 1), Energy €120.00, over 21 dagen (Tue, Dec 8) en Music €9.99, over 27 dagen (Mon, Dec 14).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No bill reminder is kept. Wealth → Bills adds one (a reminder only; nothing is paid).\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"wealth\"}\n```",
+  "freshNl": "Nog geen rekeningen als herinnering."
+ },
+ "bills-total": {
+  "en": "Your bills come to about €1,094.99 in a typical month (an estimate); €1,079.99 in 3 bills fall due in the next 30 days.",
+  "nl": "Je rekeningen komen op ongeveer €1,094.99 in een gewone maand (een schatting); €1,079.99 in 3 rekeningen in de komende 30 dagen.",
+  "facts": {
+   "about": "bills",
+   "ask": "total",
+   "count": 4,
+   "bills": [
+    {
+     "bill": "Rent",
+     "amount": "€950.00",
+     "due": "2026-12-01",
+     "days": 14,
+     "overdue": false
+    },
+    {
+     "bill": "Energy",
+     "amount": "€120.00",
+     "due": "2026-12-08",
+     "days": 21,
+     "overdue": false
+    },
+    {
+     "bill": "Music",
+     "amount": "€9.99",
+     "due": "2026-12-14",
+     "days": 27,
+     "overdue": false
+    },
+    {
+     "bill": "Home insurance",
+     "amount": "€180.00",
+     "due": "2027-01-01",
+     "days": 45,
+     "overdue": false
+    }
+   ],
+   "typical": [
+    {
+     "currency": "EUR",
+     "text": "€1,094.99"
+    }
+   ],
+   "next30": [
+    {
+     "currency": "EUR",
+     "text": "€1,079.99",
+     "count": 3
+    }
+   ]
+  },
+  "widgets": [
+   "bill-timeline"
+  ],
+  "fresh": "No bill reminders yet.",
+  "freshNl": "Nog geen rekeningen als herinnering."
+ },
+ "networth-now": {
+  "en": "Your tracked wealth, one total per currency (never converted): 501,800.00 USD and 8,000.00 EUR.\n- 2 holdings without a price are not counted\n- Values from Manual value, observed Tue, Nov 17, 12:00 AM UTC\n- With your accounts and debts, your net worth is 8,000.00 EUR (holdings with a value 8,000.00 EUR) and 531,029.00 USD (accounts 36,780.00 USD, holdings with a value 501,800.00 USD, debts 7,551.00 USD), never converted between currencies",
+  "nl": "Nettovermogen: $531,029.00, na $7,551.00 aan schulden; en €8,000.00, elke valuta apart. 2 bezittingen hebben geen bekende waarde en zitten er niet in.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No holdings are tracked in Wealth yet.",
+  "freshNl": "Er wordt nog niets gevolgd bij Wealth."
+ },
+ "goals-status": {
+  "en": "5 active goals, from your own records:\n• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20\n• First home deposit: 65% — $52,000 of $80,000, $28,000 to go; next planned Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 of $6,000, $3,500 to go; next planned Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones of 4 milestones, 2 milestones to go\n• Reward income reserve: 50% — 10,000 ZIG of 20,000 ZIG, 10,000 ZIG to go; next planned Fri, Nov 20\n1 goal completed.\nAsk about one goal by its name for its plan and pace. Your own figures; not financial advice.",
+  "nl": "5 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — $9,000 van $20,000, nog $11,000 te gaan; volgende geplande stap Fri, Nov 20\n• First home deposit: 65% — $52,000 van $80,000, nog $28,000 te gaan; volgende geplande stap Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 van $6,000, nog $3,500 te gaan; volgende geplande stap Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones van 4 milestones, nog 2 milestones te gaan\n• Reward income reserve: 50% — 10,000 ZIG van 20,000 ZIG, nog 10,000 ZIG te gaan; volgende geplande stap Fri, Nov 20\n1 doel afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no active goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
+  "freshNl": "Je hebt nog geen actieve doelen. Open Goals om er een te maken, of vertel me het doel en ik maak er een kaart van."
+ },
+ "goals-behind": {
+  "en": "1 of 5 active goals is behind plan: Japan adventure 42% (behind plan).",
+  "nl": "1 van je 5 actieve doelen loopt achter op schema: Japan adventure 42% (achter op schema).",
+  "facts": {
+   "about": "goals",
+   "ask": "late",
+   "active": 5,
+   "goals": [
+    {
+     "goal": "Emergency fund",
+     "status": "active",
+     "percent": 45,
+     "funding": "ahead",
+     "targetDate": "2028-11-16"
+    },
+    {
+     "goal": "First home deposit",
+     "status": "active",
+     "percent": 65,
+     "funding": "on track",
+     "targetDate": "2028-02-10"
+    },
+    {
+     "goal": "Japan adventure",
+     "status": "active",
+     "percent": 42,
+     "funding": "behind",
+     "targetDate": "2027-04-16"
+    },
+    {
+     "goal": "My first 0.1 BTC",
+     "status": "completed",
+     "percent": 100,
+     "funding": "completed",
+     "targetDate": null
+    },
+    {
+     "goal": "Launch my creative studio",
+     "status": "active",
+     "percent": 50,
+     "funding": "no plan",
+     "targetDate": null
+    },
+    {
+     "goal": "Reward income reserve",
+     "status": "active",
+     "percent": 50,
+     "funding": "review",
+     "targetDate": "2027-11-17"
+    }
+   ],
+   "behind": [
+    "Japan adventure"
+   ]
+  },
+  "widgets": [
+   "goal-orbits"
+  ],
+  "fresh": "You have no goals yet.",
+  "freshNl": "Je hebt nog geen doelen."
+ },
+ "goals-closest": {
+  "en": "Closest to done: First home deposit 65% (on track), $28,000.00 to go.",
+  "nl": "Het dichtst bij klaar: First home deposit 65% (op schema), nog $28,000.00 te gaan.",
+  "facts": {
+   "about": "goals",
+   "ask": "best",
+   "active": 5,
+   "goals": [
+    {
+     "goal": "Emergency fund",
+     "status": "active",
+     "percent": 45,
+     "funding": "ahead",
+     "targetDate": "2028-11-16"
+    },
+    {
+     "goal": "First home deposit",
+     "status": "active",
+     "percent": 65,
+     "funding": "on track",
+     "targetDate": "2028-02-10"
+    },
+    {
+     "goal": "Japan adventure",
+     "status": "active",
+     "percent": 42,
+     "funding": "behind",
+     "targetDate": "2027-04-16"
+    },
+    {
+     "goal": "My first 0.1 BTC",
+     "status": "completed",
+     "percent": 100,
+     "funding": "completed",
+     "targetDate": null
+    },
+    {
+     "goal": "Launch my creative studio",
+     "status": "active",
+     "percent": 50,
+     "funding": "no plan",
+     "targetDate": null
+    },
+    {
+     "goal": "Reward income reserve",
+     "status": "active",
+     "percent": 50,
+     "funding": "review",
+     "targetDate": "2027-11-17"
+    }
+   ],
+   "goal": "First home deposit"
+  },
+  "widgets": [
+   "goal-orbits"
+  ],
+  "fresh": "You have no goals yet.",
+  "freshNl": "Je hebt nog geen doelen."
+ },
+ "goals-furthest": {
+  "en": "Furthest from done: Japan adventure 42% (behind plan), $3,500.00 to go.",
+  "nl": "Het verst van klaar: Japan adventure 42% (achter op schema), nog $3,500.00 te gaan.",
+  "facts": {
+   "about": "goals",
+   "ask": "worst",
+   "active": 5,
+   "goals": [
+    {
+     "goal": "Emergency fund",
+     "status": "active",
+     "percent": 45,
+     "funding": "ahead",
+     "targetDate": "2028-11-16"
+    },
+    {
+     "goal": "First home deposit",
+     "status": "active",
+     "percent": 65,
+     "funding": "on track",
+     "targetDate": "2028-02-10"
+    },
+    {
+     "goal": "Japan adventure",
+     "status": "active",
+     "percent": 42,
+     "funding": "behind",
+     "targetDate": "2027-04-16"
+    },
+    {
+     "goal": "My first 0.1 BTC",
+     "status": "completed",
+     "percent": 100,
+     "funding": "completed",
+     "targetDate": null
+    },
+    {
+     "goal": "Launch my creative studio",
+     "status": "active",
+     "percent": 50,
+     "funding": "no plan",
+     "targetDate": null
+    },
+    {
+     "goal": "Reward income reserve",
+     "status": "active",
+     "percent": 50,
+     "funding": "review",
+     "targetDate": "2027-11-17"
+    }
+   ],
+   "goal": "Japan adventure"
+  },
+  "widgets": [
+   "goal-orbits"
+  ],
+  "fresh": "You have no goals yet.",
+  "freshNl": "Je hebt nog geen doelen."
+ },
+ "goals-reached": {
+  "en": "1 goal reached: My first 0.1 BTC.",
+  "nl": "1 doel gehaald: My first 0.1 BTC.",
+  "facts": {
+   "about": "goals",
+   "ask": "done",
+   "active": 5,
+   "goals": [
+    {
+     "goal": "Emergency fund",
+     "status": "active",
+     "percent": 45,
+     "funding": "ahead",
+     "targetDate": "2028-11-16"
+    },
+    {
+     "goal": "First home deposit",
+     "status": "active",
+     "percent": 65,
+     "funding": "on track",
+     "targetDate": "2028-02-10"
+    },
+    {
+     "goal": "Japan adventure",
+     "status": "active",
+     "percent": 42,
+     "funding": "behind",
+     "targetDate": "2027-04-16"
+    },
+    {
+     "goal": "My first 0.1 BTC",
+     "status": "completed",
+     "percent": 100,
+     "funding": "completed",
+     "targetDate": null
+    },
+    {
+     "goal": "Launch my creative studio",
+     "status": "active",
+     "percent": 50,
+     "funding": "no plan",
+     "targetDate": null
+    },
+    {
+     "goal": "Reward income reserve",
+     "status": "active",
+     "percent": 50,
+     "funding": "review",
+     "targetDate": "2027-11-17"
+    }
+   ],
+   "reached": [
+    "My first 0.1 BTC"
+   ]
+  },
+  "widgets": [
+   "goal-orbits"
+  ],
+  "fresh": "You have no goals yet.",
+  "freshNl": "Je hebt nog geen doelen."
+ },
+ "goals-next-date": {
+  "en": "The next target date is Fri, Apr 16, 2027: Japan adventure 42% (behind plan).",
+  "nl": "De eerstvolgende streefdatum is Fri, Apr 16, 2027: Japan adventure 42% (achter op schema).",
+  "facts": {
+   "about": "goals",
+   "ask": "next",
+   "active": 5,
+   "goals": [
+    {
+     "goal": "Emergency fund",
+     "status": "active",
+     "percent": 45,
+     "funding": "ahead",
+     "targetDate": "2028-11-16"
+    },
+    {
+     "goal": "First home deposit",
+     "status": "active",
+     "percent": 65,
+     "funding": "on track",
+     "targetDate": "2028-02-10"
+    },
+    {
+     "goal": "Japan adventure",
+     "status": "active",
+     "percent": 42,
+     "funding": "behind",
+     "targetDate": "2027-04-16"
+    },
+    {
+     "goal": "My first 0.1 BTC",
+     "status": "completed",
+     "percent": 100,
+     "funding": "completed",
+     "targetDate": null
+    },
+    {
+     "goal": "Launch my creative studio",
+     "status": "active",
+     "percent": 50,
+     "funding": "no plan",
+     "targetDate": null
+    },
+    {
+     "goal": "Reward income reserve",
+     "status": "active",
+     "percent": 50,
+     "funding": "review",
+     "targetDate": "2027-11-17"
+    }
+   ],
+   "goal": "Japan adventure",
+   "targetDate": "2027-04-16"
+  },
+  "widgets": [
+   "goal-dates"
+  ],
+  "fresh": "You have no goals yet.",
+  "freshNl": "Je hebt nog geen doelen."
+ },
+ "goal-japan": {
+  "en": "Japan adventure: 41.66% of the target — $2,500 of $6,000.\n- $3,500 to go\n- Target date: Fri, Apr 16, 2027\n- Next planned contribution: Fri, Nov 20\n- Contributed so far: $100; planned through today: $500",
+  "nl": "Japan adventure: $2,500.00 van $6,000.00 (42%), achter op schema; nog $3,500.00 te gaan; streefdatum Fri, Apr 16, 2027.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
+  "freshNl": "Je hebt nog geen doelen."
+ },
+ "goal-emergency": {
+  "en": "Emergency fund: 45% of the target — $9,000 of $20,000.\n- $11,000 to go\n- Target date: Thu, Nov 16, 2028\n- Next planned contribution: Fri, Nov 20\n- Contributed so far: $750; planned through today: $500",
+  "nl": "Emergency fund: $9,000.00 van $20,000.00 (45%), voor op schema; nog $11,000.00 te gaan; streefdatum Thu, Nov 16, 2028.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No goal is called “emergency fund”. You have no goals yet; Goals → Create a goal starts one.",
+  "freshNl": "Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:"
+ },
+ "tasks-overdue": {
+  "en": "2 tasks are overdue: Sketch the garden bed (due Mon, Nov 16) and Book the dentist (due today 10:30 AM).",
+  "nl": "2 taken zijn te laat: Sketch the garden bed (gepland Mon, Nov 16) en Book the dentist (gepland vandaag 10:30 AM).",
+  "facts": {
+   "about": "tasks",
+   "ask": "late",
+   "open": 5,
+   "overdue": [
+    "Sketch the garden bed",
+    "Book the dentist"
+   ]
+  },
+  "widgets": [
+   "task-overdue",
+   "task-timeline"
+  ],
+  "fresh": "No tasks yet.",
+  "freshNl": "Nog geen taken."
+ },
+ "tasks-open": {
+  "en": "5 open tasks: 0 due today, 2 overdue.\n• Example · Sketch the garden bed — overdue since Nov 16, 2026, for First home deposit\n• Example · Book the dentist — due Nov 17, 2026 at 10:30 AM, late (high)\n• Example · Compare two savings accounts — due Nov 19, 2026, for Emergency fund\n• Example · Draft the trip budget — due Nov 22, 2026, for Emergency fund\n• Example · Sort the photo folder",
+  "nl": "5 open taken, 2 te laat: Sketch the garden bed (gepland Mon, Nov 16), Book the dentist (gepland vandaag 10:30 AM), Compare two savings accounts (gepland Thu, Nov 19), Draft the trip budget (gepland Sun, Nov 22) en Sort the photo folder.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is kept on this device yet.",
+  "freshNl": "Nog geen taken."
+ },
+ "tasks-tomorrow": {
+  "en": "No task is due tomorrow; 2 overdue: Sketch the garden bed (due Mon, Nov 16) and Book the dentist (due today 10:30 AM).",
+  "nl": "Er staat geen taak gepland voor morgen; 2 te laat: Sketch the garden bed (gepland Mon, Nov 16) en Book the dentist (gepland vandaag 10:30 AM).",
+  "facts": {
+   "about": "tasks",
+   "ask": "open",
+   "open": 5,
+   "overdue": [
+    "Sketch the garden bed",
+    "Book the dentist"
+   ],
+   "due": [],
+   "from": "2026-11-18",
+   "to": "2026-11-18"
+  },
+  "widgets": [
+   "task-timeline"
+  ],
+  "fresh": "No tasks yet.",
+  "freshNl": "Nog geen taken."
+ },
+ "tasks-week": {
+  "en": "3 tasks are due the rest of this week: Book the dentist (due today 10:30 AM), Compare two savings accounts (due Thu, Nov 19) and Draft the trip budget (due Sun, Nov 22). 2 overdue.",
+  "nl": "3 taken staan gepland voor de rest van deze week: Book the dentist (gepland vandaag 10:30 AM), Compare two savings accounts (gepland Thu, Nov 19) en Draft the trip budget (gepland Sun, Nov 22). 2 te laat.",
+  "facts": {
+   "about": "tasks",
+   "ask": "open",
+   "open": 5,
+   "overdue": [
+    "Sketch the garden bed",
+    "Book the dentist"
+   ],
+   "due": [
+    "Book the dentist",
+    "Compare two savings accounts",
+    "Draft the trip budget"
+   ],
+   "from": "2026-11-17",
+   "to": "2026-11-22"
+  },
+  "widgets": [
+   "task-timeline"
+  ],
+  "fresh": "No tasks yet.",
+  "freshNl": "Nog geen taken."
+ },
+ "tasks-done-week": {
+  "en": "1 task done this week (Mon, Nov 16 to Tue, Nov 17): Renew the library card.",
+  "nl": "1 taak gedaan deze week (Mon, Nov 16 t/m Tue, Nov 17): Renew the library card.",
+  "facts": {
+   "about": "tasks",
+   "ask": "done",
+   "open": 5,
+   "overdue": [
+    "Sketch the garden bed",
+    "Book the dentist"
+   ],
+   "done": 1,
+   "tasks": [
+    "Renew the library card"
+   ]
+  },
+  "widgets": [
+   "task-timeline"
+  ],
+  "fresh": "No tasks yet.",
+  "freshNl": "Nog geen taken."
+ },
+ "tasks-done-lastweek": {
+  "en": "No task done last week (Mon, Nov 9 to Sun, Nov 15).",
+  "nl": "Geen taak gedaan vorige week (Mon, Nov 9 t/m Sun, Nov 15).",
+  "facts": {
+   "about": "tasks",
+   "ask": "done",
+   "open": 5,
+   "overdue": [
+    "Sketch the garden bed",
+    "Book the dentist"
+   ],
+   "done": 0,
+   "tasks": []
+  },
+  "widgets": [
+   "task-timeline"
+  ],
+  "fresh": "No tasks yet.",
+  "freshNl": "Nog geen taken."
+ },
+ "tasks-priority": {
+  "en": "1 open high-priority task:\n• Example · Book the dentist — due Nov 17, 2026 at 10:30 AM",
+  "nl": "1 open taak met hoge prioriteit: Book the dentist (gepland vandaag 10:30 AM).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task has high priority.",
+  "freshNl": "Nog geen taken."
+ },
+ "tasks-next": {
+  "en": "Next: Example · Sketch the garden bed — overdue since Nov 16, 2026.",
+  "nl": "De volgende: Sketch the garden bed (gepland Mon, Nov 16).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is open.",
+  "freshNl": "Nog geen taken."
+ },
+ "journal-today": {
+  "en": "Journal: written today.",
+  "nl": "Dagboek: geschreven vandaag.",
+  "facts": {
+   "about": "Journal",
+   "ask": "done",
+   "period": {
+    "token": "today",
+    "from": "2026-11-17",
+    "to": "2026-11-17"
+   },
+   "due": 1,
+   "done": 1,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-17"
+    ]
+   },
+   "day": "2026-11-17",
+   "state": "done",
+   "value": 13,
+   "target": null
+  },
+  "widgets": [
+   "journal"
+  ],
+  "fresh": "No journal entries yet.",
+  "freshNl": "Nog niets in je dagboek."
+ },
+ "journal-notdone-month": {
+  "en": "Journal: no entry on 7 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 1, Mon, Nov 2, Tue, Nov 3, Wed, Nov 4, Sat, Nov 7, Tue, Nov 10 and Fri, Nov 13.",
+  "nl": "Dagboek: niets geschreven op 7 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 1, Mon, Nov 2, Tue, Nov 3, Wed, Nov 4, Sat, Nov 7, Tue, Nov 10 en Fri, Nov 13.",
+  "facts": {
+   "about": "Journal",
+   "ask": "not-done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 10,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 7,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-07",
+     "2026-11-10",
+     "2026-11-13"
+    ],
+    "done": [
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "count": 7,
+   "days": [
+    "2026-11-01",
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04",
+    "2026-11-07",
+    "2026-11-10",
+    "2026-11-13"
+   ]
+  },
+  "widgets": [
+   "journal-map"
+  ],
+  "fresh": "No journal entries yet.",
+  "freshNl": "Nog niets in je dagboek."
+ },
+ "journal-days-month": {
+  "en": "Journal: written on 10 days this month (Sun, Nov 1 to Tue, Nov 17).",
+  "nl": "Dagboek: geschreven op 10 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17).",
+  "facts": {
+   "about": "Journal",
+   "ask": "done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 10,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 7,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-07",
+     "2026-11-10",
+     "2026-11-13"
+    ],
+    "done": [
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "count": 10,
+   "days": [
+    "2026-11-05",
+    "2026-11-06",
+    "2026-11-08",
+    "2026-11-09",
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-14",
+    "2026-11-15",
+    "2026-11-16",
+    "2026-11-17"
+   ],
+   "rate": 59
+  },
+  "widgets": [
+   "journal-map"
+  ],
+  "fresh": "No journal entries yet.",
+  "freshNl": "Nog niets in je dagboek."
+ },
+ "journal-lastweek": {
+  "en": "Journal: written on 5 days last week (Mon, Nov 9 to Sun, Nov 15).",
+  "nl": "Dagboek: geschreven op 5 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15).",
+  "facts": {
+   "about": "Journal",
+   "ask": "done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 5,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 2,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-10",
+     "2026-11-13"
+    ],
+    "done": [
+     "2026-11-09",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15"
+    ]
+   },
+   "count": 5,
+   "days": [
+    "2026-11-09",
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-14",
+    "2026-11-15"
+   ],
+   "rate": 71
+  },
+  "widgets": [
+   "journal-map"
+  ],
+  "fresh": "No journal entries yet.",
+  "freshNl": "Nog niets in je dagboek."
+ },
+ "journal-streak": {
+  "en": "Journal: 4 days in a row now; your longest run is 4 days.",
+  "nl": "Dagboek: nu 4 dagen op rij; je langste reeks is 4 dagen.",
+  "facts": {
+   "about": "Journal",
+   "ask": "streak",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 10,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 7,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-07",
+     "2026-11-10",
+     "2026-11-13"
+    ],
+    "done": [
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "streak": {
+    "current": 4,
+    "best": 4,
+    "unit": "days"
+   }
+  },
+  "widgets": [
+   "streak-flames"
+  ],
+  "fresh": "No journal entries yet.",
+  "freshNl": "Nog niets in je dagboek."
+ },
+ "journal-last": {
+  "en": "Journal: last written on Tue, Nov 17 (today).",
+  "nl": "Dagboek: voor het laatst geschreven op Tue, Nov 17 (vandaag).",
+  "facts": {
+   "about": "Journal",
+   "ask": "last",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 10,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 7,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-01",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-07",
+     "2026-11-10",
+     "2026-11-13"
+    ],
+    "done": [
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "last": "2026-11-17",
+   "value": 13
+  },
+  "widgets": [
+   "journal-map"
+  ],
+  "fresh": "No journal entries yet.",
+  "freshNl": "Nog niets in je dagboek."
+ },
+ "notes-count": {
+  "en": "8 notes in all; 2 wait in your inbox. The newest is from Tue, Nov 17.",
+  "nl": "8 notities in totaal; 2 wachten in je inbox. De nieuwste is van Tue, Nov 17.",
+  "facts": {
+   "about": "notes",
+   "ask": "status",
+   "notes": 8,
+   "inbox": 2,
+   "newest": "2026-11-17"
+  },
+  "widgets": [
+   "notes-constellation"
+  ],
+  "fresh": "No notes yet.",
+  "freshNl": "Nog geen notities."
+ },
+ "agenda-today": {
+  "en": "On your agenda today:\n• Contribute (done), Drink water, Example · Sketch the garden bed, 8:00 AM Exercise, 8:00 AM Read (done), 10:30 AM Example · Book the dentist, 2:00 PM Walk (done), 7:00 PM Late-night snacks (Showcase) (done), 7:00 PM Meditate\nNo amounts here; each item opens where it lives on the agenda.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
+  "nl": "Vandaag (Tue, Nov 17), uit je eigen gegevens:\n• Gewoontes nog open: Exercise (15 van 30 minuten), Meditate (5 van 10 minuten), Drink water (1 van 2 liters)\n• Taken voor vandaag: Example · Book the dentist om 10:30 AM (hoog, te laat)\n• Nog open van eerder: Example · Sketch the garden bed (sinds Mon, Nov 16)\nTitels, tijden en gewoontedoelen, geen geldbedragen; elk item opent waar het staat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is planned today in your records. The agenda gathers habits, tasks, planned contributions, bills, meals and reviews.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
+  "freshNl": "Vandaag (Tue, Nov 17), uit je eigen gegevens:\n• Gewoontes: nog geen.\n• Taken: niets voor vandaag.\nVerder staat er vandaag niets in je gegevens."
+ },
+ "agenda-tomorrow": {
+  "en": "On your agenda tomorrow:\n• Contribute, Drink water, 7:30 AM Example · Upper body session, 8:00 AM Exercise, 8:00 AM Read, 2:00 PM Walk, 7:00 PM Late-night snacks (Showcase), 7:00 PM Meditate\nNo amounts here; each item opens where it lives on the agenda.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
+  "nl": "8 dingen op je agenda morgen, 8 nog open: 7:30 AM Upper body session, 8:00 AM Exercise, 8:00 AM Read, 2:00 PM Walk en 7:00 PM Late-night snacks (Showcase) en nog 3.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is planned tomorrow in your records. The agenda gathers habits, tasks, planned contributions, bills, meals and reviews.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
+  "freshNl": "Er staat niets op je agenda morgen."
+ },
+ "agenda-next": {
+  "en": "Next on your agenda: 7:00 PM Meditate.",
+  "nl": "Het volgende op je agenda: 7:00 PM Meditate.",
+  "facts": {
+   "about": "agenda",
+   "ask": "next",
+   "from": "2026-11-17",
+   "to": "2026-11-17",
+   "items": 9,
+   "open": 5,
+   "timed": 6,
+   "next": "Meditate"
+  },
+  "widgets": [
+   "day-timeline",
+   "agenda-clock"
+  ],
+  "fresh": "Nothing is on your agenda today.",
+  "freshNl": "Er staat niets op je agenda vandaag."
+ },
+ "checklist-today": {
+  "en": "Your Checklist has no dots today yet. Add one with “add … to my checklist”, or open the Checklist.",
+  "nl": "Er is nog geen Checklist op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your Checklist has no dots today yet. Add one with “add … to my checklist”, or open the Checklist.",
+  "freshNl": "Er is nog geen Checklist op dit apparaat."
+ },
+ "focus-week": {
+  "en": "Focus: 150 minutes this week (Mon, Nov 16 to Tue, Nov 17), all on Mon, Nov 16.",
+  "nl": "Focus: 150 minuten deze week (Mon, Nov 16 t/m Tue, Nov 17), alles op Mon, Nov 16.",
+  "facts": {
+   "about": "Focus",
+   "ask": "total",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "due": 2,
+   "done": 1,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-16"
+    ]
+   },
+   "total": 150,
+   "average": 150,
+   "logged": 1
+  },
+  "widgets": [
+   "focus-heat"
+  ],
+  "fresh": "No focus session yet.",
+  "freshNl": "Nog geen focussessie."
+ },
+ "focus-today": {
+  "en": "Focus: nothing logged yet today.",
+  "nl": "Focus: nog niets gelogd vandaag.",
+  "facts": {
+   "about": "Focus",
+   "ask": "done",
+   "period": {
+    "token": "today",
+    "from": "2026-11-17",
+    "to": "2026-11-17"
+   },
+   "due": 1,
+   "done": 0,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": []
+   },
+   "day": "2026-11-17",
+   "state": "open",
+   "value": null,
+   "target": null
+  },
+  "widgets": [
+   "focus"
+  ],
+  "fresh": "No focus session yet.",
+  "freshNl": "Nog geen focussessie."
+ },
+ "focus-month": {
+  "en": "Focus: 16 focus sessions on 5 days this month (Sun, Nov 1 to Tue, Nov 17). 397 minutes in total.",
+  "nl": "Focus: 16 focussessies op 5 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17). 397 minuten in totaal.",
+  "facts": {
+   "about": "Focus",
+   "ask": "done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 5,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 11,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-15"
+    ],
+    "done": [
+     "2026-11-01",
+     "2026-11-06",
+     "2026-11-11",
+     "2026-11-14",
+     "2026-11-16"
+    ]
+   },
+   "count": 5,
+   "days": [
+    "2026-11-01",
+    "2026-11-06",
+    "2026-11-11",
+    "2026-11-14",
+    "2026-11-16"
+   ],
+   "events": 16,
+   "total": 397,
+   "rate": 31
+  },
+  "widgets": [
+   "focus-heat"
+  ],
+  "fresh": "No focus session yet.",
+  "freshNl": "Nog geen focussessie."
+ },
+ "focus-none-days-lastweek": {
+  "en": "Focus: no focus session on 5 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Thu, Nov 12, Fri, Nov 13 and Sun, Nov 15.",
+  "nl": "Focus: geen focussessie op 5 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Thu, Nov 12, Fri, Nov 13 en Sun, Nov 15.",
+  "facts": {
+   "about": "Focus",
+   "ask": "not-done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 2,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 5,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-15"
+    ],
+    "done": [
+     "2026-11-11",
+     "2026-11-14"
+    ]
+   },
+   "count": 5,
+   "days": [
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-12",
+    "2026-11-13",
+    "2026-11-15"
+   ]
+  },
+  "widgets": [
+   "focus-heat"
+  ],
+  "fresh": "No focus session yet.",
+  "freshNl": "Nog geen focussessie."
+ },
+ "focus-days-month": {
+  "en": "Focus: a focus session on 5 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 1, Fri, Nov 6, Wed, Nov 11, Sat, Nov 14 and Mon, Nov 16. 397 minutes in total.",
+  "nl": "Focus: een focussessie op 5 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 1, Fri, Nov 6, Wed, Nov 11, Sat, Nov 14 en Mon, Nov 16. 397 minuten in totaal.",
+  "facts": {
+   "about": "Focus",
+   "ask": "done",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 5,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 11,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-15"
+    ],
+    "done": [
+     "2026-11-01",
+     "2026-11-06",
+     "2026-11-11",
+     "2026-11-14",
+     "2026-11-16"
+    ]
+   },
+   "count": 5,
+   "days": [
+    "2026-11-01",
+    "2026-11-06",
+    "2026-11-11",
+    "2026-11-14",
+    "2026-11-16"
+   ],
+   "events": 16,
+   "total": 397,
+   "rate": 31
+  },
+  "widgets": [
+   "focus-heat"
+  ],
+  "fresh": "No focus session yet.",
+  "freshNl": "Nog geen focussessie."
+ },
+ "focus-best-month": {
+  "en": "Focus: your best day this month (Sun, Nov 1 to Tue, Nov 17) was Mon, Nov 16 (150 minutes).",
+  "nl": "Focus: je beste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) was Mon, Nov 16 (150 minuten).",
+  "facts": {
+   "about": "Focus",
+   "ask": "best",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 5,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 11,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-15"
+    ],
+    "done": [
+     "2026-11-01",
+     "2026-11-06",
+     "2026-11-11",
+     "2026-11-14",
+     "2026-11-16"
+    ]
+   },
+   "day": "2026-11-16",
+   "value": 150
+  },
+  "widgets": [
+   "focus-heat"
+  ],
+  "fresh": "No focus session yet.",
+  "freshNl": "Nog geen focussessie."
+ },
+ "focus-compare-weeks": {
+  "en": "Focus: 150 minutes this week; 136 minutes last week, 14 minutes more.",
+  "nl": "Focus: 150 minuten deze week; 136 minuten vorige week, 14 minuten meer.",
+  "facts": {
+   "about": "Focus",
+   "ask": "compare",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "due": 2,
+   "done": 1,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 1,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-16"
+    ]
+   },
+   "compare": {
+    "now": {
+     "from": "2026-11-16",
+     "to": "2026-11-17",
+     "value": 150,
+     "done": 1,
+     "due": 1
+    },
+    "before": {
+     "from": "2026-11-09",
+     "to": "2026-11-15",
+     "value": 136,
+     "done": 2,
+     "due": 7
+    }
+   }
+  },
+  "widgets": [
+   "focus-heat"
+  ],
+  "fresh": "No focus session yet.",
+  "freshNl": "Nog geen focussessie."
+ },
+ "nova-sees": {
+  "en": "I can read Today, Goals, Habits, Health and Wealth here. You change that in Permissions.",
+  "nl": "Ik kan hier Today, Goals, Habits, Health en Wealth lezen. Dat verander je bij Permissions.",
+  "facts": {
+   "about": "nova",
+   "ask": "status",
+   "open": [
+    "Today",
+    "Goals",
+    "Habits",
+    "Health",
+    "Wealth"
+   ],
+   "off": []
+  },
+  "widgets": [
+   "nova-sees"
+  ],
+  "fresh": "I can read Today, Goals, Habits, Health and Wealth here. You change that in Permissions.",
+  "freshNl": "Ik kan hier Today, Goals, Habits, Health en Wealth lezen. Dat verander je bij Permissions."
+ },
+ "nova-private": {
+  "en": "Your records stay on this device, and I answer from them here. Nothing is sent anywhere unless you connect a model of your own, and then only what the switches in Permissions allow.",
+  "nl": "Je gegevens blijven op dit apparaat en ik antwoord er hier uit. Er wordt niets verstuurd, tenzij je zelf een model verbindt, en dan alleen wat de schakelaars bij Permissions toestaan.",
+  "facts": {
+   "about": "nova",
+   "ask": "status",
+   "private": true
+  },
+  "widgets": [
+   "nova-sees"
+  ],
+  "fresh": "Your records stay on this device, and I answer from them here. Nothing is sent anywhere unless you connect a model of your own, and then only what the switches in Permissions allow.",
+  "freshNl": "Je gegevens blijven op dit apparaat en ik antwoord er hier uit. Er wordt niets verstuurd, tenzij je zelf een model verbindt, en dan alleen wat de schakelaars bij Permissions toestaan."
+ },
+ "nova-can-answer": {
+  "en": "Right now I answer from your own records, on this device: what is due today, how your habits and goals are going, your Health (food, water, sleep, workouts), shared now, and what your money adds up to. Say a new habit (“Create a habit called Walk”) or a saving goal (“Help me save for a holiday”) and I prepare it for you to confirm.\nWith a brain of your own (a model on your computer, or your own key) I can also plan with you and talk things through.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"nova\",\"view\":\"setup\"}\n```",
+  "nl": "Vraag me wat je hebt gedaan, gemist of overgeslagen, op welke dagen en hoeveel: gewoontes, slaap, stappen, water, gewicht, workouts, doelen, uitgaven, budgetten, rekeningen, taken, dagboek, agenda en focus. Bijvoorbeeld: \"Welke dagen heb ik deze maand niet gemediteerd?\" of \"Hoeveel heb ik vorige week uitgegeven?\"",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Right now I answer from your own records, on this device: what is due today, how your habits and goals are going, your Health (food, water, sleep, workouts), shared now, and what your money adds up to. Say a new habit (“Create a habit called Walk”) or a saving goal (“Help me save for a holiday”) and I prepare it for you to confirm.\nWith a brain of your own (a model on your computer, or your own key) I can also plan with you and talk things through.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"nova\",\"view\":\"setup\"}\n```",
+  "freshNl": "Vraag me wat je hebt gedaan, gemist of overgeslagen, op welke dagen en hoeveel: gewoontes, slaap, stappen, water, gewicht, workouts, doelen, uitgaven, budgetten, rekeningen, taken, dagboek, agenda en focus. Bijvoorbeeld: \"Welke dagen heb ik deze maand niet gemediteerd?\" of \"Hoeveel heb ik vorige week uitgegeven?\""
+ },
+ "life-doing": {
+  "en": "Your day so far (Tue, Nov 17): habits 4 of 7 done, 3 still open; 5 open tasks, 2 overdue; steps 8,800 steps; water 1,000 mL; sleep 7 h 17 min.",
+  "nl": "Je dag tot nu toe (Tue, Nov 17): gewoontes 4 van 7 gedaan, 3 nog open; 5 open taken, 2 te laat; stappen 8,800 stappen; water 1,000 mL; slaap 7 h 17 min.",
+  "facts": {
+   "about": "life",
+   "ask": "status",
+   "period": {
+    "token": "today",
+    "from": "2026-11-17",
+    "to": "2026-11-17"
+   },
+   "habits": {
+    "now": {
+     "done": 4,
+     "due": 7,
+     "open": 3
+    },
+    "before": {
+     "done": 7,
+     "due": 7,
+     "open": 0
+    }
+   },
+   "tasks": {
+    "open": 5,
+    "overdue": 2,
+    "today": 0
+   },
+   "steps": {
+    "value": 8800,
+    "days": 1
+   },
+   "water": {
+    "value": 1000,
+    "days": 1
+   },
+   "sleep": {
+    "value": 437,
+    "days": 1
+   }
+  },
+  "widgets": [
+   "day-scan"
+  ],
+  "fresh": "Nothing is recorded yet. Add a habit, a task or a goal and ask me again.",
+  "freshNl": "Er is nog niets vastgelegd. Voeg een gewoonte, taak of doel toe en vraag het me opnieuw."
+ },
+ "life-week": {
+  "en": "The last 7 days (2026-11-11 to 2026-11-17), from your Habits journal:\n• Read: 6 of 7 planned days (100%)\n• Exercise: 5 of 7 planned days (83%)\n• Walk: 6 of 7 planned days (100%)\n• Meditate: 5 of 7 planned days (83%)\n• Contribute: 6 of 7 planned days (100%)\n• Drink water: 6 of 7 planned days (86%)\n• Late-night snacks (Showcase): 5 of 7 planned days (83%)",
+  "nl": "Je gegevens deze week: gewoontes 11 van 14 gedaan, 3 nog open (12 van 12 de periode ervoor); 5 open taken, 2 te laat; stappen 8,450 stappen per dag; water 1,550 mL per dag; slaap 6 h 57 min per dag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit is kept yet, so there is no consistency to show.",
+  "freshNl": "Er is nog niets vastgelegd. Voeg een gewoonte, taak of doel toe en vraag het me opnieuw."
+ },
+ "why-sleep": {
+  "en": "I’m not sure I read that right. The closest question I can answer here is “How did I sleep this week?”:\n\n2 nights logged this week (Mon, Nov 16 to Tue, Nov 17):\n- Mon, Nov 16: 6 h 37 min asleep, 23:33 to 06:46\n- Tue, Nov 17: 7 h 17 min asleep, 23:20 to 07:20",
+  "nl": "Waarom staat niet in je gegevens. Wat er wel staat: Slaap: 7 h 17 min afgelopen nacht, van je doel van 8 h.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "I’m not sure I read that right. The closest question I can answer here is “How did I sleep this week?”:\n\nNo night is logged this week (Mon, Nov 16 to Tue, Nov 17).",
+  "freshNl": "Waarom staat niet in je gegevens. Wat er wel staat: Nog geen nachten gelogd."
+ },
+ "why-habits": {
+  "en": "Your records do not say why. What they do show: Habits this week (Mon, Nov 16 to Tue, Nov 17): 11 of 11 due check-ins done (100%); 0 missed, 0 skipped. Still open today: Exercise, Meditate and Drink water.",
+  "nl": "Waarom staat niet in je gegevens. Wat er wel staat: Gewoontes deze week (Mon, Nov 16 t/m Tue, Nov 17): 11 van 11 geplande check-ins gedaan (100%); 0 gemist, 0 overgeslagen. Vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": {
+   "about": "habits",
+   "ask": "status",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "totals": {
+    "due": 14,
+    "done": 11,
+    "missed": 0,
+    "skipped": 0,
+    "open": 3
+   },
+   "rate": 100,
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 2,
+     "done": 2,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 2,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 2,
+     "done": 2,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 2,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 2,
+     "done": 2,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 2,
+     "done": 1,
+     "missed": 0,
+     "skipped": 0,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": []
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 2,
+     "done": 2,
+     "missed": 0,
+     "skipped": 0,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": []
+    }
+   ]
+  },
+  "widgets": [
+   "habit-week",
+   "habit-misses"
+  ],
+  "fresh": "Your records do not say why. What they do show: You have no habits yet.",
+  "freshNl": "Waarom staat niet in je gegevens. Wat er wel staat: Je hebt nog geen gewoontes."
+ },
+ "unknown-sleep": {
+  "en": "I can’t answer that exactly from your records. What they do show: Sleep: 7 h 17 min last night, of your 8 h target.",
+  "nl": "Dat kan ik niet precies uit je gegevens halen. Wat er wel staat: Slaap: 7 h 17 min afgelopen nacht, van je doel van 8 h.",
+  "facts": {
+   "about": "Sleep",
+   "ask": "total",
+   "period": {
+    "token": "today",
+    "from": "2026-11-17",
+    "to": "2026-11-17"
+   },
+   "due": 1,
+   "done": 0,
+   "missed": 0,
+   "skipped": 0,
+   "part": 1,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-17"
+    ],
+    "notLogged": [],
+    "done": []
+   },
+   "day": "2026-11-17",
+   "state": "part",
+   "value": 437,
+   "target": 480
+  },
+  "widgets": [
+   "sleep"
+  ],
+  "fresh": "I can’t answer that exactly from your records. What they do show: No nights logged yet.",
+  "freshNl": "Dat kan ik niet precies uit je gegevens halen. Wat er wel staat: Nog geen nachten gelogd."
+ },
+ "unknown-spending": {
+  "en": "You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
+  "nl": "Je gaf deze maand 435.59 EUR uit. Grootste: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged in Wealth → Spending yet.",
+  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+ }
+}

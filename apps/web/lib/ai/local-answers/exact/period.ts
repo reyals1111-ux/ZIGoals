@@ -92,7 +92,7 @@ export function periodSpan(p: Period, lang: Lang, today: string): string {
 const NUM: Record<string, number> = {one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, ten: 10, een: 1, twee: 2, drie: 3, vier: 4, vijf: 5, zes: 6, zeven: 7, tien: 10, a: 1, couple: 2};
 const FIXED: readonly [RegExp, string][] = [
   [/\b(?:day before yesterday|eergisteren)\b/, 'ereyesterday'],
-  [/\b(?:last night|vannacht|afgelopen nacht)\b/, 'today'],
+  [/\b(?:last night|last nite|vannacht|afgelopen nacht)\b/, 'today'],
   [/\b(?:yesterday|gisteren|gister)\b/, 'yesterday'],
   [/\b(?:this|deze|current|huidige) week\b|\bweek so far\b|\bso far this week\b/, 'this-week'],
   [/\b(?:last|previous|vorige|afgelopen) week\b|\bthe week before\b/, 'last-week'],
@@ -101,7 +101,7 @@ const FIXED: readonly [RegExp, string][] = [
   [/\b(?:this year|dit jaar|year so far|so far this year)\b/, 'this-year'],
   [/\b(?:last year|vorig jaar|afgelopen jaar)\b/, 'last-year'],
   [/\b(?:past|last|afgelopen|laatste) (?:few|couple of|paar) (?:days|dagen)\b/, 'last-7-days'],
-  [/\b(?:lately|recently|de laatste tijd|recent|onlangs|laatst)\b/, 'last-30-days'],
+  [/\b(?:lately|recently|de laatste tijd|onlangs)\b/, 'last-30-days'],
   [/\b(?:today|tonight|vandaag|vanavond|vanochtend|this morning|this evening|so far today|right now)\b/, 'today'],
 ];
 /**

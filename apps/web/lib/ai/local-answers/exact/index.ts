@@ -6,7 +6,7 @@ import {agendaAnswer, checklistAnswer, focusAnswer, goalsAnswer, journalAnswer, 
 import {healthAnswer} from './health';
 import {billsAnswer, budgetsAnswer, netWorthAnswer, spendingAnswer} from './money';
 import {resolvePeriod, periodWords} from './period';
-import {t} from './text';
+import {fold, t} from './text';
 import {DOMAIN_GATE, type Exact, type ExactWidget, type Query} from './types';
 import {topicOf, understand, type Records} from './understand';
 
@@ -29,6 +29,18 @@ export function recordsOf(env: ToolEnv): Records {
     bills: open('wealth') ? (env.ak?.bills?.bills ?? []).map(b => ({id: b.id, title: b.title})) : [],
   };
 }
+/**
+ * The question with its slips of the hand set right ("how much did i sleep last nite"), when the exact layer reads the
+ * fixed words and they differ from what was typed: the older layers are asked those words, so a typo costs no answer.
+ */
+export function fixedWords(question: string, env: ToolEnv): string | null {
+  try {
+    const q = understand(question, recordsOf(env));
+    if (!q) return null;
+    const fixed = q.read.replace(/\blast nite\b/g, 'last night');
+    return fixed !== fold(question) ? fixed : null;
+  } catch { return null; }
+}
 export function exactQuery(question: string, env: ToolEnv): Query | null {
   try { return understand(question, recordsOf(env)); } catch { return null; }
 }
@@ -42,7 +54,10 @@ const TRACKS: ReadonlySet<string> = new Set(['water', 'steps', 'sleep', 'weight'
  * else (ADR-042, "Why this session exists" and the corpus). Everything else stays theirs, word for word.
  */
 export function strictClaim(q: Query): boolean {
-  if (q.ask === 'why' || q.domain === 'nova' || q.domain === 'life') return false;
+  if (q.ask === 'why') return false;
+  if (q.domain === 'nova') return false;
+  // "How is my day going" (the older layers read "day" as a goal's name); "my day" and the week keep their own briefs.
+  if (q.domain === 'life') return /\b(?:day going|gaat mijn dag|mijn dag gaat)\b/.test(q.read);
   // "Which habits am I behind on" has its own answer (behind on schedule over seven days); a goal behind plan is ours.
   if (q.domain === 'habits' && q.ask === 'late') return false;
   // What was missed, skipped, not done or late; which days; on a weekday.
@@ -56,13 +71,34 @@ export function strictClaim(q: Query): boolean {
   // A period the older layers did not keep to: workouts, focus, the journal and finished tasks over a named period.
   // (Their own fixed period keeps their answer: workouts "this week", focus "the last 7 days".)
   if (q.period && q.period !== 'today' && ((q.domain === 'workouts' && q.period !== 'this-week') || (q.domain === 'focus' && q.period !== 'last-7-days') || q.domain === 'journal' || (q.domain === 'tasks' && q.ask === 'done'))) return true;
-  if (q.domain === 'sleep' && q.ask === 'average') return true;
-  // Where the money went, and the largest entry.
+  // Sleep's average, best and shortest night (the older answer lists the nights); "how is my health".
+  if (q.domain === 'sleep' && (q.ask === 'average' || q.ask === 'best' || q.ask === 'worst')) return true;
+  if (q.domain === 'health') return true;
+  // One period beside another, for every habit together, a log, or the money log.
+  // (Water keeps the older answer where it has one; what that leaves comes back with no model, `noModelFirst`.)
+  if (q.ask === 'compare' && ((q.domain === 'habits' && !q.subject) || (TRACKS.has(q.domain) && q.domain !== 'water') || q.domain === 'spending' || q.domain === 'income')) return true;
+  // Where the money went, and the largest entry; and a period the older answer did not keep to ("yesterday" gave the month).
   if (q.domain === 'spending' && (q.ask === 'best' || q.ask === 'worst')) return true;
+  if ((q.domain === 'spending' || q.domain === 'income') && q.period && q.period !== 'this-month' && q.period !== 'last-month' && q.period !== 'this-week') return true;
+  // Bills due this week, and what the bills come to (the older answer lists every bill); the next thing on the agenda.
+  if (q.domain === 'bills' && (/\bweek\b/.test(q.read) || q.period === 'this-week' || q.ask === 'total' || q.shape === 'amount')) return true;
+  if (q.domain === 'agenda' && q.ask === 'next') return true;
+  // Goals as a whole: the closest and the furthest, those behind, the next date, those reached (a goal by its name keeps its answer).
+  if (q.domain === 'goals' && !q.subject && /\b(?:goals|goal|doelen|doel)\b/.test(q.read) && (((q.ask === 'next' || q.ask === 'done') && (q.shape === 'list' || q.shape === 'count') && /\b(?:goals|doelen|which goal|welk doel)\b/.test(q.read)) || /\b(?:closest|nearest|furthest|farthest|least progress|dichtst|verst|minste voortgang)\b/.test(q.read) || (q.ask === 'next' && /\b(?:deadline|deadlines|target date|streefdatum)\b/.test(q.read)))) return true;
+  // The journal: its days, its run and its last entry (the older layers answer with patterns of its words).
+  if (q.domain === 'journal' && !/\b(?:pattern|patterns|about|theme|themes|patroon|patronen|over|thema)\b/.test(q.read)) return true;
   // Tasks due tomorrow or this week (the older answer lists every open task).
   if (q.domain === 'tasks' && (q.ask === 'open' || q.ask === 'status') && /\b(?:tomorrow|morgen|week)\b/.test(q.read)) return true;
   return false;
 }
+/**
+ * A Dutch question the exact layer reads, asked with no model: answered before the older no-model path can take its
+ * words for a line to log (it made a card of "hoeveel calorieën heb ik vandaag gegeten"). That path's own Dutch answers
+ * stay: "behind on" for habits, and "how was my week".
+ */
+export const dutchFirst = (q: Query): boolean => q.lang === 'nl' && q.ask !== 'why' && q.domain !== 'nova' && q.domain !== 'life' && !(q.domain === 'habits' && q.ask === 'late');
+/** With no model: a Dutch question, or one period beside another in any language, before the older no-model path can take its words for a line to log. */
+export const noModelFirst = (q: Query): boolean => dutchFirst(q) || (q.ask === 'compare' && q.domain !== 'nova' && q.domain !== 'life');
 const AREA_NAME: Record<string, string> = {today: 'Today', goals: 'Goals', habits: 'Habits', wealth: 'Wealth'};
 /** The same sentences the tools' registry says for a closed switch (lib/ai/tools/registry.ts), so NOVA's wording applies to them. */
 function closed(q: Query, env: ToolEnv): Exact | null {
@@ -105,7 +141,7 @@ export function answerQuery(q: Query, env: ToolEnv): Exact | null {
 }
 /** The arguments of the `life_facts` lookup for a query (what the call record and a connected model's tool call carry). */
 export function queryArgs(q: Query): Record<string, unknown> {
-  return {about: q.domain, ask: q.ask, shape: q.shape, ...(q.period ? {period: q.period} : {}), ...(q.versus ? {versus: q.versus} : {}), ...(q.weekday !== null ? {weekday: q.weekday} : {}), ...(q.subject ? {name: q.subject.name} : {}), ...(q.lang === 'nl' ? {language: 'nl'} : {})};
+  return {about: q.domain, ask: q.ask, shape: q.shape, ...(q.period ? {period: q.period} : {}), ...(q.versus ? {versus: q.versus} : {}), ...(q.weekday !== null ? {weekday: q.weekday} : {}), ...(q.subject ? {name: q.subject.name} : {}), ...(q.lang === 'nl' ? {language: 'nl'} : {}), ...(q.read ? {words: q.read.slice(0, 300)} : {})};
 }
 /** The chip's words for a lookup: "Meditate · not done · this month". */
 export function queryLabel(q: Query, today: string): string {

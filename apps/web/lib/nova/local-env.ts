@@ -13,5 +13,8 @@ export function novaLocalEnv({sources, gates, scopes, chainChosen}: {sources: To
   if (!sources) return null;
   // The local view of the gates through the same narrowing: on this device every area answers, Health only with its gate.
   const local: Gates = {...gates, areas: gates.local, health: gates.localHealth, notes: !gates.paused};
-  return markNovaEnv(novaToolEnv(sources, local, scopes, chainChosen), {healthScope: scopes.health, healthGate: gates.localHealth, todayScope: scopes.today});
+  // Session AS (ADR-042): this environment's results are shown on the device only, whatever the narrowing built it as.
+  const env = novaToolEnv(sources, local, scopes, chainChosen);
+  env.purpose = 'local';
+  return markNovaEnv(env, {healthScope: scopes.health, healthGate: gates.localHealth, todayScope: scopes.today});
 }
