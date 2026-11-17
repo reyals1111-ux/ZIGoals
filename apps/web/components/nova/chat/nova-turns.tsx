@@ -97,8 +97,11 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
   // Session AM-3 (round 7): the instrument — that ring with the words it was read from, or the count the answer opens with.
   const figures = useMemo(() => {
     if (turn.source !== 'local' || reply?.kind === 'refusal' || reply?.kind === 'examples') return null;
-    const words = plainText(parseBlocks(parsed.text)), gauge = gaugeOf(words);
-    return gauge ? {gauge, caption: gaugeWords(words), count: null} : {gauge: null, caption: null, count: countOf(words)};
+    // Session AR (round 1, both critics: "the 2 OF 2 headline and its ring do not match the answer: 12 check-ins over 7
+    // habits"): the ring is read from the answer's own first line only. A part of a whole further down is one row of a
+    // list ("Read: 2 of 2 planned days"), not the answer's figure, and made a headline of the first habit's week.
+    const words = plainText(parseBlocks(parsed.text)), lead = words.split('\n').find(line => line.trim()) ?? '', gauge = gaugeOf(lead);
+    return gauge ? {gauge, caption: gaugeWords(lead), count: null} : {gauge: null, caption: null, count: countOf(words)};
   }, [turn.source, reply?.kind, parsed.text]);
   const gauge = figures?.gauge ?? null, instrument = figures && (figures.gauge || figures.count) ? figures : null;
   const copy = () => { copyText(`${plainText(parseBlocks(parsed.text))}\n\n${full}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };

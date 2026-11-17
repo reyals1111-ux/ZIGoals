@@ -148,7 +148,11 @@ function useWingWidth(frame: {current: HTMLElement | null}, on: boolean): number
       setWing(was => was === next ? was : next);
     };
     read();
+    // Session AR: the wing and the star's column are watched too. On the composed stage the column is set in px a render
+    // after the stage's width changes ("the star makes room"), so the wing can change while the stage's own box does not;
+    // the console then kept the width of a wing that no longer was (66 px wider than it: p3-nova-polish ND-7).
     const observer = new ResizeObserver(read); observer.observe(main); observer.observe(centre);
+    for (const part of main.querySelectorAll<HTMLElement>(':scope > .nova-orbit-side[data-side=right], :scope > .nova-orbit-centre')) observer.observe(part);
     return () => observer.disconnect();
   }, [frame, on]);
   return wing;
@@ -576,7 +580,12 @@ export default function NovaDashboard() {
   const star = <LoadBoundary quiet onFail={onStarFail}><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} column={plan ? plan.column : stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} beam={beam} onReport={onStarReport} onMount={onStarMount}/></Suspense></LoadBoundary>;
   const starWhy = starLost ? {kind: 'picture', text: STAR_NO_CODE_TEXT} : starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).
-  const answerWidget = lastMade && stage.shown.some(w => w.id === lastMade) ? {id: lastMade, title: widgetSpec(lastMade)?.title ?? 'the widget'} : null;
+  // Session AR (round 1, both critics: an answer about bills offered "Go to Habits this week"): the key names a widget
+  // of THIS answer that stands on the stage. It named the widget made last, whatever was asked since; an answer that made
+  // no widget has no such key.
+  const answerOwn = answerNow?.widgets?.find(id => stage.shown.some(w => w.id === id)) ?? (answerNow && !answerNow.widgets ? null : undefined);
+  const answerId = answerOwn === undefined ? (lastMade && stage.shown.some(w => w.id === lastMade) ? lastMade : null) : answerOwn;
+  const answerWidget = answerId ? {id: answerId, title: widgetSpec(answerId)?.title ?? 'the widget'} : null;
   const goToWidget = (id: string) => { const el = root.current?.querySelector<HTMLElement>(`article[data-widget="${id}"]`); if (el) { el.scrollIntoView({block: 'nearest'}); el.focus({preventScroll: true}); } };
   const answerLine = answerNow && !chatOpen ? <StageAnswerLine answer={answerNow} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)} widget={answerWidget} onGoTo={goToWidget}/> : undefined;
   const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starStandIn={starStandIn} accent={accent} starBox={starBox} starSize={starSize} starColumn={plan ? plan.column : stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} starWhy={starWhy} answer={answerLine}/>;

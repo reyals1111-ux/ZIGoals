@@ -192,7 +192,7 @@ export function starFill(count: number): number {
   return Math.min(1, (count - STAR_LARGE_UNTIL) / (STAR_FULL_FROM - STAR_LARGE_UNTIL));
 }
 /** The large star's column as a share of the stage; the bezel's width in its column and in the star's canvas; a wing's least width. */
-export const STAR_LARGE_SHARE = 0.47, BEZEL_IN_COLUMN = 0.98, BEZEL_IN_STAR = 0.9, WING_MIN = 280, WING_ROWS_MIN = 318;
+export const STAR_LARGE_SHARE = 0.47, BEZEL_IN_COLUMN = 0.98, BEZEL_IN_STAR = 0.9, WING_MIN = 280, WING_ROWS_MIN = 328;
 export type StarPlan = {size: number; column: number};
 /**
  * The star's canvas size and its column's width beside widgets.

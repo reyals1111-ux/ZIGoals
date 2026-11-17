@@ -51,7 +51,7 @@ test('a mouse drag moves a card to another box, changes only its priority, survi
   // While dragging: the box under the pointer is outlined, the card follows it, and no box moves (no layout shift).
   await matrixInView(page);
   const boxes = page.locator('.tasks-matrix-box');
-  const places = () => boxes.evaluateAll(list => list.map(e => { const r = e.getBoundingClientRect(); return [r.x, r.y, r.width, r.height].map(Math.round); }));
+  const places = () => boxes.evaluateAll(list => list.map(e => { const r = e.getBoundingClientRect(); return [r.x, r.y, r.width, r.height].map(v => Math.round(v) + 0); })); // + 0: a box a fraction of a pixel above the window rounds to -0, which is not 0 to toEqual (one run in seven failed on that alone)
   const before = await places();
   await mouseDrag(page, plumberTitle, urgent.locator('h3'), async () => {
     await expect(urgent).toHaveAttribute('data-drop', 'true');

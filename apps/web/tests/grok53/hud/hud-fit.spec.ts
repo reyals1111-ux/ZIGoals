@@ -58,14 +58,18 @@ for (const [width, height, least] of [[1440, 900, 3], [1920, 1080, 4]] as const)
     for (const id of ['health-hud', 'habits-hud', 'goals-hud', 'wealth-hud']) expect(panels.map(p => p.id), id).toContain(id);
     // The Goals pace line and its projection's names are in view at the medium size (they never showed before).
     const goals = panel(page, 'Goals HUD');
-    if (await goals.locator('.holo-pace-chart').count()) await expect(goals.locator('.holo-pace-chart svg')).toBeInViewport({ratio: 1});
+    // Session AR (P3, deliberate): in the Showcase's arrangement the Goals HUD is a supporting panel (its three arcs); the
+    // pace line is drawn where the panel has room for it, and wherever it is drawn it is whole in the window. That it IS
+    // drawn at this size when the Goals HUD is its wing's hero is the test under this loop.
+    if (await goals.locator('.holo-pace-chart svg').isVisible()) await expect(goals.locator('.holo-pace-chart svg')).toBeInViewport({ratio: 1});
     // The core's readout and the words under the orb clear the command field; NOVA's name and state clear the rings.
     const foot = (await page.locator('.nova-foot').boundingBox())!;
-    // Session AM (design review AM-D33, deliberate): the read-out shows where the star's column has room for it (1920) and
-    // is hidden, not squeezed, at 1440; where it shows it clears the command field as before.
+    // Session AR (round 1, deliberate): from three widgets the four read-outs step aside on the composed stage, at every
+    // width (they are in the page, hidden; where they show and clear the command field is tests/nova-compose-ar.spec.ts,
+    // "the read-outs"). The greeting and the day line clear the command field as before.
     const readout = page.locator('.holo-core-readout');
-    if (width >= 1920) await expect(readout).toBeVisible(); else await expect(readout).toBeHidden();
-    for (const sel of [...(width >= 1920 ? ['.holo-core-readout'] : []), '.nova-greeting', '.nova-dayline']) {
+    await expect(readout).toBeHidden();
+    for (const sel of ['.nova-greeting', '.nova-dayline']) {
       const b = (await page.locator(sel).boundingBox())!;
       expect(b.y + b.height, `${sel} above the command field`).toBeLessThanOrEqual(foot.y + 0.5);
     }
@@ -73,9 +77,30 @@ for (const [width, height, least] of [[1440, 900, 3], [1920, 1080, 4]] as const)
     expect(name.y + name.height, 'NOVA’s name above the rings').toBeLessThanOrEqual(rings.y + 1);
     expect(state.y, 'the state under the rings').toBeGreaterThanOrEqual(rings.y + rings.height - 1);
     // AM-D33, deliberate: the four read-outs are a named list where they show (1920); at 1440 the same four are in the page, hidden.
-    if (width >= 1920) await expect(page.getByRole('list', {name: 'Today’s core'}).locator('li')).toHaveCount(4); else await expect(readout.locator('li')).toHaveCount(4);
+    await expect(readout.locator('li')).toHaveCount(4);
   });
 }
+
+test('B2 (Session AR): as its wing’s hero at 1440 × 900 the Goals HUD draws its pace line, whole and in view', async ({page}) => {
+  await page.setViewportSize({width: 1440, height: 900});
+  await page.clock.install({time: NOON});
+  await showcaseNova(page);
+  // The Showcase's own arrangement with the Goals HUD first (its records live in the session's storage).
+  await page.evaluate(key => {
+    const k = Object.keys(sessionStorage).find(x => x.endsWith(`:${key}`))!, record = JSON.parse(sessionStorage.getItem(k)!) as {widgets: {id: string; size: string; slot: number}[]};
+    const first = record.widgets.filter(w => w.id === 'goals-hud'), rest = record.widgets.filter(w => w.id !== 'goals-hud');
+    sessionStorage.setItem(k, JSON.stringify({...record, widgets: [...first, ...rest].map((w, slot) => ({...w, slot}))}));
+  }, NOVA_KEY);
+  await page.goto('/app/nova'); await hydrated(page);
+  await expect(frame(page)).toHaveAttribute('data-opening', 'done', {timeout: 10_000});
+  const goals = panel(page, 'Goals HUD');
+  await expect(goals).toHaveAttribute('data-tier', 'hero');
+  await expect(goals.locator('.holo-pace-chart svg')).toBeVisible();
+  await expect(goals.locator('.holo-pace-chart svg')).toBeInViewport({ratio: 1});
+  await expect(goals.getByText('Estimate', {exact: true})).toHaveCount(1);
+  const panels = await besideTheStar(page), mine = panels.find(p => p.id === 'goals-hud')!;
+  expect(mine.outside, 'every drawing inside the panel').toBe(0); expect(mine.cut).toBe(false); expect(mine.overflow).toBeLessThanOrEqual(1);
+});
 
 test('M2: on the Health HUD preset the large panel is a wide hero, its histogram whole', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});

@@ -226,3 +226,10 @@
   .ns-answer-meta .ns-link > svg { display: none; }
   .ns-answer-text { font-size: 16px; line-height: 1.4; -webkit-line-clamp: calc(var(--ns-lines, 3) + 1); line-clamp: calc(var(--ns-lines, 3) + 1); }
 }
+/* Session AR, round 1 ("the title sits on a second row under the keys, with an empty left half on the first row": the
+   280 px heroes beside the large star): on the composed stage a head of two rows reads title first, then its keys as one
+   bar across the panel (quick actions at its left end, Pin / Hide / Close in the middle, the page's arrow at its right). */
+@container holo-panel (max-width: 284px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head:not(#\-) { justify-content: space-between; row-gap: 2px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head > h3:not(#\-) { order: 0; }
+}

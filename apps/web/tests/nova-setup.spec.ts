@@ -165,6 +165,18 @@ test('planet 4: a first question is asked on NOVA itself (one shared history) un
   await expect(page.locator('.nova-turn').filter({hasText: 'What does my day look like?'}).first()).toBeVisible();
   // Answered on the device (NOVA's local answers) or by the MOCK local model: either way one question and one answer.
   await expect(page.locator('.nova-turn-assistant').first()).toBeVisible();
+  // Session AR (nova-setup:157, deliberate; every assertion unchanged): the conversation is written to the device a moment
+  // after the answer is drawn (the database is opened, then the write commits), and a browser drops a write that has not
+  // committed when its page is left. This spec left within the same frame, so under load the check below found nothing
+  // (the phone project in a sandbox on every build; the desktop project under two workers). It now leaves once the device
+  // holds the question and its answer, as a person who has read the answer does.
+  await expect.poll(() => page.evaluate(() => new Promise<number>(resolve => {
+    const request = indexedDB.open('zigoals-ai-chats-v1');
+    request.onerror = () => resolve(0);
+    request.onsuccess = () => { const db = request.result; if (!db.objectStoreNames.contains('chats')) { db.close(); resolve(0); return; }
+      const all = db.transaction('chats').objectStore('chats').getAll(); all.onerror = () => { db.close(); resolve(0); };
+      all.onsuccess = () => { db.close(); resolve(Math.max(0, ...(all.result as {turns?: unknown[]}[]).map(c => c.turns?.length ?? 0))); }; };
+  })), {timeout: 15_000}).toBeGreaterThanOrEqual(2);
   await page.goto('/app/nova/setup');
   const again = await open(page, 'First conversation', 'first-chat');
   await check(again, /Check my conversation/);

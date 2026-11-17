@@ -123,8 +123,8 @@ describe('Session AR (ADR-041 S1, S2): the star makes room', () => {
     expect(large.column * 0.98 / 1124).toBeGreaterThanOrEqual(0.45); // the bezel is at least 45 % of the stage
     expect((1124 - large.column - 40) / 2).toBeGreaterThanOrEqual(WING_MIN);
     expect(at(2)).toEqual(large);
-    // From three widgets each wing keeps 318 px (a one-row head on a supporting panel).
-    for (const n of [3, 4, 5]) expect((1124 - at(n).column - 40) / 2, `${n} widgets`).toBeGreaterThanOrEqual(318);
+    // From three widgets each wing keeps 328 px (a one-row head on a supporting panel).
+    for (const n of [3, 4, 5]) expect((1124 - at(n).column - 40) / 2, `${n} widgets`).toBeGreaterThanOrEqual(328);
     // It steps down widget by widget and never goes below main's.
     const sizes = [2, 3, 4, 5, 6].map(n => at(n));
     for (let i = 1; i < sizes.length; i++) { expect(sizes[i]!.column).toBeLessThanOrEqual(sizes[i - 1]!.column); expect(sizes[i]!.size).toBeGreaterThanOrEqual(511); }

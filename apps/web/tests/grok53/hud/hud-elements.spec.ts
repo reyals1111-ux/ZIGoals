@@ -48,8 +48,10 @@ for (const [width, height] of [[1440, 900], [1920, 1080]] as const) {
     const core = page.locator('.holo-core-readout[aria-label="Today’s core"]');
     await expect(core.locator('li')).toHaveCount(4);
     await expect(core.locator('li .holo-core-bar')).toHaveCount(4);
-    if (width >= 1920) { await expect(page.getByRole('list', {name: 'Today’s core'})).toBeVisible(); await expect(page.getByRole('list', {name: 'Today’s core'}).getByRole('listitem')).toHaveCount(4); }
-    else { await expect(core).toBeHidden(); await expect(page.getByRole('list', {name: 'Today’s core'})).toHaveCount(0); }
+    // Session AR (round 1, deliberate): on the composed stage the four read-outs step aside from three widgets (the panels
+    // beside the star and the bezel's pillar arcs say the same four), at every width; they stay in the page as above.
+    // Where they show and read as a list (one or two widgets at 1920) is tests/nova-compose-ar.spec.ts, "the read-outs".
+    await expect(core).toBeHidden(); await expect(page.getByRole('list', {name: 'Today’s core'})).toHaveCount(0);
 
     // Health (medium, beside the star): the kcal ring and its meters, each with its target in words, and its table.
     const health = panel(page, 'Health HUD');
@@ -78,7 +80,12 @@ for (const [width, height] of [[1440, 900], [1920, 1080]] as const) {
 
     // Habits (segmented orbit rings), the Agenda clock (its hours in words) and every instrument's table.
     await expect(panel(page, 'Habits HUD').locator('.holo-stack-box')).toBeVisible();
-    await expect(panel(page, 'Agenda clock').locator('.holo-dial-hour')).toHaveCount(4);
+    // Session AR (P3, deliberate): on the composed stage the Agenda clock is a compact plate at 1920 (its dial at the
+    // plate's height with the day's figure beside it) and rests on the band at 1440 as the Medium body with its four hour
+    // words; its table says the hours either way (the next line).
+    const agenda = panel(page, 'Agenda clock');
+    if (await agenda.getAttribute('data-size') === 'S') { await expect(agenda).toHaveAttribute('data-tier', 'compact'); await expect(agenda.locator('.holo-ring').first()).toBeVisible(); }
+    else await expect(agenda.locator('.holo-dial-hour')).toHaveCount(4);
     for (const name of ['Health HUD', 'Habits HUD', 'Goals HUD', 'Wealth HUD', 'Agenda clock']) await expect(panel(page, name).locator('table caption'), name).toHaveCount(1);
     // Review p3: the lens ring is the core's alone.
     await expect(page.locator('.nova-widget .holo-lens')).toHaveCount(0);

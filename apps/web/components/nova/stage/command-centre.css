@@ -192,6 +192,8 @@
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side[data-side=right] > .nova-widget[data-holo][data-tier] { justify-self: end; }
 .nova-frame:not([data-phone]) .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero]:not([data-dragging]):not(#\-) { --rim: 2.2px; }
 .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero] > .holo-aura { box-shadow: var(--holo-bloom), 0 0 84px 8px color-mix(in srgb, var(--neon, #9273ff) 30%, transparent); }
+/* A Large hero keeps the Large panel's own magenta haze (holo.css) under the hero's. */
+.nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero][data-size=L] > .holo-aura { box-shadow: var(--holo-bloom), 0 0 84px 8px color-mix(in srgb, var(--neon, #9273ff) 30%, transparent), 0 0 90px 10px #f06dff2b; }
 .nova-frame:not([data-phone]) .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=supporting]:not([data-dragging]):not(#\-) { --rim: 1px; }
 .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=supporting] > .holo-aura { opacity: .45; }
 .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=supporting] > .holo-brackets { opacity: .5; }
@@ -205,3 +207,18 @@
    bezel's pillar arcs carry the same four): the populated stage has one hierarchy. They stay in the page, hidden as on a
    narrower stage, and show again with one or two widgets and on the calm stage. */
 .nova-frame[data-fill=full]:not([data-phone]) .nova-stage .holo-core-readout { display: none; }
+
+/* ==== Session AR, round 1 (both critics: "the four states differ only in tick detail") ====
+   In a state the standby bezel steps back and the state's own mark carries the weight, so each state is a different
+   SHAPE at a glance: listening a heavy lit ring with long ticks pointing in, thinking a thick ring in segments, speaking a
+   ticked rim with two strong rings inside it. Static drawings; only opacity changes, once per change of state. */
+.cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: opacity .35s ease-out; }
+.cc-bezel:is([data-state=listening], [data-state=thinking], [data-state=speaking]) :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { opacity: .22; }
+.cc-state-ring { stroke-width: 2.6; }
+.cc-state-ticks { stroke-width: 8.4; }
+.cc-state-faint { stroke-width: 1.2; opacity: .8; }
+.cc-state-thinking .cc-state-ring { stroke-width: 4.2; }
+.cc-state-thinking .cc-state-faint { stroke-width: 2.4; }
+.cc-state-speaking .cc-state-ring { stroke-width: 3.2; }
+@media (prefers-reduced-motion: reduce) { .cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: none; } }
+:root[data-app-motion=off] .cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: none; }

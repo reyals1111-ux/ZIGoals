@@ -180,6 +180,23 @@ test('P3: while arranging, panels show in their stored sizes on the earlier rows
   expect((await stageOf(page)).composed).toBe(false);
 });
 
+test('the read-outs: with one or two widgets at 1920 × 1080 the four read-outs under the star are a list, clear of the command field; from three widgets they step aside', async ({page}) => {
+  await page.setViewportSize({width: 1920, height: 1080});
+  await page.clock.install({time: NOON});
+  await showcaseNova(page, PILLARS.slice(0, 2));
+  const list = page.getByRole('list', {name: 'Today’s core'});
+  await expect(list).toBeVisible();
+  await expect(list.getByRole('listitem')).toHaveCount(4);
+  await expect(list.locator('li .holo-core-bar')).toHaveCount(4);
+  const foot = (await page.locator('.nova-foot').boundingBox())!, box = (await list.boundingBox())!;
+  expect(box.y + box.height, 'the read-outs end above the command field').toBeLessThanOrEqual(foot.y + 0.5);
+  const s = await stageOf(page);
+  expect(overlap({x: box.x, y: box.y, w: box.width, h: box.height}, s.ring), 'the read-outs stand under the bezel, not on it').toBe(false);
+  await showcaseNova(page, PILLARS);
+  await expect(page.locator('.holo-core-readout')).toBeHidden();
+  await expect(page.locator('.holo-core-readout li')).toHaveCount(4);
+});
+
 test('P3 at 2560 × 1440: a wing is a Large hero, a supporting panel and a compact plate, each smaller than the one before', async ({page}) => {
   await page.setViewportSize({width: 2560, height: 1440});
   await page.clock.install({time: NOON});

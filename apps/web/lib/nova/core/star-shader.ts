@@ -168,13 +168,16 @@ void main(){
     vec2 n = d/pr; float nz = sqrt(max(0., 1.-dot(n,n)));
     vec3 nrm = normalize(vec3(n, nz)); vec3 L = normalize(vec3(-po/max(length(po), 1e-4), -.12));
     float lit = max(0., dot(nrm, L));
-    float rim = sq(1.-nz)*sqrt(max(1.-nz, 0.)), facing = max(0., dot(n, -po/max(length(po), 1e-4)));
-    // A body in every frame: a dark globe with faint bands, a thin lit limb all the way round, brightest toward the core.
+    float rim = sq(1.-nz), facing = max(0., dot(n, -po/max(length(po), 1e-4)));
+    // A body in every frame: a dark globe with faint bands, a lit limb all the way round, brightest toward the core.
+    // Session AR (round 1, both critics: "the planet reads as a hole cut into the bezel"): the limb is wider and
+    // brighter, the hemisphere that faces the core carries its light, and the bands show: a rim-lit planet, not a disc
+    // of black (owner screenshot 4).
     float cres = sq(sq(lit)) * lit;
-    vec3 pc = vec3(.008,.011,.034) + uA * .075 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uC, vec3(1.), .78) * (cres * 2.6 + sq(lit)*.35) + mix(uB, vec3(1.), .5) * rim * (1.1 + 5.6*facing);
+    vec3 pc = vec3(.012,.016,.046) + uA * .17 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uC, vec3(1.), .78) * (cres * 3.1 + sq(lit)*.8) + mix(uB, vec3(1.), .5) * rim * (1.9 + 6.4*facing);
     col = mix(col, pc, solid);
   }
-  col += uB * exp(-max(pd-pr, 0.)*70.) * (.16 + .3*max(0., dot(d, -po)/max(pd*length(po), 1e-4))) * (1.-behind) * (1.-body);
+  col += uB * exp(-max(pd-pr, 0.)*52.) * (.26 + .5*max(0., dot(d, -po)/max(pd*length(po), 1e-4))) * (1.-behind) * (1.-body);
   // ---- fade to nothing at the edge; a filmic curve that keeps the colours' own hue ----
   col *= dn(.28,.5, rr);
   // Beside widgets the star may be wider than its column: its light dissolves toward the wings (uEdge: half the column's

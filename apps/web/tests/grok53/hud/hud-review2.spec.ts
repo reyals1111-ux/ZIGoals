@@ -80,8 +80,14 @@ for (const [width, height] of [[1280, 720], [1440, 900], [1920, 1080]] as const)
     await goals.scrollIntoViewIfNeeded();
     expect(await outsideItsPanel(page, '.nova-widget[data-widget="goals-hud"]')).toEqual([]);
     if (await goals.locator('.holo-pace-chart').count()) await expect(goals.getByText('Estimate', {exact: true})).toHaveCount(1);
-    for (const sel of ['.holo-health .holo-ring', '.holo-habits .holo-dial']) {
+    // Session AR (Part 2, deliberate): as its wing's hero the Habits HUD's instrument is today's ring; its 30-day dial is
+    // drawn where the panel is a supporting one or rests on the band. Every ring that is drawn is checked as before;
+    // today's ring carries its word ("today") inside it by design, so it is checked for its figure.
+    let checked = 0;
+    for (const sel of ['.holo-health .holo-ring', '.holo-habits .holo-dial', '.holo-habits .holo-today']) {
       const ring = page.locator(sel).first();
+      if (!await ring.isVisible()) continue;
+      checked++;
       await ring.scrollIntoViewIfNeeded();
       const g = await ring.evaluate(el => {
         const b = el.getBoundingClientRect(), fig = el.querySelector('.holo-ring-centre .holo-num-ring')!.getBoundingClientRect(), words = el.querySelector('.holo-ring-centre small')?.getBoundingClientRect();
@@ -92,8 +98,9 @@ for (const [width, height] of [[1280, 720], [1440, 900], [1920, 1080]] as const)
       });
       expect(g.figWidth, `${sel}: the figure is narrower than the ring's inside`).toBeLessThanOrEqual(g.inner);
       expect(g.corner, `${sel}: the figure's box stays inside the ring's stroke`).toBeLessThanOrEqual(g.inner / 2 + 6);
-      expect(g.wordsBelow, `${sel}: its words sit under the ring`).toBe(true);
+      if (!sel.endsWith('.holo-today')) expect(g.wordsBelow, `${sel}: its words sit under the ring`).toBe(true);
     }
+    expect(checked, 'the kcal ring and at least one of the Habits HUD’s rings are drawn').toBeGreaterThanOrEqual(2);
   });
 }
 

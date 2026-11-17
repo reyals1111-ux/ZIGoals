@@ -1477,3 +1477,15 @@
   .nova-widget[data-tier=compact] .holo-tasks[data-size=S] .holo-counters { display: grid; grid-auto-flow: row; gap: 2px; }
   .nova-widget[data-tier=compact] .holo-tasks[data-size=S] .holo-counters dd { font-size: 22px; }
 }
+
+/* ---- Session AR, round 1 (both critics: the Wealth hero's legend row "Crypto 4%" cut by the panel, "$437,700.0…") ----
+   A hero's figure is up to 64 px, so its head is taller than the Large body's own allowance for the chart assumed: the
+   chart gives the head and the lower strip their room, and the line that says what is set aside wraps instead of ending
+   in an ellipsis. */
+@container holo-body (min-width: 400px) and (max-width: 559.98px) {
+  .nova-widget[data-tier=hero] .holo-wealth[data-size=L] { --wave-h: clamp(48px, calc(100cqh - 392px), 240px); }
+}
+.nova-widget[data-tier] .holo-wealth .holo-purpose-words { white-space: normal; overflow: visible; text-overflow: clip; text-wrap: balance; }
+/* Session AR, round 1 ("Emergency / fund / Ahead of plan": a goal's status on two uneven lines under its ring): in a
+   panel beside the star the status is one line wherever a third of the body holds it (it is at most "Behind plan"). */
+@container holo-body (min-width: 280px) { .nova-widget[data-tier] .holo-arcs .holo-pace-words { white-space: nowrap; text-wrap: nowrap; letter-spacing: -.005em; } }
