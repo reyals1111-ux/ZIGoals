@@ -179,3 +179,6 @@
 @container nova-stage (min-width: 1040.02px) {
   .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit .nova-orb-button[data-star] { min-height: min(var(--star-box, 0px), max(96px, calc(100cqb - var(--ns-slot) - 88px))); }
 }
+/* Session AR (ADR-038 Q12, round 7): a scrolled stage fades at its two edges instead of being sliced by the status strip
+   above and the one-tap keys below. Static; only while scrolled (nova-dashboard.tsx marks the element). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-stage-area[data-scrolled] { -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%); }

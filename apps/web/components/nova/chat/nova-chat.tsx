@@ -519,7 +519,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
       </div>
       {/* Session AM-2 (conversation console): everything under the log is one dock on the console's bottom edge — the
           one-tap requests, the composer, then one strip of quiet keys and the line that says where the conversation stays. */}
-      <div className="ncx-dock">
+      <div className="ncx-dock" data-started={anyTurns ? '' : undefined}>
       {sensitive && <p className="ai-note nova-paused">Paused on this private screen: nothing is read from your records.</p>}
       {requests && <div className="ncx-requests">{requests}</div>}
       <NovaComposer ref={composer} session={session} persona={persona.name} settings={data} sensitive={sensitive} editing={editing} onEditing={setEditing}

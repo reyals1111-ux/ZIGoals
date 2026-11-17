@@ -1,6 +1,6 @@
 'use client';
 import {useRouter} from 'next/navigation';
-import {Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type UIEvent} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {useShowcase} from '../showcase-controls';
 import {useChainChoice} from '../chain/use-chain-choice';
@@ -202,6 +202,13 @@ export default function NovaDashboard() {
   // Session AM-2 (ADR-038 "AM-2", E3, E4): what stands in the centre (the star, its still picture, or the SVG orb) and the honest line under it.
   const [starReport, setStarReport] = useState<StarReport | null>(null), starDraws = !!starReport && starReport.shows !== 'orb';
   const onStarReport = useCallback((report: StarReport) => setStarReport(report), []);
+  // Session AR (ADR-038 Q12, round 7: "the band's heading and lower row are sliced by the strips above and below with no
+  // fade"): while the stage is scrolled its top and bottom edges fade (stage/command-centre.css). The mark is written on
+  // the element itself when it changes (no render, nothing per frame); at rest, unscrolled, there is no mask at all.
+  const markScrolled = useCallback((event: UIEvent<HTMLDivElement>) => {
+    const el = event.currentTarget, on = el.scrollTop > 8;
+    if ((el.dataset.scrolled !== undefined) !== on) { if (on) el.dataset.scrolled = ''; else delete el.dataset.scrolled; }
+  }, []);
   // Session AR (ADR-041 P4; ADR-038 Q12, carried): while the star starts, its stand-in is the star's own bezel with a dim
   // core (it was the small SVG orb, a different object). A star whose code fails to load, or has not arrived after
   // STAR_WAIT_MS, is the galaxy's still picture with its honest line; if it arrives after all, the star takes over.
@@ -604,7 +611,7 @@ export default function NovaDashboard() {
         {!chatOpen && stage.shown.length === 0 && !answerNow && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={phoneStage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting && !soft} starColumn={plan?.column}/>}</div>
+      <div className="nova-stage-area" id="nova-hud" tabIndex={-1} onScroll={markScrolled}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={phoneStage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting && !soft} starColumn={plan?.column}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">
