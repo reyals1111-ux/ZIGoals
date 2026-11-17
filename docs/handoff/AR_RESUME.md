@@ -25,37 +25,33 @@ then `git archive origin/review/session-am-refs REFERENCES.md grok | tar -x -C <
 6. Outside NOVA: (a) checkboxes keep the tick at once; (b) "Your orbits" on Today (P1, TIER 3 stored format); (c) the priority matrix by mouse drag.
 7. Finish: final build, suites, B2 at 2560 × 1440 Showcase, weights, ADR-041, `AM_DEMO_TOUR.md`, STATUS (final commit), CI, the report.
 
-## State (17 Nov, early; keep current)
-**Done and pushed:** part 0; part 1 (`lib/nova/compose.ts` + 12 unit tests, the grid, the star's plan and its one motion,
-`tests/nova-compose-ar.spec.ts` 7/7 on the dev server); part 3a (the stand-in and the honest line, 5 DOM tests); part 3b
-(the status strip, the read-out's amounts and dates, the 112 px unit); the fasting note (TIER 3 AI safety); 6a (H1,
-`e7ad44f7`); 6b and 6c (H2: `b64a6d6b`, `3a77965c`, `f66a3d53` TIER 3 stored format, `d1c751c8`). ADR-041 D1–D18.
-The whole unit suite: 11,668 passed; 3 failed, none this branch's (`scripts/pre-run11-setup.test.mjs` ×2 wants Node
-24.19.0 and this sandbox has 24.22.1; `scripts/run11/food-fdc.test.mjs` timing under load, passes alone).
+## State (17 Nov, 02:00 UTC; keep current)
+**Done and pushed (head `b5a0ff24` and after):** parts 0–3; part 2 by H3 and H4 (tiers in the bodies, `cards/tiers.css`,
+the end of `holo/holo-parts.css`); round 1 of the critique (both critics: star 7, widgets 6, stage 6, "no"; ADR-041's
+table) and its answer by structure (D19–D25): tier weights, stepped wings, the read-outs aside from three widgets, the
+planet and the states, the engine (Large hero, short stage, locked rows, 328 px wings); the leftovers (fasting note
+TIER 3; 6a; 6b TIER 3 stored format; 6c); `nova-setup:157` and `ar-matrix-drag` fixed at their causes; ADR-041 D1–D25;
+`AM_DEMO_TOUR.md` section 2a. All four helpers of the budget are used.
+**Browser suites on the first production build (`98d7f02d`, desktop, two workers):** run a 97 passed, 11 failed (all
+answered since: nine by the engine or by deliberate spec changes, ND-7 by the console's re-measure, ND-1 at 1920 is
+D25); `nova-stage-am2` 19 of 19 (the keys at 1024 px under two workers included); run c 36 passed, 2 failed (both fixed).
+**Running now:** critique round 2 (captures `<scratch>/rounds/r2`, two new critics) and `suites.sh r2 desktop` on the
+second production build.
 
-**In work (helpers, own worktrees under `.claude/worktrees/`, each commits there; cherry-pick their commits, skip their
-theme-sheet commits and regenerate):** H3 = tiers in the on-request kinds (`cards/kit.tsx`, `cards/*.css`), dev server
-3230; H4 = tiers in the HUD kinds (`holo/parts.tsx`, `holo/holo-parts.css`, `widgets/widgets.css`), dev server 3240.
-All four helpers of the budget are used.
+**Next, in this order:** (1) round 2's scores into ADR-041; if a surface did not rise, change its structure, one more
+build, round 3 (the last). (2) `suites.sh <tag> mobile` (the phone project: `hud-motion` reduced motion on a phone and
+`nova-setup:157`), the contrast walk (`tests/a11y-wcag-x.spec.ts`), theme parity (`tests/theme-parity-af.spec.ts -g nova`),
+`tests/p6-axe-surfaces.spec.ts -g -i nova`. (3) B2 at 2560 × 1440 Showcase on the final build (`hud-perf`, and
+`<scratch>/tools/opening2.mjs` for long tasks), route weights. (4) ADR-041's "Before and after" and closing table,
+STATUS as the final commit (parts, commits, evidence, CI, the Opus list), CI read, the report.
 
-**Next, in this order:** (1) integrate H3 and H4, regenerate theme sheets, type-check, `pnpm exec vitest run apps/web/lib/nova`
-from the repo root. (2) One production build (`NODE_OPTIONS=--max-old-space-size=8192 NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`,
-`pnpm --filter @zigoals/web start`), then: `nova-compose-ar`, `tests/grok53/hud`, `nova-stage-am`, `nova-stage-am2`,
-`nova-dashboard`, `p3-nova-polish`, `nova-chat`, `nova-wa`, `nova-workflows`, `nova-setup`, the contrast walk and theme
-parity (desktop, then `--project=mobile`), `ar-tick-at-once`, `ar-today-orbits`, `ar-matrix-drag`, `ao/today-tab-stops`,
-`showcase-today-aa`; weights (`node scripts/check-weight-budget.mjs http://127.0.0.1:3100`). Browser runs go through
-`flock /tmp/zg-browser.lock`. (3) Critique round 1: captures with `<scratch>/tools/cap.mjs` (empty profile, two widgets,
-four, the full Showcase; 2560 × 1440, 1440 × 900, 390; Nebula, Light, Dark; star states with `--hold`), two fresh
-critics shown only `<scratch>/refs` and the captures; scores into ADR-041's table; at most three rounds. (4) The two
-specs that fail only under two workers (`nova-stage-am2` keys at 1024 px, `hud-motion` reduced motion on a phone) and
-`nova-setup:157` on the phone (passes on the dev server here): find the cause on the production build, two attempts.
-(5) The band's fade while scrolled (round 7), the phone chat's footer. (6) B2 at 2560 × 1440 Showcase on the final build,
-ADR-041's tables, `AM_DEMO_TOUR.md`, STATUS as the final commit, CI, the report.
-
-**For the Opus follow-up (found here, not started):** `next dev` prints an upgrade notice for a Next.js security
-advisory (a dependency change: the owner's call); `tests/ao/today-tab-stops.spec.ts` counted 91 against its pin of 90 on
-a dev server on 17 Nov (also without this branch's Today change: the weekly review's "Start review | Skip this week");
-`showcase-today-aa` "arranging Today" fails on `main` too (`#for-you-life-review` not found).
+**For the Opus follow-up (found here, not started):** `next dev` and `next build` stop once on an upgrade notice for a
+Next.js security advisory (a dependency change: the owner's call); `tests/ao/today-tab-stops.spec.ts` counted 91
+against its pin of 90 on a dev server on 17 Nov (also without this branch's Today change); `showcase-today-aa`
+"arranging Today" fails on `main` too; `p3-nova-polish` ND-1 at 1920 with the Showcase can lose a 5 s race to the
+browser's first WebGL context without graphics hardware (D25); long-tail kinds as supporting panels at 1440 show a
+figure and words without an instrument (Money tags, Templates, Debt plan, Day rules); `pre-run11-setup.test.mjs` wants
+Node 24.19.0 exactly.
 
 ## Scratchpad tools (recreate if the container was replaced)
 `cap.mjs`: `--out --w --h --showcase --nova '<record>' --theme light|dark --ask "…" --click <selector> --hold <state> --live --phone --motion off --reduced --eval <js> --clip x,y,w,h --block/--delay <url part>`.
