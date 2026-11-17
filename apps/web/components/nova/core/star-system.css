@@ -58,6 +58,8 @@
  * as the galaxy, unlit — the small SVG orb stood here before, a different object. 'picture' is the galaxy's still picture
  * for a star whose code did not load (the line under its state says so). Nothing here moves.
  */
+/* Its own class (it stood as a second `.nova-star` beside the canvas for a moment, and a spec that reads "the star" found two). */
+.nova-star-standin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 0; display: block; max-width: none; }
 .nova-star-standin[data-kind=starting]::before { content: ''; position: absolute; left: 50%; top: 50%; width: 74%; height: 33%; transform: translate(-50%, -50%) rotate(21.8deg); border-radius: 50%;
   background: radial-gradient(closest-side, color-mix(in srgb, var(--nova-c, #f06dff) 34%, transparent) 0, color-mix(in srgb, var(--nova-a, #9273ff) 22%, transparent) 38%, color-mix(in srgb, var(--nova-b, #23eaff) 8%, transparent) 72%, transparent 100%); }
 .nova-star-standin[data-kind=starting]::after { content: ''; position: absolute; left: 50%; top: 50%; width: 9%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%;

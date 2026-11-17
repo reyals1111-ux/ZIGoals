@@ -99,7 +99,7 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
         <g className="cc-state cc-state-speaking"><ellipse rx="100" ry="44" className="cc-state-ticks" pathLength="360" strokeDasharray="0.5 3.5"/><ellipse rx="94.5" ry="41.6" className="cc-state-ring"/><ellipse rx="89" ry="39.2" className="cc-state-faint"/></g>
       </g></svg></span>}
       {persona.avatar !== 'zigi' && star}
-      {standIn && <span className="nova-star nova-star-standin" aria-hidden="true" data-kind={standIn} style={{width: starSize ?? 440, height: starSize ?? 440}}>
+      {standIn && <span className="nova-star-standin" aria-hidden="true" data-kind={standIn} style={{width: starSize ?? 440, height: starSize ?? 440}}>
         {/* eslint-disable-next-line @next/next/no-img-element -- a decoration of a known size, loaded only when the star's code did not */}
         {standIn === 'picture' && <img src={`/nova/star/${STAR_PICTURES.has(accent) ? accent : 'violet'}.webp`} alt="" decoding="async" draggable={false} onError={() => setPictureFailed(true)}/>}
       </span>}
