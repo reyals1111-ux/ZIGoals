@@ -19324,6 +19324,12 @@
     .nova-frame[data-stage=set] .nova-orbit-main[data-compose] .nova-orb-button[data-star]:not(#\-) {
         --bz: min(calc(var(--star-size, 440px) * .9), calc(var(--star-col, 440px) * .98))
     }
+    .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero] > .holo-aura:not(#\-) {
+        box-shadow: var(--holo-bloom), 0 0 84px 8px color-mix(in srgb, var(--neon, #9273ff) 30%, transparent)
+    }
+    .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero][data-size=L] > .holo-aura:not(#\-) {
+        box-shadow: var(--holo-bloom), 0 0 84px 8px color-mix(in srgb, var(--neon, #9273ff) 30%, transparent), 0 0 90px 10px #f06dff2b
+    }
 }
 /*  components/nova/stage/phone-stage.css  */
 @scope (:root[data-theme=dark]) {

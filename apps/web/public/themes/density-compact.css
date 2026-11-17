@@ -4995,6 +4995,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @container nova-stage (max-height: 520px) { :where(:root[data-density=compact]) .ns-answer-text:not(#\-) { margin-top: 4px; } }
 :where(:root[data-density=compact]) .ns-answer-close:not(#\-) { padding-top: 0; padding-bottom: 0; }
 @container ns-answer (max-width: 430px) { :where(:root[data-density=compact]) .ns-answer-meta .ns-link:not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@container holo-panel (max-width: 284px) { :where(:root[data-density=compact]) .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head:not(#\-):not(#\-) { row-gap: 2px; } }
 /*  components/nova/widgets/widgets.css  */
 :where(:root[data-density=compact]) .nova-widget-body p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-big:not(#\-) { row-gap: 4px; }
