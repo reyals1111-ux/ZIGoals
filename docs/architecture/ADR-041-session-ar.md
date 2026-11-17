@@ -121,6 +121,33 @@ on a diagonal), the supporting panels, the satellites.
   touched (another currency, a token amount, a number stay as written). The engine's answers are ZIGi's too and are pinned
   by its golden tests; they are not changed.
 
+### After round 1 (structure, not polish)
+- **D19 A tier is a weight.** Hero: the full hologram with a heavier rim (2.2 px) and a wider bloom. Supporting: a 1 px
+  rim, less than half the bloom, no ruler. Compact: a plate (hairline rim, smaller cuts, no bloom, brackets, ruler or
+  sheen). The keys of a supporting panel and a plate are at 60 % until the pointer or the focus is in the panel (always
+  shown, always 44 px: the owner's rule; a lit pin stays lit).
+- **D20 Wide wings step.** From 540 px of wing a supporting panel is nine tenths of the hero's width and a compact plate
+  78 %, hung from the wing's outer edge: each wing steps away from the star tier by tier, and the two wings turn about it.
+- **D21 The read-outs step aside from three widgets.** The four read-outs under the star repeat what the panels beside it
+  say, and the bezel's pillar arcs carry the same four. They stay in the page (hidden, as on a narrower stage) and show
+  with one or two widgets and on the calm stage (`nova-compose-ar`, "the read-outs"; `hud-fit` and `hud-elements` changed
+  on purpose).
+- **D22 The engine after round 1.** A hero the person made Large is always the Large body and keeps its 516 px (so
+  `hud-fit` M2 and the Health preset hold); a 1280 × 720 stage keeps a hero and one plate; a row of locked notices is a
+  plate's height wherever it stands; from three widgets a wing keeps 328 px, the least at which a panel's head is one row.
+- **D23 The star after round 1.** The planet has a wider, brighter limb, light on the hemisphere that faces the core and
+  visible bands (a rim-lit planet, owner screenshot 4; the still pictures are redrawn). In a state the standby bezel steps
+  back to 22 % and the state's own mark is heavy: a lit ring with long ticks in (listening), a thick ring in segments
+  (thinking), a ticked rim with two strong rings (speaking).
+- **D24 Two things an answer said wrongly.** The read-out's ring is read from the answer's first line only (it made a
+  headline of a list's first row: "2 of 2" for "12 check-ins over 7 habits"); the answer card's "Go to …" names a widget
+  of that answer (it named the widget made last, whatever was asked since).
+- **D25 What the opening costs without graphics hardware, measured.** On this machine the Showcase's opening ends 7 s
+  after the navigation at 1920 × 1080: one task of 6.1 s that is the browser's first WebGL context (the star's unchanged
+  probe; compiling the shader takes 66 ms and the first read-back 111 ms). The same task runs with `main`'s shader.
+  `p3-nova-polish` ND-1 (1920, Showcase) waits 5 s for the opening and can lose that race under two workers; it is not
+  changed here and is on the list for the follow-up.
+
 ### Leftovers
 - **D15 The fasting range (TIER 3 AI safety).** The app notes every model reads said "12 to 18 hours"; they say "a target
   of up to 24 hours, stopped automatically at 24", as Health's form and ZIGi's cards do. Behaviour-preserving.
@@ -141,6 +168,14 @@ on a diagonal), the supporting panels, the satellites.
 ## Critique rounds (at most three; two fresh critics a round, shown only the references and the newest captures)
 | Round | Build | Critic | Star | Widgets | Stage | Verdict | Remaining gaps |
 |---|---|---|---|---|---|---|---|
+| 1 | `98d7f02d` | A | 7 | 6 | 6 | no | tiers "barely visible" (six panels of one weight); cut text (titles at 350 px, the Wealth hero's legend, Tasks' rows); empty lower thirds (Habits this week, Perfect days, Days until, Time, locked panels); the planet "a hole in the bezel"; the states alike; an answer's ring and key that did not match it |
+| 1 | `98d7f02d` | B | 7 | 6 | 6 | no | the same list; also heads with the title under the keys at 280 px, the read-outs under the star repeating the panels, a noisy shell |
+
+**Round 1, read honestly.** Both critics scored below Session AM's last round (star 7–8, widgets 7, stage 6–7). Two of
+their findings were this session's capture tool, not the product (the theme was not applied in the Showcase, so "light"
+equalled "dark"; three panels were caught on "Reading…" because a 2560 px window drawn by the processor needs 24 s). The
+rest was real and is answered by structure, not polish (D19–D24): a tier became a weight, the wings step, the read-outs
+step aside, and the star's planet and states were redrawn.
 
 ## Before and after, per surface
 Filled at the end.
