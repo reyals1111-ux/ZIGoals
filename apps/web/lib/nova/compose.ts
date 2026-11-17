@@ -50,13 +50,24 @@ export type Composed = NovaWidget & {
   order: number;
 };
 export const WING_COLUMNS = 6;
+/** From this width a wing steps: its supporting panel is nine tenths of the hero's width, its compact plate 78 %, hung from the outer edge. */
+export const WING_STEPS_FROM = 540;
 
-/** The rows a wing of this height can hold, most first: hero, supporting, compact — each only if every unit keeps TIER_UNIT_MIN. */
+/** A hero the person made Large is the Large body, whose least height is this (AL's four units of 120 px and their gaps). */
+export const LARGE_HERO_MIN = 516;
+/** A short stage still holds a hero and a compact plate from this height: a Medium body's least (252 px), the gap and a plate of one least unit. */
+export const SHORT_STAGE_MIN = 252 + TIER_GAP + TIER_UNIT_MIN;
+/**
+ * The rows a wing of this height can hold, most first: hero, supporting, compact — each only if every unit keeps
+ * TIER_UNIT_MIN (and a Large hero its LARGE_HERO_MIN). A short stage (a 720 px window) keeps a hero and a compact plate
+ * as long as the hero has a Medium body's height.
+ */
 export function wingTiers(height: number | null | undefined, largeHero = false): Tier[] {
   const h = typeof height === 'number' && Number.isFinite(height) && height > 0 ? height : 580, hero = largeHero ? LARGE_HERO_WEIGHT : TIER_WEIGHT.hero;
-  const fits = (tiers: Tier[]) => tiers.reduce((sum, t, i) => sum + (i === 0 ? hero : TIER_WEIGHT[t]), 0) * TIER_UNIT_MIN + (tiers.length - 1) * TIER_GAP <= h;
+  const least = largeHero ? Math.max(TIER_UNIT_MIN, LARGE_HERO_MIN / LARGE_HERO_WEIGHT) : TIER_UNIT_MIN;
+  const fits = (tiers: Tier[]) => tiers.reduce((sum, t, i) => sum + (i === 0 ? hero : TIER_WEIGHT[t]), 0) * least + (tiers.length - 1) * TIER_GAP <= h;
   for (const tiers of [['hero', 'supporting', 'compact'], ['hero', 'supporting'], ['hero', 'compact']] as Tier[][]) if (fits(tiers)) return tiers;
-  return ['hero'];
+  return !largeHero && h >= SHORT_STAGE_MIN ? ['hero', 'compact'] : ['hero'];
 }
 /** How many widgets a row of this tier holds in a wing of this width. */
 export function tierCells(tier: Tier, wingWidth: number | null | undefined): number {
@@ -136,14 +147,21 @@ export function composeStage(widgets: readonly NovaWidget[], {height, wingWidth,
     const weight = (tier: Tier, i: number) => i === 0 && largeHero ? LARGE_HERO_WEIGHT : TIER_WEIGHT[tier];
     const total = tiers.reduce((sum, t, i) => sum + weight(t, i), 0);
     const unit = Math.max(TIER_UNIT_MIN, Math.min(TIER_UNIT_MAX, (h - (rows.length - 1) * TIER_GAP) / total));
+    // A short stage (wingTiers' last resort): the plate keeps one least unit and the hero takes what is left.
+    const short = rows.length === 2 && rows[1]!.tier === 'compact' && total * TIER_UNIT_MIN + TIER_GAP > h;
+    const isSlim = (order: number) => !!slim?.(widgets[order]!.id);
     rows.forEach((r, i) => {
       const row = side === 'left' ? i + 1 : rows.length - i;
-      // A hero is the Large body where it is tall and its wing wide enough (or the person made it Large); otherwise it is
-      // the Medium body, at most HERO_MEDIUM_MAX tall (a Medium body does not fill more).
+      // A hero is the Large body where the person made it Large, or where it is tall and its wing wide enough; otherwise
+      // it is the Medium body, at most HERO_MEDIUM_MAX tall (a Medium body does not fill more).
       const roomy = largeHero || (typeof wingWidth === 'number' && wingWidth >= HERO_LARGE_WING);
-      const full = Math.round(weight(r.tier, i) * unit), px = r.tier === 'hero' && !(roomy && full >= HERO_LARGE_FROM) ? Math.min(full, HERO_MEDIUM_MAX) : full;
-      const show: WidgetSize = r.tier === 'hero' ? (roomy && px >= HERO_LARGE_FROM ? 'L' : 'M') : r.tier === 'supporting' ? (px >= SUPPORTING_MEDIUM_FROM ? 'M' : 'S') : 'S';
-      for (const order of r.cells) out[order] = {...out[order]!, tier: r.tier, show: slim?.(widgets[order]!.id) ? 'S' : show, row, height: px, span: WING_COLUMNS / r.cells.length};
+      const full = short ? (r.tier === 'hero' ? Math.round(h - TIER_GAP - TIER_UNIT_MIN) : TIER_UNIT_MIN) : Math.round(weight(r.tier, i) * unit);
+      const large = r.tier === 'hero' && (largeHero || (roomy && full >= HERO_LARGE_FROM));
+      // A row that holds only short notices (a closed gate) is a plate's height whatever its place: a lock in a tall empty
+      // box was round 1's fault.
+      const px = r.cells.every(isSlim) ? Math.min(full, Math.round(Math.max(TIER_UNIT_MIN, Math.min(unit, 150)))) : r.tier === 'hero' && !large ? Math.min(full, HERO_MEDIUM_MAX) : full;
+      const show: WidgetSize = r.tier === 'hero' ? (large ? 'L' : 'M') : r.tier === 'supporting' ? (px >= SUPPORTING_MEDIUM_FROM ? 'M' : 'S') : 'S';
+      for (const order of r.cells) out[order] = {...out[order]!, tier: r.tier, show: isSlim(order) ? 'S' : show, row, height: px, span: WING_COLUMNS / r.cells.length};
     });
   }
   return out;

@@ -588,7 +588,7 @@ export default function NovaDashboard() {
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}
     requests={<OneTap available={canShow} onAsk={askInPlace}/>}/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
-    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-console={consoleMode} style={frameStyle} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined} data-soft={soft || undefined}>
+    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-fill={composedStage && stage.shown.length > 2 ? 'full' : undefined} data-chat={chatOpen || undefined} data-console={consoleMode} style={frameStyle} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined} data-soft={soft || undefined}>
     {/* Second review m8 (lane L8f): the first stop, past the left panel and the top bar (43 stops) to the HUD itself. */}
     <a className="nova-skip" href="#nova-hud" onClick={e => { e.preventDefault(); root.current?.querySelector<HTMLElement>('#nova-hud')?.focus({preventScroll: true}); }}>Skip to the HUD</a>
     <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion && !resting && !soft} accent={accent}/></Suspense></LoadBoundary></div>

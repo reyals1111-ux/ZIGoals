@@ -9,15 +9,18 @@ const wing = (c: Composed[], side: 'left' | 'right') => wingOrder(c, side).map(x
 describe('Session AR (ADR-041): the composed stage', () => {
   it('a wing holds the rows its height allows, each unit at least TIER_UNIT_MIN', () => {
     expect(wingTiers(300)).toEqual(['hero']);
-    expect(wingTiers(430)).toEqual(['hero']);
+    expect(wingTiers(360)).toEqual(['hero']);
+    expect(wingTiers(407)).toEqual(['hero', 'compact']); // a 1280 × 720 window: a hero with a Medium body's height and one plate
     expect(wingTiers(470)).toEqual(['hero', 'compact']);
     expect(wingTiers(650)).toEqual(['hero', 'supporting']); // beside the conversation's console with a two-row status strip: no 104 px plate
     expect(wingTiers(587)).toEqual(['hero', 'supporting']); // 1440 × 900
     expect(wingTiers(726)).toEqual(['hero', 'supporting', 'compact']); // 1920 × 1080
     expect(wingTiers(1083)).toEqual(['hero', 'supporting', 'compact']); // 2560 × 1440
     expect(wingTiers(null)).toEqual(['hero', 'supporting']);
-    // A Large hero weighs four units, so it leaves less.
-    expect(wingTiers(587, true)).toEqual(['hero', 'compact']);
+    // A Large hero weighs four units and keeps the Large body's 516 px, so it leaves less.
+    expect(wingTiers(587, true)).toEqual(['hero']);
+    expect(wingTiers(726, true)).toEqual(['hero', 'compact']);
+    expect(wingTiers(1083, true)).toEqual(['hero', 'supporting', 'compact']);
   });
   it('a wide wing holds two supporting panels side by side, and compact plates by their least width', () => {
     expect(tierCells('hero', 2000)).toBe(1);
@@ -68,7 +71,7 @@ describe('Session AR (ADR-041): the composed stage', () => {
   it('S3: what was made on request leads its wing; among the pinned a Large one is the hero; a locked one is a compact plate', () => {
     const widgets = [w('a'), w('b'), w('big', 'L'), w('c')];
     const plain = composeStage(widgets, {height: 726, wingWidth: 418});
-    expect(wing(plain, 'left')[0]).toBe('big:hero:M'); // a's wing: the Large one is lifted over it
+    expect(wing(plain, 'left')[0]).toBe('big:hero:L'); // a's wing: the Large one is lifted over it, as the Large body
     const made = composeStage(widgets, {height: 726, wingWidth: 418, made: id => id === 'a'});
     expect(wing(made, 'left')[0]).toMatch(/^a:hero/);
     const locked = composeStage(widgets, {height: 726, wingWidth: 418, slim: id => id === 'a'});
@@ -90,6 +93,18 @@ describe('Session AR (ADR-041): the composed stage', () => {
     const one = next.find(x => x.id === 'one')!, two = next.find(x => x.id === 'two')!;
     expect(one.tier).toBe('hero'); expect(two.tier).toBe('hero');
     expect(two.side).not.toBe(one.side);
+  });
+  it('a hero the person made Large is the Large body, at least 516 px tall, even in a narrow wing', () => {
+    const c = composeStage([w('big', 'L'), w('a'), w('b')], {height: 587, wingWidth: 350});
+    const big = c.find(x => x.id === 'big')!;
+    expect(big.tier).toBe('hero'); expect(big.show).toBe('L'); expect(big.height).toBeGreaterThanOrEqual(516);
+  });
+  it('a short stage: the hero takes what one plate leaves; a row of locked notices is a plate’s height wherever it stands', () => {
+    const short = composeStage(list(4), {height: 407, wingWidth: 420});
+    expect(wing(short, 'left')).toEqual(['w0:hero:M', 'w2:compact:S']);
+    expect(short[0]!.height).toBe(407 - 12 - 112); expect(short[2]!.height).toBe(112);
+    const locked = composeStage([w('lock-a'), w('lock-b')], {height: 587, wingWidth: 300, slim: () => true});
+    for (const x of locked) { expect(x.tier).toBe('hero'); expect(x.show).toBe('S'); expect(x.height).toBeLessThanOrEqual(150); }
   });
   it('order in, order out', () => {
     const widgets = list(7);

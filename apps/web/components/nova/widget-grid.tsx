@@ -4,7 +4,7 @@ import {useRouter} from 'next/navigation';
 import {Suspense, lazy, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ComponentType, type KeyboardEvent, type PointerEvent, type MouseEvent, type ReactNode, type RefObject} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {BENTO_SPAN, HOLO_ROWS, ROWS as ROWS_AK, MAX_LEAN, dropPlace, holoRowsFit, holoUnit, phoneColumn, placeOrbit, placeWords, rowsFit, swapPartner, visibleFor, wideSides, type HudLook, type Placed} from '../../lib/nova/layout';
-import {composeStage, composedWords, wingCapacity, wingOrder, TIER_GAP, type Composed} from '../../lib/nova/compose';
+import {composeStage, composedWords, wingCapacity, wingOrder, TIER_GAP, WING_COLUMNS, WING_STEPS_FROM, type Composed} from '../../lib/nova/compose';
 import {settleDelay} from '../../lib/nova/orb';
 import {WIDGET_SIZES, type NovaLayout, type NovaWidget, type WidgetSize} from '../../lib/nova/store';
 import type {StageWidget, WidgetParams} from '../../lib/nova/stage/record';
@@ -168,7 +168,10 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
     if (composing) {
       // The wings in the order they are drawn (top to bottom; the right wing's hero stands at its foot), so Tab follows the eye.
       // A panel's body is drawn at its tier's size (`show`); its stored size is untouched.
-      const wing = (which: 'left' | 'right') => wingOrder(composed, which).map(c => frame({...c, size: c.show}, c.order, {'--tier-h': `${c.height}px`, '--tier-span': c.span, '--tier-row': c.row} as CSSProperties, c, c.tier));
+      // Round 1 ("the tiers are barely visible"): in a wide wing a supporting panel and a compact plate are narrower than
+      // the hero and hang from the wing's outer edge, so the wing steps away from the star tier by tier.
+      const inset = (c: Composed) => wingWidth >= WING_STEPS_FROM && c.span === WING_COLUMNS ? (c.tier === 'supporting' ? 0.9 : c.tier === 'compact' ? 0.78 : 1) : 1;
+      const wing = (which: 'left' | 'right') => wingOrder(composed, which).map(c => frame({...c, size: c.show}, c.order, {'--tier-h': `${c.height}px`, '--tier-span': c.span, '--tier-row': c.row, '--tier-w': inset(c)} as CSSProperties, c, c.tier));
       const rest = composed.filter(c => c.side === 'band'), large = (which: 'left' | 'right') => composed.some(c => c.side === which && c.tier === 'hero' && c.show === 'L');
       const wide = large('left') && large('right') ? 'both' : large('left') ? 'left' : large('right') ? 'right' : undefined;
       return <div ref={box} className="nova-orbit" style={unitStyle} data-holo-fit={fitMark('orbit')} data-compose="">
