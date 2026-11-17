@@ -236,6 +236,14 @@ on a diagonal), the supporting panels, the satellites.
   glass to be mounted, measures the boxes with the pointer resting on the card, and measures again 150 ms into the
   held drag (longer than the 90 ms settle). In that form it failed on every run before the fix (two of two, with CI's
   own numbers) and passes after it.
+- **D38 Run 1830 on `0341af04`: D34 and D36 seen again on the runner, green on the one re-run.** Attempt 1 was 20 of
+  24: main shard 1 green with the fix; `web integration` red on the recorded `account-browser` intermittent (code this
+  branch does not touch); main shard 2 red on D34's signature in its Motion Off case (two frames became four, both
+  attempts); main shard 4 cut off at its 60-minute limit on a slow runner with six NOVA specs failed twice (four with
+  D36's signature, two timeouts). No third fix attempt was made on D34 or D36 (the stop rule); one measurement was:
+  a frame-by-frame probe on a phone with Motion Off (two workers, processor slowed 4×) drew exactly two frames in 24
+  of 24 runs, with no WebGL context lost and no focus or visibility event, so D34's trigger is still not found off
+  the runner. The failed jobs got the one re-run the project rule allows; all passed (24 of 24). Both stay carried.
 
 ### Leftovers
 - **D15 The fasting range (TIER 3 AI safety).** The app notes every model reads said "12 to 18 hours"; they say "a target
