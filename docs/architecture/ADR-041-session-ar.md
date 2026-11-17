@@ -148,6 +148,33 @@ on a diagonal), the supporting panels, the satellites.
   `p3-nova-polish` ND-1 (1920, Showcase) waits 5 s for the opening and can lose that race under two workers; it is not
   changed here and is on the list for the follow-up.
 
+### After round 2 (the stage did not rise: its structure changes again)
+- **D26 The star's base.** Both critics of round 2: "the lower centre is dead at every desktop size; put a strip of mini
+  cards there so the star has a base" (the owner's reference 2). The first widgets the wings cannot hold stand under
+  NOVA's words as compact plates, in the first view: two plates of 463 px at 2560 × 1440 (the Showcase then shows eight
+  of its ten widgets without a scroll), one at 1920 × 1080, none at 1440 × 900 (a two-tier stage has no room under the
+  words). `basePlan` gives the strip only what the star's stack leaves unused (its lower margin, and what the words'
+  slot does not need), so the star keeps its size and its place; while an answer stands under the star the answer's card
+  is the base and the plates rest on the band. Three plates of 305 px were tried first: their heads took two rows.
+- **D27 "Reading…" is an instrument, powered down.** While a widget's gate is not known yet, its panel shows the kind's
+  fixed drawing (the one the locked state uses; nothing is read) with the word under it. On a computer that is a moment;
+  where the processor draws a 1920 px page it was 20 s of empty slabs in two rounds of captures.
+- **D28 The planet is lit.** After two rounds of "a hole in the bezel": the hemisphere that faces the core carries the
+  core's light across the globe, the limb is bright all the way round, the far half stays in shadow. Constants only (the
+  shader's portability rules hold); the five still pictures are redrawn.
+- **D29 Smaller things from round 2.** The stage's frame stands 5 px further out, clear of the panels' corners; the
+  phone's conversation starts under its head (it hung from the dock with a dead band above it); the left rail's list
+  fades at its foot (a half row read as a cut icon); in a panel beside the star the lattice's names get their room
+  before the streaks' notes ("Contri…").
+- **D30 Not changed, and why.** (i) *The 280 px heroes beside the large star at 1440 with the left bar open* (both
+  critics, both rounds: two-row heads, a wrapped privacy chip). The owner's S2 asks for a bezel of at least 45 % of the
+  stage there, and 1124 px of stage leave 280 px a wing; with the left bar folded the wings are 420 px. Wings of 328 px
+  (one-row heads) would make the bezel 37 % of that stage. Left as the owner decided; named in the report. (ii) *The
+  themes*: NOVA is a night island in Light and Dark by the protected baseline, so the stage reads alike in all three.
+  (iii) *The shell's chrome* (top bar, status strip, side bars): outside this session's scope. (iv) *The head's keys*:
+  the owner's AM-2 rule. (v) *The same figure in two widgets* (Tracked wealth and the Wealth HUD): two widgets the
+  person may put side by side; each is right.
+
 ### Leftovers
 - **D15 The fasting range (TIER 3 AI safety).** The app notes every model reads said "12 to 18 hours"; they say "a target
   of up to 24 hours, stopped automatically at 24", as Health's form and ZIGi's cards do. Behaviour-preserving.
@@ -170,6 +197,8 @@ on a diagonal), the supporting panels, the satellites.
 |---|---|---|---|---|---|---|---|
 | 1 | `98d7f02d` | A | 7 | 6 | 6 | no | tiers "barely visible" (six panels of one weight); cut text (titles at 350 px, the Wealth hero's legend, Tasks' rows); empty lower thirds (Habits this week, Perfect days, Days until, Time, locked panels); the planet "a hole in the bezel"; the states alike; an answer's ring and key that did not match it |
 | 1 | `98d7f02d` | B | 7 | 6 | 6 | no | the same list; also heads with the title under the keys at 280 px, the read-outs under the star repeating the panels, a noisy shell |
+| 2 | `ca563dd2` | C | 7 | 7 | 6 | nearly | "the lower centre is dead at every desktop size"; a panel on "Reading…" is an empty slab; the 280 px heroes beside the large star (two-row heads, wrapped chips: "fewer widgets should mean wider panels"); long-tail kinds as text in a tall panel; a heavy shell; the planet "a hole punched in the art"; the desktop star weaker than the phone's |
+| 2 | `ca563dd2` | D | 7.5 | 7 | 6 | nearly | the same; also the stage's corner brackets on panel corners, a dead band at the top of the phone's chat, the scrolled band under the one-tap keys, "Contri…", "Late-nigh…" |
 
 **Round 1, read honestly.** Both critics scored below Session AM's last round (star 7–8, widgets 7, stage 6–7). Two of
 their findings were this session's capture tool, not the product (the theme was not applied in the Showcase, so "light"
