@@ -1,5 +1,5 @@
 import type {ToolEnv} from '../tools/env';
-import {localAnswer, zigiOverview, type LocalReply} from './engine';
+import {exactFallback, localAnswer, zigiOverview, type LocalReply} from './engine';
 import {alFirst, alMoreAnswer, fixTypos, rewriteQuestion} from './al-more';
 import {normalizeSpoken} from '../spoken/normalize';
 import {alFactsAnswer} from './al-facts';
@@ -186,6 +186,9 @@ export function noModelReply(text: string, env: ToolEnv | null, previous: string
   // Session AL fourth pass (L7-4b; Lisbon #024): an answer in English to a question in another language carries the note too.
   const other = otherLanguage(text), info = env ? novaEnvInfo(env) : null;
   // Session AL fifth pass (L7-5b; Lisbon N-LA-01): when nothing matched, the list says first what the device does answer.
+  // Session AS (ADR-042 Part 1): before the examples list, the exact layer's own answer or its honest line with what the
+  // records do show ("how am I doing", "why did I sleep badly"); never for a message in another language.
+  if (reply.kind === 'examples' && env && !other) { const exact = exactFallback(text, env); if (exact) reply = exact; }
   if (reply.kind === 'examples' && lang === 'en' && reply.text === EXAMPLES_INTRO) reply = {...reply, text: `${UNMATCHED_EN}\n${EXAMPLES_INTRO}`};
   if (info) reply = novaWording(reply, info, lang === 'nl' ? 'nl' : 'en'); // L7-4b (BN-047): NOVA's own words on this path too
   return other && 'text' in reply && !reply.text.startsWith(OTHER_NOTE[other]) ? {...reply, text: `${OTHER_NOTE[other]}${reply.kind === 'examples' ? ' ' : '\n'}${reply.text}`} as LocalReply : reply;

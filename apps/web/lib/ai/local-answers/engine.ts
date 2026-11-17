@@ -27,6 +27,8 @@ import {unitFor} from '../../plural';
 import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 import {healthGoalAsk} from './al-final';
+import {answerQuery, exactQuery, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
+import type {Query} from './exact';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -194,6 +196,54 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
   // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.
   if (safetyFirst(question)) return NONE;
+  // Session AS (ADR-042 Part 1; the owner's findings of 17 Nov): the exact layer answers the question asked, before the
+  // layers below, for the classes they answered with something else (what was missed, skipped, not done or late; which
+  // days; a weekday; a log's own day; a named period they did not keep to), in English and Dutch, ZIGi and NOVA alike (A1).
+  // Anything else is theirs, word for word; with no model, what they have no answer for comes back to the exact layer
+  // (`exactFallback`, from no-model.ts).
+  return exactLocal(question, env, subject, strictClaim) ?? layeredAnswer(question, env, subject);
+}
+/** The exact layer's answer as the engine's reply: its lookup is the one `life_facts` call a connected model would get. */
+export function exactLocal(question: string, env: ToolEnv, subject: Subject | undefined, claims: (q: Query) => boolean): LocalReply | null {
+  if (subject && subject.kind !== 'habit') return null;
+  let reply: LocalReply | null = null, lang: 'en' | 'nl' = 'en';
+  try {
+    if (navigationIntent(question)) return null;
+    const q = exactQuery(question, env);
+    if (!q || !claims(q)) return null;
+    if (subject) { const habit = env.habits.habits.find(h => h.id === subject.id); if (!habit) return null; q.domain = 'habits'; q.subject = {kind: 'habit', id: habit.id, name: habit.title}; delete q.choices; }
+    const exact = answerQuery(q, env);
+    if (!exact) return null;
+    lang = q.lang;
+    reply = exact.kind === 'refusal' ? {kind: 'refusal', text: exact.text, calls: []}
+      : exact.kind === 'choices' ? {kind: 'choices', text: exact.text, choices: (q.choices ?? []).map(c => ({label: clean(c.name, 60), subject: {kind: 'habit' as const, id: c.id}})), calls: []}
+        : {kind: 'answer', text: exact.text, calls: [{tool: 'life_facts', args: {...queryArgs(q), ...(exact.widgets.length ? {show: showOf(exact.widgets)} : {})}, label: queryLabel(q, env.habitDay)}]};
+  } catch { return null; }
+  const nova = novaEnvInfo(env);
+  return nova && reply ? novaWording(reply, nova, lang) : reply;
+}
+/**
+ * Session AS (ADR-042 Part 1): what the device says, with no model, where it would otherwise only list examples. An
+ * understood question gets its exact answer ("how am I doing", a question about NOVA itself). "Why …" and a question
+ * that names a part of life but asks something the records cannot say get an honest line and what the records do show
+ * (with that part's widget on NOVA's stage): never a guessed fact.
+ */
+export function exactFallback(question: string, env: ToolEnv): LocalReply | null {
+  const own = exactLocal(question, env, undefined, q => q.ask !== 'why');
+  if (own) return own;
+  try {
+    if (navigationIntent(question)) return null;
+    const read = exactQuery(question, env), q = read ?? exactTopic(question, env);
+    if (!q) return null;
+    const exact = answerQuery({...q, ask: 'status', shape: 'overview', period: null, versus: null, weekday: null}, env);
+    if (!exact || exact.kind !== 'answer') return null;
+    const nl = q.lang === 'nl', lead = read?.ask === 'why' ? (nl ? 'Waarom staat niet in je gegevens. Wat er wel staat: ' : 'Your records do not say why. What they do show: ') : (nl ? 'Dat kan ik niet precies uit je gegevens halen. Wat er wel staat: ' : 'I can’t answer that exactly from your records. What they do show: ');
+    const reply: LocalReply = {kind: 'answer', text: `${lead}${exact.text}`, calls: [{tool: 'life_facts', args: {...queryArgs(exact.query), ...(exact.widgets.length ? {show: showOf(exact.widgets)} : {})}, label: queryLabel(exact.query, env.habitDay)}]};
+    const nova = novaEnvInfo(env);
+    return nova ? novaWording(reply, nova, q.lang) : reply;
+  } catch { return null; }
+}
+function layeredAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AL final pass (Z-025): a Health goal named in a goal question, with the habit of that name beside it (al-final.ts).
   if (!subject) { const healthGoal = healthGoalAsk(question, env); if (healthGoal) return healthGoal; }
   // Session AL fifth pass (L7-5b; Lisbon #216, LA-028, LZ-019): a phrase typed again and again is asked once; a message of
