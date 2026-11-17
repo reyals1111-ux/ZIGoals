@@ -197,6 +197,32 @@ test('the read-outs: with one or two widgets at 1920 × 1080 the four read-outs 
   await expect(page.locator('.holo-core-readout li')).toHaveCount(4);
 });
 
+test('D26, the star’s base at 2560 × 1440: the next widgets stand under NOVA’s words as compact plates, clear of the words and the bezel; an answer takes their place', async ({page}) => {
+  await page.setViewportSize({width: 2560, height: 1440});
+  await page.clock.install({time: NOON});
+  await showcaseNova(page);
+  const plates = () => page.locator('.nova-orbit-main > .nova-orbit-base .nova-widget').evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(), body = el.querySelector('.nova-widget-body')!; return {id: (el as HTMLElement).dataset.widget!, tier: (el as HTMLElement).dataset.tier, size: (el as HTMLElement).dataset.size, x: r.left, y: r.top, w: r.width, h: r.height, over: body.scrollHeight - body.clientHeight}; }));
+  const base = await plates(), s = await stageOf(page);
+  expect(base.length).toBeGreaterThanOrEqual(2);
+  const words = (await page.locator('.nova-dayline').boundingBox())!, foot = (await page.locator('.nova-foot').boundingBox())!;
+  for (const p of base) {
+    expect(p.tier, p.id).toBe('compact'); expect(p.size, p.id).toBe('S');
+    expect(p.y, `${p.id} stands under NOVA’s words`).toBeGreaterThanOrEqual(words.y + words.height + 8);
+    expect(p.y + p.h, `${p.id} ends above the command field`).toBeLessThanOrEqual(foot.y + 0.5);
+    expect(p.x, `${p.id} inside the star’s column`).toBeGreaterThanOrEqual(s.centre.x - 0.5); expect(p.x + p.w).toBeLessThanOrEqual(s.centre.x + s.centre.w + 0.5);
+    expect(overlap(p, s.ring), `${p.id} over the bezel`).toBe(false);
+    expect(p.h).toBeGreaterThanOrEqual(112); expect(p.over, `${p.id}: nothing hidden under its edge`).toBeLessThanOrEqual(1);
+  }
+  // Ten widgets: six in the wings, the plates under the star, the rest on the band; the star is no smaller for it.
+  expect(s.panels.filter(p => p.side).length + base.length + s.band.length).toBe(10);
+  expect(s.bezel.w).toBeGreaterThanOrEqual(918.5);
+  // An answer under the star is the star's base: the plates rest on the band while it stands.
+  const field = page.locator('.nova-command input');
+  await field.fill('Show my net worth'); await field.press('Enter');
+  await expect(page.locator('.ns-answer')).toBeVisible({timeout: 15_000});
+  await expect(page.locator('.nova-orbit-main > .nova-orbit-base')).toHaveCount(0);
+});
+
 test('P3 at 2560 × 1440: a wing is a Large hero, a supporting panel and a compact plate, each smaller than the one before', async ({page}) => {
   await page.setViewportSize({width: 2560, height: 1440});
   await page.clock.install({time: NOON});

@@ -126,7 +126,7 @@ describe('Session AR (round 2, D26): the base strip under the star', () => {
   });
   it('the strip takes only the room the star’s stack leaves: none on a 1440 × 900 stage, none while an answer stands under the star', () => {
     // 2560 × 1440: a stage of 1083 px, the star's box 496 px, the words' slot 252 px, a column of 938 px.
-    expect(basePlan({stageHeight: 1083, starBox: 496, slot: 252, column: 938, answer: false})).toEqual({cells: 3, height: 150});
+    expect(basePlan({stageHeight: 1083, starBox: 496, slot: 252, column: 938, answer: false})).toEqual({cells: 2, height: 150}); // two plates of 463 px: a one-row head and room for the figure (three of 305 px had two-row heads)
     // 1920 × 1080: 726 px, 347 px, 252 px, 539 px → one plate.
     const mid = basePlan({stageHeight: 726, starBox: 347, slot: 252, column: 539, answer: false})!;
     expect(mid.cells).toBe(1); expect(mid.height).toBeGreaterThanOrEqual(112);

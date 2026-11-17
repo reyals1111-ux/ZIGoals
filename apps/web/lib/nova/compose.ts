@@ -227,7 +227,7 @@ export function starPlan({count, floorSize, floorColumn, room, stage, gap}: {cou
  * drawn only where the wings hold three tiers (a tall stage) and a plate keeps its least height, and never while an
  * answer stands under the star (the answer's card is the star's base then, and the plates rest on the band).
  */
-export const BASE_PLATE_MIN = 112, BASE_PLATE_MAX = 150, BASE_PLATE_WIDTH = 280, BASE_CELLS_MAX = 3, BASE_WORDS = 132, BASE_MARGIN = 14;
+export const BASE_PLATE_MIN = 112, BASE_PLATE_MAX = 150, BASE_PLATE_WIDTH = 330, BASE_CELLS_MAX = 3, BASE_WORDS = 132, BASE_MARGIN = 14;
 export function basePlan({stageHeight, starBox, slot, column, answer}: {stageHeight: number; starBox: number; slot: number; column: number; /** An answer stands under the star. */ answer: boolean}): {cells: number; height: number} | null {
   if (answer || wingTiers(stageHeight).length < 3) return null;
   // The stack (the name's row, the star's box, the words' slot) is centred in the stage: what is left under it, and
