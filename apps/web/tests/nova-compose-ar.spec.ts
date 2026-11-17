@@ -67,7 +67,7 @@ test('P3, S1 at 1440 × 900: the Showcase is a hero and a supporting panel a win
   const left = wing(s.panels, 'left'), right = wing(s.panels, 'right');
   expect(left.map(p => p.tier)).toEqual(['hero', 'supporting']);
   expect(right.map(p => p.tier)).toEqual(['supporting', 'hero']); // upside down: the heroes stand top left and bottom right
-  for (const [hero, support] of [[left[0]!, left[1]!], [right[1]!, right[0]!]]) {
+  for (const [hero, support] of [[left[0]!, left[1]!], [right[1]!, right[0]!]] as const) {
     expect(hero.h, `${hero.id} is taller than ${support.id} by structure`).toBeGreaterThan(support.h * 1.35);
     expect(Math.abs(hero.w - support.w)).toBeLessThanOrEqual(1);
   }
