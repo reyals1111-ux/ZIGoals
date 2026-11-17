@@ -174,7 +174,7 @@ export function starFill(count: number): number {
   return Math.min(1, (count - STAR_LARGE_UNTIL) / (STAR_FULL_FROM - STAR_LARGE_UNTIL));
 }
 /** The large star's column as a share of the stage; the bezel's width in its column and in the star's canvas; a wing's least width. */
-export const STAR_LARGE_SHARE = 0.47, BEZEL_IN_COLUMN = 0.98, BEZEL_IN_STAR = 0.9, WING_MIN = 280;
+export const STAR_LARGE_SHARE = 0.47, BEZEL_IN_COLUMN = 0.98, BEZEL_IN_STAR = 0.9, WING_MIN = 280, WING_ROWS_MIN = 318;
 export type StarPlan = {size: number; column: number};
 /**
  * The star's canvas size and its column's width beside widgets.
@@ -186,6 +186,9 @@ export type StarPlan = {size: number; column: number};
 export function starPlan({count, floorSize, floorColumn, room, stage, gap}: {count: number; floorSize: number; floorColumn: number; room: number; stage: number; gap: number}): StarPlan {
   const most = stage - 2 * WING_MIN - 2 * gap, tall = room * BEZEL_IN_STAR / BEZEL_IN_COLUMN;
   const large = Math.max(floorColumn, Math.min(stage * STAR_LARGE_SHARE, most, tall));
-  const column = large + (floorColumn - large) * starFill(count);
+  // From three widgets a wing holds a supporting panel under its hero: it keeps WING_ROWS_MIN, the least width at which a
+  // panel's head is one row (title and keys), so a 230 px supporting panel keeps its body for its instrument.
+  const stepped = large + (floorColumn - large) * starFill(count);
+  const column = count > STAR_LARGE_UNTIL ? Math.max(floorColumn, Math.min(stepped, stage - 2 * WING_ROWS_MIN - 2 * gap)) : stepped;
   return {size: Math.round(Math.max(floorSize, Math.min(room, column * BEZEL_IN_COLUMN / BEZEL_IN_STAR))), column: Math.round(column)};
 }
