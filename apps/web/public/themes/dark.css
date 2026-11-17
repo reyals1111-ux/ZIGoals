@@ -14058,6 +14058,9 @@
             box-shadow: none
         }
     }
+    .nx-flow-io b:not(#\-) {
+        color: var(--neon-ink, #f2f6ff)
+    }
     .nx-mk-figure:not(#\-) {
         color: var(--neon-ink, #fff0cf);
         text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #ffd27a) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #ffd27a) 62%, transparent)

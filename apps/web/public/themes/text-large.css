@@ -2029,6 +2029,8 @@
 @container holo-body (min-height: 300px) and (min-width: 520px) { :where(:root[data-text=large]) .nx-card[data-size=L] .nx-readout-value:not(#\-) { font-size: calc(36px * 1.125); } }
 :where(:root[data-text=large]) .nx-card[data-size] .nx-readout-value[data-long]:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .nx-card[data-size=L] .nx-readout-value[data-long]:not(#\-) { font-size: calc(28px * 1.125); }
+:where(:root[data-text=large]) .nx-flow-io:not(#\-) { font-size: calc(15px * 1.125); }
+@container holo-body (max-width: 519.98px) and (max-height: 199.98px) { :where(:root[data-text=large]) .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-size=M] .nx-readout-value:not(#\-) { font-size: calc(22px * 1.125); } }
 :where(:root[data-text=large]) .nx-mk-figure:not(#\-) { font-size: calc(40px * 1.125); }
 :where(:root[data-text=large]) .nx-mk-unit:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .nx-mk-key:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2129,6 +2131,10 @@
 @container holo-body (min-width: 640px) and (min-height: 380px) { :where(:root[data-text=large]) .nc-sees[data-size=L] .nc-sees-count b:not(#\-) { font-size: calc(64px * 1.125); } }
 @container holo-body (min-width: 640px) and (min-height: 380px) { :where(:root[data-text=large]) .nc-brain[data-size=L] .nc-brain-words:not(#\-) { font-size: calc(36px * 1.125); } }
 @container holo-body (min-width: 520px) and (max-width: 619px) { :where(:root[data-text=large]) .nc-sees[data-size=M] .nc-sees-name:not(#\-) { font-size: calc(14px * 1.125); } }
+/*  components/nova/cards/tiers.css  */
+:where(:root[data-text=large]) .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-notice .nc-notice-title:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-notice .nc-action:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-bar-label:not(#\-), :where(:root[data-text=large]) .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card .nc-bar-value:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/nova/cards/wealth-cards.css  */
 :where(:root[data-text=large]) .nc-body.nc-networth-card[data-size=M] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-spending-card[data-size=M] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-budgets-card[data-size=M] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-bills-card[data-size=M] .nc-hero-num:not(#\-) { font-size: calc(36px * 1.125); }
 :where(:root[data-text=large]) .nc-body.nc-networth-card[data-size=L] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-spending-card[data-size=L] .nc-hero-num:not(#\-), :where(:root[data-text=large]) .nc-body.nc-bills-card[data-size=L] .nc-hero-num:not(#\-) { font-size: calc(clamp(38px, 3.4vw, 50px) * 1.125); }
