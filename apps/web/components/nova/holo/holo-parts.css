@@ -1337,7 +1337,7 @@
 .nova-widget[data-tier=hero] .holo-health[data-size=M] { --tagh: 22px; --mrow: 29px; grid-template-columns: minmax(0, 1fr); align-content: center; row-gap: 8px; }
 .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-split { display: contents; }
 .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring-col { justify-self: center; max-width: none; }
-.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring { --ring: clamp(110px, min(calc(100cqh - 72px - 2 * var(--mrow) - var(--tagh) - var(--note)), 72cqi), 200px); }
+.nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring { --ring: clamp(110px, min(calc(100cqh - 50px - 2 * var(--mrow) - var(--tagh) - var(--note)), 72cqi), 200px); }
 .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meters { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; row-gap: 6px; align-content: start; }
 .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meter .holo-note,
 .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-meter-value small,
