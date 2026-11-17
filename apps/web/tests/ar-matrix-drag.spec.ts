@@ -21,11 +21,12 @@ const task = async (page: Page, id: string) => (await stored<Stored>(page, KEY))
 
 /** The four boxes in view (the mouse acts on what is on screen), then the measured points. */
 const matrixInView = (page: Page) => page.locator('.tasks-matrix').evaluate(e => e.scrollIntoView({block: 'start'}));
-async function mouseDrag(page: Page, from: Locator, to: Locator, during?: () => Promise<void>) {
+async function mouseDrag(page: Page, from: Locator, to: Locator, during?: () => Promise<void>, resting?: () => Promise<void>) {
   await matrixInView(page);
   const a = (await from.boundingBox())!, b = (await to.boundingBox())!;
   const start = {x: a.x + a.width / 2, y: a.y + a.height / 2}, end = {x: b.x + b.width / 2, y: b.y + b.height / 2};
   await page.mouse.move(start.x, start.y);
+  await resting?.();
   await page.mouse.down();
   for (let i = 1; i <= 12; i++) await page.mouse.move(start.x + (end.x - start.x) * i / 12, start.y + (end.y - start.y) * i / 12);
   await during?.();
@@ -52,12 +53,20 @@ test('a mouse drag moves a card to another box, changes only its priority, survi
   await matrixInView(page);
   const boxes = page.locator('.tasks-matrix-box');
   const places = () => boxes.evaluateAll(list => list.map(e => { const r = e.getBoundingClientRect(); return [r.x, r.y, r.width, r.height].map(v => Math.round(v) + 0); })); // + 0: a box a fraction of a pixel above the window rounds to -0, which is not 0 to toEqual (one run in seven failed on that alone)
-  const before = await places();
+  // Session AR (CI run 44020400083 on 356132e3, deliberate, stricter): the boxes are measured with the pointer resting
+  // on the card, once the hover glass (liquid-glass.tsx, mounted a moment after the page) is there and the panel's own
+  // hover lift has settled; from there to the drop, the press and the drag move nothing. Before, the measurement was
+  // taken with the pointer elsewhere and sometimes before the glass had mounted, so it passed or failed by timing; the
+  // fault it found (a press on a card held the whole panel at 99 % for the length of the drag) is fixed at its cause.
+  await expect(page.locator('.glass-light')).toBeAttached();
+  const atRest = async () => { for (let last = await places(); ;) { await page.waitForTimeout(150); const now = await places(); if (JSON.stringify(now) === JSON.stringify(last)) return now; last = now; } };
+  let before: number[][] = [];
   await mouseDrag(page, plumberTitle, urgent.locator('h3'), async () => {
     await expect(urgent).toHaveAttribute('data-drop', 'true');
     await expect(quick.locator('.task[data-dragging]')).toHaveCount(1);
+    await page.waitForTimeout(150); // longer than the press settle (90 ms), so a held press would show
     expect(await places()).toEqual(before);
-  });
+  }, async () => { before = await atRest(); expect(before).toHaveLength(4); });
   await expect(urgent).toContainText('Fictional plumber call');
   await expect(quick).not.toContainText('Fictional plumber call');
   await expect(toast(page)).toContainText('“Fictional plumber call” moved to “Urgent and important”');

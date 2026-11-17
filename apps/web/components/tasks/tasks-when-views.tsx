@@ -120,6 +120,7 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
       window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', end); window.removeEventListener('keydown', onKey, true);
       if (d) Object.assign(d.el.style, {transform: '', pointerEvents: '', position: '', zIndex: ''});
+      delete document.documentElement.dataset.cardDragging;
       setOver(null); setDragging(null); stop.current = () => undefined;
     };
     const onMove = (ev: PointerEvent) => {
@@ -129,6 +130,7 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
       if (!d.active) {
         if (Math.hypot(dx, dy) <= DRAG_SLOP_PX) return;
         d.active = true; setDragging(d.id);
+        document.documentElement.dataset.cardDragging = ''; // the hover glass (liquid-glass.tsx) lifts nothing while a card is carried
         window.getSelection()?.removeAllRanges();
         // The card is drawn above the boxes and lets the pointer find the box beneath it; its place in the list stays.
         Object.assign(d.el.style, {pointerEvents: 'none', position: 'relative', zIndex: '5'});
@@ -164,7 +166,7 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
         <p className="tasks-matrix-hint">{words.hint}</p>
         {items.length ? <ul className="tasks-list" aria-label={words.title}>{items.map(t => <TaskRow key={t.id} task={t} today={today} nowClock={clock} record={record}
           goal={t.goal ? goals.byKey.get(t.goal) : undefined} goals={goals.open} onToggle={done => list.toggle(t, done)}
-          drag={{onPointerDown: startDrag(t.id), ...(dragging === t.id ? {'data-dragging': ''} : {})} as ComponentProps<typeof TaskRow>['drag']}>
+          drag={{onPointerDown: startDrag(t.id), 'data-glass-carry': '', ...(dragging === t.id ? {'data-dragging': ''} : {})} as ComponentProps<typeof TaskRow>['drag']}>
           <div className="tasks-when-actions">
             <button type="button" className="text-link tasks-matrix-move" aria-label={`Move “${t.title}” to “${QUADRANT_WORDS[partner].title}”`} onClick={() => { if (quadrantOf(t, today) === q) move(t, partner); }}>
               {q === 'do' || q === 'plan' ? 'Not important' : 'Important'}

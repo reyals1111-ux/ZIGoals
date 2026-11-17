@@ -117,7 +117,8 @@ export function LiquidGlass() {
       }
     }
     function clear() { set(null); }
-    const dragging = () => document.documentElement.dataset.layoutDragging !== undefined;
+    // A drag in progress: layout editing, or a card carried by the pointer (Session AR: Tasks' priority matrix sets data-card-dragging).
+    const dragging = () => { const root = document.documentElement.dataset; return root.layoutDragging !== undefined || root.cardDragging !== undefined; };
 
     // Hover intent: an element lifts once the pointer rests on it for a moment, so a pointer sweeping across a
     // page (or heading straight for a click) does not set every card it crosses in motion. Leaving is immediate.
@@ -155,7 +156,9 @@ export function LiquidGlass() {
       window.clearTimeout(intent);
       if (event.pointerType !== 'touch') { pressed = {x: event.clientX, y: event.clientY}; document.addEventListener('pointermove', onMoveAfterPress, {passive: true}); }
       const found = targetsFor(event.target as Element), el = found ? (kindOf(found.inner) === 'control' ? found.card : found.inner) : undefined;
-      if (!el || still) return;
+      // Session AR: a press on something that can be carried (data-glass-carry) settles nothing around it. The settle is a
+      // brief press cue; held for the length of a drag it kept the whole card around the dragged one at 99 %.
+      if (!el || still || (event.target as Element).closest?.('[data-glass-carry]')) return;
       el.dataset.glass ??= kindOf(el); el.dataset.glassPress = '';
       const release = () => { delete el.dataset.glassPress; if (el.dataset.glassHover === undefined) disarm(el); window.removeEventListener('pointerup', release); window.removeEventListener('pointercancel', release); };
       window.addEventListener('pointerup', release); window.addEventListener('pointercancel', release);
