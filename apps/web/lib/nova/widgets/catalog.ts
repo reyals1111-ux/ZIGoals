@@ -16,8 +16,8 @@ export type WidgetPillar = 'goals' | 'habits' | 'health' | 'wealth' | 'orbit' | 
  * default), and `today` is NOVA's Today permission itself, not "any of Today, Notes or the Journal".
  */
 export type WidgetGate = 'today' | 'goals' | 'habits' | 'health' | 'wealth' | 'notes' | 'journal';
-/** Session AM (D3): the small parameters a request may set on a widget — a range of days, or one record's id. */
-export type WidgetParamName = 'range' | 'ref';
+/** Session AM (D3): the small parameters a request may set on a widget — a range of days, or one record's id. Session AS: or the period an answer was about. */
+export type WidgetParamName = 'range' | 'ref' | 'period';
 export type WidgetNeed = 'markets' | 'notes' | 'briefs';
 export type WidgetSpec = {
   id: string;

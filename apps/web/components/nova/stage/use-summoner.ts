@@ -7,7 +7,7 @@ import {readDeviceRecord} from '../../../lib/device-record';
 import type {EngineLook} from '../../../lib/nova/summon/engine-look';
 import {lineData, stageLines, type LineData, type LineWeather} from '../../../lib/nova/summon/lines';
 import {asksOf, NOVA_STAGE} from '../../../lib/nova/stage/record';
-import {isLogLine, mergeSummons, replyWidgets, stageCalls, stageOwns, summonFor, summonForTools, unsafeWords, type StageCommand, type SummonContext, type SummonLang, type SummonPlan} from '../../../lib/nova/summon/summon';
+import {FACTS_TOOL, isLogLine, mergeSummons, replyWidgets, stageCalls, stageOwns, summonFor, summonForTools, unsafeWords, type StageCommand, type SummonContext, type SummonLang, type SummonPlan} from '../../../lib/nova/summon/summon';
 import {answerWords, commandAskWords, commandWords, lineWords, ONE_TAP, stageAnswerText} from '../../../lib/nova/summon/words';
 import {getAppStorage, isShowcase, showcaseDay} from '../../../lib/showcase-storage';
 import {formatDate, formatTime} from '../../../lib/visual-format';
@@ -186,7 +186,8 @@ export function useSummoner({bridge, session, say, goals, lookupsFor, sources, e
     if (wait && wait.question === question) {
       // The on-device answer's own lookups; for a model's reply only the lookups that ran and succeeded (AM-S6): a call the
       // registry refused (a closed switch, bad arguments, no stage) is never turned into a widget or a command.
-      const ran = by === 'model' ? (lookupsFor?.(reply.id) ?? []).filter(l => l.result.ok).map(l => ({tool: l.result.tool, args: l.args})) : null;
+      // Session AS: a model's `life_facts` lookup carries the widgets of those facts in its result (never in the model's own arguments).
+      const ran = by === 'model' ? (lookupsFor?.(reply.id) ?? []).filter(l => l.result.ok).map(l => ({tool: l.result.tool, args: l.result.ok && l.result.tool === FACTS_TOOL ? {...l.args, show: l.result.data.show} : l.args})) : null;
       const calls = ran ?? (local?.reply && 'calls' in local.reply ? local.reply.calls : []).map(c => ({tool: c.tool, args: c.args ?? null}));
       // A4: what the person's model asked the stage for explicitly comes first; then the question's own widgets and the lookups'.
       const asked = by === 'model' ? stageCalls(calls, context()) : {show: [], commands: []};
@@ -194,7 +195,7 @@ export function useSummoner({bridge, session, say, goals, lookupsFor, sources, e
       // the records it read; nothing beside a card, a navigation, a refusal or a note). A model's reply: as before.
       const widgets = reply.source === 'local' && local
         ? (local.reply.kind === 'examples' && isLogLine(question, wait.plan) ? [] : replyWidgets(wait.plan, {kind: local.reply.kind, calls, card: decision}, context()))
-        : mergeSummons(asked.show, mergeSummons(wait.plan.widgets, summonForTools(calls, context())));
+        : mergeSummons(asked.show, mergeSummons(summonForTools(calls.filter(c => c.tool === FACTS_TOOL), context()), mergeSummons(wait.plan.widgets, summonForTools(calls, context()))));
       const ask: StageAsk = {text: question, by, device: bridge.device, kept: kept.current, chat: chatId};
       lines = linesFor(widgets, lang);
       if (widgets.length) { if (bridge.make(widgets, {...ask, lines})) made = widgets; } else bridge.noteAsk(ask);
@@ -204,7 +205,8 @@ export function useSummoner({bridge, session, say, goals, lookupsFor, sources, e
     // The conversation keeps the reply whole. A card to confirm or a question back is the reply's own words.
     // AM-D3: the engine's general fallback beside a made widget is never the stage's answer; the widgets' lines are.
     const own = said.current?.text === reply.text ? said.current : null; said.current = null;
-    const text = own ? own.text : stageAnswerText({made, lines, lang, reply: p?.text ?? reply.text, decision, fallback: local?.reply.kind === 'examples'});
+    const exact = reply.source === 'local' && !!local && 'calls' in local.reply && local.reply.calls.some(c => c.tool === FACTS_TOOL);
+    const text = own ? own.text : stageAnswerText({made, lines, lang, reply: p?.text ?? reply.text, decision, fallback: local?.reply.kind === 'examples', exact});
     const speaks = own ? own.widgets : made.map(w => w.id);
     bridge.answer({id: reply.id, question, text, by, decision, ...(speaks.length ? {widgets: speaks} : {})});
   }, [bridge, turns, chatId, status, localFor, lookupsFor, parsed, context, linesFor]);

@@ -87,7 +87,10 @@ export function sentenceCut(text: string, sentences = 2, max = 220): string {
  * stage's), and whenever a made widget has a line. A card to confirm or a question back keeps the reply's own words.
  * Otherwise the reply, cut at a sentence end; the conversation keeps it whole.
  */
-export function stageAnswerText({made, lines, lang, reply, decision, fallback}: {made: readonly MakeRequest[]; lines: Readonly<Record<string, string>>; lang: SummonLang; reply: string; decision: boolean; fallback: boolean}): string {
+export function stageAnswerText({made, lines, lang, reply, decision, fallback, exact = false}: {made: readonly MakeRequest[]; lines: Readonly<Record<string, string>>; lang: SummonLang; reply: string; decision: boolean; fallback: boolean;
+  /** Session AS: the reply is an exact answer to the question asked; its own words stand under the star, never a widget's general line. */
+  exact?: boolean}): string {
+  if (exact) return sentenceCut(reply);
   if (made.length && !decision && (fallback || made.some(w => lines[w.id]))) return answerWords(made, lines, lang);
   return sentenceCut(reply);
 }
