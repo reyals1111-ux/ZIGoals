@@ -1,4 +1,4 @@
-# Session AR — "NOVA, COMPOSED" (ADR-041) (2026-11-16, `feature/session-ar-nova-composed`; Draft PR, in progress, not merged, not deployed)
+# Session AR — "NOVA, COMPOSED" (ADR-041) (2026-11-16/17, `feature/session-ar-nova-composed`, Draft [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105); complete, not merged, not deployed)
 **Base:** `main` `7106630107b97cb1c131756263a97384cb719546` (Merge #101, Sessions AM, AM-2, AM-3; live as Alpha #56). **Rules (owner):** the brief for Session AR (NOVA's new composition, a bounded critique, the leftovers that need judgement), one approved plan with four approval items and the owner's change "the star makes room" (verbatim in `docs/architecture/ADR-041-session-ar.md`). Resume file: `docs/handoff/AR_RESUME.md`.
 
 ## Part 0 — records (owner-reported, 16 Nov)
@@ -7,6 +7,61 @@
 - **Rehearsal [PR #103](https://github.com/reyals1111-ux/ZIGoals/pull/103)** (`rehearsal/am-plus-an`) closed unmerged.
 - **Owner's Mac check:** the galaxy star runs.
 - **Frozen readers** are #37–#56 from now on (`scripts/frozen-readers.mjs`: #55 = `18055795`, #56 = `7106630`); both new releases pass (98 of 98 each, this head's fixtures).
+
+## Outcome in one paragraph
+NOVA's populated stage is composed anew: a hero, a supporting panel and a compact plate a wing instead of equal tiles, the right wing the left one upside down, wide wings stepping away from the star, two plates under the star as its base, and a star whose size follows how full the stage is (the owner's "the star makes room"). **The owner's bar (10 from two independent fresh critics) is not reached.** Three rounds, as bounded: star 7 / 7 → 7 / 7.5 → 8 / 7; widgets 6 / 6 → 7 / 7 → 6 / 7; stage 6 / 6 → 6 / 6 → 6.5 / 6; "no" twice, then "nearly" four times. That is where Session AM's last round stood (7–8, 7, 6–7): the new composition did not move the scores. What is still open after the last round is in ADR-041's table and in the list for the follow-up below. The leftovers that needed judgement are done, one of them carried with its cause.
+
+## Parts and their commits (`git log 71066301..HEAD`; never rebased, no merge of `main` was needed)
+| Part | What | Key commits |
+|---|---|---|
+| 0 | These records; frozen readers #55 and #56; ADR-041 with the approved plan and the owner's change; AR_RESUME | `4e1ebce0` |
+| 1 | The composition engine (`lib/nova/compose.ts`: tiers, wings, the star's plan), the grid, the star's one motion; `tests/nova-compose-ar.spec.ts` | `915c7300`, `83447e73` |
+| 2 | Tiers in the widget bodies: the HUD kinds, the kinds made on request (`cards/tiers.css`), the frame | `b50ddb3b`, `c7c0f452`, `37748cb6`, `dff20c03` … `aaf2ae4b`, `52418fc3` |
+| 3 | The star's stand-in and its honest line; round 7's faults (status strip, the read-out's amounts and dates, the phone chat's dock, a scrolled stage's edges) | `4183ab44`, `8077e812`, `0b8bda5c` |
+| 4 | Critique: round 1 → a tier is a weight, stepped wings, the read-outs aside, the planet and the states (`ea4216bf`, `1f0f560b`); round 2 → the star's base, an instrument for "Reading…", a lit planet (`a2ba9948`, `ba1525f0`); after round 3 → the lattice, the wing guides (`a4fe7e09`) | as named |
+| 5 | NOVA leftovers: the fasting range in the AI notes (TIER 3); `nova-setup:157`; the phone stillness spec (carried) | `46634139`, `1f0f560b`, `bce20e16`, `431a654a` |
+| 6 | Outside NOVA: (a) the checkbox flash `e7ad44f7`; (b) "Your orbits" on Today `f66a3d53` (TIER 3), `d1c751c8`; (c) the priority matrix by mouse `b64a6d6b`, `3a77965c` | as named |
+| 7 | ADR-041 (decisions D1–D35, the critique table, B2, before and after), `AM_DEMO_TOUR.md` section 2a, this entry | `0b302ced`, `b5a0ff24`, `74a57da2`, `ac629ab5`, this commit |
+
+## Tier 3, in plain words (risk → rollback)
+- **Stored format** (`f66a3d53`): one additive device-only record, `zigoals:today-orbits:v1` (`{version: 1, shown?: boolean}`), off by default, never synced; in Export everything, restore (backup format 4 unchanged), the account erase, the data catalogue and the welcome check. Older builds ignore the key (frozen readers #37–#56). → Revert; the key is ignored.
+- **AI safety** (`46634139`): the app notes every model reads say the fasting timer's real range (a target of up to 24 hours); only the note's words change, to what Health's form and ZIGi's cards already allow. → Revert.
+- Nothing else is Tier 3: no CSP, sync, deploy-workflow, wallet, signing or key change; no new dependency or service; no budget raised.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries `Session AR (…, deliberate)` with an equally strict replacement: `hud-fit`, `hud-elements`, `hud-look` (the four read-outs step aside from three widgets; where they show is `nova-compose-ar`, "the read-outs"), `hud-fit` (the Goals pace line whole wherever drawn, and a new test that it is drawn when the Goals HUD is a hero), `hud-review2` (every ring that is drawn; today's ring is the Habits hero's instrument), `hud-elements` (the Agenda clock as a compact plate at 1920), `nova-setup:157` (leaves once the conversation is stored), `hud-motion` (waits for the stage to stop arriving, then the same two still seconds), `showcase-today-aa` (eight device cards, was seven), `ar-matrix-drag` (−0 is 0), `chat-readout.test.ts` and `fast-range.test.ts` (added cases). `hud-fit`'s counts are as they were.
+
+## Evidence
+- **Local, final head:** type-check clean; eslint 0 errors; unit suite 11,673 passed, 2 failed, both `scripts/pre-run11-setup.test.mjs` wanting Node 24.19.0 exactly (this sandbox has 24.22.1); theme sheets in sync; **frozen readers #37–#56 PASS**.
+- **Production builds, Chromium, two workers** (five builds; the last three carry the final composition):
+  - build of `ba1525f0`: desktop NOVA set 111 passed, 0 failed; the AR and Today specs with `nova-wa`, `nova-workflows`, `nova-setup`, `l7-fifth-answers` 38 passed; the keys spec 16 passed, 3 failed (this session's dimmed keys: removed, D19).
+  - build of `bce20e16`: the keys spec 19 of 19; desktop NOVA set 124 passed, 2 failed (the stand-in's class: fixed, D33; the phone stillness: D34); **phone project 27 passed, 0 failed** (91 skipped by design; `nova-setup:157` and `hud-motion` among the passes); axe on NOVA's panels and guides in three themes 6 of 6; theme parity on NOVA's routes 4 of 4.
+  - build of `431a654a` (the final code): `hud-motion`, `nova-stage-am`, `nova-compose-ar`, `hud-fit` twice each: 63 passed, 1 failed (D34); the contrast walk passes on both projects alone.
+- **B2** (Showcase, 2560 × 1440, no graphics hardware; `main` measured beside it on the same machine): 0 running animations at rest and nothing but `transform` and `opacity` animated; no `backdrop-filter` on any widget; active median 16.7 ms and 133 ms in two runs here, 133 ms on `main` (the processor-drawn star holds the compositor at its eight frames a second on both; with the star's canvas hidden the page runs at 16.7 ms); 34 s without a key: resting, 1.4–1.6 % of a core (3.2 % on `main`); hidden: 0 animations, 0.01–0.03 %. ADR-041, "B2 on the final build".
+- **Route weights** (gzip, none raised): `/app/nova` 432.3 of 458 kB, setup 444.1, the shell 431.3 of 447, `/app` 559.6 of 567, Health 530.8 of 531, Tasks 463.4 of 468, Settings 526.9 of 531, Goals 477.3 of 478.
+- **Not verified here:** anything on graphics hardware (the owner's Mac); WebKit (CI).
+
+## Not done, or only partly
+- **The 10/10 bar** (above). Named in all three rounds and not solved: long-tail kinds that are a figure and a small ring in a panel taller than their content (Goal, Spending pace, Days until, Perfect days, Time, Templates, Money tags); the 280 px heroes beside the large star at 1440 with the left bar open (two-row heads; the owner's 45 % and 1124 px of stage leave no more: ADR-041 D30); "one instrument a panel, for real" for the Health and Wealth heroes.
+- **Carried with its cause:** `hud-motion` "reduced motion: the HUD is fully still (phone)" still fails about 1 run in 8 under two workers (ADR-041 D34).
+
+## For the Opus follow-up (found here, not started)
+The brief's list stands (AP's seven copy/visual minors, CSV Value/Unit, Someday counts, Today's 92 Tab stops on Sunday evening, Zignaly "has closed" after 1 Dec, the remaining CI intermittents). New:
+1. `next dev` and `next build` stop once, in a new container, on an upgrade notice for a Next.js security advisory, and the notice asks an agent to propose an upgrade; nothing was upgraded (a dependency change is the owner's call).
+2. `tests/a11y-wcag-x.spec.ts:271` read Settings' "On" button at 1.96:1 in 1 of 7 runs under two workers (a state in transition; Settings is untouched by this branch).
+3. `tests/p3-nova-polish.spec.ts` ND-1 (1920, Showcase) waits 5 s for the opening; without graphics hardware the browser's first WebGL context is one 6 s task (also on `main`), and the test can lose that race (ADR-041 D25).
+4. `tests/ao/today-tab-stops.spec.ts` counted 91 against 90 on a dev server on 17 Nov, also without this branch's Today change; on the production builds here it passed.
+5. The planet crosses in front of the galaxy's core where the star's column is narrow (1920 with six widgets); the speaking mark reads as spikes to one critic; "STAGE 10 WIDGETS" counts the band's widgets too.
+6. `scripts/pre-run11-setup.test.mjs` fails on any Node but 24.19.0.
+
+## Owner list
+1. **Look at it on the Mac:** `git fetch origin && git checkout feature/session-ar-nova-composed && git pull`, `pnpm install --frozen-lockfile --ignore-scripts`, `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, http://127.0.0.1:3100/app/nova, then Settings → Load Showcase Demo and NOVA again. Try: **Show my habits this week**, **Show my net worth**, **Which bills are due?** (each arrives as a hero with the beam; the star steps back). `docs/handoff/AM_DEMO_TOUR.md` section 2a.
+2. **Decide D30:** at 1440 with NOVA's left bar open the large star (45 % of the stage) leaves 280 px wings; wings of 328 px would make it 37 % there.
+3. Merge and deploy are the owner's (Manual Alpha workflow, from `main`); nothing was merged, deployed or dispatched by this session.
+
+## CI on the final head
+Every push cancels the run before it, so one run finished during the session: [run 1818](https://github.com/reyals1111-ux/ZIGoals/actions/runs/43992543388) on `ea4216bf` (round 1's structure, before its spec changes): 20 of 24 jobs green (contract, integration, the Alpha gate, all four WebKit shards, the three a11y shards, ten of twelve main shards); red were main shards 2 and 4 (that head's own HUD specs, answered since), the theme-sheet check of the checks job (that head stood between a CSS commit and its regenerated sheets) and one Miniflare socket closing in `scripts/run11/domain-review-race.test.mjs` (not an assertion). The run on the head that carries this entry had not finished when it was written; its reading is added below when it has.
+
 
 # Session AP — "READY FOR FRIENDS" (ADR-040) (2026-11-14, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO + AP"; Draft, complete, not merged, not deployed)
 **Base:** Session AO's head `ca2678d7` on `main` `c65882f3`. PR #101 (AM-2) was still open and unmerged at the start and again before this entry, so no main merge was needed (owner addition 5). **Rules (owner):** the brief, one plan approval (14 Nov) with five additions, verbatim in `docs/architecture/ADR-040-session-ap.md` (decisions D1–D24, closing table). Resume file: `docs/handoff/AP_RESUME.md`. Demo: `docs/handoff/AP_DEMO_TOUR.md`.
