@@ -221,6 +221,22 @@ on a diagonal), the supporting panels, the satellites.
   *Afterwards:* run 1827 on `9ac5f0ce` (the same code) was green in all 24 jobs on its first attempt, this test
   included: it is intermittent on the runner (the task's length there sits near the spec's 5 s), not steadily red.
 
+### After CI on `356132e3` (run 44020400083)
+- **D37 A press on a matrix card held the whole Tasks panel at 99 % for the length of the drag (fixed at its cause).**
+  Main shard 1 was red on both attempts on `tests/ar-matrix-drag.spec.ts:35` (this branch's own spec; 477 passed, 1
+  failed): during the drag every box read 308 × 201 px instead of 311 × 203. The cause is in the app, not the test: the
+  app-wide hover-and-press glass (`components/liquid-glass.tsx`) gives the card around a pressed element a brief
+  "settle" (99 %) until the pointer is released, and a drag holds the pointer down, so the whole Tasks panel sat
+  shrunk while a card was carried; a hover lift could also start mid-drag. It showed only when that component had
+  mounted before the press and by how the hover timers fell, which is why run 1827 and the local runs passed on the
+  same code. Fix: a card that can be carried says so (`data-glass-carry`), and a press on it settles nothing around
+  it; while a card is carried the root carries `data-card-dragging`, which the glass reads as it reads layout editing,
+  so nothing lifts mid-drag. Nothing else in the app changes: no other element carries the attribute. The spec is
+  changed deliberately and made stricter (`Session AR (CI run 44020400083 …, deliberate, stricter)`): it waits for the
+  glass to be mounted, measures the boxes with the pointer resting on the card, and measures again 150 ms into the
+  held drag (longer than the 90 ms settle). In that form it failed on every run before the fix (two of two, with CI's
+  own numbers) and passes after it.
+
 ### Leftovers
 - **D15 The fasting range (TIER 3 AI safety).** The app notes every model reads said "12 to 18 hours"; they say "a target
   of up to 24 hours, stopped automatically at 24", as Health's form and ZIGi's cards do. Behaviour-preserving.
