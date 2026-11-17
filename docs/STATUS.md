@@ -1,3 +1,11 @@
+# Session AS — "NOVA ANSWERS EVERYTHING" (ADR-042) (2026-11-17, `feature/session-as-nova-answers`, Draft PR; in progress, not merged, not deployed)
+**Base:** `main` `e6e92a8c` (Merge [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105), Session AR). **Rules (owner):** the brief for Session AS, one approved plan with seven approval items and four additions (verbatim in `docs/architecture/ADR-042-session-as.md`). Resume file: `docs/handoff/AS_RESUME.md`. This entry is a stub until the session's final commit replaces it.
+
+## Part 0 — records (17 Nov)
+- **[PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105) (Session AR)** merged into `main` as `e6e92a8c` (owner, 17 Nov).
+- The owner's two findings on the Showcase are reproduced on `main` before any change (ADR-042, "Why this session exists").
+
+
 # Session AR — "NOVA, COMPOSED" (ADR-041) (2026-11-16/17, `feature/session-ar-nova-composed`, Draft [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105); complete, not merged, not deployed)
 **Base:** `main` `7106630107b97cb1c131756263a97384cb719546` (Merge #101, Sessions AM, AM-2, AM-3; live as Alpha #56). **Rules (owner):** the brief for Session AR (NOVA's new composition, a bounded critique, the leftovers that need judgement), one approved plan with four approval items and the owner's change "the star makes room" (verbatim in `docs/architecture/ADR-041-session-ar.md`). Resume file: `docs/handoff/AR_RESUME.md`.
 
