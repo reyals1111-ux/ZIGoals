@@ -138,5 +138,8 @@
 }
 /* Session AR (round 2: "Contri…", "Late-nigh…" beside free space): in a panel beside the star the lattice's names get
    the room they need before the streaks' notes do. */
-.nova-orbit-main[data-compose] .nova-widget[data-tier]:is([data-tier=hero], [data-tier=supporting]) :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(96px, max-content) repeat(var(--nc-cols, 7), minmax(14px, 22px)) minmax(0, 1fr); justify-content: start; }
+/* Round 3 (both critics: "the streak labels sit on top of the last day column"): the first cut of this rule let a long
+   name push the cells into the note's column. A name takes what it needs up to 44 % of the row (longer ones end in an
+   ellipsis, their whole text is their title), and the note keeps its own width. */
+.nova-orbit-main[data-compose] .nova-widget[data-tier]:is([data-tier=hero], [data-tier=supporting]) :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: fit-content(44%) repeat(var(--nc-cols, 7), minmax(14px, 22px)) minmax(max-content, 1fr); justify-content: start; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier]:is([data-tier=hero], [data-tier=supporting]) .nc-lattice-note { justify-self: end; }

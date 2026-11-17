@@ -232,3 +232,8 @@
 .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-base > .nova-widget[data-holo][data-tier] { height: var(--tier-h, var(--h-s)); min-height: 0; }
 /* The stage's frame stands clear of the panels' corners (round 2: "the corner brackets sit on panel corners"). */
 .nova-frame[data-look=holo]:not([data-phone]) .cc-hud-frame { left: -17px; right: -17px; }
+/* Session AR, round 3 (both critics: "the dashed guides at the wing edges read as debug scaffolding", "stray tick dashes
+   read as minus signs before the text" in the 280 px heroes): on the composed stage the wings' guide lines are faint, and
+   a panel too narrow for a one-row head carries no tick ruler beside its words. */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side::after { opacity: .28; }
+@container holo-panel (max-width: 284px) { .nova-orbit-main[data-compose] .nova-widget[data-holo] > .holo-ruler { display: none; } }

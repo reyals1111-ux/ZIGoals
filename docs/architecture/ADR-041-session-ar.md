@@ -175,6 +175,17 @@ on a diagonal), the supporting panels, the satellites.
   the owner's AM-2 rule. (v) *The same figure in two widgets* (Tracked wealth and the Wealth HUD): two widgets the
   person may put side by side; each is right.
 
+### After round 3 (the critique is over; only real faults)
+- **D31 Fixed after the last round, not judged by a critic.** (i) The habits lattice: round 2's rule let a long name push
+  the day cells into the streak notes' column (both critics of round 3). A name now takes what it needs up to 44 % of the
+  row and the note keeps its own width. (ii) The wings' guide lines are faint on the composed stage and a panel too
+  narrow for a one-row head carries no tick ruler beside its words ("debug scaffolding", "minus signs before the text").
+- **D32 A capture is not the product: three findings that were the capture's.** "Light equals dark" in round 1 (the tool
+  did not apply the theme in the Showcase); panels on "Reading…" in rounds 1 and 2 (a 1920 or 2560 px page drawn by the
+  processor needs 20 s; the captures wait for it now, and D27 gives that moment an instrument); the scrolled band "cut
+  under the one-tap keys" in all three rounds (a frame taken in the middle of a scroll: the stage's edges fade there, and
+  the band is whole at either end of the scroll).
+
 ### Leftovers
 - **D15 The fasting range (TIER 3 AI safety).** The app notes every model reads said "12 to 18 hours"; they say "a target
   of up to 24 hours, stopped automatically at 24", as Health's form and ZIGi's cards do. Behaviour-preserving.
@@ -199,6 +210,17 @@ on a diagonal), the supporting panels, the satellites.
 | 1 | `98d7f02d` | B | 7 | 6 | 6 | no | the same list; also heads with the title under the keys at 280 px, the read-outs under the star repeating the panels, a noisy shell |
 | 2 | `ca563dd2` | C | 7 | 7 | 6 | nearly | "the lower centre is dead at every desktop size"; a panel on "Reading…" is an empty slab; the 280 px heroes beside the large star (two-row heads, wrapped chips: "fewer widgets should mean wider panels"); long-tail kinds as text in a tall panel; a heavy shell; the planet "a hole punched in the art"; the desktop star weaker than the phone's |
 | 2 | `ca563dd2` | D | 7.5 | 7 | 6 | nearly | the same; also the stage's corner brackets on panel corners, a dead band at the top of the phone's chat, the scrolled band under the one-tap keys, "Contri…", "Late-nigh…" |
+| 3 | `ba1525f0` | E | 8 | 6 | 6.5 | nearly | the habits lattice's streak labels on its last column (this session's round-2 rule; fixed after the round, D31); long-tail plates that are text with a small ring (Goal, Spending pace, Days until, Perfect days, Time); the 280 px heroes' two-row heads; "one instrument a panel, for real" (the Health and Wealth heroes stack several); the shell's chrome; the speaking mark "a sea urchin"; the planet in front of the core in a narrow column |
+| 3 | `ba1525f0` | F | 7 | 7 | 6 | nearly | the same lattice fault; the 280 px heroes; empty lower thirds in the long tail; at 1440 the star "a sliver between the wings with an empty pit under the greeting"; a wing of only locked plates; the planet "a flat grey ball" |
+
+**The outcome, plainly.** The owner's bar (10 from two fresh critics on the star, the widgets and the stage) is **not
+reached**. Three rounds, as bounded: star 7 / 7 → 7 / 7.5 → 8 / 7; widgets 6 / 6 → 7 / 7 → 6 / 7; stage 6 / 6 → 6 / 6 →
+6.5 / 6. Verdicts: "no" twice, then "nearly" four times. Session AM's last round stood at star 7–8, widgets 7, stage
+6–7: the new composition did not move the scores. What every round's critics named at the references' level: the star's
+four states (told apart by the bezel alone since round 2), the Health and Habits heroes, the Wealth and Net worth lines,
+the frames, Weather and Sun, the answer card, the phone's star. What they named in all three rounds and this session did
+not solve: the long tail of kinds (a figure and a small ring in a panel taller than its content), the 280 px heroes
+beside the large star at 1440 (D30), and a shell they find heavy (outside the scope).
 
 **Round 1, read honestly.** Both critics scored below Session AM's last round (star 7–8, widgets 7, stage 6–7). Two of
 their findings were this session's capture tool, not the product (the theme was not applied in the Showcase, so "light"
@@ -206,8 +228,47 @@ equalled "dark"; three panels were caught on "Reading…" because a 2560 px wind
 rest was real and is answered by structure, not polish (D19–D24): a tier became a weight, the wings step, the read-outs
 step aside, and the star's planet and states were redrawn.
 
+## B2 on the final build (owner addition B2; measured 17 Nov on the build of `ba1525f0`)
+The Showcase's full stage (ten widgets) at 2560 × 1440, production build, Chrome without graphics hardware (every pixel
+and the star itself are the processor's work). `main` (`71066301`) was built and measured on the same machine in the
+same quarter of an hour, because this container is not the one Session AM measured on.
+
+| | this branch | `main` |
+|---|---|---|
+| Running animations at rest; properties animated | 0; none | 0; none |
+| Widgets with a `backdrop-filter` | 0 of 10 | 0 of 10 |
+| Active, 4 s: frames, median, 95th percentile, main-thread share | 61, 16.7 ms, 133 ms, 4.8 % | 35, 133 ms, 150 ms, 1 % |
+| Processor slowed 4× | 49, 16.7 ms, 167 ms, 16.5 % | 28, 167 ms, 183 ms, 33 % |
+| No key, tap or request for 34 s (10 s measured) | resting, 16.7 ms median, 1.4 % of a core | resting, 16.7 ms, 3.2 % |
+| Hidden (5 s) | 0 animations, 1 sky frame, 0.03 % of a core | 0, 1, 0.03 % |
+
+Read with care: with the star's canvas hidden the same page runs at 16.7 ms a frame (212 frames in 3.5 s), so the slow
+frames are the processor-drawn star (eight frames a second by rule E2) holding the compositor, on `main` and here alike;
+a first run of this branch read 33 frames and a 133 ms median, as `main`'s did. Nothing this session added shows as a
+cost: the base strip, the tiers' blooms, the keys' opacity, the stepped wings and the bezel each left the frame time
+where it was when removed one at a time. While a widget is made and while the star changes size only `transform` and
+`opacity` animate (`nova-stage-am2`'s guard and `nova-compose-ar`). Not measured: graphics hardware (the owner's Mac).
+Route weights (gzip, no budget raised): `/app/nova` 432.3 of 458 kB, `/app/nova/setup` 444.1, the shell 431.3 of 447,
+`/app` 559.6 of 567, `/app/health` 530.8 of 531, `/app/tasks` 463.4 of 468, `/app/settings` 526.9 of 531, `/app/goals`
+477.3 of 478; every route "ok".
+
 ## Before and after, per surface
-Filled at the end.
+| Surface | Before (`main` `71066301`) | After |
+|---|---|---|
+| Populated stage, 2560 × 1440 (Showcase) | Two columns of equal panels (four Medium on the left; three Medium and two Small on the right), one on the band; the read-outs under the star | A Large hero, a supporting panel and a compact plate a wing, the right wing upside down, wings stepping away from the star; two plates under the star as its base; eight of ten in the first view; the read-outs aside |
+| 1920 × 1080 | Two Medium and one Small a wing | A hero (363 px), a supporting panel (242 px) and a plate (121 px) a wing; one plate under the star |
+| 1440 × 900, full | Two equal Medium panels a wing (288 px each) | A hero (345 px) and a supporting panel (230 px) a wing; the star exactly `main`'s (bezel 377 px) |
+| 1440 × 900, one or two widgets | The same star as with ten (bezel 377 px, 33.5 % of the stage) | The large star: bezel 514 px, 45.7 % of the stage; one hero a wing (280 px wide: D30) |
+| The star's size | Fixed by the width | Follows how full the stage is, in one transform; never below `main`'s |
+| A request | The widget joins the shorter column | It arrives as its wing's hero; two requests are the two heroes; older ones step down |
+| The star while it starts | The small SVG orb; no line if its code never loads | Its own bezel, dimmed, with a dim core; the still picture and an honest line when its code did not load |
+| The star's states | Thin marks on the standby bezel | The standby bezel steps back; each state is its own heavy shape |
+| The planet | A dark disc with a thin limb | A globe lit from the core |
+| The conversation | "435.59 EUR", "2026-11"; a ring read from a list's first row; "Go to" the widget made last | "€435.59", "Nov 2026"; the ring from the answer's first line; "Go to" the answer's own widget; the phone's keys one row once a conversation runs |
+| Empty stage | Calm | Calm; its star takes the room the name's row leaves (476 px at 1440 × 900, was 398 px) |
+| Tablet, Bento, Focus, Minimal, arranging | — | Unchanged code paths |
+| Phone | The star, the answer, the strip | The same; the chat's dock is 234 px of a 768 px sheet (was 320 px) and the conversation starts under its head |
+
 
 ## Closing table
 Filled at the end (each part: commits and evidence).
