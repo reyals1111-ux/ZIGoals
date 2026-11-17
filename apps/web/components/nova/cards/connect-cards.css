@@ -399,6 +399,12 @@
   .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-size=M] .nx-readout-value { font-size: 22px; }
   .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-lay=dial][data-size=M] > .nx-main:not([data-keep]) { display: none; }
 }
+/* Under 172 px (1440's supporting panels are about 150 px of body) a list of meters cannot stand whole beside a figure
+   whose label takes two lines and a foot of two: the figure and its words stay, the meters are the hero's and the
+   table's ("+4 more" lay over the foot). */
+@container holo-body (max-width: 519.98px) and (max-height: 171.98px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-lay=hero][data-size=M] > .nx-main:not([data-keep]) { display: none; }
+}
 
 /* Savings challenges in a narrow tiered panel: each card is its ring, its kind and its goal (the sentence under them is
    in the table), and the cards never spill upward over the head when the panel is short. */
