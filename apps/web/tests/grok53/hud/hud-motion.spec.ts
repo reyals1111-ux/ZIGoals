@@ -18,7 +18,17 @@ for (const [label, viewport] of [['computer', {width: 1440, height: 900}], ['pho
     await freshNova(page, {preset: 'command', waterTarget: true, ...(mode === 'Motion Off' ? {motion: 'off' as const} : {})});
     await expect(frame(page)).toHaveAttribute('data-hud-motion', 'still');
     await expect(page.locator('.nova-widget[data-holo]').first()).toBeVisible();
-    await page.waitForTimeout(800);
+    // Session AR (hud-motion on a phone under two workers, deliberate; the three stillness checks below are unchanged):
+    // the still sky is drawn again whenever the stage's size changes, and on a busy machine the panels' own code (each
+    // body is its own chunk) and the star's report arrive later than the 800 ms this spec used to wait, so the sky's
+    // one redraw for the new height fell inside the two seconds that must be still (2 frames became 4). The spec now
+    // waits until the stage has stopped arriving — no panel is still reading, and the page's height and the sky's
+    // frame count have not changed for 600 ms — and then demands the same two still seconds. A sky that kept
+    // drawing would never settle and fails here.
+    await expect(page.locator('.nova-stage-area .nova-reading')).toHaveCount(0, {timeout: 15_000});
+    const arrived = () => page.evaluate(() => `${document.documentElement.scrollHeight}/${document.querySelector('.nova-stage-area')!.scrollHeight}/${(window as Window & {__zgHudFrames?: number}).__zgHudFrames ?? 0}`);
+    await expect(async () => { const a = await arrived(); await page.waitForTimeout(600); expect(await arrived()).toBe(a); }).toPass({timeout: 15_000});
+    await page.waitForTimeout(200);
     expect(await runningInNova(page)).toEqual([]);
     const stage = page.locator('.nova-stage-area'), frames = await skyFrames(page), before = await stage.screenshot({animations: 'allow'});
     await page.waitForTimeout(2000);
