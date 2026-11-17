@@ -1,6 +1,6 @@
 # ADR-041 — Session AR: "NOVA, COMPOSED"
 
-- **Status:** in progress (branch `feature/session-ar-nova-composed`, Draft PR; not merged, not deployed)
+- **Status:** complete (branch `feature/session-ar-nova-composed`, Draft [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105); not merged, not deployed)
 - **Base:** `main` `7106630107b97cb1c131756263a97384cb719546` (Merge #101), live as Alpha #56
 - **Scope sources:** the owner's brief for Session AR (16 Nov 2026); ADR-038 Q11–Q13 (rounds 4–7 of the critique and what
   they left open); `docs/design/NOVA_AM_ART_DIRECTION.md`; `review/session-am-refs` (43 owner mockups; still the bar).
@@ -218,6 +218,8 @@ on a diagonal), the supporting panels, the satellites.
   a test or a person can see it end (6.1–6.9 s to "done" as before), and the galaxy would arrive 2.1 s late on a first
   visit with graphics hardware. The star's start is as on `main`. What would fix it is the probe off the main thread
   (a worker with an OffscreenCanvas), which needs a look at the content policy's worker rule: the owner's call.
+  *Afterwards:* run 1827 on `9ac5f0ce` (the same code) was green in all 24 jobs on its first attempt, this test
+  included: it is intermittent on the runner (the task's length there sits near the spec's 5 s), not steadily red.
 
 ### Leftovers
 - **D15 The fasting range (TIER 3 AI safety).** The app notes every model reads said "12 to 18 hours"; they say "a target
