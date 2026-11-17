@@ -214,6 +214,13 @@
 .nova-chat-sheet .ncx-requests .ns-onetap > .ns-chip:not(#\-) { height: 100%; white-space: nowrap; }
 .nova-chat-sheet .ncx-requests .ns-chip-dot { display: inline-block; }
 @container ncx-dock (max-width: 340px) { .nova-chat-sheet .ncx-requests .ns-onetap > .ns-chip:not(#\-):not(#\-) { white-space: normal; } .nova-chat-sheet .ncx-requests .ns-chip-dot:not(#\-) { display: none; } }
+/* Session AR (ADR-038 Q12, round 7: "the phone's chat spends about two fifths of the screen on its footer"): once the
+   conversation has a turn, the six keys are ONE row that slides sideways (each still 44 px tall and whole; the row is
+   theirs to start a conversation with, and three rows of them stood between every answer and the field). The dock goes
+   from about 320 px to about 230 px of a 768 px sheet; an empty conversation keeps the grid. */
+.nova-chat-sheet .ncx-dock[data-started] .ncx-requests .ns-onetap:not(#\-):not(#\-):not(#\-) { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; padding-bottom: 2px; }
+.nova-chat-sheet .ncx-dock[data-started] .ncx-requests .ns-onetap > .ns-chip:not(#\-):not(#\-) { flex: 0 0 auto; white-space: nowrap; scroll-snap-align: start; }
+.nova-chat-sheet .ncx-dock[data-started] .ncx-requests .ns-onetap::-webkit-scrollbar { display: none; }
 /* The console's star (round 6 on the phone's sheet; round 7 on a computer too): NOVA's galaxy (the star's own still
    picture, in the person's accent) inside the state bezel, with the mark's four-point spark at its core. A still
    picture: only the bezel's arc turns, where motion is allowed. */
@@ -255,3 +262,7 @@
   .ncx-fig { color: inherit; text-shadow: none; }
   .ncx-bar > i { border: 1px solid CanvasText; } .ncx-bar > i[data-lit] { background: CanvasText; }
 }
+/* Session AR (round 2, both critics: "a dead band of about 190 px between the header and the first message"): on a phone
+   the conversation starts under its head, where the star stands, and grows down (it hung from the dock, with the spine
+   alone above it). */
+.nova-chat-sheet .nova-chat-log > :first-child { margin-top: 0; }

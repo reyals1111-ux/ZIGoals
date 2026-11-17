@@ -10,6 +10,7 @@ import {AO_CATALOG_LABELS} from '../ao-device-keys';
 import {AP_CATALOG_LABELS} from '../ap-device-keys';
 import {AM_CATALOG_LABELS} from '../am-device-keys';
 import {AM2_CATALOG_LABELS} from '../am2-device-keys';
+import {AR_CATALOG_LABELS} from '../ar-device-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -128,6 +129,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   novaOutbox: [AM2_CATALOG_LABELS.novaOutbox[0], AM2_CATALOG_LABELS.novaOutbox[1]],
   // Session AM-2 (step 4c): the person's own agent and tool servers on this computer (addresses and switches; never a token).
   novaAgent: [AM2_CATALOG_LABELS.novaAgent[0], AM2_CATALOG_LABELS.novaAgent[1]],
+  // Session AR (lib/ar-device-keys.ts): whether "Your orbits" shows on Today.
+  todayOrbits: [AR_CATALOG_LABELS.todayOrbits[0], AR_CATALOG_LABELS.todayOrbits[1]],
 };
 /** Session AM (ADR-038 D18): the one record of which only a part travels, in the words the Data health page shows. */
 export const NOVA_PARTLY_SYNCED_LABEL = 'NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)';

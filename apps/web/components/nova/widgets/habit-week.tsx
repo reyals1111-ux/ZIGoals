@@ -14,13 +14,13 @@ import '../cards/life-cards.css';
  * Session AM (ADR-038; art direction §4, Habits): "Habits this week" in cyan — today's habits done of those due, and a
  * lattice with one row per active habit and the last seven days ending today (done, partly done, not done, not due, still
  * to come), each row's current streak beside it. Every figure is the Habits page's own (lib/nova/cards/habit-week.ts).
- * S: the hero. M: the hero and four rows. L: eight rows, the week's total, the longest streak and the key to the cells.
+ * S: the hero. M: the hero and the rows that fit (up to eight). L: eight rows, the week's total, the longest streak and the key to the cells.
  * AM-2: today is a ring gauge beside its figure, the week a lattice of lit glass cells, and at Large the week's total is
  * a second ring and the longest streak wears the streak rings (three lit rings: an emblem, not a measure).
  */
 const KEY: readonly (readonly [WeekCell, string])[] = [['done', 'Done'], ['part', 'Partly'], ['missed', 'Not done'], ['rest', 'Not due'], ['ahead', 'Still to come']];
 export default function HabitWeekWidget({size}: {size: CardProps['size']; params?: CardProps['params']}) {
-  const shown = usePillarShown('habits'), habits = useHabits(), rows = size === 'L' ? 8 : 4;
+  const shown = usePillarShown('habits'), habits = useHabits(), rows = 8; // Session AR: a Medium body offers eight rows too (it was four) and the whole-rows fitter shows those that fit: as a hero it left its lower third empty under "+3 more"
   const week = useMemo(() => habits.loaded && !habits.error ? habitWeek(habits.data.habits, habits.today, rows) : null, [habits.loaded, habits.error, habits.data, habits.today, rows]);
   if (!shown) return <HoloHidden pillar="Habits"/>;
   if (!habits.loaded) return <HoloReading/>;

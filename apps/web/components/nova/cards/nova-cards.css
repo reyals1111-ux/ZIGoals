@@ -187,6 +187,12 @@
 
 /* Round 4: the requests stand in the middle of what the panel leaves above its foot (a short list left the lower third blank). */
 .nc-requests:not([data-size=S]) > .nc-requests-rows { margin-block: auto; }
+/* Session AR (Part 2): on the composed stage when and where a request was made is never cut ("Yesterday · 10:51 P…"):
+   it wraps, and the whole-rows fitter keeps the rows that still fit (the list overflows downward only: `safe` below). */
+.nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-requests .nc-request-meta { white-space: normal; overflow: visible; text-overflow: clip; }
+/* The list's row never shrinks under its rows (it overlapped "+2 earlier" in a short panel): what does not fit runs past
+   the body, where the fitter sees it and keeps one row fewer. */
+@container holo-body (min-height: 1px) { .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-requests:not([data-size=S]) > .nc-requests-rows { grid-template-rows: minmax(min-content, 1fr) auto; } }
 /* Round 4: in a narrow panel "+2 earlier, in Behind the intelligence → Requests" takes two lines instead of ending in
    "→ R…" (the rows are measured as they are laid out, so the line's real height is what the list makes room for). */
 .nc-requests-rows > .wr-more { white-space: normal; overflow: visible; text-overflow: clip; }
@@ -197,8 +203,8 @@
 .nc-requests:not([data-size=S]) .nc-request::before { width: 12px; height: 12px; left: -1px; }
 @container holo-body (min-height: 1px) {
   .nc-requests:not([data-size=S]) > .nc-requests-rows { flex: 1 1 0; min-height: 0; margin-block: 0; grid-template-rows: minmax(0, 1fr) auto; }
-  .nc-requests:not([data-size=S]) > .nc-requests-rows > .nc-requests-list { height: 100%; grid-auto-rows: minmax(min-content, 76px); align-content: center; }
-  .nc-requests:not([data-size=S]) .nc-request { align-content: center; }
+  .nc-requests:not([data-size=S]) > .nc-requests-rows > .nc-requests-list { height: 100%; grid-auto-rows: minmax(min-content, 76px); align-content: safe center; }
+  .nc-requests:not([data-size=S]) .nc-request { align-content: safe center; }
 }
 /* The words keep the row's whole width (they were cut at "Show my habits this…" beside the time); when and where is the line under them, and "Show again" is the key at the row's end. */
 .nc-requests:not([data-size=S]) .nc-request { grid-template-columns: minmax(0, 1fr) auto; }

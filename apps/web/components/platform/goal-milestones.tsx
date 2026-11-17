@@ -22,6 +22,7 @@ import {formatDate} from '../../lib/visual-format';
 import {StarToggle} from '../checklist/star-toggle';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {revealField} from '../../lib/primitives/field-focus';
+import {useHeldTick} from '../use-held-tick';
 import { plural } from '../../lib/plural';
 import {dropMilestoneOn, insertMilestoneAfter, moveMilestone} from '../../lib/goals/milestone-templates';
 import {reorderKey} from '../../lib/habits-order/reorder';
@@ -44,11 +45,10 @@ export function GoalMilestonesModule({goal, current, update, run: runAction, tod
   // the cross-tab lock (a later task), so React put the box back unticked at the end of the click until the store answered: the
   // person saw (and a screen reader said) "not checked" for a moment. The person's tick is held here until that save settles;
   // then the stored value shows again (ticked when saved, unticked with the error when the save was refused).
-  const [ticking, setTicking] = useState<Record<string, boolean>>({});
+  // Session AR (6a): the same hold, now the shared hook (components/use-held-tick.ts), keyed by the milestone's id.
+  const held = useHeldTick();
   const tick = (m: Milestone, done: boolean) => {
-    setTicking(t => ({...t, [m.id]: done}));
-    void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done} : x))), done ? `Milestone done: “${m.title}”.` : `Milestone open again: “${m.title}”.`)
-      .finally(() => setTicking(t => { if (t[m.id] !== done) return t; const rest = {...t}; delete rest[m.id]; return rest; }));
+    void held.tick(m.id, done, () => run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done} : x))), done ? `Milestone done: “${m.title}”.` : `Milestone open again: “${m.title}”.`));
   };
   const run: typeof runAction = (action, said) => { setError(''); return runAction(action, said); };
   const failAdd = (form: HTMLFormElement, cause: unknown, field: 'title' | 'target' | 'date') => { setError(plainErrorMessage(cause, 'Check the milestone.'), field); const el = form.querySelector(`[name="${field}"]`); if (el instanceof HTMLElement) requestAnimationFrame(() => revealField(el)); };
@@ -91,7 +91,7 @@ export function GoalMilestonesModule({goal, current, update, run: runAction, tod
           // Session AA-Cloud Part 6: Undo puts the milestone back in its place, with its date.
           showUndo({timeoutMs: REMOVAL_UNDO_MS, message: `“${m.title}” removed.`, restore: async () => { await update(s => withMilestones(s, goal.id, list => list.some(x => x.id === m.id) ? list : [...list.slice(0, Math.max(0, at)), m, ...list.slice(Math.max(0, at))])); if (before) { try { dates.update(d => setMilestoneDate(d, goal.id, m.id, before)); } catch { /* the milestone is back; its date can be set again */ } } }, undone: `“${m.title}” is back.`}); }, `“${m.title}” removed.`)}>Remove milestone</button></div>{error && <p role="alert" className="field-error">{error}</p>}
       </form> : <div className="goal-milestone-row" data-dragging={dragged === m.id || undefined} onDragOver={e => { if (dragged && dragged !== m.id) e.preventDefault(); }} onDrop={e => { e.preventDefault(); const from = dragged ?? e.dataTransfer.getData('text/plain'); setDragged(null); if (!from || from === m.id || !goal.milestones.some(x => x.id === from)) return; const next = dropMilestoneOn(goal.milestones, from, m.id), title = goal.milestones.find(x => x.id === from)!.title; void run(() => update(s => withMilestones(s, goal.id, list => dropMilestoneOn(list, from, m.id))), `“${title}” moved to position ${next.findIndex(x => x.id === from) + 1} of ${next.length}.`); }}>
-        <label className="checkbox"><input type="checkbox" checked={ticking[m.id] ?? m.done} disabled={closed} onChange={e => tick(m, e.target.checked)} />{m.title}</label>
+        <label className="checkbox"><input type="checkbox" checked={held.shown(m.id, m.done)} disabled={closed} onChange={e => tick(m, e.target.checked)} />{m.title}</label>
         <small>{[m.target ? `at ${money(m.target)}` : '', date ? `by ${formatDate(date)}` : '', state === 'reached' ? 'reached by your recorded progress' : state === 'done' ? 'done' : date && date < today ? 'past its date' : ''].filter(Boolean).join(' · ')}</small>
         {!closed && <StarToggle item={{kind: 'goal-step', goalId: goal.id, milestoneId: m.id}} label={m.title}/>}
         {!closed && <button type="button" className="quiet" aria-label={`Edit milestone ${m.title}`} onClick={() => setEditing(m.id)}>Edit</button>}

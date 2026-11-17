@@ -9,6 +9,7 @@ import {createPortal} from 'react-dom';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {CHESS_CACHE} from '../../lib/skills/chess/schema';
 import {TODAY_CARDS,shownCards,toggleCard} from '../../lib/today-cards/store';
+import {TODAY_ORBITS,orbitsShown,setOrbitsShown} from '../../lib/today-orbits/record';
 /** Session W Part 14: what asks chess.com and Lichess again, loaded only while a Chess widget is on Today. */
 const ChessTodayRefresh=lazy(()=>import('../chess/chess-today'));
 // Session AA-Cloud Part 8: the cards kept on this device load after the page (weights).
@@ -184,6 +185,8 @@ export function TodayDashboard(){
  const chessCache=useDeviceRecord(CHESS_CACHE);
  const averageGoals=useAverageGoals();
  const todayCards=useDeviceRecord(TODAY_CARDS),deviceCards=todayCards.loaded&&!todayCards.unreadable?shownCards(todayCards.data):[];
+ // Session AR (6b): "Your orbits", its own device record (zigoals:today-orbits:v1), off until turned on while arranging Today.
+ const todayOrbits=useDeviceRecord(TODAY_ORBITS),orbitsOn=todayOrbits.loaded&&!todayOrbits.unreadable&&orbitsShown(todayOrbits.data);
  const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone),...(averageGoals.loaded&&!averageGoals.unreadable?{averages:averageGoals.data.goals}:{}),...(chessCache.loaded&&!chessCache.unreadable?{chess:chessCache.data}:{})};
  const [customize,setCustomize]=useState(false),[editor,setEditor]=useState<DashboardWidget|'new'|null>(null),[preset,setPreset]=useState<DashboardPreset|null>(null),[status,setStatus]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  // Session AL (NB-166, P-NB-53): once a goal exists, an un-arranged Today shows "Your destinations" (display only; while
@@ -405,7 +408,7 @@ export function TodayDashboard(){
     <p role="status" className="dashboard-save-status">{status}</p>{error&&<p role="alert">{error}</p>}
     {widgetArea.mounted?<div className="dashboard-layout-grid"><LayoutRegion region="main" items={regionItems('main')} onMove={(id,to,order)=>placeAt('main',id,to,order)}/></div>:<div className="dashboard-widget-reserve" aria-hidden="true"/>}
    </section>
-   {platform.loaded&&habits.loaded&&health.loaded&&(deviceCards.length>0||customize&&todayCards.loaded&&!todayCards.unreadable)&&<LoadBoundary quiet><Suspense fallback={null}><TodayDeviceCards shown={deviceCards} customize={customize} onToggle={id=>{try{todayCards.update(c=>toggleCard(c,id));}catch{setError('This device refused to save that card choice.');}}} platform={platform.data} quotes={market.quotes} now={now} today={today} habits={habits.data} health={health.data} goals={goals}/></Suspense></LoadBoundary>}
+   {platform.loaded&&habits.loaded&&health.loaded&&(deviceCards.length>0||orbitsOn||customize&&todayCards.loaded&&!todayCards.unreadable)&&<LoadBoundary quiet><Suspense fallback={null}><TodayDeviceCards shown={deviceCards} customize={customize} onToggle={id=>{try{todayCards.update(c=>toggleCard(c,id));}catch{setError('This device refused to save that card choice.');}}} orbits={todayOrbits.loaded&&!todayOrbits.unreadable?{shown:orbitsOn,onToggle:()=>{try{todayOrbits.update(r=>setOrbitsShown(r,!orbitsOn));}catch{setError('This device refused to save that card choice.');}}}:null} platform={platform.data} quotes={market.quotes} now={now} today={today} habits={habits.data} health={health.data} goals={goals}/></Suspense></LoadBoundary>}
    {gameOn&&uiPrefs.loaded&&!uiPrefs.unreadable&&!!uiPrefs.data.today?.gameWidgets?.length&&<LoadBoundary quiet><Suspense fallback={null}><TodayGameCards/></Suspense></LoadBoundary>}
   </div>
   {/* Gate C design review (finding 9): For you (and the Showcase's "Make Today yours") follow the main column in reading

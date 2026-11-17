@@ -15,5 +15,8 @@
 .tasks-matrix-box h3 { margin: 0; font-size: 17px; }
 .tasks-matrix-box h3 small { font-size: 14px; font-weight: 500; color: var(--text-secondary, var(--muted)); }
 .tasks-matrix-hint { margin: 2px 0 8px; font-size: 14px; color: var(--text-secondary, var(--muted)); }
-.tasks-matrix-box .task[draggable=true] { cursor: grab; }
+/* Session AR (6c): the pointer drag (a mouse or a pen); the card moves by a transform, so nothing else moves. */
+@media (pointer: fine) { .tasks-matrix-box .task { cursor: grab; } }
+.tasks-matrix[data-dragging] { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+.tasks-matrix .task[data-dragging] { cursor: grabbing; outline: 2px solid currentColor; outline-offset: 2px; }
 @media (max-width: 767.98px) { .tasks-matrix { grid-template-columns: minmax(0, 1fr); } }

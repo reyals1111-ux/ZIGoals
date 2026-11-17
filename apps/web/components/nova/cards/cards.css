@@ -79,7 +79,7 @@
 /* A teaching or locked panel hugs its content: the frame makes it one unit tall once it knows the body is only a notice
    (widget-grid.tsx reads that when the body's size changes). In a fitted panel the notice is therefore one pixel taller
    than its panel: that change of size is what tells the frame, whatever the body held before ("Reading…"). */
-@container holo-body (min-height: 1px) { .nova-widget-inner > .nc-notice { min-height: calc(100cqh + 1px); align-content: center; } }
+@container holo-body (min-height: 1px) { .nova-widget-inner > .nc-notice { min-height: calc(100cqh + 1px); align-content: safe center; } }
 /* The instrument column. 296–479 px of body: a ring 76 px, a plot 62 px tall; the lamp 32 px on it. */
 @container holo-body (min-width: 296px) {
   .nc-notice { --un-h: 76px; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; }
@@ -98,7 +98,7 @@
 /* A notice in a panel that kept its size (a fitted body 150 px or taller: the bento and focus arrangements): the
    instrument grows with the panel, the key is larger. */
 @container holo-body (min-height: 150px) {
-  .nc-body > .nc-notice { flex: 1 1 auto; min-height: 0; align-content: center; }
+  .nc-body > .nc-notice { flex: 1 1 auto; min-height: 0; align-content: safe center; }
   .nc-notice { padding: 0; }
   .nc-notice-title { font-size: 18px; }
   .nc-notice-text { font-size: 16px; max-width: 56ch; }
@@ -113,7 +113,7 @@
    powered down, at its real size (widgets/nx-lock-ghost.tsx; a fixed drawing per kind, nothing is read), so a stage of
    them is a cockpit with the power off: the instrument, and beside it the words over the key. Under 296 px of body the
    lock's own small dial stands in the instrument's place. */
-.nc-notice[data-kind=locked] { grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; row-gap: 2px; align-items: center; align-content: center; padding: 0; }
+.nc-notice[data-kind=locked] { grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; row-gap: 2px; align-items: center; align-content: safe center; padding: 0; }
 .nc-notice[data-kind=locked] .nc-notice-glyph { grid-row: 1 / span 2; width: 40px; height: 40px; aspect-ratio: auto; align-self: center; }
 .nc-notice[data-kind=locked] .nc-notice-words { display: contents; }
 .nc-notice[data-kind=locked] .nc-notice-title { grid-column: 2; grid-row: 1; font-size: 15px; }

@@ -22,7 +22,7 @@ const PICKS = {S: 0, M: 2, L: 3} as const;
 export default function TemplatesWidget({size = 'M'}: Partial<CardProps>) {
   const today = useLocalToday();
   const card = useMemo(() => templatesCard(TEMPLATE_CATALOGUE.map(e => ({kind: e.kind, id: e.id, area: e.area, title: e.title, ...(e.kind === 'goal' ? {goalKind: e.goal.kind} : {})})), CATALOGUE_AREAS, today, 3), [today]);
-  const picks = card.picks.slice(0, PICKS[size]), areas = card.areas.slice(0, size === 'L' ? 8 : 6);
+  const picks = card.picks.slice(0, PICKS[size]), areas = card.areas.slice(0, 8);
   return <div className="nc-body nx-card" data-size={size} data-lay="hero">
     <div className="nx-top"><Hero value={formatNumber(card.total)} unit="ideas" label="In the library">
       {size !== 'S' && <p className="nx-note">{formatNumber(card.goals)} goal templates · {formatNumber(card.habits)} habit ideas</p>}

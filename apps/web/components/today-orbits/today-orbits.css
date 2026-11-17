@@ -1,0 +1,28 @@
+/* Session AR (6b): Today's "Your orbits" card (today-orbits-card.tsx, loaded only when it is on). Health's figure, smaller,
+   side by side; the words carry every value. No motion. */
+.today-orbits { display: grid; gap: 10px; min-width: 0; }
+.today-orbits-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; }
+.today-orbits h3 { margin: 0; font-size: 17px; }
+.today-orbits-head > a.today-orbits-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 15px; }
+.today-orbits-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.today-orbit { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; padding: 8px 10px; border: 1px solid var(--line, rgba(128, 128, 160, .25)); border-radius: 16px; }
+.today-orbit svg { width: 64px; height: 64px; overflow: visible; }
+.today-orbit-words { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.today-orbit h4 { margin: 0; font-size: 16px; }
+.today-orbit p { margin: 0; font-size: 15px; }
+.today-orbit-status { font-weight: 650; }
+.today-orbits .fine { margin: 0; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.today-orbits-empty p, .today-orbits-empty li { font-size: 15px; }
+.today-orbits-empty p { margin: 0 0 4px; }
+.today-orbits-empty ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+/* The figure's parts (the same drawing as Health → Activity, components/health/plus/plus.css), in the pillar colours. */
+.today-orbit[data-orbit="steps"] { --ap-orbit: var(--pillar-health, #ff74be); }
+.today-orbit[data-orbit="minutes"] { --ap-orbit: var(--pillar-habits, #23eaff); }
+.today-orbit[data-orbit="workouts"] { --ap-orbit: var(--pillar-goals, #9273ff); }
+.today-orbit .ap-orbit-track { fill: none; stroke: currentColor; stroke-opacity: .45; stroke-width: 2; stroke-dasharray: 2 6; }
+.today-orbit .ap-orbit-arc { fill: none; stroke: var(--ap-orbit); stroke-width: 7; stroke-linecap: round; }
+.today-orbit .ap-orbit-planet { fill: var(--ap-orbit); stroke: var(--panel, #0b1a2c); stroke-width: 2; }
+.today-orbit .ap-orbit-sun { fill: var(--ap-orbit); fill-opacity: .3; }
+/* Not known yet: the planet waits at the start, outlined, and nothing of the track is coloured. */
+.today-orbit[data-known="false"] .ap-orbit-planet { fill: none; stroke: var(--ap-orbit); }
+@media (max-width: 479.98px) { .today-orbits-list { grid-template-columns: minmax(0, 1fr); } }

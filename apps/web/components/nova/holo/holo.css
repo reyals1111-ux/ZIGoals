@@ -227,7 +227,8 @@
 .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-body {
   flex: 1 1 0; min-height: 0; container: holo-body / size; overflow: clip; overflow-clip-margin: 8px; }
 /* The instrument fills its panel (centred in it), so a panel never ends in an empty slab. */
-.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner { display: flex; flex-direction: column; justify-content: center; min-height: 100%; }
+/* Session AR: `safe` — a body that does not fit goes down, where the whole-rows fitter sees it, never up over the head. */
+.nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner { display: flex; flex-direction: column; justify-content: safe center; min-height: 100%; }
 .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo] .nova-widget-inner > * { flex: none; }
 /* A list scrolls inside its panel (every row reachable; never faded); so does an instrument that still could not fit. */
 .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-fit=scroll] .nova-widget-body, .nova-frame:not([data-phone]) [data-holo-fit] .nova-widget[data-holo][data-cut] .nova-widget-body {

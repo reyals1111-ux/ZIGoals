@@ -18,7 +18,8 @@ import '../cards/connect-cards.css';
  * entry counts whole under each of its tags, so tags do not add up to a total, and the widget says so. Only entries the
  * money log still holds count. One currency leads; another is named apart, never converted. Read only.
  */
-const SHOWN = {S: 0, M: 3, L: 6} as const;
+// Session AR (Part 2): a medium body offers six tags and shows the ones that fit whole (a hero at 1920 holds more than three).
+const SHOWN = {S: 0, M: 6, L: 8} as const;
 export default function MoneyTagsWidget({size = 'M', params}: Partial<CardProps>) {
   const shown = usePillarShown('wealth'), tags = useDeviceRecord(MONEY_TAGS_RECORD), log = useDeviceRecord(MONEY_LOG), today = useLocalToday(), range = params?.range;
   const card = useMemo(() => moneyTagsCard(tags.data, log.data, today, range), [tags.data, log.data, today, range]);
@@ -39,7 +40,7 @@ export default function MoneyTagsWidget({size = 'M', params}: Partial<CardProps>
       {size === 'L' && more > 0 && <p className="nx-note">{more} more {more === 1 ? 'tag' : 'tags'} on Wealth.</p>}
     </div>}
     {size === 'L' && card.others.length > 0 && <div className="nc-facts">{card.others.slice(0, 2).map(o => <Fact key={o.currency} label={`Also tagged in ${o.currency}`} value={`${o.tags} ${o.tags === 1 ? 'tag' : 'tags'} · never converted`}/>)}</div>}
-    {size === 'L' && <p className="nx-note">An entry counts under each of its tags, so tags do not add up to a total.</p>}
+    {size === 'L' && <p className="nx-note" data-extra="">An entry counts under each of its tags, so tags do not add up to a total.</p>}
     {foot}{table}
   </div>;
 }

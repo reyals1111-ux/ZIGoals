@@ -1,6 +1,6 @@
 import {isValidElement, type ReactElement, type ReactNode} from 'react';
 import {describe, expect, it} from 'vitest';
-import {countOf, gaugeOf, gaugeWords, litFigures} from '../../components/nova/chat/nova-readout';
+import {countOf, gaugeOf, gaugeWords, litFigures, readoutFigures, writtenFigures} from '../../components/nova/chat/nova-readout';
 
 /**
  * Session AM-2 (conversation console): an answer in NOVA's conversation is a read-out. Its figures are lit for the eye
@@ -50,5 +50,27 @@ describe('the instrument reads its caption and its count from the answer\'s own 
   it('draws no dial when the answer opens with anything else', () => {
     for (const words of ['You spent 435.59 EUR this month.', 'Next bill: Rent, €950.00, due in 16 days.', '5 km in 30 min.', '12.5 kg down since March.', '2026-12-01 is the next due date.', 'Habits is off for NOVA.', '12345 steps today.', ''])
       expect(countOf(words), words).toBeNull();
+  });
+});
+
+describe('Session AR: stored shapes are written as the pages write them (for the eye; the turn keeps its text)', () => {
+  it('dollars and euros take their sign; the value is the same to the cent', () => {
+    expect(writtenFigures('You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR.')).toBe('You spent €435.59 this month. Biggest: Groceries €187.10.');
+    expect(writtenFigures('Room to spend this week: 144.40 EUR of 200.00 EUR.')).toBe('Room to spend this week: €144.40 of €200.00.');
+    expect(writtenFigures('1,250.00 USD left')).toBe('$1,250.00 left');
+  });
+  it('a stored day and a stored month are written as dates', () => {
+    const year = new Date().getFullYear();
+    expect(writtenFigures(`Your budgets for ${year}-11:`)).toBe(`Your budgets for Nov ${year}:`);
+    expect(writtenFigures(`due ${year}-12-01.`)).toMatch(/^due [A-Z][a-z]{2}, Dec 1\.$/);
+    expect(writtenFigures('since 2019-03-09')).toMatch(/Mar 9, 2019$/);
+  });
+  it('anything else stays exactly as written', () => {
+    for (const words of ['1,200 ZIG staked', '950.00 GBP', '12.5 EUR', '3 of 7 habits', 'version 2026-13', '2026-02-31 is no day', 'call 0031-20-1234567', 'ratio 10-20', 'No figures here.', '435.599 EUR'])
+      expect(writtenFigures(words), words).toBe(words);
+  });
+  it('the read-out lights the written figures', () => {
+    expect(text(readoutFigures('Fun: spent 24.00 EUR (36.00 EUR left)'))).toBe('Fun: spent €24.00 (€36.00 left)');
+    expect(text(litFigures('Fun: spent 24.00 EUR'))).toBe('Fun: spent 24.00 EUR'); // the plain mark still changes no character
   });
 });

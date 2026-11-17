@@ -44,6 +44,15 @@
   .nova-widget[data-holo] .nova-widget-head > h3 { padding-right: 6px; }
   .nova-widget[data-holo] .nova-widget-head .nova-widget-open { margin-left: -2px; }
 }
+/* Session AR (round 1, "TRACKED WEAL…", "HABITS THIS W…" in a 350 px wing): beside the star a panel's five keys stand
+   2 px closer still (each is the same 44 px target, 34 px apart) and the title's own right margin goes, so a title of
+   up to about 152 px is whole in a 350 px panel; a longer one still ends in an ellipsis, with its whole text as its name. */
+@container holo-panel (max-width: 399px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head :is(.ns-act, .holo-act):not(#\-) { margin-inline: -10px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head :is(.ns-act, .holo-act):not(#\-)::before { inset: 8px 10px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head > h3:not(#\-) { padding-right: 2px; letter-spacing: -.005em; }
+  .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head .nova-widget-open:not(#\-) { margin-left: -4px; }
+}
 /* A panel too narrow for the title and the keys on one row: the title takes the first row, the keys the second. */
 @container holo-panel (max-width: 284px) {
   /* Round 4 (the stage beside an open conversation): the two rows look deliberate. The keys are one group at the right
@@ -217,3 +226,14 @@
   .ns-answer-meta .ns-link > svg { display: none; }
   .ns-answer-text { font-size: 16px; line-height: 1.4; -webkit-line-clamp: calc(var(--ns-lines, 3) + 1); line-clamp: calc(var(--ns-lines, 3) + 1); }
 }
+/* Session AR, round 1 ("the title sits on a second row under the keys, with an empty left half on the first row": the
+   280 px heroes beside the large star): on the composed stage a head of two rows reads title first, then its keys as one
+   bar across the panel (quick actions at its left end, Pin / Hide / Close in the middle, the page's arrow at its right). */
+@container holo-panel (max-width: 284px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head:not(#\-) { justify-content: space-between; row-gap: 2px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head > h3:not(#\-) { order: 0; }
+}
+/* Session AR (round 2): a panel whose gate is not known yet shows its instrument powered down, not a word in a slab. */
+.ns-reading { display: grid; place-items: center; align-content: center; gap: 8px; min-height: 100%; }
+.ns-reading > .nx-lockghost { display: block; grid-column: auto; grid-row: auto; height: clamp(44px, 52cqh, 220px); opacity: .6; }
+.ns-reading > .nova-reading { margin: 0; }

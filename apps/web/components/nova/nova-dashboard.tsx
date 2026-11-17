@@ -1,6 +1,6 @@
 'use client';
 import {useRouter} from 'next/navigation';
-import {Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type UIEvent} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {useShowcase} from '../showcase-controls';
 import {useChainChoice} from '../chain/use-chain-choice';
@@ -17,6 +17,8 @@ import {greetingFor, openingSkippedNote, type NovaOrbState} from '../../lib/nova
 import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full / Calm / Off
 import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, resizeWidget, restoreWidgets, swapWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
+import {basePlan, starPlan} from '../../lib/nova/compose';
+import {STAR_NO_CODE_TEXT, STAR_WAIT_MS} from '../../lib/nova/core/no-code';
 import {HUD_PRESET_LABEL, HUD_PRESET_PLAN, phoneColumn, presetShown, presetWidgets, setHudLook, setHudPreset, type HudLook, type HudPreset} from '../../lib/nova/layout';
 import {BURST_MS, isTextEntry, shortcutKind, typedLetter} from '../../lib/nova/holo/keys';
 import {useHudRecord} from './holo/hud-record';
@@ -146,7 +148,11 @@ function useWingWidth(frame: {current: HTMLElement | null}, on: boolean): number
       setWing(was => was === next ? was : next);
     };
     read();
+    // Session AR: the wing and the star's column are watched too. On the composed stage the column is set in px a render
+    // after the stage's width changes ("the star makes room"), so the wing can change while the stage's own box does not;
+    // the console then kept the width of a wing that no longer was (66 px wider than it: p3-nova-polish ND-7).
     const observer = new ResizeObserver(read); observer.observe(main); observer.observe(centre);
+    for (const part of main.querySelectorAll<HTMLElement>(':scope > .nova-orbit-side[data-side=right], :scope > .nova-orbit-centre')) observer.observe(part);
     return () => observer.disconnect();
   }, [frame, on]);
   return wing;
@@ -200,6 +206,24 @@ export default function NovaDashboard() {
   // Session AM-2 (ADR-038 "AM-2", E3, E4): what stands in the centre (the star, its still picture, or the SVG orb) and the honest line under it.
   const [starReport, setStarReport] = useState<StarReport | null>(null), starDraws = !!starReport && starReport.shows !== 'orb';
   const onStarReport = useCallback((report: StarReport) => setStarReport(report), []);
+  // Session AR (ADR-038 Q12, round 7: "the band's heading and lower row are sliced by the strips above and below with no
+  // fade"): while the stage is scrolled its top and bottom edges fade (stage/command-centre.css). The mark is written on
+  // the element itself when it changes (no render, nothing per frame); at rest, unscrolled, there is no mask at all.
+  const markScrolled = useCallback((event: UIEvent<HTMLDivElement>) => {
+    const el = event.currentTarget, on = el.scrollTop > 8;
+    if ((el.dataset.scrolled !== undefined) !== on) { if (on) el.dataset.scrolled = ''; else delete el.dataset.scrolled; }
+  }, []);
+  // Session AR (ADR-041 P4; ADR-038 Q12, carried): while the star starts, its stand-in is the star's own bezel with a dim
+  // core (it was the small SVG orb, a different object). A star whose code fails to load, or has not arrived after
+  // STAR_WAIT_MS, is the galaxy's still picture with its honest line; if it arrives after all, the star takes over.
+  const [starMounted, setStarMounted] = useState(false), [starFailed, setStarFailed] = useState(false), [starWaited, setStarWaited] = useState(false);
+  const onStarMount = useCallback(() => setStarMounted(true), []), onStarFail = useCallback(() => setStarFailed(true), []);
+  useEffect(() => {
+    if (starMounted || starFailed) return;
+    const timer = window.setTimeout(() => setStarWaited(true), STAR_WAIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [starMounted, starFailed]);
+  const starLost = !starReport && (starFailed || (starWaited && !starMounted)), starStandIn = starReport ? undefined : starLost ? 'picture' as const : 'starting' as const;
   const [starHold] = useState(() => starDebug().hold);
 
   const novaUpdate = nova.update;
@@ -471,6 +495,19 @@ export default function NovaDashboard() {
   // itself has no model at work, so the stage holds "thinking" for a moment and "speaking" while the answer is new; the
   // conversation's own state (a model listening, thinking, speaking) always leads.
   beamRuns.current = hudMove.state === 'full' && !phone;
+  // Session AR (ADR-041 S2): the star's change of size when the stage fills or empties is one short motion — the canvas
+  // takes its new size at once and the star's button eases from the old scale to the new (a transform; nothing else is
+  // animated). Motion Off, reduced motion, a resting or hidden HUD and a window resize are instant.
+  const starNow = useRef<{size: number; count: number; move: boolean} | null>(null), starWas = useRef<{size: number; count: number} | null>(null);
+  useLayoutEffect(() => {
+    const now = starNow.current, was = starWas.current;
+    if (!now) return;
+    starWas.current = {size: now.size, count: now.count};
+    if (!was || !now.move || was.size === now.size || was.count === now.count) return;
+    const el = root.current?.querySelector<HTMLElement>('.nova-orb-button[data-star]');
+    if (!el || typeof el.animate !== 'function') return;
+    el.animate([{transform: `scale(${(was.size / now.size).toFixed(4)})`}, {transform: 'none'}], {duration: 620, easing: 'cubic-bezier(.2, .7, .2, 1)'});
+  });
   const answerKey = answerNow && !chatOpen ? answerNow.id : '';
   useEffect(() => {
     if (!freshKey && !answerKey) return;
@@ -515,6 +552,17 @@ export default function NovaDashboard() {
   // Session AM-2 (conversation console): beside the console the star keeps to its own column (the console is not glass:
   // nothing of the star may lie behind it), so its ellipse is whole beside the console.
   const starCapNow = consoleMode === 'over' ? Math.min(starCap, Math.max(300, Math.round(starColumn * 1.06))) : starCap;
+  // Session AR (ADR-041 S1, S2, "the star makes room"): on the composed stage (the Holo orbit on a computer, three columns
+  // with room for a hero: lib/nova/compose.ts) the star's column and size follow how full the stage is. With one or two
+  // widgets it is the large star (its bezel at least 45 % of the stage where the wings keep their least width); from three
+  // widgets it steps down, and from six it is exactly the size and column it had before this session (`floor`). The
+  // column always holds the whole bezel, so no widget covers it and the star lies over no widget's content.
+  const stageInner = Math.min(hudWide - 40, hudWide - 40 >= 1700 ? 2320 : 1560), composedStage = holo && !phone && layout === 'orbit' && !editing && stage.shown.length > 0 && stageInner > 1040;
+  const floorColumn = stageInner >= 1700 ? (stageInner - 56) * 1.5 / 3.5 : (stageInner - 40) * 1.1 / 3.1;
+  const floorSize = Math.round(Math.max(240, Math.min(Math.min(starCapWide, Math.max(300, Math.round(floorColumn * (stageInner >= 1700 ? 1.15 : 1.45)))), starRoom)));
+  // The large star gets the room the name's row really takes (88 px, not the 124 px kept beside a full stage).
+  const starRoomLarge = (hudRoom - starSlot - 88) / 0.46;
+  const plan = composedStage ? starPlan({count: consoleMode === 'over' ? 99 : stage.shown.length, floorSize, floorColumn, room: starRoomLarge, stage: stageInner, gap: stageInner >= 1700 ? 28 : 20}) : null;
   // Session AM-3 (round 6; the phone's stage, deliberate): on a phone the star is the hero inside its own bezel (the tick
   // ring and the four pillar arcs, stage/phone-stage.tsx), as wide as the phone allows (four fifths of its width, up to
   // 320 px) and as tall as the first screen leaves after NOVA's words and the strip of instrument cards under it; the
@@ -525,14 +573,22 @@ export default function NovaDashboard() {
   // its still frame was drawn, and the frame was drawn again.
   const phoneUnder = (phoneSays ? 197 : width < 360 ? 99 : 75) + (showcase ? 38 : 0) + (hudMove.state === 'still' || (starReport && (starReport.why || starReport.always)) ? 22 : 0) + (phoneWidgets.length ? 102 : 0) + 6;
   const phoneD = Math.round(Math.max(150, Math.min(width * .8, 320, (phoneFirst ?? height - (height >= 740 ? 290 : 205)) - phoneUnder)));
-  const starSize = phone ? (holo ? Math.min(340, Math.round(phoneD * 1.12)) : 300) : Math.round(Math.max(240, Math.min(starCapNow, starRoom))), starBox = phone ? (holo ? phoneD : 126) : Math.round(Math.max(240, Math.min(hudWide > 900 ? starCalm : starCap, starRoom)) * 0.46); // round 7: 0.46 of the star (it was 0.42), so the words under it clear the bezel
-  const star = <LoadBoundary quiet><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} column={stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} beam={beam} onReport={onStarReport}/></Suspense></LoadBoundary>;
-  const starWhy = starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
+  // Session AR (S2): the calm stage's star is the large star too (the same room), so the first widget made beside it does not make it jump.
+  const calmSize = Math.round(Math.max(240, Math.min(starCalm, holo && !phone && layout === 'orbit' && hudWide - 40 > 1040 ? starRoomLarge : starRoom)));
+  const starSize = phone ? (holo ? Math.min(340, Math.round(phoneD * 1.12)) : 300) : plan ? plan.size : stage.shown.length ? Math.round(Math.max(240, Math.min(starCapNow, starRoom))) : calmSize, starBox = phone ? (holo ? phoneD : 126) : plan ? Math.round(plan.size * 0.46) : Math.round(Math.max(240, Math.min(hudWide > 900 ? (stage.shown.length ? starCalm : calmSize) : starCap, stage.shown.length ? starRoom : calmSize)) * 0.46); // round 7: 0.46 of the star (it was 0.42), so the words under it clear the bezel
+  starNow.current = {size: starSize, count: stage.shown.length, move: !phone && !!plan && hudMove.state === 'full'};
+  const star = <LoadBoundary quiet onFail={onStarFail}><Suspense fallback={null}><StarSystem state={shownOrb} hud={hudMove.state} accent={accent} phone={phone} size={starSize} column={plan ? plan.column : stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} beam={beam} onReport={onStarReport} onMount={onStarMount}/></Suspense></LoadBoundary>;
+  const starWhy = starLost ? {kind: 'picture', text: STAR_NO_CODE_TEXT} : starReport && (starReport.why || starReport.always) ? {kind: starReport.why?.kind ?? 'running', text: starReport.why?.text ?? 'The star is running', details: starReport.details, open: starReport.always} : null;
   // Design review AM-D18: from the answer, one keypress to the widget it made (the newest one that is still on the stage).
-  const answerWidget = lastMade && stage.shown.some(w => w.id === lastMade) ? {id: lastMade, title: widgetSpec(lastMade)?.title ?? 'the widget'} : null;
+  // Session AR (round 1, both critics: an answer about bills offered "Go to Habits this week"): the key names a widget
+  // of THIS answer that stands on the stage. It named the widget made last, whatever was asked since; an answer that made
+  // no widget has no such key.
+  const answerOwn = answerNow?.widgets?.find(id => stage.shown.some(w => w.id === id)) ?? (answerNow && !answerNow.widgets ? null : undefined);
+  const answerId = answerOwn === undefined ? (lastMade && stage.shown.some(w => w.id === lastMade) ? lastMade : null) : answerOwn;
+  const answerWidget = answerId ? {id: answerId, title: widgetSpec(answerId)?.title ?? 'the widget'} : null;
   const goToWidget = (id: string) => { const el = root.current?.querySelector<HTMLElement>(`article[data-widget="${id}"]`); if (el) { el.scrollIntoView({block: 'nearest'}); el.focus({preventScroll: true}); } };
   const answerLine = answerNow && !chatOpen ? <StageAnswerLine answer={answerNow} persona={persona.name} onOpen={openChat} onDismiss={() => setAnswer(null)} widget={answerWidget} onGoTo={goToWidget}/> : undefined;
-  const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starBox={starBox} starSize={starSize} starColumn={stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} starWhy={starWhy} answer={answerLine}/>;
+  const stageNode = <NovaStage persona={persona} orb={shownOrb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core} star={star} starOn={starDraws} starStandIn={starStandIn} accent={accent} starBox={starBox} starSize={starSize} starColumn={plan ? plan.column : stage.shown.length && !phone && hudWide > 900 ? Math.round(starColumn) : undefined} starWhy={starWhy} answer={answerLine}/>;
   // Session AM-3 (round 6): a phone's first screen is the star with its words and, under them, the widgets on the stage as
   // one strip of instrument cards that swipes sideways; the full panels follow under the fold, as before.
   const phoneStage = phone && holo ? <div className="ps-first">{stageNode}<LoadBoundary quiet><Suspense fallback={null}><PhoneStage part="strip" widgets={phoneWidgets} gateOpen={stage.gateOpen} counts={counts}/></Suspense></LoadBoundary></div> : stageNode;
@@ -541,7 +597,7 @@ export default function NovaDashboard() {
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen={chatOpen} collapsed={!phone && !chatOpen} stage={bridge}
     requests={<OneTap available={canShow} onAsk={askInPlace}/>}/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
-    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-chat={chatOpen || undefined} data-console={consoleMode} style={frameStyle} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined} data-soft={soft || undefined}>
+    data-left={left} data-right={right} data-stage={stage.shown.length ? 'set' : 'calm'} data-fill={composedStage && stage.shown.length > 2 ? 'full' : undefined} data-chat={chatOpen || undefined} data-console={consoleMode} style={frameStyle} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined} data-soft={soft || undefined}>
     {/* Second review m8 (lane L8f): the first stop, past the left panel and the top bar (43 stops) to the HUD itself. */}
     <a className="nova-skip" href="#nova-hud" onClick={e => { e.preventDefault(); root.current?.querySelector<HTMLElement>('#nova-hud')?.focus({preventScroll: true}); }}>Skip to the HUD</a>
     <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion && !resting && !soft} accent={accent}/></Suspense></LoadBoundary></div>
@@ -564,7 +620,7 @@ export default function NovaDashboard() {
         {!chatOpen && stage.shown.length === 0 && !answerNow && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area" id="nova-hud" tabIndex={-1}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={phoneStage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting && !soft}/>}</div>
+      <div className="nova-stage-area" id="nova-hud" tabIndex={-1} onScroll={markScrolled}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={phoneStage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting && !soft} starColumn={plan?.column} baseStrip={plan && consoleMode !== 'over' ? basePlan({stageHeight: hudRoom, starBox, slot: starSlot, column: plan.column, answer: !!answerNow && !chatOpen}) : null}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">

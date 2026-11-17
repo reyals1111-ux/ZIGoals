@@ -1,6 +1,8 @@
-# Session AM, AM-2 and AM-3 — demo tour (20 minutes)
+# Session AM, AM-2, AM-3 and AR — demo tour (23 minutes)
 
 *AM-2 ("NOVA, STUNNING") changed how everything in NOVA looks; what each step does is as in Session AM. Where the look or a step changed, this tour says so.*
+
+*Session AR ("NOVA, COMPOSED") changed how the populated stage is composed: section 2a. Everything else in this tour works as written.*
 
 Open NOVA. Everything below runs on your own computer with no model, no key and no account.
 
@@ -20,6 +22,30 @@ then http://127.0.0.1:3100/app/nova (Chrome, Edge or Safari on a computer; a win
 
 ## 2. Load the Showcase (1 minute)
 Settings → **Load Showcase Demo**, then open NOVA again. The Showcase's own arrangement stands around the star (labelled "Showcase · fictional example data"): Health in magenta (a calorie ring, lit meters, hearts), Goals in violet (three arcs and the pace chart), Habits in cyan (today's ring, streaks, the week's columns), Wealth in gold (the figure and its valuation chart), the agenda clock, Today's orbit, Tasks, Notes and Focus. Each is a hologram: cut glass with a bright rim, an inner hairline with corner marks, and a bloom in its own colour.
+
+## 2a. The composed stage (Session AR, 3 minutes)
+What to look at with the Showcase loaded, on a window of 1440 × 900 and again as wide as your screen goes:
+- **A star with satellites.** Beside the star each wing is a **hero** (a tall panel with one dominant instrument: Health's
+  calorie ring, Habits' ring for today), a quieter **supporting** panel under it and, from about 1000 px of window height,
+  a **compact plate** (one figure and a small instrument). The right wing is the left one upside down, so the two heroes
+  stand top left and bottom right, on the galaxy's long axis. On a wide screen the wings step away from the star tier by
+  tier. What does not fit beside the star rests on the band below (scroll the stage: its edges fade).
+- **The star makes room.** Close widgets until two are left (the × key in each head, or type **clear the stage** and ask
+  for two): the star grows to its large size (its bezel is at least 45 % of the stage). Ask for more (**Show my habits
+  this week**, **Show my net worth**, **Which bills are due?**): with each one the star steps back in one short motion,
+  down to the size it had before with six or more. Nothing ever covers its bezel. With Motion Off (Settings → Motion) or
+  your device's reduced motion the change is instant.
+- **A request arrives as a hero.** The widget you ask for is its wing's hero, with the beam from the star; ask again and
+  the new one takes the other wing; older ones step down to supporting, a plate, then the band. Your own S / M / L (View →
+  Arrange) is kept exactly: while arranging, the panels show in the sizes you gave them, and a widget you made Large is
+  always a hero.
+- **While the star starts** its place is already the star's: its bezel, dimmed, around a dim core. If its code cannot
+  load (offline after an update), the galaxy's still picture stands there and the line under its state says "Still
+  picture: the star's code did not load".
+- **In a state the star changes shape**: tap the star (listening: a lit ring with long ticks pointing in), ask something
+  (thinking: a thick ring in segments), and while it answers (speaking: a ticked rim with two rings).
+- **In the conversation** an amount and a date read the way the pages write them ("€435.59", "Nov 2026"); the ring beside
+  an answer is that answer's own figure; "Go to …" names the widget the answer made.
 
 ## 3. Ask, and a widget is made (4 minutes)
 Type in the command bar (or tap a chip). A request NOVA has a widget for is answered under the star, with its figure in one sentence and "Answered on this device · no AI used"; the star thinks, speaks and sends a beam to the widget it projects beside it. "Go to …" in the answer puts the keyboard on that widget. Anything else you type is a conversation: it opens at once, as it always did.

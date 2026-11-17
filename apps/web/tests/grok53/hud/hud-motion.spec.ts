@@ -18,7 +18,19 @@ for (const [label, viewport] of [['computer', {width: 1440, height: 900}], ['pho
     await freshNova(page, {preset: 'command', waterTarget: true, ...(mode === 'Motion Off' ? {motion: 'off' as const} : {})});
     await expect(frame(page)).toHaveAttribute('data-hud-motion', 'still');
     await expect(page.locator('.nova-widget[data-holo]').first()).toBeVisible();
-    await page.waitForTimeout(800);
+    // Session AR (hud-motion on a phone under two workers, deliberate; the three stillness checks below are unchanged):
+    // a still star is drawn again whenever its size changes, and on a phone its size follows what the first screen
+    // holds (the one-tap keys, the strip of cards, the line under its state). On a busy machine those arrive later than
+    // the 800 ms this spec used to wait, so the star's redraws for its new size fell inside the two seconds that must
+    // be still (2 frames became 4). The spec now waits until the stage has stopped arriving — no panel is still
+    // reading, and the page's height, the stage's, the foot's, the star's size and the frame count have not changed
+    // for a second — and then demands the same two still seconds. A stage that kept drawing never settles and fails here.
+    await expect(page.locator('.nova-stage-area .nova-reading')).toHaveCount(0, {timeout: 15_000});
+    const arrived = () => page.evaluate(() => {
+      const h = (sel: string) => Math.round(document.querySelector(sel)?.getBoundingClientRect().height ?? 0);
+      return [document.documentElement.scrollHeight, document.querySelector('.nova-stage-area')!.scrollHeight, h('.nova-foot'), h('.nova-orb-button'), h('.nova-orb-button canvas, .nova-orb-button .nova-star-picture'), (window as Window & {__zgHudFrames?: number}).__zgHudFrames ?? 0].join('/');
+    });
+    await expect(async () => { const a = await arrived(); await page.waitForTimeout(1000); expect(await arrived()).toBe(a); }).toPass({timeout: 20_000});
     expect(await runningInNova(page)).toEqual([]);
     const stage = page.locator('.nova-stage-area'), frames = await skyFrames(page), before = await stage.screenshot({animations: 'allow'});
     await page.waitForTimeout(2000);

@@ -160,3 +160,80 @@
   /* On a very wide stage each step of an ornament's spin recomposes several megapixels on the processor: there the ornaments rest too (at 1440 px they keep turning). */
   .nova-frame[data-soft] .holo-orn, .nova-frame[data-soft] .holo-lens { animation: none !important; }
 }
+
+/* ==== Session AR (ADR-041 P3, S1–S3): the composed stage — "a star with satellites" ====
+   The Holo orbit on a computer from 1040 px of stage (lib/nova/compose.ts, components/nova/widget-grid.tsx). The star's
+   column is set in px by how full the stage is (`--star-col`: S2, "the star makes room"); each wing is a grid of six
+   columns whose rows are the tiers — a hero across the wing, supporting panels (two side by side in a wide wing), compact
+   plates — with the heights the composition worked out (`--tier-h`). The right wing is the left one upside down, so the
+   heroes stand on the galaxy's long axis. Nothing here moves: the star's one-time change of size is a transform
+   (nova-dashboard.tsx). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose]:not(#\-) { grid-template-columns: minmax(0, var(--wing-l, 1fr)) var(--star-col, 420px) minmax(0, var(--wing-r, 1fr)); }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose]:is([data-wide=left], [data-wide=both]) { --wing-l: 1.3fr; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose]:is([data-wide=right], [data-wide=both]) { --wing-r: 1.3fr; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: max-content; align-content: center; gap: var(--tier-gap, 12px); }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side > .nova-widget[data-holo][data-tier] { grid-column: span var(--tier-span, 6); grid-row: var(--tier-row, auto); height: var(--tier-h, var(--h-m)); min-height: 0; }
+/* The bezel is nine tenths of the star's canvas wherever its column holds it (it was .86: the column is the bezel's own now). */
+.nova-frame[data-stage=set] .nova-orbit-main[data-compose] .nova-orb-button[data-star] { --bz: min(calc(var(--star-size, 440px) * .9), calc(var(--star-col, 440px) * .98)); }
+/* The large star's box: the name's row really takes 88 px of the stage (124 px were kept for it). */
+@container nova-stage (min-width: 1040.02px) {
+  .nova-frame[data-look=holo]:not([data-phone]) .nova-orbit .nova-orb-button[data-star] { min-height: min(var(--star-box, 0px), max(96px, calc(100cqb - var(--ns-slot) - 88px))); }
+}
+/* Session AR (ADR-038 Q12, round 7): a scrolled stage fades at its two edges instead of being sliced by the status strip
+   above and the one-tap keys below. Static; only while scrolled (nova-dashboard.tsx marks the element). */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-stage-area[data-scrolled] { -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%); }
+
+/* ==== Session AR, round 1 (both critics: "the tiers are barely visible: six panels of the same weight") ====
+   A tier is a weight, not only a height. Hero: the full hologram with a heavier rim and a wider bloom. Supporting: a
+   thinner rim, half the bloom, no ruler. Compact: a plate — a hairline rim, smaller cuts, no bloom, brackets, ruler or
+   sheen. In a wide wing the supporting panel and the plate are narrower than the hero and hang from the wing's outer
+   edge (widget-grid.tsx `--tier-w`), so each wing steps away from the star. All static. */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side > .nova-widget[data-holo][data-tier] { width: calc(100% * var(--tier-w, 1)); }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side[data-side=right] > .nova-widget[data-holo][data-tier] { justify-self: end; }
+.nova-frame:not([data-phone]) .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero]:not([data-dragging]):not(#\-) { --rim: 2.2px; }
+.nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero] > .holo-aura { box-shadow: var(--holo-bloom), 0 0 84px 8px color-mix(in srgb, var(--neon, #9273ff) 30%, transparent); }
+/* A Large hero keeps the Large panel's own magenta haze (holo.css) under the hero's. */
+.nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero][data-size=L] > .holo-aura { box-shadow: var(--holo-bloom), 0 0 84px 8px color-mix(in srgb, var(--neon, #9273ff) 30%, transparent), 0 0 90px 10px #f06dff2b; }
+.nova-frame:not([data-phone]) .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=supporting]:not([data-dragging]):not(#\-) { --rim: 1px; }
+.nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=supporting] > .holo-aura { opacity: .45; }
+.nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=supporting] > .holo-brackets { opacity: .5; }
+.nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=supporting] > .holo-ruler { display: none; }
+.nova-frame:not([data-phone]) .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=compact]:not([data-dragging]):not(#\-) { --rim: 1px; --cut: 12px; --nick: 5px; }
+.nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=compact] > :is(.holo-aura, .holo-brackets, .holo-ruler, .holo-sheen) { display: none; }
+/* The keys of a supporting panel and a plate keep their full strength. Round 1 dimmed them to 60 % until the pointer or
+   the focus was in the panel (a critic's "quiet the heads"); the keys' spec counts a key under 99 % as not shown, which
+   is the owner's AM-2 rule in a test (Pin, Hide and Close shown in every head), so the dimming is gone. */
+/* From three widgets the four read-outs under the star step aside (they repeat what the panels beside it say, and the
+   bezel's pillar arcs carry the same four): the populated stage has one hierarchy. They stay in the page, hidden as on a
+   narrower stage, and show again with one or two widgets and on the calm stage. */
+.nova-frame[data-fill=full]:not([data-phone]) .nova-stage .holo-core-readout { display: none; }
+
+/* ==== Session AR, round 1 (both critics: "the four states differ only in tick detail") ====
+   In a state the standby bezel steps back and the state's own mark carries the weight, so each state is a different
+   SHAPE at a glance: listening a heavy lit ring with long ticks pointing in, thinking a thick ring in segments, speaking a
+   ticked rim with two strong rings inside it. Static drawings; only opacity changes, once per change of state. */
+.cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: opacity .35s ease-out; }
+.cc-bezel:is([data-state=listening], [data-state=thinking], [data-state=speaking]) :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { opacity: .22; }
+.cc-state-ring { stroke-width: 2.6; }
+.cc-state-ticks { stroke-width: 8.4; }
+.cc-state-faint { stroke-width: 1.2; opacity: .8; }
+.cc-state-thinking .cc-state-ring { stroke-width: 4.2; }
+.cc-state-thinking .cc-state-faint { stroke-width: 2.4; }
+.cc-state-speaking .cc-state-ring { stroke-width: 3.2; }
+@media (prefers-reduced-motion: reduce) { .cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: none; } }
+:root[data-app-motion=off] .cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: none; }
+
+/* ==== Session AR, round 2 (D26): the star's base ====
+   Both critics: "the lower centre is dead at every desktop size". The first widgets the wings cannot hold stand under
+   NOVA's words as compact plates, in the first view (widget-grid.tsx; lib/nova/compose.ts `basePlan` gives them the room
+   the star's stack leaves, so the star keeps its size and place). Static. */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-centre { position: relative; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-base { grid-column: 2; grid-row: 1; align-self: end; z-index: 2; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--tier-gap, 12px); min-width: 0; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-base > .nova-widget[data-holo][data-tier] { height: var(--tier-h, var(--h-s)); min-height: 0; }
+/* The stage's frame stands clear of the panels' corners (round 2: "the corner brackets sit on panel corners"). */
+.nova-frame[data-look=holo]:not([data-phone]) .cc-hud-frame { left: -17px; right: -17px; }
+/* Session AR, round 3 (both critics: "the dashed guides at the wing edges read as debug scaffolding", "stray tick dashes
+   read as minus signs before the text" in the 280 px heroes): on the composed stage the wings' guide lines are faint, and
+   a panel too narrow for a one-row head carries no tick ruler beside its words. */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-side::after { opacity: .28; }
+@container holo-panel (max-width: 284px) { .nova-orbit-main[data-compose] .nova-widget[data-holo] > .holo-ruler { display: none; } }

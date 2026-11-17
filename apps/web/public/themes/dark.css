@@ -14058,6 +14058,9 @@
             box-shadow: none
         }
     }
+    .nx-flow-io b:not(#\-) {
+        color: var(--neon-ink, #f2f6ff)
+    }
     .nx-mk-figure:not(#\-) {
         color: var(--neon-ink, #fff0cf);
         text-shadow: 0 0 5px color-mix(in oklab, var(--neon, #ffd27a) 42%, transparent), 0 0 22px color-mix(in oklab, var(--neon, #ffd27a) 62%, transparent)
@@ -15903,6 +15906,14 @@
         background-image: radial-gradient(7px 7px at 100% 50%, #fff 0, color-mix(in srgb, var(--nova-b, #23eaff) 80%, #fff) 45%, transparent 100%);
         background-color: transparent
     }
+    .nova-star-standin[data-kind=starting]:not(#\-)::before {
+        background-image: radial-gradient(closest-side, color-mix(in srgb, var(--nova-c, #f06dff) 34%, transparent) 0, color-mix(in srgb, var(--nova-a, #9273ff) 22%, transparent) 38%, color-mix(in srgb, var(--nova-b, #23eaff) 8%, transparent) 72%, transparent 100%);
+        background-color: transparent
+    }
+    .nova-star-standin[data-kind=starting]:not(#\-)::after {
+        background-image: radial-gradient(closest-side, rgb(255 255 255 / .82) 0, color-mix(in srgb, var(--nova-c, #f06dff) 46%, transparent) 42%, transparent 100%);
+        background-color: transparent
+    }
 }
 /*  components/nova/guide-band.css  */
 @scope (:root[data-theme=dark]) {
@@ -17252,6 +17263,39 @@
     }
     .holo-clock .holo-track:not(#\-) {
         stroke: color-mix(in oklab, var(--neon, #7fc8ff) 20%, #0a0f2c)
+    }
+    .nova-widget[data-tier=compact] .holo-sfig small:not(#\-) {
+        color: #cdd8ee
+    }
+    .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring:not(#\-) {
+        --ring: clamp(110px, min(calc(100cqh - 50px - 2 * var(--mrow) - var(--tagh) - var(--note)), 72cqi), 200px)
+    }
+    @container holo-body (max-width: 299.98px) {
+        .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring:not(#\-) {
+            --ring: clamp(110px, min(calc(100cqh - 50px - 2 * var(--mrow) - var(--tagh) - var(--note)), 72cqi), 200px)
+        }
+    }
+    @container holo-body (min-width: 400px) {
+        .nova-widget[data-tier=hero] .holo-health[data-size=M] .holo-ring:not(#\-) {
+            --ring: clamp(110px, min(calc(100cqh - 62px - var(--note)), calc(100cqi - 222px)), 210px)
+        }
+    }
+    .nova-widget[data-tier=hero] .holo-health[data-size=L]:not(#\-) {
+        --hR: clamp(150px, min(calc(100cqh - 236px - var(--note)), 46cqi), 290px);
+        --mgap: clamp(4px, calc((var(--hR) + 18px - 174px) / 5), 16px);
+        --histo-h: clamp(48px, calc(100cqh - var(--hR) - 132px - var(--note)), 200px)
+    }
+    .nova-widget[data-tier=hero] .holo-health[data-size=L] .holo-ring:not(#\-) {
+        --ring: var(--hR)
+    }
+    .nova-widget[data-tier=hero] .holo-habits:is([data-size=M], [data-size=L]) .holo-today:not(#\-) {
+        --ring: var(--hR)
+    }
+    .nova-widget[data-tier=hero] .holo-habits[data-size=M] .holo-cols:not(#\-) {
+        --cols-h: clamp(48px, calc(var(--hR) * .6), 120px)
+    }
+    .nova-widget[data-tier=hero] .holo-habits[data-size=L] .holo-cols:not(#\-) {
+        --cols-h: clamp(56px, calc(100cqh - var(--hR) - 40px), 130px)
     }
 }
 /*  components/nova/holo/holo.css  */
@@ -19276,6 +19320,15 @@
     }
     .nova-frame[data-soft] .holo-core *:not(#\-) {
         filter: none !important
+    }
+    .nova-frame[data-stage=set] .nova-orbit-main[data-compose] .nova-orb-button[data-star]:not(#\-) {
+        --bz: min(calc(var(--star-size, 440px) * .9), calc(var(--star-col, 440px) * .98))
+    }
+    .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero] > .holo-aura:not(#\-) {
+        box-shadow: var(--holo-bloom), 0 0 84px 8px color-mix(in srgb, var(--neon, #9273ff) 30%, transparent)
+    }
+    .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=hero][data-size=L] > .holo-aura:not(#\-) {
+        box-shadow: var(--holo-bloom), 0 0 84px 8px color-mix(in srgb, var(--neon, #9273ff) 30%, transparent), 0 0 90px 10px #f06dff2b
     }
 }
 /*  components/nova/stage/phone-stage.css  */
@@ -24795,6 +24848,9 @@
     .tasks-matrix-hint:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .tasks-matrix .task[data-dragging]:not(#\-) {
+        outline-color: currentColor
+    }
 }
 /*  components/tasks/tasks.css  */
 @scope (:root[data-theme=dark]) {
@@ -25130,6 +25186,43 @@
     .today-timeline-skeleton:not(#\-) {
         background-image: none;
         background-color: #ffffff0d
+    }
+}
+/*  components/today-orbits/today-orbits.css  */
+@scope (:root[data-theme=dark]) {
+    .today-orbit:not(#\-) {
+        border-color: var(--line, rgba(128, 128, 160, .25))
+    }
+    .today-orbits .fine:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .today-orbit[data-orbit="steps"]:not(#\-) {
+        --ap-orbit: var(--pillar-health, #ff74be)
+    }
+    .today-orbit[data-orbit="minutes"]:not(#\-) {
+        --ap-orbit: var(--pillar-habits, #23eaff)
+    }
+    .today-orbit[data-orbit="workouts"]:not(#\-) {
+        --ap-orbit: var(--pillar-goals, #9273ff)
+    }
+    .today-orbit .ap-orbit-track:not(#\-) {
+        fill: none;
+        stroke: currentColor
+    }
+    .today-orbit .ap-orbit-arc:not(#\-) {
+        fill: none;
+        stroke: var(--ap-orbit)
+    }
+    .today-orbit .ap-orbit-planet:not(#\-) {
+        fill: var(--ap-orbit);
+        stroke: var(--panel, #0b1a2c)
+    }
+    .today-orbit .ap-orbit-sun:not(#\-) {
+        fill: var(--ap-orbit)
+    }
+    .today-orbit[data-known="false"] .ap-orbit-planet:not(#\-) {
+        fill: none;
+        stroke: var(--ap-orbit)
     }
 }
 /*  components/tour/tour.css  */

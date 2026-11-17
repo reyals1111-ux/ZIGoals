@@ -237,7 +237,7 @@
    own rule (how near the due date is over its last thirty days). The rows share the height their column has. */
 .nc-bills-card .nc-hero-label, .nc-bills-card[data-size=M] .nc-hero-label, .nc-bills-card[data-size=M] .nc-bills-name, .nc-bills-card[data-size=M] .nc-bills-when { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
 .nc-bills-card .nc-hero-label { letter-spacing: .08em; }
-.nc-bills-card .nc-bills-row { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "dial name amount" "dial when when" "meter meter meter"; row-gap: 0; border-top: 0; padding: 4px 0 0; align-items: center; align-content: center; }
+.nc-bills-card .nc-bills-row { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "dial name amount" "dial when when" "meter meter meter"; row-gap: 0; border-top: 0; padding: 4px 0 0; align-items: center; align-content: safe center; }
 .nc-bills-card .nc-bills-row .nc-bills-dial { grid-area: dial; grid-row: auto; align-self: center; }
 .nc-bills-card .nc-bills-row .nc-bills-name { grid-area: name; }
 .nc-bills-card .nc-bills-row .nc-bills-amount { grid-area: amount; font-size: 16px; text-shadow: 0 0 10px color-mix(in oklab, var(--neon, #ffd27a) 50%, transparent); }
@@ -249,10 +249,10 @@
 .nc-bills-meter { grid-area: meter; margin-top: 5px; height: 4px; }
 .nc-bills-card .nc-bills-list { gap: 4px; }
 @container holo-body (min-height: 1px) {
-  .nc-bills-card:is([data-size=M], [data-size=L]) > .nc-bills-after { align-self: stretch; display: grid; grid-template-rows: minmax(0, 1fr); align-content: center; }
+  .nc-bills-card:is([data-size=M], [data-size=L]) > .nc-bills-after { align-self: stretch; display: grid; grid-template-rows: minmax(0, 1fr); align-content: safe center; }
   .nc-bills-card[data-size=L] > .nc-bills-after { grid-template-rows: auto minmax(0, 1fr); }
   .nc-bills-card:is([data-size=M], [data-size=L]) > .nc-bills-after > .wr { grid-template-rows: minmax(0, 1fr) auto; min-height: 0; }
-  .nc-bills-card:is([data-size=M], [data-size=L]) > .nc-bills-after .nc-bills-list { height: 100%; grid-auto-rows: minmax(min-content, 64px); align-content: center; }
+  .nc-bills-card:is([data-size=M], [data-size=L]) > .nc-bills-after .nc-bills-list { height: 100%; grid-auto-rows: minmax(min-content, 64px); align-content: safe center; }
 }
 /* Wide (a wing at 2560): the next bill's name is a caption over its ring and its amount, at the block's whole width
    (beside the ring it had 210 px and broke: "RENT · SHOWCASE / DATA"); the rows take the rest. */
@@ -260,10 +260,14 @@
   .nc-body.nc-bills-card[data-size=M] { grid-template-columns: fit-content(50%) minmax(0, 1fr); column-gap: 24px; }
   .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-dial { --nc-d: 100; }
   .nc-body.nc-bills-card[data-size=M] .nc-hero .nc-hero-num, .nc-body.nc-bills-card[data-size=M] .nc-hero[data-len] .nc-hero-num { font-size: 38px; }
-  .nc-bills-card[data-size=M] .nc-bills-next { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "label label" "dial figure" "dial when"; column-gap: 14px; row-gap: 0; align-content: center; }
+  .nc-bills-card[data-size=M] .nc-bills-next { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "label label" "dial figure" "dial when"; column-gap: 14px; row-gap: 0; align-content: safe center; }
   .nc-bills-card[data-size=M] .nc-bills-next > .nc-bills-dial { grid-area: dial; align-self: center; }
   .nc-bills-card[data-size=M] .nc-bills-next > .nc-hero { display: contents; }
   .nc-bills-card[data-size=M] .nc-bills-next .nc-hero-label { grid-area: label; order: 0; margin: 0 0 8px; }
   .nc-bills-card[data-size=M] .nc-bills-next .nc-hero-figure { grid-area: figure; align-self: end; }
   .nc-bills-card[data-size=M] .nc-bills-next .nc-bills-when { grid-area: when; align-self: start; margin-top: 6px; }
 }
+
+/* Session AR (Part 2): a short narrow supporting panel (1440: about 280 x 150 of body) holds the next bill, its countdown
+   ring and the foot; the bills after it are the hero's and the table's (a row kept there would run over the foot). */
+@container holo-body (max-width: 519.98px) and (max-height: 199.98px) { .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nc-bills-card[data-size=M] > .nc-bills-after { display: none; } }

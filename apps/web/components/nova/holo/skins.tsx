@@ -92,6 +92,8 @@ export function HoloOrbit({size}: {size: WidgetSize}) {
       <Orn><OrnMarks/></Orn>
       <div className="holo-ring-centre"><HoloFigure text={`${summary.done}/${summary.total}`} className="holo-num-ring"/>{size !== 'S' && <small>{unit}</small>}</div>
     </div>
+    {/* Session AR (Part 2): on a compact plate the figure stands beside the ring (holo-parts.css "tiers"); elsewhere not drawn. */}
+    {size === 'S' && <p className="holo-sfig"><HoloFigure text={`${summary.done}/${summary.total}`} className="holo-num-big"/> <small>{unit}</small></p>}
     <div className="holo-orbit-side">
       <p className="holo-orbit-line">{summary.line}</p>
       {/* Round 2: what is still open on the orbit, as lit rows (the summary's own next items: lib/orbit-card/summary.ts). */}

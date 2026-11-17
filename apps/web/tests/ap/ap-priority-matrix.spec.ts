@@ -34,3 +34,4 @@ test('four boxes with their rule; the button moves a card to its partner box and
 
 // Session AP (stop rule, ADR-040 D16): moving a card by mouse drag is not confirmed in headless Chromium after two attempts
 // (Playwright's dragTo and a stepped mouse drag); the per-card move button above (keyboard and touch) is verified. Carried.
+// Session AR (6c): the mouse drag is now a pointer drag, proven in tests/ar-matrix-drag.spec.ts.

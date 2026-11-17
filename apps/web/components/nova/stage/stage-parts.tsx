@@ -57,6 +57,15 @@ export function WidgetLocked({id}: {id: string}) {
   return <CardNotice kind="locked" title={words.title} href="/app/nova#nova-permissions" action="Open Permissions" behind={<NxLockGhost id={id}/>}>{words.text}</CardNotice>;
 }
 
+/**
+ * Session AR (round 2, both critics: "a panel that only says READING… is an empty slab; give it a skeleton"): while a
+ * widget's gate is not known yet (a moment on a computer; many seconds where the processor draws the page), the panel
+ * shows its kind's instrument powered down — the fixed drawing the locked state uses, nothing read — with the word under it.
+ */
+export function WidgetReading({id}: {id: string}) {
+  return <div className="ns-reading"><NxLockGhost id={id}/><p className="nova-reading" role="status">Reading…</p></div>;
+}
+
 /** The dock: hidden widgets as chips; a tap brings one back to the stage. */
 export function StageDock({docked, onShow}: {docked: readonly StageWidget[]; onShow: (id: string) => void}) {
   if (!docked.length) return null;

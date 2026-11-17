@@ -55,6 +55,9 @@ export default function AgendaClockWidget({size}: {size: WidgetSize}) {
       {size !== 'S' && HOURS.map(([t, a]) => { const p = polar(0, 0, 30, a); return <span key={t} className="holo-dial-hour" style={{left: `${50 + p.x / 1.2}%`, top: `${50 + p.y / 1.2}%`}} aria-hidden="true">{t}</span>; })}
       {size === 'S' && <div className="holo-ring-centre"><HoloFigure text={items.length ? `${counts.done}/${counts.total}` : '—'} className="holo-num-ring"/></div>}
     </div>
+    {/* Session AR (Part 2): a compact plate (a small panel on the composed stage) shows the count as a figure beside the dial,
+        the dial its micro-instrument (holo-parts.css "tiers"); elsewhere this line is not drawn and the figure stays in the dial. */}
+    {size === 'S' && items.length > 0 && <p className="holo-sfig"><HoloFigure text={`${counts.done}/${counts.total}`} className="holo-num-big"/> <small>done</small></p>}
     {/* A small panel keeps the clock and the one next row beside it. */}
     {size === 'S' && next.length > 0 && <div className="holo-agenda-side">{rows}</div>}
     {size !== 'S' && <div className="holo-agenda-side">

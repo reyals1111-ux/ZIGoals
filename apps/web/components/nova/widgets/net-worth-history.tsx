@@ -52,7 +52,7 @@ export default function NetWorthHistoryWidget({size = 'M', params}: Partial<Card
       {card.parts.map(p => <Fact key={p.source} label={p.counted ? p.label : `${p.label} · not added`} value={p.cents === null ? 'No value that day' : money(p.cents)}/>)}
       <Fact label="Days recorded" value={`${card.recorded}${card.notOpened ? ` · ${card.notOpened} not opened` : ''}`}/>
     </div>}
-    {size === 'L' && <p className="nx-note">Net worth is your holdings plus your accounts minus your debts, as Wealth states it. The line joins the recorded days; a day you did not open Wealth is never filled in.{card.example ? ' Fictional Showcase history.' : ''}</p>}
+    {size === 'L' && <p className="nx-note" data-extra="">Net worth is your holdings plus your accounts minus your debts, as Wealth states it. The line joins the recorded days; a day you did not open Wealth is never filled in.{card.example ? ' Fictional Showcase history.' : ''}</p>}
     <CardFoot source={source} asOf={netWorthHistoryAsOf(card, on)}>{size === 'S' && card.otherCurrencies.length > 0 ? <span> · also in {card.otherCurrencies.join(', ')}, never converted</span> : null}</CardFoot>
     {table}
   </div>;
