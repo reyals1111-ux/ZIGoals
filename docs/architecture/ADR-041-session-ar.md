@@ -62,7 +62,81 @@ on a diagonal), the supporting panels, the satellites.
   their stored sizes.
 
 ## Decisions (made by the session; D-numbers are referenced from code comments)
-Filled as the work goes.
+
+### The composition (Part 1; `lib/nova/compose.ts`, `components/nova/widget-grid.tsx`, `stage/command-centre.css`)
+- **D1 Tiers are worked out, never stored.** Beside the star each widget is a hero, a supporting panel or a compact
+  plate; its body is drawn at that tier's size (hero → the Large body from 500 px of height in a wing of at least 480 px,
+  else the Medium one, at most 400 px tall; supporting → Medium; compact → Small). `zigoals:nova:v1` keeps the person's own
+  S / M / L exactly as stored (the spec reads the record after two requests).
+- **D2 A wing's rows share the stage's height 3 : 2 : 1** (a hero the person made Large weighs 4). A unit is at least
+  112 px and at most 176 px; a row that would be smaller is not made: three rows from about 700 px of stage (1920 × 1080,
+  2560 × 1440), a hero and a supporting panel from 572 px (1440 × 900), a hero and a compact plate from 460 px, one hero
+  below that. At 104 px a Medium body was cut beside the conversation's console; 112 is the least at which it is whole.
+- **D3 The right wing is the left one upside down.** The heroes stand top left and bottom right, on the galaxy's long
+  axis (its disc is tilted 21.8 degrees that way), so the eye crosses the star on a diagonal instead of scanning two
+  matching columns. The document order follows the eye in each wing (top to bottom), so Tab does too.
+- **D4 Wide wings hold more.** Two supporting panels stand side by side from 720 px of wing; compact plates need 340 px
+  each (at 2560 with the left bar open a wing is 625 px: one wide plate, not two cramped ones of 307 px with two-row heads).
+- **D5 S3 in practice.** The list's order is the order of importance (made on request first, newest first: ADR-038 D23).
+  A new widget takes the wing whose own hero is the older one, so two requests in a row are the two heroes; a widget
+  keeps its side while it stays beside the star (AM-D9) and, when its wing is full, steps down to the band, never across
+  the star. Among pinned widgets a Large one is lifted to its wing's hero place; a locked one is always a compact plate.
+- **D6 Where the composition applies.** The Holo look, the Orbit layout, a computer, a stage wider than 1040 px, not
+  while arranging. Arranging, Classic, Bento, Focus, Minimal, the tablet's widths and the phone keep AM's layout code
+  untouched (`placeOrbit`), so a place means the same before and after a move.
+
+### "The star makes room" (S1, S2; `starPlan`, `nova-dashboard.tsx`)
+- **D7 The star's size is its bezel's box.** That is what the owner's "≈ 400 px at 1440" measures on `main` (377 px with
+  the left bar open; the canvas, whose outer light dissolves toward the wings, is 511 px). The bezel's ellipse as drawn
+  reaches 0.94 of that box, so a column that holds the box holds the ring (S1); the spec works the ellipse out from the
+  drawing, because a browser reports a turned ellipse by its turned box.
+- **D8 The steps.** One or two widgets: the large star — a column of 47 % of the stage where each wing keeps 280 px (at
+  1440 with the left bar open: a 524 px column, a 514 px bezel = 45.7 % of the 1124 px stage; wings of 280 px). Three,
+  four, five widgets: a quarter of the way down each. Six or more: exactly `main`'s column and canvas (385 px and 511 px at
+  1440; 938 px and 1079 px at 2560), so the full Showcase is never smaller than before. Beside the conversation's console
+  the star is the floor's (the console is not glass).
+- **D9 The room for the large star comes from the stack, not from the widgets.** The name's row really takes 88 px of
+  the stage; 124 px were kept for it. The calm stage's star uses the same room, so the first widget made beside it does
+  not make the star jump.
+- **D10 One motion.** When the count of widgets changes the star's size, the canvas takes its new size at once and the
+  star's button eases from the old scale to the new in 620 ms (a transform; nothing else is animated). Motion Off, reduced
+  motion, a resting or hidden HUD and a window resize are instant (the spec records every animation started on the button).
+
+### The star while it starts (Part 3a; P4; ADR-038 Q12 "carried")
+- **D11 The stand-in is the star's own place.** Until the star reports, the stage draws the star's box, its bezel
+  (dimmed) and a dim core lying in the disc's plane (CSS, static). The small SVG orb stood there before: a different
+  object, and the layout jumped when the star took over.
+- **D12 A star whose code did not load says so.** When the star's chunk fails, or its code has not arrived after eight
+  seconds, the stage itself shows the galaxy's still picture (`public/nova/star/<accent>.webp`) and the line "Still
+  picture: the star's code did not load"; if the code arrives after all, the star takes over and the line goes. If the
+  picture cannot load either, the SVG orb is the last resort, as before. The line's text lives in a module of its own
+  (`lib/nova/core/no-code.ts`) so the star's governor stays out of the page's first scripts.
+
+### Round 7's real faults (Part 3b)
+- **D13 The status strip keeps one row from 700 px of centre** (it was 900): beside the console the centre is about
+  850 px and the strip broke into three rows with the Showcase label alone on the second.
+- **D14 The console writes stored shapes as the pages do.** In NOVA's read-out "435.59 EUR" reads "€435.59", "2026-11"
+  reads "Nov 2026" and a stored day reads as a date. For the eye and the ear only: the turn's own text (kept, copied,
+  shared with ZIGi's history) is unchanged, and only dollar and euro amounts with two decimals and stored dates are
+  touched (another currency, a token amount, a number stay as written). The engine's answers are ZIGi's too and are pinned
+  by its golden tests; they are not changed.
+
+### Leftovers
+- **D15 The fasting range (TIER 3 AI safety).** The app notes every model reads said "12 to 18 hours"; they say "a target
+  of up to 24 hours, stopped automatically at 24", as Health's form and ZIGi's cards do. Behaviour-preserving.
+- **D16 The checkbox flash (6a).** One shared hook (`components/use-held-tick.ts`, `lib/held-tick.ts`) holds the person's
+  tick until the save settles. The audit read every controlled checkbox: one more site had the real flash (Health's
+  grocery "Bought" box, saved through Health's asynchronous store); Session AQ's milestone box moved onto the hook
+  unchanged; the Settings switches that save asynchronously already held their own state; everything saved through a
+  synchronous device record never flashed; account, sync, wallet and signing checkboxes and the Checklist's orbit path
+  were not touched. `tests/ar-tick-at-once.spec.ts` proves the tick at once, the record across a reload and a refused save.
+- **D17 "Your orbits" on Today (6b; P1, TIER 3 stored format).** `zigoals:today-orbits:v1`, additive, device-only, off
+  by default, in Export everything, restore (backup format 4 unchanged), the account erase, the data catalogue and the
+  welcome check. Turned on and off under Customize Today → "Cards kept on this device". Health's own orbit-and-planet
+  figure, side by side in pillar colours; "Not known yet" where nothing is recorded; one keyboard stop.
+- **D18 The priority matrix by mouse (6c).** A pointer drag (mouse or pen; 8 px before it is a drag, so a click stays a
+  click; the card follows by a transform; Escape cancels) replaces the HTML5 drag that could not be confirmed. It makes
+  the same move as the card's button (same write, announcement and Undo); touch and keyboard keep the button.
 
 ## Critique rounds (at most three; two fresh critics a round, shown only the references and the newest captures)
 | Round | Build | Critic | Star | Widgets | Stage | Verdict | Remaining gaps |
