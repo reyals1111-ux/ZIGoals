@@ -27,7 +27,8 @@ export type ToolDefinition<A = Record<string, unknown>> = {
   /** Session AM (ADR-038 A4): a tool only NOVA's stage offers (the environment carries `stage`); it reads none of the person's records, so no area switch closes it. */
   /** Session AM-2 (step 4c): 'nova-agent' — the two lookups that propose a call to a tool of the person's own; only where the environment carries `agentTools` (lib/ai/tools/nova-agent.ts). */
   /** Session AM-2 (step 4b): 'nova-handoff' — the one lookup that prepares a hand-off card for the person to approve; only where the environment carries `handoffs` (NOVA's conversation, on a computer and on a phone; lib/ai/tools/hand-off.ts). */
-  surface?: 'nova' | 'nova-agent' | 'nova-handoff';
+  /** Session AS (ADR-042, approval item 4): 'facts' — `life_facts`, which reads many parts of life: each part's own switch is checked inside the lookup (lib/ai/tools/life-facts.ts), so no single area switch closes the tool itself. */
+  surface?: 'nova' | 'nova-agent' | 'nova-handoff' | 'facts';
   parameters: JsonSchema;
   args: z.ZodType<A>;
   /** The chip label for a call ("Meditate · this month"). */

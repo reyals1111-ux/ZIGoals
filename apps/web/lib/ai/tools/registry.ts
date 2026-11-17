@@ -23,6 +23,7 @@ import {G1_TOOLS} from './g1-tools';
 import {STAGE_TOOLS} from './nova-stage';
 import {HAND_OFF_TOOLS} from './hand-off';
 import {AGENT_TOOLS} from './nova-agent';
+import {LIFE_FACTS_TOOLS} from './life-facts';
 
 /**
  * The one list of ZIGi's read-only tools and the one way to run them (Session V Part 2). Every path calls `runTool`:
@@ -45,7 +46,9 @@ export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challeng
   // Session AM-2 (owner's step 4b; TIER 3 (AI safety)): a hand-off card for the person to approve (an email draft, a calendar file, a share, a link, a copy); only in NOVA's conversation, and it does nothing by itself.
   ...HAND_OFF_TOOLS,
   // Session AM-2 (step 4c): a model may PROPOSE one call to a tool of the person's own; it becomes a confirm card, never a call. Only on NOVA's surface, with a tool switched on.
-  ...AGENT_TOOLS] as unknown as readonly AnyTool[];
+  ...AGENT_TOOLS,
+  // Session AS (ADR-042, approval item 4; TIER 3 (AI tools)): the exact layer's computed facts as one read-only lookup; each part of life under its own switch.
+  ...LIFE_FACTS_TOOLS] as unknown as readonly AnyTool[];
 const BY_NAME = new Map(TOOLS.map(tool => [tool.name, tool]));
 export const toolByName = (name: string): AnyTool | undefined => BY_NAME.get(name);
 /** Release review 2 (lane RA): what a Today tool says on NOVA with Today off in NOVA → Permissions. */
@@ -58,6 +61,8 @@ export function toolBlocked(tool: AnyTool, env: ToolEnv): ToolRefusal | null {
   if (tool.surface === 'nova-agent') return env.agentTools?.offered.length ? null : refuse(tool.name, label, 'area', 'No tool of the person’s own is switched on here (NOVA → Your own agent and tools).');
   // Session AM-2 (step 4b): a hand-off card exists only in NOVA's conversation (it reads no record, so no area switch applies to it).
   if (tool.surface === 'nova-handoff') return env.handoffs ? null : refuse(tool.name, label, 'area', 'Hand-off cards are part of NOVA’s conversation, which is not open here.');
+  // Session AS: `life_facts` checks each part of life's own switch itself; on a private screen (every area closed) it does not run.
+  if (tool.surface === 'facts') return Object.values(env.areas).some(Boolean) ? null : refuse(tool.name, label, 'area', 'Paused on this private screen: nothing is read here.');
   if (tool.surface === 'nova') return env.stage ? null : refuse(tool.name, label, 'area', 'NOVA’s stage is not open here.');
   if (tool.area === 'health') return env.health && env.areas.health ? null : refuse(tool.name, label, 'gate', HEALTH_CLOSED);
   if (tool.area === 'memory') return env.notes?.length ? null : refuse(tool.name, label, 'area', 'No notes about the person are shared with ZIGi here ("Use my notes" in What ZIGi knows about me).');

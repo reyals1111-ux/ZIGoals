@@ -106,6 +106,8 @@ export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   agentTools?: AgentToolsInfo;
   /** Session AM-2 (step 4b): NOVA's conversation can show a hand-off card (an email draft, a calendar file, a share, a link, a copy) for the person to approve; set on NOVA's own environment only (lib/ai/tools/hand-off.ts). Absent: `hand_off` does not run. */
   handoffs?: true;
+  /** Session AS (ADR-042): whether a result may leave the device ('provider') or is shown here only ('local'); `life_facts` keeps the journal's days on the device unless the person shares the journal. */
+  purpose?: 'provider' | 'local';
 };
 /** `purpose`: 'provider' when the result may leave the device (the person's AI, a browser agent, the hosted relay), 'local' when it is shown here only. */
 export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' | 'local', handles = new Handles(), limits = {rows: ROWS_DEFAULT, chars: CHARS_DEFAULT}): ToolEnv {
@@ -116,5 +118,5 @@ export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' 
   // Session AI: the daily energy is about how a person feels, so it follows the Health gate like the mood.
   // Owner follow-up 2 (G8): your numbers and the cycle log describe health too, so they are not even in the environment with the gate closed.
   const nova = !health && sources.nova ? {...sources.nova, healthNumbers: undefined, cycle: undefined} : sources.nova;
-  return {...sources, nova, healthGoals: health ? sources.healthGoals ?? null : null, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits};
+  return {...sources, nova, healthGoals: health ? sources.healthGoals ?? null : null, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits, purpose};
 }

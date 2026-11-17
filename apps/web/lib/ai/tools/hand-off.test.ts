@@ -37,7 +37,12 @@ describe('hand_off: only on NOVA, and it does nothing by itself', () => {
     // The stage alone does not offer it, and it offers no stage tool: each NOVA surface carries its own mark.
     expect(availableTools(onStageOnly()).map(t => t.name)).not.toContain('hand_off');
     expect(availableTools(onNova()).map(t => t.name)).not.toEqual(expect.arrayContaining(['stage_widget']));
-    expect(availableTools(onNova()).filter(t => t.surface).map(t => t.name)).toEqual(['hand_off']);
+    // Session AS (ADR-042 approval item 4, deliberate): `life_facts` carries a surface mark too ('facts': it checks each
+    // part of life's own switch itself) and is offered wherever records are readable, NOVA and ZIGi alike; `hand_off` is
+    // still the only NOVA-surface tool here.
+    expect(availableTools(onNova()).filter(t => t.surface && t.surface !== 'facts').map(t => t.name)).toEqual(['hand_off']);
+    expect(availableTools(onNova()).filter(t => t.surface === 'facts').map(t => t.name)).toEqual(['life_facts']);
+    expect(availableTools(base()).filter(t => t.surface).map(t => t.name)).toEqual(['life_facts']);
     expect(runTool('hand_off', {kind: 'copy', text: 'hello'}, base())).toMatchObject({ok: false, reason: 'area'});
     expect(TOOLS.filter(t => t.name === 'hand_off')).toHaveLength(1); expect(toolByName('hand_off')).toBe(handOffTool);
     // WebMCP and the page tools are built from an environment without NOVA's stage.
