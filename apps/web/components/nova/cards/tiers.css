@@ -40,6 +40,8 @@
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body .nc-hero[data-len=l] .nc-hero-num { font-size: clamp(34px, calc(6px + 8.6cqi), 58px); }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body .nc-hero[data-len=xl] .nc-hero-num { font-size: clamp(28px, calc(4px + 7.2cqi), 50px); }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body .nc-hero-unit { font-size: clamp(16px, 3.4cqi, 22px); }
+/* The weather's temperature (world-cards.css) follows the same scale, never past 64 px. */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nw-weather .nw-temp-num { font-size: clamp(40px, calc(10px + 9cqi), 64px); }
 
 /* The connected cards (connect-cards.css): a hero is always stacked, the figure over its instrument, and the instrument
    takes every pixel the figure and the foot leave (no side-by-side column with a small figure in dead space). */
@@ -69,7 +71,7 @@
    sized from the ring itself (the gauge is a size container): 24 % of its width, 36–64 px. */
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body.nx-card[data-lay=dial] { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; grid-template-areas: "dial" "head" "foot"; gap: 10px; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-main:not([data-keep]) { display: none; }
-.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-dial { --nc-size: clamp(110px, min(100cqh - 112px, 100cqi - 24px), 340px); align-self: center; justify-self: center; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-dial { --nc-size: clamp(110px, min(100cqh - 136px, 100cqi - 24px), 340px); align-self: center; justify-self: center; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-head { text-align: center; justify-items: center; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] .nx-dial-figure b { font-size: clamp(30px, 24cqi, 64px); }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] .nx-dial-figure[data-len=l] b { font-size: clamp(28px, 19cqi, 56px); }
@@ -124,6 +126,8 @@
 .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nx-card[data-size=S] .nx-head > :is(.nx-cap, .nx-title) { white-space: normal; overflow: visible; text-overflow: clip; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nx-card[data-size=S] .nx-title { font-size: clamp(24px, min(100cqh - 46px, 4px + 5.4cqi), 40px); line-height: 1.1; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body { gap: 2px; }
+/* The micro-instrument of a dial card is as tall as the plate's line (it ran over the foot in a 68 px body). */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nx-card[data-size=S] > .nx-dial { --nc-size: clamp(30px, 100cqh - 46px, 72px); }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body > .nc-foot { padding-top: 4px; line-height: 1.2; }
 /* A plate under 460 px of body (1920): the panel's own title names the figure, so the label beside it is read out but
    not drawn (a word cut, or a label squeezed into a column of letters, is worse than none). It stays in the panel for
