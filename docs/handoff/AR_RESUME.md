@@ -25,33 +25,22 @@ then `git archive origin/review/session-am-refs REFERENCES.md grok | tar -x -C <
 6. Outside NOVA: (a) checkboxes keep the tick at once; (b) "Your orbits" on Today (P1, TIER 3 stored format); (c) the priority matrix by mouse drag.
 7. Finish: final build, suites, B2 at 2560 × 1440 Showcase, weights, ADR-041, `AM_DEMO_TOUR.md`, STATUS (final commit), CI, the report.
 
-## State (17 Nov, 02:00 UTC; keep current)
-**Done and pushed (head `b5a0ff24` and after):** parts 0–3; part 2 by H3 and H4 (tiers in the bodies, `cards/tiers.css`,
-the end of `holo/holo-parts.css`); round 1 of the critique (both critics: star 7, widgets 6, stage 6, "no"; ADR-041's
-table) and its answer by structure (D19–D25): tier weights, stepped wings, the read-outs aside from three widgets, the
-planet and the states, the engine (Large hero, short stage, locked rows, 328 px wings); the leftovers (fasting note
-TIER 3; 6a; 6b TIER 3 stored format; 6c); `nova-setup:157` and `ar-matrix-drag` fixed at their causes; ADR-041 D1–D25;
-`AM_DEMO_TOUR.md` section 2a. All four helpers of the budget are used.
-**Browser suites on the first production build (`98d7f02d`, desktop, two workers):** run a 97 passed, 11 failed (all
-answered since: nine by the engine or by deliberate spec changes, ND-7 by the console's re-measure, ND-1 at 1920 is
-D25); `nova-stage-am2` 19 of 19 (the keys at 1024 px under two workers included); run c 36 passed, 2 failed (both fixed).
-**Running now:** critique round 2 (captures `<scratch>/rounds/r2`, two new critics) and `suites.sh r2 desktop` on the
-second production build.
-
-**Next, in this order:** (1) round 2's scores into ADR-041; if a surface did not rise, change its structure, one more
-build, round 3 (the last). (2) `suites.sh <tag> mobile` (the phone project: `hud-motion` reduced motion on a phone and
-`nova-setup:157`), the contrast walk (`tests/a11y-wcag-x.spec.ts`), theme parity (`tests/theme-parity-af.spec.ts -g nova`),
-`tests/p6-axe-surfaces.spec.ts -g -i nova`. (3) B2 at 2560 × 1440 Showcase on the final build (`hud-perf`, and
-`<scratch>/tools/opening2.mjs` for long tasks), route weights. (4) ADR-041's "Before and after" and closing table,
-STATUS as the final commit (parts, commits, evidence, CI, the Opus list), CI read, the report.
-
-**For the Opus follow-up (found here, not started):** `next dev` and `next build` stop once on an upgrade notice for a
-Next.js security advisory (a dependency change: the owner's call); `tests/ao/today-tab-stops.spec.ts` counted 91
-against its pin of 90 on a dev server on 17 Nov (also without this branch's Today change); `showcase-today-aa`
-"arranging Today" fails on `main` too; `p3-nova-polish` ND-1 at 1920 with the Showcase can lose a 5 s race to the
-browser's first WebGL context without graphics hardware (D25); long-tail kinds as supporting panels at 1440 show a
-figure and words without an instrument (Money tags, Templates, Debt plan, Day rules); `pre-run11-setup.test.mjs` wants
-Node 24.19.0 exactly.
+## State (17 Nov, 04:00 UTC: the session is complete)
+Everything is committed and pushed; the last code head is `431a654a`, the STATUS entry follows it. Nothing was merged,
+deployed or dispatched.
+- **Done:** parts 0–7 (STATUS "Session AR" has the table). Three critique rounds: star 7 / 7 → 7 / 7.5 → 8 / 7, widgets
+  6 / 6 → 7 / 7 → 6 / 7, stage 6 / 6 → 6 / 6 → 6.5 / 6. **The 10/10 bar is not reached.** ADR-041 D1–D35, its critique
+  table, "B2 on the final build", "Before and after".
+- **Carried:** `hud-motion` "reduced motion: the HUD is fully still (phone)" fails about 1 run in 8 under two workers
+  (ADR-041 D34: two attempts made; the trigger of the two extra star frames is not found).
+- **If CI is red on the final head:** read the run; a red NOVA spec is this branch's (at most two fix attempts, then
+  record it); known here: D34 above, `p3-nova-polish` ND-1 at 1920 with the Showcase (D25), the Settings "On" button in
+  the contrast walk under load, the Miniflare socket flake in `scripts/run11`. Add the reading under "CI on the final
+  head" in STATUS as a commit of its own.
+- **What a next session would do toward the bar** (not started): the long tail of kinds as supporting panels and
+  plates (one real instrument each: Goal, Spending pace, Days until, Perfect days, Time, Templates, Money tags); the
+  owner's call on D30 (the large star against 328 px wings at 1440); the planet's orbit in a narrow column; the
+  speaking mark.
 
 ## Scratchpad tools (recreate if the container was replaced)
 `cap.mjs`: `--out --w --h --showcase --nova '<record>' --theme light|dark --ask "…" --click <selector> --hold <state> --live --phone --motion off --reduced --eval <js> --clip x,y,w,h --block/--delay <url part>`.

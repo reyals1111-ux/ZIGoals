@@ -188,6 +188,23 @@ on a diagonal), the supporting panels, the satellites.
   under the one-tap keys" in all three rounds (a frame taken in the middle of a scroll: the stage's edges fade there, and
   the band is whole at either end of the scroll).
 
+### The last verification (what it found, what is carried)
+- **D33 The stand-in has its own class.** It carried the canvas's class and stood beside the canvas for a moment before
+  the star's report; `nova-stage-am:213` reads "the star" and found two elements on the fourth build. It is
+  `.nova-star-standin` alone now, with the same place.
+- **D34 Carried: `hud-motion`, "reduced motion: the HUD is fully still (phone)", under two workers.** Two attempts, as
+  the rule allows. The spec waited a fixed 800 ms before its two still seconds; a still star is drawn again when its
+  size changes, and on a busy machine the phone's first screen (the one-tap keys, the strip, the line under the star's
+  state) arrives later than that. Attempt 1 waits until no panel is reading and the page's height, the stage's and the
+  frame count are unchanged for 600 ms; attempt 2 also watches the foot and the star's size, for a second. The three
+  stillness checks are unchanged. Result on the last build: it passes alone and in 7 of 8 runs under two workers on
+  both projects; in the eighth the star drew two more frames with none of those sizes changed. That trigger is not
+  found. CI retries a failed browser test once.
+- **D35 `nova-setup:157` and the keys at 1024 px.** `nova-setup:157` left the page within a frame of the answer's paint,
+  before the conversation's write had committed (a browser drops an uncommitted write when its page is left); it now
+  leaves once the device holds the question and its answer, and passes on both projects on three builds. The keys spec
+  at 1024 px passed under two workers on all four builds it ran on (19 of 19 on the last two); nothing in it was changed.
+
 ### Leftovers
 - **D15 The fasting range (TIER 3 AI safety).** The app notes every model reads said "12 to 18 hours"; they say "a target
   of up to 24 hours, stopped automatically at 24", as Health's form and ZIGi's cards do. Behaviour-preserving.
@@ -273,4 +290,15 @@ Route weights (gzip, no budget raised): `/app/nova` 432.3 of 458 kB, `/app/nova/
 
 
 ## Closing table
-Filled at the end (each part: commits and evidence).
+| Part | What | Result | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | STATUS records, frozen readers #55 and #56, this ADR, AR_RESUME | Done | `4e1ebce0` | frozen readers #37–#56 pass |
+| 1 | The composition engine, the star makes room (S1–S3) | Built | `915c7300`, `83447e73`, `ea4216bf`, `a2ba9948`, `ba1525f0` | 16 unit tests; `tests/nova-compose-ar.spec.ts` 9 of 9 |
+| 2 | Tiers in the bodies (HUD kinds, on-request kinds) | Built; the long tail partly | `b50ddb3b` … `37748cb6`, `dff20c03` … `aaf2ae4b`, `52418fc3` | `hud-fit`, `hud-review2`, `hud-elements` green; critics' list in the table above |
+| 3 | The stand-in and its honest line; round 7's faults; the phone | Built | `4183ab44`, `8077e812`, `0b8bda5c`, `431a654a` | 5 DOM tests; unit tests for the read-out's figures |
+| 4 | Critique, three rounds, two fresh critics each | Done; **bar not reached** (8 / 7, 6 / 7, 6.5 / 6) | `1f0f560b`, `ea4216bf`, `a2ba9948`, `a4fe7e09` | the table above |
+| 5 | NOVA leftovers: fasting note (TIER 3), `nova-setup:157`, keys at 1024, phone stillness | Fixed, fixed, holds, Carried (D34) | `46634139`, `1f0f560b`, `bce20e16`, `431a654a` | D15, D34, D35 |
+| 6a | The checkbox flash | Fixed (one more site; the audit's table in D16) | `e7ad44f7` | `tests/ar-tick-at-once.spec.ts` 2 of 2 |
+| 6b | "Your orbits" on Today (TIER 3 stored format) | Built | `f66a3d53`, `d1c751c8` | `tests/ar-today-orbits.spec.ts` 2 of 2; registry tests; frozen readers |
+| 6c | The priority matrix by mouse | Built | `b64a6d6b`, `3a77965c` | `tests/ar-matrix-drag.spec.ts` green on three builds |
+| 7 | B2 on the final build, weights, the tour, STATUS | Done | this ADR, `74a57da2` | "B2 on the final build" above |
