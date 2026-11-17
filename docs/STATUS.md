@@ -44,6 +44,7 @@ Each carries `Session AR (…, deliberate)` with an equally strict replacement: 
 ## Not done, or only partly
 - **The 10/10 bar** (above). Named in all three rounds and not solved: long-tail kinds that are a figure and a small ring in a panel taller than their content (Goal, Spending pace, Days until, Perfect days, Time, Templates, Money tags); the 280 px heroes beside the large star at 1440 with the left bar open (two-row heads; the owner's 45 % and 1124 px of stage leave no more: ADR-041 D30); "one instrument a panel, for real" for the Health and Wealth heroes.
 - **Carried with its cause:** `hud-motion` "reduced motion: the HUD is fully still (phone)" still fails about 1 run in 8 under two workers (ADR-041 D34).
+- **Carried with its cause:** `p3-nova-polish` ND-1 at 1920 × 1080 with the Showcase is red on CI (ADR-041 D36): without graphics hardware the star's first ask for WebGL is one task of about six seconds inside the opening; two fix attempts were built, measured and not kept.
 
 ## For the Opus follow-up (found here, not started)
 The brief's list stands (AP's seven copy/visual minors, CSV Value/Unit, Someday counts, Today's 92 Tab stops on Sunday evening, Zignaly "has closed" after 1 Dec, the remaining CI intermittents). New:
@@ -61,6 +62,8 @@ The brief's list stands (AP's seven copy/visual minors, CSV Value/Unit, Someday 
 
 ## CI on the final head
 Every push cancels the run before it, so one run finished during the session: [run 1818](https://github.com/reyals1111-ux/ZIGoals/actions/runs/43992543388) on `ea4216bf` (round 1's structure, before its spec changes): 20 of 24 jobs green (contract, integration, the Alpha gate, all four WebKit shards, the three a11y shards, ten of twelve main shards); red were main shards 2 and 4 (that head's own HUD specs, answered since), the theme-sheet check of the checks job (that head stood between a CSS commit and its regenerated sheets) and one Miniflare socket closing in `scripts/run11/domain-review-race.test.mjs` (not an assertion). The run on the head that carries this entry had not finished when it was written; its reading is added below when it has.
+
+**[Run 1825](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44007215591) on `bce20e16`** (the code two small commits before the final one; it was not cancelled): main shard 4 red, 496 passed and 1 failed on both attempts: `p3-nova-polish.spec.ts:62` ND-1 at 1920 × 1080 with the Showcase (the opening not ended within 5 s). Cause and the two attempts: ADR-041 D36. It is this branch's failure in the sense that `main` passes it on a retry and this branch did not; it is not fixed.
 
 
 # Session AP — "READY FOR FRIENDS" (ADR-040) (2026-11-14, `feature/session-an-ci-tooling`, [PR #102](https://github.com/reyals1111-ux/ZIGoals/pull/102) "Session AN + AO + AP"; Draft, complete, not merged, not deployed)

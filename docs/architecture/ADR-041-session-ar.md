@@ -205,6 +205,20 @@ on a diagonal), the supporting panels, the satellites.
   leaves once the device holds the question and its answer, and passes on both projects on three builds. The keys spec
   at 1024 px passed under two workers on all four builds it ran on (19 of 19 on the last two); nothing in it was changed.
 
+### After CI on `bce20e16` (run 1825)
+- **D36 Carried: `p3-nova-polish` ND-1 at 1920 × 1080 with the Showcase.** Red on both attempts of run 1825's main shard
+  4 (496 passed, 1 failed): the opening did not end within the 5 s the spec's helper allows. The cause, measured here
+  on three builds: where the browser has no graphics hardware, the star's first ask for WebGL (the hardware-only ask
+  that tells software drawing apart) is one task of 4.6 to 6.7 s while the browser starts its software renderer, and it
+  runs inside the 2.1 s opening, so the opening's end is seen only when that task is over (compiling the shader is
+  66 ms, the first read-back 111 ms; with `main`'s shader the task is the same). `main` carries the same task and
+  passed this test on its last run only on a second attempt. Two fix attempts, both built and measured, neither kept:
+  (1) only the second, software ask waited for the opening's end: no change, because the cost is in the first ask;
+  (2) the whole probe waited for the opening's end: the task then starts in the same instant the opening ends, before
+  a test or a person can see it end (6.1–6.9 s to "done" as before), and the galaxy would arrive 2.1 s late on a first
+  visit with graphics hardware. The star's start is as on `main`. What would fix it is the probe off the main thread
+  (a worker with an OffscreenCanvas), which needs a look at the content policy's worker rule: the owner's call.
+
 ### Leftovers
 - **D15 The fasting range (TIER 3 AI safety).** The app notes every model reads said "12 to 18 hours"; they say "a target
   of up to 24 hours, stopped automatically at 24", as Health's form and ZIGi's cards do. Behaviour-preserving.
