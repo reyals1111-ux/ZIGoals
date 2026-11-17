@@ -124,8 +124,10 @@ on a diagonal), the supporting panels, the satellites.
 ### After round 1 (structure, not polish)
 - **D19 A tier is a weight.** Hero: the full hologram with a heavier rim (2.2 px) and a wider bloom. Supporting: a 1 px
   rim, less than half the bloom, no ruler. Compact: a plate (hairline rim, smaller cuts, no bloom, brackets, ruler or
-  sheen). The keys of a supporting panel and a plate are at 60 % until the pointer or the focus is in the panel (always
-  shown, always 44 px: the owner's rule; a lit pin stays lit).
+  sheen). *Withdrawn after the final suites:* round 1 also dimmed the keys of a supporting panel and a plate to 60 %
+  until the pointer or the focus was in the panel; `nova-stage-am2` counts a key under 99 % opacity as not shown (the
+  owner's AM-2 rule as a test), three of its tests went red on the last build, and the dimming is removed. Every key in
+  every head is at full strength again.
 - **D20 Wide wings step.** From 540 px of wing a supporting panel is nine tenths of the hero's width and a compact plate
   78 %, hung from the wing's outer edge: each wing steps away from the star tier by tier, and the two wings turn about it.
 - **D21 The read-outs step aside from three widgets.** The four read-outs under the star repeat what the panels beside it

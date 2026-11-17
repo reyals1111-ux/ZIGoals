@@ -200,9 +200,9 @@
 .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=supporting] > .holo-ruler { display: none; }
 .nova-frame:not([data-phone]) .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=compact]:not([data-dragging]):not(#\-) { --rim: 1px; --cut: 12px; --nick: 5px; }
 .nova-orbit-main[data-compose] .nova-widget[data-holo][data-tier=compact] > :is(.holo-aura, .holo-brackets, .holo-ruler, .holo-sheen) { display: none; }
-/* The keys of a supporting panel and a plate are quiet until the pointer or the focus is in the panel (always shown,
-   always 44 px: the owner's rule; a lit pin stays lit). The hero's keys keep their strength. */
-.nova-orbit-main[data-compose] .nova-widget[data-holo]:is([data-tier=supporting], [data-tier=compact]):not(:hover):not(:focus-within) .nova-widget-head :is(.ns-act:not([aria-pressed=true]), .holo-act, .nova-widget-open) { opacity: .6; }
+/* The keys of a supporting panel and a plate keep their full strength. Round 1 dimmed them to 60 % until the pointer or
+   the focus was in the panel (a critic's "quiet the heads"); the keys' spec counts a key under 99 % as not shown, which
+   is the owner's AM-2 rule in a test (Pin, Hide and Close shown in every head), so the dimming is gone. */
 /* From three widgets the four read-outs under the star step aside (they repeat what the panels beside it say, and the
    bezel's pillar arcs carry the same four): the populated stage has one hierarchy. They stay in the page, hidden as on a
    narrower stage, and show again with one or two widgets and on the calm stage. */
