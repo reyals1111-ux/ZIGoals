@@ -233,3 +233,7 @@
   .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head:not(#\-) { justify-content: space-between; row-gap: 2px; }
   .nova-orbit-main[data-compose] .nova-widget[data-holo] .nova-widget-head > h3:not(#\-) { order: 0; }
 }
+/* Session AR (round 2): a panel whose gate is not known yet shows its instrument powered down, not a word in a slab. */
+.ns-reading { display: grid; place-items: center; align-content: center; gap: 8px; min-height: 100%; }
+.ns-reading > .nx-lockghost { display: block; grid-column: auto; grid-row: auto; height: clamp(44px, 52cqh, 220px); opacity: .6; }
+.ns-reading > .nova-reading { margin: 0; }

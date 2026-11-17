@@ -121,7 +121,12 @@ test.describe('computer', () => {
     await expect(page.locator('.holo-core-readout')).toBeHidden();
     await expect(page.getByRole('list', {name: 'Today’s core'})).toHaveCount(0);
     await page.setViewportSize({width: 1920, height: 1080});
-    await expect(page.getByRole('list', {name: 'Today’s core'})).toBeVisible();
+    // Session AR (round 1, D21, deliberate): at 1920 the stage is composed, and from three widgets the four read-outs
+    // step aside there too (the Command arrangement holds ten); they stay in the page, four. That they show and read as
+    // a list at 1920 with one or two widgets is tests/nova-compose-ar.spec.ts, "the read-outs".
+    await expect(page.locator('.holo-core-readout')).toBeHidden();
+    await expect(page.locator('.holo-core-readout li')).toHaveCount(4);
+    await expect(page.locator('.nova-orbit-main')).toHaveAttribute('data-compose', '');
   });
 });
 

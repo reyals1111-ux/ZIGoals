@@ -35,7 +35,8 @@ export const HERO_LARGE_FROM = 500, SUPPORTING_MEDIUM_FROM = 196;
 export const HERO_LARGE_WING = 480, HERO_MEDIUM_MAX = 400;
 
 export type Composed = NovaWidget & {
-  side: Side;
+  /** 'base': the strip of plates under the star (round 2), between the wings and the band. */
+  side: Side | 'base';
   /** Its tier beside the star; undefined on the band. */
   tier?: Tier;
   /** The size its body is drawn at (the stored `size` stays the person's own). */
@@ -83,11 +84,14 @@ export type ComposeOptions = {
   /** The stage's height (px) and one wing's width (px). */
   height: number | null | undefined; wingWidth: number | null | undefined;
   /** The side a widget already stands on (AM-D9): it keeps it while that wing has room. */
-  prefer?: (id: string) => Side | undefined;
+  prefer?: (id: string) => Side | 'base' | undefined;
   /** Widgets that are only a short notice (a closed gate): always a compact plate. */
   slim?: (id: string) => boolean;
   /** Widgets made on request (not pinned): they lead their wing, newest first, whatever the pinned ones' sizes. */
   made?: (id: string) => boolean;
+  /** Round 2 (ADR-041 D26): the strip of compact plates under the star — how many it holds and how tall they are (px).
+   *  The first widgets the wings cannot hold stand there, in the first view; the rest rests on the band. */
+  base?: {cells: number; height: number};
 };
 
 /**
@@ -95,7 +99,7 @@ export type ComposeOptions = {
  * Sides: a widget keeps its side while it has room there; a new one takes the wing with fewer widgets (left on a tie).
  * What neither wing can hold rests on the band.
  */
-export function composeStage(widgets: readonly NovaWidget[], {height, wingWidth, prefer, slim, made}: ComposeOptions): Composed[] {
+export function composeStage(widgets: readonly NovaWidget[], {height, wingWidth, prefer, slim, made, base}: ComposeOptions): Composed[] {
   const capacity = wingCapacity(height, wingWidth), wings: Record<'left' | 'right', number[]> = {left: [], right: []}, sideOf = new Map<number, Side>();
   const kept = widgets.map(w => prefer?.(w.id)), load = {left: 0, right: 0};
   kept.forEach(side => { if (side === 'left' || side === 'right') load[side] += 1; });
@@ -164,6 +168,11 @@ export function composeStage(widgets: readonly NovaWidget[], {height, wingWidth,
       for (const order of r.cells) out[order] = {...out[order]!, tier: r.tier, show: isSlim(order) ? 'S' : show, row, height: px, span: WING_COLUMNS / r.cells.length};
     });
   }
+  // The base strip: the first widgets neither wing holds, in the list's order, as compact plates under the star.
+  if (base && base.cells > 0 && base.height > 0) {
+    const rest = out.filter(c => c.side === 'band').slice(0, base.cells);
+    for (const c of rest) out[c.order] = {...c, side: 'base', tier: 'compact', show: 'S', row: 1, height: Math.round(base.height), span: WING_COLUMNS / rest.length};
+  }
   return out;
 }
 
@@ -176,7 +185,7 @@ export function composedWords(composed: readonly Composed[], id: string): string
   const at = composed.findIndex(c => c.id === id);
   if (at < 0) return '';
   const c = composed[at]!;
-  return `${at + 1} of ${composed.length}, ${c.side === 'band' ? 'on the outer band' : `${c.side} wing`}`;
+  return `${at + 1} of ${composed.length}, ${c.side === 'band' ? 'on the outer band' : c.side === 'base' ? 'under the star' : `${c.side} wing`}`;
 }
 
 /* ---- "The star makes room" (ADR-041 S1, S2) ------------------------------------------------------------------------
@@ -209,4 +218,21 @@ export function starPlan({count, floorSize, floorColumn, room, stage, gap}: {cou
   const stepped = large + (floorColumn - large) * starFill(count);
   const column = count > STAR_LARGE_UNTIL ? Math.max(floorColumn, Math.min(stepped, stage - 2 * WING_ROWS_MIN - 2 * gap)) : stepped;
   return {size: Math.round(Math.max(floorSize, Math.min(room, column * BEZEL_IN_COLUMN / BEZEL_IN_STAR))), column: Math.round(column)};
+}
+
+/* ---- The base strip under the star (round 2; ADR-041 D26) --------------------------------------------------------
+ * Both critics of round 2: "the lower centre is dead at every desktop size; put a strip of mini cards there so the star
+ * has a base" (the owner's reference 2). The strip takes the room the star's stack leaves unused under NOVA's words —
+ * the stack's lower margin and what the words' slot does not need — so the star keeps its size and its place. It is
+ * drawn only where the wings hold three tiers (a tall stage) and a plate keeps its least height, and never while an
+ * answer stands under the star (the answer's card is the star's base then, and the plates rest on the band).
+ */
+export const BASE_PLATE_MIN = 112, BASE_PLATE_MAX = 150, BASE_PLATE_WIDTH = 280, BASE_CELLS_MAX = 3, BASE_WORDS = 132, BASE_MARGIN = 14;
+export function basePlan({stageHeight, starBox, slot, column, answer}: {stageHeight: number; starBox: number; slot: number; column: number; /** An answer stands under the star. */ answer: boolean}): {cells: number; height: number} | null {
+  if (answer || wingTiers(stageHeight).length < 3) return null;
+  // The stack (the name's row, the star's box, the words' slot) is centred in the stage: what is left under it, and
+  // what the slot does not need for the state, the greeting and the day line, is the strip's.
+  const slack = Math.max(0, (stageHeight - (88 + starBox + slot)) / 2), room = slack + slot - BASE_WORDS - BASE_MARGIN;
+  const height = Math.min(BASE_PLATE_MAX, Math.floor(room)), cells = Math.min(BASE_CELLS_MAX, Math.floor((column + TIER_GAP) / (BASE_PLATE_WIDTH + TIER_GAP)));
+  return height >= BASE_PLATE_MIN && cells >= 1 ? {cells, height} : null;
 }

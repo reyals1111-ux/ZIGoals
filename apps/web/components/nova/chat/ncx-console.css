@@ -262,3 +262,7 @@
   .ncx-fig { color: inherit; text-shadow: none; }
   .ncx-bar > i { border: 1px solid CanvasText; } .ncx-bar > i[data-lit] { background: CanvasText; }
 }
+/* Session AR (round 2, both critics: "a dead band of about 190 px between the header and the first message"): on a phone
+   the conversation starts under its head, where the star stands, and grows down (it hung from the dock, with the spine
+   alone above it). */
+.nova-chat-sheet .nova-chat-log > :first-child { margin-top: 0; }

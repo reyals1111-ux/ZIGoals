@@ -1006,3 +1006,6 @@ a.nova-chip:hover .nova-chip-key { color: var(--sh-ink-neon); }
   .nova-switch > span::after { background: CanvasText !important; }
   .nova-switch > span { border: 1px solid CanvasText; }
 }
+/* Session AR (round 2: "the left rail's last icon is cut at the bottom edge"): the rail's list fades at its foot, so a
+   row that is half in view reads as more below, not as a cut icon. Static. */
+.nova-left[data-state=rail] .nova-left-nav { -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 30px), transparent 100%); mask-image: linear-gradient(180deg, #000 calc(100% - 30px), transparent 100%); }

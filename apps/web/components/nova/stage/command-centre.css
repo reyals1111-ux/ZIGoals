@@ -222,3 +222,13 @@
 .cc-state-speaking .cc-state-ring { stroke-width: 3.2; }
 @media (prefers-reduced-motion: reduce) { .cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: none; } }
 :root[data-app-motion=off] .cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: none; }
+
+/* ==== Session AR, round 2 (D26): the star's base ====
+   Both critics: "the lower centre is dead at every desktop size". The first widgets the wings cannot hold stand under
+   NOVA's words as compact plates, in the first view (widget-grid.tsx; lib/nova/compose.ts `basePlan` gives them the room
+   the star's stack leaves, so the star keeps its size and place). Static. */
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-centre { position: relative; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-base { grid-column: 2; grid-row: 1; align-self: end; z-index: 2; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--tier-gap, 12px); min-width: 0; }
+.nova-frame[data-look=holo]:not([data-phone]) .nova-orbit-main[data-compose] > .nova-orbit-base > .nova-widget[data-holo][data-tier] { height: var(--tier-h, var(--h-s)); min-height: 0; }
+/* The stage's frame stands clear of the panels' corners (round 2: "the corner brackets sit on panel corners"). */
+.nova-frame[data-look=holo]:not([data-phone]) .cc-hud-frame { left: -17px; right: -17px; }

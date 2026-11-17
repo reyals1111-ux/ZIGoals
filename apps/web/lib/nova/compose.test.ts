@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {composeStage, starFill, starPlan, tierCells, wingCapacity, wingOrder, wingTiers, TIER_GAP, TIER_UNIT_MIN, WING_MIN, type Composed} from './compose';
+import {basePlan, composeStage, starFill, starPlan, tierCells, wingCapacity, wingOrder, wingTiers, TIER_GAP, TIER_UNIT_MIN, WING_MIN, type Composed} from './compose';
 import type {NovaWidget, WidgetSize} from './store';
 
 const w = (id: string, size: WidgetSize = 'M', slot = 0): NovaWidget => ({id, size, slot});
@@ -109,6 +109,31 @@ describe('Session AR (ADR-041): the composed stage', () => {
   it('order in, order out', () => {
     const widgets = list(7);
     expect(composeStage(widgets, {height: 726, wingWidth: 418}).map(x => x.id)).toEqual(widgets.map(x => x.id));
+  });
+});
+
+describe('Session AR (round 2, D26): the base strip under the star', () => {
+  it('the first widgets the wings cannot hold stand under the star as compact plates; the rest rests on the band', () => {
+    const c = composeStage(list(10), {height: 1083, wingWidth: 625, base: {cells: 3, height: 150}});
+    expect(c.filter(x => x.side === 'left' || x.side === 'right')).toHaveLength(6);
+    const base = c.filter(x => x.side === 'base');
+    expect(base.map(x => x.id)).toEqual(['w6', 'w7', 'w8']);
+    for (const x of base) { expect(x.tier).toBe('compact'); expect(x.show).toBe('S'); expect(x.height).toBe(150); }
+    expect(c.filter(x => x.side === 'band').map(x => x.id)).toEqual(['w9']);
+    // The stored sizes are untouched, and with fewer widgets than the wings hold there is no strip.
+    expect(c.map(x => x.size)).toEqual(list(10).map(x => x.size));
+    expect(composeStage(list(6), {height: 1083, wingWidth: 625, base: {cells: 3, height: 150}}).some(x => x.side === 'base')).toBe(false);
+  });
+  it('the strip takes only the room the star’s stack leaves: none on a 1440 × 900 stage, none while an answer stands under the star', () => {
+    // 2560 × 1440: a stage of 1083 px, the star's box 496 px, the words' slot 252 px, a column of 938 px.
+    expect(basePlan({stageHeight: 1083, starBox: 496, slot: 252, column: 938, answer: false})).toEqual({cells: 3, height: 150});
+    // 1920 × 1080: 726 px, 347 px, 252 px, 539 px → one plate.
+    const mid = basePlan({stageHeight: 726, starBox: 347, slot: 252, column: 539, answer: false})!;
+    expect(mid.cells).toBe(1); expect(mid.height).toBeGreaterThanOrEqual(112);
+    expect(basePlan({stageHeight: 587, starBox: 235, slot: 228, column: 385, answer: false})).toBeNull(); // two tiers a wing: no strip
+    expect(basePlan({stageHeight: 1083, starBox: 496, slot: 252, column: 938, answer: true})).toBeNull();
+    // A star that fills the stage's height leaves no room: no strip rather than a plate over NOVA's words.
+    expect(basePlan({stageHeight: 726, starBox: 386, slot: 252, column: 539, answer: false})).toBeNull();
   });
 });
 

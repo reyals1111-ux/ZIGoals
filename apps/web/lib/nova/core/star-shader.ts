@@ -174,7 +174,9 @@ void main(){
     // brighter, the hemisphere that faces the core carries its light, and the bands show: a rim-lit planet, not a disc
     // of black (owner screenshot 4).
     float cres = sq(sq(lit)) * lit;
-    vec3 pc = vec3(.012,.016,.046) + uA * .17 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uC, vec3(1.), .78) * (cres * 3.1 + sq(lit)*.8) + mix(uB, vec3(1.), .5) * rim * (1.9 + 6.4*facing);
+    // Round 2 (both critics again: "a dark blot", "a hole punched in the art"): the globe itself is lit — the half that
+    // faces the core carries the core's light across it (not only along its limb), the far half stays in shadow.
+    vec3 pc = vec3(.016,.022,.06) + uA * .2 * nz * (.6 + .4*noise(vec2(n.y*9., 2.))) + mix(uC, vec3(1.), .7) * (cres * 2.6 + lit * .62 + sq(lit)*.9) + mix(uB, vec3(1.), .5) * rim * (2.1 + 6.4*facing);
     col = mix(col, pc, solid);
   }
   col += uB * exp(-max(pd-pr, 0.)*52.) * (.26 + .5*max(0., dot(d, -po)/max(pd*length(po), 1e-4))) * (1.-behind) * (1.-body);

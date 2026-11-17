@@ -136,3 +136,7 @@
   .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nc-body .nc-hero-label,
   .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .nx-card[data-size=S] .nx-head > .nx-cap { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
+/* Session AR (round 2: "Contri…", "Late-nigh…" beside free space): in a panel beside the star the lattice's names get
+   the room they need before the streaks' notes do. */
+.nova-orbit-main[data-compose] .nova-widget[data-tier]:is([data-tier=hero], [data-tier=supporting]) :is(.nc-lattice-head, .nc-lattice-row) { grid-template-columns: minmax(96px, max-content) repeat(var(--nc-cols, 7), minmax(14px, 22px)) minmax(0, 1fr); justify-content: start; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier]:is([data-tier=hero], [data-tier=supporting]) .nc-lattice-note { justify-self: end; }

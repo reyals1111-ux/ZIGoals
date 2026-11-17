@@ -8,7 +8,7 @@ import {composeStage, composedWords, wingCapacity, wingOrder, TIER_GAP, WING_COL
 import {settleDelay} from '../../lib/nova/orb';
 import {WIDGET_SIZES, type NovaLayout, type NovaWidget, type WidgetSize} from '../../lib/nova/store';
 import type {StageWidget, WidgetParams} from '../../lib/nova/stage/record';
-import {PinnedMark, WidgetActions, WidgetLocked} from './stage/stage-parts';
+import {PinnedMark, WidgetActions, WidgetLocked, WidgetReading} from './stage/stage-parts';
 import type {StageApi} from './stage/use-stage';
 import {widgetSpec} from '../../lib/nova/widgets/catalog';
 import {NovaIcon} from './icons';
@@ -89,14 +89,16 @@ const COMPOSE_FROM = 1040;
  * alone. While arranging, each panel has Move earlier / Move later, its size and Remove as buttons, and a grip that
  * drags it (pointer) or moves it with the arrow keys (keyboard): the same change three ways.
  */
-export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false, motes = false, live, starColumn}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean;
+export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false, motes = false, live, starColumn, baseStrip}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean;
   /** Session AM (ADR-038 D1–D5): NOVA's live stage — which widgets are pinned or just made, their parameters and gates, and Pin / Hide / Close. */
   live?: StageApi;
   /** Lane L8e: the HUD's floating motes (Full motion, Holo, a computer), drawn in the star's column behind the star. */
   motes?: boolean;
   /** Session AR (ADR-041 S1, S2): the width of the star's own column (px), set by how full the stage is; with it the
    *  Holo orbit on a computer is composed in tiers (lib/nova/compose.ts). */
-  starColumn?: number}) {
+  starColumn?: number;
+  /** Session AR (round 2, D26): the strip of compact plates under the star (how many, how tall); none while an answer stands there. */
+  baseStrip?: {cells: number; height: number} | null}) {
   const shown = phone ? phoneColumn(layout, widgets) : visibleFor(layout, widgets), order = shown.map(w => w.id), holo = look === 'holo';
   const [drag, setDrag] = useState<{id: string; target: string | null; dx: number; dy: number} | null>(null);
   const start = useRef<{x: number; y: number}>({x: 0, y: 0}), box = useRef<HTMLDivElement>(null), {height: stageHeight, width: stageWidth} = useStageSize(box);
@@ -122,9 +124,9 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
   const mark = composing ? 100 + capacity : fit;
   const keepSides = !editing && before.side.size > 0 && before.fit === mark && changed <= 3;
   const prefer = keepSides ? (id: string) => before.side.get(id) : undefined;
-  const composed: Composed[] = composing ? composeStage(shown, {height: stageHeight, wingWidth, prefer, slim: id => lockedIds.has(id), made: live ? id => { const on = live.shown.find(x => x.id === id); return !!on && !on.pinned; } : undefined}) : [];
+  const composed: Composed[] = composing ? composeStage(shown, {height: stageHeight, wingWidth, prefer, slim: id => lockedIds.has(id), made: live ? id => { const on = live.shown.find(x => x.id === id); return !!on && !on.pinned; } : undefined, base: baseStrip ?? undefined}) : [];
   const placed = layout === 'orbit' && !phone && !composing ? placeOrbit(rowsOfShown, fit, holo ? HOLO_ROWS : ROWS_AK, prefer).map((p, i) => ({...p, size: shown[i]!.size})) : [];
-  standing.current = {fit: mark, side: new Map((composing ? composed : placed).map(p => [p.id, p.side] as const))};
+  standing.current = {fit: mark, side: new Map((composing ? composed.map(c => ({id: c.id, side: c.side === 'base' ? 'band' as const : c.side})) : placed).map(p => [p.id, p.side] as const))};
   // Review m9: after a move from the keyboard, the status line says where the panel is now ("2 of 9, right column").
   const moved = useRef<string | null>(null), announce = actions.announce;
   useEffect(() => {
@@ -154,7 +156,7 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); moved.current = w.id; actions.nudge(w.id, 1); }
     },
   });
-  const frame = (w: NovaWidget, index: number, style: CSSProperties, place?: {side: Placed['side']}, tier?: Composed['tier']) => <WidgetFrame key={w.id} widget={w} index={index} count={shown.length} style={style} side={place?.side} tier={tier}
+  const frame = (w: NovaWidget, index: number, style: CSSProperties, place?: {side: Placed['side'] | 'base'}, tier?: Composed['tier']) => <WidgetFrame key={w.id} widget={w} index={index} count={shown.length} style={style} side={place?.side === 'base' ? undefined : place?.side} tier={tier}
     editing={editing} opening={opening} dragging={drag?.id === w.id ? drag : null} dropTarget={drag?.target === w.id} grip={grip(w)} actions={actions} holo={holo} live={live}/>;
   const unitStyle = holo ? {'--holo-u': `${unit}px`} as CSSProperties : undefined, fitMark = (kind: 'orbit' | 'bento' | 'focus') => holo ? kind : undefined;
   // Lane L8e: the motes live with the star, in the open sky no glass panel lies over (never on the sky canvas under the glass).
@@ -172,6 +174,7 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
       // the hero and hang from the wing's outer edge, so the wing steps away from the star tier by tier.
       const inset = (c: Composed) => wingWidth >= WING_STEPS_FROM && c.span === WING_COLUMNS ? (c.tier === 'supporting' ? 0.9 : c.tier === 'compact' ? 0.78 : 1) : 1;
       const wing = (which: 'left' | 'right') => wingOrder(composed, which).map(c => frame({...c, size: c.show}, c.order, {'--tier-h': `${c.height}px`, '--tier-span': c.span, '--tier-row': c.row, '--tier-w': inset(c)} as CSSProperties, c, c.tier));
+      const under = composed.filter(c => c.side === 'base');
       const rest = composed.filter(c => c.side === 'band'), large = (which: 'left' | 'right') => composed.some(c => c.side === which && c.tier === 'hero' && c.show === 'L');
       const wide = large('left') && large('right') ? 'both' : large('left') ? 'left' : large('right') ? 'right' : undefined;
       return <div ref={box} className="nova-orbit" style={unitStyle} data-holo-fit={fitMark('orbit')} data-compose="">
@@ -179,6 +182,8 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
           <div className="nova-orbit-centre"><span className="holo-floor" aria-hidden="true"/>{dust}{stage}</div>
           <div className="nova-orbit-side" data-side="left">{wing('left')}</div>
           <div className="nova-orbit-side" data-side="right">{wing('right')}</div>
+          {/* Round 2 (D26): the star's base — the next widgets as compact plates under NOVA's words, in the first view. */}
+          {under.length > 0 && <div className="nova-orbit-base" role="group" aria-label="Under the star">{under.map(c => frame({...c, size: c.show}, c.order, {'--tier-h': `${c.height}px`} as CSSProperties, undefined, c.tier))}</div>}
         </div>
         {rest.length > 0 && <div className="nova-orbit-band" role="group" aria-label="More on your orbit">
           <p className="nova-eyebrow nova-orbit-band-title" aria-hidden="true">More on your orbit</p>
@@ -265,7 +270,7 @@ function WidgetFrame({widget, index, count, style, side, tier, editing, opening,
             : <Link className="nova-widget-open" href={spec.href} prefetch={false} onClick={open}>{spec.open}<span aria-hidden="true"> →</span></Link>}</>}
     </header>
     {/* A body that holds more than fits scrolls inside its panel: it is then a keyboard stop with a name (arrow keys scroll it). */}
-    <div ref={body} className={`nova-widget-body${tap ? ' holo-instrument' : ''}`} onClick={tap} tabIndex={cut && !editing ? 0 : undefined} role={cut && !editing ? 'group' : undefined} aria-label={cut && !editing ? `${spec.title}: more below, scroll with the arrow keys` : undefined}><div ref={inner} className="nova-widget-inner"><LoadBoundary quiet><Suspense fallback={<p className="nova-reading">Reading…</p>}>{gate === false ? <WidgetLocked id={widget.id}/> : gate === null ? <p className="nova-reading" role="status">Reading…</p> : <Body size={widget.size} params={params}/>}</Suspense></LoadBoundary></div></div>
+    <div ref={body} className={`nova-widget-body${tap ? ' holo-instrument' : ''}`} onClick={tap} tabIndex={cut && !editing ? 0 : undefined} role={cut && !editing ? 'group' : undefined} aria-label={cut && !editing ? `${spec.title}: more below, scroll with the arrow keys` : undefined}><div ref={inner} className="nova-widget-inner"><LoadBoundary quiet><Suspense fallback={<p className="nova-reading">Reading…</p>}>{gate === false ? <WidgetLocked id={widget.id}/> : gate === null ? <WidgetReading id={widget.id}/> : <Body size={widget.size} params={params}/>}</Suspense></LoadBoundary></div></div>
     {editing && <div className="nova-widget-edit" role="group" aria-label={`Arrange ${spec.title}`}>
       <button type="button" className="nova-mini-btn" onClick={() => actions.nudge(widget.id, -1)} disabled={index === 0} aria-label={`Move ${spec.title} earlier`}><NovaIcon name="up" size={18}/></button>
       <button type="button" className="nova-mini-btn" onClick={() => actions.nudge(widget.id, 1)} disabled={index === count - 1} aria-label={`Move ${spec.title} later`}><NovaIcon name="down" size={18}/></button>
