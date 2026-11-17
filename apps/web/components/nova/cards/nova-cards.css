@@ -190,6 +190,9 @@
 /* Session AR (Part 2): on the composed stage when and where a request was made is never cut ("Yesterday · 10:51 P…"):
    it wraps, and the whole-rows fitter keeps the rows that still fit (the list overflows downward only: `safe` below). */
 .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-requests .nc-request-meta { white-space: normal; overflow: visible; text-overflow: clip; }
+/* The list's row never shrinks under its rows (it overlapped "+2 earlier" in a short panel): what does not fit runs past
+   the body, where the fitter sees it and keeps one row fewer. */
+@container holo-body (min-height: 1px) { .nova-orbit-main[data-compose] .nova-widget[data-tier] .nc-requests:not([data-size=S]) > .nc-requests-rows { grid-template-rows: minmax(min-content, 1fr) auto; } }
 /* Round 4: in a narrow panel "+2 earlier, in Behind the intelligence → Requests" takes two lines instead of ending in
    "→ R…" (the rows are measured as they are laid out, so the line's real height is what the list makes room for). */
 .nc-requests-rows > .wr-more { white-space: normal; overflow: visible; text-overflow: clip; }

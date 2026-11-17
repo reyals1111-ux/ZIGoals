@@ -98,6 +98,13 @@
 .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nc-body .nc-hero .nc-hero-num { font-size: clamp(32px, calc(14px + 5cqi), 44px); }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nc-body .nc-hero[data-len=l] .nc-hero-num { font-size: clamp(28px, calc(10px + 4.6cqi), 40px); }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nc-body .nc-hero[data-len=xl] .nc-hero-num { font-size: clamp(24px, calc(8px + 4cqi), 34px); }
+/* A dial card in a supporting panel of 160 px or more (1920, 2560): the ring takes the body's height beside its words. */
+@container holo-body (min-width: 380px) and (min-height: 160px) {
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-lay=dial][data-size=M] > .nx-dial { --nc-size: clamp(132px, min(100cqh - 52px, 40cqi), 260px); }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-lay=dial][data-size=M] .nx-dial-figure b { font-size: clamp(30px, 24cqi, 56px); }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-lay=dial][data-size=M] .nx-dial-figure[data-len=l] b { font-size: clamp(26px, 19cqi, 48px); }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier=supporting] .nx-card[data-lay=dial][data-size=M] .nx-dial-figure[data-len=xl] b { font-size: clamp(22px, 15cqi, 40px); }
+}
 /* A short supporting body (1440: about 150 px) keeps the figure and its instrument; a note that is not a row of the
    instrument leaves first (the table keeps it). */
 @container holo-body (max-height: 199.98px) {

@@ -405,8 +405,8 @@
 @container holo-body (max-width: 519.98px) {
   .nova-orbit-main[data-compose] .nova-widget[data-tier] .nx-card[data-size=M] .nx-ringcard-sub { display: none; }
   .nova-orbit-main[data-compose] .nova-widget[data-tier] .nx-card[data-size=M] .nx-ringcards { align-content: safe center; }
-  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nx-card[data-size=M] .nx-ringcard { --nx-art: 60; padding-block: 4px; }
-  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nx-card[data-size=M] .nx-ringcard > .nx-segs { margin-top: 4px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nx-card[data-size=M] .nx-ringcard { padding-block: 4px; }
+  .nova-orbit-main[data-compose] .nova-widget[data-tier] .nx-card[data-size=M] .nx-ringcard > .nx-segs { display: none; }
 }
 
 /* ---- Journal numbers by day (round 6): fourteen columns, each wide enough to read as a bar ---- */
