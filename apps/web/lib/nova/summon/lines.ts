@@ -44,6 +44,7 @@ import {WEATHER_OFF_WORDS, WEATHER_PLACE_WORDS} from '../world/ask';
 import {condition} from '../world/met';
 import type {WorldReading} from '../world/record';
 import {clockTime, degrees, umbrella} from '../world/words';
+import {axLine} from './ax-lines';
 import {connectLine, type ConnectData} from './connect-lines';
 import {moreFromSources, moreLine, type MoreData} from './more-lines';
 
@@ -306,7 +307,11 @@ export function stageLine(id: string, params: WidgetParams | undefined, data: Li
         return say(lang, `${data.asks.length} ${data.asks.length === 1 ? 'request' : 'requests'} kept; the last was “${text}”.`, `${data.asks.length} ${data.asks.length === 1 ? 'vraag' : 'vragen'} bewaard; de laatste was “${text}”.`);
       }
       // Session AM-2 (step 3): the widgets of what Sessions AO and AP added, each from its own selector.
-      default: { const line = connectLine(id, params, data, lang); return line !== undefined ? line : moreLine(id, data, lang, now) ?? null; }
+      default: {
+        // Session AS (ADR-042 Part 2): the answer widgets, each from its own selector (lib/nova/summon/ax-lines.ts).
+        const answer = axLine(id, params, data, lang, now); if (answer !== undefined) return answer;
+        const line = connectLine(id, params, data, lang); return line !== undefined ? line : moreLine(id, data, lang, now) ?? null;
+      }
     }
   } catch { return null; } // a record this selector cannot read gives no line; the widget says what is wrong
 }

@@ -22,7 +22,7 @@ const money = (amountCents: number, currency: string) => formatCurrencyAmount(fr
 const plain = (name: string) => clean(name.replace(/\s*[·:•|–-]?\s*\(?SHOWCASE DATA\)?.*$/i, '').replace(/^Example · /, '').trim() || name.trim(), 80);
 type Kind = 'expense' | 'income';
 /** The entries of one kind inside a period, in the currency that carries most of them. */
-function ledger(entries: readonly MoneyEntry[], kind: Kind, p: Period, category?: string | null) {
+export function ledger(entries: readonly MoneyEntry[], kind: Kind, p: Period, category?: string | null) {
   const inRange = entries.filter(e => e.kind === kind && e.date >= p.from && e.date <= p.to && (p.weekday === null || p.days.includes(e.date)) && (!category || e.category.toLowerCase() === category.toLowerCase()));
   const per = new Map<string, number>();
   for (const e of inRange) per.set(e.currency, (per.get(e.currency) ?? 0) + cents(e.amount));

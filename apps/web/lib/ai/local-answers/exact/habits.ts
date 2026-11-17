@@ -47,6 +47,23 @@ export function habitTrack(habit: Habit, today: string): Track {
   };
 }
 
+/**
+ * Every habit together as one track: a day counts when every habit that was due on it (and not skipped) was done; a day
+ * with a missed habit is missed; one where the rest was done but something was skipped is skipped; today with something
+ * still to do is open. The value is the number of habits done that day.
+ */
+export function allHabitsTrack(habits: readonly Habit[], today: string): Track {
+  const live = habits.filter(h => latestHabitRule(h).state !== 'archived');
+  return {
+    key: 'habits', domain: 'habits', name: 'All habits', kind: 'habit', did: ['every habit done', 'elke gewoonte gedaan'], not: ['a habit not done', 'een gewoonte niet gedaan'], measure: null, source: ['Your habits', 'Je gewoontes'],
+    points: days => days.map(date => {
+      const states = live.map(h => habitPoints(h, [date], today)[0]!.state).filter(s => s !== 'rest'), done = states.filter(s => s === 'done').length;
+      const state: DayState = !states.length ? 'rest' : states.includes('missed') ? 'missed' : states.includes('part') ? 'part' : states.includes('open') ? 'open' : states.includes('skipped') ? (done ? 'skipped' : 'skipped') : 'done';
+      return {date, state, value: states.length ? done : null};
+    }),
+    widgets: (ask, period) => habitWidgets(ask, period),
+  };
+}
 type Row = {id: string; name: string; T: Tally; notDone: number};
 const dayCount = (n: number, lang: Lang) => `${n} ${lang === 'nl' ? (n === 1 ? 'dag' : 'dagen') : (n === 1 ? 'day' : 'days')}`;
 /** Every habit that was due on some day of the period, with its days counted. */

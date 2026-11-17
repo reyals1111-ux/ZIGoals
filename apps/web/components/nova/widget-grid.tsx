@@ -44,6 +44,9 @@ const BODIES: Record<string, Body> = {
   'debt-plan': lazy(() => import('./widgets/debt-plan')), 'savings-challenges': lazy(() => import('./widgets/savings-challenges')), 'price-alerts': lazy(() => import('./widgets/price-alerts')),
   'health-trends': lazy(() => import('./widgets/health-trends')), 'food-days': lazy(() => import('./widgets/food-days')), fasting: lazy(() => import('./widgets/fasting')),
   meditation: lazy(() => import('./widgets/meditation')), supplements: lazy(() => import('./widgets/supplements')), cycle: lazy(() => import('./widgets/cycle')),
+  // Session AS (ADR-042 Part 2): a widget for every kind of answer (their shared parts in components/nova/widgets/ax and cards/ax). Month calendars and ranked miss bars first.
+  'habit-missed-days': lazy(() => import('./widgets/habit-missed-days')), 'habit-done-days': lazy(() => import('./widgets/habit-done-days')), 'habits-month': lazy(() => import('./widgets/habits-month')),
+  'habit-misses': lazy(() => import('./widgets/habit-misses')),
 };
 /** Session AL Part 11 (lane L8): the Holo look of earlier widgets where an instrument says more (holo/skins.tsx); the rest keep their bodies. */
 const skin = (name: 'HoloWater' | 'HoloSleep' | 'HoloOrbit' | 'HoloNext' | 'HoloTasks' | 'HoloNotes'): Body => lazy(() => import('./holo/skins').then(m => ({default: m[name]})));

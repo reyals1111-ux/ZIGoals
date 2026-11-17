@@ -2,9 +2,14 @@ import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {WIDGETS, gallery, isWidgetId, widgetAvailable, widgetSpec} from './catalog';
+import {AS_HABITS} from './catalog-as';
+import {AS_DAY} from './catalog-as-day';
+import {AS_HEALTH} from './catalog-as-health';
+import {AS_MONEY} from './catalog-as-money';
 import {durationWords, glanceLines, paceWords, shareOf, waterAmount, whenWords, wholePercent, type GlanceFacts} from './words';
 import {DEFAULT_WIDGETS} from '../store';
 
+const AS = [...AS_HABITS, ...AS_HEALTH, ...AS_MONEY, ...AS_DAY];
 describe('the widget gallery', () => {
   it('names every widget the brief asks for, each with its page and a way to open it', () => {
     expect(WIDGETS.map(w => w.id)).toEqual(['orbit', 'next', 'tasks', 'glance', 'water', 'focus', 'now-playing', 'money', 'goal-pace', 'sleep', 'briefs', 'notes', 'markets',
@@ -15,7 +20,11 @@ describe('the widget gallery', () => {
       // Session AM-2 (step 3, "NOVA connected"), a deliberate extension: what Sessions AO and AP added to the pages, as widgets on request.
       'net-worth-history', 'ready-to-assign', 'age-of-money', 'spending-pace', 'bill-changes', 'money-tags', 'perfect-days', 'day-rules', 'tasks-later', 'countdowns', 'journal-numbers', 'templates', 'run-splits', 'mood-tags', 'symptoms',
       // Round 2, a deliberate extension: the pages that still had no widget.
-      'priority-matrix', 'hour-grid', 'reviews', 'milestones', 'cash-flow', 'accounts', 'debt-plan', 'savings-challenges', 'price-alerts', 'health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle']);
+      'priority-matrix', 'hour-grid', 'reviews', 'milestones', 'cash-flow', 'accounts', 'debt-plan', 'savings-challenges', 'price-alerts', 'health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle',
+      // Session AS (ADR-042 Part 2), a deliberate extension: a widget for every kind of answer, group by group
+      // (catalog-as*.ts). The list is theirs; what each may read is pinned just below.
+      ...AS.map(w => w.id)]);
+    expect(new Set(WIDGETS.map(w => w.id)).size).toBe(WIDGETS.length);
     // Session AM (D5): every widget that shows the person's records names the switch a made widget reads under.
     // Session AM (AM-S2, deliberate): two gates more (was: today|goals|habits|health|wealth). Notes and the Journal read under
     // their own NOVA permissions, so the whole map is pinned here, gate by gate: nothing but the Notes inbox reads under
@@ -24,7 +33,17 @@ describe('the widget gallery', () => {
     // ships with the app and reads nothing of the person's; every other new widget names its switch below.
     for (const w of WIDGETS) if (!['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests', 'templates'].includes(w.id)) expect(w.gate, w.id).toMatch(/^(today|goals|habits|health|wealth|notes|journal)$/);
     expect([widgetSpec('notes')?.gate, widgetSpec('journal')?.gate]).toEqual(['notes', 'journal']); // AM-S2: their own permissions, never Today's
-    const under = (gate: string | undefined) => WIDGETS.filter(w => w.gate === gate).map(w => w.id);
+    // Session AS (ADR-042 Part 2, deliberate): the lists below are the kinds before Session AS, exactly as they were. The
+    // answer widgets are pinned by their group instead, as strictly: a Habits kind reads under Habits and nothing else; a
+    // Health kind under Health and nothing else (Q14, Q16: mood and symptoms never outside it); a Wealth or Goals kind
+    // under Wealth or Goals; a kind of the day's own records under its own switch. Only NOVA's own kinds read no record.
+    const answer = new Set(AS.map(w => w.id));
+    const under = (gate: string | undefined) => WIDGETS.filter(w => w.gate === gate && !answer.has(w.id)).map(w => w.id);
+    for (const w of AS_HABITS) expect(w.gate, w.id).toBe('habits');
+    for (const w of AS_HEALTH) expect(w.gate, w.id).toBe('health');
+    for (const w of AS_MONEY) expect(['wealth', 'goals'], w.id).toContain(w.gate);
+    for (const w of AS_DAY) { if (w.pillar === 'nova') expect(w.gate, w.id).toBeUndefined(); else expect(['today', 'journal', 'notes', 'habits', 'goals'], w.id).toContain(w.gate); }
+    for (const w of AS) { expect(w.made, w.id).toBe(true); expect(w.params ?? [], w.id).toContain('period'); }
     expect(under('notes')).toEqual(['notes']);
     // Session AM-2 (step 3, "NOVA connected", deliberate): each list below grows by the new widgets of its gate, and by nothing
     // else. The Journal's numbers read under the Journal's own gate (AM-S2), never Today's; the three health-type records of

@@ -1,0 +1,106 @@
+/*
+ * Session AS (ADR-042 Part 2): the answer instruments. One sheet for the kit's shared parts and its families; every class
+ * here starts with `ax-` (lib/nova/css-collisions.test.ts: a class belongs to one sheet). Colours are the realm's own
+ * tokens on `.nova-widget[data-pillar]` (holo-parts.css: --neon, --neon-2, --neon-ink); glass is navy; bloom is static.
+ * Only transform and opacity animate, plus one dash that draws itself once; no backdrop-filter; nothing follows the pointer.
+ * Labels are 14 px or more; figures are tabular.
+ */
+.ax-body { --ax-ink: var(--neon-ink, #e3f3ff); --ax-label: #cdd8ee; --ax-dim: #aebcd8; --ax-glass: #060a1e; gap: 12px; }
+.ax-body[data-lay=row] { flex-direction: row; flex-wrap: wrap; align-items: flex-start; column-gap: 18px; }
+.ax-body[data-lay=row] > .nc-foot { flex: 1 0 100%; }
+
+/* ---- The answer in a figure and words ---- */
+.ax-head { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ax-head-figure { margin: 0; display: flex; align-items: baseline; gap: 7px; line-height: 1; flex: none; }
+.ax-head-num { font-size: clamp(36px, 15cqi, 56px); font-weight: 680; font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: var(--ax-ink); text-shadow: 0 0 14px color-mix(in srgb, var(--neon) 70%, transparent); }
+.ax-head-unit { font-size: 15px; color: var(--ax-label); }
+.ax-head-words { min-width: 0; display: grid; gap: 3px; }
+.ax-head-label { margin: 0; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--ax-label); text-wrap: balance; }
+.ax-head-note { margin: 0; font-size: 15px; line-height: 1.35; color: var(--ax-ink); text-wrap: pretty; }
+.ax-head[data-tone=clear] .ax-head-num { color: #eafff4; text-shadow: 0 0 14px color-mix(in srgb, #5dffb0 60%, transparent); }
+.ax-body[data-size=S] .ax-head-num { font-size: clamp(30px, 12cqi, 40px); }
+
+/* ---- The key ---- */
+.ax-key { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; color: var(--ax-label); }
+.ax-key span { display: inline-flex; align-items: center; gap: 6px; }
+.ax-key i { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+.ax-key i[data-mark=missed], .ax-key i[data-mark=lit] { background: linear-gradient(135deg, var(--neon), var(--neon-2)); box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent); }
+.ax-key i[data-mark=skipped] { border: 2px dashed var(--neon-2); }
+.ax-key i[data-mark=part] { background: linear-gradient(to top, var(--neon) 50%, transparent 50%); border: 1px solid color-mix(in srgb, var(--neon) 60%, transparent); }
+.ax-key i[data-mark=done] { border: 1px solid color-mix(in srgb, var(--neon) 46%, transparent); background: radial-gradient(circle at 50% 50%, var(--neon-2) 0 2px, transparent 2.5px); }
+.ax-key i[data-mark=none] { border: 1px dashed color-mix(in srgb, var(--ax-dim) 70%, transparent); }
+.ax-key i[data-mark=today] { border: 2px solid var(--ax-ink); border-radius: 50%; }
+
+/* ---- Family 1: the month calendar ----
+   It is never cut: the cells take the height the panel has left (the body is `holo-body`'s height; the figure, the weekday
+   letters and the foot take about 170 px of it), between 22 px (a 14 px numeral still stands whole) and 56 px. */
+.ax-cal { display: grid; gap: 6px; min-width: 0; width: 100%; max-width: 620px; padding: 0 5px; box-sizing: border-box; container-type: inline-size; --ax-weeks: 6; }
+.ax-cal[data-weeks='1'] { --ax-weeks: 1; } .ax-cal[data-weeks='2'] { --ax-weeks: 2; } .ax-cal[data-weeks='3'] { --ax-weeks: 3; } .ax-cal[data-weeks='4'] { --ax-weeks: 4; } .ax-cal[data-weeks='5'] { --ax-weeks: 5; }
+.ax-cal-head, .ax-cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.ax-cal-head span { text-align: center; font-size: 14px; letter-spacing: .08em; color: var(--ax-dim); }
+.ax-cal-grid { position: relative; display: grid; gap: 5px; padding: 5px 0; }
+.ax-cal-cell { position: relative; display: grid; place-items: center; height: clamp(22px, min(11.5cqi, calc((100cqh - 192px) / var(--ax-weeks) - 5px)), 56px); border-radius: 8px; font-style: normal; border: 1px solid color-mix(in srgb, var(--neon) 18%, transparent); background: color-mix(in srgb, var(--neon) 5%, var(--ax-glass)); }
+.ax-cal-cell b { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ax-dim); line-height: 1; }
+.ax-cal-cell[data-state=done] { border-color: color-mix(in srgb, var(--neon) 42%, transparent); }
+.ax-cal-cell[data-state=done] b { color: var(--ax-ink); }
+.ax-cal-cell[data-state=done]::after { content: ''; position: absolute; right: 3px; top: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--neon-2); }
+.ax-cal-cell[data-state=rest], .ax-cal-cell[data-state=ahead] { border-style: dashed; background: none; }
+.ax-cal-cell[data-dim] { opacity: .36; }
+.ax-cal-cell[data-today] { outline: 2px solid var(--ax-ink); outline-offset: 2px; }
+.ax-cal-cell[data-today] b { color: var(--ax-ink); font-weight: 700; }
+/* Lit: the days the answer is about. */
+.ax-cal-cell[data-lit] { border-color: transparent; background: linear-gradient(135deg, var(--neon), var(--neon-2)); box-shadow: 0 0 12px 1px color-mix(in srgb, var(--neon) 62%, transparent), 0 0 34px 3px color-mix(in srgb, var(--neon) 24%, transparent); }
+.ax-cal-cell[data-lit] b { color: #04071a; font-weight: 750; }
+.ax-cal-cell[data-lit]::after { display: none; }
+.ax-cal-cell[data-lit]::before { content: ''; position: absolute; inset: -3px; border-radius: 10px; border: 1px solid var(--neon-2); opacity: .55; }
+.ax-cal-cell[data-lit][data-state=skipped] { background: color-mix(in srgb, var(--neon) 9%, var(--ax-glass)); border: 2px dashed var(--neon-2); box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 30%, transparent); }
+.ax-cal-cell[data-lit][data-state=skipped] b { color: var(--ax-ink); }
+.ax-cal-cell[data-lit][data-state=part] { background: linear-gradient(to top, color-mix(in srgb, var(--neon) 82%, #04071a) 0 50%, color-mix(in srgb, var(--neon) 9%, var(--ax-glass)) 50%); border: 1px solid var(--neon); }
+.ax-cal-cell[data-lit][data-state=part] b { color: #fff; text-shadow: 0 0 3px #04071a, 0 0 6px #04071a; }
+.ax-cal-cell[data-lit][data-state=none] { background: none; border: 1px dashed color-mix(in srgb, var(--ax-dim) 80%, transparent); box-shadow: none; }
+.ax-cal-cell[data-lit][data-state=none] b { color: var(--ax-dim); }
+.ax-cal-cell[data-lit][data-state=none]::before { display: none; }
+.ax-cal-grid { overflow: clip; overflow-clip-margin: 4px; }
+.ax-cal-scan { position: absolute; inset: 0 auto 0 0; width: 100%; pointer-events: none; opacity: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--neon-2) 60%, transparent) 0 1.5px, color-mix(in srgb, var(--neon) 7%, transparent) 1.5px 18px, transparent 18px); }
+
+/* ---- Family 2: ranked bars ---- */
+.ax-ranks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; min-width: 0; }
+.ax-rank { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; grid-template-areas: 'n label text' 'n track track'; column-gap: 10px; row-gap: 5px; align-items: center; }
+.ax-rank-n { grid-area: n; align-self: center; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ax-ink); border: 1px solid color-mix(in srgb, var(--neon) 44%, transparent); background: color-mix(in srgb, var(--neon) 10%, var(--ax-glass)); }
+.ax-rank:first-child .ax-rank-n { color: #04071a; background: linear-gradient(135deg, var(--neon), var(--neon-2)); border-color: transparent; box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 60%, transparent); }
+.ax-rank-label { grid-area: label; font-size: 15px; color: var(--ax-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ax-rank-text { grid-area: text; font-size: 14px; color: var(--ax-label); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ax-rank-track { grid-area: track; display: flex; gap: 3px; height: 10px; border-radius: 5px; background: color-mix(in srgb, var(--neon) 9%, var(--ax-glass)); overflow: hidden; }
+.ax-rank-track i { flex: 0 0 var(--ax-w, 0%); height: 100%; border-radius: 5px; transform-origin: left center; }
+.ax-rank-track i[data-mark=missed], .ax-rank-track i[data-mark=lit] { background: linear-gradient(90deg, color-mix(in srgb, var(--neon) 45%, transparent), var(--neon) 70%, #fff); box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 55%, transparent); }
+.ax-rank-track i[data-mark=skipped] { background: repeating-linear-gradient(115deg, color-mix(in srgb, var(--neon-2) 70%, transparent) 0 3px, transparent 3px 7px); border: 1px solid color-mix(in srgb, var(--neon-2) 60%, transparent); }
+.ax-rank-track i[data-mark=part] { background: color-mix(in srgb, var(--neon) 34%, transparent); }
+.ax-rank-more { font-size: 14px; color: var(--ax-label); padding-left: 36px; }
+.ax-chips { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; font-size: 14px; color: var(--ax-label); align-items: center; }
+.ax-chips b { font-weight: 600; color: var(--ax-ink); padding: 3px 9px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--neon) 40%, transparent); background: color-mix(in srgb, var(--neon) 8%, var(--ax-glass)); }
+
+/* ---- Tiers (Session AR's composition): compact shows the figure and one line; the instrument stands from supporting up ---- */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .ax-body :is(.ax-cal, .ax-ranks, .ax-key, .ax-chips) { display: none; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .ax-head-note { display: none; }
+@container holo-body (max-height: 259.98px) { .ax-body .ax-key { display: none; } }
+@container holo-body (max-height: 199.98px) { .ax-body :is(.ax-cal-head, .ax-chips) { display: none; } }
+
+/* ---- Arriving (once, Full) ---- */
+@keyframes ax-pop { from { opacity: 0; transform: scale(.55); } to { opacity: 1; transform: scale(1); } }
+@keyframes ax-flare { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 100% { transform: scale(1); } }
+@keyframes ax-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes ax-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ax-cal-cell { animation: ax-pop .24s calc(.4s + var(--ax-i, 0) * 11ms) cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ax-cal-cell[data-lit] { animation: ax-pop .24s calc(.4s + var(--ax-i, 0) * 11ms) cubic-bezier(.2, .7, .2, 1) both, ax-flare .5s 1s cubic-bezier(.2, .7, .2, 1) 1; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ax-rank-track i { animation: ax-grow-x .46s calc(.44s + var(--ax-i, 0) * 70ms) cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] :is(.ax-head, .ax-rank-label, .ax-rank-text, .ax-rank-n, .ax-chips) { animation: ax-rise .3s calc(.42s + var(--ax-i, 0) * 60ms) ease-out both; }
+
+/* ---- Alive (O5: Full; Calm slower and fewer; still with Motion Off, reduced motion, a hidden tab or off screen) ---- */
+@keyframes ax-breathe { 0%, 100% { opacity: .55; } 50% { opacity: .08; } }
+@keyframes ax-sweep { 0% { transform: translateX(-12%); opacity: 0; } 8% { opacity: .9; } 46% { opacity: .9; } 54%, 100% { transform: translateX(104%); opacity: 0; } }
+@keyframes ax-glint { 0%, 100% { opacity: 1; } 50% { opacity: .62; } }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .ax-cal-cell[data-lit]::before { animation: ax-breathe 3.6s ease-in-out calc(var(--ax-i, 0) * 80ms) infinite; }
+.nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .ax-cal-cell[data-lit]::before { animation: ax-breathe 7.2s ease-in-out infinite; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .ax-cal-scan { animation: ax-sweep 9s 1.6s linear infinite; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .ax-rank:first-child .ax-rank-track i:first-child { animation: ax-glint 3.2s ease-in-out infinite; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh]:not([data-off]) .ax-rank:first-child .ax-rank-track i:first-child { animation: ax-grow-x .46s .44s cubic-bezier(.2, .7, .2, 1) both, ax-glint 3.2s 1s ease-in-out infinite; }
