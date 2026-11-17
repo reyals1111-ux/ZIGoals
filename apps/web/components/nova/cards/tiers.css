@@ -71,7 +71,7 @@
    sized from the ring itself (the gauge is a size container): 24 % of its width, 36–64 px. */
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nc-body.nx-card[data-lay=dial] { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; grid-template-areas: "dial" "head" "foot"; gap: 10px; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-main:not([data-keep]) { display: none; }
-.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-dial { --nc-size: clamp(110px, min(100cqh - 136px, 100cqi - 24px), 340px); align-self: center; justify-self: center; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-dial { --nc-size: clamp(110px, min(100cqh - 160px, 100cqi - 24px), 340px); align-self: safe center; justify-self: center; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] > .nx-head { text-align: center; justify-items: center; }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] .nx-dial-figure b { font-size: clamp(30px, 24cqi, 64px); }
 .nova-orbit-main[data-compose] .nova-widget[data-tier=hero] .nx-card[data-lay=dial] .nx-dial-figure[data-len=l] b { font-size: clamp(28px, 19cqi, 56px); }
