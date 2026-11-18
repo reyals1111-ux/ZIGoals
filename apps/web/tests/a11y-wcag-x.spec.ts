@@ -287,7 +287,17 @@ test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and
     // one-time entrance (motion-page-enter, arrive-card) fades its cards in from 85 % opacity; both are waited out
     // (endless ones, such as the sidebar star's glow, never settle and are not). Under load the entrance was still
     // running when the colours were read (the sleep button at 4.38:1 with its cards at 97 %).
-    await page.waitForFunction(() => !document.getAnimations().some(a => a.playState === 'running' && (a instanceof CSSTransition || a.effect?.getComputedTiming().endTime !== Infinity)));
+    // Session AT (ADR-043 D5; the carried a11y-wcag-x:271, Settings' "On" read at 1.96:1 in 1 of 7 runs): a switch that
+    // takes its saved state a moment after the page is live starts its fade after a first quiet check, so the page must be
+    // quiet for 400 ms in a row (no running transition or finite animation), not just at one instant. Same measurement.
+    await page.waitForFunction(() => {
+      const w = window as unknown as {__atQuietSince?: number};
+      const busy = document.getAnimations().some(a => a.playState === 'running' && (a instanceof CSSTransition || a.effect?.getComputedTiming().endTime !== Infinity));
+      if (busy) { w.__atQuietSince = undefined; return false; }
+      w.__atQuietSince ??= performance.now();
+      return performance.now() - w.__atQuietSince >= 400;
+    }, undefined, {polling: 50});
+    await page.evaluate(() => { (window as unknown as {__atQuietSince?: number}).__atQuietSince = undefined; });
     const result = await page.evaluate(([zigi, rootSelector]) => {
       type RGBA = {r: number; g: number; b: number; a: number};
       type RGB = {r: number; g: number; b: number};

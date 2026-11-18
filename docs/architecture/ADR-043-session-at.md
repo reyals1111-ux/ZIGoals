@@ -80,3 +80,7 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   N-DV-03 (UI, not answers; their current state is AL's "Changed" evidence), MO-052 (the refusal names both switches;
   the inline button is a Health-lane UI call). **Carried:** Dutch coin questions ("hoeveel BTC heb ik") — the holdings
   answer is English-only, so they reach net worth or a goal.
+- **D5 (`a11y-wcag-x:271`).** The test waited for one instant with no running transition; a switch that takes its saved
+  state a moment after the page is live starts its fade after that instant, so "On" was read mid-fade (1.96:1, 1 run in 7
+  under two workers, AR). The wait now needs 400 ms of quiet in a row; the measurement and its thresholds are unchanged.
+  2 of 2 (both projects).
