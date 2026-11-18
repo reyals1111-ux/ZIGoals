@@ -182,8 +182,9 @@
 @container holo-body (max-height: 259.98px) { .axd-radar-name span { display: none; } }
 
 .axd-scan { position: relative; overflow: clip; }
-.axd-scan-lanes { display: grid; gap: 4px; min-width: 0; }
-.axd-scan-lane { display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; column-gap: 8px; align-items: center; min-height: 22px; border-bottom: 1px solid color-mix(in srgb, var(--neon) 16%, transparent); }
+.axd-scan-lanes { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; gap: 4px 0; min-width: 0; }
+.axd-scan-lanes > * { grid-column: 1 / -1; }
+.axd-scan-lane { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; /* Session AS: one label column as wide as its longest label ("Agenda" was cut at 62 px) */ column-gap: 8px; align-items: center; min-height: 22px; border-bottom: 1px solid color-mix(in srgb, var(--neon) 16%, transparent); }
 .axd-scan-label { font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--ax-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .axd-scan-pips { display: flex; gap: 3px; align-items: center; min-width: 0; overflow: hidden; }
 .axd-scan-pips i { flex: 0 1 9px; min-width: 4px; height: 12px; box-sizing: border-box; border-radius: 2px; border: 1px solid color-mix(in srgb, var(--neon) 55%, transparent); background: var(--ax-glass); }

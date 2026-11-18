@@ -18,7 +18,7 @@ test('the health scan: last night, today’s steps and water, the latest weight,
   expect(view.vitals[2]).toMatchObject({value: '1,000 mL', asOf: 'today', target: 'of your 2,000 mL target', share: .5});
   expect(view.vitals[3]).toMatchObject({value: '73.48 kg', asOf: 'yesterday', target: 'your goal: 72 kg', share: null, date: '2026-11-16'});
   expect(view).toMatchObject({recorded: 4, missing: [], workoutsThisWeek: 1}); // Push day on Monday 16 November
-  expect(scanWords(view)).toMatchObject({figure: '4', unit: 'of 4', label: 'measures on record', note: 'The latest of each, with its own day · 1 day with a workout this week'});
+  expect(scanWords(view)).toMatchObject({figure: '4', unit: 'of 5', label: 'measures on record', note: 'The latest of each, with its own day · 1 day with a workout this week'});
   expect(scanRows(view)).toContainEqual(['Steps today', '8,800 steps, today, of your 8,000 steps target']);
   expect(scanRows(view).at(-1)).toEqual(['The heart', 'Decoration, not a live measurement']);
   // The workout log not read: the fact is left out, never said as zero.

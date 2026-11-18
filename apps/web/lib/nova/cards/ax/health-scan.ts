@@ -79,7 +79,10 @@ export function scanRows(view: ScanView): (readonly [string, string])[] {
 /** The scan's figure and words: how many of the measures hold a record (a count of records, never a score). */
 export function scanWords(view: ScanView): ScanWords {
   const n = view.workoutsThisWeek;
-  return {figure: String(view.recorded), unit: `of ${view.vitals.length}`, label: 'measures on record', note: `The latest of each, with its own day${n ? ` · ${n} ${n === 1 ? 'day' : 'days'} with a workout this week` : ''}`,
+  // The resting heart rate is one of the measures even when none was ever recorded (the scan then says "none recorded"),
+  // so the figure never reads as complete while it is missing.
+  const measures = new Set([...view.vitals.map(v => v.key), 'heart']).size;
+  return {figure: String(view.recorded), unit: `of ${measures}`, label: 'measures on record', note: `The latest of each, with its own day${n ? ` · ${n} ${n === 1 ? 'day' : 'days'} with a workout this week` : ''}`,
     asOf: 'the latest of each · not a live reading', caption: 'Health scan: what is on record', rows: scanRows(view)};
 }
 export type ScanWords = {figure: string; unit?: string; label: string; note: string; asOf: string; caption: string; rows: (readonly [string, string])[]};
