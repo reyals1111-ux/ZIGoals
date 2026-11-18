@@ -1,6 +1,6 @@
 import type {ToolEnv} from '../tools/env';
 import {exactFallback, exactLocal, localAnswer, zigiOverview, type LocalReply} from './engine';
-import {noModelFirst} from './exact';
+import {exactQuery, noModelFirst} from './exact';
 import {alFirst, alMoreAnswer, fixTypos, rewriteQuestion} from './al-more';
 import {normalizeSpoken} from '../spoken/normalize';
 import {alFactsAnswer} from './al-facts';
@@ -186,7 +186,7 @@ export function noModelReply(text: string, env: ToolEnv | null, previous: string
   // tasks or goals is answered as its English question, under the note below (languages are Beta, AL_SCOPE F).
   const german = env && otherLanguage(text) === 'de' ? germanAsk(text) : null;
   const de = german ? deviceReply(german, env, null) : null;
-  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
+  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? whyReply(text, env) ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
   // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
   // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
   // Session AL fourth pass (L7-4b; Lisbon #024): an answer in English to a question in another language carries the note too.
@@ -256,4 +256,13 @@ function cardFixes(reply: string, said: string, env: ToolEnv): string {
   const hour = (() => { try { return Number(new Intl.DateTimeFormat('en-GB', {hour: '2-digit', hourCycle: 'h23', timeZone: env.healthZone}).format(env.now)); } catch { return env.now.getUTCHours(); } })();
   if (!named && hour < 5) out = out.replace(/"meal":"Breakfast"/g, '"meal":"Snacks"');
   return out;
+}
+/**
+ * Session AS (ADR-042 D3): "why …" about a part of life the exact layer reads gets its honest line (the records do not say
+ * why) with what they do show for the period named, before the closest-question guess (which drew from example lists
+ * that differ between ZIGi and NOVA, so the two surfaces answered differently).
+ */
+function whyReply(text: string, env: ToolEnv | null | undefined): LocalReply | null {
+  if (!env) return null;
+  try { return exactQuery(text, env)?.ask === 'why' ? exactFallback(text, env) : null; } catch { return null; }
 }

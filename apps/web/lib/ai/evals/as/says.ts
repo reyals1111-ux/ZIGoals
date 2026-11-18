@@ -21,14 +21,14 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'sleep-average-week': ['6 h 57 min'], 'sleep-average-lastweek': ['6 h 51 min'], 'sleep-best-month': ['Nov 7', '8 h 5 min'], 'sleep-worst-month': ['Nov 12', '6 h 18 min'], 'sleep-compare-weeks': ['6 h 57 min', '6 h 51 min'],
   'weight-now': ['73.'], 'weight-last-weighin': ['Nov 16'], 'weight-days-month': ['Nov 4', 'Nov 16'], 'weight-notlogged-lastweek': ['Nov 9', 'Nov 15'],
   'workouts-month': ['9'], 'workouts-lastweek': ['4'], 'workouts-yesterday': ['49'], 'workouts-none-lastweek': ['Nov 9', 'Nov 10', 'Nov 14'], 'workouts-days-month': ['Nov 4', 'Nov 16'],
-  'calories-today': ['1,970'], 'protein-today': ['131'], 'protein-missed-lastweek': ['Nov 13'], 'food-notlogged-month': ['17'], 'heart-rate': [], 'health-overall': ['7 h 17 min', '8,800'],
+  'calories-today': ['1,970'], 'protein-today': ['131'], 'protein-missed-lastweek': ['Nov 13'], 'food-notlogged-month': ['17'], 'heart-rate': [], 'health-overall': ['7 h 17 min', '8,800'], 'calories-week': ['4,039', 'Nov 16', 'Nov 17'], 'protein-week': ['269', '134'],
   // Wealth and Goals
   'spend-month': ['435.59'], 'spend-lastmonth': ['176.40'], 'spend-week': ['55.60'], 'spend-yesterday': ['51.40'], 'spend-top-month': ['Groceries', '187.10'], 'spend-top-lastmonth': ['Groceries', '80.90'],
   'spend-groceries-month': ['187.10'], 'spend-biggest-expense': ['120.00', 'Nov 8'], 'spend-compare-months': ['435.59', '176.40'], 'spend-days-month': ['13'], 'spend-none-days-lastweek': ['Nov 11'],
   'spend-average-month': ['25.62'], 'income-month': ['2,550.00'], 'income-lastmonth': [], 'budgets-over': [], 'budgets-status': ['Groceries', '187.10'], 'budget-fun-left': ['24.00', '60.00'],
   'bills-next': ['Rent', '950.00'], 'bills-overdue': ['Rent'], 'bills-week': ['Rent'], 'bills-list': ['Rent', 'Energy'], 'bills-total': ['1,094.99'], 'networth-now': ['531,029.00'],
   'goals-status': ['Emergency fund', '45%'], 'goals-behind': ['Japan adventure'], 'goals-closest': ['First home deposit', '65%'], 'goals-furthest': ['Japan adventure'], 'goals-reached': ['My first 0.1 BTC'],
-  'goals-next-date': ['Apr 16, 2027', 'Japan adventure'], 'goal-japan': ['2,500', '6,000'], 'goal-emergency': ['9,000', '20,000'],
+  'goals-next-date': ['Apr 16, 2027', 'Japan adventure'], 'goal-japan': ['2,500', '6,000'], 'goal-emergency': ['9,000', '20,000'], 'networth-year': ['531,029.00', '8,000.00'],
   // The day, the journal, focus and NOVA itself
   'tasks-overdue': ['Sketch the garden bed', 'Book the dentist'], 'tasks-open': ['5'], 'tasks-tomorrow': ['2'], 'tasks-week': ['Compare two savings accounts', 'Draft the trip budget'],
   'tasks-done-week': ['Renew the library card'], 'tasks-done-lastweek': [], 'tasks-priority': ['Book the dentist'], 'tasks-next': ['Sketch the garden bed'],

@@ -87,6 +87,14 @@ export function strictClaim(q: Query): boolean {
   if (q.domain === 'goals' && !q.subject && /\b(?:goals|goal|doelen|doel)\b/.test(q.read) && (((q.ask === 'next' || q.ask === 'done') && (q.shape === 'list' || q.shape === 'count') && /\b(?:goals|doelen|which goal|welk doel)\b/.test(q.read)) || /\b(?:closest|nearest|furthest|farthest|least progress|dichtst|verst|minste voortgang)\b/.test(q.read) || (q.ask === 'next' && /\b(?:deadline|deadlines|target date|streefdatum)\b/.test(q.read)))) return true;
   // The journal: its days, its run and its last entry (the older layers answer with patterns of its words).
   if (q.domain === 'journal' && !/\b(?:pattern|patterns|about|theme|themes|patroon|patronen|over|thema)\b/.test(q.read)) return true;
+  // Session AS (held-out questions): calories or protein over a named period (the stage put the Health HUD's today figures
+  // beside "how many calories did I eat this week"); one spending category asked in Dutch ("boodschappen" was answered as nothing);
+  // net worth over a period or as a trend (read as a goal's name).
+  if ((q.domain === 'calories' || q.domain === 'protein') && q.period && q.period !== 'today' && q.period !== 'yesterday' && !q.period.startsWith('on:') && q.ask !== 'average' && (q.shape === 'amount' || q.ask === 'total')) return true;
+  // "On how many days did I walk last week": one habit's days (the older answer gave its steps).
+  if (q.domain === 'habits' && q.subject && q.shape === 'count' && /\b(?:days|dagen)\b/.test(q.read)) return true;
+  if ((q.domain === 'spending' || q.domain === 'income') && q.subject?.kind === 'category' && q.lang === 'nl') return true;
+  if (q.domain === 'networth' && (!!q.period || q.ask === 'trend' || q.ask === 'compare')) return true;
   // Tasks due tomorrow or this week (the older answer lists every open task).
   if (q.domain === 'tasks' && (q.ask === 'open' || q.ask === 'status') && /\b(?:tomorrow|morgen|week)\b/.test(q.read)) return true;
   return false;

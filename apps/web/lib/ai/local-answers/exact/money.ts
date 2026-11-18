@@ -123,7 +123,7 @@ export function netWorthAnswer(q: Query, env: ToolEnv): Exact | null {
   if (!r.ok && !totalsR.ok) return null;
   const amount = (text: string) => { const i = text.lastIndexOf(' '); return i > 0 ? formatCurrencyAmount(text.slice(0, i), text.slice(i + 1)) : text; };
   const per = r.ok ? (r.data.perCurrency as {currency: string; netWorth: string; assets: string; debts: string; holdingsWithAValue: string; accounts: number}[] | undefined) ?? [] : [];
-  const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'networth', ask: q.ask, ...facts}, widgets: [{id: 'net-worth-river', fallback: 'net-worth-history'}, {id: 'net-worth'}], query: q, source: t(lang, 'Wealth on this device', 'Wealth op dit apparaat')});
+  const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'networth', ask: q.ask, ...facts}, widgets: [{id: 'net-worth-river', ...(q.period ? {period: q.period} : {}), fallback: 'net-worth-history'}, {id: 'net-worth'}], query: q, source: t(lang, 'Wealth on this device', 'Wealth op dit apparaat')});
   if (!per.length) {
     const tot = totalsR.ok ? (totalsR.data.totals as {currency: string; total: string}[] | undefined) ?? [] : [];
     if (!tot.length) return out(t(lang, 'Nothing is tracked on Wealth yet.', 'Er wordt nog niets gevolgd bij Wealth.'), {tracked: 0});
@@ -131,5 +131,9 @@ export function netWorthAnswer(q: Query, env: ToolEnv): Exact | null {
   }
   const sorted = [...per].sort((a, b) => Number(b.netWorth.split(' ')[0]) - Number(a.netWorth.split(' ')[0])), lead = sorted[0]!, unknown = r.ok && typeof r.data.holdingsWithoutAValue === 'number' ? r.data.holdingsWithoutAValue : 0;
   const rest = sorted.slice(1).map(x => amount(x.netWorth)), debts = Number(lead.debts.split(' ')[0]) > 0 ? t(lang, `, after ${amount(lead.debts)} of debts`, `, na ${amount(lead.debts)} aan schulden`) : '';
-  return out(t(lang, `Net worth: ${amount(lead.netWorth)}${debts}${rest.length ? `; and ${listWords(rest, 'en')}, each currency on its own` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'holding has' : 'holdings have'} no known value and ${unknown === 1 ? 'is' : 'are'} not in it.` : ''}`, `Nettovermogen: ${amount(lead.netWorth)}${debts}${rest.length ? `; en ${listWords(rest, 'nl')}, elke valuta apart` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'bezitting heeft' : 'bezittingen hebben'} geen bekende waarde en ${unknown === 1 ? 'zit' : 'zitten'} er niet in.` : ''}`), {perCurrency: per, withoutValue: unknown});
+  // Session AS: answers read today's figures only (the history of net worth is the river's own record), so a period or a
+  // trend gets today's figure and says where its movement is shown, never a guessed change.
+  const span = q.period ? resolvePeriod(q.period, env.habitDay) : null;
+  const moved = span || q.ask === 'trend' || q.ask === 'compare' ? t(lang, ` That is today's figure; how it moved${span ? ` ${periodWords(span, 'en', env.habitDay)}` : ''} is on the net worth river beside this answer.`, ` Dat is het bedrag van vandaag; hoe het veranderde${span ? ` ${periodWords(span, 'nl', env.habitDay)}` : ''} staat op de vermogensrivier naast dit antwoord.`) : '';
+  return out(t(lang, `Net worth: ${amount(lead.netWorth)}${debts}${rest.length ? `; and ${listWords(rest, 'en')}, each currency on its own` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'holding has' : 'holdings have'} no known value and ${unknown === 1 ? 'is' : 'are'} not in it.` : ''}`, `Nettovermogen: ${amount(lead.netWorth)}${debts}${rest.length ? `; en ${listWords(rest, 'nl')}, elke valuta apart` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'bezitting heeft' : 'bezittingen hebben'} geen bekende waarde en ${unknown === 1 ? 'zit' : 'zitten'} er niet in.` : ''}`) + moved, {perCurrency: per, withoutValue: unknown});
 }

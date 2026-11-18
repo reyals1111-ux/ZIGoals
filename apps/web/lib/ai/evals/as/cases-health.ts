@@ -110,6 +110,13 @@ export const HEALTH: readonly Intent[] = [
   {id: 'heart-rate', pillar: 'health',
     en: ['what is my resting heart rate', 'whats my heart rate'],
     nl: ['wat is mijn rusthartslag', 'wat is mijn hartslag']},
+  // Session AS (held out, then added): a measure's total over a named period (the stage showed today's Health HUD).
+  {id: 'calories-week', pillar: 'health', never: ['Today so far'],
+    en: ['how many calories did I eat this week', 'calories this week in total'],
+    nl: ['hoeveel calorieën heb ik deze week gegeten', 'hoeveel kcal heb ik deze week binnengekregen']},
+  {id: 'protein-week', pillar: 'health', never: ['Today so far'],
+    en: ['how much protein did I eat this week', 'total protein this week'],
+    nl: ['hoeveel eiwit heb ik deze week gegeten', 'hoeveel eiwitten deze week']},
   {id: 'health-overall', pillar: 'health',
     en: ['how is my health', 'how is my health doing', 'hows my health'],
     nl: ['hoe is mijn gezondheid', 'hoe gaat het met mijn gezondheid']},

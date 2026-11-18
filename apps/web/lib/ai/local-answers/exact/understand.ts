@@ -1,3 +1,4 @@
+import {expenseCategory} from '../../../money-log/category';
 import {ASK_WORDS, DOMAIN_WORDS, GENERIC, HABIT_SYNONYMS, NOT_A_LOOKUP, SHAPE_WORDS, SHORT_WORDS, VOCABULARY} from './lexicon';
 import {periodIn} from './period';
 import {fixSlips, fold, langOf, root, sameWord} from './text';
@@ -59,8 +60,18 @@ function parse(folded: string, records: Records): Query | null {
   if ((ask === 'done' || ask === 'open' || ask === null) && /\b(?:not|no|didnt|dont|doesnt|wasnt|havent|never|niet|geen|nooit)\b/.test(asked) && !/\b(?:why not|waarom niet)\b/.test(asked)) ask = 'not-done';
   if ((ask === 'skipped' || ask === 'missed') && ASK_WORDS.find(([k]) => k === 'skipped')![1].test(asked) && ASK_WORDS.find(([k]) => k === 'missed')![1].test(asked)) ask = 'not-done';
   if (versus && ask !== 'why') ask = 'compare';
+  // One period named after "than"/"vs"/"compared to" is what is compared against; the period asked about is the current
+  // one of the same length ("did I spend more than last month": this month against last month).
+  let period = token, against = versus;
+  if ((ask === 'compare' || /\b(?:more|less|fewer|meer|minder)\b/.test(folded)) && token && !versus && /\b(?:than|vs|versus|compared (?:to|with)|against|dan|vergeleken met|tegenover)(?: the| de)? (?:last|previous|vorige|afgelopen|yesterday|gisteren)\b/.test(folded)) {
+    const now = ({'last-month': 'this-month', 'last-week': 'this-week', 'yesterday': 'today', 'last-year': 'this-year'} as Record<string, string>)[token];
+    if (now) { period = now; against = token; ask = 'compare'; }
+  }
   const goals = bestNamed(records.goals, g => g.name, plainWords), wholeGoal = goals.one && nameWords(goals.one.name).length >= 2 && nameScore(goals.one.name, plainWords) === 1 ? goals.one : null;
-  const category = records.categories.find(c => nameScore(c, plainWords) === 1) ?? null, bill = bestNamed(records.bills, b => b.title, plainWords).one;
+  // A category by its own name, else by the words people use for it in either language ("boodschappen", "supermarket" are
+  // Groceries: the money log's own word list, lib/money-log/category.ts), when the person keeps that category.
+  const byWords = expenseCategory(undefined, rest), named = records.categories.find(c => nameScore(c, plainWords) === 1);
+  const category = named ?? (byWords !== 'Other' ? records.categories.find(c => c.toLowerCase() === byWords.toLowerCase()) : undefined) ?? null, bill = bestNamed(records.bills, b => b.title, plainWords).one;
   let domain: Domain | null = null, subject: QuerySubject | null = null, choices: QuerySubject[] | undefined, alt: QuerySubject | undefined;
   const measure = domains.find(d => HEALTH_MEASURES.has(d)) ?? null, figure = shapeHit === 'amount' || (ask !== null && FIGURE_ASKS.has(ask));
   const habitWord = domains.includes('habits');
@@ -95,7 +106,7 @@ function parse(folded: string, records: Records): Query | null {
   const shape: Shape = shapeHit ?? (ask === 'status' || phrase ? 'overview' : 'list');
   // With nothing asked about it: an amount is its total; "how many times" and "which days" of a habit or a log is what was done; else how it stands.
   if (!ask) ask = shape === 'amount' ? 'total' : phrase || shape === 'list' || shape === 'overview' ? 'status' : domain === 'habits' || HEALTH_MEASURES.has(domain) || domain === 'journal' || domain === 'focus' ? 'done' : 'status';
-  return {domain, ask, shape, lang, period: token, versus, weekday, subject, ...(alt ? {alt} : {}), ...(choices ? {choices} : {}), read: folded};
+  return {domain, ask, shape, lang, period, versus: against, weekday, subject, ...(alt ? {alt} : {}), ...(choices ? {choices} : {}), read: folded};
 }
 /** The `Query` of a question, or null when it is not one the exact layer reads with confidence. */
 export function understand(question: string, records: Records): Query | null {

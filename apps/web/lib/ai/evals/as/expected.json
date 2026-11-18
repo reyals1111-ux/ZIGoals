@@ -1310,10 +1310,55 @@
   "freshNl": "Je hebt nog geen gewoontes."
  },
  "walk-done-count-lastweek": {
-  "en": "Walk: 48,000 steps last week (Mon, Nov 9 to Sun, Nov 15).\n- 6 check-ins on 6 days; 7 scheduled days\n- Best day: Mon, Nov 9 (8,000 steps)",
+  "en": "Walk: done on 6 of 7 due days last week (Mon, Nov 9 to Sun, Nov 15). 48,000 steps in total.",
   "nl": "Walk: gedaan op 6 van 7 geplande dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15). 48,000 steps in totaal.",
-  "facts": null,
-  "widgets": [],
+  "facts": {
+   "about": "Walk",
+   "subject": "92000000-0000-4000-8000-000000000003",
+   "ask": "done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 6,
+   "missed": 0,
+   "skipped": 1,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-13"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15"
+    ]
+   },
+   "count": 6,
+   "days": [
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-14",
+    "2026-11-15"
+   ],
+   "total": 48000,
+   "rate": 100
+  },
+  "widgets": [
+   "habit-done-days"
+  ],
   "fresh": "I’m not sure I read that right. The closest question I can answer here is “Average steps last week?”:\n\nNo steps are recorded last week (Mon, Nov 9 to Sun, Nov 15).",
   "freshNl": "Je hebt nog geen gewoontes."
  },
@@ -3405,6 +3450,82 @@
   "fresh": "No vitals are recorded the last 7 days (Wed, Nov 11 to Tue, Nov 17); they arrive with an import or a linked device.",
   "freshNl": "Er is nog geen hartslag vastgelegd."
  },
+ "calories-week": {
+  "en": "Calories: 4,039 kcal this week (Mon, Nov 16 to Tue, Nov 17), 2,020 kcal a day on 2 days.",
+  "nl": "Calorieën: 4,039 kcal deze week (Mon, Nov 16 t/m Tue, Nov 17), 2,020 kcal per dag op 2 dagen.",
+  "facts": {
+   "about": "Calories",
+   "ask": "total",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "due": 2,
+   "done": 2,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "total": 4039,
+   "average": 2019.5,
+   "logged": 2
+  },
+  "widgets": [
+   "calorie-trend"
+  ],
+  "fresh": "No food logged yet.",
+  "freshNl": "Nog geen eten gelogd."
+ },
+ "protein-week": {
+  "en": "Protein: 269 g this week (Mon, Nov 16 to Tue, Nov 17), 134 g a day on 2 days; target reached on 2 of 2 days logged.",
+  "nl": "Eiwit: 269 g deze week (Mon, Nov 16 t/m Tue, Nov 17), 134 g per dag op 2 dagen; doel gehaald op 2 van 2 dagen gelogd.",
+  "facts": {
+   "about": "Protein",
+   "ask": "total",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "due": 2,
+   "done": 2,
+   "missed": 0,
+   "skipped": 0,
+   "part": 0,
+   "open": 0,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-16",
+     "2026-11-17"
+    ]
+   },
+   "total": 268.55,
+   "average": 134.275,
+   "logged": 2
+  },
+  "widgets": [
+   "protein-days"
+  ],
+  "fresh": "No food logged yet.",
+  "freshNl": "Nog geen eten gelogd."
+ },
  "health-overall": {
   "en": "Your health, from what is recorded: sleep 7 h 17 min of 8 h; steps today 8,800 of 8,000 steps; water today 1,000 of 2,000 mL; weight 73.48 kg (Mon, Nov 16); 1 workout this week. Nothing recorded for: resting heart rate.",
   "nl": "Je gezondheid, uit wat er is vastgelegd: slaap 7 h 17 min van 8 h; stappen vandaag 8,800 van 8,000 stappen; water vandaag 1,000 van 2,000 mL; gewicht 73.48 kg (Mon, Nov 16); 1 workout deze week. Niets vastgelegd voor: rusthartslag.",
@@ -3590,7 +3711,7 @@
  },
  "spend-groceries-month": {
   "en": "You spent 187.10 EUR on groceries this month. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf deze maand 187.10 EUR aan groceries uit. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "nl": "Groceries: €187.10 uitgegeven deze maand (Sun, Nov 1 t/m Tue, Nov 17), in 4 boekingen.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
@@ -4482,6 +4603,39 @@
   "widgets": [],
   "fresh": "You have no goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
   "freshNl": "Je hebt nog geen doelen."
+ },
+ "networth-year": {
+  "en": "Net worth: $531,029.00, after $7,551.00 of debts; and €8,000.00, each currency on its own. 2 holdings have no known value and are not in it. That is today's figure; how it moved this year is on the net worth river beside this answer.",
+  "nl": "Dat kan ik niet precies uit je gegevens halen. Wat er wel staat: Nettovermogen: $531,029.00, na $7,551.00 aan schulden; en €8,000.00, elke valuta apart. 2 bezittingen hebben geen bekende waarde en zitten er niet in.",
+  "facts": {
+   "about": "networth",
+   "ask": "status",
+   "perCurrency": [
+    {
+     "currency": "EUR",
+     "netWorth": "8000.00 EUR",
+     "assets": "0 EUR",
+     "debts": "0 EUR",
+     "holdingsWithAValue": "8000.00 EUR",
+     "accounts": 0
+    },
+    {
+     "currency": "USD",
+     "netWorth": "531029.00 USD",
+     "assets": "36780.00 USD",
+     "debts": "7551.00 USD",
+     "holdingsWithAValue": "501800.00 USD",
+     "accounts": 5
+    }
+   ],
+   "withoutValue": 2
+  },
+  "widgets": [
+   "net-worth-river",
+   "net-worth"
+  ],
+  "fresh": "Nothing is tracked on Wealth yet.",
+  "freshNl": "Dat kan ik niet precies uit je gegevens halen. Wat er wel staat: Er wordt nog niets gevolgd bij Wealth."
  },
  "goal-emergency": {
   "en": "Emergency fund: 45% of the target — $9,000 of $20,000.\n- $11,000 to go\n- Target date: Thu, Nov 16, 2028\n- Next planned contribution: Fri, Nov 20\n- Contributed so far: $750; planned through today: $500",
@@ -5450,11 +5604,46 @@
   "freshNl": "Er is nog niets vastgelegd. Voeg een gewoonte, taak of doel toe en vraag het me opnieuw."
  },
  "why-sleep": {
-  "en": "I’m not sure I read that right. The closest question I can answer here is “How did I sleep this week?”:\n\n2 nights logged this week (Mon, Nov 16 to Tue, Nov 17):\n- Mon, Nov 16: 6 h 37 min asleep, 23:33 to 06:46\n- Tue, Nov 17: 7 h 17 min asleep, 23:20 to 07:20",
-  "nl": "Waarom staat niet in je gegevens. Wat er wel staat: Slaap: 7 h 17 min afgelopen nacht, van je doel van 8 h.",
-  "facts": null,
-  "widgets": [],
-  "fresh": "I’m not sure I read that right. The closest question I can answer here is “How did I sleep this week?”:\n\nNo night is logged this week (Mon, Nov 16 to Tue, Nov 17).",
+  "en": "Your records do not say why. What they do show: Sleep: 6 h 51 min a day on average last week (Mon, Nov 9 to Sun, Nov 15) (6 days logged).",
+  "nl": "Waarom staat niet in je gegevens. Wat er wel staat: Slaap: gemiddeld 6 h 51 min per dag vorige week (Mon, Nov 9 t/m Sun, Nov 15) (6 dagen gelogd).",
+  "facts": {
+   "about": "Sleep",
+   "ask": "average",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "due": 7,
+   "done": 0,
+   "missed": 0,
+   "skipped": 0,
+   "part": 6,
+   "open": 0,
+   "notLogged": 1,
+   "dates": {
+    "missed": [],
+    "skipped": [],
+    "part": [
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-14",
+     "2026-11-15"
+    ],
+    "notLogged": [
+     "2026-11-13"
+    ],
+    "done": []
+   },
+   "average": 410.8333333333333,
+   "logged": 6
+  },
+  "widgets": [
+   "sleep-trend"
+  ],
+  "fresh": "Your records do not say why. What they do show: No nights logged yet.",
   "freshNl": "Waarom staat niet in je gegevens. Wat er wel staat: Nog geen nachten gelogd."
  },
  "why-habits": {

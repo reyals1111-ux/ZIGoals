@@ -240,7 +240,8 @@ export function exactFallback(question: string, env: ToolEnv): LocalReply | null
     if (navigationIntent(question)) return null;
     const read = exactQuery(question, env), q = read ?? exactTopic(question, env);
     if (!q) return null;
-    const exact = answerQuery({...q, ask: 'status', shape: 'overview', period: null, versus: null, weekday: null}, env);
+    // A "why" keeps the period it names ("why did I sleep so little last week": what last week's records show).
+    const exact = answerQuery({...q, ask: 'status', shape: 'overview', period: read?.ask === 'why' ? q.period : null, versus: null, weekday: null}, env);
     if (!exact || exact.kind !== 'answer') return null;
     const nl = q.lang === 'nl', lead = read?.ask === 'why' ? (nl ? 'Waarom staat niet in je gegevens. Wat er wel staat: ' : 'Your records do not say why. What they do show: ') : (nl ? 'Dat kan ik niet precies uit je gegevens halen. Wat er wel staat: ' : 'I can’t answer that exactly from your records. What they do show: ');
     const reply: LocalReply = {kind: 'answer', text: `${lead}${exact.text}`, calls: [{tool: 'life_facts', args: {...queryArgs(exact.query), ...(exact.widgets.length ? {show: showOf(exact.widgets)} : {})}, label: queryLabel(exact.query, env.habitDay)}]};
