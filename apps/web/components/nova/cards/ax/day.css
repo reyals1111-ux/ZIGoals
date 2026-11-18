@@ -12,8 +12,8 @@
  * ceiling. Row instruments (lattices, the scanner, the guide) drop whole rows instead (cards/whole-rows.tsx). A panel too
  * low for any instrument shows the figure and its words alone, as a Small one does.
  */
-.axd-inst { --axd-room: calc(100cqh - 132px); min-width: 0; }
-.ax-body[data-size=L] .axd-inst { --axd-room: calc(100cqh - 200px); }
+.axd-inst { --axd-room: calc((100cqh - var(--ax-over, 0px)) - 132px); min-width: 0; }
+.ax-body[data-size=L] .axd-inst { --axd-room: calc((100cqh - var(--ax-over, 0px)) - 200px); }
 .axd-more { margin: 0; font-size: 14px; line-height: 20px; color: var(--ax-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---- The key (what each mark means, in words; never colour alone) ---- */
@@ -47,17 +47,17 @@
 .axd-flame[data-out] .axd-flame-body { height: 9px; left: 26%; right: 26%; border-radius: 50%; background: none; border: 1px dashed color-mix(in srgb, var(--ax-dim) 85%, transparent); box-shadow: none; }
 .axd-flame[data-out] .axd-flame-body b { display: none; }
 .axd-flame[data-out] .axd-flame-fig { color: var(--ax-dim); text-shadow: none; }
-.axd-flame-name { max-width: 100%; font-size: 14px; line-height: 17px; color: var(--ax-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.axd-flame-name { max-width: 100%; font-size: 14px; line-height: 17px; color: var(--ax-label); text-align: center; overflow-wrap: anywhere; } /* Session AS: a habit's name wraps, never cut */
 
 /* ---- Family: lattices and heat (rows of days; a column a week) ---- */
 .axd-lat { display: grid; gap: 4px; min-width: 0; }
-.axd-lat-head, .axd-lat-row { display: grid; grid-template-columns: minmax(70px, 26%) repeat(var(--axd-cols, 7), minmax(0, 1fr)) minmax(0, auto); column-gap: 2px; align-items: center; }
+.axd-lat-head, .axd-lat-row { display: grid; grid-template-columns: minmax(70px, 32%) repeat(var(--axd-cols, 7), minmax(0, 1fr)) minmax(0, auto); column-gap: 2px; align-items: center; }
 .axd-lat[data-kind=counts] .axd-lat-head, .axd-lat[data-kind=counts] .axd-lat-row { column-gap: 4px; }
 .axd-lat-head span { position: relative; height: 22px; font-size: 14px; line-height: 16px; letter-spacing: .04em; color: var(--ax-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .axd-lat[data-kind=counts] .axd-lat-head span { text-align: center; }
 .axd-lat-head span[data-lead] { color: var(--ax-ink); font-weight: 650; }
 .axd-lat-now { position: absolute; left: 50%; bottom: 0; width: 0; height: 0; margin-left: -4px; border: 4px solid transparent; border-bottom: 0; border-top-color: var(--ax-ink); }
-.axd-lat-label { font-size: 14px; line-height: 18px; color: var(--ax-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
+.axd-lat-label { font-size: 14px; line-height: 16px; color: var(--ax-ink); overflow-wrap: anywhere; padding-right: 6px; } /* Session AS: a habit's name wraps, never cut */
 .axd-lat-note { padding-left: 6px; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--ax-label); white-space: nowrap; text-align: right; }
 .axd-lat-row i { display: grid; place-items: center; height: 16px; min-width: 0; box-sizing: border-box; border-radius: 3px; font-style: normal; border: 1px solid color-mix(in srgb, var(--neon) 26%, transparent); background: color-mix(in srgb, var(--neon) 5%, var(--ax-glass)); }
 .axd-lat[data-kind=counts] .axd-lat-row i { height: 24px; border-radius: 6px; }
@@ -259,3 +259,6 @@
 .nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axd-scan-beam { animation: axd-beam 20s 2s linear infinite; }
 .nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .axd-guide-caret { animation: axd-blink 1.4s steps(1) infinite; }
 .nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axd-guide-caret { animation: axd-blink 3.6s steps(1) infinite; }
+
+/* Session AS: optional parts step aside when the answer does not fit its panel (AxBody's fit check). */
+.ax-body[data-over] :is(.axd-key) { display: none; }

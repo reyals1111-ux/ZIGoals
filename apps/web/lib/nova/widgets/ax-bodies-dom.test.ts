@@ -22,12 +22,14 @@ type Body = ComponentType<{size: 'S' | 'M' | 'L'; params?: WidgetParams}>;
 const bodies = import.meta.glob<{default: Body}>('../../../components/nova/widgets/*.tsx');
 /** The Session AS kinds: those the catalogue marks as taking an answer's period. */
 const IDS = WIDGETS.filter(w => w.params?.includes('period')).map(w => w.id);
-const PARAMS: Record<string, () => WidgetParams> = {'habit-missed-days': () => ({ref: habitId('Meditate'), period: 'this-month'}), 'habit-done-days': () => ({ref: habitId('Meditate'), period: 'last-week'}), 'habit-misses': () => ({period: 'this-month'}), 'habits-month': () => ({period: 'this-month'})};
+const PARAMS: Record<string, () => WidgetParams> = {'habit-missed-days': () => ({ref: habitId('Meditate'), period: 'this-month'}), 'habit-done-days': () => ({ref: habitId('Meditate'), period: 'last-week'}), 'habit-misses': () => ({period: 'this-month'}), 'habits-month': () => ({period: 'this-month'}), 'focus-gauge': () => ({period: 'today'})};
 const NOT_IN_SHOWCASE = new Set(['heart-trend', 'mood-map']);
 const SAYS: Record<string, string[]> = {
   'habit-missed-days': ['2', 'days', 'Meditate', '2 skipped', 'today still open', 'Nov 3, Nov 12'],
   'habit-misses': ['1', 'of 7', 'missed', 'Late-night snacks', '2 missed', '3 skipped'],
   'habits-month': ['Nov 8', 'Nov 13'],
+  // "Did I focus today": today (no session yet) beside yesterday's 150 minutes, never this week's total (Session AS).
+  'focus-gauge': ['focused · today', 'No session yet today', '150 minutes yesterday'],
 };
 
 let host: HTMLDivElement, root: Root;

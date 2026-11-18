@@ -21,16 +21,16 @@ export const AS_HEALTH: readonly WidgetSpec[] = [
   health('weight-trend', 'Weight trend', 'Your weigh-ins as one line with your weight goal, and the change over the period in words.', '/app/health?view=weight', ['period', 'range']),
   health('sleep-trend', 'Sleep trend', 'The hours you slept each night as one line against your own sleep goal.', '/app/health?view=sleep'),
   health('steps-trend', 'Steps trend', 'Your steps each day as one line against your own step target.', '/app/health?view=activity'),
-  health('heart-trend', 'Resting heart rate', 'The resting heart rate recorded for each day as one line. A record, never a live reading.', '/app/health?view=insights'),
+  health('heart-trend', 'Resting pulse', 'The resting heart rate recorded for each day as one line. A record, never a live reading.', '/app/health?view=insights'),
   health('water-week', 'Water by day', 'The last 7 days of water as columns against your own target.', '/app/health#water'),
   health('calorie-trend', 'Calorie trend', 'The calories you logged each day as one line, with your own calorie target.', '/app/health?view=diary'),
   // Stage bars.
   health('sleep-stages', 'Sleep stages', 'Deep, REM and core sleep of each night as stacked bars, where a night holds them.', '/app/health?view=sleep'),
-  health('sleep-times', 'Bedtime and wake time', 'When you went to bed and got up each night, as bars on a 24-hour scale.', '/app/health?view=sleep'),
+  health('sleep-times', 'Bed and wake', 'When you went to bed and got up each night, as bars on a 24-hour scale.', '/app/health?view=sleep'),
   health('fasting-windows', 'Fasting windows', 'Your last fasts as bars, each against its own target.', '/app/health#fasting'),
   // Gauges, heat, twins, map.
-  health('nutrition-gauges', 'Nutrition gauges', 'Today’s calories, protein, carbs and fat as arcs against your own targets.', '/app/health?view=diary'),
+  health('nutrition-gauges', 'Nutrition', 'Today’s calories, protein, carbs and fat as arcs against your own targets.', '/app/health?view=diary'),
   health('steps-heat', 'Steps heat', 'The last 13 weeks of steps, a cell a day: the more steps the brighter, nothing logged left unlit.', '/app/health?view=activity'),
-  health('health-compare', 'Health, period by period', 'One measure of Health in a period beside the period before it, with the difference in words.', '/app/health', ['ref', 'period']),
+  health('health-compare', 'Compare health', 'One measure of Health in a period beside the period before it, with the difference in words.', '/app/health', ['ref', 'period']),
   health('mood-map', 'Mood map', 'A month of days, each lit by the mood you kept that evening, with the steps named in words. Counts only.', '/app/health'),
 ];

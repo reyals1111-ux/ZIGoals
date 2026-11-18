@@ -13,7 +13,7 @@ import './money.css';
 export type AxmRows = readonly (readonly [string, string])[];
 /** The answer in a figure and words (the kit's `AxHead`); a long figure (money with its cents) is set smaller so its words keep their room. */
 export function AxmHead(props: Parameters<typeof AxHead>[0]) {
-  return <div className="axm-head" data-long={props.figure.length > 8 ? '' : undefined}><AxHead {...props}/></div>;
+  return <div className="axm-head" data-ax-keep="" data-long={props.figure.length > 8 ? '' : undefined}><AxHead {...props}/></div>;
 }
 /** An instrument beside (wide panel) or above (narrow panel) its list. `rows`: how many list rows stand under it, so the drawing leaves them room. */
 export function AxmSplit({rows = 0, stack = false, children}: {rows?: number; /** Always one above the other (an instrument that takes the whole width). */ stack?: boolean; children: ReactNode}) {

@@ -39,7 +39,7 @@
 .ax-cal-head, .ax-cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
 .ax-cal-head span { text-align: center; font-size: 14px; letter-spacing: .08em; color: var(--ax-dim); }
 .ax-cal-grid { position: relative; display: grid; gap: 5px; padding: 5px 0; }
-.ax-cal-cell { position: relative; display: grid; place-items: center; height: clamp(22px, min(11.5cqi, calc((100cqh - 192px) / var(--ax-weeks) - 5px)), 56px); border-radius: 8px; font-style: normal; border: 1px solid color-mix(in srgb, var(--neon) 18%, transparent); background: color-mix(in srgb, var(--neon) 5%, var(--ax-glass)); }
+.ax-cal-cell { position: relative; display: grid; place-items: center; height: clamp(22px, min(11.5cqi, calc(((100cqh - var(--ax-over, 0px)) - 192px) / var(--ax-weeks) - 5px)), 56px); border-radius: 8px; font-style: normal; border: 1px solid color-mix(in srgb, var(--neon) 18%, transparent); background: color-mix(in srgb, var(--neon) 5%, var(--ax-glass)); }
 .ax-cal-cell b { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ax-dim); line-height: 1; }
 .ax-cal-cell[data-state=done] { border-color: color-mix(in srgb, var(--neon) 42%, transparent); }
 .ax-cal-cell[data-state=done] b { color: var(--ax-ink); }
@@ -108,7 +108,7 @@
 /* ---- Family: twins (one period beside another) ---- */
 .ax-twins { display: grid; gap: 12px; min-width: 0; }
 .ax-twin { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'label text' 'track track'; column-gap: 10px; row-gap: 5px; align-items: baseline; }
-.ax-twin-label { grid-area: label; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--ax-label); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ax-twin-label { grid-area: label; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--ax-label); overflow-wrap: anywhere; } /* Session AS: wraps, never cut */
 .ax-twin-text { grid-area: text; font-size: 15px; font-variant-numeric: tabular-nums; color: var(--ax-ink); white-space: nowrap; }
 .ax-twin-track { grid-area: track; height: 14px; border-radius: 7px; background: color-mix(in srgb, var(--neon) 8%, var(--ax-glass)); overflow: hidden; }
 .ax-twin-track i { display: block; width: var(--ax-w, 0%); height: 100%; border-radius: 7px; transform-origin: left center; background: color-mix(in srgb, var(--neon) 34%, transparent); }
@@ -119,3 +119,11 @@
 .nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ax-twin-track i { animation: ax-grow-x .5s .44s cubic-bezier(.2, .7, .2, 1) both; }
 .nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ax-twin[data-side=now] .ax-twin-track i { animation: ax-grow-x .5s .62s cubic-bezier(.2, .7, .2, 1) both; }
 .nova-frame[data-hud-motion=full] .nova-widget:not([data-off], [data-made=fresh]) .ax-twin[data-side=now]:not([data-none]) .ax-twin-track i { animation: ax-glint 3.2s ease-in-out infinite; }
+
+/* Session AS: when the instruments are at their smallest and the answer still does not fit its panel, the optional parts
+   step aside (the table holds every fact): keys, chips, notes and second lines. Set by AxBody's fit check. */
+.ax-body[data-over] :is(.ax-key, .ax-chips) { display: none; }
+.ax-body[data-over=all] > :not(.ax-head):not(.nc-foot):not(table):not(.sr-only):not(.nc-notice):not([data-ax-keep]) { display: none; }
+.ax-body[data-over=all] .ax-head-note { display: none; } /* as the compact tier does (its table keeps the words) */
+/* Session AS: an answer's source and as-of wrap onto a second line rather than being cut ("· the last 30 days · 8 of 30 d…"). */
+.ax-body > .nc-foot { white-space: normal; overflow: visible; text-overflow: clip; }

@@ -19,7 +19,9 @@
 .axm-head[data-long] > div > p:first-child > :first-child { font-size: clamp(26px, 9.6cqi, 42px); }
 [data-size=S] > .axm-head[data-long] > div > p:first-child > :first-child { font-size: clamp(24px, 8.4cqi, 34px); }
 
-.axm-inst { --axm-h: clamp(92px, calc(100cqh - 152px - var(--axm-rows, 0) * 29px), 300px); min-width: 0; }
+.axm-inst { --axm-h: clamp(92px, calc((100cqh - var(--ax-over, 0px)) - 152px - var(--axm-rows, 0) * 29px), 300px); min-width: 0; }
+/* Session AS: in a narrow panel the figure's words wrap to four or five lines, so the instrument leaves them more room (the goal gauge's foot was pushed out of a 280 px wing). */
+@container (max-width: 340px) { .axm-inst { --axm-h: clamp(80px, calc((100cqh - var(--ax-over, 0px)) - 262px - var(--axm-rows, 0) * 29px), 300px); } }
 .axm-split { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .axm-split > .axm-inst { align-self: center; }
 .axm-split[data-lay=stack] > .axm-inst { align-self: stretch; }
@@ -68,13 +70,13 @@
 .axm-radar-dot { fill: var(--ax-ink); stroke: var(--neon); stroke-width: 1.4; }
 .axm-radar-sweep { transform-origin: 0 0; opacity: 0; }
 .axm-radar-hand { fill: none; stroke: var(--neon-2); stroke-width: 1.2; stroke-linecap: round; }
-.axm-radar-label { position: absolute; transform: translate(-50%, -50%); max-width: max(5ch, calc(24cqi - 14px)); font-size: 14px; line-height: 1.15; color: var(--ax-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.axm-radar-label { position: absolute; transform: translate(-50%, -50%); max-width: max(7ch, calc(28cqi - 10px)); font-size: 14px; line-height: 1.15; color: var(--ax-label); text-align: center; overflow-wrap: anywhere; }
 .axm-radar-label[data-side=r] { transform: translate(0, -50%); }
 .axm-radar-label[data-side=l] { transform: translate(-100%, -50%); }
 
 /* ---- Family: heat (thirteen weeks) ---- */
 .axm-heat { display: grid; grid-template-columns: auto max-content; grid-template-areas: '. months' 'days grid'; column-gap: 8px; row-gap: 4px; justify-content: start; align-items: start;
-  --axm-cell: clamp(9px, min(calc((100cqi - 64px) / var(--axm-weeks, 13) - 3px), calc((100cqh - 200px) / 7 - 3px)), 28px); }
+  --axm-cell: clamp(9px, min(calc((100cqi - 64px) / var(--axm-weeks, 13) - 3px), calc(((100cqh - var(--ax-over, 0px)) - 200px) / 7 - 3px)), 28px); }
 .axm-heat-months { grid-area: months; display: grid; grid-template-columns: repeat(var(--axm-weeks, 13), var(--axm-cell)); column-gap: 3px; font-size: 14px; line-height: 1.2; color: var(--ax-dim); }
 .axm-heat-months span { white-space: nowrap; overflow: hidden; }
 .axm-heat-days { grid-area: days; display: grid; grid-template-rows: repeat(7, var(--axm-cell)); row-gap: 3px; font-size: 14px; color: var(--ax-dim); }
@@ -93,7 +95,7 @@
 
 /* ---- The bills' grid: the next 31 days ---- */
 .axm-bills { display: grid; gap: 5px; width: 100%; max-width: 560px; box-sizing: border-box; padding: 4px 5px 0;
-  --axm-cell: clamp(22px, min(11.5cqi, calc((100cqh - 200px) / var(--axm-weeks, 5) - 5px)), 50px); }
+  --axm-cell: clamp(22px, min(11.5cqi, calc(((100cqh - var(--ax-over, 0px)) - 200px) / var(--axm-weeks, 5) - 5px)), 50px); }
 .axm-bills-head, .axm-bills-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
 .axm-bills-head span { text-align: center; font-size: 14px; letter-spacing: .08em; color: var(--ax-dim); }
 .axm-bills-week { transform-origin: center top; }
@@ -108,7 +110,7 @@
 
 /* ---- Family: rivers ---- */
 .axm-river { display: grid; gap: 4px; min-width: 0; }
-.axm-river svg { display: block; width: 100%; height: clamp(64px, calc(100cqh - 178px), 190px); overflow: hidden; }
+.axm-river svg { display: block; width: 100%; height: clamp(64px, calc((100cqh - var(--ax-over, 0px)) - 178px), 190px); overflow: hidden; }
 .axm-river-bed { fill: none; stroke: color-mix(in srgb, var(--ax-dim) 60%, transparent); stroke-width: 1; stroke-dasharray: 3 5; vector-effect: non-scaling-stroke; }
 .axm-river-band { transform-origin: 0 0; }
 .axm-river-band path { stroke-width: 1.6; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
@@ -117,15 +119,16 @@
 .axm-river-line { fill: none; stroke: var(--ax-ink); stroke-width: 1.4; vector-effect: non-scaling-stroke; transform-origin: 0 0; }
 .axm-river-drift { opacity: 0; }
 .axm-river-drift path { fill: none; stroke: var(--ax-ink); stroke-width: 1.4; stroke-linecap: round; vector-effect: non-scaling-stroke; }
-.axm-river-axis { margin: 0; display: flex; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--ax-dim); font-variant-numeric: tabular-nums; }
-.axm-river-cap { color: var(--ax-label); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.axm-river-axis { margin: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--ax-dim); font-variant-numeric: tabular-nums; }
+.axm-river-cap { flex: 1 1 auto; color: var(--ax-label); text-align: center; min-width: 0; text-wrap: balance; } /* Session AS: wraps, so the end date stays inside */
 
 /* ---- Family: arc gauges ---- */
 .axm-gauges { display: grid; grid-template-columns: repeat(var(--axm-n, 3), minmax(0, 1fr)); gap: 8px 12px; min-width: 0;
-  --axm-gh: clamp(58px, calc((100cqh - 152px) / var(--axm-grows, 1) - 54px), 150px); }
+  --axm-gh: clamp(58px, calc(((100cqh - var(--ax-over, 0px)) - 152px) / var(--axm-grows, 1) - 54px), 150px); }
 .axm-gauge { display: grid; justify-items: center; align-content: start; gap: 1px; min-width: 0; text-align: center; }
-.axm-gauge-name { max-width: 100%; font-size: 14px; color: var(--ax-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.axm-gauge-text { max-width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--ax-label); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Session AS: a name or an amount wraps onto a second line in a narrow panel ("€187.10 o…" lost the figure). */
+.axm-gauge-name { max-width: 100%; font-size: 14px; line-height: 1.2; color: var(--ax-ink); text-align: center; overflow-wrap: anywhere; }
+.axm-gauge-text { max-width: 100%; font-size: 14px; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--ax-label); text-align: center; text-wrap: balance; }
 .axm-gauge-text[data-over] { color: var(--ax-ink); font-weight: 650; }
 .axm-arc { position: relative; width: min(100%, calc(var(--axm-gh, 92px) * 1.3)); aspect-ratio: 120 / 92; }
 .axm-arc[data-size=solo] { width: min(74cqi, calc(var(--axm-h) * 1.3)); }
@@ -163,7 +166,7 @@
 .axm-dial-line { margin: 0; font-size: 15px; font-variant-numeric: tabular-nums; color: var(--ax-label); }
 
 /* ---- Family: timelines ---- */
-.axm-time { display: grid; gap: 3px; min-width: 0; padding: 2px 14px 0; --axm-th: clamp(60px, calc(100cqh - 172px - var(--axm-rows, 0) * 29px), 88px); }
+.axm-time { display: grid; gap: 3px; min-width: 0; padding: 2px 14px 0; --axm-th: clamp(60px, calc((100cqh - var(--ax-over, 0px)) - 172px - var(--axm-rows, 0) * 29px), 88px); }
 .axm-time-track { position: relative; height: var(--axm-th); }
 .axm-time-rail { position: absolute; left: -14px; right: -14px; top: 50%; height: 4px; margin-top: -2px; border-radius: 2px; overflow: hidden; transform-origin: left center; background: linear-gradient(90deg, var(--neon), color-mix(in srgb, var(--neon) 30%, var(--ax-glass))); box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 46%, transparent); }
 .axm-time-run { position: absolute; inset: 0; opacity: 0; background: linear-gradient(90deg, transparent 0, var(--ax-ink) 12px, transparent 26px); }
@@ -196,7 +199,7 @@
 
 /* ---- Family: vessels (jars) ---- */
 .axm-jars { display: grid; grid-template-columns: repeat(var(--axm-n, 3), minmax(0, 1fr)); gap: 10px; justify-items: center; min-width: 0; align-self: stretch;
-  --axm-jh: clamp(52px, calc(100cqh - 182px - var(--axm-rows, 0) * 29px), 150px); }
+  --axm-jh: clamp(52px, calc((100cqh - var(--ax-over, 0px)) - 182px - var(--axm-rows, 0) * 29px), 150px); }
 .axm-jar { display: grid; justify-items: center; gap: 4px; min-width: 0; width: 100%; }
 .axm-jar-glass { position: relative; display: block; width: min(100%, calc(var(--axm-jh) * .72)); height: var(--axm-jh); box-sizing: border-box; overflow: hidden; border: 2px solid color-mix(in srgb, var(--neon) 58%, transparent); border-radius: 9px 9px 17px 17px; background: color-mix(in srgb, var(--neon) 5%, var(--ax-glass)); }
 .axm-jar-lid { position: absolute; z-index: 1; left: 14%; right: 14%; top: 0; height: 4px; border-radius: 0 0 3px 3px; background: color-mix(in srgb, var(--neon-2) 76%, transparent); }
@@ -292,3 +295,6 @@
 .nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axm-orbit-drift { animation: axm-drift calc(18s + var(--ax-i, 0) * 3s) ease-in-out infinite; }
 .nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .axm-jar-bubble { animation: axm-bubble 4.2s ease-in calc(1.2s + var(--ax-i, 0) * 700ms) infinite; }
 .nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axm-jar-bubble { animation: axm-bubble 9s ease-in calc(var(--ax-i, 0) * 1.5s) infinite; }
+
+/* Session AS: optional parts step aside when the answer does not fit its panel (AxBody's fit check). */
+.ax-body[data-over] :is(.axm-key, .axm-note) { display: none; }

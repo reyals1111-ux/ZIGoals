@@ -41,9 +41,9 @@ test('jars: the active value goals, each filled to its progress; an unknown valu
 });
 test('one goal as a gauge: the goal the answer named, else the lead goal, in the goal page’s own words', () => {
   const japan = goalGauge(focusGoal(goals, hud.arcs, '9203', null)!, null);
-  expect(japan).toMatchObject({name: 'Japan adventure', figure: '42%', atLeast: false, tone: 'attention', label: 'reached · Japan adventure', note: '$2,500.00 of $6,000.00 · Behind plan'});
+  expect(japan).toMatchObject({name: 'Japan adventure', figure: '42%', atLeast: false, tone: 'attention', label: 'of the target · Japan adventure', note: '$2,500.00 of $6,000.00 · Behind plan'});
   expect(japan.share).toBeCloseTo(0.4166);
-  expect(japan.rows).toEqual([['Reached', '42%'], ['So far, of the target', '$2,500.00 of $6,000.00'], ['Plan', 'Behind plan'], ['Left to go', '$3,500.00'], ['Target date', 'Apr 16, 2027']]);
+  expect(japan.rows).toEqual([['Share of the target', '42%'], ['So far, of the target', '$2,500.00 of $6,000.00'], ['Plan', 'Behind plan'], ['Left to go', '$3,500.00'], ['Target date', 'Apr 16, 2027']]);
   const lead = goalGauge(focusGoal(goals, hud.arcs, undefined, null)!, {headline: 'On pace for Aug 2028', detail: 'From your last 90 days.', estimate: true});
   expect(lead).toMatchObject({name: 'Emergency fund', figure: '45%', share: 0.45, tone: 'good', note: '$9,000.00 of $20,000.00 · Ahead of plan'});
   expect(lead.rows.at(-1)).toEqual(['Pace', 'On pace for Aug 2028 (an estimate: a projection, not a promise). From your last 90 days.']);

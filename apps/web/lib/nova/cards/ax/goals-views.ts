@@ -58,9 +58,10 @@ export function goalGauge(goal: FocusGoal, estimate: {headline: string; detail: 
   const name = axPlain(goal.name);
   return {
     name, figure: goal.figure, share: goal.pct === null ? null : Math.max(0, Math.min(1, goal.pct / 100)), atLeast: goal.atLeast, tone: goal.pace.tone,
-    label: `${goal.pct === null ? 'progress unknown' : goal.atLeast ? 'at least, reached' : 'reached'} · ${name}`, note: [goal.saved, goal.pace.words].filter(Boolean).join(' · '),
+    // Session AS: the share of the target ("reached" beside 42% read as the goal being reached).
+    label: `${goal.pct === null ? 'progress unknown' : goal.atLeast ? 'at least, of the target' : 'of the target'} · ${name}`, note: [goal.saved, goal.pace.words].filter(Boolean).join(' · '),
     rows: [
-      ['Reached', goal.text], ...(goal.saved ? [['So far, of the target', goal.saved] as const] : []), ['Plan', goal.pace.words],
+      ['Share of the target', goal.text], ...(goal.saved ? [['So far, of the target', goal.saved] as const] : []), ['Plan', goal.pace.words],
       ...(goal.left ? [['Left to go', goal.left] as const] : []), ...(goal.targetDate ? [['Target date', formatDate(goal.targetDate)] as const] : []),
       ...(estimate ? [['Pace', `${estimate.headline}${estimate.estimate ? ' (an estimate: a projection, not a promise)' : ''}. ${estimate.detail}`] as const] : []),
     ],

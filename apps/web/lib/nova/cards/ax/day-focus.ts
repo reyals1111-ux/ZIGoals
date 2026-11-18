@@ -1,4 +1,4 @@
-import {resolvePeriod} from '../../../ai/local-answers/exact/period';
+import {previousPeriod, resolvePeriod} from '../../../ai/local-answers/exact/period';
 import {weekStart} from '../../../ai/tools/range';
 import {addLocalDays} from '../../../local-date';
 import {formatDate, formatMonth} from '../../../visual-format';
@@ -49,11 +49,17 @@ export type GaugeView = {
   /** This week's minutes minus last week's. */
   delta: number;
 };
-export function focusGauge(sessions: readonly Session[], today: string): GaugeView {
-  const side = (token: string): GaugeSide => {
-    const p = resolvePeriod(token, today)!, by = perDay(sessions.filter(s => s.day >= p.from && s.day <= p.to));
+/**
+ * The gauge's two sides: the answer's period (`token`; this week by default) and the period before it. This week stands
+ * beside the whole of last week (as the Focus page does); any other period beside the one of the same length before it
+ * ("did I focus today": today beside yesterday). Session AS: it showed this week whatever the answer was about.
+ */
+export function focusGauge(sessions: readonly Session[], today: string, token = 'this-week'): GaugeView {
+  const sideOf = (p: {from: string; to: string}): GaugeSide => {
+    const by = perDay(sessions.filter(s => s.day >= p.from && s.day <= p.to));
     return {from: p.from, to: p.to, minutes: Math.round([...by.minutes.values()].reduce((a, b) => a + b, 0)), sessions: [...by.count.values()].reduce((a, b) => a + b, 0), days: by.minutes.size};
   };
-  const now = side('this-week'), before = side('last-week'), top = Math.max(now.minutes, before.minutes, 1);
+  const period = resolvePeriod(token, today) ?? resolvePeriod('this-week', today)!, earlier = period.token === 'this-week' ? resolvePeriod('last-week', today)! : previousPeriod(period, today) ?? resolvePeriod('last-week', today)!;
+  const now = sideOf(period), before = sideOf(earlier), top = Math.max(now.minutes, before.minutes, 1);
   return {now, before, nowShare: now.sessions ? now.minutes / top : null, beforeShare: before.sessions ? before.minutes / top : null, delta: now.minutes - before.minutes};
 }
