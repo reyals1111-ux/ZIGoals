@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {parseReply} from '../actions/parse';
 import {toolEnv} from '../tools/env';
+import {runTool} from '../tools/registry';
 import {gatesFor, settingsWith, showcaseSources, withHandHealth, withPortfolios} from '../tools/fixtures';
 import {goldenSources} from '../evals/run';
 import {localAnswer} from './engine';
@@ -117,14 +118,19 @@ describe('release review AL: one pace, the page\'s dates (RR-4), missed habits (
     expect(t).not.toMatch(/\d{4}-\d{2}-\d{2}/);
   });
   test('"Which habits did I miss yesterday?" is answered from the habit records', () => {
-    expect(textOf(ask('Which habits did I miss yesterday?'))).toMatch(/^Yesterday \(\w{3}, \w{3} \d{1,2}\) every scheduled habit was completed \(\d+ of \d+\)\./);
+    // Session AS (RR-13, deliberate; ADR-042 approval item 1): the exact layer answers what was missed. A missed habit is
+    // named and counted on its own (a skipped day is said apart, never added), from the Habits page's own outcomes; the
+    // older sentence ("every scheduled habit was completed") is replaced by one as strict, and the lookup carries the facts.
+    const none = ask('Which habits did I miss yesterday?');
+    expect(textOf(none)).toMatch(/^You missed no habit yesterday \(\w{3}, \w{3} \d{1,2}\): \d+ of \d+ due check-ins done\.$/);
+    expect('calls' in none ? none.calls.map(c => c.tool) : []).toEqual(['life_facts']);
     const sources = goldenSources(withPortfolios(withHandHealth(showcaseSources())));
     const yesterday = addLocalDays(env.habitDay, -1), first = sources.habits.habits.find(h => h.entries.some(e => e.date === yesterday))!;
     const missedEnv = toolEnv({...sources, habits: {...sources.habits, habits: sources.habits.habits.map(h => h.id === first.id ? {...h, entries: h.entries.filter(e => e.date !== yesterday)} : h)}}, gatesFor(true, 'today'), 'local');
-    const t = textOf(ask('Which habits did I miss yesterday?', missedEnv));
-    expect(t).toMatch(/^Yesterday \(.+\) 1 of \d+ scheduled habits were not completed:/);
-    expect(t).toContain(`• ${first.title} (no check-in)`);
-    expect(t).toMatch(/Completed: /);
+    const reply = ask('Which habits did I miss yesterday?', missedEnv), t = textOf(reply);
+    expect(t).toMatch(new RegExp(`^You missed 1 of \\d+ habits yesterday \\(.+\\): ${first.title}\\.`));
+    const facts = runTool('life_facts', 'calls' in reply ? reply.calls[0]!.args : {}, missedEnv);
+    expect(facts.ok && facts.data).toMatchObject({count: 1, habits: [{habit: first.title, missed: 1, missedDays: [yesterday]}]});
     expect(t).not.toMatch(/\b(?:fail|lazy|bad)\b/i);
   });
   test('with Habits not shared, no habit is read', () => {

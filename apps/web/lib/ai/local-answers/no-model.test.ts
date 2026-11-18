@@ -12,11 +12,27 @@ const env = () => toolEnv(showcaseSources(), gatesFor(true), 'local');
 const textOf = (r: ReturnType<typeof noModelReply>) => 'text' in r ? r.text : '';
 
 test('a Dutch question gets its introduction in Dutch; the examples stay the English questions the device answers', () => {
-  for (const q of ['Hoeveel minuten heb ik deze maand gemediteerd?', 'Welke gewoontes zijn vandaag nog open?', 'Hoe gaat het met mijn doelen?']) {
+  // Session AS (ADR-042 A1, deliberate): with no model, a Dutch question is now answered in Dutch from the records: by
+  // NOVA's own overview answers in ZIGi's words where they exist, else by the exact layer (it was the Dutch introduction and English examples). `localAnswer` itself still says none for
+  // these (the golden pins nl-question and x-nl-whole are untouched: with a model connected they go to the model, which
+  // now gets the same facts). A Dutch question the device cannot answer keeps the Dutch introduction and the examples.
+  const answered: [string, RegExp][] = [
+    ['Hoeveel minuten heb ik deze maand gemediteerd?', /^Meditate: [\d,]+ minutes deze maand \(.+\), [\d,]+ minutes per dag op \d+ dagen/],
+    ['Welke gewoontes zijn vandaag nog open?', /^\d+ gewoontes? nog open vandaag:\n• .+/],
+    ['Hoe gaat het met mijn doelen?', /^\d+ actieve doelen, uit je eigen gegevens:\n• .+/],
+  ];
+  for (const [q, words] of answered) {
     expect(localAnswer(q, env()).kind, q).toBe('none'); // the golden pins (nl-question, x-nl-whole) are untouched
     expect(questionLanguage(q), q).toBe('nl');
     const r = noModelReply(q, env());
-    expect(r).toMatchObject({kind: 'examples', text: EXAMPLES_INTRO_NL});
+    expect(r.kind, q).toBe('answer');
+    expect(textOf(r), q).toMatch(words);
+    expect('calls' in r ? r.calls.length : 0, q).toBeGreaterThan(0);
+  }
+  for (const q of ['Wat is het weer morgen?', 'Kun je een gedicht voor mij schrijven?']) {
+    expect(localAnswer(q, env()).kind, q).toBe('none');
+    const r = noModelReply(q, env());
+    expect(r, q).toMatchObject({kind: 'examples', text: EXAMPLES_INTRO_NL});
     expect('examples' in r ? r.examples.length : 0, q).toBeGreaterThan(0);
     for (const example of 'examples' in r ? r.examples : []) expect(localAnswer(example, env()).kind, example).not.toBe('none');
   }

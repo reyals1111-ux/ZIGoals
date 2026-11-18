@@ -17,12 +17,14 @@ export function StageDepth() {
 }
 const MOTION_WORD: Record<string, string> = {full: 'Full', calm: 'Calm', still: 'Off', paused: 'Paused'};
 const LAYOUT_WORD: Record<string, string> = {orbit: 'Orbit', bento: 'Bento', focus: 'Focus', minimal: 'Minimal'};
-export function StageHud({widgets, motion, layout, showcase}: {widgets: number; motion: string; layout: string; showcase: boolean}) {
-  return <div className="cc-hud" aria-hidden="true" data-stage={widgets ? 'set' : 'calm'}>
+/* Session AS (Part 4): `widgets` is what stands on the stage; what rests on the band below it ("More on your orbit")
+ * is said apart, so "Stage 4 widgets" is what the person can count on the stage. */
+export function StageHud({widgets, band = 0, motion, layout, showcase}: {widgets: number; band?: number; motion: string; layout: string; showcase: boolean}) {
+  return <div className="cc-hud" aria-hidden="true" data-stage={widgets || band ? 'set' : 'calm'}>
     <div className="cc-hud-frame">
       <i className="cc-corner" data-at="tl"/><i className="cc-corner" data-at="tr"/><i className="cc-corner" data-at="bl"/><i className="cc-corner" data-at="br"/>
       <i className="cc-rule" data-at="l"/><i className="cc-rule" data-at="r"/>
-      <span className="cc-read" data-at="tl"><b>Stage</b>{widgets ? `${widgets} ${widgets === 1 ? 'widget' : 'widgets'}` : 'Calm'}</span>
+      <span className="cc-read" data-at="tl"><b>Stage</b>{widgets ? `${widgets} ${widgets === 1 ? 'widget' : 'widgets'}${band ? `, ${band} below` : ''}` : band ? `${band} below` : 'Calm'}</span>
       <span className="cc-read" data-at="tr"><b>Motion</b>{MOTION_WORD[motion] ?? 'Full'}</span>
       <span className="cc-read" data-at="bl"><b>{showcase ? 'Showcase' : 'Private'}</b>{showcase ? 'Example data' : 'On this device'}</span>
       <span className="cc-read" data-at="br"><b>View</b>{LAYOUT_WORD[layout] ?? 'Orbit'}</span>

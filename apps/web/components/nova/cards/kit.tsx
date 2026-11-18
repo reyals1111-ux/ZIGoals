@@ -159,10 +159,13 @@ export function RingFigure({figure, unit}: {figure: ReactNode; unit?: ReactNode}
  * left edge, the first and last dates under it. A gap (null) is skipped, never drawn as zero; with fewer than two values
  * only the marker shows. `marker`: 'heart' draws the last point as a heart (Health).
  */
-export function TrendArea({values, labels, minLabel, maxLabel, height = 96, marker = 'dot', target, targetLabel}: {
+export function TrendArea({values, labels, minLabel, maxLabel, height = 96, marker = 'dot', target, targetLabel, gaps = false}: {
   values: readonly (number | null)[]; labels?: readonly [string, string]; minLabel?: string; maxLabel?: string; height?: number; marker?: 'dot' | 'heart';
   /** A line the person set themselves (a target weight, a step goal); drawn dashed, named beside it. */
   target?: number | null; targetLabel?: string | null;
+  /** Session AS (ADR-042 carried 2): the line breaks where nothing was logged (a gap stays a gap; a lone day is a dot),
+   *  instead of joining the logged days across it. */
+  gaps?: boolean;
 }) {
   const id = useUid(), w = 320, pad = 9;
   const known = values.map((v, i) => ({v, i})).filter((p): p is {v: number; i: number} => typeof p.v === 'number' && Number.isFinite(p.v));
@@ -170,7 +173,13 @@ export function TrendArea({values, labels, minLabel, maxLabel, height = 96, mark
   const all = [...known.map(p => p.v), ...(typeof target === 'number' ? [target] : [])], lo = Math.min(...all), hi = Math.max(...all), span = hi - lo || 1;
   const x = (i: number) => values.length > 1 ? pad + (i / (values.length - 1)) * (w - pad * 2) : w / 2, y = (v: number) => pad + (1 - (v - lo) / span) * (height - pad * 2);
   const pts = known.map(p => ({x: +x(p.i).toFixed(2), y: +y(p.v).toFixed(2)})), last = pts.at(-1)!;
-  const line = pts.length > 2 ? smoothPath(pts) : linePath(pts);
+  // With `gaps`, the runs of consecutive logged days are drawn apart; a run of one day is a dot (HTML, so it stays round).
+  const runs: {x: number; y: number}[][] = [];
+  if (gaps) known.forEach((p, k) => { if (k && known[k - 1]!.i === p.i - 1) runs.at(-1)!.push(pts[k]!); else runs.push([pts[k]!]); });
+  const pathOf = (run: readonly {x: number; y: number}[]) => run.length > 2 ? smoothPath(run) : linePath(run);
+  const line = gaps ? runs.filter(r => r.length > 1).map(pathOf).join('') : pts.length > 2 ? smoothPath(pts) : linePath(pts);
+  const fill = gaps ? runs.filter(r => r.length > 1).map(r => `${pathOf(r)}L${r.at(-1)!.x} ${height}L${r[0]!.x} ${height}Z`).join('') : `${line}L${last.x} ${height}L${pts[0]!.x} ${height}Z`;
+  const dots = gaps ? runs.filter(r => r.length === 1 && r[0] !== last).map(r => r[0]!) : [];
   return <div className="nc-trend">
     <div className="nc-trend-plot" style={{'--nc-h': `${height}px`} as CSSProperties}>
       <svg viewBox={`0 0 ${w} ${height}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
@@ -179,14 +188,15 @@ export function TrendArea({values, labels, minLabel, maxLabel, height = 96, mark
           <linearGradient id={`${id}s`} gradientUnits="userSpaceOnUse" x1={pts[0]!.x} y1="0" x2={Math.max(last.x, pts[0]!.x + 1)} y2="0"><stop offset="0" className="nc-g-a"/><stop offset="1" className="nc-g-b"/></linearGradient>
         </defs>
         {typeof target === 'number' && <path className="nc-trend-target" d={`M0 ${y(target).toFixed(2)}H${w}`}/>}
-        {pts.length > 1 && <path className="nc-trend-fill" fill={`url(#${id}f)`} d={`${line}L${last.x} ${height}L${pts[0]!.x} ${height}Z`}/>}
-        {pts.length > 1 && <><path className="nc-trend-glow nc-glow" d={line}/><path className="nc-trend-line nc-draw" pathLength={1} stroke={`url(#${id}s)`} d={line}/><path className="nc-glint nc-trend-glint" d={line}/></>}
+        {line && <path className="nc-trend-fill" fill={`url(#${id}f)`} d={fill}/>}
+        {line && <><path className="nc-trend-glow nc-glow" d={line}/><path className="nc-trend-line nc-draw" pathLength={1} stroke={`url(#${id}s)`} d={line}/><path className="nc-glint nc-trend-glint" d={line}/></>}
         <path className="nc-trend-drop" d={`M${last.x} ${last.y}V${height}`}/>
       </svg>
       {/* The marker is HTML over the stretched drawing, so it stays round (or heart-shaped) at any width. */}
       <span className="nc-trend-mark nc-lead" data-marker={marker} style={{left: `${(last.x / w) * 100}%`, top: `${(last.y / height) * 100}%`}} aria-hidden="true">
         {marker === 'heart' && <svg viewBox="0 0 24 24" focusable="false"><path d={HEART_PATH}/></svg>}
       </span>
+      {dots.map(d => <span key={d.x} className="nc-trend-dot" style={{left: `${(d.x / w) * 100}%`, top: `${(d.y / height) * 100}%`}} aria-hidden="true"/>)}
       {maxLabel && <span className="nc-trend-edge nc-trend-max" aria-hidden="true">{maxLabel}</span>}
       {minLabel && <span className="nc-trend-edge nc-trend-min" aria-hidden="true">{minLabel}</span>}
       {typeof target === 'number' && targetLabel && <span className="nc-trend-edge nc-trend-goal" style={{top: `${(y(target) / height) * 100}%`}} aria-hidden="true">{targetLabel}</span>}

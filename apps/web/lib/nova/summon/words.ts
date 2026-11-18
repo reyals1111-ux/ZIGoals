@@ -74,7 +74,9 @@ export function lineWords(widgets: readonly MakeRequest[], lines: Readonly<Recor
 export function sentenceCut(text: string, sentences = 2, max = 220): string {
   const flat = text.replace(/```[\s\S]*?```/g, ' ').split('\n').map(l => l.trim()).filter(l => l && !/^(?:[•*\-–]|\d+[.)])\s/.test(l)).join(' ').replace(/\s+/g, ' ').trim();
   const source = flat || text.replace(/\s+/g, ' ').trim();
-  const parts = source.match(/[^.!?…]+(?:[.!?…]+(?=\s|$)|$)/g)?.map(x => x.trim()).filter(Boolean) ?? [];
+  // A sentence ends at a stop followed by a space or the end; a stop inside a figure ("73.48 kg", "v1.2") is part of it.
+  // (Session AS: the earlier pattern skipped every word before such a figure, so "Your health, … weight 73.48 kg" lost its start.)
+  const parts = source.match(/(?:[^.!?…]|[.!?…](?!\s|$))+(?:[.!?…]+(?=\s|$)|$)/g)?.map(x => x.trim()).filter(Boolean) ?? [];
   let out = '';
   for (const part of parts.slice(0, sentences)) { if (out && out.length + 1 + part.length > max) break; out = out ? `${out} ${part}` : part; }
   if (out.length <= max) return out;
@@ -87,7 +89,11 @@ export function sentenceCut(text: string, sentences = 2, max = 220): string {
  * stage's), and whenever a made widget has a line. A card to confirm or a question back keeps the reply's own words.
  * Otherwise the reply, cut at a sentence end; the conversation keeps it whole.
  */
-export function stageAnswerText({made, lines, lang, reply, decision, fallback}: {made: readonly MakeRequest[]; lines: Readonly<Record<string, string>>; lang: SummonLang; reply: string; decision: boolean; fallback: boolean}): string {
+export function stageAnswerText({made, lines, lang, reply, decision, fallback, exact = false}: {made: readonly MakeRequest[]; lines: Readonly<Record<string, string>>; lang: SummonLang; reply: string; decision: boolean; fallback: boolean;
+  /** Session AS: the reply is an exact answer to the question asked; its own words stand under the star, never a widget's general line. */
+  exact?: boolean}): string {
+  // Three sentences within the same 220 characters: an exact answer's third sentence is a fact of it ("Today is still open.").
+  if (exact) return sentenceCut(reply, 3);
   if (made.length && !decision && (fallback || made.some(w => lines[w.id]))) return answerWords(made, lines, lang);
   return sentenceCut(reply);
 }

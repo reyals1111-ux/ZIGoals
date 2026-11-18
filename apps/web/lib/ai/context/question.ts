@@ -2,6 +2,7 @@ import {latestHabitRule, measurementUnit} from '../../habits';
 import type {Gates} from '../gates';
 import {Handles, type Handle} from '../handles';
 import {detectSubjects, localAnswer, type ToolCallRecord} from '../local-answers/engine';
+import {exactQuery, queryArgs, queryLabel} from '../local-answers/exact';
 import {detectIntent} from '../intent';
 import {toolEnv, type ToolSources} from '../tools/env';
 import {text as clean} from '../tools/format';
@@ -53,7 +54,9 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   if (OTHER_PERSON.test(question)) return [];
   const env = toolEnv(sources, gates, 'provider');
   const reply = localAnswer(question, env);
-  if ((reply.kind === 'answer' || reply.kind === 'refusal') && reply.calls.length) return reply.calls;
+  // Session AS: an exact answer's facts lead; the question's own records still come with them (the router's families below).
+  const exactOnly = reply.kind === 'answer' && reply.calls.length > 0 && reply.calls.every(c => c.tool === 'life_facts');
+  if ((reply.kind === 'answer' || reply.kind === 'refusal') && reply.calls.length && !exactOnly) return reply.calls;
   // Phase 2 P2.3: an ask to add a widget or a link is a card, not a lookup; the figures it names ("a water widget") are not
   // pre-run, or the model answers with them and never sends the card (seen on every model).
   const intent = detectIntent(question);
@@ -61,6 +64,10 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   // Phase 2 (P2.2a): the subject detection reads English; a Dutch or French question is translated cue by cue first,
   // for this router only (the local engine keeps its English-only answers, by the golden set's rule).
   const s = detectSubjects(translateCues(question), env), calls: ToolCallRecord[] = [];
+  // Session AS (ADR-042, approval item 4): a question the exact layer reads but leaves to the model ("why did I miss
+  // Meditate last week", "how am I doing") brings its computed facts as one lookup, under the same outbound switches.
+  if (exactOnly && reply.kind === 'answer') calls.push(...reply.calls);
+  else { const read = exactQuery(question, env); if (read) calls.push({tool: 'life_facts', args: queryArgs(read.ask === 'why' ? {...read, ask: 'status', shape: 'overview'} : read), label: queryLabel(read, env.habitDay)}); }
   const phrase = (fallback: string) => s.ranges[0]?.phrase ?? fallback;
   const add = (tool: string, args: Record<string, unknown>) => calls.push({tool, args, label: tool});
   for (const habit of s.habits) {

@@ -163,7 +163,14 @@ describe('a stage line is the widget’s own figures, in one short line', () => 
     // Session AM-2 (step 3, round 2, deliberate): one more, "Today by the hour". Like the Agenda clock it shows a day's
     // agenda, which the line data does not hold (the Agenda's own hooks build it), so it is named and has no line.
     expect(silent.sort()).toEqual(['agenda-clock', 'briefs', 'focus', 'glance', 'hour-grid', 'markets', 'next', 'notes', 'now-playing', 'orbit']);
-    for (const id of WIDGETS.filter(w => w.made && w.id !== 'hour-grid').map(w => w.id)) expect(line(id), id).not.toBeNull();
+    // Session AS (ADR-042 Part 2, deliberate): six answer widgets join "Today by the hour" without a line, for the same reason:
+    // they show the focus sessions, the day's agenda or the Checklist, which the line data does not hold (their pages' own
+    // hooks read them). They are made only beside an exact answer, whose own sentence stands under the star. The set is pinned
+    // exactly: every other made widget, the other 58 answer widgets included, still speaks with the Showcase's records.
+    // The notes constellation, like the Notes inbox above, is not read without NOVA's Notes permission (closed in this data).
+    const unsaid = ['hour-grid', 'focus-streak', 'focus-heat', 'day-timeline', 'checklist-orbit', 'focus-gauge', 'notes-constellation'];
+    expect(WIDGETS.filter(w => w.made && line(w.id) === null).map(w => w.id).sort()).toEqual([...unsaid].sort());
+    for (const id of WIDGETS.filter(w => w.made && !unsaid.includes(w.id)).map(w => w.id)) expect(line(id), id).not.toBeNull();
   });
 });
 
@@ -312,12 +319,21 @@ describe('the stage owns the answer when it made a widget and the engine had non
       }
     }
   });
-  it('"Did I journal this month?" in the Showcase: no answer on the device, so the stage says the journal’s line', () => {
+  // Session AS (AM-D3, deliberate; ADR-042 Part 1): the device now answers "Did I journal this month?" itself, exactly
+  // (the days written this month, from the journal's dates), so the engine's reply stands and the stage no longer owns
+  // the answer; the widget made beside it is the answer's own, and the journal's line still says the same days.
+  it('"Did I journal this month?" in the Showcase: the device answers it exactly, and the answer’s widget is made beside it', () => {
     const env = novaLocalEnv({sources: showcase(), gates: gatesFor(true), scopes: {...DEFAULT_NOVA_SCOPES, journal: true}, chainChosen: true});
     const plan = summonFor('Did I journal this month?'), look = engineLook('Did I journal this month?', env);
     expect(plan.widgets.map(w => w.id)).toEqual(['journal']);
-    expect(look.kind).toBe('fallback');
-    expect(stageOwns(plan, look.kind)).toBe(true);
+    expect(look.kind).toBe('records');
+    expect(look.calls.map(c => c.tool)).toEqual(['life_facts']);
+    expect(stageOwns(plan, look.kind)).toBe(false);
+    // Session AS (Part 2, deliberate): the answer's own kind now exists, so the journal map is made beside the answer, not the
+    // stand-in it named until then (the plan, from the words alone, still names the journal); its line says the same days.
+    expect(replyWidgets(plan, {kind: 'answer', calls: look.calls, card: false}).map(w => w.id)).toEqual(['journal-map']);
+    expect(stageLines([{id: 'journal-map', params: {period: 'this-month'}}], data(), 'en', NOW)['journal-map']).toMatch(/^Journal: written on \d+ days? this month/);
+    // The journal's own line is still what the stage says for the widget (the same days, counted the same way).
     expect(answerWords(plan.widgets, stageLines(plan.widgets, data(), 'en', NOW), 'en')).toMatch(/^Journal: \d+ days? written this month/);
   });
 });

@@ -44,6 +44,32 @@ const BODIES: Record<string, Body> = {
   'debt-plan': lazy(() => import('./widgets/debt-plan')), 'savings-challenges': lazy(() => import('./widgets/savings-challenges')), 'price-alerts': lazy(() => import('./widgets/price-alerts')),
   'health-trends': lazy(() => import('./widgets/health-trends')), 'food-days': lazy(() => import('./widgets/food-days')), fasting: lazy(() => import('./widgets/fasting')),
   meditation: lazy(() => import('./widgets/meditation')), supplements: lazy(() => import('./widgets/supplements')), cycle: lazy(() => import('./widgets/cycle')),
+  // Session AS (ADR-042 Part 2): a widget for every kind of answer (their shared parts in components/nova/widgets/ax and cards/ax). Month calendars and ranked miss bars first.
+  'habit-missed-days': lazy(() => import('./widgets/habit-missed-days')), 'habit-done-days': lazy(() => import('./widgets/habit-done-days')), 'habits-month': lazy(() => import('./widgets/habits-month')),
+  'habit-misses': lazy(() => import('./widgets/habit-misses')),
+  // Session AS, Health.
+  'water-days': lazy(() => import('./widgets/water-days')), 'steps-days': lazy(() => import('./widgets/steps-days')), 'sleep-nights': lazy(() => import('./widgets/sleep-nights')),
+  'workout-days': lazy(() => import('./widgets/workout-days')), 'meditation-days': lazy(() => import('./widgets/meditation-days')), 'protein-days': lazy(() => import('./widgets/protein-days')),
+  'health-scan': lazy(() => import('./widgets/health-scan')), 'body-scan': lazy(() => import('./widgets/body-scan')), 'weight-trend': lazy(() => import('./widgets/weight-trend')),
+  'sleep-trend': lazy(() => import('./widgets/sleep-trend')), 'steps-trend': lazy(() => import('./widgets/steps-trend')), 'heart-trend': lazy(() => import('./widgets/heart-trend')),
+  'water-week': lazy(() => import('./widgets/water-week')), 'calorie-trend': lazy(() => import('./widgets/calorie-trend')), 'sleep-stages': lazy(() => import('./widgets/sleep-stages')),
+  'sleep-times': lazy(() => import('./widgets/sleep-times')), 'fasting-windows': lazy(() => import('./widgets/fasting-windows')), 'nutrition-gauges': lazy(() => import('./widgets/nutrition-gauges')),
+  'steps-heat': lazy(() => import('./widgets/steps-heat')), 'health-compare': lazy(() => import('./widgets/health-compare')), 'mood-map': lazy(() => import('./widgets/mood-map')),
+  // Session AS, Wealth and Goals.
+  'spending-ranks': lazy(() => import('./widgets/spending-ranks')), 'income-ranks': lazy(() => import('./widgets/income-ranks')), 'debt-ranks': lazy(() => import('./widgets/debt-ranks')),
+  'spending-radar': lazy(() => import('./widgets/spending-radar')), 'spending-days': lazy(() => import('./widgets/spending-days')), 'bill-calendar': lazy(() => import('./widgets/bill-calendar')),
+  'spending-heat': lazy(() => import('./widgets/spending-heat')), 'cash-river': lazy(() => import('./widgets/cash-river')), 'net-worth-river': lazy(() => import('./widgets/net-worth-river')),
+  'budget-gauges': lazy(() => import('./widgets/budget-gauges')), 'savings-rate': lazy(() => import('./widgets/savings-rate')), 'goal-gauge': lazy(() => import('./widgets/goal-gauge')),
+  'goal-orbits': lazy(() => import('./widgets/goal-orbits')), 'bill-timeline': lazy(() => import('./widgets/bill-timeline')), 'goal-dates': lazy(() => import('./widgets/goal-dates')),
+  'savings-jars': lazy(() => import('./widgets/savings-jars')), 'bill-dial': lazy(() => import('./widgets/bill-dial')), 'spending-compare': lazy(() => import('./widgets/spending-compare')),
+  // Session AS, the day, habits and NOVA itself.
+  'streak-flames': lazy(() => import('./widgets/streak-flames')), 'best-streaks': lazy(() => import('./widgets/best-streaks')), 'journal-streak': lazy(() => import('./widgets/journal-streak')),
+  'focus-streak': lazy(() => import('./widgets/focus-streak')), 'habits-lattice': lazy(() => import('./widgets/habits-lattice')), 'habit-weekdays': lazy(() => import('./widgets/habit-weekdays')),
+  'habit-year': lazy(() => import('./widgets/habit-year')), 'focus-heat': lazy(() => import('./widgets/focus-heat')), 'compare-periods': lazy(() => import('./widgets/compare-periods')),
+  'task-timeline': lazy(() => import('./widgets/task-timeline')), 'day-timeline': lazy(() => import('./widgets/day-timeline')), 'tasks-calendar': lazy(() => import('./widgets/tasks-calendar')),
+  'task-overdue': lazy(() => import('./widgets/task-overdue')), 'checklist-orbit': lazy(() => import('./widgets/checklist-orbit')), 'journal-map': lazy(() => import('./widgets/journal-map')),
+  'notes-constellation': lazy(() => import('./widgets/notes-constellation')), 'focus-gauge': lazy(() => import('./widgets/focus-gauge')), 'task-load': lazy(() => import('./widgets/task-load')),
+  'life-radar': lazy(() => import('./widgets/life-radar')), 'day-scan': lazy(() => import('./widgets/day-scan')), 'nova-answers': lazy(() => import('./widgets/nova-answers')),
 };
 /** Session AL Part 11 (lane L8): the Holo look of earlier widgets where an instrument says more (holo/skins.tsx); the rest keep their bodies. */
 const skin = (name: 'HoloWater' | 'HoloSleep' | 'HoloOrbit' | 'HoloNext' | 'HoloTasks' | 'HoloNotes'): Body => lazy(() => import('./holo/skins').then(m => ({default: m[name]})));
@@ -89,7 +115,7 @@ const COMPOSE_FROM = 1040;
  * alone. While arranging, each panel has Move earlier / Move later, its size and Remove as buttons, and a grip that
  * drags it (pointer) or moves it with the arrow keys (keyboard): the same change three ways.
  */
-export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false, motes = false, live, starColumn, baseStrip}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean;
+export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false, motes = false, live, starColumn, baseStrip, onPlaced}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean;
   /** Session AM (ADR-038 D1–D5): NOVA's live stage — which widgets are pinned or just made, their parameters and gates, and Pin / Hide / Close. */
   live?: StageApi;
   /** Lane L8e: the HUD's floating motes (Full motion, Holo, a computer), drawn in the star's column behind the star. */
@@ -98,7 +124,10 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
    *  Holo orbit on a computer is composed in tiers (lib/nova/compose.ts). */
   starColumn?: number;
   /** Session AR (round 2, D26): the strip of compact plates under the star (how many, how tall); none while an answer stands there. */
-  baseStrip?: {cells: number; height: number} | null}) {
+  baseStrip?: {cells: number; height: number} | null;
+  /** Session AS (Part 4): how many widgets stand on the stage itself and how many rest on the band below it ("More on
+   *  your orbit"), so the stage's own read-out counts the stage and names the band apart. */
+  onPlaced?: (stage: number, band: number) => void}) {
   const shown = phone ? phoneColumn(layout, widgets) : visibleFor(layout, widgets), order = shown.map(w => w.id), holo = look === 'holo';
   const [drag, setDrag] = useState<{id: string; target: string | null; dx: number; dy: number} | null>(null);
   const start = useRef<{x: number; y: number}>({x: 0, y: 0}), box = useRef<HTMLDivElement>(null), {height: stageHeight, width: stageWidth} = useStageSize(box);
@@ -127,6 +156,9 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
   const composed: Composed[] = composing ? composeStage(shown, {height: stageHeight, wingWidth, prefer, slim: id => lockedIds.has(id), made: live ? id => { const on = live.shown.find(x => x.id === id); return !!on && !on.pinned; } : undefined, base: baseStrip ?? undefined}) : [];
   const placed = layout === 'orbit' && !phone && !composing ? placeOrbit(rowsOfShown, fit, holo ? HOLO_ROWS : ROWS_AK, prefer).map((p, i) => ({...p, size: shown[i]!.size})) : [];
   standing.current = {fit: mark, side: new Map((composing ? composed.map(c => ({id: c.id, side: c.side === 'base' ? 'band' as const : c.side})) : placed).map(p => [p.id, p.side] as const))};
+  // Session AS (Part 4): the stage's read-out counts what stands on the stage; the band below it is said apart.
+  const inBand = [...standing.current.side.values()].filter(side => side === 'band').length - (composing ? composed.filter(c => c.side === 'base').length : 0), onStage = shown.length - inBand;
+  useEffect(() => { onPlaced?.(onStage, inBand); }, [onStage, inBand, onPlaced]);
   // Review m9: after a move from the keyboard, the status line says where the panel is now ("2 of 9, right column").
   const moved = useRef<string | null>(null), announce = actions.announce;
   useEffect(() => {
@@ -231,7 +263,11 @@ function WidgetFrame({widget, index, count, style, side, tier, editing, opening,
     const read = () => { setCut(content.scrollHeight > outer.clientHeight + 2); setNotice(content.childElementCount === 1 && !!content.firstElementChild?.matches('.nc-notice, .holo-empty, .nova-empty')); };
     read();
     const observer = new ResizeObserver(read); observer.observe(outer); observer.observe(content);
-    return () => observer.disconnect();
+    // Session AS (critic round): an answer body fits itself after it is drawn (components/nova/cards/ax/kit.tsx, AxBody) and
+    // marks that it did; read again then, or a panel that fits keeps the cut mark (its foot dimmed under a sticky band).
+    const refit = typeof MutationObserver === 'undefined' ? null : new MutationObserver(read);
+    refit?.observe(content, {subtree: true, attributes: true, attributeFilter: ['data-over', 'data-ax-fit']});
+    return () => { observer.disconnect(); refit?.disconnect(); };
   }, []);
   if (!spec || !Body) return null;
   const fitKind = holo ? (SCROLL_PANELS.has(widget.id) ? 'scroll' : 'rows') : undefined;

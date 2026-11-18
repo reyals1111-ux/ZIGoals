@@ -2,7 +2,8 @@ import {quickAddOffered} from '../../ai/actions/decline';
 import {cardNumberIn, safetyFirst} from '../../ai/safety-guard';
 import {looksSecret} from '../../secret-guard/guard';
 import type {HudPreset} from '../layout';
-import {WIDGET_RANGES, type MakeRequest, type WidgetRange} from '../stage/record';
+import {isPeriodToken} from '../stage/period-token';
+import {MAX_REF, WIDGET_RANGES, type MakeRequest, type WidgetParams, type WidgetRange} from '../stage/record';
 import {widgetSpec} from '../widgets/catalog';
 import {CONNECT_FAMILIES, CONNECT_NL_WORDS, connectPrune, standsIn, type Family} from './connect-families';
 import {MORE_FAMILIES, MORE_NL_WORDS, morePrune, moreStandsIn} from './more-families';
@@ -209,9 +210,32 @@ export function stageCalls(calls: readonly {tool: string; args?: Record<string, 
   }
   return {show, commands};
 }
+/**
+ * Session AS (ADR-042 Part 1): the widgets of an exact answer. The `life_facts` lookup carries them as short strings
+ * ("id|ref|period|range|fallback", lib/ai/local-answers/exact/index.ts `showOf`); each part is checked here against the
+ * closed catalogue again: a kind this build does not have gives way to its stand-in, a parameter the widget does not take
+ * is dropped, and anything else is ignored. So the words, the facts and the widget are one answer.
+ */
+export const FACTS_TOOL = 'life_facts';
+export function factsWidgets(args: Record<string, unknown> | null | undefined, ctx: SummonContext = {}): MakeRequest[] {
+  const show = Array.isArray(args?.show) ? args.show.filter((x): x is string => typeof x === 'string' && x.length <= 200).slice(0, MAX_SUMMON) : [];
+  const out: MakeRequest[] = [], can = (id: string) => !!id && !!widgetSpec(id) && (ctx.available?.(id) ?? true);
+  for (const item of show) {
+    const [wanted = '', ref = '', period = '', range = '', fallback = ''] = item.split('|'), id = can(wanted) ? wanted : can(fallback) ? fallback : null;
+    if (!id || out.some(w => w.id === id)) continue;
+    const takes = widgetSpec(id)!.params ?? [], params: WidgetParams = {
+      ...(takes.includes('ref') && ref && ref.length <= MAX_REF && !/[\u0000-\u001f\u007f]/.test(ref) ? {ref} : {}),
+      ...(takes.includes('period') && isPeriodToken(period) ? {period} : {}),
+      ...(takes.includes('range') && (WIDGET_RANGES as readonly string[]).includes(range) ? {range: range as WidgetRange} : {}),
+    };
+    out.push({id, ...(Object.keys(params).length ? {params} : {})});
+  }
+  return out;
+}
 export function summonForTools(calls: readonly {tool: string; args?: Record<string, unknown> | null}[], ctx: SummonContext = {}): MakeRequest[] {
   const out: MakeRequest[] = [];
   for (const call of calls) {
+    if (call.tool === FACTS_TOOL) { for (const w of factsWidgets(call.args, ctx)) if (out.length < MAX_SUMMON && !out.some(x => x.id === w.id)) out.push(w); continue; }
     let id = TOOL_WIDGET[call.tool];
     if (!id || !widgetSpec(id) || !(ctx.available?.(id) ?? true)) continue;
     const spec = widgetSpec(id)!, range = spec.params?.includes('range') ? argRange(call.args) : undefined;
@@ -283,6 +307,8 @@ export function stageOwns(plan: Pick<SummonPlan, 'command' | 'widgets' | 'direct
 export function replyWidgets(plan: Pick<SummonPlan, 'widgets'>, reply: {kind: 'answer' | 'choices' | 'refusal' | 'examples' | 'none' | undefined; calls: readonly {tool: string; args?: Record<string, unknown> | null}[]; card: boolean}, ctx: SummonContext = {}): MakeRequest[] {
   if (reply.kind === 'examples') return [...plan.widgets];
   if (reply.kind !== 'answer' || reply.card || !reply.calls.length) return [];
+  // Session AS: an exact answer makes its own widgets, and only those (the words' general widget would say something else).
+  if (reply.calls.some(c => c.tool === FACTS_TOOL)) return summonForTools(reply.calls.filter(c => c.tool === FACTS_TOOL), ctx);
   const gates = new Set(reply.calls.map(c => widgetSpec(TOOL_WIDGET[c.tool] ?? '')?.gate).filter(Boolean));
   const own = plan.widgets.filter(w => gates.has(widgetSpec(w.id)?.gate)), all = mergeSummons(own, summonForTools(reply.calls, ctx));
   // One request, one widget of a kind: the question's own widget is enough beside the general HUD a second lookup maps to

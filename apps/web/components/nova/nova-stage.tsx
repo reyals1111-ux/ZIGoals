@@ -93,10 +93,12 @@ export function NovaStage({persona, orb, greeting, typingFrom, counts, showcase,
         <ellipse rx="99.5" ry="43.8" className="cc-bezel-arc" pathLength="360" strokeDasharray="36 144"/>
         {/* N3b (the third critique: "the four states read alike in a still"): each state wears its own mark on the bezel,
             all drawn always and shown by opacity alone — listening a lit ring with ticks pointing in, thinking a ring
-            in segments, speaking a ticked rim with two rings inside it. Every mark stays inside the bezel (round 7: they ran through the words). The words under the star say the same. */}
+            in segments, speaking three soft rings that fade outwards. Every mark stays inside the bezel (round 7: they ran through the words). The words under the star say the same. */}
         <g className="cc-state cc-state-listening"><ellipse rx="100.5" ry="44.2" className="cc-state-ring"/><ellipse rx="96.5" ry="42.5" className="cc-state-ticks" pathLength="360" strokeDasharray="0.5 5.5"/><ellipse rx="86" ry="37.8" className="cc-state-faint"/></g>
         <g className="cc-state cc-state-thinking"><ellipse rx="100.5" ry="44.2" className="cc-state-ring" pathLength="360" strokeDasharray="21 9"/><ellipse rx="95" ry="41.8" className="cc-state-faint" pathLength="360" strokeDasharray="5 25"/></g>
-        <g className="cc-state cc-state-speaking"><ellipse rx="100" ry="44" className="cc-state-ticks" pathLength="360" strokeDasharray="0.5 3.5"/><ellipse rx="94.5" ry="41.6" className="cc-state-ring"/><ellipse rx="89" ry="39.2" className="cc-state-faint"/></g>
+        {/* Session AS (Part 4, AR's critic: "the speaking mark reads as spikes"): no ticks; three soft rings, the inner one the
+            strongest and each one further out fainter, as a voice spreading outwards. */}
+        <g className="cc-state cc-state-speaking"><ellipse rx="87" ry="38.3" className="cc-state-wave" data-n="1"/><ellipse rx="93.5" ry="41.1" className="cc-state-wave" data-n="2"/><ellipse rx="100" ry="44" className="cc-state-wave" data-n="3"/></g>
       </g></svg></span>}
       {persona.avatar !== 'zigi' && star}
       {standIn && <span className="nova-star-standin" aria-hidden="true" data-kind={standIn} style={{width: starSize ?? 440, height: starSize ?? 440}}>

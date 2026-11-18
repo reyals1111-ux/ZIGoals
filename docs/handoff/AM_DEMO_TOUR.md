@@ -1,4 +1,4 @@
-# Session AM, AM-2, AM-3 and AR — demo tour (23 minutes)
+# Session AM, AM-2, AM-3, AR and AS — demo tour (28 minutes)
 
 *AM-2 ("NOVA, STUNNING") changed how everything in NOVA looks; what each step does is as in Session AM. Where the look or a step changed, this tour says so.*
 
@@ -106,6 +106,38 @@ Each of these makes a **card** that shows exactly what would leave and to where;
 
 ## 11. Weather through the proxy (owner, later)
 A build with `NEXT_PUBLIC_WEATHER_PROXY_URL=https://<your worker>/v1/forecast` asks your `workers/weather-proxy` instead of MET Norway (the switch then says who sees what); without it nothing changes. Weather stays off until you turn it on. Deploying the Worker is yours (docs/run11/WEATHER_PROXY_ACTIVATION.md).
+
+## 12. NOVA answers the question asked (Session AS, 5 minutes)
+*Session AS ("NOVA ANSWERS EVERYTHING"): every answer below is worked out on this device from your own records, in the
+same words on NOVA and in ZIGi, and each kind of answer makes its own widget. In Settings → Load Showcase Demo first;
+for the Health questions open Health in NOVA → Permissions (Health page data and Include Health too).*
+
+Type these into NOVA's command bar, one at a time (typos and Dutch are fine):
+
+1. **how many habits did I miss this week** — none missed, 11 of 11 due check-ins, and what is still open today; ranked miss bars.
+2. **wgat days did i forget to meditate this month** — Tue, Nov 3 and Thu, Nov 12, both skipped; the month calendar with those two days lit.
+3. **which habit do I skip most this month** — each habit with its skipped days, ranked.
+4. **on which weekday do I miss habits most** — Mondays; the weekday lattice.
+5. **show my habit streaks** — every habit's run as a flame, beside the longest runs ever.
+6. **which days did I not reach my water goal this month** — no day below the target; the two days with nothing logged said apart, never counted.
+7. **how is my health** — sleep, steps, water and weight, each with its own day; the health scan (its heart is decoration, never a reading).
+8. **is my weight going down** — the change since your earlier weigh-in and your goal; the weight trend with its goal line.
+9. **how many calories did I eat this week** — the week's total and its daily average.
+10. **water this week vs last week** — the two periods side by side, the same number of days each.
+11. **wat heb ik deze maand uitgegeven** — in Dutch: the month's spending and where it went; ranked bars and the spending radar.
+12. **did I spend more than last month** — this month against last month, the difference said.
+13. **how much did I earn this month** — what came in and went out; the cash river.
+14. **what is my next bill** — Rent, its amount and its day; the bill dial.
+15. **which goals are behind** — the goals behind plan; the goal orbits.
+16. **which tasks are overdue** — the two overdue tasks; the overdue bars and the task timeline.
+17. **what is my journal streak** — the days in a row you wrote; its flame.
+18. **did I focus today** — nothing yet today, beside yesterday's minutes; the focus gauge.
+19. **why did I sleep so little last week** — an honest line: your records do not say why, and what they do show.
+20. **what can you answer** — the kinds of question NOVA answers, with examples.
+
+What to notice: the sentence under the star answers the question in its first words; the widget beside it shows the
+same facts, with its source and as-of in its foot; an unknown is never a zero; nothing is a score or a judgement of
+you. With Motion Off everything is there at once and still.
 
 ## On a phone
 Open NOVA on a phone (or a 390 px window): the star stands in a round bezel of fine ticks with four pillar arcs (Goals, Habits, Health, Wealth) lit to today's figures and dashed while a figure is unknown; NOVA's name and its state sit in the ring's openings. Under the greeting, with the Showcase or your own widgets on the stage, a strip of small cards (one instrument, one figure and a name each) that you swipe sideways; a card opens what its widget's own link opens, and shows a figure only while that part is open to NOVA. Then the one-tap requests as a two-column grid of pillar keys and the command field. The full panels follow below when you scroll. The conversation is a console: cards edged by speaker and a line under each answer saying who answered. A request opens the conversation and is answered in words; it is kept, with the widgets it would make, for your computer (Requests → Show again; across devices once sync is on for your account, on the public Alpha it stays on the device).

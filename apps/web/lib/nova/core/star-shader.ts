@@ -151,14 +151,22 @@ void main(){
   float oa = uT*(.10+.12*uThink) + 1.1, ma = -uT*(.23+.2*uThink) + 4.;
   // Round 6 ("the planet is cut to a half disc by the column's edge"): where the star is wider than its column (uEdge < 1)
   // the planet's orbit is drawn inside the column, so the planet is always whole; where the canvas fits, the orbit is its own.
-  float orbit = min(ORBIT, max(MOON + .04, (uEdge - .075) / .943));
-  float trace = dn(0.,.0035, abs(r-orbit)), trace2 = dn(0.,.003, abs(r-MOON));
-  col += uB * trace * (.16 + .4*(.5+.5*cos(a - oa))) + uA * trace2 * (.10 + .3*(.5+.5*cos(a - ma)));
+  // (Session AS: the orbit's width with its own tilt, below: its half-width is sqrt(.8625*orbit^2 + .00427), which is
+  // .943*ORBIT on a wide stage as before.)
+  float room = uEdge - .075;
+  float orbit = min(ORBIT, max(MOON + .04, sqrt(max(0., room*room - .00427) / .8625)));
+  // Session AS (Part 4, AR's critic: "the planet crosses in front of the core in a narrow column"): a narrow column
+  // limits the orbit's width only, so the squeezed orbit is seen a little more from above: its near and far passes keep
+  // the distance from the core they have on a wide stage (ORBIT*TILT), and the planet never covers the core.
+  float tp = TILT * ORBIT / orbit; vec2 qo = vec2(q.x, q.y * TILT / tp);
+  float ro = length(qo), ao = atan(qo.y, qo.x + 1e-5);
+  float trace = dn(0.,.0035, abs(ro-orbit)), trace2 = dn(0.,.003, abs(r-MOON));
+  col += uB * trace * (.16 + .4*(.5+.5*cos(ao - oa))) + uA * trace2 * (.10 + .3*(.5+.5*cos(a - ma)));
   vec2 mo = rot(-ROLL) * vec2(cos(ma)*MOON, sin(ma)*MOON*TILT);
   float mr = .011 * (1. - .16*sin(ma)), md = length(uv - mo);
   float moonBehind = step(0., sin(ma)) * dn(.05,.12, length(mo));
   col += mix(uC, vec3(1.), .7) * (dn(mr*.5, mr, md)*1.3 + exp(-md*120.)*.25) * (1.-moonBehind);
-  vec2 po = rot(-ROLL) * vec2(cos(oa)*orbit, sin(oa)*orbit*TILT);
+  vec2 po = rot(-ROLL) * vec2(cos(oa)*orbit, sin(oa)*orbit*tp);
   float pr = .05 * (1. - .16*sin(oa));
   vec2 d = uv - po; float pd = length(d);
   float body = dn(pr-.0035, pr, pd);

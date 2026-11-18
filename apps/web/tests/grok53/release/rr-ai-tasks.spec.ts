@@ -56,7 +56,8 @@ test.describe('RR-13', () => {
     const water = await askZigi(page, 'How much water did I drink today?');
     await expect(water.locator('.ai-local-answer')).toContainText('Include Health');
     const missed = await askZigi(page, 'Which habits did I miss yesterday?');
-    await expect(missed.locator('.ai-local-answer')).toContainText(/^Yesterday \(Sat, Nov 7\) /);
+    // Session AS (RR-13, deliberate, as strict; ADR-042 A1): the exact answer of what was missed, the whole sentence (the unit test RR-13 pins the same).
+    await expect(missed.locator('.ai-local-answer')).toContainText(/^You missed no habit yesterday \(Sat, Nov 7\): 7 of 7 due check-ins done\./);
     await expect(missed.locator('.ai-local-answer')).not.toContainText('isn’t something I can answer');
     const sleep = await askZigi(page, 'How did I sleep this week?');
     const open = sleep.getByRole('button', {name: 'Open Settings → ZIGi → Privacy & data'});

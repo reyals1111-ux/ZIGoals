@@ -75,7 +75,8 @@ test('a Pomodoro started from NOVA\'s Focus widget shows its time left, counts d
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/app/nova');
   await page.getByRole('button', {name: /View controls/}).click();
-  await page.getByRole('checkbox', {name: 'Focus'}).check();
+  // Session AS (Part 2, deliberate, as strict): the gallery now also holds Focus streak, Focus heat and Focus gauge; the same checkbox, by its exact name.
+  await page.getByRole('checkbox', {name: 'Focus', exact: true}).check();
   await page.keyboard.press('Escape');
   const focus = page.getByRole('article', {name: 'Focus'});
   await focus.getByRole('button', {name: /^Start a \d+-minute Pomodoro$/}).click();

@@ -1,4 +1,8 @@
 import type {WidgetSize} from '../store';
+import {AS_HABITS} from './catalog-as';
+import {AS_DAY} from './catalog-as-day';
+import {AS_HEALTH} from './catalog-as-health';
+import {AS_MONEY} from './catalog-as-money';
 
 /**
  * Session AK (owner follow-up 2, N2; lane NA): NOVA's widget gallery. Each widget reads the person's own records through
@@ -16,8 +20,8 @@ export type WidgetPillar = 'goals' | 'habits' | 'health' | 'wealth' | 'orbit' | 
  * default), and `today` is NOVA's Today permission itself, not "any of Today, Notes or the Journal".
  */
 export type WidgetGate = 'today' | 'goals' | 'habits' | 'health' | 'wealth' | 'notes' | 'journal';
-/** Session AM (D3): the small parameters a request may set on a widget — a range of days, or one record's id. */
-export type WidgetParamName = 'range' | 'ref';
+/** Session AM (D3): the small parameters a request may set on a widget — a range of days, or one record's id. Session AS: or the period an answer was about. */
+export type WidgetParamName = 'range' | 'ref' | 'period';
 export type WidgetNeed = 'markets' | 'notes' | 'briefs';
 export type WidgetSpec = {
   id: string;
@@ -115,6 +119,8 @@ export const WIDGETS: readonly WidgetSpec[] = [
   {id: 'meditation', title: 'Meditation', about: 'Your meditation minutes this week, week by week, and your days in a row.', pillar: 'health', href: '/app/health?view=meditation', open: 'Open Health', size: 'M', gate: 'health', made: true},
   {id: 'supplements', title: 'Supplements', about: 'Today’s doses of what you keep track of, and the last two weeks.', pillar: 'health', href: '/app/health#supplements-title', open: 'Open Health', size: 'M', gate: 'health', made: true},
   {id: 'cycle', title: 'Cycle', about: 'Your cycle log: the day of this cycle and an estimate of the next. On your screen only.', pillar: 'health', href: '/app/health#cycle-log', open: 'Open Health', size: 'M', gate: 'health', made: true},
+  // Session AS (ADR-042 Part 2): a widget for every kind of answer (lib/nova/widgets/catalog-as*.ts, family by family).
+  ...AS_HABITS, ...AS_HEALTH, ...AS_MONEY, ...AS_DAY,
 ];
 const BY_ID = new Map(WIDGETS.map(w => [w.id, w]));
 export const widgetSpec = (id: string): WidgetSpec | undefined => BY_ID.get(id);

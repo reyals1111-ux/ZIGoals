@@ -312,7 +312,8 @@
 .nova-stage[data-holo-core] .nova-orb-button { margin-block: calc(var(--orb) * .24); }
 .nova-stage[data-holo-core] .nova-stage-below { gap: 3px; }
 .nova-stage[data-holo-core] :is(.nova-greeting, .nova-dayline) { line-height: 1.3; min-height: 0; }
-.nova-stage[data-holo-core] :is(.nova-name, .nova-orb-state) { text-shadow: 0 0 2px #050818, 0 0 6px #050818, 0 0 18px color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent); }
+/* Session AS (Part 3): the name is a gradient cut to its letters now (nova.css), so only the state keeps this halo. */
+.nova-stage[data-holo-core] .nova-orb-state { text-shadow: 0 0 2px #050818, 0 0 6px #050818, 0 0 18px color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent); }
 
 /* m10: Classic is calm for the instruments too — softer neon, no glow (their motion is already off there). */
 .nova-frame[data-look=classic] .nova-widget[data-pillar=health] { --neon: color-mix(in oklab, #ff74be 55%, #cfd8ef); }

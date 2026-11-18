@@ -31,7 +31,10 @@ test('tasks: the open ones with their day, time and priority; unknown when the l
   expect(text('What\'s on my to-do list?', env(sources({nova: undefined})))).toBe(NOT_READ_HERE);
 });
 test('focus, workouts and budgets from the Showcase\'s own records; workouts only with the Health gate', () => {
-  expect(text('How much did I focus this week?')).toMatch(/^In the last 7 days: \d+ focus sessions?, \d+ focused minutes?\. Your garden holds \d+ grown and \d+ withered; every session counts\.$/);
+  // Session AS (N4, deliberate; ADR-042 "Why this session exists"): "this week" is this week (Monday to today), not the
+  // last seven days the older answer gave whatever the words said; a question about the last seven days gets those.
+  expect(text('How much did I focus this week?')).toMatch(/^Focus: [\d,]+ minutes this week \(\w{3}, \w{3} \d{1,2} to \w{3}, \w{3} \d{1,2}\), [\d,]+ minutes a day on \d+ days\.$/);
+  expect(text('How much did I focus in the last 7 days?')).toMatch(/^In the last 7 days: \d+ focus sessions?, \d+ focused minutes?\. Your garden holds \d+ grown and \d+ withered; every session counts\.$/);
   expect(text('How many workouts did I do this week?')).toMatch(/^This week: \d+ workouts?, [\d,]+ minutes?\. The last one: .+, \d+ minutes?\.$/);
   expect(localAnswer('How many workouts did I do this week?', env(sources(), false))).toMatchObject({kind: 'refusal'});
   const b = text('Am I over any budget?')!;
@@ -52,5 +55,8 @@ test('LA-021: tasks done today, a priority, the next one and the overdue ones ea
   expect(text('Which task has high priority?', e)).toMatch(/^No open task has high priority\. Your open tasks: .*Team dinner \(low\)/);
   expect(text('Which tasks are low priority?', e)).toMatch(/^1 open low-priority task:\n• Team dinner — due /);
   expect(text('What\'s my next task?', e)).toMatch(/^Next: Pick up parcel — due .+ at /);
-  expect(text('Do I have overdue tasks?', e)).toBe('No task is overdue.');
+  // Session AS (LA-021, deliberate): overdue is the Tasks page's one rule here too (the day and, today, the time; RR-8).
+  // This environment's clock is 19:00, so the parcel due today at 18:00 is overdue: the older answer compared days only.
+  expect(text('Do I have overdue tasks?', e)).toMatch(/^1 task is overdue: Pick up parcel \(due today .+\)\.$/);
+  expect(text('Do I have overdue tasks?', env(sources({nova: {tasks: {...tasks, tasks: tasks.tasks.filter(t => t.id !== 'task_2')}}})))).toBe('No task is overdue (1 open).');
 });

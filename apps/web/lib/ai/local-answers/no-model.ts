@@ -1,5 +1,6 @@
 import type {ToolEnv} from '../tools/env';
-import {localAnswer, zigiOverview, type LocalReply} from './engine';
+import {exactFallback, exactLocal, localAnswer, zigiOverview, type LocalReply} from './engine';
+import {exactQuery, noModelFirst} from './exact';
 import {alFirst, alMoreAnswer, fixTypos, rewriteQuestion} from './al-more';
 import {normalizeSpoken} from '../spoken/normalize';
 import {alFactsAnswer} from './al-facts';
@@ -161,6 +162,11 @@ export function noModelReply(text: string, env: ToolEnv | null, previous: string
   // Session AL fifth pass (L7-5b; Lisbon #337/338): an "add …" longer than any record holds gets the limits, not the list.
   const long = tooLongAdd(text, lang);
   if (long) return {kind: 'answer', text: long, calls: []};
+  // Session AS (ADR-042 Part 1): a Dutch question the exact layer reads is answered here, in Dutch, before the paths below
+  // can take its words for a line to log.
+  // NOVA's own overview answers in Dutch come first where they exist (in ZIGi's words here), so ZIGi and NOVA say the same (A1).
+  if (env && lang === 'nl') { const same = zigiOverview(normalizeSpoken(text), env); if (same && same.kind !== 'none') return same; }
+  if (env) { const first = exactLocal(text, env, undefined, noModelFirst); if (first) return first; }
   // Session AI (ZI11): a simple command gets its card here, with no model ("Create a habit called Yoga").
   // Session AL (lane L7; DV-074, P-DV-83): with no model, ZIGi answers the questions NOVA's overview answers (English; a whole
   // Dutch question keeps the Dutch introduction and the examples, as the golden pins nl-question / x-nl-whole hold).
@@ -180,12 +186,15 @@ export function noModelReply(text: string, env: ToolEnv | null, previous: string
   // tasks or goals is answered as its English question, under the note below (languages are Beta, AL_SCOPE F).
   const german = env && otherLanguage(text) === 'de' ? germanAsk(text) : null;
   const de = german ? deviceReply(german, env, null) : null;
-  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
+  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? whyReply(text, env) ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
   // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
   // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
   // Session AL fourth pass (L7-4b; Lisbon #024): an answer in English to a question in another language carries the note too.
   const other = otherLanguage(text), info = env ? novaEnvInfo(env) : null;
   // Session AL fifth pass (L7-5b; Lisbon N-LA-01): when nothing matched, the list says first what the device does answer.
+  // Session AS (ADR-042 Part 1): before the examples list, the exact layer's own answer or its honest line with what the
+  // records do show ("how am I doing", "why did I sleep badly"); never for a message in another language.
+  if (reply.kind === 'examples' && env && !other) { const exact = exactFallback(text, env); if (exact) reply = exact; }
   if (reply.kind === 'examples' && lang === 'en' && reply.text === EXAMPLES_INTRO) reply = {...reply, text: `${UNMATCHED_EN}\n${EXAMPLES_INTRO}`};
   if (info) reply = novaWording(reply, info, lang === 'nl' ? 'nl' : 'en'); // L7-4b (BN-047): NOVA's own words on this path too
   return other && 'text' in reply && !reply.text.startsWith(OTHER_NOTE[other]) ? {...reply, text: `${OTHER_NOTE[other]}${reply.kind === 'examples' ? ' ' : '\n'}${reply.text}`} as LocalReply : reply;
@@ -247,4 +256,13 @@ function cardFixes(reply: string, said: string, env: ToolEnv): string {
   const hour = (() => { try { return Number(new Intl.DateTimeFormat('en-GB', {hour: '2-digit', hourCycle: 'h23', timeZone: env.healthZone}).format(env.now)); } catch { return env.now.getUTCHours(); } })();
   if (!named && hour < 5) out = out.replace(/"meal":"Breakfast"/g, '"meal":"Snacks"');
   return out;
+}
+/**
+ * Session AS (ADR-042 D3): "why …" about a part of life the exact layer reads gets its honest line (the records do not say
+ * why) with what they do show for the period named, before the closest-question guess (which drew from example lists
+ * that differ between ZIGi and NOVA, so the two surfaces answered differently).
+ */
+function whyReply(text: string, env: ToolEnv | null | undefined): LocalReply | null {
+  if (!env) return null;
+  try { return exactQuery(text, env)?.ask === 'why' ? exactFallback(text, env) : null; } catch { return null; }
 }

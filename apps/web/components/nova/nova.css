@@ -302,6 +302,18 @@ a.nova-chip:hover .nova-chip-key { color: var(--sh-ink-neon); }
 /* ND-16: a stray moon dot by Exit on a phone. */
 @media (max-width: 560px) { .nova-ring-moon { display: none; } }
 .nova-name { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: .38em; color: var(--nova-ink); text-shadow: 0 0 18px color-mix(in oklab, var(--nova-a) 70%, transparent); }
+/* Session AS (ADR-042 Part 3): the wordmark above the star, much larger and nebula-coloured — white on the left flowing
+   into cyan, violet and pink (the heading rule, ADR-036), the same on the night island in every theme. Its line box stays
+   the 22 px the small name had, so the star, its state and the words under it stand exactly where they stood (Session AR's
+   composition); the larger letters hang down from that line into the dark above the star's disc (`translate`, which the
+   opening's own transform does not touch). The letters are a gradient cut to the glyphs, so their glow is a static
+   drop-shadow (a text-shadow would show through them). Lightest stop #ffffff, darkest #a98bff: 7.6:1 and more on the sky. */
+.nova-stage .nova-name { --nova-name-size: clamp(34px, calc(2.2vw + 12px), 68px); line-height: 1.3; font-size: var(--nova-name-size); font-weight: 760; letter-spacing: .3em; margin: calc((22px - var(--nova-name-size) * 1.3) * .5) -.3em calc((22px - var(--nova-name-size) * 1.3) * .5) 0; white-space: nowrap; translate: 0 calc((var(--nova-name-size) - 22px) * .5);
+  color: #fff; background-image: linear-gradient(90deg, #ffffff 0%, #ffffff 16%, #8ff6ff 40%, #a98bff 70%, #ff8fd4 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: none; filter: drop-shadow(0 0 1.5px #050818) drop-shadow(0 0 16px color-mix(in srgb, #a98bff 46%, transparent)); }
+.nova-frame[data-phone] .nova-stage .nova-name { --nova-name-size: 28px; line-height: 1.3; letter-spacing: .26em; margin-right: -.26em; }
+:root[data-glow="soft"] .nova-frame .nova-stage .nova-name { filter: drop-shadow(0 0 1.5px #050818); }
+@media (forced-colors: active) { .nova-stage .nova-name { background-image: none; -webkit-text-fill-color: currentColor; filter: none; } }
 .nova-orb-button { display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; }
 /* ND-1: the orb is sized by the stage's height as well as its width, so it always fits beside the stack. */
 .nova-orb-button .nova-orb { width: clamp(120px, min(22cqi, 30cqb), 240px); }

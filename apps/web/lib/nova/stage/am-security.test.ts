@@ -46,7 +46,8 @@ describe('AM-S1: a model\'s pin never lifts a locked widget', () => {
     const pinned = (id: string, gates: Readonly<Record<WidgetGate, boolean>> | null) => stageCalls([call('pin', id)], {gateOpen: gateRule(gates)}).commands;
     const gated = WIDGETS.filter(w => w.gate), free = WIDGETS.filter(w => !w.gate);
     expect(gated.length).toBeGreaterThanOrEqual(27); // Session AM-2 (step 3, deliberate): Templates, the static library, joins the widgets without a gate (it reads nothing of the person's).
-    expect(free.map(w => w.id)).toEqual(['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests', 'templates']);
+    // Session AS (ADR-042 Part 2, deliberate): 'nova-answers' joins them (what NOVA can answer, with examples; it reads nothing of the person's).
+    expect(free.map(w => w.id)).toEqual(['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests', 'templates', 'nova-answers']);
     for (const w of gated) {
       expect(pinned(w.id, null), `${w.id}, gates not read`).toEqual([]);
       expect(pinned(w.id, allGates(false)), `${w.id}, all closed`).toEqual([]);
@@ -222,7 +223,10 @@ describe('AM-S5: a request about Health is kept by its widgets\' names, never by
     const health = WIDGETS.filter(w => w.gate === 'health');
     // Session AM-2 (step 3, "NOVA connected", deliberate): three more, the health-type records Session AP added (was: six).
     // Round 2 (deliberate): six more Health read-outs, the cycle log among them (was: nine).
-    expect(health.map(w => w.id)).toEqual(['water', 'sleep', 'health-hud', 'weight', 'steps', 'workouts', 'run-splits', 'mood-tags', 'symptoms', 'health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle']);
+    // Session AS (ADR-042 Part 2, deliberate): the 21 answer widgets of Health join them, in the catalogue's order (was: fifteen).
+    expect(health.map(w => w.id)).toEqual(['water', 'sleep', 'health-hud', 'weight', 'steps', 'workouts', 'run-splits', 'mood-tags', 'symptoms', 'health-trends', 'food-days', 'fasting', 'meditation', 'supplements', 'cycle',
+      'water-days', 'steps-days', 'sleep-nights', 'workout-days', 'meditation-days', 'protein-days', 'health-scan', 'body-scan', 'weight-trend', 'sleep-trend', 'steps-trend', 'heart-trend', 'water-week', 'calorie-trend',
+      'sleep-stages', 'sleep-times', 'fasting-windows', 'nutrition-gauges', 'steps-heat', 'health-compare', 'mood-map']);
     for (const w of health) {
       const kept = keptAskWords('Fictional words 12345 that name nothing', [{id: w.id}]);
       expect(kept, w.id).toBe(`Health: ${w.title}`);

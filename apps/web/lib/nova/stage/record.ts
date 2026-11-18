@@ -2,6 +2,7 @@ import * as z from 'zod';
 import {readDeviceRecord, updateDeviceRecord, type DeviceRecordSpec} from '../../device-record';
 import {ZIGI_STORE_EVENT} from '../../ai/store/keys';
 import {itemId, MAX_WIDGETS, WIDGET_SIZES, type NovaWidget, type WidgetSize} from '../store';
+import {isPeriodToken, MAX_PERIOD, PERIOD_TOKEN} from './period-token';
 
 /**
  * Session AM (ADR-038 D3, D16, A5): NOVA's stage record, `zigoals:nova-stage:v1`. It holds what the person *asked for*:
@@ -31,8 +32,10 @@ const unique = (ids: readonly string[]) => new Set(ids).size === ids.length;
 export const widgetParamsSchema = z.looseObject({
   range: z.enum(WIDGET_RANGES).optional().catch(undefined),
   ref: plain(MAX_REF).min(1).optional().catch(undefined),
+  /** Session AS (ADR-042, approval item 3; additive): the period an answer's widget was made for (lib/nova/stage/period-token.ts). */
+  period: z.string().max(MAX_PERIOD).regex(PERIOD_TOKEN).optional().catch(undefined),
 });
-export type WidgetParams = {range?: WidgetRange; ref?: string};
+export type WidgetParams = {range?: WidgetRange; ref?: string; period?: string};
 export const madeWidgetSchema = z.looseObject({id: itemId, at: iso, size: z.enum(WIDGET_SIZES).optional().catch(undefined)});
 export type MadeWidget = {id: string; at: string; size?: WidgetSize};
 export const ASK_DEVICES = ['computer', 'phone'] as const;
@@ -75,7 +78,7 @@ export const NOVA_STAGE: DeviceRecordSpec<NovaStage> = {key: NOVA_STAGE_KEY, sch
 // ---- Reading ----
 export const keepsMade = (r: NovaStage): boolean => r.keep === true;
 export const proactiveOn = (r: NovaStage): boolean => r.proactive === true;
-export const paramsOf = (r: NovaStage, id: string): WidgetParams => { const p = r.params?.[id]; return p ? {...(p.range ? {range: p.range} : {}), ...(p.ref ? {ref: p.ref} : {})} : {}; };
+export const paramsOf = (r: NovaStage, id: string): WidgetParams => { const p = r.params?.[id]; return p ? {...(p.range ? {range: p.range} : {}), ...(p.ref ? {ref: p.ref} : {}), ...(p.period ? {period: p.period} : {})} : {}; };
 export const hiddenOf = (r: NovaStage): readonly string[] => r.hidden ?? [];
 export const asksOf = (r: NovaStage): readonly NovaAsk[] => (r.asks ?? []) as readonly NovaAsk[];
 /** The made widgets that are still on the stage at `now`: newest first, each once, not expired (unless kept). */
@@ -108,7 +111,7 @@ export function stageWidgets(r: NovaStage, pinned: readonly NovaWidget[], now: n
 const parse = (r: NovaStage) => novaStageSchema.parse(r);
 const cleanParams = (p: WidgetParams | undefined): WidgetParams | null => {
   if (!p) return null;
-  const out: WidgetParams = {...(p.range && (WIDGET_RANGES as readonly string[]).includes(p.range) ? {range: p.range} : {}), ...(typeof p.ref === 'string' && p.ref && p.ref.length <= MAX_REF && !/[\u0000-\u001f\u007f]/.test(p.ref) ? {ref: p.ref} : {})};
+  const out: WidgetParams = {...(p.range && (WIDGET_RANGES as readonly string[]).includes(p.range) ? {range: p.range} : {}), ...(typeof p.ref === 'string' && p.ref && p.ref.length <= MAX_REF && !/[\u0000-\u001f\u007f]/.test(p.ref) ? {ref: p.ref} : {}), ...(isPeriodToken(p.period) ? {period: p.period} : {})};
   return Object.keys(out).length ? out : null;
 };
 export type MakeRequest = {id: string; size?: WidgetSize; params?: WidgetParams};

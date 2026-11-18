@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
-import {drewSomething, GOVERNOR_GRACE_MS, governorStep, rgb, SOFTWARE_PACE, softwareRenderer, speakPulse, STAR_ACCENT, STAR_STATE, starPace, starPixels, starRender, starWhy, type StarFailure, type StarWhy} from '../../../lib/nova/core/governor';
+import {drewSomething, GOVERNOR_GRACE_MS, governorStep, rgb, SOFTWARE_PACE, speakPulse, STAR_ACCENT, STAR_STATE, starPace, starPixels, starRender, starStillKey, starWhy, type StarFailure, type StarWhy} from '../../../lib/nova/core/governor';
+import {probeStar, type StarProbe} from '../../../lib/nova/core/probe';
 import {STAR_DETAILS, starDebug} from '../../../lib/nova/core/star-debug';
 import {STAR_FRAG, STAR_UNIFORMS, STAR_VERT, type StarUniform} from '../../../lib/nova/core/star-shader';
 import type {HudMotionState} from '../../../lib/nova/holo/motion';
@@ -38,7 +39,7 @@ export type StarReport = {shows: 'star' | 'picture' | 'orb'; why: StarWhy | null
   details: string | null;
   /** `?star=why` (LOCAL_DEMO): show the line even while the star runs at its full pace. */
   always: boolean};
-type Probe = {webgl: boolean; software: boolean; renderer: string | null};
+type Probe = StarProbe;
 const LOST_GRACE_MS = 2500;
 export function StarSystem({state, hud, accent = 'violet', phone = false, size, column, beam = null, onReport, onMount}: {
   state: NovaOrbState; hud: HudMotionState; accent?: string; phone?: boolean;
@@ -70,16 +71,11 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
     }).catch(() => undefined);
     const media = window.matchMedia?.('(prefers-reduced-motion: reduce)'), readMotion = () => setReducedMotion(!!media?.matches);
     readMotion(); media?.addEventListener?.('change', readMotion);
-    try {
-      // With graphics hardware the first ask succeeds. If only the second does, the browser draws WebGL in software.
-      const hard = document.createElement('canvas').getContext('webgl', {failIfMajorPerformanceCaveat: true}), other = document.createElement('canvas');
-      const any = (hard ?? other.getContext('webgl') ?? other.getContext('experimental-webgl')) as WebGLRenderingContext | null;
-      let name: string | null = null;
-      try { const ext = any?.getExtension('WEBGL_debug_renderer_info'); name = any ? String(any.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : any.RENDERER) ?? '') || null : null; } catch { name = null; }
-      setProbe({webgl: !!any, software: !!any && (!hard || softwareRenderer(name)), renderer: name});
-      try { any?.getExtension('WEBGL_lose_context')?.loseContext(); } catch { /* the probe is dropped with its canvas */ }
-    } catch { setProbe({webgl: false, software: false, renderer: null}); }
-    return () => { live = false; off(); media?.removeEventListener?.('change', readMotion); };
+    // Session AS (Part 4, ADR-041 D36): the first ask for WebGL runs off the page's thread where the browser can
+    // (lib/nova/core/probe.ts); with graphics hardware the first ask succeeds, and if only the second does, the browser
+    // draws WebGL in software.
+    const stopProbe = probeStar(p => { if (live) setProbe(p); });
+    return () => { live = false; off(); stopProbe(); media?.removeEventListener?.('change', readMotion); };
   }, []);
   const ready = hints !== null && probe !== null, software = !!probe?.software && !debug.live;
   const render = ready ? starRender({hud, webgl: probe.webgl, failure}) : null;
@@ -119,12 +115,17 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
         return true;
       } catch { return false; }
     };
-    if (!setup()) { setFailure('compile'); return; }
+    if (!setup()) {
+      // Session AS (D36): the probe now asks in a worker; where the page itself gives no WebGL context, this browser has
+      // no WebGL here, and the still picture says so (not "the shader did not start").
+      if (!gl) { setProbe(p => p ? {...p, webgl: false, software: false} : p); return; }
+      setFailure('compile'); return;
+    }
 
     // The picture's own clock and eased values.
     const v = {t: 12, spin: 0.72, rate: 0.06, listen: 0, think: 0, speak: 0, beam: 0, beamA: 0, beamKey: live.current.beam?.key ?? 0, beamAt: -1e9};
     let frame = 0, timer = 0, lostTimer = 0, last = 0, lastDraw = 0, tierNow = 0, late = 0, graceUntil = 0, losses = 0, stopped = false, activeAt = performance.now(), focused = true; // the focus is read from focus and blur events only (a page that never had it still starts active)
-    let checks = 0, proven = false, said = '';
+    let checks = 0, proven = false, said = '', stillKey = '';
     // A processor-drawn star is at most SOFTWARE_PACE.pixels across in its own pixels, whatever its box (a 940 px star at
     // half scale was 470 px: four times the work of the 2560 px proof's first star, for a page drawn on the same processor).
     const pixels = (scale: number) => { const full = starPixels(live.current.size, window.devicePixelRatio, scale), want = live.current.software ? Math.min(full, SOFTWARE_PACE.pixels) : full; if (el.width !== want) { el.width = want; el.height = want; } };
@@ -164,6 +165,12 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
     };
     /** One still frame for the state as it is now: the eased values jump to their targets (a composed frame, not a frozen one), at full quality. */
     const still = () => {
+      // Session AS (Part 4, ADR-041 D34): a still star is drawn once per picture. A wake that changes nothing the frame
+      // shows (the battery read again, the probe's answer, a tab shown again: the frame is kept in the canvas) draws
+      // nothing; another state, accent, size, edge or density is another picture and is drawn.
+      const key = starStillKey({...live.current, ratio: window.devicePixelRatio});
+      if (key === stillKey && proven && el.dataset.star === 'still' && gl && !gl.isContextLost()) return; // an unproven frame is drawn (and read back) again
+      stillKey = key;
       const target = STAR_STATE[live.current.state];
       v.listen = target.listen; v.think = target.think; v.speak = target.speak; v.beamAt = -1e9;
       pixels(live.current.phone ? 0.7 : 1); draw(performance.now(), 0, 0, live.current.phone ? 3 : 5);
@@ -181,7 +188,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
       // The governor watches the active pace only (at rest a late frame is nobody's concern), and not while the page is
       // still loading or the star has just woken.
       if (pace.mode === 'active' && !held && lastDraw && now >= graceUntil) { const g = governorStep(tierNow, late, now - lastDraw, pace.fps); late = g.late; if (g.tier !== tierNow) { tierNow = g.tier; setTier(tierNow); } }
-      lastDraw = now;
+      lastDraw = now; stillKey = '';
       pixels(pace.scale); draw(now, dt, pace.speed, pace.detail);
       mark('star', pace.mode); mark('starTier', String(tierNow)); mark('starFps', String(pace.fps));
       say(pace.mode, pace.fps);
@@ -207,14 +214,14 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
     const freeze = () => cancel(), resume = () => start();
     // A lost context is waited for; the still picture stands in after a moment, and the star returns if the context does.
     const lostContext = (e: Event) => {
-      e.preventDefault(); cancel(); gl = null; losses += 1; window.clearTimeout(lostTimer);
+      e.preventDefault(); cancel(); gl = null; stillKey = ''; losses += 1; window.clearTimeout(lostTimer);
       if (losses > 3) { stopped = true; setFailure('lost'); return; }
       lostTimer = window.setTimeout(() => setFailure('lost'), LOST_GRACE_MS);
     };
     const restored = () => {
       window.clearTimeout(lostTimer);
       if (stopped) return;
-      if (setup()) { checks = 0; proven = false; setFailure(null); start(); } else { stopped = true; setFailure('compile'); }
+      if (setup()) { checks = 0; proven = false; stillKey = ''; setFailure(null); start(); } else { stopped = true; setFailure('compile'); }
     };
     window.addEventListener('keydown', active, {passive: true}); window.addEventListener('pointerdown', active, {passive: true});
     window.addEventListener('focus', focus); window.addEventListener('blur', blur);

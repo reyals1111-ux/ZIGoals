@@ -3803,6 +3803,118 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 520px) { :where(:root[data-density=compact]) .na-step:not(#\-) { padding-top: 48px; } }
 :where(:root[data-density=compact]) .na-drop:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .na-entry:not(#\-) { row-gap: 6px; }
+/*  components/nova/cards/ax/ax.css  */
+:where(:root[data-density=compact]) .ax-body:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .ax-head:not(#\-) { row-gap: 14px; }
+@container (max-width: 420px) { :where(:root[data-density=compact]) .ax-head:not(#\-) { row-gap: 4px; } }
+:where(:root[data-density=compact]) .ax-head-figure:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 7px; }
+:where(:root[data-density=compact]) .ax-head-words:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .ax-head-label:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ax-head-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ax-key:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .ax-key span:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .ax-cal:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .ax-cal-head:not(#\-), :where(:root[data-density=compact]) .ax-cal-week:not(#\-) { row-gap: 5px; }
+:where(:root[data-density=compact]) .ax-cal-grid:not(#\-) { row-gap: 3.75px; padding-top: 3.75px; padding-bottom: 3.75px; }
+:where(:root[data-density=compact]) .ax-ranks:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 10px; }
+:where(:root[data-density=compact]) .ax-rank:not(#\-) { row-gap: 5px; }
+:where(:root[data-density=compact]) .ax-rank-track:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .ax-chips:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .ax-chips b:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .ax-twins:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .ax-twin:not(#\-) { row-gap: 5px; }
+:where(:root[data-density=compact]) .ax-twin-delta:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/nova/cards/ax/day.css  */
+:where(:root[data-density=compact]) .axd-more:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axd-key:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .axd-key span:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .axd-flames:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axd-flame-row:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .axd-flame:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axd-lat:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axd-heat:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .axd-heat-week:not(#\-) { row-gap: var(--axd-gap); }
+:where(:root[data-density=compact]) .axd-tl:not(#\-) { row-gap: 2px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .axd-orbit-centre:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .axd-stars:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .axd-sky:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .axd-star b:not(#\-) { margin-top: -.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axd-sky-name:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axd-dial-centre:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .axd-radar-name:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axd-scan-lanes:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axd-scan-pips:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .axd-guide:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .axd-guide-row:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .axd-guide-asks:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .axd-scale:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/nova/cards/ax/health.css  */
+:where(:root[data-density=compact]) .axh-key:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .axh-key span:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .axh-key i[data-k=pin]:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axh-fact:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 12px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .axh-scan:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .axh-vitals:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .axh-vital:not(#\-) { row-gap: 2px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .axh-vital-meter:not(#\-) { margin-top: 3px; }
+@container holo-body (max-height: 281.98px) { :where(:root[data-density=compact]) .axh-vital:not(#\-) { padding-top: 5px; padding-bottom: 5px; } }
+@container holo-body (max-width: 439.98px) { :where(:root[data-density=compact]) .axh-vitals:not(#\-) { row-gap: 4px; } }
+@container holo-body (max-width: 439.98px) { :where(:root[data-density=compact]) .axh-vital:not(#\-) { row-gap: 8px; padding-top: 2px; padding-bottom: 2px; } }
+@container holo-body (max-height: 227.98px) { :where(:root[data-density=compact]) .axh-vitals:not(#\-) { row-gap: 4px; } }
+@container holo-body (max-height: 227.98px) { :where(:root[data-density=compact]) .axh-vital:not(#\-) { row-gap: 8px; padding-top: 2px; padding-bottom: 2px; } }
+:where(:root[data-density=compact]) .axh-bodyscan:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .axh-places:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .axh-place:not(#\-) { row-gap: 10px; padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .axh-trend-plot:not(#\-) { margin-bottom: 4px; }
+:where(:root[data-density=compact]) .axh-pin:not(#\-) { margin-top: -4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axh-pin-label:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .axh-trend-dates:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axh-water:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axh-pips:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .axh-bars-plot:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .axh-bars[data-bars=stages] .axh-bar:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .axh-bars-labels:not(#\-) { margin-top: 5px; row-gap: 6px; }
+:where(:root[data-density=compact]) .axh-gauges:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .axh-gauge:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .axh-gauge-orbit:not(#\-)::before { margin-top: -2.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axh-heat:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axh-heat-months:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .axh-heat-grid:not(#\-) { row-gap: 2.25px; }
+:where(:root[data-density=compact]) .axh-heat-days:not(#\-), :where(:root[data-density=compact]) .axh-heat-week:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .axh-mood:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .axh-mood-head:not(#\-), :where(:root[data-density=compact]) .axh-mood-week:not(#\-) { row-gap: 5px; }
+:where(:root[data-density=compact]) .axh-mood-grid:not(#\-) { row-gap: 3.75px; padding-top: 3.75px; padding-bottom: 3.75px; }
+/*  components/nova/cards/ax/money.css  */
+:where(:root[data-density=compact]) .axm-head[data-long] > div:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axm-split:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .axm-legend:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 5px; }
+:where(:root[data-density=compact]) .axm-legend-row:not(#\-) { row-gap: 6.75px; }
+:where(:root[data-density=compact]) .axm-key:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .axm-key span:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .axm-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axm-chip:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .axm-radar:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .axm-heat:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axm-heat-days:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .axm-heat-grid:not(#\-) { row-gap: 2.25px; }
+:where(:root[data-density=compact]) .axm-bills:not(#\-) { row-gap: 5px; padding-top: 4px; padding-bottom: 0; }
+:where(:root[data-density=compact]) .axm-bills-head:not(#\-), :where(:root[data-density=compact]) .axm-bills-week:not(#\-) { row-gap: 5px; }
+:where(:root[data-density=compact]) .axm-river:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axm-river-axis:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 10px; }
+:where(:root[data-density=compact]) .axm-gauges:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .axm-gauge:not(#\-) { row-gap: 1px; }
+:where(:root[data-density=compact]) .axm-dialrow:not(#\-) { row-gap: 13.5px; }
+:where(:root[data-density=compact]) .axm-dial-words:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .axm-dial-side:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .axm-dial-name:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axm-dial-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axm-time:not(#\-) { row-gap: 3px; padding-top: 2px; padding-bottom: 0; }
+:where(:root[data-density=compact]) .axm-time-rail:not(#\-) { margin-top: -2px; }
+:where(:root[data-density=compact]) .axm-time-now:not(#\-) { margin-top: -6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axm-time-axis:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 10px; }
+:where(:root[data-density=compact]) .axm-jars:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .axm-jar:not(#\-) { row-gap: 4px; }
+@container holo-body (min-width: 560px) { :where(:root[data-density=compact]) .axm-split:not([data-lay=stack]):not(#\-) { row-gap: 24px; } }
 /*  components/nova/cards/cards.css  */
 :where(:root[data-density=compact]) .nc-body:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .nc-foot:not(#\-) { margin-top: auto; margin-bottom: 0; padding-top: 6px; }
@@ -3844,6 +3956,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nc-rings:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nc-ring:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .nc-trend-mark:not(#\-) { margin-top: -5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-trend-dot:not(#\-) { margin-top: -3px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nc-trend-mark[data-marker=heart]:not(#\-) { margin-top: -13px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nc-trend-edge:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nc-trend-goal:not(#\-) { padding-top: 0; padding-bottom: 0; }
@@ -4709,6 +4822,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-stage:not(#\-) { row-gap: 6px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .nova-stage-below:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .nova-name:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-stage .nova-name:not(#\-) { margin-top: calc((22px - var(--nova-name-size) * 1.3) * .5); margin-bottom: calc((22px - var(--nova-name-size) * 1.3) * .5); }
 :where(:root[data-density=compact]) .nova-orb-button:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-orb-state:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-greeting:not(#\-) { margin-top: 6px; margin-bottom: 0; }
