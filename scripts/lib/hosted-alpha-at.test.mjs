@@ -16,6 +16,9 @@ test('the answers are checked by their shape, whatever the day', () => {
   expect(answerProblem('missed', 'Your habits: Exercise, Meditate, Read, Drink water, Journal, Stretch and Walk.')).toMatch(/does not start/);
   expect(answerProblem('meditate', 'Meditate: 140 minutes this month.')).toMatch(/minutes instead of the days/);
   expect(answerProblem('meditate', '')).toMatch(/empty/);
+  // As the page shows it: the source line and the question come first, NOVA's words after "NOVA: ".
+  expect(answerProblem('missed', 'Answered on this device · no AI usedYou asked: “how many habits did I miss this week”NOVA: You missed no habit this week (Mon, Nov 16 to Wed, Nov 18): 17 of 17 due check-ins done.')).toBeNull();
+  expect(answerProblem('missed', 'Answered on this device · no AI usedYou asked: “how many habits did I miss this week”NOVA: Your habits: Read and Run.')).toMatch(/does not start/);
   expect(AT_ANSWERS.missed.test('Every habit was done on every due day this week (11 of 11).')).toBe(true);
 });
 test('Send feedback\'s details name the theme and the screen', () => {

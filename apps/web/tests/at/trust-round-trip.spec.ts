@@ -75,5 +75,6 @@ test('D12: every record kind since AL survives Export everything → Erase every
   await preview.getByLabel(/I checked my choices/).check();
   await preview.getByRole('button', {name: 'Restore the chosen parts'}).click();
   await expect(restore.getByRole('status').filter({hasText: 'Restored:'})).toBeVisible({timeout: 20_000});
-  for (const [key, expected] of Object.entries(kept)) expect(await value(page, key), key).toEqual(expected);
+  // Every value back; a field the schema defaults may be written out on restore (journey 6's rule: the money log's weekStartsOn).
+  for (const [key, expected] of Object.entries(kept)) expect(await value(page, key), key).toMatchObject(expected as Record<string, unknown>);
 });

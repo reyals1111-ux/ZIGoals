@@ -35,7 +35,10 @@ const LOAD_MS = 20_000, APPEAR_MS = 6_000, ANSWER_MS = 15_000;
 
 /** An answer's problem sentence, or null when it has the right shape. */
 export function answerProblem(kind, text) {
-  const plain = String(text ?? '').replace(/\s+/g, ' ').trim();
+  // The answer's block also holds its source line and the question ("Answered on this device · no AI used", "You asked: …");
+  // NOVA's own words follow "NOVA: ".
+  const all = String(text ?? '').replace(/\s+/g, ' ').trim(), at = all.lastIndexOf('NOVA: ');
+  const plain = at >= 0 ? all.slice(at + 'NOVA: '.length).trim() : all;
   if (!plain) return `NOVA's answer to "${AT_QUESTIONS[kind]}" is empty`;
   if (!AT_ANSWERS[kind].test(plain)) return `NOVA's answer to "${AT_QUESTIONS[kind]}" does not start as the exact layer writes it: "${plain.slice(0, 160)}"`;
   if (kind === 'meditate' && /\bminutes?\b/i.test(plain)) return `NOVA's answer to "${AT_QUESTIONS.meditate}" gives minutes instead of the days`;
@@ -126,7 +129,7 @@ async function at(page, {base, report}) {
       for (const kind of /** @type {const} */ (['missed', 'meditate'])) {
         await field.fill(AT_QUESTIONS[kind]); await field.press('Enter');
         const answer = page.locator('.ns-answer').first();
-        await page.waitForFunction(re => { const t = document.querySelector('.ns-answer')?.textContent?.replace(/\s+/g, ' ').trim() ?? ''; return new RegExp(re.source).test(t); }, {source: AT_ANSWERS[kind].source}, {timeout: ANSWER_MS}).catch(() => undefined);
+        await page.waitForFunction(re => { const t = document.querySelector('.ns-answer')?.textContent?.replace(/\s+/g, ' ').trim() ?? '', i = t.lastIndexOf('NOVA: '); return new RegExp(re.source).test(i >= 0 ? t.slice(i + 6).trim() : t); }, {source: AT_ANSWERS[kind].source}, {timeout: ANSWER_MS}).catch(() => undefined);
         const problem = answerProblem(kind, await answer.textContent().catch(() => ''));
         if (problem) out.problems.push(problem);
         if (!(await appears(page.locator(`.nova-stage-area .nova-widget[data-widget="${AT_WIDGETS[kind]}"]`), ANSWER_MS))) out.problems.push(`NOVA: "${AT_QUESTIONS[kind]}" made no ${AT_WIDGETS[kind]} widget`);
