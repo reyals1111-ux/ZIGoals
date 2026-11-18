@@ -111,3 +111,14 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   `zigi-earn-coach-af`'s 15 s URL wait). What stays open is recorded, not chased: WebKit class A/B (engine), the headless
   Chromium renderer stall, sandbox-only rows, and ADR-041's D34 (`hud-motion` phone stillness) and D36 (ND-1, the first
   WebGL context as one 6 s task without graphics hardware), whose two fix attempts each are spent.
+
+### Part 2 — trust pass
+- **D11 (2(e) privacy page against what the app sends).** Read `lib/egress-policy.json` (browser hosts and server-only
+  routes), Send feedback and the routes behind them against `landing/privacy.html`. Mismatches, fixed on the page only
+  (headers untouched): the ZIGChain read relay that passes a tracked address (kept in memory ≤ 60 s, never stored) was not
+  named; the exchange relay (Kraken, Coinbase, Binance; stateless, the signed request only) was not named; recipe import by
+  address (ZIGoals' server reads the page after a public-DNS check) was not named; Send feedback was "only what you type"
+  while the app adds its version and, if ticked, device details; the weather proxy was "not built yet" while it is built and
+  off. MET Norway's opt-in text is unchanged (its test unchanged). Spotify stays unnamed: it connects only for invited
+  accounts, which the public Alpha does not have. `scripts/landing-at-privacy.test.mjs`; landing tests 40 of 40; the
+  landing dry run passes. The landing needs the owner's redeploy (OWNER_STEPS step 3).
