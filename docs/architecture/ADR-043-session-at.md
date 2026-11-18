@@ -156,3 +156,25 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   build lacks is a review reason (never PASS), a part that is wrong fails the stage, as stage 13 does. Unit tests
   `hosted-alpha-at.test.mjs` (3), the order test (11); the browser run against a local production build is recorded in
   STATUS.
+
+### Part 4 — roadmap items
+- **D14 (Help screenshots, backlog #12).** `scripts/help-screenshots.mjs` makes 30 WebP pictures (Today, Habits, Health,
+  Wealth, NOVA × Nebula, Light, Dark × 1440 and 390) from the Showcase on a local production build (fixed clock, motion
+  reduced, /api refused): 1.7 MB in `apps/web/public/help/`. Help → Getting started → "What do the main pages look like?"
+  shows them in the viewer's theme (a phone's picture on a narrow screen), inside the closed answer so nothing loads until
+  it is opened (`loading="lazy"`), each captioned "Example data" with the Showcase named. Help's route stays inside its
+  budget (no picture is a script).
+- **D15 (What's new and Known limitations for AR, AS, AT).** What's new opens with NOVA's exact answers (a new answer,
+  "Which questions does NOVA answer without an AI?", AS and AR's composition in words, no new in-sentence link) and the
+  screenshots. Known limitations: three lines that had become untrue are corrected (weather is opt-in in NOVA since AM, the
+  proxy is what is off; Someday is counted in the menu since D7; Today's orbits card exists since AR) and three added
+  (NOVA answers from records only, one Checklist item at a time; a restore brings back records, not device settings; Dutch
+  coin questions). `send-feedback.spec.ts` 44 → 47 (deliberate, each line checked by its words); the search index lists
+  both new answers.
+- **D16 (landing draft for the owner, landing/ only).** "New in the Alpha" gains two cards first, "NOVA answers you" (on
+  the device, no model, unknown is never zero; your own AI if you want one) and "Plan your day" (hour grid, This evening
+  and Someday, the priority matrix, countdowns), and one NOVA picture from the Showcase under the list, tagged "Example
+  data" and captioned as fictional (34 kB on a phone, 118 kB on a computer, lazy). The bento's wide cards follow its three
+  longest (LR-11's rule unchanged, its names moved, deliberate); the claims test pins the new cards' words and no
+  "Jarvis". Landing tests 40 of 40; landing browser specs 75 passed (weight, layout shift, a11y, layout); headers untouched.
+  Not deployed: the owner previews and redeploys (OWNER_STEPS step 3).

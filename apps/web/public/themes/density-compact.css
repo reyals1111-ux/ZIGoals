@@ -3243,6 +3243,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .workouts-bar-cell:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .workouts-freshness:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .workouts-freshness li:not(#\-) { row-gap: 3px; }
+/*  components/help/help-screenshots.css  */
+:where(:root[data-density=compact]) .help-shots-list:not(#\-) { margin-top: 9px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 15px; }
+:where(:root[data-density=compact]) .help-shot:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .help-shot-tag:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
 /*  components/help/help.css  */
 :where(:root[data-density=compact]) .help-page:not(#\-) { row-gap: 22px; }
 :where(:root[data-density=compact]) .help-page .page-header:not(#\-) { margin-bottom: 4px; }

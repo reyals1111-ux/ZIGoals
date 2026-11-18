@@ -12,7 +12,16 @@ const cards = [...html.match(/<ul class="new-list[\s\S]*?<\/ul><p class="new-not
   .map(([, kind, label, title, body]) => ({ kind, label, title, body: text(body) }));
 
 test("every card carries one honest status, and what waits for a switch says so", () => {
-  expect(cards.map(card => card.title)).toEqual(["Goals", "Habits", "Food", "Insights", "Money, day to day", "Your Wealth plan", "Phone wallets", "Bring your history", "Focus and play"]);
+  // Session AT (ADR-043 D16, deliberate): two cards first, NOVA's answers and planning the day; each checked by its words below.
+  expect(cards.map(card => card.title)).toEqual(["NOVA answers you", "Plan your day", "Goals", "Habits", "Food", "Insights", "Money, day to day", "Your Wealth plan", "Phone wallets", "Bring your history", "Focus and play"]);
+  const nova = cards.find(card => card.title === "NOVA answers you");
+  expect(nova.label).toBe("IN THE ALPHA");
+  expect(nova.body).toContain("works it out on your device from your own records");
+  expect(nova.body).toContain("These answers use no model at all. A figure ZIGoals doesn’t know stays unknown, never zero.");
+  expect(cards.find(card => card.title === "Plan your day").body).toContain("moving a card changes only its priority");
+  // The example picture says it is example data.
+  expect(html).toMatch(/<figure class="new-shot reveal">[\s\S]*?<span class="example-tag">Example data<\/span><figcaption>[^<]*fictional example data/);
+  expect(text(html)).not.toMatch(/\bJarvis\b/i);
   for (const card of cards) expect([["available", "IN THE ALPHA"], ["switching", "BEING SWITCHED ON"]]).toContainEqual([card.kind, card.label]);
   expect(cards.find(card => card.title === "Phone wallets").label).toBe("BEING SWITCHED ON");
   expect(cards.find(card => card.title === "Phone wallets").body).toContain("read-only");

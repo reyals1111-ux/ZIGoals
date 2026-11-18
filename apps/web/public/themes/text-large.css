@@ -1686,6 +1686,9 @@
 :where(:root[data-text=large]) .workouts-import-lifts span:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .workouts-muscles h3:not(#\-) { font-size: calc(1.05rem * 1.125); }
 :where(:root[data-text=large]) .workouts-freshness li > span:last-child:not(#\-) { font-size: calc(15px * 1.125); }
+/*  components/help/help-screenshots.css  */
+:where(:root[data-text=large]) .help-shot figcaption:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .help-shot-tag:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/help/help.css  */
 :where(:root[data-text=large]) .help-page p:not(#\-), :where(:root[data-text=large]) .help-page li:not(#\-), :where(:root[data-text=large]) .help-page dd:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .help-page .fine:not(#\-) { font-size: calc(15px * 1.125); }

@@ -8,6 +8,7 @@ import {InstallGuide} from './install-guide';
 import {KeepData} from './keep-data';
 import {HelpQuestion} from './help-question';
 import {HelpTopics} from './help-topics';
+import {HelpScreenshots} from './help-screenshots';
 import {HelpSearch} from './help-search';
 import {SendFeedback} from './send-feedback';
 import {TourOffer} from '../tour/tour-offer';
@@ -27,6 +28,9 @@ const TOPICS: [id: string, label: string][] = [
 /** Session AL (PR-034): this version's answers, as Today's What's new card lists them (that file is a client module, so
  * the list is repeated here; lib/search/help-whats-new.test.ts keeps the two in step). */
 export const THIS_VERSION: readonly [id: string, label: string][] = [
+  // Session AT (ADR-043, 18 Nov): the newest answers first; Today's What's new card keeps its own list.
+  ['nova-answers', 'NOVA answers the question you ask, in words and with its own widget'],
+  ['at-screens', 'Example pictures of the main pages, in your theme'],
   // Session AP (friends Alpha, 14 Nov): this release's own answers first (the What's new card on Today keeps its list).
   ['ap-new-first-five', 'Your first five steps on Today, for a fresh start'],
   ['ap-new-day-rule', 'A day can count as done at a number of dots you choose'],
@@ -84,13 +88,15 @@ export function HelpPage() {
     <HelpSearch/>
     <HelpTopics topics={TOPICS}/>
 
-    <Section id="getting-started" updated="Nov 1, 2026 or earlier" eyebrow="GETTING STARTED" title="Three small first steps">
+    <Section id="getting-started" updated="Nov 18, 2026" eyebrow="GETTING STARTED" title="Three small first steps">
       <ol className="help-steps">
         <li><strong>Your first Goal.</strong> In <Link className="text-link" href="/app/goals">Goals</Link>, choose <strong>+ Create a goal</strong>: name it, pick what you are aiming for, and follow the steps.</li>
         <li><strong>Your first Habit.</strong> In <Link className="text-link" href="/app/habits">Habits</Link>, choose <strong>+ New habit</strong>, start from a template or your own title, and tap it each day you do it.</li>
         <li><strong>Quick counters.</strong> In <Link className="text-link" href="/app/health">Health</Link>, <strong>Quick counters</strong> add today&rsquo;s repetitions with one tap, and the Water card in the Diary logs a set amount with one tap (Add 250 mL, or sizes you choose).</li>
       </ol>
       <p>Today brings them together. Want the guided tour again? <Link className="text-link" href="/app/welcome">Show the welcome</Link>.</p>
+      {/* Session AT (ADR-043 D14; backlog #12): example screenshots, inside the answer, loaded only when it is opened. */}
+      <HelpQuestion id="at-screens" question="What do the main pages look like?"><HelpScreenshots/></HelpQuestion>
     </Section>
 
     <Section id="data-and-sync" updated="Nov 4, 2026" eyebrow="YOUR DATA AND SYNC" title="Where your data lives">
@@ -170,11 +176,13 @@ export function HelpPage() {
     </Section>
 
     {/* Owner follow-up 2 (N, B, T): NOVA, notes and tasks, task-shaped. */}
-    <Section id="nova" updated="Nov 11, 2026" eyebrow="NOVA, NOTES AND TASKS" title="Your command center, your notes and your day">
+    <Section id="nova" updated="Nov 18, 2026" eyebrow="NOVA, NOTES AND TASKS" title="Your command center, your notes and your day">
       {/* Session AL (O3, O4; shell lane request): where the assistant and the small apps live on each kind of screen. */}
       <p><strong>Where to find them.</strong> On a phone or a tablet, ZIGi, NOVA, the Checklist, Tasks, Notes, the Journal, the Agenda, Earn and Music are in <strong>Apps &amp; extras</strong> (the top bar on a phone, the rail on a tablet), each one while it is switched on under Settings &rarr; Your pages &amp; buttons. On a computer, NOVA, Tasks, Notes, the Journal and the Agenda are in the sidebar&rsquo;s <strong>Apps</strong> group, and ZIGi, the Earn dock, Music and the Checklist float at the edge.</p>
       <HelpQuestion id="nova-what" question="What is NOVA?"><p>NOVA is your private command center on top of ZIGoals, a personal AI command center you can keep open all day: a calm, full-screen stage with one star in the middle (<Link href="/app/nova">open NOVA</Link>, ⌘/Ctrl + J from any page, or NOVA in the menu). Ask for something and NOVA answers and makes a widget for that answer; your day, your four pillars, your agents and every feature stay one tap away in the side bars. On a phone NOVA is a chat: it answers in words, and the stage is on a computer. It runs on ZIGi&rsquo;s engine, so NOVA and ZIGi share one history and one memory on this device, hand a conversation to each other (&ldquo;Continue in NOVA&rdquo;, &ldquo;Ask ZIGi about a page&rdquo;) and can work a task together. Without a model NOVA answers on the device from your own records. You can make ZIGoals open on NOVA in NOVA &rarr; Customize the view &rarr; Make it yours.</p><p>While NOVA hands a page task to ZIGi, both appear side by side on NOVA&rsquo;s dashboard with the step they are on; every change still comes as a card you confirm. &ldquo;Running now&rdquo; shows what is running on this device (a Pomodoro, a meditation, a habit timer, a fast, a night in bed) with its time and a link to where it ends.</p></HelpQuestion>
       {/* Session AM (ADR-038 D2, D3, D7, D19, D28–D31): the stage, widgets on request, the dock, requests, gentle cards, NOVA's own window. */}
+      {/* Session AS (ADR-042) answers, described by Session AT (ADR-043). No link inside: Help's in-sentence link count is pinned. */}
+      <HelpQuestion id="nova-answers" question="Which questions does NOVA answer without an AI?"><p>Questions about your own records, worked out on this device, in the same words as ZIGi: how many habits you missed this week, which days you didn&rsquo;t meditate this month, which habit you skip most, your streaks, how your health and weight are going, what you spent this month against last month, your next bill, which goals are behind, which tasks are overdue, your journal streak, whether you focused today. Typos and Dutch are fine. The sentence under the star answers in its first words, and a widget of its own shows the same facts beside it, with its source and the day it is as of; it arrives as the stage&rsquo;s largest panel while the star steps back. A figure ZIGoals doesn&rsquo;t know is said to be unknown, never zero, and nothing is a score of you. Asked why something happened, NOVA says your records don&rsquo;t say why and shows what they do show. Type &ldquo;what can you answer&rdquo; for the full list. Health questions need Health shared with NOVA (NOVA &rarr; Permissions).</p></HelpQuestion>
       <HelpQuestion id="nova-stage" question="How do I ask NOVA for a widget, and pin, hide or close it?"><p>NOVA&rsquo;s stage starts calm: the star, a greeting, a few one-tap requests and one field to ask in. Ask in your own words, in English or Dutch: type, tap a one-tap request (such as My day, What&rsquo;s next, Habits this week, Goals, Agenda or Weather), or speak once you turn voice on. NOVA answers under the star and makes a widget for that answer, from your own records on this device. It works with no AI connected. Three to try: &ldquo;Show my habits this week&rdquo;, &ldquo;How are my goals?&rdquo; and &ldquo;What&rsquo;s on my agenda?&rdquo;. Nothing is sent before you press Enter.</p><p>Every widget can be pinned, hidden, closed or opened. <strong>Pin</strong> keeps it on the stage. <strong>Hide</strong> folds it into the dock, a row of chips; tap a chip to bring it back. <strong>Close</strong> removes it, with Undo. Its link opens the full page, and Back returns to the same stage. A widget you did not pin leaves by itself after 12 hours, unless you turn on &ldquo;Keep made widgets until I close them&rdquo; (right bar &rarr; Your choices). You can say it too: &ldquo;Pin my weight&rdquo;, &ldquo;Hide the sleep widget&rdquo;, &ldquo;Close the weather&rdquo; or &ldquo;Clear the stage&rdquo; (what you pinned stays). &ldquo;Show the Command arrangement&rdquo; puts a ready-made set of widgets on the stage. A widget whose area is switched off appears locked: it names the switch and shows nothing else.</p><p>The right bar keeps your <strong>Requests</strong>, newest first, each with &ldquo;Show again&rdquo;, and &ldquo;Forget all requests&rdquo; removes them. Where sync is on, a request you made on your phone is marked &ldquo;from your phone&rdquo;. <strong>Gentle cards</strong> are off until you turn on &ldquo;Gentle cards from your briefs&rdquo; under Your choices: while NOVA is open, one card may appear for today&rsquo;s plan, something due today, a streak at risk or a bill due. Never a notification, and at most three a day. The top bar&rsquo;s &ldquo;NOVA in its own window&rdquo; opens NOVA in a separate window you can keep beside your work.</p><p>A connected AI can show, pin, hide or close a widget for you. It can never change a permission, the weather switch, your privacy mode or which pages may be read; only you can, and it never puts words or numbers into a widget. Weather is the only outside data, and it is off until you turn it on in NOVA &rarr; Permissions: see <a className="text-link" href="#help-nova-weather">what NOVA&rsquo;s weather sends</a>. The weather widget credits &ldquo;Data from MET Norway&rdquo;.</p></HelpQuestion>
       <HelpQuestion id="nova-brain" question="How do I give NOVA a brain, and do my ChatGPT or Claude subscriptions work?"><p>Follow <Link href="/app/nova/setup">Build your own NOVA</Link>. Recommended: a local model on your own computer (Ollama, LM Studio or llama.cpp), with copyable steps for macOS, Windows and Linux and a live test that names the model it found; nothing leaves your computer. Chrome 145 and later, Edge and Firefox 151 and later ask once to let this site reach apps on this device: allow it. Safari can&rsquo;t reach a model on your computer from a web page, and a phone can&rsquo;t reach your computer&rsquo;s models. You can also use your own API key (sealed on this device, sent only to that provider) or sign in with OpenRouter. ChatGPT, Claude, Gemini and Grok subscriptions don&rsquo;t include access for other apps, so they can&rsquo;t sign in here (Claude Max, Ultra and Team include monthly API credits, used through an ordinary key). Gemini&rsquo;s free tier isn&rsquo;t offered in the EEA, Switzerland or the UK.</p></HelpQuestion>
       <HelpQuestion id="nova-privacy" question="What do Strict, Guarded and Relaxed mean?"><p>Your privacy mode decides what may leave your device. <strong>Strict</strong> (recommended): only a local model, nothing to a cloud model (including Ollama models that run in Ollama&rsquo;s cloud). <strong>Guarded</strong>: a cloud model is allowed, but secrets, account and card numbers, IBANs, wallet addresses, e-mails, phone numbers, street addresses, names and exact amounts are removed or rounded first, and you see exactly what will be sent before it goes. <strong>Relaxed</strong>: the areas you allowed in NOVA &rarr; Permissions are sent as they are. Health, Notes and Journal stay off until you turn them on, and &ldquo;What NOVA can see&rdquo; shows the exact text.</p></HelpQuestion>
@@ -488,7 +496,7 @@ export function HelpPage() {
     </section>
 
     {/* Session X Part 11: what the Alpha can't do yet, in plain words. Each line is checked against the code or an owner decision. */}
-    <Section id="known-limitations" updated="Nov 14, 2026" eyebrow="KNOWN LIMITATIONS" title="What the Alpha can&rsquo;t do yet">
+    <Section id="known-limitations" updated="Nov 18, 2026" eyebrow="KNOWN LIMITATIONS" title="What the Alpha can&rsquo;t do yet">
       <ul className="help-list">
         <li><strong>Accounts and sync aren&rsquo;t open yet</strong> on alpha.zigoals.app. Until they are, what you enter stays in the browser or installed app you use, and only there. On an iPhone, <a className="text-link" href="#install">install ZIGoals</a> first and tap &ldquo;Keep my data on this device&rdquo;; <Link className="text-link" href="/app/settings#export-everything">Export everything</Link> gives you your own copy any time.</li>
         <li><strong>Reminders when ZIGoals is closed</strong> are opt-in, one device at a time (Settings &rarr; Reminders when closed), and need a signed-in account, so they wait for accounts too. Until then, due reminders show as cards on Today while ZIGoals is open.</li>
@@ -539,12 +547,18 @@ export function HelpPage() {
         <li><strong>English only</strong> for now; numbers follow your device&rsquo;s language settings.</li>
       
         {/* Session AP (friends Alpha, 14 Nov): this release's honest limits. */}
-        <li><strong>Weather isn&rsquo;t on.</strong> A weather service that would hide your address from the forecast provider is ready but not switched on in this Alpha, so nothing in ZIGoals reads the weather yet.</li>
+        {/* Session AT (ADR-043 D15, deliberate): NOVA's weather has been opt-in since Session AM; the honest limit is the proxy. */}
+        <li><strong>Weather is off until you turn it on in NOVA,</strong> and then your browser asks MET Norway directly: the weather service that would hide your address from it is ready but not switched on in this Alpha.</li>
         <li><strong>Mood tags, symptoms and run splits stay private like Health:</strong> ZIGi and NOVA can&rsquo;t read them in this version. They are in your exports and backups, and restore only when you choose Health.</li>
         <li><strong>The Bento view and the buttons that step aside are for computers;</strong> on a phone every page is already one column, and ZIGi, music and the Checklist live in Apps &amp; extras.</li>
-        <li><strong>Someday tasks also show in Inbox and All,</strong> and the This evening and Someday lists show no counts in the menu yet.</li>
-        <li><strong>The activity orbits are on Health only;</strong> they can&rsquo;t be added to Today as a widget yet.</li>
+        {/* Session AT (D15, deliberate): the menu counts (D7) and Today's orbits card (Session AR) exist now. */}
+        <li><strong>Someday tasks also show in Inbox and All;</strong> the menu counts them under Someday too.</li>
+        <li><strong>Today&rsquo;s orbits card is off until you turn it on</strong> while arranging Today; it shows the orbits Health keeps.</li>
         <li><strong>Money insights need history:</strong> the usual-pace comparison needs three earlier months with entries, and the age of money a month of income and spending; until then they say so instead of guessing.</li>
+        {/* Session AT (ADR-043 D15): this release's honest limits. */}
+        <li><strong>NOVA answers from your records only:</strong> it can&rsquo;t say why something happened, and it ticks one Checklist item at a time (tick several on the Checklist itself).</li>
+        <li><strong>A restore brings back your records, not your device&rsquo;s settings:</strong> AI settings and keys, display choices, Earn progress and the staking journal stay as they are on the device you restore to.</li>
+        <li><strong>Questions about coins in Dutch</strong> (&ldquo;hoeveel BTC heb ik&rdquo;) aren&rsquo;t answered as holdings yet; ask in English.</li>
 </ul>
       <p className="fine">It&rsquo;s an Alpha: pages can change, and something may break. If it does, please <a className="text-link" href="#feedback">tell us</a>.</p>
     </Section>

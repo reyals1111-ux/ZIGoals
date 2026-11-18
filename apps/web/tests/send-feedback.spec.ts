@@ -113,8 +113,11 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Session AK Part 13 (ADR-036, deliberate): Studio-4's three "to polish later" items (was 34), each checked by its words.
   // Owner decision 7 (ADR-036, deliberate): ZIGi's box on Safari at the moment it opens (was 37), checked by its words.
   // Session AP (14 Nov, deliberate): six more for this release (was 38), each checked by its words below.
-  await expect(items).toHaveCount(44);
-  for (const words of ['Weather isn’t on.', 'Mood tags, symptoms and run splits stay private like Health:', 'The Bento view and the buttons that step aside are for computers;', 'Someday tasks also show in Inbox and All,', 'The activity orbits are on Health only;', 'Money insights need history:']) await expect(section).toContainText(words);
+  // Session AT (ADR-043 D15, deliberate): three more for this release (was 44), each checked by its words below; the weather,
+  // Someday and orbits lines say what is true since Sessions AM, AR and AT (checked by their new words, not removed).
+  await expect(items).toHaveCount(47);
+  for (const words of ['NOVA answers from your records only:', 'A restore brings back your records, not your device’s settings:', 'Questions about coins in Dutch', 'Today’s orbits card is off until you turn it on']) await expect(section).toContainText(words);
+  for (const words of ['Weather is off until you turn it on in NOVA,', 'Mood tags, symptoms and run splits stay private like Health:', 'The Bento view and the buttons that step aside are for computers;', 'Someday tasks also show in Inbox and All;', 'the menu counts them under Someday too', 'Money insights need history:']) await expect(section).toContainText(words);
   await expect(section).toContainText('On Safari, words typed into ZIGi’s box at the very moment it opens might be lost');
   for (const words of ['ZIGi’s hide move, when you dismiss its knock, always leaves to the right', 'In a browser that can’t play animated WebP, ZIGi’s moves use a fallback at 12 frames a second', 'A few of ZIGi’s new moves aren’t used yet: its glances (at the chat box, at you, at something on the page) and its hello without walking in']) await expect(section).toContainText(words);
   await expect(section).toContainText('Earn takes a few seconds to settle on a slower phone: on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds');

@@ -102,6 +102,7 @@ export const HELP_TOPICS: readonly [string, string][] = [
 
 /** [question id, question] as components/help/help-page.tsx's HelpQuestion elements. */
 export const HELP_QUESTIONS: readonly [string, string][] = [
+  ["at-screens", "What do the main pages look like?"],
   ["your-ai-what", "What does ZIGi send, and to whom?"],
   ["your-ai-writes", "Can ZIGi change my records?"],
   ["your-ai-cost", "What does it cost?"],
@@ -129,6 +130,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["your-ai-look", "Can I change how ZIGi looks?"],
   ["your-ai-off", "How do I turn ZIGi off, or hide the button?"],
   ["nova-what", "What is NOVA?"],
+  ["nova-answers", "Which questions does NOVA answer without an AI?"],
   ["nova-stage", "How do I ask NOVA for a widget, and pin, hide or close it?"],
   ["nova-brain", "How do I give NOVA a brain, and do my ChatGPT or Claude subscriptions work?"],
   ["nova-privacy", "What do Strict, Guarded and Relaxed mean?"],

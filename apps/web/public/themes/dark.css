@@ -11316,6 +11316,15 @@
         }
     }
 }
+/*  components/help/help-screenshots.css  */
+@scope (:root[data-theme=dark]) {
+    .help-shot img:not(#\-) {
+        border-color: rgba(160, 190, 255, .28)
+    }
+    .help-shot-tag:not(#\-) {
+        border-color: currentColor
+    }
+}
 /*  components/help/help.css  */
 @scope (:root[data-theme=dark]) {
     .help-page p:not(#\-), .help-page li:not(#\-), .help-page dd:not(#\-) {

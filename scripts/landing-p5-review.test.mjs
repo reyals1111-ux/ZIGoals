@@ -142,7 +142,8 @@ test("LR-11: the bento's wide cards are its three longest, so none stretches int
   const spans = css.match(/\.new-list>li:is\(([^)]*\))*\)\{grid-column:span 2\}/)[0];
   const picked = [...spans.matchAll(/:nth-child\((\d+)\)/g)].map(match => Number(match[1]));
   const titles = [...html.match(/<ul class="new-list[\s\S]*?<\/ul><p class="new-note/)[0].matchAll(/<li><span class="availability \w+">[^<]+<\/span><h3>([^<]+)<\/h3>([\s\S]*?)<\/ul><\/li>/g)].map(([, title, body]) => ({ title, length: text(body).length }));
-  expect(picked.map(n => titles[n - 1].title)).toEqual(["Food", "Insights", "Money, day to day"]);
+  // Session AT (ADR-043 D16, deliberate): with NOVA's card first, the three longest are NOVA's, Food and Money (the rule below is unchanged).
+  expect(picked.map(n => titles[n - 1].title)).toEqual(["NOVA answers you", "Food", "Money, day to day"]);
   const longest = [...titles].sort((a, b) => b.length - a.length).slice(0, 3).map(card => card.title).sort();
   expect(picked.map(n => titles[n - 1].title).sort()).toEqual(longest);
 });
