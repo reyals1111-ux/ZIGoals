@@ -1,9 +1,28 @@
-# Session AS — "NOVA ANSWERS EVERYTHING" (ADR-042) (2026-11-17, `feature/session-as-nova-answers`, Draft PR; in progress, not merged, not deployed)
-**Base:** `main` `e6e92a8c` (Merge [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105), Session AR). **Rules (owner):** the brief for Session AS, one approved plan with seven approval items and four additions (verbatim in `docs/architecture/ADR-042-session-as.md`). Resume file: `docs/handoff/AS_RESUME.md`. This entry is a stub until the session's final commit replaces it.
+# Session AS — "NOVA ANSWERS EVERYTHING" (ADR-042) (2026-11-17/18, `feature/session-as-nova-answers`, Draft [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106); complete, not merged, not deployed)
+**Base:** `main` `e6e92a8c` (Merge [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105), Session AR); `main` did not move during the session. **Rules (owner):** the brief for Session AS, one approved plan with seven approval items and four additions (verbatim in `docs/architecture/ADR-042-session-as.md`). The session ran on Fable until its allowance ended (18 Nov), then on Opus from `docs/handoff/AS_RESUME.md`. Decisions D1–D23 and the carried items: ADR-042.
 
-## Part 0 — records (17 Nov)
-- **[PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105) (Session AR)** merged into `main` as `e6e92a8c` (owner, 17 Nov).
-- The owner's two findings on the Showcase are reproduced on `main` before any change (ADR-042, "Why this session exists").
+## The owner's two findings (17 Nov, Showcase)
+- "how many habits did I miss this week": was the list of all 7 habits; now "You missed no habit this week (Mon, Nov 16 to Tue, Nov 17): 11 of 11 due check-ins done. Still open today: Exercise, Meditate and Drink water." with the ranked miss bars.
+- "wgat days did i forget to meditate this month": was the month's minutes; now "Meditate: not done on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Tue, Nov 3 and Thu, Nov 12. Both were marked as skipped. Today is still open." with the month calendar, exactly those two days lit as skipped. Pinned by `tests/nova-answers-as.spec.ts` and the corpus.
+
+## Parts, commits and evidence
+| Part | What | Commits | Evidence |
+|---|---|---|---|
+| 0 | Records: ADR-042, AS_RESUME, this stub | `aaffb79c` | — |
+| 1 | The exact layer (`lib/ai/local-answers/exact/`) for NOVA and ZIGi alike (A1); `life_facts` for a connected model (TIER 3, AI tools); the `period` widget parameter (TIER 3, stored format, additive); the corpus | `c8447b32`, `663fbcef`, `28932945`, `81d6d0b2`, `8715013a`, `6118cfcf`, `bf3806e5` | corpus **629 of 629** phrasings (135 questions, EN and NL, typos; Showcase and a fresh profile) with an independent oracle; per pillar in ADR-042 |
+| 2 | **64 answer kinds in 17 visual families** (ADR-042 "The widget families"); each answer asks for its own kind; every kind fits its panel at 2560, 1440 and 390 (D18) and agrees with its answer (D19) | `477d0304`, `c88bcec9`, `f04f71b8`, `d0eeab44`, `0a6b12de`, `972c5778`, `1b15e421`, `beb85f9e`, `838b9c14` | widget DOM test (every kind × S/M/L × Showcase/fresh); `tests/nova-families-as.spec.ts` 18 of 18 |
+| 3 | The N·O·V·A wordmark, larger and nebula-coloured (D11) | `55a548a4` | seen at 2560, 1440, 390 |
+| 4 | Leftovers: the stage's count (D12), the speaking rings (D13), the planet's path (D14), D36's first ask in a worker, no CSP change (D15), D34 first attempt (D16) | `9ac17914`, `677ee64e`, `df4e2a8b` | unit tests; `hud-motion` passed on both projects in the two-worker run |
+| 5 | Fresh-critic round (21 findings; fixed or carried, D21); NOVA reads its notes with its Notes permission (D23); production-build spec fixes; theme sheets regenerated; demo tour | `cc20dcdb`, `e2dc3df4`, `da6e6e28`, `bf3806e5`, `d0ab27e7`, `73476a97` | below |
+
+## Checks on the code head
+- Production build (`PUBLIC_ALPHA_UNDEPLOYED`) passes; route weights all inside budget (`/app/nova` 432.3 of 458 kB).
+- NOVA's and the HUD's specs on that build, both projects, two workers: 191 passed, 7 failed (all this branch's, fixed at their causes); rerun with the AS specs 31 of 31.
+- `pnpm typecheck` passes; `pnpm lint` 0 errors (23 warnings, none in files of this session); `pnpm test`: all pass except `scripts/pre-run11-setup.test.mjs` (2), which needs the pinned Node 24.19.0 (this sandbox has 24.22.3); frozen readers pass.
+- CI: run 1857 on `da6e6e28` was red (the stale theme sheets and the seven spec failures, all fixed since); the run on this entry's head (the same code as `d0ab27e7`) is read in the PR and in the report, each red job explained.
+
+## Carried (ADR-042 D20, D21)
+The goals lookup leaves out average goals (orbits say 7 active, answers 5); timelines' legends cap rows without "+N more"; trend lines join logged days across gaps; streak names hyphenate in a 280 px panel; the life radar's per-spoke scale; the net worth river's band scale; a task due earlier today counts as overdue; meditation sessions and the Meditate habit are two records; a quit habit's slips read "missed"; trends squeezed at 1440. Next's security-advisory notice still stops `next dev` and `next build` once each in this sandbox; nothing was upgraded (a dependency change is the owner's and Session AT's).
 
 
 # Session AR — "NOVA, COMPOSED" (ADR-041) (2026-11-16/17, `feature/session-ar-nova-composed`, Draft [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105); complete, not merged, not deployed)
