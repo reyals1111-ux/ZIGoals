@@ -168,3 +168,13 @@ once (`retries: 1` in playwright.config.ts and playwright.webkit.config.ts; 0 lo
 passes on its retry counts as **flaky**, not failed: each shard's job summary lists every flaky test (file:line, project,
 shard) through `scripts/ci/flaky-summary.mjs`, and each one is written up here like any intermittent. A test that fails on
 both attempts still fails the job. No assertion, timeout or test was changed for this.
+
+## Session AT (ADR-043 D9, D10)
+| Item | Reading | Done |
+|---|---|---|
+| Main shards 3 and 4 near or at the 60 min (runs 1860, 1865) | Too many tests per shard (medians 48.0 and 49.2 min); no single slow file | 14 main shards instead of 12 (TIER 3 CI) |
+| WebKit shard 4 cut at 45 min (runs 1864, 1865) | The cached WebKit install missed and took 28 min (5 of 24 WebKit jobs spent 16-28 min there) | WebKit job limit 60 (TIER 3 CI); lists unchanged |
+| `a11y-wcag-x:271` Settings' "On" at 1.96:1 (AR, local) | A switch's fade started after the one quiet instant the test waited for | The wait needs 400 ms of quiet in a row (D5) |
+| `tests/ao/today-tab-stops.spec.ts` 91-92 (AQ Sunday evening, AR dev server) | Date- and time-dependent cards (evening Guide nudge, Sunday's review nudge, planned reminders) | Each card's actions one roving stop; 88-89 on all 14 clocks of a week (D3) |
+| `scripts/pre-run11-setup.test.mjs` on Node ≠ 24.19.0 | The CLI tests ran the script's (correct) version check on the test's own Node | Preload as the pinned Node; the check has its own test (D2) |
+| Every earlier proposed fix in this file | Applied in the code already (D10) | — |

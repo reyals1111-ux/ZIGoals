@@ -96,3 +96,18 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   record's code is still out of /app/tasks' first scripts (AP's reason for carrying it). No number while the record is
   unread or unreadable, or the list is empty; the number follows a move at once. `tests/at/tasks-when-counts.spec.ts`;
   `ap-task-when.spec.ts` unchanged and passing. Route weight read at the integration build.
+- **D8 (AP's seven copy/visual minors).** See the Part 1 helper's record below (filled when it lands).
+- **D9 (TIER 3 CI: shard time).** Read from runs 1832, 1857, 1860, 1863, 1864, 1865 and 1868 (job walls): Chromium main
+  shards 3 and 4 had medians of 48.0 and 49.2 min of their 60 and each was cut at the limit once; WebKit shard 1 a median
+  of 37.4 of 45 (one cut, when its WebKit install took 24 min); WebKit shard 4 was cut twice (1864, 1865), both times
+  because the cached WebKit install missed and took 28 min, leaving its tests at 132 of 136. Main shard 3's ten slowest
+  files are 37 of its ~112 worker-minutes, so no single file explains it. **Changes:** Chromium main shards 12 → 14
+  (rebalance: each does about six sevenths of the work; the 60 min stays); the WebKit job's limit 45 → 60 (a 28-min install
+  miss cannot be balanced away; the owner's ≤ 15 min). No test, list, assertion or timeout of a test changed. Rollback:
+  revert the commit.
+- **D10 (the other open CI_INTERMITTENTS rows).** Every fix the file proposes is already in the code (install-chrome's
+  attempt limits, the launcher's hold by duration, `webkit-earn`'s cancelled-fetch filter, the settings sweep's 5 s poll,
+  `exploratory-round3`'s hydration wait, the Wrapped story held open, `zigi-part-boundary`'s one fetch retry,
+  `zigi-earn-coach-af`'s 15 s URL wait). What stays open is recorded, not chased: WebKit class A/B (engine), the headless
+  Chromium renderer stall, sandbox-only rows, and ADR-041's D34 (`hud-motion` phone stillness) and D36 (ND-1, the first
+  WebGL context as one 6 s task without graphics hardware), whose two fix attempts each are spent.
