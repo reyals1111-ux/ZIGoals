@@ -31,7 +31,9 @@ describe('the widget gallery', () => {
     // 'notes', nothing but the Journal under 'journal', and neither is under 'today' any more.
     // Session AM-2 (step 3, deliberate): Templates joins the widgets without a gate (was: seven). It is the static library that
     // ships with the app and reads nothing of the person's; every other new widget names its switch below.
-    for (const w of WIDGETS) if (!['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests', 'templates'].includes(w.id)) expect(w.gate, w.id).toMatch(/^(today|goals|habits|health|wealth|notes|journal)$/);
+    // Session AS (ADR-042 Part 2, deliberate): one more without a gate, 'nova-answers' (what NOVA can answer, with examples: it
+    // reads nothing of the person's, as 'nova-sees' does); every other answer widget names its switch, pinned by group below.
+    for (const w of WIDGETS) if (!['now-playing', 'time', 'weather', 'sun', 'nova-sees', 'nova-brain', 'requests', 'templates', 'nova-answers'].includes(w.id)) expect(w.gate, w.id).toMatch(/^(today|goals|habits|health|wealth|notes|journal)$/);
     expect([widgetSpec('notes')?.gate, widgetSpec('journal')?.gate]).toEqual(['notes', 'journal']); // AM-S2: their own permissions, never Today's
     // Session AS (ADR-042 Part 2, deliberate): the lists below are the kinds before Session AS, exactly as they were. The
     // answer widgets are pinned by their group instead, as strictly: a Habits kind reads under Habits and nothing else; a

@@ -47,6 +47,29 @@ const BODIES: Record<string, Body> = {
   // Session AS (ADR-042 Part 2): a widget for every kind of answer (their shared parts in components/nova/widgets/ax and cards/ax). Month calendars and ranked miss bars first.
   'habit-missed-days': lazy(() => import('./widgets/habit-missed-days')), 'habit-done-days': lazy(() => import('./widgets/habit-done-days')), 'habits-month': lazy(() => import('./widgets/habits-month')),
   'habit-misses': lazy(() => import('./widgets/habit-misses')),
+  // Session AS, Health.
+  'water-days': lazy(() => import('./widgets/water-days')), 'steps-days': lazy(() => import('./widgets/steps-days')), 'sleep-nights': lazy(() => import('./widgets/sleep-nights')),
+  'workout-days': lazy(() => import('./widgets/workout-days')), 'meditation-days': lazy(() => import('./widgets/meditation-days')), 'protein-days': lazy(() => import('./widgets/protein-days')),
+  'health-scan': lazy(() => import('./widgets/health-scan')), 'body-scan': lazy(() => import('./widgets/body-scan')), 'weight-trend': lazy(() => import('./widgets/weight-trend')),
+  'sleep-trend': lazy(() => import('./widgets/sleep-trend')), 'steps-trend': lazy(() => import('./widgets/steps-trend')), 'heart-trend': lazy(() => import('./widgets/heart-trend')),
+  'water-week': lazy(() => import('./widgets/water-week')), 'calorie-trend': lazy(() => import('./widgets/calorie-trend')), 'sleep-stages': lazy(() => import('./widgets/sleep-stages')),
+  'sleep-times': lazy(() => import('./widgets/sleep-times')), 'fasting-windows': lazy(() => import('./widgets/fasting-windows')), 'nutrition-gauges': lazy(() => import('./widgets/nutrition-gauges')),
+  'steps-heat': lazy(() => import('./widgets/steps-heat')), 'health-compare': lazy(() => import('./widgets/health-compare')), 'mood-map': lazy(() => import('./widgets/mood-map')),
+  // Session AS, Wealth and Goals.
+  'spending-ranks': lazy(() => import('./widgets/spending-ranks')), 'income-ranks': lazy(() => import('./widgets/income-ranks')), 'debt-ranks': lazy(() => import('./widgets/debt-ranks')),
+  'spending-radar': lazy(() => import('./widgets/spending-radar')), 'spending-days': lazy(() => import('./widgets/spending-days')), 'bill-calendar': lazy(() => import('./widgets/bill-calendar')),
+  'spending-heat': lazy(() => import('./widgets/spending-heat')), 'cash-river': lazy(() => import('./widgets/cash-river')), 'net-worth-river': lazy(() => import('./widgets/net-worth-river')),
+  'budget-gauges': lazy(() => import('./widgets/budget-gauges')), 'savings-rate': lazy(() => import('./widgets/savings-rate')), 'goal-gauge': lazy(() => import('./widgets/goal-gauge')),
+  'goal-orbits': lazy(() => import('./widgets/goal-orbits')), 'bill-timeline': lazy(() => import('./widgets/bill-timeline')), 'goal-dates': lazy(() => import('./widgets/goal-dates')),
+  'savings-jars': lazy(() => import('./widgets/savings-jars')), 'bill-dial': lazy(() => import('./widgets/bill-dial')), 'spending-compare': lazy(() => import('./widgets/spending-compare')),
+  // Session AS, the day, habits and NOVA itself.
+  'streak-flames': lazy(() => import('./widgets/streak-flames')), 'best-streaks': lazy(() => import('./widgets/best-streaks')), 'journal-streak': lazy(() => import('./widgets/journal-streak')),
+  'focus-streak': lazy(() => import('./widgets/focus-streak')), 'habits-lattice': lazy(() => import('./widgets/habits-lattice')), 'habit-weekdays': lazy(() => import('./widgets/habit-weekdays')),
+  'habit-year': lazy(() => import('./widgets/habit-year')), 'focus-heat': lazy(() => import('./widgets/focus-heat')), 'compare-periods': lazy(() => import('./widgets/compare-periods')),
+  'task-timeline': lazy(() => import('./widgets/task-timeline')), 'day-timeline': lazy(() => import('./widgets/day-timeline')), 'tasks-calendar': lazy(() => import('./widgets/tasks-calendar')),
+  'task-overdue': lazy(() => import('./widgets/task-overdue')), 'checklist-orbit': lazy(() => import('./widgets/checklist-orbit')), 'journal-map': lazy(() => import('./widgets/journal-map')),
+  'notes-constellation': lazy(() => import('./widgets/notes-constellation')), 'focus-gauge': lazy(() => import('./widgets/focus-gauge')), 'task-load': lazy(() => import('./widgets/task-load')),
+  'life-radar': lazy(() => import('./widgets/life-radar')), 'day-scan': lazy(() => import('./widgets/day-scan')), 'nova-answers': lazy(() => import('./widgets/nova-answers')),
 };
 /** Session AL Part 11 (lane L8): the Holo look of earlier widgets where an instrument says more (holo/skins.tsx); the rest keep their bodies. */
 const skin = (name: 'HoloWater' | 'HoloSleep' | 'HoloOrbit' | 'HoloNext' | 'HoloTasks' | 'HoloNotes'): Body => lazy(() => import('./holo/skins').then(m => ({default: m[name]})));

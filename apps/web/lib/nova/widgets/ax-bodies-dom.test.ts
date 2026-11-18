@@ -14,6 +14,8 @@ import {WIDGETS, widgetSpec} from './catalog';
  * its foot (source and as-of) and a table for assistive technology; and a drawn instrument is marked as decoration.
  * `SAYS` holds, for the kinds behind the owner's two questions, the facts the Showcase must show.
  */
+// The goals' on-chain provider sits in the app's layout, outside a widget; the Showcase's goals are its own records.
+vi.mock('../../../components/goal-provider', () => ({useGoals: () => ({goals: [], metadata: {goals: {}}, loaded: true, mode: 'local', chain: 'c', owner: 'o'})}));
 const DAY = '2026-11-17', RECORDS = buildShowcase(DAY, 'UTC').records;
 const habitId = (title: string) => (JSON.parse(RECORDS['zigoals:habits:v1']!).habits as {id: string; title: string}[]).find(h => h.title === title)!.id;
 type Body = ComponentType<{size: 'S' | 'M' | 'L'; params?: WidgetParams}>;
@@ -21,6 +23,7 @@ const bodies = import.meta.glob<{default: Body}>('../../../components/nova/widge
 /** The Session AS kinds: those the catalogue marks as taking an answer's period. */
 const IDS = WIDGETS.filter(w => w.params?.includes('period')).map(w => w.id);
 const PARAMS: Record<string, () => WidgetParams> = {'habit-missed-days': () => ({ref: habitId('Meditate'), period: 'this-month'}), 'habit-done-days': () => ({ref: habitId('Meditate'), period: 'last-week'}), 'habit-misses': () => ({period: 'this-month'}), 'habits-month': () => ({period: 'this-month'})};
+const NOT_IN_SHOWCASE = new Set(['heart-trend', 'mood-map']);
 const SAYS: Record<string, string[]> = {
   'habit-missed-days': ['2', 'days', 'Meditate', '2 skipped', 'today still open', 'Nov 3, Nov 12'],
   'habit-misses': ['1', 'of 7', 'missed', 'Late-night snacks', '2 missed', '3 skipped'],
@@ -39,8 +42,10 @@ beforeEach(() => {
 afterEach(() => { act(() => root.unmount()); host.remove(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 const flush = () => act(async () => { for (let i = 0; i < 12; i++) await new Promise(r => setTimeout(r, 0)); });
 function showcase() {
+  // The person opened NOVA's Health, Journal and Notes switches (each is off until they do; a fresh profile keeps them off).
+  const setup = JSON.stringify({version: 1, scopes: {health: true, journal: true, notes: true}});
   sessionStorage.setItem(SHOWCASE_MARKER, JSON.stringify({version: 1, generation: 'g1', day: DAY}));
-  for (const [key, value] of Object.entries(RECORDS)) sessionStorage.setItem(`zigoals:showcase:v1:g1:${key}`, value);
+  for (const [key, value] of Object.entries({...RECORDS, 'zigoals:nova-setup:v1': setup})) sessionStorage.setItem(`zigoals:showcase:v1:g1:${key}`, value);
 }
 async function draw(id: string, size: 'S' | 'M' | 'L', params?: WidgetParams) {
   const Widget = (await bodies[`../../../components/nova/widgets/${id}.tsx`]!()).default;
@@ -59,8 +64,10 @@ describe('the answer widgets (Session AS): every kind, three sizes, the Showcase
       showcase();
       const el = await draw(id, size, PARAMS[id]?.());
       expect(el.querySelector('.nova-reading'), el.textContent ?? '').toBeNull();
+      // The Showcase keeps no resting heart rate and no moods: those kinds say so (an empty notice, its only child), never a figure.
+      if (NOT_IN_SHOWCASE.has(id)) { expect(el.childElementCount, id).toBe(1); expect(el.firstElementChild!.matches('.nc-notice[data-kind=empty]'), id).toBe(true); expect(el.querySelector('.ax-head-num'), id).toBeNull(); return; }
       const body = el.querySelector('.ax-body')!;
-      expect(body, `${id}: a live body on the Showcase`).toBeTruthy();
+      expect(body, `${id}: a live body on the Showcase: ${el.innerHTML.slice(0, 300)}`).toBeTruthy();
       expect(body.querySelector('.ax-head-num, .nc-hero-num')?.textContent?.trim().length, id).toBeGreaterThan(0);
       expect(body.querySelector('.nc-foot')?.textContent ?? '', id).toMatch(/Your /);
       expect(body.querySelector('table.sr-only caption')?.textContent?.length, id).toBeGreaterThan(3);
