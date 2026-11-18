@@ -58,8 +58,8 @@
 .axm-stop-clear { stop-color: var(--neon); stop-opacity: 0; }
 
 /* ---- Family: radar ---- */
-.axm-radar { display: grid; justify-items: center; padding: 2px 6.5ch; min-width: 0; } /* Session AS: a margin at its sides for the labels */
-.axm-radar-plot { position: relative; width: min(var(--axm-h), 46cqi, 100%); aspect-ratio: 1; } /* Session AS: room for the labels at its sides (they keep their own width) */
+.axm-radar { display: grid; justify-items: center; padding: 2px 8ch; min-width: 0; } /* Session AS: a margin at its sides for the labels */
+.axm-radar-plot { position: relative; width: min(var(--axm-h), 46cqi, calc(100cqi - 16ch - 24px)); aspect-ratio: 1; } /* critic round: 100% of an auto track drew it at 0 */ /* Session AS: room for the labels at its sides (they keep their own width) */
 .axm-radar-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .axm-radar-web :is(polygon, path) { fill: none; stroke: color-mix(in srgb, var(--neon) 22%, transparent); stroke-width: 1; }
 .axm-radar-web polygon:last-of-type { stroke: color-mix(in srgb, var(--neon) 48%, transparent); }
@@ -227,7 +227,7 @@
 @container holo-body (max-height: 321.98px) { .axm-legend > li:nth-child(n+4) { display: none; } }
 @container holo-body (max-height: 293.98px) { .axm-legend > li:nth-child(n+3) { display: none; } :is(.axm-facts, .axm-note) { display: none; } }
 @container holo-body (max-height: 265.98px) { .axm-legend > li:nth-child(n+2) { display: none; } .axm-key { display: none; } :is(.axm-gauge-text, .axm-river-axis, .axm-time-axis, .axm-heat-months, .axm-bills-head, .axm-jar-figure) { display: none; } }
-@container holo-body (max-height: 237.98px) { .axm-legend { display: none; } .axm-gauge-name { display: none; } }
+@container holo-body (max-height: 237.98px) { .axm-legend { display: none; } .axm-gauges { display: none; } } /* critic round: never a gauge without its name; the figure and the table stand */
 /* A row of ranked bars (the kit's own list, reached by its place) drops whole rows too. */
 @container holo-body (max-height: 369.98px) { .axm-ranks > ol > li:nth-child(n+6) { display: none; } }
 @container holo-body (max-height: 318.98px) { .axm-ranks > ol > li:nth-child(n+5) { display: none; } }

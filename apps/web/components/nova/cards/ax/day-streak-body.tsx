@@ -15,7 +15,8 @@ import {AxBody, AxHead} from './kit';
  */
 export function StreakBody({kind, size, view, did, what, source, today}: {kind: string; size: WidgetSize; view: StreakView; /** "written", "with a focus session". */ did: string; /** "an entry", "a focus session". */ what: string; source: string; today: string}) {
   const days = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`, top = Math.max(1, view.best);
-  const ended = view.bestEnded ? formatDate(view.bestEnded, {year: view.bestEnded.slice(0, 4) !== today.slice(0, 4)}) : null;
+  // A longest run that is the run still going has not ended (critic round: "ended Nov 17" beside "still going").
+  const ended = view.bestEnded && view.current < view.best ? formatDate(view.bestEnded, {year: view.bestEnded.slice(0, 4) !== today.slice(0, 4)}) : null;
   const state = view.todayDone ? `Today counts: ${what} is in` : view.current ? `Today is still open: ${what} today keeps it going` : 'No run going right now';
   return <AxBody kind={kind} size={size}>
     <AxHead figure={String(view.current)} unit={view.current === 1 ? 'day' : 'days'} label={`in a row ${did}`} note={`${state} · longest ${days(view.best)}`}/>

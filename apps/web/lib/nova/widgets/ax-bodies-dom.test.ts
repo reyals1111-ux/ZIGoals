@@ -89,7 +89,9 @@ describe('the answer widgets (Session AS): every kind, three sizes, the Showcase
     showcase();
     // Water this month on the Showcase: every logged day reached the target; Nov 1 and Nov 10 have nothing logged (unknown).
     const water = await draw('water-days', 'M', {period: 'this-month'});
-    expect(water.querySelector('.ax-head-num')?.textContent?.trim()).toBe('0');
+    // Critic round (deliberate, as strict): with no day below the target the figure is the 14 days it was reached (Nov 2–16
+    // but Nov 10; Nov 1 and Nov 10 have nothing logged; today is open), never "0 days" beside "reached".
+    expect(water.querySelector('.ax-head-num')?.textContent?.trim()).toBe('14');
     expect(water.textContent).toContain('target reached on every day logged');
     expect(water.textContent).toContain('2 with nothing logged');
     expect(water.querySelector('table')?.textContent).toContain('Nothing logged (unknown, not counted)2 days: Nov 1, Nov 10');

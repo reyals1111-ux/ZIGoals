@@ -47,7 +47,7 @@
 .axd-flame[data-out] .axd-flame-body { height: 9px; left: 26%; right: 26%; border-radius: 50%; background: none; border: 1px dashed color-mix(in srgb, var(--ax-dim) 85%, transparent); box-shadow: none; }
 .axd-flame[data-out] .axd-flame-body b { display: none; }
 .axd-flame[data-out] .axd-flame-fig { color: var(--ax-dim); text-shadow: none; }
-.axd-flame-name { max-width: 100%; font-size: 14px; line-height: 17px; color: var(--ax-label); text-align: center; overflow-wrap: anywhere; } /* Session AS: a habit's name wraps, never cut */
+.axd-flame-name { max-width: 100%; font-size: 14px; line-height: 17px; color: var(--ax-label); text-align: center; overflow-wrap: anywhere; hyphens: auto; } /* Session AS: a habit's name wraps, never cut */
 
 /* ---- Family: lattices and heat (rows of days; a column a week) ---- */
 .axd-lat { display: grid; gap: 4px; min-width: 0; }
@@ -57,7 +57,7 @@
 .axd-lat[data-kind=counts] .axd-lat-head span { text-align: center; }
 .axd-lat-head span[data-lead] { color: var(--ax-ink); font-weight: 650; }
 .axd-lat-now { position: absolute; left: 50%; bottom: 0; width: 0; height: 0; margin-left: -4px; border: 4px solid transparent; border-bottom: 0; border-top-color: var(--ax-ink); }
-.axd-lat-label { font-size: 14px; line-height: 16px; color: var(--ax-ink); overflow-wrap: anywhere; padding-right: 6px; } /* Session AS: a habit's name wraps, never cut */
+.axd-lat-label { font-size: 14px; line-height: 16px; color: var(--ax-ink); overflow-wrap: anywhere; hyphens: auto; padding-right: 6px; } /* Session AS: a habit's name wraps, never cut */
 .axd-lat-note { padding-left: 6px; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--ax-label); white-space: nowrap; text-align: right; }
 .axd-lat-row i { display: grid; place-items: center; height: 16px; min-width: 0; box-sizing: border-box; border-radius: 3px; font-style: normal; border: 1px solid color-mix(in srgb, var(--neon) 26%, transparent); background: color-mix(in srgb, var(--neon) 5%, var(--ax-glass)); }
 .axd-lat[data-kind=counts] .axd-lat-row i { height: 24px; border-radius: 6px; }
@@ -79,6 +79,8 @@
 .axd-heat[data-dense] { --axd-gap: 1px; }
 .axd-heat-months, .axd-heat-grid { display: grid; grid-template-columns: repeat(var(--axd-cols, 13), minmax(0, 1fr)); column-gap: var(--axd-gap); }
 .axd-heat-months span { position: relative; height: 20px; font-size: 14px; line-height: 16px; color: var(--ax-dim); white-space: nowrap; }
+/* Critic round: a year's twelve month names ran together in a narrow panel; there, every other month is named. */
+@container (max-width: 640px) { .axd-heat-months[data-weeks=many] span[data-odd] { color: transparent; } }
 .axd-heat-week { display: grid; row-gap: var(--axd-gap); min-width: 0; }
 .axd-heat-week i { height: clamp(4px, calc((var(--axd-room) - 24px) / 7 - var(--axd-gap)), 22px); min-width: 0; box-sizing: border-box; border-radius: 2px; border: 1px solid color-mix(in srgb, var(--neon) 20%, transparent); background: color-mix(in srgb, var(--neon) 4%, var(--ax-glass)); }
 .axd-heat-week i[data-cell=done], .axd-heat-week i[data-level='4'] { border-color: transparent; background: linear-gradient(135deg, var(--neon), var(--neon-2)); box-shadow: 0 0 6px color-mix(in srgb, var(--neon) 55%, transparent); }

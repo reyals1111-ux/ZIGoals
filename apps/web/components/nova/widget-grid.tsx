@@ -263,7 +263,11 @@ function WidgetFrame({widget, index, count, style, side, tier, editing, opening,
     const read = () => { setCut(content.scrollHeight > outer.clientHeight + 2); setNotice(content.childElementCount === 1 && !!content.firstElementChild?.matches('.nc-notice, .holo-empty, .nova-empty')); };
     read();
     const observer = new ResizeObserver(read); observer.observe(outer); observer.observe(content);
-    return () => observer.disconnect();
+    // Session AS (critic round): an answer body fits itself after it is drawn (components/nova/cards/ax/kit.tsx, AxBody) and
+    // marks that it did; read again then, or a panel that fits keeps the cut mark (its foot dimmed under a sticky band).
+    const refit = typeof MutationObserver === 'undefined' ? null : new MutationObserver(read);
+    refit?.observe(content, {subtree: true, attributes: true, attributeFilter: ['data-over', 'data-ax-fit']});
+    return () => { observer.disconnect(); refit?.disconnect(); };
   }, []);
   if (!spec || !Body) return null;
   const fitKind = holo ? (SCROLL_PANELS.has(widget.id) ? 'scroll' : 'rows') : undefined;

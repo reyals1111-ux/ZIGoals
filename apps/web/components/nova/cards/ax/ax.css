@@ -36,7 +36,7 @@
    letters and the foot take about 170 px of it), between 22 px (a 14 px numeral still stands whole) and 56 px. */
 .ax-cal { display: grid; gap: 6px; min-width: 0; width: 100%; max-width: 620px; padding: 0 5px; box-sizing: border-box; container-type: inline-size; --ax-weeks: 6; }
 .ax-cal[data-weeks='1'] { --ax-weeks: 1; } .ax-cal[data-weeks='2'] { --ax-weeks: 2; } .ax-cal[data-weeks='3'] { --ax-weeks: 3; } .ax-cal[data-weeks='4'] { --ax-weeks: 4; } .ax-cal[data-weeks='5'] { --ax-weeks: 5; }
-.ax-cal-head, .ax-cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.ax-cal-head, .ax-cal-week { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; } /* critic round: the sweep passes behind the day numbers */
 .ax-cal-head span { text-align: center; font-size: 14px; letter-spacing: .08em; color: var(--ax-dim); }
 .ax-cal-grid { position: relative; display: grid; gap: 5px; padding: 5px 0; }
 .ax-cal-cell { position: relative; display: grid; place-items: center; height: clamp(22px, min(11.5cqi, calc(((100cqh - var(--ax-over, 0px)) - 192px) / var(--ax-weeks) - 5px)), 56px); border-radius: 8px; font-style: normal; border: 1px solid color-mix(in srgb, var(--neon) 18%, transparent); background: color-mix(in srgb, var(--neon) 5%, var(--ax-glass)); }

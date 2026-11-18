@@ -33,7 +33,7 @@ export function AxdLattice({columns, rows, kind = 'days', extra, more}: {
 export type HeatMark = {key: string; state?: string; level?: number; today?: boolean; title?: string};
 export function AxdHeat({weeks}: {weeks: readonly {key: string; label?: string | null; cells: readonly HeatMark[]}[]}) {
   return <div className="axd-inst axd-heat" data-dense={weeks.length > 26 ? '' : undefined} style={{'--axd-cols': weeks.length} as CSSProperties} aria-hidden="true">
-    <div className="axd-heat-months">{weeks.map(w => <span key={w.key}>{w.label ?? ''}{w.cells.some(c => c.today) ? <i className="axd-lat-now"/> : null}</span>)}</div>
+    <div className="axd-heat-months" data-weeks={weeks.length > 26 ? 'many' : undefined}>{weeks.map((w, n) => <span key={w.key} data-odd={w.label && weeks.slice(0, n).filter(x => x.label).length % 2 ? '' : undefined}>{w.label ?? ''}{w.cells.some(c => c.today) ? <i className="axd-lat-now"/> : null}</span>)}</div>
     <div className="axd-heat-grid">{weeks.map((w, n) => <div key={w.key} className="axd-heat-week" style={{'--axd-c': n} as CSSProperties}>
       {w.cells.map(c => <i key={c.key} data-cell={c.state} data-level={c.level || undefined} data-today={c.today ? '' : undefined} title={c.title}/>)}
     </div>)}</div>

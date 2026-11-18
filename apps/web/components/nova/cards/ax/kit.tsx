@@ -38,7 +38,8 @@ function useAxFit(ref: RefObject<HTMLDivElement | null>, content: ReactNode) {
   useLayoutEffect(() => {
     const el = ref.current, panel = el?.parentElement?.closest<HTMLElement>('.nova-widget-body') ?? el?.parentElement ?? null;
     if (!el || !panel || typeof ResizeObserver === 'undefined') return;
-    const fit = () => {
+    const fit = () => { measure(); el.dataset.axFit = String(Number(el.dataset.axFit ?? 0) + 1); };
+    const measure = () => {
       el.style.setProperty('--ax-over', '0px'); delete el.dataset.over;
       let over = 0;
       for (let i = 0; i < 4; i++) {

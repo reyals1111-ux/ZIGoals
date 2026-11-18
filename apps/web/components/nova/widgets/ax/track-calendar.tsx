@@ -20,7 +20,7 @@ export function TrackCalendar({kind, track, today, params, size, lit = 'not-done
   return <AxBody kind={kind} size={size}>
     <AxHead figure={words.figure} unit={words.unit} label={words.label} note={words.note} tone={words.tone}/>
     {size !== 'S' && <AxCalendar view={view} lit={lit} kind={track.kind}/>}
-    {size === 'L' && <AxKey items={words.key}/>}
+    {size !== 'S' && <AxKey items={words.key}/>}
     <CardFoot source={source} asOf={`${view.title} · ${periodLabel(view.period, today)}`}/>
     <HoloTable caption={`${track.name}, ${periodLabel(view.period, today)}`} rows={words.rows}/>
   </AxBody>;

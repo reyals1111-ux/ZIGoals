@@ -27,7 +27,7 @@ function Month({journal, today, size, params}: {journal: Journal; today: string}
   return <AxBody kind="journal-map" size={size}>
     <AxHead figure={words.figure} unit={words.unit} label={words.label} note={`${words.note} · ${said}`}/>
     {size !== 'S' && <AxCalendar view={view} lit="done" kind={track.kind}/>}
-    {size === 'L' && <AxKey items={[['lit', 'A day you wrote'], ['today', 'Today']]}/>}
+    {size !== 'S' && <AxKey items={[['lit', 'A day you wrote'], ['today', 'Today']]}/>}
     <CardFoot source="Your journal" asOf={`${view.title} · ${label}`}/>
     <HoloTable caption={`Journal, ${label}`} rows={[...words.rows, ['Words written', said]]}/>
   </AxBody>;

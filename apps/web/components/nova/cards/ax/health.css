@@ -34,7 +34,7 @@
 @container holo-body (max-height: 299.98px) { .axh-key, .axh-facts { display: none; } }
 
 /* ---- Family: scanners. The heart is decoration (role=img says so); it shows no reading. ---- */
-.axh-scan { flex: 1 1 auto; min-height: 0; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; }
+.axh-scan { flex: 1 0 auto; min-width: 0; /* critic round: it shrank under its cards, which ran into the foot */ display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; }
 .axh-heart { --axh-heart: clamp(44px, min(24cqi, calc((100cqh - var(--ax-over, 0px)) - 150px)), 128px); position: relative; flex: none; width: var(--axh-heart); height: var(--axh-heart); overflow: clip; overflow-clip-margin: 6px; }
 .axh-heart svg { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 58%; }
 .axh-heart-glow { fill: none; stroke: var(--neon); stroke-width: 4.2; stroke-linejoin: round; opacity: .2; }

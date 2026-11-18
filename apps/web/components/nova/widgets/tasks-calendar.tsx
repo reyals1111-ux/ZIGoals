@@ -27,7 +27,7 @@ function Month({tasks, today, clock, size, params}: {tasks: Tasks; today: string
   return <AxBody kind="tasks-calendar" size={size}>
     <AxHead figure={String(month.taskDays)} unit={month.taskDays === 1 ? 'day' : 'days'} label={`with a task · ${view.title}`} note={`${month.due} still open on ${days(open)} · ${month.done} done on ${days(month.doneDays.length)}`}/>
     {size !== 'S' && <AxCalendar view={view} lit="not-done" kind="habit"/>}
-    {size === 'L' && <AxKey items={key}/>}
+    {size !== 'S' && <AxKey items={key}/>}
     <CardFoot source="Your tasks" asOf={view.title}/>
     <HoloTable caption={`Tasks by day, ${view.title}`} rows={[
       ['Days with a task due or done', String(month.taskDays)],

@@ -84,7 +84,9 @@ export function calendarWords(view: CalendarView, track: Pick<Track, 'name' | 'k
   const rows: (readonly [string, string])[] = [];
   let label: string, note: string, tone: 'clear' | undefined;
   if (lit === 'done') {
-    label = `${track.did[0]} · ${period}`; note = `${track.name}${T.decided ? ` · ${T.done} of ${T.decided} ${habit ? 'due ' : ''}days` : ''}`;
+    // A skipped day is not due (critic round: "15 of 17 due days" read as two misses where there were none).
+    const due = habit ? T.decided - T.skipped : T.decided;
+    label = `${track.did[0]} · ${period}`; note = `${track.name}${due ? ` · ${T.done} of ${due} ${habit ? 'due ' : ''}days` : ''}${habit && T.skipped ? ` · ${T.skipped} skipped` : ''}`;
     rows.push([`${track.name}: ${track.did[0]}, ${period}`, n ? `${dayCount(n)}: ${dayNames(view.lit, 31)}` : 'No day']);
   } else {
     const what = habit ? 'not done' : track.kind === 'log' ? track.not[0] : track.not[0];
@@ -93,13 +95,14 @@ export function calendarWords(view: CalendarView, track: Pick<Track, 'name' | 'k
       : track.kind === 'log' ? [partPast.length ? `${partPast.length} below your target` : '', nothing.length ? `${nothing.length} with nothing logged` : ''].filter(Boolean) : [];
     note = `${track.name}${bits.length ? ` · ${bits.join(', ')}` : ''}${open ? ' · today still open' : ''}`;
     // A log's figure is the days below its target: a day with nothing logged is unknown, said apart, never counted as below.
-    if (track.kind === 'log') figure = partPast.length;
-    if (!figure) { tone = 'clear'; label = habit ? `every due day done · ${period}` : track.kind === 'log' ? `${track.did[0]} on every day logged · ${period}` : `${track.did[0]} every day · ${period}`; }
+    // (With none below it, the figure is the days the target was reached, so "0 days" never stands beside "reached".)
+    if (track.kind === 'log') figure = partPast.length || T.done;
+    if (!partPast.length && track.kind === 'log' || !figure) { tone = 'clear'; label = habit ? `every due day done · ${period}` : track.kind === 'log' ? `${track.did[0]} on every day logged · ${period}` : `${track.did[0]} every day · ${period}`; }
     if (habit) { rows.push(['Missed (a due day not done)', T.missed ? `${dayCount(T.missed)}: ${dayNames(T.dates.missed, 31)}` : 'None']); rows.push(['Skipped (marked so; not counted as missed)', T.skipped ? `${dayCount(T.skipped)}: ${dayNames(T.dates.skipped, 31)}` : 'None']); if (partPast.length) rows.push(['Partly done', `${dayCount(partPast.length)}: ${dayNames(partPast, 31)}`]); }
     else if (track.kind === 'log') { rows.push([`${track.name}: ${track.not[0]}`, partPast.length ? `${dayCount(partPast.length)}: ${dayNames(partPast, 31)}` : 'None']); rows.push(['Nothing logged (unknown, not counted)', nothing.length ? `${dayCount(nothing.length)}: ${dayNames(nothing, 31)}` : 'None']); }
     else rows.push([`${track.name}: ${track.not[0]}`, n ? `${dayCount(n)}: ${dayNames(view.lit, 31)}` : 'None']);
   }
-  rows.push([habit ? 'Done' : track.did[0], `${dayCount(T.done)}${T.decided ? ` of ${T.decided}` : ''}`]);
+  rows.push([habit ? 'Done' : track.did[0], `${dayCount(T.done)}${T.decided ? ` of ${habit ? T.decided - T.skipped : T.decided}` : ''}`]);
   if (open) rows.push(['Today', 'Still open']);
   void state;
   const used = new Set(view.weeks.flat().filter(c => c.inPeriod).map(c => c.state));
