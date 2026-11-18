@@ -12,7 +12,7 @@ import {DECOY_ZIG_DENOM} from './options';
  */
 export {ACADEMY_LESSON_IDS, ACADEMY_LESSON_XP, type AcademyLessonId};
 export type Question = {q: string; options: readonly [string, string, string]; answer: 0 | 1 | 2; why: string};
-export type Lesson = {id: AcademyLessonId; title: string; short: string; minutes: number; glyph: string; colour: PathStep['colour']; body: readonly string[]; quiz: readonly [Question, Question, Question]};
+export type Lesson = {id: AcademyLessonId; title: string; short: string; minutes: number; glyph: string; colour: PathStep['colour']; body: readonly string[]; quiz: readonly [Question, Question, Question]; /** Session AT (D1): a notice the body quotes, linked under it. */ notice?: 'zignaly-closure'};
 
 export const ACADEMY_LESSONS: readonly Lesson[] = Object.freeze([
   {id: 'staking', title: 'Staking, in plain words', short: 'Who runs the network', minutes: 5, glyph: 'sparkle', colour: 'gold', body: [
@@ -65,10 +65,11 @@ export const ACADEMY_LESSONS: readonly Lesson[] = Object.freeze([
     {q: 'ZIG’s price rises fast. What does a ZIG / USDC pool end up holding?', options: ['Less ZIG and more USDC', 'More ZIG', 'Exactly the same'], answer: 0, why: 'Swappers buy the cheaper ZIG from the pool until its price matches the market.'},
     {q: 'What is impermanent loss?', options: ['A fee for leaving', 'Losing your LP tokens', 'Having less than if you had kept both tokens'], answer: 2, why: 'It is the gap between your pool share and simply holding the two tokens.'},
   ]},
-  {id: 'custody', title: 'Copy trading and custody', short: 'Who holds the keys', minutes: 6, glyph: 'lock', colour: 'magenta', body: [
+  {id: 'custody', title: 'Copy trading and custody', short: 'Who holds the keys', minutes: 6, glyph: 'lock', colour: 'magenta', notice: 'zignaly-closure', body: [
     'Copy trading: a trader manages money for many people, and the trader’s results are copied into each person’s account. Profits are shared with the trader.',
     'On a copy-trading platform the platform usually holds the money (it is custodial): you have an account there, not your own keys. The platform decides what is possible, and when.',
-    'An example, as its own notice states it: Zignaly, the company ZIG first came from and a copy-trading platform, is closing. New investments stopped on 15 October 2026, trading closed on 16 October, and the last day to withdraw is 1 December 2026, in USDT on BNB Smart Chain only. Its customers withdraw in the way, and by the date, it sets.',
+    // Session AT (ADR-043 D1): worded so it stays true before and after the day, as Zignaly's closure notice (linked under the lesson) states it.
+    'An example, as its own notice states it: Zignaly, the company ZIG first came from and a copy-trading platform, announced its closure. New investments stopped on 15 October 2026, trading closed on 16 October, and the notice made 1 December 2026 (until 23:59 UTC) the last day to withdraw, in USDT on BNB Smart Chain only. Its customers withdraw in the way, and by the date, it sets.',
     'With your own wallet (non-custodial) nobody can close your access — and nobody can recover a lost recovery phrase either. Know which kind you are using before you put money in.',
   ], quiz: [
     {q: 'On a custodial platform, who holds your money?', options: ['You', 'The blockchain', 'The platform'], answer: 2, why: 'Custodial means the platform holds the money; you hold an account.'},

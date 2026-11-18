@@ -3,6 +3,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {ACADEMY_LESSONS, academyModel, lessonOf, lessonState, scoreQuiz, type Lesson} from '../../lib/earn/academy';
 import {recordLesson, type EarnAcademy} from '../../lib/earn/records';
 import {Path} from '../path/path';
+import {VerifiedLink} from '../links/verified-link';
 
 /**
  * Session AF chunk 2 (P1.27): the Academy's mini path and its lessons, its own chunk (loaded after the page's first paint).
@@ -20,6 +21,7 @@ function LessonPanel({lesson, record, update, error}: {lesson: Lesson} & Props) 
   return <div className="earn-lesson" data-lesson={lesson.id} role="region" aria-label={`Lesson: ${lesson.title}`}>
     <p className="eyebrow">About {lesson.minutes} minutes · {state.passed ? 'passed' : 'not passed yet'}</p>
     {lesson.body.map((p, i) => <p key={i}>{p}</p>)}
+    {lesson.notice === 'zignaly-closure' && <p className="fine"><VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s closure notice</VerifiedLink></p>}
     <form className="earn-quiz" onSubmit={e => { e.preventDefault(); check(); }}>
       <h4>Three questions</h4>
       {lesson.quiz.map((q, qi) => <fieldset key={qi} data-question={qi} data-right={checked ? answers[qi] === q.answer || undefined : undefined} data-wrong={checked && answers[qi] !== q.answer ? '' : undefined}>

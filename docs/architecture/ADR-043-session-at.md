@@ -38,3 +38,16 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
 
 ## Decisions
 (D-numbers are referenced from code comments; added as the session goes.)
+
+### Part 1 — the carried list
+- **D1 (Zignaly by date; owner change 1).** Zignaly's recorded closure notice (help centre, read 18 Oct 2026) names
+  1 December 2026 as "The last day to withdraw, until 23:59 UTC. The app closes after that." So the owner's fallback
+  ("Zignaly closes on 1 December") is not needed: one helper, `lib/earn/dated.ts` `zignalyClosure`/`zignalyWords`, words
+  every closure sentence by today's UTC day: until 30 Nov "is closing"; on 1 Dec "today is the last day to withdraw, until
+  23:59 UTC; the app closes after that"; from 2 Dec "has closed" (and the how-to-withdraw steps give way to "Its notice";
+  the "leave time before the deadline" risk goes). Used by Earn's Zignaly and Nawa sections, the phone fold, the compare
+  table, the Ecosystem card (Zignaly's label and line, Nawa's dependency) and the Academy lesson. Every one of those places
+  links the verified `closure-notice` (the Ecosystem card and the Academy lesson gained the link). The glossary and the
+  Academy lesson are worded so they stay true on any day. The pages read `now` from the minute clock, so nothing needs a
+  deploy on the day. Proven by `lib/earn/dated.test.ts` and `tests/at/zignaly-dates.spec.ts` (Playwright's clock on 30 Nov,
+  1 Dec and 2 Dec, both projects, 6 of 6); `earn-options.spec.ts:70` now reads on a fixed November day (deliberate).

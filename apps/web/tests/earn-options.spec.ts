@@ -69,6 +69,9 @@ test('every way to earn has the full anatomy; vault, pool and app figures are li
 
 test('the facts first, neutrally, with source and date: USDC on Noble, Nawa’s dependence on Zignaly, Permapod’s incident, Zignaly’s dates', async ({page}) => {
   await earnRoutes(page);
+  // Session AT (ADR-043 D1, deliberate): Zignaly's closure is worded by today's date now, so this test reads it on a fixed
+  // November day (the same words as before); every date's words are pinned in tests/at/zignaly-dates.spec.ts.
+  await page.clock.setFixedTime(new Date('2026-11-18T09:00:00Z'));
   await page.goto('/app/earn');
   // Session AL sweep 4 (N-BN-05, D-005; deliberate): on a phone the wider sections are folded rows; opened first, as a
   // person would (their links are read by role below).

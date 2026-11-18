@@ -21,3 +21,23 @@ test('helpers: whole UTC days; the newest read day', () => {
   expect(dayHasPassed('2026-11-01', at('2026-11-02T00:00:00Z'))).toBe(true);
   expect(newestDay(['2026-09-23', '2026-10-31', '2026-10-18'])).toBe('2026-10-31');
 });
+
+// Session AT (ADR-043 D1): the closure's words switch by the UTC day, from the notice's own dates, with no deploy.
+test('D1: "is closing" until 30 Nov, the notice\'s last day on 1 Dec, "has closed" from 2 Dec', async () => {
+  const {zignalyClosure, zignalyWords} = await import('./dated');
+  expect(zignalyClosure(at('2026-11-30T23:59:59Z'))).toBe('closing');
+  expect(zignalyWords(at('2026-11-30T23:59:59Z')).heading).toBe('Zignaly is closing: how to withdraw');
+  expect(zignalyClosure(at('2026-12-01T00:00:00Z'))).toBe('last-day');
+  expect(zignalyClosure(at('2026-12-01T23:59:59Z'))).toBe('last-day');
+  expect(zignalyWords(at('2026-12-01T12:00:00Z')).heading).toBe('Zignaly: today is the last day to withdraw');
+  expect(zignalyStatusLine(at('2026-12-01T12:00:00Z'))).toMatch(/^Today, 1 December 2026, is the last day to withdraw, until 23:59 UTC; the app closes after that\./);
+  expect(zignalyClosure(at('2026-12-02T00:00:00Z'))).toBe('closed');
+  expect(zignalyWords(at('2026-12-02T00:00:00Z')).heading).toBe('Zignaly has closed: what its notice said');
+  expect(zignalyStatusLine(at('2026-12-02T00:00:00Z'))).toBe('Zignaly has closed: its notice made 1 December 2026 (until 23:59 UTC) the last day to withdraw.');
+  for (const iso of ['2026-11-18T09:00:00Z', '2026-12-01T12:00:00Z', '2027-02-01T00:00:00Z']) {
+    const w = zignalyWords(at(iso));
+    // Never "is closing" once the day has come; never "has closed" before it.
+    if (iso >= '2026-12-01') expect(Object.values(w).join(' ')).not.toMatch(/is closing/);
+    if (iso < '2026-12-02') expect(Object.values(w).join(' ')).not.toMatch(/has closed/);
+  }
+});
