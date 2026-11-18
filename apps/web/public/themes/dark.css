@@ -13258,6 +13258,1444 @@
         outline-color: #fff
     }
 }
+/*  components/nova/cards/ax/ax.css  */
+@scope (:root[data-theme=dark]) {
+    .ax-body:not(#\-) {
+        --ax-ink: var(--neon-ink, #e3f3ff);
+        --ax-label: #cdd8ee;
+        --ax-dim: #aebcd8;
+        --ax-glass: #0a0c11
+    }
+    .ax-head-num:not(#\-) {
+        color: var(--ax-ink);
+        text-shadow: 0 0 14px color-mix(in srgb, var(--neon) 70%, transparent)
+    }
+    .ax-head-unit:not(#\-) {
+        color: var(--ax-label)
+    }
+    .ax-head-label:not(#\-) {
+        color: var(--ax-label)
+    }
+    .ax-head-note:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .ax-head[data-tone=clear] .ax-head-num:not(#\-) {
+        color: #eafff4;
+        text-shadow: 0 0 14px color-mix(in srgb, #5dffb0 60%, transparent)
+    }
+    .ax-key:not(#\-) {
+        color: var(--ax-label)
+    }
+    .ax-key i[data-mark=missed]:not(#\-), .ax-key i[data-mark=lit]:not(#\-) {
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .ax-key i[data-mark=skipped]:not(#\-) {
+        border-color: var(--neon-2)
+    }
+    .ax-key i[data-mark=part]:not(#\-) {
+        background-image: linear-gradient(to top, var(--neon) 50%, transparent 50%);
+        background-color: transparent;
+        border-color: color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .ax-key i[data-mark=done]:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 46%, transparent);
+        background-image: radial-gradient(circle at 50% 50%, var(--neon-2) 0 2px, transparent 2.5px);
+        background-color: transparent
+    }
+    .ax-key i[data-mark=none]:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 70%, transparent)
+    }
+    .ax-key i[data-mark=today]:not(#\-) {
+        border-color: var(--ax-ink)
+    }
+    .ax-cal-head span:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .ax-cal-cell:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 18%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 5%, var(--ax-glass))
+    }
+    .ax-cal-cell b:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .ax-cal-cell[data-state=done]:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 42%, transparent)
+    }
+    .ax-cal-cell[data-state=done] b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .ax-cal-cell[data-state=done]:not(#\-)::after {
+        background: var(--neon-2)
+    }
+    .ax-cal-cell[data-state=rest]:not(#\-), .ax-cal-cell[data-state=ahead]:not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .ax-cal-cell[data-today]:not(#\-) {
+        outline-color: var(--ax-ink)
+    }
+    .ax-cal-cell[data-today] b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .ax-cal-cell[data-lit]:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 12px 1px color-mix(in srgb, var(--neon) 62%, transparent), 0 0 34px 3px color-mix(in srgb, var(--neon) 24%, transparent)
+    }
+    .ax-cal-cell[data-lit] b:not(#\-) {
+        color: #04071a
+    }
+    .ax-cal-cell[data-lit]:not(#\-)::before {
+        border-color: var(--neon-2)
+    }
+    .ax-cal-cell[data-lit][data-state=skipped]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 9%, var(--ax-glass));
+        border-color: var(--neon-2);
+        box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 30%, transparent)
+    }
+    .ax-cal-cell[data-lit][data-state=skipped] b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .ax-cal-cell[data-lit][data-state=part]:not(#\-) {
+        background-image: linear-gradient(to top, color-mix(in srgb, var(--neon) 82%, #04071a) 0 50%, color-mix(in srgb, var(--neon) 9%, var(--ax-glass)) 50%);
+        background-color: transparent;
+        border-color: var(--neon)
+    }
+    .ax-cal-cell[data-lit][data-state=part] b:not(#\-) {
+        color: #fff;
+        text-shadow: 0 0 3px #04071a, 0 0 6px #04071a
+    }
+    .ax-cal-cell[data-lit][data-state=none]:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in srgb, var(--ax-dim) 80%, transparent);
+        box-shadow: none
+    }
+    .ax-cal-cell[data-lit][data-state=none] b:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .ax-cal-scan:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in srgb, var(--neon-2) 60%, transparent) 0 1.5px, color-mix(in srgb, var(--neon) 7%, transparent) 1.5px 18px, transparent 18px);
+        background-color: transparent
+    }
+    .ax-rank-n:not(#\-) {
+        color: var(--ax-ink);
+        border-color: color-mix(in srgb, var(--neon) 44%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 10%, var(--ax-glass))
+    }
+    .ax-rank:first-child .ax-rank-n:not(#\-) {
+        color: #04071a;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        border-color: transparent;
+        box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .ax-rank-label:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .ax-rank-text:not(#\-) {
+        color: var(--ax-label)
+    }
+    .ax-rank-track:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 9%, var(--ax-glass))
+    }
+    .ax-rank-track i[data-mark=missed]:not(#\-), .ax-rank-track i[data-mark=lit]:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in srgb, var(--neon) 45%, transparent), var(--neon) 70%, #fff);
+        background-color: transparent;
+        box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 55%, transparent)
+    }
+    .ax-rank-track i[data-mark=skipped]:not(#\-) {
+        background-image: repeating-linear-gradient(115deg, color-mix(in srgb, var(--neon-2) 70%, transparent) 0 3px, transparent 3px 7px);
+        background-color: transparent;
+        border-color: color-mix(in srgb, var(--neon-2) 60%, transparent)
+    }
+    .ax-rank-track i[data-mark=part]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 34%, transparent)
+    }
+    .ax-rank-more:not(#\-) {
+        color: var(--ax-label)
+    }
+    .ax-chips:not(#\-) {
+        color: var(--ax-label)
+    }
+    .ax-chips b:not(#\-) {
+        color: var(--ax-ink);
+        border-color: color-mix(in srgb, var(--neon) 40%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 8%, var(--ax-glass))
+    }
+    .ax-twin-label:not(#\-) {
+        color: var(--ax-label)
+    }
+    .ax-twin-text:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .ax-twin-track:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 8%, var(--ax-glass))
+    }
+    .ax-twin-track i:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 34%, transparent)
+    }
+    .ax-twin[data-side=now] .ax-twin-track i:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in srgb, var(--neon) 45%, transparent), var(--neon) 72%, #fff);
+        background-color: transparent;
+        box-shadow: 0 0 12px color-mix(in srgb, var(--neon) 55%, transparent)
+    }
+    .ax-twin[data-none] .ax-twin-track i:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in srgb, var(--ax-dim) 70%, transparent);
+        box-shadow: none
+    }
+    .ax-twin-delta:not(#\-) {
+        color: var(--ax-ink)
+    }
+}
+/*  components/nova/cards/ax/day.css  */
+@scope (:root[data-theme=dark]) {
+    .axd-inst:not(#\-) {
+        --axd-room: calc((100cqh - var(--ax-over, 0px)) - 132px)
+    }
+    .ax-body[data-size=L] .axd-inst:not(#\-) {
+        --axd-room: calc((100cqh - var(--ax-over, 0px)) - 200px)
+    }
+    .axd-more:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-key:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-key i:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 34%, transparent)
+    }
+    .axd-key i[data-mark=lit]:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axd-key i[data-mark=missed]:not(#\-) {
+        border-color: var(--ax-ink);
+        background-image: linear-gradient(135deg, transparent 42%, var(--ax-ink) 42% 58%, transparent 58%);
+        background-color: transparent
+    }
+    .axd-key i[data-mark=skipped]:not(#\-) {
+        border-color: var(--neon-2)
+    }
+    .axd-key i[data-mark=open]:not(#\-) {
+        border-color: var(--ax-ink)
+    }
+    .axd-key i[data-mark=bright]:not(#\-) {
+        border-color: transparent;
+        background: var(--ax-ink)
+    }
+    .axd-key i[data-mark=dim]:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 40%, var(--ax-glass))
+    }
+    .axd-key i[data-mark=ghost]:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon-2) 80%, transparent)
+    }
+    .axd-key i[data-mark=none]:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 80%, transparent)
+    }
+    .axd-key i[data-mark=late]:not(#\-) {
+        border-color: var(--ax-ink);
+        background-image: radial-gradient(circle, var(--neon) 0 44%, transparent 46%);
+        background-color: transparent
+    }
+    .axd-key i[data-mark=ring]:not(#\-) {
+        border-color: var(--neon)
+    }
+    .axd-key i[data-mark=tick]:not(#\-) {
+        border-color: currentcolor;
+        background-image: linear-gradient(90deg, transparent 5px, var(--neon-2) 5px 8px, transparent 8px);
+        background-color: transparent
+    }
+    .axd-flame-fig:not(#\-) {
+        color: var(--ax-ink);
+        text-shadow: 0 0 10px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axd-flame-well:not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--neon) 42%, transparent)
+    }
+    .axd-flame-body:not(#\-) {
+        background-image: linear-gradient(to top, color-mix(in srgb, var(--neon) 46%, var(--ax-glass)), var(--neon) 44%, var(--neon-2) 82%, #fff);
+        background-color: transparent;
+        box-shadow: 0 0 12px 1px color-mix(in srgb, var(--neon) 62%, transparent), 0 0 30px 3px color-mix(in srgb, var(--neon) 24%, transparent)
+    }
+    .axd-flame-body b:not(#\-) {
+        background-image: linear-gradient(to top, #fff, color-mix(in srgb, var(--neon-2) 60%, transparent));
+        background-color: transparent
+    }
+    .axd-flame-ghost:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon-2) 78%, transparent)
+    }
+    .axd-flame[data-out] .axd-flame-body:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in srgb, var(--ax-dim) 85%, transparent);
+        box-shadow: none
+    }
+    .axd-flame[data-out] .axd-flame-fig:not(#\-) {
+        color: var(--ax-dim);
+        text-shadow: none
+    }
+    .axd-flame-name:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-lat-head span:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axd-lat-head span[data-lead]:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axd-lat-now:not(#\-) {
+        border-color: transparent;
+        border-bottom-color: currentcolor;
+        border-top-color: var(--ax-ink)
+    }
+    .axd-lat-label:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axd-lat-note:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-lat-row i:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 26%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 5%, var(--ax-glass))
+    }
+    .axd-lat-row i b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axd-lat-row i[data-cell=done]:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 7px color-mix(in srgb, var(--neon) 55%, transparent)
+    }
+    .axd-lat-row i[data-cell=part]:not(#\-) {
+        border-color: var(--neon);
+        background-image: linear-gradient(to top, var(--neon) 50%, color-mix(in srgb, var(--neon) 8%, var(--ax-glass)) 50%);
+        background-color: transparent
+    }
+    .axd-lat-row i[data-cell=missed]:not(#\-) {
+        border-color: var(--ax-ink);
+        background-image: linear-gradient(135deg, transparent 40%, var(--ax-ink) 40% 60%, transparent 60%);
+        background-color: transparent
+    }
+    .axd-lat-row i[data-cell=skipped]:not(#\-) {
+        border-color: var(--neon-2);
+        background-image: none;
+        background-color: transparent
+    }
+    .axd-lat-row i[data-cell=open]:not(#\-) {
+        border-color: var(--ax-ink);
+        background-image: none;
+        background-color: transparent
+    }
+    .axd-lat-row i[data-cell=rest]:not(#\-) {
+        border-color: transparent;
+        background-image: radial-gradient(circle, color-mix(in srgb, var(--ax-dim) 60%, transparent) 0 1px, transparent 1.5px);
+        background-color: transparent
+    }
+    .axd-lat-row i[data-cell=ahead]:not(#\-), .axd-lat-row i[data-cell=none]:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 45%, transparent);
+        background-image: none;
+        background-color: transparent
+    }
+    .axd-lat-row i[data-level='1']:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 50%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 20%, var(--ax-glass))
+    }
+    .axd-lat-row i[data-level='2']:not(#\-) {
+        border-color: var(--neon);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 46%, var(--ax-glass))
+    }
+    .axd-lat-row i[data-level='3']:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 9px color-mix(in srgb, var(--neon) 58%, transparent)
+    }
+    .axd-lat-row i[data-level='3'] b:not(#\-) {
+        color: #04071a
+    }
+    .axd-lat-row i[data-lead]:not(#\-) {
+        outline-color: var(--ax-ink)
+    }
+    .axd-heat-months span:not(#\-) {
+        color: var(--ax-dim)
+    }
+    @container (max-width: 640px) {
+        .axd-heat-months[data-weeks=many] span[data-odd]:not(#\-) {
+            color: transparent
+        }
+    }
+    .axd-heat-week i:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 20%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 4%, var(--ax-glass))
+    }
+    .axd-heat-week i[data-cell=done]:not(#\-), .axd-heat-week i[data-level='4']:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 6px color-mix(in srgb, var(--neon) 55%, transparent)
+    }
+    .axd-heat-week i[data-level='1']:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 28%, var(--ax-glass))
+    }
+    .axd-heat-week i[data-level='2']:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 52%, var(--ax-glass))
+    }
+    .axd-heat-week i[data-level='3']:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 78%, var(--ax-glass))
+    }
+    .axd-heat-week i[data-cell=part]:not(#\-) {
+        border-color: var(--neon);
+        background-image: linear-gradient(to top, var(--neon) 50%, transparent 50%);
+        background-color: transparent
+    }
+    .axd-heat-week i[data-cell=missed]:not(#\-) {
+        border-color: var(--ax-ink);
+        background-image: linear-gradient(135deg, transparent 36%, var(--ax-ink) 36% 64%, transparent 64%);
+        background-color: transparent
+    }
+    .axd-heat-week i[data-cell=skipped]:not(#\-) {
+        border-color: var(--neon-2);
+        background-image: none;
+        background-color: transparent
+    }
+    .axd-heat-week i[data-cell=rest]:not(#\-), .axd-heat-week i[data-cell=ahead]:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 9%, transparent);
+        background-image: none;
+        background-color: transparent
+    }
+    .axd-heat-week i[data-today]:not(#\-) {
+        outline-color: var(--ax-ink)
+    }
+    .axd-tl-axis path:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 70%, transparent)
+    }
+    .axd-tl-grid:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon-2) 60%, transparent)
+    }
+    .axd-tl-mark:not(#\-) {
+        border-color: var(--neon);
+        background-image: none;
+        background-color: var(--ax-glass)
+    }
+    .axd-tl-mark[data-kind=overdue]:not(#\-) {
+        border-color: var(--ax-ink);
+        background-image: radial-gradient(circle, var(--neon) 0 42%, var(--ax-glass) 46%);
+        background-color: transparent;
+        box-shadow: 0 0 10px 1px color-mix(in srgb, var(--neon) 70%, transparent)
+    }
+    .axd-tl-mark[data-kind=today]:not(#\-), .axd-tl-mark[data-kind=done]:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 55%, transparent)
+    }
+    .axd-tl-mark[data-kind=earlier]:not(#\-) {
+        background-image: radial-gradient(circle, var(--neon-2) 0 28%, var(--ax-glass) 32%);
+        background-color: transparent
+    }
+    .axd-tl-mark[data-kind=skipped]:not(#\-) {
+        border-color: var(--neon-2)
+    }
+    .axd-tl-tick:not(#\-) {
+        background: var(--neon-2)
+    }
+    .axd-tl-now:not(#\-) {
+        border-left-color: var(--ax-ink)
+    }
+    .axd-tl-now b:not(#\-) {
+        border-color: var(--ax-ink)
+    }
+    .axd-tl-labels span:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axd-tl-labels span[data-now]:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axd-orbit-track:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 32%, transparent);
+        background-image: radial-gradient(circle, color-mix(in srgb, var(--neon) 9%, transparent), transparent 68%);
+        background-color: transparent
+    }
+    .axd-orbit-orn:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon-2) 46%, transparent)
+    }
+    .axd-orbit-orn:not(#\-)::after {
+        background: var(--neon-2)
+    }
+    .axd-orbit-arm i:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 55%, transparent);
+        background-image: none;
+        background-color: var(--ax-glass)
+    }
+    .axd-orbit-arm i[data-lit]:not(#\-) {
+        border-color: transparent;
+        background-image: radial-gradient(circle at 35% 30%, #fff, var(--neon-2) 38%, var(--neon));
+        background-color: transparent;
+        box-shadow: 0 0 10px 1px color-mix(in srgb, var(--neon) 68%, transparent)
+    }
+    .axd-orbit-centre b:not(#\-) {
+        color: var(--ax-ink);
+        text-shadow: 0 0 12px color-mix(in srgb, var(--neon) 70%, transparent)
+    }
+    .axd-orbit-centre small:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-sky-field:not(#\-) {
+        background-image: radial-gradient(circle, color-mix(in srgb, var(--neon) 10%, transparent), transparent 70%);
+        background-color: transparent
+    }
+    .axd-sky[data-none] .axd-sky-field:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 60%, transparent);
+        background-image: none;
+        background-color: transparent
+    }
+    .axd-sky-links:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 38%, transparent)
+    }
+    .axd-star:not(#\-) {
+        background-image: radial-gradient(circle, #fff 0 22%, var(--neon-2) 46%, var(--neon));
+        background-color: transparent;
+        box-shadow: 0 0 8px 1px color-mix(in srgb, var(--neon) 70%, transparent)
+    }
+    .axd-star b:not(#\-) {
+        background-image: linear-gradient(90deg, transparent, #fff, transparent);
+        background-color: transparent
+    }
+    .axd-sky-name:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-sky-name b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axd-dial-ticks:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon-2) 44%, transparent)
+    }
+    .axd-dial-track:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 15%, var(--ax-glass))
+    }
+    .axd-dial-track[data-unknown]:not(#\-) {
+        stroke: color-mix(in srgb, var(--ax-dim) 70%, transparent)
+    }
+    .axd-dial-glow:not(#\-) {
+        fill: none;
+        stroke: var(--neon);
+        filter: blur(3px)
+    }
+    .axd-dial-arc:not(#\-) {
+        fill: none;
+        stroke: var(--neon)
+    }
+    .axd-dial-arc[data-mark=now]:not(#\-) {
+        stroke: var(--neon-2)
+    }
+    .axd-dial-arc[data-mark=late]:not(#\-) {
+        stroke: var(--ax-ink)
+    }
+    .axd-dial-arc[data-mark=ahead]:not(#\-), .axd-dial-arc[data-mark=before]:not(#\-) {
+        stroke: color-mix(in srgb, var(--neon) 42%, var(--ax-glass))
+    }
+    .axd-dial-arc[data-mark=none]:not(#\-) {
+        stroke: color-mix(in srgb, var(--ax-dim) 80%, transparent)
+    }
+    .axd-dial-lead:not(#\-) {
+        fill: #fff;
+        stroke: var(--neon-2)
+    }
+    .axd-dial-seek:not(#\-)::after {
+        background: var(--ax-ink)
+    }
+    .axd-dial-centre b:not(#\-) {
+        color: var(--ax-ink);
+        text-shadow: 0 0 12px color-mix(in srgb, var(--neon) 70%, transparent)
+    }
+    .axd-dial-centre small:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-radar-ring:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 22%, transparent)
+    }
+    .axd-radar-axis:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon-2) 46%, transparent)
+    }
+    .axd-radar-axis[data-unknown]:not(#\-) {
+        stroke: color-mix(in srgb, var(--ax-dim) 70%, transparent)
+    }
+    .axd-radar-before:not(#\-) {
+        fill: color-mix(in srgb, var(--neon) 10%, transparent);
+        stroke: color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axd-radar-now:not(#\-) {
+        fill: color-mix(in srgb, var(--neon) 26%, transparent);
+        stroke: var(--neon-2)
+    }
+    .axd-radar-dot:not(#\-) {
+        fill: #fff;
+        stroke: var(--neon)
+    }
+    .axd-radar-sweep:not(#\-) {
+        background-image: conic-gradient(from 0deg, color-mix(in srgb, var(--neon-2) 34%, transparent), transparent 52deg, transparent);
+        background-color: transparent
+    }
+    .axd-radar-name:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-radar-name b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axd-scan-lane:not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--neon) 16%, transparent)
+    }
+    .axd-scan-label:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-scan-pips i:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 55%, transparent);
+        background-image: none;
+        background-color: var(--ax-glass)
+    }
+    .axd-scan-pips i[data-pip=lit]:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(to top, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 6px color-mix(in srgb, var(--neon) 55%, transparent)
+    }
+    .axd-scan-pips i[data-pip=late]:not(#\-) {
+        border-color: var(--ax-ink);
+        background-image: linear-gradient(135deg, transparent 38%, var(--ax-ink) 38% 62%, transparent 62%);
+        background-color: transparent
+    }
+    .axd-scan-pips[data-none]:not(#\-) {
+        border-top-color: color-mix(in srgb, var(--ax-dim) 70%, transparent)
+    }
+    .axd-scan-pips b:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-scan-text:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axd-scan-beam:not(#\-) {
+        background-image: linear-gradient(to bottom, color-mix(in srgb, var(--neon-2) 70%, transparent) 0 1.5px, color-mix(in srgb, var(--neon) 9%, transparent) 1.5px 16px, transparent 16px);
+        background-color: transparent
+    }
+    .axd-guide-row:not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--neon) 16%, transparent)
+    }
+    .axd-guide-name:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-guide-ask:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axd-guide-caret:not(#\-) {
+        background: var(--neon-2)
+    }
+}
+/*  components/nova/cards/ax/health.css  */
+@scope (:root[data-theme=dark]) {
+    .axh-key:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axh-key i[data-k=none]:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 70%, transparent)
+    }
+    .axh-key i[data-k=deep]:not(#\-), .axh-key i[data-k=night]:not(#\-), .axh-key i[data-k=fast]:not(#\-) {
+        background: var(--neon);
+        box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axh-key i[data-k=rem]:not(#\-) {
+        background-image: repeating-linear-gradient(135deg, var(--neon-2) 0 3px, color-mix(in srgb, var(--neon) 26%, var(--ax-glass)) 3px 6px);
+        background-color: transparent
+    }
+    .axh-key i[data-k=core]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 34%, var(--ax-glass));
+        border-color: color-mix(in srgb, var(--neon) 50%, transparent)
+    }
+    .axh-key i[data-k=window]:not(#\-), .axh-key i[data-k=band]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon-2) 22%, transparent);
+        border-block-color: color-mix(in srgb, var(--neon-2) 70%, transparent)
+    }
+    .axh-key i[data-k=target]:not(#\-) {
+        border-top-color: var(--ax-ink)
+    }
+    .axh-key i[data-k=tape]:not(#\-) {
+        border-top-color: var(--ax-ink)
+    }
+    .axh-key i[data-k=untaped]:not(#\-) {
+        border-top-color: color-mix(in srgb, var(--ax-dim) 70%, transparent)
+    }
+    .axh-key i[data-k=pin]:not(#\-) {
+        background: var(--ax-ink);
+        box-shadow: 0 0 0 2px var(--neon)
+    }
+    .axh-key i[data-k=reached]:not(#\-) {
+        background: var(--ax-ink);
+        box-shadow: 0 0 8px var(--neon-2)
+    }
+    .axh-key i[data-k=h1]:not(#\-), .axh-key i[data-k=m1]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 16%, var(--ax-glass));
+        border-color: color-mix(in srgb, var(--neon) 30%, transparent)
+    }
+    .axh-key i[data-k=h2]:not(#\-), .axh-key i[data-k=m2]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 34%, var(--ax-glass))
+    }
+    .axh-key i[data-k=m3]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 52%, var(--ax-glass))
+    }
+    .axh-key i[data-k=h3]:not(#\-), .axh-key i[data-k=m4]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 76%, var(--ax-glass))
+    }
+    .axh-key i[data-k=h4]:not(#\-), .axh-key i[data-k=m5]:not(#\-) {
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axh-fact:not(#\-) {
+        color: var(--ax-label);
+        border-top-color: color-mix(in srgb, var(--neon) 18%, transparent)
+    }
+    .axh-fact b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axh-heart:not(#\-) {
+        --axh-heart: clamp(44px, min(24cqi, calc((100cqh - var(--ax-over, 0px)) - 150px)), 128px)
+    }
+    .axh-heart-glow:not(#\-) {
+        fill: none;
+        stroke: var(--neon)
+    }
+    .axh-heart-fill:not(#\-) {
+        fill: color-mix(in srgb, var(--neon) 15%, transparent);
+        stroke: color-mix(in srgb, var(--neon) 55%, transparent)
+    }
+    .axh-heart-line:not(#\-) {
+        fill: none;
+        stroke: var(--neon-2)
+    }
+    .axh-sweep:not(#\-) {
+        background-image: linear-gradient(to bottom, var(--neon-2) 0 2px, color-mix(in srgb, var(--neon) 16%, transparent) 2px 16%, transparent 16%);
+        background-color: transparent
+    }
+    .axh-vital:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 34%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 7%, var(--ax-glass));
+        box-shadow: inset 3px 0 0 var(--neon)
+    }
+    .axh-vital-label:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axh-vital-asof:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-vital-value:not(#\-) {
+        color: var(--ax-ink);
+        text-shadow: 0 0 10px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axh-vital-target:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axh-vital-meter:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 12%, var(--ax-glass))
+    }
+    .axh-vital-meter i:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in srgb, var(--neon) 45%, transparent), var(--neon) 70%, var(--neon-2));
+        background-color: transparent
+    }
+    .axh-vital[data-none]:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 70%, transparent);
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none
+    }
+    .axh-vital[data-none] .axh-vital-value:not(#\-) {
+        color: var(--ax-dim);
+        text-shadow: none
+    }
+    .axh-figure-line:not(#\-) {
+        fill: color-mix(in srgb, var(--neon) 7%, transparent);
+        stroke: var(--neon)
+    }
+    .axh-figure-tape:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--ax-dim) 70%, transparent)
+    }
+    .axh-figure-tape[data-on]:not(#\-) {
+        stroke: var(--ax-ink)
+    }
+    .axh-place:not(#\-) {
+        border-left-color: var(--neon);
+        background-image: linear-gradient(90deg, color-mix(in srgb, var(--neon) 9%, transparent), transparent 70%);
+        background-color: transparent
+    }
+    .axh-place-label:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axh-place-value:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axh-place-asof:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-place[data-none]:not(#\-) {
+        border-left-color: color-mix(in srgb, var(--ax-dim) 70%, transparent);
+        background-image: none;
+        background-color: transparent
+    }
+    .axh-place[data-none] .axh-place-value:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-band:not(#\-) {
+        background-image: linear-gradient(to top, color-mix(in srgb, var(--neon-2) 20%, transparent), color-mix(in srgb, var(--neon-2) 5%, transparent));
+        background-color: transparent
+    }
+    .axh-pin:not(#\-) {
+        background: var(--ax-ink);
+        box-shadow: 0 0 0 2px var(--neon), 0 0 10px 2px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axh-pin:not(#\-)::after {
+        border-color: color-mix(in srgb, var(--neon-2) 80%, transparent)
+    }
+    .axh-pin[data-pin=low]:not(#\-) {
+        background-image: none;
+        background-color: var(--ax-glass)
+    }
+    .axh-trend-dates:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-pips i[data-pip=on]:not(#\-) {
+        background: var(--ax-ink);
+        box-shadow: 0 0 0 2px var(--neon), 0 0 8px 1px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axh-pips i[data-pip=open]:not(#\-) {
+        border-color: var(--neon-2)
+    }
+    .axh-bars-plot:not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--neon) 46%, transparent);
+        background-image: repeating-linear-gradient(0deg, color-mix(in srgb, var(--neon) 11%, transparent) 0 1px, transparent 1px 25%);
+        background-color: transparent
+    }
+    .axh-bar:not(#\-) {
+        background-image: linear-gradient(to top, color-mix(in srgb, var(--neon) 40%, var(--ax-glass)), var(--neon) 78%, var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 12px color-mix(in srgb, var(--neon) 50%, transparent)
+    }
+    .axh-bars[data-bars=stages] .axh-bar:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none
+    }
+    .axh-bar b[data-stage=deep]:not(#\-) {
+        background: var(--neon)
+    }
+    .axh-bar b[data-stage=rem]:not(#\-) {
+        background-image: repeating-linear-gradient(135deg, var(--neon-2) 0 3px, color-mix(in srgb, var(--neon) 26%, var(--ax-glass)) 3px 6px);
+        background-color: transparent
+    }
+    .axh-bar b[data-stage=core]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 34%, var(--ax-glass))
+    }
+    .axh-bars .axh-bar[data-none]:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in srgb, var(--ax-dim) 78%, transparent);
+        border-bottom-color: currentcolor;
+        box-shadow: none
+    }
+    .axh-bar[data-float]:not(#\-) {
+        background-image: linear-gradient(to bottom, color-mix(in srgb, var(--neon) 50%, var(--ax-glass)), var(--neon) 60%, var(--neon-2));
+        background-color: transparent
+    }
+    .axh-bar[data-reached]:not(#\-)::after {
+        background: var(--ax-ink)
+    }
+    .axh-bar[data-run]:not(#\-) {
+        background-image: repeating-linear-gradient(135deg, color-mix(in srgb, var(--neon) 60%, transparent) 0 3px, transparent 3px 7px);
+        background-color: transparent;
+        border-color: var(--neon-2);
+        border-bottom-color: currentcolor;
+        box-shadow: none
+    }
+    .axh-target:not(#\-) {
+        border-top-color: var(--ax-ink)
+    }
+    .axh-sheen:not(#\-) {
+        background-image: linear-gradient(to top, transparent, color-mix(in srgb, var(--ax-ink) 60%, transparent) 50%, transparent);
+        background-color: transparent
+    }
+    .axh-bars-labels span:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-bars[data-bars=times] .axh-bars-plot:not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .axh-hour:not(#\-) {
+        border-top-color: color-mix(in srgb, var(--neon) 30%, transparent)
+    }
+    .axh-hour em:not(#\-) {
+        color: var(--ax-dim);
+        background-image: none;
+        background-color: var(--ax-glass)
+    }
+    .axh-window:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon-2) 20%, transparent);
+        border-block-color: color-mix(in srgb, var(--neon-2) 60%, transparent)
+    }
+    .axh-gauge-dial:not(#\-) {
+        --axh-d: clamp(52px, min(21cqi, calc((100cqh - var(--ax-over, 0px)) - 176px)), 136px)
+    }
+    .axh-gauge-dial .nc-gauge:not(#\-) {
+        --nc-size: var(--axh-d)
+    }
+    .axh-gauge-plain:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 44%, transparent)
+    }
+    .axh-gauge-label:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axh-gauge-of:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-gauge[data-over] .axh-gauge-of:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axh-gauge-orbit:not(#\-)::before {
+        background: var(--neon-2);
+        box-shadow: 0 0 6px 1px var(--neon)
+    }
+    .axh-heat:not(#\-) {
+        --axh-cell: clamp(9px, min(calc((100cqi - 24px) / 13 - 3px), calc(((100cqh - var(--ax-over, 0px)) - 150px) / 7 - 3px)), 26px)
+    }
+    .axh-heat-months span:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-heat-days span:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-cell:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 18%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 5%, var(--ax-glass))
+    }
+    .axh-cell[data-level='1']:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 30%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 16%, var(--ax-glass))
+    }
+    .axh-cell[data-level='2']:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 34%, var(--ax-glass))
+    }
+    .axh-cell[data-level='3']:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 76%, var(--ax-glass))
+    }
+    .axh-cell[data-level='4']:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axh-cell[data-state=none]:not(#\-), .axh-cell[data-state=open]:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 62%, transparent);
+        background-image: none;
+        background-color: transparent
+    }
+    .axh-cell[data-today]:not(#\-) {
+        outline-color: var(--ax-ink)
+    }
+    .axh-ping:not(#\-) {
+        border-color: var(--neon-2)
+    }
+    .axh-mood-head span:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-mood-cell:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 50%, transparent)
+    }
+    .axh-mood-cell b:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axh-mood-cell[data-step]:not(#\-) {
+        border-color: transparent
+    }
+    .axh-mood-cell[data-step] b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axh-mood-cell[data-step='1']:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 30%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 16%, var(--ax-glass))
+    }
+    .axh-mood-cell[data-step='2']:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 34%, var(--ax-glass))
+    }
+    .axh-mood-cell[data-step='3']:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 52%, var(--ax-glass))
+    }
+    .axh-mood-cell[data-step='4']:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 76%, var(--ax-glass))
+    }
+    .axh-mood-cell[data-step='5']:not(#\-) {
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 12px 1px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axh-mood-cell[data-step='4'] b:not(#\-), .axh-mood-cell[data-step='5'] b:not(#\-) {
+        color: var(--ax-glass)
+    }
+    .axh-mood-cell[data-today]:not(#\-) {
+        outline-color: var(--ax-ink)
+    }
+}
+/*  components/nova/cards/ax/money.css  */
+@scope (:root[data-theme=dark]) {
+    .axm-inst:not(#\-) {
+        --axm-h: clamp(92px, calc((100cqh - var(--ax-over, 0px)) - 152px - var(--axm-rows, 0) * 29px), 300px)
+    }
+    @container (max-width: 340px) {
+        .axm-inst:not(#\-) {
+            --axm-h: clamp(80px, calc((100cqh - var(--ax-over, 0px)) - 262px - var(--axm-rows, 0) * 29px), 300px)
+        }
+    }
+    .axm-legend-n:not(#\-) {
+        color: var(--ax-ink);
+        border-color: color-mix(in srgb, var(--neon) 46%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 11%, var(--ax-glass))
+    }
+    .axm-legend-name:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axm-legend-sub:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axm-legend-value:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axm-legend-row[data-tone=watch] .axm-legend-sub:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axm-legend-row[data-unlit] .axm-legend-n:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 70%, transparent);
+        background-image: none;
+        background-color: transparent
+    }
+    .axm-legend-more:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axm-key:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axm-key i[data-mark=now]:not(#\-), .axm-key i[data-mark=due]:not(#\-) {
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axm-key i[data-mark=before]:not(#\-) {
+        border-color: var(--neon-2)
+    }
+    .axm-key i[data-mark=none]:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 70%, transparent)
+    }
+    .axm-key i[data-mark=today]:not(#\-) {
+        border-color: var(--ax-ink)
+    }
+    .axm-key i[data-mark=in]:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 50%, transparent);
+        background-image: linear-gradient(to bottom, var(--neon) 50%, transparent 50%);
+        background-color: transparent
+    }
+    .axm-key i[data-mark=out]:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon-2) 50%, transparent);
+        background-image: linear-gradient(to top, var(--neon-2) 50%, transparent 50%);
+        background-color: transparent
+    }
+    .axm-note:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axm-chip:not(#\-) {
+        color: var(--ax-ink);
+        border-color: var(--neon-2)
+    }
+    .axm-stop-a:not(#\-) {
+        stop-color: var(--neon)
+    }
+    .axm-stop-b:not(#\-) {
+        stop-color: var(--neon-2)
+    }
+    .axm-stop-mid:not(#\-) {
+        stop-color: color-mix(in srgb, var(--neon) 46%, var(--ax-glass))
+    }
+    .axm-stop-soft:not(#\-) {
+        stop-color: var(--neon)
+    }
+    .axm-stop-clear:not(#\-) {
+        stop-color: var(--neon)
+    }
+    .axm-radar-web :is(polygon, path):not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 22%, transparent)
+    }
+    .axm-radar-web polygon:last-of-type:not(#\-) {
+        stroke: color-mix(in srgb, var(--neon) 48%, transparent)
+    }
+    .axm-radar-before:not(#\-) {
+        fill: color-mix(in srgb, var(--neon-2) 7%, transparent);
+        stroke: color-mix(in srgb, var(--neon-2) 66%, transparent)
+    }
+    .axm-radar-fill:not(#\-) {
+        stroke: color-mix(in srgb, var(--neon) 26%, transparent)
+    }
+    .axm-radar-line:not(#\-) {
+        fill: none
+    }
+    .axm-radar-dot:not(#\-) {
+        fill: var(--ax-ink);
+        stroke: var(--neon)
+    }
+    .axm-radar-hand:not(#\-) {
+        fill: none;
+        stroke: var(--neon-2)
+    }
+    .axm-radar-label:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axm-heat:not(#\-) {
+        --axm-cell: clamp(9px, min(calc((100cqi - 64px) / var(--axm-weeks, 13) - 3px), calc(((100cqh - var(--ax-over, 0px)) - 200px) / 7 - 3px)), 28px)
+    }
+    .axm-heat-months:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axm-heat-days:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axm-heat-cell:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 20%, transparent)
+    }
+    .axm-heat-cell[data-level='1']:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 40%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 24%, var(--ax-glass))
+    }
+    .axm-heat-cell[data-level='2']:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 56%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 48%, var(--ax-glass))
+    }
+    .axm-heat-cell[data-level='3']:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 76%, var(--ax-glass))
+    }
+    .axm-heat-cell[data-level='4']:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 9px 1px color-mix(in srgb, var(--neon) 60%, transparent)
+    }
+    .axm-heat-cell[data-today]:not(#\-) {
+        outline-color: var(--ax-ink)
+    }
+    .axm-heat-cell[data-peak]:not(#\-)::after {
+        border-color: var(--neon-2)
+    }
+    .axm-bills:not(#\-) {
+        --axm-cell: clamp(22px, min(11.5cqi, calc(((100cqh - var(--ax-over, 0px)) - 200px) / var(--axm-weeks, 5) - 5px)), 50px)
+    }
+    .axm-bills-head span:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axm-bills-cell:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 18%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 5%, var(--ax-glass))
+    }
+    .axm-bills-cell b:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axm-bills-cell[data-dim]:not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .axm-bills-cell[data-today]:not(#\-) {
+        outline-color: var(--ax-ink)
+    }
+    .axm-bills-cell[data-today] b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axm-bills-cell[data-due]:not(#\-) {
+        border-color: transparent;
+        background-image: linear-gradient(135deg, var(--neon), var(--neon-2));
+        background-color: transparent;
+        box-shadow: 0 0 12px 1px color-mix(in srgb, var(--neon) 62%, transparent), 0 0 30px 3px color-mix(in srgb, var(--neon) 22%, transparent)
+    }
+    .axm-bills-cell[data-due] b:not(#\-) {
+        color: var(--ax-glass)
+    }
+    .axm-bills-cell[data-due]:not(#\-)::after {
+        background: var(--ax-ink)
+    }
+    .axm-river-bed:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--ax-dim) 60%, transparent)
+    }
+    .axm-river-band[data-side=up] path:not(#\-) {
+        stroke: var(--neon)
+    }
+    .axm-river-band[data-side=down] path:not(#\-) {
+        stroke: var(--neon-2)
+    }
+    .axm-river-line:not(#\-) {
+        fill: none;
+        stroke: var(--ax-ink)
+    }
+    .axm-river-drift path:not(#\-) {
+        fill: none;
+        stroke: var(--ax-ink)
+    }
+    .axm-river-axis:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axm-river-cap:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axm-gauges:not(#\-) {
+        --axm-gh: clamp(58px, calc(((100cqh - var(--ax-over, 0px)) - 152px) / var(--axm-grows, 1) - 54px), 150px)
+    }
+    .axm-gauge-name:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axm-gauge-text:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axm-gauge-text[data-over]:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axm-arc-bezel:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 42%, transparent)
+    }
+    .axm-arc-track:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 16%, transparent)
+    }
+    .axm-arc-value:not(#\-) {
+        fill: none
+    }
+    .axm-arc-over:not(#\-) {
+        fill: none;
+        stroke: var(--ax-ink)
+    }
+    .axm-arc-stone:not(#\-) {
+        fill: var(--ax-glass);
+        stroke: color-mix(in srgb, var(--neon-2) 70%, transparent)
+    }
+    .axm-arc-stone[data-lit]:not(#\-) {
+        fill: var(--ax-ink)
+    }
+    .axm-arc-needle path:not(#\-) {
+        fill: none;
+        stroke: var(--ax-ink)
+    }
+    .axm-arc-needle circle:not(#\-) {
+        fill: var(--ax-ink);
+        stroke: var(--neon)
+    }
+    .axm-arc[data-none] .axm-arc-track:not(#\-) {
+        stroke: color-mix(in srgb, var(--ax-dim) 70%, transparent)
+    }
+    .axm-arc-figure:not(#\-) {
+        color: var(--ax-ink);
+        text-shadow: 0 0 12px color-mix(in srgb, var(--neon) 70%, transparent)
+    }
+    .axm-dial-ticks:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 46%, transparent)
+    }
+    .axm-dial-track:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 14%, transparent)
+    }
+    .axm-dial-left:not(#\-) {
+        fill: none
+    }
+    .axm-dial-due:not(#\-) {
+        fill: var(--ax-ink)
+    }
+    .axm-dial-hand path:not(#\-) {
+        fill: none;
+        stroke: var(--ax-ink)
+    }
+    .axm-dial-hand circle:not(#\-) {
+        fill: var(--ax-glass);
+        stroke: var(--ax-ink)
+    }
+    .axm-dial[data-late] .axm-dial-track:not(#\-) {
+        stroke: color-mix(in srgb, var(--ax-ink) 60%, transparent)
+    }
+    .axm-dial-figure:not(#\-) {
+        color: var(--ax-ink);
+        text-shadow: 0 0 14px color-mix(in srgb, var(--neon) 70%, transparent)
+    }
+    .axm-dial-unit:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axm-dial-name:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axm-dial-line:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axm-time:not(#\-) {
+        --axm-th: clamp(60px, calc((100cqh - var(--ax-over, 0px)) - 172px - var(--axm-rows, 0) * 29px), 88px)
+    }
+    .axm-time-rail:not(#\-) {
+        background-image: linear-gradient(90deg, var(--neon), color-mix(in srgb, var(--neon) 30%, var(--ax-glass)));
+        background-color: transparent;
+        box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 46%, transparent)
+    }
+    .axm-time-run:not(#\-) {
+        background-image: linear-gradient(90deg, transparent 0, var(--ax-ink) 12px, transparent 26px);
+        background-color: transparent
+    }
+    .axm-time-now:not(#\-) {
+        background: var(--ax-ink);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--neon) 34%, transparent), 0 0 10px var(--neon)
+    }
+    .axm-time-node:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 62%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 15%, var(--ax-glass));
+        box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 40%, transparent)
+    }
+    .axm-time-node b:not(#\-) {
+        color: var(--ax-ink)
+    }
+    .axm-time-node:not(#\-)::after {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon-2) 72%, transparent)
+    }
+    .axm-time-node[data-past]:not(#\-) {
+        border-color: var(--ax-ink);
+        background-image: none;
+        background-color: var(--ax-glass);
+        box-shadow: none
+    }
+    .axm-time-axis:not(#\-) {
+        color: var(--ax-dim)
+    }
+    .axm-orbit-glow:not(#\-) {
+        fill: color-mix(in srgb, var(--neon) 22%, transparent)
+    }
+    .axm-orbit-star:not(#\-) {
+        fill: var(--ax-ink);
+        stroke: var(--neon-2)
+    }
+    .axm-orbit-ring:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--neon) 22%, transparent)
+    }
+    .axm-orbit-way:not(#\-) {
+        fill: none;
+        stroke: var(--neon)
+    }
+    .axm-orbit-halo:not(#\-) {
+        fill: color-mix(in srgb, var(--neon) 28%, transparent)
+    }
+    .axm-orbit-body:not(#\-) {
+        fill: var(--ax-ink);
+        stroke: var(--neon)
+    }
+    .axm-orbit[data-none] .axm-orbit-body:not(#\-) {
+        fill: var(--ax-glass);
+        stroke: color-mix(in srgb, var(--ax-dim) 80%, transparent)
+    }
+    .axm-jars:not(#\-) {
+        --axm-jh: clamp(52px, calc((100cqh - var(--ax-over, 0px)) - 182px - var(--axm-rows, 0) * 29px), 150px)
+    }
+    .axm-jar-glass:not(#\-) {
+        border-color: color-mix(in srgb, var(--neon) 58%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon) 5%, var(--ax-glass))
+    }
+    .axm-jar-lid:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--neon-2) 76%, transparent)
+    }
+    .axm-jar-fill:not(#\-) {
+        border-top-color: var(--ax-ink);
+        background-image: linear-gradient(to top, color-mix(in srgb, var(--neon) 46%, var(--ax-glass)), var(--neon) 78%, var(--neon-2));
+        background-color: transparent
+    }
+    .axm-jar-bubble:not(#\-) {
+        border-color: var(--ax-ink)
+    }
+    .axm-jar-n:not(#\-) {
+        color: var(--ax-ink);
+        background-image: none;
+        background-color: var(--ax-glass);
+        border-color: color-mix(in srgb, var(--neon) 46%, transparent)
+    }
+    .axm-jar[data-none] .axm-jar-glass:not(#\-) {
+        border-color: color-mix(in srgb, var(--ax-dim) 70%, transparent);
+        background-image: none;
+        background-color: transparent
+    }
+    .axm-jar-figure:not(#\-) {
+        color: var(--ax-ink)
+    }
+}
 /*  components/nova/cards/cards.css  */
 @scope (:root[data-theme=dark]) {
     .nova-widget[data-cut] .nc-body > .nc-foot:not(#\-) {
@@ -17506,7 +18944,7 @@
         outline-color: #fff;
         box-shadow: 0 0 0 5px #050818, 0 0 0 7px var(--neon, #9273ff)
     }
-    .nova-stage[data-holo-core] :is(.nova-name, .nova-orb-state):not(#\-) {
+    .nova-stage[data-holo-core] .nova-orb-state:not(#\-) {
         text-shadow: 0 0 2px #050818, 0 0 6px #050818, 0 0 18px color-mix(in oklab, var(--nova-a, #9273ff) 60%, transparent)
     }
     .nova-frame[data-look=classic] .nova-widget[data-pillar=health]:not(#\-) {
@@ -18020,6 +19458,23 @@
     .nova-name:not(#\-) {
         color: var(--nova-ink);
         text-shadow: 0 0 18px color-mix(in oklab, var(--nova-a) 70%, transparent)
+    }
+    .nova-stage .nova-name:not(#\-) {
+        color: #fff;
+        background-image: linear-gradient(90deg, #ffffff 0%, #ffffff 16%, #8ff6ff 40%, #a98bff 70%, #ff8fd4 100%);
+        -webkit-text-fill-color: transparent;
+        text-shadow: none;
+        filter: drop-shadow(0 0 1.5px #050818) drop-shadow(0 0 16px color-mix(in srgb, #a98bff 46%, transparent))
+    }
+    :scope[data-glow="soft"] .nova-frame .nova-stage .nova-name:not(#\-) {
+        filter: drop-shadow(0 0 1.5px #050818)
+    }
+    @media (forced-colors: active) {
+        .nova-stage .nova-name:not(#\-) {
+            background-image: none;
+            -webkit-text-fill-color: currentColor;
+            filter: none
+        }
     }
     .nova-orb-button:not(#\-) {
         border-color: currentcolor;
