@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,chmodSync,cpSync,symlinkSync,rmSync,realpathSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {checkSetup, formatSetup} from './pre-run11-setup.mjs';
 
@@ -48,7 +49,9 @@ test('setup rejects privileged, malformed and unknown public-key classes',()=>{
  }
  assert.equal(status(checkSetup({...good,ZIGOALS_AUTH_PUBLIC_KEY:jwt('anon'),AUTH_PUBLIC_KEY:jwt('anon')},worker,{node:'v24.19.0',pnpm:'11.19.0'}),'app_public_key'),'PASS');
 });
-function cliFixture(text,{mode=0o600,ignored=true,symlink=false,authOnly=false}={}){
+// Session AT (ADR-043 D2, deliberate): the CLI is run as if on the pinned Node (a preload sets process.version), so these
+// tests check the setup on any Node the unit suite runs on; the version check itself is pinned by its own test below.
+function cliFixture(text,{mode=0o600,ignored=true,symlink=false,authOnly=false,node='v24.19.0'}={}){
  const dir=realpathSync(mkdtempSync(join(tmpdir(),'pre11b-setup-')));
  try{
   mkdirSync(join(dir,'scripts/lib'),{recursive:true});mkdirSync(join(dir,'workers'));
@@ -61,7 +64,8 @@ function cliFixture(text,{mode=0o600,ignored=true,symlink=false,authOnly=false}=
   if(symlink){const external=join(tmpdir(),`pre11b-external-${process.pid}.jsonc`);writeFileSync(external,text);chmodSync(external,0o600);symlinkSync(external,file);}else{writeFileSync(file,text);chmodSync(file,mode);}
   const env={...process.env,...good,ZIGOALS_OWNER_WORKER_CONFIG:authOnly?'not-there':file,ZIGOALS_ALLOWED_AUTH_ORIGIN:good.ZIGOALS_AUTH_ORIGIN,ZIGOALS_TEST_RECIPIENTS:'owner@controlled.invalid'};
   delete env.AUTH_ORIGIN;delete env.APP_ORIGIN;
-  const result=spawnSync(process.execPath,[join(dir,'scripts/pre-run11-setup.mjs'),...(authOnly?['--auth-only']:[])],{cwd:dir,env,encoding:'utf8',timeout:5000});
+  writeFileSync(join(dir,'scripts/as-node.mjs'),`Object.defineProperty(process,'version',{value:${JSON.stringify(node)}});\n`);
+  const result=spawnSync(process.execPath,['--import',pathToFileURL(join(dir,'scripts/as-node.mjs')).href,join(dir,'scripts/pre-run11-setup.mjs'),...(authOnly?['--auth-only']:[])],{cwd:dir,env,encoding:'utf8',timeout:5000});
   if(result.error)throw result.error;
   return {output:result.stdout+result.stderr,code:result.status};
  }finally{rmSync(dir,{recursive:true,force:true});if(symlink)rmSync(join(tmpdir(),`pre11b-external-${process.pid}.jsonc`),{force:true});}
@@ -69,6 +73,9 @@ function cliFixture(text,{mode=0o600,ignored=true,symlink=false,authOnly=false}=
 const jsonc=`{ // private preview\n "name":"private-sync", "vars":{"AUTH_ORIGIN":"https://sandboxabc.supabase.co","APP_ORIGIN":"https://preview.owner.test",}, "durable_objects":{"bindings":[{"name":"VAULTS","class_name":"PrivateVault"}]}, "migrations":[{"new_sqlite_classes":["PrivateVault"]}],}`;
 test('CLI accepts ignored mode-0600 JSONC with comments/trailing commas and preserves HTTPS',()=>{
  const r=cliFixture(jsonc);assert.equal(r.code,0,r.output);assert.match(r.output,/LOCAL_CONFIGURATION: PASS/);assert.ok(!r.output.includes('sandboxabc'));
+});
+test('CLI on a Node that is not the pinned one fails and names the pinned version (Session AT D2)',()=>{
+ const r=cliFixture(jsonc,{node:'v24.22.3'});assert.notEqual(r.code,0,r.output);assert.match(r.output,/INVALID: tool_node/);assert.match(r.output,/Select repository Node 24\.19\.0\./);assert.match(r.output,/LOCAL_CONFIGURATION: INVALID/);
 });
 test('CLI rejects malformed, readable-by-others, unignored and escaping files',()=>{
  for(const [text,opts] of [['{oops',{}],[jsonc,{mode:0o644}],[jsonc,{ignored:false}],[jsonc,{symlink:true}]]){

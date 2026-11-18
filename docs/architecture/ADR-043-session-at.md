@@ -51,3 +51,8 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   Academy lesson are worded so they stay true on any day. The pages read `now` from the minute clock, so nothing needs a
   deploy on the day. Proven by `lib/earn/dated.test.ts` and `tests/at/zignaly-dates.spec.ts` (Playwright's clock on 30 Nov,
   1 Dec and 2 Dec, both projects, 6 of 6); `earn-options.spec.ts:70` now reads on a fixed November day (deliberate).
+- **D2 (`scripts/pre-run11-setup.test.mjs` on any Node).** The two CLI tests spawned the script on the test's own Node,
+  so on any Node but 24.19.0 the script's (correct) version check failed them. They now run the script with a preload that
+  sets `process.version` to the pinned version; every other check is real. A new test pins the version check itself: on
+  `v24.22.3` the CLI fails with `INVALID: tool_node` and "Select repository Node 24.19.0." (stricter than before, where the
+  check was only covered on the pinned Node). 11 of 11 on Node 22.23.5 and on 24.19.0. The script is unchanged.
