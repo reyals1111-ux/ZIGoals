@@ -30,7 +30,7 @@ const logged = (value: number | null, target: number | null, date: string, today
 const TARGET = {did: ['target reached', 'doel gehaald'], not: ['below your target', 'onder je doel']} as const, LOGGED = {did: ['logged', 'gelogd'], not: ['nothing logged', 'niets gelogd']} as const;
 const widgetsOf = (domain: Domain, calendar: string, trend: string, fallback: string) => (ask: Ask, period: Period): ExactWidget[] => {
   if (ask === 'missed' || ask === 'not-done' || ask === 'skipped' || ((ask === 'done') && period.days.length > 1)) return [{id: calendar, period: period.token, fallback}];
-  if (ask === 'compare') return [{id: 'compare-periods', ref: domain, period: period.token, fallback}];
+  if (ask === 'compare') return [{id: 'health-compare', ref: domain, period: period.token, fallback}];
   if (ask === 'streak') return [{id: 'streak-flames', ref: domain, fallback}];
   return period.days.length > 1 || ask === 'trend' || ask === 'average' || ask === 'best' || ask === 'worst' ? [{id: trend, period: period.token, fallback}] : [{id: fallback}];
 };

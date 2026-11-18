@@ -2507,7 +2507,7 @@
    }
   },
   "widgets": [
-   "compare-periods"
+   "health-compare"
   ],
   "fresh": "No steps logged yet.",
   "freshNl": "Nog geen stappen gelogd."
@@ -2888,7 +2888,7 @@
    }
   },
   "widgets": [
-   "compare-periods"
+   "health-compare"
   ],
   "fresh": "No nights logged yet.",
   "freshNl": "Nog geen nachten gelogd."
@@ -3711,7 +3711,7 @@
    }
   },
   "widgets": [
-   "compare-periods"
+   "spending-compare"
   ],
   "fresh": "No spending logged yet.",
   "freshNl": "Nog geen uitgaven gelogd."

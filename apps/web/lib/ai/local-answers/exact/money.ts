@@ -48,7 +48,7 @@ export function spendingAnswer(q: Query, env: ToolEnv): Exact | null {
     const before = ledger(log.entries.filter(e => e.currency === cur), kind, other, category), diff = now.total - before.total;
     const wb = q.versus ? periodWords(other, lang, today) : `${t(lang, 'the period before', 'de periode ervoor')} (${day(other.from)}${other.from === other.to ? '' : ` ${t(lang, 'to', 't/m')} ${day(other.to)}`})`;
     return out(`${what}${money(now.total, cur)} ${verb} ${periodWords(p, lang, today)}; ${money(before.total, cur)} ${wb}${diff === 0 ? t(lang, ', the same', ', gelijk') : t(lang, `, ${money(Math.abs(diff), cur)} ${diff > 0 ? 'more' : 'less'}`, `, ${money(Math.abs(diff), cur)} ${diff > 0 ? 'meer' : 'minder'}`)}.${others}`,
-      {...base, compare: {now: {from: p.from, to: p.to, cents: now.total}, before: {from: other.from, to: other.to, cents: before.total}}}, [{id: 'compare-periods', ref: q.domain, period: p.token, fallback: income ? 'cash-flow' : 'spending-pace'}], p);
+      {...base, compare: {now: {from: p.from, to: p.to, cents: now.total}, before: {from: other.from, to: other.to, cents: before.total}}}, [{id: 'spending-compare', ref: q.domain, period: p.token, fallback: income ? 'cash-flow' : 'spending-pace'}], p);
   }
   // The largest single entry ("my biggest expense").
   if ((q.ask === 'best' || q.ask === 'worst') && /\b(?:expense|purchase|payment|entry|uitgave|aankoop|betaling)\b/.test(q.read)) {

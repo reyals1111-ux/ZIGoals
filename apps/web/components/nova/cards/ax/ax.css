@@ -104,3 +104,18 @@
 .nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .ax-cal-scan { animation: ax-sweep 9s 1.6s linear infinite; }
 .nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .ax-rank:first-child .ax-rank-track i:first-child { animation: ax-glint 3.2s ease-in-out infinite; }
 .nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh]:not([data-off]) .ax-rank:first-child .ax-rank-track i:first-child { animation: ax-grow-x .46s .44s cubic-bezier(.2, .7, .2, 1) both, ax-glint 3.2s 1s ease-in-out infinite; }
+
+/* ---- Family: twins (one period beside another) ---- */
+.ax-twins { display: grid; gap: 12px; min-width: 0; }
+.ax-twin { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'label text' 'track track'; column-gap: 10px; row-gap: 5px; align-items: baseline; }
+.ax-twin-label { grid-area: label; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--ax-label); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ax-twin-text { grid-area: text; font-size: 15px; font-variant-numeric: tabular-nums; color: var(--ax-ink); white-space: nowrap; }
+.ax-twin-track { grid-area: track; height: 14px; border-radius: 7px; background: color-mix(in srgb, var(--neon) 8%, var(--ax-glass)); overflow: hidden; }
+.ax-twin-track i { display: block; width: var(--ax-w, 0%); height: 100%; border-radius: 7px; transform-origin: left center; background: color-mix(in srgb, var(--neon) 34%, transparent); }
+.ax-twin[data-side=now] .ax-twin-track i { background: linear-gradient(90deg, color-mix(in srgb, var(--neon) 45%, transparent), var(--neon) 72%, #fff); box-shadow: 0 0 12px color-mix(in srgb, var(--neon) 55%, transparent); }
+.ax-twin[data-none] .ax-twin-track i { background: none; border: 1px dashed color-mix(in srgb, var(--ax-dim) 70%, transparent); box-shadow: none; box-sizing: border-box; }
+.ax-twin-delta { margin: 0; font-size: 15px; color: var(--ax-ink); text-wrap: pretty; }
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .ax-body .ax-twins { display: none; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ax-twin-track i { animation: ax-grow-x .5s .44s cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .ax-twin[data-side=now] .ax-twin-track i { animation: ax-grow-x .5s .62s cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off], [data-made=fresh]) .ax-twin[data-side=now]:not([data-none]) .ax-twin-track i { animation: ax-glint 3.2s ease-in-out infinite; }
