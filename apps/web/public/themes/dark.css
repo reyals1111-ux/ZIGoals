@@ -11142,6 +11142,12 @@
         border-color: var(--line)
     }
 }
+/*  components/health/weight-csv-import.css  */
+@scope (:root[data-theme=dark]) {
+    .health-import-table :is(th, td):not(#\-) {
+        border-bottom-color: #87edc62c
+    }
+}
 /*  components/health/workouts/muscle-freshness.css  */
 @scope (:root[data-theme=dark]) {
     .muscle-freshness-body .mf-head:not(#\-) {

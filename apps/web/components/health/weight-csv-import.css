@@ -1,0 +1,5 @@
+/* Session AT (ADR-043 D6): the weight import preview, its value and unit as their own columns. */
+.health-import-table { width: 100%; border-collapse: collapse; font-size: .94rem; }
+.health-import-table caption { text-align: start; padding-bottom: 6px; }
+.health-import-table :is(th, td) { text-align: start; padding: 6px 8px; border-bottom: 1px solid #87edc62c; overflow-wrap: anywhere; }
+/* In its own file so it loads with the lazy import, not with the Health page (its route weight). */

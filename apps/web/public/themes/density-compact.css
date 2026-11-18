@@ -3180,6 +3180,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .supplements-form fieldset:not(#\-) { padding-top: 6px; padding-bottom: 9px; margin-top: 0; margin-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .supplements-time:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .supplements .checkbox:not(#\-) { row-gap: 8px; }
+/*  components/health/weight-csv-import.css  */
+:where(:root[data-density=compact]) .health-import-table caption:not(#\-) { padding-bottom: 6px; }
+:where(:root[data-density=compact]) .health-import-table :is(th, td):not(#\-) { padding-top: 6px; padding-bottom: 6px; }
 /*  components/health/workouts/muscle-freshness.css  */
 :where(:root[data-density=compact]) .muscle-freshness-body:not(#\-) { margin-top: 8px; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .muscle-freshness-grid:not(#\-) { row-gap: 6px; }

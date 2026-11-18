@@ -84,3 +84,10 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   state a moment after the page is live starts its fade after that instant, so "On" was read mid-fade (1.96:1, 1 run in 7
   under two workers, AR). The wait now needs 400 ms of quiet in a row; the measurement and its thresholds are unchanged.
   2 of 2 (both projects).
+- **D6 (CSV Value and Unit as their own fields; AO D17, AP D22).** The weight import read a line's unit from the value's
+  words. Now: a header row maps Date, Weight/Value and Unit by name in any order (Dutch names too; "Weight (lb)" gives that
+  column's unit); without a header the order is date, value, unit as before; a bare number takes the unit the person
+  chooses ("Unit when a line has none", their own unit first). The preview is a table with Date, Value, Unit (marked
+  "your choice" or "header" when not from the line) and "Saved as", and says how the columns were read. Its CSS loads with
+  the lazy import, not with Health (0.2 kB from its budget at AR). Theme sheets regenerated. `health-weight-csv.test.ts`
+  (+2), `tests/at/weight-csv-fields.spec.ts` (new), `mo-029-weight-csv.spec.ts` unchanged and passing.

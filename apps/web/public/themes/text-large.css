@@ -1665,6 +1665,8 @@
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .sleep-stats dd:not(#\-) { font-size: calc(18px * 1.125); } }
 /*  components/health/supplements.css  */
 :where(:root[data-text=large]) .supplements small:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/health/weight-csv-import.css  */
+:where(:root[data-text=large]) .health-import-table:not(#\-) { font-size: calc(.94rem * 1.125); }
 /*  components/health/workouts/muscle-freshness.css  */
 :where(:root[data-text=large]) .muscle-freshness-body text:not(#\-) { font-size: calc(10px * 1.125); }
 :where(:root[data-text=large]) .muscle-freshness-body .mf-view:not(#\-) { font-size: calc(10px * 1.125); }
