@@ -1,3 +1,12 @@
+# Session AT — "READY FOR FRIENDS" (ADR-043) (2026-11-18, `feature/session-at-ready-for-friends`, Draft PR; in progress)
+**Base:** `main` `3d510124` (Merge [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106), Session AS). **Rules (owner):** the brief for Session AT, one approved plan with approval items 1–5 and two owner changes (verbatim in `docs/architecture/ADR-043-session-at.md`). Resume file: `docs/handoff/AT_RESUME.md`.
+
+## Part 0 — records (18 Nov)
+- **[PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106) (Session AS and the owner's follow-up: exact answers, 64 widget kinds, Next.js 16.4.6, D20, carried fixes; CI 1868 green)** merged into `main` as `3d510124` (merge commit, read from `main`).
+- **[PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105) (Session AR)** merged as `e6e92a8c`.
+- **Alpha #57 (Manual Alpha deployment run 60): PLACEHOLDER.** Version id and rollback id not sent to this session yet. The next session records them here from the owner's message; frozen readers gain #57 (`scripts/frozen-readers.mjs`) only once its deploy SHA is confirmed.
+- Frozen readers stay #37–#56.
+
 # Session AS — "NOVA ANSWERS EVERYTHING" (ADR-042) (2026-11-17/18, `feature/session-as-nova-answers`, Draft [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106); complete, not merged, not deployed)
 **Base:** `main` `e6e92a8c` (Merge [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105), Session AR); `main` did not move during the session. **Rules (owner):** the brief for Session AS, one approved plan with seven approval items and four additions (verbatim in `docs/architecture/ADR-042-session-as.md`). The session ran on Fable until its allowance ended (18 Nov), then on Opus from `docs/handoff/AS_RESUME.md`. Decisions D1–D23 and the carried items: ADR-042.
 
