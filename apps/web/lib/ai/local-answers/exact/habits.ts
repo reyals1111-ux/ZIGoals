@@ -23,6 +23,8 @@ export function habitPoints(habit: Habit, days: readonly string[], today: string
   });
 }
 /** A habit's name in a sentence: the person's own words as data (escaped and bounded, lib/ai/tools/format.ts), without the Showcase's label. */
+/** Session AS (carried 8): a quit habit's failed day is a slip. */
+export const isQuit = (habit: Habit): boolean => latestHabitRule(habit).type === 'quit';
 export const habitName = (habit: Pick<Habit, 'title'>): string => clean(habit.title.replace(/\s*\(Showcase[^)]*\)\s*$/i, '').trim() || habit.title, 60);
 const number = (value: number) => formatNumber(Math.round(value * 100) / 100);
 export function habitWidgets(ask: Ask, period: Period, ref?: string): ExactWidget[] {
@@ -40,7 +42,7 @@ export function habitTrack(habit: Habit, today: string): Track {
   const rule = habitRuleOn(habit, today) ?? latestHabitRule(habit), unit = measurementUnit(rule), stats = habitStats(habit, today);
   const measured = rule.type === 'build' && rule.measurement.kind !== 'boolean' && !!unit && !(rule.target === 1 && /^times?$/i.test(unit));
   return {
-    key: `habit:${habit.id}`, domain: 'habits', name: habitName(habit), subject: {kind: 'habit', id: habit.id, name: habit.title}, kind: 'habit',
+    key: `habit:${habit.id}`, domain: 'habits', name: habitName(habit), subject: {kind: 'habit', id: habit.id, name: habit.title}, kind: 'habit', ...(rule.type === 'quit' ? {quit: true} : {}),
     points: days => habitPoints(habit, days, today),
     measure: measured ? {text: v => `${number(v)} ${unit}`, kind: 'sum', target: rule.target} : null,
     did: ['done', 'gedaan'], not: ['not done', 'niet gedaan'],

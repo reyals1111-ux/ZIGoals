@@ -21,7 +21,7 @@ export default function HabitYear({size, params}: AxProps) {
 }
 function Year({habit, today, size}: {habit: Habit; today: string; size: AxProps['size']}) {
   const view = useMemo(() => habitYear(habit, today), [habit, today]), span = `the last ${YEAR_WEEKS} weeks`;
-  const bits = [`${view.missed} missed`, `${view.skipped} skipped`, ...(view.part ? [`${view.part} partly done`] : []), ...(view.open ? ['today still open'] : [])];
+  const bits = [`${view.missed} ${view.quit ? 'slipped' : 'missed'}`, `${view.skipped} skipped`, ...(view.part ? [`${view.part} partly done`] : []), ...(view.open ? ['today still open'] : [])];
   return <AxBody kind="habit-year" size={size}>
     <AxHead figure={String(view.done)} unit={view.done === 1 ? 'day' : 'days'} label={`done · ${span}`} note={`${view.name} · ${bits.join(', ')}`}/>
     {size !== 'S' && <AxdHeat weeks={view.weeks.map(w => ({key: w.key, label: w.month, cells: w.cells.map(c => ({key: c.date, state: c.state, today: c.today, title: c.words}))}))}/>}
@@ -29,7 +29,7 @@ function Year({habit, today, size}: {habit: Habit; today: string; size: AxProps[
     <CardFoot source="Your habits" asOf={`${view.name} · ${span}`}/>
     <HoloTable caption={`${view.name}, ${span}`} rows={[
       ['Done', `${view.done} of ${view.decided} due days`],
-      ['Missed (a due day not done)', view.missed ? `${view.missed}: ${dayNames(view.dates.missed, 31)}` : 'None'],
+      [view.quit ? 'Slipped (the habit came back that day)' : 'Missed (a due day not done)', view.missed ? `${view.missed}: ${dayNames(view.dates.missed, 31)}` : 'None'],
       ['Skipped (marked so; not counted as missed)', view.skipped ? `${view.skipped}: ${dayNames(view.dates.skipped, 31)}` : 'None'],
       ...(view.open ? [['Today', 'Still open'] as const] : []),
     ]}/>

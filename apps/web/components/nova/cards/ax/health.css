@@ -100,6 +100,9 @@
 .axh-pin { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 2px; rotate: 45deg; background: var(--ax-ink); box-shadow: 0 0 0 2px var(--neon), 0 0 10px 2px color-mix(in srgb, var(--neon) 60%, transparent); pointer-events: none; }
 .axh-pin::after { content: ''; position: absolute; inset: -6px; border-radius: 3px; border: 1px solid color-mix(in srgb, var(--neon-2) 80%, transparent); }
 .axh-pin[data-pin=low] { background: var(--ax-glass); }
+/* Session AS (carried 9): a pin's own label, above the highest and below the lowest, never under a marker. */
+.axh-pin-label { position: absolute; translate: -50% calc(-100% - 10px); padding: 1px 6px; border-radius: 4px; font-size: 14px; line-height: 18px; white-space: nowrap; color: var(--ax-ink); background: color-mix(in srgb, var(--ax-glass) 88%, transparent); pointer-events: none; }
+.axh-pin-label[data-pin=low] { translate: -50% 10px; }
 .axh-trend-dates { flex: none; margin: 4px 0 0; display: flex; justify-content: space-between; font-size: 14px; line-height: 1.3; color: var(--ax-dim); font-variant-numeric: tabular-nums; }
 @container holo-body (max-height: 259.98px) { .axh-trend-dates { display: none; } }
 .axh-water { flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; flex-direction: column; gap: 4px; }

@@ -3806,6 +3806,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/nova/cards/ax/ax.css  */
 :where(:root[data-density=compact]) .ax-body:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .ax-head:not(#\-) { row-gap: 14px; }
+@container (max-width: 420px) { :where(:root[data-density=compact]) .ax-head:not(#\-) { row-gap: 4px; } }
 :where(:root[data-density=compact]) .ax-head-figure:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 7px; }
 :where(:root[data-density=compact]) .ax-head-words:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .ax-head-label:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3846,6 +3847,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .axd-guide:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 2px; }
 :where(:root[data-density=compact]) .axd-guide-row:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
 :where(:root[data-density=compact]) .axd-guide-asks:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .axd-scale:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/nova/cards/ax/health.css  */
 :where(:root[data-density=compact]) .axh-key:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .axh-key span:not(#\-) { row-gap: 6px; }
@@ -3865,6 +3867,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .axh-place:not(#\-) { row-gap: 10px; padding-top: 2px; padding-bottom: 2px; }
 :where(:root[data-density=compact]) .axh-trend-plot:not(#\-) { margin-bottom: 4px; }
 :where(:root[data-density=compact]) .axh-pin:not(#\-) { margin-top: -4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .axh-pin-label:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
 :where(:root[data-density=compact]) .axh-trend-dates:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .axh-water:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .axh-pips:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
@@ -3953,6 +3956,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nc-rings:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nc-ring:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .nc-trend-mark:not(#\-) { margin-top: -5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nc-trend-dot:not(#\-) { margin-top: -3px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nc-trend-mark[data-marker=heart]:not(#\-) { margin-top: -13px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nc-trend-edge:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nc-trend-goal:not(#\-) { padding-top: 0; padding-bottom: 0; }

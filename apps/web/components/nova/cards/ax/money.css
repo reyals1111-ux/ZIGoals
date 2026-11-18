@@ -220,13 +220,13 @@
 
 /* ---- Tiers and short panels: compact shows the figure and its words; a list drops whole rows; nothing is cut ---- */
 .nova-orbit-main[data-compose] .nova-widget[data-tier=compact] :is(.axm-inst, .axm-split, .axm-dialrow, .axm-legend, .axm-key, .axm-facts, .axm-note) { display: none; }
-@container holo-body (max-height: 439.98px) { .axm-legend > li:nth-child(n+8) { display: none; } }
-@container holo-body (max-height: 409.98px) { .axm-legend > li:nth-child(n+7) { display: none; } }
-@container holo-body (max-height: 379.98px) { .axm-legend > li:nth-child(n+6) { display: none; } }
-@container holo-body (max-height: 349.98px) { .axm-legend > li:nth-child(n+5) { display: none; } }
-@container holo-body (max-height: 321.98px) { .axm-legend > li:nth-child(n+4) { display: none; } }
-@container holo-body (max-height: 293.98px) { .axm-legend > li:nth-child(n+3) { display: none; } :is(.axm-facts, .axm-note) { display: none; } }
-@container holo-body (max-height: 265.98px) { .axm-legend > li:nth-child(n+2) { display: none; } .axm-key { display: none; } :is(.axm-gauge-text, .axm-river-axis, .axm-time-axis, .axm-heat-months, .axm-bills-head, .axm-jar-figure) { display: none; } }
+@container holo-body (max-height: 439.98px) { .axm-legend > li.axm-legend-row:nth-child(n+8) { display: none; } }
+@container holo-body (max-height: 409.98px) { .axm-legend > li.axm-legend-row:nth-child(n+7) { display: none; } }
+@container holo-body (max-height: 379.98px) { .axm-legend > li.axm-legend-row:nth-child(n+6) { display: none; } }
+@container holo-body (max-height: 349.98px) { .axm-legend > li.axm-legend-row:nth-child(n+5) { display: none; } }
+@container holo-body (max-height: 321.98px) { .axm-legend > li.axm-legend-row:nth-child(n+4) { display: none; } }
+@container holo-body (max-height: 293.98px) { .axm-legend > li.axm-legend-row:nth-child(n+3) { display: none; } :is(.axm-facts, .axm-note) { display: none; } }
+@container holo-body (max-height: 265.98px) { .axm-legend > li.axm-legend-row:nth-child(n+2) { display: none; } .axm-key { display: none; } :is(.axm-gauge-text, .axm-river-axis, .axm-time-axis, .axm-heat-months, .axm-bills-head, .axm-jar-figure) { display: none; } }
 @container holo-body (max-height: 237.98px) { .axm-legend { display: none; } .axm-gauges { display: none; } } /* critic round: never a gauge without its name; the figure and the table stand */
 /* A row of ranked bars (the kit's own list, reached by its place) drops whole rows too. */
 @container holo-body (max-height: 369.98px) { .axm-ranks > ol > li:nth-child(n+6) { display: none; } }

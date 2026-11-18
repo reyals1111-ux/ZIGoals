@@ -13,6 +13,8 @@ import type {Ask, Domain, Exact, ExactWidget, Lang, Query, QuerySubject} from '.
  */
 export type Track = {
   key: string; domain: Domain; name: string; subject?: QuerySubject;
+  /** Session AS (carried 8): a habit the person is quitting: its failed day is a slip, said "slipped", never "missed". */
+  quit?: boolean;
   /** One point for each given day (a day after today is never asked). */
   points: (days: readonly string[]) => DayPoint[];
   /** A measured track ("minutes", "L", "steps"); null for one that is only done or not. `sum`: totals make sense; `level`: only an average does (weight, sleep). */

@@ -1,4 +1,4 @@
-import {habitName, habitPoints, habitRows} from '../../../ai/local-answers/exact/habits';
+import {habitName, habitPoints, habitRows, isQuit} from '../../../ai/local-answers/exact/habits';
 import {resolvePeriod, type Period} from '../../../ai/local-answers/exact/period';
 import {tally, type DayState} from '../../../ai/local-answers/exact/series';
 import {weekStart} from '../../../ai/tools/range';
@@ -15,7 +15,7 @@ import {formatDate, formatMonth, formatWeekday} from '../../../visual-format';
  * - `habitYear`: one habit's last 53 weeks as a heat grid, a column a week.
  */
 export type LatCell = DayState | 'ahead';
-export type LatticeRow = {id: string; name: string; cells: LatCell[]; done: number; missed: number; skipped: number; decided: number; open: boolean; note: string};
+export type LatticeRow = {id: string; name: string; /** A habit being quit: its failed day is a slip. */ quit: boolean; cells: LatCell[]; done: number; missed: number; skipped: number; decided: number; open: boolean; note: string};
 export type LatticeView = {
   period: Period;
   columns: {date: string; day: number; today: boolean; words: string}[];
@@ -31,7 +31,7 @@ export function habitsLattice(habits: readonly Habit[], period: Period, today: s
   const byId = new Map(habits.map(h => [h.id, h] as const));
   const out = rows.map(r => {
     const decided = r.T.due - r.T.open - r.T.skipped;
-    return {id: r.id, name: r.name, cells: habitPoints(byId.get(r.id)!, days, today).map(p => p.state as LatCell), done: r.T.done, missed: r.T.missed, skipped: r.T.skipped, decided, open: r.T.open > 0, note: `${r.T.done}/${decided}`};
+    return {id: r.id, name: r.name, quit: isQuit(byId.get(r.id)!), cells: habitPoints(byId.get(r.id)!, days, today).map(p => p.state as LatCell), done: r.T.done, missed: r.T.missed, skipped: r.T.skipped, decided, open: r.T.open > 0, note: `${r.T.done}/${decided}`};
   });
   const sum = (pick: (r: (typeof rows)[number]) => number) => rows.reduce((n, r) => n + pick(r), 0);
   return {
@@ -77,6 +77,7 @@ export function habitWeekdays(habits: readonly Habit[], today: string, token?: s
 
 export type YearCell = {date: string; state: LatCell; today: boolean; words: string};
 export type YearView = {
+  /** A habit being quit: its failed day is a slip. */ quit: boolean;
   id: string; name: string; from: string; to: string;
   /** 53 columns, oldest first; each a week from Monday. `month`: the month's short name over the week its first day falls in. */
   weeks: {key: string; month: string | null; cells: YearCell[]}[];
@@ -98,5 +99,5 @@ export function habitYear(habit: Habit, today: string, weeks = YEAR_WEEKS): Year
     return {key, month: first ? formatMonth(`${first.date}T12:00:00Z`, {year: false, timeZone: 'UTC'}) : null, cells};
   });
   const part = T.dates.part.filter(d => d !== today).length;
-  return {id: habit.id, name: habitName(habit), from, to: today, weeks: grid, done: T.done, missed: T.missed, skipped: T.skipped, part, decided: T.due - T.open - T.skipped, open: T.open > 0, dates: {missed: T.dates.missed, skipped: T.dates.skipped}};
+  return {id: habit.id, name: habitName(habit), quit: isQuit(habit), from, to: today, weeks: grid, done: T.done, missed: T.missed, skipped: T.skipped, part, decided: T.due - T.open - T.skipped, open: T.open > 0, dates: {missed: T.dates.missed, skipped: T.dates.skipped}};
 }

@@ -13925,6 +13925,12 @@
     .axd-guide-caret:not(#\-) {
         background: var(--neon-2)
     }
+    .axd-scale:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-radar-scale:not(#\-) {
+        color: var(--ax-dim)
+    }
 }
 /*  components/nova/cards/ax/health.css  */
 @scope (:root[data-theme=dark]) {
@@ -14101,6 +14107,11 @@
     .axh-pin[data-pin=low]:not(#\-) {
         background-image: none;
         background-color: var(--ax-glass)
+    }
+    .axh-pin-label:not(#\-) {
+        color: var(--ax-ink);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--ax-glass) 88%, transparent)
     }
     .axh-trend-dates:not(#\-) {
         color: var(--ax-dim)
@@ -14945,6 +14956,10 @@
     }
     .nc-trend-mark:not(#\-)::after {
         border-color: color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)
+    }
+    .nc-trend-dot:not(#\-) {
+        background: var(--neon-2, #c0adff);
+        box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
     }
     .nc-trend-mark[data-marker=heart]:not(#\-) {
         background-image: none;

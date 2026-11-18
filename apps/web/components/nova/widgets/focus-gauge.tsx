@@ -32,6 +32,8 @@ function Dial({focus, today, size, token}: {focus: FocusSessions; today: string;
   return <AxBody kind="focus-gauge" size={size}>
     <AxHead figure={formatNumber(view.now.minutes)} unit="min" label={`focused · ${now}`} note={view.now.sessions ? delta : `No session ${open ? 'yet ' : ''}${now} · ${delta}`}/>
     {size !== 'S' && <AxdGauge now={view.nowShare} before={view.beforeShare} figure={formatNumber(view.now.minutes)} unit="min"/>}
+    {/* Session AS (carried 9): the arc's scale, said (it is the larger of the two periods, not a target). */}
+    {size !== 'S' && (view.now.sessions || view.before.sessions) ? <p className="axd-scale">Full arc: {minutes(Math.max(view.now.minutes, view.before.minutes))}, the larger of the two periods</p> : null}
     {size === 'L' && <AxdKey items={[['lit', open ? `${now[0]!.toUpperCase()}${now.slice(1)} so far` : `${now[0]!.toUpperCase()}${now.slice(1)}`], ['dim', `${before[0]!.toUpperCase()}${before.slice(1)}`], ['none', 'No session']]}/>}
     <CardFoot source="Your focus sessions" asOf={now}/>
     <HoloTable caption={`Focus ${now} beside ${before}`} rows={[

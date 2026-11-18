@@ -39,7 +39,7 @@ test('the owner’s first question as ranked bars: nothing missed this week; thi
   const week = missRanks(habits, widgetPeriod('this-week', DAY), DAY);
   expect(week).toMatchObject({rows: [], clean: 7, habitsMissed: 0, missedDays: 0, openToday: ['Exercise', 'Meditate', 'Drink water']});
   const month = missRanks(habits, widgetPeriod('this-month', DAY), DAY);
-  expect(month.rows[0]).toMatchObject({label: 'Late-night snacks', missed: 2, skipped: 3, total: 5, text: '5 days: 2 missed, 3 skipped'});
+  expect(month.rows[0]).toMatchObject({label: 'Late-night snacks', missed: 2, skipped: 3, total: 5, text: '5 days: 2 slipped, 3 skipped'}); // owner (carried 8): a quit habit's failed day is a slip
   expect(month.rows.slice(1).every(r => r.missed === 0 && r.skipped === 2)).toBe(true);
   expect(month).toMatchObject({habitsMissed: 1, habitsNotDone: 7, clean: 0, missedDays: 2, skippedDays: 15, max: 5});
 });

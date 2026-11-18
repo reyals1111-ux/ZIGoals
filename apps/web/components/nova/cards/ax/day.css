@@ -47,7 +47,7 @@
 .axd-flame[data-out] .axd-flame-body { height: 9px; left: 26%; right: 26%; border-radius: 50%; background: none; border: 1px dashed color-mix(in srgb, var(--ax-dim) 85%, transparent); box-shadow: none; }
 .axd-flame[data-out] .axd-flame-body b { display: none; }
 .axd-flame[data-out] .axd-flame-fig { color: var(--ax-dim); text-shadow: none; }
-.axd-flame-name { max-width: 100%; font-size: 14px; line-height: 17px; color: var(--ax-label); text-align: center; overflow-wrap: anywhere; hyphens: auto; } /* Session AS: a habit's name wraps, never cut */
+.axd-flame-name { max-width: 100%; font-size: 14px; line-height: 17px; color: var(--ax-label); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* owner (carried 3): one line, an ellipsis, the full name in its title and the table; never a syllable break */ /* Session AS: a habit's name wraps, never cut */
 
 /* ---- Family: lattices and heat (rows of days; a column a week) ---- */
 .axd-lat { display: grid; gap: 4px; min-width: 0; }
@@ -57,7 +57,7 @@
 .axd-lat[data-kind=counts] .axd-lat-head span { text-align: center; }
 .axd-lat-head span[data-lead] { color: var(--ax-ink); font-weight: 650; }
 .axd-lat-now { position: absolute; left: 50%; bottom: 0; width: 0; height: 0; margin-left: -4px; border: 4px solid transparent; border-bottom: 0; border-top-color: var(--ax-ink); }
-.axd-lat-label { font-size: 14px; line-height: 16px; color: var(--ax-ink); overflow-wrap: anywhere; hyphens: auto; padding-right: 6px; } /* Session AS: a habit's name wraps, never cut */
+.axd-lat-label { font-size: 14px; line-height: 16px; color: var(--ax-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; } /* Session AS: a habit's name wraps, never cut */
 .axd-lat-note { padding-left: 6px; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--ax-label); white-space: nowrap; text-align: right; }
 .axd-lat-row i { display: grid; place-items: center; height: 16px; min-width: 0; box-sizing: border-box; border-radius: 3px; font-style: normal; border: 1px solid color-mix(in srgb, var(--neon) 26%, transparent); background: color-mix(in srgb, var(--neon) 5%, var(--ax-glass)); }
 .axd-lat[data-kind=counts] .axd-lat-row i { height: 24px; border-radius: 6px; }
@@ -264,3 +264,8 @@
 
 /* Session AS: optional parts step aside when the answer does not fit its panel (AxBody's fit check). */
 .ax-body[data-over] :is(.axd-key) { display: none; }
+
+/* Session AS (carried 9): a gauge's stated scale. */
+.axd-scale { margin: 0; font-size: 14px; line-height: 1.3; text-align: center; color: var(--ax-label); }
+/* Session AS (carried 4): each spoke says what its end stands for. */
+.axd-radar-scale { font-size: 14px; line-height: 17px; color: var(--ax-dim); }

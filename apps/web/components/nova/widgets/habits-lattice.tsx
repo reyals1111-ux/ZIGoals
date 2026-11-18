@@ -39,7 +39,7 @@ function Days({habits, today, size, params}: {habits: readonly Habit[]; today: s
     <HoloTable caption={`Habits day by day, ${label}`} rows={[
       ['Due check-ins done', `${T.done} of ${T.decided}`], ['Missed (a due day not done)', String(T.missed)], ['Skipped (marked so; not counted as missed)', String(T.skipped)],
       ...(T.open ? [['Still open today', String(T.open)] as const] : []),
-      ...view.rows.map(r => { const missed = dates(r, 'missed'), skipped = dates(r, 'skipped'); return [r.name, `${r.done} of ${r.decided} done${missed.length ? `; missed ${dayNames(missed, 31)}` : ''}${skipped.length ? `; skipped ${dayNames(skipped, 31)}` : ''}${r.open ? '; today still open' : ''}`] as const; }),
+      ...view.rows.map(r => { const missed = dates(r, 'missed'), skipped = dates(r, 'skipped'); return [r.name, `${r.done} of ${r.decided} done${missed.length ? `; ${r.quit ? 'slipped' : 'missed'} ${dayNames(missed, 31)}` : ''}${skipped.length ? `; skipped ${dayNames(skipped, 31)}` : ''}${r.open ? '; today still open' : ''}`] as const; }),
     ]}/>
   </AxBody>;
 }

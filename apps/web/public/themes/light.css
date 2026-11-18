@@ -13496,6 +13496,12 @@
     .axd-guide-caret:not(#\-) {
         background: var(--neon-2)
     }
+    .axd-scale:not(#\-) {
+        color: var(--ax-label)
+    }
+    .axd-radar-scale:not(#\-) {
+        color: color-mix(in srgb, var(--ax-dim) 42%, #000)
+    }
 }
 /*  components/nova/cards/ax/health.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -13672,6 +13678,11 @@
     .axh-pin[data-pin=low]:not(#\-) {
         background-image: none;
         background-color: var(--ax-glass)
+    }
+    .axh-pin-label:not(#\-) {
+        color: var(--ax-ink);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--ax-glass) 88%, transparent)
     }
     .axh-trend-dates:not(#\-) {
         color: color-mix(in srgb, var(--ax-dim) 42%, #000)
@@ -14516,6 +14527,10 @@
     }
     .nc-trend-mark:not(#\-)::after {
         border-color: color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent)
+    }
+    .nc-trend-dot:not(#\-) {
+        background: var(--neon-2, #c0adff);
+        box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent)
     }
     .nc-trend-mark[data-marker=heart]:not(#\-) {
         background-image: none;

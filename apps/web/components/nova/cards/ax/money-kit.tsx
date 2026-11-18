@@ -1,5 +1,5 @@
 'use client';
-import type {CSSProperties, ReactNode} from 'react';
+import {useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react';
 import {Fact} from '../kit';
 import {AxHead} from './kit';
 import './money.css';
@@ -22,14 +22,27 @@ export function AxmSplit({rows = 0, stack = false, children}: {rows?: number; /*
 /** The list beside a drawing: a numbered node as on the drawing, the name, its figure and one more line of words. Whole rows only. */
 export type AxmItem = {key: string; n?: number | string; name: string; value: string; sub?: string; tone?: 'watch'; unlit?: boolean};
 export function AxmLegend({items, more}: {items: readonly AxmItem[]; more?: string | null}) {
-  return <ol className="axm-legend" aria-hidden="true">
+  // Session AS (carried 1): a short panel's height caps hide the last rows (money.css); the legend counts them and says so
+  // ("+2 more", added to any "+N more on the … page" the widget already says), so a drawing never shows more than it names
+  // without saying it. Measured on layout and when the legend's size changes; nothing runs otherwise.
+  const list = useRef<HTMLOListElement>(null), [hidden, setHidden] = useState(0);
+  useLayoutEffect(() => {
+    const el = list.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const count = () => setHidden([...el.querySelectorAll<HTMLElement>(':scope > .axm-legend-row')].filter(r => getComputedStyle(r).display === 'none').length);
+    count();
+    const watch = new ResizeObserver(count); watch.observe(el);
+    return () => watch.disconnect();
+  }, [items.length]);
+  const given = more ? /^\+(\d+) more(.*)$/.exec(more) : null, line = hidden ? (given ? `+${hidden + Number(given[1])} more${given[2]}` : more ? `+${hidden} more · ${more}` : `+${hidden} more`) : more;
+  return <ol ref={list} className="axm-legend" aria-hidden="true">
     {items.map((item, i) => <li key={item.key} className="axm-legend-row" data-tone={item.tone} data-unlit={item.unlit ? '' : undefined} style={{'--ax-i': i} as CSSProperties}>
       <i className="axm-legend-n">{item.n ?? i + 1}</i>
       <span className="axm-legend-name" title={item.name}>{item.name}</span>
       <span className="axm-legend-value">{item.value}</span>
       {item.sub ? <span className="axm-legend-sub">{item.sub}</span> : null}
     </li>)}
-    {more ? <li className="axm-legend-more">{more}</li> : null}
+    {line ? <li className="axm-legend-more">{line}</li> : null}
   </ol>;
 }
 /** What each mark means, in words (never colour alone). */

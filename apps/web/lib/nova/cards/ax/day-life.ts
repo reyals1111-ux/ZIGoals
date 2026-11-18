@@ -25,7 +25,7 @@ export type LifeInput = {
   checklist?: {days: Readonly<Record<string, {done: number; total: number}>>; today?: {date: string; done: number; total: number} | null} | null;
 };
 export type SpokeSide = {value: number | null; /** 0–1 along the spoke; null: unknown. */ share: number | null; text: string; /** The count behind it (check-ins done, tasks, minutes, dots) and, for a share, what it is of. */ n?: number; of?: number};
-export type Spoke = {key: 'habits' | 'tasks' | 'focus' | 'checklist'; label: string; /** This period as a figure and words ("11" "of 11" "habit check-ins done"). */ figure: string; unit: string; words: string; now: SpokeSide; before: SpokeSide};
+export type Spoke = {key: 'habits' | 'tasks' | 'focus' | 'checklist'; label: string; /** Session AS (carried 4): what the spoke's end stands for, said beside it ("full: 100%", "full: 2 tasks"): a share is its own scale, a count reaches its end at the larger of its two periods. */ full: string; /** This period as a figure and words ("11" "of 11" "habit check-ins done"). */ figure: string; unit: string; words: string; now: SpokeSide; before: SpokeSide};
 export type RadarView = {period: Period; before: Period | null; spokes: Spoke[]; /** Spokes with a figure for this period. */ known: number; beforeWords: string | null};
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const UNKNOWN: SpokeSide = {value: null, share: null, text: 'Nothing recorded'};
@@ -49,6 +49,7 @@ export function lifeRadar(input: LifeInput, period: Period, today: string, doneD
     }
     return ratio(done, total, 'Checklist dots done');
   };
+  const fullOf = (a: number | null, b: number | null, text: (n: number) => string) => `full: ${text(Math.max(a ?? 0, b ?? 0, 1)).replace(/ (?:done|focused)$/, '')}`;
   const counted = (a: number | null, b: number | null, text: (n: number) => string): [SpokeSide, SpokeSide] => {
     const top = Math.max(a ?? 0, b ?? 0, 1), side = (n: number | null): SpokeSide => n === null ? UNKNOWN : {value: n, share: n / top, text: text(n), n};
     return [side(a), side(b)];
@@ -56,10 +57,10 @@ export function lifeRadar(input: LifeInput, period: Period, today: string, doneD
   const h = habits(period), hb = habits(before), c = checklist(period), cb = checklist(before);
   const t = tasks(period), f = focus(period), [tNow, tBefore] = counted(t, tasks(before), n => `${plural(n, 'task')} done`), [fNow, fBefore] = counted(f, focus(before), n => `${plural(n, 'minute')} focused`);
   const spokes: Spoke[] = [
-    {key: 'habits', label: 'Habits', figure: h.share === null ? '—' : String(h.n), unit: h.share === null ? '' : `of ${h.of}`, words: 'habit check-ins done', now: h, before: hb},
-    {key: 'tasks', label: 'Tasks', figure: t === null ? '—' : String(t), unit: '', words: t === 1 ? 'task done' : 'tasks done', now: tNow, before: tBefore},
-    {key: 'focus', label: 'Focus', figure: f === null ? '—' : String(f), unit: 'min', words: 'focused', now: fNow, before: fBefore},
-    {key: 'checklist', label: 'Checklist', figure: c.share === null ? '—' : String(c.n), unit: c.share === null ? '' : `of ${c.of}`, words: 'Checklist dots done', now: c, before: cb},
+    {key: 'habits', label: 'Habits', full: 'full: 100%', figure: h.share === null ? '—' : String(h.n), unit: h.share === null ? '' : `of ${h.of}`, words: 'habit check-ins done', now: h, before: hb},
+    {key: 'tasks', label: 'Tasks', full: fullOf(t, tasks(before), n => plural(n, 'task')), figure: t === null ? '—' : String(t), unit: '', words: t === 1 ? 'task done' : 'tasks done', now: tNow, before: tBefore},
+    {key: 'focus', label: 'Focus', full: fullOf(f, focus(before), n => `${n} min`), figure: f === null ? '—' : String(f), unit: 'min', words: 'focused', now: fNow, before: fBefore},
+    {key: 'checklist', label: 'Checklist', full: 'full: 100%', figure: c.share === null ? '—' : String(c.n), unit: c.share === null ? '' : `of ${c.of}`, words: 'Checklist dots done', now: c, before: cb},
   ];
   return {period, before, spokes, known: spokes.filter(s => s.now.share !== null).length,
     beforeWords: before ? (before.from === before.to ? formatDate(before.from, {year: false}) : `${formatDate(before.from, {year: false})} – ${formatDate(before.to, {year: false})}`) : null};

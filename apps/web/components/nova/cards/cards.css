@@ -265,6 +265,8 @@
 /* The lead point: a white core, a neon ring, a halo and one thin outer ring (the only part that breathes). */
 .nc-trend-mark { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2.5px var(--neon, #9273ff), 0 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 24%, transparent), 0 0 16px 3px var(--neon, #9273ff); }
 .nc-trend-mark::after { content: ''; position: absolute; inset: -10px; border-radius: 50%; border: 1px solid color-mix(in oklab, var(--neon-2, #c0adff) 80%, transparent); }
+/* Session AS: a logged day on its own between gaps (TrendArea `gaps`). */
+.nc-trend-dot { position: absolute; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--neon-2, #c0adff); box-shadow: 0 0 6px color-mix(in oklab, var(--neon, #9273ff) 70%, transparent); pointer-events: none; }
 .nc-trend-mark[data-marker=heart] { width: 24px; height: 24px; margin: -13px 0 0 -12px; border-radius: 0; background: none; box-shadow: none; }
 .nc-trend-mark[data-marker=heart]::after { inset: -6px; }
 .nc-trend-mark svg { width: 100%; height: 100%; overflow: visible; fill: #fff; stroke: var(--neon, #ff74be); stroke-width: 1.8; stroke-linejoin: round; filter: drop-shadow(0 0 5px var(--neon, #ff74be)); }

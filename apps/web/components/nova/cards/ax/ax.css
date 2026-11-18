@@ -11,6 +11,8 @@
 
 /* ---- The answer in a figure and words ---- */
 .ax-head { display: flex; align-items: center; gap: 14px; min-width: 0; }
+/* Session AS (carried 9): in a narrow panel the words go under the figure (beside it they were squeezed to about 90 px). */
+@container (max-width: 420px) { .ax-head { flex-wrap: wrap; row-gap: 4px; } .ax-head-words { flex: 1 1 100%; } }
 .ax-head-figure { margin: 0; display: flex; align-items: baseline; gap: 7px; line-height: 1; flex: none; }
 .ax-head-num { font-size: clamp(36px, 15cqi, 56px); font-weight: 680; font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: var(--ax-ink); text-shadow: 0 0 14px color-mix(in srgb, var(--neon) 70%, transparent); }
 .ax-head-unit { font-size: 15px; color: var(--ax-label); }

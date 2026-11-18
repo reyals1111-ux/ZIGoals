@@ -14,7 +14,7 @@ import './day.css';
  * Arrives: the radar's shapes unfold from the centre; the scanner's lanes slide in from the right. Alive: the radar's
  * sweep turns; one beam crosses the scanner from the top. Both are decoration: the widget's table says every figure.
  */
-export type RadarSpoke = {key: string; label: string; text: string; now: number | null; before: number | null};
+export type RadarSpoke = {key: string; label: string; text: string; now: number | null; before: number | null; /** The spoke's scale in words ("full: 2 tasks"). */ scale?: string};
 const ANGLES = [315, 45, 135, 225], REACH = 40;
 const shape = (shares: readonly (number | null)[]): {d: string; points: {x: number; y: number}[]} => {
   const points = shares.flatMap((s, i) => s === null ? [] : [polar(0, 0, Math.max(2.5, Math.min(1, s) * REACH), ANGLES[i]!)]);
@@ -22,7 +22,7 @@ const shape = (shares: readonly (number | null)[]): {d: string; points: {x: numb
 };
 export function AxdRadar({spokes}: {spokes: readonly RadarSpoke[]}) {
   const four = spokes.slice(0, 4), now = shape(four.map(s => s.now)), before = shape(four.map(s => s.before));
-  const name = (i: number) => four[i] ? <p className="axd-radar-name" title={`${four[i]!.label}: ${four[i]!.text}`}><b>{four[i]!.label}</b><span>{four[i]!.text}</span></p> : null;
+  const name = (i: number) => four[i] ? <p className="axd-radar-name" title={`${four[i]!.label}: ${four[i]!.text}`}><b>{four[i]!.label}</b><span>{four[i]!.text}</span>{four[i]!.scale ? <small className="axd-radar-scale">{four[i]!.scale}</small> : null}</p> : null;
   return <div className="axd-inst axd-radar" aria-hidden="true">
     <div className="axd-radar-side" data-side="left">{name(0)}{name(3)}</div>
     <div className="axd-radar-plot">

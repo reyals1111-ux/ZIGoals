@@ -20,7 +20,7 @@ export function AxdFlames({flames, more}: {flames: readonly FlameMark[]; more?: 
         {f.ghost !== undefined && f.ghost > 0 && <i className="axd-flame-ghost" style={height(f.ghost)}/>}
         <i className="axd-flame-body" style={f.share > 0 ? height(f.share) : undefined}><b/></i>
       </span>
-      <span className="axd-flame-name">{f.label}</span>
+      <span className="axd-flame-name" title={f.label}>{f.label}</span>
     </li>)}</ol>
     {more ? <p className="axd-more">{more}</p> : null}
   </div>;

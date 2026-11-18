@@ -1,5 +1,5 @@
 import type {Habit} from '../../../habits';
-import {habitRows} from '../../../ai/local-answers/exact/habits';
+import {habitRows, isQuit} from '../../../ai/local-answers/exact/habits';
 import type {Period} from '../../../ai/local-answers/exact/period';
 
 /**
@@ -21,9 +21,10 @@ export type RanksView = {
 };
 const days = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
 export function missRanks(habits: readonly Habit[], period: Period, today: string): RanksView {
+  const quit = new Set(habits.filter(isQuit).map(h => h.id));
   const all = habitRows(habits, period, today).map(r => {
     const part = r.T.dates.part.filter(d => d !== today).length, total = r.T.missed + r.T.skipped + part;
-    const bits = [r.T.missed ? `${r.T.missed} missed` : '', r.T.skipped ? `${r.T.skipped} skipped` : '', part ? `${part} partly` : ''].filter(Boolean);
+    const bits = [r.T.missed ? `${r.T.missed} ${quit.has(r.id) ? 'slipped' : 'missed'}` : '', r.T.skipped ? `${r.T.skipped} skipped` : '', part ? `${part} partly` : ''].filter(Boolean);
     return {key: r.id, label: r.name, missed: r.T.missed, skipped: r.T.skipped, part, total, done: r.T.done, due: r.T.due - r.T.open, open: r.T.open > 0, text: total ? `${days(total)}: ${bits.join(', ')}` : 'every due day done'};
   });
   const rows = all.filter(r => r.total > 0).sort((a, b) => b.missed - a.missed || b.total - a.total || a.label.localeCompare(b.label));

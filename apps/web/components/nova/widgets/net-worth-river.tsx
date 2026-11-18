@@ -32,11 +32,13 @@ function River({history, today, size, params}: {history: NetworthHistory; today:
   const label = periodLabel(view.period, today), on = (day: string) => formatDate(day, {year: !day.startsWith(today.slice(0, 4))}), latest = view.latest, cur = view.currency ?? '', money = (cents: bigint) => historyMoney(cents, cur);
   if (view.state !== 'live' || !latest) return <CardNotice kind="empty" ghost="trend" title={`No day recorded ${label}`} href="/app/wealth#wealth-history" action="Record today on Wealth">{view.since ? `The history starts ${on(view.since)}. ` : ''}Wealth records your net worth once on each day you open it.</CardNotice>;
   const known = latest.cents !== null ? {day: latest.day, cents: latest.cents} : view.latestKnown, change = view.change ? changeWords(view.change, money, percent, on) : null;
-  const lo = view.low ? Number(view.low.cents) / 100 : 0, hi = view.high ? Number(view.high.cents) / 100 : 0, first = view.days.find(d => d.value !== null);
+  const hi = view.high ? Number(view.high.cents) / 100 : 0, first = view.days.find(d => d.value !== null);
   return <AxBody kind="net-worth-river" size={size}>
     <AxmHead figure={known ? money(known.cents) : '—'} label={latest.cents !== null ? `recorded net worth · ${on(latest.day)}` : known ? `last recorded · ${on(known.day)}` : 'net worth not known'} tone={latest.cents === null ? 'watch' : undefined}
       note={latest.cents === null ? `Not known on ${on(latest.day)}: no value for ${latest.missing.slice(0, 2).join(', ')}` : change ?? `One day with a known net worth ${label}, so no change to state`}/>
-    {size !== 'S' && <AxmRiver breaks upper={view.days.map(d => d.value === null ? null : hi > lo ? 0.3 + 0.7 * (d.value - lo) / (hi - lo) : 0.6)} start={on(view.days[0]!.day)} end={on(view.days.at(-1)!.day)} caption={view.notRecorded ? 'recorded days · a gap was not recorded' : 'recorded days'}/>}
+    {/* Session AS (carried 5): the band's thickness is measured from zero (the period's highest is full), so a rise of 8.5 %
+        draws as 8.5 %, not as a band twice as thick; a day below zero draws as nothing, and the caption says the scale. */}
+    {size !== 'S' && <AxmRiver breaks upper={view.days.map(d => d.value === null ? null : hi > 0 ? Math.max(0, d.value) / hi : 0)} start={on(view.days[0]!.day)} end={on(view.days.at(-1)!.day)} caption={`thickness from zero${view.notRecorded ? ' · a gap was not recorded' : ''}`}/>}
     {size === 'L' && view.high && view.low && <AxmFacts rows={[['Highest', `${money(view.high.cents)} · ${on(view.high.day)}`], ['Lowest', `${money(view.low.cents)} · ${on(view.low.day)}`], ['Days recorded', `${view.recorded}${view.notRecorded ? ` · ${view.notRecorded} not recorded` : ''}`]]}/>}
     <CardFoot source="Your Wealth records" asOf={`${label} · last recorded ${on(latest.day)}`}/>
     <HoloTable caption={`Recorded net worth in ${cur || 'your currency'}, ${label}`} rows={[

@@ -76,7 +76,7 @@ export function dayNames(dates: readonly string[], max = 12): string {
 /** What a calendar widget says beside its drawing: the answer as a figure and words, and the same as rows for a table. */
 export type CalendarWords = {figure: string; unit: string; label: string; note: string; tone?: 'clear'; rows: (readonly [string, string])[]; key: (readonly [string, string])[]};
 const dayCount = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
-export function calendarWords(view: CalendarView, track: Pick<Track, 'name' | 'kind' | 'did' | 'not' | 'measure'>, lit: Lit, today: string): CalendarWords {
+export function calendarWords(view: CalendarView, track: Pick<Track, 'name' | 'kind' | 'did' | 'not' | 'measure' | 'quit'>, lit: Lit, today: string): CalendarWords {
   const T = view.tally, period = periodLabel(view.period, today), n = view.lit.length, habit = track.kind === 'habit', open = T.open > 0;
   let figure = n;
   const partPast = T.dates.part.filter(d => d !== today), nothing = track.kind === 'log' ? T.dates.none : [];
@@ -91,14 +91,15 @@ export function calendarWords(view: CalendarView, track: Pick<Track, 'name' | 'k
   } else {
     const what = habit ? 'not done' : track.kind === 'log' ? track.not[0] : track.not[0];
     label = `${what} · ${period}`;
-    const bits = habit ? [T.missed ? `${T.missed} missed` : '', T.skipped ? `${T.skipped} skipped` : '', partPast.length ? `${partPast.length} partly done` : ''].filter(Boolean)
+    const miss = track.quit ? 'slipped' : 'missed';
+    const bits = habit ? [T.missed ? `${T.missed} ${miss}` : '', T.skipped ? `${T.skipped} skipped` : '', partPast.length ? `${partPast.length} partly done` : ''].filter(Boolean)
       : track.kind === 'log' ? [partPast.length ? `${partPast.length} below your target` : '', nothing.length ? `${nothing.length} with nothing logged` : ''].filter(Boolean) : [];
     note = `${track.name}${bits.length ? ` · ${bits.join(', ')}` : ''}${open ? ' · today still open' : ''}`;
     // A log's figure is the days below its target: a day with nothing logged is unknown, said apart, never counted as below.
     // (With none below it, the figure is the days the target was reached, so "0 days" never stands beside "reached".)
     if (track.kind === 'log') figure = partPast.length || T.done;
     if (!partPast.length && track.kind === 'log' || !figure) { tone = 'clear'; label = habit ? `every due day done · ${period}` : track.kind === 'log' ? `${track.did[0]} on every day logged · ${period}` : `${track.did[0]} every day · ${period}`; }
-    if (habit) { rows.push(['Missed (a due day not done)', T.missed ? `${dayCount(T.missed)}: ${dayNames(T.dates.missed, 31)}` : 'None']); rows.push(['Skipped (marked so; not counted as missed)', T.skipped ? `${dayCount(T.skipped)}: ${dayNames(T.dates.skipped, 31)}` : 'None']); if (partPast.length) rows.push(['Partly done', `${dayCount(partPast.length)}: ${dayNames(partPast, 31)}`]); }
+    if (habit) { rows.push([track.quit ? 'Slipped (the habit came back that day)' : 'Missed (a due day not done)', T.missed ? `${dayCount(T.missed)}: ${dayNames(T.dates.missed, 31)}` : 'None']); rows.push(['Skipped (marked so; not counted as missed)', T.skipped ? `${dayCount(T.skipped)}: ${dayNames(T.dates.skipped, 31)}` : 'None']); if (partPast.length) rows.push(['Partly done', `${dayCount(partPast.length)}: ${dayNames(partPast, 31)}`]); }
     else if (track.kind === 'log') { rows.push([`${track.name}: ${track.not[0]}`, partPast.length ? `${dayCount(partPast.length)}: ${dayNames(partPast, 31)}` : 'None']); rows.push(['Nothing logged (unknown, not counted)', nothing.length ? `${dayCount(nothing.length)}: ${dayNames(nothing, 31)}` : 'None']); }
     else rows.push([`${track.name}: ${track.not[0]}`, n ? `${dayCount(n)}: ${dayNames(view.lit, 31)}` : 'None']);
   }
@@ -107,7 +108,7 @@ export function calendarWords(view: CalendarView, track: Pick<Track, 'name' | 'k
   void state;
   const used = new Set(view.weeks.flat().filter(c => c.inPeriod).map(c => c.state));
   const key: (readonly [string, string])[] = lit === 'done' ? [['lit', track.did[0]]] : [
-    ...(habit && used.has('missed') ? [['missed', 'Missed'] as const] : []), ...(habit && used.has('skipped') ? [['skipped', 'Skipped'] as const] : []),
+    ...(habit && used.has('missed') ? [['missed', track.quit ? 'Slipped' : 'Missed'] as const] : []), ...(habit && used.has('skipped') ? [['skipped', 'Skipped'] as const] : []),
     ...(!habit && track.kind === 'log' && used.has('part') ? [['part', track.not[0]] as const] : []), ...(track.kind !== 'habit' && used.has('none') ? [['none', track.kind === 'log' ? 'Nothing logged' : track.not[0]] as const] : []),
     ...(used.has('done') ? [['done', habit ? 'Done' : track.did[0]] as const] : []),
   ];

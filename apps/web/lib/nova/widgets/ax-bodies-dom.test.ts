@@ -26,7 +26,7 @@ const PARAMS: Record<string, () => WidgetParams> = {'habit-missed-days': () => (
 const NOT_IN_SHOWCASE = new Set(['heart-trend', 'mood-map']);
 const SAYS: Record<string, string[]> = {
   'habit-missed-days': ['2', 'days', 'Meditate', '2 skipped', 'today still open', 'Nov 3, Nov 12'],
-  'habit-misses': ['1', 'of 7', 'missed', 'Late-night snacks', '2 missed', '3 skipped'],
+  'habit-misses': ['1', 'of 7', 'missed', 'Late-night snacks', '2 slipped', '3 skipped'], // owner (carried 8): Late-night snacks is a quit habit
   'habits-month': ['Nov 8', 'Nov 13'],
   // "Did I focus today": today (no session yet) beside yesterday's 150 minutes, never this week's total (Session AS).
   'focus-gauge': ['focused · today', 'No session yet today', '150 minutes yesterday'],

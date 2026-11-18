@@ -56,7 +56,8 @@ async function shows(page: Page, id: string, facts: readonly string[]) {
       const r = t.getBoundingClientRect(), cs = getComputedStyle(t);
       if (!r.width || !r.height || cs.visibility === 'hidden') continue;
       if (r.bottom > panel.bottom + 1 || r.right > panel.right + 1 || r.left < panel.left - 1) bad.push(`out: ${t.textContent!.trim().slice(0, 30)}`);
-      if (cs.textOverflow === 'ellipsis' && t.scrollWidth > t.clientWidth + 1) bad.push(`cut: ${t.textContent!.trim().slice(0, 30)}`);
+      // The owner's rule (ADR-042 carried 3): a name may end in an ellipsis only when its whole name is its title.
+      if (cs.textOverflow === 'ellipsis' && t.scrollWidth > t.clientWidth + 1 && (t as HTMLElement).title !== t.textContent!.trim()) bad.push(`cut: ${t.textContent!.trim().slice(0, 30)}`);
     }
     return bad;
   });

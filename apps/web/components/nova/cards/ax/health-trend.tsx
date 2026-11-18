@@ -35,9 +35,12 @@ export function AxhTrend({values, height, target = null, targetLabel = null, ban
   const pins = known.length > 2 && high.v !== low.v ? [['high', high] as const, ['low', low] as const].filter(([, p]) => p.i !== last.i) : [];
   return <div className="axh-trend" aria-hidden="true">
     <div className="axh-trend-plot">
-      <TrendArea values={values} height={height} marker={marker} minLabel={minLabel} maxLabel={maxLabel} target={target} targetLabel={targetLabel}/>
+      {/* Session AS (carried 9): the highest and lowest labels stand at their own pins (they sat at the plot's edge, under the
+          pins), kept inside the plot; where a value has no pin (it is the latest, or the line is short) the edge keeps it. */}
+      <TrendArea values={values} height={height} marker={marker} minLabel={pins.some(([k]) => k === 'low') ? undefined : minLabel} maxLabel={pins.some(([k]) => k === 'high') ? undefined : maxLabel} target={target} targetLabel={targetLabel} gaps/>
       {band && target !== null && <span className="axh-band" style={{height: `${top(target).toFixed(2)}%`}}/>}
       {pins.map(([kind, p]) => <i key={kind} className="axh-pin" data-pin={kind} style={{left: `${left(p.i).toFixed(2)}%`, top: `${top(p.v).toFixed(2)}%`}}/>)}
+      {pins.map(([kind, p]) => { const words = kind === 'high' ? maxLabel : minLabel; return words ? <span key={`${kind}-label`} className="axh-pin-label" data-pin={kind} style={{left: `${Math.min(84, Math.max(16, left(p.i))).toFixed(2)}%`, top: `${top(p.v).toFixed(2)}%`}}>{words}</span> : null; })}
     </div>
     {dates && <p className="axh-trend-dates"><span>{dates[0]}</span><span>{dates[1]}</span></p>}
   </div>;

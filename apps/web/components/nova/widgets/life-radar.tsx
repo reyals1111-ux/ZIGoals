@@ -27,7 +27,7 @@ export default function LifeRadar({size, params}: AxProps) {
   const label = periodLabel(view.period, today), short = (s: (typeof view.spokes)[number]) => s.now.share === null ? '—' : `${s.figure}${s.unit ? ` ${s.unit}` : ''}`;
   return <AxBody kind="life-radar" size={size}>
     <AxHead figure={lead.figure} unit={lead.unit} label={`${lead.words} · ${label}`} note={known.slice(1).map(s => s.now.text).join(' · ') || undefined}/>
-    {size !== 'S' && <AxdRadar spokes={view.spokes.map(s => ({key: s.key, label: s.label, text: short(s), now: s.now.share, before: s.before.share}))}/>}
+    {size !== 'S' && <AxdRadar spokes={view.spokes.map(s => ({key: s.key, label: s.label, text: short(s), now: s.now.share, before: s.before.share, scale: s.full}))}/>}
     {size === 'L' && <AxdKey items={[['lit', label.replace(/^./, c => c.toUpperCase())], ['skipped', view.beforeWords ? `The period before (${view.beforeWords})` : 'The period before'], ['none', 'Nothing recorded']]}/>}
     <CardFoot source="Your records on this device" asOf={label}/>
     <HoloTable caption={`Your records, ${label} beside the period before`} rows={view.spokes.flatMap(s => [[`${s.label}, ${label}`, s.now.text] as const, [`${s.label}, the period before${view.beforeWords ? ` (${view.beforeWords})` : ''}`, s.before.text] as const])}/>
