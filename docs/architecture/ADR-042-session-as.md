@@ -225,6 +225,35 @@ One fresh-critic round on the new families (no loop); one production build per i
   trigger ("two frames became four with no size changed") is read from repeated runs under two workers on the
   production build and from CI.
 
+### After the switch to Opus (18 Nov)
+- **D17 Six answers outside the corpus, made right at their cause** (`6118cfcf`; the corpus grew to 629 phrasings):
+  calories or protein over several days (the stage showed the Health HUD's figures for today); "did I spend more than
+  last month" (it compared last month with the month before: one period named after "than", "vs" or "dan" is now the one
+  compared against); "boodschappen" (the older layer said nothing was spent: a category is now read by the money log's
+  own words in either language); net worth "this year" (read as a goal's name; now today's figure, saying that the river
+  shows how it moved, because answers do not read the history); "on how many days did I walk" (it gave steps); "why did
+  I sleep so little last week" (a guessed closest question, different on ZIGi and NOVA; now D3's honest line in both
+  languages). "per" and "week" no longer count as Dutch. Each new claim was narrowed until every older suite passed
+  unchanged: where the older answer was already right (budgets over plan, protein yesterday, an average, "how many
+  times", English categories) it keeps its words. The stage's sentence cutter also skipped every word before a figure
+  with a decimal point ("weight 73.48 kg"): fixed and pinned.
+- **D18 Every kind fits its panel** (`1b15e421`). Measured over all 64 kinds on the stage at three widths, 23 pushed
+  text (mostly the source and as-of) out of hero and supporting panels. `AxBody` now measures its content against its
+  panel (one resize observer; no timer, no animation) and hands the excess to every instrument's height budget
+  (`--ax-over`); what still does not fit lets the optional parts step aside (keys, chips, notes, fact rows the table
+  repeats), then the instrument, so a small panel shows the answer's figure, label, source and as-of (its compact form;
+  the table keeps every fact). Names wrap instead of being cut; fifteen titles were shortened to fit the frame's head.
+  Result: no text outside its panel and none cut at 2560 × 1440, 1440 × 900 or 390 × 844.
+- **D19 Figures that agree with their answers** (checked by eye against the answers' words): a log's calendar counted
+  days with nothing logged as below its target; the journal map left today's entry out of its figure; the focus gauge
+  showed this week for "did I focus today" (it now follows the answer's period); the goal gauge said "reached" beside
+  42 %; the health scan said "4 of 4 measures" while the heart rate was not recorded; the net worth river's recorded
+  value now says "recorded", and a plain net worth question leads with today's figure. Each is pinned in a unit test.
+- **D20 Carried: the goals lookup leaves out average goals.** The Goals page and its HUD count two "average" goals of
+  the Showcase (a daily time and a sleep average) beside the five money goals, so the goal orbits say 7 active goals
+  where an answer from the goals lookup says 5. The lookup (`list_goals`) predates this session and reads the goal
+  summaries only; widening it is a change to an AI tool's data for the owner to decide (it would be TIER 3).
+
 ## Tests changed (deliberate; none weakened)
 Each carries "Session AS (<id>, deliberate)" with an equally strict replacement.
 - `lib/ai/local-answers/ai-session.test.ts` **RR-13** ("Which habits did I miss yesterday?"): the exact sentence, the
@@ -242,7 +271,7 @@ Each carries "Session AS (<id>, deliberate)" with an equally strict replacement.
 No golden set, eval corpus or older pinned answer was changed beyond these.
 
 ## The corpus, per pillar
-`apps/web/lib/ai/evals/as/`: 132 questions people ask, in 611 phrasings (English and Dutch, typos and casual forms),
+`apps/web/lib/ai/evals/as/`: 135 questions people ask, in 629 phrasings (English and Dutch, typos and casual forms),
 each on the Showcase of 17 November 2026 and on a fresh profile. `expected.json` holds every lead answer as a literal
 (the sentence in both languages, the lookup's facts, the widgets, the empty-state answers); `says.ts` holds, written by
 hand, the facts every phrasing must state; `oracle.test.ts` recomputes the key facts from the raw stored records with
@@ -251,8 +280,8 @@ plain loops (no page engine, no exact layer). Result on the head that carries th
 | Pillar | Phrasings passing |
 |---|---|
 | Habits | 157 of 157 |
-| Health | 165 of 165 |
-| Wealth | 105 of 105 |
+| Health | 173 of 173 |
+| Wealth | 115 of 115 |
 | Goals | 34 of 34 |
 | Tasks | 38 of 38 |
 | Journal | 27 of 27 |
@@ -265,7 +294,36 @@ plain loops (no page engine, no exact layer). Result on the head that carries th
 Every lead answer was read against the Showcase's records before the file was committed; that reading found and fixed,
 among others: a habit whose name holds "late" read as a late question; "which days did I not meditate" answered with the
 days it was done; a day with nothing logged counted as below the water target; Dutch amount questions turned into log
-cards by the older no-model path; "how is my health" answered as a goal called health.
+cards by the older no-model path; "how is my health" answered as a goal called health. After the model switch, questions
+outside the corpus found six more (D17); each was fixed and added (611 → 629 phrasings).
 
 ## The widget families
-*(added with Part 2)*
+64 answer kinds in 17 visual families (Part 2). Each kind is a catalogue entry (`lib/nova/widgets/catalog-as*.ts`,
+`made`, its pillar's gate), a flat body in `components/nova/widgets/<id>.tsx` (lazy in `widget-grid.tsx` `BODIES`), its
+selector in `lib/nova/cards/ax/` and its stage line (`lib/nova/summon/ax-lines*.ts`). Every kind is drawn at S, M and L
+on the Showcase and on a fresh profile by `lib/nova/widgets/ax-bodies-dom.test.ts`, and was measured on the stage at
+2560 × 1440, 1440 × 900 and a 390 px phone (D18) and looked at against its answer's words (D19).
+
+| # | Family | Kinds | Made by an answer such as |
+|---|---|---|---|
+| 1 | Month calendars | habit-missed-days, habit-done-days, habits-month, water-days, steps-days, sleep-nights, workout-days, meditation-days, protein-days, spending-days, bill-calendar, tasks-calendar, journal-map, mood-map (Health switches) | "wgat days did i forget to meditate this month" |
+| 2 | Ranked bars | habit-misses, spending-ranks, income-ranks, debt-ranks, task-overdue | "how many habits did I miss this week" |
+| 3 | Scanners | health-scan (decorative heart, A2), body-scan, day-scan | "how is my health" |
+| 4 | Trends | weight-trend, sleep-trend, steps-trend, heart-trend, calorie-trend | "is my weight going down" |
+| 5 | Gauges and dials | nutrition-gauges, budget-gauges, goal-gauge, savings-rate, focus-gauge, bill-dial, task-load | "what is my next bill" |
+| 6 | Flames | streak-flames, best-streaks, journal-streak, focus-streak | "what is my journal streak" |
+| 7 | Heat maps | steps-heat, spending-heat, focus-heat, habit-year | spending over more than 45 days |
+| 8 | Twins (compare) | health-compare, spending-compare, compare-periods | "water this week vs last week" |
+| 9 | Stage bars | sleep-stages, sleep-times, fasting-windows | (gallery) |
+| 10 | Timelines | bill-timeline, task-timeline, day-timeline, goal-dates | "which tasks are overdue" |
+| 11 | Radars | spending-radar, life-radar (facts beside the person's own past, no score, A3) | "how am I doing this week" |
+| 12 | Rivers | cash-river, net-worth-river | "how much did I earn this month" |
+| 13 | Orbits | goal-orbits, checklist-orbit | "which goals are behind" |
+| 14 | Lattices | habits-lattice, habit-weekdays | "on which weekday do I miss habits most" |
+| 15 | Vessels | water-week, savings-jars | "how much water did I drink this week" |
+| 16 | Constellation | notes-constellation | "how many notes do I have" |
+| 17 | NOVA itself | nova-answers (no gate: it reads nothing of the person's) | "what can you answer" |
+
+The corpus's questions make 38 of the 64 kinds; the others are made by questions outside it (each answer asks for its
+own kind where one exists, `0a6b12de`) or pinned from the gallery. Gallery only, because no answer reads their records:
+body-scan, mood-map, debt-ranks, sleep-stages, sleep-times, fasting-windows.

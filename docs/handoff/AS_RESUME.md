@@ -43,17 +43,14 @@ at least every 30 minutes; never merge, enable auto-merge, dispatch or deploy. S
   their work was saved (`f04f71b8`) and wired: **64 answer kinds** in the catalogue (4 Habits of families 1–2, 21
   Health, 18 Wealth and Goals, 21 day/habits/NOVA), each with its BODIES entry, drawn at S/M/L on the Showcase and a
   fresh profile by `lib/nova/widgets/ax-bodies-dom.test.ts`. NOVA + AI suites green, typecheck and lint clean.
-- **Checked so far (18 Nov):** scanners (health scan "of 5", day scan labels fixed, `972c5778`) and trends (weight,
-  sleep, steps match their answers). Answers now ask for their own kinds (`0a6b12de`: 38 of 64 kinds are made by corpus
-  answers, the rest from the gallery; gallery-only by design: body scan, mood map, debt ranks, sleep stages and times,
-  fasting windows, savings rate). Held-out answer errors fixed and added to the corpus (`6118cfcf`, 629 questions).
-- **In progress:** gauges → flames → calendars of the other pillars → the rest (look in the browser with
-  `scratchpad/fam.cjs`, which turns on NOVA's Health switches and ZIGi's Health sharing on the Showcase).
-- **Next:** finish Part 2 (the count of kinds and families goes into ADR-042 "The widget families" as it is, not
-  rounded up); then Part 5: one fresh-critic round on the new families, one production build, the browser specs
-  (`tests/nova-answers-as.spec.ts`: the owner's two questions; `tests/nova-families-as.spec.ts`: one per family),
-  D34's spec under two workers on that build (one more attempt allowed, else Carried), D36 read from CI, weights,
-  frozen readers, ADR-042, `AM_DEMO_TOUR.md` (twenty questions), STATUS as the final commit, CI, the report.
+- **Part 2 complete (`838b9c14`):** 64 answer kinds in 17 visual families (ADR-042 "The widget families"), every kind
+  fitted at 2560/1440/390 (D18) and checked against its answer (D19); held-out answers fixed (D17, corpus 629).
+- **Next: Part 5.** One fresh-critic round on the new families (one helper, read-only, screenshots in the scratchpad);
+  one production build; the browser specs (`tests/nova-answers-as.spec.ts` exists and passes; add
+  `tests/nova-families-as.spec.ts`, one test per family); D34's spec under two workers on that build (one more attempt
+  allowed, else Carried); weights (`scripts/check-weight-budget.mjs`), frozen readers; full `pnpm typecheck`, `pnpm lint`,
+  `pnpm test`; `AM_DEMO_TOUR.md` (twenty questions); STATUS as the final commit; read CI (PR #106); the report.
+
 - **Known here:** `next dev` stops once on a "security upgrade recommendation" notice; the same command again starts
   it. Nothing was upgraded (a dependency change is the owner's and Session AT's); it goes into the final report.
   Vitest runs from the repository root only (from `apps/web` it cannot parse `.tsx`). Keep heavy processes one at a
