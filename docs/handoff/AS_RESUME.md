@@ -43,12 +43,12 @@ at least every 30 minutes; never merge, enable auto-merge, dispatch or deploy. S
   their work was saved (`f04f71b8`) and wired: **64 answer kinds** in the catalogue (4 Habits of families 1–2, 21
   Health, 18 Wealth and Goals, 21 day/habits/NOVA), each with its BODIES entry, drawn at S/M/L on the Showcase and a
   fresh profile by `lib/nova/widgets/ax-bodies-dom.test.ts`. NOVA + AI suites green, typecheck and lint clean.
-- **In progress:** checking each family in the browser and against the Showcase's facts, in the owner's order:
-  scanners → trends → gauges → flames → calendars of the other pillars → the rest. Fixes are committed per family.
-  Held-out answer errors found before the switch, still to fix (Part 1): "did I spend more than last month" (compares
-  last month with the month before), "how is my net worth doing this year" (answered as a goal's name), "hoeveel heb
-  ik deze maand uitgegeven aan boodschappen" (older layer: "niets", Groceries has €187.10), "which budgets are over"
-  (lists all budgets).
+- **Checked so far (18 Nov):** scanners (health scan "of 5", day scan labels fixed, `972c5778`) and trends (weight,
+  sleep, steps match their answers). Answers now ask for their own kinds (`0a6b12de`: 38 of 64 kinds are made by corpus
+  answers, the rest from the gallery; gallery-only by design: body scan, mood map, debt ranks, sleep stages and times,
+  fasting windows, savings rate). Held-out answer errors fixed and added to the corpus (`6118cfcf`, 629 questions).
+- **In progress:** gauges → flames → calendars of the other pillars → the rest (look in the browser with
+  `scratchpad/fam.cjs`, which turns on NOVA's Health switches and ZIGi's Health sharing on the Showcase).
 - **Next:** finish Part 2 (the count of kinds and families goes into ADR-042 "The widget families" as it is, not
   rounded up); then Part 5: one fresh-critic round on the new families, one production build, the browser specs
   (`tests/nova-answers-as.spec.ts`: the owner's two questions; `tests/nova-families-as.spec.ts`: one per family),
