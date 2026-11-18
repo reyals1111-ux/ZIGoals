@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
-import {drewSomething, GOVERNOR_GRACE_MS, governorStep, rgb, SOFTWARE_PACE, softwareRenderer, speakPulse, STAR_ACCENT, STAR_STATE, starPace, starPixels, starRender, starWhy, type StarFailure, type StarWhy} from '../../../lib/nova/core/governor';
+import {drewSomething, GOVERNOR_GRACE_MS, governorStep, rgb, SOFTWARE_PACE, speakPulse, STAR_ACCENT, STAR_STATE, starPace, starPixels, starRender, starWhy, type StarFailure, type StarWhy} from '../../../lib/nova/core/governor';
+import {probeStar, type StarProbe} from '../../../lib/nova/core/probe';
 import {STAR_DETAILS, starDebug} from '../../../lib/nova/core/star-debug';
 import {STAR_FRAG, STAR_UNIFORMS, STAR_VERT, type StarUniform} from '../../../lib/nova/core/star-shader';
 import type {HudMotionState} from '../../../lib/nova/holo/motion';
@@ -38,7 +39,7 @@ export type StarReport = {shows: 'star' | 'picture' | 'orb'; why: StarWhy | null
   details: string | null;
   /** `?star=why` (LOCAL_DEMO): show the line even while the star runs at its full pace. */
   always: boolean};
-type Probe = {webgl: boolean; software: boolean; renderer: string | null};
+type Probe = StarProbe;
 const LOST_GRACE_MS = 2500;
 export function StarSystem({state, hud, accent = 'violet', phone = false, size, column, beam = null, onReport, onMount}: {
   state: NovaOrbState; hud: HudMotionState; accent?: string; phone?: boolean;
@@ -70,16 +71,11 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
     }).catch(() => undefined);
     const media = window.matchMedia?.('(prefers-reduced-motion: reduce)'), readMotion = () => setReducedMotion(!!media?.matches);
     readMotion(); media?.addEventListener?.('change', readMotion);
-    try {
-      // With graphics hardware the first ask succeeds. If only the second does, the browser draws WebGL in software.
-      const hard = document.createElement('canvas').getContext('webgl', {failIfMajorPerformanceCaveat: true}), other = document.createElement('canvas');
-      const any = (hard ?? other.getContext('webgl') ?? other.getContext('experimental-webgl')) as WebGLRenderingContext | null;
-      let name: string | null = null;
-      try { const ext = any?.getExtension('WEBGL_debug_renderer_info'); name = any ? String(any.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : any.RENDERER) ?? '') || null : null; } catch { name = null; }
-      setProbe({webgl: !!any, software: !!any && (!hard || softwareRenderer(name)), renderer: name});
-      try { any?.getExtension('WEBGL_lose_context')?.loseContext(); } catch { /* the probe is dropped with its canvas */ }
-    } catch { setProbe({webgl: false, software: false, renderer: null}); }
-    return () => { live = false; off(); media?.removeEventListener?.('change', readMotion); };
+    // Session AS (Part 4, ADR-041 D36): the first ask for WebGL runs off the page's thread where the browser can
+    // (lib/nova/core/probe.ts); with graphics hardware the first ask succeeds, and if only the second does, the browser
+    // draws WebGL in software.
+    const stopProbe = probeStar(p => { if (live) setProbe(p); });
+    return () => { live = false; off(); stopProbe(); media?.removeEventListener?.('change', readMotion); };
   }, []);
   const ready = hints !== null && probe !== null, software = !!probe?.software && !debug.live;
   const render = ready ? starRender({hud, webgl: probe.webgl, failure}) : null;
