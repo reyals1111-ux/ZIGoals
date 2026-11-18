@@ -56,3 +56,12 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   sets `process.version` to the pinned version; every other check is real. A new test pins the version check itself: on
   `v24.22.3` the CLI fails with `INVALID: tool_node` and "Select repository Node 24.19.0." (stricter than before, where the
   check was only covered on the pinned Node). 11 of 11 on Node 22.23.5 and on 24.19.0. The script is unchanged.
+- **D3 (Today ≤ 90 Tab stops on every day and time).** Measured on Showcase Today at 1440 for every day of one week
+  (16–22 Nov) at 07:30 and 20:30: 89 in the morning, 90 on weekday evenings, 92 on Monday and Sunday evenings. The extra
+  stops were date- and time-dependent cards: the evening Guide nudge's action link ("Open habits"), Sunday's review nudge
+  ("Open the review") and a planned reminder card's two buttons ("Open", "Dismiss for today") on Sunday and Monday evenings.
+  At the cause: the Guide card's actions and the reminder cards' buttons are each one roving Tab stop (AO's
+  `useRovingFocus`, arrows reach every control; the reminder hook lives in a small wrapper so it mounts with the section).
+  Now 88–89 on all fourteen clocks. `tests/at/today-tab-stops-week.spec.ts` counts all fourteen (≤ 90 each);
+  `tests/ao/today-tab-stops.spec.ts` (88) walks the new groups with the arrows; `guide.spec.ts:83` (deliberate) reaches the
+  Guide's controls by the arrows and checks one Tab stop and that Tab leaves the actions in one press.
