@@ -141,3 +141,8 @@ export function drewSomething(pixels: ArrayLike<number>): boolean {
   for (let i = 0; i + 3 < pixels.length; i += 4) if (pixels[i + 3]! > 8 && pixels[i]! + pixels[i + 1]! + pixels[i + 2]! > 24) return true;
   return false;
 }
+/**
+ * Session AS (Part 4, ADR-041 D34): everything a still frame shows. Two wakes with the same key would draw the same
+ * picture, so the second draws nothing (components/nova/core/star-system.tsx).
+ */
+export const starStillKey = (s: {state: string; accent: string; size: number; edge: number; phone: boolean; software: boolean; ratio: number}): string => [s.state, s.accent, s.size, s.edge, s.phone ? 'phone' : 'computer', s.software ? 'software' : 'hardware', s.ratio].join('|');

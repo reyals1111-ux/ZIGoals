@@ -142,3 +142,25 @@ describe('states, colours and the shader', () => {
     for (const a of ['violet', 'cyan', 'magenta', 'teal', 'gold']) expect(STAR_ACCENT[a]?.length).toBe(3);
   });
 });
+
+// Session AS (Part 4, ADR-041 D34): a still star is drawn once per picture.
+describe('the still frame\'s key', () => {
+  const base = {state: 'idle', accent: 'violet', size: 340, edge: 1, phone: true, software: false, ratio: 3};
+  it('is the same for the same picture, whatever else woke the star', async () => {
+    const {starStillKey} = await import('./governor');
+    expect(starStillKey({...base})).toBe(starStillKey({...base, ...{hints: {lowBattery: true}, hud: 'still', render: 'still'}} as typeof base));
+  });
+  it('differs for another state, accent, size, edge, layout, renderer or density', async () => {
+    const {starStillKey} = await import('./governor');
+    const keys = [base, {...base, state: 'speaking'}, {...base, accent: 'cyan'}, {...base, size: 341}, {...base, edge: 0.4}, {...base, phone: false}, {...base, software: true}, {...base, ratio: 2}].map(starStillKey);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+  it('the star skips a still frame only when the same picture is proven to be in the canvas, and forgets it when it runs or loses its context', async () => {
+    const {readFileSync} = await import('node:fs'), {join} = await import('node:path');
+    const source = readFileSync(join(process.cwd(), 'apps/web/components/nova/core/star-system.tsx'), 'utf8');
+    expect(source).toContain("if (key === stillKey && proven && el.dataset.star === 'still' && gl && !gl.isContextLost()) return;");
+    expect(source).toContain("lastDraw = now; stillKey = '';");
+    expect(source).toContain("gl = null; stillKey = ''; losses += 1;");
+    expect(source).toContain("checks = 0; proven = false; stillKey = '';");
+  });
+});
