@@ -122,3 +122,24 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   off. MET Norway's opt-in text is unchanged (its test unchanged). Spotify stays unnamed: it connects only for invited
   accounts, which the public Alpha does not have. `scripts/landing-at-privacy.test.mjs`; landing tests 40 of 40; the
   landing dry run passes. The landing needs the owner's redeploy (OWNER_STEPS step 3).
+- **D12 (2(a)–(c) backup, restore, erase, export).** (a) A unit test makes restore coverage structural: every record Export
+  everything writes is restorable or deliberately left on the device by AL's plan, named by reason (keys and secrets, ZIGi
+  and NOVA settings, runs in progress, display choices, caches, Earn progress and the staking journal, derived views); a new
+  record in neither list fails it; every record kind since AL (net-worth history, day goal, day end, This evening/Someday,
+  countdowns, money tags, mood tags, symptoms, workout splits, Today orbits, NOVA's stage and world) is restorable
+  (`lib/restore/at-restore-coverage.test.ts`). The browser round trip on a fresh profile (`tests/at/trust-round-trip.spec.ts`:
+  those records → Export everything, a ZIP holding `everything.json` → Erase everything, nothing of ZIGoals left → Restore →
+  each record equal) runs at the integration build. (b) Erase is by prefix and `lib/erase-coverage.test.ts` already keeps
+  its database list complete. Showcase merge safety: the Showcase lives in the tab (AO's net-worth history and AR's checks
+  pin that a restore never writes example records into real storage).
+
+### Part 5 — release verifier
+- **D13 (TIER 3 release verifier, behaviour-preserving).** Stage 14 "AT" appended (`scripts/lib/hosted-alpha-at.mjs`; no
+  stage renumbered; stages 1–13 unchanged; the deploy workflow does not run the verifier, CI only runs `--help`). On a fresh
+  ephemeral profile, read-only towards every server: Settings' "My day ends at" and "A day counts as done at"; Send
+  feedback's details (ticked and unticked; theme and screen among them); then on the Showcase (this tab only) Perfect days,
+  the priority matrix's four boxes, Health → Activity's "Your orbits", the Goals Bento switch, and NOVA's answers to the
+  owner's two questions of 17 Nov checked by shape (the live day decides the figures) and by the widget each makes. A part a
+  build lacks is a review reason (never PASS), a part that is wrong fails the stage, as stage 13 does. Unit tests
+  `hosted-alpha-at.test.mjs` (3), the order test (11); the browser run against a local production build is recorded in
+  STATUS.
