@@ -90,7 +90,8 @@ export function sentenceCut(text: string, sentences = 2, max = 220): string {
 export function stageAnswerText({made, lines, lang, reply, decision, fallback, exact = false}: {made: readonly MakeRequest[]; lines: Readonly<Record<string, string>>; lang: SummonLang; reply: string; decision: boolean; fallback: boolean;
   /** Session AS: the reply is an exact answer to the question asked; its own words stand under the star, never a widget's general line. */
   exact?: boolean}): string {
-  if (exact) return sentenceCut(reply);
+  // Three sentences within the same 220 characters: an exact answer's third sentence is a fact of it ("Today is still open.").
+  if (exact) return sentenceCut(reply, 3);
   if (made.length && !decision && (fallback || made.some(w => lines[w.id]))) return answerWords(made, lines, lang);
   return sentenceCut(reply);
 }
