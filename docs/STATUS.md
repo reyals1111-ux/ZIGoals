@@ -19,10 +19,20 @@
 - Production build (`PUBLIC_ALPHA_UNDEPLOYED`) passes; route weights all inside budget (`/app/nova` 432.3 of 458 kB).
 - NOVA's and the HUD's specs on that build, both projects, two workers: 191 passed, 7 failed (all this branch's, fixed at their causes); rerun with the AS specs 31 of 31.
 - `pnpm typecheck` passes; `pnpm lint` 0 errors (23 warnings, none in files of this session); `pnpm test`: all pass except `scripts/pre-run11-setup.test.mjs` (2), which needs the pinned Node 24.19.0 (this sandbox has 24.22.3); frozen readers pass.
-- CI: [run 1863](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44285401403) on `dd810479` (the code of `d0ab27e7`): contract, integration, the Alpha gate, a11y 1–3, main shards 1, 4, 5, 7–11 and WebKit 1–2 green. Red, fixed in the commit before this entry (rebuilt, 26 of 26 locally on both projects): `zigi-face-z:275` (a log line answered on the device; the typo retry now applies to questions only), `rr-ai-tasks:52` RR-13 and `zigi-no-model-ab:22` (browser twins of the Part 1 deliberate changes, now deliberate too). **Red and not this branch's:** the checks job's last step, `pnpm audit --prod --audit-level high`, on a new high advisory in `picomatch` ≤ 4.0.7 through `@walletconnect/sign-client` (GHSA-fc5q-39xc-vjpf); lint, types, unit and build passed before it. This branch changes no dependency; the lockfile is the owner's and Session AT's. The run on this entry's head is read in the report.
+- CI: [run 1863](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44285401403) on `dd810479` (the code of `d0ab27e7`): contract, integration, the Alpha gate, a11y 1–3, main shards 1, 4, 5, 7–11 and WebKit 1–2 green. Red, fixed in the commit before this entry (rebuilt, 26 of 26 locally on both projects): `zigi-face-z:275` (a log line answered on the device; the typo retry now applies to questions only), `rr-ai-tasks:52` RR-13 and `zigi-no-model-ab:22` (browser twins of the Part 1 deliberate changes, now deliberate too). **Red and not this branch's:** the checks job's last step, `pnpm audit --prod --audit-level high`, on a new high advisory in `picomatch` ≤ 4.0.7 through `@walletconnect/sign-client` (GHSA-fc5q-39xc-vjpf); lint, types, unit and build passed before it. This branch changes no dependency; the lockfile is the owner's and Session AT's. Fixed by the owner's follow-up below.
 
-## Carried (ADR-042 D20, D21)
-The goals lookup leaves out average goals (orbits say 7 active, answers 5); timelines' legends cap rows without "+N more"; trend lines join logged days across gaps; streak names hyphenate in a 280 px panel; the life radar's per-spoke scale; the net worth river's band scale; a task due earlier today counts as overdue; meditation sessions and the Meditate habit are two records; a quit habit's slips read "missed"; trends squeezed at 1440. Next's security-advisory notice still stops `next dev` and `next build` once each in this sandbox; nothing was upgraded (a dependency change is the owner's and Session AT's).
+## Owner follow-up on PR #106 (18 Nov; ADR-042 D24–D26)
+| Item | What | Commit | Evidence |
+|---|---|---|---|
+| 1 | **TIER 3 (dependencies):** Next.js 16.4.2 → 16.4.6, `eslint-config-next` 16.3.6 → 16.4.6 (Next line only; `@opennextjs/cloudflare` 1.20.12 accepts it, not bumped). Fixes the two moderates. picomatch (GHSA-fc5q-39xc-vjpf): no patched release exists; no longer reported by `pnpm audit` (here and CI run 1865); nothing overridden | `c380e7d0` | `docs/dependencies/AS_REVIEW.md` |
+| 2 | **D20 (TIER 3 AI tools, no tool change needed):** answers count the average goals like the orbits (7 active); closest/furthest rank goals that finish | `091ad7ea` | corpus 629 of 629 |
+| 3 | Carried 1 ("+N more"), 2 (trend gaps), 3 (ellipsis, full name in the title), 4 (radar scale stated), 5 (river from zero), 8 ("slipped"), 9 (labels at points, gauge scale); 6 and 7 kept | `7050bf78` | `as-carried.test.ts`; families spec |
+
+- On `7050bf78`: `pnpm audit` (prod and all) clean; lint 0 errors; typecheck; `pnpm test` 12,156 passed, 2 failed (`scripts/pre-run11-setup.test.mjs`, pinned Node 24.19.0 vs the sandbox's 24.22.3); frozen readers pass; production build, `build:alpha`, `check:alpha` pass; route weights all inside budget; AS specs + the three wallet specs on the production build 37 passed, 0 failed.
+- CI on the final head: read in the report.
+
+## Carried (ADR-042 D21)
+Item 6 (a task due earlier today counts as overdue, the Tasks page's rule) and item 7 (meditation sessions and the Meditate habit are two records), kept by the owner.
 
 
 # Session AR — "NOVA, COMPOSED" (ADR-041) (2026-11-16/17, `feature/session-ar-nova-composed`, Draft [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105); complete, not merged, not deployed)

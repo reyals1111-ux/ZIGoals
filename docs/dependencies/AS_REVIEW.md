@@ -39,9 +39,21 @@ The two moderates are not the same class as the high, but they are in Next.js, w
   would also change the API that `anymatch` calls (it is written for picomatch 2). That cannot be proven safe, so it was
   not tried.
 - **Today:** the npm advisory service this session reaches (`/-/npm/v1/security/advisories/bulk`) returns no advisory for
-  picomatch 2.3.2 or 4.0.7, and `pnpm audit` here reports none. CI's audit is the authority, so its result on the final
-  head is recorded in the STATUS entry.
+  picomatch 2.3.2 or 4.0.7, and `pnpm audit` here reports none. **CI agrees:** on `c380e7d0` (Milestone quality run
+  1865, the checks job) both `pnpm audit --prod --audit-level high` and `pnpm audit --audit-level high` report
+  *No known vulnerabilities found*, with the lock's picomatch unchanged. The advisory is no longer served to `pnpm
+  audit`; nothing was overridden, and if it comes back the picture below holds.
 - **Reach, for the owner's judgement if the advisory stands:** in this app `unstorage` serves WalletConnect's key-value
   storage in the browser. Its glob patterns are the library's own, never a person's input, so a pattern that triggers
   the ReDoS cannot be supplied from outside. The fix is a picomatch release; until then the options are an audit
   exception (an owner decision, not made here) or waiting for the release.
+
+## 3. Proof on the follow-up's code head (`7050bf78`, 18 Nov)
+- `pnpm audit --prod` and `pnpm audit`: no known vulnerabilities (here and in CI run 1865).
+- `pnpm lint` 0 errors; `pnpm typecheck` passes; `pnpm test` 12,156 passed, 2 failed: `scripts/pre-run11-setup.test.mjs`,
+  which needs the pinned Node 24.19.0 (this sandbox has 24.22.3; CI runs the pinned Node). Frozen readers pass.
+- Production build (`PUBLIC_ALPHA_UNDEPLOYED`), `build:alpha` and `check:alpha` pass. Route weights: every route inside
+  its budget. Browser specs on the production build (Chromium, two workers): the AS specs and the three wallet specs
+  (`wallet-menu`, `wallet-reload`, `wallet-tracking`, which load the WalletConnect paths): 37 passed, 23 skipped
+  (the specs' own project skips), 0 failed.
+- Full CI: read in the STATUS entry and the report.

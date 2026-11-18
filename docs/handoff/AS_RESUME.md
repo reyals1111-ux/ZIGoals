@@ -47,6 +47,9 @@ at least every 30 minutes; never merge, enable auto-merge, dispatch or deploy. S
   fitted at 2560/1440/390 (D18) and checked against its answer (D19); held-out answers fixed (D17, corpus 629).
 - **Part 5 done (18 Nov):** critic round (D21), families spec, notes fix (D23), the production-build spec run and its
   fixes (`bf3806e5`), theme sheets regenerated (`d0ab27e7`), ADR-042 D22, demo tour, STATUS entry (final commit).
+- **Owner follow-up (18 Nov) done:** dependencies `c380e7d0` (TIER 3; this follow-up also owns package.json and the
+  lock), D20 `091ad7ea`, carried 1–5, 8, 9 `7050bf78`; ADR-042 D24–D26; STATUS updated (final commit). Remaining: CI on
+  the final head (WebKit shard 4 gets one re-run if cut off), then the report in at most 8 lines.
 - **If resumed after this:** read CI on PR #106's final head; a red job gets at most two fix attempts (known
   intermittents: one re-run), then is explained in STATUS. Never merge, auto-merge, dispatch or deploy.
 

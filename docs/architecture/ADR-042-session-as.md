@@ -249,7 +249,7 @@ One fresh-critic round on the new families (no loop); one production build per i
   showed this week for "did I focus today" (it now follows the answer's period); the goal gauge said "reached" beside
   42 %; the health scan said "4 of 4 measures" while the heart rate was not recorded; the net worth river's recorded
   value now says "recorded", and a plain net worth question leads with today's figure. Each is pinned in a unit test.
-- **D20 Carried: the goals lookup leaves out average goals.** The Goals page and its HUD count two "average" goals of
+- **D20 (resolved in the owner's follow-up, D24) The goals lookup and the average goals.** The Goals page and its HUD count two "average" goals of
   the Showcase (a daily time and a sleep average) beside the five money goals, so the goal orbits say 7 active goals
   where an answer from the goals lookup says 5. The lookup (`list_goals`) predates this session and reads the goal
   summaries only; widening it is a change to an AI tool's data for the owner to decide (it would be TIER 3).
@@ -375,3 +375,33 @@ on the Showcase and on a fresh profile by `lib/nova/widgets/ax-bodies-dom.test.t
 The corpus's questions make 38 of the 64 kinds; the others are made by questions outside it (each answer asks for its
 own kind where one exists, `0a6b12de`) or pinned from the gallery. Gallery only, because no answer reads their records:
 body-scan, mood-map, debt-ranks, sleep-stages, sleep-times, fasting-windows.
+
+
+## Owner follow-up on PR #106 (18 Nov)
+The owner's message: a dependency fix (TIER 3), D20 approved, seven of D21's carried items to fix, CI green, then this
+record and the STATUS entry.
+
+- **D24 Dependencies (TIER 3, `c380e7d0`).** Next.js 16.4.2 → 16.4.6 and `eslint-config-next` 16.3.6 → 16.4.6 (the
+  Next line only; `@opennextjs/cloudflare` 1.20.12 accepts it and stays). This fixes CI's two moderate advisories (same
+  class as the asked patch: Next's own). The high advisory in picomatch had no fix to apply (4.0.8 is not published;
+  anymatch 3 needs picomatch 2); it is no longer reported by `pnpm audit` here or in CI, so nothing was overridden.
+  Names, versions and proof: `docs/dependencies/AS_REVIEW.md`. Next's security notice no longer stops `next build`.
+- **D25 D20 approved (`091ad7ea`).** `list_goals` already lists the average goals (Session AL) under the same gates and
+  the app's context passes them; the gap was the corpus's Showcase world. It now holds them, so answers say 7 active
+  goals like the orbits. That exposed one wrong answer: "closest to done" named an average goal (never done, no amount
+  left); closest and furthest now rank the goals that finish. Corpus 629 of 629.
+- **D26 Carried items fixed (`7050bf78`):**
+  1. Money legends count the rows their height cap hides and end in "+N more" (`AxmLegend`, a `ResizeObserver`; the cap
+     rules now apply to rows only, never to that line).
+  2. The answer trends break where nothing was logged: each run of logged days is its own line, a lone day a dot
+     (`TrendArea gaps`); the older widgets keep their line.
+  3. Flame and lattice names end in an ellipsis on one line, the full name in their `title` (the families spec accepts
+     an ellipsis only then).
+  4. Each life-radar spoke says what its end stands for ("full: 100%", or the larger period's figure).
+  5. The net worth river's thickness is measured from zero and its caption says so.
+  8. A quit habit's failed day reads "slipped" in the calendar, the ranked bars, the lattice and the year (its key too).
+  9. The trends' high and low labels sit at their points (clamped inside the panel) and the words wrap below the figure
+     in a narrow panel; the focus gauge states its full arc.
+  Kept as they are, by the owner: 6 (the Tasks page's overdue rule) and 7 (meditation sessions and the habit are two
+  records). Deliberate test changes: `calendar.test.ts` and `ax-bodies-dom.test.ts` "2 missed" → "2 slipped" for the
+  quit habit Late-night snacks; new `lib/nova/widgets/as-carried.test.ts` pins 1, 2, 4, 5 and 9.
