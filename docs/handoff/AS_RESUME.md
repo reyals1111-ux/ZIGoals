@@ -33,13 +33,27 @@ at least every 30 minutes; never merge, enable auto-merge, dispatch or deploy. S
 - **Done:** Part 0. **Part 1 complete**: the exact layer (`apps/web/lib/ai/local-answers/exact/`), wired for ZIGi and NOVA,
   `life_facts` (TIER 3), the `period` widget parameter (TIER 3), the corpus (611 phrasings, all passing, with the oracle).
   ADR-042 D1–D9, "Tests changed", "The corpus, per pillar". Unit suites `apps/web/lib/ai` + `apps/web/lib/nova`: all pass.
-- **In progress:** Part 2 (widgets). Not started in code. An exact answer already asks the stage for its own widget
-  kinds by name with a stand-in (`habit-missed-days` → `habit-week`, `habit-misses` → `habit-week`, `health-scan` →
-  `health-hud`, …): adding a kind to `lib/nova/widgets/catalog.ts` and `components/nova/widget-grid.tsx` `BODIES` makes
-  it appear with no engine change. The names the engine asks for: grep `fallback:` in `lib/ai/local-answers/exact/`.
-- **Next (the owner's order, A4):** (1) the answer kit `components/nova/cards/ax-kit.tsx` + `ax.css`; (2) month calendars:
-  `habit-missed-days`, `habit-done-days`, `habits-month`; (3) ranked miss bars: `habit-misses`; then scanners
-  (`health-scan`, heart decorative per A2), trends, gauges, flames, calendars of other pillars, the rest.
+- **Done too:** Part 2's first two families (`477d0304`, `c88bcec9`): the answer kit `components/nova/cards/ax/`
+  (`kit.tsx`, `calendar.tsx`, `ranks.tsx`, `twins.tsx`, `ax.css`), the kinds `habit-missed-days`, `habit-done-days`,
+  `habits-month`, `habit-misses` (bodies flat in `components/nova/widgets/<id>.tsx`, catalogue in
+  `lib/nova/widgets/catalog-as*.ts`, stage lines in `lib/nova/summon/ax-lines*.ts`). **Part 3** (the wordmark,
+  `55a548a4`). **Part 4**: the stage's count, the speaking rings, the planet's path (`9ac17914`), D36's
+  probe in a worker (`677ee64e`), D34's first attempt (`df4e2a8b`: a still star draws once per picture).
+- **In progress:** Part 2, the remaining families, written by three helpers in the working tree (uncommitted until
+  integrated): Health (`components/nova/cards/ax/health-*`, `lib/nova/cards/ax/health-*`), Wealth and Goals (`money-*`,
+  `goals-*`), day/habits/NOVA (`day-*`, `habit-*`). To integrate a kind: a literal entry in
+  `components/nova/widget-grid.tsx` `BODIES` (`'id': lazy(() => import('./widgets/<id>'))`), its catalogue entry, its
+  stage line, `PARAMS`/`SAYS` in `lib/nova/widgets/ax-bodies-dom.test.ts`; then tsc, eslint,
+  `pnpm exec vitest run apps/web/lib/nova apps/web/lib/ai` from the root, a look in the browser, commit per family.
+- **Next:** finish Part 2 (the count of kinds and families goes into ADR-042 "The widget families" as it is, not
+  rounded up); then Part 5: one fresh-critic round on the new families, one production build, the browser specs
+  (`tests/nova-answers-as.spec.ts`: the owner's two questions; `tests/nova-families-as.spec.ts`: one per family),
+  D34's spec under two workers on that build (one more attempt allowed, else Carried), D36 read from CI, weights,
+  frozen readers, ADR-042, `AM_DEMO_TOUR.md` (twenty questions), STATUS as the final commit, CI, the report.
+- **Known here:** `next dev` stops once on a "security upgrade recommendation" notice; the same command again starts
+  it. Nothing was upgraded (a dependency change is the owner's and Session AT's); it goes into the final report.
+  Vitest runs from the repository root only (from `apps/web` it cannot parse `.tsx`). Keep heavy processes one at a
+  time (a worker was killed with vitest and the dev server up together).
 - **How to run the corpus:** `pnpm exec vitest run apps/web/lib/ai/evals/as` (from the repository root). After a change of
   an answer's words: `AS_WRITE=1 AS_REPORT=1 pnpm exec vitest run apps/web/lib/ai/evals/as/corpus.test.ts --silent=false`,
   then read the diff of `expected.json` line by line before committing it.
