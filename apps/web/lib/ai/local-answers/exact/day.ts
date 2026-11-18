@@ -143,7 +143,9 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
   }
   if (q.ask === 'done') { const done = all.filter(g => g.status === 'completed'); return out(done.length ? t(lang, `${done.length} ${done.length === 1 ? 'goal' : 'goals'} reached: ${listWords(done.map(g => g.name), 'en')}.`, `${done.length} ${done.length === 1 ? 'doel' : 'doelen'} gehaald: ${listWords(done.map(g => g.name), 'nl')}.`) : t(lang, `No goal is reached yet (${active.length} active).`, `Nog geen doel gehaald (${active.length} actief).`), {...facts, reached: done.map(g => g.name)}, widgets); }
   if ((q.ask === 'best' || q.ask === 'worst') && /\b(?:closest|nearest|furthest|farthest|progress|done|dichtst|verst|voortgang|klaar|best|worst|beste|slechtste)\b/.test(q.read)) {
-    const ranked = [...active].sort((a, b) => Number.parseFloat(b.progress) - Number.parseFloat(a.progress)), hit = q.ask === 'best' ? ranked[0] : ranked.at(-1);
+    // A goal that keeps an average over a window is never "done" and has no amount left: closest and furthest rank the
+    // goals that finish (ADR-042 D20, once the corpus held the average goals as the app does).
+    const ranked = active.filter(g => g.type !== 'Keep an average' && Number.isFinite(Number.parseFloat(g.progress))).sort((a, b) => Number.parseFloat(b.progress) - Number.parseFloat(a.progress)), hit = q.ask === 'best' ? ranked[0] : ranked.at(-1);
     if (!hit) return out(t(lang, 'No active goal.', 'Geen actief doel.'), facts, widgets);
     return out(q.ask === 'best' ? t(lang, `Closest to done: ${line(hit)}, ${amountOf(hit.remaining)} to go.`, `Het dichtst bij klaar: ${line(hit)}, nog ${amountOf(hit.remaining)} te gaan.`) : t(lang, `Furthest from done: ${line(hit)}, ${amountOf(hit.remaining)} to go.`, `Het verst van klaar: ${line(hit)}, nog ${amountOf(hit.remaining)} te gaan.`), {...facts, goal: hit.name}, widgets);
   }

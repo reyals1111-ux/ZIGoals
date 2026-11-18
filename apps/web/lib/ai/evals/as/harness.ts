@@ -1,4 +1,5 @@
 import {emptyAccounts} from '../../../accounts/schema';
+import {AVERAGE_GOALS_KEY, averageGoalsSchema} from '../../../average-goals/store';
 import {emptyBills} from '../../../bills/schema';
 import {emptyHabitData} from '../../../habits';
 import {createEmptyHealth} from '../../../health';
@@ -30,7 +31,11 @@ import {runTool} from '../../tools/registry';
 export const DAY = '2026-11-17';
 const NOW = new Date(`${DAY}T19:00:00Z`);
 const RECORDS = buildShowcase(DAY, 'UTC').records, get = {getItem: (k: string) => RECORDS[k] ?? null};
-export const showcaseAll = (): ToolSources => ({...showcaseSources(DAY), now: NOW, ak: readAkToolSources(get), nova: readNovaToolSources(get, {notes: true})});
+// The average goals are goals too (the app's context passes them, components/ai/use-ai-context.ts; list_goals lists them):
+// the corpus's world holds them as the app does, so its goals answers count what the Goals page and the widgets count
+// (ADR-042 D20: without them the corpus said 5 active goals where the app says 7).
+const AVERAGES = averageGoalsSchema.parse(JSON.parse(RECORDS[AVERAGE_GOALS_KEY]!)).goals;
+export const showcaseAll = (): ToolSources => ({...showcaseSources(DAY), now: NOW, ak: readAkToolSources(get), nova: readNovaToolSources(get, {notes: true}), averageGoals: AVERAGES});
 export const freshAll = (): ToolSources => ({...showcaseSources(DAY), now: NOW, habits: emptyHabitData(), health: createEmptyHealth(), platform: emptyPlatform(), accounts: emptyAccounts(), moneyLog: emptyMoneyLog(), journal: emptyJournal(), fasting: null, weekly: null, energy: null, chess: null, portfolio: null, ak: {bills: emptyBills()}, nova: {tasks: {version: 1, tasks: []}, focus: {version: 1, sessions: []}, budgets: {version: 1, budgets: []}, notes: emptyNotes()}, showcase: false} as ToolSources);
 const SCOPES = {...DEFAULT_NOVA_SCOPES, health: true, journal: true, notes: true};
 /** NOVA's own environment with every permission on (the corpus is about the answers; the switches have their own tests). */

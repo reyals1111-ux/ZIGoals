@@ -4289,20 +4289,20 @@
   "freshNl": "Er wordt nog niets gevolgd bij Wealth."
  },
  "goals-status": {
-  "en": "5 active goals, from your own records:\n• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20\n• First home deposit: 65% — $52,000 of $80,000, $28,000 to go; next planned Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 of $6,000, $3,500 to go; next planned Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones of 4 milestones, 2 milestones to go\n• Reward income reserve: 50% — 10,000 ZIG of 20,000 ZIG, 10,000 ZIG to go; next planned Fri, Nov 20\n1 goal completed.\nAsk about one goal by its name for its plan and pace. Your own figures; not financial advice.",
-  "nl": "5 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — $9,000 van $20,000, nog $11,000 te gaan; volgende geplande stap Fri, Nov 20\n• First home deposit: 65% — $52,000 van $80,000, nog $28,000 te gaan; volgende geplande stap Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 van $6,000, nog $3,500 te gaan; volgende geplande stap Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones van 4 milestones, nog 2 milestones te gaan\n• Reward income reserve: 50% — 10,000 ZIG van 20,000 ZIG, nog 10,000 ZIG te gaan; volgende geplande stap Fri, Nov 20\n1 doel afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
+  "en": "7 active goals, from your own records:\n• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20\n• First home deposit: 65% — $52,000 of $80,000, $28,000 to go; next planned Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 of $6,000, $3,500 to go; next planned Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones of 4 milestones, 2 milestones to go\n• Reward income reserve: 50% — 10,000 ZIG of 20,000 ZIG, 10,000 ZIG to go; next planned Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day of at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night of at least 8 h a night\n3 goals completed.\nAsk about one goal by its name for its plan and pace. Your own figures; not financial advice.",
+  "nl": "7 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — $9,000 van $20,000, nog $11,000 te gaan; volgende geplande stap Fri, Nov 20\n• First home deposit: 65% — $52,000 van $80,000, nog $28,000 te gaan; volgende geplande stap Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 van $6,000, nog $3,500 te gaan; volgende geplande stap Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones van 4 milestones, nog 2 milestones te gaan\n• Reward income reserve: 50% — 10,000 ZIG van 20,000 ZIG, nog 10,000 ZIG te gaan; volgende geplande stap Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day van at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night van at least 8 h a night\n3 doelen afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no active goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
   "freshNl": "Je hebt nog geen actieve doelen. Open Goals om er een te maken, of vertel me het doel en ik maak er een kaart van."
  },
  "goals-behind": {
-  "en": "1 of 5 active goals is behind plan: Japan adventure 42% (behind plan).",
-  "nl": "1 van je 5 actieve doelen loopt achter op schema: Japan adventure 42% (achter op schema).",
+  "en": "1 of 7 active goals is behind plan: Japan adventure 42% (behind plan).",
+  "nl": "1 van je 7 actieve doelen loopt achter op schema: Japan adventure 42% (achter op schema).",
   "facts": {
    "about": "goals",
    "ask": "late",
-   "active": 5,
+   "active": 7,
    "goals": [
     {
      "goal": "Emergency fund",
@@ -4345,6 +4345,20 @@
      "percent": 50,
      "funding": "review",
      "targetDate": "2027-11-17"
+    },
+    {
+     "goal": "Create 2 hours a day",
+     "status": "active",
+     "percent": 95,
+     "funding": null,
+     "targetDate": null
+    },
+    {
+     "goal": "Sleep 8 hours a night",
+     "status": "active",
+     "percent": 87,
+     "funding": null,
+     "targetDate": null
     }
    ],
    "behind": [
@@ -4363,7 +4377,7 @@
   "facts": {
    "about": "goals",
    "ask": "best",
-   "active": 5,
+   "active": 7,
    "goals": [
     {
      "goal": "Emergency fund",
@@ -4406,6 +4420,20 @@
      "percent": 50,
      "funding": "review",
      "targetDate": "2027-11-17"
+    },
+    {
+     "goal": "Create 2 hours a day",
+     "status": "active",
+     "percent": 95,
+     "funding": null,
+     "targetDate": null
+    },
+    {
+     "goal": "Sleep 8 hours a night",
+     "status": "active",
+     "percent": 87,
+     "funding": null,
+     "targetDate": null
     }
    ],
    "goal": "First home deposit"
@@ -4422,7 +4450,7 @@
   "facts": {
    "about": "goals",
    "ask": "worst",
-   "active": 5,
+   "active": 7,
    "goals": [
     {
      "goal": "Emergency fund",
@@ -4465,6 +4493,20 @@
      "percent": 50,
      "funding": "review",
      "targetDate": "2027-11-17"
+    },
+    {
+     "goal": "Create 2 hours a day",
+     "status": "active",
+     "percent": 95,
+     "funding": null,
+     "targetDate": null
+    },
+    {
+     "goal": "Sleep 8 hours a night",
+     "status": "active",
+     "percent": 87,
+     "funding": null,
+     "targetDate": null
     }
    ],
    "goal": "Japan adventure"
@@ -4476,12 +4518,12 @@
   "freshNl": "Je hebt nog geen doelen."
  },
  "goals-reached": {
-  "en": "1 goal reached: My first 0.1 BTC.",
-  "nl": "1 doel gehaald: My first 0.1 BTC.",
+  "en": "3 goals reached: My first 0.1 BTC, Drink 2 litres a day and 8,000 steps a day, all summer.",
+  "nl": "3 doelen gehaald: My first 0.1 BTC, Drink 2 litres a day en 8,000 steps a day, all summer.",
   "facts": {
    "about": "goals",
    "ask": "done",
-   "active": 5,
+   "active": 7,
    "goals": [
     {
      "goal": "Emergency fund",
@@ -4524,10 +4566,26 @@
      "percent": 50,
      "funding": "review",
      "targetDate": "2027-11-17"
+    },
+    {
+     "goal": "Create 2 hours a day",
+     "status": "active",
+     "percent": 95,
+     "funding": null,
+     "targetDate": null
+    },
+    {
+     "goal": "Sleep 8 hours a night",
+     "status": "active",
+     "percent": 87,
+     "funding": null,
+     "targetDate": null
     }
    ],
    "reached": [
-    "My first 0.1 BTC"
+    "My first 0.1 BTC",
+    "Drink 2 litres a day",
+    "8,000 steps a day, all summer"
    ]
   },
   "widgets": [
@@ -4542,7 +4600,7 @@
   "facts": {
    "about": "goals",
    "ask": "next",
-   "active": 5,
+   "active": 7,
    "goals": [
     {
      "goal": "Emergency fund",
@@ -4585,6 +4643,20 @@
      "percent": 50,
      "funding": "review",
      "targetDate": "2027-11-17"
+    },
+    {
+     "goal": "Create 2 hours a day",
+     "status": "active",
+     "percent": 95,
+     "funding": null,
+     "targetDate": null
+    },
+    {
+     "goal": "Sleep 8 hours a night",
+     "status": "active",
+     "percent": 87,
+     "funding": null,
+     "targetDate": null
     }
    ],
    "goal": "Japan adventure",
