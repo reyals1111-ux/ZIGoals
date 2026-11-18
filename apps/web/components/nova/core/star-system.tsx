@@ -115,7 +115,12 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
         return true;
       } catch { return false; }
     };
-    if (!setup()) { setFailure('compile'); return; }
+    if (!setup()) {
+      // Session AS (D36): the probe now asks in a worker; where the page itself gives no WebGL context, this browser has
+      // no WebGL here, and the still picture says so (not "the shader did not start").
+      if (!gl) { setProbe(p => p ? {...p, webgl: false, software: false} : p); return; }
+      setFailure('compile'); return;
+    }
 
     // The picture's own clock and eased values.
     const v = {t: 12, spin: 0.72, rate: 0.06, listen: 0, think: 0, speak: 0, beam: 0, beamA: 0, beamKey: live.current.beam?.key ?? 0, beamAt: -1e9};

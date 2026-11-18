@@ -17,6 +17,17 @@ async function fresh(page: Page, extra: Record<string, string> = {}) {
 }
 const frame = (page: Page) => page.locator('.nova-frame');
 async function open(page: Page) { await page.goto('/app/nova'); await expect(frame(page)).toHaveAttribute('data-opening', 'done'); await expect(page.locator('.nova-command input')).toBeVisible(); }
+/**
+ * Session AS (nova-stage-am2 keys under two workers, deliberate; every assertion below is unchanged): the stage settles after
+ * it opens: a widget behind a closed switch is drawn at its size until its gate is read, then slim, and the stage composes
+ * again (the session added 21 Health kinds, so this happens in most batches). The keys are measured and pressed once no panel
+ * is still reading and every panel's box has stayed the same for 600 ms; a stage that kept moving never settles and fails here.
+ */
+async function settled(page: Page) {
+  await expect(page.locator('.nova-stage-area .nova-reading')).toHaveCount(0, {timeout: 15_000});
+  const boxes = () => page.locator('.nova-stage-area article.nova-widget').evaluateAll(list => list.map(w => { const r = w.getBoundingClientRect(); return `${(w as HTMLElement).dataset.widget}:${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}`; }).join(' '));
+  await expect(async () => { const before = await boxes(); await page.waitForTimeout(600); expect(await boxes()).toBe(before); }).toPass({timeout: 20_000});
+}
 const why = (page: Page) => page.locator('.nova-star-why');
 const framesDrawn = (page: Page) => page.evaluate(() => (window as unknown as {__zgHudFrames?: number}).__zgHudFrames ?? 0);
 
@@ -185,6 +196,7 @@ test.describe('AM-2 (F2): Pin, Hide and Close on every widget', () => {
           await open(page);
           const ids = new Set(batch.map(w => w.id)), kinds = KINDS.filter(k => ids.has(k.id));
           await expect(page.locator('.nova-stage-area article.nova-widget')).toHaveCount(batch.length);
+          await settled(page);
           const report = await keysOnStage(page, kinds);
           expect(report.filter(r => r.problems.length), `${layout} at ${width} px`).toEqual([]);
           for (const r of report) seen.add(r.id);
@@ -209,6 +221,7 @@ test.describe('AM-2 (F2): Pin, Hide and Close on every widget', () => {
     for (const batch of batches(12)) {
       await fresh(page, arranged(batch));
       await open(page);
+      await settled(page);
       for (const {id} of batch) {
         const title = KINDS.find(k => k.id === id)!.title, head = widget(id).locator('.nova-widget-head');
         await widget(id).scrollIntoViewIfNeeded();

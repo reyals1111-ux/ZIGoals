@@ -54,6 +54,8 @@ const TRACKS: ReadonlySet<string> = new Set(['water', 'steps', 'sleep', 'weight'
  * else (ADR-042, "Why this session exists" and the corpus). Everything else stays theirs, word for word.
  */
 export function strictClaim(q: Query): boolean {
+  // A Dutch request to show something ("Toon mijn vermogen dit jaar") is the stage's own: it makes the widget with its range.
+  if (/^(?:toon|laat|zet) /.test(q.read)) return false;
   if (q.ask === 'why') return false;
   if (q.domain === 'nova') return false;
   // "How is my day going" (the older layers read "day" as a goal's name); "my day" and the week keep their own briefs.
@@ -104,7 +106,8 @@ export function strictClaim(q: Query): boolean {
  * words for a line to log (it made a card of "hoeveel calorieën heb ik vandaag gegeten"). That path's own Dutch answers
  * stay: "behind on" for habits, and "how was my week".
  */
-export const dutchFirst = (q: Query): boolean => q.lang === 'nl' && q.ask !== 'why' && q.domain !== 'nova' && q.domain !== 'life' && !(q.domain === 'habits' && q.ask === 'late');
+// (A request to show something, "Toon mijn gewoontes deze week", is the stage's own: it names the widget it makes.)
+export const dutchFirst = (q: Query): boolean => q.lang === 'nl' && !/^(?:toon|laat|open|zet) /.test(q.read) && q.ask !== 'why' && q.domain !== 'nova' && q.domain !== 'life' && !(q.domain === 'habits' && q.ask === 'late');
 /** With no model: a Dutch question, or one period beside another in any language, before the older no-model path can take its words for a line to log. */
 export const noModelFirst = (q: Query): boolean => dutchFirst(q) || (q.ask === 'compare' && q.domain !== 'nova' && q.domain !== 'life');
 const AREA_NAME: Record<string, string> = {today: 'Today', goals: 'Goals', habits: 'Habits', wealth: 'Wealth'};

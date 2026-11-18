@@ -147,7 +147,8 @@ test.describe('NOVA on a computer', () => {
     await fresh(page, seen());
     await page.goto('/app/nova');
     await page.getByRole('button', {name: /View controls/}).click();
-    await page.getByRole('checkbox', {name: 'Focus'}).check();
+    // Session AS (Part 2, deliberate, as strict): the gallery now also holds Focus streak, Focus heat and Focus gauge; the same checkbox, by its exact name.
+    await page.getByRole('checkbox', {name: 'Focus', exact: true}).check();
     await expect(page.getByRole('article', {name: 'Focus'})).toBeVisible();
     await page.getByRole('button', {name: 'Arrange on the orbits'}).click();
     const order = async () => ((await stored(page)).widgets as {id: string}[]).map(w => w.id);

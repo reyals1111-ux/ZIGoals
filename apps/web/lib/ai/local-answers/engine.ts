@@ -234,6 +234,8 @@ export function exactLocal(question: string, env: ToolEnv, subject: Subject | un
  * (with that part's widget on NOVA's stage): never a guessed fact.
  */
 export function exactFallback(question: string, env: ToolEnv): LocalReply | null {
+  // A Dutch request to show something ("Toon mijn gewoontes deze week") is the stage's own: it names the widget it makes.
+  if (/^\s*(?:toon|laat|zet)\b/i.test(question)) return null;
   const own = exactLocal(question, env, undefined, q => q.ask !== 'why');
   if (own) return own;
   try {
