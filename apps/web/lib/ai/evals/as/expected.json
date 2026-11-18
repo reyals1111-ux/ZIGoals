@@ -3340,7 +3340,7 @@
    ]
   },
   "widgets": [
-   "food-days"
+   "protein-days"
   ],
   "fresh": "No food logged yet.",
   "freshNl": "Nog geen eten gelogd."
@@ -3996,6 +3996,7 @@
    "next": "Rent"
   },
   "widgets": [
+   "bill-dial",
    "bill-timeline"
   ],
   "fresh": "No bill reminders yet.",
@@ -4152,6 +4153,7 @@
    ]
   },
   "widgets": [
+   "bill-calendar",
    "bill-timeline"
   ],
   "fresh": "No bill reminders yet.",
@@ -4885,7 +4887,7 @@
    }
   },
   "widgets": [
-   "streak-flames"
+   "journal-streak"
   ],
   "fresh": "No journal entries yet.",
   "freshNl": "Nog niets in je dagboek."
@@ -5071,7 +5073,7 @@
    "target": null
   },
   "widgets": [
-   "focus"
+   "focus-gauge"
   ],
   "fresh": "No focus session yet.",
   "freshNl": "Nog geen focussessie."

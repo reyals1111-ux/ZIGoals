@@ -20,14 +20,15 @@ import type {Ask, Exact, ExactWidget, Lang, Query} from './types';
 const plain = (name: string) => clean(name.replace(/\s*[·:•|–-]?\s*\(?SHOWCASE DATA\)?.*$/i, '').replace(/^Example · /, '').trim() || name.trim(), 80);
 const answer = (q: Query, source: [string, string]) => (text: string, facts: Record<string, unknown>, widgets: ExactWidget[]): Exact => ({kind: 'answer', text, facts: {about: q.domain, ask: q.ask, ...facts}, widgets, query: q, source: source[q.lang === 'nl' ? 1 : 0]});
 const minutes = (value: number, lang: Lang) => `${formatNumber(Math.round(value))} ${lang === 'nl' ? (Math.round(value) === 1 ? 'minuut' : 'minuten') : (Math.round(value) === 1 ? 'minute' : 'minutes')}`;
-const trackWidgets = (calendar: string, fallback: string) => (ask: Ask, period: Period): ExactWidget[] => ask === 'streak' ? [{id: 'streak-flames', ref: fallback, fallback}] : period.days.length > 1 ? [{id: calendar, period: period.token, fallback}] : [{id: fallback}];
+/** A log's widgets: its own flames for a run of days, its calendar over a period, and for one day `single` (Session AS Part 2). */
+const trackWidgets = (calendar: string, fallback: string, streak = 'streak-flames', single = fallback) => (ask: Ask, period: Period): ExactWidget[] => ask === 'streak' ? [{id: streak, ...(streak === 'streak-flames' ? {ref: fallback} : {}), fallback}] : period.days.length > 1 ? [{id: calendar, period: period.token, fallback}] : single === fallback ? [{id: fallback}] : [{id: single, period: period.token, fallback}];
 
 export function journalTrack(entries: readonly {date: string; text?: string}[], today: string): Track {
   const by = new Map<string, number>();
   for (const e of entries) by.set(e.date, (by.get(e.date) ?? 0) + (e.text ? e.text.trim().split(/\s+/).filter(Boolean).length : 0));
   return {key: 'journal', domain: 'journal', name: 'Journal', kind: 'event', did: ['written', 'geschreven'], not: ['no entry', 'niets geschreven'], source: ['Your journal', 'Je dagboek'],
     points: days => days.map(date => ({date, value: by.get(date) ?? null, state: by.has(date) ? 'done' : date === today ? 'open' : 'none'})),
-    measure: {text: (v, lang) => `${formatNumber(Math.round(v))} ${lang === 'nl' ? (Math.round(v) === 1 ? 'woord' : 'woorden') : (Math.round(v) === 1 ? 'word' : 'words')}`, kind: 'sum', target: null}, widgets: trackWidgets('journal-map', 'journal')};
+    measure: {text: (v, lang) => `${formatNumber(Math.round(v))} ${lang === 'nl' ? (Math.round(v) === 1 ? 'woord' : 'woorden') : (Math.round(v) === 1 ? 'word' : 'words')}`, kind: 'sum', target: null}, widgets: trackWidgets('journal-map', 'journal', 'journal-streak')};
 }
 export function focusTrack(sessions: readonly {day: string; focusedSeconds: number}[], today: string): Track {
   const by = new Map<string, number>();
@@ -35,7 +36,7 @@ export function focusTrack(sessions: readonly {day: string; focusedSeconds: numb
   for (const s of sessions) { by.set(s.day, (by.get(s.day) ?? 0) + s.focusedSeconds / 60); each.set(s.day, (each.get(s.day) ?? 0) + 1); }
   return {key: 'focus', events: {count: days => days.reduce((n, d) => n + (each.get(d) ?? 0), 0), word: (n, lang) => `${n} ${lang === 'nl' ? (n === 1 ? 'focussessie' : 'focussessies') : (n === 1 ? 'focus session' : 'focus sessions')}`}, domain: 'focus', name: 'Focus', kind: 'event', did: ['a focus session', 'een focussessie'], not: ['no focus session', 'geen focussessie'], source: ['Your focus sessions', 'Je focussessies'],
     points: days => days.map(date => ({date, value: by.get(date) ?? null, state: by.has(date) ? 'done' : date === today ? 'open' : 'none'})),
-    measure: {text: minutes, kind: 'sum', target: null}, widgets: trackWidgets('focus-heat', 'focus')};
+    measure: {text: minutes, kind: 'sum', target: null}, widgets: trackWidgets('focus-heat', 'focus', 'focus-streak', 'focus-gauge')};
 }
 export function journalAnswer(q: Query, env: ToolEnv): Exact | null {
   const entries = env.journal?.entries, out = answer(q, ['Your journal', 'Je dagboek']);
@@ -82,7 +83,7 @@ export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
   }
   const high = open.filter(x => x.priority === 'high');
   if (/\b(?:priority|important|urgent|prioriteit|belangrijk\w*|dringend\w*)\b/.test(q.read)) return out(high.length ? t(lang, `${high.length} open high-priority ${high.length === 1 ? 'task' : 'tasks'}: ${listWords(high.map(name), 'en')}.`, `${high.length} open ${high.length === 1 ? 'taak' : 'taken'} met hoge prioriteit: ${listWords(high.map(name), 'nl')}.`) : t(lang, 'No open task has high priority.', 'Geen open taak heeft hoge prioriteit.'), {...base, high: high.map(x => plain(x.task))}, [{id: 'priority-matrix'}]);
-  return out(open.length ? t(lang, `${open.length} open ${open.length === 1 ? 'task' : 'tasks'}, ${overdue.length} overdue: ${listWords(open.slice(0, 6).map(name), 'en')}${open.length > 6 ? `, and ${open.length - 6} more` : ''}.`, `${open.length} open ${open.length === 1 ? 'taak' : 'taken'}, ${overdue.length} te laat: ${listWords(open.slice(0, 6).map(name), 'nl')}${open.length > 6 ? ` en nog ${open.length - 6}` : ''}.`) : t(lang, 'No open task: everything is done.', 'Geen open taak: alles is gedaan.'), {...base, tasks: open.map(x => plain(x.task))}, [{id: 'tasks'}, ...timeline]);
+  return out(open.length ? t(lang, `${open.length} open ${open.length === 1 ? 'task' : 'tasks'}, ${overdue.length} overdue: ${listWords(open.slice(0, 6).map(name), 'en')}${open.length > 6 ? `, and ${open.length - 6} more` : ''}.`, `${open.length} open ${open.length === 1 ? 'taak' : 'taken'}, ${overdue.length} te laat: ${listWords(open.slice(0, 6).map(name), 'nl')}${open.length > 6 ? ` en nog ${open.length - 6}` : ''}.`) : t(lang, 'No open task: everything is done.', 'Geen open taak: alles is gedaan.'), {...base, tasks: open.map(x => plain(x.task))}, [{id: 'task-load', fallback: 'tasks'}, ...timeline]);
 }
 
 export function notesAnswer(q: Query, env: ToolEnv): Exact | null {
@@ -150,7 +151,7 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
     const dated = active.filter(g => g.targetDate && g.targetDate !== 'none' && g.targetDate >= today).sort((a, b) => a.targetDate!.localeCompare(b.targetDate!))[0];
     return out(dated ? t(lang, `The next target date is ${dayWords(dated.targetDate!, today)}: ${line(dated)}.`, `De eerstvolgende streefdatum is ${dayWords(dated.targetDate!, today)}: ${line(dated)}.`) : t(lang, 'No active goal has a target date ahead.', 'Geen actief doel heeft een streefdatum in de toekomst.'), {...facts, goal: dated?.name ?? null, targetDate: dated?.targetDate ?? null}, [{id: 'goal-dates', fallback: 'goals-hud'}]);
   }
-  return out(active.length ? t(lang, `${active.length} active ${active.length === 1 ? 'goal' : 'goals'}: ${listWords(active.slice(0, 6).map(line), 'en')}${active.length > 6 ? `, and ${active.length - 6} more` : ''}.`, `${active.length} ${active.length === 1 ? 'actief doel' : 'actieve doelen'}: ${listWords(active.slice(0, 6).map(line), 'nl')}${active.length > 6 ? ` en nog ${active.length - 6}` : ''}.`) : t(lang, 'No active goal right now.', 'Er is nu geen actief doel.'), facts, widgets);
+  return out(active.length ? t(lang, `${active.length} active ${active.length === 1 ? 'goal' : 'goals'}: ${listWords(active.slice(0, 6).map(line), 'en')}${active.length > 6 ? `, and ${active.length - 6} more` : ''}.`, `${active.length} ${active.length === 1 ? 'actief doel' : 'actieve doelen'}: ${listWords(active.slice(0, 6).map(line), 'nl')}${active.length > 6 ? ` en nog ${active.length - 6}` : ''}.`) : t(lang, 'No active goal right now.', 'Er is nu geen actief doel.'), facts, /\b(?:saved|saving|savings|save|gespaard|sparen|spaar\w*)\b/.test(q.read) ? [{id: 'savings-jars', fallback: 'goals-hud'}, ...widgets] : widgets);
 }
 
 const AREAS: readonly [keyof ToolEnv['areas'], string][] = [['today', 'Today'], ['goals', 'Goals'], ['habits', 'Habits'], ['health', 'Health'], ['wealth', 'Wealth']];

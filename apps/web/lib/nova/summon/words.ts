@@ -74,7 +74,9 @@ export function lineWords(widgets: readonly MakeRequest[], lines: Readonly<Recor
 export function sentenceCut(text: string, sentences = 2, max = 220): string {
   const flat = text.replace(/```[\s\S]*?```/g, ' ').split('\n').map(l => l.trim()).filter(l => l && !/^(?:[•*\-–]|\d+[.)])\s/.test(l)).join(' ').replace(/\s+/g, ' ').trim();
   const source = flat || text.replace(/\s+/g, ' ').trim();
-  const parts = source.match(/[^.!?…]+(?:[.!?…]+(?=\s|$)|$)/g)?.map(x => x.trim()).filter(Boolean) ?? [];
+  // A sentence ends at a stop followed by a space or the end; a stop inside a figure ("73.48 kg", "v1.2") is part of it.
+  // (Session AS: the earlier pattern skipped every word before such a figure, so "Your health, … weight 73.48 kg" lost its start.)
+  const parts = source.match(/(?:[^.!?…]|[.!?…](?!\s|$))+(?:[.!?…]+(?=\s|$)|$)/g)?.map(x => x.trim()).filter(Boolean) ?? [];
   let out = '';
   for (const part of parts.slice(0, sentences)) { if (out && out.length + 1 + part.length > max) break; out = out ? `${out} ${part}` : part; }
   if (out.length <= max) return out;

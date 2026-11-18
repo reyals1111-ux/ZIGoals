@@ -27,11 +27,14 @@ export const habitName = (habit: Pick<Habit, 'title'>): string => clean(habit.ti
 const number = (value: number) => formatNumber(Math.round(value * 100) / 100);
 export function habitWidgets(ask: Ask, period: Period, ref?: string): ExactWidget[] {
   const p = period.token, one = ref ? {ref} : {};
-  if (ask === 'streak') return [{id: 'streak-flames', ...one, fallback: 'habits-hud'}];
+  // Session AS (Part 2): every habit's run is the flames beside the longest runs ever; one habit's run its own flame.
+  if (ask === 'streak') return ref ? [{id: 'streak-flames', ...one, fallback: 'habits-hud'}] : [{id: 'streak-flames', fallback: 'habits-hud'}, {id: 'best-streaks', fallback: 'habits-hud'}];
   if (ask === 'compare' || ask === 'trend') return [{id: 'compare-periods', ...one, period: p, fallback: 'habit-week'}];
-  if (!ref) return ask === 'missed' || ask === 'not-done' || ask === 'skipped' || ask === 'best' || ask === 'worst' ? [{id: 'habit-misses', period: p, fallback: 'habit-week'}, {id: 'habits-month', period: p, fallback: 'perfect-days'}] : [{id: 'habit-week'}];
+  if (!ref) return ask === 'missed' || ask === 'not-done' || ask === 'skipped' || ask === 'best' || ask === 'worst' ? [{id: 'habit-misses', period: p, fallback: 'habit-week'}, {id: 'habits-month', period: p, fallback: 'perfect-days'}]
+    : period.days.length > 7 ? [{id: 'habits-lattice', period: p, fallback: 'habit-week'}] : [{id: 'habit-week'}];
   if (ask === 'missed' || ask === 'not-done' || ask === 'skipped') return [{id: 'habit-missed-days', ref, period: p, fallback: 'habit-week'}];
-  return period.days.length <= 1 ? [{id: 'habit-week'}] : [{id: 'habit-done-days', ref, period: p, fallback: 'habit-week'}];
+  // Over more than two months a habit's days are its year (a cell a day).
+  return period.days.length <= 1 ? [{id: 'habit-week'}] : period.days.length > 62 ? [{id: 'habit-year', ref, period: p, fallback: 'habit-week'}] : [{id: 'habit-done-days', ref, period: p, fallback: 'habit-week'}];
 }
 export function habitTrack(habit: Habit, today: string): Track {
   const rule = habitRuleOn(habit, today) ?? latestHabitRule(habit), unit = measurementUnit(rule), stats = habitStats(habit, today);

@@ -28,11 +28,17 @@ import type {Ask, Domain, Exact, ExactWidget, Lang, Query} from './types';
 const SOURCE = ['Your Health records', 'Je Health-gegevens'] as const;
 const logged = (value: number | null, target: number | null, date: string, today: string): DayState => value === null ? (date === today ? 'open' : 'none') : target === null || value >= target ? 'done' : date === today ? 'open' : 'part';
 const TARGET = {did: ['target reached', 'doel gehaald'], not: ['below your target', 'onder je doel']} as const, LOGGED = {did: ['logged', 'gelogd'], not: ['nothing logged', 'niets gelogd']} as const;
-const widgetsOf = (domain: Domain, calendar: string, trend: string, fallback: string) => (ask: Ask, period: Period): ExactWidget[] => {
+/**
+ * The widgets of a Health answer: the calendar of its days for what was (not) done, the twins for a comparison, the flames
+ * for a run of days, the trend over a period, and for one day `single` (Session AS Part 2: an answer kind's own widget where
+ * it has one, the measure's general widget otherwise). Over more than 45 days a measure with a heat map shows that (`long`).
+ */
+const widgetsOf = (domain: Domain, calendar: string, trend: string, fallback: string, single: string = fallback, long: string = trend) => (ask: Ask, period: Period): ExactWidget[] => {
   if (ask === 'missed' || ask === 'not-done' || ask === 'skipped' || ((ask === 'done') && period.days.length > 1)) return [{id: calendar, period: period.token, fallback}];
   if (ask === 'compare') return [{id: 'health-compare', ref: domain, period: period.token, fallback}];
   if (ask === 'streak') return [{id: 'streak-flames', ref: domain, fallback}];
-  return period.days.length > 1 || ask === 'trend' || ask === 'average' || ask === 'best' || ask === 'worst' ? [{id: trend, period: period.token, fallback}] : [{id: fallback}];
+  if (period.days.length > 45) return [{id: long, period: period.token, fallback}];
+  return period.days.length > 1 || ask === 'trend' || ask === 'average' || ask === 'best' || ask === 'worst' ? [{id: trend, period: period.token, fallback}] : [{id: single, fallback}];
 };
 const minutes = (value: number, lang: Lang) => `${formatNumber(Math.round(value))} ${lang === 'nl' ? (Math.round(value) === 1 ? 'minuut' : 'minuten') : (Math.round(value) === 1 ? 'minute' : 'minutes')}`;
 
@@ -46,7 +52,7 @@ export function stepsTrack(health: HealthData, today: string): Track {
   const by = stepsByDay(health), target = health.targets.steps ?? null;
   return {key: 'steps', domain: 'steps', name: 'Steps', kind: target === null ? 'event' : 'log', ...(target === null ? LOGGED : TARGET), source: SOURCE,
     points: days => days.map(date => { const value = by.get(date) ?? null; return {date, value, state: logged(value, target, date, today)}; }),
-    measure: {text: (v, lang) => `${formatNumber(Math.round(v))} ${lang === 'nl' ? 'stappen' : 'steps'}`, kind: 'sum', target}, widgets: widgetsOf('steps', 'steps-days', 'steps-trend', 'steps')};
+    measure: {text: (v, lang) => `${formatNumber(Math.round(v))} ${lang === 'nl' ? 'stappen' : 'steps'}`, kind: 'sum', target}, widgets: widgetsOf('steps', 'steps-days', 'steps-trend', 'steps', 'steps', 'steps-heat')};
 }
 export function sleepTrack(health: HealthData, today: string): Track {
   const sleep = healthGroupIn(health, 'sleep') ?? emptySleep(), goal = sleep.goal?.minutes ?? null;
@@ -63,7 +69,7 @@ function nutrientTrack(health: HealthData, today: string, key: 'kcal' | 'protein
   const kcal = key === 'kcal', target = kcal ? null : health.targets.proteinMg ?? null, scale = kcal ? 1 : 1000;
   return {key: kcal ? 'calories' : 'protein', domain: kcal ? 'calories' : 'protein', name: kcal ? 'Calories' : 'Protein', kind: target === null ? 'event' : 'log', ...(target === null ? LOGGED : TARGET), source: SOURCE,
     points: days => days.map(date => { const s = dailyHealthSummary(health, date), raw = s.entries ? s.knownNutrients[key] : null, value = raw === null ? null : raw / scale; return {date, value, state: logged(value, target === null ? null : target / scale, date, today)}; }),
-    measure: {text: v => `${formatNumber(Math.round(v))} ${kcal ? 'kcal' : 'g'}`, kind: 'sum', target: target === null ? null : target / scale}, widgets: widgetsOf(kcal ? 'calories' : 'protein', 'food-days', 'nutrition-gauges', 'health-hud')};
+    measure: {text: v => `${formatNumber(Math.round(v))} ${kcal ? 'kcal' : 'g'}`, kind: 'sum', target: target === null ? null : target / scale}, widgets: widgetsOf(kcal ? 'calories' : 'protein', kcal ? 'food-days' : 'protein-days', kcal ? 'calorie-trend' : 'protein-days', 'health-hud', 'nutrition-gauges')};
 }
 export const caloriesTrack = (health: HealthData, today: string) => nutrientTrack(health, today, 'kcal');
 export const proteinTrack = (health: HealthData, today: string) => nutrientTrack(health, today, 'proteinMg');
@@ -80,7 +86,7 @@ export function meditationTrack(health: HealthData, today: string): Track {
   for (const s of m.sessions) { const d = sessionDay(s); by.set(d, (by.get(d) ?? 0) + s.seconds / 60); each.set(d, (each.get(d) ?? 0) + 1); }
   return {key: 'meditation', events: {count: days => days.reduce((n, d) => n + (each.get(d) ?? 0), 0), word: (n, lang) => `${n} ${lang === 'nl' ? (n === 1 ? 'sessie' : 'sessies') : (n === 1 ? 'session' : 'sessions')}`}, domain: 'meditation', name: 'Meditation', kind: 'event', did: ['a session logged', 'een sessie gelogd'], not: ['no session', 'geen sessie'], source: SOURCE,
     points: days => days.map(date => { const value = by.get(date) ?? null; return {date, value, state: value === null ? (date === today ? 'open' : 'none') : 'done'}; }),
-    measure: {text: minutes, kind: 'sum', target: null}, widgets: widgetsOf('meditation', 'meditation-days', 'meditation', 'meditation')};
+    measure: {text: minutes, kind: 'sum', target: null}, widgets: widgetsOf('meditation', 'meditation-days', 'meditation-days', 'meditation')};
 }
 export function weightTrack(health: HealthData, today: string): Track {
   const unit = dailyData(health).preferences.weightUnit, by = new Map(health.weights.map(w => [w.date, w.grams]));
