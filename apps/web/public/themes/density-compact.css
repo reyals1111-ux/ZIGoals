@@ -5760,6 +5760,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 767.98px) { :root:where([data-density=compact]) .today-page .life-rings > .life-ring:not(#\-) { padding-top: 12px; padding-bottom: 14px; } }
 @media (max-width: 767.98px) { :root:where([data-density=compact]) .today-page .life-rings h3:not(#\-) { margin-top: -1px; margin-bottom: -1px; } }
 @media (max-width: 767.98px) { :root:where([data-density=compact]) .today-page .life-rings > .life-ring:not(#\-) { padding-top: 10px; padding-bottom: 12px; row-gap: 6px; } }
+@media (max-width: 767.98px) { :root:where([data-density=compact]) .life-rings > .life-ring > span:not(#\-) { row-gap: 4px; } }
 :root:where([data-density=compact]) main :is(.page-heading, .page-header) h1:not(#\-) { margin-top: 0; margin-bottom: 14px; }
 :root:where([data-density=compact]) main :is(.page-heading, .page-header) > .eyebrow:not(#\-), :root:where([data-density=compact]) main :is(.page-heading, .page-header) > div > .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 9px; }
 @media (max-width: 767.98px) { :root:where([data-density=compact]) main :is(.page-heading, .page-header) h1:not(#\-) { margin-bottom: 10px; } }

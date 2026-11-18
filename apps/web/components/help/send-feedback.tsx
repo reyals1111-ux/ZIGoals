@@ -17,6 +17,9 @@ export function SendFeedback() {
   const [add, setAdd] = useState(false), [details, setDetails] = useState<string | null>(null), [copied, setCopied] = useState(''), id = useId();
   // Session AP (friends Alpha): the same previewed block can be copied, for a message in another app or a form.
   const copy = () => { const text = (details ?? '').trim(), no = () => setCopied('This browser did not allow copying. Select the text and copy it yourself.'); if (!text) setCopied('There is nothing to copy: the details are empty.'); else if (!navigator.clipboard) no(); else void navigator.clipboard.writeText(text).then(() => setCopied('Copied. Paste it wherever you write to us.'), no); };
+  // Session AT (ADR-043 D20, UX review): a friend who writes from webmail has no mail app for the link; the address can be copied.
+  const [addressCopied, setAddressCopied] = useState('');
+  const copyAddress = () => { const no = () => setAddressCopied(`This browser did not allow copying. The address is ${FEEDBACK_ADDRESS}.`); if (!navigator.clipboard) no(); else void navigator.clipboard.writeText(FEEDBACK_ADDRESS).then(() => setAddressCopied('Address copied. Paste it into your email.'), no); };
   const toggle = (on: boolean) => { setAdd(on); if (on && details === null) setDetails(deviceDetails(readFeedbackEnvironment(motionOff()))); };
   return <div className="send-feedback">
     <p>Something confusing, broken or missing? We&rsquo;d love to hear it.</p>
@@ -28,6 +31,7 @@ export function SendFeedback() {
       <p className="send-feedback-copy"><button type="button" className="secondary" onClick={copy}>Copy these details</button> <span role="status" aria-live="polite">{copied}</span></p>
     </div>}
     <p><a className="primary send-feedback-mail" href={feedbackHref(APP_VERSION_LABEL, add ? details : null)}>Email feedback to {FEEDBACK_ADDRESS}</a></p>
+    <p className="send-feedback-copy"><button type="button" className="secondary" onClick={copyAddress}>Copy the address</button> <span role="status" aria-live="polite">{addressCopied}</span></p>
     <p className="fine">Your mail app opens with the email; nothing is sent until you send it there. ZIGoals adds the app version and, only if you ticked the box, the details above (browser, system, window and screen size, theme, motion, time zone): no account or device id and none of your records. Please leave out codes, your recovery secret, and personal money or health details.</p>
     {/* Session AD (Part 1): the footer's "Private security contact" lives here now, by the same name. */}
     <p className="send-feedback-security">Found a security problem? Write privately: <a className="text-link" href={`mailto:${SECURITY_ADDRESS}`} aria-label={`Private security contact: ${SECURITY_ADDRESS}`}>Private security contact · {SECURITY_ADDRESS}</a></p>

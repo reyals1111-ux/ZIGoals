@@ -11,11 +11,12 @@ import {createRequire} from 'node:module';
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 
+// Session AT (UX review): each picture frames the page's key part, not its first screen (`focus`: what to bring to the top).
 export const HELP_SHOTS = Object.freeze([
-  {id: 'today', path: '/app', title: 'Today'},
-  {id: 'habits', path: '/app/habits', title: 'Habits'},
-  {id: 'health', path: '/app/health', title: 'Health'},
-  {id: 'wealth', path: '/app/wealth', title: 'Wealth'},
+  {id: 'today', path: '/app', title: 'Today', focus: '#today-focus-title'},
+  {id: 'habits', path: '/app/habits', title: 'Habits', focus: 'heading:Morning'},
+  {id: 'health', path: '/app/health', title: 'Health', focus: '#health-view-panel'},
+  {id: 'wealth', path: '/app/wealth', title: 'Wealth', focus: '#holdings'},
   {id: 'nova', path: '/app/nova', title: 'NOVA'},
 ]);
 export const HELP_THEMES = Object.freeze(['nebula', 'light', 'dark']);
@@ -43,11 +44,20 @@ async function main() {
       await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 30_000});
       await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
       await page.waitForURL('**/app', {timeout: 30_000});
+      // The Alpha notice is closed once (as a person would after reading it); it stays closed on every page.
+      await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 30_000});
+      const notice = page.getByRole('complementary', {name: 'Alpha notice'});
+      if (await notice.isVisible().catch(() => false)) await notice.getByRole('button').last().click().catch(() => undefined);
       for (const shot of HELP_SHOTS) {
         await page.goto(base + shot.path);
         await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 30_000});
         if (shot.id === 'nova') await page.waitForFunction(() => document.querySelector('.nova-frame')?.getAttribute('data-opening') === 'done', undefined, {timeout: 20_000}).catch(() => undefined);
         await page.waitForLoadState('networkidle').catch(() => undefined);
+        if (shot.focus) {
+          const target = shot.focus.startsWith('heading:') ? page.getByRole('heading', {name: shot.focus.slice(8), exact: true}).first() : page.locator(shot.focus).first();
+          await target.waitFor({state: 'attached', timeout: 15_000}).catch(() => undefined);
+          await target.evaluate(e => { const top = e.getBoundingClientRect().top + window.scrollY - 96; window.scrollTo(0, Math.max(0, top)); }).catch(() => undefined);
+        }
         await page.waitForTimeout(800);
         const png = await page.screenshot({type: 'png'});
         const webp = await page.evaluate(async b64 => {

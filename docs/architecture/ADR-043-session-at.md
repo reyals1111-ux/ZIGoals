@@ -199,3 +199,25 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   `main`, forcing a layout on almost every frame while Today loads (about 0.4 s of CPU-4× time on the Showcase); it now
   measures after 150 ms of stillness (at most a second apart while the page keeps changing) and at once when it shows, so a
   settled page has the same list. No budget raised.
+- **D20 (the fresh-helper UX review, at the end of Part 3).** A fresh reviewer walked a fresh profile and the Showcase at
+  390 and 1440 in the three themes (Today's setup and first five, each pillar's main flow, Tasks, Notes, Journal, Agenda,
+  Settings, Help, Send feedback, NOVA with eight questions). No Blocker; seven Major; minors. **Fixed:** (1) Life overview's
+  tiles ran label, figure and line together on a narrow screen outside Today's compact tiles ("GOALS1 active0
+  completed"): they stack there now; its Health ring read 0 % on a day with nothing logged: unknown ("Nothing logged
+  today yet") until something is; (3) Today's "Your goals" showed only "Create a new goal" when the one goal sits above (AO
+  RR-17 names a goal once, kept): it now says the goal is shown above, once; (6) Help's pictures were first-screen crops,
+  mostly the hero and the notice: they are taken with the notice closed and framed on each page's key part (Today's
+  focus, the first habits, the meal diary, What you have; 1.4 MB); (7) Send feedback had only the mail link, which does
+  nothing for webmail: "Copy the address" beside it. Minors fixed: the habit card's "Supports …" link was a 19 px target
+  (44 px); the Tasks filter's placeholder cut at 390 ("e.g. #Home p1 today"). Checked and not a fault: Help's first steps
+  are three. **Carried with cause (each a design or copy call, or another session's protected area):** (2) a meal logged in
+  words alone (Quick add needs kcal and a portion: a stored-format and validation change for Health records); (4) NOVA's
+  "when will I reach my emergency fund" leads with the target date, while the Goal widget says the pace estimate (AS's
+  answer engine: an extension for the next session, never a weakening); (5) Showcase NOVA keeps Health closed until the
+  person opens it (the owner's privacy gate; an "Allow Health" button in the reply is a new control on NOVA's composition);
+  the setup's minors (a preselected empty goal amount, a keyboard hint on a phone, "Balanced" unexplained); the goal
+  creator's two buttons on step 1 and its 0/80 counter; "$0.00" plan lines on a goal with no plan; the habits week chart
+  before a habit existed; Health's counters before food and water; Wealth's "Refresh prices" with nothing priced and
+  "Record some money" ticking only on a money entry; Tasks' filter before "New task"; Agenda's future "(0 done)"; NOVA's
+  two "no AI used" lines and its phone hint; the first-five card's focus order. Each is listed for the next session in
+  STATUS ("For the next session").
