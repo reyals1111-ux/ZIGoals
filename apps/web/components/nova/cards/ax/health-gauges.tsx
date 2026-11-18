@@ -14,7 +14,7 @@ import './health.css';
  */
 export function AxhGauges({view}: {view: GaugesView}) {
   return <div className="axh-gauges" aria-hidden="true">
-    {view.gauges.map((g, i) => <div key={g.key} className="axh-gauge" data-over={g.over ? '' : undefined} data-none={g.amount === null ? '' : undefined} style={axIndex(i)} title={`${g.label}: ${g.words}`}>
+    {view.gauges.map((g, i) => <div key={g.key} className="axh-gauge" data-long={String(g.figure).length > 3 ? '' : undefined} data-over={g.over ? '' : undefined} data-none={g.amount === null ? '' : undefined} style={axIndex(i)} title={`${g.label}: ${g.words}`}>
       <span className="axh-gauge-dial">
         {g.target !== null || g.amount === null
           ? <Gauge share={g.share} size={72} sweep={270} start={225} decor><RingFigure figure={g.figure} unit={g.unit}/></Gauge>
