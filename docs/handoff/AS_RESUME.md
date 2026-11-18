@@ -45,11 +45,13 @@ at least every 30 minutes; never merge, enable auto-merge, dispatch or deploy. S
   fresh profile by `lib/nova/widgets/ax-bodies-dom.test.ts`. NOVA + AI suites green, typecheck and lint clean.
 - **Part 2 complete (`838b9c14`):** 64 answer kinds in 17 visual families (ADR-042 "The widget families"), every kind
   fitted at 2560/1440/390 (D18) and checked against its answer (D19); held-out answers fixed (D17, corpus 629).
-- **Next: Part 5.** One fresh-critic round on the new families (one helper, read-only, screenshots in the scratchpad);
-  one production build; the browser specs (`tests/nova-answers-as.spec.ts` exists and passes; add
-  `tests/nova-families-as.spec.ts`, one test per family); D34's spec under two workers on that build (one more attempt
-  allowed, else Carried); weights (`scripts/check-weight-budget.mjs`), frozen readers; full `pnpm typecheck`, `pnpm lint`,
-  `pnpm test`; `AM_DEMO_TOUR.md` (twenty questions); STATUS as the final commit; read CI (PR #106); the report.
+- **Part 5 so far (18 Nov):** critic round done and acted on (D21, `da6e6e28`); `tests/nova-families-as.spec.ts`
+  (18 tests) and `tests/nova-answers-as.spec.ts` pass on the production build (desktop; phone project skips them);
+  production build passes (`NODE_OPTIONS=--max-old-space-size=6144` here: the type check ran out of the default heap);
+  weights all inside budget (NOVA 432.3 of 458 kB); frozen readers pass; `main` unchanged at `e6e92a8c`; demo tour's
+  twenty questions written. Running: NOVA's and the HUD's specs on the production build, two workers.
+- **Next:** read that run (D34's spec among it; one more attempt allowed, else Carried); full `pnpm typecheck`, `pnpm lint`,
+  `pnpm test`; the STATUS entry as the final commit; CI on PR #106 (≤ 2 fix attempts per failure); the report.
 
 - **Known here:** `next dev` stops once on a "security upgrade recommendation" notice; the same command again starts
   it. Nothing was upgraded (a dependency change is the owner's and Session AT's); it goes into the final report.
