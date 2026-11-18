@@ -39,12 +39,16 @@ at least every 30 minutes; never merge, enable auto-merge, dispatch or deploy. S
   `lib/nova/widgets/catalog-as*.ts`, stage lines in `lib/nova/summon/ax-lines*.ts`). **Part 3** (the wordmark,
   `55a548a4`). **Part 4**: the stage's count, the speaking rings, the planet's path (`9ac17914`), D36's
   probe in a worker (`677ee64e`), D34's first attempt (`df4e2a8b`: a still star draws once per picture).
-- **In progress:** Part 2, the remaining families, written by three helpers in the working tree (uncommitted until
-  integrated): Health (`components/nova/cards/ax/health-*`, `lib/nova/cards/ax/health-*`), Wealth and Goals (`money-*`,
-  `goals-*`), day/habits/NOVA (`day-*`, `habit-*`). To integrate a kind: a literal entry in
-  `components/nova/widget-grid.tsx` `BODIES` (`'id': lazy(() => import('./widgets/<id>'))`), its catalogue entry, its
-  stage line, `PARAMS`/`SAYS` in `lib/nova/widgets/ax-bodies-dom.test.ts`; then tsc, eslint,
-  `pnpm exec vitest run apps/web/lib/nova apps/web/lib/ai` from the root, a look in the browser, commit per family.
+- **Part 2 wired (`d0eeab44`, 18 Nov, after the switch to Opus):** the helpers stopped when the Fable allowance ran out;
+  their work was saved (`f04f71b8`) and wired: **64 answer kinds** in the catalogue (4 Habits of families 1–2, 21
+  Health, 18 Wealth and Goals, 21 day/habits/NOVA), each with its BODIES entry, drawn at S/M/L on the Showcase and a
+  fresh profile by `lib/nova/widgets/ax-bodies-dom.test.ts`. NOVA + AI suites green, typecheck and lint clean.
+- **In progress:** checking each family in the browser and against the Showcase's facts, in the owner's order:
+  scanners → trends → gauges → flames → calendars of the other pillars → the rest. Fixes are committed per family.
+  Held-out answer errors found before the switch, still to fix (Part 1): "did I spend more than last month" (compares
+  last month with the month before), "how is my net worth doing this year" (answered as a goal's name), "hoeveel heb
+  ik deze maand uitgegeven aan boodschappen" (older layer: "niets", Groceries has €187.10), "which budgets are over"
+  (lists all budgets).
 - **Next:** finish Part 2 (the count of kinds and families goes into ADR-042 "The widget families" as it is, not
   rounded up); then Part 5: one fresh-critic round on the new families, one production build, the browser specs
   (`tests/nova-answers-as.spec.ts`: the owner's two questions; `tests/nova-families-as.spec.ts`: one per family),
