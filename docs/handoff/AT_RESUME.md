@@ -13,13 +13,22 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 ## Done
 - Part 0: ADR-043, this file, the STATUS stub; Draft PR #107.
 - Part 1: D1 Zignaly by date, D2 pre-run11 test, D3 Tab stops, D4 L7 rows (TIER 3 AI tools), D5 a11y-wcag-x, D6 CSV
-  Value/Unit, D7 Someday counts, D9 shards (TIER 3 CI), D10 intermittents. D8 (AP's seven minors) with a helper.
+  Value/Unit, D7 Someday counts, D9 shards (TIER 3 CI), D10 intermittents.
 - Part 6: OWNER_STEPS.md rewritten as the weekend checklist.
+- Part 2: D11 privacy page vs egress (landing/privacy.html), D12 restore coverage test + round-trip spec (not yet run).
+- Part 4: FRIENDS_GUIDE (NOVA, setup guide, weather opt-in, AP–AT features). `scripts/help-screenshots.mjs` written.
+- Part 5: D13 verifier stage 14 (unit-tested; browser run against a local build pending).
 
 ## In progress
 - D8 (AP's seven minors): a helper's working-tree changes, to review and commit.
 
-## Next
-- Part 2 trust pass, Part 3 polish, Part 4 roadmap (Help screenshots, What's new, FRIENDS_GUIDE, landing draft),
-  Part 5 verifier stages, then ADR-043 closing table and the STATUS entry (final commit).
-- Known: `meditation.spec.ts:55` saw 3 bells instead of 2 on the dev server (Strict Mode?); confirm on the production build.
+## Next (in order)
+1. Commit D8. Production build (`NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, then
+   `pnpm --filter @zigoals/web start` on :3100), route weights, then on it: tests/at/*, hosted-verifier-order, the
+   Guide/reminder/Earn/Tasks specs touched, `meditation.spec.ts:55` (3 bells on dev: confirm on the build).
+2. `node scripts/help-screenshots.mjs http://127.0.0.1:3100` → Help screenshots section (lazy, per theme, labelled) and
+   the landing draft (NOVA figure + new cards, copies under landing/assets/product/), Help's What's new / Known
+   limitations for AR, AS, AT (restore exclusions line promised by FRIENDS_GUIDE).
+3. Part 2 (d) unknown-not-zero / as-of on first-seen figures; Part 3 polish sweep (fresh profile, 390/1440, 3 themes),
+   phone performance on 5 pages, one fresh-helper UX review.
+4. ADR-043 closing table, STATUS entry (final commit), report.
