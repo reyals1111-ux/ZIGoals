@@ -34,6 +34,9 @@ export function recordsOf(env: ToolEnv): Records {
  * fixed words and they differ from what was typed: the older layers are asked those words, so a typo costs no answer.
  */
 export function fixedWords(question: string, env: ToolEnv): string | null {
+  // Only a question is retried in fixed words: "Two waters for today" is a log for the model or the card path, and
+  // setting "waters" right made it a question the device answered first (found by tests/zigi-face-z.spec.ts in CI).
+  if (!/\?\s*$/.test(question) && !/^\s*(?:how|what|which|when|where|why|who|did|do|does|is|are|was|were|have|has|had|can|could|will|hoe|wat|welke|welk|wanneer|waar|waarom|wie|heb|hebt|heeft|ben|kan|kun|zijn|hoeveel)\b/i.test(question)) return null;
   try {
     const q = understand(question, recordsOf(env));
     if (!q) return null;

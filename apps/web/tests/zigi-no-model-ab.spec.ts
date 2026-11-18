@@ -30,7 +30,12 @@ test('no AI: a Dutch question is introduced in Dutch with working examples; "cre
   await page.goto('/app/habits');
   await pressZigi(page);
   await expect(panel(page)).toBeVisible();
-  const dutch = await ask(page, 'Hoeveel minuten heb ik deze maand gemediteerd?');
+  // Session AS (ADR-042 A1, deliberate, as strict): a Dutch question the records answer is answered, exactly, in Dutch:
+  // the meditation habit's own minutes this month (the person's own unit word). The introduction still greets a Dutch
+  // question nothing on the device answers; the same whole sentence is demanded there, and its examples still work.
+  const minutes = await ask(page, 'Hoeveel minuten heb ik deze maand gemediteerd?');
+  await expect(minutes).toContainText('Meditate: 175 minutes deze maand (Tue, Sep 1 t/m Sun, Sep 20), 9.72 minutes per dag op 18 dagen; doel gehaald op 17 van 18 dagen gelogd. Vandaag staat nog open.');
+  const dutch = await ask(page, 'Wat is de hoofdstad van Frankrijk?');
   // Session AK (ADR-036, deliberate; c8d0a44d, FIRST_RUN_REVIEW FR-2): "without any AI" contradicted NOVA's "Private
   // intelligence"; the Dutch introduction now says what answers until a brain is set up. The whole sentence, as before.
   await expect(dutch).toContainText('Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:');
