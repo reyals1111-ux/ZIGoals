@@ -17,7 +17,7 @@ export function AxCalendar({view, lit = 'not-done', kind}: {view: CalendarView; 
     <div className="ax-cal-head">{view.weekdays.map((d, n) => <span key={n}>{d}</span>)}</div>
     <div className="ax-cal-grid">
       {view.weeks.map(week => <div className="ax-cal-week" key={week[0]!.date}>{week.map(cell => {
-        const on = cell.inPeriod && !cell.today && isLit(cell.state, lit, kind);
+        const on = cell.inPeriod && (!cell.today || (lit === 'done' && cell.state === 'done')) && isLit(cell.state, lit, kind);
         return <i key={cell.date} className="ax-cal-cell" data-state={cell.state} data-lit={on ? '' : undefined} data-today={cell.today ? '' : undefined} data-dim={cell.inPeriod ? undefined : ''} style={axIndex(i++)} title={cell.words}><b>{cell.day}</b></i>;
       })}</div>)}
       <span className="ax-cal-scan"/>

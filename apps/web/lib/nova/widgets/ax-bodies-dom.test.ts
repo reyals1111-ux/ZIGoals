@@ -85,6 +85,19 @@ describe('the answer widgets (Session AS): every kind, three sizes, the Showcase
       expect(el.textContent, `${id}: no figure of the Showcase on a fresh profile`).not.toMatch(/Late-night snacks|Meditate/);
     });
   }
+  it('a log\'s calendar counts the days below its target, never the days with nothing logged; a journal counts today once written', async () => {
+    showcase();
+    // Water this month on the Showcase: every logged day reached the target; Nov 1 and Nov 10 have nothing logged (unknown).
+    const water = await draw('water-days', 'M', {period: 'this-month'});
+    expect(water.querySelector('.ax-head-num')?.textContent?.trim()).toBe('0');
+    expect(water.textContent).toContain('target reached on every day logged');
+    expect(water.textContent).toContain('2 with nothing logged');
+    expect(water.querySelector('table')?.textContent).toContain('Nothing logged (unknown, not counted)2 days: Nov 1, Nov 10');
+    // The journal this month: 10 days written, today among them (the answer says 10; the figure said 9).
+    const journal = await draw('journal-map', 'M', {period: 'this-month'});
+    expect(journal.querySelector('.ax-head-num')?.textContent?.trim()).toBe('10');
+    expect(journal.querySelector('.ax-cal-cell[data-today]')?.hasAttribute('data-lit')).toBe(true);
+  });
   it('the owner’s second question as a widget: November with 3 and 12 November lit as skipped days, today ringed and not lit', async () => {
     showcase();
     const el = await draw('habit-missed-days', 'M', PARAMS['habit-missed-days']!());

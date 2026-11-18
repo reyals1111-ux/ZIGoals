@@ -123,7 +123,7 @@ export function netWorthAnswer(q: Query, env: ToolEnv): Exact | null {
   if (!r.ok && !totalsR.ok) return null;
   const amount = (text: string) => { const i = text.lastIndexOf(' '); return i > 0 ? formatCurrencyAmount(text.slice(0, i), text.slice(i + 1)) : text; };
   const per = r.ok ? (r.data.perCurrency as {currency: string; netWorth: string; assets: string; debts: string; holdingsWithAValue: string; accounts: number}[] | undefined) ?? [] : [];
-  const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'networth', ask: q.ask, ...facts}, widgets: [{id: 'net-worth-river', ...(q.period ? {period: q.period} : {}), fallback: 'net-worth-history'}, {id: 'net-worth'}], query: q, source: t(lang, 'Wealth on this device', 'Wealth op dit apparaat')});
+  const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'networth', ask: q.ask, ...facts}, widgets: q.period || q.ask === 'trend' || q.ask === 'compare' ? [{id: 'net-worth-river', ...(q.period ? {period: q.period} : {}), fallback: 'net-worth-history'}, {id: 'net-worth'}] : [{id: 'net-worth'}, {id: 'net-worth-river', fallback: 'net-worth-history'}], query: q, source: t(lang, 'Wealth on this device', 'Wealth op dit apparaat')});
   if (!per.length) {
     const tot = totalsR.ok ? (totalsR.data.totals as {currency: string; total: string}[] | undefined) ?? [] : [];
     if (!tot.length) return out(t(lang, 'Nothing is tracked on Wealth yet.', 'Er wordt nog niets gevolgd bij Wealth.'), {tracked: 0});

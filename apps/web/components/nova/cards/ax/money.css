@@ -30,8 +30,8 @@
 .axm-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; min-width: 0; }
 .axm-legend-row { display: flex; align-items: center; gap: 9px; min-height: 24px; min-width: 0; }
 .axm-legend-n { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 8px; font-style: normal; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ax-ink); border: 1px solid color-mix(in srgb, var(--neon) 46%, transparent); background: color-mix(in srgb, var(--neon) 11%, var(--ax-glass)); box-sizing: border-box; }
-.axm-legend-name { flex: 1 1 auto; min-width: 0; font-size: 15px; color: var(--ax-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.axm-legend-sub { flex: 0 1 auto; min-width: 0; font-size: 14px; color: var(--ax-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.axm-legend-name { flex: 1 1 auto; min-width: 0; font-size: 15px; color: var(--ax-ink); overflow-wrap: break-word; } /* Session AS: a goal's or category's name wraps, never cut */
+.axm-legend-sub { flex: 0 1 auto; min-width: 0; font-size: 14px; color: var(--ax-dim); overflow-wrap: break-word; }
 .axm-legend-value { flex: none; order: 3; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--ax-label); white-space: nowrap; }
 .axm-legend-row[data-tone=watch] .axm-legend-sub { color: var(--ax-ink); font-weight: 600; }
 .axm-legend-row[data-unlit] .axm-legend-n { border-style: dashed; border-color: color-mix(in srgb, var(--ax-dim) 70%, transparent); background: none; }
@@ -70,7 +70,7 @@
 .axm-radar-dot { fill: var(--ax-ink); stroke: var(--neon); stroke-width: 1.4; }
 .axm-radar-sweep { transform-origin: 0 0; opacity: 0; }
 .axm-radar-hand { fill: none; stroke: var(--neon-2); stroke-width: 1.2; stroke-linecap: round; }
-.axm-radar-label { position: absolute; transform: translate(-50%, -50%); max-width: max(7ch, calc(28cqi - 10px)); font-size: 14px; line-height: 1.15; color: var(--ax-label); text-align: center; overflow-wrap: anywhere; }
+.axm-radar-label { position: absolute; transform: translate(-50%, -50%); width: max-content; max-width: max(9ch, calc(30cqi - 10px)); font-size: 14px; line-height: 1.15; color: var(--ax-label); text-align: center; overflow-wrap: break-word; } /* Session AS: its own width (at the edge an absolute label shrank to a letter a line); a long name wraps between words */
 .axm-radar-label[data-side=r] { transform: translate(0, -50%); }
 .axm-radar-label[data-side=l] { transform: translate(-100%, -50%); }
 

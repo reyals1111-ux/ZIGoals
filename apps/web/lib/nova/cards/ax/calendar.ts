@@ -57,7 +57,8 @@ export function calendarOf(track: Track, period: Period, today: string, lit: Lit
   return {
     period, title: month ? formatMonth(`${period.to}T12:00:00Z`, {timeZone: 'UTC'}) : `${formatDate(period.from, {year: false})} – ${formatDate(period.to, {year: false})}`,
     weekdays: Array.from({length: 7}, (_, i) => formatWeekday(addLocalDays(start, i)).slice(0, 1)), weeks, tally: T,
-    lit: points.filter(p => isLit(p.state, lit, track.kind) && p.date !== today).map(p => p.date), longestRun: runBest(points).days,
+    // Today is lit only once it is done and the done days are asked for (an open today is never counted either way).
+    lit: points.filter(p => isLit(p.state, lit, track.kind) && (p.date !== today || (lit === 'done' && p.state === 'done'))).map(p => p.date), longestRun: runBest(points).days,
   };
 }
 /** The period in the widget's own words: "this month", "last week", "the last 14 days", "since Nov 1", "Mondays this month". */
@@ -77,6 +78,7 @@ export type CalendarWords = {figure: string; unit: string; label: string; note: 
 const dayCount = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
 export function calendarWords(view: CalendarView, track: Pick<Track, 'name' | 'kind' | 'did' | 'not' | 'measure'>, lit: Lit, today: string): CalendarWords {
   const T = view.tally, period = periodLabel(view.period, today), n = view.lit.length, habit = track.kind === 'habit', open = T.open > 0;
+  let figure = n;
   const partPast = T.dates.part.filter(d => d !== today), nothing = track.kind === 'log' ? T.dates.none : [];
   const state = (date: string) => view.weeks.flat().find(c => c.date === date)!;
   const rows: (readonly [string, string])[] = [];
@@ -90,7 +92,9 @@ export function calendarWords(view: CalendarView, track: Pick<Track, 'name' | 'k
     const bits = habit ? [T.missed ? `${T.missed} missed` : '', T.skipped ? `${T.skipped} skipped` : '', partPast.length ? `${partPast.length} partly done` : ''].filter(Boolean)
       : track.kind === 'log' ? [partPast.length ? `${partPast.length} below your target` : '', nothing.length ? `${nothing.length} with nothing logged` : ''].filter(Boolean) : [];
     note = `${track.name}${bits.length ? ` · ${bits.join(', ')}` : ''}${open ? ' · today still open' : ''}`;
-    if (!n) { tone = 'clear'; label = habit ? `every due day done · ${period}` : `${track.did[0]} every day · ${period}`; }
+    // A log's figure is the days below its target: a day with nothing logged is unknown, said apart, never counted as below.
+    if (track.kind === 'log') figure = partPast.length;
+    if (!figure) { tone = 'clear'; label = habit ? `every due day done · ${period}` : track.kind === 'log' ? `${track.did[0]} on every day logged · ${period}` : `${track.did[0]} every day · ${period}`; }
     if (habit) { rows.push(['Missed (a due day not done)', T.missed ? `${dayCount(T.missed)}: ${dayNames(T.dates.missed, 31)}` : 'None']); rows.push(['Skipped (marked so; not counted as missed)', T.skipped ? `${dayCount(T.skipped)}: ${dayNames(T.dates.skipped, 31)}` : 'None']); if (partPast.length) rows.push(['Partly done', `${dayCount(partPast.length)}: ${dayNames(partPast, 31)}`]); }
     else if (track.kind === 'log') { rows.push([`${track.name}: ${track.not[0]}`, partPast.length ? `${dayCount(partPast.length)}: ${dayNames(partPast, 31)}` : 'None']); rows.push(['Nothing logged (unknown, not counted)', nothing.length ? `${dayCount(nothing.length)}: ${dayNames(nothing, 31)}` : 'None']); }
     else rows.push([`${track.name}: ${track.not[0]}`, n ? `${dayCount(n)}: ${dayNames(view.lit, 31)}` : 'None']);
@@ -104,5 +108,5 @@ export function calendarWords(view: CalendarView, track: Pick<Track, 'name' | 'k
     ...(!habit && track.kind === 'log' && used.has('part') ? [['part', track.not[0]] as const] : []), ...(track.kind !== 'habit' && used.has('none') ? [['none', track.kind === 'log' ? 'Nothing logged' : track.not[0]] as const] : []),
     ...(used.has('done') ? [['done', habit ? 'Done' : track.did[0]] as const] : []),
   ];
-  return {figure: String(n), unit: n === 1 ? 'day' : 'days', label, note, ...(tone ? {tone} : {}), rows, key: [...key, ['today', 'Today']]};
+  return {figure: String(figure), unit: figure === 1 ? 'day' : 'days', label, note, ...(tone ? {tone} : {}), rows, key: [...key, ['today', 'Today']]};
 }

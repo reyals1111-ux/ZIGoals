@@ -123,6 +123,7 @@
 /* Session AS: when the instruments are at their smallest and the answer still does not fit its panel, the optional parts
    step aside (the table holds every fact): keys, chips, notes and second lines. Set by AxBody's fit check. */
 .ax-body[data-over] :is(.ax-key, .ax-chips) { display: none; }
+.ax-body[data-over] .nc-facts { display: none; } /* fact rows the table repeats step aside before the instrument */
 .ax-body[data-over=all] > :not(.ax-head):not(.nc-foot):not(table):not(.sr-only):not(.nc-notice):not([data-ax-keep]) { display: none; }
 .ax-body[data-over=all] .ax-head-note { display: none; } /* as the compact tier does (its table keeps the words) */
 /* Session AS: an answer's source and as-of wrap onto a second line rather than being cut ("· the last 30 days · 8 of 30 d…"). */
