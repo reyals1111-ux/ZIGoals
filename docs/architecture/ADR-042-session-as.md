@@ -254,6 +254,30 @@ One fresh-critic round on the new families (no loop); one production build per i
   where an answer from the goals lookup says 5. The lookup (`list_goals`) predates this session and reads the goal
   summaries only; widening it is a change to an AI tool's data for the owner to decide (it would be TIER 3).
 
+- **D21 The fresh-critic round** (one read-only critic, all 64 kinds at 2560 and 1440, 21 findings; `da6e6e28`).
+  Fixed: the spending radar not drawn (its width resolved to 0); the health scan's cards over its foot; skipped days
+  counted as due in habit-done-days; "0 days" beside "reached" in water-days; calendar keys missing at M (a lit cell
+  means missed in one kind and done in another); the calendar sweep over the day numbers; "longest run ended" on a run
+  still going; a year's month names run together; budget gauges without names; the grid's cut mark left on panels the
+  fit check had made fit (a dimmed foot). **Carried, with their causes:**
+  1. Bill timeline and goal dates at 2560 draw four markers and list three names: the legends' older height caps
+     (`money.css`, `.axm-legend > li:nth-child(n+…)`) hide rows without a "+N more"; each table lists all four.
+  2. Trend lines join the logged days across days with nothing logged (sleep 27 of 30 nights, weight 8 of 30 days);
+     the line is the kit's shared trend (`components/nova/cards/kit.tsx`), and the foot says how many days are logged.
+  3. Best streaks in a 280 px panel break six habit names between syllables (two attempts: cut, then run together).
+  4. The life radar scales each spoke to the larger of now and before, so one task reaches as far as 11 of 11 habits;
+     the period before is drawn dashed and stated in the table and the key, not beside each spoke.
+  5. The net worth river's band thickness is scaled between the period's lowest and highest, which enlarges an 8.5 %
+     rise; its figures and the table state the values.
+  6. "Book the dentist" (due today at 10:30, now past) counts as overdue, so the task widgets say "0 due today" beside
+     it; the tasks page's own rule.
+  7. Meditation days (Health's meditation sessions) light today while the habit Meditate is still open: two records
+     the person keeps apart; each widget names its source.
+  8. Late-night snacks is a quit habit; its slips read as "missed", the Habits page's own word for a failed day.
+  9. The trends at 1440 squeeze their words beside the figure and their low and high labels sit under the markers;
+     the focus gauge's arc has no stated scale (it is this period against the one before, both named in its words).
+  10. The goals lookup leaves out average goals (D20).
+
 ## Tests changed (deliberate; none weakened)
 Each carries "Session AS (<id>, deliberate)" with an equally strict replacement.
 - `lib/ai/local-answers/ai-session.test.ts` **RR-13** ("Which habits did I miss yesterday?"): the exact sentence, the
