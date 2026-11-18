@@ -278,6 +278,21 @@ One fresh-critic round on the new families (no loop); one production build per i
      the focus gauge's arc has no stated scale (it is this period against the one before, both named in its words).
   10. The goals lookup leaves out average goals (D20).
 
+- **D22 Part 5: what was run, on which build.** One production build of the code head
+  (`NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED`; in this sandbox the type check needs
+  `NODE_OPTIONS=--max-old-space-size=6144`, and `next build` stops once on Next's security-advisory notice and builds on
+  the second run: nothing was upgraded, a dependency change is the owner's and Session AT's). Route weights: every route
+  inside its budget (`/app/nova` 432.3 of 458 kB). NOVA's and the HUD's specs, both projects, two workers: 191 passed and
+  7 failed, all from this branch, each fixed at its cause (`bf3806e5`); rerun on the rebuilt app with the AS specs: 31 of
+  31. `hud-motion` (ADR-041 D34) passed on both projects in that run. The generated theme sheets were stale after the
+  widgets' style sheets grew; regenerated (`d0ab27e7`). Full `pnpm typecheck` passes; `pnpm lint` 0 errors (23 warnings,
+  all in files this session did not touch); `pnpm test` all pass except `scripts/pre-run11-setup.test.mjs` (2), which
+  checks for the pinned Node 24.19.0 where this sandbox has 24.22.3. Frozen readers pass.
+- **D23 NOVA reads its notes with its Notes permission** (`e2dc3df4`, found by the families spec): the app's shared
+  context reads tool sources without the notes, so NOVA refused every notes question even with its own Notes permission
+  on. NOVA's on-device environment (`lib/nova/local-env.ts`) reads them from this device when that permission is on and
+  the screen is not private, as NOVA's pack for a model already did.
+
 ## Tests changed (deliberate; none weakened)
 Each carries "Session AS (<id>, deliberate)" with an equally strict replacement.
 - `lib/ai/local-answers/ai-session.test.ts` **RR-13** ("Which habits did I miss yesterday?"): the exact sentence, the
@@ -292,6 +307,15 @@ Each carries "Session AS (<id>, deliberate)" with an equally strict replacement.
 - `lib/nova/summon/lines.test.ts` **AM-D3** ("Did I journal this month?"): the device answers it, and the answer's own
   widget is made beside it.
 - `lib/ai/tools/hand-off.test.ts`, `lib/ai/tools/tools.test.ts`: `life_facts` in the surface list and its sample arguments.
+After the switch to Opus (Part 2 and Part 5), each marked in the file:
+- `lib/nova/widgets/widgets.test.ts`, `lib/nova/stage/am-security.test.ts`: `nova-answers` joins the widgets without a
+  gate; the Health list grows by exactly its 21 answer widgets, in order.
+- `lib/nova/summon/lines.test.ts`: the set of made widgets without a stage line is pinned exactly (seven); "Did I
+  journal this month?" makes the answer's own journal map, whose line says the same days.
+- `tests/nova-dashboard.spec.ts`, `tests/p1-nova-live.spec.ts`: the gallery's Focus checkbox by its exact name (Focus
+  streak, Focus heat and Focus gauge now stand beside it).
+- `tests/nova-stage-am2.spec.ts`: the keys are measured and pressed once the stage has settled (no panel reading, every
+  box still for 600 ms); every assertion unchanged.
 No golden set, eval corpus or older pinned answer was changed beyond these.
 
 ## The corpus, per pillar

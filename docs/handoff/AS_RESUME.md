@@ -45,13 +45,10 @@ at least every 30 minutes; never merge, enable auto-merge, dispatch or deploy. S
   fresh profile by `lib/nova/widgets/ax-bodies-dom.test.ts`. NOVA + AI suites green, typecheck and lint clean.
 - **Part 2 complete (`838b9c14`):** 64 answer kinds in 17 visual families (ADR-042 "The widget families"), every kind
   fitted at 2560/1440/390 (D18) and checked against its answer (D19); held-out answers fixed (D17, corpus 629).
-- **Part 5 so far (18 Nov):** critic round done and acted on (D21, `da6e6e28`); `tests/nova-families-as.spec.ts`
-  (18 tests) and `tests/nova-answers-as.spec.ts` pass on the production build (desktop; phone project skips them);
-  production build passes (`NODE_OPTIONS=--max-old-space-size=6144` here: the type check ran out of the default heap);
-  weights all inside budget (NOVA 432.3 of 458 kB); frozen readers pass; `main` unchanged at `e6e92a8c`; demo tour's
-  twenty questions written. Running: NOVA's and the HUD's specs on the production build, two workers.
-- **Next:** read that run (D34's spec among it; one more attempt allowed, else Carried); full `pnpm typecheck`, `pnpm lint`,
-  `pnpm test`; the STATUS entry as the final commit; CI on PR #106 (≤ 2 fix attempts per failure); the report.
+- **Part 5 done (18 Nov):** critic round (D21), families spec, notes fix (D23), the production-build spec run and its
+  fixes (`bf3806e5`), theme sheets regenerated (`d0ab27e7`), ADR-042 D22, demo tour, STATUS entry (final commit).
+- **If resumed after this:** read CI on PR #106's final head; a red job gets at most two fix attempts (known
+  intermittents: one re-run), then is explained in STATUS. Never merge, auto-merge, dispatch or deploy.
 
 - **Known here:** `next dev` stops once on a "security upgrade recommendation" notice; the same command again starts
   it. Nothing was upgraded (a dependency change is the owner's and Session AT's); it goes into the final report.
