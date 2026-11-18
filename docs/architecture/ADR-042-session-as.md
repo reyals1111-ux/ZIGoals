@@ -181,6 +181,50 @@ One fresh-critic round on the new families (no loop); one production build per i
   as every page does; a judgement asked about spending in English still gets the older layer's plain month figures (true
   figures, but without the honest line); "best day" is said of a night too.
 
+- **D10 An exact answer keeps its third sentence under the star** (`lib/nova/summon/words.ts`). The stage cut every
+  reply at two sentences; "Meditate: not done on 2 days … Both were marked as skipped. Today is still open." lost its
+  last fact there (found by `tests/nova-answers-as.spec.ts` on its first run). An exact answer keeps three sentences
+  within the same 220 characters; any other reply is cut at two as before.
+
+### Part 3 — the NOVA name
+- **D11 The wordmark** (`components/nova/nova.css`). N·O·V·A above the star is 34 to 68 px by the window's width (28 px
+  on a phone; it was 15 px), weight 760, as gradient text: white on the left (to 16 %) flowing into cyan `#8ff6ff`,
+  violet `#a98bff` and pink `#ff8fd4`, with a thin dark edge and a static bloom (no motion). Its layout slot stays 22 px
+  high (negative block margins), so the star and AR's composition do not move; the element's own box covers the glyphs,
+  because a browser paints gradient text only inside the box (at 2560 px the first build was cut to the middle 22 px).
+  The colours are the wordmark's own in all three themes: NOVA's stage is the night sky in each. The darkest stop, the
+  violet, is 7.2:1 on the sky `#0b0c24` and 5.4:1 on the brightest nebula behind it (`#2a1f5a`); the pink is 9.3:1. Forced colours: plain text. Soft glow: no bloom. A
+  custom name wears the same treatment. Seen at 2560 × 1440, 1440 × 900 and 390 × 844.
+
+### Part 4 — NOVA leftovers
+- **D12 "Stage N widgets" counts the stage.** The grid knows which widgets stand beside or under the star and which
+  rest on the band below ("More on your orbit"); it reports both, and the read-out says "7 widgets, 3 below" (it said
+  "10 widgets"). `lib/nova/stage/as-stage-count.test.ts`.
+- **D13 The speaking mark is three soft rings that fade outwards** (`nova-stage.tsx`, `command-centre.css`): the
+  ticked rim (90 ticks, 8.4 wide) read as spikes. Static, shown by opacity alone, inside the bezel, as before.
+- **D14 The planet's path in a narrow column** (`lib/nova/core/star-shader.ts`). A narrow column limits the orbit's
+  width only. The squeezed orbit is now seen a little more from above (its own tilt, `TILT * ORBIT / orbit`), so its
+  near and far passes keep the distance from the core they have on a wide stage and the planet no longer covers the
+  core. On a wide stage (`uEdge` ≥ about 0.45) the picture is exactly as before; the still pictures are unchanged.
+- **D15 D36: the star's first ask for WebGL runs in a worker; the content policy is unchanged.** The two asks that tell
+  hardware from software drawing (`lib/nova/core/probe-ask.ts`) run in a small same-origin module worker with an
+  OffscreenCanvas (`probe-worker.ts`, started by `probe.ts`); `worker-src 'self'` already allows the app's own workers,
+  so no TIER 3 (CSP) commit was needed. The page answers where the browser has no worker canvas, where the worker
+  fails, finds no WebGL or says nothing within 12 s. **Changed from the plan:** only the probe moved, not the drawing.
+  Measured here before the change (dev build, 1920 × 1080 and 2560 × 1440, Showcase, the tests' Chromium): the asks take
+  5 to 13 ms on the page and in a worker, the shader's compile and link under 30 ms, the first read-back about 200 ms;
+  the six-second task ADR-041 D36 measured does not occur in this sandbox today, with or without graphics switches.
+  Moving the whole draw loop would have been a rewrite of the star's loss, proof and pace handling with nothing here to
+  measure it against. If the runner still shows the opening held by the star, the cause is not the first ask, and that
+  is the next thing to measure there. Read from CI on the final head.
+- **D16 D34, first attempt: a still star is drawn once per picture.** Under Motion Off, reduced motion and in a hidden
+  tab the star drew its still frame again on every wake: the battery read again, the probe's answer, a tab shown again.
+  The frame is kept in the canvas, so a wake that changes nothing the frame shows (`starStillKey`: state, accent, size,
+  edge, layout, renderer, density) now draws nothing; an unproven frame is still drawn and read back again. On a phone
+  with reduced motion the star draws one frame where it drew two. The spec is unchanged. Whether this was D34's
+  trigger ("two frames became four with no size changed") is read from repeated runs under two workers on the
+  production build and from CI.
+
 ## Tests changed (deliberate; none weakened)
 Each carries "Session AS (<id>, deliberate)" with an equally strict replacement.
 - `lib/ai/local-answers/ai-session.test.ts` **RR-13** ("Which habits did I miss yesterday?"): the exact sentence, the
