@@ -1,0 +1,247 @@
+/*
+ * Session AS (ADR-042 Part 2): the answer instruments of Health — scanners, trend marks, stage bars, gauges and heat.
+ * Every class here starts with `axh-` (lib/nova/css-collisions.test.ts: a class belongs to one sheet). Colours are the
+ * realm's own tokens (--neon, --neon-2, --neon-ink) and the answer kit's (--ax-ink, --ax-label, --ax-dim, --ax-glass, set
+ * on `.ax-body` in ax.css); glass is navy; bloom is static. Only transform and opacity animate, plus one dash that draws
+ * itself once; no backdrop-filter; nothing follows the pointer. Labels are 14 px or more; figures are tabular.
+ *
+ * Nothing is cut in a short panel: an instrument takes the height its panel has left (the body is `holo-body`'s height;
+ * the figure and the foot take about 100 px of it) through container units, and lists drop whole rows.
+ */
+
+/* ---- Shared: the key and the facts under an instrument (Large) ---- */
+.axh-key { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; color: var(--ax-label); }
+.axh-key span { display: inline-flex; align-items: center; gap: 6px; }
+.axh-key i { width: 14px; height: 14px; border-radius: 4px; flex: none; box-sizing: border-box; }
+.axh-key i[data-k=none] { border: 1px dashed color-mix(in srgb, var(--ax-dim) 70%, transparent); }
+.axh-key i[data-k=deep], .axh-key i[data-k=night], .axh-key i[data-k=fast] { background: var(--neon); box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent); }
+.axh-key i[data-k=rem] { background: repeating-linear-gradient(135deg, var(--neon-2) 0 3px, color-mix(in srgb, var(--neon) 26%, var(--ax-glass)) 3px 6px); }
+.axh-key i[data-k=core] { background: color-mix(in srgb, var(--neon) 34%, var(--ax-glass)); border: 1px solid color-mix(in srgb, var(--neon) 50%, transparent); }
+.axh-key i[data-k=window], .axh-key i[data-k=band] { background: color-mix(in srgb, var(--neon-2) 22%, transparent); border-block: 1px dashed color-mix(in srgb, var(--neon-2) 70%, transparent); border-radius: 0; }
+.axh-key i[data-k=target] { height: 0; border-top: 2px dashed var(--ax-ink); border-radius: 0; }
+.axh-key i[data-k=tape] { height: 0; border-top: 3px solid var(--ax-ink); border-radius: 0; }
+.axh-key i[data-k=untaped] { height: 0; border-top: 2px dashed color-mix(in srgb, var(--ax-dim) 70%, transparent); border-radius: 0; }
+.axh-key i[data-k=pin] { width: 10px; height: 10px; border-radius: 2px; transform: rotate(45deg); background: var(--ax-ink); box-shadow: 0 0 0 2px var(--neon); margin: 0 2px; }
+.axh-key i[data-k=reached] { height: 4px; border-radius: 2px; background: var(--ax-ink); box-shadow: 0 0 8px var(--neon-2); }
+.axh-key i[data-k=h1], .axh-key i[data-k=m1] { background: color-mix(in srgb, var(--neon) 16%, var(--ax-glass)); border: 1px solid color-mix(in srgb, var(--neon) 30%, transparent); }
+.axh-key i[data-k=h2], .axh-key i[data-k=m2] { background: color-mix(in srgb, var(--neon) 34%, var(--ax-glass)); }
+.axh-key i[data-k=m3] { background: color-mix(in srgb, var(--neon) 52%, var(--ax-glass)); }
+.axh-key i[data-k=h3], .axh-key i[data-k=m4] { background: color-mix(in srgb, var(--neon) 76%, var(--ax-glass)); }
+.axh-key i[data-k=h4], .axh-key i[data-k=m5] { background: linear-gradient(135deg, var(--neon), var(--neon-2)); box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent); }
+.axh-facts { display: grid; min-width: 0; }
+.axh-fact { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 4px 0; font-size: 15px; line-height: 1.35; color: var(--ax-label); border-top: 1px solid color-mix(in srgb, var(--neon) 18%, transparent); }
+.axh-fact b { font-weight: 650; color: var(--ax-ink); font-variant-numeric: tabular-nums; text-align: right; }
+@container holo-body (max-height: 299.98px) { .axh-key, .axh-facts { display: none; } }
+
+/* ---- Family: scanners. The heart is decoration (role=img says so); it shows no reading. ---- */
+.axh-scan { flex: 1 1 auto; min-height: 0; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; }
+.axh-heart { --axh-heart: clamp(44px, min(24cqi, calc(100cqh - 150px)), 128px); position: relative; flex: none; width: var(--axh-heart); height: var(--axh-heart); overflow: clip; overflow-clip-margin: 6px; }
+.axh-heart svg { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 58%; }
+.axh-heart-glow { fill: none; stroke: var(--neon); stroke-width: 4.2; stroke-linejoin: round; opacity: .2; }
+.axh-heart-fill { fill: color-mix(in srgb, var(--neon) 15%, transparent); stroke: color-mix(in srgb, var(--neon) 55%, transparent); stroke-width: 2.2; stroke-linejoin: round; }
+.axh-heart-line { fill: none; stroke: var(--neon-2); stroke-width: 1.1; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; }
+.axh-sweep { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: linear-gradient(to bottom, var(--neon-2) 0 2px, color-mix(in srgb, var(--neon) 16%, transparent) 2px 16%, transparent 16%); }
+
+.axh-vitals { list-style: none; margin: 0; padding: 0; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-content: center; }
+.axh-vital { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'label asof' 'value value' 'target target' 'meter meter'; column-gap: 8px; row-gap: 2px; align-items: baseline; padding: 8px 10px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--neon) 34%, transparent); background: color-mix(in srgb, var(--neon) 7%, var(--ax-glass)); box-shadow: inset 3px 0 0 var(--neon); transform-origin: 50% 0; }
+.axh-vital:nth-child(5):last-child { grid-column: 1 / -1; }
+.axh-vital-label { grid-area: label; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--ax-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.axh-vital-asof { grid-area: asof; font-size: 14px; color: var(--ax-dim); white-space: nowrap; }
+.axh-vital-value { grid-area: value; font-size: 19px; line-height: 1.25; font-weight: 680; font-variant-numeric: tabular-nums; color: var(--ax-ink); text-shadow: 0 0 10px color-mix(in srgb, var(--neon) 60%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.axh-vital-target { grid-area: target; font-size: 14px; color: var(--ax-label); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.axh-vital-meter { grid-area: meter; height: 4px; margin-top: 3px; border-radius: 2px; background: color-mix(in srgb, var(--neon) 12%, var(--ax-glass)); overflow: hidden; }
+.axh-vital-meter i { display: block; width: var(--axh-w, 0%); height: 100%; border-radius: 2px; background: linear-gradient(90deg, color-mix(in srgb, var(--neon) 45%, transparent), var(--neon) 70%, var(--neon-2)); }
+/* Nothing recorded: unlit and dashed, in words (never a zero). */
+.axh-vital[data-none] { border-style: dashed; border-color: color-mix(in srgb, var(--ax-dim) 70%, transparent); background: none; box-shadow: none; }
+.axh-vital[data-none] .axh-vital-value { font-size: 15px; font-weight: 500; color: var(--ax-dim); text-shadow: none; white-space: normal; }
+/* A panel under 282 px keeps the value and its day; a narrow or a short one sets each vital on one line and drops whole lines from the end. */
+@container holo-body (max-height: 281.98px) { .axh-vital-target, .axh-vital-meter { display: none; } .axh-vital { padding: 5px 10px; } }
+@container holo-body (max-width: 439.98px) {
+  .axh-vitals { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .axh-vital { display: flex; gap: 8px; padding: 2px 9px; border-radius: 7px; }
+  .axh-vital-label, .axh-vital-asof { flex: none; }
+  .axh-vital-value { flex: 1 1 auto; min-width: 0; font-size: 16px; }
+  .axh-vital-target, .axh-vital-meter { display: none; }
+}
+@container holo-body (max-height: 227.98px) {
+  .axh-vitals { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .axh-vital { display: flex; gap: 8px; padding: 2px 9px; border-radius: 7px; }
+  .axh-vital-label, .axh-vital-asof { flex: none; }
+  .axh-vital-value { flex: 1 1 auto; min-width: 0; font-size: 16px; }
+}
+@container holo-body (max-width: 339.98px) { .axh-scan { grid-template-columns: minmax(0, 1fr); } .axh-heart { display: none; } }
+@container holo-body (max-height: 250.98px) { .axh-vital:nth-child(n + 5) { display: none; } }
+@container holo-body (max-height: 219.98px) { .axh-vital:nth-child(n + 4) { display: none; } }
+@container holo-body (max-height: 188.98px) { .axh-vital:nth-child(n + 3) { display: none; } }
+
+/* The body scan: a figure outline with a tape line where a place was measured, and the places beside it. */
+.axh-bodyscan { flex: 1 1 auto; min-height: 0; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px; }
+.axh-figure { position: relative; flex: none; height: clamp(64px, calc(100cqh - 118px), 230px); aspect-ratio: 60 / 122; overflow: clip; }
+.axh-figure svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.axh-figure-line { fill: color-mix(in srgb, var(--neon) 7%, transparent); stroke: var(--neon); stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; vector-effect: non-scaling-stroke; }
+.axh-figure-tape { fill: none; stroke: color-mix(in srgb, var(--ax-dim) 70%, transparent); stroke-width: 1.4; stroke-dasharray: 2 2.4; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.axh-figure-tape[data-on] { stroke: var(--ax-ink); stroke-width: 2.6; stroke-dasharray: none; }
+.axh-places { list-style: none; margin: 0; padding: 0; min-width: 0; display: grid; gap: 4px; align-content: center; }
+.axh-place { min-width: 0; display: flex; align-items: baseline; gap: 10px; padding: 2px 9px; border-left: 2px solid var(--neon); background: linear-gradient(90deg, color-mix(in srgb, var(--neon) 9%, transparent), transparent 70%); transform-origin: 50% 0; }
+.axh-place-label { flex: 0 0 4.6em; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--ax-label); }
+.axh-place-value { flex: 1 1 auto; min-width: 0; font-size: 17px; font-weight: 680; font-variant-numeric: tabular-nums; color: var(--ax-ink); white-space: nowrap; }
+.axh-place-asof { flex: none; font-size: 14px; color: var(--ax-dim); white-space: nowrap; }
+.axh-place[data-none] { border-left: 2px dashed color-mix(in srgb, var(--ax-dim) 70%, transparent); background: none; }
+.axh-place[data-none] .axh-place-value { font-size: 15px; font-weight: 500; color: var(--ax-dim); }
+/* A short panel keeps the places that were measured (the rest are in the table). */
+@container holo-body (max-height: 271.98px) { .axh-place[data-none] { display: none; } }
+@container holo-body (max-height: 227.98px) { .axh-place:not([data-none]) ~ .axh-place:not([data-none]) ~ .axh-place:not([data-none]) ~ .axh-place:not([data-none]) { display: none; } }
+@container holo-body (max-width: 299.98px) { .axh-bodyscan { grid-template-columns: minmax(0, 1fr); } .axh-figure { display: none; } }
+
+/* ---- Family: trends. The kit's line (TrendArea) under this family's band and pins. ---- */
+.axh-trend { flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.axh-trend-plot { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; margin-bottom: 4px; }
+.axh-band { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; transform-origin: 50% 100%; background: linear-gradient(to top, color-mix(in srgb, var(--neon-2) 20%, transparent), color-mix(in srgb, var(--neon-2) 5%, transparent)); }
+.axh-pin { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 2px; rotate: 45deg; background: var(--ax-ink); box-shadow: 0 0 0 2px var(--neon), 0 0 10px 2px color-mix(in srgb, var(--neon) 60%, transparent); pointer-events: none; }
+.axh-pin::after { content: ''; position: absolute; inset: -6px; border-radius: 3px; border: 1px solid color-mix(in srgb, var(--neon-2) 80%, transparent); }
+.axh-pin[data-pin=low] { background: var(--ax-glass); }
+.axh-trend-dates { flex: none; margin: 4px 0 0; display: flex; justify-content: space-between; font-size: 14px; line-height: 1.3; color: var(--ax-dim); font-variant-numeric: tabular-nums; }
+@container holo-body (max-height: 259.98px) { .axh-trend-dates { display: none; } }
+.axh-water { flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.axh-pips { flex: none; margin: 0; display: grid; grid-template-columns: repeat(var(--axh-n, 7), minmax(0, 1fr)); gap: 6px; justify-items: center; }
+.axh-pips i { width: 8px; height: 8px; border-radius: 50%; box-sizing: border-box; }
+.axh-pips i[data-pip=on] { background: var(--ax-ink); box-shadow: 0 0 0 2px var(--neon), 0 0 8px 1px color-mix(in srgb, var(--neon) 60%, transparent); }
+.axh-pips i[data-pip=open] { border: 2px solid var(--neon-2); }
+@container holo-body (max-height: 209.98px) { .axh-pips { display: none; } }
+
+/* ---- Family: stage bars. Upright bars on one scale; each is placed by percent in its own column. ---- */
+.axh-bars { flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.axh-bars-plot { position: relative; flex: 1 1 96px; min-height: 44px; display: grid; grid-template-columns: repeat(var(--axh-n, 7), minmax(0, 1fr)); gap: 6px; border-bottom: 1px solid color-mix(in srgb, var(--neon) 46%, transparent); background: repeating-linear-gradient(0deg, color-mix(in srgb, var(--neon) 11%, transparent) 0 1px, transparent 1px 25%); }
+.axh-col { position: relative; min-width: 0; }
+.axh-bar { --axh-wide: clamp(8px, 58%, 30px); position: absolute; left: 50%; bottom: 0; width: var(--axh-wide); margin-left: calc(var(--axh-wide) / -2); height: var(--axh-h, 0%); min-height: 3px; box-sizing: border-box; display: flex; flex-direction: column-reverse; overflow: clip; border-radius: 5px 5px 0 0; transform-origin: 50% 100%; background: linear-gradient(to top, color-mix(in srgb, var(--neon) 40%, var(--ax-glass)), var(--neon) 78%, var(--neon-2)); box-shadow: 0 0 12px color-mix(in srgb, var(--neon) 50%, transparent); }
+.axh-bars[data-bars=stages] .axh-bar { gap: 2px; background: none; box-shadow: none; }
+.axh-bar b { display: block; flex: 1 1 0; min-height: 2px; }
+.axh-bar b[data-stage=deep] { background: var(--neon); }
+.axh-bar b[data-stage=rem] { background: repeating-linear-gradient(135deg, var(--neon-2) 0 3px, color-mix(in srgb, var(--neon) 26%, var(--ax-glass)) 3px 6px); }
+.axh-bar b[data-stage=core] { background: color-mix(in srgb, var(--neon) 34%, var(--ax-glass)); }
+/* A night without stages: its time asleep as an unlit dashed bar (the stages are unknown, not zero). */
+.axh-bars .axh-bar[data-none] { background: none; border: 1px dashed color-mix(in srgb, var(--ax-dim) 78%, transparent); border-bottom: 0; box-shadow: none; }
+.axh-bar[data-float] { bottom: auto; top: var(--axh-top, 0%); border-radius: 6px; transform-origin: 50% 50%; background: linear-gradient(to bottom, color-mix(in srgb, var(--neon) 50%, var(--ax-glass)), var(--neon) 60%, var(--neon-2)); }
+.axh-bar[data-reached]::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--ax-ink); }
+.axh-bar[data-run] { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--neon) 60%, transparent) 0 3px, transparent 3px 7px); border: 1px dashed var(--neon-2); border-bottom: 0; box-shadow: none; }
+.axh-target { position: absolute; left: 8%; right: 8%; height: 0; border-top: 2px dashed var(--ax-ink); pointer-events: none; }
+.axh-sheen { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: linear-gradient(to top, transparent, color-mix(in srgb, var(--ax-ink) 60%, transparent) 50%, transparent); }
+.axh-bars-labels { flex: none; margin-top: 5px; display: grid; grid-template-columns: repeat(var(--axh-n, 7), minmax(0, 1fr)); gap: 6px; }
+.axh-bars-labels span { font-size: 14px; line-height: 1.25; color: var(--ax-dim); text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* Sleep times: a 24-hour scale from noon (top) to noon, the hours named in a gutter at the left. */
+.axh-bars[data-bars=times] .axh-bars-plot { min-height: 66px; padding-left: 66px; background: none; }
+.axh-bars[data-bars=times] .axh-bars-labels { padding-left: 66px; }
+.axh-hour { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed color-mix(in srgb, var(--neon) 30%, transparent); pointer-events: none; }
+.axh-hour em { position: absolute; left: 0; top: -9px; padding-right: 5px; font-style: normal; font-size: 14px; line-height: 18px; color: var(--ax-dim); background: var(--ax-glass); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.axh-window { position: absolute; left: 66px; right: 0; min-height: 2px; pointer-events: none; background: color-mix(in srgb, var(--neon-2) 20%, transparent); border-block: 1px dashed color-mix(in srgb, var(--neon-2) 60%, transparent); box-sizing: border-box; }
+/* A short plot names midnight only (the other two hour lines stay, unnamed). */
+@container holo-body (max-height: 239.98px) { .axh-hour:not(:nth-child(2)) em { display: none; } }
+@container holo-body (max-height: 189.98px) { .axh-bars-labels { display: none; } }
+
+/* ---- Family: gauges. The kit's arcs, sized from the panel. ---- */
+.axh-gauges { flex: 1 1 auto; min-height: 0; min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: center; justify-items: center; }
+.axh-gauge { min-width: 0; max-width: 100%; display: grid; justify-items: center; gap: 2px; text-align: center; }
+.axh-gauge-dial { --axh-d: clamp(52px, min(21cqi, calc(100cqh - 176px)), 136px); position: relative; display: grid; place-items: center; width: var(--axh-d); height: var(--axh-d); }
+.axh-gauge-dial .nc-gauge { --nc-size: var(--axh-d); }
+.axh-gauge-plain { width: 100%; height: 100%; box-sizing: border-box; display: grid; place-items: center; border-radius: 50%; border: 1px dashed color-mix(in srgb, var(--neon) 44%, transparent); container-type: size; }
+.axh-gauge-label { max-width: 100%; font-size: 14px; line-height: 1.25; color: var(--ax-label); white-space: nowrap; }
+.axh-gauge-of { max-width: 100%; font-size: 14px; line-height: 1.25; color: var(--ax-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.axh-gauge[data-over] .axh-gauge-of { color: var(--ax-ink); }
+.axh-gauge-orbit { position: absolute; inset: -4px; border-radius: 50%; pointer-events: none; }
+.axh-gauge-orbit::before { content: ''; position: absolute; left: 50%; top: 0; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: var(--neon-2); box-shadow: 0 0 6px 1px var(--neon); }
+/* "of <target>" stands under a dial only where a column is wide enough to hold it whole. */
+@container holo-body (max-width: 519.98px) { .axh-gauge-of { display: none; } }
+@container holo-body (max-height: 239.98px) { .axh-gauge-of { display: none; } }
+
+/* ---- Family: heat. ---- */
+.axh-heat { --axh-cell: clamp(9px, min(calc((100cqi - 24px) / 13 - 3px), calc((100cqh - 150px) / 7 - 3px)), 26px); flex: 1 1 auto; min-height: 0; min-width: 0; display: grid; gap: 4px; align-content: center; justify-content: start; }
+.axh-heat-months, .axh-heat-grid { display: grid; grid-template-columns: 18px repeat(13, var(--axh-cell)); gap: 3px; }
+.axh-heat-months span { grid-row: 1; font-size: 14px; line-height: 1.2; color: var(--ax-dim); white-space: nowrap; }
+.axh-heat-days, .axh-heat-week { display: grid; grid-template-rows: repeat(7, var(--axh-cell)); gap: 3px; }
+.axh-heat-days span { font-size: 14px; line-height: var(--axh-cell); color: var(--ax-dim); }
+.axh-cell { position: relative; display: block; width: var(--axh-cell); height: var(--axh-cell); box-sizing: border-box; border-radius: 3px; border: 1px solid color-mix(in srgb, var(--neon) 18%, transparent); background: color-mix(in srgb, var(--neon) 5%, var(--ax-glass)); }
+.axh-cell[data-level='1'] { border-color: color-mix(in srgb, var(--neon) 30%, transparent); background: color-mix(in srgb, var(--neon) 16%, var(--ax-glass)); }
+.axh-cell[data-level='2'] { border-color: transparent; background: color-mix(in srgb, var(--neon) 34%, var(--ax-glass)); }
+.axh-cell[data-level='3'] { border-color: transparent; background: color-mix(in srgb, var(--neon) 76%, var(--ax-glass)); }
+.axh-cell[data-level='4'] { border-color: transparent; background: linear-gradient(135deg, var(--neon), var(--neon-2)); box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 60%, transparent); }
+/* Nothing logged: unlit and dashed (unknown, never the lowest step). */
+.axh-cell[data-state=none], .axh-cell[data-state=open] { border: 1px dashed color-mix(in srgb, var(--ax-dim) 62%, transparent); background: none; }
+.axh-cell[data-state=ahead] { opacity: .3; }
+.axh-cell[data-today] { outline: 2px solid var(--ax-ink); outline-offset: 1px; }
+.axh-ping { position: absolute; inset: -3px; border-radius: 6px; border: 1px solid var(--neon-2); opacity: 0; pointer-events: none; }
+@container holo-body (max-height: 289.98px) { .axh-heat-days span { visibility: hidden; } }
+@container holo-body (max-height: 249.98px) { .axh-heat-months { display: none; } }
+
+/* The mood map: a month of numbered days (the calendar's own sizes: never cut, 22 px to 56 px a cell). */
+.axh-mood { --axh-weeks: 6; display: grid; gap: 6px; min-width: 0; width: 100%; max-width: 620px; padding: 0 5px; box-sizing: border-box; }
+.axh-mood[data-weeks='1'] { --axh-weeks: 1; } .axh-mood[data-weeks='2'] { --axh-weeks: 2; } .axh-mood[data-weeks='3'] { --axh-weeks: 3; } .axh-mood[data-weeks='4'] { --axh-weeks: 4; } .axh-mood[data-weeks='5'] { --axh-weeks: 5; }
+.axh-mood-head, .axh-mood-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.axh-mood-head span { text-align: center; font-size: 14px; letter-spacing: .08em; color: var(--ax-dim); }
+.axh-mood-grid { display: grid; gap: 5px; padding: 5px 0; }
+.axh-mood-cell { position: relative; display: grid; place-items: center; height: clamp(22px, min(11.5cqi, calc((100cqh - 192px) / var(--axh-weeks) - 5px)), 56px); box-sizing: border-box; border-radius: 8px; font-style: normal; border: 1px dashed color-mix(in srgb, var(--ax-dim) 50%, transparent); }
+.axh-mood-cell b { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; color: var(--ax-dim); }
+.axh-mood-cell[data-step] { border: 1px solid transparent; }
+.axh-mood-cell[data-step] b { color: var(--ax-ink); font-weight: 700; }
+.axh-mood-cell[data-step='1'] { border-color: color-mix(in srgb, var(--neon) 30%, transparent); background: color-mix(in srgb, var(--neon) 16%, var(--ax-glass)); }
+.axh-mood-cell[data-step='2'] { background: color-mix(in srgb, var(--neon) 34%, var(--ax-glass)); }
+.axh-mood-cell[data-step='3'] { background: color-mix(in srgb, var(--neon) 52%, var(--ax-glass)); }
+.axh-mood-cell[data-step='4'] { background: color-mix(in srgb, var(--neon) 76%, var(--ax-glass)); }
+.axh-mood-cell[data-step='5'] { background: linear-gradient(135deg, var(--neon), var(--neon-2)); box-shadow: 0 0 12px 1px color-mix(in srgb, var(--neon) 60%, transparent); }
+.axh-mood-cell[data-step='4'] b, .axh-mood-cell[data-step='5'] b { color: var(--ax-glass); }
+.axh-mood-cell[data-dim] { opacity: .36; }
+.axh-mood-cell[data-today] { outline: 2px solid var(--ax-ink); outline-offset: 2px; }
+@container holo-body (max-height: 199.98px) { .axh-mood-head { display: none; } }
+
+/* ---- Tiers (Session AR's composition): a compact plate is the figure and one line; the instrument stands from supporting up ---- */
+.nova-orbit-main[data-compose] .nova-widget[data-tier=compact] .ax-body :is(.axh-scan, .axh-bodyscan, .axh-trend, .axh-water, .axh-bars, .axh-gauges, .axh-heat, .axh-mood, .axh-key, .axh-facts) { display: none; }
+
+/* ---- Arriving (once, Full): each family in its own way ---- */
+@keyframes axh-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes axh-boot { from { opacity: 0; transform: perspective(320px) rotateX(-72deg); } to { opacity: 1; transform: perspective(320px) rotateX(0); } }
+@keyframes axh-unfurl { from { opacity: 0; transform: scaleY(0); } to { opacity: 1; transform: scaleY(1); } }
+@keyframes axh-drop { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes axh-settle { from { opacity: 0; transform: translateY(-18px) scaleY(.55); } to { opacity: 1; transform: translateY(0) scaleY(1); } }
+@keyframes axh-dial-in { from { opacity: 0; transform: rotate(-48deg) scale(.7); } to { opacity: 1; transform: rotate(0) scale(1); } }
+@keyframes axh-wave { from { opacity: 0; transform: translate(-7px, 7px); } to { opacity: 1; transform: translate(0, 0); } }
+/* Scanners: the outline draws itself (the one dash), the cards and the places tilt up. */
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] :is(.axh-heart-line, .axh-figure-line) { animation: axh-draw .7s .42s cubic-bezier(.3, .6, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] :is(.axh-vital, .axh-place) { animation: axh-boot .34s calc(.5s + var(--ax-i, 0) * 70ms) cubic-bezier(.2, .7, .2, 1) both; }
+/* Trends: after the kit's line, the band unfurls from the goal line and the pins and pips drop onto their days. */
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .axh-band { animation: axh-unfurl .42s .78s cubic-bezier(.2, .7, .2, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .axh-pin { animation: axh-drop .3s .9s cubic-bezier(.3, 1.3, .5, 1) both; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .axh-pips i { animation: axh-drop .28s calc(.82s + var(--ax-i, 0) * 34ms) cubic-bezier(.3, 1.3, .5, 1) both; }
+/* Stage bars: each bar settles from above, the newest last. */
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .axh-bar { animation: axh-settle .4s calc(.44s + var(--ax-i, 0) * 36ms) cubic-bezier(.2, .8, .3, 1) both; }
+/* Gauges: the dials turn into place. */
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] .axh-gauge { animation: axh-dial-in .42s calc(.4s + var(--ax-i, 0) * 80ms) cubic-bezier(.2, .7, .2, 1) both; }
+/* Heat: the cells come in as a wave from the oldest corner. */
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh] :is(.axh-cell, .axh-mood-cell) { animation: axh-wave .26s calc(.42s + var(--ax-i, 0) * 24ms) ease-out both; }
+
+/* ---- Alive (O5: Full; Calm slower and fewer; still with Motion Off, reduced motion, a hidden tab or off screen) ---- */
+@keyframes axh-beat { 0%, 100% { transform: scale(1); } 9% { transform: scale(1.09); } 18% { transform: scale(1); } 27% { transform: scale(1.05); } 38% { transform: scale(1); } }
+@keyframes axh-scanline { 0% { transform: translateY(-18%); opacity: 0; } 8% { opacity: .85; } 46% { opacity: .85; } 56%, 100% { transform: translateY(102%); opacity: 0; } }
+@keyframes axh-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+/* A pin is a square turned 45 degrees (its own `rotate`), so its ring rises straight up by moving along both of its axes. */
+@keyframes axh-bob-pin { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-2px, -2px); } }
+@keyframes axh-drift { 0% { transform: translateY(100%); opacity: 0; } 12% { opacity: .7; } 38% { opacity: .7; } 50%, 100% { transform: translateY(-100%); opacity: 0; } }
+@keyframes axh-orbit { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes axh-ping { 0% { transform: scale(1); opacity: .75; } 60%, 100% { transform: scale(2.1); opacity: 0; } }
+/* Scanners: the heart beats (decoration) and one scanner line crosses. */
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .axh-heart svg { animation: axh-beat 1.8s ease-in-out infinite; }
+.nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axh-heart svg { animation: axh-beat 3.6s ease-in-out infinite; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .axh-sweep { animation: axh-scanline 6.5s 1.4s linear infinite; }
+/* Trends: the pins' rings and today's open pip bob. */
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .axh-pin::after { animation: axh-bob-pin 4s ease-in-out infinite; }
+.nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axh-pin::after { animation: axh-bob-pin 8s ease-in-out infinite; }
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .axh-pips i[data-pip=open] { animation: axh-bob 4s ease-in-out infinite; }
+.nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axh-pips i[data-pip=open] { animation: axh-bob 8s ease-in-out infinite; }
+.nova-frame[data-hud-motion=full] .nova-widget[data-made=fresh]:not([data-off]) .axh-pips i[data-pip=open] { animation: axh-drop .28s calc(.82s + var(--ax-i, 0) * 34ms) cubic-bezier(.3, 1.3, .5, 1) both, axh-bob 4s 1.4s ease-in-out infinite; }
+/* Stage bars: a sheen drifts up the newest bar. */
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .axh-sheen { animation: axh-drift 7s 1.2s ease-in-out infinite; }
+.nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axh-sheen { animation: axh-drift 14s 1.2s ease-in-out infinite; }
+/* Gauges: one pip circles the first dial, in steps (it redraws four times a second). */
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .axh-gauge-orbit { animation: axh-orbit 24s steps(96) infinite; }
+.nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axh-gauge-orbit { animation: axh-orbit 72s steps(96) infinite; }
+/* Heat: a ring pings out from today's cell. */
+.nova-frame[data-hud-motion=full] .nova-widget:not([data-off]) .axh-ping { animation: axh-ping 3.6s ease-out infinite; }
+.nova-frame[data-hud-motion=calm] .nova-widget:not([data-off]) .axh-ping { animation: axh-ping 7.2s ease-out infinite; }
