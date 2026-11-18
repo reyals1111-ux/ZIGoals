@@ -92,7 +92,7 @@ const COMPOSE_FROM = 1040;
  * alone. While arranging, each panel has Move earlier / Move later, its size and Remove as buttons, and a grip that
  * drags it (pointer) or moves it with the arrow keys (keyboard): the same change three ways.
  */
-export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false, motes = false, live, starColumn, baseStrip}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean;
+export function WidgetGrid({layout, widgets, stage, editing, opening, actions, look = 'classic', phone = false, motes = false, live, starColumn, baseStrip, onPlaced}: {layout: NovaLayout; widgets: NovaWidget[]; stage: ReactNode; editing: boolean; opening: boolean; actions: GridActions; look?: HudLook; phone?: boolean;
   /** Session AM (ADR-038 D1–D5): NOVA's live stage — which widgets are pinned or just made, their parameters and gates, and Pin / Hide / Close. */
   live?: StageApi;
   /** Lane L8e: the HUD's floating motes (Full motion, Holo, a computer), drawn in the star's column behind the star. */
@@ -101,7 +101,10 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
    *  Holo orbit on a computer is composed in tiers (lib/nova/compose.ts). */
   starColumn?: number;
   /** Session AR (round 2, D26): the strip of compact plates under the star (how many, how tall); none while an answer stands there. */
-  baseStrip?: {cells: number; height: number} | null}) {
+  baseStrip?: {cells: number; height: number} | null;
+  /** Session AS (Part 4): how many widgets stand on the stage itself and how many rest on the band below it ("More on
+   *  your orbit"), so the stage's own read-out counts the stage and names the band apart. */
+  onPlaced?: (stage: number, band: number) => void}) {
   const shown = phone ? phoneColumn(layout, widgets) : visibleFor(layout, widgets), order = shown.map(w => w.id), holo = look === 'holo';
   const [drag, setDrag] = useState<{id: string; target: string | null; dx: number; dy: number} | null>(null);
   const start = useRef<{x: number; y: number}>({x: 0, y: 0}), box = useRef<HTMLDivElement>(null), {height: stageHeight, width: stageWidth} = useStageSize(box);
@@ -130,6 +133,9 @@ export function WidgetGrid({layout, widgets, stage, editing, opening, actions, l
   const composed: Composed[] = composing ? composeStage(shown, {height: stageHeight, wingWidth, prefer, slim: id => lockedIds.has(id), made: live ? id => { const on = live.shown.find(x => x.id === id); return !!on && !on.pinned; } : undefined, base: baseStrip ?? undefined}) : [];
   const placed = layout === 'orbit' && !phone && !composing ? placeOrbit(rowsOfShown, fit, holo ? HOLO_ROWS : ROWS_AK, prefer).map((p, i) => ({...p, size: shown[i]!.size})) : [];
   standing.current = {fit: mark, side: new Map((composing ? composed.map(c => ({id: c.id, side: c.side === 'base' ? 'band' as const : c.side})) : placed).map(p => [p.id, p.side] as const))};
+  // Session AS (Part 4): the stage's read-out counts what stands on the stage; the band below it is said apart.
+  const inBand = [...standing.current.side.values()].filter(side => side === 'band').length - (composing ? composed.filter(c => c.side === 'base').length : 0), onStage = shown.length - inBand;
+  useEffect(() => { onPlaced?.(onStage, inBand); }, [onStage, inBand, onPlaced]);
   // Review m9: after a move from the keyboard, the status line says where the panel is now ("2 of 9, right column").
   const moved = useRef<string | null>(null), announce = actions.announce;
   useEffect(() => {

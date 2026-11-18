@@ -210,8 +210,8 @@
 
 /* ==== Session AR, round 1 (both critics: "the four states differ only in tick detail") ====
    In a state the standby bezel steps back and the state's own mark carries the weight, so each state is a different
-   SHAPE at a glance: listening a heavy lit ring with long ticks pointing in, thinking a thick ring in segments, speaking a
-   ticked rim with two strong rings inside it. Static drawings; only opacity changes, once per change of state. */
+   SHAPE at a glance: listening a heavy lit ring with long ticks pointing in, thinking a thick ring in segments, speaking
+   three soft rings that fade outwards (Session AS: the ticked rim read as spikes). Static drawings; only opacity changes, once per change of state. */
 .cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: opacity .35s ease-out; }
 .cc-bezel:is([data-state=listening], [data-state=thinking], [data-state=speaking]) :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { opacity: .22; }
 .cc-state-ring { stroke-width: 2.6; }
@@ -219,7 +219,10 @@
 .cc-state-faint { stroke-width: 1.2; opacity: .8; }
 .cc-state-thinking .cc-state-ring { stroke-width: 4.2; }
 .cc-state-thinking .cc-state-faint { stroke-width: 2.4; }
-.cc-state-speaking .cc-state-ring { stroke-width: 3.2; }
+/* Session AS (Part 4): speaking is three soft rings that fade outwards (no ticks: they read as spikes). */
+.cc-state-wave { stroke-width: 3.4; opacity: .95; }
+.cc-state-wave[data-n="2"] { stroke-width: 2.4; opacity: .6; }
+.cc-state-wave[data-n="3"] { stroke-width: 1.5; opacity: .34; }
 @media (prefers-reduced-motion: reduce) { .cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: none; } }
 :root[data-app-motion=off] .cc-bezel :is(.cc-bezel-line, .cc-bezel-ticks, .cc-bezel-marks, .cc-bezel-arc, .cc-bezel-glow) { transition: none; }
 

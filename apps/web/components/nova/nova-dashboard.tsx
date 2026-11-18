@@ -238,6 +238,9 @@ export default function NovaDashboard() {
   const canShow = useCallback((id: string) => widgetAvailable(id, ctx), [ctx]);
   // Session AM (ADR-038 D1–D7): the live stage — the pinned widgets above and the widgets NOVA makes on request, one list.
   const stage = useStage({nova: r, save, canShow, announce: setStatus, arranging: editing});
+  // Session AS (Part 4): the grid says how many widgets stand on the stage and how many rest on the band below it.
+  const [placedCount, setPlacedCount] = useState<{stage: number; band: number} | null>(null);
+  const onPlaced = useCallback((onStage: number, band: number) => setPlacedCount(c => c && c.stage === onStage && c.band === band ? c : {stage: onStage, band}), []);
   const measuredColumn = useStarColumn(root, nova.loaded && stage.shown.length > 0);
   const [answer, setAnswer] = useState<StageAnswer | null>(null), [beam, setBeam] = useState<StarBeam | null>(null), inPlace = useRef(false);
   const [beamLine, setBeamLine] = useState<{x: number; y: number; length: number; turn: number; key: number} | null>(null), beamTimer = useRef(0), beamRuns = useRef(false), [stageOrb, setStageOrb] = useState<NovaOrbState | null>(null), [lastMade, setLastMade] = useState<string | null>(null);
@@ -620,7 +623,7 @@ export default function NovaDashboard() {
         {!chatOpen && stage.shown.length === 0 && !answerNow && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       </div>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
-      <div className="nova-stage-area" id="nova-hud" tabIndex={-1} onScroll={markScrolled}>{holo && !phone && <StageHud widgets={stage.shown.length} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={phoneStage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting && !soft} starColumn={plan?.column} baseStrip={plan && consoleMode !== 'over' ? basePlan({stageHeight: hudRoom, starBox, slot: starSlot, column: plan.column, answer: !!answerNow && !chatOpen}) : null}/>}</div>
+      <div className="nova-stage-area" id="nova-hud" tabIndex={-1} onScroll={markScrolled}>{holo && !phone && <StageHud widgets={placedCount ? placedCount.stage : stage.shown.length} band={placedCount?.band ?? 0} motion={hudMove.state} layout={layout} showcase={showcase}/>}{phone && !holo ? stageNode : <WidgetGrid layout={layout} widgets={stage.shown} live={stage} stage={phoneStage} editing={editing && !phone} opening={opening.phase === 'play'} actions={actions} look={look} phone={phone} motes={holo && hudMove.motes && !modelBusy && !resting && !soft} onPlaced={onPlaced} starColumn={plan?.column} baseStrip={plan && consoleMode !== 'over' ? basePlan({stageHeight: hudRoom, starBox, slot: starSlot, column: plan.column, answer: !!answerNow && !chatOpen}) : null}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">
