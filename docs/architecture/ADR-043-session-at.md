@@ -91,3 +91,8 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   "your choice" or "header" when not from the line) and "Saved as", and says how the columns were read. Its CSS loads with
   the lazy import, not with Health (0.2 kB from its budget at AR). Theme sheets regenerated. `health-weight-csv.test.ts`
   (+2), `tests/at/weight-csv-fields.spec.ts` (new), `mo-029-weight-csv.spec.ts` unchanged and passing.
+- **D7 (Someday counts in the Tasks menu; AP D16c).** "This evening" and "Someday" show their counts like the menu's other
+  views, from a small chunk of their own (`components/tasks/tasks-when-count.tsx`) loaded after the page shows, so the
+  record's code is still out of /app/tasks' first scripts (AP's reason for carrying it). No number while the record is
+  unread or unreadable, or the list is empty; the number follows a move at once. `tests/at/tasks-when-counts.spec.ts`;
+  `ap-task-when.spec.ts` unchanged and passing. Route weight read at the integration build.
