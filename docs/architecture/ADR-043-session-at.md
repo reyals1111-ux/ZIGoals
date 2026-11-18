@@ -178,3 +178,24 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   longest (LR-11's rule unchanged, its names moved, deliberate); the claims test pins the new cards' words and no
   "Jarvis". Landing tests 40 of 40; landing browser specs 75 passed (weight, layout shift, a11y, layout); headers untouched.
   Not deployed: the owner previews and redeploys (OWNER_STEPS step 3).
+
+### Part 2 (d) and Part 3 — first figures, polish and phone performance
+- **D19 (2(d) unknown is not zero, as-of).** A sweep of the first pages a friend sees (fresh profile, 12 pages, 390 and
+  1440, three themes) looked for a lone "0" where nothing is known: the zeros left are real counts (0 assets, 0 of 10
+  weigh-ins, Today's "Next money steps" count); unknowns read as words or a dash (Health's counters "none yet", the weight
+  card "No trend yet", Wealth's allocations "—", NOVA's widgets per AS). As-of stays on every figure that has a source
+  (AS's widget feet; Wealth's prices). Holds; nothing changed.
+- **D17 (Part 3 sweep).** The same sweep: no page scrolls sideways, no page or console error, no visible text cut (the
+  flagged items were 1 px screen-reader texts), at any width or theme. **Fixed:** five checkbox rows were 24 px targets
+  (Health's fasting reminder, Settings' "Include my Health records in this encrypted download", the music mini-bar, Point &
+  tell; a meal-reminder row at 43): the shared `.checkbox` row is 44 px high (`app/globals.css`; components that set it
+  themselves unchanged).
+- **D18 (phone performance, mid-range profile: CPU 4×, 150 ms / 1.6 Mbit/s).** Fresh and Showcase, five pages, measured on
+  the production build (this sandbox has no graphics hardware, so drawing is slower than on a phone): interactive in
+  4.8–7.3 s fresh and 5.5–8.5 s on the Showcase; total blocking 0.7–1.8 s fresh, up to 3.6 s (Today) and 4.5 s (NOVA) on
+  the Showcase. Profiles: NOVA's cost is its processor-drawn star and widget render (AR's composition, protected; AR
+  measured the same without graphics hardware); the other pages are module evaluation and first layout. **Fixed, the one
+  clear cause:** Today's skip-link list re-measured its four targets on the next frame after every class change under
+  `main`, forcing a layout on almost every frame while Today loads (about 0.4 s of CPU-4× time on the Showcase); it now
+  measures after 150 ms of stillness (at most a second apart while the page keeps changing) and at once when it shows, so a
+  settled page has the same list. No budget raised.
