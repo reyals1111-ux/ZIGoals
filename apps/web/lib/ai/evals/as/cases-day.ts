@@ -108,6 +108,10 @@ export const DAYS: readonly Intent[] = [
   {id: 'unknown-sleep', pillar: 'nova',
     en: ['is my sleep normal for my age', 'does my sleep look fine compared to other people'],
     nl: ['is mijn slaap normaal voor mijn leeftijd', 'slaap ik net zo veel als andere mensen']},
+  // Session AT (L7 NB:N11): the level and XP, counted as Journey counts them (was "I don’t read them in a chat yet").
+  {id: 'journey-level', pillar: 'journey', never: ['in a chat yet', 'in een chat lees ik ze nog niet'],
+    en: ['what level am I', 'how much XP do I have', 'how many XP do I have', 'what is my level'],
+    nl: ['welk level ben ik', 'hoeveel XP heb ik']},
   {id: 'unknown-spending', pillar: 'nova',
     en: ['is my spending normal for someone like me', 'do other people spend as much as me'],
     nl: ['zijn mijn uitgaven normaal voor iemand zoals ik', 'zijn mijn uitgaven hoger dan die van andere mensen']},

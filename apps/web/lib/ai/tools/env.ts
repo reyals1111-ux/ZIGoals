@@ -19,6 +19,7 @@ import type {PageArea} from '../settings';
 import {CHARS_DEFAULT, ROWS_DEFAULT} from './types';
 import type {Checklist, ChecklistDays} from '../../checklist/schema';
 import type {EarnSnapshot} from '../../earn/snapshot';
+import type {EarnAcademy} from '../../earn/records';
 import type {PageView} from '../context/page-view';
 import type {ZigiPlans} from '../store/plans';
 import type {MoneyLog} from '../../money-log/schema';
@@ -88,6 +89,11 @@ export type ToolSources = {
    * Today and Goals count them (lib/numbers/counts.ts). A measure Health records reads its days only with the Health gate.
    */
   averageGoals?: readonly AverageGoal[] | null;
+  /**
+   * Session AT (L7 NB:N11): the game layer's switch and the Earn Academy's record on this device, so a level asked in a chat
+   * is counted as Journey counts it (lib/ai/local-answers/exact/journey.ts; XP itself is never stored). Absent or null: unknown.
+   */
+  game?: {enabled: boolean; earnAcademy: EarnAcademy | null} | null;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   health: HealthData | null; fasting: Fasting | null; notes: readonly MemoryNote[] | null;

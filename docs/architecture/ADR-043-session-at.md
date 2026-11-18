@@ -65,3 +65,18 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   Now 88–89 on all fourteen clocks. `tests/at/today-tab-stops-week.spec.ts` counts all fourteen (≤ 90 each);
   `tests/ao/today-tab-stops.spec.ts` (88) walks the new groups with the arrows; `guide.spec.ts:83` (deliberate) reaches the
   Guide's controls by the arrows and checks one Tab stop and that Tab leaves the actions in one press.
+- **D4 (AL's L7 rows against AS's exact layer; TIER 3 AI tools).** Replayed with the corpus's own on-device `ask()` on the
+  Showcase and a fresh profile, NOVA and ZIGi alike. **Fixed (5 rows, 8 ids):** Z-057 ("milestones for all goals" names the
+  goal with milestones and every other open goal without them; Dutch too); NB:N11 ("what level am I" answers with Journey's
+  own count: level, name, XP and XP to the next level; Showcase labelled; with Health or a counted pillar not shared it says
+  the level is unknown here, not zero; with the game layer off, that there is no level); TK:1, TK-048, TK-052 ("how much
+  BTC do I have" names Wealth's holding and a Real portfolio's coins separately; a Hypothetical portfolio stays uncounted,
+  the existing golden rule `btc-total`). The AI context gains one read-only optional source, `game` (the game layer's switch
+  and the Earn Academy record), so a level is counted as Journey counts it (`lib/ai/tools/env.ts`,
+  `components/ai/use-ai-context.ts`; no tool added, nothing written; mood tags and symptoms still never read). New intents
+  `journey-level`, `goals-milestones` in the corpus (EN and NL); `lib/ai/evals/as/at-l7.test.ts`. **Closed with cause:**
+  BN-034 (needs a running model), BN-050 (cross-reference only), LS:#012/#194/#351 and C-LA-07 (a bulk tick with one confirm is
+  a write path: owner decision; the honest "one item at a time" answer is now pinned), LS:#046, PR-028, DV-077, DV:N-045,
+  N-DV-03 (UI, not answers; their current state is AL's "Changed" evidence), MO-052 (the refusal names both switches;
+  the inline button is a Health-lane UI call). **Carried:** Dutch coin questions ("hoeveel BTC heb ik") — the holdings
+  answer is English-only, so they reach net worth or a goal.
