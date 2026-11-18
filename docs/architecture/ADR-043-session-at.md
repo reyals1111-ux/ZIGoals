@@ -96,7 +96,20 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   record's code is still out of /app/tasks' first scripts (AP's reason for carrying it). No number while the record is
   unread or unreadable, or the list is empty; the number follows a move at once. `tests/at/tasks-when-counts.spec.ts`;
   `ap-task-when.spec.ts` unchanged and passing. Route weight read at the integration build.
-- **D8 (AP's seven copy/visual minors).** See the Part 1 helper's record below (filled when it lands).
+- **D8 (AP's seven copy/visual minors, ADR-040 D22).** Fixed: (1) Health's folds no longer repeat their label as a
+  visible heading under it (the heading stays for screen readers: Symptoms and factors, Copy a meal, the meal photo,
+  Supplements, Weekly calorie budget); (2) Wealth's category trend draws no line with fewer than three months and says "a
+  month without records is unknown, not zero" (`TREND_MIN_MONTHS`); (3) Age of money reads what it is, the figure with its
+  meaning, then how it is counted; (4) Agenda's by-hour checkbox draws its own 2 px border at 8.3:1 on Nebula's panel, 24 px
+  in a 44 px target, the system box in forced colours (lazy CSS; theme sheets rebuilt); (5) Settings' repeated "YOUR APP"
+  eyebrow is gone; (6) Help says "Price changes on bills" and "Trends" as the cards do (the search index too; "Price changes"
+  is now a visible title). (7) partly: the Showcase gains labelled example symptoms and run splits
+  (`lib/showcase/ap-examples.ts`; ZIGi and NOVA never read symptoms, pinned). **Carried with cause:** example mood tags
+  (they need example moods, which move Session AS's pinned Showcase answers: corpus, oracle, mood map) and an example price
+  change (two payments in the money log move the pinned money answers and NOVA's budget); AS's engine and corpus are kept
+  as they are, so both stay out and a test checks neither is seeded. Light theme: a checked by-hour box keeps Nebula's
+  cyan fill on the pale panel; its dark tick carries the state. `tests/at/ap-minors.spec.ts` 13 passed (1 skipped on the
+  phone by design); 15 existing specs in these areas 96 passed; `apps/web/lib` 10,514 passed.
 - **D9 (TIER 3 CI: shard time).** Read from runs 1832, 1857, 1860, 1863, 1864, 1865 and 1868 (job walls): Chromium main
   shards 3 and 4 had medians of 48.0 and 49.2 min of their 60 and each was cut at the limit once; WebKit shard 1 a median
   of 37.4 of 45 (one cut, when its WebKit install took 24 min); WebKit shard 4 was cut twice (1864, 1865), both times

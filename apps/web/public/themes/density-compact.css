@@ -641,6 +641,7 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .agenda-hour-clock:not(#\-) { padding-top: 12px; }
 :where(:root[data-density=compact]) .agenda-hours-items:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .agenda-hour-item:not(#\-) { row-gap: 1.5px; padding-top: 3px; padding-bottom: 3px; }
+:root:where([data-density=compact]) .agenda-hour-item .agenda-task-tick input[type="checkbox"]:not(#\-) { padding-top: 0; padding-bottom: 0; }
 /*  components/agenda/agenda.css  */
 :where(:root[data-density=compact]) .agenda-page:not(#\-) { row-gap: 18px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-links:not(#\-) { margin-top: 0; margin-bottom: 0; }

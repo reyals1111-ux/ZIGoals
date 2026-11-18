@@ -1,6 +1,6 @@
 'use client';
 import {useId, useMemo, useState} from 'react';
-import {categoryTrend, currenciesOf, type TrendView} from '../../../../lib/money-insights/cash-flow';
+import {categoryTrend, currenciesOf, trendDrawable, type TrendView} from '../../../../lib/money-insights/cash-flow';
 import type {InsightProps} from './spending-insights';
 import {money, monthName} from './format';
 
@@ -22,12 +22,14 @@ function Spark({values}: {values: readonly (number | null)[]}) {
 function Currency({view}: {view: TrendView}) {
   const id = useId(), [chosen, setChosen] = useState(view.categories[0]?.category ?? ''), row = view.categories.find(c => c.category === chosen) ?? view.categories[0];
   if (!row) return null;
-  const recordedMonths = view.recorded.filter(Boolean).length;
+  const recordedMonths = view.recorded.filter(Boolean).length, drawn = trendDrawable(view);
   return <section className="money-insights-currency" aria-label={`Categories over a year in ${view.currency}`}>
     <h4>Categories over a year · {view.currency}</h4>
+    {/* Session AT (AP D22 minor 2): under three months with records, no line is drawn; a month without records is unknown, not zero. */}
+    {!drawn && <p className="fine money-insights-spark-note">A line needs three months with records in {view.currency}; there {recordedMonths === 1 ? 'is 1 so far' : `are ${recordedMonths} so far`}, so none is drawn yet. A month without records is unknown, not zero.</p>}
     <ul className="money-insights-trend">{view.categories.slice(0, 10).map(c => <li key={c.category}>
       <span><strong>{c.category}</strong> <span className="fine">· {money(c.total, view.currency)} over {recordedMonths === 1 ? 'the one month' : `the ${recordedMonths} months`} with records</span></span>
-      <Spark values={c.values}/>
+      {drawn && <Spark values={c.values}/>}
     </li>)}</ul>
     <label className="field"><span>Month by month for</span><select value={row.category} onChange={e => setChosen(e.target.value)} aria-controls={`${id}-table`}>{view.categories.map(c => <option key={c.category} value={c.category}>{c.category}</option>)}</select></label>
     <table className="money-insights-table" id={`${id}-table`}>

@@ -14,6 +14,10 @@ import {entryParts, minorUnits} from '../money-split/parts';
  * - `topPayees`: who the money went to this month, beside last month (last month without any record: null, a gap).
  */
 export const CASH_FLOW_MONTHS = 12, TREND_MONTHS = 12, TOP_PAYEES = 5;
+/** Session AT (AP D22 minor 2): a category's small line is drawn only from three months with records; fewer, no line. */
+export const TREND_MIN_MONTHS = 3;
+/** Whether the trend holds enough months with records (in its currency) to draw a line at all. */
+export const trendDrawable = (view: Pick<TrendView, 'recorded'>) => view.recorded.filter(Boolean).length >= TREND_MIN_MONTHS;
 
 /** The currencies the log holds, in A–Z order (each is shown on its own). */
 export function currenciesOf(entries: readonly MoneyEntry[], today: string): string[] {

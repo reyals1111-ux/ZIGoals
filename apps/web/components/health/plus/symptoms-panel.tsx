@@ -28,7 +28,7 @@ export default function SymptomsPanel({date, today}: {date: string; today: strin
   const counts = new Map(itemCounts(record.data, today).map(c => [c.id, c]));
   const when = day === today ? 'today' : formatDate(day);
   return <section className="ap-symptoms" aria-labelledby="ap-symptoms-title">
-    <h2 id="ap-symptoms-title">Symptoms and factors</h2>
+    <h2 id="ap-symptoms-title" className="sr-only">Symptoms and factors</h2>{/* Session AT (AP D22 minor 1): said once, by the fold above; kept for screen-reader navigation */}
     <p className="fine">Follow what you choose, such as a headache, pollen or a stiff back, from None to Strong each day. A day you skip stays unanswered; it is never counted as none.</p>
     {record.data.items.length > 0 && <ul className="ap-symptom-list">{record.data.items.map(item => {
       const level = levelOn(record.data, day, item.id), c = counts.get(item.id);

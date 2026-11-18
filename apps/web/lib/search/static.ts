@@ -175,7 +175,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["ap-mood-tags", "Can I tag what a day went with, and see what goes with my good days?"],
   ["ap-symptoms", "Can I follow symptoms such as headaches or pollen?"],
   ["ap-orbits", "What are the orbits in Health → Activity?"],
-  ["ap-trends", "How do the trends in Health → Activity work?"],
+  ["ap-trends", "How does Trends in Health → Activity work?"],
   ["ap-splits", "Does ZIGoals show my pace and kilometre splits from a GPX or TCX run?"],
   ["ap-copy-meal", "Can I copy a meal to another day or meal?"],
   ["ap-food-days", "Where can I see how many days I logged food this month?"],

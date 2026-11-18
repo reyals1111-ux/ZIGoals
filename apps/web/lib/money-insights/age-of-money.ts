@@ -12,6 +12,9 @@ import {minorUnits} from '../money-split/parts';
  * The weighted sum is a BigInt, so ten thousand large entries never lose a cent.
  */
 export const AGE_WINDOW_DAYS = 90, AGE_MIN_HISTORY_DAYS = 30;
+/** Session AT (AP D22 minor 3): the Spending view explains in this order: what it is, what the figure means, how it is counted. */
+export const AGE_WHAT = 'Age of money is how long, on average, money stays with you: the days between receiving it and spending it.';
+export const AGE_MEANING = 'The more days, the longer your money waited before you spent it, so the more room you have before the next income.';
 export const AGE_RULE = 'Each amount you spent is matched to the oldest money you logged as received and had not spent yet (first in, first out), over the last 90 days; its age is the days between the two.';
 export type AgeOfMoney =
   | {currency: string; status: 'ok'; days: number; matched: number; unmatched: number; spent: number}

@@ -1,5 +1,5 @@
 'use client';
-import {useMemo} from 'react';
+import {useId, useMemo} from 'react';
 import {billPriceChange, candidatePriceChange, type PriceChange} from '../../../lib/bills/price-change';
 import type {BillCandidate} from '../../../lib/bills/detect';
 import type {Bill} from '../../../lib/bills/schema';
@@ -17,8 +17,11 @@ export default function PriceChanges({bills, candidates, entries, today}: {bills
     ...bills.flatMap(b => { const c = billPriceChange(b, entries, today); return c ? [{key: b.id, text: priceLine(b.title, c)}] : []; }),
     ...candidates.flatMap(k => { const c = candidatePriceChange(k, entries, today); return c ? [{key: k.key, text: priceLine(k.title, c)}] : []; }),
   ], [bills, candidates, entries, today]);
+  const id = useId();
   if (!lines.length) return null;
-  return <section className="bills-price-changes" aria-label="Price changes">
+  // Session AT (AP D22 minor 6): the card's title is shown, as Upcoming and Found in your spending are, so Help can name it.
+  return <section className="bills-price-changes" aria-labelledby={id}>
+    <h3 id={id}>Price changes</h3>
     <ul className="bills-notes">{lines.map(l => <li key={l.key}>{l.text}</li>)}</ul>
   </section>;
 }
