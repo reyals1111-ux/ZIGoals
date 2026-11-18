@@ -177,8 +177,8 @@
 .axd-radar-side { display: grid; align-content: space-between; min-width: 0; }
 .axd-radar-side[data-side=left] { justify-items: end; text-align: right; }
 .axd-radar-name { margin: 0; min-width: 0; max-width: 100%; display: grid; font-size: 14px; line-height: 17px; color: var(--ax-label); }
-.axd-radar-name b { font-weight: 650; color: var(--ax-ink); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.axd-radar-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.axd-radar-name b { font-weight: 650; color: var(--ax-ink); font-variant-numeric: tabular-nums; overflow-wrap: break-word; } /* Session AS: wraps, never cut */
+.axd-radar-name span { overflow-wrap: break-word; }
 @container holo-body (max-height: 259.98px) { .axd-radar-name span { display: none; } }
 
 .axd-scan { position: relative; overflow: clip; }

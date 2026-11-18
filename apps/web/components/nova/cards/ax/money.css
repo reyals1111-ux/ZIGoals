@@ -58,8 +58,8 @@
 .axm-stop-clear { stop-color: var(--neon); stop-opacity: 0; }
 
 /* ---- Family: radar ---- */
-.axm-radar { display: grid; justify-items: center; padding: 2px 0; }
-.axm-radar-plot { position: relative; width: min(var(--axm-h), 58cqi); aspect-ratio: 1; }
+.axm-radar { display: grid; justify-items: center; padding: 2px 6.5ch; min-width: 0; } /* Session AS: a margin at its sides for the labels */
+.axm-radar-plot { position: relative; width: min(var(--axm-h), 46cqi, 100%); aspect-ratio: 1; } /* Session AS: room for the labels at its sides (they keep their own width) */
 .axm-radar-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .axm-radar-web :is(polygon, path) { fill: none; stroke: color-mix(in srgb, var(--neon) 22%, transparent); stroke-width: 1; }
 .axm-radar-web polygon:last-of-type { stroke: color-mix(in srgb, var(--neon) 48%, transparent); }
@@ -70,7 +70,7 @@
 .axm-radar-dot { fill: var(--ax-ink); stroke: var(--neon); stroke-width: 1.4; }
 .axm-radar-sweep { transform-origin: 0 0; opacity: 0; }
 .axm-radar-hand { fill: none; stroke: var(--neon-2); stroke-width: 1.2; stroke-linecap: round; }
-.axm-radar-label { position: absolute; transform: translate(-50%, -50%); width: max-content; max-width: max(9ch, calc(30cqi - 10px)); font-size: 14px; line-height: 1.15; color: var(--ax-label); text-align: center; overflow-wrap: break-word; } /* Session AS: its own width (at the edge an absolute label shrank to a letter a line); a long name wraps between words */
+.axm-radar-label { position: absolute; transform: translate(-50%, -50%); width: max-content; max-width: max(13ch, calc(25cqi - 10px)); font-size: 14px; line-height: 1.15; color: var(--ax-label); text-align: center; } /* Session AS: its own width (at the edge an absolute label shrank to a letter a line); a long name wraps between words */
 .axm-radar-label[data-side=r] { transform: translate(0, -50%); }
 .axm-radar-label[data-side=l] { transform: translate(-100%, -50%); }
 
