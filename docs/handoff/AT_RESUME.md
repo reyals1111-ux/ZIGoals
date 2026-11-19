@@ -11,12 +11,8 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 - Browser specs: Chromium at `/opt/google/chrome/chrome`, at most 2 workers, one run at a time.
 
 ## Done
-- Parts 0, 1, 6, 2, 4, 5, 3 (ADR-043 D1–D20, closing table); STATUS entry written.
+- Every part (0, 1, 6, 2, 4, 5, 3), ADR-043 with its closing table, the STATUS entry with CI: run 1893 on the final code
+  head green on the first attempt. Session complete; nothing in progress.
 
-## In progress
-- Reading CI on the final code head (`ad8a7c40`, run 1889) and theme parity on the last build; then the STATUS entry
-  (final commit) with both results, and the report.
-
-## Next (if resumed)
-- Fill "CI on the final head" in docs/STATUS.md (Session AT) from the newest Milestone quality run; a red job gets at most
-  two fix attempts or its explanation. Then the report (≤ 12 lines) from STATUS's "Owner list".
+## Next (for the next session)
+- docs/STATUS.md (Session AT), "For the next session" and "Carried".
