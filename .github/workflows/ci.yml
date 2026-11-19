@@ -104,6 +104,15 @@ jobs:
     # (80-82 % of the 60) and each was cut at the 60 once (runs 1860, 1865); no single file explains it (the ten slowest
     # of shard 3 are 37 of its ~112 worker-minutes), the shards simply hold too many tests. Fourteen main shards instead
     # of twelve: each does about six sevenths of the work; no test is dropped, skipped or loosened, and the limit stays.
+    # Session AU ([TIER 3] (CI), ADR-044 D-CI): Playwright's --shard cuts by test count, not time, so on main 836534c3
+    # (run 1895) the fourteen main shards took 17.7 to 50.3 min (shard 5 50.3, 4 41.6, 6 41.5, 2 38.2, 11 36.9) and in
+    # run 1893 shard 4 took 55. The main suite now runs MAIN_SHARD=n/14: fourteen explicit file lists in
+    # apps/web/playwright.main.shards.ts, packed from per-file durations (the JSON reports of runs 1895 and 1893, retries
+    # included, the larger run per file and project, about 883 worker-minutes), the way the WebKit job does it. Predicted:
+    # about 34-38 min per shard (30-34 min of tests at two workers in Playwright's order, at most 36 in any order, plus
+    # about 4 min of setup), so the slowest keeps about 20 min of the 60. The config checks that every main-suite spec
+    # is in exactly one list (so does `pnpm test`); a new spec is named with the list to add it to. The a11y suite keeps
+    # --shard=n/3. No test is dropped, skipped or loosened, and the limit stays.
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -154,8 +163,12 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          if [ "${{ matrix.suite }}" = a11y ]; then export A11Y_SWEEP=only SHARDS=3; else export A11Y_SWEEP=skip SHARDS=14; fi
-          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 --shard=${{ matrix.shard }}/$SHARDS --reporter=line,json --output=/tmp/zigoals-web-results
+          if [ "${{ matrix.suite }}" = a11y ]; then
+            export A11Y_SWEEP=only; SHARD_ARG=--shard=${{ matrix.shard }}/3
+          else
+            export A11Y_SWEEP=skip MAIN_SHARD=${{ matrix.shard }}/14; SHARD_ARG=
+          fi
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 $SHARD_ARG --reporter=line,json --output=/tmp/zigoals-web-results
       - name: Flaky tests (passed only on their retry)
         if: always()
         run: node scripts/ci/flaky-summary.mjs /tmp/zigoals-web-results.json "${{ matrix.suite }} shard ${{ matrix.shard }}"
