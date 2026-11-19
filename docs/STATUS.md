@@ -1,11 +1,50 @@
-# Session AT — "READY FOR FRIENDS" (ADR-043) (2026-11-18, `feature/session-at-ready-for-friends`, Draft PR; in progress)
-**Base:** `main` `3d510124` (Merge [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106), Session AS). **Rules (owner):** the brief for Session AT, one approved plan with approval items 1–5 and two owner changes (verbatim in `docs/architecture/ADR-043-session-at.md`). Resume file: `docs/handoff/AT_RESUME.md`.
+# Session AT — "READY FOR FRIENDS" (ADR-043) (2026-11-18/19, `feature/session-at-ready-for-friends`, Draft [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107); complete, not merged, not deployed)
+**Base:** `main` `3d510124` (Merge [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106), Session AS); `main` did not move during the session. **Rules (owner):** the brief for Session AT, one approved plan with approval items 1–5 and two owner changes (Zignaly's words only from its notice, linked; Part 6 right after Part 1), verbatim in `docs/architecture/ADR-043-session-at.md` (decisions D1–D20, closing table). Resume file: `docs/handoff/AT_RESUME.md`.
 
 ## Part 0 — records (18 Nov)
 - **[PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106) (Session AS and the owner's follow-up: exact answers, 64 widget kinds, Next.js 16.4.6, D20, carried fixes; CI 1868 green)** merged into `main` as `3d510124` (merge commit, read from `main`).
 - **[PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105) (Session AR)** merged as `e6e92a8c`.
-- **Alpha #57 (Manual Alpha deployment run 60): PLACEHOLDER.** Version id and rollback id not sent to this session yet. The next session records them here from the owner's message; frozen readers gain #57 (`scripts/frozen-readers.mjs`) only once its deploy SHA is confirmed.
-- Frozen readers stay #37–#56.
+- **Alpha #57 (Manual Alpha deployment run 60): PLACEHOLDER.** Version id and rollback id were not sent to this session. The next session records them here from the owner's message; frozen readers gain #57 (`scripts/frozen-readers.mjs`) only once its deploy SHA is confirmed. Frozen readers stay #37–#56.
+
+## Parts, commits and evidence (`git log 3d510124..HEAD`; never rebased, no merge of `main` needed)
+| Part | What | Commits |
+|---|---|---|
+| 0 | ADR-043, AT_RESUME, these records | `9995bfc8` |
+| 1 | The carried list: Zignaly by date from its notice (D1); pre-run11 test on any Node (D2); Today ≤ 90 Tab stops on 14 clocks (D3); AL's L7 rows (D4, **TIER 3 AI tools**); `a11y-wcag-x:271` (D5); CSV Value/Unit (D6); Someday counts (D7); AP's seven minors (D8); **TIER 3 (CI)** 14 main shards, WebKit 60 min (D9); intermittents (D10) | `46c3a50b`, `558acaf7`, `d1b9fb97`, `4d4d8abf`, `0103a45b`, `fe06c8fe`, `be86c2da`, `a65348da`, `cf48591f` |
+| 6 | OWNER_STEPS.md as one weekend checklist (pushed right after Part 1, owner change 2) | `cd1d287f` |
+| 2 | Trust pass: privacy page vs egress (D11, landing/privacy.html); restore coverage + export → erase → restore round trip (D12); unknown is not zero (D19) | `be9868d8`, `b3525fd2`, `76265fd7` |
+| 4 | FRIENDS_GUIDE; Help screenshots (D14); What's new / Known limitations (D15); landing draft (D16) | `f24e0be6`, `85c1bb65`, `2136f98e`, `acd9033c` |
+| 5 | **TIER 3 (release verifier)** stage 14 for AO–AS (D13) | `b3525fd2`, `b91b7664`, `76265fd7` |
+| 3 | Polish sweep, phone performance, fresh-helper UX review (D17, D18, D20) | `01973142`, `ad8a7c40` |
+
+## Tier 3, in plain words (risk → rollback)
+- **AI tools** (`4d4d8abf`): one optional read-only AI source, `game` (the game layer's switch and the Earn Academy record), so "what level am I" is Journey's own count; no tool added, nothing written; mood tags and symptoms still never read. → Revert.
+- **CI** (`cf48591f`): Chromium main shards 12 → 14; the WebKit job's limit 45 → 60 min (its cached install missed twice and took 28 min). No test, list or assertion changed. → Revert.
+- **Release verifier** (`b3525fd2`, `b91b7664`, `76265fd7`): stage 14 appended, numbers 1–13 unchanged; the deploy workflow does not run the verifier. → Revert.
+- Nothing else is Tier 3: no stored-format, CSP, sync, wallet, signing, key or dependency change; no new service; no budget raised. The landing's privacy page and "New" section changed in content only (headers untouched), and are not deployed.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries `Session AT (…, deliberate)` with an equally strict replacement: `earn-options.spec.ts:70` reads on a fixed November day (every day pinned in `tests/at/zignaly-dates.spec.ts`); `guide.spec.ts:83` walks the Guide's actions by the arrows (one Tab stop); `pre-run11-setup.test.mjs` runs its CLI as the pinned Node and gains a test of the version check itself; `a11y-wcag-x` waits for 400 ms of quiet; `hosted-alpha-stages`, `-checklist`, `-earn` tests and `hosted-verifier-order` list stage 14; `send-feedback.spec.ts` limitations 44 → 47 (each by its words; three corrected lines checked by their new words); `help-al-006-la-31` What's new 22 → 24; `landing-ak-claims` and `landing-p5-review` name the two new cards (and their words, no "Jarvis").
+
+## Evidence (production builds of the code heads, Chromium, two workers)
+- **Route weights:** every page inside its budget, none raised (Today 560.3 of 567, Health 530.9 of 531, Settings 527.0 of 531, Tasks 463.5 of 468, Help 437.9 of 450, the shell 431.3 of 447).
+- **Specs on the final code build:** Today, Tab stops on 14 clocks, page lengths 43 of 43; touch targets, Send feedback, Help, Habits, Tasks and every `tests/at/` spec 101 of 101; theme parity (all pages, three themes, both projects): result added below when its run ends. Earlier builds: AT specs + verifier order + meditation 38 of 38 after two fixes; Guide, reminders, Earn, Tasks, CSV specs 50 of 50; Help 73 of 73; landing browser specs 75 of 75. `hosted-verifier-order` runs stages 2–14 against the local build and passes; the trust round trip passes.
+- **Unit:** `apps/web/lib` 10,514 passed (Node 24.19.0); verifier tests 61 of 61; landing tests 40 of 40; `pre-run11-setup` 11 of 11 on Node 22 and 24.19.0. Typecheck clean; eslint 0 errors on touched files; theme sheets `--check` clean.
+- **Not verified here:** WebKit (CI only); anything on graphics hardware.
+
+## Carried (each with its cause in ADR-043)
+Example mood tags and a price change in the Showcase (they move AS's pinned answers, D8); Dutch coin questions (D4); from the UX review (D20): a meal in words alone, NOVA's "when will I reach…" leading with the pace, an "Allow Health" control in a NOVA reply, and the minors listed there; ADR-041's D34 and D36 (D10).
+
+## For the next session
+The D20 carried list; Alpha #57's ids and frozen reader; the roving helper measures every item on each change (about 140 ms on a slowed Showcase Today; not changed, D18).
+
+## Owner list
+1. Read `docs/friends-alpha/OWNER_STEPS.md`: **the market policy window must be renewed before 30 Nov 16:00 UTC** (step 6).
+2. Landing: preview locally (OWNER_STEPS step 3), decide on the new "NOVA answers you" / "Plan your day" cards and picture, then redeploy (the privacy page's corrections ride along).
+3. Review [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107); merge and deploy are yours (Manual Alpha workflow, from `main`).
+
+## CI on the final head
+Read on the docs head that carries this entry (the code is `ad8a7c40`); added below when the run ends.
 
 # Session AS — "NOVA ANSWERS EVERYTHING" (ADR-042) (2026-11-17/18, `feature/session-as-nova-answers`, Draft [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106); complete, not merged, not deployed)
 **Base:** `main` `e6e92a8c` (Merge [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105), Session AR); `main` did not move during the session. **Rules (owner):** the brief for Session AS, one approved plan with seven approval items and four additions (verbatim in `docs/architecture/ADR-042-session-as.md`). The session ran on Fable until its allowance ended (18 Nov), then on Opus from `docs/handoff/AS_RESUME.md`. Decisions D1–D23 and the carried items: ADR-042.

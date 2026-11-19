@@ -1,6 +1,6 @@
 # ADR-043 — Session AT: "READY FOR FRIENDS"
 
-Status: in progress (18 Nov 2026). Branch `feature/session-at-ready-for-friends` from `main` `3d510124` (Merge PR #106,
+Status: complete (18–19 Nov 2026); not merged, not deployed. Branch `feature/session-at-ready-for-friends` from `main` `3d510124` (Merge PR #106,
 Session AS). One Draft PR. Resume file: `docs/handoff/AT_RESUME.md`.
 
 ## Why this session exists
@@ -221,3 +221,31 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   "Record some money" ticking only on a money entry; Tasks' filter before "New task"; Agenda's future "(0 done)"; NOVA's
   two "no AI used" lines and its phone hint; the first-five card's focus order. Each is listed for the next session in
   STATUS ("For the next session").
+
+## Closing table
+| Item | Verdict | Where |
+|---|---|---|
+| AP's seven copy/visual minors | Fixed 5, partly 2 (example mood tags and a price change carried: they move AS's pinned answers) | D8 |
+| CSV Value and Unit as their own fields | Fixed | D6 |
+| Someday counts in the Tasks menu | Fixed | D7 |
+| Today ≤ 90 Tab stops on every day and time | Fixed (88–89 on 14 clocks) | D3 |
+| Zignaly "is closing" → "has closed" by date | Fixed (notice's words, linked; 30 Nov / 1 Dec / 2 Dec tested) | D1 |
+| `a11y-wcag-x:271` | Fixed (spec waits for 400 ms of quiet) | D5 |
+| `pre-run11-setup.test.mjs` on any Node | Fixed | D2 |
+| Other open CI_INTERMITTENTS rows | Holds (every proposed fix already in); D34, D36 and engine classes recorded | D10 |
+| WebKit shard 4 near its limit (and main 3/4) | Fixed (TIER 3 CI: 14 main shards; WebKit 60 min) | D9 |
+| AL's L7 rows (17) | Fixed 5 rows / 8 ids, closed 9 with cause, Dutch coin questions carried | D4 |
+| 2(a) backup → restore round trip, Showcase merge | Fixed (structural restore coverage test + browser round trip) | D12 |
+| 2(b) erase removes every kind | Holds (prefix erase; `erase-coverage.test.ts`; round trip shows 0 keys, 0 databases) | D12 |
+| 2(c) export files open | Holds (ZIP with everything.json, restored value for value) | D12 |
+| 2(d) unknown is not zero, as-of | Holds; Today's Health ring fixed for an unlogged day | D19, D20 |
+| 2(e) privacy page vs what the app sends | Fixed on the landing page (needs the owner's redeploy) | D11 |
+| Part 3 polish sweep (12 pages × 2 widths × 3 themes) | Fixed (44 px checkbox rows); no sideways scroll, no errors | D17 |
+| Phone performance on five pages | Fixed the one clear cause (Today's skip links); rest measured | D18 |
+| Fresh-helper UX review | No Blocker; 4 Majors and 2 minors fixed; 3 Majors and the minors carried with cause | D20 |
+| Help screenshots (backlog #12) | Built | D14 |
+| What's new / Known limitations for AR, AS | Built (and three untrue lines corrected) | D15 |
+| FRIENDS_GUIDE (NOVA's questions, the setup guide) | Built | Part 4 |
+| Landing section draft | Built (landing/ only; owner previews, owner redeploys) | D16 |
+| Release verifier stages for AO–AS | Built (TIER 3; stage 14; passes on a local production build) | D13 |
+| OWNER_STEPS.md weekend checklist | Built | Part 6 |
