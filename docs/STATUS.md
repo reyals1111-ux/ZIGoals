@@ -1,3 +1,12 @@
+# Session AU — "FRIENDS DRESS REHEARSAL" (ADR-044) (2026-11-19, `feature/session-au-dress-rehearsal`; in progress)
+**Base:** `main` `836534c3` (Merge [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107), Session AT). **Rules (owner):** the brief for Session AU, one approved plan and two owner additions (a fresh reviewer per persona walk; each persona's phone spec also in WebKit), verbatim in `docs/architecture/ADR-044-session-au.md`. Resume file: `docs/handoff/AU_RESUME.md`. Friction log: `docs/review/session-au/REHEARSAL.md`.
+
+## Part 0 — records (19 Nov)
+- **[PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107) (Session AT)** merged into `main` as `836534c3` (merge commit, read from `main`).
+- **Main CI:** [run 1869](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44390495368) on `3d510124` failed once on the integration job's `account-browser` sync test ("a step made no progress for 20000 ms"); [run 1895](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44557061753) on `836534c3` (after #107) green on the first attempt: it did not recur on `main`.
+- **Alpha #57** = Manual Alpha deployment [run 60](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44616699114) (19 Nov), source `836534c3e9f1d430e52c029594ab29b4e8cd55b9`: version `e0bc17f3-27c0-4900-aa55-416f20ece6f6`, rollback `064ff8bc-8cc3-4ae7-8be4-783225ae75dd` (#56); **VERIFIED** after 4 reads, live prices verified (owner). Replaces Session AT's placeholder.
+- **Frozen readers** are #37–#57 from now on (`scripts/frozen-readers.mjs`: #57 = `836534c3`); all 21 releases PASS (98 of 98 each, this head's fixtures).
+
 # Session AT — "READY FOR FRIENDS" (ADR-043) (2026-11-18/19, `feature/session-at-ready-for-friends`, Draft [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107); complete, not merged, not deployed)
 **Base:** `main` `3d510124` (Merge [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106), Session AS); `main` did not move during the session. **Rules (owner):** the brief for Session AT, one approved plan with approval items 1–5 and two owner changes (Zignaly's words only from its notice, linked; Part 6 right after Part 1), verbatim in `docs/architecture/ADR-043-session-at.md` (decisions D1–D20, closing table). Resume file: `docs/handoff/AT_RESUME.md`.
 
