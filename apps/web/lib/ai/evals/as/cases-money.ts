@@ -92,6 +92,10 @@ export const MONEY: readonly Intent[] = [
   {id: 'goals-next-date', pillar: 'goals',
     en: ['which goal has the next target date', 'what is my next goal deadline, the upcoming target date'],
     nl: ['welk doel heeft de eerstvolgende streefdatum', 'wat is de volgende streefdatum van mijn doelen']},
+  // Session AT (L7 Z-057): the milestones of every goal, with the active goals that have none named too.
+  {id: 'goals-milestones', pillar: 'goals', never: ['% (ahead', '% (voor op'],
+    en: ['Show me the milestones for all goals', 'which milestones are next on my goals', 'what are my milestones', 'which milestones are done?'],
+    nl: ['wat zijn de mijlpalen van al mijn doelen', 'welke mijlpalen hebben mijn doelen']},
   {id: 'goal-japan', pillar: 'goals',
     en: ['how far am I on my Japan adventure goal', 'how is my japan adventure goal going'],
     nl: ['hoe ver ben ik met mijn doel Japan adventure', 'hoe gaat het met mijn doel japan adventure']},

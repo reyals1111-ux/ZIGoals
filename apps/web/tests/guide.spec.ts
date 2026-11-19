@@ -91,8 +91,15 @@ test('viewing writes nothing; keyboard reaches every control by name', async ({p
   expect(await snapshot()).toBe(first);
   await card(page).getByRole('link', {name: 'Open habits', exact: true}).focus();
   await expect(card(page).getByRole('link', {name: 'Open habits', exact: true})).toBeFocused();
-  await page.keyboard.press('Tab'); await expect(card(page).getByRole('button', {name: 'Not today', exact: true})).toBeFocused();
-  await page.keyboard.press('Tab'); await expect(card(page).getByRole('link', {name: 'Turn off the Guide', exact: true})).toBeFocused();
+  // Session AT (ADR-043 D3, deliberate): the card's actions are one Tab stop (a roving tabindex, so Today stays within 90
+  // stops on every day); the arrow keys reach each control by name, and only one of them is in the Tab order at a time.
+  const actions = card(page).locator('.actions');
+  expect(await actions.evaluate(root => [...root.querySelectorAll<HTMLElement>('a[href], button')].filter(e => e.tabIndex >= 0).length)).toBe(1);
+  await page.keyboard.press('ArrowRight'); await expect(card(page).getByRole('button', {name: 'Not today', exact: true})).toBeFocused();
+  await page.keyboard.press('ArrowRight'); await expect(card(page).getByRole('link', {name: 'Turn off the Guide', exact: true})).toBeFocused();
+  // Tab leaves the card's actions in one press.
+  await page.keyboard.press('Tab');
+  expect(await page.evaluate(() => !!document.activeElement?.closest('.guide-card .actions'))).toBe(false);
 });
 
 test('the weekly review\'s last step shows the Guide\'s paragraph only while the Guide is on', async ({page}) => {

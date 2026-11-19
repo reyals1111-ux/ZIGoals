@@ -18,7 +18,8 @@ export const OROSWAP_TAGS: readonly GlanceTag[] = [{tone: 'live', text: 'Live on
 export const NAWA_TAGS: readonly GlanceTag[] = [{tone: 'live', text: 'Live on ZIGChain'}, {tone: 'paused', text: 'USDC vault depends on Zignaly'}, {tone: 'third', text: 'Off-chain custody'}];
 export const DEFA_TAGS: readonly GlanceTag[] = [{tone: 'paused', text: 'Private: no public sign-up'}, {tone: 'third', text: 'Information only'}];
 export const PERMAPOD_TAGS: readonly GlanceTag[] = [{tone: 'paused', text: 'Paused after an exploit'}, {tone: 'third', text: 'Not an option today'}];
-export const ZIGNALY_TAGS: readonly GlanceTag[] = [{tone: 'paused', text: 'Closing'}, {tone: 'third', text: 'Zignaly holds the funds'}];
+/** Session AT (ADR-043 D1): the closure tag worded by today's date (lib/earn/dated.ts). */
+export const zignalyTags = (tag: string): readonly GlanceTag[] => [{tone: 'paused', text: tag}, {tone: 'third', text: 'Zignaly holds the funds'}];
 
 /**
  * The table's rows: the ways to earn Earn lists, in the page's own order (the network's, never by rate), each with what

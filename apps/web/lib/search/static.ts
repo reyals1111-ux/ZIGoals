@@ -102,6 +102,7 @@ export const HELP_TOPICS: readonly [string, string][] = [
 
 /** [question id, question] as components/help/help-page.tsx's HelpQuestion elements. */
 export const HELP_QUESTIONS: readonly [string, string][] = [
+  ["at-screens", "What do the main pages look like?"],
   ["your-ai-what", "What does ZIGi send, and to whom?"],
   ["your-ai-writes", "Can ZIGi change my records?"],
   ["your-ai-cost", "What does it cost?"],
@@ -129,6 +130,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["your-ai-look", "Can I change how ZIGi looks?"],
   ["your-ai-off", "How do I turn ZIGi off, or hide the button?"],
   ["nova-what", "What is NOVA?"],
+  ["nova-answers", "Which questions does NOVA answer without an AI?"],
   ["nova-stage", "How do I ask NOVA for a widget, and pin, hide or close it?"],
   ["nova-brain", "How do I give NOVA a brain, and do my ChatGPT or Claude subscriptions work?"],
   ["nova-privacy", "What do Strict, Guarded and Relaxed mean?"],
@@ -175,7 +177,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["ap-mood-tags", "Can I tag what a day went with, and see what goes with my good days?"],
   ["ap-symptoms", "Can I follow symptoms such as headaches or pollen?"],
   ["ap-orbits", "What are the orbits in Health → Activity?"],
-  ["ap-trends", "How do the trends in Health → Activity work?"],
+  ["ap-trends", "How does Trends in Health → Activity work?"],
   ["ap-splits", "Does ZIGoals show my pace and kilometre splits from a GPX or TCX run?"],
   ["ap-copy-meal", "Can I copy a meal to another day or meal?"],
   ["ap-food-days", "Where can I see how many days I logged food this month?"],

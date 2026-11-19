@@ -20,3 +20,9 @@
 .agenda-hour-item .agenda-task-move { grid-column: 1 / -1; }
 .agenda-hour-item .agenda-task-move select { min-height: 44px; font-size: 16px; }
 @media (max-width: 479.98px) { .agenda-hour { grid-template-columns: 56px minmax(0, 1fr); } .agenda-hour-item { grid-template-columns: auto minmax(0, 1fr); } .agenda-hour-move { justify-self: start; grid-column: 1 / -1; } }
+/* Session AT (AP D22 minor 4): the by-hour checkbox draws its own box, so its edge reads at 8.3:1 on the panel in Nebula
+   (the native dark box's grey edge passed 3:1 only); the 24 px box sits in the label's 44 px target as before. A tick is
+   drawn on the checked box; forced colours keep the system's own checkbox. */
+:root .agenda-hour-item .agenda-task-tick input[type="checkbox"] { appearance: none; -webkit-appearance: none; box-sizing: border-box; padding: 0; border: 2px solid #9db0c9; border-radius: 6px; background: transparent no-repeat center / 16px 16px; cursor: pointer; }
+:root .agenda-hour-item .agenda-task-tick input[type="checkbox"]:checked { border-color: #74d5e9; background-color: #74d5e9; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%2304131f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+@media (forced-colors: active) { :root .agenda-hour-item .agenda-task-tick input[type="checkbox"] { appearance: auto; -webkit-appearance: auto; } }

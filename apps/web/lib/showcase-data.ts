@@ -90,6 +90,9 @@ import {withShowcasePomodoro} from './focus-sessions/showcase';
 import {ENERGY_KEY} from './energy/schema';
 import {showcaseEnergy} from './energy/showcase';
 import {BILLS_KEY} from './bills/schema';
+import {SYMPTOMS_KEY} from './symptoms/schema';
+import {WORKOUT_SPLITS_KEY} from './workouts/splits-schema';
+import {showcaseRunSplits,showcaseSymptoms} from './showcase/ap-examples';
 import {BUDGETS_KEY} from './budgets/schema';
 import {showcaseBills,showcaseBudgets} from './bills/showcase';
 import {MONEY_RULES_KEY} from './money-rules/schema';
@@ -282,6 +285,9 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  {const goals=showcaseGoalExtras(day);records[GOAL_EXTRAS_KEY]=JSON.stringify(goals.extras);records[AVERAGE_GOALS_KEY]=JSON.stringify(goals.averages);}
  // Session AA-Cloud Part 8: two calculator scenarios and last week's and last month's Life review focus (device-only keys).
  records[CALCULATOR_KEY]=JSON.stringify(showcaseCalculator(day));records[LIFE_REVIEW_KEY]=JSON.stringify(showcaseLifeReview(day));
+ // Session AT (AP D22 minor 7): labelled examples of symptoms and run splits (lib/showcase/ap-examples.ts). Additive, in each
+ // record's own format; symptoms stay private like Health (no ZIGi or NOVA context reads them).
+ records[SYMPTOMS_KEY]=JSON.stringify(showcaseSymptoms(day));records[WORKOUT_SPLITS_KEY]=JSON.stringify(showcaseRunSplits());
  return {day,records};
 }
 /**

@@ -32,7 +32,7 @@
 @media (max-width:520px){.nv-screen{aspect-ratio:3/4}.nv-orb{top:22%;width:30%}.nv-hello{inset:38% 0 auto;padding-inline:12px}.nv-tiles{inset:49% 6% auto;flex-wrap:wrap;gap:8px}.nv-tiles span{flex:1 1 calc(50% - 4px);padding:7px 10px}.nv-bar{inset:auto 7% 4%}}
 /* What's new as a bento: the three longest cards (Food, Insights, Money) take two columns on wide screens, so no
    short card is stretched into an empty box (LANDING_REVIEW LR-11). */
-@media (min-width:1100px){.new-list{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-flow:dense}.new-list>li:is(:nth-child(3),:nth-child(4),:nth-child(5)){grid-column:span 2}}
+@media (min-width:1100px){.new-list{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-flow:dense}.new-list>li:is(:nth-child(1),:nth-child(5),:nth-child(7)){grid-column:span 2}}
 @keyframes lv7-ignite{from{opacity:0;transform:scale(.2)}}
 @keyframes lv7-breathe{to{transform:scale(1.06)}}
 @keyframes lv7-ring{from{opacity:0;transform:scale(.4)}}
@@ -61,3 +61,7 @@
   }
 }
 @media (forced-colors:active){.nv-sky,.nv-orb,.nova-chapter:before{display:none}.nv-glow{color:CanvasText;background:none}}
+
+/* Session AT (ADR-043 D16, draft for the owner): an example of NOVA under "New in the Alpha", labelled as example data. */
+.new-shot{position:relative;margin:28px 0 0;display:grid;gap:10px}.new-shot img{display:block;width:100%;height:auto;border-radius:18px;border:1px solid rgba(160,190,255,.28)}.new-shot figcaption{font-size:15px;line-height:1.5;color:inherit}
+@media (max-width:600px){.new-shot img{max-width:390px;margin-inline:auto}}

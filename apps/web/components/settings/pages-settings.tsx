@@ -113,7 +113,7 @@ export function PagesSettings() {
   const sidebar = items.filter(item => !navCompact(item) && !SIDEBAR_APP_HREFS.includes(item[0])), appsGroup = SIDEBAR_APP_IDS.filter(id => appShown(apps.data, id)).map(id => APPS_EXTRAS[id].label);
   const summary = `Sidebar: ${sidebar.map(([, label]) => label).join(', ')}${appsGroup.length ? `; its Apps group: ${appsGroup.join(', ')}` : ''}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${moreRows.join(', ')}.`;
   return <section className="panel pages-settings" id="your-pages" aria-labelledby="your-pages-title">
-    <p className="eyebrow">YOUR APP</p><h2 id="your-pages-title">Your pages & buttons</h2>
+    {/* Session AT (AP D22 minor 5): no "YOUR APP" eyebrow; the group it sits in already says "Your app". */}<h2 id="your-pages-title">Your pages & buttons</h2>
     <p>Hide what you don&rsquo;t use; your records stay as they are. Settings and Help always show. A hidden page still opens from a link, with a way to show it again.</p>
     {!settings.loaded ? <p className="fine">Your choices appear once your settings open.</p> : settings.error ? <p role="alert">Your settings could not be read, so every page shows. Nothing was changed.</p> : <>
       <div className="pages-settings-grid">

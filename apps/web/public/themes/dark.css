@@ -2469,6 +2469,16 @@
     .agenda-hour-text small:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    :scope .agenda-hour-item .agenda-task-tick input[type="checkbox"]:not(#\-) {
+        border-color: #9db0c9;
+        background-image: none;
+        background-color: transparent
+    }
+    :scope .agenda-hour-item .agenda-task-tick input[type="checkbox"]:checked:not(#\-) {
+        border-color: #74d5e9;
+        background-color: #74d5e9;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%2304131f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    }
 }
 /*  components/agenda/agenda.css  */
 @scope (:root[data-theme=dark]) {
@@ -11142,6 +11152,12 @@
         border-color: var(--line)
     }
 }
+/*  components/health/weight-csv-import.css  */
+@scope (:root[data-theme=dark]) {
+    .health-import-table :is(th, td):not(#\-) {
+        border-bottom-color: #87edc62c
+    }
+}
 /*  components/health/workouts/muscle-freshness.css  */
 @scope (:root[data-theme=dark]) {
     .muscle-freshness-body .mf-head:not(#\-) {
@@ -11298,6 +11314,15 @@
         .workouts-exercise[data-superset]:not(#\-) {
             border-inline-start-color: CanvasText
         }
+    }
+}
+/*  components/help/help-screenshots.css  */
+@scope (:root[data-theme=dark]) {
+    .help-shot img:not(#\-) {
+        border-color: rgba(160, 190, 255, .28)
+    }
+    .help-shot-tag:not(#\-) {
+        border-color: currentColor
     }
 }
 /*  components/help/help.css  */

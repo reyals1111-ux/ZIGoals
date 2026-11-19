@@ -133,6 +133,7 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
   const line = (g: GoalRow) => `${g.name} ${pct(g)}${g.funding && g.funding !== 'completed' ? ` (${pace(g)})` : ''}`;
   const rows = all.map(g => ({goal: g.name, status: g.status, percent: Math.round(Number.parseFloat(g.progress)), funding: g.funding ?? null, targetDate: g.targetDate && g.targetDate !== 'none' ? g.targetDate : null})), facts = {active: active.length, goals: rows};
   const one = q.subject?.kind === 'goal' ? all.find(g => g.name === plain(q.subject!.name)) : null;
+  if (MILESTONE_WORDS.test(q.read)) return milestonesOf(q, env, active, one, out);
   if (one) {
     const date = one.targetDate && one.targetDate !== 'none' ? t(lang, `; target date ${dayWords(one.targetDate, today)}`, `; streefdatum ${dayWords(one.targetDate, today)}`) : '';
     return out(t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${amountOf(one.now)} van ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${amountOf(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(Number.parseFloat(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
@@ -154,6 +155,27 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
     return out(dated ? t(lang, `The next target date is ${dayWords(dated.targetDate!, today)}: ${line(dated)}.`, `De eerstvolgende streefdatum is ${dayWords(dated.targetDate!, today)}: ${line(dated)}.`) : t(lang, 'No active goal has a target date ahead.', 'Geen actief doel heeft een streefdatum in de toekomst.'), {...facts, goal: dated?.name ?? null, targetDate: dated?.targetDate ?? null}, [{id: 'goal-dates', fallback: 'goals-hud'}]);
   }
   return out(active.length ? t(lang, `${active.length} active ${active.length === 1 ? 'goal' : 'goals'}: ${listWords(active.slice(0, 6).map(line), 'en')}${active.length > 6 ? `, and ${active.length - 6} more` : ''}.`, `${active.length} ${active.length === 1 ? 'actief doel' : 'actieve doelen'}: ${listWords(active.slice(0, 6).map(line), 'nl')}${active.length > 6 ? ` en nog ${active.length - 6}` : ''}.`) : t(lang, 'No active goal right now.', 'Er is nu geen actief doel.'), facts, /\b(?:saved|saving|savings|save|gespaard|sparen|spaar\w*)\b/.test(q.read) ? [{id: 'savings-jars', fallback: 'goals-hud'}, ...widgets] : widgets);
+}
+
+/**
+ * Session AT (L7 Z-057): the milestones of the goals, from the milestones lookup the older layer reads (engine.ts
+ * `milestonesAnswer`, whose English lines these are), and asked of every goal, the active goals that have none named
+ * too, the average goals among them, so "the milestones for all goals" leaves no goal unsaid. One goal asked by name:
+ * its own milestones only. In Dutch as in English ("de mijlpalen van al mijn doelen" was read as the goals' percentages).
+ */
+const MILESTONE_WORDS = /\b(?:milestones?|mijlpaal|mijlpalen)\b/;
+type MilestoneGoal = {goal: string; done: number; total: number; milestones: {title: string; state: string; targetDate?: string}[]};
+function milestonesOf(q: Query, env: ToolEnv, active: readonly GoalRow[], one: GoalRow | null | undefined, out: ReturnType<typeof answer>): Exact | null {
+  const lang = q.lang, r = runTool('milestones', one ? {goal: one.name} : {}, env);
+  if (!r.ok) return null;
+  const goals = ((r.data.goals as MilestoneGoal[] | undefined) ?? []).map(g => ({...g, goal: plain(g.goal)})), listed = new Set(goals.map(g => g.goal));
+  const without = one ? [] : active.map(g => g.name).filter(name => !listed.has(name));
+  const next = (g: MilestoneGoal) => { const open = g.milestones.filter(m => m.state === 'open'), first = open[0]; return first ? t(lang, `; next: ${first.title}`, `; volgende: ${first.title}`) + (first.targetDate ? t(lang, ` (by ${dayWords(first.targetDate, env.habitDay)})`, ` (uiterlijk ${dayWords(first.targetDate, env.habitDay)})`) : '') + (open.length > 1 ? t(lang, ` (+${open.length - 1} more)`, ` (+${open.length - 1} meer)`) : '') : ''; };
+  const rest = without.length ? t(lang, `${goals.length ? 'Your other open goals have' : 'Your open goals have'} no milestones: `, `${goals.length ? 'Je andere open doelen hebben' : 'Je open doelen hebben'} geen mijlpalen: `) + without.slice(0, 8).join(', ') + (without.length > 8 ? t(lang, ` (+${without.length - 8} more)`, ` (+${without.length - 8} meer)`) : '') : null;
+  const head = goals.length ? t(lang, 'Your milestones:', 'Je mijlpalen:') : one ? t(lang, 'This goal has no milestones yet.', 'Dit doel heeft nog geen mijlpalen.') : t(lang, 'No open goal has milestones yet.', 'Geen open doel heeft al mijlpalen.');
+  const rows = goals.map(g => t(lang, `${g.goal}: ${g.done} of ${g.total} done`, `${g.goal}: ${g.done} van ${g.total} gedaan`) + next(g));
+  const facts = {goals: goals.map(g => ({goal: g.goal, done: g.done, total: g.total, next: g.milestones.find(m => m.state === 'open')?.title ?? null})), withoutMilestones: without};
+  return out([head, ...[...rows, rest].filter((x): x is string => !!x).map(x => `- ${x}`)].join('\n'), facts, [{id: 'milestones', fallback: 'goals-hud'}]);
 }
 
 const AREAS: readonly [keyof ToolEnv['areas'], string][] = [['today', 'Today'], ['goals', 'Goals'], ['habits', 'Habits'], ['health', 'Health'], ['wealth', 'Wealth']];

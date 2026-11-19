@@ -1,0 +1,7 @@
+/* Session AT (ADR-043 D14): Help's example screenshots. */
+.help-shots-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 20px; }
+.help-shot { margin: 0; display: grid; gap: 8px; }
+.help-shot img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(160, 190, 255, .28); }
+.help-shot figcaption { font-size: 15px; line-height: 1.5; }
+.help-shot-tag { display: inline-block; margin-inline-start: 4px; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 14px; }
+@media (max-width: 600px) { .help-shot img { max-width: 390px; margin-inline: auto; } }

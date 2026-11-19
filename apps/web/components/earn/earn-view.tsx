@@ -11,6 +11,7 @@ import {PageHeader} from '../page-header';
 import {SectionHeading} from '../ui/section-heading';
 import {AcademySection} from './academy-section';
 import {CompareTable} from './compare-table';
+import {zignalyWords} from '../../lib/earn/dated';
 import {DefaSection, NawaSection, PermapodSection, ZignalySection} from './apps-sections';
 import {EarnChips} from './earn-chips';
 import {EarnGlyph} from './earn-glyph';
@@ -99,7 +100,7 @@ export function EarnView() {
         {/* Session AL fifth pass (C-BN-07, N-BN-05): the ways to earn side by side, with their labels and sources (no chip:
             the one topic strip keeps its list); on a phone it folds to one row, as the wider sections do (open, its eight
             cards are about 3,000 px at 375). */}
-        <PhoneFold label="The ways to earn, compared"><SectionBoundary id="compare" title="The ways to earn, compared"><Compare valdora={valdora} vaults={vaults}/></SectionBoundary></PhoneFold>
+        <PhoneFold label="The ways to earn, compared"><SectionBoundary id="compare" title="The ways to earn, compared"><Compare valdora={valdora} vaults={vaults} now={now}/></SectionBoundary></PhoneFold>
         {/* Session AO (N-BN-05): Earn was 15,769 px at 375 with the Showcase (about 19 screens). On a phone the four ways
             to earn below Start here, the validator list and the Academy fold to one row each too, named as their headings;
             the topic strip, Start here's links and any #hash open the one they name. Wider screens show them as before. */}
@@ -113,7 +114,7 @@ export function EarnView() {
         <PhoneFold label="Shariah-compliant vaults: Nawa"><SectionBoundary id="nawa" title="Shariah-compliant vaults: Nawa"><Nawa vaults={vaults} llama={llama} now={now}/></SectionBoundary></PhoneFold>
         <PhoneFold label="Invoice finance pools: DeFa"><SectionBoundary id="defa" title="Invoice finance pools: DeFa"><Defa vaults={vaults} llama={llama} now={now}/></SectionBoundary></PhoneFold>
         <PhoneFold label="Borrow and lend: Permapod"><SectionBoundary id="permapod" title="Borrow and lend: Permapod"><Permapod llama={llama} now={now}/></SectionBoundary></PhoneFold>
-        <PhoneFold label="Zignaly is closing: how to withdraw"><SectionBoundary id="zignaly" title="Zignaly is closing: how to withdraw"><Zignaly now={now}/></SectionBoundary></PhoneFold>
+        <PhoneFold label={zignalyWords(now).heading}><SectionBoundary id="zignaly" title={zignalyWords(now).heading}><Zignaly now={now}/></SectionBoundary></PhoneFold>
         <PhoneFold label="Have a say: governance"><SectionBoundary id="governance" title="Have a say: governance"><Governance/></SectionBoundary></PhoneFold>
         <PhoneFold label="Link stake you already hold to a goal"><SectionBoundary id="goal-vaults" title="Link stake you already hold to a goal"><GoalVaults now={now}/></SectionBoundary></PhoneFold>
         <PhoneFold label="Stablecoins on ZIGChain: what exists"><SectionBoundary id="stablecoins" title="Stablecoins on ZIGChain: what exists"><Stablecoins oroswap={oroswap} vaults={vaults} now={now}/></SectionBoundary></PhoneFold>

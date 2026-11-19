@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import nextConfig from "../../apps/web/next.config.ts";
 import { composeCsp } from "../../apps/web/lib/csp-compose.mjs";
 import { EARN_STAGE } from "./hosted-alpha-earn.mjs";
+import { AT_STAGE } from "./hosted-alpha-at.mjs";
 import { LIVE_ONLY_CHECKS, LIVE_ORIGINS, NAVIGATION_WINDOW_MS, NOT_CONFIGURED_ANSWERS, VERIFIER_STAGES, classifyFailedRequests, isRscRequest, liveOnlySkips, setAsideNotConfigured, setAsideUnboundApi, verifyBase } from "./hosted-alpha-stages.mjs";
 // Session AE (Part 0b, ADR-027): the verifier's stage list, its live-only classification and its base option. The browser
 // half (stages 2 → 6 in this order on one page) is apps/web/tests/hosted-verifier-order.spec.ts.
@@ -28,8 +29,10 @@ test("the stages, in the order the verifier runs them (the owner's numbering)", 
     [11, "ak", "AK: music, bills, chess, the PWA, WalletConnect hosts, and the push and food switches"],
     [12, "al", "AL: plans and tasks pages, the sidebar Apps group and the Apps & extras dialog"],
     [13, "nova", "NOVA: the calm stage, a request makes its widget, weather stays off"],
+    // Session AT (ADR-043 D13): appended, every earlier number unchanged.
+    [14, "at", AT_STAGE.name],
   ]);
-  expect(VERIFIER_STAGES.filter(stage => stage.browser).map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13]);
+  expect(VERIFIER_STAGES.filter(stage => stage.browser).map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14]);
   expect(VERIFIER_STAGES.filter(stage => stage.reportsItself).map(stage => stage.number)).toEqual([1]);
   expect(Object.isFrozen(VERIFIER_STAGES) && VERIFIER_STAGES.every(Object.isFrozen)).toBe(true);
 });
@@ -38,7 +41,7 @@ test("the stages, in the order the verifier runs them (the owner's numbering)", 
 // call on the page must be a goto to the page it needs, before anything else touches the page.
 test("every browser stage opens its own page first; stage 3 opens Today", async () => {
   const STOP = Symbol("stop");
-  const expected = { 2: `${LOCAL}/app`, 3: `${LOCAL}/app`, 4: `${LOCAL}/app/settings`, 5: `${LOCAL}/app/goals/1`, 6: `${LOCAL}/app/wealth/calculator`, 7: LIVE_ORIGINS.apex, 9: `${LOCAL}/app/earn`, 10: `${LOCAL}/app/habits`, 11: `${LOCAL}/app/music`, 12: `${LOCAL}/app`, 13: `${LOCAL}/app/nova` };
+  const expected = { 2: `${LOCAL}/app`, 3: `${LOCAL}/app`, 4: `${LOCAL}/app/settings`, 5: `${LOCAL}/app/goals/1`, 6: `${LOCAL}/app/wealth/calculator`, 7: LIVE_ORIGINS.apex, 9: `${LOCAL}/app/earn`, 10: `${LOCAL}/app/habits`, 11: `${LOCAL}/app/music`, 12: `${LOCAL}/app`, 13: `${LOCAL}/app/nova`, 14: `${LOCAL}/app/settings` };
   for (const stage of VERIFIER_STAGES.filter(s => s.browser)) {
     const calls = [];
     const page = new Proxy({}, { get: (_, name) => (...args) => { calls.push([name, ...args]); throw STOP; } });

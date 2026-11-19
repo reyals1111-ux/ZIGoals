@@ -29,7 +29,7 @@ export default function MealCopy({data, date, today, perform}: {data: HealthData
   }
   const described = error ? errorId : undefined;
   return <section className="ap-meal-copy" aria-labelledby="ap-meal-copy-title">
-    <h2 id="ap-meal-copy-title">Copy a meal</h2>
+    <h2 id="ap-meal-copy-title" className="sr-only">Copy a meal</h2>{/* Session AT (AP D22 minor 1): the fold above already says it; the heading stays for screen-reader navigation */}
     <form className="ap-plus-form" aria-label="Copy a meal to another day or meal" onSubmit={submit} noValidate>
       <label className="field"><span>From the day</span><input type="date" value={fromDay} max={today} required aria-describedby={described} onChange={e => changed(setFromDay)(e.target.value)}/></label>
       <label className="field"><span>From the meal</span><select value={fromMeal} aria-describedby={described} onChange={e => changed(setFromMeal)(e.target.value as Meal)}>{HEALTH_MEALS.map(m => <option key={m} value={m}>{m} · {count(fromDay, m)} {plural(count(fromDay, m), 'entry', 'entries')}</option>)}</select></label>

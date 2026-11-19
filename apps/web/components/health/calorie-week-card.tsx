@@ -25,7 +25,7 @@ export function CalorieWeekCard({data, date, today}: {data: HealthData; date: st
   // The weekday names come from the date format (Monday first), never typed by hand.
   const WEEKDAYS = week.days.map(d => formatWeekday(d.date));
   return <div className="health-rich" aria-labelledby="calorie-week-title" role="group">
-    <h3 id="calorie-week-title">Weekly calorie budget</h3>
+    <h3 id="calorie-week-title" className="sr-only">Weekly calorie budget</h3>{/* Session AT (AP D22 minor 1): said once, by the fold above */}
     <p className="fine">{formatNumber(week.weeklyBudget)} kcal this week ({week.base < KCAL_FLOOR ? `your target ${formatNumber(week.base)} a day is below ${formatNumber(KCAL_FLOOR)}, so each day counts ${formatNumber(KCAL_FLOOR)}` : `${formatNumber(week.base)} a day × 7`}) · {formatNumber(week.eaten)} kcal logged so far. <span className="health-estimate-tag">your own target, spread over the week; not advice</span></p>
     <ul className="health-micro-list">{week.days.map((d, i) => <li key={d.date}>
       <div><strong>{formatWeekday(d.date)} {Number(d.date.slice(8))}{d.date === today ? ' · today' : ''}</strong> <small>{formatNumber(d.budget)} kcal{d.shift ? ` (${d.shift > 0 ? '+' : '−'}${formatNumber(Math.abs(d.shift))} shifted)` : ''}{d.carried ? ` (+${formatNumber(d.carried)} rolled over)` : ''}</small></div>

@@ -88,6 +88,9 @@ export function strictClaim(q: Query): boolean {
   // Bills due this week, and what the bills come to (the older answer lists every bill); the next thing on the agenda.
   if (q.domain === 'bills' && (/\bweek\b/.test(q.read) || q.period === 'this-week' || q.ask === 'total' || q.shape === 'amount')) return true;
   if (q.domain === 'agenda' && q.ask === 'next') return true;
+  // Session AT (L7 Z-057): the milestones of the goals ("de mijlpalen van al mijn doelen" was answered with their percentages);
+  // one goal's milestones, asked by its name, keep the milestones lookup's own answer.
+  if (q.domain === 'goals' && !q.subject && /\b(?:milestones?|mijlpaal|mijlpalen)\b/.test(q.read)) return true;
   // Goals as a whole: the closest and the furthest, those behind, the next date, those reached (a goal by its name keeps its answer).
   if (q.domain === 'goals' && !q.subject && /\b(?:goals|goal|doelen|doel)\b/.test(q.read) && (((q.ask === 'next' || q.ask === 'done') && (q.shape === 'list' || q.shape === 'count') && /\b(?:goals|doelen|which goal|welk doel)\b/.test(q.read)) || /\b(?:closest|nearest|furthest|farthest|least progress|dichtst|verst|minste voortgang)\b/.test(q.read) || (q.ask === 'next' && /\b(?:deadline|deadlines|target date|streefdatum)\b/.test(q.read)))) return true;
   // The journal: its days, its run and its last entry (the older layers answer with patterns of its words).

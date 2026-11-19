@@ -641,6 +641,7 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .agenda-hour-clock:not(#\-) { padding-top: 12px; }
 :where(:root[data-density=compact]) .agenda-hours-items:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .agenda-hour-item:not(#\-) { row-gap: 1.5px; padding-top: 3px; padding-bottom: 3px; }
+:root:where([data-density=compact]) .agenda-hour-item .agenda-task-tick input[type="checkbox"]:not(#\-) { padding-top: 0; padding-bottom: 0; }
 /*  components/agenda/agenda.css  */
 :where(:root[data-density=compact]) .agenda-page:not(#\-) { row-gap: 18px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-links:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3180,6 +3181,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .supplements-form fieldset:not(#\-) { padding-top: 6px; padding-bottom: 9px; margin-top: 0; margin-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .supplements-time:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .supplements .checkbox:not(#\-) { row-gap: 8px; }
+/*  components/health/weight-csv-import.css  */
+:where(:root[data-density=compact]) .health-import-table caption:not(#\-) { padding-bottom: 6px; }
+:where(:root[data-density=compact]) .health-import-table :is(th, td):not(#\-) { padding-top: 6px; padding-bottom: 6px; }
 /*  components/health/workouts/muscle-freshness.css  */
 :where(:root[data-density=compact]) .muscle-freshness-body:not(#\-) { margin-top: 8px; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .muscle-freshness-grid:not(#\-) { row-gap: 6px; }
@@ -3239,6 +3243,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .workouts-bar-cell:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .workouts-freshness:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .workouts-freshness li:not(#\-) { row-gap: 3px; }
+/*  components/help/help-screenshots.css  */
+:where(:root[data-density=compact]) .help-shots-list:not(#\-) { margin-top: 9px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 15px; }
+:where(:root[data-density=compact]) .help-shot:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .help-shot-tag:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
 /*  components/help/help.css  */
 :where(:root[data-density=compact]) .help-page:not(#\-) { row-gap: 22px; }
 :where(:root[data-density=compact]) .help-page .page-header:not(#\-) { margin-bottom: 4px; }
@@ -5752,6 +5760,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 767.98px) { :root:where([data-density=compact]) .today-page .life-rings > .life-ring:not(#\-) { padding-top: 12px; padding-bottom: 14px; } }
 @media (max-width: 767.98px) { :root:where([data-density=compact]) .today-page .life-rings h3:not(#\-) { margin-top: -1px; margin-bottom: -1px; } }
 @media (max-width: 767.98px) { :root:where([data-density=compact]) .today-page .life-rings > .life-ring:not(#\-) { padding-top: 10px; padding-bottom: 12px; row-gap: 6px; } }
+@media (max-width: 767.98px) { :root:where([data-density=compact]) .life-rings > .life-ring > span:not(#\-) { row-gap: 4px; } }
 :root:where([data-density=compact]) main :is(.page-heading, .page-header) h1:not(#\-) { margin-top: 0; margin-bottom: 14px; }
 :root:where([data-density=compact]) main :is(.page-heading, .page-header) > .eyebrow:not(#\-), :root:where([data-density=compact]) main :is(.page-heading, .page-header) > div > .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 9px; }
 @media (max-width: 767.98px) { :root:where([data-density=compact]) main :is(.page-heading, .page-header) h1:not(#\-) { margin-bottom: 10px; } }

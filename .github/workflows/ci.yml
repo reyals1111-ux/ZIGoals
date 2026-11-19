@@ -100,12 +100,16 @@ jobs:
     # folder tests/grok53/ (under testDir, so already in the main suite). Twelve main shards: with 10% more tests the
     # slowest is about 4 + (345 x 1.1 / 12) x 1.23 = 43 min, 1.4x headroom again. The a11y suite's slowest shard took
     # 29m28s, so its three shards stay. No test is dropped, skipped or loosened.
+    # Session AT ([TIER 3] (CI), ADR-043 D9): over runs 1832-1868 main shards 3 and 4 had median walls of 48.0 and 49.2 min
+    # (80-82 % of the 60) and each was cut at the 60 once (runs 1860, 1865); no single file explains it (the ten slowest
+    # of shard 3 are 37 of its ~112 worker-minutes), the shards simply hold too many tests. Fourteen main shards instead
+    # of twelve: each does about six sevenths of the work; no test is dropped, skipped or loosened, and the limit stays.
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         suite: [main]
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
         include:
           - {suite: a11y, shard: 1}
           - {suite: a11y, shard: 2}
@@ -150,7 +154,7 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          if [ "${{ matrix.suite }}" = a11y ]; then export A11Y_SWEEP=only SHARDS=3; else export A11Y_SWEEP=skip SHARDS=12; fi
+          if [ "${{ matrix.suite }}" = a11y ]; then export A11Y_SWEEP=only SHARDS=3; else export A11Y_SWEEP=skip SHARDS=14; fi
           env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 --shard=${{ matrix.shard }}/$SHARDS --reporter=line,json --output=/tmp/zigoals-web-results
       - name: Flaky tests (passed only on their retry)
         if: always()
@@ -328,7 +332,11 @@ jobs:
     # quality gates a deploy) and the release candidate's call skip it, and the "web" check accepts that skip there.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # Session AT ([TIER 3] (CI), ADR-043 D9): WebKit shard 4 was cut at the 45 min twice (runs 1864, 1865) with its tests
+    # at 132 of 136, both times because the cached WebKit install missed and its step took 28 min (5 of 24 WebKit jobs in
+    # runs 1857-1868 spent 16-28 min there); shard 1's tests alone take 23-33 min (its floor is one 25-min file). No list
+    # can absorb a 28-min install, so the limit is 60 (the owner's ≤ 15 min); the lists, tests and assertions are unchanged.
+    timeout-minutes: 60
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED

@@ -882,6 +882,9 @@ input[type="checkbox"] {
   flex-direction: row;
   align-items: center;
   gap: 12px;
+  /* Session AT (ADR-043 D17, Part 3 sweep): every checkbox row is a 44 px target (five were 24 px: the fasting reminder,
+     Health in the encrypted download, the music mini-bar, Point & tell, a meal-reminder row at 43). */
+  min-height: 44px;
 }
 .sr-only {
   position: absolute;

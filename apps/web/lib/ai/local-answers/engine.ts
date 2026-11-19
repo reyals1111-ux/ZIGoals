@@ -836,19 +836,23 @@ function untrackedCoin(q: string): string | null {
 function holding(env: ToolEnv, asset: string, q = ''): LocalReply {
   const r = call(env, 'holdings', {asset}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), rows = d.holdings as {quantity: string; value: string; priceSource: string; valuedAt: string}[];
-  if (!rows.length) return {kind: 'answer', text: lines(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, [`To track it: Wealth → + Add asset → ${/^(?:GOLD|SILVER)$/.test(asset) ? 'Precious metals' : 'Crypto'}, then ${asset} and the amount you hold`]), calls: [r.record]};
-  const quantity = rows.reduce((s, row) => s.plus(/^\d+(\.\d+)?$/.test(row.quantity) ? row.quantity : 0), new Decimal(0)).toFixed();
-  const values = new Map<string, Decimal>();
-  for (const row of rows) { const m = /^(-?\d+\.\d{2}) ([A-Z]{3,10})$/.exec(row.value); if (m) values.set(m[2]!, (values.get(m[2]!) ?? new Decimal(0)).plus(m[1]!)); }
-  const unpriced = rows.filter(row => row.value === 'no price').length, sources = [...new Set(rows.filter(row => row.value !== 'no price').map(row => `${row.priceSource}, ${row.valuedAt === 'unknown' ? 'time unknown' : `observed ${instantText(row.valuedAt, env.habitDay)}`}`))];
-  const worth = values.size ? `worth ${[...values].map(([c, v]) => amount(v.toFixed(2), c)).join(' and ')}` : 'with no price, so no value';
   const calls = [r.record];
   const extra: string[] = [];
   if (env.portfolio) {
     const p = call(env, 'portfolios', {}); calls.push(p.record);
     // Portfolio is named apart from Wealth; a hypothetical portfolio holds nothing, so it is never counted as holding.
-    if (p.result.ok) for (const pf of dataOf(p.result).portfolios as {portfolio: string; kind: string; coins?: {coin: string; quantity: string}[]}[]) { const coin = pf.coins?.find(c => c.coin.toUpperCase() === asset); if (coin && pf.kind === 'Real') extra.push(`Portfolio (separate from Wealth): ${grouped(coin.quantity)} ${asset} in your Real portfolio ${pf.portfolio}`); }
+    const portfolios = p.result.ok ? dataOf(p.result).portfolios as {portfolio: string; kind: string; coins?: {coin: string; quantity: string}[]}[] : [];
+    for (const pf of portfolios) { const coin = pf.coins?.find(c => c.coin.toUpperCase() === asset); if (coin && pf.kind === 'Real') extra.push(`Portfolio (separate from Wealth): ${grouped(coin.quantity)} ${asset} in your Real portfolio ${pf.portfolio}`); }
+    // Session AT (L7 TK:1, TK-048): with portfolios on this device, the Portfolio is named even when no Real one holds the
+    // coin (it was left unsaid), and before Wealth's empty answer too, so each source is said with what it holds.
+    if (portfolios.length && !extra.length) extra.push(`Portfolio (separate from Wealth): no ${asset} in a Real portfolio`);
   }
+  if (!rows.length) return {kind: 'answer', text: lines(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, [...extra, `To track it: Wealth → + Add asset → ${/^(?:GOLD|SILVER)$/.test(asset) ? 'Precious metals' : 'Crypto'}, then ${asset} and the amount you hold`]), calls};
+  const quantity = rows.reduce((s, row) => s.plus(/^\d+(\.\d+)?$/.test(row.quantity) ? row.quantity : 0), new Decimal(0)).toFixed();
+  const values = new Map<string, Decimal>();
+  for (const row of rows) { const m = /^(-?\d+\.\d{2}) ([A-Z]{3,10})$/.exec(row.value); if (m) values.set(m[2]!, (values.get(m[2]!) ?? new Decimal(0)).plus(m[1]!)); }
+  const unpriced = rows.filter(row => row.value === 'no price').length, sources = [...new Set(rows.filter(row => row.value !== 'no price').map(row => `${row.priceSource}, ${row.valuedAt === 'unknown' ? 'time unknown' : `observed ${instantText(row.valuedAt, env.habitDay)}`}`))];
+  const worth = values.size ? `worth ${[...values].map(([c, v]) => amount(v.toFixed(2), c)).join(' and ')}` : 'with no price, so no value';
   // Session AL final pass (TK:14, C-TK-35): "… in EUR?" says when no value is in that currency (values are never converted).
   const wanted = /\bin (usd|eur)\b/i.exec(q)?.[1]?.toUpperCase(), noneIn = wanted && !values.has(wanted) ? `No value in ${wanted}: each value stays in its price's own currency and is never converted` : null;
   return {kind: 'answer', text: lines(`You hold ${grouped(quantity)} ${asset} in Wealth (${plural(rows.length, 'holding')}), ${worth}.`, [noneIn, sources.length > 0 && `Prices: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && `${plural(unpriced, 'holding')} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, values.size > 1 && 'One total per currency, never converted', ...extra]), calls};
@@ -995,9 +999,15 @@ function bestStreakAnswer(env: ToolEnv): LocalReply {
 function milestonesAnswer(env: ToolEnv, q: string): LocalReply {
   const named = mentionedGoals(env, q), r = call(env, 'milestones', named.length === 1 ? {goal: clean(named[0]!.name, 120)} : {}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), goals = d.goals as {goal: string; done: number; total: number; milestones: {title: string; state: string; targetDate?: string}[]}[];
-  if (!goals.length) return {kind: 'answer', text: d.note, calls: [r.record]};
+  // Session AT (L7 Z-057): asked of every goal, the active goals without milestones are named too (active as the Goals page
+  // counts them: a reached goal is completed, a simulation goal's steps are on its own page), the average goals among them,
+  // so no goal is left out unsaid; one goal asked by name keeps its own answer.
+  const listed = new Set(goals.map(g => g.goal)), withSteps = new Set(env.platform.goals.filter(g => g.milestones.length).map(g => `private:${g.id}`));
+  const without = named.length === 1 ? [] : [...goalsOnce(env).filter(g => g.status === 'active' && g.key.startsWith('private:') && !withSteps.has(g.key)).map(g => clean(g.name, 60)), ...(env.averageGoals ?? []).filter(g => g.status === 'active').map(g => clean(g.name, 60))].filter(name => !listed.has(name));
+  const rest = without.length ? `${goals.length ? 'Your other open goals have' : 'Your open goals have'} no milestones: ${without.slice(0, 8).join(', ')}${without.length > 8 ? ` (+${without.length - 8} more)` : ''}` : null;
+  if (!goals.length) return {kind: 'answer', text: rest ? `${d.note}\n- ${rest}` : d.note, calls: [r.record]};
   // Session AL (DV-081): "next" is the first open milestone, with how many more are open; one line per goal.
   const next = (g: (typeof goals)[number]) => { const open = g.milestones.filter(m => m.state === 'open'), first = open[0]; return first ? `; next: ${first.title}${first.targetDate ? ` (by ${dayText(first.targetDate, env.habitDay.slice(0, 4))})` : ''}${open.length > 1 ? ` (+${open.length - 1} more)` : ''}` : ''; };
   const seen = new Set<string>(), unique = goals.filter(g => { const key = `${g.goal}|${g.done}|${g.total}|${g.milestones.map(m => m.title).join('|')}`; if (seen.has(key)) return false; seen.add(key); return true; });
-  return {kind: 'answer', text: lines('Your milestones:', unique.map(g => `${g.goal}: ${g.done} of ${g.total} done${next(g)}`)), calls: [r.record]};
+  return {kind: 'answer', text: lines('Your milestones:', [...unique.map(g => `${g.goal}: ${g.done} of ${g.total} done${next(g)}`), rest]), calls: [r.record]};
 }

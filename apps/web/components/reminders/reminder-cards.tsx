@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {startSoundscape} from '../music/soundscape-start';
-import {Suspense, lazy, useEffect, useState} from 'react';
+import {Suspense, lazy, useEffect, useState, type ReactNode} from 'react';
 import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {ZIGI_REMINDERS_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage} from '../../lib/showcase-storage';
@@ -10,6 +10,7 @@ import type {HealthData} from '../../lib/health';
 import {dueReminders, type DueReminder} from '../../lib/reminders/due';
 import {dismissForToday} from '../../lib/reminders/store';
 import {useReminders} from './use-reminders';
+import {useRovingFocus} from '../ui/use-roving-focus';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {W_REMINDERS} from '../../lib/reminders/w-schema';
 import {dismissWindDown, windDownDue} from '../../lib/reminders/wind-down';
@@ -55,6 +56,15 @@ function useHasZigiReminders(): boolean {
   }, []);
   return has;
 }
+/**
+ * Session AT (ADR-043 D3, D-028 on every day and time): the reminder cards' buttons are ONE Tab stop together (a roving
+ * tabindex, as Today's other repeated controls; the arrow keys reach each), so an evening's or a Sunday's reminders no
+ * longer push Today past 90 stops. Its own component, so the hook mounts with the section (which shows only when due).
+ */
+function RemindersSection({children}: {children: ReactNode}) {
+  const actions = useRovingFocus<HTMLElement>(':is(.actions, .reminder-card-actions) :is(a[href], button)');
+  return <section ref={actions} className="reminder-cards" aria-label="Reminders on this device">{children}</section>;
+}
 export function ReminderCards({habits, health}: {habits?: HabitData; health?: HealthData}) {
   const plan = useDeviceRecord(REMINDERS_PLAN), fasting = useFasting(), weekly = useWeeklyReview();
   const platform = usePlatform(), reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders(), wReminders = useDeviceRecord(W_REMINDERS), meditationRun = useDeviceRecord(MEDITATION_RUN), extras = useDeviceRecord(HEALTH_EXTRAS);
@@ -94,7 +104,7 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
     try { reminders.update(reminder.day, current => dismissForToday(current, reminder.id, reminder.day)); setError(''); }
     catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); }
   };
-  return <section className="reminder-cards" aria-label="Reminders on this device">
+  return <RemindersSection>
     {planned.map(r => <article key={`plan:${r.id}`} className="panel reminder-card" aria-label={`Reminder: ${r.title}`}><p className="eyebrow">Reminder</p><h2>{r.title}</h2><p>{r.line}</p><div className="actions"><Link className="primary" href={r.href}>Open</Link><button type="button" className="quiet" onClick={() => { try { plan.update(c => dismissPlan(c, r.id, localDate(now))); } catch (e) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(e)}`); } }}>Dismiss for today</button></div></article>)}
     {due.map(reminder => <article key={reminder.id} className="panel reminder-card" aria-label={`Reminder: ${reminder.title}`}>
       <p className="eyebrow">Reminder · {reminder.time} · on this device</p>
@@ -164,5 +174,5 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
     </article>}
     {zigi && <LoadBoundary quiet><Suspense fallback={null}><ZigiReminderCards now={now} onError={setError}/></Suspense></LoadBoundary>}
     {error && <p role="alert" className="notice">{error}</p>}
-  </section>;
+  </RemindersSection>;
 }

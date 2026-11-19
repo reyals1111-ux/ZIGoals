@@ -4668,6 +4668,35 @@
   "fresh": "You have no goals yet.",
   "freshNl": "Je hebt nog geen doelen."
  },
+ "goals-milestones": {
+  "en": "Your milestones:\n- Launch my creative studio: 2 of 4 done; next: Find the first client (+1 more)\n- Your other open goals have no milestones: Emergency fund, First home deposit, Japan adventure, Reward income reserve, Create 2 hours a day, Sleep 8 hours a night",
+  "nl": "Je mijlpalen:\n- Launch my creative studio: 2 van 4 gedaan; volgende: Find the first client (+1 meer)\n- Je andere open doelen hebben geen mijlpalen: Emergency fund, First home deposit, Japan adventure, Reward income reserve, Create 2 hours a day, Sleep 8 hours a night",
+  "facts": {
+   "about": "goals",
+   "ask": "status",
+   "goals": [
+    {
+     "goal": "Launch my creative studio",
+     "done": 2,
+     "total": 4,
+     "next": "Find the first client"
+    }
+   ],
+   "withoutMilestones": [
+    "Emergency fund",
+    "First home deposit",
+    "Japan adventure",
+    "Reward income reserve",
+    "Create 2 hours a day",
+    "Sleep 8 hours a night"
+   ]
+  },
+  "widgets": [
+   "milestones"
+  ],
+  "fresh": "You have no goals yet.",
+  "freshNl": "Je hebt nog geen doelen."
+ },
  "goal-japan": {
   "en": "Japan adventure: 41.66% of the target — $2,500 of $6,000.\n- $3,500 to go\n- Target date: Fri, Apr 16, 2027\n- Next planned contribution: Fri, Nov 20\n- Contributed so far: $100; planned through today: $500",
   "nl": "Japan adventure: $2,500.00 van $6,000.00 (42%), achter op schema; nog $3,500.00 te gaan; streefdatum Fri, Apr 16, 2027.",
@@ -5861,6 +5890,14 @@
   ],
   "fresh": "I can’t answer that exactly from your records. What they do show: No nights logged yet.",
   "freshNl": "Dat kan ik niet precies uit je gegevens halen. Wat er wel staat: Nog geen nachten gelogd."
+ },
+ "journey-level": {
+  "en": "Showcase example (fictional records): You are level 8, Nebula, with 3,577 XP: 377 of 850 XP to level 9 (Pulsar). This week 258 XP, last week 665 XP, today 96 XP. Counted on this device from your check-ins, logs, goal steps and reviews, as Journey counts them.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```",
+  "nl": "Showcase-voorbeeld (fictieve gegevens): Je bent level 8, Nebula, met 3,577 XP: 377 van 850 XP tot level 9 (Pulsar). Deze week 258 XP, vorige week 665 XP, vandaag 96 XP. Op dit apparaat geteld uit je check-ins, logs, doelstappen en reviews, zoals Journey ze telt.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The game layer is off on this device, so there is no level or XP: Journey counts them only while it is on (turn it on on Journey).\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```",
+  "freshNl": "De spellaag staat uit op dit apparaat, dus er is geen level of XP: Journey telt ze alleen als die aan staat (zet hem aan op Journey).\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```"
  },
  "unknown-spending": {
   "en": "You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",

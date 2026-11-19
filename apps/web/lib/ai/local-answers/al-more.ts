@@ -11,6 +11,7 @@ import {addLocalDays as addDays} from '../../local-date';
 import {checklistAnswer, isChecklistAsk} from './al-fourth';
 import {MAX_TARGET_HOURS} from '../../fasting/schema';
 import {fastTooLong} from '../quick-commands/commands';
+import {journeyAnswer} from './exact/journey';
 
 /**
  * Session AL second pass (lane L7): what ZIGi's and NOVA's no-model path still answered with the examples list on the bots'
@@ -174,7 +175,8 @@ const YESTERDAY = /\bwhat did i (?:do|get done|complete|finish)\b[^.?!]{0,10}\by
 const MACROS = /\bmacros?\b|\b(?:protein|carbs?|fat)\b[^.?!]{0,15}\b(?:and|,)\b[^.?!]{0,15}\b(?:protein|carbs?|fat)\b/i;
 const WORKOUT = /\b(?:last|latest|recent|this week'?s?)\s+(?:workouts?|training|gym session)\b|\bwhat workouts?\b|\bwhen did i (?:last )?(?:work out|train|lift)\b/i;
 const STAKED = /\bhow much\b[^.?!]{0,20}\bstak(?:ed|ing)\b|\bmy stak(?:e|ed|ing)\b|\bwhat (?:have i|did i) stake\b|\b(?:staking )?rewards?\b[^.?!]{0,20}\b(?:earned|so far|got)\b/i;
-const XP = /\b(?:my )?(?:xp|experience points|level)\b[^.?!]{0,10}\??\s*$|\bwhat level am i\b|\bhow much xp\b/i;
+// Session AT (L7 NB:N11): "how many XP (points)" too.
+const XP = /\b(?:my )?(?:xp|experience points|level)\b[^.?!]{0,10}\??\s*$|\bwhat level am i\b|\bhow (?:much|many) xp\b/i;
 const RECALL = /^\s*(?:when|what|where|which|who|how)\b[^?]{2,120}\?\s*$|\bdo you (?:remember|know)\b/i;
 const STOP = new Set('the a an is are am do does did i my me you your what when where which who how of to in on at for and or it this that be with about any have has get got'.split(' '));
 const words = (s: string) => new Set(s.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w => w.length > 2 && !STOP.has(w)));
@@ -261,7 +263,8 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     const totals = (dataOf(w.result).totals ?? []) as Data[];
     return {kind: 'answer', text: say(lang, `Portfolio (Wealth → Portfolio) is read separately and not here. ${totals.length ? `Your holdings in Wealth add up to ${totals.map(t => amount(String(t.total), String(t.currency))).join(' and ')}, one total per currency, never converted.` : 'No holding in Wealth has a value yet.'}`, `Portfolio wordt hier niet gelezen. ${totals.length ? `Je posities in Wealth komen op ${totals.map(t => amount(String(t.total), String(t.currency))).join(' en ')}, per valuta, nooit omgerekend.` : 'Geen positie in Wealth heeft nog een waarde.'}`), calls: [w.record]};
   }
-  if (XP.test(q)) return {kind: 'answer', text: say(lang, 'Your level and XP are on Journey, counted on this device from what you do in ZIGoals; I don’t read them in a chat yet.', 'Je level en XP staan op Journey, op dit apparaat geteld uit wat je in ZIGoals doet; in een chat lees ik ze nog niet.') + open('journey'), calls: []};
+  // Session AT (L7 NB:N11): the level and XP themselves, counted as Journey counts them (exact/journey.ts); unknown, not zero, where a record it counts is closed.
+  if (XP.test(q)) return {kind: 'answer', text: journeyAnswer(env, lang).text + open('journey'), calls: []};
   // P-DVR-49, P-LA-20 (Z-019, Z-068, LA-027): a question answered by one of the notes the person kept.
   if (env.notes?.length && RECALL.test(q)) {
     const asked = words(q), best = env.notes.map(n => ({n, hits: [...words(n.text)].filter(w => asked.has(w) || [...asked].some(a => a.length > 4 && (w.startsWith(a.slice(0, 5)) || a.startsWith(w.slice(0, 5))))).length})).sort((a, b) => b.hits - a.hits)[0];

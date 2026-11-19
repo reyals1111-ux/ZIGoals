@@ -17,6 +17,7 @@ import {EcosystemLiveLine} from './ecosystem-live';
 import type {LiveState} from '../lib/earn/client';
 import type {DefillamaData} from '../lib/earn/live/types';
 import {directoryStatusOf} from '../lib/zigchain-eco/directory-status';
+import {VerifiedLink} from './links/verified-link';
 import {useDayNow} from './use-local-today';
 import type {UsedByMe} from '../lib/zigchain-eco/used-by-me';
 
@@ -95,7 +96,7 @@ export function EcosystemCard({entry, open, onToggle, llama, used}: {entry: Dire
     {used && <p className="ecosystem-used"><span className="zeco-status" data-kind="live">Used by you</span> Wealth shows you hold {used.what}{used.count > 1 ? ` (${used.count} holdings)` : ''}. <Link className="text-link" href="/app/wealth">Open Wealth →</Link></p>}
     {/* Session AK (F4): one dated status per project (live, closing, paused, not live yet…), with its source. Session AL (CI18): its words in
         .ecosystem-status-detail, so the line's own 15 px font places the baseline (components/zigchain-eco/zigchain-eco.css). */}
-    {(() => { const status = directoryStatusOf(entry.id, now); return status ? <p className="ecosystem-status"><span className="zeco-status" data-kind={status.kind}>{status.label}</span> <span className="ecosystem-status-detail">{status.detail}</span> <small>({status.source}, read <time dateTime={status.readOn}>{formatDate(status.readOn)}</time>)</small></p> : null; })()}
+    {(() => { const status = directoryStatusOf(entry.id, now); return status ? <p className="ecosystem-status"><span className="zeco-status" data-kind={status.kind}>{status.label}</span> <span className="ecosystem-status-detail">{status.detail}</span> <small>({status.source}, read <time dateTime={status.readOn}>{formatDate(status.readOn)}</time>)</small>{status.notice === 'zignaly-closure' && <> <VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s closure notice</VerifiedLink></>}</p> : null; })()}
     <div className="ecosystem-labels"><span>{entry.inclusion}</span><span>{p.phase === 'READ_ONLY' ? 'Read-only links' : 'Research only'}</span></div>
     <div className="ecosystem-project-actions">{entry.actions.map(action => <a key={action.kind} href={action.url} {...external}>{ACTION_LABEL[action.kind]} ↗</a>)}{!entry.actions.length && <span className="fine">No checked website link yet</span>}</div>
     <div className="ecosystem-details" id={detailsId} role="region" aria-labelledby={titleId} hidden={!open}>

@@ -1,5 +1,5 @@
 'use client';
-import {useState, type DragEvent} from 'react';
+import {Suspense, lazy, useState, type DragEvent, type ReactNode} from 'react';
 import {labelsInUse, viewTasks, type TaskView} from '../../lib/tasks/engine';
 import {TASK_COLOURS, LEVEL_WORDS, type Project, type TaskColour, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import {formatNumber} from '../../lib/visual-format';
@@ -54,12 +54,14 @@ export function viewTitle(view: TaskView, record: Tasks): string {
   }
 }
 const same = (a: TaskView, b: TaskView) => viewKey(a) === viewKey(b);
+// Session AT (ADR-043 D7): This evening's and Someday's counts come from their own chunk, after the page shows.
+const WhenCount = lazy(() => import('./tasks-when-count'));
 export function TasksNav({record, today, view, board, counts, projects, onGo, onAddProject, dropOn, onRemoveFilter}: {record: Tasks; today: string; view: TaskView; board: boolean; counts: {open: number; overdue: number; today: number}; projects: Project[];
   onGo: (v: TaskView, board?: boolean) => void; onAddProject: (name: string, colour: TaskColour) => boolean; dropOn: (projectId: string | null) => {onDragOver: (e: DragEvent<HTMLElement>) => void; onDrop: (e: DragEvent<HTMLElement>) => void}; onRemoveFilter: (id: string) => void}) {
   const [adding, setAdding] = useState(false), [name, setName] = useState(''), [colour, setColour] = useState<TaskColour>('blue'), [archived, setArchived] = useState(false);
   const count = (v: TaskView) => viewTasks(record, v, today).length;
-  const item = (v: TaskView, label: string, n?: number, extra?: object, colourName?: string) => <li key={viewKey(v)}><button type="button" className="tasks-nav-item" aria-current={same(v, view) ? 'page' : undefined} data-colour={colourName} onClick={() => onGo(v, v.kind === 'project' && same(v, view) ? board : false)} {...(extra ?? {})}>
-    <span dir="auto">{label}</span>{n ? <small>{formatNumber(n)}</small> : null}</button></li>;
+  const item = (v: TaskView, label: string, n?: number | ReactNode, extra?: object, colourName?: string) => <li key={viewKey(v)}><button type="button" className="tasks-nav-item" aria-current={same(v, view) ? 'page' : undefined} data-colour={colourName} onClick={() => onGo(v, v.kind === 'project' && same(v, view) ? board : false)} {...(extra ?? {})}>
+    <span dir="auto">{label}</span>{typeof n === 'number' ? n ? <small>{formatNumber(n)}</small> : null : n}</button></li>;
   const labels = labelsInUse(record), live = projects.filter(p => !p.archived), old = projects.filter(p => p.archived);
   return <nav className="tasks-nav" aria-label="Task views">
     <ul>
@@ -68,8 +70,8 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
       {item({kind: 'upcoming'}, 'Upcoming', count({kind: 'upcoming'}))}
       {item({kind: 'all'}, 'All open', counts.open)}
       {counts.overdue > 0 && item({kind: 'overdue'}, 'Overdue', counts.overdue)}
-      {item({kind: 'evening'}, 'This evening')}
-      {item({kind: 'someday'}, 'Someday')}
+      {item({kind: 'evening'}, 'This evening', <Suspense fallback={null}><WhenCount kind="evening" record={record} today={today}/></Suspense>)}
+      {item({kind: 'someday'}, 'Someday', <Suspense fallback={null}><WhenCount kind="someday" record={record} today={today}/></Suspense>)}
       {item({kind: 'matrix'}, 'Priority matrix')}
       {item({kind: 'completed'}, 'Completed')}
     </ul>

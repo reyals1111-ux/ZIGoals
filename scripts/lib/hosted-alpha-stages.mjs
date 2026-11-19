@@ -19,6 +19,7 @@ import {CHECKLIST_SENTINELS, CHECKLIST_STAGE} from './hosted-alpha-checklist.mjs
 import {AK_STAGE} from './hosted-alpha-ak.mjs';
 import {AL_STAGE} from './hosted-alpha-al.mjs';
 import {NOVA_STAGE} from './hosted-alpha-nova.mjs';
+import {AT_STAGE} from './hosted-alpha-at.mjs';
 import {EARN_STAGE} from './hosted-alpha-earn.mjs';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal, todayQuickAdd} from './hosted-alpha-goal-stage.mjs';
 import {openSettingsGroups} from './settings-open.mjs';
@@ -268,6 +269,8 @@ export const VERIFIER_STAGES = Object.freeze([
   AL_STAGE,
   // Session AM (TIER 3 (verifier), ADR-038): NOVA's calm stage, a request's widget, and Weather off; a part it could not check is a review reason.
   NOVA_STAGE,
+  // Session AT (TIER 3 (verifier), ADR-043 D13): what AO, AP, AR and AS added where a live check is possible; a part it could not check is a review reason.
+  AT_STAGE,
 ].map(stage => Object.freeze(stage)));
 
 /**

@@ -68,6 +68,9 @@
   :root .today-page .life-rings .flow-ring { --ring-size: 60px !important; }
   :root .today-page .life-rings > .life-ring { padding: 10px 8px 12px; gap: 6px; }
 }
+/* Session AT (ADR-043 D20, UX review): on a narrow screen outside Today's compact tiles (where the rules above do not
+   apply), each tile's pillar, figure and line stack instead of running together ("GOALS1 active0 completed"). */
+@media (max-width: 767.98px) { :root .life-rings > .life-ring > span { display: grid; gap: 4px; align-content: start; } :root .life-rings > .life-ring > span > small { display: block; } }
 /* The active-goal count keeps its old hook (`.life-goal-number`) inside the Goals row's line, set as plain text there. */
 :root .life-rings .life-goal-number { display: inline; min-width: 0; font: inherit; color: inherit; text-align: inherit; }
 /* Phase 2 closing pass, item 4 (consistency): every page's own header — the shared PageHeader and the pages' hand-written

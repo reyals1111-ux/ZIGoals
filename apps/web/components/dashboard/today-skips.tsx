@@ -15,6 +15,8 @@ const REGIONS = [
   {id: 'today-widgets', label: 'Skip to Your widgets'},
   {id: 'bottom-today-week', label: 'Skip to Your week'},
 ] as const;
+/** How long the page stays still after a change before the list is measured again. */
+const QUIET_MS = 150, MAX_WAIT_MS = 1000;
 const present = () => REGIONS.filter(r => { const el = typeof document === 'undefined' ? null : document.getElementById(r.id); return !!el && !el.closest('[hidden]') && el.getClientRects().length > 0; }).map(r => r.id);
 
 export function TodaySkips() {
@@ -25,15 +27,21 @@ export function TodaySkips() {
     // depended on when the page was read (Nebula kept all four, Dark three). It now follows the page itself: checked
     // after the page shows, after any change under Today's main area and on resize, once per frame at most, so a settled
     // page always has the same list. Still never while one of its links has the focus.
-    let frame = 0;
-    const check = () => { frame = 0; if (document.activeElement?.closest('.today-skips')) return; const now = present(); setShown(prev => prev && prev.join() === now.join() ? prev : now); };
-    const soon = () => { if (!frame) frame = window.requestAnimationFrame(check); };
-    soon();
+    // Session AT (ADR-043 D18, phone performance): measuring on the next frame after every change forced a layout on almost
+    // every frame while Today loads (class changes under main; about 0.4 s of a mid-range phone's first seconds on the
+    // Showcase). The list is now measured once the page has been still for QUIET_MS after a change (and at once after it
+    // shows), so a settled page has the same list as before and the load no longer pays for it frame by frame.
+    let frame = 0, timer = 0, last = performance.now();
+    const check = () => { frame = 0; last = performance.now(); if (document.activeElement?.closest('.today-skips')) return; const ids = present(); setShown(prev => prev && prev.join() === ids.join() ? prev : ids); };
+    const now = () => { if (!frame) frame = window.requestAnimationFrame(check); };
+    // A page that never stops changing is still measured at least once a second (MAX_WAIT_MS).
+    const soon = () => { window.clearTimeout(timer); if (performance.now() - last >= MAX_WAIT_MS) now(); else timer = window.setTimeout(now, QUIET_MS); };
+    now();
     const root = document.getElementById('main') ?? document.body;
     const changes = new MutationObserver(soon);
     changes.observe(root, {childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'class', 'open']});
     window.addEventListener('resize', soon);
-    return () => { if (frame) window.cancelAnimationFrame(frame); changes.disconnect(); window.removeEventListener('resize', soon); };
+    return () => { if (frame) window.cancelAnimationFrame(frame); window.clearTimeout(timer); changes.disconnect(); window.removeEventListener('resize', soon); };
   }, []);
   return <nav className="today-skips" aria-label="Skip to a part of Today">
     <p className="sr-only" id={hint}>The arrow keys move between these links.</p>

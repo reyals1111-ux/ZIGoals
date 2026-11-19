@@ -1665,6 +1665,8 @@
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .sleep-stats dd:not(#\-) { font-size: calc(18px * 1.125); } }
 /*  components/health/supplements.css  */
 :where(:root[data-text=large]) .supplements small:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/health/weight-csv-import.css  */
+:where(:root[data-text=large]) .health-import-table:not(#\-) { font-size: calc(.94rem * 1.125); }
 /*  components/health/workouts/muscle-freshness.css  */
 :where(:root[data-text=large]) .muscle-freshness-body text:not(#\-) { font-size: calc(10px * 1.125); }
 :where(:root[data-text=large]) .muscle-freshness-body .mf-view:not(#\-) { font-size: calc(10px * 1.125); }
@@ -1684,6 +1686,9 @@
 :where(:root[data-text=large]) .workouts-import-lifts span:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .workouts-muscles h3:not(#\-) { font-size: calc(1.05rem * 1.125); }
 :where(:root[data-text=large]) .workouts-freshness li > span:last-child:not(#\-) { font-size: calc(15px * 1.125); }
+/*  components/help/help-screenshots.css  */
+:where(:root[data-text=large]) .help-shot figcaption:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .help-shot-tag:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/help/help.css  */
 :where(:root[data-text=large]) .help-page p:not(#\-), :where(:root[data-text=large]) .help-page li:not(#\-), :where(:root[data-text=large]) .help-page dd:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .help-page .fine:not(#\-) { font-size: calc(15px * 1.125); }
@@ -3755,6 +3760,7 @@
 :where(:root[data-text=large]) .ecosystem-project .ecosystem-status-detail:not(#\-) { font-size: calc(.95rem * 1.125); }
 :where(:root[data-text=large]) .ecosystem-status small:not(#\-) { font-size: calc(.85rem * 1.125); }
 :where(:root[data-text=large]) .zeco-bar-label:not(#\-), :where(:root[data-text=large]) .zeco-bar-value:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .ecosystem-status .verified-link-arrow:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/zigi/knock.css  */
 :where(:root[data-text=large]) .zigi-knock-copy h2:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .zigi-knock-copy p:not(#\-) { font-size: calc(14px * 1.125); }

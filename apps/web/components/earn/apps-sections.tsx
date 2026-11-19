@@ -1,11 +1,11 @@
 'use client';
-import {DEFA_TAGS, NAWA_TAGS, PERMAPOD_TAGS, ZIGNALY_TAGS} from '../../lib/earn/glance';
+import {DEFA_TAGS, NAWA_TAGS, PERMAPOD_TAGS, zignalyTags} from '../../lib/earn/glance';
 import type {LiveState} from '../../lib/earn/client';
 import {tokenAmount, usd} from '../../lib/earn/format';
 import type {DefillamaData, VaultRow, VaultsData} from '../../lib/earn/live/types';
 import {DEFA_SITE, NAWA_METHOD, NOBLE_USDC, PERMAPOD_STATUS, ZIGNALY_CLOSURE} from '../../lib/earn/options';
 import {formatDate, formatNumber} from '../../lib/visual-format';
-import {dayHasPassed, zignalyPhase, zignalyStatusLine} from '../../lib/earn/dated';
+import {dayHasPassed, zignalyClosure, zignalyPhase, zignalyStatusLine, zignalyWords} from '../../lib/earn/dated';
 import {VerifiedLink} from '../links/verified-link';
 import {HowRead} from './how-read';
 import {IllustrationSlot} from './illustrations/slot';
@@ -33,11 +33,11 @@ export function NawaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
     logo={{src: '/ecosystem-logos/nawa.png', alt: 'Nawa site icon'}}
     tags={[...NAWA_TAGS]}
     notice={<>
-      <p><b>Its USDC vault depends on Zignaly, which is closing.</b> {NAWA_METHOD.text} <span className="fine">({NAWA_METHOD.source}, read {day(NAWA_METHOD.readOn)})</span> <VerifiedLink provider="nawa" kind="defillama" className="text-link" mark="compact">Nawa on DefiLlama</VerifiedLink></p>
+      <p><b>Its USDC vault depends on Zignaly, {zignalyWords(now).clause}.</b> {NAWA_METHOD.text} <span className="fine">({NAWA_METHOD.source}, read {day(NAWA_METHOD.readOn)})</span> <VerifiedLink provider="nawa" kind="defillama" className="text-link" mark="compact">Nawa on DefiLlama</VerifiedLink></p>
       <p>Zignaly’s own notice: {zignalyStatusLine(now)} <span className="fine">(read {day(ZIGNALY_CLOSURE.readOn)}) · a dated notice, its dates worded from today; not a live figure</span> What this means for the vault’s money is not stated anywhere ZIGoals read. <VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink></p>
     </>}
     facts={[
-      {label: 'Best for', value: 'Understanding a Nawa vault you already hold. Joining now means depending on an off-chain route that is closing.'},
+      {label: 'Best for', value: `Understanding a Nawa vault you already hold. Joining now means depending on Zignaly’s off-chain route, ${zignalyWords(now).clause}.`},
       {label: 'Who runs it', value: 'Nawa Finance, through vault contracts on ZIGChain (its USDC vault runs on the same vault code as Valdora’s).'},
       {label: 'Who holds the funds', value: <>Your vault shares sit in your wallet; the USDC vault’s money is deployed away from the chain via Zignaly, as DefiLlama describes it. <WhatsThis term="custody"/></>},
       {label: 'Who can use it', value: 'Nawa’s site did not show its eligibility or identity-check rules to ZIGoals (read 18 Oct 2026); its app shows its vaults only once a wallet is connected.'},
@@ -61,7 +61,7 @@ export function NawaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
       {title: 'Minimums', body: <p>Not published where ZIGoals could read them.</p>},
       // Session AF (L1c, N5): each risk with its source (R2 §5.2, plan section 5 row 5, RECHECK A).
       {title: 'Risks', body: <ul className="earn-risks">
-        <Risk link={<><VerifiedLink provider="nawa" kind="defillama" className="text-link" mark="compact">DefiLlama’s Nawa tracker</VerifiedLink> and <VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink></>}>Off-chain custody: the USDC vault’s money is with Zignaly’s private credit route, which is closing (above).</Risk>
+        <Risk link={<><VerifiedLink provider="nawa" kind="defillama" className="text-link" mark="compact">DefiLlama’s Nawa tracker</VerifiedLink> and <VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink></>}>Off-chain custody: the USDC vault’s money is with Zignaly’s private credit route, {zignalyWords(now).clause} (above).</Risk>
         <Risk link={<VerifiedLink provider="nawa" kind="defillama" className="text-link" mark="compact">DefiLlama’s Nawa tracker</VerifiedLink>}>Credit risk: the private credit it finances may be repaid late or not at all.</Risk>
         <Risk link={<VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink>}>The asset: the USDC vault holds USDC on Noble, which Circle is winding down ({day(NOBLE_USDC.fullyPaused)} full pause).</Risk>
         <Risk chain={`each vault’s admin account on ZIGChain, read ${day('2026-10-18')}`}>Who can change the vaults: each has an admin account; when ZIGoals read the chain on {day('2026-10-18')}, each was a single key.</Risk>
@@ -180,11 +180,18 @@ export function PermapodSection({llama, now}: {llama: LiveState<DefillamaData>; 
   />;
 }
 
+// Session AT (ADR-043 D1, owner change 1): the closure is worded by today's UTC day from the notice's own words.
+const ZIGNALY_LEDE = {
+  closing: 'Zignaly is a copy-trading platform: traders invest your money for you and share the profit. It is closing, so nothing can be joined. Its notice makes 1 December 2026 (until 23:59 UTC) the last day to withdraw; if you still have money there, this is how.',
+  'last-day': 'Zignaly is a copy-trading platform: traders invest your money for you and share the profit. Its notice makes today, 1 December 2026, the last day to withdraw, until 23:59 UTC; the app closes after that. Nothing can be joined. If you still have money there, this is how.',
+  closed: 'Zignaly was a copy-trading platform: traders invested people’s money for them and shared the profit. It has closed: its notice made 1 December 2026 (until 23:59 UTC) the last day to withdraw and said the app closes after that. Below is what the notice said.',
+} as const;
 export function ZignalySection({now}: {now: number}) {
-  return <OptionSection id="zignaly" eyebrow="Zignaly · closing" title="Zignaly is closing: how to withdraw"
-    lede={<>Zignaly is a copy-trading platform: traders invest your money for you and share the profit. It is closing, so nothing can be joined; if you still have money there, this is how to take it out before 1 December 2026. <WhatsThis term="copy-trading"/></>}
+  const closure = zignalyClosure(now), words = zignalyWords(now), closed = closure === 'closed';
+  return <OptionSection id="zignaly" eyebrow={words.eyebrow} title={words.heading}
+    lede={<>{ZIGNALY_LEDE[closure]} <WhatsThis term="copy-trading"/></>}
     logo={{src: '/ecosystem-logos/zignaly.png', alt: 'Zignaly site icon'}}
-    tags={[...ZIGNALY_TAGS]}
+    tags={[...zignalyTags(words.tag)]}
     notice={<>
       <p><b>The closing dates, as Zignaly’s notice states them</b> <span className="fine">({ZIGNALY_CLOSURE.source}, read {day(ZIGNALY_CLOSURE.readOn)}) · a dated notice, its dates worded from today; not a live figure</span>:</p>
       <ol className="earn-dates">{ZIGNALY_CLOSURE.dates.map(d => <li key={d.date} data-date={d.date} data-passed={dayHasPassed(d.date, now) ? '' : undefined}><time dateTime={d.date}>{day(d.date)}</time> — {d.text}{dayHasPassed(d.date, now) ? <strong> (passed)</strong> : null}</li>)}</ol>
@@ -198,21 +205,21 @@ export function ZignalySection({now}: {now: number}) {
     ]}
     figures={<LiveFigure id="zignaly-figures" label="Live figures" now={now} figure={{kind: 'unavailable', reason: 'NOT_PUBLISHED'}} hint="Zignaly publishes no public figures ZIGoals can read."/>}
     columns={[
-      {title: 'Fees', body: <p>Zignaly’s own fees apply until it closes; see its notice.</p>},
+      {title: 'Fees', body: <p>{closed ? 'See its notice for what it said about fees.' : 'Zignaly’s own fees apply until it closes; see its notice.'}</p>},
       {title: 'Lockups', body: zignalyPhase(now) === 'credit-open' ? <p>Private Credit needs a withdrawal request by {day('2026-11-01')} and takes about a month to settle; the rest can be withdrawn until {day('2026-12-01')}.</p>
         : <p>The Private Credit request deadline ({day('2026-11-01')}) has passed; a request made before it takes about a month to settle. {zignalyPhase(now) === 'closed' ? `The app closed after ${day('2026-12-01')}.` : `The rest can be withdrawn until ${day('2026-12-01')}.`}</p>},
       {title: 'Minimums', body: <p>As Zignaly’s withdrawal screen shows them.</p>},
       // Session AF (L1c, N5): each risk with its source: Zignaly's own closure notice (R2 LB12 and §4, read 18 October 2026).
       {title: 'Risks', body: <ul className="earn-risks">
-        <Risk link={<VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink>}>Deadline: after {day('2026-12-01')} at 23:59 UTC the app closes.</Risk>
+        <Risk link={<VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink>}>{closed ? <>Deadline: its notice said the app closes after {day('2026-12-01')} at 23:59 UTC.</> : <>Deadline: after {day('2026-12-01')} at 23:59 UTC the app closes.</>}</Risk>
         <Risk link={<VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink>}>{zignalyPhase(now) === 'credit-open' ? <>An earlier deadline for Private Credit: its withdrawal must be requested by {day('2026-11-01')}, and it takes about a month to settle.</> : <>The earlier Private Credit deadline ({day('2026-11-01')}) has passed; ask Zignaly what still applies to Private Credit you hold.</>}</Risk>
         <Risk link={<VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink>}>Network: withdrawals are USDT on BNB Smart Chain (BEP20) only. Send them to an address on that network that your own wallet controls; the wrong network can lose them.</Risk>
         <Risk link={<VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink>}>Custody: until you withdraw, Zignaly holds the money, not you.</Risk>
-        <Risk link={<VerifiedLink provider="zignaly" kind="closure-collection" className="text-link" mark="compact">Zignaly’s closure articles</VerifiedLink>}>Delays: a withdrawal of 10,000 USDT or more needs an identity check, and changing a password or two-factor setting pauses withdrawals for 24 hours, so leave time before the deadline.</Risk>
+        {!closed && <Risk link={<VerifiedLink provider="zignaly" kind="closure-collection" className="text-link" mark="compact">Zignaly’s closure articles</VerifiedLink>}>Delays: a withdrawal of 10,000 USDT or more needs an identity check, and changing a password or two-factor setting pauses withdrawals for 24 hours, so leave time before the deadline.</Risk>}
       </ul>},
     ]}
-    stepsTitle="How to withdraw" stepsOpen
-    steps={[
+    stepsTitle={closed ? 'Its notice' : 'How to withdraw'} stepsOpen
+    steps={closed ? [{text: 'Read Zignaly’s closure notice (a new tab) for what it said.'}] : [
       {text: 'Read Zignaly’s closure notice (a new tab) and check the dates above.'},
       // Session AL (PR-036): a passed deadline is never offered as a step to take.
       ...(zignalyPhase(now) === 'credit-open' ? [{text: 'In Zignaly, if you have Private Credit, request its withdrawal by 1 November 2026.'}] : []),
@@ -220,7 +227,7 @@ export function ZignalySection({now}: {now: number}) {
       {text: 'In Zignaly, withdraw your balance as USDT on BNB Smart Chain (BEP20) to that address, by 1 December 2026 at 23:59 UTC.', sign: 'nothing in a wallet: you confirm the withdrawal in Zignaly’s own account screen.'},
       {text: 'Check the USDT arrived in your wallet, and keep a record of the withdrawal.'},
     ]}
-    stepsTime="10 minutes to request; Zignaly’s own processing time after that."
+    stepsTime={closed ? undefined : '10 minutes to request; Zignaly’s own processing time after that.'}
     actions={<>
       <VerifiedLink provider="zignaly" kind="closure-notice" className="primary">Zignaly’s closure notice</VerifiedLink>
       <VerifiedLink provider="zignaly" kind="closure-collection" className="secondary" mark="full">All closure articles</VerifiedLink>

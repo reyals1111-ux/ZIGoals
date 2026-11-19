@@ -4,6 +4,7 @@ Session L (2026-10-02), updated with Sessions T–W, Session X (2026-10-08: part
 (2026-10-10: parts 3, 8 and 9 below), Session AH (part 8c), Session AJ (2026-10-30: part 8d and the
 last seven lines of part 9 before Session AK's) and Session AK (2026-10-31: part 8e and the last eight lines of part 9),
 and Sessions AO and AP (14 Nov 2026, Session AP: part 8f, and the dated update at the end of part 9),
+and Sessions AM to AT (18 Nov 2026, Session AT: parts 8g and 8h, and the update of 18 Nov at the end of part 9),
 and follows the owner
 principle: sync is switched on once, backups are optional, and the one thing to keep safe is the recovery secret.
 Accounts and encrypted sync are only available after Stage 7/8 activation; until then, part 2 "Before accounts open"
@@ -171,7 +172,47 @@ All optional, all on your device. Help explains each one.
 - **Buttons that step aside** (computers): when ZIGi, Music, the Checklist or the Earn dock would cover what you're reading, they slide toward the edge, and come back when you move on (they can be pressed where they are).
 - **Send feedback** has **Copy these details**: copy the device details you previewed, to paste into a message or a form. The details now also name the theme and screen size.
 
-<!-- AP: Part 6 features to add -->
+## 8g. New in this release: NOVA (Sessions AM to AS)
+
+**NOVA** is ZIGoals' full-screen view of your day: a star, a few widgets and one field to ask in. Open it from the
+sidebar (on a phone: More → NOVA). It works without any AI: every answer below is worked out on your device from your
+own records, in the same words as ZIGi, and each answer makes its own widget beside it. Nothing is a score or a judgement
+of you, and a figure ZIGoals doesn't know is said to be unknown, never shown as zero.
+
+Questions to try (typos and Dutch are fine):
+
+- **how many habits did I miss this week** · **which habit do I skip most this month** · **show my habit streaks**
+- **which days did I forget to meditate this month** · **on which weekday do I miss habits most**
+- **how is my health** · **is my weight going down** · **water this week vs last week** (Health questions need Health
+  shared with NOVA: NOVA → Permissions)
+- **what did I spend this month** · **did I spend more than last month** · **what is my next bill**
+- **which goals are behind** · **which tasks are overdue** · **what is my journal streak** · **did I focus today**
+- **what can you answer** lists the kinds of question NOVA answers.
+
+Want to see it full first? **Settings → Load Showcase Demo** fills the app with example data (labelled as examples,
+kept in that tab only); **Exit Showcase** brings your own data back.
+
+**Build your own NOVA** (NOVA → **Brain setup**): a step-by-step guide to give NOVA a brain you choose. A model on your own
+computer first (Ollama, LM Studio or llama.cpp: your messages stay on that computer), or your own key for a cloud AI
+(it is sent only to that provider). Your privacy mode decides what may leave the device: **Strict** (recommended) allows
+only a local model. Without any of it, NOVA answers on your device and sends nothing.
+
+**Weather in NOVA is off until you turn it on** (NOVA → Permissions → Weather, then choose a place from the list or type
+a position; your browser's location is never asked). When it is on, your browser asks MET Norway for that place's
+forecast; MET Norway sees your network address and the place rounded to about 1 km.
+
+## 8h. Also new (Sessions AP to AT)
+
+- **Tasks:** an hour grid for today, **This evening** and **Someday** lists (with their counts in the Tasks menu), and a
+  **Priority matrix** (drag a card, or use its button).
+- **Today:** countdowns ("Days until"), and **Your orbits** (off until you switch it on while arranging Today).
+- **Wealth:** money month by month, tags on your money entries, Ready to assign, the age of your money, spending pace and
+  price changes of your bills.
+- **Health:** mood tags, symptoms and factors, run pace and per-km splits from GPX/TCX files, copy a meal, and the days
+  you logged food. **Import weights from a file** reads a date, a value and a unit as their own columns.
+- **Journal:** numbers you track beside your entries.
+- **Earn:** Zignaly's closure is worded from its own notice by today's date, with the notice linked.
+
 
 ## 9. What the Alpha can't do yet
 
@@ -204,12 +245,20 @@ All optional, all on your device. Help explains each one.
 
 **Update, 14 Nov 2026 (Session AP):**
 
-- **Weather is off.** There is no weather from ZIGoals' own service yet. <!-- AP: if the deployed build includes PR #101 (NOVA), add: "NOVA's Weather switch, off until you turn it on, asks MET Norway directly; MET sees your network address and the place rounded to about 1 km." -->
+- **Weather is off until you turn it on in NOVA** (part 8g); ZIGoals' own weather service, which would hide your network address from MET Norway, isn't switched on yet.
 - **Notifications are off until we switch them on**, both kinds: reminders through an account (accounts aren't open yet) and notifications on this device. Until then, due reminders show on Today while ZIGoals is open.
 - **Prices can be missing** for a while. A missing price stays "unknown", never zero.
 - **No AI is connected for you.** ZIGi and NOVA answer from your own records on your device, or use an AI you connect yourself. ZIGoals AI · powered by Claude isn't offered yet.
 - **"A day counts as done at N" starts on the day you change it.** Days already past keep the rule they had.
 - **Safari:** on iPhone and iPad there are still no Home Screen shortcuts (install from Share → Add to Home Screen, part 1). On Safari, words typed into ZIGi's box at the very moment it opens may be lost; type them again.
+
+**Update, 18 Nov 2026 (Session AT):**
+
+- **NOVA answers from your own records only.** It doesn't know why something happened (it says so), and it checks off one
+  Checklist item at a time; tick several on the Checklist itself.
+- **Some records stay on the device when you restore a backup:** AI settings and keys, display choices, Earn progress
+  and the staking journal (Help → Known limitations). Everything you record in Goals, Habits, Health, Wealth, Tasks,
+  Notes and the Journal comes back.
 
 The full list, kept up to date, is in **Help → Known limitations**.
 

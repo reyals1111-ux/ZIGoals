@@ -6,10 +6,10 @@
  * Zignaly-dependent items keep the closure notice (components/earn/apps-sections.tsx). A status is information, never a
  * recommendation, and the live figure on a card stays Earn's own DefiLlama read.
  */
-import {zignalyStatusLine} from '../earn/dated';
+import {zignalyStatusLine, zignalyWords} from '../earn/dated';
 
 export type DirectoryStatusKind = 'live' | 'tool' | 'closing' | 'paused' | 'winding-down' | 'not-live' | 'partner' | 'private';
-export type DirectoryStatus = {kind: DirectoryStatusKind; label: string; detail: string; source: string; readOn: string};
+export type DirectoryStatus = {kind: DirectoryStatusKind; label: string; detail: string; source: string; readOn: string; /** Session AT (D1): a notice the card links beside the line. */ notice?: 'zignaly-closure'};
 export const STATUS_LABELS: Readonly<Record<DirectoryStatusKind, string>> = Object.freeze({
   live: 'Live on ZIGChain', tool: 'Live tool', closing: 'Closing', paused: 'Paused', 'winding-down': 'Being wound down',
   'not-live': 'Not live yet', partner: 'Listed partner', private: 'Not open to the public',
@@ -44,7 +44,11 @@ export const DIRECTORY_STATUS: Readonly<Record<string, DirectoryStatus>> = Objec
 export const directoryStatusOf = (id: string, now: number = Date.now()): DirectoryStatus | null => {
   if (!Object.hasOwn(DIRECTORY_STATUS, id)) return null;
   const status = DIRECTORY_STATUS[id]!;
-  return id === 'zignaly' ? {...status, detail: zignalyStatusLine(now)} : status;
+  // Session AT (ADR-043 D1): Zignaly's label and Nawa's dependency are worded from the notice by today's date too; both
+  // carry `notice`, so the card links Zignaly's closure notice beside them.
+  if (id === 'zignaly') return {...status, label: zignalyWords(now).label, detail: zignalyStatusLine(now), notice: 'zignaly-closure'};
+  if (id === 'nawa') return {...status, detail: `Live, but its USDC vault depends on Zignaly, ${zignalyWords(now).clause} (see Earn).`, notice: 'zignaly-closure'};
+  return status;
 };
 /**
  * Things announced for ZIGChain that are not live, said plainly on the Ecosystem page, each with the day it was read.

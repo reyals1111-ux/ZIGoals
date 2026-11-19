@@ -28,7 +28,7 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'spend-average-month': ['25.62'], 'income-month': ['2,550.00'], 'income-lastmonth': [], 'budgets-over': [], 'budgets-status': ['Groceries', '187.10'], 'budget-fun-left': ['24.00', '60.00'],
   'bills-next': ['Rent', '950.00'], 'bills-overdue': ['Rent'], 'bills-week': ['Rent'], 'bills-list': ['Rent', 'Energy'], 'bills-total': ['1,094.99'], 'networth-now': ['531,029.00'],
   'goals-status': ['Emergency fund', '45%'], 'goals-behind': ['Japan adventure'], 'goals-closest': ['First home deposit', '65%'], 'goals-furthest': ['Japan adventure'], 'goals-reached': ['My first 0.1 BTC'],
-  'goals-next-date': ['Apr 16, 2027', 'Japan adventure'], 'goal-japan': ['2,500', '6,000'], 'goal-emergency': ['9,000', '20,000'], 'networth-year': ['531,029.00', '8,000.00'],
+  'goals-next-date': ['Apr 16, 2027', 'Japan adventure'], 'goals-milestones': ['Launch my creative studio', '2', '4', 'Find the first client', 'Emergency fund', 'Sleep 8 hours a night'], 'goal-japan': ['2,500', '6,000'], 'goal-emergency': ['9,000', '20,000'], 'networth-year': ['531,029.00', '8,000.00'],
   // The day, the journal, focus and NOVA itself
   'tasks-overdue': ['Sketch the garden bed', 'Book the dentist'], 'tasks-open': ['5'], 'tasks-tomorrow': ['2'], 'tasks-week': ['Compare two savings accounts', 'Draft the trip budget'],
   'tasks-done-week': ['Renew the library card'], 'tasks-done-lastweek': [], 'tasks-priority': ['Book the dentist'], 'tasks-next': ['Sketch the garden bed'],
@@ -36,4 +36,6 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'agenda-today': ['Meditate'], 'agenda-tomorrow': ['Upper body session'], 'agenda-next': ['Meditate'], 'checklist-today': [],
   'focus-week': ['150'], 'focus-today': [], 'focus-month': ['397'], 'focus-none-days-lastweek': ['Nov 9', 'Nov 15'], 'focus-days-month': ['Nov 1', 'Nov 16'], 'focus-best-month': ['Nov 16', '150'], 'focus-compare-weeks': ['150', '136'],
   'nova-sees': ['Habits', 'Health'], 'nova-private': [], 'nova-can-answer': [], 'life-doing': ['4', '7'], 'life-week': [], 'why-sleep': [], 'why-habits': [], 'unknown-sleep': [], 'unknown-spending': [],
+  // Session AT (L7 NB:N11): Journey's own count (lib/game/xp.ts) on the Showcase's records, labelled as the Showcase's.
+  'journey-level': ['8', 'Nebula', '3,577', '377', '850', 'Showcase'],
 };

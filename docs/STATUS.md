@@ -1,3 +1,55 @@
+# Session AT — "READY FOR FRIENDS" (ADR-043) (2026-11-18/19, `feature/session-at-ready-for-friends`, Draft [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107); complete, not merged, not deployed)
+**Base:** `main` `3d510124` (Merge [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106), Session AS); `main` did not move during the session. **Rules (owner):** the brief for Session AT, one approved plan with approval items 1–5 and two owner changes (Zignaly's words only from its notice, linked; Part 6 right after Part 1), verbatim in `docs/architecture/ADR-043-session-at.md` (decisions D1–D20, closing table). Resume file: `docs/handoff/AT_RESUME.md`.
+
+## Part 0 — records (18 Nov)
+- **[PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106) (Session AS and the owner's follow-up: exact answers, 64 widget kinds, Next.js 16.4.6, D20, carried fixes; CI 1868 green)** merged into `main` as `3d510124` (merge commit, read from `main`).
+- **[PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105) (Session AR)** merged as `e6e92a8c`.
+- **Alpha #57 (Manual Alpha deployment run 60): PLACEHOLDER.** Version id and rollback id were not sent to this session. The next session records them here from the owner's message; frozen readers gain #57 (`scripts/frozen-readers.mjs`) only once its deploy SHA is confirmed. Frozen readers stay #37–#56.
+
+## Parts, commits and evidence (`git log 3d510124..HEAD`; never rebased, no merge of `main` needed)
+| Part | What | Commits |
+|---|---|---|
+| 0 | ADR-043, AT_RESUME, these records | `9995bfc8` |
+| 1 | The carried list: Zignaly by date from its notice (D1); pre-run11 test on any Node (D2); Today ≤ 90 Tab stops on 14 clocks (D3); AL's L7 rows (D4, **TIER 3 AI tools**); `a11y-wcag-x:271` (D5); CSV Value/Unit (D6); Someday counts (D7); AP's seven minors (D8); **TIER 3 (CI)** 14 main shards, WebKit 60 min (D9); intermittents (D10) | `46c3a50b`, `558acaf7`, `d1b9fb97`, `4d4d8abf`, `0103a45b`, `fe06c8fe`, `be86c2da`, `a65348da`, `cf48591f` |
+| 6 | OWNER_STEPS.md as one weekend checklist (pushed right after Part 1, owner change 2) | `cd1d287f` |
+| 2 | Trust pass: privacy page vs egress (D11, landing/privacy.html); restore coverage + export → erase → restore round trip (D12); unknown is not zero (D19) | `be9868d8`, `b3525fd2`, `76265fd7` |
+| 4 | FRIENDS_GUIDE; Help screenshots (D14); What's new / Known limitations (D15); landing draft (D16) | `f24e0be6`, `85c1bb65`, `2136f98e`, `acd9033c` |
+| 5 | **TIER 3 (release verifier)** stage 14 for AO–AS (D13) | `b3525fd2`, `b91b7664`, `76265fd7` |
+| 3 | Polish sweep, phone performance, fresh-helper UX review (D17, D18, D20) | `01973142`, `ad8a7c40` |
+
+## Tier 3, in plain words (risk → rollback)
+- **AI tools** (`4d4d8abf`): one optional read-only AI source, `game` (the game layer's switch and the Earn Academy record), so "what level am I" is Journey's own count; no tool added, nothing written; mood tags and symptoms still never read. → Revert.
+- **CI** (`cf48591f`): Chromium main shards 12 → 14; the WebKit job's limit 45 → 60 min (its cached install missed twice and took 28 min). No test, list or assertion changed. → Revert.
+- **Release verifier** (`b3525fd2`, `b91b7664`, `76265fd7`): stage 14 appended, numbers 1–13 unchanged; the deploy workflow does not run the verifier. → Revert.
+- Nothing else is Tier 3: no stored-format, CSP, sync, wallet, signing, key or dependency change; no new service; no budget raised. The landing's privacy page and "New" section changed in content only (headers untouched), and are not deployed.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries `Session AT (…, deliberate)` with an equally strict replacement: `earn-options.spec.ts:70` reads on a fixed November day (every day pinned in `tests/at/zignaly-dates.spec.ts`); `guide.spec.ts:83` walks the Guide's actions by the arrows (one Tab stop); `pre-run11-setup.test.mjs` runs its CLI as the pinned Node and gains a test of the version check itself; `a11y-wcag-x` waits for 400 ms of quiet; `hosted-alpha-stages`, `-checklist`, `-earn` tests and `hosted-verifier-order` list stage 14; `send-feedback.spec.ts` limitations 44 → 47 (each by its words; three corrected lines checked by their new words); `help-al-006-la-31` What's new 22 → 24; `landing-ak-claims` and `landing-p5-review` name the two new cards (and their words, no "Jarvis").
+
+## Evidence (production builds of the code heads, Chromium, two workers)
+- **Route weights:** every page inside its budget, none raised (Today 560.3 of 567, Health 530.9 of 531, Settings 527.0 of 531, Tasks 463.5 of 468, Help 437.9 of 450, the shell 431.3 of 447).
+- **Specs on the final code build:** Today, Tab stops on 14 clocks, page lengths 43 of 43; touch targets, Send feedback, Help, Habits, Tasks and every `tests/at/` spec 101 of 101; theme parity (every page, three themes, Showcase and empty) 85 passed (42 desktop, 43 phone; 1 skipped by design). Today after D18, mid-range profile, two runs each: fresh total blocking 1.67 s → 1.1–1.3 s (longest task 0.64 → 0.50–0.57 s), Showcase 3.6 s → 3.2–3.4 s (longest 1.04 → 0.77 s). Earlier builds: AT specs + verifier order + meditation 38 of 38 after two fixes; Guide, reminders, Earn, Tasks, CSV specs 50 of 50; Help 73 of 73; landing browser specs 75 of 75. `hosted-verifier-order` runs stages 2–14 against the local build and passes; the trust round trip passes.
+- **Unit:** `apps/web/lib` 10,514 passed (Node 24.19.0); verifier tests 61 of 61; landing tests 40 of 40; `pre-run11-setup` 11 of 11 on Node 22 and 24.19.0. Typecheck clean; eslint 0 errors on touched files; theme sheets `--check` clean.
+- **Not verified here:** WebKit (CI only); anything on graphics hardware.
+
+## Carried (each with its cause in ADR-043)
+Example mood tags and a price change in the Showcase (they move AS's pinned answers, D8); Dutch coin questions (D4); from the UX review (D20): a meal in words alone, NOVA's "when will I reach…" leading with the pace, an "Allow Health" control in a NOVA reply, and the minors listed there; ADR-041's D34 and D36 (D10).
+
+## For the next session
+Main shard 4 at 55 of 60 min in run 1893 (rebalance before it is cut); the D20 carried list; Alpha #57's ids and frozen reader; the roving helper measures every item on each change (about 140 ms on a slowed Showcase Today; not changed, D18).
+
+## Owner list
+1. Read `docs/friends-alpha/OWNER_STEPS.md`: **the market policy window must be renewed before 30 Nov 16:00 UTC** (step 6).
+2. Landing: preview locally (OWNER_STEPS step 3), decide on the new "NOVA answers you" / "Plan your day" cards and picture, then redeploy (the privacy page's corrections ride along).
+3. Review [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107); merge and deploy are yours (Manual Alpha workflow, from `main`).
+
+## CI on the final head
+[Run 1888](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44416743114) on `01973142` (the code before the UX-review fixes; later pushes queue behind it): **22 of 25 jobs green** (checks, contract, integration, the Alpha gate, the three a11y shards, all four WebKit shards, 11 of 14 main shards; main shard 6 still running at this writing). With 14 main shards the slowest took 42 min of 60 (main 3 41.4, main 1 39.0) and WebKit's slowest 29 min of 60 (D9). **Red, this branch's, fixed:** main shards 5 and 12, `run9-2-life.spec.ts:104` on both projects, both attempts: the Zignaly notice link D1 added to the Ecosystem cards drew its ↗ at 13.5 px (.9em of the 15 px status line), under the 14 px floor at 320 px. The arrow is 14 px on that line (`components/zigchain-eco/zigchain-eco.css`; large-text sheet regenerated); on a rebuilt production build `run9-2-life` and the Ecosystem specs 30 of 30. Run 1888 then ended with main shard 6 green (47 min); its only reds were shards 5 and 12 and the "web" aggregate they feed.
+
+[Run 1891](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44427961417) on `eb67dbc1` (the UX-review fixes, before the arrow fix): 21 green at this reading; main shards 5 and 12 red on the same `run9-2-life:104` (expected: the fix came after); main shard 3 red on `hud-motion.spec.ts:14` "Motion Off: the HUD is fully still (phone)" on both attempts, ADR-041 D34's carried signature (AR's run 1830 the same), not in a file this branch changes; `o3-apps-extras:80` passed on its retry (43.999996 px, AP's recorded sighting). 
+
+**[Run 1893](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44437279050) on `391cedac` (the code of `c9ea4039`, the final code head): green, every job on the first attempt** (checks, contract, integration, the Alpha gate, the three a11y shards, all fourteen main shards, all four WebKit shards, the "web" aggregate). Main shards 5 and 12 (`run9-2-life:104`) pass with the arrow fix; `hud-motion:14` passed this time (D34 stays carried as an intermittent). Main shard 4 took 55 min of its 60 (it holds the slowest NOVA specs): for the next session, move one NOVA spec out of it or give main 15 shards. The commits after `391cedac` change only this file.
+
 # Session AS — "NOVA ANSWERS EVERYTHING" (ADR-042) (2026-11-17/18, `feature/session-as-nova-answers`, Draft [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106); complete, not merged, not deployed)
 **Base:** `main` `e6e92a8c` (Merge [PR #105](https://github.com/reyals1111-ux/ZIGoals/pull/105), Session AR); `main` did not move during the session. **Rules (owner):** the brief for Session AS, one approved plan with seven approval items and four additions (verbatim in `docs/architecture/ADR-042-session-as.md`). The session ran on Fable until its allowance ended (18 Nov), then on Opus from `docs/handoff/AS_RESUME.md`. Decisions D1–D23 and the carried items: ADR-042.
 

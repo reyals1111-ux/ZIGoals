@@ -48,7 +48,7 @@ export function MealPhotoPanel({data}: {data: HealthData}) {
   async function remove(foodId: string) { try { await deleteMealPhoto(photoScope(), foodId); setNote('Photo deleted from this device.'); refresh(); } catch { setNote('The photo could not be deleted. Try again.'); } }
   async function removeAll() { setConfirming(false); try { const n = await deleteAllMealPhotos(photoScope()); setNote(n ? `${n} meal ${n === 1 ? 'photo' : 'photos'} deleted from this device.` : 'No meal photos were kept.'); refresh(); } catch { setNote('The photos could not be deleted. Try again.'); } }
   return <section className="health-aa-card" aria-labelledby="meal-photo-title" style={{marginTop: 12}}>
-    <h3 id="meal-photo-title">Estimate a meal from a photo</h3>
+    <h3 id="meal-photo-title" className="sr-only">Estimate a meal from a photo</h3>{/* Session AT (AP D22 minor 1): said once, by the fold above */}
     {connected ? <><p>Open ZIGi and add the photo with 📷. It goes only to your own AI, which proposes each food with a range (an estimate). Nothing is logged until you accept a card.</p><div className="actions"><button type="button" className="secondary" onClick={() => askZigi('Log this meal from the photo.')}>Open ZIGi</button></div></>
       : <><p>{NO_AI_PHOTO}</p><div className="actions">{/* Session AL (P-MO-40): says what the button is for */}<button type="button" className="secondary" disabled aria-describedby="meal-photo-title">Estimate from a photo</button><Link className="secondary" href="/app/settings">Connect your AI in Settings</Link></div></>}
     <div className="actions"><button type="button" className="quiet" aria-pressed={keep} onClick={toggleKeep}>Keep the photo on this device</button></div>

@@ -18,7 +18,8 @@ describe('the Earn verifier stage (stage 9, appended)', () => {
     // Wired by the lead (Session AF): in the verifier's list exactly once, as 9, right before the Checklist's 10.
     expect(VERIFIER_STAGES.filter(stage => stage.key === 'earn')).toEqual([EARN_STAGE]);
     // Session AK appended stage 11 after the Checklist's 10, Session AL stage 12 and Session AM stage 13; 9 and 10 keep their places.
-    expect(VERIFIER_STAGES.map(stage => stage.number).slice(-5)).toEqual([9, 10, 11, 12, 13]);
+    // Session AT (D13): stage 14 appended after 13; Earn is still 9, right before the Checklist.
+    expect(VERIFIER_STAGES.map(stage => stage.number).slice(-6)).toEqual([9, 10, 11, 12, 13, 14]);
     expect(EARN_PATH).toBe('/app/earn');
   });
   test('read-only: no request of its own, no wallet, no typing, no import.meta or top-level await', () => {

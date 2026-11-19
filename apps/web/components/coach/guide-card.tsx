@@ -8,6 +8,7 @@ import './guide.css';
 import {askZigi} from '../ai/ask';
 import {useAiSettings} from '../ai/use-ai-settings';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {useRovingFocus} from '../ui/use-roving-focus';
 
 /**
  * Today's Guide card (ADR-011): one nudge a day from the person's own records, always labelled. "Not today" hides
@@ -17,12 +18,15 @@ import {plainErrorMessage} from '../../lib/plain-error';
  */
 export function GuideCard({nudge, today, onNotToday}: {nudge: Nudge; today: string; onNotToday: (id: string, today: string) => void}) {
   const [error, setError] = useState(''), ai = useAiSettings();
+  // Session AT (ADR-043 D3, D-028 on every day and time): the card's actions are ONE Tab stop (a roving tabindex; the arrow
+  // keys reach each), so the evening's and Sunday's nudges, which add an action link, keep Today within 90 stops.
+  const actions = useRovingFocus<HTMLDivElement>(':is(a[href], button)');
   const connected = ai.loaded && !ai.unreadable && ai.data.enabled && ai.data.mode !== 'subscription' && !!ai.data.provider && !!ai.data.model;
   return <article className="panel for-you-card guide-card" aria-label="Guide">
     <p className="eyebrow">{GUIDE_LABEL}</p>
     <h2>{nudge.heading}</h2>
     <p className="guide-body">{nudge.body}{isShowcase() && <> <span className="fine">Showcase example.</span></>}</p>
-    <div className="actions">
+    <div ref={actions} className="actions">
       {nudge.action && <Link className="secondary" href={nudge.action.href}>{nudge.action.label}</Link>}
       {connected && <button type="button" className="quiet" onClick={() => askZigi(`About my Guide note "${nudge.heading}" ${nudge.body} What is one small step that could help today?`)}>Ask ZIGi about this</button>}
       <button type="button" className="quiet" onClick={() => { setError(''); try { onNotToday(nudge.id, today); } catch (e) { setError(plainErrorMessage(e, 'This note could not be hidden on this device.')); } }}>Not today</button>

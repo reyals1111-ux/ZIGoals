@@ -16,12 +16,41 @@ export function zignalyPhase(now: number): ZignalyPhase {
   if (dayHasPassed('2026-12-01', now)) return 'closed';
   return dayHasPassed('2026-11-01', now) ? 'credit-passed' : 'credit-open';
 }
+/**
+ * Session AT (ADR-043 D1, owner change 1): every sentence ZIGoals says about Zignaly's closure is worded from its own closure
+ * notice (read 18 Oct 2026: "The last day to withdraw, until 23:59 UTC. The app closes after that." for 1 December 2026),
+ * by today's UTC day, so nothing needs a deploy on the day: until 30 November it "is closing"; on 1 December the notice's
+ * own words ("today is the last day to withdraw, until 23:59 UTC"); from 2 December it "has closed". Every place that shows
+ * one of these also links the notice (the verified "closure-notice" link). Pure; the caller passes `now`.
+ */
+export type ZignalyClosure = 'closing' | 'last-day' | 'closed';
+export function zignalyClosure(now: number): ZignalyClosure {
+  if (dayHasPassed('2026-12-01', now)) return 'closed';
+  return dayHasPassed('2026-11-30', now) ? 'last-day' : 'closing';
+}
+export type ZignalyWords = {
+  /** The Earn section's title and its phone fold. */ heading: string;
+  /** The section's eyebrow. */ eyebrow: string;
+  /** The "At a glance" tag. */ tag: string;
+  /** The compare table's "what it is" line. */ what: string;
+  /** The Ecosystem card's status label. */ label: string;
+  /** A clause after "Zignaly, " (Nawa's dependency). */ clause: string;
+};
+const ZIGNALY_WORDS: Readonly<Record<ZignalyClosure, ZignalyWords>> = Object.freeze({
+  closing: {heading: 'Zignaly is closing: how to withdraw', eyebrow: 'Zignaly · closing', tag: 'Closing', what: 'Closing: how to withdraw', label: 'Closing', clause: 'which is closing'},
+  'last-day': {heading: 'Zignaly: today is the last day to withdraw', eyebrow: 'Zignaly · last day to withdraw', tag: 'Last day to withdraw', what: 'Today is the last day to withdraw', label: 'Last day to withdraw', clause: 'which closes after today, 1 December 2026, by its notice'},
+  closed: {heading: 'Zignaly has closed: what its notice said', eyebrow: 'Zignaly · closed', tag: 'Closed', what: 'Closed: what its notice said', label: 'Closed', clause: 'which has closed'},
+});
+export const zignalyWords = (now: number): ZignalyWords => ZIGNALY_WORDS[zignalyClosure(now)];
+
 /** One line for the Ecosystem card and Earn: what the notice means today. */
 export function zignalyStatusLine(now: number): string {
   switch (zignalyPhase(now)) {
     case 'credit-open': return 'The last day to request a Private Credit withdrawal is 1 November 2026; the app closes on 1 December 2026 at 23:59 UTC.';
-    case 'credit-passed': return 'The last day to request a Private Credit withdrawal was 1 November 2026 (passed). Other balances can be withdrawn until 1 December 2026 at 23:59 UTC, when the app closes.';
-    case 'closed': return 'Closed: the last day to withdraw was 1 December 2026 (23:59 UTC), by Zignaly’s notice.';
+    case 'credit-passed': return zignalyClosure(now) === 'last-day'
+      ? 'Today, 1 December 2026, is the last day to withdraw, until 23:59 UTC; the app closes after that. The last day to request a Private Credit withdrawal was 1 November 2026 (passed).'
+      : 'The last day to request a Private Credit withdrawal was 1 November 2026 (passed). Other balances can be withdrawn until 1 December 2026 at 23:59 UTC; the app closes after that.';
+    case 'closed': return 'Zignaly has closed: its notice made 1 December 2026 (until 23:59 UTC) the last day to withdraw.';
   }
 }
 /** Circle's USDC-on-Noble notice (read 18 Oct 2026), with each date worded as past or future from `now`. */
