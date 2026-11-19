@@ -51,6 +51,8 @@ Order of work therefore: 0, 1, 6, 2, 3, 4, 5, end.
   Academy lesson are worded so they stay true on any day. The pages read `now` from the minute clock, so nothing needs a
   deploy on the day. Proven by `lib/earn/dated.test.ts` and `tests/at/zignaly-dates.spec.ts` (Playwright's clock on 30 Nov,
   1 Dec and 2 Dec, both projects, 6 of 6); `earn-options.spec.ts:70` now reads on a fixed November day (deliberate).
+  CI 1888 then found the new link's ↗ at 13.5 px on the Ecosystem status line (`run9-2-life:104`, the 14 px floor at 320 px):
+  that arrow is 14 px there.
 - **D2 (`scripts/pre-run11-setup.test.mjs` on any Node).** The two CLI tests spawned the script on the test's own Node,
   so on any Node but 24.19.0 the script's (correct) version check failed them. They now run the script with a preload that
   sets `process.version` to the pinned version; every other check is real. A new test pins the version check itself: on

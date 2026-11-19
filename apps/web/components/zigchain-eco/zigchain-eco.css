@@ -57,3 +57,5 @@
 .zeco-bar{display:flex;align-items:flex-end;width:100%;height:64px;border-bottom:1px solid var(--line,#6b91c846)}
 .zeco-bar i{display:block;width:100%;border-radius:4px 4px 0 0;background:var(--pillar-wealth,#ffd27a)}
 .zeco-bar-label,.zeco-bar-value{font-size:13px;overflow-wrap:anywhere}
+/* Session AT (ADR-043 D1, CI 1888 run9-2-life:104): the Zignaly notice link on the status line keeps its arrow at the 14 px floor (.9em of 15 px was 13.5). */
+.ecosystem-status .verified-link-arrow{font-size:14px}
