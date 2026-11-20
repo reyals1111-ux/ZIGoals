@@ -3,7 +3,7 @@ import {EXPENSE_CATEGORIES, INCOME_CATEGORIES} from './schema';
 /** Session AI: a category from the person's words ("lunch" → Food & drink), or the one they named, or Other. EN and NL. */
 const WORDS: [RegExp, (typeof EXPENSE_CATEGORIES)[number]][] = [
   [/\b(?:lunch|dinner|breakfast|coffee|cafe|café|restaurant|pizza|drinks?|beer|bar|takeaway|snack|ontbijt|diner|avondeten|koffie|eten|biertje|terras)\b/i, 'Food & drink'],
-  [/\b(?:groceries|grocery|supermarket|market|albert heijn|aldi|lidl|jumbo|delhaize|colruyt|boodschappen|supermarkt|markt)\b/i, 'Groceries'],
+  [/\b(?:groceries|grocery|grocers?|greengrocer|bakery|baker|butcher|supermarket|market|albert heijn|ekoplaza|dirk|spar|groenteboer|bakker|bakkerij|slager|aldi|lidl|jumbo|delhaize|colruyt|boodschappen|supermarkt|markt)\b/i, 'Groceries'],
   [/\b(?:train|tram|bus|metro|taxi|uber|fuel|petrol|gas station|parking|ticket|trein|benzine|tanken|parkeren)\b/i, 'Transport'],
   [/\b(?:rent|mortgage|furniture|ikea|repair|huur|hypotheek|meubels|reparatie)\b/i, 'Home'],
   [/\b(?:energy|electricity|water bill|internet|phone bill|insurance|tax|energie|stroom|verzekering|belasting)\b/i, 'Bills'],

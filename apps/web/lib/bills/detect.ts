@@ -23,6 +23,13 @@ export type BillCandidate = {
   entryIds: string[];
 };
 export const MIN_OCCURRENCES = 3, AMOUNT_TOLERANCE = 0.05, MIN_REGULAR_SHARE = 0.6;
+/**
+ * Session AU (ADR-044 L-4, the rehearsal's Lina): a bill whose price changed (€15.00 twice, then €17.50 twice) never had
+ * three payments within ±5 % of one amount, so it was never offered, and its price change never shown. When the strict
+ * pass finds too few, the same payee and category still make one series if every payment is within ±25 % of their middle
+ * (the series is then "variable" and its confidence lower).
+ */
+export const STEP_TOLERANCE = 0.25;
 const NOISE = new Set(['bv', 'b.v', 'nv', 'ltd', 'inc', 'llc', 'gmbh', 'sa', 'sepa', 'incasso', 'payment', 'betaling', 'direct', 'debit', 'machtiging', 'ref', 'the', 'via', 'pos', 'card', 'kaart', 'showcase', 'data']);
 /** "NETFLIX.COM 123*ABC" and "Netflix" read the same: lower case, no codes, letters only, noise words out, the first three words. */
 export function normalisePayee(text: string | undefined): string {
@@ -61,7 +68,8 @@ export function detectBills(entries: readonly MoneyEntry[], today: string): Bill
     // The amount most entries sit around (ties: the most recent), then the entries within ±5 % of it.
     let best = -1, centre = 0;
     list.forEach((_, i) => { const c = amounts[i]!, n = amounts.filter(a => within(a, c)).length; if (n >= best) { best = n; centre = c; } });
-    const members = list.filter((_, i) => within(amounts[i]!, centre));
+    let members = list.filter((_, i) => within(amounts[i]!, centre));
+    if (members.length < MIN_OCCURRENCES) { const mid = median(amounts); if (amounts.every(a => Math.abs(a - mid) <= mid * STEP_TOLERANCE)) members = [...list]; }
     // One payment per date: a same-day duplicate does not make a series.
     const byDate = new Map<string, MoneyEntry>();
     for (const e of members.sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt))) if (!byDate.has(e.date)) byDate.set(e.date, e);
