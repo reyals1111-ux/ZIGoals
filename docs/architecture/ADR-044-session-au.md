@@ -123,3 +123,18 @@ code only; builds and browser runs one at a time.
   visibility wake inside the window draws twice more. Not changed: the star is NOVA's protected composition (AR), and
   counting those frames differently would weaken the spec. D36 (the first WebGL context as one 6 s task) had no new
   sighting to work from. Both stay carried, D34 now with this mechanism for a session that owns NOVA's star.
+- **AT D20's minors (Part 2 item 4).** The rehearsal met two of them and fixed them at their cause: the meal (F-MEAL) and
+  the goal creator sending a non-money goal to the money kind (F-6). The others were not hit by any of the five people as
+  a block and stay carried as one polish pass, each with its cause: the setup's preselected empty goal amount, its phone
+  keyboard hint and "Balanced" unexplained (setup copy and layout); the goal creator's two buttons on step 1 and its 0/80
+  counter (a creator design call, also the Max reviewer's M-9); "$0.00" plan lines on a goal with no plan; the habits week
+  chart before a habit exists; Wealth's "Refresh prices" with nothing priced; Tasks' filter before "New task"; Agenda's
+  future "(0 done)"; the first-five card's focus order; NOVA's two "no AI used" lines and its phone hint (AR's NOVA
+  composition, protected).
+- **D-SHOWCASE (AT D8 carried).** Labelled example moods and mood tags and a streaming bill whose price went up once are
+  seeded (lib/showcase/au-examples.ts). AS's pinned answers moved deliberately, each marked, the oracle recomputing the
+  new facts from the raw records. The seed exposed three faults, fixed: a price question reached the bill list (the typo
+  fixer reads "expensive" as "expense"); the price answer named the latest payment's month ("in Oct") where the Bills
+  page says "since <month>"; NOVA's Bill changes card ignored bills found but not confirmed (Bills and ZIGi count them).
+  Spending pace now computes on the Showcase and reads "usual €0.00" (earlier months hold only the late-month streaming
+  payment): that is its owner-approved definition (a month with one record counts), kept as it is.
