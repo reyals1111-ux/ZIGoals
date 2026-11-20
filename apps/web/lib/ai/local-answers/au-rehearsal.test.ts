@@ -277,7 +277,8 @@ describe('R-11: the goal-ETA reading never claims a question whose subject is a 
 describe('T-12: requests are not food', () => {
   test('"Show my day at a glance" and "what am I looking at" make no Log a food card; "a banana and 500 ml water" still does', () => {
     const env = zigiEnv(freshAll(), false);
-    for (const q of ['Show my day at a glance', 'what am I looking at', 'Toon mijn dag']) expect(_auNoModel(q, env).text, q).not.toContain('log-food');
-    expect(_auNoModel('a banana and 500 ml water', env).text).toContain('log-food');
+    const words = (q: string) => { const r = _auNoModel(q, env); return 'text' in r ? r.text : ''; };
+    for (const q of ['Show my day at a glance', 'what am I looking at', 'Toon mijn dag']) expect(words(q), q).not.toContain('log-food');
+    expect(words('a banana and 500 ml water')).toContain('log-food');
   });
 });
