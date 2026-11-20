@@ -65,6 +65,16 @@ export function totalsByCurrency(items: readonly {amountCents: number; currency:
   return [...by.values()].sort((a, b) => a.currency.localeCompare(b.currency));
 }
 /** What the bills come to in a typical month, per currency: an estimate (weekly × 52 ÷ 12, quarterly ÷ 3, yearly ÷ 12). */
+/**
+ * Session AV Part 7 (ADR-045 F-YEAR; Rocket Money's yearly total): what the confirmed bills come to over a year, per
+ * currency, from each one's own cadence (weekly ×52, monthly ×12, every 3 months ×4, yearly ×1): an estimate from today's
+ * amounts, never converted between currencies.
+ */
+export function yearlyEstimate(record: BillsRecord): {currency: string; cents: number}[] {
+  const by = new Map<string, number>();
+  for (const b of record.bills) { const [n, d] = PER_MONTH[b.cadence]; by.set(b.currency, (by.get(b.currency) ?? 0) + cents(b.amount) * n * 12 / d); }
+  return [...by].map(([currency, total]) => ({currency, cents: Math.round(total)})).sort((a, b) => a.currency.localeCompare(b.currency));
+}
 export function monthlyEstimate(record: BillsRecord): {currency: string; cents: number}[] {
   const by = new Map<string, number>();
   for (const b of record.bills) { const [n, d] = PER_MONTH[b.cadence]; by.set(b.currency, (by.get(b.currency) ?? 0) + cents(b.amount) * n / d); }

@@ -8,7 +8,7 @@ import {formatDate} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
 import {MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
 import {detectBills, openCandidates, type BillCandidate} from '../../../lib/bills/detect';
-import {addManualBill, billOccurrences, cancelReminders, confirmCandidate, dismissCandidate, manualBillIssue, monthlyEstimate, removeBill, setCancelNote, totalsByCurrency, type BillOccurrence} from '../../../lib/bills/store';
+import {addManualBill, billOccurrences, cancelReminders, confirmCandidate, dismissCandidate, manualBillIssue, monthlyEstimate, removeBill, yearlyEstimate, setCancelNote, totalsByCurrency, type BillOccurrence} from '../../../lib/bills/store';
 import {BILLS, BILL_CADENCES, type Bill, type BillCadence, type BillsRecord} from '../../../lib/bills/schema';
 import './bills.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
@@ -38,7 +38,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
   const [days, setDays] = useState<30 | 60>(30), [status, setStatus] = useState(''), [problem, setProblem] = useState(''), [adding, setAdding] = useState(false);
   const occurrences = useMemo(() => billOccurrences(record, today, days), [record, today, days]);
   const candidates = useMemo(() => openCandidates(detectBills(entries, today), record), [entries, record, today]);
-  const totals = totalsByCurrency(occurrences), monthly = monthlyEstimate(record), notes = cancelReminders(record, today);
+  const totals = totalsByCurrency(occurrences), monthly = monthlyEstimate(record), yearly = yearlyEstimate(record), notes = cancelReminders(record, today);
   const change = (fn: (r: BillsRecord) => BillsRecord, done: string) => {
     setProblem('');
     try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.'); }
@@ -57,6 +57,8 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
       <dl className="bills-totals">
         <div><dt>Due in the next {days} days</dt><dd>{totals.length ? totals.map(t => <span key={t.currency}>{money(t.cents, t.currency)}</span>) : <span>Nothing due</span>}</dd></div>
         <div><dt>A typical month <small>(an estimate)</small></dt><dd>{monthly.length ? monthly.map(t => <span key={t.currency}>{money(t.cents, t.currency)}</span>) : <span>No bills yet</span>}</dd></div>
+        {/* Session AV Part 7 (ADR-045 F-YEAR): what they come to in a year, from each bill's own cadence. */}
+        {yearly.length > 0 && <div><dt>A year of these bills <small>(an estimate)</small></dt><dd>{yearly.map(t => <span key={t.currency}>{money(t.cents, t.currency)}</span>)}</dd></div>}
       </dl>
     </div>
     {notes.length > 0 && <ul className="bills-notes" aria-label="Notes to self due soon">{notes.map(n => <li key={n.billId}><strong>{n.title}</strong> · {formatDate(n.cancelBy)}: {n.note}</li>)}</ul>}
