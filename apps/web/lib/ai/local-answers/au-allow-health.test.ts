@@ -96,16 +96,24 @@ test('ZIGi’s Health-closed reply follows the question’s language, with one b
     expect(parseReply(a.text).text, q).toBe(HEALTH_CLOSED);
     allowsHealthOnce(a.reply);
   }
-  for (const q of ['Hoeveel water moet ik per dag drinken?', 'Welke dag heb ik mijn water gemist?', 'hoe heb ik vannacht geslapen']) {
+  // Session AU (R-12, deliberate): "Welke dag heb ik mijn water gemist?" names the habit "Drink water" by its own word, so it is
+  // the habit's days from the Habits journal (REHEARSAL.md R-12), not Health's; the same Health refusal is held for the water
+  // log's own target, asked the same way ("mijn waterdoel"), and the habit's answer is held to read nothing of Health.
+  for (const q of ['Hoeveel water moet ik per dag drinken?', 'Welke dag heb ik mijn waterdoel gemist?', 'hoe heb ik vannacht geslapen']) {
     const a = ask(q, shut());
     expect(a.kind, q).toBe('refusal');
     expect(parseReply(a.text).text, q).toBe(HEALTH_CLOSED_NL);
     allowsHealthOnce(a.reply);
   }
+  const habit = ask('Welke dag heb ik mijn water gemist?', shut());
+  expect(habit.kind).toBe('answer');
+  expect(habit.text).toBe('Drink water: geen gemiste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.');
+  expect(habit.text).not.toMatch(/\bml\b|\bmL\b|Health/);
   expect(HEALTH_CLOSED_NL).toContain('Settings → ZIGi · Your Personal AI Companion → Privacy & data: “Health page data” en “Include Health”');
 });
 test('NOVA: the same replies name NOVA → Permissions (its chat makes that the one button) and carry no card of their own', () => {
-  for (const [q, says] of [['Welke dag heb ik mijn water gemist?', 'Zet Health aan in NOVA → Permissions.'], ['How much water did I drink yesterday?', 'Turn on Health in NOVA → Permissions.'], ['can you see my health', 'Turn on Health in NOVA → Permissions.'], ['how was my week', 'Health is allowed in NOVA → Permissions.']] as const) {
+  // Session AU (R-12, deliberate): the water log's own target ("mijn waterdoel") for the habit's own word, as above.
+  for (const [q, says] of [['Welke dag heb ik mijn waterdoel gemist?', 'Zet Health aan in NOVA → Permissions.'], ['How much water did I drink yesterday?', 'Turn on Health in NOVA → Permissions.'], ['can you see my health', 'Turn on Health in NOVA → Permissions.'], ['how was my week', 'Health is allowed in NOVA → Permissions.']] as const) {
     const a = ask(q, NOVA_NO_HEALTH()), parsed = parseReply(a.text);
     expect(a.text, q).toContain(says);
     expect(parsed.proposals.filter(p => p.kind === 'open-page'), q).toEqual([]);

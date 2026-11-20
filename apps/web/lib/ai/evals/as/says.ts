@@ -37,5 +37,9 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'focus-week': ['150'], 'focus-today': [], 'focus-month': ['397'], 'focus-none-days-lastweek': ['Nov 9', 'Nov 15'], 'focus-days-month': ['Nov 1', 'Nov 16'], 'focus-best-month': ['Nov 16', '150'], 'focus-compare-weeks': ['150', '136'],
   'nova-sees': ['Habits', 'Health'], 'nova-private': [], 'nova-can-answer': [], 'life-doing': ['4', '7'], 'life-week': [], 'why-sleep': [], 'why-habits': [], 'unknown-sleep': [], 'unknown-spending': [],
   // Session AT (L7 NB:N11): Journey's own count (lib/game/xp.ts) on the Showcase's records, labelled as the Showcase's.
+  // Session AU (dress rehearsal, REHEARSAL.md R-1 … R-12, the Showcase's records).
+  'au-r1-habit-streak': ['Drink water', '26'], 'au-r12-habit-missed': ['Drink water', 'Nov 1', 'Nov 10'], 'au-r2-lift-today': ['Push day', 'Bench press', '62.5 kg', 'Nov 16'], 'au-r2-lift-yesterday': ['Push day', 'Bench press', '62.5 kg'],
+  'au-r3-run-week': ['Nov 15', '6 km'], 'au-r3-run-lastweek': ['6 km', 'Nov 15'], 'au-r4-date': ['Nov 17'], 'au-r6-bill-price': [], 'au-r7-coin-price': ['65,000 USD', 'Showcase example price'],
+  'au-r8-stake-earn': ['Earn'], 'au-r10-stake-safe': ['ZIG', 'Alpha', 'unbonding'], 'au-r11-next-bill': ['Rent', '950.00', 'Dec 1'],
   'journey-level': ['8', 'Nebula', '3,577', '377', '850', 'Showcase'],
 };

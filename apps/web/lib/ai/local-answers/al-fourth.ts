@@ -14,6 +14,9 @@ import {quickLogReply} from '../../quick-log/multi';
 import {localAnswer, zigiOverview, type LocalReply} from './engine';
 import {allowHealth, novaEnvInfo} from './nova-env';
 import {amount, plural} from './words';
+import {checklistWeek} from './exact/day';
+import {namesNonGoal} from './exact/lexicon';
+import {dayWords} from './exact/period';
 import {actionSchema} from '../actions/schema';
 import {memoryCategory} from './al-more';
 import {ADVICE_REPLIES, DO_WITH_LINE, doWithAsk, isMoneyThing} from '../safety-guard';
@@ -133,8 +136,13 @@ export function checklistAnswer(question: string, env: ToolEnv, lang: Lang): Loc
       const first = env.checklist.record.items.map(i => i.addedAt).filter(Boolean).sort()[0];
       return {kind: 'answer', text: say(lang, `${first ? `Your path began on ${first.slice(0, 10)}` : 'Your path has no start date kept'}; ${days.length ? `${plural(days.length, 'day')} are counted in its history` : 'no earlier day is counted in its history yet'}. Today: ${list?.done ?? 0} of ${list?.total ?? 0} done.`, `${first ? `Je pad begon op ${first.slice(0, 10)}` : 'Je pad heeft geen startdatum'}; ${days.length} dagen in de geschiedenis. Vandaag: ${list?.done ?? 0} van ${list?.total ?? 0} gedaan.`), calls};
     }
-    const from = addLocalDays(env.checklist.date, -6), week = days.filter(([d]) => d >= from && d < env.checklist!.date), perfect = week.filter(([, s]) => s.perfect).length;
-    return {kind: 'answer', text: say(lang, `This week on your Checklist (${week.length} earlier ${week.length === 1 ? 'day' : 'days'} kept): ${week.map(([d, s]) => `${d.slice(5)} ${s.done} of ${s.total}`).join(', ') || 'no earlier day kept yet'}${week.length ? `; ${plural(perfect, 'perfect orbit')}` : ''}. Today so far: ${list?.done ?? 0} of ${list?.total ?? 0}.`, `Deze week op je Checklist: ${week.map(([d, s]) => `${d.slice(5)} ${s.done} van ${s.total}`).join(', ') || 'nog geen eerdere dag bewaard'}. Vandaag: ${list?.done ?? 0} van ${list?.total ?? 0}.`), calls};
+    // Session AU (REHEARSAL R-5, R-14): the week's days under the person's own "A day counts as done at N", in the app's day
+    // words (exact/day.ts `checklistWeek`, the answer the exact layer gives); the history without a week keeps its list,
+    // in the same day words, with every day whose dots were all lit counted as a perfect orbit.
+    const week = checklistWeek(env, lang, q.toLowerCase(), list ? {total: list.total, done: list.done} : null);
+    if (week) return {kind: 'answer', text: week.text, calls};
+    const from = addLocalDays(env.checklist.date, -6), kept = days.filter(([d]) => d >= from && d < env.checklist!.date), perfect = kept.filter(([, s]) => s.perfect || (s.total > 0 && s.done >= s.total)).length, day = (d: string) => dayWords(d, env.checklist!.date);
+    return {kind: 'answer', text: say(lang, `This week on your Checklist (${kept.length} earlier ${kept.length === 1 ? 'day' : 'days'} kept): ${kept.map(([d, s]) => `${day(d)} ${s.done} of ${s.total}`).join(', ') || 'no earlier day kept yet'}${kept.length ? `; ${plural(perfect, 'perfect orbit')}` : ''}. Today so far: ${list?.done ?? 0} of ${list?.total ?? 0}.`, `Deze week op je Checklist: ${kept.map(([d, s]) => `${day(d)} ${s.done} van ${s.total}`).join(', ') || 'nog geen eerdere dag bewaard'}. Vandaag: ${list?.done ?? 0} van ${list?.total ?? 0}.`), calls};
   }
   if (!list || !list.total) return {kind: 'answer', text: say(lang, `Your Checklist has no dots today yet.${hidden}${healthHidden} Add one with “add … to my checklist”, or open the Checklist.`, `Je Checklist heeft vandaag nog geen stippen.${hidden}${healthHidden}`) + open('checklist'), calls};
   const dots = list.dots ?? [];
@@ -498,7 +506,9 @@ export function fourthAnswer(question: string, env: ToolEnv | null, lang: Lang, 
   if (BIGGEST_GOAL.test(q)) return biggestGoal(env, lang, /\b(?:smallest|lowest)\b/i.test(q));
   if (NEXT_CONTRIBUTION.test(q)) return nextContribution(env, lang);
   const named = GOAL_NEED.exec(q) ?? GOAL_DATE.exec(q) ?? GOAL_HAVE.exec(q) ?? GOAL_PROGRESS_LOOSE.exec(q);
-  if (named) { const said = (named[1] ?? named[2] ?? '').trim(); if (said && !/^(?:it|this|that|my goals?|goals?)$/i.test(said)) return goalAsk(env, said, q, lang); }
+  // Session AU (REHEARSAL R-11): "when will my next bill be due" names a bill, never a goal called "next bill be"; a bill,
+  // a task, a habit or a day is not a goal's name unless a goal is called so (exact/lexicon.ts `namesNonGoal`).
+  if (named) { const said = (named[1] ?? named[2] ?? '').trim(); if (said && !/^(?:it|this|that|my goals?|goals?)$/i.test(said) && (goalNamed(env, said) || !namesNonGoal(said.toLowerCase()))) return goalAsk(env, said, q, lang); }
   const bare = openGoals(env).find(g => fold(g.name) === fold(q.replace(/[?.!]+$/, '')));
   if (bare) return goalAsk(env, bare.name, q, lang);
   // Wealth (Tokyo TK #2, #5, #8, #12, #43, #47, #48, #50, P9).

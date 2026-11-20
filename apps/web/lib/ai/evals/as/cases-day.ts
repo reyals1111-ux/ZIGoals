@@ -115,4 +115,8 @@ export const DAYS: readonly Intent[] = [
   {id: 'unknown-spending', pillar: 'nova',
     en: ['is my spending normal for someone like me', 'do other people spend as much as me'],
     nl: ['zijn mijn uitgaven normaal voor iemand zoals ik', 'zijn mijn uitgaven hoger dan die van andere mensen']},
+  // Session AU (REHEARSAL R-4): today's date (by the person's own day end: a night owl's in au-rehearsal.test.ts).
+  {id: 'au-r4-date', pillar: 'agenda', never: ['habits', 'gewoontes'],
+    en: ['What day is it?', "what's the date", 'what is the date today'],
+    nl: ['Welke dag is het?', 'welke datum is het vandaag']},
 ];

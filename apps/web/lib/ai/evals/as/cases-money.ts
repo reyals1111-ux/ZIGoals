@@ -123,4 +123,22 @@ export const MONEY: readonly Intent[] = [
   {id: 'goal-japan-eta', pillar: 'goals', never: ['At your current pace', 'In je huidige tempo', 'With your plan'],
     en: ['when will I reach my Japan adventure goal', 'how long until my japan adventure goal is done'],
     nl: ['wanneer haal ik mijn doel japan adventure', 'hoe lang duurt het nog tot mijn doel japan adventure klaar is']},
+  // Session AU (REHEARSAL R-6, R-7, R-8, R-10, R-11): a bill's price change (none in the Showcase; one in au-rehearsal.test.ts);
+  // a coin's price is not the person's holdings; what staking would earn and whether it is safe: facts, never advice, no
+  // number without Earn's measured rate; when the next bill is due (it was read as a goal called "next bill be").
+  {id: 'au-r6-bill-price', pillar: 'wealth', never: ['fall due in the next'],
+    en: ['Did any bill go up in price?', 'did any of my bills get more expensive'],
+    nl: ['Is een rekening duurder geworden?', 'zijn mijn rekeningen duurder geworden']},
+  {id: 'au-r7-coin-price', pillar: 'wealth', never: ['Net worth', 'Nettovermogen', 'Nothing is tracked on Wealth'],
+    en: ['What is bitcoin worth today?', 'what is the price of BTC'],
+    nl: ['Wat is bitcoin vandaag waard?', 'wat is de koers van BTC']},
+  {id: 'au-r8-stake-earn', pillar: 'wealth', never: ['income', 'inkomsten', 'guaranteed', 'gegarandeerd'],
+    en: ['What would I earn if I staked 100 ZIG?', 'how much would I get if I stake 100 ZIG'],
+    nl: ['Wat zou ik verdienen als ik 100 ZIG stake?']},
+  {id: 'au-r10-stake-safe', pillar: 'wealth', never: ['That isn’t something I can answer', 'you should', 'je moet'],
+    en: ['Is staking ZIG safe?', 'what are the risks of staking'],
+    nl: ['Is staken van ZIG veilig?']},
+  {id: 'au-r11-next-bill', pillar: 'wealth', never: ['No goal is called', 'Geen doel heet'],
+    en: ['when will my next bill be due', 'when is my next bill due'],
+    nl: ['wanneer moet ik mijn volgende rekening betalen']},
 ];

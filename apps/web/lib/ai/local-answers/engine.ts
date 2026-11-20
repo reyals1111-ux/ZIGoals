@@ -27,6 +27,7 @@ import {unitFor} from '../../plural';
 import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 import {healthGoalAsk} from './al-final';
+import {rehearsalAnswer} from './au-answers';
 import {answerQuery, exactQuery, fixedWords, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
 import type {Query} from './exact';
 
@@ -213,6 +214,9 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // days; a weekday; a log's own day; a named period they did not keep to), in English and Dutch, ZIGi and NOVA alike (A1).
   // Anything else is theirs, word for word; with no model, what they have no answer for comes back to the exact layer
   // (`exactFallback`, from no-model.ts).
+  // Session AU (dress rehearsal R-4, R-7, R-8, R-10): today's date by the person's day end, a coin's price (not the holdings),
+  // what staking would earn and whether it is safe (au-answers.ts): before the exact layer reads them as a records lookup.
+  if (!subject) { const found = rehearsalAnswer(normalizeSpoken(question), env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;
   // A misspelt question the exact layer reads once its slips are fixed is asked of the layers below in the fixed words.
@@ -517,7 +521,9 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AL fourth pass (Tokyo TK #7, TK:Z3): "how much ZIG have I staked?" asks about staking, never the holding.
   // Session AL final pass (NB:P6, BUG-056, NB-107): a coin the person tracks nothing of is answered too ("You have no ETH
   // recorded in Wealth", with where to add it), never the examples list and never 0 as if it were a holding.
-  const held = asset ?? (HOLD.test(q) && !mentionedGoals(env, q).length ? untrackedCoin(q) : null);
+  // Session AU (REHEARSAL R-9): "how much BTC do I have" with a goal named "First 0.01 BTC" asks what is held, not the goal:
+  // a goal named in the words gives way unless they also say goal, saved or towards (holding() names the goal after).
+  const held = asset ?? (HOLD.test(q) && (!mentionedGoals(env, q).length || !/\b(?:goals?|saved|saving|towards?|for)\b/.test(q)) ? untrackedCoin(q) : null);
   if (held && HOLD.test(q) && !CONTRIBUTION.test(q) && !/\bstak(?:e|ed|ing)\b|\brewards?\b/.test(q)) return holding(env, held, q);
   // Session W Part 21: accounts and debts, chess, My links, challenges and milestones (each behind its own area's switch),
   // and mindful minutes (Health). A habit the question names keeps its answer: "how often did I play chess" with a habit
@@ -869,7 +875,10 @@ function holding(env: ToolEnv, asset: string, q = '', lang: 'en' | 'nl' = 'en'):
     if (portfolios.length && !extra.length) extra.push(say(`Portfolio (separate from Wealth): no ${asset} in a Real portfolio`, `Portfolio (los van Wealth): geen ${asset} in een Real-portfolio`));
   }
   const metal = /^(?:GOLD|SILVER)$/.test(asset) ? 'Precious metals' : 'Crypto';
-  if (!rows.length) return {kind: 'answer', text: lines(say(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, `Je hebt geen ${asset} vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.`), [...extra, say(`To track it: Wealth → + Add asset → ${metal}, then ${asset} and the amount you hold`, `Om het bij te houden: Wealth → + Add asset → ${metal}, dan ${asset} en de hoeveelheid die je hebt`)]), calls};
+  // Session AU (REHEARSAL R-9): the holdings first; a goal named after the coin ("First 0.01 BTC") only after them, said to be a goal.
+  const goal = rows.length || env.areas.goals === false ? null : goalsOnce(env).find(g => g.status !== 'closed' && new RegExp(`\\b${asset}\\b`, 'i').test(g.name));
+  const goalLine = goal ? [say(`Your goal ${clean(goal.name, 60)} is a goal, not a holding: Goals shows its progress`, `Je doel ${clean(goal.name, 60)} is een doel, geen bezit: Goals toont de voortgang`)] : [];
+  if (!rows.length) return {kind: 'answer', text: lines(say(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, `Je hebt geen ${asset} vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.`), [...extra, say(`To track it: Wealth → + Add asset → ${metal}, then ${asset} and the amount you hold`, `Om het bij te houden: Wealth → + Add asset → ${metal}, dan ${asset} en de hoeveelheid die je hebt`), ...goalLine]), calls};
   const quantity = rows.reduce((s, row) => s.plus(/^\d+(\.\d+)?$/.test(row.quantity) ? row.quantity : 0), new Decimal(0)).toFixed();
   const values = new Map<string, Decimal>();
   for (const row of rows) { const m = /^(-?\d+\.\d{2}) ([A-Z]{3,10})$/.exec(row.value); if (m) values.set(m[2]!, (values.get(m[2]!) ?? new Decimal(0)).plus(m[1]!)); }

@@ -101,7 +101,7 @@ function worstHabitAnswer(lang: Lang, env: ToolEnv): LocalReply {
   return {kind: 'answer', text: say(lang, `Over the last 30 days, ${low!.title} has the lowest completion: ${pct(low!.rate)} of its scheduled days (${low!.complete} of ${low!.scheduled}).${tail} Every check-in still counts.`,
     `De afgelopen 30 dagen heeft ${low!.title} de laagste voltooiing: ${pct(low!.rate)} van de geplande dagen (${low!.complete} van ${low!.scheduled}).${tail} Elke check-in telt.`), calls};
 }
-function priceAnswer(lang: Lang, asset: string, env: ToolEnv, q = ''): LocalReply {
+export function priceAnswer(lang: Lang, asset: string, env: ToolEnv, q = ''): LocalReply {
   const symbol = /^bitcoin$/i.test(asset) ? 'BTC' : /^ether/i.test(asset) ? 'ETH' : asset.toUpperCase();
   const h = call('holdings', {asset: symbol}, env), calls = [h.record], lines: string[] = [];
   if (h.result.ok) {
@@ -125,7 +125,8 @@ function priceAnswer(lang: Lang, asset: string, env: ToolEnv, q = ''): LocalRepl
     const coin = pf.coins.find(c => c.coin.toUpperCase() === symbol);
     if (coin && coin.price !== 'no price') lines.push(say(lang, `Portfolio “${pf.portfolio}”: ${coin.price}.`, `Portfolio “${pf.portfolio}”: ${coin.price}.`));
   }
-  if (!lines.length) return {kind: 'answer', text: say(lang, `${symbol} is not tracked in Wealth or Portfolio, so this device has no price for it. Prices appear once you track it.`, `${symbol} staat niet in Vermogen of Portfolio, dus dit apparaat heeft er geen prijs voor. Prijzen verschijnen zodra je het bijhoudt.`), calls};
+  // Session AU (REHEARSAL R-7): with no price on this device, said plainly, with Markets to open; never a price of its own.
+  if (!lines.length) return {kind: 'answer', text: say(lang, `${symbol} is not tracked in Wealth or Portfolio and no ${symbol} price has reached Markets on this device, so I give none: I read prices only where the app already has them. Markets shows the price with its source and time.`, `${symbol} staat niet in Vermogen of Portfolio en er is op dit apparaat geen ${symbol}-prijs bij Markten binnengekomen, dus ik noem er geen: ik lees prijzen alleen waar de app ze al heeft. Markten toont de prijs met de bron en het tijdstip.`) + `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: 'markets'})}\n\`\`\``, calls};
   if (code && !lines.some(l => new RegExp(`\\b${code}\\b`).test(l))) lines.push(say(lang, `No ${code} price for ${symbol} on this device: each figure stays in the currency its page holds, never converted.`, `Geen ${code}-prijs voor ${symbol} op dit apparaat: elk bedrag blijft in de munt van zijn pagina, nooit omgerekend.`));
   return {kind: 'answer', text: `${lines.join('\n')}\n${say(lang, 'Prices as these pages show them; facts only, not advice.', 'Prijzen zoals deze pagina’s ze tonen; alleen feiten, geen advies.')}`, calls};
 }

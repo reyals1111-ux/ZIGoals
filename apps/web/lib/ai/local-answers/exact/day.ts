@@ -1,3 +1,4 @@
+import {currentDayGoal, dayCounts, needOn} from '../../../checklist/day-goal-core';
 import {FORECAST} from '../../../goal-forecast';
 import {addLocalDays} from '../../../local-date';
 import {recentNotes} from '../../../nova/holo/lists';
@@ -120,7 +121,42 @@ export function checklistAnswer(q: Query, env: ToolEnv): Exact | null {
   const widgets: ExactWidget[] = [{id: 'checklist-orbit', fallback: 'orbit'}];
   if (typeof r.data.total !== 'number') return out(t(lang, 'No Checklist path on this device yet.', 'Er is nog geen Checklist op dit apparaat.'), {total: 0}, widgets);
   const total = r.data.total, done = r.data.done as number, open = (r.data.open as string[] | undefined) ?? [];
+  const week = checklistWeek(env, lang, q.read, {total, done});
+  if (week) return out(week.text, week.facts, widgets);
   return out(open.length ? t(lang, `Checklist today: ${done} of ${total} done; still open: ${listWords(open.slice(0, 8), 'en')}.`, `Checklist vandaag: ${done} van ${total} gedaan; nog open: ${listWords(open.slice(0, 8), 'nl')}.`) : t(lang, `Checklist today: all ${total} done.`, `Checklist vandaag: alle ${total} gedaan.`), {total, done, open}, widgets);
+}
+
+/**
+ * Session AU (REHEARSAL R-5, R-14): "how many days this week did I finish my Checklist", "which days didn't I": the days the
+ * Checklist kept (its day history, counts only), each judged by the person's own rule in force that day — "A day counts as
+ * done at N" (lib/checklist/day-goal-core.ts, the rule the flame and Journey read), else every dot — said with the rule.
+ * The days in the app's words ("Mon, Nov 23"); a day with every dot lit is said so; today is never missed: it is still in
+ * progress unless it already counts. A day the Checklist did not keep is unknown, never "not done". This week is Monday to
+ * today; "last week" the whole week before.
+ */
+export function checklistWeek(env: ToolEnv, lang: Lang, read: string, now: {total: number; done: number} | null): {text: string; facts: Record<string, unknown>} | null {
+  const c = env.checklist;
+  if (!c || c.unreadable || !/\b(?:week|days|dagen)\b/.test(read)) return null;
+  const today = c.date, last = /\b(?:last|previous|vorige|afgelopen) week\b/.test(read), monday = weekStart(today);
+  const from = last ? addLocalDays(monday, -7) : monday, to = last ? addLocalDays(monday, -1) : addLocalDays(today, -1);
+  const goal = currentDayGoal(), days: string[] = [];
+  for (let d = from; d <= to; d = addLocalDays(d, 1)) days.push(d);
+  const kept = days.filter(d => c.days.days?.[d]), unknown = days.filter(d => !c.days.days?.[d]);
+  const counted = kept.filter(d => dayCounts(c.days.days![d], needOn(goal, d))), not = kept.filter(d => !counted.includes(d));
+  const all = (d: string) => { const x = c.days.days![d]!; return x.total > 0 && x.done >= x.total; };
+  const each = (d: string) => { const x = c.days.days![d]!; return `${dayWords(d, today)} (${x.done} ${t(lang, 'of', 'van')} ${x.total}${all(d) ? t(lang, ', every dot', ', elke stip') : ''})`; };
+  const need = needOn(goal, today), rule = need === null ? t(lang, 'a day counts as done when every dot is lit', 'een dag telt als gedaan als elke stip brandt') : t(lang, `a day counts as done at ${need} ${need === 1 ? 'dot' : 'dots'} (your rule)`, `een dag telt als gedaan bij ${need} ${need === 1 ? 'stip' : 'stippen'} (jouw regel)`);
+  const todayCounts = !last && now ? dayCounts(now, need) : false;
+  const span = last ? t(lang, `Last week on your Checklist (${dayWords(from, today)} to ${dayWords(to, today)})`, `Vorige week op je Checklist (${dayWords(from, today)} t/m ${dayWords(to, today)})`) : t(lang, `This week on your Checklist (${dayWords(from, today)} to today, ${dayWords(today, today)})`, `Deze week op je Checklist (${dayWords(from, today)} t/m vandaag, ${dayWords(today, today)})`);
+  const doneN = counted.length + (todayCounts ? 1 : 0), keptN = kept.length + (todayCounts ? 1 : 0);
+  const doneList = [...counted.map(each), ...(todayCounts ? [t(lang, `today (${now!.done} of ${now!.total})`, `vandaag (${now!.done} van ${now!.total})`)] : [])];
+  const parts = [
+    kept.length || todayCounts ? t(lang, `done on ${doneN} of ${keptN} ${keptN === 1 ? 'day' : 'days'}${doneList.length ? `: ${listWords(doneList, 'en')}` : ''}`, `gedaan op ${doneN} van ${keptN} ${keptN === 1 ? 'dag' : 'dagen'}${doneList.length ? `: ${listWords(doneList, 'nl')}` : ''}`) : t(lang, 'no earlier day kept yet', 'nog geen eerdere dag bewaard'),
+    not.length ? t(lang, `not done on ${not.length}: ${listWords(not.map(each), 'en')}`, `niet gedaan op ${not.length}: ${listWords(not.map(each), 'nl')}`) : '',
+    unknown.length && kept.length ? t(lang, `${unknown.length} ${unknown.length === 1 ? 'day was' : 'days were'} not kept (unknown, not zero)`, `${unknown.length} ${unknown.length === 1 ? 'dag is' : 'dagen zijn'} niet bewaard (onbekend, niet nul)`) : '',
+  ].filter(Boolean);
+  const tail = last || !now ? '' : todayCounts ? t(lang, ' Today already counts.', ' Vandaag telt al.') : t(lang, ` Today is still in progress: ${now.done} of ${now.total} so far.`, ` Vandaag loopt nog: ${now.done} van ${now.total} tot nu toe.`);
+  return {text: `${span}, ${rule}: ${parts.join('; ')}.${tail}`, facts: {from, to, dayGoal: need, done: counted, notDone: not, unknown, everyDot: kept.filter(all), today: now ? {...now, counts: todayCounts} : null}};
 }
 
 type GoalRow = {handle: string; name: string; status: string; progress: string; now?: string; target?: string; remaining?: string; funding?: string; targetDate?: string; nextPlannedDate?: string; type?: string};

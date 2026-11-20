@@ -121,3 +121,19 @@ test('Session AU (D-ETA): the Emergency fund’s pace estimate, recomputed from 
   expect(pace('9203')).toEqual({state: 'not-enough'});
   expect(ask('when will I reach my Japan adventure goal', env).facts).toMatchObject({pace: 'not-enough', estimate: null, targetDate: '2027-04-16'});
 });
+test('Session AU (REHEARSAL R-2, R-3): what was lifted and how far was run, from the raw workout log', () => {
+  type RawSet = {kind: string; weightKg?: number; reps?: number; distanceKm?: number; done: boolean};
+  type RawWorkout = {name: string; date: string; endedAt?: string; exercises: {name: string; measure: string; sets: RawSet[]}[]; imported?: {distanceKm?: number}};
+  const log = (record('zigoals:workouts:v1').workouts as RawWorkout[]).filter(w => w.endedAt);
+  // Yesterday's strength workout: each exercise's working sets (no warm-up) and its heaviest.
+  const yesterday = log.filter(w => w.date === '2026-11-16' && w.exercises.some(e => e.measure === 'weight-reps'));
+  const rows = yesterday.flatMap(w => w.exercises.map(e => { const sets = e.sets.filter(x => x.kind !== 'warmup'); return {name: e.name, sets: sets.length, top: Math.max(...sets.map(x => x.weightKg ?? 0))}; }));
+  expect(rows).toEqual([{name: 'Bench press', sets: 3, top: 62.5}, {name: 'Overhead press', sets: 2, top: 37.5}, {name: 'Triceps pushdown', sets: 2, top: 27.5}]);
+  expect(ask('what did I lift yesterday', env).facts).toMatchObject({workouts: [{workout: 'Push day', exercises: rows.map(r => ({name: r.name, sets: r.sets, topKg: r.top}))}]});
+  // Kilometres by the sets' distance (else an imported file's summary), per week.
+  const km = (from: string, to: string) => log.filter(w => w.date >= from && w.date <= to).reduce((n, w) => n + (w.exercises.flatMap(e => e.sets).reduce((m, x) => m + (x.distanceKm ?? 0), 0) || (w.imported?.distanceKm ?? 0)), 0);
+  expect(km('2026-11-09', '2026-11-15')).toBe(6);
+  expect(km('2026-11-16', DAY)).toBe(0);
+  expect(ask('how far did I run last week', env).facts).toMatchObject({km: 6, count: 1});
+  expect(ask('How far did I run this week?', env).facts).toMatchObject({km: 0, count: 0});
+});

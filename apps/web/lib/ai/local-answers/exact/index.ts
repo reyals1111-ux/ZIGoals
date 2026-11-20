@@ -3,11 +3,11 @@ import type {ToolEnv} from '../../tools/env';
 import {HEALTH_CLOSED} from '../../tools/format';
 import {habitsAnswer} from './habits';
 import {agendaAnswer, checklistAnswer, focusAnswer, goalsAnswer, journalAnswer, lifeAnswer, notesAnswer, novaAnswer, tasksAnswer} from './day';
-import {healthAnswer} from './health';
-import {billsAnswer, budgetsAnswer, netWorthAnswer, spendingAnswer} from './money';
+import {DISTANCE_WORDS, healthAnswer, LIFT_WORDS} from './health';
+import {billsAnswer, budgetsAnswer, netWorthAnswer, PRICE_CHANGE, spendingAnswer} from './money';
 import {resolvePeriod, periodWords} from './period';
 import {fold, t} from './text';
-import {GOAL_ETA} from './lexicon';
+import {GOAL_ETA, namesNonGoal} from './lexicon';
 import {DOMAIN_GATE, type Exact, type ExactWidget, type Query} from './types';
 import {topicOf, understand, type Records} from './understand';
 
@@ -91,7 +91,16 @@ export function strictClaim(q: Query): boolean {
   if (q.domain === 'agenda' && q.ask === 'next') return true;
   // Session AU (ADR-044 D-ETA): when one goal will be reached ("when will I reach my emergency fund"): the Goal widget's own
   // pace estimate first (the older layers led with the target date while the widget showed the estimate).
-  if (q.domain === 'goals' && q.subject?.kind === 'goal' && GOAL_ETA.test(q.read)) return true;
+  if (q.domain === 'goals' && q.subject?.kind === 'goal' && GOAL_ETA.test(q.read) && !namesNonGoal(q.read, q.subject.name)) return true;
+  // Session AU (dress rehearsal, docs/review/session-au/REHEARSAL.md): one habit's run of days ("wat is mijn reeks voor water
+  // drinken", R-1); what was lifted and how far was run (R-2, R-3: the workout log, under the Health gate); whether a bill's
+  // price went up (R-6); when the next bill is due (R-11: the older layers read "next bill be" as a goal's name).
+  // (A run asked in Dutch only: the older layers' English streak answers stay theirs, word for word.)
+  if (q.ask === 'streak' && q.lang === 'nl' && (q.subject?.kind === 'habit' || TRACKS.has(q.domain))) return true;
+  if (q.domain === 'workouts' && (LIFT_WORDS.test(q.read) || DISTANCE_WORDS.test(q.read))) return true;
+  // The Checklist's days this week or last, under the person's own "A day counts as done at N" (R-5, R-14).
+  if (q.domain === 'checklist' && /\b(?:week|days|dagen)\b/.test(q.read)) return true;
+  if (q.domain === 'bills' && (PRICE_CHANGE.test(q.read) || (q.ask === 'next' && /\b(?:when|wanneer)\b/.test(q.read)))) return true;
   // Session AT (L7 Z-057): the milestones of the goals ("de mijlpalen van al mijn doelen" was answered with their percentages);
   // one goal's milestones, asked by its name, keep the milestones lookup's own answer.
   if (q.domain === 'goals' && !q.subject && /\b(?:milestones?|mijlpaal|mijlpalen)\b/.test(q.read)) return true;

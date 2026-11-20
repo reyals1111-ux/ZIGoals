@@ -58,7 +58,9 @@ export const tasksTool: ToolDefinition<Record<string, never>> = {
     const record = env.nova?.tasks;
     if (!record || !record.tasks.length) return ok('tasks', label, where(env, 'tasks'), {open: [], note: absent(record, 'No task is kept on this device yet.')});
     // Release review AL (RR-8): overdue by the day and, today, the time (the person's zone), as the Tasks page counts it.
-    const clock = wallClock(env.now.getTime(), env.habitZone).clock;
+    // Session AU (REHEARSAL R-13): the clock the Tasks page and NOVA's task widgets use (lib/tasks/device.ts tasksClock): while
+    // the person's day runs on past midnight (their today is the calendar's yesterday), every time of that day has passed.
+    const wall = wallClock(env.now.getTime(), env.habitZone), clock = wall.date && wall.date > env.habitDay ? '23:59' : wall.clock;
     const rows = openTasks(record, env.habitDay).map(t => ({task: text(t.title, 100), state: taskState(t, env.habitDay, clock), ...(t.due ? {due: t.due} : {}), ...(t.time ? {time: t.time} : {}), priority: t.priority, ...(goalName(env, t.goal) ? {goal: goalName(env, t.goal)} : {})}));
     const capped = capRows(rows, env, false);
     return ok('tasks', label, where(env, 'tasks'), {today: env.habitDay, counts: taskCounts(record, env.habitDay, clock), open: capped.rows, rule: 'the person\'s own tasks; done tasks are not listed'}, capped.truncated);
