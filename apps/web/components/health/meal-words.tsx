@@ -1,10 +1,9 @@
 'use client';
 import {useId, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {useHealthExtras} from './meal-names';
 import {showUndo} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
-import {mealHeading, mealLabel} from '../../lib/health-extras';
+import {HEALTH_EXTRAS, mealHeading, mealLabel, type HealthExtras} from '../../lib/health-extras';
 import {MAX_WORDS_CHARS, MEAL_WORDS, MEAL_WORDS_MEALS, addMealWords, mealWordsFor, newMealWordsId, removeMealWords, wordsSchema, type MealWordsEntry, type MealWordsMeal} from '../../lib/meal-words/schema';
 import './meal-words.css';
 
@@ -27,7 +26,10 @@ export default function MealWords(props: MealWordsProps) {
 }
 
 function WordsForm({date, meal: initialMeal}: {date: string; meal: MealWordsMeal}) {
-  const record = useDeviceRecord(MEAL_WORDS), {extras} = useHealthExtras(), id = useId();
+  // Session AU (route weight): the meal names are read from their record here, not through meal-names.tsx, so that module
+  // stays in Health's first scripts only (sharing it with this lazy chunk moved code into Health's first load).
+  const record = useDeviceRecord(MEAL_WORDS), extrasRecord = useDeviceRecord(HEALTH_EXTRAS), id = useId();
+  const extras: HealthExtras | null = extrasRecord.loaded && !extrasRecord.unreadable ? extrasRecord.data : null;
   const [words, setWords] = useState(''), [chosen, setChosen] = useState<MealWordsMeal | null>(null);
   const [said, setSaid] = useState<{error: boolean; text: string} | null>(null);
   const meal = chosen ?? initialMeal;

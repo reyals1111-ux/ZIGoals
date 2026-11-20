@@ -75,7 +75,7 @@ export function ExportEverything() {
   return <section className="panel export-everything" id="export-everything" aria-labelledby="export-everything-title">
     <p className="eyebrow">OPTIONAL</p>
     <h2 id="export-everything-title">Everything you’ve saved, in one file.</h2>
-    <p>This is optional: the encrypted backup, and account sync where it is on, keep your records.</p>
+    <p>{/* Session AU (ADR-044 T-11, the rehearsal's Tom and Lina): said "optional" beside a banner saying browser records are not a backup */}Your records live in this browser. This file is a readable copy you keep yourself, and it can be restored; an encrypted backup or account sync are the other ways to keep them.</p>
     {/* Session AL fifth pass (D-005): what the file holds folds, so the open Data & privacy group is short (nothing removed). */}
     <details className="backup-more"><summary>More about this file</summary><p>If you’d like a readable copy for yourself, this makes one ZIP with a JSON file of everything and a CSV per area (goals, contributions, habits, check-ins, Health diary, weights, water, activity, wealth).</p></details>
     <label className="export-everything-agree"><input type="checkbox" checked={agreed} onChange={event => setAgreed(event.target.checked)} /><span>I understand this file is readable and holds my personal records, including Health.</span></label>
