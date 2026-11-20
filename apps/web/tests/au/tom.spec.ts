@@ -39,7 +39,9 @@ test('Tom at 1440: Health stays closed in NOVA\'s glance until he allows it, and
   // With Health closed and nothing else logged today, the glance has no line to show: its own empty notice, never a Health line.
   const glance = page.locator('.nova-stage-area .nova-widget[data-widget="glance"]').first();
   await expect(glance).toBeVisible({timeout: 15_000});
-  await expect(glance).not.toContainText(/water|food entr|meals? logged|You slept/i);
+  // A Health line would read "250 mL of water so far", "1 food entry logged today" or "You slept …" (lib/nova/widgets/words.ts);
+  // the empty notice's own guidance ("a glass of water") is not a record.
+  await expect(glance).not.toContainText(/\d[\d.,]*\s?(?:mL|L|fl oz) of water|No water logged yet today|food entr(?:y|ies) logged|meals? logged today|You slept/i);
 
   // R-2: once he allows Health (NOVA → Permissions), NOVA names today's lifts.
   const closed = await novaSays(page, 'How many calories did I eat today?');
