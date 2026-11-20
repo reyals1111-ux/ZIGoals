@@ -7,5 +7,8 @@ installTrustedTypesDefault(window as unknown as Parameters<typeof installTrusted
 // Session AV Part 2 ([TIER 3] (PWA), ADR-045 D-PWA): code of this version that can no longer be loaded after a new deploy
 // (a removed file, "module factory is not available") reloads the page once into the newest version, never while the
 // person is in the middle of something (lib/sw/update-recovery.ts).
-import { watchStaleCode } from "./lib/sw/update-recovery";
-watchStaleCode(window, process.env.NEXT_PUBLIC_APP_COMMIT ?? "");
+import { watchStaleCode } from "./lib/sw/stale-code";
+watchStaleCode(window);
+// Session AV Part 5 (D-WEIGHT): taps for ZIGi and the music player made before their chunks arrive are kept for them.
+import { keepEarlyEvents } from "./lib/early-events";
+keepEarlyEvents(window);

@@ -13,31 +13,11 @@
  * by itself at most once in ten minutes (a session guard in this tab's sessionStorage), so a failure that a reload does
  * not cure can never loop: the note shows instead. Nothing is sent anywhere and nothing stored by the person changes.
  */
-export const UPDATE_WAITING = 'zigoals:update-waiting';
-export const RELOAD_MARK = 'zigoals:update-reload:v1';
+import {RELOAD_MARK, UPDATE_WAITING, isStaleCodeError, touched, watchEdits, watchStaleCode} from './stale-code';
+export {RELOAD_MARK, UPDATE_WAITING, isStaleCodeError, watchEdits, watchStaleCode};
 export const RELOAD_GUARD_MS = 10 * 60_000;
-const STALE = [
-  /ChunkLoadError/i,
-  /Loading (?:CSS )?chunk [\w./-]+ failed/i,
-  /Failed to load chunk/i,
-  /module factory is not available/i,
-  /Failed to fetch dynamically imported module/i,
-  /error loading dynamically imported module/i,
-  /Importing a module script failed/i,
-  /Unable to preload CSS/i,
-];
-/** Whether an error (or a rejection's reason, or a message) says code of this version could not be loaded. */
-export function isStaleCodeError(error: unknown): boolean {
-  if (!error) return false;
-  const e = error as {name?: unknown; message?: unknown};
-  const text = typeof error === 'string' ? error : `${typeof e.name === 'string' ? e.name : ''} ${typeof e.message === 'string' ? e.message : ''}`;
-  return STALE.some(re => re.test(text));
-}
 type Field = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 const TEXTLESS = new Set(['button', 'submit', 'reset', 'image', 'hidden', 'range', 'color']);
-/** Fields the person typed into or changed in this tab (React keeps a controlled field's default equal to its value, so a
- * change cannot be read from the page alone). A form that is sent or reset is no longer in the middle of anything. */
-const touched = new WeakSet<Element>();
 function holds(field: Field): boolean {
   if (!field.isConnected || field.disabled || field.closest('[data-update-ignore]')) return false;
   if (field instanceof HTMLSelectElement) return true;
@@ -45,14 +25,6 @@ function holds(field: Field): boolean {
   if (field instanceof HTMLInputElement && field.type === 'file') return !!field.files?.length;
   if (field instanceof HTMLInputElement && TEXTLESS.has(field.type)) return false;
   return field.value.trim() !== '';
-}
-/** Notes the fields the person changes (call once per tab; `watchStaleCode` does). */
-export function watchEdits(doc: Document): () => void {
-  const mark = (event: Event) => { const t = event.target; if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement) touched.add(t); };
-  const done = (event: Event) => { const form = event.target; if (form instanceof HTMLFormElement) for (const el of form.elements) touched.delete(el); };
-  doc.addEventListener('input', mark, true); doc.addEventListener('change', mark, true);
-  doc.addEventListener('submit', done, true); doc.addEventListener('reset', done, true);
-  return () => { doc.removeEventListener('input', mark, true); doc.removeEventListener('change', mark, true); doc.removeEventListener('submit', done, true); doc.removeEventListener('reset', done, true); };
 }
 /**
  * The person is in the middle of something: an open dialog, sheet or confirm card; an import or a restore that marks
@@ -110,14 +82,4 @@ export function takeUpdatedNotice(store: Storage, commit: string, now = Date.now
     store.setItem(RELOAD_MARK, JSON.stringify({...mark, shown: true}));
     return !!commit && mark.from !== commit.toLowerCase();
   } catch { return false; }
-}
-/** Listens for such failures outside React (a rejected `import()`, a script that failed), and notes the person's edits; never throws. */
-export function watchStaleCode(win: Window, commit: string): () => void {
-  const on = (error: unknown) => { if (isStaleCodeError(error)) void recoverFromStaleCode(win, commit); };
-  const rejected = (event: PromiseRejectionEvent) => on(event.reason);
-  const failed = (event: ErrorEvent) => on(event.error ?? event.message);
-  const edits = watchEdits(win.document);
-  win.addEventListener('unhandledrejection', rejected);
-  win.addEventListener('error', failed);
-  return () => { edits(); win.removeEventListener('unhandledrejection', rejected); win.removeEventListener('error', failed); };
 }

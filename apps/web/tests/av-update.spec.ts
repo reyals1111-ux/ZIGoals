@@ -13,6 +13,8 @@ async function fresh(page: Page, path = '/app/health') {
   await page.addInitScript(() => { if (!localStorage.getItem('zigoals:onboarding:v1')) localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
   await page.goto(path);
   await page.locator('html[data-app-hydrated]').waitFor({state: 'attached'});
+  // The parts the page loads right after its first paint are in before the "deploy" (a deploy meets a page that has settled).
+  await page.waitForLoadState('networkidle');
 }
 /** The app's own server now names another build on every page, as after a deploy. */
 async function serverServes(page: Page, build: string) {
@@ -51,7 +53,12 @@ test('a part of the replaced version is gone: the page reloads once into the new
 test('the same version (a refused file, no deploy): nothing reloads; the part says it could not be opened', async ({page}) => {
   await fresh(page);
   const seen = documentsOf(page);
-  await page.route(url => url.pathname.startsWith('/_next/static/'), route => route.fulfill({status: 404, body: 'gone'}));
+  // Only the Measurements view's own file is refused (known by a literal only it holds), as the network can refuse one file.
+  await page.route(url => url.pathname.startsWith('/_next/static/chunks/'), async route => {
+    const response = await route.fetch(), text = await response.text();
+    if (text.includes('Body measurement entry')) return route.fulfill({status: 404, body: 'gone'});
+    await route.fulfill({response, body: text});
+  });
   await page.getByRole('tab', {name: 'Measurements', exact: true}).click();
   await expect(page.getByText('Your measurements could not be opened. Reload the page to try again.', {exact: true})).toBeVisible();
   await page.waitForTimeout(1500);
