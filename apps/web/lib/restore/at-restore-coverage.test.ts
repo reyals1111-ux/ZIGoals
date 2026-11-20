@@ -28,6 +28,6 @@ test('D12: every exported record is restorable or deliberately left on the devic
 });
 
 test('D12: every record kind added since Session AL is restorable', () => {
-  for (const key of ['zigoals:networth-history:v1', 'zigoals:day-goal:v1', 'zigoals:day-ends:v1', 'zigoals:task-when:v1', 'zigoals:countdowns:v1', 'zigoals:money-tags:v1', 'zigoals:mood-tags:v1', 'zigoals:symptoms:v1', 'zigoals:workout-splits:v1', 'zigoals:today-orbits:v1', 'zigoals:nova-stage:v1', 'zigoals:nova-world:v1'])
+  for (const key of ['zigoals:networth-history:v1', 'zigoals:day-goal:v1', 'zigoals:day-ends:v1', 'zigoals:task-when:v1', 'zigoals:countdowns:v1', 'zigoals:money-tags:v1', 'zigoals:mood-tags:v1', 'zigoals:symptoms:v1', 'zigoals:workout-splits:v1', 'zigoals:today-orbits:v1', 'zigoals:nova-stage:v1', 'zigoals:nova-world:v1', /* Session AU (F-MEAL) */ 'zigoals:meal-words:v1'])
     expect(RESTORE_KEYS, key).toContain(key);
 });

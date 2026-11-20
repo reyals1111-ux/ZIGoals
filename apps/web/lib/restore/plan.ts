@@ -52,6 +52,7 @@ import {TASK_WHEN} from '../tasks/when';
 import {COUNTDOWNS} from '../countdowns/schema';
 import {MONEY_TAGS_RECORD} from '../money-tags/schema';
 import {MOOD_TAGS} from '../mood-tags/schema';
+import {MEAL_WORDS} from '../meal-words/schema';
 import {SYMPTOMS} from '../symptoms/schema';
 import {WORKOUT_SPLITS} from '../workouts/splits-schema';
 import {WATCHLIST_MORE} from '../markets-watchlist-more';
@@ -258,6 +259,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('moneyTags', 'Tags on money entries', 'Goals and Wealth', MONEY_TAGS_RECORD),
   dev('moodTags', 'Mood tags', 'Health', MOOD_TAGS, true),
   dev('symptoms', 'Symptoms and factors', 'Health', SYMPTOMS, true),
+  // Session AU (ADR-044 F-MEAL; TIER 3 (stored format), additive): meals logged in words alone; Health-type, so only with the Health choice.
+  dev('mealWords', 'Meals in your own words', 'Health', MEAL_WORDS, true),
   dev('workoutSplits', 'Run pace and splits', 'Health', WORKOUT_SPLITS, true),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),
