@@ -156,5 +156,39 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
   now taken at CSS pixels (`scale: "css"`). Every check unchanged; the mobile run fell from 39 s to 14 s (6 of 6 on both
   projects).
 
+- **D-SYNC (the account-browser stall, AU's D-SYNC).** Three local runs of `scripts/run10/account-browser.test.mjs`
+  (both cases each, real Chrome, Miniflare, this branch's production build): 6 of 6 passed, the step "L56 A: waist
+  measurement" included. Read for a mechanism: the measurement form's state is local to `components/health/body-measurements.tsx`
+  and survives a data change; it is lost only if the Health page unmounts, which happens when every private store reloads on
+  an account event (`components/use-private-store.ts` `onAccount`, from `lib/account-session.ts` announce: lock, unlock,
+  adopt). No automatic sync path found that announces one. Two sightings in about 60 CI runs (1830, 1869), none since.
+  **Carried** with this evidence (stop rule: no reproduction to work from; sync is TIER 3).
+- **D-PWA ([TIER 3] (PWA), Part 2).** What a deploy does to an open tab, read from the code: Next 16.4 already compares the
+  server's build id with the page's own on every page change and falls back to a full page load on a mismatch
+  (`next/dist/client/components/router-reducer/fetch-server-response.js`: `x-nextjs-deployment-id` or the payload's build
+  id), so `deploymentId` is **not** set (no `?dpl=` on asset addresses, nothing for the release verifier or
+  `check-alpha-artifact` to change; no OpenNext skew protection, no Cloudflare setting). What was left is code the old
+  version loads later on demand: the deploy removes those files, and the part (or, without a `LoadBoundary`, the page)
+  failed. Now (`lib/sw/update-recovery.ts`): a failure to load code ("Loading chunk … failed", "Failed to fetch dynamically
+  imported module", "module factory is not available", Safari's "Importing a module script failed") first asks the app's own
+  server which version it serves (a HEAD to `/app`, never stored; the `X-ZIGoals-Build` header every page already carries).
+  The same version is a network hiccup: nothing reloads, the part keeps its own words. Another version: one reload into it,
+  and the reloaded page says "Updated to the newest version." once; never while the person is in the middle of something
+  (an open dialog, sheet or confirm card, `data-update-hold`, a field they changed that still holds what they put in), never
+  offline, never twice in ten minutes (a tab-only guard, `zigoals:update-reload:v1` in sessionStorage, listed in
+  erase-coverage's NOT_RECORDS): then only "A new version of ZIGoals is ready · Reload". Hooked into window `error` and
+  `unhandledrejection` (instrumentation-client.ts), `LoadBoundary`, `app/app/error.tsx` and `global-error.tsx`. An open tab
+  also asks its server's version when it comes back to the front (at most every ten minutes) and shows the same note; a
+  waiting worker of the page's own version (a page loaded after the deploy) takes over quietly instead of asking for a
+  reload it does not need. Proof in CI (amendment 6, interception only, nothing test-only in the app):
+  `tests/av-update.spec.ts` (main shard 2): a removed on-demand file after a deploy → one reload, the view opens; the same
+  version → no reload, the part's own words; the toast once; busy → the note, no reload, the half-typed text kept; no loop;
+  a page change answered by another deployment → a full page load, no crash; an open tab hears of a new version → the note,
+  Reload loads it. Unit: `lib/sw/update-recovery.test.ts` (34).
+- **D-J4 (journey 4b, found while proving D-PWA).** Offline, the Checklist's history heat map (loaded on demand) had no
+  `LoadBoundary`: when it had not been fetched online, the whole page said "This page could not be shown." (2 of 6 local
+  runs). It now fails as itself and the orbit keeps working (`components/checklist/checklist-page.tsx`; the orbit path is
+  untouched). Journey 4 offline 12 of 12 after.
+
 ## Closing table
 (filled at the end)
