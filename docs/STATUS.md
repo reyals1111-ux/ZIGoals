@@ -1,11 +1,51 @@
-# Session AU — "FRIENDS DRESS REHEARSAL" (ADR-044) (2026-11-19, `feature/session-au-dress-rehearsal`; in progress)
-**Base:** `main` `836534c3` (Merge [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107), Session AT). **Rules (owner):** the brief for Session AU, one approved plan and two owner additions (a fresh reviewer per persona walk; each persona's phone spec also in WebKit), verbatim in `docs/architecture/ADR-044-session-au.md`. Resume file: `docs/handoff/AU_RESUME.md`. Friction log: `docs/review/session-au/REHEARSAL.md`.
+# Session AU — "FRIENDS DRESS REHEARSAL" (ADR-044) (2026-11-19/20, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108); complete, not merged, not deployed)
+**Base:** `main` `836534c3` (Merge [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107), Session AT); `main` did not move during the session. **Rules (owner):** the brief for Session AU, one approved plan and two owner additions (a fresh reviewer per persona walk; each persona's phone spec also in WebKit), verbatim in `docs/architecture/ADR-044-session-au.md` (decisions, closing table). Resume file: `docs/handoff/AU_RESUME.md`. Friction log: `docs/review/session-au/REHEARSAL.md`.
 
 ## Part 0 — records (19 Nov)
 - **[PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107) (Session AT)** merged into `main` as `836534c3` (merge commit, read from `main`).
-- **Main CI:** [run 1869](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44390495368) on `3d510124` failed once on the integration job's `account-browser` sync test ("a step made no progress for 20000 ms"); [run 1895](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44557061753) on `836534c3` (after #107) green on the first attempt: it did not recur on `main`.
+- **Main CI:** [run 1869](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44390495368) on `3d510124` failed once on the integration job's `account-browser` sync test ("a step made no progress for 20000 ms", step "L56 A: waist measurement"); [run 1895](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44557061753) on `836534c3` green on the first attempt: it did not recur on `main` (cause recorded, ADR-044 D-SYNC).
 - **Alpha #57** = Manual Alpha deployment [run 60](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44616699114) (19 Nov), source `836534c3e9f1d430e52c029594ab29b4e8cd55b9`: version `e0bc17f3-27c0-4900-aa55-416f20ece6f6`, rollback `064ff8bc-8cc3-4ae7-8be4-783225ae75dd` (#56); **VERIFIED** after 4 reads, live prices verified (owner). Replaces Session AT's placeholder.
-- **Frozen readers** are #37–#57 from now on (`scripts/frozen-readers.mjs`: #57 = `836534c3`); all 21 releases PASS (98 of 98 each, this head's fixtures).
+- **Frozen readers** are #37–#57 from now on (`scripts/frozen-readers.mjs`: #57 = `836534c3`); all 21 releases PASS, also with this branch's new record (`zigoals:meal-words:v1`).
+
+## What friends would have hit, and what is fixed
+Five fresh people (Sanne, Tom, Lina, Max, Jules), each a first week (Mon, Tue, Sun; morning and evening) on a production build at 390 and 1440 in Nebula and a second theme: 20 walks, five fresh reviews, 57 rows. **Fixed and proven:** every Blocker a reviewer named and 33 of 34 Majors — Health questions met three switches (one "Allow Health" now, F-2); a meal could not be logged in words (F-MEAL); a first-five step opened a "hidden" page (F-1); a second setup card after the setup (F-3); a night owl's Today, Tasks and NOVA disagreed on the day after midnight (F-4, F-5, R-4); a sleep or reading goal saved as money (F-6); a grocer's bank rows missed the Groceries budget and a stepped bill was never found (L-2, L-4); NOVA's glance read Health while closed (T-6, privacy); 15 wrong or vague answers (R-1…R-14, T-12); phone layouts in workouts and recent scans (T-7, T-8). **Carried:** the import preview's missing category column (L-6) and the minors listed in REHEARSAL.md, each with its cause.
+
+## Parts, commits and evidence (`git log 836534c3..HEAD`; never rebased, no merge of `main` needed)
+| Part | What | Commits |
+|---|---|---|
+| 0 | Records, frozen reader #57, ADR-044, AU_RESUME | `22e82425` |
+| 1 | The rehearsal (walks in the scratchpad; REHEARSAL.md), fixes F-1…F-6, F-MEAL, T-5…T-12, L-2, L-4, L-5, J-6, the answer rows; persona specs `tests/au/` (10 files, phone halves `webkit-au-*` also in WebKit) | `28bfd5c1`, `57f252c2`, `8ded74ae`, `00806556`, `7fc8696d`, `9ff2f28c`, `b9f800a6`, `9186d20d`, `cd26dfa3`, `7d43cbdb`, `2a3785a5`, `1ffe3f8c`, `f04c5f0f`, `aa7dec96` and the REHEARSAL commits |
+| 2 | AT's carried list: goal ETA, Dutch coins, Allow Health in replies (`28891474`); words-only meal (`00806556`); roving helper (`34d97007`); Showcase mood tags and a price change (`d9ab8612`); D34/D36 look and D20 minors (ADR) | as named |
+| 3 | **TIER 3 (CI)** 14 duration-balanced main shard lists (`cb96707c`); persona specs in the lists (`dd5e1362`); the account-browser stall recorded | as named |
+| 4 | `docs/friends-alpha/FIRST_WEEK.md`, FRIENDS_GUIDE 8i and part 9, Help's Known limitations | `583a14a2` |
+
+## Tier 3, in plain words (risk → rollback)
+- **Stored formats** (`00806556`): one additive device-only Health-type record, `zigoals:meal-words:v1` ({id, date, meal, words, at}, loose, versioned, ≤ 2,000), in Export everything, restore (Health section), erase, the data catalogue and the welcome check; never synced; not read by ZIGi or NOVA. Older builds ignore it (frozen readers #37–#57 PASS). → Revert; the key is ignored.
+- **AI tools** (`28891474`, `cd26dfa3`, `d9ab8612`, `f04c5f0f`): answers only — no tool added, nothing written from a reply, `lib/ai/gates.ts` unchanged, mood tags and symptoms never read; replies that say Health is closed carry one open-page button; the tasks tool reads the day like the Tasks page. → Revert.
+- **CI** (`cb96707c`, `dd5e1362`): `MAIN_SHARD=n/14` explicit lists from runs 1895 and 1893 (predicted ≤ 40 min of 60, was up to 55); the config and `scripts/ci/main-shards.test.ts` check every spec is in exactly one list. No test, assertion or timeout changed. → Revert.
+- Nothing else is Tier 3: no CSP, sync, wallet, signing, key or dependency change; no new service; no budget raised.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries `Session AU (…, deliberate)` with an equally strict replacement: ZIGi's Health-closed reply pinned whole with its button (engine, nova-evals, g1, al-final tests); the R-12 Health-closed test question; AS's pinned Showcase answers and money figures moved by the seed (expected.json, says, oracle, nova.test, money-spend, health-more, ax-bodies, everything, cross-pillar, connect, more-bodies; each recomputed by the oracle from the raw records); ap-examples' carried test now pins both examples; NOVA's Bill changes tests (connect-wealth, connect, more-bodies) count found bills; `money-tools-ui` and journey 3 use a payee with no category word ("Bakery" and "Grocer" are Groceries now); `send-feedback` limitations 47 → 49 (each by its words, the removed Dutch-coins line checked absent); `nova-families-as` heat €611.99 → €653.96; `ap-minors` test 7 adds the mood tags and the price change; goals.csv's header names `target_amount`.
+
+## Evidence (production builds of this branch, Chromium, two workers)
+- **Persona specs** `tests/au/` on build 4 (`066b87c4`): 10 of 10 (11 skipped by design: each file's other project).
+- **Affected existing specs** on build 4 (35 files: first five, setup, day ends and goal, money and bills, journeys 1–3, workouts, barcode, export and restore, search, Tasks, Today's Tab stops on 14 clocks, Help, NOVA answers and families, ap-minors): 335 passed, 6 failed — all six journey 3 (the "Grocer" rule, above), 8 of 8 after its deliberate change.
+- **Route weights** (build 4): every page inside its budget, none raised; Health 531.0 of 531.0 kB (no room left), Today 560.4 of 567, Tasks 463.6 of 468, the shell 431.3 of 447.
+- **Unit:** full suite 12,245 passed before the last fixes; `apps/web/lib/ai` 1,778 passed; the one red is `scripts/pre-run11-setup.test.mjs` "offline/read-only" (this sandbox's PATH gives the spawned CLI no pnpm 11.19.0; CI runs it pinned). Typecheck clean; eslint 0 errors on touched files; theme sheets `--check` clean; frozen readers #37–#57 PASS.
+- **D34** reproduced on `main`'s own build (1–3 of 12 per run); this branch the same (ADR-044).
+- **Not verified here:** WebKit (CI only); anything on graphics hardware.
+
+## Carried (each with its cause in ADR-044 and REHEARSAL.md)
+L-6 (the import preview has no category column); AT D20's remaining minors (one polish pass); D34 (candidate mechanism: the still star redraws an unproven frame) and D36; the account-browser stall (D-SYNC: a sync during a half-filled Health form); the answer under NOVA's star at 1440 has no page button (AR's composition), the conversation holds it.
+
+## Owner list
+1. Review [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108); merge and deploy are yours (Manual Alpha workflow, from `main`).
+2. Preview: `git fetch origin && git checkout feature/session-au-dress-rehearsal`, `pnpm install --frozen-lockfile --ignore-scripts`, `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, then http://127.0.0.1:3100/app as a new person: Start setup with Habits and Health, "Your first five", Log a meal → Just describe it, NOVA "hoeveel water heb ik vandaag gedronken?" → Permissions → Allow Health.
+3. Friends get `docs/friends-alpha/FIRST_WEEK.md` with the guide. Health's page has no weight left under its budget: the next Health feature needs a lazy chunk or a budget decision.
+
+## CI on the final head
+Read after the push: below.
 
 # Session AT — "READY FOR FRIENDS" (ADR-043) (2026-11-18/19, `feature/session-at-ready-for-friends`, Draft [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107); complete, not merged, not deployed)
 **Base:** `main` `3d510124` (Merge [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106), Session AS); `main` did not move during the session. **Rules (owner):** the brief for Session AT, one approved plan with approval items 1–5 and two owner changes (Zignaly's words only from its notice, linked; Part 6 right after Part 1), verbatim in `docs/architecture/ADR-043-session-at.md` (decisions D1–D20, closing table). Resume file: `docs/handoff/AT_RESUME.md`.

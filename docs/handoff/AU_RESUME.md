@@ -22,17 +22,8 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
   F-MEAL words-only meal (`zigoals:meal-words:v1`, TIER 3 stored formats); answers D-ETA, D-NL-COINS, D-ALLOW-HEALTH
   (TIER 3 AI tools).
 
-## In progress (20 Nov ~01:30)
-- Integration build 3 of `d9ab8612` (worktree scratchpad/int, served on 3102): route weights (Health was 531.2 of 531
-  at build 2; fixed by decoupling meal-words from meal-names), then all tests/au specs (10 files; sanne×2, max phone,
-  lina phone passed on build 2) and the affected existing specs (ap-minors, nova-families-as, send-feedback, first-five,
-  day-ends, day-goal, ap-money-*, bills, workouts, barcode, export, nova-answers-as).
-- Then: REHEARSAL.md verdicts → final; ADR closing table; STATUS entry; CI on the final head (hold pushes while a run
-  goes: every push cancels the run before it).
+## In progress
+- Nothing but reading CI on the final head (STATUS "CI on the final head").
 
 ## Next
-- Part 2 left: AT D20 minors not touched by the rehearsal (see ADR-043 D20 list) → carried with cause in ADR-044.
-- Done in Part 2: words-only meal, goal ETA, Allow Health, Dutch coins, Showcase mood tags + price change, roving helper,
-  D34/D36 look (carried with mechanism).
-- Part 3 done (main shard lists); account-browser stall recorded (D-SYNC).
-- Part 4 done (FIRST_WEEK.md, FRIENDS_GUIDE 8i, Known limitations).
+- If a CI job is red: read it; fix if this branch's (≤ 2 attempts), else record; then the final STATUS line.
