@@ -2,6 +2,7 @@ import {readDeviceRecord, updateDeviceRecord} from '../device-record';
 import {getAppStorage} from '../showcase-storage';
 import {ZIGI_STORE_EVENT} from '../ai/store/keys';
 import {checklistZone, zonedDay} from '../checklist/zone';
+import {boundaryDay, currentDayEnds} from '../day-boundary-core';
 import {wallClock} from '../zone-time';
 import {MAX_TASKS, TASKS, TASKS_KEY, taskSchema, tasksSchema, type Task, type Tasks} from './schema';
 import {addProject, addTask as addTo, editTask, projectByName, removeProject, finishTask, removeTask, reopenTask, restoreTask, restoreTasks, skipOccurrence, tasksOnDay, type TaskInput, type TaskPatch} from './engine';
@@ -20,12 +21,21 @@ type Storage_ = Pick<Storage, 'getItem' | 'setItem'>;
 const store = (storage?: Storage_) => storage ?? getAppStorage();
 const announce = () => { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: TASKS.key})); };
 const newTaskId = () => `task_${crypto.randomUUID()}`;
-/** Today in the app's time zone (the journal zone, else this device's). */
-export const tasksToday = (now = new Date()): string => zonedDay(now, checklistZone());
-/** The wall-clock time now in the app's zone ("HH:MM"), so a timed task turns late after its time. */
-export const tasksClock = (now = new Date()): string => wallClock(now.getTime(), checklistZone()).clock;
-/** The day a finish time falls on, in the app's zone. */
-export const deviceDay = (iso: string) => zonedDay(new Date(iso), checklistZone());
+/**
+ * Session AU (ADR-044 F-5, the rehearsal's Max): the tasks' day follows "My day ends at" (lib/day-boundary.ts) as Habits,
+ * the Checklist and streaks do, so at 01:30 with the day ending at 03:00 Monday's tasks are still today's, not overdue. At
+ * midnight, the default, exactly the calendar day in the app's zone as before.
+ */
+const personDay = (now: Date): string => { const zone = checklistZone(), ends = currentDayEnds(); return ends.endsAt || ends.change ? boundaryDay(now, zone) : zonedDay(now, zone); };
+/** Today in the app's time zone (the journal zone, else this device's), by the person's own day end. */
+export const tasksToday = (now = new Date()): string => personDay(now);
+/**
+ * The wall-clock time now in the app's zone ("HH:MM"), so a timed task turns late after its time. While the person's day
+ * runs on past midnight (their today is the day before the calendar's), every time of that day has passed: "23:59".
+ */
+export const tasksClock = (now = new Date()): string => personDay(now) !== zonedDay(now, checklistZone()) ? '23:59' : wallClock(now.getTime(), checklistZone()).clock;
+/** The day a finish time falls on, in the app's zone, by the person's own day end. */
+export const deviceDay = (iso: string) => personDay(new Date(iso));
 
 /** The record, or null when the bytes on this device cannot be read (never guessed as "no tasks"). */
 export function readTasks(storage?: Pick<Storage, 'getItem'>): Tasks | null {
