@@ -172,7 +172,10 @@ export function TodayDashboard(){
  if(!welcomeDismissed&&!showcase&&storesReady&&!settings.data.onboarded&&!platform.data.goals.length&&!platform.data.positions.length&&!habits.data.habits.length&&!legacy.goals.length){try{brandNew=!getAccountScope()&&!onboardingSeen(window.localStorage)&&noExistingData(window.localStorage);}catch{brandNew=false;}}
  // Session AL (P-NB-08; NB-002, NB-033): with nothing recorded and no setup made, the setup entry is Today's one first
  // action (defined here, before the cards that step back for it; fourth pass: the destination panel's link is secondary).
- const emptyDevice=storesReady&&!showcase&&!brandNew&&!setupMade&&!habits.data.habits.length&&!platform.data.goals.length&&!platform.data.positions.length&&!legacy.goals.length;
+ // Session AU (ADR-044 F-3, the rehearsal's Sanne and Max): a person who finished the setup without a starter goal or habit
+ // was asked to "Set up ZIGoals in about a minute" again right above "Your first five"; once the setup is finished (onboarded),
+ // the first five is Today's one way on.
+ const emptyDevice=storesReady&&!showcase&&!brandNew&&!setupMade&&!settings.data.onboarded&&!habits.data.habits.length&&!platform.data.goals.length&&!platform.data.positions.length&&!legacy.goals.length;
  // Session AL (P-NB-10; NB-041): money cards ("Your goals", the destination panel) follow the pages the person shows too, so
  // a Habits and Health setup that left Goals and Wealth off sees no goal tiles (the PROTECTED hero itself is unchanged).
  const domains=visibleDomains(settings.data),financial=(domains.includes('wealth')&&isShown(pagesView,'wealth'))||(domains.includes('goals')&&isShown(pagesView,'goals'));
