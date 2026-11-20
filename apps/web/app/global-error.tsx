@@ -1,5 +1,7 @@
 'use client';
 import Link from 'next/link';
+import {useEffect} from 'react';
+import {isStaleCodeError, recoverFromStaleCode} from '../lib/sw/update-recovery';
 
 /**
  * Session AF Gate C (ADR-028 H135): when the root itself fails (seen in WebKit when a navigation aborts the page's own
@@ -13,7 +15,10 @@ const card: React.CSSProperties = {maxWidth: 480, padding: '28px 24px', borderRa
 const button: React.CSSProperties = {minHeight: 44, padding: '0 20px', borderRadius: 999, border: 0, background: '#9273ff', color: '#05071a', font: 'inherit', fontWeight: 650, cursor: 'pointer'};
 const link: React.CSSProperties = {display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 20px', borderRadius: 999, border: '1px solid rgba(238, 242, 255, 0.4)', color: '#eef2ff', textDecoration: 'none'};
 
-export default function GlobalError({retry}: {error: Error & {digest?: string}; retry: () => void}) {
+export default function GlobalError({error, retry}: {error: Error & {digest?: string}; retry: () => void}) {
+  // Session AV Part 2 ([TIER 3] (PWA), D-PWA): code of the previous version that a deploy removed reloads the page once into
+  // the newest version (lib/sw/update-recovery.ts); this screen shows only until then, or when the person is busy.
+  useEffect(() => { if (isStaleCodeError(error)) void recoverFromStaleCode(window, process.env.NEXT_PUBLIC_APP_COMMIT ?? ''); }, [error]);
   return <html lang="en">
     <body style={page}>
       <title>Something went wrong · ZIGoals Alpha</title>

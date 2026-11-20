@@ -56,7 +56,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
   ],
   // Shard 2, 44.1 worker-min: about 31.5 min of tests at two workers in file order, 36.1 in any order.
   [
-    'ah-competitors.spec.ts', 'ah-undo-removals.spec.ts', 'ao/day-ends.spec.ts', 'ap/ap-health-food-days.spec.ts',
+    'ah-competitors.spec.ts', 'ah-undo-removals.spec.ts', 'ao/day-ends.spec.ts', 'ap/ap-health-food-days.spec.ts', 'av-update.spec.ts',
     'barcode-param-ak.spec.ts', 'checklist-view-writes-nothing-af.spec.ts', 'dashboard-visual.spec.ts',
     'diagnostics.spec.ts', 'g1a-health-numbers.spec.ts', 'g1a-scales.spec.ts', 'grok53/ai/p14b-held-gaze.spec.ts',
     'grok53/first-run/nb-011-locale-reload.spec.ts', 'grok53/goals/goal-notes-and-average.spec.ts',
