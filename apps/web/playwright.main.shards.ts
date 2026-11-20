@@ -34,6 +34,10 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
   // Shard 1, 54.9 worker-min: about 33.7 min of tests at two workers in file order, 36.1 in any order.
   [
     // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
+    'au/lina.spec.ts',
+    // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
+    'au/max.spec.ts',
+    // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
     'au/webkit-au-sanne.spec.ts', 'au/sanne.spec.ts',
     'ah-health-day.spec.ts', 'ah-settings.spec.ts', 'ar-matrix-drag.spec.ts', 'attestation.spec.ts',
     'b3-ai-small.spec.ts', 'checklist-list-ag-polish.spec.ts', 'earn-your-position.spec.ts',
@@ -66,6 +70,14 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
   ],
   // Shard 3, 60.3 worker-min: about 30.3 min of tests at two workers in file order, 36.1 in any order.
   [
+    // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
+    'au/webkit-au-jules.spec.ts',
+    // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
+    'au/webkit-au-tom.spec.ts',
+    // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
+    'au/jules.spec.ts',
+    // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
+    'au/tom.spec.ts',
     // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
     'au/webkit-au-lina.spec.ts',
     // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.

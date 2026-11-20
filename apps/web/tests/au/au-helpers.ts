@@ -52,3 +52,24 @@ export async function openAt(page: Page, when: Date, path = '/app') {
   await page.clock.setSystemTime(when);
   await page.goto(path); await hydrated(page);
 }
+
+/** NOVA's answer to `words` on /app/nova (under the star or in its conversation), as its visible text. */
+export async function novaSays(page: Page, words: string): Promise<string> {
+  if (!page.url().includes('/app/nova')) {
+    await page.goto('/app/nova'); await hydrated(page);
+    await page.keyboard.press('Shift');
+    await expect(page.locator('.nova-frame')).toHaveAttribute('data-opening', 'done', {timeout: 20_000});
+  }
+  const chat = page.locator('section.nova-chat'), replies = chat.locator('.nova-turn-assistant');
+  const open = await chat.isVisible(), before = await replies.count();
+  const beforeStage = await page.locator('.ns-answer').filter({visible: true}).allInnerTexts().then(t => t.join('\n'));
+  const field = open ? chat.getByRole('textbox', {name: /^Message /}) : page.locator('.nova-command input').first();
+  await field.fill(words); await field.press('Enter');
+  let text = '';
+  await expect(async () => {
+    if (await replies.count() > before) text = await replies.last().innerText();
+    else { const stage = await page.locator('.ns-answer').filter({visible: true}).allInnerTexts().then(t => t.join('\n')); if (stage && stage !== beforeStage && stage.includes(words.slice(0, 12))) text = stage; }
+    expect(text.length).toBeGreaterThan(0);
+  }).toPass({timeout: 20_000});
+  return text.replace(/\s+/g, ' ');
+}
