@@ -11676,8 +11676,8 @@
     .journal-stats dd small:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
-    .journal-question:not(#\-) {
-        border-color: var(--line,rgba(255,255,255,.14))
+    .journal-today-question:not(#\-) {
+        border-color: var(--line)
     }
 }
 /*  components/journal/on-this-day.css  */

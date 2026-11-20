@@ -11278,8 +11278,8 @@
     .journal-stats dd small:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
-    .journal-question:not(#\-) {
-        border-color: var(--line,#33333336)
+    .journal-today-question:not(#\-) {
+        border-color: var(--line)
     }
 }
 /*  components/journal/on-this-day.css  */
