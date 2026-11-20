@@ -1,6 +1,6 @@
 # ADR-044 — Session AU: "FRIENDS DRESS REHEARSAL"
 
-Status: in progress (19 Nov 2026). Branch `feature/session-au-dress-rehearsal` from `main` `836534c3` (Merge PR #107,
+Status: complete (19–20 Nov 2026); not merged, not deployed. Branch `feature/session-au-dress-rehearsal` from `main` `836534c3` (Merge PR #107,
 Session AT; live as Alpha #57). One Draft PR. Resume file: `docs/handoff/AU_RESUME.md`. Friction log:
 `docs/review/session-au/REHEARSAL.md`.
 
@@ -138,3 +138,24 @@ code only; builds and browser runs one at a time.
   page says "since <month>"; NOVA's Bill changes card ignored bills found but not confirmed (Bills and ZIGi count them).
   Spending pace now computes on the Showcase and reads "usual €0.00" (earlier months hold only the late-month streaming
   payment): that is its owner-approved definition (a month with one record counts), kept as it is.
+
+## Closing table
+
+| Item | Verdict | Where |
+|---|---|---|
+| The dress rehearsal: 5 personas × 390/1440 × Nebula + a second theme, day 1, 2, 7 on a production build | Done: 20 walks (+ reruns), 5 fresh reviews, 57 rows | REHEARSAL.md |
+| Blockers and Majors from the rehearsal | Fixed (every Blocker; 32 of 33 Majors), each proven by a persona spec or a unit/corpus case; 1 Major carried (L-6, import preview categories) | REHEARSAL.md, tests/au/ |
+| Wrong or vague NOVA/ZIGi answers | Fixed as cases: R-1…R-14, T-12 | lib/ai/evals/as, au-rehearsal.test.ts |
+| Privacy: NOVA's glance read Health while closed | Fixed (T-6) | tom.spec |
+| AT carried: a meal in words alone | Fixed (F-MEAL, TIER 3 stored formats, additive) | webkit-au-sanne, meal-words tests, frozen readers #37–#57 |
+| AT carried: "when will I reach…" leads with the pace estimate | Fixed (D-ETA) | corpus, oracle |
+| AT carried: "Allow Health" from a NOVA reply | Fixed (F-2 + D-ALLOW-HEALTH: one button in Permissions, reply buttons) | sanne.spec |
+| AT carried: Dutch coin questions | Fixed (D-NL-COINS) | corpus |
+| AT carried: Showcase mood tags and a bill price change | Fixed (D-SHOWCASE; AS's pinned answers moved deliberately, marked) | corpus, oracle, ap-minors |
+| AT carried: the roving helper measuring every item | Fixed (D-ROVING) | Tab-stop specs unchanged and passing |
+| AT carried: D20 minors | 2 fixed by the rehearsal, the rest carried as one polish pass with causes | above |
+| AT carried: D34, D36 | Carried with a candidate mechanism (D34 reproduces on main's code) | above |
+| CI headroom (TIER 3 CI) | Fixed: 14 duration-balanced main shard lists (predicted ≤ 40 min of 60) | D-CI |
+| account-browser "no progress for 20000 ms" | Recorded with cause (an automatic sync during a half-filled Health form); not in the test | D-SYNC |
+| Friends docs | Built: FIRST_WEEK.md, FRIENDS_GUIDE 8i and part 9, Known limitations | Part 4 |
+| Route weights | Every page inside its budget, none raised; Health at 531.0 of 531.0 kB (no room left) | build 4 |
