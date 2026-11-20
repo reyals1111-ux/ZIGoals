@@ -15,6 +15,7 @@ import {MoodWordsFold} from '../mood-words/mood-words-fold';
 import {SecretGuard} from '../secret-guard/secret-guard';
 // Session AK (BUILD list 2 #13, lane G1a): "Start from a prompt" (its list loads when the fold opens).
 import {onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
+import {questionOfTheDay, withQuestion} from '../../lib/journal-prompts/daily';
 const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
 
 /**
@@ -25,6 +26,8 @@ const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
 export function JournalCompose({compact = false}: {compact?: boolean}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate(), id = useId();
   const [prompt, setPrompt] = useState<{id: string; lang: PromptLang} | null>(null), [prompts, setPrompts] = useState(false);
+  // Session AV Part 7 (F-PROMPT): today's question, and how many times "Another question" was pressed.
+  const [step, setStep] = useState(0);
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
   const pattern = useMemo(() => { const p = patterns(journal.data, energy.data)[0]; return p ? patternLine(p, 'en') : null; }, [journal.data, energy.data]);
@@ -55,6 +58,9 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     </fieldset>
     {todayEnergy !== null && <MoodWordsFold day={today}/>}
     {!pending && <form onSubmit={save} aria-label="Write in your journal">
+      {/* Session AV Part 7 (ADR-045 F-PROMPT): one question a day (lib/journal-prompts/daily.ts); using it only writes it into the text. */}
+      {!compact && !text.trim() && <div className="journal-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question</span> <strong>{questionOfTheDay(today, step)}</strong></p>
+        <div className="journal-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, questionOfTheDay(today, step)))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button></div></div>}
       <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       <SecretGuard text={text} onRemove={() => setText('')}/>

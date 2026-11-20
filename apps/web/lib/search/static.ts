@@ -108,6 +108,7 @@ export const HELP_TOPICS: readonly [string, string][] = [
 export const HELP_QUESTIONS: readonly [string, string][] = [
   ["at-screens", "What do the main pages look like?"],
   // Session AV (ADR-045 Part 8).
+  ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
   ["av-updates", "What happens when a new version of ZIGoals comes out?"],
   ["av-import-categories", "Can I check the categories before an import?"],

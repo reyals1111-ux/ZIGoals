@@ -33,8 +33,9 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   // the twelve before them stay, each still opening its answer (12 → 22 with both sessions).
   // Session AT (ADR-043 D15, deliberate): two lines first, NOVA's answers and the example pictures, each opening its answer (22 → 24).
   // Session AV (ADR-045 Part 8, deliberate): three lines first, keeping your records on your phone, new versions and the
-  // import's categories, each opening its answer (24 → 27).
-  await expect(list.getByRole('link')).toHaveCount(27);
+  // import's categories, each opening its answer (24 → 27); Part 7 adds the Journal's question of the day (27 → 28).
+  await expect(list.getByRole('link')).toHaveCount(28);
+  await expect(list.getByRole('link', {name: /^A question a day in your Journal/})).toHaveAttribute('href', '#help-av-prompt-day');
   await expect(list.getByRole('link', {name: /^Keep your records safe on your phone/})).toHaveAttribute('href', '#help-av-keep');
   await expect(list.getByRole('link', {name: /^A new version arrives without losing your place/})).toHaveAttribute('href', '#help-av-updates');
   await expect(list.getByRole('link', {name: /^Check each category before an import/})).toHaveAttribute('href', '#help-av-import-categories');
