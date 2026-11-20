@@ -1,4 +1,6 @@
 import {expenseCategory, incomeCategory} from '../money-log/category';
+import {applyRules} from '../money-rules/engine';
+import type {MoneyRule} from '../money-rules/schema';
 import {AMOUNT_MAX, MAX_ENTRIES, moneyEntrySchema, type MoneyEntry, type MoneyLog} from '../money-log/schema';
 import {parseCamt} from './camt';
 import {parseMt940} from './mt940';
@@ -60,8 +62,9 @@ export function alreadyLogged(t: BankTransaction, log: Pick<MoneyLog, 'entries'>
  * The rows the person chose, as money-log entries: amounts with more than two decimals, zero or above a billion are
  * refused with a reason (never rounded), the category comes from the person's words as the log's own form does.
  */
-export function toMoneyEntries(rows: readonly BankTransaction[], log: Pick<MoneyLog, 'entries'>, now: Date, newId: () => string): {entries: MoneyEntry[]; refused: RefusedRow[]} {
-  const entries: MoneyEntry[] = [], refused: RefusedRow[] = [], room = Math.max(0, MAX_ENTRIES - log.entries.length);
+export function toMoneyEntries(rows: readonly BankTransaction[], log: Pick<MoneyLog, 'entries'>, now: Date, newId: () => string): {entries: MoneyEntry[]; refused: RefusedRow[]; indexes: number[]} {
+  // Session AV (L-6): `indexes[i]` is the file row of `entries[i]`, so a category chosen in the preview finds its entry.
+  const entries: MoneyEntry[] = [], refused: RefusedRow[] = [], indexes: number[] = [], room = Math.max(0, MAX_ENTRIES - log.entries.length);
   for (const t of rows) {
     if (!/^\d{1,10}(\.\d{1,2})?$/.test(t.amount)) { refused.push({index: t.index, reason: 'The amount has more than two decimals or is too large.'}); continue; }
     if (Number(t.amount) <= 0 || Number(t.amount) > AMOUNT_MAX) { refused.push({index: t.index, reason: Number(t.amount) <= 0 ? 'A zero amount is not kept.' : 'The amount is above a billion.'}); continue; }
@@ -71,9 +74,23 @@ export function toMoneyEntries(rows: readonly BankTransaction[], log: Pick<Money
     const parsed = moneyEntrySchema.safeParse(entry);
     if (!parsed.success) { refused.push({index: t.index, reason: 'This row does not fit the money log.'}); continue; }
     if (entries.length >= room) { refused.push({index: t.index, reason: 'The money log keeps at most 10,000 entries.'}); continue; }
-    entries.push(parsed.data);
+    entries.push(parsed.data); indexes.push(t.index);
   }
-  return {entries, refused};
+  return {entries, refused, indexes};
+}
+/**
+ * Session AV (L-6, the rehearsal's Lina): the category a row gets, shown in the import preview before anything is added:
+ * read from its payee and note as the log's own form does, then the person's rules (the first that matches wins), exactly
+ * as the import itself does.
+ */
+export function previewCategory(t: BankTransaction, rules: readonly MoneyRule[]): string {
+  const kind = t.direction === 'out' ? 'expense' as const : 'income' as const, words = `${t.payee} ${t.description}`;
+  const entry: MoneyEntry = {id: 'preview', kind, amount: '1.00', currency: 'EUR', category: kind === 'expense' ? expenseCategory(undefined, words) : incomeCategory(undefined, words), date: t.date, createdAt: '2000-01-01T00:00:00.000Z', ...(noteOf(t) ? {note: noteOf(t)} : {})};
+  return applyRules([entry], rules).entries[0]?.category ?? entry.category;
+}
+/** The categories the person chose in the preview, on the entries made from those rows (after the rules: their choice wins). */
+export function withChosenCategories(entries: readonly MoneyEntry[], indexes: readonly number[], chosen: ReadonlyMap<number, string>): MoneyEntry[] {
+  return entries.map((e, i) => { const c = chosen.get(indexes[i]!)?.trim(); return c && c.length <= 40 && c !== e.category ? {...e, category: c} : e; });
 }
 /** Adds entries to the log, keeping its own currency choice (unlike a single entry from the form). */
 export function addEntries(log: MoneyLog, entries: readonly MoneyEntry[]): MoneyLog {

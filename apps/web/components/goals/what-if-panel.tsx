@@ -48,7 +48,7 @@ export function WhatIfPanel({goalName, current, target, points, today, currency,
   return <section className="what-if" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">What if</p>
     <h3 id={`${id}-title`}>{goalName}</h3>
-    <p className="what-if-pace">{paceSentence(pace, format)}{pace.state === 'estimate' || pace.state === 'no-pace' ? (pace.source === 'forecast' ? ` About ${amount(pace.perMonth ?? 0)} every 30 days.` : ` About ${amount(pace.perMonth ?? 0)} a month lately.`) : ''}</p>
+    <p className="what-if-pace">{paceSentence(pace, format)}{/* Session AV (AT D20): a goal with no money going in yet says no "$0.00 a month" */}{(pace.state === 'estimate' || pace.state === 'no-pace') && (pace.perMonth ?? 0) > 0 ? (pace.source === 'forecast' ? ` About ${amount(pace.perMonth ?? 0)} every 30 days.` : ` About ${amount(pace.perMonth ?? 0)} a month lately.`) : ''}</p>
     <form className="what-if-form" onSubmit={e => e.preventDefault()}>
       <RangeField label="Extra every month" value={extra} max={max} step={step} unit={unitWord} onChange={setExtra}/>
       <fieldset><legend>A regular amount instead of your recent pace</legend>
