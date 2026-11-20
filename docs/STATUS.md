@@ -1,3 +1,6 @@
+# Session AV — "ALPHA QUALITY" (ADR-045) (2026-11-20/22, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) "Session AU + AV"; in progress, not merged, not deployed)
+**Base:** Session AU's head `3ea87dff` on `main` `836534c3` (already merged in). **Rules (owner):** the brief for Session AV, one approved plan with nine amendments, verbatim in `docs/architecture/ADR-045-session-av.md`. Resume file: `docs/handoff/AV_RESUME.md`. Entry written at the end.
+
 # Session AU — "FRIENDS DRESS REHEARSAL" (ADR-044) (2026-11-19/20, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108); complete, not merged, not deployed)
 **Base:** `main` `836534c3` (Merge [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107), Session AT); `main` did not move during the session. **Rules (owner):** the brief for Session AU, one approved plan and two owner additions (a fresh reviewer per persona walk; each persona's phone spec also in WebKit), verbatim in `docs/architecture/ADR-044-session-au.md` (decisions, closing table). Resume file: `docs/handoff/AU_RESUME.md`. Friction log: `docs/review/session-au/REHEARSAL.md`.
 
