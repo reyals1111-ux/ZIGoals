@@ -89,3 +89,27 @@ code only; builds and browser runs one at a time.
 - **D-ETA, D-NL-COINS, D-ALLOW-HEALTH (TIER 3 AI tools; AT D20, D4 carried).** "When will I reach…" leads with the Goal
   widget's own pace estimate ("an estimate from your pace so far, not a promise"), then the target date; Dutch holdings
   questions answer in Dutch; ZIGi's Health-closed reply follows the question's language and carries one button.
+- **The fresh reviewers (owner addition 1).** After each persona's four walks, one fresh helper reviewed that walk's
+  screenshots and console log, given only the persona's goal and routes; its rows are in REHEARSAL.md marked **R** and were
+  merged before fixing. Five reviews: Sanne 25 rows, Max 25, Lina 25 + 15 minors, Jules 25, Tom 22. Where a reviewer's
+  row was the walk script's own doing (a goal created without a target, a mistyped fixture, a form the script did not
+  open) it is marked Holds with that cause; where the screenshot was a full-page capture of lazily drawn content (Earn's
+  `content-visibility` sections, 15 of them, render when scrolled to: probe on the integration build) it is Holds too.
+- **T-6 (privacy).** NOVA's "Day at a glance" read Health's water, meals and sleep while NOVA's Health permission was off
+  (its header said "Health off"). The widget now reads those lines only with the permission on — the same second lock the
+  Health widgets' bodies use (`useHealthGate`); off, they are left out, never shown as zero.
+- **L-2, L-4, L-5 (money).** Imported shop names "grocer", "bakery", "butcher" (and NL) read as Groceries. A bill whose
+  price stepped (€15.00 ×2, €17.50 ×2) is one series when every payment is within ±25 % of their middle (variable, lower
+  confidence); the price notice compares the latest payment with the most recent one at another price within ~100 days.
+  goals.csv and contributions.csv gain a readable amount column at the end; the base-unit columns are unchanged.
+- **J-6, T-5, T-7, T-8, T-11.** Search offers "Watch a Bitcoin address (view-only)". A barcode answer that cannot be read
+  names the way on. On a phone the workout set table scrolls inside its card and a recent scan's buttons go under its
+  name. The export note says what the file is.
+- **NOVA at 1440, the Allow Health path.** At 1440 a Health-closed answer sits under the star with "Open the
+  conversation"; the conversation's reply holds the Permissions button. Adding a page button under the star would change
+  AR's composition (protected), so the path is two taps there, one on a phone (tests/au/sanne.spec.ts).
+- **D-ROVING (AT D18).** The roving Tab stop measures only the item used last and walks in order to the first usable one
+  instead of measuring every item on every change; the same item is chosen; arrows unchanged.
+- **Route weights.** At the first integration build Health was 531.2 of 531 kB: the words-only meal's lazy chunk shared the
+  meal-names module with Health's first scripts and the bundler moved code into them. The words form reads the meal names
+  from their record instead (re-measured at the next build).
