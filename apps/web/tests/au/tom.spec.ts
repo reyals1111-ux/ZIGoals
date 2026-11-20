@@ -42,8 +42,11 @@ test('Tom at 1440: Health stays closed in NOVA\'s glance until he allows it, and
   await expect(glance).not.toContainText(/water|food entr|meals? logged|You slept/i);
 
   // R-2: once he allows Health (NOVA → Permissions), NOVA names today's lifts.
-  await page.goto('/app/nova'); await hydrated(page);
-  await page.locator('.nova-right-actions').getByRole('button', {name: /can see/}).click();
+  const closed = await novaSays(page, 'How many calories did I eat today?');
+  expect(closed).toContain('Health is off for NOVA');
+  const conversation = page.locator('section.nova-chat');
+  if (!await conversation.isVisible()) await page.locator('.ns-answer').getByRole('button', {name: 'Open the conversation'}).click();
+  await conversation.locator('.nova-turn-assistant').last().getByRole('button', {name: /Permissions/}).first().click();
   await page.getByRole('button', {name: 'Allow Health', exact: true}).click();
   await expect(page.getByText('Health is open to NOVA and ZIGi now. Close it with the switches below.')).toBeVisible();
   await page.goto('/app/nova'); await hydrated(page);
