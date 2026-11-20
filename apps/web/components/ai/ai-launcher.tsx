@@ -17,6 +17,7 @@ import './ai-launcher.css';
 import {LAUNCHER_HOLD_MS, TALK_EVENT, TALK_PENDING, TALK_STOP_EVENT, type TalkOrigin, type TalkRequest} from './talk-events';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {hideToast, showUndo} from '../ui/undo-toast';
+import {takeEarlyEvent} from '../../lib/early-events';
 
 /**
  * The ZIGi launcher (ADR-012, Part 6): a floating ZIGi button that opens the chat, an "Open <app>" pill without logos
@@ -140,10 +141,10 @@ export function AiLauncher() {
   // once must not close the panel again; the panel shows once the state has caught up).
   useEffect(() => { if (((standing && standingSensitive()) || switchedOff) && open) setOpen(false); }, [standing, switchedOff, open]);
   // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
-  useEffect(() => { const onAsk = () => { if (!hidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [hidden, sensitive]);
+  useEffect(() => { const onAsk = () => { if (!hidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); if (!hidden && !sensitive && takeEarlyEvent(ASK_EVENT)) onAsk(); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [hidden, sensitive]);
   // Session AL (O3): the "Apps & extras" sheet's ZIGi entry. The sheet has closed and the screen is checked again here, so a
   // sensitive form that appeared meanwhile still keeps ZIGi out.
-  useEffect(() => { const onOpen = () => { if (!hidden && !isSensitiveScreen()) { warm(); setOpen(true); } }; window.addEventListener(ZIGI_OPEN_EVENT, onOpen); return () => window.removeEventListener(ZIGI_OPEN_EVENT, onOpen); }, [hidden, warm]);
+  useEffect(() => { const onOpen = () => { if (!hidden && !isSensitiveScreen()) { warm(); setOpen(true); } }; window.addEventListener(ZIGI_OPEN_EVENT, onOpen); /* Session AV (D-WEIGHT): a tap made before this chunk arrived */ if (!hidden && takeEarlyEvent(ZIGI_OPEN_EVENT)) onOpen(); return () => window.removeEventListener(ZIGI_OPEN_EVENT, onOpen); }, [hidden, warm]);
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.searchParams.get('zigi') === 'hello') { url.searchParams.delete('zigi'); window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`); greetOnce(); }

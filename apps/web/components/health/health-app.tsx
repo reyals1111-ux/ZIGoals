@@ -71,7 +71,6 @@ import { useHealth } from "./use-health";
 import { useHabits } from "../habits/use-habits";
 import { useAutoCheckIns } from "../habits/use-auto-checkins";
 import { useFasting } from "./use-fasting";
-import { FastingTimer } from "./fasting-timer";
 import { useImportUndo } from "../import/use-import-undo";
 import { ImportBanner } from "../import/import-banner"; // CI13: not the CSV steps
 // CI14 (weights): the CSV import steps load when "Choose a file" opens them; the undo of an import loads its engine then too.
@@ -129,6 +128,8 @@ import { isShowcase } from "../../lib/showcase-storage";
 import {diaryDayIssue, journalDay, JOURNAL_MIN_DAY} from "../../lib/health-day";
 import {HealthDateBar, HealthDayProvider, LoggingFor} from "./health-day";
 import type {MealWordsProps} from "./meal-words";
+// Session AV Part 5 (ADR-045 D-WEIGHT): the fasting timer is its own chunk (Health had no room left under its budget).
+const FastingTimer = lazy(() => import("./fasting-timer").then((m) => ({ default: m.FastingTimer })));
 
 /** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
 const SleepView = lazy(() => import("./sleep/sleep-view"));
@@ -419,7 +420,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     // Session AK RB (RELEASE_REVIEW_2 R2-8): "Faster ways to log" (Release review R6's card) is gone: it advertised this
     // page's own features (the barcode fold in the Diary, the meal photo in Foods & recipes); Devices is linked at the end.
     // Saved layouts that name it keep working (lib/page-layout.ts resolveOrder drops ids that are gone).
-    {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><div className="health-fasting-block"><FastingTimer fasting={fasting} health={data} /><LoadBoundary quiet><Suspense fallback={null}><FastingTimeline session={fasting.running ?? fastingHistory(fasting.data, 1)[0]?.session ?? null} /></Suspense></LoadBoundary></div></PhoneFold>}, // B49: one child, so PhoneFold can carry the layout attributes on computers (two children lost the item from the region since B41)
+    {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><div className="health-fasting-block"><LoadBoundary label="The fasting timer"><Suspense fallback={<Skeleton label="Opening the fasting timer…" lines={3}/>}><FastingTimer fasting={fasting} health={data} /></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><FastingTimeline session={fasting.running ?? fastingHistory(fasting.data, 1)[0]?.session ?? null} /></Suspense></LoadBoundary></div></PhoneFold>}, // B49: one child, so PhoneFold can carry the layout attributes on computers (two children lost the item from the region since B41)
     // Session AK RB (R2-8): folded on a phone, and on every size until two days of the week have entries.
     {id: "health:trends", label: "Seven days of care", node: <HealthWeekFold health={data} today={date} waterUnit={dailyData(data).preferences.waterUnit} />},
     ]}/>

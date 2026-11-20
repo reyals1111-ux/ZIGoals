@@ -4,7 +4,9 @@ import {ACCOUNT_CHANGE, getAccountScope} from '../../lib/account-session';
 import {HABITS_KEY} from '../../lib/habits';
 import {REMINDERS_KEY} from '../../lib/reminders/schema';
 import {PUSH_KEY, readPushRecord} from '../../lib/push/client';
-import {PUSH_CHANGE, syncPushSchedules} from '../../lib/push/device';
+// Session AV Part 5 (D-WEIGHT): the schedule sync's own code loads with its first run (it does nothing without a push record).
+const PUSH_CHANGE = 'zigoals:push-change';
+const syncPushSchedules = (args: {account: string | null; force: boolean}) => import('../../lib/push/device').then(m => m.syncPushSchedules(args));
 import {AI_OPTIONS_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 
