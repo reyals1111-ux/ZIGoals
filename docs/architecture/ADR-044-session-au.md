@@ -113,3 +113,13 @@ code only; builds and browser runs one at a time.
 - **Route weights.** At the first integration build Health was 531.2 of 531 kB: the words-only meal's lazy chunk shared the
   meal-names module with Health's first scripts and the bundler moved code into them. The words form reads the meal names
   from their record instead (re-measured at the next build).
+- **D34 and D36, one more bounded look (AT carried).** Neither failed in CI since AT (runs 1893 and 1895 green). D34
+  reproduces locally on `main`'s own code: `hud-motion` "fully still (phone)" ×12 under two workers on the baseline
+  production build failed 3, 1, 1 and ≥ 2 times in four runs; this branch's build 2 and 2 in two runs under the same
+  conditions (6 in a run that overlapped a unit-test job), so this branch does not change it. The failing check is always
+  the sky frames counter (1 → 3 inside the two still seconds). Candidate mechanism, read from the code: in still mode the
+  star (components/nova/core/star-system.tsx `still()`) draws a frame again on any wake while that frame is not yet
+  "proven" by reading its pixels back, and without graphics hardware that read-back can come back empty, so a focus or
+  visibility wake inside the window draws twice more. Not changed: the star is NOVA's protected composition (AR), and
+  counting those frames differently would weaken the spec. D36 (the first WebGL context as one 6 s task) had no new
+  sighting to work from. Both stay carried, D34 now with this mechanism for a session that owns NOVA's star.
