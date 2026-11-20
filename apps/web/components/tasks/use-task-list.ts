@@ -5,6 +5,7 @@ import {useJournalZone} from '../use-journal-zone';
 import {TASKS, type Task, type Tasks} from '../../lib/tasks/schema';
 import {addTask, editOccurrence, editTask, finishTask, removeTask, reopenTask, restoreTasks, type TaskInput, type TaskPatch as EnginePatch} from '../../lib/tasks/engine';
 import {deviceDay, tasksClock, tasksToday} from '../../lib/tasks/device';
+import {subscribeDayEnds} from '../../lib/day-boundary-core';
 import {undoOfChange} from '../../lib/tasks/undo';
 import {showStatus, showUndo, shownToasts} from '../ui/undo-toast';
 import {changeWithUndo} from '../ui/remove-with-undo';
@@ -43,7 +44,10 @@ export function useTaskClock(): {today: string; clock: string} {
     const timer = window.setInterval(tick, 30_000);
     const onShow = () => { if (document.visibilityState === 'visible') tick(); };
     document.addEventListener('visibilitychange', onShow); window.addEventListener('focus', tick);
-    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onShow); window.removeEventListener('focus', tick); };
+    // Session AU (ADR-044 F-5): the day is read again when "My day ends at" arrives or changes (the shell sets it after the
+    // record loads, as it sets the zone), so a Tasks page opened at 01:30 does not keep the calendar's day.
+    const stop = subscribeDayEnds(tick);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onShow); window.removeEventListener('focus', tick); stop(); };
   }, []);
   return now;
 }
