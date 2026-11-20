@@ -57,3 +57,35 @@ code only; builds and browser runs one at a time.
   `836534c3e9f1d430e52c029594ab29b4e8cd55b9`, version `e0bc17f3-27c0-4900-aa55-416f20ece6f6`, rollback
   `064ff8bc-8cc3-4ae7-8be4-783225ae75dd` (#56), VERIFIED after 4 reads, live prices verified (owner). Frozen readers gain
   #57 (`scripts/frozen-readers.mjs`).
+- **D-CI (Part 3, TIER 3 CI).** Run 1895's fourteen main shards took 17.7–50.3 min (Playwright's `--shard` cuts by test
+  count); run 1893's shard 4 took 55. The main suite now runs `MAIN_SHARD=n/14`: fourteen explicit file lists in
+  `apps/web/playwright.main.shards.ts`, packed from the per-file durations of runs 1895 and 1893 (retries included, the
+  larger per file and project, about 883 worker-minutes), simulating two workers; predicted 34–38 min per shard (worst
+  order 40), so every shard keeps ≥ 20 min of its 60. The config and `scripts/ci/main-shards.test.ts` check that every
+  main-suite spec is in exactly one list and name the list for a new one. The a11y suite keeps `--shard=n/3`.
+- **D-SYNC (the account-browser stall).** Run 1869's integration job failed in `scripts/run10/account-browser.test.mjs`
+  (b-first) in step "L56 A: waist measurement" (20 s without progress), the same step as AR's run 1830. In both, an
+  automatic sync lands about a second into that step (+8.7 s in run 1869: three `sync` POSTs) while the measurement form is
+  being filled, and the form's "80 cm" row never appears. The cause is in the app, not the test: a sync that arrives during a
+  half-filled Health form (Measurements tab) appears to reset it; it lives in the sync/Health area (TIER 3) and did not recur
+  on main after #107 (run 1895). Recorded, not chased here (no second sighting to work from); for a session that owns sync.
+- **F-1 (first five).** The setup leaves out of the menu the pages of areas not picked, so "Set a goal" could open a page
+  that says "This page is hidden". A step whose page is out of the menu says "Adds <page> to your menu." and its tap adds the
+  page back first (the banner's own stamped choice).
+- **F-2 (Allow Health).** For a person who set up for Health, NOVA needed three separate switches. NOVA → Permissions shows
+  one "Allow Health" button while Health is closed and Today holds Health; it turns on exactly those three on the person's
+  tap; defaults stay off; each stays a switch. The replies carry the existing open-page action to where the switches are
+  (D-ALLOW-HEALTH); no new action kind, nothing written from a reply.
+- **F-3, F-4, F-5 (the setup card; one day for a night owl).** No "Set up ZIGoals" card after a finished setup. Today's habit
+  count uses the Habits journal's day. Tasks follow "My day ends at" like Habits and the Checklist (the setting's own words
+  now say so); while a day runs past midnight a timed task reads as late. The Agenda's day and NOVA's clock keep the
+  calendar (a clock tells the time).
+- **F-6 (goal kind).** While the kind is still the money default, a name that sounds like a daily number or a count points
+  to "Keep an average" or "Reach a number"; nothing changes until the person taps.
+- **F-MEAL (TIER 3 stored formats; AT D20 carried).** Health's foods and diary are strict schemas in every released build,
+  so a meal in words goes to its own additive device-only Health-type record `zigoals:meal-words:v1` (the meal-estimates
+  precedent): in export, catalogue, welcome check, erase and restore; never synced; not read by ZIGi or NOVA (so they say
+  nothing about it rather than count it as zero). "Just describe it" comes first where the person meets "Log a meal".
+- **D-ETA, D-NL-COINS, D-ALLOW-HEALTH (TIER 3 AI tools; AT D20, D4 carried).** "When will I reach…" leads with the Goal
+  widget's own pace estimate ("an estimate from your pace so far, not a promise"), then the target date; Dutch holdings
+  questions answer in Dutch; ZIGi's Health-closed reply follows the question's language and carries one button.
