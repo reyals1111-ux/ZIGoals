@@ -33,6 +33,8 @@ export const SHARDS_FILE = 'apps/web/playwright.main.shards.ts';
 export const MAIN_SHARDS: readonly (readonly string[])[] = [
   // Shard 1, 54.9 worker-min: about 33.7 min of tests at two workers in file order, 36.1 in any order.
   [
+    // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
+    'au/webkit-au-sanne.spec.ts', 'au/sanne.spec.ts',
     'ah-health-day.spec.ts', 'ah-settings.spec.ts', 'ar-matrix-drag.spec.ts', 'attestation.spec.ts',
     'b3-ai-small.spec.ts', 'checklist-list-ag-polish.spec.ts', 'earn-your-position.spec.ts',
     'export-everything.spec.ts', 'fasting.spec.ts', 'goal-source-allocation.spec.ts',
@@ -64,6 +66,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
   ],
   // Shard 3, 60.3 worker-min: about 30.3 min of tests at two workers in file order, 36.1 in any order.
   [
+    // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
+    'au/webkit-au-max.spec.ts',
     'a11y-wcag-x.spec.ts', 'ah-multitab.spec.ts', 'ah-part18.spec.ts', 'ah-wealth.spec.ts', 'ambient.spec.ts',
     'ap/ap-money-age.spec.ts', 'ap/ap-money-bill-price.spec.ts', 'at/weight-csv-fields.spec.ts',
     'checklist-planet-halo.spec.ts', 'checklist-quick-add.spec.ts', 'counters-compact.spec.ts',
