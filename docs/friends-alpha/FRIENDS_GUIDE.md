@@ -214,6 +214,26 @@ forecast; MET Norway sees your network address and the place rounded to about 1 
 - **Earn:** Zignaly's closure is worded from its own notice by today's date, with the notice linked.
 
 
+## 8i. New from the dress rehearsal (Session AU)
+
+Before you got the Alpha, five made-up people used it for a week each, on a phone and a computer. What got in their way
+is fixed:
+
+- **A meal in words:** Log a meal → **Just describe it**. Calories stay unknown, never zero. "Your first five" ticks it.
+- **Health in NOVA and ZIGi:** one button, **NOVA → Permissions → Allow Health**, instead of three switches. Their
+  "Health is off" replies have a button that takes you there, and ZIGi answers Dutch questions in Dutch.
+- **Night owls:** with "My day ends at" set, Today, Habits, the Checklist, streaks and Tasks all agree on which day it is
+  after midnight. NOVA answers "what day is it?" by your day.
+- **Goals:** a sleep, steps or reading goal is pointed to the right kind, not saved as an amount of money.
+- **Money:** a bill whose price went up is found, and Bills shows the change. A bakery, butcher or grocer in a bank file
+  counts as Groceries. The export's goals and contributions files show amounts as you'd read them ("3000.00").
+- **NOVA and ZIGi answer more of what people asked:** "when will I reach my goal?" (the estimate first, said as one),
+  "what did I lift today?", "how far did I run this week?", "did any bill go up?", "is staking safe?" (facts, never
+  advice), and "hoeveel BTC heb ik?".
+- **Search finds the view-only Bitcoin address** by "watch", "address" or "xpub".
+
+A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
@@ -259,6 +279,14 @@ forecast; MET Norway sees your network address and the place rounded to about 1 
 - **Some records stay on the device when you restore a backup:** AI settings and keys, display choices, Earn progress
   and the staking journal (Help → Known limitations). Everything you record in Goals, Habits, Health, Wealth, Tasks,
   Notes and the Journal comes back.
+
+**Update, 20 Nov 2026 (Session AU):**
+
+- **Health stays closed to NOVA and ZIGi until you open it** (NOVA → Permissions → Allow Health).
+- **A meal in words has no calories;** ZIGi and NOVA don't read it.
+- **"My day ends at"** moves habits, the Checklist, streaks and Tasks; the Agenda's days and NOVA's clock keep the
+  calendar date.
+- **A bank file's shop names** the app doesn't know land in "Other"; change them under To review.
 
 The full list, kept up to date, is in **Help → Known limitations**.
 

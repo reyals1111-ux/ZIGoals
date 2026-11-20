@@ -496,7 +496,7 @@ export function HelpPage() {
     </section>
 
     {/* Session X Part 11: what the Alpha can't do yet, in plain words. Each line is checked against the code or an owner decision. */}
-    <Section id="known-limitations" updated="Nov 18, 2026" eyebrow="KNOWN LIMITATIONS" title="What the Alpha can&rsquo;t do yet">
+    <Section id="known-limitations" updated="Nov 20, 2026" eyebrow="KNOWN LIMITATIONS" title="What the Alpha can&rsquo;t do yet">
       <ul className="help-list">
         <li><strong>Accounts and sync aren&rsquo;t open yet</strong> on alpha.zigoals.app. Until they are, what you enter stays in the browser or installed app you use, and only there. On an iPhone, <a className="text-link" href="#install">install ZIGoals</a> first and tap &ldquo;Keep my data on this device&rdquo;; <Link className="text-link" href="/app/settings#export-everything">Export everything</Link> gives you your own copy any time.</li>
         <li><strong>Reminders when ZIGoals is closed</strong> are opt-in, one device at a time (Settings &rarr; Reminders when closed), and need a signed-in account, so they wait for accounts too. Until then, due reminders show as cards on Today while ZIGoals is open.</li>
@@ -558,7 +558,10 @@ export function HelpPage() {
         {/* Session AT (ADR-043 D15): this release's honest limits. */}
         <li><strong>NOVA answers from your records only:</strong> it can&rsquo;t say why something happened, and it ticks one Checklist item at a time (tick several on the Checklist itself).</li>
         <li><strong>A restore brings back your records, not your device&rsquo;s settings:</strong> AI settings and keys, display choices, Earn progress and the staking journal stay as they are on the device you restore to.</li>
-        <li><strong>Questions about coins in Dutch</strong> (&ldquo;hoeveel BTC heb ik&rdquo;) aren&rsquo;t answered as holdings yet; ask in English.</li>
+        {/* Session AU (ADR-044, the friends dress rehearsal): this release's honest limits; Dutch coin questions are answered now. */}
+        <li><strong>Health stays closed to NOVA and ZIGi until you open it:</strong> NOVA &rarr; Permissions &rarr; Allow Health opens it in one tap, and its switches close it again.</li>
+        <li><strong>A meal in words has no calories:</strong> it counts as a meal you logged, never as zero, and ZIGi and NOVA don&rsquo;t read it.</li>
+        <li><strong>&ldquo;My day ends at&rdquo; moves habits, the Checklist, streaks and Tasks;</strong> the Agenda&rsquo;s days and NOVA&rsquo;s clock keep the calendar date.</li>
 </ul>
       <p className="fine">It&rsquo;s an Alpha: pages can change, and something may break. If it does, please <a className="text-link" href="#feedback">tell us</a>.</p>
     </Section>
