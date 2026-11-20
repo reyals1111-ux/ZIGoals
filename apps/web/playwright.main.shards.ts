@@ -67,6 +67,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
   // Shard 3, 60.3 worker-min: about 30.3 min of tests at two workers in file order, 36.1 in any order.
   [
     // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
+    'au/webkit-au-lina.spec.ts',
+    // Session AU (ADR-044): the persona specs (tests/au/), about 1 worker-minute each.
     'au/webkit-au-max.spec.ts',
     'a11y-wcag-x.spec.ts', 'ah-multitab.spec.ts', 'ah-part18.spec.ts', 'ah-wealth.spec.ts', 'ambient.spec.ts',
     'ap/ap-money-age.spec.ts', 'ap/ap-money-bill-price.spec.ts', 'at/weight-csv-fields.spec.ts',

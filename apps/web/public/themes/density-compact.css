@@ -3074,6 +3074,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .label-scan-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .label-scan p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .label-scan ul:not(#\-) { margin-top: 3px; margin-bottom: 0; }
+/*  components/health/meal-words.css  */
+:where(:root[data-density=compact]) .meal-words-form:not(#\-) { margin-top: 12px; }
+:where(:root[data-density=compact]) .meal-words-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .meal-words-grid:not(#\-) { row-gap: 10.5px; }
+:where(:root[data-density=compact]) .meal-words-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .meal-words-entry:not(#\-) { row-gap: 9px; }
 /*  components/health/measurement-trends.css  */
 :where(:root[data-density=compact]) .measure-trends:not(#\-) { row-gap: 12px; padding-top: 4px; padding-bottom: 0; }
 :where(:root[data-density=compact]) .measure-trend-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }

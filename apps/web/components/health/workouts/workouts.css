@@ -105,3 +105,12 @@
 /* Session AL (P-MO-41, MO-095): on a phone the exercise picker is part of the page's own scroll, not a box that scrolls
    inside it (a double scrollbar). */
 @media (max-width: 767.98px) { .workouts-picker-list { max-height: none; overflow: visible; } }
+/* Session AU (ADR-044 T-7, the rehearsal's Tom at 390): the set table was wider than the card, so the exercise block grew
+   past the screen (its "Remove" cut to "Rem", the done button half outside) and squeezed the set menu to ":". On a phone the
+   table scrolls inside the card (no control is cut and the page never scrolls sideways), and the set menu keeps room for
+   its number. */
+@media (max-width: 520px) {
+  .workouts-exercise { min-width: 0; }
+  .workouts-exercise > .workouts-sets { display: block; max-width: 100%; overflow-x: auto; }
+  .workouts-kind { min-width: 3.6em; }
+}
