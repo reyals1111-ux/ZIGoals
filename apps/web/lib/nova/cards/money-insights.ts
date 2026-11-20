@@ -1,4 +1,5 @@
-import {billPriceChange} from '../../bills/price-change';
+import {billPriceChange, candidatePriceChange, type PriceChange} from '../../bills/price-change';
+import {detectBills, openCandidates} from '../../bills/detect';
 import type {BillsRecord} from '../../bills/schema';
 import {monthKey} from '../../budgets/engine';
 import {readyToAssign} from '../../budgets/ready-to-assign';
@@ -89,13 +90,17 @@ export type BillChangeLine = {id: string; title: string; direction: 'up' | 'down
 export type BillChangesCard = {/** 'empty': no bills kept; 'none': bills kept, no payment differs from the one before it. */ state: 'empty' | 'none' | 'live'; bills: number;
   /** Bills found in the money log: only those have payments to compare. */ fromLog: number; lines: BillChangeLine[]};
 export function billChangesCard(bills: BillsRecord, log: Log, today: string): BillChangesCard {
-  const lines = bills.bills.flatMap((b): BillChangeLine[] => {
-    const c = billPriceChange(b, log.entries, today);
-    if (!c) return [];
+  const line = (id: string, title: string, c: PriceChange): BillChangeLine => {
     const by = cardMoney(c.cents, c.currency), then = cardMoney(c.previous, c.currency), now = cardMoney(c.latest, c.currency), since = formatMonth(c.sinceMonth);
-    return [{id: b.id, title: b.title, direction: c.direction, by, then, now, since, words: `went ${c.direction} by ${by} since ${since} (${then} then, ${now} now)`}];
-  });
-  return {state: !bills.bills.length ? 'empty' : lines.length ? 'live' : 'none', bills: bills.bills.length, fromLog: bills.bills.filter(b => b.origin === 'detected' && !!b.matchKey).length, lines};
+    return {id, title, direction: c.direction, by, then, now, since, words: `went ${c.direction} by ${by} since ${since} (${then} then, ${now} now)`};
+  };
+  // Session AU (ADR-044 D-SHOWCASE, helper E): the bills found in the money log but not confirmed yet count too, as Wealth →
+  // Bills and ZIGi's answer count them (lib/ai/local-answers/exact/money.ts), so the three never disagree.
+  const found = openCandidates(detectBills(log.entries, today), bills);
+  const lines = [...bills.bills.flatMap((b): BillChangeLine[] => { const c = billPriceChange(b, log.entries, today); return c ? [line(b.id, b.title, c)] : []; }),
+    ...found.flatMap((k): BillChangeLine[] => { const c = candidatePriceChange(k, log.entries, today); return c ? [line(k.key, k.title, c)] : []; })];
+  const kept = bills.bills.length + found.length;
+  return {state: !kept ? 'empty' : lines.length ? 'live' : 'none', bills: kept, fromLog: bills.bills.filter(b => b.origin === 'detected' && !!b.matchKey).length + found.length, lines};
 }
 export const billChangesRows = (card: BillChangesCard): [string, string][] => card.lines.length ? card.lines.map(l => [l.title, l.words])
   : [['Bill changes', card.state === 'empty' ? 'No bills kept yet' : card.fromLog ? 'No bill’s latest payment differs from the one before it' : 'None of your bills came from the money log, so there are no payments to compare']];

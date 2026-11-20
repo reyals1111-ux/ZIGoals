@@ -16,6 +16,7 @@ import {allowHealth, novaEnvInfo} from './nova-env';
 import {amount, plural} from './words';
 import {checklistWeek} from './exact/day';
 import {namesNonGoal} from './exact/lexicon';
+import {PRICE_CHANGE} from './exact/money';
 import {dayWords} from './exact/period';
 import {actionSchema} from '../actions/schema';
 import {memoryCategory} from './al-more';
@@ -523,7 +524,9 @@ export function fourthAnswer(question: string, env: ToolEnv | null, lang: Lang, 
   if (MOVERS.test(q)) return movers(env, lang);
   if (/\bprice of (solana|sol)\b|\b(?:solana|sol) price\b/i.test(q)) { const r = deviceAnswer('What is the price of SOL?', env); if (r) return r; }
   if (REWARDS.test(q)) return rewards(env, lang);
-  if (BILLS.test(q)) return bills(env, lang);
+  // Session AU (D8, Showcase price change): "did any of my bills get more expensive" is a price-change question, answered by
+  // the exact layer's price changes (exact/money.ts), not the list of bills due.
+  if (BILLS.test(q) && !PRICE_CHANGE.test(q)) return bills(env, lang);
   if (/\bwhat(?:'s| has)? changed\b[^.?!]{0,20}\b(?:wealth|net worth|holdings|money)\b|\bhow (?:has|did) my (?:wealth|net worth) change\b/i.test(q)) { const r = deviceAnswer('Why did my net worth change this week?', env); if (r) return r; }
   if (/^\s*what changed\s*\??\s*$|\bwhat changed (?:today|lately|recently|this week)\b/i.test(q)) return changed(env, lang);
   // A screen ZIGi can't read here (Settings, a private screen): said, never the examples list (Lisbon ctx-a, ctx-c).

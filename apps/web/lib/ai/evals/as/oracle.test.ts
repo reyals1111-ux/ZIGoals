@@ -63,7 +63,13 @@ test('the money log: this month, yesterday, the largest entry, days without spen
   const cents = (list: typeof entries) => list.reduce((n, e) => n + Math.round(Number(e.amount) * 100), 0), spent = (from: string, to: string) => entries.filter(e => e.kind === 'expense' && e.currency === 'EUR' && e.date >= from && e.date <= to);
   expect(cents(spent('2026-11-01', DAY))).toBe(43559);
   expect(cents(spent('2026-11-16', '2026-11-16'))).toBe(5140);
-  expect(cents(spent('2026-10-01', '2026-10-31'))).toBe(17640);
+  // Session AU (D8, deliberate): October holds the Showcase's €13.99 streaming payment of 25 Oct (lib/showcase/au-examples.ts).
+  expect(cents(spent('2026-10-01', '2026-10-31'))).toBe(19039);
+  expect(spent('2026-10-01', '2026-10-31').filter(e => e.category === 'Subscriptions').map(e => [e.date, e.amount])).toEqual([['2026-10-25', '13.99']]);
+  const last = ask('how much did I spend last month', env).text, compare = ask('did I spend more this month than last month', env);
+  expect(last).toContain(`${(cents(spent('2026-10-01', '2026-10-31')) / 100).toFixed(2)} EUR last month`);
+  expect(compare.facts).toMatchObject({compare: {before: {from: '2026-10-01', to: '2026-10-31', cents: cents(spent('2026-10-01', '2026-10-31'))}}});
+  expect((ask('what did I spend most on last month', env).facts as {totalCents: number}).totalCents).toBe(cents(spent('2026-10-01', '2026-10-31')));
   expect(ask('how much did I spend yesterday', env).facts).toMatchObject({currency: 'EUR', totalCents: 5140});
   const top = ask('what did I spend the most on this month', env).facts as {totalCents: number; categories: {category: string; cents: number}[]};
   expect(top.totalCents).toBe(43559);
@@ -136,4 +142,17 @@ test('Session AU (REHEARSAL R-2, R-3): what was lifted and how far was run, from
   expect(km('2026-11-16', DAY)).toBe(0);
   expect(ask('how far did I run last week', env).facts).toMatchObject({km: 6, count: 1});
   expect(ask('How far did I run this week?', env).facts).toMatchObject({km: 0, count: 0});
+});
+test('Session AU (D8, deliberate): the Showcase bill whose price stepped up, recomputed from the raw money log', () => {
+  type Raw = {id: string; kind: string; amount: string; currency: string; date: string; category: string; note?: string};
+  const entries = (record('zigoals:money-log:v1').entries as Raw[]).filter(e => e.kind === 'expense' && e.date <= DAY);
+  // The same payee, category and currency, one payment per date, oldest first.
+  const series = entries.filter(e => e.note === 'Streaming · SHOWCASE DATA' && e.category === 'Subscriptions' && e.currency === 'EUR').sort((a, b) => a.date.localeCompare(b.date));
+  expect(series.map(e => [e.date, e.amount])).toEqual([['2026-07-26', '12.99'], ['2026-08-25', '13.99'], ['2026-09-25', '13.99'], ['2026-10-25', '13.99']]);
+  const c = (e: Raw) => Math.round(Number(e.amount) * 100), latest = series.at(-1)!, previous = [...series].reverse().find(e => c(e) !== c(latest))!;
+  // No other payee in the log is paid on three dates a month apart, and no confirmed bill comes from the log.
+  expect((record('zigoals:bills:v1').bills as {origin: string}[]).filter(b => b.origin === 'detected')).toEqual([]);
+  const a = ask('Did any bill go up in price?', env);
+  expect(a.facts).toMatchObject({compared: 1, changes: [{bill: 'Streaming', direction: 'up', previousCents: c(previous), latestCents: c(latest), currency: 'EUR', previousDate: previous.date, latestDate: latest.date}]});
+  expect(a.text).toContain(`Streaming went up from €${previous.amount} to €${latest.amount}`);
 });

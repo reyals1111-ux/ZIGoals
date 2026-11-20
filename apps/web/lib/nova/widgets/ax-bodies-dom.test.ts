@@ -23,8 +23,10 @@ const bodies = import.meta.glob<{default: Body}>('../../../components/nova/widge
 /** The Session AS kinds: those the catalogue marks as taking an answer's period. */
 const IDS = WIDGETS.filter(w => w.params?.includes('period')).map(w => w.id);
 const PARAMS: Record<string, () => WidgetParams> = {'habit-missed-days': () => ({ref: habitId('Meditate'), period: 'this-month'}), 'habit-done-days': () => ({ref: habitId('Meditate'), period: 'last-week'}), 'habit-misses': () => ({period: 'this-month'}), 'habits-month': () => ({period: 'this-month'}), 'focus-gauge': () => ({period: 'today'})};
-const NOT_IN_SHOWCASE = new Set(['heart-trend', 'mood-map']);
+// Session AU (D8, deliberate): the Showcase keeps twelve example moods now (lib/showcase/au-examples.ts), so the mood map draws them.
+const NOT_IN_SHOWCASE = new Set(['heart-trend']);
 const SAYS: Record<string, string[]> = {
+  'mood-map': ['12', 'Okay'], // Session AU (D8, deliberate): twelve example moods this month, most often Okay
   'habit-missed-days': ['2', 'days', 'Meditate', '2 skipped', 'today still open', 'Nov 3, Nov 12'],
   'habit-misses': ['1', 'of 7', 'missed', 'Late-night snacks', '2 slipped', '3 skipped'], // owner (carried 8): Late-night snacks is a quit habit
   'habits-month': ['Nov 8', 'Nov 13'],
@@ -66,7 +68,7 @@ describe('the answer widgets (Session AS): every kind, three sizes, the Showcase
       showcase();
       const el = await draw(id, size, PARAMS[id]?.());
       expect(el.querySelector('.nova-reading'), el.textContent ?? '').toBeNull();
-      // The Showcase keeps no resting heart rate and no moods: those kinds say so (an empty notice, its only child), never a figure.
+      // The Showcase keeps no resting heart rate: that kind says so (an empty notice, its only child), never a figure.
       if (NOT_IN_SHOWCASE.has(id)) { expect(el.childElementCount, id).toBe(1); expect(el.firstElementChild!.matches('.nc-notice[data-kind=empty]'), id).toBe(true); expect(el.querySelector('.ax-head-num'), id).toBeNull(); return; }
       const body = el.querySelector('.ax-body')!;
       expect(body, `${id}: a live body on the Showcase: ${el.innerHTML.slice(0, 300)}`).toBeTruthy();

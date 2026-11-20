@@ -66,7 +66,14 @@ describe('every body leaves "Reading…" once its stores have answered', () => {
 describe('round 3: what the captures at 2560 × 1440 showed', () => {
   it('the Showcase’s "no price change found" and "not enough months yet" are notices of their own, with their key', async () => {
     showcase();
+    // Session AU (D8, deliberate): the Showcase's streaming bill gives Spending pace three earlier months, so its "not enough
+    // months yet" notice is drawn from the Showcase's money log without those four payments (five weeks, as before).
+    const key = 'zigoals:showcase:v1:g1:zigoals:money-log:v1', log = JSON.parse(RECORDS['zigoals:money-log:v1']!) as {entries: {note?: string}[]};
+    expect(log.entries.filter(e => e.note === 'Streaming · SHOWCASE DATA')).toHaveLength(4);
     for (const [id, title] of [['bill-changes', 'No price change found'], ['spending-pace', 'Not enough months yet']] as const) {
+      // Session AU (ADR-044 D-SHOWCASE, deliberate): Bill changes now counts the found streaming bill too, so its empty notice is
+      // drawn from the same log without those four payments, as the pace's is.
+      sessionStorage.setItem(key, JSON.stringify({...log, entries: log.entries.filter(e => e.note !== 'Streaming · SHOWCASE DATA')}));
       const el = await draw(id, 'M');
       expect(el.childElementCount, id).toBe(1);
       expect(el.firstElementChild!.matches('.nc-notice[data-kind=empty]'), id).toBe(true);

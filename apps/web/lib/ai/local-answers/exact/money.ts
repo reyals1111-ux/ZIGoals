@@ -126,12 +126,12 @@ export function billsAnswer(q: Query, env: ToolEnv): Exact | null {
  * offered as found in your spending, compares its latest payment with the one before it, in its own currency. None: said so,
  * and why (a bill added by hand has no payments to compare).
  */
-export const PRICE_CHANGE = /\b(?:price|prices|pricier|more expensive|cheaper|went up|go up|gone up|gone down|went down|increase|increased|increases|raised|hike|duurder|goedkoper|prijs|prijzen|gestegen|verhoogd|omhoog gegaan|gedaald)\b/;
+export const PRICE_CHANGE = /\b(?:price|prices|pricier|more expens\w*|expensive|costlier|cheaper|went up|go up|gone up|gone down|went down|increase|increased|increases|raised|hike|duurder|goedkoper|prijs|prijzen|gestegen|verhoogd|omhoog gegaan|gedaald)\b/;
 function priceChanges(q: Query, env: ToolEnv, record: NonNullable<NonNullable<ToolEnv['ak']>['bills']>): Exact {
   const lang = q.lang, today = env.habitDay, entries = env.moneyLog?.entries ?? [], candidates = openCandidates(detectBills(entries, today), record);
   const compared = record.bills.filter(b => b.origin === 'detected' && b.matchKey).length + candidates.length;
   const rows: {title: string; c: PriceChange}[] = [...record.bills.flatMap(b => { const c = billPriceChange(b, entries, today); return c ? [{title: plain(b.title), c}] : []; }), ...candidates.flatMap(k => { const c = candidatePriceChange(k, entries, today); return c ? [{title: plain(k.title), c}] : []; })];
-  const line = (r: typeof rows[number]) => t(lang, `${r.title} went ${r.c.direction} from ${money(r.c.previous, r.c.currency)} to ${money(r.c.latest, r.c.currency)} in ${formatMonth(r.c.latestDate)}`, `${r.title} ging ${r.c.direction === 'up' ? 'omhoog' : 'omlaag'} van ${money(r.c.previous, r.c.currency)} naar ${money(r.c.latest, r.c.currency)} in ${formatMonth(r.c.latestDate)}`);
+  const line = (r: typeof rows[number]) => t(lang, `${r.title} went ${r.c.direction} from ${money(r.c.previous, r.c.currency)} to ${money(r.c.latest, r.c.currency)} since ${formatMonth(r.c.sinceMonth)}`, `${r.title} ging ${r.c.direction === 'up' ? 'omhoog' : 'omlaag'} van ${money(r.c.previous, r.c.currency)} naar ${money(r.c.latest, r.c.currency)} sinds ${formatMonth(r.c.sinceMonth)}`);
   const up = rows.filter(r => r.c.direction === 'up'), down = rows.filter(r => r.c.direction === 'down');
   const facts = {about: 'bills', ask: q.ask, compared, changes: rows.map(r => ({bill: r.title, direction: r.c.direction, previousCents: r.c.previous, latestCents: r.c.latest, currency: r.c.currency, previousDate: r.c.previousDate, latestDate: r.c.latestDate}))};
   const out = (text: string): Exact => ({kind: 'answer', text, facts, widgets: [{id: 'bill-timeline', fallback: 'bills'}], query: q, source: t(lang, 'Your bills and money log', 'Je rekeningen en geldlog')});

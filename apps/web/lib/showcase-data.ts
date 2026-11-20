@@ -93,6 +93,8 @@ import {BILLS_KEY} from './bills/schema';
 import {SYMPTOMS_KEY} from './symptoms/schema';
 import {WORKOUT_SPLITS_KEY} from './workouts/splits-schema';
 import {showcaseRunSplits,showcaseSymptoms} from './showcase/ap-examples';
+import {showcaseMoods,showcaseMoodTags,withShowcaseStreaming} from './showcase/au-examples';
+import {MOOD_TAGS_KEY} from './mood-tags/schema';
 import {BUDGETS_KEY} from './budgets/schema';
 import {showcaseBills,showcaseBudgets} from './bills/showcase';
 import {MONEY_RULES_KEY} from './money-rules/schema';
@@ -234,7 +236,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Session AH Part 6 (DE8): a fictional training log and two routines (lib/workouts/showcase.ts).
  records[WORKOUTS_KEY]=JSON.stringify(showcaseWorkouts(day));
  // Session AI (B3): five weeks of fictional spending and income with a weekly budget (lib/money-log/showcase.ts).
- records[MONEY_LOG_KEY]=JSON.stringify(showcaseMoneyLog(day));
+ // Session AU (D8, ADR-044 D-SHOWCASE): with a labelled streaming bill whose price stepped up once (lib/showcase/au-examples.ts).
+ records[MONEY_LOG_KEY]=JSON.stringify(withShowcaseStreaming(showcaseMoneyLog(day),day));
  // Owner follow-up 2 (G1 #9): a few of that log's own example entries waiting in To review, for card mode.
  records[MONEY_REVIEW_KEY]=JSON.stringify(showcaseMoneyReview(showcaseMoneyLog(day)));
  // Session AK (7.3, 7.7): four fictional bills and three category budgets beside that log (lib/bills/showcase.ts).
@@ -288,6 +291,9 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Session AT (AP D22 minor 7): labelled examples of symptoms and run splits (lib/showcase/ap-examples.ts). Additive, in each
  // record's own format; symptoms stay private like Health (no ZIGi or NOVA context reads them).
  records[SYMPTOMS_KEY]=JSON.stringify(showcaseSymptoms(day));records[WORKOUT_SPLITS_KEY]=JSON.stringify(showcaseRunSplits());
+ // Session AU (D8, ADR-044 D-SHOWCASE): two weeks of example evening moods in Health's own `moods` group, and labelled
+ // "Example · " mood tags on eight of those days (lib/showcase/au-examples.ts); the tags stay unread by ZIGi and NOVA.
+ records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'moods',showcaseMoods(day),false)));records[MOOD_TAGS_KEY]=JSON.stringify(showcaseMoodTags(day));
  return {day,records};
 }
 /**

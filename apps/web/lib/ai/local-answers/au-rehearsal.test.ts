@@ -196,9 +196,9 @@ describe('R-6 (Lina): a bill\'s price change, from the Bills page\'s own notice'
   test('the phone bill went up; EN and NL; ZIGi and NOVA alike', () => {
     for (const env of Object.values(both(lina()))) {
       const a = ask('Did any bill go up in price?', env);
-      expect(a.text).toBe('Fictional Phone went up from €15.00 to €17.50 in Oct 2026. From their payments in your money log, as Bills → Price changes shows them.');
+      expect(a.text).toBe('Fictional Phone went up from €15.00 to €17.50 since Sep 2026. From their payments in your money log, as Bills → Price changes shows them.');
       expect(a.facts).toMatchObject({changes: [{bill: 'Fictional Phone', direction: 'up', previousCents: 1500, latestCents: 1750, currency: 'EUR', latestDate: '2026-10-15'}]});
-      expect(text('Is een rekening duurder geworden?', env)).toBe('Fictional Phone ging omhoog van €15.00 naar €17.50 in Oct 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.');
+      expect(text('Is een rekening duurder geworden?', env)).toBe('Fictional Phone ging omhoog van €15.00 naar €17.50 sinds Sep 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.');
     }
   });
 });

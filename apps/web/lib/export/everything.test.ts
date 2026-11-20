@@ -86,7 +86,9 @@ describe('T4 export everything', () => {
     expect(new TextDecoder().decode(entries[5]!.data)).toBe(collected.csv['check-ins.csv']);
     const readme = new TextDecoder().decode(entries[1]!.data);
     expect(readme).toMatch(/check-ins\.csv: \d+ rows/);
-    expect(readme).toContain('moods.csv: no rows, nothing recorded yet');
+    // Session AU (D8, deliberate): the Showcase now keeps twelve example moods, so a header-only file is vitals.csv.
+    expect(readme).toContain('vitals.csv: no rows, nothing recorded yet');
+    expect(readme).toContain('moods.csv: 12 rows');
   });
   test('readEverything reads every key as stored and writes nothing', async () => {
     const {records} = buildShowcase('2026-09-20');

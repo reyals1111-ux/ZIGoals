@@ -123,7 +123,8 @@ export const MONEY: readonly Intent[] = [
   {id: 'goal-japan-eta', pillar: 'goals', never: ['At your current pace', 'In je huidige tempo', 'With your plan'],
     en: ['when will I reach my Japan adventure goal', 'how long until my japan adventure goal is done'],
     nl: ['wanneer haal ik mijn doel japan adventure', 'hoe lang duurt het nog tot mijn doel japan adventure klaar is']},
-  // Session AU (REHEARSAL R-6, R-7, R-8, R-10, R-11): a bill's price change (none in the Showcase; one in au-rehearsal.test.ts);
+  // Session AU (REHEARSAL R-6, R-7, R-8, R-10, R-11): a bill's price change (the Showcase's streaming bill, €12.99 → €13.99,
+  // Session AU (D8, deliberate); another in au-rehearsal.test.ts);
   // a coin's price is not the person's holdings; what staking would earn and whether it is safe: facts, never advice, no
   // number without Earn's measured rate; when the next bill is due (it was read as a goal called "next bill be").
   {id: 'au-r6-bill-price', pillar: 'wealth', never: ['fall due in the next'],

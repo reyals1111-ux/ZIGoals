@@ -3743,8 +3743,8 @@
   "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
  },
  "spend-lastmonth": {
-  "en": "You spent 176.40 EUR last month. Biggest: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf vorige maand 176.40 EUR uit. Grootste: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "en": "You spent 190.39 EUR last month. Biggest: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
+  "nl": "Je gaf vorige maand 190.39 EUR uit. Grootste: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
@@ -3843,8 +3843,8 @@
   "freshNl": "Nog geen uitgaven gelogd."
  },
  "spend-top-lastmonth": {
-  "en": "€176.40 spent last month (Thu, Oct 1 to Sat, Oct 31); most on Groceries €80.90 (46%), Gifts €58.00 (33%), Food & drink €22.50 (13%) and Health €15.00 (9%).",
-  "nl": "€176.40 uitgegeven vorige maand (Thu, Oct 1 t/m Sat, Oct 31); het meest aan Groceries €80.90 (46%), Gifts €58.00 (33%), Food & drink €22.50 (13%) en Health €15.00 (9%).",
+  "en": "€190.39 spent last month (Thu, Oct 1 to Sat, Oct 31); most on Groceries €80.90 (42%), Gifts €58.00 (30%), Food & drink €22.50 (12%) and Health €15.00 (8%).",
+  "nl": "€190.39 uitgegeven vorige maand (Thu, Oct 1 t/m Sat, Oct 31); het meest aan Groceries €80.90 (42%), Gifts €58.00 (30%), Food & drink €22.50 (12%) en Health €15.00 (8%).",
   "facts": {
    "about": "spending",
    "ask": "best",
@@ -3854,8 +3854,8 @@
     "to": "2026-10-31"
    },
    "currency": "EUR",
-   "totalCents": 17640,
-   "entries": 5,
+   "totalCents": 19039,
+   "entries": 6,
    "categories": [
     {
      "category": "Groceries",
@@ -3872,6 +3872,10 @@
     {
      "category": "Health",
      "cents": 1500
+    },
+    {
+     "category": "Subscriptions",
+     "cents": 1399
     }
    ]
   },
@@ -3948,8 +3952,8 @@
   "freshNl": "Nog geen uitgaven gelogd."
  },
  "spend-compare-months": {
-  "en": "€435.59 spent this month; €176.40 last month, €259.19 more.",
-  "nl": "€435.59 uitgegeven deze maand; €176.40 vorige maand, €259.19 meer.",
+  "en": "€435.59 spent this month; €190.39 last month, €245.20 more.",
+  "nl": "€435.59 uitgegeven deze maand; €190.39 vorige maand, €245.20 meer.",
   "facts": {
    "about": "spending",
    "ask": "compare",
@@ -4000,7 +4004,7 @@
     "before": {
      "from": "2026-10-01",
      "to": "2026-10-31",
-     "cents": 17640
+     "cents": 19039
     }
    }
   },
@@ -4974,13 +4978,23 @@
   "freshNl": "Je hebt nog geen doelen."
  },
  "au-r6-bill-price": {
-  "en": "No price change can be seen: a bill’s price is compared between its own payments in your money log, and none of your bills is linked to payments there (a bill added by hand is not).",
-  "nl": "Geen prijswijziging te zien: de prijs van een rekening wordt vergeleken tussen de eigen betalingen in je geldlog, en geen van je rekeningen is daar aan betalingen gekoppeld (een rekening die je zelf toevoegde niet).",
+  "en": "Streaming went up from €12.99 to €13.99 since Jul 2026. From their payments in your money log, as Bills → Price changes shows them.",
+  "nl": "Streaming ging omhoog van €12.99 naar €13.99 sinds Jul 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.",
   "facts": {
    "about": "bills",
    "ask": "done",
-   "compared": 0,
-   "changes": []
+   "compared": 1,
+   "changes": [
+    {
+     "bill": "Streaming",
+     "direction": "up",
+     "previousCents": 1299,
+     "latestCents": 1399,
+     "currency": "EUR",
+     "previousDate": "2026-07-26",
+     "latestDate": "2026-10-25"
+    }
+   ]
   },
   "widgets": [
    "bill-timeline"

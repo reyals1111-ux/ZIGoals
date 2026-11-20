@@ -46,8 +46,10 @@ test('steps heat: 13 weeks from Monday 24 August, lit by the 8,000 target; the g
   const low = stepsHeat({...health, activity: health.activity.map(a => a.date === '2026-11-13' ? {...a, steps: 3000} : a)}, DAY);
   expect(low.weeks.flat().find(c => c.date === '2026-11-13')!.level).toBe(1);
 });
-test('the mood map: the Showcase keeps no mood; with moods, a month of days by their own step and counts in words', () => {
-  expect(moodMap(health.moods?.days ?? {}, undefined, DAY)).toMatchObject({any: false, logged: 0});
+test('the mood map: the Showcase keeps twelve example moods; with moods, a month of days by their own step and counts in words', () => {
+  // Session AU (D8, deliberate): the Showcase's example moods, Nov 4 – Nov 16 without Nov 11 (lib/showcase/au-examples.ts).
+  expect(moodMap(health.moods?.days ?? {}, undefined, DAY)).toMatchObject({any: true, logged: 12, counts: [0, 2, 5, 3, 2]});
+  expect(moodMap(health.moods?.days ?? {}, undefined, DAY).words).toMatchObject({figure: '12', note: 'Most often: Okay (5 days)'});
   const days = {'2026-11-02': {mood: 4}, '2026-11-03': {mood: 4}, '2026-11-09': {mood: 2}, '2026-11-17': {mood: 5}, '2026-10-30': {mood: 1}};
   const view = moodMap(days, undefined, DAY);
   expect(view).toMatchObject({logged: 4, counts: [0, 1, 0, 2, 1], any: true}); // 30 October is outside this month
@@ -105,7 +107,7 @@ test('every Health answer widget has its line, in English and Dutch: one or two 
   expect(nl('fasting-windows')).toBe('Laatste vastenperiode: 16 h van een doel van 16 h, begonnen op Nov 16. Er loopt geen vastenperiode.');
   expect(en('steps-heat')).toBe('Steps: 7,535 a day on average over the last 13 weeks, on 56 of 86 days logged. Your target of 8,000 was reached on 25.');
   expect(en('health-compare')).toBe('Steps: 16,900 steps this week; 14,100 steps the period before (Mon, Nov 9 to Tue, Nov 10), 2,800 steps more.');
-  expect(en('heart-trend')).toBe('No heart rate is recorded yet.'); expect(nl('mood-map')).toBe('Nog geen stemming bewaard.');
+  expect(en('heart-trend')).toBe('No heart rate is recorded yet.'); expect(nl('mood-map')).toBe('Een stemming bewaard op 12 dagen deze maand; meestal Oké (5 dagen).'); // Session AU (D8, deliberate): the Showcase's example moods
   expect(AX_HEALTH_LINES['health-compare']!({ref: 'water'}, data, 'en', NOW)).toMatch(/^Water: 3,100 mL this week; 2,100 mL the period before/);
   // Records that were not read give no line (the widget says why).
   expect(AX_HEALTH_LINES['health-scan']!(undefined, {gateOpen: () => true, day: DAY, healthDay: DAY} as unknown as LineData, 'en', NOW)).toBeNull();
