@@ -193,5 +193,51 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
   runs). It now fails as itself and the orbit keeps working (`components/checklist/checklist-page.tsx`; the orbit path is
   untouched). Journey 4 offline 12 of 12 after.
 
+- **D-PWA follow-up (Part 5's weight pass).** The recovery that Part 2 put in every page's first scripts (2.3 kB: run 1929
+  put Goals, Habits and Health over budget) is split: the shell keeps only the detector and the edit tracker
+  (`lib/sw/stale-code.ts`); what to do about a failure (`lib/sw/update-recovery.ts`) is fetched once the page is idle, so it is
+  already in memory when a deploy removes its file (without that warm fetch the reload became the note: found by
+  `av-update`). The update spec now "deploys" once the page has settled (network idle), as a real deploy meets it.
+- **D-KEEP ([TIER 3] (stored formats), Part 3; amendment 5).** iPhone storage, verified from Apple's own words
+  (docs/friends-alpha/IOS_STORAGE.md, WWDC23 "What's new in web apps": a Home Screen web app has "separate cookies and
+  storage from the browser"; MDN: Safari deletes script-written data after seven days of use without a visit). So:
+  (1) once the person has saved a record of their own, the site asks the browser once to keep its data
+  (`navigator.storage.persist()`), only where that never prompts (not Firefox, which keeps Settings' tap; this supersedes
+  owner decision L3, approved in amendment 5); never on view, never in the Showcase. (2) A calm card, at most one at a time,
+  below Today's hero in "For you" (on its own when For you is off): in a Safari tab on an iPhone "Keep your records on this
+  iPhone" (export a backup here, add to the Home Screen, open it there and restore; Got it / Remind me later, back after
+  seven days); with nothing recorded yet "Use ZIGoals from your Home Screen"; in the Home Screen app with nothing in it
+  "Coming from Safari?" with "Restore a backup from Safari" (to Settings → Your data → Restore); elsewhere, after 25 new
+  records since the last copy made here, "Keep a copy of what you've added" (one-tap "Export a backup" — the whole Export
+  everything, moved unchanged into `lib/export/make-everything.ts` and shared with Settings — "Not now" quiet for 14 days,
+  "Turn these reminders off" = Settings' switch). It waits while the one-time "What's new" card is on Today, folds to one row
+  on a phone (Today's phone length stays under its ceiling: today-screens), and has no motion of its own. Stored data: only
+  optional fields on the existing loose, versioned, device-only `zigoals:backup-reminder:v1` (already in Export everything
+  and the catalogue; never synced): `countAt`, `remindedOn`, `persistAskedOn`, `persistResult`, `iosNoteDoneOn`,
+  `iosNoteLaterOn`, `restoreOfferDoneOn`; the frozen-reader fixture carries them and #37–#57 PASS. Specs:
+  `av-keep-data` (computer), `webkit-av-keep` (iPhone, also in the WebKit set's shortest list).
+- **D-WEIGHT (Part 5).** Baseline (this branch, before AV): Health 0.0 kB under its budget, Goals 0.7, Habits 1.3, Markets
+  2.6, Settings 3.9, Tasks 4.4, Agenda 4.8, Today 6.6. Measured with a local source-map build (not kept) what every page's
+  first scripts hold. Kept: the fasting timer is Health's own chunk; push schedule sync loads with its first run (it does
+  nothing without a push record); the hover glass is fetched as the shell module runs and drawn when in; ZIGi's launcher, the
+  music player and the ambient and Earn pills load right after the first paint, and a tap made for ZIGi or the player before
+  its chunk arrives is kept and replayed once (`lib/early-events.ts`; the phone's Apps & extras → ZIGi and More → player
+  specs failed without it). Result: every route has at least 6.3 kB of headroom (Goals 471.7 of 478, Habits 497.1 of 504,
+  Markets 467.0 of 476, Tasks 458.2 of 468), no budget raised. Tried and reverted: (a) the account-sync engine
+  (`vault-sync-controls`, about 80 kB with its vault code) out of the shell, loaded after the first paint — it gave every
+  page 25+ kB, but a remembered device then failed to reopen in the cross-tab step of
+  `remember-device-browser` (2 of 2; build A 2 of 2 passed), so it is not shipped (TIER 3 sync, carried for a session that
+  owns sync, with this evidence); (b) the hover glass without the early fetch (a hover check failed).
+- **L-6 (AU carried).** The CSV and bank-file import previews have a Category column: each row's category as the import
+  will add it (read from payee and note, then the person's rules: `previewCategory`, the same code path as the import, a
+  unit test proves equality), changeable per row; the person's choice wins after the rules (`withChosenCategories`,
+  `toMoneyEntries` now also says which file row each entry came from).
+- **D-STAR-BUTTON (AU carried).** At 1440 a Health-closed on-device answer under NOVA's star carries "Open NOVA →
+  Permissions" in its own row of links (the conversation's reply already did); nothing else in the composition moves
+  (`p3-nova-polish`'s layout audit 78 of 78; `av-star-permissions` EN and NL).
+- **AT D20 minors.** Fixed: Agenda's future days say no "(0 done)"; Wealth's "Refresh prices" waits for a priced holding
+  (it stood disabled, saying nothing); a goal with no money going in says no "$0.00 a month"; Tasks' filter comes once
+  there is a task. The rest go to the unfinished-feature audit (Part 4b) with their status.
+
 ## Closing table
 (filled at the end)
