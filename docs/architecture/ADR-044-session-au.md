@@ -144,7 +144,7 @@ code only; builds and browser runs one at a time.
 | Item | Verdict | Where |
 |---|---|---|
 | The dress rehearsal: 5 personas × 390/1440 × Nebula + a second theme, day 1, 2, 7 on a production build | Done: 20 walks (+ reruns), 5 fresh reviews, 57 rows | REHEARSAL.md |
-| Blockers and Majors from the rehearsal | Fixed (every Blocker; 32 of 33 Majors), each proven by a persona spec or a unit/corpus case; 1 Major carried (L-6, import preview categories) | REHEARSAL.md, tests/au/ |
+| Blockers and Majors from the rehearsal | Fixed (every Blocker a reviewer named; 33 of 34 Majors), each proven by a persona spec or a unit/corpus case; 1 Major carried (L-6, import preview categories) | REHEARSAL.md, tests/au/ |
 | Wrong or vague NOVA/ZIGi answers | Fixed as cases: R-1…R-14, T-12 | lib/ai/evals/as, au-rehearsal.test.ts |
 | Privacy: NOVA's glance read Health while closed | Fixed (T-6) | tom.spec |
 | AT carried: a meal in words alone | Fixed (F-MEAL, TIER 3 stored formats, additive) | webkit-au-sanne, meal-words tests, frozen readers #37–#57 |
