@@ -32,7 +32,12 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   // buttons, Settings folded, planning, money, Health, Send feedback's details); Session AM's NOVA stage line follows;
   // the twelve before them stay, each still opening its answer (12 → 22 with both sessions).
   // Session AT (ADR-043 D15, deliberate): two lines first, NOVA's answers and the example pictures, each opening its answer (22 → 24).
-  await expect(list.getByRole('link')).toHaveCount(24);
+  // Session AV (ADR-045 Part 8, deliberate): three lines first, keeping your records on your phone, new versions and the
+  // import's categories, each opening its answer (24 → 27).
+  await expect(list.getByRole('link')).toHaveCount(27);
+  await expect(list.getByRole('link', {name: /^Keep your records safe on your phone/})).toHaveAttribute('href', '#help-av-keep');
+  await expect(list.getByRole('link', {name: /^A new version arrives without losing your place/})).toHaveAttribute('href', '#help-av-updates');
+  await expect(list.getByRole('link', {name: /^Check each category before an import/})).toHaveAttribute('href', '#help-av-import-categories');
   await expect(list.getByRole('link', {name: /^NOVA answers the question you ask/})).toHaveAttribute('href', '#help-nova-answers');
   await expect(list.getByRole('link', {name: /^Example pictures of the main pages/})).toHaveAttribute('href', '#help-at-screens');
   await expect(list.getByRole('link', {name: /^NOVA makes a widget for what you ask/})).toHaveAttribute('href', '#help-nova-stage');

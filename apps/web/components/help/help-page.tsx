@@ -28,6 +28,10 @@ const TOPICS: [id: string, label: string][] = [
 /** Session AL (PR-034): this version's answers, as Today's What's new card lists them (that file is a client module, so
  * the list is repeated here; lib/search/help-whats-new.test.ts keeps the two in step). */
 export const THIS_VERSION: readonly [id: string, label: string][] = [
+  // Session AV (ADR-045 Part 8): the newest answers first; Today's What's new card keeps its own list.
+  ['av-keep', 'Keep your records safe on your phone, and a copy when you have added a lot'],
+  ['av-updates', 'A new version arrives without losing your place'],
+  ['av-import-categories', 'Check each category before an import'],
   // Session AT (ADR-043, 18 Nov): the newest answers first; Today's What's new card keeps its own list.
   ['nova-answers', 'NOVA answers the question you ask, in words and with its own widget'],
   ['at-screens', 'Example pictures of the main pages, in your theme'],
@@ -88,7 +92,7 @@ export function HelpPage() {
     <HelpSearch/>
     <HelpTopics topics={TOPICS}/>
 
-    <Section id="getting-started" updated="Nov 18, 2026" eyebrow="GETTING STARTED" title="Three small first steps">
+    <Section id="getting-started" updated="Nov 20, 2026" eyebrow="GETTING STARTED" title="Three small first steps">
       <ol className="help-steps">
         <li><strong>Your first Goal.</strong> In <Link className="text-link" href="/app/goals">Goals</Link>, choose <strong>+ Create a goal</strong>: name it, pick what you are aiming for, and follow the steps.</li>
         <li><strong>Your first Habit.</strong> In <Link className="text-link" href="/app/habits">Habits</Link>, choose <strong>+ New habit</strong>, start from a template or your own title, and tap it each day you do it.</li>
@@ -97,6 +101,10 @@ export function HelpPage() {
       <p>Today brings them together. Want the guided tour again? <Link className="text-link" href="/app/welcome">Show the welcome</Link>.</p>
       {/* Session AT (ADR-043 D14; backlog #12): example screenshots, inside the answer, loaded only when it is opened. */}
       <HelpQuestion id="at-screens" question="What do the main pages look like?"><HelpScreenshots/></HelpQuestion>
+      {/* Session AV (ADR-045 Part 8): this session's three answers. No link inside: Help's in-sentence link count is pinned. */}
+      <HelpQuestion id="av-keep" question="How do I keep my records safe on my phone?"><p>Your records live in this browser or app, on this device. On an iPhone or iPad, Safari can clear a website&rsquo;s records after seven days without a visit, and ZIGoals on your Home Screen keeps its own storage, separate from Safari&rsquo;s tabs. So Today shows a short card in Safari: export a backup there, add ZIGoals to your Home Screen (Share, then Add to Home Screen), open it from its icon and restore the backup (Settings &rarr; Your data &rarr; Restore from a backup). The Home Screen app&rsquo;s first visit offers &ldquo;Restore a backup from Safari&rdquo;, so your records are never lost on the way. Where the browser allows it without asking you, ZIGoals also asks it once to keep this site&rsquo;s records. Elsewhere, once you have added a good amount since your last copy, Today offers one readable backup in one tap, at most every two weeks; &ldquo;Not now&rdquo; waits two weeks and &ldquo;Turn these reminders off&rdquo; ends them. The backup is made on your device and holds your records, Health included: keep it private.</p></HelpQuestion>
+      <HelpQuestion id="av-updates" question="What happens when a new version of ZIGoals comes out?"><p>Nothing is lost. A page you open after the new version is out is the new version. If you had ZIGoals open, it says &ldquo;A new version of ZIGoals is ready&rdquo; with a Reload button when you come back to it. If a part of the old version can no longer be loaded, ZIGoals reloads once by itself and says &ldquo;Updated to the newest version.&rdquo; It never does that while you are typing, have a form, sheet or confirm card open, or are offline: then it shows the Reload note and waits for you.</p></HelpQuestion>
+      <HelpQuestion id="av-import-categories" question="Can I check the categories before an import?"><p>Yes. When you import a bank file or a CSV on Wealth, the preview shows each row&rsquo;s category as it will be added: read from the payee and note, then your own rules. Change any of them right there, and the entry gets the one you chose. After the import the entries are also listed under To review, as before.</p></HelpQuestion>
     </Section>
 
     <Section id="data-and-sync" updated="Nov 4, 2026" eyebrow="YOUR DATA AND SYNC" title="Where your data lives">
@@ -498,7 +506,7 @@ export function HelpPage() {
     {/* Session X Part 11: what the Alpha can't do yet, in plain words. Each line is checked against the code or an owner decision. */}
     <Section id="known-limitations" updated="Nov 20, 2026" eyebrow="KNOWN LIMITATIONS" title="What the Alpha can&rsquo;t do yet">
       <ul className="help-list">
-        <li><strong>Accounts and sync aren&rsquo;t open yet</strong> on alpha.zigoals.app. Until they are, what you enter stays in the browser or installed app you use, and only there. On an iPhone, <a className="text-link" href="#install">install ZIGoals</a> first and tap &ldquo;Keep my data on this device&rdquo;; <Link className="text-link" href="/app/settings#export-everything">Export everything</Link> gives you your own copy any time.</li>
+        <li><strong>Accounts and sync aren&rsquo;t open yet</strong> on alpha.zigoals.app. Until they are, what you enter stays in the browser or installed app you use, and only there. On an iPhone, <a className="text-link" href="#install">install ZIGoals</a> first and tap &ldquo;Keep my data on this device&rdquo;; <Link className="text-link" href="/app/settings#export-everything">Export everything</Link> gives you your own copy any time. Safari on an iPhone can clear a website&rsquo;s records after seven days without a visit, and the Home Screen app keeps its own storage: Today shows how to move your records there with a backup.</li>
         <li><strong>Reminders when ZIGoals is closed</strong> are opt-in, one device at a time (Settings &rarr; Reminders when closed), and need a signed-in account, so they wait for accounts too. Until then, due reminders show as cards on Today while ZIGoals is open.</li>
         <li><strong>Only staking moves ZIG, and only in your own wallet.</strong> Stake, unstake, move stake, claim rewards, governance votes and permission revokes are signed in Keplr after a review screen, on the practice network (no real value) or the real one, as you choose; ZIGoals never holds keys, nothing is bought, sold or sent by ZIGoals, and Wealth and Portfolio show what you enter and public data.</li>
         <li><strong>Prices</strong> come from CoinGecko and can be missing for a while; a missing price stays &ldquo;unknown&rdquo;, never zero.</li>

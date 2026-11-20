@@ -234,6 +234,20 @@ is fixed:
 
 A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
 
+## 8j. New in this release (Session AV, "Alpha quality")
+
+- **Your records stay safe on your phone.** On an iPhone in Safari, Today shows how to move to the Home Screen app (which
+  keeps its own storage): export a backup, add ZIGoals to your Home Screen, open it there and restore. The Home Screen app's
+  first visit offers "Restore a backup from Safari". Elsewhere, after you have added a good amount, Today offers one
+  readable backup in one tap (at most every two weeks, with an off switch).
+- **New versions arrive calmly.** An open ZIGoals says "A new version of ZIGoals is ready · Reload"; if part of the old
+  version can't load any more it reloads once by itself and says "Updated to the newest version." Never while you type.
+- **Check categories before an import.** The bank-file and CSV preview shows each row's category and lets you change it.
+- **NOVA at a computer:** a Health question asked while Health is closed now has "Open NOVA → Permissions" right under the
+  star, one tap to Allow Health.
+- Small things: a day still to come in the Agenda shows no "(0 done)"; "Refresh prices" appears once something is priced;
+  a goal with nothing going in shows no "$0.00 a month"; Tasks' filter appears once you have a task.
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.

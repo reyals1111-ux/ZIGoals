@@ -1,7 +1,8 @@
 # Friends Alpha: your weekend checklist
 
 Rewritten 18 Nov 2026 (Session AT, ADR-043) from the code on `main` (`3d510124`, PR #106 merged) and Session AT's
-[PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107). One ordered list: tick each box as you go. Every step says how
+[PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107); step 1 checked again 20 Nov 2026 (Session AV, ADR-045) against
+[PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108). One ordered list: tick each box as you go. Every step says how
 long it takes, where you do it, the command or click path, and how you know it is done. The linked runbook has the
 details. **No secrets or real values belong in this file, a PR, a chat or a screenshot.** Agents never merge, dispatch or
 deploy for you (CLAUDE.md).
@@ -21,11 +22,13 @@ All commands run from the repository root of a clean checkout of the release SHA
 ---
 
 ### ☐ 1. The release you will invite friends to · 10 min (+ about 45 min of workflow) · GitHub
-- **If you merge Session AT ([PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107)) first:** merge with a merge
-  commit, wait for "Milestone quality" on `main` to be green, then Actions → **Manual Alpha deployment** → Run workflow
-  on `main`, `expected_commit` = the new `main` SHA, tick `owner_approval`, read the summary, approve `alpha`.
-  Runbook: [MANUAL_ALPHA_WORKFLOW.md](../deployment/MANUAL_ALPHA_WORKFLOW.md), "Every deployment".
-- **If not:** the newest Alpha (#57, from `3d510124`) is the release.
+- **If you merge Sessions AU + AV ([PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108)) first** (checked
+  20 Nov by Session AV against its final code): merge with a merge commit, wait for "Milestone quality" on `main` to be
+  green, then Actions → **Manual Alpha deployment** → Run workflow on `main`, `expected_commit` = the new `main` SHA, tick
+  `owner_approval`, read the summary, approve `alpha`. Runbook: [MANUAL_ALPHA_WORKFLOW.md](../deployment/MANUAL_ALPHA_WORKFLOW.md),
+  "Every deployment". A friend who still has #57 open gets "A new version of ZIGoals is ready · Reload" and never a crash
+  (Session AV Part 2).
+- **If not:** the newest Alpha (#57, from `836534c3`, Session AT) is the release.
 - **Done when:** Settings on https://alpha.zigoals.app shows the release SHA as its build (as the workflow summary says). Send the new version id
   and the rollback id to the next session (docs/STATUS.md records them; frozen readers gain the release).
 - Copy the release's full 40-character SHA: it is `<SHA>` below.

@@ -105,6 +105,10 @@ export const HELP_TOPICS: readonly [string, string][] = [
 /** [question id, question] as components/help/help-page.tsx's HelpQuestion elements. */
 export const HELP_QUESTIONS: readonly [string, string][] = [
   ["at-screens", "What do the main pages look like?"],
+  // Session AV (ADR-045 Part 8).
+  ["av-keep", "How do I keep my records safe on my phone?"],
+  ["av-updates", "What happens when a new version of ZIGoals comes out?"],
+  ["av-import-categories", "Can I check the categories before an import?"],
   ["your-ai-what", "What does ZIGi send, and to whom?"],
   ["your-ai-writes", "Can ZIGi change my records?"],
   ["your-ai-cost", "What does it cost?"],

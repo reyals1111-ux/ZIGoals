@@ -4,6 +4,10 @@ A two-minute read. ZIGoals is an Alpha: some things are unfinished, and what you
 
 ## Day 1: about five minutes
 
+0. **On an iPhone or iPad:** open ZIGoals in Safari, tap **Share → Add to Home Screen**, and from then on open it from its
+   icon. Safari can clear a website's records after seven days without a visit; the Home Screen app keeps its own storage.
+   Already started in Safari? Today shows a short card: export a backup there, then open ZIGoals from your Home Screen and
+   restore it (the Home Screen app offers "Restore a backup from Safari" on its first visit).
 1. Open **Today** and tap **Start setup**. Pick what you want to work on (habits, health, money). You can skip any step.
 2. **Your first five** on Today shows five small steps. Each one opens the right form and ticks itself when you add
    something. If a step's page isn't in your menu yet, the step says so and adds it.
@@ -28,15 +32,22 @@ so ticking things off at 1:30 still counts for "today".
 
 ## Money
 
-- **Import from your bank** on Wealth reads CSV, CAMT, OFX and MT940 files. Check **To review** afterwards: a shop the app
-  doesn't recognise lands in "Other" until you change it.
+- **Import from your bank** on Wealth reads CSV, CAMT, OFX and MT940 files. The preview shows each row's category before
+  anything is added: change any of them there (a shop the app doesn't recognise starts as "Other"). They are listed under
+  **To review** afterwards too.
 - Bills that come back each month are offered as bills. If a bill's price changes, Bills shows it.
 - Earn and Markets are to look at. Nothing moves unless you sign it yourself, in your own wallet.
 
 ## Day 7: keep a copy
 
 Settings → **Export everything** makes a readable file of your records on your device. Keep it somewhere private; it can
-be restored later (Settings → Your data → Restore from a backup).
+be restored later (Settings → Your data → Restore from a backup). Once you have added a good amount since your last copy,
+Today offers the same backup in one tap (at most every two weeks; "Not now" waits, and you can turn it off).
+
+## When a new version comes out
+
+Nothing is lost. If ZIGoals was open, it says "A new version of ZIGoals is ready" with **Reload**. If it reloads by itself
+it says "Updated to the newest version." It never does that while you are typing or have a form open.
 
 ## Something odd?
 
