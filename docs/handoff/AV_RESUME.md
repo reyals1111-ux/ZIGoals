@@ -16,17 +16,13 @@ Parts 1–6 and the first pass of 8 green and pushed before Part 7. A Part 7 fea
   at most 2 workers, one run at a time.
 
 ## Done
-- Part 0 `609714b3`. Part 1 `111c42f7`, `de32b3fc` (D36, D34, D-DV; D-SYNC carried). Part 2 `bfe18cf5`, `04ca70b1`,
-  `dadb7c23` (two builds 10 of 10), `3ae87fbd` (recovery split, warm fetch).
-- Part 3 `8b0853eb` (TIER 3 stored formats: persist, iPhone cards, copy offer; frozen readers #37–#57 PASS).
-- Part 5 `bc0ca218`: every route ≥ 6.3 kB headroom (lazy launcher/player/pills/glass, fasting timer, push sync).
-  The lazy account-sync engine was tried and reverted (remember-device-browser 2 of 2 red) — ADR D-WEIGHT.
-- Part 4 `0250512c`: L-6, the star's Permissions link, four D20 minors.
+- Parts 0–6 and Part 8's first pass pushed (`943b4464`); see ADR-045's closing table. Part 4b audit: UNFINISHED.md.
+- Part 7: COMPETITORS.md; F-PROMPT `cadae4e8`, F-YEAR `3d2d12ce` (committed; pushed after CI 1932 is read).
+- Two real builds proof re-run on the final recovery: 10 of 10.
 
 ## In progress
-- Part 4 rest (D20 minors in the audit), Part 4b audit (docs/review/session-av/UNFINISHED.md), Part 6 a11y, Part 8 first pass.
+- Read CI 1932 (`943b4464`); then push Part 7 and the final docs; read the run on the final head.
 
 ## Next
-- Part 7 (COMPETITORS.md matrix, then up to 16 features, each complete or not wired), Part 8 final, END (ADR closing
-  table, STATUS entry last, report ≤ 12 lines).
-- Re-run `scripts/av/two-builds.mjs` once on the final code (two builds) — the recovery is now loaded on idle.
+- If time: the next shortlisted features from COMPETITORS.md, each complete or not wired.
+- END: STATUS entry as the final commit; PR body; report ≤ 12 lines.

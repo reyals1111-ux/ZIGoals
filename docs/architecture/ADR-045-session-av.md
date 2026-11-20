@@ -239,5 +239,39 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
   (it stood disabled, saying nothing); a goal with no money going in says no "$0.00 a month"; Tasks' filter comes once
   there is a task. The rest go to the unfinished-feature audit (Part 4b) with their status.
 
+- **D-A11Y (Part 6).** The Session AK sweep already runs axe on every route × Nebula/Light/Dark × empty/Showcase × 1440/390
+  and a keyboard walk of every route (p6-axe-all, p6-keyboard; CI's a11y shards, green). Added (`tests/av-a11y.spec.ts`):
+  the brief's flows by keyboard alone (Your first five → a meal in words, a habit, a money record, NOVA, Settings), each
+  stop on screen, lit (focused ≠ resting look, the field's frame counted) and not under a bar; twelve pages at 320 px and
+  at 200 % text zoom with nothing wider than the window; axe on the keep card and the import preview's categories in three
+  themes. No serious or critical finding.
+- **D-AUDIT (Part 4b).** `docs/review/session-av/UNFINISHED.md`: 150 rows; eight finished here (disabled controls that now
+  say why, ZIGi's memory page in search, "Balanced" explained, the habits week's empty state, the marked copy's day in Your
+  data); the rest each with its status and cause.
+- **D-COMPETITORS (Part 7).** `docs/review/session-av/COMPETITORS.md`: 17 apps, 168 features — have 103, half 26, missing 17,
+  not web-possible 4, against a rule 18; four of the owner's must-consider items were already built (every-N-days-after-done
+  repeats, On this day, debt orders side by side with interest saved, copying yesterday's meal or day). Built, each complete
+  (natural place, empty state, three themes at 320 and 1440, keyboard and axe, Help and What's new, unit test, spec, inside
+  budget; no new stored record): **F-PROMPT** a question a day above an empty Journal entry (Day One); **F-YEAR** what the
+  bills come to in a year (Rocket Money). Not built this session (time), in the matrix's ranked shortlist for the next:
+  Dutch task quick add, three good things in one tap, saved meals, task reminders as notifications, tasks-done chart,
+  spending vs last month, YNAB-style budget targets (additive field), mood/sleep/energy patterns, a guided weekly review
+  ending in tasks, journal tags, a bill calendar on Wealth, weekly distance and volume, running bests, income → categories.
+- **Energy card (amendment 4).** Kept as the owner asked in Session AK (4.5). Read: its figures carry an "estimate, not medical advice" tag (`components/health/energy-card.tsx`), and with too little data it shows no estimate ("Check the diary and weights") rather than a zero.
+
 ## Closing table
-(filled at the end)
+
+| Item | Verdict | Where |
+|---|---|---|
+| 1 CI green on the first attempt: D36 (ND-1/ND-3) | Fixed: the whole-rows fitter forces far fewer layouts (name attribute, halving), and the spec's Showcase setup writes where the Showcase reads | D36 |
+| 1 D34 (`hud-motion` phone) | Fixed at its measured cause (the spec's own element screenshot resized the window); AU's candidate mechanism ruled out | D34 |
+| 1 `dashboard-visual:11` mobile | Fixed (evidence screenshots at CSS pixels; 39 s → 14 s) | D-DV |
+| 1 account-browser stall | Carried: 6 of 6 local runs pass; mechanism read, not reproduced | D-SYNC |
+| 2 No crash or stale app after a deploy (TIER 3 PWA) | Built and proven: interception spec in CI; two real builds 10 of 10 (twice) | D-PWA |
+| 3 No lost data on a phone (TIER 3 stored formats) | Built: persist once (no prompt), iPhone Home Screen move with export first and restore offer, copy offer after new data | D-KEEP |
+| 4 L-6, the star's button, D20 minors | Fixed (L-6, star link, eight minors); the rest in the audit | L-6, D-STAR-BUTTON, D-AUDIT |
+| 4b Unfinished-feature audit | 150 rows: finished 57, open 14, hidden honestly 10, carried 19, outside service 5, model 5, owner 40 | UNFINISHED.md |
+| 5 Headroom ≥ 5 kB on every route | Done: ≥ 6.3 kB everywhere, no budget raised; the sync-engine split reverted (sync timing) | D-WEIGHT |
+| 6 Accessibility sweep | Done: no serious or critical finding | D-A11Y |
+| 7 Competitor gaps | Matrix written; 2 features built complete; 14 ranked for the next session | D-COMPETITORS |
+| 8 Friends docs | FIRST_WEEK, FRIENDS_GUIDE 8j, Help (What's new 24 → 29, Known limitations), OWNER_STEPS step 1 | Part 8 |

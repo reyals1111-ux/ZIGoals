@@ -245,6 +245,8 @@ A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
 - **Check categories before an import.** The bank-file and CSV preview shows each row's category and lets you change it.
 - **NOVA at a computer:** a Health question asked while Health is closed now has "Open NOVA → Permissions" right under the
   star, one tap to Allow Health.
+- **A question a day in your Journal**, above an empty entry ("Use this question" or "Another question").
+- **What your bills come to in a year**, beside a typical month on Wealth → Upcoming bills (an estimate).
 - Small things: a day still to come in the Agenda shows no "(0 done)"; "Refresh prices" appears once something is priced;
   a goal with nothing going in shows no "$0.00 a month"; Tasks' filter appears once you have a task.
 
