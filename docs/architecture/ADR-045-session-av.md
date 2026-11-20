@@ -259,10 +259,25 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
   ending in tasks, journal tags, a bill calendar on Wealth, weekly distance and volume, running bests, income → categories.
 - **Energy card (amendment 4).** Kept as the owner asked in Session AK (4.5). Read: its figures carry an "estimate, not medical advice" tag (`components/health/energy-card.tsx`), and with too little data it shows no estimate ("Check the diary and weights") rather than a zero.
 
+## D-CI1932 — the three reds of run 1932 (`943b4464`)
+- **WebKit desktop `zigi-alive` :54, :186, :233 (both tries), this session's.** The trace shows no error and no open dialog:
+  ZIGi's launcher arrived about 5 s after a Showcase Today opened, just past the check. Since Part 5 its chunk was requested
+  only when React rendered it, after Today's hydration (slow in WebKit). Fix (`a2adb214`): ZIGi's and the music buttons'
+  chunks are fetched as the shell module runs, as the glass already was; still outside every route's first load (minimum
+  headroom unchanged, 6.3 kB). A refused fetch is reported once, by the part's LoadBoundary. CI 1930 had passed the same
+  specs by a small margin.
+- **`nutrition-import:27` (both projects), this session's.** The leak check found the file's cell "520" in
+  `/theme-boot.js?v=0bbc6520c3c7`, the theme sheets' hash regenerated in Part 4b. Deliberate spec change, equally strict:
+  the build's own file names lose their build hash before the check; every other part of every URL and every body is
+  checked as before.
+- **`sync-offer-browser` line 39 (integration).** The CI 1629 intermittent, word for word; CI 1930 passed it with the keep
+  card; 3 of 3 locally on `a2adb214`'s build. Recorded in CI_INTERMITTENTS (second sighting).
+
 ## Closing table
 
 | Item | Verdict | Where |
 |---|---|---|
+| 1 Run 1932's reds (WebKit ZIGi launcher late, nutrition-import hash, sync-offer) | Fixed (two) and recorded (one) | D-CI1932 |
 | 1 CI green on the first attempt: D36 (ND-1/ND-3) | Fixed: the whole-rows fitter forces far fewer layouts (name attribute, halving), and the spec's Showcase setup writes where the Showcase reads | D36 |
 | 1 D34 (`hud-motion` phone) | Fixed at its measured cause (the spec's own element screenshot resized the window); AU's candidate mechanism ruled out | D34 |
 | 1 `dashboard-visual:11` mobile | Fixed (evidence screenshots at CSS pixels; 39 s → 14 s) | D-DV |

@@ -59,8 +59,8 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     {todayEnergy !== null && <MoodWordsFold day={today}/>}
     {!pending && <form onSubmit={save} aria-label="Write in your journal">
       {/* Session AV Part 7 (ADR-045 F-PROMPT): one question a day (lib/journal-prompts/daily.ts); using it only writes it into the text. */}
-      {!compact && !text.trim() && <div className="journal-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question</span> <strong>{questionOfTheDay(today, step)}</strong></p>
-        <div className="journal-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, questionOfTheDay(today, step)))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button></div></div>}
+      {!compact && !text.trim() && <div className="journal-today-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question</span> <strong>{questionOfTheDay(today, step)}</strong></p>
+        <div className="journal-today-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, questionOfTheDay(today, step)))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button></div></div>}
       <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       <SecretGuard text={text} onRemove={() => setText('')}/>

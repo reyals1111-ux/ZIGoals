@@ -51,8 +51,8 @@
 .journal-stats dd small { font-size: 14px; font-weight: 500; color: var(--text-secondary, var(--muted)); }
 .journal-entry-words { margin: 0; font-size: 14px; }
 /* Session AV Part 7 (F-PROMPT): today's question above an empty entry. */
-.journal-question{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:12px}
-.journal-question p{margin:0;font-size:15px;line-height:1.5}
-.journal-question .fine{display:block;font-size:14px}
-.journal-question-actions{display:flex;flex-wrap:wrap;gap:8px}
-.journal-question-actions button{min-height:44px}
+.journal-today-question{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+.journal-today-question p{margin:0;font-size:15px;line-height:1.5}
+.journal-today-question .fine{display:block;font-size:14px}
+.journal-today-question-actions{display:flex;flex-wrap:wrap;gap:8px}
+.journal-today-question-actions button{min-height:44px}
