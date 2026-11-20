@@ -184,7 +184,10 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
   `tests/av-update.spec.ts` (main shard 2): a removed on-demand file after a deploy → one reload, the view opens; the same
   version → no reload, the part's own words; the toast once; busy → the note, no reload, the half-typed text kept; no loop;
   a page change answered by another deployment → a full page load, no crash; an open tab hears of a new version → the note,
-  Reload loads it. Unit: `lib/sw/update-recovery.test.ts` (34).
+  Reload loads it. Unit: `lib/sw/update-recovery.test.ts` (34). Locally with two real production builds (A `de32b3fc`, B `972af640`; 11 chunk files
+  removed, 11 added) served one after the other on one port to one browser profile, service worker on
+  (`scripts/av/two-builds.mjs`): 10 of 10 (A's open tab hears of B, a page change loads B fully, no crash screen, Settings
+  names B, a page already on B never asks to reload for B, B's worker takes over quietly, no chunk or module error).
 - **D-J4 (journey 4b, found while proving D-PWA).** Offline, the Checklist's history heat map (loaded on demand) had no
   `LoadBoundary`: when it had not been fetched online, the whole page said "This page could not be shown." (2 of 6 local
   runs). It now fails as itself and the orbit keeps working (`components/checklist/checklist-page.tsx`; the orbit path is
