@@ -11732,6 +11732,12 @@
         border-color: var(--line)
     }
 }
+/*  components/keep-data/keep-data-card.css  */
+@scope (:root[data-theme=dark]) {
+    .keep-data-fold > summary:not(#\-)::after {
+        border-color: currentColor
+    }
+}
 /*  components/layout-edit.css  */
 @scope (:root[data-theme=dark]) {
     .layout-lock:not(#\-) {

@@ -1784,6 +1784,13 @@
 :where(:root[data-text=large]) .year-pixels-summary:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .year-pixels-months:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .year-pixels-legend:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/keep-data/keep-data-card.css  */
+:where(:root[data-text=large]) .keep-data-card h2:not(#\-) { font-size: calc(18px * 1.125); }
+:where(:root[data-text=large]) .keep-data-card p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .keep-data-card .fine:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .keep-data-steps:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .keep-data-how summary:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .keep-data-card .text-link:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/layout-edit.css  */
 :where(:root[data-text=large]) .layout-lock-word:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .layout-move:not(#\-) { font-size: calc(18px * 1.125); }

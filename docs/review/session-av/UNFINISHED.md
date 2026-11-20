@@ -102,8 +102,8 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | A43-6 | Main shard 4 at 55 of 60 min (AT "For the next session") | scripts/ci/main-shards.test.ts | finished | AU: 14 duration-balanced lists |
 | D20-1 | Setup preselects an empty goal amount (AT D20, AU) | components/onboarding/onboarding-flow.tsx | open | start the target with no preselected value and say it is optional |
 | D20-2 | Setup gives no keyboard hint on a phone (AT D20, AU) | components/onboarding/onboarding-flow.tsx | open | set `inputMode`/`enterKeyHint` on each setup field (decimal for amounts, "next" then "done") |
-| D20-3 | "Balanced" unexplained (AT D20, AU) | components/dashboard/make-today.tsx | open | "Keep Balanced and continue" names no content: add its line ("Goals, daily rhythm, Health and Wealth", from `PRESETS` in lib/dashboard-settings.ts) |
-| D20-4 | The habits week chart before a habit exists (AT D20, AU) | components/habits/habit-consistency.tsx | open | with no habits show the teaching empty state instead of "Keep finding your rhythm" with empty bars |
+| D20-3 | "Balanced" unexplained (AT D20, AU) | components/dashboard/make-today.tsx | finished | Session AV Part 4b (this commit) "Keep Balanced and continue" names no content: add its line ("Goals, daily rhythm, Health and Wealth", from `PRESETS` in lib/dashboard-settings.ts) — done |
+| D20-4 | The habits week chart before a habit exists (AT D20, AU) | components/habits/habit-consistency.tsx | finished | Session AV Part 4b (this commit) with no habits show the teaching empty state instead of "Keep finding your rhythm" with empty bars — done |
 | D20-5 | Health's counters before any food or water (AT D20; R2-15) | components/health/health-app.tsx | needs the owner | the quick counters feed the protected Checklist path (owner decision R2-15) |
 | D20-6 | First five: "Record some money" ticks only on a money-log entry (AT D20, AU) | components/onboarding/first-five.tsx | open | also tick on a first holding, account or bill, or rename the step "Log an expense or income" |
 | D20-7 | The first-five card's focus order (AT D20, AU) | components/onboarding/first-five.tsx | open | make the DOM order follow the visual order (heading, steps, dismiss) and pin it with a Tab walk |
@@ -143,16 +143,16 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | CS-2 | Customize ZIGi: three "Coming soon" skin tiles | components/ai/zigi-customize.tsx | hidden honestly | manifest `comingSoon: 3`, said plainly; new skins are Studio art (owner) |
 | CS-3 | Plans: "Placeholder prices · nothing is charged during the Alpha" | lib/entitlements.ts | needs the owner | pricing is the owner's; labelled as placeholder |
 | CS-4 | Help "What is hosted ZIGoals?": "not available yet" | components/help/help-page.tsx | needs the owner | an AI ZIGoals runs needs the owner's provider and server |
-| CS-5 | Share-progress image: "Amounts" and "Target date" disabled without a reason | components/goals/progress-card.tsx | open | say why beside each ("no target amount", "no target date") |
-| CS-6 | ZIGi usage: "Ask first past the cap" disabled until a cap amount is set, unsaid | components/ai/ai-data-usage.tsx | open | add "Set an amount first" while it is disabled |
-| CS-7 | Goal milestones: "Link" disabled when the goal details can't be read, with no notice | components/goals/milestone-planner.tsx | open | show the "could not be read" notice goal-plan.tsx already shows |
-| CS-8 | FI model: "Keep these inputs on this device" disabled when its record is unreadable, with no notice | components/wealth/money-tools/fi-model-panel.tsx | open | add the unreadable alert debt-planner.tsx has |
+| CS-5 | Share-progress image: "Amounts" and "Target date" disabled without a reason | components/goals/progress-card.tsx | finished | Session AV Part 4b (this commit) say why beside each ("no target amount", "no target date") — done |
+| CS-6 | ZIGi usage: "Ask first past the cap" disabled until a cap amount is set, unsaid | components/ai/ai-data-usage.tsx | finished | Session AV Part 4b (this commit) add "Set an amount first" while it is disabled — done |
+| CS-7 | Goal milestones: "Link" disabled when the goal details can't be read, with no notice | components/goals/milestone-planner.tsx | finished | Session AV Part 4b (this commit) show the "could not be read" notice goal-plan.tsx already shows — done |
+| CS-8 | FI model: "Keep these inputs on this device" disabled when its record is unreadable, with no notice | components/wealth/money-tools/fi-model-panel.tsx | finished | Session AV Part 4b (this commit) add the unreadable alert debt-planner.tsx has — done |
 | CS-9 | NOVA's widget catalogue (128 ids) against its components and data | components/nova/widget-grid.tsx | finished | every id has a lazy component reading the person's records (checked id by id) |
 | CS-10 | Routes with no menu link: /app/share, /app/goals/positions, /app/today | app/app/share/page.tsx | finished | by design: the manifest's share target, a legacy redirect to Staking, an alias of Today |
-| CS-11 | /app/zigi/memory is in Settings, NOVA's setup and NOVA's go-to but not in search | lib/search/static.ts | open | add a "What ZIGi remembers" page row to the static search index |
+| CS-11 | /app/zigi/memory is in Settings, NOVA's setup and NOVA's go-to but not in search | lib/search/static.ts | finished | Session AV Part 4b (this commit) add a "What ZIGi remembers" page row to the static search index — done |
 | **H** | **Help and Known limitations** | | | |
 | KL-1 | "A few of ZIGi's new moves aren't used yet: its glances … and its hello": the glances X020–X022 play since P14-B | components/help/help-page.tsx | open | name only the hello without walking in (X001); move the send-feedback spec's line for it deliberately |
-| KL-2 | "Your last backup isn't recorded": Today's copy card and "I saved a copy today" now keep `savedOn` | components/data-health/data-health-view.tsx | open | show "You marked a copy on …" in Your copies when `savedOn` exists; reword the Help line to match |
+| KL-2 | "Your last backup isn't recorded": Today's copy card and "I saved a copy today" now keep `savedOn` | components/data-health/data-health-view.tsx | finished | Session AV Part 4b (this commit) show "You marked a copy on …" in Your copies when `savedOn` exists; reword the Help line to match — done |
 | KL-3 | Accounts and sync aren't open; reminders when closed need an account | lib/account-session.ts | needs the owner | the owner opens accounts on alpha.zigoals.app |
 | KL-4 | The Checklist's path, own items and day history aren't synced yet | lib/vault/extras-sections.ts | needs the owner | travels once the sync service is redeployed (as A38-2) |
 | KL-5 | Oura, Withings, Polar and Strava say "Needs setup by ZIGoals" | components/health/devices/health-links.tsx | needs the owner | ZIGoals registers with each vendor |
@@ -165,4 +165,4 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | KL-12 | Bento and the buttons that step aside are for computers only | components/bento/bento-switch.tsx | hidden honestly | phones are one column already |
 | KL-13 | Money insights wait for history (three months, a month of income) | components/wealth/spending/spending-section.tsx | hidden honestly | they say so instead of guessing |
 
-Counts: total 150 — open 22 · hidden honestly 10 · carried 19 · needs an outside service 5 · needs a model 5 · needs the owner 40 · finished 49.
+Counts: total 150 — open 14 · hidden honestly 10 · carried 19 · needs an outside service 5 · needs a model 5 · needs the owner 40 · finished 57 (eight rows finished in Part 4b: CS-5, CS-6, CS-7, CS-8, CS-11, D20-3, D20-4, KL-2).

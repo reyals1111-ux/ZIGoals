@@ -58,6 +58,8 @@ export const PAGES: readonly SearchItem[] = [
   // Session AK Q1 (WIRING_AUDIT 1d, #6, #13): the Journal and Music pages have no sidebar entry; search finds them by name.
   {id: 'page:journal', kind: 'page', title: 'Journal', href: '/app/journal', keywords: ['diary', 'mood', 'feeling', 'energy', 'reflection', 'year in pixels', 'on this day', 'prompt', 'write']},
   {id: 'page:music', kind: 'page', title: 'Music', href: '/app/music', keywords: ['music', 'sounds', 'calm sounds', 'mix', 'playlist', 'spotify', 'focus music', 'wind down', 'player']},
+  // Session AV (Part 4b, CS-11): ZIGi's memory page is linked from Settings and NOVA's setup; search finds it by name too.
+  {id: 'page:zigi-memory', kind: 'page', title: 'What ZIGi remembers', subtitle: 'ZIGi', href: '/app/zigi/memory', keywords: ['memory', 'remember', 'forget', 'zigi memory', 'zigi notes', 'what zigi knows', 'personal notes']},
 ];
 
 export const SETTINGS: readonly SearchItem[] = [

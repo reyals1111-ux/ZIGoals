@@ -73,13 +73,15 @@ export function MilestonePlanner({goal, habits, habitsReady, update, run}: {goal
     {goal.milestones.length > 0 && linkable.length > 0 && <section className="milestone-habits" aria-labelledby={`${id}-habits`}><details open={anyLinked || undefined}>
       <summary><h3 id={`${id}-habits`}>Habits toward each milestone (optional)</h3></summary>
       <p className="fine">Which habits move each step forward. A link is a note to yourself: ticking a habit never changes the milestone.</p>
+      {/* Session AV (Part 4b, CS-7): the same notice goal-plan.tsx shows, here beside the disabled "Link" (no second alert on the page). */}
+      {extras.unreadable && <p id={`${id}-unreadable`} className="notice">Your goal details on this device could not be read. Nothing here can change until they can.</p>}
       <ul className="milestone-habits-list">{goal.milestones.map(m => {
         const ids = writable ? habitsForMilestone(extras.data, key, m.id) : [], free = linkable.filter(h => !ids.includes(h.id));
         return <li key={m.id}><strong>{m.title}</strong>
           {ids.length ? <ul className="milestone-habit-chips">{ids.map(hid => { const title = habits.find(h => h.id === hid)?.title ?? 'A habit'; return <li key={hid}><span>{title}</span>{!closed && <button type="button" className="quiet" aria-label={`Unlink ${title} from ${m.title}`} onClick={() => link(m.id, hid, false)}>Unlink</button>}</li>; })}</ul> : null}
           {!closed && free.length > 0 && (adding === m.id ? <form className="milestone-habit-add" onSubmit={e => { e.preventDefault(); const value = String(new FormData(e.currentTarget).get('habit') ?? ''); if (value) { link(m.id, value, true); setAdding(''); } }}>
             <label>Habit for “{m.title}”<select name="habit" defaultValue="">{[<option key="" value="">Choose a habit</option>, ...(own(free).length ? [<optgroup key="own" label="This goal’s habits">{own(free).map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</optgroup>] : []), ...(others(free).length ? [<optgroup key="other" label="Your other habits">{others(free).map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</optgroup>] : [])]}</select></label>
-            <button type="submit" className="secondary" disabled={!writable}>Link</button> <button type="button" className="quiet" onClick={() => setAdding('')}>Cancel</button>
+            <button type="submit" className="secondary" disabled={!writable} aria-describedby={extras.unreadable ? `${id}-unreadable` : undefined}>Link</button> <button type="button" className="quiet" onClick={() => setAdding('')}>Cancel</button>
           </form> : <button type="button" className="text-link milestone-habit-open" onClick={() => setAdding(m.id)}>Link a habit</button>)}
         </li>;
       })}</ul>

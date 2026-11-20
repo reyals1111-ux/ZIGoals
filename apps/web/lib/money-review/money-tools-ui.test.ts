@@ -46,7 +46,9 @@ describe('Money tools (Session AK lane M)', () => {
     await click('Next');
     expect(element.textContent).toContain('Rule: category Groceries, renamed “Corner”');
     await click('Next');
-    expect(element.textContent).toContain('then your rules run');
+    // Session AV (L-6, deliberate): the confirm step now says the category shown in the preview is used (rules, or the
+    // person's own choice there); it still names the rules whenever there are any.
+    expect(element.textContent).toContain('read from its payee and note, then your rules, or the one you chose there');
     await click('Add 2 to my money log');
     const log = read<{entries: MoneyEntry[]}>(MONEY_LOG_KEY);
     // Session AU (L-2, deliberate): "Bakery" now reads as Groceries by its own word, so the line no rule touches is a payee

@@ -1,5 +1,5 @@
 'use client';
-import {useMemo, useState} from 'react';
+import {useId, useMemo, useState} from 'react';
 import {dataModeLine} from '../../lib/ai/capabilities';
 import {readKey} from '../../lib/ai/keys';
 import {listModels} from '../../lib/ai/models';
@@ -36,6 +36,8 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
   // Session AL final pass (N-MO-03): with what is tracked in Wealth too (an EUR-only person got USD: the hook was given no holdings).
   const platform = usePrivateStore(PLATFORM_KEY, platformSchema, emptyPlatform), held = useMemo(() => heldTotals(platform.data.positions), [platform.data.positions]);
   const moneyCurrency = useMoneyCurrency(held), [draftCurrency, setDraftCurrency] = useState<string | null>(null);
+  // Session AV (Part 4b, CS-6): the id of the note that says why "Ask first past the cap" is unavailable.
+  const capFirstId = useId();
   const save = <T,>(store: {update: (change: (current: T) => T) => T}, change: (current: T) => T, text?: string) => { try { store.update(change); if (text) setMessage({text}); } catch (error) { setMessage({text: `Not saved on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); } };
   const mode = options.data.toolMode ?? 'auto', deep = provider ? options.data.deepModel?.[provider] ?? null : null;
   const loadModels = async () => {
@@ -93,7 +95,9 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
         <label className="field">Amount<input inputMode="decimal" defaultValue={usage.data.softCap?.amount ?? ''} key={`cap-${usage.data.softCap?.amount ?? ''}`} placeholder="e.g. 10" autoComplete="off" onBlur={e => { const v = e.target.value.trim(); if (v && !DECIMAL.test(v)) { setMessage({text: 'The cap is a plain number such as 10.', failed: true}); return; } save<AiUsage>(usage, current => ({...current, softCap: v ? {amount: v, currency: current.softCap?.currency ?? draftCurrency ?? price?.currency ?? moneyCurrency} : null}), v ? 'Monthly cap saved.' : 'No monthly cap.'); }}/></label>
         <label className="field">Currency<select value={usage.data.softCap?.currency ?? draftCurrency ?? price?.currency ?? moneyCurrency} onChange={e => { const next = e.target.value; if (usage.data.softCap) save<AiUsage>(usage, current => current.softCap ? {...current, softCap: {...current.softCap, currency: next}} : current); else { setDraftCurrency(next); setMessage({text: `The monthly cap will be in ${next} once you enter an amount.`}); } }}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       </div>
-      <label className="ai-check"><input type="checkbox" checked={!!usage.data.askFirst} disabled={!usage.data.softCap} onChange={e => save<AiUsage>(usage, current => ({...current, askFirst: e.target.checked}))}/> Ask first past the cap</label>
+      <label className="ai-check"><input type="checkbox" checked={!!usage.data.askFirst} disabled={!usage.data.softCap} aria-describedby={usage.data.softCap ? undefined : capFirstId} onChange={e => save<AiUsage>(usage, current => ({...current, askFirst: e.target.checked}))}/> Ask first past the cap</label>
+      {/* Session AV (Part 4b, CS-6): while there is no cap, say why the box above cannot be ticked. */}
+      {!usage.data.softCap && <small id={capFirstId} className="fine">Set an amount first.</small>}
       <small>ZIGi notes 80 % and 100 % of the cap, estimated from your prices in the cap&rsquo;s currency. It asks before sending only if you tick the box; it never stops you.</small>
     </fieldset>
     {routes.length > 0 && <div className="ai-card-actions"><button type="button" className="text-link" onClick={() => save<AiUsage>(usage, current => ({...current, months: {}}), 'The counts on this device were cleared; your prices and cap are kept.')}>Clear the counts on this device</button></div>}

@@ -19,6 +19,8 @@ export function ProgressCard({goal, draw, share}: {
   const [showAmounts, setShowAmounts] = useState(false), [showDate, setShowDate] = useState(false);
   const [busy, setBusy] = useState(false), [status, setStatus] = useState(''), [error, setError] = useState('');
   const card = progressShareCard(goal, {showAmounts, showDate});
+  // Session AV (Part 4b, CS-5): the reasons an option is unavailable, named once so the toggle and its note agree.
+  const noAmounts = goal.current === null || goal.target === null, noDate = !goal.date;
   async function make() {
     setBusy(true); setStatus(''); setError('');
     try {
@@ -37,8 +39,15 @@ export function ProgressCard({goal, draw, share}: {
       <figcaption className="progress-card-footer">ZIGoals · made on my device</figcaption>
     </figure>
     <fieldset className="progress-card-options"><legend>Include</legend>
-      <label><input type="checkbox" checked={showAmounts} disabled={goal.current === null || goal.target === null} onChange={e => setShowAmounts(e.target.checked)}/>Amounts</label>
-      <label><input type="checkbox" checked={showDate} disabled={!goal.date} onChange={e => setShowDate(e.target.checked)}/>Target date</label>
+      {/* Session AV (Part 4b, CS-5): a disabled option says why beside it, linked by aria-describedby. */}
+      <div>
+        <label><input type="checkbox" checked={showAmounts} disabled={noAmounts} aria-describedby={noAmounts ? `${id}-no-amounts` : undefined} onChange={e => setShowAmounts(e.target.checked)}/>Amounts</label>
+        {noAmounts && <span id={`${id}-no-amounts`} className="fine"> {goal.target === null ? 'No target amount on this goal' : 'No current amount on this goal yet'}</span>}
+      </div>
+      <div>
+        <label><input type="checkbox" checked={showDate} disabled={noDate} aria-describedby={noDate ? `${id}-no-date` : undefined} onChange={e => setShowDate(e.target.checked)}/>Target date</label>
+        {noDate && <span id={`${id}-no-date`} className="fine"> No target date on this goal</span>}
+      </div>
     </fieldset>
     <p className="progress-card-fine">Made on this device. Nothing is uploaded; you choose where it goes.</p>
     <div className="actions"><button type="button" className="primary" disabled={busy} onClick={() => void make()}>{busy ? 'Making the image…' : 'Save or share image'}</button></div>

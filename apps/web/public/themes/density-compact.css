@@ -3436,6 +3436,15 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .year-pixels-day:not(#\-) { row-gap: 6px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .year-pixels-day h3:not(#\-), :where(:root[data-density=compact]) .year-pixels-day p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .year-pixels-entries:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
+/*  components/keep-data/keep-data-card.css  */
+:where(:root[data-density=compact]) .keep-data-card:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .keep-data-card .keep-data-body:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .keep-data-fold[open] > .keep-data-body:not(#\-) { margin-top: 10px; }
+:where(:root[data-density=compact]) .keep-data-card h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .keep-data-card p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .keep-data-steps:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .keep-data-how[open]:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .keep-data-actions:not(#\-) { row-gap: 10px; }
 /*  components/layout-edit.css  */
 :where(:root[data-density=compact]) .layout-lock:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .status-row[data-words] .layout-lock:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
