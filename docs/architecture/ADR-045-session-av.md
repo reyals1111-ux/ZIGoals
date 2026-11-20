@@ -125,5 +125,36 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
   #37–#57. The automatic persistence request supersedes owner decision L3 (approved, amendment 5: only where it never
   prompts). The energy card stays (amendment 4).
 
+- **D36 (ND-1, ND-3; run 1925 main shard 12).** Measured on this branch's production build at 1920 × 1080 with the
+  Showcase (CPU profile and long-task log, scratchpad `probe/`): the star's WebGL was not the cost (the page's context took
+  7–15 ms and came after the opening's end; the first ask is in a worker since AS). The opening's 2.1 s timer ended 3 s
+  late because the whole-rows fitter (`components/nova/cards/whole-rows.tsx`) forced about 60 page layouts of about 30 ms
+  each while the widgets arrived (1.9 s of the main thread). Two causes fixed in the app, both answer-preserving:
+  (1) React writes an empty `name` on the Tasks widget's checkbox and takes it away again on every render; the fitter read
+  that as a change of content and forced a full measure each time (about ten during the opening, and once a second after,
+  on NOVA's clock). A field's `name` never changes a size, so it is no longer content (DOM test: zero reads for it, a real
+  change still measures). (2) The rows that fit are found by halving instead of one row at a time
+  (`lib/nova/cards/whole-rows.ts`); a property test over 4,000 random panels (stacked and side by side, uneven rows,
+  minimums) proves the counts equal the old walk's. The fitter's main-thread time fell from 1.9 s to 1.0 s. Then the spec's
+  own setup: its `showcase()` helper wrote NOVA's "already seen" record (and the eight widgets ND-2 counts) to
+  `localStorage`, but the Showcase reads only its own tab store (`lib/showcase-storage.ts`), so every Showcase case played
+  the two-second opening under its 5 s wait. The helper now writes the record where the Showcase reads it
+  (`Session AV (D36, deliberate)`; every assertion and the 5 s are unchanged; the opening is covered by the opening specs).
+  Evidence: before, 1920 Showcase failed 2 of 3 and 3 of 5 under two workers; after, the whole `p3-nova-polish` spec ×3 under
+  two workers 78 of 78.
+- **D34 (`hud-motion` "fully still (phone)").** Measured with a draw log on every canvas (a temporary probe spec, not
+  kept): in each failure the window fired two `resize` events ~110 ms apart right before the counted two seconds, and the
+  star drew one still frame for each (1 → 3). They come from the spec's own element screenshot: a stage taller than the
+  390 px window is captured by widening the window and putting it back, and a still star is rightly drawn again for each new
+  size. AU's candidate (an unproven frame drawn again on a wake) is not what happens, so the star is unchanged (a change made
+  for it was measured, found not to be the cause, and reverted). The spec takes its first picture before counting, waits out
+  the capture's redraws like the stage's arrival, then demands the same two still seconds, the same frame count and the
+  same pixels (`Session AV (D34, deliberate)`). Evidence: before, 5 of 20 phone runs failed under two workers; after, 20 of 20.
+- **D-DV (`dashboard-visual:11` mobile; run 1925 main shard 2).** A trace showed 18.5 of the test's 33.5 s in its two
+  full-page evidence screenshots: the phone project draws three device pixels per CSS pixel, so the 1440-wide Today was a
+  very large image (13.6 s), and on CI the test then ran out of its 45 s in Settings. No assertion reads the picture; it is
+  now taken at CSS pixels (`scale: "css"`). Every check unchanged; the mobile run fell from 39 s to 14 s (6 of 6 on both
+  projects).
+
 ## Closing table
 (filled at the end)

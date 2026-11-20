@@ -32,7 +32,14 @@ for (const [label, viewport] of [['computer', {width: 1440, height: 900}], ['pho
     });
     await expect(async () => { const a = await arrived(); await page.waitForTimeout(1000); expect(await arrived()).toBe(a); }).toPass({timeout: 20_000});
     expect(await runningInNova(page)).toEqual([]);
-    const stage = page.locator('.nova-stage-area'), frames = await skyFrames(page), before = await stage.screenshot({animations: 'allow'});
+    // Session AV (ADR-045 D34, deliberate; the three stillness checks are unchanged): the first picture is taken before the
+    // frames are counted. A stage taller than the phone's window is captured by widening the window for a moment and
+    // putting it back (two resize events), and a still star is rightly drawn again for each new size: those two frames
+    // fell inside the two seconds that must be still (1 became 3, AR's and AU's D34 signature, measured here). The
+    // capture's own redraws are waited out like the stage's arrival, then the same two still seconds are demanded.
+    const stage = page.locator('.nova-stage-area'), before = await stage.screenshot({animations: 'allow'});
+    await expect(async () => { const a = await arrived(); await page.waitForTimeout(1000); expect(await arrived()).toBe(a); }).toPass({timeout: 20_000});
+    const frames = await skyFrames(page);
     await page.waitForTimeout(2000);
     expect(await skyFrames(page)).toBe(frames);
     expect(await runningInNova(page)).toEqual([]);
