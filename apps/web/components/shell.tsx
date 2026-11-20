@@ -72,9 +72,14 @@ import { HealthDocumentLinks } from "./health-document-links";
 import { WalletMoreButton } from "./wallet/wallet-more-button";
 // Session AV Part 5 (ADR-045 D-WEIGHT): ZIGi's launcher and the music player (fixed buttons: nothing moves when they arrive;
 // a tap made before they are there is kept for them, lib/early-events.ts), and the ambient-sound and Earn pills (shown only
-// while something plays or waits) load right after the first paint, as their own chunks.
-const AiLauncher = lazy(() => import("./ai/ai-launcher").then(m => ({ default: m.AiLauncher })));
-const MusicLauncher = lazy(() => import("./music/music-launcher").then(m => ({ default: m.MusicLauncher })));
+// while something plays or waits) load right after the first paint, as their own chunks. The two buttons are fetched as
+// this module runs (CI 1932, WebKit: requested only at render, ZIGi's arrived some 5 s after a Showcase Today opened), so
+// they come in alongside the page's own parts and not after its hydration; they stay out of every route's first load.
+// A refused fetch is reported once, by the part's own LoadBoundary when it renders (not also as an unhandled rejection).
+const early = typeof window === "undefined" ? null : {ai: import("./ai/ai-launcher"), music: import("./music/music-launcher")};
+if (early) for (const chunk of Object.values(early)) chunk.catch(() => undefined);
+const AiLauncher = lazy(() => (early?.ai ?? import("./ai/ai-launcher")).then(m => ({ default: m.AiLauncher })));
+const MusicLauncher = lazy(() => (early?.music ?? import("./music/music-launcher")).then(m => ({ default: m.MusicLauncher })));
 // The hover-and-press glass (a decoration) is fetched as this module runs, before the page is interactive, and drawn when
 // it is in (no hover can come before it).
 const glassChunk = typeof window === "undefined" ? null : import("./liquid-glass");
