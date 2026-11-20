@@ -58,7 +58,7 @@ test('Tom on the phone: a barcode found and one that cannot be read, a recent sc
   await now.getByLabel('Find an exercise').fill('squat');
   await now.getByRole('button', {name: /^(Back squat|Squat)/}).first().click();
   const exercise = now.getByRole('article').first();
-  await inside(page, exercise.getByRole('button', {name: /^Remove /}));
+  await inside(page, exercise.getByRole('button', {name: /^Remove (Back squat|Squat)$/}));
   const kind = exercise.getByRole('combobox', {name: /set 1: type$/});
   expect(await kind.evaluate(el => (el as HTMLSelectElement).scrollWidth <= (el as HTMLSelectElement).clientWidth + 1 && el.getBoundingClientRect().width >= 52)).toBe(true);
   await exercise.getByLabel(/set 1: weight in kg/).fill('80');

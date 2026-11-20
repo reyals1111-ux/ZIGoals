@@ -46,7 +46,9 @@ export function useTaskClock(): {today: string; clock: string} {
     document.addEventListener('visibilitychange', onShow); window.addEventListener('focus', tick);
     // Session AU (ADR-044 F-5): the day is read again when "My day ends at" arrives or changes (the shell sets it after the
     // record loads, as it sets the zone), so a Tasks page opened at 01:30 does not keep the calendar's day.
-    const stop = subscribeDayEnds(tick);
+    // The shell sets it in a layout effect, after this page's first render and before this effect subscribes, so the day is
+    // read once more here.
+    const stop = subscribeDayEnds(tick); tick();
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onShow); window.removeEventListener('focus', tick); stop(); };
   }, []);
   return now;

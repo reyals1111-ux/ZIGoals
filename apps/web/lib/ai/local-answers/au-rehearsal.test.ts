@@ -1,4 +1,5 @@
 import {afterEach, describe, expect, test} from 'vitest';
+import {noModelReply as _auNoModel} from './no-model';
 import {addCustom} from '../../checklist/store';
 import {emptyChecklist, type ChecklistDays} from '../../checklist/schema';
 import {emptyDayGoal, setCurrentDayGoal} from '../../checklist/day-goal-core';
@@ -269,5 +270,14 @@ describe('R-11: the goal-ETA reading never claims a question whose subject is a 
       expect(a).toBe('Next bill: Fictional Phone €17.50, in 28 days (Tue, Dec 15).');
       expect(a).not.toContain('No goal is called');
     }
+  });
+});
+
+// Session AU (ADR-044 T-12): a request or a question is never a food card; a line of things eaten still is.
+describe('T-12: requests are not food', () => {
+  test('"Show my day at a glance" and "what am I looking at" make no Log a food card; "a banana and 500 ml water" still does', () => {
+    const env = zigiEnv(freshAll(), false);
+    for (const q of ['Show my day at a glance', 'what am I looking at', 'Toon mijn dag']) expect(_auNoModel(q, env).text, q).not.toContain('log-food');
+    expect(_auNoModel('a banana and 500 ml water', env).text).toContain('log-food');
   });
 });

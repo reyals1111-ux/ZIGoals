@@ -111,6 +111,6 @@
    its number. */
 @media (max-width: 520px) {
   .workouts-exercise { min-width: 0; }
-  .workouts-exercise > .workouts-sets { display: block; max-width: 100%; overflow-x: auto; }
+  .workouts-exercise > .workouts-sets { display: block; position: relative; max-width: 100%; overflow-x: auto; }
   .workouts-kind { min-width: 3.6em; }
 }

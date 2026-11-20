@@ -31,6 +31,7 @@ test('Jules at 1440: price, staking and holdings questions are answered honestly
   expect(earn).not.toContain('No income logged yet');
   expect(earn).not.toMatch(/about \d[\d.,]* ZIG over a year/);
 
+  await page.goto('/app/wealth'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached'});
   await openZigi(page);
   await sendToZigi(page, 'Is staking ZIG safe?');
   const safe = zigiPanel(page).locator('.ai-turn-local').last();

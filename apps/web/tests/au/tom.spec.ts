@@ -35,8 +35,9 @@ test('Tom at 1440: Health stays closed in NOVA\'s glance until he allows it, and
   await openAt(page, at(DAY1, '20:30'), '/app/nova');
   await page.keyboard.press('Shift');
   await expect(page.locator('.nova-frame')).toHaveAttribute('data-opening', 'done', {timeout: 20_000});
-  await page.getByRole('group', {name: 'One-tap requests'}).getByRole('button', {name: 'My day', exact: true}).click();
-  const glance = page.locator('.hw-glance').first();
+  await novaSays(page, 'Show my day at a glance');
+  // With Health closed and nothing else logged today, the glance has no line to show: its own empty notice, never a Health line.
+  const glance = page.locator('.nova-stage-area .nova-widget[data-widget="glance"]').first();
   await expect(glance).toBeVisible({timeout: 15_000});
   await expect(glance).not.toContainText(/water|food entr|meals? logged|You slept/i);
 

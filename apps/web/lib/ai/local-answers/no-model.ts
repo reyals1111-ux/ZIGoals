@@ -233,6 +233,9 @@ function quickLog(raw: string, env: ToolEnv | null, lang: ReplyLanguage): LocalR
   if (!env) return null;
   // Session AL third pass (L7): "calories in my lunch" is a question, never a food called "calories in my".
   if (/^\s*(?:how (?:many|much) )?(?:calories|kcal|protein|carbs|fat|sugars?|calorie[eë]n)\b/i.test(raw)) return null;
+  // Session AU (ADR-044 T-12, the rehearsal's Tom spec): "Show my day at a glance" became a food card named after the request,
+  // and "what am I looking at" one too (helper A). A request or a question is never a line of things eaten or done.
+  if (/^\s*(?:please\s+)?(?:show|open|display|go to|take me|what|whats|what's|how|when|which|why|where|who|tell|toon|laat|ga naar|wat|hoe|wanneer|welke|waarom|waar|wie)\b/i.test(raw)) return null;
   const text = mealLine(raw);
   const ctx = quickLogContext(env), items = quickLogItems(text, ctx, lang), known = items.filter(i => i.action);
   if (!known.length || !(items.length >= 2 || ['log-food', 'log-mood', 'prefill-contribution', 'log-expense'].includes(String(known[0]!.action!.kind)))) return null;
