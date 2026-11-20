@@ -278,7 +278,8 @@ export function frozenFixture() {
   checks.push({key: CSV_MAPPINGS_KEY, module: './csv/templates/saved', spec: 'CSV_MAPPINGS', expect: {'mappings.0.name': 'Fictional bank'}});
   records[AUTO_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', source: 'steps', comparator: 'at-least', threshold: 8000, unit: 'steps', habitId: '00000000-0000-4000-8000-000000000001', createdAt: '2026-10-27T08:00:00.000Z'}], applied: []});
   checks.push({key: AUTO_RULES_KEY, module: './auto-rules/schema', spec: 'AUTO_RULES', expect: {'rules.0.threshold': 8000}});
-  records[BACKUP_REMINDER_KEY] = JSON.stringify({version: 1, savedOn: '2026-10-01', askedOn: '2026-10-20'});
+  // Session AV Part 3 (D-KEEP, TIER 3 stored formats): the same record with this build's optional fields; every release still reads savedOn.
+  records[BACKUP_REMINDER_KEY] = JSON.stringify({version: 1, savedOn: '2026-10-01', askedOn: '2026-10-20', countAt: 42, remindedOn: '2026-10-25', persistAskedOn: '2026-10-02', persistResult: 'kept', iosNoteDoneOn: '2026-10-03', iosNoteLaterOn: '2026-10-04', restoreOfferDoneOn: '2026-10-05'});
   checks.push({key: BACKUP_REMINDER_KEY, module: './backup-reminder', spec: 'BACKUP_REMINDER', expect: {savedOn: '2026-10-01'}});
   // Session AK Part 4 (TIER 3 (stored format)): four new device-only Health keys (fictional values).
   records[FOOD_SCANS_KEY] = JSON.stringify({version: 1, scans: [{barcode: '7610000000001', name: 'Fictional muesli', source: 'Open Food Facts', at: '2026-10-28T08:00:00.000Z', count: 2, foodId: 'health_fixture-muesli', quantityMilli: 60000, meal: 'Breakfast'}]});

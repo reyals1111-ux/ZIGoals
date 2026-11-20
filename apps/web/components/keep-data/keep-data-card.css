@@ -1,0 +1,17 @@
+/* Session AV Part 3 (D-KEEP): a calm card below Today's hero. No motion of its own. */
+.keep-data-card{display:grid;gap:10px}
+.keep-data-card .keep-data-body{display:grid;gap:10px}
+.keep-data-fold[open] > .keep-data-body{margin-top:10px}
+.keep-data-fold > summary{list-style:none;min-height:44px;display:flex;align-items:center;cursor:pointer}
+.keep-data-fold > summary::-webkit-details-marker{display:none}
+.keep-data-fold > summary::after{content:'';width:9px;height:9px;margin-inline-start:auto;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg);opacity:.7}
+.keep-data-fold[open] > summary::after{transform:rotate(-135deg)}
+.keep-data-card h2{margin:0;font-size:18px}
+.keep-data-card p{margin:0;font-size:15px;line-height:1.5}
+.keep-data-card .fine{font-size:14px}
+.keep-data-steps{margin:0;padding-inline-start:22px;display:grid;gap:8px;font-size:15px;line-height:1.5}
+.keep-data-how summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:15px;font-weight:600}
+.keep-data-how[open]{display:grid;gap:8px}
+.keep-data-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.keep-data-actions :is(button,a),.keep-data-steps button{min-height:44px}
+.keep-data-card .text-link{min-height:44px;font-size:14px}

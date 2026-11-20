@@ -7,7 +7,7 @@ import {readDeviceRecord} from '../../lib/device-record';
 import {NOTIFY_PREFS} from '../../lib/notify/prefs';
 import {readPushRecord} from '../../lib/push/client';
 import {showToast} from '../ui/undo-toast';
-import {UPDATE_WAITING, servedBuild, takeUpdatedNotice} from '../../lib/sw/update-recovery';
+import {RELOAD_MARK, UPDATE_WAITING} from '../../lib/sw/stale-code';
 import {swVersion} from '../../lib/sw/register';
 
 const REMINDERS_CHANGE = 'zigoals:reminders-change', PRIVATE_CHANGE = 'zigoals:private-change';
@@ -18,6 +18,8 @@ let headroomShown = false, lastBuildCheck = 0;
 /** Session AV Part 2 (D-PWA): an open tab asks its own server which version it serves, at most every ten minutes. */
 const BUILD_CHECK_MS = 10 * 60_000;
 const OWN_COMMIT = (process.env.NEXT_PUBLIC_APP_COMMIT ?? '').toLowerCase();
+/** Session AV Part 3 (D-KEEP): device records that are the person's own entries (a save of one is "new data"), not a fold or a setting. */
+const PERSONAL_SAVE = /^zigoals:(money-log|tasks|notes|journal|meal-words|mood-tags|workouts|checklist-days|checklist):v1$/;
 const hereOn = () => { try { return !isShowcase() && readDeviceRecord(getAppStorage(), NOTIFY_PREFS).data.here === true; } catch { return false; } };
 const accountPushOn = () => { try { return readPushRecord(getAppStorage()).data !== null; } catch { return false; } };
 /** ADR-010's account worker is registered (or on its way): never replaced by this build's worker (Q15, Q19). */
@@ -39,13 +41,15 @@ export function NotifySync() {
   const [newer, setNewer] = useState(false);
   useEffect(() => {
     // After the one automatic reload into a newer version: say so, once (lib/sw/update-recovery.ts).
-    try { if (takeUpdatedNotice(window.sessionStorage, OWN_COMMIT)) showToast({message: 'Updated to the newest version.'}); } catch { /* no tab storage */ }
+    // The recovery's own code loads only when this tab reloaded itself (its mark is there) or asks its server (below).
+    let marked = false; try { marked = window.sessionStorage.getItem(RELOAD_MARK) !== null; } catch { marked = false; }
+    if (marked) void import('../../lib/sw/update-recovery').then(m => { if (m.takeUpdatedNotice(window.sessionStorage, OWN_COMMIT)) showToast({message: 'Updated to the newest version.'}); }).catch(() => {});
     const waitingNote = () => setNewer(true);
     const check = async () => {
       if (document.visibilityState !== 'visible' || !/^[0-9a-f]{40}$/.test(OWN_COMMIT) || navigator.onLine === false) return;
       const now = Date.now(); if (now - lastBuildCheck < BUILD_CHECK_MS) return; lastBuildCheck = now;
       // A HEAD to this app's own page, never stored (the service worker passes anything but GET to the network).
-      const served = await servedBuild();
+      const served = await import('../../lib/sw/update-recovery').then(m => m.servedBuild()).catch(() => '');
       if (served && served !== OWN_COMMIT) setNewer(true);
     };
     window.addEventListener(UPDATE_WAITING, waitingNote); document.addEventListener('visibilitychange', check); window.addEventListener('focus', check); window.addEventListener('online', check);
@@ -102,10 +106,15 @@ export function NotifySync() {
     // as a toast on another page, and nothing is written until the person acts.
     // Session AK (A6): once per visit, if a module is nearly full, say so calmly with what to do.
     idle(() => { if (!active || headroomShown) return; headroomShown = true; void import('../../lib/storage-headroom').then(m => { const line = m.headroomMessage(m.moduleUse(window.localStorage)); if (line && active) showToast({message: line, link: {href: '/app/settings/data', label: 'Your data'}}); }).catch(() => {}); });
+    // Session AV Part 3 (D-KEEP): after the person's first save in this tab, ask once to keep this site's data (only where the
+    // browser never asks the person; lib/keep-data/persist-once.ts). Never on view.
+    let keepAsked = false;
+    const saved = (event: Event) => { const key = (event as CustomEvent<unknown>).detail; if (keepAsked || (event.type === 'zigoals:zigi-store' && !(typeof key === 'string' && PERSONAL_SAVE.test(key)))) return; keepAsked = true; void import('../../lib/keep-data/persist-once').then(m => m.keepDataOnce(window)).catch(() => {}); };
+    window.addEventListener(PRIVATE_CHANGE, saved); window.addEventListener('zigoals:zigi-store', saved);
     const every = window.setInterval(() => { void refresh(); }, 10 * 60_000);
     window.addEventListener(REMINDERS_CHANGE, later); window.addEventListener(PRIVATE_CHANGE, later); window.addEventListener(NOTIFY_CHANGE, later); window.addEventListener(LOCK_EVENT, onLock); window.addEventListener('storage', later); document.addEventListener('visibilitychange', onVisible);
     navigator.serviceWorker?.addEventListener('message', onMessage);
-    return () => { active = false; window.clearTimeout(timer); window.clearInterval(every); window.removeEventListener(REMINDERS_CHANGE, later); window.removeEventListener(PRIVATE_CHANGE, later); window.removeEventListener(NOTIFY_CHANGE, later); window.removeEventListener(LOCK_EVENT, onLock); window.removeEventListener('storage', later); window.removeEventListener('online', onOnline); document.removeEventListener('visibilitychange', onVisible); navigator.serviceWorker?.removeEventListener('message', onMessage); };
+    return () => { active = false; window.removeEventListener(PRIVATE_CHANGE, saved); window.removeEventListener('zigoals:zigi-store', saved); window.clearTimeout(timer); window.clearInterval(every); window.removeEventListener(REMINDERS_CHANGE, later); window.removeEventListener(PRIVATE_CHANGE, later); window.removeEventListener(NOTIFY_CHANGE, later); window.removeEventListener(LOCK_EVENT, onLock); window.removeEventListener('storage', later); window.removeEventListener('online', onOnline); document.removeEventListener('visibilitychange', onVisible); navigator.serviceWorker?.removeEventListener('message', onMessage); };
   }, []);
   if (!waiting && !newer) return null;
   const reload = () => {

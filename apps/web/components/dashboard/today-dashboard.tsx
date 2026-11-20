@@ -20,6 +20,8 @@ const TodayTasksDue=lazy(()=>import('../tasks/today-tasks-due'));
 const WidgetLibrary=lazy(()=>import('./widget-library').then(m=>({default:m.WidgetLibrary})));
 const MakeToday=lazy(()=>import('./make-today')),PresetChooser=lazy(()=>import('./preset-chooser'));
 const FirstFive=lazy(()=>import('../onboarding/first-five'));
+// Session AV Part 3 (ADR-045 D-KEEP): keeping the records on this device (iPhone Home Screen, a copy after new data); its own chunk, below the hero.
+const KeepDataCard=lazy(()=>import('../keep-data/keep-data-card'));
 const WelcomeCard=lazy(()=>import('../onboarding/welcome-card').then(m=>({default:m.WelcomeCard}))),FirstRunEntryCard=lazy(()=>import('../onboarding/welcome-card').then(m=>({default:m.FirstRunEntry})));
 const FirstRunEntry=({demoAvailable}:{demoAvailable:boolean})=><Suspense fallback={null}><FirstRunEntryCard demoAvailable={demoAvailable}/></Suspense>;
 // Session AK P4 (FIRST_RUN_REVIEW FR-4): "You're set" after the welcome, in the welcome card's place; its chunk loads only
@@ -399,6 +401,7 @@ export function TodayDashboard(){
    {/* Session AK RB (RELEASE_REVIEW_2 R2-11): "Make Today yours" waits until the welcome above is answered (they asked the same question one after the other). */}
    {!showcase&&!brandNew&&storesReady&&!hasRecords&&makeToday}
    {/* Session AP (friends Alpha): after setup, the first five steps (its own chunk; nothing stored but its "hide"). */}{!showcase&&!brandNew&&storesReady&&settings.loaded&&(setupMade||settings.data.onboarded)&&<Suspense fallback={null}><FirstFive goals={platform.data.goals.length+legacy.goals.length} habits={habits.data.habits.length} meals={health.data.diary.length}/></Suspense>}
+
    {!brandNew&&storesReady&&<TodayLine habits={habits.data} health={health.data} platform={platform.data} quotes={market.quotes} now={now} today={today} healthDate={sources.healthDate} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} financial={financial}/>}
    {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{/* Session AL fourth pass (PR-103, C-LS-09): tasks due today and task reminders */}<LoadBoundary quiet><Suspense fallback={null}><TodayTasksDue/></Suspense></LoadBoundary>{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
    {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
@@ -431,6 +434,7 @@ export function TodayDashboard(){
  </div>;
  return <HealthLinkContext.Provider value={healthLinkContext}><LayoutPage page="today" exit={false} unlocked={customize} onUnlockedChange={setCustomize} onReset={()=>apply(s=>resetDashboardPlacement(s),'Today is back to its default layout.')}>
   {layout({focus:null,main:null,end:null})}
+  {/* Session AV Part 3 (D-KEEP): with For you off (or a brand-new device, where only the Home Screen app's restore offer shows) the keep card stands on its own, below the hero. */}{!showcase&&storesReady&&(brandNew||!forYouOn)&&<Suspense fallback={null}><KeepDataCard fresh={brandNew}/></Suspense>}
   {forYouOn&&TodayForYou&&<LoadBoundary quiet><TodayForYou reviewOnToday={deviceCards.includes('review')} habits={habits.data} health={health.data} platform={platform.data} localGoals={legacy.goals} metadata={legacy.metadata?.goals??{}} quotes={market.quotes} now={now} today={today} financial={financial} showcase={showcase} render={parts=><>{focusPlace&&createPortal(parts.focus,focusPlace)}{mainPlace&&createPortal(parts.main,mainPlace)}{endPlace&&createPortal(parts.end,endPlace)}</>}/></LoadBoundary>}
  </LayoutPage></HealthLinkContext.Provider>;
 }
