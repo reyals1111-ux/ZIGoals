@@ -23,7 +23,7 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
   (TIER 3 AI tools).
 
 ## In progress
-- Nothing but reading CI on the final head (STATUS "CI on the final head").
+- Nothing. Run 1924 on `e9eaf887` is green; STATUS records runs 1922–1924. Session done; PR #108 waits for the owner.
 
 ## Next
 - If a CI job is red: read it; fix if this branch's (≤ 2 attempts), else record; then the final STATUS line.
