@@ -1,5 +1,5 @@
 import {expenseCategory} from '../../../money-log/category';
-import {ASK_WORDS, DOMAIN_WORDS, GENERIC, HABIT_SYNONYMS, NOT_A_LOOKUP, SHAPE_WORDS, SHORT_WORDS, VOCABULARY} from './lexicon';
+import {ASK_WORDS, DOMAIN_WORDS, GENERIC, GOAL_ETA, GOAL_SYNONYMS, HABIT_SYNONYMS, NOT_A_LOOKUP, SHAPE_WORDS, SHORT_WORDS, VOCABULARY} from './lexicon';
 import {periodIn} from './period';
 import {fixSlips, fold, langOf, root, sameWord} from './text';
 import type {Ask, Domain, Query, QuerySubject, Shape} from './types';
@@ -42,7 +42,10 @@ function bestNamed<T extends {id: string}>(items: readonly T[], nameOf: (item: T
 const first = <K,>(table: readonly [K, RegExp][], text: string): K | null => { for (const [key, re] of table) if (re.test(text)) return key; return null; };
 
 function parse(folded: string, records: Records): Query | null {
-  if (NOT_A_LOOKUP.action.test(folded) || NOT_A_LOOKUP.statement.test(folded) || NOT_A_LOOKUP.advice.test(folded) || NOT_A_LOOKUP.food.test(folded) || NOT_A_LOOKUP.other.test(folded) || NOT_A_LOOKUP.ahead.test(folded)) return null;
+  // Session AU (ADR-044 D-ETA): "when will I reach my emergency fund" asks what is still to come, but of a goal the records
+  // hold a pace for: read on, and kept only when the words name that goal (checked once the goal is known, below).
+  const ahead = NOT_A_LOOKUP.ahead.test(folded);
+  if (NOT_A_LOOKUP.action.test(folded) || NOT_A_LOOKUP.statement.test(folded) || NOT_A_LOOKUP.advice.test(folded) || NOT_A_LOOKUP.food.test(folded) || NOT_A_LOOKUP.other.test(folded) || (ahead && !GOAL_ETA.test(folded))) return null;
   const lang = langOf(folded), {token, versus, weekday, rest: left} = periodIn(folded, records.today), rest = left.replace(/\bwork(?:ed|ing)? out\b/g, 'workout').replace(/\bbij te dragen\b/g, 'bijdragen'), words = expand(rest.split(' '));
   const domains = DOMAIN_WORDS.filter(([, re]) => re.test(rest)).map(([d]) => d);
   const live = records.habits.filter(h => !h.archived), plainWords = rest.split(' ');
@@ -67,7 +70,9 @@ function parse(folded: string, records: Records): Query | null {
     const now = ({'last-month': 'this-month', 'last-week': 'this-week', 'yesterday': 'today', 'last-year': 'this-year'} as Record<string, string>)[token];
     if (now) { period = now; against = token; ask = 'compare'; }
   }
-  const goals = bestNamed(records.goals, g => g.name, plainWords), wholeGoal = goals.one && nameWords(goals.one.name).length >= 2 && nameScore(goals.one.name, plainWords) === 1 ? goals.one : null;
+  // Session AU (D-ETA): a goal named in English is named in Dutch too ("noodfonds" for an Emergency fund).
+  const goalWords = plainWords.flatMap(word => [word, ...(GOAL_SYNONYMS[word] ?? [])]);
+  const goals = bestNamed(records.goals, g => g.name, goalWords), wholeGoal = goals.one && nameWords(goals.one.name).length >= 2 && nameScore(goals.one.name, goalWords) === 1 ? goals.one : null;
   // A category by its own name, else by the words people use for it in either language ("boodschappen", "supermarket" are
   // Groceries: the money log's own word list, lib/money-log/category.ts), when the person keeps that category.
   const byWords = expenseCategory(undefined, rest), named = records.categories.find(c => nameScore(c, plainWords) === 1);
@@ -93,6 +98,8 @@ function parse(folded: string, records: Records): Query | null {
     else if ((domain === 'spending' || domain === 'budgets') && category) subject = {kind: 'category', id: category, name: category};
     else if (domain === 'bills' && bill) subject = {kind: 'bill', id: bill.id, name: bill.title};
   } else if (goals.one && (ask || shapeHit)) { domain = 'goals'; subject = {kind: 'goal', id: goals.one.id, name: goals.one.name}; }
+  // Session AU (D-ETA): a goal's Dutch word ("noodfonds") with no goal of that name kept: the goals all the same.
+  if (!domain && plainWords.some(word => GOAL_SYNONYMS[word])) domain = 'goals';
   // "Did I skip anything", "what did I miss": with no part of life named, a skipped or missed day is a habit's.
   if (!domain && (ask === 'skipped' || ask === 'missed') && /\b(?:anything|something|everything|what|iets|alles|wat)\b/.test(rest) && records.habits.length) domain = 'habits';
   // "What are my streaks": a run of days is a habit's.
@@ -100,6 +107,7 @@ function parse(folded: string, records: Records): Query | null {
   // Nothing kept yet and the words ask what was done or not on which days: the habits' own empty state.
   if (!domain && !records.habits.length && !records.goals.length && (ask === 'missed' || ask === 'not-done' || ask === 'skipped' || ((shapeHit === 'dates' || shapeHit === 'count') && (ask === 'done' || ask === null)))) domain = 'habits';
   if (!domain) return null;
+  if (ahead && !(domain === 'goals' && subject?.kind === 'goal')) return null;
   const phrase = domain === 'nova' || domain === 'life';
   // "Workouts last week?", "spending this week": a part of life and a period, nothing else, asks how it went.
   if (!ask && !shapeHit && !phrase && !(token && rest.split(' ').length <= 3)) return null;

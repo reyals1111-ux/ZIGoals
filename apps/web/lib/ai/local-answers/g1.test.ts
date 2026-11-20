@@ -2,6 +2,7 @@ import {expect, test} from 'vitest';
 import {toolEnv} from '../tools/env';
 import {gatesFor, showcaseSources, withG1} from '../tools/fixtures';
 import {HEALTH_CLOSED} from '../tools/format';
+import {ALLOW_HEALTH_CARD} from './nova-env';
 import {localAnswer} from './engine';
 
 /**
@@ -16,7 +17,8 @@ test('the last blood pressure: the numbers and the day, not a diagnosis; refused
   expect(r).toMatchObject({kind: 'answer', calls: [{tool: 'your_numbers'}]});
   expect(r.kind === 'answer' && r.text).toMatch(/^Your last reading: 121\/76 mmHg, pulse 62 a minute, on .+\. 8 readings are kept\. Your readings, not a diagnosis\.$/);
   expect(r.kind === 'answer' && r.text).not.toMatch(/normal|healthy|high|low/i);
-  expect(localAnswer('What was my last blood pressure reading?', closed)).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED});
+  // Session AU (D-ALLOW-HEALTH, deliberate): ZIGi's Health-closed reply is the same sentence plus its one button (the open-page card to Settings → ZIGi), still matched whole.
+  expect(localAnswer('What was my last blood pressure reading?', closed)).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED + ALLOW_HEALTH_CARD});
 });
 test('today\'s own scales and cash ahead', () => {
   const s = localAnswer('How did I rate my scales today?', open);

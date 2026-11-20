@@ -17,7 +17,7 @@ import {aiLocalAnswer, isEnergyRatingAsk} from './ai-session';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
 import {g1LocalAnswer} from './g1';
-import {novaEnvInfo, novaWording} from './nova-env';
+import {novaEnvInfo, novaWording, zigiHealthClosed} from './nova-env';
 import {novaOverviewAnswer} from './nova-overview';
 import {questionLanguage} from './no-model';
 import {isStreakBreak, streakBreakWords} from './p14b';
@@ -116,6 +116,13 @@ const W_HEALTH = {
   devices: /\b(my devices|which devices|connected devices|linked (?:services|accounts|devices)|devices and imports|where (?:do|did) my (?:health )?records come from)\b/,
 };
 const HOLD = /\b(hold|holding|holdings|own|owned|have|got|total)\b/;
+/**
+ * Session AU (D-NL-COINS, ADR-043 D4): a coin held, asked in Dutch ("hoeveel BTC heb ik", "hoeveel bitcoin bezit ik", "wat is
+ * mijn ETH"): a Dutch question word first, a word of having (heb, bezit, mijn), and none of the words of a goal, a
+ * contribution, staking or a price (those questions keep their own answers).
+ */
+const NL_HOLD = {ask: /^(?:(?:en|dus|hoi|nova|zigi),? )?(?:hoeveel|wat|welke)\b/, have: /\b(?:heb|hebt|heeft|hebben|bezit|bezitten|in bezit|mijn)\b/,
+  not: /\b(?:doel|doelen|spaardoel|gespaard|sparen|ingelegd|inleg|gestort|storten|bijdrage\w*|bijgedragen|stake\w*|gestaked|gestaakt|staking|beloning\w*|rewards?|prijs|koers|gekocht|verkocht|opbrengst|winst|verlies)\b/};
 const FUTURE = /\b(next (?:week|month|year)|coming (?:week|month|year)|tomorrow|volgende (?:week|maand)|komende (?:week|maand)|morgen|la semaine prochaine|le mois prochain|demain|nächste woche|nächsten monat)\b/;
 const GOAL_PROGRESS = /\b(how far|progress|left|remaining|to go|reach(?:ed)?|percent|how close|how much more|status|funded|saved|how is|how are|doing|going|coming along)\b|%/;
 const CONTRIBUTION = /\b(contribut\w*|deposit\w*|withdr\w*|put (?:in|into|aside)|set aside)\b/;
@@ -193,6 +200,11 @@ const GOVERNANCE_ASK = /\b(?:governance|proposals?|quorum|veto|voting period|dep
 const TWO_QUESTIONS = /\b(?:what|how|which|who|where|when|why|is|are|does|do)\b[^?]{2,}?,?\s+and\s+(?:what|how|which|who|where|when|why)\s+(?:is|are|does|do|did|much|many|long|about)\b/i;
 export function strongMatchOnly(question: string): boolean { return GOVERNANCE_ASK.test(question) || TWO_QUESTIONS.test(question); }
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
+  if (safetyFirst(question)) return NONE; // the guard first, as in deviceAnswer below (the source-order test reads this line)
+  // Session AU (D-ALLOW-HEALTH): ZIGi's Health-closed refusal in the question's language, with its one button (nova-env.ts).
+  return zigiHealthClosed(deviceAnswer(question, env, subject), env, questionLanguage(question) === 'nl' ? 'nl' : 'en');
+}
+function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
   // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.
   if (safetyFirst(question)) return NONE;
@@ -479,6 +491,11 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // a spending question about food is Wealth's (ai-session.ts), never the diary (Nairobi P26, NB:N-065).
   if (!subject && (/\bmacros?\b/.test(q) || /\bspen[dt]\b|\bspending\b/.test(q))) return NONE;
   if (env.areas.today === false && env.areas.habits === false && env.areas.goals === false && env.areas.wealth === false && !env.health) return {kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []};
+  // Session AU (D-NL-COINS): a coin held, asked in Dutch, is answered in Dutch (the lookups below read English words only).
+  if (!subject && NL_HOLD.ask.test(q) && NL_HOLD.have.test(q) && !NL_HOLD.not.test(q) && questionLanguage(q) === 'nl') {
+    const coin = mentionedAsset(env, q) ?? untrackedCoin(q);
+    if (coin) return holding(env, coin, q, 'nl');
+  }
   // A lookup asks: question words, or a figure's name ending in a question mark ("Minutes of reading this month?").
   const asked = /\?\s*$/.test(q) && (W.minutes.test(q) || W.streak.test(q) || W.average.test(q) || W.rate.test(q) || /\b(steps|water|calories|protein)\b/.test(q) || WEALTH_TOTAL.test(q) || OWE.test(q));
   // Session X-Local Part 6b: "list my accounts" and "show my debts" are lookups said as a request.
@@ -833,29 +850,35 @@ function untrackedCoin(q: string): string | null {
   for (const [name, symbol] of Object.entries(ASSET_NAMES)) if (new RegExp(`\\b${name}\\b`).test(q)) return symbol;
   return COIN_WORD.exec(q)?.[1]?.toUpperCase() ?? null;
 }
-function holding(env: ToolEnv, asset: string, q = ''): LocalReply {
+/**
+ * A coin or asset held: Wealth's holding and, apart from it, a Real portfolio's coins (a Hypothetical portfolio holds
+ * nothing, so it is never counted). Session AU (D-NL-COINS): in Dutch too, the same facts in the same order.
+ */
+function holding(env: ToolEnv, asset: string, q = '', lang: 'en' | 'nl' = 'en'): LocalReply {
   const r = call(env, 'holdings', {asset}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), rows = d.holdings as {quantity: string; value: string; priceSource: string; valuedAt: string}[];
-  const calls = [r.record];
+  const calls = [r.record], nl = lang === 'nl', say = (en: string, dutch: string) => nl ? dutch : en;
   const extra: string[] = [];
   if (env.portfolio) {
     const p = call(env, 'portfolios', {}); calls.push(p.record);
     // Portfolio is named apart from Wealth; a hypothetical portfolio holds nothing, so it is never counted as holding.
     const portfolios = p.result.ok ? dataOf(p.result).portfolios as {portfolio: string; kind: string; coins?: {coin: string; quantity: string}[]}[] : [];
-    for (const pf of portfolios) { const coin = pf.coins?.find(c => c.coin.toUpperCase() === asset); if (coin && pf.kind === 'Real') extra.push(`Portfolio (separate from Wealth): ${grouped(coin.quantity)} ${asset} in your Real portfolio ${pf.portfolio}`); }
+    for (const pf of portfolios) { const coin = pf.coins?.find(c => c.coin.toUpperCase() === asset); if (coin && pf.kind === 'Real') extra.push(say(`Portfolio (separate from Wealth): ${grouped(coin.quantity)} ${asset} in your Real portfolio ${pf.portfolio}`, `Portfolio (los van Wealth): ${grouped(coin.quantity)} ${asset} in je Real-portfolio ${pf.portfolio}`)); }
     // Session AT (L7 TK:1, TK-048): with portfolios on this device, the Portfolio is named even when no Real one holds the
     // coin (it was left unsaid), and before Wealth's empty answer too, so each source is said with what it holds.
-    if (portfolios.length && !extra.length) extra.push(`Portfolio (separate from Wealth): no ${asset} in a Real portfolio`);
+    if (portfolios.length && !extra.length) extra.push(say(`Portfolio (separate from Wealth): no ${asset} in a Real portfolio`, `Portfolio (los van Wealth): geen ${asset} in een Real-portfolio`));
   }
-  if (!rows.length) return {kind: 'answer', text: lines(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, [...extra, `To track it: Wealth → + Add asset → ${/^(?:GOLD|SILVER)$/.test(asset) ? 'Precious metals' : 'Crypto'}, then ${asset} and the amount you hold`]), calls};
+  const metal = /^(?:GOLD|SILVER)$/.test(asset) ? 'Precious metals' : 'Crypto';
+  if (!rows.length) return {kind: 'answer', text: lines(say(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, `Je hebt geen ${asset} vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.`), [...extra, say(`To track it: Wealth → + Add asset → ${metal}, then ${asset} and the amount you hold`, `Om het bij te houden: Wealth → + Add asset → ${metal}, dan ${asset} en de hoeveelheid die je hebt`)]), calls};
   const quantity = rows.reduce((s, row) => s.plus(/^\d+(\.\d+)?$/.test(row.quantity) ? row.quantity : 0), new Decimal(0)).toFixed();
   const values = new Map<string, Decimal>();
   for (const row of rows) { const m = /^(-?\d+\.\d{2}) ([A-Z]{3,10})$/.exec(row.value); if (m) values.set(m[2]!, (values.get(m[2]!) ?? new Decimal(0)).plus(m[1]!)); }
-  const unpriced = rows.filter(row => row.value === 'no price').length, sources = [...new Set(rows.filter(row => row.value !== 'no price').map(row => `${row.priceSource}, ${row.valuedAt === 'unknown' ? 'time unknown' : `observed ${instantText(row.valuedAt, env.habitDay)}`}`))];
-  const worth = values.size ? `worth ${[...values].map(([c, v]) => amount(v.toFixed(2), c)).join(' and ')}` : 'with no price, so no value';
+  const unpriced = rows.filter(row => row.value === 'no price').length, sources = [...new Set(rows.filter(row => row.value !== 'no price').map(row => `${row.priceSource}, ${row.valuedAt === 'unknown' ? say('time unknown', 'tijd onbekend') : `${say('observed', 'waargenomen')} ${instantText(row.valuedAt, env.habitDay)}`}`))];
+  const worth = values.size ? `${say('worth', 'ter waarde van')} ${[...values].map(([c, v]) => amount(v.toFixed(2), c)).join(say(' and ', ' en '))}` : say('with no price, so no value', 'zonder prijs, dus zonder waarde');
   // Session AL final pass (TK:14, C-TK-35): "… in EUR?" says when no value is in that currency (values are never converted).
-  const wanted = /\bin (usd|eur)\b/i.exec(q)?.[1]?.toUpperCase(), noneIn = wanted && !values.has(wanted) ? `No value in ${wanted}: each value stays in its price's own currency and is never converted` : null;
-  return {kind: 'answer', text: lines(`You hold ${grouped(quantity)} ${asset} in Wealth (${plural(rows.length, 'holding')}), ${worth}.`, [noneIn, sources.length > 0 && `Prices: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && `${plural(unpriced, 'holding')} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, values.size > 1 && 'One total per currency, never converted', ...extra]), calls};
+  const wanted = /\bin (usd|eur)\b/i.exec(q)?.[1]?.toUpperCase(), noneIn = wanted && !values.has(wanted) ? say(`No value in ${wanted}: each value stays in its price's own currency and is never converted`, `Geen waarde in ${wanted}: elke waarde blijft in de eigen valuta van de prijs en wordt nooit omgerekend`) : null;
+  const holdings = (count: number) => nl ? `${count} ${count === 1 ? 'positie' : 'posities'}` : plural(count, 'holding');
+  return {kind: 'answer', text: lines(say(`You hold ${grouped(quantity)} ${asset} in Wealth (${holdings(rows.length)}), ${worth}.`, `Je hebt ${grouped(quantity)} ${asset} in Wealth (${holdings(rows.length)}), ${worth}.`), [noneIn, sources.length > 0 && `${say('Prices', 'Prijzen')}: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && say(`${holdings(unpriced)} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, `${holdings(unpriced)} zonder prijs ${unpriced === 1 ? 'telt' : 'tellen'} niet mee in de waarde`), values.size > 1 && say('One total per currency, never converted', 'Eén totaal per valuta, nooit omgerekend'), ...extra]), calls};
 }
 /** "2430.00 USD" as a local answer writes money: "2,430.00 USD". */
 const money = (text: string) => { const i = text.lastIndexOf(' '); return i > 0 ? amount(text.slice(0, i), text.slice(i + 1)) : text; };

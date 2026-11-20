@@ -1,12 +1,14 @@
+import {FORECAST} from '../../../goal-forecast';
 import {addLocalDays} from '../../../local-date';
 import {recentNotes} from '../../../nova/holo/lists';
-import {calendarDay, formatClock, formatCurrencyAmount, formatNumber, isMoneyCurrency} from '../../../visual-format';
+import {calendarDay, formatClock, formatCurrencyAmount, formatDate, formatNumber, isMoneyCurrency} from '../../../visual-format';
 import type {ToolEnv} from '../../tools/env';
 import {text as clean} from '../../tools/format';
 import {runTool} from '../../tools/registry';
 import {weekStart} from '../../tools/range';
 import {habitRows} from './habits';
 import {stepsTrack, sleepTrack, waterTrack} from './health';
+import {GOAL_ETA} from './lexicon';
 import {dayWords, periodSpan, periodWords, previousPeriod, resolvePeriod, type Period} from './period';
 import {listWords, t} from './text';
 import {periodFor, trackAnswer, type Track} from './track';
@@ -134,6 +136,7 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
   const rows = all.map(g => ({goal: g.name, status: g.status, percent: Math.round(Number.parseFloat(g.progress)), funding: g.funding ?? null, targetDate: g.targetDate && g.targetDate !== 'none' ? g.targetDate : null})), facts = {active: active.length, goals: rows};
   const one = q.subject?.kind === 'goal' ? all.find(g => g.name === plain(q.subject!.name)) : null;
   if (MILESTONE_WORDS.test(q.read)) return milestonesOf(q, env, active, one, out);
+  if (one && GOAL_ETA.test(q.read)) return goalEta(q, env, one, out);
   if (one) {
     const date = one.targetDate && one.targetDate !== 'none' ? t(lang, `; target date ${dayWords(one.targetDate, today)}`, `; streefdatum ${dayWords(one.targetDate, today)}`) : '';
     return out(t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${amountOf(one.now)} van ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${amountOf(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(Number.parseFloat(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
@@ -155,6 +158,32 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
     return out(dated ? t(lang, `The next target date is ${dayWords(dated.targetDate!, today)}: ${line(dated)}.`, `De eerstvolgende streefdatum is ${dayWords(dated.targetDate!, today)}: ${line(dated)}.`) : t(lang, 'No active goal has a target date ahead.', 'Geen actief doel heeft een streefdatum in de toekomst.'), {...facts, goal: dated?.name ?? null, targetDate: dated?.targetDate ?? null}, [{id: 'goal-dates', fallback: 'goals-hud'}]);
   }
   return out(active.length ? t(lang, `${active.length} active ${active.length === 1 ? 'goal' : 'goals'}: ${listWords(active.slice(0, 6).map(line), 'en')}${active.length > 6 ? `, and ${active.length - 6} more` : ''}.`, `${active.length} ${active.length === 1 ? 'actief doel' : 'actieve doelen'}: ${listWords(active.slice(0, 6).map(line), 'nl')}${active.length > 6 ? ` en nog ${active.length - 6}` : ''}.`) : t(lang, 'No active goal right now.', 'Er is nu geen actief doel.'), facts, /\b(?:saved|saving|savings|save|gespaard|sparen|spaar\w*)\b/.test(q.read) ? [{id: 'savings-jars', fallback: 'goals-hud'}, ...widgets] : widgets);
+}
+
+/**
+ * Session AU (ADR-044 D-ETA): "when will I reach my emergency fund". The Goal widget's own pace estimate first — the same
+ * forecast it shows (lib/goal-forecast.ts `paceForecast` over `privateGoalPoints`, through the goal lookup's
+ * `goalPaceForecast`, lib/ai/tools/goals.ts), in the same day format (`formatDate`, as `forecastWords` writes it) — said as an
+ * estimate, never a promise; then the target date and what is still to go. With no pace yet it says so, and why, and gives
+ * the target date. The stage is asked for that goal's Goal widget, which shows the same estimate.
+ */
+type Pace = {state?: string; date?: string};
+function goalEta(q: Query, env: ToolEnv, one: GoalRow, out: ReturnType<typeof answer>): Exact | null {
+  const lang = q.lang, today = env.habitDay, r = runTool('goal_progress', {goal: q.subject!.name}, env);
+  if (!r.ok) return null;
+  const pace = (typeof r.data.paceForecast === 'object' && r.data.paceForecast ? r.data.paceForecast : {}) as Pace;
+  const target = one.targetDate && one.targetDate !== 'none' ? one.targetDate : null, left = amountOf(one.remaining);
+  const tail = (target ? t(lang, ` Target date ${dayWords(target, today)}`, ` Streefdatum ${dayWords(target, today)}`) : t(lang, ' No target date is set', ' Er is geen streefdatum')) + (left ? t(lang, `; ${left} still to go.`, `; nog ${left} te gaan.`) : '.');
+  const estimate = pace.state === 'estimate' && pace.date ? pace.date : null;
+  const facts = {goal: one.name, pace: pace.state ?? 'none', estimate, estimateMonth: estimate ? estimate.slice(0, 7) : null, targetDate: target, remaining: one.remaining ?? null};
+  const widgets: ExactWidget[] = [{id: 'goal-focus', ref: q.subject!.id, fallback: 'goal-gauge'}];
+  if (one.status === 'completed' || pace.state === 'reached') return out(t(lang, `${one.name} is already reached: ${amountOf(one.now)} of ${amountOf(one.target)}.`, `${one.name} is al gehaald: ${amountOf(one.now)} van ${amountOf(one.target)}.`), facts, widgets);
+  if (estimate) return out(t(lang, `At your current pace, you reach ${one.name} about ${formatDate(estimate)} — an estimate from your pace so far, not a promise.`, `In je huidige tempo haal je ${one.name} rond ${formatDate(estimate)} — een schatting op basis van je tempo tot nu toe, geen belofte.`) + tail, facts, widgets);
+  const why = one.type === 'Keep an average' ? t(lang, 'it keeps an average over its window, so no date follows from a pace', 'het houdt een gemiddelde vast over een periode, dus er volgt geen datum uit een tempo')
+    : pace.state === 'not-enough' ? t(lang, `there is not enough recorded progress yet (a pace needs at least ${FORECAST.minPoints} recorded steps over ${FORECAST.minDays} days or more)`, `er is nog te weinig vastgelegde voortgang (een tempo vraagt minstens ${FORECAST.minPoints} vastgelegde stappen over ${FORECAST.minDays} dagen of meer)`)
+      : pace.state === 'no-pace' ? t(lang, 'your recorded progress has not moved forward lately, so no date follows from it', 'je vastgelegde voortgang is de laatste tijd niet vooruitgegaan, dus er volgt geen datum uit')
+        : t(lang, 'there is no recorded amount to set a pace from', 'er is geen vastgelegd bedrag om een tempo uit te halen');
+  return out(t(lang, `No pace yet for ${one.name}: ${why}.`, `Nog geen tempo voor ${one.name}: ${why}.`) + tail, facts, widgets);
 }
 
 /**

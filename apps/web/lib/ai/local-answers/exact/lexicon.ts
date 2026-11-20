@@ -79,6 +79,19 @@ export const HABIT_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   schrijven: ['journal', 'write'], geschreven: ['journal', 'write'], studeren: ['study'], gestudeerd: ['study'], leren: ['study'], geleerd: ['study'],
   koken: ['cook'], gekookt: ['cook'], flossen: ['floss'], geflost: ['floss'], bidden: ['pray'], gebeden: ['pray'], yoga: ['yoga'], zwemmen: ['swim'], gezwommen: ['swim'], fietsen: ['cycle'], gefietst: ['cycle'],
 };
+/**
+ * Session AU (ADR-044 D-ETA): words people use for a goal in Dutch when the goal is named in English ("noodfonds" for an
+ * Emergency fund), as the words of that name. Read only for goals (lib/ai/local-answers/exact/understand.ts).
+ */
+export const GOAL_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
+  noodfonds: ['emergency', 'fund'], noodfondsje: ['emergency', 'fund'], noodpot: ['emergency', 'fund'], noodpotje: ['emergency', 'fund'], noodbuffer: ['emergency', 'fund'],
+};
+/**
+ * Session AU (ADR-044 D-ETA): when a goal will be reached, at the pace so far ("when will I reach my emergency fund", "how
+ * long until it is done", "wanneer haal ik mijn noodfonds"). A goal's own target date ("what is its deadline", "when is it
+ * due") and when it was reached ("wanneer heb ik … gehaald") are not this. Runs on folded text.
+ */
+export const GOAL_ETA = /\b(?:when (?:will|would|do|can|could|am) i (?:going to |gonna )?(?:reach|hit|get to|finish|complete|achieve|make|be done with|have)|when (?:will|would) (?:my |the |it )(?:\w+ ){0,6}?(?:be )?(?:done|reached|finished|complete|completed|full|funded)|how long (?:until|till|untill|til|before|to reach|to hit|to finish|will it take|does it take|is it until)|how much longer (?:until|till|before|for)|wanneer (?:haal|bereik) ik|wanneer (?:zal|ga) ik (?:\w+ ){1,6}?(?:halen|bereiken)|wanneer is (?:mijn |het )(?:\w+ ){0,6}?(?:klaar|vol|af)|hoe ?lang (?:nog |duurt het (?:nog )?)?(?:tot|voordat|voor ik)|hoeveel tijd (?:nog )?(?:tot|voordat))\b/;
 /** Not a question the device answers from records: an action to take, a line to log, advice. */
 export const NOT_A_LOOKUP = {
   action: /^(?:please |can you |could you |ok |okay |kun je |wil je |graag )?(?:log|add|track|record|mark|skip|create|make|set|remind|start|stop|delete|remove|plan|schedule|change|update|edit|rename|move|buy|sell|send|transfer|undo|turn|write|draft|tick|check off|open|go to|go back to|take me to|navigate to|switch to|run|estimate|scan|summarize|summarise|review|suggest|give me a|give me an|export|import|connect|voeg|zet|maak|vink|sla|noteer|registreer|verwijder|wijzig|verander|herinner|stuur|schrijf|ga naar|ga terug naar|breng me naar|geef me een|vat|exporteer)\b|^(?:nova |zigi )?(?:open|toon de pagina|ga naar)\b|\b(?:page|pagina|screen|scherm|tab) ?$|\b(?:openen|open doen)$/,
@@ -96,7 +109,7 @@ export const NOT_A_LOOKUP = {
 /** Words that are never a record's name by themselves (so "this" or "days" never names a habit). */
 export const GENERIC = new Set('habit habits goal goals today done left open all and also only with the for this that what how many much are your did miss missed days day week month times time last have was were not which when showcase data fund plan gewoonte gewoontes doel doelen vandaag dag dagen week maand keer niet welke wanneer mijn deze heb ik'.split(' '));
 
-const sources = [...DOMAIN_WORDS, ...ASK_WORDS, ...SHAPE_WORDS].map(([, re]) => re.source).join(' ') + ' ' + Object.entries(HABIT_SYNONYMS).flat(2).join(' ')
+const sources = [...DOMAIN_WORDS, ...ASK_WORDS, ...SHAPE_WORDS].map(([, re]) => re.source).join(' ') + ' ' + Object.entries(HABIT_SYNONYMS).flat(2).join(' ') + ' ' + Object.keys(GOAL_SYNONYMS).join(' ')
   + ' today yesterday week month year monday tuesday wednesday thursday friday saturday sunday january february march april june july august september october november december vandaag gisteren maand jaar maandag dinsdag woensdag donderdag vrijdag zaterdag zondag januari februari maart augustus oktober mondays tuesdays wednesdays thursdays fridays saturdays sundays maandagen dinsdagen woensdagen donderdagen vrijdagen zaterdagen zondagen anything something everything payment entry betaling days times dagen keer this last since deze vorige afgelopen sinds what which when where have many much often welke hoeveel wanneer habits tasks goals bills notes';
 /** Every word of four letters or more the tables hold: what a misspelt word may be set right to. */
 export const VOCABULARY: ReadonlySet<string> = new Set(sources.match(/[a-z]{4,}/g) ?? []);

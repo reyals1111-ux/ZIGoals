@@ -4288,6 +4288,22 @@
   "fresh": "No holdings are tracked in Wealth yet.",
   "freshNl": "Er wordt nog niets gevolgd bij Wealth."
  },
+ "coin-btc": {
+  "en": "You hold 0.45 BTC in Wealth (1 holding), with no price, so no value.\n- Portfolio (separate from Wealth): no BTC in a Real portfolio",
+  "nl": "Je hebt 0.45 BTC in Wealth (1 positie), zonder prijs, dus zonder waarde.\n- Portfolio (los van Wealth): geen BTC in een Real-portfolio",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no BTC recorded in Wealth, so there is no amount to show.\n- To track it: Wealth → + Add asset → Crypto, then BTC and the amount you hold",
+  "freshNl": "Je hebt geen BTC vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.\n- Om het bij te houden: Wealth → + Add asset → Crypto, dan BTC en de hoeveelheid die je hebt"
+ },
+ "coin-eth": {
+  "en": "You hold 4 ETH in Wealth (1 holding), with no price, so no value.\n- Portfolio (separate from Wealth): no ETH in a Real portfolio",
+  "nl": "Je hebt 4 ETH in Wealth (1 positie), zonder prijs, dus zonder waarde.\n- Portfolio (los van Wealth): geen ETH in een Real-portfolio",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no ETH recorded in Wealth, so there is no amount to show.\n- To track it: Wealth → + Add asset → Crypto, then ETH and the amount you hold",
+  "freshNl": "Je hebt geen ETH vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.\n- Om het bij te houden: Wealth → + Add asset → Crypto, dan ETH en de hoeveelheid die je hebt"
+ },
  "goals-status": {
   "en": "7 active goals, from your own records:\n• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20\n• First home deposit: 65% — $52,000 of $80,000, $28,000 to go; next planned Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 of $6,000, $3,500 to go; next planned Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones of 4 milestones, 2 milestones to go\n• Reward income reserve: 50% — 10,000 ZIG of 20,000 ZIG, 10,000 ZIG to go; next planned Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day of at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night of at least 8 h a night\n3 goals completed.\nAsk about one goal by its name for its plan and pace. Your own figures; not financial advice.",
   "nl": "7 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — $9,000 van $20,000, nog $11,000 te gaan; volgende geplande stap Fri, Nov 20\n• First home deposit: 65% — $52,000 van $80,000, nog $28,000 te gaan; volgende geplande stap Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 van $6,000, nog $3,500 te gaan; volgende geplande stap Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones van 4 milestones, nog 2 milestones te gaan\n• Reward income reserve: 50% — 10,000 ZIG van 20,000 ZIG, nog 10,000 ZIG te gaan; volgende geplande stap Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day van at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night van at least 8 h a night\n3 doelen afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
@@ -4745,6 +4761,44 @@
   "widgets": [],
   "fresh": "No goal is called “emergency fund”. You have no goals yet; Goals → Create a goal starts one.",
   "freshNl": "Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:"
+ },
+ "goal-emergency-eta": {
+  "en": "At your current pace, you reach Emergency fund about Jan 31, 2028 — an estimate from your pace so far, not a promise. Target date Thu, Nov 16, 2028; $11,000.00 still to go.",
+  "nl": "In je huidige tempo haal je Emergency fund rond Jan 31, 2028 — een schatting op basis van je tempo tot nu toe, geen belofte. Streefdatum Thu, Nov 16, 2028; nog $11,000.00 te gaan.",
+  "facts": {
+   "about": "goals",
+   "ask": "done",
+   "goal": "Emergency fund",
+   "pace": "estimate",
+   "estimate": "2028-01-31",
+   "estimateMonth": "2028-01",
+   "targetDate": "2028-11-16",
+   "remaining": "11000 USD"
+  },
+  "widgets": [
+   "goal-focus"
+  ],
+  "fresh": "That isn’t something I can answer from your records here. Without a brain I answer about your habits, Checklist, tasks, goals, Health (once you share it) and money, and I prepare cards you confirm for check-offs, tasks and new habits.\nUntil you give me a brain, I answer from your own records on this device. For example:",
+  "freshNl": "Je hebt nog geen doelen."
+ },
+ "goal-japan-eta": {
+  "en": "No pace yet for Japan adventure: there is not enough recorded progress yet (a pace needs at least 3 recorded steps over 14 days or more). Target date Fri, Apr 16, 2027; $3,500.00 still to go.",
+  "nl": "Nog geen tempo voor Japan adventure: er is nog te weinig vastgelegde voortgang (een tempo vraagt minstens 3 vastgelegde stappen over 14 dagen of meer). Streefdatum Fri, Apr 16, 2027; nog $3,500.00 te gaan.",
+  "facts": {
+   "about": "goals",
+   "ask": "done",
+   "goal": "Japan adventure",
+   "pace": "not-enough",
+   "estimate": null,
+   "estimateMonth": null,
+   "targetDate": "2027-04-16",
+   "remaining": "3500 USD"
+  },
+  "widgets": [
+   "goal-focus"
+  ],
+  "fresh": "You have no goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
+  "freshNl": "Je hebt nog geen doelen."
  },
  "tasks-overdue": {
   "en": "2 tasks are overdue: Sketch the garden bed (due Mon, Nov 16) and Book the dentist (due today 10:30 AM).",

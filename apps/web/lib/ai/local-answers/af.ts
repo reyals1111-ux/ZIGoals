@@ -5,6 +5,7 @@ import {briefChatText} from '../proactive/brief';
 import {cardHelp} from '../context/card-help';
 import {cardOnPage} from '../context/page-view';
 import type {LocalReply} from './engine';
+import {allowHealth} from './nova-env';
 
 /**
  * Session AF (L4): this session's answers on the device, asked before the lookups (lib/ai/local-answers/engine.ts): the
@@ -40,7 +41,7 @@ export function afLocalAnswer(question: string, env: ToolEnv): LocalReply | null
       if (!shown.length) return {kind: 'answer', text: lang === 'nl' ? `Je bent op ${view.page}. Er is nu geen kaart in beeld.` : `You are on ${view.page}. No card is in view right now.`, calls: [{tool: 'page_view', args: {}, label: 'This page'}]};
       const lines = shown.map(c => { const help = cardHelp(c.id, lang); return `• ${c.label}${help ? ` — ${help}` : ''}`; });
       const head = lang === 'nl' ? `Je bent op ${view.page}. In beeld:` : `You are on ${view.page}. In view:`;
-      return {kind: 'answer', text: [head, ...lines, ...(view.healthHidden ? [healthHiddenLine(view.healthHidden, lang)] : []), lang === 'nl' ? 'Alleen de titels: ZIGi leest hier geen waarden.' : 'Titles only: ZIGi reads no values here.'].join('\n'), calls: [{tool: 'page_view', args: {}, label: 'This page'}]};
+      return {kind: 'answer', text: [head, ...lines, ...(view.healthHidden ? [healthHiddenLine(view.healthHidden, lang)] : []), lang === 'nl' ? 'Alleen de titels: ZIGi leest hier geen waarden.' : 'Titles only: ZIGi reads no values here.'].join('\n') + (view.healthHidden ? allowHealth(env, lang) : ''), calls: [{tool: 'page_view', args: {}, label: 'This page'}]};
     }
     const found = cardOnPage(view, (card![1] ?? card![2] ?? '').trim());
     const help = found ? cardHelp(found.id, lang) : null;

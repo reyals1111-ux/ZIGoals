@@ -4,6 +4,7 @@ import {dailyData} from '../../health-daily';
 import {toolEnv, type ToolSources} from '../tools/env';
 import {DAY, gatesFor, SENTINEL, hasSentinel, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {HEALTH_CLOSED} from '../tools/format';
+import {ALLOW_HEALTH_CARD} from './nova-env';
 import {runTool} from '../tools/registry';
 import {examplesReply, localAnswer, navigationIntent, type LocalReply} from './engine';
 import {examplesFor} from './examples';
@@ -121,7 +122,8 @@ test('Health questions with the gate closed: the plain refusal, nothing read, an
   expect(env.health).toBeNull();
   for (const q of ['How much water did I drink yesterday?', 'Average steps last week?', 'Did I hit my protein target this week?', 'What did I eat on Monday?', 'What is my weight?', 'When was my last fast?', 'How many push-ups this week?', 'How many calories did I eat today?', 'How did my waist change this month?']) {
     const reply = ask(q, env);
-    expect(reply.kind, q).toBe('refusal'); expect(textOf(reply), q).toBe(HEALTH_CLOSED);
+    // Session AU (D-ALLOW-HEALTH, deliberate): ZIGi's Health-closed reply is the same sentence plus its one button (the open-page card to Settings → ZIGi), still matched whole.
+    expect(reply.kind, q).toBe('refusal'); expect(textOf(reply), q).toBe(HEALTH_CLOSED + ALLOW_HEALTH_CARD);
     expect(reply.kind === 'refusal' && reply.calls, q).toEqual([]);
     expect(sentinelsIn(JSON.stringify(reply)), q).toEqual([]);
   }
@@ -167,8 +169,9 @@ test('Session W Part 21: the new areas answer here, in calm words; a habit the q
   expect(textOf(ask('What are my accounts and debts?'))).toMatch(/^Your accounts and debts on this device \(5 accounts\):/);
   expect(textOf(ask('What is my net worth?'))).toMatch(/\n- With your accounts and debts, your net worth is .+, never converted between currencies$/);
   // With Health closed the Health ones refuse before anything is read; the others still answer.
-  for (const q of ['How did I sleep last night?', 'What is my sleep debt?', 'What was my resting heart rate this week?', 'Which devices do my records come from?']) expect(ask(q, shut()), q).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED, calls: []});
-  expect(ask('How many mindful minutes this week?', shut())).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED});
+  // Session AU (D-ALLOW-HEALTH, deliberate): ZIGi's Health-closed reply is the same sentence plus its one button (the open-page card to Settings → ZIGi), still matched whole.
+  for (const q of ['How did I sleep last night?', 'What is my sleep debt?', 'What was my resting heart rate this week?', 'Which devices do my records come from?']) expect(ask(q, shut()), q).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED + ALLOW_HEALTH_CARD, calls: []});
+  expect(ask('How many mindful minutes this week?', shut())).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED + ALLOW_HEALTH_CARD});
   expect(ask('What do I owe?', shut()).kind).toBe('answer');
   // Not lookups: logging, statements and advice go to the person's AI.
   for (const q of ['Log 7 hours of sleep for last night', 'I slept badly last night', 'Should I go to bed earlier?', 'How can I improve my chess rating?', 'Start a 30 day reading challenge']) expect(ask(q).kind, q).toBe('none');

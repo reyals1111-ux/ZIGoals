@@ -94,3 +94,30 @@ test('steps, workouts, the journal, focus and tasks, from their stored records',
   expect(overdue.sort()).toEqual(['Book the dentist', 'Sketch the garden bed']);
   expect((ask('which tasks are overdue', env).facts as {overdue: string[]}).overdue.sort()).toEqual(overdue.sort());
 });
+test('Session AU (D-ETA): the Emergency fund’s pace estimate, recomputed from the stored contributions, is the answer’s month; Japan has no pace yet', () => {
+  type Event = {goalId: string; direction: string; quantity: string; asset: string; decimals: number; occurredAt: string; provenance: string};
+  type Raw = {goals: {id: string; target: string; decimals: number}[]; positions: {id: string; decimals: number}[]; allocations: {goalId: string; positionId: string; quantity: string}[]; contributions: Event[]};
+  const platform = record('zigoals:platform:v1') as Raw, at = (day: string) => Date.parse(`${day}T12:00:00Z`) / 86_400_000;
+  /** The goal's own USD contributions as a running total by day (in minus out), the least-squares slope through them, and the day the remainder is covered. */
+  const pace = (id: string) => {
+    const own = platform.contributions.filter(e => e.goalId === id && e.asset === 'USD' && e.provenance !== 'REWARD_INCOME').sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
+    const byDay = new Map<string, number>(); let run = 0;
+    for (const e of own) { run += (e.direction === 'IN' ? 1 : -1) * Number(e.quantity) / 10 ** e.decimals; byDay.set(e.occurredAt.slice(0, 10), run); }
+    const xs = [...byDay.keys()].map(at), ys = [...byDay.values()], span = xs.length ? xs.at(-1)! - xs[0]! : 0;
+    if (xs.length < 3 || span < 14) return {state: 'not-enough' as const};
+    const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+    const slope = xs.reduce((n, x, i) => n + (x - mx) * (ys[i]! - my), 0) / xs.reduce((n, x) => n + (x - mx) ** 2, 0);
+    const goal = platform.goals.find(g => g.id === id)!, held = platform.allocations.filter(a => a.goalId === id).reduce((n, a) => n + Number(a.quantity) / 10 ** platform.positions.find(p => p.id === a.positionId)!.decimals, 0);
+    const days = Math.ceil((Number(goal.target) / 10 ** goal.decimals - held) / slope);
+    return {state: 'estimate' as const, held, slope, date: new Date((at(DAY) + days) * 86_400_000).toISOString().slice(0, 10)};
+  };
+  const emergency = pace('9201');
+  expect(emergency).toMatchObject({state: 'estimate', held: 9000, slope: 25});
+  expect(emergency.state === 'estimate' && emergency.date.slice(0, 7)).toBe('2028-01');
+  const a = ask('when will I reach my emergency fund', env);
+  expect(a.facts).toMatchObject({pace: 'estimate', estimateMonth: emergency.state === 'estimate' ? emergency.date.slice(0, 7) : null, targetDate: '2028-11-16'});
+  expect(a.text).toMatch(/^At your current pace, you reach Emergency fund about Jan \d{1,2}, 2028 — an estimate from your pace so far, not a promise\./);
+  expect(a.widgets).toEqual(['goal-focus']);
+  expect(pace('9203')).toEqual({state: 'not-enough'});
+  expect(ask('when will I reach my Japan adventure goal', env).facts).toMatchObject({pace: 'not-enough', estimate: null, targetDate: '2027-04-16'});
+});

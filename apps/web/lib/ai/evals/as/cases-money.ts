@@ -74,6 +74,14 @@ export const MONEY: readonly Intent[] = [
   {id: 'networth-now', pillar: 'wealth',
     en: ['what is my net worth', 'whats my net worth', 'how much am I worth'],
     nl: ['wat is mijn vermogen', 'wat is mijn nettovermogen', 'hoeveel ben ik waard']},
+  // Session AU (D-NL-COINS, ADR-043 D4): a coin held, in Dutch as in English: Wealth's holding, and a Real portfolio's coins
+  // apart from it (a Hypothetical portfolio is never counted, golden rule btc-total). The Dutch question read the BTC goal.
+  {id: 'coin-btc', pillar: 'wealth', never: ['My first 0.1 BTC', 'Hypothetical', 'Nettovermogen'],
+    en: ['how much BTC do I have', 'how much bitcoin do I own', 'Total BTC I hold?'],
+    nl: ['hoeveel BTC heb ik', 'hoeveel bitcoin bezit ik', 'hoeveel btc heb ik eigenlijk?']},
+  {id: 'coin-eth', pillar: 'wealth', never: ['Hypothetical'],
+    en: ['how much ETH do I have', 'how much ether do I hold'],
+    nl: ['wat is mijn ETH', 'hoeveel ETH heb ik', 'hoeveel ether bezit ik']},
   {id: 'goals-status', pillar: 'goals',
     en: ['how are my goals', 'how are my goals doing', 'how far am I on my goals'],
     nl: ['hoe gaat het met mijn doelen', 'hoe staan mijn doelen ervoor']},
@@ -106,4 +114,13 @@ export const MONEY: readonly Intent[] = [
   {id: 'goal-emergency', pillar: 'goals',
     en: ['how far am I on my emergency fund', 'how is my emergency fund goal doing'],
     nl: ['hoe ver ben ik met mijn emergency fund', 'hoe staat mijn doel emergency fund ervoor']},
+  // Session AU (ADR-044 D-ETA): when a goal will be reached leads with the Goal widget's own pace estimate (an estimate, never
+  // a promise), then the target date and what is still to go; the older answer led with the target date.
+  {id: 'goal-emergency-eta', pillar: 'goals', never: ['Next planned contribution', 'With your plan', 'Met je plan'],
+    en: ['when will I reach my emergency fund', 'when will I hit my emergency fund goal', 'how long until my emergency fund is done', 'when will i reech my emergancy fund', 'When will my emergency fund be done?'],
+    nl: ['wanneer haal ik mijn noodfonds', 'wanneer bereik ik mijn emergency fund', 'hoe lang duurt het nog tot mijn noodfonds vol is', 'wanneer haal ik mijn nooddfonds']},
+  // No pace yet (too little recorded progress): said plainly, with the target date; no date is made up.
+  {id: 'goal-japan-eta', pillar: 'goals', never: ['At your current pace', 'In je huidige tempo', 'With your plan'],
+    en: ['when will I reach my Japan adventure goal', 'how long until my japan adventure goal is done'],
+    nl: ['wanneer haal ik mijn doel japan adventure', 'hoe lang duurt het nog tot mijn doel japan adventure klaar is']},
 ];

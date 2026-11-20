@@ -7,6 +7,7 @@ import {healthAnswer} from './health';
 import {billsAnswer, budgetsAnswer, netWorthAnswer, spendingAnswer} from './money';
 import {resolvePeriod, periodWords} from './period';
 import {fold, t} from './text';
+import {GOAL_ETA} from './lexicon';
 import {DOMAIN_GATE, type Exact, type ExactWidget, type Query} from './types';
 import {topicOf, understand, type Records} from './understand';
 
@@ -88,6 +89,9 @@ export function strictClaim(q: Query): boolean {
   // Bills due this week, and what the bills come to (the older answer lists every bill); the next thing on the agenda.
   if (q.domain === 'bills' && (/\bweek\b/.test(q.read) || q.period === 'this-week' || q.ask === 'total' || q.shape === 'amount')) return true;
   if (q.domain === 'agenda' && q.ask === 'next') return true;
+  // Session AU (ADR-044 D-ETA): when one goal will be reached ("when will I reach my emergency fund"): the Goal widget's own
+  // pace estimate first (the older layers led with the target date while the widget showed the estimate).
+  if (q.domain === 'goals' && q.subject?.kind === 'goal' && GOAL_ETA.test(q.read)) return true;
   // Session AT (L7 Z-057): the milestones of the goals ("de mijlpalen van al mijn doelen" was answered with their percentages);
   // one goal's milestones, asked by its name, keep the milestones lookup's own answer.
   if (q.domain === 'goals' && !q.subject && /\b(?:milestones?|mijlpaal|mijlpalen)\b/.test(q.read)) return true;

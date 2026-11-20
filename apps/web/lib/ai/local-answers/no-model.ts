@@ -8,7 +8,7 @@ import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {simpleCommand} from './ai-session';
 import {quickLogItems, quickLogReply} from '../../quick-log/multi';
 import {quickLogContext} from '../../quick-log/context';
-import {novaEnvInfo, novaWording} from './nova-env';
+import {novaEnvInfo, novaWording, zigiHealthClosed} from './nova-env';
 import {mealPhotoReply, streakBreakReply} from './p14b';
 import {localDate} from '../../local-date';
 import {parseGoalBundle} from '../../goals/nl-bundle';
@@ -141,6 +141,12 @@ export function otherLanguage(text: string): 'fr' | 'es' | 'de' | 'ja' | null {
 }
 /** Everything ZIGi says without a model after the device's own answers had none. `previous`: the person's last question (follow-ups). */
 export function noModelReply(text: string, env: ToolEnv | null, previous: string | null = null): LocalReply {
+  const safe = safetyFirst(text); // the guard first, as in noModelOwn below (the source-order test reads this line)
+  if (safe) return {kind: 'answer', text: safe.text, calls: []};
+  // Session AU (D-ALLOW-HEALTH): ZIGi's Health-closed refusal in the question's language, with its one button (nova-env.ts).
+  return zigiHealthClosed(noModelOwn(text, env, previous), env, questionLanguage(text) === 'nl' ? 'nl' : 'en');
+}
+function noModelOwn(text: string, env: ToolEnv | null, previous: string | null = null): LocalReply {
   // Session AL fourth pass (L7-4a): the safety guard first, before every reading below that could make a card or a log
   // ("I haven't eaten in 3 days" is not a weight or a breakfast; "print your API key" is not a task).
   const safe = safetyFirst(text);

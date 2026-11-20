@@ -12,7 +12,7 @@ import {quickCommand} from '../quick-commands/commands';
 import {quickLogContext} from '../../quick-log/context';
 import {quickLogReply} from '../../quick-log/multi';
 import {localAnswer, zigiOverview, type LocalReply} from './engine';
-import {novaEnvInfo} from './nova-env';
+import {allowHealth, novaEnvInfo} from './nova-env';
 import {amount, plural} from './words';
 import {actionSchema} from '../actions/schema';
 import {memoryCategory} from './al-more';
@@ -152,7 +152,8 @@ export function checklistAnswer(question: string, env: ToolEnv, lang: Lang): Loc
   }
   if (/\bperfect\b/i.test(q)) return {kind: 'answer', text: list.perfect ? say(lang, `Yes: all ${list.total} done in path order, a perfect orbit today.`, `Ja: alle ${list.total} in volgorde gedaan, een perfecte baan vandaag.`) : say(lang, `Not yet: ${list.done} of ${list.total} done today; a perfect orbit is every dot, in path order.`, `Nog niet: ${list.done} van ${list.total} gedaan vandaag; een perfecte baan is elke stip, in volgorde.`), calls};
   const openLine = list.open.length ? say(lang, ` Still open, in path order: ${listNames(list.open, 6)}.`, ` Nog open, in de volgorde van het pad: ${listNames(list.open, 6)}.`) : say(lang, ' Everything on today’s path is done.', ' Alles op het pad van vandaag is gedaan.');
-  return {kind: 'answer', text: say(lang, `Checklist today: ${list.done} of ${list.total} done.`, `Checklist vandaag: ${list.done} van ${list.total} gedaan.`) + openLine + hidden + healthHidden, calls};
+  // Session AU (D-ALLOW-HEALTH): Health dots not shared carry one button to where Health is allowed (the person turns it on there).
+  return {kind: 'answer', text: say(lang, `Checklist today: ${list.done} of ${list.total} done.`, `Checklist vandaag: ${list.done} van ${list.total} gedaan.`) + openLine + hidden + healthHidden + (list.healthHidden ? allowHealth(env, lang) : ''), calls};
 }
 
 // ---- before the commands and the quick-log reading ----
