@@ -34,8 +34,9 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   // Session AT (ADR-043 D15, deliberate): two lines first, NOVA's answers and the example pictures, each opening its answer (22 → 24).
   // Session AV (ADR-045 Part 8, deliberate): three lines first, keeping your records on your phone, new versions and the
   // import's categories, each opening its answer (24 → 27); Part 7 adds the Journal's question of the day and the bills' yearly total (27 → 29).
-  // Session AV follow-up 1 (F-TASK-NOTIFY, F-NL-TASKS, deliberate): task reminders as notifications, Dutch in the task line, three good things, journal tags, tasks finished per day, this month vs last (29 → 35).
-  await expect(list.getByRole('link')).toHaveCount(35);
+  // Session AV follow-up 1 (F-TASK-NOTIFY, F-NL-TASKS, deliberate): task reminders as notifications, Dutch in the task line, three good things, journal tags, tasks finished per day, this month vs last, every factor (29 → 36).
+  await expect(list.getByRole('link')).toHaveCount(36);
+  await expect(list.getByRole('link', {name: /^What goes with your mood, sleep and energy/})).toHaveAttribute('href', '#help-av-factors');
   await expect(list.getByRole('link', {name: /^Each spending category against last month/})).toHaveAttribute('href', '#help-av-vs-last');
   await expect(list.getByRole('link', {name: /^How many tasks you finished/})).toHaveAttribute('href', '#help-av-tasks-done');
   await expect(list.getByRole('link', {name: /^Tags on journal entries/})).toHaveAttribute('href', '#help-av-journal-tags');

@@ -12105,6 +12105,9 @@
             box-shadow: none
         }
     }
+    .factor-effects .factor-outcome:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 /*  components/links/links.css  */
 @scope (:root[data-theme=dark]) {
@@ -27456,6 +27459,9 @@
     }
     .money-tags-chip:not(#\-) {
         border-color: var(--line,rgba(140,160,220,.4))
+    }
+    .money-insights-scroll:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #6fd3ff)
     }
 }
 /*  components/wealth/spending/spending.css  */
