@@ -133,6 +133,8 @@ export function frozenFixture() {
   { const hx = JSON.parse(a.get('zigoals:habit-extras:v1')!) as Record<string, unknown>; a.set('zigoals:habit-extras:v1', JSON.stringify({...hx, order: {'fixture-habit-1': 0}, listMode: 'compact', intentions: {'fixture-habit-1': {when: 'After I pour coffee', where: 'kitchen'}}, monthWeekday: {'fixture-habit-1': {weekday: 1, nth: 1, from: '2026-10-01'}}})); }
   // Session AV (F-FOCUS-HABIT, TIER 3 stored format, additive): today's focus habit in the loose extras record; older builds keep it.
   { const hx = JSON.parse(a.get('zigoals:habit-extras:v1')!) as Record<string, unknown>; a.set('zigoals:habit-extras:v1', JSON.stringify({...hx, focus: {date: '2026-11-23', habitId: 'fixture-habit-1'}})); }
+  // Session AV (F-HABIT-LOOK, TIER 3 stored format, additive): a habit's symbol and colour in the loose extras record; older builds keep it.
+  { const hx = JSON.parse(a.get('zigoals:habit-extras:v1')!) as Record<string, unknown>; a.set('zigoals:habit-extras:v1', JSON.stringify({...hx, looks: {'fixture-habit-1': {glyph: '★', colour: 'teal'}}})); }
   { const gx = JSON.parse(a.get(GOAL_EXTRAS_KEY) ?? '{"version":1,"goals":{},"areas":[]}') as {goals: Record<string, Record<string, unknown>>}; const first = Object.keys(gx.goals ?? {})[0]; if (first) { gx.goals[first] = {...gx.goals[first], milestoneHabits: {m1: ['fixture-habit-1']}}; a.set(GOAL_EXTRAS_KEY, JSON.stringify(gx)); } }
   { const game = JSON.parse(a.get('zigoals:game:v1') ?? '{"version":1}') as Record<string, unknown>; a.set('zigoals:game:v1', JSON.stringify({...game, badges: false})); }
   const storageA = {getItem: (k: string) => a.get(k) ?? null, setItem: (k: string, v: string) => { a.set(k, v); }, removeItem: (k: string) => { a.delete(k); }};
