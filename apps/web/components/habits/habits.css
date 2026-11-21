@@ -206,3 +206,5 @@
 .habit-yesterday-list small { color: var(--text-meta, var(--muted)); }
 .habit-yesterday button { min-height: 44px; }
 .habit-yesterday-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Session AV follow-up 1 (F-FOCUS-HABIT): today's focus, said in words beside the star. */
+.habit-focus-badge { font-weight: 650; }
