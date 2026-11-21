@@ -36,9 +36,10 @@ test('the journal and focus streaks: days in a row ending today, and the longest
   expect(trackStreak(focusTrack(focus, DAY), DAY)).toMatchObject({current: 1, best: 1, todayDone: false, recent: 4});
   expect(trackStreak(journalTrack([], DAY), DAY)).toMatchObject({current: 0, best: 0, bestEnded: null, todayDone: false, recent: 0});
 });
-test('the journal map’s figures: ten days written in November, 107 words', () => {
+// Session AV (follow-up 1, F-GOOD-THINGS, deliberate): the Showcase's Sunday entry is a "Three good things" one (107 → 122 words).
+test('the journal map’s figures: ten days written in November, 122 words', () => {
   const T = tally(journalTrack(journal, DAY).points(widgetPeriod('this-month', DAY).days));
-  expect(T).toMatchObject({done: 10, total: 107, decided: 17});
+  expect(T).toMatchObject({done: 10, total: 122, decided: 17});
 });
 test('focus heat: thirteen weeks, a cell a day, the best day brightest', () => {
   const view = focusHeat(focus, DAY);

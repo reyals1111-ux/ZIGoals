@@ -7,7 +7,7 @@ import {localDate} from '../../../lib/local-date';
 import {formatMonth} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
 import {EXPENSE_CATEGORIES, MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
-import {budgetIssue, monthKey, monthView, removeBudget, setBudget, shiftMonth} from '../../../lib/budgets/engine';
+import {budgetIssue, monthKey, monthView, removeBudget, setBudget, shiftMonth, type BudgetRow} from '../../../lib/budgets/engine';
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
 import './budgets.css';
 // Session AK (BUILD list 2 #19): a sum in the amount field ("300+45,50") is worked out and that amount is saved.
@@ -28,6 +28,15 @@ const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF'] as const;
 const money = (cents: number, currency: string) => moneyCents(cents, currency); // Session AL (PRIMITIVES 3f)
 const readAmount = (raw: string) => { const r = parseNumberInput(raw), v = r.ok ? r.text : raw.trim(); return /^\d{1,10}(\.\d{1,2})?$/.test(v) && Number(v) > 0 ? Number(v).toFixed(2) : v; }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
 
+/** Session AV (F-BUDGET-TARGETS): a budget's target in words, under its name. Information, not advice. */
+function TargetLine({row, current, onStop}: {row: BudgetRow; current: boolean; onStop: () => void}) {
+  const t = row.target!, m = (c: number) => money(c, row.currency), goal = `${m(t.amount)} by ${formatMonth(t.by)}`;
+  const words = t.state === 'reached' ? `Target ${goal}: reached, ${m(t.setAside)} set aside.`
+    : t.state === 'past' ? `Target ${goal}: that month has gone by; ${m(t.toGo)} was still to go.`
+    : t.monthsLeft === 0 ? `Target ${goal}: this is the month; ${m(t.toGo)} still to go.`
+    : `Target ${goal}: ${m(t.setAside)} set aside, ${m(t.toGo)} to go — ${m(t.perMonth)} a month from next month${t.state === 'on-track' ? ` (you budget ${m(row.budgeted)}: on track)` : ` (you budget ${m(row.budgeted)}: ${m(t.short)} a month short)`}.`;
+  return <span className={`budgets-target is-${t.state}`}><small>{words}</small>{current && <button type="button" className="text-link budgets-target-stop" onClick={onStop}>Stop the target</button>}</span>;
+}
 export type BudgetsViewProps = {record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; showcase?: boolean; unreadable?: boolean; onChange: (change: (current: BudgetsRecord) => BudgetsRecord) => void};
 export function BudgetsView({record, entries, today, showcase = false, unreadable = false, onChange}: BudgetsViewProps) {
   const id = useId(), thisMonth = monthKey(today);
@@ -36,6 +45,8 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
   const [category, setCategory] = useState<string>('Groceries'), [picked, setCurrency] = useState<string | null>(null), currency = picked ?? startCurrency, [amount, setAmount] = useState(''), [rollover, setRollover] = useState(false);
   // Session AK RB (RELEASE_REVIEW_2 R2-8): the form opens from its button (an empty Wealth showed every form in full).
   const [adding, setAdding] = useState(false);
+  // Session AV (follow-up 1, F-BUDGET-TARGETS): an optional amount to save towards by a month.
+  const [wantTarget, setWantTarget] = useState(false), [targetAmount, setTargetAmount] = useState(''), [targetBy, setTargetBy] = useState('');
   const view = useMemo(() => monthView(entries, record, month, today), [entries, record, month, today]);
   // Session AO (C-LS-20): Remove offers the app's one Undo toast (components/ui/remove-with-undo.ts).
   const change = (fn: (r: BudgetsRecord) => BudgetsRecord, done: string) => { setProblem(''); try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); } };
@@ -44,10 +55,12 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     // Session AK lane EXF (EX-9): a sum's own reason, or "too large" for a plain amount above a billion.
     const sumIssue = amountProblem(amount);
     if (sumIssue) { setProblem(sumIssue); return; }
-    const input = {category, currency, monthly: readAmount(resolveAmountText(amount) ?? amount), rollover}, issue = budgetIssue(input);
+    const target = wantTarget ? {amount: readAmount(resolveAmountText(targetAmount) ?? targetAmount), by: targetBy} : undefined;
+    const input = {category, currency, monthly: readAmount(resolveAmountText(amount) ?? amount), rollover: rollover || wantTarget, ...(target ? {target} : {})}, issue = budgetIssue(input);
     if (issue) { setProblem(issue); return; }
-    change(r => setBudget(r, input, crypto.randomUUID(), thisMonth), `Budget for ${category} saved: ${money(Math.round(Number(input.monthly) * 100), currency)} a month${rollover ? ', with rollover' : ''}.`);
-    setAmount(''); setAdding(false);
+    if (target && target.by < thisMonth) { setProblem('Choose this month or a later one to reach it by.'); return; }
+    change(r => setBudget(r, input, crypto.randomUUID(), thisMonth), `Budget for ${category} saved: ${money(Math.round(Number(input.monthly) * 100), currency)} a month${input.rollover ? ', with rollover' : ''}${target ? `, saving towards ${money(Math.round(Number(target.amount) * 100), currency)} by ${formatMonth(target.by)}` : ''}.`);
+    setAmount(''); setAdding(false); setWantTarget(false); setTargetAmount(''); setTargetBy('');
   };
   return <div className="budgets-body">
     {showcase && <p className="fine"><ShowcaseTag/> Fictional Showcase entries.</p>}
@@ -62,7 +75,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     {view.rows.length ? <table className="budgets-table" aria-labelledby={`${id}-month`}>
       <thead><tr><th scope="col">Category</th><th scope="col">Spent</th><th scope="col">Available</th><th scope="col">Left</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
       <tbody>{view.rows.map(r => <tr key={r.id} className={r.over ? 'budgets-over' : undefined}>
-        <th scope="row"><span className="budgets-cat">{r.category}</span><span className="budgets-bar" aria-hidden="true"><span style={{width: `${Math.round(r.share * 100)}%`}}/></span></th>
+        <th scope="row"><span className="budgets-cat">{r.category}</span><span className="budgets-bar" aria-hidden="true"><span style={{width: `${Math.round(r.share * 100)}%`}}/></span>{r.target && <TargetLine row={r} current={month === thisMonth} onStop={() => change(x => setBudget(x, {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: r.rollover, target: null}, r.id, thisMonth), `The target for ${r.category} is off; the budget stays.`)}/>}</th>
         <td>{money(r.spent, r.currency)}</td>
         <td>{money(r.available, r.currency)}{r.carried > 0 && <small className="fine"> incl. {money(r.carried, r.currency)} rolled over</small>}</td>
         <td>{r.left >= 0 ? money(r.left, r.currency) : <>{money(-r.left, r.currency)} over</>}</td>
@@ -76,7 +89,12 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
       <label className="field"><span>Each month</span><input inputMode="decimal" autoComplete="off" value={amount} onChange={e => setAmount(e.target.value)} placeholder="300" aria-describedby={`${id}-calc`}/></label>
       <label className="field"><span>Currency</span><select value={currency} onChange={e => setCurrency(e.target.value)}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       <CalcHint value={amount} id={`${id}-calc`}/>
-      <label className="budgets-check"><input type="checkbox" checked={rollover} onChange={e => setRollover(e.target.checked)}/><span>Roll over what is left unspent</span></label>
+      <label className="budgets-check"><input type="checkbox" checked={rollover || wantTarget} disabled={wantTarget} onChange={e => setRollover(e.target.checked)}/><span>Roll over what is left unspent</span></label>
+      <label className="budgets-check"><input type="checkbox" checked={wantTarget} onChange={e => setWantTarget(e.target.checked)} aria-controls={`${id}-target`}/><span>Save towards an amount by a month (rollover stays on, so what is left adds up)</span></label>
+      {wantTarget && <div className="budgets-target-fields" id={`${id}-target`} role="group" aria-label="Target">
+        <label className="field"><span>Amount to reach</span><input inputMode="decimal" autoComplete="off" value={targetAmount} onChange={e => setTargetAmount(e.target.value)} placeholder="1200"/></label>
+        <label className="field"><span>By the end of</span><input type="month" min={thisMonth} value={targetBy} onChange={e => setTargetBy(e.target.value)}/></label>
+      </div>}
       <div className="budgets-form-actions"><button type="submit" className="secondary">Save budget</button><button type="button" className="quiet" onClick={() => { setAdding(false); setProblem(''); }}>Cancel</button></div>
     </form>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>

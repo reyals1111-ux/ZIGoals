@@ -33,3 +33,10 @@
 .budgets-add{margin:0}
 .budgets-add>button{min-height:44px}
 .budgets-form .budgets-form-actions{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+/* Session AV follow-up 1 (F-BUDGET-TARGETS): a budget's target. */
+.budgets-target{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;margin-top:4px;font-weight:400}
+.budgets-target small{font-size:14px;color:var(--text-secondary, var(--muted))}
+.budgets-target.is-short small{color:inherit}
+.budgets-target-stop{min-height:44px}
+.budgets-target-fields{display:flex;flex-wrap:wrap;gap:8px}
+.budgets-target-fields .field{flex:1 1 160px}
