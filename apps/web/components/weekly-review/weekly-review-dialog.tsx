@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useRef, useState, type ReactNode} from 'react';
+import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import type {WeekSummary} from '../../lib/weekly-review/engine';
 import {REVIEW_NOTE_FIELDS, type Review, type ReviewNoteField} from '../../lib/weekly-review/schema';
 import {formatDate, formatNumber} from '../../lib/visual-format';
@@ -10,11 +10,22 @@ import {usePhoneActive} from '../phone/use-phone-layout';
 import './weekly-review.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {unitFor} from '../../lib/plural';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {TASKS, TASK_TITLE_MAX} from '../../lib/tasks/schema';
+import {addTask} from '../../lib/tasks/engine';
+import {tasksReview, type TasksReview} from '../../lib/tasks/review';
+import {JOURNAL} from '../../lib/journal/schema';
+import {wordCount} from '../../lib/journal/stats';
+import {addLocalDays, localDate, localWeekday} from '../../lib/local-date';
+import {showStatus} from '../ui/undo-toast';
 
-type Step = {field: ReviewNoteField; title: string; lines: ReactNode[]; fine?: string; placeholder?: string};
+/** Session AV (follow-up 1, F-REVIEW-TASKS): a step with no `field` is read only (Tasks, Journal): nothing new is stored. */
+type Step = {field?: ReviewNoteField; title: string; lines: ReactNode[]; fine?: string; placeholder?: string};
+/** Session AV (F-REVIEW-TASKS): what the week shows from Tasks and the Journal, read in the dialog itself. */
+export type WeekExtras = {tasks?: TasksReview | null; journal?: {entries: number; words: number} | null};
 const count = (n: number, one: string, many: string) => n === 0 ? `no ${many}` : `${formatNumber(n)} ${n === 1 ? one : many}`;
 /** The six steps (five without the financial domain), each a read-only summary from the records and one optional textarea. */
-export function reviewSteps(summary: WeekSummary, financial: boolean, formatWealth: (subtotal: {currency: string; value: bigint}) => string): Step[] {
+export function reviewSteps(summary: WeekSummary, financial: boolean, formatWealth: (subtotal: {currency: string; value: bigint}) => string, extras: WeekExtras = {}): Step[] {
   const w = summary.wentWell;
   const steps: Step[] = [
     {field: 'wentWell', title: 'What went well', lines: [`${count(w.habitCheckIns, 'habit check-in', 'habit check-ins')} · ${count(w.healthEntries, 'Health entry', 'Health entries')} · ${count(w.goalContributions, 'Goal contribution', 'Goal contributions')} this week`, ...(w.bestDay ? [`Your fullest day was ${formatDate(w.bestDay, {weekday: true})}.`] : [])]},
@@ -22,6 +33,11 @@ export function reviewSteps(summary: WeekSummary, financial: boolean, formatWeal
     {field: 'habits', title: 'Habits', lines: summary.habits.length ? summary.habits.map(h => `${h.title} · ${h.done} of ${h.scheduled}${h.skipped ? ` (${h.skipped} skipped, not counted)` : ''} · streak ${formatNumber(h.streak)} ${unitFor(h.streak, h.unit)}`) : ['No habits were scheduled this week.']},
     {field: 'health', title: 'Health', lines: summary.health.length ? summary.health : ['Nothing in the Health journal this week.'], fine: 'Counts of your own entries. Not advice.'},
   ];
+  // Session AV (follow-up 1, F-REVIEW-TASKS; Sunsama's weekly review): Tasks and the Journal, read only.
+  const t = extras.tasks;
+  if (t && (t.finished || t.open || t.added)) steps.push({title: 'Tasks', lines: [`${count(t.finished, 'task finished', 'tasks finished')} this week (${formatNumber(t.before)} the week before) · ${count(t.added, 'added', 'added')}`, `${count(t.open, 'task open', 'tasks open')} now${t.overdue ? `, ${formatNumber(t.overdue)} past ${t.overdue === 1 ? 'its' : 'their'} day` : ''}.`, ...(t.titles.length ? [`Finished: ${t.titles.join(' · ')}`] : [])]});
+  const j = extras.journal;
+  if (j && j.entries) steps.push({title: 'Journal', lines: [`${count(j.entries, 'journal entry', 'journal entries')} this week · ${formatNumber(j.words)} ${j.words === 1 ? 'word' : 'words'}.`], fine: 'Only counts are shown here; your entries stay in the Journal.'});
   if (financial && summary.wealth) steps.push({field: 'wealth', title: 'Wealth', lines: [`Known tracked wealth: ${summary.wealth.subtotals.length ? summary.wealth.subtotals.map(formatWealth).join(' · ') : 'nothing tracked yet'}`, `${count(summary.wealth.attention, 'asset needs', 'assets need')} attention`, `${count(summary.wealth.contributions, 'contribution', 'contributions')} this week`]});
   steps.push({field: 'intention', title: 'One intention', lines: summary.lastIntention ? [`Last week you wrote: ${summary.lastIntention}`] : ['One small thing for next week.'], placeholder: 'One small thing for next week'});
   return steps;
@@ -34,7 +50,18 @@ export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financi
   weekStart: string; weekEnd: string; summary: WeekSummary; review: Review | undefined; financial: boolean; formatWealth: (subtotal: {currency: string; value: bigint}) => string;
   onSaveNotes: (notes: Partial<Record<ReviewNoteField, string>>) => unknown; onFinish: (notes: Partial<Record<ReviewNoteField, string>>) => unknown; onClose: () => void; /** The Guide's paragraph for the last step (ADR-011), only while the Guide is on. */ guideNote?: string;
 }) {
-  const phone = usePhoneActive(), steps = reviewSteps(summary, financial, formatWealth);
+  // Session AV (F-REVIEW-TASKS): Tasks and the Journal for this week, and the intention as a task for Monday.
+  const tasksRecord = useDeviceRecord(TASKS), journalRecord = useDeviceRecord(JOURNAL);
+  const extras = useMemo<WeekExtras>(() => {
+    const prevStart = addLocalDays(weekStart, -7), prevEnd = addLocalDays(weekStart, -1), today = localDate();
+    const tasks = tasksRecord.loaded && !tasksRecord.unreadable ? tasksReview(tasksRecord.data, {start: weekStart, end: weekEnd, prevStart, prevEnd}, today, iso => localDate(new Date(iso))) : null;
+    const week = journalRecord.loaded && !journalRecord.unreadable ? journalRecord.data.entries.filter(e => e.date >= weekStart && e.date <= weekEnd) : [];
+    return {tasks, journal: {entries: week.length, words: week.reduce((n, e) => n + wordCount(e.text), 0)}};
+  }, [tasksRecord.loaded, tasksRecord.unreadable, tasksRecord.data, journalRecord.loaded, journalRecord.unreadable, journalRecord.data, weekStart, weekEnd]);
+  const [asTask, setAsTask] = useState(false);
+  // The Monday after the week reviewed, or the next one when the review is done later than that (never a past day).
+  const after = [addLocalDays(weekEnd, 1), localDate()].sort().at(-1)!, monday = addLocalDays(after, (8 - localWeekday(after)) % 7);
+  const phone = usePhoneActive(), steps = reviewSteps(summary, financial, formatWealth, extras);
   const [index, setIndex] = useState(0); const [error, setError] = useState('');
   const [notes, setNotes] = useState<Partial<Record<ReviewNoteField, string>>>(() => Object.fromEntries(REVIEW_NOTE_FIELDS.map(f => [f, review?.notes?.[f] ?? ''])));
   const heading = useRef<HTMLHeadingElement>(null);
@@ -47,11 +74,12 @@ export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financi
     <h3 ref={heading} tabIndex={-1}>{step.title}</h3>
     <div className="weekly-review-summary">{step.lines.map((line, i) => <p key={i}>{line}</p>)}{step.fine && <p className="fine">{step.fine}</p>}</div>
     {index === steps.length - 1 && guideNote && <div className="weekly-review-guide" role="note" aria-label="Guide"><p className="eyebrow">{GUIDE_LABEL}</p><p>{guideNote}</p></div>}
-    <label className="field">Your words, if you like<textarea rows={3} maxLength={2000} value={notes[step.field] ?? ''} placeholder={step.placeholder ?? 'Your words, if you like'} onChange={event => setNotes({...notes, [step.field]: event.target.value})} /></label>
+    {step.field && <label className="field">Your words, if you like<textarea rows={3} maxLength={2000} value={notes[step.field] ?? ''} placeholder={step.placeholder ?? 'Your words, if you like'} onChange={event => setNotes({...notes, [step.field!]: event.target.value})} /></label>}
+    {step.field === 'intention' && <label className="weekly-review-as-task"><input type="checkbox" checked={asTask} disabled={!tasksRecord.loaded || tasksRecord.unreadable} onChange={e => setAsTask(e.target.checked)}/><span>Also add it to Tasks for Monday, {formatDate(monday, {year: false})}</span></label>}
     {error && <p role="alert">{error}</p>}
     <div className="actions weekly-review-actions">
       <button type="button" className="quiet" disabled={index === 0} onClick={() => setIndex(index - 1)}>Back</button>
-      {index < steps.length - 1 ? <button type="button" className="primary" onClick={() => void save(onSaveNotes).then(saved => { if (saved) setIndex(index + 1); })}>Next</button> : <button type="button" className="primary" onClick={() => void save(onFinish).then(saved => { if (saved) onClose(); })}>Finish review</button>}
+      {index < steps.length - 1 ? <button type="button" className="primary" onClick={() => void save(onSaveNotes).then(saved => { if (saved) setIndex(index + 1); })}>Next</button> : <button type="button" className="primary" onClick={() => void save(onFinish).then(saved => { if (!saved) return; const words = (notes.intention ?? '').replace(/\s+/g, ' ').trim().slice(0, TASK_TITLE_MAX); if (asTask && words) { try { tasksRecord.update(r => addTask(r, {title: words, due: monday}, {id: `task_${crypto.randomUUID()}`, at: new Date(), today: localDate()})); showStatus(`Added “${words}” to Tasks for ${formatDate(monday, {weekday: true, year: false})}.`, {link: {href: '/app/tasks?view=upcoming', label: 'Open Tasks'}}); } catch (cause) { showStatus(plainErrorMessage(cause, 'The task could not be added on this device.'), {tone: 'error'}); } } onClose(); })}>Finish review</button>}
       <button type="button" className="secondary" onClick={() => { void save(onSaveNotes); onClose(); }}>Close</button>
     </div>
   </div>;
