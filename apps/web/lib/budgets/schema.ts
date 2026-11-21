@@ -28,9 +28,17 @@ export const budgetSchema = z.looseObject({
    */
   target: z.looseObject({amount: amountText, by: month}).optional().catch(undefined),
 });
+/**
+ * Session AV (owner follow-up 1, F-WATCH; Rocket Money's Watchlist), TIER 3 (stored format), additive and optional: up
+ * to 20 categories watched without a budget, each in one currency — this month so far against last month by the same
+ * day. A list this build cannot read is dropped on read, never failing the record; older builds keep it (loose object).
+ */
+export const MAX_WATCHED = 20;
+export const watchedSchema = z.looseObject({category: z.string().trim().min(1).max(40), currency: z.string().regex(/^[A-Z]{3}$/)});
 export const budgetsSchema = z.looseObject({
   version: z.literal(1),
   budgets: z.array(budgetSchema).max(MAX_BUDGETS),
+  watch: z.array(watchedSchema).max(MAX_WATCHED).optional().catch(undefined),
 }).refine(r => new Set(r.budgets.map(b => `${b.currency}|${b.category.toLowerCase()}`)).size === r.budgets.length, 'One budget per category and currency.');
 export type Budget = z.infer<typeof budgetSchema>;
 export type BudgetsRecord = z.infer<typeof budgetsSchema>;
