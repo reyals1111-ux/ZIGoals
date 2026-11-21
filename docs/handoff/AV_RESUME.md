@@ -13,15 +13,15 @@ first-attempt green CI runs on #108's head; E2 LEDGER.md (lane 2); E3 fresh-agen
 all findings fixed (docs/review/session-av/QUALITY.md); E4 closing table, STATUS, report.
 
 ## Follow-ups 2 and 3 — state (keep current)
-- Done: FU2/FU3 recorded (`bcced035`); 1a food Worker never early (`0dc926b5` TIER 3 Workers, OWNER_STEPS 9e);
-  1b habits-routines-block (`dc2c9524`), voice-hint OK 44 px (`ac215a72`, run 1996 WebKit), o3-apps-extras
-  (`9e1f135e`); L-9 "ZIGi · your companion", no Premium badge (`d5868ece`); PK-18 no mode = Guarded (`5b8a0369`,
-  TIER 3 AI tools); 1c quality tables q1–q4 (`030d25d6`: 2 Blockers, ~60 Majors). Pushed at `835f6bae`.
-- In progress: four fix helpers (answers; Money; Tasks + Journal + Help; Health + Habits), no commits by them; then
-  one build in the worktree /home/user/zg-wt, the AV specs, the theme sheets, commits per area.
-- Next: spec tests/av-companion-guarded.spec.ts (L-9, PK-18) in shard 2; 1d What's new by pillar (help-page.tsx
-  after the Tasks helper); zigi-voice-z:199 (lighter Settings first scripts); the other 1b intermittents; QUALITY.md;
-  push in batches, never while a run on #108 is in progress; E1; then freeze and lane 2 (LEDGER first).
+- Done: FU2/FU3 recorded; 1a food Worker (`0dc926b5`); 1b fixes (habits-routines, o3, voice hint 44 px, sanne one
+  button, oneline wider name; zigi-voice-z and account-browser Carried after two attempts, ADR-045 D-FU2-1b); L-9 and
+  PK-18 with spec `av-companion-guarded`; 1c QUALITY.md (2 Blockers + 63 Majors fixed by four fresh fixers, then the
+  follow-up 320 px / Tab-stop fixes on the fixed build); 1d What's new 77 → 30; Habits headroom 5.6 kB.
+- In progress: CI on `70a288f4` (pushed 19:27 UTC); local run of the touched areas' other specs.
+- Next: fix what CI or the local run finds, push only when no run is in progress; two consecutive first-attempt green
+  runs → "Safe to merge now: yes (CI runs N, M)" here and in the PR → freeze #108 → lane 2 on `feature/session-av-2`
+  (LEDGER.md draft at the scratchpad's LEDGER.md: 138 rows with work left in 17 groups) and FU3's lane-2 items
+  (CR-19, M-9, PK-6, PK-10, PK-16).
 
 ## Toolchain in the sandbox
 - Pinned Node 24.19.0 in the scratchpad (`node-v24.19.0-linux-x64/bin` first on PATH); `corepack enable pnpm`;
