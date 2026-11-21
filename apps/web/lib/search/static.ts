@@ -154,6 +154,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-own-templates", "Can I make my own journal template, or have the daily question in Dutch?"],
   ["av-sleep-long", "Can I see my sleep over more than 30 days?"],
   ["av-nutrient-range", "Can I average my nutrients over a longer or chosen period?"],
+  ["av-report-more", "Can the report for a visit include my symptoms and supplements?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],

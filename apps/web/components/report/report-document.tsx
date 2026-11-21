@@ -110,6 +110,17 @@ export function ReportDocument({report: r, weightUnit, showcase}: {report: Repor
           <tbody>{r.numbers.labs.map((l, i) => <tr key={`${l.date}-${l.name}-${i}`}><th scope="row">{day(l.date)}</th><td>{l.name}</td><td>{formatNumber(l.value)} {l.unit}</td><td>{l.range ?? 'none copied'}</td><td>{l.verdict ?? '—'}</td></tr>)}</tbody></table><More n={r.numbers.labsMore} what="values"/></>}
       </> : none}
     </section>}
+    {/* Session AV (owner follow-up 1, F-REPORT-MORE): symptoms and factors as rated, supplements and medication as logged. */}
+    {r.symptoms && <section className="report-section" aria-labelledby="report-symptoms"><h2 id="report-symptoms">Symptoms and factors</h2>
+      {r.symptoms.rows.length ? <><p>Rated by the person each day from None to Strong (0 to 3). Days without a rating are left out, never counted as None.</p>
+        <table><thead><tr><th scope="col">Symptom or factor</th><th scope="col">Days rated</th><th scope="col">Above None</th><th scope="col">Strong</th><th scope="col">Average</th></tr></thead>
+          <tbody>{r.symptoms.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row">{s.name}{s.kind === 'factor' ? ' (factor)' : ''}</th><td>{s.rated}</td><td>{s.noted}</td><td>{s.strong}</td><td>{s.average === null ? '—' : `${formatNumber(s.average)} (${s.averageWord})`}</td></tr>)}</tbody></table></> : none}
+    </section>}
+    {r.supplements && <section className="report-section" aria-labelledby="report-supplements"><h2 id="report-supplements">Supplements and medication</h2>
+      {r.supplements.rows.length ? <><p>As the person wrote them and logged each dose. ZIGoals checks no dose and gives no advice.</p>
+        <table><thead><tr><th scope="col">Name</th><th scope="col">Dose</th><th scope="col">Planned doses</th><th scope="col">Taken</th><th scope="col">Skipped</th><th scope="col">Not logged</th></tr></thead>
+          <tbody>{r.supplements.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row">{s.name}{s.kind === 'medication' ? ' (medication)' : ''}</th><td>{s.dose ?? '—'}</td><td>{s.planned ?? 'as needed'}</td><td>{s.taken}</td><td>{s.skipped}</td><td>{s.notLogged ?? '—'}</td></tr>)}</tbody></table></> : none}
+    </section>}
     <footer className="report-foot"><p>Made on the person&rsquo;s own device with ZIGoals. Nothing in this report was uploaded.</p></footer>
   </article>;
 }

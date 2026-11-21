@@ -9,6 +9,9 @@ import {isShowcase} from '../../lib/showcase-storage';
 import {useDeviceRecord} from '../ai/use-device-record';
 // Session AK (BUILD list 2 #4): "Your numbers" for the report's own section.
 import {HEALTH_NUMBERS} from '../../lib/health-numbers/store';
+// Session AV (owner follow-up 1, F-REPORT-MORE): symptoms and factors, supplements and medication, as sections.
+import {SYMPTOMS} from '../../lib/symptoms/schema';
+import {SUPPLEMENTS} from '../../lib/supplements/schema';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
@@ -22,12 +25,12 @@ import './report.css';
  */
 const PRESETS = [{days: 30, label: '30 days'}, {days: 90, label: '90 days'}, {days: 365, label: 'A year'}] as const;
 export default function ReportBuilder() {
-  const today = useLocalToday(), health = useHealth(), habits = useHabits(), energy = useDeviceRecord(ENERGY), numbers = useDeviceRecord(HEALTH_NUMBERS), id = useId();
+  const today = useLocalToday(), health = useHealth(), habits = useHabits(), energy = useDeviceRecord(ENERGY), numbers = useDeviceRecord(HEALTH_NUMBERS), symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS), id = useId();
   const [from, setFrom] = useState(() => addLocalDays(today, -29)), [to, setTo] = useState(today);
   const [chosen, setChosen] = useState<ReadonlySet<ReportSectionId>>(() => new Set(['sleep', 'mood', 'notes', 'weight']));
   const [shown, setShown] = useState(false), opener = useRef<HTMLButtonElement>(null);
-  const ready = health.loaded && habits.loaded && energy.loaded && numbers.loaded;
-  const records = useMemo(() => ({health: health.loaded && !health.error ? health.data : null, habits: habits.loaded && !habits.error ? habits.data : null, energy: energy.loaded && !energy.unreadable ? energy.data : null, numbers: numbers.loaded && !numbers.unreadable ? numbers.data : null}), [health.loaded, health.error, health.data, habits.loaded, habits.error, habits.data, energy.loaded, energy.unreadable, energy.data, numbers.loaded, numbers.unreadable, numbers.data]);
+  const ready = health.loaded && habits.loaded && energy.loaded && numbers.loaded && symptoms.loaded && supplements.loaded;
+  const records = useMemo(() => ({health: health.loaded && !health.error ? health.data : null, habits: habits.loaded && !habits.error ? habits.data : null, energy: energy.loaded && !energy.unreadable ? energy.data : null, numbers: numbers.loaded && !numbers.unreadable ? numbers.data : null, symptoms: symptoms.loaded && !symptoms.unreadable ? symptoms.data : null, supplements: supplements.loaded && !supplements.unreadable ? supplements.data : null}), [health.loaded, health.error, health.data, habits.loaded, habits.error, habits.data, energy.loaded, energy.unreadable, energy.data, numbers.loaded, numbers.unreadable, numbers.data, symptoms.loaded, symptoms.unreadable, symptoms.data, supplements.loaded, supplements.unreadable, supplements.data]);
   const valid = /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to);
   const range = valid ? reportRange(from, to, today) : null;
   const has = useMemo(() => Object.fromEntries(REPORT_SECTIONS.map(s => [s, valid ? sectionHasData({...records, from, to, today}, s) : false])) as Record<ReportSectionId, boolean>, [records, from, to, today, valid]);

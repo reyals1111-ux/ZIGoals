@@ -8,24 +8,31 @@ import {wordsOf} from '../mood-words/schema';
 // Session AK (BUILD list 2 #4, lane G1a): "Your numbers" (blood pressure and lab values) as a report section.
 import {VERDICT_WORDS, rangeText, verdictOf} from '../health-numbers/engine';
 import type {HealthNumbers} from '../health-numbers/store';
+// Session AV (owner follow-up 1, F-REPORT-MORE; Bearable's visit report): symptoms and factors, supplements and medication.
+import {SEVERITY_WORDS, type Symptoms} from '../symptoms/schema';
+import type {Supplements} from '../supplements/schema';
+import {scheduledOn} from '../supplements/log';
 
 /**
  * Session AK (lane S, item 14; COMPETITORS.md (b) 14): "Report for a visit" — a printable summary of the person's own log
  * for a date range and the sections they choose, to take to a doctor or another health professional. It is built on this
  * device from records already here (nothing is fetched, uploaded or stored), rendered as a print page (inline SVG charts
  * and tables, HTML escaped by React) the person prints or saves as a PDF. Numbers are what the person logged or imported:
- * a missing day stays missing, never zero. There is no medication or symptom record in ZIGoals, so those sections do not
- * exist; the notes section holds the short notes the person wrote with a mood or a night.
+ * a missing day stays missing, never zero. The notes section holds the short notes the person wrote with a mood or a night.
+ * Session AV (owner follow-up 1, F-REPORT-MORE): the symptoms and factors the person rates each day, and the supplements
+ * and medication they log, are sections too — as they recorded them, with nothing interpreted.
  */
-export const REPORT_SECTIONS = ['sleep', 'mood', 'notes', 'weight', 'habits', 'numbers'] as const;
+export const REPORT_SECTIONS = ['sleep', 'mood', 'notes', 'weight', 'habits', 'numbers', 'symptoms', 'supplements'] as const;
 export type ReportSectionId = typeof REPORT_SECTIONS[number];
-export const SECTION_LABELS: Readonly<Record<ReportSectionId, string>> = {sleep: 'Sleep', mood: 'Mood and energy', notes: 'Notes with mood and sleep', weight: 'Weight', habits: 'Habits', numbers: 'Your numbers (blood pressure and lab values)'};
+export const SECTION_LABELS: Readonly<Record<ReportSectionId, string>> = {sleep: 'Sleep', mood: 'Mood and energy', notes: 'Notes with mood and sleep', weight: 'Weight', habits: 'Habits', numbers: 'Your numbers (blood pressure and lab values)', symptoms: 'Symptoms and factors', supplements: 'Supplements and medication'};
 export const MAX_RANGE_DAYS = 366, MAX_ROWS = 120, MAX_HABITS = 40;
 
 export type ReportInput = {from: string; to: string; today: string; sections: readonly ReportSectionId[]; health: HealthData | null; habits: HabitData | null;
   energy: {days: Readonly<Record<string, {energy: number}>>; words?: Readonly<Record<string, unknown>>} | null;
   /** Session AK (#4): `zigoals:health-numbers:v1`; optional, so a caller without it builds as before. */
-  numbers?: HealthNumbers | null};
+  numbers?: HealthNumbers | null;
+  /** Session AV (F-REPORT-MORE): `zigoals:symptoms:v1` and `zigoals:supplements:v1`; optional, as `numbers`. */
+  symptoms?: Symptoms | null; supplements?: Supplements | null};
 export type Range = {from: string; to: string; days: number};
 export type SleepRow = {date: string; bed: string; wake: string; asleep: number; estimated: boolean; quality: number | null; tags: string[]};
 export type SleepSection = {nights: number; avgAsleep: number | null; avgBed: string | null; avgWake: string | null; avgQuality: number | null; estimated: boolean; goal: number | null; series: {date: string; asleep: number | null}[]; rows: SleepRow[]; more: number};
@@ -39,7 +46,13 @@ export type HabitsSection = {rows: HabitRow[]; more: number};
 export type BpRow = {date: string; systolic: number; diastolic: number; pulse: number | null; note: string | null};
 export type LabRow = {date: string; name: string; value: number; unit: string; range: string | null; verdict: string | null};
 export type NumbersSection = {bp: BpRow[]; bpMore: number; labs: LabRow[]; labsMore: number};
-export type Report = {range: Range; sleep?: SleepSection; mood?: MoodSection; notes?: NotesSection; weight?: WeightSection; habits?: HabitsSection; numbers?: NumbersSection};
+/** Session AV (F-REPORT-MORE): per symptom or factor, the days rated in the range, the days above None, the strong days and the average level. */
+export type SymptomRow = {name: string; kind: 'symptom' | 'factor'; rated: number; noted: number; strong: number; average: number | null; averageWord: string | null};
+export type SymptomsSection = {rows: SymptomRow[]};
+/** Session AV (F-REPORT-MORE): per supplement or medication, the planned doses in the range and what was logged of them. */
+export type SupplementRow = {name: string; dose: string | null; kind: 'supplement' | 'medication'; planned: number | null; taken: number; skipped: number; notLogged: number | null};
+export type SupplementsSection = {rows: SupplementRow[]};
+export type Report = {range: Range; sleep?: SleepSection; mood?: MoodSection; notes?: NotesSection; weight?: WeightSection; habits?: HabitsSection; numbers?: NumbersSection; symptoms?: SymptomsSection; supplements?: SupplementsSection};
 
 const avg = (v: readonly number[]) => v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
 const round1 = (v: number | null) => v === null ? null : Math.round(v * 10) / 10;
@@ -67,6 +80,8 @@ export function sectionHasData(input: Omit<ReportInput, 'sections'>, id: ReportS
     case 'weight': return (input.health?.weights ?? []).some(w => inRange(w.date, r));
     case 'habits': return (input.habits?.habits.length ?? 0) > 0;
     case 'numbers': return (input.numbers?.entries ?? []).some(e => inRange(e.date, r));
+    case 'symptoms': return Object.entries(input.symptoms?.days ?? {}).some(([d, v]) => inRange(d, r) && Object.keys(v).length > 0);
+    case 'supplements': return (input.supplements?.items ?? []).length > 0;
   }
 }
 
@@ -124,6 +139,22 @@ export function buildReport(input: ReportInput): Report {
     const bp: BpRow[] = inside.filter(e => e.kind === 'bp' && e.systolic !== undefined && e.diastolic !== undefined).map(e => ({date: e.date, systolic: e.systolic!, diastolic: e.diastolic!, pulse: e.pulse ?? null, note: e.note ?? null}));
     const labs: LabRow[] = inside.filter(e => e.kind === 'lab' && e.name && e.value !== undefined).map(e => { const v = verdictOf(e); return {date: e.date, name: e.name!, value: e.value!, unit: e.unit ?? '', range: rangeText(e), verdict: v ? VERDICT_WORDS[v] : null}; });
     out.numbers = {bp: bp.slice(-MAX_ROWS), bpMore: Math.max(0, bp.length - MAX_ROWS), labs: labs.slice(-MAX_ROWS), labsMore: Math.max(0, labs.length - MAX_ROWS)};
+  }
+  if (want.has('symptoms')) {
+    const days = Object.entries(input.symptoms?.days ?? {}).filter(([d]) => inRange(d, range));
+    out.symptoms = {rows: (input.symptoms?.items ?? []).map(item => {
+      const levels = days.map(([, v]) => v[item.id]).filter((n): n is number => typeof n === 'number'), a = avg(levels), r1 = round1(a);
+      return {name: item.name, kind: item.kind, rated: levels.length, noted: levels.filter(n => n > 0).length, strong: levels.filter(n => n === 3).length, average: r1, averageWord: a === null ? null : SEVERITY_WORDS[Math.round(a)] ?? null};
+    }).filter(r => r.rated > 0)};
+  }
+  if (want.has('supplements')) {
+    const marks = (input.supplements?.log ?? []).filter(m => inRange(m.date, range));
+    out.supplements = {rows: (input.supplements?.items ?? []).map(item => {
+      // A time of day is a planned dose on each chosen weekday from the day it was added; no time is "as needed".
+      const planned = item.times?.length ? daysOf(range).filter(d => d >= item.createdAt.slice(0, 10) && scheduledOn(item, d)).length * item.times.length : null;
+      const mine = marks.filter(m => m.itemId === item.id), taken = mine.filter(m => m.status === 'taken').length, skipped = mine.filter(m => m.status === 'skipped').length;
+      return {name: item.name, dose: item.dose ?? null, kind: item.kind ?? 'supplement', planned, taken, skipped, notLogged: planned === null ? null : Math.max(0, planned - taken - skipped)};
+    })};
   }
   return out;
 }
