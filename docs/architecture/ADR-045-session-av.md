@@ -344,6 +344,16 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
 - `scripts/pre-run11-setup.test.mjs` fails in this sandbox only (it wants pnpm 11.19.0; the sandbox's pnpm differs);
   it fails on the committed head too and passes in CI's checks job.
 
+## D-CI1949 — run 1949 (`9935e9e4`): `nova-wa:75` a second time, investigated
+- Run 1949: checks red (the income-flow lint error, fixed at `7f01e6d5`); main shard 8 (A10-11, fixed at `967ab614`);
+  main shard 4: `nova-wa:75` T1/T3 on desktop, both tries — its second CI failure (D-CI1937), so investigated.
+- The CI trace: `page.clock.runFor(61_000)` started and never returned within the 45 s. Measured locally on the build:
+  that one call takes 13.3 s, and wrapping the page's timers shows why — NOVA's star loop (`setTimeout` + frame at about
+  8 fps) fired 476 times, each a full software render, back to back. CI's runners are about three times slower.
+- Fix (test, deliberate, no assertion changed): `page.clock.fastForward(61_000)` jumps the minute and fires each due
+  timer once; the Focus timer still has to read 22 or 23 minutes. 5 of 5 locally, about 5 s each (was about 23 s).
+  The app is unchanged: a real minute renders those frames over a real minute.
+
 ## Closing table
 
 | Item | Verdict | Where |

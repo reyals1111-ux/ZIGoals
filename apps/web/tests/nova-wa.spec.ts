@@ -100,7 +100,9 @@ test('T1: a fresh start\'s Tasks widget teaches, adds a task for today, ticks it
   await focus.getByRole('button', {name: 'Start a 25-minute Pomodoro'}).click();
   await expect(focus.getByRole('timer')).toHaveText(/^2[45]:\d\d$/);
   await expect(focus).toContainText('Block 1 of 4');
-  await page.clock.runFor(61_000);
+  // Session AV (D-CI1949, deliberate): fastForward jumps the minute and fires each due timer once; runFor fired every one
+  // of NOVA's star frames in that minute back to back (476 renders: 13 s here, past the 45 s budget on CI's runners).
+  await page.clock.fastForward(61_000);
   await expect(focus.getByRole('timer')).toHaveText(/^2[23]:\d\d$/);
   await focus.getByRole('button', {name: 'End the run'}).click();
   await expect(focus).toContainText('Run ended:');
