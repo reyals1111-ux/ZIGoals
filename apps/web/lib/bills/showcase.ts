@@ -1,3 +1,4 @@
+import {shiftMonth} from '../budgets/engine';
 import {addLocalDays} from '../local-date';
 import {billsSchema, type BillsRecord} from './schema';
 import {budgetsSchema, type BudgetsRecord} from '../budgets/schema';
@@ -15,7 +16,8 @@ export function showcaseBills(day: string): BillsRecord {
 export function showcaseBudgets(day: string): BudgetsRecord {
   const since = day.slice(0, 7);
   return budgetsSchema.parse({version: 1, budgets: [
-    {id: 'showcase-budget-groceries', category: 'Groceries', currency: 'EUR', monthly: '250.00', rollover: true, since},
+    // Session AV (follow-up 1, F-BUDGET-TARGETS): the Showcase's budget with a target (fictional: a buffer for the holidays).
+    {id: 'showcase-budget-groceries', category: 'Groceries', currency: 'EUR', monthly: '250.00', rollover: true, since, target: {amount: '300.00', by: shiftMonth(since, 1)}},
     {id: 'showcase-budget-food', category: 'Food & drink', currency: 'EUR', monthly: '120.00', rollover: false, since},
     {id: 'showcase-budget-fun', category: 'Fun', currency: 'EUR', monthly: '60.00', rollover: false, since},
   ]});
