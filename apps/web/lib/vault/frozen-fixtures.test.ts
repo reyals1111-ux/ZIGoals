@@ -319,7 +319,7 @@ export function frozenFixture() {
   records[WRAPPED_KEY] = JSON.stringify({version: 1, opened: {"2026": "2026-12-02"}});
   checks.push({key: WRAPPED_KEY, module: './wrapped/store', spec: 'WRAPPED', expect: {"opened.2026": "2026-12-02"}});
   // Owner follow-up 1 (F5): the debt payoff planner figures.
-  records[DEBT_PLANNER_KEY] = JSON.stringify({version: 1, currency: "EUR", extra: "100.00", debts: {"acct-fixture-1": {minimum: "25.00", ratePercent: "19.9"}}});
+  records[DEBT_PLANNER_KEY] = JSON.stringify({version: 1, currency: "EUR", extra: "100.00", debts: {"acct-fixture-1": {minimum: "25.00", ratePercent: "19.9"}}, /* Session AV (F-DEBT-PLAN): the optional order, one-off payments, shown plan and tracked plan, unknown fields to older builds */ order: ["acct-fixture-1"], lumps: [{month: "2027-01", amount: "500.00"}], shown: "custom", tracked: {on: "2026-11-01", strategy: "avalanche", currency: "EUR", extra: "100.00", debts: [{id: "acct-fixture-1", name: "Fictional card", balance: "1200.00", ratePercent: "19.9", minimum: "25.00"}]}});
   checks.push({key: DEBT_PLANNER_KEY, module: './debt-planner/store', spec: 'DEBT_PLANNER', expect: {"debts.acct-fixture-1.minimum": "25.00"}});
   // Owner follow-up 1 (F5): savings challenges on goals.
   records[SAVINGS_CHALLENGES_KEY] = JSON.stringify({version: 1, goals: {"9202": {kind: "52-week", startedOn: "2026-10-05", step: "5", order: "up"}}});
