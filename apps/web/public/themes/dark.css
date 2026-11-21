@@ -9561,6 +9561,21 @@
     .habit-look-word:not(#\-) {
         color: var(--text-primary, inherit)
     }
+    .habit-week-table th:not(#\-), .habit-week-table td:not(#\-) {
+        border-bottom-color: var(--line, rgba(140,160,220,.18))
+    }
+    .habit-week-table small:not(#\-) {
+        color: var(--text-meta, var(--muted))
+    }
+    .habit-week-cell:not(#\-) {
+        border-color: var(--line, rgba(140,160,220,.3));
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .habit-week-cell[aria-pressed=true]:not(#\-) {
+        border-color: currentColor
+    }
 }
 /*  components/habits/perfect-days.css  */
 @scope (:root[data-theme=dark]) {

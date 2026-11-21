@@ -9111,6 +9111,21 @@
     .habit-look-word:not(#\-) {
         color: var(--text-primary, inherit)
     }
+    .habit-week-table th:not(#\-), .habit-week-table td:not(#\-) {
+        border-bottom-color: var(--line, rgba(140,160,220,.18))
+    }
+    .habit-week-table small:not(#\-) {
+        color: var(--text-meta, var(--muted))
+    }
+    .habit-week-cell:not(#\-) {
+        border-color: var(--line, rgba(140,160,220,.3));
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .habit-week-cell[aria-pressed=true]:not(#\-) {
+        border-color: currentColor
+    }
 }
 /*  components/habits/perfect-days.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {

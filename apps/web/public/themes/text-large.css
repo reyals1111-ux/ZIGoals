@@ -1385,6 +1385,7 @@
 :where(:root[data-text=large]) .habit-metrics .habit-streak-open:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .habit-metrics .habit-streak-two:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .habit-health-so-far:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .habit-week-cell:not(#\-) { font-size: calc(18px * 1.125); }
 /*  components/habits/intention.css  */
 :where(:root[data-text=large]) .habit-intention-line > span:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/habits/perfect-days.css  */

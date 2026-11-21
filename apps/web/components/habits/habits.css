@@ -223,3 +223,17 @@
 .habit-look-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .habit-look-swatch { width: 14px; height: 14px; border-radius: 50%; background: var(--habit-look); }
 .habit-look-word { color: var(--text-primary, inherit); }
+/* Session AV follow-up 1 (F-WEEK-GRID): this week, Monday to Sunday. */
+.habit-week-fold summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.habit-week { display: grid; gap: 8px; min-width: 0; }
+.habit-week-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; }
+.habit-week-nav button { min-height: 44px; }
+.habit-week-scroll { overflow-x: auto; max-width: 100%; }
+.habit-week-table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.habit-week-table th, .habit-week-table td { padding: 4px; text-align: center; border-bottom: 1px solid var(--line, rgba(140,160,220,.18)); }
+.habit-week-table th[scope=row] { text-align: start; max-width: 12rem; overflow-wrap: anywhere; font-weight: 600; }
+.habit-week-table th[data-today] { text-decoration: underline; text-underline-offset: 4px; }
+.habit-week-table small { color: var(--text-meta, var(--muted)); }
+.habit-week-cell { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--line, rgba(140,160,220,.3)); background: transparent; color: inherit; font-size: 18px; }
+.habit-week-cell[aria-pressed=true] { border-width: 2px; border-color: currentColor; font-weight: 700; }
+.habit-week-cell.is-still { border-style: dashed; }
