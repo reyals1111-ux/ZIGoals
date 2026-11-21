@@ -108,6 +108,13 @@ export const taskSchema = z.looseObject({
    * read; older builds keep it untouched (the object is loose) and do not show it.
    */
   minutes: z.number().int().min(1).max(MAX_TASK_MINUTES).optional().catch(undefined),
+  /**
+   * Session AV (1c, q1 #1, fresh-agent review; Todoist and TickTick snooze; TIER 3 (stored format), additive and optional):
+   * a reminder snoozed in the app — the reminder's own instant (`of`, ms), its offset (`before`, minutes) and when it
+   * comes back (`until`, ms). A value
+   * this build cannot read is dropped on read; older builds keep it untouched (the object is loose) and ignore it.
+   */
+  snooze: z.looseObject({of: z.number().int().min(0), until: z.number().int().min(0), before: z.number().int().min(0).max(40_320).optional().catch(undefined)}).optional().catch(undefined),
 });
 export const projectSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), colour: z.enum(TASK_COLOURS).catch('grey'),

@@ -45,6 +45,13 @@ export const journalSchema = z.looseObject({
   shareWithAi: z.boolean().default(false),
   /** Whether ZIGi asks its one question after an entry at all. */
   followUps: z.boolean().default(true),
+  /**
+   * Session AV (1c, q4 #33, owner decision: the reviewer's smaller suggestion; Day One's Today lists entries): the person
+   * chose to see the first line of today's entries and of "On this day" on Today. Off unless switched on (Today shows
+   * counts only, ADR-045's privacy choice). TIER 3 (stored format), additive and optional: a value this build cannot read
+   * is dropped on read; older builds keep it untouched (the record is loose) and show counts only.
+   */
+  todayLines: z.boolean().optional().catch(undefined),
 });
 export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type Journal = z.infer<typeof journalSchema>;
