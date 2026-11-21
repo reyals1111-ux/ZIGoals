@@ -47,3 +47,12 @@
 .spending-edit{min-height:44px;min-width:44px}
 .spending-remove{min-width:44px}
 .spending-editing{margin:0;font-size:15px}
+/* Session AV follow-up 1 (F-MONEY-SEARCH): search all your entries. */
+.money-search-fold summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.money-search { display: grid; gap: 8px; min-width: 0; }
+.money-search-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 8px 12px; align-items: end; }
+.money-search-text { grid-column: 1 / -1; }
+.money-search-form input, .money-search-form select { min-height: 44px; width: 100%; box-sizing: border-box; }
+/* Session AV follow-up 1 (F-CATEGORY-SUGGEST): the category this note had before. */
+.spending-suggest { margin: 0; }
+.spending-suggest .text-link { min-height: 44px; }

@@ -18,6 +18,7 @@ const MoneyTools = lazy(() => import('../money-tools/money-tools'));
 // Session AK (BUILD list 2 #6, #7, #18, #19): recent categories first, Select with a running total, the spending map
 // (its own chunk, on "Map"), and a calculator in the amount fields. Pure parts in lib/; nothing new is stored.
 import {categoriesRecentFirst} from '../../../lib/recent-categories/recent';
+import {pastCategory} from '../../../lib/money-log/suggest';
 import {selectionLine, summarizeSelection} from '../../../lib/money-log/selection';
 import {amountProblem} from '../../../lib/money-calc/expression';
 // PR-052: one form check for a new entry and an edit, and the edit itself (in place, the same id).
@@ -45,6 +46,8 @@ const sumProblem = amountProblem;
 const withOwn = (chips: readonly string[], own: string | undefined): readonly string[] => own && !chips.includes(own) ? [own, ...chips] : chips;
 // Session AV (L-7): with only monthly budgets, the weekly card shows this month's room from them (its own chunk).
 const MonthRoom = lazy(() => import('../budgets/month-room'));
+// Session AV (owner follow-up 1, F-MONEY-SEARCH): the whole money log searched, loaded when its fold opens.
+const MoneySearch = lazy(() => import('./money-search'));
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
   const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
@@ -67,6 +70,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   // PR-052: an entry being edited in the same form (its amount, category, note and date), or null for a new one.
   const [editing, setEditing] = useState<MoneyEntry | null>(null);
   const endEdit = () => { setEditing(null); setAmount(''); setNote(''); setDate(today); setLogging(false); requestAnimationFrame(() => logButton.current?.focus()); };
+  const [searching, setSearching] = useState(false);
   const startEdit = (entry: MoneyEntry) => { setEditing(entry); setKind(entry.kind); setAmount(entry.amount); setCategory(entry.category); setNote(entry.note ?? ''); setDate(entry.date); setProblem(''); setStatus(''); setLogging(true); requestAnimationFrame(() => amountField.current?.focus()); };
   const saveEdit = (entry: MoneyEntry) => {
     const checked = checkMoneyEdit(entry, {amount, category, note, date}, today);
@@ -99,6 +103,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   const categories = kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
   // Session AK (#6): the three most used in the last 30 days first, then the usual order (counted, never stored).
   const ordered = useMemo(() => categoriesRecentFirst(log.data.entries, kind, categories, today), [log.data.entries, kind, categories, today]);
+  const suggested = useMemo(() => note.trim() ? pastCategory(log.data.entries.filter(e => e.id !== editing?.id), kind, note) : null, [log.data.entries, kind, note, editing?.id]);
   // Session AK (#7): Select mode on this week's list, with the running total of the picked entries.
   const [selecting, setSelecting] = useState(false), [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set());
   const pickedSummary = useMemo(() => summarizeSelection(weekEntries, picked), [weekEntries, picked]);
@@ -155,6 +160,8 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         <CalcHint value={amount} id={`${id}-calc`}/>
         <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{withOwn(ordered.chips, editing?.category).map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={category === c} onChange={() => setCategory(c)}/><span>{c}</span></label>)}</fieldset>
         <label className="field"><span>Note — optional</span><input maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
+        {/* Session AV (owner follow-up 1, F-CATEGORY-SUGGEST): the category this payee or note had before, offered, never chosen for you. */}
+        {suggested && suggested.category !== category && <p className="fine spending-suggest" role="status">Before, “{note.trim()}” was {suggested.category}{suggested.times > 1 ? ` (${suggested.times} times)` : ''}. <button type="button" className="text-link" onClick={() => setCategory(suggested.category)}>Use {suggested.category}</button></p>}
         <SecretGuard text={note} onRemove={() => setNote('')}/>
         {problem && <p role="alert">{problem}</p>}
         <div className="spending-form-actions"><button type="submit" className="primary">{editing ? 'Save changes' : 'Save'}</button>{editing ? <button type="button" className="quiet" onClick={() => { setProblem(''); endEdit(); }}>Cancel edit</button> : <button type="button" className="quiet" onClick={() => { setLogging(false); setProblem(''); requestAnimationFrame(() => logButton.current?.focus()); }}>Done</button>}</div>
@@ -192,6 +199,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         {monthTotals.map(t => <p key={t.currency} className="fine">This month in {t.currency}: spent {money(t.expenses, t.currency)}, received {money(t.income, t.currency)}.</p>)}
       </section>
     </div>
+    {log.data.entries.length > 0 && <details className="money-search-fold" onToggle={e => setSearching((e.currentTarget as HTMLDetailsElement).open)}><summary>Search all your entries</summary>{searching && <Suspense fallback={<p className="fine" aria-busy="true">Opening the search…</p>}><MoneySearch entries={log.data.entries} onEdit={startEdit}/></Suspense>}</details>}
     <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase}/></Suspense>
     {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
     : <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">
