@@ -604,7 +604,7 @@ export function HelpPage() {
     </section>
 
     {/* Session X Part 11: what the Alpha can't do yet, in plain words. Each line is checked against the code or an owner decision. */}
-    <Section id="known-limitations" updated="Nov 20, 2026" eyebrow="KNOWN LIMITATIONS" title="What the Alpha can&rsquo;t do yet">
+    <Section id="known-limitations" updated="Nov 21, 2026" eyebrow="KNOWN LIMITATIONS" title="What the Alpha can&rsquo;t do yet">
       <ul className="help-list">
         <li><strong>Accounts and sync aren&rsquo;t open yet</strong> on alpha.zigoals.app. Until they are, what you enter stays in the browser or installed app you use, and only there. On an iPhone, <a className="text-link" href="#install">install ZIGoals</a> first and tap &ldquo;Keep my data on this device&rdquo;; <Link className="text-link" href="/app/settings#export-everything">Export everything</Link> gives you your own copy any time. Safari on an iPhone can clear a website&rsquo;s records after seven days without a visit, and the Home Screen app keeps its own storage: Today shows how to move your records there with a backup.</li>
         <li><strong>Reminders when ZIGoals is closed</strong> are opt-in, one device at a time (Settings &rarr; Reminders when closed), and need a signed-in account, so they wait for accounts too. Until then, due reminders show as cards on Today while ZIGoals is open.</li>
@@ -670,6 +670,11 @@ export function HelpPage() {
         <li><strong>Health stays closed to NOVA and ZIGi until you open it:</strong> NOVA &rarr; Permissions &rarr; Allow Health opens it in one tap, and its switches close it again.</li>
         <li><strong>A meal in words has no calories:</strong> it counts as a meal you logged, never as zero, and ZIGi and NOVA don&rsquo;t read it.</li>
         <li><strong>&ldquo;My day ends at&rdquo; moves habits, the Checklist, streaks and Tasks;</strong> the Agenda&rsquo;s days and NOVA&rsquo;s clock keep the calendar date.</li>
+        {/* Session AV (owner follow-up 1): this round's honest limits, in words only (Help's in-sentence links are pinned). */}
+        <li><strong>A countdown&rsquo;s reminder shows on Today&rsquo;s &ldquo;Days until&rdquo; card,</strong> while ZIGoals is open; nothing reaches your phone.</li>
+        <li><strong>&ldquo;Hide calories and weight&rdquo; hides the figures in Health and on Today&rsquo;s pinned cards;</strong> NOVA and ZIGi still answer when you ask them for a figure.</li>
+        <li><strong>&ldquo;In your money log&rdquo; on a bill</strong> means an expense of that payee and amount within four days of its date; ZIGoals doesn&rsquo;t see your bank, so it can&rsquo;t say a bill was paid.</li>
+        <li><strong>Your own journal templates, matrix lines and the daily question&rsquo;s language</strong> stay on this device; NOVA and ZIGi don&rsquo;t read them.</li>
 </ul>
       <p className="fine">It&rsquo;s an Alpha: pages can change, and something may break. If it does, please <a className="text-link" href="#feedback">tell us</a>.</p>
     </Section>

@@ -15,6 +15,10 @@ A two-minute read. ZIGoals is an Alpha: some things are unfinished, and what you
    stay unknown until you add them; ZIGoals never counts them as zero.
 4. **A goal:** if it's not about money (sleep, steps, books), the goal form points you to the right kind: **Keep an
    average** or **Reach a number**.
+5. **Tasks:** type a task the way you'd say it ("call the bank tomorrow 10am for 15 min"); Tasks → Today's **Plan my day**
+   then offers what is overdue or close to its deadline.
+
+Rather not see calorie or weight numbers? Health → Targets → **Hide calories and weight** (this device only).
 
 ## Ask NOVA or ZIGi
 

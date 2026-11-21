@@ -2,7 +2,8 @@
 
 Rewritten 18 Nov 2026 (Session AT, ADR-043) from the code on `main` (`3d510124`, PR #106 merged) and Session AT's
 [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107); step 1 checked again 20 Nov 2026 (Session AV, ADR-045) against
-[PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108). One ordered list: tick each box as you go. Every step says how
+[PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108), and on 21 Nov after owner follow-up 1: its 49 features add no
+step for you (no new service, host, key, secret or workflow; every new record is device-only). One ordered list: tick each box as you go. Every step says how
 long it takes, where you do it, the command or click path, and how you know it is done. The linked runbook has the
 details. **No secrets or real values belong in this file, a PR, a chat or a screenshot.** Agents never merge, dispatch or
 deploy for you (CLAUDE.md).

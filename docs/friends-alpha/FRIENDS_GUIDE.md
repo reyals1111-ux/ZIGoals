@@ -250,6 +250,27 @@ A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
 - Small things: a day still to come in the Agenda shows no "(0 done)"; "Refresh prices" appears once something is priced;
   a goal with nothing going in shows no "$0.00 a month"; Tasks' filter appears once you have a task.
 
+**Also new (owner follow-up, from what other apps do well).** Each has its own answer in Help → What's new.
+
+- **Tasks:** type in Dutch too ("morgen 9 uur"); "deadline friday" apart from the day you plan it; "for 30 min" and
+  the minutes of the day; **Plan my day** (overdue, near deadlines, priority 1–2 without a day); paste a list to add
+  many; your own lines for the priority matrix; pause a repeating task until a day (its checklist comes round with it);
+  reminders as notifications on this device; tasks finished per day.
+- **Habits:** yesterday's open habits to tick, with what got in the way; never missed twice; today's focus habit; a
+  symbol and a colour; the week as a grid.
+- **Health:** "Just the calories"; a meal in words matched to your foods; foods high in a nutrient; a planned meal on
+  chosen weekdays; nutrient averages over 30 or 90 days or your own dates; **Hide calories and weight** (Health →
+  Targets); the sleep score's four parts; sleep over 90 days and a year; workouts by week, a calendar, running bests,
+  last time's exercise note and a star on a set that beats every earlier one; symptoms and supplements in the report
+  for a visit.
+- **Money:** this month against last; every factor in one place; budget targets, watched categories, a budget near its
+  limit or spent faster than the month; search all entries and a category offered as you type; bills on a calendar,
+  paid this month and until payday; where your income went; the debt planner's own order, one-off payments and the
+  plan month by month; alerts on a percent move or a portfolio's value; a month in short, and "Start this month fresh";
+  a money line on Today when something asks for a look.
+- **Journal and Today:** three good things, tags, a line on Today, an entry's whole day, your own templates and the
+  daily question in Dutch; countdowns that come back every year, with a reminder.
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
