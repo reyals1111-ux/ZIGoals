@@ -138,6 +138,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-repeat-plan", "Can a planned meal repeat every week?"],
   ["av-week-grid", "Can I see all my habits for the whole week?"],
   ["av-watch", "Can I keep an eye on a category without a budget?"],
+  ["av-miss-reason", "Can I note why a habit did not happen?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
