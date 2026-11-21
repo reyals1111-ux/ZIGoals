@@ -66,3 +66,7 @@
 .debt-plan-table td small,.debt-plan-table th small{display:block;color:var(--text-meta,var(--muted))}
 .debt-plan-progress{display:grid;gap:6px;padding:12px 14px;border-radius:16px;border:1px solid var(--line,rgba(140,160,220,.25))}
 .debt-plan-progress p,.debt-plan-progress h4{margin:0}
+/* Session AV (1c follow-up): a grid item sizes to its widest content by default; the month-by-month table (never split
+   mid-number) made the whole planner 749 px wide at 320. Its folds may shrink, and the table scrolls in its own box. */
+.debt-planner > *,.debt-plan-fold{min-width:0;max-width:100%}
+.debt-plan-pick{min-inline-size:0}

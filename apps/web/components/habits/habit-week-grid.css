@@ -1,6 +1,9 @@
 /* Session AV (q4 #30): the week grid on a phone — the habit's name stays in view (sticky, at least 7rem, broken only
    between words), short day heads under 480 px, a cue that the week goes on sideways, and a quit habit's slip marked ×. */
 .habit-week .habit-week-table th[scope=row] { position: sticky; inset-inline-start: 0; z-index: 1; min-width: 7rem; overflow-wrap: normal; word-break: normal; hyphens: manual; background: var(--bg, #0b1220); }
+/* Session AV (1c follow-up): each head holds its long day name for screen readers (absolutely placed under 480 px), so
+   it is placed inside its own cell, not against the page (it widened the page to 436 px at 320). */
+.habit-week .habit-week-table thead th { position: relative; }
 .habit-week .habit-week-table thead th:first-child { position: sticky; inset-inline-start: 0; z-index: 1; background: var(--bg, #0b1220); }
 .habit-week-table td[data-status=failed] .habit-week-cell.is-still { border-style: solid; font-weight: 700; }
 .habit-week-day-short { display: none; }
