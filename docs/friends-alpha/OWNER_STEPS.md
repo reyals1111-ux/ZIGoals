@@ -140,6 +140,9 @@ curl -sSI https://www.zigoals.app/
   `NEXT_PUBLIC_WEATHER_PROXY_URL=https://weather.<your zone>/v1/forecast` (exactly that shape). **Done when:** the second
   nearby call says `x-weather-cache: hit`, another origin gets 403, the 61st call a minute gets 429.
   Runbook: [WEATHER_PROXY_ACTIVATION.md](../run11/WEATHER_PROXY_ACTIVATION.md). Off switch: remove the custom domain.
+- **9e. The food Worker's "never early" fix** (Session AV, `workers/food-lookup/worker.mjs`) · reaches the food Worker at
+  its next owner redeploy, together with any other food-Worker change; not needed for Alpha #58. A provider request now
+  leaves no sooner than 2 s (FSVO), 4 s (FDC) or the barcode spacing after the previous one actually left.
 - **9d. ZIGoals AI · powered by Claude** (acceptance stack, your own account first). Runbook:
   [ZIGI_RELAY_ACTIVATION.md](../run11/ZIGI_RELAY_ACTIVATION.md).
 
