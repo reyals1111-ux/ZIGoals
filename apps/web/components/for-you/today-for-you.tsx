@@ -148,7 +148,9 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   // Session AI (tasks with a priority and a due date): one-off things to do, overdue and today's first.
   cards.push({id: 'tasks', priority: 6.4, node: <TodayTasksCard />});
   // Session AJ (item 15, D9): a reached price alert comes near the top; waiting ones lower down.
-  if (priceAlerts.loaded && !priceAlerts.unreadable && priceAlerts.data.alerts.some(a => a.active || (a.firedAt && !a.seenAt))) cards.push({id: 'price-alerts', priority: priceAlerts.data.alerts.some(a => a.firedAt && !a.seenAt) ? 2.5 : 6.3, node: <LoadBoundary quiet><Suspense fallback={null}><PriceAlertsTodayCard /></Suspense></LoadBoundary>});
+  // Session AV (1c, q2 #35): a portfolio-value alert counts too, waiting or fired and unseen (lib/price-alerts/engine.ts alertsForToday).
+  const allAlerts = priceAlerts.loaded && !priceAlerts.unreadable ? [...priceAlerts.data.alerts, ...(priceAlerts.data.portfolio ?? [])] : [];
+  if (allAlerts.some(a => a.active || (a.firedAt && !a.seenAt))) cards.push({id: 'price-alerts', priority: allAlerts.some(a => a.firedAt && !a.seenAt) ? 2.5 : 6.3, node: <LoadBoundary quiet><Suspense fallback={null}><PriceAlertsTodayCard /></Suspense></LoadBoundary>});
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});
   if (insights.cards.length) cards.push({id: 'insights', priority: 6, node: <InsightsCard {...insights} />});
