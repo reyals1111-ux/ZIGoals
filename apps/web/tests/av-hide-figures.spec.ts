@@ -1,5 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
-import {createEmptyHealth, logHealthItem, saveFood, HEALTH_STORAGE_KEY} from '../lib/health';
+import {createEmptyHealth, logHealthItem, saveFood, saveWeight, setHealthTargets, HEALTH_STORAGE_KEY, type HealthData} from '../lib/health';
 import {HIDE_FIGURES_KEY} from '../components/hide-figures';
 import {hydrated} from './ah-helpers';
 import {axe, THEMES, applyTheme, offline} from './p6-helpers';
@@ -44,4 +44,45 @@ for (const theme of THEMES) test(`${theme}: calorie figures hidden on this devic
   await page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', {name: 'Targets', exact: true}).click();
   await page.getByRole('button', {name: 'Show calories and weight'}).click();
   expect(await page.evaluate(k => [localStorage.getItem(k), document.documentElement.dataset.hideFigures ?? null], HIDE_FIGURES_KEY)).toEqual([null, null]);
+});
+
+/**
+ * Session AV q3 #36 (Major): with the switch on, no calorie or weight figure is left anywhere a body figure shows — Health's
+ * top tiles (on every Health view), the Weight view's cards, Insights' per-meal calories and 30-day rhythm, and Today's
+ * Health ring and module. Read from `innerText`, which leaves hidden text out, as a person sees the page.
+ */
+const FIGURE = /\d\s*(kcal|kg|lb)\b/i;
+const weighed: HealthData = ['2026-11-06', '2026-11-10', '2026-11-13', '2026-11-17', '2026-11-20'].reduce((h, date, i) => saveWeight(h, {id: `health_fictional-weight-0${i}`, date, grams: 74_000 - i * 150}, AT), setHealthTargets(health, {...health.targets, kcal: 2000}));
+async function figuresIn(page: Page, selector: string) {
+  return page.locator(selector).evaluateAll(els => els.map(el => (el as HTMLElement).innerText).join(' | '));
+}
+test('every body figure is hidden with the switch on: Health tiles, Weight, Insights and Today', async ({page, isMobile}) => {
+  test.setTimeout(90_000);
+  await offline(page);
+  if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
+  await page.clock.install({time: NOW});
+  await page.goto('/app/settings'); await hydrated(page);
+  await page.evaluate(([h, hv, k]) => { localStorage.setItem(h, hv); localStorage.setItem(k, 'on'); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, [HEALTH_STORAGE_KEY, JSON.stringify(weighed), HIDE_FIGURES_KEY] as const);
+  await page.goto('/app/health'); await hydrated(page);
+  await expect(page.locator('.health-highlights')).toBeVisible();
+  const views = page.getByRole('tablist', {name: 'Health views'});
+  for (const view of ['Diary', 'Weight', 'Insights'] as const) {
+    await views.getByRole('tab', {name: view, exact: true}).click();
+    expect(await figuresIn(page, '.health-highlights')).not.toMatch(FIGURE);
+  }
+  await views.getByRole('tab', {name: 'Weight', exact: true}).click();
+  await expect(page.locator('#health-weight-trend')).toBeVisible();
+  const weightText = await figuresIn(page, '.health-weight-overview, #health-weight-trend, #health-energy, #health-coach');
+  expect(weightText).toContain('Weight trend'); // the cards are there; only their figures are hidden
+  expect(weightText).not.toMatch(FIGURE);
+  await views.getByRole('tab', {name: 'Insights', exact: true}).click();
+  await expect(page.locator('.nutrition-distribution')).toBeVisible();
+  expect(await figuresIn(page, '.nutrition-distribution, .nutrition-trend')).not.toMatch(FIGURE);
+  await page.goto('/app'); await hydrated(page);
+  const ring = page.locator('.life-ring[data-pillar="health"]');
+  await expect(ring).toBeVisible();
+  expect(await figuresIn(page, '.life-ring[data-pillar="health"], .health-today, .health-coach')).not.toMatch(FIGURE);
+  // And with the switch off the same Today ring shows the day's calories again.
+  await page.evaluate(k => { localStorage.removeItem(k); window.dispatchEvent(new Event('zigoals-hide-body-figures')); }, HIDE_FIGURES_KEY);
+  await expect.poll(() => figuresIn(page, '.life-ring[data-pillar="health"]')).toMatch(/187 kcal/);
 });

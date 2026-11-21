@@ -5,8 +5,8 @@ import {axe, THEMES, applyTheme, offline} from './p6-helpers';
 
 /**
  * Session AV, owner follow-up 1 (F-YESTERDAY; Habitica): Habits opens with yesterday's daily habits still open, in one
- * list — Done for one, All done, each with Undo, Not now for this visit — and the list goes once anything is logged
- * today. At 390 and 1440, in Nebula, Light and Dark, axe-clean, no sideways scroll at 320. Fictional data; every /api
+ * list — Done for one, All done, each with Undo, Not now for this visit — and (q4 #19) on Today too, kept until each
+ * habit is handled or "Not now". At 390 and 1440, in Nebula, Light and Dark, axe-clean, no sideways scroll at 320. Fictional data; every /api
  * call answers 503.
  */
 test.use({timezoneId: 'Europe/Amsterdam'});
@@ -66,7 +66,10 @@ test('what got in the way: the water marked not done with a reason, which is the
   expect(entry).toMatchObject({disposition: 'failed', note: 'Too busy — a long fictional day'});
 });
 
-test('"Not now" leaves it for this visit; a check-in today ends it', async ({page}) => {
+// Deliberate change (q4 #19, Major): a check-in today no longer hides the list (a person who ticks one habit on Today
+// would never see it); it stays until each habit is handled or "Not now" is pressed. As strict: the heading is there
+// after today's check-in, where it used to be gone.
+test('"Not now" leaves it for this visit; a check-in today keeps it until it is handled', async ({page}) => {
   await offline(page);
   await page.clock.install({time: NOW});
   await page.goto('/app/settings'); await hydrated(page);
@@ -81,5 +84,38 @@ test('"Not now" leaves it for this visit; a check-in today ends it', async ({pag
   await page.evaluate(() => sessionStorage.clear());
   await page.evaluate(([k, v]) => localStorage.setItem(k, v), [HABITS_KEY, JSON.stringify(today)] as const);
   await page.reload(); await hydrated(page);
-  await expect(page.getByRole('heading', {name: 'Yesterday, still open'})).toHaveCount(0);
+  await expect(page.getByRole('heading', {name: 'Yesterday, still open'})).toHaveCount(1);
+});
+
+/**
+ * q4 #19 and #32 (Major, and the keyboard Minors): Today's first open shows yesterday's open habits and "What got in the
+ * way?"; nothing is chosen until the person picks a reason; Escape closes the form and gives the focus back to its
+ * button; after Done the focus is on the next habit's Done, and after the last one on the list's status — never <body>.
+ */
+test("on Today: yesterday's open habits, what got in the way, by keyboard", async ({page}) => {
+  await offline(page);
+  await page.clock.install({time: NOW});
+  await page.goto('/app/settings'); await hydrated(page);
+  const today = logHabitValue(seedData(), 'aaaaaaaa-0000-4000-8000-000000000003', '2026-11-23', 1, {}, NOW);
+  await page.evaluate(([k, v]) => { localStorage.setItem(k, v); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, [HABITS_KEY, JSON.stringify(today)] as const);
+  await page.goto('/app'); await hydrated(page);
+  const card = page.getByRole('region', {name: 'Yesterday, still open'});
+  await expect(card).toBeVisible({timeout: 15_000});
+  const findings = await axe(page, card);
+  expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
+  const whyButton = card.getByRole('button', {name: 'Fictional walk: what got in the way?'});
+  await whyButton.focus(); await page.keyboard.press('Enter');
+  const why = card.getByRole('form', {name: 'What got in the way of Fictional walk'});
+  await expect(why.getByRole('radio', {checked: true})).toHaveCount(0); // nothing chosen for the person
+  await why.getByLabel('Forgot').focus();
+  await page.keyboard.press('Escape');
+  await expect(why).toHaveCount(0);
+  await expect(whyButton).toBeFocused();
+  await card.getByRole('button', {name: 'Fictional walk: done yesterday'}).focus();
+  await page.keyboard.press('Enter');
+  await expect(card.getByRole('button', {name: 'Fictional water: done yesterday'})).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.habit-yesterday-status')).toBeFocused();
+  expect(await page.evaluate(() => document.activeElement === document.body)).toBe(false);
+  await expect.poll(() => yesterday(page)).toEqual([['Fictional walk', 1], ['Fictional water', 8], ['Fictional stretch', 1]]);
 });

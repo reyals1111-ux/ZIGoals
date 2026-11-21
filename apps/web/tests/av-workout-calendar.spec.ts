@@ -28,6 +28,22 @@ for (const theme of THEMES) test(`${theme}: November's two training days, then O
   await expect(calendar.getByRole('button', {name: 'Next month'})).toBeDisabled();
   const findings = await axe(page, fold);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
+  // q3 #41 (Major): a trained day is a button; the chosen day's workouts are listed under the grid (the latest by default),
+  // every text at least 14 px; on a phone the cell shows a dot, never a name cut to "Fi…".
+  await expect(calendar.locator('.workout-calendar-chosen')).toContainText('Fictional legs');
+  await calendar.getByRole('button', {name: 'Mon, Nov 2: Fictional push, Fictional run'}).click();
+  await expect(calendar.getByRole('button', {name: 'Mon, Nov 2: Fictional push, Fictional run'})).toHaveAttribute('aria-pressed', 'true');
+  await expect(calendar.locator('.workout-calendar-chosen li')).toHaveText(['Fictional push', 'Fictional run']);
+  expect(await calendar.evaluate(el => [...el.querySelectorAll<HTMLElement>('th, td, .workout-calendar-day, .workout-calendar-chosen li, small')].filter(e => e.offsetParent && parseFloat(getComputedStyle(e).fontSize) < 14).length)).toBe(0);
+  await page.setViewportSize({width: 390, height: 844});
+  await expect(calendar.locator('.workout-calendar-dot').first()).toBeVisible();
+  await expect(calendar.locator('.workout-calendar-names').first()).toBeHidden();
+  await page.setViewportSize({width: 320, height: 720});
+  const cell = await calendar.getByRole('button', {name: 'Mon, Nov 2: Fictional push, Fictional run'}).boundingBox();
+  expect(cell!.height).toBeGreaterThanOrEqual(44);
+  const phoneFindings = await axe(page, fold);
+  expect(phoneFindings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(phoneFindings)).toEqual([]);
+  if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await calendar.getByRole('button', {name: 'Previous month'}).click();
   await expect(calendar.getByRole('cell', {name: 'Wed, Oct 14: Fictional swim'})).toHaveClass(/is-trained/);
   await expect(calendar).toContainText('1 day with a workout this month.');

@@ -7,7 +7,8 @@ import {isDeletedHabit} from './habit-delete';
  * open, in one list, to tick late in one go. Only "build" habits with a daily target that were scheduled yesterday and
  * are not complete (nothing logged, or part of the target); quit and limit habits are left out (not doing them is the
  * point), as are skipped, paused and weekly-target habits. `missing` is what "Done" adds to reach yesterday's target.
- * The list is shown until anything is logged today: nothing new is stored. Session AV (F-MISS-REASON): a habit marked
+ * Nothing new is stored. Session AV (q4 #19): the list is shown until each habit is handled or "Not now"; `loggedToday` is
+ * still said (read by no screen now) and no longer hides it. Session AV (F-MISS-REASON): a habit marked
  * "not done" for yesterday with what got in the way (`whatGotInTheWay`) leaves the list; the reason is the day's note.
  * Pure.
  */
@@ -35,4 +36,17 @@ export const MISS_REASONS = ['Too tired', 'Too busy', 'Forgot', 'Away from home'
 /** The day's note for a miss: the chosen reason, then the person's own words, at most 200 characters. */
 export function missNote(reason: string, words = ''): string {
   return [reason.trim(), words.replace(/\s+/g, ' ').trim()].filter(Boolean).join(' — ').slice(0, 200);
+}
+/**
+ * Session AV (q4 #32; Habitify shows the reasons back): how often each reason was given for a "not done" in the last
+ * `days` days, most first, from the day's notes ("Too busy — rain" counts as Too busy). Own words alone are not counted.
+ */
+export function missReasonCounts(entries: readonly {date: string; disposition: string; note?: string}[], today: string, days = 90): {reason: string; count: number}[] {
+  const from = addLocalDays(today, 1 - days), counts = new Map<string, number>();
+  for (const e of entries) {
+    if (e.disposition !== 'failed' || e.date < from || e.date > today || !e.note) continue;
+    const reason = MISS_REASONS.find(r => e.note === r || e.note!.startsWith(`${r} — `));
+    if (reason) counts.set(reason, (counts.get(reason) ?? 0) + 1);
+  }
+  return [...counts].map(([reason, count]) => ({reason, count})).sort((a, b) => b.count - a.count || MISS_REASONS.indexOf(a.reason as never) - MISS_REASONS.indexOf(b.reason as never));
 }

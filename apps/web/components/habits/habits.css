@@ -199,20 +199,12 @@
 /* Session AL fourth pass (MO-123): a linked habit's "counting from Health" line, as the automatic-tick note reads. */
 .habit-health-so-far { flex-basis: 100%; margin: 0; font-size: 15px; line-height: 1.4; color: var(--text-secondary); }
 /* Session AV follow-up 1 (F-YESTERDAY): yesterday's open habits, before today starts. */
-.habit-yesterday { display: grid; gap: 8px; }
-.habit-yesterday h2, .habit-yesterday p { margin: 0; }
-.habit-yesterday-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.habit-yesterday-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-width: 0; overflow-wrap: anywhere; padding: 4px 0; border-bottom: 1px solid var(--line, rgba(140,160,220,.18)); }
-.habit-yesterday-list small { color: var(--text-meta, var(--muted)); }
-.habit-yesterday button { min-height: 44px; }
-.habit-yesterday-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 /* Session AV follow-up 1 (F-FOCUS-HABIT): today's focus, said in words beside the star. */
-.habit-focus-badge { font-weight: 650; }
+.habit-focus-badge { font-weight: 650; margin: 2px 0 0; font-size: 14px; white-space: nowrap; color: var(--text-primary, inherit); }
+/* Session AV (q4 #23): "never missed twice" and "Don’t miss today" on the card face. */
+.habit-two-day { margin: 4px 0 0; font-size: 14px; color: var(--text-secondary); }
+.habit-two-day.is-today { color: var(--text-primary, inherit); font-weight: 600; }
 /* Session AV follow-up 1 (F-HABIT-LOOK): a habit's own symbol and colour (named colours; each theme keeps its contrast). */
-[data-look-colour=grey] { --habit-look: #8a8fa3; } [data-look-colour=red] { --habit-look: #e5484d; } [data-look-colour=orange] { --habit-look: #f08c38; }
-[data-look-colour=yellow] { --habit-look: #d4a72c; } [data-look-colour=green] { --habit-look: #46a758; } [data-look-colour=teal] { --habit-look: #12a594; }
-[data-look-colour=blue] { --habit-look: #3e8bf0; } [data-look-colour=violet] { --habit-look: #8e6cf0; } [data-look-colour=pink] { --habit-look: #e05aa8; }
-.habit-look { color: var(--habit-look); }
 .habit-look-picker { display: grid; gap: 8px; margin: 8px 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, rgba(140,160,220,.3)); }
 .habit-look-picker p, .habit-look-picker fieldset { margin: 0; }
 .habit-look-picker fieldset { border: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
@@ -237,13 +229,6 @@
 .habit-week-cell { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--line, rgba(140,160,220,.3)); background: transparent; color: inherit; font-size: 18px; }
 .habit-week-cell[aria-pressed=true] { border-width: 2px; border-color: currentColor; font-weight: 700; }
 .habit-week-cell.is-still { border-style: dashed; }
-/* Session AV follow-up 1 (F-MISS-REASON): what got in the way of yesterday's habit. */
-.habit-yesterday-row-actions { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; }
-.habit-yesterday-why { flex-basis: 100%; display: grid; gap: 8px; padding: 6px 0; }
-.habit-yesterday-why fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
-.habit-yesterday-why legend { font-weight: 600; margin-bottom: 4px; }
-.habit-yesterday-reason { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
-.habit-yesterday-why input:not([type=radio]) { min-height: 44px; width: 100%; box-sizing: border-box; }
 /* Session AV (D-CI1961): a time-of-day section clips its content to its rounded corners, which also cut a card's open
    options menu at the section's edge (its lower items could not be seen or pressed). While a menu is open the section
    lets it overflow. */

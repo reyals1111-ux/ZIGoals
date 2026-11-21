@@ -37,4 +37,10 @@ describe('Session AV (F-MISS-REASON)', () => {
     expect(yesterdaysOpen(d, '2026-11-23').open).toEqual([]);
     expect(d.habits[0]!.entries.find(e => e.date === '2026-11-22')).toMatchObject({disposition: 'failed', note: 'Too tired', count: 0});
   });
+  it('q4 #32: the reasons given for a not done are counted back, most first; own words alone are not counted', async () => {
+    const {missReasonCounts} = await import('./habits-yesterday');
+    const e = (date: string, note: string, disposition = 'failed') => ({date, disposition, note});
+    expect(missReasonCounts([e('2026-11-20', 'Too busy — rain'), e('2026-11-21', 'Too busy'), e('2026-11-19', 'Forgot'), e('2026-11-18', 'just tired'), e('2026-11-17', 'Too busy', 'skipped'), e('2026-07-01', 'Forgot')], '2026-11-23'))
+      .toEqual([{reason: 'Too busy', count: 2}, {reason: 'Forgot', count: 1}]);
+  });
 });

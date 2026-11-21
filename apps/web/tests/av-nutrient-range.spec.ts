@@ -30,6 +30,11 @@ for (const theme of THEMES) test(`${theme}: iron over 7 days, 30 days and a chos
   await period.getByRole('button', {name: '30 days'}).click();
   await expect(iron).toContainText(/6 mg.*average of 14 days with a value, of 14 logged/s);
   await expect(report.getByRole('status').filter({hasText: 'Averages of'})).toContainText('(30 days)');
+  // q3 #47 (Minor): averages are rounded (never "130.997 g"), and Sources reads the same 30 days as the averages.
+  expect(await report.locator('.health-micro-list small').allTextContents()).not.toContainEqual(expect.stringMatching(/\d\.\d{2,} (g|mg|µg)/));
+  await iron.getByRole('button', {name: 'Where Iron came from'}).click();
+  await expect(iron.getByRole('group', {name: 'Where Iron came from'})).toContainText('From the same 30 days as the averages.');
+  await expect(iron.getByRole('group', {name: 'Days to read'})).toHaveCount(0);
   await period.getByRole('button', {name: 'Choose dates'}).click();
   const dates = report.getByRole('group', {name: 'Dates to average'});
   await dates.getByLabel('From').fill('2026-11-10');

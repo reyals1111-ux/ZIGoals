@@ -2,24 +2,29 @@
 import {useMemo} from 'react';
 import {useChartWidth} from '../../charts/use-chart-width';
 import type {DayPoint} from '../../../lib/sleep/engine';
-import {groupSleep, rangeAverage} from '../../../lib/sleep/longer';
+import {groupSleep, lastMonths, rangeAverage} from '../../../lib/sleep/longer';
+import {formatClock, formatDate, formatMonth} from '../../../lib/visual-format';
 import {formatMinutes} from '../../../lib/zone-time';
-import {formatDate, formatMonth} from '../../../lib/visual-format';
 
 /**
  * Session AV (owner follow-up 1, F-SLEEP-LONG; Sleep Cycle's long-range trends): Sleep → Over time at 90 days (by week)
  * or a year (by month) — the average time asleep of the nights logged in each, with the goal as a dashed line, an
  * empty group marked on the baseline (never a zero bar), and a table with the averages, the quality and the nights
- * logged. Hand-built SVG in the daily charts' look; its own chunk.
+ * logged (and, from q3 #46, the average bedtime and wake time). Hand-built SVG in the daily charts' look; its own chunk.
  */
 const H = 180, PAD = {top: 14, right: 10, bottom: 26, left: 44}, plotH = H - PAD.top - PAD.bottom;
 export default function SleepLongChart({points, goal, by}: {points: DayPoint[]; goal: number | null; by: 'week' | 'month'}) {
-  const groups = useMemo(() => groupSleep(points, by), [points, by]), all = useMemo(() => rangeAverage(points), [points]);
+  // Session AV (q3 #46): a year is 12 whole calendar months (not 13 part-months), and its average reads the same nights.
+  const shown = useMemo(() => by === 'month' ? lastMonths(points) : points, [points, by]);
+  const groups = useMemo(() => groupSleep(shown, by), [shown, by]), all = useMemo(() => rangeAverage(shown), [shown]);
   const [plot, W] = useChartWidth(), plotW = W - PAD.left - PAD.right;
   const top = Math.max(9 * 60, goal ?? 0, ...groups.map(g => g.asleep ?? 0)), max = Math.ceil(top / 120) * 120;
   const y = (m: number) => PAD.top + plotH - m / max * plotH, step = plotW / Math.max(1, groups.length), w = Math.max(2, step - 4);
   const name = (g: (typeof groups)[number]) => by === 'month' ? formatMonth(`${g.key}-01`) : `Week of ${formatDate(g.start, {year: false})}`;
-  const label = (g: (typeof groups)[number], i: number) => by === 'month' ? formatMonth(`${g.key}-01`, {year: false}) : i % 3 === 0 || i === groups.length - 1 ? formatDate(g.start, {year: false}) : '';
+  // Session AV (q3 #46): every label gets room of its own (a month name about 30 px, a date about 46 px); on a narrow phone
+  // every 2nd or 3rd group is named, counted back from the latest so the newest bar always has its name.
+  const every = Math.max(1, Math.ceil((by === 'month' ? 30 : 46) / Math.max(1, step)));
+  const label = (g: (typeof groups)[number], i: number) => (groups.length - 1 - i) % every !== 0 ? '' : by === 'month' ? formatMonth(`${g.key}-01`, {year: false}) : formatDate(g.start, {year: false});
   const span = by === 'month' ? 'a year, by month' : '90 days, by week';
   const summary = all ? `Average time asleep, ${span}: ${formatMinutes(all.asleep)} a night over the ${all.nights} nights logged${goal ? `; goal ${formatMinutes(goal)}` : ''}.` : `Average time asleep, ${span}: no night logged yet.`;
   return <figure className="sleep-chart sleep-long-chart">
@@ -35,9 +40,9 @@ export default function SleepLongChart({points, goal, by}: {points: DayPoint[]; 
         {goal !== null && <g className="sleep-goal"><line x1={PAD.left} x2={W - PAD.right} y1={y(goal)} y2={y(goal)}/></g>}
       </svg>
     </div>
-    <details className="sleep-chart-table"><summary>Show as a table</summary><div className="sleep-table-wrap"><table>
-      <thead><tr><th scope="col">{by === 'month' ? 'Month' : 'Week'}</th><th scope="col">Average asleep</th><th scope="col">Average quality</th><th scope="col">Nights logged</th></tr></thead>
-      <tbody>{[...groups].reverse().map(g => <tr key={g.key}><th scope="row">{name(g)}</th><td>{g.asleep === null ? '—' : formatMinutes(g.asleep)}</td><td>{g.quality === null ? '—' : `${g.quality} of 5`}</td><td>{g.nights} of {g.days}</td></tr>)}</tbody>
+    <details className="sleep-chart-table"><summary>Show as a table</summary><div className="sleep-table-wrap" tabIndex={0} role="region" aria-label={`Time asleep by ${by}, as a table`}><table>
+      <thead><tr><th scope="col">{by === 'month' ? 'Month' : 'Week'}</th><th scope="col">Average asleep</th><th scope="col">Bedtime</th><th scope="col">Wake time</th><th scope="col">Average quality</th><th scope="col">Nights logged</th></tr></thead>
+      <tbody>{[...groups].reverse().map(g => <tr key={g.key}><th scope="row">{name(g)}</th><td>{g.asleep === null ? '—' : formatMinutes(g.asleep)}</td><td>{g.bed === null ? '—' : formatClock(g.bed)}</td><td>{g.wake === null ? '—' : formatClock(g.wake)}</td><td>{g.quality === null ? '—' : `${g.quality} of 5`}</td><td>{g.nights} of {g.days}</td></tr>)}</tbody>
     </table></div></details>
   </figure>;
 }

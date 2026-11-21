@@ -23,12 +23,15 @@ for (const theme of THEMES) test(`${theme}: the walk as today's focus, on its ca
   const walk = page.getByRole('article', {name: 'Fictional walk', exact: true});
   await walk.getByRole('button', {name: 'Options for Fictional walk', exact: true}).click();
   await walk.getByRole('menuitem', {name: 'Make it today’s focus', exact: true}).click();
-  await expect(walk.locator('.habit-focus-badge')).toHaveText('· ★ Today’s focus');
+  // Deliberate change (q4 #24): the badge is a line of its own with its own mark (◎), not "· ★" after the eyebrow (the
+  // card's ☆ is the Checklist's star). As strict: the exact text, and one line only.
+  await expect(walk.locator('.habit-focus-badge')).toHaveText('◎ Today’s focus');
+  expect(await walk.locator('.habit-focus-badge').evaluate(el => el.getBoundingClientRect().height < parseFloat(getComputedStyle(el).fontSize) * 2.2)).toBe(true);
   const kept = await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:habit-extras:v1') ?? 'null')?.focus);
   expect(kept).toEqual({date: '2026-11-23', habitId: 'aaaaaaaa-0000-4000-8000-000000000001'});
   await page.goto('/app'); await hydrated(page);
   const line = page.getByRole('region', {name: 'Today\'s focus habit'});
-  await expect(line).toHaveText('★ Today’s focus: Fictional walk · still open →');
+  await expect(line).toHaveText('◎ Today’s focus: Fictional walk · still open →'); // q4 #24 (deliberate): the focus mark, as on the card
   await expect(line.getByRole('link')).toHaveAttribute('href', '/app/habits?habit=aaaaaaaa-0000-4000-8000-000000000001');
   const findings = await axe(page, line);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);

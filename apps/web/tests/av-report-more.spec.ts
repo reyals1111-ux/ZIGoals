@@ -38,6 +38,16 @@ for (const theme of THEMES) test(`${theme}: symptoms as rated and supplements as
   const sup = sheet.getByRole('region', {name: 'Supplements and medication'});
   await expect(sup.getByRole('row').nth(1)).toHaveText(/^Fictional vitamin D\s*1 tablet\s*7\s*1\s*0\s*6$/);
   await expect(sheet.getByRole('heading', {level: 2, name: 'Sleep', exact: true})).toHaveCount(0);
+  // q3 #48 (Blocker): the shown report is axe-clean too (a table wider than a phone scrolls in a focusable frame), and the
+  // builder and launcher name the two new parts instead of saying there is no symptom or medication list.
+  const shownFindings = await axe(page, sheet);
+  expect(shownFindings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(shownFindings)).toEqual([]);
+  await page.setViewportSize({width: 390, height: 844});
+  const atPhone = await axe(page, sheet);
+  expect(atPhone.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(atPhone)).toEqual([]);
+  expect(await sheet.locator('.report-table').evaluateAll(els => els.filter(el => el.scrollWidth > el.clientWidth + 1 && (el as HTMLElement).tabIndex !== 0).length)).toBe(0);
+  await expect(page.getByText(/keeps no medication or symptom list/)).toHaveCount(0);
+  await expect(page.getByText(/symptoms, supplements and medication\)/)).toHaveCount(1);
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

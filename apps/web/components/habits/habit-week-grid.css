@@ -1,0 +1,23 @@
+/* Session AV (q4 #30): the week grid on a phone — the habit's name stays in view (sticky, at least 7rem, broken only
+   between words), short day heads under 480 px, a cue that the week goes on sideways, and a quit habit's slip marked ×. */
+.habit-week .habit-week-table th[scope=row] { position: sticky; inset-inline-start: 0; z-index: 1; min-width: 7rem; overflow-wrap: normal; word-break: normal; hyphens: manual; background: var(--bg, #0b1220); }
+.habit-week .habit-week-table thead th:first-child { position: sticky; inset-inline-start: 0; z-index: 1; background: var(--bg, #0b1220); }
+.habit-week-table td[data-status=failed] .habit-week-cell.is-still { border-style: solid; font-weight: 700; }
+.habit-week-day-short { display: none; }
+.habit-week-cue { display: none; margin: 0; }
+@media (max-width: 479px) {
+  .habit-week-day-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* still read aloud */
+  .habit-week-day-short { display: inline; }
+  .habit-week-table th, .habit-week-table td { padding: 3px 2px; }
+  .habit-week-cue { display: block; }
+}
+.habit-week-why { display: grid; gap: 8px; }
+.habit-week-why summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.habit-week-why ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.habit-week-why li { display: grid; gap: 6px; padding: 4px 0; border-bottom: 1px solid var(--line, rgba(140,160,220,.18)); }
+.habit-week-why li > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; }
+.habit-week-why button { min-height: 44px; }
+.habit-week-why fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.habit-week-why legend { font-weight: 600; margin-bottom: 4px; }
+.habit-week-why label.reason { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+.habit-week-why input:not([type=radio]) { min-height: 44px; width: 100%; box-sizing: border-box; }

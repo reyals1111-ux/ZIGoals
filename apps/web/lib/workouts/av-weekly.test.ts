@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {workoutWeeks} from './weekly';
+import {distanceOf, sportOf, sportsWithDistance, workoutWeeks} from './weekly';
 import {workoutsSchema} from './schema';
 
 /** Session AV (owner follow-up 1, F-WORKOUT-WEEKS): 12 weeks of time, distance and weight lifted, Monday first. */
@@ -14,5 +14,14 @@ describe('Session AV (F-WORKOUT-WEEKS)', () => {
     expect(weeks.at(-1)).toEqual({start: '2026-11-23', end: '2026-11-29', workouts: 2, minutes: 75, distanceKm: 5.2, volumeKg: 300});
     expect(weeks.at(-2)).toEqual({start: '2026-11-16', end: '2026-11-22', workouts: 1, minutes: 50, distanceKm: 10, volumeKg: 0});
     expect(weeks[0]!.start).toBe('2026-09-07');
+  });
+  it('q3 #11: distance per sport, never a ride added to a run', () => {
+    const ride = {id: 'e3', exerciseId: 'cycling', name: 'Cycling', measure: 'distance-time', sets: [{id: 's4', kind: 'normal', distanceKm: 42, seconds: 5400, done: true}]};
+    const both = workoutsSchema.parse({version: 1, workouts: [workout('r', '2026-11-23', 50, [run]), workout('b', '2026-11-24', 90, [ride]), workout('f', '2026-11-24', 60, [], {imported: {source: 'gpx', importId: 'x2', sport: 'Biking', distanceKm: 20, durationSeconds: 3600}})], templates: [], exercises: []});
+    expect(workoutWeeks(both, '2026-11-25', 12, 'run').at(-1)!.distanceKm).toBe(5.2);
+    expect(workoutWeeks(both, '2026-11-25', 12, 'ride').at(-1)!.distanceKm).toBe(62);
+    expect(sportsWithDistance(both, '2026-11-25')).toEqual(['ride', 'run']);
+    expect([sportOf('running'), sportOf('Biking'), sportOf('Zwemmen'), sportOf('Hike')]).toEqual(['run', 'ride', 'swim', 'walk']);
+    expect(distanceOf({exercises: [], imported: {sport: 'run', distanceKm: 8}}, 'ride')).toBe(0);
   });
 });

@@ -20,6 +20,12 @@ for (const theme of THEMES) test(`${theme}: a fresh device is taught; the Showca
   await expect(card.locator('ol.factor-list > li').first()).toBeVisible({timeout: 15_000});
   await expect(card.locator('ol.factor-list > li').first()).toContainText(/days compared\./);
   await expect(card.locator('.cross-label').first()).toHaveText(/Early sign|Consistent/);
+  // q3 #8 (Minor): the factor name, what it is set against and the label sit on one line, the label at 14 px.
+  const head = card.locator('ol.factor-list > li .factor-head').first();
+  const [name, outcome] = [head.locator('strong'), head.locator('.factor-outcome')];
+  expect(Math.abs((await name.boundingBox())!.y - (await outcome.boundingBox())!.y)).toBeLessThan(8);
+  await expect(card.locator('.cross-label').first()).toHaveCSS('font-size', '14px');
+  await expect(card).toContainText('symptom, supplement');
   const findings = await axe(page, card);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});

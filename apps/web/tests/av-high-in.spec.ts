@@ -4,8 +4,8 @@ import {axe, THEMES, applyTheme, offline} from './p6-helpers';
 
 /**
  * Session AV, owner follow-up 1 (F-HIGH-IN; Cronometer's Oracle): Health → Targets → Micronutrients → "Which of my foods
- * are high in…" → Iron → "Also look in the offline food library" lists the library's richest foods per 100 g, with what
- * 100 g covers of today's gap — at 390 and 1440, in Nebula, Light and Dark, axe-clean, no sideways scroll at 320. The
+ * are high in…" → Iron → "Also look in the offline food library" lists the library's richest foods by a usual portion
+ * (q3 #28: no herbs, spices, seaweed or powders), with what that portion covers of today's gap — at 390 and 1440, in Nebula, Light and Dark, axe-clean, no sideways scroll at 320. The
  * library is the app's own offline food data; every /api call answers 503.
  */
 for (const theme of THEMES) test(`${theme}: iron in the offline library, richest first, with today's gap`, async ({page, isMobile}) => {
@@ -19,11 +19,15 @@ for (const theme of THEMES) test(`${theme}: iron in the offline library, richest
   const rich = page.locator('.health-rich').filter({has: page.getByRole('heading', {name: 'Which of my foods are high in…'})});
   await rich.getByRole('group', {name: 'Nutrient'}).getByRole('button', {name: 'Iron', exact: true}).click();
   await rich.getByRole('button', {name: 'Also look in the offline food library'}).click();
-  const list = rich.getByRole('list', {name: 'Foods high in iron, per 100 g'});
+  // Deliberate change (q3 #28, Major): the library's list is ranked by a usual portion, not per 100 g (which put dried
+  // thyme and seaweed first), and its gap line is what that portion covers. As strict: eight foods, the line's form, the
+  // order by portion, and no dried herb, spice, seaweed or powder among them.
+  const list = rich.getByRole('list', {name: 'Foods high in iron, by a usual portion'});
   await expect(list.getByRole('listitem')).toHaveCount(8, {timeout: 20_000});
-  await expect(list.getByRole('listitem').first()).toContainText(/· \d+(\.\d+)? mg per 100 g · 100 g covers \d+% of today’s gap · /);
-  const values = await list.getByRole('listitem').evaluateAll(items => items.map(li => Number(/· (\d+(?:\.\d+)?) mg per 100 g/.exec(li.textContent ?? '')?.[1])));
+  await expect(list.getByRole('listitem').first()).toContainText(/· \d+(\.\d+)? mg in a usual portion of \d+ g \(\d+(\.\d+)? mg per 100 g\) · that portion covers \d+% of today’s gap · /);
+  const values = await list.getByRole('listitem').evaluateAll(items => items.map(li => Number(/· (\d+(?:\.\d+)?) mg in a usual portion/.exec(li.textContent ?? '')?.[1])));
   expect(values).toEqual([...values].sort((a, b) => b - a));
+  expect(await list.getByRole('listitem').allTextContents()).not.toContainEqual(expect.stringMatching(/thyme|basil|mint, dried|seaweed|chlorella|spirulina|gut weed|lithothamn|powder|dried or dehydrated/i));
   const findings = await axe(page, rich);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});

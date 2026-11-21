@@ -36,6 +36,13 @@ for (const theme of THEMES) test(`${theme}: the morning bowl on Mondays and Thur
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await form.getByRole('button', {name: 'Save plan'}).click();
   await expect.poll(() => plans(page)).toEqual([['2026-11-23', 'Breakfast', false], ['2026-11-26', 'Breakfast', false], ['2026-11-30', 'Breakfast', false], ['2026-12-03', 'Breakfast', false]]);
+  // q3 #29 (Minor): the same repeat again plans nothing new, and the message says so instead of "Planned 4 times".
+  await days.getByLabel('Mon').check();
+  await days.getByLabel('Thu').check();
+  await form.getByRole('combobox', {name: /^For/}).selectOption('2');
+  await form.getByRole('button', {name: 'Save plan'}).click();
+  await expect(page.getByText('Planned 0 times over 2 weeks (4 days were already planned); nothing logged as consumed.').first()).toBeVisible();
+  expect(await plans(page)).toHaveLength(4);
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

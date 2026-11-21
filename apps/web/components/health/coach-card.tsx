@@ -13,6 +13,7 @@ import {scaledTargets} from '../../lib/health-aa/energy';
 import {ConfirmInline} from '../ui/confirm-inline';
 import {showUndo} from '../ui/undo-toast';
 import {useState} from 'react';
+import {useHideFigures} from '../hide-figures';
 import {registerSlotCard} from '../game/slot-local';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import type {HealthPerform} from './aa-types';
@@ -37,7 +38,7 @@ export function CoachCard({data, today, perform, compact = false}: {data: Health
   const waiting = energyProgress({loggedDays: c.progress.loggedDays, weights: c.progress.weights, implausible: c.progress.implausible});
   // Session AH (HE2; D-094, L-046, M-054, M-097, B-100, N-035): Adjust asks first, names the change, scales the macro
   // targets with it, moves at most 15 % a step (never under 1,200 kcal), and offers Undo.
-  const [asking, setAsking] = useState(false);
+  const [asking, setAsking] = useState(false), hidden = useHideFigures(); // Session AV (q3 #36): no kcal in a label while figures are hidden
   const answer = (what: 'keep' | 'adjust') => {
     const kcal = what === 'adjust' ? c.suggestion?.kcal : undefined;
     const record = () => { try { coach.update(r => answerCoach(r, c.weekStart, what, new Date().toISOString(), kcal)); } catch (e) { void perform(l => l, `Answer not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
@@ -52,12 +53,12 @@ export function CoachCard({data, today, perform, compact = false}: {data: Health
   const signed = (n: number) => `${n < 0 ? '−' : n > 0 ? '+' : '±'}${formatNumber(Math.abs(n))}`;
   return <section id={compact ? undefined : 'health-coach'} className={`panel health-aa-card health-coach${compact ? ' health-coach-compact' : ''}`} aria-labelledby="coach-title">
     <p className="eyebrow">Weekly check-in</p><h2 id="coach-title"><NebulaFlow identity={`coach-title${compact ? '-compact' : ''}`}>Your coach</NebulaFlow></h2>
-    <p className="health-coach-line">{c.sentence}</p>
-    {!compact && (c.maintenance ? <dl className="health-aa-facts"><div><dt>Estimated maintenance</dt><dd>{formatNumber(c.maintenance.kcal)} kcal/day</dd></div><div><dt>Likely range</dt><dd>{formatNumber(c.maintenance.low)}–{formatNumber(c.maintenance.high)}</dd></div>{c.suggestion && c.changeKcal !== null && <div><dt>Suggested step</dt><dd>{c.changeKcal === 0 ? 'Keep as is' : `${signed(c.changeKcal)} kcal`}</dd></div>}</dl>
+    <p className="health-coach-line" data-body-figure={c.rateGrams !== null ? '' : undefined}>{c.sentence}</p>
+    {!compact && (c.maintenance ? <dl className="health-aa-facts"><div><dt>Estimated maintenance</dt><dd data-body-figure="">{formatNumber(c.maintenance.kcal)} kcal/day</dd></div><div><dt>Likely range</dt><dd data-body-figure="">{formatNumber(c.maintenance.low)}–{formatNumber(c.maintenance.high)}</dd></div>{c.suggestion && c.changeKcal !== null && <div><dt>Suggested step</dt><dd data-body-figure="">{c.changeKcal === 0 ? 'Keep as is' : `${signed(c.changeKcal)} kcal`}</dd></div>}</dl>
       : <p className="fine">{c.progress.implausible ? 'Your recent logs look incomplete, so there is no maintenance estimate this week. Check the diary and weights.' : `The maintenance estimate needs about two weeks of food and weight logs: ${waiting.figure} so far, ${waiting.note}.`}</p>)}
-    {c.rateGrams !== null && (c.answered ? <p className="health-coach-answered">{c.answered === 'keep' ? 'You kept your target this week.' : 'You adjusted your target this week.'} Back next week.</p> : <div className="actions"><button type="button" className="primary" onClick={() => answer('keep')}>Keep my target</button><button type="button" className="secondary" onClick={() => setAsking(true)} disabled={!c.suggestion} aria-expanded={asking}>{c.suggestion ? `Adjust to ${c.suggestion.kcal} kcal…` : 'Adjust (needs the estimate)'}</button></div>)}
-    {asking && c.suggestion && <ConfirmInline title={`Set your calorie target to ${c.suggestion.kcal} kcal a day?`} confirmLabel="Adjust my target" cancelLabel="Keep it as it is" tone="neutral" onConfirm={() => answer('adjust')} onCancel={() => setAsking(false)}><p>Now {c.currentKcal === null ? 'no target' : `${c.currentKcal} kcal`}{c.changeKcal !== null && c.changeKcal !== 0 ? ` (${signed(c.changeKcal)} kcal)` : ''}. Protein, carbs and fat scale with it. A change moves at most {c.rails.maxStepPercent} % at a time and never below {formatNumber(c.rails.floorKcal)} kcal. You can undo it right after.</p></ConfirmInline>}
-    <p className="fine">{c.suggestion ? `The adjustment comes from your energy estimate and a pace of ${paceLabel(c.suggestion.paceKg, unit)} toward your goal.` : 'The adjustment appears once the energy estimate has two weeks of logs.'} <span className="health-estimate-tag">{/* Session AK P4 (FR-15): a sentence of its own, capitalised */}An estimate, not medical advice</span></p>
+    {c.rateGrams !== null && (c.answered ? <p className="health-coach-answered">{c.answered === 'keep' ? 'You kept your target this week.' : 'You adjusted your target this week.'} Back next week.</p> : <div className="actions"><button type="button" className="primary" onClick={() => answer('keep')}>Keep my target</button><button type="button" className="secondary" onClick={() => setAsking(true)} disabled={!c.suggestion} aria-expanded={asking}>{c.suggestion ? (hidden ? 'Adjust my target…' : `Adjust to ${c.suggestion.kcal} kcal…`) : 'Adjust (needs the estimate)'}</button></div>)}
+    {asking && c.suggestion && <ConfirmInline title={hidden ? 'Adjust your calorie target from the estimate?' : `Set your calorie target to ${c.suggestion.kcal} kcal a day?`} confirmLabel="Adjust my target" cancelLabel="Keep it as it is" tone="neutral" onConfirm={() => answer('adjust')} onCancel={() => setAsking(false)}><p data-body-figure="">Now {c.currentKcal === null ? 'no target' : `${c.currentKcal} kcal`}{c.changeKcal !== null && c.changeKcal !== 0 ? ` (${signed(c.changeKcal)} kcal)` : ''}. Protein, carbs and fat scale with it. A change moves at most {c.rails.maxStepPercent} % at a time and never below {formatNumber(c.rails.floorKcal)} kcal. You can undo it right after.</p></ConfirmInline>}
+    <p className="fine"><span data-body-figure={c.suggestion ? '' : undefined}>{c.suggestion ? `The adjustment comes from your energy estimate and a pace of ${paceLabel(c.suggestion.paceKg, unit)} toward your goal.` : 'The adjustment appears once the energy estimate has two weeks of logs.'}</span> <span className="health-estimate-tag">{/* Session AK P4 (FR-15): a sentence of its own, capitalised */}An estimate, not medical advice</span></p>
     {/* Session AK P4 (FR-15): with no weight yet, the card says where the first one goes. */}
     {/* Session AL (NB-254): to the Weight view with its field focused, not the Diary. */}
     {compact && !data.weights.length && <p><Link className="text-link" href={LOG_WEIGHT_HREF} prefetch={false}>Log a weight →</Link></p>}

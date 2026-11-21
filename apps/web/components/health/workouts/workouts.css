@@ -129,6 +129,10 @@
 .workouts-weeks-scroll:focus-visible{outline:2px solid var(--cyan, #6fd3ff);outline-offset:2px}
 .workouts-weeks-table th,.workouts-weeks-table td{white-space:nowrap}
 .workouts-weeks > *{min-width:0}
+/* Session AV (q3 #11): the bars' first and last week, and the sport picker for distance. */
+.workouts-weeks-axis{display:flex;justify-content:space-between;margin:-2px 0 0;font-size:14px;color:var(--text-secondary, var(--muted))}
+.workouts-weeks-sport{max-width:16rem}
+.workouts-weeks-sport select{min-height:44px}
 /* Session AV follow-up 1 (F-RUN-BESTS): running bests. */
 .workouts-bests{display:grid;gap:6px;margin:8px 0}
 .workouts-bests h3{margin:0;font-size:16px}

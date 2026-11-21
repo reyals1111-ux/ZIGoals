@@ -1,6 +1,6 @@
 import {habitDay, habitRuleOn, type HabitData} from '../habits';
 import type {HealthData} from '../health';
-import {addLocalDays} from '../local-date';
+import {addLocalDays, localDate} from '../local-date';
 import {asleep, bedClock, clockFromMidnight, clockFromNoon, dailySeries, nightDay, wakeClock} from '../sleep/engine';
 import {healthGroupIn} from '../vault/w-homes';
 import {quadrantOfWord, QUADRANTS, type QuadrantId} from '../mood-words/words';
@@ -34,6 +34,8 @@ export type ReportInput = {from: string; to: string; today: string; sections: re
   /** Session AV (F-REPORT-MORE): `zigoals:symptoms:v1` and `zigoals:supplements:v1`; optional, as `numbers`. */
   symptoms?: Symptoms | null; supplements?: Supplements | null};
 export type Range = {from: string; to: string; days: number};
+/** The local calendar day of an ISO instant; a value that does not parse keeps its own first ten characters. */
+const addedDay = (iso: string) => { const t = new Date(iso); return Number.isFinite(t.getTime()) ? localDate(t) : iso.slice(0, 10); };
 export type SleepRow = {date: string; bed: string; wake: string; asleep: number; estimated: boolean; quality: number | null; tags: string[]};
 export type SleepSection = {nights: number; avgAsleep: number | null; avgBed: string | null; avgWake: string | null; avgQuality: number | null; estimated: boolean; goal: number | null; series: {date: string; asleep: number | null}[]; rows: SleepRow[]; more: number};
 export type MoodSection = {moodDays: number; avgMood: number | null; energyDays: number; avgEnergy: number | null; series: {date: string; mood: number | null; energy: number | null}[]; words: {id: QuadrantId; title: string; count: number; examples: string[]}[]; wordDays: number};
@@ -151,7 +153,9 @@ export function buildReport(input: ReportInput): Report {
     const marks = (input.supplements?.log ?? []).filter(m => inRange(m.date, range));
     out.supplements = {rows: (input.supplements?.items ?? []).map(item => {
       // A time of day is a planned dose on each chosen weekday from the day it was added; no time is "as needed".
-      const planned = item.times?.length ? daysOf(range).filter(d => d >= item.createdAt.slice(0, 10) && scheduledOn(item, d)).length * item.times.length : null;
+      // Session AV (q3 #48): the day it was added is the device's local date of `createdAt`, not its UTC date.
+      const added = addedDay(item.createdAt);
+      const planned = item.times?.length ? daysOf(range).filter(d => d >= added && scheduledOn(item, d)).length * item.times.length : null;
       const mine = marks.filter(m => m.itemId === item.id), taken = mine.filter(m => m.status === 'taken').length, skipped = mine.filter(m => m.status === 'skipped').length;
       return {name: item.name, dose: item.dose ?? null, kind: item.kind ?? 'supplement', planned, taken, skipped, notLogged: planned === null ? null : Math.max(0, planned - taken - skipped)};
     })};

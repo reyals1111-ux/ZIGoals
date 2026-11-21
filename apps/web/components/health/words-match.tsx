@@ -1,7 +1,8 @@
 'use client';
 import {useEffect, useId, useMemo, useRef, useState} from 'react';
-import {logHealthItem, newHealthId, saveFood, type HealthData, type HealthFood, type Nutrition} from '../../lib/health';
-import {matchOwnFood, ownQuantityMilli, splitMealWords, type WordsItem} from '../../lib/meal-words/match';
+import {logHealthItem, newHealthId, saveFood, type HealthFood, type Nutrition} from '../../lib/health';
+import {libraryQueries, ownMatch, ownQuantityMilli, portionGrams, rankLibraryNames, splitMealWords, type WordsItem} from '../../lib/meal-words/match';
+import {undoWordsLog} from '../../lib/meal-words/undo';
 import {removeMealWords, addMealWords, MEAL_WORDS, type MealWordsEntry} from '../../lib/meal-words/schema';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useHealth} from './use-health';
@@ -14,9 +15,12 @@ import {formatNumber} from '../../lib/visual-format';
  * to the offline food library (per 100 g, so it asks for the grams); the person ticks which to log and checks each
  * amount. "Log" writes ordinary diary entries (a library food from the offline library is saved to the person's foods,
  * as the barcode flow does) and takes the words off, with one Undo for both. Loaded when "Find these foods" is pressed.
+ * Session AV (q3 #25): the library offers its best 3 to 5 foods in a picker (the plain food first: "Egg, raw", not "Eggs,
+ * duck"); an own food matches by whole words and starts ticked only when it is the same name; a count of a library food
+ * becomes grams at a usual portion (2 eggs = 100 g); Undo takes off only the entries and foods this Log made.
  */
 type Offline = {name: string; sourceName: string; nutrients: Nutrition};
-type Row = {item: WordsItem; own: HealthFood | null; offline: Offline | null | 'loading'; on: boolean; amount: string};
+type Row = {item: WordsItem; own: HealthFood | null; offline: Offline | null | 'loading'; options: Offline[]; on: boolean; amount: string; portion: boolean};
 export default function WordsMatch({entry, onClose}: {entry: MealWordsEntry; onClose: () => void}) {
   const id = useId(), health = useHealth(), words = useDeviceRecord(MEAL_WORDS), [status, setStatus] = useState('');
   const items = useMemo(() => splitMealWords(entry.words), [entry.words]);
@@ -25,12 +29,21 @@ export default function WordsMatch({entry, onClose}: {entry: MealWordsEntry; onC
     if (!health.loaded || started.current) return;
     started.current = true;
     const foods = health.data.foods;
-    const first: Row[] = items.map(item => { const own = matchOwnFood(item, foods); return {item, own, offline: own ? null : 'loading', on: !!own, amount: own ? String(ownQuantityMilli(item, own) / 1000) : item.unit === 'g' && item.count ? String(item.count) : ''}; });
+    const first: Row[] = items.map(item => { const m = ownMatch(item, foods), own = m?.food ?? null, grams = portionGrams(item); return {item, own, offline: own ? null : 'loading', options: [], on: !!m?.exact, amount: own ? String(ownQuantityMilli(item, own) / 1000) : item.unit === 'g' && item.count ? String(item.count) : grams ? String(grams) : '', portion: !own && grams !== null}; });
     queueMicrotask(() => setRows(first));
     if (first.every(r => r.own)) return;
     void import('../../lib/food-generic/search').then(async lib => {
-      const found = await Promise.all(first.map(async r => r.own ? null : (await lib.searchGenericLibrary(r.item.food, {limit: 1}).catch(() => ({results: []}))).results[0]?.entries[0] ?? null));
-      setRows(cur => (cur ?? first).map((r, i) => r.own ? r : {...r, offline: found[i] ? {name: found[i]!.name, sourceName: found[i]!.sourceName, nutrients: found[i]!.nutrients} : null, on: !!found[i] && !!r.amount}));
+      // Each way of writing the item ("eggs", "egg"; "toast", "bread toasted") is looked up, each food once, then ranked.
+      const found = await Promise.all(first.map(async r => {
+        if (r.own) return [];
+        const queries = libraryQueries(r.item), seen = new Set<string>(), all: Offline[] = [];
+        for (const q of queries) for (const x of (await lib.searchGenericLibrary(q, {limit: 30}).catch(() => ({results: []}))).results) {
+          const e = x.entries[0];
+          if (e && !seen.has(x.key)) { seen.add(x.key); all.push({name: e.name, sourceName: e.sourceName, nutrients: e.nutrients}); }
+        }
+        return rankLibraryNames(queries.at(-1)!, all.map(o => o.name)).slice(0, 5).map(i => all[i]!);
+      }));
+      setRows(cur => (cur ?? first).map((r, i) => r.own ? r : {...r, options: found[i]!, offline: found[i]![0] ?? null, on: !!found[i]![0] && !!r.amount}));
     }, () => setRows(cur => (cur ?? first).map(r => r.own ? r : {...r, offline: null})));
   }, [health.loaded, health.data, items]);
   const set = (i: number, patch: Partial<Row>) => setRows(cur => cur && cur.map((r, k) => k === i ? {...r, ...patch} : r));
@@ -39,19 +52,22 @@ export default function WordsMatch({entry, onClose}: {entry: MealWordsEntry; onC
   const ready = chosen.length > 0 && chosen.every(amountOk);
   const log = async () => {
     if (!rows || !ready) return;
-    const before: HealthData = health.data, at = new Date().toISOString();
+    const at = new Date().toISOString();
+    // The ids this Log makes, chosen before the write so Undo takes off exactly these and nothing logged since.
+    const made = chosen.map(r => ({row: r, entryId: newHealthId(), foodId: r.own ? null : newHealthId()}));
     try {
-      await health.update(s => chosen.reduce((acc, r) => {
+      await health.update(s => made.reduce((acc, {row: r, entryId, foodId}) => {
         const n = Number(r.amount.replace(',', '.'));
-        if (r.own) return logHealthItem(acc, {id: newHealthId(), sourceId: r.own.id, sourceKind: 'food', date: entry.date, meal: entry.meal, quantityMilli: Math.round(n * 1000)}, at);
-        const o = r.offline as Offline, foodId = newHealthId();
-        const saved = saveFood(acc, {id: foodId, name: o.name.slice(0, 120), brand: o.sourceName.slice(0, 80), servingGrams: 100, nutrients: o.nutrients, createdAt: at, updatedAt: at});
-        return logHealthItem(saved, {id: newHealthId(), sourceId: foodId, sourceKind: 'food', date: entry.date, meal: entry.meal, quantityMilli: Math.round(n * 10)}, at);
+        if (r.own) return logHealthItem(acc, {id: entryId, sourceId: r.own.id, sourceKind: 'food', date: entry.date, meal: entry.meal, quantityMilli: Math.round(n * 1000)}, at);
+        const o = r.offline as Offline;
+        const saved = saveFood(acc, {id: foodId!, name: o.name.slice(0, 120), brand: o.sourceName.slice(0, 80), servingGrams: 100, nutrients: o.nutrients, createdAt: at, updatedAt: at});
+        return logHealthItem(saved, {id: entryId, sourceId: foodId!, sourceKind: 'food', date: entry.date, meal: entry.meal, quantityMilli: Math.round(n * 10)}, at);
       }, s));
+      const ids = {entryIds: made.map(m => m.entryId), foodIds: made.flatMap(m => m.foodId ? [m.foodId] : [])};
       words.update(current => removeMealWords(current, entry.id));
       const message = `${formatNumber(chosen.length)} ${chosen.length === 1 ? 'food' : 'foods'} logged to ${entry.meal.toLowerCase()} instead of the words.`;
       setStatus(message);
-      showUndo({message, undone: 'The words are back; the foods are taken off.', restore: () => { void health.update(() => before); words.update(current => addMealWords(current, entry)); }});
+      showUndo({message, undone: 'The words are back; the foods are taken off.', restore: () => { void health.update(latest => undoWordsLog(latest, ids)); words.update(current => addMealWords(current, entry)); }});
       onClose();
     } catch { setStatus('These foods could not be logged on this device. Nothing was changed.'); }
   };
@@ -65,7 +81,8 @@ export default function WordsMatch({entry, onClose}: {entry: MealWordsEntry; onC
       const usable = !!(r.own || (r.offline && r.offline !== 'loading'));
       return <li key={i} className="words-match-row">
         <label className="words-match-pick"><input type="checkbox" checked={r.on} disabled={!usable} onChange={e => set(i, {on: e.target.checked})}/> <span><strong dir="auto">{r.item.food}</strong><small> {source}{kcal !== null && usable ? ` · ${formatNumber(kcal)} kcal ${r.own ? 'a serving' : 'per 100 g'}` : ''}</small></span></label>
-        {usable && <label className="field words-match-amount"><span>{r.own ? `Servings of ${r.own.name}` : `Grams of ${(r.offline as Offline).name}`}</span><input inputMode="decimal" value={r.amount} aria-invalid={r.on && !amountOk(r) ? true : undefined} onChange={e => set(i, {amount: e.target.value, on: true})} placeholder={r.own ? '1' : '100'}/></label>}
+        {r.options.length > 1 && <label className="field words-match-food"><span>Food from the library for “{r.item.food}”</span><select value={r.options.indexOf(r.offline as Offline)} onChange={e => set(i, {offline: r.options[Number(e.target.value)]!})}>{r.options.map((o, k) => <option key={`${o.sourceName}-${o.name}`} value={k}>{o.name} · {o.sourceName}</option>)}</select></label>}
+        {usable && <label className="field words-match-amount"><span>{r.own ? `Servings of ${r.own.name}` : `Grams of ${(r.offline as Offline).name}`}</span><input inputMode="decimal" value={r.amount} aria-invalid={r.on && !amountOk(r) ? true : undefined} onChange={e => set(i, {amount: e.target.value, on: true})} placeholder={r.own ? '1' : '100'}/>{r.portion && !r.own && <small className="fine">A usual portion for {r.item.count === 1 ? 'one' : formatNumber(r.item.count ?? 1)}; change it if yours was bigger or smaller.</small>}</label>}
       </li>;
     })}</ul>
     <div className="money-actions"><button type="button" className="primary" disabled={!ready} onClick={() => void log()}>Log {chosen.length ? formatNumber(chosen.length) : ''} {chosen.length === 1 ? 'food' : 'foods'}</button><button type="button" className="quiet" onClick={onClose}>Keep the words</button></div>

@@ -1,5 +1,5 @@
 'use client';
-import {setBest, SET_BEST_WORDS, type SetBest} from '../../../lib/workouts/set-best';
+import {setBest, SET_BEST_WORDS, withEarlier, type SetBest} from '../../../lib/workouts/set-best';
 import Link from 'next/link';
 import {LoggingFor, useLinkedDay} from '../health-day';
 import {lazy, Suspense, useEffect, useMemo, useState} from 'react';
@@ -185,7 +185,8 @@ export default function WorkoutsView() {
         <h2 id="workouts-start-title">Start a workout</h2>
         {past.some(x => x.exercises.length) && <Suspense fallback={null}><MuscleFreshToday w={w} library={library} today={today}/></Suspense>}
         <p className="fine">This week: {week.workouts} {plural(week.workouts, 'workout')}{week.workouts ? ` · ${week.minutes} min · ${week.sets} ${plural(week.sets, 'set')}${week.volumeKg ? ` · ${weightShown(week.volumeKg, unit)} lifted` : ''}` : ''}.</p>
-        {past.length > 0 && <Suspense fallback={null}><WeeklyChart w={w} today={today} unit={unit}/></Suspense>}
+        {past.length > 0 ? <Suspense fallback={null}><WeeklyChart w={w} today={today} unit={unit}/></Suspense>
+          : /* Session AV (q3 #11): the weekly chart's teaching line before the first workout, so a fresh device knows it is coming */ <p className="fine workouts-weeks-teach">Finish a workout and the last 12 weeks show here: time, distance and weight lifted per week.</p>}
         {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null}/></Suspense>}
         {past.length > 0 && <CalendarFold w={w} today={today}/>}
         <div className="workouts-start-actions">
@@ -278,7 +279,7 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
       <button className="quiet" type="button" aria-label={`Remove ${entry.name}`} onClick={() => change(x => removeExercise(x, entry.id), `${entry.name} removed from this workout.`, `${entry.name} is back in this workout.`)}>Remove</button></div></header>
     <table className="workouts-sets"><caption className="sr-only">{entry.name}: sets</caption>
       <thead><tr><th scope="col">Set</th><th scope="col">Last time</th>{entry.measure === 'weight-reps' && <th scope="col">{unit}</th>}{entry.measure === 'distance-time' && <th scope="col">km</th>}{(entry.measure === 'weight-reps' || entry.measure === 'reps') && <th scope="col">Reps</th>}{(entry.measure === 'time' || entry.measure === 'distance-time') && <th scope="col">Time</th>}{rpe && <th scope="col"><abbr title="Rate of perceived exertion: 10 is nothing left, 8 is about two reps left">RPE</abbr></th>}<th scope="col"><span className="sr-only">Done</span></th><th scope="col"><span className="sr-only">Remove</span></th></tr></thead>
-      <tbody>{entry.sets.map((s, i) => <SetRow key={s.id} entry={entry} set={s} n={i + 1} previous={previous?.sets[i]} unit={unit} change={change} onDone={onRest} rpe={rpe} best={setBest(entry.measure, s, bests)}/>)}</tbody>
+      <tbody>{entry.sets.map((s, i) => <SetRow key={s.id} entry={entry} set={s} n={i + 1} previous={previous?.sets[i]} unit={unit} change={change} onDone={onRest} rpe={rpe} best={setBest(entry.measure, s, withEarlier(bests, entry.sets.slice(0, i)))}/* Session AV (q3 #40): one star per best */ />)}</tbody>
     </table>
     <div className="workouts-exercise-foot"><button className="secondary" type="button" onClick={() => change(x => addSet(x, entry.id))}>+ Add set</button>
       <label className="field workouts-ex-note"><span className="sr-only">Note for {entry.name}</span><input key={entry.note ?? ''} placeholder="Note (seat height, grip…)" maxLength={500} defaultValue={entry.note ?? ''} onBlur={e => { if ((entry.note ?? '') !== e.target.value) change(x => setExerciseNote(x, entry.id, e.target.value)); }}/></label></div>

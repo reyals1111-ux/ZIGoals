@@ -21,4 +21,21 @@ export function setBest(measure: Measure, set: WorkoutSet, before: Bests | null)
   if (measure === 'time') return above(set.seconds, before.longestSeconds) ? 'time' : null;
   return above(set.distanceKm, before.farthestKm) ? 'distance' : above(set.seconds, before.longestSeconds) && !set.distanceKm ? 'time' : null;
 }
+/**
+ * Session AV (q3 #40): the bests to beat for a set, raised by the sets ticked before it in this same workout, so a second
+ * 80 kg × 8 after the first one is not a second star for the same best. Warm-ups and unticked sets do not raise them.
+ */
+export function withEarlier(before: Bests | null, earlier: readonly WorkoutSet[]): Bests | null {
+  if (!before) return null;
+  const done = earlier.filter(x => x.done && x.kind !== 'warmup');
+  if (!done.length) return before;
+  const top = (b: number | null, values: (number | null | undefined)[]) => values.reduce<number | null>((m, v) => typeof v === 'number' && v > 0 && (m === null || v > m) ? v : m, b);
+  return {
+    bestWeightKg: top(before.bestWeightKg, done.map(x => x.weightKg)),
+    bestOneRepMaxKg: top(before.bestOneRepMaxKg, done.map(x => x.weightKg !== undefined && x.reps ? oneRepMax(x.weightKg, x.reps) : null)),
+    mostReps: top(before.mostReps, done.map(x => x.reps)),
+    longestSeconds: top(before.longestSeconds, done.map(x => x.seconds)),
+    farthestKm: top(before.farthestKm, done.map(x => x.distanceKm)),
+  };
+}
 export const SET_BEST_WORDS: Record<SetBest, string> = {weight: 'heaviest yet', 'one-rep max': 'best estimated one-rep max', reps: 'most reps yet', time: 'longest yet', distance: 'farthest yet'};

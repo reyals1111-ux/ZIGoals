@@ -23,6 +23,7 @@ for (const theme of THEMES) test(`${theme}: a teal star beside the walk, then re
   await walk.getByRole('button', {name: 'Options for Fictional walk', exact: true}).click();
   await walk.getByRole('menuitem', {name: 'Symbol and colour…', exact: true}).click();
   const picker = walk.getByRole('group', {name: /^Symbol and colour for Fictional walk/});
+  await expect(picker.getByLabel('Symbol ●')).toBeFocused(); // q4 #26 (keyboard): the checked symbol has the focus, so Escape works at once
   await picker.getByRole('group', {name: 'Symbol'}).getByLabel('Symbol ★').check();
   await picker.getByRole('group', {name: 'Colour'}).getByLabel('Teal').check();
   const findings = await axe(page, picker);
@@ -32,6 +33,12 @@ for (const theme of THEMES) test(`${theme}: a teal star beside the walk, then re
   await expect(walk.locator('h2 .habit-look')).toHaveAttribute('data-look-colour', 'teal');
   await expect(walk.getByRole('heading', {name: 'Fictional walk', exact: true})).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:habit-extras:v1') ?? 'null')?.looks)).toEqual({'aaaaaaaa-0000-4000-8000-000000000001': {glyph: '★', colour: 'teal'}});
+  // q4 #26 (Major): the symbol wherever the name is listed — the week grid here, and Today.
+  await page.locator('summary', {hasText: 'This week, Monday to Sunday'}).click();
+  await expect(page.getByRole('region', {name: 'Habits this week, by day'}).getByRole('rowheader', {name: 'Fictional walk'}).locator('.habit-look')).toHaveText('★');
+  await page.goto('/app'); await hydrated(page);
+  await expect(page.locator('.habits-today .habit-look').first()).toHaveText('★', {timeout: 15_000});
+  await page.goto('/app/habits'); await hydrated(page);
   await walk.getByRole('button', {name: 'Options for Fictional walk', exact: true}).click();
   await walk.getByRole('menuitem', {name: 'Symbol and colour…', exact: true}).click();
   await walk.getByRole('button', {name: 'Remove the symbol'}).click();

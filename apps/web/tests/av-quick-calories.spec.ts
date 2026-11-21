@@ -28,6 +28,10 @@ for (const theme of THEMES) test(`${theme}: 450 kcal for lunch, nothing added to
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await form.getByRole('button', {name: 'Log calories'}).click();
   await expect(page.getByRole('region', {name: 'Lunch diary'})).toContainText('Fictional canteen lunch');
+  // q3 #18 (Minor): the entry reads "Calories only · 450 kcal · macros not given", never "Serving measure unknown" or "P Unknown g".
+  await expect(page.getByRole('region', {name: 'Lunch diary'})).toContainText('Calories only');
+  await expect(page.getByRole('region', {name: 'Lunch diary'})).toContainText('450 kcal · macros not given');
+  await expect(page.getByRole('region', {name: 'Lunch diary'})).not.toContainText(/Serving measure unknown|Unknown g/);
   const health = await stored(page);
   expect(health!.foods).toEqual([]);
   expect(health!.diary.map(e => [e.meal, e.snapshot.name, e.snapshot.nutrients.kcal, e.snapshot.nutrients.proteinMg])).toEqual([['Lunch', 'Fictional canteen lunch', 450, null]]);

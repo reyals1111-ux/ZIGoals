@@ -50,7 +50,7 @@ export default function ReportBuilder() {
     </fieldset>
     <fieldset className="report-sections"><legend>Include</legend>
       {REPORT_SECTIONS.map(s => <label key={s} className="check-row report-check"><input type="checkbox" checked={chosen.has(s)} onChange={e => toggle(s, e.target.checked)}/> <span>{SECTION_LABELS[s]}{!has[s] && <span className="fine"> · nothing logged in these dates</span>}</span></label>)}
-      <p className="fine">ZIGoals keeps no medication or symptom list, so the report has none; notes are the short ones you wrote with a mood or a night.</p>
+      <p className="fine">Symptoms and factors are the ratings you gave in Health; supplements and medication are the doses you logged there, as you wrote them. Notes are the short ones you wrote with a mood or a night.</p>
     </fieldset>
     <p><button ref={opener} type="button" className="primary" disabled={!valid || chosen.size === 0} aria-describedby={`${id}-note`} onClick={() => setShown(true)}>Show the report</button></p>
     <p id={`${id}-note`} className="fine">It opens over this page. Print it, or choose “Save as PDF” in the print window. Nothing leaves this device unless you share the file.</p>

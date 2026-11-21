@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {clockOf, runBests} from './run-bests';
+import {bestLabel, clockOf, HALF_MARATHON_KM, runBests} from './run-bests';
 import {workoutsSchema} from './schema';
 import {splitsRecordSchema} from './splits-schema';
 
@@ -25,5 +25,23 @@ describe('Session AV (F-RUN-BESTS)', () => {
   it('a short last split never counts as a whole kilometre; no splits, no timed bests', () => {
     expect(runBests(w, null).timed).toEqual([]);
     expect(clockOf(290)).toBe('4:50'); expect(clockOf(3725)).toBe('1:02:05');
+  });
+  it('q3 #13: a ride, a swim or a cycling set never becomes the longest run; a file counts when its sport is a run', () => {
+    const ride = workoutsSchema.parse({version: 1, templates: [], exercises: [], workouts: [
+      workout('ride', '2026-11-10', {name: 'Evening ride', imported: {source: 'gpx', importId: 'ride-1', sport: 'Biking', distanceKm: 42, durationSeconds: 5400}}),
+      workout('bike', '2026-11-11', {name: 'Indoor bike', exercises: [{id: 'e', exerciseId: 'cycling', name: 'Cycling', measure: 'distance-time', sets: [{id: 's', kind: 'normal', distanceKm: 30, seconds: 3600, done: true}]}]}),
+      workout('run', '2026-11-12', {name: 'Easy run', fileImport: {source: 'fit', importId: 'run-1', sport: 'running', distanceKm: 10}}),
+    ]});
+    expect(runBests(ride, null).longest).toEqual({km: 10, workoutId: 'run', date: '2026-11-12', name: 'Easy run'});
+  });
+  it('q3 #13: the half marathon from 21 whole kilometres in a row and the next 97.5 m at that split’s pace', () => {
+    const long = workoutsSchema.parse({version: 1, templates: [], exercises: [], workouts: [workout('h', '2026-11-20')]});
+    const s = splitsRecordSchema.parse({version: 1, workouts: {h: {source: 'gpx', paceSecondsPerKm: 300, splits: [...Array.from({length: 21}, (_, i) => km(i + 1, 300)), km(22, 150, 500)]}}});
+    const half = runBests(long, s).timed.find(b => b.km === HALF_MARATHON_KM)!;
+    expect(half.seconds).toBe(21 * 300 + Math.round(150 * 97.5 / 500)); // 6,300 s and 29 s for the last 97.5 m
+    expect(bestLabel(half.km)).toBe('Half marathon');
+    // 21 kilometres and nothing after them: no half marathon, never a guess.
+    const short = splitsRecordSchema.parse({version: 1, workouts: {h: {source: 'gpx', paceSecondsPerKm: 300, splits: Array.from({length: 21}, (_, i) => km(i + 1, 300))}}});
+    expect(runBests(long, short).timed.some(b => b.km === HALF_MARATHON_KM)).toBe(false);
   });
 });

@@ -38,3 +38,37 @@ for (const theme of THEMES) test(`${theme}: "2 eggs" from the words logged as tw
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
+
+/**
+ * q3 #25 (Major): "2 eggs" with only an own "Fictional eggplant" is not matched to it (whole words, not a prefix); the
+ * offline library offers its 3 to 5 best foods in a picker, the plain "Egg, raw" first, at a usual portion of 100 g; and
+ * Undo takes off only the entry and the food this Log made (the person's own food stays).
+ */
+test('the library offers several foods, the plain one first, at a usual portion; Undo removes only what Log made', async ({page, isMobile}) => {
+  await offline(page);
+  if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
+  await page.clock.install({time: NOW});
+  const own = saveFood(createEmptyHealth(), {id: 'health_fictional-eggplant-01', name: 'Fictional eggplant', brand: '', servingGrams: 100, nutrients: {kcal: 25, proteinMg: null, carbsMg: null, fatMg: null}, createdAt: AT, updatedAt: AT});
+  const eggs = {version: 1, entries: [{id: 'words_fictional-breakfast-02', date: '2026-11-23', meal: 'Breakfast', words: '2 eggs', at: AT}]};
+  await page.goto('/app/settings'); await hydrated(page);
+  await page.evaluate(([h, hv, w, wv]) => { localStorage.setItem(h, hv); localStorage.setItem(w, wv); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, [HEALTH_STORAGE_KEY, JSON.stringify(own), MEAL_WORDS_KEY, JSON.stringify(eggs)] as const);
+  await page.goto('/app/health'); await hydrated(page);
+  const breakfast = page.getByRole('list', {name: 'Breakfast in words'});
+  await breakfast.getByRole('button', {name: 'Find foods for 2 eggs'}).click();
+  const found = breakfast.getByRole('group', {name: /^Foods read from/});
+  const picker = found.getByLabel('Food from the library for “eggs”');
+  await expect(picker).toBeVisible({timeout: 30_000});
+  const options = await picker.locator('option').allTextContents();
+  expect(options.length).toBeGreaterThanOrEqual(3);
+  expect(options.length).toBeLessThanOrEqual(5);
+  expect(options[0]).toMatch(/^Egg, raw · /);
+  await expect(found).not.toContainText('Fictional eggplant');
+  await expect(found.getByLabel(/^Grams of Egg, raw/)).toHaveValue('100');
+  const findings = await axe(page, found);
+  expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
+  await found.getByRole('button', {name: 'Log 1 food'}).click();
+  await expect.poll(() => read(page)).toEqual({diary: [['Breakfast', 'Egg, raw', 1000]], words: []});
+  await page.getByRole('button', {name: 'Undo'}).first().click();
+  await expect.poll(() => read(page)).toEqual({diary: [], words: ['2 eggs']});
+  expect(await page.evaluate(h => (JSON.parse(localStorage.getItem(h)!) as {foods: {name: string}[]}).foods.map(f => f.name), HEALTH_STORAGE_KEY)).toEqual(['Fictional eggplant']);
+});

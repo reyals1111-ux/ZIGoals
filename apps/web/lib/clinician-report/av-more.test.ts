@@ -21,4 +21,13 @@ describe('Session AV (F-REPORT-MORE)', () => {
     const r = buildReport({...input, sections: ['supplements']});
     expect(r.supplements!.rows).toEqual([{name: 'Fictional vitamin D', dose: '1 tablet', kind: 'supplement', planned: 7, taken: 1, skipped: 1, notLogged: 5}, {name: 'Fictional pain relief', dose: null, kind: 'medication', planned: null, taken: 1, skipped: 0, notLogged: null}]);
   });
+  it('q3 #48: planned doses start on the local day the item was added, not its UTC day', () => {
+    const tz = process.env.TZ;
+    process.env.TZ = 'Europe/Amsterdam';
+    try {
+      // 23:30 UTC on 9 Nov is 00:30 on 10 Nov in Amsterdam: five planned days (10–14 Nov), not six.
+      const late = {...supplements, items: [{...supplements.items![0]!, createdAt: '2026-11-09T23:30:00.000Z'}], log: []} as Supplements;
+      expect(buildReport({...input, supplements: late, sections: ['supplements']}).supplements!.rows[0]!.planned).toBe(5);
+    } finally { if (tz === undefined) delete process.env.TZ; else process.env.TZ = tz; }
+  });
 });

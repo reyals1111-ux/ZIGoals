@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {sleepScore} from './sleep-score';
+import {sleepScore, weeksBefore} from './sleep-score';
 import type {Sleep} from '../sleep/schema';
 
 /** Session AV (owner follow-up 1, F-SLEEP-SCORE): regularity from bedtime and wake time; the nights' quality ratings count. */
@@ -25,5 +25,19 @@ describe('Session AV (F-SLEEP-SCORE)', () => {
     expect(w.consistency.bedSpread).toBe(0);
     expect(w.consistency.wakeSpread! > 50).toBe(true);
     expect(w.consistency.points < 30).toBe(true);
+  });
+  it('q3 #27: an unknown debt or regularity is left out and said, not a silent half score; the weeks before are kept', () => {
+    // Three nights in a row: too few for the spreads and the debt, so both are unknown and left out.
+    const few: Sleep = {version: 1, nights: DAYS.slice(-3).map(d => night(d, '23:00', '07:00', 5))} as Sleep;
+    const f = sleepScore(few, '2026-11-23');
+    expect(f.left).toEqual(['regularity', 'debt']);
+    expect([f.consistency.points, f.debt.points, f.score]).toEqual([0, 0, 100]);
+    // Seven hours, nothing else known: 35 of 40 is 88, not (35 + a silent 15 + 7.5) ÷ 85 = 68.
+    const short: Sleep = {version: 1, nights: ['2026-11-17', '2026-11-20', '2026-11-23'].map(d => night(d, '23:00', '06:00'))} as Sleep;
+    expect(sleepScore(short, '2026-11-23')).toMatchObject({score: 88, left: ['regularity', 'debt', 'quality'], scaled: true});
+    const full: Sleep = {version: 1, nights: DAYS.map(d => night(d, '23:00', '07:00', 5)), goal: {minutes: 480, updatedAt: AT}} as Sleep;
+    expect(sleepScore(full, '2026-11-23').left).toEqual([]);
+    expect(weeksBefore(full, '2026-11-23').map(w => w.end)).toEqual(['2026-11-02', '2026-11-09', '2026-11-16']);
+    expect(weeksBefore(full, '2026-11-23').map(w => w.score)).toEqual([null, null, null]); // no nights logged then
   });
 });

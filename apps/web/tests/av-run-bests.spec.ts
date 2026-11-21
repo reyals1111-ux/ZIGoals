@@ -22,6 +22,7 @@ for (const theme of THEMES) test(`${theme}: the fastest 1 and 5 km and the longe
   const bests = page.getByRole('region', {name: 'Your running bests'});
   await expect(bests.getByRole('listitem')).toHaveText([/^Fastest 1 km\s*4:52/, /^Fastest 5 km\s*25:32/, /^Longest\s*6 km/]);
   await expect(bests).toContainText('from runs imported from GPX or TCX files');
+  await expect(bests).toContainText('on whole-km splits'); // q3 #13: the card says how the bests are found
   const findings = await axe(page, bests);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
 });

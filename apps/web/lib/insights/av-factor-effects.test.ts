@@ -45,4 +45,26 @@ describe('Session AV (F-FACTORS)', () => {
     expect(factorEffects({...world(20), today: TODAY}).collecting).toBeGreaterThan(0);
     expect(factorEffects({habits: emptyHabitData(), health: createEmptyHealth() as HealthData, today: TODAY}).factors).toBe(0);
   });
+  it('q3 #8: symptoms and supplements are factors, and mood is read the next day too', () => {
+    process.env.TZ = 'UTC';
+    const base = world(60), start = addLocalDays(TODAY, -59), days: Record<string, Record<string, number>> = {}, log: {itemId: string; date: string; status: string}[] = [];
+    for (let i = 0; i < 60; i++) {
+      const day = addLocalDays(start, i), even = i % 2 === 0;
+      days[day] = {headache: even ? 0 : 2};                           // the headache days are the low-mood days
+      log.push({itemId: 'supp_fictional-d', date: day, status: even ? 'taken' : 'skipped'});
+    }
+    const all = factorEffects({...base, today: TODAY,
+      symptoms: {items: [{id: 'headache', name: 'Fictional headache', kind: 'symptom'}], days},
+      supplements: {items: [{id: 'supp_fictional-d', name: 'Fictional vitamin D', kind: 'supplement', times: ['08:00'], weekdays: 127, createdAt: `${addLocalDays(start, -1)}T08:00:00.000Z`}], log}}, 40);
+    const headache = all.ready.find(f => f.id === 'symptom:headache:mood')!;
+    expect(headache.sentence).toBe('On days you rated “Fictional headache” above None, your mood that day averaged 2.0 of 5; on days rated None, 4.0 of 5.');
+    expect(headache.lag).toBe(0);
+    const vitamin = all.ready.find(f => f.id === 'supplement:supp_fictional-d:mood')!;
+    expect(vitamin.sentence).toBe('On days you took “Fictional vitamin D”, your mood that day averaged 4.0 of 5; on days you did not, 2.0 of 5.');
+    // The next day: a taken day is followed by a low-mood day in this world.
+    const next = all.ready.find(f => f.id === 'supplement:supp_fictional-d:mood:next')!;
+    expect(next.lag).toBe(1);
+    expect(next.sentence).toBe('On days you took “Fictional vitamin D”, your mood the next day averaged 2.0 of 5; on days you did not, 4.0 of 5.');
+    expect(next.withA.days + next.withoutA.days).toBe(59); // the last day has no next day yet
+  });
 });

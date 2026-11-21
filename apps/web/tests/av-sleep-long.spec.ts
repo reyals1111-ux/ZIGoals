@@ -37,6 +37,17 @@ for (const theme of THEMES) test(`${theme}: 90 days by week, then a year by mont
   await charts.getByRole('group', {name: 'Range'}).getByRole('button', {name: '1 year'}).click();
   await expect(long.locator('figcaption')).toHaveText('Time asleep · last 12 months, average a night');
   await expect(long.getByRole('img')).toHaveAttribute('aria-label', /^Average time asleep, a year, by month: 7 h 30 min a night over the 40 nights logged; goal 8 h 00 min\.$/);
+  // q3 #46 (Major): 12 whole months (12 groups, not 13 part-months), and at 390 and 320 no month label runs into the next.
+  await expect(long.locator('svg > g:has(text.sleep-axis)')).toHaveCount(12);
+  const overlaps = () => long.locator('text.sleep-axis').evaluateAll(els => {
+    const boxes = els.filter(e => (e.textContent ?? '').trim()).map(e => e.getBoundingClientRect());
+    return boxes.slice(1).filter((b, i) => b.left < boxes[i]!.right + 2).length;
+  });
+  for (const width of [390, 320]) {
+    await page.setViewportSize({width, height: 720});
+    await expect.poll(overlaps).toBe(0);
+    expect(await long.locator('text.sleep-axis').evaluateAll(els => els.filter(e => (e.textContent ?? '').trim()).length)).toBeGreaterThanOrEqual(4);
+  }
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
