@@ -26,6 +26,8 @@ const BarcodeFoodLookup = lazy(() => import("./barcode-food-lookup").then((m) =>
 const VitaminFields = lazy(() => import("./vitamin-fields").then((m) => ({ default: m.VitaminFields })));
 // Session AK (item 3): "Read the label from a photo" in New food, loaded when its fold opens.
 const LabelScan = lazy(() => import("./label-scan"));
+// Session AV (owner follow-up 1, F-QUICK-KCAL): calories alone, loaded when its fold opens.
+const QuickCalories = lazy(() => import("./quick-calories"));
 // Session AK (item 15): the food quality letters and "A and B foods first" in the library, loaded with the library (off by default).
 const FoodQualityLibrary = lazy(() => import("./nutri-score").then((m) => ({ default: m.FoodQualityLibrary })));
 const VitaminRecipeLine = lazy(() => import("./vitamin-recipe-line").then((m) => ({ default: m.VitaminRecipeLine })));
@@ -498,7 +500,7 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
   const mealForm = <>{sourceItems.length ? <FormBox title="Log a meal" onSubmit={submit}>
     <Checked of="health-log-source"><label className="field"><span>Food or recipe</span><select id="health-log-source" data-sheet-focus required value={source} onChange={e => setSource(e.target.value)}><option value="">Choose from your library</option>{sourceItems.map(s => <option value={s.id} key={s.id}>{s.name} · {s.kind}</option>)}</select></label></Checked>
     <div className="health-form-grid"><MealField value={meal} onChange={setMeal} /><label className="field"><span>Quantity unit</span><select aria-label="Quantity unit" value={entryUnit} onChange={e => { setEntryUnit(e.target.value); setServings(""); logOperation.current = null; }}>{SERVING_UNITS.map(u => <option key={u.id} value={u.id}>{u.label}</option>)}</select></label><NumberField label={servingUnit(entryUnit).field} value={servings} onChange={v => { setServings(v); logOperation.current = null; }} step="0.001" /></div>{conversionNote(servings, servingUnit(entryUnit).id) && <p className="fine health-conversion-note" aria-live="polite">{conversionNote(servings, servingUnit(entryUnit).id)}</p>}{preview && <div className="health-preview"><NutrientLine nutrients={preview} /></div>}<button className="primary" type="submit">Log to diary</button><p className="fine">Logging for {formatDate(date)}. Measured entries use the saved serving unit, rounded to 0.001 serving. Ounces convert to grams and cups or spoons to millilitres; weight and volume never convert into each other without density evidence.</p>
-  {mealCheck && <p className="field-error health-soft-check" role="alert">{mealCheck.text}</p>}</FormBox> : <>{/* Session AU (ADR-044 F-MEAL; the rehearsal's phone walk): with no library yet, words come first, so "Log a meal" never opens on a wall. */}<Words part="form" date={date} meal={meal} /><p>Build a food library from the nutrition labels you use, then add meals here.</p><button className="primary" onClick={onLibrary}>Add your first food</button></>}<QuickAddFood date={date} meal={meal} perform={perform} invalid={invalid} words={sourceItems.length > 0} /></>;
+  {mealCheck && <p className="field-error health-soft-check" role="alert">{mealCheck.text}</p>}</FormBox> : <>{/* Session AU (ADR-044 F-MEAL; the rehearsal's phone walk): with no library yet, words come first, so "Log a meal" never opens on a wall. */}<Words part="form" date={date} meal={meal} /><p>Build a food library from the nutrition labels you use, then add meals here.</p><button className="primary" onClick={onLibrary}>Add your first food</button></>}<JustCalories date={date} meal={meal} perform={perform} invalid={invalid} /><QuickAddFood date={date} meal={meal} perform={perform} invalid={invalid} words={sourceItems.length > 0} /></>;
   const logForm = <>{quickPicks}{mealForm}</>;
   // Session AP (features 2 and 6; CI 1726 pillar-phone-length): "Copy a meal" sits with logging a meal (in its sheet on a
   // phone) and the symptom tracker with the day's mood (folded on a phone), so neither lengthens the phone's Diary.
@@ -517,6 +519,13 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
 }
 
 /** Session AH (C11, BUG-066): log a food that is not in the library yet: a name, its calories and one serving's size. */
+function JustCalories({ date, meal, perform, invalid }: { date: string; meal: HealthDiaryEntry["meal"]; perform: Perform; invalid: (cause?: unknown) => void }) {
+  const [open, setOpen] = useState(false);
+  return <details className="health-quick-add health-quick-kcal" onToggle={e => setOpen(e.currentTarget.open)}><summary>Just the calories</summary>
+    {open && <LoadBoundary quiet><Suspense fallback={<p className="fine" role="status">Opening…</p>}><QuickCalories date={date} meal={meal} perform={perform} invalid={invalid} mealField={(value, onChange) => <MealField name="quick-kcal-meal" value={value} onChange={onChange} />} /></Suspense></LoadBoundary>}
+  </details>;
+}
+
 function QuickAddFood({ date, meal: initialMeal, perform, invalid, words = true }: { date: string; meal: HealthDiaryEntry["meal"]; perform: Perform; invalid: (cause?: unknown) => void; words?: boolean }) {
   const [name, setName] = useState("");
   const [kcal, setKcal] = useState("");
