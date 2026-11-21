@@ -52,6 +52,8 @@ const BulkBar = lazy(() => loadExtras().then(m => ({default: m.BulkBar})));
 const Salvage = lazy(() => loadExtras().then(m => ({default: m.Salvage})));
 // Session AP: This evening, Someday and the Priority matrix, a chunk of their own loaded when one of them is opened.
 const WhenViews = lazy(() => import('./tasks-when-views'));
+// Session AV (follow-up 1, F-TASKS-DONE): finished per day and week at the top of Completed, its own chunk.
+const DoneChart = lazy(() => import('./done-chart'));
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
 /** Session AL (P-LS-40, LS-030): a long group shows its first 50 rows; the rest one tap away. */
 const SHOWN_PER_GROUP = 50;
@@ -280,6 +282,7 @@ export function TasksPage() {
     const {log, older} = completedInWindow(record, today, list.doneDay), recent = recentlyDone(record, today, list.doneDay);
     body = <section className="tasks-completed" aria-labelledby="tasks-done-title">
       <h2 id="tasks-done-title">Completed <small>{plural(log.length, 'time')}</small></h2>
+      {log.length > 0 ? <LoadBoundary quiet><Suspense fallback={null}><DoneChart log={log} today={today} doneDay={list.doneDay}/></Suspense></LoadBoundary> : <p className="fine">When you finish tasks, this view shows how many per day and per week, from the last 30 days.</p>}
       {recent.length > 0 && <p className="tasks-bulk-inline"><button type="button" className="secondary" onClick={() => list.change(clearDone, `Cleared ${plural(record.tasks.filter(t => t.doneAt).length, 'finished task')}.`, 'Finished tasks put back.')}>Clear done ({formatNumber(record.tasks.filter(t => t.doneAt).length)})</button></p>}
       {log.length ? <ul className="tasks-list" aria-label="Completed">{log.slice(0, 200).map(e => e.occurrence
         ? <li key={`${e.task.id}@${e.at}`} className="task task-finished task-occurrence"><span className="task-done" aria-hidden="true">✓</span><span className="task-title" dir="auto">{e.task.title}</span><span className="task-meta"><span>Done {formatDate(e.at, {year: false})} · repeats, next {e.task.due ? formatDate(e.task.due, {weekday: true, year: false}) : '—'}</span></span></li>
