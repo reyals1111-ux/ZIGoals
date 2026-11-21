@@ -484,6 +484,98 @@ Where a rule of the definition of done does not apply, it says so here.
   are byte-for-byte `main`'s (last changed in Session AK); this session touched neither. **Carried:** the cause is in
   the Worker's timer (TIER 3 egress, outside this follow-up); loosening the test would weaken its assertion.
 
+## Owner follow-up 2 (21 Nov 2026, verbatim)
+
+> OWNER FOLLOW-UP 2 TO SESSION AV (21 Nov 2026, pre-approved by the owner; no reply needed; continue in auto mode; check the mode selector shows Auto; no questions). Record this message verbatim in ADR-045 under "Owner follow-up 2". It overrides your closing report: AV is NOT complete.
+>
+> WHY
+> (1) PR #108 cannot be merged. Run 1995 has a red checks job, and Part 1 asked for two consecutive full CI runs green on the first attempt; no head has had one since run 1938. A red job blocks the end no matter who caused it.
+> (2) Follow-up 1 said: build every `missing` or `half` row, with no cap. COMPETITORS.md has 175 such rows and 48 were built. The other ~127 have no verdict of their own. Ranking 49 and stopping there is a cap.
+> (3) 48 features were built in about 18 hours and checked only by the agent that wrote them. The owner's rules ask for fresh-agent proof.
+>
+> EXIT CRITERIA (the session ends only when all four hold)
+> E1. PR #108's head has two consecutive full CI runs green on the first attempt, with no job re-run: "Safe to merge now: yes (CI runs N, M)". Fallback, only if Sunday 22 Nov 11:00 Brussels comes first: the last run is green except jobs that failed only on a registered known intermittent and passed on their one allowed re-run; write that exactly, naming the job and the intermittent.
+> E2. Every `half` or `missing` row in COMPETITORS.md has its own verdict in a new `docs/review/session-av/LEDGER.md`. A verdict is one of three:
+>  - built (its commit);
+>  - already have (the file, opened);
+>  - Carried, with a cause from this list only: needs an outside service; needs a model; needs content made for ZIGoals (audio, video, programmes); native-only; against a named rule; a new dependency; a protected area; 2 failed attempts.
+>  "Effort", "time", "low priority" and "not used daily" are not causes.
+> E3. Every feature built in AV (F-PROMPT, F-YEAR, rows 1–49) and every new one passes the fresh-agent check (1c), and all its findings are fixed.
+> E4. ADR-045 closing table, STATUS final entry and the ≤ 12-line report, in that order, last.
+>
+> TWO LANES, IN THIS ORDER
+>
+> LANE 1, RELEASE (branch `feature/session-au-dress-rehearsal`, PR #108). Nothing new is built here.
+> 1a. Fix the red at its cause: `scripts/run11/food-search.test.mjs:90`. FSVO requests went out 1,645–1,800 ms apart, against `FSVO_SPACING` 2000 in `workers/food-lookup/worker.mjs`. The Worker must never send early: after waking, wait out any remainder until the reserved slot's time. Make it a TIER 3 (Workers) commit that changes nothing except "never early"; the test stays at ≥ 1,900 ms. Add a line to OWNER_STEPS: the food Worker gets this fix at its next owner redeploy (not needed for Alpha #58).
+> 1b. Fix at its cause every failure seen in runs 1937–1995 (at most 2 attempts each, then Carried with the measurement):
+>  - `wiring-2-nova-start`, `ui-evidence:91`, `run11-route-mobile-acceptance:31`, `sync-offer-browser:39`, `nova-wa:75`, `exploratory-round3`;
+>  - `o3-apps-extras:94`: measure after the sheet's entrance has ended;
+>  - `zigi-voice-z:199`: Settings holds the main thread until about 3.6 s, so make Settings' first scripts lighter rather than touching the 5 s;
+>  - `habits-routines-block:74`: it fails 2 of 6 locally, so it is a real bug, not CI noise;
+>  - account-browser (D-SYNC).
+>  Never weaken an assertion or raise a budget or timeout to get green.
+> 1c. Fresh-agent quality check: up to 4 helpers that did not write the code, with a short brief each; browser runs one at a time, at most 2 workers. For every AV feature, check:
+>  - it is reachable from its natural place, the way a person would find it;
+>  - its empty state, and its Showcase example;
+>  - 320, 390 and 1440 in Nebula, Light and Dark;
+>  - keyboard, axe and Motion Off;
+>  - where it holds data, what NOVA and ZIGi answer about it, in EN and NL;
+>  - an export → erase → restore round trip for any new field;
+>  - it looks and reads like the rest of ZIGoals (design language, readable sizes, no tiny grey copy);
+>  - it really matches the competitor row it claims, in depth and not only by existing.
+>  Helpers return one table (feature, finding, severity: Blocker, Major or Minor). Fix every Blocker and Major and the quick Minors. Write it all in `docs/review/session-av/QUALITY.md`.
+> 1d. What's new now has 77 entries, too many for a friend to read. Group AV's entries into a few lines per pillar (for example "Tasks: deadlines, durations, Dutch words, plan my day…"), each line opening its Help. Keep the count tests exact, as a deliberate test change.
+> 1e. Push in batches and let each CI run on #108 finish; never push while a run on #108 is in progress. When E1 holds, write "Safe to merge now: yes (CI runs N, M)" in AV_RESUME and the PR description, then STOP pushing to #108. The owner merges and deploys on Sunday.
+>
+> LANE 2, BUILD THE REST (new branch `feature/session-av-2`, from #108's frozen head). Start lane 2 only once lane 1 is frozen.
+> Push the branch freely. Open its Draft PR "Session AV (continued)" against main only after the owner has merged #108. Then merge main into the branch with a merge commit, and its Part 0 records the merge and the Alpha #58 ids the owner gives you. The owner approves this one-time second PR.
+> 2a. Write LEDGER.md first, as one commit: every `half` or `missing` row, with its verdict or "to build", its effort and its personas.
+> 2b. Build every "to build" row, highest daily use first, each to amendment 1's definition of done, each as a complete commit series. Group related rows into one coherent feature where competitors do, for example:
+>  - YNAB targets + "needed this month" + underfunded + Plan Reset;
+>  - debt planner methods + compare + what-if + target date + amortization + Debt Blaster;
+>  - Bearable's daily check-in + factors + next-day effects + experiments + a customisable graph;
+>  - Hevy routines and folders + exercise library + progress analytics;
+>  - Todoist/TickTick reminders + snooze + layouts (board, calendar, table);
+>  - Sunsama daily and weekly planning + timeboxing on the Agenda + planned against actual;
+>  - MyFitnessPal/Cronometer macro goals per weekday + repeat items + diary times + top contributors;
+>  - Day One reminders and streaks + journal search + several journals.
+>  Medium and large features are welcome. Make each as good as the competitor's version, not a minimal stand-in.
+> 2c. Run the fresh-agent check (1c) on every batch of about 8 features before moving on.
+> 2d. Route budgets: Habits has 5.2 kB of headroom, so everything new loads lazily. If a page would drop below 5 kB, make room first by moving existing code out of its first load. Never raise a budget.
+>
+> USAGE: use the whole remaining budget this week, and after the Sunday 12:00 reset continue from AV_RESUME without asking. There is no "if time" anywhere: if a limit pauses you, you resume.
+>
+> UNCHANGED: every rule from the AV prompt, the nine amendments and follow-up 1:
+>  - never merge, enable auto-merge, dispatch, deploy, or log in to Cloudflare;
+>  - no new dependencies or outside services; no wallet, signing or key changes;
+>  - protected areas untouched;
+>  - stored data additive, with TIER 3 labels and frozen readers #37–#57;
+>  - Motion Off and reduced motion respected;
+>  - Playwright at most 2 workers, one build or browser run at a time; helpers at most 4;
+>  - at most 2 fix attempts per problem;
+>  - deliberate test changes labelled, each with an equally strict replacement;
+>  - on lane 2, push after each feature and at least every 30 minutes;
+>  - AV_RESUME kept current (done / in progress / next).
+
+## Owner follow-up 3 (21 Nov 2026, verbatim)
+
+> OWNER FOLLOW-UP 3 TO SESSION AV (21 Nov 2026, pre-approved by the owner; no reply needed; continue in auto mode; no questions). Record this verbatim in ADR-045 under "Owner follow-up 3". It adds to follow-up 2 and changes nothing else.
+>
+> The owner accepted every recommended default in UNFINISHED.md "Owner decisions". Mark each row decided with today's date. Build the ones that change the app as follows.
+>
+> LANE 1 (PR #108, before the freeze; friend-trust items, small; each needs its own spec):
+> - L-9: ZIGi is titled "ZIGi · your companion" (EN; the NL label to match). No Premium badge anywhere during the Alpha. Never say "AI" where an answer says no AI was used. Help, What's new and FRIENDS_GUIDE follow, and the landing copy only if it uses the old title (landing changes are owner-deployed; note it in OWNER_STEPS).
+> - PK-18: ZIGi's cloud send with no privacy mode chosen behaves as Guarded (the redacted preview first). TIER 3 (AI tools).
+>
+> LANE 2 (feature/session-av-2):
+> - CR-19: Erase names each area it erased, using the export catalogue's areas.
+> - M-9: the goal creator keeps "Continue" as its main button; the 0/80 counter shows from 60 characters.
+> - PK-6: ZIGi's "hello in place" (X001) plays on the first open of the day when ZIGi is already on screen, once, never with Motion Off or reduced motion.
+> - PK-10: the chain Help topics are hidden while no chain is chosen, and they still turn up in Help search with a note on how to choose one.
+> - PK-16: the Dependabot dev-only bumps (glob, minimatch) in build tooling, as their own TIER 3 (dependencies) commit: lockfile only, no new package, no runtime change, full CI green.
+>
+> Every other decided row is an owner action or "keep": nothing to build. Leave those rows decided, with no code.
+
 ## Closing table
 
 | Item | Verdict | Where |

@@ -4,48 +4,48 @@ Everything started and not finished in the app, read 20 Nov 2026 on `feature/ses
 
 ## Owner decisions
 
-Session AV, owner follow-up 1: the rows that need your decision or your own action, one line each (`needs the owner` below). Nothing here is built. Two rows were small calls within the rules and are decided with the rules' default instead (CR-17, CR-20).
+Session AV, owner follow-up 1: the rows that need your decision or your own action, one line each (`needs the owner` below). On 21 Nov 2026 (owner follow-up 3) the owner accepted every recommended default; each row is marked decided. Two rows were small calls within the rules and are decided with the rules' default instead (CR-17, CR-20).
 
-| id | question | recommended default | effort |
-|---|---|---|---|
-| BL-2 | Send a daily snapshot (net worth, the day) as a notification? | Not before push is switched on; Today's wealth line meanwhile | S, after push |
-| BL-7 | What should ZIGi be over weeks (a companion arc)? | Keep today's on-device states; decide after the friends' first month | L |
-| BL-9 | Multichain portfolio, hardware wallet, multisig? | Not in Alpha; a Beta scope question | L |
-| BL-16 | "Start your fast" while the app is closed? | Build once push is on (the in-app card exists) | S, after push |
-| CR-2 | Turn the food lookup provider on? | Yes: set the deployment setting (OWNER_STEPS) | owner action |
-| CR-6 | Tick several items with one confirm? | Keep one at a time (pinned in AT D4, said in Known limitations) | M |
-| CR-18 | Section-level Showcase lines (D-003) and the words "Sleep debt" (D-090)? | Keep both as they are | S |
-| CR-19 | Should Erase name each area it erased? | Yes, using the export catalogue's areas | S |
-| M-9 | Goal creator step 1: "Create goal" beside "Continue", and the 0/80 counter? | Keep Continue as the main button; show the counter from 60 characters | S |
-| M-10 | A visible close while the Checklist's celebration clip plays? | Keep: a tap skips to the words, Escape closes (your amendment 2 design) | S |
-| L-9 | ZIGi titled "AI Companion" with a Premium badge while answers say "no AI"? | "ZIGi · your companion"; no Premium badge during the Alpha | S |
-| A38-1 | Deploy the weather proxy Worker? | Yes, before friends rely on weather | owner action |
-| A38-2 | Redeploy private-sync so NOVA's section travels? | With the next sync deploy | owner action |
-| D20-5 | Health's counters before any food or water? | Keep (they feed the protected Checklist path, R2-15) | — |
-| D20-8 | NOVA's two "no AI used" lines and its phone hint? | Keep (AR's protected composition) | — |
-| PK-4 | Split the 5.1 MB market catalogue download? | Later; it loads once and stays offline | M |
-| PK-5 | Re-encode ZIGi's 2–2.4 MB idle clips? | Yes, same look at a lower bitrate, after you compare | M |
-| PK-6 | A moment for ZIGi's "hello in place" (X001)? | The first open of the day when ZIGi is already on screen | S |
-| PK-7 | A smoother R013 hide move (the arm)? | A Studio-4 revision | owner art |
-| PK-8 | HEVC-alpha MOV clips? | Make them on your Mac | owner action |
-| PK-9 | A sharp 2× brand mark? | Send the original file | owner file |
-| PK-10 | Hide the chain Help topics when no chain is chosen? | Yes | M |
-| PK-11 | A prefix-free practice-badge memo? | No (no change to signing) | — |
-| PK-13 | The Fineli (Finnish) food table? | Send the raw files, then import | owner file |
-| PK-14 | Your OroSwap LP and USDC vault shares on Earn? | Check with a real address after the deploy | owner action |
-| PK-15 | The hosted verifier's late /api/push abort? | Read it on your next hosted verifier run | owner action |
-| PK-16 | Dependabot alerts in build tooling (glob, minimatch)? | Approve the dev-only bumps | S |
-| PK-18 | ZIGi's cloud send with no privacy mode chosen? | Guarded (the redacted preview first) | S |
-| PK-20 | WalletConnect and Keplr Mobile on a real phone? | Add Reown's allowed domains, then test on your phone | owner action |
-| PK-21 | Pre-filled Ramp and Banxa hand-offs? | Send the providers' public IDs | owner action |
-| PK-22 | Switch push on (reviews, snooze, price alerts while closed)? | Yes, after the Alpha's first week | owner action |
-| PK-23 | The landing's two numbering systems; guide finales as a small orb? | Keep | — |
-| CS-3 | Plans' placeholder prices? | Keep, labelled, nothing charged in the Alpha | — |
-| CS-4 | Hosted ZIGoals AI? | Not in the Alpha | L |
-| KL-3 | Open accounts on alpha.zigoals.app? | After the Alpha's first week | owner action |
-| KL-4 | Redeploy sync so the Checklist travels? | With the next sync deploy | owner action |
-| KL-5 | Register with Oura, Withings, Polar and Strava? | Later; file imports work | owner action |
-| KL-6 | Spotify's app approval for everyone? | Apply when friends ask for it | owner action |
+| id | question | recommended default | effort | decision |
+|---|---|---|---|---|
+| BL-2 | Send a daily snapshot (net worth, the day) as a notification? | Not before push is switched on; Today's wealth line meanwhile | S, after push | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| BL-7 | What should ZIGi be over weeks (a companion arc)? | Keep today's on-device states; decide after the friends' first month | L | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| BL-9 | Multichain portfolio, hardware wallet, multisig? | Not in Alpha; a Beta scope question | L | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| BL-16 | "Start your fast" while the app is closed? | Build once push is on (the in-app card exists) | S, after push | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| CR-2 | Turn the food lookup provider on? | Yes: set the deployment setting (OWNER_STEPS) | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| CR-6 | Tick several items with one confirm? | Keep one at a time (pinned in AT D4, said in Known limitations) | M | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| CR-18 | Section-level Showcase lines (D-003) and the words "Sleep debt" (D-090)? | Keep both as they are | S | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| CR-19 | Should Erase name each area it erased? | Yes, using the export catalogue's areas | S | decided 2026-11-21 (default accepted, follow-up 3): to build in lane 2 |
+| M-9 | Goal creator step 1: "Create goal" beside "Continue", and the 0/80 counter? | Keep Continue as the main button; show the counter from 60 characters | S | decided 2026-11-21 (default accepted, follow-up 3): to build in lane 2 |
+| M-10 | A visible close while the Checklist's celebration clip plays? | Keep: a tap skips to the words, Escape closes (your amendment 2 design) | S | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| L-9 | ZIGi titled "AI Companion" with a Premium badge while answers say "no AI"? | "ZIGi · your companion"; no Premium badge during the Alpha | S | decided 2026-11-21 (default accepted, follow-up 3): to build in lane 1 (PR #108) |
+| A38-1 | Deploy the weather proxy Worker? | Yes, before friends rely on weather | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| A38-2 | Redeploy private-sync so NOVA's section travels? | With the next sync deploy | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| D20-5 | Health's counters before any food or water? | Keep (they feed the protected Checklist path, R2-15) | — | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| D20-8 | NOVA's two "no AI used" lines and its phone hint? | Keep (AR's protected composition) | — | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-4 | Split the 5.1 MB market catalogue download? | Later; it loads once and stays offline | M | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-5 | Re-encode ZIGi's 2–2.4 MB idle clips? | Yes, same look at a lower bitrate, after you compare | M | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-6 | A moment for ZIGi's "hello in place" (X001)? | The first open of the day when ZIGi is already on screen | S | decided 2026-11-21 (default accepted, follow-up 3): to build in lane 2 |
+| PK-7 | A smoother R013 hide move (the arm)? | A Studio-4 revision | owner art | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-8 | HEVC-alpha MOV clips? | Make them on your Mac | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-9 | A sharp 2× brand mark? | Send the original file | owner file | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-10 | Hide the chain Help topics when no chain is chosen? | Yes | M | decided 2026-11-21 (default accepted, follow-up 3): to build in lane 2 |
+| PK-11 | A prefix-free practice-badge memo? | No (no change to signing) | — | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-13 | The Fineli (Finnish) food table? | Send the raw files, then import | owner file | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-14 | Your OroSwap LP and USDC vault shares on Earn? | Check with a real address after the deploy | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-15 | The hosted verifier's late /api/push abort? | Read it on your next hosted verifier run | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-16 | Dependabot alerts in build tooling (glob, minimatch)? | Approve the dev-only bumps | S | decided 2026-11-21 (default accepted, follow-up 3): to build in lane 2 (TIER 3 dependencies) |
+| PK-18 | ZIGi's cloud send with no privacy mode chosen? | Guarded (the redacted preview first) | S | decided 2026-11-21 (default accepted, follow-up 3): to build in lane 1 (PR #108) |
+| PK-20 | WalletConnect and Keplr Mobile on a real phone? | Add Reown's allowed domains, then test on your phone | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-21 | Pre-filled Ramp and Banxa hand-offs? | Send the providers' public IDs | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-22 | Switch push on (reviews, snooze, price alerts while closed)? | Yes, after the Alpha's first week | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| PK-23 | The landing's two numbering systems; guide finales as a small orb? | Keep | — | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| CS-3 | Plans' placeholder prices? | Keep, labelled, nothing charged in the Alpha | — | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| CS-4 | Hosted ZIGoals AI? | Not in the Alpha | L | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| KL-3 | Open accounts on alpha.zigoals.app? | After the Alpha's first week | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| KL-4 | Redeploy sync so the Checklist travels? | With the next sync deploy | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| KL-5 | Register with Oura, Withings, Polar and Strava? | Later; file imports work | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
+| KL-6 | Spotify's app approval for everyone? | Apply when friends ask for it | owner action | decided 2026-11-21 (default accepted, follow-up 3): owner action or keep: nothing to build |
 
 Status: `open` (needs work, no outside service, model or owner: the next step is named) · `hidden honestly` (not reachable, or says plainly it isn't there) · `carried` (with its cause) · `needs an outside service` · `needs a model` · `needs the owner` · `finished` (the file that proves it).
 
