@@ -3472,6 +3472,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .on-this-day-text:not(#\-) { margin-top: 4px; margin-bottom: 4px; }
 :where(:root[data-density=compact]) .on-this-day-actions:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .on-this-day-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .today-journal-line:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 /*  components/journal/year-pixels.css  */
 :where(:root[data-density=compact]) .year-pixels:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .year-pixels-controls:not(#\-) { row-gap: 8px; }
