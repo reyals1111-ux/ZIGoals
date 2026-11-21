@@ -3420,6 +3420,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .good-things-fold:not(#\-) { margin-top: 12px; }
 :where(:root[data-density=compact]) .good-things-fold summary:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .good-things:not(#\-) { row-gap: 10px; margin-top: 8px; }
+:where(:root[data-density=compact]) .journal-tag-filter:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .journal-entry-tags:not(#\-) { row-gap: 6px; margin-top: 4.5px; margin-bottom: 4.5px; }
+:where(:root[data-density=compact]) .journal-tag-list:not(#\-) { row-gap: 4.5px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .journal-tag:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .journal-tag-form:not(#\-) { row-gap: 8px; }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-density=compact]) .on-this-day > summary:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .on-this-day-list:not(#\-) { margin-top: 6px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 9px; }
@@ -6976,6 +6981,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .goal-close-tasks:not(#\-) { margin-top: 0; margin-bottom: 12px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .goal-close-tasks p:not(#\-) { margin-top: 0; margin-bottom: 10px; }
 :where(:root[data-density=compact]) .goal-close-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-done-chart:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .tasks-done-chart h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-done-axis:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-done-weeks:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-done-table th:not(#\-), :where(:root[data-density=compact]) .tasks-done-table td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
 /*  components/tasks/today-tasks-due.css  */
 :where(:root[data-density=compact]) .today-tasks-due:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .today-tasks-due-line:not(#\-) { margin-top: 0; margin-bottom: 0; }

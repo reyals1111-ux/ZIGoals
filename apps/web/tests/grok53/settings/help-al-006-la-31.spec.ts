@@ -34,8 +34,10 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   // Session AT (ADR-043 D15, deliberate): two lines first, NOVA's answers and the example pictures, each opening its answer (22 → 24).
   // Session AV (ADR-045 Part 8, deliberate): three lines first, keeping your records on your phone, new versions and the
   // import's categories, each opening its answer (24 → 27); Part 7 adds the Journal's question of the day and the bills' yearly total (27 → 29).
-  // Session AV follow-up 1 (F-TASK-NOTIFY, F-NL-TASKS, deliberate): task reminders as notifications, Dutch in the task line, three good things (29 → 32).
-  await expect(list.getByRole('link')).toHaveCount(32);
+  // Session AV follow-up 1 (F-TASK-NOTIFY, F-NL-TASKS, deliberate): task reminders as notifications, Dutch in the task line, three good things, journal tags, tasks finished per day (29 → 34).
+  await expect(list.getByRole('link')).toHaveCount(34);
+  await expect(list.getByRole('link', {name: /^How many tasks you finished/})).toHaveAttribute('href', '#help-av-tasks-done');
+  await expect(list.getByRole('link', {name: /^Tags on journal entries/})).toHaveAttribute('href', '#help-av-journal-tags');
   await expect(list.getByRole('link', {name: /^Three good things in one go/})).toHaveAttribute('href', '#help-av-good-things');
   await expect(list.getByRole('link', {name: /^Write a task in Dutch/})).toHaveAttribute('href', '#help-av-nl-tasks');
   await expect(list.getByRole('link', {name: /^Task reminders as notifications/})).toHaveAttribute('href', '#help-av-task-notify');

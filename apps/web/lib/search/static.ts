@@ -111,6 +111,8 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-task-notify", "Can a task remind me when ZIGoals is closed?"],
   ["av-nl-tasks", "Can I type a task in Dutch?"],
   ["av-good-things", "What is “Three good things” in the Journal?"],
+  ["av-journal-tags", "Can I tag my journal entries?"],
+  ["av-tasks-done", "Can I see how many tasks I finished?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],

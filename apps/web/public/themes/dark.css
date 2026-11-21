@@ -11679,6 +11679,15 @@
     .journal-today-question:not(#\-) {
         border-color: var(--line)
     }
+    .journal-tag:not(#\-) {
+        border-color: var(--line)
+    }
+    .journal-tag-remove:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor;
+        color: inherit
+    }
 }
 /*  components/journal/on-this-day.css  */
 @scope (:root[data-theme=dark]) {
@@ -26522,6 +26531,12 @@
     }
     .goal-close-tasks:not(#\-) {
         border-color: color-mix(in srgb, var(--cyan, #5fd4ff) 35%, transparent)
+    }
+    .tasks-done-chart h3 small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-done-bars rect:not(#\-) {
+        fill: var(--cyan, #6fd3ff)
     }
 }
 /*  components/tasks/today-tasks-due.css  */
