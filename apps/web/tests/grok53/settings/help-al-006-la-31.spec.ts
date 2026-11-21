@@ -34,8 +34,9 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   // Session AT (ADR-043 D15, deliberate): two lines first, NOVA's answers and the example pictures, each opening its answer (22 → 24).
   // Session AV (ADR-045 Part 8, deliberate): three lines first, keeping your records on your phone, new versions and the
   // import's categories, each opening its answer (24 → 27); Part 7 adds the Journal's question of the day and the bills' yearly total (27 → 29).
-  // Session AV follow-up 1 (F-TASK-NOTIFY, F-NL-TASKS, deliberate): task reminders as notifications, Dutch in the task line, three good things, journal tags, tasks finished per day, this month vs last, every factor, budget targets, the bill calendar, workouts by week (29 → 39).
-  await expect(list.getByRole('link')).toHaveCount(39);
+  // Session AV follow-up 1 (F-TASK-NOTIFY, F-NL-TASKS, deliberate): task reminders as notifications, Dutch in the task line, three good things, journal tags, tasks finished per day, this month vs last, every factor, budget targets, the bill calendar, workouts by week, the review's tasks (29 → 40).
+  await expect(list.getByRole('link')).toHaveCount(40);
+  await expect(list.getByRole('link', {name: /^The weekly review looks at Tasks/})).toHaveAttribute('href', '#help-av-review-tasks');
   await expect(list.getByRole('link', {name: /^Your last 12 weeks of workouts/})).toHaveAttribute('href', '#help-av-workout-weeks');
   await expect(list.getByRole('link', {name: /^Your bills on a calendar/})).toHaveAttribute('href', '#help-av-bill-calendar');
   await expect(list.getByRole('link', {name: /^A budget can save towards an amount/})).toHaveAttribute('href', '#help-av-budget-targets');
