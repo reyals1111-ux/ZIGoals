@@ -87,7 +87,7 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 - **Goals and habits:** milestones and "On track?" for goals; challenges and stacks for habits; an optional evening wrap-up on Today.
 - **Wealth and Portfolio:** accounts, debts and net worth per currency, on your device; Portfolio with charts from your own transactions and dated prices. A price that is missing stays "unknown", never zero.
 - **Chess, Music and My links** pages, hidden until you show them.
-- **ZIGi · Your Personal AI Companion:** a helper on every page. It answers questions about your own records on your device with no AI at all ("How many minutes did I meditate this month?"), or works with an AI you bring yourself (your own key, a model on your computer, or "Copy for my AI" for a subscription). Nothing is written until you add the card it shows you. Health is only shared with your AI if you switch it on. **Help → ZIGi · Your Personal AI Companion** explains every part.
+- **ZIGi · your companion:** a helper on every page. It answers questions about your own records on your device with no AI at all ("How many minutes did I meditate this month?"), or works with an AI you bring yourself (your own key, a model on your computer, or "Copy for my AI" for a subscription). Nothing is written until you add the card it shows you. Health is only shared with your AI if you switch it on. **Help → ZIGi · your companion** explains every part.
 
 ## 8. New in this release: ZIGi's new face, and talking to ZIGi
 
