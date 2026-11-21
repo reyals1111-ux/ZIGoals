@@ -47,6 +47,9 @@
     // Session AV (F-TASK-NOTIFY): task reminders, by name only where names are allowed.
     var taskItems = kinds.task || [];
     if (taskItems.length) lines.push(named && taskItems.every(function (t) { return t.label; }) ? taskItems.slice(0, 2).map(function (t) { return t.label; }).join(' · ') + (taskItems.length > 2 ? ' and ' + (taskItems.length - 2) + ' more' : '') : plural(taskItems.length, 'task reminder', 'task reminders'));
+    // Session AV (1c, q1 #44): countdown reminders, by name only where names are allowed.
+    var countdowns = kinds.countdown || [];
+    if (countdowns.length) lines.push(named && countdowns.every(function (c) { return c.label; }) ? countdowns.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(countdowns.length, 'countdown reminder', 'countdown reminders'));
     if (kinds.supplement) lines.push('A reminder you set in Health');
     if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
     // Session AL sweep 4 (C-DVG-68, C-BN-06): from the positions last read on the device; never a name or an amount.
@@ -57,7 +60,7 @@
     var summary = summaryLine(snapshot);
     if (kinds.morning) lines.unshift(summary ? 'Good morning. ' + summary : 'Good morning. Your orbit is ready.');
     if (kinds.evening) lines.unshift(summary ? 'Evening wrap-up. ' + summary : 'Evening wrap-up: how did today go?');
-    var first = due[0], actionable = habits.filter(function (h) { return h.actionable; });
+    var first = due[0], actionable = habits.concat(taskItems).filter(function (h) { return h.actionable; });
     var url = kinds.morning ? '/app/checklist' : (first && appPath(first.href)) || '/app';
     if (!lines.length) return {title: 'ZIGoals', body: summary ? summary + ' Nothing is due right now.' : 'Nothing is due right now.', tag: 'zigoals-summary', actions: [], data: {url: '/app', items: []}};
     var actions = actionable.length ? [{action: 'done', title: 'Done'}, {action: 'snooze', title: 'Snooze 1 h'}] : (kinds.morning || kinds.evening || kinds.review) ? [] : [{action: 'snooze', title: 'Snooze 1 h'}];
@@ -400,7 +403,7 @@ self.addEventListener('notificationclick', event => {
   const note = event.notification, data = note.data || {}, now = Date.now();
   note.close();
   if (event.action === 'done' || event.action === 'snooze') {
-    const action = {actionId: (self.crypto && self.crypto.randomUUID ? self.crypto.randomUUID() : String(now) + Math.random()), type: event.action, at: now, date: data.date || null, items: (data.items || []).filter(i => event.action === 'snooze' || i.kind === 'habit')};
+    const action = {actionId: (self.crypto && self.crypto.randomUUID ? self.crypto.randomUUID() : String(now) + Math.random()), type: event.action, at: now, date: data.date || null, items: (data.items || []).filter(i => event.action === 'snooze' || i.kind === 'habit' || i.kind === 'task')};
     event.waitUntil((async () => {
       await queue(action);
       if (event.action === 'snooze') await snooze(data, now).catch(() => {});

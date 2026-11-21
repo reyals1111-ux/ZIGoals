@@ -98,7 +98,7 @@ export function buildPlan(input: PlanInput): Plan {
     const time = wallClock(t.at, zone).time;
     if (inQuiet(time, quiet)) { refused.push({kind: 'task', time}); continue; }
     once.set(Math.floor(t.at / 60000), 'task');
-    push({at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: false});
+    push({at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: true});
   }
   // Session AV (1c, q1 #44): a countdown's reminder wakes at the morning time (the end of quiet hours when the morning is
   // quiet) on the first day of its reminder and on its day, as bills do. Labelled only with names on.

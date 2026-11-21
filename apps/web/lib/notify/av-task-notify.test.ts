@@ -29,7 +29,8 @@ describe('Session AV (F-TASK-NOTIFY): task reminders in the notification plan', 
   it('a reminder ahead becomes a one-off wake at its instant; one in the past or a month away does not', () => {
     const soon = at('2026-10-05', '09:30'), past = at('2026-10-05', '06:00'), far = at('2026-11-20', '09:30');
     const plan = buildPlan(base({tasks: [{id: 't1', title: 'Fictional call to the bank', at: soon}, {id: 't2', at: past}, {id: 't3', at: far}]}));
-    expect(plan.snapshot.items.filter(i => i.kind === 'task')).toEqual([{at: soon, kind: 'task', id: `task:t1@${soon}`, href: '/app/tasks#task-t1', actionable: false}]);
+    // Session AV (1c, q1 #1; deliberate test change, equally strict): a task reminder is now actionable (Done on the notification).
+    expect(plan.snapshot.items.filter(i => i.kind === 'task')).toEqual([{at: soon, kind: 'task', id: `task:t1@${soon}`, href: '/app/tasks#task-t1', actionable: true}]);
     expect(plan.registration.once).toEqual([Math.floor(soon / 60000)]);
   });
   it('the name only with names on; never with them off', () => {
@@ -47,9 +48,14 @@ describe('Session AV (F-TASK-NOTIFY): task reminders in the notification plan', 
   });
   it('the worker says it: by name with names on, otherwise counted; Snooze offered, the tap opens Tasks', () => {
     const compose = composer(), soon = at('2026-10-05', '09:30');
-    const named = compose({labels: true, items: [{at: soon, kind: 'task', id: 't1', label: 'Fictional call to the bank', href: '/app/tasks#task-t1', actionable: false}], summary: {date: '2026-10-05', done: 0, total: 0}}, soon);
+    // Session AV (1c, q1 #1; deliberate test change, equally strict): an actionable task reminder offers Done and Snooze.
+    const named = compose({labels: true, items: [{at: soon, kind: 'task', id: 't1', label: 'Fictional call to the bank', href: '/app/tasks#task-t1', actionable: true}], summary: {date: '2026-10-05', done: 0, total: 0}}, soon);
     expect(named.body).toBe('Fictional call to the bank');
-    expect(named.actions.map(a => a.action)).toEqual(['snooze']);
+    expect(named.actions.map(a => a.action)).toEqual(['done', 'snooze']);
+    expect(named.data.items).toEqual([expect.objectContaining({kind: 'task', id: 't1'})]);
+    const countdown = compose({labels: true, items: [{at: soon, kind: 'countdown', id: 'countdown:c1@2026-10-07', label: 'Fictional birthday', detail: 'in 2 days', href: '/app', actionable: false}], summary: {date: '2026-10-05', done: 0, total: 0}}, soon);
+    expect(countdown.body).toBe('Fictional birthday · in 2 days');
+    expect(compose({labels: false, items: [{at: soon, kind: 'countdown', id: 'c1', href: '/app', actionable: false}], summary: {date: '2026-10-05', done: 0, total: 0}}, soon).body).toBe('1 countdown reminder');
     expect(named.data.url).toContain('/app/tasks');
     const counted = compose({labels: false, items: [{at: soon, kind: 'task', id: 't1', href: '/app/tasks', actionable: false}, {at: soon, kind: 'task', id: 't2', href: '/app/tasks', actionable: false}], summary: {date: '2026-10-05', done: 0, total: 0}}, soon);
     expect(counted.body).toBe('2 task reminders');
