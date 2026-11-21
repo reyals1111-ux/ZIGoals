@@ -144,6 +144,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-move-alert", "Can I be told when a coin moves by a percent, or my portfolio reaches a value?"],
   ["av-hide-figures", "Can I log food without seeing calorie and weight numbers?"],
   ["av-budget-pace", "Can a budget tell me when it is nearly used up?"],
+  ["av-plan-day", "Can Tasks suggest what to plan for today?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],

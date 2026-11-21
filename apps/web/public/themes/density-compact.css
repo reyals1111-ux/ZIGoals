@@ -6949,6 +6949,14 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .ss-rows:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact]) .ss-rows li:not(#\-) { row-gap: 6px; padding-top: 6px; padding-bottom: 6px; }
 :root:where([data-density=compact]) .ss-what:not(#\-) { row-gap: 2px; }
+/*  components/tasks/plan-day.css  */
+:where(:root[data-density=compact]) .tasks-plan-day:not(#\-) { margin-top: 0; margin-bottom: 16px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-plan-day > summary:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .tasks-plan-day > p:not(#\-) { margin-top: 0; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .tasks-plan-day-list:not(#\-) { margin-top: 0; margin-bottom: 9px; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .tasks-plan-day-list li:not(#\-) { row-gap: 4.5px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .tasks-plan-day-what:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .tasks-plan-day-actions:not(#\-) { row-gap: 8px; }
 /*  components/tasks/tasks-when.css  */
 :where(:root[data-density=compact]) .tasks-when:not(#\-), :where(:root[data-density=compact]) .tasks-matrix-view:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .tasks-when-lede:not(#\-) { margin-top: 0; margin-bottom: 0; }

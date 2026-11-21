@@ -26473,6 +26473,21 @@
         color: var(--text-secondary)
     }
 }
+/*  components/tasks/plan-day.css  */
+@scope (:root[data-theme=dark]) {
+    .tasks-plan-day:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-plan-day > summary small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-plan-day-list li:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .tasks-plan-day-what small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
 /*  components/tasks/tasks-when.css  */
 @scope (:root[data-theme=dark]) {
     .tasks-when-lede:not(#\-) {
