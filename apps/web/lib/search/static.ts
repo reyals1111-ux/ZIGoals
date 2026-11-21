@@ -113,6 +113,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-good-things", "What is “Three good things” in the Journal?"],
   ["av-journal-tags", "Can I tag my journal entries?"],
   ["av-tasks-done", "Can I see how many tasks I finished?"],
+  ["av-vs-last", "How does this month’s spending compare with last month?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
