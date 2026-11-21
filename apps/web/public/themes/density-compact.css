@@ -3086,6 +3086,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .meal-words-grid:not(#\-) { row-gap: 10.5px; }
 :where(:root[data-density=compact]) .meal-words-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .meal-words-entry:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .words-match:not(#\-) { row-gap: 8px; padding-top: 10px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .words-match p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .words-match-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .words-match-row:not(#\-) { row-gap: 4.5px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .words-match-pick:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .words-match-pick input:not(#\-) { margin-top: 2px; }
 /*  components/health/measurement-trends.css  */
 :where(:root[data-density=compact]) .measure-trends:not(#\-) { row-gap: 12px; padding-top: 4px; padding-bottom: 0; }
 :where(:root[data-density=compact]) .measure-trend-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }

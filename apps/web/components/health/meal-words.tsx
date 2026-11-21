@@ -1,5 +1,5 @@
 'use client';
-import {useId, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useId, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showUndo} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
@@ -56,8 +56,9 @@ function WordsForm({date, meal: initialMeal}: {date: string; meal: MealWordsMeal
   </form>;
 }
 
+const WordsMatch = lazy(() => import('./words-match'));
 function WordsList({date, meal}: {date: string; meal: MealWordsMeal}) {
-  const record = useDeviceRecord(MEAL_WORDS);
+  const record = useDeviceRecord(MEAL_WORDS), [matching, setMatching] = useState<string | null>(null);
   const entries = mealWordsFor(record.data, date, meal);
   if (!entries.length) return null;
   const remove = (entry: MealWordsEntry) => {
@@ -67,7 +68,10 @@ function WordsList({date, meal}: {date: string; meal: MealWordsMeal}) {
   return <ul className="meal-words-list" aria-label={`${meal} in words`}>
     {entries.map(entry => <li className="health-entry meal-words-entry" key={entry.id}>
       <div className="health-entry-main"><strong>{entry.words}</strong><small>In words · calories unknown</small></div>
+      {/* Session AV (owner follow-up 1, F-WORDS-MATCH): the words matched to foods, with no model; its chunk loads on the press. */}
+      <button type="button" className="quiet meal-words-find" aria-expanded={matching === entry.id} aria-label={`Find foods for ${entry.words}`} onClick={() => setMatching(m => m === entry.id ? null : entry.id)}>Find these foods</button>
       <button type="button" className="quiet meal-words-remove" aria-label={`Remove ${entry.words}`} onClick={() => remove(entry)}>Remove</button>
+      {matching === entry.id && <Suspense fallback={<p className="fine" role="status">Opening…</p>}><WordsMatch entry={entry} onClose={() => setMatching(null)}/></Suspense>}
     </li>)}
   </ul>;
 }

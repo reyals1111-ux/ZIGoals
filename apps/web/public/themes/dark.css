@@ -10805,6 +10805,15 @@
         border-inline-start-color: var(--health-behind)
     }
 }
+/*  components/health/meal-words.css  */
+@scope (:root[data-theme=dark]) {
+    .words-match-row:not(#\-) {
+        border-bottom-color: var(--line, rgba(140,160,220,.18))
+    }
+    .words-match-pick small:not(#\-) {
+        color: var(--text-meta, var(--muted))
+    }
+}
 /*  components/health/measurement-trends.css  */
 @scope (:root[data-theme=dark]) {
     .measure-trend-list li:not(#\-) {
