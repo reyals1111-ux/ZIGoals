@@ -70,3 +70,4 @@
    mid-number) made the whole planner 749 px wide at 320. Its folds may shrink, and the table scrolls in its own box. */
 .debt-planner > *,.debt-plan-fold{min-width:0;max-width:100%}
 .debt-plan-pick{min-inline-size:0}
+.debt-plan-fold > *{min-width:0;max-width:100%}

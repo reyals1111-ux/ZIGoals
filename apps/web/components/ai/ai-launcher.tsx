@@ -233,7 +233,7 @@ export function AiLauncher() {
       <div className="ai-launcher-stack">
         <span className="ai-launcher-ring">
         <span ref={waves} className="zigi-waves" data-on="false" aria-hidden="true"><i/><i/><i/><b className="zigi-level-bar"/></span>
-        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your personal AI companion' : 'Open ZIGi, your personal AI companion (⌘/Ctrl+Shift+Z; hold to talk)'} aria-haspopup="dialog" aria-expanded={open}
+        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your companion' : 'Open ZIGi, your companion (⌘/Ctrl+Shift+Z; hold to talk)'} aria-haspopup="dialog" aria-expanded={open}
           onClick={() => { if (heldClick.current) { heldClick.current = false; return; } if (!open && talkChoices().tapToTalk) requestTalk('launcher'); else toggle(); }}
           onPointerDown={event => { heldClick.current = false; if (event.button !== 0) return; warm(); try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* an old browser keeps the plain events */ } const h = {timer: 0, held: false, down: performance.now()}; h.timer = window.setTimeout(() => { h.held = true; heldClick.current = true; requestTalk('launcher'); }, LAUNCHER_HOLD_MS); hold.current = h; }}
           // Session AL (CI_INTERMITTENTS Fix 2): a busy main thread can deliver the release before the hold timer (WebKit,

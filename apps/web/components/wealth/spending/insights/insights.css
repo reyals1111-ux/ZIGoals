@@ -85,3 +85,4 @@
 /* Session AV (1c follow-up): at 320 the three columns were 22 px wider than their box; a long category name may wrap
    between words there, the amounts never. */
 @media (max-width:560px){.money-insights-vs-last th:first-child,.money-insights-vs-last td:first-child{white-space:normal;overflow-wrap:normal}.money-insights-vs-last th,.money-insights-vs-last td{padding-inline:6px}}
+@media (max-width:560px){.money-insights-vs-last th{white-space:normal}.money-insights-vs-last td[data-was]::after{white-space:normal}.money-insights-vs-last th,.money-insights-vs-last td{padding-inline:4px}}

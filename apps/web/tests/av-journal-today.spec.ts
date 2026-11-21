@@ -30,20 +30,23 @@ for (const theme of THEMES) test(`${theme}: "Written today: 1 entry · On this d
 
 /**
  * Session AV (1c, q4 #33, fresh-agent review; owner decision, the reviewer's smaller suggestion): on a day with an entry
- * the journal card is among the first For you cards at 1440 (not behind "Show more"), and only when the person switched
- * on "Show the first line … on Today" in Journal → Privacy does Today list the first lines.
+ * the journal's line is among Today's glance lines (beside "Tasks due today" and the money line), not behind "Show more";
+ * only when the person switched on "Show the first line … on Today" in Journal → Privacy does Today list the first lines.
+ * (Deliberate change, equally strict: the card was raised first; Showcase Today then had 97 Tab stops against its 90.)
  */
-test('the card comes forward on a day with an entry; first lines only when switched on', async ({page}) => {
+test('the journal line is on Today on a day with an entry; first lines only when switched on', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   const entries = [entry('journal_fictional-today-001', '2026-11-14', 'A fictional private thought\nmore words'), entry('journal_fictional-lastyear-01', '2025-11-14', 'A fictional memory')];
   await seedDevice(page, {[JOURNAL_KEY]: {version: 1, entries}});
   await page.goto('/app'); await hydrated(page);
-  const card = page.locator('.today-journal-card');
-  await expect(card.locator('.today-journal-line')).toBeVisible();
-  await expect(card).not.toContainText('A fictional private thought');
+  const glance = page.getByRole('region', {name: 'Your journal today'});
+  await expect(glance).toBeVisible();
+  await expect(glance).toHaveText(/^Journal: Written today: 1 entry · On this day: an entry .+ →$/);
+  await expect(glance.getByRole('link')).toHaveAttribute('href', '/app/journal');
+  await expect(glance).not.toContainText('A fictional private thought');
   await page.evaluate(([k, v]) => localStorage.setItem(k, v), [JOURNAL_KEY, JSON.stringify({version: 1, entries, todayLines: true})] as const);
   await page.reload(); await hydrated(page);
-  const lines = page.locator('.today-journal-card').getByRole('list', {name: 'First lines from your journal'});
+  const lines = page.getByRole('region', {name: 'Your journal today'}).getByRole('list', {name: 'First lines from your journal'});
   await expect(lines).toContainText('A fictional private thought');
   await expect(lines).not.toContainText('more words');
   await expect(lines).toContainText('A fictional memory');

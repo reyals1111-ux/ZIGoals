@@ -13,7 +13,7 @@ import './on-this-day.css';
  * Session AV (1c, q4 #33, owner decision: the reviewer's smaller suggestion): only when the person switched on "Show the
  * first lines on Today" (Journal → Privacy), the first line of each of today's entries and memories is listed under it.
  */
-export default function TodayJournalLine() {
+export default function TodayJournalLine({glance = false}: {glance?: boolean} = {}) {
   const day = useJournalToday();
   if (!day) return null;
   const todays = day.today.length, memory = day.memories;
@@ -21,7 +21,8 @@ export default function TodayJournalLine() {
   if (!parts.length) return null;
   const lines = day.lines ? [...day.today.slice(-3).map(e => ({id: e.id, when: 'Today', text: firstLine(e.text)})), ...memory.slice(0, 3).map(m => ({id: m.entry.id, when: m.label, text: firstLine(m.entry.text)}))].filter(l => l.text) : [];
   return <>
-    <p className="fine today-journal-line"><Link className="text-link" href="/app/journal">{parts.join(' · ')} →</Link></p>
-    {lines.length > 0 && <ul className="today-journal-lines" aria-label="First lines from your journal">{lines.map(l => <li key={l.id}><span className="today-journal-when">{l.when}</span> <span dir="auto">{l.text}</span></li>)}</ul>}
+    {glance ? <section className="today-tasks-due today-journal-glance" aria-label="Your journal today"><p className="today-tasks-due-line"><span><strong>Journal:</strong> <Link className="text-link" href="/app/journal">{parts.join(' · ')} →</Link></span></p></section>
+      : <p className="fine today-journal-line"><Link className="text-link" href="/app/journal">{parts.join(' · ')} →</Link></p>}
+    {lines.length > 0 && glance && <ul className="today-journal-lines" aria-label="First lines from your journal">{lines.map(l => <li key={l.id}><span className="today-journal-when">{l.when}</span> <span dir="auto">{l.text}</span></li>)}</ul>}
   </>;
 }
