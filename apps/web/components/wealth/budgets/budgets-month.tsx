@@ -9,6 +9,7 @@ import {moneyCents} from '../money-tools/format';
 import {EXPENSE_CATEGORIES, MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
 import {budgetIssue, monthKey, monthView, removeBudget, setBudget, shiftMonth, type BudgetRow} from '../../../lib/budgets/engine';
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
+import {budgetPace, paceWords} from '../../../lib/budgets/pace';
 import './budgets.css';
 // Session AK (BUILD list 2 #19): a sum in the amount field ("300+45,50") is worked out and that amount is saved.
 import {amountProblem, resolveAmountText} from '../../../lib/money-calc/expression';
@@ -77,7 +78,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     {view.rows.length ? <table className="budgets-table" aria-labelledby={`${id}-month`}>
       <thead><tr><th scope="col">Category</th><th scope="col">Spent</th><th scope="col">Available</th><th scope="col">Left</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
       <tbody>{view.rows.map(r => <tr key={r.id} className={r.over ? 'budgets-over' : undefined}>
-        <th scope="row"><span className="budgets-cat">{r.category}</span><span className="budgets-bar" aria-hidden="true"><span style={{width: `${Math.round(r.share * 100)}%`}}/></span>{r.target && <TargetLine row={r} current={month === thisMonth} onStop={() => change(x => setBudget(x, {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: r.rollover, target: null}, r.id, thisMonth), `The target for ${r.category} is off; the budget stays.`)}/>}</th>
+        <th scope="row"><span className="budgets-cat">{r.category}</span><span className="budgets-bar" aria-hidden="true"><span style={{width: `${Math.round(r.share * 100)}%`}}/></span>{(() => { const p = budgetPace(r, month, today), w = p && paceWords(p, `${money(r.left, r.currency)} left`); return w ? <small className={`budgets-pace is-${p!.state}`}>{w}</small> : null; })()}{/* Session AV (F-BUDGET-PACE) */}{r.target && <TargetLine row={r} current={month === thisMonth} onStop={() => change(x => setBudget(x, {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: r.rollover, target: null}, r.id, thisMonth), `The target for ${r.category} is off; the budget stays.`)}/>}</th>
         <td>{money(r.spent, r.currency)}</td>
         <td>{money(r.available, r.currency)}{r.carried > 0 && <small className="fine"> incl. {money(r.carried, r.currency)} rolled over</small>}</td>
         <td>{r.left >= 0 ? money(r.left, r.currency) : <>{money(-r.left, r.currency)} over</>}</td>

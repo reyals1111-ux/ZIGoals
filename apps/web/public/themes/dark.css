@@ -27355,6 +27355,16 @@
     .budgets-target.is-short small:not(#\-) {
         color: inherit
     }
+    .budgets-pace:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .budgets-pace.is-near:not(#\-), .budgets-pace.is-fast:not(#\-) {
+        color: inherit
+    }
+    .budgets-pace.is-near:not(#\-)::before, .budgets-pace.is-fast:not(#\-)::before {
+        background-image: none;
+        background-color: currentColor
+    }
 }
 /*  components/wealth/debt-planner.css  */
 @scope (:root[data-theme=dark]) {

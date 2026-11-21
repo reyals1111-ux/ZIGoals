@@ -11,7 +11,7 @@ import {localDate} from '../../lib/local-date';
 
 /**
  * Session AV (owner follow-up 1, F-MONEY-ATTENTION; YNAB's Spotlight): one line on Today, beside "Tasks due today",
- * when something in Wealth asks for a look — entries to review, a budget over, a bill due in the next three days — that
+ * when something in Wealth asks for a look — entries to review, a budget over or near its limit, a bill due in the next three days — that
  * opens Wealth. Nothing shows when nothing asks, so Today stays as it is. Lazy; on this device only.
  */
 export default function TodayMoneyAttention() {

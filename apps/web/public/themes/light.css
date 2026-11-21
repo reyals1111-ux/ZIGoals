@@ -26550,6 +26550,16 @@
     .budgets-target.is-short small:not(#\-) {
         color: inherit
     }
+    .budgets-pace:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .budgets-pace.is-near:not(#\-), .budgets-pace.is-fast:not(#\-) {
+        color: inherit
+    }
+    .budgets-pace.is-near:not(#\-)::before, .budgets-pace.is-fast:not(#\-)::before {
+        background-image: none;
+        background-color: currentColor
+    }
 }
 /*  components/wealth/debt-planner.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {

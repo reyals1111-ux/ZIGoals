@@ -49,3 +49,7 @@
 .budgets-watch-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 8px 12px; align-items: end; }
 .budgets-watch-form input, .budgets-watch-form select { min-height: 44px; width: 100%; box-sizing: border-box; }
 .budgets-watch-form .field-error { grid-column: 1 / -1; margin: 0; }
+/* Session AV (F-BUDGET-PACE): the pace line under a budget of this month. */
+.budgets-pace{display:block;margin-top:4px;font-size:14px;font-weight:400;color:var(--text-secondary, var(--muted))}
+.budgets-pace.is-near,.budgets-pace.is-fast{color:inherit}
+.budgets-pace.is-near::before,.budgets-pace.is-fast::before{content:"";display:inline-block;width:8px;height:8px;margin-inline-end:6px;border-radius:50%;background:currentColor;vertical-align:middle}

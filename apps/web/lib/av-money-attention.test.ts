@@ -16,4 +16,9 @@ describe('Session AV (F-MONEY-ATTENTION)', () => {
     expect(a.count).toBe(3);
     expect(moneyAttention({entries: [], today: TODAY}).count).toBe(0);
   });
+  it('Session AV (F-BUDGET-PACE): a budget from 80 % spent is near its limit; under 80 % says nothing', () => {
+    const budgets = {version: 1, budgets: [{id: 'b1', category: 'Groceries', currency: 'EUR', monthly: '200.00', rollover: false, since: '2026-11'}]} as never;
+    expect(attentionPieces(moneyAttention({entries: [e('n1', '2026-11-10', '160.00')], budgets, today: TODAY}))).toEqual(['Groceries near its limit']);
+    expect(moneyAttention({entries: [e('n2', '2026-11-10', '159.99')], budgets, today: TODAY}).count).toBe(0);
+  });
 });
