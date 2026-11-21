@@ -208,3 +208,18 @@
 .habit-yesterday-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 /* Session AV follow-up 1 (F-FOCUS-HABIT): today's focus, said in words beside the star. */
 .habit-focus-badge { font-weight: 650; }
+/* Session AV follow-up 1 (F-HABIT-LOOK): a habit's own symbol and colour (named colours; each theme keeps its contrast). */
+[data-look-colour=grey] { --habit-look: #8a8fa3; } [data-look-colour=red] { --habit-look: #e5484d; } [data-look-colour=orange] { --habit-look: #f08c38; }
+[data-look-colour=yellow] { --habit-look: #d4a72c; } [data-look-colour=green] { --habit-look: #46a758; } [data-look-colour=teal] { --habit-look: #12a594; }
+[data-look-colour=blue] { --habit-look: #3e8bf0; } [data-look-colour=violet] { --habit-look: #8e6cf0; } [data-look-colour=pink] { --habit-look: #e05aa8; }
+.habit-look { color: var(--habit-look); }
+.habit-look-picker { display: grid; gap: 8px; margin: 8px 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, rgba(140,160,220,.3)); }
+.habit-look-picker p, .habit-look-picker fieldset { margin: 0; }
+.habit-look-picker fieldset { border: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.habit-look-picker legend { font-weight: 600; margin-bottom: 4px; }
+.habit-look-choice { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 8px; border-radius: 10px; border: 1px solid var(--line, rgba(140,160,220,.3)); color: var(--habit-look); cursor: pointer; }
+.habit-look-choice:has(input:checked) { border-width: 2px; border-color: currentColor; font-weight: 700; }
+.habit-look-choice:has(input:focus-visible) { outline: 2px solid var(--focus, currentColor); outline-offset: 2px; }
+.habit-look-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.habit-look-swatch { width: 14px; height: 14px; border-radius: 50%; background: var(--habit-look); }
+.habit-look-word { color: var(--text-primary, inherit); }

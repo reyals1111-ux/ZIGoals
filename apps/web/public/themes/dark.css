@@ -9508,6 +9508,59 @@
     .habit-yesterday-list small:not(#\-) {
         color: var(--text-meta, var(--muted))
     }
+    [data-look-colour=grey]:not(#\-) {
+        --habit-look: #8a8fa3
+    }
+    [data-look-colour=red]:not(#\-) {
+        --habit-look: #e5484d
+    }
+    [data-look-colour=orange]:not(#\-) {
+        --habit-look: #f08c38
+    }
+    [data-look-colour=yellow]:not(#\-) {
+        --habit-look: #d4a72c
+    }
+    [data-look-colour=green]:not(#\-) {
+        --habit-look: #46a758
+    }
+    [data-look-colour=teal]:not(#\-) {
+        --habit-look: #12a594
+    }
+    [data-look-colour=blue]:not(#\-) {
+        --habit-look: #3e8bf0
+    }
+    [data-look-colour=violet]:not(#\-) {
+        --habit-look: #8e6cf0
+    }
+    [data-look-colour=pink]:not(#\-) {
+        --habit-look: #e05aa8
+    }
+    .habit-look:not(#\-) {
+        color: var(--habit-look)
+    }
+    .habit-look-picker:not(#\-) {
+        border-color: var(--line, rgba(140,160,220,.3))
+    }
+    .habit-look-picker fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-look-choice:not(#\-) {
+        border-color: var(--line, rgba(140,160,220,.3));
+        color: var(--habit-look)
+    }
+    .habit-look-choice:has(input:checked):not(#\-) {
+        border-color: currentColor
+    }
+    .habit-look-choice:has(input:focus-visible):not(#\-) {
+        outline-color: var(--focus, currentColor)
+    }
+    .habit-look-swatch:not(#\-) {
+        background-image: none;
+        background-color: var(--habit-look)
+    }
+    .habit-look-word:not(#\-) {
+        color: var(--text-primary, inherit)
+    }
 }
 /*  components/habits/perfect-days.css  */
 @scope (:root[data-theme=dark]) {

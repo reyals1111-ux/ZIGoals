@@ -2655,6 +2655,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-yesterday-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
 :where(:root[data-density=compact]) .habit-yesterday-list li:not(#\-) { row-gap: 3px; padding-top: 3px; padding-bottom: 3px; }
 :where(:root[data-density=compact]) .habit-yesterday-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .habit-look-picker:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 8px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .habit-look-picker p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-look-picker fieldset:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-look-picker fieldset:not(#\-) { padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .habit-look-picker legend:not(#\-) { margin-bottom: 4px; }
+:where(:root[data-density=compact]) .habit-look-choice:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; }
 /*  components/habits/intention.css  */
 :where(:root[data-density=compact]) .habit-intention:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .habit-intention-line:not(#\-), :where(:root[data-density=compact]) .habit-intention-empty:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
