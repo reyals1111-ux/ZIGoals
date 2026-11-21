@@ -8,7 +8,7 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 finish or unwire the current feature, push, get CI green, write "Safe to merge now: yes (CI run N)", push nothing until
 "continue". After PR #108 merges: `feature/session-av-2` from the new main, Draft PR "Session AV (continued)".
 
-**Safe to merge now: yes at `7e664056` (CI run 1938, every job green). The newer heads (Part 4b's last rows, PK-3, the research, five features) are waiting for their own run; read it before calling them safe. Run 1937's two reds are recorded intermittents (D-CI1937).**
+**Safe to merge now: yes at `7e664056` (CI run 1938). No later head is safe until its own run: run 1941 found A10-11 (fixed at `967ab614`) and the checks reds of D-CI1941 (fixed at `7f01e6d5`, `a2deeed5`).**
 
 ## Toolchain in the sandbox
 - Pinned Node 24.19.0 in the scratchpad (`node-v24.19.0-linux-x64/bin` first on PATH); `corepack enable pnpm`;
@@ -27,9 +27,11 @@ finish or unwire the current feature, push, get CI green, write "Safe to merge n
   (`db0eb6d9`). #4 (save a meal, copy a day) verified already built (Health → Planning).
 
 ## In progress
-- Build order A (COMPETITORS.md): next #7 spending vs last month, #9 what
-  affects mood/sleep/energy, #8 budget targets, #12 bill calendar, #13 weekly distance/volume, #10 guided weekly review,
-  #15 running bests, #16 income flow. Then B (deadlines; debt planner extras), then C (33 new rows).
+- Built since: #7 vs last month (`4c0b99ef`), #9 every factor, #8 budget targets (TIER 3), #12 bill calendar, #13
+  workouts by week, #10 the review's tasks, #15 running bests, #16 income flow; B: deadlines (`8e63c167` TIER 3 stored,
+  `4408d1d6` TIER 3 AI), the debt planner's own order, one-off payments, month by month, countdown, tracked plan
+  (`TIER 3` stored and AI commits up to `34975169`). Build order A and B are done.
+- Next: C, the 33 new rows of COMPETITORS.md in rank order (17 onward).
 
 ## Next
 - Read CI at part boundaries (≤ every 10 min); record reds in ADR-045 (D-CI*) and CI_INTERMITTENTS.

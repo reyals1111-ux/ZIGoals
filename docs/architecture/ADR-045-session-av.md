@@ -332,6 +332,18 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
   no cause was found to fix.
 - Run 1938 on `7e664056` (follow-up 1's first Part 4b commit): **every job green**. Safe to merge at that head.
 
+## D-CI1941 — run 1941 (`1ce3c640`) and the heads after it
+- Run 1941: two red jobs. **checks**: `day-records` (F-GOOD-THINGS' Showcase entry; fixed at `c54eaa2b`). **main shard
+  8**: `a10-life:120` A10-11 (both projects, both tries) — a real regression, not an intermittent: F-NL-TASKS
+  (`dd931b8e`) made the task line's hint two lines at 768 px, so the first task's title ended at y 1029 of 1024 (95 % in
+  view). Measured on the build and fixed at `967ab614` (87 characters, one line at 768; the Dutch examples are in Help).
+- The full unit and lint run found three more reds pushed in between, fixed at `7f01e6d5` and `a2deeed5`: the income
+  flow's render reassigned a variable (React compiler lint), the bill calendar named weekdays by hand (date-format
+  guard), and a Help question had the release-note shape "Where did … go?" (help-shape).
+- So the heads from `dd931b8e` to `34975169` are **not** safe to merge; `967ab614` and later wait for their own run.
+- `scripts/pre-run11-setup.test.mjs` fails in this sandbox only (it wants pnpm 11.19.0; the sandbox's pnpm differs);
+  it fails on the committed head too and passes in CI's checks job.
+
 ## Closing table
 
 | Item | Verdict | Where |
