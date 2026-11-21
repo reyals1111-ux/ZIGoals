@@ -114,3 +114,18 @@
   .workouts-exercise > .workouts-sets { display: block; position: relative; max-width: 100%; overflow-x: auto; }
   .workouts-kind { min-width: 3.6em; }
 }
+/* Session AV follow-up 1 (F-WORKOUT-WEEKS): the last 12 weeks. */
+.workouts-weeks{display:grid;gap:6px;margin:8px 0}
+.workouts-weeks h3{margin:0;font-size:16px}
+.workouts-weeks-pick{display:flex;flex-wrap:wrap;gap:6px}
+.workouts-weeks-pick button{min-height:44px}
+.workouts-weeks-bars{width:100%;height:64px}
+.workouts-weeks-bars rect{fill:var(--cyan, #6fd3ff);opacity:.7}
+.workouts-weeks-bars rect.is-this-week{opacity:1}
+.workouts-weeks-table summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.workouts-weeks-table table{border-collapse:collapse;font-size:15px}
+.workouts-weeks-table th,.workouts-weeks-table td{padding:4px 10px 4px 0;text-align:left}
+.workouts-weeks-scroll{overflow-x:auto;max-width:100%}
+.workouts-weeks-scroll:focus-visible{outline:2px solid var(--cyan, #6fd3ff);outline-offset:2px}
+.workouts-weeks-table th,.workouts-weeks-table td{white-space:nowrap}
+.workouts-weeks > *{min-width:0}
