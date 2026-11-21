@@ -452,6 +452,17 @@ Where a rule of the definition of done does not apply, it says so here.
   hydration, older than this session (sightings since runs 1643, 1669, 1701). **Carried** with this measurement; the
   spec's 5 s stays. The next session's lever: a lighter Settings first paint (its groups load as they open).
 
+## D-CI1992 — run 1992 (`6b2efe63`, the code head): A10-11 holds; one red of mine, three known intermittents
+- Green: checks, the a11y shards, 12 of 14 main shards (shard 8's A10-11 now passes), all four WebKit shards (the
+  Voice card passed this time), the Alpha gate.
+- Main shard 8, `send-feedback:102` (both projects): mine. Known limitations are counted exactly (49) and the Part 8
+  pass added four lines. The count moves to 53 deliberately and each new line is checked by its words, as the spec has
+  done for every earlier release.
+- Known intermittents, recorded (CI_INTERMITTENTS): main shard 7 `exploratory-round3:76` (NOVA Tasks widget focus; CI
+  1629; 4 of 4 locally); integration `account-browser` "no progress for 20000 ms" (D-SYNC, carried) and
+  `sync-offer-browser` "Stage 8 offer widget" not visible in 30 s (CI 1629, 1932). Between runs 1991 and 1992 only the
+  Tasks layout and docs changed, and run 1991's integration was green.
+
 ## Closing table
 
 | Item | Verdict | Where |

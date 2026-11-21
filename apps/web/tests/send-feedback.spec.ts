@@ -117,7 +117,9 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Someday and orbits lines say what is true since Sessions AM, AR and AT (checked by their new words, not removed).
   // Session AU (ADR-044, deliberate): three more for this release (was 47) and one removed because it is no longer true
   // (Dutch coin questions are answered now, D-NL-COINS; its absence is checked below), each new one checked by its words.
-  await expect(items).toHaveCount(49);
+  // Session AV (owner follow-up 1, deliberate): four more for this release (was 49), each checked by its words below.
+  await expect(items).toHaveCount(53);
+  for (const words of ['A countdown’s reminder shows on Today’s “Days until” card,', '“Hide calories and weight” hides the figures in Health and on Today’s pinned cards;', '“In your money log” on a bill', 'Your own journal templates, matrix lines and the daily question’s language']) await expect(section).toContainText(words);
   for (const words of ['Health stays closed to NOVA and ZIGi until you open it:', 'A meal in words has no calories:', 'moves habits, the Checklist, streaks and Tasks;']) await expect(section).toContainText(words);
   await expect(section).not.toContainText('Questions about coins in Dutch');
   for (const words of ['NOVA answers from your records only:', 'A restore brings back your records, not your device’s settings:', 'Today’s orbits card is off until you turn it on']) await expect(section).toContainText(words);
