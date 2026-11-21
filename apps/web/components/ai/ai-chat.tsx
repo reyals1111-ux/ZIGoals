@@ -441,6 +441,12 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   const parsed = session.parsed.get(turn.id), shown = parsed?.text ?? turn.text;
   const info = session.localFor(turn.id), calls = useMemo(() => (turn.tools ?? []).map(c => ({tool: c.tool, args: c.args ?? {}, label: c.label})), [turn.tools]), question = info?.question ?? asked;
   const reply = info?.reply;
+  // Session AV (CI 1997, au/sanne:64): an answer that names ZIGi's Health switches gets the one precise button to them
+  // (RR-13, below); the same reply's card to Settings → ZIGi (D-ALLOW-HEALTH) would be a second button to the same place,
+  // so it is left out there. Since the title became "ZIGi · your companion" that card's button reads its title, not
+  // "Open the form", which showed the two side by side.
+  const switchNamed = HEALTH_SWITCH_NAMED.test(shown);
+  const proposals = useMemo(() => (parsed?.proposals ?? []).filter(a => !(switchNamed && a.kind === 'open-page' && a.page === 'settings' && a.view === 'zigi')), [parsed, switchNamed]);
   const chips = isLast && reply ? reply.kind === 'choices' ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'refusal' && reply.choices ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'examples' ? reply.examples.map(e => ({label: e, run: () => void session.ask(e)})) : [] : [];
@@ -460,15 +466,15 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   return <article ref={turnBox} className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
-      <TurnKind cards={!!parsed && parsed.proposals.length > 0}/>
+      <TurnKind cards={proposals.length > 0}/>
       {!quiet && <SafeText className="ai-local-answer" text={shown}/>}
-      {parsed && parsed.proposals.length > 0 && <ProposalList onDevice proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
+      {proposals.length > 0 && <ProposalList onDevice proposals={proposals} rejected={parsed?.rejected ?? []} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
       <DataViz results={info?.results}/>
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
       {chips.length > 0 && !quiet && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
       {/* Release review AL (RR-13): an answer that names ZIGi's Health switches gets one tap to them, as NOVA's names its Permissions. */}
-      {HEALTH_SWITCH_NAMED.test(shown) && <p className="ai-card-actions ai-turn-switch"><button type="button" className="secondary" onClick={() => openHealthSwitches(onNavigate, router.push)}>Open Settings → ZIGi → Privacy &amp; data</button></p>}
+      {switchNamed && <p className="ai-card-actions ai-turn-switch"><button type="button" className="secondary" onClick={() => openHealthSwitches(onNavigate, router.push)}>Open Settings → ZIGi → Privacy &amp; data</button></p>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
       {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && quickAddUnder(reply) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)} onSaved={saved => { try { noteQuickAdd(saved, 'ZIGi'); } catch { /* the line is saved; only the note is missing */ } }}/></Suspense></ZigiPartBoundary>{cardShown && !context.gates.localHealth && HEALTH_LINE.test(question) && <p className="ai-note">{healthOffQuickAdd('ZIGi')}</p>}</div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
