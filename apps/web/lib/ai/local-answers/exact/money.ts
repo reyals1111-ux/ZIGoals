@@ -13,6 +13,8 @@ import {dayList} from './series';
 import {listWords, t} from './text';
 import {periodFor} from './track';
 import type {Exact, ExactWidget, Query} from './types';
+import {DEBT_PLANNER_WHERE, debtFreeMonth, debtMoney, debtView, type DebtCurrencyView} from '../../tools/f9-debt';
+import {countdownWords, type PlanResult} from '../../../debt-planner/plan';
 
 /**
  * Session AS (ADR-042, Part 1): money, exactly, from the money log, the budgets, the bills and Wealth's own totals. Every
@@ -163,3 +165,24 @@ export function netWorthAnswer(q: Query, env: ToolEnv): Exact | null {
   const moved = span || q.ask === 'trend' || q.ask === 'compare' ? t(lang, ` That is today's figure; how it moved${span ? ` ${periodWords(span, 'en', env.habitDay)}` : ''} is on the net worth river beside this answer.`, ` Dat is het bedrag van vandaag; hoe het veranderde${span ? ` ${periodWords(span, 'nl', env.habitDay)}` : ''} staat op de vermogensrivier naast dit antwoord.`) : '';
   return out(t(lang, `Net worth: ${amount(lead.netWorth)}${debts}${rest.length ? `; and ${listWords(rest, 'en')}, each currency on its own` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'holding has' : 'holdings have'} no known value and ${unknown === 1 ? 'is' : 'are'} not in it.` : ''}`, `Nettovermogen: ${amount(lead.netWorth)}${debts}${rest.length ? `; en ${listWords(rest, 'nl')}, elke valuta apart` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'bezitting heeft' : 'bezittingen hebben'} geen bekende waarde en ${unknown === 1 ? 'zit' : 'zitten'} er niet in.` : ''}`) + moved, {perCurrency: per, withoutValue: unknown});
 }
+
+/**
+ * Session AV (owner follow-up 1, F-DEBT-PLAN): when the person is debt-free, as the planner works it out (its kept
+ * order and one-off payments counted), each date with its countdown; English and Dutch. A missing figure is said as
+ * missing. A model, not advice: nothing is paid or moved.
+ */
+export function debtsAnswer(q: Query, env: ToolEnv): Exact | null {
+  const lang = q.lang, today = env.habitDay, views = debtView(env.accounts, env.ak?.debtPlanner, today);
+  const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'debts', ask: q.ask, ...facts}, widgets: [{id: 'debt-ranks'}], query: q, source: t(lang, 'Your debt payoff plan', 'Je afbetalingsplan')});
+  if (!views.length) return out(t(lang, 'No debt with a balance is recorded on this device, so there is no debt-free month to work out.', 'Er staat op dit apparaat geen schuld met een saldo, dus er is geen maand om schuldenvrij te zijn uit te rekenen.'), {debts: 0});
+  const say = (r: PlanResult, c: string) => { const m = debtFreeMonth(today, r.months); return m ? t(lang, `${m} (in ${countdownWords(r.months!)}, ${debtMoney(r.totalInterest, c)} interest)`, `${m} (over ${dutchCountdown(r.months!)}, ${debtMoney(r.totalInterest, c)} rente)`) : t(lang, 'not within 100 years', 'niet binnen 100 jaar'); };
+  const line = (v: DebtCurrencyView) => {
+    if (v.issue || !v.comparison) return t(lang, `${v.currency}: ${v.issue ?? 'not worked out yet'}`, `${v.currency}: er ontbreekt nog een bedrag of rente in de planner`);
+    const c = v.comparison;
+    return t(lang, `${v.currency}: debt-free in ${say(c.avalanche, v.currency)} with avalanche, ${say(c.snowball, v.currency)} with snowball${c.custom ? `, ${say(c.custom, v.currency)} in your own order` : ''}; minimums only: ${say(c.minimums, v.currency)}`,
+      `${v.currency}: schuldenvrij in ${say(c.avalanche, v.currency)} met lawine, ${say(c.snowball, v.currency)} met sneeuwbal${c.custom ? `, ${say(c.custom, v.currency)} in je eigen volgorde` : ''}; alleen de minimumbedragen: ${say(c.minimums, v.currency)}`);
+  };
+  return out(`${views.slice(0, 4).map(line).join('. ')}. ${t(lang, `From your own figures in ${DEBT_PLANNER_WHERE}; a model, not advice: nothing is paid or moved.`, 'Uit je eigen bedragen in Wealth → What you owe; een model, geen advies: er wordt niets betaald of verplaatst.')}`,
+    {plans: views.map(v => ({currency: v.currency, issue: v.issue, avalanche: v.comparison?.avalanche.months ?? null, snowball: v.comparison?.snowball.months ?? null}))});
+}
+const dutchCountdown = (months: number) => { const y = Math.floor(months / 12), m = months % 12, part = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`; return y && m ? `${part(y, 'jaar', 'jaar')} en ${part(m, 'maand', 'maanden')}` : y ? part(y, 'jaar', 'jaar') : part(m, 'maand', 'maanden'); };

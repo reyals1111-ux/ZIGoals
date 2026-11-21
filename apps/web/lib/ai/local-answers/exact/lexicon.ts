@@ -20,6 +20,8 @@ export const DOMAIN_WORDS: readonly [Domain, RegExp][] = [
   ['meditation', w('meditate|meditated|meditating|meditation|mindful|mindfulness|mediteren|gemediteerd|mediteer|meditatie')],
   // Session AU (REHEARSAL R-2, R-3): what was lifted and how far was run are the workout log's ("what did I lift today", "how far did I run").
   ['workouts', w('workout|workouts|worked out|work out|working out|exercise|exercised|exercising|training|trained|gym|gesport|sporten|sport|getraind|trainen|sportschool|hardgelopen|hardlopen|lift|lifted|lifting|lifts|ran|run|runs|jog|jogged|jogging|gerend|getild|gelift')],
+  // Session AV (owner follow-up 1, F-DEBT-PLAN): the debt payoff planner's own questions (narrow: "debts" alone stays net worth's).
+  ['debts', w('debt free|debtfree|debts paid off|debts cleared|pay off my debts|paying off my debts|snowball|avalanche|schuldenvrij|schulden afbetaald|schulden afgelost|schulden aflossen|sneeuwbal|lawine')],
   ['budgets', w('budget|budgets|budgetten')],
   ['bills', w('bill|bills|subscription|subscriptions|rent|invoice|invoices|rekening|rekeningen|abonnement|abonnementen|huur|factuur|facturen|vaste lasten')],
   ['income', w('income|earned|earnings|earn|salary|paycheck|inkomen|inkomsten|verdiend|verdien|salaris|loon')],

@@ -5072,6 +5072,14 @@
   "fresh": "No bill reminders yet.",
   "freshNl": "Nog geen rekeningen als herinnering."
  },
+ "av-debt-free": {
+  "en": "From your own figures (Wealth → What you owe → Plan paying off your debts):\n• USD (2 debts, $100.00 extra a month): debt-free in Apr 2028 (in 1 year and 5 months, $316.87 interest) with avalanche; Apr 2028 (in 1 year and 5 months, $316.87 interest) with snowball; minimums only: Oct 2029 (in 2 years and 11 months, $672.30 interest). Both orders come out the same here: debt-free after 17 months, with the same interest.\nA model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed. Nothing is paid or moved.",
+  "nl": "USD: schuldenvrij in Apr 2028 (over 1 jaar en 5 maanden, $316.87 rente) met lawine, Apr 2028 (over 1 jaar en 5 maanden, $316.87 rente) met sneeuwbal; alleen de minimumbedragen: Oct 2029 (over 2 jaar en 11 maanden, $672.30 rente). Uit je eigen bedragen in Wealth → What you owe; een model, geen advies: er wordt niets betaald of verplaatst.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No debt with a balance is recorded on this device, so there is no debt-free month to work out. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth, with what you owe and your yearly rate.",
+  "freshNl": "Er staat op dit apparaat geen schuld met een saldo, dus er is geen maand om schuldenvrij te zijn uit te rekenen."
+ },
  "tasks-overdue": {
   "en": "2 tasks are overdue: Sketch the garden bed (due Mon, Nov 16) and Book the dentist (due today 10:30 AM).",
   "nl": "2 taken zijn te laat: Sketch the garden bed (gepland Mon, Nov 16) en Book the dentist (gepland vandaag 10:30 AM).",

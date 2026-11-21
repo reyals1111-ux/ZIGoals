@@ -41,6 +41,6 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   // Session AU (dress rehearsal, REHEARSAL.md R-1 … R-12, the Showcase's records).
   'au-r1-habit-streak': ['Drink water', '26'], 'au-r12-habit-missed': ['Drink water', 'Nov 1', 'Nov 10'], 'au-r2-lift-today': ['Push day', 'Bench press', '62.5 kg', 'Nov 16'], 'au-r2-lift-yesterday': ['Push day', 'Bench press', '62.5 kg'],
   'au-r3-run-week': ['Nov 15', '6 km'], 'au-r3-run-lastweek': ['6 km', 'Nov 15'], 'au-r4-date': ['Nov 17'], 'au-r6-bill-price': ['Streaming', '12.99', '13.99'], 'au-r7-coin-price': ['65,000 USD', 'Showcase example price'],
-  'au-r8-stake-earn': ['Earn'], 'au-r10-stake-safe': ['ZIG', 'Alpha', 'unbonding'], 'au-r11-next-bill': ['Rent', '950.00', 'Dec 1'],
+  'au-r8-stake-earn': ['Earn'], 'au-r10-stake-safe': ['ZIG', 'Alpha', 'unbonding'], 'au-r11-next-bill': ['Rent', '950.00', 'Dec 1'], 'av-debt-free': ['Apr 2028', '$316.87'],
   'journey-level': ['8', 'Nebula', '3,577', '377', '850', 'Showcase'],
 };

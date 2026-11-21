@@ -4,7 +4,7 @@ import {HEALTH_CLOSED} from '../../tools/format';
 import {habitsAnswer} from './habits';
 import {agendaAnswer, checklistAnswer, focusAnswer, goalsAnswer, journalAnswer, lifeAnswer, notesAnswer, novaAnswer, tasksAnswer} from './day';
 import {DISTANCE_WORDS, healthAnswer, LIFT_WORDS} from './health';
-import {billsAnswer, budgetsAnswer, netWorthAnswer, PRICE_CHANGE, spendingAnswer} from './money';
+import {billsAnswer, budgetsAnswer, debtsAnswer, netWorthAnswer, PRICE_CHANGE, spendingAnswer} from './money';
 import {resolvePeriod, periodWords} from './period';
 import {fold, t} from './text';
 import {GOAL_ETA, namesNonGoal} from './lexicon';
@@ -156,6 +156,7 @@ export function answerQuery(q: Query, env: ToolEnv): Exact | null {
     case 'spending': case 'income': return spendingAnswer(q, env);
     case 'budgets': return budgetsAnswer(q, env);
     case 'bills': return billsAnswer(q, env);
+    case 'debts': return debtsAnswer(q, env);
     case 'networth': return netWorthAnswer(q, env);
     case 'goals': return goalsAnswer(q, env);
     case 'tasks': return tasksAnswer(q, env);

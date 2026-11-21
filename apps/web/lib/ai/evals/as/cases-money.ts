@@ -142,4 +142,8 @@ export const MONEY: readonly Intent[] = [
   {id: 'au-r11-next-bill', pillar: 'wealth', never: ['No goal is called', 'Geen doel heet'],
     en: ['when will my next bill be due', 'when is my next bill due'],
     nl: ['wanneer moet ik mijn volgende rekening betalen']},
+  // Session AV (owner follow-up 1, F-DEBT-PLAN): the debt-free date as a countdown, with the kept one-off payment counted.
+  {id: 'av-debt-free', pillar: 'wealth', never: ['you should', 'I recommend', 'guaranteed', 'je moet', 'gegarandeerd'],
+    en: ['when will I be debt-free', 'when are my debts paid off'],
+    nl: ['wanneer ben ik schuldenvrij', 'wanneer zijn mijn schulden afbetaald']},
 ];

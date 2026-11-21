@@ -2,6 +2,8 @@ import {isDebtKind, type Accounts} from '../../accounts/schema';
 import {balanceOn} from '../../accounts/net-worth';
 import {centsText, comparePlans, comparisonWords, parseCents, payoffMonth, planIssue, rateE4, toCents, type PlanComparison, type PlanDebt} from '../../debt-planner/plan';
 import type {DebtPlannerRecord} from '../../debt-planner/store';
+import {keptPlanOptions} from '../../debt-planner/kept';
+import {countdownWords} from '../../debt-planner/plan';
 import {formatMoney, formatMonth} from '../../visual-format';
 
 /**
@@ -43,18 +45,19 @@ export function debtView(accounts: Accounts | null | undefined, planner: DebtPla
     const plan: PlanDebt[] = issue ? [] : debts.map(d => ({id: d.id, name: d.name, balance: d.owed, ratePercent: d.ratePercent!, minimum: d.minimum!}));
     issue ??= planIssue(plan, extra);
     let comparison: PlanComparison | null = null;
-    if (!issue) { try { comparison = comparePlans(plan, extra); } catch (error) { issue = error instanceof Error ? error.message : 'The plan cannot be worked out with these figures.'; } }
+    // Session AV (F-DEBT-PLAN): the planner's own order and one-off payments, as the planner works it out.
+    if (!issue) { try { comparison = comparePlans(plan, extra, keptPlanOptions(planner, today, plan, currency === extraCurrency)); } catch (error) { issue = error instanceof Error ? error.message : 'The plan cannot be worked out with these figures.'; } }
     return {currency, debts, extra, issue, comparison};
   });
 }
 export const debtMoney = (cents: bigint, currency: string) => formatMoney(centsText(cents), currency);
 /** "March 2029", or null when the plan does not clear within 100 years. */
 export const debtFreeMonth = (today: string, months: number | null) => { const m = payoffMonth(today, months); return m ? formatMonth(m) : null; };
-const monthsWords = (n: number) => `${n} ${n === 1 ? 'month' : 'months'}`;
 /** One currency's plan in plain words (used by the local answer). */
 export function debtSentence(v: DebtCurrencyView, today: string): string {
   const head = `${v.currency} (${v.debts.length} ${v.debts.length === 1 ? 'debt' : 'debts'}${v.extra > 0n ? `, ${debtMoney(v.extra, v.currency)} extra a month` : ''})`;
   if (v.issue || !v.comparison) return `${head}: ${v.issue ?? 'not worked out'}`;
-  const c = v.comparison, say = (r: PlanComparison['avalanche']) => { const m = debtFreeMonth(today, r.months); return m ? `${m} (${monthsWords(r.months!)}, ${debtMoney(r.totalInterest, v.currency)} interest)` : 'not within 100 years'; };
-  return `${head}: debt-free in ${say(c.avalanche)} with avalanche; ${say(c.snowball)} with snowball; minimums only: ${say(c.minimums)}. ${comparisonWords(c, cents => debtMoney(cents, v.currency))}`;
+  // Session AV (F-DEBT-PLAN, deliberate): the date with its countdown ("in 2 years and 3 months"); "your order" when one is kept.
+  const c = v.comparison, say = (r: PlanComparison['avalanche']) => { const m = debtFreeMonth(today, r.months); return m ? `${m} (in ${countdownWords(r.months!)}, ${debtMoney(r.totalInterest, v.currency)} interest)` : 'not within 100 years'; };
+  return `${head}: debt-free in ${say(c.avalanche)} with avalanche; ${say(c.snowball)} with snowball;${c.custom ? ` ${say(c.custom)} in your own order;` : ''} minimums only: ${say(c.minimums)}. ${comparisonWords(c, cents => debtMoney(cents, v.currency))}`;
 }

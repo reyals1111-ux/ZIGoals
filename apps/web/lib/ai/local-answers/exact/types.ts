@@ -5,7 +5,7 @@
  * words, the same facts as data (what a connected model receives as a tool result), and the widgets of that answer.
  */
 export type Lang = 'en' | 'nl';
-export const DOMAINS = ['habits', 'water', 'steps', 'sleep', 'weight', 'calories', 'protein', 'workouts', 'meditation', 'vitals', 'health', 'goals', 'networth', 'spending', 'income', 'budgets', 'bills', 'tasks', 'notes', 'journal', 'agenda', 'checklist', 'focus', 'nova', 'life'] as const;
+export const DOMAINS = ['habits', 'water', 'steps', 'sleep', 'weight', 'calories', 'protein', 'workouts', 'meditation', 'vitals', 'health', 'goals', 'networth', 'spending', 'income', 'budgets', 'bills', 'debts', 'tasks', 'notes', 'journal', 'agenda', 'checklist', 'focus', 'nova', 'life'] as const;
 export type Domain = (typeof DOMAINS)[number];
 export const ASKS = ['missed', 'not-done', 'skipped', 'done', 'late', 'open', 'total', 'average', 'best', 'worst', 'streak', 'compare', 'trend', 'status', 'last', 'next', 'why'] as const;
 export type Ask = (typeof ASKS)[number];
@@ -15,7 +15,7 @@ export type Shape = (typeof SHAPES)[number];
 export type Gate = 'today' | 'goals' | 'habits' | 'health' | 'wealth' | 'notes' | 'journal' | 'none';
 export const DOMAIN_GATE: Readonly<Record<Domain, Gate>> = {
   habits: 'habits', water: 'health', steps: 'health', sleep: 'health', weight: 'health', calories: 'health', protein: 'health', workouts: 'health', meditation: 'health', vitals: 'health', health: 'health',
-  goals: 'goals', networth: 'wealth', spending: 'wealth', income: 'wealth', budgets: 'wealth', bills: 'wealth',
+  goals: 'goals', networth: 'wealth', spending: 'wealth', income: 'wealth', budgets: 'wealth', bills: 'wealth', debts: 'wealth',
   tasks: 'today', notes: 'notes', journal: 'journal', agenda: 'today', checklist: 'today', focus: 'today', nova: 'none', life: 'none',
 };
 /** A named record the question is about (a habit, a goal, a budget's category, a bill). */
