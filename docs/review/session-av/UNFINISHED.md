@@ -2,6 +2,51 @@
 
 Everything started and not finished in the app, read 20 Nov 2026 on `feature/session-au-dress-rehearsal` (a read-only sweep: docs and code, no build, no browser). Sources: `docs/review/session-al/NEXT_SESSION_BACKLOG.md`, `CI_INTERMITTENTS.md` (rows not marked fixed), `CARRIED.md` (the only CARRIED.md under docs/), `docs/review/session-au/REHEARSAL.md` (verdict Carried), the carried lists of ADR-038 to ADR-044, the polish picklists (`docs/review/session-al/EARLIER_SCOPE.md`, picklists 1 and 2 and their Part 14 verdicts), and a sweep of `apps/web` (components, lib, app): TODO/FIXME, "coming soon"/"not yet"/"placeholder" copy, a sample of `disabled={…}` controls, NOVA's widget catalogue against its components, routes against the navigation, search and Help, and Help's Known limitations. Later ADRs and the code decide a row's status where an earlier list said "carried". Paths are under `apps/web/` unless they start with `docs/`, `landing/`, `scripts/` or `.github/`.
 
+## Owner decisions
+
+Session AV, owner follow-up 1: the rows that need your decision or your own action, one line each (`needs the owner` below). Nothing here is built. Two rows were small calls within the rules and are decided with the rules' default instead (CR-17, CR-20).
+
+| id | question | recommended default | effort |
+|---|---|---|---|
+| BL-2 | Send a daily snapshot (net worth, the day) as a notification? | Not before push is switched on; Today's wealth line meanwhile | S, after push |
+| BL-7 | What should ZIGi be over weeks (a companion arc)? | Keep today's on-device states; decide after the friends' first month | L |
+| BL-9 | Multichain portfolio, hardware wallet, multisig? | Not in Alpha; a Beta scope question | L |
+| BL-16 | "Start your fast" while the app is closed? | Build once push is on (the in-app card exists) | S, after push |
+| CR-2 | Turn the food lookup provider on? | Yes: set the deployment setting (OWNER_STEPS) | owner action |
+| CR-6 | Tick several items with one confirm? | Keep one at a time (pinned in AT D4, said in Known limitations) | M |
+| CR-18 | Section-level Showcase lines (D-003) and the words "Sleep debt" (D-090)? | Keep both as they are | S |
+| CR-19 | Should Erase name each area it erased? | Yes, using the export catalogue's areas | S |
+| M-9 | Goal creator step 1: "Create goal" beside "Continue", and the 0/80 counter? | Keep Continue as the main button; show the counter from 60 characters | S |
+| M-10 | A visible close while the Checklist's celebration clip plays? | Keep: a tap skips to the words, Escape closes (your amendment 2 design) | S |
+| L-9 | ZIGi titled "AI Companion" with a Premium badge while answers say "no AI"? | "ZIGi · your companion"; no Premium badge during the Alpha | S |
+| A38-1 | Deploy the weather proxy Worker? | Yes, before friends rely on weather | owner action |
+| A38-2 | Redeploy private-sync so NOVA's section travels? | With the next sync deploy | owner action |
+| D20-5 | Health's counters before any food or water? | Keep (they feed the protected Checklist path, R2-15) | — |
+| D20-8 | NOVA's two "no AI used" lines and its phone hint? | Keep (AR's protected composition) | — |
+| PK-4 | Split the 5.1 MB market catalogue download? | Later; it loads once and stays offline | M |
+| PK-5 | Re-encode ZIGi's 2–2.4 MB idle clips? | Yes, same look at a lower bitrate, after you compare | M |
+| PK-6 | A moment for ZIGi's "hello in place" (X001)? | The first open of the day when ZIGi is already on screen | S |
+| PK-7 | A smoother R013 hide move (the arm)? | A Studio-4 revision | owner art |
+| PK-8 | HEVC-alpha MOV clips? | Make them on your Mac | owner action |
+| PK-9 | A sharp 2× brand mark? | Send the original file | owner file |
+| PK-10 | Hide the chain Help topics when no chain is chosen? | Yes | M |
+| PK-11 | A prefix-free practice-badge memo? | No (no change to signing) | — |
+| PK-13 | The Fineli (Finnish) food table? | Send the raw files, then import | owner file |
+| PK-14 | Your OroSwap LP and USDC vault shares on Earn? | Check with a real address after the deploy | owner action |
+| PK-15 | The hosted verifier's late /api/push abort? | Read it on your next hosted verifier run | owner action |
+| PK-16 | Dependabot alerts in build tooling (glob, minimatch)? | Approve the dev-only bumps | S |
+| PK-18 | ZIGi's cloud send with no privacy mode chosen? | Guarded (the redacted preview first) | S |
+| PK-20 | WalletConnect and Keplr Mobile on a real phone? | Add Reown's allowed domains, then test on your phone | owner action |
+| PK-21 | Pre-filled Ramp and Banxa hand-offs? | Send the providers' public IDs | owner action |
+| PK-22 | Switch push on (reviews, snooze, price alerts while closed)? | Yes, after the Alpha's first week | owner action |
+| PK-23 | The landing's two numbering systems; guide finales as a small orb? | Keep | — |
+| CS-3 | Plans' placeholder prices? | Keep, labelled, nothing charged in the Alpha | — |
+| CS-4 | Hosted ZIGoals AI? | Not in the Alpha | L |
+| KL-3 | Open accounts on alpha.zigoals.app? | After the Alpha's first week | owner action |
+| KL-4 | Redeploy sync so the Checklist travels? | With the next sync deploy | owner action |
+| KL-5 | Register with Oura, Withings, Polar and Strava? | Later; file imports work | owner action |
+| KL-6 | Spotify's app approval for everyone? | Apply when friends ask for it | owner action |
+
 Status: `open` (needs work, no outside service, model or owner: the next step is named) · `hidden honestly` (not reachable, or says plainly it isn't there) · `carried` (with its cause) · `needs an outside service` · `needs a model` · `needs the owner` · `finished` (the file that proves it).
 
 | id | what | file | status | cause / next step |
@@ -42,10 +87,10 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | CR-14 | C-DVG-22, C-NB-28, N-NB-11: "My day ends at" | components/settings/day-ends-setting.tsx | finished | built in AO (`e2452897`) |
 | CR-15 | C-DVG-17, DV-046e, DV-054d, C-DV-13, PR-100: Activity search and CSV | docs/architecture/ADR-039-session-ao.md | finished | built in AO (`d256b946`) |
 | CR-16 | B-083, M-104, M-131: End goal / remove milestone without a confirm | components/platform/goal-milestones.tsx | finished | owner decision g (13 Nov): Undo, no confirm |
-| CR-17 | DV-170: Activity's Remove on every row instead of inside ⋯ | components/activity-feed-lazy.tsx | needs the owner | a visual call; Remove is named after its row, 44 px, with a 12 s Undo |
+| CR-17 | DV-170: Activity's Remove on every row instead of inside ⋯ | components/activity-feed-lazy.tsx | finished | decided with the rules' default (follow-up 1): Remove stays on each row — one tap, named after its row, 44 px, 12 s Undo |
 | CR-18 | D-003 (section-level Showcase lines), D-090 ("Sleep debt" wording) | docs/architecture/ADR-039-session-ao.md | needs the owner | copy decisions (ADR-039 D16) |
 | CR-19 | BN-022: Erase names each area it erased | components/settings/erase-everything.tsx | needs the owner | needs a key-to-area map; no automatic reload is deliberate (ADR-039 D16) |
-| CR-20 | The Today grid's day for Health cells | docs/architecture/ADR-039-session-ao.md | needs the owner | Health keeps its own day (ADR-039 D16) |
+| CR-20 | The Today grid's day for Health cells | docs/architecture/ADR-039-session-ao.md | finished | decided with the rules' default (follow-up 1): Health cells keep Health's own day, as the Health page counts it |
 | CR-21 | AO D17 Major 3: floating music/Checklist/ZIGi buttons over Today's right rail at 1440 | components/launchers/auto-tuck.ts | finished | launchers fold into the edge (AP owner 4a, ADR-040 D12, D24e) |
 | CR-22 | AO D17 minor: 12–13 px notice and chip text | components/ui/ui.css | carried | AL's sizes; T-069's one-line fact fits only at these sizes |
 | CR-23 | AO D18: four pages over their route budget | scripts/check-weight-budget.test.mjs | finished | every route ≥ 6.3 kB under budget, none raised (ADR-045 D-WEIGHT) |
@@ -62,7 +107,7 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | CI-10 | `grok53/hud/hud-perf:23`: median frame 33 ms at CPU 4× (CI 1632, 1743) | tests/grok53/hud/hud-perf.spec.ts | carried | runner load, first sightings; warm-up test in the shard if it recurs |
 | CI-11 | First sightings passed on re-run: `for-you:8`, `j04-offline:23`, `earn-guide-zigi:54`, `progress-glass:60`, `zigi-voice-z:316`, `j06-data-safety:140`, `j05-notifications:159` | — | carried | recorded; investigate on a second failure |
 | CI-12 | `zigi-face-z:313`, `zigi-memory-af:15`, `o3-apps-extras:80` (43.999996 px mid-transform) | — | carried | recorded families; investigate on a second failure |
-| CI-13 | `sync-offer-browser.test.mjs`: device A's Today card not visible 30 s after "Save widget" | scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs | open | test-only: keep a screenshot of device A on failure (the row's own proposal), so a recurrence shows where the card went |
+| CI-13 | `sync-offer-browser.test.mjs`: device A's Today card not visible 30 s after "Save widget" | scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs | finished | follow-up 1: a miss prints device A's address and page structure to the job log, then fails as before |
 | CI-14 | `install-chrome.test.mjs:94`: the same latent race as the fixed `:100` | scripts/ci/install-chrome.test.mjs | carried | raising its attempt limit would move its `seconds < 7` check; recorded |
 | CI-15 | Fixes 1–3, settings sweep poll, `exploratory-round3` hydration wait, Wrapped story held open (Q24), `zigi-part-boundary` fetch retry | components/wrapped/wrapped-door.tsx | finished | every proposed fix is in the code (ADR-043 D10) |
 | CI-16 | ADR-041 D34 (`hud-motion` phone stillness) and D36 (ND-1, the first WebGL task) | components/nova/core/star-system.tsx | finished | fixed at their cause (ADR-045 D34, D36) |
@@ -71,14 +116,14 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | **D** | **REHEARSAL.md (AU, verdict Carried)** | | | |
 | S-8 | Today 409 CSS px wide for under a second right after a reload (phone top bar and tab row) | components/phone/phone-chrome.tsx | carried | transient on reload, never after load (overflow probe on every page) |
 | S-10 | Dutch answers carry English dates and an all-English Life review card | lib/ai/local-answers/exact/period.ts | carried | the interface is English; Dutch is the answers' language only (see KL-8) |
-| S-12 | "Night saved." covers the 7-day sleep averages for a moment | components/health/sleep/sleep-forms.tsx | open | put the status line under the form, outside the averages' box; check at 390 in a spec |
+| S-12 | "Night saved." covers the 7-day sleep averages for a moment | components/ui/undo-toast.tsx | finished | follow-up 1 (`7e664056`): the toast keeps clear of what a save changed (`clearOf`), here the 7-day averages (av-rows spec, 390/1440) |
 | M-9 | Goal creator step 1: "Create goal" beside "Continue", and the 0/80 counter (also AT D20) | components/unified-goal-wizard.tsx | needs the owner | a creator design call (AT D20, AU M-9) |
 | M-10 | The full-screen Checklist celebration has no visible words or close | components/checklist/day-celebration.tsx | needs the owner | Escape and a tap close it; a visible close is a Checklist design call (orbit path protected) |
-| M-12a | The "Added…" note covers the newly added row (Tasks, Habits) | components/ui/undo-toast.tsx | open | keep the toast clear of the list's newest row (offset, or scroll the row into view); spec at 390 |
-| M-12b | Tasks filter chips cut off without a scroll hint | components/tasks/tasks-nav.tsx | open | add an edge fade / scroll hint on the chip row, as Earn's tabs have |
-| M-12c | P3 missing from a priority list (Tasks, 390) | components/tasks/task-parts.tsx | open | find the list that omits P3 (filter chips or matrix words) and list P1–P4 as `LEVEL_WORDS` does |
+| M-12a | The "Added…" note covers the newly added row (Tasks, Habits) | components/ui/undo-toast.tsx | finished | follow-up 1 (`7e664056`): `clearOf` the new task row and the new habit card (av-rows spec) |
+| M-12b | Tasks filter chips cut off without a scroll hint | tests/av-rows.spec.ts | finished | follow-up 1: measured at 390/800/1024/1440 — Habits' chip row already fades at its edge on a phone; Tasks has no sideways row (its lists wrap). The spec pins both |
+| M-12c | P3 missing from a priority list (Tasks, 390) | components/tasks/tasks-nav.tsx | finished | follow-up 1 (`7e664056`): P1–P4 listed, P3 (Normal) too (av-rows spec) |
 | L-6 | The import preview has no category column | components/import/bankfiles/category-pick.tsx | finished | AV L-6: a Category column, changeable per row, same code path as the import |
-| L-7 | A weekly-budget card says "No weekly budget" beside her monthly budget, which sits folded at the bottom | components/wealth/spending/spending-section.tsx | open | with only monthly budgets, show this month's room (or point to it) instead of "No weekly budget"; unfold the monthly card when it is the only budget |
+| L-7 | A weekly-budget card says "No weekly budget" beside her monthly budget, which sits folded at the bottom | components/wealth/budgets/month-room.tsx | finished | follow-up 1 (`7e664056`): with only monthly budgets the card shows this month's room and links to Budgets by category (av-rows spec, three themes, axe) |
 | L-9 | ZIGi titled "AI Companion" with a "Premium" badge while every answer says "no AI" | components/plans/premium-badge.tsx | needs the owner | naming across ZIGi's panel; the plan badge is the owner's |
 | **E** | **Carried lists of ADR-038 to ADR-044 (rows not already above)** | | | |
 | A38-1 | A caching proxy Worker for weather, hiding the person's address from MET Norway (ADR-038 "Carried") | docs/friends-alpha/OWNER_STEPS.md | needs the owner | built and off (AP `c66b65c9`); the owner deploys and switches it on; Help says so |
@@ -93,20 +138,20 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | A42-1 | AS D21 critic items 1–5, 8, 9 (legends, trend gaps, names, radar, river, "slipped", labels) | lib/nova/widgets/as-carried.test.ts | finished | ADR-042 D26 (`7050bf78`) |
 | A42-2 | AS D21 items 6 ("0 due today" beside an overdue task) and 7 (meditation vs the habit) | docs/architecture/ADR-042-session-as.md | finished | kept as they are by the owner (D26) |
 | A42-3 | AS D21 item 10: the goals lookup leaves out average goals | lib/ai/tools/goals.ts | finished | ADR-042 D25 |
-| A42-4 | Six answer kinds only reachable from the gallery: body-scan, mood-map, debt-ranks, sleep-stages, sleep-times, fasting-windows | lib/nova/summon/ax-lines-health.ts | open | their data path and lines exist; add corpus questions that summon them (EN and NL), e.g. "what were my sleep stages this week", "rank my debts" |
+| A42-4 | Six answer kinds only reachable from the gallery: body-scan, mood-map, debt-ranks, sleep-stages, sleep-times, fasting-windows | lib/nova/summon/more-families.ts | finished | follow-up 1 (`7e664056`): `AV_FAMILIES` make the six kinds from words, EN and NL (av-gallery-kinds.test, lines.test samples) |
 | A43-1 | Showcase example mood tags and a bill price change (AT D8) | lib/showcase/au-examples.ts | finished | AU D-SHOWCASE |
 | A43-2 | A meal logged in words alone (AT D20) | tests/au/webkit-au-sanne.spec.ts | finished | AU F-MEAL |
 | A43-3 | "When will I reach…" leads with the target date, not the pace (AT D20) | lib/ai/evals/as | finished | AU D-ETA |
 | A43-4 | "Allow Health" from a NOVA reply (AT D20) | tests/au/sanne.spec.ts | finished | AU F-2, D-ALLOW-HEALTH |
 | A43-5 | The roving helper measures every item on each change (AT D18) | components/dashboard/today-skips.tsx | finished | AU D-ROVING |
 | A43-6 | Main shard 4 at 55 of 60 min (AT "For the next session") | scripts/ci/main-shards.test.ts | finished | AU: 14 duration-balanced lists |
-| D20-1 | Setup preselects an empty goal amount (AT D20, AU) | components/onboarding/onboarding-flow.tsx | open | start the target with no preselected value and say it is optional |
-| D20-2 | Setup gives no keyboard hint on a phone (AT D20, AU) | components/onboarding/onboarding-flow.tsx | open | set `inputMode`/`enterKeyHint` on each setup field (decimal for amounts, "next" then "done") |
+| D20-1 | Setup preselects an empty goal amount (AT D20, AU) | components/onboarding/onboarding-flow.tsx | finished | follow-up 1 (`7e664056`): "For example 1500" and "Your own amount; nothing is filled in for you." (av-rows spec, 390/1440) |
+| D20-2 | Setup gives no keyboard hint on a phone (AT D20, AU) | components/onboarding/onboarding-flow.tsx | finished | follow-up 1 (`7e664056`): `enterKeyHint` next/done, `inputMode` decimal (av-rows spec) |
 | D20-3 | "Balanced" unexplained (AT D20, AU) | components/dashboard/make-today.tsx | finished | Session AV Part 4b (this commit) "Keep Balanced and continue" names no content: add its line ("Goals, daily rhythm, Health and Wealth", from `PRESETS` in lib/dashboard-settings.ts) — done |
 | D20-4 | The habits week chart before a habit exists (AT D20, AU) | components/habits/habit-consistency.tsx | finished | Session AV Part 4b (this commit) with no habits show the teaching empty state instead of "Keep finding your rhythm" with empty bars — done |
 | D20-5 | Health's counters before any food or water (AT D20; R2-15) | components/health/health-app.tsx | needs the owner | the quick counters feed the protected Checklist path (owner decision R2-15) |
-| D20-6 | First five: "Record some money" ticks only on a money-log entry (AT D20, AU) | components/onboarding/first-five.tsx | open | also tick on a first holding, account or bill, or rename the step "Log an expense or income" |
-| D20-7 | The first-five card's focus order (AT D20, AU) | components/onboarding/first-five.tsx | open | make the DOM order follow the visual order (heading, steps, dismiss) and pin it with a Tab walk |
+| D20-6 | First five: "Record some money" ticks only on a money-log entry (AT D20, AU) | components/onboarding/first-five.tsx | finished | follow-up 1 (`7e664056`): the step is "Log an expense or income" (av-rows spec; ap/first-five moved deliberately) |
+| D20-7 | The first-five card's focus order (AT D20, AU) | tests/av-rows.spec.ts | finished | follow-up 1: the DOM order already matched the drawn order; a Tab walk pins links top to bottom, then "Not now, hide this" |
 | D20-8 | NOVA's two "no AI used" lines and its phone hint (AT D20, AU) | components/nova/stage/stage-parts.tsx | needs the owner | AR's NOVA composition is protected |
 | D20-9 | Agenda's future days said "(0 done)" (AT D20) | components/agenda/agenda-days.tsx | finished | AV (ADR-045 "AT D20 minors") |
 | D20-10 | Wealth's "Refresh prices" stood disabled with nothing priced (AT D20) | components/platform/wealth-view.tsx | finished | AV: waits for a priced holding |
@@ -115,9 +160,9 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | A44-1 | The answer under NOVA's star at 1440 had no page button (AU) | components/nova/stage/stage-parts.tsx | finished | AV D-STAR-BUTTON |
 | A45-1 | The account-sync engine (~80 kB) out of every page's first scripts | components/vault-sync-controls.tsx | carried | a remembered device failed to reopen in `remember-device-browser`'s cross-tab step (2 of 2); TIER 3 sync for a session that owns sync (ADR-045 D-WEIGHT) |
 | **F** | **Polish picklists (EARLIER_SCOPE.md, picklists 1–2 and their Part 14 verdicts)** | | | |
-| PK-1 | N10: one journey through NOVA's five steps (workflow, briefs, delegation, setup sharing, erase) | tests/journeys | open | test-only: extend j12 past Permissions; each step already passes in its own spec |
+| PK-1 | N10: one journey through NOVA's five steps (workflow, briefs, delegation, setup sharing, erase) | tests/journeys/j12-nova.spec.ts | finished | follow-up 1: journey 12b — brief, workflow with Undo, ZIGi on a page with the Duo, the shared setup, Erase everything |
 | PK-2 | KL-earn-tbt / D9: Earn's first load busy ~4 s on a mid-range phone | components/help/help-page.tsx | hidden honestly | owner decision 6; Known limitations says so |
-| PK-3 | KL-checklist-offline: only Today visited online, then offline the Checklist stays "Loading your path…" | public/sw.js | open | warm the path view's chunks into `zigoals-static-v1` after install; prove on a production build with that reproduction (journey 4 visits every pillar online first, so it does not cover it) |
+| PK-3 | KL-checklist-offline: only Today visited online, then offline the Checklist stays "Loading your path…" | public/sw.js | finished | follow-up 1, **TIER 3 (PWA)**: the worker keeps the later parts of the kept pages once per version on the page's ask (`warmLazy`, ≤ 6.5 MB, never under Data Saver/2G); av-offline-later-parts spec |
 | PK-4 | WE16: the market catalogue download is 5.1 MB | app/api/market-assets | needs the owner | splitting it changes the API route and offline search (ADR-034 N36) |
 | PK-5 | F1 / D13b: ZIGi's idle clips are 2.0–2.4 MB each | components/zigi/manifest.json | needs the owner | a re-encode changes the locked ZIGi look |
 | PK-6 | X001 "Hello, in place" delivered, not played | components/zigi/state-gallery.ts | needs the owner | no moment named for it; the ZIGi look is locked |
@@ -151,7 +196,7 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | CS-10 | Routes with no menu link: /app/share, /app/goals/positions, /app/today | app/app/share/page.tsx | finished | by design: the manifest's share target, a legacy redirect to Staking, an alias of Today |
 | CS-11 | /app/zigi/memory is in Settings, NOVA's setup and NOVA's go-to but not in search | lib/search/static.ts | finished | Session AV Part 4b (this commit) add a "What ZIGi remembers" page row to the static search index — done |
 | **H** | **Help and Known limitations** | | | |
-| KL-1 | "A few of ZIGi's new moves aren't used yet: its glances … and its hello": the glances X020–X022 play since P14-B | components/help/help-page.tsx | open | name only the hello without walking in (X001); move the send-feedback spec's line for it deliberately |
+| KL-1 | "A few of ZIGi's new moves aren't used yet: its glances … and its hello": the glances X020–X022 play since P14-B | components/help/help-page.tsx | finished | Session AV follow-up 1 (`7e664056`): Known limitations names only the unused hello; send-feedback spec moved deliberately |
 | KL-2 | "Your last backup isn't recorded": Today's copy card and "I saved a copy today" now keep `savedOn` | components/data-health/data-health-view.tsx | finished | Session AV Part 4b (this commit) show "You marked a copy on …" in Your copies when `savedOn` exists; reword the Help line to match — done |
 | KL-3 | Accounts and sync aren't open; reminders when closed need an account | lib/account-session.ts | needs the owner | the owner opens accounts on alpha.zigoals.app |
 | KL-4 | The Checklist's path, own items and day history aren't synced yet | lib/vault/extras-sections.ts | needs the owner | travels once the sync service is redeployed (as A38-2) |
