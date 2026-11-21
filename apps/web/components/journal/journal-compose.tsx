@@ -17,6 +17,8 @@ import {SecretGuard} from '../secret-guard/secret-guard';
 import {onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
 import {questionOfTheDay, withQuestion} from '../../lib/journal-prompts/daily';
 const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
+// Session AV (follow-up 1, F-GOOD-THINGS): three good things in one go, its own chunk.
+const ThreeGoodThings = lazy(() => import('./three-good-things'));
 
 /**
  * Session AI (feature 6, the journal and the daily energy rating): today's energy (1–5) in one tap, a few lines of
@@ -78,6 +80,7 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
       <SecretGuard text={answer} onRemove={() => setAnswer('')}/>
       <div className="journal-actions"><button type="submit" className="primary" disabled={!answer.trim()}>Save answer</button><button type="button" className="text-link" onClick={() => setAsked(null)}>Not now</button></div>
     </form>}
+    {!compact && !pending && <Suspense fallback={null}><ThreeGoodThings/></Suspense>}
     <p className="journal-status" role="status" aria-live="polite">{status}</p>
     {pattern && <p className="journal-pattern"><span className="eyebrow">A pattern</span> {pattern}</p>}
   </div>;

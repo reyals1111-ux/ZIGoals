@@ -56,3 +56,8 @@
 .journal-today-question .fine{display:block;font-size:14px}
 .journal-today-question-actions{display:flex;flex-wrap:wrap;gap:8px}
 .journal-today-question-actions button{min-height:44px}
+/* Session AV follow-up 1 (F-GOOD-THINGS): three good things in one go. */
+.good-things-fold{margin-top:12px}
+.good-things-fold summary{min-height:44px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;cursor:pointer}
+.good-things{display:grid;gap:10px;margin-top:8px}
+.good-things input{min-height:44px;font-size:16px}

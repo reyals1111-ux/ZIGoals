@@ -3417,6 +3417,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .journal-today-question:not(#\-) { row-gap: 8px; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .journal-today-question p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .journal-today-question-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .good-things-fold:not(#\-) { margin-top: 12px; }
+:where(:root[data-density=compact]) .good-things-fold summary:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .good-things:not(#\-) { row-gap: 10px; margin-top: 8px; }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-density=compact]) .on-this-day > summary:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .on-this-day-list:not(#\-) { margin-top: 6px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 9px; }

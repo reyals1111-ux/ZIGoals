@@ -1779,6 +1779,7 @@
 :where(:root[data-text=large]) .journal-entry-words:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .journal-today-question p:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .journal-today-question .fine:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .good-things input:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-text=large]) .on-this-day-title:not(#\-) { font-size: calc(18px * 1.125); }
 /*  components/journal/year-pixels.css  */
