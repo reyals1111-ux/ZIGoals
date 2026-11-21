@@ -35,7 +35,13 @@ finish or unwire the current feature, push, get CI green, write "Safe to merge n
   today's focus habit (TIER 3 stored, `112eb132`). CI fixes: A10-11 (`967ab614`), nova-wa runFor (`f24e2913`).
 - Also built: #25 meal words matched (`b6d37ca4`), #26 habit symbol and colour (TIER 3 stored, `4acc13d8`), #27 sleep
   score's four parts (`11c7eb55`).
-- Next: C #28 onward in COMPETITORS.md order.
+- Also built: #28 foods high in a nutrient (`dab9a011`), #29 a meal planned on weekdays (`4897c46e`), #30 the habit
+  week grid (`71bf1f5f`), #31 watched categories (TIER 3 stored, `f89e889b`), #32 what got in the way (`ec6214b0`),
+  #33 today's journal line (`eede7c05`), #34 a journal entry's day (`cb63ff11`), #35 move and value alerts (TIER 3
+  stored, `5d0bee71`). CI: run 1961 on `c8f451ec` (the ui-evidence split) in progress.
+- Next: C #36 onward in COMPETITORS.md order (hide calorie and weight figures; category pace; plan my day; task
+  durations; workout notes; workout calendar; bills paid this month; matrix rules; yearly countdowns; journal
+  templates; sleep charts beyond 30 days; nutrient averages; symptoms in the visit report; the month recap).
 
 ## Next
 - Read CI at part boundaries (≤ every 10 min); record reds in ADR-045 (D-CI*) and CI_INTERMITTENTS.
