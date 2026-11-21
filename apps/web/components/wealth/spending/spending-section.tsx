@@ -111,7 +111,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   // Session AK (#18): this month as a list (as before) or as a map.
   const [monthView, setMonthView] = useState<'list' | 'map'>('list');
   // Session AK (#10): a draft from a receipt photo (Money tools → Receipt photos) fills this form; nothing is saved until Save.
-  const amountField = useRef<HTMLInputElement>(null);
+  const amountField = useRef<HTMLInputElement>(null), noteField = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const take = (event: Event) => {
       const d = (event as CustomEvent<MoneyDraft>).detail ?? {};
@@ -159,9 +159,9 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         </div>
         <CalcHint value={amount} id={`${id}-calc`}/>
         <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{withOwn(ordered.chips, editing?.category).map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={category === c} onChange={() => setCategory(c)}/><span>{c}</span></label>)}</fieldset>
-        <label className="field"><span>Note — optional</span><input maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
+        <label className="field"><span>Note — optional</span><input ref={noteField} maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
         {/* Session AV (owner follow-up 1, F-CATEGORY-SUGGEST): the category this payee or note had before, offered, never chosen for you. */}
-        {suggested && suggested.category !== category && <p className="fine spending-suggest" role="status">Before, “{note.trim()}” was {suggested.category}{suggested.times > 1 ? ` (${suggested.times} times)` : ''}. <button type="button" className="text-link" onClick={() => setCategory(suggested.category)}>Use {suggested.category}</button></p>}
+        {suggested && suggested.category !== category && <p className="fine spending-suggest" role="status">Before, “{suggested.payee ?? note.trim()}” was {suggested.category}{suggested.times > 1 ? ` (${suggested.times} times)` : ''}. <button type="button" className="text-link" onClick={() => { setCategory(suggested.category); noteField.current?.focus(); /* Session AV (q2 rank 22): the hint goes, so focus returns to the note */ }}>Use {suggested.category}</button></p>}
         <SecretGuard text={note} onRemove={() => setNote('')}/>
         {problem && <p role="alert">{problem}</p>}
         <div className="spending-form-actions"><button type="submit" className="primary">{editing ? 'Save changes' : 'Save'}</button>{editing ? <button type="button" className="quiet" onClick={() => { setProblem(''); endEdit(); }}>Cancel edit</button> : <button type="button" className="quiet" onClick={() => { setLogging(false); setProblem(''); requestAnimationFrame(() => logButton.current?.focus()); }}>Done</button>}</div>

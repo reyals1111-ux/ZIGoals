@@ -1,5 +1,6 @@
 'use client';
-import {useEffect, useId, useRef, useState, type FormEvent} from 'react';
+import {useEffect, useId, useState, type FormEvent} from 'react';
+import {firstShow} from './shown';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showToast} from '../ui/undo-toast';
 import {addPortfolioAlert, checkPortfolioAlerts, newAlertId, portfolioAlertLine, removePortfolioAlert} from '../../lib/price-alerts/engine';
@@ -13,14 +14,14 @@ import './price-alerts.css';
  * fired line joins the alerts' log. In the app only, information not advice. Lazy, in the portfolio's own place.
  */
 export default function PortfolioValueAlert({portfolioId, portfolioName, currency, value}: {portfolioId: string; portfolioName: string; currency: 'USD' | 'EUR'; /** The whole value now, or null while any held coin has no price. */ value: string | null}) {
-  const alerts = useDeviceRecord(PRICE_ALERTS), id = useId(), toasted = useRef(new Set<string>());
+  const alerts = useDeviceRecord(PRICE_ALERTS), id = useId();
   const [direction, setDirection] = useState<'above' | 'below'>('above'), [amount, setAmount] = useState(''), [status, setStatus] = useState('');
   useEffect(() => {
     if (!alerts.loaded || alerts.unreadable || value === null || !(alerts.data.portfolio ?? []).some(a => a.active && a.portfolioId === portfolioId)) return;
     const {record, fired} = checkPortfolioAlerts(alerts.data, pid => pid === portfolioId ? value : null, new Date().toISOString());
     if (!fired.length) return;
     try { alerts.update(() => record); } catch { return; }
-    for (const f of fired) if (!toasted.current.has(f.alert.id)) { toasted.current.add(f.alert.id); showToast({message: `Value alert: ${f.text}`}); }
+    for (const f of fired) if (firstShow(f.alert.id)) showToast({message: `Value alert: ${f.text}`, link: {href: '/app', label: 'See on Today'}});
   }, [alerts, value, portfolioId]);
   if (!alerts.loaded || alerts.unreadable) return null;
   const mine = (alerts.data.portfolio ?? []).filter(a => a.portfolioId === portfolioId);
@@ -29,7 +30,9 @@ export default function PortfolioValueAlert({portfolioId, portfolioName, currenc
     const v = amount.trim().replace(',', '.');
     if (!/^\d{1,15}(\.\d{1,2})?$/.test(v) || Number(v) <= 0) { setStatus('Enter a value above zero, such as 10000 or 2500.50.'); return; }
     const alert = {id: newAlertId(), portfolioId, portfolioName: portfolioName.slice(0, 100), currency, direction, value: v, createdAt: new Date().toISOString(), active: true};
-    try { alerts.update(r => addPortfolioAlert(r, alert)); setAmount(''); setStatus(`Alert set: ${portfolioAlertLine(alert)}. Checked when this portfolio shows a full value; nothing is sent.`); }
+    // Session AV (fresh-agent check q2, rank 35): a value already passed says so (the alert is reached at once).
+    const passed = value !== null && (direction === 'above' ? Number(value) >= Number(v) : Number(value) <= Number(v));
+    try { alerts.update(r => addPortfolioAlert(r, alert)); setAmount(''); setStatus(passed ? `${portfolioName} is already ${direction} ${v} ${currency} (worth ${Number(value).toFixed(2)} ${currency} now), so this alert is reached at once.` : `Alert set: ${portfolioAlertLine(alert)}. Checked when this portfolio shows a full value, here and wherever the app checks your alerts; nothing is sent.`); }
     catch (cause) { setStatus(cause instanceof Error ? cause.message : 'Not saved on this device.'); }
   };
   return <details className="price-alert-form portfolio-value-alert"><summary>Value alert{mine.some(a => a.active) ? ` (${mine.filter(a => a.active).length} set)` : ''}</summary>
@@ -40,7 +43,7 @@ export default function PortfolioValueAlert({portfolioId, portfolioName, currenc
       </div>
       <button type="submit" className="secondary">Set alert</button>
       {status && <p role="status" className="fine">{status}</p>}
-      <p id={`${id}-note`} className="fine">Checked when this portfolio shows its full value (every coin priced). In the app only; not advice: an alert never buys, sells or moves anything.</p>
+      <p id={`${id}-note`} className="fine">Checked when this portfolio&rsquo;s full value is known (every coin priced), on its page and wherever the app checks your alerts. In the app only; not advice: an alert never buys, sells or moves anything.</p>
     </form>
     {mine.length > 0 && <ul className="price-alerts-list">{mine.map(a => <li key={a.id}><span>{portfolioAlertLine(a)}{a.active ? '' : ' · reached'}</span><button type="button" className="text-link" aria-label={`Remove the alert ${portfolioAlertLine(a)}`} onClick={() => { try { alerts.update(r => removePortfolioAlert(r, a.id)); } catch { /* kept */ } }}>Remove</button></li>)}</ul>}
   </details>;

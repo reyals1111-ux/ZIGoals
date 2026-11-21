@@ -1,9 +1,9 @@
 import {addLocalDays} from '../local-date';
 import {cents} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
-import {daysBetween, dueDatesBetween, dueOnOrAfter} from './cadence';
+import {daysBetween, dueDatesBetween, dueOnOrAfter, stepDue} from './cadence';
 import {AMOUNT_TOLERANCE, normalisePayee} from './detect';
-import type {BillsRecord} from './schema';
+import type {Bill, BillsRecord} from './schema';
 
 /**
  * Session AV (owner follow-up 1, F-BILLS-MONTH; Copilot's "paid this month", Rocket Money's "until payday"): this month's
@@ -17,12 +17,28 @@ export type MonthBillState = 'seen' | 'passed' | 'coming';
 export type MonthBill = {billId: string; title: string; due: string; cents: number; currency: string; state: MonthBillState};
 export type MonthTotals = {currency: string; seen: number; left: number; seenCount: number; leftCount: number};
 const payeeOf = (e: Pick<MoneyEntry, 'note' | 'category'>) => normalisePayee(e.note) || normalisePayee(e.category);
+/**
+ * Session AV (fresh-agent check q2, rank 42 Blocker): a confirmed or detected bill stores its NEXT due date, which is
+ * after today, so this month's earlier dates lie before the anchor. Step back from the anchor by the cadence as well as
+ * forward (the same clamped steps, so the 31st stays the month's last day), and keep the dates from `from` to `to`. A
+ * date stepped back is kept only when it lies before `before` (today): a date still ahead but before the next due date
+ * the person gave is not due (they said the next one is later).
+ */
+export function monthDueDates(anchor: string, cadence: Bill['cadence'], from: string, to: string, before: string): string[] {
+  const out = new Set(dueDatesBetween(anchor, cadence, from, to));
+  for (let k = -1, guard = 0; guard < 600; k--, guard++) {
+    const due = stepDue(anchor, cadence, k);
+    if (due < from) break;
+    if (due <= to && due < before) out.add(due);
+  }
+  return [...out].sort();
+}
 export function billsThisMonth(record: BillsRecord, entries: readonly MoneyEntry[], today: string): {lines: MonthBill[]; totals: MonthTotals[]} {
   const first = `${today.slice(0, 7)}-01`, last = addLocalDays(dueOnOrAfter(first, 'monthly', addLocalDays(first, 1)), -1);
   const used = new Set<string>(), lines: MonthBill[] = [];
   for (const b of record.bills) {
     const amount = cents(b.amount), payee = normalisePayee(b.title);
-    for (const due of dueDatesBetween(b.nextDue, b.cadence, first, last)) {
+    for (const due of monthDueDates(b.nextDue, b.cadence, first, last, today)) {
       const hit = entries.find(e => e.kind === 'expense' && !used.has(e.id) && e.currency === b.currency && Math.abs(daysBetween(due, e.date)) <= MATCH_DAYS
         && Math.abs(cents(e.amount) - amount) <= amount * AMOUNT_TOLERANCE && ((!!payee && payeeOf(e) === payee) || (!!b.category && e.category === b.category && payeeOf(e) === normalisePayee(e.category))));
       if (hit) used.add(hit.id);

@@ -8,7 +8,7 @@ import {formatDate} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
 import {MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
 import {detectBills, openCandidates, type BillCandidate} from '../../../lib/bills/detect';
-import {addManualBill, billOccurrences, cancelReminders, confirmCandidate, dismissCandidate, manualBillIssue, monthlyEstimate, removeBill, yearlyEstimate, setCancelNote, totalsByCurrency, type BillOccurrence} from '../../../lib/bills/store';
+import {addManualBill, billOccurrences, cancelReminders, confirmCandidate, dismissCandidate, manualBillIssue, monthlyEstimate, removeBill, yearlyEstimate, yearlyOf, setCancelNote, totalsByCurrency, type BillOccurrence} from '../../../lib/bills/store';
 import {BILLS, BILL_CADENCES, type Bill, type BillCadence, type BillsRecord} from '../../../lib/bills/schema';
 import './bills.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
@@ -96,7 +96,7 @@ function BillRow({occurrence: o, bill, onRemove, onNote}: {occurrence: BillOccur
   const [editing, setEditing] = useState(false), [note, setNote] = useState(bill.cancelNote ?? ''), [by, setBy] = useState(bill.cancelBy ?? '');
   return <li className="bills-row">
     <span className="bills-date">{formatDate(o.due, {weekday: true, year: false})}</span>
-    <span className="bills-what"><strong>{o.title}</strong><span className="fine"> · {CADENCE_LABEL[o.cadence].toLowerCase()}{o.origin === 'detected' ? ' · from your spending' : ''}</span>{o.cancelNote && <span className="fine bills-note-line">Note: {o.cancelNote}{o.cancelBy ? ` (by ${formatDate(o.cancelBy)})` : ''}</span>}</span>
+    <span className="bills-what"><strong>{o.title}</strong><span className="fine"> · {CADENCE_LABEL[o.cadence].toLowerCase()}{o.cadence !== 'yearly' ? ` · about ${money(yearlyOf(bill), o.currency)} a year` : ''}{o.origin === 'detected' ? ' · from your spending' : ''}</span>{o.cancelNote && <span className="fine bills-note-line">Note: {o.cancelNote}{o.cancelBy ? ` (by ${formatDate(o.cancelBy)})` : ''}</span>}</span>
     <span className="bills-amount">{money(o.amountCents, o.currency)}</span>
     <span className="bills-actions">
       <button type="button" className="quiet" aria-expanded={editing} onClick={() => setEditing(!editing)} aria-label={`Note to self for ${o.title}`}>Note</button>

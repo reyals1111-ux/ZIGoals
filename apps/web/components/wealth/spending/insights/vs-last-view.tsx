@@ -10,6 +10,9 @@ import {money, monthName, signed} from './format';
  * Session AV (owner follow-up 1, F-VS-LAST; Copilot, Rocket Money): each spending category this month so far beside last
  * month by the same day and all of last month, one table per currency. A month without records says so; nothing is
  * converted or forecast.
+ * Session AV (fresh-agent check q2, rank 7; Copilot's comparison at a glance): on a phone the table keeps Category, This
+ * month and Difference, with last month by now under the difference ("was €30.00"), so nothing needs a sideways scroll;
+ * the full table stays on wider screens.
  */
 function Currency({view}: {view: VsLastView}) {
   const same = `${monthName(view.previous)} to the ${ordinal(view.cut)}`;
@@ -21,8 +24,8 @@ function Currency({view}: {view: VsLastView}) {
       <table className="money-insights-table money-insights-vs-last">
         <caption className="sr-only">Spending by category in {view.currency}: {monthName(view.month)} so far, {same}, all of {monthName(view.previous)}, and the difference</caption>
         <thead><tr><th scope="col">Category</th><th scope="col">This month</th><th scope="col">Last month by now</th><th scope="col">Difference</th><th scope="col">All of last month</th></tr></thead>
-        <tbody>{view.rows.map(r => <tr key={r.category}><th scope="row">{r.category}</th><td>{money(r.thisMonth, view.currency)}</td><td>{r.lastBySameDay === null ? 'No records' : money(r.lastBySameDay, view.currency)}</td><td>{r.difference === null ? '—' : signed(r.difference, view.currency)}</td><td>{r.lastMonth === null ? 'No records' : money(r.lastMonth, view.currency)}</td></tr>)}</tbody>
-        <tfoot><tr><th scope="row">All categories</th><td>{money(view.totals.thisMonth, view.currency)}</td><td>{view.totals.lastBySameDay === null ? 'No records' : money(view.totals.lastBySameDay, view.currency)}</td><td>{view.totals.lastBySameDay === null ? '—' : signed(view.totals.thisMonth - view.totals.lastBySameDay, view.currency)}</td><td>{view.totals.lastMonth === null ? 'No records' : money(view.totals.lastMonth, view.currency)}</td></tr></tfoot>
+        <tbody>{view.rows.map(r => <tr key={r.category}><th scope="row">{r.category}</th><td>{money(r.thisMonth, view.currency)}</td><td>{r.lastBySameDay === null ? 'No records' : money(r.lastBySameDay, view.currency)}</td><td data-was={r.lastBySameDay === null ? undefined : `was ${money(r.lastBySameDay, view.currency)}`}>{r.difference === null ? '—' : signed(r.difference, view.currency)}</td><td>{r.lastMonth === null ? 'No records' : money(r.lastMonth, view.currency)}</td></tr>)}</tbody>
+        <tfoot><tr><th scope="row">All categories</th><td>{money(view.totals.thisMonth, view.currency)}</td><td>{view.totals.lastBySameDay === null ? 'No records' : money(view.totals.lastBySameDay, view.currency)}</td><td data-was={view.totals.lastBySameDay === null ? undefined : `was ${money(view.totals.lastBySameDay, view.currency)}`}>{view.totals.lastBySameDay === null ? '—' : signed(view.totals.thisMonth - view.totals.lastBySameDay, view.currency)}</td><td>{view.totals.lastMonth === null ? 'No records' : money(view.totals.lastMonth, view.currency)}</td></tr></tfoot>
       </table>
     </div>
   </section>;

@@ -1,7 +1,7 @@
 'use client';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import {ShowcaseTag} from '../../ui/showcase-tag';
-import {Suspense, lazy, useId, useMemo, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatMonth} from '../../../lib/visual-format';
@@ -34,14 +34,36 @@ const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF'] as const;
 const money = (cents: number, currency: string) => moneyCents(cents, currency); // Session AL (PRIMITIVES 3f)
 const readAmount = (raw: string) => { const r = parseNumberInput(raw), v = r.ok ? r.text : raw.trim(); return /^\d{1,10}(\.\d{1,2})?$/.test(v) && Number(v) > 0 ? Number(v).toFixed(2) : v; }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
 
-/** Session AV (F-BUDGET-TARGETS): a budget's target in words, under its name. Information, not advice. */
+/**
+ * Session AV (F-BUDGET-TARGETS): a budget's target in words, under its name. Information, not advice.
+ * Session AV (fresh-agent check q2, rank 9): in the month still running, what is left is "left so far", not yet set
+ * aside (the month has days to go); a finished month's is set aside.
+ */
 function TargetLine({row, current, onStop}: {row: BudgetRow; current: boolean; onStop: () => void}) {
-  const t = row.target!, m = (c: number) => money(c, row.currency), goal = `${m(t.amount)} by ${formatMonth(t.by)}`;
-  const words = t.state === 'reached' ? `Target ${goal}: reached, ${m(t.setAside)} set aside.`
+  const t = row.target!, m = (c: number) => money(c, row.currency), goal = `${m(t.amount)} by ${formatMonth(t.by)}`, kept = current ? 'left so far' : 'set aside';
+  const words = t.state === 'reached' ? `Target ${goal}: reached, ${m(t.setAside)} ${kept}.`
     : t.state === 'past' ? `Target ${goal}: that month has gone by; ${m(t.toGo)} was still to go.`
     : t.monthsLeft === 0 ? `Target ${goal}: this is the month; ${m(t.toGo)} still to go.`
-    : `Target ${goal}: ${m(t.setAside)} set aside, ${m(t.toGo)} to go — ${m(t.perMonth)} a month from next month${t.state === 'on-track' ? ` (you budget ${m(row.budgeted)}: on track)` : ` (you budget ${m(row.budgeted)}: ${m(t.short)} a month short)`}.`;
-  return <span className={`budgets-target is-${t.state}`}><small>{words}</small>{current && <button type="button" className="text-link budgets-target-stop" onClick={onStop}>Stop the target</button>}</span>;
+    : `Target ${goal}: ${m(t.setAside)} ${kept}, ${m(t.toGo)} to go — ${m(t.perMonth)} a month from next month${t.state === 'on-track' ? ` (you budget ${m(row.budgeted)}: on track)` : ` (you budget ${m(row.budgeted)}: ${m(t.short)} a month short)`}.`;
+  return <span className={`budgets-target is-${t.state}`}><small>{words}</small>{current && <button type="button" className="text-link budgets-target-stop" data-focus-key={`${row.id}-stop`} onClick={onStop}>Stop the target</button>}</span>;
+}
+/** Session AV (fresh-agent check q2, rank 9; YNAB adds a target to a category): a target added to a budget already kept. */
+function AddTarget({row, thisMonth, onSave, onCancel}: {row: BudgetRow; thisMonth: string; onSave: (target: {amount: string; by: string}) => string | null; onCancel: () => void}) {
+  const id = useId(), [open, setOpen] = useState(false), [amount, setAmount] = useState(''), [by, setBy] = useState(''), [problem, setProblem] = useState('');
+  if (!open) return <button type="button" data-focus-key={`${row.id}-add`} className="text-link budgets-target-stop" aria-expanded={false} onClick={() => setOpen(true)} aria-label={`Add a target to the ${row.category} budget`}>Add a target</button>;
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    const issue = onSave({amount: readAmount(resolveAmountText(amount) ?? amount), by});
+    if (issue) { setProblem(issue); return; }
+    setOpen(false);
+  };
+  return <form className="budgets-target-fields budgets-target-add" onSubmit={submit} aria-label={`Add a target to the ${row.category} budget`}>
+    <label className="field"><span>Amount to reach</span><input inputMode="decimal" autoComplete="off" autoFocus value={amount} onChange={e => setAmount(e.target.value)} placeholder="1200" aria-describedby={problem ? `${id}-problem` : undefined}/></label>
+    <label className="field"><span>By the end of</span><input type="month" min={thisMonth} value={by} onChange={e => setBy(e.target.value)}/></label>
+    <p className="fine">Rollover turns on, so what is left each month adds up.</p>
+    {problem && <p role="alert" id={`${id}-problem`}>{problem}</p>}
+    <div className="budgets-form-actions"><button type="submit" className="secondary">Save target</button><button type="button" className="quiet" onClick={() => { setOpen(false); setProblem(''); onCancel(); }}>Cancel</button></div>
+  </form>;
 }
 export type BudgetsViewProps = {record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; showcase?: boolean; unreadable?: boolean; onChange: (change: (current: BudgetsRecord) => BudgetsRecord) => void};
 export function BudgetsView({record, entries, today, showcase = false, unreadable = false, onChange}: BudgetsViewProps) {
@@ -54,10 +76,16 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
   // Session AV (follow-up 1, F-BUDGET-TARGETS): an optional amount to save towards by a month.
   const [wantTarget, setWantTarget] = useState(false), [targetAmount, setTargetAmount] = useState(''), [targetBy, setTargetBy] = useState('');
   const view = useMemo(() => monthView(entries, record, month, today), [entries, record, month, today]);
+  // Session AV (fresh-agent check q2, rank 9): adding or stopping a target replaces the button pressed, so focus moves to
+  // the control that takes its place ("Stop the target" or "Add a target") instead of dropping to the page.
+  const [focusKey, setFocusKey] = useState<string | null>(null), table = useRef<HTMLTableElement>(null);
+  useEffect(() => { if (!focusKey) return; const el = table.current?.querySelector<HTMLElement>(`[data-focus-key="${focusKey}"]`); if (el) { el.focus(); setFocusKey(null); } }, [focusKey, view]);
   // Session AV (owner follow-up 1, F-MONTH-RECAP, F-FRESH-MONTH): last month (or the month shown) in short, and a fresh start.
   const [recapOpen, setRecapOpen] = useState(false), recapMonth = month === thisMonth ? shiftMonth(thisMonth, -1) : month;
-  const canFresh = month === thisMonth && !showcase && carriesInto(record, entries, thisMonth);
-  const fresh = () => { const before = record; change(r => startFresh(r, thisMonth), ''); setStatus(''); showUndo({message: `${formatMonth(thisMonth)} starts fresh: nothing earlier carries into it.`, undone: 'What earlier months left carries in again.', restore: () => onChange(() => before)}); };
+  // Session AV (fresh-agent check q2, rank 49): shown in the Showcase too (Undo is there); after the change the button is
+  // gone, so focus moves to the month heading rather than dropping to the page.
+  const canFresh = month === thisMonth && carriesInto(record, entries, thisMonth), heading = useRef<HTMLHeadingElement>(null);
+  const fresh = () => { const before = record; change(r => startFresh(r, thisMonth), ''); setStatus(''); showUndo({message: `${formatMonth(thisMonth)} starts fresh: nothing earlier carries into it.`, undone: 'What earlier months left carries in again.', restore: () => onChange(() => before)}); heading.current?.focus(); };
   // Session AO (C-LS-20): Remove offers the app's one Undo toast (components/ui/remove-with-undo.ts).
   const change = (fn: (r: BudgetsRecord) => BudgetsRecord, done: string) => { setProblem(''); try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); } };
   const save = (event: FormEvent) => {
@@ -77,22 +105,32 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     {unreadable && <p role="alert">This device&rsquo;s budgets could not be read; nothing was changed.</p>}
     <div className="budgets-month-nav" role="group" aria-label="Month">
       <button type="button" className="quiet" onClick={() => setMonth(shiftMonth(month, -1))} aria-label="Previous month">‹</button>
-      <h3 id={`${id}-month`} aria-live="polite">{formatMonth(month)}</h3>
+      <h3 id={`${id}-month`} ref={heading} tabIndex={-1} aria-live="polite">{formatMonth(month)}</h3>
       <button type="button" className="quiet" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= thisMonth} aria-label="Next month">›</button>
     </div>
     <Suspense fallback={null}><ReadyToAssign entries={entries} record={record} month={month} current={month === thisMonth}/></Suspense>
     {view.totals.map(t => <p key={t.currency} className="budgets-total"><strong>{t.left >= 0 ? money(t.left, t.currency) : money(-t.left, t.currency)}</strong> {t.left >= 0 ? 'left' : 'over'} of {money(t.available, t.currency)} budgeted{view.daysLeft !== null ? ` · ${view.daysLeft === 1 ? 'last day of the month' : `${view.daysLeft} days to go`}` : ''}</p>)}
     {canFresh && <p className="budgets-fresh"><button type="button" className="quiet" onClick={fresh}>Start this month fresh</button> <small className="fine">What earlier months left stops carrying into {formatMonth(thisMonth)}; Undo brings it back.</small></p>}
-    {view.rows.length ? <table className="budgets-table" aria-labelledby={`${id}-month`}>
-      <thead><tr><th scope="col">Category</th><th scope="col">Spent</th><th scope="col">Available</th><th scope="col">Left</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
-      <tbody>{view.rows.map(r => <tr key={r.id} className={r.over ? 'budgets-over' : undefined}>
-        <th scope="row"><span className="budgets-cat">{r.category}</span><span className="budgets-bar" aria-hidden="true"><span style={{width: `${Math.round(r.share * 100)}%`}}/></span>{(() => { const p = budgetPace(r, month, today), w = p && paceWords(p, `${money(r.left, r.currency)} left`); return w ? <small className={`budgets-pace is-${p!.state}`}>{w}</small> : null; })()}{/* Session AV (F-BUDGET-PACE) */}{r.target && <TargetLine row={r} current={month === thisMonth} onStop={() => change(x => setBudget(x, {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: r.rollover, target: null}, r.id, thisMonth), `The target for ${r.category} is off; the budget stays.`)}/>}</th>
-        <td>{money(r.spent, r.currency)}</td>
-        <td>{money(r.available, r.currency)}{r.carried > 0 && <small className="fine"> incl. {money(r.carried, r.currency)} rolled over</small>}</td>
-        <td>{r.left >= 0 ? money(r.left, r.currency) : <>{money(-r.left, r.currency)} over</>}</td>
-        <td><button type="button" className="quiet" onClick={() => { setProblem(''); const said = `Budget for ${r.category} removed.`; void removeWithUndo(onChange, x => removeBudget(x, r.id), said, `The ${r.category} budget is back.`).then(() => setStatus(said), cause => { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); }); }} aria-label={`Remove the ${r.category} budget in ${r.currency}`}>Remove</button></td>
-      </tr>)}</tbody>
-    </table> : <p className="fine">No budgets for this month yet. Set one, for example Groceries at 300 a month.</p>}
+    {/* Session AV (fresh-agent check q2, ranks 9 and 37): the pace and target lines, the target buttons and Remove sit in
+        their own full-width row under each budget, so a phone's narrow Category cell never breaks a name or a sentence a
+        word per line; amounts never wrap. */}
+    {view.rows.length ? <div className="budgets-table-wrap"><table ref={table} className="budgets-table" aria-labelledby={`${id}-month`}>
+      <thead><tr><th scope="col">Category</th><th scope="col">Spent</th><th scope="col">Available</th><th scope="col">Left</th></tr></thead>
+      {view.rows.map(r => { const p = budgetPace(r, month, today), w = p && paceWords(p, `${money(r.left, r.currency)} left`), current = month === thisMonth; return <tbody key={r.id} className={r.over ? 'budgets-over' : undefined}><tr className="budgets-main">
+        <th scope="row"><span className="budgets-cat">{r.category}</span><span className="budgets-bar" aria-hidden="true"><span style={{width: `${Math.round(r.share * 100)}%`}}/></span></th>
+        <td className="budgets-num">{money(r.spent, r.currency)}</td>
+        <td className="budgets-num">{money(r.available, r.currency)}{r.carried > 0 && <small className="fine"> incl. {money(r.carried, r.currency)} rolled over</small>}</td>
+        <td className="budgets-num">{r.left >= 0 ? money(r.left, r.currency) : <>{money(-r.left, r.currency)} over</>}</td>
+      </tr><tr className="budgets-detail"><td colSpan={4}>
+        <span className="visually-hidden">{r.category}: </span>
+        {w ? <small className={`budgets-pace is-${p!.state}`}>{w}</small> : null}{/* Session AV (F-BUDGET-PACE) */}
+        {r.target && <TargetLine row={r} current={current} onStop={() => { setFocusKey(`${r.id}-add`); change(x => setBudget(x, {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: r.rollover, target: null}, r.id, thisMonth), `The target for ${r.category} is off; the budget stays.`); }}/>}
+        <span className="budgets-row-actions">
+          {!r.target && current && <AddTarget row={r} thisMonth={thisMonth} onSave={target => { const input = {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: true, target}, issue = budgetIssue(input) ?? (target.by < thisMonth ? 'Choose this month or a later one to reach it by.' : null); if (issue) return issue; change(x => setBudget(x, input, r.id, thisMonth), `${r.category} now saves towards ${money(Math.round(Number(target.amount) * 100), r.currency)} by ${formatMonth(target.by)}, with rollover.`); setFocusKey(`${r.id}-stop`); return null; }} onCancel={() => setFocusKey(`${r.id}-add`)}/>}
+          <button type="button" className="quiet" onClick={() => { setProblem(''); const said = `Budget for ${r.category} removed.`; void removeWithUndo(onChange, x => removeBudget(x, r.id), said, `The ${r.category} budget is back.`).then(() => setStatus(said), cause => { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); }); }} aria-label={`Remove the ${r.category} budget in ${r.currency}`}>Remove</button>
+        </span>
+      </td></tr></tbody>; })}
+    </table></div> : <p className="fine">No budgets for this month yet. Set one, for example Groceries at 300 a month.</p>}
     {view.unbudgeted.length > 0 && <p className="fine">Also spent this month, without a budget: {view.unbudgeted.slice(0, 6).map(u => `${u.category} ${money(u.spent, u.currency)}`).join(' · ')}.</p>}
     {!adding ? <p className="budgets-add"><button type="button" className="secondary" aria-expanded={false} onClick={() => { setAdding(true); setStatus(''); }}>+ Set a monthly budget</button></p>
     : <form className="budgets-form" onSubmit={save} aria-label="Set a monthly budget">

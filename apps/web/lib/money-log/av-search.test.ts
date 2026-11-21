@@ -22,4 +22,10 @@ describe('Session AV (F-MONEY-SEARCH)', () => {
     expect(searchEntries(LOG, {from: '2026-11-01', to: '2026-11-05'}).map(x => x.date)).toEqual(['2026-11-05', '2026-11-03']);
     expect(usedCategories(LOG)).toEqual(['Dining', 'Groceries', 'Salary', 'Subscriptions']);
   });
+  // Session AV (fresh-agent check q2, rank 21; Monarch, Copilot): an amount range, both ends included.
+  it('an amount range: over, under or between, both ends included', () => {
+    expect(searchEntries(LOG, {minCents: 1500}).map(x => x.amount)).toEqual(['15.00', '2000.00', '40.00']);
+    expect(searchEntries(LOG, {maxCents: 1250}).map(x => x.amount)).toEqual(['9.99', '12.50']);
+    expect(searchEntries(LOG, {minCents: 1000, maxCents: 4000, kind: 'expense'}).map(x => x.amount)).toEqual(['15.00', '40.00', '12.50']);
+  });
 });

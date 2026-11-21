@@ -21,6 +21,8 @@ for (const theme of THEMES) test(`${theme}: "A year of these bills (an estimate)
   await expect(year).toContainText('(an estimate)');
   await expect(year.locator('dd')).toContainText(/[€$]\s?\d/);
   await expect(page.getByText('Fictional Showcase entries.').first()).toBeVisible();
+  // Session AV (fresh-agent check q1, F-YEAR row 8; Rocket Money): each bill row also says its own yearly cost.
+  await expect(page.locator('.bills-row').filter({hasText: 'Music · SHOWCASE DATA'}).first()).toContainText('monthly · about €119.88 a year');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect((await axe(page, totals)).filter(v => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
 });

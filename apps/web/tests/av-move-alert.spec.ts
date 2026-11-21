@@ -30,10 +30,12 @@ for (const theme of THEMES) test(`${theme}: 10% down from today's 70,000, and th
   const section = page.getByRole('region', {name: 'Price alert for Bitcoin'});
   await section.getByText('Price alert', {exact: true}).click();
   const form = section.getByRole('form', {name: 'Price alert for Bitcoin'});
-  await form.getByLabel(/moves by a percent from today’s 70000 USD/).check();
+  // Deliberate change (Session AV, fresh-agent check q2, rank 35): the option is named plainly, a price a percent from
+  // today's (CoinStats' rolling % alerts are a different thing); the same option, found by its new words.
+  await form.getByLabel(/price a percent up or down from today’s 70000 USD/).check();
   await form.getByLabel('Goes').selectOption('below');
   await form.getByLabel('By (%)').fill('10');
-  await expect(form).toContainText('That is 63000 USD.');
+  await expect(form).toContainText('That is 63000 USD. A price fixed from today’s, reached once; not a rolling change over a day.');
   const findings = await axe(page, section);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await form.getByRole('button', {name: 'Set alert'}).click();
@@ -49,9 +51,29 @@ for (const theme of THEMES) test(`${theme}: 10% down from today's 70,000, and th
   await vform.getByLabel('Value (USD)').fill('30000');
   await vform.getByRole('button', {name: 'Set alert'}).click();
   await expect(page.getByText('Value alert: Fictional coins is worth above 30000 USD: 35000 USD now.')).toBeVisible();
+  // Session AV (q2 rank 35): a value already passed says so.
+  await expect(vform.getByRole('status')).toHaveText('Fictional coins is already above 30000 USD (worth 35000.00 USD now), so this alert is reached at once.');
   await expect(value.getByRole('listitem')).toContainText('Fictional coins worth above 30000 USD · reached');
   expect(requests.join(' ')).not.toContain('63000');
   expect(requests.join(' ')).not.toContain('30000');
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+});
+
+// Session AV (fresh-agent check q2, rank 35; CoinStats): a portfolio-value alert is checked app-wide, not only on its
+// page, and a reached one is counted on Today's "Your price alerts" card until seen.
+test('a value alert set earlier fires on Today and is listed there until seen', async ({page, isMobile}) => {
+  await mock(page);
+  await page.addInitScript(() => { try { if (!sessionStorage.getItem('alert-seeded')) { localStorage.setItem('zigoals:price-alerts:v1', JSON.stringify({version: 1, alerts: [], fired: [], portfolio: [{id: 'alert_value-0001', portfolioId: 'p-real', portfolioName: 'Fictional coins', currency: 'USD', direction: 'above', value: '30000', createdAt: '2026-11-01T10:00:00.000Z', active: true}]})); sessionStorage.setItem('alert-seeded', '1'); } } catch { /* storage denied */ } });
+  await page.goto('/app');
+  // On a phone every For-you card starts behind "Show more" (TODAY_FOR_YOU_OPEN), as designed.
+  if (isMobile) await page.getByRole('region', {name: 'For you'}).getByRole('button', {name: /^Show more/}).click();
+  const card = page.getByRole('region', {name: /price alerts? reached/});
+  await expect(card).toBeVisible();
+  await expect(card.getByRole('listitem')).toContainText('Fictional coins is worth above 30000 USD: 35000 USD now.');
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:price-alerts:v1') ?? 'null'));
+  expect(stored.portfolio[0]).toMatchObject({active: false});
+  await card.getByRole('button', {name: 'Seen'}).click();
+  await expect(page.getByRole('region', {name: /price alerts? reached/})).toHaveCount(0);
+  expect((await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:price-alerts:v1') ?? 'null'))).portfolio[0].seenAt).toBeTruthy();
 });

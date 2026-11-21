@@ -22,6 +22,29 @@ for (const theme of THEMES) test(`${theme}: the next 31 days, today ringed, due 
   const label = await grid.locator('td.is-due').first().getAttribute('aria-label');
   expect(label).toMatch(/^\w{3}, \w{3} \d{1,2}(, \d{4})?: .+ €?[\d.,]+/);
   await expect(bills.locator('.bills-calendar')).toContainText(/due dates? in the next 31 days/);
+  // Session AV (fresh-agent check q2, rank 10): 14 px copy; at 1440 each due day shows its amount; on a phone a dot,
+  // and the due days listed under the grid with name and amount.
+  for (const sel of ['th', '.bills-calendar-day']) expect(parseFloat(await grid.locator(sel).first().evaluate(el => getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
+  const list = bills.locator('.bills-calendar-list');
+  if (isMobile) {
+    await expect(grid.locator('td.is-due .bills-calendar-dot').first()).toBeVisible();
+    await expect(list.getByRole('listitem').first()).toHaveText(/^\w{3}, \w{3} \d{1,2}(, \d{4})? .+ €[\d.,]+$/);
+  } else {
+    await expect(grid.locator('td.is-due .bills-calendar-amount').first()).toHaveText(/€[\d.,]+/);
+    expect(parseFloat(await grid.locator('td.is-due small').first().evaluate(el => getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
+    await expect(list).toBeHidden();
+  }
+  // A month you page with ‹ ›, from this month to a year ahead; focus stays on the button at either end.
+  await bills.getByText('By month', {exact: true}).click();
+  const thisMonth = new Date(`${TODAY}T12:00:00Z`).toLocaleString('en-US', {month: 'short', year: 'numeric', timeZone: 'UTC'});
+  await expect(bills.getByRole('table', {name: new RegExp(`^Bills due in ${thisMonth}`)})).toBeVisible();
+  const earlier = bills.getByRole('button', {name: /^Earlier month/});
+  await earlier.focus(); await page.keyboard.press('Enter');
+  await expect(earlier).toBeFocused();
+  await expect(bills.getByRole('table', {name: new RegExp(`^Bills due in ${thisMonth}`)})).toBeVisible();
+  await bills.getByRole('button', {name: /^Later month/}).click();
+  await expect(bills.getByRole('table', {name: new RegExp(`^Bills due in ${thisMonth}`)})).toHaveCount(0);
+  await expect(bills.locator('.bills-calendar-grid td.is-due').first()).toBeVisible();
   const findings = await axe(page, bills.locator('.bills-calendar'));
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});

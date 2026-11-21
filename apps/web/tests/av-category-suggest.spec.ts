@@ -30,3 +30,17 @@ for (const theme of THEMES) test(`${theme}: "café noël" offers Dining, used wi
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
+
+// Session AV (fresh-agent check q2, rank 22; YNAB, Copilot): the payee part of a note, offered from the first letters.
+test('"wee" offers Groceries from "Weekly shop · SHOWCASE DATA"', async ({page}) => {
+  await seedDevice(page, {[MONEY_LOG_KEY]: moneyLog([entry('2026-11-02', '38.90', 'Groceries', 'expense', 'Weekly shop · SHOWCASE DATA'), entry('2026-11-09', '42.10', 'Groceries', 'expense', 'Weekly shop · SHOWCASE DATA')])});
+  await page.goto('/app/wealth'); await hydrated(page);
+  await spending(page).getByRole('button', {name: 'Log spending'}).click();
+  await spending(page).getByRole('radio', {name: 'Fun'}).check();
+  await spending(page).getByLabel('Note — optional').fill('wee');
+  const hint = spending(page).locator('.spending-suggest');
+  await expect(hint).toHaveText('Before, “Weekly shop” was Groceries (2 times). Use Groceries');
+  await hint.getByRole('button', {name: 'Use Groceries'}).click();
+  await expect(spending(page).getByRole('radio', {name: 'Groceries'})).toBeChecked();
+  await expect(spending(page).getByLabel('Note — optional')).toBeFocused(); // the hint is gone; focus is back on the note
+});

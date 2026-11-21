@@ -25,6 +25,15 @@ for (const theme of THEMES) test(`${theme}: "cafe" finds two entries months apar
   await form.getByLabel('Words or an amount').fill('');
   await form.getByLabel('Kind').selectOption('income');
   await expect(spending(page).locator('.money-search .money-select-total')).toHaveText('1 found · +€2,000.00');
+  // Session AV (fresh-agent check q2, rank 21; Monarch, Copilot): an amount range.
+  await form.getByLabel('Kind').selectOption('expense');
+  await form.getByLabel('Amount from').fill('10');
+  await form.getByLabel('Amount up to').fill('50');
+  await expect(spending(page).locator('.money-search .money-select-total')).toHaveText('2 found · −€52.50');
+  await form.getByLabel('Amount from').fill('');
+  await form.getByLabel('Amount up to').fill('');
+  await form.getByLabel('Kind').selectOption('income');
+  await expect(spending(page).locator('.money-search .money-select-total')).toHaveText('1 found · +€2,000.00');
   const findings = await axe(page, spending(page).locator('.money-search'));
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await found.getByRole('button', {name: /^Edit Salary 2000.00 EUR/}).click();

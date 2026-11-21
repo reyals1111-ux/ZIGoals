@@ -28,7 +28,6 @@
 .budgets-body>*{min-width:0}
 .budgets-table{table-layout:fixed}
 .budgets-table td,.budgets-table th,.budgets-total,.budgets-body .fine{overflow-wrap:anywhere}
-.budgets-table td:last-child,.budgets-table th:last-child{width:76px}
 /* Session AK RB (RELEASE_REVIEW_2 R2-8): the form opens from "+ Set a monthly budget". */
 .budgets-add{margin:0}
 .budgets-add>button{min-height:44px}
@@ -62,3 +61,25 @@
 .budgets-recap-list dt{color:var(--text-secondary, var(--muted))}
 .budgets-recap-list dd{margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 @media (max-width:480px){.budgets-recap-list div{grid-template-columns:minmax(0,1fr)}}
+/* Session AV (fresh-agent check q2, ranks 9 and 37): the pace and target lines and the row's buttons in their own
+   full-width row under each budget; a name breaks only between words and an amount never wraps. */
+.budgets-table .budgets-main th,.budgets-table .budgets-main td{border-bottom:0;padding-bottom:2px}
+.budgets-table-wrap{max-width:100%;overflow-x:auto}
+/* Auto layout: each column gets its content's width when there is room (a 320 px phone has room for Category, Spent and
+   Left at their full width), so a name breaks only under real pressure. */
+.budgets-body .budgets-table{table-layout:auto}
+.budgets-table th[scope="row"]{overflow-wrap:normal;word-break:normal}
+.budgets-table .budgets-num{white-space:nowrap;overflow-wrap:normal}
+.budgets-table .budgets-num small{white-space:normal;overflow-wrap:normal}
+.budgets-table .budgets-detail td{padding-top:0}
+.budgets-detail td{overflow-wrap:break-word}
+.budgets-detail td>small,.budgets-detail .budgets-target{max-width:70ch}
+.budgets-row-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:4px 8px}
+.budgets-target-add{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px 12px;align-items:end;width:100%;margin:4px 0}
+.budgets-target-add .fine,.budgets-target-add [role="alert"],.budgets-target-add .budgets-form-actions{grid-column:1 / -1;margin:0}
+.budgets-target-add input{min-height:44px;width:100%;box-sizing:border-box}
+.budgets-target-add .budgets-form-actions{display:flex;flex-wrap:wrap;gap:8px}
+.budgets-target-add button{min-height:44px}
+.budgets-month-nav h3:focus{outline:none}
+.budgets-month-nav h3:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+@media (max-width:560px){.budgets-table th,.budgets-table td{padding-inline:4px}}

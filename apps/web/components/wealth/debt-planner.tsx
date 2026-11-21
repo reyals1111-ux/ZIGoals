@@ -2,7 +2,7 @@
 import {useEffect, useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {ACCOUNTS, isDebtKind} from '../../lib/accounts/schema';
-import {balanceOn} from '../../lib/accounts/net-worth';
+import {balanceOn, owedAfterPayments} from '../../lib/accounts/net-worth';
 import {localDate} from '../../lib/local-date';
 import {formatDate, formatMoney, formatMonth} from '../../lib/visual-format';
 import {EXAMPLE_DEBTS, EXAMPLE_EXTRA, addMonths, centsText, comparePlans, comparisonWords, firstPaymentMonth, lumpMonth, parseCents, payoffMonth, planIssue, planProgress, rateE4, runPlan, toCents, type Lump, type PlanComparison, type PlanDebt, type PlanResult, type Strategy} from '../../lib/debt-planner/plan';
@@ -37,6 +37,8 @@ export default function DebtPlanner() {
   const id = useId(), accounts = useDeviceRecord(ACCOUNTS), stored = useDeviceRecord(DEBT_PLANNER), today = localDate();
   const [draft, setDraft] = useState<Draft | null>(null), [example, setExample] = useState(false), [status, setStatus] = useState('');
   const [currencyPick, setCurrencyPick] = useState<string | null>(null);
+  // Session AV (fresh-agent check q2, rank 16): an edit not yet kept says so beside the Keep button.
+  const [unkept, setUnkept] = useState(false);
   // The person's debts with a balance above zero, per currency (never converted).
   const byCurrency = useMemo(() => {
     const out = new Map<string, Row[]>();
@@ -82,14 +84,26 @@ export default function DebtPlanner() {
   const order = d.order?.filter(x => input.debts.some(debt => debt.id === x)) ?? [];
   const planExtra = example ? (extraCents ?? EXAMPLE_EXTRA) : extraCents ?? 0n;
   const comparison: PlanComparison | null = input.issue || !input.debts.length ? null : comparePlans(input.debts, planExtra, {order, lumps});
-  const setPlan = (change: Partial<Pick<Draft, 'order' | 'lumps' | 'shown'>>) => { setStatus(''); setDraft(x => ({...(x ?? d), ...change})); };
+  const setPlan = (change: Partial<Pick<Draft, 'order' | 'lumps' | 'shown'>>) => { setStatus(''); setUnkept(true); setDraft(x => ({...(x ?? d), ...change})); };
   // The plan kept on "Track this plan", against what the accounts show now (same currency only).
   const tracked = !example && stored.data.tracked?.currency === currency ? stored.data.tracked : undefined;
+  // Session AV (fresh-agent check q2, rank 16; Undebt.it): a payment recorded under Accounts after a debt's latest balance
+  // lowers what it owes for this comparison (the balance less the payments since it), and the words say so.
+  const owedNow = (() => {
+    const out = new Map<string, bigint>(); let payments = 0;
+    if (!accounts.loaded || accounts.unreadable) return {map: out, payments};
+    for (const a of accounts.data.items) {
+      if (a.archivedAt || !isDebtKind(a.kind) || a.currency !== currency) continue;
+      const o = owedAfterPayments(a, today); if (!o) continue;
+      out.set(a.id, toCents(o.value, o.decimals)); payments += o.payments;
+    }
+    return {map: out, payments};
+  })();
   const progress = (() => {
     if (!tracked) return null;
     try {
       const debts = tracked.debts.map(x => ({id: x.id, name: x.name, balance: parseCents(x.balance)!, ratePercent: x.ratePercent, minimum: parseCents(x.minimum)!}));
-      return planProgress({on: tracked.on, debts, extra: tracked.extra ? parseCents(tracked.extra) ?? 0n : 0n, strategy: tracked.strategy, order: tracked.order ?? [], lumps: (tracked.lumps ?? []).map(l => ({month: l.month, cents: parseCents(l.amount) ?? 0n}))}, new Map(rows.map(r => [r.id, r.owed])), today);
+      return planProgress({on: tracked.on, debts, extra: tracked.extra ? parseCents(tracked.extra) ?? 0n : 0n, strategy: tracked.strategy, order: tracked.order ?? [], lumps: (tracked.lumps ?? []).map(l => ({month: l.month, cents: parseCents(l.amount) ?? 0n}))}, owedNow.map, today);
     } catch { return null; }
   })();
   const track = () => {
@@ -104,8 +118,8 @@ export default function DebtPlanner() {
   };
   const stopTracking = () => { try { stored.update(r => { const {tracked: _t, ...rest} = r; void _t; return rest; }); setStatus('This plan is no longer tracked.'); } catch { setStatus('Not changed.'); } };
   const shown = example ? 'EUR' : currency, money = (cents: bigint) => formatMoney(centsText(cents), shown);
-  const setExtra = (value: string) => { setStatus(''); setDraft(x => ({...(x ?? d), extra: value})); };
-  const setField = (kind: 'minimums' | 'rates', rowId: string) => (e: {target: {value: string}}) => { setStatus(''); setDraft(x => { const base = x ?? d; return {...base, [kind]: {...base[kind], [rowId]: e.target.value}}; }); };
+  const setExtra = (value: string) => { setStatus(''); setUnkept(true); setDraft(x => ({...(x ?? d), extra: value})); };
+  const setField = (kind: 'minimums' | 'rates', rowId: string) => (e: {target: {value: string}}) => { setStatus(''); setUnkept(true); setDraft(x => { const base = x ?? d; return {...base, [kind]: {...base[kind], [rowId]: e.target.value}}; }); };
   const keep = () => {
     try {
       stored.update(r => {
@@ -122,10 +136,10 @@ export default function DebtPlanner() {
         const {extra: _e, order: _o, lumps: _l, ...rest} = r; void _e; void _o; void _l;
         return {...rest, currency, debts, ...(extraCents !== null && extraCents > 0n ? {extra: centsText(extraCents)} : {}), ...(order.length ? {order} : {}), ...(d.lumps.length ? {lumps: d.lumps} : {}), shown: d.shown};
       });
-      setStatus('These figures are kept on this device.');
+      setStatus('These figures are kept on this device.'); setUnkept(false);
     } catch (cause) { setStatus(plainErrorMessage(cause, 'Not kept on this device.')); }
   };
-  const forget = () => { try { stored.clear(); setDraft(EMPTY_DRAFT); setStatus('The kept figures are removed from this device.'); } catch { setStatus('Not removed.'); } };
+  const forget = () => { try { stored.clear(); setDraft(EMPTY_DRAFT); setUnkept(false); setStatus('The kept figures are removed from this device.'); } catch { setStatus('Not removed.'); } };
   const hasDebts = byCurrency.size > 0;
 
   return <section className="money-panel debt-planner" aria-labelledby={`${id}-title`}>
@@ -159,9 +173,10 @@ export default function DebtPlanner() {
           <Schedule c={comparison} shown={d.shown} onShow={s => setPlan({shown: s})} names={new Map(input.debts.map(x => [x.id, x.name]))} money={money} today={today}
             plan={s => runPlan(input.debts, planExtra, s, {order, lumps, schedule: true})}/>
         </>}
-        {progress && tracked && <Progress tracked={tracked} progress={progress} money={money} onStop={stopTracking}/>}
+        {progress && tracked && <Progress tracked={tracked} progress={progress} money={money} onStop={stopTracking} payments={owedNow.payments}/>}
         {!example && <div className="money-actions">
           <button type="button" className="secondary" disabled={!stored.loaded || stored.unreadable || !rows.length} onClick={keep}>Keep these figures on this device</button>
+          {unkept && rows.length > 0 && <small className="fine debt-planner-unkept">Your changes are not kept yet: leaving Wealth loses them.</small>}
           {comparison && !tracked && <button type="button" className="secondary" disabled={!stored.loaded || stored.unreadable} onClick={track}>Track this plan</button>}
           {(stored.data.extra || stored.data.debts) && <button type="button" className="quiet" onClick={forget}>Forget them</button>}
         </div>}

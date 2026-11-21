@@ -22,7 +22,10 @@ for (const theme of THEMES) test(`${theme}: one to review, groceries over, rent 
   await page.goto('/app'); await hydrated(page);
   const line = page.getByRole('region', {name: 'Money that asks for a look'});
   await expect(line).toHaveText('Money: 1 entry to review · Groceries over budget · Fictional rent due tomorrow →');
-  await expect(line.getByRole('link')).toHaveAttribute('href', '/app/wealth');
+  // Deliberate change (Session AV, fresh-agent check q2, rank 20; YNAB's Spotlight): each piece is its own link to its
+  // place instead of one link to the top of Wealth; every link's place is asserted.
+  await expect(line.getByRole('link')).toHaveText(['1 entry to review', 'Groceries over budget', 'Fictional rent due tomorrow']);
+  expect(await line.getByRole('link').evaluateAll(links => links.map(l => l.getAttribute('href')))).toEqual(['/app/wealth#spending', '/app/wealth?view=budgets', '/app/wealth?view=bills']);
   const findings = await axe(page, line);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});

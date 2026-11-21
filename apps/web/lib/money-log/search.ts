@@ -7,7 +7,8 @@ import {entryParts} from '../money-split/parts';
  * a date range — newest first. The total of the results comes from lib/money-log/selection.ts (per currency, never
  * converted). Case and accents do not matter. Pure; nothing stored.
  */
-export type MoneyQuery = {text?: string; kind?: 'all' | 'expense' | 'income'; category?: string; from?: string; to?: string};
+/** Session AV (fresh-agent check q2, rank 21; Monarch, Copilot): `minCents` / `maxCents`, an amount range (both included). */
+export type MoneyQuery = {text?: string; kind?: 'all' | 'expense' | 'income'; category?: string; from?: string; to?: string; minCents?: number; maxCents?: number};
 const fold = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '');
 export function searchEntries(entries: readonly MoneyEntry[], q: MoneyQuery): MoneyEntry[] {
   const words = fold(q.text ?? '').split(/\s+/).filter(Boolean), cat = q.category ? fold(q.category) : '';
@@ -15,6 +16,11 @@ export function searchEntries(entries: readonly MoneyEntry[], q: MoneyQuery): Mo
     if (q.kind && q.kind !== 'all' && e.kind !== q.kind) return false;
     if (q.from && e.date < q.from) return false;
     if (q.to && e.date > q.to) return false;
+    if (q.minCents !== undefined || q.maxCents !== undefined) {
+      const amount = Math.round(Number(e.amount) * 100);
+      if (q.minCents !== undefined && amount < q.minCents) return false;
+      if (q.maxCents !== undefined && amount > q.maxCents) return false;
+    }
     const cats = [e.category, ...entryParts(e).map(p => p.category)].map(fold);
     if (cat && !cats.includes(cat)) return false;
     if (!words.length) return true;

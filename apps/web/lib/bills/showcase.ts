@@ -20,5 +20,7 @@ export function showcaseBudgets(day: string): BudgetsRecord {
     {id: 'showcase-budget-groceries', category: 'Groceries', currency: 'EUR', monthly: '250.00', rollover: true, since, target: {amount: '300.00', by: shiftMonth(since, 1)}},
     {id: 'showcase-budget-food', category: 'Food & drink', currency: 'EUR', monthly: '120.00', rollover: false, since},
     {id: 'showcase-budget-fun', category: 'Fun', currency: 'EUR', monthly: '60.00', rollover: false, since},
-  ]});
+  ],
+  // Session AV (fresh-agent check q2, rank 31): one category watched without a budget, so the Showcase shows "Watching".
+  watch: [{category: 'Transport', currency: 'EUR'}]});
 }

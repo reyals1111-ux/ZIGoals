@@ -75,6 +75,11 @@ export function yearlyEstimate(record: BillsRecord): {currency: string; cents: n
   for (const b of record.bills) { const [n, d] = PER_MONTH[b.cadence]; by.set(b.currency, (by.get(b.currency) ?? 0) + cents(b.amount) * n * 12 / d); }
   return [...by].map(([currency, total]) => ({currency, cents: Math.round(total)})).sort((a, b) => a.currency.localeCompare(b.currency));
 }
+/** Session AV (fresh-agent check q1, F-YEAR row 8; Rocket Money's per-bill yearly cost): one bill's yearly cost in cents, an estimate from its cadence. */
+export function yearlyOf(bill: Pick<Bill, 'amount' | 'cadence'>): number {
+  const [n, d] = PER_MONTH[bill.cadence];
+  return Math.round(cents(bill.amount) * n * 12 / d);
+}
 export function monthlyEstimate(record: BillsRecord): {currency: string; cents: number}[] {
   const by = new Map<string, number>();
   for (const b of record.bills) { const [n, d] = PER_MONTH[b.cadence]; by.set(b.currency, (by.get(b.currency) ?? 0) + cents(b.amount) * n / d); }

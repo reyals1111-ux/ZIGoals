@@ -33,3 +33,29 @@ describe('Session AV (F-MOVE-ALERT): a portfolio worth above or below a value', 
     expect(priceAlertsSchema.parse({version: 1, portfolio: 'x'}).portfolio).toBeUndefined();
   });
 });
+
+// Session AV (fresh-agent check q2, rank 35; CoinStats): a portfolio-value alert counted on Today and marked seen; its
+// value from the prices read, null while a held coin has no price.
+import {alertsForToday, anyActive, markSeen as avMarkSeen} from './engine';
+import {portfolioValueNow} from './portfolio-value';
+describe('Session AV (q2 rank 35): portfolio-value alerts on Today', () => {
+  const base = {version: 1 as const, alerts: [], fired: [{alertId: 'alert_value-0001', at: '2026-11-20T10:00:00.000Z', text: 'Fictional coins is worth above 30000 USD: 35000 USD now.'}],
+    portfolio: [{id: 'alert_value-0001', portfolioId: 'p', portfolioName: 'Fictional coins', currency: 'USD' as const, direction: 'above' as const, value: '30000', createdAt: '2026-11-01T10:00:00.000Z', active: false, firedAt: '2026-11-20T10:00:00.000Z'},
+      {id: 'alert_value-0002', portfolioId: 'p', portfolioName: 'Fictional coins', currency: 'USD' as const, direction: 'below' as const, value: '20000', createdAt: '2026-11-01T10:00:00.000Z', active: true}]};
+  it('lists a reached value alert as fresh and a waiting one as waiting, until seen', () => {
+    const t = alertsForToday(base);
+    expect(t.fresh).toEqual([{id: 'alert_value-0001', line: 'Fictional coins is worth above 30000 USD: 35000 USD now.', firedAt: '2026-11-20T10:00:00.000Z'}]);
+    expect(t.waiting).toEqual([{id: 'alert_value-0002', line: 'Fictional coins worth below 20000 USD'}]);
+    expect(anyActive(base)).toBe(true);
+    expect(alertsForToday(avMarkSeen(base, '2026-11-21T10:00:00.000Z')).fresh).toEqual([]);
+    expect(anyActive({...base, portfolio: [base.portfolio[0]!]})).toBe(false);
+  });
+  it('a portfolio is valued from the prices read, and unknown while a held coin has none', () => {
+    const now = Date.parse('2026-11-21T10:00:00.000Z'), at = new Date(now).toISOString();
+    const portfolio = {id: 'p', name: 'Fictional coins', kind: 'real' as const, currency: 'USD' as const, createdAt: '2026-01-01T00:00:00.000Z', coins: [{ref: {provider: 'coingecko', kind: 'coin', id: 'bitcoin'}, name: 'Bitcoin', symbol: 'BTC'}],
+      transactions: [{id: 't1', coin: 'coingecko:coin:bitcoin', kind: 'buy' as const, quantity: '0.5', price: '60000', date: '2026-09-01', note: '', createdAt: '2026-09-01T12:00:00.000Z'}]} as never;
+    const quote = {base: {network: 'coingecko-coin', denom: 'bitcoin', decimals: 0}, marketRef: {provider: 'coingecko', kind: 'coin', id: 'bitcoin'}, currency: 'USD', price: '70000', priceDecimals: 0, source: 'CoinGecko', providerAssetId: 'bitcoin', observedAt: at, fetchedAt: at, verification: 'VERIFIED'} as never;
+    expect(portfolioValueNow(portfolio, [quote], now)).toBe('35000');
+    expect(portfolioValueNow(portfolio, [], now)).toBeNull();
+  });
+});

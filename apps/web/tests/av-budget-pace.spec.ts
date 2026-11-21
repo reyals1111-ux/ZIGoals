@@ -18,7 +18,9 @@ for (const theme of THEMES) test(`${theme}: Groceries near its limit, Fun faster
   await seedDevice(page, {[MONEY_LOG_KEY]: moneyLog([entry('2026-11-04', '170.00'), entry('2026-11-08', '70.00', 'Fun'), entry('2026-11-09', '50.00', 'Dining')]),
     [BUDGETS_KEY]: {version: 1, budgets: [budget('b1', 'Groceries', '200.00'), budget('b2', 'Fun', '100.00'), budget('b3', 'Dining', '200.00')]}});
   const section = await openWealthSection(page, 'budgets', 'Budgets by category');
-  const row = (name: string) => section.getByRole('row').filter({has: page.getByRole('rowheader', {name: new RegExp(`^${name}`)})});
+  // Deliberate change (Session AV, fresh-agent check q2, rank 37): the pace line moved from the narrow Category cell to
+  // the budget's own full-width row right under it; the same exact texts are asserted on that row.
+  const row = (name: string) => section.getByRole('row').filter({has: page.getByRole('rowheader', {name: new RegExp(`^${name}`)})}).locator('xpath=following-sibling::tr[1]');
   await expect(row('Groceries').locator('.budgets-pace')).toHaveText('Near the limit: 85% spent, €30.00 left for 17 days.');
   await expect(row('Fun').locator('.budgets-pace')).toHaveText('70% spent with 47% of the month gone: faster than the month.');
   await expect(row('Dining').locator('.budgets-pace')).toHaveCount(0);
@@ -27,5 +29,9 @@ for (const theme of THEMES) test(`${theme}: Groceries near its limit, Fun faster
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.goto('/app'); await hydrated(page);
-  await expect(page.getByRole('region', {name: 'Money that asks for a look'})).toHaveText('Money: Groceries near its limit →');
+  // Deliberate change (Session AV, fresh-agent check q2, rank 20): Today also names a budget spent faster than the month.
+  const line = page.getByRole('region', {name: 'Money that asks for a look'});
+  await expect(line).toHaveText('Money: Groceries near its limit · Fun faster than the month →');
+  await line.getByRole('link', {name: 'Fun faster than the month'}).click();
+  await expect(page).toHaveURL(/\/app\/wealth\?view=budgets/);
 });

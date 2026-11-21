@@ -22,4 +22,12 @@ for (const theme of THEMES) test(`${theme}: groceries up €10 on last month by 
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  // Session AV (fresh-agent check q2, rank 7): at 320 the Difference column is in view without a sideways scroll, with
+  // last month by now under it.
+  const scroll = panel.locator('.money-insights-scroll').first();
+  expect(await scroll.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+  const diff = table.getByRole('row', {name: /^Groceries/}).getByRole('cell').filter({hasText: '+€10.00'});
+  const [cellBox, boxBox] = [await diff.boundingBox(), await scroll.boundingBox()];
+  expect(cellBox!.x + cellBox!.width).toBeLessThanOrEqual(boxBox!.x + boxBox!.width + 1);
+  expect(await diff.evaluate(el => getComputedStyle(el, '::after').content)).toBe('"was €30.00"');
 });

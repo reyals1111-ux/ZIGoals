@@ -11,3 +11,13 @@ describe('Session AV (F-YEAR): a year of these bills', () => {
     expect(avYearly({version: 1, bills: []} as unknown as Parameters<typeof avYearly>[0])).toEqual([]);
   });
 });
+// Session AV (fresh-agent check q1, F-YEAR row 8; Rocket Money): each bill row also says its own yearly cost.
+import {yearlyOf} from './store';
+describe('Session AV (F-YEAR row 8): a yearly figure per bill', () => {
+  it('counts one bill at its own cadence', () => {
+    expect(yearlyOf({amount: '9.99', cadence: 'monthly'})).toBe(11988);
+    expect(yearlyOf({amount: '2.00', cadence: 'weekly'})).toBe(10400);
+    expect(yearlyOf({amount: '30.00', cadence: 'quarterly'})).toBe(12000);
+    expect(yearlyOf({amount: '49.00', cadence: 'yearly'})).toBe(4900);
+  });
+});

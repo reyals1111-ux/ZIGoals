@@ -54,6 +54,10 @@ for (const theme of THEMES) test(`${theme}: your own order, a one-off payment an
   expect(await page.evaluate(() => localStorage.getItem('zigoals:debt-planner:v1'))).toBeNull(); // example figures are never stored
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  // Session AV (fresh-agent check q2, rank 16): at 320 no amount splits mid-number; the table scrolls in its own box.
+  for (const cell of (await table.locator('td, thead th').all()).slice(0, 8)) {
+    expect(await cell.evaluate(el => { const text = [...el.childNodes].find(n => n.nodeType === 3 && n.textContent!.trim()); if (!text) return 1; const r = document.createRange(); r.selectNodeContents(text); return r.getClientRects().length; })).toBe(1);
+  }
 });
 
 test('Showcase: the kept tax refund counts; a tracked plan is compared with the balances recorded since', async ({page}) => {

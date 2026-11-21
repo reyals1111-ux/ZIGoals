@@ -19,12 +19,16 @@ for (const theme of THEMES) test(`${theme}: Dining watched, €65 so far against
   const form = watch.getByRole('form', {name: 'Watch a category'});
   await form.getByLabel('Category').fill('Dining');
   await form.getByRole('button', {name: 'Watch'}).click();
-  await expect(watch.getByRole('listitem')).toHaveText(/^Dining · €65\.00 so far · €30\.00 by this day last month \(\+€35\.00\)\s*Stop watching$/);
+  // Deliberate change (Session AV, fresh-agent check q2, rank 31): the line also says all of last month (Rocket Money's
+  // watchlist shows the month's whole figure); the same exact line with that figure added.
+  await expect(watch.getByRole('listitem')).toHaveText(/^Dining · €65\.00 so far · €30\.00 by this day last month \(\+€35\.00\) · €80\.00 all of last month\s*Stop watching$/);
   expect((await readRecord<BudgetsRecord>(page, BUDGETS_KEY)).watch).toEqual([{category: 'Dining', currency: 'EUR'}]);
   const findings = await axe(page, watch);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await watch.getByRole('button', {name: 'Stop watching Dining in EUR'}).click();
   await expect(watch.getByRole('listitem')).toHaveCount(0);
+  // Session AV (q2 rank 31): focus moves to the form's Category, not <body>.
+  await expect(form.getByLabel('Category')).toBeFocused();
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

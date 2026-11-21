@@ -18,6 +18,20 @@ export function balanceOn(account: Account, day?: string): (Money & {date: strin
   const s = account.snapshots.filter(x => !day || x.date <= day).sort((a, b) => b.date.localeCompare(a.date))[0];
   return s ? {value: BigInt(s.value), decimals: s.decimals, date: s.date} : null;
 }
+/**
+ * Session AV (fresh-agent check q2, rank 16; Undebt.it's payment log lowers the balance): what a debt owes on a day from
+ * what is recorded — its latest balance on or before the day, less the payments recorded after that balance's date (up
+ * to the day), never below zero. Read for the tracked payoff plan only; nothing is stored or changed. Null without a
+ * balance. `payments` is how many payments were taken off (0: the balance as recorded).
+ */
+export function owedAfterPayments(account: Account, day: string): (Money & {date: string; payments: number}) | null {
+  const b = balanceOn(account, day);
+  if (!b) return null;
+  const later = account.payments.filter(p => p.date > b.date && p.date <= day);
+  let owed: Money = {value: b.value, decimals: b.decimals};
+  for (const p of later) owed = sub(owed, {value: BigInt(p.value), decimals: p.decimals});
+  return {...(owed.value < 0n ? {value: 0n, decimals: owed.decimals} : owed), date: b.date, payments: later.length};
+}
 export type CurrencyWorth = {currency: string; assets: Money; debts: Money; net: Money; holdings: Money; accounts: number; noBalance: number};
 /** Net worth per currency on a day: the accounts' latest balances, and Wealth's valued holdings as their own line. */
 export function netWorth(accounts: Accounts, day: string, positions: readonly Position[] = []): {rows: CurrencyWorth[]; unvaluedHoldings: number} {

@@ -60,6 +60,9 @@
 .debt-plan-pick label{min-height:44px;display:inline-flex;align-items:center;gap:6px}
 .debt-plan-pick input{width:auto;min-height:0}
 .debt-plan-table{font-variant-numeric:tabular-nums}
+/* Session AV (fresh-agent check q2, rank 16): amounts and words never split mid-number; the table scrolls in its own box. */
+.debt-plan-table th,.debt-plan-table td{white-space:nowrap;overflow-wrap:normal}
+.debt-planner-unkept{font-size:14px}
 .debt-plan-table td small,.debt-plan-table th small{display:block;color:var(--text-meta,var(--muted))}
 .debt-plan-progress{display:grid;gap:6px;padding:12px 14px;border-radius:16px;border:1px solid var(--line,rgba(140,160,220,.25))}
 .debt-plan-progress p,.debt-plan-progress h4{margin:0}

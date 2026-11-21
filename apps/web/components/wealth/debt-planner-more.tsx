@@ -86,13 +86,13 @@ export function Schedule({c, shown, onShow, names, money, today, plan}: {c: Plan
 }
 
 /** The plan kept on "Track this plan" against what the accounts show now. */
-export function Progress({tracked, progress, money, onStop}: {tracked: {on: string; strategy: Strategy}; progress: PlanProgress; money: (cents: bigint) => string; onStop: () => void}) {
+export function Progress({tracked, progress, money, onStop, payments = 0}: {tracked: {on: string; strategy: Strategy}; progress: PlanProgress; money: (cents: bigint) => string; onStop: () => void; payments?: number}) {
   const since = formatMonth(tracked.on.slice(0, 7)), first = formatMonth(addMonths(tracked.on.slice(0, 7), 1));
   return <section className="debt-plan-progress" aria-label="Your plan against what you recorded">
     <h4>Your plan against what you recorded</h4>
     {progress.months === 0 ? <p>You started tracking {STRATEGY_WORDS[tracked.strategy]} in {since}. Its first payment month is {first}; after it, this compares the plan with the balances you record.</p>
-      : <p>After {countdownWords(progress.months)} of payments, {STRATEGY_WORDS[tracked.strategy]} (tracked since {since}) expected {money(progress.expected)} owed in all. Your accounts show {money(progress.actual)}: <strong>{progress.ahead > 0n ? `${money(progress.ahead)} ahead of the plan` : progress.ahead < 0n ? `${money(-progress.ahead)} behind the plan` : 'right on the plan'}</strong>.</p>}
-    <p className="fine">The plan is worked out from its own figures on the day you started it. The balances are the ones you record under Accounts, debts &amp; net worth; a debt no longer there, or at zero, counts as paid off.</p>
+      : <p>After {countdownWords(progress.months)} of payments, {STRATEGY_WORDS[tracked.strategy]} (tracked since {since}) expected {money(progress.expected)} owed in all. Your accounts show {money(progress.actual)}{payments > 0 ? ` (your latest balances, less the ${payments === 1 ? 'payment' : `${payments} payments`} recorded since them)` : ''}: <strong>{progress.ahead > 0n ? `${money(progress.ahead)} ahead of the plan` : progress.ahead < 0n ? `${money(-progress.ahead)} behind the plan` : 'right on the plan'}</strong>.</p>}
+    <p className="fine">The plan is worked out from its own figures on the day you started it. The balances are the ones you record under Accounts, debts &amp; net worth, less any payment recorded there after a balance; a debt no longer there, or at zero, counts as paid off.</p>
     <button type="button" className="quiet" onClick={onStop}>Stop tracking this plan</button>
   </section>;
 }

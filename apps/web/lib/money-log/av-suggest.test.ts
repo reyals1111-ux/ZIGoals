@@ -18,4 +18,22 @@ describe('Session AV (F-CATEGORY-SUGGEST)', () => {
     expect(pastCategory(log, 'income', 'ab')).toBeNull();
     expect(pastCategory(log, 'income', 'fictional employer')).toEqual({category: 'Salary', times: 1});
   });
+  // Session AV (fresh-agent check q2, rank 22): the payee part, from the first letters, and letters of every script.
+  it('matches the payee part of a note, from its first three letters, in any script', () => {
+    const log = [e('2026-10-01', 'Groceries', 'Weekly shop · SHOWCASE DATA'), e('2026-10-08', 'Groceries', 'Weekly shop · SHOWCASE DATA'), e('2026-10-09', 'Dining', 'Lunch with Sam'), e('2026-10-10', 'Dining', 'Кафе Пушкин'), e('2026-10-11', 'Fun', '喫茶店')];
+    expect(pastCategory(log, 'expense', 'Weekly shop')).toEqual({category: 'Groceries', times: 2});
+    expect(pastCategory(log, 'expense', 'weekly shop')).toEqual({category: 'Groceries', times: 2});
+    expect(pastCategory(log, 'expense', 'wee')).toEqual({category: 'Groceries', times: 2, payee: 'Weekly shop'});
+    expect(pastCategory(log, 'expense', 'we')).toBeNull(); // two letters are too few
+    expect(pastCategory(log, 'expense', 'Lunch')).toEqual({category: 'Dining', times: 1, payee: 'Lunch with Sam'});
+    expect(pastCategory([e('2026-10-09', 'Dining', 'Lunch')], 'expense', 'Lunch with Ana')).toEqual({category: 'Dining', times: 1, payee: 'Lunch'});
+    expect(pastCategory(log, 'expense', 'кафе пушкин')).toEqual({category: 'Dining', times: 1});
+    expect(pastCategory(log, 'expense', 'Каф')).toEqual({category: 'Dining', times: 1, payee: 'Кафе Пушкин'});
+    expect(pastCategory(log, 'expense', '喫茶店')).toEqual({category: 'Fun', times: 1});
+    expect(pastCategory(log, 'expense', 'Lunchbox')).toBeNull(); // a longer word is not a prefix match of "Lunch"
+  });
+  it('an exact payee wins over a prefix', () => {
+    const log = [e('2026-10-01', 'Fun', 'Bar'), e('2026-10-02', 'Dining', 'Barista'), e('2026-10-03', 'Dining', 'Barista')];
+    expect(pastCategory(log, 'expense', 'bar')).toEqual({category: 'Fun', times: 1});
+  });
 });

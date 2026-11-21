@@ -56,3 +56,4 @@
 /* Session AV follow-up 1 (F-CATEGORY-SUGGEST): the category this note had before. */
 .spending-suggest { margin: 0; }
 .spending-suggest .text-link { min-height: 44px; }
+.money-search-range-note { grid-column: 1 / -1; margin: 0; }
