@@ -37,6 +37,8 @@ const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 const WorkoutTools = lazy(() => import('./workouts-tools'));
 // Session AV (follow-up 1, F-WORKOUT-WEEKS): the last 12 weeks, its own chunk.
 const WeeklyChart = lazy(() => import('./weekly-chart'));
+// Session AV (follow-up 1, F-RUN-BESTS): the fastest 1, 5 and 10 km and the longest run, its own chunk.
+const RunBests = lazy(() => import('./run-bests'));
 const WorkoutsMuscles = lazy(() => import('./workouts-muscles'));
 // Session AK (item 8): "Fresh today: legs, back" on the start sheet, its own small chunk.
 const MuscleFreshToday = lazy(() => import('./muscle-freshness-today'));
@@ -181,6 +183,7 @@ export default function WorkoutsView() {
         {past.some(x => x.exercises.length) && <Suspense fallback={null}><MuscleFreshToday w={w} library={library} today={today}/></Suspense>}
         <p className="fine">This week: {week.workouts} {plural(week.workouts, 'workout')}{week.workouts ? ` · ${week.minutes} min · ${week.sets} ${plural(week.sets, 'set')}${week.volumeKg ? ` · ${weightShown(week.volumeKg, unit)} lifted` : ''}` : ''}.</p>
         {past.length > 0 && <Suspense fallback={null}><WeeklyChart w={w} today={today} unit={unit}/></Suspense>}
+        {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null}/></Suspense>}
         <div className="workouts-start-actions">
           <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
           {last && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: last})}>Repeat {last.name}</button>}

@@ -129,3 +129,9 @@
 .workouts-weeks-scroll:focus-visible{outline:2px solid var(--cyan, #6fd3ff);outline-offset:2px}
 .workouts-weeks-table th,.workouts-weeks-table td{white-space:nowrap}
 .workouts-weeks > *{min-width:0}
+/* Session AV follow-up 1 (F-RUN-BESTS): running bests. */
+.workouts-bests{display:grid;gap:6px;margin:8px 0}
+.workouts-bests h3{margin:0;font-size:16px}
+.workouts-bests ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.workouts-bests li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-size:15px}
+.workouts-bests small{color:var(--text-secondary, var(--muted))}

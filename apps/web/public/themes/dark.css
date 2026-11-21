@@ -11321,6 +11321,9 @@
     .workouts-weeks-scroll:focus-visible:not(#\-) {
         outline-color: var(--cyan, #6fd3ff)
     }
+    .workouts-bests small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 /*  components/help/help-screenshots.css  */
 @scope (:root[data-theme=dark]) {
@@ -27490,6 +27493,18 @@
     }
     .money-insights-scroll:focus-visible:not(#\-) {
         outline-color: var(--cyan, #6fd3ff)
+    }
+    .money-flow-income:not(#\-), .money-flow-node.is-category:not(#\-) {
+        fill: var(--cyan, #6fd3ff)
+    }
+    .money-flow-node.is-left:not(#\-) {
+        fill: var(--violet, #a98bff)
+    }
+    .money-flow-band:not(#\-) {
+        fill: var(--cyan, #6fd3ff)
+    }
+    .money-flow-band.is-left:not(#\-) {
+        fill: var(--violet, #a98bff)
     }
 }
 /*  components/wealth/spending/spending.css  */
