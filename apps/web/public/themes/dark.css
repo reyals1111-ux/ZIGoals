@@ -5866,6 +5866,9 @@
     .agenda-countdown small:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .countdowns-reminders:not(#\-) {
+        border-color: var(--line)
+    }
 }
 /*  components/cycle/cycle.css  */
 @scope (:root[data-theme=dark]) {

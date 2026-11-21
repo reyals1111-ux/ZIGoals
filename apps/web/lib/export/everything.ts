@@ -101,6 +101,7 @@ import {AM_EXPORT_KEYS} from '../am-device-keys';
 import {AM2_EXPORT_KEYS} from '../am2-device-keys';
 import {AR_EXPORT_KEYS} from '../ar-device-keys';
 import {AU_EXPORT_KEYS} from '../au-device-keys';
+import {AV_EXPORT_KEYS} from '../av-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -238,7 +239,9 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AR (lib/ar-device-keys.ts): whether "Your orbits" shows on Today.
   ...AR_EXPORT_KEYS,
   // Session AU (lib/au-device-keys.ts; ADR-044 F-MEAL): meals logged in words alone.
-  ...AU_EXPORT_KEYS} as const;
+  ...AU_EXPORT_KEYS,
+  // Session AV (lib/av-device-keys.ts; ADR-045 F-COUNTDOWN-YEARLY): yearly countdowns and their reminders.
+  ...AV_EXPORT_KEYS} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',

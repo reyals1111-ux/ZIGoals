@@ -81,6 +81,7 @@ import {showcaseTasks, showcaseTaskWhen} from './tasks/showcase';
 import {TASK_WHEN_KEY} from './tasks/when';
 import {COUNTDOWNS_KEY} from './countdowns/schema';
 import {showcaseCountdowns} from './countdowns/showcase';
+import {COUNTDOWN_EXTRAS_KEY} from './countdowns/extras';
 import {MONEY_TAGS_KEY} from './money-tags/schema';
 import {showcaseMoneyTags} from './money-tags/showcase';
 import {showcaseNotes} from './notes/showcase';
@@ -263,7 +264,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // widgets (Spending by tag, Days until, This evening and Someday) and their pages have something to show. Each is the
  // record's own format, in this tab's Showcase storage only: example tags on that log's own fictional entries, four
  // "Example · " countdowns, and two of the fictional tasks on tonight's list and in Someday.
- records[MONEY_TAGS_KEY]=JSON.stringify(showcaseMoneyTags(showcaseMoneyLog(day)));records[COUNTDOWNS_KEY]=JSON.stringify(showcaseCountdowns(day));records[TASK_WHEN_KEY]=JSON.stringify(showcaseTaskWhen(day));
+ records[MONEY_TAGS_KEY]=JSON.stringify(showcaseMoneyTags(showcaseMoneyLog(day)));records[COUNTDOWNS_KEY]=JSON.stringify(showcaseCountdowns(day));/* Session AV (F-COUNTDOWN-YEARLY): Mum's birthday comes back every year, with a week's reminder. */records[COUNTDOWN_EXTRAS_KEY]=JSON.stringify({version:1,items:{'countdown_showcase-1':{yearly:true,remindDays:7}}});records[TASK_WHEN_KEY]=JSON.stringify(showcaseTaskWhen(day));
  // Session AK (lane M): two fictional money rules that match only that log's own entries (lib/money-rules/showcase.ts).
  records[MONEY_RULES_KEY]=JSON.stringify(showcaseMoneyRules(day));
  // Session AK (8.6, item 8): the rewards shelf on with two fictional treats (the game layer is on in the Showcase), and
