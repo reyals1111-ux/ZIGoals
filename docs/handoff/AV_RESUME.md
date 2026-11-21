@@ -8,7 +8,7 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 finish or unwire the current feature, push, get CI green, write "Safe to merge now: yes (CI run N)", push nothing until
 "continue". After PR #108 merges: `feature/session-av-2` from the new main, Draft PR "Session AV (continued)".
 
-**Safe to merge now: yes at `7e664056` (CI run 1938). No later head is safe until its own run: run 1941 found A10-11 (fixed at `967ab614`) and the checks reds of D-CI1941 (fixed at `7f01e6d5`, `a2deeed5`).**
+**Safe to merge now: yes at `7e664056` (CI run 1938). Run 1956 on `7f81fdf3` is running: every finished job green so far (checks, shards 4 and 8 included). Later heads wait for their own run.**
 
 ## Toolchain in the sandbox
 - Pinned Node 24.19.0 in the scratchpad (`node-v24.19.0-linux-x64/bin` first on PATH); `corepack enable pnpm`;
@@ -29,9 +29,11 @@ finish or unwire the current feature, push, get CI green, write "Safe to merge n
 ## In progress
 - Built since: #7 vs last month (`4c0b99ef`), #9 every factor, #8 budget targets (TIER 3), #12 bill calendar, #13
   workouts by week, #10 the review's tasks, #15 running bests, #16 income flow; B: deadlines (`8e63c167` TIER 3 stored,
-  `4408d1d6` TIER 3 AI), the debt planner's own order, one-off payments, month by month, countdown, tracked plan
-  (`TIER 3` stored and AI commits up to `34975169`). Build order A and B are done.
-- Next: C, the 33 new rows of COMPETITORS.md in rank order (17 onward).
+  `4408d1d6` TIER 3 AI), the debt planner's order, one-off payments, schedule, countdown, tracked plan (up to
+  `34975169`). C: #17 pasted list (`4442d1c1`), #18 just the calories, #19 yesterday's habits, #20 the money
+  line on Today, #21 money search, #22 a category offered, #23 never missed twice (as a second number, D-BUILD), #24
+  today's focus habit (TIER 3 stored, `112eb132`). CI fixes: A10-11 (`967ab614`), nova-wa runFor (`f24e2913`).
+- Next: C #25 meal words matched to foods (no model), then #26 onward in COMPETITORS.md order.
 
 ## Next
 - Read CI at part boundaries (≤ every 10 min); record reds in ADR-045 (D-CI*) and CI_INTERMITTENTS.
