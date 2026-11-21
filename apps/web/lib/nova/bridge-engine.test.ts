@@ -86,6 +86,10 @@ beforeEach(() => {
     bodies.push(String(init?.body ?? '')); return new Response(new ReadableStream({start(c) { c.enqueue(new TextEncoder().encode(sse(replyText))); c.close(); }}), {status: 200, headers: {'content-type': 'text/event-stream'}}); });
   holdKey('local', 'anthropic', KEY);
   localStorage.setItem('zigoals:ai-options:v1', JSON.stringify({version: 1, toolMode: 'attach'}));
+  // Session AV (PK-18; deliberate test change, equally strict for what this file tests): with no mode chosen a cloud now
+  // gets the Guarded copy. These checks compare the exact prompt the bridge builds, so the person here chose Relaxed; the
+  // modes' own tests below set Strict and Guarded themselves.
+  localStorage.setItem('zigoals:nova-setup:v1', JSON.stringify({version: 1, privacyMode: 'relaxed'}));
   root = createRoot(document.body.appendChild(document.createElement('div')));
 });
 afterEach(async () => { await act(async () => root.unmount()); await zigi?.removeAll(); dropMemoryKeys(); localStorage.clear(); vi.unstubAllGlobals(); zigi = null; nova = null; });

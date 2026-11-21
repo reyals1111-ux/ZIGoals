@@ -31,4 +31,5 @@ export const TRANSCRIPTION_REFUSAL: Readonly<Record<'strict' | 'guarded', string
   guarded: 'Not sent: Guarded privacy sends no recording to a cloud model, because a recording cannot be redacted. Use your browser’s speech on this device instead, or type.',
 };
 /** Provider transcription (a recording sent to a cloud model) under the mode: refused in Strict and Guarded. */
-export const transcriptionRefusal = (mode: 'strict' | 'guarded' | 'relaxed' | null): string | null => mode === 'strict' || mode === 'guarded' ? TRANSCRIPTION_REFUSAL[mode] : null;
+// Session AV (PK-18, TIER 3 AI tools): no mode chosen counts as Guarded here too: no recording goes to a cloud model.
+export const transcriptionRefusal = (chosen: 'strict' | 'guarded' | 'relaxed' | null): string | null => { const mode = chosen ?? 'guarded'; return mode === 'strict' || mode === 'guarded' ? TRANSCRIPTION_REFUSAL[mode] : null; };

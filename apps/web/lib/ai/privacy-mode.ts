@@ -14,8 +14,9 @@ import type {ChatMessage, ChatRequest} from './types';
  * Session AK, owner follow-up 2 (N3 step 2, N9; lane NC): the privacy mode, enforced where every request of ZIGi and NOVA
  * leaves the device (components/ai/use-chat-session.ts, `counted`: the one wrapper every chat, tool round, repair round
  * and ZIGoals hosted request goes through). One engine, one rule:
- * - no mode chosen (every person who never opened "Build your own NOVA"): the request goes exactly as before, the same
- *   object, untouched;
+ * - no mode chosen (every person who never opened "Build your own NOVA"): Session AV (owner follow-up 3, PK-18, TIER 3 AI
+ *   tools) sends as Guarded (`sendMode`): a cloud model gets the redacted copy and no photo, and ZIGi's panel shows the
+ *   redacted text before it goes; a local model gets it as it is. (Before AV the request went untouched.)
  * - Relaxed: the same: the granted scopes go as they are, the person's informed choice;
  * - Strict: only a model on this computer (the local provider) is reached; a cloud provider or ZIGoals hosted is refused
  *   before anything is sent;
@@ -44,15 +45,21 @@ export const isCloudTarget = (provider: ProviderId | null | undefined, hosted = 
  * `knownCloud` (security review Z1A-7): Ollama's own list marked this local model as one of its cloud models (a renamed
  * copy keeps that mark: lib/nova/cloud-models.ts), so it is a cloud whatever its name says.
  */
-export function sendDecision(mode: PrivacyMode | null, target: {provider: ProviderId | null | undefined; hosted?: boolean; model?: string | null; hermesUnconfirmed?: boolean; knownCloud?: boolean}): SendDecision {
+/** The mode a send follows: the person's choice, or Guarded while none is chosen (PK-18). */
+export const sendMode = (mode: PrivacyMode | null): PrivacyMode => mode ?? 'guarded';
+export function sendDecision(chosen: PrivacyMode | null, target: {provider: ProviderId | null | undefined; hosted?: boolean; model?: string | null; hermesUnconfirmed?: boolean; knownCloud?: boolean}): SendDecision {
+  const mode = sendMode(chosen);
   const knownCloud = target.provider === 'local' && !target.hosted && target.knownCloud === true;
   if (target.provider === 'local' && !target.hosted && target.hermesUnconfirmed && !isOllamaCloudModel(target.model) && !knownCloud && hermesNeedsRedaction(mode, false)) return 'redact';
-  if (!mode || mode === 'relaxed' || !(knownCloud || isCloudTarget(target.provider, target.hosted, target.model))) return 'send';
+  if (mode === 'relaxed' || !(knownCloud || isCloudTarget(target.provider, target.hosted, target.model))) return 'send';
   return mode === 'strict' ? 'refuse' : 'redact';
 }
 export const targetName = (provider: ProviderId | null | undefined, hosted = false, model?: string | null): string => hosted ? 'ZIGoals hosted' : provider === 'local' && isOllamaCloudModel(model) ? 'Ollama\'s cloud (ollama.com)' : provider ? PROVIDERS[provider].name : 'your AI';
 export const STRICT_REFUSAL = 'Not sent: Strict privacy keeps your AI on this computer.';
 export const GUARDED_PHOTO_REFUSAL = 'Not sent: Guarded privacy sends no photos to a cloud model.';
+/** PK-18: the same refusal while no mode is chosen, with the way to choose one. */
+export const NO_MODE_PHOTO_REFUSAL = 'Not sent: with no privacy mode chosen, ZIGi works as Guarded and sends no photos to a cloud model. To send photos, choose Relaxed in NOVA → Build NOVA’s brain → Privacy.';
+export const photoRefusal = (chosen: PrivacyMode | null): string => chosen === null ? NO_MODE_PHOTO_REFUSAL : GUARDED_PHOTO_REFUSAL;
 /** What the model is told when something was redacted, so it keeps the placeholders instead of guessing. */
 export const REDACTION_NOTE = '\n\nPrivacy note: before this request left the person\'s device, ZIGoals replaced private details with placeholders such as [name], [address] and [account number], and wrote exact amounts as rounded figures ("about €1,200"). Keep the placeholders as they are and never ask for what they hide.';
 
@@ -121,7 +128,7 @@ export async function guardRequest<R extends ChatRequest>(request: R, options: {
   // The app storage is read only when needed; a storage that cannot be reached reads as Strict and unconfirmed (fail closed).
   let storage = options.storage ?? null;
   const store = () => storage ??= appStorageOrRefusal();
-  const mode = options.mode !== undefined ? options.mode : readPrivacyMode(store());
+  const chosen = options.mode !== undefined ? options.mode : readPrivacyMode(store()), mode = sendMode(chosen);
   const hermes = request.provider === 'local' && !hosted && !!request.baseUrl && !!mode && mode !== 'relaxed' ? readHermes(store()) : null;
   const savedHermes = !!hermes && isHermesBase(request.baseUrl, hermes.data);
   // Z1A-6 (AL Part 14): an OpenAI-compatible server on this computer whose /health says it is Hermes counts as an unconfirmed Hermes.
@@ -145,7 +152,7 @@ export async function guardRequest<R extends ChatRequest>(request: R, options: {
   }
   if (decision === 'send') return request;
   if (decision === 'refuse') throw new AiError('blocked', STRICT_REFUSAL, {provider: request.provider});
-  if (request.messages.some(m => m.role === 'user' && m.images?.length)) throw new AiError('blocked', GUARDED_PHOTO_REFUSAL, {provider: request.provider});
+  if (request.messages.some(m => m.role === 'user' && m.images?.length)) throw new AiError('blocked', photoRefusal(chosen), {provider: request.provider});
   const redactor = await import('../nova/redact');
   const known = options.knownNames ?? redactor.knownNamesFrom(noteTexts(store()));
   return redactRequest(request, redactor, known).request;

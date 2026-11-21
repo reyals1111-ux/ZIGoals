@@ -4,7 +4,7 @@ import {describe, expect, test} from 'vitest';
 import {AiError} from './errors';
 import {guardedStreamChat} from './guarded-stream';
 import {photoDestination, photoSendLine} from './photo-consent';
-import {GUARDED_PHOTO_REFUSAL, STRICT_REFUSAL} from './privacy-mode';
+import {GUARDED_PHOTO_REFUSAL, STRICT_REFUSAL, NO_MODE_PHOTO_REFUSAL} from './privacy-mode';
 import type {ChatRequest} from './types';
 
 /**
@@ -58,7 +58,9 @@ describe('Z1B-10: the photo is shown with where it goes', () => {
     expect(photoDestination({provider: 'openai', model: 'gpt-x'}, 'strict')).toEqual({name: 'OpenAI', local: false, refusal: STRICT_REFUSAL});
     expect(photoDestination({provider: 'openai', model: 'gpt-x'}, 'guarded').refusal).toBe(GUARDED_PHOTO_REFUSAL);
     expect(photoDestination({provider: 'openai', model: 'gpt-x'}, 'relaxed').refusal).toBeNull();
-    expect(photoDestination({provider: 'openai', model: 'gpt-x'}, null).refusal).toBeNull();
+    // PK-18 (deliberate, equally strict): with no mode chosen a cloud gets no photo either, and the line says how to choose.
+    expect(photoDestination({provider: 'openai', model: 'gpt-x'}, null).refusal).toBe(NO_MODE_PHOTO_REFUSAL);
+    expect(photoDestination({provider: 'local', model: 'gemma4:12b', localServer: 'ollama'}, null).refusal).toBeNull();
     expect(photoDestination({provider: 'local', model: 'gemma4:12b', localServer: 'ollama'}, 'strict')).toEqual({name: 'Ollama on this computer', local: true, refusal: null});
     expect(photoDestination({provider: 'local', model: 'gpt-oss:120b-cloud', localServer: 'ollama'}, 'strict')).toEqual({name: 'Ollama’s cloud (ollama.com)', local: false, refusal: STRICT_REFUSAL});
     const line = photoSendLine('lab sheet', {name: 'OpenAI', local: false});
