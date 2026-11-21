@@ -52,7 +52,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
   ] },
   // Session AK G2 (RELEASE_REVIEW_2 R2-4): one assistant group, ZIGi's settings and NOVA's.
   { title: "Your assistant", rows: [
-    ["ZIGi · Your Personal AI Companion", "Your own AI, page by page", "your-ai"],
+    ["ZIGi · your companion", "Your own AI, page by page", "your-ai"],
     ["NOVA, the command center", "Brain setup, what NOVA sees, memory and cost", "nova-settings"],
   ] },
   { title: "Help & diagnostics", rows: [

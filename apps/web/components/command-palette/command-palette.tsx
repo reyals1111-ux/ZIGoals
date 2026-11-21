@@ -31,7 +31,7 @@ export default function CommandPalette({onClose}: {onClose: () => void}) {
   const rows = useMemo(() => {
     const words = typed.trim();
     const actions: PaletteRow[] = [
-      ...(isShown(view, 'zigi') ? [{id: 'zigi', group: 'Actions' as const, label: words ? `Ask ZIGi: “${words}”` : 'Ask ZIGi', detail: 'Your personal AI companion · Ctrl/⌘+Shift+Z', run: 'zigi' as const, words: 'ai chat assistant help'}] : []),
+      ...(isShown(view, 'zigi') ? [{id: 'zigi', group: 'Actions' as const, label: words ? `Ask ZIGi: “${words}”` : 'Ask ZIGi', detail: 'Your companion · Ctrl/⌘+Shift+Z', run: 'zigi' as const, words: 'ai chat assistant help'}] : []),
       ...(isShown(view, 'quick-add') ? [{id: 'quick-add', group: 'Actions' as const, label: 'Quick add', detail: 'Log water, a meal, a habit, a note or a task in one line', run: 'quick-add' as const, words: 'log add new'}] : []),
       {id: 'new-task', group: 'Actions', label: 'Add a task', detail: 'Tasks, with the add field ready', href: '/app/tasks?add=1', words: 'todo to-do new'},
       {id: 'search', group: 'Actions', label: words ? `Search everything for “${words}”` : 'Search everything', detail: 'Goals, habits, foods, assets, pages and Help · /', run: 'search', words: 'find'},

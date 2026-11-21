@@ -3,6 +3,7 @@ import {HABITS} from './cases-habits';
 import {HEALTH} from './cases-health';
 import {MONEY} from './cases-money';
 import {DAYS} from './cases-day';
+import {AV} from './cases-av';
 
 /**
  * Session AS (ADR-042 Part 1): the corpus — what people ask every day, in the ways they ask it (English and Dutch, typos
@@ -11,5 +12,5 @@ import {DAYS} from './cases-day';
  * `never`: what the answer must not contain (the wrong answer the question used to get).
  */
 export type Intent = {id: string; pillar: Pillar; en: readonly string[]; nl: readonly string[]; never?: readonly string[]};
-export const CORPUS: readonly Intent[] = [...HABITS, ...HEALTH, ...MONEY, ...DAYS];
+export const CORPUS: readonly Intent[] = [...HABITS, ...HEALTH, ...MONEY, ...DAYS, ...AV];
 export const questionCount = (): number => CORPUS.reduce((n, c) => n + c.en.length + c.nl.length, 0);

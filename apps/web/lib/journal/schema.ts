@@ -24,13 +24,34 @@ export const journalEntrySchema = z.looseObject({
    */
   template: z.string().regex(/^[a-z0-9-]{1,40}$/).optional().catch(undefined),
 });
+/**
+ * Session AV (owner follow-up 1, F-OWN-TEMPLATES; Day One's own templates; TIER 3 (stored format), additive and optional):
+ * the person's own journal templates — a title and two to six headings — at most 20. An item this build cannot read is
+ * dropped on read (the others are kept); older builds keep the list untouched (the record is loose) and do not show it.
+ */
+export const MAX_OWN_TEMPLATES = 20, OWN_TITLE_MAX = 60, OWN_HEADING_MAX = 120;
+export const ownTemplateSchema = z.looseObject({
+  id: z.string().regex(/^own-[a-z0-9]{6,30}$/),
+  title: z.string().trim().min(1).max(OWN_TITLE_MAX),
+  headings: z.array(z.string().trim().min(1).max(OWN_HEADING_MAX)).min(1).max(6),
+});
+export type OwnTemplate = z.infer<typeof ownTemplateSchema>;
+const ownTemplates = z.preprocess(v => Array.isArray(v) ? v.filter(x => ownTemplateSchema.safeParse(x).success).slice(0, MAX_OWN_TEMPLATES) : undefined, z.array(ownTemplateSchema).max(MAX_OWN_TEMPLATES).optional());
 export const journalSchema = z.looseObject({
   version: z.literal(1),
   entries: z.array(journalEntrySchema).max(MAX_ENTRIES),
+  templates: ownTemplates,
   /** Whether ZIGi may send journal entries to the person's own AI (off by default; the device asks its own questions). */
   shareWithAi: z.boolean().default(false),
   /** Whether ZIGi asks its one question after an entry at all. */
   followUps: z.boolean().default(true),
+  /**
+   * Session AV (1c, q4 #33, owner decision: the reviewer's smaller suggestion; Day One's Today lists entries): the person
+   * chose to see the first line of today's entries and of "On this day" on Today. Off unless switched on (Today shows
+   * counts only, ADR-045's privacy choice). TIER 3 (stored format), additive and optional: a value this build cannot read
+   * is dropped on read; older builds keep it untouched (the record is loose) and show counts only.
+   */
+  todayLines: z.boolean().optional().catch(undefined),
 });
 export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type Journal = z.infer<typeof journalSchema>;

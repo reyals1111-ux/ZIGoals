@@ -5,6 +5,7 @@ import {useJournalZone} from '../use-journal-zone';
 import {TASKS, type Task, type Tasks} from '../../lib/tasks/schema';
 import {addTask, editOccurrence, editTask, finishTask, removeTask, reopenTask, restoreTasks, type TaskInput, type TaskPatch as EnginePatch} from '../../lib/tasks/engine';
 import {deviceDay, tasksClock, tasksToday} from '../../lib/tasks/device';
+import {subscribeDayEnds} from '../../lib/day-boundary-core';
 import {undoOfChange} from '../../lib/tasks/undo';
 import {showStatus, showUndo, shownToasts} from '../ui/undo-toast';
 import {changeWithUndo} from '../ui/remove-with-undo';
@@ -43,7 +44,12 @@ export function useTaskClock(): {today: string; clock: string} {
     const timer = window.setInterval(tick, 30_000);
     const onShow = () => { if (document.visibilityState === 'visible') tick(); };
     document.addEventListener('visibilitychange', onShow); window.addEventListener('focus', tick);
-    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onShow); window.removeEventListener('focus', tick); };
+    // Session AU (ADR-044 F-5): the day is read again when "My day ends at" arrives or changes (the shell sets it after the
+    // record loads, as it sets the zone), so a Tasks page opened at 01:30 does not keep the calendar's day.
+    // The shell sets it in a layout effect, after this page's first render and before this effect subscribes, so the day is
+    // read once more here.
+    const stop = subscribeDayEnds(tick); tick();
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onShow); window.removeEventListener('focus', tick); stop(); };
   }, []);
   return now;
 }
@@ -87,9 +93,11 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
     if (!guard()) return false;
     try {
       // Session AL (DV-164): the Tasks page takes a past day; it shows as overdue.
-      latest.current.update(r => addTask(r, input, {id: `task_${crypto.randomUUID()}`, at: new Date(), today: tasksToday(), allowPast: true}));
+      const id = `task_${crypto.randomUUID()}`;
+      latest.current.update(r => addTask(r, input, {id, at: new Date(), today: tasksToday(), allowPast: true}));
       const text = `Added “${input.title.trim()}”.`;
-      setStatus({text}); setError(''); if (toast) showStatus(text); return true;
+      // Session AV (M-12a): the toast keeps clear of the row just added.
+      setStatus({text}); setError(''); if (toast) showStatus(text, {clearOf: `#task-${id}`}); return true;
     } catch (cause) { return fail(cause); }
   }, [guard, toast]);
   const toggle = useCallback((t: Task, done: boolean) => done

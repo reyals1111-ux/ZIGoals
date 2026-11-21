@@ -18,6 +18,7 @@ const MoneyTools = lazy(() => import('../money-tools/money-tools'));
 // Session AK (BUILD list 2 #6, #7, #18, #19): recent categories first, Select with a running total, the spending map
 // (its own chunk, on "Map"), and a calculator in the amount fields. Pure parts in lib/; nothing new is stored.
 import {categoriesRecentFirst} from '../../../lib/recent-categories/recent';
+import {pastCategory} from '../../../lib/money-log/suggest';
 import {selectionLine, summarizeSelection} from '../../../lib/money-log/selection';
 import {amountProblem} from '../../../lib/money-calc/expression';
 // PR-052: one form check for a new entry and an edit, and the edit itself (in place, the same id).
@@ -43,6 +44,10 @@ const readAmount = readMoneyAmount;
 const sumProblem = amountProblem;
 /** PR-052: an edited entry's own category stays choosable when it is not one of the usual ones (a rule's or ZIGi's). */
 const withOwn = (chips: readonly string[], own: string | undefined): readonly string[] => own && !chips.includes(own) ? [own, ...chips] : chips;
+// Session AV (L-7): with only monthly budgets, the weekly card shows this month's room from them (its own chunk).
+const MonthRoom = lazy(() => import('../budgets/month-room'));
+// Session AV (owner follow-up 1, F-MONEY-SEARCH): the whole money log searched, loaded when its fold opens.
+const MoneySearch = lazy(() => import('./money-search'));
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
   const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
@@ -65,6 +70,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   // PR-052: an entry being edited in the same form (its amount, category, note and date), or null for a new one.
   const [editing, setEditing] = useState<MoneyEntry | null>(null);
   const endEdit = () => { setEditing(null); setAmount(''); setNote(''); setDate(today); setLogging(false); requestAnimationFrame(() => logButton.current?.focus()); };
+  const [searching, setSearching] = useState(false);
   const startEdit = (entry: MoneyEntry) => { setEditing(entry); setKind(entry.kind); setAmount(entry.amount); setCategory(entry.category); setNote(entry.note ?? ''); setDate(entry.date); setProblem(''); setStatus(''); setLogging(true); requestAnimationFrame(() => amountField.current?.focus()); };
   const saveEdit = (entry: MoneyEntry) => {
     const checked = checkMoneyEdit(entry, {amount, category, note, date}, today);
@@ -97,6 +103,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   const categories = kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
   // Session AK (#6): the three most used in the last 30 days first, then the usual order (counted, never stored).
   const ordered = useMemo(() => categoriesRecentFirst(log.data.entries, kind, categories, today), [log.data.entries, kind, categories, today]);
+  const suggested = useMemo(() => note.trim() ? pastCategory(log.data.entries.filter(e => e.id !== editing?.id), kind, note) : null, [log.data.entries, kind, note, editing?.id]);
   // Session AK (#7): Select mode on this week's list, with the running total of the picked entries.
   const [selecting, setSelecting] = useState(false), [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set());
   const pickedSummary = useMemo(() => summarizeSelection(weekEntries, picked), [weekEntries, picked]);
@@ -104,7 +111,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   // Session AK (#18): this month as a list (as before) or as a map.
   const [monthView, setMonthView] = useState<'list' | 'map'>('list');
   // Session AK (#10): a draft from a receipt photo (Money tools → Receipt photos) fills this form; nothing is saved until Save.
-  const amountField = useRef<HTMLInputElement>(null);
+  const amountField = useRef<HTMLInputElement>(null), noteField = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const take = (event: Event) => {
       const d = (event as CustomEvent<MoneyDraft>).detail ?? {};
@@ -127,7 +134,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     {showcase && <p className="fine spending-showcase">Fictional Showcase entries.</p>}
     {log.unreadable && <p role="alert">This device&rsquo;s spending log could not be read; new entries start a fresh one.</p>}
     <div className="spending-top">
-      <div className="spending-room" role="group" aria-label="Room to spend this week">
+      <div className="spending-room" role="group" aria-label={room ? "Room to spend this week" : "Room to spend" /* Session AV (L-7): this month's budgets show here when there is no weekly one */}>
         <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true" focusable="false" className="spending-ring">
           <circle cx="60" cy="60" r={r} className="spending-ring-track"/>
           {room && <circle cx="60" cy="60" r={r} className={`spending-ring-fill${room.left < 0 ? ' spending-ring-over' : ''}`} strokeDasharray={`${circumference * share} ${circumference}`} transform="rotate(-90 60 60)"/>}
@@ -136,7 +143,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
           {room ? <><strong>{room.left >= 0 ? money(room.left, room.currency) : money(-room.left, room.currency)}</strong>
             <span>{room.left >= 0 ? `left of ${money(room.budget, room.currency)} this week` : `over this week's ${money(room.budget, room.currency)}`}</span>
             <span className="fine">{room.daysLeft === 1 ? 'Last day of the week' : `${room.daysLeft} days to go`} · spent {money(room.spent, room.currency)}</span></>
-            : <><strong>No weekly budget</strong><span className="fine">Set a weekly budget to see your room to spend.</span></>}
+            : <Suspense fallback={<><strong>No weekly budget</strong><span className="fine">Set a weekly budget to see your room to spend.</span></>}><MonthRoom entries={log.data.entries} today={today}/></Suspense>}
         </div>
       </div>
       {!logging ? <div className="spending-actions"><button ref={logButton} type="button" className="primary" aria-expanded={false} aria-controls={`${id}-log`} onClick={() => setLogging(true)}>Log spending</button></div>
@@ -152,7 +159,9 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         </div>
         <CalcHint value={amount} id={`${id}-calc`}/>
         <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{withOwn(ordered.chips, editing?.category).map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={category === c} onChange={() => setCategory(c)}/><span>{c}</span></label>)}</fieldset>
-        <label className="field"><span>Note — optional</span><input maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
+        <label className="field"><span>Note — optional</span><input ref={noteField} maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
+        {/* Session AV (owner follow-up 1, F-CATEGORY-SUGGEST): the category this payee or note had before, offered, never chosen for you. */}
+        {suggested && suggested.category !== category && <p className="fine spending-suggest" role="status">Before, “{suggested.payee ?? note.trim()}” was {suggested.category}{suggested.times > 1 ? ` (${suggested.times} times)` : ''}. <button type="button" className="text-link" onClick={() => { setCategory(suggested.category); noteField.current?.focus(); /* Session AV (q2 rank 22): the hint goes, so focus returns to the note */ }}>Use {suggested.category}</button></p>}
         <SecretGuard text={note} onRemove={() => setNote('')}/>
         {problem && <p role="alert">{problem}</p>}
         <div className="spending-form-actions"><button type="submit" className="primary">{editing ? 'Save changes' : 'Save'}</button>{editing ? <button type="button" className="quiet" onClick={() => { setProblem(''); endEdit(); }}>Cancel edit</button> : <button type="button" className="quiet" onClick={() => { setLogging(false); setProblem(''); requestAnimationFrame(() => logButton.current?.focus()); }}>Done</button>}</div>
@@ -190,6 +199,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         {monthTotals.map(t => <p key={t.currency} className="fine">This month in {t.currency}: spent {money(t.expenses, t.currency)}, received {money(t.income, t.currency)}.</p>)}
       </section>
     </div>
+    {log.data.entries.length > 0 && <details className="money-search-fold" onToggle={e => setSearching((e.currentTarget as HTMLDetailsElement).open)}><summary>Search all your entries</summary>{searching && <Suspense fallback={<p className="fine" aria-busy="true">Opening the search…</p>}><MoneySearch entries={log.data.entries} onEdit={startEdit}/></Suspense>}</details>}
     <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase}/></Suspense>
     {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
     : <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">

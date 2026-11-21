@@ -1,0 +1,18 @@
+/* Session AV follow-up 1 (F-YESTERDAY, F-MISS-REASON), moved from habits.css by q4 #19: yesterday's open habits and what
+   got in the way, on Habits and on Today (this file loads with the list's own chunk). */
+.habit-yesterday { display: grid; gap: 8px; }
+.habit-yesterday h2, .habit-yesterday p { margin: 0; }
+.habit-yesterday-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.habit-yesterday-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-width: 0; overflow-wrap: anywhere; padding: 4px 0; border-bottom: 1px solid var(--line, rgba(140,160,220,.18)); }
+.habit-yesterday-list small { color: var(--text-meta, var(--muted)); }
+.habit-yesterday button { min-height: 44px; }
+.habit-yesterday-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.habit-yesterday-row-actions { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; }
+.habit-yesterday-why { flex-basis: 100%; display: grid; gap: 8px; padding: 6px 0; }
+.habit-yesterday-why fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.habit-yesterday-why legend { font-weight: 600; margin-bottom: 4px; }
+.habit-yesterday-reason { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+.habit-yesterday-why input:not([type=radio]) { min-height: 44px; width: 100%; box-sizing: border-box; }
+.habit-yesterday-status:focus { outline: none; }
+.habit-yesterday h2:focus { outline: none; }
+.habit-yesterday.is-today { margin: 8px 0; }

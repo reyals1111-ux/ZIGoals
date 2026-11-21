@@ -87,7 +87,7 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 - **Goals and habits:** milestones and "On track?" for goals; challenges and stacks for habits; an optional evening wrap-up on Today.
 - **Wealth and Portfolio:** accounts, debts and net worth per currency, on your device; Portfolio with charts from your own transactions and dated prices. A price that is missing stays "unknown", never zero.
 - **Chess, Music and My links** pages, hidden until you show them.
-- **ZIGi · Your Personal AI Companion:** a helper on every page. It answers questions about your own records on your device with no AI at all ("How many minutes did I meditate this month?"), or works with an AI you bring yourself (your own key, a model on your computer, or "Copy for my AI" for a subscription). Nothing is written until you add the card it shows you. Health is only shared with your AI if you switch it on. **Help → ZIGi · Your Personal AI Companion** explains every part.
+- **ZIGi · your companion:** a helper on every page. It answers questions about your own records on your device with no AI at all ("How many minutes did I meditate this month?"), or works with an AI you bring yourself (your own key, a model on your computer, or "Copy for my AI" for a subscription). Nothing is written until you add the card it shows you. Health is only shared with your AI if you switch it on. **Help → ZIGi · your companion** explains every part.
 
 ## 8. New in this release: ZIGi's new face, and talking to ZIGi
 
@@ -214,6 +214,63 @@ forecast; MET Norway sees your network address and the place rounded to about 1 
 - **Earn:** Zignaly's closure is worded from its own notice by today's date, with the notice linked.
 
 
+## 8i. New from the dress rehearsal (Session AU)
+
+Before you got the Alpha, five made-up people used it for a week each, on a phone and a computer. What got in their way
+is fixed:
+
+- **A meal in words:** Log a meal → **Just describe it**. Calories stay unknown, never zero. "Your first five" ticks it.
+- **Health in NOVA and ZIGi:** one button, **NOVA → Permissions → Allow Health**, instead of three switches. Their
+  "Health is off" replies have a button that takes you there, and ZIGi answers Dutch questions in Dutch.
+- **Night owls:** with "My day ends at" set, Today, Habits, the Checklist, streaks and Tasks all agree on which day it is
+  after midnight. NOVA answers "what day is it?" by your day.
+- **Goals:** a sleep, steps or reading goal is pointed to the right kind, not saved as an amount of money.
+- **Money:** a bill whose price went up is found, and Bills shows the change. A bakery, butcher or grocer in a bank file
+  counts as Groceries. The export's goals and contributions files show amounts as you'd read them ("3000.00").
+- **NOVA and ZIGi answer more of what people asked:** "when will I reach my goal?" (the estimate first, said as one),
+  "what did I lift today?", "how far did I run this week?", "did any bill go up?", "is staking safe?" (facts, never
+  advice), and "hoeveel BTC heb ik?".
+- **Search finds the view-only Bitcoin address** by "watch", "address" or "xpub".
+
+A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
+
+## 8j. New in this release (Session AV, "Alpha quality")
+
+- **Your records stay safe on your phone.** On an iPhone in Safari, Today shows how to move to the Home Screen app (which
+  keeps its own storage): export a backup, add ZIGoals to your Home Screen, open it there and restore. The Home Screen app's
+  first visit offers "Restore a backup from Safari". Elsewhere, after you have added a good amount, Today offers one
+  readable backup in one tap (at most every two weeks, with an off switch).
+- **New versions arrive calmly.** An open ZIGoals says "A new version of ZIGoals is ready · Reload"; if part of the old
+  version can't load any more it reloads once by itself and says "Updated to the newest version." Never while you type.
+- **Check categories before an import.** The bank-file and CSV preview shows each row's category and lets you change it.
+- **NOVA at a computer:** a Health question asked while Health is closed now has "Open NOVA → Permissions" right under the
+  star, one tap to Allow Health.
+- **A question a day in your Journal**, above an empty entry ("Use this question" or "Another question").
+- **What your bills come to in a year**, beside a typical month on Wealth → Upcoming bills (an estimate).
+- Small things: a day still to come in the Agenda shows no "(0 done)"; "Refresh prices" appears once something is priced;
+  a goal with nothing going in shows no "$0.00 a month"; Tasks' filter appears once you have a task.
+
+**Also new (owner follow-up, from what other apps do well).** Each has its own answer in Help → What's new.
+
+- **Tasks:** type in Dutch too ("morgen 9 uur"); "deadline friday" apart from the day you plan it; "for 30 min" and
+  the minutes of the day; **Plan my day** (overdue, near deadlines, priority 1–2 without a day); paste a list to add
+  many; your own lines for the priority matrix; pause a repeating task until a day (its checklist comes round with it);
+  reminders as notifications on this device; tasks finished per day.
+- **Habits:** yesterday's open habits to tick, with what got in the way; never missed twice; today's focus habit; a
+  symbol and a colour; the week as a grid.
+- **Health:** "Just the calories"; a meal in words matched to your foods; foods high in a nutrient; a planned meal on
+  chosen weekdays; nutrient averages over 30 or 90 days or your own dates; **Hide calories and weight** (Health →
+  Targets); the sleep score's four parts; sleep over 90 days and a year; workouts by week, a calendar, running bests,
+  last time's exercise note and a star on a set that beats every earlier one; symptoms and supplements in the report
+  for a visit.
+- **Money:** this month against last; every factor in one place; budget targets, watched categories, a budget near its
+  limit or spent faster than the month; search all entries and a category offered as you type; bills on a calendar,
+  paid this month and until payday; where your income went; the debt planner's own order, one-off payments and the
+  plan month by month; alerts on a percent move or a portfolio's value; a month in short, and "Start this month fresh";
+  a money line on Today when something asks for a look.
+- **Journal and Today:** three good things, tags, a line on Today, an entry's whole day, your own templates and the
+  daily question in Dutch; countdowns that come back every year, with a reminder.
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
@@ -259,6 +316,14 @@ forecast; MET Norway sees your network address and the place rounded to about 1 
 - **Some records stay on the device when you restore a backup:** AI settings and keys, display choices, Earn progress
   and the staking journal (Help → Known limitations). Everything you record in Goals, Habits, Health, Wealth, Tasks,
   Notes and the Journal comes back.
+
+**Update, 20 Nov 2026 (Session AU):**
+
+- **Health stays closed to NOVA and ZIGi until you open it** (NOVA → Permissions → Allow Health).
+- **A meal in words has no calories;** ZIGi and NOVA don't read it.
+- **"My day ends at"** moves habits, the Checklist, streaks and Tasks; the Agenda's days and NOVA's clock keep the
+  calendar date.
+- **A bank file's shop names** the app doesn't know land in "Other"; change them under To review.
 
 The full list, kept up to date, is in **Help → Known limitations**.
 

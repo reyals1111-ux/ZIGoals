@@ -91,7 +91,8 @@ describe('Z1A-12: speech input and transcription in Strict', () => {
   test('a recording never goes to a cloud transcription model in Strict or Guarded', () => {
     expect(transcriptionRefusal('strict')).toMatch(/^Not sent: Strict/);
     expect(transcriptionRefusal('guarded')).toMatch(/^Not sent: Guarded .*cannot be redacted/);
-    expect(transcriptionRefusal('relaxed')).toBeNull(); expect(transcriptionRefusal(null)).toBeNull();
+    // PK-18 (deliberate, equally strict): no mode chosen counts as Guarded, so no recording goes to a cloud then either.
+    expect(transcriptionRefusal('relaxed')).toBeNull(); expect(transcriptionRefusal(null)).toBe(transcriptionRefusal('guarded'));
   });
   test('ZIGi\'s and NOVA\'s microphones and the provider recording check the mode before anything starts', () => {
     const talk = read('components/ai/use-talk.ts'), voiceHook = read('components/ai/use-voice.ts');

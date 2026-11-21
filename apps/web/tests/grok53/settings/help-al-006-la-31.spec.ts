@@ -32,7 +32,24 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   // buttons, Settings folded, planning, money, Health, Send feedback's details); Session AM's NOVA stage line follows;
   // the twelve before them stay, each still opening its answer (12 → 22 with both sessions).
   // Session AT (ADR-043 D15, deliberate): two lines first, NOVA's answers and the example pictures, each opening its answer (22 → 24).
-  await expect(list.getByRole('link')).toHaveCount(24);
+  // Session AV (ADR-045 Part 8, deliberate): three lines first, keeping your records on your phone, new versions and the
+  // import's categories, each opening its answer (24 → 27); Part 7 adds the Journal's question of the day and the bills' yearly total (27 → 29).
+  // Session AV follow-up 1 (F-TASK-NOTIFY, F-NL-TASKS, deliberate): task reminders as notifications, Dutch in the task line, three good things, journal tags, tasks finished per day, this month vs last, every factor, budget targets, the bill calendar, workouts by week, the review's tasks, running bests, where income went, deadlines, the debt planner's own order, a pasted list of tasks, just the calories, yesterday's open habits, money that asks for a look, money search, a category offered, never missed twice, today's focus habit, a meal in words matched, a habit's symbol, the sleep score's parts, foods high in a nutrient, a meal planned on weekdays, the habit week grid, a watched category, what got in the way, today's journal line, a journal entry's day, move and value alerts, hidden calorie and weight figures, a budget's pace, plan my day, a task's minutes, a set's best, the workout calendar, bills this month, matrix lines and a paused repeat, yearly countdowns, own journal templates, sleep over a year, nutrient ranges, symptoms in the report, a month in short (29 → 77).
+  // Session AV follow-up 2 (1d, deliberate test change, equally strict): the session's 53 lines became six, one per pillar
+  // (77 → 30). Each line opens its own answer; each answer is checked to name its parts, and every one of the 53 answers
+  // it replaced is still on the page, each opening by its own link as before.
+  await expect(list.getByRole('link')).toHaveCount(30);
+  const groups: [string, string, string[]][] = [["av-new-tasks", "Tasks: ", ["task-notify", "nl-tasks", "tasks-done", "review-tasks", "deadlines", "paste-list", "plan-day", "task-minutes", "matrix-pause", "countdown-yearly"]], ["av-new-money", "Money: ", ["vs-last", "budget-targets", "budget-pace", "bill-calendar", "bills-month", "bills-year", "income-flow", "debt-plan", "money-attention", "money-search", "category-suggest", "watch", "move-alert", "month-recap", "import-categories"]], ["av-new-health", "Health: ", ["quick-kcal", "words-match", "high-in", "repeat-plan", "nutrient-range", "hide-figures", "sleep-score", "sleep-long", "workout-weeks", "workout-calendar", "run-bests", "set-best", "factors", "report-more"]], ["av-new-habits", "Habits: ", ["yesterday", "miss-reason", "two-day", "focus-habit", "habit-look", "week-grid"]], ["av-new-journal", "Journal: ", ["prompt-day", "good-things", "journal-tags", "own-templates", "journal-today", "journal-day"]], ["av-new-data", "Your records: ", ["keep", "updates"]]];
+  for (const [id, starts, parts] of groups) {
+    await expect(list.getByRole('link', {name: new RegExp(`^${starts}`)})).toHaveAttribute('href', `#help-${id}`);
+    await expect(page.locator(`#help-${id}`)).toHaveCount(1);
+    for (const part of parts) await expect(page.locator(`#help-av-${part}`), part).toHaveCount(1);
+  }
+  expect(groups.flatMap(g => g[2])).toHaveLength(53);
+  await list.getByRole('link', {name: /^Money: /}).click();
+  await expect(page).toHaveURL(/#help-av-new-money$/);
+  await expect(page.locator('#help-av-new-money')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-av-new-money')).toContainText('the debt planner in your own order');
   await expect(list.getByRole('link', {name: /^NOVA answers the question you ask/})).toHaveAttribute('href', '#help-nova-answers');
   await expect(list.getByRole('link', {name: /^Example pictures of the main pages/})).toHaveAttribute('href', '#help-at-screens');
   await expect(list.getByRole('link', {name: /^NOVA makes a widget for what you ask/})).toHaveAttribute('href', '#help-nova-stage');

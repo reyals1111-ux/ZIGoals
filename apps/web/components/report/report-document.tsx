@@ -1,4 +1,5 @@
 'use client';
+import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
 import type {Report} from '../../lib/clinician-report/build';
 import {weightChangeText, weightText, type WeightUnit} from '../../lib/health-units';
 import {formatClock, formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
@@ -54,6 +55,22 @@ function WeightChart({rows, unit}: {rows: {date: string; grams: number}[]; unit:
     <Axis labels={[{at: x(rows[0]!.date), text: day(rows[0]!.date)}, ...(rows.length > 1 ? [{at: x(rows.at(-1)!.date), text: day(rows.at(-1)!.date)}] : [])]}/>
   </svg>;
 }
+/**
+ * Session AV (q3 #48, axe scrollable-region-focusable): a table that is wider than the sheet (a phone at 390 px) scrolls
+ * sideways in its own frame, and that frame is then a named stop in the Tab order so the keyboard can scroll it too.
+ */
+function Wide({label, children}: {label: string; children: ReactNode}) {
+  const ref = useRef<HTMLDivElement>(null), [wide, setWide] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current; if (!el) return;
+    const check = () => setWide(el.scrollWidth > el.clientWidth + 1);
+    check();
+    if (typeof ResizeObserver === 'undefined') return;
+    const watch = new ResizeObserver(check); watch.observe(el);
+    return () => watch.disconnect();
+  }, []);
+  return <div ref={ref} className="report-table" {...(wide ? {tabIndex: 0, role: 'group', 'aria-label': `${label} (scrolls sideways)`} : {})}>{children}</div>;
+}
 const More = ({n, what}: {n: number; what: string}) => n > 0 ? <p className="report-more">{n} more {what} in these dates are not listed here.</p> : null;
 
 export function ReportDocument({report: r, weightUnit, showcase}: {report: Report; weightUnit: WeightUnit; showcase: boolean}) {
@@ -70,8 +87,8 @@ export function ReportDocument({report: r, weightUnit, showcase}: {report: Repor
         <ul className="report-facts"><li>Nights logged: {r.sleep.nights} of {r.range.days}</li><li>Asleep, average: {formatMinutes(r.sleep.avgAsleep!)}{r.sleep.estimated ? ' (some estimated from time in bed)' : ''}</li><li>Bedtime · wake time, average: {formatClock(r.sleep.avgBed!)} · {formatClock(r.sleep.avgWake!)}</li><li>Own quality rating, average: {r.sleep.avgQuality !== null ? `${formatNumber(r.sleep.avgQuality)} of 5` : 'not rated'}</li>{r.sleep.goal && <li>Own sleep goal: {formatMinutes(r.sleep.goal)}</li>}</ul>
         <SleepChart series={r.sleep.series} goal={r.sleep.goal}/>
         <p className="report-legend">Bars: time asleep per night{r.sleep.goal ? '; dashed line: the person’s goal' : ''}; gaps: nights not logged.</p>
-        <table><thead><tr><th scope="col">Night ending</th><th scope="col">Bed → wake</th><th scope="col">Asleep</th><th scope="col">Quality</th><th scope="col">Tags</th></tr></thead>
-          <tbody>{r.sleep.rows.map((n, i) => <tr key={`${n.date}-${i}`}><th scope="row">{day(n.date)}</th><td>{formatClock(n.bed)} → {formatClock(n.wake)}</td><td>{formatMinutes(n.asleep)}{n.estimated ? ' (est.)' : ''}</td><td>{n.quality !== null ? `${n.quality} of 5` : '—'}</td><td>{n.tags.join(', ') || '—'}</td></tr>)}</tbody></table>
+        <Wide label="Nights"><table><thead><tr><th scope="col">Night ending</th><th scope="col">Bed → wake</th><th scope="col">Asleep</th><th scope="col">Quality</th><th scope="col">Tags</th></tr></thead>
+          <tbody>{r.sleep.rows.map((n, i) => <tr key={`${n.date}-${i}`}><th scope="row">{day(n.date)}</th><td>{formatClock(n.bed)} → {formatClock(n.wake)}</td><td>{formatMinutes(n.asleep)}{n.estimated ? ' (est.)' : ''}</td><td>{n.quality !== null ? `${n.quality} of 5` : '—'}</td><td>{n.tags.join(', ') || '—'}</td></tr>)}</tbody></table></Wide>
         <More n={r.sleep.more} what="nights"/>
       </> : none}
     </section>}
@@ -84,31 +101,42 @@ export function ReportDocument({report: r, weightUnit, showcase}: {report: Repor
       </> : none}
     </section>}
     {r.notes && <section className="report-section" aria-labelledby="report-notes"><h2 id="report-notes">Notes with mood and sleep</h2>
-      {r.notes.rows.length ? <><table><thead><tr><th scope="col">Day</th><th scope="col">With</th><th scope="col">Note, as written</th></tr></thead>
-        <tbody>{r.notes.rows.map((n, i) => <tr key={`${n.date}-${n.kind}-${i}`}><th scope="row">{day(n.date)}</th><td>{n.kind === 'mood' ? 'Mood' : 'Night'}</td><td className="report-note">{n.text}</td></tr>)}</tbody></table><More n={r.notes.more} what="notes"/></> : none}
+      {r.notes.rows.length ? <><Wide label="Notes"><table><thead><tr><th scope="col">Day</th><th scope="col">With</th><th scope="col">Note, as written</th></tr></thead>
+        <tbody>{r.notes.rows.map((n, i) => <tr key={`${n.date}-${n.kind}-${i}`}><th scope="row">{day(n.date)}</th><td>{n.kind === 'mood' ? 'Mood' : 'Night'}</td><td className="report-note">{n.text}</td></tr>)}</tbody></table></Wide><More n={r.notes.more} what="notes"/></> : none}
     </section>}
     {r.weight && <section className="report-section" aria-labelledby="report-weight"><h2 id="report-weight">Weight</h2>
       {r.weight.rows.length ? <>
         <ul className="report-facts"><li>Readings: {r.weight.rows.length + r.weight.more}</li><li>First · last: {weightText(r.weight.first!, weightUnit)} · {weightText(r.weight.last!, weightUnit)}</li>{r.weight.change !== null && <li>Change over the dates: {weightChangeText(r.weight.change, weightUnit)}</li>}</ul>
         {r.weight.rows.length > 1 && <WeightChart rows={r.weight.rows} unit={weightUnit}/>}
-        <table><thead><tr><th scope="col">Day</th><th scope="col">Weight</th></tr></thead><tbody>{r.weight.rows.map(w => <tr key={w.date}><th scope="row">{day(w.date)}</th><td>{weightText(w.grams, weightUnit)}</td></tr>)}</tbody></table>
+        <Wide label="Weight readings"><table><thead><tr><th scope="col">Day</th><th scope="col">Weight</th></tr></thead><tbody>{r.weight.rows.map(w => <tr key={w.date}><th scope="row">{day(w.date)}</th><td>{weightText(w.grams, weightUnit)}</td></tr>)}</tbody></table></Wide>
         <More n={r.weight.more} what="readings"/>
       </> : none}
     </section>}
     {r.habits && <section className="report-section" aria-labelledby="report-habits"><h2 id="report-habits">Habits</h2>
-      {r.habits.rows.length ? <><table><thead><tr><th scope="col">Habit</th><th scope="col">Done</th><th scope="col">Scheduled</th><th scope="col">Share</th><th scope="col">Skipped</th></tr></thead>
-        <tbody>{r.habits.rows.map((h, i) => <tr key={`${h.title}-${i}`}><th scope="row">{h.title}</th><td>{h.done}</td><td>{h.scheduled}</td><td>{h.share !== null ? pct(h.share) : '—'}</td><td>{h.skipped}</td></tr>)}</tbody></table>
+      {r.habits.rows.length ? <><Wide label="Habits"><table><thead><tr><th scope="col">Habit</th><th scope="col">Done</th><th scope="col">Scheduled</th><th scope="col">Share</th><th scope="col">Skipped</th></tr></thead>
+        <tbody>{r.habits.rows.map((h, i) => <tr key={`${h.title}-${i}`}><th scope="row">{h.title}</th><td>{h.done}</td><td>{h.scheduled}</td><td>{h.share !== null ? pct(h.share) : '—'}</td><td>{h.skipped}</td></tr>)}</tbody></table></Wide>
         <More n={r.habits.more} what="habits"/></> : none}
     </section>}
     {/* Session AK (BUILD list 2 #4): "Your numbers", as typed; a lab value's verdict only against the range the person copied. */}
     {r.numbers && <section className="report-section" aria-labelledby="report-numbers"><h2 id="report-numbers">Your numbers</h2>
       {r.numbers.bp.length || r.numbers.labs.length ? <>
         <p>Typed by the person from their own readings and lab sheets. Ranges are the ones they copied from the sheet; ZIGoals sets none and gives no interpretation. Not a diagnosis.</p>
-        {r.numbers.bp.length > 0 && <><h3>Blood pressure (mmHg)</h3><table><thead><tr><th scope="col">Day</th><th scope="col">Reading</th><th scope="col">Pulse</th><th scope="col">Note</th></tr></thead>
-          <tbody>{r.numbers.bp.map((b, i) => <tr key={`${b.date}-${i}`}><th scope="row">{day(b.date)}</th><td>{b.systolic}/{b.diastolic}</td><td>{b.pulse ?? '—'}</td><td className="report-note">{b.note ?? '—'}</td></tr>)}</tbody></table><More n={r.numbers.bpMore} what="readings"/></>}
-        {r.numbers.labs.length > 0 && <><h3>Lab values</h3><table><thead><tr><th scope="col">Day</th><th scope="col">Name</th><th scope="col">Value</th><th scope="col">Range copied</th><th scope="col">Against that range</th></tr></thead>
-          <tbody>{r.numbers.labs.map((l, i) => <tr key={`${l.date}-${l.name}-${i}`}><th scope="row">{day(l.date)}</th><td>{l.name}</td><td>{formatNumber(l.value)} {l.unit}</td><td>{l.range ?? 'none copied'}</td><td>{l.verdict ?? '—'}</td></tr>)}</tbody></table><More n={r.numbers.labsMore} what="values"/></>}
+        {r.numbers.bp.length > 0 && <><h3>Blood pressure (mmHg)</h3><Wide label="Blood pressure readings"><table><thead><tr><th scope="col">Day</th><th scope="col">Reading</th><th scope="col">Pulse</th><th scope="col">Note</th></tr></thead>
+          <tbody>{r.numbers.bp.map((b, i) => <tr key={`${b.date}-${i}`}><th scope="row">{day(b.date)}</th><td>{b.systolic}/{b.diastolic}</td><td>{b.pulse ?? '—'}</td><td className="report-note">{b.note ?? '—'}</td></tr>)}</tbody></table></Wide><More n={r.numbers.bpMore} what="readings"/></>}
+        {r.numbers.labs.length > 0 && <><h3>Lab values</h3><Wide label="Lab values"><table><thead><tr><th scope="col">Day</th><th scope="col">Name</th><th scope="col">Value</th><th scope="col">Range copied</th><th scope="col">Against that range</th></tr></thead>
+          <tbody>{r.numbers.labs.map((l, i) => <tr key={`${l.date}-${l.name}-${i}`}><th scope="row">{day(l.date)}</th><td>{l.name}</td><td>{formatNumber(l.value)} {l.unit}</td><td>{l.range ?? 'none copied'}</td><td>{l.verdict ?? '—'}</td></tr>)}</tbody></table></Wide><More n={r.numbers.labsMore} what="values"/></>}
       </> : none}
+    </section>}
+    {/* Session AV (owner follow-up 1, F-REPORT-MORE): symptoms and factors as rated, supplements and medication as logged. */}
+    {r.symptoms && <section className="report-section" aria-labelledby="report-symptoms"><h2 id="report-symptoms">Symptoms and factors</h2>
+      {r.symptoms.rows.length ? <><p>Rated by the person each day from None to Strong (0 to 3). Days without a rating are left out, never counted as None.</p>
+        <Wide label="Symptom ratings"><table><thead><tr><th scope="col">Symptom or factor</th><th scope="col">Days rated</th><th scope="col">Above None</th><th scope="col">Strong</th><th scope="col">Average</th></tr></thead>
+          <tbody>{r.symptoms.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'factor' ? ' (factor)' : ''}</th><td>{s.rated}</td><td>{s.noted}</td><td>{s.strong}</td><td>{s.average === null ? '—' : `${formatNumber(s.average)} (${s.averageWord})`}</td></tr>)}</tbody></table></Wide></> : none}
+    </section>}
+    {r.supplements && <section className="report-section" aria-labelledby="report-supplements"><h2 id="report-supplements">Supplements and medication</h2>
+      {r.supplements.rows.length ? <><p>As the person wrote them and logged each dose. ZIGoals checks no dose and gives no advice.</p>
+        <Wide label="Doses logged"><table><thead><tr><th scope="col">Name</th><th scope="col">Dose</th><th scope="col">Planned doses</th><th scope="col">Taken</th><th scope="col">Skipped</th><th scope="col">Not logged</th></tr></thead>
+          <tbody>{r.supplements.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'medication' ? ' (medication)' : ''}</th><td>{s.dose ?? '—'}</td><td>{s.planned ?? 'as needed'}</td><td>{s.taken}</td><td>{s.skipped}</td><td>{s.notLogged ?? '—'}</td></tr>)}</tbody></table></Wide></> : none}
     </section>}
     <footer className="report-foot"><p>Made on the person&rsquo;s own device with ZIGoals. Nothing in this report was uploaded.</p></footer>
   </article>;

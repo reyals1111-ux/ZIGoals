@@ -105,3 +105,42 @@
 /* Session AL (P-MO-41, MO-095): on a phone the exercise picker is part of the page's own scroll, not a box that scrolls
    inside it (a double scrollbar). */
 @media (max-width: 767.98px) { .workouts-picker-list { max-height: none; overflow: visible; } }
+/* Session AU (ADR-044 T-7, the rehearsal's Tom at 390): the set table was wider than the card, so the exercise block grew
+   past the screen (its "Remove" cut to "Rem", the done button half outside) and squeezed the set menu to ":". On a phone the
+   table scrolls inside the card (no control is cut and the page never scrolls sideways), and the set menu keeps room for
+   its number. */
+@media (max-width: 520px) {
+  .workouts-exercise { min-width: 0; }
+  .workouts-exercise > .workouts-sets { display: block; position: relative; max-width: 100%; overflow-x: auto; }
+  .workouts-kind { min-width: 3.6em; }
+}
+/* Session AV follow-up 1 (F-WORKOUT-WEEKS): the last 12 weeks. */
+.workouts-weeks{display:grid;gap:6px;margin:8px 0}
+.workouts-weeks h3{margin:0;font-size:16px}
+.workouts-weeks-pick{display:flex;flex-wrap:wrap;gap:6px}
+.workouts-weeks-pick button{min-height:44px}
+.workouts-weeks-bars{width:100%;height:64px}
+.workouts-weeks-bars rect{fill:var(--cyan, #6fd3ff);opacity:.7}
+.workouts-weeks-bars rect.is-this-week{opacity:1}
+.workouts-weeks-table summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.workouts-weeks-table table{border-collapse:collapse;font-size:15px}
+.workouts-weeks-table th,.workouts-weeks-table td{padding:4px 10px 4px 0;text-align:left}
+.workouts-weeks-scroll{overflow-x:auto;max-width:100%}
+.workouts-weeks-scroll:focus-visible{outline:2px solid var(--cyan, #6fd3ff);outline-offset:2px}
+.workouts-weeks-table th,.workouts-weeks-table td{white-space:nowrap}
+.workouts-weeks > *{min-width:0}
+/* Session AV (q3 #11): the bars' first and last week, and the sport picker for distance. */
+.workouts-weeks-axis{display:flex;justify-content:space-between;margin:-2px 0 0;font-size:14px;color:var(--text-secondary, var(--muted))}
+.workouts-weeks-sport{max-width:16rem}
+.workouts-weeks-sport select{min-height:44px}
+/* Session AV follow-up 1 (F-RUN-BESTS): running bests. */
+.workouts-bests{display:grid;gap:6px;margin:8px 0}
+.workouts-bests h3{margin:0;font-size:16px}
+.workouts-bests ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.workouts-bests li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-size:15px}
+.workouts-bests small{color:var(--text-secondary, var(--muted))}
+/* Session AV (F-SET-BEST): a ticked set that beats every earlier workout, and last time's note carried over. */
+.workouts-set-best { display: inline-block; margin-inline-start: 6px; font-weight: 700; vertical-align: middle; }
+.workouts-last-note { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 4px 0 0; overflow-wrap: anywhere; }
+.workouts-last-note .text-link { min-height: 44px; }
+.workouts-calendar-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }

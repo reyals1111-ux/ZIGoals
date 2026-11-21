@@ -6,6 +6,9 @@ import {afterGoto} from './settings-open';
 // Evidence for the UI design pass checks (Part 12): motion settings, forced colours, keyboard-only layouts,
 // hydration and phone width, on every main page. Showcase (fictional) data only.
 const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
+// Session AV (D-CI1956, deliberate, as strict): the sweeps of every main page run in two halves, each its own test with the
+// same checks on the same pages — ten pages in one 45 s test reached the budget on CI's runners (3–6 s a page; run 1956).
+const HALVES=[['first half',PAGES.slice(0,5)],['second half',PAGES.slice(5)]] as const;
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
  await openSettings(page);await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
@@ -49,9 +52,9 @@ for(const setting of ['reduced motion','Motion Off'] as const)
   });
  });
 
-test('forced colours: every main page renders and keyboard focus stays visible',async({page})=>{
+for(const [half,pages] of HALVES)test(`forced colours: every main page renders and keyboard focus stays visible (${half})`,async({page})=>{
  await page.emulateMedia({forcedColors:'active'});await showcase(page);
- for(const path of PAGES){
+ for(const path of pages){
   await open(page,path);
   const hidden:string[]=[];
   for(let i=0;i<14;i++){await page.keyboard.press('Tab');const r=await page.evaluate(()=>{const e=document.activeElement as HTMLElement|null;if(!e||e===document.body)return null;const c=getComputedStyle(e),b=e.getBoundingClientRect();
@@ -107,18 +110,18 @@ function watchProblems(page:Page){
  page.on('pageerror',e=>problems.push(`pageerror: ${e.message.slice(0,200)}`));
  return problems;
 }
-test('no hydration errors or page errors on any main page',async({page})=>{
+for(const [half,pages] of HALVES)test(`no hydration errors or page errors on any main page (${half})`,async({page})=>{
  const problems=watchProblems(page);
  await showcase(page);
- for(const path of PAGES){await open(page,path);await page.waitForTimeout(700);}
+ for(const path of pages){await open(page,path);await page.waitForTimeout(700);}
  expect(problems).toEqual([]);
 });
 
-test('no hydration errors or page errors on a cold load of any main page',async({page})=>{
+for(const [half,pages] of HALVES)test(`no hydration errors or page errors on a cold load of any main page (${half})`,async({page})=>{
  const problems=watchProblems(page);
  await showcase(page);
  // A cold load of each page (no client-side navigation).
- for(const path of PAGES){await page.reload();await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();await page.waitForTimeout(400);}
+ for(const path of pages){await page.reload();await page.goto(path); await afterGoto(page, path);await expect(page.locator('main h1').first()).toBeVisible();await page.waitForTimeout(400);}
  expect(problems).toEqual([]);
 });
 

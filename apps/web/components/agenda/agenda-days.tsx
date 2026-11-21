@@ -42,7 +42,7 @@ export function DayList({day, today, heading, goals, onTick, onMove}: {day: DayW
       {/* Session AL (DV-193, P-DV-125): in the week and month views, habits with no time are one row ("4 habits · any time") */}
       {fold.habits.length > 0 && <li className="agenda-item agenda-habit-group" data-source="habit" data-pillar="habits">
         <span className="agenda-time">Any time</span>
-        <details className="agenda-item-main"><summary className="agenda-item-title">{plural(fold.habits.length, 'habit')} <small>({fold.habits.filter(h => h.state === 'done').length} done)</small></summary>
+        <details className="agenda-item-main"><summary className="agenda-item-title">{plural(fold.habits.length, 'habit')}{/* Session AV (AT D20): a day still to come has nothing done yet, so it says no count */}{day.date <= today && <small> ({fold.habits.filter(h => h.state === 'done').length} done)</small>}</summary>
           <ul className="agenda-items">{fold.habits.map(i => <ItemRow key={i.id} item={i as AgendaItem} />)}</ul></details>
       </li>}</ul> : <p className="agenda-nothing">Nothing planned.</p>}
   </div>;

@@ -10,7 +10,7 @@
  */
 export type Entitlement = {id: 'your-ai' | 'hosted'; name: string; tier: 'premium'; unlocked: boolean; label: string; note: string};
 export const ENTITLEMENTS: Record<Entitlement['id'], Entitlement> = {
-  'your-ai': {id: 'your-ai', name: 'ZIGi · Your Personal AI Companion', tier: 'premium', unlocked: true, label: 'Premium · free during the Alpha', note: 'Your own AI, connected by you, billed by your provider. Free in ZIGoals while the Alpha lasts.'},
+  'your-ai': {id: 'your-ai', name: 'ZIGi · your companion', tier: 'premium', unlocked: true, label: 'Premium · free during the Alpha', note: 'Your own AI, connected by you, billed by your provider. Free in ZIGoals while the Alpha lasts.'},
   hosted: {id: 'hosted', name: 'ZIGoals hosted', tier: 'premium', unlocked: false, label: 'Invite only · free during Alpha', note: 'An AI ZIGoals runs and pays for, for invited accounts, when a build has it. Off in every build so far.'},
 };
 /**

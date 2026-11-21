@@ -11,9 +11,8 @@ import {splitsRecordSchema, type SplitsRecord} from '../workouts/splits-schema';
  *   Private like Health: no ZIGi or NOVA context reads them (lib/showcase/ap-examples.test.ts).
  * - Run splits for the training log's two example runs (lib/workouts/showcase.ts: 5 km in 28:00, 6 km in 34:00), whole
  *   kilometres that add up to each run's time.
- * Not seeded (carried): mood tags show only on a day with a mood and the Showcase keeps no moods, and a bill's price
- * change needs payments in the money log; example moods or payments would move the answers ZIGi and NOVA give on the
- * Showcase (Session AS's pinned answers), which stay as they are.
+ * Mood tags and a bill's price change were left out here (they move Session AS's pinned answers); Session AU (D8, deliberate)
+ * seeds them, labelled, in lib/showcase/au-examples.ts, with the pinned answers they move recomputed.
  */
 const at = (day: string, offset: number, time: string) => `${addLocalDays(day, offset)}T${time}:00.000Z`;
 export function showcaseSymptoms(day: string): Symptoms {

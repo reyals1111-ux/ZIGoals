@@ -95,8 +95,10 @@ export default function FiModelPanel() {
         <thead><tr><th scope="col">After</th><th scope="col">Low <small>(1 in 10 below)</small></th><th scope="col">Middle</th><th scope="col">High <small>(1 in 10 above)</small></th></tr></thead>
         <tbody>{result.bands.filter(b => b.year > 0 && (b.year % 10 === 0 || b.year === input.years)).map(b => <tr key={b.year}><th scope="row">{years(b.year)}</th><td>{money(b.p10.toFixed(0), d.currency)}</td><td>{money(b.p50.toFixed(0), d.currency)}</td><td>{money(b.p90.toFixed(0), d.currency)}</td></tr>)}</tbody></table></div>
     </>}
+    {/* Session AV (Part 4b, CS-8): an unreadable kept record says so, as debt-planner.tsx does, beside the disabled button. */}
+    {stored.unreadable && <p role="alert" id={`${id}-unreadable`}>Your kept inputs on this device could not be read, so they cannot be kept again here. Nothing was changed.</p>}
     <div className="money-actions">
-      <button type="button" className="secondary" disabled={!!issue || !stored.loaded || stored.unreadable} onClick={keep}>Keep these inputs on this device</button>
+      <button type="button" className="secondary" disabled={!!issue || !stored.loaded || stored.unreadable} aria-describedby={stored.unreadable ? `${id}-unreadable` : undefined} onClick={keep}>Keep these inputs on this device</button>
       {stored.data.inputs && <button type="button" className="quiet" onClick={forget}>Forget them</button>}
     </div>
     <p className="money-status" role="status" aria-live="polite">{status}</p>

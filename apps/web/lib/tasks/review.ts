@@ -16,3 +16,12 @@ export function tasksReview(record: Tasks, window: {start: string; end: string; 
   const titles = [...new Set(inWindow.map(e => e.task.title))].slice(0, 5);
   return {finished: inWindow.length, before, added, open: open.length, overdue: open.filter(t => taskState(t, today) === 'overdue').length, titles};
 }
+/**
+ * Session AV (1c, q1 #12, fresh-agent review; Sunsama's weekly planning pulls tasks into the week): the open top-level
+ * tasks the weekly review asks about — past their day, or due before `before` (the Monday after the week) — oldest day
+ * first, at most `limit`; `more` counts the rest. Pure.
+ */
+export function reviewTaskChoices(record: Tasks, before: string, limit = 8): {items: Task[]; more: number} {
+  const open = record.tasks.filter(t => !t.doneAt && !t.parentId && t.due && t.due < before).sort((a, b) => a.due!.localeCompare(b.due!) || (a.time ?? '').localeCompare(b.time ?? '') || a.title.localeCompare(b.title));
+  return {items: open.slice(0, limit), more: Math.max(0, open.length - limit)};
+}

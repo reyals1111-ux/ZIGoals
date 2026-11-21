@@ -8,7 +8,8 @@ import type {useGoalOptions} from './use-goal-options';
 import {editTask, openTasks} from '../../lib/tasks/engine';
 import {LEVEL_WORDS, taskLevel, type Task} from '../../lib/tasks/schema';
 import {TASK_WHEN, clearPlace, eveningTasks, placeOf, putInSomeday, putOnEvening, restorePlace, somedayTasks, type TaskWhen} from '../../lib/tasks/when';
-import {MATRIX_RULE, QUADRANTS, QUADRANT_WORDS, levelForMove, matrix, partnerOf, quadrantOf, type Quadrant} from '../../lib/tasks/matrix';
+import {QUADRANTS, QUADRANT_WORDS, levelForMove, matrix, partnerOf, quadrantOf, ruleWords, type Quadrant} from '../../lib/tasks/matrix';
+import {MatrixRulesFold, useMatrixRules} from './matrix-rules';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import './tasks-when.css';
 
@@ -91,12 +92,14 @@ const DRAG_SLOP_PX = 8;
 type PointerDrag = {id: string; el: HTMLElement; x: number; y: number; active: boolean; pointer: number};
 function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: Task[]}) {
   const {today, clock, tasks} = list, record = tasks.data, id = useId();
-  const boxes = useMemo(() => matrix(shown, today), [shown, today]);
+  // Session AV (owner follow-up 1, F-MATRIX-RULES): the person's own lines, a display choice of this device.
+  const rules = useMatrixRules();
+  const boxes = useMemo(() => matrix(shown, today, rules), [shown, today, rules]);
   const [over, setOver] = useState<Quadrant | null>(null), [dragging, setDragging] = useState<string | null>(null);
   const pointer = useRef<PointerDrag | null>(null), stop = useRef<() => void>(() => undefined);
   const move = (task: Task, target: Quadrant) => {
     let level;
-    try { level = levelForMove(task, target, today); } catch (e) { showStatus(e instanceof Error ? e.message : 'That box is for another day.', {tone: 'error'}); return; }
+    try { level = levelForMove(task, target, today, rules); } catch (e) { showStatus(e instanceof Error ? e.message : 'That box is for another day.', {tone: 'error'}); return; }
     if (level === null) return;
     const was = LEVEL_WORDS[taskLevel(task)];
     list.change(r => editTask(r, task.id, {level}, today, {allowPast: true}), `“${task.title}” moved to “${QUADRANT_WORDS[target].title}”: ${LEVEL_WORDS[level]}.`, `“${task.title}” is back at ${was}.`);
@@ -158,7 +161,8 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
     stop.current = end;
   };
   return <section className="tasks-matrix-view" aria-labelledby={`${id}-rule`}>
-    <p id={`${id}-rule`} className="tasks-when-lede">{MATRIX_RULE}</p>
+    <p id={`${id}-rule`} className="tasks-when-lede">{ruleWords(rules)}</p>
+    <MatrixRulesFold rules={rules}/>
     <div className="tasks-matrix" data-dragging={dragging ? '' : undefined}>{QUADRANTS.map(q => {
       const words = QUADRANT_WORDS[q], items = boxes[q], partner = partnerOf(q);
       return <section key={q} className="tasks-matrix-box" data-quadrant={q} data-drop={over === q || undefined} aria-labelledby={`${id}-${q}`}>
@@ -168,7 +172,7 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
           goal={t.goal ? goals.byKey.get(t.goal) : undefined} goals={goals.open} onToggle={done => list.toggle(t, done)}
           drag={{onPointerDown: startDrag(t.id), 'data-glass-carry': '', ...(dragging === t.id ? {'data-dragging': ''} : {})} as ComponentProps<typeof TaskRow>['drag']}>
           <div className="tasks-when-actions">
-            <button type="button" className="text-link tasks-matrix-move" aria-label={`Move “${t.title}” to “${QUADRANT_WORDS[partner].title}”`} onClick={() => { if (quadrantOf(t, today) === q) move(t, partner); }}>
+            <button type="button" className="text-link tasks-matrix-move" aria-label={`Move “${t.title}” to “${QUADRANT_WORDS[partner].title}”`} onClick={() => { if (quadrantOf(t, today, rules) === q) move(t, partner); }}>
               {q === 'do' || q === 'plan' ? 'Not important' : 'Important'}
             </button>
           </div>

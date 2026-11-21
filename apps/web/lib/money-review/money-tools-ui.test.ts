@@ -40,16 +40,20 @@ describe('Money tools (Session AK lane M)', () => {
     await act(async () => root.render(h(MoneyCsvImport, {onClose: () => {}})));
     await settle();
     const input = element.querySelector<HTMLInputElement>('input[type="file"]')!;
-    Object.defineProperty(input, 'files', {value: [new File([['Date,Payee,Amount', '2026-10-01,Corner Grocery,-42.10', '2026-10-02,Bakery,-3.50'].join('\n')], 'bank.csv', {type: 'text/csv'})], configurable: true});
+    Object.defineProperty(input, 'files', {value: [new File([['Date,Payee,Amount', '2026-10-01,Corner Grocery,-42.10', '2026-10-02,Fictional Studio,-3.50'].join('\n')], 'bank.csv', {type: 'text/csv'})], configurable: true});
     await act(async () => { input.dispatchEvent(new Event('change', {bubbles: true})); });
     await settle();
     await click('Next');
     expect(element.textContent).toContain('Rule: category Groceries, renamed “Corner”');
     await click('Next');
-    expect(element.textContent).toContain('then your rules run');
+    // Session AV (L-6, deliberate): the confirm step now says the category shown in the preview is used (rules, or the
+    // person's own choice there); it still names the rules whenever there are any.
+    expect(element.textContent).toContain('read from its payee and note, then your rules, or the one you chose there');
     await click('Add 2 to my money log');
     const log = read<{entries: MoneyEntry[]}>(MONEY_LOG_KEY);
-    expect(log.entries.map(e => [e.category, e.note])).toEqual([['Groceries', 'Corner'], ['Other', 'Bakery']]);
+    // Session AU (L-2, deliberate): "Bakery" now reads as Groceries by its own word, so the line no rule touches is a payee
+    // with no category word; it still falls to Other, as before.
+    expect(log.entries.map(e => [e.category, e.note])).toEqual([['Groceries', 'Corner'], ['Other', 'Fictional Studio']]);
     expect(read<{ids: string[]}>(MONEY_REVIEW_KEY).ids).toEqual(log.entries.map(e => e.id));
     expect(element.textContent).toContain('Money tools → To review');
   });

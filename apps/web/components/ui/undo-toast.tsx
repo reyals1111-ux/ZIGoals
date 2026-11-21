@@ -30,12 +30,15 @@ export type UndoToast = {message: string;
   /** Session AL: time on screen in ms (8 s by default; 5 s to 60 s). */
   timeoutMs?: number;
   /** Session AL: 'error' is announced at once (role="alert"); 'status' (default) politely. */
-  tone?: 'status' | 'error'};
+  tone?: 'status' | 'error';
+  /** Session AV (S-12, M-12a): a CSS selector for what the action just changed (the new row, the averages it moved); the
+   * toast keeps clear of it, as it does of the pressed control. */
+  clearOf?: string};
 /** Session AG Polish 2: an Undo that knows best what it did resolves to `{undone}`, said instead of the toast's own words. */
 export type UndoResult = {undone: string};
 /** Session AL: what showUndo takes. `restore` puts the store record back; it may resolve to {undone} to say what it did. */
 export type UndoOffer = {message: string; restore: () => Promise<unknown> | unknown;
-  undone?: string; undoLabel?: string; link?: {href: string; label: string}; timeoutMs?: number};
+  undone?: string; undoLabel?: string; link?: {href: string; label: string}; timeoutMs?: number; clearOf?: string};
 const saidBy = (out: unknown): string | null => out && typeof out === 'object' && typeof (out as UndoResult).undone === 'string' ? (out as UndoResult).undone : null;
 type Shown = UndoToast & {id: number};
 let shown: Shown[] = [], seq = 0;
@@ -56,13 +59,13 @@ export function showToast(toast: UndoToast): number {
   return next.id;
 }
 /** Session AL: offers Undo for an action. `restore` must put the store record back (see above). Returns the toast id. */
-export function showUndo({message, restore, undone, undoLabel, link, timeoutMs}: UndoOffer): number {
+export function showUndo({message, restore, undone, undoLabel, link, timeoutMs, clearOf}: UndoOffer): number {
   if (typeof restore !== 'function') throw new TypeError('showUndo needs a restore() that puts the record back.');
-  return showToast({message, undo: restore, undone, undoLabel, link, timeoutMs});
+  return showToast({message, undo: restore, undone, undoLabel, link, timeoutMs, clearOf});
 }
 /** Session AL: says something without an Undo ("Day saved.", "Could not save: …"). Returns the toast id. */
-export function showStatus(message: string, {link, timeoutMs, tone}: {link?: UndoToast['link']; timeoutMs?: number; tone?: UndoToast['tone']} = {}): number {
-  return showToast({message, link, timeoutMs, tone});
+export function showStatus(message: string, {link, timeoutMs, tone, clearOf}: {link?: UndoToast['link']; timeoutMs?: number; tone?: UndoToast['tone']; clearOf?: string} = {}): number {
+  return showToast({message, link, timeoutMs, tone, clearOf});
 }
 /** Hides the toast with this id, if it is still shown (the newest when no id is given). */
 export function hideToast(id?: number) {
@@ -173,6 +176,9 @@ function useKeepClear(regionRef: {readonly current: HTMLDivElement | null}, show
     if (!region || !showing || region.closest(KEEPS_PLACE) || typeof window.matchMedia !== 'function') return;
     const phone = window.matchMedia(PHONE), shownAt = performance.now();
     const pressed = lastPress && shownAt - lastPress.at <= PRESSED_WITHIN_MS ? lastPress.el.closest(CONTROL) : null;
+    // Session AV (S-12, M-12a): what the action changed, which may render a moment after the toast (a store write).
+    const changedSelector = shownToasts().at(-1)?.clearOf ?? null;
+    const changed = () => { if (!changedSelector) return null; try { const el = document.querySelector(changedSelector); return el instanceof HTMLElement && el.getClientRects().length ? el : null; } catch { return null; } };
     let frame = 0, strip: {el: HTMLElement; width: string; style: string; color: string} | null = null, page: string | null = null;
     const reset = () => {
       region.style.removeProperty('bottom'); delete region.dataset.clearOf;
@@ -195,7 +201,12 @@ function useKeepClear(regionRef: {readonly current: HTMLDivElement | null}, show
       // Placed again (a focus change, a resize): the sheet keeps the scroll position it had with the strip.
       const kept = strip ? {el: strip.el, top: strip.el.scrollTop} : null;
       reset();
-      if (!phone.matches) return;
+      const subject = changed();
+      if (!phone.matches) {
+        // A computer: only what the action changed moves the toast (its corner otherwise stays as it was).
+        if (subject) { const top = clearOfField(region.getBoundingClientRect(), subject.getBoundingClientRect(), window.innerHeight); if (top !== null) moveTo(top, 'change'); }
+        return;
+      }
       const field = document.activeElement;
       // RR-10: a focused text field outside the toast comes first.
       if (isTextField(field) && !region.contains(field)) {
@@ -221,6 +232,10 @@ function useKeepClear(regionRef: {readonly current: HTMLDivElement | null}, show
       // The page: room at its end, and the toast off the control just pressed.
       const room = Math.ceil(window.innerHeight - (box.top - gapPx)), pad = parseFloat(getComputedStyle(document.body).paddingBottom);
       if (room > 0 && Number.isFinite(pad)) { page = document.body.style.paddingBottom; document.body.style.paddingBottom = `${pad + room}px`; document.body.dataset.toastRoom = 'page'; }
+      if (subject && !region.contains(subject)) {
+        const top = clearOfField(box, subject.getBoundingClientRect(), window.innerHeight);
+        if (top !== null && moveTo(top, 'change')) return;
+      }
       if (pressed instanceof HTMLElement && pressed.isConnected && !region.contains(pressed)) {
         const top = clearOfField(box, pressed.getBoundingClientRect(), window.innerHeight);
         if (top !== null) moveTo(top, 'control');
@@ -233,13 +248,15 @@ function useKeepClear(regionRef: {readonly current: HTMLDivElement | null}, show
       for (const toast of shownToasts()) hideToast(toast.id);
     };
     place();
+    // What the action changed may arrive after the store write renders: placed again once it can be there.
+    const settle = changedSelector ? [120, 400].map(ms => window.setTimeout(later, ms)) : [];
     // The toast's own size (a longer message, the Undo turning busy) changes the room it needs.
     const sized = typeof ResizeObserver === 'function' ? new ResizeObserver(later) : null;
     sized?.observe(region);
     document.addEventListener('focusin', later, true); document.addEventListener('focusout', later, true); document.addEventListener('input', typed, true);
     window.addEventListener('resize', later); window.visualViewport?.addEventListener('resize', later);
     return () => {
-      cancelAnimationFrame(frame); sized?.disconnect(); reset();
+      cancelAnimationFrame(frame); for (const t of settle) window.clearTimeout(t); sized?.disconnect(); reset();
       document.removeEventListener('focusin', later, true); document.removeEventListener('focusout', later, true); document.removeEventListener('input', typed, true);
       window.removeEventListener('resize', later); window.visualViewport?.removeEventListener('resize', later);
     };

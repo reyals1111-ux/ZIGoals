@@ -1,6 +1,6 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {hydrated, loadShowcase} from '../ah-helpers';
-import {isPhone} from '../phone-nav';
+import {isPhone, openFold} from '../phone-nav';
 import {TODAY as AGENDA_DAY, seeded, tasksRecord} from '../ap/ap-fixtures';
 import {health, healthRecord, openHealth} from '../ap/ap-health-fixtures';
 import {MONEY_LOG_KEY, entry, moneyLog, openInsight, seedDevice} from '../ap/ap-money-fixtures';
@@ -98,7 +98,9 @@ test('6 Help: What\'s new names the cards "Price changes" and "Trends", never "b
 
 /** Opens a Health view in the Showcase tab (its storage lives in this tab's session). */
 async function showcaseHealth(page: Page, view: string) { await page.goto(`/app/health?view=${view}`); await hydrated(page); }
-test('7 Showcase: labelled examples of symptoms and run splits (mood tags and price changes carried)', async ({page}) => {
+// Session AU (ADR-044 D-SHOWCASE, deliberate): the mood tags and the bill price change are seeded now (ADR-043 D8 carried
+// them); the test adds both, each by its own words, and keeps every earlier check.
+test('7 Showcase: labelled examples of symptoms, run splits, mood tags and a bill price change', async ({page}) => {
   test.setTimeout(90_000);
   await loadShowcase(page);
   await showcaseHealth(page, 'workouts');
@@ -111,4 +113,11 @@ test('7 Showcase: labelled examples of symptoms and run splits (mood tags and pr
   await page.getByText('Symptoms and factors (optional)', {exact: true}).click();
   const symptoms = page.getByRole('region', {name: 'Symptoms and factors'});
   for (const name of ['Example · headache', 'Example · pollen', 'Example · stiff back']) await expect(symptoms.getByRole('heading', {name: new RegExp(`^${name}`)})).toBeVisible();
+  // The mood tags, stored as labelled examples (never read by ZIGi or NOVA, pinned in lib/showcase/ap-examples.test.ts).
+  const tags = await page.evaluate(() => { const marker = JSON.parse(sessionStorage.getItem('zigoals:showcase:active:v1')!); return JSON.parse(sessionStorage.getItem(`zigoals:showcase:v1:${marker.generation}:zigoals:mood-tags:v1`) ?? 'null'); });
+  expect(JSON.stringify(tags)).toContain('Example · walk');
+  // The bill price change, as Wealth → Bills says it.
+  await page.goto('/app/wealth'); await hydrated(page);
+  await openFold(page, 'Upcoming bills');
+  await expect(page.getByText(/Streaming went up by €1\.00 since [A-Z][a-z]{2} \d{4} \(€12\.99 then, €13\.99 now\)/).first()).toBeVisible();
 });

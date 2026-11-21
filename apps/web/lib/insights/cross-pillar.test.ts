@@ -94,7 +94,10 @@ describe('crossPillarInsights (Session AA-Cloud Part 5)', () => {
     expect(unclear.map(i => [i.id, i.withA.days, i.withoutA.days, Math.round(i.withA.value * 100), Math.round(i.withoutA.value * 100)])).toEqual([['water-sleep', 42, 14, 45964, 45064]]);
     for (const i of unclear) { expect(i.withA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE); expect(i.withoutA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE); }
     // Session AI (feature 4): of the newer pairings, only food after 9 pm has records (7 and 19 days, still collecting).
-    expect(pending).toEqual([{id: 'water-habits', title: 'Water and habits', withA: 47, withoutA: 13, need: 14}, {id: 'late-food-sleep', title: 'Food after 9 pm and sleep', withA: 7, withoutA: 19, need: 14}]);
+    // Session AU (D8, deliberate): the Showcase's twelve example moods (the last two weeks but one day, lib/showcase/au-examples.ts)
+    // start the three mood pairings, each still collecting.
+    expect(pending).toEqual([{id: 'water-habits', title: 'Water and habits', withA: 47, withoutA: 13, need: 14}, {id: 'late-food-sleep', title: 'Food after 9 pm and sleep', withA: 7, withoutA: 19, need: 14},
+      {id: 'habits-mood', title: 'Habits and mood', withA: 12, withoutA: 0, need: 14}, {id: 'steps-mood', title: 'Steps and mood', withA: 4, withoutA: 8, need: 14}, {id: 'meditation-mood', title: 'Meditation and mood', withA: 10, withoutA: 2, need: 14}]);
     // The season's one habit: 30 days within the season, archived since the day after it.
     const stretch = habits.habits.find(h => h.id === EARLIER_HABIT_ID)!;
     expect(stretch.entries.map(e => e.date)).toEqual(Array.from({length: 30}, (_, k) => addLocalDays(day, EARLIER_FIRST + k)));

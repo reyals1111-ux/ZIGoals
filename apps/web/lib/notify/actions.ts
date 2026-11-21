@@ -40,11 +40,22 @@ export function doneChange(action: QueuedAction, today: string): {change: (d: Ha
     return status === 'due' || status === 'partial' ? logHabitValue(d, id, date, smartDoneValue(rule), {}, new Date(action.at)) : d;
   }, data)};
 }
+/** Session AV (1c, q1 #1): the task ids a "Done" tap named (plan items `task:<id>@<instant>`). Pure, for the tests. */
+export function doneTaskIds(action: Pick<QueuedAction, 'items'>): string[] {
+  return [...new Set((action.items ?? []).filter(i => i.kind === 'task' && typeof i.id === 'string').map(i => /^task:([A-Za-z0-9_-]{1,80})@\d+$/.exec(i.id)?.[1]).filter((id): id is string => !!id))];
+}
 async function applyOne(action: QueuedAction, today: string): Promise<Applied | null> {
   const storage = getAppStorage();
   // Claimed first, atomically: another tab, or a crash after this, can never apply it a second time.
   if (!await claimAction(action.actionId, Date.now())) return null;
   if (action.type === 'done') {
+    // Session AV (1c, q1 #1): "Done" on a task reminder (the item id is `task:<id>@<instant>`) ticks the task off, with Undo.
+    const taskIds = doneTaskIds(action);
+    if (taskIds.length) {
+      const {completeTask} = await import('../tasks/device'), undos: (() => void)[] = [], titles: string[] = [];
+      for (const id of taskIds) { try { const done = completeTask(id, {at: new Date(action.at)}); if (done.changed) { undos.push(done.undo); titles.push(done.task.title); } } catch { /* gone from this device */ } }
+      if (titles.length) return {actionId: action.actionId, message: `${titles.length === 1 ? `“${titles[0]}”` : `${titles.length} tasks`} marked done from a notification`, undo: async () => { for (const u of undos.reverse()) u(); }};
+    }
     const {change, ids} = doneChange(action, today);
     if (!ids.length) return null;
     let before: HabitData | null = null;

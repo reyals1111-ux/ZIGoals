@@ -30,7 +30,10 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
     await expect(page.locator(".today-hero").getByRole("button", { name: "+ Quick add", exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Plan my first goal" })).toHaveAttribute("href", "/app/goals/new");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.screenshot({ path: info.outputPath(`dashboard-${viewport.width}.png`), fullPage: true });
+    // Session AV (ADR-045 D-DV, deliberate; no assertion reads this picture): evidence at CSS pixels. In the phone project
+    // (three device pixels per CSS pixel) the full page at 1440 took 13.6 s of the test's 45 s and the 320 one 4.9 s; on
+    // CI's runner the test ran out of time in Settings afterwards (run 1925). Every check above and below is unchanged.
+    await page.screenshot({ path: info.outputPath(`dashboard-${viewport.width}.png`), fullPage: true, scale: "css" });
     await openFilm(page); // Session AB-Design: the how-to first, then the film
     await expect(page.getByRole("dialog", { name: "ZIGoals brand film" })).toBeVisible();
     await page.keyboard.press("Escape");

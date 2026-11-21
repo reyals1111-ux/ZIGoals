@@ -22,7 +22,7 @@ const textOf = (q: string, e = env()) => { const l = localAnswer(q, e), r = l.ki
 describe('words', () => {
   test('BN-047/P-BN-09: NOVA\'s errors say NOVA and point to NOVA\'s own settings', () => {
     expect(assistantWords('What arrived is kept above; ask ZIGi to continue.', 'NOVA')).toBe('What arrived is kept above; ask NOVA to continue.');
-    expect(assistantWords('Open Settings → Your assistant → ZIGi · Your Personal AI Companion and paste the key again.', 'NOVA')).toBe('Open NOVA → Models (or NOVA → Build NOVA’s brain) and paste the key again.');
+    expect(assistantWords('Open Settings → Your assistant → ZIGi · your companion and paste the key again.', 'NOVA')).toBe('Open NOVA → Models (or NOVA → Build NOVA’s brain) and paste the key again.');
     expect(assistantWords('ask ZIGi', 'ZIGi')).toBe('ask ZIGi');
     const steps = errorSteps(new AiError('model-missing', 'x'), {providerName: 'Ollama', hostedPage: false, keysUrl: null, assistant: 'NOVA'});
     expect(steps[0]).toBe('Choose another model in NOVA → Models.');

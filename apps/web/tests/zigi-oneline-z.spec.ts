@@ -17,7 +17,7 @@ import {openSettings} from './settings-open';
  * answered by page.route). `ZIGI_ONELINE_CAPTURES=<dir>` only writes the phone panel's pictures (before and after).
  */
 const BASE = 'http://127.0.0.1:1234', DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
-const TITLE = 'ZIGi · Your Personal AI Companion';
+const TITLE = 'ZIGi · your companion';
 const CAPTURES = process.env.ZIGI_ONELINE_CAPTURES ?? '';
 const chunk = (delta: Record<string, unknown>, finish: string | null = null) => `data: ${JSON.stringify({id: 'mock', object: 'chat.completion.chunk', choices: [{index: 0, delta, finish_reason: finish}]})}\n\n`;
 const stream = (text: string) => [chunk({role: 'assistant', content: text}), chunk({}, 'stop'), 'data: [DONE]\n\n'].join('');
@@ -230,13 +230,22 @@ test('a font that draws the name wider: still one line, before the buttons, at e
     await page.setViewportSize({width, height: 860});
     await openChat(page);
     const normal = (await measure(panel(page))).titleFont;
-    await page.addStyleTag({content: '.ai-chat .ai-chat-title, .ai-chat .ai-chat-title * { letter-spacing: .1em !important; }'});
+    // Session AV (owner follow-up 3, L-9; deliberate test change, equally strict): the name is shorter now ("ZIGi · your
+    // companion"), so 0.1 em between letters no longer always reached the box (CI 1997, WebKit). The spacing is now worked
+    // out so the drawing is a fifth wider than the name's box, as 0.1 em made the longer name; the checks are unchanged.
+    const em = await panel(page).locator('.ai-chat-title').evaluate(title => {
+      const range = document.createRange(); range.selectNodeContents(title);
+      const natural = range.getBoundingClientRect().width, box = title.clientWidth || natural, size = parseFloat(getComputedStyle(title).fontSize), chars = (title.textContent ?? '').length || 1;
+      return Math.max(0.1, (box * 1.2 - natural) / chars / size);
+    });
+    const wider = await page.addStyleTag({content: `.ai-chat .ai-chat-title, .ai-chat .ai-chat-title * { letter-spacing: ${em.toFixed(3)}em !important; }`});
     // Session Z-Local L54: from 360 up the name never goes under 11 px (L49); where the unscaled name already sits within 5 % of the
     // floor (CI's fonts at 360: 11.19 px), "scaled down" means down to the floor. Above that, the 5 % holds as before.
     await expect.poll(async () => (await measure(panel(page))).titleFont, `the name scaled down at ${width}`).toBeLessThan(width >= 360 ? Math.max(normal * 0.95, 11.01) : normal * 0.95);
     const m = await measure(panel(page));
     oneLine(m, `with a wider font at ${width}`, {clipAllowed: true});
     expect(m.titleFont, `still a readable size at ${width}`).toBeGreaterThan(normal * 0.7);
+    await wider.evaluate(tag => (tag as Element).remove()); // each width measures its own normal size, then its own wider drawing
   }
 });
 

@@ -17,7 +17,7 @@ import {openSettings} from './settings-open';
  * AI answer is a MOCK (a local OpenAI-compatible server answered by page.route).
  */
 const BASE = 'http://127.0.0.1:1234', DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
-const TITLE = 'ZIGi · Your Personal AI Companion';
+const TITLE = 'ZIGi · your companion';
 const chunk = (delta: Record<string, unknown>, finish: string | null = null) => `data: ${JSON.stringify({id: 'mock', object: 'chat.completion.chunk', choices: [{index: 0, delta, finish_reason: finish}]})}\n\n`;
 const stream = (text: string) => [chunk({role: 'assistant', content: text}), chunk({}, 'stop'), 'data: [DONE]\n\n'].join('');
 const block = (value: unknown) => `Here you go.\n\n\`\`\`zigoals-action\n${JSON.stringify(value)}\n\`\`\``;

@@ -19,7 +19,7 @@ export const SWITCHED_HERE: readonly AppsExtraId[] = SIDEBAR_APP_IDS;
 export type AppsExtra = {id: AppsExtraId; label: string; icon: string; note: string; href?: string};
 // Session AL (DV-162, DV-255): the one-line notes tell the Checklist, Tasks and Notes apart (the same words in More).
 export const APPS_EXTRAS: Readonly<Record<AppsExtraId, AppsExtra>> = {
-  zigi: {id: 'zigi', label: 'ZIGi', icon: 'star', note: 'Your Personal AI Companion'},
+  zigi: {id: 'zigi', label: 'ZIGi', icon: 'star', note: 'your companion'},
   nova: {id: 'nova', label: 'NOVA', icon: 'star', note: 'Your whole life on one screen', href: '/app/nova'},
   checklist: {id: 'checklist', label: 'Checklist', icon: 'checklist', note: 'Today’s short list: the few things you starred', href: '/app/checklist'},
   tasks: {id: 'tasks', label: 'Tasks', icon: 'tasks', note: 'Everything to do, by day, project or goal', href: '/app/tasks'},

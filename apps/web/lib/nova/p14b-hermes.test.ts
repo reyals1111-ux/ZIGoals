@@ -35,7 +35,7 @@ describe('EX3 left-overs 1–3', () => {
     const refused = hermesKeyFailure('bad-key', true)!;
     expect(refused.title).toBe(HERMES_FIXES['wrong-key'].title);
     expect(refused.steps.join(' ')).toMatch(/hermes config get API_SERVER_KEY --raw.*NOVA → Connect your Hermes Agent/);
-    expect(refused.steps.join(' ')).not.toMatch(/ZIGi · Your Personal AI Companion/);
+    expect(refused.steps.join(' ')).not.toMatch(/ZIGi · your companion/);
     expect(hermesKeyFailure('bad-key', false)!.title).toBe(HERMES_FIXES['needs-key'].title);
     expect(hermesKeyFailure('rate-limit', true)).toBeNull();
   });

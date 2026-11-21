@@ -1,10 +1,22 @@
+import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
+import { A11Y_SWEEP, mainShardMatch } from "./playwright.main.shards";
 // Session AK ([TIER 3] (CI), ADR-036 C3): CI runs the accessibility sweep (tests/p6-*.spec.ts) as its own suite of shards
 // (A11Y_SWEEP=only) and the rest without it (A11Y_SWEEP=skip); unset, as locally, every spec runs.
-const A11Y_SWEEP = /p6-(axe-all|axe-surfaces|keyboard)\.spec\.ts$/;
+// Session AU ([TIER 3] (CI), ADR-044 D-CI): CI's fourteen main shards are the duration-balanced lists in
+// playwright.main.shards.ts (`MAIN_SHARD=n/14` with A11Y_SWEEP=skip, which first checks that every selected spec is in
+// exactly one list); without MAIN_SHARD, the selection is as before.
+if (process.env.MAIN_SHARD && process.env.A11Y_SWEEP !== "skip") {
+  throw new Error(`MAIN_SHARD="${process.env.MAIN_SHARD}" needs A11Y_SWEEP=skip: its lists are the main suite, without the accessibility sweep`);
+}
 export default defineConfig({
   testDir: "./tests",
-  ...(process.env.A11Y_SWEEP === "only" ? { testMatch: A11Y_SWEEP } : process.env.A11Y_SWEEP === "skip" ? { testIgnore: A11Y_SWEEP } : {}),
+  ...(process.env.A11Y_SWEEP === "only" ? { testMatch: A11Y_SWEEP }
+    : process.env.A11Y_SWEEP === "skip" ? {
+      testIgnore: A11Y_SWEEP,
+      ...(process.env.MAIN_SHARD ? { testMatch: mainShardMatch(process.env.MAIN_SHARD, join(__dirname, "tests")) } : {}),
+    }
+    : {}),
   timeout: 45000,
   // Session AP ([TIER 3] (CI), owner rule 14 Nov): in CI's browser suite, a11y and WebKit jobs (ZIGOALS_CI_RETRY=1) a failed
   // test is retried once; one that passes on its retry is reported "flaky" (scripts/ci/flaky-summary.mjs lists it in the

@@ -53,7 +53,7 @@ export default function LabelScan(props: Props) {
     try {
       const provider = settings.provider!, model = settings.model!;
       let key: string | null = null; try { key = await readKey(currentAiScope(), provider); } catch { key = null; }
-      if (key === null && provider !== 'local') { setState({kind: 'problem', lines: ['Your key is not on this device.', 'Enter it again in Settings → ZIGi · Your Personal AI Companion. Keys stay on the device where you typed them; they are never synced.']}); return; }
+      if (key === null && provider !== 'local') { setState({kind: 'problem', lines: ['Your key is not on this device.', 'Enter it again in Settings → ZIGi · your companion. Keys stay on the device where you typed them; they are never synced.']}); return; }
       let declared: boolean | undefined; try { declared = readDeviceRecord(getAppStorage(), AI_OPTIONS).data.visionDeclared?.[`${provider}:${model}`]; } catch { declared = undefined; }
       const capability = declared === undefined ? await readCapability({provider, model, key, baseUrl: settings.baseUrl, localServer: settings.localServer, signal: controller.signal}).catch(() => null) : null;
       const allowed = photoAllowance({capability, declared, healthOpen});

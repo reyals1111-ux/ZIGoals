@@ -15,10 +15,16 @@ import "./habits.css";
 import "./habits-aa.css";
 import { SwipeRow } from "../swipe/swipe-row";
 import { habitsOnDay } from '../../lib/numbers/habit-counts'; // CI13: not Wealth's counts
+import { useDeviceRecord } from '../ai/use-device-record';
+import { HABIT_EXTRAS } from '../../lib/habits-extras/schema';
+import { HabitLookMark } from './habit-look-mark';
+import { twoDayLine } from '../../lib/habit-two-day';
 
 export function HabitsTodayBody() {
   const store = useHabits();
   const goals = useGoals();
+  // Session AV (q4 #26, #23): each habit's symbol beside its name, and "never missed twice" / "Don't miss today" beside its streak.
+  const extrasRecord = useDeviceRecord(HABIT_EXTRAS), looks = extrasRecord.loaded && !extrasRecord.unreadable ? extrasRecord.data : null;
   // Today can show this section twice (built-in and widget), so its heading id is per instance (QA-30).
   const titleId = useId();
   const due = store.data.habits.filter((habit) => habitDay(habit, store.today, store.today).scheduled);
@@ -31,7 +37,7 @@ export function HabitsTodayBody() {
       const streak = habitStats(habit, store.today).currentStreak;
       const linked = habit.goalLink && goalLinkMatches(habit.goalLink, { chainId: goals.chain, owner: goals.owner, goalId: habit.goalLink.goalId }) ? goals.metadata?.goals[habit.goalLink.goalId]?.name : undefined;
       const day = habitDay(habit, store.today, store.today), rule = habitRuleOn(habit, store.today);
-      return <SwipeRow as="li" key={habit.id} attrs={{"data-tone": visualTone(habit.id)}} label={habit.title} completeLabel="Complete" onComplete={rule?.type === "build" && day.status !== "complete" ? () => void store.smartDone(habit.id, store.today) : undefined} actions={day.status !== "complete" && day.status !== "skipped" ? [{label: "Skip", run: () => void store.markDay(habit.id, store.today, "skipped", "Skipped · swipe")}] : []}><div><strong>{habit.title}</strong><small>{streak} day streak · {linked ?? habit.category}</small>{habit.timer && <Suspense fallback={null}><TimerChip habit={habit} store={store} /></Suspense>}</div><HabitCompletion habit={habit} store={store} compact /></SwipeRow>;
+      return <SwipeRow as="li" key={habit.id} attrs={{"data-tone": visualTone(habit.id)}} label={habit.title} completeLabel="Complete" onComplete={rule?.type === "build" && day.status !== "complete" ? () => void store.smartDone(habit.id, store.today) : undefined} actions={day.status !== "complete" && day.status !== "skipped" ? [{label: "Skip", run: () => void store.markDay(habit.id, store.today, "skipped", "Skipped · swipe")}] : []}><div><strong><HabitLookMark extras={looks} habitId={habit.id} />{habit.title}</strong><small>{streak} day streak{(() => { const two = twoDayLine(habit, store.today, streak); return two ? ` · ${two}` : ""; })()} · {linked ?? habit.category}</small>{habit.timer && <Suspense fallback={null}><TimerChip habit={habit} store={store} /></Suspense>}</div><HabitCompletion habit={habit} store={store} compact /></SwipeRow>;
     })}</ul>} /></RovingGroup>{/* Session AK P4 (FR-3): the very first check-in on this device is named here too, once (read from the habits; nothing stored): the time card that carries it stands down while this widget is on Today. */}{complete > 0 && firstStepToday(store.data.habits, store.today) && <p className="fine habit-first-step">{/* Session AL (DV-156): a static line, not a live region, so saving a widget does not re-announce it */}Your first step is logged. Day 1 of your streak.</p>}</> : <p>A small daily action can support a bigger goal. Create your first habit, or make space for today.</p>}
     <Link className="text-link" href="/app/habits">{due.length ? focus.hidden ? `${focus.hidden} more today · all habits →` : "View all habits →" : "Build your rhythm →"}</Link>
   </section>;

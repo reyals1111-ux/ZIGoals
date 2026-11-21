@@ -115,11 +115,17 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Session AP (14 Nov, deliberate): six more for this release (was 38), each checked by its words below.
   // Session AT (ADR-043 D15, deliberate): three more for this release (was 44), each checked by its words below; the weather,
   // Someday and orbits lines say what is true since Sessions AM, AR and AT (checked by their new words, not removed).
-  await expect(items).toHaveCount(47);
-  for (const words of ['NOVA answers from your records only:', 'A restore brings back your records, not your device’s settings:', 'Questions about coins in Dutch', 'Today’s orbits card is off until you turn it on']) await expect(section).toContainText(words);
+  // Session AU (ADR-044, deliberate): three more for this release (was 47) and one removed because it is no longer true
+  // (Dutch coin questions are answered now, D-NL-COINS; its absence is checked below), each new one checked by its words.
+  // Session AV (owner follow-up 1, deliberate): four more for this release (was 49), each checked by its words below.
+  await expect(items).toHaveCount(53);
+  for (const words of ['A countdown’s reminder shows on Today’s “Days until” card,', '“Hide calories and weight” hides the figures in Health and on Today’s pinned cards;', '“In your money log” on a bill', 'Your own journal templates, matrix lines and the daily question’s language']) await expect(section).toContainText(words);
+  for (const words of ['Health stays closed to NOVA and ZIGi until you open it:', 'A meal in words has no calories:', 'moves habits, the Checklist, streaks and Tasks;']) await expect(section).toContainText(words);
+  await expect(section).not.toContainText('Questions about coins in Dutch');
+  for (const words of ['NOVA answers from your records only:', 'A restore brings back your records, not your device’s settings:', 'Today’s orbits card is off until you turn it on']) await expect(section).toContainText(words);
   for (const words of ['Weather is off until you turn it on in NOVA,', 'Mood tags, symptoms and run splits stay private like Health:', 'The Bento view and the buttons that step aside are for computers;', 'Someday tasks also show in Inbox and All;', 'the menu counts them under Someday too', 'Money insights need history:']) await expect(section).toContainText(words);
   await expect(section).toContainText('On Safari, words typed into ZIGi’s box at the very moment it opens might be lost');
-  for (const words of ['ZIGi’s hide move, when you dismiss its knock, always leaves to the right', 'In a browser that can’t play animated WebP, ZIGi’s moves use a fallback at 12 frames a second', 'A few of ZIGi’s new moves aren’t used yet: its glances (at the chat box, at you, at something on the page) and its hello without walking in']) await expect(section).toContainText(words);
+  for (const words of ['ZIGi’s hide move, when you dismiss its knock, always leaves to the right', 'In a browser that can’t play animated WebP, ZIGi’s moves use a fallback at 12 frames a second', /* Session AV (KL-1, deliberate): the glances X020–X022 play since AL's P14-B; only the hello in place is unused */ 'One of ZIGi’s moves isn’t used yet: its hello without walking in']) await expect(section).toContainText(words);
   await expect(section).toContainText('Earn takes a few seconds to settle on a slower phone: on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds');
   for (const [words, name, href] of [
     ['Notifications on this device are being switched on', 'How do notifications on this device work?', '#help-ak-notify'],
@@ -161,7 +167,7 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   await expect(section).toContainText('Photos stay on the device where you added them; another device shows the goal’s colours.');
   await expect(section).toContainText('After a new vault key, your extras wait until the device that synced them last syncs once; nothing is lost meanwhile.');
   await expect(section).toContainText('Restore from a backup brings back your records and photos, not ZIGi’s chats or settings, notifications or a timer in progress.');
-  for (const [name, href] of [['install ZIGoals', '#install'], ['Export everything', '/app/settings#export-everything'], ['ZIGi · Your Personal AI Companion', '#your-ai'], ['tell us', '#feedback'], ['Do my photos sync?', '#help-ab-photos'], ['Home Screen shortcuts and sharing', '#help-aa-home-screen'], ['Where are my reminders?', '#help-aa-reminders'], ['Your data', '#help-aa-data']] as const) await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href);
+  for (const [name, href] of [['install ZIGoals', '#install'], ['Export everything', '/app/settings#export-everything'], ['ZIGi · your companion', '#your-ai'], ['tell us', '#feedback'], ['Do my photos sync?', '#help-ab-photos'], ['Home Screen shortcuts and sharing', '#help-aa-home-screen'], ['Where are my reminders?', '#help-aa-reminders'], ['Your data', '#help-aa-data']] as const) await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href);
   await section.getByRole('link', {name: 'tell us', exact: true}).click();
   await expect(page).toHaveURL(/#feedback$/);
 });

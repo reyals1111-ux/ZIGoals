@@ -1,0 +1,6 @@
+/* Session AV (q3 #8): a factor's name and what it is set against read as one line ("MEDITATION · Sleep"), not a name
+   with a stray "· Sleep" under it; the label pill is 14 px like the rest of the card's small text. */
+:root .cross-insights.factor-effects .factor-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; margin: 0; font-size: 14px; line-height: 1.5; }
+:root .cross-insights.factor-effects .factor-head strong { display: inline; }
+:root .cross-insights.factor-effects .factor-head .factor-outcome { font-size: 14px; }
+:root .cross-insights.factor-effects .cross-label { margin-left: 0; font-size: 14px; }

@@ -8,13 +8,17 @@ import {formatDate} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
 import {MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
 import {detectBills, openCandidates, type BillCandidate} from '../../../lib/bills/detect';
-import {addManualBill, billOccurrences, cancelReminders, confirmCandidate, dismissCandidate, manualBillIssue, monthlyEstimate, removeBill, setCancelNote, totalsByCurrency, type BillOccurrence} from '../../../lib/bills/store';
+import {addManualBill, billOccurrences, cancelReminders, confirmCandidate, dismissCandidate, manualBillIssue, monthlyEstimate, removeBill, yearlyEstimate, yearlyOf, setCancelNote, totalsByCurrency, type BillOccurrence} from '../../../lib/bills/store';
 import {BILLS, BILL_CADENCES, type Bill, type BillCadence, type BillsRecord} from '../../../lib/bills/schema';
 import './bills.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import {useMoneyCurrency} from '../use-money-currency';
 // Session AP (feature 6): price changes of bills found in the money log, its own chunk.
 const PriceChanges = lazy(() => import('./price-changes'));
+// Session AV (follow-up 1, F-BILL-CALENDAR): the next 31 days on a calendar, its own chunk loaded when opened.
+const BillMonthGrid = lazy(() => import('./bill-month-grid'));
+// Session AV (follow-up 1, F-BILLS-MONTH): this month's bills against the money log, and until payday; its own chunk.
+const BillsMonth = lazy(() => import('./bills-month'));
 
 /**
  * Session AK (7.3, COMPETITORS M7): Upcoming bills. Bills come from the person: confirmed from a repeat the money log
@@ -37,8 +41,9 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
   const id = useId();
   const [days, setDays] = useState<30 | 60>(30), [status, setStatus] = useState(''), [problem, setProblem] = useState(''), [adding, setAdding] = useState(false);
   const occurrences = useMemo(() => billOccurrences(record, today, days), [record, today, days]);
+  const [calendar, setCalendar] = useState(false);
   const candidates = useMemo(() => openCandidates(detectBills(entries, today), record), [entries, record, today]);
-  const totals = totalsByCurrency(occurrences), monthly = monthlyEstimate(record), notes = cancelReminders(record, today);
+  const totals = totalsByCurrency(occurrences), monthly = monthlyEstimate(record), yearly = yearlyEstimate(record), notes = cancelReminders(record, today);
   const change = (fn: (r: BillsRecord) => BillsRecord, done: string) => {
     setProblem('');
     try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.'); }
@@ -57,14 +62,18 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
       <dl className="bills-totals">
         <div><dt>Due in the next {days} days</dt><dd>{totals.length ? totals.map(t => <span key={t.currency}>{money(t.cents, t.currency)}</span>) : <span>Nothing due</span>}</dd></div>
         <div><dt>A typical month <small>(an estimate)</small></dt><dd>{monthly.length ? monthly.map(t => <span key={t.currency}>{money(t.cents, t.currency)}</span>) : <span>No bills yet</span>}</dd></div>
+        {/* Session AV Part 7 (ADR-045 F-YEAR): what they come to in a year, from each bill's own cadence. */}
+        {yearly.length > 0 && <div><dt>A year of these bills <small>(an estimate)</small></dt><dd>{yearly.map(t => <span key={t.currency}>{money(t.cents, t.currency)}</span>)}</dd></div>}
       </dl>
     </div>
     {notes.length > 0 && <ul className="bills-notes" aria-label="Notes to self due soon">{notes.map(n => <li key={n.billId}><strong>{n.title}</strong> · {formatDate(n.cancelBy)}: {n.note}</li>)}</ul>}
+    {record.bills.length > 0 && <Suspense fallback={null}><BillsMonth record={record} entries={entries} today={today}/></Suspense>}
     <Suspense fallback={null}><PriceChanges bills={record.bills} candidates={candidates} entries={entries} today={today}/></Suspense>
     <section aria-labelledby={`${id}-list`}>
       <h3 id={`${id}-list`}>Upcoming</h3>
       {occurrences.length ? <ul className="bills-list">{occurrences.map(o => <BillRow key={`${o.billId}-${o.due}`} occurrence={o} bill={record.bills.find(b => b.id === o.billId)!} onRemove={remove} onNote={(bill, note, by) => change(r => setCancelNote(r, bill.id, note, by || undefined), note.trim() ? `Note saved for ${bill.title}.` : `Note removed from ${bill.title}.`)}/>)}</ul>
         : <p className="fine">{record.bills.length ? `No bill is due in the next ${days} days.` : 'No bills yet. Confirm one found in your spending below, or add one by hand (for example rent on the 1st).'}</p>}
+      {record.bills.length > 0 && <details className="bills-calendar-fold" onToggle={e => setCalendar((e.currentTarget as HTMLDetailsElement).open)}><summary>On a calendar</summary>{calendar && <Suspense fallback={<p className="fine">Opening…</p>}><BillMonthGrid record={record} today={today}/></Suspense>}</details>}
     </section>
     {candidates.length > 0 && <section aria-labelledby={`${id}-found`}>
       <h3 id={`${id}-found`}>Found in your spending</h3>
@@ -87,7 +96,7 @@ function BillRow({occurrence: o, bill, onRemove, onNote}: {occurrence: BillOccur
   const [editing, setEditing] = useState(false), [note, setNote] = useState(bill.cancelNote ?? ''), [by, setBy] = useState(bill.cancelBy ?? '');
   return <li className="bills-row">
     <span className="bills-date">{formatDate(o.due, {weekday: true, year: false})}</span>
-    <span className="bills-what"><strong>{o.title}</strong><span className="fine"> · {CADENCE_LABEL[o.cadence].toLowerCase()}{o.origin === 'detected' ? ' · from your spending' : ''}</span>{o.cancelNote && <span className="fine bills-note-line">Note: {o.cancelNote}{o.cancelBy ? ` (by ${formatDate(o.cancelBy)})` : ''}</span>}</span>
+    <span className="bills-what"><strong>{o.title}</strong><span className="fine"> · {CADENCE_LABEL[o.cadence].toLowerCase()}{o.cadence !== 'yearly' ? ` · about ${money(yearlyOf(bill), o.currency)} a year` : ''}{o.origin === 'detected' ? ' · from your spending' : ''}</span>{o.cancelNote && <span className="fine bills-note-line">Note: {o.cancelNote}{o.cancelBy ? ` (by ${formatDate(o.cancelBy)})` : ''}</span>}</span>
     <span className="bills-amount">{money(o.amountCents, o.currency)}</span>
     <span className="bills-actions">
       <button type="button" className="quiet" aria-expanded={editing} onClick={() => setEditing(!editing)} aria-label={`Note to self for ${o.title}`}>Note</button>

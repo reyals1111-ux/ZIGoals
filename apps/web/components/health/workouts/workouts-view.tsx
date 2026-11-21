@@ -1,4 +1,5 @@
 'use client';
+import {setBest, SET_BEST_WORDS, withEarlier, type SetBest} from '../../../lib/workouts/set-best';
 import Link from 'next/link';
 import {LoggingFor, useLinkedDay} from '../health-day';
 import {lazy, Suspense, useEffect, useMemo, useState} from 'react';
@@ -35,6 +36,12 @@ const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
 // Session AK (4.9): the warm-up and plate calculators and the muscle-group view load only when used.
 const WorkoutTools = lazy(() => import('./workouts-tools'));
+// Session AV (follow-up 1, F-WORKOUT-WEEKS): the last 12 weeks, its own chunk.
+const WeeklyChart = lazy(() => import('./weekly-chart'));
+// Session AV (follow-up 1, F-RUN-BESTS): the fastest 1, 5 and 10 km and the longest run, its own chunk.
+const RunBests = lazy(() => import('./run-bests'));
+// Session AV (owner follow-up 1, F-WORKOUT-CALENDAR): a month of workouts, opened on demand.
+const WorkoutCalendar = lazy(() => import('./workout-calendar'));
 const WorkoutsMuscles = lazy(() => import('./workouts-muscles'));
 // Session AK (item 8): "Fresh today: legs, back" on the start sheet, its own small chunk.
 const MuscleFreshToday = lazy(() => import('./muscle-freshness-today'));
@@ -178,6 +185,10 @@ export default function WorkoutsView() {
         <h2 id="workouts-start-title">Start a workout</h2>
         {past.some(x => x.exercises.length) && <Suspense fallback={null}><MuscleFreshToday w={w} library={library} today={today}/></Suspense>}
         <p className="fine">This week: {week.workouts} {plural(week.workouts, 'workout')}{week.workouts ? ` · ${week.minutes} min · ${week.sets} ${plural(week.sets, 'set')}${week.volumeKg ? ` · ${weightShown(week.volumeKg, unit)} lifted` : ''}` : ''}.</p>
+        {past.length > 0 ? <Suspense fallback={null}><WeeklyChart w={w} today={today} unit={unit}/></Suspense>
+          : /* Session AV (q3 #11): the weekly chart's teaching line before the first workout, so a fresh device knows it is coming */ <p className="fine workouts-weeks-teach">Finish a workout and the last 12 weeks show here: time, distance and weight lifted per week.</p>}
+        {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null}/></Suspense>}
+        {past.length > 0 && <CalendarFold w={w} today={today}/>}
         <div className="workouts-start-actions">
           <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
           {last && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: last})}>Repeat {last.name}</button>}
@@ -251,9 +262,16 @@ function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRe
   </section>;
 }
 
+/** Session AV (F-WORKOUT-CALENDAR): the fold whose content loads when opened. */
+function CalendarFold({w, today}: {w: Workouts; today: string}) {
+  const [open, setOpen] = useState(false);
+  return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today}/></Suspense>}</details>;
+}
 function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
   w: Workouts; letter?: string; nextLetter?: string}) {
   const headId = `ex-${entry.id}`, [tools, setTools] = useState(false), rpe = entry.measure === 'weight-reps' || entry.measure === 'reps';
+  // Session AV (owner follow-up 1, F-SET-BEST): the bests of every finished workout, for the badge on a ticked set.
+  const bests = useMemo(() => exerciseHistory(w, entry.exerciseId), [w, entry.exerciseId]);
   return <article className="workouts-exercise" aria-labelledby={headId} data-superset={letter ? '' : undefined}>
     <header><h3 id={headId}>{letter && <span className="workouts-superset-tag">Superset {letter}<span className="sr-only">:</span></span>} {entry.name}</h3><div className="workouts-row-actions">
       <button className="quiet" type="button" disabled={index === 0} aria-label={`Move ${entry.name} up`} onClick={() => change(x => moveExercise(x, entry.id, -1))}>↑</button>
@@ -261,10 +279,12 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
       <button className="quiet" type="button" aria-label={`Remove ${entry.name}`} onClick={() => change(x => removeExercise(x, entry.id), `${entry.name} removed from this workout.`, `${entry.name} is back in this workout.`)}>Remove</button></div></header>
     <table className="workouts-sets"><caption className="sr-only">{entry.name}: sets</caption>
       <thead><tr><th scope="col">Set</th><th scope="col">Last time</th>{entry.measure === 'weight-reps' && <th scope="col">{unit}</th>}{entry.measure === 'distance-time' && <th scope="col">km</th>}{(entry.measure === 'weight-reps' || entry.measure === 'reps') && <th scope="col">Reps</th>}{(entry.measure === 'time' || entry.measure === 'distance-time') && <th scope="col">Time</th>}{rpe && <th scope="col"><abbr title="Rate of perceived exertion: 10 is nothing left, 8 is about two reps left">RPE</abbr></th>}<th scope="col"><span className="sr-only">Done</span></th><th scope="col"><span className="sr-only">Remove</span></th></tr></thead>
-      <tbody>{entry.sets.map((s, i) => <SetRow key={s.id} entry={entry} set={s} n={i + 1} previous={previous?.sets[i]} unit={unit} change={change} onDone={onRest} rpe={rpe}/>)}</tbody>
+      <tbody>{entry.sets.map((s, i) => <SetRow key={s.id} entry={entry} set={s} n={i + 1} previous={previous?.sets[i]} unit={unit} change={change} onDone={onRest} rpe={rpe} best={setBest(entry.measure, s, withEarlier(bests, entry.sets.slice(0, i)))}/* Session AV (q3 #40): one star per best */ />)}</tbody>
     </table>
     <div className="workouts-exercise-foot"><button className="secondary" type="button" onClick={() => change(x => addSet(x, entry.id))}>+ Add set</button>
-      <label className="field workouts-ex-note"><span className="sr-only">Note for {entry.name}</span><input placeholder="Note (seat height, grip…)" maxLength={500} defaultValue={entry.note ?? ''} onBlur={e => { if ((entry.note ?? '') !== e.target.value) change(x => setExerciseNote(x, entry.id, e.target.value)); }}/></label></div>
+      <label className="field workouts-ex-note"><span className="sr-only">Note for {entry.name}</span><input key={entry.note ?? ''} placeholder="Note (seat height, grip…)" maxLength={500} defaultValue={entry.note ?? ''} onBlur={e => { if ((entry.note ?? '') !== e.target.value) change(x => setExerciseNote(x, entry.id, e.target.value)); }}/></label></div>
+    {/* Session AV (owner follow-up 1, F-SET-BEST; Hevy's pinned note): last time's note, carried over on a tap. */}
+    {previous?.note && !entry.note && <p className="fine workouts-last-note"><span>Last time&rsquo;s note: <q dir="auto">{previous.note}</q></span> <button type="button" className="text-link" aria-label={`Keep last time’s note for ${entry.name}`} onClick={() => change(x => setExerciseNote(x, entry.id, previous.note!), `Last time’s note kept for ${entry.name}.`)}>Keep it</button></p>}
     {/* Session AK (4.9): supersets and this exercise's own rest time. */}
     <div className="workouts-exercise-foot">
       {letter ? <button className="quiet" type="button" onClick={() => change(x => leaveSuperset(x, entry.id), `${entry.name} is out of superset ${letter}.`)}>Leave superset {letter}</button>
@@ -283,7 +303,7 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
   </article>;
 }
 
-function SetRow({entry, set, n, previous, unit, change, onDone, rpe}: {entry: ExerciseEntry; set: WorkoutSet; n: number; previous?: WorkoutSet; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onDone: () => void; rpe: boolean}) {
+function SetRow({entry, set, n, previous, unit, change, onDone, rpe, best}: {entry: ExerciseEntry; set: WorkoutSet; n: number; previous?: WorkoutSet; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onDone: () => void; rpe: boolean; best: SetBest | null}) {
   const m = entry.measure, label = `${entry.name}, set ${n}`;
   const [weight, setWeight] = useState(set.weightKg === undefined ? '' : weightPrefillText(set.weightKg, unit));
   const [reps, setReps] = useState(set.reps === undefined ? '' : String(set.reps)), [time, setTime] = useState(set.seconds ? clock(set.seconds) : ''), [dist, setDist] = useState(set.distanceKm === undefined ? '' : String(set.distanceKm));
@@ -315,7 +335,7 @@ function SetRow({entry, set, n, previous, unit, change, onDone, rpe}: {entry: Ex
     {(m === 'time' || m === 'distance-time') && <td><input className="workouts-num" inputMode="numeric" aria-label={`${label}: time, minutes:seconds`} placeholder="1:30" value={time} onChange={e => setTime(e.target.value)} onBlur={commit} disabled={set.done}/></td>}
     {rpe && <td><select className="workouts-rpe" value={set.rpe === undefined ? '' : String(set.rpe)} aria-label={`${label}: RPE, how hard it felt`} title={set.rpe !== undefined ? RPE_WORDS[set.rpe] : undefined}
       onChange={e => change(x => setRpe(x, entry.id, set.id, e.target.value === '' ? null : Number(e.target.value)))}><option value="">—</option>{RPE_VALUES.map(v => <option key={v} value={v}>{v}</option>)}</select></td>}
-    <td><button className="workouts-tick" type="button" aria-pressed={set.done} aria-label={set.done ? `${label} done; undo` : `Mark ${label} done`} onClick={tick}>✓</button></td>
+    <td><button className="workouts-tick" type="button" aria-pressed={set.done} aria-label={set.done ? `${label} done; undo` : `Mark ${label} done`} onClick={tick}>✓</button>{best && <span className="workouts-set-best" title={`A new best: ${SET_BEST_WORDS[best]}`}><span aria-hidden="true">★</span><span className="sr-only">{label}: a new best, {SET_BEST_WORDS[best]}</span></span>}</td>
     <td><button className="quiet workouts-remove" type="button" aria-label={`Remove ${label}`} onClick={() => change(x => removeSet(x, entry.id, set.id), `Set ${n} of ${entry.name} removed.`, `Set ${n} of ${entry.name} is back.`)}>×</button></td>
   </tr>{problem && <tr className="workouts-problem"><td colSpan={8}><p role="alert">{problem}</p></td></tr>}</>;
 }

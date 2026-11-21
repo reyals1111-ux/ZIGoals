@@ -33,6 +33,10 @@ beforeEach(() => {
   vi.stubGlobal('fetch', async (url: RequestInfo | URL, init?: RequestInit) => { calls.push({url: String(url), init: init ?? {}}); return new Response(new ReadableStream({start(c) { c.enqueue(new TextEncoder().encode(sse('A plate of pasta.'))); c.close(); }}), {status: 200, headers: {'content-type': 'text/event-stream'}}); });
   holdKey('local', 'anthropic', KEY);
   localStorage.setItem('zigoals:ai-options:v1', JSON.stringify({version: 1, toolMode: 'attach'}));
+  // Session AV (PK-18; deliberate test change, equally strict for what this file tests): with no privacy mode chosen ZIGi
+  // now sends as Guarded (redacted, and no photo to a cloud). These checks are about the resend gate and the key, so the
+  // person here chose Relaxed, under which the photo and records go as they are.
+  localStorage.setItem('zigoals:nova-setup:v1', JSON.stringify({version: 1, privacyMode: 'relaxed'}));
   root = createRoot(document.body.appendChild(document.createElement('div')));
 });
 afterEach(async () => { await act(async () => root.unmount()); dropMemoryKeys(); localStorage.clear(); vi.unstubAllGlobals(); });

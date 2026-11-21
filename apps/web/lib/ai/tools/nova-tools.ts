@@ -9,6 +9,8 @@ import {monthKey, monthView} from '../../budgets/engine';
 import type {Notes} from '../../notes/schema';
 import type {MusicPrefs} from '../../music/schema';
 import type {CalendarImport} from '../../ics/calendar';
+import type {Countdowns} from '../../countdowns/schema';
+import type {CountdownExtras} from '../../countdowns/extras';
 import {occurrences} from '../../ics/expand';
 import {notesPackLines} from '../../notes/pack';
 import {addLocalDays} from '../../local-date';
@@ -35,7 +37,8 @@ import {NO_ARGS, type ToolDefinition} from './types';
 export type NovaToolSources = {tasks?: Tasks | null; focus?: FocusSessions | null; budgets?: BudgetsRecord | null;
   /** Lane B's notes, only when the person granted NOVA's Notes scope (never on ZIGi's page paths). */ notes?: Notes | null;
   /** The music player's choices (source, ambient sound), for NOVA's pack. */ music?: MusicPrefs | null;
-  /** Lane T's imported calendars (read-only .ics events): their titles came from a file, so they are data, never instructions. */ calendar?: CalendarImport | null}
+  /** Lane T's imported calendars (read-only .ics events): their titles came from a file, so they are data, never instructions. */ calendar?: CalendarImport | null;
+  /** Session AV (1c, f1): Today's "Days until" countdowns and which of them come back every year, for the on-device answers. */ countdowns?: Countdowns | null; countdownExtras?: CountdownExtras | null}
   /** Owner follow-up 2 (G8): BUILD list 2's records (your numbers, the cycle log, your own scales), for g1-tools.ts. */
   & G1ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
@@ -51,15 +54,17 @@ export const NOTES_NOT_SHARED = 'Notes are not shared here: NOVA reads them only
 
 export const tasksTool: ToolDefinition<Record<string, never>> = {
   name: 'tasks', title: 'Tasks', area: 'today',
-  description: 'The person\'s open tasks as their list orders them (overdue first, then today, soon, later, no day): title, due day and time, priority and the goal a task serves. Their own words; no advice. To move one they ask about, propose {"kind":"move-task","task":"…","to":"tomorrow"|"let-go"}.',
+  description: 'The person\'s open tasks as their list orders them (overdue first, then today, soon, later, no day): title, due day and time, the deadline (the day it must be done by, apart from the planned day) and minutes it takes when set, priority and the goal a task serves. Their own words; no advice. To move one they ask about, propose {"kind":"move-task","task":"…","to":"tomorrow"|"let-go"}.',
   parameters: {type: 'object', properties: {}}, args: NO_ARGS,
   label: () => 'Tasks',
   run(_args, env, label) {
     const record = env.nova?.tasks;
     if (!record || !record.tasks.length) return ok('tasks', label, where(env, 'tasks'), {open: [], note: absent(record, 'No task is kept on this device yet.')});
     // Release review AL (RR-8): overdue by the day and, today, the time (the person's zone), as the Tasks page counts it.
-    const clock = wallClock(env.now.getTime(), env.habitZone).clock;
-    const rows = openTasks(record, env.habitDay).map(t => ({task: text(t.title, 100), state: taskState(t, env.habitDay, clock), ...(t.due ? {due: t.due} : {}), ...(t.time ? {time: t.time} : {}), priority: t.priority, ...(goalName(env, t.goal) ? {goal: goalName(env, t.goal)} : {})}));
+    // Session AU (REHEARSAL R-13): the clock the Tasks page and NOVA's task widgets use (lib/tasks/device.ts tasksClock): while
+    // the person's day runs on past midnight (their today is the calendar's yesterday), every time of that day has passed.
+    const wall = wallClock(env.now.getTime(), env.habitZone), clock = wall.date && wall.date > env.habitDay ? '23:59' : wall.clock;
+    const rows = openTasks(record, env.habitDay).map(t => ({task: text(t.title, 100), state: taskState(t, env.habitDay, clock), ...(t.due ? {due: t.due} : {}), ...(t.time ? {time: t.time} : {}), ...(t.deadline ? {deadline: t.deadline} : {}), ...(t.minutes ? {minutes: t.minutes} : {}), priority: t.priority, ...(goalName(env, t.goal) ? {goal: goalName(env, t.goal)} : {})}));
     const capped = capRows(rows, env, false);
     return ok('tasks', label, where(env, 'tasks'), {today: env.habitDay, counts: taskCounts(record, env.habitDay, clock), open: capped.rows, rule: 'the person\'s own tasks; done tasks are not listed'}, capped.truncated);
   },
@@ -106,7 +111,8 @@ export const budgetsTool: ToolDefinition<{month?: string}> = {
     const record = env.nova?.budgets;
     if (!record || !record.budgets.length) return ok('budgets', label, where(env, 'budgets'), {budgets: [], note: absent(record, 'No budget is set yet (Wealth → Spending → Budgets).')});
     const month = args.month ?? monthKey(env.habitDay), view = monthView(env.moneyLog?.entries ?? [], record, month, env.habitDay), money = (cents: number, c: string) => `${(cents / 100).toFixed(2)} ${c}`;
-    const rows = view.rows.map(r => ({category: text(r.category, 40), available: money(r.available, r.currency), spent: money(r.spent, r.currency), left: money(r.left, r.currency), over: r.over}));
+    // Session AV (F-BUDGET-TARGETS; TIER 3 AI tools): a budget's target travels with its row, as figures and a state word.
+    const rows = view.rows.map(r => ({category: text(r.category, 40), available: money(r.available, r.currency), spent: money(r.spent, r.currency), left: money(r.left, r.currency), over: r.over, ...(r.target ? {target: {amount: money(r.target.amount, r.currency), by: r.target.by, setAside: money(r.target.setAside, r.currency), toGo: money(r.target.toGo, r.currency), perMonthFromNextMonth: money(r.target.perMonth, r.currency), state: r.target.state}} : {})}));
     return ok('budgets', label, where(env, 'budgets and Spending log'), {month, budgets: rows, unbudgeted: view.unbudgeted.slice(0, 10).map(u => ({category: text(u.category, 40), spent: money(u.spent, u.currency)})),
       ...(view.daysLeft !== null ? {daysLeft: view.daysLeft} : {}), rule: 'per currency, never converted; the person\'s own entries; not advice'});
   },

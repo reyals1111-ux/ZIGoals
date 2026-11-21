@@ -6,6 +6,7 @@ import {dueReminders} from '../../lib/tasks/reminders';
 import {checklistZone} from '../../lib/checklist/zone';
 import {formatClock, formatNumber} from '../../lib/visual-format';
 import {useTaskList} from './use-task-list';
+import {ReminderRows} from './reminder-rows';
 import './today-tasks-due.css';
 
 /**
@@ -23,10 +24,8 @@ export function TodayTasksDue() {
   if (!tasks.loaded || tasks.unreadable || (!due.length && !reminders.length)) return null;
   const overdue = due.filter(t => taskState(t, today, clock) === 'overdue').length, first = due.find(t => taskState(t, today, clock) !== 'overdue') ?? due[0];
   return <section className="today-tasks-due" aria-label="Tasks due today">
-    {reminders.length > 0 && <ul className="tasks-today-reminders" aria-label="Task reminders">{reminders.map(r => <li key={r.key}>
-      <span><span aria-hidden="true">⏰ </span>Reminder · <span dir="auto">{r.task.title}</span>{r.task.time ? ` at ${formatClock(r.task.time)}` : ''}</span>
-      <button type="button" className="text-link" onClick={() => list.toggle(r.task, true)}>Done</button>
-      <button type="button" className="text-link" onClick={() => setDismissed(s => new Set(s).add(r.key))}>Dismiss</button></li>)}</ul>}
+    {/* Session AV (1c, q1 #1): Done, Snooze (15 min, 1 h, tomorrow) and Dismiss. */}
+    <ReminderRows reminders={reminders} className="tasks-today-reminders" label="Task reminders" change={list.change} onDone={t => list.toggle(t, true)} onDismiss={key => setDismissed(s => new Set(s).add(key))} fallback={() => document.querySelector<HTMLElement>('.today-tasks-due-line a')} />
     {/* Session AL (CI 1539, Today's phone height): the words sit in one span, so they flow as one sentence inside the 44 px
         link (two lines at 390 px) instead of each piece taking its own flex row (three). */}
     {first && <p className="today-tasks-due-line"><Link className="text-link" href="/app/tasks?view=today"><span>

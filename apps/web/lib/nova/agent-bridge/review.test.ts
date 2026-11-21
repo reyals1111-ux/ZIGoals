@@ -322,14 +322,16 @@ describe('a — the privacy engine asks about the person’s own agent on every 
   const PRIVATE = 'Dinner with my sister Anna at 12 Abbey Road; I owe her €1,234.56.';
   const store = (mode: string | null, agent?: object) => { const values: Record<string, string> = {...(mode ? {[NOVA_SETUP_KEY]: JSON.stringify({version: 1, privacyMode: mode})} : {}), ...(agent ? {[NOVA_AGENT_KEY]: JSON.stringify({version: 1, agent})} : {})}; return {getItem: (k: string) => values[k] ?? null}; };
   const request = (baseUrl: string): ChatRequest => ({provider: 'local', localServer: 'openai-compatible', model: 'my-agent', baseUrl, key: null, maxOutputTokens: 64, system: 'Records: rent 950.00 EUR\n', messages: [{role: 'user', content: PRIVATE}]});
-  it('an unconfirmed agent gets the redacted copy in Strict and Guarded; a confirmed one, Relaxed and no mode send as before', async () => {
-    for (const mode of ['strict', 'guarded']) {
+  // Session AV (PK-18; deliberate test change, equally strict): no mode chosen now counts as Guarded, so it joins the
+  // redacting modes; Relaxed still sends as before.
+  it('an unconfirmed agent gets the redacted copy in Strict, Guarded and with no mode; a confirmed one and Relaxed send as before', async () => {
+    for (const mode of ['strict', 'guarded', null]) {
       const r = request('http://127.0.0.1:8000'), out = await guardRequest(r, {storage: store(mode, {address: 'http://127.0.0.1:8000'})});
-      expect(out, mode).not.toBe(r); expect(JSON.stringify(out.messages)).not.toContain('Anna'); expect(JSON.stringify(out.messages)).not.toContain('1,234.56'); expect(out.system).not.toContain('950.00');
+      expect(out, String(mode)).not.toBe(r); expect(JSON.stringify(out.messages)).not.toContain('Anna'); expect(JSON.stringify(out.messages)).not.toContain('1,234.56'); expect(out.system).not.toContain('950.00');
       const confirmed = request('http://127.0.0.1:8000');
       expect(await guardRequest(confirmed, {storage: store(mode, {address: 'http://127.0.0.1:8000', localConfirmed: true})})).toBe(confirmed);
     }
-    for (const mode of ['relaxed', null]) { const r = request('http://127.0.0.1:8000'); expect(await guardRequest(r, {storage: store(mode, {address: 'http://127.0.0.1:8000'})}), String(mode)).toBe(r); }
+    for (const mode of ['relaxed']) { const r = request('http://127.0.0.1:8000'); expect(await guardRequest(r, {storage: store(mode, {address: 'http://127.0.0.1:8000'})}), String(mode)).toBe(r); }
   });
   it('for this request’s own address, in any spelling of this computer; another local server inherits nothing', async () => {
     const agent = {address: 'http://127.0.0.1:8000'};

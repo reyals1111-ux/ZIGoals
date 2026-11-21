@@ -1,5 +1,6 @@
 'use client';
 import {Component, useEffect, useState, type ReactNode} from 'react';
+import {onStaleCode} from '../lib/sw/stale-code';
 
 /**
  * Session X Part 14 (J249): a part of a page whose code loads on demand keeps a failed load to itself. Offline, or after
@@ -13,7 +14,9 @@ import {Component, useEffect, useState, type ReactNode} from 'react';
 export class LoadBoundary extends Component<{children: ReactNode; label?: string; title?: string; quiet?: boolean; className?: string; noteClassName?: string; rest?: string; onFail?: () => void}, {failed: boolean}> {
   state = {failed: false};
   static getDerivedStateFromError() { return {failed: true}; }
-  componentDidCatch() { this.props.onFail?.(); }
+  // Session AV Part 2 ([TIER 3] (PWA), D-PWA): a part of the previous version that is gone after a deploy reloads the page once
+  // into the newest one (never while the person is busy: then the "new version is ready" note); until then it says so here.
+  componentDidCatch(error: unknown) { this.props.onFail?.(); onStaleCode(error); }
   render() {
     if (!this.state.failed) return this.props.children;
     if (this.props.quiet) return null;

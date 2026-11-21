@@ -84,7 +84,11 @@ describe('report for a visit (Session AK lane S, item 14)', () => {
     ]);
   });
   test('which sections have data in the range', () => {
-    const base = {...fixture(), from: addLocalDays(TODAY, -9), to: TODAY, today: TODAY};
+    // Session AV (F-REPORT-MORE, deliberate): the fixture gains a rated symptom and a supplement, so every section, the two
+    // new ones included, has data in the range; the assertion is unchanged.
+    const symptoms = {version: 1 as const, items: [{id: 'headache', name: 'Fictional headache', kind: 'symptom' as const, createdAt: `${TODAY}T08:00:00.000Z`}], days: {[TODAY]: {headache: 1}}};
+    const supplements = {version: 1 as const, items: [{id: 'supp_fictional-d', name: 'Fictional vitamin D', kind: 'supplement' as const, times: ['08:00'], weekdays: 127, createdAt: `${TODAY}T08:00:00.000Z`}]};
+    const base = {...fixture(), symptoms, supplements, from: addLocalDays(TODAY, -9), to: TODAY, today: TODAY};
     expect(REPORT_SECTIONS.filter(id => sectionHasData(base, id))).toEqual([...REPORT_SECTIONS]);
     expect(sectionHasData({...base, from: '2025-06-01', to: '2025-06-30'}, 'weight')).toBe(false);
   });

@@ -42,6 +42,6 @@ export async function runLabelScan(request: ChatRequest, stream: (r: ChatRequest
     else if (event.type === 'usage') usage = {input: event.input, output: event.output};
     else if (event.type === 'done') reason = event.reason;
   }
-  if (reason && /^(length|max_tokens|max_output_tokens|MAX_TOKENS)$/i.test(reason) && !text.includes('}')) return {ok: false, problems: ['The answer was cut off at your output cap (Settings → ZIGi · Your Personal AI Companion → Output cap).'], usage, reason, requests};
+  if (reason && /^(length|max_tokens|max_output_tokens|MAX_TOKENS)$/i.test(reason) && !text.includes('}')) return {ok: false, problems: ['The answer was cut off at your output cap (Settings → ZIGi · your companion → Output cap).'], usage, reason, requests};
   return {...readLabelReply(text), usage, reason, requests};
 }

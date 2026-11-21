@@ -96,4 +96,13 @@ export const HABITS: readonly Intent[] = [
   {id: 'med-count-lastweek-nl', pillar: 'habits',
     en: ['how many times did I meditate last week', 'how often did I meditate last week'],
     nl: ['hoe vaak heb ik vorige week gemediteerd', 'hoeveel keer heb ik vorige week gemediteerd']},
+  // Session AU (dress rehearsal, docs/review/session-au/REHEARSAL.md): R-1, one habit's run of days asked in Dutch ("reeks"
+  // was the month's count, partly in English); R-12, a habit named by its own word ("mijn water") asked what was missed is
+  // the habit's days from the Habits journal (it was Health's closed reply). A fresh person's own habit: au-rehearsal.test.ts.
+  {id: 'au-r1-habit-streak', pillar: 'habits', never: ['times this month', 'keer deze maand', 'logged'],
+    en: ['what is my streak for drinking water', 'how many days in a row did I drink water'],
+    nl: ['Wat is mijn reeks voor water drinken?', 'hoeveel dagen op rij heb ik water gedronken']},
+  {id: 'au-r12-habit-missed', pillar: 'habits', never: ['Health'],
+    en: ['which day did I miss my water', 'which days did I miss my water this month'],
+    nl: ['Welke dag heb ik mijn water gemist?', 'welke dagen heb ik deze maand mijn water gemist']},
 ];

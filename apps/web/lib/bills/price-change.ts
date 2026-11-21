@@ -23,8 +23,14 @@ function series(entries: readonly MoneyEntry[], matches: (e: MoneyEntry) => bool
 }
 function compare(list: readonly MoneyEntry[]): PriceChange | null {
   if (list.length < 2) return null;
-  const latest = list[list.length - 1]!, previous = list[list.length - 2]!, a = minorUnits(previous.amount), b = minorUnits(latest.amount);
-  if (a === b) return null;
+  // Session AU (ADR-044 L-4, the rehearsal's Lina): €15.00, €15.00, €17.50, €17.50 showed no change because the last two
+  // agree. The latest payment is compared with the most recent payment at another price, when that one is recent (within
+  // about three months of the latest), so a rise stays visible for a few cycles and an old one does not come back.
+  const latest = list[list.length - 1]!, b = minorUnits(latest.amount);
+  let previous = list[list.length - 2]!;
+  for (let i = list.length - 2; i >= 0; i--) { if (minorUnits(list[i]!.amount) !== b) { previous = list[i]!; break; } }
+  const a = minorUnits(previous.amount);
+  if (a === b || (Date.parse(latest.date) - Date.parse(previous.date)) / 86_400_000 > 100) return null;
   return {direction: b > a ? 'up' : 'down', cents: Math.abs(b - a), currency: latest.currency, previous: a, latest: b, previousDate: previous.date, latestDate: latest.date, sinceMonth: monthKey(previous.date)};
 }
 /** A confirmed bill's change, when it came from the money log (a bill added by hand has no payments to compare). */

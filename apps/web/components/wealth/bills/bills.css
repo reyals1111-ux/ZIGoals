@@ -28,3 +28,39 @@
 @media (max-width:620px){.bills-form-row{grid-template-columns:1fr 1fr}}
 .bills-notes{margin:0;padding:12px 16px 12px 32px;border-radius:14px;border:1px solid color-mix(in srgb,var(--amber,#f5b65b) 50%,transparent)}
 .bills-status{min-height:22px;margin:0}
+/* Session AV follow-up 1 (F-BILL-CALENDAR): the next 31 days on a calendar. */
+.bills-calendar-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.bills-calendar{display:grid;gap:6px}
+.bills-calendar-grid{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:3px}
+.bills-calendar-grid th{font-size:14px;font-weight:600;color:var(--text-secondary, var(--muted));text-align:center}
+.bills-calendar-grid td{vertical-align:top;height:56px;padding:3px;border-radius:8px;border:1px solid var(--line, rgba(128,128,160,.3));overflow:hidden}
+.bills-calendar-grid td.is-out{border-style:dashed;color:var(--text-secondary, var(--muted))}
+.bills-calendar-grid td.is-today{outline:2px solid var(--cyan, #6fd3ff);outline-offset:-2px}
+.bills-calendar-grid td.is-due{background:color-mix(in srgb, var(--cyan, #6fd3ff) 18%, transparent)}
+.bills-calendar-day{display:block;font-size:14px}
+.bills-calendar-bills small{display:block;font-size:14px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Session AV (fresh-agent check q2, rank 10): 14 px copy; each day's amount in the cell; month paging; on a phone a dot in
+   the cell and the due days listed under the grid with name and amount (a cell is too narrow for a name). */
+.bills-calendar-bills .bills-calendar-amount{font-weight:600;font-variant-numeric:tabular-nums}
+.bills-calendar-dot{display:none;width:8px;height:8px;margin:4px auto 0;border-radius:50%;background:var(--cyan, #6fd3ff)}
+.bills-calendar-pager{display:flex;align-items:center;gap:12px}
+.bills-calendar-pager button{min-height:44px;min-width:44px;font-size:20px}
+.bills-calendar-pager button[aria-disabled]{opacity:.5;cursor:default}
+.bills-calendar-pager strong{min-width:9ch;text-align:center}
+.bills-calendar-list{display:none;list-style:none;margin:0;padding:0;gap:4px}
+.bills-calendar-list li{display:flex;flex-wrap:wrap;gap:2px 10px;min-height:32px;align-items:baseline;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.bills-calendar-list strong{margin-left:auto;white-space:nowrap}
+@media (max-width:560px){
+  .bills-calendar-grid td{height:44px;text-align:center}
+  .bills-calendar-bills{display:none}
+  .bills-calendar-dot{display:block}
+  .bills-calendar-list{display:grid}
+}
+/* Session AV (F-BILLS-MONTH): this month's bills against the money log, and until payday. */
+.bills-month{display:grid;gap:6px;margin:0 0 12px}
+.bills-month h3{margin:0;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.bills-month h3 small{font-weight:400;color:var(--text-secondary, var(--muted))}
+.bills-month-total{margin:0;overflow-wrap:anywhere}
+.bills-month-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.bills-month-list li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.bills-month-list li.is-passed{font-weight:600}

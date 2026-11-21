@@ -92,7 +92,7 @@ export function NotificationsCard() {
   return <section ref={card} className="panel notify-card" id="notifications" aria-labelledby="notify-title" data-state={phase.kind}>
     <p className="eyebrow">NOTIFICATIONS{phase.kind === 'unavailable' && !phase.install && <span className="unavailable-pill">Being switched on</span>}</p>
     <h2 id="notify-title">Notifications, even when ZIGoals is closed.</h2>
-    <p>Your habits, water, wind-down, contributions, bills, price alerts and the weekly review, on time. The text is written on this device from your own records; the server only knows <em>when</em> to wake this device, never <em>why</em>.</p>
+    <p>Your habits, tasks, water, wind-down, contributions, bills, price alerts and the weekly review, on time. The text is written on this device from your own records; the server only knows <em>when</em> to wake this device, never <em>why</em>.</p>
     <details className="notify-server"><summary>What the server gets, and what it never gets</summary>
       <ul><li>a random id and secret made on this device, and the address your browser hands out for push messages;</li><li>your time zone, your quiet hours and the minutes of the day this device should wake.</li></ul>
       <p>Never a habit’s name, an amount, a kind of reminder or anything you record. Every message is empty: the notification is composed here, after it arrives. Turning off deletes this device’s record at once; unused records leave after 30 days.</p>

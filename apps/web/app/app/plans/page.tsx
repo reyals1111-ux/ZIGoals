@@ -23,7 +23,7 @@ const BASE = [
 ];
 const PREMIUM = [
   'Everything in ZIGoals',
-  'ZIGi · Your Personal AI Companion',
+  'ZIGi · your companion',
   'NOVA’s premium features',
   'You still bring your own AI: an API key, a model on your own computer, or the AI app you already use. Your AI provider bills you for it, never ZIGoals.',
 ];

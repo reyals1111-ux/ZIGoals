@@ -2,6 +2,7 @@
 import {useMemo} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {COUNTDOWNS, countdownsOn} from '../../lib/countdowns/schema';
+import {COUNTDOWN_EXTRAS, nextYearly} from '../../lib/countdowns/extras';
 import {formatDate} from '../../lib/visual-format';
 import './countdowns.css';
 
@@ -11,7 +12,9 @@ import './countdowns.css';
  */
 export function CountdownsOnDay({date, today}: {date: string; today: string}) {
   const record = useDeviceRecord(COUNTDOWNS);
-  const items = useMemo(() => record.loaded && !record.unreadable ? countdownsOn(record.data, date) : [], [record.loaded, record.unreadable, record.data, date]);
+  // Session AV (F-COUNTDOWN-YEARLY): a yearly countdown also shows on each later anniversary.
+  const extras = useDeviceRecord(COUNTDOWN_EXTRAS);
+  const items = useMemo(() => !record.loaded || record.unreadable ? [] : [...countdownsOn(record.data, date), ...record.data.items.filter(c => extras.data.items[c.id]?.yearly && c.date < date && nextYearly(c.date, date) === date)], [record.loaded, record.unreadable, record.data, extras.data, date]);
   if (!items.length) return null;
   const when = date === today ? 'today' : date < today ? `was on ${formatDate(date, {weekday: true, year: false})}` : `on ${formatDate(date, {weekday: true, year: false})}`;
   return <ul className="agenda-countdowns" aria-label="Days until">{items.map(c => <li key={c.id} className="agenda-countdown" data-pillar="life">

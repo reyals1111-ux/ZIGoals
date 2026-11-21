@@ -55,7 +55,7 @@ test('the first five: a goal, a habit, a meal and a money record from Today, in 
   await today(page);
   await expect(card(page)).toContainText('4 of 5 done');
   // A money record.
-  await card(page).getByRole('link', {name: 'Record some money'}).click();
+  await card(page).getByRole('link', {name: 'Log an expense or income'}) /* Session AV (D20-6, deliberate): the step is named for what ticks it */.click();
   const spending = page.locator('#spending');
   await spending.getByRole('button', {name: 'Log spending', exact: true}).click();
   await spending.getByLabel('Amount').fill('12,50');

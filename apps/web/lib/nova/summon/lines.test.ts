@@ -295,6 +295,9 @@ describe('the stage owns the answer when it made a widget and the engine had non
     'priority-matrix': ['show my priority matrix', 'toon mijn prioriteitenmatrix'], 'hour-grid': ['show my day hour by hour', 'toon mijn dag uur voor uur'], reviews: ['is my weekly review due', 'toon mijn weekreview'],
     milestones: ['show my milestones', 'toon mijn mijlpalen'], 'cash-flow': ['show my cash flow', 'toon mijn kasstroom'], accounts: ['show my accounts and debts', 'toon mijn schulden'], 'debt-plan': ['show my debt payoff plan', 'toon mijn aflosplan'],
     'savings-challenges': ['show my savings challenges', 'toon mijn spaaruitdagingen'], 'price-alerts': ['show my price alerts', 'toon mijn prijsalerts'], 'health-trends': ['show my health trends', 'toon mijn gezondheidstrends'],
+    // Session AV (A42-4, deliberate): the six kinds only the gallery made before have families now, so samples too.
+    'sleep-stages': ['show my sleep stages', 'toon mijn slaapfasen'], 'sleep-times': ['what time did I go to bed', 'hoe laat ging ik naar bed'], 'fasting-windows': ['show my fasting windows', 'toon mijn vastvensters'],
+    'mood-map': ['show my mood map', 'toon mijn stemmingskaart'], 'debt-ranks': ['rank my debts', 'rangschik mijn schulden'], 'body-scan': ['show my body measurements', 'toon mijn lichaamsmaten'],
     'food-days': ['on how many days did I log food', 'op hoeveel dagen heb ik eten gelogd'], fasting: ['show my fasting', 'toon mijn vasten'], meditation: ['show my meditation', 'toon mijn meditatie'], supplements: ['show my supplements', 'toon mijn supplementen'], cycle: ['show my cycle log', 'toon mijn cyclus'],
   };
   const phrases = FAMILIES.flatMap(f => (SAMPLES[f.id] ?? []).map(text => ({id: f.id, text})));

@@ -6,7 +6,7 @@ import {exportHealthCsv} from '../health-daily';
 import {homeRecordsIn} from '../sync-homes-store';
 import {SYNC_WRITES} from '../vault/sync-writes';
 import {LOCAL_SIMULATION_DAMAGED} from '../vault/local-simulation-backup';
-import {CSV_FILES, EVERYTHING_KEYS, buildEverythingZip, collectEverything, csvCell, readEverything} from './everything';
+import {CSV_FILES, EVERYTHING_KEYS, buildEverythingZip, collectEverything, csvCell, readEverything, unitsToDecimal} from './everything';
 import {readStoredZip} from './zip-reader';
 import {deleteHabitForGood} from '../habit-delete-write';
 import {scheduleHabitState} from '../habit-actions';
@@ -25,7 +25,7 @@ describe('T4 export everything', () => {
     expect(Object.keys(collected.csv)).toEqual([...CSV_FILES]);
     for (const name of CSV_FILES) expect(lines(collected.csv[name]).length, name).toBe(1);
     expect(collected.warnings).toEqual([]);
-    expect(lines(collected.csv['goals.csv'])[0]).toBe('"source","id","name","type","status","asset","decimals","target","target_date","category","created_at_utc","plan_amount","plan_asset","plan_cadence","plan_next_date","plan_active","notes"');
+    expect(lines(collected.csv['goals.csv'])[0]).toBe('"source","id","name","type","status","asset","decimals","target","target_date","category","created_at_utc","plan_amount","plan_asset","plan_cadence","plan_next_date","plan_active","notes","target_amount"'); // Session AU (L-5, deliberate): one column added at the end, the amount as a plain decimal
   });
   test('the Showcase records export faithfully, with the H7 markers on their check-ins', () => {
     const {records} = buildShowcase('2026-09-20');
@@ -86,7 +86,9 @@ describe('T4 export everything', () => {
     expect(new TextDecoder().decode(entries[5]!.data)).toBe(collected.csv['check-ins.csv']);
     const readme = new TextDecoder().decode(entries[1]!.data);
     expect(readme).toMatch(/check-ins\.csv: \d+ rows/);
-    expect(readme).toContain('moods.csv: no rows, nothing recorded yet');
+    // Session AU (D8, deliberate): the Showcase now keeps twelve example moods, so a header-only file is vitals.csv.
+    expect(readme).toContain('vitals.csv: no rows, nothing recorded yet');
+    expect(readme).toContain('moods.csv: 12 rows');
   });
   test('readEverything reads every key as stored and writes nothing', async () => {
     const {records} = buildShowcase('2026-09-20');
@@ -186,4 +188,16 @@ describe('BN-020: wealth-positions.csv reads as Wealth shows it', () => {
       expect(shown, row).toBe(expected);
     }
   });
+});
+
+// Session AU (ADR-044 L-5): base units read as a plain decimal in the export's last column.
+test('unitsToDecimal: base units and decimals as the amount a person reads', () => {
+  expect(unitsToDecimal('300000', 2)).toBe('3000.00');
+  expect(unitsToDecimal('5', 2)).toBe('0.05');
+  expect(unitsToDecimal('-1250', 2)).toBe('-12.50');
+  expect(unitsToDecimal('1000000', 6)).toBe('1.000000');
+  expect(unitsToDecimal('12', 0)).toBe('12');
+  expect(unitsToDecimal('', 2)).toBe('');
+  expect(unitsToDecimal('1.5', 2)).toBe('');
+  expect(unitsToDecimal('100', undefined)).toBe('');
 });

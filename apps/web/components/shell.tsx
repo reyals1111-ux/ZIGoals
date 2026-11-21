@@ -47,7 +47,6 @@ import { NovaEntry } from "./nova/nova-entry";
 import { LogoIntro } from "./logo-intro";
 import { PageMark } from "./page-mark";
 import { PageArrival } from "./page-arrival";
-import { LiquidGlass } from "./liquid-glass";
 // The slot ids alone (components/layout-slots.ts): the layout code itself loads with the pages that can be rearranged.
 // Its stylesheet stays here, in the same place in the order: it also lays out the status row on every page.
 import { LAYOUT_LOCK_SLOT, PAGE_TOOLS_SLOT } from "./layout-slots";
@@ -60,21 +59,33 @@ import { SearchButton, SearchHost } from "./search/search-trigger";
 // Session AL (LS-H36, Q11): ⌘/Ctrl+K opens the command menu ("Ask ZIGi" first), ⌘/Ctrl+Shift+Z opens ZIGi; the menu loads on first use.
 import { CommandPaletteHost } from "./command-palette/command-palette-host";
 import { ShortcutHost } from "./shortcut-host";
-import { AiLauncher } from "./ai/ai-launcher";
 import { AppsExtrasButton, AppsExtrasSheet } from "./shell/apps-extras"; // Session AL (O3): no floating launchers below 901 px
 import { SidebarApps } from "./shell/sidebar-apps"; // Session AL (O4): the desktop sidebar's foldable Apps group
 import { useCompactShell, usePhoneActive } from "./phone/use-phone-layout";
 import { NavPages } from "./nav-pages"; // Session AK G2 (RELEASE_REVIEW_2 R2-10): Tasks, Notes, Journal and Music as navigation entries
 import { GameRegistrar } from "./game/registrar"; // Session AA-Local, merged second (ADR-022 B52): the game cards and Journey's nav entry, once for every page
 import { LoadBoundary } from "./load-boundary";
-import { AmbientPill } from "./audio/ambient-pill";
-import { MusicLauncher } from "./music/music-launcher";
 import { ChecklistLauncher } from "./checklist/checklist-launcher"; // Session AF (L3): the Checklist button between Music and ZIGi, and its navigation entry
-import { EarnDock } from "./earn-dock/earn-dock"; // Session AF (L1 chunk 2, Part 5): the Earn dock on top of the right-edge stack
 import { PointTellMount } from "./point-tell/mount";
 import { formatPlainDecimal } from "../lib/visual-format";
 import { HealthDocumentLinks } from "./health-document-links";
 import { WalletMoreButton } from "./wallet/wallet-more-button";
+// Session AV Part 5 (ADR-045 D-WEIGHT): ZIGi's launcher and the music player (fixed buttons: nothing moves when they arrive;
+// a tap made before they are there is kept for them, lib/early-events.ts), and the ambient-sound and Earn pills (shown only
+// while something plays or waits) load right after the first paint, as their own chunks. The two buttons are fetched as
+// this module runs (CI 1932, WebKit: requested only at render, ZIGi's arrived some 5 s after a Showcase Today opened), so
+// they come in alongside the page's own parts and not after its hydration; they stay out of every route's first load.
+// A refused fetch is reported once, by the part's own LoadBoundary when it renders (not also as an unhandled rejection).
+const early = typeof window === "undefined" ? null : {ai: import("./ai/ai-launcher"), music: import("./music/music-launcher")};
+if (early) for (const chunk of Object.values(early)) chunk.catch(() => undefined);
+const AiLauncher = lazy(() => (early?.ai ?? import("./ai/ai-launcher")).then(m => ({ default: m.AiLauncher })));
+const MusicLauncher = lazy(() => (early?.music ?? import("./music/music-launcher")).then(m => ({ default: m.MusicLauncher })));
+// The hover-and-press glass (a decoration) is fetched as this module runs, before the page is interactive, and drawn when
+// it is in (no hover can come before it).
+const glassChunk = typeof window === "undefined" ? null : import("./liquid-glass");
+const LiquidGlass = lazy(() => (glassChunk ?? import("./liquid-glass")).then(m => ({ default: m.LiquidGlass })));
+const AmbientPill = lazy(() => import("./audio/ambient-pill").then(m => ({ default: m.AmbientPill })));
+const EarnDock = lazy(() => import("./earn-dock/earn-dock").then(m => ({ default: m.EarnDock })));
 /** Session Z-Cloud Part 4.2: the phone's "Status" sheet, loaded on its first tap. */
 const PhoneStatusSheet = lazy(() => import("./phone/phone-status-sheet"));
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
@@ -324,7 +335,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         <OfflineNotice />
         <SearchHost/><CommandPaletteHost/><ShortcutHost/><UndoToastHost /><ShowcaseUndoOffer /><LengthCounterHost /><GameRegistrar /><NavPages />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass />{/* Session AL third pass (P-LA-29, LA-024/N-LS-05): the floating buttons and their panels sit in one labelled landmark (axe "region": the Checklist button was outside every landmark). `display: contents` (navigation.css): no box, so nothing moves. */}<aside className="app-extras-landmark" aria-label="Companion and extras"><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AppsExtrasSheet /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><EarnDock /></LoadBoundary></aside><LoadBoundary quiet><PointTellMount /></LoadBoundary>
+        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><Suspense fallback={null}><LiquidGlass /></Suspense>{/* Session AL third pass (P-LA-29, LA-024/N-LS-05): the floating buttons and their panels sit in one labelled landmark (axe "region": the Checklist button was outside every landmark). `display: contents` (navigation.css): no box, so nothing moves. */}<aside className="app-extras-landmark" aria-label="Companion and extras"><LoadBoundary quiet><Suspense fallback={null}><AiLauncher /></Suspense></LoadBoundary><LoadBoundary quiet><AppsExtrasSheet /></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><AmbientPill /></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><MusicLauncher /></Suspense></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><EarnDock /></Suspense></LoadBoundary></aside><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>
       {/* Session AB-Design (owner request 2): one full-width footer banner, outside the workspace's 1600 px column. */}
       {/* Phase 2 (weights; no-JavaScript honesty): the footer banner is a server component from the app layout. Session AC:

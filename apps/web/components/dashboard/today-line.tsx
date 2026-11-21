@@ -7,7 +7,7 @@ import {weekWealthChange} from '../../lib/wealth-week';
 import {splitWealthTotals} from '../../lib/wealth-total';
 import {formatGoalAmount} from '../../lib/goal-summary';
 import {amount} from '../platform/common';
-import type {HabitData} from '../../lib/habits';
+import {habitCalendarDay, type HabitData} from '../../lib/habits';
 import type {HealthData} from '../../lib/health';
 import type {Platform} from '../../lib/positions';
 import type {MarketQuote} from '../../lib/market-quotes';
@@ -20,7 +20,10 @@ import type {MarketQuote} from '../../lib/market-quotes';
  */
 export function TodayLine({habits, health, platform, quotes, now, today, healthDate, showHabits, showHealth, financial}: {habits?: HabitData; health?: HealthData; platform?: Platform; quotes: readonly MarketQuote[]; now: number; today: string; healthDate: string; showHabits: boolean; showHealth: boolean; financial: boolean}) {
   const parts: string[] = [];
-  if (showHabits && habits) { const {due, done} = habitsOnDay(habits.habits, today, today); if (due) parts.push(`${done} of ${due} habits`); }
+  // Session AU (ADR-044 F-4, the rehearsal's Max): habits count on the Habits journal's own day, which follows "My day ends
+  // at" (lib/habits.ts habitCalendarDay), as Habits and the Checklist do: at 01:30 with the day ending at 03:00 this line said
+  // "0 of 4 habits" beside the Checklist's "3 of 4". At midnight, the default, it is the calendar day as before.
+  if (showHabits && habits) { const day = habitCalendarDay(habits, new Date(now)), {due, done} = habitsOnDay(habits.habits, day, day); if (due) parts.push(`${done} of ${due} habits`); }
   if (showHealth && health) { try { const ml = waterSummary(health, healthDate).millilitres; if (ml > 0) parts.push(`${waterText(ml, dailyData(health).preferences.waterUnit)} water`); /* Session AL (P-NB-71; N-NB-06): the unit the water card and Health show, not "0.3 L" beside "250 mL" */ } catch { /* an unreadable day leaves the part out */ } }
   if (financial && platform) {
     const overview = wealthOverview(platform, now, quotes), primary = splitWealthTotals(overview.subtotals).primary;

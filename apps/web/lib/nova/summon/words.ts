@@ -3,7 +3,7 @@ import {HUD_PRESET_LABEL} from '../layout';
 import {RANGE_WORDS, type MakeRequest, type WidgetRange} from '../stage/record';
 import {widgetSpec} from '../widgets/catalog';
 import {CONNECT_NL_TITLES} from './connect-families';
-import {MORE_NL_TITLES} from './more-families';
+import {AV_NL_TITLES, MORE_NL_TITLES} from './more-families';
 import type {StageCommand, SummonLang} from './summon';
 
 /**
@@ -20,6 +20,7 @@ const NL_TITLES: Readonly<Record<string, string>> = {
   briefs: 'Briefings', next: 'De volgende drie', sun: 'Zon', weather: 'Weer', time: 'Tijd', 'nova-sees': 'Wat NOVA kan zien', 'nova-brain': 'NOVA’s brein', requests: 'Je vragen', 'now-playing': 'Speelt nu', glance: 'Je dag',
   ...CONNECT_NL_TITLES, // Session AM-2 (step 3): the widgets of what Sessions AO and AP added
   ...MORE_NL_TITLES, // round 2: the pages that still had no widget
+  ...AV_NL_TITLES, // Session AV (A42-4)
 };
 const NL_RANGE: Readonly<Record<WidgetRange, string>> = {week: 'de afgelopen 7 dagen', month: 'de afgelopen 30 dagen', quarter: 'de afgelopen 90 dagen', year: 'de afgelopen 12 maanden'};
 export const widgetTitle = (id: string, lang: SummonLang = 'en'): string => (lang === 'nl' ? NL_TITLES[id] : undefined) ?? widgetSpec(id)?.title ?? 'The widget';

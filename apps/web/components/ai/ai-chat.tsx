@@ -87,7 +87,6 @@ import {guardMessage} from '../../lib/ai/safety-guard';
 import {keepsAsAsk} from './ask-record';
 import {quickAddUnder, quickAddOffered} from '../../lib/ai/actions/decline';
 import {readDraft, writeDraft} from '../../lib/ai/composer-draft';
-import {PremiumBadge} from '../plans/premium-badge';
 import {copyText, nextFrame} from '../../lib/ai/chat-window';
 import {useMiniWindow} from './use-mini-window';
 import './pip.css';
@@ -97,6 +96,8 @@ import {SuggestionsChip, SuggestionsSheet} from './suggestions-sheet';
 import {recordAsk, ZIGI_SUGGESTIONS} from '../../lib/zigi-suggestions';
 import {readDeviceRecord, updateDeviceRecord} from '../../lib/device-record';
 import {getAppStorage} from '../../lib/showcase-storage';
+import {readPrivacyMode} from '../../lib/nova/setup';
+import {sendDecision} from '../../lib/ai/privacy-mode';
 import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import './panel-z.css';
 import {useTalk} from './use-talk';
@@ -125,6 +126,8 @@ const ZigiCustomize = lazy(() => import('./zigi-customize'));
 /** Session V Part 15: "Which setup fits me?", loaded when the person opens it. */
 const SetupChooser = lazy(() => import('./setup-chooser'));
 /** Session Z-Cloud Part 3: with no AI connected, words that Quick add understands ("drank 2 glasses of water") become its preview card. */
+// Session AV (owner follow-up 3, PK-18, TIER 3 AI tools): what a cloud model would get, before it goes (NOVA's own preview).
+const SendPreview = lazy(() => import('../nova/setup/about-to-send').then(m => ({default: m.AboutToSend})));
 const QuickAddLine = lazy(() => import('../quick-add-line').then(m => ({default: m.QuickAddLine})));
 const SETTINGS_HREF = '/app/settings#your-ai';
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
@@ -308,7 +311,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       status={(() => { const text = hosted ? (hosted.provider === 'Anthropic' ? `via ZIGoals AI · ${modelLabel(hosted.model)}` : `${hosted.provider} · ${hosted.model} via ZIGoals hosted`) : connected ? `via ${providerName} · ${modelLabel(data.model ?? "")}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'answers on this device';
         const full = hosted ? (hosted.provider === 'Anthropic' ? `${CLAUDE_HOSTED_NAME} · ${hosted.model}` : text) : connected ? `via ${providerName} · ${data.model}` : text;
         return connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} status={text} full={full}/> : <span className="ai-chat-via-text" title={full}>{text}</span>; })()}
-      premium={hosted ? entitlement('hosted').label.replace(/ · free during (the )?Alpha$/i, '') : <PremiumBadge className="ai-chat-premium-badge" short/>}
+      premium={hosted ? entitlement('hosted').label.replace(/ · free during (the )?Alpha$/i, '') : ''}
       onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => { keepReadingPlace(); setExpanded(e => !e); }} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
       more={[
         {key: 'history', label: 'History', name: 'Chat history', pressed: view === 'history', onSelect: () => setView(v => v === 'history' ? 'chat' : 'history')},
@@ -345,12 +348,12 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         {session.status === 'streaming' && session.looking.length > 0 && <p className="ai-note ai-looking" aria-hidden="true">ZIGi looked at {session.looking.join(', ')}</p>}
         {session.status === 'streaming' && <article className="ai-turn ai-turn-assistant ai-turn-live" aria-hidden="true"><ZigiAvatar state="speaking" size={28} decorative/><div className="ai-turn-body"><SafeText text={shownDraft}/></div></article>}
         {session.confirmation && <div className="ai-confirm" role="group" aria-label="This page's data is larger than your budget">
-          <p>This page’s data is about {session.confirmation.fit.estimated.context.toLocaleString('en-US')} tokens; with the conversation that is {session.confirmation.fit.estimated.total.toLocaleString('en-US')}, above your budget of {session.confirmation.budget.toLocaleString('en-US')} (Settings → ZIGi · Your Personal AI Companion → Context budget).</p>
+          <p>This page’s data is about {session.confirmation.fit.estimated.context.toLocaleString('en-US')} tokens; with the conversation that is {session.confirmation.fit.estimated.total.toLocaleString('en-US')}, above your budget of {session.confirmation.budget.toLocaleString('en-US')} (Settings → ZIGi · your companion → Context budget).</p>
           {/* Round 10 (ADR-017 S78): "without page data" drops the records chosen for the question too (they travel as `extra`), not only the page's own; a photo stays, it is the person's own attachment. */}
           <div className="ai-card-actions"><button type="button" className="primary" onClick={() => void session.send(session.confirmation!.text, {...session.confirmation!.options, confirmed: true, spendConfirmed: true})}>Send anyway</button><button type="button" className="secondary" onClick={() => void session.send(session.confirmation!.text, {...session.confirmation!.options, confirmed: true, withContext: false, extra: undefined, spendConfirmed: true})}>Send without page data</button><button type="button" className="text-link" onClick={session.cancelConfirmation}>Cancel</button></div>
         </div>}
         {session.spendCheck && <div className="ai-confirm" role="group" aria-label={session.spendCheck.daily ? 'Your daily cap is reached' : 'Your monthly cap is reached'}>
-          <p>{session.spendCheck.note} {session.spendCheck.daily ? 'You asked to be asked first once your daily cap is reached (NOVA → Cost).' : 'You asked ZIGi to check with you first (Settings → ZIGi · Your Personal AI Companion → Usage).'}</p>
+          <p>{session.spendCheck.note} {session.spendCheck.daily ? 'You asked to be asked first once your daily cap is reached (NOVA → Cost).' : 'You asked ZIGi to check with you first (Settings → ZIGi · your companion → Usage).'}</p>
           <div className="ai-card-actions"><button type="button" className="primary" onClick={session.confirmSpend}>Send anyway</button><button type="button" className="text-link" onClick={session.cancelSpend}>Not now</button></div>
         </div>}
         {session.usageNote && <p className="ai-note ai-usage-note" role="status">{session.usageNote}</p>}
@@ -365,7 +368,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         day={sensitive ? <p className="ai-note">Paused on this private screen: nothing is read from the page.</p> : <><BriefBlock context={context} connected={connected} session={session}/><ProactiveEntries onView={v => { setSheet(false); setView(v); }}/></>}/>}
       {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))} modeLine={dataLine}/>}
       {/* One composer for both modes, so a starting sentence ("Ask ZIGi about this") survives the settings loading. */}
-      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} onAbout={onAbout} photo={photo} providerName={providerName} onCommand={onCommand} editing={editing} onEditing={setEditing} onAsked={asked}
+      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} onAbout={onAbout} photo={photo} providerName={providerName} onCommand={onCommand} editing={editing} onEditing={setEditing} hosted={!!hosted} onAsked={asked}
         onSpoken={() => { spokenAsked.current = true; setSpokenDutch(resolveVoiceLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language).startsWith('nl')); }}
         chips={<><SuggestionsChip open={sheet} controls={sheetId} onToggle={() => setSheet(o => !o)}/>{reader.supported && (vprefs.readSpoken || data.voice.readAloud) && <button type="button" className="ai-chip ai-mute" aria-pressed={vprefs.muted} aria-label="Mute ZIGi’s voice" title={vprefs.muted ? 'Muted: ZIGi reads nothing aloud until you press again' : 'Mute: ZIGi reads nothing aloud'} onClick={toggleMute}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/>{vprefs.muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/> : <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>}</svg><span className="ai-chip-label">Mute</span></button>}</>}
         placeholder="Ask ZIGi…" title={!connected ? 'Ask about your records: answered here, no AI' : `Ask about ${AREA_LABELS[area]}, or say what to log`}/>}
@@ -438,6 +441,12 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   const parsed = session.parsed.get(turn.id), shown = parsed?.text ?? turn.text;
   const info = session.localFor(turn.id), calls = useMemo(() => (turn.tools ?? []).map(c => ({tool: c.tool, args: c.args ?? {}, label: c.label})), [turn.tools]), question = info?.question ?? asked;
   const reply = info?.reply;
+  // Session AV (CI 1997, au/sanne:64): an answer that names ZIGi's Health switches gets the one precise button to them
+  // (RR-13, below); the same reply's card to Settings → ZIGi (D-ALLOW-HEALTH) would be a second button to the same place,
+  // so it is left out there. Since the title became "ZIGi · your companion" that card's button reads its title, not
+  // "Open the form", which showed the two side by side.
+  const switchNamed = HEALTH_SWITCH_NAMED.test(shown);
+  const proposals = useMemo(() => (parsed?.proposals ?? []).filter(a => !(switchNamed && a.kind === 'open-page' && a.page === 'settings' && a.view === 'zigi')), [parsed, switchNamed]);
   const chips = isLast && reply ? reply.kind === 'choices' ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'refusal' && reply.choices ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'examples' ? reply.examples.map(e => ({label: e, run: () => void session.ask(e)})) : [] : [];
@@ -457,15 +466,15 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   return <article ref={turnBox} className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
-      <TurnKind cards={!!parsed && parsed.proposals.length > 0}/>
+      <TurnKind cards={proposals.length > 0}/>
       {!quiet && <SafeText className="ai-local-answer" text={shown}/>}
-      {parsed && parsed.proposals.length > 0 && <ProposalList onDevice proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
+      {proposals.length > 0 && <ProposalList onDevice proposals={proposals} rejected={parsed?.rejected ?? []} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed?.bundle}/>}
       <DataViz results={info?.results}/>
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
       {chips.length > 0 && !quiet && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
       {/* Release review AL (RR-13): an answer that names ZIGi's Health switches gets one tap to them, as NOVA's names its Permissions. */}
-      {HEALTH_SWITCH_NAMED.test(shown) && <p className="ai-card-actions ai-turn-switch"><button type="button" className="secondary" onClick={() => openHealthSwitches(onNavigate, router.push)}>Open Settings → ZIGi → Privacy &amp; data</button></p>}
+      {switchNamed && <p className="ai-card-actions ai-turn-switch"><button type="button" className="secondary" onClick={() => openHealthSwitches(onNavigate, router.push)}>Open Settings → ZIGi → Privacy &amp; data</button></p>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
       {!connected && isLast && question && quickAdd && quickAddOffered(question, {guarded: !!guardMessage(question), careful: !!detectRisk(question)}) && quickAddUnder(reply) && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood onUnderstood={ok => setCardShown(ok)} onSaved={saved => { try { noteQuickAdd(saved, 'ZIGi'); } catch { /* the line is saved; only the note is missing */ } }}/></Suspense></ZigiPartBoundary>{cardShown && !context.gates.localHealth && HEALTH_LINE.test(question) && <p className="ai-note">{healthOffQuickAdd('ZIGi')}</p>}</div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
@@ -640,12 +649,12 @@ export type ComposerExtra = {images?: readonly ChatImage[]; log?: boolean; direc
 type Editing = {id: string; text: string; seq: number};
 // Session AL fourth pass (L7-4b; Lisbon #280–289d, LA-032): a line Quick add saves to Health; the words and the note now live
 // in quick-add-note.ts, shared with NOVA's chat (fifth pass).
-const NEEDS_AI = 'This command needs your own AI connected (Settings → ZIGi · Your Personal AI Companion). Here, ZIGi answers questions about your records on this device, with no AI.';
+const NEEDS_AI = 'This command needs your own AI connected (Settings → ZIGi · your companion). Here, ZIGi answers questions about your records on this device, with no AI.';
 /** /remember: the person's words as a "Remember this?" card, in the same action block an AI reply would use (Session V Part 10). */
 // Session AL fourth pass (L7-4b; N-MO-04): the note's category is read from its words (lib/ai/local-answers/al-fourth.ts).
 const rememberReply = (rest: string): string => rememberCardText(rest, 'ZIGi');
 const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; title?: string; local: boolean; chips?: ReactNode; onAsked?: (text: string) => void; onSpoken?: () => void; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; onAbout?: (about: AskAbout | undefined) => void; photo?: PhotoAllowance; providerName?: string;
-  onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onSpoken, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
+  onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void; hosted?: boolean}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onSpoken, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing, hosted = false}, ref) {
   // Session AL (L7; D7): the words typed so far live in this page's memory too, so a remount (on-device → connected) keeps them.
   const [text, setText] = useState(() => readDraft(scope)), [disclosed, setDisclosed] = useState(false), listId = useId(), logNoteId = useId();
   // Session AL final pass (DV:Z-032): why Send is off, next to it (aria-describedby); said out loud after an empty Enter.
@@ -768,6 +777,16 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {(() => { const c = inputCounter(text.length); return c && <p className="ai-note ai-length" role={c.atLimit ? 'status' : undefined} aria-live={c.atLimit ? 'polite' : undefined}>{c.text}</p>; })()}
     {/* Session AK (BUILD list 2 #1): a calm line while the words look like recovery words or a key (never sent). */}
     <SecretGuard text={text} onRemove={() => setText('')} chat/>
+    {/* PK-18: with a cloud model, the words as they would leave (redacted in Guarded, and while no mode is chosen), shown
+        before Send; nothing shows when they go unchanged. The engine's hook (lib/ai/privacy-mode.ts) applies the same rule. */}
+    {!local && text.trim() && (hosted || settings.provider) && (() => {
+      let chosen: ReturnType<typeof readPrivacyMode>; try { chosen = readPrivacyMode(getAppStorage()); } catch { chosen = 'strict'; }
+      const redacted = chosen === null && sendDecision(chosen, {provider: settings.provider, hosted, model: settings.model}) === 'redact';
+      return <div className="ai-send-preview">
+        {redacted && <p className="ai-note ai-no-mode" role="note">No privacy mode is chosen yet, so ZIGi sends as Guarded: names, addresses, account numbers and exact amounts are taken out or rounded first, and no photo goes. Choose a mode in NOVA → Build NOVA’s brain → Privacy.</p>}
+        <Suspense fallback={null}><SendPreview message={text} mode={chosen} provider={settings.provider} model={settings.model} baseUrl={settings.baseUrl} hosted={hosted} assistant="ZIGi" hideWhenSent/></Suspense>
+      </div>;
+    })()}
     <div className="ai-composer">
       <textarea ref={ref} value={text} onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (e.target.value.trim()) setEmptyTry(false); }} title={title} onFocus={() => { holdGaze(gazeId, 'composer'); if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => { holdGaze(gazeId, null); zigiSignals.emit('user_typing_stopped'); }} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}

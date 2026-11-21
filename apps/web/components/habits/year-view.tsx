@@ -4,6 +4,9 @@ import {NebulaFlow} from '../nebula-flow';
 import {habitYear, monthStarts, overviewYear, yearWeeks} from '../../lib/habits-extras/year';
 import {habitRuleOn, type Habit} from '../../lib/habits';
 import {formatDate} from '../../lib/visual-format';
+import {lookOf} from '../../lib/habit-look';
+import {useHabitExtrasContext} from './habit-extras-context';
+import {HabitLookMark} from './habit-look-mark';
 
 const level = (status: string) => status === 'complete' ? 'full' : status === 'partial' ? 'part' : status === 'skipped' || status === 'planned-skip' ? 'skip' : status === 'failed' ? 'miss' : status === 'outside' ? 'out' : 'none';
 const shareLevel = (share: number | null) => share === null ? 'none' : share >= 1 ? 'full' : share >= 0.5 ? 'part' : share > 0 ? 'low' : 'miss';
@@ -19,6 +22,8 @@ export function YearView({habits, today}: {habits: readonly Habit[]; today: stri
   const habit = pick === 'all' ? null : active.find(h => h.id === pick) ?? null;
   const data = habit ? habitYear(habit, year, today) : null, overview = habit ? null : overviewYear(active, year, today);
   const summary = data?.summary ?? overview!.summary;
+  // Session AV (q4 #26): the picked habit's symbol beside its summary, and its colour on the days it was done.
+  const extras = useHabitExtrasContext(), looks = extras?.loaded && !extras.unreadable ? extras.data : null, look = habit ? lookOf(looks, habit.id) : null;
   // Gate C (design critique): where the grid scrolls (phones), this year opens on its recent weeks, today near the right
   // edge, not on empty January; other years open at their start.
   const scroller = useRef<HTMLDivElement>(null);
@@ -31,8 +36,8 @@ export function YearView({habits, today}: {habits: readonly Habit[]; today: stri
   }, [year, thisYear, today, pick]);
   return <section className="panel habit-year" aria-labelledby="habit-year-title">
     <div className="habit-section-heading habit-year-head"><div><p className="eyebrow">The long view</p><h2 id="habit-year-title"><NebulaFlow identity="habit-year-title">Year view</NebulaFlow></h2></div><div className="habit-year-controls"><label className="field habit-year-pick"><span className="visually-hidden">Habit</span><select value={pick} onChange={e => setPick(e.target.value)}><option value="all">All habits</option>{active.map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</select></label><div className="habit-year-nav"><button type="button" className="quiet" aria-label="Previous year" disabled={year <= earliest} onClick={() => setYear(y => y - 1)}>←</button><strong>{year}</strong><button type="button" className="quiet" aria-label="Next year" disabled={year >= thisYear} onClick={() => setYear(y => y + 1)}>→</button></div></div></div>
-    <p className="habit-year-summary" role="status">{summary}</p>
-    {/* Session AK P6 (axe scrollable-region-focusable, 2.1.1): it scrolls sideways on a phone, so the keyboard can reach and scroll it. */}<div className="habit-year-scroll" ref={scroller} role="region" aria-label="Year view, scrolls sideways" tabIndex={0}><div className="habit-year-grid" role="img" aria-label={summary} style={{'--weeks': weeks.length} as React.CSSProperties}>
+    <p className="habit-year-summary" role="status">{habit && <HabitLookMark extras={looks} habitId={habit.id}/>}{summary}</p>
+    {/* Session AK P6 (axe scrollable-region-focusable, 2.1.1): it scrolls sideways on a phone, so the keyboard can reach and scroll it. */}<div className="habit-year-scroll" ref={scroller} role="region" aria-label="Year view, scrolls sideways" tabIndex={0}><div className="habit-year-grid" role="img" aria-label={summary} data-look-colour={look?.colour} style={{'--weeks': weeks.length} as React.CSSProperties}>
       <div className="habit-year-months" aria-hidden="true">{months.map(m => <span key={m.label} style={{gridColumnStart: m.week + 1}}>{m.label}</span>)}</div>
       <div className="habit-year-cells" aria-hidden="true">{(data?.weeks ?? overview!.weeks).map((week, w) => week.map((cell, d) => { const isData = 'status' in cell; const lvl = isData ? level(cell.status) : (cell.inYear && cell.date <= today ? shareLevel(cell.share) : 'out'); const title = isData ? `${formatDate(cell.date)}: ${cell.status === 'outside' ? '' : cell.status}` : cell.due ? `${formatDate(cell.date)}: ${cell.done} of ${cell.due}` : formatDate(cell.date); return <i key={`${w}-${d}`} data-level={lvl} title={title.trim()} style={{gridColumn: w + 1, gridRow: d + 1}} />; }))}</div>
     </div></div>

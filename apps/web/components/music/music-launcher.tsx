@@ -12,6 +12,7 @@ import {useCompactShell, usePhoneActive} from '../phone/use-phone-layout';
 import {MUSIC_OPEN_EVENT, SOUNDSCAPE_EVENT, SOUNDSCAPE_RESULT_EVENT} from './music-events';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import './music-launcher.css';
+import {takeEarlyEvent} from '../../lib/early-events';
 
 /**
  * The music player's button (Session W Part 20): a round button at the bottom, on the side opposite ZIGi's, only while
@@ -54,10 +55,12 @@ export function MusicLauncher() {
       void import('../../lib/audio/soundscape').then(m => m.playSoundscapePreset(preset as never)).then(answer, () => answer(false));
     };
     window.addEventListener(SOUNDSCAPE_EVENT, onStart);
+    // Session AV (D-WEIGHT): a soundscape asked for before this chunk arrived.
+    const early = takeEarlyEvent(SOUNDSCAPE_EVENT); if (early) onStart(early);
     return () => window.removeEventListener(SOUNDSCAPE_EVENT, onStart);
   }, []);
   const show = useCallback(() => { setLoaded(true); setOpen(true); }, []);
-  useEffect(() => { const onOpen = () => { if (shown) show(); }; window.addEventListener(MUSIC_OPEN_EVENT, onOpen); return () => window.removeEventListener(MUSIC_OPEN_EVENT, onOpen); }, [shown, show]);
+  useEffect(() => { const onOpen = () => { if (shown) show(); }; window.addEventListener(MUSIC_OPEN_EVENT, onOpen); if (shown && takeEarlyEvent(MUSIC_OPEN_EVENT)) show(); return () => window.removeEventListener(MUSIC_OPEN_EVENT, onOpen); }, [shown, show]);
   useEffect(() => { if (!shown && open) queueMicrotask(() => setOpen(false)); }, [shown, open]);
   // On a phone the player opens from ZIGi's "⋯" menu or the More sheet (Session Z-Cloud Part 4.12), whose items are gone
   // once it shows, so focus returns to ZIGi's launcher there, or to More when ZIGi's button is not shown.

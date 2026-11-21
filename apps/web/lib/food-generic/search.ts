@@ -1,6 +1,7 @@
 import type {Nutrition} from '../health';
 import type {Vitamins} from '../health-vitamins/schema';
 import type {GenericSourceEntry} from './catalog';
+import {notEatenAsFood, usualPortionGrams} from './portion';
 import {GENERIC_COLUMNS, loadGenericLibrary, type GenericNutrientColumn, type GenericSourceFile, type LoadedGenericSource, type SourceLoaderOptions} from './load';
 
 /**
@@ -84,4 +85,39 @@ export function searchGenericFoods(query: string, sources: LoadedGenericSource[]
 export async function searchGenericLibrary(query: string, options: SourceLoaderOptions & {limit?: number} = {}) {
   const {sources, failed} = await loadGenericLibrary(options);
   return {results: searchGenericFoods(query, sources, options.limit), failed};
+}
+
+/**
+ * Session AV (owner follow-up 1, F-HIGH-IN; Cronometer's Oracle): the offline library's foods richest in one of the
+ * seven extra nutrients, per 100 g as eaten, each named once (the higher value when two sources name it), and
+ * only foods that carry a value for it (unknown is not zero). Pure over the loaded sources.
+ */
+export type HighInKey = 'fiberMg' | 'sugarMg' | 'saturatedFatMg' | 'sodiumMg' | 'potassiumMg' | 'calciumMg' | 'ironMg';
+export function highInGeneric(sources: readonly LoadedGenericSource[], key: HighInKey, limit = 8): {name: string; sourceName: string; per100g: number}[] {
+  const best = new Map<string, {name: string; sourceName: string; per100g: number}>();
+  for (const {entry, file} of sources) for (const row of file.foods) {
+    const value = entryOf(file, entry, row).nutrients[key];
+    if (value === undefined || value <= 0) continue;
+    const k = normaliseFoodText(row[1]), had = best.get(k);
+    if (!had || had.per100g < value) best.set(k, {name: row[1], sourceName: entry.name, per100g: value});
+  }
+  return [...best.values()].sort((a, b) => b.per100g - a.per100g || a.name.localeCompare(b.name)).slice(0, limit);
+}
+
+/**
+ * Session AV (q3 #28; Cronometer's Oracle): the library's foods richest in a nutrient as people eat them — dried herbs,
+ * spices, seaweed, powders and other things not eaten as a food left out (./portion), ranked by what a usual portion
+ * gives (30 g of almonds, 250 g of milk, 120 g of meat), with the per-100 g value beside it. Pure over the loaded sources.
+ */
+export type HighInFood = {name: string; sourceName: string; per100g: number; portionGrams: number; perPortion: number};
+export function highInEaten(sources: readonly LoadedGenericSource[], key: HighInKey, limit = 8): HighInFood[] {
+  const best = new Map<string, HighInFood>();
+  for (const {entry, file} of sources) for (const row of file.foods) {
+    if (notEatenAsFood(row[1])) continue;
+    const value = entryOf(file, entry, row).nutrients[key];
+    if (value === undefined || value <= 0) continue;
+    const k = normaliseFoodText(row[1]), had = best.get(k), portionGrams = usualPortionGrams(row[1]);
+    if (!had || had.per100g < value) best.set(k, {name: row[1], sourceName: entry.name, per100g: value, portionGrams, perPortion: Math.round(value * portionGrams / 100)});
+  }
+  return [...best.values()].sort((a, b) => b.perPortion - a.perPortion || b.per100g - a.per100g || a.name.localeCompare(b.name)).slice(0, limit);
 }

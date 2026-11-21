@@ -71,7 +71,9 @@ export const withData = <T extends {key: string; total?: number | null; average?
 export type TopSource = {id: string; kind: 'food' | 'recipe'; name: string; amount: number; share: number; entries: number; days: string[]};
 export type TopSources = {key: string; days: number; total: number; known: number; entries: number; sources: TopSource[]};
 /** The foods that gave the most of one nutrient over the `days` ending on `end` (by source; the newest name shown). */
-export function topSources(ctx: ReportContext, key: string, end: string, days: 7 | 30 | 90 = 7, limit = 5): TopSources {
+/** Session AV (q3 #47): `days` is any span up to a year, so Sources can read the report's own chosen range. */
+export function topSources(ctx: ReportContext, key: string, end: string, days: number = 7, limit = 5): TopSources {
+  days = Math.max(1, Math.min(366, Math.round(days)));
   const first = addLocalDays(end, -(days - 1));
   const groups = new Map<string, TopSource & {last: string}>();
   let total = 0, known = 0, entries = 0;

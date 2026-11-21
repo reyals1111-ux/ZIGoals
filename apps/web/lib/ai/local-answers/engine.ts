@@ -17,7 +17,7 @@ import {aiLocalAnswer, isEnergyRatingAsk} from './ai-session';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
 import {g1LocalAnswer} from './g1';
-import {novaEnvInfo, novaWording} from './nova-env';
+import {novaEnvInfo, novaWording, zigiHealthClosed} from './nova-env';
 import {novaOverviewAnswer} from './nova-overview';
 import {questionLanguage} from './no-model';
 import {isStreakBreak, streakBreakWords} from './p14b';
@@ -27,6 +27,9 @@ import {unitFor} from '../../plural';
 import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 import {healthGoalAsk} from './al-final';
+import {rehearsalAnswer} from './au-answers';
+import {avAnswer} from './av-answers';
+import {neverTwice} from '../../habit-two-day';
 import {answerQuery, exactQuery, fixedWords, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
 import type {Query} from './exact';
 
@@ -116,6 +119,13 @@ const W_HEALTH = {
   devices: /\b(my devices|which devices|connected devices|linked (?:services|accounts|devices)|devices and imports|where (?:do|did) my (?:health )?records come from)\b/,
 };
 const HOLD = /\b(hold|holding|holdings|own|owned|have|got|total)\b/;
+/**
+ * Session AU (D-NL-COINS, ADR-043 D4): a coin held, asked in Dutch ("hoeveel BTC heb ik", "hoeveel bitcoin bezit ik", "wat is
+ * mijn ETH"): a Dutch question word first, a word of having (heb, bezit, mijn), and none of the words of a goal, a
+ * contribution, staking or a price (those questions keep their own answers).
+ */
+const NL_HOLD = {ask: /^(?:(?:en|dus|hoi|nova|zigi),? )?(?:hoeveel|wat|welke)\b/, have: /\b(?:heb|hebt|heeft|hebben|bezit|bezitten|in bezit|mijn)\b/,
+  not: /\b(?:doel|doelen|spaardoel|gespaard|sparen|ingelegd|inleg|gestort|storten|bijdrage\w*|bijgedragen|stake\w*|gestaked|gestaakt|staking|beloning\w*|rewards?|prijs|koers|gekocht|verkocht|opbrengst|winst|verlies)\b/};
 const FUTURE = /\b(next (?:week|month|year)|coming (?:week|month|year)|tomorrow|volgende (?:week|maand)|komende (?:week|maand)|morgen|la semaine prochaine|le mois prochain|demain|nächste woche|nächsten monat)\b/;
 const GOAL_PROGRESS = /\b(how far|progress|left|remaining|to go|reach(?:ed)?|percent|how close|how much more|status|funded|saved|how is|how are|doing|going|coming along)\b|%/;
 const CONTRIBUTION = /\b(contribut\w*|deposit\w*|withdr\w*|put (?:in|into|aside)|set aside)\b/;
@@ -193,6 +203,11 @@ const GOVERNANCE_ASK = /\b(?:governance|proposals?|quorum|veto|voting period|dep
 const TWO_QUESTIONS = /\b(?:what|how|which|who|where|when|why|is|are|does|do)\b[^?]{2,}?,?\s+and\s+(?:what|how|which|who|where|when|why)\s+(?:is|are|does|do|did|much|many|long|about)\b/i;
 export function strongMatchOnly(question: string): boolean { return GOVERNANCE_ASK.test(question) || TWO_QUESTIONS.test(question); }
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
+  if (safetyFirst(question)) return NONE; // the guard first, as in deviceAnswer below (the source-order test reads this line)
+  // Session AU (D-ALLOW-HEALTH): ZIGi's Health-closed refusal in the question's language, with its one button (nova-env.ts).
+  return zigiHealthClosed(deviceAnswer(question, env, subject), env, questionLanguage(question) === 'nl' ? 'nl' : 'en');
+}
+function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
   // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.
   if (safetyFirst(question)) return NONE;
@@ -201,6 +216,13 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   // days; a weekday; a log's own day; a named period they did not keep to), in English and Dutch, ZIGi and NOVA alike (A1).
   // Anything else is theirs, word for word; with no model, what they have no answer for comes back to the exact layer
   // (`exactFallback`, from no-model.ts).
+  // Session AU (dress rehearsal R-4, R-7, R-8, R-10): today's date by the person's day end, a coin's price (not the holdings),
+  // what staking would earn and whether it is safe (au-answers.ts): before the exact layer reads them as a records lookup.
+  if (!subject) { const found = rehearsalAnswer(normalizeSpoken(question), env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AV (owner follow-up 2, item 1c; the fresh reviewers' check 5): the AV features' own questions (task reminders,
+  // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
+  // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).
+  if (!subject) { const found = avAnswer(question, env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;
   // A misspelt question the exact layer reads once its slips are fixed is asked of the layers below in the fixed words.
@@ -339,7 +361,7 @@ export function zigiOverview(question: string, env: ToolEnv): LocalReply | null 
   const own = novaOverviewAnswer(question, env, {healthScope: true, healthGate: !!env.health});
   if (!own || !('text' in own)) return own;
   if (own.kind === 'refusal' && /^Health (?:is|staat)/.test(own.text)) return {kind: 'refusal', text: HEALTH_CLOSED, calls: []};
-  const text = own.text.replace(/ is off for NOVA, so it is not read here\. Turn it on in NOVA → Permissions\./g, ' isn’t shared with ZIGi here. Turn it on in Settings → ZIGi · Your Personal AI Companion.')
+  const text = own.text.replace(/ is off for NOVA, so it is not read here\. Turn it on in NOVA → Permissions\./g, ' isn’t shared with ZIGi here. Turn it on in Settings → ZIGi · your companion.')
     .replace(/off for NOVA, so not read \(NOVA → Permissions\)/g, 'not shared with ZIGi here (Settings → ZIGi)').replace(/staan? uit voor NOVA, dus niet gelezen \(NOVA → Permissions\)/g, 'niet gedeeld met ZIGi hier (Settings → ZIGi)').replace(/NOVA → Permissions/g, 'Settings → ZIGi').replace(/\bNOVA\b/g, 'ZIGi');
   return {...own, text: groupUnits(text)};
 }
@@ -372,7 +394,7 @@ const NAV_PAGES: Record<string, {page: string; view?: string; label: string}> = 
   meditation: {page: 'health', view: 'meditation', label: 'Health → Meditation'}, meditatie: {page: 'health', view: 'meditation', label: 'Health → Meditation'}, devices: {page: 'health', view: 'devices', label: 'Health → Devices'}, apparaten: {page: 'health', view: 'devices', label: 'Health → Devices'}, imports: {page: 'health', view: 'imports', label: 'Health → Imports'},
   wealth: {page: 'wealth', label: 'Wealth'}, vermogen: {page: 'wealth', label: 'Wealth'}, portfolio: {page: 'portfolio', label: 'Portfolio'}, portefeuille: {page: 'portfolio', label: 'Portfolio'}, markets: {page: 'markets', label: 'Markets'}, market: {page: 'markets', label: 'Markets'}, markten: {page: 'markets', label: 'Markets'},
   staking: {page: 'staking', label: 'Staking'}, ecosystem: {page: 'ecosystem', label: 'Ecosystem'}, ecosysteem: {page: 'ecosystem', label: 'Ecosystem'}, chess: {page: 'chess', label: 'Chess'}, schaken: {page: 'chess', label: 'Chess'}, schaak: {page: 'chess', label: 'Chess'},
-  activity: {page: 'activity', label: 'Activity'}, activiteit: {page: 'activity', label: 'Activity'}, settings: {page: 'settings', label: 'Settings'}, instellingen: {page: 'settings', label: 'Settings'}, zigi: {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · Your Personal AI Companion'}, 'zigi settings': {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · Your Personal AI Companion'},
+  activity: {page: 'activity', label: 'Activity'}, activiteit: {page: 'activity', label: 'Activity'}, settings: {page: 'settings', label: 'Settings'}, instellingen: {page: 'settings', label: 'Settings'}, zigi: {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · your companion'}, 'zigi settings': {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · your companion'},
   pages: {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, "pagina's": {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, help: {page: 'help', label: 'Help'}, music: {page: 'music', label: 'Music'}, muziek: {page: 'music', label: 'Music'},
   // Session AA-Local Part 5: the Journey page, the Habits and Health views of this session and the Reminders page.
   journey: {page: 'journey', label: 'Journey'}, reis: {page: 'journey', label: 'Journey'}, 'my journey': {page: 'journey', label: 'Journey'}, 'mijn reis': {page: 'journey', label: 'Journey'}, quests: {page: 'journey', label: 'Journey'}, badges: {page: 'journey', label: 'Journey'},
@@ -479,6 +501,11 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // a spending question about food is Wealth's (ai-session.ts), never the diary (Nairobi P26, NB:N-065).
   if (!subject && (/\bmacros?\b/.test(q) || /\bspen[dt]\b|\bspending\b/.test(q))) return NONE;
   if (env.areas.today === false && env.areas.habits === false && env.areas.goals === false && env.areas.wealth === false && !env.health) return {kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []};
+  // Session AU (D-NL-COINS): a coin held, asked in Dutch, is answered in Dutch (the lookups below read English words only).
+  if (!subject && NL_HOLD.ask.test(q) && NL_HOLD.have.test(q) && !NL_HOLD.not.test(q) && questionLanguage(q) === 'nl') {
+    const coin = mentionedAsset(env, q) ?? untrackedCoin(q);
+    if (coin) return holding(env, coin, q, 'nl');
+  }
   // A lookup asks: question words, or a figure's name ending in a question mark ("Minutes of reading this month?").
   const asked = /\?\s*$/.test(q) && (W.minutes.test(q) || W.streak.test(q) || W.average.test(q) || W.rate.test(q) || /\b(steps|water|calories|protein)\b/.test(q) || WEALTH_TOTAL.test(q) || OWE.test(q));
   // Session X-Local Part 6b: "list my accounts" and "show my debts" are lookups said as a request.
@@ -500,7 +527,9 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AL fourth pass (Tokyo TK #7, TK:Z3): "how much ZIG have I staked?" asks about staking, never the holding.
   // Session AL final pass (NB:P6, BUG-056, NB-107): a coin the person tracks nothing of is answered too ("You have no ETH
   // recorded in Wealth", with where to add it), never the examples list and never 0 as if it were a holding.
-  const held = asset ?? (HOLD.test(q) && !mentionedGoals(env, q).length ? untrackedCoin(q) : null);
+  // Session AU (REHEARSAL R-9): "how much BTC do I have" with a goal named "First 0.01 BTC" asks what is held, not the goal:
+  // a goal named in the words gives way unless they also say goal, saved or towards (holding() names the goal after).
+  const held = asset ?? (HOLD.test(q) && (!mentionedGoals(env, q).length || !/\b(?:goals?|saved|saving|towards?|for)\b/.test(q)) ? untrackedCoin(q) : null);
   if (held && HOLD.test(q) && !CONTRIBUTION.test(q) && !/\bstak(?:e|ed|ing)\b|\brewards?\b/.test(q)) return holding(env, held, q);
   // Session W Part 21: accounts and debts, chess, My links, challenges and milestones (each behind its own area's switch),
   // and mindful minutes (Health). A habit the question names keeps its answer: "how often did I play chess" with a habit
@@ -605,7 +634,9 @@ function habitAnswer(env: ToolEnv, habit: Habit, q: string, found: DayRange[]): 
     const st = dataOf(s.result).streak as {current: number; best: number; unit: string};
     // Session AL Part 14 (G15): "my Read streak broke" gets the kind words (p14b.ts), from the same figures.
     if (isStreakBreak(q)) return {kind: 'answer', text: streakBreakWords(title, st), calls: [s.record]};
-    const head = W.streakBest.test(q) ? `Your longest ${title} streak is ${plural(st.best, st.unit.replace(/s$/, ''))}; the current one is ${plural(st.current, st.unit.replace(/s$/, ''))}.` : `Your current ${title} streak is ${plural(st.current, st.unit.replace(/s$/, ''))} (longest: ${plural(st.best, st.unit.replace(/s$/, ''))}).`;
+    const lead = W.streakBest.test(q) ? `Your longest ${title} streak is ${plural(st.best, st.unit.replace(/s$/, ''))}; the current one is ${plural(st.current, st.unit.replace(/s$/, ''))}.` : `Your current ${title} streak is ${plural(st.current, st.unit.replace(/s$/, ''))} (longest: ${plural(st.best, st.unit.replace(/s$/, ''))}).`;
+    // Session AV (1c, q4 #23; Streaks' 2-day rule): the run in which no two days in a row were missed, when it is longer than the streak.
+    const twice = neverTwice(habit, env.habitDay), head = twice > st.current ? `${lead} Never missed twice in a row: ${plural(twice, 'day')}.` : lead;
     // Session AL final pass (Z-021): why a streak can be longer than a month's check-ins beside it ("26 days" next to "3
     // check-ins over 4 days"): it runs across months, and a skipped day keeps it going.
     const since = typeof dataOf(s.result).streak?.since === 'string' ? dataOf(s.result).streak.since as string : null, long = Math.max(st.best, st.current) > 1 && /^days?$/.test(st.unit);
@@ -833,29 +864,38 @@ function untrackedCoin(q: string): string | null {
   for (const [name, symbol] of Object.entries(ASSET_NAMES)) if (new RegExp(`\\b${name}\\b`).test(q)) return symbol;
   return COIN_WORD.exec(q)?.[1]?.toUpperCase() ?? null;
 }
-function holding(env: ToolEnv, asset: string, q = ''): LocalReply {
+/**
+ * A coin or asset held: Wealth's holding and, apart from it, a Real portfolio's coins (a Hypothetical portfolio holds
+ * nothing, so it is never counted). Session AU (D-NL-COINS): in Dutch too, the same facts in the same order.
+ */
+function holding(env: ToolEnv, asset: string, q = '', lang: 'en' | 'nl' = 'en'): LocalReply {
   const r = call(env, 'holdings', {asset}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), rows = d.holdings as {quantity: string; value: string; priceSource: string; valuedAt: string}[];
-  const calls = [r.record];
+  const calls = [r.record], nl = lang === 'nl', say = (en: string, dutch: string) => nl ? dutch : en;
   const extra: string[] = [];
   if (env.portfolio) {
     const p = call(env, 'portfolios', {}); calls.push(p.record);
     // Portfolio is named apart from Wealth; a hypothetical portfolio holds nothing, so it is never counted as holding.
     const portfolios = p.result.ok ? dataOf(p.result).portfolios as {portfolio: string; kind: string; coins?: {coin: string; quantity: string}[]}[] : [];
-    for (const pf of portfolios) { const coin = pf.coins?.find(c => c.coin.toUpperCase() === asset); if (coin && pf.kind === 'Real') extra.push(`Portfolio (separate from Wealth): ${grouped(coin.quantity)} ${asset} in your Real portfolio ${pf.portfolio}`); }
+    for (const pf of portfolios) { const coin = pf.coins?.find(c => c.coin.toUpperCase() === asset); if (coin && pf.kind === 'Real') extra.push(say(`Portfolio (separate from Wealth): ${grouped(coin.quantity)} ${asset} in your Real portfolio ${pf.portfolio}`, `Portfolio (los van Wealth): ${grouped(coin.quantity)} ${asset} in je Real-portfolio ${pf.portfolio}`)); }
     // Session AT (L7 TK:1, TK-048): with portfolios on this device, the Portfolio is named even when no Real one holds the
     // coin (it was left unsaid), and before Wealth's empty answer too, so each source is said with what it holds.
-    if (portfolios.length && !extra.length) extra.push(`Portfolio (separate from Wealth): no ${asset} in a Real portfolio`);
+    if (portfolios.length && !extra.length) extra.push(say(`Portfolio (separate from Wealth): no ${asset} in a Real portfolio`, `Portfolio (los van Wealth): geen ${asset} in een Real-portfolio`));
   }
-  if (!rows.length) return {kind: 'answer', text: lines(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, [...extra, `To track it: Wealth → + Add asset → ${/^(?:GOLD|SILVER)$/.test(asset) ? 'Precious metals' : 'Crypto'}, then ${asset} and the amount you hold`]), calls};
+  const metal = /^(?:GOLD|SILVER)$/.test(asset) ? 'Precious metals' : 'Crypto';
+  // Session AU (REHEARSAL R-9): the holdings first; a goal named after the coin ("First 0.01 BTC") only after them, said to be a goal.
+  const goal = rows.length || env.areas.goals === false ? null : goalsOnce(env).find(g => g.status !== 'closed' && new RegExp(`\\b${asset}\\b`, 'i').test(g.name));
+  const goalLine = goal ? [say(`Your goal ${clean(goal.name, 60)} is a goal, not a holding: Goals shows its progress`, `Je doel ${clean(goal.name, 60)} is een doel, geen bezit: Goals toont de voortgang`)] : [];
+  if (!rows.length) return {kind: 'answer', text: lines(say(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, `Je hebt geen ${asset} vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.`), [...extra, say(`To track it: Wealth → + Add asset → ${metal}, then ${asset} and the amount you hold`, `Om het bij te houden: Wealth → + Add asset → ${metal}, dan ${asset} en de hoeveelheid die je hebt`), ...goalLine]), calls};
   const quantity = rows.reduce((s, row) => s.plus(/^\d+(\.\d+)?$/.test(row.quantity) ? row.quantity : 0), new Decimal(0)).toFixed();
   const values = new Map<string, Decimal>();
   for (const row of rows) { const m = /^(-?\d+\.\d{2}) ([A-Z]{3,10})$/.exec(row.value); if (m) values.set(m[2]!, (values.get(m[2]!) ?? new Decimal(0)).plus(m[1]!)); }
-  const unpriced = rows.filter(row => row.value === 'no price').length, sources = [...new Set(rows.filter(row => row.value !== 'no price').map(row => `${row.priceSource}, ${row.valuedAt === 'unknown' ? 'time unknown' : `observed ${instantText(row.valuedAt, env.habitDay)}`}`))];
-  const worth = values.size ? `worth ${[...values].map(([c, v]) => amount(v.toFixed(2), c)).join(' and ')}` : 'with no price, so no value';
+  const unpriced = rows.filter(row => row.value === 'no price').length, sources = [...new Set(rows.filter(row => row.value !== 'no price').map(row => `${row.priceSource}, ${row.valuedAt === 'unknown' ? say('time unknown', 'tijd onbekend') : `${say('observed', 'waargenomen')} ${instantText(row.valuedAt, env.habitDay)}`}`))];
+  const worth = values.size ? `${say('worth', 'ter waarde van')} ${[...values].map(([c, v]) => amount(v.toFixed(2), c)).join(say(' and ', ' en '))}` : say('with no price, so no value', 'zonder prijs, dus zonder waarde');
   // Session AL final pass (TK:14, C-TK-35): "… in EUR?" says when no value is in that currency (values are never converted).
-  const wanted = /\bin (usd|eur)\b/i.exec(q)?.[1]?.toUpperCase(), noneIn = wanted && !values.has(wanted) ? `No value in ${wanted}: each value stays in its price's own currency and is never converted` : null;
-  return {kind: 'answer', text: lines(`You hold ${grouped(quantity)} ${asset} in Wealth (${plural(rows.length, 'holding')}), ${worth}.`, [noneIn, sources.length > 0 && `Prices: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && `${plural(unpriced, 'holding')} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, values.size > 1 && 'One total per currency, never converted', ...extra]), calls};
+  const wanted = /\bin (usd|eur)\b/i.exec(q)?.[1]?.toUpperCase(), noneIn = wanted && !values.has(wanted) ? say(`No value in ${wanted}: each value stays in its price's own currency and is never converted`, `Geen waarde in ${wanted}: elke waarde blijft in de eigen valuta van de prijs en wordt nooit omgerekend`) : null;
+  const holdings = (count: number) => nl ? `${count} ${count === 1 ? 'positie' : 'posities'}` : plural(count, 'holding');
+  return {kind: 'answer', text: lines(say(`You hold ${grouped(quantity)} ${asset} in Wealth (${holdings(rows.length)}), ${worth}.`, `Je hebt ${grouped(quantity)} ${asset} in Wealth (${holdings(rows.length)}), ${worth}.`), [noneIn, sources.length > 0 && `${say('Prices', 'Prijzen')}: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && say(`${holdings(unpriced)} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, `${holdings(unpriced)} zonder prijs ${unpriced === 1 ? 'telt' : 'tellen'} niet mee in de waarde`), values.size > 1 && say('One total per currency, never converted', 'Eén totaal per valuta, nooit omgerekend'), ...extra]), calls};
 }
 /** "2430.00 USD" as a local answer writes money: "2,430.00 USD". */
 const money = (text: string) => { const i = text.lastIndexOf(' '); return i > 0 ? amount(text.slice(0, i), text.slice(i + 1)) : text; };

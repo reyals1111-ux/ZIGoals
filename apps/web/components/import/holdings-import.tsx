@@ -4,7 +4,8 @@ import {HOLDINGS_FIELDS} from '../../lib/csv/mapping';
 import {MONEY_FIELDS} from '../../lib/csv/templates/presets';
 import {planMoneyRows} from '../../lib/csv/templates/money-rows';
 import {detectMoneyAppExport, type MoneyAppExport} from '../../lib/csv/templates/app-exports';
-import {addEntries, alreadyLogged, removeEntries, toMoneyEntries, type RefusedRow} from '../../lib/bankfiles';
+import {addEntries, alreadyLogged, previewCategory, removeEntries, toMoneyEntries, withChosenCategories, type RefusedRow} from '../../lib/bankfiles';
+import {CategoryPick} from './bankfiles/category-pick';
 import {MONEY_LOG} from '../../lib/money-log/schema';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {formatCurrencyAmount, formatDate} from '../../lib/visual-format';
@@ -119,6 +120,8 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
   const startCurrency = useMoneyCurrency(logTotals);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1), [file, setFile] = useState<CsvFile | null>(null), [setup, setSetup] = useState<CsvSetup | null>(null), [pickedCurrency, setCurrency] = useState<string | null>(null), currency = pickedCurrency ?? startCurrency;
   const [picked, setPicked] = useState<ReadonlySet<number> | null>(null), [error, setError] = useState(''), [app, setApp] = useState<MoneyAppExport | null>(null);
+  // Session AV (L-6): categories changed in the preview, by file row.
+  const [categories, setCategories] = useState<ReadonlyMap<number, string>>(new Map());
   const [done, setDone] = useState<{added: number; refused: RefusedRow[]; ids: ReadonlySet<string>; undone?: boolean} | null>(null);
   const plan = useMemo(() => setup ? planMoneyRows({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, currency, positiveIsOut: app?.positiveIsOut}) : null, [setup, currency, app]);
   const logged = useMemo(() => new Set(plan && log.loaded ? plan.transactions.filter(t => alreadyLogged(t, log.data) || loggedWithRules(t, log.data, rules.data.rules)).map(t => t.index) : []), [plan, log.loaded, log.data, rules.data.rules]);
@@ -130,7 +133,8 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
     setError('');
     try {
       const out = toMoneyEntries(chosen, log.data, new Date(), () => crypto.randomUUID());
-      const entries = applyRules(out.entries, rules.data.rules).entries; // Session AK (lane M): the rules, first match wins
+      // Session AK (lane M): the rules, first match wins; Session AV (L-6): then the categories chosen in the preview.
+      const entries = withChosenCategories(applyRules(out.entries, rules.data.rules).entries, out.indexes, categories);
       if (entries.length) log.update(current => addEntries(current, entries));
       if (entries.length) try { review.update(r => markForReview(r, entries.map(e => e.id))); } catch { /* the entries are added; only the review mark is missing */ }
       setDone({added: entries.length, refused: out.refused, ids: new Set(entries.map(e => e.id))});
@@ -151,7 +155,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
     <div className="actions">{!done.undone && done.added > 0 && <button type="button" className="secondary" onClick={undo}>Undo this import</button>}<button type="button" className="secondary" onClick={onClose}>Done</button></div>
   </div>;
   return <div className="import-step">
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep target="money" fields={MONEY_FIELDS} onFile={f => { try { setSetup(moneySetup(f.text, setApp)); setFile(f); setPicked(null); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} /><StepActions onBack={onClose} /></>}
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep target="money" fields={MONEY_FIELDS} onFile={f => { try { setSetup(moneySetup(f.text, setApp)); setFile(f); setPicked(null); setCategories(new Map()); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} /><StepActions onBack={onClose} /></>}
     {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" />{app && <p className="notice import-preset" role="status">{app.note}</p>}<MappingStep setup={setup} options={MONEY_OPTIONS} text={file.text} onChange={next => { setSetup(next); setPicked(null); }}>
       {setup.mapping.currency === undefined && <label className="field"><span>Currency of this file</span><select value={currency} onChange={e => { setCurrency(e.target.value); setPicked(null); }}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>}
       <p className="fine">Choose the Date and either an Amount column (a minus sign is money out) or Money out and Money in. An &ldquo;In or out&rdquo; column, when the file has one, decides the direction.</p>
@@ -161,12 +165,13 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
       {plan.warnings.map(w => <p key={w} className="fine">{w}</p>)}
       {plan.transactions.length > 0 && <div className="bankfile-table-wrap"><table className="bankfile-table">
         <caption className="fine">Ticked rows are added. Possible repeats and rows already in your log start unticked.</caption>
-        <thead><tr><th scope="col">Add</th><th scope="col">Date</th><th scope="col">Payee</th><th scope="col">Amount</th><th scope="col">Note</th></tr></thead>
+        <thead><tr><th scope="col">Add</th><th scope="col">Date</th><th scope="col">Payee</th><th scope="col">Amount</th><th scope="col">Category</th><th scope="col">Note</th></tr></thead>
         <tbody>{plan.transactions.slice(0, PREVIEW_ROWS).map(t => <tr key={t.index}>
           <td><input type="checkbox" checked={included.has(t.index)} onChange={() => toggle(t.index)} aria-label={`Add ${t.payee || 'row'} ${t.amount} ${t.currency} on ${formatDate(t.date)}`}/></td>
           <td>{formatDate(t.date)}</td>
           <td className="bankfile-payee">{t.payee || '—'}{t.description && t.description !== t.payee && <span className="fine"> · {t.description}</span>}</td>
           <td className={t.direction === 'in' ? 'bankfile-in' : undefined}>{t.direction === 'in' ? '+' : '−'}{money(t.amount, t.currency)}</td>
+          <td><CategoryPick t={t} guess={previewCategory(t, rules.data.rules)} chosen={categories.get(t.index)} onChoose={c => setCategories(current => new Map(current).set(t.index, c))}/></td>
           <td className="fine">{t.duplicate ? 'Possible repeat in this file' : logged.has(t.index) ? 'Already in your log' : ruleHint(t, rules.data.rules) ?? ''}</td>
         </tr>)}</tbody>
       </table></div>}
@@ -177,7 +182,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
     </>}
     {step === 4 && plan && <><StepHeading step={4} title="Confirm" />
       <p className="import-summary">{chosen.length} {chosen.length === 1 ? 'entry' : 'entries'} will be added to your money log: {chosen.filter(t => t.direction === 'out').length} spent, {chosen.filter(t => t.direction === 'in').length} received.</p>
-      <p className="fine">The category is read from each payee and note, as the log&rsquo;s own form does{rules.data.rules.length ? ', then your rules run (the first that matches wins)' : ''}; you can change any entry afterwards. You can undo this import right after it.</p>
+      <p className="fine">Each entry gets the category shown in the preview (read from its payee and note{rules.data.rules.length ? ', then your rules' : ''}, or the one you chose there); you can change any entry afterwards. You can undo this import right after it.</p>
       {error && <p role="alert">{error}</p>}
       <StepActions onBack={() => setStep(3)} onNext={confirm} nextLabel={`Add ${chosen.length} to my money log`} primary />
     </>}

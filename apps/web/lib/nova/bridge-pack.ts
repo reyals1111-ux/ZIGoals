@@ -41,12 +41,12 @@ export function packConsent(gates: Gates, area: PageArea, nova?: NovaPermission)
   if (gates.paused) return {page: false, health: false, reasons: ['Paused on this private screen: nothing is read.']};
   if (!gates.connected) return {page: false, health: false, reasons: ['ZIGi is not connected.']};
   const page = gates.areas[area] === true;
-  if (!page) return {page: false, health: false, reasons: [`Sharing is off for ${AREA_LABELS[area]} in Settings → ZIGi · Your Personal AI Companion.`]};
+  if (!page) return {page: false, health: false, reasons: [`Sharing is off for ${AREA_LABELS[area]} in Settings → ZIGi · your companion.`]};
   const scope = AREA_SCOPE[area];
   if (nova && scope && !scopeOpen(nova.scopes, scope, nova.chainChosen)) return {page: false, health: false, reasons: [`${AREA_LABELS[area]} is closed to NOVA in NOVA → Permissions: nothing from it goes with this task.`]};
   const novaHealth = !nova || nova.scopes.health === true;
   const health = gates.health === true && novaHealth;
-  return {page, health, reasons: health ? [] : [novaHealth ? 'Health: not shared (Settings → ZIGi · Your Personal AI Companion → Include Health).' : 'Health is closed to NOVA in NOVA → Permissions: nothing from Health goes with this task.']};
+  return {page, health, reasons: health ? [] : [novaHealth ? 'Health: not shared (Settings → ZIGi · your companion → Include Health).' : 'Health is closed to NOVA in NOVA → Permissions: nothing from Health goes with this task.']};
 }
 export function pagePack({area, sources, gates, nova}: {area: PageArea; sources: ToolSources | null; gates: Gates; nova?: NovaPermission}): PageContext | null {
   if (!sources || gates.paused) return null;

@@ -17,14 +17,14 @@ test.use({actionTimeout: 20_000, timezoneId: ZONE});
 const GOAL_ID = '41', GOAL = 'Fictional buffer fund';
 const CSV = ['Date,Payee,Amount,Note',
   '2026-08-03,Fictional Streaming,-9.99,', '2026-09-03,Fictional Streaming,-9.99,', '2026-10-03,Fictional Streaming,-9.99,',
-  '2026-10-05,Fictional Grocer,-54.20,', '2026-10-12,Fictional Grocer,-38.10,', '2026-10-15,Fictional Employer,2400.00,Salary',
+  '2026-10-05,Fictional Corner Shop,-54.20,', '2026-10-12,Fictional Corner Shop,-38.10,', '2026-10-15,Fictional Employer,2400.00,Salary',
   '2026-10-20,Fictional Hardware,-120.00,'].join('\n');
 const ntry = (amt: string, ind: 'CRDT' | 'DBIT', date: string, party: string, ref: string, ustrd = '') => `<Ntry><Amt Ccy="EUR">${amt}</Amt><CdtDbtInd>${ind}</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>${date}</Dt></BookgDt><ValDt><Dt>${date}</Dt></ValDt><AcctSvcrRef>${ref}</AcctSvcrRef><NtryDtls><TxDtls><Refs><EndToEndId>E2E-${ref}</EndToEndId></Refs><RltdPties><${ind === 'DBIT' ? 'Cdtr' : 'Dbtr'}><Nm>${party}</Nm></${ind === 'DBIT' ? 'Cdtr' : 'Dbtr'}></RltdPties><RmtInf><Ustrd>${ustrd}</Ustrd></RmtInf></TxDtls></NtryDtls></Ntry>`;
 const CAMT = `<?xml version="1.0" encoding="UTF-8"?>
 <Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02"><BkToCstmrStmt><GrpHdr><MsgId>J3</MsgId></GrpHdr>
 <Stmt><Id>S1</Id><Acct><Id><IBAN>NL00TEST0000000001</IBAN></Id><Ccy>EUR</Ccy></Acct>
 <Bal><Tp><CdOrPrtry><Cd>OPBD</Cd></CdOrPrtry></Tp><Amt Ccy="EUR">2000.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2026-10-01</Dt></Dt></Bal>
-${ntry('38.10', 'DBIT', '2026-10-12', 'Fictional Grocer', 'R1')}${ntry('42.00', 'DBIT', '2026-11-01', 'Fictional Grocer', 'R2', 'Weekly shop')}</Stmt></BkToCstmrStmt></Document>`;
+${ntry('38.10', 'DBIT', '2026-10-12', 'Fictional Corner Shop', 'R1')}${ntry('42.00', 'DBIT', '2026-11-01', 'Fictional Corner Shop', 'R2', 'Weekly shop')}</Stmt></BkToCstmrStmt></Document>`;
 const OFX = `<?xml version="1.0" encoding="UTF-8"?><?OFX OFXHEADER="200" VERSION="220" SECURITY="NONE"?>
 <OFX><BANKMSGSRSV1><STMTTRNRS><STMTRS><CURDEF>EUR</CURDEF><BANKACCTFROM><BANKID>000000000</BANKID><ACCTID>TEST-1234</ACCTID><ACCTTYPE>CHECKING</ACCTTYPE></BANKACCTFROM>
 <BANKTRANLIST><STMTTRN><TRNTYPE>DEBIT</TRNTYPE><DTPOSTED>20261101</DTPOSTED><TRNAMT>-3.20</TRNAMT><FITID>X1</FITID><NAME>Fictional Cafe</NAME><MEMO>Coffee</MEMO></STMTTRN></BANKTRANLIST>
@@ -86,8 +86,8 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   sheet = await openImport(page);
   await sheet.getByLabel(/^Bank statement file/).setInputFiles(file('statement.xml', CAMT, 'application/xml'));
   await expect(sheet.locator('.bankfile-preview h3')).toContainText('2 transactions');
-  await expect(sheet.getByRole('row', {name: /Fictional Grocer.*Already in your log/})).toBeVisible();
-  await expect(sheet.getByRole('checkbox', {name: /^Add Fictional Grocer 38\.1 EUR/})).not.toBeChecked();
+  await expect(sheet.getByRole('row', {name: /Fictional Corner Shop.*Already in your log/})).toBeVisible();
+  await expect(sheet.getByRole('checkbox', {name: /^Add Fictional Corner Shop 38\.1 EUR/})).not.toBeChecked();
   await sheet.getByRole('button', {name: 'Add 1 to my money log', exact: true}).click();
   await expect(sheet.locator('.bankfile-status')).toContainText('1 entry added to your money log');
   await bankFile(sheet, file('statement.ofx', OFX), 1, 1);
@@ -95,7 +95,7 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   await sheet.getByRole('button', {name: 'Close', exact: true}).click();
   const log = (await moneyLog(page))!.entries;
   expect(log).toHaveLength(11);
-  expect(log.filter(e => e.note?.startsWith('Fictional Grocer')).map(e => e.date).sort()).toEqual(['2026-10-05', '2026-10-12', '2026-11-01']);
+  expect(log.filter(e => e.note?.startsWith('Fictional Corner Shop')).map(e => e.date).sort()).toEqual(['2026-10-05', '2026-10-12', '2026-11-01']);
 
   // The review inbox: every imported entry waits there; one is recategorised, one accepted.
   const tools = page.getByRole('group', {name: 'Money tools'});
@@ -109,10 +109,12 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   await gym.getByRole('button', {name: /^Mark Fictional Gym.* as reviewed$/}).click();
   await expect(tools.getByRole('button', {name: 'To review (10)'})).toBeVisible();
 
-  // A rule from the grocer's entry: its category becomes Groceries, then it is applied to the past 90 days (Undo offered).
-  await inbox.locator('.money-review-row', {hasText: 'Fictional Grocer'}).first().getByRole('button', {name: 'Make a rule', exact: true}).click();
+  // A rule from the shop's entry: its category becomes Groceries, then it is applied to the past 90 days (Undo offered).
+  // Session AU (ADR-044 L-2, deliberate): the shop was "Fictional Grocer", which an import now files as Groceries by its own
+  // word, so the rule had nothing left to change; a name with no category word keeps this rule's run exactly as strict.
+  await inbox.locator('.money-review-row', {hasText: 'Fictional Corner Shop'}).first().getByRole('button', {name: 'Make a rule', exact: true}).click();
   const rule = page.getByRole('form', {name: 'Add a rule'});
-  await expect(rule.getByLabel('Text', {exact: true})).toHaveValue(/fictional grocer/i);
+  await expect(rule.getByLabel('Text', {exact: true})).toHaveValue(/fictional corner shop/i);
   await rule.getByLabel('Category').selectOption('Groceries');
   await rule.getByRole('button', {name: 'Save rule', exact: true}).click();
   await expect(page.locator('.money-status')).toContainText('Rule saved.');
@@ -121,7 +123,7 @@ for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CS
   // Session AL (PRIMITIVES 3e, deliberate): the rule run's Undo moved from a local link into the app's one Undo toast.
   await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
   await expect(page.locator('.money-status')).toContainText('3 entries changed.');
-  await expect.poll(async () => (await moneyLog(page))!.entries.filter(e => e.note?.startsWith('Fictional Grocer')).map(e => e.category)).toEqual(['Groceries', 'Groceries', 'Groceries']);
+  await expect.poll(async () => (await moneyLog(page))!.entries.filter(e => e.note?.startsWith('Fictional Corner Shop')).map(e => e.category)).toEqual(['Groceries', 'Groceries', 'Groceries']);
 
   // A split: the hardware bill is half Home, half a Gift.
   await tools.getByRole('button', {name: 'Split an entry', exact: true}).click();

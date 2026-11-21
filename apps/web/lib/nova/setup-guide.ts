@@ -180,5 +180,5 @@ export const ORBITS: readonly {id: string; label: string; colour: PathColour; st
  */
 export function noModeCloudNote(mode: string | null, provider: string | null | undefined, providerName: string): string | null {
   if (mode !== null || !provider || provider === 'local') return null;
-  return `You have not chosen a privacy mode yet, so this chat sends to ${providerName} as ZIGi does, with what NOVA → Permissions allows. NOVA’s briefs and workflows act as Strict until you choose: Build NOVA’s brain → Privacy.`;
+  return `You have not chosen a privacy mode yet, so this chat sends to ${providerName} as Guarded: names, addresses, account numbers and exact amounts are taken out or rounded first, and no photo goes. NOVA’s briefs and workflows act as Strict until you choose: Build NOVA’s brain → Privacy.`;
 }

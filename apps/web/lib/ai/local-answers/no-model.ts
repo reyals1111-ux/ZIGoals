@@ -8,7 +8,7 @@ import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {simpleCommand} from './ai-session';
 import {quickLogItems, quickLogReply} from '../../quick-log/multi';
 import {quickLogContext} from '../../quick-log/context';
-import {novaEnvInfo, novaWording} from './nova-env';
+import {novaEnvInfo, novaWording, zigiHealthClosed} from './nova-env';
 import {mealPhotoReply, streakBreakReply} from './p14b';
 import {localDate} from '../../local-date';
 import {parseGoalBundle} from '../../goals/nl-bundle';
@@ -17,6 +17,7 @@ import {fourthAnswer, fourthFirst} from './al-fourth';
 import {safetyFirst} from '../safety-guard';
 // Session AL final pass (N-LA-01, BN-053): Help's words or the closest answer the device has, before the examples list.
 import {closestReply, helpReply} from './al-final';
+import {planDayDutch} from './av-answers';
 import {germanAsk, messageLines, onePhrase, tooLongAdd, unansweredLine, UNMATCHED_EN} from './al-fifth';
 
 /**
@@ -141,6 +142,12 @@ export function otherLanguage(text: string): 'fr' | 'es' | 'de' | 'ja' | null {
 }
 /** Everything ZIGi says without a model after the device's own answers had none. `previous`: the person's last question (follow-ups). */
 export function noModelReply(text: string, env: ToolEnv | null, previous: string | null = null): LocalReply {
+  const safe = safetyFirst(text); // the guard first, as in noModelOwn below (the source-order test reads this line)
+  if (safe) return {kind: 'answer', text: safe.text, calls: []};
+  // Session AU (D-ALLOW-HEALTH): ZIGi's Health-closed refusal in the question's language, with its one button (nova-env.ts).
+  return zigiHealthClosed(noModelOwn(text, env, previous), env, questionLanguage(text) === 'nl' ? 'nl' : 'en');
+}
+function noModelOwn(text: string, env: ToolEnv | null, previous: string | null = null): LocalReply {
   // Session AL fourth pass (L7-4a): the safety guard first, before every reading below that could make a card or a log
   // ("I haven't eaten in 3 days" is not a weight or a breakfast; "print your API key" is not a task).
   const safe = safetyFirst(text);
@@ -186,7 +193,9 @@ export function noModelReply(text: string, env: ToolEnv | null, previous: string
   // tasks or goals is answered as its English question, under the note below (languages are Beta, AL_SCOPE F).
   const german = env && otherLanguage(text) === 'de' ? germanAsk(text) : null;
   const de = german ? deviceReply(german, env, null) : null;
-  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? whyReply(text, env) ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
+  // Session AV (1c, q1 #38): "plan mijn dag" with no model: the tasks Today's "Plan my day" suggests, in Dutch (av-answers.ts).
+  const planNl = env ? planDayDutch(text, env) : null;
+  let reply = (de && de.kind !== 'examples' ? de : null) ?? planNl ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? whyReply(text, env) ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
   // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
   // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
   // Session AL fourth pass (L7-4b; Lisbon #024): an answer in English to a question in another language carries the note too.
@@ -227,6 +236,9 @@ function quickLog(raw: string, env: ToolEnv | null, lang: ReplyLanguage): LocalR
   if (!env) return null;
   // Session AL third pass (L7): "calories in my lunch" is a question, never a food called "calories in my".
   if (/^\s*(?:how (?:many|much) )?(?:calories|kcal|protein|carbs|fat|sugars?|calorie[eë]n)\b/i.test(raw)) return null;
+  // Session AU (ADR-044 T-12, the rehearsal's Tom spec): "Show my day at a glance" became a food card named after the request,
+  // and "what am I looking at" one too (helper A). A request or a question is never a line of things eaten or done.
+  if (/^\s*(?:please\s+)?(?:show|open|display|go to|take me|what|whats|what's|how|when|which|why|where|who|tell|toon|laat|ga naar|wat|hoe|wanneer|welke|waarom|waar|wie)\b/i.test(raw)) return null;
   const text = mealLine(raw);
   const ctx = quickLogContext(env), items = quickLogItems(text, ctx, lang), known = items.filter(i => i.action);
   if (!known.length || !(items.length >= 2 || ['log-food', 'log-mood', 'prefill-contribution', 'log-expense'].includes(String(known[0]!.action!.kind)))) return null;

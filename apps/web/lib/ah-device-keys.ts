@@ -9,6 +9,9 @@
  */
 export const AH_PERSONAL_KEYS: readonly string[] = ['zigoals:workouts:v1', 'zigoals:portfolio-last-visit:v1'];
 export const AH_VIEW_CHOICES = ['markets-layout', 'price-chart-range', 'portfolio-value-range', 'wealth-history-range'] as const;
-export const AH_DISPLAY_KEYS: readonly string[] = ['zigoals:hide-amounts', 'zigoals:device-lock:v1', ...AH_VIEW_CHOICES.map(name => `zigoals:view-choice:${name}`)];
+// Session AV (owner follow-up 1, F-HIDE-FIGURES): `zigoals:hide-body-figures` (display), the calories-and-weight switch;
+// F-MATRIX-RULES: `zigoals:matrix-rules` (display), the priority matrix's own lines; F-OWN-TEMPLATES:
+// `zigoals:journal-question-lang` (display), the Journal's daily question in English or Dutch.
+export const AH_DISPLAY_KEYS: readonly string[] = ['zigoals:hide-amounts', 'zigoals:hide-body-figures', 'zigoals:matrix-rules', 'zigoals:journal-question-lang', 'zigoals:device-lock:v1', ...AH_VIEW_CHOICES.map(name => `zigoals:view-choice:${name}`)];
 /** The account erase removes the personal ones; display choices stay, as other sessions' do. */
 export const AH_ERASE_KEYS: readonly string[] = AH_PERSONAL_KEYS;

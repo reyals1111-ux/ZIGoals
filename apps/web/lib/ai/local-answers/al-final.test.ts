@@ -4,6 +4,7 @@ import {beforeAll, describe, expect, test} from 'vitest';
 import {loadAaPlanner} from '../actions/plan';
 import {showcaseSources, withG1, withHandHealth, withPortfolios} from '../tools/fixtures';
 import {HEALTH_CLOSED} from '../tools/format';
+import {ALLOW_HEALTH_CARD} from './nova-env';
 import {healthGoalsSchema} from '../../health-goals/schema';
 import {denver, lisbon, novaEnv, typed, zigiEnv} from '../evals/l7-fourth-fixtures';
 import {followUpQuestion, previousQuestion} from './followup';
@@ -99,14 +100,15 @@ describe('5. real places for settings (DV:N-007, DV:N-064, N-LA-08)', () => {
   test('auto-accept is named where it is, in English and Dutch', () => {
     for (const q of ['What can you read about me?', 'What can you see about me?']) {
       const t = typed(q, novaEnv(denver())).text;
-      expect(t).toContain('Settings → ZIGi · Your Personal AI Companion → Auto-accept; that group shows once an AI is turned on there');
+      expect(t).toContain('Settings → ZIGi · your companion → Auto-accept; that group shows once an AI is turned on there');
       expect(t).not.toContain('Settings → ZIGi → Auto-accept');
     }
     const nl = typed('Wat zie je van mijn gegevens?', zigiEnv(denver())).text;
-    expect(nl).toContain('Settings → ZIGi · Your Personal AI Companion → Auto-accept; die groep verschijnt zodra daar een AI aan staat');
+    expect(nl).toContain('Settings → ZIGi · your companion → Auto-accept; die groep verschijnt zodra daar een AI aan staat');
   });
   test('ZIGi\'s Health line names the same two switches NOVA → Permissions shows', () => {
-    expect(typed('how much water did i drink today', zigiEnv(lisbon('L1'))).text).toBe(HEALTH_CLOSED);
+    // Session AU (D-ALLOW-HEALTH, deliberate): ZIGi's Health-closed reply is the same sentence plus its one button (the open-page card to Settings → ZIGi), still matched whole.
+    expect(typed('how much water did i drink today', zigiEnv(lisbon('L1'))).text).toBe(HEALTH_CLOSED + ALLOW_HEALTH_CARD);
     expect(HEALTH_CLOSED).toContain('They are the same two switches NOVA → Permissions shows.');
     const nova = typed('how much water did i drink today', novaEnv(lisbon('L1'))).text;
     expect(nova).toContain('NOVA → Permissions'); expect(nova).toContain('Health page data and Include Health');

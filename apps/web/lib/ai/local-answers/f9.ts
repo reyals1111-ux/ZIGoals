@@ -67,7 +67,7 @@ export function f9LocalAnswer(question: string, env: ToolEnv): LocalReply | null
 
 function debtAnswer(env: ToolEnv): LocalReply {
   const calls = [{tool: 'debt_plan', args: {}, label: 'Debt payoff plan'}];
-  if (!env.areas.wealth) return {kind: 'refusal', text: 'Wealth isn\'t shared with ZIGi here, so your debts are not read. Its switch is in Settings → ZIGi · Your Personal AI Companion.', calls};
+  if (!env.areas.wealth) return {kind: 'refusal', text: 'Wealth isn\'t shared with ZIGi here, so your debts are not read. Its switch is in Settings → ZIGi · your companion.', calls};
   const views = debtView(env.accounts, env.ak?.debtPlanner, env.habitDay);
   if (!views.length) return {kind: 'answer', text: 'No debt with a balance is recorded on this device, so there is no debt-free month to work out. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth, with what you owe and your yearly rate.', calls};
   return {kind: 'answer', text: [`From your own figures (${DEBT_PLANNER_WHERE}):`, ...views.slice(0, 4).map(v => `• ${debtSentence(v, env.habitDay)}`), `${DEBT_MODEL} Nothing is paid or moved.`].join('\n'), calls};

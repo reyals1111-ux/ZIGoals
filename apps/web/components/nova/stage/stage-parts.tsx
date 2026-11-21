@@ -7,6 +7,7 @@ import {widgetSpec, type WidgetGate} from '../../../lib/nova/widgets/catalog';
 import {CardNotice} from '../cards/kit';
 import {NxLockGhost} from '../widgets/nx-lock-ghost';
 import type {StageAnswer} from './use-summoner';
+import {NOVA_PERMISSIONS, NOVA_PERMISSIONS_NL} from '../../../lib/ai/local-answers/nova-env';
 import './stage.css';
 
 /**
@@ -112,6 +113,9 @@ export function StageAnswerLine({answer, persona, onOpen, onDismiss, widget, onG
     <p className="ns-answer-meta">
       {widget && onGoTo && <button type="button" className="ns-link" onClick={() => onGoTo(widget.id)}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g {...I}><circle cx="12" cy="12" r="5.5"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></g></svg>Go to {widget.title}</button>}
       <button type="button" className="ns-link" onClick={onOpen}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path {...I} d="M5 6.5h14v9.5h-7.5L7.5 19.5V16H5z"/></svg>{answer.decision ? 'Open to decide' : 'Open the conversation'}</button>
+      {/* Session AV (ADR-045 D-STAR-BUTTON; AU carried): an on-device answer that names NOVA → Permissions (Health is closed)
+          carries the same one tap as the conversation's reply (nova-turns.tsx), in this row of links; nothing else moves. */}
+      {answer.by === 'device' && (text.includes(NOVA_PERMISSIONS) || text.includes(NOVA_PERMISSIONS_NL)) && <button type="button" className="ns-link" onClick={() => { window.location.hash = 'nova-permissions'; }}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g {...I}><rect x="6" y="10.5" width="12" height="9" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></g></svg>Open {persona} → Permissions</button>}
 
     </p>
   </div>;

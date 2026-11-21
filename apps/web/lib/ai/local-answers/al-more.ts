@@ -5,7 +5,7 @@ import type {ToolOk} from '../tools/types';
 import type {LocalReply} from './engine';
 import {amount, dayText} from './words';
 import {MEMORY_CATEGORIES} from '../store/records';
-import {novaEnvInfo} from './nova-env';
+import {allowHealth, novaEnvInfo, novaHealthClosed} from './nova-env';
 import {taskIntent} from '../../tasks/intent';
 import {addLocalDays as addDays} from '../../local-date';
 import {checklistAnswer, isChecklistAsk} from './al-fourth';
@@ -147,8 +147,11 @@ const TRUST: readonly {re: RegExp; answer: (env: ToolEnv | null, lang: Lang) => 
   {re: /^(?:(?:and )?(?:what(?:'s| is) your name|who (?:are|r) (?:you|u)|who made you|who built you|are you (?:chatgpt|gpt|claude|gemini|siri|alexa|a (?:bot|robot|person|human)))\s*[?.!]*)$/i,
     answer: (env, lang) => say(lang, `I’m ${env && novaEnvInfo(env) ? 'NOVA, your private command center in ZIGoals' : 'ZIGi, the assistant inside ZIGoals'}. Without a brain of your own I answer from your records on this device; with one (your own model or key) that model words the answers. I am not a person, and I don’t send your records anywhere by myself.`, `Ik ben ${env && novaEnvInfo(env) ? 'NOVA, je privé-commandocentrum in ZIGoals' : 'ZIGi, de assistent in ZIGoals'}. Zonder eigen brein antwoord ik uit je gegevens op dit apparaat; met een eigen model of sleutel verwoordt dat model de antwoorden. Ik ben geen persoon en stuur je gegevens nergens zelf heen.`)},
   {re: /\b(?:can|do|could) you (?:see|read|access|use)\b[^.?!]{0,20}\bhealth\b|\bdo you have (?:access to )?my health\b|\bis (?:my )?health shared\b/i,
-    answer: (env, lang) => env?.health ? say(lang, 'Yes: Health is shared with me on this device right now, so I can read your diary, water, sleep and the rest when you ask. Settings → ZIGi → Include Health turns it off.', 'Ja: Health is nu op dit apparaat met mij gedeeld, dus ik kan je dagboek, water, slaap en de rest lezen als je het vraagt. Settings → ZIGi → Include Health zet het uit.')
-      : say(lang, 'No: Health is not shared with me now, so I don’t read your diary, water, sleep or weight. To share it, turn on Settings → ZIGi → Include Health, with Health on in Your pages.', 'Nee: Health is nu niet met mij gedeeld, dus ik lees je dagboek, water, slaap of gewicht niet. Zet Settings → ZIGi → Include Health aan om het te delen.'), page: ['settings', 'zigi']},
+    // Session AU (D-ALLOW-HEALTH): not shared, one button to where it is allowed (nova-env.ts `allowHealth`): Settings → ZIGi on
+    // ZIGi's panel; on NOVA its own words, naming NOVA → Permissions (NOVA's chat makes that its button).
+    answer: (env, lang) => env?.health ? say(lang, 'Yes: Health is shared with me on this device right now, so I can read your diary, water, sleep and the rest when you ask. Settings → ZIGi → Include Health turns it off.', 'Ja: Health is nu op dit apparaat met mij gedeeld, dus ik kan je dagboek, water, slaap en de rest lezen als je het vraagt. Settings → ZIGi → Include Health zet het uit.') + open('settings', 'zigi')
+      : env && novaEnvInfo(env) ? novaHealthClosed(novaEnvInfo(env)!, lang)
+        : say(lang, 'No: Health is not shared with me now, so I don’t read your diary, water, sleep or weight. To share it, turn on Settings → ZIGi → Include Health, with Health on in Your pages.', 'Nee: Health is nu niet met mij gedeeld, dus ik lees je dagboek, water, slaap of gewicht niet. Zet Settings → ZIGi → Include Health aan om het te delen.') + allowHealth(env, lang)},
   {re: /\b(?:are|is) you (?:connected|using|running on|powered by)\b|\bwhich (?:ai|model|llm)\b|\bdo you use (?:an? )?(?:ai|model|llm|chatgpt)\b|\bare you (?:an? )?(?:ai|llm|chatgpt|gpt|claude|gemini)\b|\bwhat model\b/i,
     answer: (_env, lang) => say(lang, 'No AI is connected right now: this answer was made on this device from your own records, and nothing was sent anywhere. You can connect your own AI (a model on this computer, or a key of yours) in Settings → ZIGi; it then answers what the device can’t.', 'Er is nu geen AI verbonden: dit antwoord is op dit apparaat gemaakt uit je eigen gegevens, en er is niets verstuurd. Je kunt je eigen AI koppelen in Settings → ZIGi; die beantwoordt dan wat het apparaat niet kan.'), page: ['settings', 'zigi']},
   {re: /\b(?:can|could|will) you (?:delete|remove|erase|clear)\b|\bdelete (?:my|this|that|the) (?:goal|habit|task|entry|record|account)\b/i,
@@ -201,7 +204,7 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     const r = run('budgets', {}, env); if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
     const d = dataOf(r.result), rows = (d.budgets ?? []) as Data[];
     if (!rows.length) return {kind: 'answer', text: `${/not read on this path/i.test(String(d.note)) ? say(lang, 'Your budgets are not read on this path, so I can’t say them here (unknown, not none).', 'Je budgetten worden hier niet gelezen, dus ik kan ze niet noemen (onbekend, niet nul).') : say(lang, 'No budget is set yet.', 'Er is nog geen budget ingesteld.')} ${say(lang, 'Wealth → Spending → Budgets shows and sets them; the weekly room to spend is on the same page.', 'Wealth → Spending → Budgets toont en zet ze; de ruimte per week staat op dezelfde pagina.')}` + open('wealth'), calls: [r.record]};
-    return {kind: 'answer', text: [say(lang, `Your budgets for ${d.month ?? 'this month'}:`, `Je budgetten voor ${d.month ?? 'deze maand'}:`), ...rows.slice(0, 10).map(b => `• ${clean(String(b.category ?? b.name ?? ''), 40)}: ${[b.spent && `${say(lang, 'spent', 'uitgegeven')} ${b.spent}`, b.budget && `${say(lang, 'of', 'van')} ${b.budget}`, b.left && `(${b.left} ${say(lang, 'left', 'over')})`].filter(Boolean).join(' ')}`)].join('\n'), calls: [r.record]};
+    return {kind: 'answer', text: [say(lang, `Your budgets for ${d.month ?? 'this month'}:`, `Je budgetten voor ${d.month ?? 'deze maand'}:`), ...rows.slice(0, 10).map(b => `• ${clean(String(b.category ?? b.name ?? ''), 40)}: ${[b.spent && `${say(lang, 'spent', 'uitgegeven')} ${b.spent}`, b.budget && `${say(lang, 'of', 'van')} ${b.budget}`, b.left && `(${b.left} ${say(lang, 'left', 'over')})`].filter(Boolean).join(' ')}${targetSaid(b.target, lang)}`)].join('\n'), calls: [r.record]};
   }
   // Session AL fourth pass (L7-4b; Lisbon #001, #002, #013, #047, LA-017): the counter, orbits, yesterday and history from the
   // Checklist's own reading (al-fourth.ts), one source with the page and "Show my checklist"; this read `items`, which the
@@ -271,4 +274,16 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     if (best && best.hits >= 1) return {kind: 'answer', text: say(lang, `From what you asked me to remember: “${clean(best.n.text, 300)}”.`, `Uit wat je me vroeg te onthouden: “${clean(best.n.text, 300)}”.`), calls: []};
   }
   return null;
+}
+/**
+ * Session AV (owner follow-up 1, F-BUDGET-TARGETS): a budget row's target, as the `budgets` tool gives it, in words;
+ * '' when the row has none. Information, not advice.
+ */
+export function targetSaid(target: unknown, lang: 'en' | 'nl'): string {
+  if (!target || typeof target !== 'object') return '';
+  const t = target as Record<string, unknown>, en = lang === 'en', head = en ? `; target ${t.amount} by ${t.by}` : `; doel ${t.amount} uiterlijk ${t.by}`;
+  if (t.state === 'reached') return `${head}: ${en ? 'reached' : 'bereikt'}`;
+  if (t.state === 'past') return `${head}: ${en ? `that month has gone by, ${t.toGo} was still to go` : `die maand is voorbij, er moest nog ${t.toGo} bij`}`;
+  const state = t.state === 'on-track' ? (en ? 'on track' : 'op schema') : (en ? 'short' : 'te weinig');
+  return `${head}: ${t.setAside} ${en ? 'set aside' : 'opzij'}, ${t.perMonthFromNextMonth} ${en ? 'a month from next month' : 'per maand vanaf volgende maand'} (${state})`;
 }

@@ -41,17 +41,17 @@ export default function HealthHighlights({data, today, unit}: {data: HealthData;
       <li><a className="health-hl-tile" data-tone="trend" href="#health-weight-trend">
         <span className="health-hl-label">Weight trend</span>
         {trend.latestTrend === null ? <><strong className="health-hl-figure is-quiet">No trend yet</strong><span className="health-hl-note">Two or three readings a week draw the line.</span></>
-          : <><strong className="health-hl-figure">{weightReadingsText(trend.latestTrend, trend.points.flatMap(p => p.grams === null ? [] : [p.grams]), unit) /* fifth pass (N-MO-14): at the readings' precision */}</strong><span className="health-hl-note">{trendNote(data.weights.filter(w => w.date <= today).length, rate) /* RR-6 */}</span><TrendInk values={ink}/></>}
+          : <><strong className="health-hl-figure" data-body-figure="">{weightReadingsText(trend.latestTrend, trend.points.flatMap(p => p.grams === null ? [] : [p.grams]), unit) /* fifth pass (N-MO-14): at the readings' precision */}</strong><span className="health-hl-note" data-body-figure="">{trendNote(data.weights.filter(w => w.date <= today).length, rate) /* RR-6 */}</span><span data-body-figure=""><TrendInk values={ink}/></span></>}
       </a></li>
       <li><a className="health-hl-tile" data-tone="energy" href="#health-energy">
         <span className="health-hl-label">Maintenance estimate</span>
-        {energy.ready && energy.expenditure !== null ? <><strong className="health-hl-figure">{formatNumber(energy.expenditure)} <small>kcal a day</small></strong><span className="health-hl-note">about {formatNumber(energy.low ?? 0)}–{formatNumber(energy.high ?? 0)} · an estimate</span></>
+        {energy.ready && energy.expenditure !== null ? <><strong className="health-hl-figure" data-body-figure="">{formatNumber(energy.expenditure)} <small>kcal a day</small></strong><span className="health-hl-note" data-body-figure="">about {formatNumber(energy.low ?? 0)}–{formatNumber(energy.high ?? 0)} · an estimate</span></>
           : /* Session AK RB (R2-14): the input still missing, by name ("3 more weigh-ins to go"), never "28 of 14 days". */
             ((p) => <><strong className="health-hl-figure is-quiet">{p.figure}</strong><span className="health-hl-note">{p.note}</span><span className="health-hl-bar" aria-hidden="true"><i style={{width: `${Math.round(p.share * 100)}%`}}/></span></>)(energyProgress(energy))}
       </a></li>
       <li><a className="health-hl-tile" data-tone="coach" href="#health-coach">
         <span className="health-hl-label">Your coach{coach.answered ? ' · answered' : coach.rateGrams !== null ? ' · this week' : ''}</span>
-        <span className="health-hl-sentence">{coach.sentence}</span>
+        <span className="health-hl-sentence" data-body-figure={coach.rateGrams !== null ? '' : undefined}>{coach.sentence}</span>
         <span className="health-hl-note">{coach.answered ? 'Back next week.' : coach.rateGrams !== null ? 'Keep or adjust your target →' : 'Weekly check-in'}</span>
       </a></li>
     </ul>

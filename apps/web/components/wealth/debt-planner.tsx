@@ -2,10 +2,11 @@
 import {useEffect, useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {ACCOUNTS, isDebtKind} from '../../lib/accounts/schema';
-import {balanceOn} from '../../lib/accounts/net-worth';
+import {balanceOn, owedAfterPayments} from '../../lib/accounts/net-worth';
 import {localDate} from '../../lib/local-date';
 import {formatDate, formatMoney, formatMonth} from '../../lib/visual-format';
-import {EXAMPLE_DEBTS, EXAMPLE_EXTRA, addMonths, centsText, comparePlans, comparisonWords, firstPaymentMonth, parseCents, payoffMonth, planIssue, rateE4, toCents, type PlanComparison, type PlanDebt, type PlanResult} from '../../lib/debt-planner/plan';
+import {EXAMPLE_DEBTS, EXAMPLE_EXTRA, addMonths, centsText, comparePlans, comparisonWords, firstPaymentMonth, lumpMonth, parseCents, payoffMonth, planIssue, planProgress, rateE4, runPlan, toCents, type Lump, type PlanComparison, type PlanDebt, type PlanResult, type Strategy} from '../../lib/debt-planner/plan';
+import {LumpsEditor, OrderEditor, Progress, STRATEGY_WORDS, Schedule, countdownLine, type DraftLump} from './debt-planner-more';
 import {DEBT_PLANNER} from '../../lib/debt-planner/store';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {useChartWidth} from '../charts/use-chart-width';
@@ -24,7 +25,9 @@ import {parseNumberInput} from '../../lib/numbers/parse';
  * saves. Information only: a model, not advice; nothing moves money. With no debts it teaches and offers labelled
  * example figures (never stored). Its own figures are kept only on "Keep" (`zigoals:debt-planner:v1`). Lazy-loaded.
  */
-type Draft = {extra: string; minimums: Record<string, string>; rates: Record<string, string>};
+// Session AV (owner follow-up 1, F-DEBT-PLAN): your own order, one-off payments, the plan the month-by-month table shows.
+type Draft = {extra: string; minimums: Record<string, string>; rates: Record<string, string>; order: string[] | null; lumps: DraftLump[]; shown: Strategy};
+const EMPTY_DRAFT: Draft = {extra: '', minimums: {}, rates: {}, order: null, lumps: [], shown: 'avalanche'};
 type Row = {id: string; name: string; owed: bigint; on: string; accountRate?: string};
 // The chart is drawn at its measured width (labels stay 14 px); the plot keeps room for the labels above and below it.
 const H = 196, PAD = 12, TOP = 22, BOTTOM = 26;
@@ -34,6 +37,8 @@ export default function DebtPlanner() {
   const id = useId(), accounts = useDeviceRecord(ACCOUNTS), stored = useDeviceRecord(DEBT_PLANNER), today = localDate();
   const [draft, setDraft] = useState<Draft | null>(null), [example, setExample] = useState(false), [status, setStatus] = useState('');
   const [currencyPick, setCurrencyPick] = useState<string | null>(null);
+  // Session AV (fresh-agent check q2, rank 16): an edit not yet kept says so beside the Keep button.
+  const [unkept, setUnkept] = useState(false);
   // The person's debts with a balance above zero, per currency (never converted).
   const byCurrency = useMemo(() => {
     const out = new Map<string, Row[]>();
@@ -53,9 +58,9 @@ export default function DebtPlanner() {
     if (!stored.loaded || draft) return;
     const s = stored.data, minimums: Record<string, string> = {}, rates: Record<string, string> = {};
     for (const [k, v] of Object.entries(s.debts ?? {})) { if (v.minimum) minimums[k] = v.minimum; if (v.ratePercent) rates[k] = v.ratePercent; }
-    queueMicrotask(() => setDraft({extra: s.extra ?? '', minimums, rates}));
+    queueMicrotask(() => setDraft({extra: s.extra ?? '', minimums, rates, order: s.order?.length ? [...s.order] : null, lumps: (s.lumps ?? []).map(l => ({month: l.month, amount: l.amount})), shown: s.shown ?? 'avalanche'}));
   }, [stored.loaded, stored.data, draft]);
-  const d = draft ?? {extra: '', minimums: {}, rates: {}};
+  const d = draft ?? EMPTY_DRAFT;
   const rows = example ? [] : byCurrency.get(currency) ?? [];
   const extraCents = d.extra.trim() === '' ? 0n : parseCents(d.extra);
   // The plan's inputs, or the first field that is missing (unknown is never zero).
@@ -75,10 +80,46 @@ export default function DebtPlanner() {
     return {debts, issue: planIssue(debts, extraCents)};
   })();
   // Three plans of at most 1,200 months each: a few milliseconds, worked out on each change (the compiler memoizes).
-  const comparison: PlanComparison | null = input.issue || !input.debts.length ? null : comparePlans(input.debts, example ? (extraCents ?? EXAMPLE_EXTRA) : extraCents ?? 0n);
+  const lumps: Lump[] = d.lumps.flatMap(l => { const month = lumpMonth(today, l.month), cents = parseCents(l.amount); return month && cents ? [{month, cents}] : []; });
+  const order = d.order?.filter(x => input.debts.some(debt => debt.id === x)) ?? [];
+  const planExtra = example ? (extraCents ?? EXAMPLE_EXTRA) : extraCents ?? 0n;
+  const comparison: PlanComparison | null = input.issue || !input.debts.length ? null : comparePlans(input.debts, planExtra, {order, lumps});
+  const setPlan = (change: Partial<Pick<Draft, 'order' | 'lumps' | 'shown'>>) => { setStatus(''); setUnkept(true); setDraft(x => ({...(x ?? d), ...change})); };
+  // The plan kept on "Track this plan", against what the accounts show now (same currency only).
+  const tracked = !example && stored.data.tracked?.currency === currency ? stored.data.tracked : undefined;
+  // Session AV (fresh-agent check q2, rank 16; Undebt.it): a payment recorded under Accounts after a debt's latest balance
+  // lowers what it owes for this comparison (the balance less the payments since it), and the words say so.
+  const owedNow = (() => {
+    const out = new Map<string, bigint>(); let payments = 0;
+    if (!accounts.loaded || accounts.unreadable) return {map: out, payments};
+    for (const a of accounts.data.items) {
+      if (a.archivedAt || !isDebtKind(a.kind) || a.currency !== currency) continue;
+      const o = owedAfterPayments(a, today); if (!o) continue;
+      out.set(a.id, toCents(o.value, o.decimals)); payments += o.payments;
+    }
+    return {map: out, payments};
+  })();
+  const progress = (() => {
+    if (!tracked) return null;
+    try {
+      const debts = tracked.debts.map(x => ({id: x.id, name: x.name, balance: parseCents(x.balance)!, ratePercent: x.ratePercent, minimum: parseCents(x.minimum)!}));
+      return planProgress({on: tracked.on, debts, extra: tracked.extra ? parseCents(tracked.extra) ?? 0n : 0n, strategy: tracked.strategy, order: tracked.order ?? [], lumps: (tracked.lumps ?? []).map(l => ({month: l.month, cents: parseCents(l.amount) ?? 0n}))}, owedNow.map, today);
+    } catch { return null; }
+  })();
+  const track = () => {
+    if (!comparison) return;
+    const strategy: Strategy = d.shown === 'custom' && !comparison.custom ? 'avalanche' : d.shown;
+    try {
+      stored.update(r => ({...r, tracked: {on: today, strategy, currency, ...(planExtra > 0n ? {extra: centsText(planExtra)} : {}),
+        debts: input.debts.map(x => ({id: x.id, name: x.name.slice(0, 100), balance: centsText(x.balance), ratePercent: x.ratePercent, minimum: centsText(x.minimum)})),
+        ...(order.length ? {order} : {}), ...(d.lumps.length ? {lumps: d.lumps} : {})}}));
+      setStatus(`Tracking ${STRATEGY_WORDS[strategy]} from today, on this device.`);
+    } catch (cause) { setStatus(plainErrorMessage(cause, 'Not kept on this device.')); }
+  };
+  const stopTracking = () => { try { stored.update(r => { const {tracked: _t, ...rest} = r; void _t; return rest; }); setStatus('This plan is no longer tracked.'); } catch { setStatus('Not changed.'); } };
   const shown = example ? 'EUR' : currency, money = (cents: bigint) => formatMoney(centsText(cents), shown);
-  const setExtra = (value: string) => { setStatus(''); setDraft(x => ({...(x ?? d), extra: value})); };
-  const setField = (kind: 'minimums' | 'rates', rowId: string) => (e: {target: {value: string}}) => { setStatus(''); setDraft(x => { const base = x ?? d; return {...base, [kind]: {...base[kind], [rowId]: e.target.value}}; }); };
+  const setExtra = (value: string) => { setStatus(''); setUnkept(true); setDraft(x => ({...(x ?? d), extra: value})); };
+  const setField = (kind: 'minimums' | 'rates', rowId: string) => (e: {target: {value: string}}) => { setStatus(''); setUnkept(true); setDraft(x => { const base = x ?? d; return {...base, [kind]: {...base[kind], [rowId]: e.target.value}}; }); };
   const keep = () => {
     try {
       stored.update(r => {
@@ -92,13 +133,13 @@ export default function DebtPlanner() {
         // Debts that are no longer in the accounts are dropped.
         const live = new Set(accounts.data.items.map(a => a.id));
         for (const k of Object.keys(debts)) if (!live.has(k)) delete debts[k];
-        const {extra: _e, ...rest} = r; void _e;
-        return {...rest, currency, debts, ...(extraCents !== null && extraCents > 0n ? {extra: centsText(extraCents)} : {})};
+        const {extra: _e, order: _o, lumps: _l, ...rest} = r; void _e; void _o; void _l;
+        return {...rest, currency, debts, ...(extraCents !== null && extraCents > 0n ? {extra: centsText(extraCents)} : {}), ...(order.length ? {order} : {}), ...(d.lumps.length ? {lumps: d.lumps} : {}), shown: d.shown};
       });
-      setStatus('These figures are kept on this device.');
+      setStatus('These figures are kept on this device.'); setUnkept(false);
     } catch (cause) { setStatus(plainErrorMessage(cause, 'Not kept on this device.')); }
   };
-  const forget = () => { try { stored.clear(); setDraft({extra: '', minimums: {}, rates: {}}); setStatus('The kept figures are removed from this device.'); } catch { setStatus('Not removed.'); } };
+  const forget = () => { try { stored.clear(); setDraft(EMPTY_DRAFT); setUnkept(false); setStatus('The kept figures are removed from this device.'); } catch { setStatus('Not removed.'); } };
   const hasDebts = byCurrency.size > 0;
 
   return <section className="money-panel debt-planner" aria-labelledby={`${id}-title`}>
@@ -125,9 +166,18 @@ export default function DebtPlanner() {
           </li>)}
         </ul>
         <label className="field debt-planner-extra"><span>Extra each month, on top of the minimums ({shown})</span><input inputMode="decimal" autoComplete="off" enterKeyHint="done" value={d.extra} onChange={e => setExtra(e.target.value)} placeholder="0"/></label>
-        {input.issue ? <p role="status" className="debt-planner-issue">{input.issue}</p> : comparison && <Results c={comparison} money={money} today={today}/>}
+        {input.debts.length > 1 && <OrderEditor debts={input.debts} order={d.order} onChange={o => setPlan({order: o, ...(o ? {} : d.shown === 'custom' ? {shown: 'avalanche' as const} : {})})}/>}
+        <LumpsEditor lumps={d.lumps} today={today} currency={shown} money={money} onChange={l => setPlan({lumps: l})}/>
+        {input.issue ? <p role="status" className="debt-planner-issue">{input.issue}</p> : comparison && <>
+          <Results c={comparison} money={money} today={today}/>
+          <Schedule c={comparison} shown={d.shown} onShow={s => setPlan({shown: s})} names={new Map(input.debts.map(x => [x.id, x.name]))} money={money} today={today}
+            plan={s => runPlan(input.debts, planExtra, s, {order, lumps, schedule: true})}/>
+        </>}
+        {progress && tracked && <Progress tracked={tracked} progress={progress} money={money} onStop={stopTracking} payments={owedNow.payments}/>}
         {!example && <div className="money-actions">
           <button type="button" className="secondary" disabled={!stored.loaded || stored.unreadable || !rows.length} onClick={keep}>Keep these figures on this device</button>
+          {unkept && rows.length > 0 && <small className="fine debt-planner-unkept">Your changes are not kept yet: leaving Wealth loses them.</small>}
+          {comparison && !tracked && <button type="button" className="secondary" disabled={!stored.loaded || stored.unreadable} onClick={track}>Track this plan</button>}
           {(stored.data.extra || stored.data.debts) && <button type="button" className="quiet" onClick={forget}>Forget them</button>}
         </div>}
         <p className="fine">A model, not advice. It assumes your rates and payments stay the same, interest is added each month at your yearly rate ÷ 12, and nothing new is borrowed. Your lender&rsquo;s figures can differ. Nothing here moves money.</p>
@@ -142,7 +192,7 @@ function Results({c, money, today}: {c: PlanComparison; money: (cents: bigint) =
     <h4>{title}</h4><p className="fine">{how}</p>
     {r.months === null ? <p>Not cleared within 100 years with these payments.</p> : <>
       <p className="debt-plan-date">Debt-free by <strong>{month(r)}</strong></p>
-      <p className="fine">after {months(r.months)}</p>
+      <p className="fine debt-plan-countdown">{countdownLine(r)} · after {months(r.months)}</p>
       <dl><div><dt>Interest</dt><dd>{money(r.totalInterest)}</dd></div>
         <div><dt>Saved against minimums only</dt><dd>{saved === null ? (c.minimums.months === null ? 'Minimums alone do not clear it' : '—') : money(saved)}</dd></div></dl>
     </>}
@@ -152,6 +202,7 @@ function Results({c, money, today}: {c: PlanComparison; money: (cents: bigint) =
     <div className="debt-plan-cards">
       {card(c.snowball, 'Snowball', 'Smallest balance first', c.savedSnowball)}
       {card(c.avalanche, 'Avalanche', 'Highest rate first', c.savedAvalanche)}
+      {c.custom && card(c.custom, 'Your order', 'The order you chose', c.savedCustom ?? null)}
     </div>
     <p className="fine">Minimums only: {c.minimums.months === null ? 'not cleared within 100 years' : <>debt-free by {month(c.minimums)} ({months(c.minimums.months)}), {money(c.minimums.totalInterest)} in interest</>}.</p>
     <Chart c={c} money={money} today={today}/>

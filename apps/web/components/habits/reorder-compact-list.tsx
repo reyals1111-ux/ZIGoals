@@ -4,6 +4,8 @@ import {cellWords, type CompactRow} from '../../lib/habits-order/compact';
 import {formatDate, formatWeekday} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
 import './reorder.css';
+import {useHabitExtrasContext} from './habit-extras-context';
+import {HabitLookMark} from './habit-look-mark';
 
 /**
  * Session AK (5.7): the Habits page's compact list mode: one row per habit (in the person's order) with its last five
@@ -12,6 +14,7 @@ import './reorder.css';
  * toast and Undo. Days that cannot change (not scheduled, skipped, paused, a quit or limit habit) are shown, not tappable.
  */
 export function CompactHabitList({rows, onToggle, onOpen}: {rows: readonly CompactRow[]; onToggle: (habitId: string, date: string, done: boolean) => void | Promise<void>; onOpen?: (habitId: string) => void}) {
+  const extras = useHabitExtrasContext(), looks = extras?.loaded && !extras.unreadable ? extras.data : null; // Session AV (q4 #26)
   const [busy, setBusy] = useState<string | null>(null), [error, setError] = useState('');
   if (!rows.length) return <p className="habit-compact-empty">No habits yet. Start with one small one, for example “Drink a glass of water”.</p>;
   const days = rows[0]!.cells.map(c => c.date);
@@ -25,7 +28,7 @@ export function CompactHabitList({rows, onToggle, onOpen}: {rows: readonly Compa
       <caption className="sr-only">Your habits over the last {days.length} days</caption>
       <thead><tr><th scope="col">Habit</th>{days.map((d, i) => <th scope="col" key={d}><abbr title={formatDate(d, {weekday: true})}>{i === days.length - 1 ? 'Today' : formatWeekday(d)}</abbr></th>)}</tr></thead>
       <tbody>{rows.map(row => <tr key={row.id} data-today={row.today}>
-        <th scope="row">{onOpen ? <button type="button" className="habit-compact-title" onClick={() => onOpen(row.id)}>{row.title}</button> : <span className="habit-compact-title">{row.title}</span>}</th>
+        <th scope="row">{onOpen ? <button type="button" className="habit-compact-title" onClick={() => onOpen(row.id)}><HabitLookMark extras={looks} habitId={row.id}/>{row.title}</button> : <span className="habit-compact-title"><HabitLookMark extras={looks} habitId={row.id}/>{row.title}</span>}</th>
         {row.cells.map(cell => {
           const label = `${row.title}, ${formatDate(cell.date, {weekday: true})}: ${cellWords(cell.status)}`;
           return <td key={cell.date} data-status={cell.status}>{cell.tappable

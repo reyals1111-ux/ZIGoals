@@ -27,6 +27,14 @@ export const DAYS: readonly Intent[] = [
   {id: 'tasks-priority', pillar: 'tasks',
     en: ['which tasks have high priority', 'what are my important tasks'],
     nl: ['welke taken hebben hoge prioriteit', 'wat zijn mijn belangrijke taken']},
+  // Session AV (owner follow-up 1, F-DEADLINES): the deadlines, apart from the planned days.
+  // Session AV (owner follow-up 1, F-TASK-MINUTES): how long the day's tasks take.
+  {id: 'tasks-minutes', pillar: 'tasks',
+    en: ['how long will my tasks take today', 'how much time do my tasks take today'],
+    nl: ['hoe lang duren mijn taken vandaag', 'hoeveel minuten nemen mijn taken vandaag']},
+  {id: 'tasks-deadlines', pillar: 'tasks',
+    en: ['which tasks have a deadline', 'what are my task deadlines', 'any task deadlines coming up'],
+    nl: ['welke taken hebben een deadline', 'wat zijn de deadlines van mijn taken']},
   {id: 'tasks-next', pillar: 'tasks',
     en: ['what is my next task', 'which task is next'],
     nl: ['wat is mijn volgende taak', 'welke taak is de volgende']},
@@ -115,4 +123,8 @@ export const DAYS: readonly Intent[] = [
   {id: 'unknown-spending', pillar: 'nova',
     en: ['is my spending normal for someone like me', 'do other people spend as much as me'],
     nl: ['zijn mijn uitgaven normaal voor iemand zoals ik', 'zijn mijn uitgaven hoger dan die van andere mensen']},
+  // Session AU (REHEARSAL R-4): today's date (by the person's own day end: a night owl's in au-rehearsal.test.ts).
+  {id: 'au-r4-date', pillar: 'agenda', never: ['habits', 'gewoontes'],
+    en: ['What day is it?', "what's the date", 'what is the date today'],
+    nl: ['Welke dag is het?', 'welke datum is het vandaag']},
 ];

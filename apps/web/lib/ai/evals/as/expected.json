@@ -2251,6 +2251,67 @@
   "fresh": "No meditation session is logged last week (Mon, Nov 9 to Sun, Nov 15).",
   "freshNl": "Nog geen meditatie gelogd."
  },
+ "au-r1-habit-streak": {
+  "en": "Your current Drink water streak is 26 days (longest: 26 days).\n- The current one runs since Fri, Oct 23: a streak counts scheduled days in a row across months, and a skipped day keeps it going (skipped days never count against you), so it can be longer than one month’s check-ins",
+  "nl": "Drink water: nu 26 dagen op rij; je langste reeks is 26 dagen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No water is logged today (Tue, Nov 17).",
+  "freshNl": "Nog geen water gelogd."
+ },
+ "au-r12-habit-missed": {
+  "en": "Drink water: no missed day this month (Sun, Nov 1 to Tue, Nov 17). Skipped (not counted as missed): Sun, Nov 1 and Tue, Nov 10. Today is still open.",
+  "nl": "Drink water: geen gemiste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.",
+  "facts": {
+   "about": "Drink water",
+   "subject": "92000000-0000-4000-8000-000000000006",
+   "ask": "missed",
+   "period": {
+    "token": "this-month",
+    "from": "2026-11-01",
+    "to": "2026-11-17"
+   },
+   "due": 17,
+   "done": 14,
+   "missed": 0,
+   "skipped": 2,
+   "part": 0,
+   "open": 1,
+   "notLogged": 0,
+   "dates": {
+    "missed": [],
+    "skipped": [
+     "2026-11-01",
+     "2026-11-10"
+    ],
+    "part": [],
+    "notLogged": [],
+    "done": [
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-07",
+     "2026-11-08",
+     "2026-11-09",
+     "2026-11-11",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-14",
+     "2026-11-15",
+     "2026-11-16"
+    ]
+   },
+   "count": 0,
+   "days": []
+  },
+  "widgets": [
+   "habit-missed-days"
+  ],
+  "fresh": "No water logged yet.",
+  "freshNl": "Nog geen water gelogd."
+ },
  "water-today": {
   "en": "You logged 1,000 mL of water today (Tue, Nov 17).",
   "nl": "Water: 1,000 mL vandaag, van je doel van 2,000 mL. Nog 1,000 mL te gaan.",
@@ -3561,6 +3622,118 @@
   "fresh": "Nothing is recorded on Health yet.",
   "freshNl": "Er is nog niets vastgelegd bij Health."
  },
+ "au-r2-lift-today": {
+  "en": "Nothing lifted is logged today (Tue, Nov 17). Your last lifting day was Mon, Nov 16: Push day — Bench press 3 sets, top 62.5 kg × 8; Overhead press 2 sets, top 37.5 kg × 8; Triceps pushdown 2 sets, top 27.5 kg × 12.",
+  "nl": "Er is vandaag (Tue, Nov 17) niets getild gelogd. Je laatste keer was Mon, Nov 16: Push day — Bench press 3 sets, zwaarst 62.5 kg × 8; Overhead press 2 sets, zwaarst 37.5 kg × 8; Triceps pushdown 2 sets, zwaarst 27.5 kg × 12.",
+  "facts": {
+   "about": "workouts",
+   "ask": "done",
+   "period": {
+    "token": "today",
+    "from": "2026-11-17",
+    "to": "2026-11-17"
+   },
+   "workouts": []
+  },
+  "widgets": [
+   "workouts"
+  ],
+  "fresh": "Nothing lifted is logged today (Tue, Nov 17). No strength workout is logged yet.",
+  "freshNl": "Er is vandaag (Tue, Nov 17) niets getild gelogd. Er is nog geen krachttraining gelogd."
+ },
+ "au-r2-lift-yesterday": {
+  "en": "Lifted yesterday (Mon, Nov 16): Push day — Bench press 3 sets, top 62.5 kg × 8; Overhead press 2 sets, top 37.5 kg × 8; Triceps pushdown 2 sets, top 27.5 kg × 12.",
+  "nl": "Getild gisteren (Mon, Nov 16): Push day — Bench press 3 sets, zwaarst 62.5 kg × 8; Overhead press 2 sets, zwaarst 37.5 kg × 8; Triceps pushdown 2 sets, zwaarst 27.5 kg × 12.",
+  "facts": {
+   "about": "workouts",
+   "ask": "done",
+   "period": {
+    "token": "yesterday",
+    "from": "2026-11-16",
+    "to": "2026-11-16"
+   },
+   "workouts": [
+    {
+     "workout": "Push day",
+     "day": "2026-11-16",
+     "exercises": [
+      {
+       "name": "Bench press",
+       "sets": 3,
+       "topKg": 62.5,
+       "reps": 8
+      },
+      {
+       "name": "Overhead press",
+       "sets": 2,
+       "topKg": 37.5,
+       "reps": 8
+      },
+      {
+       "name": "Triceps pushdown",
+       "sets": 2,
+       "topKg": 27.5,
+       "reps": 12
+      }
+     ]
+    }
+   ]
+  },
+  "widgets": [
+   "workouts"
+  ],
+  "fresh": "Nothing lifted is logged yesterday (Mon, Nov 16). No strength workout is logged yet.",
+  "freshNl": "Er is gisteren (Mon, Nov 16) niets getild gelogd. Er is nog geen krachttraining gelogd."
+ },
+ "au-r3-run-week": {
+  "en": "No run is logged this week (Mon, Nov 16 to Tue, Nov 17). The last one: Sun, Nov 15, 6 km.",
+  "nl": "Er is deze week (Mon, Nov 16 t/m Tue, Nov 17) geen loop gelogd. De laatste: Sun, Nov 15, 6 km.",
+  "facts": {
+   "about": "workouts",
+   "ask": "done",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "km": 0,
+   "count": 0,
+   "workouts": []
+  },
+  "widgets": [
+   "workout-days"
+  ],
+  "fresh": "No run is logged this week (Mon, Nov 16 to Tue, Nov 17).",
+  "freshNl": "Er is deze week (Mon, Nov 16 t/m Tue, Nov 17) geen loop gelogd."
+ },
+ "au-r3-run-lastweek": {
+  "en": "You ran 6 km last week (Mon, Nov 9 to Sun, Nov 15), in 1 run: 6 km on Sun, Nov 15.",
+  "nl": "Je liep 6 km vorige week (Mon, Nov 9 t/m Sun, Nov 15), in 1 loop: 6 km op Sun, Nov 15.",
+  "facts": {
+   "about": "workouts",
+   "ask": "done",
+   "period": {
+    "token": "last-week",
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+   },
+   "km": 6,
+   "count": 1,
+   "workouts": [
+    {
+     "workout": "Easy run",
+     "day": "2026-11-15",
+     "km": 6,
+     "imported": false
+    }
+   ]
+  },
+  "widgets": [
+   "workout-days"
+  ],
+  "fresh": "No run is logged last week (Mon, Nov 9 to Sun, Nov 15).",
+  "freshNl": "Er is vorige week (Mon, Nov 9 t/m Sun, Nov 15) geen loop gelogd."
+ },
  "spend-month": {
   "en": "You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
   "nl": "Je gaf deze maand 435.59 EUR uit. Grootste: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
@@ -3570,8 +3743,8 @@
   "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
  },
  "spend-lastmonth": {
-  "en": "You spent 176.40 EUR last month. Biggest: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf vorige maand 176.40 EUR uit. Grootste: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "en": "You spent 190.39 EUR last month. Biggest: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
+  "nl": "Je gaf vorige maand 190.39 EUR uit. Grootste: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
@@ -3670,8 +3843,8 @@
   "freshNl": "Nog geen uitgaven gelogd."
  },
  "spend-top-lastmonth": {
-  "en": "€176.40 spent last month (Thu, Oct 1 to Sat, Oct 31); most on Groceries €80.90 (46%), Gifts €58.00 (33%), Food & drink €22.50 (13%) and Health €15.00 (9%).",
-  "nl": "€176.40 uitgegeven vorige maand (Thu, Oct 1 t/m Sat, Oct 31); het meest aan Groceries €80.90 (46%), Gifts €58.00 (33%), Food & drink €22.50 (13%) en Health €15.00 (9%).",
+  "en": "€190.39 spent last month (Thu, Oct 1 to Sat, Oct 31); most on Groceries €80.90 (42%), Gifts €58.00 (30%), Food & drink €22.50 (12%) and Health €15.00 (8%).",
+  "nl": "€190.39 uitgegeven vorige maand (Thu, Oct 1 t/m Sat, Oct 31); het meest aan Groceries €80.90 (42%), Gifts €58.00 (30%), Food & drink €22.50 (12%) en Health €15.00 (8%).",
   "facts": {
    "about": "spending",
    "ask": "best",
@@ -3681,8 +3854,8 @@
     "to": "2026-10-31"
    },
    "currency": "EUR",
-   "totalCents": 17640,
-   "entries": 5,
+   "totalCents": 19039,
+   "entries": 6,
    "categories": [
     {
      "category": "Groceries",
@@ -3699,6 +3872,10 @@
     {
      "category": "Health",
      "cents": 1500
+    },
+    {
+     "category": "Subscriptions",
+     "cents": 1399
     }
    ]
   },
@@ -3775,8 +3952,8 @@
   "freshNl": "Nog geen uitgaven gelogd."
  },
  "spend-compare-months": {
-  "en": "€435.59 spent this month; €176.40 last month, €259.19 more.",
-  "nl": "€435.59 uitgegeven deze maand; €176.40 vorige maand, €259.19 meer.",
+  "en": "€435.59 spent this month; €190.39 last month, €245.20 more.",
+  "nl": "€435.59 uitgegeven deze maand; €190.39 vorige maand, €245.20 meer.",
   "facts": {
    "about": "spending",
    "ask": "compare",
@@ -3827,7 +4004,7 @@
     "before": {
      "from": "2026-10-01",
      "to": "2026-10-31",
-     "cents": 17640
+     "cents": 19039
     }
    }
   },
@@ -4054,7 +4231,7 @@
   "freshNl": "Nog geen inkomsten gelogd."
  },
  "budgets-over": {
-  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
+  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left; target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
   "nl": "Geen budget is deze maand overschreden: alle 3 zitten binnen plan.",
   "facts": null,
   "widgets": [],
@@ -4062,7 +4239,7 @@
   "freshNl": "Je hebt nog geen budgetten."
  },
  "budgets-status": {
-  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
+  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left; target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
   "nl": "3 van 3 budgetten binnen plan deze maand: Groceries €187.10 van €250.00, Food & drink €49.10 van €120.00 en Fun €24.00 van €60.00.",
   "facts": null,
   "widgets": [],
@@ -4287,6 +4464,22 @@
   "widgets": [],
   "fresh": "No holdings are tracked in Wealth yet.",
   "freshNl": "Er wordt nog niets gevolgd bij Wealth."
+ },
+ "coin-btc": {
+  "en": "You hold 0.45 BTC in Wealth (1 holding), with no price, so no value.\n- Portfolio (separate from Wealth): no BTC in a Real portfolio",
+  "nl": "Je hebt 0.45 BTC in Wealth (1 positie), zonder prijs, dus zonder waarde.\n- Portfolio (los van Wealth): geen BTC in een Real-portfolio",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no BTC recorded in Wealth, so there is no amount to show.\n- To track it: Wealth → + Add asset → Crypto, then BTC and the amount you hold",
+  "freshNl": "Je hebt geen BTC vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.\n- Om het bij te houden: Wealth → + Add asset → Crypto, dan BTC en de hoeveelheid die je hebt"
+ },
+ "coin-eth": {
+  "en": "You hold 4 ETH in Wealth (1 holding), with no price, so no value.\n- Portfolio (separate from Wealth): no ETH in a Real portfolio",
+  "nl": "Je hebt 4 ETH in Wealth (1 positie), zonder prijs, dus zonder waarde.\n- Portfolio (los van Wealth): geen ETH in een Real-portfolio",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no ETH recorded in Wealth, so there is no amount to show.\n- To track it: Wealth → + Add asset → Crypto, then ETH and the amount you hold",
+  "freshNl": "Je hebt geen ETH vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.\n- Om het bij te houden: Wealth → + Add asset → Crypto, dan ETH en de hoeveelheid die je hebt"
  },
  "goals-status": {
   "en": "7 active goals, from your own records:\n• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20\n• First home deposit: 65% — $52,000 of $80,000, $28,000 to go; next planned Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 of $6,000, $3,500 to go; next planned Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones of 4 milestones, 2 milestones to go\n• Reward income reserve: 50% — 10,000 ZIG of 20,000 ZIG, 10,000 ZIG to go; next planned Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day of at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night of at least 8 h a night\n3 goals completed.\nAsk about one goal by its name for its plan and pace. Your own figures; not financial advice.",
@@ -4746,9 +4939,150 @@
   "fresh": "No goal is called “emergency fund”. You have no goals yet; Goals → Create a goal starts one.",
   "freshNl": "Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:"
  },
+ "goal-emergency-eta": {
+  "en": "At your current pace, you reach Emergency fund about Jan 31, 2028 — an estimate from your pace so far, not a promise. Target date Thu, Nov 16, 2028; $11,000.00 still to go.",
+  "nl": "In je huidige tempo haal je Emergency fund rond Jan 31, 2028 — een schatting op basis van je tempo tot nu toe, geen belofte. Streefdatum Thu, Nov 16, 2028; nog $11,000.00 te gaan.",
+  "facts": {
+   "about": "goals",
+   "ask": "done",
+   "goal": "Emergency fund",
+   "pace": "estimate",
+   "estimate": "2028-01-31",
+   "estimateMonth": "2028-01",
+   "targetDate": "2028-11-16",
+   "remaining": "11000 USD"
+  },
+  "widgets": [
+   "goal-focus"
+  ],
+  "fresh": "That isn’t something I can answer from your records here. Without a brain I answer about your habits, Checklist, tasks, goals, Health (once you share it) and money, and I prepare cards you confirm for check-offs, tasks and new habits.\nUntil you give me a brain, I answer from your own records on this device. For example:",
+  "freshNl": "Je hebt nog geen doelen."
+ },
+ "goal-japan-eta": {
+  "en": "No pace yet for Japan adventure: there is not enough recorded progress yet (a pace needs at least 3 recorded steps over 14 days or more). Target date Fri, Apr 16, 2027; $3,500.00 still to go.",
+  "nl": "Nog geen tempo voor Japan adventure: er is nog te weinig vastgelegde voortgang (een tempo vraagt minstens 3 vastgelegde stappen over 14 dagen of meer). Streefdatum Fri, Apr 16, 2027; nog $3,500.00 te gaan.",
+  "facts": {
+   "about": "goals",
+   "ask": "done",
+   "goal": "Japan adventure",
+   "pace": "not-enough",
+   "estimate": null,
+   "estimateMonth": null,
+   "targetDate": "2027-04-16",
+   "remaining": "3500 USD"
+  },
+  "widgets": [
+   "goal-focus"
+  ],
+  "fresh": "You have no goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
+  "freshNl": "Je hebt nog geen doelen."
+ },
+ "au-r6-bill-price": {
+  "en": "Streaming went up from €12.99 to €13.99 since Jul 2026. From their payments in your money log, as Bills → Price changes shows them.",
+  "nl": "Streaming ging omhoog van €12.99 naar €13.99 sinds Jul 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.",
+  "facts": {
+   "about": "bills",
+   "ask": "done",
+   "compared": 1,
+   "changes": [
+    {
+     "bill": "Streaming",
+     "direction": "up",
+     "previousCents": 1299,
+     "latestCents": 1399,
+     "currency": "EUR",
+     "previousDate": "2026-07-26",
+     "latestDate": "2026-10-25"
+    }
+   ]
+  },
+  "widgets": [
+   "bill-timeline"
+  ],
+  "fresh": "No price change can be seen: a bill’s price is compared between its own payments in your money log, and none of your bills is linked to payments there (a bill added by hand is not).",
+  "freshNl": "Geen prijswijziging te zien: de prijs van een rekening wordt vergeleken tussen de eigen betalingen in je geldlog, en geen van je rekeningen is daar aan betalingen gekoppeld (een rekening die je zelf toevoegde niet)."
+ },
+ "au-r7-coin-price": {
+  "en": "Wealth: no price for BTC on this device yet (the Wealth page shows the same).\nPortfolio “Fictional long-term coins”: 65,000 USD (Showcase example price).\nPrices as these pages show them; facts only, not advice.",
+  "nl": "Vermogen: nog geen prijs voor BTC op dit apparaat (de Vermogen-pagina toont hetzelfde).\nPortfolio “Fictional long-term coins”: 65,000 USD (Showcase example price).\nPrijzen zoals deze pagina’s ze tonen; alleen feiten, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "BTC is not tracked in Wealth or Portfolio and no BTC price has reached Markets on this device, so I give none: I read prices only where the app already has them. Markets shows the price with its source and time.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"markets\"}\n```",
+  "freshNl": "BTC staat niet in Vermogen of Portfolio en er is op dit apparaat geen BTC-prijs bij Markten binnengekomen, dus ik noem er geen: ik lees prijzen alleen waar de app ze al heeft. Markten toont de prijs met de bron en het tijdstip.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"markets\"}\n```"
+ },
+ "au-r8-stake-earn": {
+  "en": "NOVA has not read a measured rate from Earn in this visit, so I give no figure: open Earn for today’s rates.\n\nEarn shows each way to earn with its current rate, with its source and when it was read. Any figure is an estimate of what a stake earned lately, not a promise of what it will earn: rates change, a validator can be slashed, and ZIG’s price can move. Your ZIG stays in your own account while it is staked.\n\nExplained by ZIGoals · not advice\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"earn\"}\n```",
+  "nl": "NOVA heeft in dit bezoek geen gemeten rendement van Earn gelezen, dus ik noem geen bedrag: open Earn voor de cijfers van nu.\n\nEarn toont bij elke manier om te verdienen het huidige rendement, met de bron en het moment waarop het gelezen is. Elk cijfer is een schatting van wat een stake de laatste tijd opleverde, geen belofte van wat hij gaat opleveren: rendementen veranderen, een validator kan geslasht worden en de prijs van ZIG kan bewegen. Je ZIG blijft in je eigen account terwijl hij gestaket is.\n\nUitgelegd door ZIGoals · geen advies\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"earn\"}\n```",
+  "facts": null,
+  "widgets": [],
+  "fresh": "NOVA has not read a measured rate from Earn in this visit, so I give no figure: open Earn for today’s rates.\n\nEarn shows each way to earn with its current rate, with its source and when it was read. Any figure is an estimate of what a stake earned lately, not a promise of what it will earn: rates change, a validator can be slashed, and ZIG’s price can move. Your ZIG stays in your own account while it is staked.\n\nExplained by ZIGoals · not advice\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"earn\"}\n```",
+  "freshNl": "NOVA heeft in dit bezoek geen gemeten rendement van Earn gelezen, dus ik noem geen bedrag: open Earn voor de cijfers van nu.\n\nEarn toont bij elke manier om te verdienen het huidige rendement, met de bron en het moment waarop het gelezen is. Elk cijfer is een schatting van wat een stake de laatste tijd opleverde, geen belofte van wat hij gaat opleveren: rendementen veranderen, een validator kan geslasht worden en de prijs van ZIG kan bewegen. Je ZIG blijft in je eigen account terwijl hij gestaket is.\n\nUitgelegd door ZIGoals · geen advies\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"earn\"}\n```"
+ },
+ "au-r10-stake-safe": {
+  "en": "The facts, not advice: staked ZIG stays in your own account, and only your signature moves it. A validator that misbehaves can be slashed: a share of the stake behind it, yours included, is lost. Unstaking takes a waiting period (unbonding) before your ZIG is free again. ZIGoals is an unaudited Alpha and never holds your keys. Whether it is right for you is your call.\n\nExplained by ZIGoals · not advice\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"earn\"}\n```",
+  "nl": "De feiten, geen advies: gestakete ZIG blijft in je eigen account, en alleen jouw handtekening verplaatst hem. Een validator die zich misdraagt kan geslasht worden: een deel van de stake erachter, ook de jouwe, gaat verloren. Unstaken kent een wachttijd (unbonding) voordat je ZIG weer vrij is. ZIGoals is een niet-geaudite Alpha en houdt nooit je sleutels. Of het bij jou past, beslis je zelf.\n\nUitgelegd door ZIGoals · geen advies\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"earn\"}\n```",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The facts, not advice: staked ZIG stays in your own account, and only your signature moves it. A validator that misbehaves can be slashed: a share of the stake behind it, yours included, is lost. Unstaking takes a waiting period (unbonding) before your ZIG is free again. ZIGoals is an unaudited Alpha and never holds your keys. Whether it is right for you is your call.\n\nExplained by ZIGoals · not advice\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"earn\"}\n```",
+  "freshNl": "De feiten, geen advies: gestakete ZIG blijft in je eigen account, en alleen jouw handtekening verplaatst hem. Een validator die zich misdraagt kan geslasht worden: een deel van de stake erachter, ook de jouwe, gaat verloren. Unstaken kent een wachttijd (unbonding) voordat je ZIG weer vrij is. ZIGoals is een niet-geaudite Alpha en houdt nooit je sleutels. Of het bij jou past, beslis je zelf.\n\nUitgelegd door ZIGoals · geen advies\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"earn\"}\n```"
+ },
+ "au-r11-next-bill": {
+  "en": "Next bill: Rent €950.00, in 14 days (Tue, Dec 1); 3 more after it.",
+  "nl": "Volgende rekening: Rent €950.00, over 14 dagen (Tue, Dec 1); daarna nog 3.",
+  "facts": {
+   "about": "bills",
+   "ask": "next",
+   "count": 4,
+   "bills": [
+    {
+     "bill": "Rent",
+     "amount": "€950.00",
+     "due": "2026-12-01",
+     "days": 14,
+     "overdue": false
+    },
+    {
+     "bill": "Energy",
+     "amount": "€120.00",
+     "due": "2026-12-08",
+     "days": 21,
+     "overdue": false
+    },
+    {
+     "bill": "Music",
+     "amount": "€9.99",
+     "due": "2026-12-14",
+     "days": 27,
+     "overdue": false
+    },
+    {
+     "bill": "Home insurance",
+     "amount": "€180.00",
+     "due": "2027-01-01",
+     "days": 45,
+     "overdue": false
+    }
+   ],
+   "next": "Rent"
+  },
+  "widgets": [
+   "bill-dial",
+   "bill-timeline"
+  ],
+  "fresh": "No bill reminders yet.",
+  "freshNl": "Nog geen rekeningen als herinnering."
+ },
+ "av-debt-free": {
+  "en": "From your own figures (Wealth → What you owe → Plan paying off your debts):\n• USD (2 debts, $100.00 extra a month): debt-free in Apr 2028 (in 1 year and 5 months, $316.87 interest) with avalanche; Apr 2028 (in 1 year and 5 months, $316.87 interest) with snowball; minimums only: Oct 2029 (in 2 years and 11 months, $672.30 interest). Both orders come out the same here: debt-free after 17 months, with the same interest.\nA model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed. Nothing is paid or moved.",
+  "nl": "USD: schuldenvrij in Apr 2028 (over 1 jaar en 5 maanden, $316.87 rente) met lawine, Apr 2028 (over 1 jaar en 5 maanden, $316.87 rente) met sneeuwbal; alleen de minimumbedragen: Oct 2029 (over 2 jaar en 11 maanden, $672.30 rente). Uit je eigen bedragen in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts); een model, geen advies: er wordt niets betaald of verplaatst.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No debt with a balance is recorded on this device, so there is no debt-free month to work out. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth, with what you owe and your yearly rate.",
+  "freshNl": "Er staat op dit apparaat geen schuld met een saldo, dus er is geen maand om schuldenvrij te zijn uit te rekenen."
+ },
  "tasks-overdue": {
   "en": "2 tasks are overdue: Sketch the garden bed (due Mon, Nov 16) and Book the dentist (due today 10:30 AM).",
-  "nl": "2 taken zijn te laat: Sketch the garden bed (gepland Mon, Nov 16) en Book the dentist (gepland vandaag 10:30 AM).",
+  "nl": "2 taken zijn te laat: Sketch the garden bed (gepland ma 16 nov) en Book the dentist (gepland vandaag 10:30).",
   "facts": {
    "about": "tasks",
    "ask": "late",
@@ -4767,7 +5101,7 @@
  },
  "tasks-open": {
   "en": "5 open tasks: 0 due today, 2 overdue.\n• Example · Sketch the garden bed — overdue since Nov 16, 2026, for First home deposit\n• Example · Book the dentist — due Nov 17, 2026 at 10:30 AM, late (high)\n• Example · Compare two savings accounts — due Nov 19, 2026, for Emergency fund\n• Example · Draft the trip budget — due Nov 22, 2026, for Emergency fund\n• Example · Sort the photo folder",
-  "nl": "5 open taken, 2 te laat: Sketch the garden bed (gepland Mon, Nov 16), Book the dentist (gepland vandaag 10:30 AM), Compare two savings accounts (gepland Thu, Nov 19), Draft the trip budget (gepland Sun, Nov 22) en Sort the photo folder.",
+  "nl": "5 open taken, 2 te laat: Sketch the garden bed (gepland ma 16 nov), Book the dentist (gepland vandaag 10:30), Compare two savings accounts (gepland do 19 nov), Draft the trip budget (gepland zo 22 nov) en Sort the photo folder.",
   "facts": null,
   "widgets": [],
   "fresh": "No task is kept on this device yet.",
@@ -4775,7 +5109,7 @@
  },
  "tasks-tomorrow": {
   "en": "No task is due tomorrow; 2 overdue: Sketch the garden bed (due Mon, Nov 16) and Book the dentist (due today 10:30 AM).",
-  "nl": "Er staat geen taak gepland voor morgen; 2 te laat: Sketch the garden bed (gepland Mon, Nov 16) en Book the dentist (gepland vandaag 10:30 AM).",
+  "nl": "Er staat geen taak gepland voor morgen; 2 te laat: Sketch the garden bed (gepland ma 16 nov) en Book the dentist (gepland vandaag 10:30).",
   "facts": {
    "about": "tasks",
    "ask": "open",
@@ -4796,7 +5130,7 @@
  },
  "tasks-week": {
   "en": "3 tasks are due the rest of this week: Book the dentist (due today 10:30 AM), Compare two savings accounts (due Thu, Nov 19) and Draft the trip budget (due Sun, Nov 22). 2 overdue.",
-  "nl": "3 taken staan gepland voor de rest van deze week: Book the dentist (gepland vandaag 10:30 AM), Compare two savings accounts (gepland Thu, Nov 19) en Draft the trip budget (gepland Sun, Nov 22). 2 te laat.",
+  "nl": "3 taken staan gepland voor de rest van deze week: Book the dentist (gepland vandaag 10:30), Compare two savings accounts (gepland do 19 nov) en Draft the trip budget (gepland zo 22 nov). 2 te laat.",
   "facts": {
    "about": "tasks",
    "ask": "open",
@@ -4863,15 +5197,31 @@
  },
  "tasks-priority": {
   "en": "1 open high-priority task:\n• Example · Book the dentist — due Nov 17, 2026 at 10:30 AM",
-  "nl": "1 open taak met hoge prioriteit: Book the dentist (gepland vandaag 10:30 AM).",
+  "nl": "1 open taak met hoge prioriteit: Book the dentist (gepland vandaag 10:30).",
   "facts": null,
   "widgets": [],
   "fresh": "No open task has high priority.",
   "freshNl": "Nog geen taken."
  },
+ "tasks-minutes": {
+  "en": "About 15 min planned for today:\n• Example · Book the dentist — 15 min",
+  "nl": "Ongeveer 15 min gepland voor vandaag: Book the dentist (15 min).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task is planned for today.",
+  "freshNl": "Nog geen taken."
+ },
+ "tasks-deadlines": {
+  "en": "1 open task with a deadline:\n• Example · Draft the trip budget — deadline Nov 25, 2026; planned Nov 22, 2026",
+  "nl": "1 open taak heeft een deadline: Draft the trip budget (deadline wo 25 nov).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task has a deadline.",
+  "freshNl": "Nog geen taken."
+ },
  "tasks-next": {
   "en": "Next: Example · Sketch the garden bed — overdue since Nov 16, 2026.",
-  "nl": "De volgende: Sketch the garden bed (gepland Mon, Nov 16).",
+  "nl": "De volgende: Sketch the garden bed (gepland ma 16 nov).",
   "facts": null,
   "widgets": [],
   "fresh": "No task is open.",
@@ -5906,5 +6256,341 @@
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
   "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+ },
+ "au-r4-date": {
+  "en": "It's Tuesday, Nov 17.",
+  "nl": "Het is dinsdag, Nov 17.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "It's Tuesday, Nov 17.",
+  "freshNl": "Het is dinsdag, Nov 17."
+ },
+ "av-task-reminders": {
+  "en": "No open task has a reminder yet. In Tasks, open a task with a day and choose a Reminder (at the time, or a while before).",
+  "nl": "Nog geen open taak heeft een herinnering. Open in Tasks een taak met een dag en kies een Reminder (op het moment zelf, of wat eerder).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task has a reminder yet. In Tasks, open a task with a day and choose a Reminder (at the time, or a while before).",
+  "freshNl": "Nog geen open taak heeft een herinnering. Open in Tasks een taak met een dag en kies een Reminder (op het moment zelf, of wat eerder)."
+ },
+ "av-weekly-intention": {
+  "en": "Your intention from the weekly review you finished on Sun, Nov 8: “SHOWCASE DATA · fictional intention: one short walk after lunch”.",
+  "nl": "Je voornemen uit de weekreview die je op zo 8 nov afrondde: “SHOWCASE DATA · fictional intention: one short walk after lunch”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No weekly review with an intention is kept yet: the weekly review asks for one as its last step.",
+  "freshNl": "Er is nog geen weekreview met een voornemen: de weekreview vraagt er als laatste stap om."
+ },
+ "av-countdown-until": {
+  "en": "Example · Mum’s birthday: in 3 days, on Fri, Nov 20 (every year; a reminder a week before).",
+  "nl": "Example · Mum’s birthday: over 3 dagen, op vr 20 nov (elk jaar; een herinnering een week van tevoren).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No countdown for “mum's birthday” is kept. Today → Days until adds one (with “Every year” for a birthday).",
+  "freshNl": "Er staat geen countdown voor “de verjaardag van mama”. Today → Days until voegt er een toe (met “Every year” voor een verjaardag)."
+ },
+ "av-countdowns-list": {
+  "en": "2 countdowns:\n• Example · Mum’s birthday: in 3 days, on Fri, Nov 20 (every year; a reminder a week before)\n• Example · Trip to Lisbon: in 16 days, on Thu, Dec 3",
+  "nl": "2 countdowns:\n• Example · Mum’s birthday: over 3 dagen, op vr 20 nov (elk jaar; een herinnering een week van tevoren)\n• Example · Trip to Lisbon: over 16 dagen, op do 3 dec",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No countdown is kept yet. Today → Days until adds one.",
+  "freshNl": "Er staat nog geen countdown. Today → Days until voegt er een toe."
+ },
+ "av-plan-day": {
+  "en": "Planning it with you needs your own AI (NOVA → setup (“Build NOVA’s brain”)); without one I don’t make a plan or a task out of it. From your records:\nToday (Tue, Nov 17), from your own records:\n• Habits still open: Exercise (15 of 30 minutes), Meditate (5 of 10 minutes), Drink water (1 of 2 liters)\n• Tasks due today: Example · Book the dentist at 10:30 AM (high, late)\n• Still open from earlier: Example · Sketch the garden bed (since Mon, Nov 16)\nTitles, times and habit targets, no money amounts; each item opens where it lives.\nWorth a look when you plan today (Today → Plan my day):\n• Example · Sketch the garden bed — Was planned for Mon, Nov 16",
+  "nl": "Er samen een plan van maken vraagt je eigen AI; zonder AI maak ik er geen plan of taak van. Gepland voor vandaag: 1 taak.\nHet bekijken waard als je vandaag plant (Today → Plan my day):\n• Example · Sketch the garden bed — stond gepland voor ma 16 nov",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Planning it with you needs your own AI (NOVA → setup (“Build NOVA’s brain”)); without one I don’t make a plan or a task out of it. From your records:\nToday (Tue, Nov 17), from your own records:\n• Habits: none kept yet.\n• Tasks: none due today.\nNothing else is due today in your records.\nNo open task asks to be planned in today (nothing overdue, no deadline within three days, no top-priority task without a day).",
+  "freshNl": "Er samen een plan van maken vraagt je eigen AI; zonder AI maak ik er geen plan of taak van. Gepland voor vandaag: 0 taken.\nGeen open taak vraagt om vandaag ingepland te worden (niets te laat, geen deadline binnen drie dagen, geen taak met hoge prioriteit zonder dag)."
+ },
+ "av-bills-year": {
+  "en": "Your bills come to about €13,139.88 a year (an estimate from each bill’s own cadence: weekly ×52, monthly ×12, every 3 months ×4, yearly ×1; never converted); about €1,094.99 in a typical month.",
+  "nl": "Je rekeningen komen op ongeveer €13,139.88 per jaar (een schatting uit het ritme van elke rekening: wekelijks ×52, maandelijks ×12, elke 3 maanden ×4, jaarlijks ×1; nooit omgerekend); ongeveer €1,094.99 in een gewone maand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No bill reminders yet.",
+  "freshNl": "Nog geen rekeningen als herinnering."
+ },
+ "av-bills-paid": {
+  "en": "Bills in Nov 2026: 2 seen in your money log: Energy €120.00 (Sun, Nov 8) and Music €9.99 (Sat, Nov 14); 1 passed with no matching entry in your log: Rent €950.00 (Sun, Nov 1). ZIGoals pays nothing: “seen” means your money log has a matching expense.",
+  "nl": "Rekeningen in november 2026: 2 gezien in je geldlog: Energy €120.00 (zo 8 nov) en Music €9.99 (za 14 nov); 1 voorbij zonder passende uitgave in je log: Rent €950.00 (zo 1 nov). ZIGoals betaalt niets: “gezien” betekent dat je geldlog een passende uitgave heeft.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No bill reminders yet.",
+  "freshNl": "Nog geen rekeningen als herinnering."
+ },
+ "av-payday": {
+  "en": "Your money log shows no regular monthly income yet (two entries from one source about a month apart), so there is no payday to count to.",
+  "nl": "Je geldlog toont nog geen vast maandinkomen (twee keer van dezelfde bron, ongeveer een maand uit elkaar), dus er is geen salarisdag om naartoe te tellen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your money log shows no regular monthly income yet (two entries from one source about a month apart), so there is no payday to count to.",
+  "freshNl": "Je geldlog toont nog geen vast maandinkomen (twee keer van dezelfde bron, ongeveer een maand uit elkaar), dus er is geen salarisdag om naartoe te tellen."
+ },
+ "av-budget-targets": {
+  "en": "Groceries: target €300.00 by Dec 2026: €62.90 set aside, €237.10 a month from next month, on track.",
+  "nl": "Groceries: doel €300.00 uiterlijk Dec 2026: €62.90 opzij, €237.10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no goals yet.",
+  "freshNl": "Er is nog geen budget, dus ook geen doel. Wealth → Budgets stelt ze in."
+ },
+ "av-budget-near": {
+  "en": "No budget is near its limit (80%) this month. The fullest: Groceries 75% spent, with 57% of the month gone: faster than the month.",
+  "nl": "Geen budget zit deze maand bijna aan de limiet (80%). Het volste: Groceries 75% uitgegeven, met 57% van de maand voorbij: sneller dan de maand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No budget is set yet. Wealth → Budgets sets them.",
+  "freshNl": "Je hebt nog geen budgetten. Wealth → Budgets stelt ze in."
+ },
+ "av-spend-vs-last": {
+  "en": "This month so far (to Tue, Nov 17) you spent €435.59; last month by the same day (to Sat, Oct 17) €0.00, €435.59 more. All of last month: €190.39. Most this month: Groceries €187.10 (then €0.00), Bills €120.00 (then €0.00) and Food & drink €49.10 (then €0.00). In EUR, never converted.",
+  "nl": "Deze maand tot nu toe (t/m di 17 nov) gaf je €435.59 uit; vorige maand op dezelfde dag (t/m za 17 okt) €0.00, €435.59 meer. Heel vorige maand: €190.39. Het meest deze maand: Groceries €187.10 (toen €0.00), Bills €120.00 (toen €0.00) en Food & drink €49.10 (toen €0.00). In EUR, nooit omgerekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No spending logged this month or last, so there is nothing to compare.",
+  "freshNl": "Geen uitgaven gelogd deze maand of vorige maand, dus er is niets te vergelijken."
+ },
+ "av-income-went": {
+  "en": "€2,550.00 came in in Nov 2026; €435.59 of it went to spending: Groceries €187.10, Bills €120.00, Food & drink €49.10, Shopping €35.00 and other categories €44.39; €2,114.41 is left (income minus the spending recorded, not a savings figure). In EUR, never converted.",
+  "nl": "€2,550.00 kwam binnen in november 2026; €435.59 ging naar uitgaven: Groceries €187.10, Bills €120.00, Food & drink €49.10, Shopping €35.00 en andere categorieën €44.39; €2,114.41 blijft over (inkomen min de gelogde uitgaven, geen spaarbedrag). In EUR, nooit omgerekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No income is logged in Nov 2026, so there is nothing to follow.",
+  "freshNl": "Er staat geen inkomen gelogd in november 2026, dus er is niets te volgen."
+ },
+ "av-debt-schedule": {
+  "en": "Your payoff schedule, from your own figures:\n• USD (avalanche, $100.00 extra a month): paid off Credit card in Feb 2027 and Car loan in Apr 2028; debt-free in Apr 2028. Still owed after 3 months $5,402.81, after 6 months $4,201.61 and after 12 months $1,745.54.\nThe month-by-month table is in Wealth → What you owe → Plan paying off your debts. A model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed. Nothing is paid or moved.",
+  "nl": "Je aflosschema, uit je eigen bedragen:\n• USD (lawine, $100.00 extra per maand): afgelost Credit card in februari 2027 en Car loan in april 2028; schuldenvrij in april 2028. Nog te betalen na 3 maanden $5,402.81, na 6 maanden $4,201.61 en na 12 maanden $1,745.54.\nDe tabel per maand staat in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts). Een model, geen advies: het gaat ervan uit dat rentes en betalingen gelijk blijven en dat je niets bijleent. Er wordt niets betaald of verplaatst.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No debt with a balance is recorded on this device, so there is no payoff schedule. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth.",
+  "freshNl": "Er staat op dit apparaat geen schuld met een saldo, dus er is geen aflosschema. Een lening, hypotheek of creditcard zet je onder Wealth → Accounts, debts & net worth."
+ },
+ "av-money-look": {
+  "en": "In your money today: 3 imported entries to review. From your own records; nothing is judged.",
+  "nl": "In je geld vandaag: 3 geïmporteerde invoeren na te kijken. Uit je eigen gegevens; er wordt niets beoordeeld.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing in your money asks for a look today: no imported entry waiting for review, no budget over or near its limit, no bill due in the next 3 days.",
+  "freshNl": "Niets in je geld vraagt vandaag om aandacht: geen geïmporteerde invoer die wacht, geen budget over of bijna aan de limiet, geen rekening in de komende 3 dagen."
+ },
+ "av-payee": {
+  "en": "€61.30 spent at “Market” in your whole money log: 1 entry: Thu, Nov 12. Per currency, never converted.",
+  "nl": "€61.30 uitgegeven bij “Market” in je hele geldlog: 1 invoer: do 12 nov. Per valuta, nooit omgerekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing in your whole money log matches “Market” (its notes and categories were searched).",
+  "freshNl": "Niets in je hele geldlog past bij “Market” (de notities en categorieën zijn doorzocht)."
+ },
+ "av-payee-none": {
+  "en": "Nothing in your whole money log matches “Café Noël” (its notes and categories were searched).",
+  "nl": "Niets in je hele geldlog past bij “Café Noël” (de notities en categorieën zijn doorzocht).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing in your whole money log matches “Café Noël” (its notes and categories were searched).",
+  "freshNl": "Niets in je hele geldlog past bij “Café Noël” (de notities en categorieën zijn doorzocht)."
+ },
+ "av-watched": {
+  "en": "You watch 1 category this month: Transport €10.40 (last month by the same day €0.00).",
+  "nl": "Je volgt 1 categorie deze maand: Transport €10.40 (vorige maand op dezelfde dag €0.00).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You don’t watch a category yet. In Wealth → Budgets, “Watch a category” follows one without a budget, this month against last month by the same day.",
+  "freshNl": "Je volgt nog geen categorie. In Wealth → Budgets volgt “Watch a category” er een zonder budget, deze maand tegenover vorige maand op dezelfde dag."
+ },
+ "av-price-alerts": {
+  "en": "2 alerts:\n• BTC (example) above 250,000 USD (waiting)\n• ETH (example) below 2,500 USD (went off on Sun, Nov 15)\nChecked against the last price the app read; nothing is bought or sold.",
+  "nl": "2 alarmen:\n• BTC (example) boven 250,000 USD (wacht)\n• ETH (example) onder 2,500 USD (afgegaan op zo 15 nov)\nGetoetst aan de laatste koers die de app las; er wordt niets gekocht of verkocht.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No price alert is set yet. A coin’s page on Markets, or Portfolio, sets one (in the app only; nothing is bought or sold).",
+  "freshNl": "Er staat nog geen koersalarm. De pagina van een munt in Markets, of Portfolio, zet er een (alleen in de app; er wordt niets gekocht of verkocht)."
+ },
+ "av-month-recap": {
+  "en": "Oct 2026: €190.39 spent and €0.00 came in; €176.40 more spent than in Sep 2026. Most on Groceries €80.90, Gifts €58.00 and Food & drink €22.50. The largest single expense: Birthday present €58.00 (Thu, Oct 22). In EUR, never converted.",
+  "nl": "oktober 2026: €190.39 uitgegeven en €0.00 binnengekomen; €176.40 meer uitgegeven dan in september 2026. Het meest aan Groceries €80.90, Gifts €58.00 en Food & drink €22.50. De grootste uitgave: Birthday present €58.00 (do 22 okt). In EUR, nooit omgerekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged in Oct 2026.",
+  "freshNl": "Er is niets gelogd in oktober 2026."
+ },
+ "av-saved-meals": {
+  "en": "1 saved meal: Showcase pea soup (1 item, 220 kcal). Health → Meals & planning logs one in a tap, or plans it into a day.",
+  "nl": "1 opgeslagen maaltijd: Showcase pea soup (1 onderdeel, 220 kcal). Health → Meals & planning logt er een met één tik, of plant hem in op een dag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No meal is saved yet. Health → Meals & planning saves a day’s meal to log again in one tap.",
+  "freshNl": "Er is nog geen maaltijd opgeslagen. Health → Meals & planning bewaart een maaltijd om met één tik opnieuw te loggen."
+ },
+ "av-meal-plans": {
+  "en": "Nothing is planned for Mon, Nov 16 to Sun, Nov 22. Health → Meals & planning plans a saved meal into a day.",
+  "nl": "Er is niets gepland voor ma 16 nov t/m zo 22 nov. Health → Meals & planning plant een opgeslagen maaltijd in op een dag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is planned for Mon, Nov 16 to Sun, Nov 22. Health → Meals & planning plans a saved meal into a day.",
+  "freshNl": "Er is niets gepland voor ma 16 nov t/m zo 22 nov. Health → Meals & planning plant een opgeslagen maaltijd in op een dag."
+ },
+ "av-mood-factors": {
+  "en": "What goes with your mood, sleep and energy is worked out in your Life review (“What goes with your mood, sleep and energy”, the last 90 days, every habit, tag, workout and meditation set beside them). It is counted on this device and I don’t read it, so open it there. It says what went together, never what causes what.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"review\"}\n```",
+  "nl": "Wat samengaat met je stemming, slaap en energie staat in je Life review (“What goes with your mood, sleep and energy”, de afgelopen 90 dagen, elke gewoonte, tag, workout en meditatie ernaast gezet). Het wordt op dit apparaat geteld en ik lees het niet, dus open het daar. Het zegt wat samenging, nooit wat iets veroorzaakt.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"review\"}\n```",
+  "facts": null,
+  "widgets": [],
+  "fresh": "What goes with your mood, sleep and energy is worked out in your Life review (“What goes with your mood, sleep and energy”, the last 90 days, every habit, tag, workout and meditation set beside them). It is counted on this device and I don’t read it, so open it there. It says what went together, never what causes what.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"review\"}\n```",
+  "freshNl": "Wat samengaat met je stemming, slaap en energie staat in je Life review (“What goes with your mood, sleep and energy”, de afgelopen 90 dagen, elke gewoonte, tag, workout en meditatie ernaast gezet). Het wordt op dit apparaat geteld en ik lees het niet, dus open het daar. Het zegt wat samenging, nooit wat iets veroorzaakt.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"review\"}\n```"
+ },
+ "av-lifted": {
+  "en": "You lifted 2,643 kg this week (Mon, Nov 16 to Tue, Nov 17): working sets, weight × reps, warm-ups left out, in 1 workout (Push day). Your body weight is another question.",
+  "nl": "Je tilde deze week 2,643 kg (ma 16 nov t/m di 17 nov): werksets, gewicht × herhalingen, zonder warming-up, in 1 workout (Push day). Je lichaamsgewicht is een andere vraag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No workout is logged yet.",
+  "freshNl": "Er is nog geen workout gelogd."
+ },
+ "av-run-5k": {
+  "en": "Your fastest 5 km: 28:00 (Easy run, Sun, Nov 8). Your running bests, from runs kept with per-kilometre splits: 1 km 5:31 (Easy run, Sun, Nov 8) and 5 km 28:00 (Easy run, Sun, Nov 8). Longest run: 6 km (Easy run, Sun, Nov 15).",
+  "nl": "Je snelste 5 km: 28:00 (Easy run, zo 8 nov). Je beste looptijden, uit lopen met tijden per kilometer: 1 km 5:31 (Easy run, zo 8 nov) en 5 km 28:00 (Easy run, zo 8 nov). Langste loop: 6 km (Easy run, zo 15 nov).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No run is logged yet.",
+  "freshNl": "Er is nog geen loop gelogd."
+ },
+ "av-run-longest": {
+  "en": "Your running bests, from runs kept with per-kilometre splits: 1 km 5:31 (Easy run, Sun, Nov 8) and 5 km 28:00 (Easy run, Sun, Nov 8). Longest run: 6 km (Easy run, Sun, Nov 15).",
+  "nl": "Je beste looptijden, uit lopen met tijden per kilometer: 1 km 5:31 (Easy run, zo 8 nov) en 5 km 28:00 (Easy run, zo 8 nov). Langste loop: 6 km (Easy run, zo 15 nov).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No run is logged yet.",
+  "freshNl": "Er is nog geen loop gelogd."
+ },
+ "av-diary-today": {
+  "en": "You logged 4 items today (Tue, Nov 17):\n- Breakfast: Berry overnight oats (1 serving, 420 kcal)\n- Lunch: Chicken and quinoa bowl (1 serving, 620 kcal)\n- Dinner: Salmon, rice and greens (1 serving, 690 kcal)\n- Snacks: Yogurt and almonds (1 serving, 240 kcal)",
+  "nl": "Je logde vandaag 4 dingen (di 17 nov):\n- Ontbijt: Berry overnight oats (1 portie, 420 kcal)\n- Lunch: Chicken and quinoa bowl (1 portie, 620 kcal)\n- Avondeten: Salmon, rice and greens (1 portie, 690 kcal)\n- Tussendoor: Yogurt and almonds (1 portie, 240 kcal)",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged in your food diary today (Tue, Nov 17).",
+  "freshNl": "Er staat vandaag niets in je eetdagboek (di 17 nov)."
+ },
+ "av-sleep-score": {
+  "en": "Your sleep score is 75 of 100 (the last 7 days, 6 nights logged): duration 34 of 40, regularity 24 of 30, debt 8 of 15 and quality 9 of 15. How it is counted: duration 40 × min(1, asleep ÷ goal) + regularity 30 × (1 − bedtime and wake-time spread ÷ 90 min) + debt 15 × (1 − debt ÷ two nights of goal) + quality 15 × (rating − 1) ÷ 4.",
+  "nl": "Je slaapscore is 75 van 100 (de afgelopen 7 dagen, 6 nachten gelogd): duur 34 van 40, regelmaat 24 van 30, tekort 8 van 15 en kwaliteit 9 van 15. Zo wordt hij geteld: duur 40 × min(1, geslapen ÷ doel) + regelmaat 30 × (1 − spreiding van bedtijd en opstaan ÷ 90 min) + tekort 15 × (1 − tekort ÷ twee nachten doel) + kwaliteit 15 × (cijfer − 1) ÷ 4.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "There is no sleep score yet: it needs 3 logged nights in the last 7 days (0 so far).",
+  "freshNl": "Er is nog geen slaapscore: daarvoor zijn 3 gelogde nachten in de afgelopen 7 dagen nodig (nu 0)."
+ },
+ "av-sleep-90": {
+  "en": "56 nights logged the last 90 days (Thu, Aug 20 to Tue, Nov 17): 7 h 38 min asleep on average; the shortest 6 h 17 min (Mon, Oct 19), the longest 9 h 04 min (Sun, Aug 23). Health → Sleep shows them by week or month.",
+  "nl": "56 nachten gelogd de afgelopen 90 dagen (do 20 aug t/m di 17 nov): gemiddeld 7 h 38 min geslapen; de kortste 6 h 17 min (ma 19 okt), de langste 9 h 04 min (zo 23 aug). Health → Sleep toont ze per week of maand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No night is logged the last 90 days (Thu, Aug 20 to Tue, Nov 17).",
+  "freshNl": "Er is de afgelopen 90 dagen (do 20 aug t/m di 17 nov) geen nacht gelogd."
+ },
+ "av-sleep-year": {
+  "en": "56 nights logged this year (Thu, Jan 1 to Tue, Nov 17): 7 h 38 min asleep on average; the shortest 6 h 17 min (Mon, Oct 19), the longest 9 h 04 min (Sun, Aug 23). Health → Sleep shows them by week or month.",
+  "nl": "56 nachten gelogd dit jaar (do 1 jan t/m di 17 nov): gemiddeld 7 h 38 min geslapen; de kortste 6 h 17 min (ma 19 okt), de langste 9 h 04 min (zo 23 aug). Health → Sleep toont ze per week of maand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No night is logged this year (Thu, Jan 1 to Tue, Nov 17).",
+  "freshNl": "Er is dit jaar (do 1 jan t/m di 17 nov) geen nacht gelogd."
+ },
+ "av-iron-average": {
+  "en": "Iron: no food logged in those 90 days (Thu, Aug 20 to Tue, Nov 17) carries a value, so the average is unknown (never 0).",
+  "nl": "IJzer: geen eten in die 90 dagen (do 20 aug t/m di 17 nov) heeft een waarde, dus het gemiddelde is onbekend (nooit 0).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Iron: no food logged in those 90 days (Thu, Aug 20 to Tue, Nov 17) carries a value, so the average is unknown (never 0).",
+  "freshNl": "IJzer: geen eten in die 90 dagen (do 20 aug t/m di 17 nov) heeft een waarde, dus het gemiddelde is onbekend (nooit 0)."
+ },
+ "av-high-iron": {
+  "en": "Your own foods highest in iron: Showcase split peas 7 mg per 100 g, Chicken and quinoa bowl 3 mg per 300 g, Berry overnight oats 2 mg per 300 g, Salmon, rice and greens 1 mg per 300 g and Yogurt and almonds 1 mg per 300 g. The offline food library’s richest foods are beside them: Health → Targets → Micronutrients → “Which of my foods are high in…”. Information from food labels and public tables, not advice.",
+  "nl": "Je eigen voedingsmiddelen met het meeste ijzer: Showcase split peas 7 mg per 100 g, Chicken and quinoa bowl 3 mg per 300 g, Berry overnight oats 2 mg per 300 g, Salmon, rice and greens 1 mg per 300 g en Yogurt and almonds 1 mg per 300 g. De rijkste voedingsmiddelen uit de offline bibliotheek staan ernaast: Health → Targets → Micronutrients → “Which of my foods are high in…”. Informatie van etiketten en openbare tabellen, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "None of your own foods carries a value for iron yet. The offline food library’s richest foods are beside them: Health → Targets → Micronutrients → “Which of my foods are high in…”. Information from food labels and public tables, not advice.",
+  "freshNl": "Nog geen van je eigen voedingsmiddelen heeft een waarde voor ijzer. De rijkste voedingsmiddelen uit de offline bibliotheek staan ernaast: Health → Targets → Micronutrients → “Which of my foods are high in…”. Informatie van etiketten en openbare tabellen, geen advies."
+ },
+ "av-bench-best": {
+  "en": "Bench press: your heaviest set is 62.5 kg × 8 (an estimated one-rep max of 79 kg), from 3 sessions; the last on Mon, Nov 16. Warm-up sets are left out.",
+  "nl": "Bench press: je zwaarste set is 62.5 kg × 8 (een geschatte 1RM van 79 kg), uit 3 trainingen; de laatste op ma 16 nov. Warming-upsets tellen niet mee.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No bench press is logged in Workouts yet, so there is no best.",
+  "freshNl": "Er staat nog geen bench press in Workouts, dus er is geen beste."
+ },
+ "av-supplements": {
+  "en": "Your supplements and medication log keeps 3:\n• Vitamin D (Showcase), 1 capsule, at 8:00 AM every day\n• Magnesium (Showcase), 1 tablet, at 9:30 PM every day\n• Eye drops (Showcase) (medication), 1 drop each eye, as needed\nYour own list: no advice and no dose checks.",
+  "nl": "Je log van supplementen en medicatie bevat er 3:\n• Vitamin D (Showcase), 1 capsule, om 08:00 elke dag\n• Magnesium (Showcase), 1 tablet, om 21:30 elke dag\n• Eye drops (Showcase) (medicatie), 1 drop each eye, naar behoefte\nJe eigen lijst: geen advies en geen controle van doses.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is kept in your supplements and medication log yet. It is under Health → Diary → Supplements and medication (optional).",
+  "freshNl": "Er staat nog niets in je log van supplementen en medicatie. Die staat onder Health → Diary → Supplements and medication (optioneel)."
+ },
+ "av-symptoms": {
+  "en": "Your symptoms and factors stay private on this device: I don’t read them. They are in Health → Diary → Symptoms and factors, and a report for a visit can include them (Settings → Your data → Make a report).",
+  "nl": "Je klachten en factoren blijven privé op dit apparaat: ik lees ze niet. Ze staan in Health → Diary → Symptoms and factors, en een rapport voor een afspraak kan ze meenemen (Settings → Your data → Make a report).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your symptoms and factors stay private on this device: I don’t read them. They are in Health → Diary → Symptoms and factors, and a report for a visit can include them (Settings → Your data → Make a report).",
+  "freshNl": "Je klachten en factoren blijven privé op dit apparaat: ik lees ze niet. Ze staan in Health → Diary → Symptoms and factors, en een rapport voor een afspraak kan ze meenemen (Settings → Your data → Make a report)."
+ },
+ "av-good-things": {
+  "en": "This month: 3 good things on 1 day, in Journal → Three good things.",
+  "nl": "Deze maand: 3 goede dingen op 1 dag, in Journal → Three good things.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No good things written this month yet: Journal → Three good things keeps up to three in one entry.",
+  "freshNl": "Nog geen goede dingen opgeschreven deze maand: Journal → Three good things bewaart er tot drie in één stuk."
+ },
+ "av-journal-tag": {
+  "en": "2 journal entries are tagged “work”: Sun, Nov 8 and Sat, Nov 14. Their words stay on the Journal page.",
+  "nl": "2 dagboekstukken hebben de tag “work”: zo 8 nov en za 14 nov. Hun woorden blijven op de Journal-pagina.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No journal entry is tagged “work”. No entry has a tag yet; the Journal adds them under an entry.",
+  "freshNl": "Geen dagboekstuk heeft de tag “work”. Nog geen stuk heeft een tag; het dagboek voegt ze toe onder een stuk."
+ },
+ "av-journal-count": {
+  "en": "1 journal entry today.",
+  "nl": "1 dagboekstuk vandaag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "0 journal entries today.",
+  "freshNl": "0 dagboekstukken vandaag."
+ },
+ "av-journal-templates": {
+  "en": "8 built-in templates (Morning intention, Three good things, Worry, then one next step, Gratitude, Week look-back, Before a hard talk, Another way to see it and A letter to future you) and 1 of your own: Example · Run diary. Journal → Start from a prompt shows them.",
+  "nl": "8 vaste sjablonen (Ochtendintentie, Drie goede dingen, Zorg, en dan één volgende stap, Dankbaarheid, Terugblik op de week, Voor een moeilijk gesprek, Er anders naar kijken en Een brief aan je toekomstige zelf) en 1 eigen: Example · Run diary. Journal → Start from a prompt toont ze.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "8 built-in templates (Morning intention, Three good things, Worry, then one next step, Gratitude, Week look-back, Before a hard talk, Another way to see it and A letter to future you); none of your own yet. Journal → Start from a prompt shows them.",
+  "freshNl": "8 vaste sjablonen (Ochtendintentie, Drie goede dingen, Zorg, en dan één volgende stap, Dankbaarheid, Terugblik op de week, Voor een moeilijk gesprek, Er anders naar kijken en Een brief aan je toekomstige zelf); nog geen eigen. Journal → Start from a prompt toont ze."
+ },
+ "av-journal-question": {
+  "en": "Today’s journal question: “What made today different from yesterday?” Journal → Another question shows the next one.",
+  "nl": "De dagboekvraag van vandaag: “Wat maakte vandaag anders dan gisteren?” Journal → Another question toont de volgende.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Today’s journal question: “What made today different from yesterday?” Journal → Another question shows the next one.",
+  "freshNl": "De dagboekvraag van vandaag: “Wat maakte vandaag anders dan gisteren?” Journal → Another question toont de volgende."
+ },
+ "av-yesterday-open": {
+  "en": "Yesterday (Mon, Nov 16) no daily habit was left open.",
+  "nl": "Gisteren (ma 16 nov) bleef geen dagelijkse gewoonte open.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yesterday (Mon, Nov 16) no daily habit was left open.",
+  "freshNl": "Gisteren (ma 16 nov) bleef geen dagelijkse gewoonte open."
+ },
+ "av-focus-habit": {
+  "en": "No focus habit is picked for today. On Habits, “Make it today’s focus” on a habit’s card picks one for the day.",
+  "nl": "Er is voor vandaag geen focusgewoonte gekozen. Op Habits kiest “Make it today’s focus” op de kaart van een gewoonte er een voor vandaag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No focus habit is picked for today. On Habits, “Make it today’s focus” on a habit’s card picks one for the day.",
+  "freshNl": "Er is voor vandaag geen focusgewoonte gekozen. Op Habits kiest “Make it today’s focus” op de kaart van een gewoonte er een voor vandaag."
  }
 }
