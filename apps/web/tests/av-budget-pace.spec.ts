@@ -32,6 +32,10 @@ for (const theme of THEMES) test(`${theme}: Groceries near its limit, Fun faster
   // Deliberate change (Session AV, fresh-agent check q2, rank 20): Today also names a budget spent faster than the month.
   const line = page.getByRole('region', {name: 'Money that asks for a look'});
   await expect(line).toHaveText('Money: Groceries near its limit · Fun faster than the month →');
-  await line.getByRole('link', {name: 'Fun faster than the month'}).click();
-  await expect(page).toHaveURL(/\/app\/wealth\?view=budgets/);
+  // Wealth's ?view= intent scrolls to its section and then rests on the section's own anchor (#budgets), so the address
+  // is read as either (a phone run caught the second, mobile dark); the link itself is checked first.
+  const fast = line.getByRole('link', {name: 'Fun faster than the month'});
+  await expect(fast).toHaveAttribute('href', '/app/wealth?view=budgets');
+  await fast.click();
+  await expect(page).toHaveURL(/\/app\/wealth(?:\?view=budgets|#budgets)$/);
 });

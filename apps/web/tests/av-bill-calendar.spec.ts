@@ -35,7 +35,7 @@ for (const theme of THEMES) test(`${theme}: the next 31 days, today ringed, due 
     await expect(list).toBeHidden();
   }
   // A month you page with ‹ ›, from this month to a year ahead; focus stays on the button at either end.
-  await bills.getByText('By month', {exact: true}).click();
+  await bills.getByRole('radio', {name: 'By month'}).check(); // the chip's own radio, as a tap on the chip reaches it
   const thisMonth = new Date(`${TODAY}T12:00:00Z`).toLocaleString('en-US', {month: 'short', year: 'numeric', timeZone: 'UTC'});
   await expect(bills.getByRole('table', {name: new RegExp(`^Bills due in ${thisMonth}`)})).toBeVisible();
   const earlier = bills.getByRole('button', {name: /^Earlier month/});
