@@ -3812,6 +3812,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .note-ask .fine:not(#\-), :where(:root[data-density=compact]) .note-ask p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .note-ask-form:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .note-ask-example:not(#\-) { row-gap: 6px; padding-top: 12px; padding-bottom: 12px; }
+/*  components/notes/this-day-strip.css  */
+:where(:root[data-density=compact]) .note-this-day:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .note-this-day-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-this-day p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-this-day-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .note-day-chip:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .note-day-dot:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/notify/notifications.css  */
 :where(:root[data-density=compact]) .notify-card .notify-state:not(#\-) { margin-top: 6px; margin-bottom: 10px; }
 :where(:root[data-density=compact]) .notify-card .notify-server:not(#\-) { margin-top: 0; margin-bottom: 12px; }

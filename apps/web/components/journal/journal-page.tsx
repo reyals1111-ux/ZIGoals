@@ -30,6 +30,8 @@ const YearPixels = lazy(() => import('./year-pixels'));
 // Session AK (BUILD list 2 #3): "On this day" and its Privacy switch, each loaded on its own after the page.
 const OnThisDay = lazy(() => import('./on-this-day'));
 const OnThisDaySwitch = lazy(() => import('./on-this-day-switch'));
+// Session AV (owner follow-up 1, F-JOURNAL-DAY): that day's own records under an entry (the daily note's strip).
+const ThisDayStrip = lazy(() => import('../notes/this-day-strip'));
 // Session AK (BUILD list 2 #12, lane G1a): your own 1–5 scales, loaded on its own after the page.
 const YourScales = lazy(() => import('../scales/your-scales'));
 
@@ -44,7 +46,7 @@ const dayWords = (day: string) => formatDate(day, {weekday: true, year: false});
 export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate();
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
-  const [query, setQuery] = useState(''), [tag, setTag] = useState<string | null>(null);
+  const [query, setQuery] = useState(''), [tag, setTag] = useState<string | null>(null), [dayOpen, setDayOpen] = useState<ReadonlySet<string>>(new Set());
   const tags = useMemo(() => tagCounts(journal.data.entries), [journal.data.entries]);
   const shownTag = tag && tags.some(t => t.tag.toLowerCase() === tag.toLowerCase()) ? tag : null;
   const entries = useMemo(() => [...journal.data.entries].reverse().filter(e => hasTag(e, shownTag) && (!query.trim() || e.text.toLowerCase().includes(query.trim().toLowerCase()) || (e.tags ?? []).some(t => t.toLowerCase().includes(query.trim().toLowerCase().replace(/^#/, ''))))), [journal.data.entries, query, shownTag]);
@@ -91,6 +93,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}</p>
         {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
         <EntryTags tags={e.tags ?? []} day={entryDays.get(e.date)?.short ?? e.date} onAdd={t => retag(e.id, x => withTag(x, t), `Tagged #${t}.`)} onRemove={t => retag(e.id, x => withoutTag(x, t), `The tag #${t} is off this entry.`)}/>
+        {/* Session AV (owner follow-up 1, F-JOURNAL-DAY; Day One's metadata): that day's own records, as links, on the press. */}
+        <details className="journal-that-day" onToggle={ev => { const open = (ev.currentTarget as HTMLDetailsElement).open; setDayOpen(d => { const n = new Set(d); if (open) n.add(e.id); else n.delete(e.id); return n; }); }}><summary>That day</summary>{dayOpen.has(e.id) && <Suspense fallback={<p className="fine">Reading that day…</p>}><ThisDayStrip day={e.date} exclude={['journal']} title={`On ${entryDays.get(e.date)?.short ?? e.date}`}/></Suspense>}</details>
         <button type="button" className="text-link" aria-label={`Remove the entry of ${entryDays.get(e.date)?.short ?? e.date}`} onClick={() => remove(e)}>Remove</button>
       </li>)}</ol> : query || shownTag ? <p className="fine">{shownTag && !query ? `No entry has the tag #${shownTag}.` : 'No entry has those words.'}</p> : <ArtNote pillar="orbit"><p className="fine">No entries yet. Write a few lines above.</p></ArtNote>}
     </section>

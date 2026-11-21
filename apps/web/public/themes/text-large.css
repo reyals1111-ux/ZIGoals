@@ -1916,6 +1916,9 @@
 :where(:root[data-text=large]) .note-backlinks-title:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .note-body-label:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .note-files h3:not(#\-) { font-size: calc(17px * 1.125); }
+/*  components/notes/this-day-strip.css  */
+:where(:root[data-text=large]) .note-this-day-title:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .note-day-chip-detail:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/notify/notifications.css  */
 :where(:root[data-text=large]) .notify-card .notify-state:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .notify-card .notify-server summary:not(#\-) { font-size: calc(15px * 1.125); }

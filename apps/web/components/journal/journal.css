@@ -72,3 +72,5 @@
 .journal-tag-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;width:100%}
 .journal-tag-form .field{flex:1 1 180px}
 .journal-tag-form input,.journal-tag-form button{min-height:44px}
+/* Session AV follow-up 1 (F-JOURNAL-DAY): that day's own records under an entry. */
+.journal-that-day summary { min-height: 44px; display: inline-flex; align-items: center; cursor: pointer; color: var(--text-secondary); }

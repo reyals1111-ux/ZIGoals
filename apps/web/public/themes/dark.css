@@ -11789,6 +11789,9 @@
         border-color: currentcolor;
         color: inherit
     }
+    .journal-that-day summary:not(#\-) {
+        color: var(--text-secondary)
+    }
 }
 /*  components/journal/on-this-day.css  */
 @scope (:root[data-theme=dark]) {
@@ -13070,6 +13073,34 @@
     }
     .note-ask-example:not(#\-) {
         border-color: var(--line, rgba(128, 128, 160, .35))
+    }
+}
+/*  components/notes/this-day-strip.css  */
+@scope (:root[data-theme=dark]) {
+    .note-this-day:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 8%, transparent);
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent)
+    }
+    .note-this-day-title:not(#\-) {
+        color: var(--text-meta, inherit)
+    }
+    .note-day-chip:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent);
+        color: inherit
+    }
+    .note-day-chip:hover:not(#\-), .note-day-chip:focus-visible:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 70%, transparent)
+    }
+    .note-day-chip:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .note-day-chip-detail:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .note-day-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #63e7ff)
     }
 }
 /*  components/notify/notifications.css  */
