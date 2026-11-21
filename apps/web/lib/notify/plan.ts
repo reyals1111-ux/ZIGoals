@@ -9,7 +9,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -33,6 +33,11 @@ export type PlanInput = {
   votes?: {id: string; at: number}[];
   /** Session AL sweep 4 (C-DVG-68, C-BN-06): unstaked ZIG back today, a validator not earning (lib/notify/staking-items.ts). */
   staking?: {kind: 'unbonding' | 'validator'; id: string; date: string}[];
+  /**
+   * Session AV (follow-up 1, F-TASK-NOTIFY; Todoist, TickTick, Things): the reminders the person set on open tasks
+   * (lib/tasks/reminders.ts reminderInstants): the instant and the task's id; its title only where names are allowed.
+   */
+  tasks?: {id: string; title?: string; at: number}[];
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -80,6 +85,15 @@ export function buildPlan(input: PlanInput): Plan {
     const at = zonedInstant(day, morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'bill');
     push({at, kind: 'bill', id: `bill:${b.id}`, label: label(b.title), ...(labels && b.amount ? {detail: `${b.amount} due tomorrow`} : {}), href: '/app/wealth?view=bills', actionable: false});
+  }
+  // Session AV (F-TASK-NOTIFY): a task reminder is a one-off wake at its own instant (the time the person chose), as a
+  // contribution is; one inside quiet hours is said on the card and does not wake the device. Labelled only with names on.
+  if (typeOn(prefs, 'tasks')) for (const t of input.tasks ?? []) {
+    if (t.at <= now || t.at > now + ONCE_AHEAD_DAYS * 86_400_000) continue;
+    const time = wallClock(t.at, zone).time;
+    if (inQuiet(time, quiet)) { refused.push({kind: 'task', time}); continue; }
+    once.set(Math.floor(t.at / 60000), 'task');
+    push({at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: false});
   }
   // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
   // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end

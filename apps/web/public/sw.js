@@ -44,6 +44,9 @@
     if (money.length) lines.push(named && money.every(function (c) { return c.label; }) ? money.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(money.length, 'contribution due', 'contributions due'));
     var bills = kinds.bill || [];
     if (bills.length) lines.push(named && bills.every(function (b) { return b.label; }) ? bills.slice(0, 2).map(function (b) { return b.label + (b.detail ? ' · ' + b.detail : ''); }).join(' · ') : plural(bills.length, 'bill due tomorrow', 'bills due tomorrow'));
+    // Session AV (F-TASK-NOTIFY): task reminders, by name only where names are allowed.
+    var taskItems = kinds.task || [];
+    if (taskItems.length) lines.push(named && taskItems.every(function (t) { return t.label; }) ? taskItems.slice(0, 2).map(function (t) { return t.label; }).join(' · ') + (taskItems.length > 2 ? ' and ' + (taskItems.length - 2) + ' more' : '') : plural(taskItems.length, 'task reminder', 'task reminders'));
     if (kinds.supplement) lines.push('A reminder you set in Health');
     if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
     // Session AL sweep 4 (C-DVG-68, C-BN-06): from the positions last read on the device; never a name or an amount.
