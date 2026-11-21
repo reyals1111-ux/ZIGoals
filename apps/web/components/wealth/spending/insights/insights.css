@@ -46,3 +46,8 @@
 /* Session AP (CI 1726, pillar-phone-length): on a phone the six views are one row that scrolls sideways (the page stays
    within its screen count); the last button peeks out at the edge, so the row reads as more. */
 @media (max-width: 600px){.money-insights-views{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;scroll-padding-inline:4px}.money-insights-views button{flex:none}}
+
+/* Session AV follow-up 1 (F-VS-LAST): a wide table scrolls inside its own box at 320 px, never the page. */
+.money-insights-scroll{overflow-x:auto;max-width:100%}
+.money-insights-vs-last th,.money-insights-vs-last td{white-space:nowrap}
+.money-insights-scroll:focus-visible{outline:2px solid var(--cyan, #6fd3ff);outline-offset:2px}

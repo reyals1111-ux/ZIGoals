@@ -5,12 +5,15 @@ import {ShowcaseTag} from '../../../ui/showcase-tag';
 import './insights.css';
 
 /**
- * Session AP (owner-approved, Wealth → Spending): "Your money over time", from the money log only. Six views, each its
+ * Session AP (owner-approved, Wealth → Spending): "Your money over time", from the money log only. Seven views (Session
+ * AV added "This month vs last"), each its
  * own chunk loaded when the person opens it (Wealth is near its weight budget): month by month, categories over a year,
  * top payees, your usual pace, age of money and tags. Each currency on its own, never converted; a month without records
  * is a gap, never a zero; comparisons of records, never forecasts. No motion.
  */
 const VIEWS = {
+  // Session AV (follow-up 1, F-VS-LAST): this month against last, per category.
+  vsLast: {label: 'This month vs last', load: lazy(() => import('./vs-last-view'))},
   flow: {label: 'Month by month', load: lazy(() => import('./cash-flow-view'))},
   trend: {label: 'Categories over a year', load: lazy(() => import('./category-trend-view'))},
   payees: {label: 'Top payees', load: lazy(() => import('./top-payees-view'))},
