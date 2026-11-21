@@ -19,3 +19,6 @@
 /* Session AV follow-up 1 (F-JOURNAL-TODAY): today's entries and On this day, one line on Today. */
 .today-journal-line { margin: 8px 0 0; }
 .today-journal-line .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+/* Session AV (1c, q4 #33): the first lines, only when switched on in Journal → Privacy. */
+.today-journal-lines { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; font-size: 15px; overflow-wrap: anywhere; }
+.today-journal-when { font-size: 14px; color: var(--text-secondary, var(--muted)); }

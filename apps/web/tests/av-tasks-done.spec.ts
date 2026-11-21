@@ -22,6 +22,11 @@ for (const theme of THEMES) test(`${theme}: three tasks finished today show as t
   const chart = page.getByRole('region', {name: /^Finished per day/});
   await expect(chart).toContainText('3 in the last 14 days');
   await expect(chart.getByRole('list', {name: 'Finished per week'})).toContainText('This week 3');
+  // Session AV (1c, q1 #6): a weekday initial under each of the 14 bars, today's last; "Completed" is said once.
+  await expect(chart.locator('.tasks-done-days span')).toHaveCount(14);
+  await expect(chart.locator('.tasks-done-days span').last()).toHaveAttribute('data-today', 'true');
+  await expect(page.getByRole('region', {name: /in the last 30 days$/})).toContainText('3 finishes in the last 30 days');
+  await expect(page.locator('.tasks-main').getByText(/^Completed/)).toHaveCount(1);
   await chart.getByText('As a table').click();
   await expect(chart.getByRole('table')).toContainText('3 tasks');
   const findings = await axe(page, chart);

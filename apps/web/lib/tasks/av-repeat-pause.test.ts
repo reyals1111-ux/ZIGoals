@@ -34,6 +34,7 @@ describe('Session AV (F-MATRIX-RULES)', () => {
     expect(levelForMove(r.tasks[1]!, 'do', TODAY, {urgentDays: 0, importantUpTo: 1})).toBe(1);
     expect(levelForMove(r.tasks[0]!, 'quick', TODAY, own)).toBe(4); // out of "important" under P1–P3: P4
     expect(readRules({urgentDays: 30, importantUpTo: 7})).toEqual(DEFAULT_RULES);
-    expect(ruleWords({urgentDays: 0, importantUpTo: 1})).toBe('Urgent: overdue or due today. Important: priority P1. Moving a card changes only its priority; its day stays.');
+    // Session AV (1c, q1 #15, deliberate): the rule now also says a near deadline is urgent (the matrix counts it); the whole line is still pinned.
+    expect(ruleWords({urgentDays: 0, importantUpTo: 1})).toBe('Urgent: overdue or due today. Important: priority P1. Moving a card changes only its priority; its day stays. A deadline that near is urgent too.');
   });
 });

@@ -6,3 +6,7 @@
 .today-tasks-due .tasks-today-reminders { list-style: none; margin: 0; padding: 8px 10px; display: grid; gap: 2px; border-radius: 12px; border: 1px solid var(--warning, #e8a33d); }
 .today-tasks-due .tasks-today-reminders li { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; overflow-wrap: anywhere; }
 .today-tasks-due .tasks-today-reminders .text-link { min-height: 44px; }
+/* Session AV (1c, q1 #1): a reminder's Done, Snooze and Dismiss, wrapping as one group. */
+.today-tasks-due .task-reminder-actions, .today-tasks-due .task-reminder-snooze { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 10px; min-width: 0; }
+.today-tasks-due .task-reminder-snooze > span { color: var(--text-secondary, var(--muted)); }
+.today-tasks-due .task-reminder-actions .text-link { min-height: 44px; }

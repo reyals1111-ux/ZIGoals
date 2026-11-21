@@ -18,6 +18,8 @@ import './countdowns.css';
  * Session AV (owner follow-up 1, F-COUNTDOWN-YEARLY; TickTick): a countdown can come back every year (a birthday) and can
  * remind some days before; both kept in their own record (zigoals:countdown-extras:v1), and the card's top says which are
  * within their reminder.
+ * Session AV (1c, q1 #44, fresh-agent review): the reminder can be changed on each row, and it reaches the device's
+ * notifications (lib/notify/plan.ts, "Countdown reminders") in the morning it starts and on the day.
  */
 const fmt = (n: number) => formatNumber(n);
 export default function CountdownsCard() {
@@ -53,10 +55,18 @@ export default function CountdownsCard() {
     try { extras.update(x => withExtra(x, c.id, {yearly: on, remindDays: e?.remindDays ?? null})); } catch { showStatus('This could not be kept on this device.', {tone: 'error'}); return; }
     showStatus(on ? `“${c.title}” comes back every year.` : `“${c.title}” no longer repeats.`);
   };
+  const setRemindDays = (c: Countdown, days: number | null) => {
+    const e = extras.data.items[c.id];
+    try { extras.update(x => withExtra(x, c.id, {yearly: !!e?.yearly, remindDays: days})); } catch { showStatus('This could not be kept on this device.', {tone: 'error'}); return; }
+    showStatus(days ? `“${c.title}”: a reminder ${days === 1 ? '1 day' : `${days} days`} before, here and in your notifications when they are on.` : `“${c.title}”: no reminder.`);
+  };
   const row = (c: Countdown & {shown: string}) => { const e = extras.data.items[c.id]; return <li key={c.id} className="countdown" data-passed={c.shown < today || undefined}>
     <span className="countdown-days">{countdownWords(c.shown, today, fmt)}</span>
     <span className="countdown-text"><strong>{c.title}</strong><small>{formatDate(c.shown, {weekday: true, year: year(c.shown)})}{e?.yearly ? ' · every year' : ''}{e?.remindDays ? ` · reminder ${e.remindDays === 1 ? '1 day' : `${e.remindDays} days`} before` : ''}{c.note ? ` · ${c.note}` : ''}</small></span>
-    <span className="countdown-actions"><button type="button" className="text-link" aria-pressed={!!e?.yearly} aria-label={`Every year: “${c.title}”`} disabled={extras.unreadable} onClick={() => toggleYearly(c)}>Every year</button>
+    <span className="countdown-actions">
+    {/* Session AV (1c, q1 #44): the reminder can be changed on each row, not only when adding. */}
+    <label className="countdown-remind"><span className="sr-only">Reminder for “{c.title}”</span><select value={e?.remindDays ? String(e.remindDays) : ''} disabled={extras.unreadable} onChange={ev => setRemindDays(c, ev.target.value ? Number(ev.target.value) : null)}><option value="">No reminder</option>{REMIND_CHOICES.map(n => <option key={n} value={n}>{n === 1 ? '1 day before' : `${n} days before`}</option>)}</select></label>
+    <button type="button" className="text-link" aria-pressed={!!e?.yearly} aria-label={`Every year: “${c.title}”`} disabled={extras.unreadable} onClick={() => toggleYearly(c)}>Every year</button>
     <button type="button" className="text-link" aria-label={`Remove the countdown “${c.title}”`} onClick={() => remove(c)}>Remove</button></span>
   </li>; };
   return <section className="panel countdowns-card" aria-labelledby={`${id}-title`}>

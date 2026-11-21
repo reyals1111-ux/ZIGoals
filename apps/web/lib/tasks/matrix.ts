@@ -33,11 +33,14 @@ export function readRules(raw: unknown): MatrixRules {
   return {urgentDays: days, importantUpTo: up};
 }
 const levels = (up: number) => up === 1 ? 'P1' : up === 2 ? 'P1 or P2' : 'P1 to P3';
-export const ruleWords = (r: MatrixRules = DEFAULT_RULES) => `Urgent: overdue or due ${r.urgentDays === 0 ? 'today' : `within ${r.urgentDays} ${r.urgentDays === 1 ? 'day' : 'days'}`}. Important: priority ${levels(r.importantUpTo)}. Moving a card changes only its priority; its day stays.`;
+export const ruleWords = (r: MatrixRules = DEFAULT_RULES) => `Urgent: overdue or due ${r.urgentDays === 0 ? 'today' : `within ${r.urgentDays} ${r.urgentDays === 1 ? 'day' : 'days'}`}. Important: priority ${levels(r.importantUpTo)}. Moving a card changes only its priority; its day stays. A deadline that near is urgent too.`;
 export const MATRIX_RULE = ruleWords();
 
-/** Overdue (late today too) or due within the next 2 days (or the person's own number): every day up to today + n. */
-export const isUrgent = (task: Pick<Task, 'due'>, today: string, rules: MatrixRules = DEFAULT_RULES): boolean => !!task.due && task.due <= addLocalDays(today, rules.urgentDays);
+/**
+ * Overdue (late today too) or due within the next 2 days (or the person's own number): every day up to today + n.
+ * Session AV (1c, q1 #15, fresh-agent review; Things counts the deadline down): a deadline that near is urgent too.
+ */
+export const isUrgent = (task: Pick<Task, 'due'> & {deadline?: string}, today: string, rules: MatrixRules = DEFAULT_RULES): boolean => { const limit = addLocalDays(today, rules.urgentDays); return (!!task.due && task.due <= limit) || (!!task.deadline && task.deadline <= limit); };
 export const isImportant = (task: Pick<Task, 'level' | 'priority'>, rules: MatrixRules = DEFAULT_RULES): boolean => taskLevel(task) <= rules.importantUpTo;
 export function quadrantOf(task: Task, today: string, rules: MatrixRules = DEFAULT_RULES): Quadrant {
   const urgent = isUrgent(task, today, rules), important = isImportant(task, rules);

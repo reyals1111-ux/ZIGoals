@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {addTask, deadlineState, DEADLINE_PAST_MESSAGE, DEADLINE_REPEAT_MESSAGE, editTask, viewTasks} from './engine';
 import {parseTaskLine} from './parse';
+import {isUrgent, quadrantOf} from './matrix';
 import {emptyTasks, tasksSchema} from './schema';
 
 /** Session AV (owner follow-up 1, F-DEADLINES; Things, Todoist Deadlines): a deadline kept apart from the planned day. */
@@ -37,5 +38,15 @@ describe('Session AV (F-DEADLINES)', () => {
     expect(p.spans.map(s => s.kind)).toEqual(['date', 'deadline']);
     expect(parseTaskLine('Belasting invullen deadline vrijdag', TODAY)).toMatchObject({title: 'Belasting invullen', deadline: '2026-11-27'});
     expect(parseTaskLine('Read about deadlines', TODAY)).toMatchObject({title: 'Read about deadlines'});
+  });
+});
+
+/** Session AV (1c, q1 #15, fresh-agent review; Things): the matrix counts a near deadline as urgent. */
+describe('Session AV (1c): a near deadline is urgent in the matrix', () => {
+  it('a task planned later but due by a deadline within the urgent days is urgent; a far deadline is not', () => {
+    expect(isUrgent({due: '2026-12-10', deadline: '2026-11-24'}, '2026-11-23')).toBe(true);
+    expect(isUrgent({deadline: '2026-11-25'}, '2026-11-23')).toBe(true);
+    expect(isUrgent({due: '2026-12-10', deadline: '2026-11-30'}, '2026-11-23')).toBe(false);
+    expect(quadrantOf({id: 'a', title: 'Fictional report', priority: 'high', level: 1, deadline: '2026-11-24', createdAt: '2026-11-20T08:00:00.000Z'} as never, '2026-11-23')).toBe('do');
   });
 });

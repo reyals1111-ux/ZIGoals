@@ -28,9 +28,10 @@ for (const theme of THEMES) test(`${theme}: own matrix lines, then a weekly task
   const rules = page.locator('details.tasks-matrix-rules');
   await rules.locator('summary').click();
   await rules.getByLabel('Urgent when due within').selectOption('5');
-  await rules.getByLabel('Important from priority').selectOption('3');
+  // Session AV (1c, q1 #43, deliberate): the label reads "Important when priority is" (it read oddly); same select, same choice.
+  await rules.getByLabel('Important when priority is').selectOption('3');
   await expect(box('do')).toContainText('Fictional tax form');
-  await expect(page.locator('.tasks-when-lede')).toHaveText('Urgent: overdue or due within 5 days. Important: priority P1 to P3. Moving a card changes only its priority; its day stays.');
+  await expect(page.locator('.tasks-when-lede')).toHaveText('Urgent: overdue or due within 5 days. Important: priority P1 to P3. Moving a card changes only its priority; its day stays. A deadline that near is urgent too.'); // Session AV (1c, q1 #15, deliberate): the rule names the deadline too
   expect(await page.evaluate(() => localStorage.getItem('zigoals:matrix-rules'))).toBe('{"urgentDays":5,"importantUpTo":3}');
   const findings = await axe(page, rules);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
@@ -42,6 +43,8 @@ for (const theme of THEMES) test(`${theme}: own matrix lines, then a weekly task
   await bins.getByRole('button', {name: 'Edit “Fictional bins out”'}).click();
   const editor = page.getByRole('form', {name: 'Edit “Fictional bins out”'});
   const pause = editor.getByRole('group', {name: 'Pause the repeat'});
+  // Session AV (1c, q1 #43): today is refused, so the picker starts tomorrow.
+  await expect(pause.getByLabel('Until')).toHaveAttribute('min', '2026-11-24');
   await pause.getByLabel('Until').fill('2026-12-10');
   await pause.getByRole('button', {name: 'Pause until then'}).click();
   await expect.poll(() => read(page)).toMatchObject({'task_fictional-bins': ['2026-12-14', false]});

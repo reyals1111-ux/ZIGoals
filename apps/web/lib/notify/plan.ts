@@ -9,7 +9,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -38,6 +38,11 @@ export type PlanInput = {
    * (lib/tasks/reminders.ts reminderInstants): the instant and the task's id; its title only where names are allowed.
    */
   tasks?: {id: string; title?: string; at: number}[];
+  /**
+   * Session AV (1c, q1 #44; TickTick): the mornings a countdown's reminder reaches the device (lib/countdowns/extras.ts
+   * countdownWakes): the day, the countdown's id, how many days are left then; its title only where names are allowed.
+   */
+  countdowns?: {id: string; title?: string; date: string; days: number}[];
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -94,6 +99,14 @@ export function buildPlan(input: PlanInput): Plan {
     if (inQuiet(time, quiet)) { refused.push({kind: 'task', time}); continue; }
     once.set(Math.floor(t.at / 60000), 'task');
     push({at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: false});
+  }
+  // Session AV (1c, q1 #44): a countdown's reminder wakes at the morning time (the end of quiet hours when the morning is
+  // quiet) on the first day of its reminder and on its day, as bills do. Labelled only with names on.
+  if (typeOn(prefs, 'countdowns')) for (const c of input.countdowns ?? []) {
+    if (c.date < today || c.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(c.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'countdown');
+    push({at, kind: 'countdown', id: `countdown:${c.id}@${c.date}`, label: label(c.title), detail: c.days === 0 ? 'today' : c.days === 1 ? 'tomorrow' : `in ${c.days} days`, href: '/app', actionable: false});
   }
   // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
   // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end

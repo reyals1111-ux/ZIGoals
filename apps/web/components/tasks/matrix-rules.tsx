@@ -27,7 +27,7 @@ export function MatrixRulesFold({rules}: {rules: MatrixRules}) {
     <summary>Your own lines{own ? ' · in use' : ''}</summary>
     <div className="tasks-matrix-rules-fields">
       <label className="field"><span>Urgent when due within</span><select value={rules.urgentDays} onChange={e => save({...rules, urgentDays: Number(e.target.value)})}>{[0, 1, 2, 3, 4, 5, 6, 7].map(d => <option key={d} value={d}>{d === 0 ? 'today only' : `${d} ${d === 1 ? 'day' : 'days'}`}</option>)}</select></label>
-      <label className="field"><span>Important from priority</span><select value={rules.importantUpTo} onChange={e => save({...rules, importantUpTo: Number(e.target.value) as MatrixRules['importantUpTo']})}><option value={1}>P1 only</option><option value={2}>P1 or P2</option><option value={3}>P1 to P3</option></select></label>
+      <label className="field"><span>Important when priority is</span><select value={rules.importantUpTo} onChange={e => save({...rules, importantUpTo: Number(e.target.value) as MatrixRules['importantUpTo']})}><option value={1}>P1 only</option><option value={2}>P1 or P2</option><option value={3}>P1 to P3</option></select></label>
     </div>
     <p className="fine">Kept on this device. {own ? <button type="button" className="text-link" onClick={() => save(DEFAULT_RULES)}>Back to the usual lines</button> : 'The usual lines are within 2 days and P1 or P2.'}</p>
   </details>;

@@ -31,6 +31,12 @@ for (const theme of THEMES) test(`${theme}: tag while writing, add and remove a 
   await office.getByLabel('Tag', {exact: true}).fill('#tired');
   await office.getByRole('button', {name: 'Add', exact: true}).click();
   await expect(office.getByRole('list', {name: /^Tags of the entry of/})).toContainText('#tired');
+  // Session AV (1c, q4 #5): focus goes back to "Add a tag", never to the page; the tags in use are offered in the field.
+  await expect(office.getByRole('button', {name: /^Add a tag to the entry of/})).toBeFocused();
+  await office.getByRole('button', {name: /^Add a tag to the entry of/}).click();
+  await expect(office.locator('datalist option')).toHaveCount(2); // evening and family: the entry's own work and tired are left out
+  await office.getByLabel('Tag', {exact: true}).press('Escape');
+  await expect(office.getByRole('button', {name: /^Add a tag to the entry of/})).toBeFocused();
   await filter.getByRole('button', {name: /^#tired/}).click();
   await expect(rows).toHaveCount(1);
   await expect(filter.getByRole('button', {name: /^#tired/})).toHaveAttribute('aria-pressed', 'true');
@@ -39,6 +45,8 @@ for (const theme of THEMES) test(`${theme}: tag while writing, add and remove a 
   // Remove it: the filter falls back to every entry.
   await office.getByRole('button', {name: /^Remove the tag tired from the entry of/}).click();
   await expect(rows).toHaveCount(2);
+  // Session AV (1c, q4 #5): after a remove, focus moves to the entry's other tag.
+  await expect(office.getByRole('button', {name: /^Remove the tag work from the entry of/})).toBeFocused();
   const saved = await page.evaluate(() => (JSON.parse(localStorage.getItem('zigoals:journal:v1') ?? '{"entries":[]}').entries as {text: string; tags?: string[]}[]).map(e => [e.text, e.tags ?? []]));
   expect(saved).toEqual([['A fictional busy day at the office.', ['work']], ['Fictional dinner with my sister.', ['family', 'evening']]]);
   await page.setViewportSize({width: 320, height: 720});

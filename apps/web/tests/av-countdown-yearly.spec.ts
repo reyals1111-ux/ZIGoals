@@ -32,6 +32,10 @@ for (const theme of THEMES) test(`${theme}: a birthday every year, and a reminde
   await form.getByRole('button', {name: 'Add', exact: true}).click();
   await expect(card.getByRole('list', {name: 'Reminders'})).toHaveText('◷ Fictional race in 6 days');
   await expect(coming.filter({hasText: 'Fictional race'})).toContainText('reminder 7 days before');
+  // Session AV (1c, q1 #44): the reminder is changed on the row itself.
+  await card.getByLabel('Reminder for “Fictional birthday”').selectOption('14');
+  await expect(coming.filter({hasText: 'Fictional birthday'})).toContainText('reminder 14 days before');
+  expect(await stored(page, COUNTDOWN_EXTRAS_KEY)).toMatchObject({items: {'av-birthday': {yearly: true, remindDays: 14}}});
   const findings = await axe(page, card);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   expect(TODAY).toBe('2026-11-14');

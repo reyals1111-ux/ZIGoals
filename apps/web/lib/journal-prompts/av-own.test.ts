@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {addOwnTemplate, asJournalTemplate, ownTemplateIssue, removeOwnTemplate} from './own';
+import {addOwnTemplate, asJournalTemplate, editOwnTemplate, ownTemplateIssue, removeOwnTemplate} from './own';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL, questionOfTheDay} from './daily';
 import {startFrom} from './templates';
 import {emptyJournal, journalSchema} from '../journal/schema';
@@ -23,5 +23,19 @@ describe('Session AV (F-OWN-TEMPLATES)', () => {
     expect(DAILY_QUESTIONS_NL).toHaveLength(DAILY_QUESTIONS.length);
     const i = DAILY_QUESTIONS.indexOf(questionOfTheDay('2026-11-21'));
     expect(questionOfTheDay('2026-11-21', 0, 'nl')).toBe(DAILY_QUESTIONS_NL[i]);
+  });
+});
+
+/** Session AV (1c, q4 #45, fresh-agent review; Day One): an own template is edited in place, keeping its id and place. */
+describe('Session AV (1c): editing an own template', () => {
+  it('a new name and headings, same id and place; the same checks; the cap does not block an edit', () => {
+    let j = addOwnTemplate(emptyJournal(), {title: 'Fictional run diary', headingsText: 'Legs:'}, 'own-abc123def4');
+    j = addOwnTemplate(j, {title: 'Fictional week', headingsText: 'Best bit:'}, 'own-abc123def5');
+    j = editOwnTemplate(j, 'own-abc123def4', {title: ' Run notes ', headingsText: 'Legs:\nWeather:'});
+    expect(j.templates).toEqual([{id: 'own-abc123def4', title: 'Run notes', headings: ['Legs:', 'Weather:']}, {id: 'own-abc123def5', title: 'Fictional week', headings: ['Best bit:']}]);
+    expect(() => editOwnTemplate(j, 'own-abc123def4', {title: '', headingsText: 'a'})).toThrow('Give the template a name.');
+    expect(() => editOwnTemplate(j, 'own-gone000000', {title: 'x', headingsText: 'a'})).toThrow();
+    const full = journalSchema.parse({...emptyJournal(), templates: Array.from({length: 20}, (_, i) => ({id: `own-full${String(i).padStart(6, '0')}`, title: `T${i}`, headings: ['A:']}))});
+    expect(editOwnTemplate(full, 'own-full000003', {title: 'Kept', headingsText: 'B:'}).templates![3]!.title).toBe('Kept');
   });
 });

@@ -1,7 +1,7 @@
 'use client';
-import {dayLoad, dayLoadWords} from '../../lib/tasks/minutes';
+import {dayLoadWords, viewLoad} from '../../lib/tasks/minutes';
 import Link from 'next/link';
-import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode} from 'react';
+import {Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode} from 'react';
 import {PageHeader} from '../page-header';
 import {OrbitArt} from '../header-art/orbit-art';
 import {EmptyState} from '../ui/empty-state';
@@ -9,7 +9,8 @@ import {LoadBoundary} from '../load-boundary';
 import {ZgSkeleton} from '../skeleton/zg-skeleton';
 import {TasksGlyph} from './tasks-glyph';
 import {TaskRow, TaskStatusLine} from './task-parts';
-import {SmartAdd} from './smart-add';
+import {PASTE_PARENT, SmartAdd} from './smart-add';
+import {ReminderRows} from './reminder-rows';
 import {TasksNav, viewKey, readView, viewTitle} from './tasks-nav';
 import {useTaskList} from './use-task-list';
 import {useGoalOptions} from './use-goal-options';
@@ -132,7 +133,8 @@ export function TasksPage() {
   const addFromLine = useCallback((input: TaskInput) => list.add({...input, ...(input.due === undefined && defaults.due ? {due: defaults.due} : {}), ...(input.level === undefined && defaults.level ? {level: defaults.level} : {})}), [list, defaults]);
   // Session AV (owner follow-up 1, F-PASTE-LIST): a pasted list, every task in one change, so one Undo takes them all back.
   const withDefaults = useCallback((input: TaskInput): TaskInput => ({...input, ...(input.due === undefined && defaults.due ? {due: defaults.due} : {}), ...(input.level === undefined && defaults.level ? {level: defaults.level} : {})}), [defaults]);
-  const addManyFromLines = useCallback((inputs: TaskInput[]) => { const at = new Date(); return list.change(r => inputs.reduce((acc, input) => addTask(acc, withDefaults(input), {id: `task_${crypto.randomUUID()}`, at, today, allowPast: true}), r), `Added ${plural(inputs.length, 'task')}.`, `${plural(inputs.length, 'task')} taken back.`); }, [list, withDefaults, today]);
+  // Session AV (1c, q1 #17): an indented pasted line is a subtask; its parent is named `paste:<index>` (SmartAdd) and gets its id here.
+  const addManyFromLines = useCallback((inputs: TaskInput[]) => { const at = new Date(), made = inputs.map(() => `task_${crypto.randomUUID()}`); return list.change(r => inputs.reduce((acc, input, i) => { const parent = input.parentId?.startsWith(PASTE_PARENT) ? made[Number(input.parentId.slice(PASTE_PARENT.length))] : input.parentId; return addTask(acc, {...withDefaults(input), ...(parent ? {parentId: parent} : {parentId: undefined})}, {id: made[i]!, at, today, allowPast: true}); }, r), `Added ${plural(inputs.length, 'task')}.`, `${plural(inputs.length, 'task')} taken back.`); }, [list, withDefaults, today]);
   const setLevel = (level: TaskLevel, one?: string) => { const list_ = ids(one); if (list_.length) list.change(r => editMany(r, list_, () => ({level}), today, {allowPast: true}), `${list_.length > 1 ? plural(list_.length, 'task') : 'Task'} set to P${level}.`); };
   const setDue = (due: string, one?: string) => { const list_ = ids(one); if (list_.length) list.change(r => editMany(r, list_, () => ({due}), today, {allowPast: true}), `${list_.length > 1 ? plural(list_.length, 'task') : 'Task'} due ${due === today ? 'today' : formatDate(due, {weekday: true})}.`); };
   const finishSelected = (one?: string) => { const list_ = ids(one).filter(id => record.tasks.some(t => t.id === id && !t.doneAt)); if (list_.length) { list.change(r => finishMany(r, list_, new Date(), {today, doneDay: today}), list_.length > 1 ? `Done: ${plural(list_.length, 'task')}.` : `Done: “${record.tasks.find(t => t.id === list_[0])?.title}”.`); setSelected(new Set()); setSelecting(false); } };
@@ -286,8 +288,9 @@ export function TasksPage() {
   } else if (view.kind === 'completed') {
     // LS-037: the view's window — finished in the last 30 days of this device's days; older ones are only counted.
     const {log, older} = completedInWindow(record, today, list.doneDay), recent = recentlyDone(record, today, list.doneDay);
+    // Session AV (1c, q1 #6, fresh-agent review): the view's title already says "Completed"; this part says only the count.
     body = <section className="tasks-completed" aria-labelledby="tasks-done-title">
-      <h2 id="tasks-done-title">Completed <small>{plural(log.length, 'time')}</small></h2>
+      <p id="tasks-done-title" className="tasks-done-count">{log.length ? `${plural(log.length, 'finish', 'finishes')} in the last 30 days` : 'Finished in the last 30 days'}</p>
       {log.length > 0 ? <LoadBoundary quiet><Suspense fallback={null}><DoneChart log={log} today={today} doneDay={list.doneDay}/></Suspense></LoadBoundary> : <p className="fine">When you finish tasks, this view shows how many per day and per week, from the last 30 days.</p>}
       {recent.length > 0 && <p className="tasks-bulk-inline"><button type="button" className="secondary" onClick={() => list.change(clearDone, `Cleared ${plural(record.tasks.filter(t => t.doneAt).length, 'finished task')}.`, 'Finished tasks put back.')}>Clear done ({formatNumber(record.tasks.filter(t => t.doneAt).length)})</button></p>}
       {log.length ? <ul className="tasks-list" aria-label="Completed">{log.slice(0, 200).map(e => e.occurrence
@@ -314,7 +317,10 @@ export function TasksPage() {
       <AddSectionForm onAdd={n => list.change(r => addSection(r, view.id, n), `Added the section “${n}”.`)} /></>;
   } else if (view.kind === 'upcoming' && !query) {
     const days = Array.from({length: 14}, (_, i) => addLocalDays(today, i));
-    body = <>{days.map(d => { const items = shown.filter(t => t.due === d); return items.length ? group(d, d === today ? 'Today' : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false}), items) : null; })}
+    // Session AV (1c, q1 #15, fresh-agent review; Things): a deadline shows on its own day too, ahead of time.
+    const deadlinesOn = (d: string) => record.tasks.filter(t => !t.doneAt && !t.parentId && t.deadline === d && t.due !== d);
+    body = <>{days.map(d => { const items = shown.filter(t => t.due === d), due = deadlinesOn(d), name = d === today ? 'Today' : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false}); if (!items.length && !due.length) return null;
+      return <Fragment key={d}>{items.length ? group(d, name, items) : <div className="tasks-group" data-state={d}><h3>{name}</h3></div>}{due.length > 0 && <p className="fine tasks-deadline-line"><span aria-hidden="true">⚑ </span>Deadline: {due.map((t, i) => <span key={t.id}>{i ? ' · ' : ''}<span dir="auto">{t.title}</span></span>)}</p>}</Fragment>; })}
       {group('later', 'Later', shown.filter(t => t.due! > days.at(-1)!))}</>;
   } else if (view.kind === 'inbox' && !query) {
     body = group('inbox', null, shown);
@@ -336,8 +342,9 @@ export function TasksPage() {
       {tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><Salvage salvage={salvage} onKeep={() => { if (salvage) { keepSalvaged(salvage.readable); showStatus(`Kept ${plural(salvage.readable.tasks.length, 'task')} that could be read.`); } }} /></Suspense></LoadBoundary>}
       {reminders.length > 0 && <section className="panel tasks-reminders" aria-label="Reminders">
         <h2>Reminders</h2>
-        <ul>{reminders.map(r => <li key={r.key}><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}
-          <button type="button" className="text-link" onClick={() => list.toggle(r.task, true)}>Done</button><button type="button" className="text-link" onClick={() => setDismissed(s => new Set(s).add(r.key))}>Dismiss</button></li>)}</ul>
+        {/* Session AV (1c, q1 #1): Done, Snooze (15 min, 1 h, tomorrow) and Dismiss on every reminder. */}
+        <ReminderRows reminders={reminders} className="tasks-reminder-list" label="Reminders that have gone off" change={list.change} onDone={t => list.toggle(t, true)} onDismiss={key => setDismissed(s => new Set(s).add(key))} fallback={() => addField.current}
+          line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}</span>} />
         <p className="fine">Reminders show here and on Today while the app is open. On your device’s notifications only when notifications are switched on in Settings.</p>
       </section>}
       {io && <LoadBoundary label="Import and export"><Suspense fallback={<p className="fine">Opening…</p>}><TasksIo record={record} today={today} showcase={showcase} onClose={() => setIo(false)} apply={list.change} /></Suspense></LoadBoundary>}
@@ -365,7 +372,7 @@ export function TasksPage() {
             {query ? 'Try fewer words, or one operator such as p1, today or #project.' : counts.open ? 'Open another view on the left, or add one above.' : 'Type a few words above, like “Call the dentist tomorrow 10am”. Add a day, “every …”, p1–p4, #project or @label as you type.'}
           </EmptyState>}
           {/* Session AV (D-CI1987): below the list, so Today's first task starts where it did (A10-11). */}
-          {view.kind === 'today' && !query && (() => { const w = dayLoadWords(dayLoad(record, today)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
+          {view.kind === 'today' && !query && (() => { const w = dayLoadWords(viewLoad(shown)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (1c, q1 #39): every task in Today's list, overdue ones too */}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
           {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}
           {view.kind === 'today' && !query && record.tasks.some(t => t.doneAt && list.doneDay(t.doneAt) === today) && <p className="fine"><button type="button" className="text-link" onClick={() => go({kind: 'completed'})}>Done today: {formatNumber(record.tasks.filter(t => t.doneAt && list.doneDay(t.doneAt) === today).length)} →</button></p>}
         </section>

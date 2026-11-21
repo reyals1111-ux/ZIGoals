@@ -6,7 +6,7 @@ import {emptyTasks} from '../lib/tasks/schema';
 /**
  * Session AV, owner follow-up 1 (F-PLAN-DAY; TickTick's suggested tasks, Sunsama's planning step, with no model): Tasks →
  * Today → "Plan my day" offers the overdue task and a priority 1 task with no day, each with why; "Plan for today"
- * moves one to today (with Undo), "Not today" sets the other aside until tomorrow, and the fold goes when nothing is
+ * moves one to today (with Undo), "Not now" sets the other aside for now (Session AV 1c), and the fold goes when nothing is
  * left to suggest — at 390 and 1440, in Nebula, Light and Dark, axe-clean, no sideways scroll at 320. Fictional data.
  */
 test.use({timezoneId: 'Europe/Amsterdam'});
@@ -23,7 +23,8 @@ for (const theme of THEMES) test(`${theme}: the overdue task planned for today, 
   await page.goto('/app/tasks?view=today'); await settle(page);
   const fold = page.locator('details.tasks-plan-day');
   await expect(fold.locator('summary')).toHaveText('Plan my day 2 suggestions · nothing planned for today yet');
-  await fold.locator('summary').click();
+  // Session AV (1c, q1 #38, deliberate): with an overdue suggestion the fold opens itself (it sat closed below the list).
+  await expect(fold).toHaveAttribute('open', '');
   const list = fold.getByRole('list', {name: 'Suggested for today'});
   await expect(list.getByRole('listitem')).toHaveText([/^Water the fictional plantsWas planned for Sat, Nov 21/, /^Call the fictional bankPriority 1, no day yet/]);
   const findings = await axe(page, fold);
@@ -35,7 +36,8 @@ for (const theme of THEMES) test(`${theme}: the overdue task planned for today, 
   await expect.poll(() => due(page)).toEqual({'task_fictional-water': '2026-11-21', 'task_fictional-bank': null});
   await list.getByRole('button', {name: 'Plan Water the fictional plants for today'}).click();
   await expect.poll(() => due(page)).toEqual({'task_fictional-water': '2026-11-23', 'task_fictional-bank': null});
-  await list.getByRole('button', {name: 'Not today: Call the fictional bank'}).click();
+  // Session AV (1c, q1 #38, deliberate): "Not now", as it lasts for this tab only (it said "until tomorrow").
+  await list.getByRole('button', {name: 'Not now: Call the fictional bank'}).click();
   await expect(fold).toHaveCount(0);
   await page.reload(); await settle(page);
   await expect(page.locator('li.task').filter({hasText: 'Water the fictional plants'})).toHaveCount(1);

@@ -2,6 +2,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {describe, expect, it} from 'vitest';
 import {buildPlan, type PlanInput} from './plan';
+import {doneTaskIds} from './actions';
 import {emptyNotifyPrefs, NOTIFY_LABELS, NOTIFY_TYPES, setType, typeOn} from './prefs';
 import {zonedInstant} from './zone';
 
@@ -52,5 +53,13 @@ describe('Session AV (F-TASK-NOTIFY): task reminders in the notification plan', 
     expect(named.data.url).toContain('/app/tasks');
     const counted = compose({labels: false, items: [{at: soon, kind: 'task', id: 't1', href: '/app/tasks', actionable: false}, {at: soon, kind: 'task', id: 't2', href: '/app/tasks', actionable: false}], summary: {date: '2026-10-05', done: 0, total: 0}}, soon);
     expect(counted.body).toBe('2 task reminders');
+  });
+});
+
+/** Session AV (1c, q1 #1): a "Done" tap that names task reminders names the tasks it ticks off (the page applies it). */
+describe('Session AV (1c): Done on a task reminder', () => {
+  it('reads the task ids from the plan items, once each; other kinds and odd ids are left out', () => {
+    expect(doneTaskIds({items: [{kind: 'task', id: 'task:t1@1795424400000', at: 1}, {kind: 'task', id: 'task:t1@1795428000000', at: 2}, {kind: 'habit', id: 'h1', at: 1}, {kind: 'task', id: 'task:../x@1', at: 1}]})).toEqual(['t1']);
+    expect(doneTaskIds({})).toEqual([]);
   });
 });

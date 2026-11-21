@@ -7,3 +7,15 @@
 .weekly-review-last dl { display: grid; gap: 8px; margin: 8px 0 0; }.weekly-review-last dt { font-size: 14px; color: #aaa0bb; }.weekly-review-last dd { margin: 0; font-size: 15px; white-space: pre-wrap; }
 .weekly-review-dialog { max-width: 640px; }
 @media (max-width: 600px) { .weekly-review-day select { font-size: 16px; } }
+/* Session AV (1c, q1 #12): the intention's "add to Tasks" as an inline check row (44 px), the goal, and the Tasks step's choices. */
+.weekly-review-as-task { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.weekly-review-as-task input { width: 20px; height: 20px; margin: 0; flex: none; }
+.weekly-review-goal select { min-height: 44px; }
+.review-task-choices { display: grid; gap: 6px; min-width: 0; }
+.review-task-choices > p { margin: 0; font-size: 15px; }
+.review-task-choices ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.review-task-choices li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; padding: 6px 0; border-top: 1px solid var(--line, rgba(140,160,220,.25)); overflow-wrap: anywhere; min-width: 0; }
+.review-task-title { font-size: 15px; min-width: 0; }
+.review-task-title small { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.review-task-actions { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 14px; }
+.review-task-actions button { min-height: 44px; }

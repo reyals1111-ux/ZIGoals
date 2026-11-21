@@ -1,4 +1,4 @@
-import {instantAt} from '../zone-time';
+import {instantAt, wallClock} from '../zone-time';
 import type {Task, TaskReminder, Tasks} from './schema';
 
 /**
@@ -16,22 +16,50 @@ export const REMINDER_CHOICES: {before: number; label: string}[] = [
   {before: 1440, label: '1 day before'}, {before: 2880, label: '2 days before'}, {before: 10_080, label: '1 week before'},
 ];
 export const reminderLabel = (r: TaskReminder) => REMINDER_CHOICES.find(c => c.before === r.before)?.label ?? `${r.before} minutes before`;
-/** When each reminder of an open task with a day goes off, as instants (ms). */
-export function reminderInstants(record: Tasks, zone: string): {task: Task; at: number; before: number}[] {
-  const out: {task: Task; at: number; before: number}[] = [];
+/**
+ * When each reminder of an open task with a day goes off, as instants (ms). `of` is the reminder's own instant; a reminder
+ * the person snoozed (Session AV 1c, `task.snooze`) goes off at the snooze's end instead (`at`), once.
+ */
+export function reminderInstants(record: Tasks, zone: string): {task: Task; at: number; before: number; of: number}[] {
+  const out: {task: Task; at: number; before: number; of: number}[] = [];
   for (const t of record.tasks) {
     if (t.doneAt || !t.due || !t.reminders?.length) continue;
-    const base = instantAt(t.due, t.time ?? DAY_ONLY_CLOCK, zone);
-    for (const r of t.reminders) out.push({task: t, at: base - r.before * 60_000, before: r.before});
+    const base = instantAt(t.due, t.time ?? DAY_ONLY_CLOCK, zone), seen = new Set<number>();
+    for (const r of t.reminders) {
+      const of = base - r.before * 60_000;
+      if (seen.has(of)) continue; seen.add(of);
+      out.push({task: t, at: t.snooze && t.snooze.of === of && (t.snooze.before === undefined || t.snooze.before === r.before) ? t.snooze.until : of, before: r.before, of});
+    }
   }
   return out.sort((a, b) => a.at - b.at);
+}
+/**
+ * Session AV (1c, q1 #1, fresh-agent review; Todoist and TickTick let you pick): the snooze lengths offered on a reminder
+ * that has gone off — 15 minutes, an hour, or tomorrow at 09:00 (the day-only reminder time).
+ */
+export const SNOOZE_CHOICES = [{id: '15m', label: '15 min', words: 'for 15 minutes'}, {id: '1h', label: '1 h', words: 'for 1 hour'}, {id: 'tomorrow', label: 'Tomorrow', words: 'until tomorrow morning'}] as const;
+export type SnoozeChoice = (typeof SNOOZE_CHOICES)[number]['id'];
+export function snoozeUntil(choice: SnoozeChoice, nowMs: number = Date.now(), zone: string): number {
+  if (choice === '15m') return nowMs + 15 * 60_000;
+  if (choice === '1h') return nowMs + 3_600_000;
+  const day = wallClock(nowMs, zone).date, next = new Date(`${day}T12:00:00Z`); next.setUTCDate(next.getUTCDate() + 1);
+  return instantAt(next.toISOString().slice(0, 10), DAY_ONLY_CLOCK, zone);
+}
+/**
+ * A reminder snoozed: the task keeps the reminder's own instant (`of`), its offset (`before`) and when it comes back (`until`). One snooze per
+ * task (a newer one replaces it); it counts only while that reminder is still the task's (done, moved or changed: gone).
+ * Pure; the task's other fields stay as they are.
+ */
+export function snoozeReminder(record: Tasks, taskId: string, of: number, until: number, before?: number): Tasks {
+  if (!record.tasks.some(t => t.id === taskId)) throw new Error('That task is no longer on this device.');
+  return {...record, tasks: record.tasks.map(t => t.id === taskId ? {...t, snooze: {of: Math.round(of), until: Math.round(until), ...(before !== undefined ? {before} : {})}} : t)};
 }
 /**
  * The reminders to show now: gone off within the last `windowMs` (12 hours by default) and not dismissed. `dismissed`
  * holds `${taskId}@${at}` keys (kept in the page's memory; a reload shows a still-recent one again, which is fine).
  */
-export function dueReminders(record: Tasks, nowMs: number, zone: string, {windowMs = 12 * 3_600_000, dismissed = new Set<string>()}: {windowMs?: number; dismissed?: ReadonlySet<string>} = {}): {task: Task; at: number; key: string}[] {
-  return reminderInstants(record, zone).filter(r => r.at <= nowMs && r.at > nowMs - windowMs).map(r => ({task: r.task, at: r.at, key: `${r.task.id}@${r.at}`})).filter(r => !dismissed.has(r.key));
+export function dueReminders(record: Tasks, nowMs: number, zone: string, {windowMs = 12 * 3_600_000, dismissed = new Set<string>()}: {windowMs?: number; dismissed?: ReadonlySet<string>} = {}): {task: Task; at: number; key: string; of: number; before: number}[] {
+  return reminderInstants(record, zone).filter(r => r.at <= nowMs && r.at > nowMs - windowMs).map(r => ({task: r.task, at: r.at, key: `${r.task.id}@${r.at}`, of: r.of, before: r.before})).filter(r => !dismissed.has(r.key));
 }
 /** The next reminder still ahead (for a "next reminder at …" line and a single timer). */
 export function nextReminder(record: Tasks, nowMs: number, zone: string): number | null {

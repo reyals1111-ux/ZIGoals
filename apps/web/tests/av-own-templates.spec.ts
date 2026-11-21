@@ -25,6 +25,8 @@ for (const theme of THEMES) test(`${theme}: a template of my own, and the daily 
   await expect(question.locator('strong')).toHaveAttribute('lang', 'nl');
   expect(await question.locator('strong').textContent()).not.toBe(english);
   await form.getByText('Start from a prompt').click();
+  // Session AV (1c, q4 #45): the picker starts in the question's language.
+  await expect(form.getByRole('button', {name: 'Nederlands', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await form.getByRole('button', {name: 'Make your own template'}).click();
   const make = form.getByRole('group', {name: 'Make your own template'});
   await make.getByLabel('Name').fill('Fictional run diary');
@@ -33,8 +35,16 @@ for (const theme of THEMES) test(`${theme}: a template of my own, and the daily 
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await make.getByRole('button', {name: 'Keep this template'}).click();
   await expect.poll(async () => (await read(page))?.templates).toEqual([{id: expect.stringMatching(/^own-[a-z0-9]{12}$/), title: 'Fictional run diary', headings: ['How the legs felt:', 'What I saw on the way:']}]);
+  // Session AV (1c, q4 #45; Day One): Edit changes it in place, same id; focus comes back to its Edit button.
+  const id = (await read(page))!.templates![0]! as {id?: string};
+  await form.getByRole('button', {name: 'Edit your template “Fictional run diary”'}).click();
+  const change = form.getByRole('group', {name: 'Edit your template'});
+  await change.getByLabel('Headings, one per line (up to six)').fill('How the legs felt:\nWhat I saw on the way:\nThe weather:');
+  await change.getByRole('button', {name: 'Save the template'}).click();
+  await expect(form.getByRole('button', {name: 'Edit your template “Fictional run diary”'})).toBeFocused();
+  await expect.poll(async () => (await read(page))?.templates).toEqual([{id: id.id, title: 'Fictional run diary', headings: ['How the legs felt:', 'What I saw on the way:', 'The weather:']}]);
   await form.getByRole('list', {name: 'Your own templates'}).getByRole('button', {name: /^Fictional run diary/}).click();
-  await expect(form.getByLabel('Today’s entry')).toHaveValue('How the legs felt:\n\nWhat I saw on the way:\n');
+  await expect(form.getByLabel('Today’s entry')).toHaveValue('How the legs felt:\n\nWhat I saw on the way:\n\nThe weather:\n'); // Session AV (1c, deliberate): the edited headings
   await page.reload(); await hydrated(page);
   await expect(page.getByRole('group', {name: 'Today’s question'}).locator('strong')).toHaveAttribute('lang', 'nl');
   await page.setViewportSize({width: 320, height: 720});

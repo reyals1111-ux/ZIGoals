@@ -48,6 +48,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
   const [query, setQuery] = useState(''), [tag, setTag] = useState<string | null>(null), [dayOpen, setDayOpen] = useState<ReadonlySet<string>>(new Set());
   const tags = useMemo(() => tagCounts(journal.data.entries), [journal.data.entries]);
+  const knownTags = useMemo(() => tags.map(t => t.tag), [tags]); // Session AV (1c, q4 #5): offered in the tag fields
   const shownTag = tag && tags.some(t => t.tag.toLowerCase() === tag.toLowerCase()) ? tag : null;
   const entries = useMemo(() => [...journal.data.entries].reverse().filter(e => hasTag(e, shownTag) && (!query.trim() || e.text.toLowerCase().includes(query.trim().toLowerCase()) || (e.tags ?? []).some(t => t.toLowerCase().includes(query.trim().toLowerCase().replace(/^#/, ''))))), [journal.data.entries, query, shownTag]);
   const retag = (id: string, change: (e: JournalEntry) => JournalEntry, said: string) => { try { journal.update(c => changeEntry(c, id, change)); showStatus(said); } catch { showStatus('The tag could not be saved on this device.', {tone: 'error'}); } };
@@ -92,10 +93,13 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time></p><p className="journal-entry-text">{e.text}</p>
         <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}</p>
         {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
-        <EntryTags tags={e.tags ?? []} day={entryDays.get(e.date)?.short ?? e.date} onAdd={t => retag(e.id, x => withTag(x, t), `Tagged #${t}.`)} onRemove={t => retag(e.id, x => withoutTag(x, t), `The tag #${t} is off this entry.`)}/>
+        {/* Session AV (1c, q4 #34): the entry's three controls (tags, That day, Remove) share one row. */}
+        <div className="journal-entry-controls">
+        <EntryTags tags={e.tags ?? []} day={entryDays.get(e.date)?.short ?? e.date} known={knownTags} onAdd={t => retag(e.id, x => withTag(x, t), `Tagged #${t}.`)} onRemove={t => retag(e.id, x => withoutTag(x, t), `The tag #${t} is off this entry.`)}/>
         {/* Session AV (owner follow-up 1, F-JOURNAL-DAY; Day One's metadata): that day's own records, as links, on the press. */}
         <details className="journal-that-day" onToggle={ev => { const open = (ev.currentTarget as HTMLDetailsElement).open; setDayOpen(d => { const n = new Set(d); if (open) n.add(e.id); else n.delete(e.id); return n; }); }}><summary>That day</summary>{dayOpen.has(e.id) && <Suspense fallback={<p className="fine">Reading that day…</p>}><ThisDayStrip day={e.date} exclude={['journal']} title={`On ${entryDays.get(e.date)?.short ?? e.date}`}/></Suspense>}</details>
-        <button type="button" className="text-link" aria-label={`Remove the entry of ${entryDays.get(e.date)?.short ?? e.date}`} onClick={() => remove(e)}>Remove</button>
+        <button type="button" className="text-link journal-entry-remove" aria-label={`Remove the entry of ${entryDays.get(e.date)?.short ?? e.date}`} onClick={() => remove(e)}>Remove</button>
+        </div>
       </li>)}</ol> : query || shownTag ? <p className="fine">{shownTag && !query ? `No entry has the tag #${shownTag}.` : 'No entry has those words.'}</p> : <ArtNote pillar="orbit"><p className="fine">No entries yet. Write a few lines above.</p></ArtNote>}
     </section>
     <section className="panel" id="your-scales" aria-labelledby="journal-scales-title"><h2 id="journal-scales-title">Your own scales</h2><LoadBoundary quiet><Suspense fallback={null}><YourScales day={today}/></Suspense></LoadBoundary></section>
@@ -120,6 +124,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       <label className="switch-row"><input type="checkbox" checked={journal.data.followUps} onChange={e => journal.update(c => ({...c, followUps: e.target.checked}))}/> <span>ZIGi asks one question after an entry (made on this device)</span></label>
       <label className="switch-row"><input type="checkbox" checked={journal.data.shareWithAi} onChange={e => journal.update(c => ({...c, shareWithAi: e.target.checked}))}/> <span>Let ZIGi send journal entries to my own AI when I ask about them (off by default)</span></label>
       <LoadBoundary quiet><Suspense fallback={null}><OnThisDaySwitch/></Suspense></LoadBoundary>
+      {/* Session AV (1c, q4 #33, owner decision: the smaller suggestion): off by default; Today shows counts only unless chosen. */}
+      <label className="switch-row"><input type="checkbox" checked={journal.data.todayLines === true} onChange={e => journal.update(c => ({...c, todayLines: e.target.checked}))}/> <span>Show the first line of today&rsquo;s entries and memories on Today (off: Today shows counts only)</span></label>
       <p className="fine">The journal stays on this device and is in Export everything. Turning sharing off keeps every entry here.</p>
     </section>
   </div>;

@@ -1,4 +1,4 @@
-import type {Tasks} from './schema';
+import type {Task, Tasks} from './schema';
 
 /**
  * Session AV (owner follow-up 1, F-TASK-MINUTES; Todoist durations, Sunsama's planned time): a task's minutes in words
@@ -23,6 +23,16 @@ export function dayLoad(record: Tasks, day: string): DayLoad {
     if (t.minutes) { timed++; minutes += t.minutes; }
   }
   return {tasks, timed, minutes};
+}
+/**
+ * Session AV (1c, q1 #39, fresh-agent review; Sunsama counts the whole day): the load of the tasks a view lists — Tasks →
+ * Today's own list, overdue ones and a deadline today included — open top-level tasks only, each once.
+ */
+export function viewLoad(tasks: readonly Task[]): DayLoad {
+  let count = 0, timed = 0, minutes = 0;
+  const seen = new Set<string>();
+  for (const t of tasks) { if (t.doneAt || t.parentId || seen.has(t.id)) continue; seen.add(t.id); count++; if (t.minutes) { timed++; minutes += t.minutes; } }
+  return {tasks: count, timed, minutes};
 }
 /** "About 1 h 45 min planned for 3 tasks; 1 more without a length" — null when no task of the day says its minutes. */
 export function dayLoadWords(load: DayLoad): string | null {

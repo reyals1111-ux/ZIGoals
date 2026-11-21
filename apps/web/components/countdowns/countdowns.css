@@ -34,3 +34,6 @@
 .countdown-actions .text-link { min-height: 44px; }
 .countdown-actions .text-link[aria-pressed="true"] { font-weight: 700; }
 .countdowns-check { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+/* Session AV (1c, q1 #44): the reminder on each row. */
+.countdown-actions { align-items: center; }
+.countdown-remind select { min-height: 44px; font-size: 14px; max-width: 100%; }

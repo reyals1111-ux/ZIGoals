@@ -67,6 +67,7 @@ import {TodayStoriesCard, useTodayStoriesCard} from '../stories/today-stories-ca
 import {TodayTimelineCard} from '../timeline/today-timeline-card';
 import {TodayUniverseCard} from '../universe/today-universe-card';
 import {TodayJournalCard} from '../journal/today-journal-card';
+import {useJournalToday} from '../journal/use-journal-today';
 import {TodayTasksCard} from '../tasks/today-tasks-card';
 
 /** The key, in Session W's reminders record, that remembers "Not now" for the time zone card (lib/reminders/w-schema.ts). */
@@ -130,6 +131,7 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   // joins only while the week's story is ready and unopened; on a phone they wait behind "Show more" like every For you card.
   const storiesCard = useTodayStoriesCard({habits, health, platform, today});
   const priceAlerts = useDeviceRecord(PRICE_ALERTS), focusPrefs = useUiPrefs(), keep = useKeepCard(showcase);
+  const journalDay = useJournalToday();
   const cards: ForYouCard[] = [];
   if (keep.card) cards.push({id: 'keep-data', priority: 2.2, node: <LoadBoundary quiet><Suspense fallback={null}><KeepDataCard/></Suspense></LoadBoundary>});
   if (fasting.loaded && fasting.running) cards.push({id: 'fasting', priority: 1, node: <FastingLine running={fasting.running} now={fasting.now} />});
@@ -140,7 +142,9 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (storiesCard.state === 'shown') cards.push({id: 'stories', priority: 4.6, node: <TodayStoriesCard loggedDays={storiesCard.loggedDays} />});
   cards.push({id: 'universe', priority: 6.5, node: <TodayUniverseCard />});
   // Session AI (feature 6): the journal and today's energy, with ZIGi's one question.
-  cards.push({id: 'journal', priority: 6.6, node: <TodayJournalCard />});
+  // Session AV (1c, q4 #33, fresh-agent review): raised on a day with an entry or an "On this day" memory, so its line is
+  // not behind "Show more" on the day it has something to say.
+  cards.push({id: 'journal', priority: journalDay && (journalDay.today.length || journalDay.memories.length) ? 3.4 : 6.6, node: <TodayJournalCard />});
   // Session AI (tasks with a priority and a due date): one-off things to do, overdue and today's first.
   cards.push({id: 'tasks', priority: 6.4, node: <TodayTasksCard />});
   // Session AJ (item 15, D9): a reached price alert comes near the top; waiting ones lower down.

@@ -219,3 +219,18 @@
 .task-editor-pause-title { flex: 1 1 100%; font-weight: 600; }
 .task-editor-pause > small { flex: 1 1 100%; }
 .task-editor-pause button { min-height: 44px; }
+/* Session AV (1c, q1 #17): one typed line offered as several tasks; a pasted subtask sits in under its parent. */
+.tasks-line-list { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 0; min-width: 0; overflow-wrap: anywhere; }
+.tasks-line-list button { min-height: 44px; }
+.tasks-line-list small, .tasks-paste-items [data-subtask] small:first-child { color: var(--text-meta, var(--muted)); font-size: 14px; }
+.tasks-paste-items [data-subtask] { margin-left: 18px; }
+/* Session AV (1c, q1 #1): a reminder's Done, Snooze (15 min, 1 h, Tomorrow) and Dismiss, wrapping as one group. */
+.task-reminder-actions, .task-reminder-snooze { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 10px; min-width: 0; }
+.task-reminder-snooze > span { color: var(--text-secondary, var(--muted)); }
+.task-reminder-actions .text-link { min-height: 44px; }
+.task-editor-more-reminders { margin: 0; }
+.task-editor-more-reminders .text-link { min-height: 44px; }
+.tasks-deadline-line { margin: 0 0 6px; font-size: 14px; overflow-wrap: anywhere; }
+.tasks-done-count { margin: 4px 0 8px; font-size: 15px; color: var(--text-secondary, var(--muted)); }
+.tasks-done-days{display:grid;grid-template-columns:repeat(14,1fr);margin:2px 0 0;font-size:14px;line-height:1.2;text-align:center;color:var(--text-secondary, var(--muted))}
+.tasks-done-days [data-today]{font-weight:700;color:inherit}

@@ -28,3 +28,34 @@ for (const theme of THEMES) test(`${theme}: "Bel de tandarts morgen om 9 uur elk
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
+
+/**
+ * Session AV (1c, q1 #2, #15 and #17, fresh-agent review; Todoist NL): a Dutch "2 uur" is a length, one typed line with
+ * commas offers several tasks, and the global Quick add takes a Dutch to-do line with its deadline and minutes.
+ */
+test('Dutch length, one line as three tasks, and Quick add keeps a deadline and minutes', async ({page}) => {
+  await offline(page);
+  await page.setViewportSize({width: 1440, height: 900});
+  await page.clock.install({time: new Date('2026-11-23T08:00:00+01:00')});
+  await page.goto('/app/tasks'); await settle(page);
+  const field = page.getByLabel('New task').first();
+  await field.fill('Rapport schrijven 2 uur');
+  await expect(page.locator('.tasks-smart-preview')).toHaveText('Will add “Rapport schrijven” · Takes 2 h.');
+  await field.fill('melk, brood en eieren');
+  await page.getByRole('button', {name: 'Make 3 tasks'}).click();
+  const pasted = page.locator('.tasks-paste-list');
+  await expect(pasted).toBeFocused();
+  await expect(pasted).toContainText('3 tasks from your line');
+  await pasted.getByRole('button', {name: 'Add 3 tasks'}).click();
+  const titles = () => page.evaluate(() => (JSON.parse(localStorage.getItem('zigoals:tasks:v1') ?? '{"tasks":[]}').tasks as {title: string; deadline?: string; minutes?: number}[]).map(t => [t.title, t.deadline ?? null, t.minutes ?? null]));
+  await expect.poll(titles).toEqual([['melk', null, null], ['brood', null, null], ['eieren', null, null]]);
+  await page.locator('.quick-add-trigger:visible').first().click();
+  const dialog = page.getByRole('dialog', {name: 'What would you like to add?'}), line = dialog.getByRole('textbox', {name: 'Type a line'});
+  await line.fill('taak: rapport af deadline vrijdag 45 minuten');
+  await dialog.getByRole('button', {name: 'Preview'}).click();
+  await expect(dialog).toContainText('Will add a task: “rapport af”');
+  await expect(dialog).toContainText('deadline Fri');
+  await expect(dialog).toContainText('takes 45 min');
+  await dialog.getByRole('button', {name: 'Add task'}).click();
+  await expect.poll(titles).toContainEqual(['rapport af', '2026-11-27', 45]);
+});

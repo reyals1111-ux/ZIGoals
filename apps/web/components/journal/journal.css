@@ -51,14 +51,16 @@
 .journal-stats dd small { font-size: 14px; font-weight: 500; color: var(--text-secondary, var(--muted)); }
 .journal-entry-words { margin: 0; font-size: 14px; }
 /* Session AV Part 7 (F-PROMPT): today's question above an empty entry. */
-.journal-today-question{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+.journal-today-question{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px} /* Session AV (1c, q4 F-PROMPT): room above "Today's entry" */
 .journal-today-question p{margin:0;font-size:15px;line-height:1.5}
 .journal-today-question .fine{display:block;font-size:14px}
 .journal-today-question-actions{display:flex;flex-wrap:wrap;gap:8px}
 .journal-today-question-actions button{min-height:44px}
 /* Session AV follow-up 1 (F-GOOD-THINGS): three good things in one go. */
-.good-things-fold{margin-top:12px}
-.good-things-fold summary{min-height:44px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;cursor:pointer}
+.good-things-fold{margin-top:0}
+/* Session AV (1c, q4 #4): the same disclosure marker as "Start from a prompt" (a list-item summary), the count on the title's baseline. */
+.good-things-fold summary{min-height:44px;display:list-item;padding:10px 0;cursor:pointer;line-height:1.5}
+.good-things-fold summary .fine{font-size:14px;vertical-align:baseline}
 .good-things{display:grid;gap:10px;margin-top:8px}
 .good-things input{min-height:44px;font-size:16px}
 /* Session AV follow-up 1 (F-JOURNAL-TAGS): tags on entries and the filter by tag. */
@@ -73,4 +75,10 @@
 .journal-tag-form .field{flex:1 1 180px}
 .journal-tag-form input,.journal-tag-form button{min-height:44px}
 /* Session AV follow-up 1 (F-JOURNAL-DAY): that day's own records under an entry. */
-.journal-that-day summary { min-height: 44px; display: inline-flex; align-items: center; cursor: pointer; color: var(--text-secondary); }
+/* Session AV (1c, q4 #34): a disclosure marker as the other folds have. */
+.journal-that-day summary { min-height: 44px; display: list-item; padding: 10px 0; box-sizing: border-box; cursor: pointer; color: var(--text-secondary); }
+/* Session AV (1c, q4 #34): an entry's tags, "That day" and Remove on one row; an open part takes the whole row. */
+.journal-entry-controls{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;min-width:0}
+.journal-entry-controls .journal-entry-tags{margin:0}
+.journal-entry-controls .journal-that-day[open],.journal-entry-controls .journal-entry-tags:has(.journal-tag-form){flex-basis:100%}
+.journal-entry-remove{min-height:44px}

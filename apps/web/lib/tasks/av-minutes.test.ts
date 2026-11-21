@@ -38,3 +38,16 @@ describe('Session AV (F-TASK-MINUTES)', () => {
     expect([minutesWords(45), minutesWords(60), minutesWords(135), minutesWordsNl(90)]).toEqual(['45 min', '1 h', '2 h 15 min', '1 uur 30 min']);
   });
 });
+
+/** Session AV (1c, q1 #39, fresh-agent review): Today's load counts every task the Today view lists, overdue ones too. */
+describe('Session AV (1c): the load of Today’s own list', () => {
+  it('counts overdue and deadline tasks the view shows; done and subtasks left out; each once', async () => {
+    const {viewLoad} = await import('./minutes');
+    const {viewTasks} = await import('./engine');
+    let r = emptyTasks();
+    for (const [id, minutes, due] of [['late', 30, '2026-11-20'], ['today', 45, TODAY], ['later', 60, '2026-11-30']] as const) r = addTask(r, {title: `Fictional ${id}`, due, minutes}, {id, at, today: TODAY, allowPast: true});
+    const shown = viewTasks(r, {kind: 'today'}, TODAY, '09:00');
+    expect(viewLoad([...shown, ...shown])).toEqual({tasks: 2, timed: 2, minutes: 75});
+    expect(dayLoad(r, TODAY)).toEqual({tasks: 1, timed: 1, minutes: 45}); // the planned day alone, as before
+  });
+});

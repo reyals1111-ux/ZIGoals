@@ -8,7 +8,7 @@ import {LEVEL_WORDS, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import type {GoalOption} from './use-goal-options';
 import {formatClock, formatDate} from '../../lib/visual-format';
 import {TaskTitleInput} from './task-parts';
-import {pastedList} from '../../lib/tasks/paste-list';
+import {lineList, pastedOutline} from '../../lib/tasks/paste-list';
 
 /**
  * Session AL (Part 8, P-LS-03, LS-001): the Tasks page's add line. What the line reader takes out (a day, a time, a
@@ -41,6 +41,8 @@ function pieceWords(parsed: ParsedTask, record: Tasks, today: string): string[] 
   for (const l of parsed.labels) pieces.push(`@${l}`);
   return pieces;
 }
+/** Session AV (1c, q1 #17): a pasted subtask names its parent line by index until the page gives the parent its id. */
+export const PASTE_PARENT = 'paste:';
 const KIND_WORDS: Record<ParseSpan['kind'], string> = {date: 'Day', time: 'Time', recur: 'Repeat', priority: 'Priority', project: 'Project', label: 'Label', deadline: 'Deadline', minutes: 'Length'};
 /** "More options" (Session AK G2, R2-17, kept): priority, a day, a time and a goal for the line; what the line itself says wins. */
 const PRIORITY_CHOICES: [string, TaskLevel, string][] = [['high', 1, LEVEL_WORDS[1]], ['medium', 2, LEVEL_WORDS[2]], ['normal', 3, LEVEL_WORDS[3]], ['low', 4, LEVEL_WORDS[4]]];
@@ -51,7 +53,8 @@ export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputR
   const chosenLevel = PRIORITY_CHOICES.find(c => c[0] === priority)?.[1];
   const id = useId(), [text, setText] = useState(''), [keep, setKeep] = useState<number[]>([]), [error, setError] = useState('');
   const own = useRef<HTMLInputElement>(null), field = inputRef ?? own;
-  const [pasted, setPasted] = useState<{lines: string[]; more: number} | null>(null), listRef = useRef<HTMLDivElement>(null);
+  // Session AV (1c, q1 #17): `parents` makes an indented line a subtask; `typed` is a list offered from one typed line.
+  const [pasted, setPasted] = useState<{lines: string[]; parents: (number | null)[]; more: number; typed?: boolean} | null>(null), listRef = useRef<HTMLDivElement>(null);
   const [reader, setReader] = useState<Parse | null>(() => parser);
   useEffect(() => { if (!reader) loadParser().then(fn => setReader(() => fn), () => undefined); }, [reader]);
   const parsed = useMemo(() => reader ? reader(text, today, {keep}) : plainLine(text), [reader, text, today, keep]);
@@ -84,7 +87,7 @@ export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputR
   // Session AV (owner follow-up 1, F-PASTE-LIST): a pasted list of two lines or more, one task per line.
   const takePaste = (raw: string) => {
     if (!onAddMany) return false;
-    const list = pastedList(raw);
+    const list = pastedOutline(raw);
     if (!list) return false;
     setPasted(list); setError('');
     if (!reader) void loadParser().then(fn => setReader(() => fn), () => undefined);
@@ -94,12 +97,26 @@ export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputR
   const readLine = (line: string) => reader ? reader(line, today) : plainLine(line);
   const addAll = () => {
     if (!pasted || !onAddMany) return;
-    const made = new Map<string, string>(), inputs: TaskInput[] = [];
-    for (const line of pasted.lines) { const p = readLine(line); if (!p.title) continue; const input = toInput(p, made); if (!input) return; inputs.push(input); }
+    const made = new Map<string, string>(), inputs: TaskInput[] = [], at = new Map<number, number>();
+    let failed = false;
+    // An indented line is a subtask of its parent line (`paste:<index>` names it; the page gives it the parent's id). A
+    // parent left out (only a day or a tag) leaves its subtasks at the top.
+    pasted.lines.forEach((line, i) => {
+      const p = readLine(line); if (!p.title) return;
+      const input = failed ? null : toInput(p, made); if (!input) { failed = true; return; }
+      const parent = pasted.parents[i] ?? null, parentAt = parent === null ? undefined : at.get(parent);
+      at.set(i, inputs.length);
+      inputs.push(parentAt === undefined ? input : {...input, parentId: `${PASTE_PARENT}${parentAt}`});
+    });
+    if (failed) return;
     if (!inputs.length) { setError('None of those lines has words for a task, only days or tags.'); return; }
     if (onAddMany(inputs)) { setPasted(null); setText(''); setKeep([]); setError(''); field.current?.focus(); }
   };
-  const asOne = () => { if (!pasted) return; setText(pasted.lines.join(' ')); setPasted(null); field.current?.focus(); };
+  const asOne = () => { if (!pasted) return; setText(pasted.typed ? text : pasted.lines.join(' ')); setPasted(null); field.current?.focus(); };
+  // Session AV (1c, q1 #17; Todoist): one typed line naming several things ("melk, brood en eieren") is offered as that
+  // many tasks; only when every part has words of its own (not "Call mum, tomorrow").
+  const several = useMemo(() => { if (!onAddMany || !reader || pasted) return null; const items = lineList(text.trim()); return items && items.every(l => reader(l, today).title) ? items : null; }, [onAddMany, reader, pasted, text, today]);
+  const offerList = () => { if (!several) return; setPasted({lines: several, parents: several.map(() => null), more: 0, typed: true}); setError(''); requestAnimationFrame(() => listRef.current?.focus()); };
   return <form className="tasks-smart-add" onSubmit={submit} aria-label="Add a task" noValidate>
     <div className="tasks-smart-row">
       <TaskTitleInput inputRef={field} label="New task" value={text} error={error} describedBy={`${id}-preview ${id}-help`}
@@ -121,10 +138,11 @@ export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputR
         <button type="button" className="text-link" aria-label={`Keep “${s.text}” as text`} onClick={() => setKeep(k => [...k, s.start])}>Keep as text</button></li>)}
     </ul>}
     {pasted && <div ref={listRef} className="tasks-paste-list" role="group" tabIndex={-1} aria-labelledby={`${id}-pasted`} onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setPasted(null); field.current?.focus(); } }}>
-      <p id={`${id}-pasted`}><strong>{pasted.lines.length} tasks from what you pasted</strong>{pasted.more ? ` (the first ${pasted.lines.length}; ${pasted.more} more lines are left out)` : ''}</p>
-      <ol className="tasks-paste-items">{pasted.lines.map((line, i) => { const p = readLine(line), bits = pieceWords(p, record, today); return <li key={i}><span dir="auto">{p.title || line}</span>{bits.length ? <small> · {bits.join(' · ')}</small> : null}{!p.title && <small> · only a day or a tag: left out</small>}</li>; })}</ol>
+      <p id={`${id}-pasted`}><strong>{pasted.lines.length} tasks from {pasted.typed ? 'your line' : 'what you pasted'}</strong>{pasted.more ? ` (the first ${pasted.lines.length}; ${pasted.more} more lines are left out)` : ''}</p>
+      <ol className="tasks-paste-items">{pasted.lines.map((line, i) => { const p = readLine(line), bits = pieceWords(p, record, today), sub = pasted.parents[i] != null; return <li key={i} data-subtask={sub || undefined}>{sub && <small>Subtask of “{readLine(pasted.lines[pasted.parents[i]!]!).title || pasted.lines[pasted.parents[i]!]}”: </small>}<span dir="auto">{p.title || line}</span>{bits.length ? <small> · {bits.join(' · ')}</small> : null}{!p.title && <small> · only a day or a tag: left out</small>}</li>; })}</ol>
       <span className="tasks-paste-actions"><button type="button" className="secondary" onClick={addAll}>Add {pasted.lines.length} tasks</button><button type="button" className="quiet" onClick={asOne}>Add as one task</button><button type="button" className="quiet" onClick={() => { setPasted(null); field.current?.focus(); }}>Cancel</button></span>
     </div>}
     <p id={`${id}-preview`} className="tasks-smart-preview" aria-live="polite">{text.trim() && parsed.title ? <>Will add “<span dir="auto">{parsed.title}</span>”{pieces.length ? ` · ${pieces.join(' · ')}` : ''}.</> : ''}</p>
+    {several && <p className="tasks-line-list"><button type="button" className="secondary" onClick={offerList}>Make {several.length} tasks</button> <small>one for each of “{several.join('”, “')}”</small></p>}
   </form>;
 }

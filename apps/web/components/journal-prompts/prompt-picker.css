@@ -1,5 +1,6 @@
 /* Session AK (BUILD list 2 #13): "Start from a prompt" in the Journal's Write box. Theme tokens only. */
-.prompt-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+/* Session AV (1c, q4 #4): a list-item summary keeps its disclosure marker (a flex one loses it once this chunk loads). */
+.prompt-fold > summary { min-height: 44px; display: list-item; padding: 10px 0; box-sizing: border-box; cursor: pointer; }
 .prompt-picker { display: grid; gap: 8px; padding-top: 6px; }
 .prompt-picker-lang { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .prompt-picker-lang button { min-height: 44px; }
