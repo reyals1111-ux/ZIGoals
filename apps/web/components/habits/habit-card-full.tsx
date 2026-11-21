@@ -22,7 +22,12 @@ import { showUndo } from "../ui/undo-toast";
 import { formatClock, formatDate, formatNumber } from "../../lib/visual-format";
 import { unitFor } from "../../lib/plural";
 import { storageMessageOr } from "../../lib/storage-error-copy";
-import { ChallengeControls, ChallengeFinished, ChallengeLine } from "./habit-challenge";
+// Session AV (follow-up 2, 2d: Habits keeps 5 kB of first-load headroom): the 30/60/90-day challenge parts load as their
+// own chunk; a card with no challenge running asks only for the controls inside its "Consistency & trends" fold.
+import { challengeOf } from "../../lib/habits-v2/challenge";
+const ChallengeControls = lazy(() => import("./habit-challenge").then(m => ({default: m.ChallengeControls})));
+const ChallengeFinished = lazy(() => import("./habit-challenge").then(m => ({default: m.ChallengeFinished})));
+const ChallengeLine = lazy(() => import("./habit-challenge").then(m => ({default: m.ChallengeLine})));
 import { habitsZone } from "../../lib/habits-v2/stats";
 import {useHabitExtrasContext} from './habit-extras-context';
 import './habits-aa.css';
@@ -179,7 +184,7 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
     {/* Uncontrolled on purpose: a tap on the summary before hydration must not be undone when React takes over (a controlled `open` re-applied its initial false); the ZIGi delete flow opens it through the ref. */}
     <details className="habit-more" ref={moreRef} onToggle={(event) => { setMoreOpen(event.currentTarget.open); DETAILS_OPEN.set(habit.id, event.currentTarget.open); }}>
      <summary aria-label={`Details for ${habit.title}`}><span className="habit-more-chevron" aria-hidden="true"><svg viewBox="0 0 22 12" width="18" height="10" focusable="false"><defs><linearGradient id={`${gid}-chev`} x1="0" x2="1"><stop offset="0" stopColor="var(--brand-cyan, #63e7ff)"/><stop offset=".5" stopColor="var(--brand-violet, #826cff)"/><stop offset="1" stopColor="var(--brand-magenta, #c664ff)"/></linearGradient></defs><path d="M3 3l8 6 8-6" fill="none" stroke={`url(#${gid}-chev)`} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg></span><span className="habit-more-word">{moreOpen ? "Less" : "Details"}</span><small>{[habit.timer ? "timer" : null, "notes", "trends", "history"].filter(Boolean).join(" · ")}</small></summary>
-     <ChallengeLine habit={habit} today={store.today} /><ChallengeFinished habit={habit} store={store} />
+     {challengeOf(habit, store.today) && <Suspense fallback={null}><ChallengeLine habit={habit} today={store.today} /><ChallengeFinished habit={habit} store={store} /></Suspense>}
      {moreOpen && rule.state === "active" && <Suspense fallback={null}><HabitIntention habit={habit} extras={extras} keep={new Set((store.journalData?.().habits ?? [habit]).map(h => h.id))} today={store.today} zone={habitsZone(store.data)} /></Suspense>}
      <HabitCompletion habit={habit} store={store} part="quick-log" />
      {moreOpen && rule.state === "active" && rule.type === "build" && extras && <Suspense fallback={null}><HabitChecklist habit={habit} store={store} extras={extras} keep={new Set((store.journalData?.().habits ?? [habit]).map(h => h.id))} part="editor" /></Suspense>}
@@ -190,7 +195,7 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
      <Suspense fallback={null}><HabitTimer habit={habit} store={store}/></Suspense>
      {privateGoal&&<LinkedGoalReview habit={habit} goal={privateGoal} store={store}/>}
      {onViewStack&&stackNext?.map(next=><p className="habit-stack" key={next.id}>Next in your stack: <button className="quiet" type="button" onClick={()=>onViewStack(next.id)}>View {next.title}</button> · suggestion only; nothing logged.</p>)}
-     <details className="habit-details habit-insight-details" {...insightsFold}><summary aria-label={`Consistency & trends for ${habit.title}`}>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} zone={habitsZone(store.data)} /></details>{rule.state !== "archived" && <ChallengeControls habit={habit} store={store} />}
+     <details className="habit-details habit-insight-details" {...insightsFold}><summary aria-label={`Consistency & trends for ${habit.title}`}>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} zone={habitsZone(store.data)} /></details>{rule.state !== "archived" && <Suspense fallback={null}><ChallengeControls habit={habit} store={store} /></Suspense>}
      <details className="habit-details" {...historyFold}><summary aria-label={`History & reflection for ${habit.title}`}>History &amp; reflection</summary>{historyOpen && <Suspense fallback={null}><HabitHistory habit={habit} store={store} /></Suspense>}</details>
      {habit.notes && <details className="habit-details"><summary aria-label={`Private notes for ${habit.title}`}>Private habit notes</summary><p className="habit-notes">{habit.notes}</p></details>}
      {moreOpen && <Suspense fallback={null}><NoteBacklinks kind="habit" id={habit.id} name={habit.title}/></Suspense>}
