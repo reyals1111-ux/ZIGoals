@@ -27,6 +27,12 @@ export const budgetSchema = z.looseObject({
    * build cannot read is dropped on read, never failing the record; older builds keep it untouched (loose object).
    */
   target: z.looseObject({amount: amountText, by: month}).optional().catch(undefined),
+  /**
+   * Session AV (owner follow-up 1, F-FRESH-MONTH; YNAB's fresh start), TIER 3 (stored format), additive and optional: the
+   * month the person started fresh — nothing earlier carries into it or after it. A value this build cannot read is
+   * dropped on read; older builds keep it untouched (loose object) and still show the carry they work out.
+   */
+  freshFrom: month.optional().catch(undefined),
 });
 /**
  * Session AV (owner follow-up 1, F-WATCH; Rocket Money's Watchlist), TIER 3 (stored format), additive and optional: up

@@ -53,3 +53,12 @@
 .budgets-pace{display:block;margin-top:4px;font-size:14px;font-weight:400;color:var(--text-secondary, var(--muted))}
 .budgets-pace.is-near,.budgets-pace.is-fast{color:inherit}
 .budgets-pace.is-near::before,.budgets-pace.is-fast::before{content:"";display:inline-block;width:8px;height:8px;margin-inline-end:6px;border-radius:50%;background:currentColor;vertical-align:middle}
+/* Session AV (F-MONTH-RECAP, F-FRESH-MONTH): a month in short, and the fresh start. */
+.budgets-fresh{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0 0 8px}
+.budgets-fresh button{min-height:44px}
+.budgets-recap-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.budgets-recap-list{display:grid;gap:6px;margin:0 0 10px}
+.budgets-recap-list div{display:grid;grid-template-columns:minmax(0,12em) minmax(0,1fr);gap:4px 12px}
+.budgets-recap-list dt{color:var(--text-secondary, var(--muted))}
+.budgets-recap-list dd{margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+@media (max-width:480px){.budgets-recap-list div{grid-template-columns:minmax(0,1fr)}}

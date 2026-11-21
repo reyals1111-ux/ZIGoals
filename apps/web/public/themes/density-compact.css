@@ -7339,6 +7339,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .budgets-watch-form:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .budgets-watch-form .field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .budgets-pace:not(#\-) { margin-top: 4px; }
+:where(:root[data-density=compact]) .budgets-fresh:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .budgets-recap-list:not(#\-) { row-gap: 4.5px; margin-top: 0; margin-bottom: 7.5px; }
+:where(:root[data-density=compact]) .budgets-recap-list div:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .budgets-recap-list dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wealth/debt-planner.css  */
 :where(:root[data-density=compact]) .debt-planner:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .debt-planner h3:not(#\-) { margin-top: 0; margin-bottom: 0; }

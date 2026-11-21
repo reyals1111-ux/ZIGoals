@@ -7,7 +7,8 @@ import {localDate} from '../../../lib/local-date';
 import {formatMonth} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
 import {EXPENSE_CATEGORIES, MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
-import {budgetIssue, monthKey, monthView, removeBudget, setBudget, shiftMonth, type BudgetRow} from '../../../lib/budgets/engine';
+import {budgetIssue, carriesInto, monthKey, monthView, removeBudget, setBudget, shiftMonth, startFresh, type BudgetRow} from '../../../lib/budgets/engine';
+import {showUndo} from '../../ui/undo-toast';
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
 import {budgetPace, paceWords} from '../../../lib/budgets/pace';
 import './budgets.css';
@@ -21,6 +22,8 @@ import {useMoneyCurrency} from '../use-money-currency';
 const ReadyToAssign = lazy(() => import('./ready-to-assign'));
 // Session AV (owner follow-up 1, F-WATCH): categories watched without a budget.
 const WatchList = lazy(() => import('./watch-list'));
+// Session AV (follow-up 1, F-MONTH-RECAP): a month in short, loaded when its fold opens.
+const MonthRecapView = lazy(() => import('./month-recap'));
 
 /**
  * Session AK (7.7): category budgets, one month at a time, against the money log. Each row is the month's amount, plus
@@ -51,6 +54,10 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
   // Session AV (follow-up 1, F-BUDGET-TARGETS): an optional amount to save towards by a month.
   const [wantTarget, setWantTarget] = useState(false), [targetAmount, setTargetAmount] = useState(''), [targetBy, setTargetBy] = useState('');
   const view = useMemo(() => monthView(entries, record, month, today), [entries, record, month, today]);
+  // Session AV (owner follow-up 1, F-MONTH-RECAP, F-FRESH-MONTH): last month (or the month shown) in short, and a fresh start.
+  const [recapOpen, setRecapOpen] = useState(false), recapMonth = month === thisMonth ? shiftMonth(thisMonth, -1) : month;
+  const canFresh = month === thisMonth && !showcase && carriesInto(record, entries, thisMonth);
+  const fresh = () => { const before = record; change(r => startFresh(r, thisMonth), ''); setStatus(''); showUndo({message: `${formatMonth(thisMonth)} starts fresh: nothing earlier carries into it.`, undone: 'What earlier months left carries in again.', restore: () => onChange(() => before)}); };
   // Session AO (C-LS-20): Remove offers the app's one Undo toast (components/ui/remove-with-undo.ts).
   const change = (fn: (r: BudgetsRecord) => BudgetsRecord, done: string) => { setProblem(''); try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); } };
   const save = (event: FormEvent) => {
@@ -75,6 +82,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     </div>
     <Suspense fallback={null}><ReadyToAssign entries={entries} record={record} month={month} current={month === thisMonth}/></Suspense>
     {view.totals.map(t => <p key={t.currency} className="budgets-total"><strong>{t.left >= 0 ? money(t.left, t.currency) : money(-t.left, t.currency)}</strong> {t.left >= 0 ? 'left' : 'over'} of {money(t.available, t.currency)} budgeted{view.daysLeft !== null ? ` · ${view.daysLeft === 1 ? 'last day of the month' : `${view.daysLeft} days to go`}` : ''}</p>)}
+    {canFresh && <p className="budgets-fresh"><button type="button" className="quiet" onClick={fresh}>Start this month fresh</button> <small className="fine">What earlier months left stops carrying into {formatMonth(thisMonth)}; Undo brings it back.</small></p>}
     {view.rows.length ? <table className="budgets-table" aria-labelledby={`${id}-month`}>
       <thead><tr><th scope="col">Category</th><th scope="col">Spent</th><th scope="col">Available</th><th scope="col">Left</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
       <tbody>{view.rows.map(r => <tr key={r.id} className={r.over ? 'budgets-over' : undefined}>
@@ -100,6 +108,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
       </div>}
       <div className="budgets-form-actions"><button type="submit" className="secondary">Save budget</button><button type="button" className="quiet" onClick={() => { setAdding(false); setProblem(''); }}>Cancel</button></div>
     </form>}
+    {(view.rows.length > 0 || entries.length > 0) && <details className="budgets-recap-fold" onToggle={e => setRecapOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{formatMonth(`${recapMonth}-01`)} in short</summary>{recapOpen && <Suspense fallback={<p className="fine">Opening…</p>}><MonthRecapView entries={entries} record={record} month={recapMonth} today={today}/></Suspense>}</details>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
     <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={(() => { const count = new Map<string, number>(); for (const e of entries) count.set(e.currency, (count.get(e.currency) ?? 0) + 1); const used = [...count].sort((a, b) => b[1] - a[1]).map(([c]) => c); return used.length ? used : [currency]; })()} onChange={fn => { try { onChange(fn); } catch { setProblem('Not saved on this device.'); } }}/></Suspense>

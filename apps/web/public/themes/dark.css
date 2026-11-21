@@ -27405,6 +27405,9 @@
         background-image: none;
         background-color: currentColor
     }
+    .budgets-recap-list dt:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 /*  components/wealth/debt-planner.css  */
 @scope (:root[data-theme=dark]) {

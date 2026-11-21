@@ -22,8 +22,11 @@ const spentIn = (entries: readonly MoneyEntry[], month: string, category: string
 /** What earlier months left unspent and carried into `month` (0 without rollover). */
 export function carriedInto(budget: Budget, entries: readonly MoneyEntry[], month: string): number {
   if (!budget.rollover || month <= budget.since) return 0;
+  // Session AV (F-FRESH-MONTH): a fresh start counts as a new beginning: no carry into that month, and none from before it.
+  const start = budget.freshFrom && budget.freshFrom > budget.since ? budget.freshFrom : budget.since;
+  if (month <= start) return 0;
   let from = shiftMonth(month, -MAX_ROLLOVER_MONTHS);
-  if (from < budget.since) from = budget.since;
+  if (from < start) from = start;
   let carry = 0;
   for (let m = from; m < month; m = shiftMonth(m, 1)) carry = Math.max(0, cents(budget.monthly) + carry - spentIn(entries, m, budget.category, budget.currency));
   return carry;
@@ -92,3 +95,14 @@ export function setBudget(record: BudgetsRecord, input: BudgetInput, id: string,
   return budgetsSchema.parse({...record, budgets: same ? record.budgets.map(b => b.id === same.id ? next : b) : [...record.budgets, next]});
 }
 export const removeBudget = (record: BudgetsRecord, id: string): BudgetsRecord => budgetsSchema.parse({...record, budgets: record.budgets.filter(b => b.id !== id)});
+
+/**
+ * Session AV (owner follow-up 1, F-FRESH-MONTH; YNAB's fresh start): every rollover budget starts `month` fresh, so what
+ * earlier months left no longer carries into it (the carry is worked out from the money log, so Undo — the record as it
+ * was — brings it back exactly). Budgets without rollover are untouched.
+ */
+export function startFresh(record: BudgetsRecord, month: string): BudgetsRecord {
+  return budgetsSchema.parse({...record, budgets: record.budgets.map(b => b.rollover && b.since < month ? {...b, freshFrom: month} : b)});
+}
+/** Whether anything carries into `month` that a fresh start would clear. */
+export const carriesInto = (record: BudgetsRecord, entries: readonly MoneyEntry[], month: string) => record.budgets.some(b => b.since <= month && carriedInto(b, entries, month) > 0);
