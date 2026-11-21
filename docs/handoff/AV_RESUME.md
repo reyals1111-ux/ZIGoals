@@ -8,7 +8,20 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 finish or unwire the current feature, push, get CI green, write "Safe to merge now: yes (CI run N)", push nothing until
 "continue". After PR #108 merges: `feature/session-av-2` from the new main, Draft PR "Session AV (continued)".
 
-**Safe to merge now: no.** Run 1995 on `23364740` (the final code): every browser, WebKit, a11y and integration job green; checks red only on `food-search.test.mjs:90` (the food Worker's timing, unchanged since Session AK, carried, D-CI1995). The last run green on every job: run 1938 on `7e664056`.
+**Safe to merge now: no.** Owner follow-ups 2 and 3 (21 Nov, verbatim in ADR-045) reopened AV: E1 two consecutive
+first-attempt green CI runs on #108's head; E2 LEDGER.md (lane 2); E3 fresh-agent quality check of every AV feature,
+all findings fixed (docs/review/session-av/QUALITY.md); E4 closing table, STATUS, report.
+
+## Follow-ups 2 and 3 — state (keep current)
+- Done: FU2/FU3 recorded (`bcced035`); 1a food Worker never early (`0dc926b5` TIER 3 Workers, OWNER_STEPS 9e);
+  1b habits-routines-block (`dc2c9524`), voice-hint OK 44 px (`ac215a72`, run 1996 WebKit), o3-apps-extras
+  (`9e1f135e`); L-9 "ZIGi · your companion", no Premium badge (`d5868ece`); PK-18 no mode = Guarded (`5b8a0369`,
+  TIER 3 AI tools); 1c quality tables q1–q4 (`030d25d6`: 2 Blockers, ~60 Majors). Pushed at `835f6bae`.
+- In progress: four fix helpers (answers; Money; Tasks + Journal + Help; Health + Habits), no commits by them; then
+  one build in the worktree /home/user/zg-wt, the AV specs, the theme sheets, commits per area.
+- Next: spec tests/av-companion-guarded.spec.ts (L-9, PK-18) in shard 2; 1d What's new by pillar (help-page.tsx
+  after the Tasks helper); zigi-voice-z:199 (lighter Settings first scripts); the other 1b intermittents; QUALITY.md;
+  push in batches, never while a run on #108 is in progress; E1; then freeze and lane 2 (LEDGER first).
 
 ## Toolchain in the sandbox
 - Pinned Node 24.19.0 in the scratchpad (`node-v24.19.0-linux-x64/bin` first on PATH); `corepack enable pnpm`;
