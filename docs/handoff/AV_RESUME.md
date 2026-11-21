@@ -8,9 +8,7 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 finish or unwire the current feature, push, get CI green, write "Safe to merge now: yes (CI run N)", push nothing until
 "continue". After PR #108 merges: `feature/session-av-2` from the new main, Draft PR "Session AV (continued)".
 
-**Safe to merge now: no — CI on the newest head not read yet. Run 1937 (`0042c44f`): 2 reds, both passing locally 9 of 9
-on the later build (nova-wa T1 Focus "Run ended", earn-guide-zigi :54 popup); run 1938 (`7e664056`) green so far
-(shard 10 included), still running.**
+**Safe to merge now: yes at `7e664056` (CI run 1938, every job green). The newer heads (Part 4b's last rows, PK-3, the research, five features) are waiting for their own run; read it before calling them safe. Run 1937's two reds are recorded intermittents (D-CI1937).**
 
 ## Toolchain in the sandbox
 - Pinned Node 24.19.0 in the scratchpad (`node-v24.19.0-linux-x64/bin` first on PATH); `corepack enable pnpm`;
@@ -25,10 +23,11 @@ on the later build (nova-wa T1 Focus "Run ended", earn-guide-zigi :54 popup); ru
   "Owner decisions"; CR-17 and CR-20 decided with the rules' default.
 - Part 7 research: COMPETITORS.md from the web, 25 apps, 435 rows, depth-checked, re-ranked build order (`d6ccb797`).
 - Part 7 build: #5 task notifications (`9a0cf6f5`, TIER 3 PWA), #1 Dutch task line (`dd931b8e`), #3 three good things
-  (`7795263f`), Help (`cbf1e8f4`). #4 (save a meal, copy a day) verified already built (Health → Planning).
+  (`7795263f`), Help (`cbf1e8f4`), #11 journal tags (`1f67dbc9`), #6 tasks done per day/week (`f4595af6`), Help
+  (`db0eb6d9`). #4 (save a meal, copy a day) verified already built (Health → Planning).
 
 ## In progress
-- Build order A (COMPETITORS.md): next #11 Journal tags, #6 tasks done per day/week, #7 spending vs last month, #9 what
+- Build order A (COMPETITORS.md): next #7 spending vs last month, #9 what
   affects mood/sleep/energy, #8 budget targets, #12 bill calendar, #13 weekly distance/volume, #10 guided weekly review,
   #15 running bests, #16 income flow. Then B (deadlines; debt planner extras), then C (33 new rows).
 

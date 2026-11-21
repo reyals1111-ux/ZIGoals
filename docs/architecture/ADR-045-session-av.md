@@ -325,6 +325,13 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
 - **`sync-offer-browser` line 39 (integration).** The CI 1629 intermittent, word for word; CI 1930 passed it with the keep
   card; 3 of 3 locally on `a2adb214`'s build. Recorded in CI_INTERMITTENTS (second sighting).
 
+## D-CI1937 — run 1937 (`0042c44f`) and run 1938 (`7e664056`)
+- Run 1937: two reds, both tries each — `nova-wa:75` (desktop, the Focus widget's "Run ended:") and `earn-guide-zigi:54`
+  (mobile, a popup that never came). Neither file nor its path changed since run 1932, where both passed; both passed 9
+  of 9 locally on the later build, and both passed in run 1938. Recorded as intermittents (CI_INTERMITTENTS), not fixed:
+  no cause was found to fix.
+- Run 1938 on `7e664056` (follow-up 1's first Part 4b commit): **every job green**. Safe to merge at that head.
+
 ## Closing table
 
 | Item | Verdict | Where |
