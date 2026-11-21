@@ -18,6 +18,7 @@ import {EVERY_DAY} from '../../supplements/schema';
 import {exerciseHistory, finished, volumeKg} from '../../workouts/engine';
 import {clockOf, runBests} from '../../workouts/run-bests';
 import {text as clean} from '../tools/format';
+import {novaEnvInfo} from './nova-env';
 import {answer, clockIn, closed, count, dayIn, hm, isQuestion, journalClosed, list, monthIn, num, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
 import {fold} from './exact/text';
@@ -323,7 +324,8 @@ function focusHabit(a: Asked): LocalReply | null {
 function habitsWeek(a: Asked): LocalReply | null {
   const en = /^(?:please )?(?:show|list)(?: me)? (?:all )?my habits (?:for |of )?this week$|^my habits this week$/.test(a.f);
   const nl = /^(?:laat|toon)(?: me)? (?:mijn|m n) gewoonte[sn]? (?:van |voor )?deze week(?: zien)?$/.test(a.f);
-  if (!(en || nl)) return null;
+  // On NOVA "show my habits this week" is a stage request: its habit-week widget answers it (nova-stage-am:121).
+  if (!(en || nl) || novaEnvInfo(a.env)) return null;
   const shut = closed(a.env, 'habits'); if (shut) return shut;
   const lang = a.lang, from = weekStart(a.today), days: string[] = [];
   for (let d = from; d <= a.today; d = addLocalDays(d, 1)) days.push(d);

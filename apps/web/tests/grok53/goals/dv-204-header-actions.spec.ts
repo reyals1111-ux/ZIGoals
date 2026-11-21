@@ -44,7 +44,11 @@ for (const width of [1400, 1440, 1920] as const) test(`DV-204: at ${width} px th
 });
 
 test('DV-204: Goals changes at 1400 px; Habits, Health and Wealth headers are the same at 1399 and 1400 px', async ({page}) => {
-  const at = async (path: string, width: number) => { await page.setViewportSize({width, height: 900}); await ready(page, path); return layout(page); };
+  // Session AV (CI 1998, deliberate, equally strict): a pillar's header buttons take their final style once its records
+  // have loaded (Health's next step turns "primary"), which can move the actions a little; each header is measured once
+  // two readings 300 ms apart agree, then compared as before.
+  const settled = async () => { let last = ''; let l = await layout(page); await expect.poll(async () => { l = await layout(page); const now = JSON.stringify([l.lede, l.actions, l.areas]); const same = now === last; last = now; await page.waitForTimeout(300); return same; }, {timeout: 10_000}).toBe(true); return l; };
+  const at = async (path: string, width: number) => { await page.setViewportSize({width, height: 900}); await ready(page, path); return settled(); };
   const goalsBefore = await at('/app/goals', 1399), goalsAfter = await at('/app/goals', 1400);
   // Below 1400 the actions still share the lede's row (the earlier header); from 1400 they are below it.
   expect(goalsBefore.actions.y).toBeLessThan(goalsBefore.lede.y + goalsBefore.lede.height);

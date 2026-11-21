@@ -6592,13 +6592,5 @@
   "widgets": [],
   "fresh": "No focus habit is picked for today. On Habits, “Make it today’s focus” on a habit’s card picks one for the day.",
   "freshNl": "Er is voor vandaag geen focusgewoonte gekozen. Op Habits kiest “Make it today’s focus” op de kaart van een gewoonte er een voor vandaag."
- },
- "av-habits-week": {
-  "en": "This week (Mon, Nov 16 to Tue, Nov 17), days done of days due:\n• Read 2 of 2\n• Exercise 1 of 2\n• Walk 2 of 2\n• Meditate 1 of 2\n• Contribute 2 of 2\n• Drink water 1 of 2\n• Late-night snacks (Showcase) 2 of 2\nHabits shows the week as a grid.",
-  "nl": "Deze week (ma 16 nov t/m di 17 nov), dagen gedaan van de geplande dagen:\n• Read 2 van 2\n• Exercise 1 van 2\n• Walk 2 van 2\n• Meditate 1 van 2\n• Contribute 2 van 2\n• Drink water 1 van 2\n• Late-night snacks (Showcase) 2 van 2\nHabits toont de week als raster.",
-  "facts": null,
-  "widgets": [],
-  "fresh": "No habit is kept yet: Habits → New habit.",
-  "freshNl": "Er is nog geen gewoonte: Habits → New habit."
  }
 }

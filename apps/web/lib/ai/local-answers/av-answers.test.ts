@@ -155,3 +155,16 @@ describe('Journal and habits', () => {
     expect(text(zigi('Welke gewoontes heb ik gisteren open gelaten?', s))).toContain('Gisteren (ma 16 nov) 1 gewoonte bleef open: Exercise');
   });
 });
+
+// Session AV (CI 1998, nova-stage-am:121; moved from the corpus, deliberate, equally strict): "show my habits this week"
+// is ZIGi's on-device answer (q4 #30) and, on NOVA, the stage's habit-week widget, so the engine leaves it to NOVA's stage.
+describe('the week of habits (q4 #30)', () => {
+  test('ZIGi answers with each habit\'s days done this week, in English and Dutch; NOVA leaves it to its stage', () => {
+    for (const q of ['show my habits this week', 'list my habits for this week', 'laat mijn gewoontes van deze week zien', 'toon mijn gewoontes deze week']) {
+      const t = text(zigi(q));
+      expect(t, q).toContain('Read'); expect(t, q).toContain('Exercise');
+      expect(text(nova(q)), q).not.toMatch(/\d+ of \d+ (?:days|dagen)|van \d+ dagen/);
+    }
+  });
+});
+

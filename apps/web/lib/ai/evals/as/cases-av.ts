@@ -52,5 +52,5 @@ export const AV: readonly Intent[] = [
   {id: 'av-journal-question', pillar: 'journal', en: ['what is today\'s journal question', 'what is the question of the day'], nl: ['wat is de dagboekvraag van vandaag', 'wat is de vraag van de dag'], never: ['written today', 'geschreven vandaag']},
   {id: 'av-yesterday-open', pillar: 'habits', en: ['which habits did I leave open yesterday', 'which habits are still open from yesterday'], nl: ['welke gewoontes heb ik gisteren open gelaten', 'welke gewoontes bleven gisteren open'], never: ['left today', 'open vandaag']},
   {id: 'av-focus-habit', pillar: 'habits', en: ['what is my focus habit today', 'which habit am I focusing on today'], nl: ['wat is mijn focusgewoonte vandaag', 'welke gewoonte is mijn focus vandaag'], never: ['Focus: nothing logged']},
-  {id: 'av-habits-week', pillar: 'habits', en: ['show my habits this week', 'list my habits for this week'], nl: ['laat mijn gewoontes van deze week zien', 'toon mijn gewoontes deze week']},
+  // av-habits-week moved to local-answers/av-answers.test.ts (ZIGi only: on NOVA it is the stage's habit-week widget).
 ];

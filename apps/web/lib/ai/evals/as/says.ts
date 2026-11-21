@@ -52,5 +52,5 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'av-diary-today': ['Berry overnight oats', '420 kcal'], 'av-sleep-score': ['75', '34', '24'], 'av-sleep-90': ['56', '7 h 38 min'], 'av-sleep-year': ['56', '7 h 38 min'], 'av-iron-average': ['90'], 'av-high-iron': ['Showcase split peas', '7 mg'],
   'av-bench-best': ['Bench press', '62.5 kg × 8'], 'av-supplements': ['Vitamin D', 'Magnesium', 'Eye drops'], 'av-symptoms': ['Symptoms and factors'],
   'av-good-things': ['3'], 'av-journal-tag': ['“work”'], 'av-journal-count': ['1'], 'av-journal-templates': ['8', 'Run diary'], 'av-journal-question': ['Journal → Another question'],
-  'av-yesterday-open': [], 'av-focus-habit': ['Make it today’s focus'] /* the Showcase sets no focus (D-028) */, 'av-habits-week': ['Read', 'Exercise'],
+  'av-yesterday-open': [], 'av-focus-habit': ['Make it today’s focus'] /* the Showcase sets no focus (D-028) */,
 };
