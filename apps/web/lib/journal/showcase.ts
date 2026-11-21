@@ -21,5 +21,6 @@ export function showcaseJournal(day: string): Journal {
   // Session AV (follow-up 1, F-JOURNAL-TAGS): a few tags, so the filter by tag shows in the Showcase.
   const TAGS: Record<number, string[]> = {0: ['outdoors', 'gratitude'], 3: ['work'], 7: ['work'], 8: ['running', 'proud']};
   const tagged = entries.map(e => { const i = Number(e.id.slice('showcase-journal-'.length)); return TAGS[i] ? {...e, tags: TAGS[i]} : e; });
-  return journalSchema.parse({version: 1, entries: tagged, shareWithAi: false, followUps: true});
+  // Session AV (F-OWN-TEMPLATES): one template of the Showcase's own, labelled as an example.
+  return journalSchema.parse({version: 1, entries: tagged, shareWithAi: false, followUps: true, templates: [{id: 'own-showcase01', title: 'Example · Run diary', headings: ['How the run went:', 'What I noticed on the way:']}]});
 }

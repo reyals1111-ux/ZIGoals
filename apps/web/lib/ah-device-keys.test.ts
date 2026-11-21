@@ -7,6 +7,7 @@ import {LAST_VISIT_KEY} from './portfolio/last-visit';
 import {HIDE_AMOUNTS_KEY} from '../components/hide-amounts';
 import {HIDE_FIGURES_KEY} from '../components/hide-figures';
 import {MATRIX_RULES_KEY} from './tasks/matrix';
+import {QUESTION_LANG_KEY} from '../components/journal/question-lang';
 import {DEVICE_LOCK_KEY} from './device-lock';
 
 // Session AH: this session's device keys are the owners' constants, in the welcome check, and erased with the account.
@@ -15,6 +16,7 @@ test('the literals equal the owners\' constants', () => {
   expect(AH_DISPLAY_KEYS).toContain(HIDE_AMOUNTS_KEY);
   expect(AH_DISPLAY_KEYS).toContain(HIDE_FIGURES_KEY); // Session AV (F-HIDE-FIGURES)
   expect(AH_DISPLAY_KEYS).toContain(MATRIX_RULES_KEY); // Session AV (F-MATRIX-RULES)
+  expect(AH_DISPLAY_KEYS).toContain(QUESTION_LANG_KEY); // Session AV (F-OWN-TEMPLATES)
   expect(AH_DISPLAY_KEYS).toContain(DEVICE_LOCK_KEY);
   expect(AH_VIEW_CHOICES.length).toBe(4);
 });

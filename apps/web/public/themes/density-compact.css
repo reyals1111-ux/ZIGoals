@@ -3441,6 +3441,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .prompt-picker-lang:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .prompt-picker-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .prompt-picker-card:not(#\-) { row-gap: 1.5px; padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .prompt-picker-own:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .prompt-picker-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .prompt-picker-form-actions:not(#\-) { row-gap: 8px; }
 /*  components/journal/journal.css  */
 :where(:root[data-density=compact]) .journal-compose:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .journal-energy:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }

@@ -7,3 +7,9 @@
 .prompt-picker-card { width: 100%; min-height: 44px; display: grid; gap: 2px; text-align: start; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: transparent; color: inherit; font: inherit; cursor: pointer; overflow-wrap: anywhere; }
 .prompt-picker-card:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .prompt-picker-note { font-style: italic; }
+/* Session AV (F-OWN-TEMPLATES): the person's own templates and the form that makes one. */
+.prompt-picker-own { display: grid; gap: 4px; }
+.prompt-picker-own .text-link { justify-self: start; min-height: 44px; }
+.prompt-picker-make { min-height: 44px; justify-self: start; }
+.prompt-picker-form { display: grid; gap: 8px; }
+.prompt-picker-form-actions { display: flex; flex-wrap: wrap; gap: 8px; }

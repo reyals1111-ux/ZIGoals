@@ -151,6 +151,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-bills-month", "Can I see which bills are paid this month, and what is due before payday?"],
   ["av-matrix-pause", "Can I set my own matrix rules, or pause a repeating task?"],
   ["av-countdown-yearly", "Can a countdown come back every year, and remind me?"],
+  ["av-own-templates", "Can I make my own journal template, or have the daily question in Dutch?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],

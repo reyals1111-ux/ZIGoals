@@ -17,6 +17,8 @@ import {SecretGuard} from '../secret-guard/secret-guard';
 import {onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
 import {questionOfTheDay, withQuestion} from '../../lib/journal-prompts/daily';
 import {readTags} from '../../lib/journal/tags';
+import {setQuestionLang, useQuestionLang} from './question-lang';
+import {addOwnTemplate, removeOwnTemplate} from '../../lib/journal-prompts/own';
 const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
 // Session AV (follow-up 1, F-GOOD-THINGS): three good things in one go, its own chunk.
 const ThreeGoodThings = lazy(() => import('./three-good-things'));
@@ -30,7 +32,7 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate(), id = useId();
   const [prompt, setPrompt] = useState<{id: string; lang: PromptLang} | null>(null), [prompts, setPrompts] = useState(false);
   // Session AV Part 7 (F-PROMPT): today's question, and how many times "Another question" was pressed.
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(0), qLang = useQuestionLang(); // Session AV (F-OWN-TEMPLATES): the question in Dutch too
   const [tagText, setTagText] = useState(''); // Session AV (follow-up 1, F-JOURNAL-TAGS): tags as the entry is written
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
@@ -64,14 +66,14 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     {todayEnergy !== null && <MoodWordsFold day={today}/>}
     {!pending && <form onSubmit={save} aria-label="Write in your journal">
       {/* Session AV Part 7 (ADR-045 F-PROMPT): one question a day (lib/journal-prompts/daily.ts); using it only writes it into the text. */}
-      {!compact && !text.trim() && <div className="journal-today-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question</span> <strong>{questionOfTheDay(today, step)}</strong></p>
-        <div className="journal-today-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, questionOfTheDay(today, step)))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button></div></div>}
+      {!compact && !text.trim() && <div className="journal-today-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question</span> <strong lang={qLang}>{questionOfTheDay(today, step, qLang)}</strong></p>
+        <div className="journal-today-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, questionOfTheDay(today, step, qLang)))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button><button type="button" className="quiet" lang={qLang === 'en' ? 'nl' : 'en'} onClick={() => setQuestionLang(qLang === 'en' ? 'nl' : 'en')}>{qLang === 'en' ? 'In het Nederlands' : 'In English'}</button></div></div>}
       <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       <SecretGuard text={text} onRemove={() => setText('')}/>
       {!compact && <label className="field journal-compose-tags"><span>Tags — optional</span><input maxLength={200} autoComplete="off" value={tagText} onChange={e => setTagText(e.target.value)} placeholder="work, family" aria-describedby={`${id}-tags-hint`}/><small id={`${id}-tags-hint`} className="fine">Separate tags with commas; up to 8.</small></label>}
       {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>
-        {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setPrompts(false); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
+        {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker own={journal.data.templates ?? []} onAddOwn={(title, headingsText, newId) => journal.update(current => addOwnTemplate(current, {title, headingsText}, newId))} onRemoveOwn={ownId => journal.update(current => removeOwnTemplate(current, ownId))} onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setPrompts(false); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
       </details>}
       {problem && <p role="alert">{problem}</p>}
       <div className="journal-actions"><button type="submit" className="primary">Save entry</button>{compact && <Link className="text-link" href="/app/journal">Open your journal</Link>}</div>
