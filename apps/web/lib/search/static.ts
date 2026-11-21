@@ -122,6 +122,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-run-bests", "Where are my running bests?"],
   ["av-income-flow", "Where is this month’s income going?"],
   ["av-deadlines", "Can a task have a deadline apart from its day?"],
+  ["av-debt-plan", "Can I plan my debts in my own order, with one-off payments?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
