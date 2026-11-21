@@ -18,5 +18,8 @@ export function showcaseJournal(day: string): Journal {
   ];
   const entries = rows.map(([offset, text, , question, answer, template], i) => ({id: `showcase-journal-${i}`, date: addLocalDays(day, offset), text: `${text} (SHOWCASE DATA)`, createdAt: `${addLocalDays(day, offset)}T21:00:00.000Z`, ...(template ? {template} : {}),
     ...(question ? {followUp: {question, from: 'device' as const, ...(answer ? {answer, answeredAt: `${addLocalDays(day, offset)}T21:05:00.000Z`} : {})}} : {})})).reverse();
-  return journalSchema.parse({version: 1, entries, shareWithAi: false, followUps: true});
+  // Session AV (follow-up 1, F-JOURNAL-TAGS): a few tags, so the filter by tag shows in the Showcase.
+  const TAGS: Record<number, string[]> = {0: ['outdoors', 'gratitude'], 3: ['work'], 7: ['work'], 8: ['running', 'proud']};
+  const tagged = entries.map(e => { const i = Number(e.id.slice('showcase-journal-'.length)); return TAGS[i] ? {...e, tags: TAGS[i]} : e; });
+  return journalSchema.parse({version: 1, entries: tagged, shareWithAi: false, followUps: true});
 }

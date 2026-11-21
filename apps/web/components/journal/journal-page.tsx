@@ -22,6 +22,9 @@ import {OnDemandFold} from '../insights/compare/on-demand-fold';
 import {LoadBoundary} from '../load-boundary';
 import {ArtNote} from '../illustrations/art-note';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
+// Session AV (follow-up 1, F-JOURNAL-TAGS): tags on entries, and a filter by tag.
+import {EntryTags} from './entry-tags';
+import {changeEntry, hasTag, tagCounts, withTag, withoutTag} from '../../lib/journal/tags';
 
 const YearPixels = lazy(() => import('./year-pixels'));
 // Session AK (BUILD list 2 #3): "On this day" and its Privacy switch, each loaded on its own after the page.
@@ -41,8 +44,11 @@ const dayWords = (day: string) => formatDate(day, {weekday: true, year: false});
 export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate();
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
-  const [query, setQuery] = useState('');
-  const entries = useMemo(() => [...journal.data.entries].reverse().filter(e => !query.trim() || e.text.toLowerCase().includes(query.trim().toLowerCase())), [journal.data.entries, query]);
+  const [query, setQuery] = useState(''), [tag, setTag] = useState<string | null>(null);
+  const tags = useMemo(() => tagCounts(journal.data.entries), [journal.data.entries]);
+  const shownTag = tag && tags.some(t => t.tag.toLowerCase() === tag.toLowerCase()) ? tag : null;
+  const entries = useMemo(() => [...journal.data.entries].reverse().filter(e => hasTag(e, shownTag) && (!query.trim() || e.text.toLowerCase().includes(query.trim().toLowerCase()) || (e.tags ?? []).some(t => t.toLowerCase().includes(query.trim().toLowerCase().replace(/^#/, ''))))), [journal.data.entries, query, shownTag]);
+  const retag = (id: string, change: (e: JournalEntry) => JournalEntry, said: string) => { try { journal.update(c => changeEntry(c, id, change)); showStatus(said); } catch { showStatus('The tag could not be saved on this device.', {tone: 'error'}); } };
   // Session AL Part 14 (RELEASE_REVIEW R18): an entry's day in words ("Mon, Nov 2, 2026"), never "2026-11-02".
   const entryDays = useMemo(() => new Map(journal.data.entries.map(e => [e.date, {long: formatDate(e.date, {weekday: true}), short: formatDate(e.date)}])), [journal.data.entries]);
   const found = useMemo(() => patterns(journal.data, energy.data), [journal.data, energy.data]);
@@ -76,12 +82,17 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <div><dt>Words in {today.slice(0, 4)}</dt><dd>{formatNumber(year.words)} <small>in {year.entries === 1 ? '1 entry' : `${formatNumber(year.entries)} entries`}</small></dd></div>
       </dl>}
       <label className="field"><span>Search your journal</span><input type="search" value={query} onChange={e => setQuery(e.target.value)}/></label>
+      {tags.length > 0 && <div className="journal-tag-filter" role="group" aria-label="Filter by tag">
+        <button type="button" className="quiet" aria-pressed={!shownTag} onClick={() => setTag(null)}>All entries</button>
+        {tags.map(t => <button key={t.tag} type="button" className="quiet" aria-pressed={shownTag?.toLowerCase() === t.tag.toLowerCase()} onClick={() => setTag(t.tag)}>#{t.tag} <small>{t.count}</small></button>)}
+      </div>}
       {entries.length ? <ol className="journal-entries">{entries.map(e => <li key={e.id}>
         <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time></p><p className="journal-entry-text">{e.text}</p>
         <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}</p>
         {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
+        <EntryTags tags={e.tags ?? []} day={entryDays.get(e.date)?.short ?? e.date} onAdd={t => retag(e.id, x => withTag(x, t), `Tagged #${t}.`)} onRemove={t => retag(e.id, x => withoutTag(x, t), `The tag #${t} is off this entry.`)}/>
         <button type="button" className="text-link" aria-label={`Remove the entry of ${entryDays.get(e.date)?.short ?? e.date}`} onClick={() => remove(e)}>Remove</button>
-      </li>)}</ol> : query ? <p className="fine">No entry has those words.</p> : <ArtNote pillar="orbit"><p className="fine">No entries yet. Write a few lines above.</p></ArtNote>}
+      </li>)}</ol> : query || shownTag ? <p className="fine">{shownTag && !query ? `No entry has the tag #${shownTag}.` : 'No entry has those words.'}</p> : <ArtNote pillar="orbit"><p className="fine">No entries yet. Write a few lines above.</p></ArtNote>}
     </section>
     <section className="panel" id="your-scales" aria-labelledby="journal-scales-title"><h2 id="journal-scales-title">Your own scales</h2><LoadBoundary quiet><Suspense fallback={null}><YourScales day={today}/></Suspense></LoadBoundary></section>
     <section className="panel journal-week" aria-labelledby="journal-week-title"><h2 id="journal-week-title">Your week</h2>

@@ -16,6 +16,7 @@ import {SecretGuard} from '../secret-guard/secret-guard';
 // Session AK (BUILD list 2 #13, lane G1a): "Start from a prompt" (its list loads when the fold opens).
 import {onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
 import {questionOfTheDay, withQuestion} from '../../lib/journal-prompts/daily';
+import {readTags} from '../../lib/journal/tags';
 const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
 // Session AV (follow-up 1, F-GOOD-THINGS): three good things in one go, its own chunk.
 const ThreeGoodThings = lazy(() => import('./three-good-things'));
@@ -30,6 +31,7 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
   const [prompt, setPrompt] = useState<{id: string; lang: PromptLang} | null>(null), [prompts, setPrompts] = useState(false);
   // Session AV Part 7 (F-PROMPT): today's question, and how many times "Another question" was pressed.
   const [step, setStep] = useState(0);
+  const [tagText, setTagText] = useState(''); // Session AV (follow-up 1, F-JOURNAL-TAGS): tags as the entry is written
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
   const pattern = useMemo(() => { const p = patterns(journal.data, energy.data)[0]; return p ? patternLine(p, 'en') : null; }, [journal.data, energy.data]);
@@ -39,10 +41,11 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     const words = text.trim();
     if (!words) return setProblem('Write a few words first.');
     if (prompt && onlyHeadings(words)) return setProblem('Write a few words under the headings first.');
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {})};
+    const tags = compact ? [] : readTags(tagText);
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {})};
     const question = journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     try { journal.update(current => ({...current, entries: [...current.entries, {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}].slice(-5000)})); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
-    setText(''); setPrompt(null); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
+    setText(''); setTagText(''); setPrompt(null); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
     if (question) zigiSignals.emit('journal_reflecting'); // Session AK Part 12: ZIGi asks its one question (a Studio-4 reaction once its art lands)
   };
   const pending = asked ? journal.data.entries.find(e => e.id === asked) : null;
@@ -66,6 +69,7 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
       <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       <SecretGuard text={text} onRemove={() => setText('')}/>
+      {!compact && <label className="field journal-compose-tags"><span>Tags — optional</span><input maxLength={200} autoComplete="off" value={tagText} onChange={e => setTagText(e.target.value)} placeholder="work, family" aria-describedby={`${id}-tags-hint`}/><small id={`${id}-tags-hint`} className="fine">Separate tags with commas; up to 8.</small></label>}
       {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>
         {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setPrompts(false); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
       </details>}
