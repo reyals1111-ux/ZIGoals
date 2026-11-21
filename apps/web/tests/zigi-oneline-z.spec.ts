@@ -245,7 +245,7 @@ test('a font that draws the name wider: still one line, before the buttons, at e
     const m = await measure(panel(page));
     oneLine(m, `with a wider font at ${width}`, {clipAllowed: true});
     expect(m.titleFont, `still a readable size at ${width}`).toBeGreaterThan(normal * 0.7);
-    await wider.evaluate(tag => tag.remove()); // each width measures its own normal size, then its own wider drawing
+    await wider.evaluate(tag => (tag as Element).remove()); // each width measures its own normal size, then its own wider drawing
   }
 });
 

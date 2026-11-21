@@ -17,7 +17,7 @@ const base = (over: Partial<PlanInput> = {}): PlanInput => ({now: NOW, zone: ZON
 const composer = () => {
   const sandbox = vm.createContext({BigInt, Array, String, URL, self: {location: {href: 'https://app.test/sw.js?v=x', origin: 'https://app.test'}, addEventListener() {}, registration: {}, clients: {}}});
   vm.runInContext(readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8'), sandbox);
-  return (sandbox as unknown as {self: {zigoalsCompose: (s: unknown, now: number) => {body: string; actions: {action: string}[]; data: {url: string}}}}).self.zigoalsCompose;
+  return (sandbox as unknown as {self: {zigoalsCompose: (s: unknown, now: number) => {body: string; actions: {action: string}[]; data: {url: string; items?: unknown[]}}}}).self.zigoalsCompose;
 };
 
 describe('Session AV (F-TASK-NOTIFY): task reminders in the notification plan', () => {
