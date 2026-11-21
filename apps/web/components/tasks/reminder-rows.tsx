@@ -48,7 +48,8 @@ export function ReminderRows({reminders, className, label, line, onDone, onDismi
           {SNOOZE_CHOICES.map(c => <button key={c.id} type="button" className="text-link" aria-label={`Snooze “${r.task.title}” ${c.words}`} onClick={() => snooze(r, c.id)}>{c.label}</button>)}</span>
         <button type="button" className="text-link" onClick={() => { moveFocusFrom(r.key); onDismiss(r.key); }}>Dismiss</button>
       </span></li>)}</ul>}
-    <p className="sr-only" role="status">{said}</p>
+    {/* Only while there is a reminder or something just said: an empty status beside a card's own one is a second, silent one. */}
+    {(reminders.length > 0 || said) && <p className="sr-only" role="status">{said}</p>}
   </>;
 }
 export default ReminderRows;
