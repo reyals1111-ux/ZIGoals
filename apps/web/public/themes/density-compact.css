@@ -2932,6 +2932,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 360px) { :where(:root[data-density=compact]) .health-water .reminder-form > .actions:not(#\-) { margin-top: 0; margin-bottom: 0; } }
 :where(:root[data-density=compact]) .health-rich-library:not(#\-) { row-gap: 6px; margin-top: 8px; }
 :where(:root[data-density=compact]) .health-rich-library h4:not(#\-), :where(:root[data-density=compact]) .health-rich-library p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .health-repeat-days:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .health-repeat-days legend:not(#\-) { margin-bottom: 4px; }
+:where(:root[data-density=compact]) .health-repeat-days .checkbox:not(#\-) { row-gap: 6px; }
 /*  components/health/health-day.css  */
 :where(:root[data-density=compact]) .health-page .health-date-bar:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .health-page .health-date-step:not(#\-) { padding-top: 0; padding-bottom: 0; }

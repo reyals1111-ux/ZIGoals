@@ -10408,6 +10408,9 @@
             box-shadow: none
         }
     }
+    .health-repeat-days:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/health/health-day.css  */
 @scope (:root[data-theme=dark]) {

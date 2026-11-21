@@ -344,3 +344,7 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 /* Session AV follow-up 1 (F-HIGH-IN): the offline library's foods high in a nutrient. */
 .health-rich-library { display: grid; gap: 6px; margin-top: 8px; min-width: 0; overflow-wrap: anywhere; }
 .health-rich-library h4, .health-rich-library p { margin: 0; }
+/* Session AV follow-up 1 (F-REPEAT-PLAN): the weekdays a planned meal repeats on. */
+.health-repeat-days { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.health-repeat-days legend { font-weight: 600; margin-bottom: 4px; }
+.health-repeat-days .checkbox { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
