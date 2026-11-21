@@ -1,4 +1,5 @@
 "use client";
+import { neverTwice } from "../../lib/habit-two-day";
 import type { LayoutAttrs } from "../layout-edit";
 import { askZigi } from "../ai/ask";
 import { Suspense, lazy, memo, useEffect, useRef, useState, useId} from "react";
@@ -97,10 +98,12 @@ import {markDayWithUndo} from './skip-undo';
 
 function HabitInsights({ habit, today, zone }: { habit: Habit; today: string; zone: string }) {
   const stats = habitStats(habit, today); const trends = habitTrends(habit, today);
+  // Session AV (owner follow-up 1, F-TWO-DAY): never miss twice — shown only when it is longer than the streak.
+  const twice = stats.streakUnit === "days" ? neverTwice(habit, today) : 0;
   // Session AL fourth pass (PR-010): a streak beside a day still open says so (26 days counted, today not yet).
   const todayNow = habitDay(habit, today, today), openToday = todayNow.scheduled && (todayNow.status === "due" || todayNow.status === "partial") && latestHabitRule(habit).type === "build";
   return <div className="habit-insights" role="group" aria-label={`${habit.title} insights`}>
-    <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {unitFor(stats.currentStreak, stats.streakUnit)}</span></strong><small>Current streak</small>{openToday && stats.currentStreak > 0 && <small className="habit-streak-open">Up to yesterday; today is still open and counts once it is done.</small>}</div><div><strong>{stats.bestStreak}<span> {unitFor(stats.bestStreak, stats.streakUnit)}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
+    <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {unitFor(stats.currentStreak, stats.streakUnit)}</span></strong><small>Current streak</small>{openToday && stats.currentStreak > 0 && <small className="habit-streak-open">Up to yesterday; today is still open and counts once it is done.</small>}{twice > stats.currentStreak && <small className="habit-streak-two">Never missed twice: {twice} days</small>}</div><div><strong>{stats.bestStreak}<span> {unitFor(stats.bestStreak, stats.streakUnit)}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
     <div className="habit-trends">{/* Session AH (HA6, L-074): a window with nothing to count yet is left out, never "0/0 · 0%" */}{trends.filter(trend => trend.total > 0).map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><GlassBar identity={`habit-trends:${habit.id}:${trend.period}`} className="habit-trend-track" aria-hidden="true" value={trend.percentage / 100} /><strong>{trend.percentage}%</strong></div>)}</div>
     <p className="habit-distribution"><span>✓ {stats.successCount} success</span><span>× {stats.failCount} failed</span><span>○ {stats.skipCount} skipped</span></p>
     <ShareHabit habit={habit} today={today} />

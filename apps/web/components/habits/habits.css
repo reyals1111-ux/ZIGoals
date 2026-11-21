@@ -191,8 +191,18 @@
 .habit-reflection-note { margin: 4px 0 0; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-line; }
 /* Session AL fourth pass (PR-010): the streak's "today is still open" line under its label. */
 .habit-metrics .habit-streak-open { display: block; margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--text-secondary); }
+/* Session AV follow-up 1 (F-TWO-DAY): never miss twice, beside the streak. */
+.habit-metrics .habit-streak-two { display: block; margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--text-secondary); }
 /* Session AL fourth pass (NB-071): on a wide card the square cells grew to 119 px (a 781 px calendar); the month keeps a
    reading width instead, every cell still at least 44 px. */
 .habit-calendar, .habit-calendar-heading { max-width: 460px; }
 /* Session AL fourth pass (MO-123): a linked habit's "counting from Health" line, as the automatic-tick note reads. */
 .habit-health-so-far { flex-basis: 100%; margin: 0; font-size: 15px; line-height: 1.4; color: var(--text-secondary); }
+/* Session AV follow-up 1 (F-YESTERDAY): yesterday's open habits, before today starts. */
+.habit-yesterday { display: grid; gap: 8px; }
+.habit-yesterday h2, .habit-yesterday p { margin: 0; }
+.habit-yesterday-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.habit-yesterday-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-width: 0; overflow-wrap: anywhere; padding: 4px 0; border-bottom: 1px solid var(--line, rgba(140,160,220,.18)); }
+.habit-yesterday-list small { color: var(--text-meta, var(--muted)); }
+.habit-yesterday button { min-height: 44px; }
+.habit-yesterday-actions { display: flex; flex-wrap: wrap; gap: 8px; }
