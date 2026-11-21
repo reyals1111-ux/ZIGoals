@@ -400,6 +400,12 @@ Where a rule of the definition of done does not apply, it says so here.
   (lift the grid's z-index) did not help, as measured; second attempt, at the cause: the section lets its content
   overflow while a card's menu is open. The spec is unchanged.
 
+## D-CI-PACE — which pushes cancel CI
+- Measured on runs 1961–1975: the workflow's concurrency group lets a started run finish (1961, 1972) and replaces a
+  run that is still waiting for its turn (1962–1971, 1973, 1974). Pushing while a run is in progress therefore loses no
+  finished work; the newest head waits and runs next. Pushes stay per feature; each started run is read when it ends.
+- Run 1972 (`893d3186`, before the D-CI1961 fix) and run 1975 (`f9385fca`: C #36–#38 and the fix) are the next reads.
+
 ## Closing table
 
 | Item | Verdict | Where |
