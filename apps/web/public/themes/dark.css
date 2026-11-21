@@ -11315,6 +11315,12 @@
             border-inline-start-color: CanvasText
         }
     }
+    .workouts-weeks-bars rect:not(#\-) {
+        fill: var(--cyan, #6fd3ff)
+    }
+    .workouts-weeks-scroll:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #6fd3ff)
+    }
 }
 /*  components/help/help-screenshots.css  */
 @scope (:root[data-theme=dark]) {
@@ -27163,6 +27169,22 @@
     }
     .bills-notes:not(#\-) {
         border-color: color-mix(in srgb,var(--amber,#f5b65b) 50%,transparent)
+    }
+    .bills-calendar-grid th:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .bills-calendar-grid td:not(#\-) {
+        border-color: var(--line, rgba(128,128,160,.3))
+    }
+    .bills-calendar-grid td.is-out:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .bills-calendar-grid td.is-today:not(#\-) {
+        outline-color: var(--cyan, #6fd3ff)
+    }
+    .bills-calendar-grid td.is-due:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--cyan, #6fd3ff) 18%, transparent)
     }
 }
 /*  components/wealth/budgets/budgets.css  */

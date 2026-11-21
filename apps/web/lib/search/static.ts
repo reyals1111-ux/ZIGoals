@@ -116,6 +116,8 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-vs-last", "How does this month’s spending compare with last month?"],
   ["av-factors", "What goes with my mood, sleep and energy?"],
   ["av-budget-targets", "Can a budget save towards an amount?"],
+  ["av-bill-calendar", "Can I see my bills on a calendar?"],
+  ["av-workout-weeks", "Can I see my workouts week by week?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],

@@ -3249,6 +3249,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .workouts-bar-cell:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .workouts-freshness:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .workouts-freshness li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .workouts-weeks:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .workouts-weeks h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .workouts-weeks-pick:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .workouts-weeks-table th:not(#\-), :where(:root[data-density=compact]) .workouts-weeks-table td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
 /*  components/help/help-screenshots.css  */
 :where(:root[data-density=compact]) .help-shots-list:not(#\-) { margin-top: 9px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 15px; }
 :where(:root[data-density=compact]) .help-shot:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
@@ -7231,6 +7235,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .bills-form-row:not(#\-) { row-gap: 7.5px; }
 :where(:root[data-density=compact]) .bills-notes:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .bills-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .bills-calendar:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .bills-calendar-grid td:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
 /*  components/wealth/budgets/budgets.css  */
 :where(:root[data-density=compact]) .budgets-body:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .budgets-month-nav:not(#\-) { row-gap: 8px; }
