@@ -24,3 +24,17 @@ describe('Session AV (F-YESTERDAY)', () => {
     expect(yesterdaysOpen(logHabitValue(d, id('Stretch'), TODAY, 1, {}, NOW), TODAY).loggedToday).toBe(true);
   });
 });
+
+describe('Session AV (F-MISS-REASON)', () => {
+  it('a miss marked with what got in the way leaves the list; the reason is the day\'s note', async () => {
+    const {createHabit, emptyHabitData, setHabitEntryStatus} = await import('./habits');
+    const {missNote, yesterdaysOpen} = await import('./habits-yesterday');
+    const START = new Date('2026-11-01T09:00:00Z'), NOW = new Date('2026-11-23T09:00:00Z');
+    let d = createHabit(emptyHabitData(), {title: 'Fictional walk', category: 'Health', description: '', notes: '', timeOfDay: 'anytime', schedule: {kind: 'daily'}, measurement: {kind: 'boolean'}, target: 1}, START, 'aaaaaaaa-0000-4000-8000-000000000009');
+    expect(yesterdaysOpen(d, '2026-11-23').open).toHaveLength(1);
+    expect(missNote('Too tired', '  long  day ')).toBe('Too tired — long day');
+    d = setHabitEntryStatus(d, 'aaaaaaaa-0000-4000-8000-000000000009', '2026-11-22', 'failed', missNote('Too tired'), NOW);
+    expect(yesterdaysOpen(d, '2026-11-23').open).toEqual([]);
+    expect(d.habits[0]!.entries.find(e => e.date === '2026-11-22')).toMatchObject({disposition: 'failed', note: 'Too tired', count: 0});
+  });
+});

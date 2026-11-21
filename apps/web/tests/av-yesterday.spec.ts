@@ -31,7 +31,8 @@ for (const theme of THEMES) test(`${theme}: yesterday's walk and water ticked la
   await page.goto('/app/habits'); await hydrated(page);
   const card = page.getByRole('region', {name: 'Yesterday, still open'});
   const list = card.getByRole('list', {name: "Yesterday's open habits"});
-  await expect(list.getByRole('listitem')).toHaveText([/^Fictional walk\s*Done$/, /^Fictional water · 3 of 8\s*Done$/]);
+  // Session AV (F-MISS-REASON, deliberate): each row also offers "What got in the way?".
+  await expect(list.getByRole('listitem')).toHaveText([/^Fictional walk\s*Done\s*What got in the way\?$/, /^Fictional water · 3 of 8\s*Done\s*What got in the way\?$/]);
   const findings = await axe(page, card);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await card.getByRole('button', {name: 'Fictional walk: done yesterday'}).click();
@@ -44,6 +45,25 @@ for (const theme of THEMES) test(`${theme}: yesterday's walk and water ticked la
   await expect(card).toHaveCount(0);
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+});
+
+test('what got in the way: the water marked not done with a reason, which is the day\'s note', async ({page}) => {
+  await offline(page);
+  await page.clock.install({time: NOW});
+  await page.goto('/app/settings'); await hydrated(page);
+  await page.evaluate(([k, v]) => { localStorage.setItem(k, v); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, [HABITS_KEY, JSON.stringify(seedData())] as const);
+  await page.goto('/app/habits'); await hydrated(page);
+  const card = page.getByRole('region', {name: 'Yesterday, still open'});
+  await card.getByRole('button', {name: 'Fictional water: what got in the way?'}).click();
+  const why = card.getByRole('form', {name: 'What got in the way of Fictional water'});
+  await why.getByLabel('Too busy').check();
+  await why.getByLabel('In your own words (optional)').fill('a long fictional day');
+  const findings = await axe(page, why);
+  expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
+  await why.getByRole('button', {name: 'Save as not done'}).click();
+  await expect(card.getByRole('list', {name: "Yesterday's open habits"}).getByRole('listitem')).toHaveCount(1);
+  const entry = await page.evaluate(k => (JSON.parse(localStorage.getItem(k) ?? '{"habits":[]}').habits as {title: string; entries: {date: string; disposition: string; note: string}[]}[]).find(h => h.title === 'Fictional water')?.entries.find(e => e.date === '2026-11-22'), HABITS_KEY);
+  expect(entry).toMatchObject({disposition: 'failed', note: 'Too busy — a long fictional day'});
 });
 
 test('"Not now" leaves it for this visit; a check-in today ends it', async ({page}) => {

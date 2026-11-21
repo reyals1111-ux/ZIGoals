@@ -2664,6 +2664,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-week:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .habit-week-nav:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .habit-week-table th:not(#\-), :where(:root[data-density=compact]) .habit-week-table td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .habit-yesterday-row-actions:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .habit-yesterday-why:not(#\-) { row-gap: 8px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .habit-yesterday-why fieldset:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .habit-yesterday-why legend:not(#\-) { margin-bottom: 4px; }
+:where(:root[data-density=compact]) .habit-yesterday-reason:not(#\-) { row-gap: 6px; }
 /*  components/habits/intention.css  */
 :where(:root[data-density=compact]) .habit-intention:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .habit-intention-line:not(#\-), :where(:root[data-density=compact]) .habit-intention-empty:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }

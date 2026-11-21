@@ -237,3 +237,10 @@
 .habit-week-cell { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--line, rgba(140,160,220,.3)); background: transparent; color: inherit; font-size: 18px; }
 .habit-week-cell[aria-pressed=true] { border-width: 2px; border-color: currentColor; font-weight: 700; }
 .habit-week-cell.is-still { border-style: dashed; }
+/* Session AV follow-up 1 (F-MISS-REASON): what got in the way of yesterday's habit. */
+.habit-yesterday-row-actions { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; }
+.habit-yesterday-why { flex-basis: 100%; display: grid; gap: 8px; padding: 6px 0; }
+.habit-yesterday-why fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.habit-yesterday-why legend { font-weight: 600; margin-bottom: 4px; }
+.habit-yesterday-reason { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+.habit-yesterday-why input:not([type=radio]) { min-height: 44px; width: 100%; box-sizing: border-box; }

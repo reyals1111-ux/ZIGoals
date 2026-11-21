@@ -9576,6 +9576,9 @@
     .habit-week-cell[aria-pressed=true]:not(#\-) {
         border-color: currentColor
     }
+    .habit-yesterday-why fieldset:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/habits/perfect-days.css  */
 @scope (:root[data-theme=dark]) {
