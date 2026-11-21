@@ -550,7 +550,7 @@ export function HelpPage() {
         {/* Session AK Part 13 (ADR-036): Studio-4's "to polish later" items that show in the app. */}
         <li><strong>ZIGi&rsquo;s hide move,</strong> when you dismiss its knock, always leaves to the right, and for a few frames its arm touches its body; too small to see at the app&rsquo;s sizes, and a smoother version is planned.</li>
         <li><strong>In a browser that can&rsquo;t play animated WebP,</strong> ZIGi&rsquo;s moves use a fallback at 12 frames a second, most with a harder outline.</li>
-        <li><strong>A few of ZIGi&rsquo;s new moves aren&rsquo;t used yet:</strong> its glances (at the chat box, at you, at something on the page) and its hello without walking in; Meet ZIGi shows them all.</li>
+        <li><strong>One of ZIGi&rsquo;s moves isn&rsquo;t used yet:</strong> its hello without walking in; Meet ZIGi shows it with the others.</li>
         {/* Owner decision 6 (ADR-036): Earn's first load is accepted for this release, with its measurement. */}
         <li><strong>Earn takes a few seconds to settle on a slower phone:</strong> on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds before every part answered at once.</li>
         {/* Owner decision 7 (ADR-036): seen once in CI's WebKit (Safari's engine); not reproduced in Chromium, where the box is never

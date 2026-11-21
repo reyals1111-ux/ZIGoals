@@ -93,9 +93,11 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
     if (!guard()) return false;
     try {
       // Session AL (DV-164): the Tasks page takes a past day; it shows as overdue.
-      latest.current.update(r => addTask(r, input, {id: `task_${crypto.randomUUID()}`, at: new Date(), today: tasksToday(), allowPast: true}));
+      const id = `task_${crypto.randomUUID()}`;
+      latest.current.update(r => addTask(r, input, {id, at: new Date(), today: tasksToday(), allowPast: true}));
       const text = `Added “${input.title.trim()}”.`;
-      setStatus({text}); setError(''); if (toast) showStatus(text); return true;
+      // Session AV (M-12a): the toast keeps clear of the row just added.
+      setStatus({text}); setError(''); if (toast) showStatus(text, {clearOf: `#task-${id}`}); return true;
     } catch (cause) { return fail(cause); }
   }, [guard, toast]);
   const toggle = useCallback((t: Task, done: boolean) => done

@@ -59,7 +59,7 @@ export default function SleepView() {
   const nights = sleep.nights.filter(n => n.end !== null).sort((a, b) => b.end!.localeCompare(a.end!)).slice(0, 14);
   // Each save starts the log form afresh (its key), so the next night begins from the defaults.
   // Session AH (HE3; N-006, D-120): a save also says so in the app's toast, where it is seen, not only at the top.
-  const done = (text: string) => { setNote(text); setEditing(null); setSaves(n => n + 1); showToast({message: text}); };
+  const done = (text: string) => { setNote(text); setEditing(null); setSaves(n => n + 1); showToast({message: text, clearOf: '.sleep-week .sleep-stats' /* Session AV (S-12): off the averages the save just moved */}); };
   async function remove(id: string) {
     // Session AH Part 3 (DS3, L-009/L-010): a nap is called a nap.
     const held = store.sleep.nights.find(n => n.id === id), kind = held?.kind, day = held ? nightDay(held) : null;

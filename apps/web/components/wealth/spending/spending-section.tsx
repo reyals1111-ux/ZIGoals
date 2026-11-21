@@ -43,6 +43,8 @@ const readAmount = readMoneyAmount;
 const sumProblem = amountProblem;
 /** PR-052: an edited entry's own category stays choosable when it is not one of the usual ones (a rule's or ZIGi's). */
 const withOwn = (chips: readonly string[], own: string | undefined): readonly string[] => own && !chips.includes(own) ? [own, ...chips] : chips;
+// Session AV (L-7): with only monthly budgets, the weekly card shows this month's room from them (its own chunk).
+const MonthRoom = lazy(() => import('../budgets/month-room'));
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
   const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
@@ -127,7 +129,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     {showcase && <p className="fine spending-showcase">Fictional Showcase entries.</p>}
     {log.unreadable && <p role="alert">This device&rsquo;s spending log could not be read; new entries start a fresh one.</p>}
     <div className="spending-top">
-      <div className="spending-room" role="group" aria-label="Room to spend this week">
+      <div className="spending-room" role="group" aria-label={room ? "Room to spend this week" : "Room to spend" /* Session AV (L-7): this month's budgets show here when there is no weekly one */}>
         <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true" focusable="false" className="spending-ring">
           <circle cx="60" cy="60" r={r} className="spending-ring-track"/>
           {room && <circle cx="60" cy="60" r={r} className={`spending-ring-fill${room.left < 0 ? ' spending-ring-over' : ''}`} strokeDasharray={`${circumference * share} ${circumference}`} transform="rotate(-90 60 60)"/>}
@@ -136,7 +138,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
           {room ? <><strong>{room.left >= 0 ? money(room.left, room.currency) : money(-room.left, room.currency)}</strong>
             <span>{room.left >= 0 ? `left of ${money(room.budget, room.currency)} this week` : `over this week's ${money(room.budget, room.currency)}`}</span>
             <span className="fine">{room.daysLeft === 1 ? 'Last day of the week' : `${room.daysLeft} days to go`} · spent {money(room.spent, room.currency)}</span></>
-            : <><strong>No weekly budget</strong><span className="fine">Set a weekly budget to see your room to spend.</span></>}
+            : <Suspense fallback={<><strong>No weekly budget</strong><span className="fine">Set a weekly budget to see your room to spend.</span></>}><MonthRoom entries={log.data.entries} today={today}/></Suspense>}
         </div>
       </div>
       {!logging ? <div className="spending-actions"><button ref={logButton} type="button" className="primary" aria-expanded={false} aria-controls={`${id}-log`} onClick={() => setLogging(true)}>Log spending</button></div>

@@ -86,7 +86,7 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
     </form> : <button type="button" className="text-link tasks-nav-new" onClick={() => setAdding(true)}>+ Add a project</button>}
     {labels.length > 0 && <><h3>Labels</h3><ul>{labels.map(l => item({kind: 'label', name: l.name}, `@${l.name}`, l.open))}</ul></>}
     <h3>Priority</h3>
-    <ul>{([1, 2, 4] as const).map(level => item({kind: 'priority', level}, LEVEL_WORDS[level], count({kind: 'priority', level})))}</ul>
+    <ul>{/* Session AV (M-12c): every level, P3 (the default) too */([1, 2, 3, 4] as const).map(level => item({kind: 'priority', level}, LEVEL_WORDS[level], count({kind: 'priority', level})))}</ul>
     {(record.filters?.length ?? 0) > 0 && <><h3>Saved filters</h3><ul>{record.filters!.map(f => <li key={f.id} className="tasks-nav-filter">
       <button type="button" className="tasks-nav-item" aria-current={same({kind: 'filter', id: f.id}, view) ? 'page' : undefined} onClick={() => onGo({kind: 'filter', id: f.id})}><span dir="auto">{f.name}</span><small>{f.query}</small></button>
       <button type="button" className="text-link" aria-label={`Remove the saved filter “${f.name}”`} onClick={() => onRemoveFilter(f.id)}>×</button></li>)}</ul></>}
