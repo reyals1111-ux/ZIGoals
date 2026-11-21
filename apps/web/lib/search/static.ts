@@ -152,6 +152,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-matrix-pause", "Can I set my own matrix rules, or pause a repeating task?"],
   ["av-countdown-yearly", "Can a countdown come back every year, and remind me?"],
   ["av-own-templates", "Can I make my own journal template, or have the daily question in Dutch?"],
+  ["av-sleep-long", "Can I see my sleep over more than 30 days?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
