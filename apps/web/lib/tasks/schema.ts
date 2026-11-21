@@ -94,6 +94,12 @@ export const taskSchema = z.looseObject({
   order: z.number().finite().optional().catch(undefined),
   updatedAt: z.iso.datetime({offset: true}).optional().catch(undefined),
   completions: tolerantArray(z.looseObject({at: z.iso.datetime({offset: true}), due: day.optional().catch(undefined)}), MAX_COMPLETIONS),
+  /**
+   * Session AV (owner follow-up 1, F-DEADLINES; Things, Todoist Deadlines; TIER 3 (stored format), additive and optional):
+   * the day the task must be done by, kept apart from `due` (the day it is planned for). A value this build cannot read
+   * is dropped on read; older builds keep it untouched (the object is loose) and simply do not show it.
+   */
+  deadline: day.optional().catch(undefined),
 });
 export const projectSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), colour: z.enum(TASK_COLOURS).catch('grey'),

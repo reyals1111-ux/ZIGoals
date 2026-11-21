@@ -15,7 +15,9 @@ export const PAST_DAY_MESSAGE = 'Choose today or a later day for when it is due.
  */
 export type TaskInput = {title: string; priority?: TaskPriority; due?: string; goal?: string; time?: string;
   level?: TaskLevel; projectId?: string; sectionId?: string; parentId?: string; labels?: string[]; recur?: Recur;
-  reminders?: TaskReminder[]; notes?: string; habit?: string; health?: HealthLink; order?: number};
+  reminders?: TaskReminder[]; notes?: string; habit?: string; health?: HealthLink; order?: number;
+  /** Session AV (F-DEADLINES): the day it must be done by, apart from the planned day. */
+  deadline?: string};
 export type AddOptions = {id: string; at: Date; today: string;
   /** Session AL (P-LS-11, DV-164): the Tasks page takes a past day (the task shows as overdue). Other callers keep the refusal. */
   allowPast?: boolean};
@@ -26,7 +28,7 @@ const cleanLabels = (labels: readonly string[] | undefined) => labels ? [...new 
 function optional(input: Partial<TaskInput>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   if (input.level !== undefined) Object.assign(out, levelFields(input.level));
-  for (const key of ['projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'order'] as const) { const v = input[key]; if (v !== undefined && v !== '' && v !== null) out[key] = v; }
+  for (const key of ['projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'order', 'deadline'] as const) { const v = input[key]; if (v !== undefined && v !== '' && v !== null) out[key] = v; }
   const labels = cleanLabels(input.labels); if (labels.length) out.labels = labels;
   if (input.reminders?.length) out.reminders = input.reminders;
   return out;
@@ -41,6 +43,7 @@ export function addTask(record: Tasks, input: TaskInput, options: AddOptions): T
   if (input.time && !input.due) throw new Error('Choose a day for the task before a time.');
   if (input.time && !TASK_CLOCK.test(input.time)) throw new Error('Choose a time such as 09:30.');
   if (input.recur && !input.due) throw new Error('A repeating task needs its first day.');
+  if (input.deadline) checkDeadline(input.deadline, !!input.recur, options.today, !!options.allowPast);
   if (input.parentId && !record.tasks.some(t => t.id === input.parentId)) throw new Error('That parent task is no longer on this device.');
   const kept = prune(record, options.today);
   if (kept.tasks.length >= MAX_TASKS) throw new Error(TASK_LIMIT_MESSAGE);
@@ -82,6 +85,22 @@ export function restoreTasks(record: Tasks, before: readonly Task[], added: read
  * Done tasks older than 30 days go. Session AL (LS-037): the day is the local day it was finished (`doneDay`), not the
  * UTC date of the stamp, so the "last 30 days" list and this cut agree.
  */
+/* ---- Session AV (owner follow-up 1, F-DEADLINES; Things, Todoist Deadlines) -------------------------------------- */
+export const DEADLINE_PAST_MESSAGE = 'Choose today or a later day for the deadline.';
+export const DEADLINE_REPEAT_MESSAGE = 'A repeating task moves its own day each time, so it has no separate deadline. Leave the deadline empty, or stop the repeat.';
+function checkDeadline(deadline: string, repeats: boolean, today: string, allowPast: boolean) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline)) throw new Error('Choose a day for the deadline.');
+  if (repeats) throw new Error(DEADLINE_REPEAT_MESSAGE);
+  if (deadline < today && !allowPast) throw new Error(DEADLINE_PAST_MESSAGE);
+}
+export type DeadlineState = 'passed' | 'today' | 'soon' | 'later';
+/** Where a task's deadline stands: passed, today, within 3 days, or later; null without one (or once done). */
+export function deadlineState(task: Pick<Task, 'deadline' | 'doneAt'>, today: string): DeadlineState | null {
+  if (!task.deadline || task.doneAt) return null;
+  return task.deadline < today ? 'passed' : task.deadline === today ? 'today' : task.deadline <= addLocalDays(today, 3) ? 'soon' : 'later';
+}
+/** Open tasks whose deadline is today or has passed, whatever day they are planned for (Things: a deadline reaches Today). */
+export const deadlineDue = (task: Pick<Task, 'deadline' | 'doneAt'>, today: string) => { const s = deadlineState(task, today); return s === 'passed' || s === 'today'; };
 export function prune(record: Tasks, today: string, doneDay: (iso: string) => string = iso => iso.slice(0, 10)): Tasks {
   const from = addLocalDays(today, -DONE_KEEP_DAYS);
   return {...record, tasks: record.tasks.filter(t => !t.doneAt || doneDay(t.doneAt) >= from)};
@@ -105,7 +124,9 @@ export function openTasks(record: Tasks, today: string): Task[] {
 /** Session AL: the fields an edit can change (`null` clears an optional one). */
 export type TaskPatch = {title?: string; priority?: TaskPriority; due?: string | null; time?: string | null; goal?: string | null;
   level?: TaskLevel; projectId?: string | null; sectionId?: string | null; parentId?: string | null; labels?: string[];
-  recur?: Recur | null; reminders?: TaskReminder[]; notes?: string | null; habit?: string | null; health?: HealthLink | null; order?: number};
+  recur?: Recur | null; reminders?: TaskReminder[]; notes?: string | null; habit?: string | null; health?: HealthLink | null; order?: number;
+  /** Session AV (F-DEADLINES). */
+  deadline?: string | null};
 /**
  * Changes a task's title, priority, day, time or goal. `null` clears an optional field; a field left out is kept. A day
  * may be moved earlier than today only when it already was (an overdue task keeps its day until the person moves it),
@@ -118,7 +139,7 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.title !== undefined) { const title = patch.title.trim(); if (!title) throw new Error('Give the task a few words.'); if (title.length > TASK_TITLE_MAX) throw new Error(`A task title can be at most ${TASK_TITLE_MAX} characters (this one has ${title.length}).`); next.title = title; }
   if (patch.priority !== undefined) { next.priority = patch.priority; delete next.level; }
   if (patch.level !== undefined) Object.assign(next, levelFields(patch.level));
-  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
+  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
   if (patch.projectId !== undefined && patch.sectionId === undefined && next.sectionId) {
     const section = record.sections?.find(s => s.id === next.sectionId);
     if (!section || section.projectId !== next.projectId) delete next.sectionId;
@@ -130,6 +151,8 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (next.time !== undefined && !next.due) throw new Error('Choose a day for the task before a time.');
   if (typeof next.time === 'string' && !TASK_CLOCK.test(next.time)) throw new Error('Choose a time such as 09:30.');
   if (next.recur && !next.due) throw new Error('A repeating task needs its first day.');
+  // Session AV (F-DEADLINES): checked when the deadline or the repeat changes; an old passed deadline left alone is kept.
+  if (typeof next.deadline === 'string' && (next.deadline !== task.deadline || (next.recur && !task.recur))) checkDeadline(next.deadline, !!next.recur, next.deadline === task.deadline ? '0000-01-01' : today, allowPast);
   if (typeof next.parentId === 'string' && (next.parentId === id || descendants(record, id).some(t => t.id === next.parentId))) throw new Error('A task cannot sit under itself or one of its own subtasks.');
   next.updatedAt = (at ?? new Date()).toISOString();
   const parsed = taskSchema.parse(next);
@@ -321,7 +344,8 @@ export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock
   const dated = (list: Task[]) => openTasks({...record, tasks: list}, today);
   switch (view.kind) {
     case 'inbox': return byOrder(top(open.filter(t => !t.projectId)));
-    case 'today': return dated(open.filter(t => t.due && t.due <= today)).sort((a, b) => Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
+    // Session AV (F-DEADLINES): a task whose deadline is today or has passed is in Today too, whatever its planned day.
+    case 'today': return dated(open.filter(t => (t.due && t.due <= today) || deadlineDue(t, today))).sort((a, b) => Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
     case 'upcoming': return dated(open.filter(t => t.due && t.due >= today));
     case 'overdue': return dated(open.filter(t => taskState(t, today, nowClock) === 'overdue'));
     case 'all': return dated(top(open));

@@ -17,10 +17,12 @@ import {LABEL_PATTERN, type Recur, type TaskLevel} from './schema';
  * Every piece it took is returned as a span (start, end, kind) so the add field can highlight it, and any span can be
  * kept as plain text (`keep`), as Todoist offers. Pure: `today` is passed in.
  */
-export type SpanKind = 'date' | 'time' | 'recur' | 'priority' | 'project' | 'label';
+export type SpanKind = 'date' | 'time' | 'recur' | 'priority' | 'project' | 'label' | 'deadline';
 export type ParseSpan = {start: number; end: number; kind: SpanKind; text: string};
 export type ParsedTask = {
   title: string; due?: string; time?: string; level?: TaskLevel; project?: string; labels: string[]; recur?: Recur;
+  /** Session AV (F-DEADLINES): "deadline Friday" — the day it must be done by, apart from the planned day. */
+  deadline?: string;
   spans: ParseSpan[];
 };
 export const PARSE_MAX = 500;
@@ -250,6 +252,8 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     const p = /^p([1-4])$/.exec(w.low) ?? /^!([1-4])$/.exec(w.low);
     if (p) return {len: 1, kind: 'priority', apply: o => { o.level = Number(p[1]) as TaskLevel; }};
     if (/^!{1,3}$/.test(w.low) && (i === toks.length - 1 || toks[i + 1]!.start > w.end) && (i === 0 || toks[i - 1]!.end < w.start)) return {len: 1, kind: 'priority', apply: o => { o.level = w.low.length >= 2 ? 1 : 2; }};
+    // Session AV (F-DEADLINES): "deadline" (the same word in Dutch) and a day after it.
+    if (w.low === 'deadline') { const d = dayAt(i + 1); if (d) return {len: 1 + d.len, kind: 'deadline', apply: o => { o.deadline = d.due; }}; }
     const r = recurAt(i);
     if (r) return {len: r.len, kind: 'recur', apply: o => { o.recur = {...r.recur}; if ((r as {start?: string}).start) o.due = (r as {start?: string}).start; }};
     const d = dayAt(i);
@@ -263,7 +267,7 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     if (used[i]) continue;
     const found = tryAt(i);
     // One of each: a second day or a second repeat stays text (the first one wins).
-    if (!found || (seen.has(found.kind) && (found.kind === 'date' || found.kind === 'time' || found.kind === 'recur' || found.kind === 'priority' || found.kind === 'project'))) continue;
+    if (!found || (seen.has(found.kind) && (found.kind === 'date' || found.kind === 'time' || found.kind === 'recur' || found.kind === 'priority' || found.kind === 'project' || found.kind === 'deadline'))) continue;
     // A date token that a span starting with it would only half cover ("the" alone) is not taken.
     found.apply(out); take(i, found.len, found.kind); seen.add(found.kind);
     i += found.len - 1;
