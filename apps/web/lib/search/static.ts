@@ -142,6 +142,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-journal-today", "Why does Today’s journal card not show my entries?"],
   ["av-journal-day", "Can a journal entry show what else happened that day?"],
   ["av-move-alert", "Can I be told when a coin moves by a percent, or my portfolio reaches a value?"],
+  ["av-hide-figures", "Can I log food without seeing calorie and weight numbers?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],

@@ -3326,6 +3326,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .send-feedback-add input:not(#\-) { margin-top: 2px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .send-feedback-details:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .send-feedback-details textarea:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/hide-figures.css  */
+:where(:root[data-density=compact]) .hide-figures-row:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .hide-figures-row p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/illustrations/placement.css  */
 @media (max-width: 479.98px) { :where(:root[data-density=compact]) .pillar-art-inline > .pillar-art:not(#\-) { margin-top: 0; margin-bottom: 6px; } }
 /*  components/import/bankfiles/bankfiles.css  */

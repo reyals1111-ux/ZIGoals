@@ -1,0 +1,15 @@
+/* Session AV follow-up 1 (F-HIDE-FIGURES): calorie and weight figures hidden while the switch is on; a dash stands in
+   their place (the figure itself leaves the accessibility tree). Steps and minutes stay visible. */
+:root[data-hide-figures="on"] :is(.health-nutrient-line, .health-meal-target, .health-gauge > div > strong, .health-weight-overview .health-weight-stats strong, .health-goal-gap, .health-weight-history td:nth-child(2), [data-body-figure], .dashboard-widget[data-body-figures] .dashboard-metric-value) {
+  visibility: hidden;
+  position: relative;
+}
+:root[data-hide-figures="on"] :is(.health-nutrient-line, .health-meal-target, .health-gauge > div > strong, .health-weight-overview .health-weight-stats strong, .health-goal-gap, .health-weight-history td:nth-child(2), [data-body-figure], .dashboard-widget[data-body-figures] .dashboard-metric-value)::before {
+  content: "—" / "hidden";
+  visibility: visible;
+  position: absolute;
+  inset-inline-start: 0;
+}
+.hide-figures-row { display: grid; gap: 4px; margin: 0 0 12px; }
+.hide-figures-row p { margin: 0; }
+.hide-figures-toggle { min-height: 44px; justify-self: start; }

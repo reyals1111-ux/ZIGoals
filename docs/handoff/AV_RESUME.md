@@ -38,8 +38,8 @@ finish or unwire the current feature, push, get CI green, write "Safe to merge n
 - Also built: #28 foods high in a nutrient (`dab9a011`), #29 a meal planned on weekdays (`4897c46e`), #30 the habit
   week grid (`71bf1f5f`), #31 watched categories (TIER 3 stored, `f89e889b`), #32 what got in the way (`ec6214b0`),
   #33 today's journal line (`eede7c05`), #34 a journal entry's day (`cb63ff11`), #35 move and value alerts (TIER 3
-  stored, `5d0bee71`). CI: run 1961 on `c8f451ec` (the ui-evidence split) in progress.
-- Next: C #36 onward in COMPETITORS.md order (hide calorie and weight figures; category pace; plan my day; task
+  stored, `5d0bee71`), #36 hide calorie and weight figures (Health and Today's pinned cards; NOVA answers what is asked, D-BUILD). Headroom: Habits 5.2 kB, Goals 5.8 — later habit/goal work lazy.
+- Next: C #37 onward in COMPETITORS.md order (category pace; plan my day; task
   durations; workout notes; workout calendar; bills paid this month; matrix rules; yearly countdowns; journal
   templates; sleep charts beyond 30 days; nutrient averages; symptoms in the visit report; the month recap).
 
