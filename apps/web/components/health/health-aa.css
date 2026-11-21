@@ -348,3 +348,5 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .health-repeat-days { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
 .health-repeat-days legend { font-weight: 600; margin-bottom: 4px; }
 .health-repeat-days .checkbox { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+/* Session AV (F-NUTRIENT-RANGE): the nutrient report's own dates. */
+.nutrient-range { display: flex; flex-wrap: wrap; gap: 8px 12px; }
