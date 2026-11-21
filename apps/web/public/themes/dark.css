@@ -3701,6 +3701,14 @@
     .ai-chat .ai-local-examples:not(#\-) {
         color: var(--muted,#a1afc8)
     }
+    .ai-chat .ai-send-preview .nova-guide-send-text:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,currentColor 6%,transparent);
+        border-color: color-mix(in srgb,currentColor 18%,transparent)
+    }
+    .ai-chat .ai-send-preview .nova-guide-send[data-decision="refuse"] .nova-guide-send-line:not(#\-) {
+        color: var(--pink,#ff74be)
+    }
 }
 /*  components/ai/photo-send-confirm.css  */
 @scope (:root[data-theme=dark]) {

@@ -1003,6 +1003,11 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .ai-chat .ai-question-sources:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .ai-chat .ai-history-actions:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .ai-chat .ai-local-examples:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ai-chat .ai-send-preview:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .ai-chat .ai-send-preview .nova-guide-send:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .ai-chat .ai-send-preview .nova-guide-send-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ai-chat .ai-send-preview .nova-guide-send-text:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .ai-chat .ai-send-preview .ai-no-mode:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/ai/photo-send-confirm.css  */
 :where(:root[data-density=compact]) .photo-send-confirm:not(#\-) { row-gap: 8px; margin-top: 6px; margin-bottom: 6px; }
 :where(:root[data-density=compact]) .photo-send-confirm p:not(#\-) { margin-top: 0; margin-bottom: 0; }

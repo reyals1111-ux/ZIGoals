@@ -671,6 +671,9 @@
 :where(:root[data-text=large]) .ai-reply-icon[data-tip]:not(#\-)::after { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ai-reply-more-info:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ai-chat .ai-local-examples:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .ai-chat .ai-send-preview .nova-guide-send-line:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .ai-chat .ai-send-preview .nova-guide-send-text:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .ai-chat .ai-send-preview .ai-no-mode:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/ai/safe-text.css  */
 :where(:root[data-text=large]) .ai-table:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/ai/setup-chooser.css  */
