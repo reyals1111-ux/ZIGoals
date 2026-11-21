@@ -26,16 +26,38 @@ export type ParsedTask = {
 export const PARSE_MAX = 500;
 
 type Tok = {text: string; low: string; start: number; end: number};
-const TOKEN = /[#@][\p{L}\p{N}_\-/]+|[pP][1-4](?![\p{L}\p{N}])|!{1,3}[1-4]?(?![\p{L}\p{N}])|\d{4}-\d{2}-\d{2}|\d{1,2}[:.]\d{2}\s?(?:am|pm|a\.m\.|p\.m\.)?|\d+(?:st|nd|rd|th)\b|\d+\s?(?:am|pm|a\.m\.|p\.m\.)|\d+|[\p{L}]+(?:['’][\p{L}]+)?!?|\S/gu;
+const TOKEN = /[#@][\p{L}\p{N}_\-/]+|[pP][1-4](?![\p{L}\p{N}])|!{1,3}[1-4]?(?![\p{L}\p{N}])|\d{4}-\d{2}-\d{2}|\d{1,2}[:.]\d{2}\s?(?:am|pm|a\.m\.|p\.m\.)?|\d+(?:st|nd|rd|th|e)\b|\d+\s?(?:am|pm|a\.m\.|p\.m\.)|\d+|[\p{L}]+(?:['’][\p{L}]+)?!?|\S/gu;
 function tokenize(text: string): Tok[] {
   const out: Tok[] = [];
-  for (const m of text.matchAll(TOKEN)) out.push({text: m[0], low: m[0].toLowerCase(), start: m.index!, end: m.index! + m[0].length});
+  for (const m of text.matchAll(TOKEN)) { const low = m[0].toLowerCase(); out.push({text: m[0], low: DUTCH[low] ?? low, start: m.index!, end: m.index! + m[0].length}); }
   return out;
 }
+/**
+ * Session AV (owner follow-up 1, F-NL-TASKS; Todoist's quick add): Dutch words read as the English ones the rules below
+ * know, so "morgen 18:00", "overmorgen", "elke maandag", "elke! 3 dagen", "om 9 uur", "tot 1 dec", "over 2 weken",
+ * "volgende vrijdag", "elke maand op de 1e" and "10 keer" read as their English twins. Only the word used for matching
+ * changes; the title keeps the person's own words. Words that are also common in English ("do", "ma", "van") are left
+ * out or only ever matter inside a phrase (an "over" is a day only before a number and a unit).
+ */
+const DUTCH: Record<string, string> = {
+  vandaag: 'today', vanavond: 'tonight', morgen: 'tomorrow', gisteren: 'yesterday', overmorgen: 'overmorgen', eergisteren: 'eergisteren',
+  volgende: 'next', volgend: 'next', deze: 'this', dit: 'this', vorige: 'last', afgelopen: 'last',
+  dag: 'day', dagen: 'days', weken: 'weeks', maand: 'month', maanden: 'months', jaar: 'year', jaren: 'years',
+  over: 'in', elke: 'every', iedere: 'every', ieder: 'every', 'elke!': 'every!', 'iedere!': 'every!',
+  dagelijks: 'daily', wekelijks: 'weekly', maandelijks: 'monthly', jaarlijks: 'yearly',
+  werkdag: 'weekday', werkdagen: 'weekdays', doordeweeks: 'weekdays', weekenden: 'weekends',
+  tot: 'until', keer: 'times', en: 'and', op: 'on', om: 'at', de: 'the', voor: 'by', vanaf: 'from',
+  eerste: 'first', tweede: 'second', derde: 'third', vierde: 'fourth', vijfde: 'fifth', laatste: 'last',
+  een: 'a', twee: 'two', drie: 'three', vier: 'four', vijf: 'five', zes: 'six', zeven: 'seven', acht: 'eight', negen: 'nine', tien: 'ten', elf: 'eleven', twaalf: 'twelve',
+  middag: 'noon', middernacht: 'midnight', uur: "o'clock",
+  zondag: 'sunday', maandag: 'monday', dinsdag: 'tuesday', woensdag: 'wednesday', donderdag: 'thursday', vrijdag: 'friday', zaterdag: 'saturday',
+  zondagen: 'sundays', maandagen: 'mondays', dinsdagen: 'tuesdays', woensdagen: 'wednesdays', donderdagen: 'thursdays', vrijdagen: 'fridays', zaterdagen: 'saturdays',
+  januari: 'january', februari: 'february', maart: 'march', mrt: 'march', mei: 'may', juni: 'june', juli: 'july', augustus: 'august', oktober: 'october', okt: 'oct',
+};
 const WEEKDAYS: Record<string, number> = {sun: 0, sunday: 0, sundays: 0, mon: 1, monday: 1, mondays: 1, tue: 2, tues: 2, tuesday: 2, tuesdays: 2, wed: 3, weds: 3, wednesday: 3, wednesdays: 3, thu: 4, thur: 4, thurs: 4, thursday: 4, thursdays: 4, fri: 5, friday: 5, fridays: 5, sat: 6, saturday: 6, saturdays: 6};
 const MONTHS: Record<string, number> = {jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3, apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7, july: 7, aug: 8, august: 8, sep: 9, sept: 9, september: 9, oct: 10, october: 10, nov: 11, november: 11, dec: 12, december: 12};
 const NUMBER_WORDS: Record<string, number> = {one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, a: 1, an: 1, other: 2};
-const ORDINALS: Record<string, number> = {first: 1, '1st': 1, second: 2, '2nd': 2, third: 3, '3rd': 3, fourth: 4, '4th': 4, fifth: 5, '5th': 5, last: -1};
+const ORDINALS: Record<string, number> = {first: 1, '1st': 1, '1e': 1, second: 2, '2nd': 2, '2e': 2, third: 3, '3rd': 3, '3e': 3, fourth: 4, '4th': 4, '4e': 4, fifth: 5, '5th': 5, '5e': 5, last: -1};
 const UNITS: Record<string, Recur['every']> = {day: 'day', days: 'day', week: 'week', weeks: 'week', month: 'month', months: 'month', year: 'year', years: 'year'};
 /** Small words that belong to a phrase taken next to them ("on Friday", "at 5pm", "by tomorrow", "due Monday"). */
 const LEADS = new Set(['on', 'at', 'by', 'due', 'in', 'from', 'starting', 'this', 'the', '@']);
@@ -54,7 +76,7 @@ export function readClock(low: string, bare: boolean): string | null {
   return `${pad(hour)}:${pad(minutes)}`;
 }
 const nextWeekday = (today: string, weekday: number, strictlyAfter = false) => { const gap = (weekday - localWeekday(today) + 7) % 7; return addLocalDays(today, gap === 0 && strictlyAfter ? 7 : gap); };
-const dayNum = (low: string) => { const m = /^(\d{1,2})(?:st|nd|rd|th)?$/.exec(low); return m ? Number(m[1]) : null; };
+const dayNum = (low: string) => { const m = /^(\d{1,2})(?:st|nd|rd|th|e)?$/.exec(low); return m ? Number(m[1]) : null; };
 
 type Match = {len: number; kind: SpanKind; apply: (out: ParsedTask) => void};
 
@@ -80,6 +102,10 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     if (w === 'tonight') return {len: 1, due: today, time: '20:00'};
     if (w === 'tomorrow' || w === 'tmr' || w === 'tmrw' || w === 'tomorow') return {len: 1, due: addLocalDays(today, 1)};
     if (w === 'yesterday') return {len: 1, due: addLocalDays(today, -1)};
+    if (w === 'overmorgen') return {len: 1, due: addLocalDays(today, 2)};
+    if (w === 'eergisteren') return {len: 1, due: addLocalDays(today, -2)};
+    // Dutch "eind/einde van de maand".
+    if ((w === 'eind' || w === 'einde') && w1 === 'van' && w2 === 'the' && at(i + 3) === 'month') { const y = Number(today.slice(0, 4)), m = Number(today.slice(5, 7)); return {len: 4, due: `${today.slice(0, 8)}${pad(daysInMonth(y, m))}`}; }
     if (w === 'day' && w1 === 'after' && w2 === 'tomorrow') return {len: 3, due: addLocalDays(today, 2)};
     if (w === 'day' && w1 === 'before' && w2 === 'yesterday') return {len: 3, due: addLocalDays(today, -2)};
     if ((w === 'next' || w === 'this') && w1 === 'week') return w === 'next' ? {len: 2, due: nextWeekday(today, 1, true)} : null;
@@ -109,7 +135,7 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
       if (mm !== undefined) { const yw = toks[i + 2 + ofShift]?.low, year = yw && /^\d{4}$/.test(yw) ? Number(yw) : null; return withYear(mm, dayNum(w)!, year, 2 + ofShift + (year ? 1 : 0)); }
     }
     // "the 1st" (the next 1st of a month, this month when still ahead).
-    if (w === 'the' && w1 && /^\d{1,2}(st|nd|rd|th)$/.test(w1) && !(w2 && MONTHS[w2])) {
+    if (w === 'the' && w1 && /^\d{1,2}(st|nd|rd|th|e)$/.test(w1) && !(w2 && MONTHS[w2])) {
       const d = dayNum(w1)!; if (d < 1 || d > 31) return null;
       const here = `${today.slice(0, 8)}${pad(Math.min(d, daysInMonth(Number(today.slice(0, 4)), Number(today.slice(5, 7)))))}`;
       return {len: 2, due: here >= today ? here : addMonths(today.slice(0, 8) + '01', 1, d)};
@@ -132,6 +158,8 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     if (w === undefined) return null;
     if (w === 'noon' || w === 'midday') return {len: 1, time: '12:00'};
     if (w === 'midnight') return {len: 1, time: '00:00'};
+    // Session AV (F-NL-TASKS): Dutch "(om) 9 uur", read as "9 o'clock", before the bare hour alone.
+    if (/^\d{1,2}$/.test(w) && toks[i + 1]?.text.toLowerCase() === 'uur') { const c = readClock(w, true); return c ? {len: 2, time: afternoon(w, c)} : null; }
     const clock = readClock(w, prev === 'at' || prev === '@');
     if (clock) return {len: 1, time: afternoon(w, clock)};
     // "5 pm" written as two tokens is one token already (TOKEN); "at 5 o'clock".
@@ -174,7 +202,7 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     } else if (ORDINALS[u] !== undefined && WEEKDAYS[at(j + 1) ?? ''] !== undefined) {
       recur = {every: 'month', interval, nth: {n: ORDINALS[u]!, weekday: WEEKDAYS[at(j + 1)!]!}}; j += 2;
       if (at(j) === 'of' && (at(j + 1) === 'the' || at(j + 1) === 'each') && at(j + 2) === 'month') j += 3;
-    } else if (/^\d{1,2}(st|nd|rd|th)$/.test(u)) {
+    } else if (/^\d{1,2}(st|nd|rd|th|e)$/.test(u)) {
       const d = dayNum(u)!; if (d < 1 || d > 31) return null;
       recur = {every: 'month', interval, monthDay: d}; j++;
     } else if (u === 'last' && at(j + 1) === 'day') { recur = {every: 'month', interval, monthDay: -1}; j += 2; }
@@ -188,7 +216,7 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     if (at(j) === 'on' || at(j) === 'the') {
       let k = j + (at(j) === 'on' ? 1 : 0); if (at(k) === 'the') k++;
       const v = at(k);
-      if (recur.every === 'month' && v && /^\d{1,2}(st|nd|rd|th)?$/.test(v) && dayNum(v)! >= 1 && dayNum(v)! <= 31) { recur.monthDay = dayNum(v)!; j = k + 1; }
+      if (recur.every === 'month' && v && /^\d{1,2}(st|nd|rd|th|e)?$/.test(v) && dayNum(v)! >= 1 && dayNum(v)! <= 31) { recur.monthDay = dayNum(v)!; j = k + 1; }
       else if (recur.every === 'month' && v && ORDINALS[v] !== undefined && WEEKDAYS[at(k + 1) ?? ''] !== undefined) { recur.nth = {n: ORDINALS[v]!, weekday: WEEKDAYS[at(k + 1)!]!}; j = k + 2; }
       else if (recur.every === 'month' && v === 'last' && at(k + 1) === 'day') { recur.monthDay = -1; j = k + 2; }
       else if (recur.every === 'week' && v && WEEKDAYS[v] !== undefined) {
