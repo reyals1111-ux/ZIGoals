@@ -31,7 +31,7 @@
 .money-parts{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .money-sum{margin:0;font-variant-numeric:tabular-nums}
 .money-status{min-height:22px;margin:0}
-.money-table-wrap{overflow-x:auto;max-width:100%}
+.money-table-wrap{overflow-x:auto;max-width:100%;position:relative} /* Session AV: the box its screen-reader-only labels are placed in, so they never widen the page */
 .money-table{width:100%;border-collapse:collapse;font-size:14px}
 .money-table th,.money-table td{padding:6px;text-align:left;border-bottom:1px solid var(--line,rgba(140,160,220,.18));vertical-align:top;overflow-wrap:anywhere}
 .money-panel .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
