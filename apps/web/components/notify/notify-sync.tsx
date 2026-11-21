@@ -17,6 +17,8 @@ export const NOTIFY_CHANGE = 'zigoals:notify-change';
 let headroomShown = false, lastBuildCheck = 0;
 /** Session AV Part 2 (D-PWA): an open tab asks its own server which version it serves, at most every ten minutes. */
 const BUILD_CHECK_MS = 10 * 60_000;
+/** Session AV (PK-3): how long after the worker is known the page asks it to keep the later parts (the page settles first). */
+const WARM_AFTER_MS = 6000;
 const OWN_COMMIT = (process.env.NEXT_PUBLIC_APP_COMMIT ?? '').toLowerCase();
 /** Session AV Part 3 (D-KEEP): device records that are the person's own entries (a save of one is "new data"), not a fold or a setting. */
 const PERSONAL_SAVE = /^zigoals:(money-log|tasks|notes|journal|meal-words|mood-tags|workouts|checklist-days|checklist):v1$/;
@@ -57,7 +59,7 @@ export function NotifySync() {
   }, []);
   useEffect(() => catchInstallPrompt(window), []);
   useEffect(() => {
-    let active = true, timer = 0;
+    let active = true, timer = 0, warmTimer = 0;
     const idle = (fn: () => void) => { const w = window as Window & {requestIdleCallback?: (cb: () => void, o?: {timeout: number}) => number}; if (w.requestIdleCallback) w.requestIdleCallback(fn, {timeout: 4000}); else window.setTimeout(fn, 1500); };
     const watch = (reg: ServiceWorkerRegistration | null) => {
       if (!reg || !active) return;
@@ -72,6 +74,16 @@ export function NotifySync() {
       };
       offer();
       reg.addEventListener('updatefound', () => { const next = reg.installing; next?.addEventListener('statechange', () => { if (next.state === 'installed') offer(); }); });
+      // Session AV (PK-3, [TIER 3] (PWA)): once this version's worker runs and the page has settled, online, the worker is
+      // asked to keep the parts the app's pages load after their first paint (public/sw.js warmLazy: once per version,
+      // within a byte budget, never under Data Saver or on 2G), so a page never visited online still opens offline.
+      warmTimer = window.setTimeout(() => idle(() => {
+        if (!active || !navigator.onLine) return;
+        void navigator.serviceWorker.ready.then(ready => {
+          const worker = ready.active, at = worker ? new URL(worker.scriptURL) : null;
+          if (active && worker && at?.pathname === '/sw.js' && at.searchParams.get('v') === swVersion()) worker.postMessage({type: 'zigoals:sw-warm'});
+        }).catch(() => undefined);
+      }), WARM_AFTER_MS);
     };
     idle(() => { if (active && !accountPushOn()) void accountWorker().then(account => account || !active ? null : import('../../lib/sw/register').then(m => m.registerAppWorker())).then(reg => watch(reg ?? null)); });
     const apply = async () => {
@@ -114,7 +126,7 @@ export function NotifySync() {
     const every = window.setInterval(() => { void refresh(); }, 10 * 60_000);
     window.addEventListener(REMINDERS_CHANGE, later); window.addEventListener(PRIVATE_CHANGE, later); window.addEventListener(NOTIFY_CHANGE, later); window.addEventListener(LOCK_EVENT, onLock); window.addEventListener('storage', later); document.addEventListener('visibilitychange', onVisible);
     navigator.serviceWorker?.addEventListener('message', onMessage);
-    return () => { active = false; window.removeEventListener(PRIVATE_CHANGE, saved); window.removeEventListener('zigoals:zigi-store', saved); window.clearTimeout(timer); window.clearInterval(every); window.removeEventListener(REMINDERS_CHANGE, later); window.removeEventListener(PRIVATE_CHANGE, later); window.removeEventListener(NOTIFY_CHANGE, later); window.removeEventListener(LOCK_EVENT, onLock); window.removeEventListener('storage', later); window.removeEventListener('online', onOnline); document.removeEventListener('visibilitychange', onVisible); navigator.serviceWorker?.removeEventListener('message', onMessage); };
+    return () => { active = false; window.removeEventListener(PRIVATE_CHANGE, saved); window.removeEventListener('zigoals:zigi-store', saved); window.clearTimeout(timer); window.clearTimeout(warmTimer); window.clearInterval(every); window.removeEventListener(REMINDERS_CHANGE, later); window.removeEventListener(PRIVATE_CHANGE, later); window.removeEventListener(NOTIFY_CHANGE, later); window.removeEventListener(LOCK_EVENT, onLock); window.removeEventListener('storage', later); window.removeEventListener('online', onOnline); document.removeEventListener('visibilitychange', onVisible); navigator.serviceWorker?.removeEventListener('message', onMessage); };
   }, []);
   if (!waiting && !newer) return null;
   const reload = () => {

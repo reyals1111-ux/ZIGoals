@@ -98,7 +98,7 @@ const VERSION = new URL(self.location.href).searchParams.get('v') || 'legacy';
 const OFFLINE = VERSION !== 'legacy' && /^[0-9a-z-]{4,40}$/.test(VERSION);
 // STATIC holds only hashed /_next/static files (content never changes under a name); ASSETS holds the unhashed public
 // files for this build and leaves with it.
-const PAGES = 'zigoals-pages-' + VERSION, STATIC = 'zigoals-static-v1', ASSETS = 'zigoals-assets-' + VERSION, KEEP = [PAGES, STATIC, ASSETS];
+const PAGES = 'zigoals-pages-' + VERSION, STATIC = 'zigoals-static-v1', ASSETS = 'zigoals-assets-' + VERSION, LAZY = 'zigoals-lazy-' + VERSION, KEEP = [PAGES, STATIC, ASSETS, LAZY];
 const MAX_PAGES = 80, MAX_STATIC = 400, NETWORK_MS = 3500;
 const NOTIFY_DB = 'zigoals-notify-v1', ACTIONS_DB = 'zigoals-notify-actions-v1';
 // The notification's art (Session AK Part 12, Studio-4 preparation): ONE slot that every notification below reads. Studio-4's
@@ -131,6 +131,58 @@ async function precache() {
     try { if (!(await statics.match(file))) { const response = await fetch(file); if (cacheable(response)) await statics.put(file, response); } } catch { /* fetched on first use */ }
   }));
 }
+// Session AV (PK-3, [TIER 3] (PWA), ADR-045): a page loads more of its parts after its first paint (lazy chunks; the path view
+// of the Checklist, ZIGi's button, a sheet), and those were kept only once that page had been opened online, so a page first
+// opened offline could not draw (the Checklist: "This page could not be shown"). Once per version, when an open page asks
+// ("zigoals:sw-warm", sent only online and after the page settled), the worker reads which later parts the kept pages'
+// files name, and keeps them in this version's own cache (LAZY, deleted with the version): first the parts every page
+// shares, then each page's own, the Checklist first, within WARM_BYTES; never under Data Saver or on a 2G connection.
+// Hashed files only, same origin; nothing personal (the records live in the browser's storage).
+const WARM_ORDER = ['/app/checklist', '/app/health', '/app/habits', '/app/goals', '/app/wealth', '/app/tasks', '/app/notes', '/app/agenda', '/app', '/app/today', '/app/settings', '/app/nova'];
+const WARM_BYTES = 6_500_000, WARM_DONE = '/__zigoals-warm-done', NAMED = /\/_next\/static\/[A-Za-z0-9_\-./~]+?\.(?:js|css)/g, LATER_PART = /"(static\/chunks\/[A-Za-z0-9_\-.~]+\.(?:js|css))"/g;
+let warming = null;
+function warmLazy() {
+  if (!warming) warming = warmOnce().catch(() => {}).finally(() => { warming = null; });
+  return warming;
+}
+async function warmOnce() {
+  if (forgotten || !OFFLINE) return;
+  const link = self.navigator && self.navigator.connection;
+  if (link && (link.saveData || /2g/.test(link.effectiveType || ''))) return;
+  const lazy = await caches.open(LAZY);
+  if (await lazy.match(WARM_DONE)) return;
+  const pages = await caches.open(PAGES), statics = await caches.open(STATIC), named = new Map();
+  for (const path of WARM_ORDER) {
+    const doc = await pages.match(new Request(path));
+    if (doc) named.set(path, [...new Set([...(await doc.text()).matchAll(NAMED)].map(m => m[0]))]);
+  }
+  if (!named.size) return;
+  const lists = [...named.values()], listed = new Set(lists.flat()), shared = [...listed].filter(f => lists.every(list => list.includes(f)));
+  const laterParts = async files => {
+    const out = [];
+    for (const file of files) {
+      if (!file.endsWith('.js')) continue;
+      const kept = await statics.match(file);
+      if (!kept) continue;
+      for (const m of (await kept.text()).matchAll(LATER_PART)) { const part = '/_next/' + m[1]; if (!listed.has(part)) out.push(part); }
+    }
+    return out;
+  };
+  const order = [...await laterParts(shared)];
+  for (const path of WARM_ORDER) if (named.has(path)) order.push(...await laterParts(named.get(path).filter(f => !shared.includes(f))));
+  let bytes = 0;
+  for (const part of new Set(order)) {
+    if (forgotten || bytes >= WARM_BYTES) break;
+    if (await statics.match(part) || await lazy.match(part)) continue;
+    try {
+      const response = await fetch(part);
+      if (forgotten || !cacheable(response)) continue;
+      bytes += (await response.clone().blob()).size;
+      await lazy.put(part, response);
+    } catch { return; } // offline again: the next page that settles online asks again
+  }
+  if (!forgotten) await lazy.put(WARM_DONE, new Response('', {headers: {'Cache-Control': 'no-store'}}));
+}
 self.addEventListener('install', event => {
   // The first worker takes over at once; a later one waits for the page's "Reload" (or for every window to close).
   event.waitUntil((async () => {
@@ -154,6 +206,7 @@ let forgotten = false;
 self.addEventListener('message', event => {
   const type = event.data && event.data.type;
   if (type === 'zigoals:sw-reload') event.waitUntil(self.skipWaiting());
+  if (type === 'zigoals:sw-warm') event.waitUntil(warmLazy());
   if (type === 'zigoals:sw-forget') {
     forgotten = true;
     event.waitUntil((async () => {
@@ -230,7 +283,7 @@ async function keepDocument(url) {
   await cache.put(address, response); trimPages();
 }
 async function cacheFirst(request) {
-  const cache = await caches.open(STATIC), cached = await cache.match(request);
+  const cache = await caches.open(STATIC), cached = await cache.match(request) || await (await caches.open(LAZY)).match(request);
   if (cached) return cached;
   const response = await fetch(request);
   if (!forgotten && cacheable(response)) { await cache.put(request, response.clone()); trim(STATIC, MAX_STATIC); }
