@@ -1,5 +1,44 @@
-# Session AV — "ALPHA QUALITY" (ADR-045) (2026-11-20/22, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) "Session AU + AV"; in progress, not merged, not deployed)
-**Base:** Session AU's head `3ea87dff` on `main` `836534c3` (already merged in). **Rules (owner):** the brief for Session AV, one approved plan with nine amendments, verbatim in `docs/architecture/ADR-045-session-av.md`. Resume file: `docs/handoff/AV_RESUME.md`. Entry written at the end.
+# Session AV — "ALPHA QUALITY" (ADR-045) (2026-11-20/21, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) "Session AU + AV"; complete, not merged, not deployed)
+**Base:** Session AU's head `3ea87dff` on `main` `836534c3` (already merged in; `main` did not move). **Rules (owner):** the brief, one approved plan with nine amendments, and owner follow-up 1 (21 Nov), all verbatim in `docs/architecture/ADR-045-session-av.md` (decisions, D-BUILD, closing table). Resume file: `docs/handoff/AV_RESUME.md`.
+
+## Parts, commits and evidence (`git log 3ea87dff..HEAD`; merge commits only, never rebased)
+| Part | What | Commits |
+|---|---|---|
+| 0 | ADR-045 with the plan and approval, AV_RESUME, STATUS stub | `609714b3` |
+| 1 | CI at the cause: D36 (NOVA's fitter forces fewer layouts), D34 and `dashboard-visual` (specs measure what they say); later reds 1932–1975 fixed or recorded | `111c42f7`, `de32b3fc`, `a2adb214`, `2b202dc5`, `967ab614`, `f24e2913`, `c8f451ec`, `eeb0c1e8`, `e4009ff3`, `b764e00f`, `6b2efe63`, `8cc0eca0`, `23364740` |
+| 2 | **TIER 3 (PWA)** after a deploy an old tab reloads once into the new version; two real builds 10 of 10 | `bfe18cf5`, `3ae87fbd`, `dadb7c23`, `04ca70b1` |
+| 3 | **TIER 3 (stored formats)** storage kept once, the iPhone Home Screen move, a backup offer after new data | `8b0853eb` |
+| 4 | L-6 categories in import previews, the star's Permissions link, AT D20 minors | `0250512c` |
+| 4b | Unfinished-feature audit, then follow-up 1's 14 open rows finished and 38 owner rows listed | `f2821513`, `943b4464`, `7e664056`, `3479961a`, `8808d0e1` |
+| 5 | Headroom on every route, no budget raised | `bc0ca218` |
+| 6 | Keyboard flows, 320 px and 200 % reflow, axe | `add37e9b` |
+| 7 | Research: COMPETITORS.md from the web (25 apps, 435 rows, 49 ranked build rows); build: all 49 done (48 built complete, #4 already built) — the feature list is FRIENDS_GUIDE 8j "Also new" | `d6ccb797`; the build `cadae4e8` … `03a70d26` (one series per feature, each with its Help commit) |
+| 8 | FIRST_WEEK, FRIENDS_GUIDE 8j, Help's What's new (24 → 77) and Known limitations, OWNER_STEPS (no new owner step) | `bd129511`, `61759687` |
+
+## Tier 3, in plain words (risk → rollback)
+- **PWA** (`bfe18cf5`, `3ae87fbd`, `9a0cf6f5`, `3479961a`): a chunk of an older version reloads the tab once (never while a form holds typing); task reminders as notifications on this device; later page parts kept offline once per version. → Revert; the earlier "Reload" note remains.
+- **Stored formats**, all additive and dropped on read when unreadable (frozen readers #37–#57 21 of 21 each time, each field in the fixture): optional fields on Part 3's `zigoals:backup-reminder:v1`; budget `target`, `watch`, `freshFrom`; task `deadline`, `minutes`; the debt planner's order, one-off payments, shown and tracked plan; a habit's focus and look; price-alert move and portfolio alerts; journal `templates`; the new device key `zigoals:countdown-extras:v1` (in every registry; never synced). → Revert; older builds keep the fields untouched (loose objects) and ignore the key.
+- **AI tools** (`4408d1d6`, the debt-planner and budget-target commits, `0ccaeb8b`): answers only — deadlines, budget targets, the debt plan, task minutes; no tool writes; `lib/ai/gates.ts` unchanged. → Revert.
+- No CSP, sync, wallet, signing, key or dependency change; no new service; no budget raised.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each marked `Session AV (…, deliberate)`: `send-feedback`'s Known limitations 49 → 53, each new line checked by its words; `nova-wa` T1/T3 fast-forwards a minute (D-CI1949); `ui-evidence`'s page sweeps in two halves (D-CI1956); Help's What's new count 29 → 77 per feature; `views.test` 8 views; `health-aa.test` (the sleep score's quality part); `more-money.test`; `build.test`'s every-section fixture gains a symptom and a supplement.
+
+## Evidence
+- Every feature: its unit tests and its spec on a production build in Nebula, Light and Dark at 390 and 1440, axe-clean, no sideways scroll at 320; nearby existing specs re-run after each (all green, or fixed before the push).
+- Final local reads: every Session AV spec 338 of 338 on the final build; NOVA, evidence and route specs 133 of 133 after the last fix; unit suite all green but `scripts/pre-run11-setup.test.mjs` (this sandbox's pnpm, known); lint 0 errors; typecheck clean; theme sheets `--check` clean; frozen readers 21 of 21; every route inside its budget (least headroom Habits 5.2 kB, Goals 5.8).
+- Corpus: `tasks-minutes` (EN and NL) added; where a feature holds no data an answer reads, D-BUILD says so.
+
+## Carried (each with its cause in ADR-045)
+The account-browser stall (D-SYNC, not reproduced in 6 runs); `zigi-voice-z:199` in WebKit (the Voice card waits for Settings' hydration, D-CI1991); the food Worker's FSVO spacing in `food-search.test.mjs:90` (older than this session, D-CI1995); 38 owner decisions (UNFINISHED.md "Owner decisions"); intermittents recorded in CI_INTERMITTENTS (`o3-apps-extras:94`, `ui-evidence:91`, `run11-route-mobile-acceptance:31`, `exploratory-round3:76`, `sync-offer-browser`).
+
+## Owner list
+1. Review [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108); merge and deploy are yours (Manual Alpha workflow, from `main`).
+2. The 38 owner decisions, each with a recommended default, in `docs/review/session-av/UNFINISHED.md`.
+3. Market price policy before Mon 30 Nov 16:00 UTC (OWNER_STEPS step 6).
+
+## CI on the final head
+**Safe to merge now: no.** [Run 1995](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44913344307) on `23364740` (the final code; this entry is docs only): every one of the 14 main shards, the four WebKit shards, the three a11y shards, integration and the Alpha gate green on the first attempt; **checks red on one unit test**, `scripts/run11/food-search.test.mjs:90` (the food Worker's request spacing read 1,800 ms against 1,900; 1 of 3 locally; the Worker and test are `main`'s, unchanged since Session AK; carried, D-CI1995). The last run green on every job is run 1938 on `7e664056`. Runs 1941–1994 and each fix: ADR-045 D-CI1941 … D-CI1994.
 
 # Session AU — "FRIENDS DRESS REHEARSAL" (ADR-044) (2026-11-19/20, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108); complete, not merged, not deployed)
 **Base:** `main` `836534c3` (Merge [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107), Session AT); `main` did not move during the session. **Rules (owner):** the brief for Session AU, one approved plan and two owner additions (a fresh reviewer per persona walk; each persona's phone spec also in WebKit), verbatim in `docs/architecture/ADR-044-session-au.md` (decisions, closing table). Resume file: `docs/handoff/AU_RESUME.md`. Friction log: `docs/review/session-au/REHEARSAL.md`.

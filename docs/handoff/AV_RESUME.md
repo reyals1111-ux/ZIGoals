@@ -8,7 +8,7 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 finish or unwire the current feature, push, get CI green, write "Safe to merge now: yes (CI run N)", push nothing until
 "continue". After PR #108 merges: `feature/session-av-2` from the new main, Draft PR "Session AV (continued)".
 
-**Safe to merge now: yes at `7e664056` (CI run 1938). Run 1956 (`7f81fdf3`) was green but for `ui-evidence`'s page sweeps at their 45 s budget (fixed at `c8f451ec`, D-CI1956); later heads wait for their own run.**
+**Safe to merge now: no.** Run 1995 on `23364740` (the final code): every browser, WebKit, a11y and integration job green; checks red only on `food-search.test.mjs:90` (the food Worker's timing, unchanged since Session AK, carried, D-CI1995). The last run green on every job: run 1938 on `7e664056`.
 
 ## Toolchain in the sandbox
 - Pinned Node 24.19.0 in the scratchpad (`node-v24.19.0-linux-x64/bin` first on PATH); `corepack enable pnpm`;
@@ -43,7 +43,7 @@ finish or unwire the current feature, push, get CI green, write "Safe to merge n
 - Also built: #46 sleep over a year (`8a3d2468`), #47 nutrient ranges (`71bed717`), #48 symptoms and supplements in the visit
   report (`a5eddc1f`), #49 a month in short and a fresh start (TIER 3 stored, `03a70d26`). Part 8 final pass `61759687`;
   ADR-045 closing table and D-BUILD notes written.
-- Next: CI on the final head (runs 1987+); then the STATUS entry as the final commit and the ≤ 12-line report.
+- Done: CI read through run 1995 (D-CI1987 … D-CI1995, every red of this session fixed at its cause); STATUS entry written as the final commit; report sent. Session AV is complete.
 
 ## Next
 - Read CI at part boundaries (≤ every 10 min); record reds in ADR-045 (D-CI*) and CI_INTERMITTENTS.

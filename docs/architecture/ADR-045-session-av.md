@@ -476,6 +476,14 @@ Where a rule of the definition of done does not apply, it says so here.
   move controls), shard 7 `run11-route-mobile-acceptance:31` (first seen in run 1701), integration `account-browser`
   (D-SYNC, carried).
 
+## D-CI1995 — run 1995 (`23364740`, the final code): every browser job green; one older unit-test timing fault
+- **Green:** all 14 main shards (`wiring-2-nova-start` with the D-CI1994 fix, A10-11, `send-feedback`), all four WebKit
+  shards, the three a11y shards, integration (`account-browser` and `sync-offer-browser` included), the Alpha gate.
+- **Red, checks:** `scripts/run11/food-search.test.mjs:90` — the food Worker's FSVO spacing measured 1,800 ms against
+  its 1,900 ms floor (the Worker spaces calls 2,000 ms). Reproduced locally 1 of 3 (1,645 ms). The Worker and the test
+  are byte-for-byte `main`'s (last changed in Session AK); this session touched neither. **Carried:** the cause is in
+  the Worker's timer (TIER 3 egress, outside this follow-up); loosening the test would weaken its assertion.
+
 ## Closing table
 
 | Item | Verdict | Where |
@@ -493,7 +501,7 @@ Where a rule of the definition of done does not apply, it says so here.
 | 6 Accessibility sweep | Done: no serious or critical finding | D-A11Y |
 | 7 Competitor gaps | Matrix written; 2 features built complete; 14 ranked for the next session | D-COMPETITORS |
 | 8 Friends docs | FIRST_WEEK, FRIENDS_GUIDE 8j, Help (What's new 24 → 29, Known limitations), OWNER_STEPS step 1 | Part 8 |
-| F1-1 CI on the current head | Runs 1941, 1949, 1956, 1961, 1975 read; every red fixed at its cause or recorded as an intermittent; the last full green is run 1938 (`7e664056`) until a newer head's run ends green | D-CI1941 … D-CI1975, D-CI-PACE |
+| F1-1 CI on the current head | Runs 1941–1995 read; every red of this session fixed at its cause (A10-11 twice, the date guard, the habit menu, Help's two counts, the NOVA start race); run 1995 on the final code: every browser, WebKit, a11y and integration job green, checks red only on the older food-Worker timing (carried) | D-CI1941 … D-CI1995, D-CI-PACE |
 | F1-2 Part 4b, the 14 open rows | Finished (14 of 14); the audit now: 150 rows — finished 73, needs the owner 38, carried 19, hidden honestly 10, outside service 5, model 5, open 0 | UNFINISHED.md |
 | F1-3 Part 7 research | COMPETITORS.md: 25 apps, 435 rows from the web, depth-checked, re-ranked into 49 build rows | COMPETITORS.md |
 | F1-4 Part 7 build | 49 of 49 ranked rows done: 48 built complete (each with Help, What's new, a unit test, a spec in three themes at 390/1440/320, axe-clean, lazy), #4 verified as already built; What's new 29 → 77; no budget raised (least headroom Habits 5.2 kB) | D-BUILD |
