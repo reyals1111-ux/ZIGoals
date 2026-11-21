@@ -134,6 +134,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-words-match", "Can a meal I wrote in words get its calories?"],
   ["av-habit-look", "Can a habit have its own symbol or colour?"],
   ["av-sleep-score", "How is the sleep score worked out?"],
+  ["av-high-in", "Which foods are high in iron, fibre or calcium?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
