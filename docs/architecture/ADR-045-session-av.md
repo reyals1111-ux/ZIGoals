@@ -389,6 +389,17 @@ Where a rule of the definition of done does not apply, it says so here.
   slow page: the sweeps had reached their budget. Fixed at `c8f451ec` (two halves of five pages each, same checks on
   the same pages; no timeout raised).
 
+## D-CI1961 — run 1961 (`c8f451ec`): one red job, every other green
+- Green: checks, main shard 14 (the `ui-evidence` halves), shard 2, the a11y shards, WebKit, integration, the Alpha
+  gate. Runs 1962–1972 were cancelled by later pushes (the workflow keeps only the newest run of a branch).
+- Red: main shard 13, `al-third-habits:36` "each habit has its own page…" (desktop and mobile, both tries): a real
+  regression of C #30 (the habit week grid, `71bf1f5f`). The new fold under the cards painted over a card's open
+  options menu and took its click ("<details class=\"panel habit-week-fold\"> intercepts pointer events"). Measured: the
+  time-of-day section (`.habit-section`, `overflow: clip` for its rounded corners) cut the menu at its edge, so the
+  menu's lower items were neither visible nor pressable there, and the new fold sat right under them. First attempt
+  (lift the grid's z-index) did not help, as measured; second attempt, at the cause: the section lets its content
+  overflow while a card's menu is open. The spec is unchanged.
+
 ## Closing table
 
 | Item | Verdict | Where |

@@ -244,3 +244,7 @@
 .habit-yesterday-why legend { font-weight: 600; margin-bottom: 4px; }
 .habit-yesterday-reason { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
 .habit-yesterday-why input:not([type=radio]) { min-height: 44px; width: 100%; box-sizing: border-box; }
+/* Session AV (D-CI1961): a time-of-day section clips its content to its rounded corners, which also cut a card's open
+   options menu at the section's edge (its lower items could not be seen or pressed). While a menu is open the section
+   lets it overflow. */
+.habit-section:has(.card-options-panel) { overflow: visible; }
