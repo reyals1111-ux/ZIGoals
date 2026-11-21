@@ -246,6 +246,8 @@ export function frozenFixture() {
   // Session AJ (item 15, D9; TIER 3 (stored format)): price alerts, a new device-only key (fictional ids and figures).
   records[PRICE_ALERTS_KEY] = JSON.stringify({version: 1, alerts: [{id: 'alert_fixture-0001', kind: 'price', coin: 'bitcoin', coinName: 'Fictional coin', currency: 'USD', direction: 'above', price: '12345', createdAt: '2026-10-29T10:00:00.000Z', active: true, channels: {inApp: true, push: false}}], fired: []});
   checks.push({key: READING_SOURCES_KEY, module: './wealth-sources/schema', spec: 'READING_SOURCES', expect: {since: '2026-10-29T10:00:00.000Z'}});
+  // Session AV (F-MOVE-ALERT, TIER 3 stored format, additive): portfolio-value alerts in their own optional list.
+  { const pa = JSON.parse(records[PRICE_ALERTS_KEY]!) as Record<string, unknown>; records[PRICE_ALERTS_KEY] = JSON.stringify({...pa, portfolio: [{id: 'alert_portfolio-0001', portfolioId: 'p-real', portfolioName: 'Mine', currency: 'EUR', direction: 'above', value: '10000', createdAt: '2026-11-21T10:00:00.000Z', active: true}]}); }
   checks.push({key: PRICE_ALERTS_KEY, module: './price-alerts/schema', spec: 'PRICE_ALERTS', expect: {'alerts.0.price': '12345'}});
   // Session AJ (item 30, D11; TIER 3 (stored format)): the trader tools' opt-in and tilt dismissal, an optional group in the
   // loose UI preferences; an older build keeps or ignores it. Item 32 (D5): the Customize `look` group rides the same record.

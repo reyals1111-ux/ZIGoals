@@ -30,10 +30,23 @@ export const priceAlertSchema = z.looseObject({
   channels: z.looseObject({inApp: z.boolean().default(true), push: z.boolean().default(false)}).default({inApp: true, push: false}),
 }).refine(a => a.kind === 'price' ? !!a.direction && !!a.price : !!a.goalId && !!a.percent, 'A price alert needs a direction and a price; a goal alert a goal and a percent.');
 export const firedAlertSchema = z.looseObject({alertId: z.string().max(80), at: z.iso.datetime(), text: z.string().max(300)});
+/**
+ * Session AV (owner follow-up 1, F-MOVE-ALERT; CoinStats' portfolio-value alerts), TIER 3 (stored format), additive and
+ * optional: alerts on a portfolio's whole value in its own currency — above or below a value. Their own list beside
+ * `alerts` (whose strict kinds older builds read), dropped on read when unreadable; older builds keep it (loose object).
+ */
+export const MAX_PORTFOLIO_ALERTS = 20;
+export const portfolioAlertSchema = z.looseObject({
+  id: z.string().regex(/^alert_[A-Za-z0-9-]{8,60}$/), portfolioId: z.string().min(1).max(120), portfolioName: z.string().trim().min(1).max(100),
+  currency: z.enum(['USD', 'EUR']), direction: z.enum(['above', 'below']), value: decimal,
+  createdAt: z.iso.datetime(), active: z.boolean(), firedAt: z.iso.datetime().optional(), seenAt: z.iso.datetime().optional(),
+});
+export type PortfolioAlert = z.infer<typeof portfolioAlertSchema>;
 export const priceAlertsSchema = z.looseObject({
   version: z.literal(1),
   alerts: z.array(priceAlertSchema).max(MAX_ALERTS).default([]),
   fired: z.array(firedAlertSchema).max(MAX_FIRED).default([]),
+  portfolio: z.array(portfolioAlertSchema).max(MAX_PORTFOLIO_ALERTS).optional().catch(undefined),
 });
 export type PriceAlert = z.infer<typeof priceAlertSchema>;
 export type PriceAlerts = z.infer<typeof priceAlertsSchema>;
