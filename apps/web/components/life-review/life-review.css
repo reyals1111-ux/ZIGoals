@@ -99,3 +99,6 @@
 @media (hover: hover) and (pointer: fine) { :root :where(.life-review-page) .panel:not(.life-review-hero):hover { border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent)); } }
 :root :where(.life-review-page) .panel:not(.life-review-hero):has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.life-review-page) .panel:not(.life-review-hero) { box-shadow: none; } }
+
+/* Session AV follow-up 1 (F-FACTORS): the factor list. */
+.factor-effects .factor-outcome{color:var(--text-secondary, var(--muted))}
