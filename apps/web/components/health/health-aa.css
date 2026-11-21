@@ -341,3 +341,6 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 @media (max-width: 520px) {
   :root .health-micro-list > li { grid-template-columns: minmax(0, 1fr); }
 }
+/* Session AV follow-up 1 (F-HIGH-IN): the offline library's foods high in a nutrient. */
+.health-rich-library { display: grid; gap: 6px; margin-top: 8px; min-width: 0; overflow-wrap: anywhere; }
+.health-rich-library h4, .health-rich-library p { margin: 0; }

@@ -85,3 +85,20 @@ export async function searchGenericLibrary(query: string, options: SourceLoaderO
   const {sources, failed} = await loadGenericLibrary(options);
   return {results: searchGenericFoods(query, sources, options.limit), failed};
 }
+
+/**
+ * Session AV (owner follow-up 1, F-HIGH-IN; Cronometer's Oracle): the offline library's foods richest in one of the
+ * seven extra nutrients, per 100 g as eaten, each named once (the higher value when two sources name it), and
+ * only foods that carry a value for it (unknown is not zero). Pure over the loaded sources.
+ */
+export type HighInKey = 'fiberMg' | 'sugarMg' | 'saturatedFatMg' | 'sodiumMg' | 'potassiumMg' | 'calciumMg' | 'ironMg';
+export function highInGeneric(sources: readonly LoadedGenericSource[], key: HighInKey, limit = 8): {name: string; sourceName: string; per100g: number}[] {
+  const best = new Map<string, {name: string; sourceName: string; per100g: number}>();
+  for (const {entry, file} of sources) for (const row of file.foods) {
+    const value = entryOf(file, entry, row).nutrients[key];
+    if (value === undefined || value <= 0) continue;
+    const k = normaliseFoodText(row[1]), had = best.get(k);
+    if (!had || had.per100g < value) best.set(k, {name: row[1], sourceName: entry.name, per100g: value});
+  }
+  return [...best.values()].sort((a, b) => b.per100g - a.per100g || a.name.localeCompare(b.name)).slice(0, limit);
+}

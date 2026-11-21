@@ -14,6 +14,8 @@ import {nutrientDay, type ReportContext} from '../../lib/health-aa/nutrient-repo
 import './health-aa.css';
 // Session AK (task 4.4): the full report (every nutrient, 7-day averages, top sources) loads only when opened.
 const NutrientReport = lazy(() => import('./nutrient-report').then(m => ({default: m.NutrientReport})));
+// Session AV (owner follow-up 1, F-HIGH-IN): the offline library's foods high in a nutrient, loaded on the press.
+const LibraryHighIn = lazy(() => import('./library-high-in'));
 
 /**
  * N4: micronutrient targets (the seven the format holds, ADR-022 B6; default reference values the person can edit on
@@ -29,7 +31,7 @@ export function MicroPanel({data, date}: {data: HealthData; date: string}) {
     try { const scale = scaleOf(key); const v = draft.trim() ? Math.round(readFormNumber(draft, {max: 1_000_000}) * scale) : null; record.update(c => setMicroTarget(c, key, v)); setEditing(null); setError(''); }
     catch (e) { setError(e instanceof Error && !/storage|quota/i.test(e.message) ? e.message : `Not saved on this device. ${deviceSettingFailureMessage(e)}`); }
   }
-  const rich = richIn(data, pick);
+  const rich = richIn(data, pick), [library, setLibrary] = useState<MicroKey | null>(null);
   return <section className="panel health-aa-card" aria-labelledby="micro-title">
     <p className="eyebrow">Beyond the macros</p><h2 id="micro-title"><NebulaFlow identity="micro-title">Micronutrients</NebulaFlow></h2>
     <ul className="health-micro-list">{rows.map(m => { const shown = m.total === null ? null : m.total / m.scale, target = m.target / m.scale; const share = shown === null ? 0 : Math.min(1, shown / target); return <li key={m.key}>
@@ -44,7 +46,10 @@ export function MicroPanel({data, date}: {data: HealthData; date: string}) {
     <div className="actions"><button type="button" className="secondary" aria-expanded={report} onClick={() => setReport(!report)}>{report ? 'Close the nutrient report' : 'Open the nutrient report'}</button></div>
     {report && <Suspense fallback={<p className="fine">Opening the report…</p>}><NutrientReport data={data} date={date} /></Suspense>}
     <div className="health-rich"><h3>Which of my foods are high in…</h3><div className="health-rich-row" role="group" aria-label="Nutrient">{additionalNutrients.map(([key, label]) => <button type="button" key={key} className="quiet" aria-pressed={pick === key} onClick={() => setPick(key)}>{label}</button>)}</div>
-      {rich.length ? <ol>{rich.map(f => <li key={f.id}>{f.name} <small>· {formatNutrient(f.mgPerServing / scaleOf(pick))} {additionalNutrients.find(([k]) => k === pick)![2]} {f.serving === 'per serving' ? 'per serving' : `per ${f.serving}`}{f.kind === 'recipe' ? ' · recipe' : ''}</small></li>)}</ol> : <p className="health-empty-inline">None of your foods carries a value for this yet. Add it on the food’s label.</p>}</div>
+      {rich.length ? <ol>{rich.map(f => <li key={f.id}>{f.name} <small>· {formatNutrient(f.mgPerServing / scaleOf(pick))} {additionalNutrients.find(([k]) => k === pick)![2]} {f.serving === 'per serving' ? 'per serving' : `per ${f.serving}`}{f.kind === 'recipe' ? ' · recipe' : ''}</small></li>)}</ol> : <p className="health-empty-inline">None of your foods carries a value for this yet. Add it on the food’s label.</p>}
+      {/* Session AV (owner follow-up 1, F-HIGH-IN): the offline library's richest foods too, and what 100 g adds to today's gap. */}
+      {library === pick ? <Suspense fallback={<p className="fine" role="status">Opening…</p>}><LibraryHighIn nutrient={pick} label={additionalNutrients.find(([k]) => k === pick)![1]} unit={additionalNutrients.find(([k]) => k === pick)![2]} scale={scaleOf(pick)} gap={(() => { const m = rows.find(x => x.key === pick); return m && m.direction === 'at-least' ? Math.max(0, m.target - (m.total ?? 0)) || null : null; })()}/></Suspense>
+        : <p><button type="button" className="secondary" onClick={() => setLibrary(pick)}>Also look in the offline food library</button></p>}</div>
   </section>;
 }
 
