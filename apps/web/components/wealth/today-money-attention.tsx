@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Fragment, useMemo} from 'react';
+import {useMemo} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {BILLS} from '../../lib/bills/schema';
 import {BUDGETS} from '../../lib/budgets/schema';
@@ -26,6 +26,8 @@ export default function TodayMoneyAttention() {
   const pieces = attentionLinks(a), shown = pieces.slice(0, 3);
   return <section className="today-tasks-due today-money-attention" aria-label="Money that asks for a look">
     <p className="today-tasks-due-line"><span>
-      <strong>Money:</strong> {shown.map((p, i) => <Fragment key={`${p.href}-${p.text}`}>{i > 0 && ' · '}<Link className="text-link" href={p.href}>{p.text}</Link></Fragment>)}{pieces.length > shown.length && <>{' and '}<Link className="text-link" href="/app/wealth">{pieces.length - shown.length} more</Link></>} <span aria-hidden="true">→</span></span></p>
+      {/* One link, as Today's other glance lines (Showcase Today keeps its 90 Tab stops, D-028): it opens the place of the
+          first piece it names (the review list, Budgets by category or Upcoming bills), not the top of Wealth. */}
+      <strong>Money:</strong> <Link className="text-link" href={shown[0]!.href}>{shown.map(p => p.text).join(' · ')}{pieces.length > shown.length ? ` and ${pieces.length - shown.length} more` : ''} <span aria-hidden="true">→</span></Link></span></p>
   </section>;
 }

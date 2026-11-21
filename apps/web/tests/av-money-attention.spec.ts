@@ -24,8 +24,10 @@ for (const theme of THEMES) test(`${theme}: one to review, groceries over, rent 
   await expect(line).toHaveText('Money: 1 entry to review · Groceries over budget · Fictional rent due tomorrow →');
   // Deliberate change (Session AV, fresh-agent check q2, rank 20; YNAB's Spotlight): each piece is its own link to its
   // place instead of one link to the top of Wealth; every link's place is asserted.
-  await expect(line.getByRole('link')).toHaveText(['1 entry to review', 'Groceries over budget', 'Fictional rent due tomorrow']);
-  expect(await line.getByRole('link').evaluateAll(links => links.map(l => l.getAttribute('href')))).toEqual(['/app/wealth#spending', '/app/wealth?view=budgets', '/app/wealth?view=bills']);
+  // Deliberate change (Session AV 1c follow-up, equally strict): one link again, as Today's other glance lines (Showcase
+  // Today keeps its 90 Tab stops, D-028); it names every piece and opens the first piece's own place.
+  await expect(line.getByRole('link')).toHaveText('1 entry to review · Groceries over budget · Fictional rent due tomorrow →');
+  await expect(line.getByRole('link')).toHaveAttribute('href', '/app/wealth#spending');
   const findings = await axe(page, line);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});

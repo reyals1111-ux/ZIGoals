@@ -56,11 +56,9 @@ export function showcaseHabitExtras(habits: HabitData): HabitExtras {
   for (const [t, a] of [['Read', 'learning'], ['Exercise', 'health'], ['Walk', 'health'], ['Meditate', 'mind'], ['Contribute', 'wealth'], ['Drink water', 'health']] as const) { const i = id(t); if (i) areas[i] = a; }
   areas[SHOWCASE_QUIT_ID] = 'health';
   const bells: Record<string, true> = {}; const ex = id('Exercise'); if (ex) bells[ex] = true;
-  // Session AV (q4 #26, #24): three habits with their own symbol and colour, and Exercise (half done today) as today's
-  // focus. Today is the Showcase's own day: the quit habit's last entry (it has one for each of its 30 days, today last).
+  // Session AV (q4 #26): three habits with their own symbol and colour. (A focus habit was tried here too; its line on
+  // Today took Showcase Today past its 90 Tab stops, D-028, so the Showcase leaves the focus to the person.)
   const looks: Record<string, {glyph: string; colour: string}> = {};
   for (const [t, glyph, colour] of [['Read', '✎', 'violet'], ['Walk', '☀', 'green'], ['Meditate', '☾', 'blue']] as const) { const i = id(t); if (i) looks[i] = {glyph, colour}; }
-  const today = habits.habits.find(h => h.id === SHOWCASE_QUIT_ID)?.entries.at(-1)?.date;
-  const focus = ex && today ? {focus: {date: today, habitId: ex}} : {};
-  return habitExtrasSchema.parse({version: 1, areas, quitCost: {[SHOWCASE_QUIT_ID]: {perDay: 3, currency: 'EUR'}}, bells, looks, ...focus});
+  return habitExtrasSchema.parse({version: 1, areas, quitCost: {[SHOWCASE_QUIT_ID]: {perDay: 3, currency: 'EUR'}}, bells, looks});
 }

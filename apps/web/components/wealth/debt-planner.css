@@ -71,3 +71,6 @@
 .debt-planner > *,.debt-plan-fold{min-width:0;max-width:100%}
 .debt-plan-pick{min-inline-size:0}
 .debt-plan-fold > *{min-width:0;max-width:100%}
+/* The fold's content box is a grid item too (details' content slot), so the table's own width still reached it; a table
+   box whose width never comes from its rows keeps the fold to the planner's width, and the table scrolls inside it. */
+.debt-planner .money-table-wrap{contain:inline-size}
