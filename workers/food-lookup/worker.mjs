@@ -231,8 +231,7 @@ export class FoodBudget{
   if(slot.refuse!==undefined)return later(slot.refuse);
   await this.armSweep();
   // Reservation survives worker death; failures still consume the shared attempt allowance.
-  if(slot.at>this.now()){
-   await new Promise(resolve=>setTimeout(resolve,slot.at-this.now()));
+  if(await this.untilTurn(slot.at,SPACING)){
    // While this lookup waited, another may have fetched the same product, or the provider may have throttled us.
    const late=await cached();if(late)return late;
    const backoff=/** @type {number|undefined} */(await this.state.storage.get('backoffUntil'))??0;if(backoff>this.now())return reply({error:'PROVIDER_THROTTLED',retryAfter:Math.ceil((backoff-this.now())/1000)},429);
@@ -249,6 +248,22 @@ export class FoodBudget{
    await this.remember(code,body,200,FOUND_MS);
    return reply(offAnswer(body));
   }catch{return reply({error:'PROVIDER_UNAVAILABLE'},502);}
+ }
+ /** Never early (Session AV follow-up 2, 1a, TIER 3 Workers): a request leaves no sooner than its reserved slot and no
+  * sooner than `spacing` after this object's previous request actually left, since a slot can be granted on time while its
+  * request leaves late. After waking, any remainder is waited out. The send time is recorded in the same transaction that
+  * lets the request go, so two waiters can never both pass. True when it waited. The fixture clock does not move, so there
+  * a single wait stands, as before. @param {number} at @param {number} spacing */
+ async untilTurn(at,spacing){
+  for(let waited=false;;waited=true){
+   const wait=await this.state.storage.transaction(async s=>{
+    const now=this.now(),sent=/** @type {number|undefined} */(await s.get('sentAt'))??-Infinity,due=Math.max(at,sent+spacing);
+    if(due<=now||(waited&&this.env.ISOLATED_FIXTURE==='true')){await s.put('sentAt',now);return 0;}
+    return due-now;
+   });
+   if(!wait)return waited;
+   await new Promise(resolve=>setTimeout(resolve,wait));
+  }
  }
  /** A 429 or 503 from the provider pauses every request to it for 60 s (FDC: its Retry-After, see FDC_MAX_BACKOFF). */
  async backOff(ms=BACKOFF){await this.state.storage.transaction(async s=>{const until=this.now()+ms;await s.put('backoffUntil',until);if((/** @type {number|undefined} */(await s.get('next'))??0)<until)await s.put('next',until);});}
@@ -288,7 +303,7 @@ export class FoodBudget{
   const turn=async()=>{
    let at=reserved;reserved=undefined;
    if(at===undefined){const slot=await this.state.storage.transaction(s=>fsvoSlot(s,this.now()));if('refuse' in slot)return false;at=slot.at;}
-   if(at>this.now())await new Promise(resolve=>setTimeout(resolve,/** @type {number} */(at)-this.now()));
+   await this.untilTurn(at,FSVO_SPACING);
    return (await this.backedOff())===0;
   };
   /** One read of a fixed FSVO path: only `Accept` and the User-Agent go with it; no redirect is followed.
@@ -347,8 +362,7 @@ export class FoodBudget{
   });
   if('refuse' in admitted)return later(admitted.refuse);
   await this.armSweep();
-  if(admitted.at>this.now()){
-   await new Promise(resolve=>setTimeout(resolve,admitted.at-this.now()));
+  if(await this.untilTurn(admitted.at,FDC_SPACING)){
    const late=await cached();if(late)return late;
    const wait=await this.backedOff();if(wait)return reply({error:'PROVIDER_THROTTLED',retryAfter:wait},429);
   }
