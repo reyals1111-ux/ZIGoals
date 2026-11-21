@@ -1,4 +1,5 @@
 'use client';
+import {minutesWords} from '../../lib/tasks/minutes';
 import {useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import type {ParseSpan, ParsedTask} from '../../lib/tasks/parse';
 import {describeRecur} from '../../lib/tasks/recurrence';
@@ -33,12 +34,14 @@ function pieceWords(parsed: ParsedTask, record: Tasks, today: string): string[] 
   if (parsed.recur) pieces.push(describeRecur(parsed.recur));
   // Session AV (F-DEADLINES): "deadline Friday".
   if (parsed.deadline) pieces.push(`Deadline ${formatDate(parsed.deadline, {weekday: true, year: parsed.deadline.slice(0, 4) !== today.slice(0, 4)})}`);
+  // Session AV (F-TASK-MINUTES): "for 30 min".
+  if (parsed.minutes) pieces.push(`Takes ${minutesWords(parsed.minutes)}`);
   if (parsed.level) pieces.push(LEVEL_WORDS[parsed.level]);
   if (parsed.project) pieces.push(existing ? `#${existing.name}` : `#${parsed.project} (a new project)`);
   for (const l of parsed.labels) pieces.push(`@${l}`);
   return pieces;
 }
-const KIND_WORDS: Record<ParseSpan['kind'], string> = {date: 'Day', time: 'Time', recur: 'Repeat', priority: 'Priority', project: 'Project', label: 'Label', deadline: 'Deadline'};
+const KIND_WORDS: Record<ParseSpan['kind'], string> = {date: 'Day', time: 'Time', recur: 'Repeat', priority: 'Priority', project: 'Project', label: 'Label', deadline: 'Deadline', minutes: 'Length'};
 /** "More options" (Session AK G2, R2-17, kept): priority, a day, a time and a goal for the line; what the line itself says wins. */
 const PRIORITY_CHOICES: [string, TaskLevel, string][] = [['high', 1, LEVEL_WORDS[1]], ['medium', 2, LEVEL_WORDS[2]], ['normal', 3, LEVEL_WORDS[3]], ['low', 4, LEVEL_WORDS[4]]];
 export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputRef, makeProject, goals = []}: {record: Tasks; today: string; onAdd: (input: TaskInput) => boolean;
@@ -69,6 +72,7 @@ export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputR
       ...(parsed.due ? {due: parsed.due} : {}), ...(parsed.time ? {time: parsed.time} : {}), ...(parsed.level ? {level: parsed.level} : {}),
       ...(parsed.recur ? {recur: {...parsed.recur, text: parsed.spans.find(s => s.kind === 'recur')?.text.slice(0, 120)}} : {}),
       ...(parsed.deadline ? {deadline: parsed.deadline} : {}),
+      ...(parsed.minutes ? {minutes: parsed.minutes} : {}),
       labels: [...new Set([...(defaults.labels ?? []), ...parsed.labels])]};
     return input;
   };

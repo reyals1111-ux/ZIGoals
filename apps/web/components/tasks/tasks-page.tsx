@@ -1,4 +1,5 @@
 'use client';
+import {dayLoad, dayLoadWords} from '../../lib/tasks/minutes';
 import Link from 'next/link';
 import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode} from 'react';
 import {PageHeader} from '../page-header';
@@ -359,6 +360,7 @@ export function TasksPage() {
           {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : addLocalDays(today, 1))} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => { setSelected(new Set()); setSelecting(false); }} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
           {selectMode && !selected.size && <p className="fine tasks-select-hint" role="status">Tick the tasks to act on together; Escape ends selecting.</p>}
           <TaskStatusLine error={list.error} />
+          {view.kind === 'today' && !query && (() => { const w = dayLoadWords(dayLoad(record, today)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
           {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}
           {!tasks.unreadable && body}
           {empty && <EmptyState title={query ? 'Nothing matches' : !record.tasks.length ? 'Your list starts here' : view.kind === 'today' ? 'Nothing due today' : 'Nothing here'} level={2} art="orbit">

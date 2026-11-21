@@ -1,4 +1,5 @@
 'use client';
+import {minutesWords} from '../../lib/tasks/minutes';
 import Link from 'next/link';
 import {Suspense, lazy, useId, useMemo, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode} from 'react';
 import {LEVEL_SHORT, LEVEL_WORDS, TASK_PRIORITIES, TASK_TITLE_MAX, taskLevel, type HealthLink, type Task, type TaskLevel, type TaskPriority, type Tasks} from '../../lib/tasks/schema';
@@ -126,6 +127,7 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
     <span className="task-meta">
       {level !== 3 && <span className={`task-chip task-chip-p${level}`} title={LEVEL_WORDS[level]}>P{level} · {LEVEL_SHORT[level]}</span>}
       <span className="task-due">{done ? `Done ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
+      {!done && task.minutes ? <span className="task-minutes">{minutesWords(task.minutes)}</span> : null}{/* Session AV (F-TASK-MINUTES) */}
       {!done && task.deadline && <span className={`task-deadline is-${deadlineState(task, today)}`}><span aria-hidden="true">⚑ </span>{deadlineText(task, today)}</span>}
       {task.recur && <span className="task-recur"><span aria-hidden="true">↻ </span>{describeRecur(task.recur)}</span>}
       {progress && progress.total > 0 && <span className="task-progress" aria-label={`${progress.done} of ${progress.total} subtasks done`}><span aria-hidden="true">☑ {progress.done}/{progress.total}</span></span>}

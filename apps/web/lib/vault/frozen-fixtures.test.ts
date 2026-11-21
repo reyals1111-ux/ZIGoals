@@ -221,7 +221,7 @@ export function frozenFixture() {
   records[AI_MEMORY_KEY] = JSON.stringify({version: 1, notes: [{id: 'note_frozen', text: 'Fictional: trains in the morning', category: 'schedule', source: 'person', createdAt: '2026-10-27T08:00:00.000Z', updatedAt: '2026-10-28T08:00:00.000Z', paused: true}]});
   checks.push({key: AI_MEMORY_KEY, module: './ai/store/records', spec: 'AI_MEMORY', expect: {'notes.0.text': 'Fictional: trains in the morning', 'notes.0.paused': true}});
   // Session AI (tasks, TIER 3 (stored format)): one-off tasks with a priority and a due date, a new device-only key (fictional).
-  records[TASKS_KEY] = JSON.stringify({version: 1, tasks: [{id: 'task_1', title: 'Fictional: call the bank', priority: 'high', due: '2026-10-30', /* Session AV (F-DEADLINES): the optional deadline, an unknown field to older builds */ deadline: '2026-11-02', createdAt: '2026-10-28T09:00:00.000Z'}]});
+  records[TASKS_KEY] = JSON.stringify({version: 1, tasks: [{id: 'task_1', title: 'Fictional: call the bank', priority: 'high', due: '2026-10-30', /* Session AV (F-DEADLINES): the optional deadline, an unknown field to older builds */ deadline: '2026-11-02', /* Session AV (F-TASK-MINUTES): the optional minutes, likewise */ minutes: 45, createdAt: '2026-10-28T09:00:00.000Z'}]});
   checks.push({key: TASKS_KEY, module: './tasks/schema', spec: 'TASKS', expect: {'tasks.0.priority': 'high'}});
   // Session AI (J15, TIER 3 (stored format)): what a Portfolio transfer in was, a new device-only key (fictional ids).
   records[RECEIPTS_KEY] = JSON.stringify({version: 1, kinds: {'showcase-tx-9': 'reward'}});

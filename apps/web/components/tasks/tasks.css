@@ -133,6 +133,9 @@
 .task-project[data-colour] > span:first-child { color: var(--task-colour); }
 /* Session AV follow-up 1 (F-DEADLINES): the deadline beside the planned day; passed and today carry weight, not only colour. */
 .task-deadline { display: inline-flex; align-items: center; gap: 2px; }
+/* Session AV (F-TASK-MINUTES): how long a task takes, and the day's load in Today. */
+.task-minutes { font-variant-numeric: tabular-nums; }
+.tasks-day-load { margin: 0 0 12px; }
 .task-deadline.is-passed, .task-deadline.is-today { font-weight: 650; }
 .task-deadline.is-passed > span:first-child, .task-deadline.is-today > span:first-child { color: var(--danger, #e5484d); }
 .tasks-piece[data-kind=deadline] mark { background: color-mix(in oklab, #e5484d 18%, transparent); }

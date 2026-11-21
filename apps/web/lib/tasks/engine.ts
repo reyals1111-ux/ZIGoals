@@ -1,7 +1,7 @@
 import {addLocalDays, localDate} from '../local-date';
 import {nextOccurrence} from './recurrence';
 import {
-  DEFAULT_LEVEL, LABEL_PATTERN, MAX_COMPLETIONS, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
+  DEFAULT_LEVEL, LABEL_PATTERN, MAX_COMPLETIONS, MAX_TASK_MINUTES, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
   levelFields, taskLevel, taskSchema, tasksSchema, type HealthLink, type Project, type Recur, type SavedFilter, type Section,
   type Task, type TaskColour, type TaskLevel, type TaskPriority, type TaskReminder, type Tasks,
 } from './schema';
@@ -17,7 +17,9 @@ export type TaskInput = {title: string; priority?: TaskPriority; due?: string; g
   level?: TaskLevel; projectId?: string; sectionId?: string; parentId?: string; labels?: string[]; recur?: Recur;
   reminders?: TaskReminder[]; notes?: string; habit?: string; health?: HealthLink; order?: number;
   /** Session AV (F-DEADLINES): the day it must be done by, apart from the planned day. */
-  deadline?: string};
+  deadline?: string;
+  /** Session AV (F-TASK-MINUTES): how long it takes, in minutes. */
+  minutes?: number};
 export type AddOptions = {id: string; at: Date; today: string;
   /** Session AL (P-LS-11, DV-164): the Tasks page takes a past day (the task shows as overdue). Other callers keep the refusal. */
   allowPast?: boolean};
@@ -28,7 +30,7 @@ const cleanLabels = (labels: readonly string[] | undefined) => labels ? [...new 
 function optional(input: Partial<TaskInput>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   if (input.level !== undefined) Object.assign(out, levelFields(input.level));
-  for (const key of ['projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'order', 'deadline'] as const) { const v = input[key]; if (v !== undefined && v !== '' && v !== null) out[key] = v; }
+  for (const key of ['projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'order', 'deadline', 'minutes'] as const) { const v = input[key]; if (v !== undefined && v !== '' && v !== null) out[key] = v; }
   const labels = cleanLabels(input.labels); if (labels.length) out.labels = labels;
   if (input.reminders?.length) out.reminders = input.reminders;
   return out;
@@ -44,6 +46,7 @@ export function addTask(record: Tasks, input: TaskInput, options: AddOptions): T
   if (input.time && !TASK_CLOCK.test(input.time)) throw new Error('Choose a time such as 09:30.');
   if (input.recur && !input.due) throw new Error('A repeating task needs its first day.');
   if (input.deadline) checkDeadline(input.deadline, !!input.recur, options.today, !!options.allowPast);
+  if (input.minutes !== undefined) checkMinutes(input.minutes);
   if (input.parentId && !record.tasks.some(t => t.id === input.parentId)) throw new Error('That parent task is no longer on this device.');
   const kept = prune(record, options.today);
   if (kept.tasks.length >= MAX_TASKS) throw new Error(TASK_LIMIT_MESSAGE);
@@ -93,6 +96,9 @@ function checkDeadline(deadline: string, repeats: boolean, today: string, allowP
   if (repeats) throw new Error(DEADLINE_REPEAT_MESSAGE);
   if (deadline < today && !allowPast) throw new Error(DEADLINE_PAST_MESSAGE);
 }
+/** Session AV (owner follow-up 1, F-TASK-MINUTES): a task's minutes, a whole number from 1 to a day. */
+export const MINUTES_MESSAGE = `Enter the minutes as a whole number from 1 to ${MAX_TASK_MINUTES.toLocaleString('en-GB')}.`;
+function checkMinutes(minutes: number) { if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_TASK_MINUTES) throw new Error(MINUTES_MESSAGE); }
 export type DeadlineState = 'passed' | 'today' | 'soon' | 'later';
 /** Where a task's deadline stands: passed, today, within 3 days, or later; null without one (or once done). */
 export function deadlineState(task: Pick<Task, 'deadline' | 'doneAt'>, today: string): DeadlineState | null {
@@ -126,7 +132,9 @@ export type TaskPatch = {title?: string; priority?: TaskPriority; due?: string |
   level?: TaskLevel; projectId?: string | null; sectionId?: string | null; parentId?: string | null; labels?: string[];
   recur?: Recur | null; reminders?: TaskReminder[]; notes?: string | null; habit?: string | null; health?: HealthLink | null; order?: number;
   /** Session AV (F-DEADLINES). */
-  deadline?: string | null};
+  deadline?: string | null;
+  /** Session AV (F-TASK-MINUTES). */
+  minutes?: number | null};
 /**
  * Changes a task's title, priority, day, time or goal. `null` clears an optional field; a field left out is kept. A day
  * may be moved earlier than today only when it already was (an overdue task keeps its day until the person moves it),
@@ -139,7 +147,7 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.title !== undefined) { const title = patch.title.trim(); if (!title) throw new Error('Give the task a few words.'); if (title.length > TASK_TITLE_MAX) throw new Error(`A task title can be at most ${TASK_TITLE_MAX} characters (this one has ${title.length}).`); next.title = title; }
   if (patch.priority !== undefined) { next.priority = patch.priority; delete next.level; }
   if (patch.level !== undefined) Object.assign(next, levelFields(patch.level));
-  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
+  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
   if (patch.projectId !== undefined && patch.sectionId === undefined && next.sectionId) {
     const section = record.sections?.find(s => s.id === next.sectionId);
     if (!section || section.projectId !== next.projectId) delete next.sectionId;
@@ -151,6 +159,7 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (next.time !== undefined && !next.due) throw new Error('Choose a day for the task before a time.');
   if (typeof next.time === 'string' && !TASK_CLOCK.test(next.time)) throw new Error('Choose a time such as 09:30.');
   if (next.recur && !next.due) throw new Error('A repeating task needs its first day.');
+  if (typeof patch.minutes === 'number') checkMinutes(patch.minutes);
   // Session AV (F-DEADLINES): checked when the deadline or the repeat changes; an old passed deadline left alone is kept.
   if (typeof next.deadline === 'string' && (next.deadline !== task.deadline || (next.recur && !task.recur))) checkDeadline(next.deadline, !!next.recur, next.deadline === task.deadline ? '0000-01-01' : today, allowPast);
   if (typeof next.parentId === 'string' && (next.parentId === id || descendants(record, id).some(t => t.id === next.parentId))) throw new Error('A task cannot sit under itself or one of its own subtasks.');

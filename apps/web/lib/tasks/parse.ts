@@ -17,12 +17,14 @@ import {LABEL_PATTERN, type Recur, type TaskLevel} from './schema';
  * Every piece it took is returned as a span (start, end, kind) so the add field can highlight it, and any span can be
  * kept as plain text (`keep`), as Todoist offers. Pure: `today` is passed in.
  */
-export type SpanKind = 'date' | 'time' | 'recur' | 'priority' | 'project' | 'label' | 'deadline';
+export type SpanKind = 'date' | 'time' | 'recur' | 'priority' | 'project' | 'label' | 'deadline' | 'minutes';
 export type ParseSpan = {start: number; end: number; kind: SpanKind; text: string};
 export type ParsedTask = {
   title: string; due?: string; time?: string; level?: TaskLevel; project?: string; labels: string[]; recur?: Recur;
   /** Session AV (F-DEADLINES): "deadline Friday" — the day it must be done by, apart from the planned day. */
   deadline?: string;
+  /** Session AV (F-TASK-MINUTES): "for 30 min", "45 minuten", "for 1h30" — how long it takes. */
+  minutes?: number;
   spans: ParseSpan[];
 };
 export const PARSE_MAX = 500;
@@ -244,6 +246,22 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     }
   }
 
+  // Session AV (F-TASK-MINUTES): "for 30 min", "30 minutes", "45m", "45 minuten", "for 2 hours", "1h30", "for 1h 15m".
+  // Hours need "for" or the compact form ("1h"), so "at 1 h" or a Dutch "1 uur" (one o'clock) is never read as a length.
+  const tight = (k: number) => !!toks[k] && !!toks[k + 1] && toks[k + 1]!.start === toks[k]!.end;
+  const minutesAt = (i: number): {len: number; minutes: number} | null => {
+    const lead = at(i) === 'for' ? 1 : 0, k = i + lead, n = at(k), u = at(k + 1);
+    if (!n || !/^\d{1,4}$/.test(n) || !u) return null;
+    const MIN = ['min', 'mins', 'minute', 'minutes', 'minuten'], H = ['h', 'hr', 'hrs', 'hour', 'hours'];
+    let minutes: number, len = lead + 2;
+    if (MIN.includes(u) || (u === 'm' && tight(k))) minutes = Number(n);
+    else if (H.includes(u) && (lead || (u === 'h' && tight(k)))) {
+      minutes = Number(n) * 60;
+      const m = at(k + 2), mu = at(k + 3);
+      if (m && /^\d{1,2}$/.test(m) && (tight(k + 1) || mu === 'm' || mu === 'min')) { minutes += Number(m); len += 1; if (mu && (mu === 'min' || mu === 'mins' || (mu === 'm' && tight(k + 2)))) len += 1; }
+    } else return null;
+    return minutes >= 1 && minutes <= 1440 ? {len, minutes} : null;
+  };
   const tryAt = (i: number): Match | null => {
     const w = toks[i]!;
     if (kept.has(w.start)) return null;
@@ -254,6 +272,8 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     if (/^!{1,3}$/.test(w.low) && (i === toks.length - 1 || toks[i + 1]!.start > w.end) && (i === 0 || toks[i - 1]!.end < w.start)) return {len: 1, kind: 'priority', apply: o => { o.level = w.low.length >= 2 ? 1 : 2; }};
     // Session AV (F-DEADLINES): "deadline" (the same word in Dutch) and a day after it.
     if (w.low === 'deadline') { const d = dayAt(i + 1); if (d) return {len: 1 + d.len, kind: 'deadline', apply: o => { o.deadline = d.due; }}; }
+    const mins = minutesAt(i);
+    if (mins) return {len: mins.len, kind: 'minutes', apply: o => { o.minutes = mins.minutes; }};
     const r = recurAt(i);
     if (r) return {len: r.len, kind: 'recur', apply: o => { o.recur = {...r.recur}; if ((r as {start?: string}).start) o.due = (r as {start?: string}).start; }};
     const d = dayAt(i);
@@ -267,7 +287,7 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     if (used[i]) continue;
     const found = tryAt(i);
     // One of each: a second day or a second repeat stays text (the first one wins).
-    if (!found || (seen.has(found.kind) && (found.kind === 'date' || found.kind === 'time' || found.kind === 'recur' || found.kind === 'priority' || found.kind === 'project' || found.kind === 'deadline'))) continue;
+    if (!found || (seen.has(found.kind) && (found.kind === 'date' || found.kind === 'time' || found.kind === 'recur' || found.kind === 'priority' || found.kind === 'project' || found.kind === 'deadline' || found.kind === 'minutes'))) continue;
     // A date token that a span starting with it would only half cover ("the" alone) is not taken.
     found.apply(out); take(i, found.len, found.kind); seen.add(found.kind);
     i += found.len - 1;

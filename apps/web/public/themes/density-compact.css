@@ -5275,7 +5275,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-list:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task:not(#\-) { row-gap: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta > :is(.task-recur, .task-progress, .task-project, .task-label, .task-reminder, .task-has-notes, .task-deadline):not(#\-), :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible):not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta > :is(.task-recur, .task-progress, .task-project, .task-label, .task-reminder, .task-has-notes, .task-deadline, .task-minutes):not(#\-), :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible):not(#\-) { margin-top: -1px; margin-bottom: -1px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:focus-visible:not(#\-) { padding-top: 0; padding-bottom: 0; }
 @container task-row (min-width: 640px) { :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible):not(#\-) { margin-top: 0; margin-bottom: 0; } }
 :where(:root[data-density=compact]) .nova-widget[data-holo] .tasks-widget .tasks-add:not(#\-) { row-gap: 6px; }
@@ -7012,6 +7012,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .tasks-field-note:not(#\-), :where(:root[data-density=compact]) .tasks-field-error:not(#\-) { margin-top: 2px; }
 :where(:root[data-density=compact]) .task-project:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .task-deadline:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .tasks-day-load:not(#\-) { margin-top: 0; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .task-notes:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .task-sub:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .task-sub[data-only-new]:not(:focus-within):not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: -1px; margin-bottom: -1px; }
