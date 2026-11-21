@@ -441,6 +441,17 @@ Where a rule of the definition of done does not apply, it says so here.
   minutes and deadline specs and `tests/grok53/tasks/` 102 of 102 locally.
 - Every other job green: the a11y shards, 13 of 14 main shards, WebKit, integration, the Alpha gate.
 
+## D-CI1991 — run 1991 (`b764e00f`): checks green again; two red jobs
+- Main shard 8, `a10-life:120` A10-11: expected (this head predates the fix at `6b2efe63`, D-CI1987).
+- WebKit shard 2, `zigi-voice-z:199` (desktop, both tries; also run 1975, green in 1987): `details#zigi-voice` not there
+  5 s after `/app/settings#zigi-voice`. Investigated (its second sighting in this follow-up): in the CI trace the
+  "Your assistant" section is drawn and its lazy body (which holds the Voice card) has not mounted. Measured in Chromium
+  at 4× CPU: the section shell at 0.7 s, the lazy chunks requested only at ~3.6 s (the Settings page's own scripts and
+  hydration hold the main thread until then), the Voice card at 4.3–4.8 s; at 1× 1.6 s. Attempt 1 — fetching the body's
+  chunk as its module runs — changed nothing measurable (4.8 → 4.7 s) and was reverted. The cost is the Settings page's
+  hydration, older than this session (sightings since runs 1643, 1669, 1701). **Carried** with this measurement; the
+  spec's 5 s stays. The next session's lever: a lighter Settings first paint (its groups load as they open).
+
 ## Closing table
 
 | Item | Verdict | Where |
