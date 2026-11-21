@@ -1,4 +1,5 @@
 import {currentDayGoal, dayCounts, needOn} from '../../../checklist/day-goal-core';
+import {minutesWords, minutesWordsNl} from '../../../tasks/minutes';
 import {FORECAST} from '../../../goal-forecast';
 import {addLocalDays} from '../../../local-date';
 import {recentNotes} from '../../../nova/holo/lists';
@@ -62,7 +63,7 @@ export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
   const lang = q.lang, today = env.habitDay, record = env.nova?.tasks, out = answer(q, ['Your tasks', 'Je taken']), day = (d: string) => dayWords(d, today);
   if (!record) return null;
   if (!record.tasks.length) return out(t(lang, 'No tasks yet.', 'Nog geen taken.'), {tasks: 0}, [{id: 'tasks'}]);
-  const r = runTool('tasks', {}, env), open = (r.ok ? r.data.open as {task: string; state: string; due?: string; time?: string; priority: string; deadline?: string}[] | undefined : undefined) ?? [];
+  const r = runTool('tasks', {}, env), open = (r.ok ? r.data.open as {task: string; state: string; due?: string; time?: string; priority: string; deadline?: string; minutes?: number}[] | undefined : undefined) ?? [];
   const name = (x: {task: string; due?: string; time?: string}) => `${plain(x.task)}${x.due ? ` (${t(lang, 'due', 'gepland')} ${x.due === today ? t(lang, 'today', 'vandaag') : day(x.due)}${x.time ? ` ${formatClock(x.time)}` : ''})` : ''}`;
   const overdue = open.filter(x => x.state === 'overdue'), doneDay = (x: {doneAt?: string}) => x.doneAt ? calendarDay(x.doneAt, env.habitZone) : null;
   const base = {open: open.length, overdue: overdue.map(x => plain(x.task))}, timeline: ExactWidget[] = [{id: 'task-timeline', fallback: 'tasks'}];
@@ -72,6 +73,16 @@ export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
     const span = periodSpan(p, lang, today);
     if (q.ask === 'late') return out(late.length ? t(lang, `${late.length} of ${hit.length} tasks done ${span} ${late.length === 1 ? 'was' : 'were'} finished after ${late.length === 1 ? 'its' : 'their'} day: ${listWords(late.map(x => plain(x.title)), 'en')}.`, `${late.length} van de ${hit.length} taken gedaan ${span} ${late.length === 1 ? 'is' : 'zijn'} na de geplande dag afgerond: ${listWords(late.map(x => plain(x.title)), 'nl')}.`) : t(lang, `No task done ${span} was finished late (${hit.length} done).`, `Geen taak gedaan ${span} is te laat afgerond (${hit.length} gedaan).`), {...base, done: hit.length, late: late.map(x => plain(x.title))}, timeline);
     return out(hit.length ? t(lang, `${hit.length} ${hit.length === 1 ? 'task' : 'tasks'} done ${span}: ${listWords(hit.slice(0, 8).map(x => plain(x.title)), 'en')}.`, `${hit.length} ${hit.length === 1 ? 'taak' : 'taken'} gedaan ${span}: ${listWords(hit.slice(0, 8).map(x => plain(x.title)), 'nl')}.`) : t(lang, `No task done ${span}.`, `Geen taak gedaan ${span}.`), {...base, done: hit.length, tasks: hit.map(x => plain(x.title))}, timeline);
+  }
+  // Session AV (owner follow-up 1, F-TASK-MINUTES): how long the tasks of today (or tomorrow) take, from their own minutes.
+  if (/\b(?:how long|how much time|minutes|hoe lang|hoeveel tijd|minuten)\b/.test(q.read)) {
+    const [d, words] = /\b(?:tomorrow|morgen)\b/.test(q.read) ? [addLocalDays(today, 1), t(lang, 'tomorrow', 'morgen')] as const : [today, t(lang, 'today', 'vandaag')] as const;
+    const hit = open.filter(x => x.due === d), timed = hit.filter(x => x.minutes), sum = timed.reduce((n, x) => n + x.minutes!, 0), rest = hit.length - timed.length;
+    const each = (x: {task: string; minutes?: number}) => `${plain(x.task)} (${lang === 'nl' ? minutesWordsNl(x.minutes!) : minutesWords(x.minutes!)})`;
+    return out(!hit.length ? t(lang, `No open task is planned for ${words}.`, `Geen open taak gepland voor ${words}.`)
+      : !timed.length ? t(lang, `${hit.length} ${hit.length === 1 ? 'task is' : 'tasks are'} planned for ${words}, none with its minutes yet. Add them in a task's editor, or type “for 30 min” in the task line.`, `${hit.length} ${hit.length === 1 ? 'taak' : 'taken'} gepland voor ${words}, nog zonder minuten. Zet ze in de taak, of typ “30 minuten” in de taakregel.`)
+      : t(lang, `About ${minutesWords(sum)} planned for ${words}: ${listWords(timed.slice(0, 8).map(each), 'en')}${rest ? `; ${rest} more without a length` : ''}.`, `Ongeveer ${minutesWordsNl(sum)} gepland voor ${words}: ${listWords(timed.slice(0, 8).map(each), 'nl')}${rest ? `; nog ${rest} zonder duur` : ''}.`),
+      {...base, minutes: sum, timed: timed.length}, timeline);
   }
   // Session AV (owner follow-up 1, F-DEADLINES): the tasks with a deadline, soonest first; a passed one says so.
   if (/\bdeadlines?\b/.test(q.read)) {

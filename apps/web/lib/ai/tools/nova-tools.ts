@@ -51,7 +51,7 @@ export const NOTES_NOT_SHARED = 'Notes are not shared here: NOVA reads them only
 
 export const tasksTool: ToolDefinition<Record<string, never>> = {
   name: 'tasks', title: 'Tasks', area: 'today',
-  description: 'The person\'s open tasks as their list orders them (overdue first, then today, soon, later, no day): title, due day and time, the deadline when it has one (the day it must be done by, apart from the planned day), priority and the goal a task serves. Their own words; no advice. To move one they ask about, propose {"kind":"move-task","task":"…","to":"tomorrow"|"let-go"}.',
+  description: 'The person\'s open tasks as their list orders them (overdue first, then today, soon, later, no day): title, due day and time, the deadline (the day it must be done by, apart from the planned day) and minutes it takes when set, priority and the goal a task serves. Their own words; no advice. To move one they ask about, propose {"kind":"move-task","task":"…","to":"tomorrow"|"let-go"}.',
   parameters: {type: 'object', properties: {}}, args: NO_ARGS,
   label: () => 'Tasks',
   run(_args, env, label) {
@@ -61,7 +61,7 @@ export const tasksTool: ToolDefinition<Record<string, never>> = {
     // Session AU (REHEARSAL R-13): the clock the Tasks page and NOVA's task widgets use (lib/tasks/device.ts tasksClock): while
     // the person's day runs on past midnight (their today is the calendar's yesterday), every time of that day has passed.
     const wall = wallClock(env.now.getTime(), env.habitZone), clock = wall.date && wall.date > env.habitDay ? '23:59' : wall.clock;
-    const rows = openTasks(record, env.habitDay).map(t => ({task: text(t.title, 100), state: taskState(t, env.habitDay, clock), ...(t.due ? {due: t.due} : {}), ...(t.time ? {time: t.time} : {}), ...(t.deadline ? {deadline: t.deadline} : {}), priority: t.priority, ...(goalName(env, t.goal) ? {goal: goalName(env, t.goal)} : {})}));
+    const rows = openTasks(record, env.habitDay).map(t => ({task: text(t.title, 100), state: taskState(t, env.habitDay, clock), ...(t.due ? {due: t.due} : {}), ...(t.time ? {time: t.time} : {}), ...(t.deadline ? {deadline: t.deadline} : {}), ...(t.minutes ? {minutes: t.minutes} : {}), priority: t.priority, ...(goalName(env, t.goal) ? {goal: goalName(env, t.goal)} : {})}));
     const capped = capRows(rows, env, false);
     return ok('tasks', label, where(env, 'tasks'), {today: env.habitDay, counts: taskCounts(record, env.habitDay, clock), open: capped.rows, rule: 'the person\'s own tasks; done tasks are not listed'}, capped.truncated);
   },

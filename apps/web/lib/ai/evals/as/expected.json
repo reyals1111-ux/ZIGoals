@@ -5203,6 +5203,14 @@
   "fresh": "No open task has high priority.",
   "freshNl": "Nog geen taken."
  },
+ "tasks-minutes": {
+  "en": "About 15 min planned for today:\n• Example · Book the dentist — 15 min",
+  "nl": "Ongeveer 15 min gepland voor vandaag: Book the dentist (15 min).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task is planned for today.",
+  "freshNl": "Nog geen taken."
+ },
  "tasks-deadlines": {
   "en": "1 open task with a deadline:\n• Example · Draft the trip budget — deadline Nov 25, 2026; planned Nov 22, 2026",
   "nl": "1 open taak heeft een deadline: Draft the trip budget (deadline Wed, Nov 25).",
