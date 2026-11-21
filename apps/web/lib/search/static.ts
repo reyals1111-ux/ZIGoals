@@ -119,6 +119,8 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-bill-calendar", "Can I see my bills on a calendar?"],
   ["av-workout-weeks", "Can I see my workouts week by week?"],
   ["av-review-tasks", "What does the weekly review show about Tasks and the Journal?"],
+  ["av-run-bests", "Where are my running bests?"],
+  ["av-income-flow", "Where did this month’s income go?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
