@@ -6972,6 +6972,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .tasks-matrix-box:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .tasks-matrix-box h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-matrix-hint:not(#\-) { margin-top: 2px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .tasks-matrix-rules:not(#\-) { margin-top: 0; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .tasks-matrix-rules-fields:not(#\-) { row-gap: 8px; }
 /*  components/tasks/tasks.css  */
 :where(:root[data-density=compact]) .tasks-list:not(#\-) { margin-top: 0; margin-bottom: 6px; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
 :where(:root[data-density=compact]) .task:not(#\-) { row-gap: 2px; padding-top: 6px; padding-bottom: 6px; }
@@ -7056,6 +7058,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .tasks-paste-list p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-paste-items:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
 :where(:root[data-density=compact]) .tasks-paste-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .task-editor-pause:not(#\-) { row-gap: 6px; }
 /*  components/tasks/today-tasks-due.css  */
 :where(:root[data-density=compact]) .today-tasks-due:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .today-tasks-due-line:not(#\-) { margin-top: 0; margin-bottom: 0; }

@@ -1,4 +1,5 @@
 'use client';
+import {pausedDue, PAUSE_PAST_MESSAGE} from '../../lib/tasks/engine';
 import {minutesWords} from '../../lib/tasks/minutes';
 import {Suspense, lazy, useId, useRef, useState, type FormEvent} from 'react';
 import {HEALTH_LINKS, LEVEL_WORDS, TASK_NOTES_MAX, taskLevel, type HealthLink, type Recur, type Task, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
@@ -31,6 +32,9 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   const [ask, setAsk] = useState<TaskPatch | null>(null), askRef = useRef<HTMLButtonElement>(null);
   const [title, setTitle] = useState(task.title), [level, setLevel] = useState<TaskLevel>(taskLevel(task)), [due, setDue] = useState(task.due ?? ''), [time, setTime] = useState(task.time ?? ''), [goal, setGoal] = useState(task.goal ?? '');
   const [deadline, setDeadline] = useState(task.deadline ?? '');
+  // Session AV (owner follow-up 1, F-REPEAT-PAUSE): pause a repeating task until a day.
+  const [pauseUntil, setPauseUntil] = useState(''), [pauseError, setPauseError] = useState('');
+  const pause = () => { try { const d = pausedDue(task, pauseUntil, today); setPauseError(''); onSave({due: d}, 'all'); } catch (e) { setPauseError(e instanceof Error ? e.message : PAUSE_PAST_MESSAGE); } };
   // Session AV (owner follow-up 1, F-TASK-MINUTES): how long it takes, in minutes.
   const [minutes, setMinutes] = useState(task.minutes ? String(task.minutes) : ''), minutesValue = minutes.trim() === '' ? null : /^\d{1,4}$/.test(minutes.trim()) && Number(minutes) >= 1 && Number(minutes) <= 1440 ? Number(minutes) : 'invalid' as const;
   const [notes, setNotes] = useState(task.notes ?? ''), [repeat, setRepeat] = useState(task.recur?.text ?? (task.recur ? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase() : '')), [labels, setLabels] = useState((task.labels ?? []).map(l => `@${l}`).join(' '));
@@ -76,6 +80,12 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <small id={`${id}-minutes`} className={minutesValue === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={minutesValue === 'invalid' ? 'alert' : undefined}>{minutesValue === 'invalid' ? 'Enter whole minutes from 1 to 1,440, for example 30 or 90.' : minutesValue ? `About ${minutesWords(minutesValue)}; Today adds up the minutes of the day.` : 'How long it takes. Today adds up the minutes of its tasks.'}</small></label>
     <label className="field"><span>Repeat</span><input value={repeat} maxLength={120} placeholder="every Monday" aria-describedby={`${id}-repeat`} aria-invalid={recur === 'invalid' || undefined} onChange={e => setRepeat(e.target.value)} />
       <small id={`${id}-repeat`} className={recur === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={recur === 'invalid' ? 'alert' : undefined}>{recur === 'invalid' ? 'Try “every Monday”, “every 2 weeks”, “every month on the 1st” or “every! 3 days”.' : recur ? `${describeRecur(recur)}${due ? '' : ' · starts today'}` : 'Empty: it does not repeat.'}</small></label>
+    {task.recur && !task.doneAt && <div className="task-editor-pause" role="group" aria-labelledby={`${id}-pause`}>
+      <span id={`${id}-pause`} className="task-editor-pause-title">Pause the repeat</span>
+      <label className="field"><span>Until</span><input type="date" min={today} value={pauseUntil} aria-invalid={pauseError ? true : undefined} aria-describedby={pauseError ? `${id}-pause-error` : `${id}-pause-note`} onChange={e => { setPauseUntil(e.target.value); setPauseError(''); }} /></label>
+      <button type="button" className="secondary" disabled={!pauseUntil} onClick={pause}>Pause until then</button>
+      {pauseError ? <small id={`${id}-pause-error`} className="tasks-field-error" role="alert">{pauseError}</small> : <small id={`${id}-pause-note`} className="tasks-field-note">The times before that day are skipped, not marked done; it comes back on its first day from then.</small>}
+    </div>}
     <label className="field"><span>Reminder</span><select value={reminder} disabled={!due} onChange={e => setReminder(e.target.value)}><option value="">None</option>{REMINDER_CHOICES.map(c => <option key={c.before} value={c.before}>{c.label}</option>)}</select></label>
     {record && <label className="field"><span>Project</span><select value={projectId} onChange={e => { setProjectId(e.target.value); setSectionId(''); }}><option value="">Inbox</option>{(record.projects ?? []).filter(p => !p.archived || p.id === projectId).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
     {record && sections.length > 0 && <label className="field"><span>Section</span><select value={sectionId} onChange={e => setSectionId(e.target.value)}><option value="">No section</option>{sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>}

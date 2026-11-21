@@ -214,3 +214,8 @@
 .tasks-paste-items small { color: var(--text-meta, var(--muted)); }
 .tasks-paste-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .tasks-paste-actions button { min-height: 44px; }
+/* Session AV (F-REPEAT-PAUSE): pause a repeating task until a day. */
+.task-editor-pause { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 12px; }
+.task-editor-pause-title { flex: 1 1 100%; font-weight: 600; }
+.task-editor-pause > small { flex: 1 1 100%; }
+.task-editor-pause button { min-height: 44px; }

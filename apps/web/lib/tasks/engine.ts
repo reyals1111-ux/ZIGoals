@@ -60,7 +60,12 @@ export function finishTask(record: Tasks, id: string, at: Date, {today, doneDay}
   const task = record.tasks.find(t => t.id === id);
   // Session AL (P-LS-01): finishing a parent finishes its open subtasks with it.
   const children = new Set(task && !task.recur ? descendants(record, id).filter(t => !t.doneAt).map(t => t.id) : []);
+  // Session AV (owner follow-up 1, F-REPEAT-PAUSE; Things): when a repeating task comes round again, its finished
+  // subtasks open again for the next time (a checklist that repeats with it).
+  const comesRound = !!task?.recur && !task.doneAt && !!nextOccurrence(task.recur, task.due ?? finished, finished, now);
+  const reset = new Set(comesRound ? descendants(record, id).filter(t => t.doneAt).map(t => t.id) : []);
   return tasksSchema.parse({...record, tasks: record.tasks.map(t => {
+    if (reset.has(t.id)) return {...omit(t, 'doneAt'), updatedAt: stamp};
     if (t.id === id && t.recur && !t.doneAt) {
       const next = nextOccurrence(t.recur, t.due ?? finished, finished, now);
       const completions = [...(t.completions ?? []), {at: stamp, ...(t.due ? {due: t.due} : {})}].slice(-MAX_COMPLETIONS);
@@ -95,6 +100,20 @@ function checkDeadline(deadline: string, repeats: boolean, today: string, allowP
   if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline)) throw new Error('Choose a day for the deadline.');
   if (repeats) throw new Error(DEADLINE_REPEAT_MESSAGE);
   if (deadline < today && !allowPast) throw new Error(DEADLINE_PAST_MESSAGE);
+}
+/**
+ * Session AV (owner follow-up 1, F-REPEAT-PAUSE; TickTick's pause): a repeating task paused until a day — its first
+ * occurrence on or after that day, the ones before it skipped (not recorded as done). Throws in words when the repeat
+ * ends before then, or the day is not after today. Pure.
+ */
+export const PAUSE_PAST_MESSAGE = 'Choose a day after today to pause until.';
+export function pausedDue(task: Pick<Task, 'recur' | 'due'>, until: string, today: string): string {
+  if (!task.recur) throw new Error('Only a repeating task can be paused.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(until) || until <= today) throw new Error(PAUSE_PAST_MESSAGE);
+  if (task.recur.afterDone) return until;
+  const next = nextOccurrence({...task.recur, left: undefined}, task.due ?? today, today, until);
+  if (!next || (task.recur.until && next.due > task.recur.until)) throw new Error('The repeat ends before then. Remove the task, or change the repeat.');
+  return next.due;
 }
 /** Session AV (owner follow-up 1, F-TASK-MINUTES): a task's minutes, a whole number from 1 to a day. */
 export const MINUTES_MESSAGE = `Enter the minutes as a whole number from 1 to ${MAX_TASK_MINUTES.toLocaleString('en-GB')}.`;
