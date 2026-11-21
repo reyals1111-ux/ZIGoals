@@ -332,7 +332,34 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
   no cause was found to fix.
 - Run 1938 on `7e664056` (follow-up 1's first Part 4b commit): **every job green**. Safe to merge at that head.
 
-## D-CI1941 — run 1941 (`1ce3c640`) and the heads after it
+## D-BUILD — follow-up 1, step 4 (Part 7 build), decisions per feature
+Each feature: its natural place with a teaching empty state; 390/1440 in Nebula, Light and Dark, axe-clean, no sideways
+scroll at 320; Help, search and What's new; a unit test and a spec in shard 2's list; lazy chunks, no budget raised.
+Where a rule of the definition of done does not apply, it says so here.
+- **No NOVA/ZIGi corpus case**: journal tags (F-JOURNAL-TAGS), the factor report (F-FACTORS) and three good things —
+  the journal and mood tags are private screens NOVA and ZIGi never read (Help, "private screens"). The pasted list
+  (F-PASTE-LIST), yesterday's habits (F-YESTERDAY) and just the calories (F-QUICK-KCAL) store nothing new: their records
+  are ordinary tasks, check-ins and diary entries, which the existing corpus cases already answer.
+- **No new Showcase record**: F-QUICK-KCAL (one more Showcase diary entry would move every Showcase calorie answer and
+  total in the corpus and the Health specs; the spec and unit test seed their own) and F-PASTE-LIST (nothing stored).
+  F-YESTERDAY shows on the Showcase's own habits whenever one was left open the day before.
+- **TIER 3 stored formats** (frozen readers #37–#57 PASS each time, the new field in the fixture): budget targets,
+  task deadlines, the debt planner's order, one-off payments, shown plan and tracked plan. Every one additive and
+  optional, dropped on read when unreadable, kept untouched by older builds (loose objects).
+- **TIER 3 AI tools**: budget targets, deadlines, the debt planner (the exact layer's narrow `debts` domain).
+- F-DEADLINES: a repeating task has no separate deadline (its day moves each time); Upcoming stays keyed on the planned
+  day, so no row appears twice; NOVA's holo task widget keeps its composition (the flag is screen-reader-only there).
+- F-YESTERDAY: shown until anything is logged today; "Not now" hides it for this visit only (sessionStorage, a
+  per-tab convenience, not a record). Only daily "build" habits; quit and limit habits, skips and weekly targets left out.
+- F-TWO-DAY (Streaks' 2-day rule): the brief's "opt-in" version would change the streak itself, which every surface
+  (Today, NOVA, ZIGi, sharing, the corpus) reads from one function; a setting there is a stored and synced format change
+  for one row. Built instead as a second number beside the unchanged streak, shown only when it is longer.
+- F-MONEY-ATTENTION: on Today only while Wealth is shown there; beside "Tasks due today", never in the hero.
+- Local only: `habits-routines-block:74` (mobile, Showcase) failed 1 of 3 and 2 of 6 in this sandbox, also with the
+  new yesterday card hidden — not caused by this work, not seen in CI; recorded here, to investigate if CI shows it.
+- F-DEBT-PLAN: one-off payments go where the extra goes, never into "minimums only"; the tracked plan is worked out
+  again from its own starting figures, so later changes to the figures do not move the comparison.
+ — run 1941 (`1ce3c640`) and the heads after it
 - Run 1941: two red jobs. **checks**: `day-records` (F-GOOD-THINGS' Showcase entry; fixed at `c54eaa2b`). **main shard
   8**: `a10-life:120` A10-11 (both projects, both tries) — a real regression, not an intermittent: F-NL-TASKS
   (`dd931b8e`) made the task line's hint two lines at 768 px, so the first task's title ended at y 1029 of 1024 (95 % in

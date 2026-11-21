@@ -9046,8 +9046,17 @@
     .habit-metrics .habit-streak-open:not(#\-) {
         color: var(--text-secondary)
     }
+    .habit-metrics .habit-streak-two:not(#\-) {
+        color: var(--text-secondary)
+    }
     .habit-health-so-far:not(#\-) {
         color: var(--text-secondary)
+    }
+    .habit-yesterday-list li:not(#\-) {
+        border-bottom-color: var(--line, rgba(140,160,220,.18))
+    }
+    .habit-yesterday-list small:not(#\-) {
+        color: var(--text-meta, var(--muted))
     }
 }
 /*  components/habits/perfect-days.css  */

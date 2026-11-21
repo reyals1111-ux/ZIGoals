@@ -2648,7 +2648,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-reflection-head:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .habit-reflection-note:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .habit-metrics .habit-streak-open:not(#\-) { margin-top: 4px; }
+:where(:root[data-density=compact]) .habit-metrics .habit-streak-two:not(#\-) { margin-top: 4px; }
 :where(:root[data-density=compact]) .habit-health-so-far:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-yesterday:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .habit-yesterday h2:not(#\-), :where(:root[data-density=compact]) .habit-yesterday p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-yesterday-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .habit-yesterday-list li:not(#\-) { row-gap: 3px; padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .habit-yesterday-actions:not(#\-) { row-gap: 8px; }
 /*  components/habits/intention.css  */
 :where(:root[data-density=compact]) .habit-intention:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .habit-intention-line:not(#\-), :where(:root[data-density=compact]) .habit-intention-empty:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
@@ -7418,6 +7424,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .spending-budget>[role=alert]:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .spending-entry-actions:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .spending-editing:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-search:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .money-search-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .spending-suggest:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wealth/wealth-history-chart.css  */
 :where(:root[data-density=compact]) .wealth-history-chart:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 10px; }
 :where(:root[data-density=compact]) .wealth-history-tools:not(#\-) { row-gap: 6px; }
