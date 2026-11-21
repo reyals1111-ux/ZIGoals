@@ -26,11 +26,11 @@ const html = (el: Parameters<typeof renderToStaticMarkup>[0]) => renderToStaticM
 const text = (s: string) => s.replace(/<[^>]+>/g, ' ').replace(/&#x27;|&rsquo;/g, '’').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
 
 describe('Your money over time', () => {
-  // Session AV (follow-up 1, F-VS-LAST, deliberate): a seventh view, "This month vs last", first in the row.
-  test('the container lists seven views and opens none until asked (each view is its own chunk)', () => {
+  // Session AV (follow-up 1, F-VS-LAST and F-INCOME-FLOW, deliberate): "This month vs last" and "Where income went" first.
+  test('the container lists eight views and opens none until asked (each view is its own chunk)', () => {
     const out = html(createElement(SpendingInsights, {entries: [], today: TODAY}));
-    for (const label of ['This month vs last', 'Month by month', 'Categories over a year', 'Top payees', 'Your usual pace', 'Age of money', 'Tags']) expect(out).toContain(`>${label}</button>`);
-    expect(out.match(/aria-pressed="false"/g)).toHaveLength(7);
+    for (const label of ['This month vs last', 'Where income went', 'Month by month', 'Categories over a year', 'Top payees', 'Your usual pace', 'Age of money', 'Tags']) expect(out).toContain(`>${label}</button>`);
+    expect(out.match(/aria-pressed="false"/g)).toHaveLength(8);
   });
   test('month by month: a table beside the chart, a gap row, per currency', () => {
     const entries = [e('2026-08-01', '100.00', 'Salary', 'income'), e('2026-08-02', '40.00'), e('2026-11-02', '10.00'), e('2026-11-03', '3.00', 'Fun', 'expense', undefined, 'USD')];
