@@ -40,3 +40,12 @@
 .budgets-target-stop{min-height:44px}
 .budgets-target-fields{display:flex;flex-wrap:wrap;gap:8px}
 .budgets-target-fields .field{flex:1 1 160px}
+/* Session AV follow-up 1 (F-WATCH): categories watched without a budget. */
+.budgets-watch { display: grid; gap: 6px; margin-top: 12px; min-width: 0; }
+.budgets-watch h4, .budgets-watch p { margin: 0; }
+.budgets-watch-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.budgets-watch-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.budgets-watch button { min-height: 44px; }
+.budgets-watch-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 8px 12px; align-items: end; }
+.budgets-watch-form input, .budgets-watch-form select { min-height: 44px; width: 100%; box-sizing: border-box; }
+.budgets-watch-form .field-error { grid-column: 1 / -1; margin: 0; }

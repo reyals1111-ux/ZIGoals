@@ -18,6 +18,8 @@ import {parseNumberInput} from '../../../lib/numbers/parse';
 import {useMoneyCurrency} from '../use-money-currency';
 // Session AP (feature 3): Ready to assign, its own chunk.
 const ReadyToAssign = lazy(() => import('./ready-to-assign'));
+// Session AV (owner follow-up 1, F-WATCH): categories watched without a budget.
+const WatchList = lazy(() => import('./watch-list'));
 
 /**
  * Session AK (7.7): category budgets, one month at a time, against the money log. Each row is the month's amount, plus
@@ -99,6 +101,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     </form>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
+    <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={(() => { const count = new Map<string, number>(); for (const e of entries) count.set(e.currency, (count.get(e.currency) ?? 0) + 1); const used = [...count].sort((a, b) => b[1] - a[1]).map(([c]) => c); return used.length ? used : [currency]; })()} onChange={fn => { try { onChange(fn); } catch { setProblem('Not saved on this device.'); } }}/></Suspense>
     <p className="fine">From your own money log, in each currency apart. An overspend is never carried into the next month. Not financial advice.</p>
   </div>;
 }

@@ -7286,6 +7286,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .budgets-form .budgets-form-actions:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .budgets-target:not(#\-) { row-gap: 2px; margin-top: 4px; }
 :where(:root[data-density=compact]) .budgets-target-fields:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .budgets-watch:not(#\-) { row-gap: 6px; margin-top: 12px; }
+:where(:root[data-density=compact]) .budgets-watch h4:not(#\-), :where(:root[data-density=compact]) .budgets-watch p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .budgets-watch-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .budgets-watch-list li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .budgets-watch-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .budgets-watch-form .field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wealth/debt-planner.css  */
 :where(:root[data-density=compact]) .debt-planner:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .debt-planner h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
