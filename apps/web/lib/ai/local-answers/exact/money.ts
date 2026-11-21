@@ -84,10 +84,11 @@ export function budgetsAnswer(q: Query, env: ToolEnv): Exact | null {
   const card = budgetsCard(record, log.entries, today);
   const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'budgets', ask: q.ask, month: card.month, ...facts}, widgets: [{id: 'budget-gauges', fallback: 'budgets'}], query: q, source: t(lang, 'Your budgets and money log', 'Je budgetten en geldlog')});
   if (card.state === 'empty') return out(t(lang, 'You have no budgets yet.', 'Je hebt nog geen budgetten.'), {budgets: 0});
-  const rows = card.lines.map(l => ({category: plain(l.category), over: l.over, spent: l.spent, available: l.available, words: l.words, share: l.share})), over = rows.filter(r => r.over), facts = {count: card.count, within: card.within, over: over.map(r => r.category), lines: rows};
+  const rows = card.lines.map(l => ({category: plain(l.category), over: l.over, spent: l.spent, available: l.available, words: l.words, share: l.share, ...(l.target ? {target: l.target} : {})})), over = rows.filter(r => r.over), facts = {count: card.count, within: card.within, over: over.map(r => r.category), lines: rows};
   const nlWords = (r: typeof rows[number]) => r.over ? `over het budget (${r.spent} van ${r.available})` : `${r.spent} van ${r.available}`;
   const one = q.subject?.kind === 'category' ? rows.find(r => r.category.toLowerCase() === plain(q.subject!.name).toLowerCase()) : null;
-  if (one) return out(t(lang, `${one.category}: ${one.spent} of ${one.available} this month, ${one.words}.`, `${one.category}: ${nlWords(one)} deze maand.`), {...facts, budget: one});
+  // Session AV (F-BUDGET-TARGETS): a budget with a target says it after the month's figures.
+  if (one) return out(t(lang, `${one.category}: ${one.spent} of ${one.available} this month, ${one.words}${one.target ? `; ${one.target.en}` : ''}.`, `${one.category}: ${nlWords(one)} deze maand${one.target ? `; ${one.target.nl}` : ''}.`), {...facts, budget: one});
   if (q.ask === 'late' || q.ask === 'missed' || q.ask === 'worst' || /\b(?:over|exceeded|blown|overschreden)\b/.test(q.read)) return out(over.length
     ? t(lang, `${over.length} of ${card.count} budgets ${over.length === 1 ? 'is' : 'are'} over this month: ${listWords(over.map(r => `${r.category} (${r.spent} of ${r.available})`), 'en')}.`, `${over.length} van je ${card.count} budgetten ${over.length === 1 ? 'is' : 'zijn'} deze maand overschreden: ${listWords(over.map(r => `${r.category} (${r.spent} van ${r.available})`), 'nl')}.`)
     : t(lang, `No budget is over this month: all ${card.count} are within plan.`, `Geen budget is deze maand overschreden: alle ${card.count} zitten binnen plan.`), facts);

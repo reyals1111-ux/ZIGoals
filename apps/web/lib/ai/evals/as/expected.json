@@ -4231,7 +4231,7 @@
   "freshNl": "Nog geen inkomsten gelogd."
  },
  "budgets-over": {
-  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
+  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left; target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
   "nl": "Geen budget is deze maand overschreden: alle 3 zitten binnen plan.",
   "facts": null,
   "widgets": [],
@@ -4239,7 +4239,7 @@
   "freshNl": "Je hebt nog geen budgetten."
  },
  "budgets-status": {
-  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
+  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left; target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
   "nl": "3 van 3 budgetten binnen plan deze maand: Groceries €187.10 van €250.00, Food & drink €49.10 van €120.00 en Fun €24.00 van €60.00.",
   "facts": null,
   "widgets": [],

@@ -108,7 +108,8 @@ export const budgetsTool: ToolDefinition<{month?: string}> = {
     const record = env.nova?.budgets;
     if (!record || !record.budgets.length) return ok('budgets', label, where(env, 'budgets'), {budgets: [], note: absent(record, 'No budget is set yet (Wealth → Spending → Budgets).')});
     const month = args.month ?? monthKey(env.habitDay), view = monthView(env.moneyLog?.entries ?? [], record, month, env.habitDay), money = (cents: number, c: string) => `${(cents / 100).toFixed(2)} ${c}`;
-    const rows = view.rows.map(r => ({category: text(r.category, 40), available: money(r.available, r.currency), spent: money(r.spent, r.currency), left: money(r.left, r.currency), over: r.over}));
+    // Session AV (F-BUDGET-TARGETS; TIER 3 AI tools): a budget's target travels with its row, as figures and a state word.
+    const rows = view.rows.map(r => ({category: text(r.category, 40), available: money(r.available, r.currency), spent: money(r.spent, r.currency), left: money(r.left, r.currency), over: r.over, ...(r.target ? {target: {amount: money(r.target.amount, r.currency), by: r.target.by, setAside: money(r.target.setAside, r.currency), toGo: money(r.target.toGo, r.currency), perMonthFromNextMonth: money(r.target.perMonth, r.currency), state: r.target.state}} : {})}));
     return ok('budgets', label, where(env, 'budgets and Spending log'), {month, budgets: rows, unbudgeted: view.unbudgeted.slice(0, 10).map(u => ({category: text(u.category, 40), spent: money(u.spent, u.currency)})),
       ...(view.daysLeft !== null ? {daysLeft: view.daysLeft} : {}), rule: 'per currency, never converted; the person\'s own entries; not advice'});
   },

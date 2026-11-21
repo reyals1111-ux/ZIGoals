@@ -74,7 +74,8 @@ test('focus sessions, workouts and budgets on the Showcase: its own figures, per
   const w = data(runTool('workouts', {}, env()));
   expect(w.thisWeek.workouts).toBeGreaterThan(0); expect(w.recent[0]).toMatchObject({day: expect.stringMatching(/^2026-10-/), minutes: expect.any(Number)});
   const b = data(runTool('budgets', {}, env()));
-  expect(b.month).toBe('2026-10'); expect(b.budgets).toContainEqual({category: 'Groceries', available: '250.00 EUR', spent: '268.00 EUR', left: '-18.00 EUR', over: true});
+  // Session AV (F-BUDGET-TARGETS, deliberate): the Showcase's Groceries budget has a target, which travels with its row.
+  expect(b.month).toBe('2026-10'); expect(b.budgets).toContainEqual({category: 'Groceries', available: '250.00 EUR', spent: '268.00 EUR', left: '-18.00 EUR', over: true, target: {amount: '300.00 EUR', by: '2026-11', setAside: '0.00 EUR', toGo: '300.00 EUR', perMonthFromNextMonth: '300.00 EUR', state: 'short'}});
 });
 test('search_notes: only with NOVA\'s Notes scope; words are found, escaped as data, and never read on ZIGi\'s paths', () => {
   expect(data(runTool('search_notes', {}, env())).note).toBe(NOTES_NOT_SHARED);

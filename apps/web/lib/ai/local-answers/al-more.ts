@@ -204,7 +204,7 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     const r = run('budgets', {}, env); if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
     const d = dataOf(r.result), rows = (d.budgets ?? []) as Data[];
     if (!rows.length) return {kind: 'answer', text: `${/not read on this path/i.test(String(d.note)) ? say(lang, 'Your budgets are not read on this path, so I can’t say them here (unknown, not none).', 'Je budgetten worden hier niet gelezen, dus ik kan ze niet noemen (onbekend, niet nul).') : say(lang, 'No budget is set yet.', 'Er is nog geen budget ingesteld.')} ${say(lang, 'Wealth → Spending → Budgets shows and sets them; the weekly room to spend is on the same page.', 'Wealth → Spending → Budgets toont en zet ze; de ruimte per week staat op dezelfde pagina.')}` + open('wealth'), calls: [r.record]};
-    return {kind: 'answer', text: [say(lang, `Your budgets for ${d.month ?? 'this month'}:`, `Je budgetten voor ${d.month ?? 'deze maand'}:`), ...rows.slice(0, 10).map(b => `• ${clean(String(b.category ?? b.name ?? ''), 40)}: ${[b.spent && `${say(lang, 'spent', 'uitgegeven')} ${b.spent}`, b.budget && `${say(lang, 'of', 'van')} ${b.budget}`, b.left && `(${b.left} ${say(lang, 'left', 'over')})`].filter(Boolean).join(' ')}`)].join('\n'), calls: [r.record]};
+    return {kind: 'answer', text: [say(lang, `Your budgets for ${d.month ?? 'this month'}:`, `Je budgetten voor ${d.month ?? 'deze maand'}:`), ...rows.slice(0, 10).map(b => `• ${clean(String(b.category ?? b.name ?? ''), 40)}: ${[b.spent && `${say(lang, 'spent', 'uitgegeven')} ${b.spent}`, b.budget && `${say(lang, 'of', 'van')} ${b.budget}`, b.left && `(${b.left} ${say(lang, 'left', 'over')})`].filter(Boolean).join(' ')}${targetSaid(b.target, lang)}`)].join('\n'), calls: [r.record]};
   }
   // Session AL fourth pass (L7-4b; Lisbon #001, #002, #013, #047, LA-017): the counter, orbits, yesterday and history from the
   // Checklist's own reading (al-fourth.ts), one source with the page and "Show my checklist"; this read `items`, which the
@@ -274,4 +274,16 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     if (best && best.hits >= 1) return {kind: 'answer', text: say(lang, `From what you asked me to remember: “${clean(best.n.text, 300)}”.`, `Uit wat je me vroeg te onthouden: “${clean(best.n.text, 300)}”.`), calls: []};
   }
   return null;
+}
+/**
+ * Session AV (owner follow-up 1, F-BUDGET-TARGETS): a budget row's target, as the `budgets` tool gives it, in words;
+ * '' when the row has none. Information, not advice.
+ */
+export function targetSaid(target: unknown, lang: 'en' | 'nl'): string {
+  if (!target || typeof target !== 'object') return '';
+  const t = target as Record<string, unknown>, en = lang === 'en', head = en ? `; target ${t.amount} by ${t.by}` : `; doel ${t.amount} uiterlijk ${t.by}`;
+  if (t.state === 'reached') return `${head}: ${en ? 'reached' : 'bereikt'}`;
+  if (t.state === 'past') return `${head}: ${en ? `that month has gone by, ${t.toGo} was still to go` : `die maand is voorbij, er moest nog ${t.toGo} bij`}`;
+  const state = t.state === 'on-track' ? (en ? 'on track' : 'op schema') : (en ? 'short' : 'te weinig');
+  return `${head}: ${t.setAside} ${en ? 'set aside' : 'opzij'}, ${t.perMonthFromNextMonth} ${en ? 'a month from next month' : 'per maand vanaf volgende maand'} (${state})`;
 }
