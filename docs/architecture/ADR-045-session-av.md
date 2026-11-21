@@ -406,6 +406,16 @@ Where a rule of the definition of done does not apply, it says so here.
   finished work; the newest head waits and runs next. Pushes stay per feature; each started run is read when it ends.
 - Run 1972 (`893d3186`, before the D-CI1961 fix) and run 1975 (`f9385fca`: C #36–#38 and the fix) are the next reads.
 
+## D-CI1975 — run 1975 (`f9385fca`: C #36–#38 and the habit-menu fix): three red jobs
+- Green: checks, integration, the Alpha gate, the a11y shards, 12 of 14 main shards (shard 13: the D-CI1961 fix holds), 3
+  of 4 WebKit shards.
+- Main shard 14, `help-page:194` (both widths, both projects, both tries): mine. The Help page pins its in-sentence links
+  at exactly 78 (the 44 px exemption covers exactly the links Help has); C #38's answer added a 79th. The link is taken
+  out (the words stay); the count is unchanged.
+- Main shard 10, `o3-apps-extras:94` (mobile, both tries): first sighting, not mine (a fixed 44 px button read at
+  43.999996 px, i.e. mid-transform; 23 of 23 locally). Recorded in CI_INTERMITTENTS.
+- WebKit shard 2, `zigi-voice-z:199`: a recorded WebKit intermittent (runs 1643, 1669, 1701); voice code unchanged.
+
 ## Closing table
 
 | Item | Verdict | Where |
