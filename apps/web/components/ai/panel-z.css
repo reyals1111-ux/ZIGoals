@@ -173,7 +173,7 @@
 .ai-voice-live .ai-voice-interim{color:var(--muted,#a1afc8)}
 .ai-voice-disclose{display:grid;gap:8px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 8%,transparent);font-size:15px;line-height:1.45}
 .ai-voice-disclose p{margin:0}
-.ai-chat .ai-voice-disclose button,.ai-chat .ai-voice-hint button{min-height:44px}
+.ai-chat .ai-voice-disclose button,.ai-chat .ai-voice-hint button{min-height:44px;min-width:44px}
 .ai-voice-hint{display:flex;flex-wrap:wrap;align-items:center;gap:0 8px}
 .ai-chat .ai-mute{display:inline-flex;align-items:center;gap:6px}
 .ai-chat .ai-mute[aria-pressed=true]{color:var(--muted,#a1afc8)}
