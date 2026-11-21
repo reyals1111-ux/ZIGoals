@@ -194,6 +194,8 @@ export function formatDateTime(date:DateInput,options:DateOptions&TimeOptions={}
 export function formatMonth(date:DateInput,{year,timeZone}:{year?:boolean;timeZone?:string}={}){return written(date,{month:'short',...(year===false?{}:{year:'numeric'}),...zoned(timeZone)});}
 /** The short weekday alone, for chart columns and week strips: "Thu". */
 export function formatWeekday(date:DateInput,{timeZone}:{timeZone?:string}={}){return written(date,{weekday:'short',...zoned(timeZone)});}
+/** Session AV (follow-up 1): the weekday in full ("Monday"), e.g. for a one-letter column heading's abbr. */
+export function formatWeekdayLong(date:DateInput,{timeZone}:{timeZone?:string}={}){return written(date,{weekday:'long',...zoned(timeZone)});}
 /** The calendar day ("2026-10-17") an instant falls on in the zone (the device's by default); a day key is itself. */
 export function calendarDay(date:DateInput,timeZone?:string){
  if(typeof date==='string'&&DAY_KEY.test(date))return date;

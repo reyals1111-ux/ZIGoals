@@ -13,14 +13,17 @@ import {money, monthName} from './format';
  */
 function Flow({flow}: {flow: IncomeFlow}) {
   const total = Math.max(flow.income, flow.spent, 1), H = 180, gap = 4, usable = H - gap * Math.max(0, flow.parts.length - 1);
-  let y = 0;
-  const bands = flow.parts.map(p => { const h = Math.max(2, Math.round(usable * p.cents / total)), band = {p, y, h}; y += h + gap; return band; });
   const leftH = Math.max(2, Math.round(usable * flow.income / total));
-  let from = 0;
+  // Each band: where it leaves the income bar (y0, share) and where it lands on the right (y1, h).
+  const bands: {key: string; kind: string; y0: number; share: number; y1: number; h: number}[] = [];
+  for (let i = 0, y1 = 0, y0 = 0; i < flow.parts.length; i++) {
+    const p = flow.parts[i]!, h = Math.max(2, Math.round(usable * p.cents / total)), share = Math.round(leftH * p.cents / Math.max(1, flow.income));
+    bands.push({key: p.label, kind: p.kind, y0, share, y1, h});
+    y1 += h + gap; y0 += share;
+  }
   return <svg className="money-flow" viewBox={`0 0 320 ${H}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
     <rect x={0} y={0} width={14} height={leftH} rx={3} className="money-flow-income"/>
-    {bands.map(({p, y: to, h}) => { const share = Math.round(leftH * p.cents / Math.max(1, flow.income)), y0 = from; from += share; const y1 = to;
-      return <g key={p.label}><path className={`money-flow-band is-${p.kind}`} d={`M14 ${y0} C 160 ${y0}, 160 ${y1}, 300 ${y1} L 300 ${y1 + h} C 160 ${y1 + h}, 160 ${y0 + share}, 14 ${y0 + share} Z`}/><rect x={300} y={to} width={14} height={h} rx={3} className={`money-flow-node is-${p.kind}`}/></g>; })}
+    {bands.map(b => <g key={b.key}><path className={`money-flow-band is-${b.kind}`} d={`M14 ${b.y0} C 160 ${b.y0}, 160 ${b.y1}, 300 ${b.y1} L 300 ${b.y1 + b.h} C 160 ${b.y1 + b.h}, 160 ${b.y0 + b.share}, 14 ${b.y0 + b.share} Z`}/><rect x={300} y={b.y1} width={14} height={b.h} rx={3} className={`money-flow-node is-${b.kind}`}/></g>)}
   </svg>;
 }
 function Currency({flow}: {flow: IncomeFlow}) {

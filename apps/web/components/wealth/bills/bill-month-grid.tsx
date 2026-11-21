@@ -2,6 +2,7 @@
 import {useMemo} from 'react';
 import type {BillsRecord} from '../../../lib/bills/schema';
 import {BILL_DAYS, billGrid} from '../../../lib/nova/cards/ax/money-bills';
+import {formatWeekdayLong} from '../../../lib/visual-format';
 
 /**
  * Session AV (owner follow-up 1, F-BILL-CALENDAR; Rocket Money, Undebt.it's bill tracker): Upcoming bills on a calendar —
@@ -16,7 +17,7 @@ export default function BillMonthGrid({record, today}: {record: BillsRecord; tod
     <p className="fine">{view.due.length ? `${view.due.length} ${view.due.length === 1 ? 'due date' : 'due dates'} in the next ${BILL_DAYS} days (${view.span}).` : `No bill falls due in the next ${BILL_DAYS} days.`}</p>
     <table className="bills-calendar-grid">
       <caption className="sr-only">Bills due in the next {BILL_DAYS} days, {view.span}, by week (Monday first)</caption>
-      <thead><tr>{view.weekdays.map((w, i) => <th key={i} scope="col" abbr={['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][i]}>{w}</th>)}</tr></thead>
+      <thead><tr>{view.weekdays.map((w, i) => <th key={i} scope="col" abbr={view.weeks[0]?.[i] ? formatWeekdayLong(view.weeks[0][i]!.date) : undefined}>{w}</th>)}</tr></thead>
       <tbody>{view.weeks.map(week => <tr key={week[0]!.date}>{week.map(d => <td key={d.date} className={`${d.inRange ? '' : 'is-out'}${d.today ? ' is-today' : ''}${d.bills.length ? ' is-due' : ''}`.trim() || undefined} aria-label={d.words}>
         <span className="bills-calendar-day" aria-hidden="true">{d.day}</span>
         {d.bills.length > 0 && <span className="bills-calendar-bills" aria-hidden="true">{d.bills.slice(0, 2).map(b => <small key={`${b.id}-${b.date}`}>{b.title}</small>)}{d.bills.length > 2 && <small>+{d.bills.length - 2}</small>}</span>}
