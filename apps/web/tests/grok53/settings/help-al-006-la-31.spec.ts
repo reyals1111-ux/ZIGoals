@@ -35,46 +35,21 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   // Session AV (ADR-045 Part 8, deliberate): three lines first, keeping your records on your phone, new versions and the
   // import's categories, each opening its answer (24 → 27); Part 7 adds the Journal's question of the day and the bills' yearly total (27 → 29).
   // Session AV follow-up 1 (F-TASK-NOTIFY, F-NL-TASKS, deliberate): task reminders as notifications, Dutch in the task line, three good things, journal tags, tasks finished per day, this month vs last, every factor, budget targets, the bill calendar, workouts by week, the review's tasks, running bests, where income went, deadlines, the debt planner's own order, a pasted list of tasks, just the calories, yesterday's open habits, money that asks for a look, money search, a category offered, never missed twice, today's focus habit, a meal in words matched, a habit's symbol, the sleep score's parts, foods high in a nutrient, a meal planned on weekdays, the habit week grid, a watched category, what got in the way, today's journal line, a journal entry's day, move and value alerts, hidden calorie and weight figures, a budget's pace, plan my day, a task's minutes, a set's best, the workout calendar, bills this month, matrix lines and a paused repeat, yearly countdowns, own journal templates, sleep over a year, nutrient ranges, symptoms in the report, a month in short (29 → 77).
-  await expect(list.getByRole('link')).toHaveCount(77);
-  await expect(list.getByRole('link', {name: /^Alerts on a percent move/})).toHaveAttribute('href', '#help-av-move-alert');
-  await expect(list.getByRole('link', {name: /^A journal entry shows that day/})).toHaveAttribute('href', '#help-av-journal-day');
-  await expect(list.getByRole('link', {name: /^Today’s journal card says what you wrote/})).toHaveAttribute('href', '#help-av-journal-today');
-  await expect(list.getByRole('link', {name: /^What got in the way of yesterday/})).toHaveAttribute('href', '#help-av-miss-reason');
-  await expect(list.getByRole('link', {name: /^Watch a category without a budget/})).toHaveAttribute('href', '#help-av-watch');
-  await expect(list.getByRole('link', {name: /^Your habits this week, Monday to Sunday/})).toHaveAttribute('href', '#help-av-week-grid');
-  await expect(list.getByRole('link', {name: /^Plan a meal on chosen weekdays/})).toHaveAttribute('href', '#help-av-repeat-plan');
-  await expect(list.getByRole('link', {name: /^Foods high in iron, fibre or calcium/})).toHaveAttribute('href', '#help-av-high-in');
-  await expect(list.getByRole('link', {name: /^The sleep score counts wake times/})).toHaveAttribute('href', '#help-av-sleep-score');
-  await expect(list.getByRole('link', {name: /^A symbol and a colour for each habit/})).toHaveAttribute('href', '#help-av-habit-look');
-  await expect(list.getByRole('link', {name: /^A meal in words, turned into foods/})).toHaveAttribute('href', '#help-av-words-match');
-  await expect(list.getByRole('link', {name: /^Pick one habit as today’s focus/})).toHaveAttribute('href', '#help-av-focus-habit');
-  await expect(list.getByRole('link', {name: /^Never missed twice/})).toHaveAttribute('href', '#help-av-two-day');
-  await expect(list.getByRole('link', {name: /^The category a payee had before/})).toHaveAttribute('href', '#help-av-category-suggest');
-  await expect(list.getByRole('link', {name: /^Search all your money entries/})).toHaveAttribute('href', '#help-av-money-search');
-  await expect(list.getByRole('link', {name: /^Today says what in your money asks/})).toHaveAttribute('href', '#help-av-money-attention');
-  await expect(list.getByRole('link', {name: /^Yesterday’s open habits/})).toHaveAttribute('href', '#help-av-yesterday');
-  await expect(list.getByRole('link', {name: /^Log just the calories/})).toHaveAttribute('href', '#help-av-quick-kcal');
-  await expect(list.getByRole('link', {name: /^Paste a list in Tasks/})).toHaveAttribute('href', '#help-av-paste-list');
-  await expect(list.getByRole('link', {name: /^The debt planner: your own order/})).toHaveAttribute('href', '#help-av-debt-plan');
-  await expect(list.getByRole('link', {name: /^A deadline on a task/})).toHaveAttribute('href', '#help-av-deadlines');
-  await expect(list.getByRole('link', {name: /^Where this month’s income went/})).toHaveAttribute('href', '#help-av-income-flow');
-  await expect(list.getByRole('link', {name: /^Your running bests/})).toHaveAttribute('href', '#help-av-run-bests');
-  await expect(list.getByRole('link', {name: /^The weekly review looks at Tasks/})).toHaveAttribute('href', '#help-av-review-tasks');
-  await expect(list.getByRole('link', {name: /^Your last 12 weeks of workouts/})).toHaveAttribute('href', '#help-av-workout-weeks');
-  await expect(list.getByRole('link', {name: /^Your bills on a calendar/})).toHaveAttribute('href', '#help-av-bill-calendar');
-  await expect(list.getByRole('link', {name: /^A budget can save towards an amount/})).toHaveAttribute('href', '#help-av-budget-targets');
-  await expect(list.getByRole('link', {name: /^What goes with your mood, sleep and energy/})).toHaveAttribute('href', '#help-av-factors');
-  await expect(list.getByRole('link', {name: /^Each spending category against last month/})).toHaveAttribute('href', '#help-av-vs-last');
-  await expect(list.getByRole('link', {name: /^How many tasks you finished/})).toHaveAttribute('href', '#help-av-tasks-done');
-  await expect(list.getByRole('link', {name: /^Tags on journal entries/})).toHaveAttribute('href', '#help-av-journal-tags');
-  await expect(list.getByRole('link', {name: /^Three good things in one go/})).toHaveAttribute('href', '#help-av-good-things');
-  await expect(list.getByRole('link', {name: /^Write a task in Dutch/})).toHaveAttribute('href', '#help-av-nl-tasks');
-  await expect(list.getByRole('link', {name: /^Task reminders as notifications/})).toHaveAttribute('href', '#help-av-task-notify');
-  await expect(list.getByRole('link', {name: /^What your bills come to in a year/})).toHaveAttribute('href', '#help-av-bills-year');
-  await expect(list.getByRole('link', {name: /^A question a day in your Journal/})).toHaveAttribute('href', '#help-av-prompt-day');
-  await expect(list.getByRole('link', {name: /^Keep your records safe on your phone/})).toHaveAttribute('href', '#help-av-keep');
-  await expect(list.getByRole('link', {name: /^A new version arrives without losing your place/})).toHaveAttribute('href', '#help-av-updates');
-  await expect(list.getByRole('link', {name: /^Check each category before an import/})).toHaveAttribute('href', '#help-av-import-categories');
+  // Session AV follow-up 2 (1d, deliberate test change, equally strict): the session's 53 lines became six, one per pillar
+  // (77 → 30). Each line opens its own answer; each answer is checked to name its parts, and every one of the 53 answers
+  // it replaced is still on the page, each opening by its own link as before.
+  await expect(list.getByRole('link')).toHaveCount(30);
+  const groups: [string, string, string[]][] = [["av-new-tasks", "Tasks: ", ["task-notify", "nl-tasks", "tasks-done", "review-tasks", "deadlines", "paste-list", "plan-day", "task-minutes", "matrix-pause", "countdown-yearly"]], ["av-new-money", "Money: ", ["vs-last", "budget-targets", "budget-pace", "bill-calendar", "bills-month", "bills-year", "income-flow", "debt-plan", "money-attention", "money-search", "category-suggest", "watch", "move-alert", "month-recap", "import-categories"]], ["av-new-health", "Health: ", ["quick-kcal", "words-match", "high-in", "repeat-plan", "nutrient-range", "hide-figures", "sleep-score", "sleep-long", "workout-weeks", "workout-calendar", "run-bests", "set-best", "factors", "report-more"]], ["av-new-habits", "Habits: ", ["yesterday", "miss-reason", "two-day", "focus-habit", "habit-look", "week-grid"]], ["av-new-journal", "Journal: ", ["prompt-day", "good-things", "journal-tags", "own-templates", "journal-today", "journal-day"]], ["av-new-data", "Your records: ", ["keep", "updates"]]];
+  for (const [id, starts, parts] of groups) {
+    await expect(list.getByRole('link', {name: new RegExp(`^${starts}`)})).toHaveAttribute('href', `#help-${id}`);
+    await expect(page.locator(`#help-${id}`)).toHaveCount(1);
+    for (const part of parts) await expect(page.locator(`#help-av-${part}`), part).toHaveCount(1);
+  }
+  expect(groups.flatMap(g => g[2])).toHaveLength(53);
+  await list.getByRole('link', {name: /^Money: /}).click();
+  await expect(page).toHaveURL(/#help-av-new-money$/);
+  await expect(page.locator('#help-av-new-money')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-av-new-money')).toContainText('the debt planner in your own order');
   await expect(list.getByRole('link', {name: /^NOVA answers the question you ask/})).toHaveAttribute('href', '#help-nova-answers');
   await expect(list.getByRole('link', {name: /^Example pictures of the main pages/})).toHaveAttribute('href', '#help-at-screens');
   await expect(list.getByRole('link', {name: /^NOVA makes a widget for what you ask/})).toHaveAttribute('href', '#help-nova-stage');

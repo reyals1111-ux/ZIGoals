@@ -28,60 +28,14 @@ const TOPICS: [id: string, label: string][] = [
 /** Session AL (PR-034): this version's answers, as Today's What's new card lists them (that file is a client module, so
  * the list is repeated here; lib/search/help-whats-new.test.ts keeps the two in step). */
 export const THIS_VERSION: readonly [id: string, label: string][] = [
-  // Session AV (ADR-045 Part 8): the newest answers first; Today's What's new card keeps its own list.
-  ['av-task-notify', 'Task reminders as notifications, with Snooze'],
-  ['av-nl-tasks', 'Write a task in Dutch: “morgen 18:00”, “elke maandag”'],
-  ['av-good-things', 'Three good things in one go, counted per month'],
-  ['av-journal-tags', 'Tags on journal entries, and a filter by tag'],
-  ['av-tasks-done', 'How many tasks you finished per day and per week'],
-  ['av-vs-last', 'Each spending category against last month by the same day'],
-  ['av-factors', 'What goes with your mood, sleep and energy, every factor ranked'],
-  ['av-budget-targets', 'A budget can save towards an amount by a month'],
-  ['av-bill-calendar', 'Your bills on a calendar'],
-  ['av-workout-weeks', 'Your last 12 weeks of workouts: distance, time, weight lifted'],
-  ['av-review-tasks', 'The weekly review looks at Tasks and the Journal, and ends in a task'],
-  ['av-run-bests', 'Your running bests: the fastest 1, 5 and 10 km'],
-  ['av-income-flow', 'Where this month’s income went, category by category'],
-  ['av-deadlines', 'A deadline on a task, apart from the day you plan it'],
-  ['av-debt-plan', 'The debt planner: your own order, one-off payments, month by month'],
-  ['av-paste-list', 'Paste a list in Tasks: one task per line'],
-  ['av-quick-kcal', 'Log just the calories, without a food'],
-  ['av-yesterday', 'Yesterday’s open habits, ticked late in one go'],
-  ['av-money-attention', 'Today says what in your money asks for a look'],
-  ['av-money-search', 'Search all your money entries, with their total'],
-  ['av-category-suggest', 'The category a payee had before, offered'],
-  ['av-two-day', 'Never missed twice: one missed day is not the end of a run'],
-  ['av-focus-habit', 'Pick one habit as today’s focus'],
-  ['av-words-match', 'A meal in words, turned into foods'],
-  ['av-habit-look', 'A symbol and a colour for each habit'],
-  ['av-sleep-score', 'The sleep score counts wake times and your ratings'],
-  ['av-high-in', 'Foods high in iron, fibre or calcium, from the offline library'],
-  ['av-repeat-plan', 'Plan a meal on chosen weekdays'],
-  ['av-week-grid', 'Your habits this week, Monday to Sunday'],
-  ['av-watch', 'Watch a category without a budget'],
-  ['av-miss-reason', 'What got in the way of yesterday’s habit'],
-  ['av-journal-today', 'Today’s journal card says what you wrote today and on this day'],
-  ['av-journal-day', 'A journal entry shows that day’s habits, meals and money'],
-  ['av-move-alert', 'Alerts on a percent move and on a portfolio’s value'],
-  ['av-hide-figures', 'Hide calorie and weight figures on this device'],
-  ['av-budget-pace', 'A budget near its limit, or spent faster than the month'],
-  ['av-plan-day', 'Plan my day: tasks worth a look today'],
-  ['av-task-minutes', 'How long a task takes, and the minutes of the day'],
-  ['av-set-best', 'Last time’s exercise note, and a new best on the set'],
-  ['av-workout-calendar', 'Your workouts on a calendar'],
-  ['av-bills-month', 'Bills this month, and until payday'],
-  ['av-matrix-pause', 'Your own matrix lines, a paused repeat, a checklist that repeats'],
-  ['av-countdown-yearly', 'Countdowns that come back every year, with a reminder'],
-  ['av-own-templates', 'Your own journal templates, and the daily question in Dutch'],
-  ['av-sleep-long', 'Sleep over 90 days and a year'],
-  ['av-nutrient-range', 'Nutrient averages over 30 days, 90 days or dates you choose'],
-  ['av-report-more', 'Symptoms and supplements in the report for a visit'],
-  ['av-month-recap', 'A month in short, and starting a month fresh'],
-  ['av-prompt-day', 'A question a day in your Journal'],
-  ['av-bills-year', 'What your bills come to in a year'],
-  ['av-keep', 'Keep your records safe on your phone, and a copy when you have added a lot'],
-  ['av-updates', 'A new version arrives without losing your place'],
-  ['av-import-categories', 'Check each category before an import'],
+  // Session AV (owner follow-up 2, 1d): this session's 53 answers in six lines, one per pillar, each opening its own
+  // answer, which names every new part; each part keeps its own answer below it.
+  ['av-new-tasks', 'Tasks: reminders with Snooze, Dutch task lines, deadlines, durations, lists, plan my day'],
+  ['av-new-money', 'Money: budget targets and pace, bills this month and on a calendar, the debt planner, search'],
+  ['av-new-health', 'Health: meals in words, foods high in a nutrient, sleep score and long charts, workouts by week and bests'],
+  ['av-new-habits', 'Habits: yesterday’s open habits, never missed twice, a focus habit, symbols and colours, the week'],
+  ['av-new-journal', 'Journal: a question a day, three good things, tags, your own templates, that day’s records'],
+  ['av-new-data', 'Your records: kept safe on your phone, new versions without losing your place'],
   // Session AT (ADR-043, 18 Nov): the newest answers first; Today's What's new card keeps its own list.
   ['nova-answers', 'NOVA answers the question you ask, in words and with its own widget'],
   ['at-screens', 'Example pictures of the main pages, in your theme'],
@@ -152,6 +106,13 @@ export function HelpPage() {
       {/* Session AT (ADR-043 D14; backlog #12): example screenshots, inside the answer, loaded only when it is opened. */}
       <HelpQuestion id="at-screens" question="What do the main pages look like?"><HelpScreenshots/></HelpQuestion>
       {/* Session AV (ADR-045 Part 8): this session's three answers. No link inside: Help's in-sentence link count is pinned. */}
+      {/* Session AV (owner follow-up 2, 1d): What's new by pillar; each names the new parts, whose answers follow. No link inside. */}
+      <HelpQuestion id="av-new-tasks" question="Which parts of Tasks came with this version?"><p>Task reminders as notifications with Snooze and several reminders per task; task lines written in Dutch; a deadline apart from the day you plan; how long a task takes and the minutes of your day; several tasks from a pasted list or one line with commas; how many tasks you finished per day and week; Plan my day; your own matrix rules, a paused repeat and a checklist that resets; the weekly review planning or letting go of open tasks; and countdowns that come back every year with a reminder. Each has its own answer just below.</p></HelpQuestion>
+      <HelpQuestion id="av-new-money" question="Which parts of Money came with this version?"><p>Each category against last month; budget targets, and a budget that says when it is nearly used up or spent faster than the month; your bills on a calendar, paid and left this month, until payday and in a year; where the month&rsquo;s income went; the debt planner in your own order with one-off payments, month by month; a money line on Today; a search of every money entry with its total; the category a payee had before, offered; watching a category without a budget; alerts on a percent move and on a portfolio&rsquo;s value; a month in short and starting a month fresh; and checking the categories before an import. Each has its own answer just below.</p></HelpQuestion>
+      <HelpQuestion id="av-new-health" question="Which parts of Health came with this version?"><p>Logging just the calories; a meal in words turned into foods; foods high in iron, fibre or calcium; a meal planned on chosen weekdays; nutrient averages over 30 or 90 days or dates you choose; hiding calorie and weight figures; a sleep score that counts wake times and your ratings, and sleep over 90 days and a year; your workouts week by week and on a calendar, your running bests, last time&rsquo;s note and a new best on the set; what goes with your mood, sleep and energy; and symptoms and supplements in the report for a visit. Each has its own answer just below.</p></HelpQuestion>
+      <HelpQuestion id="av-new-habits" question="Which parts of Habits came with this version?"><p>Yesterday&rsquo;s open habits, ticked late in one go, and what got in the way; never missed twice, beside your streak; one habit as today&rsquo;s focus; a symbol and a colour for each habit; and your habits this week, Monday to Sunday. Each has its own answer just below.</p></HelpQuestion>
+      <HelpQuestion id="av-new-journal" question="Which parts of the Journal came with this version?"><p>A question a day above an empty entry, also in Dutch; three good things in one go; tags on entries and a filter by tag; your own templates; Today&rsquo;s journal card saying what you wrote today and on this day; and an entry showing that day&rsquo;s habits, meals and money. Each has its own answer just below.</p></HelpQuestion>
+      <HelpQuestion id="av-new-data" question="What came with this version for keeping my records?"><p>Keeping your records safe on your phone, with a reminder to save a copy once you have added a lot; and a new version that arrives without losing your place. Each has its own answer just below.</p></HelpQuestion>
       <HelpQuestion id="av-task-notify" question="Can a task remind me when ZIGoals is closed?"><p>Yes, on a device where notifications are on (Settings &rarr; &ldquo;Notifications, even when ZIGoals is closed&rdquo;). A reminder you set on a task (&ldquo;At the time&rdquo;, &ldquo;5 minutes before&rdquo;, &ldquo;15 minutes before&rdquo;, &ldquo;30 minutes before&rdquo;, an hour, a day or a week before, in the task&rsquo;s editor; up to three on one task) becomes a notification at that moment, with &ldquo;Snooze 1 h&rdquo;. It shows the task&rsquo;s name only when you turned names on; otherwise it says &ldquo;1 task reminder&rdquo;. A reminder inside your quiet hours does not wake the device, and the card says so. Switch task reminders off with the &ldquo;Task reminders&rdquo; switch in that same Notifications card. While ZIGoals is open, due reminders show in Tasks and on Today with Done, Snooze (15 min, 1 h or tomorrow morning) and Dismiss; a snooze is kept on the task.</p></HelpQuestion>
       <HelpQuestion id="av-nl-tasks" question="Can I type a task in Dutch?"><p>Yes. The task line in Tasks and Quick add read Dutch days, times and repeats the same way as English: &ldquo;morgen 18:00&rdquo;, &ldquo;overmorgen&rdquo;, &ldquo;vanavond&rdquo;, &ldquo;volgende vrijdag&rdquo;, &ldquo;over 2 weken&rdquo;, &ldquo;om 9 uur&rdquo;, &ldquo;eind van de maand&rdquo;, &ldquo;elke maandag&rdquo;, &ldquo;elke! 3 dagen&rdquo; (counted from the day you finish it), &ldquo;elke maand op de 1e&rdquo;, &ldquo;elke werkdag&rdquo;, &ldquo;tot 1 dec&rdquo;, &ldquo;10 keer&rdquo;, &ldquo;half 10&rdquo;, &ldquo;kwart over 3&rdquo;, &ldquo;vanmiddag&rdquo;, &ldquo;morgenochtend&rdquo;, &ldquo;&rsquo;s avonds&rdquo;, &ldquo;elke ochtend&rdquo;, &ldquo;om de week&rdquo;, &ldquo;op do&rdquo; and &ldquo;18u30&rdquo;, with p1&ndash;p4, #project and @label as before. Each piece it reads is highlighted under the field, and you can keep any piece as plain text. The task keeps your own words as its title. &ldquo;2 uur&rdquo; or &ldquo;1,5 uur&rdquo; is how long it takes; after &ldquo;om&rdquo; (&ldquo;om 2 uur&rdquo;) or next to a day it is a time. In Quick add, &ldquo;taak:&rdquo;, &ldquo;niet vergeten:&rdquo;, &ldquo;herinner me om&rdquo; or a to-do word such as &ldquo;Bel&rdquo; or &ldquo;Koop&rdquo; makes the line a task. It is read on this device; nothing is sent.</p></HelpQuestion>
       <HelpQuestion id="av-good-things" question="What is &ldquo;Three good things&rdquo; in the Journal?"><p>On the Journal page, &ldquo;Three good things&rdquo; opens three short lines: write one, two or three small good things from today and save. They are kept as one ordinary journal entry (made from the &ldquo;Three good things&rdquo; prompt), in English or Dutch headings, private like every entry. The fold says how many good things this month holds and on how many days. There is no streak to lose and no score.</p></HelpQuestion>

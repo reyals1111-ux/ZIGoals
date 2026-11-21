@@ -108,6 +108,12 @@ export const HELP_TOPICS: readonly [string, string][] = [
 export const HELP_QUESTIONS: readonly [string, string][] = [
   ["at-screens", "What do the main pages look like?"],
   // Session AV (ADR-045 Part 8).
+  ["av-new-tasks", "Which parts of Tasks came with this version?"],
+  ["av-new-money", "Which parts of Money came with this version?"],
+  ["av-new-health", "Which parts of Health came with this version?"],
+  ["av-new-habits", "Which parts of Habits came with this version?"],
+  ["av-new-journal", "Which parts of the Journal came with this version?"],
+  ["av-new-data", "What came with this version for keeping my records?"],
   ["av-task-notify", "Can a task remind me when ZIGoals is closed?"],
   ["av-nl-tasks", "Can I type a task in Dutch?"],
   ["av-good-things", "What is “Three good things” in the Journal?"],
