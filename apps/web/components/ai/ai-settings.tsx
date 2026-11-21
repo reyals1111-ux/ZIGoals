@@ -34,7 +34,7 @@ import {localDate} from '../../lib/local-date';
 import './ai.css';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {onDeviceAvailability} from '../../lib/ai/on-device';
-import {modelContext} from '../../lib/ai/webmcp';
+import {modelContext} from '../../lib/ai/webmcp-context';
 import {entitlement as entitlementOf} from '../../lib/entitlements';
 import {useHosted} from './use-hosted';
 import {hostedName} from '../../lib/ai/hosted';

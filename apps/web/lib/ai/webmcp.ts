@@ -23,22 +23,8 @@ import type {AnyTool} from './tools/types';
  *   like a reply from the person's AI, and become cards in ZIGi's panel; nothing is written until the person adds one.
  * The tools go away when the switch goes off, the page or its gates change, or a private screen opens.
  */
-export type WebMcpAnnotations = {readOnlyHint?: boolean; untrustedContentHint?: boolean; consequentialHint?: boolean};
-export type WebMcpTool = {name: string; title: string; description: string; inputSchema: object; annotations: WebMcpAnnotations; execute: (input: unknown, options?: {signal?: AbortSignal}) => Promise<string>};
-export type ModelContext = {registerTool: (tool: WebMcpTool, options?: {signal?: AbortSignal}) => unknown; unregisterTool?: (name: string) => unknown};
-/** `zigoals_` and an underscore, not a dot: the draft allows dots, but several providers' function names do not. */
-export const TOOL_PREFIX = 'zigoals_';
-export const PROPOSE_TOOL = `${TOOL_PREFIX}propose_changes`;
-export const PAUSED = 'ZIGoals paused its tools on this screen; nothing was read.';
-export const TAKEN_AWAY = 'This ZIGoals tool was taken away (the page changed or the person turned browser agents off); nothing was read.';
-/** The page's model context: the draft's `document.modelContext`, else an older `navigator.modelContext` that registers tools. */
-export function modelContext(doc: unknown = typeof document === 'undefined' ? null : document, nav: unknown = typeof navigator === 'undefined' ? null : navigator): ModelContext | null {
-  for (const host of [doc, nav]) {
-    const found = (host as {modelContext?: Partial<ModelContext>} | null)?.modelContext;
-    if (found && typeof found.registerTool === 'function') return found as ModelContext;
-  }
-  return null;
-}
+export {modelContext, PAUSED, PROPOSE_TOOL, TAKEN_AWAY, TOOL_PREFIX, type ModelContext, type WebMcpAnnotations, type WebMcpTool} from './webmcp-context';
+import {PAUSED, PROPOSE_TOOL, TAKEN_AWAY, TOOL_PREFIX, type ModelContext, type WebMcpTool} from './webmcp-context';
 /** A name both the draft (ASCII letters, digits, "_", "-", ".", at most 128) and every provider's function names accept. */
 export const validToolName = (name: string) => /^[A-Za-z0-9_-]{1,64}$/.test(name);
 /** An agent's input as an object: Chrome before 155 could pass it as JSON text. Anything unreadable stays as it is, so the tool's own check refuses it. */
