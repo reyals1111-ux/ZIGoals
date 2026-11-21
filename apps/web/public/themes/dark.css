@@ -27185,6 +27185,12 @@
         background-image: none;
         background-color: var(--amber,#f5b65b)
     }
+    .budgets-target small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .budgets-target.is-short small:not(#\-) {
+        color: inherit
+    }
 }
 /*  components/wealth/debt-planner.css  */
 @scope (:root[data-theme=dark]) {
