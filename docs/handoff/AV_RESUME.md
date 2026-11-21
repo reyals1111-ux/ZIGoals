@@ -40,7 +40,10 @@ finish or unwire the current feature, push, get CI green, write "Safe to merge n
   #33 today's journal line (`eede7c05`), #34 a journal entry's day (`cb63ff11`), #35 move and value alerts (TIER 3
   stored, `5d0bee71`), #36 hide calorie and weight figures (Health and Today's pinned cards; NOVA answers what is asked, D-BUILD), #37 budget pace and near-limit notices (`8a028e67`), #38 plan my day (`f9385fca`), #39 task minutes and the day's load (TIER 3 stored `78d71497`, AI `0ccaeb8b`). CI: run 1961 red in shard 13 only (a real C #30 regression, fixed `eeb0c1e8`, D-CI1961); run 1975 on `f9385fca`: three reds — Help's link count (mine, fixed `e4009ff3`), o3-apps-extras (first sighting) and zigi-voice-z:199 (known), D-CI1975.
 - Also built: #40 last time's note and a set's best (`59b4d078`), #41 the workout calendar (`495f3664`), #42 bills this month and until payday (`fdbeefe7`), #43 own matrix lines, a paused repeat, a checklist that repeats (`95f8d2b9`), #44 yearly countdowns with a reminder (TIER 3 stored, new key `zigoals:countdown-extras:v1`, `5c588f07`), #45 own journal templates and the Dutch daily question (TIER 3 stored, `58667a30`). Headroom: Habits 5.2 kB, Goals 5.8 — later habit/goal work lazy.
-- Next: C #46 onward in COMPETITORS.md order (sleep charts beyond 30 days; nutrient averages; symptoms in the visit report; the month recap).
+- Also built: #46 sleep over a year (`8a3d2468`), #47 nutrient ranges (`71bed717`), #48 symptoms and supplements in the visit
+  report (`a5eddc1f`), #49 a month in short and a fresh start (TIER 3 stored, `03a70d26`). Part 8 final pass `61759687`;
+  ADR-045 closing table and D-BUILD notes written.
+- Next: CI on the final head (runs 1987+); then the STATUS entry as the final commit and the ≤ 12-line report.
 
 ## Next
 - Read CI at part boundaries (≤ every 10 min); record reds in ADR-045 (D-CI*) and CI_INTERMITTENTS.

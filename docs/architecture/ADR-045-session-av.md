@@ -359,6 +359,21 @@ Where a rule of the definition of done does not apply, it says so here.
   new yesterday card hidden — not caused by this work, not seen in CI; recorded here, to investigate if CI shows it.
 - F-DEBT-PLAN: one-off payments go where the extra goes, never into "minimums only"; the tracked plan is worked out
   again from its own starting figures, so later changes to the figures do not move the comparison.
+- C #36–#49 (owner follow-up 1, the new matrix rows), what the definition of done did not cover as written:
+  - F-HIDE-FIGURES: Health and Today's pinned calorie/weight cards; NOVA and ZIGi still answer a figure the person asks
+    for (said in Known limitations). F-MATRIX-RULES: NOVA's matrix widget keeps the usual lines (AR composition).
+  - No corpus case (no answer reads the record): budget pace, plan my day, set bests, the workout calendar, bills this
+    month, matrix lines, countdowns (NOVA reads no countdown), own templates, sleep over a year, nutrient ranges, the
+    visit report, the month recap. The one case added: `tasks-minutes` (EN and NL) with the task minutes (TIER 3 AI).
+  - TIER 3 stored formats (frozen readers #37–#57 21 of 21 each time, each in the fixture): a task's `minutes`, the new
+    key `zigoals:countdown-extras:v1` (lib/av-device-keys.ts, in every registry: export, restore, backup section, erase,
+    catalogue, welcome check; never synced), the journal's own `templates`, a budget's `freshFrom`. Display-only keys in
+    AH_DISPLAY_KEYS: `zigoals:hide-body-figures`, `zigoals:matrix-rules`, `zigoals:journal-question-lang`.
+  - F-REPEAT-PAUSE, deliberate behaviour change: a repeating task that comes round again opens its finished subtasks.
+  - F-COUNTDOWN-YEARLY: the reminder shows on Today's card while ZIGoals is open; no notification (Known limitations).
+  - F-BILLS-MONTH: "in your money log" (an expense of that payee and amount within 4 days), never "paid".
+  - No new Showcase record for: budget pace, plan my day, nutrient ranges, sleep over a year, the visit report, the month
+    recap — each reads Showcase records already there (budgets, tasks, diary, nights, symptoms, the money log).
  — run 1941 (`1ce3c640`) and the heads after it
 - Run 1941: two red jobs. **checks**: `day-records` (F-GOOD-THINGS' Showcase entry; fixed at `c54eaa2b`). **main shard
   8**: `a10-life:120` A10-11 (both projects, both tries) — a real regression, not an intermittent: F-NL-TASKS
@@ -433,3 +448,8 @@ Where a rule of the definition of done does not apply, it says so here.
 | 6 Accessibility sweep | Done: no serious or critical finding | D-A11Y |
 | 7 Competitor gaps | Matrix written; 2 features built complete; 14 ranked for the next session | D-COMPETITORS |
 | 8 Friends docs | FIRST_WEEK, FRIENDS_GUIDE 8j, Help (What's new 24 → 29, Known limitations), OWNER_STEPS step 1 | Part 8 |
+| F1-1 CI on the current head | Runs 1941, 1949, 1956, 1961, 1975 read; every red fixed at its cause or recorded as an intermittent; the last full green is run 1938 (`7e664056`) until a newer head's run ends green | D-CI1941 … D-CI1975, D-CI-PACE |
+| F1-2 Part 4b, the 14 open rows | Finished (14 of 14); the audit now: 150 rows — finished 73, needs the owner 38, carried 19, hidden honestly 10, outside service 5, model 5, open 0 | UNFINISHED.md |
+| F1-3 Part 7 research | COMPETITORS.md: 25 apps, 435 rows from the web, depth-checked, re-ranked into 49 build rows | COMPETITORS.md |
+| F1-4 Part 7 build | 49 of 49 ranked rows done: 48 built complete (each with Help, What's new, a unit test, a spec in three themes at 390/1440/320, axe-clean, lazy), #4 verified as already built; What's new 29 → 77; no budget raised (least headroom Habits 5.2 kB) | D-BUILD |
+| F1-5 Part 8 final pass | FRIENDS_GUIDE 8j "Also new", FIRST_WEEK, OWNER_STEPS (no new owner step), Help's Known limitations (four lines) | `61759687` |
