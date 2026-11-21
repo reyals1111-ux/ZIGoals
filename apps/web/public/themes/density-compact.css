@@ -3288,6 +3288,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .workouts-bests h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .workouts-bests ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
 :where(:root[data-density=compact]) .workouts-bests li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .workouts-last-note:not(#\-) { row-gap: 4px; margin-top: 4px; margin-bottom: 0; }
 /*  components/help/help-screenshots.css  */
 :where(:root[data-density=compact]) .help-shots-list:not(#\-) { margin-top: 9px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 15px; }
 :where(:root[data-density=compact]) .help-shot:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }

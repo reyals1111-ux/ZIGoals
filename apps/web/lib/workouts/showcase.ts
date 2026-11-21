@@ -6,7 +6,8 @@ import {workoutsSchema, type ExerciseEntry, type Workout, type Workouts} from '.
  * steady progress so personal bests and history have something to show, and two routines. Deterministic for a day.
  */
 type Plan = [exerciseId: string, name: string, sets: [kg: number, reps: number][]];
-const lifts = (prefix: string, plan: Plan[], bump: number): ExerciseEntry[] => plan.map(([exerciseId, name, sets], i) => ({id: `${prefix}-e${i}`, exerciseId, name, measure: 'weight-reps',
+// Session AV (F-SET-BEST): the bench press keeps a note, so the next session offers it ("Last time's note").
+const lifts = (prefix: string, plan: Plan[], bump: number): ExerciseEntry[] => plan.map(([exerciseId, name, sets], i) => ({id: `${prefix}-e${i}`, exerciseId, name, measure: 'weight-reps', ...(exerciseId === 'bench-press' ? {note: 'Example · seat at notch 4'} : {}),
   sets: sets.map(([kg, reps], j) => ({id: `${prefix}-e${i}-s${j}`, kind: j === 0 ? 'warmup' : 'normal', weightKg: kg + (j === 0 ? 0 : bump), reps, done: true}))}));
 const PUSH: Plan[] = [['bench-press', 'Bench press', [[40, 10], [60, 8], [60, 8], [60, 7]]], ['overhead-press', 'Overhead press', [[20, 10], [35, 8], [35, 8]]], ['triceps-pushdown', 'Triceps pushdown', [[15, 12], [25, 12], [25, 10]]]];
 const PULL: Plan[] = [['deadlift', 'Deadlift', [[60, 5], [100, 5], [100, 5]]], ['barbell-row', 'Barbell row', [[30, 10], [50, 8], [50, 8]]], ['bicep-curl', 'Bicep curl', [[8, 12], [12, 10], [12, 10]]]];
