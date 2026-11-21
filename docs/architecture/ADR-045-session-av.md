@@ -611,6 +611,10 @@ Where a rule of the definition of done does not apply, it says so here.
   never used the old title (nothing to deploy). PK-18 (`5b8a0369`, TIER 3 AI tools): no mode chosen sends as Guarded,
   with NOVA's redacted preview in ZIGi's composer; spec `tests/av-companion-guarded.spec.ts`. Owner decisions marked
   decided 21 Nov in UNFINISHED.md; CR-19, M-9, PK-6, PK-10, PK-16 are lane 2.
+- **D-CI1996–1999.** 1996 (`d3b006f8`, docs): WebKit `zigi-face-z:75` (a real 22.5 px OK, fixed). 1997 (`835f6bae`):
+  `au/sanne:64` and `zigi-oneline-z:225` (both from L-9's shorter title, fixed). 1998 (`70a288f4`, the 1c fixes):
+  today-screens, the Tab-stop week, wiring-health, `tasks-ai:27` (found locally first), `nova-stage-am:121` and
+  `dv-204-header-actions:46`, all fixed at `d0df34f4`. **1999 (`d0df34f4`): every job green on the first attempt.**
 
 ## Closing table
 

@@ -17,7 +17,7 @@ all findings fixed (docs/review/session-av/QUALITY.md); E4 closing table, STATUS
   button, oneline wider name; zigi-voice-z and account-browser Carried after two attempts, ADR-045 D-FU2-1b); L-9 and
   PK-18 with spec `av-companion-guarded`; 1c QUALITY.md (2 Blockers + 63 Majors fixed by four fresh fixers, then the
   follow-up 320 px / Tab-stop fixes on the fixed build); 1d What's new 77 → 30; Habits headroom 5.6 kB.
-- In progress: CI on `70a288f4` (pushed 19:27 UTC); local run of the touched areas' other specs.
+- In progress: run 1999 on `d0df34f4` green on the first attempt (21:11 UTC); this docs commit starts the second.
 - Next: fix what CI or the local run finds, push only when no run is in progress; two consecutive first-attempt green
   runs → "Safe to merge now: yes (CI runs N, M)" here and in the PR → freeze #108 → lane 2 on `feature/session-av-2`
   (LEDGER.md draft at the scratchpad's LEDGER.md: 138 rows with work left in 17 groups) and FU3's lane-2 items
