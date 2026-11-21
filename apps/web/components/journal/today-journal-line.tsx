@@ -23,6 +23,8 @@ export default function TodayJournalLine({glance = false}: {glance?: boolean} = 
   const list = lines.length > 0 ? <ul className="today-journal-lines" aria-label="First lines from your journal">{lines.map(l => <li key={l.id}><span className="today-journal-when">{l.when}</span> <span dir="auto">{l.text}</span></li>)}</ul> : null;
   // Session AV (1c, q4 #33): on Today's glance lines the line is its own region, the opt-in first lines inside it; in the
   // journal card, the count line only.
-  if (glance) return <section className="today-tasks-due today-journal-glance" aria-label="Your journal today"><p className="today-tasks-due-line"><span><strong>Journal:</strong> <Link className="text-link" href="/app/journal">{parts.join(' · ')} →</Link></span></p>{list}</section>;
+  // Plain words there, not a link: Showcase Today stays within its 90 Tab stops (D-028); the journal card's own line
+  // (For you → How was today?) and Journal in the menu open the Journal.
+  if (glance) return <section className="today-tasks-due today-journal-glance" aria-label="Your journal today"><p className="today-tasks-due-line"><span><strong>Journal:</strong> {parts.join(' · ')}</span></p>{list}</section>;
   return <p className="fine today-journal-line"><Link className="text-link" href="/app/journal">{parts.join(' · ')} →</Link></p>;
 }

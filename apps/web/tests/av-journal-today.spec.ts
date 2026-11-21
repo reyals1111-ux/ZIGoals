@@ -35,14 +35,17 @@ for (const theme of THEMES) test(`${theme}: "Written today: 1 entry · On this d
  * (Deliberate change, equally strict: the card was raised first; Showcase Today then had 97 Tab stops against its 90.)
  */
 test('the journal line is on Today on a day with an entry; first lines only when switched on', async ({page}) => {
+  // From 561 px up (on a phone Today's height ceiling leaves it to the journal card's line in For you, ADR-024).
   await page.setViewportSize({width: 1440, height: 900});
   const entries = [entry('journal_fictional-today-001', '2026-11-14', 'A fictional private thought\nmore words'), entry('journal_fictional-lastyear-01', '2025-11-14', 'A fictional memory')];
   await seedDevice(page, {[JOURNAL_KEY]: {version: 1, entries}});
   await page.goto('/app'); await hydrated(page);
   const glance = page.getByRole('region', {name: 'Your journal today'});
   await expect(glance).toBeVisible();
-  await expect(glance).toHaveText(/^Journal: Written today: 1 entry · On this day: an entry .+ →$/);
-  await expect(glance.getByRole('link')).toHaveAttribute('href', '/app/journal');
+  await expect(glance).toHaveText(/^Journal: Written today: 1 entry · On this day: an entry .+$/);
+  await expect(glance.getByRole('link')).toHaveCount(0); // plain words (D-028's 90 Tab stops); the card's line opens the Journal
+  await page.goto('/app#for-you-journal'); await hydrated(page);
+  await expect(page.locator('.today-journal-card .today-journal-line').getByRole('link')).toHaveAttribute('href', '/app/journal');
   await expect(glance).not.toContainText('A fictional private thought');
   await page.evaluate(([k, v]) => localStorage.setItem(k, v), [JOURNAL_KEY, JSON.stringify({version: 1, entries, todayLines: true})] as const);
   await page.reload(); await hydrated(page);

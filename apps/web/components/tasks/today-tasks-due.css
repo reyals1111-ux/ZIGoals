@@ -10,3 +10,6 @@
 .today-tasks-due .task-reminder-actions, .today-tasks-due .task-reminder-snooze { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 10px; min-width: 0; }
 .today-tasks-due .task-reminder-snooze > span { color: var(--text-secondary, var(--muted)); }
 .today-tasks-due .task-reminder-actions .text-link { min-height: 44px; }
+/* Session AV (1c, q4 #33): the journal's glance line from 561 px up; on a phone Today's height ceiling (today-screens,
+   ADR-024) leaves it to the journal card's own line in For you. */
+@media (max-width: 560px) { .today-journal-glance { display: none; } }
