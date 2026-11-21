@@ -381,6 +381,14 @@ Where a rule of the definition of done does not apply, it says so here.
   timer once; the Focus timer still has to read 22 or 23 minutes. 5 of 5 locally, about 5 s each (was about 23 s).
   The app is unchanged: a real minute renders those frames over a real minute.
 
+## D-CI1956 — run 1956 (`7f81fdf3`): one red job, every other green
+- Green: checks (the lint, date-format and help-shape fixes hold), main shard 4 (`nova-wa` with `fastForward`), main
+  shard 8 (A10-11), shard 2 (every new Session AV spec), the a11y shards, WebKit, integration, the Alpha gate.
+- Red: main shard 14, `ui-evidence` "forced colours: every main page…" and "…cold load of any main page" (desktop,
+  both tries): 45 s timeouts. The CI traces show 3–6 s a page over ten pages plus the Showcase load, no error and no
+  slow page: the sweeps had reached their budget. Fixed at `c8f451ec` (two halves of five pages each, same checks on
+  the same pages; no timeout raised).
+
 ## Closing table
 
 | Item | Verdict | Where |

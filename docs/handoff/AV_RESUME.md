@@ -8,7 +8,7 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 finish or unwire the current feature, push, get CI green, write "Safe to merge now: yes (CI run N)", push nothing until
 "continue". After PR #108 merges: `feature/session-av-2` from the new main, Draft PR "Session AV (continued)".
 
-**Safe to merge now: yes at `7e664056` (CI run 1938). Run 1956 on `7f81fdf3` is running: every finished job green so far (checks, shards 4 and 8 included). Later heads wait for their own run.**
+**Safe to merge now: yes at `7e664056` (CI run 1938). Run 1956 (`7f81fdf3`) was green but for `ui-evidence`'s page sweeps at their 45 s budget (fixed at `c8f451ec`, D-CI1956); later heads wait for their own run.**
 
 ## Toolchain in the sandbox
 - Pinned Node 24.19.0 in the scratchpad (`node-v24.19.0-linux-x64/bin` first on PATH); `corepack enable pnpm`;
@@ -33,7 +33,9 @@ finish or unwire the current feature, push, get CI green, write "Safe to merge n
   `34975169`). C: #17 pasted list (`4442d1c1`), #18 just the calories, #19 yesterday's habits, #20 the money
   line on Today, #21 money search, #22 a category offered, #23 never missed twice (as a second number, D-BUILD), #24
   today's focus habit (TIER 3 stored, `112eb132`). CI fixes: A10-11 (`967ab614`), nova-wa runFor (`f24e2913`).
-- Next: C #25 meal words matched to foods (no model), then #26 onward in COMPETITORS.md order.
+- Also built: #25 meal words matched (`b6d37ca4`), #26 habit symbol and colour (TIER 3 stored, `4acc13d8`), #27 sleep
+  score's four parts (`11c7eb55`).
+- Next: C #28 onward in COMPETITORS.md order.
 
 ## Next
 - Read CI at part boundaries (≤ every 10 min); record reds in ADR-045 (D-CI*) and CI_INTERMITTENTS.
