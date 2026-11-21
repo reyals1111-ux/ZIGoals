@@ -78,7 +78,8 @@ export function SmartAdd({record, today, onAdd, defaults = {}, inputRef, makePro
       <label className="field"><span>Time (optional)</span><input type="time" value={time} disabled={!due} onChange={e => setTime(e.target.value)} /></label>
       {goals.length > 0 && <label className="field"><span>Goal (optional)</span><select value={goal} onChange={e => setGoal(e.target.value)}><option value="">No goal</option>{goals.map(g => <option key={g.key} value={g.key}>{g.name}</option>)}</select></label>}
     </div>}
-    <p id={`${id}-help`} className="fine tasks-smart-help">Type a day, a time, “every …”, “deadline …”, p1–p4, #project or @label, in English or Dutch (“morgen 18:00”, “elke maandag”); they are read as you type.</p>
+    {/* Session AV (A10-11, CI 1941): one line at 768, so the first task starts on the first screen; the Dutch examples are in Help. */}
+    <p id={`${id}-help`} className="fine tasks-smart-help">A day, a time, “every …”, “deadline …”, p1–p4, #project or @label, in English or Dutch.</p>
     {parsed.spans.length > 0 && <ul className="tasks-pieces" aria-label="Read from your line">
       {parsed.spans.map(s => <li key={s.start} className="tasks-piece" data-kind={s.kind}><mark dir="auto">{s.text}</mark> <span className="sr-only">is read as the</span> <small>{KIND_WORDS[s.kind]}</small>
         <button type="button" className="text-link" aria-label={`Keep “${s.text}” as text`} onClick={() => setKeep(k => [...k, s.start])}>Keep as text</button></li>)}
