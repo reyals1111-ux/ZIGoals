@@ -7279,6 +7279,20 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .debt-plan-card dl div:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .debt-plan-card dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .debt-plan-chart:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .debt-plan-fold:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .debt-plan-fold p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .debt-plan-order-list:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 1.5px; }
+:where(:root[data-density=compact]) .debt-plan-order-list li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .debt-plan-order-moves:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .debt-plan-lumps:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .debt-plan-lumps li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .debt-plan-lump-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .debt-plan-lump-form .field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .debt-plan-pick:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .debt-plan-pick legend:not(#\-) { padding-top: 0; padding-bottom: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .debt-plan-pick label:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .debt-plan-progress:not(#\-) { row-gap: 6px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .debt-plan-progress p:not(#\-), :where(:root[data-density=compact]) .debt-plan-progress h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wealth/money-tools/money-tools.css  */
 :where(:root[data-density=compact]) .money-tools:not(#\-) { row-gap: 14px; padding-top: 12px; }
 :where(:root[data-density=compact]) .money-tools h3:not(#\-) { margin-top: 0; margin-bottom: 0; }

@@ -27269,6 +27269,15 @@
     .debt-plan-order summary:focus-visible:not(#\-) {
         outline-color: var(--cyan)
     }
+    .debt-plan-pick:not(#\-) {
+        border-color: currentcolor
+    }
+    .debt-plan-table td small:not(#\-), .debt-plan-table th small:not(#\-) {
+        color: var(--text-meta,var(--muted))
+    }
+    .debt-plan-progress:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
 }
 /*  components/wealth/money-tools/money-tools.css  */
 @scope (:root[data-theme=dark]) {

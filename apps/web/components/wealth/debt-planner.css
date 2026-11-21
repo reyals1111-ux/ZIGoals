@@ -42,3 +42,24 @@
 .debt-plan-order summary:focus-visible{outline:3px solid var(--cyan);outline-offset:2px;border-radius:8px}
 @media (prefers-reduced-motion:reduce){.debt-plan-card{transition:none}}
 :root[data-app-motion=off] .debt-plan-card{transition:none}
+
+/* Session AV follow-up 1 (F-DEBT-PLAN): your own order, one-off payments, month by month, the plan against what is recorded. */
+.debt-plan-fold{display:grid;gap:8px;min-width:0}
+.debt-plan-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.debt-plan-fold p{margin:0}
+.debt-plan-order-list{margin:0;padding-left:22px;display:grid;gap:2px}
+.debt-plan-order-list li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px;min-width:0;overflow-wrap:anywhere}
+.debt-plan-order-moves{display:inline-flex;gap:4px}
+.debt-plan-order-moves .text-link{min-width:44px;min-height:44px}
+.debt-plan-lumps{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.debt-plan-lumps li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px;font-variant-numeric:tabular-nums}
+.debt-plan-lump-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px 12px;align-items:end}
+.debt-plan-lump-form .field-error{grid-column:1/-1;margin:0}
+.debt-plan-pick{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 16px}
+.debt-plan-pick legend{padding:0;margin-bottom:4px;font-weight:600}
+.debt-plan-pick label{min-height:44px;display:inline-flex;align-items:center;gap:6px}
+.debt-plan-pick input{width:auto;min-height:0}
+.debt-plan-table{font-variant-numeric:tabular-nums}
+.debt-plan-table td small,.debt-plan-table th small{display:block;color:var(--text-meta,var(--muted))}
+.debt-plan-progress{display:grid;gap:6px;padding:12px 14px;border-radius:16px;border:1px solid var(--line,rgba(140,160,220,.25))}
+.debt-plan-progress p,.debt-plan-progress h4{margin:0}
