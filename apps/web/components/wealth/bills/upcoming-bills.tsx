@@ -17,6 +17,8 @@ import {useMoneyCurrency} from '../use-money-currency';
 const PriceChanges = lazy(() => import('./price-changes'));
 // Session AV (follow-up 1, F-BILL-CALENDAR): the next 31 days on a calendar, its own chunk loaded when opened.
 const BillMonthGrid = lazy(() => import('./bill-month-grid'));
+// Session AV (follow-up 1, F-BILLS-MONTH): this month's bills against the money log, and until payday; its own chunk.
+const BillsMonth = lazy(() => import('./bills-month'));
 
 /**
  * Session AK (7.3, COMPETITORS M7): Upcoming bills. Bills come from the person: confirmed from a repeat the money log
@@ -65,6 +67,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
       </dl>
     </div>
     {notes.length > 0 && <ul className="bills-notes" aria-label="Notes to self due soon">{notes.map(n => <li key={n.billId}><strong>{n.title}</strong> · {formatDate(n.cancelBy)}: {n.note}</li>)}</ul>}
+    {record.bills.length > 0 && <Suspense fallback={null}><BillsMonth record={record} entries={entries} today={today}/></Suspense>}
     <Suspense fallback={null}><PriceChanges bills={record.bills} candidates={candidates} entries={entries} today={today}/></Suspense>
     <section aria-labelledby={`${id}-list`}>
       <h3 id={`${id}-list`}>Upcoming</h3>

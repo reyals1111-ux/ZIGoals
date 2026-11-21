@@ -7303,6 +7303,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .bills-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .bills-calendar:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .bills-calendar-grid td:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .bills-month:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .bills-month h3:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .bills-month-total:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .bills-month-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .bills-month-list li:not(#\-) { row-gap: 1.5px; }
 /*  components/wealth/budgets/budgets.css  */
 :where(:root[data-density=compact]) .budgets-body:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .budgets-month-nav:not(#\-) { row-gap: 8px; }

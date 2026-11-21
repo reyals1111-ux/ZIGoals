@@ -39,3 +39,11 @@
 .bills-calendar-grid td.is-due{background:color-mix(in srgb, var(--cyan, #6fd3ff) 18%, transparent)}
 .bills-calendar-day{display:block;font-size:13px}
 .bills-calendar-bills small{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Session AV (F-BILLS-MONTH): this month's bills against the money log, and until payday. */
+.bills-month{display:grid;gap:6px;margin:0 0 12px}
+.bills-month h3{margin:0;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.bills-month h3 small{font-weight:400;color:var(--text-secondary, var(--muted))}
+.bills-month-total{margin:0;overflow-wrap:anywhere}
+.bills-month-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.bills-month-list li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.bills-month-list li.is-passed{font-weight:600}

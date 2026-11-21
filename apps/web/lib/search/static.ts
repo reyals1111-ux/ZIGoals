@@ -148,6 +148,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-task-minutes", "Can I say how long a task takes?"],
   ["av-set-best", "Does a workout show last time’s note and a new best?"],
   ["av-workout-calendar", "Can I see my workouts on a calendar?"],
+  ["av-bills-month", "Can I see which bills are paid this month, and what is due before payday?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
