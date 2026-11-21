@@ -43,6 +43,6 @@ export function refuse(tool: string, label: string, reason: ToolRefusal['reason'
 // Session AL second pass (Moscow MO-052, P-MO-12): both switches named where they are, and the Today condition in plain words.
 // Session AL final pass (N-LA-08): ZIGi says that NOVA → Permissions (the place NOVA's own answer names, R2-2) shows these
 // very two switches, so the two answers read as one setting, never as two different places for the same data.
-export const HEALTH_CLOSED = 'Health isn’t shared with ZIGi — turn it on in Settings → ZIGi · Your Personal AI Companion → Privacy & data: “Health page data” and “Include Health” (Health has to be one of Today’s sections). They are the same two switches NOVA → Permissions shows.';
+export const HEALTH_CLOSED = 'Health isn’t shared with ZIGi — turn it on in Settings → ZIGi · your companion → Privacy & data: “Health page data” and “Include Health” (Health has to be one of Today’s sections). They are the same two switches NOVA → Permissions shows.';
 /** Session AU (D-ALLOW-HEALTH): the same sentence for a Dutch question on the device (ZIGi's own reply; tools and models keep the English one). */
-export const HEALTH_CLOSED_NL = 'Health wordt niet met ZIGi gedeeld — zet het aan in Settings → ZIGi · Your Personal AI Companion → Privacy & data: “Health page data” en “Include Health” (Health moet een van de onderdelen van Today zijn). Het zijn dezelfde twee schakelaars die NOVA → Permissions toont.';
+export const HEALTH_CLOSED_NL = 'Health wordt niet met ZIGi gedeeld — zet het aan in Settings → ZIGi · your companion → Privacy & data: “Health page data” en “Include Health” (Health moet een van de onderdelen van Today zijn). Het zijn dezelfde twee schakelaars die NOVA → Permissions toont.';

@@ -136,7 +136,7 @@ function closed(q: Query, env: ToolEnv): Exact | null {
   if (gate === 'none') return null;
   if (gate === 'health') return env.health && env.areas.health !== false ? null : refuse(HEALTH_CLOSED);
   const area = gate === 'notes' || gate === 'journal' ? 'today' : gate;
-  if (env.areas[area] === false) return refuse(`${AREA_NAME[area]} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · Your Personal AI Companion.`);
+  if (env.areas[area] === false) return refuse(`${AREA_NAME[area]} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · your companion.`);
   return null;
 }
 export function answerQuery(q: Query, env: ToolEnv): Exact | null {

@@ -36,20 +36,19 @@ function Harness({onSave}: {onSave: (record: NovaRecord, done?: string) => void}
 }
 const nameForm = () => [...host.querySelectorAll('form')].find(f => f.textContent!.includes('Your assistant’s name'))!;
 
-describe('Make NOVA yours: the name is Premium, free during the Alpha, for everyone', () => {
+describe('Make NOVA yours: renaming is for everyone, with no Premium badge during the Alpha', () => {
   beforeEach(() => { saved.record = emptyNova(); saved.said = []; });
-  it('the name field carries the label as a link to Plans, outside the field’s own label', async () => {
+  // Session AV (owner follow-up 3, L-9; deliberate test change, equally strict): no Premium badge during the Alpha. The
+  // earlier check that the badge was there and linked to Plans becomes a check that no badge or Plans link is there.
+  it('no Premium badge during the Alpha: nothing in Make it yours links to Plans, and the field keeps its own name', async () => {
     await act(async () => root.render(createElement(Harness, {onSave: note}))); await flush();
-    const form = nameForm(), badge = form.querySelector<HTMLAnchorElement>('a.premium-badge')!;
-    expect(badge.textContent).toBe('Premium · free during the Alpha');
-    expect(badge.textContent).toBe(entitlement('your-ai').label);
-    expect(badge.getAttribute('href')).toBe(PLANS_HREF);
+    const form = nameForm();
+    expect(host.querySelectorAll('a.premium-badge')).toHaveLength(0);
+    expect(host.querySelectorAll(`a[href="${PLANS_HREF}"]`)).toHaveLength(0);
+    expect(host.textContent).not.toContain('Premium');
     expect(PLANS_HREF).toBe('/app/plans');
-    // The field keeps its own name (tests/p1-nova-make.spec.ts finds it by "Your assistant’s name"), and it is the only
-    // Premium label in Make it yours: every other part is for everyone, unlabelled.
     expect(form.querySelector('label')!.textContent).toBe('Your assistant’s name');
     expect(form.querySelector('label a')).toBeNull();
-    expect(host.querySelectorAll('a.premium-badge')).toHaveLength(1);
   });
   it('renaming works with no plan check: the name is saved, said, and can be put back', async () => {
     await act(async () => root.render(createElement(Harness, {onSave: note}))); await flush();
@@ -65,9 +64,9 @@ describe('Make NOVA yours: the name is Premium, free during the Alpha, for every
     expect(personaOf(saved.record)).toEqual({name: 'NOVA', avatar: 'orb'});
     expect(saved.said.at(-1)).toBe('Your assistant is called NOVA again.');
   });
-  it('the component reads no entitlement and no plan: the badge is a label, never a gate', () => {
+  it('the component reads no entitlement and no plan: nothing gates the rename', () => {
     const source = readFileSync(join(__dirname, '../../components/nova/make-it-yours.tsx'), 'utf8');
-    expect(source).toContain("import {PremiumBadge} from '../plans/premium-badge';");
+    expect(source).not.toContain('PremiumBadge');
     expect(source).not.toMatch(/isUnlocked|entitlement\(|\.unlocked|lib\/entitlements/);
     expect(entitlement('your-ai').unlocked).toBe(true);
   });

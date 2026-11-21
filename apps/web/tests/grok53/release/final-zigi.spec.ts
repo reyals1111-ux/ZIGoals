@@ -93,7 +93,7 @@ test.describe('desktop (1280, en-GB, Europe/Brussels)', () => {
   test('5 (DV:N-007, DV:N-064, N-LA-08): real places for Auto-accept and the Health switches', async ({page}) => {
     await seed(page, 'DV');
     const nv = await novaAsk(page, 'What can you read about me?');
-    expect(nv).toContain('Settings → ZIGi · Your Personal AI Companion → Auto-accept; that group shows once an AI is turned on there');
+    expect(nv).toContain('Settings → ZIGi · your companion → Auto-accept; that group shows once an AI is turned on there');
     expect(nv).not.toContain('Settings → ZIGi → Auto-accept');
     await seed(page, 'L1');
     const [water] = await zigiChat(page, '/app/tasks', ['how much water did i drink today']);

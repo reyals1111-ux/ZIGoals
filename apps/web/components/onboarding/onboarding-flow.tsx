@@ -486,7 +486,7 @@ export function OnboardingFlow() {
         {/* Session AL fourth pass (NB-006): an optional name, kept on this device only; empty is fine. */}
         <label className="field onboarding-name">What should ZIGi call you? (optional)<input value={name} maxLength={40} autoComplete="given-name" enterKeyHint="done" aria-describedby={`${id}-name-hint`} onChange={e => setName(e.target.value)} placeholder="Your first name, or nothing" /><small id={`${id}-name-hint`}>Kept on this device only, never synced or sent. Leave it empty and ZIGi simply says hello.</small></label>
         <ul className="onboarding-points">
-          <li><strong>Your own AI, later.</strong> Connect the AI you already use in Settings → ZIGi · Your Personal AI Companion. Until you do, nothing is sent anywhere.</li>
+          <li><strong>Your own AI, later.</strong> Connect the AI you already use in Settings → ZIGi · your companion. Until you do, nothing is sent anywhere.</li>
           <li><strong>You stay in charge.</strong> I only suggest; anything I propose waits for your confirmation.</li>
           {/* Session AL (P-NB-13; NB-022): NOVA, in the sidebar from the start, named here so it is not a stranger. */}
           <li><strong>NOVA is my full-page view.</strong> NOVA in the sidebar shows your whole day on one screen and answers the same way I do: from your own records, and asking before it changes anything.</li>

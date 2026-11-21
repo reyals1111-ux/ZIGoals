@@ -156,7 +156,7 @@ export function AiLauncher() {
     zigiSignals.emit('companion_hidden'); // Session AK Part 12: a Studio-4 reaction once its art lands
     setOpen(false); launcher.setLauncherHidden(true);
     // Session AL (3e): the app's one Undo toast (components/ui/undo-toast.tsx) instead of the launcher's own.
-    hideToastId.current = showUndo({message: look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · Your Personal AI Companion.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · Your Personal AI Companion.',
+    hideToastId.current = showUndo({message: look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · your companion.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · your companion.',
       restore: () => { hideToastId.current = null; launcher.setLauncherHidden(false); requestAnimationFrame(() => requestAnimationFrame(() => button.current?.focus({preventScroll: true}))); }, undone: 'ZIGi is back.', timeoutMs: HIDE_UNDO_MS});
   };
   // The focus moves to ZIGi once the edge tab brought it back (the tab itself is gone by then).

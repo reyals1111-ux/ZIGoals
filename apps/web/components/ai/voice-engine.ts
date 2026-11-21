@@ -38,7 +38,7 @@ export function engineErrorText(code: string, online: boolean, noMic = false): s
     case 'no-speech': return 'I didn’t hear anything. Tap the microphone and try again.';
     case 'network': return online ? 'Your browser’s speech service could not be reached. Try again, or use your keyboard’s dictation.' : 'You’re offline, so your browser’s speech service can’t be reached. Use your keyboard’s dictation, or type.';
     case 'audio-capture': return 'No microphone was found. Use your keyboard’s dictation, or type.';
-    case 'language-not-supported': return 'This language isn’t available for speech here. Choose English or Dutch in Settings → ZIGi · Your Personal AI Companion → Voice.';
+    case 'language-not-supported': return 'This language isn’t available for speech here. Choose English or Dutch in Settings → ZIGi · your companion → Voice.';
     case 'aborted': return '';
     default: return 'Listening stopped unexpectedly. Try again, or type.';
   }

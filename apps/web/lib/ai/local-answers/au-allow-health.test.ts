@@ -109,7 +109,7 @@ test('ZIGi’s Health-closed reply follows the question’s language, with one b
   expect(habit.kind).toBe('answer');
   expect(habit.text).toBe('Drink water: geen gemiste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.');
   expect(habit.text).not.toMatch(/\bml\b|\bmL\b|Health/);
-  expect(HEALTH_CLOSED_NL).toContain('Settings → ZIGi · Your Personal AI Companion → Privacy & data: “Health page data” en “Include Health”');
+  expect(HEALTH_CLOSED_NL).toContain('Settings → ZIGi · your companion → Privacy & data: “Health page data” en “Include Health”');
 });
 test('NOVA: the same replies name NOVA → Permissions (its chat makes that the one button) and carry no card of their own', () => {
   // Session AU (R-12, deliberate): the water log's own target ("mijn waterdoel") for the habit's own word, as above.

@@ -46,11 +46,11 @@ export default function ReceiptDraft() {
     try {
       const provider = settings.provider!, model = settings.model!;
       let key: string | null = null; try { key = await readKey(currentAiScope(), provider); } catch { key = null; }
-      if (key === null && provider !== 'local') { setState({kind: 'problem', lines: ['Your key is not on this device.', 'Enter it again in Settings → ZIGi · Your Personal AI Companion. Keys stay on the device where you typed them; they are never synced.']}); return; }
+      if (key === null && provider !== 'local') { setState({kind: 'problem', lines: ['Your key is not on this device.', 'Enter it again in Settings → ZIGi · your companion. Keys stay on the device where you typed them; they are never synced.']}); return; }
       let declared: boolean | undefined; try { declared = readDeviceRecord(getAppStorage(), AI_OPTIONS).data.visionDeclared?.[`${provider}:${model}`]; } catch { declared = undefined; }
       const capability = declared === undefined ? await readCapability({provider, model, key, baseUrl: settings.baseUrl, localServer: settings.localServer, signal: controller.signal}).catch(() => null) : null;
       const reads = declared ?? capability?.vision ?? null;
-      if (reads !== true) { setState({kind: 'problem', lines: [reads === false ? 'Your model does not read photos.' : 'Turn on "This model reads photos" in Settings → ZIGi · Your Personal AI Companion if your model does.']}); return; }
+      if (reads !== true) { setState({kind: 'problem', lines: [reads === false ? 'Your model does not read photos.' : 'Turn on "This model reads photos" in Settings → ZIGi · your companion if your model does.']}); return; }
       const photo = await preparePhoto(file);
       setState({kind: 'busy', line: 'Your AI is reading the receipt…'});
       const out = await runReceiptRead(receiptRequest({settings, key, image: {mime: photo.mime, data: photo.data}, appOrigin: window.location.origin, signal: controller.signal}), guardedStreamChat, localDate());
@@ -73,7 +73,7 @@ export default function ReceiptDraft() {
   </div>;
   if (!wealthShared) return <div className="money-photos-draft" role="group" aria-labelledby={`${id}-title`}>
     <p className="money-photos-title" id={`${id}-title`}>Draft an entry from a receipt</p>
-    <p>Reading a receipt sends it to your AI, so it needs Wealth shared with ZIGi (Settings → ZIGi · Your Personal AI Companion → Share this page&rsquo;s data: Wealth).</p>
+    <p>Reading a receipt sends it to your AI, so it needs Wealth shared with ZIGi (Settings → ZIGi · your companion → Share this page&rsquo;s data: Wealth).</p>
   </div>;
   const busy = state.kind === 'busy';
   return <div className="money-photos-draft" role="group" aria-labelledby={`${id}-title`} aria-busy={busy || undefined}>

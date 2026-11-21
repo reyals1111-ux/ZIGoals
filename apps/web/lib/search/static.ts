@@ -93,7 +93,7 @@ export const HELP_TOPICS: readonly [string, string][] = [
   ["recovery-secret", "Your recovery secret"],
   ["install", "Install on iPhone"],
   ["backups", "Optional backups"],
-  ["your-ai", "ZIGi · Your Personal AI Companion"],
+  ["your-ai", "ZIGi · your companion"],
   ["nova", "NOVA, notes and tasks"],
   ["more-pages", "Earn, Staking, Ecosystem and Chess"],
   ["questions", "Questions"],

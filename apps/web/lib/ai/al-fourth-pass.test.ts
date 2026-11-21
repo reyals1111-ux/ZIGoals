@@ -155,8 +155,8 @@ describe('P17, NOVA #16, #256a: a new habit said with its cadence, time or minut
 describe('BN-047 AL-COPY-060: NOVA speaks as NOVA; the places keep their names', () => {
   test('ZIGi becomes NOVA in a NOVA reply, except Actions by ZIGi, Settings → ZIGi and What ZIGi knows about me', () => {
     const info = {healthScope: false, healthGate: false};
-    const r = novaWording({kind: 'answer', text: 'ZIGi checks off one item at a time. See Activity → Actions by ZIGi, Settings → ZIGi · Your Personal AI Companion and What ZIGi knows about me.', calls: []}, info);
-    expect(textOf(r)).toBe('NOVA checks off one item at a time. See Activity → Actions by ZIGi, Settings → ZIGi · Your Personal AI Companion and What ZIGi knows about me.');
+    const r = novaWording({kind: 'answer', text: 'ZIGi checks off one item at a time. See Activity → Actions by ZIGi, Settings → ZIGi · your companion and What ZIGi knows about me.', calls: []}, info);
+    expect(textOf(r)).toBe('NOVA checks off one item at a time. See Activity → Actions by ZIGi, Settings → ZIGi · your companion and What ZIGi knows about me.');
   });
 });
 

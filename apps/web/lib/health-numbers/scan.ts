@@ -84,6 +84,6 @@ export async function runLabSheetScan(request: ChatRequest, stream: (r: ChatRequ
     else if (event.type === 'usage') usage = {input: event.input, output: event.output};
     else if (event.type === 'done') reason = event.reason;
   }
-  if (reason && /^(length|max_tokens|max_output_tokens|MAX_TOKENS)$/i.test(reason) && !out.includes('}')) return {ok: false, problems: ['The answer was cut off at your output cap (Settings → ZIGi · Your Personal AI Companion → Output cap).'], usage, requests};
+  if (reason && /^(length|max_tokens|max_output_tokens|MAX_TOKENS)$/i.test(reason) && !out.includes('}')) return {ok: false, problems: ['The answer was cut off at your output cap (Settings → ZIGi · your companion → Output cap).'], usage, requests};
   return {...readLabSheetReply(out, today), usage, requests};
 }

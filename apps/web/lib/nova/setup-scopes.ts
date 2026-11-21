@@ -58,7 +58,7 @@ export function checkNovaScopes(scopes: NovaScopes, pack: Pick<NovaPack, 'includ
   // read one state. A scope that is on while the preview reads nothing of it (its page switch in Settings → ZIGi is off) is
   // a disagreement and fails, saying which switch; "NOVA can see" names only what the preview really carries.
   const unread = open.filter(s => s !== 'health' && pack.notShared.some(p => PILLAR_SCOPE[p] === s) && !pack.included.some(p => PILLAR_SCOPE[p] === s));
-  if (unread.length) return {ok: false, note: `NOVA → Permissions lets NOVA see ${unread.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}, but the preview reads nothing of it: its page switch under Settings → ZIGi · Your Personal AI Companion → What each page may share is off. Turn both on (or both off), then check again.`};
+  if (unread.length) return {ok: false, note: `NOVA → Permissions lets NOVA see ${unread.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}, but the preview reads nothing of it: its page switch under Settings → ZIGi · your companion → What each page may share is off. Turn both on (or both off), then check again.`};
   const health = scopes.health ? healthGate ? 'Health: on.' : 'Health: chosen, but its gate is still closed (see the note).' : 'Health: off.';
   const seen = open.filter(s => pack.included.some(p => PILLAR_SCOPE[p] === s)), quiet = open.filter(s => !seen.includes(s));
   const none = quiet.length ? ` Nothing recorded yet in: ${quiet.map(s => NOVA_SCOPE_LABELS[s].split(':')[0]).join('; ')}.` : '';

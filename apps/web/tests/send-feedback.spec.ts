@@ -167,7 +167,7 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   await expect(section).toContainText('Photos stay on the device where you added them; another device shows the goal’s colours.');
   await expect(section).toContainText('After a new vault key, your extras wait until the device that synced them last syncs once; nothing is lost meanwhile.');
   await expect(section).toContainText('Restore from a backup brings back your records and photos, not ZIGi’s chats or settings, notifications or a timer in progress.');
-  for (const [name, href] of [['install ZIGoals', '#install'], ['Export everything', '/app/settings#export-everything'], ['ZIGi · Your Personal AI Companion', '#your-ai'], ['tell us', '#feedback'], ['Do my photos sync?', '#help-ab-photos'], ['Home Screen shortcuts and sharing', '#help-aa-home-screen'], ['Where are my reminders?', '#help-aa-reminders'], ['Your data', '#help-aa-data']] as const) await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href);
+  for (const [name, href] of [['install ZIGoals', '#install'], ['Export everything', '/app/settings#export-everything'], ['ZIGi · your companion', '#your-ai'], ['tell us', '#feedback'], ['Do my photos sync?', '#help-ab-photos'], ['Home Screen shortcuts and sharing', '#help-aa-home-screen'], ['Where are my reminders?', '#help-aa-reminders'], ['Your data', '#help-aa-data']] as const) await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href);
   await section.getByRole('link', {name: 'tell us', exact: true}).click();
   await expect(page).toHaveURL(/#feedback$/);
 });

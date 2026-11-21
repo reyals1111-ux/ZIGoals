@@ -24,7 +24,7 @@ test('Plans: both one-time prices in euros, the placeholder line, free during th
   await expect(main.getByRole('heading', {level: 1, name: 'Plans'})).toBeVisible();
   const base = main.getByRole('region', {name: 'ZIGoals', exact: true}), premium = main.getByRole('region', {name: 'ZIGoals Premium'});
   await expect(base).toContainText('€20'); await expect(base).toContainText('one-time');
-  await expect(premium).toContainText('€50'); await expect(premium).toContainText('ZIGi · Your Personal AI Companion');
+  await expect(premium).toContainText('€50'); await expect(premium).toContainText('ZIGi · your companion');
   await expect(premium).toContainText('NOVA’s premium features'); await expect(premium).toContainText('bring your own AI');
   await expect(main.getByText(PLACEHOLDER, {exact: true})).toBeVisible();
   await expect(main.getByText('Everything is free during the Alpha', {exact: false}).first()).toBeVisible();

@@ -62,7 +62,7 @@ export function novaWording(reply: LocalReply, info: NovaEnvInfo, lang: Lang = '
   // Settings — the pointer names NOVA's own place.
   const text = reply.text.replace(/Settings → ZIGi connects\b/g, 'NOVA → Setup (Your brain) connects').replace(/in Settings → ZIGi; it then answers/g, 'in NOVA → Setup (Your brain); it then answers')
     .replace(/(is(?:n[’']t| not)|are not|aren[’']t) shared with ZIGi\b/g, '$1 shared with NOVA')
-    .replace(/(?<!Actions by |Settings → |What |what |→ )\bZIGi\b(?! knows about me| · Your Personal AI Companion|’s (?:panel|page))/g, 'NOVA');
+    .replace(/(?<!Actions by |Settings → |What |what |→ )\bZIGi\b(?! knows about me| · your companion|’s (?:panel|page))/g, 'NOVA');
   return text === reply.text ? reply : {...reply, text};
 }
 
