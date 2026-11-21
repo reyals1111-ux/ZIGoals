@@ -24,7 +24,7 @@ export type Track = {
   /** `habit`: a past due day without it is missed. `log`: a past day with nothing logged is unknown ("nothing logged"). */
   kind: 'habit' | 'log' | 'event';
   /** The Habits page's own streak, where the track is a habit (else the run is counted from the days). */
-  streak?: {current: number; best: number; unit: string};
+  streak?: {current: number; best: number; unit: string; /** Session AV (1c, q4 #23): the days never missed twice in a row, when longer than the streak. */ neverTwice?: number};
   source: readonly [string, string];
   widgets: (ask: Ask, period: Period, q: Query) => ExactWidget[];
   /** Where one day can hold several of the thing (workouts, sessions): how many there were on the given days, and the word for them. */
@@ -73,10 +73,12 @@ export function trackAnswer(q: Query, track: Track, today: string): Exact | null
   if (!p.days.length) return done(t(lang, `${n}: no such day ${words}.`, `${n}: geen zulke dag ${words}.`));
 
   if (q.ask === 'streak') {
-    const year = track.points(resolvePeriod('last-366-days', today)!.days), current = track.streak?.current ?? runNow(year), best = track.streak?.best ?? runBest(year).days, unit = track.streak?.unit ?? 'days';
-    return done(current > 0
+    const year = track.points(resolvePeriod('last-366-days', today)!.days), current = track.streak?.current ?? runNow(year), best = track.streak?.best ?? runBest(year).days, unit = track.streak?.unit ?? 'days', twice = track.streak?.neverTwice ?? 0;
+    return done((current > 0
       ? t(lang, `${n}: ${streakText(current, unit, 'en')} in a row now; your longest run is ${streakText(Math.max(best, current), unit, 'en')}.`, `${n}: nu ${streakText(current, unit, 'nl')} op rij; je langste reeks is ${streakText(Math.max(best, current), unit, 'nl')}.`)
-      : t(lang, `${n}: no run going right now${best ? `; your longest was ${streakText(best, unit, 'en')}` : ''}.`, `${n}: er loopt nu geen reeks${best ? `; je langste was ${streakText(best, unit, 'nl')}` : ''}.`), {streak: {current, best: Math.max(best, current), unit}});
+      : t(lang, `${n}: no run going right now${best ? `; your longest was ${streakText(best, unit, 'en')}` : ''}.`, `${n}: er loopt nu geen reeks${best ? `; je langste was ${streakText(best, unit, 'nl')}` : ''}.`))
+      // Session AV (1c, q4 #23; Streaks' 2-day rule): beside the streak, the run in which no two days in a row were missed, when it says more.
+      + (twice > current ? t(lang, ` Never missed twice in a row: ${streakText(twice, 'days', 'en')}.`, ` Nooit twee keer op rij gemist: ${streakText(twice, 'days', 'nl')}.`) : ''), {streak: {current, best: Math.max(best, current), unit, ...(twice > current ? {neverTwice: twice} : {})}});
   }
   if (q.ask === 'last') {
     const back = track.points(resolvePeriod('last-366-days', today)!.days), hit = [...back].reverse().find(x => x.state === 'done' || (x.state !== 'rest' && x.state !== 'skipped' && x.value !== null && x.value > 0)); // the last time at all: a day partly done counts

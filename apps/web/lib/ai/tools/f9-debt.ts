@@ -14,6 +14,8 @@ import {formatMoney, formatMonth} from '../../visual-format';
  * figure is said as missing (unknown is not zero), never filled in. A model, not advice: nothing is paid or moved.
  */
 export const DEBT_PLANNER_WHERE = 'Wealth → What you owe → Plan paying off your debts';
+/** Session AV (1c, q2 #16): the same place in a Dutch answer (the app's labels are English, so both are said). */
+export const DEBT_PLANNER_WHERE_NL = `Vermogen → Wat je schuldig bent → Plan je aflossing (${DEBT_PLANNER_WHERE})`;
 export const DEBT_MODEL = 'A model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed.';
 export type DebtRow = {id: string; name: string; owed: bigint; ratePercent: string | null; rateFromAccount: boolean; minimum: bigint | null};
 export type DebtCurrencyView = {currency: string; debts: DebtRow[]; extra: bigint; issue: string | null; comparison: PlanComparison | null};

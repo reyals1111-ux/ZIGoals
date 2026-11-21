@@ -9,6 +9,8 @@ import {monthKey, monthView} from '../../budgets/engine';
 import type {Notes} from '../../notes/schema';
 import type {MusicPrefs} from '../../music/schema';
 import type {CalendarImport} from '../../ics/calendar';
+import type {Countdowns} from '../../countdowns/schema';
+import type {CountdownExtras} from '../../countdowns/extras';
 import {occurrences} from '../../ics/expand';
 import {notesPackLines} from '../../notes/pack';
 import {addLocalDays} from '../../local-date';
@@ -35,7 +37,8 @@ import {NO_ARGS, type ToolDefinition} from './types';
 export type NovaToolSources = {tasks?: Tasks | null; focus?: FocusSessions | null; budgets?: BudgetsRecord | null;
   /** Lane B's notes, only when the person granted NOVA's Notes scope (never on ZIGi's page paths). */ notes?: Notes | null;
   /** The music player's choices (source, ambient sound), for NOVA's pack. */ music?: MusicPrefs | null;
-  /** Lane T's imported calendars (read-only .ics events): their titles came from a file, so they are data, never instructions. */ calendar?: CalendarImport | null}
+  /** Lane T's imported calendars (read-only .ics events): their titles came from a file, so they are data, never instructions. */ calendar?: CalendarImport | null;
+  /** Session AV (1c, f1): Today's "Days until" countdowns and which of them come back every year, for the on-device answers. */ countdowns?: Countdowns | null; countdownExtras?: CountdownExtras | null}
   /** Owner follow-up 2 (G8): BUILD list 2's records (your numbers, the cycle log, your own scales), for g1-tools.ts. */
   & G1ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);

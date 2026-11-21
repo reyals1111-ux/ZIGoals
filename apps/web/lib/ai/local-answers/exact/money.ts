@@ -13,7 +13,7 @@ import {dayList} from './series';
 import {listWords, t} from './text';
 import {periodFor} from './track';
 import type {Exact, ExactWidget, Query} from './types';
-import {DEBT_PLANNER_WHERE, debtFreeMonth, debtMoney, debtView, type DebtCurrencyView} from '../../tools/f9-debt';
+import {DEBT_PLANNER_WHERE, DEBT_PLANNER_WHERE_NL, debtFreeMonth, debtMoney, debtView, type DebtCurrencyView} from '../../tools/f9-debt';
 import {countdownWords, type PlanResult} from '../../../debt-planner/plan';
 
 /**
@@ -39,7 +39,9 @@ export function spendingAnswer(q: Query, env: ToolEnv): Exact | null {
   if (!log) return null;
   const all = log.entries.filter(e => e.kind === kind);
   if (!all.length) return out(income ? t(lang, 'No income logged yet.', 'Nog geen inkomsten gelogd.') : t(lang, 'No spending logged yet.', 'Nog geen uitgaven gelogd.'), {entries: 0}, [{id: income ? 'cash-flow' : 'spending'}]);
-  const p = periodFor({...q, shape: 'amount'}, today, 'this-month'), category = q.subject?.kind === 'category' ? q.subject.name : null;
+  // Session AV (1c, q2 #21): a total with no period named is this month's, as in English ("hoeveel heb ik uitgegeven aan
+  // boodschappen" was today's: the generic default of a total), never a single day.
+  const p = !q.period && q.weekday === null && (q.ask === 'total' || q.ask === 'done') ? resolvePeriod('this-month', today)! : periodFor({...q, shape: 'amount'}, today, 'this-month'), category = q.subject?.kind === 'category' ? q.subject.name : null;
   const now = ledger(log.entries, kind, p, category), span = periodSpan(p, lang, today), day = (d: string) => dayWords(d, today), cur = now.currency;
   const what = category ? `${plain(category)}: ` : '', verb = income ? t(lang, 'came in', 'binnengekomen') : t(lang, 'spent', 'uitgegeven');
   const others = now.others.length ? t(lang, ` Also ${listWords(now.others.map(o => o.text), 'en')} in other currencies.`, ` Ook ${listWords(now.others.map(o => o.text), 'nl')} in andere valuta.`) : '';
@@ -182,7 +184,7 @@ export function debtsAnswer(q: Query, env: ToolEnv): Exact | null {
     return t(lang, `${v.currency}: debt-free in ${say(c.avalanche, v.currency)} with avalanche, ${say(c.snowball, v.currency)} with snowball${c.custom ? `, ${say(c.custom, v.currency)} in your own order` : ''}; minimums only: ${say(c.minimums, v.currency)}`,
       `${v.currency}: schuldenvrij in ${say(c.avalanche, v.currency)} met lawine, ${say(c.snowball, v.currency)} met sneeuwbal${c.custom ? `, ${say(c.custom, v.currency)} in je eigen volgorde` : ''}; alleen de minimumbedragen: ${say(c.minimums, v.currency)}`);
   };
-  return out(`${views.slice(0, 4).map(line).join('. ')}. ${t(lang, `From your own figures in ${DEBT_PLANNER_WHERE}; a model, not advice: nothing is paid or moved.`, 'Uit je eigen bedragen in Wealth → What you owe; een model, geen advies: er wordt niets betaald of verplaatst.')}`,
+  return out(`${views.slice(0, 4).map(line).join('. ')}. ${t(lang, `From your own figures in ${DEBT_PLANNER_WHERE}; a model, not advice: nothing is paid or moved.`, `Uit je eigen bedragen in ${DEBT_PLANNER_WHERE_NL}; een model, geen advies: er wordt niets betaald of verplaatst.`)}`,
     {plans: views.map(v => ({currency: v.currency, issue: v.issue, avalanche: v.comparison?.avalanche.months ?? null, snowball: v.comparison?.snowball.months ?? null}))});
 }
 const dutchCountdown = (months: number) => { const y = Math.floor(months / 12), m = months % 12, part = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`; return y && m ? `${part(y, 'jaar', 'jaar')} en ${part(m, 'maand', 'maanden')}` : y ? part(y, 'jaar', 'jaar') : part(m, 'maand', 'maanden'); };

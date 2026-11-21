@@ -16,6 +16,8 @@ import {capRows, num, ok, plural, provenance, refuse, text} from './format';
 import {findGoal} from './goals';
 import {NO_ARGS, type ToolDefinition} from './types';
 import type {F9ToolSources} from './f9-tools';
+import type {SplitsRecord} from '../../workouts/splits-schema';
+import type {MoneyReview} from '../../money-review/review';
 
 /**
  * Session AK (Part 12): ZIGi's read-only tools for this session's features, over the person's own device records only
@@ -24,7 +26,9 @@ import type {F9ToolSources} from './f9-tools';
  * for). Nothing here writes, fetches or suggests an amount; money stays per currency, never converted; a value the app
  * does not know is "unknown", never 0. Names are the person's own words, escaped as data (text()).
  */
-export type AkToolSources = {autoRules?: AutoRules | null; bills?: BillsRecord | null; priceAlerts?: PriceAlerts | null} & F9ToolSources;
+export type AkToolSources = {autoRules?: AutoRules | null; bills?: BillsRecord | null; priceAlerts?: PriceAlerts | null;
+  /** Session AV (1c, f1): the runs' per-kilometre splits (the timed running bests), today's focus habit as the habit extras keep it (read with lib/habit-focus.ts), and the money log's import review (what waits for a look). */
+  splits?: SplitsRecord | null; habitFocus?: unknown; moneyReview?: MoneyReview | null} & F9ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
 
 export const autoRulesTool: ToolDefinition<Record<string, never>> = {

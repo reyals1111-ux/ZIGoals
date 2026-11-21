@@ -68,6 +68,12 @@ export function previousPeriod(p: Period, today: string): Period | null {
 
 const WEEKDAY_NL = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'], WEEKDAY_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 export const weekdayName = (weekday: number, lang: Lang, pluralForm = false): string => lang === 'nl' ? `${WEEKDAY_NL[weekday]}${pluralForm ? 'en' : ''}` : `${WEEKDAY_EN[weekday]}${pluralForm ? 's' : ''}`;
+const WD_NL = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'], MO_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+/** Session AV (1c, q1 #2): a day the Dutch way, "di 17 nov" (with the year when it is not this year), for a Dutch answer. */
+export function nlDay(date: string, today: string): string {
+  const d = new Date(`${date}T12:00:00Z`);
+  return `${WD_NL[d.getUTCDay()]} ${d.getUTCDate()} ${MO_NL[d.getUTCMonth()]}${date.slice(0, 4) !== today.slice(0, 4) ? ` ${date.slice(0, 4)}` : ''}`;
+}
 /** A day as the app writes it ("Tue, Nov 3"; with the year when it is not this year). */
 export const dayWords = (day: string, today: string): string => formatDate(day, {weekday: true, year: day.slice(0, 4) !== today.slice(0, 4)});
 /** The period in words: "this month", "last week", "the last 14 days", "since Sun, Nov 1", "on Mondays this month". */

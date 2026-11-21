@@ -43,4 +43,14 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'au-r3-run-week': ['Nov 15', '6 km'], 'au-r3-run-lastweek': ['6 km', 'Nov 15'], 'au-r4-date': ['Nov 17'], 'au-r6-bill-price': ['Streaming', '12.99', '13.99'], 'au-r7-coin-price': ['65,000 USD', 'Showcase example price'],
   'au-r8-stake-earn': ['Earn'], 'au-r10-stake-safe': ['ZIG', 'Alpha', 'unbonding'], 'au-r11-next-bill': ['Rent', '950.00', 'Dec 1'], 'av-debt-free': ['Apr 2028', '$316.87'],
   'journey-level': ['8', 'Nebula', '3,577', '377', '850', 'Showcase'],
+  // Session AV (owner follow-up 2, item 1c; cases-av.ts): the AV features' own questions.
+  'av-task-reminders': [], 'av-weekly-intention': ['one short walk after lunch'], 'av-countdown-until': ['Mum’s birthday', '3'], 'av-countdowns-list': ['Mum’s birthday', 'Trip to Lisbon'], 'av-plan-day': ['Sketch the garden bed'],
+  'av-bills-year': ['13,139.88', '1,094.99'], 'av-bills-paid': ['Energy', 'Music', 'Rent'], 'av-payday': [], 'av-budget-targets': ['Groceries', '300.00'], 'av-budget-near': ['Groceries', '75%'],
+  'av-spend-vs-last': ['435.59', '190.39'], 'av-income-went': ['2,550.00', '435.59', '2,114.41'], 'av-debt-schedule': ['Credit card', 'Car loan', '$5,402.81'], 'av-money-look': ['3'], 'av-payee': ['61.30', 'Market'],
+  'av-payee-none': ['Café Noël'], 'av-watched': ['Transport', '10.40'], 'av-price-alerts': ['BTC', 'ETH', '250,000'], 'av-month-recap': ['190.39', 'Groceries', '80.90'],
+  'av-saved-meals': ['Showcase pea soup'], 'av-meal-plans': ['Health → Meals & planning'], 'av-mood-factors': ['Life review'], 'av-lifted': ['2,643 kg'], 'av-run-5k': ['28:00'], 'av-run-longest': ['6 km', '5:31'],
+  'av-diary-today': ['Berry overnight oats', '420 kcal'], 'av-sleep-score': ['75', '34', '24'], 'av-sleep-90': ['56', '7 h 38 min'], 'av-sleep-year': ['56', '7 h 38 min'], 'av-iron-average': ['90'], 'av-high-iron': ['Showcase split peas', '7 mg'],
+  'av-bench-best': ['Bench press', '62.5 kg × 8'], 'av-supplements': ['Vitamin D', 'Magnesium', 'Eye drops'], 'av-symptoms': ['Symptoms and factors'],
+  'av-good-things': ['3'], 'av-journal-tag': ['“work”'], 'av-journal-count': ['1'], 'av-journal-templates': ['8', 'Run diary'], 'av-journal-question': ['Journal → Another question'],
+  'av-yesterday-open': [], 'av-focus-habit': ['Exercise'], 'av-habits-week': ['Read', 'Exercise'],
 };

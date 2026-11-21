@@ -28,6 +28,8 @@ import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 import {healthGoalAsk} from './al-final';
 import {rehearsalAnswer} from './au-answers';
+import {avAnswer} from './av-answers';
+import {neverTwice} from '../../habit-two-day';
 import {answerQuery, exactQuery, fixedWords, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
 import type {Query} from './exact';
 
@@ -217,6 +219,10 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AU (dress rehearsal R-4, R-7, R-8, R-10): today's date by the person's day end, a coin's price (not the holdings),
   // what staking would earn and whether it is safe (au-answers.ts): before the exact layer reads them as a records lookup.
   if (!subject) { const found = rehearsalAnswer(normalizeSpoken(question), env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AV (owner follow-up 2, item 1c; the fresh reviewers' check 5): the AV features' own questions (task reminders,
+  // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
+  // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).
+  if (!subject) { const found = avAnswer(question, env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;
   // A misspelt question the exact layer reads once its slips are fixed is asked of the layers below in the fixed words.
@@ -628,7 +634,9 @@ function habitAnswer(env: ToolEnv, habit: Habit, q: string, found: DayRange[]): 
     const st = dataOf(s.result).streak as {current: number; best: number; unit: string};
     // Session AL Part 14 (G15): "my Read streak broke" gets the kind words (p14b.ts), from the same figures.
     if (isStreakBreak(q)) return {kind: 'answer', text: streakBreakWords(title, st), calls: [s.record]};
-    const head = W.streakBest.test(q) ? `Your longest ${title} streak is ${plural(st.best, st.unit.replace(/s$/, ''))}; the current one is ${plural(st.current, st.unit.replace(/s$/, ''))}.` : `Your current ${title} streak is ${plural(st.current, st.unit.replace(/s$/, ''))} (longest: ${plural(st.best, st.unit.replace(/s$/, ''))}).`;
+    const lead = W.streakBest.test(q) ? `Your longest ${title} streak is ${plural(st.best, st.unit.replace(/s$/, ''))}; the current one is ${plural(st.current, st.unit.replace(/s$/, ''))}.` : `Your current ${title} streak is ${plural(st.current, st.unit.replace(/s$/, ''))} (longest: ${plural(st.best, st.unit.replace(/s$/, ''))}).`;
+    // Session AV (1c, q4 #23; Streaks' 2-day rule): the run in which no two days in a row were missed, when it is longer than the streak.
+    const twice = neverTwice(habit, env.habitDay), head = twice > st.current ? `${lead} Never missed twice in a row: ${plural(twice, 'day')}.` : lead;
     // Session AL final pass (Z-021): why a streak can be longer than a month's check-ins beside it ("26 days" next to "3
     // check-ins over 4 days"): it runs across months, and a skipped day keeps it going.
     const since = typeof dataOf(s.result).streak?.since === 'string' ? dataOf(s.result).streak.since as string : null, long = Math.max(st.best, st.current) > 1 && /^days?$/.test(st.unit);

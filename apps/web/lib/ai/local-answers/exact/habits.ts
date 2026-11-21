@@ -1,3 +1,4 @@
+import {neverTwice} from '../../../habit-two-day';
 import {habitDay, habitRuleOn, habitStats, latestHabitRule, measurementUnit, type Habit} from '../../../habits';
 import {localWeekday} from '../../../local-date';
 import {formatNumber} from '../../../visual-format';
@@ -46,7 +47,7 @@ export function habitTrack(habit: Habit, today: string): Track {
     points: days => habitPoints(habit, days, today),
     measure: measured ? {text: v => `${number(v)} ${unit}`, kind: 'sum', target: rule.target} : null,
     did: ['done', 'gedaan'], not: ['not done', 'niet gedaan'],
-    streak: {current: stats.currentStreak, best: stats.bestStreak, unit: stats.streakUnit},
+    streak: {current: stats.currentStreak, best: stats.bestStreak, unit: stats.streakUnit, neverTwice: neverTwice(habit, today)},
     source: ['Your habits', 'Je gewoontes'],
     widgets: (ask, period) => habitWidgets(ask, period, habit.id),
   };

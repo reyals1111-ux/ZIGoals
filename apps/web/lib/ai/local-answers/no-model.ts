@@ -17,6 +17,7 @@ import {fourthAnswer, fourthFirst} from './al-fourth';
 import {safetyFirst} from '../safety-guard';
 // Session AL final pass (N-LA-01, BN-053): Help's words or the closest answer the device has, before the examples list.
 import {closestReply, helpReply} from './al-final';
+import {planDayDutch} from './av-answers';
 import {germanAsk, messageLines, onePhrase, tooLongAdd, unansweredLine, UNMATCHED_EN} from './al-fifth';
 
 /**
@@ -192,7 +193,9 @@ function noModelOwn(text: string, env: ToolEnv | null, previous: string | null =
   // tasks or goals is answered as its English question, under the note below (languages are Beta, AL_SCOPE F).
   const german = env && otherLanguage(text) === 'de' ? germanAsk(text) : null;
   const de = german ? deviceReply(german, env, null) : null;
-  let reply = (de && de.kind !== 'examples' ? de : null) ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? whyReply(text, env) ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
+  // Session AV (1c, q1 #38): "plan mijn dag" with no model: the tasks Today's "Plan my day" suggests, in Dutch (av-answers.ts).
+  const planNl = env ? planDayDutch(text, env) : null;
+  let reply = (de && de.kind !== 'examples' ? de : null) ?? planNl ?? mealPhotoReply(text, lang) ?? fourth ?? third ?? streakBreakReply(fixTypos(text), env, lang) ?? simpleCommand(text) ?? alFirst(text, env, lang) ?? quickLog(text, env, lang) ?? unknownTickReply(text, env) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? overview ?? again ?? alFactsAnswer(normalizeSpoken(fixed), env, lang) ?? alMoreAnswer(normalizeSpoken(fixed), env, lang) ?? fourthAnswer(normalizeSpoken(fixed), env, lang, previous) ?? helpReply(fixed, lang === 'nl' ? 'nl' : 'en') ?? whyReply(text, env) ?? closestReply(normalizeSpoken(fixed), env, lang === 'nl' ? 'nl' : 'en') ?? examplesIn(env, lang);
   // Session AL (L7; Tokyo TK-054/TK-084, Moscow ZP-28/NP-28, Denver Z-007; P-TK-34, P-MO-11, P-DV-89): a French or Spanish
   // question is told, in its own language, that the device answers in English (and Dutch) for now, as a Dutch one is.
   // Session AL fourth pass (L7-4b; Lisbon #024): an answer in English to a question in another language carries the note too.

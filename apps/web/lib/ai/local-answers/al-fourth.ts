@@ -1,3 +1,4 @@
+import {planDayLines} from './av-answers';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
 import {runTool} from '../tools/registry';
@@ -220,7 +221,9 @@ export function fourthFirst(question: string, env: ToolEnv | null, lang: Lang, p
   if (PLAN_ASK.test(q)) {
     const week = /\bweek(?:end)?\b/i.test(q), base = deviceAnswer(week ? 'What does my week look like?' : 'What is due today?', env);
     const facts = base && 'text' in base ? base.text.replace(/\n\n```zigoals-action[\s\S]*?```/g, '') : '';
-    return {kind: 'answer', text: say(lang, `Planning it with you needs your own AI (${brainPlace(env, lang)}); without one I don’t make a plan or a task out of it. From your records:`, `Er samen een plan van maken vraagt je eigen AI (${brainPlace(env, lang)}); zonder AI maak ik er geen plan of taak van. Uit je gegevens:`) + (facts ? `\n${facts}` : say(lang, ' nothing is due.', ' er staat niets open.')), calls: base && 'calls' in base ? base.calls : []};
+    // Session AV (1c, q1 #38): planning the day adds the tasks Today's "Plan my day" suggests, each with why (lib/tasks/plan-day.ts).
+    const picks = !week && /\b(?:day|today)\b/i.test(q) ? planDayLines(env, lang) : null;
+    return {kind: 'answer', text: say(lang, `Planning it with you needs your own AI (${brainPlace(env, lang)}); without one I don’t make a plan or a task out of it. From your records:`, `Er samen een plan van maken vraagt je eigen AI (${brainPlace(env, lang)}); zonder AI maak ik er geen plan of taak van. Uit je gegevens:`) + (facts ? `\n${facts}` : say(lang, ' nothing is due.', ' er staat niets open.')) + (picks ? `\n${picks.join('\n')}` : ''), calls: base && 'calls' in base ? base.calls : []};
   }
   if (PRIORITY_ASK.test(q)) {
     const tasks = openTasks(env);

@@ -11,7 +11,7 @@ import {weekStart} from '../../tools/range';
 import {habitRows} from './habits';
 import {stepsTrack, sleepTrack, waterTrack} from './health';
 import {GOAL_ETA} from './lexicon';
-import {dayWords, periodSpan, periodWords, previousPeriod, resolvePeriod, type Period} from './period';
+import {dayWords, nlDay, periodSpan, periodWords, previousPeriod, resolvePeriod, type Period} from './period';
 import {listWords, t} from './text';
 import {periodFor, trackAnswer, type Track} from './track';
 import type {Ask, Exact, ExactWidget, Lang, Query} from './types';
@@ -60,11 +60,12 @@ export function focusAnswer(q: Query, env: ToolEnv): Exact | null {
 }
 
 export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
-  const lang = q.lang, today = env.habitDay, record = env.nova?.tasks, out = answer(q, ['Your tasks', 'Je taken']), day = (d: string) => dayWords(d, today);
+  // Session AV (1c, q1 #2): a Dutch answer writes its days and times the Dutch way ("wo 25 nov", "10:30"), never "Wed, Nov 25".
+  const lang = q.lang, today = env.habitDay, record = env.nova?.tasks, out = answer(q, ['Your tasks', 'Je taken']), day = (d: string) => lang === 'nl' ? nlDay(d, today) : dayWords(d, today), clock = (c: string) => lang === 'nl' ? c : formatClock(c);
   if (!record) return null;
   if (!record.tasks.length) return out(t(lang, 'No tasks yet.', 'Nog geen taken.'), {tasks: 0}, [{id: 'tasks'}]);
   const r = runTool('tasks', {}, env), open = (r.ok ? r.data.open as {task: string; state: string; due?: string; time?: string; priority: string; deadline?: string; minutes?: number}[] | undefined : undefined) ?? [];
-  const name = (x: {task: string; due?: string; time?: string}) => `${plain(x.task)}${x.due ? ` (${t(lang, 'due', 'gepland')} ${x.due === today ? t(lang, 'today', 'vandaag') : day(x.due)}${x.time ? ` ${formatClock(x.time)}` : ''})` : ''}`;
+  const name = (x: {task: string; due?: string; time?: string}) => `${plain(x.task)}${x.due ? ` (${t(lang, 'due', 'gepland')} ${x.due === today ? t(lang, 'today', 'vandaag') : day(x.due)}${x.time ? ` ${clock(x.time)}` : ''})` : ''}`;
   const overdue = open.filter(x => x.state === 'overdue'), doneDay = (x: {doneAt?: string}) => x.doneAt ? calendarDay(x.doneAt, env.habitZone) : null;
   const base = {open: open.length, overdue: overdue.map(x => plain(x.task))}, timeline: ExactWidget[] = [{id: 'task-timeline', fallback: 'tasks'}];
   // Finished: how many, which, and which of them after their day.
