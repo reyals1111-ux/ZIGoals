@@ -73,11 +73,15 @@ describe('N3 coach check-in', () => {
   });
 });
 describe('N10 sleep score', () => {
-  test('a transparent score from duration, consistency and debt; fewer than three nights gives none', () => {
+  test('a transparent score from duration, regularity, debt and quality; fewer than three nights gives none', () => {
     const s = sleepScore(showcaseSleep(TODAY), TODAY);
     expect(s.nights).toBeGreaterThanOrEqual(3); expect(s.score).toBeGreaterThan(40); expect(s.score).toBeLessThanOrEqual(100);
-    expect(s.duration.points + s.consistency.points + s.debt.points).toBeGreaterThanOrEqual(s.score! - 2);
-    expect(s.formula).toContain('duration 50');
+    // Session AV (F-SLEEP-SCORE, deliberate, as strict): the parts still explain the score within rounding — now four, the
+    // nights' quality ratings among them; with none rated the other three are scaled to 100.
+    const parts = s.duration.points + s.consistency.points + s.debt.points + (s.quality.points ?? 0);
+    expect(s.scaled ? Math.round(parts * 100 / 85) : parts).toBeGreaterThanOrEqual(s.score! - 2);
+    expect(s.formula).toContain('duration 40'); // Session AV (F-SLEEP-SCORE, deliberate): the formula on the card names its four parts
+    expect(s.formula).toContain('quality 15');
     expect(sleepScore({version: 1, nights: []}, TODAY).score).toBeNull();
   });
 });
