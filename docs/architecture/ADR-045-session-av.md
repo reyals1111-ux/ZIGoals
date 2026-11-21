@@ -431,6 +431,16 @@ Where a rule of the definition of done does not apply, it says so here.
   43.999996 px, i.e. mid-transform; 23 of 23 locally). Recorded in CI_INTERMITTENTS.
 - WebKit shard 2, `zigi-voice-z:199`: a recorded WebKit intermittent (runs 1643, 1669, 1701); voice code unchanged.
 
+## D-CI1987 — run 1987 (`a5eddc1f`): two red jobs, both mine, both fixed
+- **checks**: `date-format-guard` — the "bills this month" view put `${today.slice(0, 7)}` inside JSX, which the guard
+  reads as a shown ISO date (it fed `formatMonth`). The month key moved to a variable at `b764e00f` (found locally by
+  the full unit suite before this run ended).
+- **Main shard 8**: `a10-life:120` A10-11 (both projects, both tries) — Tasks → Today's first task must start on the
+  first screen at 768 px; C #38's "Plan my day" fold and C #39's day-load line above the list pushed it to y 1108 of
+  1024 in the Showcase. Both now sit below the list, beside "Done today"; the spec is unchanged. A10-11, the plan-day,
+  minutes and deadline specs and `tests/grok53/tasks/` 102 of 102 locally.
+- Every other job green: the a11y shards, 13 of 14 main shards, WebKit, integration, the Alpha gate.
+
 ## Closing table
 
 | Item | Verdict | Where |

@@ -360,12 +360,13 @@ export function TasksPage() {
           {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : addLocalDays(today, 1))} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => { setSelected(new Set()); setSelecting(false); }} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
           {selectMode && !selected.size && <p className="fine tasks-select-hint" role="status">Tick the tasks to act on together; Escape ends selecting.</p>}
           <TaskStatusLine error={list.error} />
-          {view.kind === 'today' && !query && (() => { const w = dayLoadWords(dayLoad(record, today)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
-          {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}
           {!tasks.unreadable && body}
           {empty && <EmptyState title={query ? 'Nothing matches' : !record.tasks.length ? 'Your list starts here' : view.kind === 'today' ? 'Nothing due today' : 'Nothing here'} level={2} art="orbit">
             {query ? 'Try fewer words, or one operator such as p1, today or #project.' : counts.open ? 'Open another view on the left, or add one above.' : 'Type a few words above, like “Call the dentist tomorrow 10am”. Add a day, “every …”, p1–p4, #project or @label as you type.'}
           </EmptyState>}
+          {/* Session AV (D-CI1987): below the list, so Today's first task starts where it did (A10-11). */}
+          {view.kind === 'today' && !query && (() => { const w = dayLoadWords(dayLoad(record, today)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
+          {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}
           {view.kind === 'today' && !query && record.tasks.some(t => t.doneAt && list.doneDay(t.doneAt) === today) && <p className="fine"><button type="button" className="text-link" onClick={() => go({kind: 'completed'})}>Done today: {formatNumber(record.tasks.filter(t => t.doneAt && list.doneDay(t.doneAt) === today).length)} →</button></p>}
         </section>
       </div>
