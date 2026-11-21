@@ -463,6 +463,19 @@ Where a rule of the definition of done does not apply, it says so here.
   `sync-offer-browser` "Stage 8 offer widget" not visible in 30 s (CI 1629, 1932). Between runs 1991 and 1992 only the
   Tasks layout and docs changed, and run 1991's integration was green.
 
+## D-CI1994 — run 1994 (`8cc0eca0`): `send-feedback` green; one race of mine fixed, three intermittents
+- Green: checks, the a11y shards, 10 of 14 main shards (shard 8's `send-feedback:102` passes), all four WebKit shards,
+  the Alpha gate. The main shards ran slow this run (42–44 min against ~30).
+- Main shard 8, `wiring-2-nova-start:87` Z1C-L1 (desktop): reproduced locally, 1 of 4 at 90 s and 4 of 6 at 20 s, at
+  line 114 — with "Open ZIGoals on NOVA"'s code held, `/app`'s own load never ended. Measured: the start check's
+  chunks (`1z0on9…`, `207c0…`) were requested before the page's load event, because the check ran at hydration, and
+  Session AV's earlier fetch of ZIGi's and the music buttons' chunks as the shell runs (`a2adb214`) made hydration beat
+  the load event more often. Fixed at the cause: the start check's code is fetched once the page has loaded (its
+  guard unchanged: a fresh visit, still on Today). `wiring-2-nova-start` 16 of 16 (four times each), the spec unchanged.
+- Recorded as intermittents (passed in run 1993 on the same app code): shard 14 `ui-evidence:91` (unlocked layouts'
+  move controls), shard 7 `run11-route-mobile-acceptance:31` (first seen in run 1701), integration `account-browser`
+  (D-SYNC, carried).
+
 ## Closing table
 
 | Item | Verdict | Where |
