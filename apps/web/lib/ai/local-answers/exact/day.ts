@@ -62,7 +62,7 @@ export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
   const lang = q.lang, today = env.habitDay, record = env.nova?.tasks, out = answer(q, ['Your tasks', 'Je taken']), day = (d: string) => dayWords(d, today);
   if (!record) return null;
   if (!record.tasks.length) return out(t(lang, 'No tasks yet.', 'Nog geen taken.'), {tasks: 0}, [{id: 'tasks'}]);
-  const r = runTool('tasks', {}, env), open = (r.ok ? r.data.open as {task: string; state: string; due?: string; time?: string; priority: string}[] | undefined : undefined) ?? [];
+  const r = runTool('tasks', {}, env), open = (r.ok ? r.data.open as {task: string; state: string; due?: string; time?: string; priority: string; deadline?: string}[] | undefined : undefined) ?? [];
   const name = (x: {task: string; due?: string; time?: string}) => `${plain(x.task)}${x.due ? ` (${t(lang, 'due', 'gepland')} ${x.due === today ? t(lang, 'today', 'vandaag') : day(x.due)}${x.time ? ` ${formatClock(x.time)}` : ''})` : ''}`;
   const overdue = open.filter(x => x.state === 'overdue'), doneDay = (x: {doneAt?: string}) => x.doneAt ? calendarDay(x.doneAt, env.habitZone) : null;
   const base = {open: open.length, overdue: overdue.map(x => plain(x.task))}, timeline: ExactWidget[] = [{id: 'task-timeline', fallback: 'tasks'}];
@@ -72,6 +72,12 @@ export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
     const span = periodSpan(p, lang, today);
     if (q.ask === 'late') return out(late.length ? t(lang, `${late.length} of ${hit.length} tasks done ${span} ${late.length === 1 ? 'was' : 'were'} finished after ${late.length === 1 ? 'its' : 'their'} day: ${listWords(late.map(x => plain(x.title)), 'en')}.`, `${late.length} van de ${hit.length} taken gedaan ${span} ${late.length === 1 ? 'is' : 'zijn'} na de geplande dag afgerond: ${listWords(late.map(x => plain(x.title)), 'nl')}.`) : t(lang, `No task done ${span} was finished late (${hit.length} done).`, `Geen taak gedaan ${span} is te laat afgerond (${hit.length} gedaan).`), {...base, done: hit.length, late: late.map(x => plain(x.title))}, timeline);
     return out(hit.length ? t(lang, `${hit.length} ${hit.length === 1 ? 'task' : 'tasks'} done ${span}: ${listWords(hit.slice(0, 8).map(x => plain(x.title)), 'en')}.`, `${hit.length} ${hit.length === 1 ? 'taak' : 'taken'} gedaan ${span}: ${listWords(hit.slice(0, 8).map(x => plain(x.title)), 'nl')}.`) : t(lang, `No task done ${span}.`, `Geen taak gedaan ${span}.`), {...base, done: hit.length, tasks: hit.map(x => plain(x.title))}, timeline);
+  }
+  // Session AV (owner follow-up 1, F-DEADLINES): the tasks with a deadline, soonest first; a passed one says so.
+  if (/\bdeadlines?\b/.test(q.read)) {
+    const hit = open.filter(x => x.deadline).sort((a, b) => a.deadline!.localeCompare(b.deadline!));
+    const by = (x: {task: string; deadline?: string}) => `${plain(x.task)} (${x.deadline! < today ? t(lang, 'deadline passed', 'deadline verstreken') : 'deadline'} ${x.deadline === today ? t(lang, 'today', 'vandaag') : day(x.deadline!)})`;
+    return out(hit.length ? t(lang, `${hit.length} open ${hit.length === 1 ? 'task has' : 'tasks have'} a deadline: ${listWords(hit.slice(0, 8).map(by), 'en')}.`, `${hit.length} open ${hit.length === 1 ? 'taak heeft' : 'taken hebben'} een deadline: ${listWords(hit.slice(0, 8).map(by), 'nl')}.`) : t(lang, `No open task has a deadline (${open.length} open).`, `Geen open taak heeft een deadline (${open.length} open).`), {...base, deadlines: hit.map(x => plain(x.task))}, timeline);
   }
   if (q.ask === 'late' || q.ask === 'missed' || q.ask === 'not-done') return out(overdue.length ? t(lang, `${overdue.length} ${overdue.length === 1 ? 'task is' : 'tasks are'} overdue: ${listWords(overdue.map(name), 'en')}.`, `${overdue.length} ${overdue.length === 1 ? 'taak is' : 'taken zijn'} te laat: ${listWords(overdue.map(name), 'nl')}.`) : t(lang, `No task is overdue (${open.length} open).`, `Geen taak is te laat (${open.length} open).`), base, [{id: 'task-overdue', fallback: 'tasks'}, ...timeline]);
   // Due on a day or in the days ahead ("tomorrow", "this week"): open tasks by their day.

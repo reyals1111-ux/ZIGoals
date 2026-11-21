@@ -32,7 +32,7 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'goals-next-date': ['Apr 16, 2027', 'Japan adventure'], 'goals-milestones': ['Launch my creative studio', '2', '4', 'Find the first client', 'Emergency fund', 'Sleep 8 hours a night'], 'goal-japan': ['2,500', '6,000'], 'goal-emergency': ['9,000', '20,000'], 'goal-emergency-eta': ['Jan 31, 2028', 'Nov 16, 2028', '11,000.00', '—'], 'goal-japan-eta': ['Japan adventure', 'Apr 16, 2027', '3,500.00'], 'networth-year': ['531,029.00', '8,000.00'],
   // The day, the journal, focus and NOVA itself
   'tasks-overdue': ['Sketch the garden bed', 'Book the dentist'], 'tasks-open': ['5'], 'tasks-tomorrow': ['2'], 'tasks-week': ['Compare two savings accounts', 'Draft the trip budget'],
-  'tasks-done-week': ['Renew the library card'], 'tasks-done-lastweek': [], 'tasks-priority': ['Book the dentist'], 'tasks-next': ['Sketch the garden bed'],
+  'tasks-done-week': ['Renew the library card'], 'tasks-done-lastweek': [], 'tasks-priority': ['Book the dentist'], 'tasks-next': ['Sketch the garden bed'], 'tasks-deadlines': ['Draft the trip budget', 'deadline'],
   'journal-today': [], 'journal-notdone-month': ['Nov 1', 'Nov 13'], 'journal-days-month': ['10'], 'journal-lastweek': ['5'], 'journal-streak': ['4'], 'journal-last': ['Nov 17'], 'notes-count': [],
   'agenda-today': ['Meditate'], 'agenda-tomorrow': ['Upper body session'], 'agenda-next': ['Meditate'], 'checklist-today': [],
   'focus-week': ['150'], 'focus-today': [], 'focus-month': ['397'], 'focus-none-days-lastweek': ['Nov 9', 'Nov 15'], 'focus-days-month': ['Nov 1', 'Nov 16'], 'focus-best-month': ['Nov 16', '150'], 'focus-compare-weeks': ['150', '136'],

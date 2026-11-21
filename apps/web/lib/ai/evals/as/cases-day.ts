@@ -27,6 +27,10 @@ export const DAYS: readonly Intent[] = [
   {id: 'tasks-priority', pillar: 'tasks',
     en: ['which tasks have high priority', 'what are my important tasks'],
     nl: ['welke taken hebben hoge prioriteit', 'wat zijn mijn belangrijke taken']},
+  // Session AV (owner follow-up 1, F-DEADLINES): the deadlines, apart from the planned days.
+  {id: 'tasks-deadlines', pillar: 'tasks',
+    en: ['which tasks have a deadline', 'what are my task deadlines', 'any task deadlines coming up'],
+    nl: ['welke taken hebben een deadline', 'wat zijn de deadlines van mijn taken']},
   {id: 'tasks-next', pillar: 'tasks',
     en: ['what is my next task', 'which task is next'],
     nl: ['wat is mijn volgende taak', 'welke taak is de volgende']},

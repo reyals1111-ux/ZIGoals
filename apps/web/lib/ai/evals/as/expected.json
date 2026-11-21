@@ -5195,6 +5195,14 @@
   "fresh": "No open task has high priority.",
   "freshNl": "Nog geen taken."
  },
+ "tasks-deadlines": {
+  "en": "1 open task with a deadline:\n• Example · Draft the trip budget — deadline Nov 25, 2026; planned Nov 22, 2026",
+  "nl": "1 open taak heeft een deadline: Draft the trip budget (deadline Wed, Nov 25).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task has a deadline.",
+  "freshNl": "Nog geen taken."
+ },
  "tasks-next": {
   "en": "Next: Example · Sketch the garden bed — overdue since Nov 16, 2026.",
   "nl": "De volgende: Sketch the garden bed (gepland Mon, Nov 16).",
