@@ -186,3 +186,16 @@ both attempts still fails the job. No assertion, timeout or test was changed for
 | `tests/ao/today-tab-stops.spec.ts` 91-92 (AQ Sunday evening, AR dev server) | Date- and time-dependent cards (evening Guide nudge, Sunday's review nudge, planned reminders) | Each card's actions one roving stop; 88-89 on all 14 clocks of a week (D3) |
 | `scripts/pre-run11-setup.test.mjs` on Node ≠ 24.19.0 | The CLI tests ran the script's (correct) version check on the test's own Node | Preload as the pinned Node; the check has its own test (D2) |
 | Every earlier proposed fix in this file | Applied in the code already (D10) | — |
+
+## Session AV, owner follow-up 2 (1b) — each failure of runs 1937–1997
+
+| failure | outcome |
+|---|---|
+| `food-search.test.mjs:90` | fixed at the cause (`0dc926b5`, TIER 3 Workers) |
+| `habits-routines-block:74` | fixed: measured after the move glide (`dc2c9524`) |
+| `o3-apps-extras:94` | fixed: measured after the sheet's entrance (`9e1f135e`) |
+| `zigi-face-z:75` (WebKit, CI 1996) | fixed: the voice hint's OK is 44 px wide (`ac215a72`) |
+| `au/sanne:64`, `zigi-oneline-z:225` (CI 1997) | fixed (`55028851`, `4cdeba65`) |
+| `zigi-voice-z:199` | Carried after two attempts (ADR-045 D-FU2-1b: the Voice card waits for the private store after hydration) |
+| account-browser (D-SYNC) | Carried after two attempts (no reproduction; a load timeout only) |
+| `ui-evidence:91`, `run11-route-mobile-acceptance:31`, `sync-offer-browser:39`, `exploratory-round3` | not seen in runs 1995–1997; recorded |

@@ -576,6 +576,42 @@ Where a rule of the definition of done does not apply, it says so here.
 >
 > Every other decided row is an owner action or "keep": nothing to build. Leave those rows decided, with no code.
 
+## Follow-ups 2 and 3 — decisions and measurements
+
+- **D-FU2-1a (food Worker, TIER 3 Workers, `0dc926b5`).** Cause measured: a slot was reserved on time but its request
+  could leave late (161 ms on a cold local start; 200–350 ms in CI), and the next slot counted from the reservation.
+  `untilTurn()` waits until the slot and `spacing` after the previous request actually left, re-waits any remainder
+  after waking, and records the send in the transaction that allows it. 9 local runs 1,996–2,006 ms (before 1,833 on
+  the cold run); the 1,900 ms floor unchanged. OWNER_STEPS 9e: at the next owner redeploy, not needed for Alpha #58.
+- **D-FU2-1b, per failure (at most two attempts each):**
+  - `habits-routines-block:74` (`dc2c9524`): reproduced under load (1 of 8, two busy cores): the heading was read during
+    the 240 ms move glide (3,243 px against the groups' 1,583 px). place() waits for the glide; 56 of 56 under load.
+  - `o3-apps-extras:94` (`9e1f135e`): measured after the sheet's entrance (its @starting-style transition); 6 of 6.
+  - `zigi-voice-z:199`: attempt 2 (`8f53d7e6`): Settings' ZIGi body pulled in the tools registry and planner through
+    `lib/ai/webmcp.ts` (static closure 477 modules / 4.1 MB of source → 262 / 2.2 MB; the body's lazy chunks 900 kB →
+    282 kB). Measured at 4× CPU, the Voice card still appears 1.2–1.8 s after hydration (3.8–5.7 s): it waits for
+    `settings.loaded` (the private store's read) after Settings' own hydration (2.3–3.9 s). **Carried** after two
+    attempts with this measurement; the spec's 5 s unchanged; the lighter chunk kept.
+  - account-browser (D-SYNC): attempt 2, two runs under two busy cores: 1 of 4 cases timed out at the 150 s budget with
+    no stall diagnostics (load, not the form reset); 3 of 4 passed. With attempt 1 (6 of 6): **Carried**, no reproduction.
+  - `zigi-face-z:75` (run 1996, WebKit): a real 22.5 px "OK" in the voice hint → 44 px wide (`ac215a72`).
+  - `au/sanne:64` (run 1997): two Settings buttons after the L-9 title fitted the card button's 40 characters → one
+    (`55028851`). `zigi-oneline-z:225` (run 1997): the wider-name check scaled to the shorter name (`4cdeba65`).
+  - `wiring-2-nova-start`, `nova-wa:75`: fixed earlier (D-CI1994, D-CI1949); not seen since.
+  - `ui-evidence:91`, `run11-route-mobile-acceptance:31`, `sync-offer-browser:39`, `exploratory-round3`: not seen in
+    runs 1995–1997; no reproduction to work from (recorded in CI_INTERMITTENTS).
+- **D-FU2-1c.** Four fresh reviewers, then four fresh fixers (QUALITY.md): 2 Blockers and 63 Majors, all fixed; Minors
+  quick ones fixed, the rest listed with their cause. Owner-decision rows q4 #23 and #33: the reviewer's smaller
+  suggestion built, ADR-045's choice kept. Stored formats (TIER 3, `22560d4d`): `task.snooze`, `journal.todayLines`.
+  Follow-up checks on the fixed build found three pages wider than 320 px (`81d21430`) and two spec readings
+  (`a31eb0f9`). Habits headroom restored to 5.6 kB by loading the challenge parts lazily (`5f61ffaf`).
+- **D-FU2-1d (`cde9bb69`).** What's new: 77 → 30 lines; AV's 53 grouped into six pillar lines, each opening an answer
+  that names its parts; all 53 answers kept. Help's link pin (78) untouched.
+- **D-FU3.** L-9 (`d5868ece`): "ZIGi · your companion" (NL "ZIGi · je metgezel"), the Premium badge removed; the landing
+  never used the old title (nothing to deploy). PK-18 (`5b8a0369`, TIER 3 AI tools): no mode chosen sends as Guarded,
+  with NOVA's redacted preview in ZIGi's composer; spec `tests/av-companion-guarded.spec.ts`. Owner decisions marked
+  decided 21 Nov in UNFINISHED.md; CR-19, M-9, PK-6, PK-10, PK-16 are lane 2.
+
 ## Closing table
 
 | Item | Verdict | Where |
