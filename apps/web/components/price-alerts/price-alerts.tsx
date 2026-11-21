@@ -6,7 +6,7 @@ import {useMarketQuotes} from '../platform/use-market-quotes';
 import {usePlatform} from '../platform/use-platform';
 import {showToast} from '../ui/undo-toast';
 import {goalProgress} from '../../lib/positions';
-import {addAlert, alertLine, checkPriceAlerts, markSeen, newAlertId, removeAlert, unseen} from '../../lib/price-alerts/engine';
+import {addAlert, alertLine, checkPriceAlerts, markSeen, movePrice, newAlertId, priceText, quoteFor, removeAlert, unseen} from '../../lib/price-alerts/engine';
 import {PRICE_ALERTS, type PriceAlert} from '../../lib/price-alerts/schema';
 import {formatDateTime} from '../../lib/visual-format';
 import './price-alerts.css';
@@ -52,24 +52,35 @@ export function PriceAlertsTodayCard() {
 
 /** Set an alert for one coin (a price above or below, or a goal reaching a percent with this coin's price). */
 export function PriceAlertForm({coin, coinName, currency, goals = [], defaultKind = 'price'}: {coin: string; coinName: string; currency: 'USD' | 'EUR'; goals?: readonly {id: string; name: string}[]; defaultKind?: 'price' | 'goal'}) {
-  const alerts = useDeviceRecord(PRICE_ALERTS), id = useId();
-  const [kind, setKind] = useState<'price' | 'goal'>(goals.length ? defaultKind : 'price'), [direction, setDirection] = useState<'above' | 'below'>('above'), [price, setPrice] = useState(''), [goalId, setGoalId] = useState(goals[0]?.id ?? ''), [percent, setPercent] = useState('100'), [status, setStatus] = useState('');
+  const alerts = useDeviceRecord(PRICE_ALERTS), id = useId(), {quotes} = useMarketQuotes([]);
+  // Session AV (owner follow-up 1, F-MOVE-ALERT): a move of a percent from today's price, saved as a price alert.
+  const quote = quoteFor(quotes, coin, currency), today = quote ? priceText(quote) : null, [movePercent, setMovePercent] = useState('10');
+  const [kind, setKind] = useState<'price' | 'goal' | 'move'>(goals.length ? defaultKind : 'price'), [direction, setDirection] = useState<'above' | 'below'>('above'), [price, setPrice] = useState(''), [goalId, setGoalId] = useState(goals[0]?.id ?? ''), [percent, setPercent] = useState('100'), [status, setStatus] = useState('');
   if (!alerts.loaded) return null;
   const mine = alerts.data.alerts.filter(a => a.coin === coin && a.active);
   const save = (event: React.FormEvent) => {
     event.preventDefault(); setStatus('');
     const goal = goals.find(g => g.id === goalId), base = {id: newAlertId(), coin, coinName, currency, createdAt: new Date().toISOString(), active: true, channels: {inApp: true, push: false}} as const;
-    const alert: PriceAlert = kind === 'price' ? {...base, kind, direction, price: price.trim().replace(',', '.')} : {...base, kind, goalId, goalName: goal?.name ?? '', percent: Number(percent)};
-    try { alerts.update(r => addAlert(r, alert)); setPrice(''); setStatus(`Alert set: ${alertLine(alert)}. ZIGoals checks it with prices it already reads; nothing is sent.`); }
-    catch (cause) { setStatus(cause instanceof Error && /already set|Up to/.test(cause.message) ? cause.message : kind === 'price' ? 'Enter a price, such as 65000 or 0.25.' : 'Choose a goal and a percent from 1 to 1000.'); }
+    let alert: PriceAlert;
+    try {
+      alert = kind === 'move' ? {...base, kind: 'price', direction, price: movePrice(today ?? '', Number(movePercent), direction === 'above')} : kind === 'price' ? {...base, kind, direction, price: price.trim().replace(',', '.')} : {...base, kind, goalId, goalName: goal?.name ?? '', percent: Number(percent)};
+    } catch (cause) { setStatus(cause instanceof Error ? cause.message : 'Choose a percent.'); return; }
+    const from = kind === 'move' ? ` (${movePercent}% ${direction === 'above' ? 'up' : 'down'} from ${today} ${currency} today)` : '';
+    try { alerts.update(r => addAlert(r, alert)); setPrice(''); setStatus(`Alert set: ${alertLine(alert)}${from}. ZIGoals checks it with prices it already reads; nothing is sent.`); }
+    catch (cause) { setStatus(cause instanceof Error && /already set|Up to/.test(cause.message) ? cause.message : kind === 'price' ? 'Enter a price, such as 65000 or 0.25.' : kind === 'move' ? 'Choose a percent from 1 to 90 down or 1 to 1000 up.' : 'Choose a goal and a percent from 1 to 1000.'); }
   };
   return <details className="price-alert-form"><summary>Price alert{mine.length ? ` (${mine.length} set)` : ''}</summary>
     <form onSubmit={save} aria-label={`Price alert for ${coinName}`}>
       <fieldset className="price-alert-kind"><legend>Alert me when</legend>
         <label><input type="radio" name={`${id}-kind`} checked={kind === 'price'} onChange={() => setKind('price')}/> {coinName}&rsquo;s price</label>
+        {today && <label><input type="radio" name={`${id}-kind`} checked={kind === 'move'} onChange={() => setKind('move')}/> {coinName} moves by a percent from today&rsquo;s {today} {currency}</label>}
         {goals.length > 0 && <label><input type="radio" name={`${id}-kind`} checked={kind === 'goal'} onChange={() => setKind('goal')}/> {coinName} puts a goal at a percent</label>}
       </fieldset>
-      {kind === 'price' ? <div className="form-grid">
+      {kind === 'move' && today ? <div className="form-grid">
+        <label>Goes<select value={direction} onChange={e => setDirection(e.target.value as 'above' | 'below')}><option value="above">up</option><option value="below">down</option></select></label>
+        <label>By (%)<input inputMode="numeric" value={movePercent} onChange={e => setMovePercent(e.target.value)} required/></label>
+        <p className="fine">That is {(() => { try { return `${movePrice(today, Number(movePercent), direction === 'above')} ${currency}`; } catch { return 'a percent from 1 to 90 down or 1 to 1000 up'; } })()}.</p>
+      </div> : kind === 'price' ? <div className="form-grid">
         <label>Goes<select value={direction} onChange={e => setDirection(e.target.value as 'above' | 'below')}><option value="above">above</option><option value="below">below</option></select></label>
         <label>Price ({currency})<input inputMode="decimal" value={price} onChange={e => setPrice(e.target.value)} required/></label>
       </div> : <div className="form-grid">
