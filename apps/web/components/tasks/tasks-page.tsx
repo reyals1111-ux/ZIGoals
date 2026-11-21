@@ -13,7 +13,7 @@ import {TasksNav, viewKey, readView, viewTitle} from './tasks-nav';
 import {useTaskList} from './use-task-list';
 import {useGoalOptions} from './use-goal-options';
 import {
-  addProject, addSection, childrenOf, clearDone, completedInWindow, dropOrder, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
+  addProject, addSection, addTask, childrenOf, clearDone, completedInWindow, dropOrder, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
   removeProject, removeSection, renameSection, saveFilter, setOrder, skipOccurrence, taskCounts, taskState, viewTasks, type TaskInput, type TaskView,
 } from '../../lib/tasks/engine';
 import {dueReminders} from '../../lib/tasks/reminders';
@@ -127,6 +127,9 @@ export function TasksPage() {
   }, [list]);
   const defaults = useMemo<Partial<TaskInput>>(() => view.kind === 'project' ? {projectId: view.id} : view.kind === 'label' ? {labels: [view.name]} : view.kind === 'priority' ? {level: view.level} : view.kind === 'today' ? {due: today} : {}, [view, today]);
   const addFromLine = useCallback((input: TaskInput) => list.add({...input, ...(input.due === undefined && defaults.due ? {due: defaults.due} : {}), ...(input.level === undefined && defaults.level ? {level: defaults.level} : {})}), [list, defaults]);
+  // Session AV (owner follow-up 1, F-PASTE-LIST): a pasted list, every task in one change, so one Undo takes them all back.
+  const withDefaults = useCallback((input: TaskInput): TaskInput => ({...input, ...(input.due === undefined && defaults.due ? {due: defaults.due} : {}), ...(input.level === undefined && defaults.level ? {level: defaults.level} : {})}), [defaults]);
+  const addManyFromLines = useCallback((inputs: TaskInput[]) => { const at = new Date(); return list.change(r => inputs.reduce((acc, input) => addTask(acc, withDefaults(input), {id: `task_${crypto.randomUUID()}`, at, today, allowPast: true}), r), `Added ${plural(inputs.length, 'task')}.`, `${plural(inputs.length, 'task')} taken back.`); }, [list, withDefaults, today]);
   const setLevel = (level: TaskLevel, one?: string) => { const list_ = ids(one); if (list_.length) list.change(r => editMany(r, list_, () => ({level}), today, {allowPast: true}), `${list_.length > 1 ? plural(list_.length, 'task') : 'Task'} set to P${level}.`); };
   const setDue = (due: string, one?: string) => { const list_ = ids(one); if (list_.length) list.change(r => editMany(r, list_, () => ({due}), today, {allowPast: true}), `${list_.length > 1 ? plural(list_.length, 'task') : 'Task'} due ${due === today ? 'today' : formatDate(due, {weekday: true})}.`); };
   const finishSelected = (one?: string) => { const list_ = ids(one).filter(id => record.tasks.some(t => t.id === id && !t.doneAt)); if (list_.length) { list.change(r => finishMany(r, list_, new Date(), {today, doneDay: today}), list_.length > 1 ? `Done: ${plural(list_.length, 'task')}.` : `Done: “${record.tasks.find(t => t.id === list_[0])?.title}”.`); setSelected(new Set()); setSelecting(false); } };
@@ -350,7 +353,7 @@ export function TasksPage() {
             {query.trim() && <LoadBoundary quiet><Suspense fallback={null}><FilterSave onSave={name => list.change(r => saveFilter(r, name, query), `Saved the filter “${name}”.`)} /></Suspense></LoadBoundary>}
             <p id="tasks-filter-help" className="sr-only">Words match titles and notes. Also #project, @label, p1 to p4, today, tomorrow, overdue, no date, due:2026-12-05, recurring; join with & or |; ! before a word leaves it out.</p>
           </header>
-          {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
+          {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} onAddMany={addManyFromLines} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
           {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : addLocalDays(today, 1))} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => { setSelected(new Set()); setSelecting(false); }} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
           {selectMode && !selected.size && <p className="fine tasks-select-hint" role="status">Tick the tasks to act on together; Escape ends selecting.</p>}
           <TaskStatusLine error={list.error} />

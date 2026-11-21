@@ -26557,6 +26557,15 @@
     .tasks-done-bars rect:not(#\-) {
         fill: var(--cyan, #6fd3ff)
     }
+    .tasks-paste-list:not(#\-) {
+        border-color: var(--line, rgba(140,160,220,.3))
+    }
+    .tasks-paste-list:focus-visible:not(#\-) {
+        outline-color: var(--focus, currentColor)
+    }
+    .tasks-paste-items small:not(#\-) {
+        color: var(--text-meta, var(--muted))
+    }
 }
 /*  components/tasks/today-tasks-due.css  */
 @scope (:root[data-theme=dark]) {

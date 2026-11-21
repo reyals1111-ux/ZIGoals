@@ -45,10 +45,13 @@ export function dueText(t: Task, today: string, nowClock?: string): string {
 }
 
 /** The title field: its own 140 limit (older builds read up to 140), and a paste that would be cut says so. */
-export function TaskTitleInput({value, onChange, label, describedBy, inputRef, placeholder, onKeyDown, error}: {value: string; onChange: (v: string) => void; label: string; describedBy?: string; inputRef?: React.Ref<HTMLInputElement>; placeholder?: string; onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void; error?: string}) {
+export function TaskTitleInput({value, onChange, label, describedBy, inputRef, placeholder, onKeyDown, error, onPasteText}: {value: string; onChange: (v: string) => void; label: string; describedBy?: string; inputRef?: React.Ref<HTMLInputElement>; placeholder?: string; onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void; error?: string;
+  /** Session AV (F-PASTE-LIST): sees the pasted text first; true takes the paste (a list read as several tasks). */ onPasteText?: (text: string) => boolean}) {
   const id = useId(), [cut, setCut] = useState('');
   const paste = (e: ClipboardEvent<HTMLInputElement>) => {
-    const text = e.clipboardData.getData('text'), el = e.currentTarget, room = TASK_TITLE_MAX - (el.value.length - ((el.selectionEnd ?? 0) - (el.selectionStart ?? 0)));
+    const text = e.clipboardData.getData('text');
+    if (onPasteText?.(text)) { e.preventDefault(); setCut(''); return; }
+    const el = e.currentTarget, room = TASK_TITLE_MAX - (el.value.length - ((el.selectionEnd ?? 0) - (el.selectionStart ?? 0)));
     setCut(text.length > room ? `Cut to ${TASK_TITLE_MAX} characters: the pasted text had ${text.length}.` : '');
   };
   const notes = [describedBy, cut ? `${id}-cut` : '', error ? `${id}-err` : ''].filter(Boolean).join(' ') || undefined;

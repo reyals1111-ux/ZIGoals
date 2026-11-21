@@ -6995,6 +6995,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .tasks-done-axis:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-done-weeks:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-done-table th:not(#\-), :where(:root[data-density=compact]) .tasks-done-table td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .tasks-paste-list:not(#\-) { row-gap: 4.5px; margin-top: 6px; margin-bottom: 0; padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .tasks-paste-list p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-paste-items:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .tasks-paste-actions:not(#\-) { row-gap: 8px; }
 /*  components/tasks/today-tasks-due.css  */
 :where(:root[data-density=compact]) .today-tasks-due:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .today-tasks-due-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
