@@ -199,3 +199,4 @@ both attempts still fails the job. No assertion, timeout or test was changed for
 | `zigi-voice-z:199` | Carried after two attempts (ADR-045 D-FU2-1b: the Voice card waits for the private store after hydration) |
 | account-browser (D-SYNC) | Carried after two attempts (no reproduction; a load timeout only) |
 | `ui-evidence:91`, `run11-route-mobile-acceptance:31`, `sync-offer-browser:39`, `exploratory-round3` | not seen in runs 1995–1997; recorded |
+| account-browser b-first (CI **2000**, `97d86a8c`, docs-only head after run 1999 green) | The D-SYNC stall again: "L56 A: waist measurement" made no progress for 20 s on /app/health; no account request in flight; the last automatic sync (after the meal, +8.5 s) ended 4 s before. Carried (two attempts, ADR-045 D-FU2-1b); run 2001 follows on the next head |
