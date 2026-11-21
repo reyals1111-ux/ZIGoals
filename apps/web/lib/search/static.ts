@@ -140,6 +140,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-watch", "Can I keep an eye on a category without a budget?"],
   ["av-miss-reason", "Can I note why a habit did not happen?"],
   ["av-journal-today", "Why does Today’s journal card not show my entries?"],
+  ["av-journal-day", "Can a journal entry show what else happened that day?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
