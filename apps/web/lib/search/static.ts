@@ -136,6 +136,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-sleep-score", "How is the sleep score worked out?"],
   ["av-high-in", "Which foods are high in iron, fibre or calcium?"],
   ["av-repeat-plan", "Can a planned meal repeat every week?"],
+  ["av-week-grid", "Can I see all my habits for the whole week?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
