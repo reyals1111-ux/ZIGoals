@@ -11296,6 +11296,25 @@
         }
     }
 }
+/*  components/health/workouts/workout-calendar.css  */
+@scope (:root[data-theme=dark]) {
+    .workout-calendar-grid th:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .workout-calendar-grid td:not(#\-) {
+        border-color: var(--line, rgba(128,128,160,.3))
+    }
+    .workout-calendar-grid td.is-out:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .workout-calendar-grid td.is-today:not(#\-) {
+        outline-color: var(--cyan, #6fd3ff)
+    }
+    .workout-calendar-grid td.is-trained:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--success, #47d6a1) 22%, transparent)
+    }
+}
 /*  components/health/workouts/workouts.css  */
 @scope (:root[data-theme=dark]) {
     .workouts-routines > li:not(#\-) {

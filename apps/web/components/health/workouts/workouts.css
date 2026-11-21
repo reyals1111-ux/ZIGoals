@@ -139,3 +139,4 @@
 .workouts-set-best { display: inline-block; margin-inline-start: 6px; font-weight: 700; vertical-align: middle; }
 .workouts-last-note { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 4px 0 0; overflow-wrap: anywhere; }
 .workouts-last-note .text-link { min-height: 44px; }
+.workouts-calendar-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }

@@ -40,6 +40,8 @@ const WorkoutTools = lazy(() => import('./workouts-tools'));
 const WeeklyChart = lazy(() => import('./weekly-chart'));
 // Session AV (follow-up 1, F-RUN-BESTS): the fastest 1, 5 and 10 km and the longest run, its own chunk.
 const RunBests = lazy(() => import('./run-bests'));
+// Session AV (owner follow-up 1, F-WORKOUT-CALENDAR): a month of workouts, opened on demand.
+const WorkoutCalendar = lazy(() => import('./workout-calendar'));
 const WorkoutsMuscles = lazy(() => import('./workouts-muscles'));
 // Session AK (item 8): "Fresh today: legs, back" on the start sheet, its own small chunk.
 const MuscleFreshToday = lazy(() => import('./muscle-freshness-today'));
@@ -185,6 +187,7 @@ export default function WorkoutsView() {
         <p className="fine">This week: {week.workouts} {plural(week.workouts, 'workout')}{week.workouts ? ` · ${week.minutes} min · ${week.sets} ${plural(week.sets, 'set')}${week.volumeKg ? ` · ${weightShown(week.volumeKg, unit)} lifted` : ''}` : ''}.</p>
         {past.length > 0 && <Suspense fallback={null}><WeeklyChart w={w} today={today} unit={unit}/></Suspense>}
         {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null}/></Suspense>}
+        {past.length > 0 && <CalendarFold w={w} today={today}/>}
         <div className="workouts-start-actions">
           <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
           {last && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: last})}>Repeat {last.name}</button>}
@@ -258,6 +261,11 @@ function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRe
   </section>;
 }
 
+/** Session AV (F-WORKOUT-CALENDAR): the fold whose content loads when opened. */
+function CalendarFold({w, today}: {w: Workouts; today: string}) {
+  const [open, setOpen] = useState(false);
+  return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today}/></Suspense>}</details>;
+}
 function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
   w: Workouts; letter?: string; nextLetter?: string}) {
   const headId = `ex-${entry.id}`, [tools, setTools] = useState(false), rpe = entry.measure === 'weight-reps' || entry.measure === 'reps';

@@ -1678,6 +1678,10 @@
 /*  components/health/workouts/muscle-freshness.css  */
 :where(:root[data-text=large]) .muscle-freshness-body text:not(#\-) { font-size: calc(10px * 1.125); }
 :where(:root[data-text=large]) .muscle-freshness-body .mf-view:not(#\-) { font-size: calc(10px * 1.125); }
+/*  components/health/workouts/workout-calendar.css  */
+:where(:root[data-text=large]) .workout-calendar-grid th:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .workout-calendar-day:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .workout-calendar-names small:not(#\-) { font-size: calc(12px * 1.125); }
 /*  components/health/workouts/workouts.css  */
 :where(:root[data-text=large]) .workouts-routines span:not(#\-), :where(:root[data-text=large]) .workouts-past summary span:not(#\-), :where(:root[data-text=large]) .workouts-picker-list span:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .workouts-elapsed strong:not(#\-) { font-size: calc(1.6rem * 1.125); }

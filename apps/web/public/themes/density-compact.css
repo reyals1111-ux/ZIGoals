@@ -3224,6 +3224,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/health/workouts/muscle-freshness.css  */
 :where(:root[data-density=compact]) .muscle-freshness-body:not(#\-) { margin-top: 8px; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .muscle-freshness-grid:not(#\-) { row-gap: 6px; }
+/*  components/health/workouts/workout-calendar.css  */
+:where(:root[data-density=compact]) .workout-calendar:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .workout-calendar-nav:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .workout-calendar-nav h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .workout-calendar-grid td:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
 /*  components/health/workouts/workouts.css  */
 :where(:root[data-density=compact]) .workouts-view:not(#\-) { row-gap: 18px; }
 :where(:root[data-density=compact]) .workouts-view .page-heading:not(#\-) { margin-bottom: 0; }

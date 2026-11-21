@@ -147,6 +147,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-plan-day", "Can Tasks suggest what to plan for today?"],
   ["av-task-minutes", "Can I say how long a task takes?"],
   ["av-set-best", "Does a workout show last time’s note and a new best?"],
+  ["av-workout-calendar", "Can I see my workouts on a calendar?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
