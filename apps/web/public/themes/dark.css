@@ -26516,6 +26516,13 @@
     .task-project[data-colour] > span:first-child:not(#\-) {
         color: var(--task-colour)
     }
+    .task-deadline.is-passed > span:first-child:not(#\-), .task-deadline.is-today > span:first-child:not(#\-) {
+        color: var(--danger, #e5484d)
+    }
+    .tasks-piece[data-kind=deadline] mark:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, #e5484d 18%, transparent)
+    }
     .task-label:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }

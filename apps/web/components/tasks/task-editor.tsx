@@ -29,6 +29,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   // C-LS-08: an edit to a repeating task asks first whether it is for this time only or for this and every time after.
   const [ask, setAsk] = useState<TaskPatch | null>(null), askRef = useRef<HTMLButtonElement>(null);
   const [title, setTitle] = useState(task.title), [level, setLevel] = useState<TaskLevel>(taskLevel(task)), [due, setDue] = useState(task.due ?? ''), [time, setTime] = useState(task.time ?? ''), [goal, setGoal] = useState(task.goal ?? '');
+  const [deadline, setDeadline] = useState(task.deadline ?? '');
   const [notes, setNotes] = useState(task.notes ?? ''), [repeat, setRepeat] = useState(task.recur?.text ?? (task.recur ? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase() : '')), [labels, setLabels] = useState((task.labels ?? []).map(l => `@${l}`).join(' '));
   const [projectId, setProjectId] = useState(task.projectId ?? ''), [sectionId, setSectionId] = useState(task.sectionId ?? ''), [reminder, setReminder] = useState<string>(task.reminders?.[0] ? String(task.reminders[0].before) : '');
   const [habit, setHabit] = useState(task.habit ?? ''), [health, setHealth] = useState<string>(task.health ?? ''), [titleError, setTitleError] = useState('');
@@ -42,7 +43,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     if (!title.trim()) { setTitleError('A task needs a title.'); return; }
     if (recur === 'invalid') return;
     const unchangedRepeat = task.recur && repeat === (task.recur.text ?? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase());
-    const patch: TaskPatch = {title, level, due: due || null, time: due && time ? time : null, goal: goal || null, notes: notes.trim() ? notes : null,
+    const patch: TaskPatch = {title, level, due: due || null, time: due && time ? time : null, goal: goal || null, notes: notes.trim() ? notes : null, deadline: deadline || null,
       ...(unchangedRepeat ? {} : {recur: recur ? {...recur, text: repeat.trim().slice(0, 120)} : null}),
       labels: labels.split(/[\s,]+/).map(l => l.replace(/^@/, '')).filter(Boolean),
       ...(record ? {projectId: projectId || null, sectionId: sectionId || null} : {}),
@@ -65,6 +66,9 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     <label className="field"><span>Priority</span><select value={level} onChange={e => setLevel(Number(e.target.value) as TaskLevel)}>{([1, 2, 3, 4] as const).map(p => <option key={p} value={p}>{LEVEL_WORDS[p]}</option>)}</select></label>
     <label className="field"><span>Due</span><input type="date" value={due} aria-describedby={due && due < today ? `${id}-past` : undefined} onChange={e => { setDue(e.target.value); if (!e.target.value) setTime(''); }} />{due && due < today && <small id={`${id}-past`} className="tasks-field-note">A past day: it shows as overdue.</small>}</label>
     <label className="field"><span>Time</span><input type="time" value={time} disabled={!due} onChange={e => setTime(e.target.value)} /></label>
+    {/* Session AV (owner follow-up 1, F-DEADLINES): the day it must be done by, apart from the day it is planned for. */}
+    <label className="field"><span>Deadline — optional</span><input type="date" value={deadline} aria-describedby={`${id}-deadline`} onChange={e => setDeadline(e.target.value)} /></label>
+    <small id={`${id}-deadline`} className={deadline && due && deadline < due ? 'tasks-field-error' : 'tasks-field-note'}>{deadline && due && deadline < due ? 'The deadline is before the planned day. Move one of them, or keep it: the task shows in Today from its deadline.' : 'The day it must be done by. Due is the day you plan to do it; from its deadline the task is also in Today.'}</small>
     <label className="field"><span>Repeat</span><input value={repeat} maxLength={120} placeholder="every Monday" aria-describedby={`${id}-repeat`} aria-invalid={recur === 'invalid' || undefined} onChange={e => setRepeat(e.target.value)} />
       <small id={`${id}-repeat`} className={recur === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={recur === 'invalid' ? 'alert' : undefined}>{recur === 'invalid' ? 'Try “every Monday”, “every 2 weeks”, “every month on the 1st” or “every! 3 days”.' : recur ? `${describeRecur(recur)}${due ? '' : ' · starts today'}` : 'Empty: it does not repeat.'}</small></label>
     <label className="field"><span>Reminder</span><select value={reminder} disabled={!due} onChange={e => setReminder(e.target.value)}><option value="">None</option>{REMINDER_CHOICES.map(c => <option key={c.before} value={c.before}>{c.label}</option>)}</select></label>

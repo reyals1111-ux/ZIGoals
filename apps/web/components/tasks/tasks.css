@@ -131,6 +131,11 @@
 :root[data-theme=light] .task-chip-p1 { color: #b4232a; } :root[data-theme=light] .task-chip-p2 { color: #8f4305; }
 .task-project { display: inline-flex; align-items: center; gap: 2px; }
 .task-project[data-colour] > span:first-child { color: var(--task-colour); }
+/* Session AV follow-up 1 (F-DEADLINES): the deadline beside the planned day; passed and today carry weight, not only colour. */
+.task-deadline { display: inline-flex; align-items: center; gap: 2px; }
+.task-deadline.is-passed, .task-deadline.is-today { font-weight: 650; }
+.task-deadline.is-passed > span:first-child, .task-deadline.is-today > span:first-child { color: var(--danger, #e5484d); }
+.tasks-piece[data-kind=deadline] mark { background: color-mix(in oklab, #e5484d 18%, transparent); }
 .task-label { color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
 .task-notes { grid-column: 1 / -1; margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
 .task-sub { grid-area: sub; grid-column: 1 / -1; display: grid; gap: 4px; padding-inline-start: 44px; }

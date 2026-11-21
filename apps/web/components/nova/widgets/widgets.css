@@ -345,7 +345,7 @@
 @container task-row (min-width: 420px) { .nova-widget[data-holo] .tasks-widget .task-due { display: block; } }
 .nova-widget[data-holo] .tasks-widget .task-overdue .task-due { color: #ffd0ca; font-weight: 650; }
 .nova-widget[data-holo] .tasks-widget .task-overdue .task-done input:not(:checked) { border-color: #ff8f88; box-shadow: 0 0 8px -2px #ff6b5a, inset 0 0 8px -3px #ff6b5a; }
-.nova-widget[data-holo] .tasks-widget .task-meta > :is(.task-recur, .task-progress, .task-project, .task-label, .task-reminder, .task-has-notes),
+.nova-widget[data-holo] .tasks-widget .task-meta > :is(.task-recur, .task-progress, .task-project, .task-label, .task-reminder, .task-has-notes, .task-deadline),
 .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:not(:focus-visible) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal { max-width: 168px; line-height: 44px; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
 .nova-widget[data-holo] .tasks-widget .task-meta > .task-goal:focus-visible { position: absolute; right: 0; top: 0; z-index: 2; max-width: calc(100cqi - 52px); padding: 0 8px; background: #0a1030; }
