@@ -15,6 +15,8 @@ import {parseNumberInput} from '../../../lib/numbers/parse';
 import {useMoneyCurrency} from '../use-money-currency';
 // Session AP (feature 6): price changes of bills found in the money log, its own chunk.
 const PriceChanges = lazy(() => import('./price-changes'));
+// Session AV (follow-up 1, F-BILL-CALENDAR): the next 31 days on a calendar, its own chunk loaded when opened.
+const BillMonthGrid = lazy(() => import('./bill-month-grid'));
 
 /**
  * Session AK (7.3, COMPETITORS M7): Upcoming bills. Bills come from the person: confirmed from a repeat the money log
@@ -37,6 +39,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
   const id = useId();
   const [days, setDays] = useState<30 | 60>(30), [status, setStatus] = useState(''), [problem, setProblem] = useState(''), [adding, setAdding] = useState(false);
   const occurrences = useMemo(() => billOccurrences(record, today, days), [record, today, days]);
+  const [calendar, setCalendar] = useState(false);
   const candidates = useMemo(() => openCandidates(detectBills(entries, today), record), [entries, record, today]);
   const totals = totalsByCurrency(occurrences), monthly = monthlyEstimate(record), yearly = yearlyEstimate(record), notes = cancelReminders(record, today);
   const change = (fn: (r: BillsRecord) => BillsRecord, done: string) => {
@@ -67,6 +70,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
       <h3 id={`${id}-list`}>Upcoming</h3>
       {occurrences.length ? <ul className="bills-list">{occurrences.map(o => <BillRow key={`${o.billId}-${o.due}`} occurrence={o} bill={record.bills.find(b => b.id === o.billId)!} onRemove={remove} onNote={(bill, note, by) => change(r => setCancelNote(r, bill.id, note, by || undefined), note.trim() ? `Note saved for ${bill.title}.` : `Note removed from ${bill.title}.`)}/>)}</ul>
         : <p className="fine">{record.bills.length ? `No bill is due in the next ${days} days.` : 'No bills yet. Confirm one found in your spending below, or add one by hand (for example rent on the 1st).'}</p>}
+      {record.bills.length > 0 && <details className="bills-calendar-fold" onToggle={e => setCalendar((e.currentTarget as HTMLDetailsElement).open)}><summary>On a calendar</summary>{calendar && <Suspense fallback={<p className="fine">Opening…</p>}><BillMonthGrid record={record} today={today}/></Suspense>}</details>}
     </section>
     {candidates.length > 0 && <section aria-labelledby={`${id}-found`}>
       <h3 id={`${id}-found`}>Found in your spending</h3>

@@ -28,3 +28,14 @@
 @media (max-width:620px){.bills-form-row{grid-template-columns:1fr 1fr}}
 .bills-notes{margin:0;padding:12px 16px 12px 32px;border-radius:14px;border:1px solid color-mix(in srgb,var(--amber,#f5b65b) 50%,transparent)}
 .bills-status{min-height:22px;margin:0}
+/* Session AV follow-up 1 (F-BILL-CALENDAR): the next 31 days on a calendar. */
+.bills-calendar-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.bills-calendar{display:grid;gap:6px}
+.bills-calendar-grid{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:3px}
+.bills-calendar-grid th{font-size:13px;font-weight:600;color:var(--text-secondary, var(--muted));text-align:center}
+.bills-calendar-grid td{vertical-align:top;height:48px;padding:3px;border-radius:8px;border:1px solid var(--line, rgba(128,128,160,.3));overflow:hidden}
+.bills-calendar-grid td.is-out{border-style:dashed;color:var(--text-secondary, var(--muted))}
+.bills-calendar-grid td.is-today{outline:2px solid var(--cyan, #6fd3ff);outline-offset:-2px}
+.bills-calendar-grid td.is-due{background:color-mix(in srgb, var(--cyan, #6fd3ff) 18%, transparent)}
+.bills-calendar-day{display:block;font-size:13px}
+.bills-calendar-bills small{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
