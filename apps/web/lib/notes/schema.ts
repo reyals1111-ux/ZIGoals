@@ -79,6 +79,13 @@ export const noteSchema = z.looseObject({
    * note leaves the lists and the graph, and stays in Search and in the exports. Older builds show it as before.
    */
   archived: z.boolean().optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r4-notes; LEDGER #318, Bear's locked notes, in its conservative form; TIER 3 (stored format),
+   * additive and optional): the note's words show only after this device's screen-cover PIN, and are left out of Search,
+   * the Graph, NOVA and the Markdown export (lib/notes/lock.ts). They are hidden, not encrypted. Older builds read the
+   * note as before (its words are plain) and keep the field untouched; nothing they write can overwrite other data.
+   */
+  locked: z.boolean().optional().catch(undefined),
   /** A fictional Showcase note. */
   example: z.boolean().optional(),
   createdAt: stamp,

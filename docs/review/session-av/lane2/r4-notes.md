@@ -16,6 +16,7 @@ shell navigation, AR's NOVA composition, the locked ZIGi look). Nothing of Notes
 |---|---|---|
 | `zigoals:notes:v1` note | `photos` | up to 7 further photo ids after `photoId` (8 in a note), each placed in the words by a `![photo](<id>)` line (LEDGER #307) |
 | note | `archived` | the note is archived: out of the lists and the graph, still in Search and the exports (LEDGER #315) |
+| note | `locked` | the note shows only after this device's screen-cover PIN and stays out of Search, the Graph, NOVA and the Markdown export; hidden, not encrypted (LEDGER #318; its own TIER 3 commit) |
 | notes | `focusTag` | the one tag Notes is focused on (list, search, graph) until cleared (LEDGER #306) |
 | notes | `typewriter` | the writing view keeps the line being written in the middle (LEDGER #316) |
 

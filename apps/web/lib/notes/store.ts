@@ -61,7 +61,7 @@ export function addTopic(record: Notes, {title, body = '', now, id}: {title: str
   const note: Note = {id: id ?? newNoteId(), kind: 'topic', title: name, body: body.slice(0, MAX_BODY), createdAt: now};
   return {record: checked({...record, notes: [...record.notes, note]}), note};
 }
-export type NotePatch = Partial<Pick<Note, 'title' | 'body' | 'tags' | 'pinned' | 'photoId' | 'props' | 'photos' | 'archived'>>;
+export type NotePatch = Partial<Pick<Note, 'title' | 'body' | 'tags' | 'pinned' | 'photoId' | 'props' | 'photos' | 'archived' | 'locked'>>;
 /**
  * Changes one note's words (a daily note keeps its day as its title). Review b1 #1: a save of the words also notes the
  * day each "@remind" line was written (`remindFrom`, lib/notes/reminder-anchors.ts), in the person's zone.
@@ -78,6 +78,7 @@ export function updateNote(record: Notes, id: string, patch: NotePatch, now: str
   if ('tags' in patch && !patch.tags?.length) delete next.tags;
   if ('photos' in patch && !patch.photos?.length) delete next.photos;
   if ('archived' in patch && !patch.archived) delete next.archived;
+  if ('locked' in patch && !patch.locked) delete next.locked; // LEDGER #318
   if (patch.body !== undefined) {
     const remindFrom = anchorReminders(old, patch.body, zonedDay(new Date(now), zone), zone);
     if (remindFrom) next.remindFrom = remindFrom; else delete next.remindFrom;
