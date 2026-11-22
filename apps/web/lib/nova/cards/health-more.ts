@@ -138,6 +138,16 @@ export function cycleCard(record: Cycle, today: string): CycleCard {
   return {state: starts.length ? 'live' : 'empty', day: cycleDay(record, today), lastStart: starts.at(-1) ?? null, cycles: e.cycles,
     estimate: e.kind === 'range' ? {from: e.from, to: e.to, shortest: e.shortest, longest: e.longest, passed: e.passed} : null, need: e.kind === 'not-yet' ? e.need - e.cycles : null, rule: CYCLE_LINE, ...(e.kind === 'off' ? {noPeriod: true} : {})};
 }
+/**
+ * The card's "Next period, an estimate" readout in words: the value and the line under it. Session AV lane 2 (review
+ * B5H-2): with "No period" chosen it says so, never a count of cycles still needed. Text only; the card's layout is its own.
+ */
+export function cycleReadout(card: CycleCard, range: (from: string, to: string) => string): {value: string; sub: string; long: boolean} {
+  const e = card.estimate;
+  if (card.noPeriod) return {value: 'Not shown', sub: 'You chose No period in the cycle log.', long: false};
+  if (e) return {value: range(e.from, e.to), sub: `${e.passed ? 'These days have passed. ' : ''}From your cycles of ${e.shortest} to ${e.longest} days.`, long: true};
+  return {value: 'Not yet', sub: `After ${card.need} more complete ${card.need === 1 ? 'cycle' : 'cycles'}.`, long: false};
+}
 export function cycleRows(card: CycleCard, day: (date: string) => string): [string, string][] {
   if (card.state === 'off') return [['Cycle', 'The cycle log is off on Health']];
   if (card.state === 'empty') return [['Cycle', 'Nothing logged yet']];
