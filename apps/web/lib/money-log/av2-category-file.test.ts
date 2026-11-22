@@ -38,7 +38,8 @@ describe('reading', () => {
     expect(Object.keys(out.file)).toEqual(['categories', 'subs', 'rules', 'dropped']);
     expect(readCategoryFile('not json').ok).toBe(false);
     expect(readCategoryFile(JSON.stringify({kind: 'something else', version: 1})).ok).toBe(false);
-    expect(readCategoryFile(JSON.stringify({kind: 'zigoals-categories-and-rules', version: 1, categories: {expense: Array.from({length: 31}, (_, i) => `C${i}`), income: []}})).ok).toBe(true);
+    // Session AV lane 2 (review b5k #5: a list over its limit is refused in words, never emptied silently, deliberate)
+    expect(readCategoryFile(JSON.stringify({kind: 'zigoals-categories-and-rules', version: 1, categories: {expense: Array.from({length: 31}, (_, i) => `C${i}`), income: []}}))).toEqual({ok: false, problem: 'That file holds 31 of your own categories for spending; ZIGoals keeps up to 30. Nothing was read.'});
     expect(readCategoryFile('x'.repeat(256 * 1024 + 1)).ok).toBe(false);
   });
   it('the plan: what is new and what is already there (any case)', () => {
@@ -69,5 +70,12 @@ describe('reading', () => {
     const out = readCategoryFile(JSON.stringify({kind: 'zigoals-categories-and-rules', version: 1, categories: {expense: ['One more'], income: []}})); if (!out.ok) throw new Error('unreadable');
     const r = applyCategoryFile(full, MY_RULES, out.file, ids, AT);
     expect(r.full).toBe(1); expect(r.added.own).toEqual([]);
+  });
+  it('review b5k #5: over a limit is refused in words; one item it cannot read is left out and counted, the rest kept', () => {
+    const file = (over: object) => JSON.stringify({kind: 'zigoals-categories-and-rules', version: 1, ...over});
+    expect(readCategoryFile(file({rules: Array.from({length: 201}, () => ({text: 'x'}))}))).toEqual({ok: false, problem: 'That file holds 201 rules; ZIGoals keeps up to 200. Nothing was read.'});
+    expect(readCategoryFile(file({subs: {Pets: Array.from({length: 21}, (_, i) => `S${i}`)}}))).toEqual({ok: false, problem: 'That file holds 21 subcategories under Pets; ZIGoals keeps up to 20. Nothing was read.'});
+    const out = readCategoryFile(file({categories: {expense: ['Pets', 'x'.repeat(41)], income: ['Side job']}, subs: {Pets: ['Vet', ''], ['y'.repeat(41)]: ['A', 'B']}, rules: [{text: 'Albert Heijn'}, {text: ''}]}));
+    expect(out).toEqual({ok: true, file: {categories: {expense: ['Pets'], income: ['Side job']}, subs: {Pets: ['Vet']}, rules: [{field: 'either', op: 'contains', text: 'Albert Heijn', direction: 'any', enabled: true}], dropped: 5}});
   });
 });

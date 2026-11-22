@@ -57,7 +57,7 @@ export default function CategoryFile({log, update}: {log: MoneyLog; update: Upda
     <label className="field"><span>Read categories and rules from a file</span><input ref={input} type="file" accept=".json,application/json" onChange={e => void read(e.target.files?.[0])}/></label>
     {problem && <p role="alert">{problem}</p>}
     {file && plan && <div className="category-file-plan">
-      <p className="fine">From {file.name}: {n(plan.fresh, 'new item', 'new items')}{file.data.dropped ? `; ${n(file.data.dropped, 'rule', 'rules')} this version cannot read left out` : ''}.</p>
+      <p className="fine">From {file.name}: {n(plan.fresh, 'new item', 'new items')}{file.data.dropped ? `; ${n(file.data.dropped, 'item', 'items')} this version cannot read left out` : ''}.</p>
       <ul className="category-more-preview" aria-label={`What ${file.name} adds`}>
         {plan.own.map(c => <li key={`o-${c.kind}-${c.name}`}><strong>{c.name}</strong> <span className="fine">{c.kind === 'income' ? 'money received' : 'spending'} · {c.isNew ? 'new' : 'already there'}</span></li>)}
         {plan.subs.map(s => <li key={`s-${s.category}-${s.name}`}><span>{s.category} › {s.name}</span> <span className="fine">{s.isNew ? 'new' : 'already there'}</span></li>)}

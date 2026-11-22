@@ -23,11 +23,13 @@ const fileRule = z.object({
   renameTo: z.string().trim().min(1).max(80).optional().catch(undefined), tag: tagText.optional().catch(undefined), enabled: z.boolean().catch(true),
 });
 export type FileRule = z.infer<typeof fileRule>;
+// Review b5k #5: the file's shape is read loosely, then each list is checked against its limit (refused in words when over)
+// and each item on its own (an item this build cannot read is left out and counted), so no list is ever emptied silently.
 const fileSchema = z.object({
   kind: z.literal(CATEGORY_FILE_KIND), version: z.literal(1),
-  categories: z.object({expense: z.array(name).max(MAX_OWN_CATEGORIES).catch([]), income: z.array(name).max(MAX_OWN_CATEGORIES).catch([])}).catch({expense: [], income: []}),
-  subs: z.record(name, z.array(name).max(MAX_SUBS)).refine(r => Object.keys(r).length <= 40).catch({}),
-  rules: z.array(z.unknown()).max(MAX_RULES).catch([]),
+  categories: z.object({expense: z.array(z.unknown()).optional(), income: z.array(z.unknown()).optional()}).optional(),
+  subs: z.record(z.string(), z.array(z.unknown())).optional(),
+  rules: z.array(z.unknown()).optional(),
 });
 export type CategoryFile = {categories: {expense: string[]; income: string[]}; subs: Record<string, string[]>; rules: FileRule[]; dropped: number};
 /** The file's text: the person's own categories, the subcategories and the rules (no ids, no Goal links), pretty JSON. */
@@ -37,16 +39,26 @@ export function categoryFile(log: Pick<MoneyLog, 'own' | 'subs'>, rules: MoneyRu
     rules: (rules?.rules ?? []).map(r => ({field: r.field, op: r.op, text: r.text, direction: r.direction, ...(r.min ? {min: r.min} : {}), ...(r.max ? {max: r.max} : {}), ...(r.category ? {category: r.category} : {}), ...(r.renameTo ? {renameTo: r.renameTo} : {}), ...(r.tag ? {tag: r.tag} : {}), enabled: r.enabled}))};
   return `${JSON.stringify(out, null, 2)}\n`;
 }
-/** Reads a file's text as data only, under the caps; a rule this build cannot read is left out and counted. */
+/** Reads a file's text as data only: a list over its limit is refused in words; an item this build cannot read is left out and counted. */
 export function readCategoryFile(text: string): {ok: true; file: CategoryFile} | {ok: false; problem: string} {
   if (new TextEncoder().encode(text).length > CATEGORY_FILE_MAX_BYTES) return {ok: false, problem: 'That file is larger than a categories and rules file can be (256 KB). Nothing was read.'};
   let raw: unknown;
   try { raw = JSON.parse(text); } catch { return {ok: false, problem: 'That is not a categories and rules file from ZIGoals. Nothing was read.'}; }
   const parsed = fileSchema.safeParse(raw);
-  if (!parsed.success) return {ok: false, problem: 'That is not a categories and rules file from ZIGoals (or it holds more than the limits). Nothing was read.'};
+  if (!parsed.success) return {ok: false, problem: 'That is not a categories and rules file from ZIGoals. Nothing was read.'};
+  const {categories = {}, subs = {}, rules: rawRules = []} = parsed.data;
+  const over = (what: string, count: number, limit: number) => ({ok: false as const, problem: `That file holds ${count} ${what}; ZIGoals keeps up to ${limit}. Nothing was read.`});
+  for (const kind of ['expense', 'income'] as const) { const n = categories[kind]?.length ?? 0; if (n > MAX_OWN_CATEGORIES) return over(`of your own categories for ${kind === 'expense' ? 'spending' : 'money received'}`, n, MAX_OWN_CATEGORIES); }
+  if (Object.keys(subs).length > 40) return over('categories with subcategories', Object.keys(subs).length, 40);
+  for (const [category, list] of Object.entries(subs)) if (list.length > MAX_SUBS) return over(`subcategories under ${category.slice(0, 40)}`, list.length, MAX_SUBS);
+  if (rawRules.length > MAX_RULES) return over('rules', rawRules.length, MAX_RULES);
+  let dropped = 0;
+  const names = (list: readonly unknown[] = []) => list.flatMap(x => { const one = name.safeParse(x); if (one.success) return [one.data]; dropped++; return []; });
+  const outSubs: Record<string, string[]> = {};
+  for (const [category, list] of Object.entries(subs)) { const key = name.safeParse(category); if (!key.success) { dropped += list.length; continue; } const kept = names(list); if (kept.length) outSubs[key.data] = kept; }
   const rules: FileRule[] = [];
-  for (const r of parsed.data.rules) { const one = fileRule.safeParse(r); if (one.success) rules.push(one.data); }
-  return {ok: true, file: {categories: parsed.data.categories, subs: parsed.data.subs, rules, dropped: parsed.data.rules.length - rules.length}};
+  for (const r of rawRules) { const one = fileRule.safeParse(r); if (one.success) rules.push(one.data); else dropped++; }
+  return {ok: true, file: {categories: {expense: names(categories.expense), income: names(categories.income)}, subs: outSubs, rules, dropped}};
 }
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 const ruleKey = (r: Pick<MoneyRule, 'field' | 'op' | 'text' | 'direction' | 'min' | 'max' | 'category' | 'renameTo' | 'tag'>) => JSON.stringify([r.field, r.op, r.text.toLowerCase(), r.direction, r.min ?? '', r.max ?? '', (r.category ?? '').toLowerCase(), r.renameTo ?? '', r.tag ?? '']);
