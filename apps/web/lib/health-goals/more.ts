@@ -26,8 +26,21 @@ export const NUTRIENT_MEASURES = {
 export type NutrientKey = keyof typeof NUTRIENT_MEASURES;
 export const BODY_MEASURES = {waist: 'Waist', hips: 'Hips', chest: 'Chest', arm: 'Arm', thigh: 'Thigh'} as const;
 export type BodyKey = keyof typeof BODY_MEASURES;
-/** Own numbers a target is not offered for: setting one is medical advice. */
-export const NOT_A_GOAL = /\b(?:keton\w*|glucose|glucos\w*|blood sugar|bloedsuiker|insulin\w*|hba1c|a1c|bmi)\b/i;
+/**
+ * Own numbers a target is not offered for, setting one being medical advice: glucose, blood sugar, ketones, insulin, HbA1c
+ * and BMI, in English and Dutch. Stems are matched anywhere in a word (review B3B-2: "Bloedglucose", "Nuchtere
+ * bloedglucose", "Bloedsuikerspiegel", "Blood sugars", "Beta-hydroxybutyrate" passed a whole-word list); the short
+ * abbreviations only as their own word.
+ */
+export const NOT_A_GOAL_STEMS = ['glucos', 'glukos', 'glycem', 'glykem', 'glycaem', 'bloodsugar', 'blood sugar', 'bloedsuiker', 'suikerspiegel', 'sugar level', 'keton', 'ketoon', 'hydroxybutyr', 'hydroxyboter', 'acetoacet', 'insulin', 'insuline', 'hemoglobin a1c', 'haemoglobin a1c', 'body mass index', 'queteletindex', 'quetelet'] as const;
+export const NOT_A_GOAL_WORDS = ['bmi', 'bhb', 'hba1c', 'a1c', 'gki', 'cgm', 'bg'] as const;
+const fold = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[-_./]+/g, ' ').replace(/\s+/g, ' ');
+export function notAGoal(name: string): boolean {
+  const t = fold(name), squashed = t.replace(/ /g, '');
+  return NOT_A_GOAL_STEMS.some(stem => t.includes(stem) || squashed.includes(stem.replace(/ /g, ''))) || t.split(' ').some(w => (NOT_A_GOAL_WORDS as readonly string[]).includes(w));
+}
+/** Kept for callers that test a name with a pattern: the same rule as `notAGoal`. */
+export const NOT_A_GOAL = {test: (name: string) => notAGoal(name)};
 export const MORE_WINDOWS = [7, 14, 30] as const;
 
 const goalSchema = z.looseObject({
@@ -63,7 +76,7 @@ export function addMoreGoal(rec: MoreGoals, d: MoreGoalDraft, id: string, now: s
   if (d.source === 'nutrient' && !Object.hasOwn(NUTRIENT_MEASURES, key)) return {ok: false, issue: {field: 'key', message: 'Choose what the goal is on.'}};
   if (d.source === 'body' && !Object.hasOwn(BODY_MEASURES, key)) return {ok: false, issue: {field: 'key', message: 'Choose what the goal is on.'}};
   if (d.source === 'number' && (!key || key.length > 60)) return {ok: false, issue: {field: 'key', message: 'Choose one of your numbers.'}};
-  if (d.source === 'number' && NOT_A_GOAL.test(key)) return {ok: false, issue: {field: 'key', message: `A target for ${key} is not offered: setting one is medical advice. Its readings stay in Your numbers.`}};
+  if (d.source === 'number' && notAGoal(key)) return {ok: false, issue: {field: 'key', message: `A target for ${key} is not offered: setting one is medical advice. Its readings stay in Your numbers.`}};
   const text = d.target.trim().replace(',', '.'), target = Number(text);
   if (!/^\d+(?:\.\d{1,2})?$/.test(text) || !(target > 0) || target > 1_000_000) return {ok: false, issue: {field: 'target', message: 'Enter your target as a number above 0, like 100 or 85.5.'}};
   const name = d.name.trim() || `${measureWord({source: d.source, key})} ${d.direction === 'at-least' ? 'at least' : 'at most'} ${text}${d.source === 'number' && d.unit ? ` ${d.unit}` : d.source !== 'number' ? ` ${unitOf({source: d.source, key})}` : ''}`;

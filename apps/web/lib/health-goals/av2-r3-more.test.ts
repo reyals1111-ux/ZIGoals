@@ -5,7 +5,7 @@ import {addLocalDays} from '../local-date';
 import {healthNumbersSchema} from '../health-numbers/store';
 import {collectEverything, DEVICE_KEYS} from '../export/everything';
 import {nextValue, planParts} from '../restore/plan';
-import {addMoreGoal, emptyMoreGoals, MORE_GOALS_KEY, moreGoalLine, moreGoalProgress, moreGoalsSchema, nutrientOn, removeMoreGoal, restoreMoreGoal, setMoreGoalStatus, type MoreGoalDraft} from './more';
+import {addMoreGoal, emptyMoreGoals, notAGoal, MORE_GOALS_KEY, moreGoalLine, moreGoalProgress, moreGoalsSchema, nutrientOn, removeMoreGoal, restoreMoreGoal, setMoreGoalStatus, type MoreGoalDraft} from './more';
 
 /**
  * Session AV lane 2 (health r3; LEDGER #287, Carb Manager): goals on a nutrient's daily average, a body measurement or one of
@@ -47,6 +47,14 @@ describe('goals on any health number (LEDGER #287)', () => {
     expect(r.ok && r.goal).toMatchObject({name: 'Protein at least 100 g', source: 'nutrient', key: 'proteinMg', target: 100, windowDays: 7, status: 'active'});
     expect(addMoreGoal(emptyMoreGoals(), draft({target: '0'}), 'g', NOW)).toMatchObject({ok: false, issue: {field: 'target'}});
     expect(addMoreGoal(emptyMoreGoals(), draft({key: 'vitaminZ'}), 'g', NOW)).toMatchObject({ok: false, issue: {field: 'key'}});
+  });
+  // Session AV lane 2 (review B3B-2): compounds, plurals and abbreviations, in English and Dutch.
+  test('every glucose, blood sugar, ketone, insulin, HbA1c and BMI name is refused; ordinary numbers are not', () => {
+    for (const name of ['Bloedglucose', 'Nuchtere bloedglucose', 'Bloedsuikerspiegel', 'Blood sugars', 'blood-sugar (fasting)', 'BHB', 'Beta-hydroxybutyrate', 'bèta-hydroxyboterzuur', 'Ketonen', 'Ketone (blood)', 'Glucose', 'Fasting glucose', 'Glykemie', 'Insulin', 'Insuline', 'HbA1c', 'A1C', 'BMI', 'Body mass index', 'GKI', 'Blood glucose (CGM)'])
+      expect(notAGoal(name), name).toBe(true);
+    for (const name of ['Resting pulse', 'Ferritin', 'Vitamin D', 'Cholesterol', 'Waist', 'Rustpols', 'Bloeddruk boven', 'Ijzer'])
+      expect(notAGoal(name), name).toBe(false);
+    expect(addMoreGoal(emptyMoreGoals(), draft({source: 'number', key: 'Bloedsuikerspiegel', unit: 'mmol/L', target: '5'}), 'g', NOW)).toMatchObject({ok: false, issue: {field: 'key'}});
   });
   test('ketones, glucose and BMI are not offered as a target', () => {
     for (const key of ['Ketones', 'Blood glucose', 'BMI', 'HbA1c']) {

@@ -3,7 +3,7 @@ import {useId, useMemo, useState, type FormEvent} from 'react';
 import type {HealthData} from '../../lib/health';
 import {HEALTH_NUMBERS} from '../../lib/health-numbers/store';
 import {markers} from '../../lib/health-numbers/engine';
-import {addMoreGoal, BODY_MEASURES, measureWord, MORE_GOALS, MORE_WINDOWS, moreGoalLine, moreGoalProgress, NOT_A_GOAL, NUTRIENT_MEASURES, removeMoreGoal, restoreMoreGoal, setMoreGoalStatus, unitOf, type MoreGoal, type MoreGoalIssue} from '../../lib/health-goals/more';
+import {addMoreGoal, BODY_MEASURES, measureWord, MORE_GOALS, MORE_WINDOWS, moreGoalLine, moreGoalProgress, notAGoal, NUTRIENT_MEASURES, removeMoreGoal, restoreMoreGoal, setMoreGoalStatus, unitOf, type MoreGoal, type MoreGoalIssue} from '../../lib/health-goals/more';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {formatNumber} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -24,7 +24,7 @@ export default function MoreGoals({health, today}: {health: HealthData; today: s
   const rec = useDeviceRecord(MORE_GOALS), numbers = useDeviceRecord(HEALTH_NUMBERS), id = useId();
   const [said, setSaid] = useState(''), [issue, setIssue] = useState<MoreGoalIssue | null>(null);
   const [what, setWhat] = useState('nutrient:proteinMg'), [direction, setDirection] = useState<MoreGoal['direction']>('at-least'), [target, setTarget] = useState(''), [windowDays, setWindow] = useState(7), [name, setName] = useState('');
-  const own = useMemo(() => numbers.loaded && !numbers.unreadable ? markers(numbers.data).filter(m => !NOT_A_GOAL.test(m.name)) : [], [numbers.loaded, numbers.unreadable, numbers.data]);
+  const own = useMemo(() => numbers.loaded && !numbers.unreadable ? markers(numbers.data).filter(m => !notAGoal(m.name)) : [], [numbers.loaded, numbers.unreadable, numbers.data]);
   if (!rec.loaded) return null;
   const [source, ...rest] = what.split(':') as [MoreGoal['source'], ...string[]], key = rest.join(':');
   const ownUnit = source === 'number' ? own.find(m => m.key === key)?.unit ?? '' : '';
