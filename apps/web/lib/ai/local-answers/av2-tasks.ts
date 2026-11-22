@@ -66,6 +66,9 @@ function dailyGoal(a: Ask): LocalReply | null {
   if (!(en || nl)) return null;
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const plan = a.extra.plan ?? {version: 1 as const}, byDay = finishesByDay(plan, got.record, doneDay(a.env.habitZone || 'UTC')), done = byDay.get(a.today) ?? 0, goal = plan.dailyGoal;
+  // Lead (batch 1): with no daily goal, "how many tasks did I finish today" stays Tasks' own answer (LA-021: the list of
+  // what was done); this one speaks only of a goal or a streak, or when a goal is set.
+  if (!goal && !/\b(?:streak|goal)\b|\b(?:reeks|takenreeks|dagdoel)\b/.test(a.f)) return null;
   if (!goal) return answer(say(a.lang, `${count(done, 'en', ['task', 'tasks'], ['', ''])} finished today. No daily goal is set: choose one in Tasks → This week to count a streak.`, `Vandaag ${count(done, 'nl', ['', ''], ['taak', 'taken'])} afgerond. Er is geen dagdoel: kies er een in Tasks → This week om een reeks te tellen.`), CALLS);
   const s = goalStreak(byDay, goal, a.today);
   return answer(say(a.lang, `${done} of your daily goal of ${goal} done today${s.reached ? ' — reached' : ''}. Streak: ${count(s.current, 'en', ['day', 'days'], ['', ''])} in a row (best ${s.best}).`,

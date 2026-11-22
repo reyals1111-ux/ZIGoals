@@ -7,7 +7,7 @@ import type {Intent} from './cases';
  */
 export const AV2_TASKS: readonly Intent[] = [
   {id: 'av2-week-objectives', pillar: 'tasks', en: ['what are my objectives this week', 'what are my weekly objectives'], nl: ['wat zijn mijn weekdoelen', 'welke weekdoelen heb ik'], never: ['"add-task"']},
-  {id: 'av2-daily-goal', pillar: 'tasks', en: ['how many tasks did I finish today', 'what is my task streak'], nl: ['hoeveel taken heb ik vandaag afgerond', 'wat is mijn takenreeks'], never: ['habits']},
+  {id: 'av2-daily-goal', pillar: 'tasks', en: ['what is my daily task goal', 'what is my task streak'], nl: ['wat is mijn dagdoel voor taken', 'wat is mijn takenreeks'], never: ['habits']},
   {id: 'av2-time-spent', pillar: 'tasks', en: ['how much time did I spend on tasks today', 'how much time did I spend on tasks this week'], nl: ['hoeveel tijd heb ik vandaag aan taken besteed', 'hoeveel tijd heb ik deze week aan taken besteed']},
   {id: 'av2-timers', pillar: 'tasks', en: ['which timers are running', 'are any task timers running'], nl: ['welke timers lopen er', 'lopen er nu timers?']},
   {id: 'av2-day-limit', pillar: 'tasks', en: ['is my day too full', 'am I overcommitted today'], nl: ['is mijn dag te vol', 'is vandaag te vol']},

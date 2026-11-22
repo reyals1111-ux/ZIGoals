@@ -14,7 +14,9 @@ import {
   CHART_GROUPS, CHART_MEASURES, TABLE_COLUMNS, addObjective, carryObjectives, chartSeries, dayColumns, finishObjective, linkObjective, monthGrid, objectiveProgress, plannedVsActual,
   removeObjective, tableRows, timelineBars, weekObjectives, weekStart, yearGrid, type ChartGroup, type ChartMeasure, type TableColumn,
 } from '../../lib/tasks/layouts';
-import {formatClock, formatDate, formatNumber} from '../../lib/visual-format';
+import {formatClock, formatDate, formatMonth, formatNumber, formatWeekday} from '../../lib/visual-format';
+/** A Monday-to-Sunday week (any), for the month grid's weekday heads in the person's language (lib/visual-format.ts). */
+const WEEK_HEADS = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'] as const;
 import TasksOrganise from './tasks-organise';
 import './tasks-plan.css';
 
@@ -147,7 +149,7 @@ function DaysView({list, record, today}: {list: List; record: Tasks; today: stri
   const columns = useMemo(() => dayColumns(record, from, today, 3, project || undefined), [record, from, today, project]);
   const weeks = useMemo(() => monthGrid(record, month, list.doneDay, project || undefined), [record, month, list.doneDay, project]);
   const shiftMonth = (by: number) => { const [y, m] = month.split('-').map(Number) as [number, number], d = new Date(Date.UTC(y, m - 1 + by, 1)); setMonth(d.toISOString().slice(0, 7)); };
-  const monthName = new Date(`${month}-01T12:00:00Z`).toLocaleDateString('en-GB', {month: 'long', year: 'numeric', timeZone: 'UTC'});
+  const monthName = formatMonth(`${month}-01T12:00:00Z`, {timeZone: 'UTC'});
   return <section className="tasks-plan-view" aria-labelledby={`${id}-title`}>
     <div className="tasks-plan-head">
       <h3 id={`${id}-title`}>Calendar</h3>
@@ -166,7 +168,7 @@ function DaysView({list, record, today}: {list: List; record: Tasks; today: stri
     </> : <>
       <div className="tasks-plan-head"><button type="button" className="quiet" aria-label="The month before" onClick={() => shiftMonth(-1)}>←</button><span>{monthName}</span><button type="button" className="quiet" aria-label="The month after" onClick={() => shiftMonth(1)}>→</button>{month !== today.slice(0, 7) && <button type="button" className="text-link" onClick={() => setMonth(today.slice(0, 7))}>This month</button>}</div>
       <div className="tasks-table-frame" role="region" aria-label={monthName} tabIndex={0}>
-        <table className="tasks-month"><thead><tr>{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(w => <th key={w} scope="col">{w}</th>)}</tr></thead>
+        <table className="tasks-month"><thead><tr>{WEEK_HEADS.map(w => <th key={w} scope="col">{formatWeekday(`${w}T12:00:00Z`, {timeZone: 'UTC'})}</th>)}</tr></thead>
           <tbody>{weeks.map(w => <tr key={w[0]!.day}>{w.map(c => <td key={c.day} data-out={!c.inMonth || undefined} data-today={c.day === today || undefined} aria-label={`${day(c.day, today)}: ${c.tasks.length ? `${c.tasks.length} ${c.tasks.length === 1 ? 'task' : 'tasks'}` : 'nothing'}`}>
             <span className="tasks-month-day" aria-hidden="true">{Number(c.day.slice(8))}</span>
             {c.tasks.slice(0, 3).map(t => <span key={t.id} className="tasks-month-task" data-done={t.doneAt ? true : undefined} dir="auto">{t.doneAt ? '✓ ' : ''}{t.title}</span>)}

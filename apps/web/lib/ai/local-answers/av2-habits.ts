@@ -145,6 +145,8 @@ function dayLogged(a: Asked): LocalReply | null {
   const en = /\b(?:day logged|log(?:ged)? (?:my|the) day|evening check ?in|check ?in (?:done|finished))\b|\bdid i (?:check in|log) (?:today|yesterday)\b|\bwhich days (?:did i not|didnt i|have i not) (?:log|check in)\b|\bdays? (?:not|i didnt) logged\b/.test(a.f);
   const nl = /\b(?:dag gelogd|avondcheck ?in|ingecheckt|dag afgerond)\b|\bwelke dagen (?:heb ik niet|niet) (?:gelogd|ingecheckt)\b/.test(a.f);
   if (!en && !nl) return null;
+  // Lead (batch 1): a question about logging food, calories, water or a habit is that record's own (food-notlogged-month).
+  if (/\b(?:calories?|food|meals?|water|habits?|weight|weigh|sleep|workouts?|steps|mood|calorie(?:en|ën)|eten|maaltijd(?:en)?|gewoontes?|gewicht|slaap|trainingen|training|stappen|stemming)\b/.test(a.f)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const lang = a.lang, c = readCheckin(a.env.energy ?? null), strip = loggedStrip(c, a.today, 14, addLocalDays);
   const gaps = strip.filter(s => !s.logged).map(s => s.day), todayLogged = !!c.logged[a.today];

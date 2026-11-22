@@ -45,6 +45,7 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'journey-level': ['8', 'Nebula', '3,577', '377', '850', 'Showcase'],
   // Session AV lane 2 (cases-av2-tasks.ts): the Showcase keeps no planning record, so these name no figure.
   'av2-week-objectives': [], 'av2-daily-goal': [], 'av2-time-spent': [], 'av2-timers': [], 'av2-day-limit': [], 'av2-start-early': [], 'av2-areas': [], 'av2-templates': [], 'av2-pay-period': [], 'av2-note-reminders': [],
+  'av2-habits-whenever': [], 'av2-habits-never-twice': [], 'av2-habits-unlogged': [], 'av2-habits-difficulty': [], 'av2-habits-areas-week': [], 'av2-habits-month-theme': [], 'av2-habits-hidden': [], 'av2-habits-day-logged': [], 'av2-habits-own-words': [], 'av2-habits-usual-mood': [], 'av2-habits-todays-practice': [],
   // Session AV (owner follow-up 2, item 1c; cases-av.ts): the AV features' own questions.
   'av-task-reminders': [], 'av-weekly-intention': ['one short walk after lunch'], 'av-countdown-until': ['Mum’s birthday', '3'], 'av-countdowns-list': ['Mum’s birthday', 'Trip to Lisbon'], 'av-plan-day': ['Sketch the garden bed'],
   'av-bills-year': ['13,139.88', '1,094.99'], 'av-bills-paid': ['Energy', 'Music', 'Rent'], 'av-payday': [], 'av-budget-targets': ['Groceries', '300.00'], 'av-budget-near': ['Groceries', '75%'],

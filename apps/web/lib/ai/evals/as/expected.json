@@ -6672,5 +6672,93 @@
   "widgets": [],
   "fresh": "No reminder is written in your notes. Put “@remind tomorrow 9:00 call the plumber” on a line of any note.",
   "freshNl": "Er staat geen herinnering in je notities. Zet “@remind morgen 9:00 loodgieter bellen” op een regel van een notitie."
+ },
+ "av2-habits-whenever": {
+  "en": "No habit is set to Whenever. On Habits, a daily habit’s Details → Habit options → “Whenever, no set days” makes one: log it any day, never due or missed.",
+  "nl": "Geen gewoonte staat op Whenever. Op Habits maakt Details → Habit options → “Whenever, no set days” van een dagelijkse gewoonte er een: log hem op elke dag, nooit gepland of gemist.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit is set to Whenever. On Habits, a daily habit’s Details → Habit options → “Whenever, no set days” makes one: log it any day, never due or missed.",
+  "freshNl": "Geen gewoonte staat op Whenever. Op Habits maakt Details → Habit options → “Whenever, no set days” van een dagelijkse gewoonte er een: log hem op elke dag, nooit gepland of gemist."
+ },
+ "av2-habits-never-twice": {
+  "en": "No habit’s streak keeps a missed day yet: a missed day ends the streak, and “Never missed twice” shows beside it. Details → Habit options → “Never miss twice” turns it on for one habit.",
+  "nl": "Bij geen enkele gewoonte houdt de reeks een gemiste dag: een gemiste dag beëindigt de reeks, en “Never missed twice” staat ernaast. Details → Habit options → “Never miss twice” zet het aan voor één gewoonte.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit’s streak keeps a missed day yet: a missed day ends the streak, and “Never missed twice” shows beside it. Details → Habit options → “Never miss twice” turns it on for one habit.",
+  "freshNl": "Bij geen enkele gewoonte houdt de reeks een gemiste dag: een gemiste dag beëindigt de reeks, en “Never missed twice” staat ernaast. Details → Habit options → “Never miss twice” zet het aan voor één gewoonte."
+ },
+ "av2-habits-unlogged": {
+  "en": "No habit counts an unlogged day as skipped: a past day left open counts as missed. Details → Habit options → “A day I don’t log counts as skipped” changes that for one habit.",
+  "nl": "Geen gewoonte telt een niet gelogde dag als overgeslagen: een open gebleven dag telt als gemist. Details → Habit options → “A day I don’t log counts as skipped” verandert dat voor één gewoonte.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit counts an unlogged day as skipped: a past day left open counts as missed. Details → Habit options → “A day I don’t log counts as skipped” changes that for one habit.",
+  "freshNl": "Geen gewoonte telt een niet gelogde dag als overgeslagen: een open gebleven dag telt als gemist. Details → Habit options → “A day I don’t log counts as skipped” verandert dat voor één gewoonte."
+ },
+ "av2-habits-difficulty": {
+  "en": "A done day earns 10 XP (Easy); Tiny 5, Medium 15, Hard 20. Today’s focus habit adds 5 XP when done. XP counts with the game layer on. Every habit is Easy now; Details → Habit options → “How hard is it?” changes one.",
+  "nl": "Een gedane dag geeft 10 XP (Makkelijk); Heel klein 5, Gemiddeld 15, Zwaar 20. De focusgewoonte van vandaag geeft 5 XP extra als hij gedaan is. XP telt met de spellaag aan. Elke gewoonte is nu Makkelijk; Details → Habit options → “How hard is it?” verandert er een.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "A done day earns 10 XP (Easy); Tiny 5, Medium 15, Hard 20. Today’s focus habit adds 5 XP when done. XP counts with the game layer on. Every habit is Easy now; Details → Habit options → “How hard is it?” changes one.",
+  "freshNl": "Een gedane dag geeft 10 XP (Makkelijk); Heel klein 5, Gemiddeld 15, Zwaar 20. De focusgewoonte van vandaag geeft 5 XP extra als hij gedaan is. XP telt met de spellaag aan. Elke gewoonte is nu Makkelijk; Details → Habit options → “How hard is it?” verandert er een."
+ },
+ "av2-habits-areas-week": {
+  "en": "Your areas this week (check-ins done of due, Monday to Sunday):\n• Health: 6 of 27 this week, milestone 27\n• Habits & Mind: 1 of 7 this week, milestone 7, 4 weeks in a row\n• Wealth: 2 of 7 this week, milestone 7, 4 weeks in a row\n• Learning: 2 of 7 this week, milestone 7, 4 weeks in a row",
+  "nl": "Je gebieden deze week (check-ins gedaan van gepland, maandag tot zondag):\n• Gezondheid: 6 van 27 deze week, mijlpaal 27\n• Gewoontes & geest: 1 van 7 deze week, mijlpaal 7, 4 weken op rij\n• Geld: 2 van 7 deze week, mijlpaal 7, 4 weken op rij\n• Leren: 2 van 7 deze week, mijlpaal 7, 4 weken op rij",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit has a life area yet. On Habits, a habit’s Details → “◈ Choose an area” gives it one; “Your areas this week” then shows each area’s week and milestone.",
+  "freshNl": "Nog geen gewoonte heeft een levensgebied. Op Habits geeft Details → “◈ Choose an area” van een gewoonte er een; “Your areas this week” toont dan de week en mijlpaal van elk gebied."
+ },
+ "av2-habits-month-theme": {
+  "en": "Nov 2026’s theme: Gratitude. Notice what went well. 15 of 15 days with a check-in so far (check-ins on your Habits & Mind habits count); reached, the Theme month badge is yours. Months reached: Nov 2026.",
+  "nl": "Het thema van november 2026: Dankbaarheid. Zie wat goed ging. Tot nu toe 15 van 15 dagen met een check-in (check-ins op je gewoontes in Gewoontes & geest tellen); gehaald, de badge Theme month is van jou. Gehaalde maanden: november 2026.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The monthly theme is part of the game layer, which is off. Journey turns it on; nothing is stored but the switch.",
+  "freshNl": "Het maandthema hoort bij de spellaag, en die staat uit. Journey zet hem aan; er wordt alleen de schakelaar bewaard."
+ },
+ "av2-habits-hidden": {
+  "en": "Nothing is hidden: every daily question, template and breathing pattern is offered. “Don’t ask this again” under today’s question, or Journal → Start from a prompt → Hidden prompts and exercises, hides one.",
+  "nl": "Er is niets verborgen: elke dagvraag, elk sjabloon en elk ademhalingspatroon wordt aangeboden. “Don’t ask this again” onder de vraag van vandaag, of Journal → Start from a prompt → Hidden prompts and exercises, verbergt er een.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is hidden: every daily question, template and breathing pattern is offered. “Don’t ask this again” under today’s question, or Journal → Start from a prompt → Hidden prompts and exercises, hides one.",
+  "freshNl": "Er is niets verborgen: elke dagvraag, elk sjabloon en elk ademhalingspatroon wordt aangeboden. “Don’t ask this again” onder de vraag van vandaag, of Journal → Start from a prompt → Hidden prompts and exercises, verbergt er een."
+ },
+ "av2-habits-day-logged": {
+  "en": "No day is marked logged in the last 14 days. Health → Diary → Evening check-in goes through the day in six skippable steps and marks it “Day logged” at the end.",
+  "nl": "In de laatste 14 dagen is geen dag als gelogd gemarkeerd. Health → Diary → Evening check-in loopt de dag door in zes stappen die je kunt overslaan en markeert hem aan het eind als “Day logged”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No day is marked logged in the last 14 days. Health → Diary → Evening check-in goes through the day in six skippable steps and marks it “Day logged” at the end.",
+  "freshNl": "In de laatste 14 dagen is geen dag als gelogd gemarkeerd. Health → Diary → Evening check-in loopt de dag door in zes stappen die je kunt overslaan en markeert hem aan het eind als “Day logged”."
+ },
+ "av2-habits-own-words": {
+  "en": "You have not added a feeling word of your own yet. In the feeling-word grid, open a corner and use “Your own word”.",
+  "nl": "Je hebt nog geen eigen gevoelswoord toegevoegd. Open in het raster met gevoelswoorden een hoek en gebruik “Your own word”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have not added a feeling word of your own yet. In the feeling-word grid, open a corner and use “Your own word”.",
+  "freshNl": "Je hebt nog geen eigen gevoelswoord toegevoegd. Open in het raster met gevoelswoorden een hoek en gebruik “Your own word”."
+ },
+ "av2-habits-usual-mood": {
+  "en": "Not enough days yet: Mood: 12 of 20 days in the last 90, 12 of 60 in the year; Energy: 14 of 20 days in the last 90, 14 of 60 in the year. Up or down describes your own answers, not whether that is good.",
+  "nl": "Nog niet genoeg dagen: Stemming: 12 van 20 dagen in de laatste 90, 12 van 60 in het jaar; Energie: 14 van 20 dagen in de laatste 90, 14 van 60 in het jaar. Hoger of lager beschrijft je eigen antwoorden, niet of dat goed is.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No mood or energy is answered yet, so there is no usual to compare with. The day’s mood in Health → Diary and the energy rating fill it in.",
+  "freshNl": "Er is nog geen stemming of energie ingevuld, dus er is geen gewoonlijke waarde om mee te vergelijken. De stemming van de dag in Health → Diary en de energiescore vullen het in."
+ },
+ "av2-habits-todays-practice": {
+  "en": "Today’s practice: “A short body scan”, 10 minutes. It begins: Close your eyes or let your gaze rest low. Health → Meditation → Today’s practice has all of it, “Another one”, and Begin with the bell.",
+  "nl": "De oefening van vandaag: “Een korte bodyscan”, 10 minuten. Hij begint zo: Sluit je ogen of laat je blik laag rusten. Health → Meditation → Today’s practice heeft de hele oefening, “Another one” en Begin met de bel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Today’s practice: “A short body scan”, 10 minutes. It begins: Close your eyes or let your gaze rest low. Health → Meditation → Today’s practice has all of it, “Another one”, and Begin with the bell.",
+  "freshNl": "De oefening van vandaag: “Een korte bodyscan”, 10 minuten. Hij begint zo: Sluit je ogen of laat je blik laag rusten. Health → Meditation → Today’s practice heeft de hele oefening, “Another one” en Begin met de bel."
  }
 }
