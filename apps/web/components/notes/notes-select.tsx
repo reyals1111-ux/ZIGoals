@@ -15,8 +15,9 @@ import type {Change} from './note-editor';
  */
 export default function NotesSelect({notes, change, onDone}: {notes: readonly Note[]; record: Notes; change: Change; onDone: () => void}) {
   const [chosen, setChosen] = useState<ReadonlySet<string>>(new Set()), [tag, setTag] = useState(''), [said, setSaid] = useState('');
-  const bar = useRef<HTMLDivElement>(null), id = useId();
-  useEffect(() => { bar.current?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.focus(); }, []);
+  const wrap = useRef<HTMLDivElement>(null), id = useId();
+  // Review b5i B5I-9: focus moves into the chooser (its first tick box, in the list under the bar), so Esc works at once.
+  useEffect(() => { wrap.current?.querySelector<HTMLInputElement>('.notes-select-list input[type="checkbox"]')?.focus(); }, []);
   const ids = notes.map(n => n.id).filter(i => chosen.has(i)), n = ids.length;
   const toggle = (i: string, on: boolean) => setChosen(c => { const next = new Set(c); if (on) next.add(i); else next.delete(i); return next; });
   const run = (action: BulkAction, words: (count: number) => string) => {
@@ -26,8 +27,8 @@ export default function NotesSelect({notes, change, onDone}: {notes: readonly No
   };
   const many = (c: number) => c === 1 ? '1 note' : `${c} notes`;
   const tagged = cleanTag(tag);
-  return <div className="notes-select" onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); onDone(); } }}>
-    <div className="notes-select-bar" role="group" aria-label="Act on the chosen notes" ref={bar}>
+  return <div className="notes-select" ref={wrap} onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); onDone(); } }}>
+    <div className="notes-select-bar" role="group" aria-label="Act on the chosen notes">
       <p className="fine" aria-live="polite"><strong>{n ? `${many(n)} chosen` : 'No note chosen yet'}</strong></p>
       <div className="note-actions">
         <button type="button" className="quiet" disabled={n === notes.length} onClick={() => setChosen(new Set(notes.map(x => x.id)))}>Choose all</button>

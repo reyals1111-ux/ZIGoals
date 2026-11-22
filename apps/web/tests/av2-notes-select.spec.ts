@@ -27,6 +27,8 @@ for (const theme of THEMES) test(`${theme}: act on several notes at once`, async
   const bar = list.getByRole('group', {name: 'Act on the chosen notes'});
   await expect(bar).toContainText('No note chosen yet');
   const pick = list.getByRole('list', {name: 'Notes to choose'});
+  // Review b5i B5I-9: focus moves into the chooser at once.
+  await expect(pick.getByRole('checkbox').first()).toBeFocused();
   await pick.getByRole('checkbox', {name: /Fictional alpha/}).check();
   await pick.getByRole('checkbox', {name: /Fictional beta/}).check();
   await expect(bar).toContainText('2 notes chosen');
