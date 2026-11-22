@@ -16,13 +16,15 @@ const energy = {days: {[DAY]: {energy: 2, at: `${DAY}T07:45:00.000Z`}}, words: {
 describe('moods on the day', () => {
   test('each check-in at its time, in words and a colour; a mood answered on a later day has no time here', () => {
     expect(moodMarks(DAY, health(), energy, 'UTC')).toEqual([
-      {id: `mood-${DAY}`, title: 'Mood: Good (4 of 5)', done: false, href: '/app/health?mood=ask', pillar: 'health', label: 'Mood check-in', colour: 'var(--cyan)', mark: true, time: '20:10', band: 'anytime'},
-      {id: `energy-${DAY}`, title: 'Energy: 2 of 5', done: false, href: '/app/health', pillar: 'health', label: 'Energy check-in', colour: 'var(--pink)', mark: true, time: '07:45', band: 'anytime'},
-      {id: `feeling-${DAY}`, title: 'Feeling: calm (quite), grateful', done: false, href: '/app/health', pillar: 'health', label: 'A pleasant feeling word', colour: 'var(--cyan)', mark: true, time: '20:11', band: 'anytime'},
+      {id: `mood-${DAY}`, title: 'Mood: Good (4 of 5)', done: false, href: `/app/health?date=${DAY}`, pillar: 'health', label: 'Mood check-in', colour: 'var(--cyan)', mark: true, time: '20:10', band: 'anytime'},
+      {id: `energy-${DAY}`, title: 'Energy: 2 of 5', done: false, href: `/app/health?date=${DAY}`, pillar: 'health', label: 'Energy check-in', colour: 'var(--pink)', mark: true, time: '07:45', band: 'anytime'},
+      {id: `feeling-${DAY}`, title: 'Feeling: calm (quite), grateful', done: false, href: `/app/health?date=${DAY}`, pillar: 'health', label: 'A pleasant feeling word', colour: 'var(--cyan)', mark: true, time: '20:11', band: 'anytime'},
     ]);
     expect(moodMarks('2026-11-19', health(), null, 'UTC')).toEqual([expect.objectContaining({title: 'Mood: Low (2 of 5)', band: 'anytime'})]);
     expect(moodMarks('2026-11-19', health(), null, 'UTC')[0]!.time).toBeUndefined();
     expect(moodMarks(DAY, createEmptyHealth(), null, 'UTC')).toEqual([]);
+    // Review B5H-7: a past day's mark opens that day, never today's mood question.
+    expect(moodMarks('2026-11-19', health(), null, 'UTC')[0]!.href).toBe('/app/health?date=2026-11-19');
   });
   test('on the timeline: a mark at its time, never a block to do or move', () => {
     const day = buildDayTimeline({date: DAY, today: DAY, healthDay: DAY, now: new Date(`${DAY}T21:00:00.000Z`), zone: 'UTC', habits: emptyHabitData(), health: null, extra: moodMarks(DAY, health(), energy, 'UTC')});

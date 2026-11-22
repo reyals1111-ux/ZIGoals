@@ -24,15 +24,16 @@ const when = (iso: string | undefined, date: string, zone: string): {time?: stri
   try { const w = wallClock(Date.parse(iso), zone); return w.date === date ? {time: w.clock, band: 'anytime'} : {band: 'anytime'}; } catch { return {band: 'anytime'}; }
 };
 export function moodMarks(date: string, health: HealthData | null | undefined, energy: Pick<Energy, 'days' | 'words'> | null | undefined, zone: string): TimelineSourceItem[] {
-  const out: TimelineSourceItem[] = [];
+  // Review B5H-7: each mark opens Health on its own day (never the mood question, which is today's).
+  const out: TimelineSourceItem[] = [], href = `/app/health?date=${date}`;
   const mood = health ? (healthGroupIn(health, 'moods') as {days?: Record<string, {mood: number; at?: string}>} | undefined)?.days?.[date] : undefined;
-  if (mood) out.push({id: `mood-${date}`, title: `Mood: ${MOOD_WORDS[mood.mood - 1] ?? mood.mood} (${mood.mood} of 5)`, done: false, href: '/app/health?mood=ask', pillar: 'health', label: 'Mood check-in', colour: levelColour(mood.mood), mark: true, ...when(mood.at, date, zone)});
+  if (mood) out.push({id: `mood-${date}`, title: `Mood: ${MOOD_WORDS[mood.mood - 1] ?? mood.mood} (${mood.mood} of 5)`, done: false, href, pillar: 'health', label: 'Mood check-in', colour: levelColour(mood.mood), mark: true, ...when(mood.at, date, zone)});
   const e = energy?.days?.[date];
-  if (e) out.push({id: `energy-${date}`, title: `Energy: ${e.energy} of 5`, done: false, href: '/app/health', pillar: 'health', label: 'Energy check-in', colour: levelColour(e.energy), mark: true, ...when(e.at, date, zone)});
+  if (e) out.push({id: `energy-${date}`, title: `Energy: ${e.energy} of 5`, done: false, href, pillar: 'health', label: 'Energy check-in', colour: levelColour(e.energy), mark: true, ...when(e.at, date, zone)});
   const w = wordsOf(energy)[date];
   if (w) {
     const words = [`${w.word}${w.strength ? ` (${STRENGTH[w.strength]})` : ''}`, ...(w.more ?? []).map(m => `${m.word}${m.strength ? ` (${STRENGTH[m.strength]})` : ''}`)];
-    out.push({id: `feeling-${date}`, title: `Feeling: ${words.join(', ')}`, done: false, href: '/app/health', pillar: 'health', label: w.pleasantness === 'pleasant' ? 'A pleasant feeling word' : 'An unpleasant feeling word', colour: w.pleasantness === 'pleasant' ? 'var(--cyan)' : 'var(--pink)', mark: true, ...when(w.at, date, zone)});
+    out.push({id: `feeling-${date}`, title: `Feeling: ${words.join(', ')}`, done: false, href, pillar: 'health', label: w.pleasantness === 'pleasant' ? 'A pleasant feeling word' : 'An unpleasant feeling word', colour: w.pleasantness === 'pleasant' ? 'var(--cyan)' : 'var(--pink)', mark: true, ...when(w.at, date, zone)});
   }
   return out;
 }
