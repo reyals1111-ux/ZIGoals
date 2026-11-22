@@ -80,3 +80,15 @@ describe('copy and clear a day (LEDGER #261)', () => {
     expect(text(av2R3PlanAnswer('hoe maak ik mijn dag leeg', zigiEnv(s)))).toMatch(/“Clear this day”: de open taken krijgen geen dag meer.+Vandaag heeft 1 taak\.$/);
   });
 });
+describe('the cycle day (LEDGER #262)', () => {
+  test('under the Health gate and the log’s switch; days only, with the log’s line', () => {
+    const s = freshAll();
+    const days = Object.fromEntries([addLocalDays(DAY, -1), DAY].map(d => [d, {flow: 'light' as const}]));
+    s.nova = {...s.nova, cycle: {version: 1, on: true, days}} as never;
+    expect(text(av2R3PlanAnswer('what day of my cycle is it tomorrow', zigiEnv(s)))).toBe('Tomorrow is day 3 of your cycle. Information for you, not a contraceptive or a diagnosis.');
+    expect(text(av2R3PlanAnswer('welke cyclusdag is het vandaag', zigiEnv(s)))).toBe('Vandaag is dag 2 van je cyclus, een genoteerde menstruatiedag. Informatie voor jou, geen anticonceptie en geen diagnose.');
+    expect(av2R3PlanAnswer('which cycle day is it today', zigiEnv(s, false))?.kind).toBe('refusal');
+    const off = freshAll(); off.nova = {...off.nova, cycle: {version: 1, days}} as never;
+    expect(text(av2R3PlanAnswer('which cycle day is it today', zigiEnv(off)))).toMatch(/^The cycle log is off/);
+  });
+});

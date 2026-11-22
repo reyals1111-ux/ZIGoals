@@ -12,4 +12,5 @@ export const AV2_R3_PLAN: readonly Intent[] = [
   {id: 'av2r3-day-energy', pillar: 'tasks', en: ['how much energy does my day take', 'is there room for more energy in my tasks today'], nl: ['hoeveel energie kost mijn dag', 'hoeveel energie vragen mijn taken vandaag']},
   {id: 'av2r3-focus-notes', pillar: 'focus', en: ['what did I note in my focus sessions', 'show my focus session notes'], nl: ['wat heb ik genoteerd in mijn focussessies', 'toon mijn notities van focussessies']},
   {id: 'av2r3-copy-clear-day', pillar: 'tasks', en: ['how do I copy a day to another day', 'can I clear my whole day'], nl: ['hoe kopieer ik een dag naar een andere dag', 'hoe maak ik mijn dag leeg']},
+  {id: 'av2r3-cycle-day', pillar: 'health', en: ['what day of my cycle is it tomorrow', 'which cycle day is it today'], nl: ['welke dag van mijn cyclus is het morgen', 'welke cyclusdag is het vandaag'], never: ['phase', 'fase', 'advice']},
 ];

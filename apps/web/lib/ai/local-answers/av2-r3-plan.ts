@@ -7,6 +7,9 @@ import {addLocalDays} from '../../local-date';
 import {taskTimelineItems} from '../../tasks/timeline-source';
 import {dayEnergy} from '../../tasks/energy-load';
 import {dayTasks} from '../../tasks/day-tools';
+import {cyclePlanDays} from '../../cycle/plan-days';
+import {CYCLE_LINE} from '../../cycle/engine';
+import type {Cycle} from '../../cycle/store';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, count, dayIn, isQuestion, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -154,4 +157,24 @@ function copyClearDay(a: Ask): LocalReply | null {
       `Open de Agenda in de dagweergave op die dag en kies “Copy or clear this day”, kies de dag om naartoe te kopiëren en dan Copy: elke taak komt daar opnieuw, met tijd, minuten, labels en notities (ook subtaken), met Undo.${now}`), TASK_CALLS);
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow, dayEnergyAnswer, focusNotes, copyClearDay];
+/**
+ * "what day of my cycle is it tomorrow", "welke dag van mijn cyclus is het morgen" (LEDGER #262): the cycle day and period
+ * days of today or tomorrow, under the Health gate and the cycle log's own switch; the log's own line; never a phase or advice.
+ */
+function cycleDayAnswer(a: Ask): LocalReply | null {
+  const en = /\b(?:day of my cycle|cycle day|my cycle)\b/.test(a.f) && /\b(?:today|tomorrow|what day|which day)\b/.test(a.f);
+  const nl = /\b(?:dag van mijn cyclus|cyclusdag|mijn cyclus)\b/.test(a.f) && /\b(?:vandaag|morgen|welke dag)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const cycle = (a.env.nova as {cycle?: Cycle | null} | null | undefined)?.cycle, calls = [{tool: 'cycle_log', args: {}, label: 'Cycle log'}];
+  if (cycle === undefined) return null;
+  const line = say(a.lang, CYCLE_LINE, 'Informatie voor jou, geen anticonceptie en geen diagnose.');
+  if (!cycle || cycle.on !== true) return answer(say(a.lang, `The cycle log is off or can’t be read here. Turn it on in Settings → Your pages & buttons (under Health). ${line}`, `Het cycluslogboek staat uit of kan hier niet gelezen worden. Zet het aan in Settings → Your pages & buttons (onder Health). ${line}`), calls);
+  const tomorrow = /\btomorrow\b|\bmorgen\b/.test(a.f), day = tomorrow ? addLocalDays(a.today, 1) : a.today, d = cyclePlanDays(cycle, day, day, a.today)[0]!;
+  const when = tomorrow ? say(a.lang, 'Tomorrow', 'Morgen') : say(a.lang, 'Today', 'Vandaag');
+  if (d.cycleDay === null && !d.period) return answer(say(a.lang, `${when} has no cycle day to show: log the days of your period in Health → Diary → Cycle log. ${line}`, `${when} heeft geen cyclusdag om te tonen: noteer de dagen van je menstruatie in Health → Diary → Cycle log. ${line}`), calls);
+  const parts = [d.cycleDay !== null ? say(a.lang, `day ${d.cycleDay} of your cycle`, `dag ${d.cycleDay} van je cyclus`) : '', d.period === 'logged' ? say(a.lang, 'a logged period day', 'een genoteerde menstruatiedag') : d.period === 'estimated' ? say(a.lang, 'inside the estimated window for your next period (an estimate, not a promise)', 'binnen het geschatte venster voor je volgende menstruatie (een schatting, geen belofte)') : ''].filter(Boolean);
+  return answer(say(a.lang, `${when} is ${parts.join(', ')}. ${line}`, `${when} is ${parts.join(', ')}. ${line}`), calls);
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow, dayEnergyAnswer, focusNotes, copyClearDay, cycleDayAnswer];

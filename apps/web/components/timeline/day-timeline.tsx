@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
+import {Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useState} from 'react';
 import {PageHeader} from '../page-header';
 import {OrbitArt} from '../header-art/orbit-art';
 import {RemindersGlyph} from '../header-art/glyphs/reminders';
@@ -15,6 +15,9 @@ import {BANDS, bandOf, defaultHabitTime, MEAL_TIMES, type TimelineBlock} from '.
 import {clearTime, dropPastDated, minutesClock, restoreTime, setTime, type TimeOverride} from '../../lib/timeline/store';
 import {addLocalDays} from '../../lib/local-date';
 import {TimelineDayPicker} from './timeline-day-picker';
+import {LoadBoundary} from '../load-boundary';
+// Session AV lane 2 (r3-plan, LEDGER #262): the cycle day on the all-day line, opt-in under the Health gate (its own chunk).
+const CycleOnTimeline = lazy(() => import('../cycle/cycle-on-plan'));
 import {entryOn, restoreHabitEntry, type HabitEntry} from '../../lib/timeline/actions';
 import {setHabitTime} from '../../lib/habits-extras/store';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
@@ -126,6 +129,7 @@ export function DayTimelinePage() {
     {!loaded || !day ? <div className="timeline-skeleton aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
       {state.failed && <p role="status" className="timeline-note">Some of your records could not be read on this device; the timeline shows what it can.</p>}
       <ReplanCard leftovers={day.leftovers} actions={actions} busy={busy} />
+      <LoadBoundary quiet><Suspense fallback={null}><CycleOnTimeline date={day.date} today={today} /></Suspense></LoadBoundary>
       {day.anytime.length > 0 && <section className="timeline-band timeline-anytime" aria-labelledby="timeline-anytime-title">
         <h2 id="timeline-anytime-title">Anytime</h2>
         <ul className="timeline-list">{day.anytime.map(b => <TimelineBlockRow key={b.id} block={b} actions={actions} busy={busy} />)}</ul>

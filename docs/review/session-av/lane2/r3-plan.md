@@ -188,3 +188,26 @@ clear this day”, pick a day and press Copy to make its tasks again there with 
 move its open tasks to no day. Both have Undo; nothing is deleted."
 What's new: "Agenda: copy a day's tasks to another day, or clear a day."
 Showcase: works on the Showcase's tasks (nothing new stored). Today: nothing. Weight: /app/agenda gains one lazy mount.
+
+## Feature 7 — The cycle day on the plan (LEDGER #262, Structured's Cycle Seasons) — built; part Carried
+
+- Opt-in in the cycle log (Health → Diary → Cycle log): "Show my cycle day on the Day Timeline and the Agenda" (kept as
+  `plan: true` in `zigoals:cycle:v1`). Shown only while the cycle log is on and Health is shown (the Health gate).
+- The Day Timeline (any day, with Feature 3's picker): an "All day" line — "Day 3 of your cycle · period day (logged)." or
+  "period may start (an estimate)" inside the estimated window (after three cycles), with the log's own line
+  (`CYCLE_LINE`) and a link to the log. A day from the estimated start on gets no cycle day (it would be a guess).
+- The Agenda (day and week views): "Your cycle on these days", one line per day with something to say, and the log's line.
+- Part Carried — **against a named rule** (no medical advice): Structured's seasons by phase, and its advice on what to plan
+  in each phase, are not built. Only days and the log's own words are shown.
+Files: lib/cycle/{plan-days.ts, engine.ts (setCycleOnPlan), store.ts (cycleOnPlan)}, components/cycle/{cycle-on-plan.tsx (own
+chunk), cycle-log.tsx, cycle.css}, components/timeline/day-timeline.tsx and components/agenda/agenda-page.tsx (one lazy mount each).
+Tests: lib/cycle/r3-plan-days.test.ts. Spec: tests/av2-cycle-on-plan.spec.ts.
+Stored: `plan` on the cycle record (TIER 3 commit).
+Answers: "what day of my cycle is it tomorrow" / "welke dag van mijn cyclus is het morgen" (Health gate and the log's switch;
+`never`: phase, advice).
+Help: Q "Can my cycle day show on my plan?" A "Yes, if you want it. In the cycle log, tick “Show my cycle day on the Day
+Timeline and the Agenda”. They then show the day of your cycle and logged or estimated period days. Nothing more: no
+phases and no advice. Information for you, not a contraceptive or a diagnosis."
+What's new: "Cycle log: your cycle day on the Day Timeline and the Agenda, if you choose."
+Showcase: shows for the Showcase only if its cycle record opts in (it does not; no count moved). Today: nothing.
+CSS: components/cycle/cycle.css (seven lines).
