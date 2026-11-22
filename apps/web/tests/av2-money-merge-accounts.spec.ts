@@ -27,12 +27,16 @@ for (const theme of THEMES) test(`${theme}: merge two accounts, with Undo`, asyn
   await page.getByRole('button', {name: 'Merge two accounts in What you own'}).click();
   const panel = page.locator('.money-merge');
   await expect(panel.getByRole('heading', {name: 'Merge two accounts · What you own'})).toBeVisible();
-  await panel.getByLabel('Merge', {exact: true}).selectOption({label: 'ING Current (EUR)'});
-  await panel.getByLabel('into').selectOption({label: 'ING Betaalrekening (EUR)'});
+  // Session AV lane 2 (fixb5; deliberate): getByLabel reads a wrapping <label>'s whole text, its options' words included, so
+  // an exact "Merge" never matched (and "into" leaned on a substring); each select is found by its exact accessible name.
+  await panel.getByRole('combobox', {name: 'Merge', exact: true}).selectOption({label: 'ING Current (EUR)'});
+  await panel.getByRole('combobox', {name: 'into', exact: true}).selectOption({label: 'ING Betaalrekening (EUR)'});
   await expect(panel.getByRole('list', {name: 'What the merge moves'})).toContainText('1 balance of ING Current goes to ING Betaalrekening.');
   await expect(panel.getByRole('checkbox', {name: /^ING Current/})).toBeChecked();
   await expect(panel).toContainText('2 entries take the name “ING Betaalrekening”.');
-  await expect(panel.getByRole('checkbox', {name: /Remove the copy of Groceries/})).toBeChecked();
+  // Session AV lane 2 (fixb5; deliberate): the box names which account's copy goes ("from ING Current", merge-accounts.tsx),
+  // so its whole name is checked.
+  await expect(panel.getByRole('checkbox', {name: 'Remove the copy from ING Current of Groceries · Sep 2, 2026 · €20.00 (ref R1)', exact: true})).toBeChecked();
   const findings = await axe(page, panel);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await panel.getByRole('button', {name: 'Merge ING Current into ING Betaalrekening'}).click();
