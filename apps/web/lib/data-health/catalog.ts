@@ -13,6 +13,7 @@ import {AM2_CATALOG_LABELS} from '../am2-device-keys';
 import {AR_CATALOG_LABELS} from '../ar-device-keys';
 import {AU_CATALOG_LABELS} from '../au-device-keys';
 import {AV_CATALOG_LABELS} from '../av-device-keys';
+import {AV2_CATALOG_LABELS} from '../av2-device-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -137,6 +138,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   mealWords: [AU_CATALOG_LABELS.mealWords[0], AU_CATALOG_LABELS.mealWords[1]],
   // Session AV (lib/av-device-keys.ts; ADR-045 F-COUNTDOWN-YEARLY): yearly countdowns and their reminders.
   countdownExtras: [AV_CATALOG_LABELS.countdownExtras[0], AV_CATALOG_LABELS.countdownExtras[1]],
+  // Session AV lane 2 (lib/av2-device-keys.ts).
+  taskPlan: [AV2_CATALOG_LABELS.taskPlan[0], AV2_CATALOG_LABELS.taskPlan[1]], taskTemplates: [AV2_CATALOG_LABELS.taskTemplates[0], AV2_CATALOG_LABELS.taskTemplates[1]], budgetPeriods: [AV2_CATALOG_LABELS.budgetPeriods[0], AV2_CATALOG_LABELS.budgetPeriods[1]],
 };
 /** Session AM (ADR-038 D18): the one record of which only a part travels, in the words the Data health page shows. */
 export const NOVA_PARTLY_SYNCED_LABEL = 'NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)';

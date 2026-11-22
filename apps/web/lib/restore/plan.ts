@@ -51,6 +51,9 @@ import {DAY_GOAL_RECORD} from '../checklist/day-goal';
 import {TASK_WHEN} from '../tasks/when';
 import {COUNTDOWNS} from '../countdowns/schema';
 import {COUNTDOWN_EXTRAS} from '../countdowns/extras';
+import {TASK_PLAN} from '../tasks/plan-record';
+import {TASK_TEMPLATES} from '../tasks/templates';
+import {BUDGET_PERIODS} from '../budgets/periods';
 import {MONEY_TAGS_RECORD} from '../money-tags/schema';
 import {MOOD_TAGS} from '../mood-tags/schema';
 import {MEAL_WORDS} from '../meal-words/schema';
@@ -257,6 +260,10 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('countdowns', 'Days until', 'Today and Life', COUNTDOWNS),
   // Session AV (ADR-045 F-COUNTDOWN-YEARLY; TIER 3 (stored format), additive): yearly countdowns and their reminders.
   dev('countdownExtras', 'Days until: yearly and reminders', 'Today and Life', COUNTDOWN_EXTRAS),
+  // Session AV lane 2 (lib/av2-device-keys.ts; owner follow-up 4).
+  dev('taskPlan', 'Tasks: planning choices and timers', 'Today and Life', TASK_PLAN),
+  dev('taskTemplates', 'Tasks: project templates', 'Today and Life', TASK_TEMPLATES),
+  dev('budgetPeriods', 'Budgets: pay periods and the paycheck fill', 'Goals and Wealth', BUDGET_PERIODS),
   // Session AR (6b; TIER 3 (stored format), additive): whether "Your orbits" shows on Today (a display choice).
   dev('todayOrbits', 'Your orbits on Today', 'Today and Life', TODAY_ORBITS),
   dev('moneyTags', 'Tags on money entries', 'Goals and Wealth', MONEY_TAGS_RECORD),
