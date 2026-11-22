@@ -30,7 +30,8 @@ for (const theme of THEMES) test(`${theme}: a day left, a budget on a tag, a pay
   await form.getByLabel('Name').fill('Holiday');
   await form.getByLabel('Amount').fill('500');
   await form.getByRole('radio', {name: 'Entries with a tag'}).check();
-  await form.getByLabel('Tag').selectOption('holiday');
+  // Session AV lane 2 (getByLabel('Tag') also matched the radio “Entries with a tag”: the select by its role and exact name, deliberate)
+  await form.getByRole('combobox', {name: 'Tag', exact: true}).selectOption('holiday');
   await form.getByLabel('First day').fill('2026-11-01');
   await form.getByLabel('Last day').fill('2026-11-30');
   await form.getByRole('button', {name: 'Save budget'}).click();
