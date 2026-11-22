@@ -315,3 +315,47 @@ Re-checked against the code at this branch; each row of `quality/q2.md` marked M
 
 - Spec: the Showcase example is covered by the lead's Showcase sweep (no new spec: it is static text).
 - What's new: none (a Showcase example).
+
+### F8. N12, Kubera's net-worth sheet: mortgage equity, ownership share, your own groups, stale reminders, one total from typed rates, IRR, documents, today's money
+
+- LEDGER rows (lead's addition, "Ten more apps"): #218 a mortgage linked to its property, the equity on the property's
+  row — **built**; #219 an ownership share per account — **built** (Your sheet counts that part beside the whole; the
+  app's other net-worth figures are unchanged, so nothing pinned moves); #215 your own groups with a subtotal per
+  currency — **built**; #217 "update every month or quarter", shown on Wealth and when overdue — **built** (Your sheet
+  "Due for an update" and a piece on Today's Money line, only for accounts the person set it on; For you is not touched);
+  #214 one total from rates the person types, each with its day, labelled as theirs — **built**; the fetched-rate part
+  stays **Carried: needs an outside service**; #220 money in and out on an account with its annualised return (IRR),
+  labelled a result — **built**; #221 a photo or PDF kept on the device with an account — **built** (IndexedDB
+  `zigoals-wealth-docs-v1`, in Export everything as files once the lead wires `exportWealthDocEntries`, deleted by Erase
+  everything once `AV2_MONEY_DATABASES` joins KNOWN_DATABASES); #222 figures in today's money beside the nominal ones,
+  and a tax rate per income stream — **built** (Financial freedom: an inflation figure adds "Middle, in money of that
+  year"; a life event "in" takes its own tax rate off). N11 (#212, #213, #216) not touched, as the lead asked.
+- Files: `lib/wealth-sheet/{schema,sheet,docs}.ts` (new), `lib/av2-money-device-keys.ts` (new),
+  `components/wealth/wealth-sheet.tsx` (new, lazy), `components/wealth/account-sheet.tsx` (new, lazy),
+  `components/wealth/accounts-section.tsx`, `lib/money-attention.ts`, `components/wealth/today-money-attention.tsx`,
+  `lib/fi-model/{model,store}.ts`, `components/wealth/money-tools/{fi-model-panel,fi-scenarios}.tsx`.
+- Tests: `lib/wealth-sheet/av2-sheet.test.ts`, round trip (FI `inflationPct`, event `taxPct`; the new record's round trip
+  runs once it is in `DEVICE_KEYS`).
+- Spec: `tests/av2-money-sheet.spec.ts`.
+- Answers wiring: `equity`, `staleOnes`, `oneTotalAnswer`, `returnIrr` read `env.wealthSheet` — **the lead adds
+  `wealthSheet: one(WEALTH_SHEET)` to the tool sources** (lib/ai/tools/env.ts `ToolSources`/`ToolEnv`, beside `accounts`),
+  gated with Wealth. Without it they answer where the figures live. Corpus ids `av2-money-equity`, `-stale`,
+  `-one-total`, `-irr`.
+- Help (EN): **Q: Can I see the equity in my home?** A: Open your mortgage's "Sheet" on Wealth and choose "Secured on":
+  the home's row then shows its value less what the mortgage owes. **Q: I own half of an account. Can I count half?** A:
+  Its "Sheet" → Your share: 50. "Your sheet" shows your total at your shares beside the whole. **Q: Can I group my
+  accounts?** A: Give each a group in its Sheet; Your sheet adds a subtotal per group. **Q: Can ZIGoals remind me to
+  update a balance?** A: Sheet → "Remind me to update it" every month or quarter; Wealth and Today say when it is due.
+  **Q: Can I see everything in one currency?** A: Type your own rate in Your sheet ("1 USD is 0.92 EUR, on a day"); the
+  one total uses only rates you typed, and says so. ZIGoals fetches no exchange rates. **Q: What return did an account
+  make?** A: Sheet → "Money in and out": what you put in and took out, with the days; with today's balance it gives the
+  annual return (IRR). A result, not advice. **Q: Can I keep a statement with an account?** A: Sheet → Documents: a photo
+  or PDF up to 2 MB, kept in this browser only. **Q: Can Financial freedom show money of later years?** A: Type an
+  inflation figure under its table; a life event that brings money in can carry its own tax rate.
+- What's new: "Wealth: your own sheet — home equity, your share of a joint account, groups, update reminders, one total
+  from your own rates, an account's return, and documents kept with it."
+- Showcase hook: none (the Showcase accounts are pinned by net-worth tests; the sheet is opt-in per account).
+- Registries: the new record and database (see "Registry entries the lead adds" above). CSS touched:
+  `components/wealth/accounts.css`, `components/wealth/money-tools/money-tools.css`.
+- Today: nothing always visible; "<account>: due for an update" joins the existing Money link only for an account the
+  person set a reminder on.

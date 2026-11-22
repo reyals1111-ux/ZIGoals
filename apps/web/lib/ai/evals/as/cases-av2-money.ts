@@ -25,4 +25,8 @@ export const AV2_MONEY: readonly Intent[] = [
   {id: 'av2-money-paid-down', pillar: 'wealth', en: ['how much debt did I pay down this year', 'how much have I paid down'], nl: ['hoeveel schuld heb ik dit jaar afgelost', 'hoeveel heb ik afbetaald']},
   {id: 'av2-money-kept-plan', pillar: 'wealth', en: ['am I on track with my debt plan', 'am I ahead of my debt plan'], nl: ['lig ik op schema met mijn aflosplan', 'loop ik achter op mijn aflosplan']},
   {id: 'av2-money-debt-free-by', pillar: 'wealth', en: ['how much extra do I need to be debt free by 2030', 'how much extra to be debt free by 2029'], nl: ['hoeveel extra heb ik nodig om in 2030 schuldenvrij te zijn', 'hoeveel extra moet ik betalen om in 2029 schuldenvrij te zijn']},
+  {id: 'av2-money-equity', pillar: 'wealth', en: ['what is my home equity', 'how much equity do I have'], nl: ['hoeveel overwaarde heb ik', 'wat is de overwaarde van mijn huis']},
+  {id: 'av2-money-stale', pillar: 'wealth', en: ['which accounts need an update', 'which balances are due for an update'], nl: ['welke rekeningen moet ik bijwerken', 'welke saldi moet ik bijwerken']},
+  {id: 'av2-money-one-total', pillar: 'wealth', en: ['what is my net worth in one total', 'show my wealth in one total'], nl: ['wat is mijn vermogen in één totaal', 'toon mijn vermogen in een totaal']},
+  {id: 'av2-money-irr', pillar: 'wealth', en: ['what is the annual return on my investments', 'what is my irr'], nl: ['wat is het rendement van mijn beleggingen', 'wat is mijn rendement']},
 ];

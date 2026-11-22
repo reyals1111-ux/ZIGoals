@@ -26,9 +26,11 @@ export type FiInput = {
    */
   events?: readonly FiEvent[];
 };
-export type FiEvent = {year: number; amount: number; kind: 'in' | 'out'; every: 'once' | 'yearly'};
+export type FiEvent = {year: number; amount: number; kind: 'in' | 'out'; every: 'once' | 'yearly'; /** Session AV lane 2 (money; Kubera): the tax rate on an income stream, taken off before it counts. */ taxPct?: number};
 /** The sum of the events at the end of year `y` (in adds, out takes away). */
-export const eventsAt = (events: readonly FiEvent[] | undefined, y: number) => (events ?? []).reduce((sum, e) => (e.every === 'once' ? e.year === y : y >= e.year) ? sum + (e.kind === 'in' ? e.amount : -e.amount) : sum, 0);
+export const eventsAt = (events: readonly FiEvent[] | undefined, y: number) => (events ?? []).reduce((sum, e) => (e.every === 'once' ? e.year === y : y >= e.year) ? sum + (e.kind === 'in' ? e.amount * (1 - Math.min(100, Math.max(0, e.taxPct ?? 0)) / 100) : -e.amount) : sum, 0);
+/** Session AV lane 2 (money; Kubera's Fast Forward): a figure in today's money as money of `year` years ahead, at `inflationPct` a year. */
+export const inMoneyOf = (todays: number, year: number, inflationPct: number) => todays * Math.pow(1 + Math.max(0, inflationPct) / 100, year);
 export const FI_DEFAULTS = {withdrawalPct: 4, returnPct: 5, volatilityPct: 15, years: 50, paths: 1000, seed: 20261031} as const;
 export const FI_LIMITS = {money: 1e12, withdrawalPct: [1, 10], returnPct: [-10, 20], volatilityPct: [0, 60], years: [1, 60], paths: [10, 5000]} as const;
 export type FiBand = {year: number; p10: number; p50: number; p90: number};

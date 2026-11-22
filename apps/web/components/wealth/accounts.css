@@ -68,3 +68,16 @@
 .debts-spark path{fill:none;stroke:var(--cyan,#6fd3ff);stroke-width:2}
 .debts-paid summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
 .debts-paid ul{margin:0;padding-left:18px;display:grid;gap:4px}
+/* Session AV lane 2 (money; Kubera): your sheet and each account's sheet options. */
+.accounts-equity{display:block;font-size:14px}
+.accounts-sheet-toggle button{min-height:44px}
+.wealth-sheet{display:grid;gap:8px;margin-top:16px;padding:12px;border-radius:14px;border:1px solid var(--line,rgba(140,160,220,.25));min-width:0;overflow-wrap:anywhere}
+.wealth-sheet h3,.wealth-sheet p{margin:0}
+.wealth-sheet-figure{margin-inline-end:8px}
+.wealth-sheet-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px 12px;align-items:end;margin:6px 0}
+.wealth-sheet-form input,.wealth-sheet-form select,.wealth-sheet-form button,.account-sheet select{min-height:44px;width:100%;box-sizing:border-box}
+.account-sheet{display:grid;gap:8px;grid-column:1/-1;padding:10px 0;min-width:0}
+.account-sheet-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.account-sheet-flows{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:14px}
+.account-sheet-flows li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px}
+.account-sheet-flows button,.account-sheet-fold>button{min-height:44px}

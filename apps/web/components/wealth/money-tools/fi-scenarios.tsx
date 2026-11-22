@@ -20,7 +20,7 @@ const NONE_EVENTS: Event[] = [], NONE_SCENARIOS: Scenario[] = [];
 const yearsWord = (n: number | null) => n === null ? 'not within the years shown' : `${n} ${n === 1 ? 'year' : 'years'}`;
 export default function FiScenarios({stored, input, currency, onOpen}: {stored: DeviceRecordState<FiModelRecord>; input: FiInput; currency: string; onOpen: (inputs: Record<string, unknown>) => void}) {
   const id = useId(), events = stored.data.events ?? NONE_EVENTS, scenarios = stored.data.scenarios ?? NONE_SCENARIOS;
-  const [title, setTitle] = useState(''), [year, setYear] = useState('5'), [amount, setAmount] = useState(''), [kind, setKind] = useState<'in' | 'out'>('out'), [every, setEvery] = useState<'once' | 'yearly'>('once');
+  const [title, setTitle] = useState(''), [year, setYear] = useState('5'), [amount, setAmount] = useState(''), [kind, setKind] = useState<'in' | 'out'>('out'), [every, setEvery] = useState<'once' | 'yearly'>('once'), [tax, setTax] = useState('');
   const [name, setName] = useState(''), [status, setStatus] = useState(''), [problem, setProblem] = useState('');
   const save = (fn: (r: FiModelRecord) => FiModelRecord, words: string) => { setProblem(''); try { stored.update(fn); setStatus(words); } catch (cause) { setProblem(cause instanceof Error ? cause.message : 'Not kept on this device.'); } };
   const addEvent = (e: FormEvent) => {
@@ -30,7 +30,9 @@ export default function FiScenarios({stored, input, currency, onOpen}: {stored: 
     if (!(y >= 1 && y <= 60)) { setProblem('Choose a year of the model from 1 to 60.'); return; }
     if (!(a > 0 && a <= 1e12)) { setProblem('Enter the amount above zero.'); return; }
     if (events.length >= MAX_LIFE_EVENTS) { setProblem(`Up to ${MAX_LIFE_EVENTS} life events.`); return; }
-    const ev: Event = {id: newId('ev'), title: title.trim().slice(0, 60), year: y, amount: a, kind, every};
+    const t = tax.trim() ? num(tax) : 0;
+    if (kind === 'in' && !(t >= 0 && t <= 100)) { setProblem('A tax rate is from 0 to 100 %.'); return; }
+    const ev: Event = {id: newId('ev'), title: title.trim().slice(0, 60), year: y, amount: a, kind, every, ...(kind === 'in' && t > 0 ? {taxPct: t} : {})};
     save(r => ({...r, events: [...(r.events ?? []), ev]}), `${ev.title} added: ${kind === 'in' ? 'in' : 'out'} ${money(a.toFixed(0), currency)} in year ${y}${every === 'yearly' ? ' and every year after' : ''}.`); setTitle(''); setAmount('');
   };
   const saveScenario = (e: FormEvent) => {
@@ -49,13 +51,14 @@ export default function FiScenarios({stored, input, currency, onOpen}: {stored: 
   return <div className="fi-scenarios">
     <section aria-labelledby={`${id}-events`}>
       <h4 id={`${id}-events`}>Life events</h4>
-      {events.length ? <ul className="money-list fi-events">{events.map(ev => <li key={ev.id}><span><strong>{ev.title}</strong> <span className="fine">· {ev.kind === 'in' ? '+' : '−'}{money(ev.amount.toFixed(0), currency)} in year {ev.year}{ev.every === 'yearly' ? ', and every year after' : ''}</span></span><button type="button" className="quiet" aria-label={`Remove ${ev.title}`} onClick={() => save(r => ({...r, events: (r.events ?? []).filter(x => x.id !== ev.id)}), `${ev.title} removed.`)}>Remove</button></li>)}</ul>
+      {events.length ? <ul className="money-list fi-events">{events.map(ev => <li key={ev.id}><span><strong>{ev.title}</strong> <span className="fine">· {ev.kind === 'in' ? '+' : '−'}{money(ev.amount.toFixed(0), currency)} in year {ev.year}{ev.every === 'yearly' ? ', and every year after' : ''}{ev.taxPct ? `, ${ev.taxPct} % tax taken off` : ''}</span></span><button type="button" className="quiet" aria-label={`Remove ${ev.title}`} onClick={() => save(r => ({...r, events: (r.events ?? []).filter(x => x.id !== ev.id)}), `${ev.title} removed.`)}>Remove</button></li>)}</ul>
         : <p className="fine">A car in year 3, a sabbatical, a pension from year 25: an amount in or out that the paths above count.</p>}
       <form className="money-grid fi-event-form" onSubmit={addEvent} aria-label="Add a life event">
         <label className="field"><span>Event</span><input maxLength={60} value={title} placeholder="New car" onChange={e => setTitle(e.target.value)}/></label>
         <label className="field"><span>In year</span><input inputMode="numeric" value={year} onChange={e => setYear(e.target.value)}/></label>
         <label className="field"><span>Amount ({currency}, today’s money)</span><input inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)}/></label>
         <label className="field"><span>Money</span><select value={kind} onChange={e => setKind(e.target.value as 'in' | 'out')}><option value="out">Out</option><option value="in">In</option></select></label>
+        {kind === 'in' && <label className="field"><span>Tax on it (%) — optional</span><input inputMode="decimal" value={tax} placeholder="30" onChange={e => setTax(e.target.value)}/></label>}
         <label className="field"><span>How often</span><select value={every} onChange={e => setEvery(e.target.value as 'once' | 'yearly')}><option value="once">Once</option><option value="yearly">Every year from then</option></select></label>
         <button type="submit" className="secondary">Add event</button>
       </form>

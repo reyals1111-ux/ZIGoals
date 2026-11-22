@@ -9,6 +9,8 @@ import {assignView, averageSpent} from '../../budgets/assign';
 import {debtSummary, paidOffDebts, trackedProgress} from '../../debt-planner/wealth';
 import {extraFor} from '../../debt-planner/more';
 import {debtView} from '../tools/f9-debt';
+import type {WealthSheet} from '../../wealth-sheet/schema';
+import {accountValueNow, equityOf, irr, oneTotal, shareTotals, staleAccounts} from '../../wealth-sheet/sheet';
 import type {MoneyEntry} from '../../money-log/schema';
 import {summarizeSelection} from '../../money-log/selection';
 import type {ToolEnv} from '../tools/env';
@@ -267,3 +269,49 @@ function debtFreeBy(a: Asked): LocalReply | null {
     : say(lang, `About ${debtMoney(need, v.currency)} extra a month on top of the minimums makes you debt-free by December ${y} (avalanche order; now ${debtMoney(v.extra, v.currency)}). A model, not advice.`, `Ongeveer ${debtMoney(need, v.currency)} extra per maand bovenop de minimums maakt je schuldenvrij in december ${y} (lawinevolgorde; nu ${debtMoney(v.extra, v.currency)}). Een model, geen advies.`), calls);
 }
 addAnswers(paidOff, paidDown, keptPlan, debtFreeBy);
+
+// ── N12: Kubera's net-worth sheet ────────────────────────────────────────────────────────────────────────────────
+// The sheet is read from `env.wealthSheet` (the lead adds it to the tool sources beside `accounts`); without it, these
+// answers say where the figures live.
+
+const sheetOf = (a: Asked): WealthSheet | null => (a.env as ToolEnv & {wealthSheet?: WealthSheet | null}).wealthSheet ?? null;
+const SHEET_WHERE = {en: 'Wealth → Accounts, debts & net worth → each account’s “Sheet”', nl: 'Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet”'} as const;
+/** "What is my home equity", "hoeveel overwaarde heb ik". */
+function equity(a: Asked): LocalReply | null {
+  if (!/\bequity\b|\bovenwaarde\b|\boverwaarde\b|\beigen vermogen in (?:mijn )?huis\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, accounts = a.env.accounts, sheet = sheetOf(a), calls = [{tool: 'accounts', args: {equity: true}, label: 'Accounts · equity'}];
+  const rows = accounts && sheet ? accounts.items.filter(x => x.kind === 'property' && !x.archivedAt).flatMap(p => { const e = equityOf(accounts, sheet, p.id, a.today); return e ? [{p, e}] : []; }) : [];
+  if (!rows.length) return answer(say(lang, `No mortgage is linked to a property yet. In ${SHEET_WHERE.en} of the mortgage, “Secured on” links it; the property then shows its equity.`, `Er is nog geen hypotheek aan een woning gekoppeld. In ${SHEET_WHERE.nl} van de hypotheek koppelt “Secured on” hem; de woning toont dan de overwaarde.`), calls);
+  return answer(rows.map(({p, e}) => say(lang, `${p.name}: equity ${e.equity < 0n ? '−' : ''}${money(Math.abs(Number(e.equity)), e.currency)} (worth ${money(Number(e.value), e.currency)}, less ${money(Number(e.owed), e.currency)} owed on ${list(e.mortgages.map(x => x.name), 'en')}).`, `${p.name}: overwaarde ${e.equity < 0n ? '−' : ''}${money(Math.abs(Number(e.equity)), e.currency)} (waard ${money(Number(e.value), e.currency)}, min ${money(Number(e.owed), e.currency)} schuld op ${list(e.mortgages.map(x => x.name), 'nl')}).`)).join('\n'), calls);
+}
+/** "Which accounts need an update", "welke rekeningen moet ik bijwerken". */
+function staleOnes(a: Asked): LocalReply | null {
+  if (!/\b(?:accounts?|balances?|values?)\b.*\b(?:need|due for) (?:an )?update\b|\bout of date\b.*\baccounts?\b|\b(?:rekeningen|saldo\w*|saldi)\b.*\bbijwerken\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, list2 = staleAccounts(a.env.accounts, sheetOf(a), a.today), calls = [{tool: 'accounts', args: {stale: true}, label: 'Accounts · due for an update'}];
+  if (!list2.length) return answer(say(lang, `Nothing is due for an update by your own reminders. Set “Remind me to update it” in ${SHEET_WHERE.en}.`, `Niets hoeft bijgewerkt te worden volgens je eigen herinneringen. Zet “Remind me to update it” in ${SHEET_WHERE.nl}.`), calls);
+  return answer(say(lang, `Due for an update: ${list(list2.map(x => `${x.name} (${x.last ? `last ${dayIn('en', x.last, a.today)}` : 'no balance yet'})`), 'en')}.`, `Bijwerken: ${list(list2.map(x => `${x.name} (${x.last ? `laatst ${dayIn('nl', x.last, a.today)}` : 'nog geen saldo'})`), 'nl')}.`), calls);
+}
+/** "What is my net worth in one total", "mijn vermogen in één totaal": from the rates the person typed. */
+function oneTotalAnswer(a: Asked): LocalReply | null {
+  if (!/\bone total\b|\bnet worth in (?:one|a single) currency\b|\b(?:in )?(?:een|één) totaal\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, accounts = a.env.accounts, sheet = sheetOf(a), calls = [{tool: 'accounts', args: {oneTotal: true}, label: 'Your sheet · one total'}];
+  if (!accounts?.items.length) return answer(say(lang, 'You have no accounts yet (Wealth → Accounts, debts & net worth).', 'Je hebt nog geen rekeningen (Vermogen → Accounts, debts & net worth).'), calls);
+  const s = sheet ?? {version: 1 as const}, rows = shareTotals(accounts, s, a.today), cur = s.total ?? rows[0]?.currency ?? 'EUR', t = oneTotal(rows.map(r => ({currency: r.currency, cents: r.net})), s.rates, cur);
+  const head = say(lang, `One total in ${cur}: ${t.cents < 0n ? '−' : ''}${money(Math.abs(Number(t.cents)), cur)}`, `Eén totaal in ${cur}: ${t.cents < 0n ? '−' : ''}${money(Math.abs(Number(t.cents)), cur)}`);
+  const used = t.used.length ? say(lang, `, with your own rates (${t.used.map(u => u.inverse ? `1 ${cur} = ${u.rate} ${u.from}` : `1 ${u.from} = ${u.rate} ${cur}`).join(', ')}), not live ones`, `, met je eigen koersen (${t.used.map(u => u.inverse ? `1 ${cur} = ${u.rate} ${u.from}` : `1 ${u.from} = ${u.rate} ${cur}`).join(', ')}), geen actuele`) : '';
+  const missing = t.missing.length ? say(lang, `. Without ${list(t.missing, 'en')}: type a rate in Your sheet.`, `. Zonder ${list(t.missing, 'nl')}: typ een koers in Your sheet.`) : '';
+  return answer(`${head}${used}${missing}.`.replace('..', '.'), calls);
+}
+/** "What is the return on my investments", "wat is het rendement van mijn beleggingen": the IRR of accounts with money in and out. */
+function returnIrr(a: Asked): LocalReply | null {
+  if (!/\b(?:irr|annual return|rate of return|return on my)\b|\brendement\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, sheet = sheetOf(a), calls = [{tool: 'accounts', args: {irr: true}, label: 'Your sheet · annual return'}];
+  const rows = (a.env.accounts?.items ?? []).flatMap(x => { const f = sheet?.flows?.[x.id]; const r = f ? irr(f, accountValueNow(x, a.today), a.today) : null; return r === null ? [] : [`${x.name} ${(r * 100).toFixed(1)} %`]; });
+  if (!rows.length) return answer(say(lang, `No account has money in and out recorded yet. In ${SHEET_WHERE.en} → “Money in and out”, add what you put in with the days; with today’s balance it gives the annual return.`, `Nog geen rekening heeft geld erin en eruit vastgelegd. In ${SHEET_WHERE.nl} → “Money in and out” voeg je toe wat je erin stopte, met de dagen; met het saldo van vandaag geeft dat het jaarrendement.`), calls);
+  return answer(say(lang, `Annual return (IRR) from your money in and out and today’s balance: ${list(rows, 'en')} a year. A result, not advice.`, `Jaarrendement (IRR) uit je geld erin en eruit en het saldo van vandaag: ${list(rows, 'nl')} per jaar. Een uitkomst, geen advies.`), calls);
+}
+addAnswers(equity, staleOnes, oneTotalAnswer, returnIrr);
