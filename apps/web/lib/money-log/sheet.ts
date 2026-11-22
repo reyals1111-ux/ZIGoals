@@ -77,7 +77,9 @@ export function sheetCsv(rows: readonly SheetRow[]): string {
 }
 const money = (cents: number): XlsxCell => ({number: cents / 100, format: 'money'});
 /** The workbook: Entries, Categories, Accounts and Month by month (with SUM formulas). */
-export function sheetWorkbook({log, accounts, from, to, today, modified}: {log: MoneyLog; accounts: Accounts | null; from: string; to: string; today: string; modified: Date}): Uint8Array {
+/** Review b5k #8: the business space's workbook holds the business money log's bank-file names only, never the personal accounts. */
+export function sheetWorkbook({log, accounts: given, from, to, today, modified, business = false}: {log: MoneyLog; accounts: Accounts | null; from: string; to: string; today: string; modified: Date; business?: boolean}): Uint8Array {
+  const accounts = business ? null : given;
   const rows = sheetRows(log.entries, from, to);
   const entries: XlsxSheet = {name: 'Entries', widths: [12, 9, 18, 16, 30, 20, 12, 12, 12, 9, 11, 10, 20], rows: [HEADER, ...rows.map(r => [r.date, r.kind, r.category, r.sub, r.note, r.account, r.paidWith, money(r.amount), money(r.counted), r.currency, r.as, r.spread, r.id] as XlsxCell[])]};
   const categories: XlsxSheet = {name: 'Categories', widths: [10, 22, 34, 10, 10], rows: [['Kind', 'Category', 'Subcategories', 'Yours', 'Archived'], ...(['expense', 'income'] as const).flatMap(kind => allCategories(log, kind).map(c => {
@@ -86,7 +88,7 @@ export function sheetWorkbook({log, accounts, from, to, today, modified}: {log: 
   }))]};
   const accountRows: XlsxCell[][] = (accounts?.items ?? []).filter(a => !a.archivedAt).map(a => { const b = balanceOn(a, today); return [a.name, a.kind, a.currency, b ? {number: Number(b.value) / 10 ** b.decimals, format: 'money'} : null, b?.date ?? '', a.institution ?? '', log.accounts?.notes?.[a.id] ?? '']; });
   const fileNames = [...new Set(log.entries.map(e => e.currency))].flatMap(c => bankAccountNames(log.entries, c).map(n => [n, 'bank file', c, null, '', '', `${log.entries.filter(e => e.currency === c && e.account === n).length} entries`] as XlsxCell[]));
-  const accountsSheet: XlsxSheet = {name: 'Accounts', widths: [24, 12, 9, 14, 12, 18, 30], rows: [['Account', 'Kind', 'Currency', 'Latest balance', 'On', 'Bank or provider', 'Note'], ...accountRows, ...fileNames]};
+  const accountsSheet: XlsxSheet = {name: 'Accounts', widths: [24, 12, 9, 14, 12, 18, 30], rows: [['Account', 'Kind', 'Currency', 'Latest balance', 'On', 'Bank or provider', 'Note'], ...accountRows, ...fileNames, ...(business ? [['Your accounts and balances are kept in your personal space and are not in this business file.'] as XlsxCell[]] : [])]};
   const grids = monthGrid(log.entries, from, to), monthRows: XlsxCell[][] = [['Counted as your budgets count it: your share, a spread cost by its share each month; left-out entries and transfers not counted.']];
   for (const g of grids) {
     const n = g.months.length, last = n; // columns: A = category, B.. = months, then Total; a row's index is its sheet row
