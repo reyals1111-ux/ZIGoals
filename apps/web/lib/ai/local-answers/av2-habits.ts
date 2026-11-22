@@ -7,6 +7,7 @@ import {readMuted} from '../../muted/rule';
 import {loggedStrip, readCheckin, QUADRANT_IDS} from '../../checkin-extras/rule';
 import {addLocalDays} from '../../local-date';
 import {feelingTrends} from '../../feeling-trends/trends';
+import {guideOfTheDay} from '../../meditation/guides';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
 import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
 import {PATTERNS, type BreathingPattern} from '../../meditation/breathing';
@@ -25,7 +26,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, ownWords, usualFeeling]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, ownWords, usualFeeling, todaysPractice]) {
       const r = one(a);
       if (r) return r;
     }
@@ -179,4 +180,12 @@ function usualFeeling(a: Asked): LocalReply | null {
   const head = rows.length ? `${rows.join('. ')}.` : '';
   const tail = waiting.length ? say(lang, ` Not enough days yet: ${waiting.join('; ')}.`, ` Nog niet genoeg dagen: ${waiting.join('; ')}.`) : '';
   return answer(`${head}${tail}`.trim() + say(lang, ' Up or down describes your own answers, not whether that is good.', ' Hoger of lager beschrijft je eigen antwoorden, niet of dat goed is.'));
+}
+/** LEDGER #71, #77: "what is today's meditation", "wat is de meditatie van vandaag" — the written practice of the day (no record read). */
+function todaysPractice(a: Asked): LocalReply | null {
+  const en = /\btodays (?:meditation|practice|guided meditation)\b|\bmeditation (?:of|for) (?:the day|today)\b|\bdaily meditation\b/.test(a.f);
+  const nl = /\bmeditatie van (?:vandaag|de dag)\b|\boefening van vandaag\b|\bdagelijkse meditatie\b/.test(a.f);
+  if (!en && !nl) return null;
+  const g = guideOfTheDay(a.today), lang = a.lang, t = g[lang];
+  return answer(say(lang, `Today’s practice: “${t.title}”, ${g.minutes} minutes. It begins: ${t.steps[0]} Health → Meditation → Today’s practice has all of it, “Another one”, and Begin with the bell.`, `De oefening van vandaag: “${t.title}”, ${g.minutes} minuten. Hij begint zo: ${t.steps[0]} Health → Meditation → Today’s practice heeft de hele oefening, “Another one” en Begin met de bel.`));
 }

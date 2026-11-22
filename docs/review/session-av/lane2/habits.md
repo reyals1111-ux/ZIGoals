@@ -243,3 +243,36 @@ corpus, regenerates theme sheets, edits Help / What's new / search / shard lists
 - What's new: "Experiments follow up to eight outcomes, and symptoms can be the change or the result."
 - Answers: none new (Experiments are not read by NOVA or ZIGi today; symptoms stay unread by them, owner rule).
 - Showcase hook: the Showcase's example experiment shows "Follow more outcomes" with no new data.
+
+## Feature 8 — Today's practice, written guides (LEDGER #71, #77 daily part)
+
+**Verdict: built** (#77's meditation library stays Carried: needs content made for ZIGoals, recorded audio courses).
+
+- Health → Meditation → "Today's practice, a short written guide" (a fold, lazy): one of twelve practices written for
+  ZIGoals in English and Dutch (`lib/meditation/guides.ts`: arriving, counting breaths, a short body scan, noting,
+  kind wishes, listening, hands, a longer out-breath, open sky, walking slowly, three good moments, letting the day go),
+  3, 5 or 10 minutes, each in four plain steps; "Another one"; "In het Nederlands" / "In English"; "Begin · N min with
+  the bell" starts the existing timer and its bell. Relaxation wording, never treatment; no audio.
+- Files: `lib/meditation/guides.ts`, `components/health/meditation/{today-practice.tsx,meditation-view.tsx,meditation.css}`,
+  `lib/ai/local-answers/av2-habits.ts`.
+- Tests: `lib/meditation/guides.test.ts` (Dutch twins, lengths, no treatment words, one a day and Another one, the
+  answers EN and NL). Spec: `tests/av2-todays-practice.spec.ts`.
+- Stored changes: none (a session it begins is the existing meditation session).
+- Help (EN): **Q: Is there a meditation for today?** A: Yes. Health → Meditation → Today's practice gives one short
+  written practice a day, in English or Dutch, with "Another one". "Begin" starts the timer with your bell for its
+  minutes. It is text to read, not audio.
+- What's new: "Today's practice: a short written meditation each day, in English and Dutch."
+- Answers: "what is today's meditation" / "wat is de meditatie van vandaag" (case `av2-habits-todays-practice`).
+- Showcase hook: shows for every profile with no data. CSS: `meditation.css` (a few lines). Today: nothing added.
+
+## Not built yet (next for this pillar, in order)
+
+- Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm
+  visuals with Motion Off respected), **#81** Daily Move (written stretch cues with a timer, minutes logged only, never
+  calories). Next row: **#79**.
+- q4 / QUALITY "Not fixed" Minors for habits and mood: Skip and amount per week-grid cell
+  (`components/habits/habit-week-grid.tsx`), a paused-until note, grouped repeat plans, a symptom chart in the visit
+  report (q3 #48).
+- Lead's added groups (LEDGER "Ten more apps", pillar Habits and mind): N1 Daylio (#178, #179, #180, #188, #189), N2
+  Insight Timer (#184, #186), N3 Fabulous (#181, #182, #183; Lock Screen native-only), N5 Loop (#185 rolling schedule
+  as a separate TIER 3 commit, #187, #190, #194).

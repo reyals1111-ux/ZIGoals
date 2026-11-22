@@ -21,4 +21,6 @@ export const AV2_HABITS: readonly Intent[] = [
   {id: 'av2-habits-own-words', pillar: 'health', en: ['what are my own feeling words'], nl: ['welke eigen gevoelswoorden heb ik']},
   // Trends against your usual (LEDGER #66)
   {id: 'av2-habits-usual-mood', pillar: 'health', en: ['how is my mood compared to usual', 'how is my energy compared to normal'], nl: ['hoe is mijn stemming vergeleken met normaal', 'hoe is mijn energie vergeleken met normaal']},
+  // Today's written practice (LEDGER #71, #77)
+  {id: 'av2-habits-todays-practice', pillar: 'health', en: ['what is today\'s meditation', 'what is the meditation of the day'], nl: ['wat is de meditatie van vandaag', 'wat is de oefening van vandaag']},
 ];
