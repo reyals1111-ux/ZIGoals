@@ -51,7 +51,8 @@ None of these is in the protected baseline.
 | `b5b3d2ba` | TIER 3 (stored formats): the `file` kind in the task attachments store (#355) |
 | `1242ec7f` | #355 |
 | `29352432` | NOVA's and ZIGi's answers (all rows) |
-| (this commit) | this registry |
+| `b2e0cc67` | this registry |
+| (next) | Export everything / Restore: Recently deleted photos and task files (lead's permission, items 3 and 4) |
 
 Checks: typecheck (through the shared lock) clean on `ff6baa8f`'s files, on `da8251b2`, on `be1e9a84` and on the final
 head; eslint clean on every changed file; unit tests green for `lib/notes`, `lib/agenda`, `lib/tasks/*attachments*`,
@@ -72,20 +73,19 @@ answers, except `lib/erase-coverage.test.ts`, which stays red until the lead reg
    catalogue (`lib/data-health/catalog.ts`, home device, area Today, as the notes record), `AV2_R5_NOTES_RESTORE` into the
    restore plan (`lib/restore/plan.ts`, `dev('noteCards', 'Review days of note cards', 'Today and Life', NOTE_CARDS)`),
    `AV2_R5_NOTES_ERASE_KEYS` into the erase (`lib/aa-device-forget.ts`), and the frozen-reader fixture if it lists device
-   keys. **Red until then:** `lib/erase-coverage.test.ts` ("every key is in Export everything and the data catalog")
+   keys (the lead reports batch 5 already registers it). **Red until then:** `lib/erase-coverage.test.ts` ("every key is in Export everything and the data catalog")
    names `zigoals:note-cards:v1`; it goes green with those lines. The export → erase → restore test in
    `lib/notes/r5-cards.test.ts` is `skipIf(!registered)` and runs once the key is in `DEVICE_KEYS`.
-3. **Export everything for Recently deleted (#360)**: the notes record (with `trash`) already round-trips
-   (`lib/notes/r5-stored.test.ts`, Replace and Merge). For the photos of notes in Recently deleted to travel too, one line:
-   `lib/export/make-everything.ts:53` (the r4 line, now `sch.notePhotoIdsOf(note)` over `notes`) → also over
-   `record.trash ?? []`; and `lib/restore/media.ts:63` indexes the same ids for the trash's notes. Until then a restored
-   note in Recently deleted keeps its words and its photo ids; its photo bytes stay on the device that took them.
-4. **Files on a task in a backup (#355)**: Export everything already writes them (`exportTaskAttachmentEntries` reads
-   every kind; a file is named `tasks/attachments/<task>-file-<id>-<name>.<ext>`). To restore them, in
-   `lib/restore/media.ts` (`target`, around line 92–104): match `-file-(tf_[A-Za-z0-9_-]+)-` names as kind `file` with
-   cap `TASK_FILE_MAX_BYTES`, and in the `tasks` case of the writer:
-   `putTaskAttachment(scope, t.id, {taskId: t.taskId!, kind: 'file', blob, type: blob.type || 'application/octet-stream', name: <the part after the id>, bytes, at})`.
-   Erase: the files live in the existing database `zigoals-task-attachments-v1`, already erased by name.
+3. **Done on this branch (with the lead's permission): Export everything and Restore for Recently deleted (#360).**
+   `lib/export/make-everything.ts` exports the photos of notes in `trash` beside the others; `lib/restore/media.ts`
+   indexes the trash's notes (`photoId` and `photos`) like `notes`, so their photos come back. The undo record is unchanged.
+4. **Done on this branch (with the lead's permission): files on a task restore from Export everything (#355).**
+   `lib/restore/media.ts` matches `tasks/attachments/<task>-file-<tf_ id>-<name>.<ext>` as kind `file` (cap
+   `TASK_FILE_MAX_BYTES`, the type from the extension: PDF, pictures and text get theirs, anything else plain bytes) and
+   writes it with `putTaskAttachment` kind `file` (name, type, bytes); an id already here is never overwritten; a PDF or
+   picture whose bytes are not what its name says, an oversize or broken file is skipped and counted, as for the other
+   media. Test: `lib/restore/r5-restore-media.test.ts`. Erase: the files live in `zigoals-task-attachments-v1`, already
+   erased by name.
 5. **Specs for the shard lists** (none run here): `tests/av2-notes-trash.spec.ts`, `av2-notes-select.spec.ts`,
    `av2-notes-mentions.spec.ts`, `av2-notes-embed.spec.ts`, `av2-notes-tag-templates.spec.ts`,
    `av2-notes-table-edit.spec.ts`, `av2-notes-event.spec.ts`, `av2-notes-daily-range.spec.ts`, `av2-notes-look.spec.ts`,

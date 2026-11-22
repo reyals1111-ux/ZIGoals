@@ -50,7 +50,8 @@ export async function buildEverythingExport(): Promise<{name: string; bytes: Uin
   const mealPhotos = await Promise.all([import('../health-aa/photos'), import('../meal-estimates/photos')]).then(([a, m]) => m.exportMealPhotoEntries(a.photoScope(), now)).catch(() => []);
   // Owner follow-up 2 (B1): the notes' photos as files (device-only), named by the photo id each note points at.
   const notePhotos = kept ? [] : await Promise.all([import('../health-aa/photos'), import('../notes/photos'), import('../notes/schema'), import('../device-record')]).then(async ([a, n, sch, dr]) => {
-    const ids = dr.readDeviceRecord(storage, sch.NOTES).data.notes.flatMap(note => sch.notePhotoIdsOf(note)); // Round 4 (r4-notes #307): every photo of a note, not only the first.
+    // Round 4 (r4-notes #307): every photo of a note, not only the first. Round 5 (r5-notes #360): and of a note in Recently deleted.
+    const record = dr.readDeviceRecord(storage, sch.NOTES).data, ids = [...new Set([...record.notes, ...(record.trash ?? [])].flatMap(note => sch.notePhotoIdsOf(note)))];
     return [...(await n.notePhotosForExport(a.photoScope(), ids))].map(([id, p]) => ({name: `notes/photos/${id.replace(/[^A-Za-z0-9_-]/g, '')}.${p.type === 'image/webp' ? 'webp' : 'jpg'}`, data: p.data, modified: now}));
   }).catch(() => []);
   // Owner follow-up 2 (G1 #10): receipt photos as files, named by their entry's date and id (device-only).
