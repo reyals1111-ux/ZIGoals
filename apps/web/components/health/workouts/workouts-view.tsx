@@ -77,6 +77,8 @@ const ExerciseHowTo = lazy(() => import('./exercise-library').then(m => ({defaul
 const Places = lazy(() => import('./places'));
 const SuggestWorkout = lazy(() => import('./suggest-workout'));
 const ReplaceExercise = lazy(() => import('./replace-exercise'));
+// Session AV lane 2, round 4 (health; Runna, LEDGER #330): your plan — planned workouts on a calendar, moved and realigned.
+const PlannedWorkouts = lazy(() => import('../r4/planned-workouts'));
 const placeNow = (r: WorkoutPlaces | null): Place | null => r?.places.find(p => p.id === r.current) ?? null;
 
 /**
@@ -233,6 +235,7 @@ export default function WorkoutsView() {
           : /* Session AV (q3 #11): the weekly chart's teaching line before the first workout, so a fresh device knows it is coming */ <p className="fine workouts-weeks-teach">Finish a workout and the last 12 weeks show here: time, distance and weight lifted per week.</p>}
         {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null} onNoted={fn => change(fn)}/></Suspense>}
         <Suspense fallback={null}><RunTip today={today}/></Suspense>
+        <PlanFold w={w} today={today}/>
         {past.length > 0 && <CalendarFold w={w} today={today}/>}
         {/* Session AV lane 2 (bodymind-r2; LEDGER #240, Fitbod): a workout for today from your own history, freshness and place. */}
         <Fold className="av2-fold workouts-suggest-fold" summary="Suggest a workout for today, from your own sets" loading="Working out a suggestion…"><SuggestWorkout w={w} library={library} today={today} unit={unit} places={places} onStart={x => begin({date: logDay, now: new Date(), repeat: x})}/></Fold>
@@ -358,6 +361,12 @@ const progressionWords = (p: NonNullable<Workouts['templates'][number]['progress
 function Fold({className, summary, loading, children}: {className: string; summary: string; loading: string; children: ReactNode}) {
   const [open, setOpen] = useState(false);
   return <details className={className} onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{summary}</summary>{open && <Suspense fallback={<p className="fine" role="status">{loading}</p>}>{children}</Suspense>}</details>;
+}
+/** Session AV lane 2, round 4 (LEDGER #330): the plan's fold, opened by itself when the address asks for it (the Agenda's link). */
+function PlanFold({w, today}: {w: Workouts; today: string}) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => { if (typeof location !== 'undefined' && location.hash === '#workouts-plan') queueMicrotask(() => setOpen(true)); }, []);
+  return <details className="av2-fold workouts-plan-fold" open={open || undefined} onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Your plan: planned workouts on a calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening your plan…</p>}><PlannedWorkouts w={w} today={today}/></Suspense>}</details>;
 }
 /** Session AV (F-WORKOUT-CALENDAR): the fold whose content loads when opened. */
 function CalendarFold({w, today}: {w: Workouts; today: string}) {
