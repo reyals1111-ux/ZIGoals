@@ -21,7 +21,7 @@ const FENCE = /^\s*(```+|~~~+)/;
 export function movedTag(tag: string, from: string, to: string): string | null {
   const t = tag.replace(/^#+/, ''), f = key(from);
   if (key(t) === f) return to;
-  if (key(t).startsWith(`${f}/`)) return `${to}${t.slice(from.length)}`.slice(0, MAX_TAG);
+  if (key(t).startsWith(`${f}/`)) return `${to}${t.slice(from.length)}`; // review b6n B6N-6: never cut; renameTag refuses a tag past 32
   return null;
 }
 /** The words with every `#from` (and `#from/…`) written as `#to`; code (fenced or inline) is left as it is. */
@@ -53,12 +53,25 @@ export function tagRenamePreview(record: Pick<Notes, 'notes'>, from: string, to:
 }
 export type TagRenameResult = {record: Notes; undo: NotesUndo; changed: number; locked: number; merge: boolean; /** The old tag's template stayed because the new tag has its own. */ templateKept: boolean;
   /** Review b6n B6N-3: changed notes whose earlier words were not kept as a version, because Earlier versions is full and keeping them would push out other notes' versions. */ unversioned: number};
+/**
+ * Review b6n B6N-6: the first tag a rename would make longer than a tag can be (32 characters), or null. The rename is
+ * refused in words then: a tag is never cut (a cut can end in - or /, stop being a tag, or make two tags one).
+ */
+export function tooLongTag(record: Pick<Notes, 'notes' | 'tagTemplates' | 'focusTag'>, from: string, to: string): string | null {
+  const all = [...record.notes.flatMap(n => noteTags(n)), ...(record.tagTemplates ?? []).map(t => t.tag), ...(record.focusTag ? [record.focusTag] : [])];
+  for (const t of all) { const m = movedTag(t, from, to); if (m && m.length > MAX_TAG) return m; }
+  return null;
+}
+export const tagTooLongWords = (tag: string) => `#${tag} would be ${tag.length} characters, and a tag holds at most ${MAX_TAG}. Choose a shorter name; nothing was renamed.`;
 export function renameTag(record: Notes, fromRaw: string, toRaw: string, now: string, zone: string = checklistZone()): TagRenameResult {
-  const from = fromRaw.replace(/^#+/, '').trim(), to = newTagName(toRaw);
+  const from = fromRaw.replace(/^#+/, '').trim(), typed = toRaw.trim().replace(/^#+/, '').replace(/\s+/g, '-'), to = newTagName(toRaw);
   if (!from) throw new Error('Choose the tag to rename first.');
+  if (typed.length > MAX_TAG) throw new Error(tagTooLongWords(typed)); // review b6n B6N-6: never cut silently
   if (!to) throw new Error('Give the tag a new name with a letter in it, for example travel or work/meetings.');
   if (key(to) === key(from)) throw new Error(`The tag is already called #${from}.`);
   if (key(to).startsWith(`${key(from)}/`)) throw new Error(`#${to} sits under #${from}, so the tag cannot move into it.`);
+  const long = tooLongTag(record, from, to);
+  if (long) throw new Error(tagTooLongWords(long));
   const {merge} = tagRenamePreview(record, from, to), today = zonedDay(new Date(now), zone);
   const before: Note[] = [], versions: NoteVersion[] = [];
   let locked = 0;

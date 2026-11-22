@@ -1,7 +1,8 @@
 import {describe, expect, test} from 'vitest';
 import {MAX_NOTE_VERSIONS, notesSchema, type Notes} from './schema';
 import {applyUndo} from './store';
-import {renameTag} from './tag-rename';
+import {noteTags} from './tags';
+import {renameTag, tooLongTag} from './tag-rename';
 
 /**
  * Review b6n B6N-3 (Major) and B6N-6 (Minor), LEDGER #399: a tag rename never pushes out another note's earlier versions
@@ -34,5 +35,19 @@ describe('B6N-3 a rename never pushes out other notes’ versions; Undo restores
     expect(out.record.versions!.filter(x => x.noteId === 'w0').map(x => x.body).at(-1)).toBe('About #work 0.');
     expect(out.record.versions!.filter(x => x.noteId === 'w1')).toHaveLength(1);
     expect(applyUndo(out.record, out.undo).versions).toEqual(r.versions);
+  });
+});
+describe('B6N-6 a rename never cuts a tag', () => {
+  const r = notesSchema.parse({version: 1, voice: false, notes: [{id: 'a', kind: 'topic', title: 'A', body: 'See #ab/x-yz and #ab/x-yq.', createdAt: AT}]});
+  test('a nested tag that would pass 32 characters: refused in words, nothing changed', () => {
+    const name = 'abcdefghijklmnopqrstuvwxyz12';
+    expect(tooLongTag(r, 'ab', name)).toBe(`${name}/x-yz`);
+    expect(() => renameTag(r, 'ab', name, NOW, 'UTC')).toThrow(`#${name}/x-yz would be 33 characters, and a tag holds at most 32. Choose a shorter name; nothing was renamed.`);
+  });
+  test('a typed name past 32 characters: refused, never cut', () => {
+    expect(() => renameTag(r, 'ab', 'x'.repeat(33), NOW, 'UTC')).toThrow(/would be 33 characters/);
+  });
+  test('a name that fits keeps every nested tag apart', () => {
+    expect(noteTags(renameTag(r, 'ab', 'cd', NOW, 'UTC').record.notes[0]!)).toEqual(['cd/x-yz', 'cd/x-yq']);
   });
 });

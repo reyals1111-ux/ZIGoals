@@ -4,7 +4,8 @@ import {SecretGuard} from '../secret-guard/secret-guard';
 import type {Notes} from '../../lib/notes/schema';
 import {tagTree} from '../../lib/notes/tags';
 import {taggableNotes} from '../../lib/notes/focus';
-import {newTagName, renameTag, tagRenamePreview} from '../../lib/notes/tag-rename';
+import {newTagName, renameTag, tagRenamePreview, tagTooLongWords, tooLongTag} from '../../lib/notes/tag-rename';
+import {MAX_TAG} from '../../lib/notes/schema';
 import type {Change} from './note-editor';
 
 /**
@@ -22,6 +23,8 @@ export default function TagRename({record, change}: {record: Notes; change: Chan
   const others = tree.filter(t => t.tag.toLowerCase() !== tag.toLowerCase() && !t.tag.toLowerCase().startsWith(`${tag.toLowerCase()}/`));
   const target = others.some(t => t.tag === into) ? into : others[0]?.tag ?? '';
   const typed = newTagName(name), preview = tag && typed ? tagRenamePreview(record, tag, typed) : null;
+  // Review b6n B6N-6: a name that would make a tag longer than 32 characters is refused in words, never cut.
+  const long = !name.trim() ? null : name.trim().replace(/^#+/, '').replace(/\s+/g, '-').length > MAX_TAG ? name.trim().replace(/^#+/, '').replace(/\s+/g, '-') : typed && tag ? tooLongTag(record, tag, typed) : null;
   if (!tree.length) return <p className="fine">No tags yet. Once a note has a #tag, you can rename it here or merge it into another tag.</p>;
   const run = (to: string, merging: boolean) => {
     let out = {changed: 0, locked: 0, templateKept: false, unversioned: 0};
@@ -37,8 +40,8 @@ export default function TagRename({record, change}: {record: Notes; change: Chan
     <form className="note-tag-rename-row" onSubmit={e => { e.preventDefault(); if (typed && preview && !preview.merge) run(typed, false); }} aria-label={`Rename #${tag}`}>
       <label className="field"><span>New name</span><input value={name} maxLength={40} onChange={e => setName(e.target.value)} placeholder="trips" aria-describedby={`${id}-rename`}/></label>
       <SecretGuard text={name} onRemove={() => setName('')}/>
-      <p className="fine" id={`${id}-rename`} role="status">{!name.trim() ? `Every #${tag} (and the tags under it) gets the new name, in the words and the Tags field.` : !typed ? 'A tag needs a letter: for example trips or work/meetings.' : typed.toLowerCase() === tag.toLowerCase() ? `It is called #${tag} already.` : preview!.merge ? `#${typed} is a tag already: choose it under Merge into to join them.` : `#${tag} becomes #${typed} in ${many(preview!.notes)}${preview!.locked ? ` (${preview!.locked} locked, changed but not shown)` : ''}.`}</p>
-      <button type="submit" className="secondary" disabled={!typed || !preview || preview.merge || typed.toLowerCase() === tag.toLowerCase() || !preview.notes}>Rename tag</button>
+      <p className="fine" id={`${id}-rename`} role="status">{!name.trim() ? `Every #${tag} (and the tags under it) gets the new name, in the words and the Tags field.` : long ? tagTooLongWords(long) : !typed ? 'A tag needs a letter: for example trips or work/meetings.' : typed.toLowerCase() === tag.toLowerCase() ? `It is called #${tag} already.` : preview!.merge ? `#${typed} is a tag already: choose it under Merge into to join them.` : `#${tag} becomes #${typed} in ${many(preview!.notes)}${preview!.locked ? ` (${preview!.locked} locked, changed but not shown)` : ''}.`}</p>
+      <button type="submit" className="secondary" disabled={!typed || !!long || !preview || preview.merge || typed.toLowerCase() === tag.toLowerCase() || !preview.notes}>Rename tag</button>
     </form>
     {others.length > 0 && <form className="note-tag-rename-row" onSubmit={e => { e.preventDefault(); if (target) run(target, true); }} aria-label={`Merge #${tag} into another tag`}>
       <label className="field"><span>Merge into</span><select value={target} onChange={e => setInto(e.target.value)}>{others.map(t => <option key={t.tag} value={t.tag}>#{t.tag}</option>)}</select></label>
