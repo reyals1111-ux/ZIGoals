@@ -476,7 +476,13 @@ export function labelsInUse(record: Tasks): {name: string; open: number; colour?
 export function renameLabel(record: Tasks, from: string, to: string): Tasks {
   const clean = to.trim().replace(/^@/, '');
   if (!LABEL_PATTERN.test(clean)) throw new Error('A label is one word: letters, numbers, “_” or “-”, up to 40.');
-  return tasksSchema.parse({...record, tasks: record.tasks.map(t => t.labels?.includes(from) ? {...t, labels: [...new Set(t.labels.map(l => l === from ? clean : l))]} : t)});
+  // Review B6M-6: the label keeps its place in its group (renamed there too, in the same write and Undo), and a rename into
+  // a grouped label takes that group's other label away (withLabel). A label sits in one group, so a rename that would put
+  // it in two is refused in words.
+  const groups = record.labelGroups ?? [], home = groups.find(g => g.labels.includes(from)), other = groups.find(g => g !== home && g.labels.includes(clean));
+  if (home && other) throw new Error(`@${clean} is in “${other.name}” and @${from} is in “${home.name}”; a label sits in one group. Remove it from one group first.`);
+  const nextGroups = home ? groups.map(g => g === home ? {...g, labels: [...new Set(g.labels.map(l => l === from ? clean : l))]} : g) : groups;
+  return tasksSchema.parse({...record, ...(home ? {labelGroups: nextGroups} : {}), tasks: record.tasks.map(t => t.labels?.includes(from) ? {...t, labels: withLabel(t.labels.filter(l => l !== from), clean, nextGroups)} : t)});
 }
 export function saveFilter(record: Tasks, name: string, query: string, id = newId('filter')): Tasks {
   if (!name.trim() || !query.trim()) throw new Error('A saved filter needs a name and a search.');

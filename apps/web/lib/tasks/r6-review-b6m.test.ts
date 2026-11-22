@@ -1,5 +1,6 @@
 import {describe, expect, test} from 'vitest';
-import {addTask, editTask, finishTask, orderAhead, viewTasks, waitsTurn, withLabel} from './engine';
+import {addTask, editTask, finishTask, orderAhead, renameLabel, viewTasks, waitsTurn, withLabel} from './engine';
+import {undoOfChange} from './undo';
 import {holdProject, setProjectInOrder} from './project-states';
 import {inPlayRecord, isOutOfPlay} from './focus';
 import {bucketGroups, rollBuckets} from './plan-bucket';
@@ -31,6 +32,20 @@ describe('B6M-1: one shared way to give a label, the groups honoured', () => {
     expect(out.ran).toHaveLength(1);
     const again = runRules(before, add(before, 't', {title: 'Fictional printer', projectId: 'p', labels: ['office']}), {today: TODAY, at, newId: () => 'n'});
     expect(again.ran).toEqual([]);
+  });
+});
+describe('B6M-6: renaming a label honours the groups and keeps the group’s membership', () => {
+  test('a rename into a grouped label keeps one of the group; a grouped label renamed stays in its group; one Undo', () => {
+    let r = add(add(grouped(), 'a', {title: 'Fictional printer', labels: ['home', 'remote']}), 'b', {title: 'Fictional desk', labels: ['office']});
+    r = renameLabel(r, 'remote', 'office');
+    expect(r.tasks.map(t => t.labels)).toEqual([['office'], ['office']]);
+    const moved = renameLabel(r, 'office', 'work');
+    expect(moved.labelGroups).toEqual([{id: 'g', name: 'Where', labels: ['home', 'work']}]);
+    expect(moved.tasks.map(t => t.labels)).toEqual([['work'], ['work']]);
+    expect(undoOfChange(r, moved)(moved).labelGroups).toEqual(r.labelGroups);
+    const two = setLabelGroup(r, {id: 'e', name: 'Energy', labels: ['low', 'high']});
+    expect(() => renameLabel(two, 'home', 'low')).toThrow(/sits in one group/);
+    expect(renameLabel(add(grouped(), 'c', {title: 'Fictional', labels: ['calls']}), 'calls', 'phone').labelGroups).toEqual(grouped().labelGroups);
   });
 });
 describe('B6M-2: in order with a wait for another task never blocks for good', () => {
