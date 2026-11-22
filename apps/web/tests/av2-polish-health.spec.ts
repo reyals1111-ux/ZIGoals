@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
-import {go, noSideways, start} from './av2-polish-helpers';
-import {THEMES} from './p6-helpers';
+import {foldMarker, go, noSideways, start} from './av2-polish-helpers';
+import {axe, THEMES} from './p6-helpers';
 
 /**
  * Session AV lane 2 (polish), Health:
@@ -12,6 +12,7 @@ import {THEMES} from './p6-helpers';
  * - P-22: the latest five nights, then "Show all".
  * - P-23: the four ranges share one row.
  * - P-25: Workouts' switches are chips (outlined, the chosen one filled).
+ * - P-22, the rest (polish 2): no empty band above a night's Edit and Delete; the last-7-days explanations fold.
  */
 test.use({timezoneId: 'Europe/Amsterdam'});
 
@@ -71,6 +72,64 @@ test('Sleep at 390: the score, five nights and one row of ranges', async ({page}
   await expect(ranges).toHaveCount(4);
   expect(new Set(await ranges.evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().top)))).size).toBe(1);
   await noSideways(page);
+});
+
+/**
+ * P-22, the rest (polish 2): no empty band above a night's Edit and Delete (the page's `.fine` margins and the actions' own
+ * had added about 40 px), and "Your last 7 days" folds how each figure is worked out behind "What is this?" (the shared
+ * fold marker), the figures and the short facts staying on the tiles.
+ */
+for (const theme of THEMES) test(`P-22 ${theme} 390: a night's buttons follow its lines; the tiles' explanations fold`, async ({page}) => {
+  await start(page, {theme, width: 390});
+  await go(page, '/app/health?view=sleep');
+  const recent = page.getByRole('region', {name: 'Recent nights and naps'});
+  await expect(recent.locator('.sleep-nights > li').first()).toBeVisible({timeout: 15_000});
+  const gaps = await recent.locator('.sleep-nights > li').evaluateAll(items => items.map(li => {
+    const words = [...li.querySelector(':scope > div:first-child')!.children].filter(e => e.getBoundingClientRect().height > 0);
+    const actions = li.querySelector(':scope > .actions')!.getBoundingClientRect();
+    return Math.round(actions.top - words[words.length - 1]!.getBoundingClientRect().bottom);
+  }));
+  expect(gaps.length).toBe(5);
+  for (const gap of gaps) { expect(gap).toBeGreaterThanOrEqual(4); expect(gap).toBeLessThanOrEqual(16); }
+
+  const week = page.getByRole('region', {name: 'Your last 7 days'});
+  const folds = week.locator('dd.sleep-stat-how > details');
+  // The Showcase has a goal and two weeks of nights: debt, balance and both consistencies explain themselves.
+  await expect(folds).toHaveCount(4);
+  for (const name of ['Sleep debt', 'Sleep balance', 'Bedtime consistency', 'Wake-time consistency']) {
+    const summary = week.getByText(`What is this? (${name})`, {exact: true});
+    await expect(summary).toBeVisible();
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await foldMarker(summary);
+  }
+  for (const text of ['minus time asleep', 'Every night is a fresh start', 'How much your bedtimes vary', 'How much your wake times vary']) await expect(week.getByText(text)).toBeHidden();
+  // The figures and the short facts stay in view.
+  await expect(week.getByText(/^Short nights only: /)).toBeVisible();
+  await expect(week.getByText(/^\d+ nights? logged$/)).toBeVisible();
+  const debt = week.locator('.sleep-stat-wide').filter({hasText: 'Sleep debt'});
+  await debt.locator('summary').click();
+  await expect(debt.locator('details')).toHaveAttribute('open', '');
+  await foldMarker(debt.locator('summary'), true);
+  await expect(debt.getByText(/minus time asleep, added up over the \d+ nights? you logged in the last 7 days/)).toBeVisible();
+  const findings = await axe(page, week);
+  expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
+  await noSideways(page);
+});
+
+test('P-22 at 1440: the tiles\' folds are 44 px rows; no margin band in a night\'s card', async ({page}) => {
+  await start(page, {width: 1440});
+  await go(page, '/app/health?view=sleep');
+  const week = page.getByRole('region', {name: 'Your last 7 days'});
+  await expect(week.locator('dd.sleep-stat-how summary').first()).toBeVisible({timeout: 15_000});
+  for (const h of await week.locator('dd.sleep-stat-how summary').evaluateAll(els => els.map(e => e.getBoundingClientRect().height))) expect(h).toBeGreaterThanOrEqual(44);
+  // No margin band under a night's last line or around its buttons (the `.fine` line had 12 px above and 20 px below).
+  const bands = await page.getByRole('region', {name: 'Recent nights and naps'}).locator('.sleep-nights > li').evaluateAll(items => items.map(li => {
+    const box = li.querySelector(':scope > div:first-child')!, lines = [...box.children].filter(e => e.getBoundingClientRect().height > 0), actions = li.querySelector(':scope > .actions')!;
+    const cs = getComputedStyle(actions);
+    return {under: Math.round(box.getBoundingClientRect().bottom - lines[lines.length - 1]!.getBoundingClientRect().bottom), around: parseFloat(cs.marginTop) + parseFloat(cs.marginBottom)};
+  }));
+  expect(bands.length).toBe(5);
+  for (const band of bands) expect(band, JSON.stringify(band)).toEqual({under: 0, around: 0});
 });
 
 test('Workouts: the line switch is chips', async ({page}) => {
