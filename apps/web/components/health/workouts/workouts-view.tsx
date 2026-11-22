@@ -77,6 +77,8 @@ const RoutineEdit = lazy(() => import('./routine-library-view').then(m => ({defa
 const WorkoutsProgress = lazy(() => import('./workouts-progress'));
 // Session AV lane 2 (body; LEDGER #111): distance goals and the training load, its own chunk.
 const DistanceGoals = lazy(() => import('./distance-goals'));
+// Session AV lane 2, round 5 (gym; LEDGER #375, Gentler Streak's Activity Path): the movement band, its own chunk.
+const MovementBand = lazy(() => import('./movement-band'));
 // Session AV lane 2 (body; LEDGER #203, #208): shoes and the running tip, each its own chunk.
 const Shoes = lazy(() => import('./shoes'));
 const RunTip = lazy(() => import('./run-tip'));
@@ -352,6 +354,7 @@ export default function WorkoutsView() {
       <h2 id="workouts-goals-title">Distance goals and training load</h2>
       {(w.distanceGoals ?? []).slice(0, 2).map(g => { const p = goalProgress(w, g, today); return <p key={g.id} className="fine workouts-goal-line">{`${({run: 'Running', ride: 'Cycling', swim: 'Swimming', walk: 'Walking', any: 'All sports'} as const)[g.sport]} ${g.period === 'week' ? 'this week' : g.period === 'month' ? 'this month' : 'this year'}: ${formatNumber(p.km, {maximumFractionDigits: 1})} of ${formatNumber(g.km, {maximumFractionDigits: 1})} km${p.done ? ', reached' : p.onPace ? ', on pace' : ''}.`}</p>; })}
       <Fold className="av2-fold workouts-goals-fold" summary={(w.distanceGoals ?? []).length ? 'Your goals and the last 7 days beside your usual week' : 'Set a distance goal; see the last 7 days beside your usual week'} loading="Opening goals and load…"><DistanceGoals w={w} today={today} change={change} pauses={pauses}/></Fold>
+      <Fold className="av2-fold workouts-band-fold" summary="Your movement band: this week beside your usual range" loading="Opening your movement band…"><MovementBand w={w} activity={health.data.activity} today={today} pauses={pauses}/></Fold>
     </section>
     {past.some(x => x.exercises.length) && <section className="panel workouts-progress-report" aria-labelledby="workouts-report-title">
       <h2 id="workouts-report-title">Progress</h2>

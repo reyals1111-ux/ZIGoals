@@ -200,3 +200,31 @@ The splits record (`zigoals:workout-splits:v1`, strict) is not touched.
 - Showcase hook: the last Showcase leg day is starred (no photo: photos are the person's own). No pinned count reads it.
 - CSS: `gym-r5.css` (photos, star, filter).
 
+## 7. How much movement suits this week — LEDGER #375 built
+
+- What: Health → Workouts → "Distance goals and training load" gains a second fold, "Your movement band: this week beside
+  your usual range" (its own chunk; the page's layout is otherwise as it was, nothing on Today). The usual weekly range is
+  read from the last six whole weeks of workouts and Health activity minutes together (walks, chores, everyday movement,
+  #376): weeks a status covered (#374) and weeks before the first one with any movement are left out; with five or more
+  weeks the lowest and highest are set aside, with three or four the band runs from the lowest to the highest, under three
+  it teaches ("Your usual range needs three of your last six weeks with movement logged; …"). A bar shades the range and
+  fills with this week's minutes (named for screen readers); "This week so far: 105 min (0 min of workouts, 105 min of
+  other movement). Below your usual range (120–180 min a week) so far; the week runs to Sunday." (or Inside / Above); the
+  seven days with their minutes; "The last 30 days" as bars, a line with the six weeks, and a table (workouts, other
+  movement, in all). A workout that wrote its minutes into Health counts once, as a workout. Facts only: no calorie
+  figure, no "you must rest" (the ledger's owner note), no advice. The fill has no motion (Motion Off and reduced motion
+  respected).
+- Files: `lib/workouts/movement.ts` (new, pure), `components/health/workouts/movement-band.tsx` (new),
+  `components/health/workouts/workouts-view.tsx` (the fold, with Health's activity), `components/health/r5/gym-r5.css`.
+  The weekly chart (`weekly-chart.tsx`) is unchanged: the band is its own part.
+- Tests: `lib/workouts/av2-r5-movement.test.ts`; spec `tests/av2-r5-movement.spec.ts`.
+- Stored: nothing (derived).
+- Help (EN): **What is the movement band?** In Health → Workouts, under "Distance goals and training load", the movement
+  band shows your usual week from your last six weeks — workouts and other movement such as walks and chores together —
+  and this week's minutes filling it day by day, with the last 30 days below. It says only where this week stands.
+- What's new: "Workouts: your movement band — this week beside your usual range, workouts and everyday movement together."
+- Search (static.ts): "movement band", "activity range", "how much movement", "active minutes" →
+  `/app/health?view=workouts`.
+- Showcase hook: none needed (the Showcase's workouts and walks already make a band; no pinned count reads it).
+- Device keys: none. CSS: `gym-r5.css` (`.r5-band*`).
+
