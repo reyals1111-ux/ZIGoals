@@ -54,3 +54,8 @@
 :root .accounts-row > .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px 14px; }
 :root .accounts-row > .actions > :is(button, a) { width: auto; flex: none; }
 .accounts-plan-button { min-height: 44px; margin: 10px 0 4px; } /* Session AK (F5a, item 1) */
+/* Session AV lane 2 (money; Monarch): a note on an account, and arranging the list. */
+.accounts-group-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px}
+.accounts-group-head button,.accounts-arrange button{min-height:44px}
+.accounts-note{display:block;font-size:14px;overflow-wrap:anywhere}
+.accounts-arrange{display:flex;gap:8px}

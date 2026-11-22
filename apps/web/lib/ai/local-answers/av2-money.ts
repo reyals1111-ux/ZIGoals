@@ -1,5 +1,10 @@
 import {transferPairs} from '../../bankfiles/reimport';
 import {isCounted} from '../../money-log/counted';
+import {nextPayday} from '../../bills/month';
+import {cashForecast} from '../../cash-forecast/model';
+import {challengeStates, lowBalanceCross, paydayCash, payeeRows, yearRecap} from '../../money-notices';
+import {signedMoney} from '../../money-log/selection';
+import {dayIn, monthIn} from './av-words';
 import type {MoneyEntry} from '../../money-log/schema';
 import {summarizeSelection} from '../../money-log/selection';
 import type {ToolEnv} from '../tools/env';
@@ -15,7 +20,7 @@ import type {LocalReply} from './engine';
 export function av2MoneyAnswer(question: string, env: ToolEnv): LocalReply | null {
   try {
     const a = asked(question, env);
-    if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
+    if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:will|would|zakt|komt|gaat|zal)\b/.test(a.f))) return null;
     for (const one of ANSWERS) { const r = one(a); if (r) return r; }
     return null;
   } catch { return null; }
@@ -82,3 +87,74 @@ function transfers(a: Asked): LocalReply | null {
   return answer(head + more, calls);
 }
 addAnswers(leftOut, taxMarked, ownCategories, transfers);
+
+// ── Group 5: notices ─────────────────────────────────────────────────────────────────────────────────────────────
+
+const BUDGETS_PLACE = {en: 'Wealth → Budgets by category', nl: 'Vermogen → Budgets by category'} as const;
+const forecastOf = (a: Asked) => a.env.accounts && a.env.ak?.bills ? cashForecast({accounts: a.env.accounts, bills: a.env.ak.bills, entries: entriesOf(a.env), ...(a.env.nova?.budgets ? {budgets: a.env.nova.budgets} : {}), today: a.today}).rows : [];
+const about = (c: bigint, currency: string) => money(Number(c), currency);
+/** "Which payees am I watching", "welke winkels volg ik": each watched payee this month against last. */
+function payeesWatched(a: Asked): LocalReply | null {
+  if (!/\b(?:payees?|shops?|stores?) (?:am i|do i|i am|im) (?:watching|following|tracking)\b|\bwatched payees?\b|\bwelke (?:winkels|ontvangers) (?:volg ik|houd ik in de gaten)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const record = a.env.nova?.budgets, lang = a.lang, rows = record ? payeeRows(record, entriesOf(a.env), a.today) : [], calls = [{tool: 'budgets', args: {payees: true}, label: 'Budgets · watched payees'}];
+  if (!rows.length) return answer(say(lang, `You are not watching a payee yet. ${BUDGETS_PLACE.en} → “Watching payees” follows one shop or service this month against last.`, `Je volgt nog geen winkel of dienst. ${BUDGETS_PLACE.nl} → “Watching payees” volgt er een deze maand tegen vorige maand.`), calls);
+  const line = (r: (typeof rows)[number]) => r.lastBySameDay === null ? say(lang, `${r.payee}: ${money(r.thisMonth, r.currency)} so far`, `${r.payee}: ${money(r.thisMonth, r.currency)} tot nu toe`)
+    : say(lang, `${r.payee}: ${money(r.thisMonth, r.currency)} so far, ${money(r.lastBySameDay, r.currency)} by this day last month (${signedMoney(r.difference!, r.currency, money)})`, `${r.payee}: ${money(r.thisMonth, r.currency)} tot nu toe, ${money(r.lastBySameDay, r.currency)} op deze dag vorige maand (${signedMoney(r.difference!, r.currency, money)})`);
+  return answer(rows.map(line).join('. ') + '.', calls);
+}
+/** "How is my challenge going", "hoe gaat mijn uitdaging". */
+function challenges(a: Asked): LocalReply | null {
+  if (!/\bchallenges?\b|\buitdaging(?:en)?\b/.test(a.f) || /\b52\b|\bweek savings\b|\bsavings? challenge\b|\bspaaruitdaging\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const record = a.env.nova?.budgets, lang = a.lang, rows = record ? challengeStates(record, entriesOf(a.env), a.today) : [], calls = [{tool: 'budgets', args: {challenges: true}, label: 'Budgets · challenges'}];
+  if (!rows.length) return answer(say(lang, `No spending challenge is running. ${BUDGETS_PLACE.en} → Challenges starts one: spend less on a category than last month.`, `Er loopt geen uitgavenuitdaging. ${BUDGETS_PLACE.nl} → Challenges start er een: geef minder uit aan een categorie dan vorige maand.`), calls);
+  const words = (c: (typeof rows)[number]) => {
+    const head = say(lang, `${c.category} (${monthIn('en', c.month)}): ${money(c.spent, c.currency)} against ${money(c.lastMonth, c.currency)} last month`, `${c.category} (${monthIn('nl', c.month)}): ${money(c.spent, c.currency)} tegen ${money(c.lastMonth, c.currency)} vorige maand`);
+    const state = {'on-track': say(lang, `on track, ${money(c.left, c.currency)} to spare`, `op schema, ${money(c.left, c.currency)} over`), close: say(lang, `close: ${money(c.left, c.currency)} to spare`, `spannend: nog ${money(c.left, c.currency)} over`), over: say(lang, 'already past last month', 'al boven vorige maand'), won: say(lang, 'done, less than last month', 'gehaald, minder dan vorige maand'), lost: say(lang, 'ended above last month', 'geëindigd boven vorige maand'), 'no-last': say(lang, 'nothing spent last month to beat', 'vorige maand niets uitgegeven om te verslaan')}[c.state];
+    return `${head}: ${state}`;
+  };
+  return answer(rows.slice(0, 4).map(words).join('. ') + '.', calls);
+}
+/** "How much will I have left until payday", "hoeveel houd ik over tot mijn salaris". */
+function untilPayday(a: Asked): LocalReply | null {
+  const en = /\b(?:left|leftover)\b.*\b(?:until|till|before|by) (?:my )?(?:next )?(?:payday|pay day|salary|paycheck)\b/.test(a.f), nl = /\b(?:over|overhouden)\b.*\b(?:tot|voor) (?:mijn |de )?(?:volgende )?(?:salaris|salarisdag|loon)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, pay = nextPayday(entriesOf(a.env), a.today), calls = [{tool: 'cash_forecast', args: {payday: true}, label: 'Next 60 days · until payday'}];
+  if (!pay) return answer(say(lang, 'Your money log shows no regular monthly income yet, so there is no payday to count to.', 'Je geldlog toont nog geen vast maandinkomen, dus er is geen salarisdag om naartoe te tellen.'), calls);
+  const left = paydayCash(forecastOf(a), pay);
+  if (!left) return answer(say(lang, `Your next payday is ${dayIn('en', pay.date, a.today)}. What is left before it needs a ${pay.currency} cash or savings balance (What you have → Accounts).`, `Je volgende salarisdag is ${dayIn('nl', pay.date, a.today)}. Wat er dan over is vraagt om een ${pay.currency}-saldo van een betaal- of spaarrekening (What you have → Accounts).`), calls);
+  return answer(say(lang, `Your next payday is ${dayIn('en', pay.date, a.today)}. The 60-day forecast leaves about ${about(left.cents, left.currency)} the day before, after your bills and everyday spending until then. A model from your own records, not a promise.`,
+    `Je volgende salarisdag is ${dayIn('nl', pay.date, a.today)}. De prognose voor 60 dagen laat de dag ervoor ongeveer ${about(left.cents, left.currency)} over, na je rekeningen en dagelijkse uitgaven tot dan. Een model uit je eigen gegevens, geen belofte.`), calls);
+}
+/** "Will my cash go below my line", "zakt mijn geld onder mijn grens". */
+function lowLine(a: Asked): LocalReply | null {
+  const en = /\b(?:cash|balance|money)\b.*\b(?:go|drop|fall|get) (?:below|under)\b|\blow balance\b/.test(a.f), nl = /\b(?:geld|saldo)\b.*\b(?:onder|beneden)\b.*\bgrens\b|\bonder (?:mijn |de )?grens\b|\blaag saldo\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, line = a.env.moneyLog?.lowBalance, calls = [{tool: 'cash_forecast', args: {low: true}, label: 'Next 60 days · low-balance line'}];
+  if (!line) return answer(say(lang, `You have not set a low-balance line. ${SPENDING_PLACE.en} → Money tools → Next 60 days → “Low-balance line” sets one; Today then names the day the forecast crosses it.`, `Je hebt nog geen ondergrens ingesteld. ${SPENDING_PLACE.nl} → Money tools → Next 60 days → “Low-balance line” stelt er een in; Vandaag noemt dan de dag dat de prognose eronder komt.`), calls);
+  const cross = lowBalanceCross(forecastOf(a), line), shown = money(Math.round(Number(line.amount) * 100), line.currency);
+  return answer(cross ? say(lang, `Yes: the 60-day forecast goes below your line of ${shown} around ${dayIn('en', cross.date, a.today)} (about ${about(cross.cents, cross.currency)}). A model, not a promise.`, `Ja: de prognose voor 60 dagen komt rond ${dayIn('nl', cross.date, a.today)} onder je grens van ${shown} (ongeveer ${about(cross.cents, cross.currency)}). Een model, geen belofte.`)
+    : say(lang, `No: the 60-day forecast stays above your line of ${shown}.`, `Nee: de prognose voor 60 dagen blijft boven je grens van ${shown}.`), calls);
+}
+/** "How was my year for money", "hoe was mijn jaar voor mijn geld". */
+function yearInReview(a: Asked): LocalReply | null {
+  const en = /\byear in review\b|\bhow (?:was|did|has) (?:my |this )?year\b.*\b(?:money|spending|go)\b/.test(a.f), nl = /\bhoe (?:was|ging) (?:mijn |dit )?jaar\b.*\b(?:geld|uitgaven)\b|\bmijn jaar in (?:cijfers|het kort)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, year = a.today.slice(0, 4), rows = yearRecap(entriesOf(a.env), a.env.ak?.bills, year, a.today), calls = [{tool: 'money_log', args: {year}, label: `Money log · ${year}`}];
+  if (!rows.length) return answer(say(lang, `Nothing is logged in ${year} yet.`, `Er is nog niets gelogd in ${year}.`), calls);
+  return answer(rows.map(r => say(lang, `${year} so far in ${r.currency}: ${money(r.spent, r.currency)} spent, ${money(r.income, r.currency)} came in${r.top.length ? `; most on ${list(r.top.slice(0, 3).map(t => `${t.category} ${money(t.cents, r.currency)}`), 'en')}` : ''}${r.largest ? `; the largest expense ${r.largest.note} ${money(r.largest.cents, r.currency)}` : ''}${r.bills.count ? `; tracked bills ${money(r.bills.cents, r.currency)}` : ''}.`,
+    `${year} tot nu toe in ${r.currency}: ${money(r.spent, r.currency)} uitgegeven, ${money(r.income, r.currency)} binnengekomen${r.top.length ? `; het meest aan ${list(r.top.slice(0, 3).map(t => `${t.category} ${money(t.cents, r.currency)}`), 'nl')}` : ''}${r.largest ? `; de grootste uitgave ${r.largest.note} ${money(r.largest.cents, r.currency)}` : ''}${r.bills.count ? `; gevolgde rekeningen ${money(r.bills.cents, r.currency)}` : ''}.`)).join('\n'), calls);
+}
+/** "What notes do I have on my accounts", "welke notities heb ik bij mijn rekeningen". */
+function accountNotes(a: Asked): LocalReply | null {
+  if (!/\bnotes?\b.*\baccounts?\b|\baccount notes?\b|\bnotities?\b.*\brekening(?:en)?\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, notes = a.env.moneyLog?.accounts?.notes ?? {}, items = a.env.accounts?.items ?? [], calls = [{tool: 'accounts', args: {notes: true}, label: 'Accounts · notes'}];
+  const lines = items.flatMap(x => notes[x.id] ? [`${x.name}: ${notes[x.id]}`] : []);
+  return answer(lines.length ? lines.join('\n') : say(lang, 'None of your accounts has a note. Edit an account in What you have → Accounts to add one.', 'Geen van je rekeningen heeft een notitie. Bewerk een rekening in What you have → Accounts om er een toe te voegen.'), calls);
+}
+addAnswers(payeesWatched, challenges, untilPayday, lowLine, yearInReview, accountNotes);

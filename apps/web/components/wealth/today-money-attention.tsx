@@ -8,6 +8,11 @@ import {MONEY_LOG} from '../../lib/money-log/schema';
 import {MONEY_REVIEW} from '../../lib/money-review/review';
 import {attentionLinks, moneyAttention} from '../../lib/money-attention';
 import {localDate} from '../../lib/local-date';
+// Session AV lane 2 (money): the low-balance line from the 60-day forecast, and what is left in each budget (opt-in).
+import {ACCOUNTS} from '../../lib/accounts/schema';
+import {cashForecast} from '../../lib/cash-forecast/model';
+import {budgetsLeft, lowBalanceCross} from '../../lib/money-notices';
+import {moneyCents} from './money-tools/format';
 
 /**
  * Session AV (owner follow-up 1, F-MONEY-ATTENTION; YNAB's Spotlight): one line on Today, beside "Tasks due today",
@@ -18,16 +23,26 @@ import {localDate} from '../../lib/local-date';
  * month, is named too.
  */
 export default function TodayMoneyAttention() {
-  const log = useDeviceRecord(MONEY_LOG), review = useDeviceRecord(MONEY_REVIEW), budgets = useDeviceRecord(BUDGETS), bills = useDeviceRecord(BILLS), today = localDate();
-  const ready = log.loaded && review.loaded && budgets.loaded && bills.loaded;
-  const a = useMemo(() => ready ? moneyAttention({entries: log.unreadable ? [] : log.data.entries, review: review.unreadable ? null : review.data, budgets: budgets.unreadable ? null : budgets.data, bills: bills.unreadable ? null : bills.data, today}) : null,
-    [ready, log.unreadable, log.data, review.unreadable, review.data, budgets.unreadable, budgets.data, bills.unreadable, bills.data, today]);
-  if (!a || !a.count) return null;
+  const log = useDeviceRecord(MONEY_LOG), review = useDeviceRecord(MONEY_REVIEW), budgets = useDeviceRecord(BUDGETS), bills = useDeviceRecord(BILLS), accounts = useDeviceRecord(ACCOUNTS), today = localDate();
+  const ready = log.loaded && review.loaded && budgets.loaded && bills.loaded && accounts.loaded;
+  const a = useMemo(() => {
+    if (!ready) return null;
+    const entries = log.unreadable ? [] : log.data.entries, line = log.unreadable ? null : log.data.lowBalance;
+    const low = line && !accounts.unreadable && !bills.unreadable ? lowBalanceCross(cashForecast({accounts: accounts.data, bills: bills.data, entries, ...(budgets.unreadable ? {} : {budgets: budgets.data}), today}).rows, line) : null;
+    return moneyAttention({entries, review: review.unreadable ? null : review.data, budgets: budgets.unreadable ? null : budgets.data, bills: bills.unreadable ? null : bills.data, today, low});
+  }, [ready, log.unreadable, log.data, review.unreadable, review.data, budgets.unreadable, budgets.data, bills.unreadable, bills.data, accounts.unreadable, accounts.data, today]);
+  const left = useMemo(() => ready && !budgets.unreadable && !log.unreadable ? budgetsLeft(budgets.data, log.data.entries, today) : [], [ready, budgets.unreadable, budgets.data, log.unreadable, log.data.entries, today]);
+  if (!a || (!a.count && !left.length)) return null;
   const pieces = attentionLinks(a), shown = pieces.slice(0, 3);
+  // Session AV lane 2 (money; YNAB's home tab): what is left in each budget, as plain text (no Tab stop), only when the
+  // person turned it on in Budgets — the Showcase and every device that did not keep Today as it was.
+  const leftLine = left.length ? <p className="today-tasks-due-line today-budgets-left"><span><strong>Budgets left:</strong> {left.slice(0, 4).map(l => `${l.category} ${l.left < 0 ? `${moneyCents(-l.left, l.currency)} over` : moneyCents(l.left, l.currency)}`).join(' · ')}{left.length > 4 ? ` and ${left.length - 4} more` : ''}</span></p> : null;
+  if (!pieces.length) return <section className="today-tasks-due today-money-attention" aria-label="Money that asks for a look">{leftLine}</section>;
   return <section className="today-tasks-due today-money-attention" aria-label="Money that asks for a look">
     <p className="today-tasks-due-line"><span>
       {/* One link, as Today's other glance lines (Showcase Today keeps its 90 Tab stops, D-028): it opens the place of the
           first piece it names (the review list, Budgets by category or Upcoming bills), not the top of Wealth. */}
       <strong>Money:</strong> <Link className="text-link" href={shown[0]!.href}>{shown.map(p => p.text).join(' · ')}{pieces.length > shown.length ? ` and ${pieces.length - shown.length} more` : ''} <span aria-hidden="true">→</span></Link></span></p>
+    {leftLine}
   </section>;
 }

@@ -45,6 +45,36 @@ describe('group 5: transfers', () => {
   });
 });
 
+describe('group 5: notices', () => {
+  const withBudgets = (s: ToolSources, patch: Partial<NonNullable<NonNullable<ToolSources['nova']>['budgets']>>): ToolSources => ({...s, nova: {...s.nova, budgets: {...s.nova!.budgets!, ...patch}}});
+  test('watched payees and challenges, from the Showcase money log', () => {
+    const s = withBudgets(showcaseAll(), {payees: [{payee: 'Weekly shop', currency: 'EUR'}], challenges: [{id: 'c1', category: 'Food & drink', currency: 'EUR', month: DAY.slice(0, 7)}]});
+    expect(text(zigi('which payees am I watching', s))).toMatch(/^Weekly shop: €[\d.,]+ so far/);
+    expect(text(zigi('welke winkels volg ik', s))).toMatch(/^Weekly shop: €[\d.,]+ tot nu toe/);
+    expect(text(zigi('how is my spending challenge going', s))).toMatch(/^Food & drink \(Nov 2026\): €[\d.,]+ against €[\d.,]+ last month: /);
+    expect(text(zigi('hoe gaat mijn uitdaging', s))).toMatch(/^Food & drink \(november 2026\): /);
+    expect(text(zigi('how is my spending challenge going'))).toContain('No spending challenge is running');
+  });
+  test('until payday and the low-balance line: the forecast\'s own figures, said as a model', () => {
+    expect(text(zigi('how much will I have left until payday'))).toContain('no regular monthly income yet');
+    const paid = withLog(showcaseAll(), log => { const salary = log.entries.find(e => e.category === 'Salary')!; return {...log, entries: [...log.entries, {...salary, id: 'av2-salary-before', date: '2026-10-15', createdAt: '2026-10-15T12:00:00.000Z'}]}; });
+    expect(text(zigi('how much will I have left until payday', paid))).toMatch(/^Your next payday is .*\. (The 60-day forecast leaves about €[\d.,]+ the day before|What is left before it needs a EUR cash)/);
+    expect(text(zigi('hoeveel houd ik over tot mijn salaris', paid))).toMatch(/^Je volgende salarisdag is /);
+    expect(text(zigi('will my cash go below my line'))).toContain('You have not set a low-balance line');
+    const s = withLog(showcaseAll(), log => ({...log, lowBalance: {amount: '1000000.00', currency: 'EUR'}}));
+    const said = text(zigi('zakt mijn geld onder mijn grens', s));
+    expect(said).toMatch(/^(Ja: de prognose|Nee: de prognose)/);
+  });
+  test('the year in review and account notes', () => {
+    expect(text(zigi('how was my year for money'))).toMatch(/^2026 so far in EUR: €[\d.,]+ spent, €[\d.,]+ came in; most on /);
+    expect(text(zigi('hoe was mijn jaar voor mijn geld'))).toMatch(/^2026 tot nu toe in EUR: /);
+    const s = showcaseAll(), first = s.accounts!.items[0]!;
+    const noted = withLog(s, log => ({...log, accounts: {notes: {[first.id]: 'Joint with Sam'}}}));
+    expect(text(zigi('what notes do I have on my accounts', noted))).toBe(`${first.name}: Joint with Sam`);
+    expect(text(zigi('welke notities heb ik bij mijn rekeningen'))).toContain('Geen van je rekeningen heeft een notitie');
+  });
+});
+
 describe('every answer under the Wealth switch, and only its own questions', () => {
   test('Wealth off: the refusal, never a figure', () => {
     for (const c of AV2_MONEY) for (const q of [...c.en, ...c.nl]) {

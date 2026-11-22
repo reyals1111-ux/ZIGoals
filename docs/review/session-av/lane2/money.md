@@ -119,3 +119,47 @@ Device keys / catalogue / export / erase entries needed: none (existing keys onl
 - Registries: none. CSS touched: `components/wealth/spending/spending.css`, `components/import/bankfiles/bankfiles.css`,
   `components/money-photos/money-photos.css`, `components/wealth/money-tools/money-tools.css`.
 - Today: nothing added.
+
+### F3. Notices: a bill's note in Spotlight, budgets on Today, device notices, a payee watch, challenges, cash until payday, a low-balance line, a year in review, account notes and order
+
+- LEDGER rows: #128 YNAB Spotlight, a bill's note to self coming due — **built**; #129 YNAB what is left in each budget
+  on Today — **built, opt-in** (Budgets → "On Today"; one plain-text line under the Money line, no Tab stop; off by
+  default, so Showcase Today keeps its 89 Tab stops and its 390 px height: nothing always visible is added);
+  #150 Copilot device notice — **built** (a new notification type "Money notices": a budget the morning after it passed
+  80 % or its amount, the day before payday, a week and a day before the forecast crosses the low line; stateless, words
+  only with names on; the service worker composes the line); #152 Rocket Money watching a payee, and NOVA — **built**;
+  #153 Rocket Money challenges — **built**; #154 Rocket Money cash left after the bills until payday — **built** (the
+  60-day forecast's figure the day before payday); #155 Rocket Money low-balance line — **built** (a person-set amount,
+  the first day the forecast goes below it, on Today and as a device notice); #149 Copilot a year in review and the
+  bills' total — **built**; #143 Monarch account note and custom account order — **built** (net-worth range is
+  not in the row's "What is missing").
+- Files: `lib/money-notices.ts` (new), `lib/money-attention.ts`, `components/wealth/today-money-attention.tsx`,
+  `components/wealth/budgets/budget-extras.tsx` (new, lazy), `components/wealth/budgets/year-recap.tsx` (new, lazy),
+  `components/wealth/budgets/budgets-month.tsx`, `components/cash-forecast/payday-low.tsx` (new, in the forecast's chunk),
+  `components/cash-forecast/cash-forecast.tsx`, `components/wealth/accounts-section.tsx`, `lib/money-log/counted.ts`
+  (account note, order), `lib/notify/{plan,prefs,sync}.ts`, `public/sw.js`.
+- Tests: `lib/av2-money-notices.test.ts`, `lib/ai/local-answers/av2-money.test.ts`, round trip (budgets `payees`,
+  `challenges`, `onToday`; log `lowBalance`, `accounts`).
+- Spec: `tests/av2-money-notices.spec.ts`.
+- Help (EN): **Q: Can Today show what is left in my budgets?** A: Yes, if you want it: Wealth → Budgets → On Today. A
+  quiet line under Money then lists each budget's amount left. **Q: Can ZIGoals tell me when a budget is nearly used
+  up?** A: Turn on Settings → Notifications → Money notices. The morning after a budget passes 80 % (or its amount) your
+  device says so; the day before payday it says what the forecast leaves; amounts show only if names are on.
+  **Q: How do I watch one shop?** A: Budgets → Watching payees: this month against last month by the same day; Today
+  names it when it is well above. **Q: What is a challenge?** A: Your own game: spend less on one category this month
+  than last month. Budgets → Challenges shows how much is to spare. **Q: Can I get a warning before my cash runs low?**
+  A: Money tools → Next 60 days → Low-balance line. When the forecast goes below it, Today and a money notice name the
+  day. It is a model from your records, not a promise. **Q: Where is my year in review?** A: Budgets → "<year> in
+  review". **Q: Can I add a note to an account or change their order?** A: Edit an account for its note; "Arrange"
+  beside What you own / What you owe moves accounts up and down.
+- What's new: "Money: watch a payee, spend-less challenges, budgets on Today (if you want), money notices, what is left
+  until payday, a low-balance line, your year in review, and notes on accounts."
+- Answers: `payeesWatched`, `challenges`, `untilPayday`, `lowLine`, `yearInReview`, `accountNotes` (corpus ids
+  `av2-money-payees`, `-challenges`, `-until-payday`, `-low-line`, `-year`, `-account-notes`).
+- Showcase hook: none (Showcase bills have no note day; a Showcase challenge or watched payee would change the NOVA
+  corpus answers and cards pinned on the Showcase; the Showcase Today line is unchanged by design).
+- Registries: none. New notification type `money` in `lib/notify/prefs.ts` (the prefs record keeps any type name).
+  CSS touched: `components/wealth/budgets/budgets.css`, `components/cash-forecast/cash-forecast.css`,
+  `components/wealth/accounts.css`, `components/tasks/today-tasks-due.css` (`.today-budgets-left`).
+- Today: nothing always visible. The opt-in "Budgets left" line adds no Tab stop; the low-balance piece joins the
+  existing Money link (one Tab stop, as before) only when the person set a line.

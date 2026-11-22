@@ -83,3 +83,15 @@
 .budgets-month-nav h3:focus{outline:none}
 .budgets-month-nav h3:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
 @media (max-width:560px){.budgets-table th,.budgets-table td{padding-inline:4px}}
+/* Session AV lane 2 (money): watched payees, challenges, budgets on Today and the year in review. */
+.budgets-challenge{font-weight:600}
+.budgets-challenge.is-over,.budgets-challenge.is-lost{color:var(--amber,#f5b65b)}
+.budgets-today-switch{max-width:60ch}
+.budgets-year{display:grid;gap:10px;min-width:0}
+.budgets-year-pick select{min-height:44px}
+.budgets-year-card{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}
+.budgets-year-card p{margin:0}
+.budgets-year-months{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:4px}
+.budgets-year-months li{display:grid;grid-template-columns:minmax(72px,110px) 1fr auto;gap:8px;align-items:center;font-size:14px;font-variant-numeric:tabular-nums}
+.budgets-year-months .spending-bar{display:block;height:8px;border-radius:999px;background:color-mix(in srgb,var(--text,#e8eefc) 12%,transparent);overflow:hidden}
+.budgets-year-months .spending-bar span{display:block;height:100%;background:var(--cyan,#6fd3ff)}

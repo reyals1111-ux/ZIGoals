@@ -84,3 +84,27 @@ export function withMarks(e: MoneyEntry, marks: {excluded?: boolean; taxDeductib
   const after: MoneyEntry = {...rest, ...(excluded ? {excluded: true as const} : {}), ...(tax ? {taxDeductible: true as const} : {}), ...(spread ? {spread} : {})};
   return changesBetween(e, after, 'you', at);
 }
+
+/**
+ * Session AV lane 2 (money; Monarch's account notes and custom order): the accounts record is strict in every release,
+ * so an account's note and the list's order live on the money log's loose record (`accounts`). Pure.
+ */
+export function withAccountNote(log: MoneyLog, accountId: string, note: string): MoneyLog {
+  const clean = note.trim().slice(0, 300), notes = {...log.accounts?.notes};
+  if (clean) notes[accountId] = clean; else delete notes[accountId];
+  return {...log, accounts: {...log.accounts, notes}};
+}
+/** The accounts in the person's order (those not in it keep their own order, after the ordered ones). */
+export function inOrder<T extends {id: string}>(items: readonly T[], order: readonly string[] | undefined): T[] {
+  if (!order?.length) return [...items];
+  const at = new Map(order.map((id, i) => [id, i]));
+  return [...items].map((a, i) => ({a, i})).sort((x, y) => (at.get(x.a.id) ?? 1e6 + x.i) - (at.get(y.a.id) ?? 1e6 + y.i)).map(x => x.a);
+}
+/** Moves one account up (-1) or down (+1) among `ids` (the list as shown), and keeps that order. */
+export function moveAccount(log: MoneyLog, ids: readonly string[], id: string, by: -1 | 1): MoneyLog {
+  const list = [...ids], i = list.indexOf(id), j = i + by;
+  if (i < 0 || j < 0 || j >= list.length) return log;
+  [list[i], list[j]] = [list[j]!, list[i]!];
+  const rest = (log.accounts?.order ?? []).filter(x => !list.includes(x));
+  return {...log, accounts: {...log.accounts, order: [...list, ...rest].slice(0, 200)}};
+}
