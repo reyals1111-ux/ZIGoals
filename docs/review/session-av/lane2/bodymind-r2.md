@@ -157,3 +157,33 @@ Every stored change is listed under "Stored changes" for the lead's TIER 3 (stor
 - Device keys / catalogue / export / erase: nothing new (inside `zigoals:energy:v1`).
 - CSS: `components/mood-words/mood-words.css`. Nothing new always visible on Today (the strengths show only inside the open
   grid).
+
+## 5. Thinking traps and the thought check — LEDGER #233 built (#234 self-awareness articles stays Carried: needs content made for ZIGoals)
+
+- What: Journal → Write → "Check a thought · thinking traps, as self-reflection" (a fold, its own chunk). Four short
+  parts: 1. What happened? 2. What went through your mind? 3. Do you notice a thinking trap? — twelve written in the
+  repository in English and Dutch (All or nothing, Expecting the worst, Always and never, Mind reading, Fortune telling,
+  Feelings as facts, Shoulds and musts, Labelling, Taking all the blame, Blaming others, Only the bad, That does not
+  count), each with one plain line; the checker points at the traps whose usual words appear in the thought ("Some words
+  in your thought often go with: …. You decide whether that fits.") and never ticks one; 4. Another way to see it, with
+  the chosen traps' own questions as prompts ("Can you think of a time it went differently?"). "Save as an entry" keeps it
+  as an ordinary journal entry (template id `thought-check`, four headed lines, in the daily question's language); an empty
+  thought is asked for with focus on it. Worded as self-reflection throughout, never a diagnosis, a treatment or medical
+  advice, with one gentle line: talking to someone you trust or a health professional can help. Nothing is stored until
+  Save.
+- Files: `lib/journal/thinking-traps.ts` (new, pure), `components/journal/thought-check.tsx` + `thought-check.css` (new,
+  lazy), `components/journal/journal-page.tsx` (the fold).
+- Tests: `lib/journal/av2-thinking-traps.test.ts`, `lib/ai/local-answers/av2-bodymind-r2.test.ts`. Spec:
+  `tests/av2-thought-check.spec.ts`.
+- Stored: nothing new (an ordinary entry in `zigoals:journal:v1`, with the existing optional `template`).
+- Note for the owner: worded as self-reflection, never as treatment (the no-medical-advice rule), as the ledger asks.
+- Help (EN): **What is "Check a thought"?** A short writing exercise in Journal → Write: what happened, the thought, any
+  thinking traps that seem to fit (such as "Expecting the worst" or "Always and never"), and another way to see it. It is
+  saved as a normal journal entry. It is for self-reflection, not a diagnosis or a treatment.
+- What's new: "Journal: Check a thought, with twelve thinking traps in English and Dutch."
+- Answers: "what are thinking traps" / "wat zijn denkvalkuilen" (with the person's own count and the traps noticed most,
+  when the journal is shared with the answer).
+- Showcase hook: none (an example would add a journal entry, which journal counts read).
+- Device keys / catalogue / export / erase: nothing new. Search (static.ts): "thinking traps", "thought check",
+  "denkvalkuilen" → `/app/journal`.
+- CSS: `components/journal/thought-check.css` (new). Nothing on Today.

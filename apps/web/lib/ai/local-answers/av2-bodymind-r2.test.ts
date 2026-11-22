@@ -3,6 +3,7 @@ import {HEALTH_CLOSED} from '../tools/format';
 import {DAY, freshAll, showcaseAll, zigiEnv} from '../evals/as/harness';
 import {showcaseEvening} from '../../evening-plan/showcase';
 import {withShowcaseMorning} from '../../evening-plan/morning-showcase';
+import {thoughtEntryText, THOUGHT_CHECK_ID} from '../../journal/thinking-traps';
 import {AV2_BODYMIND_R2} from '../evals/as/cases-av2-bodymind-r2';
 import {av2BodymindR2Answer} from './av2-bodymind-r2';
 import type {LocalReply} from './engine';
@@ -79,5 +80,15 @@ describe('Moodnotes: feelings with a strength (LEDGER #232)', () => {
     expect(text(ask('what feelings did I log today', s))).toBe('Today: calm (quite) · tired (a little).');
     expect(text(ask('welke gevoelens heb ik vandaag', s))).toBe('Vandaag: calm (best wel) · tired (een beetje).');
     expect(text(ask('which feeling words do I have', freshAll()))).toContain('No feeling word in the last 7 days');
+  });
+});
+
+describe('Moodnotes: thinking traps (LEDGER #233)', () => {
+  test('the twelve and where the exercise is, as self-reflection; with checks done, how many and the traps noticed most', () => {
+    expect(text(ask('what are thinking traps'))).toContain('Self-reflection, not a diagnosis or a treatment.');
+    expect(text(ask('wat zijn denkvalkuilen'))).toContain('Alles of niets');
+    const s = showcase(), text1 = thoughtEntryText({situation: '', thought: 'I should always', traps: ['shoulds'], other: ''}, 'en');
+    s.journal = {...s.journal!, entries: [...s.journal!.entries, {id: 'tc1', date: DAY, text: text1, createdAt: `${DAY}T09:00:00.000Z`, template: THOUGHT_CHECK_ID}]};
+    expect(text(ask('what are thinking traps', s))).toContain('You have done 1 thought check; the traps you noticed most: Shoulds and musts (1).');
   });
 });

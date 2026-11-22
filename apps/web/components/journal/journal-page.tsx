@@ -53,6 +53,8 @@ const EntryMedia = lazy(() => import('./entry-media'));
 const JournalFiles = lazy(() => import('./journal-files'));
 // Session AV lane 2 (bodymind-r2; LEDGER #231, Reflectly): a page that is never saved, loaded when its fold opens.
 const WriteItOut = lazy(() => import('./write-it-out'));
+// Session AV lane 2 (bodymind-r2; LEDGER #233, Moodnotes): the thought check with thinking traps, loaded when its fold opens.
+const ThoughtCheck = lazy(() => import('./thought-check'));
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -120,7 +122,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose book={shownBook === 'all' || shownBook === 'main' ? null : shownBook}/>
       {/* Session AK (B2, lane B): the Journal's sibling for longer thoughts — today's note beside what this day holds. */}
       <p className="fine journal-notes-link">Longer thoughts and ideas go in <Link className="text-link" href="/app/notes?day=today">today&rsquo;s note</Link>, beside what this day holds. There, type <code>[[</code> and a name to link a goal or a habit, for example <code>[[Run a 10k]]</code>.</p>
-      <JournalFold className="write-it-out-fold" label="Write it out" summary={<>Write it out <span className="fine">· a page that is never saved</span></>}><WriteItOut/></JournalFold></section>
+      <JournalFold className="write-it-out-fold" label="Write it out" summary={<>Write it out <span className="fine">· a page that is never saved</span></>}><WriteItOut/></JournalFold>
+      <JournalFold className="thought-check-fold" label="the thought check" summary={<>Check a thought <span className="fine">· thinking traps, as self-reflection</span></>}><ThoughtCheck/></JournalFold></section>
     {/* Session AL (DV-190b, P-DV-124): your entries right after Write, not below every chart */}
     <section className="panel" aria-labelledby="journal-entries"><h2 id="journal-entries">Entries</h2>
       {journal.data.entries.length > 0 && <dl className="journal-stats" aria-label="Your writing">

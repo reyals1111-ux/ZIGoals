@@ -8,6 +8,7 @@ import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, hm, isQuestion, journalClosed, MIXED, say, type Asked} from './av-words';
 import {challengeDoneToday, challengeOfTheDay} from '../../journal/challenges';
 import {feelingsLine, feelingsOn} from '../../mood-words/more';
+import {thoughtCheckStats, TRAPS, trapById} from '../../journal/thinking-traps';
 import {addLocalDays} from '../../local-date';
 import type {LocalReply} from './engine';
 
@@ -117,4 +118,20 @@ function feelingsAnswer(a: Asked): LocalReply | null {
   return answer(say(lang, 'No feeling word in the last 7 days. After today’s energy, “Add a feeling word” lets you pick up to three, each with how strong it feels (a little, quite, very).', 'De afgelopen 7 dagen geen gevoelswoord. Na je energie van vandaag kun je met “Add a feeling word” er tot drie kiezen, elk met hoe sterk het voelt (een beetje, best wel, heel erg).'), calls);
 }
 
-const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer, morningAnswer, challengeAnswer, ventAnswer, feelingsAnswer];
+// ── Moodnotes: thinking traps and the thought check (LEDGER #233) ───────────────────────────────────────────────────
+
+/** "what are thinking traps", "wat zijn denkvalkuilen": the twelve, and where the exercise is. Self-reflection only. */
+function trapsAnswer(a: Asked): LocalReply | null {
+  const en = /\b(?:what are|which are|list|show)(?: the| my)? thinking traps\b|\bwhat is a thinking trap\b|\bthought check(?:er)?\b|\bthinking traps? (?:do i|did i)\b/.test(a.f), nl = /\bdenkvalkuil(?:en)?\b|\bgedachtecheck\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const lang = a.lang, names = TRAPS.map(x => x.name[lang]).join(', ');
+  const base = say(lang, `Thinking traps are common ways a thought can tilt: ${names}. In Journal → Write, “Check a thought” walks through what happened, the thought, any traps that fit and another way to see it, and saves it as an entry. Self-reflection, not a diagnosis or a treatment.`,
+    `Denkvalkuilen zijn gewone manieren waarop een gedachte kan scheeftrekken: ${names}. In Journal → Write loopt “Check a thought” door wat er gebeurde, de gedachte, passende valkuilen en een andere kijk, en bewaart het als dagboekstuk. Zelfreflectie, geen diagnose of behandeling.`);
+  if (!a.env.journal || closed(a.env, 'today', 'journal')) return answer(base, JOURNAL_CALLS);
+  const st = thoughtCheckStats(a.env.journal.entries);
+  if (!st.checks) return answer(base, JOURNAL_CALLS);
+  const top = st.traps.slice(0, 3).map(t => `${trapById(t.id)!.name[lang]} (${t.count})`).join(', ');
+  return answer(`${base} ${say(lang, `You have done ${st.checks} thought ${st.checks === 1 ? 'check' : 'checks'}${top ? `; the traps you noticed most: ${top}` : ''}.`, `Je deed ${st.checks} ${st.checks === 1 ? 'gedachtecheck' : 'gedachtechecks'}${top ? `; de valkuilen die je het vaakst zag: ${top}` : ''}.`)}`, JOURNAL_CALLS);
+}
+
+const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer, morningAnswer, challengeAnswer, ventAnswer, feelingsAnswer, trapsAnswer];
