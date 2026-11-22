@@ -86,3 +86,24 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
   entry changed since; another app's file. Existing `r3-markdown-export` and `av2-import` tests pass unchanged.
 - **Spec:** `tests/av2-revb3c-markdown-import.spec.ts`.
 - **Help/corpus:** none.
+
+## B3C-6 (Major): note properties survive the Markdown round trip in full
+
+- **Verdict:** confirmed, and worse at the maximum: ten long text properties written twice (readable lines plus the
+  JSON copy) did not fit the 8,000-character front matter, so the whole front matter (title included) came back as body.
+- **Fix:** each value is written once, on its own readable line (`Due date: 2026-12-01`, `Status: "In progress"`,
+  `Code: "0042"`; a text single-quoted when that is shorter, so quotes do not double its length), and `zigoals-props`
+  holds only the names and types (`[["Due date","date"],["Status","choice"],["Code","text"]]`, at most about 600
+  characters, under the 1,000-character value cut). The front-matter reader (`lib/notes/markdown.ts` `FM_KEY`) now
+  accepts a key with letters of any language, digits, spaces, `-` and `_` (a property name as Obsidian writes it);
+  quoted keys, YAML tags and `__proto__`/`constructor`/`prototype` are still dropped (the existing safety test passes
+  unchanged). Import reads each value by the type `zigoals-props` names; a value that does not fit is left out. A
+  round-3 export (values inside `zigoals-props`) still reads back. Another app's keys with spaces now become properties.
+- **Not a stored format:** the device record is unchanged; only the export file's front-matter lines.
+- **Tests:** `lib/notes/revb3c-props.test.ts`: ten properties (names with spaces and in Dutch, a choice, "0042",
+  "2026-01-01" and "true" as text, numbers, a tick, long texts with quotes, colons, "#", backslashes and line breaks)
+  come back exactly through `noteToMarkdown` → `planImport`; ten texts of 500 characters fit and come back; the written
+  form; a round-3 file; odd keys dropped; a value that does not fit is not guessed. All `lib/notes` tests pass.
+- **Spec:** none (it shows only through a file export and import; the unit test runs the same `planImport` the
+  Notes → Files import calls).
+- **Help/corpus:** none.
