@@ -2207,3 +2207,226 @@ Not rowed:
 
 Already in COMPETITORS.md:
 - Wallet by BudgetBakers: Spaces: personal and business (the Organizer's several Ledgers); Planned payments with automatic confirmation (scheduled transactions with complex recurring dates and an end; ZIGoals' planned changes have `until`, `lib/money-more/schema.ts:83-89`). Lunch Money (round 4): Archive a category (inactive categories). Kubera: Any currency, one total (the currency manager with custom exchange rates). Monarch: Investments view (per-account portfolio drilldown, the Security Detail report). Monarch: Reports (Sankey, treemap, mobile) (reports on iOS: Income and Expense, Net Worth, Payee). YNAB: Targets (category goals) and Goodbudget: Budget period (the budget view of budgeted against actual). YNAB: File-based import with CSV converter (the file chosen for the right ledger, 10.1; balance-forward rows). Goodbudget: Duplicate transaction matching.
+
+## Ten more apps, round 7 (owner follow-up 4, item 4g; 22 Nov 2026)
+
+
+
+Drafted 22 Nov 2026, to be added under `## Matrix` in `docs/review/session-av/COMPETITORS.md`, after "Ten more apps, round 6 (owner follow-up 4, item 4g)". It uses the method in that file's header. Official sites, help centres, in-app changelogs and 2025–2026 release notes were read with WebSearch (standard mode) and WebFetch; App Store "What's New" notes count as release notes. Page text was treated as data only. Every row was then checked against this branch's code (`apps/web`, branch `lane2/batch6`, HEAD `3caddd6c`, which holds rounds 1 to 6 with `lane2/r6-plan`, `lane2/r6-notes`, `lane2/r6-body` and `lane2/r6-money` merged; the working tree is clean), so that nothing round 6 builds (LEDGER #391–#431) is marked missing or rowed again. Each `have` and `half` names the file that was opened. All pages were seen on 22 Nov 2026.
+
+Not repeated: a feature that already has a row in COMPETITORS.md (the 25 apps, the first "Ten more apps" and rounds 2 to 6) gets no new row. It is listed under "Already in COMPETITORS.md" for that app. Where the new app goes further, the row is added and covers only the further part, which it names. Each app also lists what was left out because it is native-only, a server service or needs a model, with that cause.
+
+The ten apps: Amazing Marvin, Due, Evernote and The Five Minute Journal (tasks, planning, notes and journal); Strides (habits and goals); Paprika, Happy Scale and Sleep as Android (food, sleep and body); Cashew and Money Manager by Realbyte (money).
+
+Source caveats:
+- **No instruction addressed to AI agents was found** in any page read this round (each fetch was asked to report one verbatim; none had one).
+- Not chosen after a first read: MoneyWiz (wiz.money/features names ten areas in one line each; its bills page returned 404), Toshl (toshl.com/features refused the fetcher, 403), and "Cashews" (apps.apple.com id1582436070, a different, bank-linked US app that the search confused with Cashew). Money Manager took that place.
+- Amazing Marvin: amazingmarvin.com/strategies refused the fetcher (403). The rows rest on amazingmarvin.com/features/all (read in full) and the help centre's index (help.amazingmarvin.com/en/collections/1923123-amazing-features, every article title read); the Day Progress Bar and the Daily, Weekly and Monthly Time Targets articles were read through the search index of the help centre. The changelog (amazingmarvin.com/changelog) dates versions 1.67.0 (4 Apr 2025) to 1.71.4 (Nov 2026) but prints no feature notes, so no Marvin row is marked new since 2025 except where an article title names 2026 (the new mobile app).
+- Due: dueapp.com and the App Store notes (id390017969) were read; the notes print no year from 26.1 (Feb 3) on and follow 25.8 (Dec 9, 2025), so 26.1 to 26.6.1 are 2026.
+- Evernote: help.evernote.com refused the fetcher (403) and evernote.com/features/note-taking returned 404. The rows rest on evernote.com/features, evernote.com/features/tasks, evernote.com/release-notes and the App Store notes (id281796108; 11.21.4 to 11.43.4, no year printed, read as 2026 because the series ends "3 days ago").
+- The Five Minute Journal: intelligentchange.com's app page returned 404; the rows rest on the App Store listing (id1062945251). Its notes print no year; 4.3.5 (Mar 12) to 4.3.31 (Nov 9) are read as 2026 (the listing's latest is days old). Only 4.3.6 (custom prompts), 4.3.9 (transcription) and 4.3.25 (an AI coach) add features.
+- Strides: stridesapp.com/support returned 404; the rows rest on stridesapp.com and the App Store notes (id672401817), which date 19.2 (12/11/2025) and print no year after it, so 19.3 (Jan 25) to 20.1.1 (Nov 8) are 2026.
+- Paprika: paprikaapp.com/help redirects to a Zendesk help centre that refused the fetcher (403). The rows rest on paprikaapp.com and the Mac App Store notes for Paprika 4 (id1303222628), which date 3.8.3 (12/18/2025) and print no year after it; 4.0.17 (Nov 6) to 4.0.24 are 2026.
+- Happy Scale: happyscale.com and the App Store notes (id532430574; 2026.1, Jan 19, to 2026.9.1, Nov 14; the versions carry the year) were read.
+- Sleep as Android: the documentation (sleep.urbandroid.org/docs, its Tags, Goals and Statistics pages) prints no dates and its release notes page was not read, so no row is marked new since 2025; the chronotype page tried returned 404.
+- Cashew: the README (github.com/jameskokoska/Cashew), the in-app changelog in the repository (budget/lib/widgets/showChangelog.dart, versions 4.4 to 5.3.5) and the App Store notes (id6463662930) were read. The changelog's 5.3.x items match App Store 5.0 to 5.5 (July to September 2024), so the activity log and the repeat count are not new since 2025; App Store 5.6 to 5.10 print no year and name no new feature beyond widgets and settings.
+- Money Manager: the App Store listing (id560481810) was read; 2.12.3 is dated 10/20/2025 and the notes after it print no year, so 2.13.1 (May 31) to 2.16.0 are 2026. Only 2.14 (widgets) and 2.15 (tags) add features.
+
+### Corrections to earlier rows
+
+- None found in the rows this round touched.
+
+### Totals (the ten apps)
+
+| Status | Tasks, notes and journal (Amazing Marvin, Due, Evernote, The Five Minute Journal) | Habits and mind (Strides) | Food, sleep, workouts and body (Paprika, Happy Scale, Sleep as Android) | Money (Cashew, Money Manager) | All |
+|---|---|---|---|---|---|
+| `have` | 0 | 1 | 0 | 0 | 1 |
+| `half` | 7 | 1 | 7 | 2 | 17 |
+| `missing` | 8 | 1 | 5 | 2 | 16 |
+| `not web-possible` | 1 | 0 | 1 | 0 | 2 |
+| `against a rule` | 1 | 1 | 2 | 0 | 4 |
+| **Rows** | **17** | **4** | **15** | **4** | **40** |
+
+Rows per app: Amazing Marvin 8, Due 4, Evernote 3, The Five Minute Journal 2, Strides 4, Paprika 7, Happy Scale 3, Sleep as Android 5, Cashew 3, Money Manager 1.
+
+Every app had at least 12 features read (Amazing Marvin over 100 by its index; most others 15 to 25); its rows, "Not rowed" and "Already in COMPETITORS.md" together name them. Strides, Cashew and Money Manager add few rows because nearly everything they do is already in the matrix and built (habits from Habitify, Loop and Streaks; money from Wallet, Emma, Goodbudget, Lunch Money and Monarch). Amazing Marvin's Procrastination Wizard is a mind feature and goes under Habits and mind in the ledger.
+
+### Tasks, planning, notes and journaling (seventh additions)
+
+#### Amazing Marvin (tasks and strategies)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| How much a task is dreaded | Dread Attribute (Frogs): rate a task by how much you dread it, to spot avoided work and do it first ("eat the frog") | https://amazingmarvin.com/features/all ; https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("Dread levels (frogs)") | no | `missing` | A task carries how much it asks (`energy`, `TASK_ENERGY`, `lib/tasks/schema.ts:94`: restful to heavy, for the day's load), never how the person feels about it; a search of `lib/tasks` and `components/tasks` for dread or frog finds nothing | An optional "I'm dreading this" mark (one to three), shown as a small sign, and "Hardest first" in Plan my day, which puts the most dreaded task in the first free block of the morning. Additive, optional, TIER 3 (stored format) | S | Max |
+| How often a task was put off | Delay Count: how many times a task was rescheduled; a "Most procrastinated tasks" list | https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("Delay Count", "Most procrastinated tasks") | no | `missing` | A task keeps its day (`due`) and earlier versions of its title and notes only (`lib/tasks/versions.ts:5`); nothing counts a day moved later | "Moved 4 times" on a task whose day was moved later (a repeat's next day does not count), and "Moved most" in Tasks → Review with the choices the review already offers. A count, said as a fact. Additive, optional, TIER 3 (stored format) | S | Max |
+| Tasks that have sat for a long time | Staleness Warning and "Screen of old items": items untouched for a long time are flagged | https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("Staleness Warning", "Screen of old items", "How can I see how old a task/project is?") | no | `missing` | The weekly review asks about tasks past their day (`reviewTaskChoices`, `lib/tasks/review.ts:25`); an open task with no day, or one untouched for months, is never brought up | "Open for 60 days or more": the open tasks not changed for 60 days (or 90), oldest first, each with Keep (asked again in 60 days), Give it a day and Remove (one Undo). Derived from `createdAt` and `updatedAt`; nothing stored | S | Max, Lina |
+| Pick one for me | The Task Jar, Random Task and This or That: Marvin picks a task, or offers two to choose between, when deciding is the hard part | https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("The Task Jar", "Random task", "This or That") | no | `missing` | A search of `lib/tasks` and `components/tasks` for a random or picked task finds nothing; Plan my day orders the day, it does not choose one task | "Pick one for me" on Today: one open task of today's (or of a chosen project or label), with "Another" and "This one"; "This or that" offers two. Derived; nothing stored | S | Max |
+| Today's progress and where the day is | Day Progress Bar: fills as the day's tasks are checked off, with a marker for where you should be by this time of day | https://help.amazingmarvin.com/en/articles/1950225-day-progress-bar (via search index) ; https://amazingmarvin.com/features/day-planning | no | `half` | A daily goal of finished tasks, drawn as a line on the done chart (`dailyGoal`, `lib/tasks/done-chart.ts:23`); the working hours (`DEFAULT_WORK`, `lib/tasks/work-hours.ts:13`) | The deeper part: on Today, "4 of 7 planned tasks done" as a thin bar, beside how far the working hours have gone ("the day is 60 % through"), said as two facts, never "behind" | S | Max |
+| Time targets for an area or a label | Daily, Weekly and Monthly Time Targets: hours a week or month for a category or label, shown as progress bars as time is tracked | https://help.amazingmarvin.com/en/articles/1950227-daily-time-targets (via search index) ; https://amazingmarvin.com/features/all ("Time Targets") | no | `missing` | Time worked on a task is kept (`spent`, `lib/tasks/schema.ts:159`) and focus blocks name their task (`taskId`, `lib/focus-sessions/schema.ts:31`); nothing sets hours a week for a project or label | "5 h a week on Writing": a target in hours a week or a month for a project, an area or a label, met from the dated focus blocks of its tasks, as a bar in Tasks → This week. Additive, TIER 3 (stored format) | M | Max |
+| Help getting started on a stuck task | Procrastination Wizard: an interactive guide that asks why you are stuck and suggests what to do next | https://amazingmarvin.com/features/all ("Procrastination Wizard") ; https://help.amazingmarvin.com/en/collections/1923123-amazing-features | no | `missing` | The actions exist: split a task, play its steps one at a time (`components/tasks/play-steps.tsx:13`, LEDGER #351), a two-minute start; nothing asks why a task is stuck | The guide itself: questions on why a task is stuck and a strategy for each answer, written and checked for ZIGoals in English and Dutch | M | Max |
+| Money pledged on a task | Accountability Pledge: pledge money on a task and pay it if you don't finish | https://amazingmarvin.com/features/all ; https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("Accountability Pledge", "Paying for several missed pledges") | no | `against a rule` | No payments, no money held against the person, calm design that takes nothing away | — | — | — |
+
+Not rowed:
+- Native-only: Top of Mind (a floating widget over other apps), iPhone and Android widgets, Lock Screen and Live Activities, Siri and Shortcuts, Apple Watch, the desktop tray and menu bar.
+- Server service: Calendar Sync (Google, Outlook, iCal, CalDAV, two-way), Email to Marvin, Zapier, the API, webhooks, the CLI and the MCP server, the browser extension, cloud sync, task sharing and comments with others (also against the rule that nothing is shared between people).
+- Needs content made for ZIGoals: Focus Music.
+- Not proposed: the Spinning Wheel and the Ball Pit (one picker, "Pick one for me", is enough), confetti in the sidebar, custom squares and text links, the text, line and colour markers, the Bug Me nag (Due's "remind again until done" is rowed instead), habit grades.
+
+Already in COMPETITORS.md:
+- Things: When scheduling: Anytime, Someday (Backburner); snooze and start dates (Start/Defer Dates). Akiflow (round 5): A week or a month without a day (Week planning, Planning Ahead, capacity for weeks and months). Motion (round 4): Auto-scheduling over the coming days (Auto-schedule, the Capacity Estimator). Sunsama: Planned vs actual time and timers (Timers, Time Tracking, Duration Estimates). OmniFocus (round 6): Projects in order (Sequential Projects, Dependencies), Review each project every so often (Review Date), Change several tasks at once (Bulk editing). Structured (round 3): the energy of a task (Energy Level Attribute). TickTick: the Eisenhower matrix (Matrix), Pomodoro (Tomato Tracker). Todoist: Productivity insights and Karma (Kudos, Reward Points, Completed Task Stats). Habitica: Custom rewards and gold (Rewards, Reward Tasks). Tiimo (round 5): timers on the steps (Task Breakdown). Google Tasks (round 2): Print your tasks (Print lists). Daylio and How We Feel: the mood tracker. Logseq (round 5): the daily note (Day Note).
+
+#### Due (reminders and timers)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Remind again until done | Persistent Auto Snooze: a missed reminder repeats every 1, 5, 10, 15, 30 or 60 minutes until it is marked done or rescheduled (5 repeats by default, up to 10) | https://www.dueapp.com/ ; https://apps.apple.com/app/id390017969 | no | `half` | A task reminder goes off once; its notification has Done and "Snooze 1 h" (`public/sw.js:97`), and a reminder snoozed in the app comes back once (`lib/tasks/reminders.ts:22,36`) | The deeper part: "Remind again every 10 minutes, up to 6 times" on a task reminder (and a default), stopped by Done or Snooze on the notification or in the app; quiet hours still hold. Additive, TIER 3 (stored format) and TIER 3 (PWA) | M | Max, Lina |
+| Your own snooze times | Quick Access Times: twelve customisable one-tap times (the next noon, 22:00, plus or minus a while) to set or put off a reminder | https://www.dueapp.com/ ; https://apps.apple.com/app/id390017969 | no | `half` | Three fixed snooze lengths: 15 min, 1 h, Tomorrow (`SNOOZE_CHOICES`, `lib/tasks/reminders.ts:45`); the notification offers "Snooze 1 h" only (`public/sw.js:97`) | The deeper part: up to six of the person's own choices ("10 min", "2 h", "this evening 19:00", "tomorrow 08:00", "Monday 09:00"), in the reminder's snooze menu, with the first one on the notification's button. A device preference, TIER 3 (stored format) | S | Max, Lina |
+| Named timers, several at once | Countdown timers with second precision, several running at once, kept to use again; live countdowns (25.6) | https://www.dueapp.com/ ; https://apps.apple.com/app/id390017969 (25.6, Nov 29, 2025) | yes | `missing` | Timers exist only inside other things: focus blocks (`lib/focus-sessions`), a habit's timer, the steps of a task (`components/tasks/play-steps.tsx:13`); none is a free-standing, named one | "Timers": several named countdowns at once ("Pasta 9 min", "Laundry 45 min"), each kept to start again, a bell in the page and, where notifications are on, a wake at its end. A new device record, TIER 3 (stored format) and TIER 3 (PWA) | M | Max, Sanne, Tom |
+| Alerts that ring through silent mode | Critical Alerts bypass silent mode and Focus; Prominent Alerts ring like an alarm until acted on (26.4, iOS 26) | https://apps.apple.com/app/id390017969 (26.4.1, May 30) | yes | `not web-possible` | A web notification cannot bypass the device's silent mode or ring as an alarm | — | — | — |
+
+Not rowed:
+- Native-only: Apple Watch, Home and Lock Screen widgets, Control Center controls, Shortcuts actions, Siri timer control (26.5), Dynamic Island and Live Activities, the iPhone Duo layout.
+- Server service: iCloud and Dropbox sync, incremental sync (25.3).
+- Not proposed: the "Open Link" notification buttons (26.1), the supporter tip (26.5), the clean-up of duplicated reminders (26.5; a sync repair).
+
+Already in COMPETITORS.md:
+- Todoist: Quick Add with natural language (Due's date parsing, 26.5); Reminders (recurring reminders). TickTick and Things: Reminders and snooze (snoozing from the notification). OmniFocus (round 6): Change several tasks at once (Due's bulk edit, 26.5). Todoist: undo (26.5's undo and redo).
+
+#### Evernote (notes)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| A search kept by name | Advanced search lets you save search terms to run again | https://evernote.com/features | no | `half` | Notes are searched (`components/notes/notes-search.tsx`) and the table and board take up to three property filters (`Filters`, `components/notes/notes-views.tsx:31`); neither is kept. Money keeps saved searches (`lib/money-log/saved-searches.ts`) | The deeper part: "Keep this search": the words, a tag, the kind of note and the filters kept by name (up to 12), listed in Notes to open in one tap. A new small device record, TIER 3 (stored format) | S | Max |
+| Voice notes played faster | A new audio player with a waveform, speaker pins, playback speed and a live transcript (11.41.3) | https://apps.apple.com/app/id281796108 (11.41.3, Nov 3) | yes | `half` | Journal voice notes play in the browser's own player (`<audio controls>`, `components/journal/entry-media.tsx:61`, `components/journal/compose-media.tsx:80`); some browsers' controls offer a speed, Safari's do not | The deeper part: ZIGoals' own 1×, 1.25×, 1.5× and 2×, and back or forward 15 seconds, on every voice note (the entry and the Photos view), the speed remembered on the device. The waveform pins and the transcript are not proposed (the transcript needs a model) | S | Sanne |
+| Words found in photos and PDFs | Search finds text inside images and documents | https://evernote.com/features ; https://apps.apple.com/app/id281796108 | no | `missing` | Notes search reads a note's own words (`lib/notes/find.ts:1-3`); a photo's text is never read | Text recognition in the browser needs an OCR engine, a new dependency (the browser has none built in outside an experimental Chrome API) | M | Max |
+
+Not rowed:
+- Needs a model: the AI Assistant and AI Edit (11.24.2, 11.36.3), AI prompts (11.29.3), transcription and meeting notes (11.27.3, 11.34.3), AI image captions (11.27.3), Semantic Search, AI diagrams and the AI detector.
+- Server service: the Web Clipper, the Google Calendar connection, Slack, Microsoft Teams and Google Drive integrations, shared notes, @mentions of people (11.22.3) and emoji reactions on text (11.42.4) (also against the rule that nothing is shared between people), the Evernote MCP (11.31.7), sync.
+- Native-only: document scanning with the camera (a photo can already be added to a note), Spotlight (11.32.3), dictation (11.23.2), recording while the phone is locked (11.30.5).
+- Not proposed: renaming attachments (11.30.5), frozen table columns (11.21.4), highlighter palettes (11.28.3), the table of contents' colours (11.43.4).
+
+Already in COMPETITORS.md:
+- Bear (round 4): Imports from Evernote and Bear (the .enex import, built as LEDGER #321), Fold a section (toggles, 11.43.4), Note info. Obsidian (round 3): Outline of a note (the table of contents), Tick boxes in notes, gathered (tasks in notes). Notion: "@remind" inside a page (reminders in notes), version history (note history), templates. Craft (round 5): table quick actions (sortable tables, 11.36.3). Capacities (round 6): Rename or merge a tag (easier tag management, 11.38.7). Bear (round 4): tags in the text, nested (notebooks and tags); a pinned note is kept already (`pinned`, `lib/notes/schema.ts:58`).
+
+#### The Five Minute Journal (journal)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| A morning page and an evening page | A guided morning and evening flow for each day's entry, with daily reminders; custom prompts (4.3.6) | https://apps.apple.com/app/id1062945251 (4.3.6, Mar 19) | yes | `half` | One journal reminder a day at one time (`DEFAULT_REMINDER`, `lib/journal/reminder.ts:11`); a "Morning intention" template among the templates (`lib/journal-prompts/templates.ts:19`) | The deeper part: "Morning and evening": one day's page in two parts, each with its own reminder time, the evening part showing the morning's answers above it ("This morning: what would make today great — …"). Additive, TIER 3 (stored format) | S | Sanne |
+| A photo of the day | A daily photo or video attached to the day, and a photographic timeline (Premium) | https://apps.apple.com/app/id1062945251 | no | `half` | Every journal photo and voice note in one grid, newest first (`galleryItems`, `lib/journal/gallery.ts:12-13`, LEDGER #404) | The deeper part: one photo of a day marked "Photo of the day" (the first by default) and "A photo a day": a month's days as a strip of those photos, a day without one left blank and never counted as missed. Additive, TIER 3 (stored format) | S | Sanne, Max |
+
+Not rowed:
+- Needs a model: Eva, the AI journaling coach (4.3.25), audio transcription (4.3.9).
+- Native-only: the Apple Watch companion, mindful minutes in Apple Health, the Home Screen widget, Face ID and Touch ID.
+- Server service: Dropbox backup and export, sync, sharing quotes and challenges on social media.
+- Needs content made for ZIGoals: weekly challenges (ZIGoals has its own daily ones, LEDGER #230).
+
+Already in COMPETITORS.md:
+- Day One: Templates and your own prompts (custom questions, 4.3.6), Journaling reminders and streaks, On This Day. Stoic (round 3): the daily quote (built, LEDGER #277). Reflectly (round 2): the daily challenge. Daylio: Custom moods and PDF export (the mood tracker; PDF and HTML export by date range). Diarium (round 6): Every photo and voice note in one place (the photographic timeline's grid). Day One and Journey: the passcode and the timeline of entries.
+
+### Habits, mood and mind (seventh additions)
+
+#### Strides (habits and goals)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| One report for a year or all time | Reports: every goal and habit in one view by week, month, year or all time; Repeating and Goal Date reports (19.8); a Trends Report for bad habits (19.13) | https://www.stridesapp.com/ ; https://apps.apple.com/us/app/strides-habit-tracker-goals/id672401817 (19.8, Apr 19; 19.13, Aug 16) | yes | `half` | The Life review covers a week or a month across the pillars beside the one before (`reviewPeriod`, `lib/life-review/engine.ts:36`); each life area has its week (`AreaWeekRow`, `lib/habit-areas/week.ts:11`); each habit has a year grid (`lib/habits-extras/year.ts`) | The deeper part: "Your year" (and all time): each habit's check-ins done of due and its longest run, each goal's progress at the start and the end of the period, grouped by life area; counts, never a grade | M | Max |
+| A goal that starts again each period | Projects reused for recurring goals by changing their dates (20.1.1); repeating targets in the Repeating report | https://apps.apple.com/us/app/strides-habit-tracker-goals/id672401817 (20.1.1, Nov 8; 19.8, Apr 19) | yes | `missing` | Goals are a savings goal, a count goal, a project or a rewards goal (`GoalKind`, `lib/goals/kind-names.ts:6`); a search of `lib/goals` for a repeat finds only milestone lines and the what-if | "Starts again each month" (or week, or year) on a count goal or a project ("Read 2 books a month"): each period begins at nothing and the earlier periods are kept as a row of results ("Oct 2 of 2 · Nov 1 of 2"). Additive, TIER 3 (stored format) | M | Max |
+| Perfect days | Perfect day: earned by logging all of the day's trackers; past days can be reviewed and backlogged | https://www.stridesapp.com/ | no | `have` | `lib/habits-extras/perfect-days.ts:20,30` (a day on which every habit due was done, from the Checklist's own rule) | — | — | — |
+| Accountability partners | Invite others to view chosen goals; shared goals for a team (iCloud, Apple only) | https://www.stridesapp.com/ ; https://apps.apple.com/us/app/strides-habit-tracker-goals/id672401817 (18.8, 10/20/2025) | yes | `against a rule` | Nothing is shared between people's devices; no outside service | — | — | — |
+
+Not rowed:
+- Native-only: Apple Health integration, Tasks on the Apple Watch (20.1), backlogging from a notification (19.13), the app icon colour (19.9.2), the iPhone Duo layout.
+- Server service: iCloud sync, the referral programme (19.5), the subscription Customer Center (19.8), achievement images to share by text or email (19.14).
+
+Already in COMPETITORS.md:
+- Habitify: Bad habits: quit or limit, Progress view and streaks (success rates, calendars). TickTick: Habit Tracker (150+ templates, the gallery). Loop: Measurable habits (the Average tracker; ZIGoals' average goals, `lib/average-goals`). YNAB and Yazio: targets by a date and milestones (the Target and Project trackers with pace lines, 19.6). Finch (first matrix): Self-Care Areas (tags to group trackers, built as LEDGER #53). Streaks: Vacation Mode and reminders. Strides' Tasks (20.0) are ZIGoals' Tasks, whose tasks name the goal they serve (`goal`, `lib/tasks/schema.ts`).
+
+### Food, sleep, workouts and body (seventh additions)
+
+#### Paprika (recipes, meal plans and groceries)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Timers from the method | Click-to-start timer detection: a time in the directions starts a timer; several timers in Cook mode | https://www.paprikaapp.com/ ; https://apps.apple.com/app/id1303222628 (Paprika 4, 4.0.17, Nov 6) | yes | `missing` | The cooking view shows the method one step at a time with "Keep the screen on" (`components/health/food-plus/cook-view.tsx:11-18`); a search of it for a timer finds none | "Start 15 min timer" on a step that names a time ("simmer for 15 minutes", "bak 20 minuten"), running beside the steps, several at once, with a bell (Due's named timers) | S | Tom, Sanne |
+| A recipe scaled while cooking | Scale servings and convert measurements | https://apps.apple.com/app/id1303222628 | yes | `missing` | The cooking view lists the ingredients for the recipe as saved ("Makes 4 servings. Gather these first", `components/health/food-plus/cook-view.tsx:56`; `recipeSchema`, `lib/health.ts:43`) | "Cook for 2 / 4 / 6" (and ½×, 2×): the ingredient amounts multiplied for the servings chosen and rounded sensibly on the cooking view only; the recipe and its logging stay as they are | S | Tom, Sanne |
+| Ingredients crossed off while cooking | Cross off ingredients and highlight the current step | https://apps.apple.com/app/id1303222628 | yes | `half` | The method one step at a time with Previous and Next (`components/health/food-plus/cook-view.tsx:11-18`) | The deeper part: tick boxes on the ingredient list and, beside the large step, the whole method with the current step marked, for this cooking only; nothing stored | S | Tom, Sanne |
+| A pantry with use-by days | Pantry items with expiration dates, several pantry locations (Premium) | https://www.paprikaapp.com/ ; https://apps.apple.com/app/id1303222628 | no | `half` | "I have this" keeps a name out of the grocery list (`pantry`, `lib/grocery/schema.ts:8,21`), with the moment it was said | The deeper part: a use-by day on a pantry item and "Use soon": what is within three days, first on the grocery page; a passed day said plainly, never a notification unless chosen. Additive, TIER 3 (stored format) | S | Sanne, Tom |
+| Recipe files from other apps | Import recipe files from other apps; save from websites; scan cookbook pages (Premium) | https://apps.apple.com/app/id1303222628 | yes | `half` | A recipe comes from a web address through ZIGoals' own fetch route (`checkRecipeUrl`, `lib/server/recipe-import.ts:26`), from pasted text (`lib/health-aa/recipe-text.ts:2`) or is typed | The deeper part: Paprika's own export (a .paprikarecipes file of compressed recipes, read with the browser's own decompression) and a Markdown or plain-text recipe file, each ingredient confirmed as the pasted text is, the method kept with it, under the import caps | M | Tom |
+| A week of meals kept as a menu | Meal plans by day, week or month; reusable menus; add a whole week to the grocery list | https://www.paprikaapp.com/ ; https://apps.apple.com/app/id1303222628 | no | `half` | A saved meal can be planned on chosen weekdays for up to 12 weeks (`MAX_REPEAT_WEEKS`, `lib/health-quick/repeat-plan.ts:11`); the grocery list reads the week's plans | The deeper part: "Keep this week as a menu": a whole week's planned meals saved by name and placed on another week in one step (each an ordinary plan, logged by a tap as now). Additive, TIER 3 (stored format) | S | Tom, Sanne |
+| When you last made it | A recipe's rating and its last-prepared date; sort by Top Rated and Most Recent (4.0.22) | https://apps.apple.com/app/id1303222628 (4.0.22, Nov 11; 3.7.0) | yes | `missing` | The recipe record holds a name, portions and ingredients (`recipeSchema`, `lib/health.ts:43`); food marks rate foods, not recipes (`lib/food-plus/marks.ts:5`) | "Last made 12 Nov · 5 times" on a recipe (from its diary entries and "Made it" in the cooking view), the person's own one to five stars, and the recipes sorted by last made or by stars. Additive, TIER 3 (stored format) | S | Tom, Sanne |
+
+Not rowed:
+- Needs a model: ingredient substitutions (Apple Intelligence), recipe text from the clipboard, cookbook page and recipe card scans (Premium), category suggestions (Premium).
+- Server service: saving from TikTok, Instagram, Facebook and YouTube (4.0.20), cloud sync and family sharing, shared cookbooks, calendar feeds of the meal plan, Alexa and the Echo Show.
+- Native-only: widgets, the Apple Watch app, Siri and Shortcuts, Spotlight, voice commands in Cook mode.
+- Not proposed: the duplicate finder (ZIGoals' recipes are few and named), cookbooks as a second grouping beside categories, reading steps aloud.
+
+Already in COMPETITORS.md:
+- Yazio: Recipes with a cooking mode (Cook mode, built as LEDGER #200). MyFitnessPal: Meal Planner and grocery list (grocery lists by aisle, items added by hand, print; `lib/grocery`), Saved meals, recipes and Recipe Importer (saving from websites). Cronometer: Custom recipes (nutrition from the ingredients) and repeating items (planning by day). MacroFactor: Recipe importer (URL or cookbook photo). Lose It!: barcode scanning (the pantry's barcode scan).
+
+#### Happy Scale (weight trend)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| What I'll weigh on a day I name | Predictions: what you will weigh by an upcoming event; named predictions with a full-screen view of how each was calculated (2026.5) | https://happyscale.com/ ; https://apps.apple.com/us/app/happy-scale/id532430574 (2026.5, May 25) | yes | `half` | The day the weight goal is reached at the trend's rate (`GoalEta`, `lib/health-aa/coach.ts:32`), from the last 28 days (`RATE_WINDOW_DAYS`, `weeklyRateOf`, `lib/health-aa/trend.ts:16-18`) | The deeper part: "On 20 Dec (the wedding)": the weight the trend reaches by a day the person names if the last four weeks' rate holds, with the sum shown, up to five kept by name; a fact, never a promise, hidden with the weight figures. Additive, TIER 3 (stored format) | S | Tom |
+| A note on a weigh-in, and new lows | The Logbook: notes on entries (in the CSV, 2026.8.1), a filter for "breakthrough" days (2026.2), editing from a context menu (2026.1) | https://apps.apple.com/us/app/happy-scale/id532430574 (2026.1, Jan 19; 2026.2, Feb 9; 2026.8.1, Oct 19) | yes | `missing` | A weigh-in is a day and a weight (`weightSchema`, `lib/health.ts:47`, strict: no note) | A short note on a weigh-in ("after the holiday", "new scale"), and the list of weigh-ins with "lowest since 3 Mar" marked as a fact and a filter for those days; notes in the weights CSV. Kept beside the strict weights, TIER 3 (stored format) | S | Tom |
+| This week against the week before | An improved 7-day trend comparing the most recent 7 days with the 7 days before (2026.4) | https://apps.apple.com/us/app/happy-scale/id532430574 (2026.4, Mar 3) | yes | `half` | The rate a week over the last 28 days and the smoothed trend (`weeklyRateOf`, `lib/health-aa/trend.ts:18`; `weightTrend`, `:68`) | The deeper part: "This week 81.6 kg on average, 0.4 kg under the week before", the mean of the last 7 days' weigh-ins against the 7 before, said only with three or more weigh-ins in each | S | Tom |
+
+Not rowed:
+- Native-only: Apple Health import and export (iPhone only), iPhone and iPad sync, the iPhone Duo layout (2026.9).
+- Not proposed: the NHS BMI mode (2026.2; ZIGoals shows the BMI number only, no category word), a celebration for each new low (2025.16; ZIGoals celebrates its milestones once), the purple gain and loss colours (2026.6).
+
+Already in COMPETITORS.md:
+- MacroFactor: Weight Trend (the smoothed trend and the weekly rate), the goal ETA. Yazio: Milestones and Calculators (milestone goals and the BMI calculator, built as LEDGER #205 and #210 in `lib/body-extras`). MyFitnessPal: Water and weight log. Bearable: Hide triggering data (the weight figures hidden). Diarium (round 6): Lock again after a while away (the passcode).
+
+#### Sleep as Android (sleep)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Rename or remove a tag on every night | Rename a tag (or delete it, with the new name left blank); this changes all past records and statistics | https://sleep.urbandroid.org/docs/sleep/tags.html | no | `missing` | A night holds up to 12 tags of 24 characters (`tags`, `lib/sleep/schema.ts:23`); a search of `lib/sleep` for renaming a tag finds none (notes and money have their own: `lib/notes/tag-rename.ts`) | "Rename" and "Remove" on a sleep tag: every night's tag changed at once, with one Undo; normal writes of the tags, nothing new stored | S | Sanne |
+| Your sleep goal over 14 days or a month | Goals for bedtime or duration over 14 days or a month, as a bank: a short night borrows minutes and a long one saves them; met if the average holds; a daily column chart and a moving average against the target | https://sleep.urbandroid.org/docs/sleep/goals.html ; https://sleep.urbandroid.org/docs/sleep/statistics.html | no | `half` | The last 7 nights against the goal (`sleepDebt`, `lib/sleep/engine.ts:116`); a goal of minutes with an optional bedtime window (`sleepGoalSchema`, `lib/sleep/schema.ts:36`) | The deeper part: "Over 14 days" or 30: the average asleep against the goal and the nights at or above it, and, with a bedtime window, the average bedtime against its end and the nights inside it; facts, the 7-day line kept. The period chosen is a device preference, TIER 3 (stored format) | S | Sanne, Max |
+| Smart alarm, CAPTCHA and sleep sounds | Sleep tracking by sonar or the accelerometer, smart wake-up in a light phase, CAPTCHA tasks to stop the alarm, noise recording and snore detection, lullabies | https://sleep.urbandroid.org/docs/ | no | `not web-possible` | Needs the microphone and sensors overnight and an alarm that rings with the app closed | — | — | — |
+| A sleep score against others | The Sleep Score's healthy ranges by year of birth, and a row comparing the person's averages with their country's national average | https://sleep.urbandroid.org/docs/sleep/statistics.html | no | `against a rule` | No score that judges the person; no comparison with other people | — | — | — |
+| Money on a sleep goal | Goals with a Small or Large Wager (about $2 or $4) paid through Google Play, credited back when met | https://sleep.urbandroid.org/docs/sleep/goals.html | no | `against a rule` | No payments, no money held against the person | — | — | — |
+
+Not rowed:
+- Native-only: wearables (Garmin, Wear OS, Mi Band, oximeters), smart lights and the Sleep Phaser, automatic tracking, heart rate and blood oxygen, sleep apnea and lucid-dreaming cues, widgets, Tasker and Automate.
+- Server service: SleepCloud backup and the SleepCloud study, Google Fit, Health Connect, Samsung Health, Google Calendar, Spotify, IFTTT, MQTT and webhooks; the automatic weather tags (#rain, #storm, #hot), which need a weather service.
+- Not proposed: the automatic moon tags (a computed full or new moon on a night; the journal shows the moon, LEDGER #409), tag counts (#caffeine_3x), achievements.
+
+Already in COMPETITORS.md:
+- Sleep Cycle: Sleep notes (tags on a night, statistics by tag), Sleep Score (3 pillars). Rise: Sleep debt, Naps and their effect. Pillow (round 4): Your sleep timing on free days (chronotype and social jetlag), A nap timer (power naps), Sleep data as a file (the CSV export). AutoSleep (round 6): sleep consistency (Sleep Regularity), day sleep for shift work (polyphasic sleep).
+
+### Money, debt and crypto (seventh additions)
+
+#### Cashew (budgets and expenses)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Removed entries kept for a while | Transaction activity log: see recently deleted and modified transactions | https://raw.githubusercontent.com/jameskokoska/Cashew/main/budget/lib/widgets/showChangelog.dart (5.3.0) ; https://apps.apple.com/app/id6463662930 (5.2, 07/02/2024) | no | `missing` | Removing an entry offers "Put back" in the toast only (`removeWithUndo`, `components/wealth/spending/spending-section.tsx:152`); afterwards it is gone | "Removed recently": a removed entry kept for 30 days on this device with "Put back" (its splits and its transfer twin with it), then gone; "Empty now"; left out of every figure and of Export everything. A new device record, TIER 3 (stored format) | S | Lina |
+| A bill that ends | The number of times a repeating transaction will repeat, with an end date (5.3.5) | https://raw.githubusercontent.com/jameskokoska/Cashew/main/budget/lib/widgets/showChangelog.dart (5.3.5) ; https://github.com/jameskokoska/Cashew | no | `missing` | A bill has a cadence and its next due day and no end (`billSchema`, `lib/bills/schema.ts:18-36`); it repeats on the calendar for good (`lib/bills/calendar.ts`) | "Ends after 24 payments" or "Last payment on …" on a bill: afterwards it leaves Upcoming bills, the calendar, the month's bills and the reminders, and its row says "3 of 24 left". Additive, TIER 3 (stored format) | S | Lina |
+| Copy an entry | Duplicate a transaction; long press to duplicate it at the current date and time (5.3.2) | https://raw.githubusercontent.com/jameskokoska/Cashew/main/budget/lib/widgets/showChangelog.dart (5.3.2) | no | `half` | Saved entries are logged in one tap (`SavedInput`, `lib/money-more/quick.ts:18`) once the person has kept one by name | The deeper part: "Copy" on any entry in the list: a new entry with its amount, category, payee, tags and account, dated today or a chosen day, with Undo, without keeping it by name first | S | Lina |
+
+Not rowed:
+- Server service: Google login, Google Drive backup, cross-device sync (Pro), Google Sheets import.
+- Native-only: home and lock screen widgets (5.10), the biometric and pattern lock (5.3.5; ZIGoals has its device lock), Android app links and the deep-linking API.
+- Not proposed: the spending heatmap on the home page (5.3.5; ZIGoals' month calendar shades the larger days, LEDGER #338), the long-term loan offset (interest added to a loan's total), the number pad's haptics and format settings.
+
+Already in COMPETITORS.md:
+- Wallet: One-time budgets across categories (custom budgets and periods, category spending limits), debts lent and borrowed (partial collect and settle). Emma (round 2): custom split and settle (the bill splitter). Goodbudget: Budget period. Monarch: Transaction review and activity log (one entry's edit history). Copilot: Name rules (associated titles that pick a category). Rocket Money: Subscriptions and bills list (upcoming, subscription and repeating transactions). Lunch Money (round 4): the month as a calendar (the calendar page). Kubera: Any currency, one total. The money log's saved searches and filters are built (`lib/money-log/saved-searches.ts`; title contains, amount range). YNAB: Targets (savings goals with installments).
+
+#### Money Manager by Realbyte (accounts and budgets)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| What the card's next payment will be | Credit card management: future payment dates show the payment amount and the outstanding balance on the accounts page; a Balance Payable widget (2.14) | https://apps.apple.com/app/id560481810 (2.14.0, Jul 7) | yes | `half` | A credit card's limit, its use and the next statement and due days, with a payment reminder (`components/wealth/credit-card.tsx:15`, LEDGER #293) | The deeper part: "Next payment on 25 Nov: €412.30 (statement of 5 Nov)" and "So far this statement: €96.10": the card's counted entries between statement days, less the payments made since, from the person's own entries; a fact, never advice | S | Lina |
+
+Not rowed:
+- Server service: the Data Sync Service, the PC Manager over Wi-Fi (a server on the phone), backup by email and iCloud.
+- Native-only: the Quick entry, Income/Expense and Balance Payable widgets (2.14).
+- Not proposed: the separate calculator (ZIGoals' amount field takes sums, `lib/money-calc/expression.ts`).
+
+Already in COMPETITORS.md:
+- Goodbudget: Budget period (weekly, monthly and annual budgets). YNAB and Goodbudget: a month that starts on payday (the custom month start; built as LEDGER #212). Lunch Money (round 4): the month as a calendar (the calendar view). Sort by recipient is the top payees view (`components/wealth/spending/insights/top-payees-view.tsx`). Wallet: record templates (payment profiles). Diarium (round 6): Lock again after a while away (the passcode after a set time). Rocket Money: tags (the tags of 2.15). Kubera: Any currency, one total (multi-currency entries).
