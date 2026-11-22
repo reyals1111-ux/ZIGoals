@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useRef, useState, type DragEvent, type KeyboardEvent} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState, type DragEvent, type KeyboardEvent} from 'react';
 import {formatClock, formatDate, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {shiftAnchor, type AgendaItem, type AgendaSource} from '../../lib/agenda/build';
 import {daySummary, foldAnytimeHabits} from '../../lib/agenda/group';
@@ -11,6 +11,10 @@ import {addLocalDays} from '../../lib/local-date';
 import {timedLoad} from '../../lib/agenda/hour-grid';
 import {CountdownsOnDay} from '../countdowns/countdowns-on-day';
 import {DeadlinesOnDay} from './deadlines-on-day';
+import {LoadBoundary} from '../load-boundary';
+
+// Session AV lane 2 (r5-notes; LEDGER #364, Craft): a note for an imported event, in its own chunk.
+const EventNote = lazy(() => import('./event-note'));
 
 /**
  * CI14 (page weights; budgets are never raised): the Agenda's days, rows and month grid, and the task form and status
@@ -84,13 +88,14 @@ function TaskItemRow({item, goals, onTick, onMove, today}: {item: TaskAgendaItem
     </form>}
   </li>;
 }
-/** Session AK (T2): an imported event — read-only, named by its calendar; it opens nothing. */
+/** Session AK (T2): an imported event — read-only, named by its calendar. Session AV lane 2 (r5-notes; LEDGER #364): with its note. */
 function EventItemRow({item}: {item: Extract<DayItem, {source: 'event'}>}) {
   return <li className="agenda-item agenda-event" data-source="event" data-pillar="life" data-state="open">
     <span className="agenda-time">{item.time ? formatClock(item.time) : 'All day'}</span>
     <div className="agenda-item-main">
       <span className="agenda-item-title">{item.title}</span>
       <p className="agenda-item-meta"><span>From {item.calendar}</span>{item.parts && <span> · day {item.part} of {item.parts}</span>}{item.time && item.minutes > 0 && <span> · {formatNumber(item.minutes)} min</span>}</p>
+      <LoadBoundary quiet><Suspense fallback={null}><EventNote itemId={item.id} title={item.title} day={item.date}/></Suspense></LoadBoundary>
     </div>
   </li>;
 }
