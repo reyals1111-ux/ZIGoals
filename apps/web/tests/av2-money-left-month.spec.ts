@@ -36,7 +36,8 @@ for (const theme of THEMES) test(`${theme}: left this month, a planned cost, the
   await form.getByLabel('What').fill('Birthday present');
   await form.getByLabel('Amount').fill('60');
   await form.getByLabel('Currency').selectOption('EUR');
-  await form.getByLabel('On').fill('2026-11-27');
+  // Session AV lane 2 (fixb3: "On" also matched "Category — optional", deliberate): the field named exactly On.
+  await form.getByLabel('On', {exact: true}).fill('2026-11-27');
   await form.getByRole('button', {name: 'Add planned cost'}).click();
   await expect(left.locator('.left-month-figure')).toHaveText('€1,620.00 left · EUR');
   expect((await readRecord<MoneyMore>(page, MONEY_MORE_KEY)).planned).toEqual([expect.objectContaining({name: 'Birthday present', amount: '60.00', currency: 'EUR', date: '2026-11-27'})]);

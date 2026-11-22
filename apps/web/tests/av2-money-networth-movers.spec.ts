@@ -23,7 +23,8 @@ for (const theme of THEMES) test(`${theme}: what moved net worth this month`, as
   ]}});
   await page.goto('/app/wealth'); await hydrated(page);
   const movers = page.getByRole('region', {name: 'What moved your net worth in Nov 2026'});
-  if (!(await movers.isVisible())) await openDeskFold(page, 'Your wealth over time');
+  // Session AV lane 2 (fixb3: a phone with fewer than two assets keeps this inside "More about your wealth", deliberate).
+  if (!(await movers.isVisible())) { if (isMobile) await openDeskFold(page, 'More about your wealth'); await openDeskFold(page, 'Your wealth over time'); }
   await expect(movers).toBeVisible();
   await expect(movers.locator('.networth-movers-total')).toHaveText('+€350.00 in EUR since the end of last month, from 2 accounts and sources.');
   const items = movers.locator('.networth-movers-list li');
