@@ -27,6 +27,7 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
   const [said, setSaid] = useState(''), [open, setOpen] = useState<string | null>(null), [over, setOver] = useState<string | null>(null), [awayTo, setAwayTo] = useState(addLocalDays(today, 6));
   const r: PlannedRecord = useMemo(() => rec.loaded && !rec.unreadable ? rec.data : {version: 1, items: []}, [rec.loaded, rec.unreadable, rec.data]);
   const states = useMemo(() => planStates(r, w, today), [r, w, today]), missed = useMemo(() => missedThisWeek(r, w, today), [r, w, today]);
+  const held = useMemo(() => realign(r, w, today).held === true, [r, w, today]);
   if (!rec.loaded) return null;
   if (rec.unreadable) return <p className="fine" role="alert">Your plan on this device could not be read, so it cannot be changed here now.</p>;
   const keep = (change: (c: PlannedRecord) => PlannedRecord, text: string) => { try { rec.update(change); setSaid(text); return true; } catch (e) { setSaid(e instanceof Error && !/storage|quota/i.test(e.message) ? e.message : `Not kept on this device. ${deviceSettingFailureMessage(e)}`); return false; } };
@@ -51,8 +52,10 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
     {isShowcase() && r.items.some(i => /\(Showcase\)/.test(i.name)) && <p className="fine"><ShowcaseTag/> Fictional example plan.</p>}
     <p className="fine">Plan a routine, a circuit or a run on a day. Drag it to another day on the calendar, or open it to move it. A planned workout is done once a workout is logged that day.</p>
     {missed.length > 0 && <div className="r4-note" role="group" aria-labelledby={`${id}-missed`}>
-      <p id={`${id}-missed`}>{missed.length === 1 ? `${missed[0]!.name} on ${formatDate(missed[0]!.date, {weekday: true, year: false})} was not done.` : `${missed.length} planned workouts this week were not done.`} Move {missed.length === 1 ? 'it' : 'them'} on, in order, from today?</p>
-      <div className="actions"><button type="button" className="secondary" onClick={realignNow}>I missed some: move them on</button></div>
+      {/* Review B5J-1 (round 5): under an open workout status nothing is moved on; they wait until it is cleared. */}
+      {held ? <p id={`${id}-missed`}>{missed.length === 1 ? `${missed[0]!.name} on ${formatDate(missed[0]!.date, {weekday: true, year: false})} was not done.` : `${missed.length} planned workouts this week were not done.`} Your status is set, so {missed.length === 1 ? 'it stays' : 'they stay'} where {missed.length === 1 ? 'it is' : 'they are'} until you clear it; then you can move {missed.length === 1 ? 'it' : 'them'} on.</p>
+      : <><p id={`${id}-missed`}>{missed.length === 1 ? `${missed[0]!.name} on ${formatDate(missed[0]!.date, {weekday: true, year: false})} was not done.` : `${missed.length} planned workouts this week were not done.`} Move {missed.length === 1 ? 'it' : 'them'} on, in order, from today?</p>
+      <div className="actions"><button type="button" className="secondary" onClick={realignNow}>I missed some: move them on</button></div></>}
     </div>}
     {r.away ? <p className="r4-note">Away {r.away.from <= today ? 'until' : `from ${formatDate(r.away.from, {weekday: true, year: false})} until`} {formatDate(r.away.to, {weekday: true, year: false})}: planned workouts in that time are set aside. <button type="button" className="quiet" onClick={() => keep(clearAway, 'Welcome back: nothing is set aside now.')}>I’m back</button></p>
       : <div className="r3-toggle"><label className="field"><span>Away until</span><input type="date" min={today} value={awayTo} onChange={e => setAwayTo(e.target.value)}/></label><button type="button" className="quiet" onClick={() => keep(c => setAway(c, today, awayTo), `Away until ${formatDate(awayTo, {weekday: true, year: false})}: planned workouts in that time are set aside.`)}>Set them aside</button></div>}

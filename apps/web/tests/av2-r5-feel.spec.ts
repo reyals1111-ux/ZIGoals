@@ -33,7 +33,7 @@ for (const theme of THEMES) test(`${theme}: how I feel shapes today's suggestion
   await expect(items).toHaveCount(3);
   for (const line of await suggest.locator('.av2-suggest-sets').allTextContents()) expect(line.split(' · ')).toHaveLength(2);
   await feel.getByRole('radio', {name: 'Tired'}).check();
-  await expect(suggest).toContainText('An easier day: fewer sets and one exercise fewer');
+  await expect(suggest).toContainText('An easier day: one exercise fewer, fewer sets');
   await expect(items).toHaveCount(5);
   await feel.getByRole('radio', {name: 'Fresh'}).check();
   await expect(items).toHaveCount(6);

@@ -1,5 +1,6 @@
 import {describe, expect, test} from 'vitest';
-import {adjustForFeeling, EASIER_WORDS, FEEL_WORDS, roundDownKg, walkInstead} from './feel';
+import {adjustForFeeling, EASIER_WORDS, easierLine, FEEL_WORDS, roundDownKg, walkInstead} from './feel';
+import {savePlates} from './depth';
 import {EXERCISES} from './library';
 import {showcaseWorkouts} from './showcase';
 import {startWorkout} from './engine';
@@ -37,6 +38,29 @@ describe('how you feel shapes the suggestion', () => {
     });
     expect(roundDownKg(62.5 * 0.9)).toBe(55);
     expect(roundDownKg(12 * 0.9)).toBe(10);
+  });
+  test('review B5J-4: Sore rounds in the person’s own unit and to their own plates', () => {
+    const lb = (n: number) => n * 0.45359237;
+    // 225 lb × 0.9 = 202.5 lb: on the standard lb set (45 lb bar, 2.5 lb plates) it is 200 lb, never 198.4 lb (90 kg).
+    expect(roundDownKg(lb(225) * 0.9, w, 'lb') / 0.45359237).toBeCloseTo(200, 2);
+    // Own kg plates of 5 kg at least (10 kg steps on a 20 kg bar): 0.9 × 80 = 72 → 70.
+    const big = savePlates(w, {unit: 'kg', bar: 20, plates: [{size: 10, pairs: 2}, {size: 5, pairs: 1}]});
+    expect(roundDownKg(72, big, 'kg')).toBe(70);
+    // On one side of a 40 kg sled with 5 kg plates: 5 kg steps.
+    expect(roundDownKg(72, savePlates(w, {unit: 'kg', bar: 20, plates: [{size: 5, pairs: 4}], oneSide: true, start: 40}), 'kg')).toBe(70);
+    const s = made(60), t = adjustForFeeling(w, s, 'sore', NOW, 'lb');
+    for (const x of t.exercises) for (const set of x.sets) if (set.weightKg !== undefined && set.weightKg / 0.45359237 >= 45) expect(Math.round(set.weightKg / 0.45359237 * 100) / 100 % 5).toBe(0);
+  });
+  test('review B5J-5: the line says only what changed', () => {
+    const s = made(60);
+    expect(easierLine(s, adjustForFeeling(w, s, 'tired', NOW), 'tired')).toMatch(/^An easier day: one exercise fewer, fewer sets/);
+    expect(easierLine(s, adjustForFeeling(w, s, 'sore', NOW), 'sore')).toBe('A lighter day: three exercises, two sets each, about 10 % less weight.');
+    // A short suggestion (three exercises of two sets, no weights) stays as it is, and the line says so.
+    const short = {...s, exercises: s.exercises.slice(0, 3).map(x => ({...x, sets: x.sets.slice(0, 2).map(({weightKg: _w, ...rest}) => { void _w; return rest; })}))};
+    const tired = adjustForFeeling(w, short, 'tired', NOW);
+    expect(tired.exercises).toHaveLength(3);
+    expect(easierLine(short, tired, 'tired')).toBe('An easier day: this suggestion is already short and no weight goes up, so it stays as it is.');
+    expect(easierLine(short, adjustForFeeling(w, short, 'sore', NOW), 'sore')).toBe('A lighter day: this suggestion is already short and light, so it stays as it is.');
   });
   test('the walk instead is an ordinary cardio workout to start', () => {
     const started = startWorkout(w, {date: DAY, now: NOW, repeat: walkInstead()});

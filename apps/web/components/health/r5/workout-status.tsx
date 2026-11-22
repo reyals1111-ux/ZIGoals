@@ -16,7 +16,7 @@ import './gym-r5.css';
  */
 const day = (d: string) => formatDate(d, {weekday: true, year: false});
 export default function WorkoutStatus({today}: {today: string}) {
-  const rec = useDeviceRecord(PLANNED_WORKOUTS), id = useId(), back = useRef<HTMLButtonElement>(null), setBtn = useRef<HTMLButtonElement>(null);
+  const rec = useDeviceRecord(PLANNED_WORKOUTS), id = useId(), back = useRef<HTMLButtonElement>(null), setBtn = useRef<HTMLButtonElement>(null), changeBtn = useRef<HTMLButtonElement>(null), form = useRef<HTMLFormElement>(null);
   const [kind, setKind] = useState<StatusKind>('break'), [from, setFrom] = useState(today), [said, setSaid] = useState(''), [changing, setChanging] = useState(false);
   if (!rec.loaded) return null;
   if (rec.unreadable) return <p className="fine" role="alert">Your plan on this device could not be read, so a status cannot be set here now.</p>;
@@ -39,14 +39,15 @@ export default function WorkoutStatus({today}: {today: string}) {
     {open && <p className="r5-status-now" role="status"><strong>{STATUS_WORDS[open.kind].en}</strong> since {day(open.from)}. Planned workouts are set aside until you clear it.</p>}
     {!open && ended && <p className="fine">Back after a break: your last status ended on {day(ended.to!)}.</p>}
     {open && !changing ? <div className="actions">
-      <button ref={back} type="button" className="secondary" onClick={() => { if (keep(c => clearStatus(c, today), 'Welcome back: the status is cleared. Planned workouts from today count again.', `${STATUS_WORDS[open.kind].en} is set again.`)) requestAnimationFrame(() => setBtn.current?.focus()); }}>I’m back: clear the status</button>
-      <button type="button" className="quiet" onClick={() => { setKind(open.kind); setFrom(open.from); setChanging(true); }}>Change it</button>
-    </div> : <form className="r5-status-form" onSubmit={submit} aria-labelledby={`${id}-legend`}>
+      <button ref={back} type="button" className="secondary" onClick={() => { if (keep(c => clearStatus(c, today), open.from === today ? 'The status is cleared: it had not covered a day yet. Planned workouts from today count again.' : 'Welcome back: the status is cleared. Planned workouts from today count again.', `${STATUS_WORDS[open.kind].en} is set again.`)) requestAnimationFrame(() => setBtn.current?.focus()); }}>I’m back: clear the status</button>
+      {/* Review B5J-2: focus goes into the form that replaces these buttons, and back to "Change it" on Cancel. */}
+      <button ref={changeBtn} type="button" className="quiet" onClick={() => { setKind(open.kind); setFrom(open.from); setChanging(true); requestAnimationFrame(() => form.current?.querySelector<HTMLInputElement>('input:checked, input')?.focus()); }}>Change it</button>
+    </div> : <form ref={form} className="r5-status-form" onSubmit={submit} aria-labelledby={`${id}-legend`}>
       <fieldset><legend id={`${id}-legend`}>{open ? 'Change your status' : 'Set a status'}</legend>
         <div className="r5-choices">{STATUS_KINDS.map(k => <label key={k} className="r5-choice"><input type="radio" name={`${id}-kind`} checked={kind === k} onChange={() => setKind(k)}/> {STATUS_WORDS[k].en}</label>)}</div>
       </fieldset>
       <label className="field"><span>Since</span><input type="date" max={today} value={from} onChange={e => setFrom(e.target.value)}/></label>
-      <div className="actions"><button ref={setBtn} type="submit" className="secondary">{open ? 'Save the status' : 'Set this status'}</button>{open && <button type="button" className="quiet" onClick={() => setChanging(false)}>Cancel</button>}</div>
+      <div className="actions"><button ref={setBtn} type="submit" className="secondary">{open ? 'Save the status' : 'Set this status'}</button>{open && <button type="button" className="quiet" onClick={() => { setChanging(false); requestAnimationFrame(() => changeBtn.current?.focus()); }}>Cancel</button>}</div>
     </form>}
     <p className="sr-only" role="status" aria-live="polite">{said}</p>
   </div>;

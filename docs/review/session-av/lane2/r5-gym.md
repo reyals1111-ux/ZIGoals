@@ -266,3 +266,14 @@ QUALITY Minors: none of the open "Not fixed" Minors is in Workouts; none taken u
 - AK tool sources: nothing new (`workouts` and `plannedWorkouts` are wired). `lib/ai/local-answers/av2-body.ts`'s streak
   and load answers now pass the status's days (#374), as the page does.
 
+## Review B5J fixes (one commit, with unit tests)
+
+| id | fix |
+|---|---|
+| B5J-1 (Major) | `realign` jumps away days and a closed status to the day after they end; under an open status it moves nothing (`held`), and the plan's note says "Your status is set, so they stay where they are until you clear it; then you can move them on." (no "I missed some" button). Never a day years ahead. Test with an open, a cleared and a later closed status. |
+| B5J-2 (Major, a11y) | "Change it" moves focus to the form's checked choice; Cancel moves it back to "Change it". Spec step added. |
+| B5J-3 | A status cleared on its first day is removed (it covered no whole day): today's planned workouts count again, no pause, the load is not "paused"; the toast says so. The unit test's "keeps that day" case is a labelled deliberate change with a stricter replacement. |
+| B5J-4 | Sore rounds down in the person's own unit to their own plates (the smallest plate on each side or on the one horn, from the saved set, else 2.5 kg / 5 lb; below the bar 1 kg / 2.5 lb). Tests in kg, lb and on one side. |
+| B5J-5 | The line under a tired or sore suggestion says only what changed (`easierLine`), or that a short suggestion stays as it is; the general words (answers) say "up to". The feel spec's line follows. |
+| B5J-6 | A workout's photos load only once its row in Your workouts is opened. |
+
