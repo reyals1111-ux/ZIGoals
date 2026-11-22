@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, test, vi} from 'vitest';
 import type {ToolSources} from '../tools/env';
-import {ask, freshAll, novaEnv, showcaseAll, zigiEnv} from '../evals/as/harness';
+import {ask, DAY, freshAll, novaEnv, showcaseAll, zigiEnv} from '../evals/as/harness';
 import {av2R6MoneyAnswer} from './av2-r6-money';
 import {av2R6BodyAnswer} from './av2-r6-body';
 import type {LocalReply} from './engine';
@@ -67,3 +67,21 @@ describe('B6Q-3: a light week is marked during the workout to keep a routine’s
   });
 });
 
+describe('B6Q-13, B6Q-14 and B6Q-19 (money)', () => {
+  const zigi = (q: string, s: ToolSources = showcaseAll()) => av2R6MoneyAnswer(q, zigiEnv(s));
+  test('B6Q-13: "order" alone is not reordering the budgets', () => {
+    for (const q of ['is my takeaway budget enough to order pizza', 'which budgets are over, in order', 'what budgets do I have in order of spending', 'welke budgetten zijn over, op volgorde']) expect(zigi(q), q).toBeNull();
+    for (const q of ['how do I reorder my budgets', 'can I put my budgets in my own order', 'how do I change the order of my budgets', 'how do I sort my budgets', 'hoe zet ik mijn budgetten in een andere volgorde', 'kan ik mijn budgetten herschikken', 'hoe verander ik de volgorde van mijn budgetten']) expect(text(zigi(q)), q).toMatch(/Reorder budgets/);
+  });
+  test('B6Q-14: a refund policy or a subscription’s refund is not a logged refund', () => {
+    for (const q of ['what is your refund policy', 'how do I get a refund for my subscription', 'can I get a refund for ZIGoals', 'hoe krijg ik een terugbetaling voor mijn abonnement', 'wat is het beleid voor een terugbetaling']) expect(zigi(q), q).toBeNull();
+    for (const q of ['how much did I get refunded this month', 'does a refund count as income', 'hoeveel geld heb ik deze maand terug gekregen', 'is een terugbetaling inkomsten']) expect(text(zigi(q)), q).not.toBe('');
+  });
+  test('B6Q-19(f): the streak in Dutch words; (g): every repair can be undone', () => {
+    expect(text(zigi('wat is mijn geldreeks', freshAll()))).toMatch(/^Je reeks voor je geld staat uit\. /);
+    const s = freshAll(); s.moneyLog = {...s.moneyLog!, entries: [{id: 'a', kind: 'expense', amount: '10.00', currency: 'EUR', category: 'Groceries', date: `${DAY.slice(0, 7)}-05`, createdAt: `${DAY}T10:00:00.000Z`, note: 'Shop'}, {id: 'b', kind: 'expense', amount: '10.00', currency: 'EUR', category: 'Groceries', date: `${DAY.slice(0, 7)}-05`, createdAt: `${DAY}T10:00:00.000Z`, note: 'Shop'}]};
+    const nl = text(zigi('zijn er dubbele boekingen in mijn geldlog', s));
+    expect(nl).toMatch(/; elke reparatie kun je terugdraaien met Ongedaan maken\.$/);
+    expect(nl).not.toMatch(/elke heeft/);
+  });
+});
