@@ -21,7 +21,9 @@ for (const theme of THEMES) test(`${theme}: a week, a month and a year back`, as
   await page.addInitScript(k => { if (!localStorage.getItem(k)) localStorage.setItem(k, JSON.stringify({version: 1, shareWithAi: false, followUps: false, entries: [
     {id: 'y', date: '2025-11-22', text: 'A fictional first day at the new job.', createdAt: '2025-11-22T20:00:00.000Z'},
     {id: 'm', date: '2026-10-22', text: 'A fictional autumn walk.', createdAt: '2026-10-22T20:00:00.000Z'},
-    {id: 'w', date: '2026-11-15', text: 'A fictional Sunday with friends.', createdAt: '2026-11-15T20:00:00.000Z'}]})); }, JOURNAL_KEY);
+    {id: 'w', date: '2026-11-15', text: 'A fictional Sunday with friends.', createdAt: '2026-11-15T20:00:00.000Z'},
+    // Review B4D-4: a letter written a week ago to open next year stays folded away, never a memory.
+    {id: 'l', date: '2026-11-15', text: 'Dear future me, a fictional letter.', createdAt: '2026-11-15T21:00:00.000Z', template: 'letter-future-you', opensOn: '2027-11-15'}]})); }, JOURNAL_KEY);
   await page.goto('/app/journal'); await hydrated(page);
   const memory = page.locator('details.on-this-day');
   await expect(memory.locator('summary')).toContainText('1 year ago and 2 more');
@@ -31,6 +33,7 @@ for (const theme of THEMES) test(`${theme}: a week, a month and a year back`, as
   await expect(items.nth(1)).toContainText('A month ago');
   await expect(items.nth(2)).toContainText('A week ago');
   await expect(items.nth(2)).toContainText('A fictional Sunday with friends.');
+  await expect(memory).not.toContainText('Dear future me');
   let findings = await axe(page, memory);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   const privacy = page.locator('section[aria-labelledby="journal-privacy"]');
