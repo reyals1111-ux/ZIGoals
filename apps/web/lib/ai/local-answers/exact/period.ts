@@ -76,9 +76,21 @@ export function nlDay(date: string, today: string): string {
 }
 /** A day as the app writes it ("Tue, Nov 3"; with the year when it is not this year). */
 export const dayWords = (day: string, today: string): string => formatDate(day, {weekday: true, year: day.slice(0, 4) !== today.slice(0, 4)});
+/** Session AV lane 2 (Dutch dates, R5): a date without its weekday the Dutch way, "31 jan 2028" ("16 nov" this year; always with the year when `today` is null), for a Dutch answer. */
+export function nlDate(date: string, today: string | null): string {
+  const d = new Date(`${date.slice(0, 10)}T12:00:00Z`);
+  return `${d.getUTCDate()} ${MO_NL[d.getUTCMonth()]}${today === null || date.slice(0, 4) !== today.slice(0, 4) ? ` ${date.slice(0, 4)}` : ''}`;
+}
+const MONTH_NL = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+/** Session AV lane 2 (Dutch dates, R5): the writer of a day for an answer in `lang` ("Tue, Nov 17" or "di 17 nov"). */
+export const dayWriter = (lang: Lang): ((date: string, today: string) => string) => lang === 'nl' ? nlDay : dayWords;
+/** A day in the answer's language: "Tue, Nov 17" or "di 17 nov". */
+export const dayIn = (lang: Lang, date: string, today: string): string => dayWriter(lang)(date, today);
+/** A month key ("2026-10") in words: "Oct 2026" or "oktober 2026" (the month alone with `year: false`). */
+export const monthIn = (lang: Lang, month: string, {year = true}: {year?: boolean} = {}): string => lang === 'nl' ? `${MONTH_NL[Number(month.slice(5, 7)) - 1]}${year ? ` ${month.slice(0, 4)}` : ''}` : formatMonth(month, year ? {} : {year: false});
 /** The period in words: "this month", "last week", "the last 14 days", "since Sun, Nov 1", "on Mondays this month". */
-/** Session AV lane 2 (minors, q1 #2): `day` writes the days; a caller with a Dutch answer may pass `nlDay` (the default keeps every pinned answer as it was). */
-export function periodWords(p: Period, lang: Lang, today: string, day: (date: string, today: string) => string = dayWords): string {
+/** Session AV lane 2 (minors, q1 #2; Dutch dates, R5): `day` writes the days, by default in the answer's language ("di 17 nov" in Dutch; English as it was). */
+export function periodWords(p: Period, lang: Lang, today: string, day: (date: string, today: string) => string = dayWriter(lang)): string {
   const base = p.token.split('@')[0]!, nl = lang === 'nl';
   const fixed: Record<string, [string, string]> = {today: ['today', 'vandaag'], yesterday: ['yesterday', 'gisteren'], 'this-week': ['this week', 'deze week'], 'last-week': ['last week', 'vorige week'], 'this-month': ['this month', 'deze maand'], 'last-month': ['last month', 'vorige maand'], 'this-year': ['this year', 'dit jaar'], 'last-year': ['last year', 'vorig jaar']};
   let words: string;
@@ -86,11 +98,11 @@ export function periodWords(p: Period, lang: Lang, today: string, day: (date: st
   else if (base.startsWith('last-')) { const n = Number(base.split('-')[1]); words = nl ? `in de afgelopen ${n} dagen` : `in the last ${n} days`; }
   else if (base.startsWith('since:')) words = `${nl ? 'sinds' : 'since'} ${day(p.from, today)}`;
   else if (base.startsWith('on:')) words = `${nl ? 'op' : 'on'} ${day(p.from, today)}`;
-  else words = `in ${formatMonth(`${p.from}T12:00:00Z`, {year: p.from.slice(0, 4) !== today.slice(0, 4), timeZone: 'UTC'})}`;
+  else words = nl ? `in ${monthIn('nl', p.from.slice(0, 7), {year: p.from.slice(0, 4) !== today.slice(0, 4)})}` : `in ${formatMonth(`${p.from}T12:00:00Z`, {year: p.from.slice(0, 4) !== today.slice(0, 4), timeZone: 'UTC'})}`;
   return p.weekday === null ? words : nl ? `op ${weekdayName(p.weekday, 'nl')} ${words}` : `on ${weekdayName(p.weekday, 'en', true)} ${words}`;
 }
 /** The period with its dates, as a sentence opens with it: "this month (Sun, Nov 1 to Tue, Nov 17)"; one day: "yesterday (Mon, Nov 16)". */
-export function periodSpan(p: Period, lang: Lang, today: string, day: (date: string, today: string) => string = dayWords): string {
+export function periodSpan(p: Period, lang: Lang, today: string, day: (date: string, today: string) => string = dayWriter(lang)): string {
   const words = periodWords(p, lang, today, day), base = p.token.split('@')[0]!;
   if (base.startsWith('on:') || base.startsWith('since:')) return words;
   return p.from === p.to ? `${words} (${day(p.from, today)})` : `${words} (${day(p.from, today)} ${lang === 'nl' ? 't/m' : 'to'} ${day(p.to, today)})`;

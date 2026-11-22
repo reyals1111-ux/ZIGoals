@@ -1,6 +1,6 @@
 import {addLocalDays} from '../../../local-date';
 import {formatNumber} from '../../../visual-format';
-import {dayWords, periodSpan, periodWords, previousPeriod, resolvePeriod, type Period} from './period';
+import {dayIn, periodSpan, periodWords, previousPeriod, resolvePeriod, type Period} from './period';
 import {dayList, rate, runBest, runNow, tally, type DayPoint, type Tally} from './series';
 import {t} from './text';
 import type {Ask, Domain, Exact, ExactWidget, Lang, Query, QuerySubject} from './types';
@@ -64,7 +64,7 @@ export function trackAnswer(q: Query, track: Track, today: string): Exact | null
   // Only a habit's day can be marked as skipped: for a log, "which days did I skip" asks which days are without it.
   if (q.ask === 'skipped' && track.kind !== 'habit') q = {...q, ask: 'not-done'};
   const lang = q.lang, nl = lang === 'nl', p = periodFor(q, today), points = track.points(p.days), T = tally(points);
-  const span = periodSpan(p, lang, today), words = periodWords(p, lang, today), day = (d: string) => dayWords(d, today), m = track.measure;
+  const span = periodSpan(p, lang, today), words = periodWords(p, lang, today), day = (d: string) => dayIn(lang, d, today), m = track.measure;
   const did = track.did[nl ? 1 : 0], not = track.not[nl ? 1 : 0], n = track.name;
   const done = (text: string, extra: Record<string, unknown> = {}, ask: Ask = q.ask): Exact => ({kind: 'answer', text, facts: {...base(track, q, p, T), ...extra}, widgets: track.widgets(ask, p, q), query: q, source: track.source[nl ? 1 : 0]});
   // "Today is still open" is said for a habit and for a target of the day; a plain log has nothing to keep open.

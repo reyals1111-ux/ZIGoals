@@ -2,6 +2,7 @@ import {isUnitWord, unitAmount} from '../../goals/goal-units';
 import {formatGoalAmount} from '../../goals/goal-amount-text';
 import type {DayRange} from '../tools/range';
 import {formatDate, formatTime} from '../../visual-format';
+import {nlDay} from './exact/period';
 
 /**
  * How local answers say things (Session V Part 3): plain English (S8), numbers grouped the same way everywhere, days as
@@ -14,6 +15,11 @@ export const LOCAL_LABEL = 'Answered on your device · no AI used';
 export function dayText(iso: string, thisYear?: string): string {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || Number.isNaN(Date.parse(`${iso}T12:00:00Z`))) return iso;
   return formatDate(iso, {weekday: true, year: !!thisYear && iso.slice(0, 4) !== thisYear});
+}
+/** Session AV lane 2 (Dutch dates, R5): `dayText` for a Dutch answer, "ma 5 okt" (with the year when it is not `thisYear`: "ma 5 okt 2025"). */
+export function nlDayText(iso: string, thisYear?: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || Number.isNaN(Date.parse(`${iso}T12:00:00Z`))) return iso;
+  return nlDay(iso, thisYear ?? iso);
 }
 /** "this month (Thu, Oct 1 to Mon, Oct 5)", "yesterday (Sun, Oct 4)", "on Mon, Oct 5", "in September 2026 (…)", "since Mon, Sep 14". */
 export function span(range: DayRange, today: string): string {

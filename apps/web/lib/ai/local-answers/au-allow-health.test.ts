@@ -107,7 +107,8 @@ test('ZIGi’s Health-closed reply follows the question’s language, with one b
   }
   const habit = ask('Welke dag heb ik mijn water gemist?', shut());
   expect(habit.kind).toBe('answer');
-  expect(habit.text).toBe('Drink water: geen gemiste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.');
+  // Session AV lane 2 (Dutch dates, deliberate): the Dutch answer writes its days the Dutch way (was "(Sun, Nov 1 t/m Tue, Nov 17) … Sun, Nov 1 en Tue, Nov 10").
+  expect(habit.text).toBe('Drink water: geen gemiste dag deze maand (zo 1 nov t/m di 17 nov). Overgeslagen (telt niet als gemist): zo 1 nov en di 10 nov. Vandaag staat nog open.');
   expect(habit.text).not.toMatch(/\bml\b|\bmL\b|Health/);
   expect(HEALTH_CLOSED_NL).toContain('Settings → ZIGi · your companion → Privacy & data: “Health page data” en “Include Health”');
 });

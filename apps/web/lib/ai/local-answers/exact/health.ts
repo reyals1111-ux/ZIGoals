@@ -14,7 +14,7 @@ import {weightCard} from '../../../nova/cards/weight';
 import {durationWords, waterAmount} from '../../../nova/widgets/words';
 import {text as clean} from '../../tools/format';
 import {daysBetween} from '../../tools/range';
-import {dayWords, periodSpan, periodWords, resolvePeriod, type Period} from './period';
+import {dayIn, dayWords, nlDate, nlDay, periodSpan, periodWords, resolvePeriod, type Period} from './period';
 import type {DayPoint, DayState} from './series';
 import {listWords, t} from './text';
 import {periodFor, trackAnswer, type Track} from './track';
@@ -135,14 +135,14 @@ export function healthAnswer(q: Query, health: HealthData, workouts: Workouts | 
   // Weight: "what is my weight", "am I losing weight" — the newest reading and the change over the period, in the Weight card's own words.
   if (q.domain === 'weight' && (q.ask === 'status' || q.ask === 'total' || q.ask === 'trend' || q.ask === 'done' || q.ask === 'open') && q.shape !== 'dates' && q.shape !== 'count') {
     const p = periodFor({...q, ask: 'trend'}, today), range = p.days.length <= 8 ? 'week' : p.days.length <= 45 ? 'month' : p.days.length <= 120 ? 'quarter' : 'year', card = weightCard(health, today, range);
-    const when = newest.date === today ? t(lang, 'today', 'vandaag') : dayWords(newest.date, today);
-    const change = card.change ? (lang === 'nl' ? (card.change.direction === 'flat' ? `geen verandering sinds ${card.change.since}` : `${weightReadingText(Math.abs(card.change.grams), card.unit)} ${card.change.direction === 'down' ? 'lager' : 'hoger'} dan op ${card.change.since}`) : card.change.text) : null;
+    const when = newest.date === today ? t(lang, 'today', 'vandaag') : dayIn(lang, newest.date, today);
+    const change = card.change ? (lang === 'nl' ? (card.change.direction === 'flat' ? `geen verandering sinds ${nlDate(card.readings[0]!.date, today)}` : `${weightReadingText(Math.abs(card.change.grams), card.unit)} ${card.change.direction === 'down' ? 'lager' : 'hoger'} dan op ${nlDate(card.readings[0]!.date, today)}`) : card.change.text) : null;
     return out(`${track.name}: ${card.latest!.text} (${when})${change ? `, ${change}` : t(lang, `; one weigh-in in ${card.window.words}, so no change to state yet`, '; één weging in deze periode, dus nog geen verandering')}${card.target ? t(lang, `. Your goal is ${card.target.text}`, `. Je doel is ${card.target.text}`) : ''}.`,
       {latest: {day: newest.date, grams: newest.value}, change: card.change ? {grams: card.change.grams, direction: card.change.direction} : null, target: card.target?.grams ?? null, readings: card.readings.length}, [{id: 'weight-trend', range, fallback: 'weight'}]);
   }
   // Resting heart rate: a level, so "what is my heart rate" is the newest recorded value with its day (never a live reading).
   if (q.domain === 'vitals' && (q.ask === 'status' || q.ask === 'total' || q.ask === 'done' || q.ask === 'open') && (!q.period || q.period === 'today')) {
-    const when = newest.date === today ? t(lang, 'today', 'vandaag') : dayWords(newest.date, today);
+    const when = newest.date === today ? t(lang, 'today', 'vandaag') : dayIn(lang, newest.date, today);
     return out(t(lang, `Resting heart rate: ${track.measure!.text(newest.value!, 'en')}, recorded ${when}. This is the latest record, not a live reading.`, `Rusthartslag: ${track.measure!.text(newest.value!, 'nl')}, vastgelegd ${when}. Dit is de laatste registratie, geen live meting.`), {latest: {day: newest.date, bpm: newest.value}}, [{id: 'heart-trend', fallback: 'health-trends'}]);
   }
   // "How did I sleep" with no day: last night; a status over a period reads as its average.
@@ -155,7 +155,7 @@ export function healthAnswer(q: Query, health: HealthData, workouts: Workouts | 
  */
 export function healthScan(q: Query, health: HealthData, workouts: Workouts | null | undefined, today: string): Exact {
   const lang = q.lang, parts: string[] = [], facts: Record<string, unknown> = {}, missing: string[] = [];
-  const when = (date: string) => date === today ? '' : ` (${dayWords(date, today)})`;
+  const when = (date: string) => date === today ? '' : ` (${dayIn(lang, date, today)})`;
   const one = (track: Track, label: [string, string], todayOnly: boolean) => {
     const point = todayOnly ? track.points([today])[0]! : latest(track, today), m = track.measure!;
     if (!point || point.value === null) { missing.push(label[lang === 'nl' ? 1 : 0]); facts[track.key] = null; return; }
@@ -204,11 +204,11 @@ function liftAnswer(q: Query, health: HealthData, workouts: Workouts | null | un
   const rowsOf = (w: Workout) => w.exercises.filter(e => e.measure === 'weight-reps').map(exercise).filter(e => e.sets > 0);
   const said = (w: Workout) => `${clean(w.name)} — ${rowsOf(w).map(e => `${e.name} ${e.sets} ${lang === 'nl' ? (e.sets === 1 ? 'set' : 'sets') : (e.sets === 1 ? 'set' : 'sets')}${e.topKg ? `, ${t(lang, 'top', 'zwaarst')} ${weightReadingText(Math.round(e.topKg * 1000), unit)}${e.reps ? ` × ${e.reps}` : ''}` : ''}`).join('; ')}`;
   const facts = {about: 'workouts', ask: q.ask, period: {token: p.token, from: p.from, to: p.to}, workouts: hit.map(w => ({workout: clean(w.name), day: w.date, exercises: rowsOf(w)}))};
-  const widgets: ExactWidget[] = [{id: 'workouts'}], span = periodWords(p, lang, today), when = p.days.length === 1 ? ` (${dayWords(p.from, today)})` : '';
+  const widgets: ExactWidget[] = [{id: 'workouts'}], span = periodWords(p, lang, today), when = p.days.length === 1 ? ` (${dayIn(lang, p.from, today)})` : '';
   const out = (text: string): Exact => ({kind: 'answer', text, facts, widgets, query: q, source: t(lang, 'Your workout log', 'Je workoutlog')});
   if (hit.length) return out(t(lang, `Lifted ${span}${when}: ${hit.map(said).join('. ')}.`, `Getild ${span}${when}: ${hit.map(said).join('. ')}.`));
   const last = all.find(w => w.date < p.from);
-  return out(t(lang, `Nothing lifted is logged ${span}${when}.`, `Er is ${span}${when} niets getild gelogd.`) + (last ? t(lang, ` Your last lifting day was ${dayWords(last.date, today)}: ${said(last)}.`, ` Je laatste keer was ${dayWords(last.date, today)}: ${said(last)}.`) : all.length ? '' : t(lang, ' No strength workout is logged yet.', ' Er is nog geen krachttraining gelogd.')));
+  return out(t(lang, `Nothing lifted is logged ${span}${when}.`, `Er is ${span}${when} niets getild gelogd.`) + (last ? t(lang, ` Your last lifting day was ${dayWords(last.date, today)}: ${said(last)}.`, ` Je laatste keer was ${nlDay(last.date, today)}: ${said(last)}.`) : all.length ? '' : t(lang, ' No strength workout is logged yet.', ' Er is nog geen krachttraining gelogd.')));
 }
 function distanceAnswer(q: Query, workouts: Workouts | null | undefined, today: string): Exact {
   const lang = q.lang, p = periodFor({...q, ask: 'total', shape: 'amount'}, today, 'this-week'), runs = RUN.test(q.read);
@@ -216,8 +216,8 @@ function distanceAnswer(q: Query, workouts: Workouts | null | undefined, today: 
   const total = hit.reduce((n, w) => n + workoutKm(w), 0), span = periodSpan(p, lang, today), what = runs ? (lang === 'nl' ? ['loop', 'loopjes'] : ['run', 'runs']) : ['workout', 'workouts'];
   const facts = {about: 'workouts', ask: q.ask, period: {token: p.token, from: p.from, to: p.to}, km: Math.round(total * 100) / 100, count: hit.length, workouts: hit.map(w => ({workout: clean(w.name), day: w.date, km: Math.round(workoutKm(w) * 100) / 100, imported: !!(w.imported || w.fileImport)}))};
   const out = (text: string): Exact => ({kind: 'answer', text, facts, widgets: [{id: 'workout-days', period: p.token, fallback: 'workouts'}], query: q, source: t(lang, 'Your workout log', 'Je workoutlog')});
-  const each = hit.map(w => `${km(workoutKm(w))} ${t(lang, 'on', 'op')} ${dayWords(w.date, today)}`);
+  const each = hit.map(w => `${km(workoutKm(w))} ${t(lang, 'on', 'op')} ${dayIn(lang, w.date, today)}`);
   if (hit.length) return out(t(lang, `${runs ? 'You ran' : 'Distance'} ${km(total)} ${span}, in ${hit.length} ${what[hit.length === 1 ? 0 : 1]}: ${listWords(each, 'en')}.`, `${runs ? 'Je liep' : 'Afstand'} ${km(total)} ${span}, in ${hit.length} ${what[hit.length === 1 ? 0 : 1]}: ${listWords(each, 'nl')}.`));
   const last = all.find(w => w.date < p.from);
-  return out(t(lang, `No ${runs ? 'run' : 'distance'} is logged ${span}.`, `Er is ${span} geen ${runs ? 'loop' : 'afstand'} gelogd.`) + (last ? t(lang, ` The last one: ${dayWords(last.date, today)}, ${km(workoutKm(last))}.`, ` De laatste: ${dayWords(last.date, today)}, ${km(workoutKm(last))}.`) : ''));
+  return out(t(lang, `No ${runs ? 'run' : 'distance'} is logged ${span}.`, `Er is ${span} geen ${runs ? 'loop' : 'afstand'} gelogd.`) + (last ? t(lang, ` The last one: ${dayWords(last.date, today)}, ${km(workoutKm(last))}.`, ` De laatste: ${nlDay(last.date, today)}, ${km(workoutKm(last))}.`) : ''));
 }
