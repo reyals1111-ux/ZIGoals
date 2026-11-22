@@ -23,6 +23,8 @@ import {TASK_ENERGY, type TaskEnergy} from '../../lib/tasks/schema';
 const HabitLinkField = lazy(() => import('./habit-link-field'));
 /** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
 const TaskAttachments = lazy(() => import('./task-attachments'));
+// Session AV lane 2 (r5-notes; LEDGER #355, Akiflow): any file on a task, in its own chunk.
+const TaskFiles = lazy(() => import('./task-files'));
 /** Review b1 #14: start or stop the task's timer from its editor (its own chunk). */
 const TaskTimer = lazy(() => import('./task-timer'));
 /** Session AV lane 2 (rest, LEDGER #33): the task's earlier titles and notes (its own chunk, loaded when the fold opens). */
@@ -178,6 +180,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       {versionsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><TaskVersions task={task} onRestore={v => onSave({title: v.title, notes: v.notes ?? null}, task.recur ? 'all' : undefined)} /></Suspense>}
     </details>
     <Suspense fallback={null}><TaskAttachments taskId={task.id} taskTitle={task.title} liveTaskIds={record?.tasks.map(t => t.id)}/></Suspense>
+    <Suspense fallback={null}><TaskFiles taskId={task.id} taskTitle={task.title}/></Suspense>
     <span className="task-editor-actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={onCancel}>Cancel</button></span>
   </form>;
 }

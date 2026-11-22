@@ -70,6 +70,8 @@ const TasksPrint = lazy(() => import('./tasks-print'));
 const ProjectSetup = lazy(() => import('./project-setup'));
 // Session AV lane 2 (r4-plan, LEDGER #302): a deadline at risk, one quiet line at the top of Upcoming, its own chunk.
 const AtRiskLine = lazy(() => import('./at-risk-line'));
+// Session AV lane 2 (r5-notes; LEDGER #355, Akiflow): every task's files, and a file dropped on Tasks, in their own chunk.
+const FilesView = lazy(() => import('./task-files').then(m => ({default: m.FilesView})));
 const AREA_KEY = 'zigoals:task-area';
 const PLAN_KINDS = new Set<TaskView['kind']>(['week', 'table', 'days', 'timeline', 'insights', 'organise']);
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
@@ -90,6 +92,7 @@ export function TasksPage() {
   const [selecting, setSelecting] = useState(false);
   const [focus, setFocus] = useState<Task | null>(null), [showcase, setShowcase] = useState(false), [help, setHelp] = useState(false), [io, setIo] = useState(false);
   const [printing, setPrinting] = useState(false);
+  const [filesOpen, setFilesOpen] = useState(false), [dropNote, setDropNote] = useState('');
   const donePrinting = useCallback(() => setPrinting(false), []);
   const [setupFor, setSetupFor] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set()), [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set()), [now, setNow] = useState(() => Date.now());
@@ -371,11 +374,30 @@ export function TasksPage() {
   const empty = view.kind !== 'completed' && !own && shown.length === 0 && !tasks.unreadable;
   const project = view.kind === 'project' ? projectOf(view.id) : undefined;
 
-  return <div className="tasks-page" data-tasks={ready ? 'ready' : 'loading'}>
+  // Session AV lane 2 (r5-notes; LEDGER #355, Akiflow): a file dropped on Tasks becomes an Inbox task holding it (only a
+  // drag that carries files; moving a task by drag is untouched).
+  const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes('Files');
+  const dropFiles = (e: DragEvent) => {
+    if (!hasFiles(e) || !e.dataTransfer.files.length) return;
+    e.preventDefault();
+    const files = [...e.dataTransfer.files].slice(0, 10);
+    void import('./task-files').then(async ({keepTaskFile}) => {
+      let made = 0, said = '';
+      for (const f of files) {
+        const taskId = `task_${crypto.randomUUID()}`, title = f.name.replace(/\.[^.]{1,10}$/, '').trim().slice(0, 200) || 'A file';
+        try { await keepTaskFile(taskId, f); } catch (err) { said = err instanceof Error ? err.message : 'A file was not kept.'; continue; }
+        if (list.change(r => addTask(r, {title}, {id: taskId, at: new Date(), today, allowPast: true}), `Added “${title}” to the Inbox with its file.`, `“${title}” taken back; its file leaves this device after 30 days.`)) made++;
+      }
+      setDropNote(made ? `${made === 1 ? 'An Inbox task holds the file' : `${made} Inbox tasks hold the files`}: open one to see it.${said ? ` ${said}` : ''}` : said);
+    }).catch(() => setDropNote('The files could not be kept on this device.'));
+  };
+  const openTaskFromFiles = (taskId: string) => { const t = record.tasks.find(x => x.id === taskId); if (!t) return; setFilesOpen(false); go(t.doneAt ? {kind: 'completed'} : t.projectId ? {kind: 'project', id: t.projectId} : {kind: 'inbox'}); setFocusId(t.parentId ?? t.id); setEditId(t.id); };
+
+  return <div className="tasks-page" data-tasks={ready ? 'ready' : 'loading'} onDragOver={e => { if (hasFiles(e)) e.preventDefault(); }} onDrop={dropFiles}>
     {/* Session AL (DV-162, LS-H13): the naming, said plainly — Tasks is the to-do list, the Checklist is the daily routine. */}
     <PageHeader className="page-heading tasks-hero" titleId="tasks-title" eyebrow="Tasks" title="One list for the things to do"
       lede="Your to-do list: one-off things to do, with days, repeats, projects and labels. Your daily routine is the Checklist. On this device only."
-      actions={<p className="tasks-links"><Link className="text-link" href="/app/agenda">Your agenda →</Link><Link className="text-link" href="/app/checklist">Daily Checklist →</Link><button type="button" className="text-link" onClick={() => setHelp(true)} aria-keyshortcuts="?">Shortcuts</button><button type="button" className="text-link" aria-expanded={io} onClick={() => setIo(v => !v)}>Import / export</button></p>}
+      actions={<p className="tasks-links"><Link className="text-link" href="/app/agenda">Your agenda →</Link><Link className="text-link" href="/app/checklist">Daily Checklist →</Link><button type="button" className="text-link" onClick={() => setHelp(true)} aria-keyshortcuts="?">Shortcuts</button><button type="button" className="text-link" aria-expanded={io} onClick={() => setIo(v => !v)}>Import / export</button><button type="button" className="text-link" aria-expanded={filesOpen} onClick={() => setFilesOpen(v => !v)}>Files</button></p>}
       art={<OrbitArt glyph={TasksGlyph} tone="goals" spin={-26} />} />
     {!ready ? <ZgSkeleton label="Opening your tasks…" className="tasks-skeleton" block lines={3} /> : <>
       {showcase && <p className="fine tasks-showcase" role="note">Showcase · fictional. These example tasks are not yours.</p>}
@@ -387,6 +409,10 @@ export function TasksPage() {
           line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}</span>} />
         <p className="fine">Reminders show here and on Today while the app is open. On your device’s notifications only when notifications are switched on in Settings.</p>
       </section>}
+      {filesOpen && <section className="panel tasks-files-panel" aria-labelledby="tasks-files-title"><h2 id="tasks-files-title">Files</h2>
+        <LoadBoundary label="Files"><Suspense fallback={<p className="fine">Opening…</p>}><FilesView titles={new Map(record.tasks.map(t => [t.id, t.title]))} onOpenTask={openTaskFromFiles}/></Suspense></LoadBoundary>
+        <button type="button" className="quiet" onClick={() => setFilesOpen(false)}>Close</button></section>}
+      {dropNote && <p className="fine" role="status">{dropNote}</p>}
       {io && <LoadBoundary label="Import and export"><Suspense fallback={<p className="fine">Opening…</p>}><TasksIo record={record} today={today} showcase={showcase} onClose={() => setIo(false)} apply={list.change} /></Suspense></LoadBoundary>}
       {focus && <div ref={focusBox} className="tasks-focus"><LoadBoundary quiet><Suspense fallback={<p className="fine">Opening Focus Sessions…</p>}><PomodoroPanel task={{id: focus.id, title: focus.title}} goalId={focus.goal?.startsWith('private:') ? focus.goal.slice(8) : undefined} onClose={() => setFocus(null)} /></Suspense></LoadBoundary></div>}
       <div className="tasks-layout">

@@ -14,3 +14,8 @@
 .task-attachment-recording { margin: 0; flex: 1 1 100%; }
 .task-attachment-recording span { color: var(--danger, #e0605a); }
 .task-attachment-status { margin: 0; flex: 1 1 100%; }
+/* Session AV lane 2 (r5-notes; LEDGER #355): files on a task and Tasks → Files. */
+.task-file-item { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; overflow-wrap: anywhere; }
+.task-file-open { min-height: 44px; display: inline-flex; align-items: center; text-align: start; }
+.task-files-view .task-attachment-list li { flex-wrap: wrap; }
+.tasks-files-panel { overflow-wrap: anywhere; }
