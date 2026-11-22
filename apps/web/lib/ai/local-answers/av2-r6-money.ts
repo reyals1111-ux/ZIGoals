@@ -63,10 +63,17 @@ function refunds(a: Asked): LocalReply | null {
 add(refunds);
 
 // ── Each paycheck's plan (#426) ────────────────────────────────────────────────────────────────────────────────────
-/** "What is left of each paycheck", "hoeveel blijft er over van elk salaris". */
+/**
+ * "What is left of each paycheck", "hoeveel blijft er over van elk salaris". Review B6Q-2: only the plan itself (each
+ * paycheck, the paycheck plan, planning the paychecks); "when is my next paycheck", what is left until it and the bills due
+ * before it stay with the payday answers (av-answers.ts `payday`, av2-money.ts), which run after this one in engine.ts.
+ */
+const PAY = String.raw`(?:pay ?checks?|pay ?cheques?)`;
+const PLAN_EN = new RegExp(String.raw`\b(?:each|every|per) (?:${PAY}|pay ?day)\b|\b${PAY} plan\b|\bplan (?:for )?(?:my |each |every |the )?${PAY}\b|\bwhat is left of (?:each|every|my) ${PAY}\b|\b${PAY} (?:pays?|covers?|holds?)\b|\bset against (?:a |each |my |the )?${PAY}\b|\b(?:my|the) pay ?(?:checks|cheques)\b`);
+const PLAN_NL = /\b(?:elk|ieder|per) (?:salaris|loonstrook)\b|\bsalarisplan\b|\bplan (?:ik )?(?:voor )?(?:mijn |elk |ieder )?salarissen\b|\b(?:mijn )?salarissen (?:plannen|indelen|verdelen)\b|\bwat (?:blijft er|is er) over van (?:elk|ieder|mijn) salaris\b/;
 function paychecks(a: Asked): LocalReply | null {
-  const en = /\bpaychecks?\b|\bpaycheques?\b|\beach pay ?day\b/.test(a.f) && !/\bfill\b/.test(a.f);
-  const nl = /\b(?:elk|ieder|per) (?:salaris|loonstrook)\b|\bsalarisplan\b|\bper salaris\b/.test(a.f);
+  const en = PLAN_EN.test(a.f) && !/\b(?:fill|next|until|till|when|due)\b/.test(a.f);
+  const nl = PLAN_NL.test(a.f) && !/\b(?:volgende|wanneer|tot)\b/.test(a.f);
   if (!(en || nl)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const nova = novaOf(a.env), budgets = nova?.budgets, plan = nova?.budgetPeriods, calls = call('budgets', {paychecks: true}, 'Budgets · each paycheck’s plan');
