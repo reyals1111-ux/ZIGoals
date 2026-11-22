@@ -31,7 +31,11 @@ for (const theme of THEMES) test(`${theme}: recently deleted notes`, async ({pag
   await expect(fold.locator('summary')).toHaveText(/Recently deleted\s*· 1 note, kept 30 days/);
   await expect.poll(async () => page.evaluate(k => (JSON.parse(localStorage.getItem(k) ?? '{}').trash ?? []).map((n: {id: string}) => n.id), NOTES_KEY)).toEqual(['n-a']);
   await list.getByLabel('Search', {exact: true}).fill('later');
-  await expect(list.locator('.note-results')).not.toContainText('Fictional old plan');
+  // Session AV lane 2 (fixb5; deliberate): with the deleted note the only one holding "later", Search lists no result at all
+  // (notes-search.tsx says "No note has those words." instead of an empty .note-results), so the list is checked absent
+  // and the no-match line shown: the deleted note is in no result.
+  await expect(list.getByRole('region', {name: 'Search notes'})).toContainText('No note has those words.');
+  await expect(list.locator('.note-results')).toHaveCount(0);
   await list.getByLabel('Search', {exact: true}).fill('');
   await fold.locator('summary').click();
   await expect(fold.locator('.note-trash-list li')).toContainText(['Deleted Nov 22, 2026 · 29 days left']);
@@ -41,7 +45,9 @@ for (const theme of THEMES) test(`${theme}: recently deleted notes`, async ({pag
   await expect(page.getByRole('region', {name: 'Open note'}).getByRole('heading', {name: 'Fictional old plan'})).toBeVisible();
   // Delete again, then Empty now (a confirmation first).
   await page.getByRole('region', {name: 'Open note'}).getByRole('button', {name: 'Delete note'}).click();
-  await list.locator('details.note-trash-fold summary').click();
+  // Session AV lane 2 (fixb5; deliberate): the fold stays as the person left it (open since the Restore above:
+  // notes-workspace.tsx keeps `trashOpen`), so a second tap on its summary closed it; it is checked open instead.
+  await expect(list.locator('details.note-trash-fold')).toHaveAttribute('open', '');
   await list.getByRole('button', {name: 'Empty now…'}).click();
   await list.getByRole('button', {name: 'Empty now', exact: true}).click();
   await expect(list.locator('details.note-trash-fold')).toContainText('1 note was deleted for good');
