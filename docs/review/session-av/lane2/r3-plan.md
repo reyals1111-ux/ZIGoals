@@ -243,3 +243,6 @@ Showcase: none. Today: nothing. CSS: app/customize.css (not a theme-sheet source
   list and the editor refresh and a later unrelated Undo keeps the note. The note's own Undo puts back only the notes, and
   only while they are still what the note made them. Files: lib/tasks/device.ts, lib/focus-sessions/notes.ts
   (`addNoteToTask`), components/focus/pomodoro-panel.tsx. Test: lib/focus-sessions/r3-notes-device.test.ts.
+- **B3A-6 (Minor), fixed.** The energy chip and its rule share one class, `.task-energy`, in a new
+  components/tasks/task-row-r3.css that task-parts.tsx loads with every row (muted, theme variables). The unused
+  `.task-energy-chip` rule is gone. Test: lib/tasks/r3-energy-chip.test.ts. CSS: components/tasks/task-row-r3.css (new).
