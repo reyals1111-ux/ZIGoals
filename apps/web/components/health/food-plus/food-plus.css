@@ -29,3 +29,6 @@
 .food-plus-choice { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 15px; }
 .food-plus-choice input { width: 20px; height: 20px; }
 .food-plus-window { margin: 0 0 12px; }
+.food-plus-mic-row { display: grid; gap: 6px; margin: 4px 0 8px; min-width: 0; }
+.food-plus-mic-row .food-plus-mic { justify-self: start; }
+.food-plus-mic-how summary { font-size: 14px; min-height: 44px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; cursor: pointer; }

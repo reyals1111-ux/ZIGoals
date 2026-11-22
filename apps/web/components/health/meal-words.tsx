@@ -49,6 +49,8 @@ function WordsForm({date, meal: initialMeal}: {date: string; meal: MealWordsMeal
       <label className="field" htmlFor={`${id}-words`}><span>What did you eat?</span><input id={`${id}-words`} type="text" autoComplete="off" enterKeyHint="done" maxLength={MAX_WORDS_CHARS} placeholder="Porridge with a banana" value={words} aria-invalid={said?.error || undefined} aria-describedby={said?.error ? `${id}-said` : undefined} onChange={e => { setWords(e.target.value); if (said?.error) setSaid(null); }}/></label>
       <label className="field" htmlFor={`${id}-meal`}><span>Meal</span><select id={`${id}-meal`} value={meal} onChange={e => setChosen(e.target.value as MealWordsMeal)}>{MEAL_WORDS_MEALS.map(m => <option key={m} value={m}>{mealHeading(extras, m)}</option>)}</select></label>
     </div>
+    {/* Session AV lane 2 (food, LEDGER #85): the browser's own speech recognition where it exists (else nothing shown). */}
+    <Suspense fallback={null}><MealMic onText={text => { setWords(w => (w.trim() ? `${w.trim()} ${text}` : text).slice(0, MAX_WORDS_CHARS)); if (said?.error) setSaid(null); }}/></Suspense>
     <button className="primary" type="submit">Log in words</button>
     <p className="fine">Calories stay unknown, never zero. Add numbers any time with the full form below.</p>
     {said?.error && <p id={`${id}-said`} className="field-error" role="alert">{said.text}</p>}
@@ -57,6 +59,7 @@ function WordsForm({date, meal: initialMeal}: {date: string; meal: MealWordsMeal
 }
 
 const WordsMatch = lazy(() => import('./words-match'));
+const MealMic = lazy(() => import('./food-plus/meal-mic'));
 function WordsList({date, meal}: {date: string; meal: MealWordsMeal}) {
   const record = useDeviceRecord(MEAL_WORDS), [matching, setMatching] = useState<string | null>(null);
   const entries = mealWordsFor(record.data, date, meal);
