@@ -1,7 +1,8 @@
 'use client';
 import {useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../../../ai/use-device-record';
-import {MONEY_LOG, NEED_WANT, type NeedWant} from '../../../../lib/money-log/schema';
+import {NEED_WANT, type NeedWant} from '../../../../lib/money-log/schema';
+import {logSpec} from '../../../../lib/money-more/spaces';
 import {categoriesToMark, markOf, NEED_WANT_WORDS, needWantMonth, setMark, shareOfIncome, type NeedWantMonth} from '../../../../lib/money-insights/needs-wants';
 import {shiftMonth} from '../../../../lib/budgets/engine';
 import {formatPercent} from '../../../../lib/visual-format';
@@ -16,8 +17,9 @@ import {money, monthName} from './format';
  */
 const PARTS = [...NEED_WANT, 'unmarked'] as const;
 const LABEL: Record<typeof PARTS[number], string> = {need: NEED_WANT_WORDS.need.en, want: NEED_WANT_WORDS.want.en, saving: NEED_WANT_WORDS.saving.en, unmarked: 'Not marked'};
-export default function NeedsWantsView({entries, today}: InsightProps) {
-  const id = useId(), log = useDeviceRecord(MONEY_LOG), marks = log.data.needWant, thisMonth = today.slice(0, 7);
+export default function NeedsWantsView({entries, today, space = 'personal'}: InsightProps) {
+  // Review b3a #11: the marks live on the money log of the space shown (the business space marks its own categories).
+  const id = useId(), log = useDeviceRecord(logSpec(space)), marks = log.data.needWant, thisMonth = today.slice(0, 7);
   const [month, setMonth] = useState(thisMonth), [problem, setProblem] = useState(''), [status, setStatus] = useState('');
   const rows = useMemo(() => needWantMonth(entries, marks, month), [entries, marks, month]);
   const cats = useMemo(() => categoriesToMark(entries, marks, today), [entries, marks, today]);

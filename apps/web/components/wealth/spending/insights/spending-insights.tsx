@@ -30,9 +30,10 @@ const VIEWS = {
   habits: {label: 'Beside your habits', load: lazy(() => import('./spend-compare-view'))},
 } as const;
 type View = keyof typeof VIEWS;
-export type InsightProps = {entries: readonly MoneyEntry[]; today: string; showcase?: boolean};
+/** Session AV lane 2, round 3 (review b3a #11): `space`, the money space shown, so a view that writes uses that space's own log. */
+export type InsightProps = {entries: readonly MoneyEntry[]; today: string; showcase?: boolean; space?: 'personal' | 'business'};
 
-export default function SpendingInsights({entries, today, showcase = false}: InsightProps) {
+export default function SpendingInsights({entries, today, showcase = false, space = 'personal'}: InsightProps) {
   const id = useId(), [view, setView] = useState<View | null>(null), Chosen = view ? VIEWS[view].load : null;
   return <section className="money-insights" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`}>Your money over time</h3>
@@ -43,7 +44,7 @@ export default function SpendingInsights({entries, today, showcase = false}: Ins
     <div id={`${id}-panel`} className="money-insights-panel">
       {Chosen && <>
         {showcase && <p className="fine"><ShowcaseTag/> Fictional Showcase entries.</p>}
-        <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><Chosen entries={entries} today={today}/></Suspense>
+        <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><Chosen entries={entries} today={today} space={space}/></Suspense>
       </>}
     </div>
   </section>;
