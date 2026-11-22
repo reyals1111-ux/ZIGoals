@@ -91,4 +91,10 @@ describe('the workbook', () => {
     expect(sheetName('Entries', new Set(['entries']))).toBe('Entries 2');
     expect(() => buildXlsx([], new Date())).toThrow();
   });
+  it('review b5k #8: the business space’s workbook never holds the personal accounts', () => {
+    const biz = unzip(sheetWorkbook({log: LOG, accounts: ACCOUNTS, from: '2026-09-01', to: TODAY, today: TODAY, modified: new Date('2026-11-14T10:00:00Z'), business: true})).get('xl/worksheets/sheet3.xml')!;
+    expect(biz).not.toContain('>Current<'); expect(biz).not.toContain('1234.56');
+    expect(biz).toContain('>ING<');
+    expect(biz).toContain('kept in your personal space');
+  });
 });

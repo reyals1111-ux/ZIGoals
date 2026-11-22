@@ -4,7 +4,7 @@ import {createElement, act} from 'react';
 import {createRoot} from 'react-dom/client';
 import {cashForecast, type KnownForecast} from './model';
 import {changeFlows, changeIssue, removeWhatIf, restoreWhatIf, saveWhatIf, withChanges} from './what-if';
-import {emptyMoneyMore, moneyMoreSchema, type WhatIfChange} from '../money-more/schema';
+import {emptyMoneyMore, MONEY_MORE_KEY, moneyMoreSchema, type WhatIfChange} from '../money-more/schema';
 import type {Accounts} from '../accounts/schema';
 import TryAChange from '../../components/cash-forecast/try-a-change';
 
@@ -79,5 +79,19 @@ describe('the panel', () => {
     expect(localStorage.length).toBe(0);
     await act(async () => { root.unmount(); });
     host.remove();
+  });
+  it('review b5k #7: a kept set opens only on its own currency’s line; without one it is refused in words and nothing is drawn', async () => {
+    localStorage.clear();
+    localStorage.setItem(MONEY_MORE_KEY, JSON.stringify({version: 1, whatIfs: [{id: 'w1', name: 'US trip', currency: 'USD', changes: [{kind: 'once', dir: 'out', amount: '900.00', from: '2027-01-10'}]}]}));
+    const host = document.createElement('div'); document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(createElement(TryAChange, {rows: [row], today: TODAY, words: '120 days'})); });
+    const open = [...host.querySelectorAll<HTMLButtonElement>('button')].find(b => b.getAttribute('aria-label') === 'Open US trip')!;
+    await act(async () => { open.click(); });
+    expect(host.querySelector('[role="alert"]')?.textContent).toBe('“US trip” is in USD, and your forecast has no USD line now: it needs a cash or savings account in USD with its balance. Nothing was opened.');
+    expect(host.querySelector('.money-whatif-line')).toBeNull();
+    expect(host.querySelector('.money-whatif-list')).toBeNull();
+    await act(async () => { root.unmount(); });
+    host.remove(); localStorage.clear();
   });
 });

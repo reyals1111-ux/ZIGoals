@@ -24,10 +24,11 @@ export function yearSoFar(record: BudgetsRecord | null | undefined, entries: rea
   const year = today.slice(0, 4), to = monthKey(today), rows: YearRow[] = [];
   for (const b of record?.budgets ?? []) {
     if (b.since > to) continue;
-    const from = b.since > `${year}-01` ? b.since : `${year}-01`, months: YearMonth[] = [];
+    // Review b5k #9: the category compared exactly as the month budget compares it (lib/budgets/engine.ts `spentIn`: lower case only).
+    const from = b.since > `${year}-01` ? b.since : `${year}-01`, months: YearMonth[] = [], name = b.category.toLowerCase();
     for (let m = from; m <= to; m = shiftMonth(m, 1)) {
       const {start, end} = monthOf(`${m}-01`);
-      months.push({month: m, budgeted: budgetedIn(b, m) + movedIn(record ?? undefined, b.id, m), spent: countedBetween(entries, start, end, {kind: 'expense', currency: b.currency, category: b.category}).get(b.currency) ?? 0});
+      months.push({month: m, budgeted: budgetedIn(b, m) + movedIn(record ?? undefined, b.id, m), spent: countedBetween(entries, start, end, {kind: 'expense', currency: b.currency, only: (_e, p) => p.category.toLowerCase() === name}).get(b.currency) ?? 0});
     }
     const budgeted = months.reduce((s, x) => s + x.budgeted, 0), spent = months.reduce((s, x) => s + x.spent, 0);
     rows.push({id: b.id, category: b.category, currency: b.currency, from, to, budgeted, spent, difference: budgeted - spent, months});

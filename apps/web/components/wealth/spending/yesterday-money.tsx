@@ -27,7 +27,7 @@ export default function YesterdayMoney({entries, today, showcase = false}: {entr
   const setOnToday = (on: boolean) => save(p => { const {moneyMorning: _m, ...rest} = p; void _m; return notifyPrefsSchema.parse(on ? {...rest, moneyMorning: {...p.moneyMorning, onToday: true}} : rest); }, on ? 'Today shows a quiet line with yesterday’s money.' : 'Today no longer shows yesterday’s money.');
   return <div className="money-yesterday" role="group" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`} className="visually-hidden">Yesterday’s money, {formatDate(day.day, {weekday: true})}</h4>
-    <p className="money-yesterday-day">{formatDate(day.day, {weekday: true})}: <strong>{day.entries} {day.entries === 1 ? 'entry' : 'entries'}</strong> logged.</p>
+    <p className="money-yesterday-day">{formatDate(day.day, {weekday: true})}: {day.entries ? <><strong>{day.entries} {day.entries === 1 ? 'entry' : 'entries'}</strong> logged.</> : day.byCurrency.length ? 'nothing logged; a cost spread over months counts its share that day.' : 'nothing logged.'}</p>
     {day.byCurrency.length ? <ul className="money-yesterday-list" aria-label="Spent and received yesterday">{day.byCurrency.map(c => <li key={c.currency}>
       <span>{c.currency}</span><span data-private-amount="">spent {moneyCents(c.spent, c.currency)}{c.received ? <>, received {moneyCents(c.received, c.currency)}</> : null}</span>
     </li>)}</ul> : <p className="fine">Nothing counted yesterday. Each day you log spending or income, it adds up here the next morning.</p>}

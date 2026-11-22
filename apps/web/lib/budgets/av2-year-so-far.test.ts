@@ -64,6 +64,16 @@ describe('this year so far against the budgets', () => {
   });
 });
 
+describe('review b5k #9: the same category comparison as the month budget', () => {
+  it('a budget “Cafe” does not count entries in “Café”, as its month budget does not; “cafe” in any case counts', () => {
+    const record: BudgetsRecord = {version: 1, budgets: [{id: 'c', category: 'Cafe', currency: 'EUR', monthly: '50.00', rollover: false, since: '2026-11'}]};
+    const entries = [e({category: 'Café', amount: '7.00', date: '2026-11-04'}), e({category: 'CAFE', amount: '3.00', date: '2026-11-05'})];
+    const row = yearSoFar(record, entries, TODAY).rows[0]!;
+    expect(row.spent).toBe(300);
+    expect(row.months[0]!.spent).toBe(monthView(entries, record, '2026-11', TODAY).rows[0]!.spent);
+  });
+});
+
 describe('the view', () => {
   it('a table per budget, the totals in words, one budget’s months on demand', async () => {
     const host = document.createElement('div'); document.body.append(host);

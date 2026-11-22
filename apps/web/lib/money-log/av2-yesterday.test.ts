@@ -7,7 +7,7 @@ import {zonedInstant} from '../notify/zone';
 import {totals} from './engine';
 import type {MoneyEntry} from './schema';
 import type {Accounts} from '../accounts/schema';
-import {dayMoney, morningMoneyWakes, yesterdayMoney} from './yesterday';
+import {dayMoney, dayWords, morningMoneyWakes, yesterdayMoney} from './yesterday';
 
 /**
  * Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384; TIER 3 (PWA)): "Yesterday's money" — one day's
@@ -88,5 +88,16 @@ describe('the morning notification (TIER 3 (PWA))', () => {
     expect(plain.data.url).toBe('/app/wealth#spending');
     const both = compose({v: 1, labels: false, items: [{at: when, kind: 'money', id: `money:yesterday:${T}`, detail: '5 entries', href: '/app/wealth#spending', actionable: false}, {at: when, kind: 'money', id: 'money:payday:2026-11-18', href: '/app/wealth#spending', actionable: false}], summary: null}, when);
     expect(both.body).toBe('Yesterday’s money · 5 entries · 1 money notice: open Wealth');
+  });
+  it('review b5k #10: a day holding only a spread cost’s share never says “0 entries”', () => {
+    const spreadOnly = [e({amount: '1200.00', date: '2026-10-16', spread: 12, category: 'Bills'})];
+    const wakes = morningMoneyWakes(spreadOnly, null, T);
+    expect(wakes.map(w => w.plain)).toEqual(['a share of a cost spread over months']);
+    expect(wakes[0]!.detail).toBe('a share of a cost spread over months · spent €100.00');
+    const off = buildPlan(base({labels: false, moneyMorning: wakes.map(w => ({id: w.id, date: w.date, plain: w.plain, title: w.title, detail: w.detail}))})).snapshot.items.filter(i => i.kind === 'money');
+    expect(off.map(i => i.detail)).toEqual(['a share of a cost spread over months']);
+    for (const w of [...wakes, ...morningMoneyWakes(ENTRIES, ACCOUNTS, T)]) expect(`${w.plain} ${w.detail}`).not.toMatch(/\b0 entries\b/);
+    expect(dayWords({entries: 0})).toBe('a share of a cost spread over months');
+    expect(dayWords({entries: 1})).toBe('1 entry');
   });
 });
