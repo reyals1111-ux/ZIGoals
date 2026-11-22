@@ -202,6 +202,18 @@ function daysBetween(from: string, to: string): number { return Math.round((Date
 export type HabitScheduleOverlay = {allows: (habitId: string, schedule: HabitRule["schedule"], date: string) => boolean; label?: (habitId: string, schedule: HabitRule["schedule"]) => string | null; /** Changes whenever the overlay does, so remembered results are worked out again. */ version?: () => number};
 let scheduleOverlay: HabitScheduleOverlay | null = null;
 export function setHabitScheduleOverlay(next: HabitScheduleOverlay | null): void { scheduleOverlay = next; }
+/**
+ * Session AV lane 2 (habits; LEDGER #49, #50, #57; TIER 3 stored format, additive): a habit's own options, kept OUTSIDE
+ * the strict habit record in the loose habit extras (`options`, lib/habit-options/rule.ts) and handed to the engine by the
+ * browser (lib/habit-options/install.ts), as the month-weekday overlay is. With none installed (the server, tests, older
+ * builds) every habit reads exactly as stored. `whenever`: a past day with nothing done is not scheduled and today is open
+ * but never due; `unloggedSkip`: a past scheduled day with nothing logged is skipped (neutral); `twoDay`: the day streak
+ * keeps one missed day and ends on a second one in a row.
+ */
+export type HabitDayOverlay = {options: (habitId: string) => {twoDay?: boolean; unloggedSkip?: boolean; whenever?: boolean} | undefined; version?: () => number};
+let dayOverlay: HabitDayOverlay | null = null;
+export function setHabitDayOverlay(next: HabitDayOverlay | null): void { dayOverlay = next; }
+const optionsFor = (habitId: string) => dayOverlay?.options(habitId);
 function recurrenceMatches(rule: HabitRule, date: string, habitId?: string): boolean {
   const schedule = rule.schedule;
   if (schedule.kind === "daily" || schedule.kind === "frequency") return true;
@@ -231,10 +243,10 @@ type AggregateOutcome = {
  * schema parse or a spread), so a result can be kept for the habit object it was computed from. The stamp guards
  * against an in-place push or a replaced array anyway, which then recomputes. Keys hold the arguments.
  */
-type HabitMemo = { entries: Habit["entries"]; rules: Habit["rules"]; entryCount: number; ruleCount: number; overlay: number; values: Map<string, unknown> };
+type HabitMemo = { entries: Habit["entries"]; rules: Habit["rules"]; entryCount: number; ruleCount: number; overlay: string; values: Map<string, unknown> };
 const habitMemo = new WeakMap<Habit, HabitMemo>();
 function memoized<T>(habit: Habit, key: string, compute: () => T): T {
-  let memo = habitMemo.get(habit); const overlay = scheduleOverlay?.version?.() ?? 0;
+  let memo = habitMemo.get(habit); const overlay = `${scheduleOverlay?.version?.() ?? 0}:${dayOverlay?.version?.() ?? 0}`;
   if (!memo || memo.entries !== habit.entries || memo.rules !== habit.rules || memo.entryCount !== habit.entries.length || memo.ruleCount !== habit.rules.length || memo.overlay !== overlay) {
     memo = { entries: habit.entries, rules: habit.rules, entryCount: habit.entries.length, ruleCount: habit.rules.length, overlay, values: new Map() };
     habitMemo.set(habit, memo);
@@ -341,6 +353,13 @@ function computeHabitDay(habit: Habit, date: string, today: string) {
   if (entry?.disposition === "skipped") return { status: "skipped" as const, count, target, note: entry.note, mood: entry.mood, scheduled };
   if (entry?.disposition === "failed") return { status: "failed" as const, count, target, note: entry.note, mood: entry.mood, scheduled };
   const period = aggregatePeriod(rule);
+  // Session AV lane 2 (LEDGER #50, #57): a day with nothing done on a "whenever" habit, or a past day left unlogged on a
+  // habit that counts it as skipped (a 0 an undone check-in leaves is nothing logged too).
+  const options = period ? undefined : optionsFor(habit.id);
+  if (options && (!entry || (entry.disposition === "logged" && entry.count === 0 && rule.type === "build"))) {
+    if (options.whenever) return { status: "not-scheduled" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: date === today };
+    if (options.unloggedSkip && date < today) return { status: "skipped" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled };
+  }
   if (period) {
     const result = periodResult(habit, rule, date, today);
     // Session X P2.1: today with nothing done (a check-in undone leaves a 0) is still open, not a result.
@@ -506,7 +525,8 @@ function computeHabitStats(habit: Habit, today: string) {
   for (let date = habit.startDate; date <= today; date = addLocalDays(date, 1)) {
     const rule = habitRuleOn(habit, date); if (!rule || rule.state !== "active" || !endAllows(habit, rule, date)) continue;
     if (aggregatePeriod(rule)) continue;
-    const day = habitDay(habit, date, today); if (!day.scheduled) continue;
+    // Session AV lane 2 (LEDGER #50): a "whenever" habit's open today is no scheduled work.
+    const day = habitDay(habit, date, today); if (!day.scheduled || day.status === "not-scheduled") continue;
     outcomes.push({ start: date, end: date, unit: "days", status: day.status === "complete" ? "complete" : day.status === "failed" ? "failed" : day.status === "skipped" ? "skipped" : "open" });
   }
   for (const result of rawAggregateOutcomes(habit, today)) {
@@ -516,14 +536,17 @@ function computeHabitStats(habit: Habit, today: string) {
   outcomes.sort((a, b) => a.start.localeCompare(b.start));
   const streakBoard: Record<StreakUnit, { current: number; best: number }> = { days: { current: 0, best: 0 }, weeks: { current: 0, best: 0 }, months: { current: 0, best: 0 }, years: { current: 0, best: 0 } };
   let previousUnit: StreakUnit | undefined; let successCount = 0, failCount = 0, skipDecisions = 0, weeklyCompleted = 0, weeklyScheduled = 0;
+  // Session AV lane 2 (LEDGER #49, opt-in): with the two-day rule on, a single missed day keeps the day streak (it adds
+  // nothing); a second missed scheduled day right after ends it. Skipped days stay neutral in between.
+  const twoDay = !!optionsFor(habit.id)?.twoDay; let missedLast = false;
   for (const outcome of outcomes) {
     // Session AH (HA1; B-003, B-017, B-189): a skipped day is neutral in every figure, as the app promises: it is not
     // scheduled work for the week, and it is left out of the completion percentage.
     if (outcome.start <= weekEnd && outcome.end >= weekStart && outcome.status !== "skipped") { weeklyScheduled++; if (outcome.status === "complete") weeklyCompleted++; }
     const streak = streakBoard[outcome.unit]; if (previousUnit !== outcome.unit) streak.current = 0;
-    if (outcome.status === "complete") { successCount++; streak.current++; streak.best = Math.max(streak.best, streak.current); }
+    if (outcome.status === "complete") { successCount++; streak.current++; streak.best = Math.max(streak.best, streak.current); missedLast = false; }
     // H1 (Session P): a skipped day is neutral, it neither adds to a streak nor breaks it; only a failed day resets.
-    else if (outcome.status === "failed") { failCount++; streak.current = 0; }
+    else if (outcome.status === "failed") { failCount++; if (twoDay && outcome.unit === "days" && !missedLast) missedLast = true; else { streak.current = 0; missedLast = false; } }
     else if (outcome.status === "skipped") skipDecisions++;
     previousUnit = outcome.unit;
   }
@@ -547,7 +570,7 @@ function computeHabitTrends(habit: Habit, today: string) {
   const windows = [{ key: "day", days: 1 }, { key: "week", days: 7 }, { key: "month", days: 30 }, { key: "year", days: 365 }] as const;
   return windows.map(({ key, days }) => {
     const start = addLocalDays(today, -(days - 1)); let success = 0, total = 0;
-    for (let date = start < habit.startDate ? habit.startDate : start; date <= today; date = addLocalDays(date, 1)) { const result = habitDay(habit, date, today); if (!result.scheduled || result.status === "due" || result.status === "partial" || result.status === "skipped") continue; total++; if (result.status === "complete") success++; }
+    for (let date = start < habit.startDate ? habit.startDate : start; date <= today; date = addLocalDays(date, 1)) { const result = habitDay(habit, date, today); if (!result.scheduled || result.status === "due" || result.status === "partial" || result.status === "skipped" || result.status === "not-scheduled") continue; total++; if (result.status === "complete") success++; }
     return { period: key, success, total, percentage: total ? Math.round(success / total * 100) : 0 };
   });
 }
@@ -555,6 +578,8 @@ function computeHabitTrends(habit: Habit, today: string) {
 export function scheduleLabel(schedule: HabitRule["schedule"], habitId?: string): string {
   const own = habitId && scheduleOverlay?.label ? scheduleOverlay.label(habitId, schedule) : null;
   if (own) return own;
+  // Session AV lane 2 (LEDGER #50): a "whenever" habit has no set days.
+  if (habitId && optionsFor(habitId)?.whenever) return "Whenever";
   if (schedule.kind === "daily") return "Every day";
   if (schedule.kind === "weekdays") return schedule.days.map((day) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day]).join(" · ");
   if (schedule.kind === "interval") return `Every ${schedule.every} days`;

@@ -20,9 +20,12 @@ import {PhoneFold} from '../phone/phone-fold';
 import {DeskFold} from '../phone/desk-fold';
 // Session AK (COMPETITORS item 19, lane X): the opt-in rewards shelf, loaded after the Journey.
 const RewardsShelf = lazy(() => import('../rewards-shelf/rewards-shelf'));
+// Session AV lane 2 (LEDGER #48): start again at level 1, loaded with the lower panels.
+const StartAgain = lazy(() => import('./rebirth'));
 // Owner follow-up 1 (F5): ZIGoals Wrapped's line on Journey (shown only while Wrapped is available), its own chunk.
 const JourneyWrappedLink = lazy(() => import('../wrapped/wrapped-door').then(m => ({default: m.JourneyWrappedLink})));
 import {weekStart, XP_RULES, type XpEvent} from '../../lib/game/xp';
+import {DIFFICULTY_XP, FOCUS_BONUS_XP} from '../../lib/habit-options/rule';
 import {keepWords} from '../today/keep-words';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import {storageMessageOr} from '../../lib/storage-error-copy';
@@ -109,7 +112,8 @@ export function JourneyPage() {
       <LoadBoundary quiet><Suspense fallback={null}><JourneyWrappedLink /></Suspense></LoadBoundary>
       {/* The address #rewards-shelf names this holder, there from the start, so a link into the folded row opens it before
           the shelf's own chunk and record have loaded. */}
-      <DeskFold desk="journey:rewards" label="Rewards shelf"><div id="rewards-shelf"><LoadBoundary quiet><Suspense fallback={null}><RewardsShelf xpTotal={d.xp.total} /></Suspense></LoadBoundary></div></DeskFold>
+      <DeskFold desk="journey:rewards" label="Rewards shelf"><div id="rewards-shelf"><LoadBoundary quiet><Suspense fallback={null}><RewardsShelf xpTotal={d.xp.lifetime} /></Suspense></LoadBoundary></div></DeskFold>
+      <DeskFold desk="journey:rebirth" label="Start again at level 1" detail={game.game.data.rebirth ? `Counting from ${formatDate(game.game.data.rebirth.from, {year: false})}` : 'Keep every badge and record'}><LoadBoundary quiet><Suspense fallback={null}><StartAgain game={game.game} today={game.today} level={d.xp.level.level} /></Suspense></LoadBoundary></DeskFold>
       <section className="panel journey-settings"><GameSetting /></section>
       <CelebrationHost game={game} />
     </>}
@@ -124,6 +128,8 @@ function XpExplained({events}: {events: readonly XpEvent[]}) {
   const recent = [...events].sort((a, b) => b.day.localeCompare(a.day) || a.id.localeCompare(b.id)).slice(0, 12);
   const rows: [string, string][] = [
     ['A habit day completed', `+${XP_RULES.habitComplete}`], ['A habit day partly done', `+${XP_RULES.habitPartial}`],
+    // Session AV lane 2 (LEDGER #45, #52): a habit's own difficulty, and today's focus habit.
+    ['A habit set as Tiny, Medium or Hard (its Habit options)', `+${DIFFICULTY_XP.trivial}, +${DIFFICULTY_XP.medium} or +${DIFFICULTY_XP.hard} instead`], ['Today’s focus habit completed', `+${FOCUS_BONUS_XP} more`],
     ['Water logged', `+${XP_RULES.water} each, up to ${XP_RULES.waterCapPerDay} a day`], ['A meal logged', `+${XP_RULES.diaryEntry} each, up to ${XP_RULES.diaryCapPerDay} a day`],
     ['A weight, a night of sleep or a meditation', `+${XP_RULES.weight}`], ['Movement logged', `+${XP_RULES.activity}`],
     ['A goal milestone ticked', `+${XP_RULES.goalMilestone}, once per milestone`], ['A goal reached', `+${XP_RULES.goalStatus}, once per goal`],
