@@ -133,3 +133,10 @@
 .budgets-payee-amount .text-link{min-height:44px}
 .budgets-payee-budget.is-over,.budgets-payee-budget.is-near{color:inherit;font-weight:600}
 .budgets-payee-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+/* Session AV lane 2 (polish 2, P-34): on a device with nothing set up, the extra tools wait in one fold under the first
+   step; what it holds is named on a line of its own under its title. */
+.budgets-more-tools{border-top:1px solid var(--line,rgba(140,160,220,.18));padding-top:4px;min-width:0}
+.budgets-more-tools>summary{font-weight:600;padding-block:6px}
+.budgets-more-tools>summary>span{display:grid;gap:2px;min-width:0}
+.budgets-more-tools>summary small{font-weight:400;font-size:14px;color:var(--muted,#a9b6cc)}
+.budgets-more-tools-body{display:grid;gap:18px;padding-top:10px;min-width:0}
