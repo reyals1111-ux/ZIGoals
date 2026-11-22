@@ -8416,5 +8416,229 @@
   "widgets": [],
   "fresh": "Yes. Notes → Files → Choose files to import takes Evernote’s export (.enex) and Bear’s (.bear2bk backups, .textbundle and .textpack): titles, days, tags, the words with their lists and to-dos, and up to eight photos a note. You see what would come in before anything is saved, and Undo takes it back.",
   "freshNl": "Ja. Notes → Files → Choose files to import neemt de export van Evernote (.enex) en van Bear (.bear2bk-back-ups, .textbundle en .textpack): titels, dagen, tags, de woorden met lijsten en taken, en tot acht foto’s per notitie. Je ziet eerst wat er binnenkomt, en Undo draait het terug."
+ },
+ "av2r5-cycle-averages": {
+  "en": "Your average cycle is 28.8 days (27 days to 31 days, so they vary by 4 days), from 4 cycles. Your average period is 5 days (all 5 days). A look back at what you logged, not a forecast. Information for you, not a contraceptive or a diagnosis.",
+  "nl": "Je gemiddelde cyclus is 28,8 dagen (27 dagen tot 31 dagen, dus ze verschillen 4 dagen), uit 4 cycli. Je menstruatie duurt gemiddeld 5 dagen (allemaal 5 dagen). Een terugblik op wat je noteerde, geen voorspelling. Informatie voor jou, geen anticonceptie en geen diagnose.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The cycle log is off or can’t be read here. Turn it on in Settings → Your pages & buttons (under Health). Information for you, not a contraceptive or a diagnosis.",
+  "freshNl": "Het cycluslogboek staat uit of kan hier niet gelezen worden. Zet het aan in Settings → Your pages & buttons (onder Health). Informatie voor jou, geen anticonceptie en geen diagnose."
+ },
+ "av2r5-cycle-words": {
+  "en": "Words you can log for a day (13): Cramps, Headache, Back pain, Bloating, Tender breasts, Tired, Mood changes, Skin changes, Spotting, Cravings, Low energy, Lots of energy and Slept badly. You have no words of your own yet; add up to 30 under What you track. Words to log, with nothing read into them. Information for you, not a contraceptive or a diagnosis.",
+  "nl": "Woorden die je voor een dag kunt noteren (13): Krampen, Hoofdpijn, Rugpijn, Opgeblazen gevoel, Gevoelige borsten, Moe, Wisselende stemming, Huidveranderingen, Spotting, Trek, Weinig energie, Veel energie en Slecht geslapen. Je hebt nog geen eigen woorden; voeg er tot 30 toe onder What you track. Woorden om te noteren; er wordt niets uit afgeleid. Informatie voor jou, geen anticonceptie en geen diagnose.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The cycle log is off or can’t be read here. Turn it on in Settings → Your pages & buttons (under Health). Information for you, not a contraceptive or a diagnosis.",
+  "freshNl": "Het cycluslogboek staat uit of kan hier niet gelezen worden. Zet het aan in Settings → Your pages & buttons (onder Health). Informatie voor jou, geen anticonceptie en geen diagnose."
+ },
+ "av2r5-cycle-glance": {
+  "en": "Your cycle from Sun, Oct 11: 28 days, a period of 5 days. Words logged: Cramps (1 day), Tired (1 day), Bloating (1 day) and Headache (1 day). Health → Diary → Cycle log → A cycle at a glance shows it day by day beside earlier cycles. A look back, never a forecast. Information for you, not a contraceptive or a diagnosis.",
+  "nl": "Je cyclus vanaf zo 11 okt: 28 dagen, een menstruatie van 5 dagen. Genoteerde woorden: Krampen (1 dag), Moe (1 dag), Opgeblazen gevoel (1 dag) en Hoofdpijn (1 dag). Health → Diary → Cycle log → A cycle at a glance toont hem dag voor dag naast eerdere cycli. Een terugblik, nooit een voorspelling. Informatie voor jou, geen anticonceptie en geen diagnose.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The cycle log is off or can’t be read here. Turn it on in Settings → Your pages & buttons (under Health). Information for you, not a contraceptive or a diagnosis.",
+  "freshNl": "Het cycluslogboek staat uit of kan hier niet gelezen worden. Zet het aan in Settings → Your pages & buttons (onder Health). Informatie voor jou, geen anticonceptie en geen diagnose."
+ },
+ "av2r5-cycle-choices": {
+  "en": "Yes. In Health → Diary → Cycle log → What you track: “No period” hides the flow buttons and the next-period line and keeps every word and note; “Perimenopause words” adds hot flushes, night sweats, joint aches and brain fog to log, with nothing read into them. “No period” is off; the perimenopause words are off. Information for you, not a contraceptive or a diagnosis.",
+  "nl": "Ja. In Health → Diary → Cycle log → What you track: “No period” verbergt de knoppen voor bloedverlies en de regel over de volgende menstruatie en bewaart elk woord en elke notitie; “Perimenopause words” voegt opvliegers, nachtzweten, gewrichtspijn en hersenmist toe om te noteren, zonder dat er iets uit wordt afgeleid. “No period” staat uit; de woorden voor de perimenopauze staan uit. Informatie voor jou, geen anticonceptie en geen diagnose.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The cycle log is off or can’t be read here. Turn it on in Settings → Your pages & buttons (under Health). Information for you, not a contraceptive or a diagnosis.",
+  "freshNl": "Het cycluslogboek staat uit of kan hier niet gelezen worden. Zet het aan in Settings → Your pages & buttons (onder Health). Informatie voor jou, geen anticonceptie en geen diagnose."
+ },
+ "av2r5-late-meal": {
+  "en": "Not enough days yet: 12 days with, 15 without (days with 300 kcal or more logged in the 3 hours before bed), and a comparison needs 14 on each side. It says what happened together, never a cause.",
+  "nl": "Nog niet genoeg dagen: 12 met, 15 zonder (dagen met 300 kcal of meer gelogd in de 3 uur voor het slapengaan), en een vergelijking heeft er 14 aan elke kant nodig. Het zegt wat samen gebeurde, nooit een oorzaak.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "There is nothing to compare yet: Compare needs food logged with its time and your nights in Health → Sleep. Then Health → Insights → Compare → “Late meal (from your food log)” sets the nights after days with 300 kcal or more logged in the 3 hours before bed beside the others.",
+  "freshNl": "Er is nog niets te vergelijken: Compare heeft eten met de tijd erbij en je nachten in Health → Sleep nodig. Dan zet Health → Insights → Compare → “Late meal” de nachten na dagen met 300 kcal of meer gelogd in de 3 uur voor het slapengaan naast de andere."
+ },
+ "av2r5-habit-parts": {
+  "en": "Yes: Settings → Notifications → under Habits due, tick “One reminder for each part of the day”. At the start of the morning, the afternoon and the evening (times you set) it says how many of that part’s habits are still open, in place of one reminder per habit; Anytime habits keep their own. Names only if names are on; quiet hours apply. Still open today: morning 1, afternoon 0, evening 1.",
+  "nl": "Ja: Settings → Notifications → onder Habits due, vink “One reminder for each part of the day” aan. Aan het begin van de ochtend, de middag en de avond (tijden die je kiest) zegt die hoeveel gewoontes van dat dagdeel nog open staan, in plaats van één herinnering per gewoonte; Anytime-gewoontes houden hun eigen. Namen alleen als namen aan staan; stille uren gelden. Nog open vandaag: ochtend 1, middag 0, avond 1.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes: Settings → Notifications → under Habits due, tick “One reminder for each part of the day”. At the start of the morning, the afternoon and the evening (times you set) it says how many of that part’s habits are still open, in place of one reminder per habit; Anytime habits keep their own. Names only if names are on; quiet hours apply. Still open today: morning 0, afternoon 0, evening 0.",
+  "freshNl": "Ja: Settings → Notifications → onder Habits due, vink “One reminder for each part of the day” aan. Aan het begin van de ochtend, de middag en de avond (tijden die je kiest) zegt die hoeveel gewoontes van dat dagdeel nog open staan, in plaats van één herinnering per gewoonte; Anytime-gewoontes houden hun eigen. Namen alleen als namen aan staan; stille uren gelden. Nog open vandaag: ochtend 0, middag 0, avond 0."
+ },
+ "av2r5-mood-timeline": {
+  "en": "Yes: the Day Timeline shows the day’s mood, energy and feeling words as small marks at the time you gave them, in words as well as colour, while Health is shown. Today: Energy: 4 of 5 at 8:30 PM and Feeling: focused at 8:31 PM.",
+  "nl": "Ja: de Day Timeline toont de stemming, energie en gevoelswoorden van de dag als kleine markeringen op het moment dat je ze gaf, in woorden en in kleur, zolang Health zichtbaar is. Vandaag: Energie: 4 van 5 om 20:30 en Gevoel: focused om 20:31.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes: the Day Timeline shows the day’s mood, energy and feeling words as small marks at the time you gave them, in words as well as colour, while Health is shown. Nothing is noted for today yet.",
+  "freshNl": "Ja: de Day Timeline toont de stemming, energie en gevoelswoorden van de dag als kleine markeringen op het moment dat je ze gaf, in woorden en in kleur, zolang Health zichtbaar is. Voor vandaag is er nog niets genoteerd."
+ },
+ "av2r5-trash": {
+  "en": "Recently deleted is empty. A note you delete waits there 30 days (Notes → Notes → Recently deleted), with its photos, and Restore brings it back in one tap.",
+  "nl": "Recently deleted is leeg. Een notitie die je verwijdert wacht daar 30 dagen (Notes → Notes → Recently deleted), met haar foto’s, en Restore zet haar in één tik terug.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Recently deleted is empty. A note you delete waits there 30 days (Notes → Notes → Recently deleted), with its photos, and Restore brings it back in one tap.",
+  "freshNl": "Recently deleted is leeg. Een notitie die je verwijdert wacht daar 30 dagen (Notes → Notes → Recently deleted), met haar foto’s, en Restore zet haar in één tik terug."
+ },
+ "av2r5-several": {
+  "en": "Notes per tag: #reading 1 and #travel 1; 6 notes have no tag. Notes → Chart draws them.",
+  "nl": "Druk in Notes → Notes op Select, vink de notities aan, en kies Add tag, Remove tag, Pin, Unpin, Archive of Delete: één stap voor allemaal, en één Undo in het bericht zet ze terug.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note has a tag yet. Notes imported with tags (Notes → Files → Import) show under Notes → Chart.",
+  "freshNl": "Druk in Notes → Notes op Select, vink de notities aan, en kies Add tag, Remove tag, Pin, Unpin, Archive of Delete: één stap voor allemaal, en één Undo in het bericht zet ze terug."
+ },
+ "av2r5-unlinked": {
+  "en": "Open a note: under the notes that link to it, Mentioned without a link lists the notes that name its title in their words without linking it, each with its line. Link it makes that place a [[link]]; the earlier words are kept under Earlier versions, and Undo is in the message.",
+  "nl": "Open een notitie: onder de notities die ernaar linken staat Mentioned without a link, met de notities die haar titel noemen zonder te linken, elk met de regel. Link it maakt van die plek een [[link]]; de eerdere woorden blijven onder Earlier versions, en Undo staat in het bericht.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open a note: under the notes that link to it, Mentioned without a link lists the notes that name its title in their words without linking it, each with its line. Link it makes that place a [[link]]; the earlier words are kept under Earlier versions, and Undo is in the message.",
+  "freshNl": "Open een notitie: onder de notities die ernaar linken staat Mentioned without a link, met de notities die haar titel noemen zonder te linken, elk met de regel. Link it maakt van die plek een [[link]]; de eerdere woorden blijven onder Earlier versions, en Undo staat in het bericht."
+ },
+ "av2r5-embed": {
+  "en": "Write a line with only ![[Note name#Heading]] (or ![[Note name]] for all of it). When you read the note, that section of the other note shows there as a quote that follows it, with a link to it; it never changes the other note, and a locked note shows nothing of itself. Obsidian reads the same line.",
+  "nl": "Schrijf een regel met alleen ![[Notitienaam#Kop]] (of ![[Notitienaam]] voor alles). Als je de notitie leest, staat dat deel van de andere notitie daar als citaat dat meegaat, met een link ernaartoe; de andere notitie verandert nooit, en een vergrendelde notitie toont niets van zichzelf. Obsidian leest dezelfde regel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Write a line with only ![[Note name#Heading]] (or ![[Note name]] for all of it). When you read the note, that section of the other note shows there as a quote that follows it, with a link to it; it never changes the other note, and a locked note shows nothing of itself. Obsidian reads the same line.",
+  "freshNl": "Schrijf een regel met alleen ![[Notitienaam#Kop]] (of ![[Notitienaam]] voor alles). Als je de notitie leest, staat dat deel van de andere notitie daar als citaat dat meegaat, met een link ernaartoe; de andere notitie verandert nooit, en een vergrendelde notitie toont niets van zichzelf. Obsidian leest dezelfde regel."
+ },
+ "av2r5-tag-templates": {
+  "en": "No tag has a template yet. Notes → Notes → Templates for tags sets words on a tag such as #meeting; a new, still empty note given that tag starts from them once.",
+  "nl": "Nog geen tag heeft een sjabloon. Notes → Notes → Templates for tags zet woorden op een tag zoals #overleg; een nieuwe, nog lege notitie met die tag begint er één keer mee.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No tag has a template yet. Notes → Notes → Templates for tags sets words on a tag such as #meeting; a new, still empty note given that tag starts from them once.",
+  "freshNl": "Nog geen tag heeft een sjabloon. Notes → Notes → Templates for tags zet woorden op een tag zoals #overleg; een nieuwe, nog lege notitie met die tag begint er één keer mee."
+ },
+ "av2r5-tables": {
+  "en": "Edit the note and press Change a table: its cells become fields, with Add a row, Add a column, Move up and down, Remove, and Sort A to Z or Z to A by a column (numbers as numbers). It stays a Markdown table, and Save keeps the earlier words under Earlier versions.",
+  "nl": "Bewerk de notitie en druk op Change a table: de cellen worden velden, met Add a row, Add a column, Move up en down, Remove, en Sort A to Z of Z to A op een kolom (getallen als getallen). Het blijft een Markdown-tabel, en Save bewaart de eerdere woorden onder Earlier versions.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Edit the note and press Change a table: its cells become fields, with Add a row, Add a column, Move up and down, Remove, and Sort A to Z or Z to A by a column (numbers as numbers). It stays a Markdown table, and Save keeps the earlier words under Earlier versions.",
+  "freshNl": "Bewerk de notitie en druk op Change a table: de cellen worden velden, met Add a row, Add a column, Move up en down, Remove, en Sort A to Z of Z to A op een kolom (getallen als getallen). Het blijft een Markdown-tabel, en Save bewaart de eerdere woorden onder Earlier versions."
+ },
+ "av2r5-event-note": {
+  "en": "On the Agenda, an imported calendar event has Notes for this event: the first tap makes a note named after the event and its day, linked to that day’s daily note, and opens it; after that the event names its note and opens the same one.",
+  "nl": "In de Agenda heeft een geïmporteerde afspraak Notes for this event: de eerste tik maakt een notitie met de naam en de dag van de afspraak, gelinkt aan de dagnotitie van die dag, en opent haar; daarna noemt de afspraak haar notitie en opent die.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "On the Agenda, an imported calendar event has Notes for this event: the first tap makes a note named after the event and its day, linked to that day’s daily note, and opens it; after that the event names its note and opens the same one.",
+  "freshNl": "In de Agenda heeft een geïmporteerde afspraak Notes for this event: de eerste tik maakt een notitie met de naam en de dag van de afspraak, gelinkt aan de dagnotitie van die dag, en opent haar; daarna noemt de afspraak haar notitie en opent die."
+ },
+ "av2r5-daily-range": {
+  "en": "Notes → Files → Daily notes from … to …: choose the first and last day, and Export these daily notes (.zip) saves only those days as Markdown, with their photos. Made on this device; locked notes stay out.",
+  "nl": "Notes → Files → Daily notes from … to …: kies de eerste en laatste dag, en Export these daily notes (.zip) bewaart alleen die dagen als Markdown, met hun foto’s. Op dit apparaat gemaakt; vergrendelde notities blijven eruit.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Notes → Files → Daily notes from … to …: choose the first and last day, and Export these daily notes (.zip) saves only those days as Markdown, with their photos. Made on this device; locked notes stay out.",
+  "freshNl": "Notes → Files → Daily notes from … to …: kies de eerste en laatste dag, en Export these daily notes (.zip) bewaart alleen die dagen als Markdown, met hun foto’s. Op dit apparaat gemaakt; vergrendelde notities blijven eruit."
+ },
+ "av2r5-look": {
+  "en": "Open the note and choose Look: a cover from the note’s own photos, and a page colour — Sand, Sage, Sky, Lilac, Rose or Stone, a light tint that keeps the words easy to read in every theme. It shows when you read the note; the words stay as they are.",
+  "nl": "Open de notitie en kies Look: een omslag uit de eigen foto’s van de notitie, en een paginakleur — Sand, Sage, Sky, Lilac, Rose of Stone, een lichte tint die de woorden in elk thema goed leesbaar houdt. Je ziet het als je de notitie leest; de woorden blijven zoals ze zijn.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open the note and choose Look: a cover from the note’s own photos, and a page colour — Sand, Sage, Sky, Lilac, Rose or Stone, a light tint that keeps the words easy to read in every theme. It shows when you read the note; the words stay as they are.",
+  "freshNl": "Open de notitie en kies Look: een omslag uit de eigen foto’s van de notitie, en een paginakleur — Sand, Sage, Sky, Lilac, Rose of Stone, een lichte tint die de woorden in elk thema goed leesbaar houdt. Je ziet het als je de notitie leest; de woorden blijven zoals ze zijn."
+ },
+ "av2r5-cards": {
+  "en": "No cards yet. Write a line as question :: answer in a note (hola :: hello), or end a line with #card with its answer on the indented lines under it. Notes → Notes → Review cards then shows them one at a time, again on a gentle schedule.",
+  "nl": "Nog geen kaartjes. Schrijf een regel als vraag :: antwoord in een notitie (hola :: hallo), of eindig een regel met #card met het antwoord op de ingesprongen regels eronder. Notes → Notes → Review cards toont ze dan een voor een, opnieuw op een rustig schema.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No cards yet. Write a line as question :: answer in a note (hola :: hello), or end a line with #card with its answer on the indented lines under it. Notes → Notes → Review cards then shows them one at a time, again on a gentle schedule.",
+  "freshNl": "Nog geen kaartjes. Schrijf een regel als vraag :: antwoord in een notitie (hola :: hallo), of eindig een regel met #card met het antwoord op de ingesprongen regels eronder. Notes → Notes → Review cards toont ze dan een voor een, opnieuw op een rustig schema."
+ },
+ "av2r5-task-files": {
+  "en": "Open a task and use Photos and voice notes: add a photo, or record a voice note of up to a minute. They stay in this browser only, never uploaded or synced; Export everything includes them as files.",
+  "nl": "Ja. Open een taak en kies Files → Add a file (tot 10 MB per bestand), of sleep een bestand op Tasks om een Inbox-taak met dat bestand te maken. Een pdf, afbeelding of tekstbestand opent in de browser; andere bestanden worden bewaard om in hun eigen app te openen. Tasks → Files toont ze allemaal met zoeken en de gebruikte ruimte. Ze blijven alleen in deze browser, nooit geüpload of gesynchroniseerd.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open a task and use Photos and voice notes: add a photo, or record a voice note of up to a minute. They stay in this browser only, never uploaded or synced; Export everything includes them as files.",
+  "freshNl": "Ja. Open een taak en kies Files → Add a file (tot 10 MB per bestand), of sleep een bestand op Tasks om een Inbox-taak met dat bestand te maken. Een pdf, afbeelding of tekstbestand opent in de browser; andere bestanden worden bewaard om in hun eigen app te openen. Tasks → Files toont ze allemaal met zoeken en de gebruikte ruimte. Ze blijven alleen in deze browser, nooit geüpload of gesynchroniseerd."
+ },
+ "av2r5-doing": {
+  "en": "No task is marked Doing. In a task’s editor, “Doing now” puts it first in Tasks → Today, with the day you began.",
+  "nl": "Geen taak staat op Doing. In de editor van een taak zet “Doing now” hem bovenaan in Tasks → Today, met de dag waarop je begon.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is marked Doing. In a task’s editor, “Doing now” puts it first in Tasks → Today, with the day you began.",
+  "freshNl": "Geen taak staat op Doing. In de editor van een taak zet “Doing now” hem bovenaan in Tasks → Today, met de dag waarop je begon."
+ },
+ "av2r5-cancelled": {
+  "en": "No task is cancelled in the last 30 days. “Cancel the task” in a task’s editor closes it without counting it as done: it stays out of your done chart, your daily goal and its streak.",
+  "nl": "Geen taak is geannuleerd in de laatste 30 dagen. “Cancel the task” in de editor sluit een taak zonder dat hij als gedaan telt: niet in je grafiek, je dagdoel of je reeks.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is cancelled in the last 30 days. “Cancel the task” in a task’s editor closes it without counting it as done: it stays out of your done chart, your daily goal and its streak.",
+  "freshNl": "Geen taak is geannuleerd in de laatste 30 dagen. “Cancel the task” in de editor sluit een taak zonder dat hij als gedaan telt: niet in je grafiek, je dagdoel of je reeks."
+ },
+ "av2r5-bucket": {
+  "en": "No task is planned for a week or a month without a day. In a task’s editor, “Plan for” puts a task with no day in this week or this month; it shows in Upcoming until it is done or gets a day.",
+  "nl": "Geen taak staat zonder dag op een week of maand. In de editor zet “Plan for” een taak zonder dag in deze week of deze maand; hij staat in Upcoming tot hij af is of een dag krijgt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is planned for a week or a month without a day. In a task’s editor, “Plan for” puts a task with no day in this week or this month; it shows in Upcoming until it is done or gets a day.",
+  "freshNl": "Geen taak staat zonder dag op een week of maand. In de editor zet “Plan for” een taak zonder dag in deze week of deze maand; hij staat in Upcoming tot hij af is of een dag krijgt."
+ },
+ "av2r5-blocks": {
+  "en": "You have no time blocks yet. In Tasks → This week → Time blocks, name a block (“Deep work, 9:00–11:00”) once or on weekdays; tasks dropped into it are placed inside it by Plan my day.",
+  "nl": "Je hebt nog geen tijdblokken. In Tasks → This week → Time blocks geef je een blok een naam (“Deep work, 9:00–11:00”), eenmalig of op weekdagen; taken die je erin zet plant Plan my day binnen het blok.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no time blocks yet. In Tasks → This week → Time blocks, name a block (“Deep work, 9:00–11:00”) once or on weekdays; tasks dropped into it are placed inside it by Plan my day.",
+  "freshNl": "Je hebt nog geen tijdblokken. In Tasks → This week → Time blocks geef je een blok een naam (“Deep work, 9:00–11:00”), eenmalig of op weekdagen; taken die je erin zet plant Plan my day binnen het blok."
+ },
+ "av2r5-leave": {
+  "en": "Nothing today has travel minutes before it. In a task’s editor (with a day and a time), type “Travel before”: it is kept free before the task, Plan my day counts it, and a “Leave by” reminder comes when task reminders are on. Nothing is worked out from a route.",
+  "nl": "Niets vandaag heeft reistijd ervoor. Typ in de editor van een taak (met dag en tijd) “Travel before”: die tijd blijft vrij vóór de taak, Plan my day telt hem mee, en er komt een “Leave by”-herinnering als taakherinneringen aan staan. Er wordt geen route berekend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing today has travel minutes before it. In a task’s editor (with a day and a time), type “Travel before”: it is kept free before the task, Plan my day counts it, and a “Leave by” reminder comes when task reminders are on. Nothing is worked out from a route.",
+  "freshNl": "Niets vandaag heeft reistijd ervoor. Typ in de editor van een taak (met dag en tijd) “Travel before”: die tijd blijft vrij vóór de taak, Plan my day telt hem mee, en er komt een “Leave by”-herinnering als taakherinneringen aan staan. Er wordt geen route berekend."
+ },
+ "av2r5-place": {
+  "en": "None of today’s tasks has a place. In a task’s editor, “Place” takes an address or a link as you type it; it shows on the task’s row and goes into a calendar export. Nothing is looked up.",
+  "nl": "Geen taak van vandaag heeft een plek. In de editor neemt “Place” een adres of een link zoals je hem typt; die staat bij de taak en gaat mee in een agenda-export. Er wordt niets opgezocht.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "None of today’s tasks has a place. In a task’s editor, “Place” takes an address or a link as you type it; it shows on the task’s row and goes into a calendar export. Nothing is looked up.",
+  "freshNl": "Geen taak van vandaag heeft een plek. In de editor neemt “Place” een adres of een link zoals je hem typt; die staat bij de taak en gaat mee in een agenda-export. Er wordt niets opgezocht."
+ },
+ "av2r5-steps": {
+  "en": "Open a task that has subtasks and choose “Play the steps”: the current step counts down from its own minutes, Next ticks it and adds the time to it, and the done and coming steps are listed. No open task has subtasks yet.",
+  "nl": "Open een taak met subtaken en kies “Play the steps”: de huidige stap telt af vanaf zijn eigen minuten, Next vinkt hem af en telt de tijd erbij, en de gedane en komende stappen staan eronder. Nog geen open taak heeft subtaken.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open a task that has subtasks and choose “Play the steps”: the current step counts down from its own minutes, Next ticks it and adds the time to it, and the done and coming steps are listed. No open task has subtasks yet.",
+  "freshNl": "Open een taak met subtaken en kies “Play the steps”: de huidige stap telt af vanaf zijn eigen minuten, Next vinkt hem af en telt de tijd erbij, en de gedane en komende stappen staan eronder. Nog geen open taak heeft subtaken."
+ },
+ "av2r5-earlier": {
+  "en": "In Tasks → Completed, each earlier finish of a repeating task has “Change”: “It was not done” takes the tick back, and “It was done on …” moves it to the day it really was. The task’s next day stays as it is, and Undo puts it back.",
+  "nl": "In Tasks → Completed heeft elke eerdere keer van een herhalende taak “Change”: “It was not done” haalt het vinkje weg en “It was done on …” zet het op de dag waarop het echt gebeurde. De volgende dag van de taak blijft zoals hij is, en Undo zet het terug.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "In Tasks → Completed, each earlier finish of a repeating task has “Change”: “It was not done” takes the tick back, and “It was done on …” moves it to the day it really was. The task’s next day stays as it is, and Undo puts it back.",
+  "freshNl": "In Tasks → Completed heeft elke eerdere keer van een herhalende taak “Change”: “It was not done” haalt het vinkje weg en “It was done on …” zet het op de dag waarop het echt gebeurde. De volgende dag van de taak blijft zoals hij is, en Undo zet het terug."
+ },
+ "av2r5-link": {
+  "en": "Open the task’s editor and choose “Copy link”. Paste it into a note or the journal: it opens that task in Tasks, on this device.",
+  "nl": "Open de editor van de taak en kies “Copy link”. Plak hem in een notitie of het dagboek: hij opent die taak in Tasks, op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open the task’s editor and choose “Copy link”. Paste it into a note or the journal: it opens that task in Tasks, on this device.",
+  "freshNl": "Open de editor van de taak en kies “Copy link”. Plak hem in een notitie of het dagboek: hij opent die taak in Tasks, op dit apparaat."
+ },
+ "av2r5-zone": {
+  "en": "You have not chosen a second time zone. On the Agenda’s hour grid, “Show a second time zone” puts its hours beside yours there and on the Day Timeline.",
+  "nl": "Je hebt geen tweede tijdzone gekozen. Op het uurrooster van de Agenda zet “Show a second time zone” de uren ervan naast de jouwe, daar en op de Day Timeline.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have not chosen a second time zone. On the Agenda’s hour grid, “Show a second time zone” puts its hours beside yours there and on the Day Timeline.",
+  "freshNl": "Je hebt geen tweede tijdzone gekozen. Op het uurrooster van de Agenda zet “Show a second time zone” de uren ervan naast de jouwe, daar en op de Day Timeline."
  }
 }
