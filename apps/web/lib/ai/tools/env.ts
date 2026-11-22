@@ -93,7 +93,8 @@ export type ToolSources = {
    * Session AT (L7 NB:N11): the game layer's switch and the Earn Academy's record on this device, so a level asked in a chat
    * is counted as Journey counts it (lib/ai/local-answers/exact/journey.ts; XP itself is never stored). Absent or null: unknown.
    */
-  game?: {enabled: boolean; earnAcademy: EarnAcademy | null} | null;
+  // Session AV lane 2 (LEDGER #48): `rebirthFrom`, the day the level started again at 1 (the game record's rebirth).
+  game?: {enabled: boolean; earnAcademy: EarnAcademy | null; rebirthFrom?: string | null; monthTheme?: boolean} | null;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   health: HealthData | null; fasting: Fasting | null; notes: readonly MemoryNote[] | null;

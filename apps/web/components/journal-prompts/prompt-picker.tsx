@@ -1,5 +1,8 @@
 'use client';
-import {useId, useRef, useState} from 'react';
+import {Suspense, lazy, useId, useRef, useState} from 'react';
+import {mutedNow} from '../../lib/muted/rule';
+// Session AV lane 2 (LEDGER #56): what the person hid, in one list; loaded when its fold opens.
+const MutedPanel = lazy(() => import('../muted/muted-panel'));
 import {JOURNAL_TEMPLATES, type JournalTemplate, type PromptLang} from '../../lib/journal-prompts/templates';
 import {asJournalTemplate, newOwnTemplateId, ownTemplateIssue, readHeadings} from '../../lib/journal-prompts/own';
 import {OWN_TITLE_MAX, emptyJournal, type OwnTemplate} from '../../lib/journal/schema';
@@ -16,7 +19,7 @@ export default function PromptPicker({onPick, own = [], onAddOwn, onRemoveOwn, o
   /** Session AV (1c, q4 #45; Day One): an own template edited in place. */ onEditOwn?: (id: string, title: string, headingsText: string) => void;
   /** Session AV (owner follow-up 1, F-OWN-TEMPLATES): the person's own templates, kept in the journal record. */
   own?: readonly OwnTemplate[]; onAddOwn?: (title: string, headingsText: string, id: string) => void; onRemoveOwn?: (id: string) => void}) {
-  const id = useId(), [lang, setLang] = useState<PromptLang>(startLang);
+  const id = useId(), [lang, setLang] = useState<PromptLang>(startLang), [hiddenOpen, setHiddenOpen] = useState(false), [, again] = useState(0);
   const [making, setMaking] = useState(false), [title, setTitle] = useState(''), [headings, setHeadings] = useState(''), [problem, setProblem] = useState('');
   // Session AV (1c, q4 #45): the template being edited (null: a new one); focus goes back to its Edit button after.
   const [editing, setEditing] = useState<string | null>(null), list = useRef<HTMLUListElement>(null);
@@ -47,12 +50,14 @@ export default function PromptPicker({onPick, own = [], onAddOwn, onRemoveOwn, o
         <div className="prompt-picker-form-actions"><button type="button" className="secondary" onClick={make}>{editing ? 'Save the template' : 'Keep this template'}</button><button type="button" className="quiet" onClick={cancel}>Cancel</button></div>
         {problem && <p className="field-error" role="alert">{problem}</p>}
       </div>)}
-    <ul className="prompt-picker-list" aria-label="Prompts">{JOURNAL_TEMPLATES.map(t => <li key={t.id}>
+    <ul className="prompt-picker-list" aria-label="Prompts">{JOURNAL_TEMPLATES.filter(t => !mutedNow().templates.has(t.id)).map(t => <li key={t.id}>
       <button type="button" className="prompt-picker-card" lang={lang} onClick={() => onPick(t, lang)}>
         <strong>{t.title[lang]}</strong>
         <span className="fine">{t.headings[lang].join(' · ')}</span>
         {t.note && <span className="fine prompt-picker-note">{t.note[lang]}</span>}
       </button>
     </li>)}</ul>
+    {/* Session AV lane 2 (LEDGER #56): hidden questions, templates and breathing patterns, brought back here. */}
+    <details className="muted-fold" onToggle={e => { setHiddenOpen((e.currentTarget as HTMLDetailsElement).open); again(n => n + 1); }}><summary>Hidden prompts and exercises</summary>{hiddenOpen && <Suspense fallback={null}><MutedPanel lang={lang} /></Suspense>}</details>
   </div>;
 }

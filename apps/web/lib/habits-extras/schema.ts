@@ -64,7 +64,19 @@ export const habitExtrasSchema = z.looseObject({
    * is read, so one odd entry never makes the record unreadable. Additive and optional in this loose record.
    */
   checklists: z.record(habitId, z.unknown()).optional(),
-}).refine(r => Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400 && Object.keys(r.intentions ?? {}).length <= 400 && Object.keys(r.monthWeekday ?? {}).length <= 400 && Object.keys(r.checklists ?? {}).length <= 400, 'Too many habits remembered.');
+  /**
+   * Session AV lane 2 (habits; LEDGER #45, #49, #50, #57; TIER 3 (stored format)): each habit's own options, {habitId:
+   * {twoDay?, unloggedSkip?, whenever?, difficulty?}} (lib/habit-options/rule.ts). Declared for its bound only, as
+   * `checklists` is: each entry is checked where it is read. `focusDays` (LEDGER #52): the focus habit of each day,
+   * {date: habitId}, the latest 400 days, so a past day's focus bonus stays earned. Both additive and optional.
+   */
+  options: z.record(habitId, z.unknown()).optional(),
+  focusDays: z.record(z.string().min(1).max(10), z.unknown()).optional(),
+  /** Session AV lane 2 (LEDGER #53; TIER 3 (stored format)): each life area's own weekly milestone, {areaId: 1…500}, at most 100 (lib/habit-areas/week.ts); checked where read. */
+  areaGoals: z.record(z.string().min(1).max(60), z.unknown()).optional(),
+  /** Session AV lane 2 (LEDGER #56; TIER 3 (stored format)): what is not offered, {questions?, templates?, breathing?} (lib/muted/rule.ts); loose, checked where read. */
+  muted: z.looseObject({}).optional(),
+}).refine(r => Object.keys(r.options ?? {}).length <= 400 && Object.keys(r.focusDays ?? {}).length <= 400 && Object.keys(r.areaGoals ?? {}).length <= 100 && Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400 && Object.keys(r.intentions ?? {}).length <= 400 && Object.keys(r.monthWeekday ?? {}).length <= 400 && Object.keys(r.checklists ?? {}).length <= 400, 'Too many habits remembered.');
 export type HabitExtras = z.infer<typeof habitExtrasSchema>;
 export const emptyHabitExtras = (): HabitExtras => ({version: 1});
 export const HABIT_EXTRAS: DeviceRecordSpec<HabitExtras> = {key: HABIT_EXTRAS_KEY, schema: habitExtrasSchema, empty: emptyHabitExtras};

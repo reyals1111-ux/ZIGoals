@@ -1,11 +1,14 @@
 'use client';
 import {useLinkedDay} from '../health-day';
 import {showUndo} from '../../ui/undo-toast';
-import {useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useState, type FormEvent} from 'react';
 import {BELL_SOUNDS, BREATHING_PATTERNS, type MeditationSession} from '../../../lib/meditation/schema';
 import {DEFAULT_BELLS, saveManual, setBells, setMeditationGoal} from '../../../lib/meditation/engine';
 import {BELLS, ring, wakeAudio, type BellSound} from '../../../lib/meditation/bells';
 import {PATTERNS, type BreathingPattern} from '../../../lib/meditation/breathing';
+// Session AV lane 2 (LEDGER #56): patterns the person hid are not offered (all hidden: every one is); the list loads when opened.
+import {mutedNow} from '../../../lib/muted/rule';
+const MutedPanel = lazy(() => import('../../muted/muted-panel'));
 import {customMinutesIssue, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, startRun} from '../../../lib/meditation/timer';
 import {instantAt, wallClock} from '../../../lib/zone-time';
 import type {MeditationStore} from './use-meditation';
@@ -28,7 +31,9 @@ export function MoodPicker({legend, value, onChange}: {legend: string; value: nu
  * with how you feel before (optional). The tap that begins also wakes the sound, as browsers ask.
  */
 export function BeginForm({store, onStarted}: {store: MeditationStore; onStarted: () => void}) {
-  const [kind, setKind] = useState<'timer' | 'breathing'>('timer'), [pattern, setPattern] = useState<BreathingPattern>('box');
+  const [kind, setKind] = useState<'timer' | 'breathing'>('timer'), [pattern, setPattern] = useState<BreathingPattern>('box'), [hideOpen, setHideOpen] = useState(false), [hiddenPatterns, setHiddenPatterns] = useState<ReadonlySet<string>>(() => new Set());
+  // Read after mount (never on the server), and again when the hide list closes; the first pattern offered is chosen.
+  useEffect(() => { const h = mutedNow().breathing; setHiddenPatterns(h); setPattern(current => h.has(current) && h.size < BREATHING_PATTERNS.length ? BREATHING_PATTERNS.find(p => !h.has(p)) ?? current : current); }, [hideOpen]);
   const [minutes, setMinutes] = useState<number | 'custom'>(kind === 'timer' ? 10 : 3), [custom, setCustom] = useState(''), [mood, setMood] = useState<number | undefined>(), [error, setError] = useState('');
   const bells = store.meditation.bells ?? {...DEFAULT_BELLS, updatedAt: ''}, form = useFormErrors();
   function begin(e: FormEvent<HTMLFormElement>) {
@@ -49,7 +54,8 @@ export function BeginForm({store, onStarted}: {store: MeditationStore; onStarted
       {(['timer', 'breathing'] as const).map(k => <label key={k}><input type="radio" name="kind" checked={kind === k} onChange={() => { setKind(k); setMinutes(k === 'timer' ? 10 : 3); }}/><span>{k === 'timer' ? 'Sit with a timer' : 'Breathe with a guide'}</span></label>)}
     </fieldset>
     {kind === 'breathing' && <fieldset className="meditation-segment meditation-patterns"><legend>Pattern</legend>
-      {BREATHING_PATTERNS.map(p => <label key={p}><input type="radio" name="pattern" checked={pattern === p} onChange={() => setPattern(p)}/><span><strong>{PATTERNS[p].label}</strong><small>{PATTERNS[p].summary}</small></span></label>)}
+      {BREATHING_PATTERNS.filter(p => p === pattern || hiddenPatterns.size >= BREATHING_PATTERNS.length || !hiddenPatterns.has(p)).map(p => <label key={p}><input type="radio" name="pattern" checked={pattern === p} onChange={() => setPattern(p)}/><span><strong>{PATTERNS[p].label}</strong><small>{PATTERNS[p].summary}</small></span></label>)}
+      <details className="muted-fold" onToggle={e => setHideOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Hide a pattern</summary>{hideOpen && <Suspense fallback={null}><MutedPanel kinds={['breathing']} /></Suspense>}</details>
     </fieldset>}
     <fieldset className="meditation-segment"><legend>How long?</legend>
       {PRESET_MINUTES.map(m => <label key={m}><input type="radio" name="minutes" checked={minutes === m} onChange={() => setMinutes(m)}/><span>{m} min</span></label>)}

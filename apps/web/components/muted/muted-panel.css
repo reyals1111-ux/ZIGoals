@@ -1,0 +1,9 @@
+/* Session AV lane 2 (habits; LEDGER #56): the hidden list. Theme variables only. */
+.muted-panel { display: grid; gap: 12px; min-width: 0; }
+.muted-group { border: 0; margin: 0; padding: 0; display: grid; gap: 2px; min-width: 0; }
+.muted-group legend { font-size: .9375rem; font-weight: 600; padding: 0 0 6px; }
+.muted-item { font-size: 1rem; align-items: flex-start; }
+.muted-item input { margin-top: 3px; }
+.muted-item span { min-width: 0; overflow-wrap: anywhere; }
+.muted-panel > p.fine:empty { display: none; }
+.muted-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: .9375rem; }

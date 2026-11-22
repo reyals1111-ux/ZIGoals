@@ -1,7 +1,7 @@
 'use client';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import Link from 'next/link';
-import {useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
 import {deleteSession} from '../../../lib/meditation/engine';
 import {PATTERNS} from '../../../lib/meditation/breathing';
 import {meditationSummary, minutesText, sessionDay, weeklyBars} from '../../../lib/meditation/stats';
@@ -18,6 +18,7 @@ import {useMeditation} from './use-meditation';
 import {AmbientPlayer} from '../../audio/ambient-player';
 import '../sleep/sleep.css';
 import './meditation.css';
+const TodayPractice = lazy(() => import('./today-practice'));
 import {sourceName} from '../../../lib/health-sources';
 import {plainErrorMessage} from '../../../lib/plain-error';
 
@@ -33,7 +34,7 @@ const sessionLine = (s: Session) => {
  * minutes a week, mindful minutes from elsewhere, the bell, and recent sessions. No score; rest days are fine.
  */
 export default function MeditationView() {
-  const store = useMeditation(), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
+  const store = useMeditation(), [todayOpen, setTodayOpen] = useState(false), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
   if (!store.loaded) return <section className="panel"><h1>Meditation</h1><p>Opening your meditation log…</p></section>;
   if (store.error) return <section className="panel"><h1>Meditation</h1><p role="alert">Meditation lives in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const {meditation, today} = store, run = store.run.data.run;
@@ -59,6 +60,8 @@ export default function MeditationView() {
         when it appears (it was inserted with its text, which screen readers often skip). */}
     <p className={note ? 'sleep-note' : 'sr-only'} role="status" aria-live="polite">{note}</p>
     {store.runUnreadable && <p className="notice" role="alert">This device’s running session could not be read. It was not changed; a new session replaces it.</p>}
+    {/* Session AV lane 2 (LEDGER #71, #77): today's written practice, loaded when its fold opens. */}
+    <details className="panel meditation-today-fold" onToggle={e => setTodayOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Today’s practice, a short written guide</summary>{todayOpen && <Suspense fallback={<p className="fine">Opening…</p>}><TodayPractice store={store} today={today} onStarted={() => setNote('')}/></Suspense>}</details>
     <section className="panel" aria-labelledby="meditation-begin-title"><h2 id="meditation-begin-title">Begin</h2><BeginForm key={`begin-${saves}`} store={store} onStarted={() => setNote('')}/></section>
     <section className="panel" aria-labelledby="meditation-week-title">
       <h2 id="meditation-week-title">Your practice</h2>

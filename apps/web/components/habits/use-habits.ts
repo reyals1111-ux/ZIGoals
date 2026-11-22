@@ -10,9 +10,12 @@ import { deletedHabitIds, isDeletedHabit, withoutDeletedHabits, type DeletedHabi
 import { localDate } from "../../lib/local-date";
 import { subscribeDayEnds } from "../../lib/day-boundary-core";
 import { installMonthWeekdayOverlay } from "../../lib/habit-month-weekday/install";
+import { installHabitOptionsOverlay } from "../../lib/habit-options/install";
 
 // Session AK F0 (5.1): "the first Monday of the month" reads its overlay from the habit extras in the browser (lib/habits.ts setHabitScheduleOverlay).
 installMonthWeekdayOverlay();
+// Session AV lane 2 (LEDGER #49, #50, #57): each habit's own options (two-day streak, unlogged as skipped, whenever).
+installHabitOptionsOverlay();
 
 /** The previous read's unchanged habit objects are kept (lib/habit-sharing.ts), so memoized cards and caches hold. */
 function useSharedHabitData(next: HabitData): HabitData {

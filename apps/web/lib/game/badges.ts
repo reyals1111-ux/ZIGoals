@@ -3,6 +3,7 @@ import {quitSummary} from '../habits-extras/quit';
 import {levelOf} from './levels';
 import {checklistOrbitDays, weekStart, xpEvents, type GameStores} from './xp';
 import {addLocalDays} from '../local-date';
+import {THEME_DAYS, themeMonthsReached} from './month-theme';
 
 /**
  * Badges: each is derived from the records (earned the moment the records show it); the device record keeps the day a
@@ -29,6 +30,8 @@ export const BADGES: readonly BadgeDef[] = [
   {id: 'first-orbit', title: 'First orbit', blurb: 'A day with every planet on your path lit.', symbol: '◍', test: (s, t) => checklistOrbitDays(s, t).length >= 1},
   {id: 'seven-orbits', title: 'Seven orbits', blurb: 'Seven days with every planet on your path lit.', symbol: '⊛', test: (s, t) => checklistOrbitDays(s, t).length >= 7},
   {id: 'perfect-orbit', title: 'Perfect orbit', blurb: 'Every planet lit in path order, in one day.', symbol: '✪', test: (s, t) => checklistOrbitDays(s, t).some(o => o.perfect)},
+  // Session AV lane 2 (LEDGER #55, Finch's seasonal events): a month's theme reached (lib/game/month-theme.ts); not while hidden.
+  {id: 'theme-month', title: 'Theme month', blurb: `A month's theme reached: ${THEME_DAYS} days with a check-in in its area.`, symbol: '❋', test: (s, t) => !s.monthThemeOff && themeMonthsReached(s.habits.habits, s.habitExtras, t).length >= 1},
 ];
 /** A Monday-to-Sunday week that has ended (or ends today) with a habit, a Health log and a goal step in it. */
 function balancedWeek(s: GameStores, today: string): boolean {

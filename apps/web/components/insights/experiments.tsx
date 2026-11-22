@@ -14,7 +14,8 @@ import {wordsOf} from '../../lib/mood-words/schema';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import {formatDate} from '../../lib/visual-format';
 import {EXPERIMENTS, type Experiment} from '../../lib/experiments/store';
-import {DEFAULT_LENGTH, EXPERIMENT_FACTOR_KINDS, EXPERIMENT_LENGTHS, endExperiment, experimentResult, noteExperiment, removeExperiment, startExperiment, type ExperimentResult} from '../../lib/experiments/engine';
+import {DEFAULT_LENGTH, EXPERIMENT_FACTOR_KINDS, EXPERIMENT_LENGTHS, MAX_OUTCOMES, endExperiment, experimentResult, experimentResults, noteExperiment, outcomesOf, removeExperiment, setMoreOutcomes, startExperiment, type ExperimentResult} from '../../lib/experiments/engine';
+import {SYMPTOMS} from '../../lib/symptoms/schema';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useHabits} from '../habits/use-habits';
 import {EmptyState} from '../ui/empty-state';
@@ -31,12 +32,12 @@ import './experiments.css';
  * kept in zigoals:experiments:v1, written only on the person's taps; results are worked out here each time.
  */
 export default function Experiments({health, today}: {health: HealthData; today: string}) {
-  const habits = useHabits(), energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), workouts = useDeviceRecord(WORKOUTS), store = useDeviceRecord(EXPERIMENTS), scales = useDeviceRecord(SCALES);
+  const habits = useHabits(), energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), workouts = useDeviceRecord(WORKOUTS), store = useDeviceRecord(EXPERIMENTS), scales = useDeviceRecord(SCALES), symptoms = useDeviceRecord(SYMPTOMS);
   const [fasting, setFasting] = useState<CompareSources['fasting']>(null), [note, setNote] = useState('');
   useEffect(() => { queueMicrotask(() => { try { const r = readFasting(getAppStorage()); setFasting(r.unreadable ? null : r.data); } catch { setFasting(null); } }); }, []);
   const ok = <T,>(r: {loaded: boolean; unreadable: boolean; data: T}) => r.loaded && !r.unreadable ? r.data : null;
-  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), fasting, scales: ok(scales)}),
-    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, fasting, scales]);
+  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), fasting, scales: ok(scales), symptoms: ok(symptoms)}),
+    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, fasting, scales, symptoms]);
   const factors = useMemo(() => factorOptions(src, today).filter(f => EXPERIMENT_FACTOR_KINDS.includes(f.kind)), [src, today]);
   const outcomes = useMemo(() => outcomeOptions(src), [src]);
   const results = useMemo(() => [...store.data.items].reverse().map(x => experimentResult(src, x, today)), [store.data.items, src, today]);
@@ -50,6 +51,8 @@ export default function Experiments({health, today}: {health: HealthData; today:
       <ExperimentCard result={r} today={today} outcomeName={r.outcome ? outcomeLabel(r.outcome, src) : undefined} onEnd={() => write(c => endExperiment(c, r.experiment.id, today), 'Ended today. Its result uses the days so far.')}
         onRemove={() => write(c => removeExperiment(c, r.experiment.id), 'Experiment removed. Your records are unchanged.')}
         onNote={text => write(c => noteExperiment(c, r.experiment.id, text), 'Note kept with the experiment.')}/>
+      {/* Session AV lane 2 (LEDGER #64, Bearable): up to eight outcomes per experiment, each worked out as the first. */}
+      <MoreOutcomes experiment={r.experiment} src={src} today={today} outcomes={outcomes} onSave={more => write(c => setMoreOutcomes(c, r.experiment.id, more), more.length ? `Now following ${more.length + 1} outcomes.` : 'Following one outcome again.')}/>
     </li>)}</ol>}
     {!factors.length || !outcomes.length ? <EmptyState title="Nothing to try yet" level={3} art="health" action={<Link className="secondary" href="/app/habits">Open Habits</Link>}>
       {!factors.length ? 'Add a habit, or tag your journal entries or nights. ' : ''}{!outcomes.length ? 'Rate your mood or energy, or log sleep or steps. ' : ''}Then try one change here for 14 days and see how your mood, energy or sleep went alongside it, for example “On the days you tried it, your energy averaged 3.8 of 5; on the days before, without it, 3.1 of 5.”
@@ -131,4 +134,15 @@ function ExperimentCard({result: r, today, onEnd, onRemove, onNote, outcomeName}
         : <button type="button" className="text-link" ref={el => { if (el && back.current) { back.current = false; el.focus(); } }} onClick={() => setSure(true)}>Remove</button>}
     </div>
   </article>;
+}
+
+function MoreOutcomes({experiment, src, today, outcomes, onSave}: {experiment: Experiment; src: CompareSources; today: string; outcomes: readonly {id: string; label: string}[]; onSave: (more: string[]) => void}) {
+  const all = outcomesOf(experiment), more = all.slice(1), extra = useMemo(() => experimentResults(src, experiment, today).slice(1), [src, experiment, today]);
+  const flip = (id: string, on: boolean) => onSave(on ? [...more, id] : more.filter(o => o !== id));
+  return <div className="experiments-more">
+    {extra.length > 0 && <ul className="experiments-more-list" aria-label={`More outcomes of “${experiment.title}”`}>{extra.map(r => <li key={r.experiment.outcome}><strong>{r.outcome ? outcomeLabel(r.outcome, src) : 'An outcome no longer kept'}</strong>: {r.state === 'ready' ? r.sentence : r.state === 'unclear' ? 'the two sides are close, so this is not a finding.' : r.state === 'pending' ? `${r.counts}; a result shows once each side has ${r.need} days.` : 'no longer in your records.'}</li>)}</ul>}
+    <details><summary>Follow more outcomes (up to {MAX_OUTCOMES})</summary><fieldset className="experiments-more-pick"><legend className="sr-only">Outcomes of “{experiment.title}”</legend>
+      {outcomes.filter(o => o.id !== experiment.outcome).map(o => { const on = more.includes(o.id); return <label key={o.id} className="checkbox"><input type="checkbox" checked={on} disabled={!on && all.length >= MAX_OUTCOMES} onChange={e => flip(o.id, e.target.checked)}/><span>{o.label}</span></label>; })}
+    </fieldset></details>
+  </div>;
 }

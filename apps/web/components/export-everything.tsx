@@ -7,6 +7,7 @@ import {deletedAccountRecords} from '../lib/deleted-account-records';
 import {localDate} from '../lib/local-date';
 import {FieldError} from './primitives/field-error';
 import './export-everything.css';
+import {useHideFigures} from './hide-figures';
 
 /**
  * T4 (Session P, PR 3): "Export everything (optional)". One tap makes one readable ZIP on this device with a JSON file
@@ -18,7 +19,7 @@ export {DELETED_EXPORT_NOTE};
 export function ExportEverything() {
   const [agreed, setAgreed] = useState(false), [busy, setBusy] = useState(false), [status, setStatus] = useState(''), [notes, setNotes] = useState<string[]>([]), [error, setError] = useState('');
   // Session AL (GAP-175, C-BN-27): an optional date range; both days set makes a CSV-only export of that range.
-  const [from, setFrom] = useState(''), [through, setThrough] = useState('');
+  const [from, setFrom] = useState(''), [through, setThrough] = useState(''), figuresHidden = useHideFigures();
   const ranged = from !== '' || through !== '', rangeError = ranged && !(from && through && from <= through) ? (from && through ? 'Choose a start date on or before the end date.' : 'Choose both dates, or clear them for the full export.') : '';
   async function run() {
     if (rangeError) return;
@@ -65,5 +66,7 @@ export function ExportEverything() {
     {notes.map(note => <p key={note} className="notice">{note}</p>)}
     {error && <p role="alert">{error}</p>}
     <p className="fine">Made on this device. Nothing is uploaded. Settings → Your data → Restore from a backup reads it back.</p>
+    {/* Session AV lane 2 (LEDGER #69; QUALITY "Not fixed"): the hide switch offered here too; the file itself is always complete. */}
+    {figuresHidden && <p className="fine" data-testid="export-figures-hidden">Calorie and weight figures are hidden on screen on this device. This file still holds them, so it stays a complete copy.</p>}
   </section>;
 }

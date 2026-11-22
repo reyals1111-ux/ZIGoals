@@ -24,10 +24,13 @@ export const OUTCOMES = ['mood', 'energy', 'sleep', 'habits', 'steps', 'feeling'
 export type BaseOutcomeId = typeof OUTCOMES[number];
 /** Session AK (BUILD list 2 #12): one of the person's own 1–5 scales (zigoals:scales:v1), as `scale:<id>`. */
 export type ScaleOutcomeId = `scale:${string}`;
-export type OutcomeId = BaseOutcomeId | ScaleOutcomeId;
+/** Session AV lane 2 (LEDGER #64, Bearable's experiments): a followed symptom or factor's level (0–3), as `symptom:<id>`. */
+export type SymptomOutcomeId = `symptom:${string}`;
+export type OutcomeId = BaseOutcomeId | ScaleOutcomeId | SymptomOutcomeId;
+export const isSymptomOutcome = (o: string): o is SymptomOutcomeId => /^symptom:[a-z0-9-]{1,40}$/.test(o);
 export const isScaleOutcome = (id: string): id is ScaleOutcomeId => /^scale:[a-z0-9-]{1,24}$/.test(id);
 export type Lag = 'same' | 'next';
-export type FactorKind = 'habit' | 'sleep-tag' | 'journal-tag' | 'workout' | 'fasting' | 'spend' | 'scale' | 'cycle';
+export type FactorKind = 'habit' | 'sleep-tag' | 'journal-tag' | 'workout' | 'fasting' | 'spend' | 'scale' | 'cycle' | 'symptom';
 export type FactorOption = {id: string; kind: FactorKind; label: string; group: string};
 export type OutcomeOption = {id: OutcomeId; label: string};
 
@@ -46,16 +49,19 @@ export type CompareSources = {
   scales?: {scales: readonly {id: string; name: string; low: string; high: string}[]; retired?: readonly {id: string; name: string; low: string; high: string}[]; days: Readonly<Record<string, Readonly<Record<string, number>>>>} | null;
   /** Session AK (BUILD list 2 #16): the opt-in cycle log's days with a period logged (only when it is turned on). */
   cycle?: {periodDays: readonly string[]} | null;
+  /** Session AV lane 2 (LEDGER #64): the symptom and factor tracker (zigoals:symptoms:v1), a level 0–3 per answered day. */
+  symptoms?: {items: readonly {id: string; name: string}[]; days: Readonly<Record<string, Readonly<Record<string, number>>>>} | null;
 };
 
 /** Each outcome's meaningful gap (as the cross-pillar pairings: 0.4 points, 20 minutes, 10 percentage points). */
 export const GAP: Readonly<Record<BaseOutcomeId, number>> = {mood: 0.4, energy: 0.4, sleep: 20, habits: 0.1, steps: 1000, feeling: 0.1};
 export const OUTCOME_LABELS: Readonly<Record<BaseOutcomeId, string>> = {mood: 'Mood (1–5)', energy: 'Energy (1–5)', sleep: 'Time asleep', habits: 'Habit completion', steps: 'Steps', feeling: 'Pleasant feeling words'};
 /** An outcome's meaningful gap; a person's own 1–5 scale uses mood's 0.4 points. */
-export const gapOf = (outcome: OutcomeId): number => isScaleOutcome(outcome) ? 0.4 : GAP[outcome];
+export const gapOf = (outcome: OutcomeId): number => isScaleOutcome(outcome) ? 0.4 : isSymptomOutcome(outcome) ? 0.5 : GAP[outcome];
+const symptomOf = (src: CompareSources | undefined, id: string) => src?.symptoms?.items.find(i => i.id === id) ?? null;
 const scaleOf = (src: CompareSources | undefined, id: string) => src?.scales?.scales.find(s => s.id === id) ?? src?.scales?.retired?.find(s => s.id === id) ?? null;
 /** An outcome's label; a scale by its own name ("Stress (1–5)"), or a plain fallback when it is gone. */
-export const outcomeLabel = (outcome: OutcomeId, src?: CompareSources): string => isScaleOutcome(outcome) ? `${scaleOf(src, outcome.slice(6))?.name ?? 'Your scale'} (1–5)` : OUTCOME_LABELS[outcome];
+export const outcomeLabel = (outcome: OutcomeId, src?: CompareSources): string => isScaleOutcome(outcome) ? `${scaleOf(src, outcome.slice(6))?.name ?? 'Your scale'} (1–5)` : isSymptomOutcome(outcome) ? `${symptomOf(src, outcome.slice(8))?.name ?? 'A symptom'} (0–3)` : OUTCOME_LABELS[outcome];
 export const CONFOUNDERS: Readonly<Record<FactorKind, string>> = {
   habit: 'a calm or a busy stretch can shape both the habit and the rest of the day',
   'sleep-tag': 'the evenings you tag may differ in other ways too, such as the day of the week',
@@ -65,6 +71,7 @@ export const CONFOUNDERS: Readonly<Record<FactorKind, string>> = {
   spend: 'paydays, weekends and plans with others can shape both',
   scale: 'a rating can reflect the same day it is compared with',
   cycle: 'other things change across the month as well, such as sleep and plans',
+  symptom: 'how a day feels can shape both what you notice and the rest of the day',
 };
 const MAX_TAGS = 20, MAX_HABITS = 60;
 
@@ -114,17 +121,21 @@ export function factorOptions(src: CompareSources, today: string): FactorOption[
   for (const sc of src.scales?.scales ?? []) if (Object.values(src.scales!.days).some(d => d[sc.id] !== undefined)) out.push({id: `scale:${sc.id}`, kind: 'scale', label: `Rated “${sc.name}” 4 or 5 (toward “${sc.high}”)`, group: 'Your scales'});
   // Session AK (#16): a day with a period logged (only while the opt-in cycle log is on).
   if (src.cycle?.periodDays.length) out.push({id: 'cycle', kind: 'cycle', label: 'Period day (from your cycle log)', group: 'Days'});
+  // Session AV lane 2 (LEDGER #64): each followed symptom or factor with an answer, "noted" against "answered none".
+  for (const it of src.symptoms?.items ?? []) if (Object.values(src.symptoms!.days).some(d => d[it.id] !== undefined)) out.push({id: `symptom:${it.id}`, kind: 'symptom', label: `“${it.name}” noted`, group: 'Symptoms and factors'});
   return out;
 }
 /** The outcomes with at least one recorded day. */
 export function outcomeOptions(src: CompareSources): OutcomeOption[] {
   const moods = src.health ? healthGroupIn(src.health, 'moods')?.days ?? {} : {};
-  const has: Record<OutcomeId, boolean> = {
+  const has: Record<BaseOutcomeId, boolean> = {
     mood: Object.keys(moods).length > 0, energy: Object.keys(src.energy?.days ?? {}).length > 0, sleep: sleepNights(src).length > 0,
     habits: (src.habits?.habits.length ?? 0) > 0, steps: (src.health?.activity.length ?? 0) > 0, feeling: Object.keys(src.energy?.words ?? {}).length > 0,
   };
   const own = (src.scales?.scales ?? []).filter(sc => Object.values(src.scales!.days).some(d => d[sc.id] !== undefined)).map(sc => ({id: `scale:${sc.id}` as ScaleOutcomeId, label: `${sc.name} (1–5)`}));
-  return [...OUTCOMES.filter(id => has[id]).map(id => ({id, label: OUTCOME_LABELS[id]})), ...own];
+  // Session AV lane 2 (LEDGER #64): each followed symptom or factor with an answer, by its level (0–3).
+  const followed = (src.symptoms?.items ?? []).filter(it => Object.values(src.symptoms!.days).some(d => d[it.id] !== undefined)).map(it => ({id: `symptom:${it.id}` as OutcomeId, label: `${it.name} (0–3)`}));
+  return [...OUTCOMES.filter(id => has[id]).map(id => ({id, label: OUTCOME_LABELS[id]})), ...own, ...followed];
 }
 
 type DayTest = (d: string) => boolean | null;
@@ -166,6 +177,11 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
     // Rated 4 or 5 is "with"; rated 1 to 3 is "without"; a day not rated is neither (unknown, never a low rating).
     return {phrase: `On days you rated “${sc.name}” 4 or 5`, test: d => { const v = src.scales!.days[d]?.[arg]; return v === undefined ? null : v >= 4; }};
   }
+  if (kind === 'symptom') {
+    // Noted (Mild or more) is "with"; answered None is "without"; a day not answered is neither (unknown, never none).
+    const it = symptomOf(src, arg);
+    return it ? {phrase: `On days with “${it.name}” noted`, test: d => { const v = src.symptoms!.days[d]?.[arg]; return v === undefined ? null : v > 0; }} : null;
+  }
   if (kind === 'cycle') {
     const sorted = [...new Set(src.cycle?.periodDays ?? [])].sort(), days = new Set(sorted), first = sorted[0], last = sorted.at(-1);
     // Between the first and the last logged period day, a day without one logged counts as "without"; before and after
@@ -184,6 +200,7 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
 }
 function outcomeValue(src: CompareSources, outcome: OutcomeId, today: string, span = CROSS_WINDOW_DAYS + 3): DayValue {
   if (isScaleOutcome(outcome)) { const id = outcome.slice(6); return d => src.scales?.days[d]?.[id] ?? null; }
+  if (isSymptomOutcome(outcome)) { const id = outcome.slice(8); return d => src.symptoms?.days[d]?.[id] ?? null; }
   if (outcome === 'mood') { const moods = src.health ? healthGroupIn(src.health, 'moods')?.days ?? {} : {}; return d => moods[d]?.mood ?? null; }
   if (outcome === 'energy') return d => src.energy?.days[d]?.energy ?? null;
   if (outcome === 'feeling') return d => { const w = src.energy?.words?.[d]; return w ? (w.pleasantness === 'pleasant' ? 1 : 0) : null; };
@@ -218,6 +235,7 @@ export function daySample(src: CompareSources, factorId: string, outcome: Outcom
 /** One value in its outcome's own words ("3.8 of 5", "7 h 20 min", "64%", "8,210"). */
 export function outcomeText(outcome: OutcomeId, v: number): string {
   if (outcome === 'mood' || outcome === 'energy' || isScaleOutcome(outcome)) return `${formatNumber(v, {minimumFractionDigits: 1, maximumFractionDigits: 1})} of 5`;
+  if (isSymptomOutcome(outcome)) return `${formatNumber(v, {minimumFractionDigits: 1, maximumFractionDigits: 1})} of 3`;
   if (outcome === 'sleep') return hoursMinutes(v);
   if (outcome === 'habits' || outcome === 'feeling') return pct(v);
   return formatNumber(Math.round(v));
@@ -225,6 +243,7 @@ export function outcomeText(outcome: OutcomeId, v: number): string {
 function outcomeSay(outcome: OutcomeId, lag: Lag, v: string, src?: CompareSources): string {
   const when = lag === 'same' ? 'that day' : 'the next day';
   if (isScaleOutcome(outcome)) return `your “${scaleOf(src, outcome.slice(6))?.name ?? 'scale'}” rating ${when} averaged ${v}`;
+  if (isSymptomOutcome(outcome)) return `“${symptomOf(src, outcome.slice(8))?.name ?? 'the symptom'}” ${when} averaged ${v}`;
   switch (outcome) {
     case 'mood': return `your mood ${when} averaged ${v}`;
     case 'energy': return `your energy ${when} averaged ${v}`;

@@ -1,0 +1,26 @@
+/* Session AV lane 2 (habits pillar; LEDGER #60, #62, #63, #68): the evening check-in. Theme variables only. */
+.checkin { display: grid; gap: 12px; min-width: 0; }
+.checkin h3, .checkin h4, .checkin p { margin: 0; overflow-wrap: anywhere; }
+.checkin h3:focus-visible { outline: 2px solid var(--cyan, #63e7ff); outline-offset: 4px; }
+.checkin-head { display: grid; gap: 6px; }
+.checkin-logged { font-weight: 650; font-size: 1rem; }
+.checkin-strip { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.checkin-strip li { min-width: 44px; }
+.checkin-strip li > span, .checkin-strip a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 8px; font-size: 1rem; }
+.checkin-strip .is-logged > span { background: color-mix(in srgb, var(--cyan, #63e7ff) 28%, transparent); color: var(--text); }
+.checkin-strip .is-gap a { border: 1px dashed var(--text-secondary); color: var(--text-secondary); text-decoration: none; }
+.checkin-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.checkin-row button { min-height: 44px; font-size: .9375rem; }
+.checkin-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.checkin-actions button { min-height: 44px; }
+.checkin-more > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: .9375rem; }
+.checkin-parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 8px; }
+.checkin-parts select, .checkin input, .checkin textarea { min-height: 44px; font-size: 1rem; max-width: 100%; }
+.checkin-items, .checkin-doses, .checkin-ready { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.checkin-ready { display: flex; flex-wrap: wrap; gap: 6px; }
+.checkin-ready button { min-height: 44px; }
+.checkin-doses li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; }
+.checkin-total { font-size: .9375rem; color: var(--text-secondary); }
+.checkin-item-name small { font-size: .875rem; }
+.checkin-note { display: grid; gap: 8px; }
+.checkin-note button { justify-self: start; min-height: 44px; }

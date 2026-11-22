@@ -25,3 +25,9 @@
 .mood-words-actions { margin: 0; display: flex; flex-wrap: wrap; gap: 16px; }
 .mood-words-actions .text-link { min-height: 44px; }
 .mood-words .fine[role="status"]:empty { display: none; }
+/* Session AV lane 2 (LEDGER #61): the person's own words in a corner, and the field to add one. */
+.mood-words-own { display: inline-flex; align-items: center; gap: 2px; }
+.mood-words-own .text-link { min-width: 44px; min-height: 44px; font-size: 1rem; }
+.mood-words-add { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 8px; flex-basis: 100%; }
+.mood-words-add input { min-height: 44px; font-size: 1rem; max-width: 14rem; }
+.mood-words-add .secondary { min-height: 44px; }

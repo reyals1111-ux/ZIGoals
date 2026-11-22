@@ -24,3 +24,5 @@
 .health-logging-for { margin: 6px 0 0; font-size: 14px; }
 .health-past-day { margin: 6px 0; font-size: 14px; }
 @media (forced-colors: active) { .health-page :is(.health-date-step, .health-date-today) { background: ButtonFace; color: ButtonText; border-color: ButtonText; } }
+/* Session AV lane 2 (LEDGER #68): "Day logged" under the date bar. */
+.health-day-logged { margin: 4px 0 0; font-size: .875rem; color: var(--text-secondary); }
