@@ -2,6 +2,7 @@ import {addLocalDays} from '../local-date';
 import {inBook, type BookChoice} from './books';
 import {hasTag} from './tags';
 import {isSealed} from './letters';
+import {hasPerson, personMatches} from './people';
 import type {Journal, JournalEntry} from './schema';
 
 /**
@@ -12,7 +13,8 @@ import type {Journal, JournalEntry} from './schema';
  */
 export type EntryFilter = {query?: string; tag?: string | null; book?: BookChoice; from?: string | null; to?: string | null; /** Session AV lane 2 (r3-notes; LEDGER #269): only the entries about this week, month or year. */ period?: string | null;
   /** Session AV lane 2 (r4-mind; LEDGER #310, Journey): only starred entries; only entries of these days (a mood or a feeling word); oldest first. */
-  star?: boolean; days?: ReadonlySet<string> | null; order?: 'newest' | 'oldest'};
+  star?: boolean; days?: ReadonlySet<string> | null; order?: 'newest' | 'oldest';
+  /** Session AV lane 2 (r6-notes; LEDGER #401, Diarium): only the entries with this person ("Entries with Anna"). */ person?: string | null};
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const MONTHS: Record<string, number> = {jan: 1, january: 1, januari: 1, feb: 2, february: 2, februari: 2, mar: 3, march: 3, mrt: 3, maart: 3, apr: 4, april: 4, may: 5, mei: 5, jun: 6, june: 6, juni: 6, jul: 7, july: 7, juli: 7, aug: 8, august: 8, augustus: 8, sep: 9, sept: 9, september: 9, oct: 10, october: 10, okt: 10, oktober: 10, nov: 11, november: 11, dec: 12, december: 12};
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -41,7 +43,8 @@ export function dateQuery(raw: string, today: string): {from: string; to: string
   return null;
 }
 /** Words match an entry's text or its tags; a letter still folded away matches by its tags only (they show on its row). */
-const wordsMatch = (e: JournalEntry, q: string, folded: boolean) => { const w = q.toLowerCase(); return (!folded && e.text.toLowerCase().includes(w)) || (e.tags ?? []).some(t => t.toLowerCase().includes(w.replace(/^#/, ''))); };
+// Session AV lane 2 (r6-notes; LEDGER #401): a name of who was there is found as a word, never in a letter still folded away.
+const wordsMatch = (e: JournalEntry, q: string, folded: boolean) => { const w = q.toLowerCase(); return (!folded && e.text.toLowerCase().includes(w)) || (e.tags ?? []).some(t => t.toLowerCase().includes(w.replace(/^#/, ''))) || (!folded && personMatches(e, q)); };
 /**
  * The entries the filter keeps, newest first. A typed date filters by day; any other words by text and tags.
  * Session AV lane 2 (review B3C-14): a letter still folded away (`isSealed`) is not found by its words until its day, so
@@ -52,7 +55,7 @@ export function filterEntries(journal: Pick<Journal, 'entries' | 'journals'>, fi
   const from = [filter.from, typedDate?.from].filter((d): d is string => !!d && DAY.test(d)).sort().at(-1) ?? null;
   const to = [filter.to, typedDate?.to].filter((d): d is string => !!d && DAY.test(d)).sort()[0] ?? null;
   const kept = [...journal.entries].reverse().filter(e => hasTag(e, filter.tag ?? null) && inBook(journal, e, filter.book ?? 'all') && (!filter.period || e.period === filter.period)
-    && (!from || e.date >= from) && (!to || e.date <= to) && (typedDate || !q || wordsMatch(e, q, isSealed(e, today) && !readEarly.has(e.id))) && (!filter.star || e.star === true) && (!filter.days || filter.days.has(e.date)));
+    && (!filter.person || (hasPerson(e, filter.person) && !(isSealed(e, today) && !readEarly.has(e.id)))) && (!from || e.date >= from) && (!to || e.date <= to) && (typedDate || !q || wordsMatch(e, q, isSealed(e, today) && !readEarly.has(e.id))) && (!filter.star || e.star === true) && (!filter.days || filter.days.has(e.date)));
   return filter.order === 'oldest' ? kept.reverse() : kept;
 }
 /** The day range in words, for the list's line ("Nov 3, 2026" or "Nov 1 – Nov 30, 2026"). */

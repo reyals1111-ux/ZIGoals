@@ -1,8 +1,11 @@
 'use client';
-import {useEffect, useId, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useId, useState, type FormEvent} from 'react';
 import {createPortal} from 'react-dom';
 import {FORGOT_WAIT_MS, PIN_RULE, UNLOCKED_SESSION_KEY, checkNewPin, newLock, readLock, tryPin, writeLock, type DeviceLock} from '../lib/device-lock';
 import {FieldError, useFormErrors} from './primitives/field-error';
+import {AWAY_SINCE_SESSION_KEY, awayLongEnough, readLockAway} from '../lib/device-lock-away';
+// Session AV lane 2 (r6-notes; LEDGER #406): the "Lock again after a while away" choice, loaded with the lock's settings.
+const DeviceLockAway = lazy(() => import('./device-lock-away'));
 import './device-lock.css';
 import './settings/erase-everything.css'; // the shared warning style of a destructive button
 
@@ -23,6 +26,28 @@ export function DeviceLockGate() {
     const read = () => { const l = readLock(local()); setLock(l); setLocked(!!l && !unlockedHere()); };
     read(); window.addEventListener(LOCK_EVENT, read); window.addEventListener('storage', read);
     return () => { window.removeEventListener(LOCK_EVENT, read); window.removeEventListener('storage', read); };
+  }, []);
+  // Session AV lane 2 (r6-notes; LEDGER #406, Diarium; TIER 3 (auth: the device lock)): with "Lock again after a while
+  // away" chosen, the same cover comes back once ZIGoals was hidden that long in this tab (a timer while hidden, and a
+  // check on return and on load, for a tab the browser reloaded). It only ever covers the screen sooner: the PIN, its
+  // check and "Forgot the PIN?" are unchanged, and a new tab or window still asks as before.
+  useEffect(() => {
+    let timer = 0;
+    const since = () => { try { const v = window.sessionStorage.getItem(AWAY_SINCE_SESSION_KEY); return v ? Number(v) : null; } catch { return null; } };
+    const setSince = (v: number | null) => { try { if (v === null) window.sessionStorage.removeItem(AWAY_SINCE_SESSION_KEY); else window.sessionStorage.setItem(AWAY_SINCE_SESSION_KEY, String(v)); } catch { /* without a session store only the timer covers */ } };
+    const check = () => { if (unlockedHere() && awayLongEnough(since(), Date.now(), readLockAway(local()), !!readLock(local()))) { markUnlocked(false); setSince(null); window.dispatchEvent(new Event(LOCK_EVENT)); } };
+    const onVisibility = () => {
+      window.clearTimeout(timer);
+      if (document.visibilityState === 'hidden') {
+        const minutes = readLockAway(local());
+        if (!minutes || !readLock(local()) || !unlockedHere()) return;
+        if (since() === null) setSince(Date.now());
+        timer = window.setTimeout(check, minutes * 60_000);
+      } else { check(); setSince(null); }
+    };
+    check(); if (document.visibilityState === 'visible') setSince(null);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => { window.clearTimeout(timer); document.removeEventListener('visibilitychange', onVisibility); };
   }, []);
   useEffect(() => {
     if (!locked) return;
@@ -119,6 +144,7 @@ export function DeviceLockSettings() {
     <p>Optional, and off unless you turn it on. It is a screen cover, not a lock on your records. A PIN hides ZIGoals when a new tab or window opens in this browser: every tab and window of this browser profile locks, not only this one. It does not encrypt your records, and a forgotten PIN never locks them away: the lock screen can remove the lock after a short wait, or erase this device&rsquo;s data.</p>
     {lock ? <>
       <div className="actions"><button type="button" className="secondary" onClick={lockNow}>Lock now</button></div>
+      <Suspense fallback={null}><DeviceLockAway/></Suspense>
       <form className="platform-form" onSubmit={e => void turnOff(e)} aria-label="Turn the lock off">
         <label className="field">Your PIN, to turn the lock off<input {...off.field('pin')} type="password" inputMode="numeric" autoComplete="off" maxLength={16} value={offPin} onChange={e => setOffPin(e.target.value)} /></label>
         <FieldError {...off.message('pin')}/>

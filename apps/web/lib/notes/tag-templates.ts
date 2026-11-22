@@ -1,5 +1,5 @@
 import {MAX_TAG_TEMPLATES, MAX_TEMPLATE_BODY, notesSchema, type Notes} from './schema';
-import {cleanTag} from './bulk';
+import {cleanTag} from './clean-tag';
 
 /**
  * Session AV lane 2 (r5-notes; LEDGER #362, Logseq's "Apply template to tags"): words set on a tag (#meeting) that a new,

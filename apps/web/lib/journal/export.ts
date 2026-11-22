@@ -22,7 +22,7 @@ export function journalExportFiles(journal: Journal, media: ReadonlyMap<string, 
     const audios = (e.audio ?? []).flatMap(a => { const m = media.get(a.id), ext = m ? AUDIO_EXT[m.type] : undefined; if (!m || !ext) return []; files.push({name: `audios/${a.id}.${ext}`, data: m.data, modified: now}); return [{identifier: a.id, md5: a.id, format: ext, duration: a.seconds}]; });
     const book = bookOf(journal, e);
     return {uuid: e.id, creationDate: e.createdAt, ...(e.updatedAt ? {modifiedDate: e.updatedAt} : {}), text: e.text, ...(e.tags?.length ? {tags: e.tags} : {}), ...(e.star ? {starred: true} : {}), ...(photos.length ? {photos} : {}), ...(audios.length ? {audios} : {}),
-      zigoals: {date: e.date, ...(book ? {journal: book.name} : {}), ...(e.template ? {template: e.template} : {}), ...(e.followUp ? {question: e.followUp.question, ...(e.followUp.answer ? {answer: e.followUp.answer} : {})} : {}), ...(e.period ? {period: e.period} : {}), ...(e.night ? {night: e.night} : {}), ...(e.opensOn ? {opensOn: e.opensOn} : {})}};
+      zigoals: {date: e.date, ...(book ? {journal: book.name} : {}), ...(e.template ? {template: e.template} : {}), ...(e.followUp ? {question: e.followUp.question, ...(e.followUp.answer ? {answer: e.followUp.answer} : {})} : {}), ...(e.period ? {period: e.period} : {}), ...(e.night ? {night: e.night} : {}), ...(e.opensOn ? {opensOn: e.opensOn} : {}), ...(e.people?.length ? {people: e.people} : {})}};
   });
   // Session AV lane 2 (r3-notes; LEDGER #272, Grid Diary's Markdown export): one .md file per entry in Markdown/, for
   // Obsidian and other apps — its day, journal, tags and the rest in front matter, its words as written, its photos named
@@ -74,7 +74,7 @@ export function entryMarkdown(journal: Pick<Journal, 'journals'>, e: JournalEntr
   const q = (v: string) => JSON.stringify(v), book = bookOf(journal, e);
   const lines = ['---', `date: ${e.date}`, `created: ${e.createdAt}`, ...(e.updatedAt ? [`updated: ${e.updatedAt}`] : []), `journal: ${q(book?.name ?? 'Journal')}`,
     ...(e.tags?.length ? [`tags: [${e.tags.map(q).join(', ')}]`] : []), ...(e.template ? [`template: ${e.template}`] : []), ...(e.period ? [`period: ${q(e.period)}`] : []),
-    ...(e.night ? [`night: ${e.night}`] : []), ...(e.opensOn ? [`opens-on: ${e.opensOn}`] : []), ...(e.star ? ['starred: true'] : []), ...(e.followUp ? [`follow-up: ${FOLLOW_UP_MARK}`] : []), `zigoals-id: ${q(e.id)}`, 'app: ZIGoals', '---', ''];
+    ...(e.night ? [`night: ${e.night}`] : []), ...(e.opensOn ? [`opens-on: ${e.opensOn}`] : []), ...(e.star ? ['starred: true'] : []), ...(e.people?.length ? [`people: [${e.people.map(q).join(', ')}]`] : []), ...(e.followUp ? [`follow-up: ${FOLLOW_UP_MARK}`] : []), `zigoals-id: ${q(e.id)}`, 'app: ZIGoals', '---', ''];
   const media = [...(e.photos ?? []), ...(e.morePhotos ?? [])].flatMap(id => { const f = [...present].find(n => n.startsWith(`photos/${id}.`)); return f ? [`![Photo](../${f})`] : []; });
   const answer = e.followUp ? `\n\n${followUpQuote(e.followUp)}` : '';
   return `${lines.join('\n')}${e.text.replace(/\r\n?/g, '\n')}${answer}${media.length ? `\n\n${media.join('\n')}` : ''}\n`;

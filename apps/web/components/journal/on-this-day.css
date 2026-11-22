@@ -22,3 +22,9 @@
 /* Session AV (1c, q4 #33): the first lines, only when switched on in Journal → Privacy. */
 .today-journal-lines { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; font-size: 15px; overflow-wrap: anywhere; }
 .today-journal-when { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+/* Session AV lane 2 (r6-notes; LEDGER #403): another day's date in earlier years, a day at a time. */
+.on-this-day-days { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 6px 0 0; }
+.on-this-day-days button { min-height: 44px; min-width: 44px; }
+.on-this-day-days p { margin: 0; flex: 1 1 10rem; }
+.on-this-day-another { margin: 0 0 8px; }
+.on-this-day-another button { min-height: 44px; }

@@ -1,6 +1,6 @@
 import {addLocalDays} from '../local-date';
 import {isSealed} from '../journal/letters';
-import {ON_THIS_DAY_MAX, agoLabel, daysInMonth, onThisDay, type DatedEntry, type OnThisDayItem} from './on-this-day';
+import {ON_THIS_DAY_MAX, agoLabel, anniversaryIn, daysInMonth, onThisDay, type DatedEntry, type OnThisDayItem} from './on-this-day';
 
 /**
  * Session AV lane 2 (r4-mind; LEDGER #309, Journey's throwbacks a week, a month and a year back): the Journal's "On this
@@ -39,3 +39,25 @@ export function memoryWakes(entries: readonly Letter[], display: {onThisDay?: bo
   if (display.memoryNotify !== true || display.onThisDay === false) return [];
   return [today, addLocalDays(today, 1)].flatMap(date => { const first = throwbacks(entries, date, {hidden: display.hidden ?? [], max: 1})[0]; return first ? [{id: `memory:${date}`, date, detail: agoWords(first)}] : []; });
 }
+/**
+ * Session AV lane 2 (r6-notes; LEDGER #403, Diarium's "on this day" for any day): the entries written on another day's
+ * date in the years before it — the day before or after today with the arrows, or a day chosen on the journal calendar —
+ * nearest year first ("2 years earlier"). As for today: entries set aside with "Not this one" and letters still folded
+ * away (as of today, the real day) stay out. 29 February meets 28 February in a common year. Pure.
+ */
+export function onDate<E extends Letter>(entries: readonly E[], day: string, today: string, {hidden = [], max = 20}: {hidden?: readonly string[]; max?: number} = {}): ThrowbackItem<E>[] {
+  const d = parse(day); if (!d || !parse(today)) return [];
+  const skip = new Set(hidden), out: ThrowbackItem<E>[] = [];
+  for (const e of entries) {
+    if (skip.has(e.id) || !e.text.trim() || isSealed(e, today)) continue;
+    const p = parse(e.date); if (!p || p.y >= d.y) continue;
+    if (anniversaryIn(e.date, d.y) === day) { const years = d.y - p.y; out.push({entry: e, years, months: null, label: years === 1 ? 'A year earlier' : `${years} years earlier`}); }
+  }
+  return out.sort((a, b) => a.years! - b.years! || a.entry.date.localeCompare(b.entry.date) || a.entry.id.localeCompare(b.entry.id)).slice(0, max);
+}
+/**
+ * Review b6n B6N-4 (LEDGER #403): what the Journal's On this day shows — the panel when there are memories, when another
+ * day is shown, or once the person chose to browse; otherwise only the way in ("On this day for another date"), so any
+ * day is reachable while a day with no memory keeps the page as calm as before (no empty panel).
+ */
+export const onThisDayView = (items: number, other: boolean, browsing: boolean): 'panel' | 'entry' => items > 0 || other || browsing ? 'panel' : 'entry';

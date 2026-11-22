@@ -255,3 +255,31 @@
 .journal-ebook-fields { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .journal-ebook-fields .field { min-inline-size: min(100%, 12rem); }
 .journal-ebook-fields select, .journal-ebook-fields input { inline-size: 100%; box-sizing: border-box; min-height: 44px; }
+/* Session AV lane 2 (r6-notes; LEDGER #400, #401, #404, #409): the word goal, who was there, every photo in one place,
+   the sun and the moon. Theme variables and color-mix only. */
+.journal-word-goal{margin:4px 0}
+.journal-word-goal[data-met]{color:var(--cyan,inherit)}
+.journal-calendar-day[data-met]{box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--cyan,currentColor) 75%,transparent)}
+.journal-word-goal-form,.journal-sky-settings{display:grid;gap:8px}
+.journal-word-goal-form input{max-width:10rem;min-height:44px}
+.journal-entry-people{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.journal-people-list{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
+.journal-person{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;font-size:15px}
+.journal-person-name{min-height:44px;padding:0 4px 0 12px;background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.journal-person-remove{min-width:44px;min-height:44px;background:transparent;border:0;color:inherit;font-size:18px;cursor:pointer}
+.journal-person-add{min-height:44px}
+.journal-entry-controls .journal-entry-people:has(.journal-tag-form){flex-basis:100%}
+.journal-photos-pick{display:flex;flex-wrap:wrap;gap:8px}
+.journal-photos-pick .field{flex:1 1 10rem}
+.journal-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;list-style:none;margin:8px 0;padding:0}
+.journal-photo-open{position:relative;display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:1;min-height:44px;padding:0;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:color-mix(in srgb,var(--brand-violet) 10%,transparent);color:inherit;cursor:pointer}
+.journal-photo-open img{width:100%;height:100%;object-fit:cover}
+.journal-photo-open:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.journal-photo-day{position:absolute;left:4px;bottom:4px;padding:1px 6px;border-radius:6px;font-size:14px;background:color-mix(in srgb,var(--bg) 78%,transparent);color:var(--text)}
+.journal-photo-voice{font-size:15px;font-variant-numeric:tabular-nums}
+.journal-photos-more{min-height:44px}
+.journal-sky-line{margin:6px 0}
+.journal-sky-typed{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.journal-sky-typed .field{flex:1 1 8rem}
+.journal-sky-typed input,.journal-sky-typed button,.journal-sky-settings select{min-height:44px}
+@media (forced-colors:active){.journal-calendar-day[data-met]{border-bottom:3px solid CanvasText;box-shadow:none}}
