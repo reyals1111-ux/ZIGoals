@@ -1751,6 +1751,9 @@
 :where(:root[data-text=large]) .help-page .keep-data .primary:not(#\-) { font-size: calc(15px * 1.125); }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) #your-ai > .eyebrow:not(#\-) { font-size: calc(15px * 1.125); } }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .help-page .help-topics-all:not(#\-) { font-size: calc(15px * 1.125); } }
+:where(:root[data-text=large]) .help-search-chain > p:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .help-search-chain-link:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .help-chain-note:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .help-updated:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/help/send-feedback.css  */
 :where(:root[data-text=large]) .send-feedback-add:not(#\-) { font-size: calc(15px * 1.125); }

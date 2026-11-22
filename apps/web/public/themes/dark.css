@@ -11622,6 +11622,16 @@
     .help-status:not(#\-) {
         color: var(--accent-cyan, #9ee8f8) !important
     }
+    .help-search-chain:not(#\-) {
+        border-color: var(--line, #25334f)
+    }
+    .help-search-chain-link:not(#\-) {
+        color: var(--text-strong, #f4f8ff)
+    }
+    .help-chain-note:not(#\-) {
+        border-left-color: var(--brand-cyan, #accffa);
+        color: var(--text-secondary, #c2d0e5)
+    }
     .help-earlier > .help-earlier-lede:not(#\-) {
         color: var(--text-secondary, #c2d0e5)
     }

@@ -207,6 +207,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av2-r-can-i-add-a-photo-or-a-voice-note-to-a-t", "Can I add a photo or a voice note to a task?"],
   ["av2-r-why-did-zigi-wave-this-morning", "Why did ZIGi wave this morning?"],
   ["av2-r-can-i-play-chess-against-the-computer", "Can I play chess against the computer?"],
+  ["av2-chain-help", "Why don’t I see answers about staking, wallets or Earn?"],
   ["your-ai-what", "What does ZIGi send, and to whom?"],
   ["your-ai-writes", "Can ZIGi change my records?"],
   ["your-ai-cost", "What does it cost?"],
