@@ -33,6 +33,7 @@ import {Skeleton} from '../../ui/skeleton';
 import {SlowReload} from '../slow-reload';
 import {pinnedNoteOf, setPinnedNote} from '../../../lib/workouts/notes';
 import {routineGroups, saveGuide} from '../../../lib/workouts/routines';
+import {addSharedRoutine} from '../../../lib/workouts/share';
 import {LOAD_WORDS, setExerciseUnit, setLoad, unitFor} from '../../../lib/workouts/bodyweight';
 import {exerciseSeries, type SeriesMetric} from '../../../lib/workouts/analytics';
 import {goalProgress, runSummary, runWords} from '../../../lib/workouts/runs';
@@ -234,7 +235,7 @@ export default function WorkoutsView() {
             <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`, `Routine ${t.name} is back.`)}>Remove</button></div>
           {editing === t.id && <Suspense fallback={<p className="fine" role="status">Opening…</p>}><RoutineEdit w={w} routine={t} change={change} unit={unit} onDone={() => setEditing(null)}/></Suspense>}
         </li>)}</ul></div>)}</>}
-        <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines: full body, push, pull, legs, at home" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)}/></Fold>
+        <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines, and routines shared with you" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)} onImport={share => change(x => addSharedRoutine(x, share, new Date()).workouts, `${share.name} is added to your routines.`)}/></Fold>
       </section>}
     {asking === 'finish' && current && <ConfirmInline title="Finish with unticked sets?" confirmLabel="Finish workout" cancelLabel="Keep logging" tone="neutral" onConfirm={() => void finish()} onCancel={() => setAsking(null)}><p>Sets you have not ticked are left out. Tick a set when you finish it.</p></ConfirmInline>}
     {asking === 'discard' && <ConfirmInline title="Discard this workout?" confirmLabel="Discard workout" cancelLabel="Keep it" onConfirm={() => { setAsking(null); setRestUntil(null); change(discardWorkout, 'The workout in progress is discarded. Nothing was added to Health.'); }} onCancel={() => setAsking(null)}><p>Its sets are not kept.</p></ConfirmInline>}

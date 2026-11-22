@@ -305,3 +305,29 @@ erase); its skipped round trip in `av2-stored.test.ts` then runs. Hide figures: 
 - What's new: "Workouts: shoes with their distance, a once-only mark for a new running best, and a running tip a day."
 - Answers: "how far have my running shoes gone" / "hoeveel km hebben mijn hardloopschoenen", "when should I replace my
   shoes" / "wanneer moet ik mijn schoenen vervangen", "give me a running tip" / "geef me een looptip".
+
+## 12. N8: routines shared as a small file; workout-sets.csv with RPE and notes — LEDGER #206 built, #207 built in code (one line for the lead)
+
+- What: a routine's Edit has "Share this routine as a file": "Save routine file" writes `<name>.zigoals-workout.json`
+  with the exercises (a built-in one by its id, an own one by its name, group and measure), the planned sets, rest and
+  the progression rule; the weights only with "Include my weights" (off by default); never a workout done, a date, a note,
+  a folder or an id of the person's. "Ready-made routines, and routines shared with you" starts with "Add a routine
+  someone shared": the file is read strictly (fixed shape, 32 KB, plain-text names, a newer version refused with a plain
+  reason), previewed, and added as a new routine in "Shared with me" ("(shared)" when the name is taken), with any own
+  exercise it needs. No server. CSV: `lib/workouts/csv.ts` keeps the 13 columns in their order and adds `rpe`,
+  `added_kg`, `assist_kg`, `exercise_note`, `workout_note`, `shoes`.
+- For the lead (export catalogue, a registry file): in `lib/export/everything.ts` set `CSV_HEADERS['workout-sets.csv']`
+  to `[...WORKOUT_SET_COLUMNS]` and the line `out['workout-sets.csv'] = csv(CSV_HEADERS['workout-sets.csv'], workoutSetRows(workouts));`
+  with `import {WORKOUT_SET_COLUMNS, workoutSetRows} from '../workouts/csv';`. The records are unchanged; the existing
+  `csv()` keeps escaping every cell (notes with commas and quotes are tested in `av2-share-csv.test.ts`).
+- Files: `lib/workouts/share.ts`, `lib/workouts/csv.ts`, `components/health/workouts/routine-library-view.tsx`
+  (`ShareRoutine`, `RoutineImport`), `components/health/workouts/workouts-view.tsx`, `components/health/workouts/av2-body.css`.
+- Tests: `lib/workouts/av2-share-csv.test.ts`; spec `tests/av2-routine-share.spec.ts`.
+- Stored: nothing new (a shared routine is an ordinary routine).
+- Answers: none (no new data to answer from; "what routines do I have" lists the shared ones in their folder).
+- Help (EN): **Can I share a workout routine?** Yes: Edit the routine and choose "Save routine file". It holds the
+  exercises, sets, rest and the progression rule — your weights only if you tick "Include my weights", never your
+  workouts or notes. Whoever gets it opens "Ready-made routines, and routines shared with you" and adds it under "Add a
+  routine someone shared". **Does the workout CSV include RPE and notes?** Yes: workout-sets.csv has RPE, the added weight
+  or help, the exercise's note, the workout's note and the shoes as extra columns.
+- What's new: "Workouts: share a routine as a small file; the workout CSV now carries RPE and notes."
