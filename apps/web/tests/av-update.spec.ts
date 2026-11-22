@@ -112,7 +112,10 @@ test('a page change answered by a server of another version loads the new versio
   let documents = 0;
   page.on('request', request => { if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documents += 1; });
   // Every page-data answer now comes from another deployment (Next compares it with this page's own build).
-  await page.route(url => url.searchParams.has('_rsc'), async route => { const response = await route.fetch(); await route.fulfill({response, headers: {...response.headers(), 'x-nextjs-deployment-id': 'another-deployment'}}); });
+  // Session AV lane 2 (deliberate, the mock only): the full load this test expects abandons the page-data requests still
+  // in flight, and answering one of those threw "Fetch response has been disposed" (1 of 6 here). Such a request is
+  // let go; every assertion below is unchanged.
+  await page.route(url => url.searchParams.has('_rsc'), async route => { try { const response = await route.fetch(); await route.fulfill({response, headers: {...response.headers(), 'x-nextjs-deployment-id': 'another-deployment'}}); } catch { /* the page abandoned this request */ } });
   const nav = page.getByRole('navigation').first().getByRole('link', {name: 'Habits', exact: true});
   if (await nav.isVisible()) await nav.click(); else await page.getByRole('link', {name: 'Habits', exact: true}).first().click();
   await page.waitForURL('**/app/habits');
