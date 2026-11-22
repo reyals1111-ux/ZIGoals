@@ -25,6 +25,8 @@ import {useUndoShortcut} from '../tasks/use-undo-shortcut';
 // Session AV (follow-up 1, F-JOURNAL-TAGS): tags on entries, and a filter by tag.
 import {EntryTags} from './entry-tags';
 import {changeEntry, hasTag, tagCounts, withTag, withoutTag} from '../../lib/journal/tags';
+import {JournalFold} from './journal-fold';
+import {daysWords, reminderOf, streakNudge} from '../../lib/journal/reminder';
 
 const YearPixels = lazy(() => import('./year-pixels'));
 // Session AK (BUILD list 2 #3): "On this day" and its Privacy switch, each loaded on its own after the page.
@@ -34,6 +36,8 @@ const OnThisDaySwitch = lazy(() => import('./on-this-day-switch'));
 const ThisDayStrip = lazy(() => import('../notes/this-day-strip'));
 // Session AK (BUILD list 2 #12, lane G1a): your own 1–5 scales, loaded on its own after the page.
 const YourScales = lazy(() => import('../scales/your-scales'));
+// Session AV lane 2 (journal; LEDGER #40): the reminder to write, its code loaded when its fold opens.
+const JournalReminder = lazy(() => import('./journal-reminder'));
 
 /**
  * Session AI (feature 6): the Journal page — write, ZIGi's question, the entries (newest first, delete with Undo), the
@@ -84,6 +88,9 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <div><dt>Longest streak</dt><dd>{streak.longest === 1 ? '1 day' : `${formatNumber(streak.longest)} days`}</dd></div>
         <div><dt>Words in {today.slice(0, 4)}</dt><dd>{formatNumber(year.words)} <small>in {year.entries === 1 ? '1 entry' : `${formatNumber(year.entries)} entries`}</small></dd></div>
       </dl>}
+      {/* Session AV lane 2 (journal; LEDGER #40, Day One's reminders and streaks): what today does to the streak, and the reminder to write. */}
+      {journal.data.entries.length > 0 && <p className="fine journal-streak-nudge">{streakNudge(journal.data.entries, today)}</p>}
+      <JournalFold id="journal-reminder" className="journal-reminder-fold" label="the reminder" summary={<>Reminder to write <span className="fine">· {reminderOf(journal.data).on ? `${reminderOf(journal.data).time}, ${daysWords(reminderOf(journal.data).days)}` : 'off'}</span></>}><JournalReminder/></JournalFold>
       <label className="field"><span>Search your journal</span><input type="search" value={query} onChange={e => setQuery(e.target.value)}/></label>
       {tags.length > 0 && <div className="journal-tag-filter" role="group" aria-label="Filter by tag">
         <button type="button" className="quiet" aria-pressed={!shownTag} onClick={() => setTag(null)}>All entries</button>

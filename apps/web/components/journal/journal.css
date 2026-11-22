@@ -82,3 +82,16 @@
 .journal-entry-controls .journal-entry-tags{margin:0}
 .journal-entry-controls .journal-that-day[open],.journal-entry-controls .journal-entry-tags:has(.journal-tag-form){flex-basis:100%}
 .journal-entry-remove{min-height:44px}
+/* Session AV lane 2 (journal): the folds inside Journal panels (reminder, journals, calendar, packs, import), the same
+   list-item marker and 44 px summary as "Start from a prompt"; the reminder's weekday buttons. Theme tokens only. */
+.journal-fold summary{min-height:44px;display:list-item;padding:10px 0;box-sizing:border-box;cursor:pointer;line-height:1.5}
+.journal-fold summary .fine{font-size:14px}
+.journal-fold[open]>summary{margin-bottom:4px}
+.journal-streak-nudge{margin:-4px 0 8px}
+.journal-reminder{display:grid;gap:8px}
+.journal-reminder-time{max-width:12rem}
+.journal-reminder-time input{min-height:44px;font-size:16px}
+.journal-reminder-day-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.journal-reminder-day-row button{min-width:48px;min-height:44px}
+.journal-reminder-day-row button[aria-pressed="true"]{border-color:var(--brand-cyan);color:var(--text-strong,var(--text))}
+.journal-reminder-note{margin:0}

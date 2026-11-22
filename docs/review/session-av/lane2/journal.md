@@ -39,3 +39,32 @@ Builder: the Journal-and-notes builder. Scope: LEDGER group 7 (Day One: #32, #35
 Round trip: `apps/web/lib/journal/av2-stored.test.ts` (Export everything zip → Restore, Replace and Merge, every field).
 
 ## Features
+
+### Engine wiring (all features; one line)
+
+In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~225, same `!subject` guard and the same
+`groupUnits` / `novaWording` handling): `import {av2JournalAnswer} from './av2-journal';` and try
+`av2JournalAnswer(question, env)` before `avAnswer(question, env)`. Corpus: add `...AV2_JOURNAL` from
+`lib/ai/evals/as/cases-av2-journal.ts` to `CORPUS` and record `expected.json`. Unit test:
+`lib/ai/local-answers/av2-journal.test.ts`.
+
+### F1 Reminder to write and the streak line — LEDGER #40 (Day One: journaling reminders and streaks)
+
+- Verdict: **built**. The writing streak itself was already shown (`writingStreak`, Session AP); added: a line that says
+  what writing today does to it, and the reminder to write as a notification (TIER 3 PWA commit `4c9b3aee`).
+- Files: `lib/journal/reminder.ts`, `components/journal/journal-reminder.tsx` (lazy), `components/journal/journal-fold.tsx`,
+  `components/journal/journal-page.tsx`, `components/journal/journal.css`; `lib/notify/plan.ts`, `prefs.ts`, `sync.ts`,
+  `public/sw.js` (kind `journal`, type `journal`, label "Reminder to write").
+- Tests: `lib/journal/av2-reminder.test.ts`, `lib/notify/av2-journal-notify.test.ts`, answers in `av2-journal.test.ts`.
+- Spec: `tests/av2-journal-reminder.spec.ts`.
+- Stored: `journal.reminder` (see the table above).
+- Help (EN). Q: "Can the Journal remind me to write?" A: "Yes. Journal → Entries → Reminder to write: switch it on,
+  choose a time and the days. It reaches you through this device's notifications (Settings → Notifications), only on a
+  day you have not written yet, and it never shows a word of your journal. Under your streak, the Journal says what a
+  few lines today do to it."
+- What's new: "Journal: a reminder to write, and your streak in plain words."
+- Showcase: `lib/journal/showcase.ts` sets the reminder on at 21:00 every day (the Showcase sends no notification). No
+  count changes.
+- Device keys / catalogue / export / erase: none new (inside `zigoals:journal:v1`).
+- CSS touched: `components/journal/journal.css`.
+- Today: nothing added.
