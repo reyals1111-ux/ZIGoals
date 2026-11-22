@@ -1,0 +1,10 @@
+/* Session AV lane 2, round 5 (money; Tiller, PocketSmith): yesterday's money, the year so far against the budgets, a bill
+   paid early, merging two accounts, trying a change on the forecast, money as a spreadsheet and categories in a file.
+   Theme tokens only, 14 px and larger copy, 44 px targets, no motion. */
+.money-yesterday{display:grid;gap:8px;min-width:0}
+.money-yesterday-day{margin:0;font-size:15px}
+.money-yesterday-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.money-yesterday-list li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.money-yesterday-choices{border:0;margin:0;padding:0;display:grid;gap:6px;min-width:0}
+.money-yesterday-choices legend{font-weight:600;font-size:15px;padding:0;margin-bottom:4px}
+.money-yesterday-fold summary,.money-sheet-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
