@@ -17,6 +17,17 @@ import {HEALTH_VITAMINS} from '../health-vitamins/schema';
 import {CHECKLIST, CHECKLIST_DAYS} from '../checklist/schema';
 import {NOVA_STORE} from '../nova/store';
 import {NOVA_STAGE} from '../nova/stage/record';
+import {JOURNAL} from '../journal/schema';
+import {MONEY_LOG} from '../money-log/schema';
+import {BUDGETS} from '../budgets/schema';
+import {BUDGET_PERIODS} from '../budgets/periods';
+import {BILLS} from '../bills/schema';
+import {MONEY_RULES} from '../money-rules/schema';
+import {MONEY_TAGS_RECORD} from '../money-tags/schema';
+import {MONEY_REVIEW} from '../money-review/review';
+import {WORKOUTS} from '../workouts/schema';
+import {WORKOUT_SPLITS} from '../workouts/splits-schema';
+import type {ExtrasChoiceSectionName} from './extras-keys';
 import {fitNovaArrangement, fitNovaStage, NOVA_DEVICE_FIELDS, NOVA_STAGE_DEVICE_FIELDS, NOVA_SYNC_FIELDS} from './extras-nova';
 
 /**
@@ -29,7 +40,7 @@ import {fitNovaArrangement, fitNovaStage, NOVA_DEVICE_FIELDS, NOVA_STAGE_DEVICE_
  * Never synced, on purpose: recent searches, the welcome's setup, vision photos, progress photos and their index (owner
  * decision: photos stay on the device), and AB-Design's display preferences.
  */
-export type ExtrasSectionName = 'goals' | 'life' | 'habits' | 'health' | 'checklist' | 'nova';
+export type ExtrasSectionName = 'goals' | 'life' | 'habits' | 'health' | 'checklist' | 'nova' | ExtrasChoiceSectionName;
 /**
  * `deviceFields` is a deny-list: every other field of the record travels, a field a later build adds included.
  *
@@ -45,6 +56,8 @@ export type ExtrasSectionName = 'goals' | 'life' | 'habits' | 'health' | 'checkl
  */
 export type ExtrasRecord = {spec: DeviceRecordSpec<unknown>; deviceFields?: readonly string[]; syncFields?: readonly string[]; verbatim?: true; fit?: (merged: Record<string, unknown>, local: Record<string, unknown> | undefined, remote: Record<string, unknown> | undefined) => Record<string, unknown>};
 export type ExtrasSection = {name: ExtrasSectionName; consent: 'account' | 'health'; records: readonly ExtrasRecord[]};
+/** Session AV lane 2 (sync): the journal's fields that stay on each device (see EXTRAS_CHOICE_SECTION_LIST). */
+export const JOURNAL_DEVICE_FIELDS = ['shareWithAi', 'versions', 'reminder', 'todayLines', 'affirmations'] as const;
 const record = <T,>(spec: DeviceRecordSpec<T>, deviceFields?: readonly string[], more?: Pick<ExtrasRecord, 'syncFields' | 'fit' | 'verbatim'>): ExtrasRecord => ({spec: spec as DeviceRecordSpec<unknown>, ...(deviceFields ? {deviceFields} : {}), ...more});
 export const EXTRAS_SECTIONS: readonly ExtrasSection[] = [
   {name: 'goals', consent: 'account', records: [record(GOAL_EXTRAS, ['dormant']), record(AVERAGE_GOALS)]},
@@ -66,3 +79,28 @@ export const EXTRAS_SECTIONS: readonly ExtrasSection[] = [
 ];
 /** Every device key the extras carry: an edit to one schedules a sync, like a module edit. */
 export const EXTRAS_KEYS: readonly string[] = EXTRAS_SECTIONS.flatMap(s => s.records.map(r => r.spec.key));
+
+/**
+ * Session AV lane 2 (sync; LEDGER #41 Day One, #134 YNAB, #209 Strong; TIER 3 (sync)): the sections that travel only once
+ * the person chose each one on this device (lib/vault/extras-keys.ts EXTRAS_CHOICE_SECTIONS), each in its own section so
+ * that one large record never stops another's sync. They are not in EXTRAS_SECTIONS: a device that chose none syncs,
+ * asks and stores exactly what it did before. Every record is loose and keeps fields a later build adds, so it travels
+ * as stored (`verbatim`), checked by its schema but never rewritten by it.
+ *
+ * - `journal` (account consent): the entries, the journals, the own templates, the prompt packs and the default
+ *   template. Stay on each device: whether ZIGi may send entries to the person's own AI (`shareWithAi`, a consent given
+ *   per device), the earlier versions (`versions`, up to 200,000 characters, kept where the change was made), the
+ *   reminder to write (it rings where it was set) and what Today shows of the journal (`todayLines`, `affirmations`:
+ *   Today is often a shared screen). Photos and voice notes stay on the device where they were added (owner decision:
+ *   photos stay on the device); an entry names them by id and says so where they are missing.
+ * - `money` (account consent): the spending log, budgets and pay periods, bills, rules, tags and the reviewed marks.
+ * - `workouts` (Health consent, as every Health-describing record): the workout log, its routines and custom exercises,
+ *   and the splits of imported runs. Only while Health sync is on; held after a Health deletion like the Health extras.
+ */
+export const EXTRAS_CHOICE_SECTION_LIST: readonly ExtrasSection[] = [
+  {name: 'journal', consent: 'account', records: [record(JOURNAL, JOURNAL_DEVICE_FIELDS, {verbatim: true})]},
+  {name: 'money', consent: 'account', records: [record(MONEY_LOG, undefined, {verbatim: true}), record(BUDGETS, undefined, {verbatim: true}), record(BUDGET_PERIODS, undefined, {verbatim: true}), record(BILLS, undefined, {verbatim: true}), record(MONEY_RULES, undefined, {verbatim: true}), record(MONEY_TAGS_RECORD, undefined, {verbatim: true}), record(MONEY_REVIEW, undefined, {verbatim: true})]},
+  {name: 'workouts', consent: 'health', records: [record(WORKOUTS, undefined, {verbatim: true}), record(WORKOUT_SPLITS, undefined, {verbatim: true})]},
+];
+/** Every section a sync may run, the chosen ones after the six. */
+export const ALL_EXTRAS_SECTIONS: readonly ExtrasSection[] = [...EXTRAS_SECTIONS, ...EXTRAS_CHOICE_SECTION_LIST];
