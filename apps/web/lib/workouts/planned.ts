@@ -125,6 +125,14 @@ export function realign(rec: PlannedRecord, w: Workouts | null, today: string): 
   const moves = [...dates].flatMap(([id, to]) => { const from = rec.items.find(i => i.id === id)!.date; return from === to ? [] : [{id, from, to}]; });
   return {value: plannedRecordSchema.parse({...rec, items: sorted(rec.items.map(i => dates.has(i.id) ? {...i, date: dates.get(i.id)!} : i))}), moved: moves.length, moves};
 }
+/**
+ * Undo of "I missed some" (review B4E-2): the inverse of its own moves only — each moved workout goes back to its day where
+ * it still has the day it was moved to; anything planned, moved or removed since is left as it is.
+ */
+export function undoRealign(rec: PlannedRecord, moves: readonly PlanMove[]): PlannedRecord {
+  const back = new Map(moves.map(m => [m.id, m]));
+  return plannedRecordSchema.parse({...rec, items: sorted(rec.items.map(i => { const m = back.get(i.id); return m && i.date === m.to ? {...i, date: m.from} : i; }))});
+}
 export function setAway(rec: PlannedRecord, from: string, to: string): PlannedRecord {
   if (!day.safeParse(from).success || !day.safeParse(to).success) throw Error('Choose the day you are back.');
   if (to < from) throw Error('Choose a day from today on.');

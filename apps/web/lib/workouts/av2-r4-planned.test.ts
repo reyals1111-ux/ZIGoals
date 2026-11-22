@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {collectEverything, DEVICE_KEYS} from '../export/everything';
 import {nextValue, planParts} from '../restore/plan';
 import {emptyWorkouts, type Workouts} from './schema';
-import {agendaPlanned, clearAway, emptyPlanned, missedThisWeek, mondayOf, moveWorkout, PLANNED_KEY, planStates, planWorkout, plannedRecordSchema, realign, removePlanned, restorePlanned, runName, setAway, type PlanDraft, type PlannedRecord} from './planned';
+import {agendaPlanned, clearAway, emptyPlanned, missedThisWeek, mondayOf, moveWorkout, PLANNED_KEY, planStates, planWorkout, plannedRecordSchema, realign, removePlanned, restorePlanned, runName, setAway, undoRealign, type PlanDraft, type PlannedRecord} from './planned';
 import {agendaExtras} from '../../components/agenda/agenda-extras';
 import {plannedWorkoutItems} from '../timeline/workout-source';
 
@@ -67,6 +67,17 @@ describe('planned workouts (LEDGER #330)', () => {
     const reach = realign(plan({name: 'Missed', date: '2026-11-16'}, {name: 'Today', date: today}, {name: 'Tomorrow', date: '2026-11-19'}, {name: 'Sat', date: '2026-11-21'}), null, today);
     expect(reach.value.items.map(i => [i.name, i.date])).toEqual([['Missed', '2026-11-18'], ['Today', '2026-11-19'], ['Tomorrow', '2026-11-20'], ['Sat', '2026-11-21']]);
     expect(reach.moved).toBe(3);
+  });
+  // Session AV lane 2 (review B4E-2): Undo is the inverse of the realign's own moves, never a stale copy of the plan.
+  test('Undo of "I missed some" puts back only what it moved, keeping what changed since', () => {
+    const r = plan({name: 'A', date: '2026-11-16'}, {name: 'B', date: '2026-11-17'}, {name: 'C', date: '2026-11-20'});
+    const out = realign(r, null, TODAY);
+    const later = planWorkout(moveWorkout(out.value, 'plan-1', '2026-11-28'), draft({name: 'New one', date: '2026-11-22'}), 'plan-new', NOW);
+    if (!later.ok) throw new Error('fixture');
+    const back = undoRealign(removePlanned(later.value, 'plan-2'), out.moves);
+    // A goes back; B was moved again since and stays where the person put it; C was removed and stays removed; the new one stays.
+    expect(back.items.map(i => [i.name, i.date])).toEqual([['A', '2026-11-16'], ['New one', '2026-11-22'], ['B', '2026-11-28']]);
+    expect(undoRealign(out.value, out.moves).items.map(i => i.date)).toEqual(r.items.map(i => i.date));
   });
   test('the Agenda and the Day Timeline draw the ones still to do or missed', () => {
     const r = plan({name: 'Missed one', date: '2026-11-17'}, {name: 'Upper body', date: '2026-11-20', time: '07:30', minutes: '45'}, {name: 'Done one', date: '2026-11-18'});

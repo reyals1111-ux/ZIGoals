@@ -4,7 +4,7 @@ import {addLocalDays} from '../../../lib/local-date';
 import {formatDate} from '../../../lib/visual-format';
 import type {Workouts} from '../../../lib/workouts/schema';
 import {CIRCUITS} from '../../../lib/workouts/circuits';
-import {clearAway, EFFORT_WORDS, EFFORTS, missedThisWeek, mondayOf, moveWorkout, planStates, planWorkout, PLANNED_WORKOUTS, plannedLine, realign, removePlanned, restorePlanned, setAway, type Effort, type PlanDraft, type Planned, type PlanIssue, type PlanState, type PlannedRecord} from '../../../lib/workouts/planned';
+import {clearAway, EFFORT_WORDS, EFFORTS, missedThisWeek, mondayOf, moveWorkout, planStates, planWorkout, PLANNED_WORKOUTS, plannedLine, realign, removePlanned, restorePlanned, setAway, undoRealign, type Effort, type PlanMove, type PlanDraft, type Planned, type PlanIssue, type PlanState, type PlannedRecord} from '../../../lib/workouts/planned';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {showUndo} from '../../ui/undo-toast';
@@ -31,6 +31,14 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
   if (rec.unreadable) return <p className="fine" role="alert">Your plan on this device could not be read, so it cannot be changed here now.</p>;
   const keep = (change: (c: PlannedRecord) => PlannedRecord, text: string) => { try { rec.update(change); setSaid(text); return true; } catch (e) { setSaid(e instanceof Error && !/storage|quota/i.test(e.message) ? e.message : `Not kept on this device. ${deviceSettingFailureMessage(e)}`); return false; } };
   const move = (item: Planned, date: string) => { if (date === item.date) return; const was = item.date; if (keep(c => moveWorkout(c, item.id, date), `${item.name} moved to ${formatDate(date, {weekday: true, year: false})}.`)) showUndo({message: `${item.name} moved to ${formatDate(date, {weekday: true, year: false})}.`, undone: `${item.name} is back on ${formatDate(was, {weekday: true, year: false})}.`, restore: () => rec.update(c => c.items.some(i => i.id === item.id) ? moveWorkout(c, item.id, was) : c)}); };
+  // Review B4E-2: worked out on the latest plan, and its Undo puts back only the workouts it moved.
+  const realignNow = () => {
+    const box: {moves: PlanMove[]} = {moves: []};
+    if (!keep(c => { const out = realign(c, w, today); box.moves = out.moves; return out.value; }, '')) return;
+    const made = box.moves, words = `${made.length} planned ${made.length === 1 ? 'workout' : 'workouts'} moved on, in order.`;
+    setSaid(words);
+    if (made.length) showUndo({message: words, undone: made.length === 1 ? 'The workout is back on its day.' : 'The workouts are back on their days.', restore: () => rec.update(c => undoRealign(c, made))});
+  };
   const start = mondayOf(today), days = Array.from({length: WEEKS * 7}, (_, i) => addLocalDays(start, i));
   const byDay = new Map<string, Planned[]>(); for (const i of r.items) byDay.set(i.date, [...(byDay.get(i.date) ?? []), i]);
   const upcoming = r.items.filter(i => i.date > days.at(-1)!), earlier = r.items.filter(i => i.date < start && states.get(i.id) !== 'done').slice(-5);
@@ -41,7 +49,7 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
     <p className="fine">Plan a routine, a circuit or a run on a day. Drag it to another day on the calendar, or open it to move it. A planned workout is done once a workout is logged that day.</p>
     {missed.length > 0 && <div className="r4-note" role="group" aria-labelledby={`${id}-missed`}>
       <p id={`${id}-missed`}>{missed.length === 1 ? `${missed[0]!.name} on ${formatDate(missed[0]!.date, {weekday: true, year: false})} was not done.` : `${missed.length} planned workouts this week were not done.`} Move {missed.length === 1 ? 'it' : 'them'} on, in order, from today?</p>
-      <div className="actions"><button type="button" className="secondary" onClick={() => { const before = r; const out = realign(r, w, today); if (keep(() => out.value, `${out.moved} planned ${out.moved === 1 ? 'workout' : 'workouts'} moved on, in order.`)) showUndo({message: `${out.moved} planned ${out.moved === 1 ? 'workout' : 'workouts'} moved on.`, undone: 'Your plan is as it was.', restore: () => rec.update(() => before)}); }}>I missed some: move them on</button></div>
+      <div className="actions"><button type="button" className="secondary" onClick={realignNow}>I missed some: move them on</button></div>
     </div>}
     {r.away ? <p className="r4-note">Away {r.away.from <= today ? 'until' : `from ${formatDate(r.away.from, {weekday: true, year: false})} until`} {formatDate(r.away.to, {weekday: true, year: false})}: planned workouts in that time are set aside. <button type="button" className="quiet" onClick={() => keep(clearAway, 'Welcome back: nothing is set aside now.')}>I’m back</button></p>
       : <div className="r3-toggle"><label className="field"><span>Away until</span><input type="date" min={today} value={awayTo} onChange={e => setAwayTo(e.target.value)}/></label><button type="button" className="quiet" onClick={() => keep(c => setAway(c, today, awayTo), `Away until ${formatDate(awayTo, {weekday: true, year: false})}: planned workouts in that time are set aside.`)}>Set them aside</button></div>}
