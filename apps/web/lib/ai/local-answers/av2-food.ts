@@ -4,6 +4,8 @@ import {challengeWeek} from '../../food-plus/challenge';
 import {mealWakes} from '../../food-plus/meal-notify';
 import {HEALTH_EXTRAS, type HealthExtras} from '../../health-extras';
 import {mealRemindersOn} from '../../meal-reminders';
+import {coachCheckIn} from '../../health-aa/coach';
+import {weightChangeText, weightText} from '../../health-units';
 import {dayTargets, sugarAlcoholMg, weekdayOfDay} from '../../food-plus/day-target';
 import {netCarbs} from '../../health-aa/macro-mode';
 import {healthZone, dailyData} from '../../health-daily';
@@ -209,5 +211,45 @@ function challengeAnswer(a: Ask): LocalReply | null {
     `Je logchallenge (${w.daysPerWeek} dagen per week): ${state}. ${w.weeksInRow} ${w.weeksInRow === 1 ? 'week' : 'weken'} op rij gehaald; ${w.weeksMet} van ${w.weeksTotal} sinds de start.`), calls);
 }
 
-const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer];
+// ── The weekly check-in day, partly logged days and the goal date (LEDGER #106, #107) ──────────────────────────────
+
+const coachOf = (a: Ask) => {
+  const health = a.env.health!, unit = dailyData(health).preferences.weightUnit;
+  const options = {checkInWeekday: a.food?.checkIn?.weekday ?? null, partialDays: new Set(a.food?.checkIn?.partial ?? []), paceKg: typeof a.food?.pace === 'number' ? a.food.pace : null};
+  return {c: coachCheckIn(health, a.env.coach ?? {version: 1}, a.env.healthDay, unit, options), unit};
+};
+/** "when will I reach my goal weight", "wanneer bereik ik mijn streefgewicht". */
+function goalDateAnswer(a: Ask): LocalReply | null {
+  const en = /\bwhen\b.*\b(?:reach|hit|get to|be at)\b.*\b(?:goal|target)(?: weight)?\b|\bgoal (?:weight )?(?:date|eta)\b|\bhow long\b.*\b(?:goal|target) weight\b/.test(a.f);
+  const nl = /\bwanneer\b.*\b(?:bereik|haal|ben ik op)\b.*\b(?:streefgewicht|doelgewicht|gewichtsdoel|doel)\b|\bhoe lang\b.*\b(?:streefgewicht|doelgewicht)\b/.test(a.f);
+  if (!(en || nl) || !/\b(?:weight|gewicht|streefgewicht|doelgewicht|gewichtsdoel|kg|lb)\b/.test(a.f) && !/\bgoal (?:date|eta)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, {c, unit} = coachOf(a), e = c.eta, calls = [{tool: 'weight_trend', args: {}, label: 'Weight trend'}];
+  if (!e) return answer(say(lang, 'No goal weight is set, or there is no trend weight yet, so there is no goal date. Health → Targets sets a weight goal; a few weigh-ins give the trend.', 'Er is geen streefgewicht ingesteld, of nog geen trendgewicht, dus er is geen doeldatum. Health → Targets zet een gewichtsdoel; een paar wegingen geven de trend.'), calls);
+  // A chosen pace is said as chosen (−0.25 kg), not rounded to the trend's tenth.
+  const goal = weightText(e.goalGrams, unit), rate = (grams: number) => `${unit === 'kg' && grams % 100 !== 0 ? `${grams < 0 ? '−' : '+'}${num(Math.abs(grams) / 1000)} kg` : weightChangeText(grams, unit)}/week`;
+  if (Math.abs(e.goalGrams - e.latestGrams) < 100) return answer(say(lang, `Your trend weight is at your goal (${goal}).`, `Je trendgewicht is op je doel (${goal}).`), calls);
+  const parts: string[] = [];
+  if (e.byTrend) parts.push(e.byTrend.date ? say(lang, `at your trend (${rate(e.byTrend.weeklyGrams)}) about ${dayIn('en', e.byTrend.date, a.today)}`, `bij je trend (${rate(e.byTrend.weeklyGrams)}) rond ${dayIn('nl', e.byTrend.date, a.today)}`) : say(lang, `your trend (${rate(e.byTrend.weeklyGrams)}) is moving away from it`, `je trend (${rate(e.byTrend.weeklyGrams)}) gaat er vanaf`));
+  else parts.push(say(lang, 'there is no weekly trend yet (readings at least seven days apart)', 'er is nog geen weektrend (wegingen minstens zeven dagen uit elkaar)'));
+  if (e.byPace?.chosen) parts.push(e.byPace.date ? say(lang, `at your chosen pace (${rate(e.byPace.weeklyGrams)}) about ${dayIn('en', e.byPace.date, a.today)}`, `bij je gekozen tempo (${rate(e.byPace.weeklyGrams)}) rond ${dayIn('nl', e.byPace.date, a.today)}`) : say(lang, `your chosen pace (${rate(e.byPace.weeklyGrams)}) does not lead there`, `je gekozen tempo (${rate(e.byPace.weeklyGrams)}) leidt er niet heen`));
+  return answer(say(lang, `Goal ${goal}: ${parts.join('; ')}. A date from the trend so far, not a promise; Health → Weight → Your coach.`, `Doel ${goal}: ${parts.join('; ')}. Een datum uit de trend tot nu, geen belofte; Health → Weight → Your coach.`), calls);
+}
+const WEEKDAY_LONG_EN = WEEKDAY_SHOW_EN, WEEKDAY_LONG_NL = WEEKDAY_NL;
+/** "when is my check-in", "which days are partly logged", "wanneer is mijn weekcheck". */
+function checkInAnswer(a: Ask): LocalReply | null {
+  const day = /\bcheck ?-?in (?:day|days)\b|\bwhen is my (?:weekly )?check ?-?in\b|\bcoach check ?-?in\b|\bweekcheck\b|\bincheckdag\b|\bwanneer is mijn (?:wekelijkse )?(?:check ?-?in|weekcheck|incheck)\b/.test(a.f);
+  const partial = /\bpartly logged\b|\bpartially logged\b|\bincomplete days?\b|\bgedeeltelijk gelogd\b|\bonvolledige dagen\b/.test(a.f);
+  if (!(day || partial)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, {c} = coachOf(a), calls = [{tool: 'coach_check_in', args: {}, label: 'Weekly check-in'}];
+  const weekday = lang === 'nl' ? WEEKDAY_LONG_NL[c.checkInWeekday]! : WEEKDAY_LONG_EN[c.checkInWeekday]!;
+  const marked = [...(a.food?.checkIn?.partial ?? [])].sort().reverse().slice(0, 8);
+  const partLine = marked.length ? say(lang, `Days marked partly logged (left out of the maintenance estimate): ${list(marked.map(d => dayIn('en', d, a.today)), 'en')}.`, `Dagen gemarkeerd als gedeeltelijk gelogd (niet in de onderhoudsschatting): ${list(marked.map(d => dayIn('nl', d, a.today)), 'nl')}.`)
+    : say(lang, 'No day is marked partly logged; under the Diary’s meals, “This day is only partly logged” leaves a day out of the estimate.', 'Geen dag is gemarkeerd als gedeeltelijk gelogd; onder de maaltijden in de Diary laat “This day is only partly logged” een dag buiten de schatting.');
+  const dayLine = say(lang, `Your weekly check-in day is ${weekday}${c.answered ? `; this week you ${c.answered === 'keep' ? 'kept' : 'adjusted'} your target` : ''}. Change it in Health → Weight → Your coach → Check-in day.`, `Je wekelijkse check-in is op ${weekday}${c.answered ? `; deze week heb je je doel ${c.answered === 'keep' ? 'gehouden' : 'aangepast'}` : ''}. Verander het in Health → Weight → Your coach → Check-in day.`);
+  return answer(day && partial ? `${dayLine} ${partLine}` : day ? dayLine : partLine, calls);
+}
+
+const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
 export const AV2_FOOD_HANDLER_COUNT = HANDLERS.length;

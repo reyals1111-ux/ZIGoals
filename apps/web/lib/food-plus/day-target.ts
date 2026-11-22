@@ -55,3 +55,20 @@ export function dayTargets(base: HealthTargets, date: string, weekdays: WeekdayT
   }
   return {...out, byWeekday};
 }
+/**
+ * Session AV lane 2 (food, LEDGER #106, #107): the coach's own choices from the stored food-plus text — the check-in
+ * weekday, the days marked partly logged, and the chosen pace (kg a week) — or none of them (never throws).
+ */
+export type CoachPrefs = {checkInWeekday: number | null; partialDays: ReadonlySet<string>; paceKg: number | null};
+export function coachPrefsOf(raw: string | null): CoachPrefs {
+  const none: CoachPrefs = {checkInWeekday: null, partialDays: new Set(), paceKg: null};
+  if (!raw) return none;
+  try {
+    const parsed = JSON.parse(raw) as {version?: unknown; checkIn?: {weekday?: unknown; partial?: unknown}; pace?: unknown};
+    if (parsed?.version !== 1) return none;
+    const weekday = whole(parsed.checkIn?.weekday, 0, 6) ?? null;
+    const partial = Array.isArray(parsed.checkIn?.partial) ? (parsed.checkIn!.partial as unknown[]).filter((d): d is string => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) : [];
+    const pace = typeof parsed.pace === 'number' && Number.isFinite(parsed.pace) && Math.abs(parsed.pace) <= 1 ? parsed.pace : null;
+    return {checkInWeekday: weekday, partialDays: new Set(partial), paceKg: pace};
+  } catch { return none; }
+}

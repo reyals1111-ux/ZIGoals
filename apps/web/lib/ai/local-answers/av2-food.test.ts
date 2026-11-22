@@ -96,6 +96,16 @@ describe('diary times and nutrient timing', () => {
     // Task reminders keep their own answer.
     expect(zigi('which task reminders do I have')).toBeNull();
   });
+  test('the goal date and the check-in day follow the device\'s choices', () => {
+    const food = {...emptyFoodPlus(), pace: -0.25, checkIn: {weekday: 5, partial: [DAY]}};
+    const goal = text(zigi('when will I reach my goal weight', showcaseAll(), food));
+    expect(goal).toMatch(/^Goal [\d.,]+ kg: at your trend \(−[\d.,]+ kg\/week\) about /);
+    expect(goal).toContain('at your chosen pace (−0.25 kg/week) about');
+    expect(text(zigi('wanneer bereik ik mijn streefgewicht', showcaseAll(), food))).toContain('bij je gekozen tempo (−0.25 kg/week) rond');
+    expect(text(zigi('when is my check-in day', showcaseAll(), food))).toMatch(/^Your weekly check-in day is Friday/);
+    expect(text(zigi('which days are partly logged', showcaseAll(), food))).toContain('Days marked partly logged (left out of the maintenance estimate): Tue, Nov 17.');
+    expect(text(zigi('when will I reach my goal weight', freshAll()))).toMatch(/^No goal weight is set/);
+  });
   test('questions that are not about times are left to the other layers', () => {
     for (const q of ['what did I eat today', 'how much water did I drink', 'when should I eat', 'log 2 eggs and then remind me']) expect(zigi(q), q).toBeNull();
   });

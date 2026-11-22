@@ -184,3 +184,38 @@ Shared-file needs for the lead are collected at the end ("For the lead").
   Showcase has no meal times, so no reminder).
 - Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: nothing (no Today change).
 - Settings: the Notifications card lists one more switch (Settings' tab stops grow by one).
+
+## F7 — The weekly check-in day, partly logged days, the chosen pace and the goal date
+
+- LEDGER rows: **#106** MacroFactor Weekly check-in with coaching modules — built (choosing the check-in day; marking a
+  day partly logged so the estimate leaves it out). **#107** MacroFactor Per-day macro targets and fasting days — the
+  rest built (a goal ETA date; the coach using the pace chosen on the energy card). Fasting days: unchanged by design
+  (the 1,200 kcal floor; LEDGER says not asked).
+- What it does: Health → Weight → "Your coach": "Check-in day" (Monday unless chosen; the week's answer is kept per
+  check-in week), "Goal 72 kg: at your trend (−0.3 kg/week), about 26 Dec; at your chosen pace (−0.25 kg/week), about 31
+  Dec. A date from the trend so far, not a promise." (also on Today's compact coach), and how many partly logged days are
+  left out. The maintenance-estimate card keeps the Pace you choose (the coach's suggestion uses it) and says how many
+  partly logged days it leaves out. The Diary: "This day is only partly logged (leave it out of the maintenance
+  estimate)" once the day has an entry.
+- Files: `lib/health-aa/coach.ts` (`weekStartOf(day, startWeekday)`, `CoachOptions`, `goalDate`, `eta`, `partialLeftOut`;
+  additive, defaults unchanged), `lib/health-aa/energy.ts` (`energyEstimate(…, partial?)`, additive),
+  `lib/food-plus/checkin.ts`, `lib/food-plus/day-target.ts` (`coachPrefsOf`), `components/health/food-plus/use-day-targets.ts`
+  (`useCoachPrefs`), `components/health/food-plus/partial-day.tsx` (part `partial`), `components/health/coach-card.tsx`,
+  `components/health/energy-card.tsx`, `components/health/health-highlights.tsx`, `components/health/health-app.tsx`.
+- Tests: `lib/food-plus/av2-checkin.test.ts`, `lib/ai/local-answers/av2-food.test.ts`. Spec: `tests/av2-coach-checkin.spec.ts`.
+- Stored changes: `checkIn.weekday`, `checkIn.partial` (in `69db6bb3`) and `pace` (TIER 3 commit `1bdf0099`) of
+  `zigoals:food-plus:v1`. The coach's answers record is unchanged (still keyed by the week's start day).
+- Not changed (named for the lead): NOVA's coach tool (`lib/ai/tools/coach-ai.ts`) and `lib/ai/actions/plan-aa.ts` call
+  `coachCheckIn` without the options, so they keep Monday and the fixed pace; pass `readFoodSources`' record to them to
+  follow the person's choices.
+- Help (EN). Q: "Can I choose my check-in day?" A: "Yes. Health → Weight → Your coach → Check-in day. The coach asks once
+  a week from that day." Q: "What if I didn't log everything one day?" A: "Under the Diary's meals, tick This day is only
+  partly logged. The maintenance estimate then leaves that day out; its food still counts everywhere else." Q: "When will
+  I reach my goal weight?" A: "Your coach shows a date at your trend and, once you choose a pace on the maintenance
+  estimate, at that pace. It comes from your trend so far and is not a promise."
+- What's new: "Choose your check-in day, mark a partly logged day, and see your goal date."
+- Answers: intents `av2-food-goal-date`, `av2-food-check-in`.
+- Showcase: the Showcase's goal weight and trend already give a goal date (the coach and Today's compact coach show it);
+  no seed.
+- Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: Today's compact coach card gains one line
+  (the goal date) where the coach is already shown; no new control (the check-in day select is on Health only).

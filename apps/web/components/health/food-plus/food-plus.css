@@ -37,3 +37,6 @@
 .food-plus-week li[data-logged] { background: color-mix(in srgb, var(--pillar-health, #ff74be) 16%, transparent); }
 .food-plus-week li[data-today] { outline: 2px solid var(--pillar-health, #ff74be); outline-offset: -2px; }
 .food-plus-challenge-line { margin: 0 0 12px; }
+.food-plus-partial { margin: 0 0 12px; }
+.food-plus-partial .checkbox { min-height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.food-plus-partial .fine:empty { display: none; }
