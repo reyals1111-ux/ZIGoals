@@ -15,6 +15,8 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 |---|---|---|
 | #264 Obsidian Tick boxes in notes, gathered | built | F1 |
 | #267 Obsidian Highlights in six colours | built | F1 |
+| #268 Obsidian Outline of a note | built (reordering sections by dragging left out, as the row says) | F2 |
+| #271 Obsidian Print a note or save it as PDF | built | F2 |
 
 ## Features
 
@@ -51,4 +53,27 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
   `expected.json`).
 - Device keys / catalogue / export / erase: none.
 - CSS touched: `components/notes/notes.css`.
+- Today: nothing added.
+
+### F2 A note's outline, and Print this note — LEDGER #268, #271 (Obsidian)
+
+- Verdict: **built**. Reordering sections by dragging is left out, as the LEDGER row says.
+- What: a note with two headings or more shows "Outline · N headings" above its words (a fold, closed so a phone's first
+  screen keeps the words); each heading, indented by its level, jumps to its section and puts focus on that heading.
+  "Print this note" (beside Edit) puts a print sheet on the page — the title, the day (a daily note) or made / changed
+  days and tags, the words as the reading view draws them (tick boxes, highlights, tables, code) and the photo — and opens
+  the browser's print window, where Save as PDF makes the PDF; the sheet goes after printing and focus returns to the
+  button (as the tasks list prints, LEDGER #225).
+- Files: `components/notes/note-render.tsx` (headings get ids, the outline), `components/notes/note-editor.tsx`,
+  `components/notes/note-print.tsx` + `note-print.css` (lazy), `components/notes/notes.css`.
+- Tests: the outline and the sheet are markup; the spec checks both.
+- Spec: `tests/av2-notes-outline-print.spec.ts` (window.print stubbed).
+- Stored: nothing.
+- Help (EN). Q: "Can I see the headings of a long note?" A: "Yes. A note with two headings or more shows Outline above
+  it: open it and choose a heading to jump to that part of the note." Q: "Can I print a note or keep it as a PDF?" A:
+  "Yes. Open the note and press Print this note. The print window shows its title, day, words and photo; choose Save as
+  PDF there for a PDF. Nothing leaves your device."
+- What's new: "Notes: an outline of a long note's headings, and Print this note (or save it as a PDF)."
+- Showcase: none needed (any note with headings shows it).
+- CSS touched: `components/notes/notes.css`, new `components/notes/note-print.css` (imported by its lazy chunk only).
 - Today: nothing added.

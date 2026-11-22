@@ -44,7 +44,7 @@ function block(b: NoteBlock, i: number, index: LinkIndex, onCreate: ((name: stri
   const r = (n: readonly NoteInline[]) => inline(n, index, onCreate);
   switch (b.type) {
     case 'paragraph': return <p key={i}>{r(b.children)}</p>;
-    case 'heading': return b.level === 1 ? <h3 key={i}>{r(b.children)}</h3> : b.level === 2 ? <h4 key={i}>{r(b.children)}</h4> : <h5 key={i}>{r(b.children)}</h5>;
+    case 'heading': { const hid = `${id}-h${i}`; return b.level === 1 ? <h3 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h3> : b.level === 2 ? <h4 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h4> : <h5 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h5>; }
     case 'quote': return <blockquote key={i}><p>{r(b.children)}</p></blockquote>;
     case 'code': return <pre key={i}><code>{b.text}</code></pre>;
     case 'list': {
@@ -58,7 +58,19 @@ function block(b: NoteBlock, i: number, index: LinkIndex, onCreate: ((name: stri
     case 'table': return <div key={i} className="note-table-wrap" role="region" aria-label="Table" tabIndex={0}><table><thead><tr>{b.head.map((c, k) => <th key={k} scope="col">{r(c)}</th>)}</tr></thead><tbody>{b.rows.map((row, k) => <tr key={k}>{row.map((c, m) => <td key={m}>{r(c)}</td>)}</tr>)}</tbody></table></div>;
   }
 }
-export function NoteRender({text, index, onCreate, onTick}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick}) {
+/**
+ * Session AV lane 2 (r3-notes; LEDGER #268, Obsidian's outline): a note with two headings or more lists them above it, in
+ * a fold (closed, so a phone's first screen keeps the words); each jumps to its section and puts focus on that heading.
+ */
+function Outline({blocks, id}: {blocks: readonly NoteBlock[]; id: string}) {
+  const heads = blocks.flatMap((b, i) => b.type === 'heading' ? [{i, level: b.level, words: plainText([b]).trim()}] : []);
+  if (heads.length < 2) return null;
+  const go = (i: number) => { const el = document.getElementById(`${id}-h${i}`); if (!el) return; el.scrollIntoView({block: 'start'}); el.focus({preventScroll: true}); };
+  return <nav className="note-outline" aria-label="Outline of this note"><details><summary>Outline <span className="fine">· {heads.length} headings</span></summary>
+    <ol>{heads.map(h => <li key={h.i} data-level={h.level}><button type="button" className="text-link" onClick={() => go(h.i)}>{h.words || 'Untitled heading'}</button></li>)}</ol>
+  </details></nav>;
+}
+export function NoteRender({text, index, onCreate, onTick, outline = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #268: list the headings above. */ outline?: boolean}) {
   const blocks = useMemo(() => parseBlocks(text, {notes: true}), [text]), id = useId();
-  return <div className="note-render">{blocks.map((b, i) => block(b, i, index, onCreate, onTick, id))}</div>;
+  return <>{outline && <Outline blocks={blocks} id={id}/>}<div className="note-render">{blocks.map((b, i) => block(b, i, index, onCreate, onTick, id))}</div></>;
 }

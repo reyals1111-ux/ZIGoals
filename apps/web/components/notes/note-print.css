@@ -1,0 +1,21 @@
+/* Session AV lane 2 (r3-notes; LEDGER #271): "Print this note" — a sheet only the printer sees (as the tasks list prints). */
+.note-print-sheet { display: none; }
+@media print {
+  :root.zg-print-note body > *:not(.note-print-sheet) { display: none !important; }
+  :root.zg-print-note, :root.zg-print-note body { background: #fff !important; }
+  :root.zg-print-note .note-print-sheet { display: block; color: #000; background: #fff; font: 12pt/1.5 system-ui, sans-serif; }
+  .note-print-sheet h1 { font-size: 20pt; margin: 0 0 4pt; }
+  .note-print-meta { margin: 0 0 12pt; color: #333; font-size: 10pt; }
+  .note-print-sheet h3, .note-print-sheet h4, .note-print-sheet h5 { break-after: avoid; margin: 12pt 0 4pt; }
+  .note-print-sheet p, .note-print-sheet li, .note-print-sheet blockquote, .note-print-sheet tr { break-inside: avoid; }
+  .note-print-sheet a { color: #000; }
+  .note-print-sheet .note-hl { background: none; border-bottom: 2px solid #555; }
+  .note-print-sheet .note-hl .sr-only { display: none; }
+  .note-print-sheet .note-tick-box { width: 12pt; height: 12pt; margin: 2pt 6pt 0 0; }
+  .note-print-sheet .note-tick { min-height: 0; }
+  .note-print-sheet .note-tick-words { padding: 0; }
+  .note-print-sheet table { border-collapse: collapse; }
+  .note-print-sheet th, .note-print-sheet td { border: 1px solid #999; padding: 3pt 6pt; }
+  .note-print-sheet pre { white-space: pre-wrap; border: 1px solid #ccc; padding: 6pt; }
+  .note-print-photo { display: block; max-width: 100%; max-height: 12cm; margin-top: 12pt; break-inside: avoid; }
+}

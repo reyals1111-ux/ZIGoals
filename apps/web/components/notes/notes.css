@@ -251,3 +251,11 @@ label.note-tick-words { cursor: pointer; }
 .notes-ticks-groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .notes-ticks-note { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
 .notes-ticks-note .text-link { min-height: 44px; display: inline-flex; align-items: center; overflow-wrap: anywhere; }
+/* Session AV lane 2 (r3-notes; LEDGER #268, #271): a note's outline above it, and Print this note. */
+.note-outline details > summary { min-height: 44px; display: list-item; padding: 10px 0; box-sizing: border-box; cursor: pointer; }
+.note-outline ol { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 0; }
+.note-outline li[data-level="2"] { padding-inline-start: 16px; }
+.note-outline li[data-level="3"] { padding-inline-start: 32px; }
+.note-outline .text-link { min-height: 44px; display: inline-flex; align-items: center; text-align: start; overflow-wrap: anywhere; }
+.note-render :is(h3, h4, h5):focus { outline: none; }
+.note-render :is(h3, h4, h5):focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; border-radius: 4px; }
