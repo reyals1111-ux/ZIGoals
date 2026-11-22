@@ -1,6 +1,7 @@
 import {localWeekday} from '../local-date';
 import {MAX_DAY_BLOCKS, readDayBlocks, taskPlanSchema, type HoursBlock, type TaskPlan} from './plan-record';
 import type {Busy} from './layouts';
+import {formatClock} from '../visual-format';
 
 /**
  * Session AV lane 2 (r4-plan, LEDGER #301; Motion's schedules): the hours tasks may be placed in. Each weekday has up to
@@ -61,6 +62,8 @@ export function freeIn(blocks: readonly HoursBlock[], busy: readonly Busy[], fro
   }
   return free;
 }
+/** A day's hours in words, each time through the app's clock format (review B4D-7): "9:00 AM–6:00 PM", or "Day off". */
+export const blockWords = (blocks: readonly HoursBlock[]) => blocks.length ? blocks.map(b => `${formatClock(b.from)}–${formatClock(b.to)}`).join(' and ') : 'Day off';
 /** Minutes inside the blocks. */
 export const blockMinutes = (blocks: readonly HoursBlock[]) => blocks.reduce((n, b) => n + toMin(b.to) - toMin(b.from), 0);
 

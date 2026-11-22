@@ -3,8 +3,7 @@ import {useId, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus} from '../ui/undo-toast';
 import {TASK_PLAN, type HoursBlock} from '../../lib/tasks/plan-record';
-import {DEFAULT_AFTER, WEEKDAY_ORDER, WEEKDAY_WORDS, afterHours, checkBlocks, setAfterHours, setWeekdayHours, weekdayHours} from '../../lib/tasks/work-hours';
-import {formatClock} from '../../lib/visual-format';
+import {DEFAULT_AFTER, DEFAULT_WORK, WEEKDAY_ORDER, WEEKDAY_WORDS, afterHours, blockWords, checkBlocks, setAfterHours, setWeekdayHours, weekdayHours} from '../../lib/tasks/work-hours';
 import './tasks-r4.css';
 
 /**
@@ -18,7 +17,6 @@ const CHOICES = [
   ...WEEKDAY_ORDER.map(d => ({value: String(d), label: WEEKDAY_WORDS[d], days: [d]})),
 ] as const;
 type Kind = 'usual' | 'hours' | 'off';
-export const blockWords = (blocks: readonly HoursBlock[]) => blocks.length ? blocks.map(b => `${formatClock(b.from)}–${formatClock(b.to)}`).join(' and ') : 'Day off';
 export default function TaskHoursSettings() {
   const plan = useDeviceRecord(TASK_PLAN), id = useId(), p = plan.data;
   const [which, setWhich] = useState('weekdays'), [kind, setKind] = useState<Kind>('hours');
@@ -43,7 +41,7 @@ export default function TaskHoursSettings() {
     const wrong = b ? checkBlocks(b) : null;
     if (wrong) { setError(wrong); return; }
     setError('');
-    write(x => setWeekdayHours(x, choice.days, b), b === null ? `${choice.label}: the usual hours, ${blockWords([{from: '09:00', to: '18:00'}])}.` : `${choice.label}: ${b.length ? blockWords(b) : 'a day off, no tasks are placed'}.`);
+    write(x => setWeekdayHours(x, choice.days, b), b === null ? `${choice.label}: the usual hours, ${blockWords(DEFAULT_WORK)}.` : `${choice.label}: ${b.length ? blockWords(b) : 'a day off, no tasks are placed'}.`);
   };
   const saveEvening = (e: FormEvent) => {
     e.preventDefault();
@@ -59,7 +57,7 @@ export default function TaskHoursSettings() {
       <p id={`${id}-set`} className="sr-only">Set the hours of a day</p>
       <label className="field"><span>Day</span><select value={which} onChange={e => setWhich(e.target.value)}>{CHOICES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></label>
       <fieldset><legend>Hours</legend>
-        {(['hours', 'off', 'usual'] as const).map(k => <label key={k} className="tasks-hours-choice"><input type="radio" name={`${id}-kind`} checked={kind === k} onChange={() => setKind(k)} /> {k === 'hours' ? 'These hours' : k === 'off' ? 'A day off' : 'The usual (9:00 AM–6:00 PM)'}</label>)}
+        {(['hours', 'off', 'usual'] as const).map(k => <label key={k} className="tasks-hours-choice"><input type="radio" name={`${id}-kind`} checked={kind === k} onChange={() => setKind(k)} /> {k === 'hours' ? 'These hours' : k === 'off' ? 'A day off' : `The usual (${blockWords(DEFAULT_WORK)})`}</label>)}
       </fieldset>
       {kind === 'hours' && <>
         <label className="field"><span>From</span><input type="time" value={from} onChange={e => setFrom(e.target.value || '09:00')} /></label>

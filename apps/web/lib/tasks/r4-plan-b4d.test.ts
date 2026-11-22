@@ -4,7 +4,10 @@ import {emptyTaskPlan, taskPlanSchema} from './plan-record';
 import {fitWeek, keepPlacements, weekCandidates} from './plan-week';
 import {flexRule} from './recurrence';
 import {emptyTasks, type Tasks} from './schema';
-import {hoursOn, hoursUntil, setWeekdayHours} from './work-hours';
+import {DEFAULT_WORK, blockWords, hoursOn, hoursUntil, setWeekdayHours} from './work-hours';
+import {formatClock} from '../visual-format';
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {fitDay} from './layouts';
 import {taskAgendaItems} from '../agenda/time-items';
 import {taskTimelineItems} from './timeline-source';
@@ -15,6 +18,16 @@ const plants = (): Tasks => addTask(emptyTasks(), {title: 'Fictional plants', mi
 const p = (r: Tasks) => r.tasks.find(t => t.id === 'p')!;
 const day = (iso: string) => iso.slice(0, 10);
 const taskItems = (r: Tasks, today: string) => ({overdueSince: taskAgendaItems(r, today, today, today, day)[0]?.overdueSince, label: taskTimelineItems(r, today, today, day)[0]?.label});
+
+describe('B4D-7: the usual hours are written through the app’s clock format', () => {
+  test('blockWords uses formatClock; the hours form has no hard-coded clock words', () => {
+    expect(blockWords(DEFAULT_WORK)).toBe(`${formatClock('09:00')}–${formatClock('18:00')}`);
+    expect(blockWords([])).toBe('Day off');
+    const form = readFileSync(join(__dirname, '..', '..', 'components', 'tasks', 'task-hours-settings.tsx'), 'utf8');
+    expect(form).toContain('`The usual (${blockWords(DEFAULT_WORK)})`');
+    expect(form).not.toMatch(/\d:\d\d (?:AM|PM)/);
+  });
+});
 
 describe('B4D-6: a weekday whose blocks cannot be read keeps the usual hours', () => {
   test('unreadable blocks: the usual 09:00–18:00; a stored empty list: a day off; readable ones beside unreadable ones are kept', () => {
