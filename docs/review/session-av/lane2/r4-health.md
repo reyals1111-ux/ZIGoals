@@ -14,7 +14,7 @@ in chunks that were lazy already); the first chunk of /app/health carries only t
 
 | record | change | readers of #37–#57 |
 |---|---|---|
-| `zigoals:health-extras:v1` (existing, device-only, loose) | optional `sleepTips` (boolean) and `returnNote` `{text (1–400), closedFor? (a date)}`, each `.optional().catch(undefined)` (a bad `closedFor` is dropped alone). | Kept untouched; older builds show no sleep tip and no note. |
+| `zigoals:health-extras:v1` (existing, device-only, loose) | optional `sleepTips` (boolean), `returnNote` `{text (1–400), closedFor? (a date)}` and (review B4E-4, commit `93273a6c`) `napRun` `{startedAt, minutes 1–180}`, each `.optional().catch(undefined)` (a bad `closedFor` is dropped alone). | Kept untouched; older builds show no sleep tip and no note. |
 | `zigoals:health-goals-more:v1` (round 3's, device-only, loose) | optional top-level `weightBand` `{lowGrams, highGrams (20–500 kg, at least 0.5 kg apart), createdAt}`, `.optional().catch(undefined)`. A top-level part, not a new goal kind ("between", as the ledger wrote): a round 3 reader drops a goal it cannot read but keeps an unknown top-level part as written. | A round 3 build keeps the band untouched; older builds never read the key. |
 | `zigoals:calorie-week:v1` (existing, device-only, loose) | optional `freeDay` `{date, extraKcal 50–2000, plannedOn}`, `.optional().catch(undefined)`. | Kept untouched; an older build shows the week without the free day (its own target, as before). |
 | `zigoals:planned-workouts:v1` (NEW, device-only, loose, versioned) | `{version: 1, items[≤ 300]: {id, date, time?, kind: routine, circuit, run or other, refId?, name (1–80), distanceKm?, effort? (easy, steady or fast), minutes? (5–600), createdAt}, away? {from, to}}`; an unreadable item is dropped, the others kept. | New key; older builds never read it. |
@@ -254,3 +254,25 @@ QUALITY Minors: none of the open q1–q4 Minors are in this task's rows (U6, U7)
 ## Commits
 
 See the report; each feature is one commit, and the stored formats are in their own TIER 3 commit.
+
+## Review B4E fixes (one commit each, with unit tests)
+
+| id | fix | commit |
+|---|---|---|
+| B4E-1 (Major) | "I missed some" moves only what the chain of moved workouts reaches; a second workout on one day, in any week, keeps its day; `moved` counts exactly and `moves` lists each. Test with two workouts on one day. | `d4dc3839` |
+| B4E-2 (Major) | Its Undo is the inverse of its own moves (`undoRealign`): only workouts still on the day they were moved to go back; anything planned, moved or removed since stays. Worked out on the latest record. | `1eb783ac` |
+| B4E-3 (Major) | The nap's start tap (and turning the bell on) calls `wakeAudio()` (`beginNap`, `bellChoice`), as the meditation timer does, so the end bell can sound on iOS. | `10c158c1` |
+| B4E-4 (Major) | A running nap is kept in the health extras' `napRun` (TIER 3 stored commit `93273a6c`) and picked up on return: still running it counts on; ended meanwhile it is logged up to its planned end and the page says the bell could not ring. The Health page's Sleep card says a nap is running (or ended) with a link to Sleep. Spec step added. | `f979c456` |
+| B4E-5 | The maximum heart rate field shows the kept maximum; a blank submit is refused; "Remove my maximum" has Undo (`clearMaxHr`). The unit test's blank case is a labelled deliberate change. | `726fd9f8` |
+| B4E-6 | "Another distance" is its own choice (`distanceChoice`), so typing "10" never flips the list or drops focus. | `de769aa3` |
+| B4E-7 | The goal time uses a text keypad, so ":" can be typed. Render test. | `5cac5e63` |
+| B4E-8 | Under a week the gap reads in days (`gapWords`, EN and NL): "In 6 days"; "the same day as the race before". | `57648861` |
+| B4E-9 | The food day's free-day line names its day when it is not today (`freeDayLine`). | `97c5a38b` |
+| B4E-10 | The free day's extra is read with `parseNumberInput` (`readFreeExtra`; an ambiguous "1,500" is asked about, never misread); the range message is formatted ("50 to 2,000"). The range assertion is a labelled deliberate change. | `613dcb6b` |
+| B4E-11 | The band's legend key is a shaded swatch (`BAND_LEGEND`), not a second line key. Render test. | `c4d5302e` |
+| B4E-12 | A chip names its panel in aria-controls only while open; opening focuses the panel's heading; Move and Close return focus to the workout; Remove moves it to the next one (`focusAfterRemove`), else the form. | `cde33e9a` |
+| B4E-13 | The nap's end is said once (status line); the Undo toast says only "Undo the nap?" (`napLoggedWords`). | `6afe79b9` |
+| B4E-14 | The steps factor counts a day only when an entry that day has steps; a minutes-only day is unknown. Compare's existing "Steps" outcome (lib/compare/engine.ts, the outcome's last line) still reads a minutes-only day as 0 steps; that is another feature's figure, left for the lead's call. | `5b27da3a` |
+| B4E-15 | Dutch answers write amounts in Dutch format ("4.000 stappen") and say "precies op je doel" for a race right on its goal. | `09e691a9` |
+
+Help text change from B4E-4: **Is there a nap timer?** … "Keep Sleep open to hear the bell: if you leave, the nap is kept and logged when you come back, and the Sleep card on Health says it is running."
