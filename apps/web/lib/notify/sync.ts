@@ -48,6 +48,7 @@ import {mealWakes} from '../food-plus/meal-notify';
 import {EVENING_PLAN} from '../evening-plan/schema';
 import {energyItems} from './energy-items';
 import {healthGroupIn} from '../vault/w-homes';
+import {spreadSlots, spreadTimes} from '../water-spread';
 
 /**
  * Session AK Part 2 (ADR-036 A1): gathers this device's records into the plan's input. Reads only; never throws (a record
@@ -82,6 +83,13 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
       const health = await readHealth(storage), water = waterSummary(health, today), left = water.targetMl ? Math.max(0, water.targetMl - water.millilitres) : null;
       input.water = {time: reminders.water.time, toGo: left === null ? null : left >= 1000 ? `${formatNumber(left / 1000, {maximumFractionDigits: 1})} L` : `${Math.round(left)} mL`, done: left === 0 || reminders.dismissed.water === today};
     } catch { input.water = {time: reminders.water.time, toGo: null, done: false}; }
+  }
+  // Session AV lane 2 (health r3; LEDGER #280): water reminders through the day, each quiet once today is on pace for it.
+  if (prefs.waterSpread?.on) {
+    try {
+      const health = await readHealth(storage), water = waterSummary(health, today), dismissed = reminders.dismissed.water === today;
+      input.waterSpread = spreadSlots(prefs.waterSpread, water).map(slot => ({time: slot.time, done: dismissed || slot.onPace, ...(slot.due !== null && slot.due > water.millilitres ? {detail: `${slot.due - water.millilitres >= 1000 ? `${formatNumber((slot.due - water.millilitres) / 1000, {maximumFractionDigits: 1})} L` : `${Math.round(slot.due - water.millilitres)} mL`} to be on pace`} : {})}));
+    } catch { input.waterSpread = spreadTimes(prefs.waterSpread).map(time => ({time, done: false})); }
   }
   // Session AV lane 2 (LEDGER #180): whether today's mood is answered, only when the mood check-in is on.
   if (typeOn(prefs, 'mood')) { try { const health = await readHealth(storage); input.mood = {doneToday: !!health.moods?.days[today]}; } catch { input.mood = {doneToday: false}; } }

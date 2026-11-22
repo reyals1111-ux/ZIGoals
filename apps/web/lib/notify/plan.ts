@@ -23,6 +23,12 @@ export type PlanInput = {
    */
   habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean; routine?: boolean}[];
   water?: {time: string; toGo: string | null; done: boolean};
+  /**
+   * Session AV lane 2 (health r3; LEDGER #280, Waterllama; TIER 3 (PWA)): the water reminders through the day
+   * (lib/water-spread.ts spreadSlots): each time, today's line ("400 mL to be on pace") and whether today is on pace for it
+   * already (skipped). When present, it stands in for the one water time in the notifications (the Today card keeps it).
+   */
+  waterSpread?: {time: string; detail?: string; done: boolean}[];
   windDown?: {time: string; doneToday: boolean};
   review?: {time: string; weekday: number};
   /** A contribution reminder per day it is due (today and tomorrow): the date, the formatted amount, and whether it is recorded. */
@@ -98,7 +104,11 @@ export function buildPlan(input: PlanInput): Plan {
   if (typeOn(prefs, 'habits')) for (const h of input.habits) daily('habit', h.id, h.time, h.weekdays, () => ({label: label(h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
   // Session AK (F5): never labelled, whatever the names switch says (a supplement or medicine's name is health data).
   if (typeOn(prefs, 'supplements')) for (const s of input.supplements ?? []) daily('supplement', s.id, s.time, s.weekdays, () => ({href: '/app/health', actionable: false}), date => date === today && s.doneToday);
-  if (typeOn(prefs, 'water') && input.water) { const w = input.water; daily('water', 'water', w.time, EVERY, () => ({...(w.toGo ? {detail: `${w.toGo} to go`} : {}), href: '/app/health', actionable: false}), date => date === today && w.done); }
+  // Session AV lane 2 (health r3; LEDGER #280): reminders through the day, each its own wake, quiet once today is on pace
+  // for it; every one keeps the habit of the single reminder (refused inside quiet hours, said on the card). Tomorrow's
+  // carry no line: the pace is today's.
+  if (typeOn(prefs, 'water') && input.waterSpread?.length) for (const [i, w] of input.waterSpread.entries()) daily('water', `water-${i + 1}`, w.time, EVERY, date => ({...(date === today && w.detail ? {detail: w.detail} : {}), href: '/app/health', actionable: false}), date => date === today && w.done);
+  else if (typeOn(prefs, 'water') && input.water) { const w = input.water; daily('water', 'water', w.time, EVERY, () => ({...(w.toGo ? {detail: `${w.toGo} to go`} : {}), href: '/app/health', actionable: false}), date => date === today && w.done); }
   if (typeOn(prefs, 'windDown') && input.windDown) { const w = input.windDown; daily('windDown', 'wind-down', w.time, EVERY, () => ({href: '/app/health?view=sleep', actionable: false}), date => date === today && w.doneToday); }
   if (typeOn(prefs, 'review') && input.review) daily('review', 'review', input.review.time, weekdayBit(input.review.weekday), () => ({href: '/app/review', actionable: false}), () => false);
   // Session AV lane 2 (journal; LEDGER #40): the reminder to write, on its weekdays, unless that day already has an entry;
