@@ -124,3 +124,19 @@ level, a game waiting to be continued, and photos and voice notes on tasks (wher
 questions). Test: `lib/ai/local-answers/av2-roadmap.test.ts`.
 Wiring line for engine.ts (beside `avAnswer`, before it): `if (!subject) { const own = av2RoadmapAnswer(question, env); if (own) return own; }`
 — pass `{chess}` when the env carries it (`env.nova.chessComputer` is read when present; the lead adds it to NovaToolSources from `zigoals:chess-computer:v1`).
+
+## UNFINISHED.md `carried` rows, re-read (item 4)
+
+| Row | Verdict |
+|---|---|
+| BL-10 chess engine | **built** (Feature 3) |
+| CR-22 12–13 px notice and chip text (components/ui/ui.css) | left — against a named rule: owner decision T-069 (13 Nov) keeps the notice's "On this device" fact whole on one line at these sizes (shell-ab.css; CI 1629 showed the fact shrinking to 0 px when it was changed), and the notice is shell chrome (protected area: shell navigation); the chips sit on Today inside the accepted baseline's 390 px screen ceilings (docs/STATUS.md, protected) |
+| CI-1, CI-2, CI-3, CI-4, CI-6, CI-7, CI-8, CI-9, CI-10, CI-11, CI-12 (browser, runner and engine intermittents) | left — against a named rule: the team brief forbids builders Playwright, WebKit and builds, and CLAUDE.md's rule for a known CI intermittent is one job re-run, then investigation on a second failure; these are recorded families with no second failure to investigate here (the lead's CI lane) |
+| CI-14 `install-chrome.test.mjs:94` latent race | left — against a named rule: the fix on record (a longer attempt limit, as at `:100`) moves its `seconds < 7` check, and an assertion is never weakened; scripts/ci is the lead's CI lane |
+| CI-18 D-SYNC, A45-1 | skipped: the lead's (named in the task) |
+| S-8 Today 409 px for under a second after a reload (components/phone/phone-chrome.tsx) | left — a protected area: the phone top bar and tab row are the shell navigation |
+| S-10 Dutch answers carry English dates and an all-English Life review card | left — against a named rule: every such answer is pinned word for word in the NOVA corpus `lib/ai/evals/as/expected.json` (the lead's file, e.g. `hab-missed-week` "Mon, Nov 16 t/m Tue, Nov 17"); a Dutch date would move those pinned answers. For the lead: Dutch day and month names in `lib/ai/local-answers/exact/period.ts` for `lang === 'nl'`, then regenerate the corpus |
+| KL-8 "English only for now" (the interface) | left — a protected area and a named rule: a Dutch interface rewrites the Today hero and slogan and the shell navigation (protected), and Help (help-page.tsx, the lead's file) |
+
+The two "seen in passing" notes in COMPETITORS.md (the clinician report says there is no medication or symptom record;
+the sleep page's header says "No score") are Health's (the body builder's pillar, LEDGER row 48), so not taken here.
