@@ -1,6 +1,7 @@
 import {openTasks, tasksOnDay} from '../../tasks/engine';
 import type {Task, Tasks} from '../../tasks/schema';
 import type {WidgetSize} from '../store';
+import {isCancelled} from '../../tasks/finished';
 
 /**
  * Session AK WA (T1/N2): what NOVA's "Tasks" widget shows (components/nova/widgets/tasks.tsx). Today's tasks as the
@@ -15,7 +16,8 @@ export const TASKS_SHOWN: Readonly<Record<WidgetSize, {today: number; next: numb
 export type TasksWidgetView = {state: 'empty' | 'clear' | 'some'; today: Task[]; moreToday: number; todo: number; carried: number; next: Task[]};
 export function tasksWidgetView(record: Tasks, today: string, doneDay: (iso: string) => string, size: WidgetSize): TasksWidgetView {
   const shown = TASKS_SHOWN[size] ?? TASKS_SHOWN.M;
-  const day = tasksOnDay(record, today, today, doneDay), onDay = new Set(day.map(t => t.id));
+  // Session AV lane 2 (r5-plan, review B5L-1): a cancelled task is neither done nor to do, so the widget's numbers leave it out.
+  const day = tasksOnDay(record, today, today, doneDay).filter(t => !isCancelled(t)), onDay = new Set(day.map(t => t.id));
   const open = day.filter(t => !t.doneAt);
   const next = shown.next ? openTasks(record, today).filter(t => !!t.goal && !onDay.has(t.id)).slice(0, shown.next) : [];
   return {

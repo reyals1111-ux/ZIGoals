@@ -4,7 +4,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import {TASKS, type Task, type Tasks} from '../../lib/tasks/schema';
 import {finishTask, restoreTasks} from '../../lib/tasks/engine';
-import {clockText, finishStep, pauseClock, playSteps, resumeClock, runMs, spentMinutes, startClock, type StepClock} from '../../lib/tasks/play-steps';
+import {changedBy, clockText, finishStep, pauseClock, playSteps, resumeClock, runMs, spentMinutes, startClock, type StepClock} from '../../lib/tasks/play-steps';
 import {tasksToday} from '../../lib/tasks/device';
 import {minutesWords} from '../../lib/tasks/minutes';
 import './tasks-r5.css';
@@ -24,21 +24,22 @@ export default function PlaySteps({parent, onClose}: {parent: Task; onClose: () 
   useEffect(() => { nextRef.current?.focus(); }, []);
   if (!tasks.loaded) return null;
   const steps = playSteps(tasks.data, parent.id), step = steps.now, ms = runMs(clock, now), shown = step ? clockText(step, ms) : null;
-  const write = (fn: (r: Tasks) => Tasks, before: readonly Task[], message: string, undone: string): boolean => {
+  // Review B5L-2: the Undo puts back every task the change touched (a repeating parent's steps, a step's own subtasks).
+  const write = (fn: (r: Tasks) => Tasks, message: string, undone: string): boolean => {
     if (tasks.unreadable) { showStatus('Your tasks on this device could not be read, so nothing was changed.', {tone: 'error'}); return false; }
-    try { tasks.update(fn); showUndo({message, undone, restore: () => tasks.update(r => restoreTasks(r, before))}); return true; }
+    try { const before = tasks.data, after = tasks.update(fn), {was, added} = changedBy(before, after); showUndo({message, undone, restore: () => tasks.update(r => restoreTasks(r, was, added))}); return true; }
     catch (e) { showStatus(e instanceof Error ? e.message : 'That could not be kept on this device.', {tone: 'error'}); return false; }
   };
   const next = () => {
     if (!step) return;
     const t = clockNow(), took = spentMinutes(runMs(clock, t)), coming = steps.coming[0];
-    if (!write(r => finishStep(r, step.id, runMs(clock, t), new Date(t), tasksToday()), [step], `Done: “${step.title}”${took ? ` · ${minutesWords(took)} added to its time spent` : ''}.`, `“${step.title}” is open again.`)) return;
+    if (!write(r => finishStep(r, step.id, runMs(clock, t), new Date(t), tasksToday()), `Done: “${step.title}”${took ? ` · ${minutesWords(took)} added to its time spent` : ''}.`, `“${step.title}” is open again.`)) return;
     setClock(startClock(t)); setNow(t);
     setSaid(coming ? `Next step: ${coming.title}.` : 'Every step is done.');
     requestAnimationFrame(() => nextRef.current?.focus());
   };
   const pause = () => { const t = clockNow(); setNow(t); setClock(c => c.since === null ? resumeClock(c, t) : pauseClock(c, t)); setSaid(clock.since === null ? 'Going on.' : 'Paused.'); };
-  const finishParent = () => { if (write(r => finishTask(r, parent.id, new Date(), {today: tasksToday(), doneDay: tasksToday()}), [parent], `Done: “${parent.title}”.`, `“${parent.title}” is open again.`)) onClose(); };
+  const finishParent = () => { if (write(r => finishTask(r, parent.id, new Date(), {today: tasksToday(), doneDay: tasksToday()}), `Done: “${parent.title}”.`, `“${parent.title}” is open again.`)) onClose(); };
   return <section className="task-play" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>Steps of “<span dir="auto">{parent.title}</span>” <small>{steps.done.length} of {steps.all.length} done</small></h4>
     {step && shown ? <>

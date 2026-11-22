@@ -37,3 +37,11 @@ export function zoneDifference(date: string, zone: string): string {
   const abs = Math.abs(mins), h = Math.floor(abs / 60), m = abs % 60, words = m ? `${h ? `${h} h ` : ''}${m} min` : `${h} ${h === 1 ? 'hour' : 'hours'}`;
   return `${words} ${mins > 0 ? 'ahead' : 'behind'}`;
 }
+/** Review B5L-11: an instant's wall clock and day in a zone (for "what time is it there now", read from the instant itself). */
+export function zoneNow(at: Date | number, zone: string): {clock: string; date: string} | null {
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', {timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'}).formatToParts(typeof at === 'number' ? new Date(at) : at);
+    const get = (t: string) => parts.find(p => p.type === t)?.value ?? '';
+    return {clock: `${get('hour')}:${get('minute')}`, date: `${get('year')}-${get('month')}-${get('day')}`};
+  } catch { return null; }
+}

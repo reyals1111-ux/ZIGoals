@@ -184,3 +184,68 @@ steps, earlier finishes you can fix, travel time with “Leave by”, a place an
 ## Left (allowed causes only)
 
 - #353, the route part: needs an outside service (a maps service to work out travel from a route). The minutes are typed.
+
+## Review fixes (review B5L: B5L-1 to B5L-12), all fixed
+
+One commit (see `git log lane2/r5-plan`, "review B5L"): the twelve fixes share lines in the same files (engine.ts, layouts.ts,
+plan-week.ts, task-parts.tsx, the timeline source and build), and this environment cannot stage part of a file, so they are
+one whole, green commit; each fix has its own tests in `apps/web/lib/tasks/r5-plan-b5l.test.ts` (15 tests). Nothing stored
+changes; no TIER 3 part. One change to my own earlier test, labelled deliberate (r5-plan.test.ts: a travel span now also
+says where it is set, B5L-12), and one in my spec (the Doing button has no aria-pressed, B5L-12; replaced by an equally
+strict check).
+
+- **B5L-1 and B5L-3 (Blockers), fixed.** One rule, `lib/tasks/finished.ts`: `isFinished(t)` (done and not cancelled) and
+  `isCancelled(t)` (no imports, so any first chunk can read it; lib/tasks/task-state.ts re-exports both). Used wherever a
+  finish is counted or drawn:
+  NOVA's task timeline and tasks calendar (`lib/nova/cards/ax/day-tasks.ts` `taskTimeline`, `tasksMonth`) and the life radar's
+  Tasks spoke (`day-life.ts`) — numbers only, the cards' look untouched; NOVA's Tasks widget (`lib/nova/widgets/tasks.ts`, a
+  cancelled task is neither done nor to do); NOVA's "tasks done today" (`lib/ai/local-answers/nova.ts`), the exact layer's
+  finished list (`exact/day.ts`), My Day's finished count (`av2-tasks-r2.ts`), planned vs spent (`av2-tasks.ts`); Completed's
+  count line ("N finishes · M cancelled") and "Done today" on Tasks → Today (`tasks-page.tsx`); a week objective's "x of y"
+  (`layouts.ts` `objectiveProgress` gains `of`, cancelled ones left out; This week and NOVA read it); subtask counts
+  (`engine.ts` `subtaskProgress`); the chart from your lists (`layouts.ts` `chartSeries`); search `done` (finishes only;
+  `cancelled` apart), its hit words and the global search's subtitle (`search.ts`, `lib/search/records.ts`); planned vs
+  spent on Tasks → Today and This week's table (`today-planner.tsx`, `tasks-plan-views.tsx`); Play the steps' "x of y"
+  (`play-steps.ts`); an objective's task list, the month view and the print list draw "–"/"☒" for cancelled.
+  Drawn as cancelled, never ticked: the task row (its box is unticked, labelled "Open “…” again (cancelled)", and opens it;
+  muted, not struck), the Agenda's day list and hour grid (state `skipped` with `cancelled`, "Cancelled", no Move/Focus, the
+  box opens it again; `lib/agenda/time-items.ts`, `agenda-days.tsx`, `agenda-hour-grid.tsx`, `hour-grid.ts` `movable`), the
+  Day Timeline and Today's timeline card ("Task · cancelled", `skipped` + `cancelled`, the row says "Cancelled", never next
+  or a leftover; `timeline-source.ts`, `lib/timeline/sources.ts`, `build.ts`, `timeline-block.tsx`).
+  Every `doneAt` reader, checked (outside tests and fixtures): **counts or draws a finish — changed above**: day-tasks.ts,
+  day-life.ts, widgets/tasks.ts, nova.ts, exact/day.ts, av2-tasks.ts, av2-tasks-r2.ts, tasks-page.tsx, layouts.ts, engine.ts
+  (`subtaskProgress`; `completedLog` marks `cancelled`), search.ts, search/records.ts, today-planner.tsx, tasks-plan-views.tsx,
+  tasks-print.tsx, play-steps.ts, task-parts.tsx, time-items.ts, timeline-source.ts, time-blocks-read.ts (already),
+  plan-record.ts `liveFinishes` and review.ts and activity.ts and done chart (already, first round). **Reads `doneAt` as
+  "closed / not open" — right for a cancelled task, unchanged**: agenda-page.tsx, command-palette.tsx, use-handoffs.ts,
+  my-day-parts.tsx, plan-week.tsx, task-editor.tsx, task-plan-fields.tsx, task-r5-actions.tsx, task-timer.tsx,
+  time-blocks.tsx, review-task-choices.tsx, agenda/deadlines.ts, nova-writes.ts, plan-nova.ts, av-answers.ts, av2-r3-plan.ts,
+  av2-r4-plan.ts, av2-r5-plan.ts, life-insights.ts, holo/lists.ts, at-risk.ts, day-tools.ts, device.ts,
+  energy-load.ts, leave-by.ts, matrix.ts, minutes.ts, occurrences.ts, paused.ts, plan-bucket.ts, plan-day.ts, plan-week.ts,
+  print-list.ts, reminders.ts, rules.ts, task-state.ts, time-blocks.ts, when.ts, engine.ts (open lists, prune, `tasksOnDay`,
+  `doneTasks`: the Completed list, whose row says "Cancelled"). **Stores or carries it as data**: schema.ts, import.ts,
+  export/everything.ts (tasks.csv keeps `doneAt`; `state` is in the JSON), showcase.ts. **Another record's own `doneAt`**
+  (not a task): checklist derive/list-view/dot-panel, wrap-up, path/model.ts, earn/start-here.ts, vault fixtures,
+  import batches, switch-import.tsx, objectives (`o.doneAt`).
+  Known limit, said: NOVA's agenda lines read a cancelled task's Agenda state `skipped` as "(skipped)" (lib/ai/local-answers/
+  f9.ts, plan-insights.ts); never "done".
+- **B5L-2 (Blocker), fixed.** Play the steps' Undo puts back every task the finish changed (`lib/tasks/play-steps.ts`
+  `changedBy`, the record before against after): a repeating routine's reopened steps, a step's own finished subtasks.
+- **B5L-4 (Major), fixed.** Plan my week keeps every day's time blocks taken (`fitWeek` reads `blocks`), as Plan my day does.
+- **B5L-5 (Major), fixed.** Both planners keep a task's travel minutes free before its first piece (`fitDay`, `fitWeek`: they
+  look for minutes + travel and start the task after the travel). The travel stays on the task when a block drop or "Move
+  what is left" clears or moves its time, so it is reserved wherever it is placed next.
+- **B5L-6 (Minor), fixed.** The row says the task's own week or month ("Next week, any day", "Week of Dec 7, any day").
+- **B5L-7 (Minor), fixed.** Undo writes back only what it changed: one event's travel minutes; the finishes-per-day log's one
+  count (`unmoveInDoneLog`), and only when it moved.
+- **B5L-8 (Minor), fixed.** The hour grid starts early enough for a block or a "Leave by" before 06:00 (`hourRows(day, also)`).
+- **B5L-9 (Minor), fixed.** A repeating task is not put in a time block (the editor does not offer it; `dropIntoBlock`
+  refuses it in words), so a block's count never loses a ticked repeat.
+- **B5L-10 (Minor), fixed.** "Doing since" uses the device's day; NOVA's Doing and cancelled days use the app's zone.
+- **B5L-11 (Minor), fixed.** NOVA's second-zone time is read from the instant itself (`zoneNow`).
+- **B5L-12 (Minor), fixed.** (a) A timeline source item may say where it is set: a block "Set in Tasks → This week → Time
+  blocks", a travel span "Its travel minutes are set in the task’s editor", a task "Its day and time are set in Tasks" (no
+  longer "the Checklist"). (b) "Doing now" / "Not doing it now" says its state in its words; no aria-pressed.
+
+Seen while testing, not mine: `lib/ai/local-answers/av2-r4-mind.test.ts` "no question of the existing corpus is claimed"
+fails on this branch because CORPUS holds r4-mind's own questions (my diff touches neither file).

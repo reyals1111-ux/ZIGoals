@@ -15,6 +15,7 @@ import './tasks-r4.css';
 import {minutesWords} from '../../lib/tasks/minutes';
 import type {Task, Tasks} from '../../lib/tasks/schema';
 import {formatClock, formatNumber} from '../../lib/visual-format';
+import {isFinished} from '../../lib/tasks/finished';
 
 /**
  * Session AV lane 2 (tasks; Sunsama's daily planning, timeboxing, timers and workload; Todoist's daily goal), part of the
@@ -65,7 +66,7 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
     return blocks.length ? fitWithBlocks(ready, busy, opts, blocks) : {...fitDay(ready, busy, opts), inBlock: new Map<string, string>()};
   }, [open, busy, clock, until, untilTyped, hours, evening, record, today, plan.data]);
   const waiting = record.tasks.filter(t => !t.doneAt && !t.parentId && t.due && t.due <= today).map(t => ({t, on: waitingFor(record, t)})).filter(w => w.on.length);
-  const pva = plannedVsActual(open.concat(record.tasks.filter(t => t.doneAt && doneDay(t.doneAt) === today && !t.parentId)));
+  const pva = plannedVsActual(open.concat(record.tasks.filter(t => isFinished(t) /* review B5L-3 */ && doneDay(t.doneAt!) === today && !t.parentId)));
   const load = open.filter(t => !t.parallel).reduce((n, t) => n + (t.minutes ?? 0), 0), limit = plan.data.dayLimit, over = overLimit(load, limit);
   const goal = plan.data.dailyGoal, streak = goal ? goalStreak(finishesByDay(plan.data, record, doneDay), goal, today) : null;
   const place = (all: typeof fit.placed) => {

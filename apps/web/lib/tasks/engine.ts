@@ -1,5 +1,6 @@
 import {addLocalDays, localDate} from '../local-date';
 import {nextOccurrence, windowEnd} from './recurrence';
+import {isCancelled, isFinished} from './finished';
 import {
   DEFAULT_LEVEL, LABEL_PATTERN, MAX_AFTER, MAX_COMPLETIONS, MAX_TASK_MINUTES, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
   levelFields, taskLevel, taskSchema, tasksSchema, type HealthLink, type Project, type Recur, type SavedFilter, type Section,
@@ -298,8 +299,9 @@ export function descendants(record: Tasks, id: string): Task[] {
 }
 /** Subtask progress: how many of the direct subtasks are done ("2 of 5"). */
 export function subtaskProgress(record: Tasks, id: string): {done: number; total: number} {
-  const kids = record.tasks.filter(t => t.parentId === id);
-  return {done: kids.filter(t => t.doneAt).length, total: kids.length};
+  // Session AV lane 2 (r5-plan, review B5L-3): a cancelled subtask leaves the count ("2 of 3" counts finishes only).
+  const kids = record.tasks.filter(t => t.parentId === id && !isCancelled(t));
+  return {done: kids.filter(isFinished).length, total: kids.length};
 }
 /** Manual order first (tasks given an order), then creation. */
 export const byOrder = (tasks: readonly Task[]): Task[] => [...tasks].sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER) || a.createdAt.localeCompare(b.createdAt));

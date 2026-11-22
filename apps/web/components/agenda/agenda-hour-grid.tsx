@@ -21,9 +21,9 @@ const KIND: Record<DayItem['source'], string> = {habit: 'Habit', contribution: '
 type Props = {day: DayWithExtras; today: string; onMove: (taskId: string, date: string, time?: string | null) => void; onTick: (item: TaskAgendaItem, done: boolean) => void};
 
 export default function AgendaHourGrid({day, today, onMove, onTick}: Props) {
-  const id = useId(), rows = hourRows(day), waiting = untimedTasks(day), others = untimedOthers(day), load = timedLoad(day);
-  // Session AV lane 2 (r5-plan, LEDGER #348, #353, #357): time blocks, travel before an item, a second zone.
+  // Session AV lane 2 (r5-plan, LEDGER #348, #353, #357): time blocks, travel before an item, a second zone; their hours are drawn too (review B5L-8).
   const r5 = useHourR5(day.date, day.items);
+  const id = useId(), rows = hourRows(day, [...r5.blocks.map(b => b.from), ...r5.travel.map(t => t.leave)]), waiting = untimedTasks(day), others = untimedOthers(day), load = timedLoad(day);
   const [over, setOver] = useState<number | null>(null);
   const drop = (hour: number, clock: string) => ({
     onDragOver: (e: DragEvent<HTMLLIElement>) => { if (e.dataTransfer.types.includes(DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setOver(hour); } },
@@ -51,10 +51,11 @@ function GridItem({item, date, onMove, onTick, r5}: {item: DayItem; date: string
   const when = item.time ? formatClock(item.time) : 'Any time';
   return <li className="agenda-hour-item" data-source={item.source} data-pillar={item.pillar} data-state={item.state} draggable={!!task || undefined}
     onDragStart={task ? e => { e.dataTransfer.setData(DRAG_TYPE, task.taskId); e.dataTransfer.setData('text/plain', task.title); e.dataTransfer.effectAllowed = 'move'; } : undefined}>
-    {item.source === 'task' && <label className="agenda-task-tick"><input type="checkbox" checked={item.state === 'done'} onChange={e => onTick(item, e.target.checked)} /><span className="sr-only">{item.state === 'done' ? `Mark “${item.title}” not done` : `Mark “${item.title}” done`}</span></label>}
+    {/* Session AV lane 2 (r5-plan, review B5L-3): a cancelled task is never drawn ticked; its box opens it again. */}
+    {item.source === 'task' && <label className="agenda-task-tick"><input type="checkbox" checked={item.state === 'done'} onChange={e => onTick(item, item.cancelled ? false : e.target.checked)} /><span className="sr-only">{item.cancelled ? `Open “${item.title}” again (cancelled)` : item.state === 'done' ? `Mark “${item.title}” not done` : `Mark “${item.title}” done`}</span></label>}
     <span className="agenda-hour-text">
       {item.href ? <Link prefetch={false} className="agenda-item-title" href={item.href}>{item.title}</Link> : <span className="agenda-item-title">{item.title}</span>}
-      <small>{KIND[item.source]} · {when}{item.state === 'done' ? ' · Done' : ''}{item.source === 'task' && item.overdueSince ? ` · Overdue since ${formatDate(item.overdueSince, {year: false})}` : ''}</small>
+      <small>{KIND[item.source]} · {when}{item.state === 'done' ? ' · Done' : item.source === 'task' && item.cancelled ? ' · Cancelled' : ''}{item.source === 'task' && item.overdueSince ? ` · Overdue since ${formatDate(item.overdueSince, {year: false})}` : ''}</small>
     </span>
     {r5 && item.source === 'event' && <EventTravel r5={r5} item={item} />}
     {task && <button type="button" className="text-link agenda-hour-move" aria-expanded={picking} aria-label={`Move “${task.title}” to another time`} onClick={() => setPicking(p => !p)}>Move to…</button>}

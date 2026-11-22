@@ -1,6 +1,7 @@
 import {childrenOf, finishTask} from './engine';
 import {addSpent} from './layouts';
 import type {Task, Tasks} from './schema';
+import {isCancelled, isFinished} from './finished';
 
 /**
  * Session AV lane 2 (r5-plan, LEDGER #351; Tiimo's timers on the steps of a task): a task with subtasks played one step at
@@ -25,11 +26,21 @@ export function clockText(step: Pick<Task, 'minutes'>, ms: number): {text: strin
 }
 /** The steps: done ones, the current (first open) one and the coming ones, in the list's order. */
 export function playSteps(record: Tasks, parentId: string): {done: Task[]; now: Task | null; coming: Task[]; all: Task[]} {
-  const all = childrenOf(record, parentId), open = all.filter(t => !t.doneAt);
-  return {all, done: all.filter(t => t.doneAt), now: open[0] ?? null, coming: open.slice(1)};
+  // Review B5L-3: a cancelled step is not a step to play, nor a done one.
+  const all = childrenOf(record, parentId).filter(t => !isCancelled(t)), open = all.filter(t => !t.doneAt);
+  return {all, done: all.filter(isFinished), now: open[0] ?? null, coming: open.slice(1)};
 }
 /** Next: the step is done and the minutes it ran are added to its time spent. */
 export function finishStep(record: Tasks, stepId: string, ms: number, at: Date, today: string): Tasks {
   const minutes = spentMinutes(ms), done = finishTask(record, stepId, at, {today, doneDay: today});
   return minutes ? addSpent(done, stepId, minutes, {at}) : done;
+}
+/**
+ * Review B5L-2: what an Undo must put back after a change — every task the change touched, as it was (a repeating parent's
+ * finish reopens its steps; a step's finish finishes its own subtasks), and the ids it added. Pure.
+ */
+export function changedBy(before: Tasks, after: Tasks): {was: Task[]; added: string[]} {
+  const old = new Map(before.tasks.map(t => [t.id, t])), now = new Map(after.tasks.map(t => [t.id, t]));
+  const was = before.tasks.filter(t => { const n = now.get(t.id); return !n || JSON.stringify(n) !== JSON.stringify(t); });
+  return {was, added: after.tasks.filter(t => !old.has(t.id)).map(t => t.id)};
 }

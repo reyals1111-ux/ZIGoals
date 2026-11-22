@@ -99,7 +99,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     if (!title.trim()) { setTitleError('A task needs a title.'); return; }
     if (recur === 'invalid' || minutesValue === 'invalid' || spentValue === 'invalid') return;
     const fieldValues = custom.read(); if (fieldValues === 'invalid') return;
-    const where = r5Patch(r5, due, time, today); if (where === 'invalid') return;
+    const where = r5Patch(r5, due, time, today, !!recur) /* review B5L-9: no block for a repeat */; if (where === 'invalid') return;
     // Session AV (1c, q1 #15): a repeating task has no separate deadline (the engine refuses one); the field said so.
     const repeating = !!recur;
     const unchangedRepeat = task.recur && repeat === (task.recur.text ?? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase());

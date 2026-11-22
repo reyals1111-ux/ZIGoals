@@ -4,6 +4,7 @@ import {DEFAULT_BLOCK, blockLength, piecesOf} from './pieces';
 import {closedBusy} from './work-hours';
 import type {HoursBlock} from './plan-record';
 import {MAX_AREAS, MAX_OBJECTIVES, MAX_TASK_MINUTES, TASK_TITLE_MAX, PROJECT_NAME_MAX, taskLevel, tasksSchema, type Area, type Objective, type Task, type Tasks} from './schema';
+import {isCancelled, isFinished} from './finished';
 
 /**
  * Session AV lane 2 (tasks; Todoist, TickTick, Things, Sunsama, Notion): the pure parts of the planning and layout views
@@ -55,11 +56,13 @@ export function fitDay(tasks: readonly Task[], busy: readonly Busy[], {from, unt
     const {pieces, done} = piecesOf(task), of = done + pieces.length, split = pieces.length > 1 || done > 0;
     let cursor = start, kept = 0;
     for (const piece of pieces) {
-      const need = Math.min(piece, MAX_TASK_MINUTES), found = firstFit(need, [...taken, ...closed], cursor, stop, gap);
+      // Session AV lane 2 (r5-plan, review B5L-5): the travel minutes typed before the task are kept free before its first piece.
+      const need = Math.min(piece, MAX_TASK_MINUTES), travel = kept === 0 ? task.travel ?? 0 : 0, found = firstFit(need + travel, [...taken, ...closed], cursor, stop, gap);
       if (found < 0) break;
-      taken.push({start: found, end: found + need});
-      placed.push({task, start: toClock(found), end: toClock(found + need), minutes: need, ...(split ? {part: done + kept + 1, of} : {})});
-      kept++; cursor = found + need;
+      const at = found + travel;
+      taken.push({start: found, end: at + need});
+      placed.push({task, start: toClock(at), end: toClock(at + need), minutes: need, ...(split ? {part: done + kept + 1, of} : {})});
+      kept++; cursor = at + need;
     }
     if (!kept) left.push(task); else if (kept < pieces.length) rest.push({task, pieces: pieces.length - kept});
   }
@@ -106,9 +109,10 @@ export function linkObjective(record: Tasks, taskId: string, objectiveId: string
   return tasksSchema.parse({...record, tasks: record.tasks.map(t => { if (t.id !== taskId) return t; const {objective: _o, ...rest} = t; void _o; return objectiveId ? {...rest, objective: objectiveId} : rest; })});
 }
 /** An objective's tasks and how many are done. */
-export function objectiveProgress(record: Tasks, id: string): {tasks: Task[]; done: number} {
+/** Session AV lane 2 (r5-plan, review B5L-3): `of` leaves cancelled tasks out, so "x of y" counts finishes of the tasks still meant. */
+export function objectiveProgress(record: Tasks, id: string): {tasks: Task[]; done: number; of: number} {
   const tasks = record.tasks.filter(t => t.objective === id && !t.parentId);
-  return {tasks, done: tasks.filter(t => t.doneAt).length};
+  return {tasks, done: tasks.filter(isFinished).length, of: tasks.filter(t => !isCancelled(t)).length};
 }
 /** The week's open objectives carried to the next week (Sunsama's "roll over"), as new objectives there. */
 export function carryObjectives(record: Tasks, fromWeek: string, ids: () => string): Tasks {
@@ -316,7 +320,7 @@ export function chartSeries(record: Tasks, group: ChartGroup, measure: ChartMeas
   const bump = (k: string, n: number) => counts.set(k, (counts.get(k) ?? 0) + n);
   for (const t of record.tasks) {
     if (t.parentId) continue;
-    const counted = measure === 'done' ? !!t.doneAt : !t.doneAt, n = measure === 'minutes' ? t.minutes ?? 0 : 1;
+    const counted = measure === 'done' ? isFinished(t) /* review B5L-3 */ : !t.doneAt, n = measure === 'minutes' ? t.minutes ?? 0 : 1;
     if (!counted || !n) continue;
     if (group === 'project') bump(record.projects?.find(p => p.id === t.projectId)?.name ?? 'Inbox', n);
     else if (group === 'label') for (const l of t.labels?.length ? t.labels : ['(no label)']) bump(l.startsWith('(') ? l : `@${l}`, n);

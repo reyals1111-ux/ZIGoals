@@ -3,7 +3,7 @@ import {useId, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import {TASK_PLAN} from '../../lib/tasks/plan-record';
-import {moveFinish, moveInDoneLog, takeBackFinish} from '../../lib/tasks/occurrences';
+import {moveFinish, moveInDoneLog, takeBackFinish, unmoveInDoneLog} from '../../lib/tasks/occurrences';
 import {restoreTasks} from '../../lib/tasks/engine';
 import {TASKS, type Task, type Tasks} from '../../lib/tasks/schema';
 import {formatDate} from '../../lib/visual-format';
@@ -22,10 +22,12 @@ export default function OccurrenceEdit({task, at, today, doneDay}: {task: Task; 
   /** The task's change and the finishes-per-day log's, with one Undo that puts both back. */
   const write = (fn: (r: Tasks) => Tasks, to: string | null, message: string, undone: string): boolean => {
     if (tasks.unreadable) { showStatus('Your tasks on this device could not be read, so nothing was changed.', {tone: 'error'}); return false; }
-    const was = tasks.data.tasks.find(t => t.id === task.id), logWas = plan.loaded && !plan.unreadable ? plan.data : null;
+    const was = tasks.data.tasks.find(t => t.id === task.id);
     try { tasks.update(fn); } catch (e) { setError(e instanceof Error ? e.message : 'That could not be kept on this device.'); return false; }
-    if (logWas) { try { plan.update(p => moveInDoneLog(p, from, to)); } catch { /* the log keeps its count */ } }
-    showUndo({message, undone, restore: () => { if (was) tasks.update(r => restoreTasks(r, [was])); if (logWas) plan.update(() => logWas); }});
+    // Review B5L-7: only the finishes-per-day log is written, only when it changed, and Undo moves that one count back.
+    let logMoved = false;
+    if (plan.loaded && !plan.unreadable) { try { const before = plan.data, after = moveInDoneLog(before, from, to); if (after !== before) { plan.update(p => moveInDoneLog(p, from, to)); logMoved = true; } } catch { /* the log keeps its count */ } }
+    showUndo({message, undone, restore: () => { if (was) tasks.update(r => restoreTasks(r, [was])); if (logMoved) plan.update(p => unmoveInDoneLog(p, from, to)); }});
     return true;
   };
   // The finish leaves the list, so focus goes to the list's count line, never to the page.

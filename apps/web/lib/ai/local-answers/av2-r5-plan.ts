@@ -3,13 +3,14 @@ import type {Tasks} from '../../tasks/schema';
 import {isCancelled, isDoing} from '../../tasks/task-state';
 import {bucketGroups} from '../../tasks/plan-bucket';
 import {blockProgress, blockTasks, blocksOn, leaveBy} from '../../tasks/time-blocks';
-import {zoneClock, zoneDifference, zoneName} from '../../agenda/second-zone';
+import {zoneDifference, zoneName, zoneNow} from '../../agenda/second-zone';
 import {minutesWords, minutesWordsNl} from '../../tasks/minutes';
 import {childrenOf} from '../../tasks/engine';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, count, dayIn, isQuestion, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
+import {calendarDay} from '../../visual-format';
 
 /**
  * Session AV lane 2 (r5-plan, LEDGER #348–#354, #356, #357; Akiflow, Logseq, Tiimo): NOVA's and ZIGi's on-device answers, in
@@ -53,7 +54,7 @@ function doingAnswer(a: Ask): LocalReply | null {
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const doing = got.record.tasks.filter(isDoing);
   if (!doing.length) return answer(say(a.lang, 'No task is marked Doing. In a task’s editor, “Doing now” puts it first in Tasks → Today, with the day you began.', 'Geen taak staat op Doing. In de editor van een taak zet “Doing now” hem bovenaan in Tasks → Today, met de dag waarop je begon.'), TASK_CALLS);
-  const lines = doing.slice(0, 8).map(t => `• ${clean(t.title, 60)} ${say(a.lang, `(since ${dayIn('en', t.state!.at.slice(0, 10), a.today)})`, `(sinds ${dayIn('nl', t.state!.at.slice(0, 10), a.today)})`)}`);
+  const lines = doing.slice(0, 8).map(t => `• ${clean(t.title, 60)} ${say(a.lang, `(since ${dayIn('en', calendarDay(t.state!.at, a.env.habitZone), a.today)})`, `(sinds ${dayIn('nl', calendarDay(t.state!.at, a.env.habitZone), a.today)})`)}`);
   return answer([say(a.lang, `You are doing ${count(doing.length, 'en', ['task', 'tasks'], ['', ''])}:`, `Je bent bezig met ${count(doing.length, 'nl', ['', ''], ['taak', 'taken'])}:`), ...lines].join('\n'), TASK_CALLS);
 }
 
@@ -65,7 +66,7 @@ function cancelledAnswer(a: Ask): LocalReply | null {
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const gone = got.record.tasks.filter(isCancelled).sort((x, y) => y.doneAt!.localeCompare(x.doneAt!));
   if (!gone.length) return answer(say(a.lang, 'No task is cancelled in the last 30 days. “Cancel the task” in a task’s editor closes it without counting it as done: it stays out of your done chart, your daily goal and its streak.', 'Geen taak is geannuleerd in de laatste 30 dagen. “Cancel the task” in de editor sluit een taak zonder dat hij als gedaan telt: niet in je grafiek, je dagdoel of je reeks.'), TASK_CALLS);
-  const lines = gone.slice(0, 8).map(t => `• ${clean(t.title, 60)} (${dayIn(a.lang, t.doneAt!.slice(0, 10), a.today)})`);
+  const lines = gone.slice(0, 8).map(t => `• ${clean(t.title, 60)} (${dayIn(a.lang, calendarDay(t.doneAt!, a.env.habitZone) /* review B5L-10 */, a.today)})`);
   return answer([say(a.lang, `${count(gone.length, 'en', ['task is', 'tasks are'], ['', ''])} cancelled (not counted as done):`, `${count(gone.length, 'nl', ['', ''], ['taak is', 'taken zijn'])} geannuleerd (niet als gedaan geteld):`), ...lines].join('\n'), TASK_CALLS);
 }
 
@@ -151,7 +152,7 @@ function zoneAnswer(a: Ask): LocalReply | null {
   const nl = /\btweede tijd(?:s)?zone\b|\bandere tijd(?:s)?zone\b/.test(a.f);
   if (!(en || nl)) return null;
   if (!a.zone) return answer(say(a.lang, 'You have not chosen a second time zone. On the Agenda’s hour grid, “Show a second time zone” puts its hours beside yours there and on the Day Timeline.', 'Je hebt geen tweede tijdzone gekozen. Op het uurrooster van de Agenda zet “Show a second time zone” de uren ervan naast de jouwe, daar en op de Day Timeline.'), []);
-  const there = zoneClock(a.today, a.clock, a.zone);
+  const there = zoneNow(a.env.now, a.zone); // review B5L-11: the instant itself, in the second zone
   if (!there) return null;
   const diff = zoneDifference(a.today, a.zone), nlDiff = diff.replace('the same time', 'dezelfde tijd').replace(/\bhours?\b/, 'uur').replace('ahead', 'later').replace('behind', 'eerder');
   return answer(say(a.lang, `In ${zoneName(a.zone)} it is ${clockIn('en', there.clock)}${there.date !== a.today ? (there.date > a.today ? ', tomorrow' : ', yesterday') : ''} (${diff}).`, `In ${zoneName(a.zone)} is het ${clockIn('nl', there.clock)}${there.date !== a.today ? (there.date > a.today ? ', morgen' : ', gisteren') : ''} (${nlDiff}).`), []);

@@ -7,6 +7,7 @@ import {childrenOf, descendants, restoreTasks} from '../../lib/tasks/engine';
 import {CANCEL_REPEAT_MESSAGE, cancelTask, isDoing, startDoing, stopDoing} from '../../lib/tasks/task-state';
 import {formatDate} from '../../lib/visual-format';
 import './tasks-r5.css';
+import {deviceDay} from '../../lib/tasks/device';
 
 /** Session AV lane 2 (r5-plan, LEDGER #351; Tiimo's timers on the steps of a task): its own chunk, opened on the tap. */
 const PlaySteps = lazy(() => import('./play-steps'));
@@ -50,8 +51,8 @@ export default function TaskR5Actions({task, onWrote, onClosed}: {task: Task; on
     catch { setLink(url); requestAnimationFrame(() => { linkRef.current?.focus(); linkRef.current?.select(); }); }
   };
   return <div className="task-r5" role="group" aria-label={`Actions for “${task.title}”`}>
-    {doing && task.state && <p><span className="task-doing">Doing</span> since {formatDate(task.state.at.slice(0, 10), {weekday: true, year: false})}.</p>}
-    {!task.doneAt && <button type="button" className="secondary" aria-pressed={doing} onClick={toggleDoing}>{doing ? 'Not doing it now' : 'Doing now'}</button>}
+    {doing && task.state && <p><span className="task-doing">Doing</span> since {formatDate(deviceDay(task.state.at) /* review B5L-10: the device's own day */, {weekday: true, year: false})}.</p>}
+    {!task.doneAt && <button type="button" className="secondary" onClick={toggleDoing}>{/* review B5L-12: the words say the state; no aria-pressed as well */}{doing ? 'Not doing it now' : 'Doing now'}</button>}
     {steps.length > 0 && !task.doneAt && <button type="button" className="secondary" aria-expanded={playing} onClick={() => setPlaying(p => !p)}>{playing ? 'Close the steps' : `Play the steps (${steps.length})`}</button>}
     <button type="button" className="quiet" onClick={() => void copy()}>Copy link</button>
     {!task.doneAt && !task.recur && <button type="button" className="quiet" onClick={cancel}>Cancel the task</button>}

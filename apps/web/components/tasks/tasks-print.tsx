@@ -5,6 +5,7 @@ import {printGroups, type PrintGrouping} from '../../lib/tasks/print-list';
 import type {Task, Tasks} from '../../lib/tasks/schema';
 import {formatDate} from '../../lib/visual-format';
 import './tasks-print.css';
+import {isCancelled} from '../../lib/tasks/finished';
 
 /**
  * Session AV lane 2 (tasks-r2, LEDGER #225; Google Tasks' print): "Print this list". A sheet of the list the view shows —
@@ -32,7 +33,7 @@ export default function TasksPrint({title, record, shown, grouping, projectId, t
     {groups.map((g, i) => <div key={`${g.title}-${i}`} className="tasks-print-group">
       {g.title && <h2>{g.title}</h2>}
       <ul>{g.rows.map(r => <li key={r.task.id} style={{['--print-depth' as string]: r.depth}}>
-        <span className="tasks-print-box" aria-hidden="true">{r.task.doneAt ? '☑' : '☐'}</span>
+        <span className="tasks-print-box" aria-hidden="true">{isCancelled(r.task) ? '☒' : r.task.doneAt ? '☑' : '☐'}</span>
         <span className="tasks-print-title" dir="auto">{r.task.title}</span>
         {r.meta && <span className="tasks-print-what">{r.meta}</span>}
       </li>)}</ul>

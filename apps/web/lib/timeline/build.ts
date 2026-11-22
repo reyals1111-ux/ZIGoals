@@ -48,6 +48,8 @@ export type TimelineBlock = {
   glyph?: string;
   /** Session AV lane 2 (r3-plan, LEDGER #258): on another day, the time is the everyday move (a move here keeps this date only). */
   everydayMove?: true;
+  /** Session AV lane 2 (r5-plan, review B5L-3): a cancelled task (with `skipped`, so it is never "next" or a leftover). */
+  cancelled?: true;
 };
 // Session AV lane 2 (r5-body, LEDGER #370): a source's mark (a mood check-in) is kind 'mark': a moment with its words.
 export type DayTimeline = {date: string; nowMinute: number; blocks: TimelineBlock[]; anytime: TimelineBlock[]; leftovers: TimelineBlock[]; replanFrom: number; quiet: boolean};
@@ -190,7 +192,7 @@ export function buildDayTimeline(input: TimelineInput): DayTimeline {
     if (item.habitId && habitBlocks.has(item.habitId)) { habitBlocks.get(item.habitId)!.onChecklist = true; continue; }
     const band: TimelineBand = item.band ?? 'anytime', time = item.time && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.time) ? item.time : band === 'anytime' ? null : PART_OF_DAY[band];
     if (item.mark) { out.push({id: item.id, kind: 'mark', title: item.title, start: time ? clockMinutes(time) : null, minutes: 0, pillar: item.pillar ?? null, ...(item.colour ? {colour: item.colour} : {}), href: item.href || '/app/health', done: false, movable: false, timeFrom: 'its record', action: 'open', ...(item.label ? {note: item.label} : {})}); continue; }
-    out.push({id: item.id, kind: 'checklist', title: item.title, start: time ? clockMinutes(time) : null, minutes: Number.isInteger(item.minutes) && item.minutes! > 0 ? Math.min(item.minutes!, 1440) : 0 /* Session AV lane 2 (r5-plan): a span */, pillar: item.pillar ?? null, ...(item.colour ? {colour: item.colour} : {}), ...(item.glyph ? {glyph: item.glyph} : {}), href: item.href || '/app/checklist', done: item.done, movable: false, lockedReason: 'Its place is set on the Checklist.', timeFrom: 'the Checklist', action: 'open', note: item.label ?? 'Checklist'});
+    out.push({id: item.id, kind: 'checklist', title: item.title, start: time ? clockMinutes(time) : null, minutes: Number.isInteger(item.minutes) && item.minutes! > 0 ? Math.min(item.minutes!, 1440) : 0 /* Session AV lane 2 (r5-plan): a span */, pillar: item.pillar ?? null, ...(item.colour ? {colour: item.colour} : {}), ...(item.glyph ? {glyph: item.glyph} : {}), href: item.href || '/app/checklist', done: item.done, ...(item.cancelled ? {skipped: true, cancelled: true as const} : {}) /* review B5L-3: a cancelled task, never done */, movable: false, lockedReason: item.lockedReason ?? 'Its place is set on the Checklist.', timeFrom: item.lockedReason ? 'its record' : 'the Checklist' /* review B5L-12: a source says where its place is set */, action: 'open', note: item.label ?? 'Checklist'});
   }
 
   const timed = out.filter(b => b.start !== null).map(b => ({...b, start: clampDay(b.start!)}))

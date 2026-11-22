@@ -50,3 +50,12 @@ export function moveInDoneLog(plan: TaskPlan, from: string, to: string | null): 
   if (to && to <= through) { days[to] = (days[to] ?? 0) + 1; changed = true; }
   return changed ? taskPlanSchema.parse({...plan, doneLog: {...plan.doneLog, days}}) : plan;
 }
+/** Review B5L-7: the inverse of `moveInDoneLog` (the count goes back to `from`, off `to`), on the latest planning record. */
+export function unmoveInDoneLog(plan: TaskPlan, from: string, to: string | null): TaskPlan {
+  const through = plan.doneLog?.through;
+  if (!through || !plan.doneLog) return plan;
+  const days = {...plan.doneLog.days};
+  if (to && to <= through && (days[to] ?? 0) > 0) { days[to] = days[to]! - 1; if (!days[to]) delete days[to]; }
+  if (from <= through) days[from] = (days[from] ?? 0) + 1;
+  return taskPlanSchema.parse({...plan, doneLog: {...plan.doneLog, days}});
+}

@@ -8,11 +8,13 @@ import {addLocalDays} from '../../lib/local-date';
 import {describeRecur} from '../../lib/tasks/recurrence';
 import {pausedRepeat} from '../../lib/tasks/paused';
 import {reminderLabel} from '../../lib/tasks/reminders';
-import {formatClock, formatDate} from '../../lib/visual-format';
+import {formatClock, formatDate, formatMonth} from '../../lib/visual-format';
+import {bucketOf, bucketTitle} from '../../lib/tasks/plan-bucket';
 import type {GoalOption} from './use-goal-options';
 import type {TaskPatch} from './use-task-list';
 import {celebrateCompletion} from '../motion/completion';
 import {taskLook} from '../../lib/tasks/look';
+import {isCancelled} from '../../lib/tasks/finished';
 import '../habits/habit-look.css';
 import './task-row-r3.css';
 
@@ -47,7 +49,7 @@ export function dueText(t: Task, today: string, nowClock?: string): string {
   const s = taskState(t, today, nowClock), at = t.time ? ` at ${formatClock(t.time)}` : '';
   if (s === 'overdue') return t.due === today ? `Late · today${at}` : `Overdue · ${dayWords(t.due!, today)}${at}`;
   // Session AV lane 2 (r5-plan, LEDGER #349): a task with no day planned for a week or a month says so.
-  return s === 'today' ? `Due today${at}` : s === 'someday' ? (t.plan?.kind === 'week' ? 'This week, any day' : t.plan?.kind === 'month' ? 'This month, any day' : 'No day') : `Due ${dayWords(t.due!, today, true)}${at}`;
+  return s === 'today' ? `Due today${at}` : s === 'someday' ? ((b => b ? `${bucketTitle(b.kind, b.of, today, of => formatMonth(of, {year: of.slice(0, 4) !== today.slice(0, 4)}), d => formatDate(d, {year: false}))}, any day` : 'No day')(bucketOf(t, today)) /* review B5L-6: its own week or month */) : `Due ${dayWords(t.due!, today, true)}${at}`;
 }
 
 /** The title field: its own 140 limit (older builds read up to 140), and a paste that would be cut says so. */
@@ -121,15 +123,17 @@ export type EditScope = 'one' | 'all';
  */
 export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus, goals = [], showGoal = true, record, nowClock, links, selected, onSelect, onMove, drag, depth = 0, editor, habits, children, focused, onOpen, onSkip}: {task: Task; today: string; goal?: GoalOption; onToggle: (done: boolean) => void; onRemove?: () => void; onEdit?: (patch: TaskPatch, scope?: EditScope) => boolean; onFocus?: () => void; goals?: readonly GoalOption[]; showGoal?: boolean;
   record?: Tasks; nowClock?: string; links?: RowLinks; selected?: boolean; onSelect?: (on: boolean, shift: boolean) => void; onMove?: (step: -1 | 1) => void; drag?: React.HTMLAttributes<HTMLElement> & {draggable?: boolean}; depth?: number; editor?: 'inline' | 'none'; habits?: readonly {id: string; title: string}[]; children?: ReactNode; focused?: boolean; onOpen?: () => void; /** A repeating task: skip this occurrence (P-LS-02 "this one"). */ onSkip?: () => void}) {
-  const [editing, setEditing] = useState(false), done = !!task.doneAt, state = taskState(task, today, nowClock), level = taskLevel(task);
+  const [editing, setEditing] = useState(false), done = !!task.doneAt, cancelled = isCancelled(task), state = taskState(task, today, nowClock), level = taskLevel(task);
   const progress = useMemo(() => record ? subtaskProgress(record, task.id) : null, [record, task.id]);
   // Session AV lane 2 (r3-plan, LEDGER #257): the task's own symbol in its colour, decoration beside the title.
   const look = taskLook(task);
-  return <li id={`task-${task.id}`} className={`task task-${done ? 'finished' : state} task-priority-${task.priority} task-level-${level}${selected ? ' is-selected' : ''}`} data-done={done || undefined} data-depth={depth || undefined} data-focused={focused || undefined} style={depth ? {['--task-depth' as string]: depth} : undefined} {...(drag ?? {})}>
+  return <li id={`task-${task.id}`} className={`task task-${done ? 'finished' : state}${cancelled ? ' task-cancelled' : ''} task-priority-${task.priority} task-level-${level}${selected ? ' is-selected' : ''}`} data-done={(done && !cancelled) || undefined} data-cancelled={cancelled || undefined} data-depth={depth || undefined} data-focused={focused || undefined} style={depth ? {['--task-depth' as string]: depth} : undefined} {...(drag ?? {})}>
     {/* Release review AL (RR-18): one box per row. Selecting (bulk actions) is a mode the list turns on: then the box selects,
         and Done is the bulk bar's; otherwise the box marks the task done. Never two look-alike boxes side by side. */}
     {onSelect && <label className="task-select"><input type="checkbox" checked={!!selected} onClick={e => onSelect(!selected, e.shiftKey)} onChange={() => undefined} /><span className="sr-only">Select “{task.title}”</span></label>}
-    {!onSelect && <label className="task-done"><input type="checkbox" checked={done} onChange={e => { if (e.target.checked) celebrateCompletion(e.currentTarget.parentElement); /* Session AK M1: the completion moment */ onToggle(e.target.checked); }} /><span className="sr-only">{done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}</span></label>}
+    {/* Session AV lane 2 (r5-plan, review B5L-3): a cancelled task is never drawn ticked; its box opens it again. */}
+    {!onSelect && (cancelled ? <label className="task-done"><input type="checkbox" checked={false} onChange={() => onToggle(false)} /><span className="sr-only">{`Open “${task.title}” again (cancelled)`}</span></label>
+      : <label className="task-done"><input type="checkbox" checked={done} onChange={e => { if (e.target.checked) celebrateCompletion(e.currentTarget.parentElement); /* Session AK M1: the completion moment */ onToggle(e.target.checked); }} /><span className="sr-only">{done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}</span></label>)}
     <span className="task-title" dir="auto">{look && <span className="habit-look task-look" data-look-colour={look.colour} aria-hidden="true">{look.glyph} </span>}{onOpen ? <button type="button" className="task-title-button" dir="auto" onClick={onOpen}>{task.title}</button> : task.title}</span>
     <span className="task-meta">
       {level !== 3 && <span className={`task-chip task-chip-p${level}`} title={LEVEL_WORDS[level]}>P{level} · {LEVEL_SHORT[level]}</span>}
