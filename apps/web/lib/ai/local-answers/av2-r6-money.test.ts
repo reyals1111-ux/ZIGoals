@@ -101,7 +101,7 @@ describe('the streak (#427), the check (#430) and put away (#431)', () => {
   });
   test('put away: the years that can go and the years put away', () => {
     const s = withLog(freshAll(), [mine({date: '2024-03-01'}), mine({date: '2025-03-01'})], {putAway: {years: [{id: 'y', year: '2023', at, entries: [mine({date: '2023-01-01'})]}]}});
-    expect(text(zigi('which years did I put away', s))).toContain('Put away now: 2023 (1 entries); Bring back returns them. Years you can put away: 2025 (1) and 2024 (1).');
-    expect(text(zigi('welke jaren heb ik opgeborgen', s))).toContain('Nu opgeborgen: 2023 (1 boekingen)');
+    expect(text(zigi('which years did I put away', s))).toContain('Put away now: 2023 (1 entry); Bring back returns them. Years you can put away: 2025 (1) and 2024 (1).');
+    expect(text(zigi('welke jaren heb ik opgeborgen', s))).toContain('Nu opgeborgen: 2023 (1 boeking);'); // Review B6Q-19: one entry, one boeking (was “1 entries”, “1 boekingen”)
   });
 });

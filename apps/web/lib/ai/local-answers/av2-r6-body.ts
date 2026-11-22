@@ -56,7 +56,7 @@ function medDayAnswer(a: Asked): LocalReply | null {
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const ends = currentDayEnds().endsAt, at = dayEndLabel(ends), lang = a.lang;
   if (!ends) return answer(say(lang, 'Your day ends at midnight (Settings → My day ends at), so a session counts on the calendar day it began. With a later end, such as 3:00, a 1:00 session counts on the evening before, as your habits do.', 'Je dag eindigt om middernacht (Settings → My day ends at), dus een sessie telt op de kalenderdag waarop hij begon. Met een later einde, zoals 3:00, telt een sessie om 1:00 op de avond ervoor, net als je gewoontes.'), CALLS);
-  return answer(say(lang, `Your day ends at ${at} (Settings → My day ends at), so a session that begins before ${at} counts on the evening before: in your minutes, the weekly bars, the days in a row and your weekly goal, as your habits do.`, `Je dag eindigt om ${at} (Settings → My day ends at), dus een sessie die vóór ${at} begint telt op de avond ervoor: in je minuten, de weekbalken, de dagen op rij en je weekdoel, net als je gewoontes.`), CALLS);
+  return answer(say(lang, `Your day ends at ${at} (Settings → My day ends at), so a session that begins between midnight and ${at} counts on the evening before: in your minutes, the weekly bars, the days in a row and your weekly goal, as your habits do.`, `Je dag eindigt om ${at} (Settings → My day ends at), dus een sessie die tussen middernacht en ${at} begint telt op de avond ervoor: in je minuten, de weekbalken, de dagen op rij en je weekdoel, net als je gewoontes.`), CALLS);
 }
 
 /** "how consistent is my meditation", "hoe consequent mediteer ik" (LEDGER #413). */
@@ -152,7 +152,7 @@ function favExercisesAnswer(a: Asked): LocalReply | null {
   if (!(/\bfavou?rite exercises?\b|\bexercises?\b.*\bfavou?rites?\b|\bstarred exercises?\b/.test(a.f) || /\bfavoriete oefeningen\b|\boefeningen\b.*\bfavorie\w*\b/.test(a.f))) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const w = logOf(a), names = new Map(allExercises(w.exercises).map(x => [x.id, x.name])), favs = (w.favouriteExercises ?? []).map(id => names.get(id)).filter((x): x is string => !!x), lang = a.lang;
-  if (!favs.length) return answer(say(lang, 'No favourite exercises yet. Star one in Health → Workouts → "Exercises and how-tos" or in the list when you add one; favourites come first when you add an exercise.', 'Nog geen favoriete oefeningen. Geef er een een ster in Health → Workouts → "Exercises and how-tos" of in de lijst als je er een toevoegt; favorieten staan bovenaan als je een oefening toevoegt.'), CALLS);
+  if (!favs.length) return answer(say(lang, 'No favourite exercises yet. Star one in Health → Workouts → "Exercises and how-tos" or in the list when you add one; favourites come first when you add an exercise.', 'Nog geen favoriete oefeningen. Geef een oefening een ster in Health → Workouts → "Exercises and how-tos" of in de lijst als je er een toevoegt; favorieten staan bovenaan als je een oefening toevoegt.'), CALLS);
   return answer(say(lang, `Your favourite exercises: ${list(favs, 'en')}. They come first when you add an exercise.`, `Je favoriete oefeningen: ${list(favs, 'nl')}. Ze staan bovenaan als je een oefening toevoegt.`), CALLS);
 }
 
@@ -161,9 +161,12 @@ function lightAnswer(a: Asked): LocalReply | null {
   if (!(/\blight weeks?\b|\bdeload\b|\bworkouts?\b.*\bleft out of (?:my )?bests\b/.test(a.f) || /\blichte weken?\b|\bdeload\b|\bworkouts?\b.*\btellen niet mee\b.*\brecords?\b/.test(a.f))) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const light = finished(logOf(a)).filter(x => x.light), lang = a.lang, today = a.env.healthDay;
-  if (!light.length) return answer(say(lang, 'No workout is marked as a light week. Open one under Health → Workouts → Your workouts and choose "Light week (not in my bests)": its sets stay in your history and volume and leave your bests.', 'Geen workout is als lichte week gemarkeerd. Open er een onder Health → Workouts → Your workouts en kies "Light week (not in my bests)": de sets blijven in je geschiedenis en volume en tellen niet mee voor je records.'), CALLS);
+  // Review B6Q-3: only a light week marked during the workout keeps a routine's kept weights clean (keep-weights.ts reads it at Finish).
+  const when = say(lang, 'Mark a light week during the workout ("Light week (not in my bests)", above Finish workout) and a routine that keeps your last weights leaves its weights out too; marked afterwards under Health → Workouts → Your workouts, it is left out of your bests and "new best" marks only.',
+    'Markeer een lichte week tijdens de workout ("Light week (not in my bests)", boven Finish workout), dan laat een routine die je laatste gewichten bewaart de gewichten ervan ook weg; markeer je hem achteraf onder Health → Workouts → Your workouts, dan blijft hij alleen buiten je records en de "new best"-markeringen.');
+  if (!light.length) return answer(say(lang, `No workout is marked as a light week. ${when} Either way its sets stay in your history and volume.`, `Geen workout is als lichte week gemarkeerd. ${when} Hoe dan ook blijven de sets in je geschiedenis en volume.`), CALLS);
   const items = light.slice(0, 5).map(x => `${x.name} (${dayIn(lang, x.date, today)})`);
-  return answer(say(lang, `Light weeks, left out of your bests: ${list(items, 'en')}. Their sets stay in your history and volume.`, `Lichte weken, buiten je records gelaten: ${list(items, 'nl')}. Hun sets blijven in je geschiedenis en volume.`), CALLS);
+  return answer(say(lang, `Light weeks, left out of your bests: ${list(items, 'en')}. Their sets stay in your history and volume. ${when}`, `Lichte weken, buiten je records gelaten: ${list(items, 'nl')}. Hun sets blijven in je geschiedenis en volume. ${when}`), CALLS);
 }
 
 /** "when did I set my personal bests", "wanneer heb ik mijn persoonlijke records gezet" (LEDGER #422). */
@@ -188,7 +191,7 @@ function defaultsAnswer(a: Asked): LocalReply | null {
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const w = logOf(a), names = new Map(allExercises(w.exercises).map(x => [x.id, x.name])), lang = a.lang;
   const rows = Object.entries(w.exerciseDefaults ?? {}).map(([id, d]) => names.has(id) ? `${names.get(id)} ${defaultsWords(d)}` : null).filter((x): x is string => !!x);
-  const nlRows = rows.map(r => r.replace(/min rest/, 'min rust').replace(/no rest timer/, 'geen rusttimer').replace(/ s rest/, ' s rust').replace(/(\d) sets?\b/, '$1 sets'));
+  const nlRows = rows.map(r => r.replace(/min rest/, 'min rust').replace(/no rest timer/, 'geen rusttimer').replace(/ s rest/, ' s rust')); // Review B6Q-19(e): "1 set" and "3 sets" stay as defaultsWords says them
   if (!rows.length) return answer(say(lang, 'No exercise has defaults of its own. In Health → Workouts → "Exercises and how-tos", an exercise\'s "Its own defaults" keeps its sets, reps or time and rest, used when you add it with no earlier sets.', 'Geen oefening heeft eigen standaardwaarden. In Health → Workouts → "Exercises and how-tos" bewaart "Its own defaults" de sets, herhalingen of tijd en rust van een oefening, gebruikt als je hem toevoegt zonder eerdere sets.'), CALLS);
   return answer(say(lang, `Your exercises' own defaults: ${list(rows, 'en')}. They fill an exercise added with no earlier sets; your last sets still win.`, `Eigen standaardwaarden van je oefeningen: ${list(nlRows, 'nl')}. Ze vullen een oefening die je toevoegt zonder eerdere sets; je laatste sets gaan voor.`), CALLS);
 }

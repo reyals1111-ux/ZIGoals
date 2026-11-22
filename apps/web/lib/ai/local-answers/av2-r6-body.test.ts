@@ -63,7 +63,7 @@ describe('the answers read the features’ own figures', () => {
   test('the meditation day follows "My day ends at"', () => {
     expect(text(ask('which day does a late meditation count on'))).toMatch(/^Your day ends at midnight/);
     setCurrentDayEnds({version: 1, endsAt: 180});
-    expect(text(ask('which day does a late meditation count on'))).toMatch(/^Your day ends at 3:00 .*before 3:00 counts on the evening before/);
+    expect(text(ask('which day does a late meditation count on'))).toMatch(/^Your day ends at 3:00 .*begins between midnight and 3:00 counts on the evening before/); // Review B6Q-18: was “before 3:00”
     expect(text(ask('op welke dag telt een late meditatie?'))).toMatch(/^Je dag eindigt om 3:00/);
   });
   test('consistency from the sessions', () => {
