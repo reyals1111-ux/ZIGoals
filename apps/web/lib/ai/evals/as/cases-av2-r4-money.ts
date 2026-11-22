@@ -10,4 +10,5 @@ export const AV2_R4_MONEY: readonly Intent[] = [
   {id: 'av2r4-money-archived', pillar: 'wealth', en: ['which categories have I archived', 'show my archived categories'], nl: ['welke categorieën heb ik gearchiveerd', 'toon mijn gearchiveerde categorieën']},
   {id: 'av2r4-money-starter-sets', pillar: 'wealth', en: ['what starter category sets are there', 'which category templates can I start from'], nl: ['welke startsets met categorieën zijn er', 'welke categoriesets kan ik gebruiken']},
   {id: 'av2r4-money-groups', pillar: 'wealth', en: ['which groups of entries do I have', 'show my grouped transactions'], nl: ['welke groepen van invoer heb ik', 'toon mijn gegroepeerde uitgaven']},
+  {id: 'av2r4-money-places', pillar: 'wealth', en: ['which places have I kept for my payees', 'show my payee places'], nl: ['welke plekken heb ik voor mijn betalingen', 'toon de winkels bij mijn plekken']},
 ];

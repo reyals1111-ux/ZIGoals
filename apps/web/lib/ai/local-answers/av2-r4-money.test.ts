@@ -95,3 +95,12 @@ describe('groups of entries (#341)', () => {
     expect(text(zigi('show my grouped transactions', withLog(freshAll(), [])))).toContain('You have no groups yet.');
   });
 });
+
+describe('payee places, typed names only (#346)', () => {
+  const more: MoneyMore = {version: 1, places: [{id: 'p1', name: 'Work', payees: ['Canteen', 'Coffee corner']}, {id: 'p2', name: 'The market'}]};
+  test('each place with its payees, EN and NL; never a location', () => {
+    expect(text(zigi('which places have I kept for my payees', freshAll(), more))).toBe('Work: Canteen and Coffee corner. The market: no payee kept yet. Places are names you typed, kept on this device; "Forget places" clears them.');
+    expect(text(zigi('welke plekken heb ik voor mijn betalingen', freshAll(), more))).toBe('Work: Canteen en Coffee corner. The market: nog geen ontvanger bewaard. Plekken zijn namen die je typte, bewaard op dit apparaat; "Forget places" wist ze.');
+    expect(text(zigi('show my payee places', freshAll(), {version: 1}))).toContain('ZIGoals never reads where you are.');
+  });
+});

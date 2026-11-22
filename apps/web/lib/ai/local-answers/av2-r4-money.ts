@@ -6,6 +6,7 @@ import {busiestDays, calendarCurrencies, monthCalendar} from '../../money-insigh
 import {archivedOf, entriesIn} from '../../money-log/category';
 import {STARTER_SETS} from '../../money-log/starter-sets';
 import {groupsOf} from '../../money-log/groups';
+import {placesOf} from '../../money-log/places';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, dayIn, isQuestion, list, MIXED, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -110,3 +111,19 @@ function entryGroups(a: Asked): LocalReply | null {
     `${groups.slice(0, 5).map(g => one('nl', g)).join('. ')}.${groups.length > 5 ? ` En nog ${groups.length - 5}.` : ''} Elke invoer telt nog apart mee in je totalen en budgetten.`), calls);
 }
 add(entryGroups);
+
+// ── Payee places, typed names only (#346) ──────────────────────────────────────────────────────────────────────────
+/** "Which places have I kept for my payees", "welke plekken heb ik voor mijn betalingen". Never a location. */
+function payeePlaces(a: Asked): LocalReply | null {
+  const en = /\b(?:my )?places\b.*\bpayees?\b|\bpayees?\b.*\b(?:my )?places\b|\bpayee places\b/.test(a.f);
+  const nl = /\bplekken\b.*\b(?:betalingen|ontvangers|winkels|begunstigden)\b|\b(?:betalingen|ontvangers|winkels|begunstigden)\b.*\bplekken\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const places = placesOf(moreOf(a.env)), calls = call('money_more', {places: true}, 'Money · your places');
+  if (!places.length) return answer(say(a.lang, `You have no places yet. In ${PLACES.spending.en} → Log spending → "Where are you?", add the places you often pay at (Work, The market); choosing one later lists the payees you logged there first. Typed names only: ZIGoals never reads where you are.`,
+    `Je hebt nog geen plekken. In ${PLACES.spending.nl} → Log spending → "Where are you?" voeg je de plekken toe waar je vaak betaalt (werk, de markt); kies je er later een, dan komen de ontvangers die je daar logde eerst. Alleen namen die je typt: ZIGoals leest nooit waar je bent.`), calls);
+  const one = (lang: Lang, p: typeof places[number]) => p.payees?.length ? `${p.name}: ${list(p.payees.slice(0, 5), lang)}${p.payees.length > 5 ? say(lang, ` and ${p.payees.length - 5} more`, ` en nog ${p.payees.length - 5}`) : ''}` : say(lang, `${p.name}: no payee kept yet`, `${p.name}: nog geen ontvanger bewaard`);
+  return answer(say(a.lang, `${places.map(p => one('en', p)).join('. ')}. Places are names you typed, kept on this device; "Forget places" clears them.`,
+    `${places.map(p => one('nl', p)).join('. ')}. Plekken zijn namen die je typte, bewaard op dit apparaat; "Forget places" wist ze.`), calls);
+}
+add(payeePlaces);

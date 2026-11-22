@@ -153,3 +153,41 @@ none of round 4's questions. Corpus: `AV2_R4_MONEY` from `apps/web/lib/ai/evals/
   teaches ("You have no groups yet. … Select two or more entries and Group them under a name").
 - Registries: none. CSS touched: `components/wealth/spending/money-r4.css` (`.money-group*`).
 - Today: nothing added.
+
+### R4-F4 (group U4). Payee places (typed names only) and sums in every money-log amount
+
+- LEDGER rows: #346 Actual payee places — **built, by the owner's note: typed place names only** (Wealth → Spending → Log
+  spending → "Where are you? — optional": the person's own places as chips ("Work", "The market"), added and removed
+  under "Your places"; choosing one lists the payees logged there, most logged first, each with the category it had
+  before, one tap into the note (and its category offered when it is still offered); saving an entry while a place is
+  chosen keeps the note's payee (before " · ") with that place; "Forget" on one payee, "Forget places" for all, with
+  Undo; focus moves to the New place field when a list empties). **No location data**: the browser is never asked where
+  the person is, nothing holds coordinates, no map and no outside service is used (a unit test reads both files for
+  geolocation, coordinates and fetch); places live on the money extras record, never on an entry. The part of the
+  ledger's row that asked the browser for the place and offered payees within about 200 m is not built — the owner's note
+  for this round ruled it out (against a named rule: no location data). #339 Actual sums in an amount — **already
+  built** in the money form, the budgets and the other money amounts by Session AK (BUILD list 2 #19:
+  `lib/money-calc/expression.ts`, exact fractions of BigInts, + − × ÷, the result shown under the field by `CalcHint` and
+  the only thing saved; the ledger's evidence missed it). Round 4 adds the one money-log amount field still without it, a
+  split's parts (Money tools → Split an entry), with the same hint.
+- Spending function used: none (no figure). Payees are ranked by how many entries carry them (`noteKey`), not by money.
+- Files: `lib/money-log/places.ts` (new), `components/wealth/spending/places.tsx` (new; in the form extras' lazy chunk),
+  `components/wealth/spending/quick-log.tsx` (`FormExtras` shows it for a new entry), `components/wealth/spending/spending-section.tsx`
+  (`keepPlace` called on Save; a payee fills the note), `components/wealth/money-tools/split-panel.tsx` (`readPartAmount`
+  resolves a sum; `CalcHint` under each part), `components/wealth/spending/money-r4.css`.
+- Tests: `lib/money-log/av2-places.test.ts` (jsdom: the picker, a tap fills the note, Save keeps the payee; no
+  geolocation in the source), `lib/money-log/av2-amount-sum.test.ts`, `lib/ai/local-answers/av2-r4-money.test.ts`.
+- Spec: `tests/av2-money-places.spec.ts`.
+- Stored: `zigoals:money-more:v1` `places` (commit `0c11c3aa`); nothing on the entry.
+- Help (EN): **Q: Can ZIGoals suggest the shops I use at a place?** A: Name your places — Work, The market — under
+  Wealth → Spending → Log spending → "Where are you?". Choose one when you log, and the payees you logged there come
+  first; an entry saved with a place chosen keeps its payee there. ZIGoals never reads where you are: a place is just the
+  name you typed, kept on this device. "Forget places" clears them. **Q: Can I type a sum as the amount?** A: Yes: type
+  12,50+3 or 3×4,99 in an amount and the result shows under it; only the result is saved. It works in the money form,
+  budgets, a split's parts and the other money amounts.
+- What's new: "Spending: your own named places offer the payees you use there first (no location is read); sums work in
+  a split's parts too."
+- Answers: `payeePlaces` (corpus `av2r4-money-places`). Sums: no data of their own, so no answer.
+- Showcase hook: none (places are the person's own; in the Showcase they stay in its tab).
+- Registries: none (the field is on a record already in every registry). CSS touched: `components/wealth/spending/money-r4.css`.
+- Today: nothing added.

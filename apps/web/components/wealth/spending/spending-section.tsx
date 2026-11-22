@@ -13,6 +13,7 @@ import type {BulkAction} from './money-search';
 // Session AV lane 2, round 4 (money; Lunch Money's grouped transactions, LEDGER #341).
 import {groupEntries, groupRows, ungroup, type GroupSummary, type ListRow} from '../../../lib/money-log/groups';
 import {GroupItem} from './group-row';
+import type {KeepPayee} from './places';
 import {draftAlreadyLogged} from '../../../lib/money-photos/match';
 import {setTransfer} from '../../../lib/bankfiles/reimport';
 import './spending.css';
@@ -129,6 +130,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
     // Session AK (lane M, item 1): the person's rules run on a new entry too (first match wins); the status names it.
     const ruled = applyRules([typed], rules.data.rules), entry = ruled.entries[0]!, byRule = ruled.changes.length > 0;
     try { log.update(current => addEntry(current, entry)); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
+    if (note.trim()) keepPlace.current?.(note.trim());
     setAmount(''); setNote(''); clearMarks(); setStatus(`${kind === 'expense' ? 'Spent' : 'Received'} ${money(Math.round(Number(value) * 100), chosen)} · ${categoryPath(entry)} · saved${byRule ? ' (set by one of your rules)' : ''}.`);
   };
   // Session AL (3e): the one Undo toast; its restore puts the entry back in the LATEST money log (removeWithUndo).
@@ -171,6 +173,8 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
   const [monthView, setMonthView] = useState<'list' | 'map'>('list');
   // Session AK (#10): a draft from a receipt photo (Money tools → Receipt photos) fills this form; nothing is saved until Save.
   const amountField = useRef<HTMLInputElement>(null), noteField = useRef<HTMLInputElement>(null), latestEntries = useRef(log.data.entries);
+  // Session AV lane 2, round 4 (money, LEDGER #346): while a typed place is chosen, Save keeps the note's payee with it.
+  const keepPlace = useRef<KeepPayee>(null);
   useEffect(() => { latestEntries.current = log.data.entries; }, [log.data.entries]);
   useEffect(() => {
     const take = (event: Event) => {
@@ -233,7 +237,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
         </div>
         <CalcHint value={amount} id={`${id}-calc`}/>
         <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{withOwn(ordered.chips, editing?.category).map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={formCategory === c} onChange={() => { setCategory(c); setSub(''); }}/><span>{c}</span></label>)}</fieldset>
-        <Suspense fallback={null}><FormExtras log={log.data} update={log.update} category={formCategory} sub={sub} setSub={setSub} paidWith={paidWith} setPaidWith={setPaidWith} draft={{kind, amount: readAmount(amount), currency: editing?.currency ?? chosen, note: note.trim()}} editing={!!editing}/></Suspense>
+        <Suspense fallback={null}><FormExtras log={log.data} update={log.update} category={formCategory} sub={sub} setSub={setSub} paidWith={paidWith} setPaidWith={setPaidWith} draft={{kind, amount: readAmount(amount), currency: editing?.currency ?? chosen, note: note.trim()}} editing={!!editing} keepPlace={keepPlace} onPayee={(payee, c) => { setNote(payee); if (c && !hidden.has(c.toLowerCase()) && categories.includes(c)) { setCategory(c); setSub(''); } }}/></Suspense>
         <label className="field"><span>Note — optional</span><input ref={noteField} maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
         {/* Session AV (owner follow-up 1, F-CATEGORY-SUGGEST): the category this payee or note had before, offered, never chosen for you. */}
         {suggested && suggested.category !== formCategory && !hidden.has(suggested.category.toLowerCase()) && <p className="fine spending-suggest" role="status">Before, “{suggested.payee ?? note.trim()}” was {suggested.category}{suggested.times > 1 ? ` (${suggested.times} times)` : ''}. <button type="button" className="text-link" onClick={() => { setCategory(suggested.category); noteField.current?.focus(); /* Session AV (q2 rank 22): the hint goes, so focus returns to the note */ }}>Use {suggested.category}</button></p>}
