@@ -21,6 +21,11 @@
 .sleep-charts-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .sleep-charts-head h2 { margin: 0; }
 .sleep-range { display: flex; flex-wrap: wrap; gap: 8px; } /* Session AV (F-SLEEP-LONG): four ranges wrap on a 320 px phone */
+/* Session AV lane 2 (P-23): the four ranges as one even row ("1 year" alone on a second row read as an afterthought); two by two under 360 px. */
+.sleep-range { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sleep-range button { padding-inline: 6px; white-space: nowrap; }
+@media (max-width: 359.98px) { .sleep-range { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sleep-nights-all { min-height: 44px; margin-top: 8px; }
 .sleep-range button { min-height: 44px; }
 .sleep-range button[aria-pressed="true"] { border-color: #7fdcff; box-shadow: 0 0 0 1px #7fdcff; }
 .sleep-chart { margin: 16px 0 0; }

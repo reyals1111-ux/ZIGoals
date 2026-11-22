@@ -69,7 +69,7 @@ const nightLine = (n: SleepNight) => {
  * night is never counted as zero. (Session AV lane 2: this line said "No score" after the score card came; corrected.)
  */
 export default function SleepView() {
-  const store = useSleep(), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [range, setRange] = useState<7 | 30 | 90 | 365>(7), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
+  const store = useSleep(), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [range, setRange] = useState<7 | 30 | 90 | 365>(7), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null), [allNights, setAllNights] = useState(false);
   if (!store.loaded) return <section className="panel"><h1>Sleep</h1><p>Opening your sleep log…</p></section>;
   if (store.error) return <section className="panel"><h1>Sleep</h1><p role="alert">Sleep lives in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const {sleep, today} = store, points = dailySeries(sleep, today, range), week = summary(dailySeries(sleep, today, 7));
@@ -137,7 +137,7 @@ export default function SleepView() {
     <section className="panel" aria-labelledby="sleep-goal-title"><h2 id="sleep-goal-title">Your sleep goal</h2><LoadBoundary quiet><Suspense fallback={null}><SleepNeed store={store} onDone={done}/></Suspense></LoadBoundary><SleepGoalForm key={`goal-${sleep.goal?.updatedAt ?? 'none'}`} store={store} onDone={done}/></section>
     <section className="panel sleep-recent" aria-labelledby="sleep-recent-title">
       <h2 id="sleep-recent-title">Recent nights and naps</h2>
-      {nights.length ? <ul className="sleep-nights">{nights.map(n => <li key={n.id}>
+      {/* Session AV lane 2 (P-22): the latest five, then "Show all" (the page was 13,800 px at 390) */}{nights.length ? <ul className="sleep-nights" id="sleep-nights-list">{(allNights ? nights : nights.slice(0, 5)).map(n => <li key={n.id}>
         {editing === n.id ? <NightForm store={store} night={n} onDone={done} onCancel={() => setEditing(null)}/> : <>
           <div><strong>{n.kind === 'nap' ? 'Nap' : 'Night'} ending {formatDate(nightDay(n)!)}</strong><span>{nightLine(n)}</span>{(n.quality || n.tags?.length) && <span className="fine">{n.quality ? `Quality ${n.quality}/5` : ''}{n.quality && n.tags?.length ? ' · ' : ''}{n.tags?.join(', ')}</span>}{n.source !== 'manual' && n.source !== 'timer' && <span className="fine">From {sourceName(n.source)}</span>}{n.kind !== 'nap' && <LoadBoundary quiet><Suspense fallback={null}><NightDreams night={nightDay(n)!} latest={n.id === latestNight}/></Suspense></LoadBoundary>}</div>
           <div className="actions">
@@ -147,6 +147,7 @@ export default function SleepView() {
           </div>
         </>}
       </li>)}</ul> : <p>No nights yet. Log one above, or tap “I’m going to bed” tonight.</p>}
+      {nights.length > 5 && <button type="button" className="text-link sleep-nights-all" aria-controls="sleep-nights-list" aria-expanded={allNights} onClick={() => setAllNights(!allNights)}>{allNights ? 'Show the latest five' : `Show all ${nights.length}`}</button>}
     </section>
     <p className="fine sleep-privacy">Nothing here is medical advice. Imported nights keep the source they came from.</p>
   </div>;

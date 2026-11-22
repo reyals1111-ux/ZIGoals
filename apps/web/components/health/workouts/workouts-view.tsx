@@ -549,6 +549,6 @@ function ExerciseProgress({w, unit: pageUnit, library, value, onChange}: {w: Wor
     {h.measure === 'weight-reps' && <div className="workouts-weeks-pick" role="group" aria-label="Line shows">{(Object.keys(METRIC_WORDS) as (keyof typeof METRIC_WORDS)[]).map(m => <button key={m} type="button" className="quiet" aria-pressed={metric === m} onClick={() => setMetric(m)}>{METRIC_WORDS[m]}</button>)}</div>}
     <ProgressLine h={h} unit={unit} metric={metric}/>
     <table className="workouts-history-table"><caption className="sr-only">{h.name}, last sessions</caption><thead><tr><th scope="col">Date</th><th scope="col">Best set</th><th scope="col">Sets</th>{h.measure === 'weight-reps' && <th scope="col">Volume</th>}</tr></thead>
-      <tbody>{h.sessions.slice(0, 10).map(s => <tr key={s.workoutId}><th scope="row">{formatDate(s.date)}</th><td>{s.best ? setText(h.measure, s.best, unit) : '—'}</td><td>{s.sets.length}</td>{h.measure === 'weight-reps' && <td>{weightShown(s.volumeKg, unit)}</td>}</tr>)}</tbody></table></>}
+      <tbody>{h.sessions.slice(0, 10).map(s => <tr key={s.workoutId}><th scope="row">{/* Session AV lane 2 (P-25): "Nov 21" (the year only when it is not this one) */}{formatDate(s.date, {year: s.date.slice(0, 4) === new Date().toISOString().slice(0, 4) ? false : undefined})}</th><td>{s.best ? setText(h.measure, s.best, unit) : '—'}</td><td>{s.sets.length}</td>{h.measure === 'weight-reps' && <td>{weightShown(s.volumeKg, unit)}</td>}</tr>)}</tbody></table></>}
   </section>;
 }
