@@ -149,13 +149,91 @@ export function readHtmlFile(file: InFile, today: string): {entries: PlannedEntr
   const text = head && lines[0] && dayInLine(lines[0]) === head && lines[0].length <= 40 ? lines.slice(1).join('\n') : words;
   return readTextFile({name: `${baseName(file.name)}.txt`, text: date ? `---\ndate: ${date}\n---\n${text}` : text}, today);
 }
+/* ---- Session AV lane 2 (r6-notes; LEDGER #410, Diarium's imports from more journal apps) ------------------------ */
+type JourneyEntry = {id?: unknown; text?: unknown; type?: unknown; date_journal?: unknown; date_modified?: unknown; timezone?: unknown; tags?: unknown; photos?: unknown; favourite?: unknown};
+const isJourney = (x: unknown): x is JourneyEntry => !!x && typeof x === 'object' && typeof (x as JourneyEntry).date_journal === 'number' && 'text' in (x as object);
+/** Whether a JSON file is Journey's: one entry with `date_journal`, or a list of them. */
+export function isJourneyJson(text: string): boolean {
+  try { const d: unknown = JSON.parse(text); return isJourney(d) || (Array.isArray(d) && d.length > 0 && d.every(isJourney)); } catch { return false; }
+}
+/** A photo of a Journey entry, by its file's name, as the ZIP reader keeps it (`journey/<name>`). */
+export const journeyPhotoKey = (name: string) => `journey/${name.split('/').pop()!}`;
+/**
+ * Journey's export: a ZIP with one JSON file per entry (`text` in HTML or Markdown, `date_journal` in milliseconds, its
+ * `timezone`, `tags`, `photos` named by the files beside it, `favourite`), or the JSON alone. Each entry keeps its day
+ * in its own time zone, its words (HTML read as words), tags, up to 12 photos and the star. Nothing in a file runs.
+ */
+export function readJourneyJson(file: InFile, zone?: string): {entries: PlannedEntry[]; skipped: ImportSkip[]; cut: number} {
+  let data: unknown;
+  try { data = JSON.parse(file.text); } catch { return {entries: [], skipped: [{name: file.name, reason: 'it is not a JSON file ZIGoals can read'}], cut: 0}; }
+  const list = Array.isArray(data) ? data : [data], entries: PlannedEntry[] = [], skipped: ImportSkip[] = [];
+  let cut = 0;
+  for (const [i, e] of list.entries()) {
+    const label = list.length > 1 ? `${file.name} #${i + 1}` : file.name;
+    if (!isJourney(e)) { skipped.push({name: label, reason: 'it is not a Journey entry'}); continue; }
+    const ms = e.date_journal as number, created = Number.isFinite(ms) && ms > 0 ? new Date(ms).toISOString() : null;
+    const date = created ? dayIn(created, typeof e.timezone === 'string' ? e.timezone : zone) : null;
+    if (!date || !created) { skipped.push({name: label, reason: 'it has no date ZIGoals can read'}); continue; }
+    const raw = typeof e.text === 'string' ? e.text : '', words = (e.type === 'html' || /<\/?(?:p|div|br|span|h\d|li|ul|ol|b|i|strong|em)\b/i.test(raw) ? htmlWords(raw) : raw.replace(/\r\n?/g, '\n')).trim();
+    const photos = Array.isArray(e.photos) ? e.photos.filter((x): x is string => typeof x === 'string' && !!x.trim()).map(journeyPhotoKey).slice(0, MAX_ENTRY_PHOTOS_ALL) : [];
+    if (!words && !photos.length) { skipped.push({name: label, reason: 'it has no words or photo'}); continue; }
+    const c = clip(words || (photos.length > 1 ? 'Photos.' : 'A photo.')); if (c.cut) cut++;
+    const tags = Array.isArray(e.tags) ? readTags(e.tags.filter((t): t is string => typeof t === 'string').join(',')) : [];
+    const mod = typeof e.date_modified === 'number' && Number.isFinite(e.date_modified) && e.date_modified > ms ? new Date(e.date_modified).toISOString() : undefined;
+    entries.push({date, text: c.text, createdAt: created, ...(mod ? {updatedAt: mod} : {}), ...(tags.length ? {tags} : {}), ...(e.favourite === true ? {extra: {star: true as const}} : {}), source: 'journey', photos, audio: []});
+  }
+  return {entries, skipped, cut};
+}
+/** One CSV line set read into rows (RFC 4180: quoted cells, "" for a quote, line breaks inside quotes). */
+export function csvRows(text: string, delimiter: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [], cell = '', quoted = false;
+  const src = text.replace(/^\uFEFF/, '');
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i]!;
+    if (quoted) { if (ch === '"') { if (src[i + 1] === '"') { cell += '"'; i++; } else quoted = false; } else cell += ch; continue; }
+    if (ch === '"' && !cell) quoted = true;
+    else if (ch === delimiter) { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && src[i + 1] === '\n') i++; row.push(cell); cell = ''; if (row.some(c => c.trim())) rows.push(row); row = []; }
+    else cell += ch;
+    if (rows.length > MAX_ENTRIES + 1) break;
+  }
+  row.push(cell); if (row.some(c => c.trim())) rows.push(row);
+  return rows;
+}
+const CSV_DATE = /^(?:date|datum|day|dag|created|creation date|date created)$/i, CSV_TEXT = /^(?:text|tekst|entry|content|inhoud|body|note|notes|notitie)$/i, CSV_TAGS = /^(?:tags?|labels?|categor(?:y|ies))$/i;
+/**
+ * A CSV of entries: a row per entry with its date, words and tags. The columns are found by their header (date, text,
+ * tags, in English or Dutch); without a header row they are read as date, text, tags. Commas or semicolons both work.
+ */
+export function readCsvFile(file: InFile, today: string): {entries: PlannedEntry[]; skipped: ImportSkip[]; cut: number} {
+  const first = file.text.split(/\r?\n/, 1)[0] ?? '', delimiter = (first.match(/;/g)?.length ?? 0) > (first.match(/,/g)?.length ?? 0) ? ';' : ',';
+  const rows = csvRows(file.text, delimiter), head = rows[0]?.map(h => h.trim()) ?? [];
+  const named = head.some(h => CSV_DATE.test(h)) && head.some(h => CSV_TEXT.test(h));
+  const col = named ? {date: head.findIndex(h => CSV_DATE.test(h)), text: head.findIndex(h => CSV_TEXT.test(h)), tags: head.findIndex(h => CSV_TAGS.test(h))} : {date: 0, text: 1, tags: 2};
+  const entries: PlannedEntry[] = [], skipped: ImportSkip[] = [];
+  let cut = 0;
+  for (const [i, r] of (named ? rows.slice(1) : rows).entries()) {
+    const label = `${file.name} row ${i + (named ? 2 : 1)}`, rawDate = (r[col.date] ?? '').trim(), words = (r[col.text] ?? '').replace(/\r\n?/g, '\n').trim();
+    const date = dayInLine(rawDate) ?? (() => { const m = /^(\d{1,2})[/.](\d{1,2})[/.](\d{4})/.exec(rawDate); if (!m) return null; const d = `${m[3]}-${m[2]!.padStart(2, '0')}-${m[1]!.padStart(2, '0')}`; return validDay(d) ? d : null; })();
+    if (!date) { skipped.push({name: label, reason: rawDate ? 'its date cannot be read (use 2026-11-03 or 3-11-2026)' : 'it has no date'}); continue; }
+    if (!words) { skipped.push({name: label, reason: 'it has no words'}); continue; }
+    const c = clip(words); if (c.cut) cut++;
+    const tags = col.tags >= 0 ? readTags((r[col.tags] ?? '').replace(/;/g, ',')) : [];
+    entries.push({date, text: c.text, createdAt: `${date}T12:00:00.000Z`, ...(tags.length ? {tags} : {}), source: 'csv', photos: [], audio: []});
+  }
+  if (!rows.length) skipped.push({name: file.name, reason: 'it holds no rows'});
+  void today;
+  return {entries, skipped, cut};
+}
 /** The plan for every file read: entries in date order, duplicates (with the journal or each other) left out and said. */
 export function planJournalImport(journal: Journal, files: readonly InFile[], {today, zone, skipped: already = []}: {today: string; zone?: string; skipped?: readonly ImportSkip[]}): JournalImportPlan {
   const entries: PlannedEntry[] = [], skipped: ImportSkip[] = [...already], books: string[] = [];
   let cut = 0;
   for (const f of files) {
-    const r = /\.json$/i.test(f.name) ? readDayOneJson(f, zone) : /\.html?$/i.test(f.name) ? {...readHtmlFile(f, today), book: null} : /\.(?:md|markdown|txt)$/i.test(f.name) ? {...readTextFile(f, today), book: null} : null;
-    if (!r) { skipped.push({name: f.name, reason: 'it is not a journal file ZIGoals reads (Day One JSON, Markdown, text or HTML)'}); continue; }
+    // Session AV lane 2 (r6-notes; LEDGER #410): Journey's JSON entries and a CSV of entries.
+    const r = /\.json$/i.test(f.name) && isJourneyJson(f.text) ? {...readJourneyJson(f, zone), book: null} : /\.csv$/i.test(f.name) ? {...readCsvFile(f, today), book: null} : /\.json$/i.test(f.name) ? readDayOneJson(f, zone) : /\.html?$/i.test(f.name) ? {...readHtmlFile(f, today), book: null} : /\.(?:md|markdown|txt)$/i.test(f.name) ? {...readTextFile(f, today), book: null} : null;
+    if (!r) { skipped.push({name: f.name, reason: 'it is not a journal file ZIGoals reads (Day One or Journey JSON, Markdown, text, HTML or CSV)'}); continue; }
     entries.push(...r.entries); skipped.push(...r.skipped); cut += r.cut;
   }
   // Session AV lane 2 (review B3C-5): an entry from ZIGoals' own Markdown is also known by its day and creation time, so it

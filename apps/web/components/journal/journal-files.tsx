@@ -3,7 +3,7 @@ import {Suspense, lazy, useRef, useState} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL} from '../../lib/journal/schema';
-import {applyJournalImport, planJournalImport, undoJournalImport, type ImportSkip, type InFile, type JournalImportPlan} from '../../lib/journal/import';
+import {applyJournalImport, journeyPhotoKey, planJournalImport, undoJournalImport, type ImportSkip, type InFile, type JournalImportPlan} from '../../lib/journal/import';
 import {journalExportFiles, journalExportName, type MediaFile} from '../../lib/journal/export';
 import {ZipError, inflateBudget, readZip, type ZipCaps} from '../../lib/notes/zip-read';
 import {buildStoredZip} from '../../lib/export/zip';
@@ -25,27 +25,30 @@ import {showStatus, showUndo} from '../ui/undo-toast';
 // Session AV lane 2 (r4-notes; LEDGER #320): the journal as an e-book or a Word file, in its own chunk.
 const JournalEbook = lazy(() => import('./journal-ebook'));
 const CAPS: ZipCaps = {maxArchive: 80 * 1024 * 1024, maxEntries: 4000, maxFile: 10 * 1024 * 1024, maxTotal: 120 * 1024 * 1024, maxRatio: 100};
-const TEXT_FILE = /\.(?:json|md|markdown|txt|html?)$/i, MEDIA_FILE = /^(?:.*\/)?(?:photos|audios)\/[^/]+$/i;
+// Session AV lane 2 (r6-notes; LEDGER #410): a CSV of entries, and Journey's photos beside its JSON entries.
+const TEXT_FILE = /\.(?:json|md|markdown|txt|html?|csv)$/i, MEDIA_FILE = /^(?:.*\/)?(?:photos|audios)\/[^/]+$/i, PICTURE = /\.(?:jpe?g|png|webp|gif|heic)$/i;
 const decode = (data: Uint8Array) => new TextDecoder('utf-8', {fatal: false}).decode(data);
 type Read = {files: InFile[]; media: Map<string, Uint8Array>; skipped: ImportSkip[]};
 async function readPicked(list: readonly File[]): Promise<Read> {
   const out: Read = {files: [], media: new Map(), skipped: []}, budget = inflateBudget(CAPS);
   for (const f of list.slice(0, 200)) {
     if (/\.zip$/i.test(f.name) || f.type === 'application/zip') {
-      const z = await readZip(new Uint8Array(await f.arrayBuffer()), name => TEXT_FILE.test(name) || MEDIA_FILE.test(name), {caps: CAPS, budget});
+      const z = await readZip(new Uint8Array(await f.arrayBuffer()), name => TEXT_FILE.test(name) || MEDIA_FILE.test(name) || PICTURE.test(name), {caps: CAPS, budget});
       // Session AV lane 2 (r3-notes; LEDGER #272): a ZIGoals export holds every entry twice (journal.json and Markdown/);
       // its journal.json is read and the Markdown copies left out, so nothing doubles.
       const hasJson = z.files.some(f => /(^|\/)journal\.json$/i.test(f.name));
       for (const file of z.files) {
         if (MEDIA_FILE.test(file.name)) out.media.set(file.name.replace(/^.*?((?:photos|audios)\/[^/]+)$/i, '$1'), file.data);
+        else if (PICTURE.test(file.name)) out.media.set(journeyPhotoKey(file.name), file.data); // Journey keeps its photos beside the entries
         else if (hasJson && /(^|\/)Markdown\/[^/]+\.md$/i.test(file.name)) continue;
         else if (!/(^|\/)readme\.txt$/i.test(file.name)) out.files.push({name: file.name, text: decode(file.data)});
       }
       out.skipped.push(...z.skipped);
     } else if (TEXT_FILE.test(f.name)) {
-      if (f.size > (/\.json$/i.test(f.name) ? 20 : 1) * 1024 * 1024) { out.skipped.push({name: f.name, reason: /\.json$/i.test(f.name) ? 'it is over 20 MB' : 'it is over 1 MB'}); continue; }
+      const mb = /\.json$/i.test(f.name) ? 20 : /\.csv$/i.test(f.name) ? 5 : 1;
+      if (f.size > mb * 1024 * 1024) { out.skipped.push({name: f.name, reason: `it is over ${mb} MB`}); continue; }
       out.files.push({name: f.name, text: await f.text()});
-    } else out.skipped.push({name: f.name, reason: 'it is not a Day One, Markdown, text, HTML or ZIP file'});
+    } else out.skipped.push({name: f.name, reason: 'it is not a Day One, Journey, Markdown, text, HTML, CSV or ZIP file'});
   }
   return out;
 }
@@ -104,8 +107,8 @@ export default function JournalFiles() {
   return <div className="journal-files">
     <section aria-labelledby="journal-import-title" className="journal-files-part">
       <h3 id="journal-import-title">Import</h3>
-      <p className="fine">A Day One export (its ZIP, with photos and audio, or its JSON), a ZIGoals journal export, Markdown or text files (one entry each, or one per dated heading such as <code>## 2026-11-03</code>), or an Apple Journal export (its HTML pages). You see what is found before anything is added.</p>
-      <input ref={input} type="file" multiple accept=".zip,.json,.md,.markdown,.txt,.html,.htm,application/zip,application/json,text/markdown,text/plain,text/html" hidden tabIndex={-1} aria-hidden="true" onChange={e => { void pick(e.target.files); e.target.value = ''; }}/>
+      <p className="fine">A Day One export (its ZIP, with photos and audio, or its JSON), a Journey export (its ZIP of entries with their photos), a ZIGoals journal export, Markdown or text files (one entry each, or one per dated heading such as <code>## 2026-11-03</code>), an Apple Journal export (its HTML pages), or a CSV with a date, the words and tags on each row. You see what is found before anything is added, and one Undo takes it all back out.</p>
+      <input ref={input} type="file" multiple accept=".zip,.json,.md,.markdown,.txt,.html,.htm,.csv,application/zip,application/json,text/markdown,text/plain,text/html,text/csv" hidden tabIndex={-1} aria-hidden="true" onChange={e => { void pick(e.target.files); e.target.value = ''; }}/>
       <button type="button" className="secondary" disabled={!!busy} onClick={() => input.current?.click()}>Choose files to import</button>
       {plan && <div className="journal-import-plan" role="group" aria-label="What the files hold">
         {plan.entries.length ? <p><strong>{plan.entries.length === 1 ? '1 entry' : `${formatNumber(plan.entries.length)} entries`}</strong> {dates.length ? `from ${formatDate(dates[0]!)}${dates.at(-1) !== dates[0] ? ` to ${formatDate(dates.at(-1)!)}` : ''}` : ''}{photoCount ? `, with ${photoCount} photos and audio notes` : ''}.</p> : <p>No new entry in these files.</p>}

@@ -40,6 +40,8 @@ const ComposeMedia = lazy(() => import('./compose-media'));
 const ComposeGrid = lazy(() => import('./compose-grid'));
 // Session AV lane 2 (r4-mind; LEDGER #308, Journey): the format bar under the entry's words, its own chunk.
 const JournalFormat = lazy(() => import('./journal-format'));
+// Session AV lane 2 (r6-notes; LEDGER #400, Diarium): today's words against the daily word goal, only while one is set.
+const WordGoalLine = lazy(() => import('./journal-word-goal'));
 const NO_MEDIA: PendingMedia = {photos: [], audio: null};
 
 /**
@@ -169,6 +171,7 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       {asGrid ? <Suspense fallback={<p className="fine">Opening the grid…</p>}><ComposeGrid key={`${prompt!.id}-${prompt!.lang}`} template={promptTemplate!} lang={prompt!.lang} text={text} onChange={setText}/></Suspense>
         : <label className="field"><span>{compact ? 'A few lines about today' : dream ? 'Your dream' : 'Today’s entry'}</span><textarea ref={words} rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder={dream ? 'What you remember: people, places, how it felt.' : 'What stood out today?'}/></label>}
       {!compact && !asGrid && <Suspense fallback={null}><JournalFormat value={text} onChange={setText} maxLength={MAX_TEXT} field={() => words.current}/></Suspense>}
+      {!compact && journal.data.wordGoal && <Suspense fallback={null}><WordGoalLine entries={journal.data.entries} goal={journal.data.wordGoal} today={today} draft={text}/></Suspense>}
       {dream && <p className="fine journal-dream-line" role="status">A dream from the night ending {formatDate(dream, {weekday: true})}. It goes in your {dreamsBook(journal.data)?.name ?? 'Dreams'} journal{dreamsBook(journal.data) ? '' : ' (made when you save)'}, and shows on that night in your sleep log. <button type="button" className="text-link" onClick={() => setDream(null)}>Not a dream</button></p>}
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       {/* Session AV lane 2 (journal; LEDGER #35, Day One's links to other entries): a day's entries, or a note, goal or habit, by [[name]]. */}
