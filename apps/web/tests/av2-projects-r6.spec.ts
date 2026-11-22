@@ -84,6 +84,8 @@ for (const theme of THEMES) test(`${theme}: several tasks at once, a project on 
   await page.getByRole('button', {name: 'Put on hold'}).click();
   await expect.poll(async () => (await stored(page)).projects?.find(p => p.id === 'project_house')?.hold).toEqual({since: MON, until: '2026-12-07'});
   await expect(page.locator('.tasks-r6-line').filter({hasText: 'On hold'})).toContainText('until');
+  // Review B6M-5: focus lands on a control that is there afterwards, never the page.
+  await expect(page.locator('.tasks-r6-panel').getByRole('button', {name: 'Resume now'})).toBeFocused();
   await expect(row(page, 'Fictional gutters')).toBeVisible();
 
   await page.goto('/app/tasks?view=today'); await settle(page);
@@ -111,6 +113,7 @@ for (const theme of THEMES) test(`${theme}: several tasks at once, a project on 
   await page.goto('/app/tasks?view=project:project_house'); await settle(page);
   await page.locator('.tasks-r6-line').getByRole('button', {name: 'Resume now'}).click();
   await expect.poll(async () => (await stored(page)).projects?.find(p => p.id === 'project_house')?.hold).toBeUndefined();
+  await expect(page.getByRole('button', {name: 'Hold, order and review'})).toBeFocused();
 
   // Tasks → Review (LEDGER #395): the party's turn comes a week on; Reviewed sets the next one.
   await page.clock.setFixedTime(new Date('2026-12-01T09:00:00+01:00'));
@@ -134,6 +137,7 @@ test('a label group, a repeat’s record and the second-to-last Friday in quick 
   await page.getByRole('button', {name: 'Add the group'}).click();
   await expect.poll(async () => (await stored(page)).labelGroups).toEqual([expect.objectContaining({name: 'Where', labels: ['home', 'office']})]);
   await expect(page.getByRole('list', {name: 'Label groups'})).toContainText('Where: @home, @office');
+  await expect(page.getByRole('button', {name: 'New label group'})).toBeFocused();
   if (!isMobile) await clean(page);
 
   // Quick add keeps one of the group, and reads "every second-to-last Friday" (LEDGER #398).
@@ -150,4 +154,11 @@ test('a label group, a repeat’s record and the second-to-last Friday in quick 
   await expect(note).toContainText('done once in the last 3 months (0 by its day, 1 after it)');
   await expect(note).not.toContainText(/behind/i);
   await noSideways(page);
+
+  // Removing the group keeps the labels; focus goes to the section's heading (review B6M-5).
+  await page.goto('/app/tasks?view=organise'); await settle(page);
+  await page.getByRole('button', {name: 'Remove the label group “Where”'}).click();
+  await expect.poll(async () => (await stored(page)).labelGroups).toBeUndefined();
+  await expect(page.getByRole('heading', {name: 'Label groups'})).toBeFocused();
+  await expect.poll(async () => (await stored(page)).tasks.find(t => t.due === '2026-12-18')?.labels).toEqual(['office']);
 });
