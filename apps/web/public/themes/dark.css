@@ -26585,6 +26585,110 @@
     .tasks-plan-day-what small:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .tasks-fit-day:not(#\-) {
+        border-color: var(--line)
+    }
+}
+/*  components/tasks/tasks-plan.css  */
+@scope (:root[data-theme=dark]) {
+    .tasks-plan-view h3 small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-plan-switch [aria-pressed="true"]:not(#\-) {
+        outline-color: var(--accent, currentColor)
+    }
+    .tasks-plan-settings:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .tasks-objectives > li:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-objectives > li[data-done] .tasks-objective-check span:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-table-frame:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-table-frame:focus-visible:not(#\-) {
+        outline-color: var(--accent, currentColor)
+    }
+    .tasks-table th:not(#\-), .tasks-table td:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .tasks-table tr[aria-current="date"] th:not(#\-) {
+        color: var(--accent, inherit)
+    }
+    .tasks-sort:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor;
+        color: inherit
+    }
+    .tasks-day-column:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-day-column[data-today]:not(#\-) {
+        border-color: var(--accent, var(--line))
+    }
+    .tasks-month td:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-month td[data-out]:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-month td[data-today] .tasks-month-day:not(#\-) {
+        color: var(--accent, inherit)
+    }
+    .tasks-month-task[data-done]:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-timeline li small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-timeline-track:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, var(--line))
+    }
+    .tasks-timeline-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--accent, currentColor)
+    }
+    .tasks-timeline li[data-late] .tasks-timeline-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--danger, var(--accent, currentColor))
+    }
+    .tasks-timeline-today:not(#\-) {
+        background-image: none;
+        background-color: var(--text, currentColor)
+    }
+    .tasks-year-day:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, var(--line))
+    }
+    .tasks-year-day[data-level="1"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--accent, #3b82f6) 30%, transparent)
+    }
+    .tasks-year-day[data-level="2"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--accent, #3b82f6) 55%, transparent)
+    }
+    .tasks-year-day[data-level="3"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--accent, #3b82f6) 78%, transparent)
+    }
+    .tasks-year-day[data-level="4"]:not(#\-) {
+        background-image: none;
+        background-color: var(--accent, #3b82f6)
+    }
+    .tasks-chart-track:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, var(--line))
+    }
+    .tasks-chart-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--accent, currentColor)
+    }
 }
 /*  components/tasks/tasks-when.css  */
 @scope (:root[data-theme=dark]) {
@@ -26816,6 +26920,12 @@
     }
     .tasks-done-days [data-today]:not(#\-) {
         color: inherit
+    }
+    .task-comments a:not(#\-) {
+        color: var(--accent, inherit)
+    }
+    .tasks-nav-area h4:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/tasks/today-tasks-due.css  */
@@ -27514,6 +27624,12 @@
     }
     .budgets-month-nav h3:focus-visible:not(#\-) {
         outline-color: var(--cyan,#6fd3ff)
+    }
+    .budgets-periods:not(#\-) {
+        border-color: var(--line)
+    }
+    .budgets-periods-list li[data-over] small:not(#\-) {
+        color: var(--danger, inherit)
     }
 }
 /*  components/wealth/debt-planner.css  */
