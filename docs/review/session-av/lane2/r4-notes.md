@@ -319,3 +319,17 @@ before (an archived note in its list; only the first photo).
 - What's new: "Notes: import from Evernote (.enex) and Bear (.bear2bk, TextBundle)."
 - Search palette (the lead's, optional): "Import notes from Evernote or Bear" → `/app/notes?view=files`.
 - Showcase: none. CSS: none. Today: nothing added.
+
+### NOVA's and ZIGi's answers (all features)
+
+- `lib/ai/local-answers/av2-r4-notes.ts` (`av2R4NotesAnswer`), EN and NL: nested tags and the focus tag (#306; the plain
+  "which tags do my notes have" stays the pinned notes-per-tag answer in `av2-journal.ts`, which now counts written
+  #tags too — the Showcase notes have none in their words, so its pinned output is unchanged), photos in notes (#307),
+  the words the notes hold and the longest (#311), find and replace (#312), folding (#313), callouts (#314), the
+  writing view (#316), archived notes (#315), locking a note (#318: how only — a locked note is never read: NOVA's
+  sources leave it out and so does this file), saving a note as HTML, text or Word (#319), the journal as an e-book or
+  Word file (#320, the journal only where shared), imports from Evernote and Bear (#321). Notes only under NOVA's Notes
+  scope (ZIGi says it does not read notes; the how-to answers need no notes). Never a note's words.
+- Cases: `lib/ai/evals/as/cases-av2-r4-notes.ts` (`AV2_R4_NOTES`, 12 intents, 48 questions). Test:
+  `lib/ai/local-answers/av2-r4-notes.test.ts`. Checked here with a temporary test over every phrasing of today's CORPUS:
+  none is answered by `av2R4NotesAnswer` (after narrowing the tags answer), so wiring it first moves nothing.
