@@ -11,6 +11,36 @@ person's own words stay their own (nothing is read into them, scored or suggeste
 a notification (no notification plan changes). Every new UI part loads lazily from `components/health/r6/` or its own
 chunk; CSS uses theme variables only.
 
+## Summary: rows and verdicts
+
+| LEDGER row | verdict | feature | commit |
+|---|---|---|---|
+| #411 Medito: when a meditation day ends | built (a fix: sessions follow "My day ends at"; read only) | 1 | `0428e071` |
+| #412 Moodfit: your own things that lift you | built (the person's own lines; one tap to today's task) | 3 | `3da1a461` |
+| #413 Medito: your consistency | built (derived; never a fall) | 1 | `0428e071` |
+| #414 Moodfit: grounding | built (a fixed exercise, EN and NL; nothing kept unless saved) | 4 | `dd42788b` |
+| #415 Medito: log a range of past days | built (≤ 31 days, skips, one Undo) | 1 | `0428e071` |
+| #416 Moodfit: a plan for a low day | built as the person's own written plan (no clinician content; the app has no support contacts to point to); if the owner reads it as a safety plan needing clinician content, that remainder is Carried: needs content made for ZIGoals | 4 | `dd42788b` |
+| #417 Moodfit: things to bring up at an appointment | built (a new device record; printed at the top of the report) | 5 | `30a40b8e` |
+| #418 Lifesum: fruit, vegetables and fish counted | built (none on by default; no "off track") | 6 | `ca74a7f9` |
+| #419 AutoSleep: tonight's bedtime | built (derived; not on Today, see feature 2) | 2 | `465903dd` |
+| #420 Caliber: favourite exercises | built | 7 | `bacc28d1` |
+| #421 Caliber: a workout left out of your bests | built | 7 | `bacc28d1` |
+| #422 Caliber: your bests with their days, and a fresh start | built | 7 | `bacc28d1` |
+| #423 AutoSleep: time asleep out of time in bed | built (derived; an estimate when it is one) | 2 | `465903dd` |
+| #424 Caliber: an exercise's own defaults | built (one defaults map for library and own exercises) | 7 | `bacc28d1` |
+
+Stored formats: `cc266c2b` (TIER 3). Answers: `f1d6d14a`.
+
+Specs for the shard lists (none run here): `tests/av2-r6-meditation.spec.ts`, `tests/av2-r6-sleep.spec.ts`,
+`tests/av2-r6-lifts.spec.ts`, `tests/av2-r6-calm.spec.ts`, `tests/av2-r6-bring-up.spec.ts`, `tests/av2-r6-portions.spec.ts`,
+`tests/av2-r6-gym.spec.ts`.
+
+QUALITY Minors: none of the open "Not fixed" Minors is in W4, W5 or W7's areas; none taken up.
+
+Known red until the lead spreads the keys: `lib/erase-coverage.test.ts` lists `zigoals:bring-up:v1` and
+`zigoals:low-day:v1` as unplaced (this branch may not edit the export, catalogue or erase registries).
+
 ## Stored changes (TIER 3 (stored formats), all additive) — commit `cc266c2b`
 
 | record | change | readers of #37–#57 |
