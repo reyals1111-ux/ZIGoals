@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import type {ToolEnv, ToolSources} from '../tools/env';
 import {DAY, freshAll, novaEnv, showcaseAll, zigiEnv} from '../evals/as/harness';
-import {av2R3MoneyAnswer} from './av2-r3-money';
+import {av2R3MoneyAnswer, LABEL_NL} from './av2-r3-money';
 import {AV2_R3_MONEY} from '../evals/as/cases-av2-r3-money';
 import {CORPUS} from '../evals/as/cases';
 import {avAnswer} from './av-answers';
@@ -121,8 +121,11 @@ describe('spending beside a done habit, under Compare’s rules', () => {
   const s: ToolSources = {...withLog(freshAll(), entries), habits};
   test('EN and NL, never a cause', () => {
     expect(text(zigi('do I spend less on days I do my habits', s))).toMatch(/^On days you completed “Walk”, you spent €10\.00 that day on average; on other days, €30\.00 \(.+\)\. From the last 90 days of your own records; days that happened together are not proof that one brings the other\.$/);
-    expect(text(zigi('geef ik minder uit op dagen dat ik mijn gewoontes doe', s))).toBe('Op dagen dat je “Walk” deed, gaf je die dag gemiddeld € 10,00 uit; op andere dagen € 30,00. Uit de laatste 90 dagen van je eigen gegevens; dagen die samen vielen bewijzen niet dat het een het ander brengt.');
+    expect(text(zigi('geef ik minder uit op dagen dat ik mijn gewoontes doe', s))).toBe('Op dagen dat je “Walk” deed, gaf je die dag gemiddeld € 10,00 uit; op andere dagen € 30,00 (een eerste teken). Uit de laatste 90 dagen van je eigen gegevens; dagen die samen vielen bewijzen niet dat het een het ander brengt.');
     expect(text(zigi('do I spend less on days I do my habits', freshAll()))).toContain('This needs habits you tick');
+    // Review b3a #10: the Dutch finding carries Compare's confidence label as the English does.
+    expect(text(zigi('do I spend less on days I do my habits', s))).toContain('(early sign)');
+    expect(LABEL_NL).toEqual({early: 'een eerste teken', consistent: 'bestendig'});
   });
 });
 

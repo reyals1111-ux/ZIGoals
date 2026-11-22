@@ -178,6 +178,8 @@ function spendingWaterfall(a: Asked): LocalReply | null {
 add(spendingWaterfall);
 
 // ── The day's spending beside a done habit, under Compare's own rules (#296) ────────────────────────────────────────
+/** Review b3a #10: Compare's confidence labels (lib/insights/cross-pillar.ts LABEL_WORDS, English only) in Dutch. */
+export const LABEL_NL: Readonly<Record<keyof typeof LABEL_WORDS, string>> = {early: 'een eerste teken', consistent: 'bestendig'};
 /** "Do I spend less on days I do my habits", "geef ik minder uit op dagen dat ik mijn gewoontes doe". Never a cause. */
 function spendBesideHabits(a: Asked): LocalReply | null {
   const en = /\b(?:spend|spent|spending)\b/.test(a.f) && /\bon days\b|\bdays (?:when |that )?i\b/.test(a.f) && /\bhabits?\b/.test(a.f);
@@ -198,7 +200,7 @@ function spendBesideHabits(a: Asked): LocalReply | null {
       `Nog geen bevinding. Voor ${name(best.factor.label)}: ${best.withDays} dagen met, ${best.withoutDays} zonder; een vergelijking verschijnt zodra elke kant ${best.need} dagen heeft en ze duidelijk verschillen. Wat samen gebeurde, nooit een oorzaak.`) : say(a.lang, 'No finding yet.', 'Nog geen bevinding.'), calls);
   }
   const line = (lang: Lang, r: typeof ready[number]) => say(lang, `On days you completed ${name(r.factor.label)}, you spent ${moneyIn('en', Math.round(r.withValue! * 100), cur)} that day on average; on other days, ${moneyIn('en', Math.round(r.withoutValue! * 100), cur)} (${LABEL_WORDS[r.label!].label.toLowerCase()})`,
-    `Op dagen dat je ${name(r.factor.label)} deed, gaf je die dag gemiddeld ${moneyIn('nl', Math.round(r.withValue! * 100), cur)} uit; op andere dagen ${moneyIn('nl', Math.round(r.withoutValue! * 100), cur)}`);
+    `Op dagen dat je ${name(r.factor.label)} deed, gaf je die dag gemiddeld ${moneyIn('nl', Math.round(r.withValue! * 100), cur)} uit; op andere dagen ${moneyIn('nl', Math.round(r.withoutValue! * 100), cur)} (${LABEL_NL[r.label!]})`);
   return answer(say(a.lang, `${ready.slice(0, 3).map(r => line('en', r)).join('. ')}. From the last 90 days of your own records; days that happened together are not proof that one brings the other.`,
     `${ready.slice(0, 3).map(r => line('nl', r)).join('. ')}. Uit de laatste 90 dagen van je eigen gegevens; dagen die samen vielen bewijzen niet dat het een het ander brengt.`), calls);
 }
