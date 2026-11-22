@@ -113,7 +113,9 @@ export const moneyLogSchema = z.looseObject({
    * - `lowBalance`: the cash the person does not want the 60-day forecast to go below (Rocket Money's low-balance alert).
    */
   own: z.looseObject({expense: z.array(ownCategory).max(MAX_OWN_CATEGORIES).optional(), income: z.array(ownCategory).max(MAX_OWN_CATEGORIES).optional()}).optional().catch(undefined),
-  accounts: z.looseObject({notes: z.record(z.string().min(1).max(100), z.string().trim().min(1).max(300)).optional(), order: z.array(z.string().min(1).max(100)).max(200).optional()}).optional().catch(undefined),
+  accounts: z.looseObject({notes: z.record(z.string().min(1).max(100), z.string().trim().min(1).max(300)).optional(), order: z.array(z.string().min(1).max(100)).max(200).optional(),
+    /** Session AV lane 2, round 4 (review b4f #7), TIER 3 (stored format), additive: the last statement day checked against the bank, per account id. */
+    checked: z.record(z.string().min(1).max(100), day).refine(r => Object.keys(r).length <= 200, 'At most 200 accounts.').optional().catch(undefined)}).optional().catch(undefined),
   lowBalance: z.looseObject({amount: amountText, currency: currencyCode}).optional().catch(undefined),
   /**
    * Session AV lane 2, round 2 (money; Emma's subcategories), TIER 3 (stored format), additive and optional, dropped on

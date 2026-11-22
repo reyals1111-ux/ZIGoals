@@ -37,7 +37,7 @@ async function roundTrip(records: Record<string, unknown>): Promise<Record<strin
 }
 
 const at = '2026-11-20T10:00:00.000Z';
-export const R4_LOG = moneyLogSchema.parse({version: 1, weekStartsOn: 'monday', archived: {expense: ['Gifts', 'Pets'], income: ['Freelance']}, investIncome: ['Dividends', 'Interest'], entries: [
+export const R4_LOG = moneyLogSchema.parse({version: 1, weekStartsOn: 'monday', accounts: {notes: {a1: 'Joint'}, checked: {a1: '2026-11-15', '00000000-0000-4000-8000-000000000001': '2026-10-31'}}, archived: {expense: ['Gifts', 'Pets'], income: ['Freelance']}, investIncome: ['Dividends', 'Interest'], entries: [
   {id: 'e1', kind: 'expense', amount: '60.00', currency: 'EUR', category: 'Groceries', date: '2026-11-03', createdAt: at, checked: '2026-11-15'},
   {id: 'e2', kind: 'expense', amount: '120.00', currency: 'EUR', category: 'Fun', date: '2026-11-07', createdAt: at, group: {id: 'g1', name: 'Weekend in Ghent'}},
   {id: 'e3', kind: 'income', amount: '20.00', currency: 'EUR', category: 'Refund', date: '2026-11-09', createdAt: at, group: {id: 'g1', name: 'Weekend in Ghent'}},
@@ -62,6 +62,12 @@ describe('Session AV lane 2, round 4 (money): new fields on records already in t
     const back = await roundTrip({[MONEY_MORE_KEY]: R4_MORE});
     expect(moneyMoreSchema.parse(back[MONEY_MORE_KEY])).toEqual(R4_MORE);
     expect(R4_MORE.questions).toHaveLength(2); expect(R4_MORE.places).toHaveLength(2);
+  });
+  test('review b4f #7: the last statement day per account survives, an unreadable one is dropped alone', async () => {
+    const back = await roundTrip({[MONEY_LOG_KEY]: R4_LOG});
+    expect(moneyLogSchema.parse(back[MONEY_LOG_KEY]).accounts?.checked).toEqual({a1: '2026-11-15', '00000000-0000-4000-8000-000000000001': '2026-10-31'});
+    const odd = moneyLogSchema.parse({...R4_LOG, accounts: {notes: {a1: 'Joint'}, checked: {a1: 'last week'}}});
+    expect(odd.accounts).toEqual({notes: {a1: 'Joint'}});
   });
   test('a value this build cannot read is dropped on read, never failing the record', () => {
     const log = moneyLogSchema.parse({...R4_LOG, archived: 'Gifts', investIncome: [''], entries: [{...R4_LOG.entries[0]!, checked: 'yesterday', group: {id: 'bad id!', name: 'x'}}]});
