@@ -1,7 +1,6 @@
 import {monthKey, shiftMonth} from '../budgets/engine';
 import {normalisePayee} from '../bills/detect';
 import type {MoneyEntry} from '../money-log/schema';
-import {minorUnits} from '../money-split/parts';
 import {countedBetween, countedByCategoryBetween, countedCents, countedDayParts, countedIn, isCounted} from '../money-log/counted';
 import {monthOf} from '../money-log/engine';
 
@@ -138,18 +137,22 @@ export function topPayees(entries: readonly MoneyEntry[], currency: string, toda
   const month = monthKey(today), previous = shiftMonth(month, -1);
   const keyOf = (e: MoneyEntry) => { const p = normalisePayee(nameOf(e)); return p ? `payee:${p}` : `category:${e.category.toLowerCase()}`; };
   const by = new Map<string, Payee & {latest: string}>();
-  let previousRecorded = false;
+  // Review b4f follow-up (the shared rule): each expense counts by `countedDayParts` — the person's share of a shared cost,
+  // a spread cost by its share in each of its months, nothing for an entry left out, a transfer or a refund — so a payee's
+  // month is the figure the budgets and the other month views count. A month with a counted figure is a recorded month.
+  const previousRecorded = countedIn(entries, currency, `${previous}-01`, monthOf(`${previous}-01`).end);
   for (const e of entries) {
-    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
-    if (e.currency !== currency || e.date > today) continue;
-    const m = monthKey(e.date);
-    if (m === previous) previousRecorded = true;
-    if (e.kind !== 'expense' || (m !== month && m !== previous)) continue;
-    const key = keyOf(e), row = by.get(key) ?? {key, name: '', thisMonth: 0, lastMonth: 0, count: 0, latest: ''};
-    if (m === month) { row.thisMonth += minorUnits(e.amount); row.count++; } else row.lastMonth! += minorUnits(e.amount);
-    // The name as the latest entry writes it.
-    if (`${e.date}${e.createdAt}` >= row.latest) { row.latest = `${e.date}${e.createdAt}`; row.name = key.startsWith('payee:') ? nameOf(e).slice(0, 60) : `${e.category}, no payee noted`; }
-    by.set(key, row);
+    if (e.kind !== 'expense' || e.currency !== currency || e.date > today) continue;
+    const key = keyOf(e);
+    for (const d of countedDayParts(e)) {
+      const m = monthKey(d.date), cents = d.parts.reduce((sum, p) => sum + p.cents, 0);
+      if (d.date > today || (m !== month && m !== previous) || !cents) continue;
+      const row = by.get(key) ?? {key, name: '', thisMonth: 0, lastMonth: 0, count: 0, latest: ''};
+      if (m === month) { row.thisMonth += cents; row.count++; } else row.lastMonth! += cents;
+      // The name as the latest entry writes it.
+      if (`${e.date}${e.createdAt}` >= row.latest) { row.latest = `${e.date}${e.createdAt}`; row.name = key.startsWith('payee:') ? nameOf(e).slice(0, 60) : `${e.category}, no payee noted`; }
+      by.set(key, row);
+    }
   }
   const payees = [...by.values()].filter(p => p.thisMonth > 0).sort((a, b) => b.thisMonth - a.thisMonth || a.name.localeCompare(b.name)).slice(0, limit)
     .map((p): Payee => ({key: p.key, name: p.name, thisMonth: p.thisMonth, lastMonth: previousRecorded ? p.lastMonth : null, count: p.count}));
