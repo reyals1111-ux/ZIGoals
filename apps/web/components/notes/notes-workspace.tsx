@@ -41,6 +41,12 @@ const NotesViews = lazy(() => import('./notes-views'));
 const NotesTicks = lazy(() => import('./notes-ticks'));
 // Session AV lane 2 (r3-notes; LEDGER #273, Obsidian's Canvas): boards of cards placed by hand, loaded when Canvas opens.
 const NotesCanvas = lazy(() => import('./notes-canvas'));
+// Session AV lane 2 (r5-notes; LEDGER #360, Logseq): Recently deleted, loaded when its fold opens.
+const NotesTrash = lazy(() => import('./notes-trash'));
+// Session AV lane 2 (r5-notes; LEDGER #359, Logseq): act on several notes at once, loaded on Select.
+const NotesSelect = lazy(() => import('./notes-select'));
+// Session AV lane 2 (r5-notes; LEDGER #362, Logseq): a template for every note with a tag, loaded when its fold opens.
+const TagTemplates = lazy(() => import('./tag-templates'));
 const LAYOUTS = [['list', 'List'], ['table', 'Table'], ['gallery', 'Gallery'], ['board', 'Board'], ['chart', 'Chart']] as const; // Session AV lane 2 (r3-notes; LEDGER #270): Board
 type Layout = (typeof LAYOUTS)[number][0];
 
@@ -91,11 +97,22 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
     if (!notes.loaded || notes.unreadable) return;
     // Session AV lane 2 (r3-notes; LEDGER #273): the photos on a board are named too, so the sweep keeps them.
     // Session AV lane 2 (r4-notes; LEDGER #307): and every photo of a note, not only its first.
-    const named = [...record.notes.flatMap(n => notePhotoIdsOf(n)), ...(record.canvases ?? []).flatMap(c => c.nodes.map(n => n.photo))];
+    // Session AV lane 2 (r5-notes; LEDGER #360): and every photo of a note in Recently deleted.
+    const named = [...record.notes.flatMap(n => notePhotoIdsOf(n)), ...(record.trash ?? []).flatMap(n => notePhotoIdsOf(n)), ...(record.canvases ?? []).flatMap(c => c.nodes.map(n => n.photo))];
     void sweepNotePhotos(photoScope(), named).catch(() => undefined);
     // Only on arrival: a photo deleted with its note during this visit can still come back with Undo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes.loaded]);
+  // Session AV lane 2 (r5-notes; LEDGER #360): a note deleted more than 30 days ago leaves Recently deleted on arrival.
+  useEffect(() => {
+    if (!notes.loaded || notes.unreadable || !record.trash?.length) return;
+    const cutoff = Date.now() - 30 * 86_400_000;
+    if (record.trash.some(n => Date.parse(n.deletedAt) < cutoff)) void import('../../lib/notes/trash').then(({purgeTrash}) => change(r => purgeTrash(r, {before: cutoff}).record, '')).catch(() => undefined);
+    // Once on arrival (the photos left go with the arrival sweep's grace).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes.loaded]);
+  const [trashOpen, setTrashOpen] = useState(false), [selecting, setSelecting] = useState(false), [templatesOpen, setTemplatesOpen] = useState(false);
+  const doneSelecting = () => { setSelecting(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('.note-select-button')?.focus()); };
   // Session AV lane 2 (notes; LEDGER #32): the repeating notes due for this period are made when Notes opens.
   const [madeNote, setMadeNote] = useState(0);
   useEffect(() => {
@@ -167,21 +184,31 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       <details className="note-fold note-schedules-fold"><summary>Repeating notes <span className="fine">· {schedulesOf(record).length ? schedulesOf(record).map(x => `${x.title} (${everyWords(x)})`).slice(0, 2).join(', ') : 'a note made every day, week or month'}</span></summary>
         <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteSchedules record={record} change={change} today={today}/></Suspense></LoadBoundary>
       </details>
+      <details className="note-fold note-tag-templates-fold" onToggle={e => setTemplatesOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Templates for tags <span className="fine">· {record.tagTemplates?.length ? record.tagTemplates.map(t => `#${t.tag}`).slice(0, 3).join(', ') : 'a new note with a tag starts from its words'}</span></summary>
+        {templatesOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><TagTemplates record={record} change={change}/></Suspense></LoadBoundary>}
+      </details>
       <TagFocus notes={taggableNotes(record)} focus={focus} onFocus={setFocus}/>
       <NotesSearch notes={focused(record.notes, focus)} onSearching={setSearching}/>
       <LoadBoundary quiet><Suspense fallback={null}><NotesRemindersPanel record={record}/></Suspense></LoadBoundary>
       {(() => { const n = openTickCount; return <details className="note-fold note-ticks-fold" open={ticksOpen || undefined} onToggle={e => setTicksOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Open tick boxes <span className="fine">· {n ? `${n} across your notes` : 'none yet; a line that starts with - [ ] is one'}</span></summary>
         {ticksOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NotesTicks record={record} change={change}/></Suspense></LoadBoundary>}
       </details>; })()}
-      {topics.length > 0 && !searching && <div className="note-layouts" role="group" aria-label="Show notes as">{LAYOUTS.map(([l, label]) => <button key={l} type="button" className="quiet" aria-pressed={layout === l} onClick={() => setLayout(l)}>{label}</button>)}</div>}
+      {topics.length > 0 && !searching && <div className="note-layouts" role="group" aria-label="Show notes as">{LAYOUTS.map(([l, label]) => <button key={l} type="button" className="quiet" aria-pressed={layout === l} onClick={() => { setLayout(l); setSelecting(false); }}>{label}</button>)}</div>}
+      {/* Session AV lane 2 (r5-notes; LEDGER #359): Select in the list. */}
+      {topics.length > 0 && !searching && layout === 'list' && <div className="note-actions note-select-open"><button type="button" className="quiet note-select-button" aria-pressed={selecting} onPointerEnter={() => void import('./notes-select').catch(() => undefined)} onClick={() => selecting ? doneSelecting() : setSelecting(true)}>Select</button></div>}
+      {selecting && layout === 'list' && !searching && topics.length > 0 && <LoadBoundary label="Select"><Suspense fallback={<p className="fine">Opening…</p>}><NotesSelect notes={topics} record={record} change={change} onDone={doneSelecting}/></Suspense></LoadBoundary>}
       {/* Session AL (PR-105, P-PR-43): while a search is typed, its results are the list (the full list no longer stays below "No note has those words.") */}
-      {searching ? null : topics.length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? focused(record.notes.filter(n => !n.archived), focus) : topics} layout={layout} today={today} record={record} change={change}/></Suspense></LoadBoundary> : topics.length ? <ul className="note-list">{topics.map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{n.kind === 'daily' && n.day ? formatDate(n.day, {weekday: true}) : noteName(n)}</strong></Link>{n.kind === 'daily' && <span className="fine"> · daily note</span>}{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{snippetOf(n)}</p></li>)}</ul>
+      {searching || (selecting && layout === 'list' && topics.length) ? null : topics.length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? focused(record.notes.filter(n => !n.archived), focus) : topics} layout={layout} today={today} record={record} change={change}/></Suspense></LoadBoundary> : topics.length ? <ul className="note-list">{topics.map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{n.kind === 'daily' && n.day ? formatDate(n.day, {weekday: true}) : noteName(n)}</strong></Link>{n.kind === 'daily' && <span className="fine"> · daily note</span>}{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{snippetOf(n)}</p></li>)}</ul>
         : focus ? <p className="fine">No note is tagged #{focus} yet. <button type="button" className="text-link" onClick={() => setFocus()}>Clear the focus</button> to see every note.</p>
         : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. A note that links a goal or a habit shows on its page.</p>}
       {/* Session AV lane 2 (r4-notes; LEDGER #315): archived notes wait here, out of the list and the graph. */}
       {shelved.length > 0 && !searching && <details className="note-fold note-archived-fold"><summary>Archived <span className="fine">· {shelved.length} {shelved.length === 1 ? 'note' : 'notes'}, still in Search</span></summary>
         <ul className="note-list">{shelved.map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{n.kind === 'daily' && n.day ? formatDate(n.day, {weekday: true}) : noteName(n)}</strong></Link>
           <button type="button" className="text-link" onClick={() => change(r => updateNote(r, n.id, {archived: false}, new Date().toISOString()), `“${shortNoteName(n)}” is back in the list.`)}>Back to the list</button></li>)}</ul>
+      </details>}
+      {/* Session AV lane 2 (r5-notes; LEDGER #360): deleted notes wait here 30 days. */}
+      {!searching && <details className="note-fold note-trash-fold" open={trashOpen || undefined} onToggle={e => setTrashOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Recently deleted <span className="fine">· {record.trash?.length ? `${record.trash.length} ${record.trash.length === 1 ? 'note' : 'notes'}, kept 30 days` : 'none; a deleted note waits here 30 days'}</span></summary>
+        {trashOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NotesTrash record={record} change={change}/></Suspense></LoadBoundary>}
       </details>}
     </section>; })()}
 
