@@ -278,3 +278,27 @@ Device keys / catalogue / export / erase entries needed: none (existing keys onl
   `components/wealth/bills/bills.css`.
 - Today: nothing always visible; the "behind your kept plan" piece joins the existing Money link only for a person who
   keeps a plan and is behind it.
+
+### F7. The open q2 Minors (Money)
+
+Re-checked against the code at this branch; each row of `quality/q2.md` marked Minor:
+
+| q2 row | state at `lane2/money` |
+|---|---|
+| #9 "Add a target" on a row; "set aside" with days to go | already fixed (`AddTarget`; "left so far" in the month) |
+| #7 vs-last on a phone | already fixed (Category · This month · Difference with "was …") |
+| #10 bill calendar paging | already fixed (By month view) |
+| #14 Light-theme flow fills | already fixed (insights.css, 3:1 note) |
+| #16 order and lumps kept / NL place / schedule answer | already fixed ("not kept yet" note, `DEBT_PLANNER_WHERE_NL`, `debtSchedule`); lane 2 also keeps promo, note and paid-off-by on Keep |
+| #20 Today's links, "fast" | already fixed |
+| #21 amount range | already fixed |
+| #31 watch: Showcase example, answer, budgeted refused, all of last month, Today | already fixed |
+| #35 rolling ±% | **built in F4** (24 h move alerts) |
+| #35 Showcase value alert example | **built now**: a read-only "Value alert (example)" on the Showcase portfolio, never stored (`components/portfolio/portfolio-view.tsx`) |
+| #35 "already above" warning, price-alerts answer | already fixed |
+| #37 a near-limit Showcase budget | **left: against a named rule** — the Showcase budgets are pinned by the NOVA corpus (`lib/ai/evals/as/expected.json`: "No budget is near its limit (80%) this month. The fullest: Groceries 75% …", EN and NL, and "3 van 3 budgetten binnen plan …"), which this lane may not edit; shaping Groceries to 80 % would move those pinned answers. The lead can do it with the corpus re-recorded: in `lib/bills/showcase.ts` set the Groceries budget `monthly` to `'230.00'` (187.10 / 230 = 81 %). |
+| #37 budgets answer naming near / fast | already fixed (`nearLimit`) |
+| #49 focus after fresh start; Showcase; recap answer | already fixed |
+
+- Spec: the Showcase example is covered by the lead's Showcase sweep (no new spec: it is static text).
+- What's new: none (a Showcase example).

@@ -25,6 +25,7 @@ import {HoldingsBelowZero, holdings, portfolioTotals} from '../../lib/portfolio/
 import {allTimeResult, dayChange} from '../../lib/portfolio/performance';
 // Session AV lane 2 (money; CoinStats): transactions left out of the results.
 import {forResults, uncountedOf} from '../../lib/portfolio/counted';
+import {formatMoney} from '../../lib/visual-format';
 import {RECEIPTS} from '../../lib/portfolio/receipts';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {realizedGainsCsv} from '../../lib/portfolio/realized-csv';
@@ -186,6 +187,8 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
     {leftOut > 0 && <p className="fine portfolio-left-out">{leftOut} {leftOut === 1 ? 'transaction is' : 'transactions are'} left out of the results (cost, profit and loss); {leftOut === 1 ? 'its coins still count' : 'their coins still count'} in what this portfolio holds and is worth.</p>}
     {!showcase && <SinceLastVisit portfolio={portfolio} value={totals.knownValue} ready={totals.held > 0 && totals.unpriced === 0 && !stale} />}
     {/* Session AV (owner follow-up 1, F-MOVE-ALERT): an alert on the whole value, checked here when the value is complete. */}
+    {/* Session AV lane 2 (money; q2 rank 35 Minor): the Showcase shows what a value alert looks like, read-only, never stored. */}
+    {showcase && portfolio.kind === 'real' && <details className="price-alert-form portfolio-value-alert"><summary>Value alert (example)</summary><ul className="price-alerts-list" aria-label="Example value alerts"><li><span>{portfolio.name} worth above {formatMoney(String(Math.round(Number(totals.knownValue || '0') * 1.1)), portfolio.currency)} · example</span></li><li><span>{portfolio.name} worth 10% down from now · example</span></li></ul><p className="fine">Showcase: fictional examples, never stored. On your own portfolio, Value alert sets one above or below a value, or a percent from now.</p></details>}
     {!showcase && portfolio.kind === 'real' && <Suspense fallback={null}><PortfolioValueAlert portfolioId={portfolio.id} portfolioName={portfolio.name} currency={portfolio.currency} value={totals.held > 0 && totals.unpriced === 0 && !stale ? totals.knownValue : null}/></Suspense>}
     {rows.length > 0 && <>
       {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}<div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`} onKeyDown={event => tabKeys(PORTFOLIO_TABS, tab, setTab)(event)}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Transactions']] as const) /* Session AL (TK-030, COPY_AUDIT): named for what it holds */.map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)}>{label}</button>)}</div>
