@@ -176,6 +176,10 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
 ### #16 The pay-period answer wrote Dutch dates with English money
 - Verdict: fixed. lib/ai/local-answers/av2-tasks.ts `payPeriod` formats money with nl-NL in a Dutch answer ("€ 62,90
   van € 250,00"); English is unchanged. Test: apps/web/lib/ai/local-answers/revb1-pay-period.test.ts.
+- FOR THE LEAD: the corpus (lib/ai/evals/as/expected.json, yours) records the old Dutch line for `av2-pay-period`
+  ("Groceries: €62.90 van €250.00 …"); corpus.test.ts "every phrasing" fails on exactly that one case until it is
+  re-recorded with the new words ("Groceries: € 62,90 van € 250,00 (zo 1 nov – ma 30 nov)", "Food & drink: € 70,90 van
+  € 120,00 …"). Nothing else in the corpus moved (lib/ai otherwise green).
 
 ### #15 The evening check-in's 14-day strip: fourteen identical boxes
 - Verdict: fixed. Each box shows its day — the weekday's initial and the day of the month ("M 16"), "Today" on the
@@ -194,3 +198,13 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
 - Tests: the timer's pure parts are in apps/web/lib/tasks/revb1-timers.test.ts and av2-planning.test.ts; this is a
   browser behaviour: spec (lead runs) apps/web/tests/revb1-task-timer.spec.ts.
 - Help (EN), add to the timers answer: "Start a timer from any task's editor (Edit), under Time spent."
+
+### #17 "how many photos are on my tasks" could never be counted
+- Verdict: fixed in the answer; the count itself needs the engine (lead's file). lib/ai/local-answers/av2-roadmap.ts:
+  a count asked for with no count at hand now says "I can’t count them from here: a task’s photos and voice notes stay
+  in this browser’s own store, which I don’t read. Open a task to see its Photos and voice notes. …" (EN and NL),
+  instead of only how to add one. A count passed in is still said as before.
+- Wiring line for engine.ts (optional, the lead's call): the engine is synchronous and the attachment store is
+  IndexedDB, so a count would have to be read before the question (e.g. in use-ai-context, `taskAttachments(photoScope())`
+  → `{photos, voice, tasks}`) and passed as `av2RoadmapAnswer(question, env, {attachments})`.
+- Test: apps/web/lib/ai/local-answers/revb1-roadmap-count.test.ts (through the engine, EN and NL).
