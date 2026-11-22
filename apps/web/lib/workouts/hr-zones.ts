@@ -47,14 +47,16 @@ export function hrHistogram(segments: readonly (readonly {t: number | null; hr: 
 }
 export const withHr = (r: WorkoutHr, id: string, h: HrHistogram): WorkoutHr => workoutHrSchema.parse({...r, runs: {...r.runs, [id]: h}});
 export const withoutHr = (r: WorkoutHr, id: string): WorkoutHr => { const runs = {...r.runs}; delete runs[id]; return workoutHrSchema.parse({...r, runs}); };
-/** Keeps the maximum the person typed, or says what to fix (blank removes it). */
+/**
+ * Keeps the maximum the person typed, or says what to fix. Review B4E-5: a blank field is refused (it removed the maximum,
+ * and with it every run's zones, on an empty "Change it"); removing is its own choice, `clearMaxHr`, with Undo on the page.
+ */
 export function setMaxHr(r: WorkoutHr, text: string): {ok: true; value: WorkoutHr} | {ok: false; message: string} {
-  const t = text.trim();
-  if (!t) { const rest: Record<string, unknown> = {...r}; delete rest.maxHr; return {ok: true, value: workoutHrSchema.parse(rest)}; }
-  const n = Number(t);
-  if (!/^\d+$/.test(t) || n < MAX_HR_MIN || n > MAX_HR_MAX) return {ok: false, message: `Enter your maximum heart rate as a whole number from ${MAX_HR_MIN} to ${MAX_HR_MAX} beats a minute, or leave it blank.`};
+  const t = text.trim(), n = Number(t);
+  if (!/^\d+$/.test(t) || n < MAX_HR_MIN || n > MAX_HR_MAX) return {ok: false, message: `Enter your maximum heart rate as a whole number from ${MAX_HR_MIN} to ${MAX_HR_MAX} beats a minute.`};
   return {ok: true, value: workoutHrSchema.parse({...r, maxHr: n})};
 }
+export const clearMaxHr = (r: WorkoutHr): WorkoutHr => { const rest: Record<string, unknown> = {...r}; delete rest.maxHr; return workoutHrSchema.parse(rest); };
 export type Zone = {zone: 1 | 2 | 3 | 4 | 5; from: number; to: number; seconds: number};
 /** Each zone's beats-a-minute range from the maximum (rounded to whole beats; zone 5 runs to the maximum and above it). */
 export const zoneRanges = (maxHr: number) => ZONE_EDGES.map((e, i) => ({zone: (i + 1) as Zone['zone'], from: Math.round(e * maxHr), to: i < 4 ? Math.round(ZONE_EDGES[i + 1]! * maxHr) - 1 : maxHr}));

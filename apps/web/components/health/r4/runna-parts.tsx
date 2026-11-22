@@ -1,7 +1,7 @@
 'use client';
 import {useId, useState, type FormEvent, type ReactNode} from 'react';
 import type {Workouts} from '../../../lib/workouts/schema';
-import {MAX_HR_MAX, MAX_HR_MIN, setMaxHr, WORKOUT_HR, ZONE_EDGES, ZONE_SOURCE, zoneMinutes, zoneSeconds} from '../../../lib/workouts/hr-zones';
+import {clearMaxHr, MAX_HR_MAX, MAX_HR_MIN, setMaxHr, WORKOUT_HR, ZONE_EDGES, ZONE_SOURCE, zoneMinutes, zoneSeconds} from '../../../lib/workouts/hr-zones';
 import {distanceWords, goalWords, RACE_DISTANCES, raceYear, RACES, removeRace, restoreRace, saveRace, timeText, type Race, type RaceDraft, type RaceIssue} from '../../../lib/workouts/races';
 import {addCountdown, COUNTDOWNS} from '../../../lib/countdowns/schema';
 import {formatDate} from '../../../lib/visual-format';
@@ -20,11 +20,14 @@ const errorText = (e: unknown) => e instanceof Error && !/storage|quota/i.test(e
 
 /** A run's minutes in each of five zones (LEDGER #336), shown under the run in "Your workouts". */
 export function HrZones({workoutId, name}: {workoutId: string; name: string}) {
-  const rec = useDeviceRecord(WORKOUT_HR), id = useId(), [text, setText] = useState(''), [issue, setIssue] = useState(''), [said, setSaid] = useState('');
+  const rec = useDeviceRecord(WORKOUT_HR), id = useId(), [typed, setText] = useState<string | null>(null), [issue, setIssue] = useState(''), [said, setSaid] = useState('');
   if (!rec.loaded || rec.unreadable) return null;
   const h = rec.data.runs[workoutId], max = rec.data.maxHr;
   if (!h) return null;
-  const keep = (e: FormEvent) => { e.preventDefault(); const out = setMaxHr(rec.data, text); if (!out.ok) { setIssue(out.message); document.getElementById(`${id}-max`)?.focus(); return; } try { rec.update(() => out.value); setIssue(''); setText(''); setSaid(out.value.maxHr ? `Your maximum: ${out.value.maxHr} beats a minute. Every run’s zones use it.` : 'Your maximum is removed.'); } catch (err) { setSaid(errorText(err)); } };
+  // Review B4E-5: the field shows the maximum kept; a blank one is refused, and removing it is its own button, with Undo.
+  const text = typed ?? (max ? String(max) : '');
+  const keep = (e: FormEvent) => { e.preventDefault(); const out = setMaxHr(rec.data, text); if (!out.ok) { setIssue(out.message); document.getElementById(`${id}-max`)?.focus(); return; } try { rec.update(() => out.value); setIssue(''); setText(null); setSaid(`Your maximum: ${out.value.maxHr} beats a minute. Every run’s zones use it.`); } catch (err) { setSaid(errorText(err)); } };
+  const remove = () => { const was = max; if (!was) return; try { rec.update(clearMaxHr); setText(null); setSaid('Your maximum is removed: the zones wait for it.'); showUndo({message: 'Your maximum heart rate is removed.', undone: `Your maximum is back: ${was} beats a minute.`, restore: () => rec.update(r => ({...r, maxHr: was}))}); } catch (err) { setSaid(errorText(err)); } };
   const z = max ? zoneSeconds(h, max) : null;
   return <section className="r4-zones" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>Heart-rate zones for {name}</h4>
@@ -34,8 +37,8 @@ export function HrZones({workoutId, name}: {workoutId: string; name: string}) {
       <p className="fine">Zones are {ZONE_EDGES.map((e, i) => `${Math.round(e * 100)}–${i < 4 ? Math.round(ZONE_EDGES[i + 1]! * 100) : 100}`).join(', ')} % of the maximum you typed ({max} bpm), the five-zone split of {ZONE_SOURCE}. <span className="health-estimate-tag">an estimate, not medical advice</span> ZIGoals never works the maximum out from your age.</p>
     </> : <p className="fine">This run kept the time at each heart rate from its file. Type your maximum heart rate (from a test or your watch, never guessed from age) to see its five zones.</p>}
     <form className="r3-toggle" aria-label="Your maximum heart rate" noValidate onSubmit={keep}>
-      <label className="field"><span>Maximum heart rate (bpm, {MAX_HR_MIN}–{MAX_HR_MAX}){max ? `, now ${max}` : ''}</span><input id={`${id}-max`} type="text" inputMode="numeric" value={text} aria-invalid={issue ? true : undefined} aria-describedby={issue ? `${id}-issue` : undefined} onChange={e => { setText(e.target.value); setIssue(''); }}/></label>
-      <button type="submit" className="secondary">{max ? 'Change it' : 'Keep it'}</button>
+      <label className="field"><span>Maximum heart rate (bpm, {MAX_HR_MIN}–{MAX_HR_MAX})</span><input id={`${id}-max`} type="text" inputMode="numeric" value={text} aria-invalid={issue ? true : undefined} aria-describedby={issue ? `${id}-issue` : undefined} onChange={e => { setText(e.target.value); setIssue(''); }}/></label>
+      <button type="submit" className="secondary">{max ? 'Change it' : 'Keep it'}</button>{max && <button type="button" className="quiet" onClick={remove}>Remove my maximum</button>}
       {issue && <p className="field-error" id={`${id}-issue`} role="alert">{issue}</p>}
     </form>
     <p className="fine" role="status" aria-live="polite">{said}</p>

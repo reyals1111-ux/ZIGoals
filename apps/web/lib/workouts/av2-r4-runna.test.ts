@@ -3,7 +3,7 @@ import {collectEverything, DEVICE_KEYS} from '../export/everything';
 import {nextValue, planParts} from '../restore/plan';
 import {readWorkoutFile} from './import-file';
 import {miniXmlParser} from './mini-xml';
-import {emptyWorkoutHr, hrHistogram, setMaxHr, WORKOUT_HR_KEY, withHr, withoutHr, workoutHrSchema, zoneRanges, zoneSeconds, zoneMinutes} from './hr-zones';
+import {clearMaxHr, emptyWorkoutHr, hrHistogram, setMaxHr, WORKOUT_HR_KEY, withHr, withoutHr, workoutHrSchema, zoneRanges, zoneSeconds, zoneMinutes} from './hr-zones';
 import {emptyRaces, goalWords, raceResult, RACES_KEY, racesSchema, raceYear, readTime, removeRace, restoreRace, saveRace, timeText, weeksBetween, type RaceDraft} from './races';
 import {emptyWorkouts, type Workouts} from './schema';
 
@@ -35,12 +35,15 @@ describe('heart-rate zones (LEDGER #336)', () => {
     expect(z.total).toBe(780);
     expect(zoneMinutes(600)).toBe('10 min'); expect(zoneMinutes(10)).toBe('under 1 min'); expect(zoneMinutes(0)).toBe('0 min');
   });
-  test('the maximum is typed, 100–230, never worked out; blank removes it', () => {
+  // Session AV lane 2 (review B4E-5, deliberate): a blank field is refused, never a removal; removing is clearMaxHr.
+  test('the maximum is typed, 100–230, never worked out; blank is refused; removing is its own choice', () => {
     const r = setMaxHr(emptyWorkoutHr(), '186');
     expect(r.ok && r.value.maxHr).toBe(186);
     expect(setMaxHr(emptyWorkoutHr(), '260').ok).toBe(false);
     expect(setMaxHr(emptyWorkoutHr(), 'about 180').ok).toBe(false);
-    expect(r.ok && setMaxHr(r.value, ' ').ok && (setMaxHr(r.value, ' ') as {value: {maxHr?: number}}).value.maxHr).toBeUndefined();
+    expect(r.ok && setMaxHr(r.value, ' ').ok).toBe(false);
+    expect(r.ok && clearMaxHr(r.value).maxHr).toBeUndefined();
+    expect(r.ok && clearMaxHr(r.value)).toEqual({version: 1, runs: {}});
   });
   test('an unreadable run is dropped and the others kept; removed with its workout', () => {
     const h = {from: 120, seconds: [30, 40]}, rec = withHr(emptyWorkoutHr(), 'w-1', h);
