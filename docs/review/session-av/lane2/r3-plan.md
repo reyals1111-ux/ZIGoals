@@ -211,3 +211,27 @@ phases and no advice. Information for you, not a contraceptive or a diagnosis."
 What's new: "Cycle log: your cycle day on the Day Timeline and the Agenda, if you choose."
 Showcase: shows for the Showcase only if its cycle record opts in (it does not; no count moved). Today: nothing.
 CSS: components/cycle/cycle.css (seven lines).
+
+## Feature 8 — A reading-friendly font (LEDGER #263, Structured) — built without a font file; the bundled file waits for the owner
+
+- Settings → Appearance → Customize → Font gains "Reading-friendly", next to System, Inter, Serif, Rounded and Monospace:
+  a stack of fonts the device may already have — "Atkinson Hyperlegible", OpenDyslexic, Lexend, Verdana, Tahoma, DejaVu Sans,
+  system-ui, sans-serif — with wider letter spacing (.02em), word spacing (.08em) and line height (1.6). No file is fetched.
+- **A bundled font file waits for the owner**: LEDGER #263 asks for Atkinson Hyperlegible or OpenDyslexic self-hosted like
+  Inter (public/fonts, SIL OFL). The owner has not approved a new font file, so none is added; with approval the
+  `reading` rule in app/customize.css gains an @font-face, and av2-appearance.test.ts's font-face count moves from 2.
+- Applied at once on choice and before the first paint of later pages by the boot script. **For the lead**: the boot script's
+  source (scripts/themes/build-themes.mjs `bootScript`) gains `k.font==="reading"`, in its own commit; please run the
+  generator to rewrite public/theme-boot.js and lib/ui-prefs/theme-sheets.ts (THEME_BOOT_SRC). Until then
+  scripts/themes/build-themes.test.mjs ("theme-boot.js is the generated one") is red on this branch and a reload loses the font.
+Files: lib/ui-prefs/{look.ts, schema.ts}, app/customize.css, components/settings/customize-settings.tsx,
+scripts/themes/build-themes.mjs (source of the generated boot script).
+Tests: lib/ui-prefs/av2-appearance.test.ts (labelled deliberate change: six choices, `reading` checked as strictly as the
+others, its stack ends at sans-serif; font-face and url counts unchanged at 2). Spec: tests/av2-reading-font.spec.ts.
+Stored: `reading` in `look.font` (TIER 3 commit).
+Answers: "is there a dyslexia friendly font" / "is er een lettertype voor dyslexie".
+Help: Q "Is there a font that is easier to read?" A "Yes. In Settings → Appearance → Customize, choose Font → Reading-friendly.
+It uses Atkinson Hyperlegible or OpenDyslexic when your device has one (otherwise Verdana or Tahoma) and puts a little more
+space between letters, words and lines. Large text can go with it."
+What's new: "Appearance: a Reading-friendly font choice, with more space between letters and lines."
+Showcase: none. Today: nothing. CSS: app/customize.css (not a theme-sheet source).

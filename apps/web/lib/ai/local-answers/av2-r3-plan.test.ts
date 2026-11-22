@@ -92,3 +92,10 @@ describe('the cycle day (LEDGER #262)', () => {
     expect(text(av2R3PlanAnswer('which cycle day is it today', zigiEnv(off)))).toMatch(/^The cycle log is off/);
   });
 });
+describe('the reading-friendly font (LEDGER #263)', () => {
+  test('says where it is, in both languages', () => {
+    expect(text(av2R3PlanAnswer('is there a dyslexia friendly font', zigiEnv(freshAll())))).toMatch(/^Yes: Settings → Appearance → Customize → Font → Reading-friendly\./);
+    expect(text(av2R3PlanAnswer('is er een lettertype voor dyslexie', zigiEnv(freshAll())))).toMatch(/^Ja: Settings → Appearance → Customize → Font → Reading-friendly\./);
+    expect(av2R3PlanAnswer('what font is this', zigiEnv(freshAll()))).toBeNull();
+  });
+});

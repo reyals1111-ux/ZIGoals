@@ -177,4 +177,13 @@ function cycleDayAnswer(a: Ask): LocalReply | null {
   return answer(say(a.lang, `${when} is ${parts.join(', ')}. ${line}`, `${when} is ${parts.join(', ')}. ${line}`), calls);
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow, dayEnergyAnswer, focusNotes, copyClearDay, cycleDayAnswer];
+/** "is there a dyslexia friendly font", "is er een lettertype voor dyslexie" (LEDGER #263): where the reading-friendly choice is. */
+function readingFont(a: Ask): LocalReply | null {
+  const en = /\b(?:dyslexi\w*|reading friendly|easier to read|easy to read|readable)\b/.test(a.f) && /\b(?:font|fonts|letters|text|typeface)\b/.test(a.f);
+  const nl = /\b(?:dyslexie|leesbaar\w*|makkelijker lezen|beter leesbaar)\b/.test(a.f) && /\b(?:lettertype|letters|tekst|font)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  return answer(say(a.lang, 'Yes: Settings → Appearance → Customize → Font → Reading-friendly. It uses Atkinson Hyperlegible or OpenDyslexic when this device has one (else Verdana or Tahoma), with more space between letters, words and lines. Large text sits beside it. Only on this device.',
+    'Ja: Settings → Appearance → Customize → Font → Reading-friendly. Die gebruikt Atkinson Hyperlegible en OpenDyslexic als dit apparaat ze heeft (anders Verdana en Tahoma), met meer ruimte tussen letters, woorden en regels. Large text staat ernaast. Alleen op dit apparaat.'));
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow, dayEnergyAnswer, focusNotes, copyClearDay, cycleDayAnswer, readingFont];

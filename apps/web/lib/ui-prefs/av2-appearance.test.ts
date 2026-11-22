@@ -80,14 +80,17 @@ describe('Dark style, on the page', () => {
 });
 
 describe('more fonts (N6 #192): the device\'s own, nothing fetched', () => {
-  it('five choices; each but System is one attribute value; anything else reads as System', () => {
-    expect(LOOK_CHOICES.font).toEqual(['system', 'inter', 'serif', 'rounded', 'mono']);
-    for (const font of ['serif', 'rounded', 'mono'] as const) expect(lookAttributes({look: {...DEFAULT_LOOK, font}})).toEqual({'data-font': font});
+  // Session AV lane 2 (r3-plan, LEDGER #263: a sixth choice, Reading-friendly, deliberate): the list now ends with 'reading',
+  // and 'reading' is checked as one attribute value exactly like the other three.
+  it('six choices; each but System is one attribute value; anything else reads as System', () => {
+    expect(LOOK_CHOICES.font).toEqual(['system', 'inter', 'serif', 'rounded', 'mono', 'reading']);
+    for (const font of ['serif', 'rounded', 'mono', 'reading'] as const) expect(lookAttributes({look: {...DEFAULT_LOOK, font}})).toEqual({'data-font': font});
     expect(lookOf(uiPrefsSchema.parse({version: 1, look: {font: 'comic'}})).font).toBe('system');
   });
   it('app/customize.css names a system font stack for each, ending at its generic family, and no new file', () => {
     const css = readFileSync(join(__dirname, '..', '..', 'app', 'customize.css'), 'utf8');
-    for (const [font, generic] of [['serif', 'serif'], ['rounded', 'sans-serif'], ['mono', 'monospace']] as const) {
+    // Session AV lane 2 (r3-plan, LEDGER #263, deliberate): Reading-friendly is a system stack too, ending at sans-serif.
+    for (const [font, generic] of [['serif', 'serif'], ['rounded', 'sans-serif'], ['mono', 'monospace'], ['reading', 'sans-serif']] as const) {
       const rule = new RegExp(`:root\\[data-font="${font}"\\] body \\{\\s*font-family: ([^;]+);`).exec(css);
       expect(rule, font).not.toBeNull();
       expect(rule![1]!.trim().endsWith(generic), font).toBe(true);
