@@ -33,7 +33,7 @@ touched. Nothing new is always visible on Today.
    (10 intents, 40 questions, EN and NL) to `CORPUS` and record `expected.json`. Unit test:
    `lib/ai/local-answers/av2-r4-mind.test.ts`, which also checks that no question of today's CORPUS is answered by it, so
    wiring it first moves nothing.
-2. **Restore of photos five to twelve**: `lib/restore/media.ts` line 56 should read `morePhotos` beside `photos` (F3).
+2. **Restore of photos five to twelve**: done by the lead on `lane2/batch4` (review B4D-1).
 3. **Help**: the Q+As below, and the existing `ak-journal-more` answer's "or a month ago" → "a month ago and a week ago" (F4).
 4. **No new device key, database, catalogue, export, erase or restore entry.** Every new field is in an existing record
    (`zigoals:journal:v1`, `zigoals:journal-display:v1`, `zigoals:habit-extras:v1`, `zigoals:energy:v1`), already in
@@ -73,6 +73,14 @@ touched. Nothing new is always visible on Today.
 
 Older builds keep every field untouched (the records are loose; the check-in and the habit extras are written by
 read-modify-write that keeps unknown fields) and show the journal, the habits and the feelings as before.
+
+**Rollback limit (review B4D-8): photos five to twelve.** An older build does not know `morePhotos`. When it opens the
+Journal (after a rollback deploy, or in a tab still on the old version) its media sweep finds no entry naming photos five
+to twelve, marks them as unused, and deletes them 30 days later. If this build opens the Journal before then, it clears
+the mark and nothing is lost; so a rollback past this branch must not stay in use for 30 days or more, or those photos
+can be removed for good (the first four, the words and everything else stay). The journal's own ZIP and Export everything
+made on this build keep all twelve. **For the lead:** please carry this line into docs/STATUS.md's stored-format notes
+(docs/PRIVACY.md does not describe the journal photo sweep, so it needs no change).
 
 ## Features
 
@@ -152,6 +160,8 @@ read-modify-write that keeps unknown fields) and show the journal, the habits an
 - Tests: `lib/journal/r4-more-photos.test.ts`, `lib/journal/r4-stored.test.ts`. Spec: `tests/av2-journal-more-photos.spec.ts`.
 - Stored: entry `morePhotos` (TIER 3 commit `9d4e8a51`). No new key or database (the bytes stay in
   `zigoals-journal-media-v1`, already in Export everything and the erase).
+- Rollback limit (review B4D-8): an older build's 30-day sweep does not know `morePhotos`; after a rollback that stays in
+  use for 30 days or more, photos five to twelve may be removed (see "Rollback limit" above).
 - **For the lead (restore of the photo bytes)**: `lib/restore/media.ts` `indexMedia` lists a journal entry's `photos`
   only; please let it read `morePhotos` too, so a backup's photos five to twelve come back:
   `for (const id of [...(Array.isArray(e.photos) ? e.photos : []), ...(Array.isArray(e.morePhotos) ? e.morePhotos : [])]) …`
@@ -271,3 +281,13 @@ read-modify-write that keeps unknown fields) and show the journal, the habits an
   counts; habits' sizes and the step on offer; what a feeling word means; the choices for a feeling (never advice);
   where feelings were felt, as counts. The journal only where shared, habits under their switch, feelings under
   Health's gate. Wiring: see "For the lead" 1.
+
+## Review B4D fixes
+
+| finding | fix | commit |
+|---|---|---|
+| merge | `lane2/revb3c` merged (the shared `isSealed` / `unsealed` letters rule); conflicts in search, import, export, the Journal page and On this day resolved keeping both sides | `f0472c44` |
+| B4D-1 (restore of `morePhotos`) | fixed by the lead on `lane2/batch4` | — |
+| B4D-4 Major | `throwbacks` leaves out a letter still folded away (`isSealed`), so On this day, the morning memory wakes and NOVA's answers never show or wake for it; once its day comes it is an entry like any other. Tests in `lib/on-this-day/r4-throwback.test.ts`; the spec seeds a sealed letter a week back | `de7ff111` |
+| B4D-5 | Undo of the step-up card's Yes puts the habit's whole `stepUp` entry back (`stepUpEntry` / `restoreStepUpEntry`): `now`, `since` and `later` exactly, other habits as they are now. Test in `lib/habit-intentions/r4-identity-step-up.test.ts`; the spec checks the entry after Undo | `82a133b7` |
+| B4D-8 | the rollback limit for photos five to twelve, written above (Stored changes and F3); the STATUS line is asked of the lead | the registry commit after `82a133b7` |
