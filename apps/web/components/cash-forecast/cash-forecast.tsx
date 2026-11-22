@@ -11,6 +11,8 @@ import {localDate} from '../../lib/local-date';
 import {formatDate} from '../../lib/visual-format';
 import {centsText, moneyCents, moneyWhole} from '../wealth/money-tools/format';
 import './cash-forecast.css';
+// Session AV lane 2 (money): the cash until payday and the person's own low-balance line.
+import PaydayLow from './payday-low';
 
 /**
  * Session AK (BUILD list 2 #11): Wealth → Spending → Money tools → "Next 60 days". Cash ahead, per currency, from the
@@ -37,6 +39,7 @@ export default function CashForecast({log, showcase = false}: {log: DeviceRecord
         <p className="fine">Then your bills, budgets, your money log&rsquo;s repeats and everyday pace, and your Goals&rsquo; plans shape the next {FORECAST_DAYS} days, per currency, never converted.</p>
       </div>
       : result.rows.map(row => <ForecastRow key={row.currency} row={row}/>)}
+    {result && result.rows.length > 0 && !bills.unreadable && <PaydayLow rows={result.rows} log={log} bills={bills.data} today={today}/>}
     {result && result.unplaced.length > 0 && <p className="fine">Not drawn: bills or plans in {result.unplaced.join(', ')}, which {result.unplaced.length === 1 ? 'has' : 'have'} no cash or savings account here.</p>}
   </section>;
 }

@@ -9,7 +9,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -49,6 +49,11 @@ export type PlanInput = {
    * streak a new entry keeps. Never a word of the journal.
    */
   journal?: {time: string; weekdays: number; written: readonly string[]; streak: number};
+  /**
+   * Session AV lane 2 (money; Copilot's custom alerts, Rocket Money): a budget near or over its amount, payday tomorrow,
+   * the low-balance line ahead (lib/money-notices.ts moneyWakes) — the day and an id; a title and detail for names-on only.
+   */
+  money?: {id: string; date: string; title?: string; detail?: string}[];
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -117,6 +122,14 @@ export function buildPlan(input: PlanInput): Plan {
     const at = zonedInstant(c.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'countdown');
     push({at, kind: 'countdown', id: `countdown:${c.id}@${c.date}`, label: label(c.title), detail: c.days === 0 ? 'today' : c.days === 1 ? 'tomorrow' : `in ${c.days} days`, href: '/app', actionable: false});
+  }
+  // Session AV lane 2 (money): a money notice wakes at the morning time of its day (the end of quiet hours when the morning
+  // is quiet), as a countdown does; its words only with names on.
+  if (typeOn(prefs, 'money')) for (const m of input.money ?? []) {
+    if (m.date < today || m.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'money');
+    push({at, kind: 'money', id: m.id, label: label(m.title), ...(labels && m.detail ? {detail: m.detail} : {}), href: '/app/wealth?view=budgets', actionable: false});
   }
   // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
   // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end

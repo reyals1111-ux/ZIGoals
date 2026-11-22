@@ -52,6 +52,9 @@
     if (countdowns.length) lines.push(named && countdowns.every(function (c) { return c.label; }) ? countdowns.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(countdowns.length, 'countdown reminder', 'countdown reminders'));
     // Session AV lane 2 (journal; LEDGER #40): the reminder to write, with the streak it keeps (never a word of the journal).
     (kinds.journal || []).slice(0, 1).forEach(function (j) { lines.push('Time to write in your journal' + (j.detail ? ' · ' + j.detail : '')); });
+    // Session AV lane 2 (money): budgets near or over, payday tomorrow, the low-balance line; words only where names are allowed.
+    var moneyNotes = kinds.money || [];
+    if (moneyNotes.length) lines.push(named && moneyNotes.every(function (m) { return m.label; }) ? moneyNotes.slice(0, 2).map(function (m) { return m.label + (m.detail ? ' · ' + m.detail : ''); }).join(' · ') : plural(moneyNotes.length, 'money notice: open Wealth', 'money notices: open Wealth'));
     if (kinds.supplement) lines.push('A reminder you set in Health');
     if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
     // Session AL sweep 4 (C-DVG-68, C-BN-06): from the positions last read on the device; never a name or an amount.

@@ -37,7 +37,36 @@ export const moneyEntrySchema = z.looseObject({
   source: z.enum(['form', 'zigi', 'quick']).optional(),
   /** Session AK (lane M, item 22): the entry's parts (see moneyPartSchema); none: the entry counts whole. */
   parts: z.array(moneyPartSchema).min(1).max(MAX_PARTS).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (money; YNAB's credit-card interest, Rocket Money's "ignore", Monarch's exclude), TIER 3 (stored
+   * format), each additive and optional, dropped on read when this build cannot read it (older builds keep them untouched
+   * in the loose entry and simply count the entry as before):
+   * - `excluded`: "not part of my spending" — the entry stays in the log and in search, but no total, budget or insight
+   *   counts it;
+   * - `taxDeductible`: the person's own mark, for their records (ZIGoals gives no tax advice);
+   * - `spread`: the number of months (2–24) budgets spread this expense over, from its own month (a yearly insurance
+   *   at a twelfth a month); totals of the month it was paid in still show it whole;
+   * - `account`: the account a bank file named (as the file wrote it, at most 40 characters);
+   * - `ref`: the bank's reference of the imported row, so a re-import can find the row it came from;
+   * - `transfer`: the id of the entry on the other side of a card payment or a move between accounts; both are left out
+   *   of spending and income;
+   * - `history`: the last 20 changes to the entry (what changed, from what, to what, and who: you, a rule, a change to
+   *   several at once, or a re-import).
+   */
+  excluded: z.literal(true).optional().catch(undefined),
+  taxDeductible: z.literal(true).optional().catch(undefined),
+  spread: z.number().int().min(2).max(24).optional().catch(undefined),
+  account: z.string().trim().min(1).max(40).optional().catch(undefined),
+  ref: z.string().trim().min(1).max(140).optional().catch(undefined),
+  transfer: id.optional().catch(undefined),
+  history: z.array(z.looseObject({
+    at: z.iso.datetime({offset: true}), by: z.enum(['you', 'rule', 'bulk', 'import']),
+    field: z.enum(['category', 'amount', 'date', 'note', 'excluded', 'spread', 'transfer']), from: z.string().max(200).optional(), to: z.string().max(200).optional(),
+  })).max(20).optional().catch(undefined),
 });
+/** Session AV lane 2 (money): at most this many of the person's own categories of each kind, each at most 40 characters. */
+export const MAX_OWN_CATEGORIES = 30, MAX_HISTORY = 20;
+const ownCategory = z.string().trim().min(1).max(40);
 export const moneyLogSchema = z.looseObject({
   version: z.literal(1),
   entries: z.array(moneyEntrySchema).max(MAX_ENTRIES),
@@ -47,6 +76,17 @@ export const moneyLogSchema = z.looseObject({
   weekStartsOn: z.enum(['monday', 'sunday']).default('monday'),
   /** The currency the form starts with (the person's last choice). */
   currency: currencyCode.optional(),
+  /**
+   * Session AV lane 2 (money), TIER 3 (stored format), additive and optional, dropped on read when unreadable (older builds
+   * keep them in the loose record):
+   * - `own`: the person's own categories (Rocket Money), offered in the forms, budgets and review beside the usual ones;
+   * - `accounts`: a note per account (by its id in `zigoals:accounts:v1`, whose strict record older builds read, so the
+   *   note lives here) and the person's own order of the accounts list (Monarch);
+   * - `lowBalance`: the cash the person does not want the 60-day forecast to go below (Rocket Money's low-balance alert).
+   */
+  own: z.looseObject({expense: z.array(ownCategory).max(MAX_OWN_CATEGORIES).optional(), income: z.array(ownCategory).max(MAX_OWN_CATEGORIES).optional()}).optional().catch(undefined),
+  accounts: z.looseObject({notes: z.record(z.string().min(1).max(100), z.string().trim().min(1).max(300)).optional(), order: z.array(z.string().min(1).max(100)).max(200).optional()}).optional().catch(undefined),
+  lowBalance: z.looseObject({amount: amountText, currency: currencyCode}).optional().catch(undefined),
 });
 export type MoneyEntry = z.infer<typeof moneyEntrySchema>;
 export type MoneyLog = z.infer<typeof moneyLogSchema>;

@@ -64,3 +64,18 @@
 .bills-month-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .bills-month-list li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .bills-month-list li.is-passed{font-weight:600}
+/* Session AV lane 2 (money; Undebt.it): the bill tracker and its printable sheet. */
+.bill-tracker{display:grid;gap:8px;min-width:0}
+.bill-tracker h3,.bill-tracker h4{margin:8px 0 0}
+.bill-tracker-bills{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.bill-tracker-head{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;overflow-wrap:anywhere}
+.bill-tracker-head button{min-height:44px}
+.bill-tracker-history{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px 10px;font-size:14px}
+.bill-tracker-history li.is-passed{color:var(--amber,#f5b65b)}
+.bill-tracker-list .bills-actions button{min-height:44px}
+@media print{
+  :root.zg-print-bills body *{visibility:hidden}
+  :root.zg-print-bills .bill-tracker,:root.zg-print-bills .bill-tracker *{visibility:visible}
+  :root.zg-print-bills .bill-tracker{position:absolute;inset:0 auto auto 0;width:100%;background:#fff;color:#000}
+  :root.zg-print-bills .bill-tracker button,:root.zg-print-bills .bill-tracker input,:root.zg-print-bills .bill-tracker select{display:none}
+}

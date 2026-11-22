@@ -7,11 +7,14 @@ import {usePlatform} from '../platform/use-platform';
 import {showToast} from '../ui/undo-toast';
 import {goalProgress} from '../../lib/positions';
 import {addAlert, alertLine, alertsForToday, checkPortfolioAlerts, checkPriceAlerts, markSeen, movePrice, newAlertId, priceText, quoteFor, removeAlert} from '../../lib/price-alerts/engine';
-import {PRICE_ALERTS, type PriceAlert} from '../../lib/price-alerts/schema';
+import {PRICE_ALERTS, type PriceAlert, type PriceAlerts} from '../../lib/price-alerts/schema';
 import {usePortfolios} from '../portfolio/use-portfolios';
 import {portfolioValueNow} from '../../lib/price-alerts/portfolio-value';
 import {firstShow} from './shown';
 import {formatDateTime} from '../../lib/visual-format';
+// Session AV lane 2 (money; CoinStats): a coin's 24 h move and a portfolio's move from its value when set.
+import {useMarketInsights} from '../platform/use-market-insights';
+import {addMoveAlert, checkMoveAlerts, checkPortfolioMoves, directionWords, moveAlertLine, removeMove} from '../../lib/price-alerts/moves';
 import './price-alerts.css';
 
 /**
@@ -21,22 +24,26 @@ import './price-alerts.css';
  * - A fired alert shows once as a toast, stays on Today until marked seen, and is listed in Activity.
  * - Not advice; nothing is bought, sold or sent. Push (CO11) comes later; `channels.push` stays false here.
  */
+const moveRefs = (moves: PriceAlerts['moves'], currency: 'USD' | 'EUR') => (moves ?? []).filter(a => a.active && a.currency === currency).map(a => ({provider: 'coingecko' as const, kind: 'coin' as const, id: a.coin}));
 export function usePriceAlertWatch() {
   const alerts = useDeviceRecord(PRICE_ALERTS), platform = usePlatform(), portfolios = usePortfolios();
   // Session AV (fresh-agent check q2, rank 35; CoinStats): a portfolio-value alert is checked here too, wherever the
   // alerts are checked, not only on that portfolio's page: the prices of the coins of a portfolio with an alert waiting
   // are read (the shared quote cache, in that portfolio's currency) and its value counted as its page counts it.
   const watched = useMemo(() => {
-    const ids = new Set((alerts.data.portfolio ?? []).filter(a => a.active).map(a => a.portfolioId));
+    const ids = new Set([...(alerts.data.portfolio ?? []), ...(alerts.data.portfolioMoves ?? [])].filter(a => a.active).map(a => a.portfolioId));
     return portfolios.loaded && !portfolios.showcase ? portfolios.data.portfolios.filter(p => ids.has(p.id) && p.kind === 'real') : [];
-  }, [alerts.data.portfolio, portfolios.loaded, portfolios.showcase, portfolios.data.portfolios]);
+  }, [alerts.data.portfolio, alerts.data.portfolioMoves, portfolios.loaded, portfolios.showcase, portfolios.data.portfolios]);
+  // Session AV lane 2 (money): the 24 h change the market insights already read, for the coins with a move alert waiting.
+  const eurRefs = useMemo(() => moveRefs(alerts.data.moves, 'EUR'), [alerts.data.moves]), usdRefs = useMemo(() => moveRefs(alerts.data.moves, 'USD'), [alerts.data.moves]);
+  const eurInsights = useMarketInsights(eurRefs, 'EUR'), usdInsights = useMarketInsights(usdRefs, 'USD');
   const requests = useMemo(() => watched.flatMap(p => p.coins.map(c => ({marketRef: c.ref, currency: p.currency}))), [watched]);
   const {quotes, now} = useMarketQuotes(requests);
   useEffect(() => {
     if (!alerts.loaded || alerts.unreadable) return;
     const at = new Date().toISOString();
     let record = alerts.data;
-    const fired: {id: string; text: string; kind: 'Price' | 'Value'}[] = [];
+    const fired: {id: string; text: string; kind: 'Price' | 'Value' | 'Move'}[] = [];
     if (record.alerts.some(a => a.active)) {
       const goalPercent = (goalId: string) => { try { if (!platform.loaded || platform.error) return null; const p = goalProgress(platform.data, goalId, Date.now(), quotes); return p.requiresReview ? null : Number(p.progressPct); } catch { return null; } };
       const out = checkPriceAlerts(record, quotes, at, goalPercent); record = out.record; fired.push(...out.fired.map(f => ({id: f.alert.id, text: f.text, kind: 'Price' as const})));
@@ -44,11 +51,16 @@ export function usePriceAlertWatch() {
     if (watched.length) {
       const values = new Map(watched.map(p => [p.id, portfolioValueNow(p, quotes, now || Date.now())]));
       const out = checkPortfolioAlerts(record, id => values.get(id) ?? null, at); record = out.record; fired.push(...out.fired.map(f => ({id: f.alert.id, text: f.text, kind: 'Value' as const})));
+      const moved = checkPortfolioMoves(record, id => values.get(id) ?? null, at); record = moved.record; fired.push(...moved.fired.map(f => ({id: f.id, text: f.text, kind: 'Value' as const})));
+    }
+    if ((record.moves ?? []).some(a => a.active)) {
+      const change = (coin: string, currency: string) => { const list = currency === 'EUR' ? eurInsights.entries : usdInsights.entries, hit = list.find(e => e.marketRef.id === coin && e.currency === currency); return hit?.change24h ?? null; };
+      const out = checkMoveAlerts(record, change, at); record = out.record; fired.push(...out.fired.map(f => ({id: `${f.id}@${at.slice(0, 10)}`, text: f.text, kind: 'Move' as const})));
     }
     if (!fired.length) return;
     try { alerts.update(() => record); } catch { return; }
     for (const f of fired) if (firstShow(f.id)) showToast({message: `${f.kind} alert: ${f.text}`, link: {href: '/app', label: 'See on Today'}});
-  }, [alerts, platform.loaded, platform.error, platform.data, quotes, now, watched]);
+  }, [alerts, platform.loaded, platform.error, platform.data, quotes, now, watched, eurInsights.entries, usdInsights.entries]);
   return alerts;
 }
 /** On the pages that read prices (Markets, Wealth, Portfolio, a goal): checks the alerts, shows nothing itself. */
@@ -74,11 +86,18 @@ export function PriceAlertForm({coin, coinName, currency, goals = [], defaultKin
   const alerts = useDeviceRecord(PRICE_ALERTS), id = useId(), {quotes} = useMarketQuotes([]);
   // Session AV (owner follow-up 1, F-MOVE-ALERT): a move of a percent from today's price, saved as a price alert.
   const quote = quoteFor(quotes, coin, currency), today = quote ? priceText(quote) : null, [movePercent, setMovePercent] = useState('10');
-  const [kind, setKind] = useState<'price' | 'goal' | 'move'>(goals.length ? defaultKind : 'price'), [direction, setDirection] = useState<'above' | 'below'>('above'), [price, setPrice] = useState(''), [goalId, setGoalId] = useState(goals[0]?.id ?? ''), [percent, setPercent] = useState('100'), [status, setStatus] = useState('');
+  const [rollDir, setRollDir] = useState<'up' | 'down' | 'either'>('either'), [rollPercent, setRollPercent] = useState('5');
+  const [kind, setKind] = useState<'price' | 'goal' | 'move' | 'rolling'>(goals.length ? defaultKind : 'price'), [direction, setDirection] = useState<'above' | 'below'>('above'), [price, setPrice] = useState(''), [goalId, setGoalId] = useState(goals[0]?.id ?? ''), [percent, setPercent] = useState('100'), [status, setStatus] = useState('');
   if (!alerts.loaded) return null;
-  const mine = alerts.data.alerts.filter(a => a.coin === coin && a.active);
+  const mine = alerts.data.alerts.filter(a => a.coin === coin && a.active), rolling = (alerts.data.moves ?? []).filter(a => a.coin === coin && a.currency === currency && a.active);
   const save = (event: React.FormEvent) => {
     event.preventDefault(); setStatus('');
+    if (kind === 'rolling') {
+      const move = {id: newAlertId(), coin, coinName, currency, percent: Number(rollPercent), direction: rollDir, createdAt: new Date().toISOString(), active: true};
+      try { alerts.update(r => addMoveAlert(r, move)); setStatus(`Alert set: ${moveAlertLine(move)}. Checked with the 24 h change this app already reads; it can tell you again the next day while the move lasts.`); }
+      catch (cause) { setStatus(cause instanceof Error ? cause.message : 'Choose a percent from 1 to 90.'); }
+      return;
+    }
     const goal = goals.find(g => g.id === goalId), base = {id: newAlertId(), coin, coinName, currency, createdAt: new Date().toISOString(), active: true, channels: {inApp: true, push: false}} as const;
     let alert: PriceAlert;
     try {
@@ -88,14 +107,19 @@ export function PriceAlertForm({coin, coinName, currency, goals = [], defaultKin
     try { alerts.update(r => addAlert(r, alert)); setPrice(''); setStatus(`Alert set: ${alertLine(alert)}${from}. ZIGoals checks it with prices it already reads; nothing is sent.`); }
     catch (cause) { setStatus(cause instanceof Error && /already set|Up to/.test(cause.message) ? cause.message : kind === 'price' ? 'Enter a price, such as 65000 or 0.25.' : kind === 'move' ? 'Choose a percent from 1 to 90 down or 1 to 1000 up.' : 'Choose a goal and a percent from 1 to 1000.'); }
   };
-  return <details className="price-alert-form"><summary>Price alert{mine.length ? ` (${mine.length} set)` : ''}</summary>
+  return <details className="price-alert-form"><summary>Price alert{mine.length + rolling.length ? ` (${mine.length + rolling.length} set)` : ''}</summary>
     <form onSubmit={save} aria-label={`Price alert for ${coinName}`}>
       <fieldset className="price-alert-kind"><legend>Alert me when</legend>
         <label><input type="radio" name={`${id}-kind`} checked={kind === 'price'} onChange={() => setKind('price')}/> {coinName}&rsquo;s price</label>
         {today && <label><input type="radio" name={`${id}-kind`} checked={kind === 'move'} onChange={() => setKind('move')}/> {coinName}&rsquo;s price a percent up or down from today&rsquo;s {today} {currency}</label>}
+        <label><input type="radio" name={`${id}-kind`} checked={kind === 'rolling'} onChange={() => setKind('rolling')}/> {coinName} moves a percent within 24 hours</label>
         {goals.length > 0 && <label><input type="radio" name={`${id}-kind`} checked={kind === 'goal'} onChange={() => setKind('goal')}/> {coinName} puts a goal at a percent</label>}
       </fieldset>
-      {kind === 'move' && today ? <div className="form-grid">
+      {kind === 'rolling' ? <div className="form-grid">
+        <label>Moves<select value={rollDir} onChange={e => setRollDir(e.target.value as 'up' | 'down' | 'either')}><option value="either">up or down</option><option value="up">up</option><option value="down">down</option></select></label>
+        <label>By at least (%)<input inputMode="numeric" value={rollPercent} onChange={e => setRollPercent(e.target.value)} required/></label>
+        <p className="fine">A rolling 24-hour change, from the market figures this app already reads: it can tell you again the next day while the move lasts.</p>
+      </div> : kind === 'move' && today ? <div className="form-grid">
         <label>Goes<select value={direction} onChange={e => setDirection(e.target.value as 'above' | 'below')}><option value="above">up</option><option value="below">down</option></select></label>
         <label>By (%)<input inputMode="numeric" value={movePercent} onChange={e => setMovePercent(e.target.value)} required/></label>
         <p className="fine">That is {(() => { try { return `${movePrice(today, Number(movePercent), direction === 'above')} ${currency}`; } catch { return 'a percent from 1 to 90 down or 1 to 1000 up'; } })()}. {/* Session AV (fresh-agent check q2, rank 35): said plainly */}A price fixed from today&rsquo;s, reached once; not a rolling change over a day.</p>
@@ -110,6 +134,7 @@ export function PriceAlertForm({coin, coinName, currency, goals = [], defaultKin
       {status && <p role="status" className="fine">{status}</p>}
       <p className="fine">In the app only (on Today and in Activity). Not advice: an alert never buys, sells or moves anything.</p>
     </form>
+    {rolling.length > 0 && <ul className="price-alerts-list" aria-label={`24-hour move alerts for ${coinName}`}>{rolling.map(a => <li key={a.id}><span>{moveAlertLine(a)}{a.firedAt ? ` · last told ${formatDateTime(a.firedAt)}` : ''}</span><button type="button" className="text-link" aria-label={`Remove the alert: ${coinName} ${a.percent}% ${directionWords(a.direction)} in 24 h`} onClick={() => { try { alerts.update(r => removeMove(r, a.id)); } catch { /* kept */ } }}>Remove</button></li>)}</ul>}
     {mine.length > 0 && <ul className="price-alerts-list">{mine.map(a => <li key={a.id}><span>{alertLine(a)}</span><button type="button" className="text-link" onClick={() => { try { alerts.update(r => removeAlert(r, a.id)); } catch { /* kept */ } }}>Remove</button></li>)}</ul>}
   </details>;
 }

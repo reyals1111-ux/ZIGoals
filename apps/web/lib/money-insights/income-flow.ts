@@ -1,6 +1,7 @@
 import {monthKey} from '../budgets/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import {entryParts} from '../money-split/parts';
+import {isCounted} from '../money-log/counted';
 
 /**
  * Session AV (owner follow-up 1, F-INCOME-FLOW; Monarch's Sankey): one month's income in one currency, and where it went —
@@ -13,6 +14,7 @@ export function incomeFlow(entries: readonly MoneyEntry[], currency: string, mon
   const byCat = new Map<string, number>(), bySource = new Map<string, number>();
   let income = 0, spent = 0;
   for (const e of entries) {
+    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.currency !== currency || monthKey(e.date) !== month) continue;
     for (const p of entryParts(e)) {
       if (e.kind === 'income') { income += p.cents; bySource.set(p.category, (bySource.get(p.category) ?? 0) + p.cents); }

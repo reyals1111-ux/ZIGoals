@@ -1,10 +1,10 @@
 'use client';
-import {useDeferredValue, useEffect, useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useDeferredValue, useEffect, useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {ACCOUNTS} from '../../../lib/accounts/schema';
 import {balanceOn} from '../../../lib/accounts/net-worth';
 import {localDate} from '../../../lib/local-date';
-import {FI_DEFAULTS, fiIssue, fiTarget, runFiModel, type FiInput, type FiResult} from '../../../lib/fi-model/model';
+import {FI_DEFAULTS, fiIssue, fiTarget, inMoneyOf, runFiModel, type FiInput, type FiResult} from '../../../lib/fi-model/model';
 import {FI_MODEL} from '../../../lib/fi-model/store';
 import {fiIssueField, fiSummary, type FiField} from '../../../lib/fi-model/summary';
 import {plainErrorMessage} from '../../../lib/plain-error';
@@ -12,6 +12,8 @@ import {money} from './format';
 import {useChartWidth} from '../../charts/use-chart-width';
 import {ChartLookDefs, useChartLook} from '../../charts/chart-defs';
 import './money-tools.css';
+// Session AV lane 2 (money; Monarch): life events and saved scenarios side by side (its own chunk).
+const FiScenarios = lazy(() => import('./fi-scenarios'));
 import {parseNumberInput} from '../../../lib/numbers/parse';
 
 /**
@@ -36,7 +38,10 @@ export default function FiModelPanel() {
     queueMicrotask(() => setDraft(i ? {invested: String(i.invested ?? START.invested), yearlySpend: String(i.yearlySpend ?? START.yearlySpend), withdrawalPct: String(i.withdrawalPct ?? START.withdrawalPct), monthlyContribution: String(i.monthlyContribution ?? START.monthlyContribution), returnPct: String(i.returnPct ?? START.returnPct), volatilityPct: String(i.volatilityPct ?? START.volatilityPct), years: String(i.years ?? START.years), currency: i.currency ?? START.currency} : START));
   }, [stored.loaded, stored.data.inputs, draft]);
   const d = draft ?? START, deferred = useDeferredValue(d);
-  const input: FiInput = useMemo(() => ({invested: num(deferred.invested), yearlySpend: num(deferred.yearlySpend), withdrawalPct: num(deferred.withdrawalPct), monthlyContribution: num(deferred.monthlyContribution), returnPct: num(deferred.returnPct), volatilityPct: num(deferred.volatilityPct), years: num(deferred.years)}), [deferred]);
+  // Session AV lane 2 (money; Kubera's Fast Forward): figures in the money of each year beside today's, at your inflation.
+  const [inflation, setInflation] = useState<string | null>(null), inflationText = inflation ?? (stored.data.inputs?.inflationPct !== undefined ? String(stored.data.inputs.inflationPct) : ''), inflationPct = inflationText.trim() ? num(inflationText) : 0;
+  const inflationOk = Number.isFinite(inflationPct) && inflationPct >= 0 && inflationPct <= 20;
+  const input: FiInput = useMemo(() => ({invested: num(deferred.invested), yearlySpend: num(deferred.yearlySpend), withdrawalPct: num(deferred.withdrawalPct), monthlyContribution: num(deferred.monthlyContribution), returnPct: num(deferred.returnPct), volatilityPct: num(deferred.volatilityPct), years: num(deferred.years), ...(stored.data.events?.length ? {events: stored.data.events} : {}) /* Session AV lane 2 (money): life events */}), [deferred, stored.data.events]);
   const issue = fiIssue(input);
   const result: FiResult | null = useMemo(() => issue ? null : runFiModel(input), [issue, input]);
   // Today's invested amount from the person's investment and pension accounts in this currency, when they have balances.
@@ -60,7 +65,7 @@ export default function FiModelPanel() {
   </label>;
   const keep = () => {
     if (issue) return;
-    try { stored.update(r => ({...r, inputs: {invested: input.invested, yearlySpend: input.yearlySpend, withdrawalPct: input.withdrawalPct, monthlyContribution: input.monthlyContribution, returnPct: input.returnPct, volatilityPct: input.volatilityPct, years: input.years, currency: d.currency}})); setStatus('These inputs are kept on this device.'); }
+    try { stored.update(r => ({...r, inputs: {invested: input.invested, yearlySpend: input.yearlySpend, withdrawalPct: input.withdrawalPct, monthlyContribution: input.monthlyContribution, returnPct: input.returnPct, volatilityPct: input.volatilityPct, years: input.years, currency: d.currency, ...(inflationOk && inflationPct > 0 ? {inflationPct} : {})}})); setStatus('These inputs are kept on this device.'); }
     catch (cause) { setStatus(plainErrorMessage(cause, 'Not kept on this device.')); }
   };
   const forget = () => { try { stored.clear(); setStatus('The kept inputs are removed from this device.'); } catch { setStatus('Not removed.'); } };
@@ -92,8 +97,11 @@ export default function FiModelPanel() {
         <li><span className="money-key money-key-target" aria-hidden="true"/>Dashed line: your target{target !== null ? ` (${money(target.toFixed(0), d.currency)})` : ''}</li>
       </ul>
       <div className="money-table-wrap"><table className="money-table fi-table"><caption className="fine">Possible values, an estimate</caption>
-        <thead><tr><th scope="col">After</th><th scope="col">Low <small>(1 in 10 below)</small></th><th scope="col">Middle</th><th scope="col">High <small>(1 in 10 above)</small></th></tr></thead>
-        <tbody>{result.bands.filter(b => b.year > 0 && (b.year % 10 === 0 || b.year === input.years)).map(b => <tr key={b.year}><th scope="row">{years(b.year)}</th><td>{money(b.p10.toFixed(0), d.currency)}</td><td>{money(b.p50.toFixed(0), d.currency)}</td><td>{money(b.p90.toFixed(0), d.currency)}</td></tr>)}</tbody></table></div>
+        <thead><tr><th scope="col">After</th><th scope="col">Low <small>(1 in 10 below)</small></th><th scope="col">Middle</th><th scope="col">High <small>(1 in 10 above)</small></th>{inflationOk && inflationPct > 0 && <th scope="col">Middle, in money of that year</th>}</tr></thead>
+        <tbody>{result.bands.filter(b => b.year > 0 && (b.year % 10 === 0 || b.year === input.years)).map(b => <tr key={b.year}><th scope="row">{years(b.year)}</th><td>{money(b.p10.toFixed(0), d.currency)}</td><td>{money(b.p50.toFixed(0), d.currency)}</td><td>{money(b.p90.toFixed(0), d.currency)}</td>{inflationOk && inflationPct > 0 && <td>{money(inMoneyOf(b.p50, b.year, inflationPct).toFixed(0), d.currency)}</td>}</tr>)}</tbody></table></div>
+      <label className="field fi-inflation"><span>Inflation a year, to show money of each year (%) — optional</span><input inputMode="decimal" autoComplete="off" value={inflationText} placeholder="2" onChange={e => { setStatus(''); setInflation(e.target.value); }} aria-invalid={inflationOk ? undefined : true}/></label>
+      {!inflationOk && <p className="fine" role="alert">Inflation is a number from 0 to 20.</p>}
+      <p className="fine">Every other figure here is in today&rsquo;s money (after inflation, as the return you chose).</p>
     </>}
     {/* Session AV (Part 4b, CS-8): an unreadable kept record says so, as debt-planner.tsx does, beside the disabled button. */}
     {stored.unreadable && <p role="alert" id={`${id}-unreadable`}>Your kept inputs on this device could not be read, so they cannot be kept again here. Nothing was changed.</p>}
@@ -102,6 +110,7 @@ export default function FiModelPanel() {
       {stored.data.inputs && <button type="button" className="quiet" onClick={forget}>Forget them</button>}
     </div>
     <p className="money-status" role="status" aria-live="polite">{status}</p>
+    {stored.loaded && !stored.unreadable && <Suspense fallback={null}><FiScenarios stored={stored} input={input} currency={d.currency} onOpen={i => setDraft({invested: String(i.invested ?? START.invested), yearlySpend: String(i.yearlySpend ?? START.yearlySpend), withdrawalPct: String(i.withdrawalPct ?? START.withdrawalPct), monthlyContribution: String(i.monthlyContribution ?? START.monthlyContribution), returnPct: String(i.returnPct ?? START.returnPct), volatilityPct: String(i.volatilityPct ?? START.volatilityPct), years: String(i.years ?? START.years), currency: typeof i.currency === 'string' ? i.currency : d.currency})}/></Suspense>}
   </section>;
 }
 

@@ -9,7 +9,7 @@ import type {DeviceRecordSpec} from '../device-record';
  * contribution times stay where they always were.
  */
 export const NOTIFY_KEY = 'zigoals:notify:v1';
-export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns', 'journal'] as const;
+export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns', 'journal', 'money'] as const;
 export type NotifyType = (typeof NOTIFY_TYPES)[number];
 const time = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 export const notifyPrefsSchema = z.looseObject({
@@ -25,7 +25,7 @@ export type NotifyPrefs = z.infer<typeof notifyPrefsSchema>;
 export const emptyNotifyPrefs = (): NotifyPrefs => ({version: 1, types: {}});
 export const NOTIFY_PREFS: DeviceRecordSpec<NotifyPrefs> = {key: NOTIFY_KEY, schema: notifyPrefsSchema, empty: emptyNotifyPrefs};
 /** On by default: what most people want from a reminder app; the evening wrap-up is opt-in. */
-export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */, journal: true /* Session AV lane 2: the reminder to write is itself off until set in the Journal */};
+export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */, journal: true /* Session AV lane 2: the reminder to write is itself off until set in the Journal */, money: true /* Session AV lane 2 (money): budgets near or over, payday, the low-balance line */};
 export const DEFAULT_TIMES = {morning: '08:00', evening: '20:30'} as const;
 export const typeOn = (p: NotifyPrefs, type: NotifyType) => p.types[type] ?? DEFAULT_ON[type];
 export const morningTime = (p: NotifyPrefs) => p.morning?.time ?? DEFAULT_TIMES.morning;
@@ -46,4 +46,5 @@ export const NOTIFY_LABELS: Record<NotifyType, {title: string; blurb: string}> =
   tasks: {title: 'Task reminders', blurb: 'At each reminder you set on a task, with Snooze 1 h; the task’s name only if names are on.'},
   countdowns: {title: 'Countdown reminders', blurb: 'In the morning when a countdown’s reminder starts, and on its day; its name only if names are on.'},
   journal: {title: 'Reminder to write', blurb: 'At the time you set in Journal → Reminder to write, unless you already wrote that day. Never a word of your journal.'},
+  money: {title: 'Money notices', blurb: 'In the morning after a budget passes 80 % or its amount, the day before payday, and before cash may go below your own line; amounts only if names are on.'},
 };

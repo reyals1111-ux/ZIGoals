@@ -2,6 +2,7 @@ import {monthKey, shiftMonth} from '../budgets/engine';
 import {normalisePayee} from '../bills/detect';
 import type {MoneyEntry} from '../money-log/schema';
 import {entryParts, minorUnits} from '../money-split/parts';
+import {isCounted} from '../money-log/counted';
 
 /**
  * Session AP (Wealth → Spending, owner-approved): the money log month by month, pure. Every figure is the person's own
@@ -41,6 +42,7 @@ export function cashFlow(entries: readonly MoneyEntry[], currency: string, today
   const months = recordMonths(entries, currency, today).slice(0, limit).reverse(), wanted = new Set(months);
   const by = new Map<string, CashFlowMonth>(months.map(m => [m, {kind: 'month', month: m, income: 0, spending: 0, net: 0, count: 0}]));
   for (const e of entries) {
+    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.currency !== currency || e.date > today) continue;
     const row = by.get(monthKey(e.date)); if (!row || !wanted.has(row.month)) continue;
     const amount = minorUnits(e.amount);
@@ -69,6 +71,7 @@ export function categoryTrend(entries: readonly MoneyEntry[], currency: string, 
   const last = monthKey(today), months = Array.from({length: span}, (_, i) => shiftMonth(last, i - span + 1)), index = new Map(months.map((m, i) => [m, i]));
   const recorded = months.map(() => false), by = new Map<string, number[]>();
   for (const e of entries) {
+    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.currency !== currency || e.date > today) continue;
     const i = index.get(monthKey(e.date)); if (i === undefined) continue;
     recorded[i] = true;
@@ -96,6 +99,7 @@ export function topPayees(entries: readonly MoneyEntry[], currency: string, toda
   const by = new Map<string, Payee & {latest: string}>();
   let previousRecorded = false;
   for (const e of entries) {
+    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.currency !== currency || e.date > today) continue;
     const m = monthKey(e.date);
     if (m === previous) previousRecorded = true;

@@ -1,4 +1,5 @@
 import type {MarketQuote} from '../market-quotes';
+import {anyMoveActive, movesForToday, movesSeen} from './moves';
 import {MAX_ALERTS, MAX_FIRED, MAX_PORTFOLIO_ALERTS, portfolioAlertSchema, priceAlertSchema, type PortfolioAlert, type PriceAlert, type PriceAlerts} from './schema';
 
 /**
@@ -52,7 +53,7 @@ export function addAlert(record: PriceAlerts, alert: PriceAlert): PriceAlerts {
 }
 export const removeAlert = (record: PriceAlerts, id: string): PriceAlerts => ({...record, alerts: record.alerts.filter(a => a.id !== id)});
 /** Session AV (fresh-agent check q2, rank 35): marks the portfolio-value alerts seen too. */
-export const markSeen = (record: PriceAlerts, now: string): PriceAlerts => ({...record, alerts: record.alerts.map(a => a.firedAt && !a.seenAt ? {...a, seenAt: now} : a),
+export const markSeen = (record: PriceAlerts, now: string): PriceAlerts => ({...movesSeen(record, now), alerts: record.alerts.map(a => a.firedAt && !a.seenAt ? {...a, seenAt: now} : a),
   ...(record.portfolio ? {portfolio: record.portfolio.map(a => a.firedAt && !a.seenAt ? {...a, seenAt: now} : a)} : {})});
 /** Fired alerts not yet seen on Today. */
 export const unseen = (record: PriceAlerts): PriceAlert[] => record.alerts.filter(a => a.firedAt && !a.seenAt);
@@ -63,13 +64,14 @@ export const unseen = (record: PriceAlerts): PriceAlert[] => record.alerts.filte
 export type AlertItem = {id: string; line: string; firedAt?: string};
 export function alertsForToday(record: PriceAlerts): {fresh: AlertItem[]; waiting: AlertItem[]} {
   const said = (id: string, fallback: string) => [...record.fired].reverse().find(f => f.alertId === id)?.text ?? fallback;
-  const fresh = [...unseen(record).map(a => ({id: a.id, line: said(a.id, alertLine(a)), firedAt: a.firedAt})), ...(record.portfolio ?? []).filter(a => a.firedAt && !a.seenAt).map(a => ({id: a.id, line: said(a.id, portfolioAlertLine(a)), firedAt: a.firedAt}))]
+  const fresh: AlertItem[] = [...unseen(record).map(a => ({id: a.id, line: said(a.id, alertLine(a)), firedAt: a.firedAt})), ...(record.portfolio ?? []).filter(a => a.firedAt && !a.seenAt).map(a => ({id: a.id, line: said(a.id, portfolioAlertLine(a)), firedAt: a.firedAt}))]
+    .concat(movesForToday(record).fresh) /* Session AV lane 2 (money): the 24 h and portfolio move alerts */
     .sort((a, b) => (b.firedAt ?? '').localeCompare(a.firedAt ?? ''));
-  const waiting = [...record.alerts.filter(a => a.active).map(a => ({id: a.id, line: alertLine(a)})), ...(record.portfolio ?? []).filter(a => a.active).map(a => ({id: a.id, line: portfolioAlertLine(a)}))];
+  const waiting = [...record.alerts.filter(a => a.active).map(a => ({id: a.id, line: alertLine(a)})), ...(record.portfolio ?? []).filter(a => a.active).map(a => ({id: a.id, line: portfolioAlertLine(a)})), ...movesForToday(record).waiting];
   return {fresh, waiting};
 }
 /** Whether anything is waiting to be checked (a coin, goal or portfolio-value alert). */
-export const anyActive = (record: PriceAlerts) => record.alerts.some(a => a.active) || (record.portfolio ?? []).some(a => a.active);
+export const anyActive = (record: PriceAlerts) => record.alerts.some(a => a.active) || (record.portfolio ?? []).some(a => a.active) || anyMoveActive(record);
 
 /**
  * Session AV (owner follow-up 1, F-MOVE-ALERT; CoinStats' percent-change alerts): the price a move of `percent` up or

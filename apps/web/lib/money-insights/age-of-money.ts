@@ -1,6 +1,7 @@
 import {daysBetween} from '../bills/cadence';
 import type {MoneyEntry} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
+import {isCounted} from '../money-log/counted';
 
 /**
  * Session AP (owner-approved): "Age of money", pure, one currency at a time (never converted). Over the last 90 days of
@@ -22,7 +23,7 @@ export type AgeOfMoney =
 
 const validDay = (d: string) => Number.isFinite(Date.parse(`${d}T00:00:00Z`));
 export function ageOfMoney(entries: readonly MoneyEntry[], currency: string, today: string): AgeOfMoney {
-  const own = entries.filter(e => e.currency === currency && e.date <= today && validDay(e.date));
+  const own = entries.filter(e => isCounted(e) && e.currency === currency && e.date <= today && validDay(e.date));
   const first = own.reduce<string | null>((min, e) => min === null || e.date < min ? e.date : min, null);
   const historyDays = first ? daysBetween(first, today) + 1 : 0;
   if (historyDays < AGE_MIN_HISTORY_DAYS) return {currency, status: 'not-enough', reason: 'history', historyDays};

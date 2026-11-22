@@ -31,6 +31,8 @@ export const billSchema = z.looseObject({
   /** The person's own note ("cancel before 1 Dec"), and the day they want to be reminded to act on it. */
   cancelNote: z.string().trim().max(300).optional(),
   cancelBy: day.optional(),
+  /** Session AV lane 2 (money; Undebt.it's bill tracker), TIER 3 (stored format), additive and optional: the person's "paid automatically" mark. */
+  autopay: z.literal(true).optional().catch(undefined),
   createdAt: z.iso.datetime({offset: true}),
 });
 export const billsSchema = z.looseObject({

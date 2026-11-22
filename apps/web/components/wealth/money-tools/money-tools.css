@@ -83,3 +83,14 @@
 .fi-legend .money-key{flex:none}
 .fi-table th small{display:block;font-weight:400;font-size:12px}
 @media (max-width:400px){.fi-table{font-size:13px}.fi-table th,.fi-table td{padding:5px 4px}}
+/* Session AV lane 2 (money): card payments matched across two imported files. */
+.money-transfers{display:grid;gap:6px;margin:0 0 12px}
+.money-transfers h5{margin:0;font-size:16px}
+/* Session AV lane 2 (money): life events and scenarios under Financial freedom. */
+.fi-scenarios{display:grid;gap:14px;margin-top:14px}
+.fi-scenarios h4{margin:0 0 6px}
+.fi-events li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;overflow-wrap:anywhere}
+.fi-events button,.fi-scenario-actions button,.fi-event-form button{min-height:44px}
+.fi-event-form{align-items:end}
+.fi-scenario-actions{display:flex;gap:6px;flex-wrap:wrap}
+.fi-scenario-table th,.fi-scenario-table td{white-space:nowrap}
