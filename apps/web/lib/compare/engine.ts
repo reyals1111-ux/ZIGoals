@@ -2,7 +2,10 @@ import {habitDay, habitRuleOn, type HabitData} from '../habits';
 import {dailyHealthSummary, type HealthData} from '../health';
 import {dailySeries, nightDay} from '../sleep/engine';
 import {addLocalDays} from '../local-date';
-import {formatDate, formatNumber} from '../visual-format';
+import {formatCurrencyAmount, formatDate, formatNumber} from '../visual-format';
+// Session AV lane 2, round 3 (money; PocketGuard's Financial Wellness, LEDGER #296): the day's spending as an outcome, by Wealth → Spending's own sums.
+import {byCategory, totals} from '../money-log/engine';
+import type {MoneyEntry} from '../money-log/schema';
 import {healthGroupIn} from '../vault/w-homes';
 import {wallClock} from '../zone-time';
 import {entryNutrients, reportNutrients, type ReportNutrient} from '../health-aa/nutrient-report';
@@ -45,7 +48,18 @@ export type LabOutcomeId = `lab:${string}`;
  * still open; a day with no entry is unknown.
  */
 export type NutrientOutcomeId = `nutrient:${string}`;
-export type OutcomeId = BaseOutcomeId | ScaleOutcomeId | FoodOutcomeId | SymptomOutcomeId | LabOutcomeId | NutrientOutcomeId;
+/**
+ * Session AV lane 2, round 3 (money; PocketGuard's Financial Wellness, LEDGER #296): the day's spending as an outcome —
+ * all of it (`spend:EUR`) or one category (`spend:EUR:Groceries`, the category's first 30 characters) — in one currency,
+ * never converted. A day's figure is Wealth → Spending's own (`totals` / `byCategory` over that day: entries left out,
+ * transfers and Settle-up refunds are not counted, a shared cost counts the person's share). Unknown is not zero: only a
+ * day with something in the money log counts (spent nothing that day reads 0); today is still open. Compare's own rules
+ * apply unchanged (90 days, 14 days a side, never a cause).
+ */
+export type SpendOutcomeId = `spend:${string}`;
+export const isSpendOutcome = (id: string): id is SpendOutcomeId => /^spend:[A-Z]{3}(?::.{1,30})?$/.test(id);
+const spendParts = (id: SpendOutcomeId) => { const [, currency, ...rest] = id.split(':'); return {currency: currency!, category: rest.length ? rest.join(':') : null}; };
+export type OutcomeId = BaseOutcomeId | ScaleOutcomeId | FoodOutcomeId | SymptomOutcomeId | LabOutcomeId | NutrientOutcomeId | SpendOutcomeId;
 export const isNutrientOutcome = (id: string): id is NutrientOutcomeId => /^nutrient:(?:vitamin:|extra:)?[a-zA-Z0-9]{2,30}$/.test(id);
 let defs: ReportNutrient[] | null = null;
 /** The nutrient report's rows (labels, units, scales), apart from calories and protein (their own outcomes). */
@@ -95,7 +109,8 @@ export type CompareSources = {
   workouts?: {workouts: readonly {startedAt: string}[]} | null;
   /** The device fasting key's sessions (Health v2+ `fasting` is read from `health` too; the same id counts once). */
   fasting?: {sessions: readonly {id: string; endedAt: string | null; timeZone: string}[]} | null;
-  money?: {entries: readonly {kind: string; amount: string; currency: string; date: string}[]} | null;
+  /** The money log's entries (Session AV lane 2, round 3: with their category and marks, so the spending outcome counts as Wealth → Spending does). */
+  money?: {entries: readonly ({kind: string; amount: string; currency: string; date: string} & Partial<Pick<MoneyEntry, 'id' | 'category' | 'excluded' | 'transfer' | 'share' | 'parts' | 'spread'>>)[]} | null;
   localTime?: (iso: string) => {date: string; hour: number};
   /** Session AK (BUILD list 2 #12): the person's own 1–5 scales (removed ones keep their names in `retired`). */
   scales?: {scales: readonly {id: string; name: string; low: string; high: string}[]; retired?: readonly {id: string; name: string; low: string; high: string}[]; days: Readonly<Record<string, Readonly<Record<string, number>>>>} | null;
@@ -117,11 +132,42 @@ export const OUTCOME_LABELS: Readonly<Record<BaseOutcomeId, string>> = {mood: 'M
 /** A lab value's meaningful gap: a twentieth of its own average (a marker's units differ), or none with no readings. */
 const labGap = (src: CompareSources | undefined, outcome: LabOutcomeId) => { const v = labReadings(src, outcome).map(r => r.value); return v.length ? Math.abs(v.reduce((a, b) => a + b, 0) / v.length) * 0.05 : 1; };
 const labReadings = (src: CompareSources | undefined, outcome: LabOutcomeId) => (src?.numbers?.entries ?? []).filter((e): e is {date: string; kind: string; name: string; value: number; unit?: string} => e.kind === 'lab' && typeof e.name === 'string' && typeof e.value === 'number' && labKey(e.name) === outcome.slice(4));
-export const gapOf = (outcome: OutcomeId, src?: CompareSources): number => isNutrientOutcome(outcome) ? nutrientGap(src, outcome) : isScaleOutcome(outcome) ? 0.4 : isSymptomOutcome(outcome) ? 0.5 : isLabOutcome(outcome) ? labGap(src, outcome) : isFoodOutcome(outcome) ? FOOD_GAP[outcome] : GAP[outcome];
+export const gapOf = (outcome: OutcomeId, src?: CompareSources): number => isSpendOutcome(outcome) ? spendGap(src, outcome) : isNutrientOutcome(outcome) ? nutrientGap(src, outcome) : isScaleOutcome(outcome) ? 0.4 : isSymptomOutcome(outcome) ? 0.5 : isLabOutcome(outcome) ? labGap(src, outcome) : isFoodOutcome(outcome) ? FOOD_GAP[outcome] : GAP[outcome];
 const scaleOf = (src: CompareSources | undefined, id: string) => src?.scales?.scales.find(s => s.id === id) ?? src?.scales?.retired?.find(s => s.id === id) ?? null;
 /** An outcome's label; a scale by its own name ("Stress (1–5)"), or a plain fallback when it is gone. */
 const symptomOf = (src: CompareSources | undefined, id: string) => src?.symptoms?.items.find(s => s.id === id) ?? null;
-export const outcomeLabel = (outcome: OutcomeId, src?: CompareSources): string => isNutrientOutcome(outcome) ? (() => { const d = nutrientDef(outcome); return d ? `${d.label} logged (${d.unit})` : 'A nutrient'; })() : isScaleOutcome(outcome) ? `${scaleOf(src, outcome.slice(6))?.name ?? 'Your scale'} (1–5)` : isSymptomOutcome(outcome) ? `${symptomOf(src, outcome.slice(8))?.name ?? 'A symptom'} (0–3)` : isLabOutcome(outcome) ? (() => { const r = labReadings(src, outcome)[0]; return r ? `${r.name}${r.unit ? ` (${r.unit})` : ''}` : 'A lab value'; })() : isFoodOutcome(outcome) ? FOOD_LABELS[outcome] : OUTCOME_LABELS[outcome];
+export const outcomeLabel = (outcome: OutcomeId, src?: CompareSources): string => isSpendOutcome(outcome) ? spendLabel(outcome) : isNutrientOutcome(outcome) ? (() => { const d = nutrientDef(outcome); return d ? `${d.label} logged (${d.unit})` : 'A nutrient'; })() : isScaleOutcome(outcome) ? `${scaleOf(src, outcome.slice(6))?.name ?? 'Your scale'} (1–5)` : isSymptomOutcome(outcome) ? `${symptomOf(src, outcome.slice(8))?.name ?? 'A symptom'} (0–3)` : isLabOutcome(outcome) ? (() => { const r = labReadings(src, outcome)[0]; return r ? `${r.name}${r.unit ? ` (${r.unit})` : ''}` : 'A lab value'; })() : isFoodOutcome(outcome) ? FOOD_LABELS[outcome] : OUTCOME_LABELS[outcome];
+/** Each logged day's spending in cents (all, or one category), by Wealth → Spending's own sums over that day. */
+function spendDays(src: CompareSources | undefined, outcome: SpendOutcomeId): Map<string, number> {
+  const {currency, category} = spendParts(outcome), byDay = new Map<string, MoneyEntry[]>(), out = new Map<string, number>();
+  for (const e of (src?.money?.entries ?? []) as readonly MoneyEntry[]) byDay.set(e.date, [...(byDay.get(e.date) ?? []), e]);
+  for (const [day, list] of byDay) {
+    const cents = category === null ? totals(list, day, day).find(t => t.currency === currency)?.expenses ?? 0
+      : byCategory(list, day, day).filter(c => c.currency === currency && c.category.slice(0, 30) === category).reduce((n, c) => n + c.total, 0);
+    out.set(day, cents);
+  }
+  return out;
+}
+const spendMemo = new WeakMap<object, Map<string, Map<string, number>>>();
+const spendDaysOf = (src: CompareSources | undefined, outcome: SpendOutcomeId) => {
+  if (!src) return new Map<string, number>();
+  let byId = spendMemo.get(src); if (!byId) { byId = new Map(); spendMemo.set(src, byId); }
+  let m = byId.get(outcome); if (!m) { m = spendDays(src, outcome); byId.set(outcome, m); }
+  return m;
+};
+/** Spending's meaningful gap: a tenth of the average logged day, at least one unit of the currency. */
+const spendGap = (src: CompareSources | undefined, outcome: SpendOutcomeId) => { const v = [...spendDaysOf(src, outcome).values()]; return v.length ? Math.max(1, v.reduce((a, b) => a + b, 0) / v.length / 100 * 0.1) : 1; };
+const spendLabel = (outcome: SpendOutcomeId) => { const {currency, category} = spendParts(outcome); return category ? `Spent on ${category} (${currency})` : `Spent that day (${currency})`; };
+/** The spending outcomes the log can offer: all spending in its most used expense currency, then its most used categories. */
+export function spendOutcomes(src: CompareSources): OutcomeOption[] {
+  const spent = (src.money?.entries ?? []).filter(e => e.kind === 'expense');
+  const currency = [...spent.reduce((m, e) => m.set(e.currency, (m.get(e.currency) ?? 0) + 1), new Map<string, number>())].sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))[0]?.[0];
+  if (!currency || !/^[A-Z]{3}$/.test(currency)) return [];
+  const cats = new Map<string, number>();
+  for (const e of spent) if (e.currency === currency && e.category) { const c = e.category.slice(0, 30); cats.set(c, (cats.get(c) ?? 0) + 1); }
+  const ids: SpendOutcomeId[] = [`spend:${currency}`, ...byUse(cats).map(c => `spend:${currency}:${c}` as SpendOutcomeId)];
+  return ids.filter(isSpendOutcome).map(id => ({id, label: spendLabel(id)}));
+}
 export const CONFOUNDERS: Readonly<Record<FactorKind, string>> = {
   habit: 'a calm or a busy stretch can shape both the habit and the rest of the day',
   'sleep-tag': 'the evenings you tag may differ in other ways too, such as the day of the week',
@@ -206,7 +252,7 @@ export function outcomeOptions(src: CompareSources): OutcomeOption[] {
   // Session AV lane 2 (rest, LEDGER #98): every other nutrient that a diary day carries for all of its entries.
   const carried = new Set([...nutrientDaysOf(src).values()].flatMap(d => Object.keys(d)));
   const nutrients = nutrientDefs().filter(n => carried.has(n.key)).map(n => { const id = `nutrient:${n.key}` as NutrientOutcomeId; return {id, label: outcomeLabel(id, src)}; });
-  return [...OUTCOMES.filter(id => has[id]).map(id => ({id, label: OUTCOME_LABELS[id]})), ...own, ...food, ...nutrients, ...labs, ...symptoms];
+  return [...OUTCOMES.filter(id => has[id]).map(id => ({id, label: OUTCOME_LABELS[id]})), ...own, ...food, ...nutrients, ...labs, ...symptoms, ...spendOutcomes(src)];
 }
 
 type DayTest = (d: string) => boolean | null;
@@ -279,6 +325,7 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
   return null;
 }
 function outcomeValue(src: CompareSources, outcome: OutcomeId, today: string, span = CROSS_WINDOW_DAYS + 3): DayValue {
+  if (isSpendOutcome(outcome)) { const byDay = spendDaysOf(src, outcome); return d => { const v = d < today ? byDay.get(d) : undefined; return v === undefined ? null : v / 100; }; }
   if (isScaleOutcome(outcome)) { const id = outcome.slice(6); return d => src.scales?.days[d]?.[id] ?? null; }
   if (isSymptomOutcome(outcome)) { const id = outcome.slice(8); return d => src.symptoms?.days[d]?.[id] ?? null; }
   if (isNutrientOutcome(outcome)) { const def = nutrientDef(outcome), byDay = nutrientDaysOf(src); return d => { const v = def && d < today ? byDay.get(d)?.[def.key] : undefined; return typeof v === 'number' ? v / def!.scale : null; }; }
@@ -323,6 +370,7 @@ export function daySample(src: CompareSources, factorId: string, outcome: Outcom
 }
 /** One value in its outcome's own words ("3.8 of 5", "7 h 20 min", "64%", "8,210"). */
 export function outcomeText(outcome: OutcomeId, v: number): string {
+  if (isSpendOutcome(outcome)) return formatCurrencyAmount((Math.round(v * 100) / 100).toFixed(2), spendParts(outcome).currency);
   if (outcome === 'mood' || outcome === 'energy' || isScaleOutcome(outcome)) return `${formatNumber(v, {minimumFractionDigits: 1, maximumFractionDigits: 1})} of 5`;
   if (isSymptomOutcome(outcome)) return `${formatNumber(v, {minimumFractionDigits: 1, maximumFractionDigits: 1})} of 3`;
   if (isNutrientOutcome(outcome)) { const unit = nutrientDef(outcome)?.unit ?? ''; return `${formatNumber(v, {maximumFractionDigits: v >= 100 ? 0 : v >= 10 ? 1 : 2})}${unit ? ` ${unit}` : ''}`; }
@@ -337,6 +385,7 @@ export function outcomeText(outcome: OutcomeId, v: number): string {
 }
 function outcomeSay(outcome: OutcomeId, lag: Lag, v: string, src?: CompareSources): string {
   const when = lag === 'same' ? 'that day' : 'the next day';
+  if (isSpendOutcome(outcome)) { const {category} = spendParts(outcome); return category ? `you spent ${v} on ${category} ${when} on average` : `you spent ${v} ${when} on average`; }
   if (isScaleOutcome(outcome)) return `your “${scaleOf(src, outcome.slice(6))?.name ?? 'scale'}” rating ${when} averaged ${v}`;
   if (isSymptomOutcome(outcome)) return `your “${symptomOf(src, outcome.slice(8))?.name ?? 'symptom'}” level ${when} averaged ${v}`;
   if (isNutrientOutcome(outcome)) return `you logged ${v} of ${(nutrientDef(outcome)?.label ?? 'the nutrient').toLowerCase()} ${when} on average`;

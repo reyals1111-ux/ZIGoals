@@ -3,7 +3,7 @@ import {useEffect, useId, useMemo, useState} from 'react';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import type {HealthData} from '../../../lib/health';
 import {COMPARE_PAIR} from '../../../lib/compare/schema';
-import {compare, factorOptions, isScaleOutcome, outcomeOptions, outcomeText, spendBasis, type CompareResult, type CompareSources, type Lag, type OutcomeId} from '../../../lib/compare/engine';
+import {compare, factorOptions, isScaleOutcome, isSpendOutcome, outcomeOptions, outcomeText, spendBasis, type CompareResult, type CompareSources, type Lag, type OutcomeId} from '../../../lib/compare/engine';
 // Session AK (BUILD list 2 #12 and #16, lane G1a): the person's own scales, and the opt-in cycle log's period days.
 import {SCALES} from '../../../lib/scales/store';
 import {CYCLE, cycleOn, periodDays} from '../../../lib/cycle/store';
@@ -47,7 +47,9 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
   const basis = useMemo(() => spendBasis(src, today), [src, today]);
   const saved = pair.data;
   const factorId = factors.find(f => f.id === saved.factor)?.id ?? factors[0]?.id ?? null;
-  const outcomeId = (outcomes.find(o => o.id === saved.outcome)?.id ?? outcomes[0]?.id ?? null) as OutcomeId | null;
+  // Session AV lane 2, round 3 (money, LEDGER #296): spending above an amount is never set beside spending itself.
+  const shown = factorId === 'spend' ? outcomes.filter(o => !isSpendOutcome(o.id)) : outcomes;
+  const outcomeId = (shown.find(o => o.id === saved.outcome)?.id ?? shown[0]?.id ?? null) as OutcomeId | null;
   const lag: Lag = saved.lag ?? 'same';
   const [amountText, setAmountText] = useState<string | null>(null);
   // Session AL (PRIMITIVES 3f): the amount is read like every other number field (decimal comma, grouping), and a refusal is said.
@@ -76,8 +78,8 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
         {amountError && <small role="alert">{amountError}</small>}<small className="fine">Your usual day: {basis.usual} {basis.currency}. Days with nothing in your money log are left out.</small>
       </label>}
       <label className="field"><span>…what was</span>
-        <select value={outcomeId ?? ''} onChange={e => { const v = e.target.value; if (outcomes.some(o => o.id === v)) choose({outcome: v}); }}>
-          {outcomes.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+        <select value={outcomeId ?? ''} onChange={e => { const v = e.target.value; if (shown.some(o => o.id === v)) choose({outcome: v}); }}>
+          {shown.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
         </select>
       </label>
       <div className="compare-lag" role="group" aria-labelledby={`${id}-lag`}><span id={`${id}-lag`} className="compare-lag-label">Measured</span>

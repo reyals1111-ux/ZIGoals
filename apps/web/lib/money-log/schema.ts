@@ -82,6 +82,7 @@ export const moneyEntrySchema = z.looseObject({
 /** Session AV lane 2 (money): at most this many of the person's own categories of each kind, each at most 40 characters. */
 export const MAX_OWN_CATEGORIES = 30, MAX_HISTORY = 20, MAX_SUBS = 20;
 const ownCategory = z.string().trim().min(1).max(40);
+export const NEED_WANT = ['need', 'want', 'saving'] as const, MAX_NEED_WANT = 80;
 export const moneyLogSchema = z.looseObject({
   version: z.literal(1),
   entries: z.array(moneyEntrySchema).max(MAX_ENTRIES),
@@ -107,7 +108,15 @@ export const moneyLogSchema = z.looseObject({
    * read when unreadable: the person's own subcategories, by main category (at most 40 categories, 20 each).
    */
   subs: z.record(ownCategory, z.array(ownCategory).max(MAX_SUBS)).refine(r => Object.keys(r).length <= 40, 'At most 40 categories with subcategories.').optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 3 (money; PocketGuard's needs, wants and savings), TIER 3 (stored format), additive and
+   * optional, dropped on read when unreadable: the person's own mark on a spending category — a need, a want or saving
+   * (at most 80 categories). Never a target: Wealth → Spending shows the month's shares of income as facts only.
+   */
+  needWant: z.record(ownCategory, z.enum(NEED_WANT)).refine(r => Object.keys(r).length <= MAX_NEED_WANT, `At most ${MAX_NEED_WANT} marked categories.`).optional().catch(undefined),
 });
+/** Session AV lane 2, round 3 (money): the three marks a spending category can carry (lib/money-insights/needs-wants.ts). */
+export type NeedWant = typeof NEED_WANT[number];
 export type MoneyEntry = z.infer<typeof moneyEntrySchema>;
 export const PAID_WITH = ['cash', 'debit', 'credit', 'transfer', 'other'] as const;
 export type PaidWith = typeof PAID_WITH[number];

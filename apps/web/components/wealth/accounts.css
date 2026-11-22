@@ -70,6 +70,8 @@
 .debts-paid ul{margin:0;padding-left:18px;display:grid;gap:4px}
 /* Session AV lane 2 (money; Kubera): your sheet and each account's sheet options. */
 .accounts-equity{display:block;font-size:14px}
+/* Session AV lane 2, round 3 (money; Simplifi): a credit card's limit used and its days, under its name. */
+.accounts-card-line{display:block;font-size:14px;overflow-wrap:anywhere}
 .accounts-sheet-toggle button{min-height:44px}
 .wealth-sheet{display:grid;gap:8px;margin-top:16px;padding:12px;border-radius:14px;border:1px solid var(--line,rgba(140,160,220,.25));min-width:0;overflow-wrap:anywhere}
 .wealth-sheet h3,.wealth-sheet p{margin:0}

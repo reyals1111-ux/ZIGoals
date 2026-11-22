@@ -1,5 +1,5 @@
 import {monthKey, shiftMonth} from '../budgets/engine';
-import {monthOf} from '../money-log/engine';
+import {byCategory, monthOf} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import {entryParts} from '../money-split/parts';
 import {isCounted} from '../money-log/counted';
@@ -34,4 +34,35 @@ export function vsLastMonth(entries: readonly MoneyEntry[], currency: string, to
   }).sort((a, b) => b.thisMonth - a.thisMonth || (b.lastMonth ?? 0) - (a.lastMonth ?? 0) || a.category.localeCompare(b.category));
   const sum = (pick: (r: CategoryVsLast) => number | null) => previousRecorded ? rows.reduce((n, r) => n + (pick(r) ?? 0), 0) : null;
   return {currency, month, previous, day, cut, previousRecorded, rows, totals: {thisMonth: rows.reduce((n, r) => n + r.thisMonth, 0), lastBySameDay: sum(r => r.lastBySameDay), lastMonth: sum(r => r.lastMonth)}};
+}
+
+/**
+ * Session AV lane 2, round 3 (money; Simplifi's comparison report with a waterfall, LEDGER #297): from one period's
+ * spending total to the next, one step per category that moved it, the largest move first, per currency (never
+ * converted). Two choices: this month so far against last month by the same day, or last month against the month
+ * before (both whole). The totals and the steps are Wealth → Spending's own figures (`byCategory` in
+ * lib/money-log/engine.ts), so the first bar plus every step is the last bar exactly. A month with no record in that
+ * currency is unknown, so that currency shows no waterfall (it says so). A comparison of records, never a forecast. Pure.
+ */
+export type WaterfallMode = 'so-far' | 'last-full';
+export type Period = {start: string; end: string};
+export type WaterfallStep = {category: string; before: number; after: number; change: number};
+export type Waterfall = {currency: string; from: Period; to: Period; before: number; after: number; steps: WaterfallStep[]; recorded: boolean};
+export function waterfallPeriods(today: string, mode: WaterfallMode): {from: Period; to: Period} {
+  const month = monthKey(today), previous = shiftMonth(month, -1);
+  if (mode === 'last-full') return {from: monthOf(`${shiftMonth(month, -2)}-01`), to: monthOf(`${previous}-01`)};
+  const prev = monthOf(`${previous}-01`), cut = Math.min(Number(today.slice(8, 10)), Number(prev.end.slice(8, 10)));
+  return {from: {start: prev.start, end: `${previous}-${String(cut).padStart(2, '0')}`}, to: {start: `${month}-01`, end: today}};
+}
+export function monthWaterfall(entries: readonly MoneyEntry[], today: string, mode: WaterfallMode = 'so-far'): Waterfall[] {
+  const {from, to} = waterfallPeriods(today, mode), a = byCategory(entries, from.start, from.end), b = byCategory(entries, to.start, to.end);
+  const whole = monthOf(from.start), currencies = [...new Set([...a, ...b].map(r => r.currency))].sort();
+  return currencies.map(currency => {
+    const recorded = entries.some(e => isCounted(e) && e.currency === currency && e.date >= whole.start && e.date <= whole.end);
+    const was = new Map(a.filter(r => r.currency === currency).map(r => [r.category, r.total])), now = new Map(b.filter(r => r.currency === currency).map(r => [r.category, r.total]));
+    const steps = [...new Set([...was.keys(), ...now.keys()])].map(category => ({category, before: was.get(category) ?? 0, after: now.get(category) ?? 0, change: (now.get(category) ?? 0) - (was.get(category) ?? 0)}))
+      .filter(s => s.change !== 0).sort((x, y) => Math.abs(y.change) - Math.abs(x.change) || x.category.localeCompare(y.category));
+    const sum = (m: Map<string, number>) => [...m.values()].reduce((n, v) => n + v, 0);
+    return {currency, from, to, before: sum(was), after: sum(now), steps, recorded};
+  });
 }

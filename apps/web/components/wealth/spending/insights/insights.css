@@ -86,3 +86,16 @@
    between words there, the amounts never. */
 @media (max-width:560px){.money-insights-vs-last th:first-child,.money-insights-vs-last td:first-child{white-space:normal;overflow-wrap:normal}.money-insights-vs-last th,.money-insights-vs-last td{padding-inline:6px}}
 @media (max-width:560px){.money-insights-vs-last th{white-space:normal}.money-insights-vs-last td[data-was]::after{white-space:normal}.money-insights-vs-last th,.money-insights-vs-last td{padding-inline:4px}}
+/* Session AV lane 2, round 3 (money; PocketGuard, Simplifi): needs, wants and saving; the month waterfall. Theme tokens only. */
+.needs-wants-marks summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.needs-wants-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:8px 12px}
+.needs-wants-grid select{min-height:44px;width:100%;box-sizing:border-box}
+.needs-wants-table th small{display:block;font-weight:400;overflow-wrap:anywhere}
+.needs-wants-table td{white-space:normal}
+.waterfall-chart{height:auto}
+.waterfall-total{fill:color-mix(in srgb,var(--text,#f0f5ff) 55%,transparent)}
+.waterfall-up{fill:var(--violet,#a698ff)}
+.waterfall-down{fill:var(--cyan,#45d8ef)}
+.waterfall-key-total{background:color-mix(in srgb,var(--text,#f0f5ff) 55%,transparent)}
+.waterfall-key-up{background:var(--violet,#a698ff)}
+.waterfall-key-down{background:var(--cyan,#45d8ef)}

@@ -42,7 +42,8 @@ export function searchEntries(entries: readonly MoneyEntry[], q: MoneyQuery): Mo
     }
     const cats = [e.category, ...entryParts(e).map(p => p.category)].map(fold);
     if (cat && !cats.includes(cat)) return false;
-    const hay = `${cats.join(' ')} ${fold(e.sub ?? '')} ${fold(e.note ?? '')} ${e.amount} ${e.amount.replace('.', ',')} ${e.currency.toLowerCase()}`;
+    // Session AV lane 2, round 3 (money, LEDGER #299): an imported row's reference or cheque number (the last part of `ref`) is found too.
+    const hay = `${cats.join(' ')} ${fold(e.sub ?? '')} ${fold(e.note ?? '')} ${e.amount} ${e.amount.replace('.', ',')} ${e.currency.toLowerCase()} ${e.ref ? fold(e.ref.split('|').pop() ?? '') : ''}`;
     if (nots.some(w => hay.includes(w))) return false;
     return words.every(w => hay.includes(w));
   }).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));

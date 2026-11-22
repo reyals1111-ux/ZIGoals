@@ -262,7 +262,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
       </section>
     </div>
     {log.data.entries.length > 0 && <details ref={searchFold} className="money-search-fold" onToggle={e => setSearching((e.currentTarget as HTMLDetailsElement).open)}><summary>Search all your entries</summary>{searching && <Suspense fallback={<p className="fine" aria-busy="true">Opening the search…</p>}>{drill && <p className="fine money-drill-note" role="status">{drill.category} this month, from your list above. Select them to change several at once.</p>}<MoneySearch key={drill ? `${drill.category}-${drill.n}` : 'all'} entries={log.data.entries} onEdit={startEdit} onBulk={bulk} categories={categoryChoices(log.data, 'expense')} {...(drill ? {initial: {category: drill.category, from: drill.from, to: drill.to, kind: 'expense' as const}} : {})}/></Suspense>}</details>}
-    <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase}/></Suspense>
+    <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase} space={space}/></Suspense>
     {!showcase && !business && <Suspense fallback={null}><PeoplePanel log={log.data} update={log.update} today={today} currencies={[...new Set([currency, ...CURRENCIES])]}/></Suspense>}
     {!showcase && !business && <Suspense fallback={null}><StoreCards/></Suspense>}
     {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
