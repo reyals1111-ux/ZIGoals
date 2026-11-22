@@ -6,8 +6,8 @@ import type {Task, Tasks} from './schema';
 /**
  * Session AV lane 2 (r6-plan, LEDGER #394; OmniFocus's Focus): the Tasks views narrowed to one or more projects or areas for a
  * while — kept as `focus` in the planning record (`zigoals:task-plan:v1`), read here without the planning schema so the Tasks
- * page's first chunk stays light. A task is in focus when its project is chosen, or its project sits in a chosen area. The
- * Inbox view and a project's own view are never narrowed. Pure.
+ * page's first chunk stays light. A task is in focus when its project is chosen, or its project sits in a chosen area; the
+ * Inbox (a task with no project) is never hidden, and a project's own view is never narrowed. Pure.
  */
 export const MAX_FOCUS = 20;
 export type TaskFocus = {projects?: string[]; areas?: string[]};
@@ -31,10 +31,10 @@ export function liveFocus(focus: TaskFocus | null | undefined, record: Pick<Task
   const projects = (focus.projects ?? []).filter(id => record.projects?.some(p => p.id === id)), areas = (focus.areas ?? []).filter(id => record.areas?.some(a => a.id === id));
   return projects.length || areas.length ? {projects, areas} : null;
 }
-/** Whether a task is in focus (no focus: every task is). A task with no project is in the Inbox, never narrowed there. */
+/** Whether a task is in focus (no focus: every task is). A task with no project is in the Inbox, which is never hidden. */
 export function inFocus(task: Pick<Task, 'projectId'>, focus: TaskFocus | null, record: Pick<Tasks, 'projects'>): boolean {
   if (!focus) return true;
-  if (!task.projectId) return false;
+  if (!task.projectId) return true;
   if (focus.projects?.includes(task.projectId)) return true;
   const area = record.projects?.find(p => p.id === task.projectId)?.areaId;
   return !!area && !!focus.areas?.includes(area);

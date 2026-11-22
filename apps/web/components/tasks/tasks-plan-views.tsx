@@ -1,4 +1,5 @@
 'use client';
+import {focusedRecord, type TaskFocus} from '../../lib/tasks/focus';
 import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type DragEvent, type ReactNode} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useScrollEdges} from '../ui/use-scroll-edges'; // Session AV lane 2 (P-8): a table that scrolls sideways says so at its edge
@@ -52,11 +53,12 @@ type List = ReturnType<typeof useTaskList>;
 type Goals = ReturnType<typeof useGoalOptions>;
 const n = (x: number) => formatNumber(x);
 const day = (d: string, today: string, weekday = true) => formatDate(d, {weekday, year: d.slice(0, 4) !== today.slice(0, 4)});
-export default function TasksPlanViews({kind, list, goals}: {kind: PlanKind; list: List; goals: Goals}) {
+/** Session AV lane 2 (r6-plan, LEDGER #394): `focus` narrows the Calendar to the projects and areas in focus. */
+export default function TasksPlanViews({kind, list, goals, focus = null}: {kind: PlanKind; list: List; goals: Goals; focus?: TaskFocus | null}) {
   const record = list.tasks.data, today = list.today;
   if (kind === 'week') return <WeekView list={list} goals={goals} record={record} today={today} />;
   if (kind === 'table') return <TableView list={list} goals={goals} record={record} today={today} />;
-  if (kind === 'days') return <DaysView list={list} goals={goals} record={record} today={today} />;
+  if (kind === 'days') return <DaysView list={list} goals={goals} record={record} today={today} focus={focus} />;
   if (kind === 'timeline') return <TimelineView list={list} goals={goals} record={record} today={today} />;
   if (kind === 'insights') return <InsightsView list={list} record={record} today={today} />;
   return <TasksOrganise list={list} record={record} today={today} />;
@@ -201,7 +203,8 @@ function TableView({list, goals, record, today}: {list: List; goals: Goals; reco
 
 /* ---- Calendar: 3 days or a month, all tasks or one project ------------------------------------------------------- */
 
-function DaysView({list, goals, record, today}: {list: List; goals: Goals; record: Tasks; today: string}) {
+function DaysView({list, goals, record: all, today, focus}: {list: List; goals: Goals; record: Tasks; today: string; focus: TaskFocus | null}) {
+  const record = useMemo(() => focusedRecord(all, focus), [all, focus]);
   const edit = usePlanEditor(list, goals, today), heading = useRef<HTMLHeadingElement>(null);
   // Review b1 #7: the task being moved (by "Move" or a drag), and the month days whose "+N more" is open.
   const [moving, setMoving] = useState<Task | null>(null), [dragging, setDragging] = useState<string | null>(null), [more, setMore] = useState<ReadonlySet<string>>(new Set());
