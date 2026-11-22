@@ -40,7 +40,9 @@ export async function makeEverythingExport(): Promise<{notes: string[]}> {
   // Owner follow-up 2 (G1 #10): receipt photos as files, named by their entry's date and id (device-only).
   const moneyPhotos = kept ? [] : await Promise.all([import('../health-aa/photos'), import('../money-photos/store'), import('../money-log/schema'), import('../device-record')]).then(([a, m, sch, dr]) =>
     m.exportMoneyPhotoEntries(a.photoScope(), new Map(dr.readDeviceRecord(storage, sch.MONEY_LOG).data.entries.map(e => [e.id, e.date] as const)), now)).catch(() => []);
-  const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos];
+  // Session AV lane 2 (LEDGER #8): photos and voice notes on tasks, beside their task's title.
+  const taskFiles = kept ? [] : await Promise.all([import('../health-aa/photos'), import('../tasks/attachments'), import('../tasks/schema'), import('../device-record')]).then(([a, t, sch, dr]) => t.exportTaskAttachmentEntries(a.photoScope(), new Map(dr.readDeviceRecord(storage, sch.TASKS).data.tasks.map(x => [x.id, x.title] as const)), now)).catch(() => []);
+  const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos, ...taskFiles];
   const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now, images}, photos);
   const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
   const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);

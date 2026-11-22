@@ -54,6 +54,7 @@ import {COUNTDOWN_EXTRAS} from '../countdowns/extras';
 import {TASK_PLAN} from '../tasks/plan-record';
 import {TASK_TEMPLATES} from '../tasks/templates';
 import {BUDGET_PERIODS} from '../budgets/periods';
+import {CHESS_COMPUTER} from '../chess/computer-record';
 import {MONEY_TAGS_RECORD} from '../money-tags/schema';
 import {MOOD_TAGS} from '../mood-tags/schema';
 import {MEAL_WORDS} from '../meal-words/schema';
@@ -264,6 +265,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('taskPlan', 'Tasks: planning choices and timers', 'Today and Life', TASK_PLAN),
   dev('taskTemplates', 'Tasks: project templates', 'Today and Life', TASK_TEMPLATES),
   dev('budgetPeriods', 'Budgets: pay periods and the paycheck fill', 'Goals and Wealth', BUDGET_PERIODS),
+  dev('chessComputer', 'Chess: games against the computer', 'Today and Life', CHESS_COMPUTER),
   // Session AR (6b; TIER 3 (stored format), additive): whether "Your orbits" shows on Today (a display choice).
   dev('todayOrbits', 'Your orbits on Today', 'Today and Life', TODAY_ORBITS),
   dev('moneyTags', 'Tags on money entries', 'Goals and Wealth', MONEY_TAGS_RECORD),

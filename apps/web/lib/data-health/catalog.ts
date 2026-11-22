@@ -139,7 +139,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   // Session AV (lib/av-device-keys.ts; ADR-045 F-COUNTDOWN-YEARLY): yearly countdowns and their reminders.
   countdownExtras: [AV_CATALOG_LABELS.countdownExtras[0], AV_CATALOG_LABELS.countdownExtras[1]],
   // Session AV lane 2 (lib/av2-device-keys.ts).
-  taskPlan: [AV2_CATALOG_LABELS.taskPlan[0], AV2_CATALOG_LABELS.taskPlan[1]], taskTemplates: [AV2_CATALOG_LABELS.taskTemplates[0], AV2_CATALOG_LABELS.taskTemplates[1]], budgetPeriods: [AV2_CATALOG_LABELS.budgetPeriods[0], AV2_CATALOG_LABELS.budgetPeriods[1]],
+  taskPlan: [AV2_CATALOG_LABELS.taskPlan[0], AV2_CATALOG_LABELS.taskPlan[1]], taskTemplates: [AV2_CATALOG_LABELS.taskTemplates[0], AV2_CATALOG_LABELS.taskTemplates[1]], budgetPeriods: [AV2_CATALOG_LABELS.budgetPeriods[0], AV2_CATALOG_LABELS.budgetPeriods[1]], chessComputer: [AV2_CATALOG_LABELS.chessComputer[0], AV2_CATALOG_LABELS.chessComputer[1]],
 };
 /** Session AM (ADR-038 D18): the one record of which only a part travels, in the words the Data health page shows. */
 export const NOVA_PARTLY_SYNCED_LABEL = 'NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)';
@@ -176,7 +176,7 @@ export const DEVICE_ONLY: readonly CatalogEntry[] = [
   {key: PORTFOLIO_KEY, label: 'Portfolio records', home: 'device', area: 'Portfolio'},
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */
-export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)', 'Notification snapshot, push identity and taps waiting to apply (IndexedDB, this device only)', 'Offline food library (public data, IndexedDB)', 'Your own Spotify client id (IndexedDB, this device only)', 'Barcode lookups and exchange refreshes asked for while offline (IndexedDB, this device only)', 'Meal photos you chose to keep (IndexedDB, this device only)', 'Your Lichess connection (IndexedDB, this device only, never exported)', 'Photos in notes (IndexedDB, this device only)', 'Receipt photos on money entries (IndexedDB, this device only)'] as const;
+export const DEVICE_STORES = ['Journal photos and audio notes (IndexedDB, this device only)', 'Tasks: photos and voice notes on your tasks (IndexedDB, this device only)', 'Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)', 'Notification snapshot, push identity and taps waiting to apply (IndexedDB, this device only)', 'Offline food library (public data, IndexedDB)', 'Your own Spotify client id (IndexedDB, this device only)', 'Barcode lookups and exchange refreshes asked for while offline (IndexedDB, this device only)', 'Meal photos you chose to keep (IndexedDB, this device only)', 'Your Lichess connection (IndexedDB, this device only, never exported)', 'Photos in notes (IndexedDB, this device only)', 'Receipt photos on money entries (IndexedDB, this device only)'] as const;
 /**
  * Session AL (third pass, INT): the copies a restore keeps of what it replaced, `<key>:recovery:<uuid>` (lib/vault/
  * recovery-copies.ts; Tasks, the Checklist and its day history since Session AL, the modules and device records before).

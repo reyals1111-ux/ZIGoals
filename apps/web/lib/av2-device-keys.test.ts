@@ -3,6 +3,8 @@ import {AV2_CATALOG_LABELS, AV2_DISPLAY_KEYS, AV2_ERASE_KEYS, AV2_EXPORT_KEYS, A
 import {TASK_PLAN, TASK_PLAN_KEY} from './tasks/plan-record';
 import {TASK_TEMPLATES, TASK_TEMPLATES_KEY} from './tasks/templates';
 import {BUDGET_PERIODS, BUDGET_PERIODS_KEY} from './budgets/periods';
+import {CHESS_COMPUTER, CHESS_COMPUTER_KEY} from './chess/computer-record';
+import {ZIGI_HELLO_DAY_KEY} from './zigi-hello-day';
 import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from './onboarding';
 import {DEVICE_KEYS, EVERYTHING_KEYS, MODULE_KEYS} from './export/everything';
 import {DEVICE_ONLY, SYNCED} from './data-health/catalog';
@@ -24,6 +26,7 @@ const RECORDS = [
   {name: 'taskPlan', key: TASK_PLAN_KEY, spec: TASK_PLAN, sample: {version: 1, dayLimit: 300, dailyGoal: 5}, group: 'Today and Life', label: 'Tasks: planning choices and timers'},
   {name: 'taskTemplates', key: TASK_TEMPLATES_KEY, spec: TASK_TEMPLATES, sample: {version: 1, items: [{id: 'tpl_1', name: 'Moving', createdAt: '2026-11-22T10:00:00.000Z', items: [{title: 'Book a van'}]}]}, group: 'Today and Life', label: 'Tasks: project templates'},
   {name: 'budgetPeriods', key: BUDGET_PERIODS_KEY, spec: BUDGET_PERIODS, sample: {version: 1, payday: 25}, group: 'Goals and Wealth', label: 'Budgets: pay periods and the paycheck fill'},
+  {name: 'chessComputer', key: CHESS_COMPUTER_KEY, spec: CHESS_COMPUTER, sample: {version: 1, tally: {easy: {won: 1, lost: 0, drawn: 0}}}, group: 'Today and Life', label: 'Chess: games against the computer'},
 ] as const;
 
 describe('Session AV lane 2 device keys', () => {
@@ -37,7 +40,7 @@ describe('Session AV lane 2 device keys', () => {
       expect(DEVICE_RECORD_KEYS).toContain(key); expect(NON_PERSONAL_KEYS).not.toContain(key);
     }
     for (const r of RECORDS) { const {storage} = memory(); storage.setItem(r.key, JSON.stringify(r.sample)); expect(noExistingData(storage)).toBe(false); }
-    expect(AV2_DISPLAY_KEYS).toEqual([TASK_AREA_KEY_LITERAL]);
+    expect(AV2_DISPLAY_KEYS).toEqual([TASK_AREA_KEY_LITERAL, ZIGI_HELLO_DAY_KEY]);
     expect(NON_PERSONAL_KEYS).toContain(TASK_AREA_KEY_LITERAL); expect(DEVICE_RECORD_KEYS).not.toContain(TASK_AREA_KEY_LITERAL);
   });
   test('in Export everything under its own name, never a synced module key', () => {

@@ -8,22 +8,27 @@
  * - `zigoals:task-templates:v1` (Tasks: your own project templates; lib/tasks/templates.ts).
  * - `zigoals:budget-periods:v1` (Budgets: pay periods, the paycheck fill, debts paid from a budget; lib/budgets/periods.ts).
  * - display `zigoals:task-area` (the area chosen at the top of Tasks; components/tasks/tasks-page.tsx).
+ * - `zigoals:chess-computer:v1` (Chess: the game against ZIGoals' own engine and results by level; lib/chess/computer-record.ts).
+ * - display `zigoals:zigi-hello-day` (the day ZIGi last said hello in place, PK-6; lib/zigi-hello-day.ts).
  */
 export const TASK_PLAN_KEY_LITERAL = 'zigoals:task-plan:v1';
 export const TASK_TEMPLATES_KEY_LITERAL = 'zigoals:task-templates:v1';
 export const BUDGET_PERIODS_KEY_LITERAL = 'zigoals:budget-periods:v1';
 export const TASK_AREA_KEY_LITERAL = 'zigoals:task-area';
+export const CHESS_COMPUTER_KEY_LITERAL = 'zigoals:chess-computer:v1';
+export const ZIGI_HELLO_DAY_KEY_LITERAL = 'zigoals:zigi-hello-day';
 /** Personal device records: a device holding one is not new (onboarding `DEVICE_RECORD_KEYS`). */
-export const AV2_PERSONAL_KEYS: readonly string[] = [TASK_PLAN_KEY_LITERAL, TASK_TEMPLATES_KEY_LITERAL, BUDGET_PERIODS_KEY_LITERAL];
+export const AV2_PERSONAL_KEYS: readonly string[] = [TASK_PLAN_KEY_LITERAL, TASK_TEMPLATES_KEY_LITERAL, BUDGET_PERIODS_KEY_LITERAL, CHESS_COMPUTER_KEY_LITERAL];
 /** Display/setting records (onboarding `NON_PERSONAL_KEYS`). */
-export const AV2_DISPLAY_KEYS: readonly string[] = [TASK_AREA_KEY_LITERAL];
+export const AV2_DISPLAY_KEYS: readonly string[] = [TASK_AREA_KEY_LITERAL, ZIGI_HELLO_DAY_KEY_LITERAL];
 /** Export everything (`DEVICE_KEYS`): the names in everything.json. */
-export const AV2_EXPORT_KEYS = {taskPlan: TASK_PLAN_KEY_LITERAL, taskTemplates: TASK_TEMPLATES_KEY_LITERAL, budgetPeriods: BUDGET_PERIODS_KEY_LITERAL} as const;
+export const AV2_EXPORT_KEYS = {taskPlan: TASK_PLAN_KEY_LITERAL, taskTemplates: TASK_TEMPLATES_KEY_LITERAL, budgetPeriods: BUDGET_PERIODS_KEY_LITERAL, chessComputer: CHESS_COMPUTER_KEY_LITERAL} as const;
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AV2_CATALOG_LABELS = {
   taskPlan: ['Tasks: your planning choices, timers and the count of finished tasks per day', 'Today'],
   taskTemplates: ['Tasks: your project templates', 'Today'],
   budgetPeriods: ['Budgets: pay periods, the paycheck fill and debts paid from a budget', 'Wealth'],
+  chessComputer: ['Chess: your game against the computer and your results by level', 'Chess'],
 } as const;
 /** The account erase (`lib/aa-device-forget.ts`): every key above. */
 export const AV2_ERASE_KEYS: readonly string[] = [...AV2_PERSONAL_KEYS, ...AV2_DISPLAY_KEYS];

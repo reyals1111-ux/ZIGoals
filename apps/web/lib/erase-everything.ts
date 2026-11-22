@@ -23,6 +23,9 @@ export const KNOWN_DATABASES = [
   'zigoals-notes-photos-v1',
   // Owner follow-up 2 (G1 #10): receipt photos kept with money entries, on this device only.
   'zigoals-money-photos-v1',
+  // Session AV lane 2 (journal): photos and audio notes in journal entries; (roadmap) photos and voice notes on tasks. This device only.
+  'zigoals-journal-media-v1',
+  'zigoals-task-attachments-v1',
   // Session AK (Part 9): the first build's plaintext Lichess store; since Part 15 (M1) the token is sealed per account in
   // zigoals-link-tokens-v1, and a leftover of this one is revoked and deleted on sight.
   'zigoals-lichess-v1',
