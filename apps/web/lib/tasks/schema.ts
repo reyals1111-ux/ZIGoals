@@ -134,11 +134,26 @@ export const taskSchema = z.looseObject({
   objective: id.optional().catch(undefined),
   comments: tolerantArray(z.looseObject({id, at: z.iso.datetime({offset: true}), text: z.string().trim().min(1).max(1000)}), 50),
 });
+/**
+ * Session AV lane 2 (tasks-r2, LEDGER #228; Any.do's automations; TIER 3 (stored format), additive and optional): a rule on a
+ * project — when a task is added, enters a section or is done, then set its priority, add a label, plan it for today, mark
+ * it done, move it to a section or create the next one (lib/tasks/rules.ts runs them). Each field is dropped on read when
+ * it cannot be read, and a rule that cannot be read is dropped (never the project); older builds keep `rules` untouched.
+ */
+export const RULE_WHEN = ['added', 'section', 'done'] as const;
+export const RULE_THEN = ['level', 'label', 'today', 'done', 'move', 'next'] as const;
+export const MAX_RULES = 10;
+export const ruleSchema = z.looseObject({
+  id, when: z.enum(RULE_WHEN), section: id.optional().catch(undefined), then: z.enum(RULE_THEN),
+  level: z.number().int().min(1).max(4).optional().catch(undefined), label: z.string().regex(LABEL_PATTERN).optional().catch(undefined),
+  to: id.optional().catch(undefined), title: z.string().trim().min(1).max(TASK_TITLE_MAX).optional().catch(undefined), days: z.number().int().min(0).max(365).optional().catch(undefined),
+});
 export const projectSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), colour: z.enum(TASK_COLOURS).catch('grey'),
   order: z.number().finite().catch(0), archived: z.boolean().optional().catch(undefined), view: z.enum(['list', 'board']).optional().catch(undefined),
   /** Session AV lane 2 (tasks, LEDGER #20, #12, #28; Things' Areas, TickTick's folders; TIER 3 (stored format), additive): the area it sits in. */
   areaId: id.optional().catch(undefined),
+  rules: tolerantArray(ruleSchema, MAX_RULES),
 });
 /** Session AV lane 2 (tasks, LEDGER #20): `archived` puts a finished section away as a block, its tasks with it. */
 export const sectionSchema = z.looseObject({id, projectId: id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0), archived: z.literal(true).optional().catch(undefined)});
