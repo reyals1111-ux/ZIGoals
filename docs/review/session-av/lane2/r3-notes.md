@@ -22,6 +22,7 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #269 Grid Diary Entries for a week, a month or a year | built | F5 |
 | #272 Grid Diary Export as Markdown | built | F6 |
 | #277 Stoic Quotes from Stoic writers | built | F7 |
+| #278 Stoic Dream journal from the sleep log | built; Stoic's insomnia lessons Carried: needs content made for ZIGoals | F8 |
 
 ## Features
 
@@ -206,3 +207,26 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 - Today: **visible only when switched on** (off by default; the Showcase has it off), on Today's journal card: two
   buttons/links (Another one, Write about this). Nothing is added to Today's Tab stops or screen while it is off.
 - CSS touched: `components/journal/today-affirmation.css`.
+
+### F8 Write down a dream from the sleep log — LEDGER #278 (Stoic)
+
+- Verdict: **built**; part Carried: Stoic's insomnia lessons (Sleep Better) — needs content made for ZIGoals.
+- What: Health → Sleep → Recent nights: the latest night (the morning's entry) offers "Write down a dream"; it opens the
+  Journal with a dream entry for that night ("Your dream", a line saying which night and that it goes in the Dreams
+  journal, "Not a dream" to write an ordinary entry). Saving it puts the entry in a journal called Dreams, made on its
+  first use (a journal already called Dreams or Dromen is used; with ten journals and none for dreams it goes in the main
+  Journal), linked to the night (`night`). The Journal's row says "· a dream, the night ending Nov 22"; the sleep log says
+  "1 dream written" on that night, a link to that day's entries, and then offers "Write down another dream". The dream's
+  words stay in the Journal (the sleep log shows a count). Health's gate is unchanged (the sleep log is under Health).
+- Files: `lib/journal/dreams.ts`, `components/health/sleep/night-dreams.tsx` (lazy), `components/health/sleep/sleep-view.tsx`,
+  `components/health/sleep/sleep.css`, `components/journal/journal-compose.tsx` (`?dream=`), `components/journal/journal-page.tsx`,
+  `components/journal/journal.css`.
+- Tests: `lib/journal/r3-dreams.test.ts`; stored round trip in `lib/journal/r3-stored.test.ts`.
+- Spec: `tests/av2-journal-dream.spec.ts`.
+- Stored: entry `night` (TIER 3 commit `3c7c0bbe`); the Dreams journal is an ordinary `journals` item.
+- Help (EN). Q: "Can I keep a dream journal?" A: "Yes. In Health → Sleep, the latest night has Write down a dream. It
+  opens the Journal; what you write goes in a Dreams journal (made the first time) and is linked to that night, so the
+  sleep log shows the dreams you wrote for it."
+- What's new: "Sleep and Journal: write down a dream from the morning's night; it goes in your Dreams journal."
+- Showcase: none (a Showcase entry would change the pinned entry count of 10).
+- CSS touched: `components/health/sleep/sleep.css`, `components/journal/journal.css`. Today: nothing added.

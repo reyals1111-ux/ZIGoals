@@ -231,3 +231,6 @@
 .journal-calendar-periods button { min-height: 44px; text-align: start; overflow-wrap: anywhere; }
 .journal-period-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .journal-period-line .text-link { min-height: 44px; }
+/* Session AV lane 2 (r3-notes; LEDGER #278): writing down a dream. */
+.journal-dream-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.journal-dream-line .text-link { min-height: 44px; }

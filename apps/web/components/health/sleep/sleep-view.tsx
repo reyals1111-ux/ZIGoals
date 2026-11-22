@@ -54,6 +54,8 @@ const SleepNeed = lazy(() => import('./sleep-need'));
 // Session AV lane 2 (bodymind-r2; LEDGER #236): morning steps from the wake time, and a reminder at each chosen step.
 const MorningSteps = lazy(() => import('./morning-steps'));
 const SleepQualityTrend = lazy(() => import('./sleep-usual').then(m => ({default: m.SleepQualityTrend})));
+// Session AV lane 2 (r3-notes; LEDGER #278, Stoic): "Write down a dream" on the latest night, and each night's dreams.
+const NightDreams = lazy(() => import('./night-dreams'));
 
 const nightLine = (n: SleepNight) => {
   const a = asleep(n)!;
@@ -73,6 +75,7 @@ export default function SleepView() {
   const {sleep, today} = store, points = dailySeries(sleep, today, range), week = summary(dailySeries(sleep, today, 7));
   const debt = sleepDebt(sleep, today), steady = consistency(sleep, today), steadyWake = wakeConsistency(sleep, today), patterns = sleepInsights(sleep, today), balance = sleepBalance(sleep, today);
   const nights = sleep.nights.filter(n => n.end !== null).sort((a, b) => b.end!.localeCompare(a.end!)).slice(0, 14);
+  const latestNight = nights.find(n => n.kind !== 'nap')?.id ?? null; // Session AV lane 2 (r3-notes; LEDGER #278): the morning's night
   // Each save starts the log form afresh (its key), so the next night begins from the defaults.
   // Session AH (HE3; N-006, D-120): a save also says so in the app's toast, where it is seen, not only at the top.
   const done = (text: string) => { setNote(text); setEditing(null); setSaves(n => n + 1); showToast({message: text, clearOf: '.sleep-week .sleep-stats' /* Session AV (S-12): off the averages the save just moved */}); };
@@ -136,7 +139,7 @@ export default function SleepView() {
       <h2 id="sleep-recent-title">Recent nights and naps</h2>
       {nights.length ? <ul className="sleep-nights">{nights.map(n => <li key={n.id}>
         {editing === n.id ? <NightForm store={store} night={n} onDone={done} onCancel={() => setEditing(null)}/> : <>
-          <div><strong>{n.kind === 'nap' ? 'Nap' : 'Night'} ending {formatDate(nightDay(n)!)}</strong><span>{nightLine(n)}</span>{(n.quality || n.tags?.length) && <span className="fine">{n.quality ? `Quality ${n.quality}/5` : ''}{n.quality && n.tags?.length ? ' · ' : ''}{n.tags?.join(', ')}</span>}{n.source !== 'manual' && n.source !== 'timer' && <span className="fine">From {sourceName(n.source)}</span>}</div>
+          <div><strong>{n.kind === 'nap' ? 'Nap' : 'Night'} ending {formatDate(nightDay(n)!)}</strong><span>{nightLine(n)}</span>{(n.quality || n.tags?.length) && <span className="fine">{n.quality ? `Quality ${n.quality}/5` : ''}{n.quality && n.tags?.length ? ' · ' : ''}{n.tags?.join(', ')}</span>}{n.source !== 'manual' && n.source !== 'timer' && <span className="fine">From {sourceName(n.source)}</span>}{n.kind !== 'nap' && <LoadBoundary quiet><Suspense fallback={null}><NightDreams night={nightDay(n)!} latest={n.id === latestNight}/></Suspense></LoadBoundary>}</div>
           <div className="actions">
             <button type="button" className="secondary" onClick={() => setEditing(n.id)} aria-label={`Edit the ${n.kind} ending ${formatDate(nightDay(n)!)}`}>Edit</button>
             {confirm === n.id ? <><button type="button" className="secondary" onClick={() => void remove(n.id)}>Delete it</button><button type="button" className="quiet" onClick={() => setConfirm(null)}>Keep it</button></>
