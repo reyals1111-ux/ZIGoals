@@ -2635,6 +2635,15 @@
     .agenda-load:not(#\-) {
         color: var(--text-secondary)
     }
+    .agenda-deadline:not(#\-) {
+        border-color: var(--line, #ffffff1f)
+    }
+    .agenda-deadline small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .agenda-deadline[data-passed] .agenda-deadline-mark:not(#\-) {
+        color: var(--warning, #e8a33d)
+    }
 }
 /*  components/ai/agent-tools.css  */
 @scope (:root[data-theme=dark]) {
@@ -12455,6 +12464,12 @@
     .journal-week-dot:not(#\-) {
         border-color: currentColor
     }
+    .journal-calendar-day[aria-pressed="true"]:not(#\-) {
+        background-image: linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
+        background-color: transparent;
+        color: #0b1020;
+        border-color: transparent
+    }
     :scope :where(.journal-page) .panel:not(#\-) {
         box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-violet) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
     }
@@ -12514,11 +12529,11 @@
     }
     .journal-book-dot[data-tone="gold"]:not(#\-) {
         background-image: none;
-        background-color: var(--pillar-wealth,#d9a441)
+        background-color: var(--pillar-wealth)
     }
     .journal-book-dot[data-tone="green"]:not(#\-) {
         background-image: none;
-        background-color: var(--pillar-habits,#4fbf7f)
+        background-color: var(--pillar-habits)
     }
     .journal-entries li[data-tone]:not(#\-) {
         border-left-color: var(--brand-violet)
@@ -12533,10 +12548,10 @@
         border-left-color: var(--accent-teal,var(--brand-cyan))
     }
     .journal-entries li[data-tone="gold"]:not(#\-) {
-        border-left-color: var(--pillar-wealth,#d9a441)
+        border-left-color: var(--pillar-wealth)
     }
     .journal-entries li[data-tone="green"]:not(#\-) {
-        border-left-color: var(--pillar-habits,#4fbf7f)
+        border-left-color: var(--pillar-habits)
     }
     .journal-entry-book:not(#\-) {
         color: var(--text-secondary,var(--muted))
@@ -12549,12 +12564,6 @@
         background-image: none;
         background-color: color-mix(in srgb,var(--brand-violet) 22%,transparent);
         color: inherit
-    }
-    .journal-calendar-day[aria-pressed="true"]:not(#\-) {
-        background-image: linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
-        background-color: transparent;
-        color: #0b1020;
-        border-color: transparent
     }
     .journal-calendar-empty:not(#\-) {
         color: var(--text-secondary,var(--muted))
@@ -27891,6 +27900,12 @@
     }
     .tasks-done-bars rect:not(#\-) {
         fill: var(--cyan, #6fd3ff)
+    }
+    .tasks-done-bars .tasks-done-goal:not(#\-) {
+        stroke: var(--text, currentColor)
+    }
+    .tasks-done-goal-key:not(#\-) {
+        border-top-color: var(--text, currentColor)
     }
     .tasks-paste-list:not(#\-) {
         border-color: var(--line, rgba(140,160,220,.3))

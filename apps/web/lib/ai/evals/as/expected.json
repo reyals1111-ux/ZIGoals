@@ -5155,7 +5155,7 @@
  },
  "tasks-done-week": {
   "en": "1 task done this week (Mon, Nov 16 to Tue, Nov 17): Renew the library card.",
-  "nl": "1 taak gedaan deze week (Mon, Nov 16 t/m Tue, Nov 17): Renew the library card.",
+  "nl": "1 taak gedaan deze week (ma 16 nov t/m di 17 nov): Renew the library card.",
   "facts": {
    "about": "tasks",
    "ask": "done",
@@ -5177,7 +5177,7 @@
  },
  "tasks-done-lastweek": {
   "en": "No task done last week (Mon, Nov 9 to Sun, Nov 15).",
-  "nl": "Geen taak gedaan vorige week (Mon, Nov 9 t/m Sun, Nov 15).",
+  "nl": "Geen taak gedaan vorige week (ma 9 nov t/m zo 15 nov).",
   "facts": {
    "about": "tasks",
    "ask": "done",

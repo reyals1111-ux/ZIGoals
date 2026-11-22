@@ -144,6 +144,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-rolling-habit.spec.ts',
     'revb1-plan-views-edit.spec.ts',
     'av2-money-quick-log.spec.ts',
+    'av2-minors-tasks.spec.ts',
   ],
   // Shard 4, 60.6 worker-min: about 33.9 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -201,6 +202,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-timer-presets.spec.ts',
     'revb1-table-targets.spec.ts',
     'av2-money-space.spec.ts',
+    'av2-restore-media.spec.ts',
   ],
   // Shard 6, 64.7 worker-min: about 32.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -231,6 +233,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'revb1-task-timer.spec.ts',
     'av2-board-imports.spec.ts',
     'av2-money-store-cards.spec.ts',
+    'av2-revb2b-load-break.spec.ts',
   ],
   // Shard 7, 65.5 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -263,6 +266,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'revb1-timer-done.spec.ts',
     'av2-calm-sound.spec.ts',
     'av2-my-day.spec.ts',
+    'av2-revb2b-net-carbs.spec.ts',
   ],
   // Shard 8, 66.2 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -322,6 +326,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'revb1-zigi-notes.spec.ts',
     'av2-challenge-write-out.spec.ts',
     'av2-naps-need.spec.ts',
+    'av2-revb2b-week-skip-note.spec.ts',
   ],
   // Shard 10, 66.7 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -470,7 +475,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [76, 75.2, 75, 75.7, 75, 75, 75, 75.7, 75, 75, 75, 75.7, 75.8, 75];
+export const MAIN_SHARD_MINUTES: readonly number[] = [76, 75.2, 76, 75.7, 76, 76, 76, 75.7, 76, 75, 75, 75.7, 75.8, 75];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {
