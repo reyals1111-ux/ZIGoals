@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {addTask, finishTask, isLate, skipOccurrence, taskState, viewTasks} from './engine';
+import {addTask, finishTask, isLate, lateCount, skipOccurrence, taskState, viewTasks} from './engine';
 import {emptyTaskPlan} from './plan-record';
 import {fitWeek, keepPlacements, weekCandidates} from './plan-week';
 import {flexRule} from './recurrence';
@@ -49,6 +49,14 @@ describe('B4D-2: a floating repeat keeps floating after a Keep', () => {
     r = keepPlacements(r, fitWeek({record: r, plan: weekdays, today: WED, clock: '08:00'}).placed, WED);
     const skipped = skipOccurrence(r, 'p', WED);
     expect(p(skipped).due).toBe('2026-12-06'); expect(p(skipped).time).toBeUndefined();
+  });
+  test('TIER 3 (PWA): the "Plan your day" count leaves it out until its week has passed; other tasks count as before', () => {
+    let r = plants();
+    r = keepPlacements(r, fitWeek({record: r, plan: weekdays, today: WED, clock: '08:00'}).placed, WED);
+    r = addTask(r, {title: 'Fictional late letter', due: MON}, {id: 'l', at, today: MON});
+    expect(lateCount(r, THU)).toBe(1);
+    expect(lateCount(r, '2026-11-30')).toBe(2);
+    expect(lateCount(r, MON)).toBe(0);
   });
   test('the Agenda and the Day Timeline call it overdue only after its week', () => {
     let r = plants();
