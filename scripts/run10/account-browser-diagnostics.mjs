@@ -15,13 +15,24 @@ const PANEL_TIMELINE = () => {
   const region = document.querySelector('[aria-label="Encrypted account sync"]');
   const lines = selector => region ? [...region.querySelectorAll(selector)].map(e => (e.textContent ?? '').trim().slice(0, 160)).join(' | ') : '';
   const buttons = region ? [...region.querySelectorAll('button')] : [];
-  const entry = region ? `status: ${lines('[role="status"]')} · alert: ${lines('[role="alert"]') || '-'} · disabled buttons: ${buttons.filter(b => b.disabled).length}/${buttons.length}` : 'no sync panel';
+  // Session AV lane 2 (ADR-045 D-SYNC, diagnostics only): on Health, which view is open and whether the journal is
+  // (re)loading, so a stall says whether the page was remounted under the step (the view falls back to Diary) or not.
+  const view = document.querySelector('#health-views [role="tab"][aria-selected="true"]');
+  const health = location.pathname.startsWith('/app/health') ? ` · health: ${document.querySelector('.route-loading-reserve') ? 'loading' : view ? `view ${(view.textContent ?? '').trim()}` : 'no views'}` : '';
+  const entry = (region ? `status: ${lines('[role="status"]')} · alert: ${lines('[role="alert"]') || '-'} · disabled buttons: ${buttons.filter(b => b.disabled).length}/${buttons.length}` : 'no sync panel') + health;
   if (entry === last) return;
   last = entry;
   w.__syncTimeline.push({ t: Math.round(performance.timeOrigin + performance.now()), path: location.pathname, entry });
   if (w.__syncTimeline.length > 120) w.__syncTimeline.shift();
  };
- new MutationObserver(record).observe(document, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['disabled'] });
+ new MutationObserver(record).observe(document, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['disabled', 'aria-selected'] });
+ // Every account announcement (lib/account-session.ts): it makes each private store read again from nothing (a page's
+ // forms start over), so the timeline names it with its reason and what sent it.
+ w.addEventListener('zigoals:account-change', event => {
+  const detail = event.detail, from = (new Error().stack ?? '').split('\n').slice(2, 6).map(s => s.trim().replace(/^at /, '').replace(/https?:\/\/[^/]+/, '')).join(' < ');
+  w.__syncTimeline.push({ t: Math.round(performance.timeOrigin + performance.now()), path: location.pathname, entry: `account-change ${detail ? detail.reason : 'plain'} from ${from.slice(0, 300)}` });
+  last = '';
+ });
 };
 
 async function pageState(page, account) {
