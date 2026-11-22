@@ -39,6 +39,8 @@ const AREAS: readonly EraseArea[] = ['Goals and Wealth', 'Habits', 'Today and Li
 const MODE_LABEL: Record<RestoreMode, string> = {leave: 'Leave as it is', merge: 'Merge: add what is missing', replace: 'Replace with the backup'};
 const summaryText = (s: PartSummary | null) => !s ? 'Nothing here yet' : `${s.counts}${s.from ? ` · ${s.from === s.through ? formatDate(s.from) : `${formatDate(s.from)} to ${formatDate(s.through!)}`}` : ''}`;
 /** Photos in the file above the restore's size limit (Session AD item 11). */
+/** Review b1 #3, #18: the photos and voice notes Restore does not put back, said before anything changes. */
+export const notRestoredNote = (n: number) => `This file also holds ${n} ${n === 1 ? 'photo or voice note' : 'photos and voice notes'} from notes, receipts, meals, tasks or the journal. Restore does not put ${n === 1 ? 'it' : 'them'} back yet: the records that name ${n === 1 ? 'it' : 'them'} come back, and ${n === 1 ? 'it stays' : 'they stay'} in the ZIP to open yourself. Journal → Import and export moves a journal with its photos and voice notes.`;
 export const oversizedPhotosNote = (n: number) => `${n} ${n === 1 ? 'photo in this file is' : 'photos in this file are'} larger than ZIGoals restores, so ${n === 1 ? 'it is' : 'they are'} left out.`;
 const lib = () => Promise.all([import('../../lib/restore/read-backup'), import('../../lib/restore/plan'), import('../../lib/restore/apply')]);
 
@@ -144,6 +146,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
         {preview.progressCount > 0 && <label className="checkbox"><input type="checkbox" checked={photos.progress} onChange={e => { setPhotos({...photos, progress: e.target.checked}); setConfirm(false); }} />Add the missing progress photos ({preview.progressCount} in the file)</label>}
         {preview.opened.oversized > 0 && <p className="fine">{oversizedPhotosNote(preview.opened.oversized)}</p>}
       </fieldset>}
+      {(preview.opened.notRestored ?? 0) > 0 && <p className="fine rb-not-restored">{notRestoredNote(preview.opened.notRestored!)}</p>}
       <p className="fine">Merge adds what the backup has and this device does not; nothing this device holds is changed. Replace puts the backup&rsquo;s copy in place of this device&rsquo;s, which is kept as a recovery copy for the four main records. {preview.never}</p>
       <label className="checkbox"><input id={`${id}-confirm`} type="checkbox" checked={confirm} disabled={!anything} onChange={e => setConfirm(e.target.checked)} />I checked my choices. Restore them on this device; I can undo it afterwards.</label>
       <div className="dh-actions">

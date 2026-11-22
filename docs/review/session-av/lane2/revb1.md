@@ -45,3 +45,28 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
 - Tests: apps/web/lib/tasks/revb1-timers.test.ts. Spec (lead runs): apps/web/tests/revb1-timer-done.spec.ts.
 - Help (EN), add to the timers answer: "Ticking a task Done while its timer runs stops the timer and keeps the minutes."
 - What's new: "Done stops a task's timer and keeps its minutes."
+
+## #4 Major (privacy): the Showcase's journal photos and voice notes stayed on the device
+
+- Verdict: fixed. `deleteAllJournalMedia(scope)` (lib/journal/media.ts) is a scope delete like the tasks'; Leaving the
+  Showcase and starting one (`clearShowcasePhotos`, lib/showcase-storage.ts, with the lead's permission) now clears the
+  journal media of scope `showcase` with the notes', progress, meal, receipt and task files. Other scopes stay.
+- Tests: apps/web/lib/journal/revb1-showcase-media.test.ts. Spec: none (no browser behaviour beyond the unit).
+- Stored changes: none. Help: no change. What's new: none (a privacy fix; the lead may add "Leaving the Showcase also
+  deletes the journal photos and voice notes made in it.").
+
+## #3 Major: journal photos and voice notes were missing from Export everything
+
+- Verdict: fixed (the export); Restore says honestly what comes back (putting the files back is #18, below).
+- Fix: Export everything (lib/export/make-everything.ts, with the lead's permission) adds the journal's photos and voice
+  notes as files, `journal/photos/<media id>.<webp|jpeg>` and `journal/audios/<media id>.<webm|m4a|ogg>`, named by the
+  id each entry keeps (lib/journal/export-media.ts; only media an entry names, from this tab's scope). The export's notes
+  then say: "The journal’s photos and voice notes are in the file’s journal folder. Restore does not put them back into
+  the journal yet; to move a journal with its photos and voice notes, use Journal → Import and export." (and how many
+  were not in this browser, if any). The Restore preview counts every photo or recording in the file it does not put
+  back (notes', receipts', meals', tasks', journal's; `notRestored` on the opened backup, lib/restore/read-backup.ts)
+  and says so before anything changes (components/restore/restore-backup.tsx `notRestoredNote`).
+- Tests: apps/web/lib/journal/revb1-media-export.test.ts. Spec (lead runs): apps/web/tests/revb1-journal-media-export.spec.ts.
+- Stored changes: none (the export file gains entries; everything.json unchanged).
+- Help (EN), add to the Export everything answer: "The journal’s photos and voice notes are in the file’s journal folder."
+- What's new: "Export everything now holds the journal’s photos and voice notes."

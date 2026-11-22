@@ -13,6 +13,8 @@ import {localDate} from '../local-date';
  */
 /** Session Z-Cloud Part 5 (A7): the plain note on an export of a deleted account's records. */
 export const DELETED_EXPORT_NOTE = 'Your cloud copy was deleted; this export holds the records this device kept for that account. Nothing was changed or uploaded, and they stay locked in the app.';
+/** Review b1 #3: what the file holds of the journal's photos and voice notes, and what Restore does with them (said honestly). */
+export const JOURNAL_MEDIA_EXPORT_NOTE = 'The journal’s photos and voice notes are in the file’s journal folder. Restore does not put them back into the journal yet; to move a journal with its photos and voice notes, use Journal → Import and export.';
 export async function makeEverythingExport(): Promise<{notes: string[]}> {
   const {buildEverythingZip, collectEverything, readEverything} = await import('./everything');
   // Session Z-Cloud Part 5 (A7): an account whose cloud copy was deleted is locked, and its records stay here; the
@@ -42,11 +44,16 @@ export async function makeEverythingExport(): Promise<{notes: string[]}> {
     m.exportMoneyPhotoEntries(a.photoScope(), new Map(dr.readDeviceRecord(storage, sch.MONEY_LOG).data.entries.map(e => [e.id, e.date] as const)), now)).catch(() => []);
   // Session AV lane 2 (LEDGER #8): photos and voice notes on tasks, beside their task's title.
   const taskFiles = kept ? [] : await Promise.all([import('../health-aa/photos'), import('../tasks/attachments'), import('../tasks/schema'), import('../device-record')]).then(([a, t, sch, dr]) => t.exportTaskAttachmentEntries(a.photoScope(), new Map(dr.readDeviceRecord(storage, sch.TASKS).data.tasks.map(x => [x.id, x.title] as const)), now)).catch(() => []);
-  const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos, ...taskFiles];
+  // Session AV lane 2 (review b1 #3): the journal's photos and voice notes as files, named by the id each entry keeps.
+  const journalMedia = kept ? {files: [], missing: 0} : await Promise.all([import('../health-aa/photos'), import('../journal/export-media'), import('../journal/media'), import('../journal/schema'), import('../device-record')]).then(([a, j, m, sch, dr]) =>
+    j.exportJournalMediaEntries(a.photoScope(), m.namedMedia(dr.readDeviceRecord(storage, sch.JOURNAL).data.entries), now)).catch(() => ({files: [], missing: 0}));
+  const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos, ...taskFiles, ...journalMedia.files];
   const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now, images}, photos);
   const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
   const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   const lines = [...(kept ? [DELETED_EXPORT_NOTE] : []), ...collected.warnings];
+  if (journalMedia.files.length) lines.push(JOURNAL_MEDIA_EXPORT_NOTE);
+  if (journalMedia.missing) lines.push(`${journalMedia.missing} journal ${journalMedia.missing === 1 ? 'photo or voice note was' : 'photos or voice notes were'} not in this browser, so ${journalMedia.missing === 1 ? 'it is' : 'they are'} not in the file.`);
   if (collected.unreadable.length) lines.push(`Some records on this device could not be read and were left out: ${collected.unreadable.join(', ')}. They were not changed.`);
   return {notes: lines};
 }

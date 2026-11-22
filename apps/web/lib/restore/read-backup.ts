@@ -37,8 +37,13 @@ async function foreignFileMessage(file: Blob): Promise<string | null> {
   return kind ? moduleBackupMessage(MODULE_BACKUP_NAMES[kind]!) : null;
 }
 export type EverythingFile = {format: 'zigoals-everything'; version: 1; exportedAt: string; app?: {version?: string; commit?: string}; modules: Record<string, unknown>; device: Record<string, unknown>; portfolio?: unknown};
-/** `oversized`: photos in the file above the restore's size limit, left out and counted for the preview. */
-export type OpenedBackup = {file: Blob; json: EverythingFile; vision: ZipEntry[]; photos: ZipEntry[]; oversized: number; demo: boolean};
+/**
+ * `oversized`: photos in the file above the restore's size limit, left out and counted for the preview. `notRestored`
+ * (review b1 #3, #18): the other photos and recordings in the file (the notes', receipts', meals', tasks' and the
+ * journal's), which Restore does not put back yet, counted so the preview says so.
+ */
+export type OpenedBackup = {file: Blob; json: EverythingFile; vision: ZipEntry[]; photos: ZipEntry[]; oversized: number; demo: boolean; notRestored?: number};
+const MEDIA_FILE = /\.(?:webp|jpe?g|png|webm|m4a|mp4|ogg)$/i;
 const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 
 export async function openBackup(file: Blob): Promise<OpenedBackup> {
@@ -70,6 +75,7 @@ export async function openBackup(file: Blob): Promise<OpenedBackup> {
     vision: vision.filter(e => e.uncompressed <= RESTORE_LIMITS.visionBytes),
     photos: photos.filter(e => e.uncompressed <= RESTORE_LIMITS.photoBytes),
     oversized: vision.filter(e => e.uncompressed > RESTORE_LIMITS.visionBytes).length + photos.filter(e => e.uncompressed > RESTORE_LIMITS.photoBytes).length,
+    notRestored: entries.filter(e => MEDIA_FILE.test(e.name) && !vision.includes(e) && !photos.includes(e)).length,
   };
 }
 async function isZipStart(file: Blob) { const b = new Uint8Array(await file.slice(0, 4).arrayBuffer()); return b[0] === 0x50 && b[1] === 0x4b && b[2] === 3 && b[3] === 4; }
