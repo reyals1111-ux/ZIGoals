@@ -48,6 +48,8 @@ import {WORKOUT_HR, withHr, withoutHr} from '../../../lib/workouts/hr-zones';
 // Session AV lane 2, round 5 (gym; LEDGER #374): a workout status (kept in the plan's record) and the days it covered.
 import {PLANNED_WORKOUTS} from '../../../lib/workouts/planned';
 import {currentStatus, pausesOf, STATUS_WORDS} from '../../../lib/workouts/status';
+// Session AV lane 2, round 5 (gym; LEDGER #373): a routine that keeps its last weights.
+import {keepLastWeights, restoreRoutine} from '../../../lib/workouts/keep-weights';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
 const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
@@ -157,7 +159,8 @@ export default function WorkoutsView() {
       const typed = tookMinutes.trim(), took = typed ? Number(typed) : undefined;
       if (took !== undefined && (!/^\d{1,4}$/.test(typed) || took < 1 || took > 1440)) { setNote('Enter whole minutes from 1 to 1,440, or leave “Took” empty to end it now.'); return; }
       // Session AV lane 2 (body; LEDGER #204): the first run added keeps the bests before it as seen (only a new one is marked).
-      record.update(x => { result = finishWorkout(x, new Date(), took); return seedSeen(x, withUsualShoe(result.workouts, result.workout.id), splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null); });
+      let kept: ReturnType<typeof keepLastWeights> = null;
+      record.update(x => { result = finishWorkout(x, new Date(), took); const next = seedSeen(x, withUsualShoe(result.workouts, result.workout.id), splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null); kept = keepLastWeights(next, result.workout); return kept ? kept.workouts : next; });
       setTookMinutes(''); setNote(''); // the "Workout started…" line no longer stays above the finished workout (MO-137)
       const {workout, bests} = result!, minutes = Math.min(1440, Math.max(1, durationMinutes(workout)));
       // The minutes go to Health's activity log, so Today, the weekly review and a linked exercise habit count them.
@@ -166,7 +169,11 @@ export default function WorkoutsView() {
       catch { setNote('The workout is saved; its minutes could not be added to Health.'); }
       setRestUntil(null); setSummary({workout, bests});
       // Session AL (P-MO-82, MO-137): a workout under a minute reads "under 1 min" (it read "0 min" in places).
-      showStatus(`${workout.name} saved · ${durationMinutes(workout) < 1 ? 'under 1 min' : `${minutes} min`}${bests.length ? ` · ${bests.length} new ${plural(bests.length, 'personal best')}` : ''}.`);
+      const savedWords = `${workout.name} saved · ${durationMinutes(workout) < 1 ? 'under 1 min' : `${minutes} min`}${bests.length ? ` · ${bests.length} new ${plural(bests.length, 'personal best')}` : ''}.`;
+      // Session AV lane 2, round 5 (LEDGER #373): the routine took this workout's weights; Undo puts its own back.
+      const k = kept as ReturnType<typeof keepLastWeights>;
+      if (k) showUndo({message: `${savedWords} ${k.before.name} keeps these weights for next time.`, undone: `${k.before.name} has its weights from before.`, restore: () => record.update(x => restoreRoutine(x, k.before))});
+      else showStatus(savedWords);
     } catch (e) { setNote(plainErrorMessage(e, 'The workout could not be finished.')); }
   }
   // Session AJ (item 27, D12): an imported workout is saved like a finished one, minutes in Health included. Session AK
@@ -269,7 +276,7 @@ export default function WorkoutsView() {
         {w.templates.length > 0 && <><h3>Your routines</h3>{routineGroups(w).map(g => <div key={g.folder ?? ''} className="av2-routine-group">
           {(g.folder || routineGroups(w).length > 1) && <h4 className="av2-folder">{g.folder ?? 'No folder'} <span className="fine">({g.routines.length})</span></h4>}
           <ul className="workouts-routines">{g.routines.map(t => <li key={t.id}>
-          <div><strong>{t.name}</strong><span>{t.exercises.map(e => e.name).join(' · ')}</span>{t.note && <span className="av2-routine-note">Note: {t.note}</span>}{t.progression && <span className="av2-routine-note">{progressionWords(t.progression)}</span>}</div>
+          <div><strong>{t.name}</strong><span>{t.exercises.map(e => e.name).join(' · ')}</span>{t.note && <span className="av2-routine-note">Note: {t.note}</span>}{t.progression && <span className="av2-routine-note">{progressionWords(t.progression)}</span>}{t.keepWeights && <span className="av2-routine-note">Keeps your last weights</span>}</div>
           <div className="workouts-row-actions"><button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), template: t})} aria-label={`Start ${t.name}`}>Start</button>
             <button className="quiet" type="button" aria-expanded={editing === t.id} aria-label={`Edit routine ${t.name}`} onClick={() => setEditing(editing === t.id ? null : t.id)}>Edit</button>
             <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`, `Routine ${t.name} is back.`)}>Remove</button></div>

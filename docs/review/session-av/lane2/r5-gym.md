@@ -124,3 +124,28 @@ The splits record (`zigoals:workout-splits:v1`, strict) is not touched.
   `/app/health?view=activity`.
 - Showcase hook: none (the Showcase's activity minutes are pinned by other specs). CSS: none.
 
+## 4. A routine that keeps your last weights — LEDGER #373 built
+
+- What: Health → Workouts → Your routines → Edit has "Keep my last weights" (a checkbox with its line: "When you finish a
+  workout started from this routine, its done sets' weights and reps are written back into it, with Undo."). The routine's
+  row then says "Keeps your last weights". Finishing a workout started from it writes its done sets' values into the
+  routine set by set — warm-ups into warm-ups, working sets into working sets, in order; weight and reps (and time,
+  distance, added weight or help, as the exercise measures). The routine keeps its exercises, their order and its number
+  of sets: an exercise added during the workout is not added, one left out keeps its sets, a set not done keeps its
+  values. The finish toast says "… Fictional press keeps these weights for next time." with Undo, which puts the routine's
+  own values back. A routine with a progression rule still starts at the rule's targets (the rule reads the history).
+  Saving under the routine's name by hand (`saveTemplate`) works as before.
+- Files: `lib/workouts/keep-weights.ts` (new, pure), `components/health/workouts/routine-library-view.tsx` (`RoutineEdit`),
+  `components/health/workouts/workouts-view.tsx` (finish and its toast; the row's line), `lib/workouts/showcase.ts`.
+- Tests: `lib/workouts/av2-r5-keep-weights.test.ts`, `lib/workouts/av2-r5-stored.test.ts`; existing progression, library,
+  shoes, fitbod and NOVA card tests green. Spec: `tests/av2-r5-keep-weights.spec.ts`.
+- Stored: `keepWeights` on the routine (see the table).
+- Help (EN): **Can a routine remember the weights I lifted?** Yes. In Health → Workouts, choose Edit on a routine and tick
+  "Keep my last weights". Each time you finish a workout started from it, the weights and reps you did are written back
+  into the routine, so it starts there next time. The message after finishing has Undo.
+- What's new: "Workouts: a routine can keep the weights you lifted last time."
+- Search (static.ts): "keep last weights", "update routine", "auto update template" → `/app/health?view=workouts`.
+- Showcase hook: in `lib/workouts/showcase.ts` (already in the Showcase): Leg day keeps its last weights; the same commit
+  also stars the last Showcase leg day (#377's Favourites). No pinned count reads either.
+- Device keys / catalogue / export / erase: nothing new. CSS: none.
+
