@@ -88,7 +88,7 @@ export default function JournalFiles() {
     setProblem(''); setBusy('Making the file on this device…');
     try {
       const scope = photoScope(), found = new Map<string, MediaFile>();
-      for (const e of journal.data.entries) for (const id of [...(e.photos ?? []), ...(e.audio ?? []).map(a => a.id)]) { try { const m = await getJournalMedia(scope, id); if (m) found.set(id, {data: new Uint8Array(await m.blob.arrayBuffer()), type: m.type}); } catch { /* left out, said in README */ } }
+      for (const e of journal.data.entries) for (const id of [...(e.photos ?? []), ...(e.morePhotos ?? []), ...(e.audio ?? []).map(a => a.id)]) { try { const m = await getJournalMedia(scope, id); if (m) found.set(id, {data: new Uint8Array(await m.blob.arrayBuffer()), type: m.type}); } catch { /* left out, said in README */ } }
       const zip = buildStoredZip(journalExportFiles(journal.data, found));
       const url = URL.createObjectURL(new Blob([zip as Uint8Array<ArrayBuffer>], {type: 'application/zip'})), a = document.createElement('a');
       a.href = url; a.download = journalExportName(localDate(), isShowcase()); document.body.append(a); a.click(); a.remove();

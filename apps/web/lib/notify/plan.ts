@@ -69,6 +69,12 @@ export type PlanInput = {
    */
   letters?: {id: string; date: string}[];
   /**
+   * Session AV lane 2 (r4-mind; LEDGER #309, Journey's throwbacks; TIER 3 (PWA)): the mornings with a memory in the
+   * Journal's "On this day" (lib/on-this-day/throwback.ts memoryWakes), only when the person switched it on — an id, a
+   * day and how long ago ("a year ago"), never a word of the entry; under the journal switch.
+   */
+  memories?: {id: string; date: string; detail: string}[];
+  /**
    * Session AV lane 2 (money; Copilot's custom alerts, Rocket Money): a budget near or over its amount, payday tomorrow,
    * the low-balance line ahead (lib/money-notices.ts moneyWakes) — the day and an id; a title and detail for names-on only.
    */
@@ -221,6 +227,14 @@ export function buildPlan(input: PlanInput): Plan {
     const at = zonedInstant(l.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'journal');
     push({at, kind: 'journal', id: `${l.id}@${l.date}`, detail: 'a letter you wrote opens today', href: '/app/journal', actionable: false});
+  }
+  // Session AV lane 2 (r4-mind; LEDGER #309): a morning with a memory wakes at the morning time of its day (the end of
+  // quiet hours when the morning is quiet), as a letter does, under the journal switch; it says only how long ago.
+  if (typeOn(prefs, 'journal')) for (const m of input.memories ?? []) {
+    if (m.date < today || m.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'journal');
+    push({at, kind: 'journal', id: `${m.id}@${m.date}`, detail: m.detail, href: '/app/journal', actionable: false});
   }
   // Session AV lane 2 (money): a money notice wakes at the morning time of its day (the end of quiet hours when the morning
   // is quiet), as a countdown does; its words only with names on.

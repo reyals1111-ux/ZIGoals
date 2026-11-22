@@ -19,6 +19,12 @@ const stamp = z.iso.datetime({offset: true});
  */
 export const JOURNAL_ID = /^j-[a-z0-9]{4,30}$/, MEDIA_ID = /^m-[A-Za-z0-9_-]{6,60}$/;
 export const MAX_ENTRY_PHOTOS = 4, MAX_ENTRY_AUDIO = 3, MAX_AUDIO_SECONDS = 300;
+/**
+ * Session AV lane 2 (r4-mind; LEDGER #317, Journey's more photos in an entry): up to 12 photos an entry — the first four
+ * in `photos`, where every build reads them, the next eight in `morePhotos` (an older build reads `photos` as `.max(4)`
+ * and would drop a longer list whole, so the list is never made longer).
+ */
+export const MAX_MORE_PHOTOS = 8, MAX_ENTRY_PHOTOS_ALL = MAX_ENTRY_PHOTOS + MAX_MORE_PHOTOS;
 export const MAX_JOURNALS = 10, JOURNAL_NAME_MAX = 40;
 /** A journal's colour, drawn from the theme's own tokens (journal.css) so it reads in Nebula, Light and Dark. */
 export const JOURNAL_THEMES = ['violet', 'cyan', 'magenta', 'teal', 'gold', 'green'] as const;
@@ -63,6 +69,15 @@ export const journalEntrySchema = z.looseObject({
   period: z.string().regex(PERIOD).optional().catch(undefined),
   night: day.optional().catch(undefined),
   opensOn: day.optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r4-mind; TIER 3 (stored format), additive and optional; a value this build cannot read is dropped
+   * on read, never failing the journal; older builds keep it untouched, the entry being loose):
+   * - `star` (LEDGER #310, Journey's favourites): the person starred the entry (absent: not starred);
+   * - `morePhotos` (LEDGER #317, Journey's more photos): photos five to twelve, ids of the journal media store as `photos`
+   *   names them. Older builds show the first four and leave these as they are.
+   */
+  star: z.literal(true).optional().catch(undefined),
+  morePhotos: z.array(mediaId).max(MAX_MORE_PHOTOS).optional().catch(undefined),
 });
 /**
  * Session AV (owner follow-up 1, F-OWN-TEMPLATES; Day One's own templates; TIER 3 (stored format), additive and optional):

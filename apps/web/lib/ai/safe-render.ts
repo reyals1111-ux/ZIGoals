@@ -24,7 +24,12 @@ export type NoteInline = {type: 'text'; text: string} | {type: 'code'; text: str
 export type NoteBlock = {type: 'paragraph'; children: NoteInline[]} | {type: 'heading'; level: 1 | 2 | 3; children: NoteInline[]} | {type: 'quote'; children: NoteInline[]} | {type: 'code'; text: string; language: string | null}
   | {type: 'table'; align: Align[]; head: NoteInline[][]; rows: NoteInline[][][]; cut: number}
   | {type: 'list'; ordered: boolean; items: NoteInline[][]; /** Per item: null for a plain item, else whether its tick box is ticked; and the line (0-based) each item starts on. */ ticks?: (boolean | null)[]; lines?: number[]};
-export type ParseOptions = {notes?: boolean};
+/**
+ * Session AV lane 2 (r4-mind; LEDGER #308, Journey's formatting in an entry): `breaks` keeps the line breaks inside a
+ * paragraph (a journal entry's "How the run went:" line stays its own line) instead of joining the lines with a space.
+ * Honoured only with `notes: true`, which only Notes and the journal pass; ZIGi's and NOVA's replies never do.
+ */
+export type ParseOptions = {notes?: boolean; breaks?: boolean};
 const MARK = /^==(?:(\u{1F7E1}|\u{1F7E2}|\u{1F535}|\u{1F7E3}|\u{1F534}|\u{1F7E0})\s?)?(?=\S)((?:[^=\n]|=(?!=))+?)(?<=\S)==/u;
 const COLOUR_OF = new Map(Object.entries(HIGHLIGHT_EMOJI).map(([c, e]) => [e, c as HighlightColour]));
 const TICK = /^\[( |x|X)\]\s+(.*)$/;
@@ -94,7 +99,8 @@ export function parseBlocks(text: string, options: ParseOptions = {}): NoteBlock
   const inlineOf = (t: string) => parseInline(t, options);
   let i = 0;
   const paragraph: string[] = [];
-  const flushParagraph = () => { if (paragraph.length) { blocks.push({type: 'paragraph', children: inlineOf(paragraph.join(' ').replace(/\s+/g, ' ').trim())}); paragraph.length = 0; } };
+  const breaks = notes && options.breaks === true;
+  const flushParagraph = () => { if (paragraph.length) { blocks.push({type: 'paragraph', children: inlineOf(breaks ? paragraph.map(l => l.replace(/[ \t]+/g, ' ').trim()).join('\n') : paragraph.join(' ').replace(/\s+/g, ' ').trim())}); paragraph.length = 0; } };
   while (i < lines.length) {
     const line = lines[i]!, fence = /^\s*(```+|~~~+)\s*([A-Za-z0-9_+-]*)\s*$/.exec(line);
     if (fence) {

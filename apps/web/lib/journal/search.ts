@@ -6,9 +6,12 @@ import type {Journal, JournalEntry} from './schema';
 /**
  * Session AV lane 2 (journal; LEDGER #43, Day One's search by date and the calendar): one filter for the Journal's list —
  * the words or a #tag typed, a tag chip, a journal, and a day range (From / To, a day picked on the calendar, or a date
- * typed in the search: "2026-11-03", "2026-11", "3 nov", "november 2026"; a month alone needs its year). Newest first. Pure; nothing is stored.
+ * typed in the search: "2026-11-03", "2026-11", "3 nov", "november 2026"; a month alone needs its year). Newest first
+ * (or, LEDGER #310, oldest first), with favourites and a mood or feeling word beside them. Pure; nothing is stored.
  */
-export type EntryFilter = {query?: string; tag?: string | null; book?: BookChoice; from?: string | null; to?: string | null; /** Session AV lane 2 (r3-notes; LEDGER #269): only the entries about this week, month or year. */ period?: string | null};
+export type EntryFilter = {query?: string; tag?: string | null; book?: BookChoice; from?: string | null; to?: string | null; /** Session AV lane 2 (r3-notes; LEDGER #269): only the entries about this week, month or year. */ period?: string | null;
+  /** Session AV lane 2 (r4-mind; LEDGER #310, Journey): only starred entries; only entries of these days (a mood or a feeling word); oldest first. */
+  star?: boolean; days?: ReadonlySet<string> | null; order?: 'newest' | 'oldest'};
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const MONTHS: Record<string, number> = {jan: 1, january: 1, januari: 1, feb: 2, february: 2, februari: 2, mar: 3, march: 3, mrt: 3, maart: 3, apr: 4, april: 4, may: 5, mei: 5, jun: 6, june: 6, juni: 6, jul: 7, july: 7, juli: 7, aug: 8, august: 8, augustus: 8, sep: 9, sept: 9, september: 9, oct: 10, october: 10, okt: 10, oktober: 10, nov: 11, november: 11, dec: 12, december: 12};
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -42,8 +45,9 @@ export function filterEntries(journal: Pick<Journal, 'entries' | 'journals'>, fi
   const q = (filter.query ?? '').trim(), typedDate = dateQuery(q, today);
   const from = [filter.from, typedDate?.from].filter((d): d is string => !!d && DAY.test(d)).sort().at(-1) ?? null;
   const to = [filter.to, typedDate?.to].filter((d): d is string => !!d && DAY.test(d)).sort()[0] ?? null;
-  return [...journal.entries].reverse().filter(e => hasTag(e, filter.tag ?? null) && inBook(journal, e, filter.book ?? 'all') && (!filter.period || e.period === filter.period)
-    && (!from || e.date >= from) && (!to || e.date <= to) && (typedDate || !q || wordsMatch(e, q)));
+  const kept = [...journal.entries].reverse().filter(e => hasTag(e, filter.tag ?? null) && inBook(journal, e, filter.book ?? 'all') && (!filter.period || e.period === filter.period)
+    && (!from || e.date >= from) && (!to || e.date <= to) && (typedDate || !q || wordsMatch(e, q)) && (!filter.star || e.star === true) && (!filter.days || filter.days.has(e.date)));
+  return filter.order === 'oldest' ? kept.reverse() : kept;
 }
 /** The day range in words, for the list's line ("Nov 3, 2026" or "Nov 1 – Nov 30, 2026"). */
 export const rangeIsDay = (from: string | null | undefined, to: string | null | undefined) => !!from && from === to;

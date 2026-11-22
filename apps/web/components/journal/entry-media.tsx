@@ -6,6 +6,7 @@ import {getJournalMedia} from '../../lib/journal/media';
 import {clipLength} from '../../lib/journal/keep-media';
 import {photoScope} from '../../lib/health-aa/photos';
 import {showUndo} from '../ui/undo-toast';
+import {entryPhotos, withPhotos, withoutPhoto} from '../../lib/journal/more-photos';
 
 /**
  * Session AV lane 2 (journal; LEDGER #35 photos, #42 audio): an entry's photos and its voice note, read from this
@@ -17,7 +18,8 @@ type Shown = {id: string; kind: 'photo' | 'audio'; url: string | null; seconds?:
 export default function EntryMedia({entry, day}: {entry: JournalEntry; day: string}) {
   const journal = useDeviceRecord(JOURNAL);
   const [shown, setShown] = useState<Shown[]>([]);
-  const ids = [...(entry.photos ?? []).map(id => ({id, kind: 'photo' as const})), ...(entry.audio ?? []).map(a => ({id: a.id, kind: 'audio' as const, seconds: a.seconds}))];
+  // Session AV lane 2 (r4-mind; LEDGER #317): photos five to twelve (morePhotos) after the first four.
+  const ids = [...entryPhotos(entry).map(id => ({id, kind: 'photo' as const})), ...(entry.audio ?? []).map(a => ({id: a.id, kind: 'audio' as const, seconds: a.seconds}))];
   const key = ids.map(x => x.id).join(',');
   useEffect(() => {
     let live = true; const made: string[] = [];
@@ -35,16 +37,15 @@ export default function EntryMedia({entry, day}: {entry: JournalEntry; day: stri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   const remove = (id: string, kind: 'photo' | 'audio') => {
-    const before = {photos: entry.photos, audio: entry.audio};
+    const before = {photos: entryPhotos(entry), audio: entry.audio};
     const change = (e: JournalEntry): JournalEntry => {
-      const next = {...e, photos: (e.photos ?? []).filter(x => x !== id), audio: (e.audio ?? []).filter(x => x.id !== id)};
-      if (!next.photos.length) delete (next as Partial<JournalEntry>).photos;
+      const next = {...withoutPhoto(e, id), audio: (e.audio ?? []).filter(x => x.id !== id)};
       if (!next.audio.length) delete (next as Partial<JournalEntry>).audio;
       return next;
     };
     try { journal.update(c => journalSchema.parse({...c, entries: c.entries.map(e => e.id === entry.id ? change(e) : e)})); } catch { return; }
     showUndo({message: kind === 'photo' ? `Photo taken off the entry of ${day}.` : `Voice note taken off the entry of ${day}.`, undone: 'It is back with the entry.',
-      restore: () => journal.update(c => journalSchema.parse({...c, entries: c.entries.map(e => e.id === entry.id ? {...e, ...(before.photos ? {photos: before.photos} : {}), ...(before.audio ? {audio: before.audio} : {})} : e)}))});
+      restore: () => journal.update(c => journalSchema.parse({...c, entries: c.entries.map(e => e.id === entry.id ? {...withPhotos(e, before.photos), ...(before.audio ? {audio: before.audio} : {})} : e)}))});
   };
   const photos = shown.filter(s => s.kind === 'photo'), audio = shown.filter(s => s.kind === 'audio');
   if (!shown.length) return null;

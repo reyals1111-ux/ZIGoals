@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useEffect, useId, useMemo, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
@@ -38,6 +38,8 @@ const ThreeGoodThings = lazy(() => import('./three-good-things'));
 const ComposeMedia = lazy(() => import('./compose-media'));
 // Session AV lane 2 (r3-notes; LEDGER #266, Grid Diary): a templated entry written as a grid of cards (the Mandala 3 × 3).
 const ComposeGrid = lazy(() => import('./compose-grid'));
+// Session AV lane 2 (r4-mind; LEDGER #308, Journey): the format bar under the entry's words, its own chunk.
+const JournalFormat = lazy(() => import('./journal-format'));
 const NO_MEDIA: PendingMedia = {photos: [], audio: null};
 
 /**
@@ -65,6 +67,7 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   // Session AV lane 2 (r3-notes; LEDGER #279, Stoic): a letter to open later — when it opens ('' not a letter).
   const [opens, setOpens] = useState<'' | OpensChoice | 'day'>(''), [opensDay, setOpensDay] = useState(''), [asLetter, setAsLetter] = useState(false);
   useEffect(() => { if (compact) return; try { const d = new URLSearchParams(window.location.search).get('dream'); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today) setDream(d); } catch { /* no address */ } }, [compact, today]);
+  const words = useRef<HTMLTextAreaElement>(null);
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
   // Session AV lane 2 (journal; LEDGER #39, Day One's default template): a new entry starts from the chosen template, on
@@ -114,18 +117,22 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
     const opensOn = !opens ? null : opens === 'day' ? (/^\d{4}-\d{2}-\d{2}$/.test(opensDay) && opensDay > today ? opensDay : null) : opensOnFor(opens, today);
     if (opens === 'day' && !opensOn) return setProblem('Choose a day after today to open the letter on.');
     const tags = compact ? [] : readTags(tagText);
-    let photos: string[] = [], audio: {id: string; seconds: number}[] = [];
+    let photos: string[] = [], audio: {id: string; seconds: number}[] = [], photoFields: {photos?: string[]; morePhotos?: string[]} = {};
     if (hasMedia) {
       setSaving(true); setStatus('Keeping the photos and the voice note on this device…');
       try {
-        const keep = await import('../../lib/journal/keep-media');
+        // Session AV lane 2 (r4-mind; LEDGER #317): room for the photos is checked first; five to twelve go in morePhotos.
+        const [keep, more, {photoScope}] = await Promise.all([import('../../lib/journal/keep-media'), import('../../lib/journal/more-photos'), import('../../lib/health-aa/photos')]);
+        const room = await more.photoRoom(photoScope(), media.photos.length + (media.audio ? 1 : 0));
+        if (!room.ok) throw new Error(`${room.reason} Nothing was saved.`);
         try { for (const f of media.photos) photos.push(await keep.keepJournalPhoto(f)); if (media.audio) audio = [{id: await keep.keepJournalAudio(media.audio.blob, media.audio.seconds), seconds: media.audio.seconds}]; }
         catch (e) { await keep.forgetJournalMedia([...photos, ...audio.map(a => a.id)]); throw e; }
+        photoFields = more.splitPhotos(photos);
       } catch (e) { setSaving(false); setStatus(''); photos = []; audio = []; return setProblem(e instanceof Error ? e.message : 'The photos could not be kept on this device. Nothing was saved.'); }
       setSaving(false);
     }
     const fallback = audio.length && photos.length ? 'Photos and a voice note.' : audio.length ? 'A voice note.' : photos.length > 1 ? 'Photos.' : 'A photo.';
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: (words || fallback).slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {}), ...(period && !compact ? {period} : {}), ...(opensOn && !compact ? {opensOn} : {})};
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: (words || fallback).slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {}), ...photoFields, ...(audio.length ? {audio} : {}), ...(period && !compact ? {period} : {}), ...(opensOn && !compact ? {opensOn} : {})};
     const question = words && journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     // Session AV lane 2 (r3-notes; LEDGER #278): a dream goes in the Dreams journal (made on first use), linked to its night.
     const dreamOf = dream;
@@ -160,7 +167,8 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
         <div className="journal-today-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, todayQ.question))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button>{/* Session AV lane 2 (#56): a pack's own question is chosen in Prompt packs, so only the daily one hides here. */}{!todayQ.pack && <button type="button" className="quiet" onClick={() => { const i = questionIndexOfTheDay(today, step, qLang, mutedQ); void import('../../lib/muted/write').then(m => { m.setMuted('questions', i, true); setHidden(n => n + 1); setHiddenSaid('Hidden: it will not be asked again. Journal → Start from a prompt → Hidden lists it.'); }).catch(() => setHiddenSaid('This could not be hidden on this device.')); }}>Don’t ask this again</button>}<button type="button" className="quiet" lang={qLang === 'en' ? 'nl' : 'en'} onClick={() => setQuestionLang(qLang === 'en' ? 'nl' : 'en')}>{qLang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>{hiddenSaid && <p className="fine" role="status">{hiddenSaid}</p>}</div>}
       {canGrid && <button type="button" className="quiet journal-grid-toggle" aria-pressed={asGrid} onClick={() => setGridOn(!asGrid)}>{asGrid ? 'Write as one text' : 'Write as a grid'}</button>}
       {asGrid ? <Suspense fallback={<p className="fine">Opening the grid…</p>}><ComposeGrid key={`${prompt!.id}-${prompt!.lang}`} template={promptTemplate!} lang={prompt!.lang} text={text} onChange={setText}/></Suspense>
-        : <label className="field"><span>{compact ? 'A few lines about today' : dream ? 'Your dream' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder={dream ? 'What you remember: people, places, how it felt.' : 'What stood out today?'}/></label>}
+        : <label className="field"><span>{compact ? 'A few lines about today' : dream ? 'Your dream' : 'Today’s entry'}</span><textarea ref={words} rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder={dream ? 'What you remember: people, places, how it felt.' : 'What stood out today?'}/></label>}
+      {!compact && !asGrid && <Suspense fallback={null}><JournalFormat value={text} onChange={setText} maxLength={MAX_TEXT} field={() => words.current}/></Suspense>}
       {dream && <p className="fine journal-dream-line" role="status">A dream from the night ending {formatDate(dream, {weekday: true})}. It goes in your {dreamsBook(journal.data)?.name ?? 'Dreams'} journal{dreamsBook(journal.data) ? '' : ' (made when you save)'}, and shows on that night in your sleep log. <button type="button" className="text-link" onClick={() => setDream(null)}>Not a dream</button></p>}
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       {/* Session AV lane 2 (journal; LEDGER #35, Day One's links to other entries): a day's entries, or a note, goal or habit, by [[name]]. */}

@@ -31,6 +31,9 @@ import {daysWords, reminderOf, streakNudge} from '../../lib/journal/reminder';
 import {bookCounts, bookOf, booksOf, type BookChoice} from '../../lib/journal/books';
 import {dateQuery, filterEntries} from '../../lib/journal/search';
 import {entriesLinkingTo, hasLinks} from '../../lib/journal/entry-links';
+import {hasMarks} from '../../lib/journal/has-marks';
+import {NO_LIST_OPTIONS, type ListOptions} from '../../lib/journal/list-options';
+import {starEntry} from '../../lib/journal/favourites';
 import {periodWords} from '../../lib/journal/periods';
 import {isSealed} from '../../lib/journal/letters';
 
@@ -48,7 +51,7 @@ const JournalReminder = lazy(() => import('./journal-reminder'));
 const JournalBooks = lazy(() => import('./journal-books'));
 const JournalCalendar = lazy(() => import('./journal-calendar'));
 const EntryMore = lazy(() => import('./entry-more'));
-// Session AV lane 2 (journal; LEDGER #35, #42): an entry's [[links]], photos and voice note, each loaded only for an entry that has them.
+// Session AV lane 2 (journal; LEDGER #35, #42; r4-mind #308): an entry's [[links]] and Markdown, photos and voice note, each loaded only for an entry that has them.
 const EntryRichText = lazy(() => import('./entry-rich-text'));
 const EntryMedia = lazy(() => import('./entry-media'));
 // Session AV lane 2 (journal; LEDGER #44): Import and export, loaded when its fold opens.
@@ -61,6 +64,8 @@ const ThoughtCheck = lazy(() => import('./thought-check'));
 const PromptAnswers = lazy(() => import('./prompt-answers'));
 // Session AV lane 2 (r3-notes; LEDGER #266): a Mandala entry drawn as its 3 × 3 grid.
 const EntryGrid = lazy(() => import('./entry-grid'));
+// Session AV lane 2 (r4-mind; LEDGER #310, Journey): favourites, a mood and the order of the list, loaded after the page.
+const EntryListOptions = lazy(() => import('./entry-list-options'));
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -90,11 +95,18 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const [periodPick, setPeriodPick] = useState<string | null>(null);
   // Session AV lane 2 (r3-notes; LEDGER #279): sealed letters read early on this visit only (nothing is changed).
   const [readEarly, setReadEarly] = useState<ReadonlySet<string>>(new Set());
+  // Session AV lane 2 (r4-mind; LEDGER #310): Favourites only, a mood's days, and Newest or Oldest first.
+  const [listOpts, setListOpts] = useState<ListOptions>(NO_LIST_OPTIONS), moodDaySet = useMemo(() => listOpts.days ? new Set(listOpts.days) : null, [listOpts.days]);
   useEffect(() => {
     const read = () => { const p = new URLSearchParams(window.location.search), d = p.get('day'), j = p.get('journal'), q = p.get('prompt'); if (d && DAY_RE.test(d)) { setFrom(d); setTo(d); } if (j) setBook(j === 'main' ? 'main' : j);
       if (q && /^[a-z0-9-]{1,40}$/.test(q)) { setPromptPick(q); requestAnimationFrame(() => { const f = document.getElementById('journal-prompt-answers') as HTMLDetailsElement | null; if (f) { f.open = true; f.scrollIntoView({block: 'start'}); } }); } };
     read(); window.addEventListener('popstate', read); return () => window.removeEventListener('popstate', read);
   }, []);
+  // Session AV lane 2 (r4-mind; LEDGER #325): a feeling word's choices link to #write-it-out and #thought-check; the fold opens.
+  useEffect(() => {
+    const go = () => { const h = window.location.hash.slice(1); if (h !== 'write-it-out' && h !== 'thought-check') return; requestAnimationFrame(() => { const f = document.getElementById(h) as HTMLDetailsElement | null; if (f) { f.open = true; f.scrollIntoView({block: 'start'}); f.querySelector<HTMLElement>('summary')?.focus(); } }); };
+    go(); window.addEventListener('hashchange', go); return () => window.removeEventListener('hashchange', go);
+  }, [journal.loaded]);
   // Session AV lane 2 (LEDGER #35, #42): photos and voice notes no entry names any more leave this browser after 30 days.
   useEffect(() => {
     if (!journal.loaded || journal.unreadable) return;
@@ -105,8 +117,9 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const showDay = (d: string) => { setFrom(d); setTo(d); setQuery(''); setTag(null); setBook('all'); try { window.history.pushState(null, '', `/app/journal?day=${d}`); } catch { /* the filter is enough */ } requestAnimationFrame(() => document.getElementById('journal-entries')?.scrollIntoView({block: 'start'})); };
   const linkedFrom = from && from === to ? entriesLinkingTo(journal.data.entries, from) : [];
   const books = booksOf(journal.data), shownBook: BookChoice = book === 'all' || book === 'main' || books.some(b => b.id === book) ? book : 'all';
-  const entries = useMemo(() => filterEntries(journal.data, {query, tag: shownTag, book: shownBook, from: from || null, to: to || null, period: periodPick}, today), [journal.data, query, shownTag, shownBook, from, to, today, periodPick]);
+  const entries = useMemo(() => filterEntries(journal.data, {query, tag: shownTag, book: shownBook, from: from || null, to: to || null, period: periodPick, star: listOpts.star, days: moodDaySet, order: listOpts.order}, today), [journal.data, query, shownTag, shownBook, from, to, today, periodPick, listOpts.star, moodDaySet, listOpts.order]);
   const typedDate = dateQuery(query, today), dated = !!(from || to || typedDate);
+  const star = (e: JournalEntry, on: boolean) => { try { journal.update(c => starEntry(c, e.id, on)); showStatus(on ? `The entry of ${formatDate(e.date)} is a favourite. Favourites lists it.` : `The entry of ${formatDate(e.date)} is no longer a favourite.`); } catch { showStatus('This could not be saved on this device.', {tone: 'error'}); } };
   const retag = (id: string, change: (e: JournalEntry) => JournalEntry, said: string) => { try { journal.update(c => changeEntry(c, id, change)); showStatus(said); } catch { showStatus('The tag could not be saved on this device.', {tone: 'error'}); } };
   // Session AL Part 14 (RELEASE_REVIEW R18): an entry's day in words ("Mon, Nov 2, 2026"), never "2026-11-02".
   const entryDays = useMemo(() => new Map(journal.data.entries.map(e => [e.date, {long: formatDate(e.date, {weekday: true}), short: formatDate(e.date)}])), [journal.data.entries]);
@@ -136,8 +149,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose book={shownBook === 'all' || shownBook === 'main' ? null : shownBook}/>
       {/* Session AK (B2, lane B): the Journal's sibling for longer thoughts — today's note beside what this day holds. */}
       <p className="fine journal-notes-link">Longer thoughts and ideas go in <Link className="text-link" href="/app/notes?day=today">today&rsquo;s note</Link>, beside what this day holds. There, type <code>[[</code> and a name to link a goal or a habit, for example <code>[[Run a 10k]]</code>.</p>
-      <JournalFold className="write-it-out-fold" label="Write it out" summary={<>Write it out <span className="fine">· a page that is never saved</span></>}><WriteItOut/></JournalFold>
-      <JournalFold className="thought-check-fold" label="the thought check" summary={<>Check a thought <span className="fine">· thinking traps, as self-reflection</span></>}><ThoughtCheck/></JournalFold></section>
+      <JournalFold id="write-it-out" className="write-it-out-fold" label="Write it out" summary={<>Write it out <span className="fine">· a page that is never saved</span></>}><WriteItOut/></JournalFold>
+      <JournalFold id="thought-check" className="thought-check-fold" label="the thought check" summary={<>Check a thought <span className="fine">· thinking traps, as self-reflection</span></>}><ThoughtCheck/></JournalFold></section>
     {/* Session AL (DV-190b, P-DV-124): your entries right after Write, not below every chart */}
     <section className="panel" aria-labelledby="journal-entries"><h2 id="journal-entries">Entries</h2>
       {journal.data.entries.length > 0 && <dl className="journal-stats" aria-label="Your writing">
@@ -166,15 +179,19 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <button type="button" className="quiet" aria-pressed={!shownTag} onClick={() => setTag(null)}>All entries</button>
         {tags.map(t => <button key={t.tag} type="button" className="quiet" aria-pressed={shownTag?.toLowerCase() === t.tag.toLowerCase()} onClick={() => setTag(t.tag)}>#{t.tag} <small>{t.count}</small></button>)}
       </div>}
+      {/* Session AV lane 2 (r4-mind; LEDGER #310, Journey): Favourites, a mood or feeling word, and the order. */}
+      {journal.data.entries.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><EntryListOptions entries={journal.data.entries} moods={moodDays} feelings={energy.data} moodWords={moodWords} value={listOpts} onChange={setListOpts}/></Suspense></LoadBoundary>}
       {periodPick && <p className="fine journal-period-line" role="status">Entries about {periodWords(periodPick)}. <button type="button" className="text-link" onClick={() => setPeriodPick(null)}>Show every entry</button></p>}
       {linkedFrom.length > 0 && <p className="fine journal-linked-from">Linked from {linkedFrom.slice(0, 5).map((x, i) => <span key={x.id}>{i ? ', ' : ''}<a className="text-link" href={`/app/journal?day=${x.date}`} onClick={ev => { ev.preventDefault(); showDay(x.date); }}>{formatDate(x.date)}</a></span>)}.</p>}
       {entries.length ? <ol className="journal-entries">{entries.map(e => { const inBook = bookOf(journal.data, e); return <li key={e.id} data-tone={inBook?.theme}>
-        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}{e.period && <span className="journal-entry-period"> · about {periodWords(e.period)}</span>}{e.opensOn && <span className="journal-entry-letter"> · {isSealed(e, today) ? `a letter, opens ${formatDate(e.opensOn, {year: e.opensOn.slice(0, 4) !== today.slice(0, 4)})}` : `a letter, opened ${formatDate(e.opensOn, {year: false})}`}</span>}{e.night && <span className="journal-entry-night"> · a dream, the night ending {formatDate(e.night, {year: false})}</span>}</p>{isSealed(e, today) && !readEarly.has(e.id) ? <p className="journal-entry-sealed"><span>A letter to open on {formatDate(e.opensOn!, {weekday: true})}, folded away until then.</span> <button type="button" className="text-link" aria-label={`Read the letter of ${entryDays.get(e.date)?.short ?? e.date} now`} onClick={() => setReadEarly(r => new Set([...r, e.id]))}>Read it now</button></p> : e.template === 'mandala' ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryGrid entry={e}/></Suspense> : hasLinks(e.text) ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryRichText text={e.text} onDay={showDay}/></Suspense> : <p className="journal-entry-text">{e.text}</p>}
-        {(e.photos?.length || e.audio?.length) && !(isSealed(e, today) && !readEarly.has(e.id)) ? <LoadBoundary quiet><Suspense fallback={null}><EntryMedia entry={e} day={entryDays.get(e.date)?.short ?? e.date}/></Suspense></LoadBoundary> : null}
+        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}{e.period && <span className="journal-entry-period"> · about {periodWords(e.period)}</span>}{e.opensOn && <span className="journal-entry-letter"> · {isSealed(e, today) ? `a letter, opens ${formatDate(e.opensOn, {year: e.opensOn.slice(0, 4) !== today.slice(0, 4)})}` : `a letter, opened ${formatDate(e.opensOn, {year: false})}`}</span>}{e.night && <span className="journal-entry-night"> · a dream, the night ending {formatDate(e.night, {year: false})}</span>}</p>{isSealed(e, today) && !readEarly.has(e.id) ? <p className="journal-entry-sealed"><span>A letter to open on {formatDate(e.opensOn!, {weekday: true})}, folded away until then.</span> <button type="button" className="text-link" aria-label={`Read the letter of ${entryDays.get(e.date)?.short ?? e.date} now`} onClick={() => setReadEarly(r => new Set([...r, e.id]))}>Read it now</button></p> : e.template === 'mandala' ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryGrid entry={e}/></Suspense> : hasLinks(e.text) || hasMarks(e.text) ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryRichText text={e.text} onDay={showDay} entryId={e.id} day={entryDays.get(e.date)?.short ?? e.date}/></Suspense> : <p className="journal-entry-text">{e.text}</p>}
+        {(e.photos?.length || e.morePhotos?.length || e.audio?.length) && !(isSealed(e, today) && !readEarly.has(e.id)) ? <LoadBoundary quiet><Suspense fallback={null}><EntryMedia entry={e} day={entryDays.get(e.date)?.short ?? e.date}/></Suspense></LoadBoundary> : null}
         <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}{e.updatedAt ? ' · changed' : ''}{versionCount.get(e.id) ? ` · ${versionCount.get(e.id) === 1 ? '1 earlier version' : `${versionCount.get(e.id)} earlier versions`} under More` : ''}</p>
         {e.followUp && !(isSealed(e, today) && !readEarly.has(e.id)) && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
         {/* Session AV (1c, q4 #34): the entry's three controls (tags, That day, Remove) share one row. */}
         <div className="journal-entry-controls">
+        {/* Session AV lane 2 (r4-mind; LEDGER #310, Journey's favourites): a star on the entry, its own undo by a second press. */}
+        <button type="button" className="quiet journal-entry-star" aria-pressed={e.star === true} aria-label={`Favourite: the entry of ${entryDays.get(e.date)?.short ?? e.date}`} onClick={() => star(e, e.star !== true)}><span aria-hidden="true">{e.star ? '★' : '☆'}</span><span className="journal-entry-star-word" aria-hidden="true"> Favourite</span></button>
         <EntryTags tags={e.tags ?? []} day={entryDays.get(e.date)?.short ?? e.date} known={knownTags} onAdd={t => retag(e.id, x => withTag(x, t), `Tagged #${t}.`)} onRemove={t => retag(e.id, x => withoutTag(x, t), `The tag #${t} is off this entry.`)}/>
         {/* Session AV (owner follow-up 1, F-JOURNAL-DAY; Day One's metadata): that day's own records, as links, on the press. */}
         <details className="journal-that-day" onToggle={ev => { const open = (ev.currentTarget as HTMLDetailsElement).open; setDayOpen(d => { const n = new Set(d); if (open) n.add(e.id); else n.delete(e.id); return n; }); }}><summary>That day</summary>{dayOpen.has(e.id) && <Suspense fallback={<p className="fine">Reading that day…</p>}><ThisDayStrip day={e.date} exclude={['journal']} title={`On ${entryDays.get(e.date)?.short ?? e.date}`}/></Suspense>}</details>
@@ -182,7 +199,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <details className="journal-entry-more" onToggle={ev => { const open = (ev.currentTarget as HTMLDetailsElement).open; setMoreOpen(d => { const n = new Set(d); if (open) n.add(e.id); else n.delete(e.id); return n; }); }}><summary aria-label={`More for the entry of ${entryDays.get(e.date)?.short ?? e.date}`}>More</summary>{moreOpen.has(e.id) && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><EntryMore entry={e} day={entryDays.get(e.date)?.short ?? e.date}/></Suspense></LoadBoundary>}</details>
         <button type="button" className="text-link journal-entry-remove" aria-label={`Remove the entry of ${entryDays.get(e.date)?.short ?? e.date}`} onClick={() => remove(e)}>Remove</button>
         </div>
-      </li>; })}</ol> : dated && !query.trim() || typedDate ? <p className="fine">No entry on {from && from === to ? formatDate(from) : typedDate && typedDate.from === typedDate.to ? formatDate(typedDate.from) : 'those days'}{shownTag ? ` with the tag #${shownTag}` : ''}. The calendar under &ldquo;Search by date&rdquo; marks the days you wrote.</p>
+      </li>; })}</ol> : listOpts.star || listOpts.mood ? <p className="fine journal-list-empty">{listOpts.star && !journal.data.entries.some(x => x.star) ? 'No favourite yet. Press ☆ Favourite on an entry to keep it here.' : listOpts.mood ? 'No entry here on a day with that mood. Choose Any mood to see them all.' : 'No favourite among these entries.'} <button type="button" className="text-link" onClick={() => setListOpts(NO_LIST_OPTIONS)}>Show every entry</button></p>
+        : dated && !query.trim() || typedDate ? <p className="fine">No entry on {from && from === to ? formatDate(from) : typedDate && typedDate.from === typedDate.to ? formatDate(typedDate.from) : 'those days'}{shownTag ? ` with the tag #${shownTag}` : ''}. The calendar under &ldquo;Search by date&rdquo; marks the days you wrote.</p>
         : query || shownTag || shownBook !== 'all' ? <p className="fine">{shownTag && !query ? `No entry has the tag #${shownTag}.` : query ? 'No entry has those words.' : 'No entry in this journal yet. Choose it when you write, or move an entry into it.'}</p> : <ArtNote pillar="orbit"><p className="fine">No entries yet. Write a few lines above.</p></ArtNote>}
       {/* Session AV lane 2 (journal; LEDGER #43, Day One's journals and themes): make, rename, colour and remove journals. */}
       <JournalFold className="journal-books-fold" label="your journals" summary={<>Your journals <span className="fine">· {books.length ? `${books.length + 1} journals` : 'one journal'}</span></>}><JournalBooks onMade={id => setBook(id)}/></JournalFold>
