@@ -4,6 +4,7 @@ import {yesterdayMoney} from '../../money-log/yesterday';
 import {yearSoFar} from '../../budgets/year-so-far';
 import type {BudgetsRecord} from '../../budgets/schema';
 import {MATCH_DAYS, monthMatches} from '../../bills/month';
+import {mergeTargets} from '../../money-log/merge-accounts';
 import type {NotifyPrefs} from '../../notify/prefs';
 import {typeOn} from '../../notify/prefs';
 import type {ToolEnv} from '../tools/env';
@@ -106,3 +107,20 @@ function paidEarly(a: Asked): LocalReply | null {
   return answer(say(a.lang, `Paid early this month: ${list(early.map(x => item('en', x)), 'en')}.${rest('en')}`, `Deze maand vroeg betaald: ${list(early.map(x => item('nl', x)), 'nl')}.${rest('nl')}`), calls);
 }
 add(paidEarly);
+
+// ── Merge two accounts (#387) ──────────────────────────────────────────────────────────────────────────────────────
+/** "How do I merge two accounts", "hoe voeg ik twee rekeningen samen". */
+function mergeAccounts(a: Asked): LocalReply | null {
+  const en = /\bmerge\b.*\baccounts?\b|\baccounts?\b.*\bmerge\b|\bcombine (?:two |my )?accounts\b/.test(a.f);
+  const nl = /\b(?:samenvoegen|voeg(?:en)?\b.*\bsamen)\b/.test(a.f) && /\brekening(?:en)?\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const accounts = accountsOf(a.env), calls = call('accounts', {merge: true}, 'Accounts · merge two');
+  const seen = new Set<string>(), pairs: string[] = [];
+  for (const x of accounts?.items ?? []) { if (x.archivedAt) continue; for (const y of mergeTargets(accounts!, x.id)) { const k = [x.id, y.id].sort().join('|'); if (!seen.has(k)) { seen.add(k); pairs.push(`${x.name} ${say(a.lang, 'and', 'en')} ${y.name} (${x.currency})`); } } }
+  const how = say(a.lang, `In ${PLACES.accounts.en}, tap "Merge two" beside What you own or What you owe, choose the account to merge and the one it goes into, see what moves, then merge: its balances, a debt's payments, its note and its money-log entries go to the other, exact doubles are offered for removal, and the one merged is archived with its own history. Undo puts it all back.`,
+    `In ${PLACES.accounts.nl} tik je op "Merge two" bij What you own of What you owe, kies je de rekening om samen te voegen en die waar hij in gaat, zie je wat er verhuist en voeg je samen: saldi, betalingen op een schuld, de notitie en de invoer in je uitgavenlog gaan naar de andere, exacte dubbelen kun je weghalen, en de samengevoegde wordt gearchiveerd met zijn eigen geschiedenis. Ongedaan maken zet alles terug.`);
+  if (!pairs.length) return answer(say(a.lang, `No two of your accounts can be merged now: they need the same currency and both be owned or both owed. ${how}`, `Er zijn nu geen twee rekeningen die je kunt samenvoegen: ze moeten dezelfde munt hebben en allebei bezit of allebei schuld zijn. ${how}`), calls);
+  return answer(say(a.lang, `These could be merged: ${list(pairs.slice(0, 5), 'en')}${pairs.length > 5 ? ` and ${pairs.length - 5} more` : ''}. ${how}`, `Deze kun je samenvoegen: ${list(pairs.slice(0, 5), 'nl')}${pairs.length > 5 ? ` en nog ${pairs.length - 5}` : ''}. ${how}`), calls);
+}
+add(mergeAccounts);

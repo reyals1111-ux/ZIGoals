@@ -118,3 +118,17 @@ describe('a bill paid early (#386)', () => {
     expect(text(zigi('which bill did I pay ahead of its due date', freshAll()))).toContain('No bills are tracked yet.');
   });
 });
+
+describe('merge two accounts (#387)', () => {
+  const items = [cashAccount('ING Current', '100000', '00000000-0000-4000-8000-0000000a0001'), cashAccount('ING Betaalrekening', '50000', '00000000-0000-4000-8000-0000000a0002'), {...cashAccount('Wise', '1000', '00000000-0000-4000-8000-0000000a0003'), currency: 'USD'}];
+  const s = {...freshAll(), accounts: {version: 1 as const, items}};
+  test('English: the pairs that could be merged and how', () => {
+    const en = text(zigi('how do I merge two accounts', s));
+    expect(en).toMatch(/^These could be merged: ING Current and ING Betaalrekening \(EUR\)\. In Wealth → Accounts, tap "Merge two"/);
+    expect(en).not.toContain('Wise');
+  });
+  test('Dutch; none to merge says why', () => {
+    expect(text(zigi('hoe voeg ik twee rekeningen samen', s))).toContain('Deze kun je samenvoegen: ING Current en ING Betaalrekening (EUR).');
+    expect(text(zigi('can I merge my accounts', freshAll()))).toMatch(/^No two of your accounts can be merged now/);
+  });
+});

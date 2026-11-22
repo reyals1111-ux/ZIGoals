@@ -148,3 +148,42 @@ corpus (`CORPUS`) nor round 4's (`AV2_R4_MONEY`), and the answers that run befor
   empty state teaches ("No expense of about €800.00 in those days. Log it in Spending, or use Mark paid.").
 - Registries: none. CSS touched: `components/wealth/spending/money-r5.css` (imported by the tracker's chunk).
 - Today: nothing added. A passed date in the Bill tracker gains one button ("Paid early?").
+
+### R5-F4 (group V6). Merge two accounts
+
+- LEDGER row: #387 Tiller merge two accounts — **built** (Wealth → Accounts → "Merge two" beside What you own or What you
+  owe, when the group has two accounts or more; a panel in its own chunk: "Merge" one account "into" another — only
+  active accounts in the same currency, both owned or both owed, are offered, and a refusal is said in words. The plan
+  says what moves before anything is written: the balances of the one merged on every day the other has none (the
+  other's own balance stays on a day both have), a debt's payments, its note (joined to the other's), the other taking the
+  earlier place in the person's order, and the later "last checked against my bank" day of the two (round 4's #340).
+  "Money-log entries from bank files named" lists the bank-file account names of that currency (the one merged's own
+  name ticked) and "Their entries are then named" (the other's bank-file name when the log has one, else its name, with
+  suggestions); exact doubles this brings together — the same day, kind, amount, currency and bank reference — are listed
+  for removal, each ticked and each can be unticked. "Merge A into B" writes it; the one merged is archived with its own
+  history ("nothing lost"), the panel's heading takes the focus, and Undo puts both accounts, every renamed entry, every
+  removed double (at its place), the notes, the order and the last checks back.)
+- Spending function used: none, on purpose: accounts keep no spending figure. Renaming an entry's bank-file name changes
+  no figure; only a removed exact double leaves the figures, which the unit test shows with Spending's `totals`.
+- Files: `lib/money-log/merge-accounts.ts` (new), `components/wealth/merge-accounts.tsx` (new, lazy),
+  `components/wealth/accounts-section.tsx` (the "Merge two" button and the lazy panel),
+  `components/wealth/spending/money-r5.css` (`.money-merge*`).
+- Tests: `lib/money-log/av2-merge-accounts.test.ts`, `lib/ai/local-answers/av2-r5-money.test.ts`.
+- Spec: `tests/av2-money-merge-accounts.spec.ts`.
+- Stored: nothing new. Normal writes to `zigoals:accounts:v1` (snapshots, payments, `archivedAt`) and `zigoals:money-log:v1`
+  (entries' existing `account`, `accounts.notes`, `accounts.order`, `accounts.checked`).
+- Not carried, said here: an account's options kept by its id in other records — the net-worth sheet's options
+  (`zigoals:wealth-sheet:v1`), the debt planner's minimum and documents kept with an account — stay with the archived
+  account, where they are kept, not lost. The business space's money log is not renamed (accounts are personal).
+- Help (EN): **Q: My bank changed its name and now I have two accounts. Can I merge them?** A: Yes. In Wealth → Accounts,
+  tap "Merge two" beside What you own (or What you owe), choose the old account and the one it goes into. You see what
+  moves first: its balances, payments and money-log entries; exact doubles can be removed. The old account is then
+  archived with its own history, and Undo puts everything back.
+- What's new: "Accounts: merge two accounts into one, with exact doubles removed and Undo."
+- Answers: `mergeAccounts` (corpus `av2r5-money-merge-accounts`; reads `env.accounts`): the pairs that could be merged and
+  how.
+- Showcase hook: none (the Showcase's accounts are pinned; a merge made in the Showcase stays in its tab). Empty and
+  refused states teach ("No other active account in EUR on this side to merge … into.").
+- Registries: none. CSS touched: `components/wealth/spending/money-r5.css`.
+- Today: nothing added. Each of What you own and What you owe gains one button ("Merge two") when it has two accounts or
+  more (one Tab stop; the lead checks any Wealth Tab-stop ceiling that pins the group heads).
