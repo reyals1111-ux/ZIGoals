@@ -2390,6 +2390,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-checklist-editor:not(#\-) { row-gap: 4.5px; margin-top: 6px; margin-bottom: 6px; }
 :where(:root[data-density=compact]) .habit-checklist-editor > .fine:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .habit-checklist-editor .actions:not(#\-) { row-gap: 6px; margin-top: 6px; margin-bottom: 0; }
+/*  components/habits/habit-longer-history.css  */
+:where(:root[data-density=compact]) .habit-longer:not(#\-) { row-gap: 10px; padding-top: 6px; }
+:where(:root[data-density=compact]) .habit-longer h4:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-longer p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-longer th:not(#\-), :where(:root[data-density=compact]) .habit-longer td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .habit-longer-units:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .habit-longer-units label:not(#\-) { row-gap: 6px; }
 /*  components/habits/habit-options.css  */
 :where(:root[data-density=compact]) .habit-options-set:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .habit-option input:not(#\-) { margin-top: 3px; }
@@ -2409,6 +2416,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-week-why fieldset:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
 :where(:root[data-density=compact]) .habit-week-why legend:not(#\-) { margin-bottom: 4px; }
 :where(:root[data-density=compact]) .habit-week-why label.reason:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .habit-week-mode:not(#\-) { margin-top: 0; margin-bottom: 8px; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .habit-week-mode legend:not(#\-) { padding-top: 0; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .habit-week-mode label:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .habit-week-day:not(#\-) { row-gap: 8px; margin-top: 10px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .habit-week-day h3:not(#\-), :where(:root[data-density=compact]) .habit-week-day p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-week-day .actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .habit-week-amount:not(#\-) { row-gap: 8px; }
 /*  components/habits/habits-aa.css  */
 :where(:root[data-density=compact]) .habit-sections:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .habit-section-summary:not(#\-) { row-gap: 9px; padding-top: 7.5px; padding-bottom: 7.5px; }
@@ -2740,6 +2754,16 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-compact-table th:not(#\-), :where(:root[data-density=compact]) .habit-compact-table td:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
 :where(:root[data-density=compact]) .habit-compact-title:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .habit-compact-empty:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/habits/routine-card.css  */
+:where(:root[data-density=compact]) .routine-card-extras:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .routine-card-extras p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .routine-card-steps:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .routine-card-step:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .routine-card-remind:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .routine-pip-body:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .routine-pip:not(#\-) { row-gap: 10px; padding-top: 16px; padding-bottom: 16px; }
+:where(:root[data-density=compact]) .routine-pip p:not(#\-), :where(:root[data-density=compact]) .routine-pip h1:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .routine-pip .actions:not(#\-) { row-gap: 8px; }
 /*  components/habits/routine-fullscreen.css  */
 :where(:root[data-density=compact]) .routine-fullscreen:not(#\-) { row-gap: 16px; padding-top: max(16px, env(safe-area-inset-top)); padding-bottom: max(20px, env(safe-area-inset-bottom)); }
 :where(:root[data-density=compact]) .routine-fullscreen-head:not(#\-) { row-gap: 12px; }
@@ -2915,6 +2939,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .food-plus-day-plans:not(#\-) { margin-bottom: 12px; }
 :where(:root[data-density=compact]) .food-plus-marks:not(#\-) { row-gap: 4px; margin-top: 4px; margin-bottom: 4px; }
 :where(:root[data-density=compact]) .food-plus-mark:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .food-plus-extra-meals:not(#\-) { row-gap: 8px; margin-top: 16px; padding-top: 12px; }
+:where(:root[data-density=compact]) .food-plus-extra-meals h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .food-plus-extra-meals .fine:not(#\-), :where(:root[data-density=compact]) .food-plus-extra-meals .notice:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .food-plus-extra-row .actions:not(#\-) { row-gap: 8px; }
 /*  components/health/health-aa.css  */
 :where(:root[data-density=compact]) .health-aa-highlights:not(#\-) { row-gap: 18px; margin-top: 18px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .health-aa-card:not(#\-) { row-gap: 7.5px; padding-top: 16.5px; padding-bottom: 16.5px; }
@@ -3013,6 +3041,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .health-drink-day:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .health-meal-names:not(#\-) { margin-top: 16px; }
 :where(:root[data-density=compact]) .health-meal-name-row:not(#\-) { margin-top: 9px; }
+:where(:root[data-density=compact]) .health-extra-empty:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .health-extra-empty p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .health-page .health-checked:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .health-page .health-checked > .field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .health-page .health-editing-banner:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 12px; padding-top: 10px; padding-bottom: 10px; }
@@ -3204,6 +3234,19 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .measure-trend-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }
 :where(:root[data-density=compact]) .measure-trend-list li:not(#\-) { row-gap: 3px; padding-top: 7.5px; padding-bottom: 7.5px; }
 :where(:root[data-density=compact]) .measure-trend-list li > div:not(#\-) { row-gap: 2px; }
+/*  components/health/meditation/calm.css  */
+:where(:root[data-density=compact]) .calm-chooser:not(#\-), :where(:root[data-density=compact]) .move-pick:not(#\-), :where(:root[data-density=compact]) .move-run:not(#\-) { row-gap: 12px; padding-top: 8px; }
+:where(:root[data-density=compact]) .calm-chooser p:not(#\-), :where(:root[data-density=compact]) .move-pick p:not(#\-), :where(:root[data-density=compact]) .move-run p:not(#\-), :where(:root[data-density=compact]) .move-run h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .calm-choices:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .calm-choices legend:not(#\-) { padding-top: 0; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .calm-choice:not(#\-) { row-gap: 10px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .calm-choice input:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .calm-choice > span:last-child:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .calm-shift-swatch span:not(#\-) { margin-top: -6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .calm-layer:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .calm-layer-shown:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .calm-light:not(#\-) { margin-top: -22px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .move-steps:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
 /*  components/health/meditation/meditation.css  */
 :where(:root[data-density=compact]) .meditation-view:not(#\-) { row-gap: 18px; }
 :where(:root[data-density=compact]) .meditation-view .page-heading:not(#\-) { margin-bottom: 0; }
@@ -3225,6 +3268,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .meditation-today p:not(#\-), :where(:root[data-density=compact]) .meditation-today h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .meditation-today-steps:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .meditation-today-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .meditation-milestones:not(#\-) { margin-top: 12px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
 /*  components/health/nutri-score.css  */
 :where(:root[data-density=compact]) .nutri-score:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nutri-score-line:not(#\-) { margin-top: 4px; margin-bottom: 4px; }
@@ -3924,6 +3968,23 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .money-select-total:not(#\-) { margin-top: 8px; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .spending-recent-note:not(#\-) { margin-top: -2px; margin-bottom: 2px; }
 :where(:root[data-density=compact]) .money-calc-hint:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/mood-look/mood-look.css  */
+:where(:root[data-density=compact]) .mood-look:not(#\-), :where(:root[data-density=compact]) .mood-activities:not(#\-), :where(:root[data-density=compact]) .tag-stats:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .mood-look p:not(#\-), :where(:root[data-density=compact]) .mood-activities p:not(#\-), :where(:root[data-density=compact]) .tag-stats p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .mood-look-form:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .mood-look-row:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 6px; padding-bottom: 6px; row-gap: 6px; }
+:where(:root[data-density=compact]) .mood-look-row legend:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .mood-look .actions:not(#\-), :where(:root[data-density=compact]) .mood-activities .actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .mood-activity-group h4:not(#\-) { margin-top: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .mood-activity-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .mood-activity-list li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .mood-activity-form:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .mood-symbols:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .mood-symbols legend:not(#\-) { padding-top: 0; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .mood-symbol input:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tag-stats-table th:not(#\-), :where(:root[data-density=compact]) .tag-stats-table td:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .tag-stats-bars:not(#\-) { margin-bottom: 4px; }
+@media (max-width: 479px) { :where(:root[data-density=compact]) .tag-stats-table th:not(#\-), :where(:root[data-density=compact]) .tag-stats-table td:not(#\-) { padding-top: 4px; padding-bottom: 4px; } }
 /*  components/mood-words/mood-words.css  */
 :where(:root[data-density=compact]) .mood-words-fold:not(#\-) { margin-top: 4px; }
 :where(:root[data-density=compact]) .mood-words-trigger:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
@@ -6903,6 +6964,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .report-figure:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .report-key:not(#\-) { row-gap: 4px; padding-top: 0; padding-bottom: 0; margin-top: 4px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .report-symptom-chart:not(#\-) { margin-top: 8px; margin-bottom: 12px; }
+/*  components/restore/backup-folder.css  */
+:where(:root[data-density=compact]) .backup-folder:not(#\-) { row-gap: 10px; margin-top: 16px; }
+:where(:root[data-density=compact]) .backup-folder > h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .backup-folder-every:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .backup-folder-every legend:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .backup-folder-options:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .backup-folder-options label:not(#\-) { row-gap: 10px; }
 /*  components/restore/restore-backup.css  */
 :root:where([data-density=compact]) .restore-backup:not(#\-) { row-gap: 12px; }
 :root:where([data-density=compact]) .rb-file:not(#\-) { row-gap: 6px; }
@@ -6965,6 +7033,14 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .your-scales-form:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .your-scales-suggest:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .your-scales-fields:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .scale-stats:not(#\-) { row-gap: 10px; padding-top: 6px; }
+:where(:root[data-density=compact]) .scale-stats p:not(#\-), :where(:root[data-density=compact]) .scale-stats h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .scale-stats-pick:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .scale-stats-spans:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .scale-stats-spans legend:not(#\-) { padding-top: 0; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .scale-stats-spans label:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .scale-stats-levels:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .scale-stats-levels li:not(#\-) { row-gap: 6px; }
 /*  components/search/search.css  */
 :root:where([data-density=compact]) .search-palette:not(#\-) { margin-top: 10vh; margin-bottom: auto; padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact]) .search-field:not(#\-) { row-gap: 10px; padding-top: 12px; padding-bottom: 12px; }

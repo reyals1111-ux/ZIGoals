@@ -5,7 +5,7 @@ import {AV2_FOOD_CATALOG_LABELS, AV2_FOOD_EXPORT_KEYS, AV2_FOOD_PERSONAL_KEYS} f
  * literals in a module with no imports (the lib/av-device-keys.ts pattern), so the welcome check, Export everything, the
  * data catalog and the account erase name them without shipping a schema; lib/av2-device-keys.test.ts proves each literal
  * equals its owner's constant and that every registry carries it. Every record is device only, versioned, exported,
- * restored, erased with the account and never synced (TIER 3 stored formats: additive keys only; older builds ignore them).
+ * restored, erased with the account and never synced unless the person chooses a lane-2 sync section (lib/vault/extras-sync.ts) (TIER 3 stored formats: additive keys only; older builds ignore them).
  * - `zigoals:task-plan:v1` (Tasks: planning choices, timers, the finished-per-day log; lib/tasks/plan-record.ts).
  * - `zigoals:task-templates:v1` (Tasks: your own project templates; lib/tasks/templates.ts).
  * - `zigoals:budget-periods:v1` (Budgets: pay periods, the paycheck fill, debts paid from a budget; lib/budgets/periods.ts).

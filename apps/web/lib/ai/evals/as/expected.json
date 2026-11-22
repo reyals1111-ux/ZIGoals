@@ -6761,6 +6761,46 @@
   "fresh": "Today’s practice: “A short body scan”, 10 minutes. It begins: Close your eyes or let your gaze rest low. Health → Meditation → Today’s practice has all of it, “Another one”, and Begin with the bell.",
   "freshNl": "De oefening van vandaag: “Een korte bodyscan”, 10 minuten. Hij begint zo: Sluit je ogen of laat je blik laag rusten. Health → Meditation → Today’s practice heeft de hele oefening, “Another one” en Begin met de bel."
  },
+ "av2-habits-calm-visual": {
+  "en": "No calm visual is set: a session shows the clock alone. Health → Meditation → Behind your sitting offers Slow left and right, Dusk, Sea, Forest and Night sky.",
+  "nl": "Er is geen rustig beeld gekozen: een sessie toont alleen de klok. Health → Meditation → Behind your sitting biedt Langzaam links en rechts, Schemering, Zee, Bos en Nachthemel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No calm visual is set: a session shows the clock alone. Health → Meditation → Behind your sitting offers Slow left and right, Dusk, Sea, Forest and Night sky.",
+  "freshNl": "Er is geen rustig beeld gekozen: een sessie toont alleen de klok. Health → Meditation → Behind your sitting biedt Langzaam links en rechts, Schemering, Zee, Bos en Nachthemel."
+ },
+ "av2-habits-stretch-minutes": {
+  "en": "No stretch saved in the last 7 days. Health → Meditation → Move gently has 5 short ones: Morning wake-up, Desk break, Neck and shoulders, Hips and lower back and Evening unwind. Minutes only; no calories.",
+  "nl": "Geen rekoefening bewaard in de laatste 7 dagen. Health → Meditation → Move gently heeft er 5 korte: Wakker worden, Pauze aan je bureau, Nek en schouders, Heupen en onderrug en Avond ontspanning. Alleen minuten; geen calorieën.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No stretch saved in the last 7 days. Health → Meditation → Move gently has 5 short ones: Morning wake-up, Desk break, Neck and shoulders, Hips and lower back and Evening unwind. Minutes only; no calories.",
+  "freshNl": "Geen rekoefening bewaard in de laatste 7 dagen. Health → Meditation → Move gently heeft er 5 korte: Wakker worden, Pauze aan je bureau, Nek en schouders, Heupen en onderrug en Avond ontspanning. Alleen minuten; geen calorieën."
+ },
+ "av2-habits-mood-words": {
+  "en": "Your moods use ZIGoals’ words: 5 Great, 4 Good, 3 Okay, 2 Low, 1 Hard. Health → Diary → How does today feel? → Your own words for the moods lets you name them your way, with a symbol.",
+  "nl": "Je stemmingen gebruiken de woorden van ZIGoals: 5 Great, 4 Good, 3 Okay, 2 Low, 1 Hard. Health → Diary → How does today feel? → Your own words for the moods laat je ze zelf benoemen, met een symbool.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your moods use ZIGoals’ words: 5 Great, 4 Good, 3 Okay, 2 Low, 1 Hard. Health → Diary → How does today feel? → Your own words for the moods lets you name them your way, with a symbol.",
+  "freshNl": "Je stemmingen gebruiken de woorden van ZIGoals: 5 Great, 4 Good, 3 Okay, 2 Low, 1 Hard. Health → Diary → How does today feel? → Your own words for the moods laat je ze zelf benoemen, met een symbool."
+ },
+ "av2-habits-meditation-milestones": {
+  "en": "Meditation milestones reached: Seven days in a row. Next: Fifty days, 22 of 50 days.",
+  "nl": "Meditatiemijlpalen bereikt: Zeven dagen op rij. Volgende: Vijftig dagen, 22 van 50 dagen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No meditation milestone yet. Next: Seven days in a row, 0 of 7 days in a row (your longest run). A rest day never takes one away.",
+  "freshNl": "Nog geen meditatiemijlpaal. Volgende: Zeven dagen op rij, 0 van 7 dagen op rij (je langste reeks). Een rustdag neemt er nooit een af."
+ },
+ "av2-habits-strength-year": {
+  "en": "Strength (0 to 100) over the last year: Read: 94 now, 72 in the week to Sun, Nov 1; this month 15 of 15 days. Exercise: 94 now, 52 in the week to Sun, Oct 25; this month 14 of 14 days. Walk: 94 now, 52 in the week to Sun, Oct 25; this month 15 of 15 days. Meditate: 94 now, 75 in the week to Sun, Nov 1; this month 14 of 14 days. Contribute: 94 now, 75 in the week to Sun, Nov 1; this month 15 of 15 days. Drink water: 94 now, 72 in the week to Sun, Nov 1; this month 14 of 14 days. Late-night snacks (Showcase): 78 now, 62 in the week to Sun, Nov 1; this month 12 of 14 days. A habit's Consistency & trends → More history has the weekly line, months, quarters and years.",
+  "nl": "Sterkte (0 tot 100) over het afgelopen jaar: Read: nu 94, 72 in de week tot zo 1 nov; deze maand 15 van 15 dagen. Exercise: nu 94, 52 in de week tot zo 25 okt; deze maand 14 van 14 dagen. Walk: nu 94, 52 in de week tot zo 25 okt; deze maand 15 van 15 dagen. Meditate: nu 94, 75 in de week tot zo 1 nov; deze maand 14 van 14 dagen. Contribute: nu 94, 75 in de week tot zo 1 nov; deze maand 15 van 15 dagen. Drink water: nu 94, 72 in de week tot zo 1 nov; deze maand 14 van 14 dagen. Late-night snacks (Showcase): nu 78, 62 in de week tot zo 1 nov; deze maand 12 van 14 dagen. Consistency & trends → More history van een gewoonte heeft de lijn per week, maanden, kwartalen en jaren.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit has seven scheduled days behind it yet, so there is no strength to follow. A habit’s Consistency & trends → More history shows it week by week once there is.",
+  "freshNl": "Nog geen gewoonte heeft zeven geplande dagen achter zich, dus er is nog geen sterkte te volgen. Consistency & trends → More history van een gewoonte toont die per week zodra die er is."
+ },
  "av2-journal-reminder": {
   "en": "Your reminder to write is at 21:00, every day, unless you already wrote that day.",
   "nl": "Je herinnering om te schrijven staat om 21:00, elke dag, behalve als je die dag al schreef.",
@@ -7193,6 +7233,14 @@
   "fresh": "There is no calorie target to plan toward. Set one in Health → Targets. Health → Planner → “Plan a day that fits my targets” shows it and plans it in a tap (logged only when you eat it).",
   "freshNl": "Er is geen caloriedoel om naartoe te plannen. Zet er een in Health → Targets. Health → Planner → “Plan a day that fits my targets” toont het en plant het met één tik (pas gelogd als je het eet)."
  },
+ "av2-food-extra-meals": {
+  "en": "You have no meals of your own yet: the Diary has its four meals. Up to two more, such as an afternoon snack or a second breakfast, can be added in Health → Diary → “Name your meals and set their times” → Meals of your own.",
+  "nl": "Je hebt nog geen eigen maaltijden: het eetdagboek heeft zijn vier maaltijden. Er kunnen er tot twee bij, zoals een middagsnack of een tweede ontbijt, in Health → Diary → “Name your meals and set their times” → Meals of your own.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no meals of your own yet: the Diary has its four meals. Up to two more, such as an afternoon snack or a second breakfast, can be added in Health → Diary → “Name your meals and set their times” → Meals of your own.",
+  "freshNl": "Je hebt nog geen eigen maaltijden: het eetdagboek heeft zijn vier maaltijden. Er kunnen er tot twee bij, zoals een middagsnack of een tweede ontbijt, in Health → Diary → “Name your meals and set their times” → Meals of your own."
+ },
  "av2-food-style-foods": {
   "en": "Of your 9 foods, 0 fit low carb (carbs give 10 % of the calories or less). Health → Foods & recipes → “Eating style and food marks” marks them in your list. From each food’s own nutrients; not advice.",
   "nl": "Van je 9 voedingsmiddelen passen er 4 bij eiwitrijk (eiwit levert 25 % van de calorieën of meer): Chicken and quinoa bowl, Salmon, rice and greens, Yogurt and almonds en Showcase split peas. Health → Foods & recipes → “Eating style and food marks” markeert ze in je lijst. Uit de eigen voedingswaarden van elk; geen advies.",
@@ -7376,5 +7424,45 @@
   "widgets": [],
   "fresh": "Twelve written routines, in Health → Workouts → Ready-made routines (save one and it is yours to change):\n• Full body A (Gym, about 45 min): Three big lifts and a plank: the whole body in one session. Alternate with Full body B, two or three times a week.\n• Full body B (Gym, about 45 min): A hinge, a press, a pull and a single-leg move. Alternate with Full body A.\n• Push day (Push, pull, legs, about 55 min): Chest, shoulders and triceps. With Pull day and Leg day it makes a three-day split.\n• Pull day (Push, pull, legs, about 55 min): Back and biceps, with the deadlift first while you are fresh.\n• Leg day (Push, pull, legs, about 60 min): Squat, hinge and the smaller leg muscles.\n• Upper body (Upper and lower, about 55 min): Presses and pulls in balance. With Lower body: four days a week, or two.\n• Lower body (Upper and lower, about 55 min): Legs and glutes, and the abs at the end.\n• Body weight at home (At home, about 30 min): No equipment: a full session in a living room. Add reps as it gets easier.\n• Dumbbells only (At home, about 40 min): One pair of dumbbells and a bench or a sturdy chair.\n• Core in ten minutes (Short sessions, about 10 min): A short core session for a busy day.\n• Strength for runners (Short sessions, about 25 min): Legs, hips and core that carry a run. Once or twice a week, on an easy day.\n• Easy mobility (Short sessions, about 20 min): Gentle stretching and rolling for a rest day or after a run.",
   "freshNl": "Twaalf uitgeschreven routines, in Health → Workouts → Ready-made routines (bewaar er een en pas hem aan):\n• Heel lichaam A (Sportschool, ongeveer 45 min): Drie grote oefeningen en een plank: je hele lichaam in één sessie. Wissel af met Heel lichaam B, twee of drie keer per week.\n• Heel lichaam B (Sportschool, ongeveer 45 min): Een heupbeweging, drukken, trekken en een oefening op één been. Wissel af met Heel lichaam A.\n• Duwdag (Duwen, trekken, benen, ongeveer 55 min): Borst, schouders en triceps. Met Trekdag en Beendag vormt het een driedaagse indeling.\n• Trekdag (Duwen, trekken, benen, ongeveer 55 min): Rug en biceps, met de deadlift als eerste nu je nog fris bent.\n• Beendag (Duwen, trekken, benen, ongeveer 60 min): Squat, heupbeweging en de kleinere beenspieren.\n• Bovenlichaam (Boven en onder, ongeveer 55 min): Drukken en trekken in balans. Met Onderlichaam: vier dagen per week, of twee.\n• Onderlichaam (Boven en onder, ongeveer 55 min): Benen en billen, en aan het eind je buik.\n• Lichaamsgewicht thuis (Thuis, ongeveer 30 min): Zonder spullen: een hele sessie in je woonkamer. Doe meer herhalingen als het makkelijker wordt.\n• Alleen dumbbells (Thuis, ongeveer 40 min): Eén paar dumbbells en een bank of een stevige stoel.\n• Buik in tien minuten (Korte sessies, ongeveer 10 min): Een korte buiksessie voor een drukke dag.\n• Kracht voor hardlopers (Korte sessies, ongeveer 25 min): Benen, heupen en romp die een loop dragen. Een of twee keer per week, op een rustige dag.\n• Rustig bewegen (Korte sessies, ongeveer 20 min): Rustig rekken en rollen voor een rustdag of na een loop."
+ },
+ "av2-sync-sections": {
+  "en": "Whether your journal, money records and workout log sync is chosen per device in Settings → Account & sync, under Also sync my extras. Each stays on this device until you tick it there.",
+  "nl": "Of je dagboek, geldgegevens en trainingslog meegaan kies je per apparaat in Settings → Account & sync, onder Also sync my extras. Elk blijft op dit apparaat tot je het daar aanvinkt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Whether your journal, money records and workout log sync is chosen per device in Settings → Account & sync, under Also sync my extras. Each stays on this device until you tick it there.",
+  "freshNl": "Of je dagboek, geldgegevens en trainingslog meegaan kies je per apparaat in Settings → Account & sync, onder Also sync my extras. Elk blijft op dit apparaat tot je het daar aanvinkt."
+ },
+ "av2-sync-money": {
+  "en": "Whether your journal, money records and workout log sync is chosen per device in Settings → Account & sync, under Also sync my extras. Each stays on this device until you tick it there.",
+  "nl": "Of je dagboek, geldgegevens en trainingslog meegaan kies je per apparaat in Settings → Account & sync, onder Also sync my extras. Elk blijft op dit apparaat tot je het daar aanvinkt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Whether your journal, money records and workout log sync is chosen per device in Settings → Account & sync, under Also sync my extras. Each stays on this device until you tick it there.",
+  "freshNl": "Of je dagboek, geldgegevens en trainingslog meegaan kies je per apparaat in Settings → Account & sync, onder Also sync my extras. Elk blijft op dit apparaat tot je het daar aanvinkt."
+ },
+ "av2-look-dark-style": {
+  "en": "The theme is chosen in the sidebar’s theme bar or Settings → Appearance; Dark’s style (Standard, Pure black or High contrast) is in Settings → Appearance → Customize, on this device only.",
+  "nl": "Het thema kies je in de themabalk of in Settings → Appearance; de stijl van Dark (Standard, Pure black of High contrast) staat in Settings → Appearance → Customize, alleen op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The theme is chosen in the sidebar’s theme bar or Settings → Appearance; Dark’s style (Standard, Pure black or High contrast) is in Settings → Appearance → Customize, on this device only.",
+  "freshNl": "Het thema kies je in de themabalk of in Settings → Appearance; de stijl van Dark (Standard, Pure black of High contrast) staat in Settings → Appearance → Customize, alleen op dit apparaat."
+ },
+ "av2-look-font": {
+  "en": "Settings → Appearance → Customize offers System, Inter, Serif, Rounded and Monospace, on this device only; Serif, Rounded and Monospace use the fonts the device already has.",
+  "nl": "Settings → Appearance → Customize biedt System, Inter, Serif, Rounded en Monospace, alleen op dit apparaat; Serif, Rounded en Monospace gebruiken de lettertypen die het apparaat al heeft.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Settings → Appearance → Customize offers System, Inter, Serif, Rounded and Monospace, on this device only; Serif, Rounded and Monospace use the fonts the device already has.",
+  "freshNl": "Settings → Appearance → Customize biedt System, Inter, Serif, Rounded en Monospace, alleen op dit apparaat; Serif, Rounded en Monospace gebruiken de lettertypen die het apparaat al heeft."
+ },
+ "av2-backup-schedule": {
+  "en": "A copy on a schedule is set in Settings → Your data: how often, and in Chrome or Edge on a computer a folder that ZIGoals writes Export everything into by itself. Nothing leaves your device.",
+  "nl": "Een kopie op schema stel je in bij Settings → Your data: hoe vaak, en in Chrome of Edge op een computer een map waarin ZIGoals Export everything zelf wegschrijft. Er verlaat niets je apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "A copy on a schedule is set in Settings → Your data: how often, and in Chrome or Edge on a computer a folder that ZIGoals writes Export everything into by itself. Nothing leaves your device.",
+  "freshNl": "Een kopie op schema stel je in bij Settings → Your data: hoe vaak, en in Chrome of Edge op een computer een map waarin ZIGoals Export everything zelf wegschrijft. Er verlaat niets je apparaat."
  }
 }

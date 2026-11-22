@@ -8691,6 +8691,51 @@
         border-color: currentcolor
     }
 }
+/*  components/habits/habit-longer-history.css  */
+@scope (:root[data-theme=dark]) {
+    .habit-longer-chart text:not(#\-) {
+        fill: currentColor
+    }
+    .habit-longer-grid:not(#\-) {
+        stroke: var(--line)
+    }
+    .habit-longer-line:not(#\-) {
+        fill: none;
+        stroke: var(--cyan)
+    }
+    .habit-longer-dot:not(#\-) {
+        fill: var(--cyan)
+    }
+    .habit-longer th:not(#\-), .habit-longer td:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .habit-longer-units:not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-longer-weekdays td:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--cyan) calc(var(--share, 0) * 45%), transparent)
+    }
+    .habit-longer-weekdays td[data-empty]:not(#\-) {
+        color: var(--muted)
+    }
+    @media (forced-colors: active) {
+        .habit-longer-line:not(#\-) {
+            stroke: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .habit-longer-dot:not(#\-) {
+            fill: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .habit-longer-weekdays td:not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+}
 /*  components/habits/habit-look.css  */
 @scope (:root[data-theme=dark]) {
     [data-look-colour=grey]:not(#\-) {
@@ -8759,6 +8804,20 @@
     }
     .habit-week-why fieldset:not(#\-) {
         border-color: currentcolor
+    }
+    .habit-week-mode:not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-week-day:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--panel)
+    }
+    .habit-week-day h3:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .habit-week-day h3:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
     }
 }
 /*  components/habits/habits-aa.css  */
@@ -9779,6 +9838,17 @@
         color: var(--text-secondary, var(--muted))
     }
 }
+/*  components/habits/routine-card.css  */
+@scope (:root[data-theme=dark]) {
+    .routine-card-step.is-still small:not(#\-) {
+        color: var(--muted)
+    }
+    .routine-pip-body:not(#\-) {
+        background-image: none;
+        background-color: var(--bg);
+        color: var(--text)
+    }
+}
 /*  components/habits/routine-fullscreen.css  */
 @scope (:root[data-theme=dark]) {
     .routine-fullscreen:not(#\-) {
@@ -10282,6 +10352,9 @@
     }
     .food-plus-mark:not(#\-) {
         border-color: var(--line, #6a9cc342)
+    }
+    .food-plus-extra-meals:not(#\-) {
+        border-top-color: var(--line, #6a9cc342)
     }
 }
 /*  components/health/health-aa.css  */
@@ -11036,6 +11109,150 @@
         color: var(--text-meta)
     }
 }
+/*  components/health/meditation/calm.css  */
+@scope (:root[data-theme=dark]) {
+    .calm-choices:not(#\-) {
+        border-color: currentcolor
+    }
+    .calm-choice:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--panel);
+        color: var(--text)
+    }
+    .calm-choice small:not(#\-) {
+        color: var(--muted)
+    }
+    .calm-choice:has(input:checked):not(#\-) {
+        border-color: var(--cyan);
+        box-shadow: 0 0 0 1px var(--cyan)
+    }
+    .calm-choice:has(input:focus-visible):not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .calm-swatch:not(#\-) {
+        border-color: var(--line)
+    }
+    .calm-none:not(#\-) {
+        background-image: none;
+        background-color: var(--bg)
+    }
+    .calm-shift-swatch:not(#\-) {
+        background-image: linear-gradient(90deg, #191b21, #1c2a52 50%, #191b21);
+        background-color: transparent
+    }
+    .calm-shift-swatch span:not(#\-) {
+        background-image: none;
+        background-color: #bfe9ff;
+        box-shadow: 0 0 10px #7fd3ff
+    }
+    .calm-shift:not(#\-) {
+        background-image: linear-gradient(90deg, #15181e, #1a2850 50%, #15181e);
+        background-color: transparent
+    }
+    .calm-light:not(#\-) {
+        background-image: radial-gradient(circle, #e6f6ff 0%, #9fdcff 45%, #9fdcff00 72%);
+        background-color: transparent
+    }
+    .calm-dusk:not(#\-) {
+        background-image: linear-gradient(180deg, #23214f 0%, #5b3b7a 45%, #c7706a 78%, #f0b07a 100%);
+        background-color: transparent
+    }
+    .calm-dusk .calm-sun:not(#\-) {
+        background-image: radial-gradient(circle, #ffd9a0 0%, #ffb27a 50%, #ffb27a00 72%);
+        background-color: transparent
+    }
+    .calm-dusk .calm-far:not(#\-) {
+        background-image: linear-gradient(180deg, transparent 70%, #27262dcc 100%);
+        background-color: transparent
+    }
+    .calm-dusk .calm-near:not(#\-) {
+        background-image: none;
+        background-color: #19191f
+    }
+    .calm-sea:not(#\-) {
+        background-image: linear-gradient(180deg, #a9c6dc 0%, #d9e5ec 48%, #3d6f8c 52%, #3e4549 100%);
+        background-color: transparent
+    }
+    .calm-sea .calm-far:not(#\-) {
+        background-image: repeating-linear-gradient(180deg, #ffffff14 0 2px, transparent 2px 14px);
+        background-color: transparent
+    }
+    .calm-sea .calm-near:not(#\-) {
+        background-image: repeating-linear-gradient(180deg, #ffffff1c 0 3px, transparent 3px 18px);
+        background-color: transparent
+    }
+    .calm-forest:not(#\-) {
+        background-image: linear-gradient(180deg, #cfe3c4 0%, #8fb68a 40%, #3f6a48 100%);
+        background-color: transparent
+    }
+    .calm-forest .calm-far:not(#\-) {
+        background-image: none;
+        background-color: #5d8a5f
+    }
+    .calm-forest .calm-near:not(#\-) {
+        background-image: none;
+        background-color: #444b45
+    }
+    .calm-night:not(#\-) {
+        background-image: radial-gradient(ellipse at 50% 120%, #26305e 0%, #191b21 55%, #0a0c11 100%);
+        background-color: transparent
+    }
+    .calm-night .calm-stars:not(#\-) {
+        background-image: radial-gradient(1.5px 1.5px at 12% 22%, #fff, transparent), radial-gradient(1.5px 1.5px at 28% 60%, #e8ecff, transparent), radial-gradient(2px 2px at 44% 30%, #fff, transparent), radial-gradient(1.5px 1.5px at 63% 18%, #dfe6ff, transparent), radial-gradient(1.5px 1.5px at 76% 52%, #fff, transparent), radial-gradient(2px 2px at 88% 26%, #f2f4ff, transparent), radial-gradient(1.5px 1.5px at 54% 70%, #e8ecff, transparent)
+    }
+    .calm-night .calm-far:not(#\-) {
+        background-image: radial-gradient(ellipse at 30% 30%, #4b5aa022 0%, transparent 60%);
+        background-color: transparent
+    }
+    .calm-night .calm-near:not(#\-) {
+        background-image: none;
+        background-color: #06070c
+    }
+    .move-left strong:not(#\-) {
+        color: var(--text)
+    }
+    .move-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--line)
+    }
+    .move-bar span:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan)
+    }
+    .move-steps:not(#\-) {
+        color: var(--muted)
+    }
+    .move-steps [aria-current="step"]:not(#\-) {
+        color: var(--text)
+    }
+    .move-steps [data-done]:not(#\-) {
+        text-decoration-color: var(--muted)
+    }
+    .move-run h3:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .move-run h3:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    @media (forced-colors: active) {
+        .calm-choice:has(input:checked):not(#\-) {
+            outline-color: currentcolor
+        }
+    }
+    @media (forced-colors: active) {
+        .calm-light:not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+    @media (forced-colors: active) {
+        .move-bar span:not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+}
 /*  components/health/meditation/meditation.css  */
 @scope (:root[data-theme=dark]) {
     .meditation-segment:not(#\-), .meditation-moods:not(#\-) {
@@ -11115,6 +11332,12 @@
         .meditation-segment > label input:checked + span:not(#\-), .meditation-chip[aria-pressed="true"]:not(#\-) {
             outline-color: currentcolor
         }
+    }
+    .meditation-milestones small:not(#\-) {
+        color: var(--muted)
+    }
+    .meditation-milestones [data-reached]:not(#\-) {
+        color: var(--text)
     }
 }
 /*  components/health/nutri-score.css  */
@@ -12904,6 +13127,65 @@
         border-color: var(--line,rgba(140,160,220,.35));
         background-image: none;
         background-color: var(--panel,#14171c)
+    }
+}
+/*  components/mood-look/mood-look.css  */
+@scope (:root[data-theme=dark]) {
+    .mood-look-row:not(#\-) {
+        border-color: var(--line)
+    }
+    .mood-look-row legend small:not(#\-) {
+        color: var(--muted)
+    }
+    .mood-activity-list small:not(#\-) {
+        color: var(--muted)
+    }
+    .mood-symbols:not(#\-) {
+        border-color: currentcolor
+    }
+    .mood-symbol:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--panel)
+    }
+    .mood-symbol:has(input:checked):not(#\-) {
+        border-color: var(--cyan);
+        box-shadow: 0 0 0 1px var(--cyan)
+    }
+    .mood-symbol:has(input:focus-visible):not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .tag-stats-table th:not(#\-), .tag-stats-table td:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .tag-stats-bars:not(#\-) {
+        background-image: none;
+        background-color: var(--line)
+    }
+    .tag-stats-bars span[data-level="5"]:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan)
+    }
+    .tag-stats-bars span[data-level="4"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--cyan) 65%, transparent)
+    }
+    .tag-stats-bars span[data-level="3"]:not(#\-) {
+        background-image: none;
+        background-color: var(--muted)
+    }
+    .tag-stats-bars span[data-level="2"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 65%, transparent)
+    }
+    .tag-stats-bars span[data-level="1"]:not(#\-) {
+        background-image: none;
+        background-color: var(--violet)
+    }
+    @media (forced-colors: active) {
+        .mood-symbol:has(input:checked):not(#\-) {
+            outline-color: currentcolor
+        }
     }
 }
 /*  components/mood-words/mood-words.css  */
@@ -26006,6 +26288,36 @@
     }
     .your-scales-list small:not(#\-) {
         color: var(--text-meta)
+    }
+    .scale-stats-title small:not(#\-) {
+        color: var(--muted)
+    }
+    .scale-stats-spans:not(#\-) {
+        border-color: currentcolor
+    }
+    .scale-stats-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--line)
+    }
+    .scale-stats-bar span:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan)
+    }
+    .scale-stats-chart text:not(#\-) {
+        fill: currentColor
+    }
+    .scale-stats-grid:not(#\-) {
+        stroke: var(--line)
+    }
+    .scale-stats-dot:not(#\-) {
+        fill: var(--cyan)
+    }
+    @media (forced-colors: active) {
+        .scale-stats-bar span:not(#\-), .scale-stats-dot:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            fill: Highlight
+        }
     }
 }
 /*  components/search/search.css  */
