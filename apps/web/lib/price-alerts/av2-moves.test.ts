@@ -44,7 +44,8 @@ describe('a coin moving a percent within 24 hours', () => {
     expect(checkPortfolioMoves(r, () => '9500', AT).fired).toEqual([]);
     expect(checkPortfolioMoves(r, () => null, AT).fired).toEqual([]);
     const out = checkPortfolioMoves(r, () => '8900.40', AT);
-    expect(out.fired[0]!.text).toBe('Long term is worth -11% from 10000 EUR: 8900.40 EUR now.');
+    // Session AV lane 2 (review b2a #7: amounts through the app's money formatter, deliberate)
+    expect(out.fired[0]!.text).toBe('Long term is worth -11% from €10,000.00: €8,900.40 now.');
     r = out.record;
     expect(r.portfolioMoves![0]!.active).toBe(false);
     expect(checkPortfolioMoves(r, () => '5000', AT).fired).toEqual([]);

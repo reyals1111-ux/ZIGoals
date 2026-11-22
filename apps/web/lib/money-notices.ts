@@ -6,7 +6,8 @@ import {MAX_CHALLENGES, MAX_WATCHED, type BudgetsRecord} from './budgets/schema'
 import {WATCH_ABOVE_MIN, WATCH_ABOVE_SHARE} from './budgets/watch';
 import type {CurrencyForecast} from './cash-forecast/model';
 import {isCounted, mineCents, mineParts} from './money-log/counted';
-import {cents, monthOf} from './money-log/engine';
+import {cents, fromCents, monthOf} from './money-log/engine';
+import {formatCurrencyAmount, formatDate} from './visual-format';
 import type {MoneyEntry} from './money-log/schema';
 import {noteKey, payeePart} from './money-log/suggest';
 
@@ -151,7 +152,8 @@ export function yearRecap(entries: readonly MoneyEntry[], bills: BillsRecord | n
 
 // ── Device notices (Copilot's custom alerts, Rocket Money): what the notification plan wakes for ──────────────────────
 export type MoneyWake = {id: string; date: string; title: string; detail?: string};
-const fmt = (c: number | bigint, currency: string) => `${currency} ${(Number(c) / 100).toFixed(2)}`;
+// Review b2a #7: money and days through the app's formatters ("€12.30", "Dec 4, 2026"), never "EUR 12.30" or an ISO day.
+const fmt = (c: number | bigint, currency: string) => formatCurrencyAmount(fromCents(Number(c)), currency);
 /**
  * Stateless, so nothing new is stored: a budget is named the morning after it crossed 80 % (or its amount) — spent up to
  * yesterday at or past the mark, and the day before not yet; payday the morning before it, with what the forecast leaves;
@@ -173,6 +175,6 @@ export function moneyWakes({entries, budgets, rows, line, today}: {entries: read
   const pay = nextPaydayOf(entries, today);
   if (pay) { const left = paydayCash(rows, pay); out.push({id: `money:payday:${pay.date}`, date: addLocalDays(pay.date, -1), title: 'Payday tomorrow', ...(left ? {detail: `about ${fmt(left.cents, left.currency)} left before it`} : {})}); }
   const cross = lowBalanceCross(rows, line);
-  if (cross) for (const ahead of [7, 1]) { const date = addLocalDays(cross.date, -ahead); if (date >= today) out.push({id: `money:low:${cross.date}:${ahead}`, date, title: `Cash may go below your line ${ahead === 1 ? 'tomorrow' : 'in a week'}`, detail: `below ${fmt(cross.line, cross.currency)} around ${cross.date}`}); }
+  if (cross) for (const ahead of [7, 1]) { const date = addLocalDays(cross.date, -ahead); if (date >= today) out.push({id: `money:low:${cross.date}:${ahead}`, date, title: `Cash may go below your line ${ahead === 1 ? 'tomorrow' : 'in a week'}`, detail: `below ${fmt(cross.line, cross.currency)} around ${formatDate(cross.date)}`}); }
   return out;
 }

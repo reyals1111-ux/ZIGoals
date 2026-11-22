@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {amountText, currencyCode, type MoneyEntry, type MoneyLog} from '../money-log/schema';
 import {minorUnits, fromMinor} from '../money-split/parts';
+import {formatCurrencyAmount} from '../visual-format';
 import {MAX_LOANS, MAX_OWED, MAX_REPAID, type Loan, type MoneyMore, type Owed} from './schema';
 
 /**
@@ -137,7 +138,7 @@ export function loansDue(more: Pick<MoneyMore, 'loans'> | null | undefined, toda
 export function loanWakes(more: Pick<MoneyMore, 'loans'> | null | undefined, today: string): {id: string; date: string; title: string; detail: string}[] {
   return loanRows(more, today).flatMap(r => {
     if (!r.loan.remind || !r.loan.due || r.loan.closed) return [];
-    const what = r.loan.kind === 'lent' ? `${r.loan.name} owes you` : `You owe ${r.loan.name}`, detail = `${r.loan.currency} ${fromMinor(r.left)} left`;
+    const what = r.loan.kind === 'lent' ? `${r.loan.name} owes you` : `You owe ${r.loan.name}`, detail = `${formatCurrencyAmount(fromMinor(r.left), r.loan.currency)} left`; // Review b2a #7: the app's money formatter
     return [{id: `money:loan:${r.loan.id}:1`, date: addLocalDays(r.loan.due, -1), title: `${what}: due tomorrow`, detail}, {id: `money:loan:${r.loan.id}:0`, date: r.loan.due, title: `${what}: due today`, detail}].filter(w => w.date >= today);
   });
 }

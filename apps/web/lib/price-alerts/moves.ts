@@ -1,4 +1,5 @@
 import {MAX_ALERTS, MAX_FIRED, MAX_PORTFOLIO_ALERTS, type PriceAlerts} from './schema';
+import {formatCurrencyAmount} from '../visual-format';
 
 /**
  * Session AV lane 2 (money; CoinStats' percent-change and portfolio-value alerts): two alerts that follow a move, not a
@@ -15,7 +16,8 @@ const decimalScaled = (text: string) => { const [whole = '0', part = ''] = text.
 const pct = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(1).replace(/\.0$/, '')}%`;
 export const directionWords = (d: MoveAlert['direction']) => d === 'up' ? 'up' : d === 'down' ? 'down' : 'up or down';
 export const moveAlertLine = (a: MoveAlert) => `${a.coinName} moves ${a.percent}% ${directionWords(a.direction)} in 24 h`;
-export const portfolioMoveLine = (a: PortfolioMove) => `${a.portfolioName} worth ${a.percent}% ${directionWords(a.direction)} from ${a.base} ${a.currency}`;
+// Review b2a #7: amounts through the app's money formatter ("€10,000.00"), never "10000 EUR".
+export const portfolioMoveLine = (a: PortfolioMove) => `${a.portfolioName} worth ${a.percent}% ${directionWords(a.direction)} from ${formatCurrencyAmount(a.base, a.currency)}`;
 const passes = (change: number, percent: number, d: MoveAlert['direction']) => d === 'up' ? change >= percent : d === 'down' ? change <= -percent : Math.abs(change) >= percent;
 
 function addTo<T extends {active: boolean}>(list: readonly T[] | undefined, alert: T, max: number, same: (a: T) => boolean): T[] {
@@ -63,7 +65,7 @@ export function checkPortfolioMoves(record: PriceAlerts, valueOf: (portfolioId: 
     if (base <= 0n) return a;
     const change = Number((nowV - base) * 10000n / base) / 100;
     if (!passes(change, a.percent, a.direction)) return a;
-    fired.push({id: a.id, text: `${a.portfolioName} is worth ${pct(change)} from ${a.base} ${a.currency}: ${Number(v).toFixed(2)} ${a.currency} now.`});
+    fired.push({id: a.id, text: `${a.portfolioName} is worth ${pct(change)} from ${formatCurrencyAmount(a.base, a.currency)}: ${formatCurrencyAmount(Number(v).toFixed(2), a.currency)} now.`});
     return {...a, active: false, firedAt: now};
   });
   return fired.length ? {record: {...record, portfolioMoves, fired: logged(record, fired, now)}, fired} : {record, fired};

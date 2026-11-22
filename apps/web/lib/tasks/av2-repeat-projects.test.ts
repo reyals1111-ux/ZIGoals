@@ -38,13 +38,17 @@ describe('making the project when its time comes (on open)', () => {
     expect(dueRepeats(t, '2026-11-30').map(r => r.id)).toEqual(['r1']);
     const first = runRepeats(emptyTasks(), t, {today: '2026-12-15', at, ids});
     // Three weeks closed: one project, for the current week only.
-    expect(first.made.map(m => m.name)).toEqual(['Weekly reset · 2026-12-14']);
-    expect(first.tasks.projects!.map(p => p.name)).toEqual(['Weekly reset · 2026-12-14']);
+    // Session AV lane 2 (review b2a #7: the project is named with the day as the app writes days, not an ISO day, deliberate)
+    expect(first.made.map(m => m.name)).toEqual(['Weekly reset · Dec 14, 2026']);
+    expect(first.tasks.projects!.map(p => p.name)).toEqual(['Weekly reset · Dec 14, 2026']);
     expect(first.tasks.tasks.filter(x => x.projectId === first.made[0]!.projectId).map(x => x.title)).toEqual(reset.items.map(i => i.title));
     expect(first.templates.repeats![0]!.lastMade).toBe('2026-12-14');
     const again = runRepeats(first.tasks, first.templates, {today: '2026-12-16', at, ids});
     expect(again.made).toEqual([]);
     expect(again.tasks).toBe(first.tasks);
+    // A project an older build made ("Weekly reset · 2026-12-14") counts as made: never a second one for the period.
+    const older = {...first.tasks, projects: first.tasks.projects!.map(p => ({...p, name: 'Weekly reset · 2026-12-14'}))};
+    expect(runRepeats(older, weekly('2026-11-23'), {today: '2026-12-15', at, ids}).made).toEqual([]);
   });
   it('days come from the period start; a project of that name already there counts as made', () => {
     const t = addRepeat(emptyTaskTemplates(), {name: 'Moving house', every: 'month', start: '2026-11-01', items: moving.items}, {id: 'm'});

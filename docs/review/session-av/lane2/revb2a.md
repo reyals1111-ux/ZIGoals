@@ -141,3 +141,31 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
   for dollars so it is not read as another dollar), as the Dutch dates in the same answers already are.
 - Spec: none (answer text; unit-tested on every corpus question).
 - Help: none needed. What's new: "Dutch money answers write amounts the Dutch way."
+
+## B2A-7 Minor: money and days built by hand instead of with the app's formatters
+
+- Verdict: fixed (English text; Dutch has none of these strings).
+- Fix: each goes through `formatCurrencyAmount` / `formatMoney` and `formatDate` / `formatMonth`
+  (apps/web/lib/visual-format.ts):
+  - apps/web/lib/money-notices.ts device notices: "Groceries is over its budget · €12.30 over" (was "EUR 12.30"),
+    "about €… left before it", "below €500.00 around Dec 4, 2026" (was "around 2026-12-04");
+  - apps/web/lib/money-more/people.ts loan reminders: "€60.00 left" (was "EUR 60.00");
+  - apps/web/lib/price-alerts/moves.ts portfolio move alerts: "… from €10,000.00: €10,234.50 now." and the alert's line
+    "… from €10,000.00" (was "10000 EUR", "10234.50 EUR"). The older portfolio value alert of Session AV
+    (lib/price-alerts/engine.ts, "above 10000 EUR: 10250.45 EUR now") is outside batch 2 and was not touched;
+  - apps/web/lib/budgets/assign.ts a target's words: "€70.00 a week × 5 weeks", "€600.00 by Mar 2027, 5 months left",
+    "towards €300.00 by Dec 2026" (were "70.00 a week", "by 2027-03");
+  - apps/web/lib/tasks/repeat-projects.ts a repeating project's name: "Weekly reset · Nov 30, 2026" (was "· 2026-11-30"),
+    at most 55 characters as before. No stored change: a project an older build named "… · 2026-11-30" still counts as
+    made for that period (`runRepeats` matches both names; `lastMade` guards it too);
+  - components/wealth/account-sheet.tsx the Remove button of money in or out: "Remove money in of €9,000.00 on Nov 14,
+    2025" (was "of 9000.00").
+- Tests: apps/web/lib/revb2a-formatters.test.ts (each string above). Deliberate test changes, labelled in the files,
+  each pinning the new exact text: apps/web/lib/av2-money-notices.test.ts ("€15.00 left"),
+  lib/money-more/av2-people.test.ts ("€60.00 left"), lib/price-alerts/av2-moves.test.ts ("from €10,000.00: €8,900.40
+  now."), lib/budgets/av2-assign.test.ts ("€70.00 a week × 5 weeks", plus the yearly words),
+  lib/tasks/av2-repeat-projects.test.ts ("Weekly reset · Dec 14, 2026", plus an older build's ISO-named project counted
+  as made); spec apps/web/tests/av2-repeat-projects.spec.ts (four names now "· Nov 23, 2026").
+- NOVA corpus: no case changes from this finding.
+- Spec (lead runs): apps/web/tests/av2-revb2a-formatters.spec.ts (the Sheet's Remove button names "€9,000.00").
+- Help: none. What's new: "Notices and names write money and days the way the app does."
