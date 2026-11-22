@@ -175,4 +175,20 @@ describe('ChainHelp, ChainText, HelpTopics and HelpSearch on the page', () => {
     env.chosen = true; render(page()); type('validator');
     expect(host.querySelector('.help-search-chain')).toBeNull();
   });
+
+  it('Help search stops listing the answer the address names, even before that answer is on the page', () => {
+    // A browser runs each hashchange listener with its own React update, so HelpSearch's can run before ChainHelp put
+    // the linked answer on the page; here HelpSearch is alone, as it is at that moment (review b1, fixb1b).
+    const type = (value: string) => act(() => {
+      const input = host.querySelector<HTMLInputElement>('input[type="search"]')!;
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, value);
+      input.dispatchEvent(new Event('input', {bubbles: true}));
+    });
+    render(createElement(HelpSearch));
+    type('alert');
+    expect([...host.querySelectorAll('.help-search-chain a')].map(a => a.getAttribute('href'))).toEqual(['#help-av-move-alert', '#help-af-validator-alerts']);
+    act(() => { window.history.replaceState(null, '', '/app/help#help-af-validator-alerts'); window.dispatchEvent(new HashChangeEvent('hashchange')); });
+    expect([...host.querySelectorAll('.help-search-chain a')].map(a => a.getAttribute('href'))).toEqual(['#help-av-move-alert']);
+    expect(host.querySelector('[role="status"]')!.textContent).toBe('1 answer about the money and chain pages matches, listed under the search.');
+  });
 });

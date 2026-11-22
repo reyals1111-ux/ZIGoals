@@ -15,8 +15,11 @@ test('a note reminder keeps its day when the app is opened the next morning', as
   await page.goto('/app/notes?view=notes'); await settle(page);
   await page.getByRole('textbox', {name: 'New note'}).fill('Fictional house');
   await page.getByRole('button', {name: 'Make note'}).click();
-  await page.getByRole('textbox', {name: 'Note'}).fill('Boiler\n@remind tomorrow 9:30 call the fictional plumber');
-  await page.getByRole('button', {name: 'Save'}).click();
+  // Session AV lane 2 (fixb1b: the new note's own editor, as tests/av2-task-reminders.spec.ts; "Note" alone also matched
+  // "Capture a note" and "New note" on the page; deliberate)
+  const note = page.getByRole('article', {name: 'Fictional house'});
+  await note.getByRole('textbox', {name: 'Note', exact: true}).fill('Boiler\n@remind tomorrow 9:30 call the fictional plumber');
+  await note.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(page.getByRole('list', {name: 'Reminders in this note'})).toContainText('Reminder · Tue, Nov 24, 9:30 AM · call the fictional plumber');
   const id = await page.evaluate(() => (JSON.parse(localStorage.getItem('zigoals:notes:v1') ?? '{"notes":[]}').notes as {id: string; title: string}[]).find(n => n.title === 'Fictional house')!.id);
   // The next morning, before it is due.
