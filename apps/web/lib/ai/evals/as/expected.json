@@ -7512,5 +7512,165 @@
   "widgets": [],
   "fresh": "Selenium: no food you logged today carries a value, so today’s total is unknown (never 0). Foods from the food library (CoFID) and barcodes that give it count; Health → Food → More from your foods shows it.",
   "freshNl": "Selenium: geen eten dat je vandaag logde heeft een waarde, dus het totaal van vandaag is onbekend (nooit 0). Eten uit de voedingsbibliotheek (CoFID) en barcodes die het geven tellen mee; Health → Food toont het onder de extra voedingsstoffen."
+ },
+ "av2r2-money-saved": {
+  "en": "You have no saved entries yet. In Wealth → Spending → Log spending, fill in one you log often and choose “Keep as a saved entry”; it is then one tap beside Log spending.",
+  "nl": "Je hebt nog geen opgeslagen posten. In Vermogen → Uitgaven → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no saved entries yet. In Wealth → Spending → Log spending, fill in one you log often and choose “Keep as a saved entry”; it is then one tap beside Log spending.",
+  "freshNl": "Je hebt nog geen opgeslagen posten. In Vermogen → Uitgaven → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending."
+ },
+ "av2r2-money-paid-with": {
+  "en": "No entry this month says how it was paid. When you log or edit one in Wealth → Spending, choose “Paid with” (cash, debit card, credit card, transfer); This month then shows the totals by method.",
+  "nl": "Geen post deze maand zegt hoe hij betaald is. Kies bij loggen of bewerken in Vermogen → Uitgaven “Paid with” (contant, pinpas, creditcard, overboeking); Deze maand toont dan de totalen per betaalwijze.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No entry this month says how it was paid. When you log or edit one in Wealth → Spending, choose “Paid with” (cash, debit card, credit card, transfer); This month then shows the totals by method.",
+  "freshNl": "Geen post deze maand zegt hoe hij betaald is. Kies bij loggen of bewerken in Vermogen → Uitgaven “Paid with” (contant, pinpas, creditcard, overboeking); Deze maand toont dan de totalen per betaalwijze."
+ },
+ "av2r2-money-subcategories": {
+  "en": "No spending this month carries a subcategory. In Wealth → Spending → Log spending, open “Add a subcategory” under a category (Food & drink › Coffee); totals and budgets keep counting it in the main category.",
+  "nl": "Geen uitgave deze maand heeft een subcategorie. In Vermogen → Uitgaven → Log spending open je “Add a subcategory” onder een categorie (Food & drink › Coffee); totalen en budgetten tellen hem gewoon in de hoofdcategorie.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No spending this month carries a subcategory. In Wealth → Spending → Log spending, open “Add a subcategory” under a category (Food & drink › Coffee); totals and budgets keep counting it in the main category.",
+  "freshNl": "Geen uitgave deze maand heeft een subcategorie. In Vermogen → Uitgaven → Log spending open je “Add a subcategory” onder een categorie (Food & drink › Coffee); totalen en budgetten tellen hem gewoon in de hoofdcategorie."
+ },
+ "av2r2-money-day-left": {
+  "en": "About this much a day is left for the 14 days to go: Groceries €4.49, Food & drink €5.06 and Fun €2.57. What is left divided by the days; a fact, not advice.",
+  "nl": "Ongeveer zoveel per dag is er over voor de 14 dagen die nog komen: Groceries €4.49, Food & drink €5.06 en Fun €2.57. Wat over is gedeeld door de dagen; een feit, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no budgets yet. Set one in Wealth → Budgets; each row then says about how much a day is left.",
+  "freshNl": "Je hebt nog geen budgetten. Stel er een in bij Vermogen → Budgetten; elke rij zegt dan ongeveer hoeveel er per dag over is."
+ },
+ "av2r2-money-own-budgets": {
+  "en": "You have none of your own budgets yet. In Wealth → Budgets → Your own budgets, add one on a tag (a trip) or on chosen categories, each month or once between two days.",
+  "nl": "Je hebt nog geen eigen budgetten. In Vermogen → Budgetten → Your own budgets voeg je er een toe op een tag (een reis) of op gekozen categorieën, elke maand of eenmalig tussen twee dagen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have none of your own budgets yet. In Wealth → Budgets → Your own budgets, add one on a tag (a trip) or on chosen categories, each month or once between two days.",
+  "freshNl": "Je hebt nog geen eigen budgetten. In Vermogen → Budgetten → Your own budgets voeg je er een toe op een tag (een reis) of op gekozen categorieën, elke maand of eenmalig tussen twee dagen."
+ },
+ "av2r2-money-payee-budgets": {
+  "en": "No payee has a budget yet. In Wealth → Budgets → Watching payees, watch a shop and choose “Set an amount a month”.",
+  "nl": "Nog geen winkel heeft een budget. In Vermogen → Budgetten → Watching payees volg je een winkel en kies je “Set an amount a month”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No payee has a budget yet. In Wealth → Budgets → Watching payees, watch a shop and choose “Set an amount a month”.",
+  "freshNl": "Nog geen winkel heeft een budget. In Vermogen → Budgetten → Watching payees volg je een winkel en kies je “Set an amount a month”."
+ },
+ "av2r2-money-unusual": {
+  "en": "Nothing in the last two weeks is well above its usual (more than twice the middle of its last ten, at the same payee or in the same category).",
+  "nl": "Niets in de afgelopen twee weken ligt ver boven het gewone (meer dan twee keer het midden van de laatste tien, bij dezelfde winkel of in dezelfde categorie).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing in the last two weeks is well above its usual (more than twice the middle of its last ten, at the same payee or in the same category).",
+  "freshNl": "Niets in de afgelopen twee weken ligt ver boven het gewone (meer dan twee keer het midden van de laatste tien, bij dezelfde winkel of in dezelfde categorie)."
+ },
+ "av2r2-money-balance-lines": {
+  "en": "No account has a balance line yet. On Wealth, open an account’s Sheet and fill in “Tell me when it is below” (or above).",
+  "nl": "Nog geen rekening heeft een saldogrens. Open op Vermogen de Sheet van een rekening en vul “Tell me when it is below” (of above) in.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No account has a balance line yet. On Wealth, open an account’s Sheet and fill in “Tell me when it is below” (or above).",
+  "freshNl": "Nog geen rekening heeft een saldogrens. Open op Vermogen de Sheet van een rekening en vul “Tell me when it is below” (of above) in."
+ },
+ "av2r2-money-to-record": {
+  "en": "No bill due in the last three days is missing from your money log. When one is, Upcoming bills offers “Record it”: one tap, never by itself.",
+  "nl": "Geen rekening van de afgelopen drie dagen ontbreekt in je geldlog. Als er een is, biedt Upcoming bills “Record it” aan: één tik, nooit vanzelf.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No bill due in the last three days is missing from your money log. When one is, Upcoming bills offers “Record it”: one tap, never by itself.",
+  "freshNl": "Geen rekening van de afgelopen drie dagen ontbreekt in je geldlog. Als er een is, biedt Upcoming bills “Record it” aan: één tik, nooit vanzelf."
+ },
+ "av2r2-money-who-owes": {
+  "en": "Nobody owes you anything here. Share a cost by editing it in Wealth → Spending → Shared with others, or add money lent under Between you and others.",
+  "nl": "Niemand is je hier iets schuldig. Deel een uitgave door hem te bewerken in Vermogen → Uitgaven → Shared with others, of voeg uitgeleend geld toe onder Between you and others.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nobody owes you anything here. Share a cost by editing it in Wealth → Spending → Shared with others, or add money lent under Between you and others.",
+  "freshNl": "Niemand is je hier iets schuldig. Deel een uitgave door hem te bewerken in Vermogen → Uitgaven → Shared with others, of voeg uitgeleend geld toe onder Between you and others."
+ },
+ "av2r2-money-lent-borrowed": {
+  "en": "Nothing lent or borrowed is open. Add one under Wealth → Spending → Between you and others: a name, an amount, and a due day with a reminder if you want one.",
+  "nl": "Er staat niets uitgeleend of geleend open. Voeg het toe onder Vermogen → Uitgaven → Between you and others: een naam, een bedrag, en een terugbetaaldag met herinnering als je wilt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing lent or borrowed is open. Add one under Wealth → Spending → Between you and others: a name, an amount, and a due day with a reminder if you want one.",
+  "freshNl": "Er staat niets uitgeleend of geleend open. Voeg het toe onder Vermogen → Uitgaven → Between you and others: een naam, een bedrag, en een terugbetaaldag met herinnering als je wilt."
+ },
+ "av2r2-money-store-cards": {
+  "en": "You have no store cards here yet. In Wealth → Spending → Store and club cards, add one: type its number or read it from a photo; “Show” puts the barcode on the whole screen for the till.",
+  "nl": "Je hebt hier nog geen klantenkaarten. In Vermogen → Uitgaven → Store and club cards voeg je er een toe: typ het nummer of lees het van een foto; “Show” zet de streepjescode schermvullend klaar voor de kassa.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no store cards here yet. In Wealth → Spending → Store and club cards, add one: type its number or read it from a photo; “Show” puts the barcode on the whole screen for the till.",
+  "freshNl": "Je hebt hier nog geen klantenkaarten. In Vermogen → Uitgaven → Store and club cards voeg je er een toe: typ het nummer of lees het van een foto; “Show” zet de streepjescode schermvullend klaar voor de kassa."
+ },
+ "av2r2-money-business": {
+  "en": "You have no business space yet. At the foot of Wealth → Spending, “add a business space” keeps its entries, budgets and totals apart from your personal money.",
+  "nl": "Je hebt nog geen zakelijke ruimte. Onderaan Vermogen → Uitgaven houdt “add a business space” de posten, budgetten en totalen apart van je persoonlijke geld.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Business's figures are in Wealth → Spending: choose Business under Space at the top. Its entries and budgets are kept apart from your personal money.",
+  "freshNl": "De cijfers van Zakelijk staan in Vermogen → Uitgaven: kies Zakelijk bij Space bovenaan. De posten en budgetten staan apart van je persoonlijke geld."
+ },
+ "av2r2-my-day": {
+  "en": "Nothing is in My Day today. Add a task to My Day from its editor or from Plan my day in Tasks → Today; its own day stays.",
+  "nl": "Er staat vandaag niets in My Day. Zet een taak in My Day met de knop in de editor, ook Plan my day in Tasks → Today biedt dat; zijn eigen dag blijft staan.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is in My Day today. Add a task to My Day from its editor or from Plan my day in Tasks → Today; its own day stays.",
+  "freshNl": "Er staat vandaag niets in My Day. Zet een taak in My Day met de knop in de editor, ook Plan my day in Tasks → Today biedt dat; zijn eigen dag blijft staan."
+ },
+ "av2r2-note-reminders-today": {
+  "en": "No reminder from your notes today. Write “@remind tomorrow 9:00 call the plumber” on a line of a note, and it shows in Tasks → Today and on the Agenda.",
+  "nl": "Geen herinnering uit je notities vandaag. Zet “@remind morgen 9:00 loodgieter bellen” op een regel van een notitie; dan staat hij in Tasks → Today en op de Agenda.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No reminder from your notes today. Write “@remind tomorrow 9:00 call the plumber” on a line of a note, and it shows in Tasks → Today and on the Agenda.",
+  "freshNl": "Geen herinnering uit je notities vandaag. Zet “@remind morgen 9:00 loodgieter bellen” op een regel van een notitie; dan staat hij in Tasks → Today en op de Agenda."
+ },
+ "av2r2-print": {
+  "en": "Open the list in Tasks (a project, Today, Upcoming or any view) and press “Print this list” under it. The sheet has the title, the sections or days, a tick box per task, its day and priority, and subtasks indented; choose Save as PDF in the print window to keep a file.",
+  "nl": "Open de lijst in Tasks (een project, Today, Upcoming, elke weergave) en druk eronder op “Print this list”. Het blad heeft de titel, de secties en dagen, een vakje per taak, de dag en prioriteit, en subtaken ingesprongen; kies Opslaan als pdf in het printvenster voor een bestand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open the list in Tasks (a project, Today, Upcoming or any view) and press “Print this list” under it. The sheet has the title, the sections or days, a tick box per task, its day and priority, and subtasks indented; choose Save as PDF in the print window to keep a file.",
+  "freshNl": "Open de lijst in Tasks (een project, Today, Upcoming, elke weergave) en druk eronder op “Print this list”. Het blad heeft de titel, de secties en dagen, een vakje per taak, de dag en prioriteit, en subtaken ingesprongen; kies Opslaan als pdf in het printvenster voor een bestand."
+ },
+ "av2r2-template-gallery": {
+  "en": "In the template gallery (Tasks → Areas and templates), in English and Dutch:\n• Home: Cleaning week, A party, A packing list and Spring clean\nChoose one, a name and a start day, and Make the project: its sections and days come with it.",
+  "nl": "Je hebt nog geen opgeslagen posten. In Vermogen → Uitgaven → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "In the template gallery (Tasks → Areas and templates), in English and Dutch:\n• Home: Cleaning week, A party, A packing list and Spring clean\nChoose one, a name and a start day, and Make the project: its sections and days come with it.",
+  "freshNl": "Je hebt nog geen opgeslagen posten. In Vermogen → Uitgaven → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending."
+ },
+ "av2r2-import-boards": {
+  "en": "Yes. In Trello: the board’s menu → Print, export and share → Export as JSON. Then Tasks → Import / export and choose the file: the board becomes a project, its lists sections, cards tasks and checklist items subtasks. You see a preview first, and Undo takes it back. Archived cards and members are left out.",
+  "nl": "Ja. In Trello: menu van het bord → Print, export and share → Export as JSON. Daarna Tasks → Import / export en kies het bestand: het bord wordt een project, de lijsten secties, kaarten taken en checklistpunten subtaken. Je ziet eerst een voorbeeld, en Undo draait het terug. Gearchiveerde kaarten en leden blijven weg.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. In Trello: the board’s menu → Print, export and share → Export as JSON. Then Tasks → Import / export and choose the file: the board becomes a project, its lists sections, cards tasks and checklist items subtasks. You see a preview first, and Undo takes it back. Archived cards and members are left out.",
+  "freshNl": "Ja. In Trello: menu van het bord → Print, export and share → Export as JSON. Daarna Tasks → Import / export en kies het bestand: het bord wordt een project, de lijsten secties, kaarten taken en checklistpunten subtaken. Je ziet eerst een voorbeeld, en Undo draait het terug. Gearchiveerde kaarten en leden blijven weg."
+ },
+ "av2r2-project-rules": {
+  "en": "No project has rules yet. Open a project in Tasks, then Rules and fields: for example, when a task enters “Done”, mark it done.",
+  "nl": "Nog geen project heeft regels. Open een project in Tasks en dan Rules and fields: bijvoorbeeld, als een taak in “Klaar” komt, vink hem af.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No project has rules yet. Open a project in Tasks, then Rules and fields: for example, when a task enters “Done”, mark it done.",
+  "freshNl": "Nog geen project heeft regels. Open een project in Tasks en dan Rules and fields: bijvoorbeeld, als een taak in “Klaar” komt, vink hem af."
+ },
+ "av2r2-custom-fields": {
+  "en": "No project has fields of its own yet. Open a project in Tasks, then Rules and fields, and add one (a budget, a room, an order-by day); fill it in each task’s editor and sort by it in Tasks → Table.",
+  "nl": "Nog geen project heeft eigen velden. Open een project in Tasks en dan Rules and fields, en voeg er een toe (een budget, een kamer, een besteldatum); vul hem in de editor van elke taak in en sorteer erop in Tasks → Table.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No project has fields of its own yet. Open a project in Tasks, then Rules and fields, and add one (a budget, a room, an order-by day); fill it in each task’s editor and sort by it in Tasks → Table.",
+  "freshNl": "Nog geen project heeft eigen velden. Open een project in Tasks en dan Rules and fields, en voeg er een toe (een budget, een kamer, een besteldatum); vul hem in de editor van elke taak in en sorteer erop in Tasks → Table."
  }
 }

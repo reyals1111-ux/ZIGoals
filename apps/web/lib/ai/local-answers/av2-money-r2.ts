@@ -44,7 +44,7 @@ const call = (tool: string, args: Record<string, unknown>, label: string) => [{t
 // ── Quick logging: saved entries, paid with, subcategories (#242, #244, #251) ────────────────────────────────────────
 /** "What are my saved entries", "welke opgeslagen posten heb ik". */
 function savedEntries(a: Asked): LocalReply | null {
-  if (!/\bsaved (?:entries|entry|records?|transactions?)\b|\b(?:entry|record) templates?\b|\bopgeslagen (?:posten|boekingen|uitgaven)\b|\bsjablonen\b/.test(a.f)) return null;
+  if (!/\bsaved (?:entries|entry|records?|transactions?)\b|\b(?:entry|record) templates?\b|\bopgeslagen (?:posten|boekingen|uitgaven)\b|\bsjablonen\b/.test(a.f) || /\b(?:journal|dagboek|task|taken|notes?|notities|projects?|projecten)\b/.test(a.f) /* Lead (batch 2): journal and task templates are their own (av-journal-templates) */) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const saved = moreOf(a.env)?.saved ?? [], calls = call('money_more', {saved: true}, 'Money · saved entries');
   if (!saved.length) return answer(say(a.lang, `You have no saved entries yet. In ${SPENDING.en} → Log spending, fill in one you log often and choose “Keep as a saved entry”; it is then one tap beside Log spending.`,
@@ -86,6 +86,8 @@ const taggedOf = (env: ToolEnv) => { const tags = (env as ToolEnv & {moneyTags?:
 function dayLeft(a: Asked): LocalReply | null {
   const en = /\b(?:per|a|each) day\b/.test(a.f) && /\b(?:left|spend|budgets?)\b/.test(a.f) && !/\b(?:steps?|water|calories|sleep|hours?)\b/.test(a.f);
   const nl = /\bper dag\b/.test(a.f) && /\b(?:over|uitgeven|budgetten?|besteden)\b/.test(a.f) && !/\b(?:stappen|water|slaap|uur)\b/.test(a.f);
+  // Lead (batch 2): "how much do I spend per day on average" is the spending average (spend-average-month), not what is left.
+  if (/\b(?:average|on average|gemiddeld)\b/.test(a.f)) return null;
   if (!(en || nl)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const record = a.env.nova?.budgets, month = a.today.slice(0, 7), calls = call('budgets', {month, perDay: true}, 'Budgets · a day left');

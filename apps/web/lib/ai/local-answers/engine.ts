@@ -37,6 +37,8 @@ import {av2MoneyAnswer} from './av2-money';
 import {av2FoodAnswer, readFoodSources} from './av2-food';
 import {av2BodyAnswer} from './av2-body';
 import {av2RestAnswer} from './av2-rest';
+import {av2MoneyR2Answer} from './av2-money-r2';
+import {av2TasksR2Answer} from './av2-tasks-r2';
 import {av2SyncAnswer, type Av2SyncExtra} from './av2-sync';
 import {readExtrasChoice, readExtrasSectionsChoice} from '../../vault/extras-sync';
 import {readTheme} from '../../ui-prefs/theme';
@@ -246,11 +248,13 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV lane 2, batch 2 (sync choices, the look, the scheduled copy): read from this device where there is one.
   if (!subject) { const extra: Av2SyncExtra = (() => { try { if (typeof window === 'undefined') return {}; const storage = getAppStorage(); return {sections: readExtrasSectionsChoice(storage), extrasOn: readExtrasChoice(storage).enabled, look: {theme: readTheme(), darkStyle: readDarkStyle(), font: readLook().font}, backup: readDeviceRecord(storage, BACKUP_REMINDER).data}; } catch { return {}; } })(); const own = av2SyncAnswer(question, env, extra); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
-  if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2MoneyR2Answer(question, env) ?? av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
   if (!subject) { const own = av2JournalAnswer(question, env) ?? av2RoadmapAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Habits and mind): its own answers, before AV's (lib/ai/local-answers/av2-habits.ts).
   if (!subject) { const own = av2HabitsAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AV lane 2, round 2 (Tasks: My Day, rules, fields, imports, print): before Tasks' first answers.
+  if (!subject) { const own = av2TasksR2Answer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Tasks and planning; Money N11): its own answers, before AV's (lib/ai/local-answers/av2-tasks.ts).
   if (!subject) { const own = av2TasksAnswer(question, env, {plan: env.nova?.taskPlan, templates: env.nova?.taskTemplates, periods: env.nova?.budgetPeriods}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const found = avAnswer(question, env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }

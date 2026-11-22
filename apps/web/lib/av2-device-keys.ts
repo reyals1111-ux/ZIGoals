@@ -1,5 +1,6 @@
 import {AV2_MONEY_CATALOG_LABELS, AV2_MONEY_EXPORT_KEYS, AV2_MONEY_PERSONAL_KEYS} from './av2-money-device-keys';
 import {AV2_FOOD_CATALOG_LABELS, AV2_FOOD_EXPORT_KEYS, AV2_FOOD_PERSONAL_KEYS} from './av2-food-keys';
+import {AV2_MONEY_R2_CATALOG_LABELS, AV2_MONEY_R2_EXPORT_KEYS, AV2_MONEY_R2_PERSONAL_KEYS} from './av2-money-r2-keys';
 /**
  * Session AV lane 2 (owner follow-up 4; ADR-045): lane 2's device keys and their rows for the shared registries, as
  * literals in a module with no imports (the lib/av-device-keys.ts pattern), so the welcome check, Export everything, the
@@ -24,11 +25,11 @@ export const ZIGI_HELLO_DAY_KEY_LITERAL = 'zigoals:zigi-hello-day';
 export const EVENING_PLAN_KEY_LITERAL = 'zigoals:evening-plan:v1';
 export const BODY_EXTRAS_KEY_LITERAL = 'zigoals:body-extras:v1';
 /** Personal device records: a device holding one is not new (onboarding `DEVICE_RECORD_KEYS`). */
-export const AV2_PERSONAL_KEYS: readonly string[] = [TASK_PLAN_KEY_LITERAL, TASK_TEMPLATES_KEY_LITERAL, BUDGET_PERIODS_KEY_LITERAL, CHESS_COMPUTER_KEY_LITERAL, EVENING_PLAN_KEY_LITERAL, BODY_EXTRAS_KEY_LITERAL, ...AV2_MONEY_PERSONAL_KEYS, ...AV2_FOOD_PERSONAL_KEYS];
+export const AV2_PERSONAL_KEYS: readonly string[] = [TASK_PLAN_KEY_LITERAL, TASK_TEMPLATES_KEY_LITERAL, BUDGET_PERIODS_KEY_LITERAL, CHESS_COMPUTER_KEY_LITERAL, EVENING_PLAN_KEY_LITERAL, BODY_EXTRAS_KEY_LITERAL, ...AV2_MONEY_PERSONAL_KEYS, ...AV2_FOOD_PERSONAL_KEYS, ...AV2_MONEY_R2_PERSONAL_KEYS];
 /** Display/setting records (onboarding `NON_PERSONAL_KEYS`). */
 export const AV2_DISPLAY_KEYS: readonly string[] = [TASK_AREA_KEY_LITERAL, ZIGI_HELLO_DAY_KEY_LITERAL];
 /** Export everything (`DEVICE_KEYS`): the names in everything.json. */
-export const AV2_EXPORT_KEYS = {taskPlan: TASK_PLAN_KEY_LITERAL, taskTemplates: TASK_TEMPLATES_KEY_LITERAL, budgetPeriods: BUDGET_PERIODS_KEY_LITERAL, chessComputer: CHESS_COMPUTER_KEY_LITERAL, eveningPlan: EVENING_PLAN_KEY_LITERAL, bodyExtras: BODY_EXTRAS_KEY_LITERAL, ...AV2_MONEY_EXPORT_KEYS, ...AV2_FOOD_EXPORT_KEYS} as const;
+export const AV2_EXPORT_KEYS = {taskPlan: TASK_PLAN_KEY_LITERAL, taskTemplates: TASK_TEMPLATES_KEY_LITERAL, budgetPeriods: BUDGET_PERIODS_KEY_LITERAL, chessComputer: CHESS_COMPUTER_KEY_LITERAL, eveningPlan: EVENING_PLAN_KEY_LITERAL, bodyExtras: BODY_EXTRAS_KEY_LITERAL, ...AV2_MONEY_EXPORT_KEYS, ...AV2_FOOD_EXPORT_KEYS, ...AV2_MONEY_R2_EXPORT_KEYS} as const;
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AV2_CATALOG_LABELS = {
   taskPlan: ['Tasks: your planning choices, timers and the count of finished tasks per day', 'Today'],
@@ -37,7 +38,7 @@ export const AV2_CATALOG_LABELS = {
   chessComputer: ['Chess: your game against the computer and your results by level', 'Chess'],
   eveningPlan: ['Sleep: your evening plan', 'Health'],
   bodyExtras: ['Workouts: units per exercise, assisted and weighted sets, shoes, run bests marked', 'Health'],
-  ...AV2_MONEY_CATALOG_LABELS, ...AV2_FOOD_CATALOG_LABELS,
+  ...AV2_MONEY_CATALOG_LABELS, ...AV2_FOOD_CATALOG_LABELS, ...AV2_MONEY_R2_CATALOG_LABELS,
 } as const;
 /** The account erase (`lib/aa-device-forget.ts`): every key above. */
 export const AV2_ERASE_KEYS: readonly string[] = [...AV2_PERSONAL_KEYS, ...AV2_DISPLAY_KEYS];
