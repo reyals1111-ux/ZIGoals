@@ -112,6 +112,14 @@ describe('goals on any health number (LEDGER #287)', () => {
     if (!w.ok) throw new Error(w.issue.message);
     expect(moreGoalProgress(w.goal, data, null, TODAY)).toMatchObject({average: 80, days: 1});
   });
+  // Session AV lane 2 (review B3B-11): a reading at 00:30 in Amsterdam is that day's, not the UTC day before.
+  test('a measurement counts on the day of its own zone', () => {
+    const edge = addLocalDays(TODAY, -6);
+    const data = saveMeasurement(createEmptyHealth(), {id: 'health_zone00001', kind: 'waist', quantityMilli: 81_000, unit: 'cm', observedAt: `${addLocalDays(edge, -1)}T23:30:00+00:00`, timezone: 'Europe/Amsterdam', sourceLabel: 'Manual'}, NOW);
+    const w = addMoreGoal(emptyMoreGoals(), draft({source: 'body', key: 'waist', target: '85', direction: 'at-most'}), 'g7', NOW);
+    if (!w.ok) throw new Error(w.issue.message);
+    expect(moreGoalProgress(w.goal, data, null, TODAY)).toMatchObject({average: 81, days: 1});
+  });
   test('close, reopen, remove and Undo keep its place', () => {
     let rec = emptyMoreGoals();
     for (const id of ['g1', 'g2', 'g3']) { const r = addMoreGoal(rec, draft(), id, NOW); if (!r.ok) throw new Error('no'); rec = r.value; }

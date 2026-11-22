@@ -1,7 +1,7 @@
 import * as z from 'zod';
 import type {DeviceRecordSpec} from '../device-record';
 import {scaleNutrition, type HealthData, type Nutrition} from '../health';
-import {measurementHistory} from '../body-measurements';
+import {measurementHistory, readingDay} from '../body-measurements';
 import type {HealthNumbers} from '../health-numbers/store';
 import {addLocalDays} from '../local-date';
 
@@ -109,7 +109,7 @@ export function moreGoalProgress(goal: MoreGoal, data: HealthData | null, number
   if (goal.source === 'body' && data) {
     // The body measurements of the window, each day's latest (a day measured twice counts once), in cm.
     const byDay = new Map<string, number>();
-    for (const r of measurementHistory(data, goal.key as BodyKey).readings) { const day = r.observedAt.slice(0, 10); if (day >= since && day <= today) byDay.set(day, r.canonical / 10_000); }
+    for (const r of measurementHistory(data, goal.key as BodyKey).readings) { const day = readingDay(r) /* review B3B-11: the day of the zone it was entered in */; if (day >= since && day <= today) byDay.set(day, r.canonical / 10_000); }
     values.push(...byDay.values());
   }
   if (goal.source === 'number' && numbers) {
