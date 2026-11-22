@@ -152,6 +152,8 @@ export function readHtmlFile(file: InFile, today: string): {entries: PlannedEntr
 /* ---- Session AV lane 2 (r6-notes; LEDGER #410, Diarium's imports from more journal apps) ------------------------ */
 type JourneyEntry = {id?: unknown; text?: unknown; type?: unknown; date_journal?: unknown; date_modified?: unknown; timezone?: unknown; tags?: unknown; photos?: unknown; favourite?: unknown};
 const isJourney = (x: unknown): x is JourneyEntry => !!x && typeof x === 'object' && typeof (x as JourneyEntry).date_journal === 'number' && 'text' in (x as object);
+/** A time in milliseconds as an ISO stamp, or null when it is outside the calendar (`new Date` would throw on it). */
+const isoOf = (ms: number): string | null => { const d = new Date(ms); return Number.isFinite(d.getTime()) ? d.toISOString() : null; };
 /** Whether a JSON file is Journey's: one entry with `date_journal`, or a list of them. */
 export function isJourneyJson(text: string): boolean {
   try { const d: unknown = JSON.parse(text); return isJourney(d) || (Array.isArray(d) && d.length > 0 && d.every(isJourney)); } catch { return false; }
@@ -171,7 +173,7 @@ export function readJourneyJson(file: InFile, zone?: string): {entries: PlannedE
   for (const [i, e] of list.entries()) {
     const label = list.length > 1 ? `${file.name} #${i + 1}` : file.name;
     if (!isJourney(e)) { skipped.push({name: label, reason: 'it is not a Journey entry'}); continue; }
-    const ms = e.date_journal as number, created = Number.isFinite(ms) && ms > 0 ? new Date(ms).toISOString() : null;
+    const ms = e.date_journal as number, created = ms > 0 ? isoOf(ms) : null; // review b6n B6N-5: a time outside the calendar skips this entry only
     const date = created ? dayIn(created, typeof e.timezone === 'string' ? e.timezone : zone) : null;
     if (!date || !created) { skipped.push({name: label, reason: 'it has no date ZIGoals can read'}); continue; }
     const raw = typeof e.text === 'string' ? e.text : '', words = (e.type === 'html' || /<\/?(?:p|div|br|span|h\d|li|ul|ol|b|i|strong|em)\b/i.test(raw) ? htmlWords(raw) : raw.replace(/\r\n?/g, '\n')).trim();
@@ -179,7 +181,7 @@ export function readJourneyJson(file: InFile, zone?: string): {entries: PlannedE
     if (!words && !photos.length) { skipped.push({name: label, reason: 'it has no words or photo'}); continue; }
     const c = clip(words || (photos.length > 1 ? 'Photos.' : 'A photo.')); if (c.cut) cut++;
     const tags = Array.isArray(e.tags) ? readTags(e.tags.filter((t): t is string => typeof t === 'string').join(',')) : [];
-    const mod = typeof e.date_modified === 'number' && Number.isFinite(e.date_modified) && e.date_modified > ms ? new Date(e.date_modified).toISOString() : undefined;
+    const mod = typeof e.date_modified === 'number' && e.date_modified > ms ? isoOf(e.date_modified) ?? undefined : undefined;
     entries.push({date, text: c.text, createdAt: created, ...(mod ? {updatedAt: mod} : {}), ...(tags.length ? {tags} : {}), ...(e.favourite === true ? {extra: {star: true as const}} : {}), source: 'journey', photos, audio: []});
   }
   return {entries, skipped, cut};
