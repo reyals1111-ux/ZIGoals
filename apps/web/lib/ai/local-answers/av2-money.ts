@@ -5,6 +5,7 @@ import {cashForecast} from '../../cash-forecast/model';
 import {challengeStates, lowBalanceCross, paydayCash, payeeRows, yearRecap} from '../../money-notices';
 import {signedMoney} from '../../money-log/selection';
 import {dayIn, monthIn} from './av-words';
+import {assignView, averageSpent} from '../../budgets/assign';
 import type {MoneyEntry} from '../../money-log/schema';
 import {summarizeSelection} from '../../money-log/selection';
 import type {ToolEnv} from '../tools/env';
@@ -183,3 +184,38 @@ function timeMachine(a: Asked): LocalReply | null {
     'Portfolio → je portefeuille → Analysis → “On a past day” toont wat je op elke dag van het afgelopen jaar bezat en wat dat toen waard was, uit je transacties en de koersgeschiedenis die de waardegrafiek leest. Oude koersen staan niet op dit apparaat voor mij, dus het bedrag kan ik hier niet noemen.'), [{tool: 'portfolio', args: {timeMachine: true}, label: 'Portfolio · on a past day'}]);
 }
 addAnswers(moveAlerts, timeMachine);
+
+// ── Group 10: budgets ──────────────────────────────────────────────────────────────────────────────────────────────
+
+/** "What is underfunded", "welke budgetten komen tekort": what this month's amounts fall short of the targets. */
+function underfunded(a: Asked): LocalReply | null {
+  if (!/\bunderfunded\b|\b(?:budgets?|targets?)\b.*\b(?:short|need more|needs more)\b|\bwhat do my budgets need\b|\b(?:onvoldoende gevuld|tekort komen|komen tekort|komt tekort)\b|\btekort\b.*\bbudget\w*\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const record = a.env.nova?.budgets, lang = a.lang, month = a.today.slice(0, 7), calls = [{tool: 'budgets', args: {month}, label: 'Budgets · plan this month'}];
+  if (!record?.budgets.length) return answer(say(lang, 'No budget is set yet. Wealth → Budgets sets them.', 'Je hebt nog geen budgetten. Wealth → Budgets stelt ze in.'), calls);
+  const view = assignView(entriesOf(a.env), record, month, a.today), short = view.rows.filter(r => r.underfunded > 0);
+  if (!short.length) return answer(say(lang, `Nothing is underfunded in ${monthIn('en', month)}: every budget with a target has at least what it needs.${view.rows.some(r => r.need) ? '' : ' None of your budgets has a weekly, monthly or yearly target yet (Budgets → Plan → Target).'}`, `Niets komt tekort in ${monthIn('nl', month)}: elk budget met een doel heeft minstens wat het nodig heeft.${view.rows.some(r => r.need) ? '' : ' Geen van je budgetten heeft al een week-, maand- of jaardoel (Budgets → Plan → Target).'}`), calls);
+  const items = short.map(r => `${r.category} ${money(r.underfunded, r.currency)}`);
+  return answer(say(lang, `Underfunded in ${monthIn('en', month)}: ${list(view.underfunded.map(u => money(u.cents, u.currency)), 'en')} — ${list(items, 'en')}. Budgets → Plan → “Fund what is underfunded” fills them.`, `Tekort in ${monthIn('nl', month)}: ${list(view.underfunded.map(u => money(u.cents, u.currency)), 'nl')} — ${list(items, 'nl')}. Budgets → Plan → “Fund what is underfunded” vult ze aan.`), calls);
+}
+/** "How much flexible spending is left", "hoeveel flexibel budget heb ik nog". */
+function flexibleLeft(a: Asked): LocalReply | null {
+  if (!/\bflex(?:ible)?\b.*\b(?:left|remaining|budgets?)\b|\bflexibel\w*\b.*\b(?:over|nog|budget\w*)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const record = a.env.nova?.budgets, lang = a.lang, month = a.today.slice(0, 7), calls = [{tool: 'budgets', args: {flexible: true}, label: 'Budgets · flexible'}];
+  const view = record?.budgets.length ? assignView(entriesOf(a.env), record, month, a.today) : null;
+  if (!view?.flexibleLeft.length) return answer(say(lang, 'None of your budgets is marked flexible. Budgets → Plan → Bucket: Flexible puts it in the one “flexible left” figure.', 'Geen van je budgetten staat op flexibel. Budgets → Plan → Bucket: Flexible zet het in het ene bedrag “flexible left”.'), calls);
+  return answer(say(lang, `Flexible left in ${monthIn('en', month)}: ${list(view.flexibleLeft.map(f => `${money(f.cents, f.currency)} across ${count(f.count, 'en', ['budget', 'budgets'], ['', ''])}`), 'en')}.`, `Flexibel over in ${monthIn('nl', month)}: ${list(view.flexibleLeft.map(f => `${money(f.cents, f.currency)} over ${count(f.count, 'nl', ['', ''], ['budget', 'budgetten'])}`), 'nl')}.`), calls);
+}
+/** "What should my groceries budget be", "wat is een goed budget voor boodschappen": the average of the last three months. */
+function suggestedBudget(a: Asked): LocalReply | null {
+  const en = /\b(?:suggest(?:ed)?|what should|average)\b.*\bbudgets?\b|\bbudgets?\b.*\b(?:suggest(?:ion|ed)?|be)\b/.test(a.f) && /\b(?:budget)\b/.test(a.f), nl = /\b(?:voorstel|gemiddeld\w*|wat moet)\b.*\bbudget\w*\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const record = a.env.nova?.budgets, lang = a.lang, month = a.today.slice(0, 7), calls = [{tool: 'budgets', args: {suggest: true}, label: 'Budgets · suggested'}];
+  const named = (record?.budgets ?? []).filter(b => new RegExp(`\\b${b.category.toLowerCase().replace(/[^a-z0-9 ]/g, '.')}\\b`).test(a.f)), pick = named.length ? named : record?.budgets ?? [];
+  const lines = pick.flatMap(b => { const avg = averageSpent(entriesOf(a.env), b.category, b.currency, month); return avg ? [say(lang, `${b.category}: ${money(avg.cents, b.currency)} (your average over ${count(avg.months, 'en', ['month', 'months'], ['', ''])}; set now: ${money(Math.round(Number(b.monthly) * 100), b.currency)})`, `${b.category}: ${money(avg.cents, b.currency)} (je gemiddelde over ${count(avg.months, 'nl', ['', ''], ['maand', 'maanden'])}; nu: ${money(Math.round(Number(b.monthly) * 100), b.currency)})`)] : []; });
+  if (!lines.length) return answer(say(lang, 'There is not enough spending in the last three months to suggest an amount yet.', 'Er zijn nog te weinig uitgaven in de afgelopen drie maanden om een bedrag voor te stellen.'), calls);
+  return answer(`${say(lang, 'Suggested from your own spending', 'Voorgesteld uit je eigen uitgaven')}: ${lines.join('; ')}. ${say(lang, 'Budgets → Plan → “Use it” sets it for this month.', 'Budgets → Plan → “Use it” zet het voor deze maand.')}`, calls);
+}
+addAnswers(underfunded, flexibleLeft, suggestedBudget);

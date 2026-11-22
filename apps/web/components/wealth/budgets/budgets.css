@@ -95,3 +95,16 @@
 .budgets-year-months li{display:grid;grid-template-columns:minmax(72px,110px) 1fr auto;gap:8px;align-items:center;font-size:14px;font-variant-numeric:tabular-nums}
 .budgets-year-months .spending-bar{display:block;height:8px;border-radius:999px;background:color-mix(in srgb,var(--text,#e8eefc) 12%,transparent);overflow:hidden}
 .budgets-year-months .spending-bar span{display:block;height:100%;background:var(--cyan,#6fd3ff)}
+.budgets-assign{display:grid;gap:10px;margin-top:16px;padding:12px;border-radius:14px;border:1px solid var(--line,rgba(140,160,220,.25));min-width:0}
+.budgets-assign h4,.budgets-assign h5,.budgets-assign p{margin:0}
+.budgets-assign-sums{display:grid;gap:4px;overflow-wrap:anywhere}
+.budgets-assign-quick{display:flex;flex-wrap:wrap;gap:8px}
+.budgets-assign-quick button,.budgets-assign button{min-height:44px}
+.budgets-assign-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.budgets-assign-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.budgets-underfunded{color:var(--amber,#f5b65b);font-weight:600}
+.budgets-assign-edit{display:grid;gap:10px;margin:6px 0 8px}
+.budgets-assign-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:8px 12px;align-items:end}
+.budgets-assign-form input,.budgets-assign-form select{min-height:44px;width:100%;box-sizing:border-box}
+.budgets-assign-form .fine{grid-column:1/-1}
+.budgets-move summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}

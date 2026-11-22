@@ -1,5 +1,5 @@
 'use client';
-import {useDeferredValue, useEffect, useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useDeferredValue, useEffect, useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {ACCOUNTS} from '../../../lib/accounts/schema';
 import {balanceOn} from '../../../lib/accounts/net-worth';
@@ -12,6 +12,8 @@ import {money} from './format';
 import {useChartWidth} from '../../charts/use-chart-width';
 import {ChartLookDefs, useChartLook} from '../../charts/chart-defs';
 import './money-tools.css';
+// Session AV lane 2 (money; Monarch): life events and saved scenarios side by side (its own chunk).
+const FiScenarios = lazy(() => import('./fi-scenarios'));
 import {parseNumberInput} from '../../../lib/numbers/parse';
 
 /**
@@ -36,7 +38,7 @@ export default function FiModelPanel() {
     queueMicrotask(() => setDraft(i ? {invested: String(i.invested ?? START.invested), yearlySpend: String(i.yearlySpend ?? START.yearlySpend), withdrawalPct: String(i.withdrawalPct ?? START.withdrawalPct), monthlyContribution: String(i.monthlyContribution ?? START.monthlyContribution), returnPct: String(i.returnPct ?? START.returnPct), volatilityPct: String(i.volatilityPct ?? START.volatilityPct), years: String(i.years ?? START.years), currency: i.currency ?? START.currency} : START));
   }, [stored.loaded, stored.data.inputs, draft]);
   const d = draft ?? START, deferred = useDeferredValue(d);
-  const input: FiInput = useMemo(() => ({invested: num(deferred.invested), yearlySpend: num(deferred.yearlySpend), withdrawalPct: num(deferred.withdrawalPct), monthlyContribution: num(deferred.monthlyContribution), returnPct: num(deferred.returnPct), volatilityPct: num(deferred.volatilityPct), years: num(deferred.years)}), [deferred]);
+  const input: FiInput = useMemo(() => ({invested: num(deferred.invested), yearlySpend: num(deferred.yearlySpend), withdrawalPct: num(deferred.withdrawalPct), monthlyContribution: num(deferred.monthlyContribution), returnPct: num(deferred.returnPct), volatilityPct: num(deferred.volatilityPct), years: num(deferred.years), ...(stored.data.events?.length ? {events: stored.data.events} : {}) /* Session AV lane 2 (money): life events */}), [deferred, stored.data.events]);
   const issue = fiIssue(input);
   const result: FiResult | null = useMemo(() => issue ? null : runFiModel(input), [issue, input]);
   // Today's invested amount from the person's investment and pension accounts in this currency, when they have balances.
@@ -102,6 +104,7 @@ export default function FiModelPanel() {
       {stored.data.inputs && <button type="button" className="quiet" onClick={forget}>Forget them</button>}
     </div>
     <p className="money-status" role="status" aria-live="polite">{status}</p>
+    {stored.loaded && !stored.unreadable && <Suspense fallback={null}><FiScenarios stored={stored} input={input} currency={d.currency} onOpen={i => setDraft({invested: String(i.invested ?? START.invested), yearlySpend: String(i.yearlySpend ?? START.yearlySpend), withdrawalPct: String(i.withdrawalPct ?? START.withdrawalPct), monthlyContribution: String(i.monthlyContribution ?? START.monthlyContribution), returnPct: String(i.returnPct ?? START.returnPct), volatilityPct: String(i.volatilityPct ?? START.volatilityPct), years: String(i.years ?? START.years), currency: typeof i.currency === 'string' ? i.currency : d.currency})}/></Suspense>}
   </section>;
 }
 

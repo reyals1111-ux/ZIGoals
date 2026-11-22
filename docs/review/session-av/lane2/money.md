@@ -195,3 +195,41 @@ Device keys / catalogue / export / erase entries needed: none (existing keys onl
   Showcase's labelled fixture prices.
 - Registries: none. CSS touched: `components/portfolio/portfolio.css`.
 - Today: the existing "Your price alerts" card also lists a reached move alert (no new card).
+
+### F5. Budgets: target types, Underfunded, assign mode, suggested amounts, flex buckets, non-monthly budgets and groups, CSV, scenarios
+
+- LEDGER rows: #126 YNAB weekly and yearly target types, an Underfunded total, snooze — **built** (weekly × the weeks
+  that start in the month, monthly, yearly by its month; the saving target's monthly share counts too); #127 YNAB a
+  different amount per month, quick-assign ("fund what's underfunded", "same as last month") and moving money — **built**
+  (plus "use the 3-month average"; each with Undo); #135 Monarch flex budgeting — **built** (fixed / flexible /
+  non-monthly bucket, one "Flexible left"); #136 Monarch non-monthly budgets, a starting balance, budget groups —
+  **built**; #137 Monarch CSV of a month's budget table — **built** (text cells formula-safe, amounts as numbers);
+  #138 Monarch several saved forecast scenarios side by side, and one-off or recurring life events in the long model —
+  **built** (Financial freedom: life events counted by every path, up to four scenarios compared); #145 Copilot a
+  suggested budget from the last months' average, a different amount for one month — **built**; #151 Rocket Money the
+  suggested average (and the near-limit device notice, built in F3) — **built**.
+- Files: `lib/budgets/assign.ts` (new), `lib/budgets/engine.ts` (`budgetedIn`, `movedIn`, the starting balance in the
+  carry), `lib/budgets/ready-to-assign.ts` (that month's own amount), `components/wealth/budgets/assign-panel.tsx` (new,
+  lazy), `components/wealth/budgets/budgets-month.tsx`, `lib/fi-model/model.ts` (`events`, `eventsAt`),
+  `components/wealth/money-tools/fi-scenarios.tsx` (new, lazy), `components/wealth/money-tools/fi-model-panel.tsx`.
+- Tests: `lib/budgets/av2-assign.test.ts`, round trip (budget `need`, `snoozed`, `months`, `bucket`, `period`, `start`,
+  `group`; record `moves`; FI `events`, `scenarios`). Existing budget, recap and FI tests unchanged and green.
+- Spec: `tests/av2-money-budgets-plan.spec.ts`.
+- Help (EN): **Q: What does "Underfunded" mean?** A: Give a budget a target (Budgets → Plan → Target: an amount each week,
+  month or year) and Underfunded shows what this month's amount falls short of it. "Fund what is underfunded" tops every
+  budget up for this month; Snooze leaves a target out for one month. **Q: Can a budget have a different amount in one
+  month?** A: Yes: Plan → "This month only". "Same as last month" and "Use the 3-month average" fill every budget at
+  once; Undo puts them back. **Q: How do I move money between budgets?** A: Plan → "Move money between budgets": from
+  one, to another, an amount up to what is left. **Q: What are flexible and non-monthly budgets?** A: Mark everyday
+  budgets Flexible to see one "Flexible left" figure. A non-monthly budget (insurance every 12 months) sets a share
+  aside each month. Groups put budgets under your own headings. **Q: Can I download my budgets?** A: Plan → "Download
+  this month (CSV)". **Q: Can I compare plans for the long run?** A: Financial freedom → Life events (a car, a pension)
+  and "Save as a scenario"; up to four scenarios side by side. It is a model, not advice.
+- What's new: "Budgets: weekly and yearly targets with Underfunded, a different amount per month, fund in one tap, move
+  money, flexible and non-monthly budgets, groups, a CSV of the month, and scenarios in Financial freedom."
+- Answers: `underfunded`, `flexibleLeft`, `suggestedBudget` (corpus `av2-money-underfunded`, `-flexible`,
+  `-suggested-budget`).
+- Showcase hook: none (the Showcase budgets feed the NOVA corpus and cards; a target or bucket there would change their
+  pinned answers — the lead can add one with the corpus re-recorded).
+- Registries: none. CSS touched: `components/wealth/budgets/budgets.css`, `components/wealth/money-tools/money-tools.css`.
+- Today: nothing.

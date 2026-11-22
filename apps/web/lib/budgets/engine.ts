@@ -20,16 +20,29 @@ const spentIn = (entries: readonly MoneyEntry[], month: string, category: string
   for (const e of entries) if (e.kind === 'expense' && e.currency === currency && reachesMonth(e, month)) for (const p of budgetMonthParts(e, month)) if (p.category.toLowerCase() === name) total += p.cents;
   return total;
 };
+/**
+ * Session AV lane 2 (money; YNAB's assign mode): a budget's own amount in a month — the amount set for that month, else
+ * its monthly amount — and what was moved into (+) or out of (−) it that month (`moves`). Older records have neither.
+ */
+export const budgetedIn = (budget: Budget, month: string) => cents(budget.months?.[month] ?? budget.monthly);
+export function movedIn(record: Pick<BudgetsRecord, 'moves'> | undefined, budgetId: string, month: string): number {
+  let n = 0;
+  for (const m of record?.moves ?? []) if (m.month === month) { if (m.to === budgetId) n += cents(m.amount); if (m.from === budgetId) n -= cents(m.amount); }
+  return n;
+}
+/** Session AV lane 2 (money; Monarch's starting balance): carried into the budget's first month (with rollover). */
+const startOf = (budget: Budget) => budget.rollover && budget.start ? cents(budget.start) : 0;
 /** What earlier months left unspent and carried into `month` (0 without rollover). */
-export function carriedInto(budget: Budget, entries: readonly MoneyEntry[], month: string): number {
+export function carriedInto(budget: Budget, entries: readonly MoneyEntry[], month: string, record?: Pick<BudgetsRecord, 'moves'>): number {
+  if (budget.rollover && month === budget.since && !budget.freshFrom) return startOf(budget);
   if (!budget.rollover || month <= budget.since) return 0;
   // Session AV (F-FRESH-MONTH): a fresh start counts as a new beginning: no carry into that month, and none from before it.
   const start = budget.freshFrom && budget.freshFrom > budget.since ? budget.freshFrom : budget.since;
   if (month <= start) return 0;
   let from = shiftMonth(month, -MAX_ROLLOVER_MONTHS);
   if (from < start) from = start;
-  let carry = 0;
-  for (let m = from; m < month; m = shiftMonth(m, 1)) carry = Math.max(0, cents(budget.monthly) + carry - spentIn(entries, m, budget.category, budget.currency));
+  let carry = from === budget.since && start === budget.since ? startOf(budget) : 0;
+  for (let m = from; m < month; m = shiftMonth(m, 1)) carry = Math.max(0, budgetedIn(budget, m) + movedIn(record, budget.id, m) + carry - spentIn(entries, m, budget.category, budget.currency));
   return carry;
 }
 /**
@@ -53,7 +66,7 @@ export type MonthView = {month: string; rows: BudgetRow[]; unbudgeted: {category
 export function monthView(entries: readonly MoneyEntry[], record: BudgetsRecord, month: string, today: string): MonthView {
   const active = record.budgets.filter(b => b.since <= month);
   const rows = active.map(b => {
-    const budgeted = cents(b.monthly), carried = carriedInto(b, entries, month), available = budgeted + carried, spent = spentIn(entries, month, b.category, b.currency);
+    const budgeted = budgetedIn(b, month) + movedIn(record, b.id, month), carried = carriedInto(b, entries, month, record), available = budgeted + carried, spent = spentIn(entries, month, b.category, b.currency);
     return {id: b.id, category: b.category, currency: b.currency, budgeted, carried, available, spent, left: available - spent, over: spent > available, rollover: b.rollover, share: available > 0 ? Math.min(1, spent / available) : spent > 0 ? 1 : 0, ...(b.target ? {target: targetLine(b.target, month, budgeted, available - spent)} : {})};
   }).sort((a, b) => a.currency.localeCompare(b.currency) || b.spent - a.spent || a.category.localeCompare(b.category));
   const budgeted = new Set(active.map(b => `${b.currency}|${b.category.toLowerCase()}`)), {start, end} = monthOf(`${month}-01`);
@@ -106,4 +119,4 @@ export function startFresh(record: BudgetsRecord, month: string): BudgetsRecord 
   return budgetsSchema.parse({...record, budgets: record.budgets.map(b => b.rollover && b.since < month ? {...b, freshFrom: month} : b)});
 }
 /** Whether anything carries into `month` that a fresh start would clear. */
-export const carriesInto = (record: BudgetsRecord, entries: readonly MoneyEntry[], month: string) => record.budgets.some(b => b.since <= month && carriedInto(b, entries, month) > 0);
+export const carriesInto = (record: BudgetsRecord, entries: readonly MoneyEntry[], month: string) => record.budgets.some(b => b.since <= month && carriedInto(b, entries, month, record) > 0);

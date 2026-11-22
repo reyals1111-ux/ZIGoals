@@ -19,7 +19,16 @@ export type FiInput = {
   years: number;
   paths?: number;
   seed?: number;
+  /**
+   * Session AV lane 2 (money; Monarch's life events): amounts in or out at the end of a year of the model — once (a car,
+   * a sabbatical) or every year from then on (a pension starting). Today's money, as every input; the value never goes
+   * below zero.
+   */
+  events?: readonly FiEvent[];
 };
+export type FiEvent = {year: number; amount: number; kind: 'in' | 'out'; every: 'once' | 'yearly'};
+/** The sum of the events at the end of year `y` (in adds, out takes away). */
+export const eventsAt = (events: readonly FiEvent[] | undefined, y: number) => (events ?? []).reduce((sum, e) => (e.every === 'once' ? e.year === y : y >= e.year) ? sum + (e.kind === 'in' ? e.amount : -e.amount) : sum, 0);
 export const FI_DEFAULTS = {withdrawalPct: 4, returnPct: 5, volatilityPct: 15, years: 50, paths: 1000, seed: 20261031} as const;
 export const FI_LIMITS = {money: 1e12, withdrawalPct: [1, 10], returnPct: [-10, 20], volatilityPct: [0, 60], years: [1, 60], paths: [10, 5000]} as const;
 export type FiBand = {year: number; p10: number; p50: number; p90: number};
@@ -86,6 +95,7 @@ export function runFiModel(input: FiInput, clock: () => number = () => (typeof p
     for (let y = 1; y <= years; y++) {
       const log = drift + sigma * z(), g = Math.exp(log), before = v;
       v = v * g + (Math.abs(log) < 1e-12 ? yearly : yearly * (g - 1) / log);
+      if (input.events?.length) v = Math.max(0, v + eventsAt(input.events, y));
       // The year it is reached, between the two year ends (linear inside the year).
       if (at === Infinity && v >= target) at = y - 1 + (target - before) / (v - before);
       values[y * paths + p] = v;

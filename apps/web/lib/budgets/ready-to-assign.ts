@@ -2,6 +2,7 @@ import {monthOf} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
 import type {BudgetsRecord} from './schema';
+import {budgetedIn} from './engine';
 import {isCounted} from '../money-log/counted';
 
 /**
@@ -21,7 +22,7 @@ export function readyToAssign(entries: readonly MoneyEntry[], record: BudgetsRec
     const row = income.get(e.currency) ?? {cents: 0, count: 0};
     row.cents += minorUnits(e.amount); row.count++; income.set(e.currency, row);
   }
-  for (const b of record.budgets) if (b.since <= month) held.set(b.currency, (held.get(b.currency) ?? 0) + minorUnits(b.monthly));
+  for (const b of record.budgets) if (b.since <= month) held.set(b.currency, (held.get(b.currency) ?? 0) + budgetedIn(b, month)); // Session AV lane 2 (money): that month's own amount
   return [...new Set([...income.keys(), ...held.keys()])].sort().map((currency): ReadyToAssign => {
     const got = income.get(currency), hold = held.get(currency) ?? 0;
     return got ? {currency, status: 'ok', income: got.cents, held: hold, ready: got.cents - hold, incomeEntries: got.count} : {currency, status: 'no-income', held: hold};

@@ -27,6 +27,8 @@ const WatchList = lazy(() => import('./watch-list'));
 const MonthRecapView = lazy(() => import('./month-recap'));
 // Session AV lane 2 (money): watched payees, challenges, budgets on Today, and the year in review (each lazy).
 const BudgetExtras = lazy(() => import('./budget-extras'));
+// Session AV lane 2 (money; YNAB's assign mode and targets, Monarch's flex and non-monthly budgets): "Plan <month>" (lazy).
+const AssignPanel = lazy(() => import('./assign-panel'));
 const YearRecapView = lazy(() => import('./year-recap'));
 
 /**
@@ -157,6 +159,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     {(view.rows.length > 0 || entries.length > 0) && <details className="budgets-recap-fold" onToggle={e => setRecapOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{formatMonth(`${recapMonth}-01`)} in short</summary>{recapOpen && <Suspense fallback={<p className="fine">Opening…</p>}><MonthRecapView entries={entries} record={record} month={recapMonth} today={today}/></Suspense>}</details>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
+    {view.rows.length > 0 && month >= thisMonth && <Suspense fallback={null}><AssignPanel record={record} entries={entries} month={month} today={today} update={safeChange}/></Suspense>}
     <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange}/></Suspense>
     <Suspense fallback={null}><BudgetExtras record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange}/></Suspense>
     <p className="fine">From your own money log, in each currency apart. An overspend is never carried into the next month. Not financial advice.</p>

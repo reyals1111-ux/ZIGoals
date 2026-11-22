@@ -18,4 +18,7 @@ export const AV2_MONEY: readonly Intent[] = [
   {id: 'av2-money-account-notes', pillar: 'wealth', en: ['what notes do I have on my accounts', 'show my account notes'], nl: ['welke notities heb ik bij mijn rekeningen', 'toon mijn notities bij mijn rekeningen']},
   {id: 'av2-money-move-alerts', pillar: 'wealth', en: ['which move alerts do I have', 'what 24 hour alerts are set'], nl: ['welke bewegingsalarmen heb ik', 'welke procentalarmen staan er']},
   {id: 'av2-money-time-machine', pillar: 'wealth', en: ['what was my portfolio worth a month ago', 'what were my coins worth last year'], nl: ['wat was mijn portefeuille vorige maand waard', 'wat was mijn crypto vorig jaar waard']},
+  {id: 'av2-money-underfunded', pillar: 'wealth', en: ['what is underfunded this month', 'which budgets are underfunded'], nl: ['welke budgetten komen tekort', 'wat komt er tekort in mijn budgetten']},
+  {id: 'av2-money-flexible', pillar: 'wealth', en: ['how much flexible budget is left', 'what is my flexible spending left'], nl: ['hoeveel flexibel budget heb ik nog', 'hoeveel flexibele uitgaven heb ik nog over']},
+  {id: 'av2-money-suggested-budget', pillar: 'wealth', en: ['what should my groceries budget be', 'can you suggest a budget for groceries'], nl: ['wat is een voorstel voor mijn budget voor groceries', 'wat is mijn gemiddelde budget voor groceries']},
 ];
