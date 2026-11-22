@@ -102,6 +102,11 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       if (q && /^[a-z0-9-]{1,40}$/.test(q)) { setPromptPick(q); requestAnimationFrame(() => { const f = document.getElementById('journal-prompt-answers') as HTMLDetailsElement | null; if (f) { f.open = true; f.scrollIntoView({block: 'start'}); } }); } };
     read(); window.addEventListener('popstate', read); return () => window.removeEventListener('popstate', read);
   }, []);
+  // Session AV lane 2 (r4-mind; LEDGER #325): a feeling word's choices link to #write-it-out and #thought-check; the fold opens.
+  useEffect(() => {
+    const go = () => { const h = window.location.hash.slice(1); if (h !== 'write-it-out' && h !== 'thought-check') return; requestAnimationFrame(() => { const f = document.getElementById(h) as HTMLDetailsElement | null; if (f) { f.open = true; f.scrollIntoView({block: 'start'}); f.querySelector<HTMLElement>('summary')?.focus(); } }); };
+    go(); window.addEventListener('hashchange', go); return () => window.removeEventListener('hashchange', go);
+  }, [journal.loaded]);
   // Session AV lane 2 (LEDGER #35, #42): photos and voice notes no entry names any more leave this browser after 30 days.
   useEffect(() => {
     if (!journal.loaded || journal.unreadable) return;
@@ -144,8 +149,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose book={shownBook === 'all' || shownBook === 'main' ? null : shownBook}/>
       {/* Session AK (B2, lane B): the Journal's sibling for longer thoughts — today's note beside what this day holds. */}
       <p className="fine journal-notes-link">Longer thoughts and ideas go in <Link className="text-link" href="/app/notes?day=today">today&rsquo;s note</Link>, beside what this day holds. There, type <code>[[</code> and a name to link a goal or a habit, for example <code>[[Run a 10k]]</code>.</p>
-      <JournalFold className="write-it-out-fold" label="Write it out" summary={<>Write it out <span className="fine">· a page that is never saved</span></>}><WriteItOut/></JournalFold>
-      <JournalFold className="thought-check-fold" label="the thought check" summary={<>Check a thought <span className="fine">· thinking traps, as self-reflection</span></>}><ThoughtCheck/></JournalFold></section>
+      <JournalFold id="write-it-out" className="write-it-out-fold" label="Write it out" summary={<>Write it out <span className="fine">· a page that is never saved</span></>}><WriteItOut/></JournalFold>
+      <JournalFold id="thought-check" className="thought-check-fold" label="the thought check" summary={<>Check a thought <span className="fine">· thinking traps, as self-reflection</span></>}><ThoughtCheck/></JournalFold></section>
     {/* Session AL (DV-190b, P-DV-124): your entries right after Write, not below every chart */}
     <section className="panel" aria-labelledby="journal-entries"><h2 id="journal-entries">Entries</h2>
       {journal.data.entries.length > 0 && <dl className="journal-stats" aria-label="Your writing">
