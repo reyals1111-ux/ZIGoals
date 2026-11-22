@@ -12,4 +12,7 @@ export const AV2_MONEY_R2: readonly Intent[] = [
   {id: 'av2r2-money-day-left', pillar: 'wealth', en: ['how much can I spend per day', 'how much budget is left per day'], nl: ['hoeveel heb ik per dag over', 'hoeveel kan ik per dag uitgeven']},
   {id: 'av2r2-money-own-budgets', pillar: 'wealth', en: ['how are my own budgets', 'how is my holiday budget'], nl: ['hoe staan mijn eigen budgetten', 'hoe staat mijn vakantiebudget']},
   {id: 'av2r2-money-payee-budgets', pillar: 'wealth', en: ['how are my payee budgets', 'how are my shop budgets'], nl: ['hoe staan mijn winkelbudgetten', 'hoe staan mijn budgetten per winkel']},
+  {id: 'av2r2-money-unusual', pillar: 'wealth', en: ['is there any unusual spending', 'which entries are above their usual'], nl: ['zijn er ongewone uitgaven', 'welke ongebruikelijke betalingen heb ik']},
+  {id: 'av2r2-money-balance-lines', pillar: 'wealth', en: ['which accounts are past their balance limits', 'show my balance alerts'], nl: ['welke saldogrenzen heb ik', 'welke rekeningen staan onder hun grens']},
+  {id: 'av2r2-money-to-record', pillar: 'wealth', en: ['which bills do I still need to record', 'what planned payments are due'], nl: ['welke vaste lasten moet ik nog vastleggen', 'welke geplande betalingen zijn er']},
 ];

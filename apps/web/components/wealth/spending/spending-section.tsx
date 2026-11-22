@@ -58,6 +58,8 @@ const MoneySearch = lazy(() => import('./money-search'));
 const SavedChips = lazy(() => import('./quick-log').then(m => ({default: m.SavedChips})));
 const FormExtras = lazy(() => import('./quick-log').then(m => ({default: m.FormExtras})));
 const MonthExtras = lazy(() => import('./quick-log').then(m => ({default: m.MonthExtras})));
+// Session AV lane 2, round 2 (money; Emma's unusual-transaction alerts): one calm line, with "That's fine" (own chunk).
+const UnusualLine = lazy(() => import('./unusual-line'));
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
   const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
@@ -211,6 +213,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
       </form>}
     </div>
     <p className="spending-status" role="status" aria-live="polite">{status}</p>
+    {!showcase && <Suspense fallback={null}><UnusualLine entries={log.data.entries} today={today} update={log.update} onEdit={startEdit}/></Suspense>}
     <div className="spending-lists">
       <section aria-labelledby={`${id}-week`}>
         <div className="money-select-head"><h3 id={`${id}-week`}>This week</h3>

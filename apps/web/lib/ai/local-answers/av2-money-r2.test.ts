@@ -59,6 +59,15 @@ describe('quick logging', () => {
     expect(text(zigi('hoe staan mijn eigen budgetten', s, more))).toMatch(/^Out: €20[.,]00 van €50[.,]00, €30[.,]00 over, \d+ dagen te gaan/);
     expect(text(zigi('how are my own budgets', s))).toContain('none of your own budgets yet');
   });
+  test('alerts: above the usual, balance lines, bills to record', () => {
+    const hist = ['09-01', '09-15', '10-01', '10-15'].map((d, i) => mine({id: `h${i}`, category: 'Groceries', note: 'Market', amount: '40.00', date: `2026-${d}`}));
+    const s = withLog(freshAll(), log => ({...log, entries: [...hist, mine({id: 'big', category: 'Groceries', note: 'Market', amount: '150.00', date: DAY})]}));
+    expect(text(zigi('is there any unusual spending', s))).toMatch(/^Above its usual in the last two weeks: Market €150\.00 \([^;]+; usually €40\.00\)\./);
+    expect(text(zigi('zijn er ongewone uitgaven', s))).toMatch(/^Boven het gewone in de afgelopen twee weken: Market €150[.,]00 \([^;]+; meestal €40[.,]00\)\./);
+    expect(text(zigi('is there any unusual spending', freshAll()))).toContain('Nothing in the last two weeks');
+    expect(text(zigi('show my balance alerts', freshAll()))).toContain('No account has a balance line yet');
+    expect(text(zigi('which bills do I still need to record', freshAll()))).toContain('No bill due in the last three days');
+  });
   test('never claims another question', () => {
     for (const q of ['what did I spend this month', 'log coffee 3.20', 'how much is left in my budgets', 'hoeveel heb ik uitgegeven']) expect(zigi(q), q).toBeNull();
   });

@@ -1,6 +1,7 @@
 'use client';
 import {useCallback, useEffect, useId, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
+import {LimitForm} from './account-limits';
 import {isDebtKind, type Account, type Accounts} from '../../lib/accounts/schema';
 import {WEALTH_SHEET} from '../../lib/wealth-sheet/schema';
 import {accountValueNow, addFlow, equityOf, irr, linkMortgage, removeFlow, setEvery, setGroup, setShare} from '../../lib/wealth-sheet/sheet';
@@ -49,6 +50,8 @@ export default function AccountSheet({accounts, account: a, today}: {accounts: A
     </form>
     {debt && properties.length > 0 && <label className="field"><span>Secured on</span><select value={s.secures?.[a.id] ?? ''} onChange={e => save(r => linkMortgage(r, a.id, e.target.value || null), e.target.value ? `${a.name} is linked to ${properties.find(p => p.id === e.target.value)?.name}: its equity shows on that row.` : `${a.name} is no longer linked.`)}><option value="">Not linked to a property</option>{properties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
     <label className="field"><span>Remind me to update it</span><select value={s.every?.[a.id] ?? ''} onChange={e => save(r => setEvery(r, a.id, (e.target.value || null) as 'month' | null), e.target.value ? `${a.name}: due for an update every ${e.target.value}.` : `${a.name}: no update reminder.`)}><option value="">Never</option><option value="month">Every month</option><option value="quarter">Every quarter</option></select></label>
+    {/* Session AV lane 2, round 2 (money; Wallet's balance-limit notifications): a low and a high line for this account. */}
+    <LimitForm account={a}/>
     {!debt && <details className="account-sheet-fold"><summary>Money in and out, and its return{flows.length ? ` (${flows.length})` : ''}</summary>
       {flows.length > 0 && <ul className="account-sheet-flows">{flows.map((f, i) => <li key={`${f.date}-${i}`}><span>{formatDate(f.date)} · {f.kind === 'in' ? 'in' : 'out'} {formatMoney(f.amount, a.currency)}</span><button type="button" className="quiet" aria-label={`Remove money ${f.kind} of ${f.amount} on ${formatDate(f.date)}`} onClick={() => save(r => removeFlow(r, a.id, i), 'Removed.')}>Remove</button></li>)}</ul>}
       <p role="status">{rate === null ? (flows.length ? 'The return needs money in and a balance today.' : 'Add what you put in (and took out), with the days; with today’s balance it gives the annual return.') : <>Annual return (IRR): <strong>{formatNumber(rate * 100, {maximumFractionDigits: 1})} %</strong> a year, from your money in and out and today&rsquo;s balance. A result, not advice.</>}</p>

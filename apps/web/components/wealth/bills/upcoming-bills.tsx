@@ -21,6 +21,8 @@ const BillMonthGrid = lazy(() => import('./bill-month-grid'));
 const BillsMonth = lazy(() => import('./bills-month'));
 // Session AV lane 2 (money; Undebt.it): the bill tracker — to pay this month with debt minimums and Mark paid, history, autopay, edit, print.
 const BillTracker = lazy(() => import('./bill-tracker'));
+// Session AV lane 2, round 2 (money; Wallet's planned payments): a bill due now, with one tap to record it (own chunk).
+const DueToRecord = lazy(() => import('./due-to-record'));
 
 /**
  * Session AK (7.3, COMPETITORS M7): Upcoming bills. Bills come from the person: confirmed from a repeat the money log
@@ -68,6 +70,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
         {yearly.length > 0 && <div><dt>A year of these bills <small>(an estimate)</small></dt><dd>{yearly.map(t => <span key={t.currency}>{money(t.cents, t.currency)}</span>)}</dd></div>}
       </dl>
     </div>
+    {record.bills.length > 0 && !showcase && <Suspense fallback={null}><DueToRecord record={record} entries={entries} today={today}/></Suspense>}
     {notes.length > 0 && <ul className="bills-notes" aria-label="Notes to self due soon">{notes.map(n => <li key={n.billId}><strong>{n.title}</strong> · {formatDate(n.cancelBy)}: {n.note}</li>)}</ul>}
     {record.bills.length > 0 && <Suspense fallback={null}><BillsMonth record={record} entries={entries} today={today}/></Suspense>}
     {record.bills.length > 0 && !showcase && <details className="bills-calendar-fold bill-tracker-fold" onToggle={e => setTracking((e.currentTarget as HTMLDetailsElement).open)}><summary>Bill tracker: mark paid, history, edit</summary>{tracking && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><BillTracker record={record} entries={entries} today={today} onChange={onChange}/></Suspense>}</details>}

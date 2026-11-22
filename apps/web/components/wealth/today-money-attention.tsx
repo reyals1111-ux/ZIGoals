@@ -17,6 +17,11 @@ import {DEBT_PLANNER} from '../../lib/debt-planner/store';
 import {trackedProgress} from '../../lib/debt-planner/wealth';
 import {WEALTH_SHEET} from '../../lib/wealth-sheet/schema';
 import {staleAccounts} from '../../lib/wealth-sheet/sheet';
+// Session AV lane 2, round 2 (money; Emma, Wallet): unusual entries, balance lines, payee and own budgets, money lent and borrowed.
+import {MONEY_MORE} from '../../lib/money-more/schema';
+import {MONEY_TAGS_RECORD} from '../../lib/money-tags/schema';
+import {todayExtras} from '../../lib/money-more/today';
+import {isShowcase} from '../../lib/showcase-storage';
 
 /**
  * Session AV (owner follow-up 1, F-MONEY-ATTENTION; YNAB's Spotlight): one line on Today, beside "Tasks due today",
@@ -27,16 +32,18 @@ import {staleAccounts} from '../../lib/wealth-sheet/sheet';
  * month, is named too.
  */
 export default function TodayMoneyAttention() {
-  const log = useDeviceRecord(MONEY_LOG), review = useDeviceRecord(MONEY_REVIEW), budgets = useDeviceRecord(BUDGETS), bills = useDeviceRecord(BILLS), accounts = useDeviceRecord(ACCOUNTS), planner = useDeviceRecord(DEBT_PLANNER), sheet = useDeviceRecord(WEALTH_SHEET), today = localDate();
-  const ready = log.loaded && review.loaded && budgets.loaded && bills.loaded && accounts.loaded && planner.loaded && sheet.loaded;
+  const log = useDeviceRecord(MONEY_LOG), review = useDeviceRecord(MONEY_REVIEW), budgets = useDeviceRecord(BUDGETS), bills = useDeviceRecord(BILLS), accounts = useDeviceRecord(ACCOUNTS), planner = useDeviceRecord(DEBT_PLANNER), sheet = useDeviceRecord(WEALTH_SHEET), more = useDeviceRecord(MONEY_MORE), tags = useDeviceRecord(MONEY_TAGS_RECORD), today = localDate();
+  const ready = log.loaded && review.loaded && budgets.loaded && bills.loaded && accounts.loaded && planner.loaded && sheet.loaded && more.loaded && tags.loaded;
   const a = useMemo(() => {
     if (!ready) return null;
     const entries = log.unreadable ? [] : log.data.entries, line = log.unreadable ? null : log.data.lowBalance;
     const low = line && !accounts.unreadable && !bills.unreadable ? lowBalanceCross(cashForecast({accounts: accounts.data, bills: bills.data, entries, ...(budgets.unreadable ? {} : {budgets: budgets.data}), today}).rows, line) : null;
     // Session AV lane 2 (money; Undebt.it): Today follows the kept debt plan and names it when what is owed is behind it.
     const kept = !accounts.unreadable && !planner.unreadable ? trackedProgress(accounts.data, planner.data, today) : null, debtsBehind = kept && kept.months > 0 && kept.ahead < 0n ? {cents: -kept.ahead, currency: kept.currency} : null;
-    return moneyAttention({entries, review: review.unreadable ? null : review.data, budgets: budgets.unreadable ? null : budgets.data, bills: bills.unreadable ? null : bills.data, today, low, debtsBehind, stale: !accounts.unreadable && !sheet.unreadable ? staleAccounts(accounts.data, sheet.data, today) : []});
-  }, [sheet.unreadable, sheet.data, planner.unreadable, planner.data, ready, log.unreadable, log.data, review.unreadable, review.data, budgets.unreadable, budgets.data, bills.unreadable, bills.data, accounts.unreadable, accounts.data, today]);
+    return moneyAttention({entries, review: review.unreadable ? null : review.data, budgets: budgets.unreadable ? null : budgets.data, bills: bills.unreadable ? null : bills.data, today, low, debtsBehind, stale: !accounts.unreadable && !sheet.unreadable ? staleAccounts(accounts.data, sheet.data, today) : [],
+      // Session AV lane 2, round 2: left out of the Showcase, whose Today line is pinned as it is.
+      extra: isShowcase() ? [] : todayExtras({entries, today, budgets: budgets.unreadable ? null : budgets.data, accounts: accounts.unreadable ? null : accounts.data, sheet: sheet.unreadable ? null : sheet.data, more: more.unreadable ? null : more.data, tags: tags.unreadable ? null : tags.data})});
+  }, [more.unreadable, more.data, tags.unreadable, tags.data, sheet.unreadable, sheet.data, planner.unreadable, planner.data, ready, log.unreadable, log.data, review.unreadable, review.data, budgets.unreadable, budgets.data, bills.unreadable, bills.data, accounts.unreadable, accounts.data, today]);
   const left = useMemo(() => ready && !budgets.unreadable && !log.unreadable ? budgetsLeft(budgets.data, log.data.entries, today) : [], [ready, budgets.unreadable, budgets.data, log.unreadable, log.data.entries, today]);
   if (!a || (!a.count && !left.length)) return null;
   const pieces = attentionLinks(a), shown = pieces.slice(0, 3);

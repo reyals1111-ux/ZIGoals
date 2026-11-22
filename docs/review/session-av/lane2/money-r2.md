@@ -115,3 +115,43 @@ the answers read `env.moneyMore` and, without it, say where the figures live.
   no Tab stop — the lead re-records the corpus' screens if one pins a budget row's text).
 - Registries: `zigoals:money-more:v1` (above). CSS touched: `components/wealth/budgets/budgets.css` (theme variables).
 - Today: nothing always visible (the payee-budget piece on Today's money line is R2-F3).
+
+### R2-F3. Alerts: an entry above its usual, a balance line per account, planned payments with one tap to record
+
+- LEDGER rows: #248 Emma unusual-transaction alerts — **built** (an entry of the last 14 days more than twice the median
+  of the last ten at its payee — or, with fewer than three there, in its category — and at least 20 more; one calm line
+  in Spending with "Open" and "That's fine" (Undo), and a piece on Today's one money line); #249 Wallet balance-limit
+  notifications — **built** (a low and a high line per account in its Sheet, checked against its latest balance; named
+  on Wealth under the net-worth cards and on Today's money line); #245 Wallet planned payments — **built as a reminder
+  with one tap to record**: "Due now, not in your money log yet" at the top of Upcoming bills lists each bill whose day
+  came in the last three days and that the log does not show, with "Record it" (an expense on its day, Undo) and "Not
+  now"; Today's money line already names a bill due in the next three days. **Left, owner decision pending (not built):**
+  "record it for me on the day" — writing the expense by itself after one opt-in goes against the rule in
+  `lib/bills/tracker.ts` that every mark is the person's own record; the ledger's note asks the owner to confirm first.
+  Nothing in this branch records a bill without the person's tap.
+- Also on Today's money line (the same one link, no Tab stop added): a payee budget near (80 %) or over its amount and one
+  of your own budgets near or over (R2-F2), "<account> below your line".
+- Files: `lib/money-more/alerts.ts` (new), `lib/money-more/today.ts` (new), `lib/money-attention.ts` (optional `extra`
+  pieces), `components/wealth/today-money-attention.tsx` (reads `zigoals:money-more:v1` and the tags record; nothing new in
+  the Showcase), `components/wealth/spending/unusual-line.tsx` (new, lazy), `components/wealth/bills/due-to-record.tsx`
+  (new, lazy), `components/wealth/account-limits.tsx` (new: `LimitNotices` lazy in `accounts-section.tsx`, `LimitForm` in
+  `account-sheet.tsx`), `components/wealth/spending/spending-section.tsx`, `components/wealth/bills/upcoming-bills.tsx`.
+- Tests: `lib/money-more/av2-alerts.test.ts`, `lib/ai/local-answers/av2-money-r2.test.ts`; `lib/av-money-attention.test.ts`
+  unchanged and green.
+- Spec: `tests/av2-money-alerts.spec.ts`.
+- Stored: entry `fine`; wealth sheet `limits`.
+- Help (EN): **Q: Does ZIGoals tell me about an unusual payment?** A: When an entry of the last two weeks is more than twice
+  what you usually spend at that payee (or in that category), Spending and Today say so, as a fact. "That's fine" stops it
+  being named again. **Q: Can I get a warning when an account's balance is low?** A: On Wealth, open the account's Sheet
+  and fill in "Tell me when it is below" (or above). Wealth and Today name it when the latest balance you entered is past
+  that line. **Q: Can a bill record itself?** A: No: when a bill's day comes and your money log does not show it, Upcoming
+  bills offers "Record it" — one tap, with Undo. ZIGoals never records or pays anything by itself.
+- What's new: "Money: a note when a payment is well above its usual, your own balance line per account, and a bill due now
+  recorded in one tap."
+- Answers: `unusual`, `balanceLines`, `toRecord` (corpus `av2r2-money-unusual`, `-balance-lines`, `-to-record`). The
+  balance lines read `env.wealthSheet` (already listed for the lead in `money.md`, F8).
+- Showcase hook: none (the Showcase's Today money line is pinned; the new pieces are left out there, and the Showcase
+  hides write actions such as Record it and That's fine).
+- Registries: none new (fields on records already wired). CSS touched: `components/wealth/spending/spending.css`,
+  `components/wealth/bills/bills.css`, `components/wealth/accounts.css` (theme variables only).
+- Today: nothing always visible. The new pieces join the existing Money link (one Tab stop, as before) only when one asks.

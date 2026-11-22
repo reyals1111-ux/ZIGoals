@@ -37,6 +37,8 @@ const DebtsSummary = lazy(() => import('./debts-summary'));
 const WealthSheetPanel = lazy(() => import('./wealth-sheet'));
 const AccountSheet = lazy(() => import('./account-sheet'));
 const PropertyEquity = lazy(() => import('./account-sheet').then(x => ({default: x.PropertyEquity})));
+// Session AV lane 2, round 2 (money; Wallet): balances past the person's own lines (lazy).
+const LimitNotices = lazy(() => import('./account-limits'));
 
 /**
  * Accounts, debts and net worth (Session W Part 12; Wealth's "wealth:accounts" section). Balances are the person's own,
@@ -102,6 +104,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
       </article>)}
       <p className="fine">Net worth = accounts + Wealth holdings with a value − debts, per currency, never converted between currencies.{worth.unvaluedHoldings ? ` Not counted, no value yet: ${worth.unvaluedNames.join(', ')}.` : ''}</p>
     </div>}
+    <Suspense fallback={null}><LimitNotices accounts={accounts.data}/></Suspense>
     {/* Session AK (F5a, item 3): net-worth milestones, off by default; one calm card the first time one is passed. */}
     {worth.rows.length > 0 && <Suspense fallback={null}><NetWorthMilestones rows={worth.rows.map(r => ({currency: r.currency, net: r.net}))} today={today} /></Suspense>}
     {history.length > 1 && <details className="accounts-history"><summary>Net worth over time (accounts only)</summary><table><caption>Month-end net worth from your accounts and debts</caption><thead><tr><th scope="col">Date</th><th scope="col">Currency</th><th scope="col">Net worth</th><th scope="col">Accounts counted</th></tr></thead>

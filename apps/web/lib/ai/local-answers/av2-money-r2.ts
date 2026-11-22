@@ -6,8 +6,10 @@ import {PAID_WITH_WORDS, byPaidWith, bySub, savedLabel} from '../../money-more/q
 import {monthView} from '../../budgets/engine';
 import {daysLeftInMonth, perDay} from '../../budgets/per-day';
 import {ownBudgetRows, payeeBudgets} from '../../money-more/own-budgets';
+import {billsToRecord, limitStates, unusualEntries} from '../../money-more/alerts';
+import type {WealthSheet} from '../../wealth-sheet/schema';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, closed, count, isQuestion, list, MIXED, money, say, type Asked} from './av-words';
+import {answer, asked, closed, count, dayIn, isQuestion, list, MIXED, money, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -115,3 +117,40 @@ function payeeBudgetsAnswer(a: Asked): LocalReply | null {
   return answer(say(a.lang, `This month — ${rows.map(r => line('en', r)).join('; ')}.`, `Deze maand — ${rows.map(r => line('nl', r)).join('; ')}.`), calls);
 }
 addR2Answers(dayLeft, ownBudgets, payeeBudgetsAnswer);
+
+// ── Alerts: unusual entries, balance lines per account, bills due now to record (#248, #249, #245) ────────────────────
+/** "Is there any unusual spending", "zijn er ongewone uitgaven". */
+function unusual(a: Asked): LocalReply | null {
+  if (!/\b(?:unusual|odd|strange|out of the ordinary|above (?:the |its )?usual)\b.*\b(?:spending|entr(?:y|ies)|transactions?|payments?|purchases?)\b|\b(?:spending|entr(?:y|ies)|transactions?|payments?)\b.*\b(?:unusual|out of the ordinary|above (?:the |its |their )?usual)\b|\b(?:ongewone|ongebruikelijke|vreemde|afwijkende) (?:uitgaven|posten|betalingen|aankopen|transacties)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const found = unusualEntries(entriesOf(a.env), a.today), calls = call('money_log', {unusual: true, days: 14}, 'Money log · above the usual');
+  if (!found.length) return answer(say(a.lang, 'Nothing in the last two weeks is well above its usual (more than twice the middle of its last ten, at the same payee or in the same category).',
+    'Niets in de afgelopen twee weken ligt ver boven het gewone (meer dan twee keer het midden van de laatste tien, bij dezelfde winkel of in dezelfde categorie).'), calls);
+  const line = (lang: 'en' | 'nl', u: (typeof found)[number]) => `${u.name} ${money(u.cents, u.entry.currency)} (${dayIn(lang, u.entry.date, a.today)}; ${say(lang, 'usually', 'meestal')} ${money(u.usual, u.entry.currency)})`;
+  return answer(say(a.lang, `Above its usual in the last two weeks: ${list(found.slice(0, 4).map(u => line('en', u)), 'en')}. “That's fine” in ${SPENDING.en} stops one being named again.`,
+    `Boven het gewone in de afgelopen twee weken: ${list(found.slice(0, 4).map(u => line('nl', u)), 'nl')}. “That's fine” in ${SPENDING.nl} zorgt dat er een niet opnieuw genoemd wordt.`), calls);
+}
+const sheetOf = (env: ToolEnv): WealthSheet | null => (env as ToolEnv & {wealthSheet?: WealthSheet | null}).wealthSheet ?? ((env.ak as {wealthSheet?: WealthSheet | null} | null | undefined)?.wealthSheet ?? null);
+/** "Which accounts are past their balance limit", "welke rekeningen staan voorbij hun saldogrens". */
+function balanceLines(a: Asked): LocalReply | null {
+  if (!/\b(?:balance|account) (?:limits?|lines?|alerts?)\b|\baccounts? (?:below|above|past|over|under) (?:my |their |its )?(?:limits?|lines?)\b|\bsaldo ?(?:grenzen|grens|limieten?|alarmen?)\b|\brekeningen? (?:staan |zijn |komen )?(?:onder|boven|voorbij) (?:hun |mijn )?(?:grens|limiet)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const sheet = sheetOf(a.env), states = limitStates(a.env.accounts, sheet), calls = call('accounts', {limits: true}, 'Accounts · your balance lines');
+  const set = Object.keys(sheet?.limits ?? {}).length;
+  if (!states.length) return answer(say(a.lang, set ? `Every account with a line of yours is within it (${count(set, 'en', ['account', 'accounts'], ['', ''])} with a line).` : 'No account has a balance line yet. On Wealth, open an account’s Sheet and fill in “Tell me when it is below” (or above).',
+    set ? `Elke rekening met een eigen grens zit erbinnen (${count(set, 'nl', ['', ''], ['rekening', 'rekeningen'])} met een grens).` : 'Nog geen rekening heeft een saldogrens. Open op Vermogen de Sheet van een rekening en vul “Tell me when it is below” (of above) in.'), calls);
+  const line = (lang: 'en' | 'nl', s: (typeof states)[number]) => `${s.name} ${money(Math.round(Number(s.balance) * 100), s.currency)} (${dayIn(lang, s.date, a.today)}), ${s.side === 'below' ? say(lang, 'below', 'onder') : say(lang, 'above', 'boven')} ${money(Math.round(Number(s.line) * 100), s.currency)}`;
+  return answer(say(a.lang, `${list(states.map(s => line('en', s)), 'en')}. From the latest balance you entered.`, `${list(states.map(s => line('nl', s)), 'nl')}. Uit het laatste saldo dat je invoerde.`), calls);
+}
+/** "Which bills do I still need to record", "welke vaste lasten moet ik nog vastleggen". */
+function toRecord(a: Asked): LocalReply | null {
+  if (!/\bbills?\b.*\b(?:to record|not (?:yet )?recorded|not in my (?:money )?log|still to (?:record|log|mark))\b|\b(?:record|log) (?:my )?(?:due )?bills?\b|\bplanned payments?\b|\bvaste lasten\b.*\b(?:vastleggen|boeken|noteren|loggen)\b|\bgeplande betalingen\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const due = billsToRecord(a.env.ak?.bills, entriesOf(a.env), a.today), calls = call('bills', {toRecord: true}, 'Bills · due now, not in your log');
+  if (!due.length) return answer(say(a.lang, 'No bill due in the last three days is missing from your money log. When one is, Upcoming bills offers “Record it”: one tap, never by itself.',
+    'Geen rekening van de afgelopen drie dagen ontbreekt in je geldlog. Als er een is, biedt Upcoming bills “Record it” aan: één tik, nooit vanzelf.'), calls);
+  const line = (lang: 'en' | 'nl', l: (typeof due)[number]) => `${l.title} ${money(l.cents, l.currency)} (${dayIn(lang, l.due, a.today)})`;
+  return answer(say(a.lang, `Due and not in your money log yet: ${list(due.map(l => line('en', l)), 'en')}. Wealth → Upcoming bills → Record it puts one in, with Undo.`,
+    `Verlopen en nog niet in je geldlog: ${list(due.map(l => line('nl', l)), 'nl')}. Vermogen → Upcoming bills → Record it zet er een in, met Ongedaan maken.`), calls);
+}
+addR2Answers(unusual, balanceLines, toRecord);
