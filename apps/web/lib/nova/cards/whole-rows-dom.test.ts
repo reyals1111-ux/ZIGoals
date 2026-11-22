@@ -12,6 +12,9 @@ import {moreWords} from './whole-rows';
  */
 const ROW = 44, LINE = 23;
 let root: Root, host: HTMLElement, height = 0, reads = 0;
+/** Session AV lane 2 (ADR-045 D36): when set, a shown last line with no words is only its padding (3 px), as in a browser. */
+let emptyLine: number | null = null;
+const lineHeight = (el: Element) => emptyLine !== null && !el.textContent ? emptyLine : LINE;
 const shownIn = (el: Element) => { for (let e: Element | null = el; e && e !== host; e = e.parentElement) if ((e as HTMLElement).hidden) return false; return true; };
 const panel = (children: ReactNode, holo = true) => h('article', {className: 'nova-widget', 'data-holo': holo ? '' : undefined}, h('div', {className: 'nova-widget-body'}, children));
 /** The pretend layout: only a panel's body has a height; everything else reads 0, as in jsdom. */
@@ -20,7 +23,7 @@ const LAYOUT = {
   clientHeight: {configurable: true, get(this: HTMLElement) { return isBody(this) ? height : 0; }},
   scrollHeight: {configurable: true, get(this: HTMLElement) {
     if (isBody(this)) reads += 1;
-    return isBody(this) ? Math.max(height, [...this.querySelectorAll('li')].filter(shownIn).length * ROW + [...this.querySelectorAll('.wr-more')].filter(shownIn).length * LINE
+    return isBody(this) ? Math.max(height, [...this.querySelectorAll('li')].filter(shownIn).length * ROW + [...this.querySelectorAll('.wr-more')].filter(shownIn).reduce((n, el) => n + lineHeight(el), 0)
       + [...this.querySelectorAll<HTMLElement>('[data-px]')].reduce((n, el) => n + Number(el.dataset.px), 0)) : 0;
   }},
 };
@@ -35,6 +38,7 @@ const render = async (node: ReactNode) => { await act(async () => { root.render(
 const change = async (make: () => void) => { await act(async () => { make(); }); await act(async () => { await frame(); }); };
 const rows = (label = 'Rows') => [...host.querySelectorAll<HTMLElement>(`[aria-label="${label}"] > li`)];
 const line = (at = 0) => host.querySelectorAll<HTMLElement>('.wr-more')[at]!;
+const body = () => host.querySelector<HTMLElement>('.nova-widget-body')!;
 
 beforeEach(() => {
   (globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT = true;
@@ -42,7 +46,7 @@ beforeEach(() => {
   host = document.createElement('div'); document.body.append(host); root = createRoot(host);
 });
 afterEach(async () => {
-  await act(async () => root.unmount()); host.remove();
+  await act(async () => root.unmount()); host.remove(); emptyLine = null;
   for (const key of Object.keys(LAYOUT)) delete (HTMLElement.prototype as unknown as Record<string, unknown>)[key];
 });
 
@@ -195,4 +199,32 @@ test('Session AV (ADR-045 D36): a field\'s name written and taken away again is 
   await change(() => { const note = document.createElement('p'); note.dataset.px = '44'; host.querySelector('.nova-widget-body')!.append(note); });
   expect(reads - before).toBeGreaterThan(0);
   expect(rows().map(r => r.hidden)).toEqual([false, true, true, true, true, true]);
+});
+
+test('Session AV lane 2 (ADR-045 D36): the first measure reads the last line with its words, so the next frame does not search again', async () => {
+  emptyLine = 3;
+  height = 150; // three rows (132) fit alone and with an empty line (135), not with the words (155): two rows and the line (111)
+  await act(async () => { root.render(panel(list(4))); });
+  // Before any frame, the answer is already the one painted: the line was measured with its words.
+  expect(rows().map(r => r.hidden)).toEqual([false, false, true, true]);
+  expect(line().hidden).toBe(false);
+  expect(line().textContent).toBe('+2 more on the Tasks page');
+  const before = reads;
+  await act(async () => { await frame(); });
+  // The frame's check reads the panel once and finds nothing changed (it used to search the whole list again).
+  expect(reads - before).toBe(1);
+  expect(rows().map(r => r.hidden)).toEqual([false, false, true, true]);
+  expect(line().textContent).toBe('+2 more on the Tasks page');
+  expect(body().scrollHeight).toBeLessThanOrEqual(body().clientHeight);
+});
+
+test('Session AV lane 2 (ADR-045 D36): one measure asks each count once (each question is a layout of the whole page in a browser)', async () => {
+  height = 150; // four rows: two rows and the line fit
+  const before = reads;
+  await act(async () => { root.render(panel(list(4))); });
+  // Every row (does not fit), then 3, 0, 1 and 2 rows (the halving), then the sizes it keeps: six reads. Asked again were
+  // "every row" twice (by the search, and by its giving back) and the answer itself once more after the search: nine.
+  expect(reads - before).toBe(6);
+  expect(rows().map(r => r.hidden)).toEqual([false, false, true, true]);
+  expect(line().textContent).toBe('+2 more on the Tasks page');
 });
