@@ -86,7 +86,8 @@ describe('answers', () => {
   test('equity, stale, one total, IRR (EN and NL)', () => {
     const today = zigiEnv(freshAll()).habitDay;
     expect(text('what is my home equity')).toBe('Home: equity €150,000.00 (worth €400,000.00, less €250,000.00 owed on Mortgage).');
-    expect(text('hoeveel overwaarde heb ik')).toMatch(/^Home: overwaarde €150[.,]000/);
+    // Session AV lane 2 (review b2a #6: a Dutch answer writes its money the Dutch way, "€ 150.000,00"; matched exactly in that form, deliberate)
+    expect(text('hoeveel overwaarde heb ik')).toMatch(/^Home: overwaarde €\s150\.000,00 \(waard €\s400\.000,00, min €\s250\.000,00 schuld op Mortgage\)\.$/);
     expect(text('which accounts need an update')).toMatch(today >= '2026-06-01' ? /^Due for an update: Home/ : /Nothing is due/);
     expect(text('what is my net worth in one total')).toBe('One total in EUR: €164,600.00, with your own rates (1 USD = 0.92 EUR), not live ones.');
     expect(text('what is my irr')).toContain('No account has money in and out recorded yet');

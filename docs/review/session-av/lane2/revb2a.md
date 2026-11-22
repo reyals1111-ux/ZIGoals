@@ -126,6 +126,9 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
   Contant € 3,00"). Deliberate, stricter test changes (labelled in the files): the Dutch assertions of
   apps/web/lib/ai/local-answers/av2-money.test.ts (3) and av2-money-r2.test.ts (8) accepted "€40.00" or "€40,00"; each
   now matches only the Dutch form "€ 40,00".
+  Two more found in the regression run and changed the same way (follow-up commit): apps/web/lib/wealth-sheet/av2-sheet.test.ts
+  (the Dutch equity answer, now the whole sentence "Home: overwaarde € 150.000,00 (waard € 400.000,00, min € 250.000,00
+  schuld op Mortgage).") and apps/web/lib/debt-planner/av2-more.test.ts ("Ongeveer € 7,27 extra per maand …").
 - NOVA corpus — five Dutch answers change (English, facts and widgets unchanged). The lead re-records expected.json:
   - `av2-money-year` nl: "2026 tot nu toe in EUR: €666.95 uitgegeven, €2,550.00 binnengekomen; het meest aan Groceries
     €268.00, Bills €120.00 en Food & drink €71.60; de grootste uitgave Energy €120.00." → "… € 666,95 uitgegeven,
@@ -212,6 +215,11 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
 - Help: none. What's new: "Renaming the business space keeps your view."
 
 ## Summary for the lead
+
+- Regression run (money-log, budgets, money-more, tasks, notify, nova cards, wealth-sheet, price-alerts, debt-planner,
+  local-answers, evals): green except the corpus (the five B2A-6 Dutch cases, to re-record) and two eval files that
+  fail identically at the base 23eaf493 without these changes (not caused here): golden-set.test.ts (w-challenges,
+  x-challenges-2, x-stretch-minutes) and l7-fourth.test.ts (l74b-hb-did, "Did I stretch today?").
 
 - Stored changes: none in any finding.
 - Shared files to touch (lead): expected.json — re-record for the five Dutch answers listed under B2A-6 (the corpus test
