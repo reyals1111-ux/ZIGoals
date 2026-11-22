@@ -74,6 +74,16 @@ export const moneyEntrySchema = z.looseObject({
   sub: z.string().trim().min(1).max(40).optional().catch(undefined),
   share: amountText.optional().catch(undefined),
   fine: z.literal(true).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 4 (money; Actual's reconcile, Lunch Money's grouped transactions), TIER 3 (stored format),
+   * each additive and optional, dropped on read when this build cannot read it (older builds keep them untouched in the
+   * loose entry and count the entry exactly as before):
+   * - `checked`: the statement day the person checked this entry against their bank ("Check against my bank");
+   * - `group`: the group the entry belongs to (an id and the person's name for it, at most 20 entries a group), shown
+   *   as one line; every total, budget and report still counts each entry on its own.
+   */
+  checked: day.optional().catch(undefined),
+  group: z.looseObject({id, name: z.string().trim().min(1).max(40)}).optional().catch(undefined),
   history: z.array(z.looseObject({
     at: z.iso.datetime({offset: true}), by: z.enum(['you', 'rule', 'bulk', 'import']),
     field: z.enum(['category', 'amount', 'date', 'note', 'excluded', 'spread', 'transfer']), from: z.string().max(200).optional(), to: z.string().max(200).optional(),
@@ -83,6 +93,8 @@ export const moneyEntrySchema = z.looseObject({
 export const MAX_OWN_CATEGORIES = 30, MAX_HISTORY = 20, MAX_SUBS = 20;
 const ownCategory = z.string().trim().min(1).max(40);
 export const NEED_WANT = ['need', 'want', 'saving'] as const, MAX_NEED_WANT = 80;
+/** Session AV lane 2, round 4 (money): at most this many archived categories of each kind, and investment-income marks. */
+export const MAX_ARCHIVED = 60, MAX_INVEST_INCOME = 30, MAX_GROUP = 20;
 export const moneyLogSchema = z.looseObject({
   version: z.literal(1),
   entries: z.array(moneyEntrySchema).max(MAX_ENTRIES),
@@ -114,6 +126,15 @@ export const moneyLogSchema = z.looseObject({
    * (at most 80 categories). Never a target: Wealth → Spending shows the month's shares of income as facts only.
    */
   needWant: z.record(ownCategory, z.enum(NEED_WANT)).refine(r => Object.keys(r).length <= MAX_NEED_WANT, `At most ${MAX_NEED_WANT} marked categories.`).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 4 (money; Lunch Money's archived categories, Actual's crossover report), TIER 3 (stored
+   * format), additive and optional, dropped on read when unreadable (older builds keep them in the loose record):
+   * - `archived`: categories the person archived, by kind — they leave the pickers; entries, reports and search keep them;
+   * - `investIncome`: income categories the person marks as investment income (interest, dividends, staking rewards),
+   *   set beside each month's spending as a share; their own choice, never a target.
+   */
+  archived: z.looseObject({expense: z.array(ownCategory).max(MAX_ARCHIVED).optional().catch(undefined), income: z.array(ownCategory).max(MAX_ARCHIVED).optional().catch(undefined)}).optional().catch(undefined),
+  investIncome: z.array(ownCategory).max(MAX_INVEST_INCOME).optional().catch(undefined),
 });
 /** Session AV lane 2, round 3 (money): the three marks a spending category can carry (lib/money-insights/needs-wants.ts). */
 export type NeedWant = typeof NEED_WANT[number];

@@ -10,16 +10,20 @@ import {useMoneyGoals} from './use-money-goals';
 import {money} from './format';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import {categoryChoices} from '../../../lib/money-log/counted';
+import {resolveAmountText} from '../../../lib/money-calc/expression';
+import {CalcHint} from '../../money-calc/calc-hint';
 
 /**
  * Session AK (lane M, item 22): split one entry into 2 to 5 parts, each with a category and/or a Goal. The parts must add
  * up to the entry exactly (in cents); the line under the parts says how far off they are. Category totals and budgets
  * then count each part in its own category. "Make a rule" starts a rule from the chosen entry. Lazy-loaded by Money tools.
  */
-const readAmount = (raw: string) => { const r = parseNumberInput(raw); return r.ok ? r.text : raw.trim(); }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
+// Session AV lane 2, round 4 (money; Actual's amount calculator, LEDGER #339): a part's amount may be a sum ("12,50+3"), worked out exactly before it is read.
+export const readPartAmount = (raw: string) => { const sum = resolveAmountText(raw); if (sum === null) return raw.trim(); const r = parseNumberInput(sum); return r.ok ? r.text : sum.trim(); }; // Session AL (PRIMITIVES 3f): the one number reader (decimal commas, unambiguous grouping)
+const readAmount = readPartAmount;
 const label = (e: MoneyEntry) => `${formatDate(e.date)} · ${e.kind === 'income' ? '+' : '−'}${money(e.amount, e.currency)} · ${e.note || e.category}${isSplit(e) ? ' · split' : ''}`;
 export default function SplitPanel({log, onMakeRule}: {log: DeviceRecordState<MoneyLog>; onMakeRule: (entry: MoneyEntry) => void}) {
-  const id = useId(), today = localDate(), {goals, nameOf} = useMoneyGoals();
+  const id = useId(), hintId = `${id}-calc`, today = localDate(), {goals, nameOf} = useMoneyGoals();
   const recent = useMemo(() => { const from = addLocalDays(today, -89); return log.data.entries.filter(e => e.date >= from && e.date <= today).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 200); }, [log.data.entries, today]);
   const [chosenId, setChosenId] = useState(''), [parts, setParts] = useState<PartDraft[]>([]), [problem, setProblem] = useState(''), [status, setStatus] = useState('');
   const entry = recent.find(e => e.id === chosenId);
@@ -56,7 +60,8 @@ export default function SplitPanel({log, onMakeRule}: {log: DeviceRecordState<Mo
       <p className="fine">The parts must add up to {money(entry.amount, entry.currency)} exactly.</p>
       <ol className="money-parts">{parts.map((p, i) => <li key={i}>
         <fieldset className="money-fieldset"><legend>Part {i + 1}</legend><div className="money-grid">
-          <label className="field"><span>Amount ({entry.currency})</span><input inputMode="decimal" value={p.amount} onChange={e => setPart(i, {amount: e.target.value})}/></label>
+          <label className="field"><span>Amount ({entry.currency})</span><input inputMode="decimal" value={p.amount} onChange={e => setPart(i, {amount: e.target.value})} aria-describedby={`${hintId}-${i}`}/></label>
+          <CalcHint value={p.amount} id={`${hintId}-${i}`}/>
           <label className="field"><span>Category</span><select value={p.category ?? ''} onChange={e => setPart(i, {category: e.target.value || undefined})}><option value="">Same as the entry ({entry.category})</option>{[...new Set([...(p.category ? [p.category] : []), ...categories])].map(c => <option key={c} value={c}>{c}</option>)}</select></label>
           <label className="field"><span>Goal — optional</span><select value={p.goalId ?? ''} onChange={e => setPart(i, {goalId: e.target.value || undefined})}><option value="">No Goal</option>{p.goalId && !goals.some(g => g.id === p.goalId) && <option value={p.goalId}>{nameOf(p.goalId) ?? 'A Goal'}</option>}{goals.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select></label>
           {parts.length > MIN_SPLIT && <button type="button" className="quiet" onClick={() => setParts(ps => ps.filter((_, j) => j !== i))} aria-label={`Remove part ${i + 1}`}>Remove</button>}
