@@ -33,7 +33,10 @@ describe('every corpus question gets its own answer, in its language, from NOVA 
     for (const q of [...c.en, ...c.nl]) expect(av2R4MindAnswer(q, novaEnv(freshAll())), q).not.toBeNull();
   });
   test('no question of the existing corpus is claimed', () => {
-    const env = novaEnv(showcaseAll()), claimed = CORPUS.flatMap(c => [...c.en, ...c.nl].filter(q => av2R4MindAnswer(q, env) !== null).map(q => `${c.id}: ${q}`));
+    // Session AV lane 2 (the lead added AV2_R4_MIND to CORPUS, deliberate): round 4 mind's own intents are its to answer;
+    // every other intent of the corpus must still be left alone.
+    const own = new Set(AV2_R4_MIND.map(c => c.id));
+    const env = novaEnv(showcaseAll()), claimed = CORPUS.filter(c => !own.has(c.id)).flatMap(c => [...c.en, ...c.nl].filter(q => av2R4MindAnswer(q, env) !== null).map(q => `${c.id}: ${q}`));
     expect(claimed).toEqual([]);
   }, 60_000);
 });
