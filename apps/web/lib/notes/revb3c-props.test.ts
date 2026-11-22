@@ -38,7 +38,7 @@ describe('note properties through Markdown', () => {
   });
   test('ten of the longest texts still fit the front matter and come back', () => {
     const max = Array.from({length: MAX_PROPS}, (_, i): NoteProp => ({k: `Long text ${i}`, t: 'text', v: long(`T${i}`)}));
-    expect(max.every(p => p.v.length === PROP_TEXT_MAX)).toBe(true);
+    expect(max.every(p => String(p.v).length === PROP_TEXT_MAX)).toBe(true);
     const back = roundTrip(max);
     expect(back.title).toBe('A fictional plan');
     expect(back.props).toEqual(max);
