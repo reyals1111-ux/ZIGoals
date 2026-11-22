@@ -64,7 +64,8 @@ for (const theme of THEMES) test(`${theme}: a weekly target, quick-assign, flexi
   await event.getByLabel('In year').fill('3');
   await event.getByLabel(/^Amount/).fill('15000');
   await event.getByRole('button', {name: 'Add event'}).click();
-  await expect(fi.locator('.fi-events')).toContainText('New car · −€15,000 in year 3');
+  // Session AV lane 2 (the planner writes money with its cents, as the rest of Financial freedom does: the whole line, deliberate)
+  await expect(fi.locator('.fi-events')).toContainText('New car · −€15,000.00 in year 3');
   const save = fi.getByRole('form', {name: 'Save as a scenario'});
   await save.getByLabel('Scenario name').fill('With the car');
   await save.getByRole('button', {name: 'Save as a scenario'}).click();

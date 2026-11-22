@@ -18,6 +18,11 @@ test('the import panel and the workout report are one column that may shrink', (
   expect(css('components/import/import.css')).toContain('.switch-more p { overflow-wrap: anywhere; }');
   expect(css('components/health/workouts/av2-body.css')).toMatch(/\.av2-progress \{[^}]*grid-template-columns: minmax\(0, 1fr\)/);
 });
+test('the calculator and its scenarios are one column that may shrink', () => {
+  const money = css('components/wealth/money-tools/money-tools.css');
+  expect(money).toContain('.money-calc-tools{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}');
+  expect(money).toContain('.fi-scenarios{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:14px}');
+});
 test('the value chart\'s range buttons may shrink and wrap beside its title', () => {
   expect(css('components/portfolio/value-chart.css')).toContain(':root .portfolio-section-head > .portfolio-ranges:not(:first-child){flex:0 1 auto;min-width:0;max-width:100%;}');
 });
