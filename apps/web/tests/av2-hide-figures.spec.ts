@@ -21,7 +21,8 @@ for (const theme of THEMES) test(`${theme}: hide calories and weight from Settin
   await expect(shown).toBeFocused();
   await expect(page.locator('html')).toHaveAttribute('data-hide-figures', 'on');
   expect(await page.evaluate(() => localStorage.getItem('zigoals:hide-body-figures'))).toBe('on');
-  await expect(page.getByTestId('export-figures-hidden')).toHaveText('Calorie and weight figures are hidden on screen on this device. This file still holds them, so it stays a complete copy.');
+  // Session AV lane 2 (nl-days R3, deliberate): Export everything now keeps the switch, and the note says so (the whole sentence, as strict).
+  await expect(page.getByTestId('export-figures-hidden')).toHaveText('Calorie and weight figures are hidden on screen on this device. This file still holds them, so it stays a complete copy, and it keeps this choice: a restore hides them again.');
   const findings = await axe(page, panel);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await shown.click();

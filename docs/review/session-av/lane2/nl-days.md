@@ -171,3 +171,41 @@ corpus failure (no "lacks", no examples, no fresh figures).
 | `au-r4-date` | nl | Het is dinsdag, Nov 17. | Het is dinsdag 17 nov. |
 | `au-r4-date` | freshNl | Het is dinsdag, Nov 17. | Het is dinsdag 17 nov. |
 | `av-budget-targets` | nl | Groceries: doel €300.00 uiterlijk Dec 2026: €62.90 opzij, €237.10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel. | Groceries: doel €300.00 uiterlijk december 2026: €62.90 opzij, €237.10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel. |
+
+## N2. Export everything keeps "Hide calories and weight" (R3; q3-36) — TIER 3 (stored formats)
+
+- Verdict: **built** (the lead's permission for this one key: `lib/export/everything.ts`, `lib/restore/plan.ts`,
+  `lib/restore/apply.ts`, `lib/data-health/catalog.ts`).
+- Stored change (additive): Export everything's `everything.json` gains `device.hideBodyFigures` = `"on"` when the switch
+  is on (no entry when it is off). The key `zigoals:hide-body-figures` holds the raw text `on`, not JSON, so it is read and
+  written as text: `TEXT_DEVICE_KEYS` in `everything.ts` (copied as its text, never JSON-parsed, so it is never
+  "unreadable"); in the restore plan a new `TEXT_DEVICE_PARTS` list (part `hideBodyFigures`, label "Hide calories and
+  weight (on screen)", group **Health**, schema `z.literal('on')`, `text: true`), read and written through `partValueOf` /
+  `partTextOf` (`apply.ts` `currentValue` and the device write). A restored switch applies at once (`apply.ts`
+  `announceDevice` sends the switch's own `zigoals-hide-body-figures` event); Undo takes it away again.
+- Kept apart from `DEVICE_PARTS` on purpose, so nothing else moves: "Erase one area" (`lib/restore/erase-area.ts`) still
+  leaves display choices as they are, and the protected copy's record sections (`lib/vault/backup-records.ts`) carry no
+  display choice (their format is unchanged; no "could not be read" warning). `RESTORE_KEYS` and the Undo's allowed keys
+  include it. `NEVER_RESTORED` now reads "display choices (except Hide calories and weight, which comes back with
+  Health)" (still contains "display choices", as `al-device-keys.test.ts` pins).
+- Older and newer files: a file without the entry restores exactly as before (no part offered, the switch left as it
+  is); an older build reading a newer file ignores it (the file stays format version 1; an older build's `planParts`
+  loops only its own `DEVICE_PARTS`, which never held this name — the same rule shown with an unknown name). Both proved
+  in `lib/restore/av2-hide-figures-restore.test.ts`.
+- Catalogue: `DEVICE_LABELS.hideBodyFigures` = "Hide calories and weight (a display choice)", area Health, this device
+  only (never synced). Device keys: `lib/ah-device-keys.ts` now exports `HIDE_BODY_FIGURES_KEY` (the same literal, still in
+  `AH_DISPLAY_KEYS`, still not in `AH_ERASE_KEYS`, so the account erase leaves it).
+- The export note (`components/export-everything.tsx:70-71`) now says: "Calorie and weight figures are hidden on screen
+  on this device. This file still holds them, so it stays a complete copy, and it keeps this choice: a restore hides them
+  again." Spec pin changed as a labelled deliberate change: `tests/av2-hide-figures.spec.ts:25` (the whole new sentence).
+- Tests: `lib/restore/av2-hide-figures-restore.test.ts` (9: the key equals `HIDE_FIGURES_KEY`; registries; kept out of
+  area erase and the protected copy; export on/off; export → Erase everything → Restore Replace puts back the raw `on`
+  and its event, Undo removes it; Merge; a value other than `on` refused; older file; older build). Green with it:
+  `lib/restore`, `lib/export`, `lib/data-health`, `lib/vault`, every `lib/*keys*.test.ts`, `erase-coverage`,
+  `af-lead-registries`, the round-trip and stored-format tests (136 files).
+- Help (help-page.tsx is the lead's): at `:820` "A restore brings back your records, not your device's settings: AI
+  settings and keys, display choices, …" → add "(“Hide calories and weight” comes back with Health)". Optional Q+A:
+  Q "Does my backup keep “Hide calories and weight”?" A "Yes. Export everything keeps the switch, and Restore from a
+  backup puts it back with Health, so the figures stay hidden on a new device. The file itself still holds every figure."
+- What's new (one line): "Export everything keeps “Hide calories and weight”, and a restore hides the figures again."
+- CSS: none. Today: nothing added. Showcase: none (the Showcase never sets the switch).
