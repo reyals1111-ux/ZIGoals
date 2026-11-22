@@ -307,3 +307,28 @@ Shared-file needs for the lead are collected at the end ("For the lead").
 - Showcase: the collection is built in, so the Showcase shows it filled; nothing seeded (a seeded method would change
   the Showcase's recipe rows other specs read).
 - Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: nothing.
+
+## F11 — A day planned from your recipes that fits your targets
+
+- LEDGER rows: **#89** MyFitnessPal Meal Planner and grocery list — built (a meal plan from your recipes to fit your kcal
+  and macro targets). Part Carried, as the LEDGER says: **needs an outside service** — grocery delivery. The plan's
+  groceries are in the planner's existing list.
+- What it does: Health → Planner → "Plan a day that fits my targets" (a fold): a day (tomorrow by default; any date),
+  breakfast, lunch and dinner from your recipes with known calories (at most 30, the latest first), each at ½, 1, 1½ or
+  2 servings, chosen together to come closest to that day's calorie target (×3 weight) and the protein, carbs and fat
+  targets you set (a weekday's own targets count); a table (meal, recipe, servings, kcal, P/C/F; the day's total and
+  "within 5 %" or "N kcal over/under"); "Another plan" (the next best, distinct recipes); "Plan this day" writes saved
+  meals (reused for the same recipe and amount) and ordinary plans — logged only when eaten. Empty states: no target;
+  fewer than three recipes (points to "Recipes to start from").
+- Files: `lib/food-plus/fit-plan.ts`, `components/health/food-plus/fit-plan.tsx` (part `fit-plan`),
+  `components/health/health-app.tsx` (the fold in Planner).
+- Tests: `lib/food-plus/av2-fit-plan.test.ts`. Spec: `tests/av2-fit-plan.spec.ts`.
+- Stored changes: none (ordinary saved meals and plans).
+- Help (EN). Q: "Can ZIGoals plan my meals to fit my targets?" A: "Yes, from your own recipes. Health → Planner → Plan a
+  day that fits my targets picks a breakfast, lunch and dinner and their servings to come close to your calories and
+  the macros you set. Press Plan this day to add them to the planner; nothing is logged until you eat it."
+- What's new: "Plan a day from your recipes that fits your targets."
+- Answers: intent `av2-food-fit-plan` (the best plan for tomorrow, or what it needs).
+- Showcase: the Showcase has one recipe, so the fold shows its teaching state there; seeding two more recipes would move
+  the Showcase's recipe counts other answers pin (listed for the lead, not done).
+- Device keys: none. CSS touched: none new. Always visible on Today: nothing.

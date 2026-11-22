@@ -7,6 +7,7 @@ import {mealRemindersOn} from '../../meal-reminders';
 import {coachCheckIn} from '../../health-aa/coach';
 import {weightChangeText, weightText} from '../../health-units';
 import {RECIPE_BOOK, type BookStyle} from '../../food-plus/recipe-book';
+import {fitCandidates, fitPlans} from '../../food-plus/fit-plan';
 import {fold} from './exact/text';
 import {dayTargets, sugarAlcoholMg, weekdayOfDay} from '../../food-plus/day-target';
 import {netCarbs} from '../../health-aa/macro-mode';
@@ -289,5 +290,23 @@ function recipeMethod(a: Ask): LocalReply | null {
   return answer([say(lang, `${clean(recipe.name, 60)}, in ${steps.length} ${steps.length === 1 ? 'step' : 'steps'}:`, `${clean(recipe.name, 60)}, in ${steps.length} ${steps.length === 1 ? 'stap' : 'stappen'}:`), ...steps.slice(0, 20).map((s, i) => `${i + 1}. ${clean(s, 300)}`), say(lang, 'Health → Foods & recipes → Cook shows them one at a time.', 'Health → Foods & recipes → Cook toont ze een voor een.')].join('\n'), calls);
 }
 
-const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [recipeIdeas, recipeMethod, packPhotosAnswer, eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
+// ── A day planned from your recipes to fit your targets (LEDGER #89) ───────────────────────────────────────────────
+
+/** "plan my meals for tomorrow to fit my targets", "plan mijn maaltijden voor morgen". */
+function fitPlanAnswer(a: Ask): LocalReply | null {
+  const en = /\bplan\b.*\b(?:meals?|food|eating|menu)\b|\bmeal plan\b.*\b(?:fit|fits|target|targets|macros|calories)\b|\b(?:meals?|menu)\b.*\bfit(?:s)? my (?:targets?|macros|calories)\b/.test(a.f);
+  const nl = /\bplan\b.*\b(?:maaltijden|eten|menu)\b|\bmaaltijdplan\b.*\b(?:doel|doelen|macros|calorieen)\b/.test(a.f);
+  if (!(en || nl) || /\b(?:planned|gepland|staan|are|what|which|welke|wat)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, day = /\b(?:today|vandaag)\b/.test(a.f) ? a.env.healthDay : addLocalDays(a.env.healthDay, 1), health = a.env.health!;
+  const targets = dayTargets(health.targets, day, a.food?.weekdays ?? {}), calls = [{tool: 'meal_plan', args: {}, label: 'Meal plan'}];
+  const where = say(lang, 'Health → Planner → “Plan a day that fits my targets” shows it and plans it in a tap (logged only when you eat it).', 'Health → Planner → “Plan a day that fits my targets” toont het en plant het met één tik (pas gelogd als je het eet).');
+  if (!targets.kcal) return answer(`${say(lang, 'There is no calorie target to plan toward. Set one in Health → Targets.', 'Er is geen caloriedoel om naartoe te plannen. Zet er een in Health → Targets.')} ${where}`, calls);
+  const plan = fitPlans(health, targets, 1)[0];
+  if (!plan) return answer(`${say(lang, `A plan needs at least three of your recipes with known calories (${fitCandidates(health).length} so far).`, `Een plan heeft minstens drie van je recepten met bekende calorieën nodig (nu ${fitCandidates(health).length}).`)} ${where}`, calls);
+  const rows = plan.picks.map(p => `${mealWord(p.meal, lang)}: ${clean(p.recipe.name, 50)} × ${num(p.portionsMilli / 1000)} (${p.kcal} kcal)`);
+  return answer([say(lang, `A day from your recipes for ${dayIn('en', day, a.today)}, ${plan.kcal} kcal against your ${num(targets.kcal)}:`, `Een dag uit je recepten voor ${dayIn('nl', day, a.today)}, ${plan.kcal} kcal tegenover je ${num(targets.kcal)}:`), ...rows.map(r => `• ${r}`), where].join('\n'), calls);
+}
+
+const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [fitPlanAnswer, recipeIdeas, recipeMethod, packPhotosAnswer, eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
 export const AV2_FOOD_HANDLER_COUNT = HANDLERS.length;
