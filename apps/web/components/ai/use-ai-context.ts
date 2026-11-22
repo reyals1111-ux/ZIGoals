@@ -92,11 +92,34 @@ function useWeeklyRecord(): {data: WeeklyReview; loaded: boolean; error: string}
   }, []);
   return state;
 }
+/**
+ * Session AV lane 2 (loose ends; review b1 #17): how many photos and voice notes the tasks carry, for "how many photos are
+ * on my tasks". The answers are synchronous and the attachment store is IndexedDB, so the count is read here before the
+ * question, like the weekly review above: once, again after every write to the store (its own event), on an account
+ * change and when the tab comes back. The store's code loads only here, after the first paint. Counts only, never a file.
+ */
+type AttachmentCounts = {photos: number; voice: number; tasks: number};
+function useTaskAttachmentCounts(): AttachmentCounts | null {
+  const [counts, setCounts] = useState<AttachmentCounts | null>(null);
+  useEffect(() => {
+    let live = true, off = () => {};
+    void Promise.all([import('../../lib/tasks/attachments'), import('../../lib/health-aa/photos')]).then(([store, photos]) => {
+      if (!live) return;
+      const read = () => { void store.taskAttachments(photos.photoScope()).then(kept => { if (live) setCounts(store.attachmentCounts(kept)); }, () => { if (live) setCounts(null); }); };
+      const onShow = () => { if (document.visibilityState === 'visible') read(); };
+      read();
+      window.addEventListener(store.TASK_ATTACHMENTS_CHANGE, read); window.addEventListener(ACCOUNT_CHANGE, read); document.addEventListener('visibilitychange', onShow);
+      off = () => { window.removeEventListener(store.TASK_ATTACHMENTS_CHANGE, read); window.removeEventListener(ACCOUNT_CHANGE, read); document.removeEventListener('visibilitychange', onShow); };
+    }, () => { /* the store cannot load: no count */ });
+    return () => { live = false; off(); };
+  }, []);
+  return counts;
+}
 export function useAiContext(settings: AiSettings, providerName: string, sensitive: boolean): AiContextState {
   const pathname = usePathname() ?? '/app', area = pageArea(pathname), attaches = attachesContext(pathname);
   const platform = usePlatform(), habits = useHabits(), health = useHealth(), fasting = useFasting(), portfolios = usePortfolios(), legacy = useGoals();
   const dashboard = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), healthConsent = useHealthConsent();
-  const weekly = useWeeklyRecord();
+  const weekly = useWeeklyRecord(), taskAttachments = useTaskAttachmentCounts();
   // Part 8: the person's notes, only while "Use my notes" is on; the gates decide per path where they may go.
   const memory = useDeviceRecord(AI_MEMORY), options = useDeviceRecord(AI_OPTIONS);
   // Session W Part 21: the device records ZIGi's new tools read (accounts, milestone dates, chess); each tool keeps its area's switch.
@@ -175,7 +198,9 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
       averageGoals: (() => { try { const r = readDeviceRecord(getAppStorage(), AVERAGE_GOALS); return r.unreadable ? null : r.data.goals; } catch { return null; } })(),
       // Session AT (L7 NB:N11): the game layer's switch (unreadable reads as off, as on Journey) and the Academy's lessons, read at the moment of the question, so "what level am I" is Journey's own count.
       game: (() => { try { const g = readDeviceRecord(getAppStorage(), GAME), e = readDeviceRecord(getAppStorage(), EARN_ACADEMY); return {enabled: !g.unreadable && g.data.enabled, earnAcademy: e.unreadable ? null : e.data, rebirthFrom: g.unreadable ? null : g.data.rebirth?.from ?? null, monthTheme: g.unreadable ? undefined : g.data.monthTheme}; } catch { return null; } })(),
-      pageView: (() => { try { return readPageView(document, pathname, {healthOpen: toolGates.localHealth, sensitive}); } catch { return null; } })()};
-  }, [journal.loaded, journal.unreadable, journal.data, energy.loaded, energy.unreadable, energy.data, coach.loaded, coach.unreadable, coach.data, moneyLog.loaded, moneyLog.unreadable, moneyLog.data, ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded, accounts.loaded, accounts.unreadable, accounts.data, milestoneDates.loaded, milestoneDates.unreadable, milestoneDates.data, chessCache.loaded, chessCache.unreadable, chessCache.data, dashboard.loaded, dashboard.error, dashboard.data, checklist.loaded, checklist.data, checklist.unreadable, checklistDays.loaded, checklistDays.data, checklistDays.unreadable, earn, plans.loaded, plans.unreadable, plans.data, pathname, toolGates.localHealth]);
+      pageView: (() => { try { return readPageView(document, pathname, {healthOpen: toolGates.localHealth, sensitive}); } catch { return null; } })(),
+      // Session AV lane 2 (loose ends; review b1 #17): the tasks' photo and voice note counts, read before the question (above).
+      taskAttachments};
+  }, [taskAttachments, journal.loaded, journal.unreadable, journal.data, energy.loaded, energy.unreadable, energy.data, coach.loaded, coach.unreadable, coach.data, moneyLog.loaded, moneyLog.unreadable, moneyLog.data, ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded, accounts.loaded, accounts.unreadable, accounts.data, milestoneDates.loaded, milestoneDates.unreadable, milestoneDates.data, chessCache.loaded, chessCache.unreadable, chessCache.data, dashboard.loaded, dashboard.error, dashboard.data, checklist.loaded, checklist.data, checklist.unreadable, checklistDays.loaded, checklistDays.data, checklistDays.unreadable, earn, plans.loaded, plans.unreadable, plans.data, pathname, toolGates.localHealth]);
   return {area, pathname, attaches, consent: gates, context, preview, ready, gates: toolGates, toolSources};
 }

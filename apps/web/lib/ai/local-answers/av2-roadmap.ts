@@ -62,6 +62,8 @@ function taskAttachments(a: Ask): LocalReply | null {
   // is not given) says so and where to look, instead of only how to add one.
   if (!n && /\bhow many\b|\bhoeveel\b/.test(a.f)) return answer(say(a.lang, `I can’t count them from here: a task’s photos and voice notes stay in this browser’s own store, which I don’t read. Open a task to see its Photos and voice notes. ${how}`,
     `Ik kan ze hier niet tellen: de foto’s en spraakmemo’s van een taak blijven in de eigen opslag van deze browser, die ik niet lees. Open een taak om zijn Photos and voice notes te zien. ${how}`), TASKS);
+  // Session AV lane 2 (loose ends): a count read and found empty is said as none, not as how-to alone.
+  if (n && !n.photos && !n.voice && /\bhow many\b|\bhoeveel\b/.test(a.f)) return answer(say(a.lang, `No photo or voice note is on your tasks in this browser yet. ${how}`, `Er staat in deze browser nog geen foto of spraakmemo bij je taken. ${how}`), TASKS);
   if (!n || (!n.photos && !n.voice)) return answer(how, TASKS);
   return answer(say(a.lang, `${count(n.photos, 'en', ['photo', 'photos'], ['', ''])} and ${count(n.voice, 'en', ['voice note', 'voice notes'], ['', ''])} on ${count(n.tasks, 'en', ['task', 'tasks'], ['', ''])}, in this browser. ${how}`,
     `${count(n.photos, 'nl', ['', ''], ['foto', "foto's"])} en ${count(n.voice, 'nl', ['', ''], ['spraakmemo', "spraakmemo's"])} bij ${count(n.tasks, 'nl', ['', ''], ['taak', 'taken'])}, in deze browser. ${how}`), TASKS);
