@@ -339,9 +339,8 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 | #188 Activity and mood statistics | Health → Insights → What goes with your good days → "Each tag, month by month" (a fold, lazy): per tag (activities included), the days this month and last month, and the moods on its days over the last year as counts in words ("Great 2 · Good 1 — mostly great") with a small bar (numbers in the text). The 30 most used; "goes with, not a cause". |
 
 - Parts that keep ZIGoals' words, with cause: NOVA's mood heat card (`lib/nova/cards/ax/health-heat.ts`) — a protected area
-  (AR's NOVA composition), the lead's call; the Year in pixels key (`lib/year-pixels/grid.ts` `levelWord`) and the
-  Journal page's screen-reader day line (`components/journal/journal-page.tsx:113`) — the journal lane's files; one line
-  each for the lead (`useMoodLook().words` from `components/mood-look/use-mood-look.ts`).
+  (AR's NOVA composition), the lead's call. The Year in pixels key and the Journal page's screen-reader day line now
+  read your words (Feature 20).
 - Owner rule kept: tags and activities stay unread by ZIGi and NOVA (as `mood-tags` says); only the mood words are read.
 - Files: `lib/daylio/rule.ts`, `components/mood-look/{use-mood-look.ts,mood-look-editor.tsx,activities.tsx,tag-stats.tsx,mood-look.css}`,
   `components/health/{mood-chip.tsx,plus/mood-tags.tsx,plus/insights-plus.tsx,plus/evening-checkin.tsx}`,
@@ -614,6 +613,21 @@ docs/product/IMPORT_FORMATS.md [L9], [L10]).
   changed together (a deliberate change). The search entry for "import" (lib/search/static.ts) could name the two apps.
 - Answers: none new (imported habits are read as habits already). Showcase hook: none (imports are off in Showcase).
   CSS touched: none. Always visible on Today: nothing. Weight: the readers load only when a file is chosen.
+
+## Feature 20 — Your own mood words in the Year in pixels key and the Journal's week line (LEDGER #178 follow-ups)
+
+**Verdict: built** (NOVA's mood heat card keeps ZIGoals' words: a protected area, AR's NOVA composition).
+
+- The Year in pixels key ("4 Bright (1)") and the selected day's line ("Mood: Bright (4 of 5)") and the Journal page's
+  screen-reader line for each day of the week ("…: energy 3 of 5, mood Bright") read `useMoodLook().words`, so they say
+  the person's own words; with none set they read exactly as before (the same five words). The pixels' own titles and
+  the year's summary sentence (`lib/year-pixels/grid.ts` `pixelLabel`, `pixelYear`) and the PNG export keep ZIGoals'
+  words: they are worked out in the pure grid module, which takes no words today (a later one-line change each).
+- Files: `components/journal/{year-pixels.tsx,journal-page.tsx}`.
+- Tests: the words themselves are covered by `lib/daylio/daylio.test.ts`; `lib/year-pixels/grid.test.ts` and the
+  journal tests unchanged and green. Spec: `tests/av2-mood-words-journal.spec.ts`.
+- Stored changes: none. Help: the Feature 11 answer covers it. What's new: none (part of "Your own words and symbols for
+  the moods"). Answers: none new. CSS touched: none. Always visible on Today: nothing.
 
 ## q4 / QUALITY "Not fixed" Minors for habits and mood — where each stands
 
