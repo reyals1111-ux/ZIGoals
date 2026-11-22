@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {entry, moneyLog, noSideScroll, openWealthSection, readRecord, seedDevice, spending} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
+import {openDeskFold} from './ao/folds';
 import {MONEY_LOG_KEY, type MoneyLog} from '../lib/money-log/schema';
 import {BILLS_KEY} from '../lib/bills/schema';
 import {ACCOUNTS_KEY} from '../lib/accounts/schema';
@@ -39,6 +40,8 @@ for (const theme of THEMES) test(`${theme}: above the usual, a bill to record, a
   await expect.poll(async () => (await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).entries.find(e => e.id === 'av2r2-big')?.fine).toBe(true);
   await expect(unusual).toHaveCount(0);
   // Wealth names the account below its line.
+  // Session AV lane 2 (on a phone "Accounts, debts & net worth" starts folded, so it is opened first, as tests/g1b-networth-share.spec.ts does, deliberate)
+  if (isMobile) await openDeskFold(page, 'Accounts, debts & net worth');
   await expect(page.getByRole('list', {name: 'Balances past your own lines'})).toContainText(/Checking: €420\.00 on .+ is below your line of €500\.00\./);
   // Upcoming bills: Gym due today, one tap records it, with Undo.
   const bills = await openWealthSection(page, 'bills', 'Upcoming bills');
