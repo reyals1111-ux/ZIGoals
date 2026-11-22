@@ -176,7 +176,15 @@ function revealWhenShown(id: string, focusField: boolean | readonly string[] = f
   const el = document.getElementById(id);
   if (el) {
     el.scrollIntoView({ block: "start", behavior: "instant" });
-    if (focusField) { const found = (focusField === true ? ["input, select"] : focusField).map(s => el.querySelector<HTMLElement>(s)).find(Boolean); found?.focus({ preventScroll: true }); }
+    if (focusField) {
+      const found = (focusField === true ? ["input, select"] : focusField).map(s => el.querySelector<HTMLElement>(s)).find(Boolean);
+      found?.focus({ preventScroll: true });
+      // Session AV lane 2 (fixb3c): a tall card (Water, "Your drinks" above its amount, about 760 px down at 390) left the
+      // focused field under the fold; it comes to the middle of the screen (clear of the phone's bottom bar), now and
+      // once the card's own chunks have drawn above it.
+      const show = () => { if (!found || document.activeElement !== found) return; const r = found.getBoundingClientRect(); if (r.top < 0 || r.bottom > window.innerHeight) found.scrollIntoView({ block: "center", behavior: "instant" }); };
+      show(); window.setTimeout(show, 400); window.setTimeout(show, 1200);
+    }
     return;
   }
   if (tries > 0) requestAnimationFrame(() => revealWhenShown(id, focusField, tries - 1));

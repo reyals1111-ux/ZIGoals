@@ -69,5 +69,19 @@ test('Priority matrix: each button reads as a move', async ({page}) => {
   await go(page, '/app/tasks?view=matrix');
   const moves = page.locator('.tasks-matrix-move');
   await expect(moves.first()).toBeVisible({timeout: 15_000});
-  for (const text of await moves.allInnerTexts()) expect(text).toMatch(/^Move to .+ →$/);
+  // Session AV lane 2 (fixb3c, deliberate): the button is a flex row, so innerText puts a line break between its words and
+  // the arrow (a flex item) although both sit on one line. The same words are read from the text, and the arrow is
+  // measured on the words' line and after them.
+  for (const text of await moves.allTextContents()) expect(text.replace(/\s+/g, ' ').trim()).toMatch(/^Move to .+ →$/);
+  for (const move of await moves.all()) {
+    const m = await move.evaluate(el => {
+      const arrowEl = el.querySelector(':scope > [aria-hidden="true"]')!, arrow = arrowEl.getBoundingClientRect(), range = document.createRange();
+      range.setStart(el, 0); range.setEndBefore(arrowEl); // the words: every text before the arrow
+      const rects = [...range.getClientRects()].filter(r => r.width), words = rects[rects.length - 1]!;
+      return {arrowMid: arrow.top + arrow.height / 2, wordsTop: words.top, wordsBottom: words.bottom, arrowLeft: arrow.left, wordsRight: words.right};
+    });
+    expect(m.arrowMid, JSON.stringify(m)).toBeGreaterThanOrEqual(m.wordsTop);
+    expect(m.arrowMid, JSON.stringify(m)).toBeLessThanOrEqual(m.wordsBottom);
+    expect(m.arrowLeft, JSON.stringify(m)).toBeGreaterThanOrEqual(m.wordsRight);
+  }
 });

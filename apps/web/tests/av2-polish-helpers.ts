@@ -27,9 +27,14 @@ export async function noSideways(page: Page) {
 /**
  * A checkbox (or radio) and its words on one row: the box's vertical middle falls within the first line of the words,
  * and the words start to its right.
+ * Session AV lane 2 (fixb3c, deliberate): the label is scrolled into view in the same step that measures it. Measured
+ * after a separate scroll, a locator such as `label.switch-row` first could resolve to another label that a lazy fold had
+ * since drawn higher up the page (Journal's prompt packs), off-screen, so its words read as at y −18 000 and "the label
+ * has words" failed on a label that has them. The same four assertions follow, on a label in view.
  */
 export async function boxBesideWords(label: Locator) {
   const m = await label.evaluate(el => {
+    el.scrollIntoView({block: 'center', inline: 'nearest', behavior: 'instant'});
     const box = el.querySelector('input[type=checkbox], input[type=radio]')!.getBoundingClientRect();
     const range = document.createRange(), walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     let node: Node | null, first: DOMRect | null = null;
