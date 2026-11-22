@@ -109,7 +109,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       {open ? <>
         <h2 className="note-title">{/* Session AL (PR-107, P-PR-45): a note with no title of its own is not headed by its first line, which the note shows just below (it read twice) */open.kind === 'daily' && open.day ? formatDate(open.day, {weekday: true}) : open.title.trim() ? open.title.trim() : open.kind === 'inbox' ? `Inbox capture · ${formatDate(open.day ?? open.createdAt.slice(0, 10))}` : noteName(open)}{open.example && <span className="fine"> · Showcase example</span>}</h2>
         {open.kind === 'daily' && open.day && <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={open.day}/></Suspense></LoadBoundary>}
-        <NoteEditor key={open.id} note={open} index={index} change={change} onCreateLink={createNote} onDeleted={() => { const to: View = open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'; if (toastOf.current) toastOf.current.view = to; go({view: to}); }}/>
+        <NoteEditor key={open.id} note={open} record={record} index={index} change={change} onCreateLink={createNote} onDeleted={() => { const to: View = open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'; if (toastOf.current) toastOf.current.view = to; go({view: to}); }}/>
       </> : <p className="fine">This note is not on this device. It may have been deleted. <Link className="text-link" href="/app/notes?view=notes">All notes</Link></p>}
     </section>}
 
@@ -121,7 +121,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         {day !== today && <button type="button" className="text-link" onClick={() => go({})}>Today</button>}
       </div>
       <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={day}/></Suspense></LoadBoundary>
-      <NoteEditor key={`day-${day}-${note?.id ?? 'new'}`} note={note} day={day} start={note ? undefined : dailyStart(record, day)} index={index} change={change} onCreateLink={createNote}/>
+      <NoteEditor key={`day-${day}-${note?.id ?? 'new'}`} note={note} record={record} day={day} start={note ? undefined : dailyStart(record, day)} index={index} change={change} onCreateLink={createNote}/>
       {!note && <p className="fine">A daily note for this day is made when you save.{record.dailyTemplate ? ' It starts from your daily note template (Days → Daily note template).' : ''}</p>}
     </section>; })()}
 

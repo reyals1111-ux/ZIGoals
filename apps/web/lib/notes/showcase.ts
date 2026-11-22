@@ -22,5 +22,7 @@ export function showcaseNotes(day: string): Notes {
   // Session AV lane 2 (notes; LEDGER #32): one repeating note, labelled as an example, already made for this week (the
   // Showcase never makes notes on its own, so its counts stay as they are).
   const weekly = {id: 's-showcase01', title: 'Example · Week plan', body: 'Week of {date}\n\nThree things this week:\n- \n- \n- \n\n(SHOWCASE DATA)', every: 'week' as const, weekday: 1};
-  return notesSchema.parse({version: 1, notes: notes.sort((a, b) => a.createdAt.localeCompare(b.createdAt)), voice: false, schedules: [{...weekly, lastMade: periodStart(weekly, day)}]});
+  return notesSchema.parse({version: 1, notes: notes.sort((a, b) => a.createdAt.localeCompare(b.createdAt)), voice: false, schedules: [{...weekly, lastMade: periodStart(weekly, day)}],
+    // Session AV lane 2 (notes; LEDGER #33): "Books to read" was changed once, so it has one earlier version.
+    versions: [{id: 'v-showcasenote1', noteId: 'showcase-note-books', title: 'Books to read', body: 'Twenty minutes a day with the [[Read]] habit.\n\n1. A short history of Japan\n2. The Psychology of Money\n\n(SHOWCASE DATA)', savedAt: at(-18)}]});
 }

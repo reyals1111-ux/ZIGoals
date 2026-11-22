@@ -105,6 +105,15 @@ describe('repeating notes and the daily note template (LEDGER #32)', () => {
   });
 });
 
+describe('earlier versions of notes (LEDGER #33)', () => {
+  test('the Showcase’s one, in English and Dutch; journal versions stay the journal’s answer', () => {
+    expect(text(zigi('which notes have earlier versions'))).toBe('1 earlier version of 1 note: Books to read. Each note’s Earlier versions shows them, to read or restore.');
+    expect(text(zigi('welke notities hebben eerdere versies'))).toBe('1 eerdere versie van 1 notitie: Books to read. Earlier versions bij elke notitie toont ze, om te lezen of terug te zetten.');
+    expect(text(zigi('do I have earlier versions of my journal entries'))).toContain('1 journal entry has been changed');
+    expect(text(zigi('which notes have earlier versions', freshAll()))).toContain('No note has an earlier version yet.');
+  });
+});
+
 describe('imported entries (LEDGER #44)', () => {
   test('none yet: where to import; imported: how many and from when', () => {
     expect(text(zigi('how many journal entries did I import'))).toContain('No journal entry was imported yet.');

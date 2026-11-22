@@ -225,3 +225,25 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
 - Showcase: `lib/notes/showcase.ts` adds the repeating note "Example · Week plan" (every Monday), already made for this
   week; the Showcase never makes notes itself, so its eight notes stay eight.
 - CSS: `components/notes/notes.css`. Today: nothing added.
+
+### F8 Earlier versions of a note — LEDGER #33 (notes part; the journal part is F4)
+
+- Verdict: **built** for notes and journal entries. The "or task" part of #33 (an earlier version of a task) is the
+  Tasks builder's pillar (group 11 / 17 lists it under "Sync and safety"); left to them, not built here. "Who made them"
+  (Notion's workspace authors) does not apply to a single-person device.
+- What: each save that changes a note's title or words keeps what it replaced (≤ 10 per note, ≤ 300 and 300,000
+  characters in all; none for a note that had no words yet). Under the note: "Earlier versions · N" opens the list —
+  when each was saved, its words, "Restore this version" (the replaced words are kept too; Undo puts the note back;
+  the editor shows the restored words).
+- Files: `lib/notes/versions.ts`, `components/notes/note-versions.tsx` (lazy), `components/notes/note-editor.tsx`
+  (`record` prop; saves keep a version), `components/notes/notes-workspace.tsx`, `components/notes/notes.css`,
+  `lib/notes/showcase.ts`.
+- Tests: `lib/notes/av2-versions.test.ts`; answers ("which notes have earlier versions", EN and NL).
+- Spec: `tests/av2-notes-versions.spec.ts`.
+- Stored: notes `versions` (F0 table).
+- Help (EN). Q: "Can I get back an earlier version of a note?" A: "Yes. Each time you save a change, the words the note
+  had are kept on this device (up to ten versions). Open Earlier versions under the note, read one, and press Restore
+  this version; the words it replaces are kept too."
+- What's new: "Notes: earlier versions of a note, to read and restore."
+- Showcase: "Books to read" has one earlier version (no count changes).
+- CSS: `components/notes/notes.css`. Today: nothing added.

@@ -24,7 +24,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, changedEntries, media, imported, repeatingNotes]) {
+    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, media, imported, repeatingNotes, noteVersions, changedEntries]) {
       const r = one(a);
       if (r) return r;
     }
@@ -149,6 +149,17 @@ function repeatingNotes(a: Asked): LocalReply | null {
   if (!list0.length) return answer(say(lang, `No repeating note yet. Notes → Notes → Repeating notes makes a note every day, week or month from your words.${dailyLine}`, `Nog geen terugkerende notitie. Notes → Notes → Repeating notes maakt elke dag, week of maand een notitie van je eigen woorden.${dailyLine}`), NOTES_CALL);
   const lines = list0.map(s => `${s.title} (${lang === 'nl' ? nlEvery(s) : everyWords(s)}${s.paused ? say(lang, ', paused', ', gepauzeerd') : s.lastMade === periodStart(s, a.today) ? say(lang, `, made “${scheduleTitle(s, periodStart(s, a.today))}”`, `, gemaakt: “${scheduleTitle(s, periodStart(s, a.today))}”`) : ''})`);
   return answer(`${say(lang, `${count(list0.length, 'en', ['repeating note', 'repeating notes'], ['', ''])}: ${list(lines, 'en')}.`, `${count(list0.length, 'nl', ['', ''], ['terugkerende notitie', 'terugkerende notities'])}: ${list(lines, 'nl')}.`)}${dailyLine}`, NOTES_CALL);
+}
+/** LEDGER #33: "which notes have earlier versions", "version history of my notes" (lib/notes/versions.ts, as each note's Earlier versions lists them). */
+function noteVersions(a: Asked): LocalReply | null {
+  const en = /\bnotes?\b/.test(a.f) && /\b(?:earlier|older|previous) versions?\b|\bversion history\b.*\bnotes?\b|\bnotes?\b.*\bversion history\b/.test(a.f) && !/\bjournal|entries|entry\b/.test(a.f);
+  const nl = /\bnotitie s?\b|\bnotities\b/.test(a.f) && /\b(?:eerdere|oudere|vorige) versies\b|\bversiegeschiedenis\b/.test(a.f);
+  if (!en && !nl) return null;
+  const got = notesOf(a); if ('shut' in got) return got.shut;
+  const versions = got.record.versions ?? [], lang = a.lang, ids = [...new Set(versions.map(v => v.noteId))];
+  const names = ids.flatMap(id => { const n = got.record.notes.find(x => x.id === id); return n ? [n.kind === 'daily' && n.day ? dayIn(lang, n.day, a.today) : (n.title.trim() || say(lang, 'an untitled note', 'een notitie zonder titel'))] : []; });
+  if (!names.length) return answer(say(lang, 'No note has an earlier version yet. Each save that changes a note keeps the words it had, under its Earlier versions.', 'Nog geen notitie heeft een eerdere versie. Elke keer dat je een notitie verandert en bewaart, blijven de oude woorden onder Earlier versions.'), NOTES_CALL);
+  return answer(say(lang, `${count(versions.length, 'en', ['earlier version', 'earlier versions'], ['', ''])} of ${count(names.length, 'en', ['note', 'notes'], ['', ''])}: ${list(names.slice(0, 6), 'en')}. Each note’s Earlier versions shows them, to read or restore.`, `${count(versions.length, 'nl', ['', ''], ['eerdere versie', 'eerdere versies'])} van ${count(names.length, 'nl', ['', ''], ['notitie', 'notities'])}: ${list(names.slice(0, 6), 'nl')}. Earlier versions bij elke notitie toont ze, om te lezen of terug te zetten.`), NOTES_CALL);
 }
 const NL_WEEKDAY = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
 const nlEvery = (s: {every: 'day' | 'week' | 'month'; weekday?: number; monthDay?: number}) => s.every === 'day' ? 'elke dag' : s.every === 'week' ? `elke ${NL_WEEKDAY[s.weekday ?? 1]}` : `op de ${s.monthDay ?? 1}e van elke maand`;

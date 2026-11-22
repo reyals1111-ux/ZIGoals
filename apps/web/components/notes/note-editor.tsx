@@ -7,6 +7,7 @@ import {SecretGuard} from '../secret-guard/secret-guard';
 import {ConfirmInline} from '../ui/confirm-inline';
 import {MAX_BODY, MAX_TITLE, noteName, shortNoteName, type Note, type Notes} from '../../lib/notes/schema';
 import {ensureDaily, removeNote, updateNote, type NotesUndo} from '../../lib/notes/store';
+import {updateNoteKeepingVersion} from '../../lib/notes/versions';
 import type {LinkIndex} from '../../lib/notes/links';
 import {deleteNotePhoto, getNotePhoto} from '../../lib/notes/photos';
 import {keepCapturePhoto} from '../../lib/notes/capture';
@@ -14,6 +15,8 @@ import {photoScope} from '../../lib/health-aa/photos';
 import {formatDate} from '../../lib/visual-format';
 
 const NoteBacklinks = lazy(() => import('./note-backlinks'));
+// Session AV lane 2 (notes; LEDGER #33): a note's earlier versions, loaded when their fold opens.
+const NoteVersions = lazy(() => import('./note-versions'));
 
 /**
  * Session AK (B1–B3): one note — read it (Markdown with live [[links]]) or edit it (with [[ autocomplete), its photo,
@@ -21,12 +24,14 @@ const NoteBacklinks = lazy(() => import('./note-backlinks'));
  * so opening a day never writes anything. The secret guard watches the words (in LinkField).
  */
 export type Change = (fn: (r: Notes) => Notes | {record: Notes; undo: NotesUndo}, said: string, undo?: NotesUndo | null) => boolean;
-export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, start}: {
+export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, start, record}: {
   note: Note | null; day?: string; index: LinkIndex; change: Change; onCreateLink: (name: string) => void; onDeleted?: () => void;
+  /** Session AV lane 2 (notes; LEDGER #33): the record, for the note's earlier versions. */ record?: Notes;
   /** Session AV lane 2 (notes; LEDGER #32): the words a new daily note starts from (its template), written only on Save. */ start?: string;
 }) {
   const [title, setTitle] = useState(note?.title ?? ''), [body, setBody] = useState(note?.body ?? start ?? '');
   const [mode, setMode] = useState<'read' | 'edit'>(note?.body.trim() ? 'read' : 'edit');
+  const [versionsOpen, setVersionsOpen] = useState(false);
   const dirty = (note?.title ?? '') !== title || (note?.body ?? '') !== body;
   const untouchedStart = !note && !!start && body === start; // a template not written in yet is not saved as a note
   const isDaily = note ? note.kind === 'daily' : !!day;
@@ -34,8 +39,9 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
     const now = new Date().toISOString();
     if (!note && day) return change(r => { const d = ensureDaily(r, day, now); return updateNote(d.record, d.note.id, {body}, now); }, 'Saved on this device.');
     if (!note) return false;
-    if (!isDaily && !title.trim() && note.kind !== 'inbox') { setTitle(note.title); return change(r => updateNote(r, note.id, {body}, now), 'Saved on this device. A note keeps its title.'); }
-    return change(r => updateNote(r, note.id, isDaily ? {body} : {title, body}, now), 'Saved on this device.');
+    // Session AV lane 2 (notes; LEDGER #33): a save keeps the words it replaces as an earlier version.
+    if (!isDaily && !title.trim() && note.kind !== 'inbox') { setTitle(note.title); return change(r => updateNoteKeepingVersion(r, note.id, {body}, now), 'Saved on this device. A note keeps its title.'); }
+    return change(r => updateNoteKeepingVersion(r, note.id, isDaily ? {body} : {title, body}, now), 'Saved on this device.');
   };
   const saveAndRead = () => { if (!dirty || save()) setMode('read'); };
   const heading = note ? (note.kind === 'daily' && note.day ? formatDate(note.day, {weekday: true}) : noteName(note)) : day ? formatDate(day, {weekday: true}) : '';
@@ -55,6 +61,9 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button></div>
     </>}
     {note && <NoteExtras note={note} change={change} onDeleted={onDeleted}/>}
+    {note && record && <details className="note-fold note-versions-fold" onToggle={e => setVersionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Earlier versions <span className="fine">· {(record.versions ?? []).filter(v => v.noteId === note.id).length || 'none yet'}</span></summary>
+      {versionsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteVersions note={note} record={record} change={change} onRestored={v => { setBody(v.body); if (!isDaily && v.title) setTitle(v.title); setMode('read'); }}/></Suspense></LoadBoundary>}
+    </details>}
     {note && <LoadBoundary quiet><Suspense fallback={null}><NoteBacklinks kind="note" id={note.id} name={isDaily && note.day ? note.day : noteName(note)} teach={false}/></Suspense></LoadBoundary>}
   </article>;
 }
