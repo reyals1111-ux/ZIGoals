@@ -8,7 +8,9 @@ const fold = (s: string, matchCase: boolean) => matchCase ? s : s.toLocaleLowerC
 export function findMatches(text: string, find: string, matchCase = false): number[] {
   if (!find) return [];
   const hay = fold(text, matchCase), needle = fold(find, matchCase), out: number[] = [];
-  if (hay.length !== text.length) return exact(text, find, matchCase);
+  // Review b4g B4G-7: when lower case changes the length of the text or of the words found, each place is compared as
+  // written, so a match is always `find.length` long where it is replaced.
+  if (hay.length !== text.length || needle.length !== find.length) return exact(text, find, matchCase);
   for (let at = hay.indexOf(needle); at >= 0 && out.length < MAX_MATCHES; at = hay.indexOf(needle, at + needle.length)) out.push(at);
   return out;
 }
