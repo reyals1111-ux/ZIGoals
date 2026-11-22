@@ -136,9 +136,12 @@ export function parseBlocks(text: string, options: ParseOptions = {}): NoteBlock
         const item = /^\s{0,3}(?:[-*+•]|\d{1,3}[.)])\s+(.+)$/.exec(lines[i]!);
         if (!item || /^\s{0,3}\d/.test(lines[i]!) !== ordered) break;
         at.push(i);
+        const own = item[1]!.trim();
         let itemText = item[1]!; i++;
         while (i < lines.length && /^\s{2,}\S/.test(lines[i]!) && !/^\s{0,3}(?:[-*+•]|\d{1,3}[.)])\s+/.test(lines[i]!)) { itemText += ` ${lines[i]!.trim()}`; i++; }
-        const tick = notes ? TICK.exec(itemText.trim()) : null;
+        // Session AV lane 2 (review B3C-10): a tick box only with words after it on the item's own line, the line ticking
+        // rewrites (lib/notes/ticks.ts TICK_LINE); "- [ ]" with its words on the next line stays a plain item.
+        const tick = notes && TICK.test(own) ? TICK.exec(itemText.trim()) : null;
         ticks.push(tick ? tick[1] !== ' ' : null);
         items.push(inlineOf(tick ? tick[2]! : itemText.trim()));
       }

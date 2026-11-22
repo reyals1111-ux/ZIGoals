@@ -144,3 +144,14 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
   notes where Open tick boxes and the reading view list the same lines; ticking from the list never rewrites code. The
   safe-render tests pass unchanged.
 - **Help/corpus:** none.
+
+## B3C-10 (Minor): a box whose words are on the next line
+
+- **Verdict:** confirmed and fixed.
+- **Fix:** the reading view's parser (`lib/ai/safe-render.ts`, notes only) makes a tick box only when the item's own
+  first line has words after `[ ]`/`[x]` — the line `setTick` rewrites and `tickLines` lists. `- [ ]` with its words on
+  the next line is a plain item ("[ ] words"), so no box is drawn that cannot be ticked. ZIGi's and NOVA's replies are
+  untouched (no tick boxes there).
+- **Tests:** `lib/notes/revb3c-ticks.test.ts`: such an item is plain; every box the reading view draws can be ticked and
+  matches Open tick boxes.
+- **Help/corpus:** none.

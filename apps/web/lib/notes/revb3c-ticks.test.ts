@@ -46,3 +46,18 @@ describe('B3C-9: one fence rule', () => {
     expect(setTick(body, first!.line, true).split('\n')).toEqual(['````md', '```js', '- [ ] inside the code', '```', '````', '- [x] a real box after']);
   });
 });
+describe('B3C-10: a box whose words are on the next line', () => {
+  test('is drawn as a plain item, not a box that cannot be ticked', () => {
+    const body = '- [ ]\n  words on the next line\n- [ ] words on its line';
+    expect(drawn(body)).toEqual([{line: 2, checked: false}]);
+    expect(listed(body)).toEqual(drawn(body));
+    const list = parseBlocks(body, {notes: true})[0] as Extract<NoteBlock, {type: 'list'}>;
+    expect(list.ticks).toEqual([null, false]);
+  });
+  test('every box the reading view draws can be ticked', () => {
+    for (const body of ['- [ ]\n  later', '- [x] done\n  and more', '1. [ ] one\n2. [ ]\n   two', '- [ ] \n- [ ] a']) {
+      for (const box of drawn(body)) expect(() => setTick(body, box.line, !box.checked), body).not.toThrow();
+      expect(listed(body), body).toEqual(drawn(body));
+    }
+  });
+});
