@@ -30,7 +30,9 @@ for (const theme of THEMES) test(`${theme}: October in short, then November star
   await expect.poll(async () => (await readRecord<BudgetsRecord>(page, BUDGETS_KEY)).budgets[0]!.freshFrom).toBe('2026-11');
   await expect(section.getByRole('button', {name: 'Start this month fresh'})).toHaveCount(0);
   // Session AV (fresh-agent check q2, rank 49): the pressed button is gone, so focus moves to the month heading, not <body>.
-  await expect(section.getByRole('heading', {name: 'Nov 2026'})).toBeFocused();
+  // Session AV lane 2 (CI run 2007; deliberate): lane 2's "Plan Nov 2026" (assign mode) is a heading in the same section,
+  // so the month heading is named exactly.
+  await expect(section.getByRole('heading', {name: 'Nov 2026', exact: true})).toBeFocused();
   await page.getByRole('button', {name: 'Undo'}).first().click();
   await expect(available()).toContainText('€330.00');
   await page.setViewportSize({width: 320, height: 720});
