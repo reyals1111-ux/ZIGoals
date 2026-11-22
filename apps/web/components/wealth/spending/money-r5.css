@@ -1,0 +1,60 @@
+/* Session AV lane 2, round 5 (money; Tiller, PocketSmith): yesterday's money, the year so far against the budgets, a bill
+   paid early, merging two accounts, trying a change on the forecast, money as a spreadsheet and categories in a file.
+   Theme tokens only, 14 px and larger copy, 44 px targets, no motion. */
+.money-yesterday{display:grid;gap:8px;min-width:0}
+.money-yesterday-day{margin:0;font-size:15px}
+.money-yesterday-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.money-yesterday-list li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.money-yesterday-choices{border:0;margin:0;padding:0;display:grid;gap:6px;min-width:0}
+.money-yesterday-choices legend{font-weight:600;font-size:15px;padding:0;margin-bottom:4px}
+.money-ytd{display:grid;gap:8px;min-width:0}
+.money-ytd-total{margin:0;font-size:15px}
+.money-ytd-scroll{max-width:100%;overflow-x:auto}
+.money-ytd-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.money-ytd-table caption{text-align:left;font-size:14px;color:var(--text-secondary,var(--muted));padding-bottom:4px}
+.money-ytd-table th,.money-ytd-table td{padding:6px 8px 6px 0;text-align:left;vertical-align:baseline;border-bottom:1px solid var(--line,rgba(140,160,220,.25));overflow-wrap:anywhere}
+.money-ytd-open{min-height:44px;text-align:left}
+.bill-paid-early{grid-column:1 / -1;display:grid;gap:6px;margin:4px 0 8px;padding-left:12px;border-left:2px solid var(--line,rgba(140,160,220,.35));min-width:0}
+.bill-paid-early-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.bill-paid-early-list li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:14px;overflow-wrap:anywhere}
+.bill-paid-early-what{flex:1 1 12em;min-width:0}
+.bill-paid-early button,.bills-actions .quiet{min-height:44px}
+.money-merge{display:grid;gap:8px;margin:8px 0 12px;padding:12px;border:1px solid var(--line,rgba(140,160,220,.3));border-radius:12px;min-width:0}
+.money-merge h4{margin:0;font-size:15px}
+.money-merge-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:8px 12px}
+.money-merge select,.money-merge input:not([type=checkbox]){min-height:44px;width:100%;box-sizing:border-box;font-size:16px}
+.money-merge-plan{margin:0;padding-left:20px;display:grid;gap:4px;font-size:15px;overflow-wrap:anywhere}
+.money-merge-names,.money-merge-doubles{border:0;margin:0;padding:0;display:grid;gap:6px;min-width:0}
+.money-merge-names legend,.money-merge-doubles legend{font-weight:600;font-size:15px;padding:0;margin-bottom:4px}
+.money-merge-doubles ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.money-merge button{min-height:44px;justify-self:start}
+.money-whatif{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line,rgba(140,160,220,.25));min-width:0}
+.money-whatif h5{margin:0;font-size:15px}
+.money-whatif-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px 12px;align-items:end}
+.money-whatif select,.money-whatif input{min-height:44px;width:100%;box-sizing:border-box;font-size:16px}
+.money-whatif button{min-height:44px}
+.money-whatif-list,.money-whatif-kept ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.money-whatif-list li,.money-whatif-kept li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 12px;font-size:14px;overflow-wrap:anywhere}
+.money-whatif-words{margin:0;font-size:15px}
+.money-whatif-figure{margin:0;display:grid;gap:4px}
+.money-whatif-line{fill:none;stroke:var(--violet,var(--accent,#a78bfa));stroke-width:2.5;stroke-dasharray:6 5;vector-effect:non-scaling-stroke}
+.money-whatif-key{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.money-whatif-key-forecast,.money-whatif-key-model{display:inline-block;width:22px;height:0;border-top:3px solid var(--cyan,#45d8ef)}
+.money-whatif-key-model{border-top:3px dashed var(--violet,var(--accent,#a78bfa));margin-left:8px}
+.money-whatif-keep{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:end}
+@media (max-width:480px){.money-whatif-keep{grid-template-columns:1fr}}
+.money-whatif-actions{display:inline-flex;gap:4px}
+.money-sheet{display:grid;gap:8px;min-width:0}
+.money-sheet-ranges,.money-sheet-files{display:flex;flex-wrap:wrap;gap:8px}
+.money-sheet-ranges button,.money-sheet-files button{min-height:44px}
+.money-sheet-scroll{max-width:100%;overflow-x:auto;border-radius:8px}
+.money-sheet-scroll:focus-visible{outline:2px solid var(--focus,var(--cyan,#45d8ef));outline-offset:2px}
+.money-sheet-table{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:100%}
+.money-sheet-table caption{text-align:left;font-size:14px;color:var(--text-secondary,var(--muted));padding-bottom:4px}
+.money-sheet-table th,.money-sheet-table td{padding:6px 10px 6px 0;text-align:left;vertical-align:baseline;border-bottom:1px solid var(--line,rgba(140,160,220,.25));white-space:nowrap}
+.money-sheet-table td:nth-child(4){white-space:normal;min-width:10em;overflow-wrap:anywhere}
+.money-sheet-sort{min-height:44px;font-weight:600}
+.category-file input[type=file]{min-height:44px;font-size:16px;max-width:100%}
+.category-file-plan{display:grid;gap:6px}
+.category-file button{min-height:44px;justify-self:start}
+.category-file button[aria-disabled="true"]{opacity:.55;cursor:default}

@@ -38,6 +38,8 @@ const AssignPanel = lazy(() => import('./assign-panel'));
 import SpaceSwitch, {useMoneySpace} from '../spending/space-switch';
 import {budgetsSpec, logSpec} from '../../../lib/money-more/spaces';
 const YearRecapView = lazy(() => import('./year-recap'));
+// Session AV lane 2, round 5 (money; Tiller's Year-to-Date Comparison, LEDGER #385): this year so far against the budgets (lazy, on its fold).
+const YearSoFarView = lazy(() => import('./year-so-far'));
 // Session AV lane 2, round 2 (money; Spendee, Wallet): your own budgets on a tag or chosen categories, each month or once (lazy).
 const OwnBudgets = lazy(() => import('./own-budgets'));
 import {perDayWords} from '../../../lib/budgets/per-day';
@@ -99,7 +101,7 @@ export function BudgetsView({space = 'personal', record, entries, today, showcas
   useEffect(() => { if (!focusKey) return; const el = table.current?.querySelector<HTMLElement>(`[data-focus-key="${focusKey}"]`); if (el) { el.focus(); setFocusKey(null); } }, [focusKey, view]);
   // Session AV (owner follow-up 1, F-MONTH-RECAP, F-FRESH-MONTH): last month (or the month shown) in short, and a fresh start.
   const [recapOpen, setRecapOpen] = useState(false), recapMonth = month === thisMonth ? shiftMonth(thisMonth, -1) : month;
-  const [yearOpen, setYearOpen] = useState(false);
+  const [yearOpen, setYearOpen] = useState(false), [ytdOpen, setYtdOpen] = useState(false);
   const usedCurrencies = useMemo(() => { const count = new Map<string, number>(); for (const e of entries) count.set(e.currency, (count.get(e.currency) ?? 0) + 1); const used = [...count].sort((x, y) => y[1] - x[1]).map(([c]) => c); return used.length ? used : [currency]; }, [entries, currency]);
   const safeChange = (fn: (r: BudgetsRecord) => BudgetsRecord) => { try { onChange(fn); } catch { setProblem('Not saved on this device.'); } };
   // Session AV (fresh-agent check q2, rank 49): shown in the Showcase too (Undo is there); after the change the button is
@@ -170,6 +172,7 @@ export function BudgetsView({space = 'personal', record, entries, today, showcas
       <div className="budgets-form-actions"><button type="submit" className="secondary">Save budget</button><button type="button" className="quiet" onClick={() => { setAdding(false); setProblem(''); }}>Cancel</button></div>
     </form>}
     {entries.length > 0 && <details className="budgets-recap-fold" onToggle={e => setYearOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{today.slice(0, 4)} in review</summary>{yearOpen && <Suspense fallback={<p className="fine">Opening…</p>}><YearRecapView entries={entries} today={today}/></Suspense>}</details>}
+    {record.budgets.length > 0 && <details className="budgets-recap-fold money-ytd-fold" onToggle={e => setYtdOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{today.slice(0, 4)} so far against your budgets</summary>{ytdOpen && <Suspense fallback={<p className="fine">Opening…</p>}><YearSoFarView record={record} entries={entries} today={today}/></Suspense>}</details>}
     {(view.rows.length > 0 || entries.length > 0) && <details className="budgets-recap-fold" onToggle={e => setRecapOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{formatMonth(`${recapMonth}-01`)} in short</summary>{recapOpen && <Suspense fallback={<p className="fine">Opening…</p>}><MonthRecapView entries={entries} record={record} month={recapMonth} today={today}/></Suspense>}</details>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}

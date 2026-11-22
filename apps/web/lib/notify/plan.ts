@@ -82,6 +82,13 @@ export type PlanInput = {
    */
   money?: {id: string; date: string; title?: string; detail?: string}[];
   /**
+   * Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384; TIER 3 (PWA)): "Yesterday's money" each morning
+   * (lib/money-log/yesterday.ts morningMoneyWakes), under its own switch, off by default: the day, an id, `plain` — the
+   * count of entries, the only words shown while names are off — and, for names-on only, a title and the detail with
+   * amounts and account names. Never a payee.
+   */
+  moneyMorning?: {id: string; date: string; plain: string; title?: string; detail?: string}[];
+  /**
    * Session AV lane 2 (food, LEDGER #90; MyFitnessPal): the meal reminders the person switched on in Health, at each meal's
    * usual time (lib/food-plus/meal-notify.ts mealWakes); the meal's own name only where names are allowed, never food.
    */
@@ -256,6 +263,14 @@ export function buildPlan(input: PlanInput): Plan {
     const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'money');
     push({at, kind: 'money', id: m.id, label: label(m.title), ...(labels && m.detail ? {detail: m.detail} : {}), href: moneyHref(m.id), actionable: false});
+  }
+  // Session AV lane 2, round 5 (money; LEDGER #384): Yesterday's money wakes at the morning time of its day (the end of quiet
+  // hours when the morning is quiet), as a money notice does; the count alone unless names are allowed.
+  if (typeOn(prefs, 'moneyMorning')) for (const m of input.moneyMorning ?? []) {
+    if (m.date < today || m.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'money');
+    push({at, kind: 'money', id: m.id, label: label(m.title), detail: labels && m.detail ? m.detail : m.plain, href: '/app/wealth#spending', actionable: false});
   }
   // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
   // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end

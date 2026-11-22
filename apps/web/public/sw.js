@@ -63,7 +63,10 @@
     (kinds.journal || []).filter(function (j) { return /^memory:/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('A memory from ' + (j.detail || 'your journal')); });
     (kinds.journal || []).filter(function (j) { return !/^(?:letter|memory):/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('Time to write in your journal' + (j.detail ? ' · ' + j.detail : '')); });
     // Session AV lane 2 (money): budgets near or over, payday tomorrow, the low-balance line; words only where names are allowed.
-    var moneyNotes = kinds.money || [];
+    // Session AV lane 2, round 5 (money; LEDGER #384): Yesterday's money on its own line — the count, and amounts only where
+    // names are allowed (the plan leaves them out otherwise); never a payee.
+    (kinds.money || []).filter(function (m) { return /^money:yesterday:/.test(String(m.id || '')); }).slice(0, 1).forEach(function (m) { lines.push('Yesterday\u2019s money' + (m.detail ? ' \u00b7 ' + m.detail : '')); });
+    var moneyNotes = (kinds.money || []).filter(function (m) { return !/^money:yesterday:/.test(String(m.id || '')); });
     if (moneyNotes.length) lines.push(named && moneyNotes.every(function (m) { return m.label; }) ? moneyNotes.slice(0, 2).map(function (m) { return m.label + (m.detail ? ' · ' + m.detail : ''); }).join(' · ') : plural(moneyNotes.length, 'money notice: open Wealth', 'money notices: open Wealth'));
     // Session AV lane 2 (LEDGER #180): the mood check-in; never a mood.
     if (kinds.mood) lines.push('How does today feel? One tap answers it.');

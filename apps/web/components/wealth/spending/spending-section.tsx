@@ -67,6 +67,10 @@ const MonthExtras = lazy(() => import('./quick-log').then(m => ({default: m.Mont
 const UnusualLine = lazy(() => import('./unusual-line'));
 // Session AV lane 2, round 4 (money; Lunch Money, LEDGER #342, #347): archive a category, starter sets (own chunk, on the fold).
 const CategoryMore = lazy(() => import('./category-more'));
+// Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384): yesterday's money and its two choices (own chunk, on the fold).
+const YesterdayMoney = lazy(() => import('./yesterday-money'));
+// Session AV lane 2, round 5 (money; Tiller's Foundation Template, LEDGER #389): the money log as a table, a CSV and an .xlsx (own chunk, on the fold).
+const MoneySheet = lazy(() => import('./money-sheet'));
 // Session AV lane 2, round 2 (money; Emma's split and settle, Wallet's lent and borrowed): between you and others (own chunk).
 const ShareFold = lazy(() => import('./people-money').then(m => ({default: m.ShareFold})));
 const PeoplePanel = lazy(() => import('./people-money'));
@@ -111,6 +115,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
   const withQuick = (e: MoneyEntry): MoneyEntry => { const {sub: _s, paidWith: _p, ...rest} = e; void _s; void _p; return {...rest, ...(sub && e.kind === 'expense' ? {sub} : {}), ...(paidWith ? {paidWith} : {})}; };
   const endEdit = () => { setEditing(null); setAmount(''); setNote(''); setDate(today); clearMarks(); setLogging(false); requestAnimationFrame(() => logButton.current?.focus()); };
   const [searching, setSearching] = useState(false);
+  const [yesterdayOpen, setYesterdayOpen] = useState(false), [sheetOpen, setSheetOpen] = useState(false);
   const startEdit = (entry: MoneyEntry) => { setEditing(entry); setKind(entry.kind); setAmount(entry.amount); setCategory(entry.category); setNote(entry.note ?? ''); setDate(entry.date); setLeftOut(!!entry.excluded); setTax(!!entry.taxDeductible); setSpread(entry.spread ?? 1); setPaidWith(entry.paidWith ?? ''); setSub(entry.sub ?? ''); setProblem(''); setStatus(''); setLogging(true); requestAnimationFrame(() => amountField.current?.focus()); };
   const saveEdit = (entry: MoneyEntry) => {
     const checked = checkMoneyEdit(entry, {amount, category, note, date}, today);
@@ -291,7 +296,9 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
         {monthTotals.map(t => <p key={t.currency} className="fine">This month in {t.currency}: spent {money(t.expenses, t.currency)}, received {money(t.income, t.currency)}.</p>)}
       </section>
     </div>
+    {!business && log.data.entries.length > 0 && <details className="money-yesterday-fold" onToggle={e => setYesterdayOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Yesterday’s money</summary>{yesterdayOpen && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><YesterdayMoney entries={log.data.entries} today={today} showcase={showcase}/></Suspense>}</details>}
     {log.data.entries.length > 0 && <details ref={searchFold} className="money-search-fold" onToggle={e => setSearching((e.currentTarget as HTMLDetailsElement).open)}><summary>Search all your entries</summary>{searching && <Suspense fallback={<p className="fine" aria-busy="true">Opening the search…</p>}>{drill && <p className="fine money-drill-note" role="status">{drill.category ? `${drill.category} this month, from your list above. Select them to change several at once.` : `Entries on ${formatDate(drill.from)}, from the calendar of the month.`}</p>}<MoneySearch key={drill ? `${drill.category ?? drill.from}-${drill.n}` : 'all'} entries={log.data.entries} onEdit={startEdit} onBulk={bulk} onUngroup={ungroupOne} categories={categoryChoices(log.data, 'expense')} archived={[...(log.data.archived?.expense ?? []), ...(log.data.archived?.income ?? [])]} {...(drill ? {initial: drill.category ? {category: drill.category, from: drill.from, to: drill.to, kind: 'expense' as const} : {from: drill.from, to: drill.to}} : {})}/></Suspense>}</details>}
+    {log.data.entries.length > 0 && <details className="money-sheet-fold" onToggle={e => setSheetOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Your money as a spreadsheet</summary>{sheetOpen && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><MoneySheet log={log.data} today={today} label={business ? 'business' : 'personal'}/></Suspense>}</details>}
     <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase} space={space} openDay={openDay} weekStartsOn={log.data.weekStartsOn}/></Suspense>
     {!showcase && !business && <Suspense fallback={null}><PeoplePanel log={log.data} update={log.update} today={today} currencies={[...new Set([currency, ...CURRENCIES])]}/></Suspense>}
     {!showcase && !business && <Suspense fallback={null}><StoreCards/></Suspense>}
