@@ -93,6 +93,15 @@ describe('the default template and the earlier versions (LEDGER #39, #33)', () =
   });
 });
 
+describe('imported entries (LEDGER #44)', () => {
+  test('none yet: where to import; imported: how many and from when', () => {
+    expect(text(zigi('how many journal entries did I import'))).toContain('No journal entry was imported yet.');
+    const s = withJournal(showcaseAll(), j => ({...j, entries: j.entries.map((e, i) => i < 2 ? {...e, imported: 'dayone' as const} : e)}));
+    expect(text(zigi('how many journal entries did I import', s))).toMatch(/^2 journal entries were imported, from .+ to .+\.$/);
+    expect(text(zigi('hoeveel dagboekstukken heb ik geïmporteerd', s))).toMatch(/^2 dagboekstukken zijn geïmporteerd, van .+ tot .+\.$/);
+  });
+});
+
 describe('photos and voice notes in entries (LEDGER #35, #42)', () => {
   test('none yet: where to add them; with media: the counts and the minutes, in English and Dutch', () => {
     expect(text(zigi('how many photos are in my journal'))).toContain('No photo or voice note in your journal yet.');

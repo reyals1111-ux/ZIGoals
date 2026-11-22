@@ -144,10 +144,7 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
 ### F5 Photos, a voice note and [[links]] in an entry — LEDGER #35, #42 (Day One: rich entries; audio recorder)
 
 - Verdict: **built**. #42's Apple Watch part: native-only (not part of the row's build, as the LEDGER says). Video and
-  drawing in an entry (COMPETITORS.md "not covered either") are not built: video would need a far larger device store
-  than this one keeps (the photos' 200 kB shrink has no video counterpart without a new dependency) — **left: a new
-  dependency** (an on-device video encoder); drawing is left to the next builder as **to build** if the owner wants it
-  (no cause; not in the LEDGER row's "What is missing").
+  drawing in an entry are not in the LEDGER row's "What is missing" (a photo and a [[link]]), so not built here.
 - What: Write → "Photos and a voice note": up to 4 photos (shrunk on the device to ≤ 200 kB when saved) and one voice
   note recorded in the browser (MediaRecorder, ≤ 5 minutes, 32 kbit/s, Stop shows the length), previews and Remove
   before saving; an entry of only a photo or a voice note gets the words "A photo." / "A voice note." (editable). Under
@@ -172,3 +169,33 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
   entry would change entry words other answers read). Reported instead.
 - Export: the media are not in Export everything (as the notes' photos); F6's journal export carries them in its zip.
 - CSS: `components/journal/journal.css`. Today: nothing added (the compact card has no media).
+
+### F6 Import (Day One, Markdown, text, Apple Journal) and the journal's own export — LEDGER #44 (Day One: imports and integrations)
+
+- Verdict: **built** (part Carried, as the LEDGER says: Strava, Zapier and IFTTT — needs an outside service).
+- What: Journal → "Import and export". Import reads a Day One export (its ZIP with `photos/` and `audios/`, or its JSON
+  alone; each JSON is one journal, made here while there is room; Day One's photo markers and Markdown escapes are taken
+  out; each entry's day in its own time zone; tags; up to 4 photos (shrunk) and 3 audio notes), ZIGoals' own journal
+  export (days, journals, templates, questions and media come back as they left), Markdown and text files (one entry
+  each, or one per dated heading; the day from front matter, the file name or the first line; tags from front matter),
+  and HTML pages (Apple Journal's export: the page's words, the day from its name or first lines). It shows the plan
+  first — how many entries from when to when, the journals, entries cut at 5,000 characters, and what is left out and
+  why (already in the journal, twice in the files, a day still to come, no date, no words) — then imports with one Undo
+  (its entries and the journals it made go; media is left to the 30-day sweep). Export makes one ZIP: `journal.json` in
+  Day One's shape (with each entry's day, journal, template and question under `zigoals`), `photos/`, `audios/`,
+  `README.txt`; named `zigoals-journal-<day>.zip` (`zigoals-example-journal-…` in the Showcase).
+- Files: `lib/journal/import.ts`, `lib/journal/export.ts`, `components/journal/journal-files.tsx` (lazy; reads ZIPs with
+  `lib/notes/zip-read.ts`, writes with `lib/export/zip.ts`), `components/journal/journal-page.tsx`, `journal.css`.
+- Tests: `lib/journal/av2-import.test.ts` (Day One, Markdown, text, HTML, duplicates, apply and Undo, the export → import
+  round trip); answers ("how many journal entries did I import", EN and NL).
+- Spec: `tests/av2-journal-import.spec.ts`.
+- Stored: entry `imported` (F0 table). No new key.
+- Help (EN). Q: "Can I bring my Day One journal into ZIGoals?" A: "Yes. In Day One, export your journal as JSON (a ZIP
+  with photos). In ZIGoals, Journal → Import and export → Choose files to import. You see how many entries it holds and
+  what is left out before anything is added, and Undo takes the import back. Markdown and text files and an Apple Journal
+  export work too." Q: "How do I take my journal out?" A: "Journal → Import and export → Export the journal makes one ZIP
+  with every entry, photo and voice note, in Day One's shape. It is made on your device; keep it private."
+- What's new: "Journal: import from Day One, Markdown or Apple Journal, and export your journal with its photos."
+- Showcase: none (an import is the person's own act; the Showcase's Export names its file "example").
+- Search palette (the lead's `lib/search/static.ts`): "Import a journal" → `/app/journal#journal-files-title` (optional).
+- CSS: `components/journal/journal.css`. Today: nothing added.

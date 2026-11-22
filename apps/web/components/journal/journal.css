@@ -182,3 +182,12 @@
 .journal-link-day input,.journal-link-day button{min-height:44px;font-size:16px}
 .journal-linked-from{margin:0 0 8px}
 .journal-record-stop{font-variant-numeric:tabular-nums}
+/* Session AV lane 2 (journal; LEDGER #44): Import and export. */
+.journal-files{display:grid;gap:16px}
+.journal-files-part{display:grid;gap:8px;justify-items:start}
+.journal-files-part h3{margin:0;font-size:16px}
+.journal-files-part button{min-height:44px}
+.journal-import-plan{display:grid;gap:6px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;box-sizing:border-box}
+.journal-import-plan p{margin:0;overflow-wrap:anywhere}
+.journal-import-skipped summary{min-height:44px;display:list-item;padding:10px 0;box-sizing:border-box;cursor:pointer}
+.journal-import-skipped ul{margin:0;padding-left:18px;font-size:14px;overflow-wrap:anywhere}

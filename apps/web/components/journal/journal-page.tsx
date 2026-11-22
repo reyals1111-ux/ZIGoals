@@ -49,6 +49,8 @@ const EntryMore = lazy(() => import('./entry-more'));
 // Session AV lane 2 (journal; LEDGER #35, #42): an entry's [[links]], photos and voice note, each loaded only for an entry that has them.
 const EntryRichText = lazy(() => import('./entry-rich-text'));
 const EntryMedia = lazy(() => import('./entry-media'));
+// Session AV lane 2 (journal; LEDGER #44): Import and export, loaded when its fold opens.
+const JournalFiles = lazy(() => import('./journal-files'));
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -179,6 +181,10 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     </section>
     <OnDemandFold className="year-pixels-fold" summary="Year: one square a day" label="Your year"><YearPixels today={today}/></OnDemandFold>
     {found.length > 0 && <section className="panel" aria-labelledby="journal-patterns"><h2 id="journal-patterns">Patterns</h2><ul>{found.slice(0, 4).map(p => <li key={p.theme}>{patternLine(p, 'en')}</li>)}</ul><p className="fine">Counts from your own entries, never a diagnosis.</p></section>}
+    {/* Session AV lane 2 (journal; LEDGER #44, Day One's imports): bring entries in, or take the whole journal out with its photos. */}
+    <section className="panel" aria-labelledby="journal-files-title"><h2 id="journal-files-title">Import and export</h2>
+      <JournalFold className="journal-files-fold" label="import and export" summary={<>Day One, Markdown, text or Apple Journal <span className="fine">· or your journal as a ZIP</span></>}><JournalFiles/></JournalFold>
+    </section>
     <section className="panel" aria-labelledby="journal-privacy"><h2 id="journal-privacy">Privacy</h2>
       <label className="switch-row"><input type="checkbox" checked={journal.data.followUps} onChange={e => journal.update(c => ({...c, followUps: e.target.checked}))}/> <span>ZIGi asks one question after an entry (made on this device)</span></label>
       <label className="switch-row"><input type="checkbox" checked={journal.data.shareWithAi} onChange={e => journal.update(c => ({...c, shareWithAi: e.target.checked}))}/> <span>Let ZIGi send journal entries to my own AI when I ask about them (off by default)</span></label>

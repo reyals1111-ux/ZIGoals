@@ -21,7 +21,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, changedEntries, media]) {
+    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, changedEntries, media, imported]) {
       const r = one(a);
       if (r) return r;
     }
@@ -126,6 +126,16 @@ function changedEntries(a: Asked): LocalReply | null {
   if (!changed.length && !versions.length) return answer(say(lang, 'No journal entry has been changed, so there are no earlier versions. An entry’s More → Edit the words keeps the words it had, up to ten versions.', 'Geen dagboekstuk is veranderd, dus er zijn geen eerdere versies. More → Edit the words bij een stuk bewaart de woorden die het had, tot tien versies.'), CALL);
   const days = [...new Set(changed.map(e => e.date))].sort().slice(-5).map(d => dayIn(lang, d, a.today));
   return answer(say(lang, `${count(changed.length, 'en', ['journal entry has', 'journal entries have'], ['', ''])} been changed (${list(days, 'en')}), with ${count(versions.length, 'en', ['earlier version', 'earlier versions'], ['', ''])} kept on this device. Each entry’s More lists them, to read or restore.`, `${count(changed.length, 'nl', ['', ''], ['dagboekstuk is', 'dagboekstukken zijn'])} veranderd (${list(days, 'nl')}), met ${count(versions.length, 'nl', ['', ''], ['eerdere versie', 'eerdere versies'])} bewaard op dit apparaat. More bij elk stuk toont ze, om te lezen of terug te zetten.`), CALL);
+}
+/** LEDGER #44: "how many journal entries did I import" (each imported entry is marked with where it came from). */
+function imported(a: Asked): LocalReply | null {
+  const en = /\bimport(?:ed)?\b/.test(a.f) && /\b(?:journal|entries|entry|day one|diary)\b/.test(a.f), nl = /\b(?:geimporteerd|ingelezen|importeerde|importeren)\b/.test(a.f) && /\b(?:dagboek\w*|stukken|day one)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = journalClosed(a); if (shut) return shut;
+  const list0 = journalOf(a).entries.filter(e => e.imported), lang = a.lang;
+  if (!list0.length) return answer(say(lang, 'No journal entry was imported yet. Journal → Import and export reads a Day One export, Markdown or text files, or an Apple Journal export, and shows what it found first.', 'Er is nog geen dagboekstuk geïmporteerd. Journal → Import and export leest een Day One-export, Markdown- of tekstbestanden, of een Apple Journal-export, en toont eerst wat erin staat.'), CALL);
+  const days = list0.map(e => e.date).sort(), from = dayIn(lang, days[0]!, a.today), to = dayIn(lang, days.at(-1)!, a.today);
+  return answer(say(lang, `${count(list0.length, 'en', ['journal entry was', 'journal entries were'], ['', ''])} imported, from ${from}${from !== to ? ` to ${to}` : ''}.`, `${count(list0.length, 'nl', ['', ''], ['dagboekstuk is', 'dagboekstukken zijn'])} geïmporteerd, van ${from}${from !== to ? ` tot ${to}` : ''}.`), CALL);
 }
 /** LEDGER #35, #42: "how many photos are in my journal", "do I have voice notes in my journal" (the entries' own media ids). */
 function media(a: Asked): LocalReply | null {
