@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useId, useMemo, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {localDate} from '../../lib/local-date';
 import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
@@ -15,7 +15,9 @@ import {MoodWordsFold} from '../mood-words/mood-words-fold';
 import {SecretGuard} from '../secret-guard/secret-guard';
 // Session AK (BUILD list 2 #13, lane G1a): "Start from a prompt" (its list loads when the fold opens).
 import {onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
-import {questionOfTheDay, withQuestion} from '../../lib/journal-prompts/daily';
+import {questionIndexOfTheDay, questionOfTheDay, withQuestion} from '../../lib/journal-prompts/daily';
+// Session AV lane 2 (LEDGER #56): questions the person hid are passed over; hiding one loads its writer on the tap.
+import {mutedNow} from '../../lib/muted/rule';
 import {readTags, tagCounts} from '../../lib/journal/tags';
 import {setQuestionLang, useQuestionLang} from './question-lang';
 import {addOwnTemplate, editOwnTemplate, removeOwnTemplate} from '../../lib/journal-prompts/own';
@@ -32,7 +34,9 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate(), id = useId();
   const [prompt, setPrompt] = useState<{id: string; lang: PromptLang} | null>(null), [prompts, setPrompts] = useState(false);
   // Session AV Part 7 (F-PROMPT): today's question, and how many times "Another question" was pressed.
-  const [step, setStep] = useState(0), qLang = useQuestionLang(); // Session AV (F-OWN-TEMPLATES): the question in Dutch too
+  const [step, setStep] = useState(0), qLang = useQuestionLang(), [hidden, setHidden] = useState(0), [hiddenSaid, setHiddenSaid] = useState(''), [mutedQ, setMutedQ] = useState<ReadonlySet<number> | undefined>(undefined);
+  // Session AV lane 2 (LEDGER #56): the hidden questions, read after mount (never on the server) and after each hide.
+  useEffect(() => { setMutedQ(mutedNow().questions); }, [hidden]); // Session AV (F-OWN-TEMPLATES): the question in Dutch too
   const [tagText, setTagText] = useState(''); // Session AV (follow-up 1, F-JOURNAL-TAGS): tags as the entry is written
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
@@ -73,8 +77,8 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     {!compact && !pending && <Suspense fallback={null}><ThreeGoodThings/></Suspense>}
     {!pending && <form onSubmit={save} aria-label="Write in your journal">
       {/* Session AV Part 7 (ADR-045 F-PROMPT): one question a day (lib/journal-prompts/daily.ts); using it only writes it into the text. */}
-      {!compact && !text.trim() && <div className="journal-today-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question</span> <strong lang={qLang}>{questionOfTheDay(today, step, qLang)}</strong></p>
-        <div className="journal-today-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, questionOfTheDay(today, step, qLang)))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button><button type="button" className="quiet" lang={qLang === 'en' ? 'nl' : 'en'} onClick={() => setQuestionLang(qLang === 'en' ? 'nl' : 'en')}>{qLang === 'en' ? 'In het Nederlands' : 'In English'}</button></div></div>}
+      {!compact && !text.trim() && (muted => <div className="journal-today-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question</span> <strong lang={qLang}>{questionOfTheDay(today, step, qLang, muted)}</strong></p>
+        <div className="journal-today-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, questionOfTheDay(today, step, qLang)))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button><button type="button" className="quiet" onClick={() => { const i = questionIndexOfTheDay(today, step, qLang, muted); void import('../../lib/muted/write').then(m => { m.setMuted('questions', i, true); setHidden(n => n + 1); setHiddenSaid('Hidden: it will not be asked again. Journal → Start from a prompt → Hidden lists it.'); }).catch(() => setHiddenSaid('This could not be hidden on this device.')); }}>Don’t ask this again</button><button type="button" className="quiet" lang={qLang === 'en' ? 'nl' : 'en'} onClick={() => setQuestionLang(qLang === 'en' ? 'nl' : 'en')}>{qLang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>{hiddenSaid && <p className="fine" role="status">{hiddenSaid}</p>}</div>)(mutedQ)}
       <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       <SecretGuard text={text} onRemove={() => setText('')}/>

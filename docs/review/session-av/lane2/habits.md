@@ -87,3 +87,33 @@ corpus, regenerates theme sheets, edits Help / What's new / search / shard lists
 - Showcase hook: the Showcase's habits already carry areas, so "Your areas this week" shows them with no new data.
 - CSS touched: `components/habits/habit-options.css`, `components/game/av2-journey.css` (new; theme variables only).
 - Always visible on Today: nothing added. Habits page first chunk: one fold row (`<details>` + lazy import).
+
+## Feature 3 — Hidden prompts and exercises (LEDGER #56)
+
+**Verdict: built.**
+
+- Finch's muted tags and exercises as one device list: "Don't ask this again" under the Journal's question of the day
+  (the next question shows; focus stays); Journal → Start from a prompt → "Hidden prompts and exercises" (a fold, lazy)
+  lists the hidden questions to bring back (an unticked one stays listed while the fold is open) and hides any ready
+  template; Health → Meditation → Breathe with a guide → "Hide a pattern" (a fold, lazy) hides breathing patterns. A
+  hidden item is only left out of what is offered (all patterns hidden: all offered; all questions hidden: none skipped);
+  nothing already written changes.
+- Files: `lib/muted/{rule,write}.ts` (the writer loads on the tap), `components/muted/{muted-panel.tsx,muted-panel.css}`,
+  `lib/journal-prompts/daily.ts` (`questionIndexOfTheDay`, an optional `skip` for `questionOfTheDay`; callers without
+  it are unchanged), `components/journal/journal-compose.tsx`, `components/journal-prompts/prompt-picker.tsx`,
+  `components/health/meditation/meditation-forms.tsx` (the hidden list is read after mount, never on the server).
+  Note for the journal lane's builder: these three journal/meditation files gained small, separate edits.
+- Tests: `lib/muted/muted.test.ts` (hide/read/bring back, odd entries, the question passed over, export → erase →
+  restore, the answers EN and NL). Spec: `tests/av2-muted.spec.ts`.
+- **Stored change (TIER 3 stored formats, additive, separate commit):** `zigoals:habit-extras:v1` gains optional
+  `muted` ({questions?: number[], templates?: string[], breathing?: string[]}, ≤ 200 each, a loose object checked where
+  read). Existing key: exported, erased, restored and synced with the extras; no registry change.
+- Help (EN): **Q: Can I stop seeing a journal question, a template or a breathing pattern?** A: Yes. Under today's
+  question, "Don't ask this again" hides it. Journal → Start from a prompt → Hidden prompts and exercises lists what you
+  hid, to bring back, and hides ready templates; in Meditation, Breathe with a guide → Hide a pattern hides a breathing
+  pattern. Nothing you already wrote changes.
+- What's new: "Hide journal questions, templates and breathing patterns you don't want offered."
+- Answers: "which prompts have I hidden" / "welke vragen heb ik verborgen" (cases in `AV2_HABITS`, id `av2-habits-hidden`).
+- Showcase hook: none (the Showcase hides nothing; a hidden question would change the Showcase's question of the day).
+- CSS touched: `components/muted/muted-panel.css` (new). Always visible on Today: nothing (the compact journal card on
+  Today shows no question).

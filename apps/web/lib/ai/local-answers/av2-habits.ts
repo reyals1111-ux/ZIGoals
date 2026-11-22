@@ -3,6 +3,10 @@ import {DIFFICULTY_WORDS, DIFFICULTY_XP, FOCUS_BONUS_XP, readHabitOptions, type 
 import {areaWeekRows} from '../../habit-areas/week';
 import {AREA_LABELS} from '../../habits-extras/areas-mirror';
 import {THEME_DAYS, themeMonthsReached, themeProgress} from '../../game/month-theme';
+import {readMuted} from '../../muted/rule';
+import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
+import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
+import {PATTERNS, type BreathingPattern} from '../../meditation/breathing';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
 import {answer, asked, closed, count, isQuestion, list, MIXED, monthIn, say, type Asked} from './av-words';
@@ -18,7 +22,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts]) {
       const r = one(a);
       if (r) return r;
     }
@@ -117,4 +121,18 @@ function monthTheme(a: Asked): LocalReply | null {
   const done = Math.min(p.days, THEME_DAYS);
   const past = reached.length ? say(lang, ` Months reached: ${list(reached.slice(-4).map(m => monthIn('en', m)), 'en')}.`, ` Gehaalde maanden: ${list(reached.slice(-4).map(m => monthIn('nl', m)), 'nl')}.`) : '';
   return answer(say(lang, `${monthIn('en', month)}’s theme: ${t.en}. ${t.lineEn} ${done} of ${THEME_DAYS} days with a check-in so far (${where})${p.reached ? '; reached, the Theme month badge is yours' : ''}.${past}`, `Het thema van ${monthIn('nl', month)}: ${t.nl}. ${t.lineNl} Tot nu toe ${done} van ${THEME_DAYS} dagen met een check-in (${where})${p.reached ? '; gehaald, de badge Theme month is van jou' : ''}.${past}`), OPEN);
+}
+/** LEDGER #56: "what have I hidden from my prompts", "welke vragen heb ik verborgen". */
+function hiddenPrompts(a: Asked): LocalReply | null {
+  const en = /\b(?:hidden|muted|hid|hide)\b/.test(a.f) && /\b(?:prompts?|questions?|templates?|breathing|patterns?|exercises?)\b/.test(a.f);
+  const nl = /\b(?:verborgen|verstopt|uitgezet)\b/.test(a.f) && /\b(?:vragen|vraag|sjablonen|sjabloon|ademhaling|ademoefeningen|patronen|oefeningen)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const lang = a.lang, m = readMuted(extrasOf(a));
+  const qs = [...m.questions].sort((x, y) => x - y).map(i => (lang === 'nl' ? DAILY_QUESTIONS_NL : DAILY_QUESTIONS)[i]).filter((q): q is string => !!q).map(q => `“${q}”`);
+  const ts = JOURNAL_TEMPLATES.filter(t => m.templates.has(t.id)).map(t => t.title[lang]);
+  const bs = (Object.keys(PATTERNS) as BreathingPattern[]).filter(p => m.breathing.has(p)).map(p => PATTERNS[p].label);
+  if (!qs.length && !ts.length && !bs.length) return answer(say(lang, 'Nothing is hidden: every daily question, template and breathing pattern is offered. “Don’t ask this again” under today’s question, or Journal → Start from a prompt → Hidden prompts and exercises, hides one.', 'Er is niets verborgen: elke dagvraag, elk sjabloon en elk ademhalingspatroon wordt aangeboden. “Don’t ask this again” onder de vraag van vandaag, of Journal → Start from a prompt → Hidden prompts and exercises, verbergt er een.'));
+  const parts = [qs.length ? say(lang, `${count(qs.length, 'en', ['daily question', 'daily questions'], ['', ''])} (${list(qs.slice(0, 5), 'en')})`, `${count(qs.length, 'nl', ['', ''], ['dagvraag', 'dagvragen'])} (${list(qs.slice(0, 5), 'nl')})`) : null,
+    ts.length ? say(lang, `templates: ${list(ts, 'en')}`, `sjablonen: ${list(ts, 'nl')}`) : null, bs.length ? say(lang, `breathing patterns: ${list(bs, 'en')}`, `ademhalingspatronen: ${list(bs, 'nl')}`) : null].filter((p): p is string => !!p);
+  return answer(say(lang, `Hidden on this device: ${parts.join('; ')}. Journal → Start from a prompt → Hidden prompts and exercises brings them back.`, `Verborgen op dit apparaat: ${parts.join('; ')}. Journal → Start from a prompt → Hidden prompts and exercises haalt ze terug.`));
 }

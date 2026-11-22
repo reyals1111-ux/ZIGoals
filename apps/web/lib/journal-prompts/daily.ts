@@ -65,10 +65,18 @@ export const DAILY_QUESTIONS_NL: readonly string[] = [
   'Op welke vraag zou je graag een antwoord hebben?',
 ];
 const dayNumber = (date: string) => Math.floor(Date.parse(`${date}T12:00:00Z`) / 86_400_000);
-/** The question for `date` (YYYY-MM-DD), `step` questions further on ("Another question"). */
-export function questionOfTheDay(date: string, step = 0, lang: 'en' | 'nl' = 'en'): string {
-  const list = lang === 'nl' ? DAILY_QUESTIONS_NL : DAILY_QUESTIONS, n = list.length, i = (((dayNumber(date) + step) % n) + n) % n;
-  return list[Number.isFinite(i) ? i : 0]!;
+/**
+ * The question for `date` (YYYY-MM-DD), `step` questions further on ("Another question"). Session AV lane 2 (LEDGER #56):
+ * `skip` holds the places of questions the person hid (lib/muted/rule.ts); they are passed over (all hidden: none skipped).
+ */
+export function questionIndexOfTheDay(date: string, step = 0, lang: 'en' | 'nl' = 'en', skip?: ReadonlySet<number>): number {
+  const n = (lang === 'nl' ? DAILY_QUESTIONS_NL : DAILY_QUESTIONS).length, start = (((dayNumber(date) + step) % n) + n) % n, first = Number.isFinite(start) ? start : 0;
+  if (!skip?.size || skip.size >= n) return first;
+  for (let k = 0; k < n; k++) { const i = (first + k) % n; if (!skip.has(i)) return i; }
+  return first;
+}
+export function questionOfTheDay(date: string, step = 0, lang: 'en' | 'nl' = 'en', skip?: ReadonlySet<number>): string {
+  return (lang === 'nl' ? DAILY_QUESTIONS_NL : DAILY_QUESTIONS)[questionIndexOfTheDay(date, step, lang, skip)]!;
 }
 /** The entry's text with the question as its first line (an entry that already holds words keeps them under it). */
 export const withQuestion = (current: string, question: string) => current.trim() ? `${question}\n${current}` : `${question}\n`;
