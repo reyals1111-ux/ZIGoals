@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {collectEverything, DEVICE_KEYS} from '../export/everything';
 import {nextValue, planParts} from '../restore/plan';
 import {emptyWorkouts, type Workouts} from './schema';
-import {agendaPlanned, clearAway, emptyPlanned, missedThisWeek, mondayOf, moveWorkout, PLANNED_KEY, planStates, planWorkout, plannedRecordSchema, realign, removePlanned, restorePlanned, runName, setAway, undoRealign, type PlanDraft, type PlannedRecord} from './planned';
+import {agendaPlanned, clearAway, emptyPlanned, missedThisWeek, mondayOf, moveWorkout, PLANNED_KEY, planStates, planWorkout, plannedRecordSchema, realign, removePlanned, restorePlanned, runName, setAway, undoRealign, focusAfterRemove, type PlanDraft, type PlannedRecord} from './planned';
 import {agendaExtras} from '../../components/agenda/agenda-extras';
 import {plannedWorkoutItems} from '../timeline/workout-source';
 
@@ -78,6 +78,13 @@ describe('planned workouts (LEDGER #330)', () => {
     // A goes back; B was moved again since and stays where the person put it; C was removed and stays removed; the new one stays.
     expect(back.items.map(i => [i.name, i.date])).toEqual([['A', '2026-11-16'], ['New one', '2026-11-22'], ['B', '2026-11-28']]);
     expect(undoRealign(out.value, out.moves).items.map(i => i.date)).toEqual(r.items.map(i => i.date));
+  });
+  // Session AV lane 2 (review B4E-12): after Remove, focus goes on to the next planned workout, never to the document.
+  test('focus after Remove: the next one, else the one before, else the plan form', () => {
+    expect(focusAfterRemove(['a', 'b', 'c'], 'b')).toBe('c');
+    expect(focusAfterRemove(['a', 'b', 'c'], 'c')).toBe('b');
+    expect(focusAfterRemove(['a'], 'a')).toBeNull();
+    expect(focusAfterRemove(['a', 'b'], 'gone')).toBe('a');
   });
   test('the Agenda and the Day Timeline draw the ones still to do or missed', () => {
     const r = plan({name: 'Missed one', date: '2026-11-17'}, {name: 'Upper body', date: '2026-11-20', time: '07:30', minutes: '45'}, {name: 'Done one', date: '2026-11-18'});

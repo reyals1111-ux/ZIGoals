@@ -147,3 +147,13 @@ export function agendaPlanned(rec: PlannedRecord | null, w: Workouts | null, tod
 }
 /** A planned workout in a line: "Easy 5 km run · 18:00". */
 export const plannedLine = (i: Planned) => `${i.name}${i.time ? ` · ${i.time}` : ''}${i.minutes ? ` · about ${i.minutes} min` : ''}`;
+/**
+ * Review B4E-12: after "Remove from the plan" focus goes to the next planned workout on the calendar (in its order), else
+ * the one before, else nowhere on the calendar (the caller then focuses the plan form): never to the document.
+ */
+export function focusAfterRemove(order: readonly string[], removed: string): string | null {
+  const at = order.indexOf(removed), rest = order.filter(id => id !== removed);
+  if (!rest.length) return null;
+  return at < 0 ? rest[0]! : rest[Math.min(at, rest.length - 1)]!;
+}
+

@@ -1,10 +1,10 @@
 'use client';
-import {useId, useMemo, useState, type DragEvent, type FormEvent} from 'react';
+import {useEffect, useId, useMemo, useRef, useState, type DragEvent, type FormEvent} from 'react';
 import {addLocalDays} from '../../../lib/local-date';
 import {formatDate} from '../../../lib/visual-format';
 import type {Workouts} from '../../../lib/workouts/schema';
 import {CIRCUITS} from '../../../lib/workouts/circuits';
-import {clearAway, EFFORT_WORDS, EFFORTS, missedThisWeek, mondayOf, moveWorkout, planStates, planWorkout, PLANNED_WORKOUTS, plannedLine, realign, removePlanned, restorePlanned, setAway, undoRealign, type Effort, type PlanMove, type PlanDraft, type Planned, type PlanIssue, type PlanState, type PlannedRecord} from '../../../lib/workouts/planned';
+import {clearAway, EFFORT_WORDS, EFFORTS, missedThisWeek, mondayOf, moveWorkout, planStates, planWorkout, PLANNED_WORKOUTS, plannedLine, focusAfterRemove, realign, removePlanned, restorePlanned, setAway, undoRealign, type Effort, type PlanMove, type PlanDraft, type Planned, type PlanIssue, type PlanState, type PlannedRecord} from '../../../lib/workouts/planned';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {showUndo} from '../../ui/undo-toast';
@@ -44,6 +44,9 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
   const upcoming = r.items.filter(i => i.date > days.at(-1)!), earlier = r.items.filter(i => i.date < start && states.get(i.id) !== 'done').slice(-5);
   const drop = (e: DragEvent, date: string) => { e.preventDefault(); setOver(null); const item = r.items.find(i => i.id === e.dataTransfer.getData('text/plain')); if (item) move(item, date); };
   const chosen = r.items.find(i => i.id === open) ?? null;
+  // Review B4E-12: focus follows the panel: to its heading on open, back to the workout after Move or Close, on to the next one after Remove.
+  const focusChip = (itemId: string) => requestAnimationFrame(() => document.getElementById(`${id}-chip-${itemId}`)?.focus());
+  const sortedIds = () => days.flatMap(d => (byDay.get(d) ?? []).map(i => i.id));
   return <div className="r4-plan" id="workouts-plan">
     {isShowcase() && r.items.some(i => /\(Showcase\)/.test(i.name)) && <p className="fine"><ShowcaseTag/> Fictional example plan.</p>}
     <p className="fine">Plan a routine, a circuit or a run on a day. Drag it to another day on the calendar, or open it to move it. A planned workout is done once a workout is logged that day.</p>
@@ -59,13 +62,13 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
           return <li key={d} className="r4-day" data-today={d === today || undefined} data-over={over === d || undefined} data-away={away || undefined} aria-label={`${formatDate(d, {weekday: true, year: false})}${d === today ? ', today' : ''}: ${list.length ? `${list.length} planned` : 'nothing planned'}${away ? ', away' : ''}`}
             onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (over !== d) setOver(d); }} onDragLeave={() => setOver(o => o === d ? null : o)} onDrop={e => drop(e, d)}>
             <span className="r4-day-head" aria-hidden="true">{formatDate(d, {weekday: true, year: false})}</span>
-            <span>{list.map(i => <button key={i.id} type="button" className="quiet r4-chip" draggable data-state={states.get(i.id)} aria-expanded={open === i.id} aria-controls={`${id}-item`}
+            <span>{list.map(i => <button key={i.id} id={`${id}-chip-${i.id}`} type="button" className="quiet r4-chip" draggable data-state={states.get(i.id)} aria-expanded={open === i.id} aria-controls={open === i.id ? `${id}-item` : undefined}
               aria-label={`${plannedLine(i)}, ${STATE_WORDS[states.get(i.id) ?? 'planned']}. Open to move or remove it`} onDragStart={e => { e.dataTransfer.setData('text/plain', i.id); e.dataTransfer.effectAllowed = 'move'; }} onClick={() => setOpen(open === i.id ? null : i.id)}>{i.time ? `${i.time} ` : ''}{i.name}</button>)}</span>
           </li>; })}
       </ul>)}
     </div>
-    {chosen && <ItemPanel key={chosen.id} id={`${id}-item`} item={chosen} state={states.get(chosen.id) ?? 'planned'} today={today} onMove={d => move(chosen, d)} onClose={() => setOpen(null)}
-      onRemove={() => { setOpen(null); if (keep(c => removePlanned(c, chosen.id), `${chosen.name} removed from your plan.`)) showUndo({message: `${chosen.name} removed from your plan.`, undone: `${chosen.name} is back in your plan.`, restore: () => rec.update(c => restorePlanned(c, chosen))}); }}/>}
+    {chosen && <ItemPanel key={chosen.id} id={`${id}-item`} item={chosen} state={states.get(chosen.id) ?? 'planned'} today={today} onMove={d => { move(chosen, d); setOpen(null); focusChip(chosen.id); }} onClose={() => { setOpen(null); focusChip(chosen.id); }}
+      onRemove={() => { setOpen(null); const order = sortedIds(); requestAnimationFrame(() => { const next = focusAfterRemove(order, chosen.id); const el = next ? document.getElementById(`${id}-chip-${next}`) : document.querySelector<HTMLElement>(`#workouts-plan form select`); el?.focus(); }); if (keep(c => removePlanned(c, chosen.id), `${chosen.name} removed from your plan.`)) showUndo({message: `${chosen.name} removed from your plan.`, undone: `${chosen.name} is back in your plan.`, restore: () => rec.update(c => restorePlanned(c, chosen))}); }}/>}
     {(earlier.length > 0 || upcoming.length > 0) && <ul className="r4-list">{[...earlier, ...upcoming].map(i => <li key={i.id}><span><strong>{i.name}</strong><small className="fine">{formatDate(i.date, {weekday: true})}{i.time ? ` · ${i.time}` : ''} · {STATE_WORDS[states.get(i.id) ?? 'planned']}</small></span><span className="r4-row-actions"><button type="button" className="quiet" aria-label={`Open ${i.name} on ${formatDate(i.date)}`} onClick={() => setOpen(i.id)}>Open</button></span></li>)}</ul>}
     {!r.items.length && <p className="health-empty-inline">Nothing planned yet. Put your routine on Monday and an easy run on Thursday: they show here, on the Agenda and on the Day Timeline.</p>}
     <PlanForm w={w} circuits={circuits.loaded && !circuits.unreadable ? circuits.data.circuits : []} today={today} onPlan={d => { const out = planWorkout(r, d, `plan-${crypto.randomUUID()}`, new Date().toISOString()); if (!out.ok) return out.issue; keep(() => out.value, `${out.item.name} planned on ${formatDate(out.item.date, {weekday: true, year: false})}${out.item.time ? ` at ${out.item.time}` : ''}.`); return null; }}/>
@@ -74,9 +77,11 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
 }
 
 function ItemPanel({id, item, state, today, onMove, onRemove, onClose}: {id: string; item: Planned; state: PlanState; today: string; onMove: (d: string) => void; onRemove: () => void; onClose: () => void}) {
-  const [to, setTo] = useState(item.date < today ? today : addLocalDays(item.date, 1));
-  return <section className="r4-note" id={id} aria-label={`${item.name}, ${formatDate(item.date)}`}>
-    <p><strong>{plannedLine(item)}</strong> · {formatDate(item.date, {weekday: true})} · {STATE_WORDS[state]}</p>
+  const [to, setTo] = useState(item.date < today ? today : addLocalDays(item.date, 1)), head = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { head.current?.focus(); }, []);
+  return <section className="r4-note" id={id} aria-labelledby={`${id}-head`}>
+    <h4 id={`${id}-head`} ref={head} tabIndex={-1}>{plannedLine(item)}</h4>
+    <p>{formatDate(item.date, {weekday: true})} · {STATE_WORDS[state]}</p>
     <div className="r3-toggle"><label className="field"><span>Move to</span><input type="date" value={to} onChange={e => setTo(e.target.value)}/></label><button type="button" className="secondary" disabled={!to || to === item.date} onClick={() => onMove(to)}>Move</button></div>
     <div className="actions"><button type="button" className="quiet" onClick={onRemove}>Remove from the plan</button><button type="button" className="quiet" onClick={onClose}>Close</button></div>
   </section>;
