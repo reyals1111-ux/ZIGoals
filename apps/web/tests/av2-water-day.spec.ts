@@ -53,7 +53,9 @@ for (const theme of THEMES) test(`${theme}: own drinks, energy from drinks, a ti
   // A drink typed with its energy.
   const entry = water.getByRole('form', {name: 'Water entry'});
   await entry.getByLabel('Water amount', {exact: true}).fill('330');
-  await entry.getByLabel('Drink', {exact: true}).selectOption('soft drink');
+  // Session AV lane 2 (fixb3: a label around a list takes its options' words, so an exact label never matched, deliberate):
+  // the list named exactly Drink.
+  await entry.getByRole('combobox', {name: 'Drink', exact: true}).selectOption('soft drink');
   await entry.getByRole('textbox', {name: 'Energy (kcal, optional)'}).fill('140');
   await entry.getByRole('button', {name: 'Log water'}).click();
   await expect(water).toContainText('580 mL recorded');

@@ -33,7 +33,8 @@ for (const theme of THEMES) test(`${theme}: a timed circuit, played and logged`,
   await form.getByRole('button', {name: 'Add the move'}).click();
   await form.getByRole('textbox', {name: /^Work \(seconds/}).fill('5');
   await form.getByRole('textbox', {name: 'Rest after a move (seconds)'}).fill('0');
-  await form.getByRole('textbox', {name: 'Rounds'}).fill('1');
+  // Session AV lane 2 (fixb3: "Rounds" also matched "Rest between rounds", deliberate): the field named exactly Rounds.
+  await form.getByRole('textbox', {name: 'Rounds', exact: true}).fill('1');
   await form.getByRole('textbox', {name: 'Rest between rounds (seconds)'}).fill('0');
   await form.getByRole('button', {name: 'Save the circuit'}).click();
   await expect(box.getByRole('status')).toHaveText('Fictional quick circuit saved: Play starts it.');
