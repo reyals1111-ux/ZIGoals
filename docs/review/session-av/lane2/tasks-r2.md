@@ -101,3 +101,31 @@ work, family and you, in English or Dutch. Use one, give the project a name and 
 What's new: "Tasks: a template gallery for home, work and family, in English and Dutch."
 Search (lead's static.ts): "Template gallery" → `/app/tasks?view=organise`.
 Showcase / Today: nothing. Weight: the gallery is in the planning views' lazy chunk only.
+
+## Feature 5 — Trello and Asana imports (LEDGER #227, Any.do) — built (ClickUp, Monday.com: left, see below)
+
+- Tasks → Import / export now also reads a Trello board export (JSON: Board menu → Print, export and share → Export as
+  JSON) and an Asana project export (CSV: project menu → Export/Print → CSV), on the device, nothing sent.
+- Trello: the board is a project; open lists are sections in the board's order; cards are tasks (due as the day and time in
+  this device's zone, labels by name or colour, the description as notes); checklist items are subtasks. Archived cards and
+  lists, finished cards and items, and cards without a name are left out and counted.
+- Asana: Projects (else the file's name) is the project, Section/Column the section ("(no section)" none), Due Date (else
+  Start Date) the day, Tags labels, Notes notes, Priority High/Medium/Low → P1/P2/P4, Parent task the parent by name (a
+  subtask listed before its parent still lands under it). Completed tasks are left out and counted.
+- Assignees and members are never brought in (against a named rule: nothing is shared between people); the preview says
+  how many people were left out. Preview first, then Add to Tasks as one change with the page's Undo (projects and
+  sections included). The 500-task, 100-project and 300-section caps of applyImport apply as before.
+- Basis (the habit importer's rule, lib/import/switch/formats.ts): Trello's export is its REST API's documented board, list,
+  card and checklist objects; Asana's help documents the CSV columns. ClickUp and Monday.com stay off until their export
+  layout is published (the ledger's own wording); the answer says so.
+
+Files: lib/tasks/import-boards.ts (pure readers), lib/tasks/import.ts (source union, optional `archived`/`people` counts in
+the plan — not stored — and the dispatch in readTaskFile), components/tasks/tasks-io.tsx (accepts .json, the preview words).
+Tests: lib/tasks/r2-import-boards.test.ts. Spec: tests/av2-board-imports.spec.ts.
+Stored: nothing new (imported tasks are ordinary tasks).
+Answers: "can I import my tasks from Trello" / "kan ik mijn taken uit Trello importeren" (also Asana; ClickUp, Monday.com: not yet, why).
+Help: Q "Can I bring my tasks over from Trello or Asana?" A "Yes. Export the Trello board as JSON, or the Asana project as
+CSV, then Tasks → Import / export and choose the file. You see what comes in first; Undo takes it back. People the tasks
+were assigned to are left out."
+What's new: "Tasks: import from Trello and Asana."
+Showcase / Today: nothing.

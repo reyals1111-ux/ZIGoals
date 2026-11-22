@@ -101,4 +101,18 @@ function gallery(a: Ask): LocalReply | null {
     say(lang, 'Choose one, a name and a start day, and Make the project: its sections and days come with it.', 'Kies er een, een naam en een startdag, en maak het project: de secties en dagen komen mee.')].join('\n'), CALLS);
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn, printList, gallery];
+/** "can I import my tasks from Trello", "kan ik mijn taken uit Asana importeren" (LEDGER #227). */
+function importFrom(a: Ask): LocalReply | null {
+  const app = /\btrello\b/.test(a.f) ? 'Trello' : /\basana\b/.test(a.f) ? 'Asana' : /\bclickup\b|\bmonday\b/.test(a.f) ? 'other' : null;
+  if (!app || !/\bimport|\bbring|\bmove|\bover|\bimporteren\b|\bimporteer\b|\boverzetten\b|\bhalen\b|\bmeenemen\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'today'); if (shut) return shut;
+  if (app === 'other') return answer(say(a.lang, 'Not from ClickUp or Monday.com yet: ZIGoals reads only exports whose layout the app documents. Tasks → Import / export reads Todoist, TickTick, Trello (JSON), Asana (CSV) and calendar (.ics) files.',
+    'Nog niet uit ClickUp en Monday.com: ZIGoals leest alleen exports waarvan de app de opbouw beschrijft. Tasks → Import / export leest Todoist, TickTick, Trello (JSON), Asana (CSV) en agendabestanden (.ics).'), CALLS);
+  return answer(app === 'Trello'
+    ? say(a.lang, 'Yes. In Trello: the board’s menu → Print, export and share → Export as JSON. Then Tasks → Import / export and choose the file: the board becomes a project, its lists sections, cards tasks and checklist items subtasks. You see a preview first, and Undo takes it back. Archived cards and members are left out.',
+      'Ja. In Trello: menu van het bord → Print, export and share → Export as JSON. Daarna Tasks → Import / export en kies het bestand: het bord wordt een project, de lijsten secties, kaarten taken en checklistpunten subtaken. Je ziet eerst een voorbeeld, en Undo draait het terug. Gearchiveerde kaarten en leden blijven weg.')
+    : say(a.lang, 'Yes. In Asana: the project’s menu → Export/Print → CSV. Then Tasks → Import / export and choose the file: its sections, tasks with due days, tags, notes and subtasks come in, after a preview; Undo takes it back. Assignees are left out.',
+      'Ja. In Asana: menu van het project → Export/Print → CSV. Daarna Tasks → Import / export en kies het bestand: secties, taken met hun datum, tags, notities en subtaken komen binnen, na een voorbeeld; Undo draait het terug. Wie een taak toegewezen kreeg, blijft weg.'), CALLS);
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn, printList, gallery, importFrom];
