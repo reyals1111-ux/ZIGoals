@@ -47,6 +47,8 @@ const NotesTrash = lazy(() => import('./notes-trash'));
 const NotesSelect = lazy(() => import('./notes-select'));
 // Session AV lane 2 (r5-notes; LEDGER #362, Logseq): a template for every note with a tag, loaded when its fold opens.
 const TagTemplates = lazy(() => import('./tag-templates'));
+// Session AV lane 2 (r5-notes; LEDGER #365, Logseq): flashcards from the notes, loaded when their fold opens.
+const NotesCards = lazy(() => import('./notes-cards'));
 const LAYOUTS = [['list', 'List'], ['table', 'Table'], ['gallery', 'Gallery'], ['board', 'Board'], ['chart', 'Chart']] as const; // Session AV lane 2 (r3-notes; LEDGER #270): Board
 type Layout = (typeof LAYOUTS)[number][0];
 
@@ -111,7 +113,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
     // Once on arrival (the photos left go with the arrival sweep's grace).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes.loaded]);
-  const [trashOpen, setTrashOpen] = useState(false), [selecting, setSelecting] = useState(false), [templatesOpen, setTemplatesOpen] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false), [selecting, setSelecting] = useState(false), [templatesOpen, setTemplatesOpen] = useState(false), [cardsOpen, setCardsOpen] = useState(false);
   const doneSelecting = () => { setSelecting(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('.note-select-button')?.focus()); };
   // Session AV lane 2 (notes; LEDGER #32): the repeating notes due for this period are made when Notes opens.
   const [madeNote, setMadeNote] = useState(0);
@@ -190,6 +192,9 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       <TagFocus notes={taggableNotes(record)} focus={focus} onFocus={setFocus}/>
       <NotesSearch notes={focused(record.notes, focus)} onSearching={setSearching}/>
       <LoadBoundary quiet><Suspense fallback={null}><NotesRemindersPanel record={record}/></Suspense></LoadBoundary>
+      <details className="note-fold note-cards-fold" onToggle={e => setCardsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Review cards <span className="fine">· a line “question :: answer” in a note is a card</span></summary>
+        {cardsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NotesCards notes={record.notes}/></Suspense></LoadBoundary>}
+      </details>
       {(() => { const n = openTickCount; return <details className="note-fold note-ticks-fold" open={ticksOpen || undefined} onToggle={e => setTicksOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Open tick boxes <span className="fine">· {n ? `${n} across your notes` : 'none yet; a line that starts with - [ ] is one'}</span></summary>
         {ticksOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NotesTicks record={record} change={change}/></Suspense></LoadBoundary>}
       </details>; })()}
