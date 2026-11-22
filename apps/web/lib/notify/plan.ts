@@ -2,6 +2,7 @@ import {addDays, inQuiet, toMinutes, wallClock, weekdayBit, weekdayOf, zonedInst
 import {eveningTime, moodTimes, morningTime, typeOn, type NotifyPrefs} from './prefs';
 import type {EnergyInput} from './energy-items';
 import {spacedTimes} from '../habit-reminder-words';
+import type {HabitPartsInput} from './habit-parts';
 
 /**
  * Session AK Part 2 (ADR-036 Q3, A1, A2): the notification plan of this device, pure. From what the page already knows
@@ -11,7 +12,7 @@ import {spacedTimes} from '../habit-reminder-words';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy' | 'planDay' | 'weighIn';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy' | 'planDay' | 'weighIn' | 'habitPart';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -106,6 +107,12 @@ export type PlanInput = {
    * weight is logged today. Never a weight.
    */
   weighIn?: {time: string; weekdays: number; dates: string[]; doneToday: boolean};
+  /**
+   * Session AV lane 2 (r5-body; LEDGER #369, Productive; TIER 3 (PWA)): one reminder at the start of each part of the day
+   * (lib/notify/habit-parts.ts habitPartsInput) with how many of its habits are still open; its habits' own reminders are
+   * then not sent. Names only where names are allowed (and never a Health-linked habit's).
+   */
+  habitParts?: HabitPartsInput;
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -139,7 +146,9 @@ export function buildPlan(input: PlanInput): Plan {
     }
   };
   const EVERY = 127;
-  if (typeOn(prefs, 'habits')) for (const h of input.habits) for (const time of spacedTimes(h.time, h.more ?? [])) daily('habit', h.id, time, h.weekdays, () => ({label: label(h.words ?? h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
+  const partCovered = new Set(typeOn(prefs, 'habits') ? input.habitParts?.covered ?? [] : []);
+  if (typeOn(prefs, 'habits')) for (const p of input.habitParts?.parts ?? []) daily('habitPart', `part:${p.part}`, p.time, EVERY, date => { const d = p.days.find(x => x.date === date); return d && d.open > 0 ? {detail: d.detail, label: label(d.names?.join(' · ')), href: '/app/habits', actionable: false} : null; }, date => !(p.days.find(x => x.date === date)?.open));
+  if (typeOn(prefs, 'habits')) for (const h of input.habits.filter(x => !partCovered.has(x.id))) for (const time of spacedTimes(h.time, h.more ?? [])) daily('habit', h.id, time, h.weekdays, () => ({label: label(h.words ?? h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
   // Session AK (F5): never labelled, whatever the names switch says (a supplement or medicine's name is health data).
   if (typeOn(prefs, 'supplements')) for (const s of input.supplements ?? []) daily('supplement', s.id, s.time, s.weekdays, () => ({href: '/app/health', actionable: false}), date => date === today && s.doneToday);
   // Session AV lane 2 (health r3; LEDGER #280): reminders through the day, each its own wake, quiet once today is on pace

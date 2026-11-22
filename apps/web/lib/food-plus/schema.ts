@@ -32,6 +32,7 @@ import type {DeviceRecordSpec} from '../device-record';
  *   it in its own section, while its slot has a name. A slot or tag this build cannot read is left out on its own.
  * - `photos` (LEDGER #103): which library foods have a front-of-pack photo on this device (the photo itself is in
  *   IndexedDB, lib/food-plus/photos.ts), with when it was taken.
+ * - `lateMeal` (LEDGER #371, Bevel): the hours before bedtime and the calories that make a late-meal night in Compare.
  */
 export const FOOD_PLUS_KEY = 'zigoals:food-plus:v1';
 export const EATING_STYLES = ['low-carb', 'high-protein', 'high-fibre'] as const;
@@ -57,6 +58,10 @@ export const foodPlusSchema = z.looseObject({
   steps: z.record(healthId, z.array(z.string().trim().min(1).max(600)).min(1).max(60)).optional().catch(undefined),
   extraMeals: z.looseObject({slots: z.record(extraKey, extraSlotSchema).optional().catch(undefined), entries: z.record(z.string().regex(/^(?:health|words)_[A-Za-z0-9-]{1,100}$/), extraKey).optional().catch(undefined)}).optional().catch(undefined),
   marks: z.looseObject({style: z.enum(EATING_STYLES).optional().catch(undefined), levels: z.boolean().optional().catch(undefined)}).optional().catch(undefined),
+  // Session AV lane 2 (r5-body, LEDGER #371, Bevel's late-meal tag with a calorie threshold; TIER 3 (stored format), additive
+  // and optional): what counts as a late meal in Compare — food of at least `kcal` logged within `hours` before bedtime.
+  // The person's own two numbers; missing means 3 hours and 300 kcal. A value this build cannot read is dropped on its own.
+  lateMeal: z.looseObject({hours: z.number().int().min(1).max(6), kcal: z.number().int().min(50).max(3000)}).optional().catch(undefined),
 });
 export const MAX_RECIPE_STEPS = 60, MAX_STEP_CHARS = 600;
 export type FoodPlus = z.infer<typeof foodPlusSchema>;
