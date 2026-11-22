@@ -3,8 +3,11 @@ import type {ToolSources} from '../tools/env';
 import {ask, DAY, freshAll, novaEnv, showcaseAll, zigiEnv} from '../evals/as/harness';
 import {av2R6MoneyAnswer} from './av2-r6-money';
 import {av2R6PlanAnswer} from './av2-r6-plan';
+import {av2R6NotesAnswer} from './av2-r6-notes';
 import {av2R6BodyAnswer} from './av2-r6-body';
 import type {LocalReply} from './engine';
+import {MOON_WORDS, moonOn, sunOn} from '../../journal/sky';
+import {addDays, wallClock} from '../../zone-time';
 import {emptyDayEnds, setCurrentDayEnds} from '../../day-boundary-core';
 import {emptyWorkouts, workoutsSchema} from '../../workouts/schema';
 import {setLight} from '../../workouts/r6-gym';
@@ -105,6 +108,62 @@ describe('B6Q-19 (plan): Dutch', () => {
     expect(nl).toMatch(/^Je herhalende taken over de laatste 3 maanden:\n• Fictional plants: 0 keer gedaan$/);
     expect(nl).not.toMatch(/herhaalt|every|\bMon\b/i);
     expect(text(av2R6PlanAnswer('how often did I do my repeating tasks', zigiEnv(rec)))).toMatch(/^Your repeating tasks over the last 3 months:\n• Fictional plants \(every week on mon\): done 0 times$/);
+  });
+});
+
+describe('B6Q-5 and B6Q-20 (notes): Earlier versions while there is room; Dutch says Ongedaan maken', () => {
+  const nova = (q: string) => text(av2R6NotesAnswer(q, novaEnv(showcaseAll())));
+  test('renaming a tag', () => {
+    expect(nova('how do I rename a tag in my notes')).toContain('the earlier words are kept under Earlier versions while there is room, and one Undo always puts every note back.');
+    expect(nova('hoe hernoem ik een tag in mijn notities')).toContain('de eerdere woorden blijven onder Earlier versions zolang daar plaats is, en één keer Ongedaan maken zet altijd alle notities terug.');
+  });
+  test('no Dutch notes answer says Undo', () => {
+    for (const q of ['hoe hernoem ik een tag in mijn notities', 'hoe voeg ik twee notities samen', 'kan ik een eigenschap op veel notities zetten', 'hoe importeer ik dagboekstukken uit een csv']) { const t = nova(q); expect(t, q).toContain('Ongedaan maken'); expect(t, q).not.toMatch(/\bUndo\b/); }
+    expect(nova('hoe markeer ik een dagnotitie als teruggelezen')).toContain('die je nog niet hebt teruggelezen, oudste eerst.');
+  });
+});
+
+describe('B6Q-16: sunrise and the moon for the place chosen under Sun and moon', () => {
+  const env = () => zigiEnv(showcaseAll());
+  const times = (day: string, lat: number, lon: number, zone: string) => { const s = sunOn(day, lat, lon); if (s.kind !== 'normal') throw Error('no sunrise'); return [wallClock(s.rise, zone).clock, wallClock(s.set, zone).clock] as const; };
+  const moonEn = (day: string) => { const m = moonOn(day); return `${MOON_WORDS[m.phase].en}, ${Math.round(m.lit * 100)}% lit`; };
+  const moonNl = (day: string) => { const m = moonOn(day); return `${MOON_WORDS[m.phase].nl}, ${Math.round(m.lit * 100)}% verlicht`; };
+  test('a chosen city, in its own time, whatever this device’s zone', () => {
+    const [rise, set] = times(DAY, 35.68, 139.69, 'Asia/Tokyo');
+    expect(text(av2R6NotesAnswer('what time is sunrise today', env(), {sky: {city: 'tokyo'}, zone: 'Europe/Amsterdam'}))).toBe(`Today: sunrise ${rise} and sunset ${set} in Tokyo (the place you chose, in its own time; good to a few minutes), and the moon: ${moonEn(DAY)}. Worked out on this device, nothing looked up; the place is chosen under Journal → Entries → Sun and moon on a day.`);
+    expect(text(av2R6NotesAnswer('hoe laat is de zonsopkomst vandaag', env(), {sky: {city: 'tokyo'}, zone: 'Europe/Amsterdam'}))).toBe(`Vandaag: zonsopkomst ${rise} en zonsondergang ${set} in Tokyo (de plaats die je koos, in haar eigen tijd; op een paar minuten na), en de maan: ${moonNl(DAY)}. Op dit apparaat berekend, er wordt niets opgezocht; de plaats kies je onder Journal → Entries, bij zon en maan van een dag.`);
+  });
+  test('a typed place, in this device’s zone; none chosen, the zone’s city', () => {
+    const [rise] = times(DAY, 40, -3.7, 'Europe/Madrid');
+    expect(text(av2R6NotesAnswer('what time is sunrise today', env(), {sky: {lat: 40, lon: -3.7, name: 'Fictional home'}, zone: 'Europe/Madrid'}))).toMatch(new RegExp(`^Today: sunrise ${rise} and sunset \\d\\d:\\d\\d in Fictional home \\(the place you typed, in this device’s time zone;`));
+    const [ams] = times(DAY, 52.37, 4.9, 'Europe/Amsterdam');
+    expect(text(av2R6NotesAnswer('what time is sunrise today', env(), {sky: undefined, zone: 'Europe/Amsterdam'}))).toMatch(new RegExp(`^Today: sunrise ${ams} and sunset \\d\\d:\\d\\d in Amsterdam \\(this device’s time zone; good to a few minutes\\).*; choose another place under Journal → Entries → Sun and moon on a day\\.$`));
+  });
+  test('Sun and moon off: the moon only, and where to turn it on', () => {
+    expect(text(av2R6NotesAnswer('what time is sunrise today', env(), {sky: {off: true}, zone: 'Europe/Amsterdam'}))).toBe(`Today the moon is: ${moonEn(DAY)}. Sun and moon is off for your entries; to see sunrise and sunset, choose a place under Journal → Entries → Sun and moon on a day. It is worked out on this device, nothing is looked up.`);
+    expect(text(av2R6NotesAnswer('welke fase heeft de maan vandaag', env(), {sky: {off: true}, zone: 'Europe/Amsterdam'}))).toBe(`Vandaag is de maan: ${moonNl(DAY)}. Zon en maan staat uit voor je stukken; kies voor zonsopkomst en zonsondergang een plaats onder Journal → Entries, bij zon en maan van een dag. Het wordt op dit apparaat berekend, er wordt niets opgezocht.`);
+  });
+  test('a Dutch sky answer writes no English day or month name, whatever the place', () => {
+    for (const extra of [{sky: {city: 'tokyo'}}, {sky: {off: true as const}}, {sky: {lat: 40, lon: -3.7}, zone: 'Europe/Madrid'}, {sky: undefined, zone: 'Europe/Amsterdam'}, {sky: undefined, zone: 'Etc/Unknown'}]) for (const q of ['hoe laat is de zonsopkomst vandaag', 'welke fase heeft de maan vandaag']) {
+      const t = text(av2R6NotesAnswer(q, env(), extra));
+      expect(t, q).toMatch(/^(?:Vandaag|Morgen)\b/);
+      expect(t, q).not.toMatch(ENGLISH_NAMES);
+    }
+  });
+  test('tomorrow is tomorrow’s sun and moon, said as tomorrow', () => {
+    const next = addDays(DAY, 1), [rise, set] = times(next, 52.37, 4.9, 'Europe/Amsterdam');
+    expect(text(av2R6NotesAnswer('when is sunrise tomorrow', env(), {sky: {city: 'amsterdam'}}))).toMatch(new RegExp(`^Tomorrow: sunrise ${rise} and sunset ${set} in Amsterdam .*the moon: ${moonEn(next).replace(/[,%]/g, '\\$&')}\\.`));
+    const nl = text(av2R6NotesAnswer('hoe laat komt de zon morgen op', env(), {sky: {city: 'amsterdam'}}));
+    expect(nl).toMatch(new RegExp(`^Morgen: zonsopkomst ${rise} en zonsondergang ${set} in Amsterdam `));
+    expect(nl).not.toMatch(ENGLISH_NAMES);
+  });
+});
+
+describe('B6Q-17: the word goal reached says so', () => {
+  const journal = (goal: number): ToolSources => { const s = showcaseAll(); s.journal = {version: 1, shareWithAi: false, followUps: true, wordGoal: goal, entries: [{id: 'a', date: DAY, text: 'one two three four five', createdAt: `${DAY}T08:00:00.000Z`}]} as never; return s; };
+  test('English and Dutch', () => {
+    expect(text(av2R6NotesAnswer('did I reach my word goal today', novaEnv(journal(5))))).toBe('Your goal is 5 words a day, and today holds 5: goal reached. The journal calendar marks each day you reached it.');
+    expect(text(av2R6NotesAnswer('heb ik mijn woorddoel vandaag gehaald', novaEnv(journal(5))))).toBe('Je doel is 5 woorden per dag, en vandaag staan er 5: doel gehaald. De dagboekkalender markeert elke dag dat je het haalde.');
   });
 });
 

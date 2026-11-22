@@ -7,8 +7,11 @@ import {columnSum} from '../../notes/table-sums';
 import {unsealed} from '../../journal/letters';
 import {wordsOn} from '../../journal/word-goal';
 import {peopleCounts} from '../../journal/people';
-import {MOON_WORDS, SKY_CITIES, moonOn, sunOn} from '../../journal/sky';
-import {wallClock} from '../../zone-time';
+import {MOON_WORDS, moonOn, skyPlace, sunOn} from '../../journal/sky';
+import {addDays, wallClock} from '../../zone-time';
+import {JOURNAL_DISPLAY, type JournalDisplay} from '../../on-this-day/store';
+import {readDeviceRecord} from '../../device-record';
+import {getAppStorage} from '../../showcase-storage';
 import {novaAreaClosed, novaEnvInfo} from './nova-env';
 import {answer, asked, closed, count, dayIn, isQuestion, journalClosed, list, MIXED, num, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -21,14 +24,17 @@ import type {LocalReply} from './engine';
  * imports from Journey and a CSV. Notes are read only under NOVA's Notes scope (ZIGi does not read notes), never a locked
  * note and never a note's words (counts, days and property names only); the journal only where it is shared (av-words
  * journalClosed), never a letter still folded away, never an entry's words. Sunrise and the moon are worked out here for
- * the city of this device's time zone; nothing is looked up, and the weather is not given (it needs an outside service).
+ * the place chosen under Sun and moon (else the city of this device's time zone); nothing is looked up, and the weather
+ * is not given (it needs an outside service).
  * Called like `avAnswer` in engine.ts (the lead wires it); null when the question is not one of these.
  */
-export function av2R6NotesAnswer(question: string, env: ToolEnv): LocalReply | null {
+/** Review B6Q-16: the Sun and moon choice and the time zone, given by a test; else read on this device. */
+export type Av2R6NotesExtra = {sky?: JournalDisplay['sky']; zone?: string};
+export function av2R6NotesAnswer(question: string, env: ToolEnv, extra: Av2R6NotesExtra = {}): LocalReply | null {
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:who|wie)\b/.test(a.f))) return null; // "who appears most…", "wie komt…"
-    for (const one of [tagRename, mergeNotes, readBack, propertySums, propertyOnMany, wordGoal, people, anyDay, photos, sky, lockAway, imports]) {
+    for (const one of [tagRename, mergeNotes, readBack, propertySums, propertyOnMany, wordGoal, people, anyDay, photos, (x: Asked) => sky(x, extra), lockAway, imports]) {
       const r = one(a);
       if (r) return r;
     }
@@ -53,8 +59,8 @@ function tagRename(a: Asked): LocalReply | null {
   const en = /\btags?\b/.test(a.f) && /\b(?:rename\w*|merge\w*|combine\w*|change the name)\b/.test(a.f) && !JOURNAL_EN.test(a.f);
   const nl = /\btags?\b/.test(a.f) && /\b(?:hernoem\w*|samenvoeg\w*|samen voegen|voeg\w* samen|andere naam)\b/.test(a.f) && !JOURNAL_NL.test(a.f);
   if (!en && !nl) return null;
-  return how(a, 'Notes → Notes → Tags → Rename or merge a tag: choose the tag, then give it a new name (Rename tag) or choose another tag (Merge into …). Every note’s #tag changes at once — in its words and its Tags field, with the tags nested under it — the earlier words are kept under Earlier versions, and one Undo puts every note back.',
-    'Notes → Notes → Tags → Rename or merge a tag: kies de tag, geef hem een nieuwe naam (Rename tag) of kies een andere tag (Merge into …). De #tag verandert in elke notitie tegelijk — in de woorden en het veld Tags, met de tags eronder — de eerdere woorden blijven onder Earlier versions, en één Undo zet alle notities terug.');
+  return how(a, 'Notes → Notes → Tags → Rename or merge a tag: choose the tag, then give it a new name (Rename tag) or choose another tag (Merge into …). Every note’s #tag changes at once — in its words and its Tags field, with the tags nested under it — the earlier words are kept under Earlier versions while there is room, and one Undo always puts every note back.',
+    'Notes → Notes → Tags → Rename or merge a tag: kies de tag, geef hem een nieuwe naam (Rename tag) of kies een andere tag (Merge into …). De #tag verandert in elke notitie tegelijk — in de woorden en het veld Tags, met de tags eronder — de eerdere woorden blijven onder Earlier versions zolang daar plaats is, en één keer Ongedaan maken zet altijd alle notities terug.');
 }
 /** LEDGER #407: "how do I merge two notes", "hoe voeg ik twee notities samen". */
 function mergeNotes(a: Asked): LocalReply | null {
@@ -62,7 +68,7 @@ function mergeNotes(a: Asked): LocalReply | null {
   const nl = /\b(?:samenvoeg\w*|samen voegen|voeg\w* .*samen|samengevoegd)\b/.test(a.f) && NOTITIE.test(a.f) && !/\btags?\b/.test(a.f);
   if (!en && !nl) return null;
   return how(a, 'Open the topic note and press Merge into…, then choose the note it joins. Its words go under the other note’s, below a heading with its name; its tags, photos and properties are added where the other has none, and links to it point at that heading. The note itself waits 30 days in Recently deleted, and one Undo puts both back as they were. A locked note is never merged.',
-    'Open de onderwerpnotitie en druk op Merge into…, en kies de notitie waar ze bij komt. De woorden komen onder die van de andere notitie, onder een kop met haar naam; tags, foto’s en eigenschappen komen erbij waar de andere ze niet heeft, en links ernaar wijzen naar die kop. De notitie zelf wacht 30 dagen in Recently deleted, en één Undo zet beide terug. Een vergrendelde notitie wordt nooit samengevoegd.');
+    'Open de onderwerpnotitie en druk op Merge into…, en kies de notitie waar ze bij komt. De woorden komen onder die van de andere notitie, onder een kop met haar naam; tags, foto’s en eigenschappen komen erbij waar de andere ze niet heeft, en links ernaar wijzen naar die kop. De notitie zelf wacht 30 dagen in Recently deleted, en één keer Ongedaan maken zet beide terug. Een vergrendelde notitie wordt nooit samengevoegd.');
 }
 /** LEDGER #402: "which daily notes have I not read back", "hoe markeer ik een dagnotitie als teruggelezen". */
 function readBack(a: Asked): LocalReply | null {
@@ -71,7 +77,7 @@ function readBack(a: Asked): LocalReply | null {
   if (!en && !nl) return null;
   const mark = /\b(?:how|mark|hoe|markeer\w*)\b/.test(a.f) && !/\b(?:which|what|how many|welke|hoeveel)\b/.test(a.f);
   if (mark) return how(a, 'Open the day’s note and press Read back: its day keeps a quiet mark in Days and in the This day strip. Notes → Days → Not read back yet lists the daily notes of the last 30 days you have not read back, oldest first. Nothing is counted against you.',
-    'Open de notitie van die dag en druk op Read back: de dag krijgt een rustig teken in Days en in de strook This day. Notes → Days → Not read back yet toont de dagnotities van de laatste 30 dagen die je nog niet terugleest, oudste eerst. Er wordt niets tegen je geteld.');
+    'Open de notitie van die dag en druk op Read back: de dag krijgt een rustig teken in Days en in de strook This day. Notes → Days → Not read back yet toont de dagnotities van de laatste 30 dagen die je nog niet hebt teruggelezen, oudste eerst. Er wordt niets tegen je geteld.');
   const got = notesOf(a, ['Notes → Days → Not read back yet', 'Notes → Days → Not read back yet']); if ('shut' in got) return got.shut;
   const left = notReadBack(got.record, a.today), lang = a.lang; // a locked daily note is left out of NOVA's answer
   if (!left.length) return how(a, 'Every daily note of the last 30 days with words is read back. Open a day and press Read back when you have looked over it.', 'Elke dagnotitie van de laatste 30 dagen met woorden is teruggelezen. Open een dag en druk op Read back als je hem hebt doorgekeken.');
@@ -98,7 +104,7 @@ function propertyOnMany(a: Asked): LocalReply | null {
   const nl = /\beigenschap\w*\b/.test(a.f) && /\bnotities\b/.test(a.f) && /\b(?:meerdere|veel|alle|gekozen|geselecteerde|dezelfde)\b/.test(a.f);
   if (!en && !nl) return null;
   return how(a, 'In Notes → Notes, press Select and tick the notes. Under Set a property, give the name, the type and the value, then Set property (or Remove property): one step for all of them, and one Undo puts them back. A note with ten properties already, or a locked note, is left as it is and counted.',
-    'Druk in Notes → Notes op Select en vink de notities aan. Geef onder Set a property de naam, het type en de waarde, en kies Set property (of Remove property): één stap voor allemaal, en één Undo zet ze terug. Een notitie die al tien eigenschappen heeft, of een vergrendelde notitie, blijft zoals ze is en wordt geteld.');
+    'Druk in Notes → Notes op Select en vink de notities aan. Geef onder Set a property de naam, het type en de waarde, en kies Set property (of Remove property): één stap voor allemaal, en één keer Ongedaan maken zet ze terug. Een notitie die al tien eigenschappen heeft, of een vergrendelde notitie, blijft zoals ze is en wordt geteld.');
 }
 /** LEDGER #400: "what is my daily word goal", "heb ik mijn woorddoel vandaag gehaald". */
 function wordGoal(a: Asked): LocalReply | null {
@@ -110,8 +116,8 @@ function wordGoal(a: Asked): LocalReply | null {
   if (!goal) return how(a, 'You have no daily word goal. Journal → Entries → Daily word goal sets one (for example 200 words a day): Write then shows today’s words beside it, and the calendar marks the days you reached it. Nothing is said on a day you do not.',
     'Je hebt geen woorddoel per dag. Journal → Entries → Daily word goal zet er een (bijvoorbeeld 200 woorden per dag): Write toont dan de woorden van vandaag ernaast, en de kalender markeert de dagen dat je het haalde. Op een dag dat je het niet haalt wordt niets gezegd.', JOURNAL_CALL);
   const today = wordsOn(unsealed(j.entries, a.today).filter(e => e.date === a.today), a.today);
-  return answer(say(lang, today >= goal ? `Your goal is ${num(goal)} words a day, and today holds ${num(today)}: they are written. The journal calendar marks each day you reached it.` : `Your goal is ${num(goal)} words a day; today holds ${num(today)} so far. The journal calendar marks each day you reached it, and nothing is said on a day you do not.`,
-    today >= goal ? `Je doel is ${num(goal)} woorden per dag, en vandaag staan er ${num(today)}: ze zijn geschreven. De dagboekkalender markeert elke dag dat je het haalde.` : `Je doel is ${num(goal)} woorden per dag; vandaag staan er tot nu toe ${num(today)}. De dagboekkalender markeert elke dag dat je het haalde, en op een andere dag wordt niets gezegd.`), JOURNAL_CALL);
+  return answer(say(lang, today >= goal ? `Your goal is ${num(goal)} words a day, and today holds ${num(today)}: goal reached. The journal calendar marks each day you reached it.` : `Your goal is ${num(goal)} words a day; today holds ${num(today)} so far. The journal calendar marks each day you reached it, and nothing is said on a day you do not.`,
+    today >= goal ? `Je doel is ${num(goal)} woorden per dag, en vandaag staan er ${num(today)}: doel gehaald. De dagboekkalender markeert elke dag dat je het haalde.` : `Je doel is ${num(goal)} woorden per dag; vandaag staan er tot nu toe ${num(today)}. De dagboekkalender markeert elke dag dat je het haalde, en op een andere dag wordt niets gezegd.`), JOURNAL_CALL);
 }
 /** LEDGER #401: "who appears most in my journal", "hoe voeg ik toe wie erbij was in een dagboekstuk". */
 function people(a: Asked): LocalReply | null {
@@ -143,18 +149,32 @@ function photos(a: Asked): LocalReply | null {
     'Journal → Entries → Photos and voice notes toont elke foto van je stukken als raster en elke spraakmemo als tegel, nieuwste eerst; kies een dagboek of een jaar om te beperken, en een tik opent de stukken van die dag. Ze blijven op dit apparaat; een brief die nog dicht is houdt zijn foto’s dicht tot zijn dag.', JOURNAL_CALL);
 }
 const deviceZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } };
-/** LEDGER #409: "what time is sunrise today", "welke fase heeft de maan vandaag". */
-function sky(a: Asked): LocalReply | null {
+/** Review B6Q-16: the place chosen under Sun and moon (JOURNAL_DISPLAY `sky`), read on this device; none read means the time zone's city. */
+const savedSky = (): JournalDisplay['sky'] => { try { return typeof window === 'undefined' ? undefined : readDeviceRecord(getAppStorage(), JOURNAL_DISPLAY).data.sky; } catch { return undefined; } };
+const SKY_WHERE = 'Journal → Entries → Sun and moon on a day';
+// In Dutch the fold is named in Dutch words: its English label holds "Sun", which a Dutch answer never writes (av2-nl-days.test.ts).
+const SKY_WHERE_NL = 'Journal → Entries, bij zon en maan van een dag';
+/**
+ * LEDGER #409: "what time is sunrise today", "welke fase heeft de maan vandaag". Review B6Q-16: for the place the Journal
+ * reckons for (`skyPlace`: the chosen city, the typed place, else the city of this device's time zone; none when Sun and
+ * moon is off), the same as an entry's That day line, for today, or tomorrow when the question says so.
+ */
+function sky(a: Asked, extra: Av2R6NotesExtra): LocalReply | null {
   const sunEn = /\b(?:sunrise|sunset|sun rise|sun set|sun come up|sun go down)\b/.test(a.f), moonEn = /\b(?:moon|full moon|new moon)\b/.test(a.f) && /\b(?:phase|full|new|tonight|today|moon)\b/.test(a.f);
   const sunNl = /\b(?:zonsopkomst|zonsondergang|zon op|zon onder|komt de zon|gaat de zon)\b/.test(a.f), moonNl = /\b(?:maan|volle maan|nieuwe maan|maanfase)\b/.test(a.f);
   if (!(sunEn || moonEn || sunNl || moonNl) || /\bweather\b|\bweer\b/.test(a.f)) return null;
-  const day = a.today, moon = moonOn(day), city = SKY_CITIES.find(c => c.zone === deviceZone()), lang = a.lang;
+  const tomorrow = /\btomorrow\b|\bmorgen\b/.test(a.f), day = tomorrow ? addDays(a.today, 1) : a.today, lang = a.lang;
+  const chosen = 'sky' in extra ? extra.sky : savedSky(), place = skyPlace(chosen, extra.zone ?? deviceZone()), moon = moonOn(day);
+  const when = say(lang, tomorrow ? 'Tomorrow' : 'Today', tomorrow ? 'Morgen' : 'Vandaag');
   const moonText = say(lang, `${MOON_WORDS[moon.phase].en}, ${Math.round(moon.lit * 100)}% lit`, `${MOON_WORDS[moon.phase].nl}, ${Math.round(moon.lit * 100)}% verlicht`);
-  if (!city) return answer(say(lang, `Today the moon is: ${moonText}. For sunrise and sunset, choose a place under Journal → Entries → Sun and moon on a day; it is worked out on this device, nothing is looked up.`, `Vandaag is de maan: ${moonText}. Kies voor zonsopkomst en zonsondergang een plaats onder Journal → Entries, bij zon en maan van een dag; het wordt op dit apparaat berekend, er wordt niets opgezocht.`), JOURNAL_CALL);
-  const sun = sunOn(day, city.lat, city.lon), at = (ms: number) => wallClock(ms, city.zone).clock;
-  const sunText = sun.kind === 'normal' ? say(lang, `sunrise ${at(sun.rise)} and sunset ${at(sun.set)} in ${city.name}`, `zonsopkomst ${at(sun.rise)} en zonsondergang ${at(sun.set)} in ${city.name}`) : sun.kind === 'up' ? say(lang, `the sun stays up all day in ${city.name}`, `de zon blijft de hele dag op in ${city.name}`) : say(lang, `the sun stays down all day in ${city.name}`, `de zon blijft de hele dag onder in ${city.name}`);
-  return answer(say(lang, `Today: ${sunText} (this device’s time zone; good to a few minutes), and the moon: ${moonText}. Worked out on this device, nothing looked up; choose another place under Journal → Entries → Sun and moon on a day.`,
-    `Vandaag: ${sunText} (de tijdzone van dit apparaat; op een paar minuten na), en de maan: ${moonText}. Op dit apparaat berekend, er wordt niets opgezocht; kies een andere plaats onder Journal → Entries, bij zon en maan van een dag.`), JOURNAL_CALL);
+  if (chosen?.off) return answer(say(lang, `${when} the moon is: ${moonText}. Sun and moon is off for your entries; to see sunrise and sunset, choose a place under ${SKY_WHERE}. It is worked out on this device, nothing is looked up.`, `${when} is de maan: ${moonText}. Zon en maan staat uit voor je stukken; kies voor zonsopkomst en zonsondergang een plaats onder ${SKY_WHERE_NL}. Het wordt op dit apparaat berekend, er wordt niets opgezocht.`), JOURNAL_CALL);
+  if (!place) return answer(say(lang, `${when} the moon is: ${moonText}. For sunrise and sunset, choose a place under ${SKY_WHERE}; it is worked out on this device, nothing is looked up.`, `${when} is de maan: ${moonText}. Kies voor zonsopkomst en zonsondergang een plaats onder ${SKY_WHERE_NL}; het wordt op dit apparaat berekend, er wordt niets opgezocht.`), JOURNAL_CALL);
+  const sun = sunOn(day, place.lat, place.lon), at = (ms: number) => wallClock(ms, place.zone).clock;
+  const sunText = sun.kind === 'normal' ? say(lang, `sunrise ${at(sun.rise)} and sunset ${at(sun.set)} in ${place.name}`, `zonsopkomst ${at(sun.rise)} en zonsondergang ${at(sun.set)} in ${place.name}`) : sun.kind === 'up' ? say(lang, `the sun stays up all day in ${place.name}`, `de zon blijft de hele dag op in ${place.name}`) : say(lang, `the sun stays down all day in ${place.name}`, `de zon blijft de hele dag onder in ${place.name}`);
+  const whose = place.from === 'zone' ? say(lang, 'this device’s time zone', 'de tijdzone van dit apparaat') : place.from === 'city' ? say(lang, 'the place you chose, in its own time', 'de plaats die je koos, in haar eigen tijd') : say(lang, 'the place you typed, in this device’s time zone', 'de plaats die je intypte, in de tijdzone van dit apparaat');
+  const other = place.from === 'zone' ? say(lang, `choose another place under ${SKY_WHERE}`, `kies een andere plaats onder ${SKY_WHERE_NL}`) : say(lang, `the place is chosen under ${SKY_WHERE}`, `de plaats kies je onder ${SKY_WHERE_NL}`);
+  return answer(say(lang, `${when}: ${sunText} (${whose}; good to a few minutes), and the moon: ${moonText}. Worked out on this device, nothing looked up; ${other}.`,
+    `${when}: ${sunText} (${whose}; op een paar minuten na), en de maan: ${moonText}. Op dit apparaat berekend, er wordt niets opgezocht; ${other}.`), JOURNAL_CALL);
 }
 /** LEDGER #406: "can ZIGoals lock again after I am away", "kan ZIGoals opnieuw vergrendelen als ik even weg ben". */
 function lockAway(a: Asked): LocalReply | null {
@@ -170,5 +190,5 @@ function imports(a: Asked): LocalReply | null {
   const nl = /\bimporte\w*\b/.test(a.f) && /\b(?:journey|csv|spreadsheet)\b/.test(a.f);
   if (!en && !nl) return null;
   return how(a, 'Journal → Import and export → Choose files to import takes Journey’s export (its ZIP of entries, with their photos) and a CSV with a date, the words and tags on each row (comma or semicolon; a header in English or Dutch is read). You see what is found and what is left out first; Import adds it with one Undo. Nothing in a file runs, and it is all read on this device.',
-    'Journal → Import and export → Choose files to import neemt de export van Journey (de ZIP met stukken en hun foto’s) en een CSV met per rij een datum, de woorden en tags (komma of puntkomma; een kopregel in het Engels of Nederlands wordt gelezen). Je ziet eerst wat er gevonden en weggelaten is; Import voegt het toe met één Undo. Niets in een bestand wordt uitgevoerd, en alles wordt op dit apparaat gelezen.', JOURNAL_CALL);
+    'Journal → Import and export → Choose files to import neemt de export van Journey (de ZIP met stukken en hun foto’s) en een CSV met per rij een datum, de woorden en tags (komma of puntkomma; een kopregel in het Engels of Nederlands wordt gelezen). Je ziet eerst wat er gevonden en weggelaten is; Import voegt het toe, en één keer Ongedaan maken haalt het weer weg. Niets in een bestand wordt uitgevoerd, en alles wordt op dit apparaat gelezen.', JOURNAL_CALL);
 }

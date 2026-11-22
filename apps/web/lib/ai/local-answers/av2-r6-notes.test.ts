@@ -78,7 +78,7 @@ describe('what the journal holds, where it is shared', () => {
     {id: 'l', date: '2026-11-15', text: 'A fictional letter.', createdAt: stamp, people: ['Fictional Secret'], opensOn: '2027-06-01'}];
   test('the word goal and today’s words; none set says how', () => {
     expect(text(nova('did I reach my word goal today', withJournal(entries, {wordGoal: 10})))).toBe('Your goal is 10 words a day; today holds 5 so far. The journal calendar marks each day you reached it, and nothing is said on a day you do not.');
-    expect(text(nova('did I reach my word goal today', withJournal(entries, {wordGoal: 5})))).toMatch(/^Your goal is 5 words a day, and today holds 5: they are written\./);
+    expect(text(nova('did I reach my word goal today', withJournal(entries, {wordGoal: 5})))).toMatch(/^Your goal is 5 words a day, and today holds 5: goal reached\./); // Review B6Q-17: was “they are written”
     expect(text(nova('what is my daily word goal', withJournal(entries)))).toMatch(/^You have no daily word goal\./);
   });
   test('who appears most, never a name from a letter still folded away', () => {
