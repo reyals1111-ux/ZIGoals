@@ -28812,6 +28812,70 @@
         background-image: none;
         background-color: var(--cyan,#45d8ef)
     }
+    .money-cal-grid th:not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .money-cal-grid td:not(#\-) {
+        border-color: var(--line,#302f4b73)
+    }
+    .money-cal-grid td.is-out:not(#\-) {
+        border-color: currentcolor
+    }
+    .money-cal-grid td.is-today:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .money-cal-grid td.level-1:not(#\-), .money-cal-key.level-1:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 10%,transparent)
+    }
+    .money-cal-grid td.level-2:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 18%,transparent)
+    }
+    .money-cal-grid td.level-3:not(#\-), .money-cal-key.level-3:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 28%,transparent)
+    }
+    .money-cal-cell:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .money-cal-cell:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .money-cal-in:not(#\-) {
+        color: var(--cyan-ink)
+    }
+    .money-cal-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--text,#20242e)
+    }
+    .money-cal-key:not(#\-) {
+        border-color: var(--line,#302f4b99)
+    }
+    .money-saved-average:not(#\-), .money-insights-spark .avg:not(#\-) {
+        stroke: color-mix(in srgb,var(--text,#e8eefc) 70%,transparent);
+        fill: none
+    }
+    .money-insights-legend i.money-saved-key:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-top-color: color-mix(in srgb,var(--text,#e8eefc) 70%,transparent)
+    }
+    .money-cross-marks:not(#\-) {
+        border-color: currentcolor
+    }
+}
+/*  components/wealth/spending/money-r4.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .money-group-entries:not(#\-) {
+        border-left-color: var(--line,rgba(140,160,220,.35))
+    }
+    .money-mark-checked:not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
 }
 /*  components/wealth/spending/people-money.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {

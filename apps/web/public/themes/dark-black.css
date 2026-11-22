@@ -10299,6 +10299,30 @@
         background-image: none;
         background-color: var(--cyan,#45d8ef)
     }
+    .money-cal-grid td.level-1:not(#\-):not(#\-), .money-cal-key.level-1:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 10%,transparent)
+    }
+    .money-cal-grid td.level-2:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 18%,transparent)
+    }
+    .money-cal-grid td.level-3:not(#\-):not(#\-), .money-cal-key.level-3:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 28%,transparent)
+    }
+    .money-cal-cell:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .money-cal-dot:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--text,#e8eefc)
+    }
+    .money-insights-legend i.money-saved-key:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
     .quick-chip:not(#\-):not(#\-) {

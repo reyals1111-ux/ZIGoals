@@ -8248,5 +8248,77 @@
   "widgets": [],
   "fresh": "I can’t read your races here yet, so I can’t say. It is in Health on this device.",
   "freshNl": "Ik kan je wedstrijden hier nog niet lezen, dus dat kan ik niet zeggen. Het staat in Health op dit apparaat."
+ },
+ "av2r4-money-calendar": {
+  "en": "This month in EUR: €435.59 spent on 13 days, €2,550.00 received; the largest days: Sun, Nov 8 €120.00, Thu, Nov 12 €61.30 and Mon, Nov 16 €51.40. Each day is on Wealth → Spending → Your money over time → A calendar of the month; a cost spread over months counts its share each month, as your budgets do.",
+  "nl": "Deze maand in EUR: € 435,59 uitgegeven op 13 dagen, € 2.550,00 ontvangen; de grootste dagen: zo 8 nov € 120,00, do 12 nov € 61,30 en ma 16 nov € 51,40. Elke dag staat op Vermogen → Uitgaven → Your money over time → A calendar of the month; een kost verspreid over maanden telt elke maand zijn deel, zoals je budgetten.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing logged this month yet. Each day you log spending or income shows on Wealth → Spending → Your money over time → A calendar of the month.",
+  "freshNl": "Deze maand is nog niets gelogd. Elke dag dat je uitgaven of inkomsten logt, staat op Vermogen → Uitgaven → Your money over time → A calendar of the month."
+ },
+ "av2r4-money-archived": {
+  "en": "No category is archived. In Wealth → Spending → Log spending → Your own categories, \"Archive a category\" takes one out of the pickers; its entries keep it.",
+  "nl": "Er is geen categorie gearchiveerd. In Vermogen → Uitgaven → Log spending → Your own categories haalt \"Archive a category\" er een uit de keuzelijsten; je invoer houdt hem.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No category is archived. In Wealth → Spending → Log spending → Your own categories, \"Archive a category\" takes one out of the pickers; its entries keep it.",
+  "freshNl": "Er is geen categorie gearchiveerd. In Vermogen → Uitgaven → Log spending → Your own categories haalt \"Archive a category\" er een uit de keuzelijsten; je invoer houdt hem."
+ },
+ "av2r4-money-starter-sets": {
+  "en": "Four written starter sets: a student (study costs, a room and a side job), a household (a home, children and pets, the bills that come each month), a freelancer (work costs kept apart from your own, and income by client) and a traveller (trips as their own categories: getting there, staying and doing). In Wealth → Spending → Log spending → Your own categories → Start from a set, see what each adds (in English or Dutch), then add it in one tap; nothing already there is changed.",
+  "nl": "Vier geschreven startsets: een student (studiekosten, een kamer en een bijbaan), een huishouden (een huis, kinderen en huisdieren, de vaste lasten van elke maand), een zzp’er (werkkosten apart van je eigen uitgaven, en inkomsten per opdracht) en een reiziger (reizen als eigen categorieën: erheen, verblijven en doen). In Vermogen → Uitgaven → Log spending → Your own categories → Start from a set zie je wat elke set toevoegt (in het Engels of Nederlands) en voeg je hem in één tik toe; wat er al is, blijft zoals het is.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Four written starter sets: a student (study costs, a room and a side job), a household (a home, children and pets, the bills that come each month), a freelancer (work costs kept apart from your own, and income by client) and a traveller (trips as their own categories: getting there, staying and doing). In Wealth → Spending → Log spending → Your own categories → Start from a set, see what each adds (in English or Dutch), then add it in one tap; nothing already there is changed.",
+  "freshNl": "Vier geschreven startsets: een student (studiekosten, een kamer en een bijbaan), een huishouden (een huis, kinderen en huisdieren, de vaste lasten van elke maand), een zzp’er (werkkosten apart van je eigen uitgaven, en inkomsten per opdracht) en een reiziger (reizen als eigen categorieën: erheen, verblijven en doen). In Vermogen → Uitgaven → Log spending → Your own categories → Start from a set zie je wat elke set toevoegt (in het Engels of Nederlands) en voeg je hem in één tik toe; wat er al is, blijft zoals het is."
+ },
+ "av2r4-money-groups": {
+  "en": "You have no groups yet. In Wealth → Spending → Search all your entries, Select two or more entries and \"Group\" them under a name; they show as one line, and each still counts on its own.",
+  "nl": "Je hebt nog geen groepen. In Vermogen → Uitgaven → Search all your entries kies je met Select twee of meer invoeren en zet je ze met \"Group\" onder een naam; ze staan dan als één regel, en elke telt nog apart mee.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no groups yet. In Wealth → Spending → Search all your entries, Select two or more entries and \"Group\" them under a name; they show as one line, and each still counts on its own.",
+  "freshNl": "Je hebt nog geen groepen. In Vermogen → Uitgaven → Search all your entries kies je met Select twee of meer invoeren en zet je ze met \"Group\" onder een naam; ze staan dan als één regel, en elke telt nog apart mee."
+ },
+ "av2r4-money-places": {
+  "en": "You have no places yet. In Wealth → Spending → Log spending → \"Where are you?\", add the places you often pay at (Work, The market); choosing one later lists the payees you logged there first. Typed names only: ZIGoals never reads where you are.",
+  "nl": "Je hebt nog geen plekken. In Vermogen → Uitgaven → Log spending → \"Where are you?\" voeg je de plekken toe waar je vaak betaalt (werk, de markt); kies je er later een, dan komen de ontvangers die je daar logde eerst. Alleen namen die je typt: ZIGoals leest nooit waar je bent.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no places yet. In Wealth → Spending → Log spending → \"Where are you?\", add the places you often pay at (Work, The market); choosing one later lists the payees you logged there first. Typed names only: ZIGoals never reads where you are.",
+  "freshNl": "Je hebt nog geen plekken. In Vermogen → Uitgaven → Log spending → \"Where are you?\" voeg je de plekken toe waar je vaak betaalt (werk, de markt); kies je er later een, dan komen de ontvangers die je daar logde eerst. Alleen namen die je typt: ZIGoals leest nooit waar je bent."
+ },
+ "av2r4-money-reconcile": {
+  "en": "Nothing is checked against your bank yet. In Wealth → Accounts, \"Check against my bank\" on an account takes your statement's balances; tick the entries it shows until the difference is zero, then mark them checked.",
+  "nl": "Er is nog niets met je bank gecontroleerd. In Vermogen → Rekeningen neemt \"Check against my bank\" bij een rekening de saldi van je afschrift; vink de invoer aan die erop staat tot het verschil nul is, en markeer ze als gecontroleerd.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is checked against your bank yet. In Wealth → Accounts, \"Check against my bank\" on an account takes your statement's balances; tick the entries it shows until the difference is zero, then mark them checked.",
+  "freshNl": "Er is nog niets met je bank gecontroleerd. In Vermogen → Rekeningen neemt \"Check against my bank\" bij een rekening de saldi van je afschrift; vink de invoer aan die erop staat tot het verschil nul is, en markeer ze als gecontroleerd."
+ },
+ "av2r4-money-saved-searches": {
+  "en": "You have no saved searches yet. In Wealth → Spending → Search all your entries, set your filters and tap \"Save this search\"; Wealth → Spending → Your money over time → Saved searches then draws it as a chart, with its total and monthly average.",
+  "nl": "Je hebt nog geen opgeslagen zoekopdrachten. In Vermogen → Uitgaven → Search all your entries kies je je filters en tik je op \"Save this search\"; Vermogen → Uitgaven → Your money over time → Saved searches tekent hem dan als grafiek, met het totaal en het maandgemiddelde.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no saved searches yet. In Wealth → Spending → Search all your entries, set your filters and tap \"Save this search\"; Wealth → Spending → Your money over time → Saved searches then draws it as a chart, with its total and monthly average.",
+  "freshNl": "Je hebt nog geen opgeslagen zoekopdrachten. In Vermogen → Uitgaven → Search all your entries kies je je filters en tik je op \"Save this search\"; Vermogen → Uitgaven → Your money over time → Saved searches tekent hem dan als grafiek, met het totaal en het maandgemiddelde."
+ },
+ "av2r4-money-average": {
+  "en": "In EUR, Nov 2026 so far: €435.59, €377.75 above your 6-month average of €57.84 (over the 4 months with records). A figure from your own entries, not a target.",
+  "nl": "In EUR, november 2026 tot nu toe: € 435,59, € 377,75 boven je gemiddelde over 6 maanden van € 57,84 (over de 4 maanden met gegevens). Een bedrag uit je eigen invoer, geen doel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No 6-month average yet: the months before this one have no spending logged. Wealth → Spending → Your money over time → Categories over a year shows the average once they do.",
+  "freshNl": "Nog geen gemiddelde over 6 maanden: de maanden hiervoor hebben geen gelogde uitgaven. Vermogen → Uitgaven → Your money over time → Categories over a year toont het gemiddelde zodra dat zo is."
+ },
+ "av2r4-money-invest-cover": {
+  "en": "No income category is marked as investment income yet. In Wealth → Spending → Your money over time → Month by month → Investment income beside spending, mark the categories that are (interest, dividends, staking rewards); each month is then set beside your spending.",
+  "nl": "Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In Vermogen → Uitgaven → Your money over time → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No income category is marked as investment income yet. In Wealth → Spending → Your money over time → Month by month → Investment income beside spending, mark the categories that are (interest, dividends, staking rewards); each month is then set beside your spending.",
+  "freshNl": "Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In Vermogen → Uitgaven → Your money over time → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven."
  }
 }

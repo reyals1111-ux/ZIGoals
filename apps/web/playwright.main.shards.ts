@@ -112,6 +112,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-beside-habits.spec.ts',
     'av2-timeline-any-day.spec.ts',
     'av2-journal-more-photos.spec.ts',
+    'av2-revb3c-markdown-import.spec.ts',
   ],
   // Shard 3, 60.3 worker-min: about 30.3 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -156,6 +157,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-focus-notes.spec.ts',
     'av2-notes-canvas.spec.ts',
     'av2-water-day.spec.ts',
+    'av2-money-average-crossover.spec.ts',
   ],
   // Shard 4, 60.6 worker-min: about 33.9 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -188,6 +190,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-credit-card.spec.ts',
     'av2-circuits.spec.ts',
     'av2-journal-throwback.spec.ts',
+    'av2-revb3c-notes-folds.spec.ts',
   ],
   // Shard 5, 64.2 worker-min: about 33.0 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -221,6 +224,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-dream.spec.ts',
     'av2-notes-outline-print.spec.ts',
     'av2-weigh-in.spec.ts',
+    'av2-money-calendar.spec.ts',
   ],
   // Shard 6, 64.7 worker-min: about 32.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -255,6 +259,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-grid.spec.ts',
     'av2-notes-props.spec.ts',
     'av2-plan-week.spec.ts',
+    'av2-money-categories.spec.ts',
   ],
   // Shard 7, 65.5 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -291,6 +296,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-letter.spec.ts',
     'av2-notes-ticks.spec.ts',
     'av2-compare-sleep.spec.ts',
+    'av2-money-groups.spec.ts',
   ],
   // Shard 8, 66.2 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -325,6 +331,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-import-tags.spec.ts',
     'av2-habit-words-trend.spec.ts',
     'av2-noom-r4.spec.ts',
+    'av2-revb3c-sealed.spec.ts',
   ],
   // Shard 9, 66.7 worker-min: about 33.7 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -358,6 +365,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-markdown.spec.ts',
     'av2-plan-your-day.spec.ts',
     'av2-feelings-more.spec.ts',
+    'av2-money-places.spec.ts',
   ],
   // Shard 10, 66.7 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -390,6 +398,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-periods.spec.ts',
     'av2-reading-font.spec.ts',
     'av2-habit-identity.spec.ts',
+    'av2-money-reconcile.spec.ts',
   ],
   // Shard 11, 66.8 worker-min: about 33.5 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -421,6 +430,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-prompt-answers.spec.ts',
     'av2-task-energy.spec.ts',
     'av2-journal-favourites.spec.ts',
+    'av2-money-saved-searches.spec.ts',
   ],
   // Shard 12, 66.2 worker-min: about 33.2 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -522,11 +532,12 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-quote.spec.ts',
     'av2-task-look.spec.ts',
     'av2-journal-format.spec.ts',
+    'av2-revb3c-grid.spec.ts',
   ],
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [80, 79.2, 79, 79.7, 79, 79, 79, 79.7, 79, 79, 79, 79.7, 79.8, 79];
+export const MAIN_SHARD_MINUTES: readonly number[] = [80, 80.2, 80, 80.7, 80, 80, 80, 80.7, 80, 80, 80, 79.7, 79.8, 80];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {

@@ -8355,6 +8355,32 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .money-flow-labels:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .money-flow-name:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .needs-wants-grid:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .money-cal-pager:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .money-cal-total:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-cal-grid td:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .money-cal-cell:not(#\-) { padding-top: 3px; padding-bottom: 3px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-cal-plain:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .money-cal-dot:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-cal-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .money-cal-list button:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .money-saved-chart:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .money-saved-total:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-avg-span:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .money-avg-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-cross-marks:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-cross-marks label:not(#\-) { row-gap: 6px; }
+/*  components/wealth/spending/money-r4.css  */
+:where(:root[data-density=compact]) .category-more:not(#\-) { row-gap: 14px; margin-top: 8px; }
+:where(:root[data-density=compact]) .category-more-part:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .category-more-part h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .category-more-sub:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .category-more-preview:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .category-more-preview li:not(#\-) { row-gap: 1.5px; }
+:where(:root[data-density=compact]) .money-group > details > summary:not(#\-) { row-gap: 1.5px; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .money-group-entries:not(#\-) { margin-top: 3px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .money-places-payees:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .money-places-payees ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .money-places-payees li:not(#\-) { row-gap: 3px; }
 /*  components/wealth/spending/people-money.css  */
 :where(:root[data-density=compact]) .people-share-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
 :where(:root[data-density=compact]) .people-share-list li:not(#\-), :where(:root[data-density=compact]) .people-share-row:not(#\-) { row-gap: 6px; }

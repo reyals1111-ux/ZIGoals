@@ -27578,6 +27578,69 @@
         background-image: none;
         background-color: color-mix(in srgb, var(--cyan,#004952) 30%, #000)
     }
+    .money-cal-grid th:not(#\-):not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .money-cal-grid td:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line,#959595) 40%, #fff)
+    }
+    .money-cal-grid td.is-out:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .money-cal-grid td.is-today:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan,#6fd3ff) 40%, #fff)
+    }
+    .money-cal-grid td.level-1:not(#\-):not(#\-), .money-cal-key.level-1:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#7d006b) 10%,transparent)
+    }
+    .money-cal-grid td.level-2:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#7d006b) 18%,transparent)
+    }
+    .money-cal-grid td.level-3:not(#\-):not(#\-), .money-cal-key.level-3:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#7d006b) 28%,transparent)
+    }
+    .money-cal-cell:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .money-cal-cell:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan,#6fd3ff) 40%, #fff)
+    }
+    .money-cal-in:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--cyan,#aae2fd) 25%, #fff)
+    }
+    .money-cal-dot:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--text,#000000) 30%, #000)
+    }
+    .money-cal-key:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line,#959595) 40%, #fff)
+    }
+    .money-saved-average:not(#\-):not(#\-), .money-insights-spark .avg:not(#\-):not(#\-) {
+        stroke: color-mix(in srgb,var(--text,#e8eefc) 70%,transparent);
+        fill: none
+    }
+    .money-insights-legend i.money-saved-key:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-top-color: color-mix(in srgb,var(--text,#eeeeee) 70%,transparent)
+    }
+    .money-cross-marks:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .money-group-entries:not(#\-):not(#\-) {
+        border-left-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
+    }
+    .money-mark-checked:not(#\-):not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .people-money:not(#\-):not(#\-) {
