@@ -39,6 +39,9 @@
       var names = named ? habits.map(function (h) { return h.label; }).filter(Boolean) : [];
       lines.push(names.length === habits.length ? names.slice(0, 3).join(' · ') + (names.length > 3 ? ' and ' + (names.length - 3) + ' more' : '') : plural(habits.length, 'habit due', 'habits due'));
     }
+    // Session AV lane 2 (r5-body; LEDGER #369): one reminder per part of the day, with how many of its habits are open;
+    // their names only where names are allowed.
+    (kinds.habitPart || []).slice(0, 1).forEach(function (p) { lines.push((p.detail || 'Habits still open') + (named && p.label ? ' · ' + p.label : '')); });
     (kinds.water || []).slice(0, 1).forEach(function (w) { lines.push(w.detail ? 'Water: ' + w.detail : 'Time for some water'); });
     var money = kinds.contribution || [];
     if (money.length) lines.push(named && money.every(function (c) { return c.label; }) ? money.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(money.length, 'contribution due', 'contributions due'));

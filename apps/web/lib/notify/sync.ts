@@ -56,6 +56,7 @@ import {energyItems} from './energy-items';
 import {healthGroupIn} from '../vault/w-homes';
 import {spreadSlots, spreadTimes} from '../water-spread';
 import {HABIT_EXTRAS} from '../habits-extras/schema';
+import {habitPartsInput} from './habit-parts';
 import {reminderMoreOf} from '../habit-reminder-words';
 import {weighedInOn, weighInOf, weighInPlanInput} from '../weigh-in';
 
@@ -88,6 +89,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
         const more = reminderMoreOf(habitExtras, habit.id), linked = !!healthLinked?.has(habit.id);
         input.habits.push({id: habit.id, ...(isRoutineHead(habits, habit.id) ? {routine: true} : {}), ...(linked ? {} : {title: habit.title}), ...(!linked && more.words ? {words: more.words} : {}), ...(more.times.length ? {more: more.times} : {}), time: reminder.time, weekdays: habitWeekdays(habits, habit.id, day), doneToday: !(status === 'due' || status === 'partial') || reminders.dismissed[habit.id] === day});
       }
+      // Session AV lane 2 (r5-body; LEDGER #369; TIER 3 (PWA)): one reminder per part of the day, when chosen.
+      input.habitParts = habitPartsInput(habits, day, prefs, healthLinked);
     }
   } catch { /* habits unreadable: no habit wakes */ }
   if (reminders.water) {
