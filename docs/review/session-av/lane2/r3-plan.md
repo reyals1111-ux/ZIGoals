@@ -251,3 +251,7 @@ Showcase: none. Today: nothing. CSS: app/customize.css (not a theme-sheet source
   `clearPlan` leaves out repeating tasks (they are said beside the button). Past 100 tasks the cap is said before and after
   the copy ("…tasks were left out"). Files: lib/tasks/day-tools.ts, components/agenda/{agenda-day-tools.tsx, agenda-page.tsx}.
   Test: lib/tasks/r3-day-tools.test.ts.
+- **B3A-8 (Minor), fixed.** The Dutch reading-font answer says "Atkinson Hyperlegible of OpenDyslexic … (anders Verdana of
+  Tahoma)": one font, as in English. The test guard for English words in Dutch answers no longer lists "of", which is a Dutch
+  word too. It checks "the, your, and, with" instead (labelled deliberate). File: lib/ai/local-answers/av2-r3-plan.ts; test
+  lib/ai/local-answers/av2-r3-plan.test.ts.

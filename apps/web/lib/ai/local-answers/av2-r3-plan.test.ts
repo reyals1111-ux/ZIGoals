@@ -22,7 +22,9 @@ describe('every corpus question gets an answer of its own, in its language', () 
     expect(r).not.toBeNull();
     const t = text(r);
     expect(t.length).toBeGreaterThan(20);
-    if (lang === 'nl') expect(t.replace(/“[^”]*”/g, '')).not.toMatch(/\b(?:the|your|of)\b/); // a feature's own name (“Plan your day”) is quoted
+    // Session AV lane 2 (review B3A-8, deliberate): "of" is Dutch too ("A of B"), so the English-word guard checks four
+    // English-only words instead of three; a feature's own name (“Plan your day”) is quoted.
+    if (lang === 'nl') expect(t.replace(/“[^”]*”/g, '')).not.toMatch(/\b(?:the|your|and|with)\b/);
   });
 });
 describe('Plan your day (LEDGER #256)', () => {
@@ -96,6 +98,8 @@ describe('the reading-friendly font (LEDGER #263)', () => {
   test('says where it is, in both languages', () => {
     expect(text(av2R3PlanAnswer('is there a dyslexia friendly font', zigiEnv(freshAll())))).toMatch(/^Yes: Settings → Appearance → Customize → Font → Reading-friendly\./);
     expect(text(av2R3PlanAnswer('is er een lettertype voor dyslexie', zigiEnv(freshAll())))).toMatch(/^Ja: Settings → Appearance → Customize → Font → Reading-friendly\./);
+    // Review B3A-8: one font is used, so "of" (or), never "en" (and).
+    expect(text(av2R3PlanAnswer('is er een lettertype voor dyslexie', zigiEnv(freshAll())))).toContain('Atkinson Hyperlegible of OpenDyslexic als dit apparaat er een heeft (anders Verdana of Tahoma)');
     expect(av2R3PlanAnswer('what font is this', zigiEnv(freshAll()))).toBeNull();
   });
 });
