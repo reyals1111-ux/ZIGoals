@@ -203,6 +203,9 @@ function stretchedMinutes(a: Asked): LocalReply | null {
   const en = /\b(?:stretch|stretched|stretching|stretches|move gently|daily move)\b/.test(a.f) && /\b(?:how (?:much|many|long|often)|minutes|this week|last week|when|did i)\b/.test(a.f);
   const nl = /\b(?:gerekt|rekken|rekoefeningen?|rekoefening|stretchen|gestretcht|rustig bewegen)\b/.test(a.f) && /\b(?:hoeveel|hoe lang|hoe vaak|minuten|deze week|wanneer|heb ik)\b/.test(a.f);
   if ((!en && !nl) || /\bstretch (?:goals?|targets?)\b/.test(a.f)) return null;
+  // Batch 2 unit check (golden set x-stretch-minutes, L7 l74b-hb-did): a person with a stretch habit ("Stretch morning") asks
+  // about the habit; Move gently's minutes answer when it is named, or when no habit is about stretching.
+  if (!/\b(?:move gently|daily move|rustig bewegen|meditation|meditatie)\b/.test(a.f) && live(a).some(h => /\b(?:stretch\w*|rek\w*)\b/i.test(h.title))) return null;
   const shut = closed(a.env, 'health'); if (shut || !a.env.health) return shut;
   const lang = a.lang, from = addLocalDays(a.today, -6);
   const days = a.env.health.activity.filter(x => x.name.startsWith(STRETCH_PREFIX) && x.date >= from && x.date <= a.today);

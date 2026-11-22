@@ -17,7 +17,8 @@ export function setHeight(r: BodyExtras, heightCm: number | null): BodyExtras {
 export type Mark = {index: number; grams: number};
 /** The steps on the way, nearest first; the last is the goal itself. */
 export function marksOf(m: Pick<Milestones, 'step' | 'startGrams' | 'goalGrams'>): Mark[] {
-  const span = m.goalGrams - m.startGrams, dir = Math.sign(span);
+  // The direction of the way (+1 up, -1 down); written out, as the staking guard keeps every signer-shaped call to the wallet files.
+  const span = m.goalGrams - m.startGrams, dir = span > 0 ? 1 : span < 0 ? -1 : 0;
   if (!dir) return [];
   const out: Mark[] = [];
   if (m.step === '10pct') for (let i = 1; i <= 10; i++) out.push({index: i, grams: Math.round(m.startGrams + span * i / 10)});

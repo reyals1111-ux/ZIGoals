@@ -6,6 +6,7 @@ import {addSchedule, changeSchedule, everyWords, pauseSchedule, periodStart, rem
 import {showUndo} from '../ui/undo-toast';
 import type {Change} from './note-editor';
 import {SecretGuard} from '../secret-guard/secret-guard';
+import {formatWeekdayLong} from '../../lib/visual-format';
 
 /**
  * Session AV lane 2 (notes; LEDGER #32, Notion's repeating database templates): "Repeating notes" — a note template that
@@ -13,7 +14,8 @@ import {SecretGuard} from '../secret-guard/secret-guard';
  * when Notes opens (never twice, never for a period missed while closed). Edit, pause and remove (with Undo). Loaded when
  * its fold opens.
  */
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+/** Sunday … Saturday in the app's own words (Sunday 22 Nov 2026 at noon, then each day after it). */
+const DAYS = Array.from({length: 7}, (_, i) => formatWeekdayLong(new Date(2026, 10, 22 + i, 12)));
 const blank = (): ScheduleInput => ({title: '', body: '', every: 'week', weekday: 1, monthDay: 1});
 export default function NoteSchedules({record, change, today}: {record: Notes; change: Change; today: string}) {
   const id = useId(), box = useRef<HTMLDivElement>(null);

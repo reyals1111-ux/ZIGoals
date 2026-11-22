@@ -276,7 +276,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('chessComputer', 'Chess: games against the computer', 'Today and Life', CHESS_COMPUTER),
   // Session AV lane 2, batch 2 (Health records restore with Health and its consent, as the other Health device records).
   dev('eveningPlan', 'Sleep: the evening plan', 'Health', EVENING_PLAN, true),
-  dev('bodyExtras', 'Workouts: units, assisted sets and shoes', 'Health', BODY_EXTRAS, true),
+  dev('bodyExtras', 'Height and weight milestones', 'Health', BODY_EXTRAS, true),
   dev('workoutPlaces', 'Workouts: places and equipment', 'Health', WORKOUT_PLACES, true),
   dev('foodPlus', 'Food diary extras (times, weekday macros, check-in)', 'Health', FOOD_PLUS, true),
   dev('wealthSheet', 'Your net-worth sheet', 'Goals and Wealth', WEALTH_SHEET),

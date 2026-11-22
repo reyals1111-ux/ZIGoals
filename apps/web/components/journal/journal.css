@@ -34,6 +34,8 @@
 .journal-week-legend { margin: 0; }
 .journal-notes-link { margin: 4px 0 0; }
 .journal-notes-link .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+/* Session AV lane 2 (batch 2 unit check): the journal calendar's chosen day, above the G3 block (its ink is the energy dots' fixed dark ink; [aria-pressed] outranks the base rule, so the order does not change it). */
+.journal-calendar-day[aria-pressed="true"]{background:linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));color:#0b1020;border-color:transparent}
 /* Session AK (G3): richer cards, as the new surfaces (F6). Journal: Depth from a soft violet shadow; the pillar's colour
    as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
    fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
@@ -101,14 +103,14 @@
 .journal-book-dot[data-tone="cyan"]{background:var(--brand-cyan)}
 .journal-book-dot[data-tone="magenta"]{background:var(--brand-magenta)}
 .journal-book-dot[data-tone="teal"]{background:var(--accent-teal,var(--brand-cyan))}
-.journal-book-dot[data-tone="gold"]{background:var(--pillar-wealth,#d9a441)}
-.journal-book-dot[data-tone="green"]{background:var(--pillar-habits,#4fbf7f)}
+.journal-book-dot[data-tone="gold"]{background:var(--pillar-wealth)}
+.journal-book-dot[data-tone="green"]{background:var(--pillar-habits)}
 .journal-entries li[data-tone]{padding-left:12px;border-left:4px solid var(--brand-violet)}
 .journal-entries li[data-tone="cyan"]{border-left-color:var(--brand-cyan)}
 .journal-entries li[data-tone="magenta"]{border-left-color:var(--brand-magenta)}
 .journal-entries li[data-tone="teal"]{border-left-color:var(--accent-teal,var(--brand-cyan))}
-.journal-entries li[data-tone="gold"]{border-left-color:var(--pillar-wealth,#d9a441)}
-.journal-entries li[data-tone="green"]{border-left-color:var(--pillar-habits,#4fbf7f)}
+.journal-entries li[data-tone="gold"]{border-left-color:var(--pillar-wealth)}
+.journal-entries li[data-tone="green"]{border-left-color:var(--pillar-habits)}
 .journal-entry-book{color:var(--text-secondary,var(--muted))}
 .journal-book-filter{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .journal-book-filter button{min-height:44px;display:inline-flex;align-items:center;gap:2px}
@@ -126,7 +128,6 @@
 .journal-calendar-grid td{text-align:center;padding:1px}
 .journal-calendar-day,.journal-calendar-empty{display:inline-flex;align-items:center;justify-content:center;width:100%;max-width:44px;min-height:44px;border-radius:12px;font-size:15px;font-variant-numeric:tabular-nums}
 .journal-calendar-day{border:1px solid color-mix(in srgb,var(--brand-violet) 60%,transparent);background:color-mix(in srgb,var(--brand-violet) 22%,transparent);color:inherit;cursor:pointer;font-weight:650}
-.journal-calendar-day[aria-pressed="true"]{background:linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));color:#0b1020;border-color:transparent}
 .journal-calendar-empty{color:var(--text-secondary,var(--muted))}
 .journal-calendar-empty[data-today]{outline:1px dashed currentColor;outline-offset:-4px}
 .journal-books{display:grid;gap:12px}

@@ -1,5 +1,6 @@
 'use client';
 import {useId, useState} from 'react';
+import Link from 'next/link';
 import type {HealthData} from '../../../lib/health';
 import {FOOD_PLUS} from '../../../lib/food-plus/schema';
 import {challengeWeek, startChallenge, stopChallenge} from '../../../lib/food-plus/challenge';
@@ -25,7 +26,7 @@ export function ChallengeLine({data, today}: {data: HealthData; today: string}) 
   if (!record.loaded) return null;
   const w = challengeWeek(data, record.data, today);
   if (!w) return null;
-  return <p className="fine food-plus-challenge-line"><strong>Logging challenge:</strong> {status(w)}{w.weeksInRow > 1 ? ` ${w.weeksInRow} weeks in a row.` : ''} <a className="text-link" href="/app/health?view=insights#health-challenge">See the week</a></p>;
+  return <p className="fine food-plus-challenge-line"><strong>Logging challenge:</strong> {status(w)}{w.weeksInRow > 1 ? ` ${w.weeksInRow} weeks in a row.` : ''} <Link className="text-link" href="/app/health?view=insights#health-challenge">See the week</Link></p>;
 }
 
 export function ChallengeCard({data, today}: {data: HealthData; today: string}) {

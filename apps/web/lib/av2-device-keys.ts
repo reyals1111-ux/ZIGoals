@@ -14,7 +14,7 @@ import {AV2_MONEY_R2_CATALOG_LABELS, AV2_MONEY_R2_EXPORT_KEYS, AV2_MONEY_R2_PERS
  * - `zigoals:chess-computer:v1` (Chess: the game against ZIGoals' own engine and results by level; lib/chess/computer-record.ts).
  * - display `zigoals:zigi-hello-day` (the day ZIGi last said hello in place, PK-6; lib/zigi-hello-day.ts).
  * - batch 2: `zigoals:wealth-sheet:v1` (lib/av2-money-device-keys.ts), `zigoals:food-plus:v1` (lib/av2-food-keys.ts),
- *   `zigoals:evening-plan:v1` (Sleep: the evening plan) and `zigoals:body-extras:v1` (Workouts: units, assisted sets, shoes).
+ *   `zigoals:evening-plan:v1` (Sleep: the evening plan) and `zigoals:body-extras:v1` (Body: your height and weight milestones).
  */
 export const TASK_PLAN_KEY_LITERAL = 'zigoals:task-plan:v1';
 export const TASK_TEMPLATES_KEY_LITERAL = 'zigoals:task-templates:v1';
@@ -38,7 +38,7 @@ export const AV2_CATALOG_LABELS = {
   budgetPeriods: ['Budgets: pay periods, the paycheck fill and debts paid from a budget', 'Wealth'],
   chessComputer: ['Chess: your game against the computer and your results by level', 'Chess'],
   eveningPlan: ['Sleep: your evening plan', 'Health'],
-  bodyExtras: ['Workouts: units per exercise, assisted and weighted sets, shoes, run bests marked', 'Health'],
+  bodyExtras: ['Body: your height and weight milestones', 'Health'],
   workoutPlaces: ['Workouts: your places and their equipment', 'Health'],
   ...AV2_MONEY_CATALOG_LABELS, ...AV2_FOOD_CATALOG_LABELS, ...AV2_MONEY_R2_CATALOG_LABELS,
 } as const;

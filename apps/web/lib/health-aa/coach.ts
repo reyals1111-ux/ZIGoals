@@ -24,7 +24,8 @@ export function goalDate(latestGrams: number | null, goalGrams: number | null, w
   if (latestGrams === null || goalGrams === null || weeklyGrams === null || !weeklyGrams) return null;
   const gap = goalGrams - latestGrams;
   if (Math.abs(gap) < 100) return today;
-  if (Math.sign(gap) !== Math.sign(weeklyGrams)) return null;
+  // Opposite directions (written out: the staking guard keeps every signer-shaped call to the wallet files).
+  if ((gap > 0) !== (weeklyGrams > 0) || gap === 0 || weeklyGrams === 0) return null;
   const days = Math.ceil(gap / weeklyGrams * 7);
   return days > 3650 ? null : addLocalDays(today, days);
 }

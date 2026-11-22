@@ -16,6 +16,7 @@ import {summarizeSelection} from '../../money-log/selection';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, count, isQuestion, list, MIXED, money, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
+import {challengeOf} from '../../habits-v2/challenge';
 
 /**
  * Session AV lane 2 (money): the on-device answers to the money pillar's lane 2 features, in English and Dutch, each
@@ -112,6 +113,9 @@ function payeesWatched(a: Asked): LocalReply | null {
 /** "How is my challenge going", "hoe gaat mijn uitdaging". */
 function challenges(a: Asked): LocalReply | null {
   if (!/\bchallenges?\b|\buitdaging(?:en)?\b/.test(a.f) || /\b52\b|\bweek savings\b|\bsavings? challenge\b|\bspaaruitdaging\b/.test(a.f)) return null;
+  // Batch 2 unit check (golden set w-challenges, x-challenges-2): without a spending word, a person running a habit challenge
+  // means that one (the habits' challenges tool answers); the spending challenges answer only for money words or when no habit challenge runs.
+  if (!/\b(?:spend|spending|money|budgets?|categor(?:y|ies)|uitgaven|uitgeven|geld|budget|categorie(?:ën)?)\b/.test(a.f) && a.env.habits.habits.some(h => { const c = challengeOf(h, a.env.habitDay ?? a.today); return !!c && !c.finished; })) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const record = a.env.nova?.budgets, lang = a.lang, rows = record ? challengeStates(record, entriesOf(a.env), a.today) : [], calls = [{tool: 'budgets', args: {challenges: true}, label: 'Budgets · challenges'}];
   if (!rows.length) return answer(say(lang, `No spending challenge is running. ${BUDGETS_PLACE.en} → Challenges starts one: spend less on a category than last month.`, `Er loopt geen uitgavenuitdaging. ${BUDGETS_PLACE.nl} → Challenges start er een: geef minder uit aan een categorie dan vorige maand.`), calls);
