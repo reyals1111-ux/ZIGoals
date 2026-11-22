@@ -20,6 +20,18 @@ ride on the existing key, so export, restore and erase need nothing new; the rou
 Commit: `TIER 3 (stored formats): …` — files `apps/web/lib/workouts/schema.ts`, `apps/web/lib/evening-plan/schema.ts`,
 test `apps/web/lib/workouts/av2-stored.test.ts`.
 
+Second stored commit (N8, N9; `TIER 3 (stored formats): …` again):
+
+| record | change | readers of #37–#57 |
+|---|---|---|
+| `zigoals:workouts:v1` | set: `addedKg?`, `assistKg?` (0–500 kg); exercise entry, routine exercise and own exercise: `load?: 'weighted' \| 'assisted'` (the measure stays `reps`: a new `MEASURES` value would make older builds refuse the log); workout: `shoeId?`; log: `exerciseUnits?` (exercise id → `kg`/`lb`, ≤ 300; sets stay in kg), `shoes?` (≤ 30 `{id, name, startKm, retireKm, createdAt, retiredAt?}`), `seenBests?` (≤ 100 `"<workout id>:<km>"`). All `.optional().catch(undefined)` on loose objects. | Kept untouched by loose objects; older builds show an assisted or weighted set as plain reps. |
+| `zigoals:body-extras:v1` (NEW, device-only, loose, versioned) | `{version: 1, heightCm? (50–272), milestones?: {step: '2kg' \| '10pct', startGrams, goalGrams, startedOn, reached: [{index, on, quiet?, shownAt?}] (≤ 100)}}` | New key. |
+
+Registries for `zigoals:body-extras:v1` (personal, Health, "Height and weight milestones"): the same five as the evening
+plan (device keys, catalogue, `DEVICE_KEYS.bodyExtras`, restore `dev('bodyExtras', 'Height and weight milestones', 'Health', BODY_EXTRAS)`,
+erase); its skipped round trip in `av2-stored.test.ts` then runs. Hide figures: the BMI and the milestone figures carry
+`data-body-figure` (they hide with "Hide calorie and weight figures").
+
 ## Shared to-do for the lead (all features)
 
 - engine.ts wiring (one line, beside `avAnswer`, same shape):

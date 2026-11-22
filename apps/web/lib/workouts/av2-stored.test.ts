@@ -3,6 +3,7 @@ import {collectEverything, DEVICE_KEYS} from '../export/everything';
 import {nextValue, planParts} from '../restore/plan';
 import {EVENING_PLAN_KEY, eveningRecordSchema} from '../evening-plan/schema';
 import {WORKOUTS_KEY, workoutsSchema} from './schema';
+import {BODY_EXTRAS_KEY, bodyExtrasSchema} from '../body-extras/schema';
 
 /**
  * Session AV lane 2 (body; TIER 3 (stored formats), additive): the new optional fields of the workout log (a routine's
@@ -67,5 +68,44 @@ describe('the evening plan record', () => {
     expect(part).toBeDefined();
     const back = nextValue(part!, 'replace', undefined);
     expect('value' in back && back.value).toEqual(PLAN);
+  });
+});
+
+// Session AV lane 2 (body; LEDGER #201–#205, #210): units per exercise, assisted and weighted sets, shoes, marked run bests;
+// the body extras key (a height, weight milestones).
+const N8 = {...NEW, exerciseUnits: {'leg-press': 'lb'}, shoes: [{id: 'shoe-a', name: 'Fictional trainers', startKm: 120, retireKm: 700, createdAt: AT}], seenBests: ['w1:5'],
+  exercises: [{id: 'custom-dip', name: 'Weighted dip', category: 'Chest', measure: 'reps', load: 'weighted'}],
+  workouts: [{id: 'w1', name: 'Run', date: '2026-11-20', type: 'cardio', startedAt: AT, endedAt: '2026-11-20T08:30:00.000Z', shoeId: 'shoe-a',
+    exercises: [{id: 'e1', exerciseId: 'pull-up', name: 'Pull-up', measure: 'reps', load: 'assisted', sets: [{id: 's1', kind: 'normal', reps: 8, assistKg: 20, done: true}]}, {id: 'e2', exerciseId: 'dip', name: 'Dip', measure: 'reps', load: 'weighted', sets: [{id: 's2', kind: 'normal', reps: 6, addedKg: 10, done: true}]}]}]};
+describe('N8 and N9 additive fields', () => {
+  test('kept as written; an earlier log reads with none of them; a bad value is dropped', () => {
+    const w = workoutsSchema.parse(N8);
+    expect(w.exerciseUnits).toEqual({'leg-press': 'lb'});
+    expect(w.shoes![0]).toMatchObject({name: 'Fictional trainers', startKm: 120, retireKm: 700});
+    expect(w.workouts[0]).toMatchObject({shoeId: 'shoe-a', exercises: [{load: 'assisted', sets: [{assistKg: 20}]}, {load: 'weighted', sets: [{addedKg: 10}]}]});
+    expect(w.exercises[0]!.load).toBe('weighted');
+    const old = workoutsSchema.parse(OLD);
+    expect([old.exerciseUnits, old.shoes, old.seenBests]).toEqual([undefined, undefined, undefined]);
+    const bad = workoutsSchema.parse({...N8, exerciseUnits: {x: 'stone'}, shoes: [{name: ''}], seenBests: ['nope'], workouts: [{...N8.workouts[0], shoeId: '!!', exercises: [{...N8.workouts[0]!.exercises[0], load: 'flying', sets: [{id: 's1', kind: 'normal', reps: 8, assistKg: -3, done: true}]}]}]});
+    expect([bad.exerciseUnits, bad.shoes, bad.seenBests, bad.workouts[0]!.shoeId, bad.workouts[0]!.exercises[0]!.load, bad.workouts[0]!.exercises[0]!.sets[0]!.assistKg]).toEqual([undefined, undefined, undefined, undefined, undefined, undefined]);
+  });
+  test('Export everything → erase → Restore keeps them', () => {
+    const collected = collectEverything({[WORKOUTS_KEY]: JSON.stringify(workoutsSchema.parse(N8))}, {now: new Date(AT), version: '0.1.0', commit: 'a'.repeat(40), localSimulation: null});
+    const part = planParts(JSON.parse(JSON.stringify(collected.json))).find(p => p.kind === 'device' && p.key === WORKOUTS_KEY)!;
+    const back = nextValue(part, 'replace', undefined);
+    expect('value' in back && workoutsSchema.parse(back.value)).toEqual(workoutsSchema.parse(N8));
+  });
+  const BODY = {version: 1, heightCm: 182, milestones: {step: '2kg', startGrams: 84_000, goalGrams: 78_000, startedOn: '2026-10-01', reached: [{index: 1, on: '2026-10-20', shownAt: AT}]}};
+  test('the body extras: kept as written; a bad height or milestone is dropped', () => {
+    expect(bodyExtrasSchema.parse(BODY)).toEqual(BODY);
+    expect(bodyExtrasSchema.parse({...BODY, heightCm: 20, milestones: {step: '5kg'}})).toEqual({version: 1});
+    expect(bodyExtrasSchema.parse(JSON.parse(JSON.stringify(bodyExtrasSchema.parse(BODY))))).toEqual(BODY);
+  });
+  const bodyRegistered = Object.values(DEVICE_KEYS as Record<string, string>).includes(BODY_EXTRAS_KEY);
+  test.skipIf(!bodyRegistered)('Export everything → erase → Restore keeps the body extras', () => {
+    const collected = collectEverything({[BODY_EXTRAS_KEY]: JSON.stringify(BODY)}, {now: new Date(AT), version: '0.1.0', commit: 'a'.repeat(40), localSimulation: null});
+    const part = planParts(JSON.parse(JSON.stringify(collected.json))).find(p => p.kind === 'device' && p.key === BODY_EXTRAS_KEY)!;
+    const back = nextValue(part, 'replace', undefined);
+    expect('value' in back && back.value).toEqual(BODY);
   });
 });
