@@ -204,15 +204,16 @@ test('Session AV (ADR-045 D36): a field\'s name written and taken away again is 
 test('Session AV lane 2 (ADR-045 D36): the first measure reads the last line with its words, so the next frame does not search again', async () => {
   emptyLine = 3;
   height = 150; // three rows (132) fit alone and with an empty line (135), not with the words (155): two rows and the line (111)
+  const start = reads;
   await act(async () => { root.render(panel(list(4))); });
   // Before any frame, the answer is already the one painted: the line was measured with its words.
   expect(rows().map(r => r.hidden)).toEqual([false, false, true, true]);
   expect(line().hidden).toBe(false);
   expect(line().textContent).toBe('+2 more on the Tasks page');
-  const before = reads;
-  await act(async () => { await frame(); });
-  // The frame's check reads the panel once and finds nothing changed (it used to search the whole list again).
-  expect(reads - before).toBe(1);
+  await act(async () => { await frame(); await frame(); });
+  // One search (six reads, as in the test below) and the frame's check after the answer's render, which reads the panel
+  // once and finds nothing changed: seven. The old fitter searched the whole list again (seventeen reads).
+  expect(reads - start).toBe(7);
   expect(rows().map(r => r.hidden)).toEqual([false, false, true, true]);
   expect(line().textContent).toBe('+2 more on the Tasks page');
   expect(body().scrollHeight).toBeLessThanOrEqual(body().clientHeight);
