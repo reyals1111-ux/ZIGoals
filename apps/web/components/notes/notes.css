@@ -305,3 +305,11 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-focus-line { margin: 0 0 8px; padding: 8px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent); font-size: 15px; overflow-wrap: anywhere; }
 .note-focus-line .text-link { min-height: 44px; }
 .note-tags-field input { width: 100%; box-sizing: border-box; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #307): photos placed in a note's words, and the list of a note's photos. */
+.note-photo-figure { margin: 12px 0; }
+.note-photo-figure .note-photo { display: block; }
+.note-photo-missing { margin: 8px 0; }
+.note-photo-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; }
+.note-photo-list li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: space-between; }
+.note-photo-list button { min-height: 44px; }

@@ -23,7 +23,9 @@ export const HIGHLIGHT_EMOJI: Record<HighlightColour, string> = {yellow: '\u{1F7
 export type NoteInline = {type: 'text'; text: string} | {type: 'code'; text: string} | {type: 'link'; href: string; children: Inline[]} | {type: 'strong'; children: NoteInline[]} | {type: 'em'; children: NoteInline[]} | {type: 'mark'; colour: HighlightColour; children: NoteInline[]};
 export type NoteBlock = {type: 'paragraph'; children: NoteInline[]} | {type: 'heading'; level: 1 | 2 | 3; children: NoteInline[]} | {type: 'quote'; children: NoteInline[]} | {type: 'code'; text: string; language: string | null}
   | {type: 'table'; align: Align[]; head: NoteInline[][]; rows: NoteInline[][][]; cut: number}
-  | {type: 'list'; ordered: boolean; items: NoteInline[][]; /** Per item: null for a plain item, else whether its tick box is ticked; and the line (0-based) each item starts on. */ ticks?: (boolean | null)[]; lines?: number[]};
+  | {type: 'list'; ordered: boolean; items: NoteInline[][]; /** Per item: null for a plain item, else whether its tick box is ticked; and the line (0-based) each item starts on. */ ticks?: (boolean | null)[]; lines?: number[]}
+  /** Session AV lane 2 (r4-notes; LEDGER #307): a `![words](<photo id>)` line of its own — one of the note's own photos on this device, never an address. */
+  | {type: 'photo'; id: string; alt: string};
 export type ParseOptions = {notes?: boolean};
 const MARK = /^==(?:(\u{1F7E1}|\u{1F7E2}|\u{1F535}|\u{1F7E3}|\u{1F534}|\u{1F7E0})\s?)?(?=\S)((?:[^=\n]|=(?!=))+?)(?<=\S)==/u;
 const COLOUR_OF = new Map(Object.entries(HIGHLIGHT_EMOJI).map(([c, e]) => [e, c as HighlightColour]));
@@ -122,6 +124,10 @@ export function parseBlocks(text: string, options: ParseOptions = {}): NoteBlock
       blocks.push({type: 'table', align: align.slice(0, width), head: head.slice(0, width).map(c => inlineOf(c)), rows, cut});
       continue;
     }
+    // Session AV lane 2 (r4-notes; LEDGER #307): notes only — a photo line names a photo id (letters, digits, - and _), so
+    // no address can ever be fetched; the note's renderer draws it only when the note keeps that photo.
+    const photo = notes ? /^\s*!\[([^\]\n]{0,120})\]\(([A-Za-z0-9_-]{1,80})\)\s*$/.exec(line) : null;
+    if (photo) { flushParagraph(); blocks.push({type: 'photo', id: photo[2]!, alt: photo[1]!.trim()}); i++; continue; }
     const heading = /^\s{0,3}(#{1,3})\s+(.+?)\s*#*\s*$/.exec(line);
     if (heading) { flushParagraph(); blocks.push({type: 'heading', level: heading[1]!.length as 1 | 2 | 3, children: inlineOf(heading[2]!)}); i++; continue; }
     const quote = /^\s{0,3}>\s?(.*)$/.exec(line);
@@ -151,6 +157,6 @@ export function parseBlocks(text: string, options: ParseOptions = {}): NoteBlock
 /** The plain words of a tree, for copying and for read-aloud. */
 export function plainText(blocks: readonly (Block | NoteBlock)[]): string {
   const inline = (nodes: readonly NoteInline[]): string => nodes.map(n => n.type === 'text' || n.type === 'code' ? n.text : inline(n.children)).join('');
-  return blocks.map(b => b.type === 'code' ? b.text : b.type === 'list' ? b.items.map((item, i) => `${b.ordered ? `${i + 1}.` : '•'} ${inline(item)}`).join('\n')
+  return blocks.map(b => b.type === 'code' ? b.text : b.type === 'photo' ? `(${b.alt || 'photo'})` : b.type === 'list' ? b.items.map((item, i) => `${b.ordered ? `${i + 1}.` : '•'} ${inline(item)}`).join('\n')
     : b.type === 'table' ? [b.head, ...b.rows].map(row => row.map(inline).join(' | ')).join('\n') + (b.cut ? `\n(${b.cut} more rows)` : '') : inline(b.children)).join('\n\n');
 }

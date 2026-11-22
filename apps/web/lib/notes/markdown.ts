@@ -1,6 +1,6 @@
 import type {ZipEntry} from '../export/zip';
 import {linkIndex, linkKey, outgoing, type LinkSources} from './links';
-import {MAX_BODY, MAX_TAG, MAX_TAGS, MAX_TITLE, NOTE_KINDS, noteName, type Note, type NoteKind, type Notes} from './schema';
+import {MAX_BODY, MAX_TAG, MAX_TAGS, MAX_TITLE, NOTE_KINDS, noteName, notePhotoIdsOf, type Note, type NoteKind, type Notes} from './schema';
 import {checked, newNoteId, type NotesUndo} from './store';
 import {propsFromFrontMatter, propsFrontMatter} from './props';
 import {toJsonCanvas} from './canvas';
@@ -63,8 +63,12 @@ export function safeFileBase(name: string): string {
   return /^(con|prn|aux|nul|com\d|lpt\d)$/i.test(base) ? `${base} note` : base || 'Untitled note';
 }
 const FOLDER: Record<NoteKind, string> = {daily: 'Daily', inbox: 'Inbox', topic: 'Notes'};
-/** One note as Markdown: front-matter, then the body as written (links kept as [[…]]); a photo is embedded by file name. */
-export function noteToMarkdown(note: Note, photoFile?: string): string {
+/**
+ * One note as Markdown: front-matter, then the body as written (links kept as [[…]]); a photo is embedded by file name.
+ * Session AV lane 2 (r4-notes; LEDGER #307): each further photo's `![photo](<id>)` line becomes an embed of its file
+ * beside the note (`![[<id>.webp]]`, as Obsidian writes one), and front matter lists them under `photos`.
+ */
+export function noteToMarkdown(note: Note, photoFile?: string, moreFiles: ReadonlyMap<string, string> = new Map()): string {
   const lines = ['---', `title: ${quoted(note.kind === 'daily' && note.day ? note.day : noteName(note))}`, `zigoals-id: ${note.id}`, `type: ${note.kind}`];
   if (note.day) lines.push(`day: ${note.day}`);
   lines.push(`created: ${note.createdAt}`);
@@ -72,10 +76,11 @@ export function noteToMarkdown(note: Note, photoFile?: string): string {
   if (note.tags?.length) lines.push(`tags: [${note.tags.map(quoted).join(', ')}]`);
   if (note.source) lines.push(`source: ${note.source}`);
   if (photoFile) lines.push(`photo: ${quoted(photoFile)}`);
+  if (moreFiles.size) lines.push(`photos: [${[...moreFiles.values()].map(quoted).join(', ')}]`);
   if (note.example) lines.push('example: true');
   lines.push(...propsFrontMatter(note.props ?? [])); // Session AV lane 2 (r3-notes; LEDGER #270): the note's own properties
   lines.push('---', '');
-  const body = note.body.replace(/\r\n?/g, '\n');
+  const body = note.body.replace(/\r\n?/g, '\n').replace(/^[ \t]*!\[[^\]\n]{0,120}\]\(([A-Za-z0-9_-]{1,80})\)[ \t]*$/gm, (line, id: string) => moreFiles.has(id) ? `![[${moreFiles.get(id)}]]` : line);
   return `${lines.join('\n')}${body}${photoFile ? `${body ? '\n\n' : ''}![[${photoFile}]]` : ''}\n`;
 }
 /** Paths for every note: Daily/2026-11-01.md, Notes/<title>.md, Inbox/<first words>.md; a repeated name gets " 2". */
@@ -100,7 +105,9 @@ export function notesExportEntries(record: Notes, sources: Omit<LinkSources, 'no
     const photo = n.photoId ? photos.get(n.photoId) : undefined;
     const photoFile = photo ? `${safeFileBase(n.photoId!)}.${photo.type === 'image/jpeg' ? 'jpg' : 'webp'}` : undefined;
     if (photo && photoFile) entries.push({name: `attachments/${photoFile}`, data: photo.data, modified: now});
-    entries.push({name: paths.get(n.id)!, data: noteToMarkdown(n, photoFile), modified: now});
+    const more = new Map<string, string>(); // Session AV lane 2 (r4-notes; LEDGER #307): the note's further photos
+    for (const id of notePhotoIdsOf(n).slice(n.photoId ? 1 : 0)) { const p = photos.get(id); if (!p) continue; const file = `${safeFileBase(id)}.${p.type === 'image/jpeg' ? 'jpg' : 'webp'}`; more.set(id, file); entries.push({name: `attachments/${file}`, data: p.data, modified: now}); }
+    entries.push({name: paths.get(n.id)!, data: noteToMarkdown(n, photoFile, more), modified: now});
   }
   const index = linkIndex({notes, ...sources}), stubs = new Map<string, {kind: 'goal' | 'habit'; name: string}>();
   for (const n of notes) for (const t of outgoing(n, index).targets) if (t.kind !== 'note') stubs.set(`${t.kind}:${t.id}`, {kind: t.kind, name: t.name});

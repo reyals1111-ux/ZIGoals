@@ -1,6 +1,6 @@
 'use client';
 import {useRef, useState} from 'react';
-import type {Notes} from '../../lib/notes/schema';
+import {notePhotoIdsOf, type Notes} from '../../lib/notes/schema';
 import type {LinkSources} from '../../lib/notes/links';
 import {applyImport, notesExportEntries, notesExportName, planImport, type ImportPlan} from '../../lib/notes/markdown';
 import {ZipError} from '../../lib/notes/zip-read';
@@ -27,7 +27,7 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
   const exportZip = async () => {
     setBusy(true); setSaid('');
     try {
-      const ids = record.notes.flatMap(n => n.photoId ? [n.photoId] : []);
+      const ids = record.notes.flatMap(n => notePhotoIdsOf(n)); // Session AV lane 2 (r4-notes; LEDGER #307): every photo
       const photos = ids.length ? await notePhotosForExport(photoScope(), ids) : new Map();
       const zip = buildStoredZip(notesExportEntries(record, targets, {photos}));
       const url = URL.createObjectURL(new Blob([zip as BlobPart], {type: 'application/zip'})), link = document.createElement('a');

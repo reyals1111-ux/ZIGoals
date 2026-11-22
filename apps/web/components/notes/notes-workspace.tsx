@@ -12,7 +12,7 @@ import {NotesSearch} from './notes-search';
 import {useLinkIndex, useLinkTargets, useNotes} from './use-notes';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {formatDate} from '../../lib/visual-format';
-import {noteName, type Notes} from '../../lib/notes/schema';
+import {noteName, notePhotoIdsOf, type Notes} from '../../lib/notes/schema';
 import {addTopic, dailiesOf, dailyNoteOf, inboxOf, topicsOf} from '../../lib/notes/store';
 import {linkKey, noteHref} from '../../lib/notes/links';
 import {sweepNotePhotos} from '../../lib/notes/photos';
@@ -84,7 +84,8 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
   useEffect(() => {
     if (!notes.loaded || notes.unreadable) return;
     // Session AV lane 2 (r3-notes; LEDGER #273): the photos on a board are named too, so the sweep keeps them.
-    const named = [...record.notes.map(n => n.photoId), ...(record.canvases ?? []).flatMap(c => c.nodes.map(n => n.photo))];
+    // Session AV lane 2 (r4-notes; LEDGER #307): and every photo of a note, not only its first.
+    const named = [...record.notes.flatMap(n => notePhotoIdsOf(n)), ...(record.canvases ?? []).flatMap(c => c.nodes.map(n => n.photo))];
     void sweepNotePhotos(photoScope(), named).catch(() => undefined);
     // Only on arrival: a photo deleted with its note during this visit can still come back with Undo.
     // eslint-disable-next-line react-hooks/exhaustive-deps

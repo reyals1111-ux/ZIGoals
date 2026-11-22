@@ -51,3 +51,38 @@ before (an archived note in its list; only the first photo).
 - Showcase: none added (the Showcase notes' words are read by NOVA's pinned corpus); their kept tags (#travel, #reading)
   show in the Tags fold.
 - Device keys / catalogue / export / erase: none. CSS touched: `components/notes/notes.css`. Today: nothing added.
+
+### F2 Several photos placed in a note — LEDGER #307 (Bear)
+
+- Verdict: **built**.
+- What: a daily or topic note holds up to eight photos. The first is the note's `photoId`, drawn under the words as every
+  build has drawn it; "Add another photo" keeps each next one in `photos` and places it in the words where it was added
+  — at the caret while editing (saved with the words), else at the end — as a `![photo](<id>)` line of its own, which the
+  reading view (and Print this note) draws as that photo. A photo line draws only a photo this note keeps on this
+  device (an id of letters, digits, - and _; never an address, so nothing is ever fetched); any other says so in words.
+  With two photos or more, "Photos · 3 of 8" lists them ("in the words" / "under the words") with "Delete photo 2…"
+  (a confirmation; its line goes, the next photo becomes the first). An inbox capture keeps one photo (Replace photo),
+  since filing moves it. The Markdown export writes every photo in attachments/ and each placed line as an embed of its
+  file (`![[<id>.jpg]]`), with `photos:` in the front matter. The arrival sweep counts every photo of a note as named.
+- ZIGi's replies: the photo line is a notes-only block (`parseBlocks(text, {notes: true})`); without the option the line
+  stays words, exactly as before (unit-tested).
+- Files: new `lib/notes/note-photos.ts`; `lib/notes/schema.ts` (`photos`, `notePhotoIdsOf`), `lib/ai/safe-render.ts` (the
+  notes-only `photo` block), `components/notes/note-render.tsx`, `components/notes/note-editor.tsx`,
+  `components/notes/note-print.tsx`, `lib/notes/markdown.ts`, `components/notes/notes-files.tsx`,
+  `components/notes/notes-workspace.tsx` (the sweep), `components/notes/notes.css`.
+- Tests: `lib/notes/r4-photos.test.ts`; stored round trip in `lib/notes/r4-stored.test.ts`. Spec: `tests/av2-notes-photos.spec.ts`.
+- Stored: note `photos` (TIER 3 commit, see "Stored changes"). Erase: the notes' photo database (`zigoals-notes-photos-v1`)
+  is already erased by name, so the new ids go with it.
+- **For the lead (shared files)**: Export everything and Restore read only `photoId` today. Two one-line changes keep the
+  further photos' bytes in the backup:
+  - `lib/export/make-everything.ts:53`: `note.photoId ? [note.photoId] : []` → `notePhotoIdsOf(note)` (from
+    `lib/notes/schema`, already imported there as `sch`: `sch.notePhotoIdsOf(note)`).
+  - `lib/restore/media.ts:63`: index each of `[n.photoId, ...(Array.isArray(n.photos) ? n.photos : [])]` as the
+    `notes/photos/<id>.<ext>` name it already indexes for `photoId`.
+  Until then, the further photos' ids are restored and their bytes stay on the device that took them.
+- Help (EN). Q: "Can a note hold more than one photo?" A: "Yes, up to eight. Add another photo puts it in the note where
+  you are writing (or at the end), and it shows there when you read the note. Photos lists them; delete one there.
+  Photos stay on this device."
+- What's new: "Notes: up to eight photos in a note, each placed in the words."
+- Showcase: none (Showcase notes keep no photos; the Showcase keeps no photos on purpose).
+- CSS touched: `components/notes/notes.css`. Today: nothing added.

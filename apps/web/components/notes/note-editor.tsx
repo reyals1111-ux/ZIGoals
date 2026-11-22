@@ -5,7 +5,8 @@ import {NoteRender} from './note-render';
 import {LoadBoundary} from '../load-boundary';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import {ConfirmInline} from '../ui/confirm-inline';
-import {MAX_BODY, MAX_TITLE, noteName, shortNoteName, type Note, type Notes} from '../../lib/notes/schema';
+import {MAX_BODY, MAX_NOTE_PHOTOS_EACH, MAX_TITLE, noteName, notePhotoIdsOf, shortNoteName, type Note, type Notes} from '../../lib/notes/schema';
+import {PHOTOS_FULL, addNotePhoto, insertPhotoLine, photoRoom, removeNotePhoto, unplacedPhotoIds} from '../../lib/notes/note-photos';
 import {ensureDaily, removeNote, updateNote, type NotesUndo} from '../../lib/notes/store';
 import {updateNoteKeepingVersion} from '../../lib/notes/versions';
 import {tickNote} from '../../lib/notes/ticks';
@@ -67,6 +68,8 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
     change(r => tickNote(r, note.id, line, checked, new Date().toISOString()), checked ? `Ticked: “${shortWords(words)}”.` : `Open again: “${shortWords(words)}”.`);
   };
   const box = useRef<HTMLElement>(null);
+  // Session AV lane 2 (r4-notes; LEDGER #307): while editing, a new photo's line goes where the caret is (saved with the words).
+  const placePhoto = (id: string) => { const field = box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea'); setBody(b => insertPhotoLine(b, field ? field.selectionStart : b.length, id)); };
   const heading = note ? (note.kind === 'daily' && note.day ? formatDate(note.day, {weekday: true}) : noteName(note)) : day ? formatDate(day, {weekday: true}) : '';
   return <article className="note-editor" aria-label={heading || 'Note'} ref={box}>
     {mode === 'edit' ? <>
@@ -83,14 +86,14 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
         <span className="fine">{body.length.toLocaleString('en-US')} / {MAX_BODY.toLocaleString('en-US')}</span>
       </div>
     </> : <>
-      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} outline/>
+      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} photos={note ? notePhotoIdsOf(note) : undefined} outline/>
       {note && fieldTags(note).length > 0 && <p className="note-tag-line"><span className="fine">Tags: </span>{fieldTags(note).map(t => onTag ? <button key={t} type="button" className="note-tag" aria-label={`#${t}: show the notes with this tag`} onClick={() => onTag(t)}>#{t}</button> : <span key={t} className="note-tag">#{t}</span>)}</p>}
       {note && /@remind|!remind|@herinner|⏰/i.test(note.body) && <LoadBoundary quiet><Suspense fallback={null}><NoteReminderChips note={note}/></Suspense></LoadBoundary>}
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button>
         {note && <button type="button" className="quiet note-print-button" onPointerEnter={() => void import('./note-print').catch(() => undefined)} onClick={() => setPrinting(true)}>Print this note</button>}</div>
       {note && printing && <LoadBoundary quiet><Suspense fallback={null}><NotePrint note={note} heading={heading || noteName(note)} index={index} onDone={donePrinting}/></Suspense></LoadBoundary>}
     </>}
-    {note && <NoteExtras note={note} change={change} onDeleted={onDeleted}/>}
+    {note && <NoteExtras note={note} change={change} onDeleted={onDeleted} onPlace={mode === 'edit' ? placePhoto : undefined}/>}
     {note && record && <details className="note-fold note-props-fold" onToggle={e => setPropsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Properties <span className="fine">· {note.props?.length ? note.props.slice(0, 3).map(p => `${p.k}: ${p.t === 'tick' ? (p.v ? 'yes' : 'no') : String(p.v)}`).join(', ') : 'your own fields, such as a status or a day'}</span></summary>
       {propsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteProps note={note} record={record} change={change}/></Suspense></LoadBoundary>}
     </details>}
@@ -101,41 +104,57 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
   </article>;
 }
 
-/** The note's photo (device-only), pin and delete. */
-function NoteExtras({note, change, onDeleted}: {note: Note; change: Change; onDeleted?: () => void}) {
-  const [url, setUrl] = useState<string | null>(null), [confirmPhoto, setConfirmPhoto] = useState(false), [busy, setBusy] = useState(false), [said, setSaid] = useState('');
+/**
+ * The note's photos (device-only), pin and delete. Session AV lane 2 (r4-notes; LEDGER #307, Bear): a daily or topic note
+ * holds up to eight photos — the first under the words, as before; each one after it placed in the words where it was
+ * added (at the caret while editing, else at the end). An inbox capture keeps one photo (filing moves it).
+ */
+function NoteExtras({note, change, onDeleted, onPlace}: {note: Note; change: Change; onDeleted?: () => void; /** While editing: put the new photo's line at the caret (unsaved words). */ onPlace?: (id: string) => void}) {
+  const [confirmPhoto, setConfirmPhoto] = useState<string | null>(null), [busy, setBusy] = useState(false), [said, setSaid] = useState('');
   const input = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    let made: string | null = null, live = true;
-    if (note.photoId) void getNotePhoto(photoScope(), note.photoId).then(p => { if (live && p) { made = URL.createObjectURL(p.blob); setUrl(made); } }, () => undefined);
-    return () => { live = false; if (made) URL.revokeObjectURL(made); setUrl(null); };
-  }, [note.photoId]);
+  const multi = note.kind !== 'inbox', ids = notePhotoIdsOf(note), unplaced = unplacedPhotoIds(note), full = multi && photoRoom(note) <= 0;
   const addPhoto = async (file: File) => {
     setBusy(true); setSaid('Preparing the photo on this device…');
     try {
-      const id = await keepCapturePhoto(file), old = note.photoId;
-      if (change(r => updateNote(r, note.id, {photoId: id}, new Date().toISOString()), 'Photo kept on this device.')) { if (old) await deleteNotePhoto(photoScope(), old).catch(() => undefined); setSaid(''); }
+      const id = await keepCapturePhoto(file), old = note.photoId, now = new Date().toISOString();
+      const place = multi && !!note.photoId && !!onPlace;
+      const ok = multi ? change(r => addNotePhoto(r, note.id, id, now, {place: !place}), note.photoId ? 'Photo kept on this device and placed in the note.' : 'Photo kept on this device.')
+        : change(r => updateNote(r, note.id, {photoId: id}, now), 'Photo kept on this device.');
+      if (ok) { if (!multi && old) await deleteNotePhoto(photoScope(), old).catch(() => undefined); if (place) onPlace!(id); setSaid(''); }
       else await deleteNotePhoto(photoScope(), id).catch(() => undefined);
     } catch (e) { setSaid(e instanceof Error ? e.message : 'The photo was not kept.'); } finally { setBusy(false); }
   };
-  const removePhoto = async () => {
-    setConfirmPhoto(false);
-    const id = note.photoId; if (!id) return;
-    if (change(r => updateNote(r, note.id, {photoId: undefined}, new Date().toISOString()), 'Photo deleted from this device.')) await deleteNotePhoto(photoScope(), id).catch(() => undefined);
+  const removePhoto = async (id: string) => {
+    setConfirmPhoto(null);
+    if (change(r => removeNotePhoto(r, note.id, id, new Date().toISOString()), 'Photo deleted from this device.')) await deleteNotePhoto(photoScope(), id).catch(() => undefined);
   };
   return <div className="note-extras">
-    {note.photoId && (url
-      // eslint-disable-next-line @next/next/no-img-element -- a local blob of the person's own photo: next/image has nothing to optimise
-      ? <img className="note-photo" src={url} alt={`Your photo with “${noteName(note)}”`}/>
-      : <p className="fine">The photo is not in this browser (photos stay on the device where they were taken).</p>)}
+    {unplaced.map(id => <NotePhotoUnder key={id} id={id} name={noteName(note)}/>)}
     <div className="note-actions">
       <input ref={input} type="file" accept="image/*" hidden tabIndex={-1} aria-hidden="true" onChange={e => { const f = e.target.files?.[0]; if (f) void addPhoto(f); e.target.value = ''; }}/>
-      <button type="button" className="quiet" disabled={busy} onClick={() => input.current?.click()}>{note.photoId ? 'Replace photo' : 'Add a photo'}</button>
-      {note.photoId && <button type="button" className="quiet" onClick={() => setConfirmPhoto(true)}>Delete photo…</button>}
+      <button type="button" className="quiet" disabled={busy || full} onClick={() => input.current?.click()}>{!multi && note.photoId ? 'Replace photo' : ids.length ? 'Add another photo' : 'Add a photo'}</button>
+      {ids.length === 1 && <button type="button" className="quiet" onClick={() => setConfirmPhoto(ids[0]!)}>Delete photo…</button>}
       {note.kind === 'topic' && <button type="button" className="quiet" aria-pressed={!!note.pinned} onClick={() => change(r => updateNote(r, note.id, {pinned: !note.pinned}, new Date().toISOString()), note.pinned ? 'Unpinned.' : 'Pinned to the top of your notes.')}>{note.pinned ? 'Unpin' : 'Pin'}</button>}
       <button type="button" className="quiet" onClick={() => { if (change(r => removeNote(r, note.id), `“${shortNoteName(note)}” deleted.`)) onDeleted?.(); }}>Delete note</button>
     </div>
-    {confirmPhoto && <ConfirmInline title="Delete this photo from this device?" confirmLabel="Delete photo" onConfirm={() => void removePhoto()} onCancel={() => setConfirmPhoto(false)}><p>The note&rsquo;s words stay. This cannot be undone.</p></ConfirmInline>}
+    {full && <p className="fine">{PHOTOS_FULL}</p>}
+    {ids.length > 1 && <details className="note-fold note-photos-fold"><summary>Photos <span className="fine">· {ids.length} of {MAX_NOTE_PHOTOS_EACH}</span></summary>
+      <ul className="note-photo-list">{ids.map((id, i) => <li key={id}><span>Photo {i + 1} <span className="fine">· {unplaced.includes(id) ? 'under the words' : 'in the words'}</span></span>
+        <button type="button" className="quiet" onClick={() => setConfirmPhoto(id)}>Delete photo {i + 1}…</button></li>)}</ul>
+    </details>}
+    {confirmPhoto && <ConfirmInline title={ids.length > 1 ? `Delete photo ${ids.indexOf(confirmPhoto) + 1} from this device?` : 'Delete this photo from this device?'} confirmLabel="Delete photo" onConfirm={() => void removePhoto(confirmPhoto)} onCancel={() => setConfirmPhoto(null)}><p>The note&rsquo;s words stay{ids.length > 1 ? '; the photo’s line goes' : ''}. This cannot be undone.</p></ConfirmInline>}
     {said && <p className="fine" role="status">{said}</p>}
   </div>;
+}
+/** A photo drawn under the note's words. */
+function NotePhotoUnder({id, name}: {id: string; name: string}) {
+  const [url, setUrl] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    let made: string | null = null, live = true;
+    void getNotePhoto(photoScope(), id).then(p => { if (!live) return; if (p) { made = URL.createObjectURL(p.blob); setUrl(made); } else setUrl(null); }, () => { if (live) setUrl(null); });
+    return () => { live = false; if (made) URL.revokeObjectURL(made); setUrl(undefined); };
+  }, [id]);
+  if (url === undefined) return null;
+  // eslint-disable-next-line @next/next/no-img-element -- a local blob of the person's own photo: next/image has nothing to optimise
+  return url ? <img className="note-photo" src={url} alt={`Your photo with “${name}”`}/> : <p className="fine">The photo is not in this browser (photos stay on the device where they were taken).</p>;
 }

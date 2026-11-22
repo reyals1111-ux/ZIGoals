@@ -1,9 +1,11 @@
 'use client';
 import Link from 'next/link';
-import {Fragment, useId, useMemo, type ReactNode} from 'react';
+import {Fragment, useEffect, useId, useMemo, useState, type ReactNode} from 'react';
 import {parseBlocks, plainText, type NoteBlock, type NoteInline} from '../../lib/ai/safe-render';
 import {parseLinks, resolveLink, type LinkIndex} from '../../lib/notes/links';
 import {splitTags} from '../../lib/notes/tags';
+import {getNotePhoto} from '../../lib/notes/photos';
+import {photoScope} from '../../lib/health-aa/photos';
 
 /**
  * Session AK (B3): a note on screen — React elements from the same safe Markdown parser ZIGi's replies use (headings,
@@ -13,7 +15,22 @@ import {splitTags} from '../../lib/notes/tags';
  * ==highlights== in six named colours, and "- [ ]" tick boxes that tick in the reading view (`onTick`, with the line).
  */
 const KIND_WORD = {note: 'note', goal: 'goal', habit: 'habit'} as const;
-type Ctx = {index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag focuses Notes on it. */ onTag?: (tag: string) => void};
+type Ctx = {index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag focuses Notes on it. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids this note keeps. */ photos?: readonly string[]};
+/** Session AV lane 2 (r4-notes; LEDGER #307): one of the note's own photos, read from this device's photo store. */
+function NotePhotoFigure({id, alt, kept}: {id: string; alt: string; kept: boolean}) {
+  const [url, setUrl] = useState<string | null | undefined>(kept ? undefined : null);
+  useEffect(() => {
+    if (!kept) return;
+    let made: string | null = null, live = true;
+    void getNotePhoto(photoScope(), id).then(p => { if (!live) return; if (p) { made = URL.createObjectURL(p.blob); setUrl(made); } else setUrl(null); }, () => { if (live) setUrl(null); });
+    return () => { live = false; if (made) URL.revokeObjectURL(made); };
+  }, [id, kept]);
+  if (!kept) return <p className="fine note-photo-missing">A photo line for a photo this note does not keep ({alt || 'photo'}).</p>;
+  if (url === undefined) return <p className="fine note-photo-missing">Opening the photo…</p>;
+  if (url === null) return <p className="fine note-photo-missing">This photo is not in this browser (photos stay on the device where they were added).</p>;
+  // eslint-disable-next-line @next/next/no-img-element -- a local blob of the person's own photo: next/image has nothing to optimise
+  return <figure className="note-photo-figure"><img className="note-photo" src={url} alt={alt && alt !== 'photo' ? alt : 'Your photo in this note'}/></figure>;
+}
 /** Session AV lane 2 (r4-notes; LEDGER #306): the #tags in plain words, each a button that focuses Notes on it. */
 function tagged(text: string, at: number, onTag?: (tag: string) => void): ReactNode[] {
   return splitTags(text).map((p, i) => typeof p === 'string' ? p : onTag
@@ -63,6 +80,7 @@ function block(b: NoteBlock, i: number, ctx: Ctx, onTick: Tick | undefined, id: 
       const ticks = b.ticks?.some(t => t !== null) ? ' note-ticks' : '';
       return b.ordered ? <ol key={i} className={ticks.trim() || undefined}>{items}</ol> : <ul key={i} className={ticks.trim() || undefined}>{items}</ul>;
     }
+    case 'photo': return <NotePhotoFigure key={i} id={b.id} alt={b.alt} kept={!!ctx.photos?.includes(b.id)}/>;
     case 'table': return <div key={i} className="note-table-wrap" role="region" aria-label="Table" tabIndex={0}><table><thead><tr>{b.head.map((c, k) => <th key={k} scope="col">{r(c)}</th>)}</tr></thead><tbody>{b.rows.map((row, k) => <tr key={k}>{row.map((c, m) => <td key={m}>{r(c)}</td>)}</tr>)}</tbody></table></div>;
   }
 }
@@ -78,7 +96,7 @@ function Outline({blocks, id}: {blocks: readonly NoteBlock[]; id: string}) {
     <ol>{heads.map(h => <li key={h.i} data-level={h.level}><button type="button" className="text-link" onClick={() => go(h.i)}>{h.words || 'Untitled heading'}</button></li>)}</ol>
   </details></nav>;
 }
-export function NoteRender({text, index, onCreate, onTick, onTag, outline = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #306: a #tag pressed. */ onTag?: (tag: string) => void; /** LEDGER #268: list the headings above. */ outline?: boolean}) {
-  const blocks = useMemo(() => parseBlocks(text, {notes: true}), [text]), id = useId(), ctx: Ctx = {index, onCreate, onTag};
+export function NoteRender({text, index, onCreate, onTick, onTag, photos, outline = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #306: a #tag pressed. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids the note keeps (a photo line draws only these). */ photos?: readonly string[]; /** LEDGER #268: list the headings above. */ outline?: boolean}) {
+  const blocks = useMemo(() => parseBlocks(text, {notes: true}), [text]), id = useId(), ctx: Ctx = {index, onCreate, onTag, photos};
   return <>{outline && <Outline blocks={blocks} id={id}/>}<div className="note-render">{blocks.map((b, i) => block(b, i, ctx, onTick, id))}</div></>;
 }
