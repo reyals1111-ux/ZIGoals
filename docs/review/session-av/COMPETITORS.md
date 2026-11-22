@@ -954,3 +954,233 @@ Already in COMPETITORS.md:
 - Copilot Money: net worth with manual real estate, vehicles, metals and other assets.
 - Monarch Money: account notes (Accounts: sort, notes, net worth range).
 - CoinStats: crypto and DeFi holdings.
+
+## Ten more apps, round 2 (owner follow-up 4, item 4g; 22 Nov 2026)
+
+
+
+Drafted 22 Nov 2026, to be added under `## Matrix` in `docs/review/session-av/COMPETITORS.md`, after "Ten more apps (owner follow-up 4, item 4e)". It uses the method in that file's header. Official sites, help centres and 2025–2026 release notes were read with WebSearch and WebFetch; App Store "What's New" notes count as release notes. Page text was treated as data only. Every row was then checked against this branch's code (`apps/web`, branch `lane2/batch2`, HEAD `cdd996db`), after the lane 2 registries (`docs/review/session-av/lane2/*.md`) were read so that built work is not marked missing. Each `have` and `half` names the file that was opened. All pages were seen on 22 Nov 2026.
+
+Not repeated: a feature that already has a row in COMPETITORS.md (the 25 apps and the first "Ten more apps") gets no new row. It is listed under "Already in COMPETITORS.md" for that app. Where the new app goes further, the row is added and covers only the further part, which it names. Each app also lists what was left out because it is native-only or a server service, with that cause.
+
+Source caveats:
+- Most 2025–2026 App Store notes for these ten apps say only "bug fixes" (Microsoft To Do, Google Tasks, Reflectly, Fitbod, Rise, Emma). Their rows rest on the App Store description and the official site or help centre. Moodnotes' last listed release is 3.14.8 (24 Oct 2024), so none of its rows is new since 2025.
+- These pages refused the fetcher, so their rows say "via search index": help.fitbod.me and fitbod.me (403), help.risescience.com (403), support.budgetbakers.com (403), and the Google Workspace Updates post on Keep reminders.
+- www.moodnotes.app does not resolve from this session's network. Moodnotes rows rest on its App Store listing.
+- The emma-app.com features page returned 404. Emma rows rest on its App Store listing (UK) and two official blog posts ("What we chose to build at Emma in 2025"; "New in Emma: your accounts just got smarter", 3 Jun 2025).
+- App Store notes often print no year. Where the year was read from the version order, the row says so.
+
+### Totals (the ten apps)
+
+| Status | Tasks and planning (Microsoft To Do, Google Tasks, Any.do) | Journal, habits and mind (Reflectly, Moodnotes) | Sleep, workouts and body (Fitbod, Rise) | Money (Spendee, Wallet, Emma) | All |
+|---|---|---|---|---|---|
+| `have` | 1 | 1 | 2 | 1 | 5 |
+| `half` | 4 | 2 | 4 | 8 | 18 |
+| `missing` | 3 | 3 | 3 | 6 | 15 |
+| `against a rule` | 0 | 1 | 0 | 0 | 1 |
+| **Rows** | **8** | **7** | **9** | **15** | **39** |
+
+Rows per app: Microsoft To Do 2, Google Tasks 2, Any.do 4, Reflectly 3, Moodnotes 4, Fitbod 4, Rise 5, Spendee 3, Wallet by BudgetBakers 7, Emma 5.
+
+### Tasks, planning, notes and journaling (second additions)
+
+#### Microsoft To Do
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| My Day | A daily list you pick tasks into, kept apart from their due dates. It starts empty each day. The Suggestions pane offers starred tasks, tasks due soon, and the picks from yesterday that were not finished | https://support.microsoft.com/en-us/ToDo/my-day-and-suggestions ; https://apps.apple.com/us/app/microsoft-to-do/id1212616790 | no | `half` | `planSuggestions` in `lib/tasks/plan-day.ts` (overdue tasks, a deadline within three days, priority 1–2 with no day; at most five). In `components/tasks/plan-day.tsx`, "Plan for today" calls `editMany(…, {due: today})` (`components/tasks/tasks-page.tsx:389`). TickTick's Suggested Tasks and Sunsama's planning rows cover the suggestions | The deeper part: a pick for today that leaves the task's own day and deadline alone and is cleared at the end of the day, with yesterday's unfinished picks offered back as "From yesterday". Now, planning a task for today moves its due day | M | Max |
+| List colours and backgrounds | Each list takes a colour or a full-screen background picture, and an emoji in its name (version 2.0) | https://support.microsoft.com/en-gb/todo/what-s-new-in-microsoft-to-do | no | `have` | `TASK_COLOURS` (nine named colours, drawn per theme) on `projectSchema.colour` in `lib/tasks/schema.ts:36,138`; a project name takes any text, emoji included. Picture backgrounds are not proposed: calm design, and the Tasks page sits inside the accepted baseline | — | — | — |
+
+Not rowed:
+- Server service, and against the rule that nothing is shared between people: shared lists by link, assigning a task to a member, "Assigned to me" from Planner (versions 1.32, 1.62).
+- Server service: Flagged Email from Outlook (version 1.52), two-way sync with Outlook and Microsoft 365, dragging a task onto the Outlook calendar.
+- Native-only: pinning a list to the Windows Start menu, widgets.
+
+Already in COMPETITORS.md:
+- Things: list groups (version 1.63; Projects, Areas and Headings), checklists (Steps, version 1.28), import from Microsoft To Do.
+- Todoist: due dates, reminders and repeats; files on a task (version 1.49; Task descriptions and comments); calendar integration.
+- Todoist and TickTick: the Important and Planned smart lists (Labels, priorities and filters; saved filters).
+
+#### Google Tasks
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Reminders from notes saved as tasks | Since October 2025, every dated Keep reminder is saved to Google Tasks, so it shows as a task in the Tasks app and in Calendar | https://workspaceupdates.googleblog.com/2025/10/google-keep-reminders-now-saved-to-tasks.html (via search index) | yes | `half` | Lane 2 built reminders written in a note ("@remind tomorrow 9:30 …"). `lib/notes/reminders.ts` is read only by `components/notes/note-reminders.tsx`, `lib/notify/sync.ts` and `lib/ai/local-answers/av2-tasks.ts`, so they show under the note, in Notes and as a notification. Notion's Reminders row is the reminder itself | The deeper part: a note's reminder also listed in Tasks' Today and Upcoming and on the Agenda's day, each linking back to its note. It stays a note line, not a copied task | S | Max, Sanne |
+| Print your tasks | Print a task list (a help topic beside dark theme and keyboard shortcuts) | https://support.google.com/tasks/answer/7675772 | no | `missing` | There is no `@media print` under `components/tasks`. Print styles exist only for bills, money tools, the debt planner and the report (`components/wealth/bills/bills.css:76`, `components/report/report.css:51`). The grocery list has its own `groceryPrintHtml` (`lib/grocery/list.ts`) | "Print this list" for a project or a view (title, day, priority, subtasks indented, tick boxes), printed through print CSS on the page as the bills do | S | Max, Lina |
+
+Not rowed:
+- Server service: tasks made from Gmail, Chat and Docs; tasks assigned in a Chat space (also against the rule that nothing is shared between people).
+- Native-only: the home-screen task shortcut.
+
+Already in COMPETITORS.md:
+- Todoist and Things: deadlines kept apart from the date (2025; the Deadlines rows), due dates and repeats, subtasks.
+- Todoist: completed tasks with their dates (Productivity insights; the completed archive), sorting and filters.
+- Todoist and Notion: tasks in the calendar (Calendar integration; Tasks in Notion Calendar).
+- Things: keyboard shortcuts (Multiple windows and full keyboard shortcuts).
+
+#### Any.do
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Templates gallery | 100+ ready lists and boards; family plan templates added in 5.64.3 | https://www.any.do/ ; https://apps.apple.com/us/app/any-do-to-do-list-planner/id497328576 (5.64.3, Mar 9; year read as 2026) | yes | `half` | `BUILT_IN_TEMPLATES` in `lib/tasks/templates.ts:43` (four: Moving house, A trip, A new job, Weekly reset), plus your own templates saved from a project. Todoist's Templates row is built | The deeper part: a larger written gallery in English and Dutch, in groups (home: cleaning week, a party, a packing list; work: a project kick-off, a weekly review; family: school year start), each a project with sections and days from a start day | S | Max |
+| Import from other task apps | Brings work over from Trello, ClickUp, Asana, Monday.com and Todoist | https://www.any.do/ | no | `half` | `ImportPlan.source: 'todoist' \| 'ticktick' \| 'ics'` in `lib/tasks/import.ts:14` (`readTodoistCsv`, `readTickTickCsv`, `readIcsTodos`). Things' Import row covers Apple Reminders, Microsoft To Do and Todoist | The deeper part: Trello's board export (JSON) and Asana's project CSV, read into projects, sections (Trello lists, Asana sections) and tasks. This follows the rule the habit importer keeps (`lib/import/switch/formats.ts`): a layout must be documented or open source. ClickUp and Monday.com stay off unless their export layout is published | M | Max |
+| Automations | Rules that run routine steps on a board, such as assigning each new task | https://www.any.do/ | no | `missing` | No automation or rule anywhere in `lib/tasks` or `components/tasks` (a search for automation finds nothing). Board columns are sections (`sectionSchema` in `lib/tasks/schema.ts`) | Simple rules on a project, run on the device when a task is added or moved: "When a task enters <section>: set priority / add label / set day to today / mark done". Each rule's change is a normal write with Undo. A rule that assigns people is left out (nothing is shared between people) | M | Max |
+| Custom fields | Board and table views with fields you add yourself | https://www.any.do/ | no | `missing` | `taskSchema` in `lib/tasks/schema.ts` has fixed fields only. The Table view's columns are the fixed `TABLE_COLUMNS` (`lib/tasks/layouts.ts:191`) | Up to five fields per project (text, number, a date, a choice from a list, a tick), shown as Table columns and sortable. Stored as an additive, optional `fields` on the loose task, TIER 3 (stored format) | M | Max |
+
+Not rowed:
+- Server service: WhatsApp reminders and adding tasks by message; email capture; Slack, Gmail, Zapier, Jira and other integrations; attachments from Google Drive, OneDrive, Dropbox and Box (5.52.1); the MCP connector for AI agents (also needs a model).
+- Server service, and against the rule that nothing is shared between people: shared lists and boards, owners and @mentions, chat, chores and the family organizer for four.
+- Native-only: location reminders (5.63.0; as in Todoist's Reminders row), widgets (5.57.0), the Apple Watch and Wear OS apps, shake to clear completed tasks.
+
+Already in COMPETITORS.md:
+- Microsoft To Do (above), TickTick and Sunsama: My Day and the daily planner with smart suggestions.
+- Things: snooze and start dates for tasks (5.52.1; When scheduling, Start Early).
+- Todoist and Notion: board, calendar and table views.
+- MyFitnessPal: the real-time grocery list (Meal Planner and grocery list). ZIGoals' list is built, with your own items, aisles, frequent items and print (`lib/grocery/schema.ts`, `lib/grocery/list.ts`, `components/health/planner-view.tsx`).
+- Todoist: subtasks and their completion; recurring tasks.
+
+### Habits, mood and journaling (second additions)
+
+#### Reflectly
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Questions chosen from your entries | Personalised questions based on your diary entries, a new one each day | https://apps.apple.com/us/app/reflectly-journal-ai-diary/id1241229134 ; https://reflectlyapp.com/ | no | `have` | `followUpFor` and `THEMES` in `lib/journal/reflect.ts` (one follow-up question picked by rule from what the entry says, never the same as the last; patterns in plain counts). The person's own AI may word it instead. Reflectly's AI wording would need a model; the rule question needs none | — | — | — |
+| Morning motivation and a daily challenge | A quote and a small challenge each morning, then evening insights | https://apps.apple.com/us/app/reflectly-journal-ai-diary/id1241229134 | no | `half` | `AFFIRMATIONS` in `lib/journal/affirmations.ts` (28 kind lines in English and Dutch, one a day, off by default, shown on Today's journal card through `components/journal/today-affirmation.tsx`). No daily challenge anywhere in `lib/journal` | The deeper part: a small daily challenge beside the affirmation ("Send someone a kind message", "Ten minutes outside"), from a written list in English and Dutch, with "Done" and "Another one". Off by default, and nothing is counted against the person | S | Sanne |
+| A space to vent | Write whenever you need to get something off your chest | https://apps.apple.com/us/app/reflectly-journal-ai-diary/id1241229134 | no | `missing` | Every journal entry is kept (`lib/journal/schema.ts`, with versions in `lib/journal/versions.ts`). A search for vent or "let go" in `lib/journal` and `components/journal` finds nothing | "Write it out": a plain page that is never saved, with "Let it go" (clears it, with a calm line) or "Keep as an entry". Nothing is stored unless the person chooses Keep | S | Sanne |
+
+Not rowed:
+- Needs a model: AI-written prompts and the AI "mental health companion" wording.
+- Native-only: the streak widget.
+
+Already in COMPETITORS.md:
+- Bearable and Daylio: the mood check-in, mood correlations and graphs, and the daily, weekly and monthly overviews (Factor Effect, Trends and weekly report, monthly statistics).
+- Day One: voice notes and photos in an entry; journaling reminders and streaks; Prompt Packs (Reflectly's premium "stories").
+
+#### Moodnotes
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Thinking traps and the thought checker | Write the thought behind a mood; the app names possible thinking traps (catastrophising, blaming, overgeneralising, emotional reasoning, fortune telling) and walks you to a more balanced thought | https://apps.apple.com/us/app/moodnotes-mood-tracker/id1019230398 ; https://apps.apple.com/ca/app/moodnotes/id1019230398 (via search index) | no | `missing` | A search of `lib` and `components` for thinking trap, catastroph, thought record or reframe finds nothing. Journal prompts (`lib/journal-prompts/daily.ts`) and the rule follow-up (`lib/journal/reflect.ts`) ask questions but name no trap | A short written exercise in the Journal: the situation, the thought, pick any of about ten named thinking traps (each with one plain line and a Dutch twin), then "another way to see it", kept as a journal entry. Worded as self-reflection, never as treatment | M | Sanne |
+| Feelings with a strength | Pick several feeling words for an entry, each with its own intensity; several entries a day | https://apps.apple.com/us/app/moodnotes-mood-tracker/id1019230398 | no | `half` | `moodWordDaySchema` in `lib/mood-words/schema.ts` keeps one word a day (`{energy, pleasantness, word, at}`), with your own words built (lane 2, LEDGER #61). Bearable's Mood and emotions row is the word itself | The deeper part: up to three feeling words on a day, each with a strength (a little, quite, very), shown beside the day's mood. An additive, optional `more` list on the loose day, TIER 3 (stored format); older builds keep reading the one `word` | S | Sanne |
+| Face scan for mood | Scan your face with the camera to detect your mood | https://apps.apple.com/us/app/moodnotes-mood-tracker/id1019230398 | no | `against a rule` | Reading emotion from a face needs a model, and the camera image would be personal data analysed by one. The mood is always the person's own choice (`lib/moods/schema.ts`) | — | — | — |
+| Self-awareness articles | Articles by mental-health experts on thinking traps and well-being; more full-text articles in Premium | https://apps.apple.com/us/app/moodnotes-mood-tracker/id1019230398 | no | `missing` | No article library in `lib/help` or `lib/journal` (Help answers how the app works) | An expert-written article library made for ZIGoals | — | Sanne |
+
+Not rowed:
+- Native-only: the Apple Watch app. Server service: iCloud sync and backup.
+
+Already in COMPETITORS.md:
+- Bearable and Daylio: mood tracking, triggers (Factors), statistics and insights, notes on an entry, several entries a day (folded into Bearable's symptoms row).
+- Day One: photo memories in an entry.
+
+### Food, sleep and workouts (second additions)
+
+#### Fitbod
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Muscle recovery | A recovery percentage per muscle from recent sets, shown as a body heat map; under 50 % counts as fatigued; editable in the gym profile | https://help.fitbod.me/hc/en-us/articles/360006269014-Muscle-Recovery (via search index) ; https://apps.apple.com/us/app/fitbod-gym-fitness-planner/id1041517543 | no | `have` | `components/health/workouts/muscle-freshness.tsx` (front and back body diagram, a percentage and a word per group, recovery days you can change per group, `zigoals:muscle-recovery:v1`), `RECOVERY_DAYS = 6` and the model in `lib/workouts/depth.ts:208-215`, a line on Today (`components/health/workouts/muscle-freshness-today.tsx`) | — | — | — |
+| Gym profiles and equipment | A profile per place (home, gym, travel), each with the equipment there; workouts use only what that place has | https://fitbod.me/blog/your-gym-profile/ (via search index) ; https://help.fitbod.me/hc/en-us/sections/360001078993-How-Fitbod-Works (via search index) | no | `missing` | Equipment is free text in each how-to (`lib/workouts/howto.ts:22`, "A barbell and a flat bench"); `lib/workouts/library.ts` entries carry a name, a category and a measure, with no equipment tag. No place or profile in `lib/workouts/schema.ts` | An equipment tag per library exercise (barbell, dumbbells, cable, machine, bench, pull-up bar, bands, none), and your places (up to five) with what each has. The exercise picker and library filter by the chosen place (a device record) | M | Tom |
+| A workout made for today | Builds today's session from fresh muscles, your goal, level, equipment and chosen length; you can add cardio or adjust | https://apps.apple.com/us/app/fitbod-gym-fitness-planner/id1041517543 ; https://help.fitbod.me/hc/en-us/sections/31812780318743-Exercise-Workout-Customization (via search index) | no | `missing` | No workout suggestion in `lib/workouts` or `components/health/workouts`. The ready-made routines are fixed (`lib/workouts/routine-library.ts`). Hevy Trainer's row is a programme builder (ledger #120, Carried for authored splits) | The deeper part, with no programme to author: "Suggest a workout" picks 4–6 exercises from the built-in library for the freshest muscle groups, using the chosen place's equipment and a length (30, 45 or 60 minutes), with sets and weights from the person's own last sessions and the progression rule. It is labelled a suggestion the person can edit before starting | L | Tom |
+| Replace an exercise | Swap an exercise for another that works the same muscles with the equipment you have | https://apps.apple.com/us/app/fitbod-gym-fitness-planner/id1041517543 ("workout modifiers") | no | `missing` | A search of `lib/workouts` and `components/health/workouts` for swap, replace, alternative or similar finds nothing. Each how-to in `lib/workouts/howto.ts` names its main and helping muscles | "Replace" on an exercise in a running or planned workout: a short list of library exercises with the same main muscle (and, once built, the place's equipment), keeping the sets typed so far | S | Tom |
+
+Not rowed:
+- Native-only: the Apple Watch app; Apple Health, Fitbit and Strava sync (Strava is also a server service).
+- Server service: email to pro trainers.
+- Needs content made for ZIGoals: 1,000+ exercises with multi-angle video.
+
+Already in COMPETITORS.md:
+- Hevy: the exercise library with instructions, supersets and circuits, RPE, saved workouts (routines), progress analytics.
+- MacroFactor Workouts: progression over time (the rep-progression row).
+- Hevy Trainer: a programme from goal, equipment and time (non-linear periodisation).
+- Strava + Runna: cardio plans.
+
+#### Rise (sleep and energy)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Sleep debt | How much sleep you owe over recent nights against your sleep need, and how to pay it back | https://www.risescience.com/ ; https://apps.apple.com/us/app/rise-sleep-tracker/id1453884781 | no | `have` | `sleepDebt` (7 days) and `sleepBalance` (14 nights, at least five logged, in kind words, "never debt") in `lib/sleep/engine.ts:114-140` | — | — | — |
+| Sleep need from your own nights | Estimates your own sleep need from your phone's past data on first use | https://www.risescience.com/ | no | `half` | `DEFAULT_NEED = 480` and `needFrom: 'goal' \| 'default'` in `lib/energy-curve/curve.ts`; `sleepGoalSchema` in `lib/sleep/schema.ts:36` is the person's own typed goal | The deeper part: an estimate of the person's own need from their logged nights (for example the middle of their longest free-day nights over the last 30), offered as a suggested goal and labelled an estimate. Nothing changes until the person keeps it | S | Sanne |
+| Energy schedule and its reminders | Each morning: how long grogginess lasts, the morning and evening peaks, the afternoon dip, and when to start winding down (the melatonin window). Push notifications before peaks and dips | https://help.risescience.com/hc/en-us/articles/6654243671191-Getting-to-Know-Your-Daily-Energy (via search index) ; https://www.risescience.com/ | no | `half` | `lib/energy-curve/curve.ts` (grogginess, the focus window of `lib/sleep/focus-window.ts`, a dip 7–9 h after waking, a second lift, a bedtime window, lower after a short balance; an estimate) drawn by `components/sleep/energy-curve.tsx`. `ItemKind` in `lib/notify/plan.ts:12` has no focus or dip kind; the wind-down reminder is a fixed time (`components/health/sleep/wind-down.tsx`) | The deeper part: opt-in device reminders worked out from the day's curve, at the start of the focus window, before the dip and at the wind-down start (instead of a fixed wind-down time). A new notification kind, TIER 3 (PWA). Putting the curve on an outside calendar needs an outside service | S | Sanne, Max |
+| Habits at suggested times | 16 habits, each nudged at a time worked out from your energy schedule (morning light, caffeine cut-off, last meal, blue light, wind-down) | https://www.risescience.com/ ; https://apps.apple.com/us/app/rise-sleep-tracker/id1453884781 | no | `half` | `SUGGESTIONS` in `lib/evening-plan/plan.ts:15-24` (caffeine 240 min before, last meal 180, screens away, lights low, lights out; LEDGER #83 built), listed with their times in `components/health/sleep/evening-plan.tsx`. The steps carry `minutesBefore` only (`lib/evening-plan/schema.ts:22`): no morning steps, no reminder per step | The deeper part: morning steps timed from the wake time (daylight within the first hour, the first coffee after the grogginess), and an opt-in reminder at each chosen step's time | S | Sanne |
+| Naps and their effect | Shows how naps (and activity) affect your sleep debt and energy | https://apps.apple.com/us/app/rise-sleep-tracker/id1453884781 | no | `half` | Naps are kept (`napOrNight` and `kind: 'night' \| 'nap'` in `lib/sleep/engine.ts:49-54`), but `nightsIn` keeps `kind === 'night'` only (`lib/sleep/engine.ts:89-92`), so the balance, the debt and the energy curve leave naps out | The deeper part: a day's naps counted in the sleep balance (marked as naps), and a nap's lift shown on that day's energy curve as an estimate | S | Sanne, Max |
+
+Not rowed:
+- Native-only: automatic tracking from Apple Health, Apple Watch, Fitbit and Oura; the smart alarm (also Sleep Cycle's row); widgets.
+- Server service: the sleep clinic, the podcast, calendar integration.
+
+Already in COMPETITORS.md:
+- Calm and Sleep Cycle: sleeping sounds, meditation guides and the sleep knowledge library (Sleep Aid audio; Sleep Stories; needs content).
+- Calm Sleep companion: the evening plan with a readiness bar (built, LEDGER #83).
+- Sleep Cycle: statistics, the sleep goal and programmes.
+
+### Money, debt and crypto (second additions)
+
+#### Spendee
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Daily amount left | Each budget shows how much is left for each remaining day; budgets by month or week with daily spending limits (6.0.13) | https://www.spendee.com/features ; https://apps.apple.com/us/app/spendee-budget-money-tracker/id635861140 (6.0.13, Nov 14; year read as 2026) | yes | `half` | `budgetPace` and `paceWords` in `lib/budgets/pace.ts` ("Near the limit: 84% spent, €40 left for 6 days", only near the limit). Weekly and two-weekly budgets are built (`lib/budgets/periods.ts`, LEDGER #212) | The deeper part: "about €6 a day left" on every budget row with money left (left ÷ days left in its own period), always shown, not only near the limit. A fact, not advice | S | Lina |
+| Budgets by label | A custom budget that counts the transactions carrying chosen labels (a trip, a renovation) across categories (6.0.13) | https://apps.apple.com/us/app/spendee-budget-money-tracker/id635861140 (6.0.13, Nov 14; year read as 2026) ; https://www.spendee.com/features | yes | `missing` | `budgetSchema` in `lib/budgets/schema.ts:14-16` takes one `category`. Tags exist only as a money-log filter (`tagged` in `lib/money-log/search.ts:14-29`; the tags live in their own record) | A budget on a tag: the entries carrying that tag, in any category, against an amount for the month or for the budget's own dates. An additive, optional `tag` on the loose budget, TIER 3 (stored format) | S | Lina |
+| Reorder and hide wallets | Reorder wallets and hide the ones you no longer use (6.0.1) | https://apps.apple.com/us/app/spendee-budget-money-tracker/id635861140 (6.0.1, Aug 28; year read as 2026) | yes | `have` | `archivedAt` on accounts (`lib/accounts/schema.ts:28`), shown apart with Undo (`components/wealth/accounts-section.tsx:77-87`); your own order in `accounts.order` (`lib/money-log/schema.ts:84-88`, LEDGER #143) | — | — | — |
+
+Not rowed:
+- Server service and against a rule (no bank connections): bank sync with 9,000 banks, e-wallets and crypto-wallet connections, automatic categorisation of bank payments.
+- Server service, and against the rule that nothing is shared between people: shared wallets.
+- Native-only: Apple Pay payments logged automatically and Siri (6.0.12), home-screen widgets and one-tap logging (6.0.6, 6.0.8).
+- Needs a model: the AI receipt scanner (6.0.0; Magic Scan, 5.5.49, 12/18/2025).
+- Against a rule (no money advice): personal tips and emergency-fund guidance.
+
+Already in COMPETITORS.md:
+- Kubera: wallets in several currencies combined into one total (built, LEDGER #214, from rates you type).
+- Goodbudget: the configurable month start day (6.0.13; Budget period, built).
+- YNAB: transfer recognition and converting an entry into a transfer (6.0.0, 6.0.5; Credit card payment auto-match, built).
+- Rocket Money and Copilot: scheduled payments in charts and a calendar (6.0.10; bills); labels and own categories (Transaction tools); CSV export; search across all accounts (Running totals).
+- Monarch: receipt photos on an entry (Receipt scanning).
+
+#### Wallet by BudgetBakers
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Record templates | Saved records (amount, category, payee, note) added again in one tap | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 ("creating categories and templates") | no | `missing` | The money log has recent categories first (`categoriesRecentFirst` from `lib/recent-categories/recent.ts`, used in `components/wealth/spending/spending-section.tsx:23-25`) and no saved entry. A search of `lib/money-log` for template, favourite or usual finds only the category lists | Saved entries (up to 20: a name, amount, category, payee, currency), offered as one-tap chips in the money form ("Coffee €3.20"), each tap an ordinary entry with Undo. A new device record | S | Lina, Tom |
+| Payment types | Every record carries how it was paid (cash, debit card, credit card, transfer, voucher, and more) | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 ("Full range of payment types") | no | `missing` | `moneyEntrySchema` in `lib/money-log/schema.ts:32-64` has `account` only for bank-file rows (as the file named it); a typed entry has no "paid with" | An optional "paid with" on an entry (cash, debit card, credit card, transfer, other), filterable in search and shown in the month's totals by method. Additive and optional on the loose entry, TIER 3 (stored format) | S | Lina |
+| Planned payments with automatic confirmation | Recurring records with a start date and a reminder three days before; each set to Manual (you confirm) or Automatic (recorded on the day) | https://support.budgetbakers.com/hc/en-us/articles/7149523920786 (via search index) | no | `half` | Bills with cadences and "Mark paid" (an expense on the due day), the autopay mark and history (`lib/bills/tracker.ts:11-16`, `autopay` in `lib/bills/schema.ts:34-35`; Undebt.it's Bill Tracker row, built). Nothing is ever written without a tap | The deeper part: an opt-in "record it for me on the day" per bill marked autopay, writing the expense on its due day the next time the app opens, with a notice and Undo. Owner to confirm (see the ledger note) | S | Lina |
+| One-time budgets across categories | A one-time or recurring budget over any set of categories (redesigned budgets 5.6), with a forecasted-spend breakdown (5.7.3) | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 (5.6, Jun 29; 5.7.3, Sep 1; years read as 2026) | yes | `missing` | `budgetSchema` in `lib/budgets/schema.ts`: one `category` each, monthly (or weekly and two-weekly through `lib/budgets/periods.ts`). `group` (`schema.ts:55`) groups rows for display | A one-time budget with its own start and end dates (a holiday, a move) over chosen categories, with spent, left and days to go. A new device record, so the monthly budgets stay untouched | M | Lina |
+| Balance-limit notifications | In-app notifications when an account's balance crosses a limit you set (5.3) | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 (5.3, Mar 12; year read as 2026) | yes | `half` | One `lowBalance: {amount, currency}` on the money log (`lib/money-log/schema.ts`), read against the cash forecast (`lowBalanceCross` in `lib/money-notices.ts`, used by `lib/ai/local-answers/av2-money.ts:142-144`; Rocket Money's Low-balance row, built) | The deeper part: a limit per account (below or above), checked against that account's latest balance snapshot and shown on Wealth and Today's money line | S | Lina |
+| Debts: lent and borrowed | Simple personal loans: money lent to or borrowed from someone, with the account, the date, a due date and its reminder; close when repaid, forgive what you lent | https://support.budgetbakers.com/hc/en-us/articles/7149520322706 (via search index) | no | `half` | Accounts have `other-debt` and `other-asset` kinds (`DEBT_KINDS`, `ASSET_KINDS` in `lib/accounts/schema.ts:13-15`), with payments on debt kinds only and no "who" or due date for money lent | The deeper part: "Lent" and "Borrowed" entries with a name, a due date (with a reminder), repayments in parts, and Close or Forgive, kept apart from bank-style debts and counted in net worth | S | Lina |
+| Loyalty and club cards | Club and membership cards kept in the app, always with you | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 ("vouchers, club cards") ; https://apps.apple.com/hk/app/wallet-%E9%8C%A2%E5%8C%85-%E5%80%8B%E4%BA%BA%E7%90%86%E8%B2%A1%E7%B6%93%E7%90%86/id1032467659 (via search index) | no | `missing` | A search of `lib` and `components` for loyalty, store card or club card finds nothing. The food scanner reads barcodes with the existing `@zxing/browser` (`components/health/barcode-food-lookup.tsx`); the installed `@zxing/library` 0.23.0 writes QR codes only (`MultiFormatWriter`) | Store cards (a name and a number) on the device, read once with the existing scanner or typed, and shown full-screen as an EAN-13 or Code 128 barcode (drawn by a small encoder of ZIGoals' own, so no new package) or as a QR code with the existing writer. Adding to Apple or Google Wallet is native-only | M | Lina, Sanne |
+
+Not rowed:
+- Server service and against a rule (no bank connections): automatic bank updates from about 4,000 banks, card-to-account linking and imports (5.7.5).
+- Native-only: Apple Pay integration (5.5, 5.7.5), widgets, the Liquid Glass redesign (5.0).
+- Server service, and against the rule that nothing is shared between people: sharing budgets and accounts with others.
+- Server service: live stock prices for stock tracking. Holdings you enter yourself are Kubera's and Copilot's rows.
+
+Already in COMPETITORS.md:
+- Copilot and Kubera: net worth with stocks and manual assets ("Other" asset type with manual prices, 5.3).
+- Monarch and Copilot: reports, cash flow and the balance outlook; automatic rules (Name rules).
+- YNAB and Monarch: goals (Targets; Goals).
+- MyFitnessPal: the shopping list (Meal Planner and grocery list; built in `lib/grocery`).
+- Kubera: multiple currencies.
+
+#### Emma
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Subcategories | Spending split into more specific categories under each main one (built in 2025) | https://emma-app.com/blog/what-we-chose-to-build-at-emma-in-2025 | yes | `missing` | `category` is one string on an entry (`lib/money-log/schema.ts:34`), with the fixed `EXPENSE_CATEGORIES` (`:11`) and your own categories (`own`, `:82`). A search for subcategory finds only the Copilot CSV's "parent category" column (`lib/csv/templates/app-exports.ts:16`) | Your own subcategories under any category ("Food & drink › Coffee"), chosen in the form, rolled up into the main category's totals and budgets and shown apart in drill-down. TIER 3 (stored format): additive, so older builds read the main category | M | Lina |
+| Merchant-based budgets | A budget for one merchant (for example a supermarket or a takeaway app) | https://apps.apple.com/gb/app/id1270062373 | no | `half` | Payees watched this month against last (`payees` in `lib/budgets/schema.ts:71-76`; Rocket Money's Watchlist, built), with no amount or limit; `withWatch` in `lib/budgets/watch.ts` | The deeper part: an amount on a watched payee, so the payee's row shows spent and left for the month and the near-limit line, like a category budget | S | Lina |
+| Unusual-transaction alerts | Real-time alerts for unusual transactions, beside budget limits and bills due | https://apps.apple.com/gb/app/id1270062373 | no | `half` | The category pace "faster than the month" (`lib/budgets/pace.ts`) and Copilot's Custom alerts row (built in part, LEDGER #150) look at a category's total, not at one entry | The deeper part: a calm line when one entry is well above that payee's or category's usual (for example over twice the median of its last ten), on the money log and Today's money line, as a fact with "That's fine" to dismiss | S | Lina |
+| Custom Split and Settle in Group | Split a shared cost by percentage, share or exact amount; settle all shared balances at once (2025) | https://emma-app.com/blog/what-we-chose-to-build-at-emma-in-2025 ; https://apps.apple.com/gb/app/id1270062373 (Emma Groups) | yes | `half` | `moneyPartSchema` in `lib/money-log/schema.ts:19-31` splits an entry across categories or a Goal (two to five parts). There is no "my share" and no record of what others owe | The deeper part: "my share" on an entry (a percentage or an amount), with what others owe kept as a list by name on this device, and Settle (an income entry that clears it). Budgets count only my share. A group shared with other people's devices is against the rule that nothing is shared between people | M | Lina, Jules |
+| Spaces: personal and business | Personal and business budgets kept apart in one app (Emma Spaces) | https://apps.apple.com/gb/app/id1270062373 | no | `half` | One money log (`lib/money-log/schema.ts`); tags and the exclude filter (`lib/money-log/search.ts`) can mark business entries but do not keep their totals and budgets apart | A second space (for example "Business"): its own entries, budgets and totals, switched at the top of Money, with the personal space unchanged. TIER 3 (stored format): a space id on the loose entry and budget, missing on everything written so far (read as personal) | L | Lina |
+
+Not rowed:
+- Server service and against a rule (no bank connections): bank and card aggregation, Monthly Autosave and round-ups, Super Pot savings, Quick Pay and Emma Pay, the Emma Wallet (closing 30 Sep 2026), commission-free investing.
+- Server service: rent reporting to credit agencies and the credit score; cashback; comparing loans and cards; Emma for Employers; Emma Gift.
+- Needs a model: AI-calculated savings.
+
+Already in COMPETITORS.md:
+- Copilot and Rocket Money: Auto Budget from your spending history (a suggested amount, built).
+- Monarch and Copilot: monthly comparison and the redesigned net-worth graph; rebuilt transaction search (Running totals); rolling budgets (rollovers).
+- Rocket Money: bill and subscription tracking; True Balance (3 Jun 2025: spendable after pending and upcoming payments; Payday View, built: cash until payday).
+- Copilot and Kubera: offline assets in net worth (3 Jun 2025).
+- Goodbudget: budgets synced with your pay cycle (Budget period, built).

@@ -574,3 +574,140 @@ Notes for the owner:
   - Sleep, workouts and body: 10
   - Money: 11
   - All: 44
+
+## Round 2: rows #223–#255 (owner follow-up 4, item 4g; 22 Nov 2026)
+
+
+
+Drafted 22 Nov 2026 from `COMPETITORS-add.md` (second round). These rows go into `docs/review/session-av/LEDGER.md` after "Ten more apps: rows #176–#222", in the format of its ledger tables. Every `half` and `missing` row of the ten new apps is here: 33 rows, numbered on from #222. The code was read at `lane2/batch2` HEAD `cdd996db`, after the lane 2 registries, so nothing that lane 2 built is listed as to build.
+
+They are grouped by the six pillars the owner named, with the most daily use first in each pillar. A verdict is **to build** or **Carried**. A Carried verdict names one of the ledger's causes:
+- needs an outside service
+- needs a model
+- needs content made for ZIGoals (audio, video, programmes)
+- native-only
+- against a named rule
+- a new dependency
+- a protected area
+
+When only part of a row needs a cause, the row is **to build** and the evidence names the carried part. Nothing has been built for these rows, so no row is "built" or "already have". Effort is S (under a day), M (one to two days) or L (three days or more). Personas are the matrix's.
+
+### Totals
+
+| Pillar | Rows | to build | Carried | of which a part is carried |
+|---|---|---|---|---|
+| Tasks and planning | 7 | 7 | 0 | 1 (#228 against a named rule) |
+| Journal and notes | 2 | 2 | 0 | 0 |
+| Habits and mind | 3 | 2 | 1 (needs content made for ZIGoals) | 0 |
+| Food | 0 | 0 | 0 | 0 |
+| Sleep, workouts and body | 7 | 7 | 0 | 1 (#235 needs an outside service) |
+| Money | 14 | 14 | 0 | 2 (#252 against a named rule; #254 native-only) |
+| **All** | **33** | **32** | **1** | **4** |
+
+- Food: none of the ten apps adds a food row. Any.do's grocery list and Wallet's shopping list are MyFitnessPal's row, and that list is built (`lib/grocery`).
+- Whole-row Carried causes used: needs content made for ZIGoals 1. Not used: needs an outside service, needs a model, native-only, against a named rule, a new dependency, a protected area.
+
+### Ledger
+
+#### Tasks and planning
+
+| # | app | feature | status in matrix | verdict | evidence (commit / file:line opened / cause with the named rule) | effort | personas |
+|---|---|---|---|---|---|---|---|
+| 223 | Microsoft To Do | My Day | `half` | **to build** | to build: a pick for today that leaves the task's own day and deadline alone and is cleared at the end of the day, with yesterday's unfinished picks offered back as "From yesterday" in Plan my day. Opened `lib/tasks/plan-day.ts` (`planSuggestions`) and `components/tasks/tasks-page.tsx:389`: "Plan for today" sets `due: today`. The picks live in the loose `zigoals:task-plan:v1` record (`lib/tasks/plan-record.ts`) as an additive, optional field, TIER 3 (stored format). Group R1. | M | Max |
+| 224 | Google Tasks | Reminders from notes saved as tasks | `half` | **to build** | to build: a note's reminder also listed in Tasks' Today and Upcoming and on the Agenda's day, linking back to its note (it stays a note line). Opened `lib/notes/reminders.ts`: its readers are `components/notes/note-reminders.tsx`, `lib/notify/sync.ts` and `lib/ai/local-answers/av2-tasks.ts` only. Derived, nothing stored. Group R1. | S | Max, Sanne |
+| 225 | Google Tasks | Print your tasks | `missing` | **to build** | to build: "Print this list" for a project or a view, through print CSS on the page as the bills do. Searched `components/tasks` for `@media print`: none (opened `components/wealth/bills/bills.css:76` for the pattern). Group R9. | S | Max, Lina |
+| 226 | Any.do | Templates gallery | `half` | **to build** | to build: a larger written template gallery in English and Dutch, in groups (home, work, family), each a project with sections and days from a start day. Opened `lib/tasks/templates.ts:43` (`BUILT_IN_TEMPLATES`: four). Written text counts as to build, not content (the ledger's note on #71 and #81). Group R9. | S | Max |
+| 227 | Any.do | Import from other task apps | `half` | **to build** | to build: Trello's board export (JSON) and Asana's project CSV into projects, sections and tasks. Opened `lib/tasks/import.ts:14` (sources `todoist`, `ticktick`, `ics`). It follows the rule the habit importer keeps (`lib/import/switch/formats.ts`: a layout must be documented or open source); ClickUp and Monday.com stay off until theirs is. Group R9. | M | Max |
+| 228 | Any.do | Automations | `missing` | **to build** (part Carried: against a named rule) | to build: simple rules on a project, run on the device when a task is added or moved into a section (set priority, add a label, set the day to today, mark done), each a normal write with Undo. Searched `lib/tasks` and `components/tasks` for automation: none. Part Carried: rules that assign people are against the rule that nothing is shared between people. Rules kept as an additive, optional field on the loose project, TIER 3 (stored format). Group R9. | M | Max |
+| 229 | Any.do | Custom fields | `missing` | **to build** | to build: up to five fields per project (text, number, date, choice, tick), shown and sorted as Table columns. Opened `lib/tasks/schema.ts` (`taskSchema`, fixed fields) and `lib/tasks/layouts.ts:191` (`TABLE_COLUMNS`). An additive, optional `fields` on the loose task and project, TIER 3 (stored format). Group R9. | M | Max |
+
+#### Journal and notes
+
+| # | app | feature | status in matrix | verdict | evidence (commit / file:line opened / cause with the named rule) | effort | personas |
+|---|---|---|---|---|---|---|---|
+| 230 | Reflectly | Morning motivation and a daily challenge | `half` | **to build** | to build: a small daily challenge beside the affirmation, from a written list in English and Dutch, with Done and Another one, off by default, never counted against the person. Opened `lib/journal/affirmations.ts` (lane 2 #176, built: affirmations only). Written text, not content. Group R3. | S | Sanne |
+| 231 | Reflectly | A space to vent | `missing` | **to build** | to build: "Write it out", a page that is never saved, with "Let it go" (clears it) or "Keep as an entry". Opened `lib/journal/schema.ts` and `lib/journal/versions.ts`: every entry and its versions are kept; nothing offers a page that is not stored. Nothing new is stored unless Keep is chosen. Group R3. | S | Sanne |
+
+#### Habits and mind
+
+| # | app | feature | status in matrix | verdict | evidence (commit / file:line opened / cause with the named rule) | effort | personas |
+|---|---|---|---|---|---|---|---|
+| 232 | Moodnotes | Feelings with a strength | `half` | **to build** | to build: up to three feeling words on a day, each with a strength (a little, quite, very). Opened `lib/mood-words/schema.ts` (`moodWordDaySchema`: one `word` a day; your own words are lane 2 #61, built). An additive, optional `more` list on the loose day, TIER 3 (stored format); older builds keep reading `word`. Group R4. | S | Sanne |
+| 233 | Moodnotes | Thinking traps and the thought checker | `missing` | **to build** | to build: a short written Journal exercise (the situation, the thought, any of about ten named thinking traps with one plain line each in English and Dutch, then "another way to see it"), saved as an ordinary journal entry. Searched `lib` and `components` for thinking trap, catastroph, thought record and reframe: none; opened `lib/journal/reflect.ts` (questions by rule, no traps). Written text, not content. Note for the owner: worded as self-reflection, never as treatment (the no-medical-advice rule). Group R4. | M | Sanne |
+| 234 | Moodnotes | Self-awareness articles | `missing` | **Carried**: needs content made for ZIGoals | Carried — needs content made for ZIGoals: a library of articles by mental-health experts. Help (`lib/help`) explains the app only. | — | Sanne |
+
+#### Food
+
+No new rows.
+
+#### Sleep, workouts and body
+
+| # | app | feature | status in matrix | verdict | evidence (commit / file:line opened / cause with the named rule) | effort | personas |
+|---|---|---|---|---|---|---|---|
+| 235 | Rise | Energy schedule and its reminders | `half` | **to build** (part Carried: needs an outside service) | to build: opt-in device reminders from the day's own curve: when the focus window starts, before the dip, and at a wind-down start taken from the curve. Opened `lib/energy-curve/curve.ts` (the curve is built) and `lib/notify/plan.ts:12` (`ItemKind` has no focus or dip kind; `windDown` is a fixed time from `components/health/sleep/wind-down.tsx`). TIER 3 (PWA) for the notification plan. Part Carried: putting the schedule on an outside calendar needs an outside service. Group R2. | S | Sanne, Max |
+| 236 | Rise | Habits at suggested times | `half` | **to build** | to build: morning steps timed from the wake time (daylight in the first hour, the first coffee after the grogginess), and an opt-in reminder at each chosen step's time. Opened `lib/evening-plan/plan.ts:15-24` (evening steps only, lane 2 #83, built) and `lib/evening-plan/schema.ts:22` (`minutesBefore`, no reminder). Additive on the loose `zigoals:evening-plan:v1`, TIER 3 (stored format); the reminder joins #235's notification work. Group R2. | S | Sanne |
+| 237 | Rise | Naps and their effect | `half` | **to build** | to build: a day's naps counted in the sleep balance (marked as naps) and a nap's lift on that day's energy curve, as an estimate. Opened `lib/sleep/engine.ts:49-54` (naps are kept) and `:89-92` (`nightsIn` keeps `kind === 'night'` only). Derived, nothing stored. Group R2. | S | Sanne, Max |
+| 238 | Rise | Sleep need from your own nights | `half` | **to build** | to build: an estimate of the person's sleep need from their logged nights, offered as a suggested goal, labelled an estimate, kept only when the person chooses. Opened `lib/energy-curve/curve.ts` (`DEFAULT_NEED = 480`, `needFrom: 'goal' \| 'default'`) and `lib/sleep/schema.ts:36` (`sleepGoalSchema`). Derived; keeping it is the existing goal write. Group R2. | S | Sanne |
+| 239 | Fitbod | Gym profiles and equipment | `missing` | **to build** | to build: an equipment tag per library exercise and up to five places with what each has, filtering the picker and the library. Opened `lib/workouts/howto.ts:22` (equipment as free text) and `lib/workouts/library.ts` (no equipment tag). The places are a new device record, TIER 3 (stored format). Group R6. | M | Tom |
+| 240 | Fitbod | A workout made for today | `missing` | **to build** | to build: "Suggest a workout": 4–6 exercises from the built-in library for the freshest muscle groups, with the chosen place's equipment and a length, and sets and weights from the person's own last sessions and the progression rule, labelled a suggestion to edit before starting. Opened `components/health/workouts/muscle-freshness.tsx` and `lib/workouts/depth.ts:208-215` (freshness is built) and `lib/workouts/routine-library.ts` (fixed routines). Note for the owner: this writes no programme and picks only from the 48 written how-tos already in `lib/workouts/howto.ts`, so it does not need the authored splits for which ledger #120 (Hevy Trainer) is Carried. Group R6. | L | Tom |
+| 241 | Fitbod | Replace an exercise | `missing` | **to build** | to build: "Replace" on an exercise in a running or planned workout, offering library exercises with the same main muscle (and, after #239, the place's equipment), keeping the sets typed so far. Searched `lib/workouts` and `components/health/workouts` for swap, replace, alternative and similar: none; opened `lib/workouts/howto.ts` (main and helping muscles per exercise). Group R6. | S | Tom |
+
+#### Money
+
+| # | app | feature | status in matrix | verdict | evidence (commit / file:line opened / cause with the named rule) | effort | personas |
+|---|---|---|---|---|---|---|---|
+| 242 | Wallet by BudgetBakers | Record templates | `missing` | **to build** | to build: up to 20 saved entries offered as one-tap chips in the money form, each tap an ordinary entry with Undo. Opened `components/wealth/spending/spending-section.tsx:23-25` (recent categories only) and `lib/money-log/schema.ts` (no saved entry). A new device record, TIER 3 (stored format). Group R5. | S | Lina, Tom |
+| 243 | Spendee | Daily amount left | `half` | **to build** | to build: "about €6 a day left" on every budget row with money left, in its own period. Opened `lib/budgets/pace.ts` (`paceWords` says "left for N days" only near the limit) and `lib/budgets/periods.ts` (weekly and two-weekly periods, built). Derived, nothing stored; a fact, not advice. Group R5. | S | Lina |
+| 244 | Wallet by BudgetBakers | Payment types | `missing` | **to build** | to build: an optional "paid with" on an entry (cash, debit card, credit card, transfer, other), with a search filter and totals by method. Opened `lib/money-log/schema.ts:32-64` (`account` is for bank-file rows only). Additive and optional on the loose entry, TIER 3 (stored format). Group R5. | S | Lina |
+| 245 | Wallet by BudgetBakers | Planned payments with automatic confirmation | `half` | **to build** | to build: an opt-in "record it for me on the day" for a bill marked autopay, writing the expense on its due day the next time the app opens, with a notice and Undo. Opened `lib/bills/tracker.ts:11-16` ("Mark paid"; "every mark is the person's own record") and `lib/bills/schema.ts:34-35` (`autopay`). Additive on the loose bill, TIER 3 (stored format). Note for the owner: the tracker's comment says every mark is the person's own record, and this writes an entry after a single opt-in rather than a tap each time. Confirm before building; it is a design choice, not one of the causes. Group R5. | S | Lina |
+| 246 | Spendee | Budgets by label | `missing` | **to build** | to build: a budget on a tag, counting the tagged entries in any category against an amount. Opened `lib/budgets/schema.ts:14-16` (one `category`) and `lib/money-log/search.ts:14-29` (tags as a filter, kept in their own record). An additive, optional `tag` on the loose budget, TIER 3 (stored format). Group R5. | S | Lina |
+| 247 | Wallet by BudgetBakers | One-time budgets across categories | `missing` | **to build** | to build: a one-time budget with its own start and end dates over chosen categories, with spent, left and days to go. Opened `lib/budgets/schema.ts` (`category`, monthly; `group` at `:55` is display only) and `lib/budgets/periods.ts`. A new device record, so the monthly budgets are untouched, TIER 3 (stored format). Group R5. | M | Lina |
+| 248 | Emma | Unusual-transaction alerts | `half` | **to build** | to build: a calm line when one entry is well above that payee's or category's usual, on the money log and Today's money line, with "That's fine" to dismiss. Opened `lib/budgets/pace.ts` (category totals only). The category-pace notice is ledger #150. Derived, plus a dismissed list in the loose money log, TIER 3 (stored format). Group R7. | S | Lina |
+| 249 | Wallet by BudgetBakers | Balance-limit notifications | `half` | **to build** | to build: a limit per account (below or above) checked against its latest balance snapshot, shown on Wealth and Today's money line. Opened `lib/money-log/schema.ts` (one `lowBalance`) and `lib/ai/local-answers/av2-money.ts:142-144` (`lowBalanceCross` from `lib/money-notices.ts`, on the forecast). The accounts record is strict, so the limits live in the lane 2 sheet record (`lib/wealth-sheet/schema.ts`) or a new device record, TIER 3 (stored format). Group R7. | S | Lina |
+| 250 | Emma | Merchant-based budgets | `half` | **to build** | to build: an amount on a watched payee, giving spent, left and the near-limit line. Opened `lib/budgets/schema.ts:71-76` (`payees`, no amount) and `lib/budgets/watch.ts`. An additive, optional `amount` on the loose payee watch, TIER 3 (stored format). Group R7. | S | Lina |
+| 251 | Emma | Subcategories | `missing` | **to build** | to build: your own subcategories under any category, rolled up into its totals and budgets and shown apart in drill-down. Opened `lib/money-log/schema.ts:11,34,82` (one `category` string; `own` categories). Additive (an optional `sub` on the loose entry, so older builds read the main category), TIER 3 (stored format). Group R7. | M | Lina |
+| 252 | Emma | Custom Split and Settle in Group | `half` | **to build** (part Carried: against a named rule) | to build: "my share" on an entry, with what others owe kept as a list by name on this device and Settle (an income entry that clears it); budgets count my share. Opened `lib/money-log/schema.ts:19-31` (`moneyPartSchema`: categories and a Goal). Part Carried: a group shared with other people's devices is against the rule that nothing is shared between people. Additive on the loose entry, TIER 3 (stored format). Group R8. | M | Lina, Jules |
+| 253 | Wallet by BudgetBakers | Debts: lent and borrowed | `half` | **to build** | to build: "Lent" and "Borrowed" with a name, a due date and its reminder, repayments in parts, and Close or Forgive, counted in net worth. Opened `lib/accounts/schema.ts:13-15` (`other-debt`, `other-asset`; payments on debt kinds only, no "who"). It shares #252's list of people owed, as one new device record, TIER 3 (stored format). Group R8. | S | Lina |
+| 254 | Wallet by BudgetBakers | Loyalty and club cards | `missing` | **to build** (part Carried: native-only) | to build: store cards (a name and a number) read with the existing scanner (`components/health/barcode-food-lookup.tsx`, opened) or typed, shown full-screen as an EAN-13 or Code 128 barcode drawn by a small encoder of ZIGoals' own, or as a QR code with the existing writer. Checked `node_modules/@zxing/library` 0.23.0: `MultiFormatWriter` writes QR codes only, so the 1D bars need our own encoder and no new package. A new device record, TIER 3 (stored format). Part Carried: adding a card to Apple or Google Wallet is native-only. Group R8. | M | Lina, Sanne |
+| 255 | Emma | Spaces: personal and business | `half` | **to build** | to build: a second money space with its own entries, budgets and totals, switched at the top of Money, the personal space unchanged. Opened `lib/money-log/schema.ts` and `lib/money-log/search.ts` (tags and the exclude filter only). A space id on the loose entry and budget, read as personal when missing, TIER 3 (stored format). Group R8. | L | Lina |
+
+### To build, grouped (the new rows; most daily use first)
+
+Friends:
+- Max: habits, tasks, a night owl.
+- Lina: bank files, budgets, bills.
+- Sanne: sleep, water, the journal, Dutch.
+- Tom: gym, food, runs.
+- Jules: Earn, Markets.
+
+Every to-build row above is in exactly one group.
+
+| Order | Group | Rows (ledger #) | Friends | How often | Effort |
+|---|---|---|---|---|---|
+| R1 | My Day and note reminders: a pick for today that keeps the task's own day and clears overnight, and a note's reminders in Tasks and on the Agenda | 2 rows: #223, #224 | Max (Sanne) | daily | M |
+| R2 | Rise's sleep and energy day: reminders from the energy curve, morning steps and step reminders, naps in the balance and the curve, a sleep need from your own nights | 4 rows: #235, #236, #237, #238 | Sanne (Max) | daily | M |
+| R3 | Reflectly's journal: a small daily challenge beside the affirmation, a page to write and let go | 2 rows: #230, #231 | Sanne | daily | S |
+| R4 | Moodnotes' feelings: several feeling words with a strength, thinking traps with a thought checker | 2 rows: #232, #233 | Sanne | daily | M |
+| R5 | Quick money logging and budgets (Wallet, Spendee): saved entries, paid with, a per-day amount left, planned payments that record themselves, budgets on a tag, one-time budgets | 6 rows: #242, #243, #244, #245, #246, #247 | Lina (Tom) | daily | M |
+| R6 | Fitbod gym days: places and equipment, a workout made for today, replace an exercise | 3 rows: #239, #240, #241 | Tom | each gym day | L |
+| R7 | Emma's categories and alerts: an unusual-entry line, a balance limit per account, payee budgets, subcategories | 4 rows: #248, #249, #250, #251 | Lina | weekly | M |
+| R8 | Shared costs and other money: my share and what others owe, money lent and borrowed, store cards, a business space | 4 rows: #252, #253, #254, #255 | Lina (Jules, Sanne) | weekly | L |
+| R9 | Task lists: print a list, a larger template gallery, Trello and Asana imports, project automations, custom fields | 5 rows: #225, #226, #227, #228, #229 | Max | weekly | L |
+
+Notes for the owner:
+
+- #245 writes a money entry on a bill's due day after one opt-in. `lib/bills/tracker.ts` says every mark is the person's own record. This is a design choice, not one of the causes: confirm before building.
+- #233 is a written self-reflection exercise. If the owner reads named thinking traps as treatment under the no-medical-advice rule, the whole row is Carried: against a named rule.
+- #240 is not ledger #120 again. It picks today's exercises from the existing library by freshness and equipment and writes no programme, so it needs no authored splits. If the owner sees it as programme content, it is Carried like #120.
+- #227 reads only layouts that are published (Trello JSON, Asana CSV), the same rule the habit importer keeps in `lib/import/switch/formats.ts`.
+- #254 needs barcode drawing that the installed `@zxing/library` cannot do (QR only). The plan is a small encoder of our own, not a new package. A barcode package would be a new dependency and is not proposed.
+- Stored-format changes (TIER 3, each in its own commits, all additive): #223, #228, #229, #232, #236, #239, #242, #244, #245, #246, #247, #248, #249, #250, #251, #252, #253, #254, #255. #235 and #236's reminders touch the notification plan, TIER 3 (PWA).
+- None of the to-build work adds a dependency, reaches an outside service, needs a model, touches a wallet, signing or a key, or redesigns the accepted baseline. #255 changes the Money page's top with a space switch, so check it against the protected baseline in docs/STATUS.md before building it.
+- The new to-build rows by pillar:
+  - Tasks and planning: 7
+  - Journal and notes: 2
+  - Habits and mind: 2
+  - Food: 0
+  - Sleep, workouts and body: 7
+  - Money: 14
+  - All: 32
