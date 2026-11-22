@@ -265,6 +265,45 @@ corpus, regenerates theme sheets, edits Help / What's new / search / shard lists
 - Answers: "what is today's meditation" / "wat is de meditatie van vandaag" (case `av2-habits-todays-practice`).
 - Showcase hook: shows for every profile with no data. CSS: `meditation.css` (a few lines). Today: nothing added.
 
+## Feature 9 — Calm visuals behind a sitting, and Move gently (LEDGER #79, #80, #81)
+
+Second builder (branch `lane2/habits2`, from `lane2/habits`).
+
+**Verdict: built.**
+
+| row | what was built |
+|---|---|
+| #79 Calm Shift | As the lead scoped it, a visual: "Slow left and right", a soft light that glides from side to side above the clock or the breathing guide (an eased cosine, never a jump), at a pace you choose (Steady 1.5 s, Slow 3 s, Slower 5 s a side). Relaxation to rest the eyes on, worded as such, no therapy claim; nothing flashes. No sound is made or changed. |
+| #80 Calm Scenes | Four scenes drawn on the device (Dusk, Sea, Forest, Night sky): layered gradients and shapes, no picture or video. They drift very slowly (48–64 s) only while motion is allowed; under the app's Motion Off or the device's reduced motion they stand still and the caption says so. "Hide the visual" hides it for the session (focus moves to "Show the visual"). |
+| #81 Calm Daily Move | "Move gently": five short stretch sequences written for ZIGoals in English and Dutch (Morning wake-up, Desk break, Neck and shoulders, Hips and lower back, Evening unwind; 3–5 min, 5–6 steps each) played one step at a time: the step's name and written cue, its seconds left (`role=timer`), a bar, the step list, Pause / Resume, Back, Next step, End now, your meditation bell between steps, the screen kept on, a polite announcement per step (never per second), focus on each step's heading. At the end the minutes actually moved are saved to Health's activity log as "Stretch: …" (steps 0), where Today, the weekly review and a linked exercise habit count them. Minutes only, never calories. A reload ends a sequence (nothing half-saved); closing the fold keeps it going. The "routine player" of the row: a player of its own beside the meditation timer, since the habit routine player keeps habit steps in the synced journal and a stretch is not a habit. |
+
+- Where: Health → Meditation: two folds under Begin, "Behind your sitting: a calm visual" (`calm-chooser.tsx`, lazy) and
+  "Move gently: a short guided stretch" (`daily-move.tsx`, lazy). The running session loads `calm-layer.tsx` lazily.
+- Files: `lib/calm/{visuals,stretches,write}.ts`, `components/health/meditation/{calm-layer.tsx,calm-chooser.tsx,daily-move.tsx,calm.css,meditation-view.tsx,meditation-session.tsx,breathing-visual.tsx}`
+  (`useMotionAllowed` and `useWakeLock` exported for reuse; no behaviour change), `lib/habits-extras/schema.ts`,
+  `lib/ai/local-answers/av2-habits.ts`, `lib/ai/evals/as/cases-av2-habits.ts`.
+- Tests: `lib/calm/calm.test.ts` (choose/read/clear, later fields kept, odd values, the glide's path and smoothness, the
+  steps by time, Next/Back/pause, a long background, minutes moved, the Dutch twins and no calorie or treatment words,
+  export → erase → restore of the extras' `calm`, the answers EN and NL). Spec: `tests/av2-calm-move.spec.ts`.
+- **Stored change (TIER 3 stored formats, additive, separate commit 0b4fbf87):** `zigoals:habit-extras:v1` gains optional
+  `calm` ({visual?: shift|dusk|sea|forest|night, pace?: steady|slow|slower}, a loose object checked where read). Existing
+  key: exported, erased, restored and synced with the extras; no registry change. Move gently writes ordinary Health
+  activity rows (no new field).
+- Help (EN): **Q: Can something calm show while I meditate?** A: Health → Meditation → Behind your sitting. Choose a slow
+  light that glides left and right (and its pace) or a scene: dusk, sea, forest or a night sky. It shows above the timer
+  or the breathing guide, and stands still while Motion Off or reduced motion is on. **Q: Are there guided stretches?**
+  A: Health → Meditation → Move gently has five short stretches with written steps and a timer, in English or Dutch. At
+  the end you can save the minutes to your Health activity. No calories are counted.
+- What's new: "A calm visual behind your sitting: a slow left-right light or a scene." · "Move gently: short guided
+  stretches, saved as activity minutes."
+- Answers: "what visual is behind my meditation" / "welke achtergrond heb ik bij het mediteren" and "how many minutes
+  did i stretch this week" / "hoeveel minuten heb ik deze week gerekt" (Health gate; cases `av2-habits-calm-visual`,
+  `av2-habits-stretch-minutes`). Same wiring line as Feature 1.
+- Showcase hook: none needed (both show for every profile with no data; a Showcase stretch would add Health activity
+  minutes that the Showcase's Today and weekly review pin).
+- CSS touched: `components/health/meditation/calm.css` (new; theme variables for controls and text, the scenes are
+  pictures). Always visible on Today: nothing. Meditation's first chunk: two fold rows and three lazy imports.
+
 ## Not built yet (next for this pillar, in order)
 
 - Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm

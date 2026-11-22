@@ -8,6 +8,8 @@ import {loggedStrip, readCheckin, QUADRANT_IDS} from '../../checkin-extras/rule'
 import {addLocalDays} from '../../local-date';
 import {feelingTrends} from '../../feeling-trends/trends';
 import {guideOfTheDay} from '../../meditation/guides';
+import {CALM_WORDS, PACE_WORDS, readCalm} from '../../calm/visuals';
+import {STRETCH_PREFIX, STRETCHES} from '../../calm/stretches';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
 import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
 import {PATTERNS, type BreathingPattern} from '../../meditation/breathing';
@@ -26,7 +28,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, ownWords, usualFeeling, todaysPractice]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual]) {
       const r = one(a);
       if (r) return r;
     }
@@ -188,4 +190,30 @@ function todaysPractice(a: Asked): LocalReply | null {
   if (!en && !nl) return null;
   const g = guideOfTheDay(a.today), lang = a.lang, t = g[lang];
   return answer(say(lang, `Today’s practice: “${t.title}”, ${g.minutes} minutes. It begins: ${t.steps[0]} Health → Meditation → Today’s practice has all of it, “Another one”, and Begin with the bell.`, `De oefening van vandaag: “${t.title}”, ${g.minutes} minuten. Hij begint zo: ${t.steps[0]} Health → Meditation → Today’s practice heeft de hele oefening, “Another one” en Begin met de bel.`));
+}
+/** LEDGER #81: "how many minutes did i stretch this week", "hoeveel minuten heb ik deze week gerekt" — Move gently's minutes in Health's activity (minutes only, never calories). */
+function stretchedMinutes(a: Asked): LocalReply | null {
+  const en = /\b(?:stretch|stretched|stretching|stretches|move gently|daily move)\b/.test(a.f) && /\b(?:how (?:much|many|long|often)|minutes|this week|last week|when|did i)\b/.test(a.f);
+  const nl = /\b(?:gerekt|rekken|rekoefeningen?|rekoefening|stretchen|gestretcht|rustig bewegen)\b/.test(a.f) && /\b(?:hoeveel|hoe lang|hoe vaak|minuten|deze week|wanneer|heb ik)\b/.test(a.f);
+  if ((!en && !nl) || /\bstretch (?:goals?|targets?)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut || !a.env.health) return shut;
+  const lang = a.lang, from = addLocalDays(a.today, -6);
+  const days = a.env.health.activity.filter(x => x.name.startsWith(STRETCH_PREFIX) && x.date >= from && x.date <= a.today);
+  const minutes = days.reduce((n, x) => n + x.minutes, 0), all = a.env.health.activity.filter(x => x.name.startsWith(STRETCH_PREFIX));
+  const names = STRETCHES.map(q => say(lang, q.en, q.nl));
+  if (!days.length) return answer(say(lang, `No stretch saved in the last 7 days${all.length ? ` (${count(all.length, 'en', ['stretch', 'stretches'], ['', ''])} saved before)` : ''}. Health → Meditation → Move gently has ${STRETCHES.length} short ones: ${list(names, 'en')}. Minutes only; no calories.`, `Geen rekoefening bewaard in de laatste 7 dagen${all.length ? ` (${count(all.length, 'nl', ['', ''], ['rekoefening', 'rekoefeningen'])} eerder)` : ''}. Health → Meditation → Move gently heeft er ${STRETCHES.length} korte: ${list(names, 'nl')}. Alleen minuten; geen calorieën.`));
+  const which = [...new Set(days.map(x => clean(x.name.slice(STRETCH_PREFIX.length), 40)))];
+  return answer(say(lang, `${minutes} minutes of stretching in the last 7 days, ${count(days.length, 'en', ['time', 'times'], ['', ''])}: ${list(which, 'en')}. Saved as activity minutes in Health (no calories).`, `${minutes} minuten rekken in de laatste 7 dagen, ${count(days.length, 'nl', ['', ''], ['keer', 'keer'])}: ${list(which, 'nl')}. Bewaard als activiteitsminuten in Health (geen calorieën).`));
+}
+/** LEDGER #79, #80: "what visual is behind my sitting", "welke achtergrond heb ik bij het mediteren" — the device's calm visual. */
+function calmVisual(a: Asked): LocalReply | null {
+  const en = /\b(?:visual|scene|scenes|background|left and right)\b/.test(a.f) && /\b(?:meditation|meditate|sitting|sit|breathing|calm)\b/.test(a.f);
+  const nl = /\b(?:achtergrond|beeld|scene|links en rechts)\b/.test(a.f) && /\b(?:meditatie|mediteren|mediteer|zitten|ademhaling|rustig)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, c = readCalm(a.env.ak?.habitExtras ?? null);
+  const all = list(Object.values(CALM_WORDS).map(w => say(lang, w.en, w.nl)), lang);
+  if (!c.visual) return answer(say(lang, `No calm visual is set: a session shows the clock alone. Health → Meditation → Behind your sitting offers ${all}.`, `Er is geen rustig beeld gekozen: een sessie toont alleen de klok. Health → Meditation → Behind your sitting biedt ${all}.`));
+  const w = CALM_WORDS[c.visual], pace = c.visual === 'shift' ? say(lang, `, ${PACE_WORDS[c.pace].en.toLowerCase()}`, `, ${PACE_WORDS[c.pace].nl.toLowerCase()}`) : '';
+  return answer(say(lang, `Behind your sitting: ${w.en}${pace}. It shows above the clock or the breathing guide, and stands still while Motion Off or reduced motion is on.`, `Achter je zitmeditatie: ${w.nl}${pace}. Het staat boven de klok of de ademhalingsgids, en staat stil zolang Motion Off of minder beweging aan staat.`));
 }

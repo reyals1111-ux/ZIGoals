@@ -1,5 +1,5 @@
 'use client';
-import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {addSession, DEFAULT_BELLS, newSessionId} from '../../../lib/meditation/engine';
 import {timerRuleText, tooShortText, tooShortToSave} from '../../../lib/health-timer-rules';
 import {heartSnapshot, heartSummary, SERVER_HEART, subscribeHeart} from '../../../lib/bluetooth/heart-store';
@@ -13,9 +13,11 @@ import type {MeditationStore} from './use-meditation';
 import {zigiSignals} from '../../zigi/bus';
 import {plainErrorMessage} from '../../../lib/plain-error';
 
+// Session AV lane 2 (LEDGER #79, #80): the calm visual chosen in "Behind your sitting", loaded with the session.
+const CalmLayer = lazy(() => import('./calm-layer'));
 type WakeLockSentinel = {release(): Promise<void>};
 /** Keeps the screen on while `active`, where the browser offers it; asks again when the page comes back into view. */
-function useWakeLock(active: boolean): boolean {
+export function useWakeLock(active: boolean): boolean {
   const supported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
   useEffect(() => {
     if (!active || !supported) return;
@@ -104,6 +106,7 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
   return <section ref={panel} className="panel meditation-session" aria-labelledby="meditation-session-title">
     <p className="eyebrow">{label.toUpperCase()} · {paused ? 'PAUSED' : 'IN PROGRESS'}</p>
     <h2 id="meditation-session-title" className="sr-only" tabIndex={-1} ref={runningHeading}>{label} in progress</h2>
+    <Suspense fallback={null}><CalmLayer elapsedAt={elapsedAt} paused={paused}/></Suspense>
     {run.kind === 'breathing' && run.pattern ? <BreathingVisual pattern={run.pattern} elapsedAt={elapsedAt} paused={paused}/> : <div className="meditation-clock" role="timer" aria-label={`${clockText(left)} left`}>
       <svg viewBox="0 0 120 120" aria-hidden="true"><circle className="meditation-ring-track" cx="60" cy="60" r="54"/><circle className="meditation-ring" cx="60" cy="60" r="54" pathLength="100" strokeDasharray={`${(progress * 100).toFixed(2)} 100`} transform="rotate(-90 60 60)"/></svg>
       <strong aria-hidden="true">{clockText(left)}</strong>
