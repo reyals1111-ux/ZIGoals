@@ -2406,6 +2406,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-area-week:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .habit-area-week p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .habit-area-goal:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .habit-option-rolling:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .habit-option-rolling-fields:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .habit-option-rolling-fields .field:not(#\-) { row-gap: 4px; }
 /*  components/habits/habit-week-grid.css  */
 :where(:root[data-density=compact]) .habit-week-cue:not(#\-) { margin-top: 0; margin-bottom: 0; }
 @media (max-width: 479px) { :where(:root[data-density=compact]) .habit-week-table th:not(#\-), :where(:root[data-density=compact]) .habit-week-table td:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
@@ -3269,6 +3272,20 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .meditation-today-steps:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .meditation-today-actions:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .meditation-milestones:not(#\-) { margin-top: 12px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .meditation-settling:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/health/meditation/timer-presets.css  */
+:where(:root[data-density=compact]) .timer-presets:not(#\-) { row-gap: 12px; padding-top: 8px; }
+:where(:root[data-density=compact]) .timer-presets p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .timer-preset-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }
+:where(:root[data-density=compact]) .timer-preset-list > li:not(#\-) { row-gap: 6px; padding-top: 9px; padding-bottom: 9px; }
+:where(:root[data-density=compact]) .timer-preset-list > li > div:first-child:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .timer-preset-form:not(#\-) { padding-top: 12px; padding-bottom: 0; }
+:where(:root[data-density=compact]) .timer-preset-sounds:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .timer-preset-sound:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .timer-preset-intervals:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 10px; }
+:where(:root[data-density=compact]) .timer-preset-intervals > legend:not(#\-) { margin-bottom: 6px; }
+:where(:root[data-density=compact]) .timer-preset-interval:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; row-gap: 10px; }
+:where(:root[data-density=compact]) .timer-preset-interval > legend:not(#\-) { padding-top: 0; padding-bottom: 0; }
 /*  components/health/nutri-score.css  */
 :where(:root[data-density=compact]) .nutri-score:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nutri-score-line:not(#\-) { margin-top: 4px; margin-bottom: 4px; }

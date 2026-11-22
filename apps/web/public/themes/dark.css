@@ -11339,6 +11339,37 @@
     .meditation-milestones [data-reached]:not(#\-) {
         color: var(--text)
     }
+    .meditation-settling:not(#\-) {
+        color: var(--text)
+    }
+}
+/*  components/health/meditation/timer-presets.css  */
+@scope (:root[data-theme=dark]) {
+    .timer-preset-empty:not(#\-) {
+        color: var(--muted)
+    }
+    .timer-preset-list > li:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--panel)
+    }
+    .timer-preset-list span:not(#\-), .timer-preset-list small:not(#\-) {
+        color: var(--muted)
+    }
+    .timer-preset-form:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .timer-preset-intervals:not(#\-) {
+        border-color: currentcolor
+    }
+    .timer-preset-interval:not(#\-) {
+        border-color: var(--line)
+    }
+    @media (forced-colors: active) {
+        .timer-preset-list > li:not(#\-), .timer-preset-interval:not(#\-) {
+            border-color: CanvasText
+        }
+    }
 }
 /*  components/health/nutri-score.css  */
 @scope (:root[data-theme=dark]) {

@@ -4214,6 +4214,12 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .timer-preset-list > li:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--panel)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .nutri-score-letter:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--health-on-track) 18%, transparent)

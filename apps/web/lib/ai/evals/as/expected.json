@@ -6801,6 +6801,22 @@
   "fresh": "No habit has seven scheduled days behind it yet, so there is no strength to follow. A habit’s Consistency & trends → More history shows it week by week once there is.",
   "freshNl": "Nog geen gewoonte heeft zeven geplande dagen achter zich, dus er is nog geen sterkte te volgen. Consistency & trends → More history van een gewoonte toont die per week zodra die er is."
  },
+ "av2-habits-timer-presets": {
+  "en": "1 timer preset: Morning sit (Showcase) (15 min · settle 15 s · Singing bowl to begin, Chime to end · 2 bells along the way: Soft tone every 5 min, until the end; Chime every 1 min, once, counted back from the end). Choose one under Begin on Health → Meditation.",
+  "nl": "1 timerpreset: Morning sit (Showcase) (15 min · 15 s om te landen · Klankschaal bij het begin, Klokje aan het einde · 2 bellen onderweg: Zachte toon elke 5 min, tot het einde; Klokje elke 1 min, 1 keer, terugtellend vanaf het einde). Kies er een onder Begin op Health → Meditation.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No timer presets yet. Health → Meditation → Your timer presets keeps a length (or no set length), a moment to settle in, a start and an end bell and bells along the way; each one is then a single choice under Begin.",
+  "freshNl": "Nog geen timerpresets. Health → Meditation → Your timer presets bewaart een lengte (of geen vaste lengte), een moment om te landen, een begin- en eindbel en bellen onderweg; elke preset is dan één keuze onder Begin."
+ },
+ "av2-habits-rolling": {
+  "en": "No habit asks for a few times in any few days. On Habits, an every-day habit’s Details → Habit options → “A few times in any few days” sets one, such as 3 times in any 10 days.",
+  "nl": "Geen gewoonte vraagt een paar keer in elke paar dagen. Op Habits stelt Details → Habit options → “A few times in any few days” van een dagelijkse gewoonte er een in, zoals 3 keer in elke 10 dagen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit asks for a few times in any few days. On Habits, an every-day habit’s Details → Habit options → “A few times in any few days” sets one, such as 3 times in any 10 days.",
+  "freshNl": "Geen gewoonte vraagt een paar keer in elke paar dagen. Op Habits stelt Details → Habit options → “A few times in any few days” van een dagelijkse gewoonte er een in, zoals 3 keer in elke 10 dagen."
+ },
  "av2-journal-reminder": {
   "en": "Your reminder to write is at 21:00, every day, unless you already wrote that day.",
   "nl": "Je herinnering om te schrijven staat om 21:00, elke dag, behalve als je die dag al schreef.",

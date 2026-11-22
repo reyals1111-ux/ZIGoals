@@ -60,6 +60,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-distance-goals.spec.ts',
     'av2-money-sheet.spec.ts',
     'av2-workout-year.spec.ts',
+    'av2-mood-words-journal.spec.ts',
   ],
   // Shard 2, 44.1 worker-min as packed (Session AU); Session AV's new specs were each added here as one worker-minute and
   // took it to 111.3 measured in CI 2002 (59 of the job's 60 min). Its AV specs moved to the other lists by that run's
@@ -134,6 +135,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-evening-plan.spec.ts',
     'av2-oracle.spec.ts',
     'av2-appearance.spec.ts',
+    'av2-rolling-habit.spec.ts',
   ],
   // Shard 4, 60.6 worker-min: about 33.9 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -185,6 +187,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-exercise-library.spec.ts',
     'av2-pack-photos.spec.ts',
     'av2-backup-folder.spec.ts',
+    'av2-timer-presets.spec.ts',
   ],
   // Shard 6, 64.7 worker-min: about 32.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -400,6 +403,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-diary-times.spec.ts',
     'av2-money-reimport.spec.ts',
     'av2-workout-progress.spec.ts',
+    'av2-habit-imports.spec.ts',
   ],
   // Shard 14, 68.5 worker-min: about 34.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -429,7 +433,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [73, 73.2, 73, 73.7, 73, 73, 73, 73.7, 73, 73, 73, 73.7, 72.8, 73];
+export const MAIN_SHARD_MINUTES: readonly number[] = [74, 73.2, 74, 73.7, 74, 73, 73, 73.7, 73, 73, 73, 73.7, 73.8, 73];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {

@@ -1263,6 +1263,7 @@
 :where(:root[data-text=large]) .habit-option-difficulty small.fine:not(#\-) { font-size: calc(.875rem * 1.125); }
 :where(:root[data-text=large]) .habit-area-week-line:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .habit-area-goal input:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .habit-option-rolling-fields select:not(#\-) { font-size: calc(1rem * 1.125); }
 /*  components/habits/habit-week-grid.css  */
 :where(:root[data-text=large]) .habit-week-mode legend:not(#\-) { font-size: calc(.9375rem * 1.125); }
 :where(:root[data-text=large]) .habit-week-amount input:not(#\-) { font-size: calc(16px * 1.125); }
@@ -1702,6 +1703,12 @@
 :where(:root[data-text=large]) .meditation-card .meditation-week strong:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .meditation-today-steps:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .meditation-milestones:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .meditation-settling:not(#\-) { font-size: calc(1rem * 1.125); }
+/*  components/health/meditation/timer-presets.css  */
+:where(:root[data-text=large]) .timer-preset-empty:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .timer-preset-list span:not(#\-), :where(:root[data-text=large]) .timer-preset-list small:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .timer-preset-intervals > legend:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .timer-preset-interval > legend:not(#\-) { font-size: calc(.9375rem * 1.125); }
 /*  components/health/photo-compare.css  */
 :where(:root[data-text=large]) .photo-compare-tag:not(#\-) { font-size: calc(13px * 1.125); }
 :where(:root[data-text=large]) .photo-compare figcaption:not(#\-) { font-size: calc(14px * 1.125); }

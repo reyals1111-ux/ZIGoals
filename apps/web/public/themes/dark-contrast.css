@@ -10850,6 +10850,36 @@
     .meditation-milestones [data-reached]:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--text) 25%, #fff)
     }
+    .meditation-settling:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .timer-preset-empty:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--muted) 25%, #fff)
+    }
+    .timer-preset-list > li:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--panel) 30%, #000)
+    }
+    .timer-preset-list span:not(#\-):not(#\-), .timer-preset-list small:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--muted) 25%, #fff)
+    }
+    .timer-preset-form:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .timer-preset-intervals:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .timer-preset-interval:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    @media (forced-colors: active) {
+        .timer-preset-list > li:not(#\-):not(#\-), .timer-preset-interval:not(#\-):not(#\-) {
+            border-color: CanvasText
+        }
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .nutri-score-letter:not(#\-):not(#\-) {
