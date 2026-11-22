@@ -2,6 +2,7 @@ import {localDate} from '../local-date';
 import {workoutsSchema, type Workout, type Workouts, type WORKOUT_TYPES} from './schema';
 import {computeSplits} from './splits';
 import type {WorkoutSplits} from './splits-schema';
+import {hrHistogram, type HrHistogram} from './hr-zones';
 
 /**
  * Session AJ (item 27, D12): read a GPX or TCX workout file on the device and keep its summary only — start, length,
@@ -45,6 +46,11 @@ export type ImportSummary = {
    * zigoals:workout-splits:v1 by workout id; null when the points give none. Never the points themselves.
    */
   splits?: WorkoutSplits | null;
+  /**
+   * Session AV lane 2, round 4 (LEDGER #336): the seconds at each heart rate from the file's own points (GPX and TCX), kept
+   * at import in zigoals:workout-hr:v1 by workout id for the heart-rate zones; null when the points carry none.
+   */
+  hrSeconds?: HrHistogram | null;
 };
 export type XmlParser = {parseFromString(text: string, type: 'application/xml'): Document};
 
@@ -139,7 +145,8 @@ function summarize(source: ImportSource, segments: Point[][], meta: {name: strin
   const avgHr = avg === null ? null : Math.round(avg);
   const sport = clean(meta.sport, 40), {label, type} = sportLabel(sport);
   const splits = label === 'Run' && (source === 'gpx' || source === 'tcx') ? computeSplits(segments, haversineMeters, source) : undefined;
-  return {...(splits !== undefined ? {splits} : {}), source, importId: importIdFor(start!, seconds!, meters), name: clean(meta.name, 80) || `${label} (imported)`, sport, label, type,
+  const hrSeconds = source === 'gpx' || source === 'tcx' ? hrHistogram(segments) : null;
+  return {...(splits !== undefined ? {splits} : {}), ...(hrSeconds ? {hrSeconds} : {}), source, importId: importIdFor(start!, seconds!, meters), name: clean(meta.name, 80) || `${label} (imported)`, sport, label, type,
     startedAt: new Date(start!).toISOString(), durationSeconds: Math.round(seconds!),
     distanceKm: meters === null ? null : Math.round(meters) / 1000, elevationM: gain === null ? null : Math.round(gain), avgHr: avgHr !== null && avgHr >= 20 && avgHr <= 250 ? avgHr : null};
 }
