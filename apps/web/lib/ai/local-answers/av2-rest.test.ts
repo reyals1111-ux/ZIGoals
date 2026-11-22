@@ -46,6 +46,14 @@ describe('answers read the features', () => {
     expect(text(av2RestAnswer('welke taken hebben eerdere versies', zigiEnv(s), {plan}))).toBe(`1 taak heeft eerdere versies op dit apparaat (open een taak en “Earlier versions” om er een te lezen en terug te zetten):\n• ${first.title}: 2 versies`);
     expect(text(av2RestAnswer('are earlier versions of my tasks kept', zigiEnv(freshAll())))).toMatch(/^No earlier versions of a task are kept yet/);
   });
+  test('the slow left-right sound: off by default, its volume and pace when on (EN and NL); Health closed is said', () => {
+    expect(text(av2RestAnswer('is the left right sound on', zigiEnv(freshAll())))).toMatch(/^The slow left-right sound is off/);
+    const s = showcaseAll();
+    s.ak = {...s.ak, habitExtras: {version: 1, calm: {visual: 'shift', pace: 'slower', sound: 35}}} as typeof s.ak;
+    expect(text(av2RestAnswer('how loud is the left and right sound', zigiEnv(s)))).toBe('The slow left-right sound is on, at volume 35 of 100, slower (5 s a side). It plays during a sitting, quiet while paused; “Sound off for this session” hushes it there.');
+    expect(text(av2RestAnswer('staat het links rechts geluid aan', zigiEnv(s)))).toMatch(/^Het langzame links-rechts geluid staat aan, op volume 35 van 100, langzamer \(5 s per kant\)/);
+    expect(av2RestAnswer('is the left right sound on', zigiEnv(s, false))?.kind).toBe('refusal');
+  });
   test('Today off: the switch is named', () => {
     const env = zigiEnv(showcaseAll());
     expect(av2RestAnswer('which projects repeat', {...env, areas: {...env.areas, today: false}}, {templates})?.kind).toBe('refusal');

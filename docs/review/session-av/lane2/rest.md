@@ -10,6 +10,7 @@ Builder: the remainders builder, on `lane2/rest` (from `lane2/batch2`). Scope: t
 |---|---|---|
 | #17 Things repeating projects | **built** | R1 |
 | #33 Notion version history — tasks | **built** | R2 |
+| #79 Calm Shift — the slow left-right sound | **built** | R4 |
 | #41 Day One, #134 YNAB, #209 Strong — the sync service side | **built** in the repository (Worker and its tests); its deploy is the owner's (OWNER_STEPS line below) | R3 |
 
 ## Answers wiring line for engine.ts (one line, before AV's own answers)
@@ -108,3 +109,36 @@ Corpus: `AV2_REST` in `lib/ai/evals/as/cases-av2-rest.ts` (add to CORPUS and exp
   their "once the sync service is updated" note stays right until the deploy).
 - Stored change: the Worker's own keyspace gains `extras:journal|money|workouts` and their parts (only when a client
   that chose them writes); no app-stored format changes.
+
+## R4 Calm Shift: the slow left-right sound — LEDGER #79 (Calm)
+
+- What: Health → Meditation → "Behind your sitting" has a new group "A slow left-right sound": "Play a soft sound that
+  moves slowly between your left and right ear" (off unless ticked), its volume (1–100, a slider), "Try it (6 seconds)",
+  and the pace (shared with the light; "Pace of the sound" / "Pace of the light and the sound"). During a sitting or a
+  breathing session the sound plays: soft brown noise made on the device (a random walk, looped, low-passed), through a
+  StereoPannerNode whose pan a slow sine moves in step with the gliding light (the same -cos curve, started at the
+  session's elapsed time through a PeriodicWave). It fades in over 2 s and out over 1.2 s; it is quiet while paused and
+  gone at the end; a line under the visual says it is on, with "Sound off for this session" / "Sound on" (the focus kept).
+  It never plays unless chosen, never at volume 0, never before the browser allows sound (the Begin tap, or "Turn on the
+  sound"), and not where the browser has no stereo panner (said in plain words). Sound is not motion: it plays also
+  with Motion Off. No recorded audio, nothing fetched. ("Sound off": the app has no global sound switch; the layer's own
+  switch is off by default and its volume and "Sound off for this session" are the controls.)
+- Files: `lib/audio/shift-sound.ts` (the sound: brown noise, pan wave, start/stop; loaded with `import()` only when it
+  plays or is tried), `lib/calm/visuals.ts` (`sound` in the calm choice), `lib/calm/write.ts`,
+  `components/health/meditation/calm-chooser.tsx`, `components/health/meditation/calm-layer.tsx` (both already lazy),
+  `components/health/meditation/calm.css`.
+- Tests: `lib/audio/av2-shift-sound.test.ts` (the pan follows the light at every pace and start; noise bounded and
+  smooth; the graph: panner moved by the LFO, fade in, volume curve, stop fades once; no panner or volume 0: nothing; the
+  choice opt-in and additive; export → erase → restore); `lib/ai/local-answers/av2-rest.test.ts`.
+- Spec: `tests/av2-calm-sound.spec.ts`.
+- Stored change (TIER 3 (stored formats), separate commit): an additive optional field `sound` (an integer 1–100, the
+  volume; absent = off) inside the loose `calm` object of `zigoals:habit-extras:v1`. Older records read as off; odd values
+  are ignored. The habit extras travel with the extras sync (section `habits`), so the choice follows the person's other
+  calm choices there. No new key.
+- Help (EN): **Q: Can a sitting have a sound that moves from left to right?** A: Yes, if you want one. In Health →
+  Meditation → Behind your sitting, tick “Play a soft sound that moves slowly between your left and right ear”, set its
+  volume and try it. It is a soft hush made on your device, moving with the light; headphones make it clearest. It is
+  quiet while you pause, and “Sound off for this session” hushes it. For relaxation, not therapy.
+- What's new: "Calm: a slow left-right sound for your sittings, made on your device."
+- Showcase hook: none (sound must not start in a Showcase visit by itself; opt-in only).
+- CSS: `components/health/meditation/calm.css` (`.calm-sound`, `.calm-volume`, `.calm-sound-line`). Nothing on Today.

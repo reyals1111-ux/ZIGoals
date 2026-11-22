@@ -1,6 +1,7 @@
 import {nextRepeat, repeatWords, repeatsOf} from '../../tasks/repeat-projects';
 import type {TaskTemplates} from '../../tasks/templates';
 import type {TaskPlan} from '../../tasks/plan-record';
+import {PACE_WORDS, readCalm} from '../../calm/visuals';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, count, dayIn, isQuestion, say, type Asked} from './av-words';
@@ -11,6 +12,7 @@ import type {LocalReply} from './engine';
  * Dutch, to what those features hold. Each reads the feature's own pure function, under its area's switch.
  * - Repeating projects (LEDGER #17): which projects come round, how often and when next (Today's switch: Tasks).
  * - Task versions (LEDGER #33): which tasks have earlier versions kept on this device (Today's switch: Tasks).
+ * - The slow left-right sound (LEDGER #79, Calm's Shift): on or off, its volume and pace (Health's gate, as the calm visual).
  * The records come in `extra` or from the env (`nova.taskTemplates`); without them the answer says where the choice lives.
  */
 export type Av2RestExtra = {templates?: TaskTemplates | null; plan?: TaskPlan | null};
@@ -22,7 +24,7 @@ export function av2RestAnswer(question: string, env: ToolEnv, extra: Av2RestExtr
   if (!a || !isQuestion(a)) return null;
   const nova = env.nova as (typeof env.nova & {taskTemplates?: TaskTemplates | null; taskPlan?: TaskPlan | null}) | null | undefined;
   const ask: Ask = {...a, extra: {templates: extra.templates ?? nova?.taskTemplates ?? null, plan: extra.plan ?? nova?.taskPlan ?? null}};
-  for (const one of [repeatingProjects, taskVersions]) {
+  for (const one of [repeatingProjects, taskVersions, shiftSound]) {
     const r = one(ask);
     if (r) return r;
   }
@@ -55,4 +57,17 @@ function taskVersions(a: Ask): LocalReply | null {
   const lines = [...per].map(([id, n]) => `• ${clean(tasks.find(t => t.id === id)!.title, 80)}: ${count(n, a.lang, ['version', 'versions'], ['versie', 'versies'])}`);
   return answer([say(a.lang, `${count(per.size, 'en', ['task has', 'tasks have'], ['', ''])} earlier versions on this device (open a task and “Earlier versions” to read or restore one):`,
     `${count(per.size, 'nl', ['', ''], ['taak heeft', 'taken hebben'])} eerdere versies op dit apparaat (open een taak en “Earlier versions” om er een te lezen en terug te zetten):`), ...lines].join('\n'), TASK_CALLS);
+}
+
+/** "is the left right sound on", "staat het links-rechts geluid aan" (Calm's Shift sound, behind a sitting). */
+function shiftSound(a: Ask): LocalReply | null {
+  const en = /\bleft (?:and )?right sound\b|\bsound that moves (?:left|between)\b|\bbilateral (?:sound|audio)\b/.test(a.f);
+  const nl = /\blinks (?:en )?rechts geluid\b|\bgeluid dat (?:van links naar rechts|heen en weer) (?:gaat|beweegt)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const c = readCalm(a.env.ak?.habitExtras ?? null);
+  if (!c.sound) return answer(say(a.lang, 'The slow left-right sound is off (it is off unless you turn it on). Health → Meditation → Behind your sitting has “Play a soft sound that moves slowly between your left and right ear”, with its volume and “Try it”.',
+    'Het langzame links-rechts geluid staat uit (het staat uit tot je het aanzet). In Health → Meditation kies je, bij het rustige beeld, een zacht geluid dat langzaam van links naar rechts gaat, met het volume en “Try it”.'));
+  return answer(say(a.lang, `The slow left-right sound is on, at volume ${c.sound} of 100, ${PACE_WORDS[c.pace].en.toLowerCase()}. It plays during a sitting, quiet while paused; “Sound off for this session” hushes it there.`,
+    `Het langzame links-rechts geluid staat aan, op volume ${c.sound} van 100, ${PACE_WORDS[c.pace].nl.toLowerCase()}. Het speelt tijdens een zitmeditatie, stil tijdens een pauze; “Sound off for this session” zet het daar stil.`));
 }
