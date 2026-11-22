@@ -9,6 +9,8 @@ import {SAVINGS_CHALLENGES} from '../../savings-challenges/challenges';
 import {WORKOUTS} from '../../workouts/schema';
 import {REMINDERS_PLAN} from '../../reminders-plan/schema';
 import {HABIT_EXTRAS} from '../../habits-extras/schema';
+import {WORKOUT_SPLITS} from '../../workouts/splits-schema';
+import {MONEY_REVIEW} from '../../money-review/review';
 
 /**
  * Session AK (Part 12): the device records ZIGi's AK tools read, read at the moment of the question (like the rest
@@ -20,5 +22,7 @@ export function readAkToolSources(storage: Read): AkToolSources {
   // Owner follow-up 1 (F9): the F4–F5 records ZIGi's newer tools and local answers read (f9-tools.ts); Health's behind the Health gate there.
   const extras = one(HABIT_EXTRAS);
   return {autoRules: one(AUTO_RULES), bills: one(BILLS), priceAlerts: one(PRICE_ALERTS), debtPlanner: one(DEBT_PLANNER), supplements: one(SUPPLEMENTS), savingsChallenges: one(SAVINGS_CHALLENGES),
-    workouts: one(WORKOUTS), remindersPlan: one(REMINDERS_PLAN), habitTimes: extras?.times ?? null};
+    workouts: one(WORKOUTS), remindersPlan: one(REMINDERS_PLAN), habitTimes: extras?.times ?? null,
+    // Session AV (1c, f1): what the on-device answers read for the running bests, today's focus habit and money that asks for a look.
+    splits: one(WORKOUT_SPLITS), habitFocus: (extras as {focus?: unknown} | null)?.focus ?? null, moneyReview: one(MONEY_REVIEW)};
 }

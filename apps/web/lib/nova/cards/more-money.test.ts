@@ -1,4 +1,5 @@
 import {describe, expect, it} from 'vitest';
+import {keptPlanOptions} from '../../debt-planner/kept';
 import {netWorth, moneyText} from '../../accounts/net-worth';
 import {accountsSchema, emptyAccounts} from '../../accounts/schema';
 import {showcaseAccounts} from '../../accounts/showcase';
@@ -90,7 +91,9 @@ describe('debt payoff plan: a projection of the figures the person kept', () => 
   it('the months and the interest are the planner’s own; every date is a projection and the rule says so', () => {
     const c = debtPlanCard(accounts, kept, DAY);
     const debts = [{id: '93000000-0000-4000-8000-000000000004', name: 'Car loan', balance: 691100n, ratePercent: '5.9', minimum: 30000n}, {id: '93000000-0000-4000-8000-000000000005', name: 'Credit card', balance: 64000n, ratePercent: '21.9', minimum: 2500n}];
-    const page = comparePlans(debts, 10000n);
+    // Session AV (F-DEBT-PLAN, deliberate): the planner counts the kept one-off payment (the Showcase's tax refund), so the page's figures do too.
+    const page = comparePlans(debts, 10000n, keptPlanOptions(kept, DAY, debts));
+    expect(keptPlanOptions(kept, DAY, debts).lumps).toHaveLength(1);
     expect([c.state, c.currency, c.debts, c.owed, c.extra, c.note]).toEqual(['live', 'USD', 2, '$7,551.00', '$100.00', 'SHOWCASE DATA · fictional figures']);
     expect(c.plans.map(p => [p.strategy, p.months, p.month])).toEqual([['avalanche', page.avalanche.months, payoffMonth(DAY, page.avalanche.months)], ['snowball', page.snowball.months, payoffMonth(DAY, page.snowball.months)], ['minimums', page.minimums.months, payoffMonth(DAY, page.minimums.months)]]);
     expect(c.plans[0]!.months).toBeGreaterThan(6);

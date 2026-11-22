@@ -42,6 +42,8 @@ import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 // loaded after the review (or on the tap), never in the route's first JS.
 const ReviewNotes = lazy(() => import('../review-unified/review-notes'));
 const ReviewShare = lazy(() => import('../review-unified/review-share'));
+// Session AV (follow-up 1, F-FACTORS): every factor against mood, energy and sleep, its own chunk.
+const FactorEffectsCard = lazy(() => import('../insights/factor-effects-card'));
 
 /**
  * The Life review (Session AA-Cloud Part 5, S2): a week or a month across Goals, Habits, Health and Wealth, beside the
@@ -133,6 +135,7 @@ export function LifeReviewView() {
 
       <YourDaysChapter start={window.start} end={window.end} period={period} moods={health.loaded ? healthGroupIn(health.data, 'moods') ?? undefined : undefined} financial={financial} />
       <CrossInsightsCard habits={habits.error ? {...habits.data, habits: []} : habits.data} health={health.data} today={today} />
+      <LoadBoundary quiet><Suspense fallback={null}><FactorEffectsCard habits={habits.error ? {...habits.data, habits: []} : habits.data} health={health.data} today={today}/></Suspense></LoadBoundary>
       {period === 'week' && <ValuesCheck weekKey={window.key} />}
 
       <section className="panel life-focus" aria-labelledby="life-review-focus">

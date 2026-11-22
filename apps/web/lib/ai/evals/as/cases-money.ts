@@ -74,6 +74,14 @@ export const MONEY: readonly Intent[] = [
   {id: 'networth-now', pillar: 'wealth',
     en: ['what is my net worth', 'whats my net worth', 'how much am I worth'],
     nl: ['wat is mijn vermogen', 'wat is mijn nettovermogen', 'hoeveel ben ik waard']},
+  // Session AU (D-NL-COINS, ADR-043 D4): a coin held, in Dutch as in English: Wealth's holding, and a Real portfolio's coins
+  // apart from it (a Hypothetical portfolio is never counted, golden rule btc-total). The Dutch question read the BTC goal.
+  {id: 'coin-btc', pillar: 'wealth', never: ['My first 0.1 BTC', 'Hypothetical', 'Nettovermogen'],
+    en: ['how much BTC do I have', 'how much bitcoin do I own', 'Total BTC I hold?'],
+    nl: ['hoeveel BTC heb ik', 'hoeveel bitcoin bezit ik', 'hoeveel btc heb ik eigenlijk?']},
+  {id: 'coin-eth', pillar: 'wealth', never: ['Hypothetical'],
+    en: ['how much ETH do I have', 'how much ether do I hold'],
+    nl: ['wat is mijn ETH', 'hoeveel ETH heb ik', 'hoeveel ether bezit ik']},
   {id: 'goals-status', pillar: 'goals',
     en: ['how are my goals', 'how are my goals doing', 'how far am I on my goals'],
     nl: ['hoe gaat het met mijn doelen', 'hoe staan mijn doelen ervoor']},
@@ -106,4 +114,36 @@ export const MONEY: readonly Intent[] = [
   {id: 'goal-emergency', pillar: 'goals',
     en: ['how far am I on my emergency fund', 'how is my emergency fund goal doing'],
     nl: ['hoe ver ben ik met mijn emergency fund', 'hoe staat mijn doel emergency fund ervoor']},
+  // Session AU (ADR-044 D-ETA): when a goal will be reached leads with the Goal widget's own pace estimate (an estimate, never
+  // a promise), then the target date and what is still to go; the older answer led with the target date.
+  {id: 'goal-emergency-eta', pillar: 'goals', never: ['Next planned contribution', 'With your plan', 'Met je plan'],
+    en: ['when will I reach my emergency fund', 'when will I hit my emergency fund goal', 'how long until my emergency fund is done', 'when will i reech my emergancy fund', 'When will my emergency fund be done?'],
+    nl: ['wanneer haal ik mijn noodfonds', 'wanneer bereik ik mijn emergency fund', 'hoe lang duurt het nog tot mijn noodfonds vol is', 'wanneer haal ik mijn nooddfonds']},
+  // No pace yet (too little recorded progress): said plainly, with the target date; no date is made up.
+  {id: 'goal-japan-eta', pillar: 'goals', never: ['At your current pace', 'In je huidige tempo', 'With your plan'],
+    en: ['when will I reach my Japan adventure goal', 'how long until my japan adventure goal is done'],
+    nl: ['wanneer haal ik mijn doel japan adventure', 'hoe lang duurt het nog tot mijn doel japan adventure klaar is']},
+  // Session AU (REHEARSAL R-6, R-7, R-8, R-10, R-11): a bill's price change (the Showcase's streaming bill, €12.99 → €13.99,
+  // Session AU (D8, deliberate); another in au-rehearsal.test.ts);
+  // a coin's price is not the person's holdings; what staking would earn and whether it is safe: facts, never advice, no
+  // number without Earn's measured rate; when the next bill is due (it was read as a goal called "next bill be").
+  {id: 'au-r6-bill-price', pillar: 'wealth', never: ['fall due in the next'],
+    en: ['Did any bill go up in price?', 'did any of my bills get more expensive'],
+    nl: ['Is een rekening duurder geworden?', 'zijn mijn rekeningen duurder geworden']},
+  {id: 'au-r7-coin-price', pillar: 'wealth', never: ['Net worth', 'Nettovermogen', 'Nothing is tracked on Wealth'],
+    en: ['What is bitcoin worth today?', 'what is the price of BTC'],
+    nl: ['Wat is bitcoin vandaag waard?', 'wat is de koers van BTC']},
+  {id: 'au-r8-stake-earn', pillar: 'wealth', never: ['income', 'inkomsten', 'guaranteed', 'gegarandeerd'],
+    en: ['What would I earn if I staked 100 ZIG?', 'how much would I get if I stake 100 ZIG'],
+    nl: ['Wat zou ik verdienen als ik 100 ZIG stake?']},
+  {id: 'au-r10-stake-safe', pillar: 'wealth', never: ['That isn’t something I can answer', 'you should', 'je moet'],
+    en: ['Is staking ZIG safe?', 'what are the risks of staking'],
+    nl: ['Is staken van ZIG veilig?']},
+  {id: 'au-r11-next-bill', pillar: 'wealth', never: ['No goal is called', 'Geen doel heet'],
+    en: ['when will my next bill be due', 'when is my next bill due'],
+    nl: ['wanneer moet ik mijn volgende rekening betalen']},
+  // Session AV (owner follow-up 1, F-DEBT-PLAN): the debt-free date as a countdown, with the kept one-off payment counted.
+  {id: 'av-debt-free', pillar: 'wealth', never: ['you should', 'I recommend', 'guaranteed', 'je moet', 'gegarandeerd'],
+    en: ['when will I be debt-free', 'when are my debts paid off'],
+    nl: ['wanneer ben ik schuldenvrij', 'wanneer zijn mijn schulden afbetaald']},
 ];

@@ -1,0 +1,29 @@
+/* Session AV (F-WORKOUT-CALENDAR): a month of workouts, the bill calendar's look. */
+.workout-calendar { display: grid; gap: 6px; }
+.workout-calendar-nav { display: flex; align-items: center; gap: 8px; }
+.workout-calendar-nav h4 { margin: 0; min-width: 8ch; text-align: center; }
+.workout-calendar-nav button { min-width: 44px; min-height: 44px; }
+.workout-calendar-grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 3px; }
+.workout-calendar-grid th { font-size: 14px; font-weight: 600; color: var(--text-secondary, var(--muted)); text-align: center; }
+.workout-calendar-grid td { vertical-align: top; height: 48px; padding: 3px; border-radius: 8px; border: 1px solid var(--line, rgba(128,128,160,.3)); overflow: hidden; }
+.workout-calendar-grid td.is-out { border-style: dashed; color: var(--text-secondary, var(--muted)); }
+.workout-calendar-grid td.is-today { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: -2px; }
+.workout-calendar-grid td.is-trained { background: color-mix(in srgb, var(--success, #47d6a1) 22%, transparent); }
+.workout-calendar-day { display: block; font-size: 14px; }
+.workout-calendar-names small { display: block; font-size: 14px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Session AV (q3 #41): a trained day is a button filling its cell; the chosen day's workouts are listed below. On a phone
+   a dot stands in for the name (a 40 px cell cannot hold one); the list names them. */
+.workout-calendar-grid td:has(.workout-calendar-pick) { padding: 0; }
+.workout-calendar-pick { display: grid; align-content: start; justify-items: start; gap: 2px; width: 100%; min-height: 46px; padding: 3px; margin: 0; border: 0; border-radius: 7px; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.workout-calendar-pick[aria-pressed="true"] { box-shadow: inset 0 0 0 2px currentColor; }
+.workout-calendar-pick:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 1px; }
+.workout-calendar-names { max-width: 100%; min-width: 0; }
+.workout-calendar-dot { display: none; width: 8px; height: 8px; border-radius: 50%; background: var(--success, #47d6a1); }
+.workout-calendar-chosen { display: grid; gap: 4px; font-size: 14px; }
+.workout-calendar-chosen h5 { margin: 0; font-size: 15px; }
+.workout-calendar-chosen ul { margin: 0; padding-left: 18px; }
+@media (max-width: 599px) {
+  .workout-calendar-names { display: none; }
+  .workout-calendar-dot { display: block; }
+  .workout-calendar-grid td { height: 46px; }
+}

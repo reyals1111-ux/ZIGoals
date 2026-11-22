@@ -18,7 +18,10 @@ export const DOMAIN_WORDS: readonly [Domain, RegExp][] = [
   ['protein', w('protein|eiwit|eiwitten|eiwitdoel')],
   ['calories', w('calories|calorie|kcal|calorieen|caloriedoel|ate|eaten|eat|food|gegeten|eten|voeding')],
   ['meditation', w('meditate|meditated|meditating|meditation|mindful|mindfulness|mediteren|gemediteerd|mediteer|meditatie')],
-  ['workouts', w('workout|workouts|worked out|work out|working out|exercise|exercised|exercising|training|trained|gym|gesport|sporten|sport|getraind|trainen|sportschool|hardgelopen|hardlopen')],
+  // Session AU (REHEARSAL R-2, R-3): what was lifted and how far was run are the workout log's ("what did I lift today", "how far did I run").
+  ['workouts', w('workout|workouts|worked out|work out|working out|exercise|exercised|exercising|training|trained|gym|gesport|sporten|sport|getraind|trainen|sportschool|hardgelopen|hardlopen|lift|lifted|lifting|lifts|ran|run|runs|jog|jogged|jogging|gerend|getild|gelift')],
+  // Session AV (owner follow-up 1, F-DEBT-PLAN): the debt payoff planner's own questions (narrow: "debts" alone stays net worth's).
+  ['debts', w('debt free|debtfree|debts paid off|debts cleared|pay off my debts|paying off my debts|snowball|avalanche|schuldenvrij|schulden afbetaald|schulden afgelost|schulden aflossen|sneeuwbal|lawine')],
   ['budgets', w('budget|budgets|budgetten')],
   ['bills', w('bill|bills|subscription|subscriptions|rent|invoice|invoices|rekening|rekeningen|abonnement|abonnementen|huur|factuur|facturen|vaste lasten')],
   ['income', w('income|earned|earnings|earn|salary|paycheck|inkomen|inkomsten|verdiend|verdien|salaris|loon')],
@@ -49,7 +52,7 @@ export const ASK_WORDS: readonly [Ask, RegExp][] = [
   ['best', w('best|most|highest|biggest|largest|longest|strongest|top|record|closest|nearest|beste|meeste|meest|hoogste|grootste|langste|sterkste|dichtst|dichtste')],
   ['worst', w('worst|least|lowest|fewest|weakest|shortest|smallest|furthest|farthest|slechtste|minste|minst|laagste|kortste|zwakste|kleinste|verst|verste')],
   ['average', w('average|avg|mean|typical|typically|usually|per day|a day|per night|a night|gemiddeld|gemiddelde|meestal|per dag|per nacht')],
-  ['trend', w('trend|trending|going up|going down|over time|improving|improved|getting better|getting worse|changed|change|progress|progressing|up or down|stijgt|daalt|vooruitgang|verloop|ontwikkeling|veranderd|verandering|omhoog|omlaag|vooruit gegaan')],
+  ['trend', w('trend|trending|going up|going down|went up|gone up|went down|duurder|goedkoper|gestegen|verhoogd|over time|improving|improved|getting better|getting worse|changed|change|progress|progressing|up or down|stijgt|daalt|vooruitgang|verloop|ontwikkeling|veranderd|verandering|omhoog|omlaag|vooruit gegaan')],
   ['open', w('left|open|remaining|still|pending|to go|need to|have to|outstanding|due|to pay|have to pay|betalen|nog|over|resterend|openstaand|openstaande|moet ik|te gaan|te doen')],
   ['done', w('done|did|completed|complete|finished|finish|hit|reached|reach|checked off|ticked|made|kept|gedaan|gehaald|afgerond|voltooid|klaar|afgevinkt|gelukt|volgehouden')],
   ['total', w('total|sum|altogether|in all|totaal|bij elkaar|in totaal|opgeteld|alles bij elkaar')],
@@ -79,6 +82,29 @@ export const HABIT_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   schrijven: ['journal', 'write'], geschreven: ['journal', 'write'], studeren: ['study'], gestudeerd: ['study'], leren: ['study'], geleerd: ['study'],
   koken: ['cook'], gekookt: ['cook'], flossen: ['floss'], geflost: ['floss'], bidden: ['pray'], gebeden: ['pray'], yoga: ['yoga'], zwemmen: ['swim'], gezwommen: ['swim'], fietsen: ['cycle'], gefietst: ['cycle'],
 };
+/**
+ * Session AU (ADR-044 D-ETA): words people use for a goal in Dutch when the goal is named in English ("noodfonds" for an
+ * Emergency fund), as the words of that name. Read only for goals (lib/ai/local-answers/exact/understand.ts).
+ */
+export const GOAL_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
+  noodfonds: ['emergency', 'fund'], noodfondsje: ['emergency', 'fund'], noodpot: ['emergency', 'fund'], noodpotje: ['emergency', 'fund'], noodbuffer: ['emergency', 'fund'],
+};
+/**
+ * Session AU (ADR-044 D-ETA): when a goal will be reached, at the pace so far ("when will I reach my emergency fund", "how
+ * long until it is done", "wanneer haal ik mijn noodfonds"). A goal's own target date ("what is its deadline", "when is it
+ * due") and when it was reached ("wanneer heb ik … gehaald") are not this. Runs on folded text.
+ */
+export const GOAL_ETA = /\b(?:when (?:will|would|do|can|could|am) i (?:going to |gonna )?(?:reach|hit|get to|finish|complete|achieve|make|be done with|have)|when (?:will|would) (?:my |the |it )(?:\w+ ){0,6}?(?:be )?(?:done|reached|finished|complete|completed|full|funded)|how long (?:until|till|untill|til|before|to reach|to hit|to finish|will it take|does it take|is it until)|how much longer (?:until|till|before|for)|wanneer (?:haal|bereik) ik|wanneer (?:zal|ga) ik (?:\w+ ){1,6}?(?:halen|bereiken)|wanneer is (?:mijn |het )(?:\w+ ){0,6}?(?:klaar|vol|af)|hoe ?lang (?:nog |duurt het (?:nog )?)?(?:tot|voordat|voor ik)|hoeveel tijd (?:nog )?(?:tot|voordat))\b/;
+/**
+ * Session AU (REHEARSAL R-11): words that make a question's subject a bill, a task, a habit or a day — never a goal's name
+ * ("when will my next bill be due" was read as a goal called "next bill be"). A goal whose own name holds the word keeps it.
+ */
+export const NOT_A_GOAL = /\b(?:bill|bills|rent|subscription|subscriptions|invoice|invoices|payment|task|tasks|todo|todos|to do|chore|chores|habit|habits|streak|streaks|day|days|today|tonight|tomorrow|weekend|appointment|meeting|event|rekening|rekeningen|huur|abonnement|factuur|betaling|taak|taken|klus|klusjes|gewoonte|gewoontes|reeks|dag|vandaag|morgen|afspraak|vergadering)\b/;
+/** Whether these words name a bill, a task, a habit or a day that is not part of the goal's own name. */
+export const namesNonGoal = (words: string, goalName = ''): boolean => {
+  const own = new Set((goalName.toLowerCase().match(/[a-z]+/g) ?? []));
+  return (words.match(new RegExp(NOT_A_GOAL.source, 'g')) ?? []).some(word => !own.has(word));
+};
 /** Not a question the device answers from records: an action to take, a line to log, advice. */
 export const NOT_A_LOOKUP = {
   action: /^(?:please |can you |could you |ok |okay |kun je |wil je |graag )?(?:log|add|track|record|mark|skip|create|make|set|remind|start|stop|delete|remove|plan|schedule|change|update|edit|rename|move|buy|sell|send|transfer|undo|turn|write|draft|tick|check off|open|go to|go back to|take me to|navigate to|switch to|run|estimate|scan|summarize|summarise|review|suggest|give me a|give me an|export|import|connect|voeg|zet|maak|vink|sla|noteer|registreer|verwijder|wijzig|verander|herinner|stuur|schrijf|ga naar|ga terug naar|breng me naar|geef me een|vat|exporteer)\b|^(?:nova |zigi )?(?:open|toon de pagina|ga naar)\b|\b(?:page|pagina|screen|scherm|tab) ?$|\b(?:openen|open doen)$/,
@@ -96,8 +122,8 @@ export const NOT_A_LOOKUP = {
 /** Words that are never a record's name by themselves (so "this" or "days" never names a habit). */
 export const GENERIC = new Set('habit habits goal goals today done left open all and also only with the for this that what how many much are your did miss missed days day week month times time last have was were not which when showcase data fund plan gewoonte gewoontes doel doelen vandaag dag dagen week maand keer niet welke wanneer mijn deze heb ik'.split(' '));
 
-const sources = [...DOMAIN_WORDS, ...ASK_WORDS, ...SHAPE_WORDS].map(([, re]) => re.source).join(' ') + ' ' + Object.entries(HABIT_SYNONYMS).flat(2).join(' ')
-  + ' today yesterday week month year monday tuesday wednesday thursday friday saturday sunday january february march april june july august september october november december vandaag gisteren maand jaar maandag dinsdag woensdag donderdag vrijdag zaterdag zondag januari februari maart augustus oktober mondays tuesdays wednesdays thursdays fridays saturdays sundays maandagen dinsdagen woensdagen donderdagen vrijdagen zaterdagen zondagen anything something everything payment entry betaling days times dagen keer this last since deze vorige afgelopen sinds what which when where have many much often welke hoeveel wanneer habits tasks goals bills notes';
+const sources = [...DOMAIN_WORDS, ...ASK_WORDS, ...SHAPE_WORDS].map(([, re]) => re.source).join(' ') + ' ' + Object.entries(HABIT_SYNONYMS).flat(2).join(' ') + ' ' + Object.keys(GOAL_SYNONYMS).join(' ')
+  + ' today yesterday week month year monday tuesday wednesday thursday friday saturday sunday january february march april june july august september october november december vandaag gisteren maand jaar maandag dinsdag woensdag donderdag vrijdag zaterdag zondag januari februari maart augustus oktober mondays tuesdays wednesdays thursdays fridays saturdays sundays maandagen dinsdagen woensdagen donderdagen vrijdagen zaterdagen zondagen anything something everything payment entry betaling days times dagen keer this last since deze vorige afgelopen sinds geworden worden wordt werd what which when where have many much often welke hoeveel wanneer habits tasks goals bills notes';
 /** Every word of four letters or more the tables hold: what a misspelt word may be set right to. */
 export const VOCABULARY: ReadonlySet<string> = new Set(sources.match(/[a-z]{4,}/g) ?? []);
 /** The few short words a four-letter slip may be set right to ("wgat" → "what"): question words only, never a record's word. */

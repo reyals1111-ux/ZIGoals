@@ -1,5 +1,6 @@
 import {START_STEPS, STEP_WORDS} from '../../earn/start-here';
 import type {EarnSnapshot, SnapshotFigure} from '../../earn/snapshot';
+import {formatNumber} from '../../visual-format';
 import {figureSentence, glossaryAnswer, glossaryTerm, NOT_ADVICE, type GlossaryLang} from './glossary';
 
 /**
@@ -51,6 +52,43 @@ function startAnswer(lang: GlossaryLang): string {
   const intro = lang === 'nl' ? 'Start hier, op de Earn-pagina: van geen wallet naar een eerste stake, in zes stappen. Elke stap opent zijn eigen uitleg; je tekent altijd zelf, in je eigen wallet.' : 'Start here, on the Earn page: from no wallet to a first stake, in six steps. Each step opens its own guide; you always sign yourself, in your own wallet.';
   return [intro, ...steps, NOT_ADVICE[lang]].join('\n');
 }
+/**
+ * Session AU (REHEARSAL R-8): "what would I earn if I staked 100 ZIG". Earn shows each option's rate with its source and
+ * "as of"; any figure is an estimate, not a promise. No number of ZIGi's own: only when the snapshot holds Earn's measured
+ * rate (what a validator's own stake earned lately, with its source and time) is an estimate given, labelled as one, for the
+ * amount asked. Never a projection as a guarantee; nothing is signed or moved here.
+ */
+const STAKE_EARN = /\b(?:what|how much)\b[^?]{0,40}\b(?:would|will|could|can|do|does|might)\s+(?:i|it|that|my zig)\s+(?:earn|get|make|yield|return|pay)\b[^?]{0,60}\b(?:stak(?:e|ed|es|ing)|delegat\w*)\b|\b(?:what|how much)\b[^?]{0,30}\b(?:stak(?:e|ed|ing)|delegat\w*)\b[^?]{0,40}\b(?:earn|get|make|yield|pay)\b|\b(?:wat|hoeveel)\b[^?]{0,40}\b(?:verdien|verdienen|krijg|levert|oplevert|opleveren)\b[^?]{0,60}\bstak\w*|\b(?:wat|hoeveel)\b[^?]{0,30}\bstak\w*\b[^?]{0,40}\b(?:verdien|verdienen|krijg|op ?leveren|oplevert|levert)\b/i;
+/** Session AU (REHEARSAL R-10): "is staking ZIG safe": the facts, never advice ("is it right for you is your call"). */
+const STAKE_SAFE = /\b(?:is|are|how)\b[^?]{0,25}\bstak(?:e|ed|ing)\b[^?]{0,25}\b(?:safe|safely|risky|secure|dangerous|a risk|risks?)\b|\b(?:risks?|dangers?) (?:of|in|with) stak\w*|\bsafe to stake\b|\b(?:is|zijn)\b[^?]{0,25}\bstak\w*\b[^?]{0,25}\b(?:veilig|riskant|gevaarlijk|risico\w*)\b|\brisico\w* (?:van|bij) (?:het )?stak\w*|\bveilig om te staken\b/i;
+const nlStake = (q: string) => /\b(?:wat|hoeveel|zou|ik|als|is|het|veilig|verdien\w*|levert|risico\w*|staken|mijn)\b/i.test(q) && !/\b(?:what|how|would|if|safe|earn|is it|my)\b/i.test(q);
+const percent = (value: string) => { const m = /^(\d+(?:[.,]\d+)?)\s*%$/.exec(value.trim()); return m ? Number(m[1]!.replace(',', '.')) : null; };
+export function stakeEarnAnswer(question: string, snapshot: EarnSnapshot | null | undefined): CoachReply | null {
+  const q = question.trim().replace(/\s+/g, ' ');
+  if (!q || q.length > 200 || !STAKE_EARN.test(q)) return null;
+  const lang: GlossaryLang = nlStake(q) ? 'nl' : 'en', measured = fig(snapshot, 'native-apr-measured'), rate = measured ? percent(measured.value) : null;
+  const amount = /(\d[\d,.]*)\s*(?:zig)\b/i.exec(q)?.[1]?.replace(/,/g, ''), zig = amount && Number.isFinite(Number(amount)) && Number(amount) > 0 ? Number(amount) : null;
+  const how = lang === 'nl'
+    ? 'Earn toont bij elke manier om te verdienen het huidige rendement, met de bron en het moment waarop het gelezen is. Elk cijfer is een schatting van wat een stake de laatste tijd opleverde, geen belofte van wat hij gaat opleveren: rendementen veranderen, een validator kan geslasht worden en de prijs van ZIG kan bewegen. Je ZIG blijft in je eigen account terwijl hij gestaket is.'
+    : 'Earn shows each way to earn with its current rate, with its source and when it was read. Any figure is an estimate of what a stake earned lately, not a promise of what it will earn: rates change, a validator can be slashed, and ZIG’s price can move. Your ZIG stays in your own account while it is staked.';
+  let estimate = '';
+  if (measured && rate !== null && rate > 0 && rate < 1000) {
+    const per = zig ?? 100, earned = formatNumber(Math.round(per * rate) / 100, {maximumFractionDigits: 2});
+    estimate = lang === 'nl'
+      ? `Een schatting, geen belofte: tegen het gemeten rendement dat Earn las, zou ${formatNumber(per)} ZIG in een jaar ongeveer ${earned} ZIG opleveren als er niets verandert. ${figureSentence(measured, 'nl')}`
+      : `An estimate, not a promise: at the measured rate Earn read, ${formatNumber(per)} ZIG would earn about ${earned} ZIG over a year if nothing changed. ${figureSentence(measured, 'en')}`;
+  } else estimate = lang === 'nl' ? 'ZIGi heeft in dit bezoek geen gemeten rendement van Earn gelezen, dus ik noem geen bedrag: open Earn voor de cijfers van nu.' : 'ZIGi has not read a measured rate from Earn in this visit, so I give no figure: open Earn for today’s rates.';
+  return {kind: 'answer', text: [estimate, how, NOT_ADVICE[lang]].join('\n\n') + pageCard()};
+}
+export function stakeSafeAnswer(question: string, snapshot: EarnSnapshot | null | undefined): CoachReply | null {
+  const q = question.trim().replace(/\s+/g, ' ');
+  if (!q || q.length > 200 || !STAKE_SAFE.test(q)) return null;
+  const lang: GlossaryLang = nlStake(q) ? 'nl' : 'en', live = ['native-unbonding', 'native-slash-downtime', 'native-slash-double-sign'].map(id => fig(snapshot, id)).filter((f): f is SnapshotFigure => !!f).map(f => figureSentence(f, lang)).join(' ');
+  const facts = lang === 'nl'
+    ? 'De feiten, geen advies: gestakete ZIG blijft in je eigen account, en alleen jouw handtekening verplaatst hem. Een validator die zich misdraagt kan geslasht worden: een deel van de stake erachter, ook de jouwe, gaat verloren. Unstaken kent een wachttijd (unbonding) voordat je ZIG weer vrij is. ZIGoals is een niet-geaudite Alpha en houdt nooit je sleutels. Of het bij jou past, beslis je zelf.'
+    : 'The facts, not advice: staked ZIG stays in your own account, and only your signature moves it. A validator that misbehaves can be slashed: a share of the stake behind it, yours included, is lost. Unstaking takes a waiting period (unbonding) before your ZIG is free again. ZIGoals is an unaudited Alpha and never holds your keys. Whether it is right for you is your call.';
+  return {kind: 'answer', text: [facts, live, NOT_ADVICE[lang]].filter(Boolean).join('\n\n') + pageCard()};
+}
 /** The coach's device answer for a message, or null when it is not an Earn question. */
 export function earnCoachAnswer(question: string, snapshot: EarnSnapshot | null | undefined): CoachReply | null {
   const q = question.trim().replace(/\s+/g, ' ');
@@ -58,6 +96,8 @@ export function earnCoachAnswer(question: string, snapshot: EarnSnapshot | null 
   if (SIGN_ASK.test(q)) return {kind: 'refusal', text: SIGN_REFUSAL[nlOf(q) ? 'nl' : 'en']};
   if (WAYS.test(q)) { const lang = nlOf(q) ? 'nl' : 'en'; return {kind: 'answer', text: waysAnswer(snapshot, lang) + pageCard()}; }
   if (START.test(q)) { const lang = nlOf(q) ? 'nl' : 'en'; return {kind: 'answer', text: startAnswer(lang) + pageCard('start-here')}; }
+  const stake = stakeEarnAnswer(q, snapshot) ?? stakeSafeAnswer(q, snapshot);
+  if (stake) return stake;
   const term = glossaryTerm(q);
   return term ? {kind: 'answer', text: glossaryAnswer(term.term, term.lang, snapshot)} : null;
 }

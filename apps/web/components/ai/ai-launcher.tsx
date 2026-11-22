@@ -17,6 +17,7 @@ import './ai-launcher.css';
 import {LAUNCHER_HOLD_MS, TALK_EVENT, TALK_PENDING, TALK_STOP_EVENT, type TalkOrigin, type TalkRequest} from './talk-events';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {hideToast, showUndo} from '../ui/undo-toast';
+import {takeEarlyEvent} from '../../lib/early-events';
 
 /**
  * The ZIGi launcher (ADR-012, Part 6): a floating ZIGi button that opens the chat, an "Open <app>" pill without logos
@@ -140,10 +141,10 @@ export function AiLauncher() {
   // once must not close the panel again; the panel shows once the state has caught up).
   useEffect(() => { if (((standing && standingSensitive()) || switchedOff) && open) setOpen(false); }, [standing, switchedOff, open]);
   // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
-  useEffect(() => { const onAsk = () => { if (!hidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [hidden, sensitive]);
+  useEffect(() => { const onAsk = () => { if (!hidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); if (!hidden && !sensitive && takeEarlyEvent(ASK_EVENT)) onAsk(); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [hidden, sensitive]);
   // Session AL (O3): the "Apps & extras" sheet's ZIGi entry. The sheet has closed and the screen is checked again here, so a
   // sensitive form that appeared meanwhile still keeps ZIGi out.
-  useEffect(() => { const onOpen = () => { if (!hidden && !isSensitiveScreen()) { warm(); setOpen(true); } }; window.addEventListener(ZIGI_OPEN_EVENT, onOpen); return () => window.removeEventListener(ZIGI_OPEN_EVENT, onOpen); }, [hidden, warm]);
+  useEffect(() => { const onOpen = () => { if (!hidden && !isSensitiveScreen()) { warm(); setOpen(true); } }; window.addEventListener(ZIGI_OPEN_EVENT, onOpen); /* Session AV (D-WEIGHT): a tap made before this chunk arrived */ if (!hidden && takeEarlyEvent(ZIGI_OPEN_EVENT)) onOpen(); return () => window.removeEventListener(ZIGI_OPEN_EVENT, onOpen); }, [hidden, warm]);
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.searchParams.get('zigi') === 'hello') { url.searchParams.delete('zigi'); window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`); greetOnce(); }
@@ -155,7 +156,7 @@ export function AiLauncher() {
     zigiSignals.emit('companion_hidden'); // Session AK Part 12: a Studio-4 reaction once its art lands
     setOpen(false); launcher.setLauncherHidden(true);
     // Session AL (3e): the app's one Undo toast (components/ui/undo-toast.tsx) instead of the launcher's own.
-    hideToastId.current = showUndo({message: look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · Your Personal AI Companion.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · Your Personal AI Companion.',
+    hideToastId.current = showUndo({message: look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · your companion.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · your companion.',
       restore: () => { hideToastId.current = null; launcher.setLauncherHidden(false); requestAnimationFrame(() => requestAnimationFrame(() => button.current?.focus({preventScroll: true}))); }, undone: 'ZIGi is back.', timeoutMs: HIDE_UNDO_MS});
   };
   // The focus moves to ZIGi once the edge tab brought it back (the tab itself is gone by then).
@@ -232,7 +233,7 @@ export function AiLauncher() {
       <div className="ai-launcher-stack">
         <span className="ai-launcher-ring">
         <span ref={waves} className="zigi-waves" data-on="false" aria-hidden="true"><i/><i/><i/><b className="zigi-level-bar"/></span>
-        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your personal AI companion' : 'Open ZIGi, your personal AI companion (⌘/Ctrl+Shift+Z; hold to talk)'} aria-haspopup="dialog" aria-expanded={open}
+        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your companion' : 'Open ZIGi, your companion (⌘/Ctrl+Shift+Z; hold to talk)'} aria-haspopup="dialog" aria-expanded={open}
           onClick={() => { if (heldClick.current) { heldClick.current = false; return; } if (!open && talkChoices().tapToTalk) requestTalk('launcher'); else toggle(); }}
           onPointerDown={event => { heldClick.current = false; if (event.button !== 0) return; warm(); try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* an old browser keeps the plain events */ } const h = {timer: 0, held: false, down: performance.now()}; h.timer = window.setTimeout(() => { h.held = true; heldClick.current = true; requestTalk('launcher'); }, LAUNCHER_HOLD_MS); hold.current = h; }}
           // Session AL (CI_INTERMITTENTS Fix 2): a busy main thread can deliver the release before the hold timer (WebKit,

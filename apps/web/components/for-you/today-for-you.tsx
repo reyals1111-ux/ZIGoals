@@ -23,6 +23,8 @@ import {WeeklyReviewCard} from '../weekly-review/weekly-review-card';
 import {FastingLine} from './fasting-line';
 // Session Z-Local (ADR-020 L60): the card and its link lists load on use (Today sat at 514.9 of its 515.0 kB), as the brief card does.
 const WhatsNewCard = lazy(() => import('./whats-new-card').then(m => ({default: m.WhatsNewCard})));
+// Session AV Part 3 (ADR-045 D-KEEP): keeping the records on this device is a For you card (on a phone it folds like the others).
+const KeepDataCard = lazy(() => import('../keep-data/keep-data-card'));
 // Session AA-Cloud Part 5: the Life review's door and the cross-pillar insights load after Today itself (weights).
 const LifeReviewTeaser = lazy(() => import('../life-review/life-review-teaser').then(m => ({default: m.LifeReviewTeaser})));
 const CrossInsightsCard = lazy(() => import('../insights/cross-insights-card').then(m => ({default: m.CrossInsightsCard})));
@@ -33,6 +35,7 @@ const LifeScoreTodayCard = lazy(() => import('../universe/life-score').then(m =>
 const FocusWindowCard = lazy(() => import('../health/sleep/focus-window-card').then(m => ({default: m.FocusWindowCard})));
 const PriceAlertsTodayCard = lazy(() => import('../price-alerts/price-alerts').then(m => ({default: m.PriceAlertsTodayCard})));
 import {ForYou, TODAY_FOR_YOU_OPEN, type ForYouCard} from './for-you';
+import {useKeepCard} from '../keep-data/use-keep-card';
 import {useGuide} from '../coach/use-guide';
 import {useReminders} from '../reminders/use-reminders';
 import {GuideCard} from '../coach/guide-card';
@@ -126,8 +129,9 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   // Session AF (L5b, H104's rule for Today on a phone): the Day Timeline and My Universe are For you cards, and Stories' door
   // joins only while the week's story is ready and unopened; on a phone they wait behind "Show more" like every For you card.
   const storiesCard = useTodayStoriesCard({habits, health, platform, today});
-  const priceAlerts = useDeviceRecord(PRICE_ALERTS), focusPrefs = useUiPrefs();
+  const priceAlerts = useDeviceRecord(PRICE_ALERTS), focusPrefs = useUiPrefs(), keep = useKeepCard(showcase);
   const cards: ForYouCard[] = [];
+  if (keep.card) cards.push({id: 'keep-data', priority: 2.2, node: <LoadBoundary quiet><Suspense fallback={null}><KeepDataCard/></Suspense></LoadBoundary>});
   if (fasting.loaded && fasting.running) cards.push({id: 'fasting', priority: 1, node: <FastingLine running={fasting.running} now={fasting.now} />});
   if (whatsNew) cards.push({id: 'whats-new', priority: 2, node: <LoadBoundary quiet><Suspense fallback={null}><WhatsNewCard onDismiss={dismissNew} /></Suspense></LoadBoundary>});
   if (review.loaded && !review.unreadable) { const state = reviewOpen; if (state === 'due' || state === 'draft') cards.push({id: 'weekly-review', priority: 3, node: <WeeklyReviewCard store={review} weekStart={window.weekStart} weekEnd={window.weekEnd} summary={summary} financial={financial} formatWealth={formatWealth} onDone={setReviewNote} guideNote={guideNote} />}); }
@@ -136,11 +140,15 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (storiesCard.state === 'shown') cards.push({id: 'stories', priority: 4.6, node: <TodayStoriesCard loggedDays={storiesCard.loggedDays} />});
   cards.push({id: 'universe', priority: 6.5, node: <TodayUniverseCard />});
   // Session AI (feature 6): the journal and today's energy, with ZIGi's one question.
+  // Session AV (1c, q4 #33): the journal's line for the day sits with Today's glance lines (components/dashboard/
+  // today-dashboard.tsx), so the card keeps its place; raising the whole card took Showcase Today past its 90 Tab stops (D-028).
   cards.push({id: 'journal', priority: 6.6, node: <TodayJournalCard />});
   // Session AI (tasks with a priority and a due date): one-off things to do, overdue and today's first.
   cards.push({id: 'tasks', priority: 6.4, node: <TodayTasksCard />});
   // Session AJ (item 15, D9): a reached price alert comes near the top; waiting ones lower down.
-  if (priceAlerts.loaded && !priceAlerts.unreadable && priceAlerts.data.alerts.some(a => a.active || (a.firedAt && !a.seenAt))) cards.push({id: 'price-alerts', priority: priceAlerts.data.alerts.some(a => a.firedAt && !a.seenAt) ? 2.5 : 6.3, node: <LoadBoundary quiet><Suspense fallback={null}><PriceAlertsTodayCard /></Suspense></LoadBoundary>});
+  // Session AV (1c, q2 #35): a portfolio-value alert counts too, waiting or fired and unseen (lib/price-alerts/engine.ts alertsForToday).
+  const allAlerts = priceAlerts.loaded && !priceAlerts.unreadable ? [...priceAlerts.data.alerts, ...(priceAlerts.data.portfolio ?? [])] : [];
+  if (allAlerts.some(a => a.active || (a.firedAt && !a.seenAt))) cards.push({id: 'price-alerts', priority: allAlerts.some(a => a.firedAt && !a.seenAt) ? 2.5 : 6.3, node: <LoadBoundary quiet><Suspense fallback={null}><PriceAlertsTodayCard /></Suspense></LoadBoundary>});
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});
   if (insights.cards.length) cards.push({id: 'insights', priority: 6, node: <InsightsCard {...insights} />});

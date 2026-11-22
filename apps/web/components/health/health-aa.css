@@ -336,3 +336,17 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 @media (hover: hover) and (pointer: fine) { :root :where(.health-page) .panel:not(.health-aa-card):hover, :root :where(.health-page) .health-aa-card:hover { border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent)); } }
 :root :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible), :root :where(.health-page) .health-aa-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.health-page) .panel:not(.health-aa-card), :root :where(.health-page) .health-aa-card { box-shadow: none; } }
+/* Session AU (ADR-044 T-8, the rehearsal's Tom at 390): a recent scan's two buttons left its name almost no room, so
+   "Use this barcode" covered the product's name; on a narrow screen the buttons go under the name. */
+@media (max-width: 520px) {
+  :root .health-micro-list > li { grid-template-columns: minmax(0, 1fr); }
+}
+/* Session AV follow-up 1 (F-HIGH-IN): the offline library's foods high in a nutrient. */
+.health-rich-library { display: grid; gap: 6px; margin-top: 8px; min-width: 0; overflow-wrap: anywhere; }
+.health-rich-library h4, .health-rich-library p { margin: 0; }
+/* Session AV follow-up 1 (F-REPEAT-PLAN): the weekdays a planned meal repeats on. */
+.health-repeat-days { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.health-repeat-days legend { font-weight: 600; margin-bottom: 4px; }
+.health-repeat-days .checkbox { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+/* Session AV (F-NUTRIENT-RANGE): the nutrient report's own dates. */
+.nutrient-range { display: flex; flex-wrap: wrap; gap: 8px 12px; }

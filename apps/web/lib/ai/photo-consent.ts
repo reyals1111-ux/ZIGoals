@@ -1,4 +1,4 @@
-import {GUARDED_PHOTO_REFUSAL, isOllamaCloudModel, sendDecision, STRICT_REFUSAL} from './privacy-mode';
+import {isOllamaCloudModel, photoRefusal, sendDecision, STRICT_REFUSAL} from './privacy-mode';
 import {PROVIDERS, type ProviderId} from './providers';
 import type {PrivacyMode} from '../nova/setup';
 
@@ -15,7 +15,7 @@ export function photoDestination(target: PhotoTarget, mode: PrivacyMode | null):
   const local = provider === 'local' && !cloudOllama;
   const name = !provider ? 'your AI' : cloudOllama ? 'Ollama’s cloud (ollama.com)' : provider === 'local' ? (localServer === 'ollama' ? 'Ollama on this computer' : 'your local model on this computer') : PROVIDERS[provider].name;
   const decision = sendDecision(mode, {provider, model});
-  return {name, local, refusal: decision === 'refuse' ? STRICT_REFUSAL : decision === 'redact' ? GUARDED_PHOTO_REFUSAL : null};
+  return {name, local, refusal: decision === 'refuse' ? STRICT_REFUSAL : decision === 'redact' ? photoRefusal(mode) : null};
 }
 /** The line above the photo: what it goes to, and what a sheet or receipt often shows. */
 export function photoSendLine(what: 'lab sheet' | 'receipt', destination: {name: string; local: boolean}): string {

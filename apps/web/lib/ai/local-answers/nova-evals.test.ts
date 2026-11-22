@@ -8,7 +8,7 @@ import {runTool} from '../tools/registry';
 import {localAnswer} from './engine';
 import {examplesFor} from './examples';
 import {NOVA_EVALS, type NovaEvalCase} from './nova-evals';
-import {novaEnvInfo, novaWording} from './nova-env';
+import {ALLOW_HEALTH_CARD, novaEnvInfo, novaWording} from './nova-env';
 import {TONE_FORBIDDEN} from './words';
 
 /**
@@ -78,7 +78,8 @@ test('ZIGi stays exactly as it was: the same questions on ZIGi\'s environment, a
   const zigi = toolEnv(sources(), gatesFor(true), 'local'), closed = toolEnv(sources(), gatesFor(false), 'local');
   expect(novaEnvInfo(zigi)).toBeNull(); expect(novaEnvInfo(nova())).not.toBeNull();
   for (const q of ['How far am I on my goals?', 'What is due today?', 'Hoe gaat het met mijn doelen?', 'Hoe heb ik deze week geslapen?', 'Welke gewoontes zijn vandaag nog open?', 'How is my day?', 'What’s left for today?']) expect(localAnswer(q, zigi).kind, q).toBe('none');
-  expect(localAnswer('How did I sleep last night?', closed)).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED});
+  // Session AU (D-ALLOW-HEALTH, deliberate): ZIGi's Health-closed reply is the same sentence plus its one button (the open-page card to Settings → ZIGi), still matched whole.
+  expect(localAnswer('How did I sleep last night?', closed)).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED + ALLOW_HEALTH_CARD});
   // The wording itself: a reply that is not a refusal keeps its words, apart from who it is shared with.
   expect(novaWording({kind: 'answer', text: 'Steps 10. Health isn\'t shared with ZIGi.', calls: []}, {healthScope: false, healthGate: true})).toMatchObject({text: 'Steps 10. Health isn\'t shared with NOVA.'});
   expect(novaWording({kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []}, {healthScope: true, healthGate: true})).toMatchObject({text: 'Paused on this private screen: NOVA reads nothing here.'});

@@ -4,7 +4,15 @@ import {createHabit, emptyHabitData, HABITS_KEY} from '../../lib/habits';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../../lib/ai/settings';
 import {NOVA_SETUP_KEY} from '../../lib/nova/setup';
 import {TASKS_KEY} from '../../lib/tasks/schema';
-import {openNovaConversation} from '../nova-am';
+import {openNovaConversation, withEarlierWidgets} from '../nova-am';
+import {readFile} from 'node:fs/promises';
+import {buildShowcase} from '../../lib/showcase-data';
+import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../lib/dashboard-settings';
+import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../../lib/whats-new';
+import {AI_OPTIONS_KEY} from '../../lib/ai/store/keys';
+import {NOVA_BRIEFS_KEY} from '../../lib/nova/briefs';
+import {NOVA_WORKFLOWS_KEY} from '../../lib/nova/workflows/schema';
+import {openAllSettingsGroups} from '../settings-open';
 
 /**
  * Session AK, lane WB (WIRING_AUDIT_2.md N10 + N11): journey 12, NOVA from a fresh start. A person who has one habit and
@@ -211,5 +219,97 @@ test('@journey 12 NOVA: first planets, on-device answers, a MOCK local brain, a 
   await expect(reply).toContainText('Health is off for NOVA, so nothing from Health is read here.');
   expect((await stored<{scopes?: {health?: boolean}}>(page, NOVA_SETUP_KEY))?.scopes?.health).toBe(false);
 
+  expect(stray).toEqual([]);
+});
+
+/**
+ * Session AV (PK-1, WIRING_AUDIT_2 N10's remaining steps): journey 12b, the rest of NOVA's path in one run, as a person
+ * meets it after the first planets: the morning brief and the evening recap (made on the device, marked read), a workflow
+ * with a MOCK local model (its card added and taken back with Undo), a page handed to ZIGi with the Duo on the dashboard,
+ * the shared setup file (no personal words in it), and Erase everything (NOVA's own records gone with the rest). Each step
+ * passes in its own spec (nova-workflows, nova-wa, nova-dashboard, j06); this is the one journey through all of them.
+ * Fictional Showcase records; the MOCK model answers on 127.0.0.1:1234; no request leaves for a real host.
+ */
+test('@journey 12b NOVA: a brief, a workflow with Undo, ZIGi on a page with the Duo, the shared setup, and Erase everything', async ({page}) => {
+  test.setTimeout(180_000);
+  const BASE = 'http://127.0.0.1:1234', DAY = '2026-09-20';
+  await offlineApis(page);
+  const sent: Body[] = [];
+  await page.route(`${BASE}/**`, route => {
+    const url = route.request().url();
+    if (url.endsWith('/v1/models')) return route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({object: 'list', data: [{id: 'mock-chat'}]})});
+    if (url.endsWith('/v1/chat/completions')) {
+      const body = JSON.parse(route.request().postData() ?? '{}') as Body; sent.push(body);
+      const system = body.messages.filter(m => m.role === 'system').map(m => String(m.content)).join('\n');
+      return route.fulfill({status: 200, contentType: 'text/event-stream', body: stream(system.includes('You are on Health:') ? 'Water was steady most days this week.' : 'A steady week. Your habits held and a goal step is coming up.')});
+    }
+    return route.fulfill({status: 404, body: ''});
+  });
+  const stray = strayRequests(page, url => url.origin === BASE);
+  await page.clock.install({time: '2026-09-20T19:00:00.000Z'});
+  await page.goto('/app/settings'); await hydrated(page);
+  const base = defaultAiSettings();
+  await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
+    ...buildShowcase(DAY).records,
+    [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}),
+    [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
+    'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}),
+    'zigoals:nova:v1': JSON.stringify(withEarlierWidgets({version: 1, openingSeen: true})),
+    [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'}),
+    [AI_SETTINGS_KEY]: JSON.stringify({...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, includeHealth: true, pageShare: {...base.pageShare, health: true}}),
+  });
+
+  // 1. The briefs: made on the device, kept, and the recap marked read when opened.
+  await page.goto('/app/nova#briefs'); await hydrated(page);
+  const briefs = page.locator('#briefs');
+  await expect(briefs.getByText(/Morning brief ·/).first()).toBeVisible();
+  await briefs.getByText(/Evening recap ·/).first().click();
+  await expect.poll(async () => ((await stored<{briefs: {kind: string; readAt?: string}[]}>(page, NOVA_BRIEFS_KEY))?.briefs ?? []).some(b => b.kind === 'evening' && !!b.readAt)).toBe(true);
+
+  // 2. A workflow with the MOCK local model: the words are the model's; its card is added, then taken back with Undo.
+  await page.goto('/app/nova#nova-workflows'); await hydrated(page);
+  await page.getByRole('region', {name: 'Workflows'}).getByRole('button', {name: 'Run Review my week and suggest three adjustments'}).click();
+  const run = page.getByRole('region', {name: 'Review my week and suggest three adjustments'});
+  await expect(run.getByText('A steady week.')).toBeVisible({timeout: 20_000});
+  const cards = run.getByLabel('Cards from Review my week and suggest three adjustments');
+  await cards.getByRole('button', {name: /^(Add|Apply)$/}).click();
+  const undo = page.locator('.aa-toast').getByRole('button', {name: /^Undo/});
+  await undo.click();
+  await expect.poll(() => page.evaluate(k => localStorage.getItem(k) ?? '', 'zigoals:ai-actions:v1')).not.toContain('review-intention');
+  expect((await stored<{runs: Record<string, unknown>}>(page, NOVA_WORKFLOWS_KEY))?.runs['review-week']).toBeTruthy();
+
+  // 3. A page handed to ZIGi: ZIGi answers from Health, and the Duo shows both on the dashboard, then the report.
+  await page.goto('/app/nova'); await hydrated(page);
+  await page.locator('.nova-orb-button').click();
+  const chat = page.locator('section.nova-chat'), box = chat.getByRole('textbox', {name: /^Message /});
+  await expect(async () => { await box.fill('Write me a kind note about my water this week.'); await expect(chat.getByRole('button', {name: 'Ask ZIGi about a page'})).toBeEnabled({timeout: 1_000}); }).toPass({timeout: 15_000});
+  await chat.getByRole('button', {name: 'Ask ZIGi about a page'}).click();
+  await chat.getByLabel('Page', {exact: true}).selectOption('health');
+  await chat.getByRole('button', {name: 'Let ZIGi answer here'}).click();
+  await expect(chat.locator('.nova-turn-zigi').last()).toContainText('Water was steady', {timeout: 20_000});
+  const duo = page.getByRole('region', {name: 'NOVA and ZIGi'});
+  await expect(duo.locator('[aria-current=step]')).toHaveText('Reported back');
+  await chat.getByRole('button', {name: 'New chat'}).click();
+  await expect(duo).toHaveCount(0);
+
+  // 4. The setup, shared as a file: its look and persona, none of the person's words or records.
+  await page.getByRole('button', {name: 'Customize the view'}).click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', {name: 'Save the setup file'}).click();
+  const file = await readFile((await (await download).path())!, 'utf8');
+  expect(JSON.parse(file).kind).toBe('zigoals-nova-setup');
+  for (const personal of ['Water was steady', 'A steady week', 'customInstructions', 'baseUrl', '127.0.0.1']) expect(file).not.toContain(personal);
+  await page.getByRole('button', {name: 'Close Make NOVA yours'}).click();
+
+  // 5. Erase everything: NOVA's own records (its page, briefs, workflow runs, the setup) go with the rest.
+  await page.goto('/app/settings#erase-everything'); await hydrated(page); await openAllSettingsGroups(page);
+  const erase = page.locator('#erase-everything');
+  await erase.getByRole('button', {name: 'Erase everything…', exact: true}).click();
+  await erase.getByLabel('Type ERASE to confirm').fill('ERASE');
+  await erase.getByRole('button', {name: 'Erase everything', exact: true}).click();
+  await expect(erase.getByRole('status')).toContainText(/^Erased \d+ records and \d+ stores from this browser\./, {timeout: 20_000});
+  const left = await page.evaluate(() => Object.keys(localStorage).filter(k => /^zigoals:(nova|ai)/.test(k)));
+  expect(left).toEqual([]);
+  expect(sent.length).toBeGreaterThan(0);
   expect(stray).toEqual([]);
 });

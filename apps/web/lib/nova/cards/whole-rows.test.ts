@@ -83,3 +83,41 @@ describe('which rows show, and the last line\'s words', () => {
     expect(moreWords(4, {shown: 0})).toBe('4 not shown here');
   });
 });
+
+// Session AV (ADR-045 D36): the halving search answers exactly as the row-by-row walk it replaced, with fewer questions.
+function walk(lists: readonly {rows: number; min?: number}[], fits: (shown: readonly number[]) => boolean): number[] {
+  const all = lists.map(l => Math.max(0, Math.floor(l.rows))), shown = [...all];
+  if (!shown.some(n => n > 0) || fits(shown)) return shown;
+  let fitted = false;
+  for (let j = lists.length - 1; j >= 0 && !fitted; j--) {
+    const min = Math.min(shown[j]!, Math.max(0, Math.floor(lists[j]!.min ?? 0)));
+    while (shown[j]! > min && !fitted) { shown[j] = shown[j]! - 1; fitted = fits(shown); }
+  }
+  if (!fitted) return shown;
+  for (let j = 0; j < lists.length; j++) while (shown[j]! < all[j]!) { shown[j] = shown[j]! + 1; if (!fits(shown)) { shown[j] = shown[j]! - 1; break; } }
+  return shown;
+}
+describe('Session AV (D36): halving instead of walking', () => {
+  it('gives the walk\'s counts on 4,000 random panels (stacked and side by side, uneven rows, minimums)', () => {
+    let seed = 7;
+    const rnd = (n: number) => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n; };
+    for (let t = 0; t < 4000; t++) {
+      const n = 1 + rnd(3), totals = Array.from({length: n}, () => rnd(14)), lists = totals.map(rows => ({rows, ...(rnd(3) === 0 ? {min: rnd(4)} : {})}));
+      const heights = totals.map(r => Array.from({length: r}, () => 20 + rnd(40))), line = 18 + rnd(12), room = rnd(700);
+      const used = (shown: readonly number[], i: number) => heights[i]!.slice(0, shown[i]).reduce((a, b) => a + b, 0) + (shown[i]! < totals[i]! ? line : 0);
+      const stacked = (shown: readonly number[]) => shown.reduce((h, _, i) => h + used(shown, i), 0) <= room;
+      const columns = (shown: readonly number[]) => shown.every((_, i) => used(shown, i) <= room / n);
+      for (const fits of [stacked, columns]) {
+        let asked = 0;
+        const counted = (shown: readonly number[]) => { asked++; return fits(shown); };
+        expect(fitWholeRows(lists, counted), JSON.stringify({totals, lists, room})).toEqual(walk(lists, fits));
+        expect(asked).toBeLessThanOrEqual(2 * totals.reduce((a, b) => a + b, 0) + 1);
+      }
+    }
+  });
+  it('asks far fewer questions than one per row on a long list', () => {
+    const p = panel([40], 300);
+    expect(fitWholeRows([{rows: 40}], p.fits)).toEqual([6]); // six rows (264) and the line (26) in 300
+    expect(p.asked()).toBeLessThanOrEqual(9);
+  });
+});

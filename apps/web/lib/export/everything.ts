@@ -100,6 +100,8 @@ import {AP_EXPORT_KEYS} from '../ap-device-keys';
 import {AM_EXPORT_KEYS} from '../am-device-keys';
 import {AM2_EXPORT_KEYS} from '../am2-device-keys';
 import {AR_EXPORT_KEYS} from '../ar-device-keys';
+import {AU_EXPORT_KEYS} from '../au-device-keys';
+import {AV_EXPORT_KEYS} from '../av-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -235,7 +237,11 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AM-2 (lib/am2-device-keys.ts): NOVA's "Sent out from this device" history.
   ...AM2_EXPORT_KEYS,
   // Session AR (lib/ar-device-keys.ts): whether "Your orbits" shows on Today.
-  ...AR_EXPORT_KEYS} as const;
+  ...AR_EXPORT_KEYS,
+  // Session AU (lib/au-device-keys.ts; ADR-044 F-MEAL): meals logged in words alone.
+  ...AU_EXPORT_KEYS,
+  // Session AV (lib/av-device-keys.ts; ADR-045 F-COUNTDOWN-YEARLY): yearly countdowns and their reminders.
+  ...AV_EXPORT_KEYS} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
@@ -261,8 +267,8 @@ export type EverythingJson = {
 };
 export type Collected = {json: EverythingJson; csv: Record<CsvFileName, string>; unreadable: string[]; warnings: string[]};
 const CSV_HEADERS: Record<CsvFileName, string[]> = {
-  'goals.csv': ['source', 'id', 'name', 'type', 'status', 'asset', 'decimals', 'target', 'target_date', 'category', 'created_at_utc', 'plan_amount', 'plan_asset', 'plan_cadence', 'plan_next_date', 'plan_active', 'notes'],
-  'contributions.csv': ['id', 'goal_id', 'goal_scope', 'direction', 'quantity', 'asset', 'decimals', 'occurred_at_utc', 'provenance', 'funding_mode', 'scheduled_date', 'position_id', 'reverses_id', 'note'],
+  'goals.csv': ['source', 'id', 'name', 'type', 'status', 'asset', 'decimals', 'target', 'target_date', 'category', 'created_at_utc', 'plan_amount', 'plan_asset', 'plan_cadence', 'plan_next_date', 'plan_active', 'notes', 'target_amount'],
+  'contributions.csv': ['id', 'goal_id', 'goal_scope', 'direction', 'quantity', 'asset', 'decimals', 'occurred_at_utc', 'provenance', 'funding_mode', 'scheduled_date', 'position_id', 'reverses_id', 'note', 'quantity_amount'],
   'habits.csv': ['id', 'title', 'category', 'type', 'measurement', 'unit', 'target', 'target_period', 'schedule', 'state', 'start_date', 'time_of_day', 'goal_link', 'created_at_utc', 'updated_at_utc', 'description', 'notes'],
   'check-ins.csv': ['habit_id', 'habit_title', 'date', 'count', 'disposition', 'mood', 'note', 'updated_at_utc', 'source', 'auto_applied_at'],
   'health-diary.csv': ['record_id', 'date', 'kind', 'name', 'meal', 'quantity', 'unit', 'serving_weight_g', 'kcal_per_serving', 'protein_mg_per_serving', 'carbs_mg_per_serving', 'fat_mg_per_serving', 'source', 'created_at_utc', 'updated_at_utc'],
@@ -316,8 +322,20 @@ export async function readEverything(storage: Storage): Promise<{texts: Everythi
   return {texts, localSimulation: exportLocalSimulation(storage)};
 }
 
+/**
+ * Session AU (ADR-044 L-5, the rehearsal's Lina and Jules): goals.csv and contributions.csv keep amounts in base units with
+ * a decimals column (a €3,000 target is "300000", 2), which a spreadsheet shows as 300,000. The last column now carries the
+ * same amount as a plain decimal ("3000.00"); the base-unit columns are unchanged, so nothing that reads them moves.
+ */
+export function unitsToDecimal(units: string | number | null | undefined, decimals: number | null | undefined): string {
+  const text = units === null || units === undefined ? '' : String(units).trim();
+  if (!/^-?\d+$/.test(text) || typeof decimals !== 'number' || !Number.isInteger(decimals) || decimals < 0 || decimals > 36) return '';
+  const negative = text.startsWith('-'), digits = (negative ? text.slice(1) : text).padStart(decimals + 1, '0');
+  const whole = digits.slice(0, digits.length - decimals).replace(/^0+(?=\d)/, ''), fraction = digits.slice(digits.length - decimals);
+  return `${negative ? '-' : ''}${whole}${decimals ? `.${fraction}` : ''}`;
+}
 function goalRows(platform: Platform | null, localSimulation: LocalSimulationExport, warnings: string[]): Cell[][] {
-  const rows: Cell[][] = (platform?.goals ?? []).map(g => ['private', g.id, g.name, g.type, g.status, g.asset, g.decimals, g.target, g.targetDate ?? '', g.category ?? '', g.createdAt, g.plan?.amount ?? '', g.plan?.asset ?? '', g.plan?.cadence ?? '', g.plan?.nextDate ?? '', g.plan ? String(g.plan.active) : '', g.notes]);
+  const rows: Cell[][] = (platform?.goals ?? []).map(g => ['private', g.id, g.name, g.type, g.status, g.asset, g.decimals, g.target, g.targetDate ?? '', g.category ?? '', g.createdAt, g.plan?.amount ?? '', g.plan?.asset ?? '', g.plan?.cadence ?? '', g.plan?.nextDate ?? '', g.plan ? String(g.plan.active) : '', g.notes, unitsToDecimal(g.target, g.decimals)]);
   if (localSimulation) {
     try {
       const section = localSimulationSchema.parse(JSON.parse(localSimulation.section));
@@ -326,7 +344,7 @@ function goalRows(platform: Platform | null, localSimulation: LocalSimulationExp
         const ids = [...new Set([...(ledger?.goals.map(g => g.id) ?? []), ...Object.keys(plans?.goals ?? {})])];
         for (const id of ids) {
           const goal = ledger?.goals.find(g => g.id === id), plan = plans?.goals[id];
-          rows.push(['local-simulation', id, plan?.name ?? '', 'legacy', goal?.status ?? '', goal?.base_denom ?? '', '', plan?.targetValue ?? '', plan?.targetDate ?? '', plan?.category ?? '', goal?.created_at ?? '', plan?.monthlyContribution ?? '', plan?.currency ?? '', plan ? 'monthly' : '', '', '', plan?.notes ?? '']);
+          rows.push(['local-simulation', id, plan?.name ?? '', 'legacy', goal?.status ?? '', goal?.base_denom ?? '', '', plan?.targetValue ?? '', plan?.targetDate ?? '', plan?.category ?? '', goal?.created_at ?? '', plan?.monthlyContribution ?? '', plan?.currency ?? '', plan ? 'monthly' : '', '', '', plan?.notes ?? '', plan?.targetValue ?? '']);
         }
       }
     } catch { warnings.push('Legacy simulation Goals could not be read for goals.csv; they are still in everything.json.'); }
@@ -384,7 +402,7 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   const applied = [...markers.values()].filter(a => !a.undone);
   const out: Record<CsvFileName, string> = {} as Record<CsvFileName, string>;
   out['goals.csv'] = csv(CSV_HEADERS['goals.csv'], goalRows(platform, localSimulation, warnings));
-  out['contributions.csv'] = csv(CSV_HEADERS['contributions.csv'], (platform?.contributions ?? []).map(c => [c.id, c.goalId, c.goalScope, c.direction, c.quantity, c.asset, c.decimals, c.occurredAt, c.provenance, c.fundingMode ?? '', c.scheduledDate ?? '', c.positionId ?? '', c.reversesId ?? '', c.note ?? '']));
+  out['contributions.csv'] = csv(CSV_HEADERS['contributions.csv'], (platform?.contributions ?? []).map(c => [c.id, c.goalId, c.goalScope, c.direction, c.quantity, c.asset, c.decimals, c.occurredAt, c.provenance, c.fundingMode ?? '', c.scheduledDate ?? '', c.positionId ?? '', c.reversesId ?? '', c.note ?? '', unitsToDecimal(c.quantity, c.decimals)]));
   out['habits.csv'] = csv(CSV_HEADERS['habits.csv'], (habits?.habits ?? []).map(h => { const rule = latestHabitRule(h); return [h.id, h.title, h.category, rule.type, rule.measurement.kind, 'unit' in rule.measurement ? rule.measurement.unit : '', rule.target, rule.targetPeriod, scheduleText(rule.schedule), rule.state, h.startDate, h.timeOfDay, h.goalLink ? `${h.goalLink.chainId}:${h.goalLink.goalId}` : '', h.createdAt, h.updatedAt, h.description, h.notes]; }));
   out['check-ins.csv'] = csv(CSV_HEADERS['check-ins.csv'], (habits?.habits ?? []).flatMap(h => h.entries.map(e => [h.id, h.title, e.date, e.count, e.disposition, e.mood ?? '', e.note, e.updatedAt, (e as {source?: string}).source ?? '', applied.find(a => a.habitId === h.id && a.date === e.date)?.appliedAt ?? ''])));
   out['health-diary.csv'] = health ? exportHealthCsv(health, '1900-01-01', '2199-12-31') : csv(CSV_HEADERS['health-diary.csv'], []);

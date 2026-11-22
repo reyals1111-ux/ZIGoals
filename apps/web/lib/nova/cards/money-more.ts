@@ -1,4 +1,5 @@
 import {formatUnits} from '@zigoals/chain-config';
+import {keptPlanOptions} from '../../debt-planner/kept';
 import {balanceOn, moneyText, netWorth, type Money} from '../../accounts/net-worth';
 import {isDebtKind, type Accounts} from '../../accounts/schema';
 import {parseAmountInput} from '../../amount-input';
@@ -110,7 +111,7 @@ export function accountsRows(card: AccountsCard, day: (date: string) => string, 
 }
 
 /* ---- Debt payoff plan (a projection of the person's own kept figures) ---- */
-export type PlanLine = {strategy: 'avalanche' | 'snowball' | 'minimums'; title: string; months: number | null; /** The month it would clear ("2029-02"), or null: not within 100 years. */ month: string | null; monthName: string | null; interest: string};
+export type PlanLine = {strategy: 'avalanche' | 'snowball' | 'minimums' | 'custom'; title: string; months: number | null; /** The month it would clear ("2029-02"), or null: not within 100 years. */ month: string | null; monthName: string | null; interest: string};
 export type DebtPlanCard = {
   /** 'empty': no debt with a balance; 'unkept': debts, but no figures kept for the planner; 'needs': a figure is missing; 'live'. */
   state: 'empty' | 'unkept' | 'needs' | 'live';
@@ -126,7 +127,7 @@ export type DebtPlanCard = {
   note: string | null;
 };
 export const PLAN_RULE = 'A projection from your own figures: it assumes the rates and payments stay the same and nothing new is borrowed. Not a promise, not advice.';
-const TITLES = {avalanche: 'Highest rate first', snowball: 'Smallest balance first', minimums: 'Minimums only'} as const;
+const TITLES = {avalanche: 'Highest rate first', snowball: 'Smallest balance first', minimums: 'Minimums only', custom: 'Your order'} as const;
 export function debtPlanCard(accounts: Accounts, planner: DebtPlannerRecord, today: string): DebtPlanCard {
   const by = new Map<string, {id: string; name: string; owed: bigint; rate?: string}[]>();
   for (const a of accounts.items) {
@@ -150,7 +151,8 @@ export function debtPlanCard(accounts: Accounts, planner: DebtPlannerRecord, tod
   }
   issue ??= planIssue(debts, extraCents ?? 0n);
   if (issue) return {...base, state: 'needs', issue};
-  const c = comparePlans(debts, extraCents ?? 0n);
+  // Session AV (F-DEBT-PLAN): the planner's kept one-off payments count here too, so the dates match the planner's.
+  const c = comparePlans(debts, extraCents ?? 0n, keptPlanOptions(planner, today, debts));
   const line = (r: PlanResult): PlanLine => { const month = payoffMonth(today, r.months); return {strategy: r.strategy, title: TITLES[r.strategy], months: r.months, month, monthName: month ? formatMonth(month) : null, interest: cash(r.totalInterest)}; };
   const firstOff = c.avalanche.payoffs[0], firstMonth = firstOff ? payoffMonth(today, firstOff.month) : null;
   return {...base, state: 'live', issue: null, extra: cash(extraCents ?? 0n), plans: [line(c.avalanche), line(c.snowball), line(c.minimums)],

@@ -3,7 +3,8 @@ import {useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {formatCurrencyAmount, formatDate} from '../../../lib/visual-format';
 import {MONEY_LOG, type MoneyLog} from '../../../lib/money-log/schema';
-import {BANK_FILE_TOO_LARGE, FORMAT_LABELS, MAX_BANK_FILE_BYTES, addEntries, alreadyLogged, decodeBankFile, parseBankFile, removeEntries, toMoneyEntries, type BankStatement, type BankTransaction, type RefusedRow} from '../../../lib/bankfiles';
+import {BANK_FILE_TOO_LARGE, FORMAT_LABELS, MAX_BANK_FILE_BYTES, addEntries, alreadyLogged, decodeBankFile, parseBankFile, previewCategory, removeEntries, toMoneyEntries, withChosenCategories, type BankStatement, type BankTransaction, type RefusedRow} from '../../../lib/bankfiles';
+import {CategoryPick} from './category-pick';
 import './bankfiles.css';
 // Session AK (lane M, items 1 and 10): the person's rules in the preview and on the added entries, and the review mark.
 import {MONEY_RULES, type MoneyRule} from '../../../lib/money-rules/schema';
@@ -21,15 +22,16 @@ import {MONEY_REVIEW, markForReview} from '../../../lib/money-review/review';
 const money = (amount: string, currency: string) => formatCurrencyAmount(amount, currency);
 const PREVIEW_ROWS = 200;
 
-export type BankImportViewProps = {log: Pick<MoneyLog, 'entries'>; onAdd: (rows: BankTransaction[]) => {added: number; refused: RefusedRow[]}; onUndo?: () => void; rules?: readonly MoneyRule[]};
+export type BankImportViewProps = {log: Pick<MoneyLog, 'entries'>; onAdd: (rows: BankTransaction[], categories: ReadonlyMap<number, string>) => {added: number; refused: RefusedRow[]}; onUndo?: () => void; rules?: readonly MoneyRule[]};
 const NO_RULES: readonly MoneyRule[] = [];
 export function BankFileImportView({log, onAdd, onUndo, rules = NO_RULES}: BankImportViewProps) {
   const id = useId();
   const [statement, setStatement] = useState<BankStatement | null>(null), [problem, setProblem] = useState(''), [status, setStatus] = useState('');
   const [included, setIncluded] = useState<ReadonlySet<number>>(new Set()), [later, setLater] = useState<RefusedRow[]>([]), [canUndo, setCanUndo] = useState(false);
+  const [categories, setCategories] = useState<ReadonlyMap<number, string>>(new Map());
   const logged = useMemo(() => new Set(statement?.transactions.filter(t => alreadyLogged(t, log) || loggedWithRules(t, log, rules)).map(t => t.index) ?? []), [statement, log, rules]);
   const read = async (file: File | undefined) => {
-    setProblem(''); setStatus(''); setStatement(null); setLater([]); setCanUndo(false);
+    setProblem(''); setStatus(''); setStatement(null); setLater([]); setCanUndo(false); setCategories(new Map());
     if (!file) return;
     if (file.size > MAX_BANK_FILE_BYTES) { setProblem(BANK_FILE_TOO_LARGE); return; }
     let text: string;
@@ -43,7 +45,7 @@ export function BankFileImportView({log, onAdd, onUndo, rules = NO_RULES}: BankI
   const chosen = statement?.transactions.filter(t => included.has(t.index)) ?? [];
   const add = () => {
     try {
-      const out = onAdd(chosen);
+      const out = onAdd(chosen, categories);
       setLater(out.refused); setCanUndo(out.added > 0);
       setStatus(`${out.added} ${out.added === 1 ? 'entry' : 'entries'} added to your money log${out.refused.length ? `; ${out.refused.length} could not be added (listed below)` : ''}.`);
       setStatement(null);
@@ -60,12 +62,13 @@ export function BankFileImportView({log, onAdd, onUndo, rules = NO_RULES}: BankI
       {statement.warnings.map(w => <p key={w} className="fine">{w}</p>)}
       {statement.transactions.length > 0 && <div className="bankfile-table-wrap"><table className="bankfile-table">
         <caption className="fine">Ticked rows are added. Possible repeats and rows already in your log start unticked.</caption>
-        <thead><tr><th scope="col">Add</th><th scope="col">Date</th><th scope="col">Payee</th><th scope="col">Amount</th><th scope="col">Note</th></tr></thead>
+        <thead><tr><th scope="col">Add</th><th scope="col">Date</th><th scope="col">Payee</th><th scope="col">Amount</th><th scope="col">Category</th><th scope="col">Note</th></tr></thead>
         <tbody>{statement.transactions.slice(0, PREVIEW_ROWS).map(t => <tr key={t.index}>
           <td><input type="checkbox" checked={included.has(t.index)} onChange={() => toggle(t.index)} aria-label={`Add ${t.payee || 'row'} ${t.amount} ${t.currency} on ${formatDate(t.date)}`}/></td>
           <td>{formatDate(t.date)}</td>
           <td className="bankfile-payee">{t.payee || '—'}{t.description && t.description !== t.payee && <span className="fine"> · {t.description}</span>}</td>
           <td className={t.direction === 'in' ? 'bankfile-in' : undefined}>{t.direction === 'in' ? '+' : '−'}{money(t.amount, t.currency)}</td>
+          <td><CategoryPick t={t} guess={previewCategory(t, rules)} chosen={categories.get(t.index)} onChoose={c => setCategories(current => new Map(current).set(t.index, c))}/></td>
           <td className="fine">{t.duplicate ? 'Possible repeat in this file' : logged.has(t.index) ? 'Already in your log' : ruleHint(t, rules) ?? ''}</td>
         </tr>)}</tbody>
       </table></div>}
@@ -86,9 +89,10 @@ export default function BankFileImport() {
   const rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   if (!log.loaded) return <p className="fine">Loading your money log…</p>;
   if (log.unreadable) return <p role="alert">This device&rsquo;s money log could not be read, so nothing can be added to it now. Its bytes are kept.</p>;
-  return <BankFileImportView log={log.data} rules={rules.data.rules} onAdd={rows => {
+  return <BankFileImportView log={log.data} rules={rules.data.rules} onAdd={(rows, categories) => {
     const out = toMoneyEntries(rows, log.data, new Date(), () => crypto.randomUUID());
-    const entries = applyRules(out.entries, rules.data.rules).entries; // Session AK (lane M): the rules, first match wins
+    // Session AK (lane M): the rules, first match wins; Session AV (L-6): then the categories chosen in the preview.
+    const entries = withChosenCategories(applyRules(out.entries, rules.data.rules).entries, out.indexes, categories);
     if (entries.length) log.update(current => addEntries(current, entries));
     if (entries.length) try { review.update(r => markForReview(r, entries.map(e => e.id))); } catch { /* the entries are added; only the review mark is missing */ }
     setLastIds(new Set(entries.map(e => e.id)));

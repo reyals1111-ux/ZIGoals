@@ -8,14 +8,15 @@ import {emptySleep} from '../../../sleep/schema';
 import {healthGroupIn} from '../../../vault/w-homes';
 import {formatNumber} from '../../../visual-format';
 import {durationMinutes, finished} from '../../../workouts/engine';
-import type {Workouts} from '../../../workouts/schema';
+import type {Workout, Workouts} from '../../../workouts/schema';
 import {stepsByDay} from '../../../nova/cards/steps';
 import {weightCard} from '../../../nova/cards/weight';
 import {durationWords, waterAmount} from '../../../nova/widgets/words';
+import {text as clean} from '../../tools/format';
 import {daysBetween} from '../../tools/range';
-import {dayWords, periodWords, resolvePeriod, type Period} from './period';
+import {dayWords, periodSpan, periodWords, resolvePeriod, type Period} from './period';
 import type {DayPoint, DayState} from './series';
-import {t} from './text';
+import {listWords, t} from './text';
 import {periodFor, trackAnswer, type Track} from './track';
 import type {Ask, Domain, Exact, ExactWidget, Lang, Query} from './types';
 
@@ -123,6 +124,9 @@ export function healthTrack(domain: Domain, health: HealthData, workouts: Workou
 export function healthAnswer(q: Query, health: HealthData, workouts: Workouts | null | undefined, today: string): Exact | null {
   const lang = q.lang;
   if (q.domain === 'health') return healthScan(q, health, workouts, today);
+  // Session AU (REHEARSAL R-2, R-3): what was lifted, and how far was run, from the workout log (GPX and file imports keep their distance).
+  if (q.domain === 'workouts' && LIFT_WORDS.test(q.read)) return liftAnswer(q, health, workouts, today);
+  if (q.domain === 'workouts' && DISTANCE_WORDS.test(q.read)) return distanceAnswer(q, workouts, today);
   const made = healthTrack(q.domain, health, workouts, today);
   if (!made) return null;
   const track = lang === 'nl' ? {...made, name: NL_NAME[q.domain] ?? made.name} : made;
@@ -171,4 +175,49 @@ export function healthScan(q: Query, health: HealthData, workouts: Workouts | nu
   const text = parts.length ? t(lang, `Your health, from what is recorded: ${parts.join('; ')}.`, `Je gezondheid, uit wat er is vastgelegd: ${parts.join('; ')}.`) + (missing.length ? t(lang, ` Nothing recorded for: ${missing.join(', ')}.`, ` Niets vastgelegd voor: ${missing.join(', ')}.`) : '')
     : t(lang, 'Nothing is recorded on Health yet.', 'Er is nog niets vastgelegd bij Health.');
   return {kind: 'answer', text, facts: {about: 'health', ask: q.ask, ...facts}, widgets: [{id: 'health-scan', fallback: 'health-hud'}], query: q, source: SOURCE[lang === 'nl' ? 1 : 0]};
+}
+
+/**
+ * Session AU (REHEARSAL R-2): "what did I lift today": the strength workouts of the period (today unless one is named), each
+ * exercise with its working sets (a warm-up set is not one) and its top weight, in the Health weight unit, from the workout
+ * log itself. Nothing that day: said so, with the last day something was lifted.
+ */
+export const LIFT_WORDS = /\b(?:lift|lifted|lifting|lifts|sets|reps|weights|getild|gelift)\b/;
+/** Session AU (REHEARSAL R-3): "how far did I run this week": distance, from the sets and from an imported file's summary. */
+export const DISTANCE_WORDS = /\b(?:how far|distance|km|kilometers|kilometres|kilometer|miles|ran|run|runs|jog|jogged|jogging|hoe ver|afstand|kilometers|gerend|hardgelopen|hardlopen)\b/;
+const RUN = /\b(?:run|ran|runs|running|jog|jogged|jogging|hardlopen|hardgelopen|gerend|rennen)\b/;
+const isRun = (w: Workout) => /run|jog|hardlo/i.test(`${w.name} ${w.imported?.sport ?? ''} ${w.fileImport?.sport ?? ''} ${w.exercises.map(e => `${e.exerciseId} ${e.name}`).join(' ')}`);
+/** A workout's distance in km: its sets', else the summary an imported file kept (never both, so nothing is counted twice). */
+export function workoutKm(w: Workout): number {
+  const sets = w.exercises.reduce((n, e) => n + e.sets.filter(x => x.done !== false).reduce((m, x) => m + (x.distanceKm ?? 0), 0), 0);
+  return sets > 0 ? sets : w.imported?.distanceKm ?? w.fileImport?.distanceKm ?? 0;
+}
+const km = (value: number) => `${formatNumber(Math.round(value * 100) / 100, {maximumFractionDigits: 2})} km`;
+function liftAnswer(q: Query, health: HealthData, workouts: Workouts | null | undefined, today: string): Exact {
+  const lang = q.lang, p = periodFor({...q, ask: 'done', shape: 'list'}, today, 'today'), unit = dailyData(health).preferences.weightUnit;
+  const lifted = (w: Workout) => w.exercises.some(e => e.measure === 'weight-reps' && e.sets.some(x => x.kind !== 'warmup' && (x.weightKg ?? 0) > 0));
+  const all = (workouts ? finished(workouts) : []).filter(lifted), hit = all.filter(w => p.days.includes(w.date)).sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+  const exercise = (e: Workout['exercises'][number]) => {
+    const sets = e.sets.filter(x => x.kind !== 'warmup' && (x.done !== false)), top = sets.reduce<typeof sets[number] | null>((best, x) => (x.weightKg ?? 0) > (best?.weightKg ?? -1) ? x : best, null);
+    return {name: clean(e.name), sets: sets.length, topKg: top?.weightKg ?? null, reps: top?.reps ?? null};
+  };
+  const rowsOf = (w: Workout) => w.exercises.filter(e => e.measure === 'weight-reps').map(exercise).filter(e => e.sets > 0);
+  const said = (w: Workout) => `${clean(w.name)} — ${rowsOf(w).map(e => `${e.name} ${e.sets} ${lang === 'nl' ? (e.sets === 1 ? 'set' : 'sets') : (e.sets === 1 ? 'set' : 'sets')}${e.topKg ? `, ${t(lang, 'top', 'zwaarst')} ${weightReadingText(Math.round(e.topKg * 1000), unit)}${e.reps ? ` × ${e.reps}` : ''}` : ''}`).join('; ')}`;
+  const facts = {about: 'workouts', ask: q.ask, period: {token: p.token, from: p.from, to: p.to}, workouts: hit.map(w => ({workout: clean(w.name), day: w.date, exercises: rowsOf(w)}))};
+  const widgets: ExactWidget[] = [{id: 'workouts'}], span = periodWords(p, lang, today), when = p.days.length === 1 ? ` (${dayWords(p.from, today)})` : '';
+  const out = (text: string): Exact => ({kind: 'answer', text, facts, widgets, query: q, source: t(lang, 'Your workout log', 'Je workoutlog')});
+  if (hit.length) return out(t(lang, `Lifted ${span}${when}: ${hit.map(said).join('. ')}.`, `Getild ${span}${when}: ${hit.map(said).join('. ')}.`));
+  const last = all.find(w => w.date < p.from);
+  return out(t(lang, `Nothing lifted is logged ${span}${when}.`, `Er is ${span}${when} niets getild gelogd.`) + (last ? t(lang, ` Your last lifting day was ${dayWords(last.date, today)}: ${said(last)}.`, ` Je laatste keer was ${dayWords(last.date, today)}: ${said(last)}.`) : all.length ? '' : t(lang, ' No strength workout is logged yet.', ' Er is nog geen krachttraining gelogd.')));
+}
+function distanceAnswer(q: Query, workouts: Workouts | null | undefined, today: string): Exact {
+  const lang = q.lang, p = periodFor({...q, ask: 'total', shape: 'amount'}, today, 'this-week'), runs = RUN.test(q.read);
+  const all = (workouts ? finished(workouts) : []).filter(w => workoutKm(w) > 0 && (!runs || isRun(w))), hit = all.filter(w => p.days.includes(w.date)).sort((a, b) => a.date.localeCompare(b.date));
+  const total = hit.reduce((n, w) => n + workoutKm(w), 0), span = periodSpan(p, lang, today), what = runs ? (lang === 'nl' ? ['loop', 'loopjes'] : ['run', 'runs']) : ['workout', 'workouts'];
+  const facts = {about: 'workouts', ask: q.ask, period: {token: p.token, from: p.from, to: p.to}, km: Math.round(total * 100) / 100, count: hit.length, workouts: hit.map(w => ({workout: clean(w.name), day: w.date, km: Math.round(workoutKm(w) * 100) / 100, imported: !!(w.imported || w.fileImport)}))};
+  const out = (text: string): Exact => ({kind: 'answer', text, facts, widgets: [{id: 'workout-days', period: p.token, fallback: 'workouts'}], query: q, source: t(lang, 'Your workout log', 'Je workoutlog')});
+  const each = hit.map(w => `${km(workoutKm(w))} ${t(lang, 'on', 'op')} ${dayWords(w.date, today)}`);
+  if (hit.length) return out(t(lang, `${runs ? 'You ran' : 'Distance'} ${km(total)} ${span}, in ${hit.length} ${what[hit.length === 1 ? 0 : 1]}: ${listWords(each, 'en')}.`, `${runs ? 'Je liep' : 'Afstand'} ${km(total)} ${span}, in ${hit.length} ${what[hit.length === 1 ? 0 : 1]}: ${listWords(each, 'nl')}.`));
+  const last = all.find(w => w.date < p.from);
+  return out(t(lang, `No ${runs ? 'run' : 'distance'} is logged ${span}.`, `Er is ${span} geen ${runs ? 'loop' : 'afstand'} gelogd.`) + (last ? t(lang, ` The last one: ${dayWords(last.date, today)}, ${km(workoutKm(last))}.`, ` De laatste: ${dayWords(last.date, today)}, ${km(workoutKm(last))}.`) : ''));
 }

@@ -20,7 +20,7 @@
 .sleep-stats small { font-size: .875rem; line-height: 1.45; color: #bccae0; }
 .sleep-charts-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .sleep-charts-head h2 { margin: 0; }
-.sleep-range { display: flex; gap: 8px; }
+.sleep-range { display: flex; flex-wrap: wrap; gap: 8px; } /* Session AV (F-SLEEP-LONG): four ranges wrap on a 320 px phone */
 .sleep-range button { min-height: 44px; }
 .sleep-range button[aria-pressed="true"] { border-color: #7fdcff; box-shadow: 0 0 0 1px #7fdcff; }
 .sleep-chart { margin: 16px 0 0; }

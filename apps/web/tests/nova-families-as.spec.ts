@@ -97,7 +97,8 @@ for (const f of ASKED) test(`family: ${f.family} — "${f.ask}" makes its own wi
 
 // The families no answer of the Showcase makes in one step: pinned as an answer would make them.
 const PINNED: {family: string; kinds: Record<string, readonly string[]>}[] = [
-  {family: 'heat maps', kinds: {'spending-heat': ['€611.99', 'Nov 8']}},
+  // Session AU (ADR-044 D-SHOWCASE, deliberate): the Showcase's streaming bill adds €41.97 to the heat map's months.
+  {family: 'heat maps', kinds: {'spending-heat': ['€653.96', 'Nov 8']}},
   {family: 'stage bars', kinds: {'sleep-times': ['11:35']}},
   {family: 'vessels', kinds: {'water-week': ['14,500 mL', 'Target 2,000 mL']}},
 ];

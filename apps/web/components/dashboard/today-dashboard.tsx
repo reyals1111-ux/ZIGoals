@@ -16,10 +16,18 @@ const ChessTodayRefresh=lazy(()=>import('../chess/chess-today'));
 const TodayDeviceCards=lazy(()=>import('./today-device-cards'));
 const TodayWrapped=lazy(()=>import('./today-wrapped'));
 const TodayTasksDue=lazy(()=>import('../tasks/today-tasks-due'));
+// Session AV (owner follow-up 1, F-MONEY-ATTENTION): money that asks for a look, one line beside the tasks.
+const TodayMoneyAttention=lazy(()=>import('../wealth/today-money-attention'));
+// Session AV (1c, q4 #33): the journal's line for the day ("Written today · On this day"), beside the other glance lines.
+const TodayJournalLine=lazy(()=>import('../journal/today-journal-line'));
+// Session AV (owner follow-up 1, F-FOCUS-HABIT): today's focus habit, one line.
+const TodayHabitFocus=lazy(()=>import('../habits/today-habit-focus'));
 // Phase 2 (weights): the widget library opens with the Add widget dialog, the welcome card only on a new device: both chunks.
 const WidgetLibrary=lazy(()=>import('./widget-library').then(m=>({default:m.WidgetLibrary})));
 const MakeToday=lazy(()=>import('./make-today')),PresetChooser=lazy(()=>import('./preset-chooser'));
 const FirstFive=lazy(()=>import('../onboarding/first-five'));
+// Session AV Part 3 (ADR-045 D-KEEP): keeping the records on this device (iPhone Home Screen, a copy after new data); its own chunk, below the hero.
+const KeepDataCard=lazy(()=>import('../keep-data/keep-data-card'));
 const WelcomeCard=lazy(()=>import('../onboarding/welcome-card').then(m=>({default:m.WelcomeCard}))),FirstRunEntryCard=lazy(()=>import('../onboarding/welcome-card').then(m=>({default:m.FirstRunEntry})));
 const FirstRunEntry=({demoAvailable}:{demoAvailable:boolean})=><Suspense fallback={null}><FirstRunEntryCard demoAvailable={demoAvailable}/></Suspense>;
 // Session AK P4 (FIRST_RUN_REVIEW FR-4): "You're set" after the welcome, in the welcome card's place; its chunk loads only
@@ -172,7 +180,10 @@ export function TodayDashboard(){
  if(!welcomeDismissed&&!showcase&&storesReady&&!settings.data.onboarded&&!platform.data.goals.length&&!platform.data.positions.length&&!habits.data.habits.length&&!legacy.goals.length){try{brandNew=!getAccountScope()&&!onboardingSeen(window.localStorage)&&noExistingData(window.localStorage);}catch{brandNew=false;}}
  // Session AL (P-NB-08; NB-002, NB-033): with nothing recorded and no setup made, the setup entry is Today's one first
  // action (defined here, before the cards that step back for it; fourth pass: the destination panel's link is secondary).
- const emptyDevice=storesReady&&!showcase&&!brandNew&&!setupMade&&!habits.data.habits.length&&!platform.data.goals.length&&!platform.data.positions.length&&!legacy.goals.length;
+ // Session AU (ADR-044 F-3, the rehearsal's Sanne and Max): a person who finished the setup without a starter goal or habit
+ // was asked to "Set up ZIGoals in about a minute" again right above "Your first five"; once the setup is finished (onboarded),
+ // the first five is Today's one way on.
+ const emptyDevice=storesReady&&!showcase&&!brandNew&&!setupMade&&!settings.data.onboarded&&!habits.data.habits.length&&!platform.data.goals.length&&!platform.data.positions.length&&!legacy.goals.length;
  // Session AL (P-NB-10; NB-041): money cards ("Your goals", the destination panel) follow the pages the person shows too, so
  // a Habits and Health setup that left Goals and Wealth off sees no goal tiles (the PROTECTED hero itself is unchanged).
  const domains=visibleDomains(settings.data),financial=(domains.includes('wealth')&&isShown(pagesView,'wealth'))||(domains.includes('goals')&&isShown(pagesView,'goals'));
@@ -283,7 +294,7 @@ export function TodayDashboard(){
  function addAfter(ref:DashboardItemRef,region:DashboardRegion){setInsertAt({region,anchor:ref});setEditor('new');}
  function renderWidget(w:DashboardWidget,region:DashboardRegion,index:number){
   const metric=widgetMetric(w,sources),domain=WIDGET_CATALOG[w.kind].domain,habit=w.kind==='habit'?habits.data.habits.find(h=>h.id===w.entity):undefined,ref:DashboardItemRef={kind:'widget',id:w.id};
-  return <article id={`dashboard-widget-${w.id}`} className="dashboard-widget panel" data-domain={domain} data-size={w.size} data-hidden={w.hidden?'true':undefined} aria-label={metric.title}>
+  return <article id={`dashboard-widget-${w.id}`} className="dashboard-widget panel" data-domain={domain} data-body-figures={(w.kind==='health'&&(w.metric==='kcal'||w.metric==='weight'||w.metric==='macros'))||w.kind==='meal'||w.kind==='food-entry'?'':undefined}/* Session AV (F-HIDE-FIGURES) */ data-size={w.size} data-hidden={w.hidden?'true':undefined} aria-label={metric.title}>
    <span className="dashboard-widget-art" aria-hidden="true"><AppIcon name={domain==='wealth'?'wallet':domain} size={82} luminous/></span>
    <div className="dashboard-widget-heading"><AppIcon name={domain==='wealth'?'wallet':domain} luminous/><h3>{metric.title}</h3>{w.hidden&&<span className="pill">Hidden</span>}</div>
    {!loaded(domain)?<p role="status">Loading records…</p>:domainError(domain)?<p role="alert">This data needs attention. Open Settings to recover it.</p>:w.kind==='habits'?<HabitsToday/>:w.kind==='music'?<TodaySoundtrack/>:<><Metric metric={metric} identity={w.id} flow={w.kind==='wealth'&&!metric.missing}/>{habit&&w.metric==='today'&&<HabitCompletion habit={habit} store={habits} compact/>}{w.kind==='goals'&&!goalCardsOnToday&&<ul className="dashboard-goal-links">{active.slice(0,3).map(g=><li key={g.key}><Link href={g.href}>{g.name}</Link></li>)}{/* Session AL (NB-176, P-NB-53): the goals not listed are counted, not hidden */}{active.length>3&&<li><Link href="/app/goals">{`+${active.length-3} more`}</Link></li>}</ul>}</>}
@@ -396,8 +407,9 @@ export function TodayDashboard(){
    {/* Session AK RB (RELEASE_REVIEW_2 R2-11): "Make Today yours" waits until the welcome above is answered (they asked the same question one after the other). */}
    {!showcase&&!brandNew&&storesReady&&!hasRecords&&makeToday}
    {/* Session AP (friends Alpha): after setup, the first five steps (its own chunk; nothing stored but its "hide"). */}{!showcase&&!brandNew&&storesReady&&settings.loaded&&(setupMade||settings.data.onboarded)&&<Suspense fallback={null}><FirstFive goals={platform.data.goals.length+legacy.goals.length} habits={habits.data.habits.length} meals={health.data.diary.length}/></Suspense>}
+
    {!brandNew&&storesReady&&<TodayLine habits={habits.data} health={health.data} platform={platform.data} quotes={market.quotes} now={now} today={today} healthDate={sources.healthDate} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} financial={financial}/>}
-   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{/* Session AL fourth pass (PR-103, C-LS-09): tasks due today and task reminders */}<LoadBoundary quiet><Suspense fallback={null}><TodayTasksDue/></Suspense></LoadBoundary>{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
+   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{/* Session AL fourth pass (PR-103, C-LS-09): tasks due today and task reminders */}{habits.loaded&&!habits.error&&domains.includes('habits')&&<LoadBoundary quiet><Suspense fallback={null}><TodayHabitFocus data={habits.data} today={habits.today}/></Suspense></LoadBoundary>}<LoadBoundary quiet><Suspense fallback={null}><TodayTasksDue/></Suspense></LoadBoundary>{domains.includes('wealth')&&isShown(pagesView,'wealth')&&<LoadBoundary quiet><Suspense fallback={null}><TodayMoneyAttention/></Suspense></LoadBoundary>}<LoadBoundary quiet><Suspense fallback={null}><TodayJournalLine glance/></Suspense></LoadBoundary>{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
    {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
    {!brandNew&&<TodayChecklistCard/>}
    {/* Session AK G2 (RELEASE_REVIEW R11, SESSION_AK_F8 proposal 2): on a phone the widget area (most of Today's elements)
@@ -428,6 +440,7 @@ export function TodayDashboard(){
  </div>;
  return <HealthLinkContext.Provider value={healthLinkContext}><LayoutPage page="today" exit={false} unlocked={customize} onUnlockedChange={setCustomize} onReset={()=>apply(s=>resetDashboardPlacement(s),'Today is back to its default layout.')}>
   {layout({focus:null,main:null,end:null})}
+  {/* Session AV Part 3 (D-KEEP): with For you off (or a brand-new device, where only the Home Screen app's restore offer shows) the keep card stands on its own, below the hero. */}{!showcase&&storesReady&&(brandNew||!forYouOn)&&<Suspense fallback={null}><KeepDataCard fresh={brandNew}/></Suspense>}
   {forYouOn&&TodayForYou&&<LoadBoundary quiet><TodayForYou reviewOnToday={deviceCards.includes('review')} habits={habits.data} health={health.data} platform={platform.data} localGoals={legacy.goals} metadata={legacy.metadata?.goals??{}} quotes={market.quotes} now={now} today={today} financial={financial} showcase={showcase} render={parts=><>{focusPlace&&createPortal(parts.focus,focusPlace)}{mainPlace&&createPortal(parts.main,mainPlace)}{endPlace&&createPortal(parts.end,endPlace)}</>}/></LoadBoundary>}
  </LayoutPage></HealthLinkContext.Provider>;
 }

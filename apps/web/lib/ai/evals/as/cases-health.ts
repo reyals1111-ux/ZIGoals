@@ -120,4 +120,18 @@ export const HEALTH: readonly Intent[] = [
   {id: 'health-overall', pillar: 'health',
     en: ['how is my health', 'how is my health doing', 'hows my health'],
     nl: ['hoe is mijn gezondheid', 'hoe gaat het met mijn gezondheid']},
+  // Session AU (REHEARSAL R-2, R-3): what was lifted, and how far was run, from the workout log (Health; with the gate closed
+  // the Health-closed reply with its button: au-rehearsal.test.ts, with a fresh person's own workouts and a GPX import).
+  {id: 'au-r2-lift-today', pillar: 'health', never: ['On the stage', 'Day at a glance'],
+    en: ['What did I lift today?', 'what did i lift today'],
+    nl: ['Wat heb ik vandaag getild?']},
+  {id: 'au-r2-lift-yesterday', pillar: 'health',
+    en: ['what did I lift yesterday', 'what did i lift yesterday?'],
+    nl: ['wat heb ik gisteren getild']},
+  {id: 'au-r3-run-week', pillar: 'health', never: ['That isn’t something I can answer'],
+    en: ['How far did I run this week?', 'what distance did I run this week'],
+    nl: ['Hoe ver heb ik deze week hardgelopen?']},
+  {id: 'au-r3-run-lastweek', pillar: 'health',
+    en: ['how far did I run last week', 'how many km did I run last week'],
+    nl: ['hoe ver heb ik vorige week hardgelopen']},
 ];

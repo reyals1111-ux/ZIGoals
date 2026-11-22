@@ -1,3 +1,6 @@
+import {addLocalDays} from '../../local-date';
+import {targetSaid} from './al-more';
+import {minutesWords} from '../../tasks/minutes';
 import {formatClock, formatDate, formatNumber} from '../../visual-format';
 import type {ToolEnv} from '../tools/env';
 import {HEALTH_CLOSED} from '../tools/format';
@@ -25,11 +28,15 @@ const TASKS_DONE = /\bhow many tasks?\b.{0,25}\b(?:finish(?:ed)?|complete(?:d)?|
 const TASKS_PRIORITY = /\b(?:which|what|any|my)\b.{0,15}\btasks?\b.{0,25}\b(high|low|normal)[- ]priority\b|\b(high|low|normal)[- ]priority tasks?\b|\bwhich tasks? (?:is|are) (?:most )?(important|urgent)\b/i;
 const TASKS_NEXT = /\bwhat(?:'s| is) (?:my )?next (?:task|to-?do)\b|\bmy next (?:task|to-?do)\b|\bwhat(?:'s| is) next on my (?:task|to-?do) list\b/i;
 const TASKS_OVERDUE = /\b(?:any|which|what|how many)\b.{0,20}\boverdue\b|\boverdue tasks?\b/i;
+// Session AV (owner follow-up 1, F-DEADLINES): the deadlines, apart from the planned days.
+// Session AV (owner follow-up 1, F-TASK-MINUTES): how long the day's tasks take.
+const TASKS_MINUTES = /\b(?:how long|how much time)\b.{0,30}\b(?:tasks?|to-?dos?)\b|\b(?:tasks?|to-?dos?)\b.{0,30}\b(?:how long|minutes)\b/i;
+const TASKS_DEADLINE = /\b(?:tasks?|to-?dos?)\b.{0,25}\bdeadlines?\b|\bdeadlines?\b.{0,25}\b(?:tasks?|to-?dos?)\b/i;
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
 const dayIn = (iso: string, zone: string) => { try { return new Date(iso).toLocaleDateString('en-CA', {timeZone: zone}); } catch { return iso.slice(0, 10); } };
 function taskSubAnswer(q: string, env: ToolEnv): LocalReply | null {
-  const done = TASKS_DONE.test(q), prio = TASKS_PRIORITY.exec(q), next = TASKS_NEXT.test(q), overdue = TASKS_OVERDUE.test(q);
-  if (!done && !prio && !next && !overdue) return null;
+  const done = TASKS_DONE.test(q), prio = TASKS_PRIORITY.exec(q), next = TASKS_NEXT.test(q), overdue = TASKS_OVERDUE.test(q), deadline = TASKS_DEADLINE.test(q), minutes = TASKS_MINUTES.test(q);
+  if (!done && !prio && !next && !overdue && !deadline && !minutes) return null;
   const record = env.nova?.tasks, calls = [{tool: 'tasks', args: {}, label: 'Tasks'}];
   if (!record) return answer('tasks', {}, env, d => d.note ?? 'No task is kept on this device yet.');
   const today = env.habitDay, open = openTasks(record, today), when = (t: Task) => `${t.due ? `${t.due < today ? 'overdue since' : 'due'} ${formatDate(t.due)}` : 'no day'}${t.time ? ` at ${formatClock(t.time)}` : ''}`;
@@ -40,6 +47,15 @@ function taskSubAnswer(q: string, env: ToolEnv): LocalReply | null {
   if (prio) {
     const word = (prio[1] ?? prio[2] ?? 'high').toLowerCase() as TaskPriority, list = open.filter(t => t.priority === word);
     return {kind: 'answer', text: list.length ? [`${plural(list.length, `open ${word}-priority task`)}:`, ...list.slice(0, 8).map(t => `• ${t.title} — ${when(t)}`)].join('\n') : `No open task has ${word} priority.${open.length ? ` Your open tasks: ${open.slice(0, 4).map(t => `${t.title} (${t.priority})`).join(', ')}.` : ''}`, calls};
+  }
+  if (minutes) {
+    const day = /\btomorrow\b/i.test(q) ? addLocalDays(today, 1) : today, hit = open.filter(t => t.due === day && !t.parentId), timed = hit.filter(t => t.minutes), sum = timed.reduce((n, t) => n + t.minutes!, 0), when = day === today ? 'today' : 'tomorrow';
+    return {kind: 'answer', text: !hit.length ? `No open task is planned for ${when}.` : !timed.length ? `${plural(hit.length, 'task')} planned for ${when}, none with its minutes yet.` : [`About ${minutesWords(sum)} planned for ${when}${hit.length > timed.length ? ` (${hit.length - timed.length} more without a length)` : ''}:`, ...timed.slice(0, 8).map(t => `• ${t.title} — ${minutesWords(t.minutes!)}`)].join('\n'), calls};
+  }
+  if (deadline) {
+    const list = open.filter(t => t.deadline).sort((a, b) => a.deadline!.localeCompare(b.deadline!));
+    const by = (t: Task) => `${t.deadline! < today ? 'deadline passed' : 'deadline'} ${t.deadline === today ? 'today' : formatDate(t.deadline!)}${t.due ? `; planned ${formatDate(t.due)}` : ''}`;
+    return {kind: 'answer', text: list.length ? [`${plural(list.length, 'open task')} with a deadline:`, ...list.slice(0, 8).map(t => `• ${t.title} — ${by(t)}`)].join('\n') : `No open task has a deadline.${open.length ? ` ${plural(open.length, 'task')} open.` : ''}`, calls};
   }
   if (overdue) {
     const list = open.filter(t => t.due && t.due < today);
@@ -82,7 +98,7 @@ export function novaLocalAnswer(question: string, env: ToolEnv): LocalReply | nu
     const named = budget[1]?.toLowerCase(), rows = (d.budgets as Data[]).filter(r => !named || String(r.category).toLowerCase().includes(named));
     if (!rows.length) return `No budget is called "${budget[1]}". Your budgets: ${(d.budgets as Data[]).map(r => r.category).join(', ')}.`;
     const over = rows.filter(r => r.over);
-    return [`This month, from your own entries (per currency, never converted):`, ...rows.slice(0, 8).map(r => `• ${r.category}: ${r.spent} of ${r.available}${r.over ? ' — over' : `, ${r.left} left`}`), ...(named ? [] : [over.length ? `${plural(over.length, 'budget')} over.` : 'None is over.'])].join('\n');
+    return [`This month, from your own entries (per currency, never converted):`, ...rows.slice(0, 8).map(r => `• ${r.category}: ${r.spent} of ${r.available}${r.over ? ' — over' : `, ${r.left} left`}${targetSaid(r.target, 'en')}`), ...(named ? [] : [over.length ? `${plural(over.length, 'budget')} over.` : 'None is over.'])].join('\n');
   });
   return null;
 }

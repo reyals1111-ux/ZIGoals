@@ -28,8 +28,12 @@ async function openHabits(page: Page) {
   await expect(page.locator('details.habit-section')).toHaveCount(4);
   await expect(page.locator('[data-layout-item="habits:routines"] #habit-routines-title')).toHaveCount(1); // the Routines chunk is in
 }
-/** The Routines heading against the time-of-day groups, in one frame. */
-const place = (page: Page) => page.evaluate(() => {
+/** The Routines heading against the time-of-day groups, in one frame, once every move's glide has ended.
+ * Session AV (follow-up 2, 1b; equally strict): a move glides the blocks to their new places for 240 ms
+ * (components/layout-edit.tsx); under load the heading was read mid-glide, still at its old place (3,243 px against
+ * the groups' 1,583 px top, 1 of 8 runs with two busy cores). The same comparisons, at the blocks' resting places. */
+const place = (page: Page) => page.evaluate(async () => {
+  await Promise.all([...document.querySelectorAll('[data-layout-region="habits:body"]')].flatMap(el => el.getAnimations()).map(a => a.finished.catch(() => undefined)));
   const groups = [...document.querySelectorAll('details.habit-section')].map(g => g.getBoundingClientRect()), routines = document.getElementById('habit-routines-title')!.getBoundingClientRect();
   return {routines: routines.top, groupsTop: groups[0]!.top, groupsBottom: groups.at(-1)!.bottom};
 });

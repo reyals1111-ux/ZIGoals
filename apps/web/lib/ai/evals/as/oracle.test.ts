@@ -63,7 +63,13 @@ test('the money log: this month, yesterday, the largest entry, days without spen
   const cents = (list: typeof entries) => list.reduce((n, e) => n + Math.round(Number(e.amount) * 100), 0), spent = (from: string, to: string) => entries.filter(e => e.kind === 'expense' && e.currency === 'EUR' && e.date >= from && e.date <= to);
   expect(cents(spent('2026-11-01', DAY))).toBe(43559);
   expect(cents(spent('2026-11-16', '2026-11-16'))).toBe(5140);
-  expect(cents(spent('2026-10-01', '2026-10-31'))).toBe(17640);
+  // Session AU (D8, deliberate): October holds the Showcase's €13.99 streaming payment of 25 Oct (lib/showcase/au-examples.ts).
+  expect(cents(spent('2026-10-01', '2026-10-31'))).toBe(19039);
+  expect(spent('2026-10-01', '2026-10-31').filter(e => e.category === 'Subscriptions').map(e => [e.date, e.amount])).toEqual([['2026-10-25', '13.99']]);
+  const last = ask('how much did I spend last month', env).text, compare = ask('did I spend more this month than last month', env);
+  expect(last).toContain(`${(cents(spent('2026-10-01', '2026-10-31')) / 100).toFixed(2)} EUR last month`);
+  expect(compare.facts).toMatchObject({compare: {before: {from: '2026-10-01', to: '2026-10-31', cents: cents(spent('2026-10-01', '2026-10-31'))}}});
+  expect((ask('what did I spend most on last month', env).facts as {totalCents: number}).totalCents).toBe(cents(spent('2026-10-01', '2026-10-31')));
   expect(ask('how much did I spend yesterday', env).facts).toMatchObject({currency: 'EUR', totalCents: 5140});
   const top = ask('what did I spend the most on this month', env).facts as {totalCents: number; categories: {category: string; cents: number}[]};
   expect(top.totalCents).toBe(43559);
@@ -93,4 +99,60 @@ test('steps, workouts, the journal, focus and tasks, from their stored records',
   const overdue = tasks.filter(t => !t.doneAt && t.due && (t.due < DAY || (t.due === DAY && !!t.time && t.time < '19:00'))).map(t => t.title.replace(/^Example · /, ''));
   expect(overdue.sort()).toEqual(['Book the dentist', 'Sketch the garden bed']);
   expect((ask('which tasks are overdue', env).facts as {overdue: string[]}).overdue.sort()).toEqual(overdue.sort());
+});
+test('Session AU (D-ETA): the Emergency fund’s pace estimate, recomputed from the stored contributions, is the answer’s month; Japan has no pace yet', () => {
+  type Event = {goalId: string; direction: string; quantity: string; asset: string; decimals: number; occurredAt: string; provenance: string};
+  type Raw = {goals: {id: string; target: string; decimals: number}[]; positions: {id: string; decimals: number}[]; allocations: {goalId: string; positionId: string; quantity: string}[]; contributions: Event[]};
+  const platform = record('zigoals:platform:v1') as Raw, at = (day: string) => Date.parse(`${day}T12:00:00Z`) / 86_400_000;
+  /** The goal's own USD contributions as a running total by day (in minus out), the least-squares slope through them, and the day the remainder is covered. */
+  const pace = (id: string) => {
+    const own = platform.contributions.filter(e => e.goalId === id && e.asset === 'USD' && e.provenance !== 'REWARD_INCOME').sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
+    const byDay = new Map<string, number>(); let run = 0;
+    for (const e of own) { run += (e.direction === 'IN' ? 1 : -1) * Number(e.quantity) / 10 ** e.decimals; byDay.set(e.occurredAt.slice(0, 10), run); }
+    const xs = [...byDay.keys()].map(at), ys = [...byDay.values()], span = xs.length ? xs.at(-1)! - xs[0]! : 0;
+    if (xs.length < 3 || span < 14) return {state: 'not-enough' as const};
+    const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+    const slope = xs.reduce((n, x, i) => n + (x - mx) * (ys[i]! - my), 0) / xs.reduce((n, x) => n + (x - mx) ** 2, 0);
+    const goal = platform.goals.find(g => g.id === id)!, held = platform.allocations.filter(a => a.goalId === id).reduce((n, a) => n + Number(a.quantity) / 10 ** platform.positions.find(p => p.id === a.positionId)!.decimals, 0);
+    const days = Math.ceil((Number(goal.target) / 10 ** goal.decimals - held) / slope);
+    return {state: 'estimate' as const, held, slope, date: new Date((at(DAY) + days) * 86_400_000).toISOString().slice(0, 10)};
+  };
+  const emergency = pace('9201');
+  expect(emergency).toMatchObject({state: 'estimate', held: 9000, slope: 25});
+  expect(emergency.state === 'estimate' && emergency.date.slice(0, 7)).toBe('2028-01');
+  const a = ask('when will I reach my emergency fund', env);
+  expect(a.facts).toMatchObject({pace: 'estimate', estimateMonth: emergency.state === 'estimate' ? emergency.date.slice(0, 7) : null, targetDate: '2028-11-16'});
+  expect(a.text).toMatch(/^At your current pace, you reach Emergency fund about Jan \d{1,2}, 2028 — an estimate from your pace so far, not a promise\./);
+  expect(a.widgets).toEqual(['goal-focus']);
+  expect(pace('9203')).toEqual({state: 'not-enough'});
+  expect(ask('when will I reach my Japan adventure goal', env).facts).toMatchObject({pace: 'not-enough', estimate: null, targetDate: '2027-04-16'});
+});
+test('Session AU (REHEARSAL R-2, R-3): what was lifted and how far was run, from the raw workout log', () => {
+  type RawSet = {kind: string; weightKg?: number; reps?: number; distanceKm?: number; done: boolean};
+  type RawWorkout = {name: string; date: string; endedAt?: string; exercises: {name: string; measure: string; sets: RawSet[]}[]; imported?: {distanceKm?: number}};
+  const log = (record('zigoals:workouts:v1').workouts as RawWorkout[]).filter(w => w.endedAt);
+  // Yesterday's strength workout: each exercise's working sets (no warm-up) and its heaviest.
+  const yesterday = log.filter(w => w.date === '2026-11-16' && w.exercises.some(e => e.measure === 'weight-reps'));
+  const rows = yesterday.flatMap(w => w.exercises.map(e => { const sets = e.sets.filter(x => x.kind !== 'warmup'); return {name: e.name, sets: sets.length, top: Math.max(...sets.map(x => x.weightKg ?? 0))}; }));
+  expect(rows).toEqual([{name: 'Bench press', sets: 3, top: 62.5}, {name: 'Overhead press', sets: 2, top: 37.5}, {name: 'Triceps pushdown', sets: 2, top: 27.5}]);
+  expect(ask('what did I lift yesterday', env).facts).toMatchObject({workouts: [{workout: 'Push day', exercises: rows.map(r => ({name: r.name, sets: r.sets, topKg: r.top}))}]});
+  // Kilometres by the sets' distance (else an imported file's summary), per week.
+  const km = (from: string, to: string) => log.filter(w => w.date >= from && w.date <= to).reduce((n, w) => n + (w.exercises.flatMap(e => e.sets).reduce((m, x) => m + (x.distanceKm ?? 0), 0) || (w.imported?.distanceKm ?? 0)), 0);
+  expect(km('2026-11-09', '2026-11-15')).toBe(6);
+  expect(km('2026-11-16', DAY)).toBe(0);
+  expect(ask('how far did I run last week', env).facts).toMatchObject({km: 6, count: 1});
+  expect(ask('How far did I run this week?', env).facts).toMatchObject({km: 0, count: 0});
+});
+test('Session AU (D8, deliberate): the Showcase bill whose price stepped up, recomputed from the raw money log', () => {
+  type Raw = {id: string; kind: string; amount: string; currency: string; date: string; category: string; note?: string};
+  const entries = (record('zigoals:money-log:v1').entries as Raw[]).filter(e => e.kind === 'expense' && e.date <= DAY);
+  // The same payee, category and currency, one payment per date, oldest first.
+  const series = entries.filter(e => e.note === 'Streaming · SHOWCASE DATA' && e.category === 'Subscriptions' && e.currency === 'EUR').sort((a, b) => a.date.localeCompare(b.date));
+  expect(series.map(e => [e.date, e.amount])).toEqual([['2026-07-26', '12.99'], ['2026-08-25', '13.99'], ['2026-09-25', '13.99'], ['2026-10-25', '13.99']]);
+  const c = (e: Raw) => Math.round(Number(e.amount) * 100), latest = series.at(-1)!, previous = [...series].reverse().find(e => c(e) !== c(latest))!;
+  // No other payee in the log is paid on three dates a month apart, and no confirmed bill comes from the log.
+  expect((record('zigoals:bills:v1').bills as {origin: string}[]).filter(b => b.origin === 'detected')).toEqual([]);
+  const a = ask('Did any bill go up in price?', env);
+  expect(a.facts).toMatchObject({compared: 1, changes: [{bill: 'Streaming', direction: 'up', previousCents: c(previous), latestCents: c(latest), currency: 'EUR', previousDate: previous.date, latestDate: latest.date}]});
+  expect(a.text).toContain(`Streaming went up from €${previous.amount} to €${latest.amount}`);
 });

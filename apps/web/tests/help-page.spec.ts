@@ -43,7 +43,7 @@ const TOPIC_IDS = ['getting-started', 'data-and-sync', 'recovery-secret', 'insta
 // Session AF Gate C (design critique; deliberate, as strict): the five release names that read like codenames are topic
 // names now ("New: one 4-in-1 look", "New: polish", "New: the final look", "New: stunning, finished", "New: wealth,
 // unlocked"); every label is still checked exactly, in order, with its link.
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'NOVA, notes and tasks', 'Earn, Staking, Ecosystem and Chess', 'Questions', 'What\'s new', 'Earlier updates', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · your companion', 'NOVA, notes and tasks', 'Earn, Staking, Ecosystem and Chess', 'Questions', 'What\'s new', 'Earlier updates', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
 // Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.

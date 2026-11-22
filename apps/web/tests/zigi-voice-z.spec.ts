@@ -77,7 +77,7 @@ async function seed(page: Page, {ai = null as Partial<AiSettings> | null, voice 
 const SEEN = {disclosed: {chrome: '2026-09-01T00:00:00.000Z', safari: '2026-09-01T00:00:00.000Z', other: '2026-09-01T00:00:00.000Z'}};
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 const mic = (page: Page) => panel(page).getByRole('button', {name: /^(Talk to ZIGi|Stop listening)$/});
-const launcherButton = (page: Page) => page.getByTestId('ai-launcher').getByRole('button', {name: /ZIGi, your personal AI companion/});
+const launcherButton = (page: Page) => page.getByTestId('ai-launcher').getByRole('button', {name: /ZIGi, your companion/});
 async function openChat(page: Page, path = '/app') { await page.goto(path); await pressZigi(page); await expect(panel(page)).toBeVisible(); } // Session AL (O3): the sheet below 901 px
 /** A real press on a control: down, a pause of `ms`, up (the launcher's own timings, where a slow runner only lengthens it). */
 async function press(page: Page, target: ReturnType<Page['locator']>, ms = 60) { const b = (await target.boundingBox())!; await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down(); await page.waitForTimeout(ms); await page.mouse.up(); }

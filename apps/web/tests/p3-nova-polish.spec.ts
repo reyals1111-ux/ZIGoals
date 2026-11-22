@@ -33,7 +33,16 @@ async function showcase(page: Page, nova: Record<string, unknown> = {}) {
   await fresh(page);
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await page.evaluate(([k, v]) => localStorage.setItem(k, v), [NOVA_KEY, JSON.stringify({version: 1, openingSeen: true, ...nova})] as const);
+  // Session AV (ADR-045 D36, deliberate): "NOVA as already seen" is written where the Showcase reads it. The Showcase keeps
+  // its records in this tab's own store (lib/showcase-storage.ts) and never reads localStorage, so the record written there
+  // was never seen: every Showcase case here played the two-second opening (and showed the Showcase's own widgets) under
+  // its 5 s wait, which is the D36 failure. Every assertion and the wait are unchanged; the opening itself is tested by
+  // the opening specs.
+  await page.evaluate(([k, more]) => {
+    const marker = JSON.parse(sessionStorage.getItem('zigoals:showcase:active:v1')!) as {generation: string};
+    const key = `zigoals:showcase:v1:${marker.generation}:${k}`, was = JSON.parse(sessionStorage.getItem(key) ?? '{}') as Record<string, unknown>;
+    sessionStorage.setItem(key, JSON.stringify({...was, version: 1, openingSeen: true, ...JSON.parse(more)}));
+  }, [NOVA_KEY, JSON.stringify(nova)] as const);
 }
 async function openNova(page: Page) {
   await page.goto('/app/nova');

@@ -68,7 +68,7 @@ export function toolBlocked(tool: AnyTool, env: ToolEnv): ToolRefusal | null {
   if (tool.area === 'memory') return env.notes?.length ? null : refuse(tool.name, label, 'area', 'No notes about the person are shared with ZIGi here ("Use my notes" in What ZIGi knows about me).');
   // Release review 2 (lane RA): NOVA's Today permission off, Notes or the Journal on: only those tools of the Today area.
   if (tool.area === 'today' && env.todayTools && !env.todayTools.has(tool.name)) return refuse(tool.name, label, 'area', TODAY_CLOSED_FOR_NOVA);
-  return env.areas[tool.area] ? null : refuse(tool.name, label, 'area', `${tool.area[0]!.toUpperCase()}${tool.area.slice(1)} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · Your Personal AI Companion.`);
+  return env.areas[tool.area] ? null : refuse(tool.name, label, 'area', `${tool.area[0]!.toUpperCase()}${tool.area.slice(1)} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · your companion.`);
 }
 /** The tools this environment may run, for a provider's tool list or a browser agent (Health tools only with the gate). */
 export const availableTools = (env: ToolEnv): AnyTool[] => TOOLS.filter(tool => toolBlocked(tool, env) === null);

@@ -1,0 +1,14 @@
+/* Session AV follow-up 1 (F-JOURNAL-DAY): the This day strip's own rules, so it is styled wherever it loads (notes.css keeps its copy). */
+.note-this-day { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: color-mix(in srgb, var(--brand-violet, #826cff) 8%, transparent); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent); }
+.note-this-day-title { margin: 0; font-size: 14px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; color: var(--text-meta, inherit); }
+.note-this-day p { margin: 0; }
+.note-this-day-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.note-day-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; max-width: 100%; padding: 4px 14px 4px 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+.note-day-chip:hover, .note-day-chip:focus-visible { border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 70%, transparent); }
+.note-day-chip:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
+.note-day-chip .pillar-mark-disc { width: 24px; height: 24px; }
+.note-day-chip-title { font-weight: 650; }
+.note-day-chip-detail { font-size: 14px; color: var(--text-secondary, inherit); }
+.note-day-dot { width: 10px; height: 10px; margin: 0 7px; border-radius: 50%; background: var(--brand-cyan, #63e7ff); }
+.note-day-chip-title { min-width: 0; overflow-wrap: break-word; }
+.note-day-chip-detail { flex: none; max-width: 60%; overflow-wrap: normal; }

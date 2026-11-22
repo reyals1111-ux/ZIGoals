@@ -33,10 +33,10 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
   return <section id="health-weight-trend" className="panel health-aa-card health-trend-card" aria-labelledby="weight-trend-title">
     <p className="eyebrow">Six weeks</p><h2 id="weight-trend-title"><NebulaFlow identity="weight-trend-title">Weight trend</NebulaFlow></h2>
     {t.latestTrend === null ? <ArtNote pillar="health"><p className="health-empty-inline">Two or three readings a week draw the line; the first one starts it. <span className="health-estimate-tag">an estimate</span></p></ArtNote> : <>
-      <p className="health-big">{shown(t.latestTrend)}<small>trend today{rate ? ` · ${rate}/week` : ''}</small></p>
+      <p className="health-big" data-body-figure="">{shown(t.latestTrend)}<small>trend today{rate ? ` · ${rate}/week` : ''}</small></p>
       {/* Session AH (TR10): the latest reading beside the smoothed trend, so the two numbers are never mistaken for each other. */}
-      {t.latestReading && <p className="fine health-trend-latest">Latest reading {weightReadingText(t.latestReading.grams, unit) /* fifth pass (N-MO-14): as entered */} · {formatDate(t.latestReading.date, {year: false})}. The trend smooths day-to-day swings.</p>}
-      <div className="health-trend-chart" ref={plot}>
+      {t.latestReading && <p className="fine health-trend-latest" data-body-figure="">Latest reading {weightReadingText(t.latestReading.grams, unit) /* fifth pass (N-MO-14): as entered */} · {formatDate(t.latestReading.date, {year: false})}. The trend smooths day-to-day swings.</p>}
+      <div className="health-trend-chart" ref={plot} data-body-figure="">
         <svg className="zg-chart" data-pillar="health" viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={summary} onMouseLeave={() => setTip(null)}>
           {/* Session AK (G3): the one chart look — the trend line in its gradient with one soft glow (none by day). */}
           <ChartLookDefs id={look.id} width={width} height={H}/>
@@ -49,7 +49,7 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
         {tip && <ChartTip>{tip}</ChartTip>}
         <ChartLegend className="health-trend-key" items={[{label: 'Trend (smoothed)'}, {label: 'A reading', kind: 'dot'}, ...(goal !== null ? [{label: 'Goal', kind: 'dash' as const}] : [])]}/>
       </div>
-      <details className="health-trend-table"><summary>Show as a table</summary><table><thead><tr><th>Day</th><th>Reading</th><th>Trend</th></tr></thead><tbody>{t.points.filter(p => p.grams !== null).map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{weightReadingText(p.grams!, unit)}</td><td>{p.trend === null ? '—' : shown(p.trend)}</td></tr>)}</tbody></table></details>
+      <details className="health-trend-table"><summary>Show as a table</summary><table data-body-figure=""><thead><tr><th>Day</th><th>Reading</th><th>Trend</th></tr></thead><tbody>{t.points.filter(p => p.grams !== null).map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{weightReadingText(p.grams!, unit)}</td><td>{p.trend === null ? '—' : shown(p.trend)}</td></tr>)}</tbody></table></details>
       <p className="fine">The line moves a tenth of the way to each new reading, so one unusual morning barely bends it. <span className="health-estimate-tag">an estimate, not medical advice</span></p>
     </>}
   </section>;

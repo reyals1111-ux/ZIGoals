@@ -54,7 +54,7 @@ const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function clickThatCloses(mini: Page, target: Locator) {
   await Promise.all([mini.waitForEvent('close'), target.click().catch(error => { if (!mini.isClosed()) throw error; })]);
 }
-const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi|Close ZIGi, your personal AI companion/});
+const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi|Close ZIGi, your companion/});
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('"Pop out" only where the browser offers the mini window, and never on a phone', async ({page, isMobile}) => {
@@ -99,7 +99,7 @@ test('the same chat goes on in the mini window; "Back to tab" and ZIGi\'s button
   expect(await mini.evaluate(() => document.querySelectorAll('style').length)).toBeGreaterThan(0);
   expect(await mini.evaluate(() => document.querySelectorAll('link').length)).toBe(0);
   expect(await mini.evaluate(() => getComputedStyle(document.querySelector('section.ai-chat-pip')!).display)).toBe('flex');
-  expect(await mini.title()).toBe('ZIGi · Your Personal AI Companion');
+  expect(await mini.title()).toBe('ZIGi · your companion');
   // Asking goes on there.
   await chat.getByLabel('Ask ZIGi about your records').fill('How many minutes did I meditate this month?');
   await chat.getByRole('button', {name: 'Send', exact: true}).click();

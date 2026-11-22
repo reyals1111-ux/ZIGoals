@@ -50,8 +50,10 @@ import {DAY_ENDS_RECORD} from '../day-boundary';
 import {DAY_GOAL_RECORD} from '../checklist/day-goal';
 import {TASK_WHEN} from '../tasks/when';
 import {COUNTDOWNS} from '../countdowns/schema';
+import {COUNTDOWN_EXTRAS} from '../countdowns/extras';
 import {MONEY_TAGS_RECORD} from '../money-tags/schema';
 import {MOOD_TAGS} from '../mood-tags/schema';
+import {MEAL_WORDS} from '../meal-words/schema';
 import {SYMPTOMS} from '../symptoms/schema';
 import {WORKOUT_SPLITS} from '../workouts/splits-schema';
 import {WATCHLIST_MORE} from '../markets-watchlist-more';
@@ -253,11 +255,15 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AP (Part 6): each its own record; the three health-type ones only with the Health choice (owner addition 1).
   dev('taskWhen', 'This evening and Someday', 'Today and Life', TASK_WHEN),
   dev('countdowns', 'Days until', 'Today and Life', COUNTDOWNS),
+  // Session AV (ADR-045 F-COUNTDOWN-YEARLY; TIER 3 (stored format), additive): yearly countdowns and their reminders.
+  dev('countdownExtras', 'Days until: yearly and reminders', 'Today and Life', COUNTDOWN_EXTRAS),
   // Session AR (6b; TIER 3 (stored format), additive): whether "Your orbits" shows on Today (a display choice).
   dev('todayOrbits', 'Your orbits on Today', 'Today and Life', TODAY_ORBITS),
   dev('moneyTags', 'Tags on money entries', 'Goals and Wealth', MONEY_TAGS_RECORD),
   dev('moodTags', 'Mood tags', 'Health', MOOD_TAGS, true),
   dev('symptoms', 'Symptoms and factors', 'Health', SYMPTOMS, true),
+  // Session AU (ADR-044 F-MEAL; TIER 3 (stored format), additive): meals logged in words alone; Health-type, so only with the Health choice.
+  dev('mealWords', 'Meals in your own words', 'Health', MEAL_WORDS, true),
   dev('workoutSplits', 'Run pace and splits', 'Health', WORKOUT_SPLITS, true),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),

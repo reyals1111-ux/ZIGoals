@@ -3,7 +3,8 @@ import {showToast} from '../../ui/undo-toast';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import {announceHealthRemoval} from '../../../lib/health-events';
 import Link from 'next/link';
-import {lazy, useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
+import {LoadBoundary} from '../../load-boundary';
 import {asleep, balanceWords, BALANCE_MIN_NIGHTS, clockFromMidnight, clockFromNoon, consistency, dailySeries, deleteNight, inBedMinutes, nightDay, shortNights, sleepBalance, sleepDebt, summary, wakeConsistency} from '../../../lib/sleep/engine';
 import {sleepInsights} from '../../../lib/sleep/insights';
 import type {SleepNight} from '../../../lib/sleep/schema';
@@ -39,6 +40,8 @@ function shortfall(sleep: Parameters<typeof energyCurve>[0], today: string): num
 }
 
 const EnergyCurve = lazy(() => import('../../sleep/energy-curve'));
+// Session AV (owner follow-up 1, F-SLEEP-LONG): 90 days and a year, averaged; loaded when chosen.
+const SleepLongChart = lazy(() => import('./sleep-long-chart'));
 
 const nightLine = (n: SleepNight) => {
   const a = asleep(n)!;
@@ -51,7 +54,7 @@ const nightLine = (n: SleepNight) => {
  * nights and naps, and the goal. No score, no medical claim; a missing night is never counted as zero.
  */
 export default function SleepView() {
-  const store = useSleep(), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [range, setRange] = useState<7 | 30>(7), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
+  const store = useSleep(), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [range, setRange] = useState<7 | 30 | 90 | 365>(7), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
   if (!store.loaded) return <section className="panel"><h1>Sleep</h1><p>Opening your sleep log…</p></section>;
   if (store.error) return <section className="panel"><h1>Sleep</h1><p role="alert">Sleep lives in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const {sleep, today} = store, points = dailySeries(sleep, today, range), week = summary(dailySeries(sleep, today, 7));
@@ -59,7 +62,7 @@ export default function SleepView() {
   const nights = sleep.nights.filter(n => n.end !== null).sort((a, b) => b.end!.localeCompare(a.end!)).slice(0, 14);
   // Each save starts the log form afresh (its key), so the next night begins from the defaults.
   // Session AH (HE3; N-006, D-120): a save also says so in the app's toast, where it is seen, not only at the top.
-  const done = (text: string) => { setNote(text); setEditing(null); setSaves(n => n + 1); showToast({message: text}); };
+  const done = (text: string) => { setNote(text); setEditing(null); setSaves(n => n + 1); showToast({message: text, clearOf: '.sleep-week .sleep-stats' /* Session AV (S-12): off the averages the save just moved */}); };
   async function remove(id: string) {
     // Session AH Part 3 (DS3, L-009/L-010): a nap is called a nap.
     const held = store.sleep.nights.find(n => n.id === id), kind = held?.kind, day = held ? nightDay(held) : null;
@@ -99,11 +102,13 @@ export default function SleepView() {
     {/* Session AL fourth pass (MO-022): the fold says its answer on its face (the focus window), not only its name. */}<OnDemandFold className="energy-curve-fold" summary={energyFace(sleep, today)} label="The energy curve"><EnergyCurve sleep={sleep} today={today} now={store.now} zone={store.zone}/></OnDemandFold>
     <section className="panel sleep-charts" aria-labelledby="sleep-charts-title">
       <div className="sleep-charts-head"><h2 id="sleep-charts-title">Over time</h2>
-        <div className="sleep-range" role="group" aria-label="Range">{([7, 30] as const).map(r => <button key={r} type="button" className="secondary" aria-pressed={range === r} onClick={() => setRange(r)}>{r} days</button>)}</div>
+        <div className="sleep-range" role="group" aria-label="Range">{([7, 30, 90, 365] as const).map(r => <button key={r} type="button" className="secondary" aria-pressed={range === r} onClick={() => setRange(r)}>{r === 365 ? '1 year' : `${r} days`}</button>)}</div>
       </div>
+      {/* Session AV (owner follow-up 1, F-SLEEP-LONG): 90 days by week and a year by month, as averages (its own chunk). */}
+      {range > 30 ? <LoadBoundary quiet><Suspense fallback={<p className="fine" role="status">Opening the longer view…</p>}><SleepLongChart points={points} goal={sleep.goal?.minutes ?? null} by={range === 365 ? 'month' : 'week'}/></Suspense></LoadBoundary> : <>
       <SleepDurationChart points={points} goal={sleep.goal?.minutes ?? null}/>
       <SleepTimesChart points={points} window={sleep.goal?.bedFrom && sleep.goal.bedTo ? {from: sleep.goal.bedFrom, to: sleep.goal.bedTo} : null}/>
-      <SleepQualityChart points={points}/>
+      <SleepQualityChart points={points}/></>}
     </section>
     <section className="panel sleep-patterns" aria-labelledby="sleep-patterns-title">
       <h2 id="sleep-patterns-title">Patterns in your log</h2>

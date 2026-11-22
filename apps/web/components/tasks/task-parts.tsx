@@ -1,8 +1,10 @@
 'use client';
+import {minutesWords} from '../../lib/tasks/minutes';
 import Link from 'next/link';
 import {Suspense, lazy, useId, useMemo, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode} from 'react';
 import {LEVEL_SHORT, LEVEL_WORDS, TASK_PRIORITIES, TASK_TITLE_MAX, taskLevel, type HealthLink, type Task, type TaskLevel, type TaskPriority, type Tasks} from '../../lib/tasks/schema';
-import {subtaskProgress, taskState, type TaskInput} from '../../lib/tasks/engine';
+import {deadlineState, subtaskProgress, taskState, type TaskInput} from '../../lib/tasks/engine';
+import {addLocalDays} from '../../lib/local-date';
 import {describeRecur} from '../../lib/tasks/recurrence';
 import {reminderLabel} from '../../lib/tasks/reminders';
 import {formatClock, formatDate} from '../../lib/visual-format';
@@ -28,6 +30,15 @@ export const HEALTH_WORDS: Record<HealthLink, string> = {water: 'Water', food: '
 const HEALTH_HREF: Record<HealthLink, string> = {water: '/app/health#water', food: '/app/health#food', weight: '/app/health#weight', sleep: '/app/health#sleep', movement: '/app/health#movement', workout: '/app/health#workouts', mind: '/app/health#mind', fasting: '/app/health#fasting'};
 /** A day as the row says it: the year only when it is not this year's. */
 const dayWords = (day: string, today: string, weekday = false) => formatDate(day, {weekday, year: day.slice(0, 4) !== today.slice(0, 4)});
+/** Session AV (owner follow-up 1, F-DEADLINES): the deadline as the row says it, apart from the planned day. */
+export function deadlineText(t: Task, today: string): string | null {
+  const s = deadlineState(t, today);
+  if (!s) return null;
+  if (s === 'passed') { const days = Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${t.deadline}T12:00:00Z`)) / 86_400_000); return `Deadline passed · ${dayWords(t.deadline!, today)} (${days === 1 ? '1 day ago' : `${days} days ago`})`; }
+  if (s === 'today') return 'Deadline today';
+  if (t.deadline === addLocalDays(today, 1)) return 'Deadline tomorrow';
+  return `Deadline ${dayWords(t.deadline!, today, true)}`;
+}
 export function dueText(t: Task, today: string, nowClock?: string): string {
   const s = taskState(t, today, nowClock), at = t.time ? ` at ${formatClock(t.time)}` : '';
   if (s === 'overdue') return t.due === today ? `Late · today${at}` : `Overdue · ${dayWords(t.due!, today)}${at}`;
@@ -35,10 +46,13 @@ export function dueText(t: Task, today: string, nowClock?: string): string {
 }
 
 /** The title field: its own 140 limit (older builds read up to 140), and a paste that would be cut says so. */
-export function TaskTitleInput({value, onChange, label, describedBy, inputRef, placeholder, onKeyDown, error}: {value: string; onChange: (v: string) => void; label: string; describedBy?: string; inputRef?: React.Ref<HTMLInputElement>; placeholder?: string; onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void; error?: string}) {
+export function TaskTitleInput({value, onChange, label, describedBy, inputRef, placeholder, onKeyDown, error, onPasteText}: {value: string; onChange: (v: string) => void; label: string; describedBy?: string; inputRef?: React.Ref<HTMLInputElement>; placeholder?: string; onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void; error?: string;
+  /** Session AV (F-PASTE-LIST): sees the pasted text first; true takes the paste (a list read as several tasks). */ onPasteText?: (text: string) => boolean}) {
   const id = useId(), [cut, setCut] = useState('');
   const paste = (e: ClipboardEvent<HTMLInputElement>) => {
-    const text = e.clipboardData.getData('text'), el = e.currentTarget, room = TASK_TITLE_MAX - (el.value.length - ((el.selectionEnd ?? 0) - (el.selectionStart ?? 0)));
+    const text = e.clipboardData.getData('text');
+    if (onPasteText?.(text)) { e.preventDefault(); setCut(''); return; }
+    const el = e.currentTarget, room = TASK_TITLE_MAX - (el.value.length - ((el.selectionEnd ?? 0) - (el.selectionStart ?? 0)));
     setCut(text.length > room ? `Cut to ${TASK_TITLE_MAX} characters: the pasted text had ${text.length}.` : '');
   };
   const notes = [describedBy, cut ? `${id}-cut` : '', error ? `${id}-err` : ''].filter(Boolean).join(' ') || undefined;
@@ -113,6 +127,8 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
     <span className="task-meta">
       {level !== 3 && <span className={`task-chip task-chip-p${level}`} title={LEVEL_WORDS[level]}>P{level} · {LEVEL_SHORT[level]}</span>}
       <span className="task-due">{done ? `Done ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
+      {!done && task.minutes ? <span className="task-minutes">{minutesWords(task.minutes)}</span> : null}{/* Session AV (F-TASK-MINUTES) */}
+      {!done && task.deadline && <span className={`task-deadline is-${deadlineState(task, today)}`}><span aria-hidden="true">⚑ </span>{deadlineText(task, today)}</span>}
       {task.recur && <span className="task-recur"><span aria-hidden="true">↻ </span>{describeRecur(task.recur)}</span>}
       {progress && progress.total > 0 && <span className="task-progress" aria-label={`${progress.done} of ${progress.total} subtasks done`}><span aria-hidden="true">☑ {progress.done}/{progress.total}</span></span>}
       {links?.projectName && <span className="task-project" data-colour={links.projectColour}><span aria-hidden="true"># </span>{links.projectName}</span>}

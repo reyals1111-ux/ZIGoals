@@ -1,5 +1,5 @@
 import type {ToolEnv} from '../tools/env';
-import {HEALTH_CLOSED} from '../tools/format';
+import {HEALTH_CLOSED, HEALTH_CLOSED_NL} from '../tools/format';
 import type {LocalReply} from './engine';
 
 /**
@@ -62,6 +62,27 @@ export function novaWording(reply: LocalReply, info: NovaEnvInfo, lang: Lang = '
   // Settings — the pointer names NOVA's own place.
   const text = reply.text.replace(/Settings → ZIGi connects\b/g, 'NOVA → Setup (Your brain) connects').replace(/in Settings → ZIGi; it then answers/g, 'in NOVA → Setup (Your brain); it then answers')
     .replace(/(is(?:n[’']t| not)|are not|aren[’']t) shared with ZIGi\b/g, '$1 shared with NOVA')
-    .replace(/(?<!Actions by |Settings → |What |what |→ )\bZIGi\b(?! knows about me| · Your Personal AI Companion|’s (?:panel|page))/g, 'NOVA');
+    .replace(/(?<!Actions by |Settings → |What |what |→ )\bZIGi\b(?! knows about me| · your companion|’s (?:panel|page))/g, 'NOVA');
   return text === reply.text ? reply : {...reply, text};
+}
+
+/**
+ * Session AU (D-ALLOW-HEALTH): the one button to where Health is allowed, for a reply that says Health is not shared. On
+ * ZIGi's panel: the existing open-page card to Settings → ZIGi (its Privacy & data holds both switches; nothing is
+ * written, the person turns them on there). On NOVA: the words name NOVA → Permissions, which holds the same switches and
+ * which NOVA's chat turns into its one button (components/nova/chat/nova-turns.tsx), so no second card is added.
+ */
+export const ALLOW_HEALTH_CARD = `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: 'settings', view: 'zigi'})}\n\`\`\``;
+export function allowHealth(env: ToolEnv | null | undefined, lang: Lang = 'en'): string {
+  if (!novaEnvInfo(env)) return ALLOW_HEALTH_CARD;
+  return lang === 'nl' ? `\n\nHealth sta je toe in ${NOVA_PERMISSIONS_NL}.` : `\n\nHealth is allowed in ${NOVA_PERMISSIONS}.`;
+}
+/**
+ * Session AU (D-ALLOW-HEALTH): ZIGi's own Health-closed refusal, in the question's language (a Dutch question got the
+ * English line), with the one button to Settings → ZIGi. NOVA's environment is left as it is: novaWording already says
+ * it in NOVA's words, in either language, naming NOVA → Permissions.
+ */
+export function zigiHealthClosed(reply: LocalReply, env: ToolEnv | null | undefined, lang: Lang): LocalReply {
+  if (novaEnvInfo(env) || reply.kind !== 'refusal' || reply.text !== HEALTH_CLOSED) return reply;
+  return {...reply, text: (lang === 'nl' ? HEALTH_CLOSED_NL : HEALTH_CLOSED) + ALLOW_HEALTH_CARD};
 }

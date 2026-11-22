@@ -1,3 +1,98 @@
+# Session AV — "ALPHA QUALITY" (ADR-045) (2026-11-20/21, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) "Session AU + AV"; complete, not merged, not deployed)
+**Base:** Session AU's head `3ea87dff` on `main` `836534c3` (already merged in; `main` did not move). **Rules (owner):** the brief, one approved plan with nine amendments, and owner follow-up 1 (21 Nov), all verbatim in `docs/architecture/ADR-045-session-av.md` (decisions, D-BUILD, closing table). Resume file: `docs/handoff/AV_RESUME.md`.
+
+## Parts, commits and evidence (`git log 3ea87dff..HEAD`; merge commits only, never rebased)
+| Part | What | Commits |
+|---|---|---|
+| 0 | ADR-045 with the plan and approval, AV_RESUME, STATUS stub | `609714b3` |
+| 1 | CI at the cause: D36 (NOVA's fitter forces fewer layouts), D34 and `dashboard-visual` (specs measure what they say); later reds 1932–1975 fixed or recorded | `111c42f7`, `de32b3fc`, `a2adb214`, `2b202dc5`, `967ab614`, `f24e2913`, `c8f451ec`, `eeb0c1e8`, `e4009ff3`, `b764e00f`, `6b2efe63`, `8cc0eca0`, `23364740` |
+| 2 | **TIER 3 (PWA)** after a deploy an old tab reloads once into the new version; two real builds 10 of 10 | `bfe18cf5`, `3ae87fbd`, `dadb7c23`, `04ca70b1` |
+| 3 | **TIER 3 (stored formats)** storage kept once, the iPhone Home Screen move, a backup offer after new data | `8b0853eb` |
+| 4 | L-6 categories in import previews, the star's Permissions link, AT D20 minors | `0250512c` |
+| 4b | Unfinished-feature audit, then follow-up 1's 14 open rows finished and 38 owner rows listed | `f2821513`, `943b4464`, `7e664056`, `3479961a`, `8808d0e1` |
+| 5 | Headroom on every route, no budget raised | `bc0ca218` |
+| 6 | Keyboard flows, 320 px and 200 % reflow, axe | `add37e9b` |
+| 7 | Research: COMPETITORS.md from the web (25 apps, 435 rows, 49 ranked build rows); build: all 49 done (48 built complete, #4 already built) — the feature list is FRIENDS_GUIDE 8j "Also new" | `d6ccb797`; the build `cadae4e8` … `03a70d26` (one series per feature, each with its Help commit) |
+| 8 | FIRST_WEEK, FRIENDS_GUIDE 8j, Help's What's new (24 → 77) and Known limitations, OWNER_STEPS (no new owner step) | `bd129511`, `61759687` |
+
+## Tier 3, in plain words (risk → rollback)
+- **PWA** (`bfe18cf5`, `3ae87fbd`, `9a0cf6f5`, `3479961a`): a chunk of an older version reloads the tab once (never while a form holds typing); task reminders as notifications on this device; later page parts kept offline once per version. → Revert; the earlier "Reload" note remains.
+- **Stored formats**, all additive and dropped on read when unreadable (frozen readers #37–#57 21 of 21 each time, each field in the fixture): optional fields on Part 3's `zigoals:backup-reminder:v1`; budget `target`, `watch`, `freshFrom`; task `deadline`, `minutes`; the debt planner's order, one-off payments, shown and tracked plan; a habit's focus and look; price-alert move and portfolio alerts; journal `templates`; the new device key `zigoals:countdown-extras:v1` (in every registry; never synced). → Revert; older builds keep the fields untouched (loose objects) and ignore the key.
+- **AI tools** (`4408d1d6`, the debt-planner and budget-target commits, `0ccaeb8b`): answers only — deadlines, budget targets, the debt plan, task minutes; no tool writes; `lib/ai/gates.ts` unchanged. → Revert.
+- No CSP, sync, wallet, signing, key or dependency change; no new service; no budget raised.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each marked `Session AV (…, deliberate)`: `send-feedback`'s Known limitations 49 → 53, each new line checked by its words; `nova-wa` T1/T3 fast-forwards a minute (D-CI1949); `ui-evidence`'s page sweeps in two halves (D-CI1956); Help's What's new count 29 → 77 per feature; `views.test` 8 views; `health-aa.test` (the sleep score's quality part); `more-money.test`; `build.test`'s every-section fixture gains a symptom and a supplement.
+
+## Evidence
+- Every feature: its unit tests and its spec on a production build in Nebula, Light and Dark at 390 and 1440, axe-clean, no sideways scroll at 320; nearby existing specs re-run after each (all green, or fixed before the push).
+- Final local reads: every Session AV spec 338 of 338 on the final build; NOVA, evidence and route specs 133 of 133 after the last fix; unit suite all green but `scripts/pre-run11-setup.test.mjs` (this sandbox's pnpm, known); lint 0 errors; typecheck clean; theme sheets `--check` clean; frozen readers 21 of 21; every route inside its budget (least headroom Habits 5.2 kB, Goals 5.8).
+- Corpus: `tasks-minutes` (EN and NL) added; where a feature holds no data an answer reads, D-BUILD says so.
+
+## Carried (each with its cause in ADR-045)
+The account-browser stall (D-SYNC, not reproduced in 6 runs); `zigi-voice-z:199` in WebKit (the Voice card waits for Settings' hydration, D-CI1991); the food Worker's FSVO spacing in `food-search.test.mjs:90` (older than this session, D-CI1995); 38 owner decisions (UNFINISHED.md "Owner decisions"); intermittents recorded in CI_INTERMITTENTS (`o3-apps-extras:94`, `ui-evidence:91`, `run11-route-mobile-acceptance:31`, `exploratory-round3:76`, `sync-offer-browser`).
+
+## Owner list
+1. Review [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108); merge and deploy are yours (Manual Alpha workflow, from `main`).
+2. The 38 owner decisions, each with a recommended default, in `docs/review/session-av/UNFINISHED.md`.
+3. Market price policy before Mon 30 Nov 16:00 UTC (OWNER_STEPS step 6).
+
+## CI on the final head
+**Safe to merge now: no.** [Run 1995](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44913344307) on `23364740` (the final code; this entry is docs only): every one of the 14 main shards, the four WebKit shards, the three a11y shards, integration and the Alpha gate green on the first attempt; **checks red on one unit test**, `scripts/run11/food-search.test.mjs:90` (the food Worker's request spacing read 1,800 ms against 1,900; 1 of 3 locally; the Worker and test are `main`'s, unchanged since Session AK; carried, D-CI1995). The last run green on every job is run 1938 on `7e664056`. Runs 1941–1994 and each fix: ADR-045 D-CI1941 … D-CI1994.
+
+# Session AU — "FRIENDS DRESS REHEARSAL" (ADR-044) (2026-11-19/20, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108); complete, not merged, not deployed)
+**Base:** `main` `836534c3` (Merge [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107), Session AT); `main` did not move during the session. **Rules (owner):** the brief for Session AU, one approved plan and two owner additions (a fresh reviewer per persona walk; each persona's phone spec also in WebKit), verbatim in `docs/architecture/ADR-044-session-au.md` (decisions, closing table). Resume file: `docs/handoff/AU_RESUME.md`. Friction log: `docs/review/session-au/REHEARSAL.md`.
+
+## Part 0 — records (19 Nov)
+- **[PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107) (Session AT)** merged into `main` as `836534c3` (merge commit, read from `main`).
+- **Main CI:** [run 1869](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44390495368) on `3d510124` failed once on the integration job's `account-browser` sync test ("a step made no progress for 20000 ms", step "L56 A: waist measurement"); [run 1895](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44557061753) on `836534c3` green on the first attempt: it did not recur on `main` (cause recorded, ADR-044 D-SYNC).
+- **Alpha #57** = Manual Alpha deployment [run 60](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44616699114) (19 Nov), source `836534c3e9f1d430e52c029594ab29b4e8cd55b9`: version `e0bc17f3-27c0-4900-aa55-416f20ece6f6`, rollback `064ff8bc-8cc3-4ae7-8be4-783225ae75dd` (#56); **VERIFIED** after 4 reads, live prices verified (owner). Replaces Session AT's placeholder.
+- **Frozen readers** are #37–#57 from now on (`scripts/frozen-readers.mjs`: #57 = `836534c3`); all 21 releases PASS, also with this branch's new record (`zigoals:meal-words:v1`).
+
+## What friends would have hit, and what is fixed
+Five fresh people (Sanne, Tom, Lina, Max, Jules), each a first week (Mon, Tue, Sun; morning and evening) on a production build at 390 and 1440 in Nebula and a second theme: 20 walks, five fresh reviews, 57 rows. **Fixed and proven:** every Blocker a reviewer named and 33 of 34 Majors — Health questions met three switches (one "Allow Health" now, F-2); a meal could not be logged in words (F-MEAL); a first-five step opened a "hidden" page (F-1); a second setup card after the setup (F-3); a night owl's Today, Tasks and NOVA disagreed on the day after midnight (F-4, F-5, R-4); a sleep or reading goal saved as money (F-6); a grocer's bank rows missed the Groceries budget and a stepped bill was never found (L-2, L-4); NOVA's glance read Health while closed (T-6, privacy); 15 wrong or vague answers (R-1…R-14, T-12); phone layouts in workouts and recent scans (T-7, T-8). **Carried:** the import preview's missing category column (L-6) and the minors listed in REHEARSAL.md, each with its cause.
+
+## Parts, commits and evidence (`git log 836534c3..HEAD`; never rebased, no merge of `main` needed)
+| Part | What | Commits |
+|---|---|---|
+| 0 | Records, frozen reader #57, ADR-044, AU_RESUME | `22e82425` |
+| 1 | The rehearsal (walks in the scratchpad; REHEARSAL.md), fixes F-1…F-6, F-MEAL, T-5…T-12, L-2, L-4, L-5, J-6, the answer rows; persona specs `tests/au/` (10 files, phone halves `webkit-au-*` also in WebKit) | `28bfd5c1`, `57f252c2`, `8ded74ae`, `00806556`, `7fc8696d`, `9ff2f28c`, `b9f800a6`, `9186d20d`, `cd26dfa3`, `7d43cbdb`, `2a3785a5`, `1ffe3f8c`, `f04c5f0f`, `aa7dec96` and the REHEARSAL commits |
+| 2 | AT's carried list: goal ETA, Dutch coins, Allow Health in replies (`28891474`); words-only meal (`00806556`); roving helper (`34d97007`); Showcase mood tags and a price change (`d9ab8612`); D34/D36 look and D20 minors (ADR) | as named |
+| 3 | **TIER 3 (CI)** 14 duration-balanced main shard lists (`cb96707c`); persona specs in the lists (`dd5e1362`); the account-browser stall recorded | as named |
+| 4 | `docs/friends-alpha/FIRST_WEEK.md`, FRIENDS_GUIDE 8i and part 9, Help's Known limitations | `583a14a2` |
+
+## Tier 3, in plain words (risk → rollback)
+- **Stored formats** (`00806556`): one additive device-only Health-type record, `zigoals:meal-words:v1` ({id, date, meal, words, at}, loose, versioned, ≤ 2,000), in Export everything, restore (Health section), erase, the data catalogue and the welcome check; never synced; not read by ZIGi or NOVA. Older builds ignore it (frozen readers #37–#57 PASS). → Revert; the key is ignored.
+- **AI tools** (`28891474`, `cd26dfa3`, `d9ab8612`, `f04c5f0f`): answers only — no tool added, nothing written from a reply, `lib/ai/gates.ts` unchanged, mood tags and symptoms never read; replies that say Health is closed carry one open-page button; the tasks tool reads the day like the Tasks page. → Revert.
+- **CI** (`cb96707c`, `dd5e1362`): `MAIN_SHARD=n/14` explicit lists from runs 1895 and 1893 (predicted ≤ 40 min of 60, was up to 55); the config and `scripts/ci/main-shards.test.ts` check every spec is in exactly one list. No test, assertion or timeout changed. → Revert.
+- Nothing else is Tier 3: no CSP, sync, wallet, signing, key or dependency change; no new service; no budget raised.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each carries `Session AU (…, deliberate)` with an equally strict replacement: ZIGi's Health-closed reply pinned whole with its button (engine, nova-evals, g1, al-final tests); the R-12 Health-closed test question; AS's pinned Showcase answers and money figures moved by the seed (expected.json, says, oracle, nova.test, money-spend, health-more, ax-bodies, everything, cross-pillar, connect, more-bodies; each recomputed by the oracle from the raw records); ap-examples' carried test now pins both examples; NOVA's Bill changes tests (connect-wealth, connect, more-bodies) count found bills; `money-tools-ui` and journey 3 use a payee with no category word ("Bakery" and "Grocer" are Groceries now); `send-feedback` limitations 47 → 49 (each by its words, the removed Dutch-coins line checked absent); `nova-families-as` heat €611.99 → €653.96; `ap-minors` test 7 adds the mood tags and the price change; goals.csv's header names `target_amount`.
+
+## Evidence (production builds of this branch, Chromium, two workers)
+- **Persona specs** `tests/au/` on build 4 (`066b87c4`): 10 of 10 (11 skipped by design: each file's other project).
+- **Affected existing specs** on build 4 (35 files: first five, setup, day ends and goal, money and bills, journeys 1–3, workouts, barcode, export and restore, search, Tasks, Today's Tab stops on 14 clocks, Help, NOVA answers and families, ap-minors): 335 passed, 6 failed — all six journey 3 (the "Grocer" rule, above), 8 of 8 after its deliberate change.
+- **Route weights** (build 4): every page inside its budget, none raised; Health 531.0 of 531.0 kB (no room left), Today 560.4 of 567, Tasks 463.6 of 468, the shell 431.3 of 447.
+- **Unit:** full suite 12,245 passed before the last fixes; `apps/web/lib/ai` 1,778 passed; the one red is `scripts/pre-run11-setup.test.mjs` "offline/read-only" (this sandbox's PATH gives the spawned CLI no pnpm 11.19.0; CI runs it pinned). Typecheck clean; eslint 0 errors on touched files; theme sheets `--check` clean; frozen readers #37–#57 PASS.
+- **D34** reproduced on `main`'s own build (1–3 of 12 per run); this branch the same (ADR-044).
+- **Not verified here:** WebKit (CI only); anything on graphics hardware.
+
+## Carried (each with its cause in ADR-044 and REHEARSAL.md)
+L-6 (the import preview has no category column); AT D20's remaining minors (one polish pass); D34 (candidate mechanism: the still star redraws an unproven frame) and D36; the account-browser stall (D-SYNC: a sync during a half-filled Health form); the answer under NOVA's star at 1440 has no page button (AR's composition), the conversation holds it.
+
+## Owner list
+1. Review [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108); merge and deploy are yours (Manual Alpha workflow, from `main`).
+2. Preview: `git fetch origin && git checkout feature/session-au-dress-rehearsal`, `pnpm install --frozen-lockfile --ignore-scripts`, `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, then http://127.0.0.1:3100/app as a new person: Start setup with Habits and Health, "Your first five", Log a meal → Just describe it, NOVA "hoeveel water heb ik vandaag gedronken?" → Permissions → Allow Health.
+3. Friends get `docs/friends-alpha/FIRST_WEEK.md` with the guide. Health's page has no weight left under its budget: the next Health feature needs a lazy chunk or a budget decision.
+
+## CI on the final head
+[Run 1922](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44658245593) on `42a2e1f7` (the code and this entry): **24 of 25 jobs green on the first attempt** (checks, contract, integration with `account-browser`, the Alpha gate, the three a11y shards, all four WebKit shards with the four `webkit-au-*` phone specs, 13 of 14 main shards). **The new shard lists hold:** main shards took 26.2–37.6 min of their 60 (were 17.7–50.3, and 55 in run 1893), WebKit 25.8–39.3. **Red, this branch's, fixed:** main shard 3, `tests/au/tom.spec.ts` on both attempts — the spec's own pattern for a leaked Health line matched the word "water" in the glance's empty notice ("…a glass of water…"), which is guidance, not a record (the widget read no Health record: T-6 holds). The check now looks for a Health line's own shapes (an amount of water, food entries logged, a night slept); 2 of 2 on the production build.
+
+[Run 1923](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44665456179) on `e27d4e68` (the tom.spec fix): **23 of 25 green**. Main shard 12: `p3-nova-polish` ND-1, the known D36 intermittent (Known CI intermittents; it fails on `main`'s own code too), not this branch's. Main shard 14: `P14-B`, **this branch's** — with Health closed, "How was my week?" put the Allow Health button after the Life review card; fixed in `e9eaf887` (the card stays last), 16 of 16 on the production build.
+
+[Run 1924](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44671069675) on `e9eaf887` (the code head): **all 26 jobs green on the first attempt**. Main shards took 25.4–39.6 min of their 60, WebKit shards 20.5–32.9: every shard keeps ≥ 20 min of headroom. This entry is docs only.
+
 # Session AT — "READY FOR FRIENDS" (ADR-043) (2026-11-18/19, `feature/session-at-ready-for-friends`, Draft [PR #107](https://github.com/reyals1111-ux/ZIGoals/pull/107); complete, not merged, not deployed)
 **Base:** `main` `3d510124` (Merge [PR #106](https://github.com/reyals1111-ux/ZIGoals/pull/106), Session AS); `main` did not move during the session. **Rules (owner):** the brief for Session AT, one approved plan with approval items 1–5 and two owner changes (Zignaly's words only from its notice, linked; Part 6 right after Part 1), verbatim in `docs/architecture/ADR-043-session-at.md` (decisions D1–D20, closing table). Resume file: `docs/handoff/AT_RESUME.md`.
 

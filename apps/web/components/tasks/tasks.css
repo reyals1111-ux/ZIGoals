@@ -131,6 +131,14 @@
 :root[data-theme=light] .task-chip-p1 { color: #b4232a; } :root[data-theme=light] .task-chip-p2 { color: #8f4305; }
 .task-project { display: inline-flex; align-items: center; gap: 2px; }
 .task-project[data-colour] > span:first-child { color: var(--task-colour); }
+/* Session AV follow-up 1 (F-DEADLINES): the deadline beside the planned day; passed and today carry weight, not only colour. */
+.task-deadline { display: inline-flex; align-items: center; gap: 2px; }
+/* Session AV (F-TASK-MINUTES): how long a task takes, and the day's load in Today. */
+.task-minutes { font-variant-numeric: tabular-nums; }
+.tasks-day-load { margin: 0 0 12px; }
+.task-deadline.is-passed, .task-deadline.is-today { font-weight: 650; }
+.task-deadline.is-passed > span:first-child, .task-deadline.is-today > span:first-child { color: var(--danger, #e5484d); }
+.tasks-piece[data-kind=deadline] mark { background: color-mix(in oklab, #e5484d 18%, transparent); }
 .task-label { color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
 .task-notes { grid-column: 1 / -1; margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
 .task-sub { grid-area: sub; grid-column: 1 / -1; display: grid; gap: 4px; padding-inline-start: 44px; }
@@ -186,3 +194,43 @@
 .goal-close-tasks p { margin: 0 0 10px; }
 .goal-close-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .goal-close-actions button { min-height: 44px; }
+/* Session AV follow-up 1 (F-TASKS-DONE): finished per day and week. */
+.tasks-done-chart{display:grid;gap:6px;margin:8px 0 12px}
+.tasks-done-chart h3{margin:0;font-size:16px}
+.tasks-done-chart h3 small{font-weight:400;color:var(--text-secondary, var(--muted))}
+.tasks-done-bars{width:100%;height:72px}
+.tasks-done-bars rect{fill:var(--cyan, #6fd3ff);opacity:.75}
+.tasks-done-bars rect.tasks-done-today{opacity:1}
+.tasks-done-axis{display:flex;justify-content:space-between;margin:0}
+.tasks-done-weeks{display:flex;flex-wrap:wrap;gap:6px 16px;list-style:none;margin:0;padding:0;font-size:15px}
+.tasks-done-table summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.tasks-done-table table{border-collapse:collapse;font-size:15px}
+.tasks-done-table th,.tasks-done-table td{padding:4px 12px 4px 0;text-align:left}
+/* Session AV follow-up 1 (F-PASTE-LIST): a pasted list read as one task per line, before it is added. */
+.tasks-paste-list { display: grid; gap: 6px; margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, rgba(140,160,220,.3)); min-width: 0; }
+.tasks-paste-list:focus-visible { outline: 2px solid var(--focus, currentColor); outline-offset: 2px; }
+.tasks-paste-list p { margin: 0; }
+.tasks-paste-items { margin: 0; padding-left: 22px; display: grid; gap: 2px; max-height: 260px; overflow-y: auto; overflow-wrap: anywhere; }
+.tasks-paste-items small { color: var(--text-meta, var(--muted)); }
+.tasks-paste-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.tasks-paste-actions button { min-height: 44px; }
+/* Session AV (F-REPEAT-PAUSE): pause a repeating task until a day. */
+.task-editor-pause { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 12px; }
+.task-editor-pause-title { flex: 1 1 100%; font-weight: 600; }
+.task-editor-pause > small { flex: 1 1 100%; }
+.task-editor-pause button { min-height: 44px; }
+/* Session AV (1c, q1 #17): one typed line offered as several tasks; a pasted subtask sits in under its parent. */
+.tasks-line-list { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 0; min-width: 0; overflow-wrap: anywhere; }
+.tasks-line-list button { min-height: 44px; }
+.tasks-line-list small, .tasks-paste-items [data-subtask] small:first-child { color: var(--text-meta, var(--muted)); font-size: 14px; }
+.tasks-paste-items [data-subtask] { margin-left: 18px; }
+/* Session AV (1c, q1 #1): a reminder's Done, Snooze (15 min, 1 h, Tomorrow) and Dismiss, wrapping as one group. */
+.task-reminder-actions, .task-reminder-snooze { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 10px; min-width: 0; }
+.task-reminder-snooze > span { color: var(--text-secondary, var(--muted)); }
+.task-reminder-actions .text-link { min-height: 44px; }
+.task-editor-more-reminders { margin: 0; }
+.task-editor-more-reminders .text-link { min-height: 44px; }
+.tasks-deadline-line { margin: 0 0 6px; font-size: 14px; overflow-wrap: anywhere; }
+.tasks-done-count { margin: 4px 0 8px; font-size: 15px; color: var(--text-secondary, var(--muted)); }
+.tasks-done-days{display:grid;grid-template-columns:repeat(14,1fr);margin:2px 0 0;font-size:14px;line-height:1.2;text-align:center;color:var(--text-secondary, var(--muted))}
+.tasks-done-days [data-today]{font-weight:700;color:inherit}

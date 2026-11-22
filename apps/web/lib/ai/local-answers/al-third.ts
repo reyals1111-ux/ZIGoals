@@ -1,4 +1,5 @@
 import {latestHabitRule} from '../../habits';
+import {allowHealth} from './nova-env';
 import {commandText} from '../quick-commands/commands';
 import {reviewWindow} from '../../weekly-review/engine';
 import type {ToolEnv} from '../tools/env';
@@ -118,7 +119,10 @@ export function weeklyRecapReply(text: string, env: ToolEnv | null, lang: Lang):
   const intention = typeof d.lastIntention === 'string' && d.lastIntention !== 'none written' ? clean(d.lastIntention, 200) : null;
   return {kind: 'answer', calls: [r.record], text: [head, ...lines.map(l => `• ${l}`),
     ...(intention ? [say(lang, `Your intention from last week: “${intention}”`, `Je voornemen van vorige week: “${intention}”`)] : []),
-    say(lang, 'Counts from your records, not a judgement. The Life review sets this week beside the one before.', 'Tellingen uit je gegevens, geen oordeel. Het Life review zet deze week naast de vorige.')].join('\n') + card};
+    say(lang, 'Counts from your records, not a judgement. The Life review sets this week beside the one before.', 'Tellingen uit je gegevens, geen oordeel. Het Life review zet deze week naast de vorige.')].join('\n')
+    // Session AU (D-ALLOW-HEALTH): Health not shared: one button to where it is allowed (Settings → ZIGi); nothing is changed.
+    // It comes before the answer's own card, so the Life review stays the answer's last and main action (CI 1923, P14-B).
+    + (health === null ? allowHealth(env, lang) : '') + card};
 }
 
 // ---- the Checklist's own edits ----

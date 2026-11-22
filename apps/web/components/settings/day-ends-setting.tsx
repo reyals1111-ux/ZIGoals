@@ -13,7 +13,7 @@ export function DayEndsSetting() {
   return <section className="panel" id="day-ends" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">YOUR DAY</p>
     <h2 id={`${id}-title`}>My day ends at</h2>
-    <p className="fine">For night owls: habits, the Checklist and streaks count for the day until this time, on this device.</p>
+    <p className="fine">For night owls: habits, the Checklist, streaks and Tasks count for the day until this time (3:00 is the next morning), on this device.</p>
     <label className="field" htmlFor={`${id}-select`}>
       <span>My day ends at</span>
       <select id={`${id}-select`} value={value} disabled={!record.loaded} aria-describedby={`${id}-rule`} onChange={event => {

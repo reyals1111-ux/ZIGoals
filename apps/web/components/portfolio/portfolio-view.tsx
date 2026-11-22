@@ -57,6 +57,8 @@ function failure(error: unknown, fallback: string) {
 // (nothing renders until a wallet is linked); the same component as Wealth's.
 const WalletHoldings = lazy(() => import('../wallet/wallet-holdings'));
 const TraderTools = lazy(() => import('./trader-tools').then(m => ({default: m.TraderTools})));
+// Session AV (owner follow-up 1, F-MOVE-ALERT): an alert on a portfolio's whole value.
+const PortfolioValueAlert = lazy(() => import('../price-alerts/portfolio-value-alert'));
 export function PortfolioView() {
   const store = usePortfolios();
   const [selectedId, setSelectedId] = useState<string | null>(null), [creating, setCreating] = useState(false);
@@ -172,6 +174,8 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
     {removing && <div className="portfolio-confirm" role="alertdialog" aria-label="Delete portfolio"><p>Delete “{portfolio.name}” and its {portfolio.transactions.length} transactions from this device? Export it first to keep a copy.</p><div className="actions"><button type="button" className="secondary" onClick={() => run(data => deletePortfolio(data, portfolio.id), 'Portfolio deleted.', 'The portfolio was not deleted.')}>Delete portfolio</button><button type="button" className="quiet" onClick={() => setRemoving(false)}>Keep it</button></div></div>}
     <div className="portfolio-summary-big"><PortfolioSummary portfolio={portfolio} totals={totals} day={day} allTime={allTime} stale={stale} /></div>
     {!showcase && <SinceLastVisit portfolio={portfolio} value={totals.knownValue} ready={totals.held > 0 && totals.unpriced === 0 && !stale} />}
+    {/* Session AV (owner follow-up 1, F-MOVE-ALERT): an alert on the whole value, checked here when the value is complete. */}
+    {!showcase && portfolio.kind === 'real' && <Suspense fallback={null}><PortfolioValueAlert portfolioId={portfolio.id} portfolioName={portfolio.name} currency={portfolio.currency} value={totals.held > 0 && totals.unpriced === 0 && !stale ? totals.knownValue : null}/></Suspense>}
     {rows.length > 0 && <>
       {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}<div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`} onKeyDown={event => tabKeys(PORTFOLIO_TABS, tab, setTab)(event)}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Transactions']] as const) /* Session AL (TK-030, COPY_AUDIT): named for what it holds */.map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)}>{label}</button>)}</div>
       <div id={`${portfolio.id}-panel-coins`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-coins`} hidden={tab !== 'coins'}>

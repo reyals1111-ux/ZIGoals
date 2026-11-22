@@ -89,7 +89,7 @@ export function BarcodeFoodLookup({date,update,data}:{date:string;update:(update
    if(!res.ok)throw Error(lookupFailure(res.status,typed).message);const text=await res.text();if(text.length>10000)throw Error('Product response exceeded capacity.');found=lookupProductSchema.parse(JSON.parse(text));if(found.barcode!==barcode)throw Error('Barcode identity mismatch.');if(cache.current.size>=50)cache.current.clear();cache.current.set(barcode,found);}
    if(controller.signal.aborted||selected!==getAppStorage())return;setProduct(found);setQMode('amount');note(barcode,found.name,found.source);setValues(Object.fromEntries(fields.map(([key,,scale])=>[key,found!.nutrients[key]===null?'':String(found!.nutrients[key]!/scale)])));setMessage('Review the package and correct any fields privately. Nothing has been logged.');
    if(fields.every(([key])=>found!.nutrients[key]===null))setOffer('empty');
-  }catch(e){if(!controller.signal.aborted)setMessage(plainErrorMessage(e, 'Lookup failed.'));}finally{if(request.current===controller)setBusy(false);}
+  }catch(e){if(!controller.signal.aborted)setMessage(plainErrorMessage(e, /* Session AU (ADR-044 T-5): the fallback names the way on (was "Lookup failed.") */ 'This product’s details could not be read. Search foods by name, or add it in your own words.'));}finally{if(request.current===controller)setBusy(false);}
  }
  // Session AJ (item 22): the same route, limits and wait as the barcode lookup; only the typed words and language are sent.
  async function search(){stop();request.current?.abort();const controller=new AbortController();request.current=controller;setBusy(true);setMessage('');setResults(null);scope.current=getAppStorage();const selected=scope.current;

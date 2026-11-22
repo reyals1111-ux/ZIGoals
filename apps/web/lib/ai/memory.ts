@@ -65,7 +65,7 @@ export const newestFirst = (notes: readonly MemoryNoteRecord[]) => [...notes].so
  * What ZIGi knows records `given: false`, after which every Remember card is refused in plain words (the person's own
  * notes in the panel are theirs and stay possible). A record from before this field reads through `memoryConsent`.
  */
-export const MEMORY_DECLINED = 'You chose that ZIGi keeps no notes from its cards. Turn "Notes from ZIGi\'s cards" on in Settings → ZIGi · Your Personal AI Companion → What ZIGi knows about me, or write the note there yourself.';
+export const MEMORY_DECLINED = 'You chose that ZIGi keeps no notes from its cards. Turn "Notes from ZIGi\'s cards" on in Settings → ZIGi · your companion → What ZIGi knows about me, or write the note there yourself.';
 export const MEMORY_FIRST = 'Your first note for ZIGi: it is kept only when you press Remember, on this device only, never synced, in Export everything; see, edit or forget each one in Settings → What ZIGi knows about me.';
 export function withConsent(memory: AiMemory, given: boolean, now: Date): AiMemory { return aiMemorySchema.parse({...memory, consent: {given, at: now.toISOString()}}); }
 /** The record after a confirmed Remember card: the first one also records the agreement. */

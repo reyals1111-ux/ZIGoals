@@ -16,6 +16,7 @@ import {HoloFigure, TickRing} from '../holo/parts';
 import {useOrbitDay} from './use-orbit-day';
 import {WholeRows} from '../cards/whole-rows';
 import {NovaEmpty, NovaReading} from './empty';
+import {useHealthGate} from './use-health-gate';
 
 /**
  * "Day at a glance": the day in a few lines, from the person's own records only — the orbit, last night, water, meals,
@@ -25,13 +26,16 @@ import {NovaEmpty, NovaReading} from './empty';
  * row with a lit node.
  */
 export default function GlanceWidget({size}: {size?: WidgetSize}) {
-  const orbit = useOrbitDay(), health = useHealth(), bills = useDeviceRecord(BILLS), focus = useDeviceRecord(FOCUS_SESSIONS), today = useLocalToday();
-  const ready = !!orbit.summary && health.loaded && bills.loaded && focus.loaded;
+  const orbit = useOrbitDay(), health = useHealth(), healthGate = useHealthGate(), bills = useDeviceRecord(BILLS), focus = useDeviceRecord(FOCUS_SESSIONS), today = useLocalToday();
+  const ready = !!orbit.summary && health.loaded && bills.loaded && focus.loaded && healthGate !== 'reading';
   const glance = useMemo(() => {
     if (!ready) return null;
     const s = orbit.summary!, facts: GlanceFacts = {orbit: null, water: null, meals: null, nextBill: null, focusMinutes: null, sleepMinutes: null, contributionsDue: s.contributionsDue};
     if (s.source !== 'none') facts.orbit = {done: s.done, total: s.total, unit: s.source === 'checklist' ? 'planet' : 'habit'};
-    if (!health.error) try {
+    // Session AU (ADR-044 T-6, the rehearsal's Tom): the header said "Health off" while this widget showed "2 food entries
+    // logged today". Water, meals and sleep are Health records: they are read here only while NOVA's Health permission is
+    // on (the same lock as the Health widgets' bodies); off, those lines are left out, never shown as zero.
+    if (!health.error && healthGate === 'open') try {
       const water = waterToday(health.data), day = water.day; // Session AL: L2's one water source
       facts.water = {ml: water.millilitres, targetMl: water.targetMl, unit: water.unit};
       facts.meals = health.data.diary.filter(e => e.date === day).length;
@@ -40,7 +44,7 @@ export default function GlanceWidget({size}: {size?: WidgetSize}) {
     if (!bills.unreadable) { const next = billOccurrences(bills.data, today, 7)[0]; if (next) facts.nextBill = {title: next.title, days: daysBetween(today, next.due)}; }
     if (!focus.unreadable) facts.focusMinutes = gardenOf(focus.data, today).weekMinutes;
     return {lines: glanceLines(facts), orbit: facts.orbit};
-  }, [ready, orbit.summary, health.data, health.error, bills.data, bills.unreadable, focus.data, focus.unreadable, today]);
+  }, [ready, healthGate, orbit.summary, health.data, health.error, bills.data, bills.unreadable, focus.data, focus.unreadable, today]);
   if (!glance) return <NovaReading/>;
   const {lines, orbit: o} = glance;
   if (!lines.length) return <NovaEmpty pillar="orbit" ghost="rows">Your day at a glance fills in from your own records: a habit, a glass of water, a night of sleep, a bill.</NovaEmpty>;

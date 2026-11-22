@@ -191,8 +191,45 @@
 .habit-reflection-note { margin: 4px 0 0; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-line; }
 /* Session AL fourth pass (PR-010): the streak's "today is still open" line under its label. */
 .habit-metrics .habit-streak-open { display: block; margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--text-secondary); }
+/* Session AV follow-up 1 (F-TWO-DAY): never miss twice, beside the streak. */
+.habit-metrics .habit-streak-two { display: block; margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--text-secondary); }
 /* Session AL fourth pass (NB-071): on a wide card the square cells grew to 119 px (a 781 px calendar); the month keeps a
    reading width instead, every cell still at least 44 px. */
 .habit-calendar, .habit-calendar-heading { max-width: 460px; }
 /* Session AL fourth pass (MO-123): a linked habit's "counting from Health" line, as the automatic-tick note reads. */
 .habit-health-so-far { flex-basis: 100%; margin: 0; font-size: 15px; line-height: 1.4; color: var(--text-secondary); }
+/* Session AV follow-up 1 (F-YESTERDAY): yesterday's open habits, before today starts. */
+/* Session AV follow-up 1 (F-FOCUS-HABIT): today's focus, said in words beside the star. */
+.habit-focus-badge { font-weight: 650; margin: 2px 0 0; font-size: 14px; white-space: nowrap; color: var(--text-primary, inherit); }
+/* Session AV (q4 #23): "never missed twice" and "Don’t miss today" on the card face. */
+.habit-two-day { margin: 4px 0 0; font-size: 14px; color: var(--text-secondary); }
+.habit-two-day.is-today { color: var(--text-primary, inherit); font-weight: 600; }
+/* Session AV follow-up 1 (F-HABIT-LOOK): a habit's own symbol and colour (named colours; each theme keeps its contrast). */
+.habit-look-picker { display: grid; gap: 8px; margin: 8px 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, rgba(140,160,220,.3)); }
+.habit-look-picker p, .habit-look-picker fieldset { margin: 0; }
+.habit-look-picker fieldset { border: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.habit-look-picker legend { font-weight: 600; margin-bottom: 4px; }
+.habit-look-choice { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 8px; border-radius: 10px; border: 1px solid var(--line, rgba(140,160,220,.3)); color: var(--habit-look); cursor: pointer; }
+.habit-look-choice:has(input:checked) { border-width: 2px; border-color: currentColor; font-weight: 700; }
+.habit-look-choice:has(input:focus-visible) { outline: 2px solid var(--focus, currentColor); outline-offset: 2px; }
+.habit-look-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.habit-look-swatch { width: 14px; height: 14px; border-radius: 50%; background: var(--habit-look); }
+.habit-look-word { color: var(--text-primary, inherit); }
+/* Session AV follow-up 1 (F-WEEK-GRID): this week, Monday to Sunday. */
+.habit-week-fold summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.habit-week { display: grid; gap: 8px; min-width: 0; }
+.habit-week-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; }
+.habit-week-nav button { min-height: 44px; }
+.habit-week-scroll { overflow-x: auto; max-width: 100%; }
+.habit-week-table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.habit-week-table th, .habit-week-table td { padding: 4px; text-align: center; border-bottom: 1px solid var(--line, rgba(140,160,220,.18)); }
+.habit-week-table th[scope=row] { text-align: start; max-width: 12rem; overflow-wrap: anywhere; font-weight: 600; }
+.habit-week-table th[data-today] { text-decoration: underline; text-underline-offset: 4px; }
+.habit-week-table small { color: var(--text-meta, var(--muted)); }
+.habit-week-cell { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--line, rgba(140,160,220,.3)); background: transparent; color: inherit; font-size: 18px; }
+.habit-week-cell[aria-pressed=true] { border-width: 2px; border-color: currentColor; font-weight: 700; }
+.habit-week-cell.is-still { border-style: dashed; }
+/* Session AV (D-CI1961): a time-of-day section clips its content to its rounded corners, which also cut a card's open
+   options menu at the section's edge (its lower items could not be seen or pressed). While a menu is open the section
+   lets it overflow. */
+.habit-section:has(.card-options-panel) { overflow: visible; }

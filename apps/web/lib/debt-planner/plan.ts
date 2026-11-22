@@ -10,7 +10,15 @@ import {parseNumberInput} from '../numbers/parse';
  * A model, not advice: it assumes the rates and payments stay the same, interest is worked out monthly and nothing new
  * is borrowed. A plan that does not clear within 100 years has no date (null), never a guess.
  */
-export type Strategy = 'snowball' | 'avalanche';
+export type Strategy = 'snowball' | 'avalanche' | 'custom';
+/**
+ * Session AV (owner follow-up 1, F-DEBT-PLAN; Undebt.it): a one-off extra payment in plan month `month` (1 = the first
+ * payment month), on top of that month's budget; it goes where the extra goes (never to "minimums only").
+ */
+export type Lump = {month: number; cents: bigint};
+/** One month of a plan, per debt in the plan's order: what was paid (minimum and extra), the interest, what is left. */
+export type ScheduleRow = {month: number; paid: bigint[]; interest: bigint[]; left: bigint[]; lump: bigint};
+export type PlanOptions = {/** "Your order" (ids, first first); debts it does not name follow in avalanche order. */ order?: readonly string[]; lumps?: readonly Lump[]; schedule?: boolean};
 export type PlanDebt = {
   id: string; name: string;
   /** What is owed today, in cents. */
@@ -33,6 +41,8 @@ export type PlanResult = {
   payoffs: DebtPayoff[];
   /** The total owed at the start (index 0) and after each month's payments. */
   balances: bigint[];
+  /** Session AV (F-DEBT-PLAN): month by month, when asked for. */
+  schedule?: ScheduleRow[];
 };
 export const MAX_MONTHS = 1200, MAX_DEBTS = 50, MAX_CENTS = 100_000_000_000_000n; // a trillion in cents
 
@@ -93,33 +103,72 @@ export function strategyOrder(debts: readonly PlanDebt[], strategy: Strategy): P
     : (a, b) => cmp(r(b), r(a)) || cmp(a.balance, b.balance) || byName(a, b));
 }
 
+/** Session AV (F-DEBT-PLAN): "Your order" — the debts in the order given, any it does not name after them in avalanche order. */
+export function customOrder(debts: readonly PlanDebt[], order: readonly string[] = []): PlanDebt[] {
+  const named = order.flatMap(id => debts.filter(d => d.id === id).slice(0, 1)), seen = new Set(named.map(d => d.id));
+  return [...new Set(named), ...strategyOrder(debts.filter(d => !seen.has(d.id)), 'avalanche')];
+}
 /** Runs one strategy (or minimums only); throws with the plain reason when an input is out of range. */
-export function runPlan(debts: readonly PlanDebt[], extra: bigint, strategy: Strategy | 'minimums'): PlanResult {
+export function runPlan(debts: readonly PlanDebt[], extra: bigint, strategy: Strategy | 'minimums', options: PlanOptions = {}): PlanResult {
   const issue = planIssue(debts, extra); if (issue) throw Error(issue);
-  const ordered = strategy === 'minimums' ? [...debts] : strategyOrder(debts, strategy);
+  const ordered = strategy === 'minimums' ? [...debts] : strategy === 'custom' ? customOrder(debts, options.order) : strategyOrder(debts, strategy);
+  const lumps = new Map<number, bigint>();
+  if (strategy !== 'minimums') for (const l of options.lumps ?? []) if (l.month >= 1 && l.month <= MAX_MONTHS && l.cents > 0n) lumps.set(l.month, (lumps.get(l.month) ?? 0n) + l.cents);
+  const schedule: ScheduleRow[] | undefined = options.schedule ? [] : undefined;
   const state = ordered.map(d => ({d, rate: rateE4(d.ratePercent)!, left: d.balance, interest: 0n, done: 0}));
   const budget = strategy === 'minimums' ? 0n : ordered.reduce((t, d) => t + d.minimum, 0n) + extra;
   const balances: bigint[] = [state.reduce((t, s) => t + s.left, 0n)], payoffs: DebtPayoff[] = [];
   let totalInterest = 0n, totalPaid = 0n, months: number | null = null;
   for (let month = 1; month <= MAX_MONTHS; month++) {
-    let room = budget;
-    for (const s of state) if (s.left > 0n) { const i = monthlyInterest(s.left, s.rate); s.left += i; s.interest += i; totalInterest += i; }
-    for (const s of state) if (s.left > 0n) { const p = s.left < s.d.minimum ? s.left : s.d.minimum; s.left -= p; totalPaid += p; room -= p; }
-    if (strategy !== 'minimums') for (const s of state) { if (room <= 0n) break; if (s.left <= 0n) continue; const p = s.left < room ? s.left : room; s.left -= p; totalPaid += p; room -= p; }
+    const lump = lumps.get(month) ?? 0n, paid = state.map(() => 0n), interest = state.map(() => 0n);
+    let room = budget + lump;
+    state.forEach((s, k) => { if (s.left > 0n) { const i = monthlyInterest(s.left, s.rate); s.left += i; s.interest += i; totalInterest += i; interest[k] = i; } });
+    state.forEach((s, k) => { if (s.left > 0n) { const p = s.left < s.d.minimum ? s.left : s.d.minimum; s.left -= p; totalPaid += p; room -= p; paid[k]! += p; } });
+    if (strategy !== 'minimums') for (const [k, s] of state.entries()) { if (room <= 0n) break; if (s.left <= 0n) continue; const p = s.left < room ? s.left : room; s.left -= p; totalPaid += p; room -= p; paid[k]! += p; }
+    schedule?.push({month, paid, interest, left: state.map(s => s.left), lump});
     for (const s of state) if (s.left <= 0n && !s.done) { s.done = month; payoffs.push({id: s.d.id, name: s.d.name, month, interest: s.interest}); }
     const total = state.reduce((t, s) => t + s.left, 0n);
     balances.push(total);
     if (total === 0n) { months = month; break; }
   }
-  return {strategy, months, totalInterest, totalPaid, order: ordered.map(d => d.id), payoffs, balances};
+  return {strategy, months, totalInterest, totalPaid, order: ordered.map(d => d.id), payoffs, balances, ...(schedule ? {schedule} : {})};
 }
 export type PlanComparison = {snowball: PlanResult; avalanche: PlanResult; minimums: PlanResult;
   /** Interest each strategy saves against minimums only; null when minimums alone do not clear it within 100 years. */
-  savedSnowball: bigint | null; savedAvalanche: bigint | null};
-export function comparePlans(debts: readonly PlanDebt[], extra: bigint): PlanComparison {
-  const snowball = runPlan(debts, extra, 'snowball'), avalanche = runPlan(debts, extra, 'avalanche'), minimums = runPlan(debts, extra, 'minimums');
+  savedSnowball: bigint | null; savedAvalanche: bigint | null;
+  /** Session AV (F-DEBT-PLAN): "Your order", when one is given, and what it saves. */
+  custom?: PlanResult; savedCustom?: bigint | null};
+/** The three plans (four with "Your order"); one-off extra payments go into every plan but "minimums only". */
+export function comparePlans(debts: readonly PlanDebt[], extra: bigint, options: Omit<PlanOptions, 'schedule'> = {}): PlanComparison {
+  const lumps = options.lumps ? {lumps: options.lumps} : {};
+  const snowball = runPlan(debts, extra, 'snowball', lumps), avalanche = runPlan(debts, extra, 'avalanche', lumps), minimums = runPlan(debts, extra, 'minimums');
   const saved = (r: PlanResult) => minimums.months === null || r.months === null ? null : minimums.totalInterest - r.totalInterest;
-  return {snowball, avalanche, minimums, savedSnowball: saved(snowball), savedAvalanche: saved(avalanche)};
+  const custom = options.order?.length ? runPlan(debts, extra, 'custom', {...lumps, order: options.order}) : undefined;
+  return {snowball, avalanche, minimums, savedSnowball: saved(snowball), savedAvalanche: saved(avalanche), ...(custom ? {custom, savedCustom: saved(custom)} : {})};
+}
+/** Whole months from one month key to another ("2026-11" → "2027-02" is 3). */
+export const monthsBetween = (from: string, to: string) => { const n = (k: string) => Number(k.slice(0, 4)) * 12 + Number(k.slice(5, 7)) - 1; return n(to) - n(from); };
+/** A one-off payment kept by its calendar month ("2027-03") as the plan's month number from today (1 = next month); null when that month has passed. */
+export const lumpMonth = (today: string, monthKey: string) => { const m = monthsBetween(firstPaymentMonth(today), monthKey) + 1; return m >= 1 ? m : null; };
+/** Session AV (F-DEBT-PLAN): the debt-free date as a countdown — "2 years and 3 months", "11 months", "1 year". */
+export function countdownWords(months: number): string {
+  const y = Math.floor(months / 12), m = months % 12, part = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
+  return y && m ? `${part(y, 'year')} and ${part(m, 'month')}` : y ? part(y, 'year') : part(m, 'month');
+}
+/**
+ * Session AV (F-DEBT-PLAN): the plan kept on "Track this plan" against what the person has recorded since. The plan is
+ * worked out again from its own starting figures (so later changes to the figures do not move it); after N payment
+ * months it expected `expected` owed in all; the accounts now show `actual` for the same debts (a debt no longer in the
+ * accounts, or at zero, counts as cleared). `ahead` > 0: less owed than the plan expected. Before the first payment
+ * month there is nothing to compare yet (months 0).
+ */
+export type PlanProgress = {months: number; expected: bigint; actual: bigint; ahead: bigint; started: bigint};
+export function planProgress(start: {on: string; debts: readonly PlanDebt[]; extra: bigint; strategy: Strategy; order?: readonly string[]; lumps?: readonly {month: string; cents: bigint}[]}, owedNow: ReadonlyMap<string, bigint>, today: string): PlanProgress {
+  const months = Math.max(0, monthsBetween(start.on.slice(0, 7), today.slice(0, 7)));
+  const lumps = (start.lumps ?? []).flatMap(l => { const m = lumpMonth(start.on, l.month); return m ? [{month: m, cents: l.cents}] : []; });
+  const plan = runPlan(start.debts, start.extra, start.strategy, {order: start.order ?? [], lumps});
+  const expected = plan.balances[Math.min(months, plan.balances.length - 1)]!, actual = start.debts.reduce((t, d) => t + (owedNow.get(d.id) ?? 0n), 0n);
+  return {months, expected, actual, ahead: expected - actual, started: plan.balances[0]!};
 }
 /** The calendar month `n` months after a month key ("2026-11" + 3 → "2027-02"). */
 export function addMonths(monthKey: string, n: number): string {

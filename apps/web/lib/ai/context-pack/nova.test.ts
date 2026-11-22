@@ -48,7 +48,8 @@ test('each scope alone adds only its own parts of the day', () => {
     for (const x of p.included) expect(own, `${scope}: ${x}`).toContain(x);
   }
   expect(pack({scopes: {...NONE, goals: true}}).text).toContain('- Goals and pace: Emergency fund (g1) 45%, ahead; First home deposit (g2) 65%, on track;');
-  expect(pack({scopes: {...NONE, wealth: true}}).text).toContain('- Money log: this month: spent 611.99 EUR, received 2550.00 EUR');
+  // Session AU (D8, deliberate): 611.99 + the Showcase streaming bill's €13.99 of Oct 8 (lib/showcase/au-examples.ts).
+  expect(pack({scopes: {...NONE, wealth: true}}).text).toContain('- Money log: this month: spent 625.98 EUR, received 2550.00 EUR');
   expect(pack({scopes: NONE}).text).toContain('- Nothing NOVA may read holds records yet.');
 });
 test('Health needs its scope AND ZIGi\'s gate: the scope alone or the gate alone attaches nothing of Health (sentinels)', () => {
@@ -96,8 +97,9 @@ test('the privacy mode\'s redaction is applied to the very text NOVA sends; "Wha
 });
 test('with lane NC\'s own redaction: Guarded rounds the exact amounts NOVA would send; Relaxed and no mode send them as they are', () => {
   const guarded = pack({privacy: {mode: 'guarded', redactForSend}}), relaxed = pack({privacy: {mode: 'relaxed', redactForSend}}), none = pack({privacy: {mode: null, redactForSend}});
-  expect(relaxed.text).toContain('611.99 EUR'); expect(none.text).toBe(relaxed.text);
-  expect(guarded.text).not.toContain('611.99'); expect(guarded.text).toContain('Money log');
+  // Session AU (D8, deliberate): 611.99 + the streaming bill's €13.99.
+  expect(relaxed.text).toContain('625.98 EUR'); expect(none.text).toBe(relaxed.text);
+  expect(guarded.text).not.toContain('625.98'); expect(guarded.text).toContain('Money log');
   expect(whatNovaCanSee(input({privacy: {mode: 'guarded', redactForSend}}))).toBe(guarded.text);
 });
 test('the cap holds and names what it leaves out (read with a tool when asked); unknown is never written as zero', () => {

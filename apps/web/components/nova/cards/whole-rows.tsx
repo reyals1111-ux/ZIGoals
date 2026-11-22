@@ -62,8 +62,8 @@ type Fitter = {members: Set<Member>;
   measure: (force?: boolean) => void;
   /**
    * Whether a change in the page is no change of content: the fit's own writing (a row's, the line's or the box's `hidden`,
-   * the box's short mark, the last line's words), or an attribute written again with the value it had (React writes a
-   * field's `name` and `type` again on every render).
+   * the box's short mark, the last line's words), an attribute written again with the value it had (React writes a
+   * field's `name` and `type` again on every render), or a field's `name` (it never changes a size).
    */
   own: (record: MutationRecord) => boolean};
 /** What a measure read and answered: while none of it has changed, the answer stands. */
@@ -144,6 +144,10 @@ function createFitter(): Fitter {
   const own = (record: MutationRecord) => {
     const at = record.target, mark = record.type === 'attributes' && (record.attributeName === 'hidden' || record.attributeName === 'data-wr-short');
     if (record.type === 'attributes' && record.attributeName && at instanceof Element && at.getAttribute(record.attributeName) === record.oldValue) return true;
+    // Session AV (ADR-045 D36): a field's `name` never changes a row's size. React writes an empty one and takes it away again
+    // on a render (a task's checkbox in the Tasks widget), and each of those forced a full measure: about ten during the
+    // Showcase's opening, each several layouts of the whole page on a processor-drawn page (the opening ended late).
+    if (record.type === 'attributes' && record.attributeName === 'name') return true;
     for (const m of members) if (m.more.contains(at) || (mark && (at === m.wrap || at === m.list || at.parentNode === m.list))) return true;
     return false;
   };

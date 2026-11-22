@@ -37,10 +37,13 @@ export function NovaEntry() {
     if (pathname !== '/app' || window.location.search) return;
     try { const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined; if (nav && nav.type !== 'navigate') return; } catch { return; }
     // The record is read only here, loaded on use, so the shell carries nothing of NOVA's store.
-    void Promise.all([import('../../lib/device-record'), import('../../lib/nova/store'), import('../../lib/showcase-storage')]).then(([dr, nova, st]) => {
+    // Session AV (D-CI1994): its code is fetched once the page has loaded — never among the page's own first requests,
+    // so it can neither hold up Today's load nor race it (the check below still applies only while on Today).
+    const check = () => void Promise.all([import('../../lib/device-record'), import('../../lib/nova/store'), import('../../lib/showcase-storage')]).then(([dr, nova, st]) => {
       // Security review Z1C-L1: only while the person is still on Today (a slow load must not pull them off a page they moved to).
       if (window.location.pathname === '/app' && !window.location.search && nova.startsOnNova(dr.readDeviceRecord(st.getAppStorage(), nova.NOVA_STORE).data)) { startRedirect = true; router.replace('/app/nova'); }
     }).catch(() => { /* Today it is */ });
+    if (document.readyState === 'complete') check(); else window.addEventListener('load', check, {once: true});
   // Only the first page of the session matters.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

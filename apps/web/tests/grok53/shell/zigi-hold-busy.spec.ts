@@ -42,7 +42,7 @@ async function seed(page: Page) {
 test('Fix 2: a hold whose release arrives before the hold timer (busy main thread) is still a hold', async ({page}) => {
   await seed(page);
   await page.goto('/app'); await hydrated(page);
-  const button = page.getByTestId('ai-launcher').getByRole('button', {name: /ZIGi, your personal AI companion/});
+  const button = page.getByTestId('ai-launcher').getByRole('button', {name: /ZIGi, your companion/});
   await expect(button).toBeVisible();
   const b = (await button.boundingBox())!;
   await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);

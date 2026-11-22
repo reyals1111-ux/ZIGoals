@@ -40,6 +40,12 @@ html.report-open { overflow: hidden; }
 .report-sheet tbody th { font-weight: 500; white-space: nowrap; }
 .report-note { white-space: pre-wrap; overflow-wrap: anywhere; }
 .report-section { min-width: 0; overflow-x: auto; }
+/* Session AV (q3 #48): a wide table scrolls in its own frame, which is focusable then (report-document Wide). Names in the
+   symptom and dose tables wrap at word gaps, so at 390 px the tables fit and nothing scrolls. */
+.report-table { max-width: 100%; overflow-x: auto; }
+.report-table:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.report-sheet tbody th.report-name { white-space: normal; overflow-wrap: break-word; min-width: 6em; }
+@media (max-width: 480px) { .report-sheet th, .report-sheet td { padding: 4px 4px; } }
 .report-foot { font-size: 14px; opacity: .85; }
 
 @media print {
@@ -48,7 +54,7 @@ html.report-open { overflow: hidden; }
   html.report-open .report-root { position: static; overflow: visible; color-scheme: light; background: Canvas; color: CanvasText; }
   html.report-open .report-toolbar { display: none !important; }
   html.report-open .report-sheet { max-width: none; padding: 0; gap: 12px; }
-  html.report-open .report-section { overflow: visible; break-inside: auto; }
+  html.report-open .report-section, html.report-open .report-table { overflow: visible; break-inside: auto; }
   html.report-open .report-chart, html.report-open .report-facts, html.report-open .report-sheet h2, html.report-open .report-sheet tr { break-inside: avoid; }
   html.report-open .report-sheet h2 { break-after: avoid; }
   html.report-open .report-sheet thead { display: table-header-group; }

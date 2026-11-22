@@ -9,6 +9,9 @@ import {isShowcase} from '../../lib/showcase-storage';
 import {useDeviceRecord} from '../ai/use-device-record';
 // Session AK (BUILD list 2 #4): "Your numbers" for the report's own section.
 import {HEALTH_NUMBERS} from '../../lib/health-numbers/store';
+// Session AV (owner follow-up 1, F-REPORT-MORE): symptoms and factors, supplements and medication, as sections.
+import {SYMPTOMS} from '../../lib/symptoms/schema';
+import {SUPPLEMENTS} from '../../lib/supplements/schema';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
@@ -22,12 +25,12 @@ import './report.css';
  */
 const PRESETS = [{days: 30, label: '30 days'}, {days: 90, label: '90 days'}, {days: 365, label: 'A year'}] as const;
 export default function ReportBuilder() {
-  const today = useLocalToday(), health = useHealth(), habits = useHabits(), energy = useDeviceRecord(ENERGY), numbers = useDeviceRecord(HEALTH_NUMBERS), id = useId();
+  const today = useLocalToday(), health = useHealth(), habits = useHabits(), energy = useDeviceRecord(ENERGY), numbers = useDeviceRecord(HEALTH_NUMBERS), symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS), id = useId();
   const [from, setFrom] = useState(() => addLocalDays(today, -29)), [to, setTo] = useState(today);
   const [chosen, setChosen] = useState<ReadonlySet<ReportSectionId>>(() => new Set(['sleep', 'mood', 'notes', 'weight']));
   const [shown, setShown] = useState(false), opener = useRef<HTMLButtonElement>(null);
-  const ready = health.loaded && habits.loaded && energy.loaded && numbers.loaded;
-  const records = useMemo(() => ({health: health.loaded && !health.error ? health.data : null, habits: habits.loaded && !habits.error ? habits.data : null, energy: energy.loaded && !energy.unreadable ? energy.data : null, numbers: numbers.loaded && !numbers.unreadable ? numbers.data : null}), [health.loaded, health.error, health.data, habits.loaded, habits.error, habits.data, energy.loaded, energy.unreadable, energy.data, numbers.loaded, numbers.unreadable, numbers.data]);
+  const ready = health.loaded && habits.loaded && energy.loaded && numbers.loaded && symptoms.loaded && supplements.loaded;
+  const records = useMemo(() => ({health: health.loaded && !health.error ? health.data : null, habits: habits.loaded && !habits.error ? habits.data : null, energy: energy.loaded && !energy.unreadable ? energy.data : null, numbers: numbers.loaded && !numbers.unreadable ? numbers.data : null, symptoms: symptoms.loaded && !symptoms.unreadable ? symptoms.data : null, supplements: supplements.loaded && !supplements.unreadable ? supplements.data : null}), [health.loaded, health.error, health.data, habits.loaded, habits.error, habits.data, energy.loaded, energy.unreadable, energy.data, numbers.loaded, numbers.unreadable, numbers.data, symptoms.loaded, symptoms.unreadable, symptoms.data, supplements.loaded, supplements.unreadable, supplements.data]);
   const valid = /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to);
   const range = valid ? reportRange(from, to, today) : null;
   const has = useMemo(() => Object.fromEntries(REPORT_SECTIONS.map(s => [s, valid ? sectionHasData({...records, from, to, today}, s) : false])) as Record<ReportSectionId, boolean>, [records, from, to, today, valid]);
@@ -47,7 +50,7 @@ export default function ReportBuilder() {
     </fieldset>
     <fieldset className="report-sections"><legend>Include</legend>
       {REPORT_SECTIONS.map(s => <label key={s} className="check-row report-check"><input type="checkbox" checked={chosen.has(s)} onChange={e => toggle(s, e.target.checked)}/> <span>{SECTION_LABELS[s]}{!has[s] && <span className="fine"> · nothing logged in these dates</span>}</span></label>)}
-      <p className="fine">ZIGoals keeps no medication or symptom list, so the report has none; notes are the short ones you wrote with a mood or a night.</p>
+      <p className="fine">Symptoms and factors are the ratings you gave in Health; supplements and medication are the doses you logged there, as you wrote them. Notes are the short ones you wrote with a mood or a night.</p>
     </fieldset>
     <p><button ref={opener} type="button" className="primary" disabled={!valid || chosen.size === 0} aria-describedby={`${id}-note`} onClick={() => setShown(true)}>Show the report</button></p>
     <p id={`${id}-note`} className="fine">It opens over this page. Print it, or choose “Save as PDF” in the print window. Nothing leaves this device unless you share the file.</p>

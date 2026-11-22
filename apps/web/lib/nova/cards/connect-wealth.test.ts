@@ -141,10 +141,18 @@ describe('bill changes: the latest payment of a bill found in the money log agai
     expect(c.lines[0]!.words).toMatch(/^went up by .*0\.50 since Oct 2026 \(.*9\.49 then, .*9\.99 now\)$/);
   });
   it('a bill written by hand has no payments to compare; no bill at all teaches', () => {
-    const none = billChangesCard(bills('manual'), pays, DAY);
+    // Session AU (ADR-044 D-SHOWCASE, deliberate): bills found in the money log but not confirmed count too now (as Wealth →
+    // Bills and ZIGi count them), so the hand-written bill is checked beside a log with no series of its own; with `pays`
+    // the found series' rise shows beside it.
+    const none = billChangesCard(bills('manual'), {...pays, entries: []}, DAY);
     expect([none.state, none.fromLog, none.lines]).toEqual(['none', 0, []]);
+    const found = billChangesCard(bills('manual'), pays, DAY);
+    expect([found.state, found.fromLog, found.lines.length]).toEqual(['live', 1, 1]);
+    expect(found.lines[0]!.words).toMatch(/^went up by .*0\.50 since Oct 2026 \(.*9\.49 then, .*9\.99 now\)$/);
     expect(billChangesRows(none)[0]![1]).toMatch(/None of your bills came from the money log/);
-    expect(billChangesCard(billsSchema.parse({version: 1, bills: [], dismissed: []}), pays, DAY).state).toBe('empty');
+    // Session AU (deliberate, as above): "empty" is no bill kept and none found in the log; a series found in the log alone is live.
+    expect(billChangesCard(billsSchema.parse({version: 1, bills: [], dismissed: []}), {...pays, entries: []}, DAY).state).toBe('empty');
+    expect(billChangesCard(billsSchema.parse({version: 1, bills: [], dismissed: []}), pays, DAY).state).toBe('live');
   });
 });
 

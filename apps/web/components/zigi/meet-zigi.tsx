@@ -68,7 +68,7 @@ export function MeetZigi() {
   const [gallery, setGallery] = useState(false);
   useEffect(() => { const open = () => { if (window.location.hash === GALLERY_HASH) setGallery(true); }; open(); window.addEventListener('hashchange', open); return () => window.removeEventListener('hashchange', open); }, []);
   return <div className="meet-zigi">
-    <PageHeader titleId="meet-zigi-title" eyebrow="ZIGi · Your Personal AI Companion" title="Meet ZIGi." art={<OrbitArt glyph={ZigiGlyph} spin={-14}/>} lede="Your companion on every page: it answers from your own records and proposes changes you confirm."/>
+    <PageHeader titleId="meet-zigi-title" eyebrow="ZIGi · your companion" title="Meet ZIGi." art={<OrbitArt glyph={ZigiGlyph} spin={-14}/>} lede="Your companion on every page: it answers from your own records and proposes changes you confirm."/>
     <p className="help-back"><Link className="text-link" href="/app/settings#zigi-look">← Back to Settings</Link></p>
     {/* Session AK G2 (RELEASE_REVIEW R26): what ZIGi does and the privacy line first; the state gallery under a fold. */}
     <section className="panel meet-zigi-about" aria-labelledby="meet-zigi-about">

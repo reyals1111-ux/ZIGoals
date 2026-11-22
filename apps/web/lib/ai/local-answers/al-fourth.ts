@@ -1,3 +1,4 @@
+import {planDayLines} from './av-answers';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
 import {runTool} from '../tools/registry';
@@ -12,8 +13,12 @@ import {quickCommand} from '../quick-commands/commands';
 import {quickLogContext} from '../../quick-log/context';
 import {quickLogReply} from '../../quick-log/multi';
 import {localAnswer, zigiOverview, type LocalReply} from './engine';
-import {novaEnvInfo} from './nova-env';
+import {allowHealth, novaEnvInfo} from './nova-env';
 import {amount, plural} from './words';
+import {checklistWeek} from './exact/day';
+import {namesNonGoal} from './exact/lexicon';
+import {PRICE_CHANGE} from './exact/money';
+import {dayWords} from './exact/period';
 import {actionSchema} from '../actions/schema';
 import {memoryCategory} from './al-more';
 import {ADVICE_REPLIES, DO_WITH_LINE, doWithAsk, isMoneyThing} from '../safety-guard';
@@ -44,7 +49,7 @@ const money = (value: unknown) => { const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(S
 const who = (env: ToolEnv | null) => env && novaEnvInfo(env) ? 'NOVA' : 'ZIGi';
 /** A routine asked for (written for the person), never "show/open my routines" (navigation) or a routine's own name. */
 const ROUTINE_ASK = /\b(?:give|get|make|build|design|write|plan|suggest|recommend|create|need|want)\s+(?:me\s+|myself\s+)?(?:a|an|my|some)\b[^.?!]{0,30}\broutines?\b|\b\d+[- ]?(?:minutes?|mins?|min)\s+(?:\w+\s+)?routines?\b|^\s*(?:a\s+)?(?:quick\s+|short\s+|simple\s+|good\s+)?(?:morning|evening|night|bedtime|nighttime|wind[- ]down|sleep)\s+routines?(?:\s+for\s+(?:me|tonight|tomorrow|today))?\s*[.!?]*\s*$|\broutines?\s+for\s+(?:tonight|tomorrow|my (?:mornings?|evenings?|nights?))\b/i;
-const brainPlace = (env: ToolEnv | null, lang: Lang) => env && novaEnvInfo(env) ? say(lang, 'NOVA → setup (“Build NOVA’s brain”)', 'NOVA → setup (“Build NOVA’s brain”)') : say(lang, 'Settings → ZIGi · Your Personal AI Companion', 'Settings → ZIGi · Your Personal AI Companion');
+const brainPlace = (env: ToolEnv | null, lang: Lang) => env && novaEnvInfo(env) ? say(lang, 'NOVA → setup (“Build NOVA’s brain”)', 'NOVA → setup (“Build NOVA’s brain”)') : say(lang, 'Settings → ZIGi · your companion', 'Instellingen → ZIGi · je metgezel');
 
 /** The device's own answer to a question in its words (the lookups, then the overview ZIGi shares with NOVA), or null. */
 export function deviceAnswer(question: string, env: ToolEnv): LocalReply | null {
@@ -133,8 +138,13 @@ export function checklistAnswer(question: string, env: ToolEnv, lang: Lang): Loc
       const first = env.checklist.record.items.map(i => i.addedAt).filter(Boolean).sort()[0];
       return {kind: 'answer', text: say(lang, `${first ? `Your path began on ${first.slice(0, 10)}` : 'Your path has no start date kept'}; ${days.length ? `${plural(days.length, 'day')} are counted in its history` : 'no earlier day is counted in its history yet'}. Today: ${list?.done ?? 0} of ${list?.total ?? 0} done.`, `${first ? `Je pad begon op ${first.slice(0, 10)}` : 'Je pad heeft geen startdatum'}; ${days.length} dagen in de geschiedenis. Vandaag: ${list?.done ?? 0} van ${list?.total ?? 0} gedaan.`), calls};
     }
-    const from = addLocalDays(env.checklist.date, -6), week = days.filter(([d]) => d >= from && d < env.checklist!.date), perfect = week.filter(([, s]) => s.perfect).length;
-    return {kind: 'answer', text: say(lang, `This week on your Checklist (${week.length} earlier ${week.length === 1 ? 'day' : 'days'} kept): ${week.map(([d, s]) => `${d.slice(5)} ${s.done} of ${s.total}`).join(', ') || 'no earlier day kept yet'}${week.length ? `; ${plural(perfect, 'perfect orbit')}` : ''}. Today so far: ${list?.done ?? 0} of ${list?.total ?? 0}.`, `Deze week op je Checklist: ${week.map(([d, s]) => `${d.slice(5)} ${s.done} van ${s.total}`).join(', ') || 'nog geen eerdere dag bewaard'}. Vandaag: ${list?.done ?? 0} van ${list?.total ?? 0}.`), calls};
+    // Session AU (REHEARSAL R-5, R-14): the week's days under the person's own "A day counts as done at N", in the app's day
+    // words (exact/day.ts `checklistWeek`, the answer the exact layer gives); the history without a week keeps its list,
+    // in the same day words, with every day whose dots were all lit counted as a perfect orbit.
+    const week = checklistWeek(env, lang, q.toLowerCase(), list ? {total: list.total, done: list.done} : null);
+    if (week) return {kind: 'answer', text: week.text, calls};
+    const from = addLocalDays(env.checklist.date, -6), kept = days.filter(([d]) => d >= from && d < env.checklist!.date), perfect = kept.filter(([, s]) => s.perfect || (s.total > 0 && s.done >= s.total)).length, day = (d: string) => dayWords(d, env.checklist!.date);
+    return {kind: 'answer', text: say(lang, `This week on your Checklist (${kept.length} earlier ${kept.length === 1 ? 'day' : 'days'} kept): ${kept.map(([d, s]) => `${day(d)} ${s.done} of ${s.total}`).join(', ') || 'no earlier day kept yet'}${kept.length ? `; ${plural(perfect, 'perfect orbit')}` : ''}. Today so far: ${list?.done ?? 0} of ${list?.total ?? 0}.`, `Deze week op je Checklist: ${kept.map(([d, s]) => `${day(d)} ${s.done} van ${s.total}`).join(', ') || 'nog geen eerdere dag bewaard'}. Vandaag: ${list?.done ?? 0} van ${list?.total ?? 0}.`), calls};
   }
   if (!list || !list.total) return {kind: 'answer', text: say(lang, `Your Checklist has no dots today yet.${hidden}${healthHidden} Add one with “add … to my checklist”, or open the Checklist.`, `Je Checklist heeft vandaag nog geen stippen.${hidden}${healthHidden}`) + open('checklist'), calls};
   const dots = list.dots ?? [];
@@ -152,7 +162,8 @@ export function checklistAnswer(question: string, env: ToolEnv, lang: Lang): Loc
   }
   if (/\bperfect\b/i.test(q)) return {kind: 'answer', text: list.perfect ? say(lang, `Yes: all ${list.total} done in path order, a perfect orbit today.`, `Ja: alle ${list.total} in volgorde gedaan, een perfecte baan vandaag.`) : say(lang, `Not yet: ${list.done} of ${list.total} done today; a perfect orbit is every dot, in path order.`, `Nog niet: ${list.done} van ${list.total} gedaan vandaag; een perfecte baan is elke stip, in volgorde.`), calls};
   const openLine = list.open.length ? say(lang, ` Still open, in path order: ${listNames(list.open, 6)}.`, ` Nog open, in de volgorde van het pad: ${listNames(list.open, 6)}.`) : say(lang, ' Everything on today’s path is done.', ' Alles op het pad van vandaag is gedaan.');
-  return {kind: 'answer', text: say(lang, `Checklist today: ${list.done} of ${list.total} done.`, `Checklist vandaag: ${list.done} van ${list.total} gedaan.`) + openLine + hidden + healthHidden, calls};
+  // Session AU (D-ALLOW-HEALTH): Health dots not shared carry one button to where Health is allowed (the person turns it on there).
+  return {kind: 'answer', text: say(lang, `Checklist today: ${list.done} of ${list.total} done.`, `Checklist vandaag: ${list.done} van ${list.total} gedaan.`) + openLine + hidden + healthHidden + (list.healthHidden ? allowHealth(env, lang) : ''), calls};
 }
 
 // ---- before the commands and the quick-log reading ----
@@ -210,7 +221,9 @@ export function fourthFirst(question: string, env: ToolEnv | null, lang: Lang, p
   if (PLAN_ASK.test(q)) {
     const week = /\bweek(?:end)?\b/i.test(q), base = deviceAnswer(week ? 'What does my week look like?' : 'What is due today?', env);
     const facts = base && 'text' in base ? base.text.replace(/\n\n```zigoals-action[\s\S]*?```/g, '') : '';
-    return {kind: 'answer', text: say(lang, `Planning it with you needs your own AI (${brainPlace(env, lang)}); without one I don’t make a plan or a task out of it. From your records:`, `Er samen een plan van maken vraagt je eigen AI (${brainPlace(env, lang)}); zonder AI maak ik er geen plan of taak van. Uit je gegevens:`) + (facts ? `\n${facts}` : say(lang, ' nothing is due.', ' er staat niets open.')), calls: base && 'calls' in base ? base.calls : []};
+    // Session AV (1c, q1 #38): planning the day adds the tasks Today's "Plan my day" suggests, each with why (lib/tasks/plan-day.ts).
+    const picks = !week && /\b(?:day|today)\b/i.test(q) ? planDayLines(env, lang) : null;
+    return {kind: 'answer', text: say(lang, `Planning it with you needs your own AI (${brainPlace(env, lang)}); without one I don’t make a plan or a task out of it. From your records:`, `Er samen een plan van maken vraagt je eigen AI (${brainPlace(env, lang)}); zonder AI maak ik er geen plan of taak van. Uit je gegevens:`) + (facts ? `\n${facts}` : say(lang, ' nothing is due.', ' er staat niets open.')) + (picks ? `\n${picks.join('\n')}` : ''), calls: base && 'calls' in base ? base.calls : []};
   }
   if (PRIORITY_ASK.test(q)) {
     const tasks = openTasks(env);
@@ -497,7 +510,9 @@ export function fourthAnswer(question: string, env: ToolEnv | null, lang: Lang, 
   if (BIGGEST_GOAL.test(q)) return biggestGoal(env, lang, /\b(?:smallest|lowest)\b/i.test(q));
   if (NEXT_CONTRIBUTION.test(q)) return nextContribution(env, lang);
   const named = GOAL_NEED.exec(q) ?? GOAL_DATE.exec(q) ?? GOAL_HAVE.exec(q) ?? GOAL_PROGRESS_LOOSE.exec(q);
-  if (named) { const said = (named[1] ?? named[2] ?? '').trim(); if (said && !/^(?:it|this|that|my goals?|goals?)$/i.test(said)) return goalAsk(env, said, q, lang); }
+  // Session AU (REHEARSAL R-11): "when will my next bill be due" names a bill, never a goal called "next bill be"; a bill,
+  // a task, a habit or a day is not a goal's name unless a goal is called so (exact/lexicon.ts `namesNonGoal`).
+  if (named) { const said = (named[1] ?? named[2] ?? '').trim(); if (said && !/^(?:it|this|that|my goals?|goals?)$/i.test(said) && (goalNamed(env, said) || !namesNonGoal(said.toLowerCase()))) return goalAsk(env, said, q, lang); }
   const bare = openGoals(env).find(g => fold(g.name) === fold(q.replace(/[?.!]+$/, '')));
   if (bare) return goalAsk(env, bare.name, q, lang);
   // Wealth (Tokyo TK #2, #5, #8, #12, #43, #47, #48, #50, P9).
@@ -512,7 +527,9 @@ export function fourthAnswer(question: string, env: ToolEnv | null, lang: Lang, 
   if (MOVERS.test(q)) return movers(env, lang);
   if (/\bprice of (solana|sol)\b|\b(?:solana|sol) price\b/i.test(q)) { const r = deviceAnswer('What is the price of SOL?', env); if (r) return r; }
   if (REWARDS.test(q)) return rewards(env, lang);
-  if (BILLS.test(q)) return bills(env, lang);
+  // Session AU (D8, Showcase price change): "did any of my bills get more expensive" is a price-change question, answered by
+  // the exact layer's price changes (exact/money.ts), not the list of bills due.
+  if (BILLS.test(q) && !PRICE_CHANGE.test(q)) return bills(env, lang);
   if (/\bwhat(?:'s| has)? changed\b[^.?!]{0,20}\b(?:wealth|net worth|holdings|money)\b|\bhow (?:has|did) my (?:wealth|net worth) change\b/i.test(q)) { const r = deviceAnswer('Why did my net worth change this week?', env); if (r) return r; }
   if (/^\s*what changed\s*\??\s*$|\bwhat changed (?:today|lately|recently|this week)\b/i.test(q)) return changed(env, lang);
   // A screen ZIGi can't read here (Settings, a private screen): said, never the examples list (Lisbon ctx-a, ctx-c).

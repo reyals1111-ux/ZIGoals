@@ -3,10 +3,11 @@ import type {ToolEnv} from '../../tools/env';
 import {HEALTH_CLOSED} from '../../tools/format';
 import {habitsAnswer} from './habits';
 import {agendaAnswer, checklistAnswer, focusAnswer, goalsAnswer, journalAnswer, lifeAnswer, notesAnswer, novaAnswer, tasksAnswer} from './day';
-import {healthAnswer} from './health';
-import {billsAnswer, budgetsAnswer, netWorthAnswer, spendingAnswer} from './money';
+import {DISTANCE_WORDS, healthAnswer, LIFT_WORDS} from './health';
+import {billsAnswer, budgetsAnswer, debtsAnswer, netWorthAnswer, PRICE_CHANGE, spendingAnswer} from './money';
 import {resolvePeriod, periodWords} from './period';
 import {fold, t} from './text';
+import {GOAL_ETA, namesNonGoal} from './lexicon';
 import {DOMAIN_GATE, type Exact, type ExactWidget, type Query} from './types';
 import {topicOf, understand, type Records} from './understand';
 
@@ -88,6 +89,18 @@ export function strictClaim(q: Query): boolean {
   // Bills due this week, and what the bills come to (the older answer lists every bill); the next thing on the agenda.
   if (q.domain === 'bills' && (/\bweek\b/.test(q.read) || q.period === 'this-week' || q.ask === 'total' || q.shape === 'amount')) return true;
   if (q.domain === 'agenda' && q.ask === 'next') return true;
+  // Session AU (ADR-044 D-ETA): when one goal will be reached ("when will I reach my emergency fund"): the Goal widget's own
+  // pace estimate first (the older layers led with the target date while the widget showed the estimate).
+  if (q.domain === 'goals' && q.subject?.kind === 'goal' && GOAL_ETA.test(q.read) && !namesNonGoal(q.read, q.subject.name)) return true;
+  // Session AU (dress rehearsal, docs/review/session-au/REHEARSAL.md): one habit's run of days ("wat is mijn reeks voor water
+  // drinken", R-1); what was lifted and how far was run (R-2, R-3: the workout log, under the Health gate); whether a bill's
+  // price went up (R-6); when the next bill is due (R-11: the older layers read "next bill be" as a goal's name).
+  // (A run asked in Dutch only: the older layers' English streak answers stay theirs, word for word.)
+  if (q.ask === 'streak' && q.lang === 'nl' && (q.subject?.kind === 'habit' || TRACKS.has(q.domain))) return true;
+  if (q.domain === 'workouts' && (LIFT_WORDS.test(q.read) || DISTANCE_WORDS.test(q.read))) return true;
+  // The Checklist's days this week or last, under the person's own "A day counts as done at N" (R-5, R-14).
+  if (q.domain === 'checklist' && /\b(?:week|days|dagen)\b/.test(q.read)) return true;
+  if (q.domain === 'bills' && (PRICE_CHANGE.test(q.read) || (q.ask === 'next' && /\b(?:when|wanneer)\b/.test(q.read)))) return true;
   // Session AT (L7 Z-057): the milestones of the goals ("de mijlpalen van al mijn doelen" was answered with their percentages);
   // one goal's milestones, asked by its name, keep the milestones lookup's own answer.
   if (q.domain === 'goals' && !q.subject && /\b(?:milestones?|mijlpaal|mijlpalen)\b/.test(q.read)) return true;
@@ -123,7 +136,7 @@ function closed(q: Query, env: ToolEnv): Exact | null {
   if (gate === 'none') return null;
   if (gate === 'health') return env.health && env.areas.health !== false ? null : refuse(HEALTH_CLOSED);
   const area = gate === 'notes' || gate === 'journal' ? 'today' : gate;
-  if (env.areas[area] === false) return refuse(`${AREA_NAME[area]} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · Your Personal AI Companion.`);
+  if (env.areas[area] === false) return refuse(`${AREA_NAME[area]} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · your companion.`);
   return null;
 }
 export function answerQuery(q: Query, env: ToolEnv): Exact | null {
@@ -143,6 +156,7 @@ export function answerQuery(q: Query, env: ToolEnv): Exact | null {
     case 'spending': case 'income': return spendingAnswer(q, env);
     case 'budgets': return budgetsAnswer(q, env);
     case 'bills': return billsAnswer(q, env);
+    case 'debts': return debtsAnswer(q, env);
     case 'networth': return netWorthAnswer(q, env);
     case 'goals': return goalsAnswer(q, env);
     case 'tasks': return tasksAnswer(q, env);

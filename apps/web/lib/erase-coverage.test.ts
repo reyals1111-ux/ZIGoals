@@ -38,6 +38,7 @@ const NOT_RECORDS: Record<string, string> = {
   'zigoals:bento:v1': 'localStorage: which pages show the Bento view on this device (page names only), a display convenience (Session AP)',
   'zigoals:settings-open:v1': 'localStorage: which Settings groups are open on this device (group ids only), a display convenience (Session AP, D-088)',
   'zigoals:wealth-folds:v1': 'localStorage: which of Wealth\'s folded sections were opened on this device (section ids only), a display convenience (Session AO, RR-16)',
+  'zigoals:update-reload:v1': 'sessionStorage: when this tab last reloaded itself into a new version after a deploy and from which version (a time and a version only), so it never reloads twice in ten minutes and says "Updated to the newest version" once (Session AV Part 2, ADR-045 D-PWA); gone when the tab closes',
   'zigoals:welcome-draft:v1': 'sessionStorage: the welcome wizard\'s step and picks kept across a reload in this tab only (Session AL, NB-011); gone when the tab closes',
   'zigoals:extras-sync-choice:v1': 'this device\'s consent for the encrypted extras sync; consent is asked again on a new device',
   'zigoals:portfolio-sync-choice:v1': 'this device\'s consent for Portfolio sync; asked again on a new device',

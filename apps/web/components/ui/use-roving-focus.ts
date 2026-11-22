@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useRef, type RefObject} from 'react';
-import {rovingCurrent, rovingTarget} from '../../lib/primitives/roving';
+import {rovingTarget} from '../../lib/primitives/roving';
 
 /**
  * Session AO (D-028, AL-A11Y-016: Showcase Today took 176 Tab stops): a list or grid of repeated controls becomes ONE Tab
@@ -31,11 +31,21 @@ export function useRovingFocusOn<T extends HTMLElement>(ref: RefObject<T | null>
 export function attachRoving(root: HTMLElement, selector: string, {columns}: {columns?: number} = {}): () => void {
   const last: {current: HTMLElement | null} = {current: null};
   const all = () => [...root.querySelectorAll<HTMLElement>(selector)];
-  const items = () => all().filter(item => !(item as HTMLButtonElement).disabled && item.getClientRects().length > 0);
+  const usable = (item: HTMLElement) => !(item as HTMLButtonElement).disabled && item.getClientRects().length > 0;
+  const items = () => all().filter(usable);
   const touched = new Set<HTMLElement>();
+  // Session AU (ADR-043 D18 carried, ADR-044 D-ROVING): the Tab stop is the item used last while it is still usable, else
+  // the first usable one (as lib/primitives/roving.ts rovingCurrent picks), so a change measures that one item and then walks in order only until it finds a
+  // usable one, instead of measuring every item (about 140 ms on a slowed Showcase Today). The arrow keys still read the
+  // whole list. The same item is chosen as before.
+  const pick = (list: readonly HTMLElement[]): HTMLElement | undefined => {
+    const remembered = last.current;
+    if (remembered && list.includes(remembered) && usable(remembered)) return remembered;
+    return list.find(usable);
+  };
   const apply = () => {
-    const shown = items(), current = rovingCurrent(shown, last.current);
-    for (const item of all()) {
+    const list = all(), current = pick(list);
+    for (const item of list) {
       const tab = item === current ? '0' : '-1';
       if (item.getAttribute('tabindex') !== tab) { item.setAttribute('tabindex', tab); touched.add(item); }
     }

@@ -1,0 +1,8 @@
+/* Session AV follow-up 1 (F-HABIT-LOOK), moved here by q4 #26: a habit's colour, wherever its symbol is shown (the card,
+   the week grid, the compact list, Today, the Checklist and the year view all load this with the mark). */
+[data-look-colour=grey] { --habit-look: #8a8fa3; } [data-look-colour=red] { --habit-look: #e5484d; } [data-look-colour=orange] { --habit-look: #f08c38; }
+[data-look-colour=yellow] { --habit-look: #d4a72c; } [data-look-colour=green] { --habit-look: #46a758; } [data-look-colour=teal] { --habit-look: #12a594; }
+[data-look-colour=blue] { --habit-look: #3e8bf0; } [data-look-colour=violet] { --habit-look: #8e6cf0; } [data-look-colour=pink] { --habit-look: #e05aa8; }
+.habit-look { color: var(--habit-look); }
+/* Session AV (q4 #26): a picked habit with a look shows its done days in its own colour in the year view. */
+.habit-year-grid[data-look-colour] .habit-year-cells i[data-level="full"] { background: var(--habit-look); box-shadow: none; }

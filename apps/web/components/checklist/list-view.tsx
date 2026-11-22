@@ -14,6 +14,7 @@ import {nextHabitDay} from '../../lib/checklist/next-day';
 import {habitStats} from '../../lib/habits';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {HABIT_EXTRAS} from '../../lib/habits-extras/schema';
+import {HabitLookMark} from '../habits/habit-look-mark';
 import {OrbitBanner, orbitTitle} from '../orbit-path/orbit-banner';
 import {OrbitNodeFace} from '../orbit-path/orbit-node';
 import {SwipeRow} from '../swipe/swipe-row';
@@ -139,7 +140,7 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
         {check}
         {/* (The path's name tab, from the node's right-centre to the right, longer, like a step: dark with a coloured edge,
             filled in the node's colour with dark words once done.) */}
-        <span className="checklist-row-text checklist-row-tab" data-lit={done ? '' : undefined} data-drag-name="" style={{'--node': colour} as CSSProperties} {...bind(dot.id)}><span className="checklist-row-name" dir="auto" title={dot.label}>{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
+        <span className="checklist-row-text checklist-row-tab" data-lit={done ? '' : undefined} data-drag-name="" style={{'--node': colour} as CSSProperties} {...bind(dot.id)}><span className="checklist-row-name" dir="auto" title={dot.label}>{habitId && <HabitLookMark extras={extras.loaded && !extras.unreadable ? extras.data : null} habitId={habitId}/>/* Session AV (q4 #26) */}{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
         {again && <button type="button" className="checklist-row-plus" aria-label={`Log ${dot.value!.suggested} ${dot.value!.unit} for ${dot.label}`} disabled={busy === dot.id} onClick={() => void state.tick(dot, 'value', dot.value!.suggested)}>+{dot.value!.suggested}<span className="checklist-row-unit"> {dot.value!.unit}</span></button>}
         <button type="button" className="checklist-row-more" aria-label={`More for ${dot.label}`} aria-expanded={panel?.id === dot.id} onClick={() => setPanel(p => p?.id === dot.id ? null : {id: dot.id, mode: dot.intent === 'value' && !done ? 'value' : 'details'})}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg></button>
       </div>

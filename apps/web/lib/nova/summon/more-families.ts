@@ -35,16 +35,34 @@ export const MORE_FAMILIES: readonly Family[] = [
   {id: 'supplements', en: /\b(supplements?|vitamins?|medication|doses?)\b/, nl: /\b(supplement(?:en)?|vitamines?|medicatie|doses|dosering(?:en)?)\b/},
   {id: 'cycle', en: /\b(cycle (?:log|day|tracker)|my cycle|period (?:log|tracker|due)|next period|menstrua[a-z]*)\b/, nl: /\b(cyclus|menstruatie|ongesteld|volgende menstruatie)\b/},
 ];
+/**
+ * Session AV (A42-4): six kinds that only the gallery could make (ADR-042's "gallery only"): sleep stages, bed and wake,
+ * fasting windows, the mood map, debts ranked and the body scan. Their lines and data paths exist (ax-lines-health.ts,
+ * ax-lines-money.ts); these families let a request make them. Each is more specific than its general family (sleep,
+ * fasting, accounts, the Health HUD), which `morePrune` then drops. Matched right after round 2, before the general ones.
+ */
+export const AV_FAMILIES: readonly Family[] = [
+  {id: 'sleep-stages', en: /\b(sleep stages?|deep sleep|rem sleep|light sleep|core sleep|stages? of (?:my )?sleep)\b/, nl: /\b(slaapfases?|slaapfasen|diepe slaap|remslaap|rem slaap|lichte slaap)\b/},
+  {id: 'sleep-times', en: /\b(bed (?:and|&) wake(?: times?)?|bedtimes? and wake(?: ?up)? times?|when (?:did|do) i (?:go to bed|get up|wake up)|what time did i (?:go to bed|wake up|get up))\b/,
+    nl: /\b(bedtijd en (?:opstaan|wektijd|ontwaken)|hoe laat (?:ging|ga) ik (?:naar bed|slapen)|hoe laat (?:stond|sta) ik op|hoe laat werd ik wakker)\b/},
+  {id: 'fasting-windows', en: /\b(fasting windows?|past fasts|fasts? (?:against|vs) (?:my|the|their) targets?)\b/, nl: /\b(vastvensters?|mijn laatste vastenperiodes|vastenperiodes tegen (?:mijn |hun )?doel)\b/},
+  {id: 'mood-map', en: /\b(mood map|map of my moods?|moods? (?:this|last|of the|over the) month|month of moods?|my moods? by day)\b/, nl: /\b(stemmingskaart|stemmingen (?:deze|vorige) maand|mijn stemming per dag|maand (?:van|met) stemmingen)\b/},
+  {id: 'debt-ranks', en: /\b(rank(?:ed)? my debts?|debts? ranked|biggest debts?|largest debts?|which debt is (?:the )?(?:biggest|largest)|debt balances?)\b/,
+    nl: /\b(rangschik mijn schulden|grootste schulden?|welke schuld is het grootst|schulden gerangschikt|schuldsaldo'?s)\b/},
+  {id: 'body-scan', en: /\b(body scan|body measurements?|my measurements|waist|hips|chest measurement)\b/, nl: /\b(lichaamsscan|lichaamsmaten|mijn maten|taille|heupen|borstomtrek)\b/},
+];
+export const AV_NL_TITLES: Readonly<Record<string, string>> = {'sleep-stages': 'Slaapfasen', 'sleep-times': 'Naar bed en op', 'fasting-windows': 'Vastvensters', 'mood-map': 'Stemmingskaart', 'debt-ranks': 'Schuldsaldo\'s', 'body-scan': 'Lichaamsscan'};
 /** The Dutch titles of these widgets (lib/nova/summon/words.ts NL_TITLES). */
 export const MORE_NL_TITLES: Readonly<Record<string, string>> = {
   'priority-matrix': 'Prioriteitenmatrix', 'hour-grid': 'Vandaag per uur', reviews: 'Reviews', milestones: 'Mijlpalen van je doelen', 'cash-flow': 'Kasstroom', accounts: 'Rekeningen en schulden', 'debt-plan': 'Aflosplan',
   'savings-challenges': 'Spaaruitdagingen', 'price-alerts': 'Prijsalerts', 'health-trends': 'Gezondheidstrends', 'food-days': 'Dagen met eten gelogd', fasting: 'Vasten', meditation: 'Meditatie', supplements: 'Supplementen', cycle: 'Cyclus',
 };
 /** Dutch words of these families' requests, for the language of NOVA's answer (lib/nova/summon/summon.ts summonLanguage). */
-export const MORE_NL_WORDS = 'dringend|dringende|belangrijke|belangrijkste|mijlpalen|kasstroom|inkomsten|schuld|schulden|schuldig|saldo|aflosplan|aflossen|schuldenvrij|spaaruitdagingen|prijsalerts|gezondheidstrends|hartslag|gelogd|vasten|gevast|meditatie|gemediteerd|supplementen|vitamines|cyclus|uurrooster|weekreview|wie|betaal';
+export const MORE_NL_WORDS = 'slaapfasen|slaapfases|slaapfase|remslaap|vastvensters|vastvenster|stemmingskaart|stemmingen|stemming|rangschik|lichaamsscan|lichaamsmaten|taille|dringend|dringende|belangrijke|belangrijkste|mijlpalen|kasstroom|inkomsten|schuld|schulden|schuldig|saldo|aflosplan|aflossen|schuldenvrij|spaaruitdagingen|prijsalerts|gezondheidstrends|hartslag|gelogd|vasten|gevast|meditatie|gemediteerd|supplementen|vitamines|cyclus|uurrooster|weekreview|wie|betaal';
 const GENERAL: Readonly<Record<string, readonly string[]>> = {
   'priority-matrix': ['tasks'], 'hour-grid': ['agenda-clock', 'next'], reviews: ['briefs'], milestones: ['goal-pace', 'goals-hud'],
   'cash-flow': ['spending', 'wealth-hud'], 'debt-plan': ['accounts', 'wealth-hud'], accounts: ['wealth-hud'], 'savings-challenges': ['spending', 'wealth-hud'], 'price-alerts': ['markets'],
+  'sleep-stages': ['sleep', 'health-hud'], 'sleep-times': ['sleep', 'health-hud'], 'fasting-windows': ['fasting', 'health-hud'], 'mood-map': ['mood-tags', 'health-hud'], 'debt-ranks': ['accounts', 'debt-plan', 'wealth-hud'], 'body-scan': ['weight', 'health-hud'],
   'health-trends': ['health-hud'], 'food-days': ['health-hud', 'habits-hud'], fasting: ['health-hud'], meditation: ['health-hud'], supplements: ['health-hud'], cycle: ['health-hud'],
 };
 /** Whether one of `asked` already stands in for the general widget `id` (a lookup's "Wealth HUD" beside the asked "Accounts and debts"). */

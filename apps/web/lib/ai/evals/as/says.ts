@@ -22,20 +22,35 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'weight-now': ['73.'], 'weight-last-weighin': ['Nov 16'], 'weight-days-month': ['Nov 4', 'Nov 16'], 'weight-notlogged-lastweek': ['Nov 9', 'Nov 15'],
   'workouts-month': ['9'], 'workouts-lastweek': ['4'], 'workouts-yesterday': ['49'], 'workouts-none-lastweek': ['Nov 9', 'Nov 10', 'Nov 14'], 'workouts-days-month': ['Nov 4', 'Nov 16'],
   'calories-today': ['1,970'], 'protein-today': ['131'], 'protein-missed-lastweek': ['Nov 13'], 'food-notlogged-month': ['17'], 'heart-rate': [], 'health-overall': ['7 h 17 min', '8,800'], 'calories-week': ['4,039', 'Nov 16', 'Nov 17'], 'protein-week': ['269', '134'],
-  // Wealth and Goals
-  'spend-month': ['435.59'], 'spend-lastmonth': ['176.40'], 'spend-week': ['55.60'], 'spend-yesterday': ['51.40'], 'spend-top-month': ['Groceries', '187.10'], 'spend-top-lastmonth': ['Groceries', '80.90'],
-  'spend-groceries-month': ['187.10'], 'spend-biggest-expense': ['120.00', 'Nov 8'], 'spend-compare-months': ['435.59', '176.40'], 'spend-days-month': ['13'], 'spend-none-days-lastweek': ['Nov 11'],
+  // Wealth and Goals. Session AU (D8, deliberate): last month holds the Showcase's €13.99 streaming payment of 25 Oct
+  // (lib/showcase/au-examples.ts), so 176.40 became 190.39; au-r6-bill-price names that bill's step from €12.99 to €13.99.
+  'spend-month': ['435.59'], 'spend-lastmonth': ['190.39'], 'spend-week': ['55.60'], 'spend-yesterday': ['51.40'], 'spend-top-month': ['Groceries', '187.10'], 'spend-top-lastmonth': ['Groceries', '80.90'],
+  'spend-groceries-month': ['187.10'], 'spend-biggest-expense': ['120.00', 'Nov 8'], 'spend-compare-months': ['435.59', '190.39'], 'spend-days-month': ['13'], 'spend-none-days-lastweek': ['Nov 11'],
   'spend-average-month': ['25.62'], 'income-month': ['2,550.00'], 'income-lastmonth': [], 'budgets-over': [], 'budgets-status': ['Groceries', '187.10'], 'budget-fun-left': ['24.00', '60.00'],
-  'bills-next': ['Rent', '950.00'], 'bills-overdue': ['Rent'], 'bills-week': ['Rent'], 'bills-list': ['Rent', 'Energy'], 'bills-total': ['1,094.99'], 'networth-now': ['531,029.00'],
+  'bills-next': ['Rent', '950.00'], 'bills-overdue': ['Rent'], 'bills-week': ['Rent'], 'bills-list': ['Rent', 'Energy'], 'bills-total': ['1,094.99'], 'networth-now': ['531,029.00'], 'coin-btc': ['0.45 BTC', 'Wealth', 'Portfolio'], 'coin-eth': ['4 ETH', 'Wealth', 'Portfolio'],
   'goals-status': ['Emergency fund', '45%'], 'goals-behind': ['Japan adventure'], 'goals-closest': ['First home deposit', '65%'], 'goals-furthest': ['Japan adventure'], 'goals-reached': ['My first 0.1 BTC'],
-  'goals-next-date': ['Apr 16, 2027', 'Japan adventure'], 'goals-milestones': ['Launch my creative studio', '2', '4', 'Find the first client', 'Emergency fund', 'Sleep 8 hours a night'], 'goal-japan': ['2,500', '6,000'], 'goal-emergency': ['9,000', '20,000'], 'networth-year': ['531,029.00', '8,000.00'],
+  'goals-next-date': ['Apr 16, 2027', 'Japan adventure'], 'goals-milestones': ['Launch my creative studio', '2', '4', 'Find the first client', 'Emergency fund', 'Sleep 8 hours a night'], 'goal-japan': ['2,500', '6,000'], 'goal-emergency': ['9,000', '20,000'], 'goal-emergency-eta': ['Jan 31, 2028', 'Nov 16, 2028', '11,000.00', '—'], 'goal-japan-eta': ['Japan adventure', 'Apr 16, 2027', '3,500.00'], 'networth-year': ['531,029.00', '8,000.00'],
   // The day, the journal, focus and NOVA itself
   'tasks-overdue': ['Sketch the garden bed', 'Book the dentist'], 'tasks-open': ['5'], 'tasks-tomorrow': ['2'], 'tasks-week': ['Compare two savings accounts', 'Draft the trip budget'],
-  'tasks-done-week': ['Renew the library card'], 'tasks-done-lastweek': [], 'tasks-priority': ['Book the dentist'], 'tasks-next': ['Sketch the garden bed'],
+  'tasks-done-week': ['Renew the library card'], 'tasks-done-lastweek': [], 'tasks-priority': ['Book the dentist'], 'tasks-next': ['Sketch the garden bed'], 'tasks-deadlines': ['Draft the trip budget', 'deadline'], 'tasks-minutes': ['Book the dentist', '15 min'],
   'journal-today': [], 'journal-notdone-month': ['Nov 1', 'Nov 13'], 'journal-days-month': ['10'], 'journal-lastweek': ['5'], 'journal-streak': ['4'], 'journal-last': ['Nov 17'], 'notes-count': [],
   'agenda-today': ['Meditate'], 'agenda-tomorrow': ['Upper body session'], 'agenda-next': ['Meditate'], 'checklist-today': [],
   'focus-week': ['150'], 'focus-today': [], 'focus-month': ['397'], 'focus-none-days-lastweek': ['Nov 9', 'Nov 15'], 'focus-days-month': ['Nov 1', 'Nov 16'], 'focus-best-month': ['Nov 16', '150'], 'focus-compare-weeks': ['150', '136'],
   'nova-sees': ['Habits', 'Health'], 'nova-private': [], 'nova-can-answer': [], 'life-doing': ['4', '7'], 'life-week': [], 'why-sleep': [], 'why-habits': [], 'unknown-sleep': [], 'unknown-spending': [],
   // Session AT (L7 NB:N11): Journey's own count (lib/game/xp.ts) on the Showcase's records, labelled as the Showcase's.
+  // Session AU (dress rehearsal, REHEARSAL.md R-1 … R-12, the Showcase's records).
+  'au-r1-habit-streak': ['Drink water', '26'], 'au-r12-habit-missed': ['Drink water', 'Nov 1', 'Nov 10'], 'au-r2-lift-today': ['Push day', 'Bench press', '62.5 kg', 'Nov 16'], 'au-r2-lift-yesterday': ['Push day', 'Bench press', '62.5 kg'],
+  'au-r3-run-week': ['Nov 15', '6 km'], 'au-r3-run-lastweek': ['6 km', 'Nov 15'], 'au-r4-date': ['Nov 17'], 'au-r6-bill-price': ['Streaming', '12.99', '13.99'], 'au-r7-coin-price': ['65,000 USD', 'Showcase example price'],
+  'au-r8-stake-earn': ['Earn'], 'au-r10-stake-safe': ['ZIG', 'Alpha', 'unbonding'], 'au-r11-next-bill': ['Rent', '950.00', 'Dec 1'], 'av-debt-free': ['Apr 2028', '$316.87'],
   'journey-level': ['8', 'Nebula', '3,577', '377', '850', 'Showcase'],
+  // Session AV (owner follow-up 2, item 1c; cases-av.ts): the AV features' own questions.
+  'av-task-reminders': [], 'av-weekly-intention': ['one short walk after lunch'], 'av-countdown-until': ['Mum’s birthday', '3'], 'av-countdowns-list': ['Mum’s birthday', 'Trip to Lisbon'], 'av-plan-day': ['Sketch the garden bed'],
+  'av-bills-year': ['13,139.88', '1,094.99'], 'av-bills-paid': ['Energy', 'Music', 'Rent'], 'av-payday': [], 'av-budget-targets': ['Groceries', '300.00'], 'av-budget-near': ['Groceries', '75%'],
+  'av-spend-vs-last': ['435.59', '190.39'], 'av-income-went': ['2,550.00', '435.59', '2,114.41'], 'av-debt-schedule': ['Credit card', 'Car loan', '$5,402.81'], 'av-money-look': ['3'], 'av-payee': ['61.30', 'Market'],
+  'av-payee-none': ['Café Noël'], 'av-watched': ['Transport', '10.40'], 'av-price-alerts': ['BTC', 'ETH', '250,000'], 'av-month-recap': ['190.39', 'Groceries', '80.90'],
+  'av-saved-meals': ['Showcase pea soup'], 'av-meal-plans': ['Health → Meals & planning'], 'av-mood-factors': ['Life review'], 'av-lifted': ['2,643 kg'], 'av-run-5k': ['28:00'], 'av-run-longest': ['6 km', '5:31'],
+  'av-diary-today': ['Berry overnight oats', '420 kcal'], 'av-sleep-score': ['75', '34', '24'], 'av-sleep-90': ['56', '7 h 38 min'], 'av-sleep-year': ['56', '7 h 38 min'], 'av-iron-average': ['90'], 'av-high-iron': ['Showcase split peas', '7 mg'],
+  'av-bench-best': ['Bench press', '62.5 kg × 8'], 'av-supplements': ['Vitamin D', 'Magnesium', 'Eye drops'], 'av-symptoms': ['Symptoms and factors'],
+  'av-good-things': ['3'], 'av-journal-tag': ['“work”'], 'av-journal-count': ['1'], 'av-journal-templates': ['8', 'Run diary'], 'av-journal-question': ['Journal → Another question'],
+  'av-yesterday-open': [], 'av-focus-habit': ['Make it today’s focus'] /* the Showcase sets no focus (D-028) */,
 };

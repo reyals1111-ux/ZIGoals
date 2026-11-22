@@ -2,8 +2,13 @@ import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import {buildShowcase} from '../showcase-data';
 import {healthSchema, HEALTH_STORAGE_KEY} from '../health';
-import {BILLS_KEY} from '../bills/schema';
-import {MOOD_TAGS_KEY} from '../mood-tags/schema';
+import {BILLS_KEY, billsSchema} from '../bills/schema';
+import {detectBills, openCandidates} from '../bills/detect';
+import {candidatePriceChange} from '../bills/price-change';
+import {MOOD_TAGS_KEY, moodTagsSchema} from '../mood-tags/schema';
+import {goodDayTags} from '../mood-tags/tags';
+import {MONEY_LOG_KEY, moneyLogSchema} from '../money-log/schema';
+import {showcaseMoneyLog} from '../money-log/showcase';
 import {SYMPTOMS_KEY, symptomsSchema} from '../symptoms/schema';
 import {splitsRecordSchema, WORKOUT_SPLITS_KEY} from '../workouts/splits-schema';
 import {workoutsSchema, WORKOUTS_KEY} from '../workouts/schema';
@@ -36,16 +41,47 @@ describe('minor 7: the Showcase has labelled examples of symptoms and run splits
       expect(s.paceSecondsPerKm).toBe(Math.round(set.seconds! / set.distanceKm!));
     }
   });
-  it('symptoms stay unread by ZIGi and NOVA, even with Health on; mood tags and money are not seeded (carried)', () => {
+  it('symptoms and mood tags stay unread by ZIGi and NOVA, even with Health on', () => {
     const get = {getItem: (k: string) => records[k] ?? null};
     const sources = {...withSentinels(showcaseSources(DAY)), ak: readAkToolSources(get), nova: readNovaToolSources(get)};
     const scopes = {today: true, goals: true, habits: true, health: true, wealth: true, notes: false, journal: false, earn: true};
     const seen = JSON.stringify(sources.ak) + JSON.stringify(sources.nova) + buildNovaPack({sources, gates: gatesFor(true, 'today'), scopes, chainChosen: true, privacy: {mode: 'relaxed', redactForSend: t => t}}).text;
-    for (const word of ['Example · headache', 'Example · pollen', 'Example · stiff back']) expect(seen).not.toContain(word);
-    // Session AS's pinned answers stay as they are: no example moods, mood tags or money-log payments are added.
-    expect(records[MOOD_TAGS_KEY]).toBeUndefined();
-    expect(parse(HEALTH_STORAGE_KEY, healthSchema).moods).toBeUndefined();
-    expect(records[BILLS_KEY]).not.toContain('Streaming');
+    for (const word of ['Example · headache', 'Example · pollen', 'Example · stiff back', 'Example · walk', 'Example · friends', 'Example · late screen']) expect(seen).not.toContain(word);
+  });
+});
+
+/**
+ * Session AU (D8, deliberate; ADR-043 D8 carried → ADR-044 D-SHOWCASE): what Session AT left out on purpose is now seeded,
+ * labelled and exact: example moods with "Example · " mood tags, and a streaming bill whose price stepped up once in the
+ * money log, found in the spending and shown under Price changes. The pinned answers it moves are listed in docs/STATUS.md.
+ */
+describe('Session AU (D8, deliberate): the Showcase has labelled example mood tags and a bill price change', () => {
+  it('moods: twelve of the last fourteen days, none today; mood tags: three labelled tags on eight of those days', () => {
+    const moods = parse(HEALTH_STORAGE_KEY, healthSchema).moods!, tags = parse(MOOD_TAGS_KEY, moodTagsSchema);
+    expect(Object.keys(moods.days).sort()).toEqual(['2026-10-18', '2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23', '2026-10-24', '2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30']);
+    expect(moods.days[DAY]).toBeUndefined();
+    expect(Object.values(moods.days).every(d => d.note === undefined)).toBe(true);
+    expect(tags.entries).toEqual({
+      '2026-10-18': ['Example · walk'], '2026-10-19': ['Example · late screen'], '2026-10-20': ['Example · walk', 'Example · friends'], '2026-10-21': ['Example · late screen'],
+      '2026-10-23': ['Example · walk', 'Example · friends'], '2026-10-26': ['Example · walk'], '2026-10-27': ['Example · late screen'], '2026-10-29': ['Example · walk', 'Example · friends'],
+    });
+    for (const d of Object.keys(tags.entries)) expect(moods.days[d], d).toBeDefined();
+    const found = goodDayTags(moods.days, tags, DAY);
+    expect(found.ready.map(f => [f.tag, f.withDays, f.withGood, f.otherDays, f.otherGood])).toEqual([['Example · walk', 5, 4, 7, 1]]);
+    expect(found.pending).toEqual([{tag: 'Example · friends', days: 3, need: 5}, {tag: 'Example · late screen', days: 3, need: 5}]);
+  });
+  it('a streaming bill: €12.99 once, then €13.99 three times, monthly; found in the spending, its rise under Price changes', () => {
+    const log = parse(MONEY_LOG_KEY, moneyLogSchema), streaming = log.entries.filter(e => e.note === 'Streaming · SHOWCASE DATA');
+    expect(streaming.map(e => [e.date, e.amount, e.category, e.currency, e.kind])).toEqual([
+      ['2026-07-09', '12.99', 'Subscriptions', 'EUR', 'expense'], ['2026-08-08', '13.99', 'Subscriptions', 'EUR', 'expense'], ['2026-09-08', '13.99', 'Subscriptions', 'EUR', 'expense'], ['2026-10-08', '13.99', 'Subscriptions', 'EUR', 'expense'],
+    ]);
+    // Additive: the log's own entries are unchanged and come first.
+    expect(log.entries.slice(0, -4)).toEqual(showcaseMoneyLog(DAY).entries);
+    const bills = parse(BILLS_KEY, billsSchema), open = openCandidates(detectBills(log.entries, DAY), bills);
+    expect(open.map(c => [c.title, c.amount, c.cadence, c.occurrences, c.lastDate, c.nextDue, c.confidenceLabel])).toEqual([['Streaming', '13.99', 'monthly', 3, '2026-10-08', '2026-11-08', 'medium']]);
+    expect(candidatePriceChange(open[0]!, log.entries, DAY)).toEqual({direction: 'up', cents: 100, currency: 'EUR', previous: 1299, latest: 1399, previousDate: '2026-07-09', latestDate: '2026-10-08', sinceMonth: '2026-07'});
+    // The confirmed bills are the four hand-made ones, as before: none is linked to the money log.
+    expect(bills.bills.map(b => [b.title, b.origin])).toEqual([['Rent · SHOWCASE DATA', 'manual'], ['Music · SHOWCASE DATA', 'manual'], ['Energy · SHOWCASE DATA', 'manual'], ['Home insurance · SHOWCASE DATA', 'manual']]);
   });
 });
 

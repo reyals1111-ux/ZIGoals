@@ -6,7 +6,7 @@ import {isPeriodToken} from '../stage/period-token';
 import {MAX_REF, WIDGET_RANGES, type MakeRequest, type WidgetParams, type WidgetRange} from '../stage/record';
 import {widgetSpec} from '../widgets/catalog';
 import {CONNECT_FAMILIES, CONNECT_NL_WORDS, connectPrune, standsIn, type Family} from './connect-families';
-import {MORE_FAMILIES, MORE_NL_WORDS, morePrune, moreStandsIn} from './more-families';
+import {AV_FAMILIES, MORE_FAMILIES, MORE_NL_WORDS, morePrune, moreStandsIn} from './more-families';
 
 /**
  * Session AM (ADR-038 D4, D6, A4): the summon step — which widgets a request makes. Deterministic and on the device: the
@@ -54,6 +54,8 @@ export const FAMILIES: readonly Family[] = [
   ...CONNECT_FAMILIES,
   // Round 2: the pages that still had no widget (lib/nova/summon/more-families.ts).
   ...MORE_FAMILIES,
+  // Session AV (A42-4): six kinds only the gallery made before.
+  ...AV_FAMILIES,
   {id: 'weight', en: /\b(weight|weigh|weighed|kilos?|kg|pounds|lbs|bmi|scale)\b/, nl: /\b(gewicht|weeg|woog|gewogen|kilos?|kg|weegschaal)\b/},
   {id: 'sleep', en: /\b(sleep|slept|sleeping|bedtime|nights? rest)\b/, nl: /\b(slaap|geslapen|slapen|nachtrust|bedtijd)\b/},
   {id: 'water', en: /\b(water|hydration|hydrated|drank|glasses)\b/, nl: /\b(water|gedronken|drinken|glazen)\b/},

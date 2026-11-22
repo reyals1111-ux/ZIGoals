@@ -65,6 +65,8 @@ export type Recur = z.infer<typeof recurSchema>;
 export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320)});
 export type TaskReminder = z.infer<typeof reminderSchema>;
 
+/** Session AV (F-TASK-MINUTES): the longest a task can be said to take, a whole day. */
+export const MAX_TASK_MINUTES = 1440;
 export const taskSchema = z.looseObject({
   id,
   title: z.string().trim().min(1).max(TASK_TITLE_MAX),
@@ -94,6 +96,25 @@ export const taskSchema = z.looseObject({
   order: z.number().finite().optional().catch(undefined),
   updatedAt: z.iso.datetime({offset: true}).optional().catch(undefined),
   completions: tolerantArray(z.looseObject({at: z.iso.datetime({offset: true}), due: day.optional().catch(undefined)}), MAX_COMPLETIONS),
+  /**
+   * Session AV (owner follow-up 1, F-DEADLINES; Things, Todoist Deadlines; TIER 3 (stored format), additive and optional):
+   * the day the task must be done by, kept apart from `due` (the day it is planned for). A value this build cannot read
+   * is dropped on read; older builds keep it untouched (the object is loose) and simply do not show it.
+   */
+  deadline: day.optional().catch(undefined),
+  /**
+   * Session AV (owner follow-up 1, F-TASK-MINUTES; Todoist durations, Sunsama's planned time; TIER 3 (stored format),
+   * additive and optional): how many minutes the task takes, 1 to 1,440. A value this build cannot read is dropped on
+   * read; older builds keep it untouched (the object is loose) and do not show it.
+   */
+  minutes: z.number().int().min(1).max(MAX_TASK_MINUTES).optional().catch(undefined),
+  /**
+   * Session AV (1c, q1 #1, fresh-agent review; Todoist and TickTick snooze; TIER 3 (stored format), additive and optional):
+   * a reminder snoozed in the app — the reminder's own instant (`of`, ms), its offset (`before`, minutes) and when it
+   * comes back (`until`, ms). A value
+   * this build cannot read is dropped on read; older builds keep it untouched (the object is loose) and ignore it.
+   */
+  snooze: z.looseObject({of: z.number().int().min(0), until: z.number().int().min(0), before: z.number().int().min(0).max(40_320).optional().catch(undefined)}).optional().catch(undefined),
 });
 export const projectSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), colour: z.enum(TASK_COLOURS).catch('grey'),

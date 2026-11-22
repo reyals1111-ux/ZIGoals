@@ -173,7 +173,7 @@
 .ai-voice-live .ai-voice-interim{color:var(--muted,#a1afc8)}
 .ai-voice-disclose{display:grid;gap:8px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 8%,transparent);font-size:15px;line-height:1.45}
 .ai-voice-disclose p{margin:0}
-.ai-chat .ai-voice-disclose button,.ai-chat .ai-voice-hint button{min-height:44px}
+.ai-chat .ai-voice-disclose button,.ai-chat .ai-voice-hint button{min-height:44px;min-width:44px}
 .ai-voice-hint{display:flex;flex-wrap:wrap;align-items:center;gap:0 8px}
 .ai-chat .ai-mute{display:inline-flex;align-items:center;gap:6px}
 .ai-chat .ai-mute[aria-pressed=true]{color:var(--muted,#a1afc8)}
@@ -278,3 +278,11 @@
 :root[data-app-motion=off] :is(.ai-reply-icon,.ai-reply-icon::after,.ai-chat .ai-reply-row .ai-reply-icons){transition:none!important}
 /* Gate C (persona round): an earlier on-device reply's examples, as quiet plain words. */
 .ai-chat .ai-local-examples{margin:4px 0 0;padding-left:18px;font-size:14px;color:var(--muted,#a1afc8)}
+/* Session AV (PK-18): the words as a cloud model would get them, above the box (NOVA's preview, in ZIGi's panel). */
+.ai-chat .ai-send-preview{display:grid;gap:6px;margin:0 0 8px}
+.ai-chat .ai-send-preview:empty{display:none}
+.ai-chat .ai-send-preview .nova-guide-send{display:grid;gap:6px}
+.ai-chat .ai-send-preview .nova-guide-send-line{margin:0;font-size:14px;line-height:1.45}
+.ai-chat .ai-send-preview .nova-guide-send-text{margin:0;max-height:7.5em;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:8px 10px;border-radius:8px;font-size:14px;background:color-mix(in srgb,currentColor 6%,transparent);border:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+.ai-chat .ai-send-preview .nova-guide-send[data-decision="refuse"] .nova-guide-send-line{color:var(--pink,#ff74be)}
+.ai-chat .ai-send-preview .ai-no-mode{margin:0;font-size:14px}

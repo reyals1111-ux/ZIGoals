@@ -2,7 +2,7 @@
 import type { LayoutAttrs } from "../layout-edit";
 import { useMemo, type CSSProperties } from "react";
 import { habitConsistency } from "../../lib/life-intelligence";
-import { type Habit } from "../../lib/habits";
+import { latestHabitRule, type Habit } from "../../lib/habits";
 import { useShowcase } from "../showcase-controls";
 import { useEntrance } from "../use-entrance";
 import { formatDate, formatWeekday } from "../../lib/visual-format";
@@ -13,6 +13,8 @@ export function HabitConsistency({ habits, today, ...layout }: LayoutAttrs & { h
   const result = useMemo(() => habitConsistency(habits, today), [habits, today]);
   const showcase = useShowcase();
   const maximum = Math.max(1, ...result.week.map(day => day.checkins));
+  // Session AV (Part 4b, D20-4): with no habit yet (none, or only archived ones and a quiet week) the week teaches instead of showing empty bars.
+  const noHabits = !habits.some(habit => latestHabitRule(habit).state !== "archived") && !result.week.some(day => day.checkins > 0);
   const monthEntrance = useEntrance<HTMLElement>("habit-month", result.days.length > 0), weekEntrance = useEntrance<HTMLElement>("habit-week", result.week.some(day => day.checkins > 0));
   return <section {...layout} className="habit-consistency" aria-label="Habit consistency history">
     <article ref={monthEntrance} className="panel habit-consistency-month"><AskZigiCorner kind="habit-history" metric="days" label="your last 30 days of check-ins"/><header><p className="eyebrow">SMALL RETURNS ADD UP</p><h2>Your last 30 days.</h2><p>{showcase ? "Showcase example history · fictional check-ins" : "Your saved check-ins · this browser"}</p></header>
@@ -21,9 +23,10 @@ export function HabitConsistency({ habits, today, ...layout }: LayoutAttrs & { h
       <div className="habit-map-legend"><span>{result.days[0] ? formatDate(result.days[0].date) : ''} → {formatDate(today)}</span><span className="habit-month-legend"><i /> None done <i data-level="some" /> Under half <i data-level="many" /> Most <i data-level="full" /> All scheduled done</span></div>
       <details className="habit-consistency-table"><summary>View daily check-in history</summary><div className="habit-history-table-wrap" tabIndex={0} role="region" aria-label="Daily habit history"><table><caption>{showcase ? "Showcase" : "Saved"} check-ins · last 30 days</caption><thead><tr><th scope="col">Date</th><th scope="col">Check-ins</th><th scope="col">Completed</th></tr></thead><tbody>{result.days.map(day => <tr key={day.date}><th scope="row">{formatDate(day.date)}</th><td>{day.checkins}</td><td>{day.completed}</td></tr>)}</tbody></table></div></details>
     </article>
-    <article ref={weekEntrance} className="panel habit-week-momentum"><header><p className="eyebrow">YOUR WEEK IN MOTION</p><h2>Keep finding your rhythm.</h2><p>A check-in is a scheduled habit day completed (a partly done day shows on its card). Each Habit’s card tracks its own target and streak.</p></header>
+    {noHabits ? <article className="panel habit-week-momentum"><header><p className="eyebrow">YOUR WEEK IN MOTION</p><p>Your week shows here once you have a habit. Add one with + New habit.</p></header></article>
+    : <article ref={weekEntrance} className="panel habit-week-momentum"><header><p className="eyebrow">YOUR WEEK IN MOTION</p><h2>Keep finding your rhythm.</h2><p>A check-in is a scheduled habit day completed (a partly done day shows on its card). Each Habit’s card tracks its own target and streak.</p></header>
       <div className="habit-week-bars" role="img" aria-label={`Last seven days: ${result.week.map(day => `${formatDate(day.date, {weekday: true, year: false})}: ${day.checkins} ${plural(day.checkins,'check-in')}`).join("; ")}`}>{result.week.map((day, index) => <div key={day.date}><strong>{day.checkins}</strong><div><i style={{ height: `${day.checkins / maximum * 100}%`, "--i": index } as CSSProperties} /></div><span>{formatWeekday(day.date)}</span></div>)}</div>
       <p className="fine">Check-ins can include partial progress. Skipped, paused and future days do not become invented successes. Review individual Habit history for target-period outcomes.</p>
-    </article>
+    </article>}
   </section>;
 }

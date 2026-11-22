@@ -46,3 +46,43 @@
 /* Session AP (CI 1726, pillar-phone-length): on a phone the six views are one row that scrolls sideways (the page stays
    within its screen count); the last button peeks out at the edge, so the row reads as more. */
 @media (max-width: 600px){.money-insights-views{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;scroll-padding-inline:4px}.money-insights-views button{flex:none}}
+
+/* Session AV follow-up 1 (F-VS-LAST): a wide table scrolls inside its own box at 320 px, never the page. */
+.money-insights-scroll{overflow-x:auto;max-width:100%}
+.money-insights-vs-last th,.money-insights-vs-last td{white-space:nowrap}
+.money-insights-scroll:focus-visible{outline:2px solid var(--cyan, #6fd3ff);outline-offset:2px}
+/* Session AV follow-up 1 (F-INCOME-FLOW): the flow. */
+.money-flow{width:100%;height:180px;max-width:520px}
+.money-flow-income,.money-flow-node.is-category{fill:var(--cyan, #6fd3ff)}
+.money-flow-node.is-left{fill:var(--violet, #a98bff)}
+.money-flow-band{fill:var(--cyan, #6fd3ff);opacity:.22}
+.money-flow-band.is-left{fill:var(--violet, #a98bff);opacity:.3}
+/* Session AV (fresh-agent check q2, rank 14): every node named with its amount, each income source its own node; in
+   Light the bands and nodes keep at least 3:1 against the panel (as the "Received" bars do). */
+.money-flow-wrap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(48px,1.4fr) minmax(0,1.4fr);gap:0 8px;max-width:640px}
+@media (max-width:560px){.money-flow-wrap{grid-template-columns:minmax(0,1fr) minmax(48px,.8fr) minmax(0,1.4fr)}}
+.money-flow-wrap .money-flow{grid-column:2;width:100%;max-width:none;display:block}
+.money-flow-labels{list-style:none;margin:0;padding:0;position:relative;min-width:0}
+.money-flow-labels.is-left{grid-column:1;grid-row:1;text-align:end}
+.money-flow-labels.is-right{grid-column:3;grid-row:1}
+.money-flow-labels li{position:absolute;inset-inline:0;display:grid;font-size:14px;line-height:20px;overflow:hidden}
+.money-flow-labels li>span,.money-flow-name>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.money-flow-labels li>span+span{font-variant-numeric:tabular-nums;color:var(--text-secondary, var(--muted))}
+.money-flow-name{display:flex;gap:6px}
+.money-flow-labels.is-left .money-flow-name{justify-content:flex-end}
+.money-flow-name>span+span{flex:none;font-variant-numeric:tabular-nums;color:var(--text-secondary, var(--muted))}
+.money-flow-source{stroke:var(--panel, var(--bg, #0b1020));stroke-width:1}
+:root[data-theme=light] .money-flow-income,:root[data-theme=light] .money-flow-node.is-category{fill:#0b7f93}
+:root[data-theme=light] .money-flow-node.is-left{fill:#6a4fd1}
+:root[data-theme=light] .money-flow-band{fill:#0b7f93;opacity:.8}
+:root[data-theme=light] .money-flow-band.is-left{fill:#6a4fd1;opacity:.75}
+:root[data-theme=light] .money-flow-source{stroke:#fff}
+/* Session AV (fresh-agent check q2, rank 7): on a phone, Category · This month · Difference (with "was …" under it). */
+@media (max-width:560px){
+  .money-insights-vs-last th:nth-child(3),.money-insights-vs-last td:nth-child(3),.money-insights-vs-last th:nth-child(5),.money-insights-vs-last td:nth-child(5){display:none}
+  .money-insights-vs-last td[data-was]::after{content:attr(data-was);display:block;font-size:14px;color:var(--text-secondary, var(--muted))}
+}
+/* Session AV (1c follow-up): at 320 the three columns were 22 px wider than their box; a long category name may wrap
+   between words there, the amounts never. */
+@media (max-width:560px){.money-insights-vs-last th:first-child,.money-insights-vs-last td:first-child{white-space:normal;overflow-wrap:normal}.money-insights-vs-last th,.money-insights-vs-last td{padding-inline:6px}}
+@media (max-width:560px){.money-insights-vs-last th{white-space:normal}.money-insights-vs-last td[data-was]::after{white-space:normal}.money-insights-vs-last th,.money-insights-vs-last td{padding-inline:4px}}

@@ -49,12 +49,16 @@ export function showcaseHabitsAa(habits: HabitData, day: string, zone: string): 
   try { const read = data.habits.find(h => h.title === 'Read')!; if (!read.timer) { data = startHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(instantAt(day, '00:00', zone)), zone); data = pauseHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(instantAt(day, '00:25', zone))); } } catch { /* the Showcase still shows without a timer */ }
   return habitDataSchema.parse(data);
 }
-/** The device record beside the habits: life areas (AA-Cloud's ids), the quit habit's cost, the end bell on Exercise. */
+/** The device record beside the habits: life areas (AA-Cloud's ids), the quit habit's cost, the end bell on Exercise, three looks and today's focus. */
 export function showcaseHabitExtras(habits: HabitData): HabitExtras {
   const id = (t: string) => habits.habits.find(h => h.title === t)?.id;
   const areas: Record<string, string> = {};
   for (const [t, a] of [['Read', 'learning'], ['Exercise', 'health'], ['Walk', 'health'], ['Meditate', 'mind'], ['Contribute', 'wealth'], ['Drink water', 'health']] as const) { const i = id(t); if (i) areas[i] = a; }
   areas[SHOWCASE_QUIT_ID] = 'health';
   const bells: Record<string, true> = {}; const ex = id('Exercise'); if (ex) bells[ex] = true;
-  return habitExtrasSchema.parse({version: 1, areas, quitCost: {[SHOWCASE_QUIT_ID]: {perDay: 3, currency: 'EUR'}}, bells});
+  // Session AV (q4 #26): three habits with their own symbol and colour. (A focus habit was tried here too; its line on
+  // Today took Showcase Today past its 90 Tab stops, D-028, so the Showcase leaves the focus to the person.)
+  const looks: Record<string, {glyph: string; colour: string}> = {};
+  for (const [t, glyph, colour] of [['Read', '✎', 'violet'], ['Walk', '☀', 'green'], ['Meditate', '☾', 'blue']] as const) { const i = id(t); if (i) looks[i] = {glyph, colour}; }
+  return habitExtrasSchema.parse({version: 1, areas, quitCost: {[SHOWCASE_QUIT_ID]: {perDay: 3, currency: 'EUR'}}, bells, looks});
 }

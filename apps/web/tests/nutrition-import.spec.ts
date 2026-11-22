@@ -60,7 +60,12 @@ test('fixture A: three entries on two days with an unknown serving measure, blan
   await expect(banner).toHaveCount(0);
   expect((await health(page))!.diary).toEqual([]);
   expect(new Set(seen.map(r => new URL(r.url).hostname))).toEqual(new Set(['127.0.0.1']));
-  for (const r of seen) for (const cell of CELLS) { expect(r.url).not.toContain(cell); expect(r.body ?? '').not.toContain(cell); }
+  // Session AV (CI 1932, deliberate; the same check on everything a request could carry): the names this build gave its own
+  // files at build time (hashed script paths, theme-boot.js's sheet hash, e.g. "?v=0bbc6520c3c7", which contains "520")
+  // cannot carry a person's data, so they are read without their build hash; every other part of every URL, and every body,
+  // must still hold none of the file's cells.
+  const own = (url: string) => url.replace(/\/_next\/static\/[^?#]*/, '/_next/static/').replace(/(\/theme-boot\.js)\?v=[0-9a-f]{6,40}(?=$|&|#)/, '$1');
+  for (const r of seen) for (const cell of CELLS) { expect(own(r.url)).not.toContain(cell); expect(r.body ?? '').not.toContain(cell); }
 });
 
 test('fixture B: a serving size makes library foods, one per distinct food', async ({page}) => {

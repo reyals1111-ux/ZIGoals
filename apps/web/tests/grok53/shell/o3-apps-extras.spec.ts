@@ -91,6 +91,9 @@ test('the sheet: every switched-on entry, focus kept inside, Escape and focus ba
   // Session AL third pass (L3's request, deliberate): the Showcase has the game layer on, and phones (no rocket in their
   // top rows) list it last; the order and every other entry are unchanged.
   await expect(entries).toHaveText(['ZIGi', 'NOVA', 'Checklist', 'Tasks', 'Notes', 'Journal', 'Agenda', 'Earn', 'Music', 'Game layer']);
+  // Session AV (follow-up 2, 1b; equally strict): measured once the sheet's entrance has ended. CI 1975 read the fixed 44 px
+  // close button at 43.999996 px, which a fixed box gives only mid-transform; the same 44 px floor at rest.
+  await sheet(page).evaluate(el => Promise.all(el.getAnimations({subtree: true}).map(a => a.finished.catch(() => undefined))));
   for (const box of await sheet(page).locator('.apps-extras-item, .apps-extras-close').evaluateAll(els => els.map(e => e.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
   // The keyboard stays in the sheet.
   for (let i = 0; i < 16; i++) {

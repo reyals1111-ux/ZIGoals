@@ -2,7 +2,7 @@ import {monthKey, monthView, type BudgetRow} from '../../budgets/engine';
 import type {BudgetsRecord} from '../../budgets/schema';
 import {fromCents} from '../../money-log/engine';
 import type {MoneyEntry} from '../../money-log/schema';
-import {formatCurrencyAmount, formatDate} from '../../visual-format';
+import {formatCurrencyAmount, formatDate, formatMonth} from '../../visual-format';
 
 /**
  * Session AM (ADR-038; art direction §4, Wealth): the "Budgets" widget's figures, pure, from the Wealth page's own month
@@ -19,6 +19,8 @@ export type BudgetLine = {
   spent: string; available: string;
   /** "€180.00 left", "all used" or "over by €40.00". */
   words: string;
+  /** Session AV (F-BUDGET-TARGETS): the budget's target in words, English and Dutch, when it has one. */
+  target?: {en: string; nl: string};
 };
 export type BudgetsCard = {
   state: 'empty' | 'live';
@@ -37,10 +39,20 @@ export type BudgetsCard = {
 export const budgetWords = (row: Pick<BudgetRow, 'left' | 'over' | 'currency'>): string =>
   row.over ? `over by ${money(-row.left, row.currency)}` : row.left === 0 ? 'all used' : `${money(row.left, row.currency)} left`;
 
+/** Session AV (F-BUDGET-TARGETS): a target in plain words, as the Budgets row says it (information, not advice). */
+export function targetWords(r: Pick<BudgetRow, 'currency' | 'budgeted'> & {target?: BudgetRow['target']}): {en: string; nl: string} {
+  const t = r.target!, m = (c: number) => money(c, r.currency), en = `target ${m(t.amount)} by ${formatMonth(t.by)}`, nl = `doel ${m(t.amount)} uiterlijk ${formatMonth(t.by)}`;
+  if (t.state === 'reached') return {en: `${en}: reached`, nl: `${nl}: bereikt`};
+  if (t.state === 'past') return {en: `${en}: that month has gone by, ${m(t.toGo)} was still to go`, nl: `${nl}: die maand is voorbij, er moest nog ${m(t.toGo)} bij`};
+  if (t.monthsLeft === 0) return {en: `${en}: this is the month, ${m(t.toGo)} still to go`, nl: `${nl}: dit is de maand, nog ${m(t.toGo)} te gaan`};
+  return t.state === 'on-track'
+    ? {en: `${en}: ${m(t.setAside)} set aside, ${m(t.perMonth)} a month from next month, on track`, nl: `${nl}: ${m(t.setAside)} opzij, ${m(t.perMonth)} per maand vanaf volgende maand, op schema`}
+    : {en: `${en}: ${m(t.setAside)} set aside, ${m(t.perMonth)} a month from next month, ${m(t.short)} a month short`, nl: `${nl}: ${m(t.setAside)} opzij, ${m(t.perMonth)} per maand vanaf volgende maand, ${m(t.short)} per maand te weinig`};
+}
 export function budgetsCard(record: BudgetsRecord, entries: readonly MoneyEntry[], today: string): BudgetsCard {
   const month = monthKey(today), view = monthView(entries, record, month, today);
   const lines = view.rows.map(r => ({id: r.id, category: r.category, currency: r.currency, over: r.over, share: r.available > 0 ? r.spent / r.available : r.spent > 0 ? 2 : 0,
-    spent: money(r.spent, r.currency), available: money(r.available, r.currency), words: budgetWords(r)}))
+    spent: money(r.spent, r.currency), available: money(r.available, r.currency), words: budgetWords(r), ...(r.target ? {target: targetWords(r)} : {})}))
     .sort((a, b) => Number(b.over) - Number(a.over) || b.share - a.share || a.category.localeCompare(b.category));
   const within = lines.filter(l => !l.over).length;
   const loose = new Map<string, {cents: number; categories: number}>();

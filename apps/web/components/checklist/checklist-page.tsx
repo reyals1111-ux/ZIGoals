@@ -263,13 +263,15 @@ export function ChecklistPage() {
       <aside className="checklist-side" aria-label="Timers and history">
         {loaded && !state.unreadable && <LoadBoundary quiet><Suspense fallback={null}><CornerTimers state={state}/></Suspense></LoadBoundary>}
         {/* Round 4: on a computer the twelve weeks stand open under the timers (the column's room); below that, a fold. */}
+        {/* Session AV (ADR-045 D-J4): the history is loaded on demand; offline, before it was ever fetched, it failed the whole page
+            ("This page could not be shown.", journey 4b). It now fails as itself, in its own words, and the orbit keeps working. */}
         {loaded && !empty && !state.unreadable && !narrow && state.date && <section className="checklist-history-open" aria-labelledby="checklist-history-title">
           <h2 id="checklist-history-title" className="checklist-history-title">Orbit consistency · last 12 weeks</h2>
-          <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null} state={state}/></Suspense>
+          <LoadBoundary label="The history"><Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null} state={state}/></Suspense></LoadBoundary>
         </section>}
         {loaded && !empty && !state.unreadable && (narrow || !state.date) && <details className="checklist-history-fold" onToggle={e => setHistory((e.currentTarget as HTMLDetailsElement).open)}>
           <summary>Orbit consistency<span className="checklist-history-span"> · last 12 weeks</span></summary>
-          {history && state.date && <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null} state={state}/></Suspense>}
+          {history && state.date && <LoadBoundary label="The history"><Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null} state={state}/></Suspense></LoadBoundary>}
         </details>}
       </aside>
     </div>

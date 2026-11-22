@@ -142,7 +142,7 @@ describe('Session AL fifth pass (L7-5b): the replay of 37d2370c, answers', () =>
   test('N16/N17, T6/T7 (Nairobi): a routine asked for points to the person\'s own AI and to Habits → Routines', () => {
     for (const ask of ['10-minute morning routine', 'give me a 10-minute routine for tonight', 'a routine for my mornings']) {
       for (const t of both(lisbon('L2'), ask)) {
-        expect(t.text, `${t.surface} ${ask}`).toMatch(/^Suggestions and routines written for you need your own AI \((?:Settings → ZIGi · Your Personal AI Companion|NOVA → setup \(“Build NOVA’s brain”\))\)\./);
+        expect(t.text, `${t.surface} ${ask}`).toMatch(/^Suggestions and routines written for you need your own AI \((?:Settings → ZIGi · your companion|NOVA → setup \(“Build NOVA’s brain”\))\)\./);
         expect(card(t.text)).toMatchObject({kind: 'open-page', page: 'habits', view: 'routines'});
       }
     }

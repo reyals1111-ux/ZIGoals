@@ -59,7 +59,10 @@ test('4.4 and #4: the nutrient report reads the 7-day average and where the iron
   // Lentils gave 14 of the 18 mg a day (78 %), the bowl 4 (22 %), on every one of the 7 days.
   await expect(sources.getByRole('listitem').first()).toContainText(/Red lentils.*98 mg · 78 % · 7 days/s);
   await expect(sources.getByRole('listitem').nth(1)).toContainText(/Fictional bowl.*28 mg · 22 % · 7 days/s);
-  await sources.getByRole('group', {name: 'Days to read'}).getByRole('button', {name: '30 days'}).click();
+  // Session AV (1c, q3 #47; deliberate test change, equally strict): "Where … came from" now reads the report's own period
+  // (its separate 7/30/90 choice is shown only for a single day), so 30 days is chosen as the report's period.
+  await report.getByRole('group', {name: 'Report period'}).getByRole('button', {name: '30 days'}).click();
+  if (!await sources.isVisible()) await minerals.getByRole('button', {name: 'Where Iron came from'}).click();
   await expect(sources.getByRole('listitem').first()).toContainText(/Red lentils.*14 days/s);
   // "Which of my foods are high in…": iron per serving, highest first; a food without the value is not listed.
   const rich = page.locator('.health-rich').filter({has: page.getByRole('heading', {name: 'Which of my foods are high in…'})});

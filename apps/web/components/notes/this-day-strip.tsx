@@ -13,6 +13,7 @@ import {MONEY_LOG} from '../../lib/money-log/schema';
 import {JOURNAL} from '../../lib/journal/schema';
 import {PILLAR_LABEL, thisDay, type DayPillar} from '../../lib/notes/this-day';
 import {localDate} from '../../lib/local-date';
+import './this-day-strip.css';
 
 /**
  * Session AK (B2): "This day" above a daily note — that day's habits, Health logs, workouts, money entries, goal
@@ -21,7 +22,7 @@ import {localDate} from '../../lib/local-date';
  * daily note, on its own chunk.
  */
 const MARK: Partial<Record<DayPillar, 'goals' | 'habits' | 'health' | 'wealth'>> = {habits: 'habits', health: 'health', wealth: 'wealth', goals: 'goals'};
-export default function ThisDayStrip({day}: {day: string}) {
+export default function ThisDayStrip({day, exclude = [], title = 'This day'}: {day: string; /** Session AV (F-JOURNAL-DAY): pillars left out (the Journal leaves out its own entries). */ exclude?: readonly DayPillar[]; title?: string}) {
   const view = usePagesView(), habits = useHabits(), health = useHealth(), platform = usePlatform();
   const workouts = useDeviceRecord(WORKOUTS), money = useDeviceRecord(MONEY_LOG), journal = useDeviceRecord(JOURNAL);
   const loaded = habits.loaded && health.loaded && platform.loaded && workouts.loaded && money.loaded && journal.loaded;
@@ -37,10 +38,11 @@ export default function ThisDayStrip({day}: {day: string}) {
   }) : {items: [], unread: [] as DayPillar[]},
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `shown` reads `view`, listed here
   [loaded, day, view, habits.error, habits.data, health.error, health.data, workouts.unreadable, workouts.data, money.unreadable, money.data, platform.error, platform.data, journal.unreadable, journal.data]);
+  const kept = items.filter(i => !exclude.includes(i.pillar));
   return <section className="note-this-day" aria-labelledby={`this-day-${day}`}>
-    <h3 id={`this-day-${day}`} className="note-this-day-title">This day</h3>
-    {!loaded ? <p className="fine">Reading this day…</p> : items.length ? <ul className="note-this-day-list">
-      {items.map(item => <li key={item.id}><Link href={item.href} className="note-day-chip" data-pillar={MARK[item.pillar]}>
+    <h3 id={`this-day-${day}`} className="note-this-day-title">{title}</h3>
+    {!loaded ? <p className="fine">Reading this day…</p> : kept.length ? <ul className="note-this-day-list">
+      {kept.map(item => <li key={item.id}><Link href={item.href} className="note-day-chip" data-pillar={MARK[item.pillar]}>
         {MARK[item.pillar] ? <PillarMark pillar={MARK[item.pillar]!} size={14}/> : <span className="note-day-dot" aria-hidden="true"/>}
         <span className="note-day-chip-title">{item.title}</span>{item.detail && <span className="note-day-chip-detail">{item.detail}</span>}
         <span className="sr-only"> · {PILLAR_LABEL[item.pillar]}</span>

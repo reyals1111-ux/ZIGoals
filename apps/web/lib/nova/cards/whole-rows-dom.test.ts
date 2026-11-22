@@ -178,3 +178,21 @@ test('a change of content with no render of the list is measured: something adde
   expect(rows().every(r => !r.hidden)).toBe(true);
   expect(line().hidden).toBe(true);
 });
+
+test('Session AV (ADR-045 D36): a field\'s name written and taken away again is not a change of content (one read, as for a render)', async () => {
+  height = 130;
+  await render(panel([h('div', {key: 'list'}, list(6)), h('input', {key: 'box', type: 'checkbox', 'aria-label': 'Done'})]));
+  expect(rows().map(r => r.hidden)).toEqual([false, false, true, true, true, true]);
+  const box = host.querySelector<HTMLInputElement>('input')!;
+  for (let i = 0; i < 4; i++) {
+    const before = reads;
+    // What React does to a task's checkbox on a render: an empty name written, then taken away.
+    await change(() => { box.setAttribute('name', ''); box.removeAttribute('name'); });
+    expect(reads - before).toBe(0);
+  }
+  // A real change of content right after still measures.
+  const before = reads;
+  await change(() => { const note = document.createElement('p'); note.dataset.px = '44'; host.querySelector('.nova-widget-body')!.append(note); });
+  expect(reads - before).toBeGreaterThan(0);
+  expect(rows().map(r => r.hidden)).toEqual([false, true, true, true, true, true]);
+});

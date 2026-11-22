@@ -26,7 +26,7 @@ import {TASK_WHEN_KEY, emptyTaskWhen, taskWhenSchema} from '../../tasks/when';
 import {WORKOUTS_KEY, emptyWorkouts, workoutsSchema} from '../../workouts/schema';
 import {emptySplits, splitsRecordSchema} from '../../workouts/splits-schema';
 import {TEMPLATE_COUNTS, countdownsCard, journalNumbersCard, perfectDaysCard} from '../cards/life-insights';
-import {moneyTagsCard, readyCard} from '../cards/money-insights';
+import {moneyTagsCard, paceCard, readyCard} from '../cards/money-insights';
 import {historyMoney, netWorthHistoryCard} from '../cards/net-worth-history';
 import {novaLocalEnv} from '../local-env';
 import {WIDGETS, widgetSpec} from '../widgets/catalog';
@@ -213,11 +213,14 @@ describe('each new widget’s one line is its own selector’s figures (the Show
     expect(line('ready-to-assign', SHOW, 'nl')).toMatch(/^(Klaar om toe te wijzen deze maand: |Je budgetten houden )/);
     expect(line('age-of-money')).toMatch(/^Age of money: \d+(\.\d)? days? on average, over what you spent in the last 90 days\.$/);
     expect(line('age-of-money', SHOW, 'nl')).toMatch(/^Leeftijd van je geld: gemiddeld \d+([.,]\d)? dag(en)?, /);
-    // Five weeks of records: the usual pace needs three earlier months, and says so.
-    expect(line('spending-pace')).toMatch(/^Not enough months yet: this needs 3 earlier months with spending logged, and there (is 1|are (none|2))\.$/);
-    expect(line('spending-pace', SHOW, 'nl')).toMatch(/^Nog niet genoeg maanden: /);
-    // The Showcase's bills were written by hand: no payments to compare.
-    expect(line('bill-changes')).toBe('No bill’s latest payment differs from the one before it.');
+    // Session AU (D8, deliberate): the Showcase's streaming bill (€12.99, then €13.99, on the 25th or so of Jul – Oct) gives
+    // three earlier months with spending logged, so the usual pace is read: nothing by the 11th in those months.
+    const pace = paceCard(SHOW.moneyLog!, DAY).lead!;
+    expect(pace).toMatchObject({status: 'ok', months: 4, usual: '€0.00', usualCents: 0, thisMonth: '€348.19', thisCents: 34819});
+    expect(line('spending-pace')).toBe(`By the 11th you usually have spent ${pace.usual}; this month ${pace.thisMonth}, ${pace.difference} more.`);
+    expect(line('spending-pace', SHOW, 'nl')).toMatch(/^Rond de 11e heb je meestal €0\.00 uitgegeven/);
+    // Session AU (ADR-044 D-SHOWCASE, deliberate): the Showcase's streaming bill is found in its money log and went up once.
+    expect(line('bill-changes')).toBe('Streaming went up by €1.00 since Jul 2026 (€12.99 then, €13.99 now).');
     const tags = moneyTagsCard(SHOW.moneyTags!, SHOW.moneyLog!, DAY);
     expect(tags.state).toBe('live');
     expect(line('money-tags')).toBe(`Most under “${tags.rows[0]!.tag}”: ${tags.rows[0]!.text} this month; ${tags.tags} tags in use.`);

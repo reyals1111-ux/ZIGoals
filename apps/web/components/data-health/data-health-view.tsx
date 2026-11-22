@@ -6,7 +6,9 @@ import {getAccountScope} from '../../lib/account-session';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import {readAiSettings, PAGE_AREAS, type AiSettings} from '../../lib/ai/settings';
 import {listImages} from '../../lib/vision/store';
-import {formatNumber} from '../../lib/visual-format';
+import {formatDate, formatNumber} from '../../lib/visual-format';
+import {readDeviceRecord} from '../../lib/device-record';
+import {BACKUP_REMINDER} from '../../lib/backup-reminder';
 import {visionScope} from '../goals/use-goal-extras';
 import {StorageHealth} from '../storage-health';
 import {SectionHeading} from '../ui/section-heading';
@@ -31,6 +33,9 @@ const AREA_LABEL: Record<(typeof PAGE_AREAS)[number], string> = {today: 'Today',
 
 export function DataHealthView() {
   const [read, setRead] = useState<Read | null>(null);
+  // Session AV (Part 4b, KL-2): a copy made from Today's card, or marked with "I saved a copy today", keeps its day; shown here.
+  const [markedOn, setMarkedOn] = useState<string | null>(null);
+  useEffect(() => { try { setMarkedOn(readDeviceRecord(getAppStorage(), BACKUP_REMINDER).data.savedOn ?? null); } catch { setMarkedOn(null); } }, []);
   useEffect(() => {
     let active = true;
     queueMicrotask(async () => {
@@ -83,7 +88,7 @@ export function DataHealthView() {
       <SectionHeading id="dh-copies" eyebrow="Copies" title="Your copies" level={3} />
       <dl className="dh-facts">
         <div><dt>Records on this device</dt><dd>{kb(total)}</dd></div>
-        <div><dt>Last Export everything</dt><dd>Not recorded</dd></div>
+        <div><dt>Last Export everything</dt><dd>{markedOn ? `You marked a copy on ${formatDate(markedOn)}` : 'Not recorded'}</dd></div>
       </dl>
       <p className="fine">Export everything writes nothing on this device, by design, so it keeps no date; your browser&apos;s downloads list shows when you last exported. Restore from a backup, below, reads that ZIP back.</p>
       <div className="dh-actions"><Link className="primary" href="/app/settings#privacy">Export everything or keep a protected copy</Link></div>

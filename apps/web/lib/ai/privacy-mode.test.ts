@@ -36,8 +36,10 @@ async function send(r: ChatRequest, store: ReturnType<typeof storage>, hosted = 
 }
 
 describe('the decision', () => {
-  test('no mode and Relaxed send; Strict refuses a cloud; Guarded redacts a cloud; a local model always sends', () => {
-    expect(sendDecision(null, {provider: 'openai'})).toBe('send');
+  // Session AV (owner follow-up 3, PK-18; deliberate test change, equally strict): no mode chosen sends as Guarded.
+  test('Relaxed sends; no mode and Guarded redact a cloud; Strict refuses a cloud; a local model always sends', () => {
+    expect(sendDecision(null, {provider: 'openai'})).toBe('redact');
+    expect(sendDecision(null, {provider: 'local', hosted: true})).toBe('redact');
     expect(sendDecision('relaxed', {provider: 'anthropic'})).toBe('send');
     expect(sendDecision('strict', {provider: 'gemini'})).toBe('refuse');
     expect(sendDecision('strict', {provider: 'local', hosted: true})).toBe('refuse');
@@ -48,18 +50,21 @@ describe('the decision', () => {
     for (const model of ['gemma4:cloud', 'gpt-oss:120b-cloud', 'gemma4:31b-cloud']) {
       expect(sendDecision('strict', {provider: 'local', model})).toBe('refuse');
       expect(sendDecision('guarded', {provider: 'local', model})).toBe('redact');
-      expect(sendDecision(null, {provider: 'local', model})).toBe('send');
+      expect(sendDecision(null, {provider: 'local', model})).toBe('redact');
     }
     expect(sendDecision('strict', {provider: 'local', model: 'cloudy-llama:7b'})).toBe('send');
   });
 });
 
 describe('at the send path, with a MOCK adapter', () => {
-  test('no mode chosen: today\'s behaviour, the very same request object, sent as it is', async () => {
+  // PK-18 (deliberate, equally strict): before AV the request went untouched; now it goes as in Guarded.
+  test('no mode chosen: a cloud gets the redacted copy, as in Guarded; a local model gets the very same request', async () => {
     const {fetcher, bodies} = mockProvider(), r = request('openai', fetcher);
-    expect(await guardRequest(r, {storage: storage()})).toBe(r);
+    expect(await guardRequest(r, {storage: storage()})).not.toBe(r);
     await send(r, storage());
-    expect(bodies[0]).toContain('Anna'); expect(bodies[0]).toContain('BE68 5390 0754 7034');
+    expect(bodies[0]).not.toContain('BE68 5390 0754 7034'); expect(bodies[0]).not.toContain('12 Abbey Road');
+    const local = mockProvider(), l = request('local', local.fetcher);
+    expect(await guardRequest(l, {storage: storage()})).toBe(l);
   });
   test('Relaxed: unchanged, to a cloud too', async () => {
     const {fetcher, bodies} = mockProvider(), r = request('xai', fetcher);

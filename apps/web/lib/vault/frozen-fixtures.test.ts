@@ -18,6 +18,8 @@ import {MONEY_LOG_KEY} from '../money-log/schema';
 import {JOURNAL_KEY} from '../journal/schema';
 import {AI_MEMORY_KEY, ZIGI_KEY} from '../ai/store/keys';
 import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
+import {MEAL_WORDS_KEY} from '../meal-words/schema';
+import {COUNTDOWN_EXTRAS_KEY} from '../countdowns/extras';
 import {TASKS_KEY} from '../tasks/schema';
 import {READING_SOURCES_KEY} from '../wealth-sources/schema';
 import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
@@ -130,6 +132,10 @@ export function frozenFixture() {
   // Session AK (5.7, 6.4, 8.6; TIER 3 (stored format)): optional fields on synced records — the habit order and list
   // mode, a milestone's linked habits, and the badges setting on the game record. Older builds keep or ignore them.
   { const hx = JSON.parse(a.get('zigoals:habit-extras:v1')!) as Record<string, unknown>; a.set('zigoals:habit-extras:v1', JSON.stringify({...hx, order: {'fixture-habit-1': 0}, listMode: 'compact', intentions: {'fixture-habit-1': {when: 'After I pour coffee', where: 'kitchen'}}, monthWeekday: {'fixture-habit-1': {weekday: 1, nth: 1, from: '2026-10-01'}}})); }
+  // Session AV (F-FOCUS-HABIT, TIER 3 stored format, additive): today's focus habit in the loose extras record; older builds keep it.
+  { const hx = JSON.parse(a.get('zigoals:habit-extras:v1')!) as Record<string, unknown>; a.set('zigoals:habit-extras:v1', JSON.stringify({...hx, focus: {date: '2026-11-23', habitId: 'fixture-habit-1'}})); }
+  // Session AV (F-HABIT-LOOK, TIER 3 stored format, additive): a habit's symbol and colour in the loose extras record; older builds keep it.
+  { const hx = JSON.parse(a.get('zigoals:habit-extras:v1')!) as Record<string, unknown>; a.set('zigoals:habit-extras:v1', JSON.stringify({...hx, looks: {'fixture-habit-1': {glyph: '★', colour: 'teal'}}})); }
   { const gx = JSON.parse(a.get(GOAL_EXTRAS_KEY) ?? '{"version":1,"goals":{},"areas":[]}') as {goals: Record<string, Record<string, unknown>>}; const first = Object.keys(gx.goals ?? {})[0]; if (first) { gx.goals[first] = {...gx.goals[first], milestoneHabits: {m1: ['fixture-habit-1']}}; a.set(GOAL_EXTRAS_KEY, JSON.stringify(gx)); } }
   { const game = JSON.parse(a.get('zigoals:game:v1') ?? '{"version":1}') as Record<string, unknown>; a.set('zigoals:game:v1', JSON.stringify({...game, badges: false})); }
   const storageA = {getItem: (k: string) => a.get(k) ?? null, setItem: (k: string, v: string) => { a.set(k, v); }, removeItem: (k: string) => { a.delete(k); }};
@@ -208,7 +214,7 @@ export function frozenFixture() {
   records[MONEY_LOG_KEY] = JSON.stringify({version: 1, entries: [{id: 'm1', kind: 'expense', amount: '12.50', currency: 'EUR', category: 'Food & drink', note: 'Fictional lunch', date: '2026-10-27', createdAt: '2026-10-27T12:00:00.000Z', source: 'form', parts: [{amount: '10.00', category: 'Food & drink'}, {amount: '2.50', category: 'Coffee'}]}], budget: {weekly: '200.00', currency: 'EUR'}, weekStartsOn: 'monday', currency: 'EUR'});
   checks.push({key: MONEY_LOG_KEY, module: './money-log/schema', spec: 'MONEY_LOG', expect: {version: 1, 'entries.0.amount': '12.50', 'entries.0.parts.1.category': 'Coffee'}});
   // Session AI (B3, TIER 3 (stored format)): the journal and the daily energy rating, two new device-only keys (fictional).
-  records[JOURNAL_KEY] = JSON.stringify({version: 1, entries: [{id: 'j1', date: '2026-10-27', text: 'Fictional calm day.', createdAt: '2026-10-27T21:00:00.000Z', followUp: {question: 'What made it calm?', from: 'device', answer: 'A walk.', answeredAt: '2026-10-27T21:05:00.000Z'}}], shareWithAi: false, followUps: true});
+  records[JOURNAL_KEY] = JSON.stringify({version: 1, entries: [{id: 'j1', date: '2026-10-27', text: 'Fictional calm day.', createdAt: '2026-10-27T21:00:00.000Z', followUp: {question: 'What made it calm?', from: 'device', answer: 'A walk.', answeredAt: '2026-10-27T21:05:00.000Z'}}], shareWithAi: false, followUps: true, /* Session AV (F-OWN-TEMPLATES): an own template, an unknown field to older builds */ templates: [{id: 'own-fixture001', title: 'Fictional run diary', headings: ['How it went:']}]});
   checks.push({key: JOURNAL_KEY, module: './journal/schema', spec: 'JOURNAL', expect: {version: 1, 'entries.0.followUp.answer': 'A walk.'}});
   records[ENERGY_KEY] = JSON.stringify({version: 1, days: {'2026-10-27': {energy: 4, at: '2026-10-27T20:30:00.000Z'}}, words: {'2026-10-27': {energy: 'high', pleasantness: 'pleasant', word: 'focused', at: '2026-10-27T20:31:00.000Z'}}});
   checks.push({key: ENERGY_KEY, module: './energy/schema', spec: 'ENERGY', expect: {'days.2026-10-27.energy': 4, 'words.2026-10-27.word': 'focused'}});
@@ -216,7 +222,7 @@ export function frozenFixture() {
   records[AI_MEMORY_KEY] = JSON.stringify({version: 1, notes: [{id: 'note_frozen', text: 'Fictional: trains in the morning', category: 'schedule', source: 'person', createdAt: '2026-10-27T08:00:00.000Z', updatedAt: '2026-10-28T08:00:00.000Z', paused: true}]});
   checks.push({key: AI_MEMORY_KEY, module: './ai/store/records', spec: 'AI_MEMORY', expect: {'notes.0.text': 'Fictional: trains in the morning', 'notes.0.paused': true}});
   // Session AI (tasks, TIER 3 (stored format)): one-off tasks with a priority and a due date, a new device-only key (fictional).
-  records[TASKS_KEY] = JSON.stringify({version: 1, tasks: [{id: 'task_1', title: 'Fictional: call the bank', priority: 'high', due: '2026-10-30', createdAt: '2026-10-28T09:00:00.000Z'}]});
+  records[TASKS_KEY] = JSON.stringify({version: 1, tasks: [{id: 'task_1', title: 'Fictional: call the bank', priority: 'high', due: '2026-10-30', /* Session AV (F-DEADLINES): the optional deadline, an unknown field to older builds */ deadline: '2026-11-02', /* Session AV (F-TASK-MINUTES): the optional minutes, likewise */ minutes: 45, createdAt: '2026-10-28T09:00:00.000Z'}]});
   checks.push({key: TASKS_KEY, module: './tasks/schema', spec: 'TASKS', expect: {'tasks.0.priority': 'high'}});
   // Session AI (J15, TIER 3 (stored format)): what a Portfolio transfer in was, a new device-only key (fictional ids).
   records[RECEIPTS_KEY] = JSON.stringify({version: 1, kinds: {'showcase-tx-9': 'reward'}});
@@ -241,6 +247,8 @@ export function frozenFixture() {
   // Session AJ (item 15, D9; TIER 3 (stored format)): price alerts, a new device-only key (fictional ids and figures).
   records[PRICE_ALERTS_KEY] = JSON.stringify({version: 1, alerts: [{id: 'alert_fixture-0001', kind: 'price', coin: 'bitcoin', coinName: 'Fictional coin', currency: 'USD', direction: 'above', price: '12345', createdAt: '2026-10-29T10:00:00.000Z', active: true, channels: {inApp: true, push: false}}], fired: []});
   checks.push({key: READING_SOURCES_KEY, module: './wealth-sources/schema', spec: 'READING_SOURCES', expect: {since: '2026-10-29T10:00:00.000Z'}});
+  // Session AV (F-MOVE-ALERT, TIER 3 stored format, additive): portfolio-value alerts in their own optional list.
+  { const pa = JSON.parse(records[PRICE_ALERTS_KEY]!) as Record<string, unknown>; records[PRICE_ALERTS_KEY] = JSON.stringify({...pa, portfolio: [{id: 'alert_portfolio-0001', portfolioId: 'p-real', portfolioName: 'Mine', currency: 'EUR', direction: 'above', value: '10000', createdAt: '2026-11-21T10:00:00.000Z', active: true}]}); }
   checks.push({key: PRICE_ALERTS_KEY, module: './price-alerts/schema', spec: 'PRICE_ALERTS', expect: {'alerts.0.price': '12345'}});
   // Session AJ (item 30, D11; TIER 3 (stored format)): the trader tools' opt-in and tilt dismissal, an optional group in the
   // loose UI preferences; an older build keeps or ignores it. Item 32 (D5): the Customize `look` group rides the same record.
@@ -269,7 +277,7 @@ export function frozenFixture() {
   // Session AK Parts 5 and 7 (TIER 3 (stored format)): five new device-only keys (fictional values).
   records[BILLS_KEY] = JSON.stringify({version: 1, bills: [{id: 'b1', title: 'Fictional rent', amount: '900.00', currency: 'EUR', cadence: 'monthly', nextDue: '2026-11-01', origin: 'manual', createdAt: '2026-10-27T12:00:00.000Z'}], dismissed: []});
   checks.push({key: BILLS_KEY, module: './bills/schema', spec: 'BILLS', expect: {'bills.0.amount': '900.00'}});
-  records[BUDGETS_KEY] = JSON.stringify({version: 1, budgets: [{id: 'g1', category: 'Food', currency: 'EUR', monthly: '400.00', rollover: true, since: '2026-10'}]});
+  records[BUDGETS_KEY] = JSON.stringify({version: 1, budgets: [{id: 'g1', category: 'Food', currency: 'EUR', monthly: '400.00', rollover: true, since: '2026-10', /* Session AV (F-BUDGET-TARGETS): the optional target, read by older builds as an unknown field */ target: {amount: '900.00', by: '2027-03'}, /* Session AV (F-FRESH-MONTH): the optional fresh start, likewise */ freshFrom: '2026-11'}], /* Session AV (F-WATCH): the optional watch list, unknown to older builds */ watch: [{category: 'Dining', currency: 'EUR'}]});
   checks.push({key: BUDGETS_KEY, module: './budgets/schema', spec: 'BUDGETS', expect: {'budgets.0.category': 'Food'}});
   records[TARGET_ALLOCATION_KEY] = JSON.stringify({version: 1, basis: 'class', targets: [{key: 'crypto', label: 'Crypto', percent: '20'}], band: 5});
   checks.push({key: TARGET_ALLOCATION_KEY, module: './allocation/target', spec: 'TARGET_ALLOCATION', expect: {band: 5}});
@@ -277,7 +285,8 @@ export function frozenFixture() {
   checks.push({key: CSV_MAPPINGS_KEY, module: './csv/templates/saved', spec: 'CSV_MAPPINGS', expect: {'mappings.0.name': 'Fictional bank'}});
   records[AUTO_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', source: 'steps', comparator: 'at-least', threshold: 8000, unit: 'steps', habitId: '00000000-0000-4000-8000-000000000001', createdAt: '2026-10-27T08:00:00.000Z'}], applied: []});
   checks.push({key: AUTO_RULES_KEY, module: './auto-rules/schema', spec: 'AUTO_RULES', expect: {'rules.0.threshold': 8000}});
-  records[BACKUP_REMINDER_KEY] = JSON.stringify({version: 1, savedOn: '2026-10-01', askedOn: '2026-10-20'});
+  // Session AV Part 3 (D-KEEP, TIER 3 stored formats): the same record with this build's optional fields; every release still reads savedOn.
+  records[BACKUP_REMINDER_KEY] = JSON.stringify({version: 1, savedOn: '2026-10-01', askedOn: '2026-10-20', countAt: 42, remindedOn: '2026-10-25', persistAskedOn: '2026-10-02', persistResult: 'kept', iosNoteDoneOn: '2026-10-03', iosNoteLaterOn: '2026-10-04', restoreOfferDoneOn: '2026-10-05'});
   checks.push({key: BACKUP_REMINDER_KEY, module: './backup-reminder', spec: 'BACKUP_REMINDER', expect: {savedOn: '2026-10-01'}});
   // Session AK Part 4 (TIER 3 (stored format)): four new device-only Health keys (fictional values).
   records[FOOD_SCANS_KEY] = JSON.stringify({version: 1, scans: [{barcode: '7610000000001', name: 'Fictional muesli', source: 'Open Food Facts', at: '2026-10-28T08:00:00.000Z', count: 2, foodId: 'health_fixture-muesli', quantityMilli: 60000, meal: 'Breakfast'}]});
@@ -317,7 +326,7 @@ export function frozenFixture() {
   records[WRAPPED_KEY] = JSON.stringify({version: 1, opened: {"2026": "2026-12-02"}});
   checks.push({key: WRAPPED_KEY, module: './wrapped/store', spec: 'WRAPPED', expect: {"opened.2026": "2026-12-02"}});
   // Owner follow-up 1 (F5): the debt payoff planner figures.
-  records[DEBT_PLANNER_KEY] = JSON.stringify({version: 1, currency: "EUR", extra: "100.00", debts: {"acct-fixture-1": {minimum: "25.00", ratePercent: "19.9"}}});
+  records[DEBT_PLANNER_KEY] = JSON.stringify({version: 1, currency: "EUR", extra: "100.00", debts: {"acct-fixture-1": {minimum: "25.00", ratePercent: "19.9"}}, /* Session AV (F-DEBT-PLAN): the optional order, one-off payments, shown plan and tracked plan, unknown fields to older builds */ order: ["acct-fixture-1"], lumps: [{month: "2027-01", amount: "500.00"}], shown: "custom", tracked: {on: "2026-11-01", strategy: "avalanche", currency: "EUR", extra: "100.00", debts: [{id: "acct-fixture-1", name: "Fictional card", balance: "1200.00", ratePercent: "19.9", minimum: "25.00"}]}});
   checks.push({key: DEBT_PLANNER_KEY, module: './debt-planner/store', spec: 'DEBT_PLANNER', expect: {"debts.acct-fixture-1.minimum": "25.00"}});
   // Owner follow-up 1 (F5): savings challenges on goals.
   records[SAVINGS_CHALLENGES_KEY] = JSON.stringify({version: 1, goals: {"9202": {kind: "52-week", startedOn: "2026-10-05", step: "5", order: "up"}}});
@@ -390,6 +399,14 @@ export function frozenFixture() {
     {day: '2026-11-03', at: '2026-11-03T18:00:00.000Z', sources: [{source: 'wealth', currency: 'USD', value: null, asOf: null, missing: ['Fictional coin']}, {source: 'portfolio', currency: 'USD', value: '99.10', asOf: '2026-11-03T17:59:00.000Z'}]},
   ]});
   checks.push({key: NETWORTH_HISTORY_KEY, module: './networth-history', spec: 'NETWORTH_HISTORY', expect: {'days.0.sources.0.value': '1234.56', 'days.1.sources.0.missing.0': 'Fictional coin'}});
+  // Session AU (ADR-044 F-MEAL; TIER 3 (stored format), additive key): a meal logged in words alone (fictional). No older
+  // build has a reader: the key is ignored there (ABSENT), and Health's strict record is untouched.
+  records[MEAL_WORDS_KEY] = JSON.stringify({version: 1, entries: [{id: 'words_fixture-1', date: '2026-11-19', meal: 'Lunch', words: 'Fictional soup and bread', at: '2026-11-19T12:30:00.000Z'}]});
+  checks.push({key: MEAL_WORDS_KEY, module: './meal-words/schema', spec: 'MEAL_WORDS', expect: {'entries.0.words': 'Fictional soup and bread', 'entries.0.meal': 'Lunch'}});
+  // Session AV (ADR-045 F-COUNTDOWN-YEARLY; TIER 3 (stored format), additive key): a yearly countdown with a reminder
+  // (fictional). No older build has a reader: the key is ignored there (ABSENT), and the strict countdowns are untouched.
+  records[COUNTDOWN_EXTRAS_KEY] = JSON.stringify({version: 1, items: {'countdown_fixture-1': {yearly: true, remindDays: 7}}});
+  checks.push({key: COUNTDOWN_EXTRAS_KEY, module: './countdowns/extras', spec: 'COUNTDOWN_EXTRAS', expect: {'items.countdown_fixture-1.remindDays': 7}});
   // @wired-end
   records[MONEY_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', field: 'payee', op: 'contains', text: 'fictional grocer', direction: 'out', category: 'Groceries', enabled: true}]});
   checks.push({key: MONEY_RULES_KEY, module: './money-rules/schema', spec: 'MONEY_RULES', expect: {'rules.0.category': 'Groceries'}});
@@ -414,7 +431,7 @@ test('the frozen-reader fixture is read by this build', async () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY, INSIGHT_FEEDBACK_KEY, FOCUS_ROUNDS_KEY, CYCLE_KEY, SCALES_KEY, HEALTH_NUMBERS_KEY, NOVA_HERMES_KEY, NOVA_SETUP_KEY, NOVA_WORKFLOWS_KEY, NOVA_BRIEFS_KEY, NOVA_BRIDGE_KEY, /* Session AM (D18, deliberate): NOVA_KEY and NOVA_STAGE_KEY are in `carried` now (the nova extras section), once each as before */ NOVA_WORLD_KEY, /* Session AM-2: the outbox record, device only */ NOVA_OUTBOX_KEY, /* Session AM-2 (step 4c): the own-agent record, device only */ NOVA_AGENT_KEY, CALENDAR_IMPORT_KEY, NOTES_KEY, NETWORTH_MILESTONES_KEY, SAVINGS_CHALLENGES_KEY, DEBT_PLANNER_KEY, WRAPPED_KEY, AGENDA_KEY, JOURNAL_DISPLAY_KEY, FIRST_WEEK_KEY, EXPERIMENTS_KEY, NETWORTH_HISTORY_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY, INSIGHT_FEEDBACK_KEY, FOCUS_ROUNDS_KEY, CYCLE_KEY, SCALES_KEY, HEALTH_NUMBERS_KEY, NOVA_HERMES_KEY, NOVA_SETUP_KEY, NOVA_WORKFLOWS_KEY, NOVA_BRIEFS_KEY, NOVA_BRIDGE_KEY, /* Session AM (D18, deliberate): NOVA_KEY and NOVA_STAGE_KEY are in `carried` now (the nova extras section), once each as before */ NOVA_WORLD_KEY, /* Session AM-2: the outbox record, device only */ NOVA_OUTBOX_KEY, /* Session AM-2 (step 4c): the own-agent record, device only */ NOVA_AGENT_KEY, CALENDAR_IMPORT_KEY, NOTES_KEY, NETWORTH_MILESTONES_KEY, SAVINGS_CHALLENGES_KEY, DEBT_PLANNER_KEY, WRAPPED_KEY, AGENDA_KEY, JOURNAL_DISPLAY_KEY, FIRST_WEEK_KEY, EXPERIMENTS_KEY, NETWORTH_HISTORY_KEY, /* Session AU (F-MEAL): meals in words, device only */ MEAL_WORDS_KEY, COUNTDOWN_EXTRAS_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');
