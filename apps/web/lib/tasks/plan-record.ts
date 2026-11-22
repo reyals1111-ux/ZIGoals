@@ -3,7 +3,7 @@ import type {DeviceRecordSpec} from '../device-record';
 import {addLocalDays} from '../local-date';
 import {completedLog} from './engine';
 import {TASK_PLAN_KEY, timerMinutes} from './plan-key';
-import {TASK_NOTES_MAX, TASK_TITLE_MAX, type Tasks} from './schema';
+import {MAX_TRAVEL, TASK_NOTES_MAX, TASK_TITLE_MAX, type Tasks} from './schema';
 import {MY_DAY_MAX, readMyDay} from './my-day';
 
 /**
@@ -53,6 +53,17 @@ const workHoursSchema = z.looseObject({
   days: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).flatMap(([k, x]) => { const blocks = /^[0-6]$/.test(k) ? readDayBlocks(x) : undefined; return blocks ? [[k, blocks]] : []; })) : undefined, z.record(z.string(), z.array(hoursBlock)).optional()),
   after: hoursBlock.optional().catch(undefined),
 });
+/** Session AV lane 2 (r5-plan, LEDGER #348, #353): time blocks and the travel minutes of imported events. */
+export const MAX_TIME_BLOCKS = 30, BLOCK_NAME_MAX = 60, MAX_EVENT_TRAVEL = 200;
+export const BLOCK_COLOURS = ['blue', 'teal', 'green', 'violet', 'yellow', 'grey'] as const;
+export type BlockColour = (typeof BLOCK_COLOURS)[number];
+const timeBlockSchema = z.looseObject({
+  id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), name: z.string().trim().min(1).max(BLOCK_NAME_MAX), colour: z.enum(BLOCK_COLOURS).catch('blue'),
+  from: clock, to: clock,
+  days: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter((x: unknown): x is number => typeof x === 'number' && Number.isInteger(x) && x >= 0 && x <= 6))].sort((a, b) => a - b) : undefined, z.array(z.number()).optional()),
+  on: day.optional().catch(undefined),
+}).refine(b => b.from < b.to && (!!b.days?.length || !!b.on));
+export type TimeBlock = z.infer<typeof timeBlockSchema>;
 export const taskPlanSchema = z.looseObject({
   version: z.literal(1),
   defaultReminder: z.number().int().min(0).max(10_080).optional().catch(undefined),
@@ -87,6 +98,17 @@ export const taskPlanSchema = z.looseObject({
    * build cannot read is dropped on read; older builds keep it untouched (the record is loose) and plan from 09:00 as before.
    */
   workHours: workHoursSchema.optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r5-plan; Akiflow; TIER 3 (stored format), additive and optional; dropped on read when it cannot be
+   * read, never the record; older builds keep them untouched (the record is loose) and do not use them):
+   * `blocks` (LEDGER #348, Akiflow's time slots) named blocks of time ("Deep work", 09:00–11:00) in a calm colour, once on a
+   * day (`on`) or on chosen weekdays (`days`, 0 Sunday to 6 Saturday); tasks are dropped into one by their `block`
+   * (lib/tasks/time-blocks.ts). A block that cannot be read is dropped, never the others.
+   * `eventTravel` (LEDGER #353) the travel minutes typed before an imported calendar event, by the event's id (the short
+   * hash lib/ics/calendar.ts keeps, never its UID); an id or a number that cannot be read is dropped.
+   */
+  blocks: z.preprocess(v => Array.isArray(v) ? v.filter(x => timeBlockSchema.safeParse(x).success).slice(0, MAX_TIME_BLOCKS) : undefined, z.array(timeBlockSchema).optional()),
+  eventTravel: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, n]) => /^[0-9a-f]{16}$/.test(k) && Number.isInteger(n) && (n as number) >= 1 && (n as number) <= MAX_TRAVEL).slice(0, MAX_EVENT_TRAVEL)) : undefined, z.record(z.string(), z.number()).optional()),
 });
 export type TaskPlan = z.infer<typeof taskPlanSchema>;
 export const emptyTaskPlan = (): TaskPlan => ({version: 1});
