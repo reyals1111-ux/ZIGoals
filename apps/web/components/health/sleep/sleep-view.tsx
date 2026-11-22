@@ -56,6 +56,8 @@ const MorningSteps = lazy(() => import('./morning-steps'));
 const SleepQualityTrend = lazy(() => import('./sleep-usual').then(m => ({default: m.SleepQualityTrend})));
 // Session AV lane 2 (r3-notes; LEDGER #278, Stoic): "Write down a dream" on the latest night, and each night's dreams.
 const NightDreams = lazy(() => import('./night-dreams'));
+// Session AV lane 2, round 4 (health; Pillow, LEDGER #333, #335): your timing on free days, and the nap timer.
+const HealthR4 = lazy(() => import('../r4/health-r4'));
 
 const nightLine = (n: SleepNight) => {
   const a = asleep(n)!;
@@ -97,7 +99,7 @@ export default function SleepView() {
     {note && <p className="sleep-note">{note}</p>}
     <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><LoadBoundary quiet><Suspense fallback={null}><EveningPlan zone={store.zone} now={store.now}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><MorningSteps sleep={store.sleep} today={store.today}/></Suspense></LoadBoundary><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
     {/* Session AH (HE3, D-199): the log form sits near the top, full width, not squeezed beside the goal at the bottom. */}
-    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
+    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="nap-timer" store={store}/></Suspense></LoadBoundary><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}
     <section className="panel sleep-week" aria-labelledby="sleep-week-title">
       <h2 id="sleep-week-title">Your last 7 days</h2>
@@ -116,6 +118,7 @@ export default function SleepView() {
     </section>
     <SleepScoreCard sleep={sleep} today={today}/>
     <LoadBoundary quiet><Suspense fallback={null}><SleepUsual sleep={sleep} today={today}/></Suspense></LoadBoundary>
+    <LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="sleep-timing" sleep={sleep} today={today}/></Suspense></LoadBoundary>
     {/* Session AL fourth pass (MO-022): the fold says its answer on its face (the focus window), not only its name. */}<OnDemandFold className="energy-curve-fold" summary={energyFace(sleep, today)} label="The energy curve"><EnergyCurve sleep={sleep} today={today} now={store.now} zone={store.zone}/></OnDemandFold>
     <section className="panel sleep-charts" aria-labelledby="sleep-charts-title">
       <div className="sleep-charts-head"><h2 id="sleep-charts-title">Over time</h2>

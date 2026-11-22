@@ -1,0 +1,41 @@
+/* Session AV lane 2, round 4 (health; Pillow, Runna, Noom): this round's Health parts. Theme variables only. */
+.r4-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 8px 16px; margin: 0; }
+.r4-facts div { display: grid; gap: 2px; }
+.r4-facts dt { font-size: 14px; color: var(--muted, inherit); }
+.r4-facts dd { margin: 0; font-size: 1.1rem; font-weight: 600; }
+.r4-nap { display: grid; gap: 8px; padding: 12px; margin: 0 0 12px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); }
+.r4-nap h3 { margin: 0; font-size: 1.05rem; }
+.r4-nap .actions button, .r4-plan .actions button, .r4-races .actions button, .r4-zones button { min-height: 44px; }
+.r4-nap-count { margin: 0; font-size: 2.4rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+.r4-nap[data-motion="on"] .r3-player-bar i { transition: width 1s linear; }
+@media (prefers-reduced-motion: reduce) { .r4-nap .r3-player-bar i { transition: none !important; } }
+.r4-sleep-tip { display: grid; gap: 6px; margin: 8px 0; }
+.r4-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.r4-list > li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); }
+.r4-list > li > span:first-child { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.r4-row-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.r4-row-actions button { min-height: 44px; }
+.r4-state { font-size: 14px; padding: 2px 8px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); }
+.r4-state[data-state="done"] { box-shadow: inset 0 0 0 1px var(--brand-cyan, #6fe6f6); }
+/* The plan's weeks: seven days a row, a drop target each; on a phone each day is a row of its own. */
+.r4-weeks { display: grid; gap: 10px; }
+.r4-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.r4-day { min-height: 88px; padding: 6px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); display: grid; align-content: start; gap: 4px; font-size: 14px; min-width: 0; }
+.r4-day[data-today="true"] { box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6); }
+.r4-day[data-over="true"] { background: var(--surface-2, #8fb6ff22); }
+.r4-day[data-away="true"] { opacity: .75; }
+.r4-day-head { font-weight: 600; }
+.r4-chip { display: block; width: 100%; min-height: 44px; padding: 4px 6px; border-radius: 8px; text-align: start; font-size: 14px; overflow-wrap: anywhere; cursor: grab; }
+.r4-chip[data-state="done"] { text-decoration: line-through; }
+@media (max-width: 640px) { .r4-week { grid-template-columns: minmax(0, 1fr); } .r4-day { min-height: 0; grid-template-columns: 7rem minmax(0, 1fr); align-items: start; } }
+.r4-zone-bar { display: flex; width: 100%; height: 14px; border-radius: 999px; overflow: hidden; background: var(--line, #8fb6ff33); }
+.r4-zone-bar i { display: block; height: 100%; }
+.r4-zone-bar i[data-zone="1"] { background: var(--brand-cyan, #6fe6f6); opacity: .45; }
+.r4-zone-bar i[data-zone="2"] { background: var(--brand-cyan, #6fe6f6); opacity: .7; }
+.r4-zone-bar i[data-zone="3"] { background: var(--brand-cyan, #6fe6f6); }
+.r4-zone-bar i[data-zone="4"] { background: var(--brand-violet, #a98bff); opacity: .8; }
+.r4-zone-bar i[data-zone="5"] { background: var(--brand-violet, #a98bff); }
+.r4-zones { display: grid; gap: 6px; }
+.r4-zones ul { margin: 0; padding-inline-start: 1.1rem; font-size: 14px; }
+.r4-note { padding: 10px 12px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--brand-cyan, #6fe6f6); display: grid; gap: 6px; }
+.r4-note p { margin: 0; white-space: pre-line; }
