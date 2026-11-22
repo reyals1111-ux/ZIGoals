@@ -34,7 +34,7 @@ for (const theme of THEMES) test(`${theme}: a shared cost, settle up, money lent
   // Between you and others: Sam settles up.
   // Session AV lane 2 (phone-length, deliberate): on a phone "Between you and others" is one row of Spending that says what
   // it holds (tests/phone-length-folds.ts: there and closed on a phone, absent at 1440); it is opened, then checked as before.
-  if (isMobile) await expect(box.locator('.phone-fold-toggle').filter({hasText: 'Between you and others'})).toContainText('1 person owes you');
+  if (isMobile) await expect(box.locator('.phone-fold-toggle').filter({hasText: 'Between you and others'})).toContainText('2 people owe you'); // the cost is shared with Sam and Lee: two people owe their parts
   await openPhoneRow(page, 'Between you and others', box);
   const people = box.locator('.people-money');
   await expect(people).toBeVisible();
