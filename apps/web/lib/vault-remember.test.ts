@@ -6,7 +6,7 @@ import {act,createElement} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {activateAccount,clearAccountSession,getAccountScope,isAccountLocked,lockAccount} from './account-session';
 import {createDeviceKey,createVault,deviceCommitment,manifestDigest,sealDigest,unlockVaultForDevice} from './vault/crypto';
-import {DEVICE_DATABASE,readDevices,rememberDevice} from './vault/device-unlock';
+import {DEVICE_DATABASE,readDevices,rememberDevice,rememberHealth} from './vault/device-unlock';
 import {StaleDeviceError,noteAccessDenial} from './vault/stale-device';
 import {getAppStorage} from './showcase-storage';
 import {HABITS_KEY} from './habits';
@@ -127,6 +127,27 @@ describe('a remembered device opens without the secret',()=>{
   // Turning Health off on a remembered device is remembered too.
   h.held=[];await act(async()=>element.querySelector<HTMLInputElement>('input[type=checkbox]')!.click());await settle();expect((await readDevices())[0]!.health).toBe(true);
   await act(async()=>element.querySelector<HTMLInputElement>('input[type=checkbox]')!.click());await settle();expect((await readDevices())[0]!.health).toBe(false);
+ });
+
+ // Session AV lane 2 (TIER 3 sync; scripts/run11/stage8-rehearsal/health-ask-tabs-browser.test.mjs): Health consent is each
+ // tab's own. Another tab's sign-in locks this one (the plain lock); when it reopens from the remembered device it keeps the
+ // Health choice it had, not the one another tab remembered since. A reload starts from the remembered choice, as before.
+ test('a tab locked by another tab reopens with its own Health choice, never one another tab turned on (Y38)',async()=>{
+  const health=()=>[...element.querySelectorAll<HTMLLabelElement>('label.checkbox')].find(label=>label.textContent?.startsWith('Sync my Health records'))!.querySelector('input')!;
+  await remembered();expect(health().checked).toBe(false);
+  // Another tab of this account turned Health on there: the remembered record says on.
+  await rememberHealth((await readDevices())[0]!,true);expect((await readDevices())[0]!.health).toBe(true);
+  await act(async()=>{lockAccount();});await settle();expect(isAccountLocked()).toBe(true);
+  await act(async()=>{window.dispatchEvent(new Event('focus'));});await settle();
+  expect(opened()).toBe(true);expect(health().checked).toBe(false);
+  // The other tab's choice stays remembered for it, and a reload here starts from it (M1 e).
+  expect((await readDevices())[0]!.health).toBe(true);
+  await reload();await verified();expect(opened()).toBe(true);expect(health().checked).toBe(true);
+  // Health on here, and another tab turned it off since: off wins when this tab reopens.
+  await rememberHealth((await readDevices())[0]!,false);
+  await act(async()=>{lockAccount();});await settle();
+  await act(async()=>{window.dispatchEvent(new Event('focus'));});await settle();
+  expect(opened()).toBe(true);expect(health().checked).toBe(false);
  });
 });
 
