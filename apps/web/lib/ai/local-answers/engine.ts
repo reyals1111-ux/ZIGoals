@@ -31,6 +31,8 @@ import {rehearsalAnswer} from './au-answers';
 import {avAnswer} from './av-answers';
 import {av2TasksAnswer} from './av2-tasks';
 import {av2HabitsAnswer} from './av2-habits';
+import {av2JournalAnswer} from './av2-journal';
+import {av2RoadmapAnswer} from './av2-roadmap';
 import {bodyFiguresHidden, withHiddenFigures} from './av2-hide-figures';
 import {neverTwice} from '../../habit-two-day';
 import {answerQuery, exactQuery, fixedWords, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
@@ -227,6 +229,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV (owner follow-up 2, item 1c; the fresh reviewers' check 5): the AV features' own questions (task reminders,
   // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
   // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).
+  // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
+  if (!subject) { const own = av2JournalAnswer(question, env) ?? av2RoadmapAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Habits and mind): its own answers, before AV's (lib/ai/local-answers/av2-habits.ts).
   if (!subject) { const own = av2HabitsAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Tasks and planning; Money N11): its own answers, before AV's (lib/ai/local-answers/av2-tasks.ts).

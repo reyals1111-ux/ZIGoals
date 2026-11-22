@@ -6760,5 +6760,141 @@
   "widgets": [],
   "fresh": "Today’s practice: “A short body scan”, 10 minutes. It begins: Close your eyes or let your gaze rest low. Health → Meditation → Today’s practice has all of it, “Another one”, and Begin with the bell.",
   "freshNl": "De oefening van vandaag: “Een korte bodyscan”, 10 minuten. Hij begint zo: Sluit je ogen of laat je blik laag rusten. Health → Meditation → Today’s practice heeft de hele oefening, “Another one” en Begin met de bel."
+ },
+ "av2-journal-reminder": {
+  "en": "Your reminder to write is at 21:00, every day, unless you already wrote that day.",
+  "nl": "Je herinnering om te schrijven staat om 21:00, elke dag, behalve als je die dag al schreef.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No reminder to write is set. Journal → Entries → Reminder to write sets a time and the days; it reaches you through this device’s notifications.",
+  "freshNl": "Er staat geen herinnering om te schrijven. Journal → Entries → Reminder to write kiest een tijd en de dagen; die komt via de meldingen van dit apparaat."
+ },
+ "av2-journal-streak": {
+  "en": "Your writing streak: 4 days in a row, today included. Longest: 4 days.",
+  "nl": "Je schrijfreeks: 4 dagen op rij, vandaag meegeteld. Langste: 4 dagen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No journal entry yet, so no writing streak. A few lines in Journal → Write start one.",
+  "freshNl": "Nog geen dagboekstuk, dus nog geen schrijfreeks. Een paar regels in Journal → Write beginnen er een."
+ },
+ "av2-journal-books": {
+  "en": "2 journals: Journal (the main one): 10 entries and Example · Runs: 2 entries.",
+  "nl": "2 dagboeken: Journal (het hoofddagboek): 10 stukken en Example · Runs: 2 stukken.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "One journal, the main one, with 0 entries. Journal → Your journals makes another (Travel, Dreams…) with a colour of its own.",
+  "freshNl": "Eén dagboek, het hoofddagboek, met 0 stukken. Journal → Your journals maakt er nog een (Reizen, Dromen…) met een eigen kleur."
+ },
+ "av2-journal-on-day": {
+  "en": "1 journal entry on Sat, Nov 14. Their words stay on the Journal page: /app/journal?day=2026-11-14.",
+  "nl": "1 dagboekstuk op za 14 nov. De woorden blijven op de Journal-pagina: /app/journal?day=2026-11-14.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No journal entry on Sat, Nov 14. The calendar under Journal → Search by date marks the days you wrote.",
+  "freshNl": "Geen dagboekstuk op za 14 nov. De kalender onder Journal → Search by date toont de dagen waarop je schreef."
+ },
+ "av2-journal-packs": {
+  "en": "No prompt pack is on. Journal → Write → Prompt packs has Sleep, Training, Gratitude, Creativity, Work and life and The year; a pack you switch on takes turns with the everyday question.",
+  "nl": "Er staat geen vragenpakket aan. Journal → Write → Prompt packs heeft Slaap, Training, Dankbaarheid, Creativiteit, Werk en leven en Het jaar; een pakket dat je aanzet wisselt af met de gewone vraag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No prompt pack is on. Journal → Write → Prompt packs has Sleep, Training, Gratitude, Creativity, Work and life and The year; a pack you switch on takes turns with the everyday question.",
+  "freshNl": "Er staat geen vragenpakket aan. Journal → Write → Prompt packs heeft Slaap, Training, Dankbaarheid, Creativiteit, Werk en leven en Het jaar; een pakket dat je aanzet wisselt af met de gewone vraag."
+ },
+ "av2-journal-default-template": {
+  "en": "New journal entries start empty. Under Journal → Start from a prompt, “Start new entries here” on a template makes it the one they start from.",
+  "nl": "Nieuwe dagboekstukken beginnen leeg. Onder Journal → Start from a prompt maakt “Start new entries here” bij een sjabloon dat het beginpunt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "New journal entries start empty. Under Journal → Start from a prompt, “Start new entries here” on a template makes it the one they start from.",
+  "freshNl": "Nieuwe dagboekstukken beginnen leeg. Onder Journal → Start from a prompt maakt “Start new entries here” bij een sjabloon dat het beginpunt."
+ },
+ "av2-journal-versions": {
+  "en": "1 journal entry has been changed (Sun, Nov 15), with 1 earlier version kept on this device. Each entry’s More lists them, to read or restore.",
+  "nl": "1 dagboekstuk is veranderd (zo 15 nov), met 1 eerdere versie bewaard op dit apparaat. More bij elk stuk toont ze, om te lezen of terug te zetten.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No journal entry has been changed, so there are no earlier versions. An entry’s More → Edit the words keeps the words it had, up to ten versions.",
+  "freshNl": "Geen dagboekstuk is veranderd, dus er zijn geen eerdere versies. More → Edit the words bij een stuk bewaart de woorden die het had, tot tien versies."
+ },
+ "av2-journal-media": {
+  "en": "No photo or voice note in your journal yet. Under Write, “Photos and a voice note” adds them; they stay on this device.",
+  "nl": "Nog geen foto of spraakmemo in je dagboek. Onder Write voegt “Photos and a voice note” ze toe; ze blijven op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No photo or voice note in your journal yet. Under Write, “Photos and a voice note” adds them; they stay on this device.",
+  "freshNl": "Nog geen foto of spraakmemo in je dagboek. Onder Write voegt “Photos and a voice note” ze toe; ze blijven op dit apparaat."
+ },
+ "av2-journal-imported": {
+  "en": "No journal entry was imported yet. Journal → Import and export reads a Day One export, Markdown or text files, or an Apple Journal export, and shows what it found first.",
+  "nl": "Er is nog geen dagboekstuk geïmporteerd. Journal → Import and export leest een Day One-export, Markdown- of tekstbestanden, of een Apple Journal-export, en toont eerst wat erin staat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No journal entry was imported yet. Journal → Import and export reads a Day One export, Markdown or text files, or an Apple Journal export, and shows what it found first.",
+  "freshNl": "Er is nog geen dagboekstuk geïmporteerd. Journal → Import and export leest een Day One-export, Markdown- of tekstbestanden, of een Apple Journal-export, en toont eerst wat erin staat."
+ },
+ "av2-notes-repeating": {
+  "en": "1 repeating note: Example · Week plan (every Monday, made “Example · Week plan · 2026-11-16”). Daily notes start empty (Notes → Days → Daily note template).",
+  "nl": "1 terugkerende notitie: Example · Week plan (elke maandag, gemaakt: “Example · Week plan · 2026-11-16”). Dagnotities beginnen leeg (Notes → Days → Daily note template).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No repeating note yet. Notes → Notes → Repeating notes makes a note every day, week or month from your words. Daily notes start empty (Notes → Days → Daily note template).",
+  "freshNl": "Nog geen terugkerende notitie. Notes → Notes → Repeating notes maakt elke dag, week of maand een notitie van je eigen woorden. Dagnotities beginnen leeg (Notes → Days → Daily note template)."
+ },
+ "av2-notes-versions": {
+  "en": "1 earlier version of 1 note: Books to read. Each note’s Earlier versions shows them, to read or restore.",
+  "nl": "1 eerdere versie van 1 notitie: Books to read. Earlier versions bij elke notitie toont ze, om te lezen of terug te zetten.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note has an earlier version yet. Each save that changes a note keeps the words it had, under its Earlier versions.",
+  "freshNl": "Nog geen notitie heeft een eerdere versie. Elke keer dat je een notitie verandert en bewaart, blijven de oude woorden onder Earlier versions."
+ },
+ "av2-notes-per-tag": {
+  "en": "Notes per tag: #reading 1 and #travel 1; 6 notes have no tag. Notes → Chart draws them.",
+  "nl": "Notities per tag: #reading 1 en #travel 1; 6 notities hebben geen tag. Notes → Chart tekent ze.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note has a tag yet. Notes imported with tags (Notes → Files → Import) show under Notes → Chart.",
+  "freshNl": "Nog geen notitie heeft een tag. Notities die met tags zijn geïmporteerd (Notes → Files → Import) staan onder Notes → Chart."
+ },
+ "av2-journal-report": {
+  "en": "Your journal is in a report only when you choose it: Settings → Your data → Make a report → Private → “Journal entries, as written” (off each time you open it). The last 30 days hold 10 entries.",
+  "nl": "Je dagboek staat alleen in een rapport als je dat kiest: Settings → Your data → Make a report → Private → “Journal entries, as written” (elke keer uit als je het opent). De laatste 30 dagen bevatten 10 stukken.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your journal is in a report only when you choose it: Settings → Your data → Make a report → Private → “Journal entries, as written” (off each time you open it). The last 30 days hold 0 entries.",
+  "freshNl": "Je dagboek staat alleen in een rapport als je dat kiest: Settings → Your data → Make a report → Private → “Journal entries, as written” (elke keer uit als je het opent). De laatste 30 dagen bevatten 0 stukken."
+ },
+ "av2-journal-affirmation": {
+  "en": "Today’s affirmation: “I notice what went well, however small.” To see one each day on Today, switch it on in Journal → Privacy.",
+  "nl": "De affirmatie van vandaag: “Ik zie wat goed ging, hoe klein ook.” Wil je er elke dag een op Today zien, zet het dan aan in Journal → Privacy.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Today’s affirmation: “I notice what went well, however small.” To see one each day on Today, switch it on in Journal → Privacy.",
+  "freshNl": "De affirmatie van vandaag: “Ik zie wat goed ging, hoe klein ook.” Wil je er elke dag een op Today zien, zet het dan aan in Journal → Privacy."
+ },
+ "av2-chess-results": {
+  "en": "No finished games against the computer yet. Chess → Play has ZIGoals’ own engine at three levels (Easy, Medium, Hard), on this device.",
+  "nl": "Nog geen uitgespeelde partijen tegen de computer. Chess → Play heeft de eigen schaakengine van ZIGoals op drie niveaus (Easy, Medium, Hard), op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No finished games against the computer yet. Chess → Play has ZIGoals’ own engine at three levels (Easy, Medium, Hard), on this device.",
+  "freshNl": "Nog geen uitgespeelde partijen tegen de computer. Chess → Play heeft de eigen schaakengine van ZIGoals op drie niveaus (Easy, Medium, Hard), op dit apparaat."
+ },
+ "av2-chess-game": {
+  "en": "No game against the computer is waiting. Start one in Chess → Play: it is kept on this device, so you can come back to it.",
+  "nl": "Er wacht geen partij tegen de computer. Begin er een in Chess → Play: hij blijft op dit apparaat bewaard, zodat je later verder kunt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No game against the computer is waiting. Start one in Chess → Play: it is kept on this device, so you can come back to it.",
+  "freshNl": "Er wacht geen partij tegen de computer. Begin er een in Chess → Play: hij blijft op dit apparaat bewaard, zodat je later verder kunt."
+ },
+ "av2-task-attachments": {
+  "en": "Open a task and use Photos and voice notes: add a photo, or record a voice note of up to a minute. They stay in this browser only, never uploaded or synced; Export everything includes them as files.",
+  "nl": "Open een taak en gebruik Photos and voice notes: voeg een foto toe, neem een spraakmemo op van hooguit een minuut. Ze blijven alleen in deze browser, nooit geüpload en nooit gesynchroniseerd; Export everything neemt ze mee als bestanden.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open a task and use Photos and voice notes: add a photo, or record a voice note of up to a minute. They stay in this browser only, never uploaded or synced; Export everything includes them as files.",
+  "freshNl": "Open een taak en gebruik Photos and voice notes: voeg een foto toe, neem een spraakmemo op van hooguit een minuut. Ze blijven alleen in deze browser, nooit geüpload en nooit gesynchroniseerd; Export everything neemt ze mee als bestanden."
  }
 }

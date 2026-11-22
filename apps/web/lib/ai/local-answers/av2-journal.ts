@@ -53,6 +53,9 @@ function reminder(a: Asked): LocalReply | null {
 
 /** LEDGER #40: "what is my writing streak", "how many days in a row did I write" (lib/journal/stats.ts writingStreak, as the Journal shows it). */
 function streak(a: Asked): LocalReply | null {
+  // Lead (batch 1): "journal streak" and "days in a row did I journal" stay the existing journal-streak answer (cases-day.ts,
+  // pinned with its facts); this one takes the writing-streak wordings it adds.
+  if (/\bjournal streak\b|\bdays in a row did i journal\b/.test(a.f)) return null;
   const en = /\b(?:writing|journal(?:ing)?|diary) streak\b|\bstreak\b.*\b(?:journal|writing|diary)\b|\bdays in a row\b.*\b(?:write|wrote|written|journal(?:ed)?)\b|\b(?:write|wrote|written|journal(?:ed)?)\b.*\bdays in a row\b/.test(a.f);
   const nl = /\b(?:schrijf|dagboek)reeks\b|\breeks\b.*\b(?:dagboek|schrijven|geschreven)\b|\bdagen op rij\b.*\b(?:geschreven|schrijven|dagboek)\b|\b(?:geschreven|dagboek)\b.*\bdagen op rij\b/.test(a.f);
   if (!en && !nl) return null;

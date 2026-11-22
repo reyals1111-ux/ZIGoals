@@ -14,6 +14,7 @@ import {COUNTDOWN_EXTRAS} from '../../countdowns/extras';
 import {TASK_PLAN} from '../../tasks/plan-record';
 import {TASK_TEMPLATES} from '../../tasks/templates';
 import {BUDGET_PERIODS} from '../../budgets/periods';
+import {CHESS_COMPUTER} from '../../chess/computer-record';
 
 /**
  * Owner follow-up 2 (N4): the device records NOVA's tools read, read at the moment of the question like the rest of the
@@ -27,5 +28,5 @@ export function readNovaToolSources(storage: Read, {notes = false}: {notes?: boo
   // the Health gate is closed, and their tools run only through it (the cycle log also needs its own switch).
   return {tasks: one(TASKS), focus: one(FOCUS_SESSIONS), budgets: one(BUDGETS), music: one(MUSIC), calendar: one(CALENDAR_IMPORT), ...(notes ? {notes: one(NOTES)} : {}),
     healthNumbers: one(HEALTH_NUMBERS), cycle: one(CYCLE), scales: one(SCALES), /* Session AV (1c, f1) */ countdowns: one(COUNTDOWNS), countdownExtras: one(COUNTDOWN_EXTRAS),
-    /* Session AV lane 2 */ taskPlan: one(TASK_PLAN), taskTemplates: one(TASK_TEMPLATES), budgetPeriods: one(BUDGET_PERIODS)};
+    /* Session AV lane 2 */ taskPlan: one(TASK_PLAN), taskTemplates: one(TASK_TEMPLATES), budgetPeriods: one(BUDGET_PERIODS), chessComputer: one(CHESS_COMPUTER)};
 }

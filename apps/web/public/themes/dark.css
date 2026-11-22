@@ -7373,6 +7373,15 @@
         border-color: currentcolor
     }
 }
+/*  components/game/av2-journey.css  */
+@scope (:root[data-theme=dark]) {
+    .journey-theme-bar:not(#\-) {
+        accent-color: var(--brand-cyan, #63e7ff)
+    }
+    .journey-rebirth h2:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #63e7ff)
+    }
+}
 /*  components/game/game.css  */
 @scope (:root[data-theme=dark]) {
     .game-setting-row small:not(#\-) {
@@ -8718,6 +8727,21 @@
         background-image: none;
         background-color: var(--habit-look);
         box-shadow: none
+    }
+}
+/*  components/habits/habit-options.css  */
+@scope (:root[data-theme=dark]) {
+    .habit-options-set:not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-option small.fine:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .habit-option-difficulty small.fine:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .habit-area-week progress:not(#\-) {
+        accent-color: var(--brand-cyan, #63e7ff)
     }
 }
 /*  components/habits/habit-week-grid.css  */
@@ -10527,6 +10551,9 @@
             border-color: ButtonText
         }
     }
+    .health-day-logged:not(#\-) {
+        color: var(--text-secondary)
+    }
 }
 /*  components/health/health-highlights.css  */
 @scope (:root[data-theme=dark]) {
@@ -11074,6 +11101,44 @@
     }
     .photo-compare figcaption:not(#\-) {
         color: var(--text-meta)
+    }
+}
+/*  components/health/plus/evening-checkin.css  */
+@scope (:root[data-theme=dark]) {
+    .checkin h3:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #63e7ff)
+    }
+    .checkin-strip .is-logged > span:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--cyan, #63e7ff) 28%, transparent);
+        color: var(--text)
+    }
+    .checkin-strip .is-gap a:not(#\-) {
+        border-color: var(--text-secondary);
+        color: var(--text-secondary)
+    }
+    .checkin-total:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
+/*  components/health/plus/feelings-card.css  */
+@scope (:root[data-theme=dark]) {
+    .av2-graph-base:not(#\-) {
+        stroke: var(--text-secondary)
+    }
+    .av2-graph-line:not(#\-) {
+        fill: none;
+        stroke: var(--cyan, #63e7ff)
+    }
+    .av2-graph-dot:not(#\-) {
+        fill: var(--cyan, #63e7ff);
+        stroke: var(--surface, var(--bg, #0b0820))
+    }
+    .av2-graph-scroll:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #63e7ff)
+    }
+    .av2-graph-pick fieldset:not(#\-) {
+        border-color: currentcolor
     }
 }
 /*  components/health/plus/plus.css  */
@@ -11785,6 +11850,9 @@
     .experiment-note > summary:focus-visible:not(#\-) {
         outline-color: var(--cyan)
     }
+    .experiments-more-pick:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/insights/insights.css  */
 @scope (:root[data-theme=dark]) {
@@ -11796,6 +11864,24 @@
     }
     .insight-detail p:not(#\-) {
         color: #cfc6dd
+    }
+}
+/*  components/journal-prompts/prompt-packs.css  */
+@scope (:root[data-theme=dark]) {
+    .prompt-pack:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .prompt-pack-questions > summary:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .prompt-packs .prompt-picker-card:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .prompt-packs .prompt-picker-card:focus-visible:not(#\-) {
+        outline-color: currentColor
     }
 }
 /*  components/journal-prompts/prompt-picker.css  */
@@ -11884,6 +11970,97 @@
     .journal-that-day summary:not(#\-) {
         color: var(--text-secondary)
     }
+    .journal-reminder-day-row button[aria-pressed="true"]:not(#\-) {
+        border-color: var(--brand-cyan);
+        color: var(--text-strong,var(--text))
+    }
+    .journal-book-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-violet)
+    }
+    .journal-book-dot[data-tone="cyan"]:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan)
+    }
+    .journal-book-dot[data-tone="magenta"]:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-magenta)
+    }
+    .journal-book-dot[data-tone="teal"]:not(#\-) {
+        background-image: none;
+        background-color: var(--accent-teal,var(--brand-cyan))
+    }
+    .journal-book-dot[data-tone="gold"]:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-wealth,#d9a441)
+    }
+    .journal-book-dot[data-tone="green"]:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-habits,#4fbf7f)
+    }
+    .journal-entries li[data-tone]:not(#\-) {
+        border-left-color: var(--brand-violet)
+    }
+    .journal-entries li[data-tone="cyan"]:not(#\-) {
+        border-left-color: var(--brand-cyan)
+    }
+    .journal-entries li[data-tone="magenta"]:not(#\-) {
+        border-left-color: var(--brand-magenta)
+    }
+    .journal-entries li[data-tone="teal"]:not(#\-) {
+        border-left-color: var(--accent-teal,var(--brand-cyan))
+    }
+    .journal-entries li[data-tone="gold"]:not(#\-) {
+        border-left-color: var(--pillar-wealth,#d9a441)
+    }
+    .journal-entries li[data-tone="green"]:not(#\-) {
+        border-left-color: var(--pillar-habits,#4fbf7f)
+    }
+    .journal-entry-book:not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .journal-calendar-grid th:not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .journal-calendar-day:not(#\-) {
+        border-color: color-mix(in srgb,var(--brand-violet) 60%,transparent);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--brand-violet) 22%,transparent);
+        color: inherit
+    }
+    .journal-calendar-day[aria-pressed="true"]:not(#\-) {
+        background-image: linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
+        background-color: transparent;
+        color: #0b1020;
+        border-color: transparent
+    }
+    .journal-calendar-empty:not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .journal-calendar-empty[data-today]:not(#\-) {
+        outline-color: currentColor
+    }
+    .journal-books-row:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .journal-theme-picker:not(#\-) {
+        border-color: currentcolor
+    }
+    .journal-theme-picker legend:not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .journal-entry-more summary:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .journal-compose-photos img:not(#\-) {
+        border-color: var(--line)
+    }
+    .journal-entry-photos img:not(#\-) {
+        border-color: var(--line)
+    }
+    .journal-import-plan:not(#\-) {
+        border-color: var(--line)
+    }
 }
 /*  components/journal/on-this-day.css  */
 @scope (:root[data-theme=dark]) {
@@ -11903,6 +12080,12 @@
     }
     .today-journal-when:not(#\-) {
         color: var(--text-secondary, var(--muted))
+    }
+}
+/*  components/journal/today-affirmation.css  */
+@scope (:root[data-theme=dark]) {
+    .today-affirmation-text:not(#\-) {
+        color: var(--text-strong, var(--text))
     }
 }
 /*  components/journal/year-pixels.css  */
@@ -12965,6 +13148,12 @@
         }
     }
 }
+/*  components/muted/muted-panel.css  */
+@scope (:root[data-theme=dark]) {
+    .muted-group:not(#\-) {
+        border-color: currentcolor
+    }
+}
 /*  components/navigation.css  */
 @scope (:root[data-theme=dark]) {
     .sidebar-actions .quick-add-trigger:not(#\-) {
@@ -13168,6 +13357,42 @@
     }
     .note-ask-example:not(#\-) {
         border-color: var(--line, rgba(128, 128, 160, .35))
+    }
+    .note-schedule-list li:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .note-schedule-every:not(#\-) {
+        border-color: currentcolor
+    }
+    .notes-table-wrap:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .notes-table th:not(#\-), .notes-table td:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .notes-sort:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor;
+        color: inherit
+    }
+    .notes-sort:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .notes-card:not(#\-) {
+        border-color: var(--line)
+    }
+    .notes-bar:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--text, #e8eefc) 10%, transparent)
+    }
+    .notes-bar > span:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan)
+    }
+    .notes-bar > span[data-none]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan) 45%, transparent)
     }
 }
 /*  components/notes/this-day-strip.css  */
@@ -25432,6 +25657,9 @@
             color: CanvasText
         }
     }
+    .report-journal-list li:not(#\-) {
+        border-bottom-color: color-mix(in srgb, currentColor 20%, transparent)
+    }
 }
 /*  components/restore/restore-backup.css  */
 @scope (:root[data-theme=dark]) {
@@ -26587,6 +26815,21 @@
     }
     .tasks-fit-day:not(#\-) {
         border-color: var(--line)
+    }
+}
+/*  components/tasks/task-attachments.css  */
+@scope (:root[data-theme=dark]) {
+    .task-attachment-item small:not(#\-) {
+        color: var(--muted, inherit)
+    }
+    .task-attachment-thumb img:not(#\-) {
+        border-color: var(--line, #25334f)
+    }
+    .task-attachment-thumb:focus-visible:not(#\-) {
+        outline-color: var(--text, #f0f5ff)
+    }
+    .task-attachment-recording span:not(#\-) {
+        color: var(--danger, #e0605a)
     }
 }
 /*  components/tasks/tasks-plan.css  */

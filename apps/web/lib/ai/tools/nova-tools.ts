@@ -1,3 +1,4 @@
+import type {ChessComputer} from '../../chess/computer-record';
 import type {TaskPlan} from '../../tasks/plan-record';
 import type {TaskTemplates} from '../../tasks/templates';
 import type {BudgetPeriods} from '../../budgets/periods';
@@ -43,7 +44,8 @@ export type NovaToolSources = {tasks?: Tasks | null; focus?: FocusSessions | nul
   /** Lane T's imported calendars (read-only .ics events): their titles came from a file, so they are data, never instructions. */ calendar?: CalendarImport | null;
   /** Session AV (1c, f1): Today's "Days until" countdowns and which of them come back every year, for the on-device answers. */ countdowns?: Countdowns | null; countdownExtras?: CountdownExtras | null;
   /** Session AV lane 2 (Tasks): planning choices, timers and the finished-per-day log; your own project templates. */ taskPlan?: TaskPlan | null; taskTemplates?: TaskTemplates | null;
-  /** Session AV lane 2 (Money N11): budget pay periods and the paycheck fill. */ budgetPeriods?: BudgetPeriods | null}
+  /** Session AV lane 2 (Money N11): budget pay periods and the paycheck fill. */ budgetPeriods?: BudgetPeriods | null;
+  /** Session AV lane 2 (BL-10): the game against ZIGoals' own chess engine and results by level. */ chessComputer?: ChessComputer | null}
   /** Owner follow-up 2 (G8): BUILD list 2's records (your numbers, the cycle log, your own scales), for g1-tools.ts. */
   & G1ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
