@@ -69,7 +69,10 @@ for (const theme of THEMES) test(`${theme}: working hours, Plan my week as a pro
   await expect(risk).toContainText('of tasks are due by');
   await expect(risk).toContainText('“Fictional slides”');
   await expect(risk).toHaveAttribute('role', 'note');
-  await expect(page.getByRole('alert')).toHaveCount(0);
+  // Session AV lane 2 (fixb4; deliberate): the one alert on the page was Next's own route announcer (an empty
+  // role="alert" in <next-route-announcer>'s shadow root, on every page). As strict for everything the app renders: no
+  // alert anywhere else in the body.
+  await expect(page.locator('body > :not(next-route-announcer)').getByRole('alert')).toHaveCount(0);
   await clean(page); await noSideways(page);
 
   // A waiting task (LEDGER #304): not in Today until the venue is done; the planner says so.
@@ -82,7 +85,12 @@ for (const theme of THEMES) test(`${theme}: working hours, Plan my week as a pro
   await expect(venue.getByRole('group', {name: 'Planning — optional'})).toBeVisible();
   await expect(venue.getByLabel('In pieces of')).toBeVisible();
   await venue.getByRole('button', {name: 'Cancel'}).click();
-  await venue.getByRole('checkbox', {name: 'Mark “Fictional venue” done'}).check();
+  // Session AV lane 2 (fixb4; deliberate): a task marked done leaves Today, so check() — which reads the box again after
+  // the click — waited for a box that was gone. As strict: the box is clicked, the venue is stored done and leaves Today,
+  // and the waiting task shows.
+  await venue.getByRole('checkbox', {name: 'Mark “Fictional venue” done'}).click();
+  await expect.poll(() => page.evaluate(() => !!(JSON.parse(localStorage.getItem('zigoals:tasks:v1') ?? '{"tasks":[]}').tasks as {id: string; doneAt?: string}[]).find(t => t.id === 'task_fictional-venue')?.doneAt)).toBe(true);
+  await expect(venue).toHaveCount(0);
   await expect(page.locator('li.task').filter({hasText: 'Fictional invitations'})).toBeVisible();
   await clean(page); await noSideways(page);
 });
