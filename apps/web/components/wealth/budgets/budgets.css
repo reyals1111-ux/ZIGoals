@@ -7,7 +7,7 @@
 .budgets-total strong{font-size:22px}
 .budgets-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .budgets-table th,.budgets-table td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line,rgba(140,160,220,.18));vertical-align:middle}
-.budgets-table thead th{font-size:13px;font-weight:500;color:var(--muted,inherit)}
+.budgets-table thead th{font-size:14px;font-weight:500;color:var(--muted,inherit)}
 .budgets-table td button{min-height:44px;min-width:44px;white-space:nowrap}/* UX review (Major): "Remove" never wraps a letter at a time */
 .budgets-cat{display:block}
 .budgets-bar{display:block;height:8px;margin-top:6px;border-radius:6px;background:color-mix(in srgb,var(--text,#e8eefc) 10%,transparent);overflow:hidden}
@@ -114,7 +114,7 @@
 .budgets-assign-quick{display:flex;flex-wrap:wrap;gap:8px}
 .budgets-assign-quick button,.budgets-assign button{min-height:44px}
 .budgets-assign-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-.budgets-assign-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.budgets-assign-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:4px 12px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums} /* Session AV lane 2 (P-35): Plan keeps one right-hand column on every row */
 .budgets-underfunded{color:var(--amber,#f5b65b);font-weight:600}
 .budgets-assign-edit{display:grid;gap:10px;margin:6px 0 8px}
 .budgets-assign-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:8px 12px;align-items:end}

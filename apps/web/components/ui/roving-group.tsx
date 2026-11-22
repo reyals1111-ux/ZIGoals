@@ -7,7 +7,9 @@ import {useRovingFocus} from './use-roving-focus';
  * hook cannot be called (a switch in Today's dashboard). The arrows move between them; see use-roving-focus.ts.
  */
 // Session AP (D-028): `contents` makes the wrapper no box at all, so a list keeps its layout exactly (grids, flex rows).
-export function RovingGroup({className, selector, columns, contents, children}: {className?: string; selector: string; columns?: number; contents?: boolean; children: ReactNode}) {
+// Session AV lane 2 (P-1): `role` and `label` let the group itself be the list's box, so child-combinator rules
+// (`.life-rings > .life-ring`) match its items and no extra wrapper sits between them.
+export function RovingGroup({className, selector, columns, contents, role, label, children}: {className?: string; selector: string; columns?: number; contents?: boolean; role?: 'group'; label?: string; children: ReactNode}) {
   const ref = useRovingFocus<HTMLDivElement>(selector, {columns});
-  return <div ref={ref} className={className} style={contents ? {display: 'contents'} : undefined}>{children}</div>;
+  return <div ref={ref} className={className} role={role} aria-label={label} style={contents ? {display: 'contents'} : undefined}>{children}</div>;
 }

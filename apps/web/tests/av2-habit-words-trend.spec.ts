@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue} from '../lib/habits';
 import {addLocalDays} from '../lib/local-date';
 import {hydrated} from './ah-helpers';
+import {openHabitDetails} from './ab-shell';
 import {axe, THEMES, applyTheme, offline} from './p6-helpers';
 
 /**
@@ -42,7 +43,9 @@ for (const theme of THEMES) test(`${theme}: a reminder in your own words, and a 
   expect(trendFindings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(trendFindings)).toEqual([]);
 
   const walk = page.getByRole('article', {name: 'Fictional walk', exact: true});
-  await walk.getByText('Consistency & trends').first().click();
+  // Session AV lane 2 (fixb3: the fold sits behind the card's Details, deliberate): Details first, as a person opens it.
+  await openHabitDetails(walk);
+  await walk.getByText('Consistency & trends', {exact: true}).click();
   await expect(walk.locator('.habit-trend-line')).toContainText('in the last 30 days, 50% (15 of 30 days) the 30 before: more often.');
 
   // Your own words and more times, in the habit's editor.

@@ -1,6 +1,7 @@
 'use client';
 import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type DragEvent, type ReactNode} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
+import {useScrollEdges} from '../ui/use-scroll-edges'; // Session AV lane 2 (P-8): a table that scrolls sideways says so at its edge
 import {showStatus} from '../ui/undo-toast';
 import TaskPlanSettings from './task-plan-settings';
 import type {useTaskList} from './use-task-list';
@@ -75,9 +76,11 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
   };
   const openObjectives = objectives.filter(o => !o.doneAt).length;
   return <section className="tasks-plan-view" aria-labelledby={`${id}-title`}>
-    <div className="tasks-plan-head">
+    {/* Session AV lane 2 (P-7, P-9): ← the dates → on one row (the title wraps between the arrows); the list's own heading
+        already says "This week", so here it is said to screen readers only. */}
+    <div className="tasks-plan-head tasks-week-nav">
       <button type="button" className="quiet" aria-label="The week before" onClick={() => setWeek(addLocalDays(week, -7))}>←</button>
-      <h3 id={`${id}-title`}>{week === weekStart(today) ? 'This week · ' : ''}{day(week, today, false)} – {day(end, today, false)}</h3>
+      <h3 id={`${id}-title`}>{week === weekStart(today) ? <span className="sr-only">This week · </span> : ''}{day(week, today, false)} – {day(end, today, false)}</h3>
       <button type="button" className="quiet" aria-label="The week after" onClick={() => setWeek(addLocalDays(week, 7))}>→</button>
       {week !== weekStart(today) && <button type="button" className="text-link" onClick={() => setWeek(weekStart(today))}>This week</button>}
     </div>
@@ -116,10 +119,10 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
 function WeekTable({list, record, days, today}: {list: List; record: Tasks; days: string[]; today: string}) {
   const plan = useDeviceRecord(TASK_PLAN), byDay = useMemo(() => finishesByDay(plan.data, record, list.doneDay), [plan.data, record, list.doneDay]);
   const rows = days.map(d => { const tasks = record.tasks.filter(t => !t.parentId && (t.doneAt ? list.doneDay(t.doneAt) === d : t.due === d)); return {d, tasks, pva: plannedVsActual(tasks), done: byDay.get(d) ?? 0}; });
-  const goal = plan.data.dailyGoal, streak = goal ? goalStreak(byDay, goal, today) : null;
+  const goal = plan.data.dailyGoal, streak = goal ? goalStreak(byDay, goal, today) : null, edges = useScrollEdges<HTMLDivElement>();
   return <>
     <h4>Planned and spent</h4>
-    <div className="tasks-table-frame" role="region" aria-label="Planned and spent this week" tabIndex={0}>
+    <div ref={edges} className="tasks-table-frame" role="region" aria-label="Planned and spent this week" tabIndex={0}>
       <table className="tasks-table"><thead><tr><th scope="col">Day</th><th scope="col">Tasks</th><th scope="col">Planned</th><th scope="col">Spent</th><th scope="col">Done</th></tr></thead>
         <tbody>{rows.map(r => <tr key={r.d} aria-current={r.d === today ? 'date' : undefined}><th scope="row">{day(r.d, today)}</th><td>{n(r.tasks.length)}</td><td>{r.pva.planned ? minutesWords(r.pva.planned) : '—'}</td><td>{r.pva.actual ? minutesWords(r.pva.actual) : '—'}</td><td>{n(r.done)}{goal ? ` of ${n(goal)}` : ''}</td></tr>)}</tbody></table>
     </div>
@@ -156,7 +159,7 @@ function TitleButton({task, edit, className = ''}: {task: Task; edit: ReturnType
 
 const COLUMN_WORDS: Record<TableColumn, string> = {title: 'Task', project: 'Project', priority: 'Priority', due: 'Day', deadline: 'Deadline', minutes: 'Planned', spent: 'Spent', labels: 'Labels', created: 'Added', changed: 'Changed'};
 function TableView({list, goals, record, today}: {list: List; goals: Goals; record: Tasks; today: string}) {
-  const edit = usePlanEditor(list, goals, today);
+  const edit = usePlanEditor(list, goals, today), edges = useScrollEdges<HTMLDivElement>();
   const id = useId(), [sort, setSort] = useState<TableColumn | `field:${string}`>('due'), [dir, setDir] = useState<'asc' | 'desc'>('asc'), [project, setProject] = useState('');
   // Session AV lane 2 (tasks-r2, LEDGER #229): with one project chosen, its own fields are columns too, sortable.
   const defs = useMemo(() => project ? projectFields(record, project) : [], [record, project]), byField = sort.startsWith('field:') ? defs.find(f => `field:${f.id}` === sort) : undefined;
@@ -177,9 +180,9 @@ function TableView({list, goals, record, today}: {list: List; goals: Goals; reco
     }
   };
   return <section className="tasks-plan-view" aria-labelledby={`${id}-title`}>
-    <div className="tasks-plan-head"><h3 id={`${id}-title`}>Table <small>{n(rows.length)} open</small></h3><ProjectPick record={record} value={project} onChange={setProject} /></div>
-    {rows.length ? <div className="tasks-table-frame" role="region" aria-labelledby={`${id}-title`} tabIndex={0}>
-      <table className="tasks-table"><thead><tr><th scope="col"><span className="sr-only">Done</span></th>{TABLE_COLUMNS.map(c => <th key={c} scope="col" aria-sort={c === sort ? (dir === 'asc' ? 'ascending' : 'descending') : undefined}>
+    <div className="tasks-plan-head"><h3 id={`${id}-title`}><span className="sr-only">Table · </span><small>{n(rows.length)} open</small></h3><ProjectPick record={record} value={project} onChange={setProject} /></div>
+    {rows.length ? <div ref={edges} className="tasks-table-frame" role="region" aria-labelledby={`${id}-title`} tabIndex={0}>
+      <table className="tasks-table tasks-table-tasks"><thead><tr><th scope="col"><span className="sr-only">Done</span></th>{TABLE_COLUMNS.map(c => <th key={c} scope="col" aria-sort={c === sort ? (dir === 'asc' ? 'ascending' : 'descending') : undefined}>
         <button type="button" className="tasks-sort" onClick={() => by(c)}>{COLUMN_WORDS[c]}<span aria-hidden="true">{c === sort ? (dir === 'asc' ? ' ▲' : ' ▼') : ''}</span></button></th>)}
         {defs.map(f => <th key={f.id} scope="col" aria-sort={byField?.id === f.id ? (dir === 'asc' ? 'ascending' : 'descending') : undefined}><button type="button" className="tasks-sort" onClick={() => by(`field:${f.id}`)}><span dir="auto">{f.name}</span><span aria-hidden="true">{byField?.id === f.id ? (dir === 'asc' ? ' ▲' : ' ▼') : ''}</span></button></th>)}</tr></thead>
         <tbody>{rows.map(t => <tr key={t.id}><td className="tasks-table-done"><label className="tasks-table-box"><input type="checkbox" aria-label={`Done: ${t.title}`} checked={false} onChange={() => list.toggle(t, true)} /></label></td>{TABLE_COLUMNS.map(c => c === 'title' ? <th key={c} scope="row">{cell(t, c)}</th> : <td key={c}>{cell(t, c)}</td>)}{defs.map(f => <td key={f.id} dir="auto">{fieldText(f, t.fields?.[f.id])}</td>)}</tr>)}</tbody></table>
@@ -256,7 +259,7 @@ function TimelineView({list, goals, record, today}: {list: List; goals: Goals; r
   const at = (d: string) => Math.round((Date.parse(`${d}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
   const todayAt = at(today);
   return <section className="tasks-plan-view" aria-labelledby={`${id}-title`}>
-    <div className="tasks-plan-head"><h3 id={`${id}-title`}>Timeline</h3><ProjectPick record={record} value={project} onChange={setProject} /></div>
+    <div className="tasks-plan-head"><h3 id={`${id}-title`} className="sr-only">Timeline</h3><ProjectPick record={record} value={project} onChange={setProject} /></div>
     {bars.length ? <>
       <p className="fine">{day(from, today)} – {day(to, today)}. Each bar runs from the task’s day to its deadline; choose a task to change its day or deadline.{undated ? ` ${n(undated)} ${undated === 1 ? 'task has' : 'tasks have'} no day yet and ${undated === 1 ? 'is' : 'are'} not shown.` : ''}</p>
       <ol className="tasks-timeline" aria-label="Tasks on the timeline">{bars.map(b => <li key={b.task.id} data-late={b.late || undefined}>

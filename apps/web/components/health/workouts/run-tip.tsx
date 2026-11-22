@@ -14,6 +14,6 @@ export default function RunTip({today}: {today: string}) {
     <h3 id="av2-run-tip-title">{lang === 'en' ? 'A running tip' : 'Een looptip'}</h3>
     <p lang={lang} aria-live="polite">{tip[lang]}</p>
     <div className="av2-shoe-actions"><button type="button" className="quiet" lang={lang} onClick={() => setStep(n => n + 1)}>{lang === 'en' ? 'Another tip' : 'Nog een tip'}</button>
-      <button type="button" className="quiet" lang={lang === 'en' ? 'nl' : 'en'} onClick={() => setLang(lang === 'en' ? 'nl' : 'en')}>{lang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>
+      {/* Session AV lane 2 (P-26): the other language is a quiet link beside the tip, not a second button */}<button type="button" className="text-link av2-run-tip-lang" lang={lang === 'en' ? 'nl' : 'en'} onClick={() => setLang(lang === 'en' ? 'nl' : 'en')}>{lang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>
   </section>;
 }

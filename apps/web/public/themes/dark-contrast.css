@@ -2027,6 +2027,9 @@
             border-color: CanvasText
         }
     }
+    :scope :is(summary.fold-summary:not(#\-):not(#\-), :is(.av2-fold, .av2-howto, .workouts-calendar-fold, .habit-timezone, .habit-reflections-fold, .habit-week-fold, .tasks-fit-day, .tasks-plan-day, .money-search-fold, .spending-own, .money-search-more, .spending-history, .budgets-recap-fold, .budgets-periods, .budgets-move, .health-meal-names, .import-entry) > summary):not(#\-):not(#\-)::before {
+        color: currentColor
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     @supports (font: -apple-system-body) {
@@ -8532,6 +8535,9 @@
         border-color: #6fe6f6;
         color: #f6f6f6
     }
+    :scope .habit-area-bar .quiet:not([aria-pressed="true"]):not(#\-):not(#\-), :scope .habit-list-tools button.quiet:not([aria-pressed="true"]):not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
     .habit-area-chip:not(#\-):not(#\-) {
         color: #d8d7fe
     }
@@ -8803,6 +8809,9 @@
     :scope dialog.routine-sheet:not(#\-):not(#\-)::backdrop {
         background-image: none;
         background-color: #000000
+    }
+    :scope .habit-routines .habit-section-heading .actions .quiet:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
     .habit-routine-share fieldset:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
@@ -10169,6 +10178,11 @@
     }
     .health-page .health-macro .health-macro-partial:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--health-muted, #dadada) 25%, #fff)
+    }
+    :scope .health-meal > .health-section-heading > span.health-meal-figure-empty:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent
     }
     @media (max-width: 767.98px) {
         .health-views[data-more-right]:not(#\-):not(#\-) {
@@ -11722,6 +11736,14 @@
         .workouts-exercise[data-superset]:not(#\-):not(#\-) {
             border-inline-start-color: CanvasText
         }
+    }
+    .workouts-weeks-pick button:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .workouts-weeks-pick button[aria-pressed="true"]:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--cyan) 40%, #fff);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan) 14%,transparent)
     }
     .workouts-weeks-bars rect:not(#\-):not(#\-) {
         fill: color-mix(in srgb, var(--cyan, #6fd3ff) 40%, #fff)
@@ -13761,7 +13783,7 @@
         background-color: color-mix(in srgb, var(--brand-cyan) 45%, transparent)
     }
     .note-hl:not(#\-):not(#\-) {
-        color: inherit;
+        color: color-mix(in srgb, var(--text, currentColor) 25%, #fff);
         background-image: none;
         background-color: color-mix(in srgb, var(--hl) 34%, transparent);
         border-bottom-color: color-mix(in srgb, var(--hl) 80%, transparent)
@@ -24402,6 +24424,9 @@
             border-left-color: currentcolor
         }
     }
+    .phone-fold-body > .wealth-slot > .wealth-section-heading h2:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .point-tell .pt-button:not(#\-):not(#\-), .point-tell .pt-count:not(#\-):not(#\-) {
@@ -26434,6 +26459,11 @@
     }
     .tasks-focus .pomodoro:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line, #959595) 40%, #fff)
+    }
+    @media (max-width: 900px) {
+        .tasks-layout > .tasks-nav .tasks-nav-item:not([aria-current=page]):not(#\-):not(#\-) {
+            border-color: color-mix(in srgb, var(--line, #959595) 40%, #fff)
+        }
     }
     .tasks-nav h3:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))

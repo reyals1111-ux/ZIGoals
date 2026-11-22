@@ -1980,6 +1980,9 @@
             border-color: CanvasText
         }
     }
+    :scope :is(summary.fold-summary:not(#\-), :is(.av2-fold, .av2-howto, .workouts-calendar-fold, .habit-timezone, .habit-reflections-fold, .habit-week-fold, .tasks-fit-day, .tasks-plan-day, .money-search-fold, .spending-own, .money-search-more, .spending-history, .budgets-recap-fold, .budgets-periods, .budgets-move, .health-meal-names, .import-entry) > summary):not(#\-)::before {
+        color: currentColor
+    }
 }
 /*  components/ui/touch-targets.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -8473,6 +8476,9 @@
         border-color: #6fe6f655;
         color: #021215
     }
+    :scope .habit-area-bar .quiet:not([aria-pressed="true"]):not(#\-), :scope .habit-list-tools button.quiet:not([aria-pressed="true"]):not(#\-) {
+        border-color: var(--line)
+    }
     .habit-area-chip:not(#\-) {
         color: #5a578a
     }
@@ -8744,6 +8750,9 @@
     :scope dialog.routine-sheet:not(#\-)::backdrop {
         background-image: none;
         background-color: #f3f5f9
+    }
+    :scope .habit-routines .habit-section-heading .actions .quiet:not(#\-) {
+        border-color: var(--line)
     }
     .habit-routine-share fieldset:not(#\-) {
         border-color: var(--line)
@@ -10163,6 +10172,11 @@
     }
     .health-page .health-macro .health-macro-partial:not(#\-) {
         color: var(--health-muted, #0a0f19)
+    }
+    :scope .health-meal > .health-section-heading > span.health-meal-figure-empty:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent
     }
     @media (max-width: 767.98px) {
         .health-views[data-more-right]:not(#\-) {
@@ -11899,6 +11913,14 @@
         .workouts-exercise[data-superset]:not(#\-) {
             border-inline-start-color: CanvasText
         }
+    }
+    .workouts-weeks-pick button:not(#\-) {
+        border-color: var(--line)
+    }
+    .workouts-weeks-pick button[aria-pressed="true"]:not(#\-) {
+        border-color: var(--cyan);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan) 14%,transparent)
     }
     .workouts-weeks-bars rect:not(#\-) {
         fill: var(--cyan, #6fd3ff)
@@ -14049,7 +14071,7 @@
     }
     .note-hl:not(#\-) {
         --hl: #e2b93b;
-        color: inherit;
+        color: var(--text, currentColor);
         background-image: none;
         background-color: color-mix(in srgb, var(--hl) 34%, transparent);
         border-bottom-color: color-mix(in srgb, var(--hl) 80%, transparent)
@@ -25531,6 +25553,9 @@
             border-left-color: currentcolor
         }
     }
+    .phone-fold-body > .wealth-slot > .wealth-section-heading h2:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/point-tell/point-tell.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -27611,6 +27636,11 @@
     .tasks-focus .pomodoro:not(#\-) {
         border-color: var(--line, #302f4b60)
     }
+    @media (max-width: 900px) {
+        .tasks-layout > .tasks-nav .tasks-nav-item:not([aria-current=page]):not(#\-) {
+            border-color: var(--line, #302f4b73)
+        }
+    }
     .tasks-nav h3:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
@@ -29536,6 +29566,12 @@
   .pages-switch input:not(:checked):not(#\-) { background-color: #6b7690; }
   .pages-switch input:not(:checked):not(#\-)::before { background-color: #ffffff; }
 }
+/* apps/web/themes/light.av2-polish.css */
+/* Session AV lane 2 (polish P-20): Health's quick-counter icons by day. Their tile is a night-blue gradient with a hue, so
+   the generated Light sheet keeps it (ADR-028 H75), and three dark navy squares sat on the light card. By day the tile is
+   a soft wash of the brand's own colours on the card, its line and glow as Nebula's; the icon keeps its gradient. */
+:root[data-theme=light] .exercise-medallion:not(#\-):not(#\-) { background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--brand-cyan) 22%, #ffffff), color-mix(in srgb, var(--brand-violet) 14%, #ffffff) 70%); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-violet) 30%, transparent), 0 0 18px -8px color-mix(in srgb, var(--brand-violet) 55%, transparent); }
+:root[data-theme=light] .exercise-icon-choice span:not(#\-):not(#\-) { background: color-mix(in srgb, var(--brand-violet) 6%, #ffffff); border-color: color-mix(in srgb, var(--brand-violet) 26%, transparent); }
 /* apps/web/themes/light.gatec.css */
 /* Session AF Gate C (design review 2, ADR-028 H137): Light's last half-flipped pieces, by hand. Every rule carries the
    sheet's one id of weight (:not(#\-)) and the theme root, so it wins over the generated rule it replaces. */

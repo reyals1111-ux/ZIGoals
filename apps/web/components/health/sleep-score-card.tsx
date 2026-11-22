@@ -24,6 +24,7 @@ export function SleepScoreCard({sleep, today}: {sleep: Sleep; today: string}) {
     {/* Session AV (q3 #27): an unknown part is left out, said, and the score's last weeks beside it. */}
     {s.score !== null && s.left.some(p => p !== 'quality') && <p className="fine">{s.left.filter(p => p !== 'quality').map(p => p === 'regularity' ? 'Regularity' : 'Debt').join(' and ')} {s.left.filter(p => p !== 'quality').length === 1 ? 'is' : 'are'} unknown for these nights, so {s.left.filter(p => p !== 'quality').length === 1 ? 'it is' : 'they are'} left out and the known parts count for 100.</p>}
     {s.score !== null && (() => { const past = weeksBefore(sleep, today); return past.some(w => w.score !== null) ? <p className="fine sleep-score-weeks">Weeks before: {past.map(w => `${formatDate(w.end, {year: false})} ${w.score === null ? '—' : w.score}`).join(' · ')} · this week {s.score}</p> : null; })()}
-    <p className="sleep-score-formula">Formula: {s.formula}. <span className="health-estimate-tag">an estimate, not medical advice</span></p>
+    {/* Session AV lane 2 (P-21): the formula is there to look up, folded as on Patterns, not raw words under the score */}
+    <details className="sleep-score-how"><summary className="fold-summary">How this is worked out</summary><p className="sleep-score-formula">Formula: {s.formula}. <span className="health-estimate-tag">an estimate, not medical advice</span></p></details>
   </section>;
 }

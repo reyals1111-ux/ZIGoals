@@ -232,3 +232,24 @@ main header { margin-inline: 0; max-width: none; padding: 0; border-bottom: 0; }
 .field-error { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0 0; color: var(--danger-ink, #f5a7af); font-size: 15px; font-weight: 600; line-height: 1.45; }
 .field-error::before { content: "!" / ""; flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border: 2px solid currentColor; border-radius: 50%; font-size: 12px; font-weight: 800; line-height: 1; }
 @media (forced-colors: active) { .field-error { color: CanvasText; } .field-error::before { border-color: CanvasText; } }
+
+/* Session AV lane 2 (P-2): a checkbox or radio and its words on one row. The page-wide `label` rule (globals.css) stacks a
+   label's parts in a column, which fits a field (its name over its input) but put each of these boxes on a line of its own
+   above its text. `.check-row` is the shared class; the list names the labels whose own rules set a flex row (align-items
+   and a gap) but no direction, each found stacked in the app (a sweep of every page and fold, Showcase, 390 px). Inside a
+   container only a label that opens with its box changes; tiles that show a radio above a card's words keep their look. */
+:root :is(label.check-row, label.switch-row, label.cycle-chip, label.r3-check, label.food-plus-choice, label.body-figures-radio, label.cycle-plan-choice, label.chess-check-label, label.nws-mention, .field > label.check, .spending-check, .money-search-check,
+  :is(.evening-steps, .evening-choices, .curve-reminders, .morning-steps, .habit-vacation-habits, .thought-check-traps, .challenge-choice, .milestone-suggest-list, .average-windows, .progress-card-options, .checklist-list-task-rows, .vault-link-form, .tasks-gallery-lang, .price-alert-kind, .scale-stats-spans, .nws-since, .debt-plan-pick, .share-sheet-side, .portfolio-choice, .health-goal-window, .import-basis, .av2-place-now, .av2-equipment, .av2-suggest-lengths, .habit-week-why, .habit-week-mode, .habit-longer-units, .habit-weekdays) label:has(> input:is([type="checkbox"], [type="radio"]))) { flex-direction: row; }
+:root label.check-row { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+:root label.check-row > input:is([type="checkbox"], [type="radio"]) { flex: none; margin: 0; }
+
+/* Session AV lane 2 (P-3, P-38): a summary of its own (`.fold-summary`) is a 44 px row at every width. */
+:root summary.fold-summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }
+/* Session AV lane 2 (P-3, P-16): one fold marker. A summary laid out as a row (display: flex) loses the browser's own
+   disclosure marker, so these folds read as plain bold text. Each gets the journal's "Start from a prompt" marker back:
+   ▸ while folded, ▾ while open, in the text colour. The glyph swaps; it never moves (Motion Off or not). `.fold-summary`
+   is the shared class for a summary of its own; the list names the folds whose own rules already set the row. */
+:root :is(summary.fold-summary, :is(.av2-fold, .av2-howto, .workouts-calendar-fold, .habit-timezone, .habit-reflections-fold, .habit-week-fold, .tasks-fit-day, .tasks-plan-day, .money-search-fold, .spending-own, .money-search-more, .spending-history, .budgets-recap-fold, .budgets-periods, .budgets-move, .health-meal-names, .import-entry) > summary) { list-style: none; }
+:root :is(summary.fold-summary, :is(.av2-fold, .av2-howto, .workouts-calendar-fold, .habit-timezone, .habit-reflections-fold, .habit-week-fold, .tasks-fit-day, .tasks-plan-day, .money-search-fold, .spending-own, .money-search-more, .spending-history, .budgets-recap-fold, .budgets-periods, .budgets-move, .health-meal-names, .import-entry) > summary)::-webkit-details-marker { display: none; }
+:root :is(summary.fold-summary, :is(.av2-fold, .av2-howto, .workouts-calendar-fold, .habit-timezone, .habit-reflections-fold, .habit-week-fold, .tasks-fit-day, .tasks-plan-day, .money-search-fold, .spending-own, .money-search-more, .spending-history, .budgets-recap-fold, .budgets-periods, .budgets-move, .health-meal-names, .import-entry) > summary)::before { content: "▸" / ""; flex: none; display: inline-block; width: 1em; margin-inline-end: 6px; color: currentColor; font-weight: 400; line-height: 1; transition: none; animation: none; }
+:root :is(details[open] > summary.fold-summary, :is(.av2-fold, .av2-howto, .workouts-calendar-fold, .habit-timezone, .habit-reflections-fold, .habit-week-fold, .tasks-fit-day, .tasks-plan-day, .money-search-fold, .spending-own, .money-search-more, .spending-history, .budgets-recap-fold, .budgets-periods, .budgets-move, .health-meal-names, .import-entry)[open] > summary)::before { content: "▾" / ""; }

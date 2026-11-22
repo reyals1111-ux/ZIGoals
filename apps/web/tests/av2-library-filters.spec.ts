@@ -48,7 +48,8 @@ for (const theme of THEMES) test(`${theme}: find a routine by length, muscle and
   await filters.getByRole('button', {name: 'Clear the filters'}).click();
   await expect(count).toHaveText(`${GUIDES.length} of ${GUIDES.length} routines`);
 
-  await start.getByRole('button', {name: 'In het Nederlands'}).click();
+  // Session AV lane 2 (fixb3: the running tip has its own "In het Nederlands" in this region, deliberate): the routines' own.
+  await start.locator('.av2-routines').getByRole('button', {name: 'In het Nederlands'}).click();
   await expect(start.getByRole('group', {name: 'Zoek een routine'})).toContainText('Belangrijkste spiergroep');
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

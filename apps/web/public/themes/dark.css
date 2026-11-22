@@ -2123,6 +2123,9 @@
             border-color: CanvasText
         }
     }
+    :scope :is(summary.fold-summary:not(#\-), :is(.av2-fold, .av2-howto, .workouts-calendar-fold, .habit-timezone, .habit-reflections-fold, .habit-week-fold, .tasks-fit-day, .tasks-plan-day, .money-search-fold, .spending-own, .money-search-more, .spending-history, .budgets-recap-fold, .budgets-periods, .budgets-move, .health-meal-names, .import-entry) > summary):not(#\-)::before {
+        color: currentColor
+    }
 }
 /*  components/ui/touch-targets.css  */
 @scope (:root[data-theme=dark]) {
@@ -8923,6 +8926,9 @@
         border-color: #6fe6f655;
         color: #e4fbff
     }
+    :scope .habit-area-bar .quiet:not([aria-pressed="true"]):not(#\-), :scope .habit-list-tools button.quiet:not([aria-pressed="true"]):not(#\-) {
+        border-color: var(--line)
+    }
     .habit-area-chip:not(#\-) {
         color: #c6c4ff
     }
@@ -9194,6 +9200,9 @@
     :scope dialog.routine-sheet:not(#\-)::backdrop {
         background-image: none;
         background-color: #080a0f
+    }
+    :scope .habit-routines .habit-section-heading .actions .quiet:not(#\-) {
+        border-color: var(--line)
     }
     .habit-routine-share fieldset:not(#\-) {
         border-color: var(--line)
@@ -10614,6 +10623,11 @@
     }
     .health-page .health-macro .health-macro-partial:not(#\-) {
         color: var(--health-muted, #ced6e5)
+    }
+    :scope .health-meal > .health-section-heading > span.health-meal-figure-empty:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent
     }
     @media (max-width: 767.98px) {
         .health-views[data-more-right]:not(#\-) {
@@ -12268,6 +12282,14 @@
         .workouts-exercise[data-superset]:not(#\-) {
             border-inline-start-color: CanvasText
         }
+    }
+    .workouts-weeks-pick button:not(#\-) {
+        border-color: var(--line)
+    }
+    .workouts-weeks-pick button[aria-pressed="true"]:not(#\-) {
+        border-color: var(--cyan);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan) 14%,transparent)
     }
     .workouts-weeks-bars rect:not(#\-) {
         fill: var(--cyan, #6fd3ff)
@@ -14446,7 +14468,7 @@
     }
     .note-hl:not(#\-) {
         --hl: #e2b93b;
-        color: inherit;
+        color: var(--text, currentColor);
         background-image: none;
         background-color: color-mix(in srgb, var(--hl) 34%, transparent);
         border-bottom-color: color-mix(in srgb, var(--hl) 80%, transparent)
@@ -26273,6 +26295,9 @@
             border-left-color: currentcolor
         }
     }
+    .phone-fold-body > .wealth-slot > .wealth-section-heading h2:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/point-tell/point-tell.css  */
 @scope (:root[data-theme=dark]) {
@@ -28368,6 +28393,11 @@
     }
     .tasks-focus .pomodoro:not(#\-) {
         border-color: var(--line, rgba(128, 128, 160, .25))
+    }
+    @media (max-width: 900px) {
+        .tasks-layout > .tasks-nav .tasks-nav-item:not([aria-current=page]):not(#\-) {
+            border-color: var(--line, rgba(128, 128, 160, .3))
+        }
     }
     .tasks-nav h3:not(#\-) {
         color: var(--text-secondary, var(--muted))

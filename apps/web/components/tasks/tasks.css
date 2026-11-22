@@ -6,7 +6,7 @@
 .task-meta { grid-area: meta; display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; opacity: .8; }
 .task .text-link { grid-area: remove; }
 .task-overdue .task-meta { opacity: 1; color: var(--warning, #e8a33d); }
-.task-chip { padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 12px; }
+.task-chip { padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 14px; } /* Session AV lane 2 (P-37): copy at 14 px */
 .tasks-add { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
 .tasks-add .field { min-width: 140px; flex: 1 1 140px; }
 
@@ -62,12 +62,19 @@
 .tasks-layout { display: grid; grid-template-columns: minmax(200px, 240px) minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 900px) { .tasks-layout { grid-template-columns: minmax(0, 1fr); } }
 .tasks-nav { display: grid; gap: 4px; min-width: 0; position: sticky; top: 84px; }
-@media (max-width: 900px) { .tasks-nav { position: static; } .tasks-nav ul { display: flex; flex-wrap: wrap; gap: 6px; } .tasks-nav-item { width: auto; } }
 .tasks-nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-/* Session AL (A10-11): in one column (768 px) the 545 px of views (Inbox … Priority) stood above the list, so the first
-   task began at about y 1,500 of 1,024. The list comes first and its views follow it, as on a phone (globals.css orders
-   the phone's navs last); nothing is removed, and the page's source (and Tab) order is unchanged. */
-@media (max-width: 900px) { .tasks-layout > .tasks-nav { order: 1; } }
+/* Session AL (A10-11) put the views after the list in one column, because they stood there as 545 px of full-width rows.
+   Session AV lane 2 (P-4, deliberate): the cause was that the wrap rule below came before `.tasks-nav ul {display: grid}`
+   and `.tasks-nav-item {width: 100%}` and lost to them. With the rule winning, the views are compact chips that wrap, and
+   they stand above the list again, as the source and Tab order have them, so This week, Table, Calendar, Timeline and
+   Insights are found without scrolling past every task. Computers keep the side column. */
+@media (max-width: 900px) {
+  .tasks-layout > .tasks-nav { position: static; gap: 2px; }
+  .tasks-layout > .tasks-nav ul { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tasks-layout > .tasks-nav .tasks-nav-item { width: auto; padding: 6px 12px; border-radius: 999px; }
+  .tasks-layout > .tasks-nav .tasks-nav-item:not([aria-current=page]) { border-color: var(--line, rgba(128, 128, 160, .3)); }
+  .tasks-layout > .tasks-nav h3 { margin: 8px 0 2px; }
+}
 .tasks-nav h3 { margin: 12px 0 2px; font-size: 14px; font-weight: 650; color: var(--text-secondary, var(--muted)); }
 .tasks-nav-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
 .tasks-nav-item small { font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }

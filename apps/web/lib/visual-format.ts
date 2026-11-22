@@ -188,6 +188,17 @@ export function formatClock(clock:string){
  const m=/^(\d{2}):(\d{2})$/.exec(clock);
  return m&&Number(m[1])<24&&Number(m[2])<60?formatTime(Date.UTC(2000,0,1,Number(m[1]),Number(m[2])),{timeZone:'UTC'}):clock;
 }
+/**
+ * Session AV lane 2 (P-14): whether a moment is exactly the start of its day (00:00:00.000 where it is read). A record
+ * that holds a day, not a moment (a Showcase record made today, lib/showcase-moment.ts), is stored at the day's start; its
+ * "12:00 AM" read as a missing time, so a caller shows the date alone. A time a person enters keeps its seconds' zero but
+ * never this exact instant by chance often enough to matter, and then only its time is left out.
+ */
+export function isDayStart(date:DateInput,timeZone?:string):boolean{
+ const d=date instanceof Date?date:new Date(date);
+ if(Number.isNaN(d.getTime())||d.getUTCSeconds()||d.getUTCMilliseconds())return false;
+ return new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',hourCycle:'h23',...zoned(timeZone)}).format(d)==='00:00';
+}
 /** The medium date and the time: "17 Oct 2026, 14:05" (en-GB), "Oct 17, 2026, 2:05 PM" (en-US). */
 export function formatDateTime(date:DateInput,options:DateOptions&TimeOptions={}){return written(date,{...dateFields(options),...timeFields(options),...zoned(options.timeZone)});}
 /** A month and its year, for calendar headings: "Oct 2026" ("Oct" with year: false, a date tile's label). Takes a month key ("2026-10") too. */

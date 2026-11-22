@@ -1,0 +1,5 @@
+/* Session AV lane 2 (polish P-20): Health's quick-counter icons by day. Their tile is a night-blue gradient with a hue, so
+   the generated Light sheet keeps it (ADR-028 H75), and three dark navy squares sat on the light card. By day the tile is
+   a soft wash of the brand's own colours on the card, its line and glow as Nebula's; the icon keeps its gradient. */
+:root[data-theme=light] .exercise-medallion:not(#\-):not(#\-) { background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--brand-cyan) 22%, #ffffff), color-mix(in srgb, var(--brand-violet) 14%, #ffffff) 70%); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-violet) 30%, transparent), 0 0 18px -8px color-mix(in srgb, var(--brand-violet) 55%, transparent); }
+:root[data-theme=light] .exercise-icon-choice span:not(#\-):not(#\-) { background: color-mix(in srgb, var(--brand-violet) 6%, #ffffff); border-color: color-mix(in srgb, var(--brand-violet) 26%, transparent); }

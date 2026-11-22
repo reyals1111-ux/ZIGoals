@@ -72,7 +72,7 @@
 .spending-check .fine{display:inline}
 .money-search-check{align-self:end}
 .money-mark{font-size:14px;color:var(--amber,#f5b65b);white-space:nowrap}
-.spending-drill{padding:0;text-align:left;color:inherit;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.spending-drill{min-width:44px;padding:0;text-align:left;color:inherit;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere} /* Session AV lane 2 (P-38): a short category ("Fun") is still a 44 px target */
 .money-search-more{grid-column:1/-1}
 .money-search-more-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px 12px;align-items:end}
 .money-search-more-body input,.money-search-more-body select{min-height:44px;width:100%;box-sizing:border-box}

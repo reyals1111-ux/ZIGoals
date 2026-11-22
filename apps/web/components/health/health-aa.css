@@ -146,7 +146,7 @@
 .sleep-score-ring small { font-size: 14px; color: var(--text-meta); margin-top: 36px; }
 .sleep-score-parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 15px; }
 .sleep-score-parts li { display: flex; justify-content: space-between; gap: 10px; }
-.sleep-score-parts b { font-variant-numeric: tabular-nums; }
+.sleep-score-parts b { font-variant-numeric: tabular-nums; white-space: nowrap; } /* Session AV lane 2 (P-21): "34 / 40" never splits */
 .sleep-score-formula { font-size: 14px; color: var(--text-meta); margin: 0; }
 @media (max-width: 480px) { .sleep-score { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
 
@@ -215,6 +215,9 @@
   .health-meal > .health-section-heading { grid-template-columns: minmax(0, 1fr) auto auto; }
   .health-meal > .health-section-heading > span { grid-row: 2; grid-column: 1 / -1; justify-self: start; text-align: start; }
 }
+/* Session AV lane 2 (P-15): an empty meal with no target of its own shows no empty "—" chip; screen readers still hear "No entry". */
+:root .health-meal > .health-section-heading > span.health-meal-figure-empty { padding: 0; border: 0; background: none; }
+:root .health-meal > .health-section-heading > span.health-meal-figure-empty > span[aria-hidden="true"] { display: none; }
 /* Session AL (P-MO-27, MO-080): the view strip's edge cue (data-more-right, components/ui/use-scroll-edges.ts) over its
    own background on a phone. */
 @media (max-width: 767.98px) { .health-views[data-more-right] { box-shadow: inset -26px 0 18px -16px #000000b3; } .health-views[data-more-left] { box-shadow: inset 26px 0 18px -16px #000000b3; } .health-views[data-more-left][data-more-right] { box-shadow: inset 26px 0 18px -16px #000000b3, inset -26px 0 18px -16px #000000b3; } }
@@ -282,9 +285,9 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .health-meal-name-row { margin-top: 12px; }
 /* Session AV lane 2 (food, LEDGER #197): an extra meal's section — "Save this meal" in its heading, and its teaching empty state. */
 .health-extra-save { min-height: 44px; }
-.health-extra-empty { display: grid; gap: 8px; justify-items: start; }
-.health-extra-empty p { margin: 0; font-size: .875rem; }
-.health-extra-empty button { min-height: 44px; }
+.health-extra-empty, .health-meal-empty { display: grid; gap: 8px; justify-items: start; }
+.health-extra-empty p, .health-meal-empty p { margin: 0; font-size: .875rem; }
+.health-extra-empty button, .health-meal-empty button { min-height: 44px; }
 .import-warnings ul { padding-left: 20px; }
 
 /* Session AL: the lanes' later rules sit above the AK G3 block, so that block stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
