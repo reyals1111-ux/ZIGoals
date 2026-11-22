@@ -13,6 +13,8 @@ import {weekStreak, workoutYear} from '../../workouts/calendar';
 import {clockFromNoon} from '../../sleep/engine';
 import {eveningOf, readiness, sortSteps, stepClock} from '../../evening-plan/plan';
 import type {EveningRecord} from '../../evening-plan/schema';
+import {bmiOf, milestoneView, reachMilestones} from '../../body-extras/body';
+import type {BodyExtras} from '../../body-extras/schema';
 import type {Sleep} from '../../sleep/schema';
 import {latencySeries, usualSleep, USUAL_MIN_NIGHTS, weekVsUsual} from '../../sleep/usual';
 import {goalProgress, LOAD_WORDS, paceText, runSummary, runWords, trainingLoad} from '../../workouts/runs';
@@ -331,4 +333,32 @@ function eveningPlan(a: Asked): LocalReply | null {
   return answer([head, ...steps].join('\n'), calls);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, bodyweightBest, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun, shoesAnswer, runTip, fallAsleep, sleepVsUsual, eveningPlan];
+// ── Body: BMI and weight milestones (LEDGER #205, #210) ────────────────────────────────────────────────────────────
+
+/** The body extras record, once the lead adds it to the AK tool sources (`bodyExtras`); undefined until then. */
+const bodyOf = (a: Asked): BodyExtras | null | undefined => (a.env.ak as {bodyExtras?: BodyExtras | null} | undefined)?.bodyExtras;
+const latestWeight = (a: Asked) => [...(a.env.health?.weights ?? [])].sort((x, y) => y.date.localeCompare(x.date))[0] ?? null;
+/** "what is my BMI", "wat is mijn BMI": the number only, from the typed height and the latest reading; never a judgement. */
+function bmiAnswer(a: Asked): LocalReply | null {
+  if (!/\bbmi\b|\bbody mass index\b|\bqueteletindex\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const r = bodyOf(a), lang = a.lang, w = latestWeight(a), calls = [{tool: 'body_extras', args: {}, label: 'BMI'}];
+  if (r === undefined) return answer(say(lang, 'Your BMI is in Health → Weight → BMI and milestones; I can’t read it here yet.', 'Je BMI staat in Health → Weight → BMI and milestones; dat kan ik hier nog niet lezen.'), calls);
+  if (!r?.heightCm) return answer(say(lang, 'There is no BMI yet: it needs your height. Type it in Health → Weight → BMI and milestones; it stays on this device.', 'Er is nog geen BMI: daarvoor is je lengte nodig. Vul hem in bij Health → Weight → BMI and milestones; hij blijft op dit apparaat.'), calls);
+  if (!w) return answer(say(lang, 'There is no BMI yet: log a weight first.', 'Er is nog geen BMI: log eerst een gewicht.'), calls);
+  const v = bmiOf(r.heightCm, w.grams)!;
+  return answer(say(lang, `Your BMI is ${num(v)}: ${num(Math.round(w.grams / 100) / 10)} kg on ${dayIn('en', w.date, a.today)} and ${num(r.heightCm)} cm (weight in kg ÷ height in metres, squared). It is a number only; on its own it says nothing about your health.`,
+    `Je BMI is ${num(v)}: ${num(Math.round(w.grams / 100) / 10)} kg op ${dayIn('nl', w.date, a.today)} en ${num(r.heightCm)} cm (gewicht in kg ÷ lengte in meters, in het kwadraat). Het is alleen een getal; op zich zegt het niets over je gezondheid.`), calls);
+}
+/** "how are my weight milestones", "hoe gaan mijn gewichtsmijlpalen": the steps reached and the next. */
+function milestonesAnswer(a: Asked): LocalReply | null {
+  if (!/\b(?:weight )?milestones?\b|\bmijlpalen\b|\bgewichtsmijlpalen\b|\btussendoelen\b/.test(a.f) || !/\b(?:weight|gewicht|weigh|goal|doel|my|mijn)\b/.test(a.f) || /\bnet worth\b|\bvermogen\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const r = bodyOf(a), lang = a.lang, calls = [{tool: 'body_extras', args: {}, label: 'Weight milestones'}];
+  if (r === undefined) return answer(say(lang, 'Your weight milestones are in Health → Weight → BMI and milestones; I can’t read them here yet.', 'Je gewichtsmijlpalen staan in Health → Weight → BMI and milestones; die kan ik hier nog niet lezen.'), calls);
+  const w = latestWeight(a), v = r ? milestoneView(w ? reachMilestones(r, w.grams, w.date) : r) : null;
+  if (!v) return answer(say(lang, 'Weight milestones are off. With a weight goal set, turn them on in Health → Weight → BMI and milestones: every 2 kg, or every 10 % of the way.', 'Gewichtsmijlpalen staan uit. Met een gewichtsdoel kun je ze aanzetten in Health → Weight → BMI and milestones: elke 2 kg, of elke 10 % van de weg.'), calls);
+  return answer(say(lang, `${v.done} of ${v.total} milestones reached${v.next ? `; the next is ${num(v.next.grams / 1000)} kg` : ': you are at your goal'}.`, `${v.done} van ${v.total} mijlpalen gehaald${v.next ? `; de volgende is ${num(v.next.grams / 1000)} kg` : ': je bent bij je doel'}.`), calls);
+}
+
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [bmiAnswer, milestonesAnswer,howTo, musclesOf, pinnedNotes, exercisesFor, bodyweightBest, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun, shoesAnswer, runTip, fallAsleep, sleepVsUsual, eveningPlan];

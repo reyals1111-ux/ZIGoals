@@ -25,5 +25,7 @@ export const AV2_BODY: readonly Intent[] = [
   {id: 'av2-bodyweight', pillar: 'health', en: ['how much help do I use on pull-ups', 'what is my weighted dip record'], nl: ['hoeveel hulp gebruik ik bij optrekken', 'wat is mijn record dips met extra gewicht']},
   {id: 'av2-shoes', pillar: 'health', en: ['how far have my running shoes gone', 'when should I replace my shoes'], nl: ['hoeveel km hebben mijn hardloopschoenen', 'wanneer moet ik mijn schoenen vervangen']},
   {id: 'av2-run-tip', pillar: 'health', en: ['give me a running tip', 'any tips for my runs'], nl: ['geef me een looptip', 'heb je tips voor het hardlopen']},
+  {id: 'av2-bmi', pillar: 'health', en: ['what is my BMI', 'what is my body mass index'], nl: ['wat is mijn BMI', 'hoe hoog is mijn bmi'], never: ['overweight', 'underweight', 'healthy weight', 'ideal']},
+  {id: 'av2-milestones', pillar: 'health', en: ['how are my weight milestones', 'which weight milestones have I reached'], nl: ['hoe gaan mijn gewichtsmijlpalen', 'welke mijlpalen van mijn gewicht heb ik gehaald']},
   {id: 'av2-ready-routines', pillar: 'health', en: ['which ready-made routines are there', 'suggest a strength routine for at home'], nl: ['welke kant-en-klare routines zijn er', 'stel een routine voor thuis voor']},
 ];

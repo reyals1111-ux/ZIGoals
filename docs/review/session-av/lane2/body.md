@@ -331,3 +331,28 @@ erase); its skipped round trip in `av2-stored.test.ts` then runs. Hide figures: 
   routine someone shared". **Does the workout CSV include RPE and notes?** Yes: workout-sets.csv has RPE, the added weight
   or help, the exercise's note, the workout's note and the shoes as extra columns.
 - What's new: "Workouts: share a routine as a small file; the workout CSV now carries RPE and notes."
+
+## 13. N9: a BMI figure and weight milestones — LEDGER #210 built (part Carried: ideal weight against the no-medical-advice rule; calories burned against the no-calorie-burn rule), #205 built
+
+- What: Health → Weight → "BMI and milestones" (its own chunk). A height the person types (kept on this device) gives a
+  BMI figure from the latest reading — the number only, with how it is worked out and "it says nothing on its own about
+  one person's health"; no category word, no range, no ideal weight. Opt-in milestones on the way to the Health weight
+  goal (Targets): every 2 kg or every 10 % of the way from the latest reading; each step is listed, the next one named,
+  a reading past one shows "★ A milestone reached: 82 kg. Step by step." until "Thanks", once — a step back and forward
+  again is never a second celebration. Off until turned on; "Turn milestones off" any time. Every figure carries
+  `data-body-figure` (hidden with "Hide calorie and weight figures").
+- Files: `lib/body-extras/schema.ts` (stored commit), `lib/body-extras/body.ts`, `components/health/body-figures.tsx`,
+  `components/health/body-figures.css` (new), `components/health/health-app.tsx` (one lazy line in the Weight view).
+- Route weight: `/app/health`'s first chunk gains one `lazy(() => import("./body-figures"))` and one `<Suspense>` line;
+  the panel, its CSS and the record schema load with the Weight view's chunk on demand.
+- Tests: `lib/body-extras/body.test.ts`, `lib/workouts/av2-stored.test.ts` (the record; its round trip once registered),
+  `lib/ai/local-answers/av2-body.test.ts`; spec `tests/av2-bmi-milestones.spec.ts`.
+- Stored: `zigoals:body-extras:v1` (NEW key; registries listed under Stored changes).
+- AK sources (for the answers): `bodyExtras: one(BODY_EXTRAS)` beside `eveningPlan`. Until then the answers say where it lives.
+- Help (EN): **Can ZIGoals show my BMI?** Yes, as a number only: type your height in Health → Weight → "BMI and
+  milestones" and it is worked out from your latest reading. No label, no range and no ideal weight are given: on its
+  own it says nothing about your health. **What are weight milestones?** Steps on the way to your weight goal — every 2 kg
+  or every tenth of the way. Turn them on there; each step is marked once when you reach it.
+- What's new: "Weight: a BMI figure from your height, and milestones on the way to your goal."
+- Answers: "what is my BMI" / "wat is mijn BMI" (never a judgement word), "how are my weight milestones" / "hoe gaan mijn
+  gewichtsmijlpalen".

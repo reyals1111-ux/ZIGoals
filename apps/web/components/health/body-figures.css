@@ -1,0 +1,22 @@
+/* Session AV lane 2 (body; LEDGER #205, #210): BMI and weight milestones. Theme tokens; 14 px or more; 44 px targets. */
+.body-figures { display: grid; gap: 14px; }
+.body-figures h2 { margin: 0; }
+.body-figures h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.body-figures-bmi, .body-figures-steps { display: grid; gap: 6px; min-width: 0; }
+.body-figures-big { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 15px; }
+.body-figures-big strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.body-figures-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.body-figures-form .field { flex: 1 1 200px; }
+.body-figures-form input { min-height: 44px; }
+.body-figures-form fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; flex-basis: 100%; }
+.body-figures-form legend { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.body-figures-radio { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; }
+.body-figures-form p { flex-basis: 100%; margin: 0; }
+.body-figures button { min-height: 44px; justify-self: start; }
+.body-figures-marks { margin: 0; padding-inline-start: 1.4em; display: grid; gap: 4px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.body-figures-marks li[data-reached] { font-weight: 600; }
+.body-figures-marks small { font-size: 14px; color: var(--text-secondary, #c9d6ea); }
+.body-figures-cheer { margin: 0; padding: 8px 12px; border-radius: 12px; font-size: 15px; font-weight: 600; background: color-mix(in srgb, var(--success, #47d6a1) 16%, transparent); }
+@media (prefers-reduced-motion: no-preference) { :root:not([data-app-motion=off]) .body-figures-cheer { animation: body-figures-in 500ms ease-out both; } }
+@keyframes body-figures-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+:root[data-theme=light] .body-figures-cheer { background: #e3f6ee; color: #0b4d34; }

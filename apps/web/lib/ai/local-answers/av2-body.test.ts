@@ -115,6 +115,27 @@ describe('shoes and running tips (LEDGER #203, #208)', () => {
   });
 });
 
+describe('BMI and weight milestones (LEDGER #205, #210)', () => {
+  const withBody = (bodyExtras: unknown) => { const s = showcaseAll(); s.ak = {...s.ak, bodyExtras} as typeof s.ak; return s; };
+  test('the number only, never a judgement word, in English and Dutch', () => {
+    const latest = [...showcaseAll().health!.weights].sort((x, y) => y.date.localeCompare(x.date))[0]!;
+    const en = text(ask('what is my BMI', withBody({version: 1, heightCm: 180})));
+    expect(en).toContain(`Your BMI is ${(Math.round(latest.grams / 1000 / 3.24 * 10) / 10).toLocaleString('en-US')}: `);
+    expect(en).toContain('on its own it says nothing about your health');
+    for (const word of ['overweight', 'underweight', 'normal', 'healthy weight', 'ideal', 'obese']) expect(en.toLowerCase()).not.toContain(word);
+    expect(text(ask('wat is mijn BMI', withBody({version: 1, heightCm: 180})))).toContain('Je BMI is ');
+    expect(text(ask('what is my BMI', withBody({version: 1})))).toContain('it needs your height');
+    expect(text(ask('what is my BMI'))).toContain('Health → Weight → BMI and milestones');
+  });
+  test('milestones: off, then the steps reached and the next', () => {
+    expect(text(ask('how are my weight milestones', withBody({version: 1})))).toContain('Weight milestones are off');
+    const latest = [...showcaseAll().health!.weights].sort((x, y) => y.date.localeCompare(x.date))[0]!;
+    const body = {version: 1, milestones: {step: '2kg', startGrams: latest.grams + 3000, goalGrams: latest.grams - 3000, startedOn: '2026-10-01', reached: []}};
+    expect(text(ask('how are my weight milestones', withBody(body)))).toMatch(/^1 of 3 milestones reached; the next is [\d.]+ kg\.$/);
+    expect(text(ask('hoe gaan mijn gewichtsmijlpalen', withBody(body)))).toMatch(/^1 van 3 mijlpalen gehaald/);
+  });
+});
+
 describe('the calendar (LEDGER #118)', () => {
   test('the Showcase\'s weeks in a row and its days this year', () => {
     // The Showcase trains on days −13 … −1 before 17 Nov: the weeks of 2 Nov, 9 Nov and 16 Nov.
