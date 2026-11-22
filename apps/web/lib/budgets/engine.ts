@@ -1,7 +1,7 @@
 import {addMonths} from '../bills/cadence';
 import {cents, monthOf} from '../money-log/engine';
 import {amountText, currencyCode, type MoneyEntry} from '../money-log/schema';
-import {budgetMonthParts, reachesMonth} from '../money-log/counted';
+import {budgetMonthParts, isSpending, reachesMonth} from '../money-log/counted';
 import {MAX_BUDGETS, MAX_ROLLOVER_MONTHS, budgetsSchema, type Budget, type BudgetsRecord} from './schema';
 
 /**
@@ -17,7 +17,7 @@ const spentIn = (entries: readonly MoneyEntry[], month: string, category: string
   let total = 0;
   // Session AK (lane M, item 22): a split entry counts by its parts (the whole entry otherwise), in exact cents.
   // Session AV lane 2 (money): an entry left out or a transfer counts nothing; one spread over months counts its share.
-  for (const e of entries) if (e.kind === 'expense' && e.currency === currency && reachesMonth(e, month)) for (const p of budgetMonthParts(e, month)) if (p.category.toLowerCase() === name) total += p.cents;
+  for (const e of entries) if (isSpending(e) && e.currency === currency && reachesMonth(e, month)) for (const p of budgetMonthParts(e, month)) if (p.category.toLowerCase() === name) total += p.cents;
   return total;
 };
 /**
@@ -72,7 +72,7 @@ export function monthView(entries: readonly MoneyEntry[], record: BudgetsRecord,
   const budgeted = new Set(active.map(b => `${b.currency}|${b.category.toLowerCase()}`)), {start, end} = monthOf(`${month}-01`);
   const loose = new Map<string, {category: string; currency: string; spent: number}>();
   for (const e of entries) {
-    if (e.kind !== 'expense' || !reachesMonth(e, month)) continue;
+    if (!isSpending(e) || !reachesMonth(e, month)) continue; // Round 6 (#425): a refund lowers its category
     for (const p of budgetMonthParts(e, month)) {
       if (budgeted.has(`${e.currency}|${p.category.toLowerCase()}`)) continue;
       const k = `${e.currency}|${p.category}`, row = loose.get(k) ?? {category: p.category, currency: e.currency, spent: 0};

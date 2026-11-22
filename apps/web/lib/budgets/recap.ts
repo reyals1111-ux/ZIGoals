@@ -2,7 +2,7 @@ import {cents, monthOf} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import {monthView, shiftMonth} from './engine';
 import type {BudgetsRecord} from './schema';
-import {isCounted, mineCents, mineParts} from '../money-log/counted';
+import {countedKind, inFigures, mineCents, mineParts} from '../money-log/counted';
 
 /**
  * Session AV (owner follow-up 1, F-MONTH-RECAP; Copilot's monthly review): a month in short, per currency (never
@@ -16,16 +16,16 @@ export function monthRecap(entries: readonly MoneyEntry[], record: BudgetsRecord
   const get = (currency: string) => { const r = out.get(currency) ?? {currency, spent: 0, income: 0, previousSpent: 0, top: [], largest: null, budgets: {kept: 0, of: 0}}; out.set(currency, r); return r; };
   const byCat = new Map<string, Map<string, number>>();
   for (const e of entries) {
-    if (!isCounted(e)) continue; // Session AV lane 2 (money)
+    if (!inFigures(e)) continue; // Session AV lane 2 (money). Round 6 (#425): a refund is spending below zero, never income
+    const kind = countedKind(e);
     const inMonth = e.date >= start && e.date <= end, inPrev = e.date >= prev.start && e.date <= prev.end;
     if (!inMonth && !inPrev) continue;
-    const c = e.kind === 'expense' ? mineCents(e) : cents(e.amount); // Review b2a #3: the person's own share of a shared cost
-    if (inPrev) { if (e.kind === 'expense') get(e.currency).previousSpent += c; continue; }
+    const c = kind === 'expense' ? mineCents(e) : cents(e.amount); // Review b2a #3: the person's own share of a shared cost
+    if (inPrev) { if (kind === 'expense') get(e.currency).previousSpent += c; continue; }
     const r = get(e.currency);
-    if (e.kind === 'income') { r.income += c; continue; }
-    if (e.kind !== 'expense') continue;
+    if (kind === 'income') { r.income += c; continue; }
     r.spent += c;
-    if (!r.largest || c > r.largest.cents) r.largest = {note: (e.note?.split(' · ')[0]?.trim() || e.category).slice(0, 80), cents: c, date: e.date};
+    if (c > 0 && (!r.largest || c > r.largest.cents)) r.largest = {note: (e.note?.split(' · ')[0]?.trim() || e.category).slice(0, 80), cents: c, date: e.date};
     const cats = byCat.get(e.currency) ?? new Map<string, number>();
     for (const p of mineParts(e)) cats.set(p.category, (cats.get(p.category) ?? 0) + p.cents);
     byCat.set(e.currency, cats);

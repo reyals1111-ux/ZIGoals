@@ -1,6 +1,6 @@
 import {addLocalDays} from '../local-date';
 import {monthOf, totals} from '../money-log/engine';
-import {budgetDayParts} from '../money-log/counted';
+import {budgetDayParts, countedKind, isCounted, spendingDayParts} from '../money-log/counted';
 import type {MoneyEntry} from '../money-log/schema';
 import {shiftMonth} from '../budgets/engine';
 
@@ -37,10 +37,9 @@ export function monthCalendar(entries: readonly MoneyEntry[], month: string, cur
   const spent = new Map<string, number>(), counts = new Map<string, number>();
   for (const e of mine) {
     if (e.date >= start && e.date <= end) counts.set(e.date, (counts.get(e.date) ?? 0) + 1);
-    if (e.kind !== 'expense') continue;
-    for (const d of budgetDayParts(e)) if (d.date >= start && d.date <= end) spent.set(d.date, (spent.get(d.date) ?? 0) + d.parts.reduce((s, p) => s + p.cents, 0));
+    for (const d of spendingDayParts(e)) if (d.date >= start && d.date <= end) spent.set(d.date, (spent.get(d.date) ?? 0) + d.parts.reduce((s, p) => s + p.cents, 0));
   }
-  const inMonth = mine.filter(e => e.date >= start && e.date <= end && e.kind === 'income');
+  const inMonth = mine.filter(e => e.date >= start && e.date <= end && countedKind(e) === 'income' && isCounted(e)); // Round 6 (#425): a refund lowers its day's spending, never received
   const received = (date: string) => totals(inMonth, date, date).find(t => t.currency === currency)?.income ?? 0;
   const weekday = new Date(`${start}T12:00:00Z`).getUTCDay(), back = weekStartsOn === 'monday' ? (weekday + 6) % 7 : weekday;
   const days: CalendarDay[] = [];

@@ -1,6 +1,6 @@
 import type {MoneyEntry} from '../money-log/schema';
 import {MAX_TAGGED_ENTRIES, MAX_TAGS_PER_ENTRY, MAX_TAG_LENGTH, moneyTagsSchema, tagText, type MoneyTags} from './schema';
-import {countedCents, isCounted} from '../money-log/counted';
+import {countedCents, countedKind, inFigures} from '../money-log/counted';
 
 /**
  * Session AP (owner-approved): tags on money entries, pure (lib/money-tags/schema.ts holds the record). Every reader goes
@@ -56,12 +56,12 @@ export type TagTotal = {tag: string; currency: string; spent: number; received: 
 export function tagTotals(entries: readonly MoneyEntry[], record: MoneyTags, from: string, to: string): TagTotal[] {
   const by = new Map<string, TagTotal>();
   for (const e of entries) {
-    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
+    if (!inFigures(e)) continue; // Session AV lane 2 (money): left out and transfers. Round 6 (#425): a refund lowers spent
     if (e.date < from || e.date > to) continue;
     const counted = countedCents(e); // Session AV lane 2 (loose ends): my share of a shared cost
     for (const tag of tagsOf(record, e.id)) {
       const k = `${tag}\u0000${e.currency}`, row = by.get(k) ?? {tag, currency: e.currency, spent: 0, received: 0, entries: 0};
-      if (e.kind === 'income') row.received += counted; else row.spent += counted;
+      if (countedKind(e) === 'income') row.received += counted; else row.spent += counted;
       row.entries++; by.set(k, row);
     }
   }

@@ -4,7 +4,7 @@ import type {Accounts} from '../accounts/schema';
 import {csvSafeCell} from '../export/csv-safe';
 import {buildXlsx, cellRef, type XlsxCell, type XlsxSheet} from '../export/xlsx';
 import {PAID_WITH_WORDS} from '../money-more/quick';
-import {allCategories, countedByCategoryBetween, countedCents, countedIn, isCounted} from './counted';
+import {allCategories, countedByCategoryBetween, countedCents, countedIn, isCounted, isRefund} from './counted';
 import {fromCents, monthOf} from './engine';
 import {bankAccountNames} from './reconcile';
 import {MAX_ENTRIES, type MoneyEntry, type MoneyLog} from './schema';
@@ -30,8 +30,9 @@ export function rangeOf(range: SheetRange, today: string, entries: readonly Mone
   const first = entries.reduce<string | null>((min, e) => !min || e.date < min ? e.date : min, null);
   return {from: first ?? today, to: entries.reduce((max, e) => e.date > max ? e.date : max, today)};
 }
-export type CountedAs = 'counted' | 'left out' | 'transfer';
-export const countedAs = (e: MoneyEntry): CountedAs => e.transfer ? 'transfer' : e.excluded ? 'left out' : 'counted';
+export type CountedAs = 'counted' | 'left out' | 'transfer' | 'refund';
+/** Round 6 (#425): a refund counts as spending below zero in its category (its Counted cell is below zero). */
+export const countedAs = (e: MoneyEntry): CountedAs => e.transfer ? 'transfer' : e.excluded ? 'left out' : isRefund(e) ? 'refund' : 'counted';
 export type SheetRow = {id: string; date: string; kind: MoneyEntry['kind']; category: string; sub: string; note: string; account: string; paidWith: string; amount: number; counted: number; currency: string; as: CountedAs; spread: number};
 /** The entries from `from` to `to`, newest first, as the table and the files show them. */
 export function sheetRows(entries: readonly MoneyEntry[], from: string, to: string): SheetRow[] {

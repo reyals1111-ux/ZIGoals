@@ -20,7 +20,7 @@ import './money-r5.css';
  */
 const RANGE_WORDS: Record<SheetRange, string> = {month: 'This month', '3m': 'Last 3 months', year: 'This year', all: 'Everything'};
 const SHOWN = 200;
-const AS_WORDS = {counted: 'counted', 'left out': 'left out', transfer: 'a transfer'} as const;
+const AS_WORDS = {counted: 'counted', 'left out': 'left out', transfer: 'a transfer', refund: 'a refund'} as const;
 export default function MoneySheet({log, today, label}: {log: MoneyLog; today: string; label: string}) {
   const id = useId(), accounts = useDeviceRecord(ACCOUNTS), [range, setRange] = useState<SheetRange>('month'), [sort, setSort] = useState<{key: SortKey; dir: 'ascending' | 'descending'}>({key: 'date', dir: 'descending'}), [said, setSaid] = useState('');
   const {from, to} = rangeOf(range, today, log.entries), all = sheetRows(log.entries, from, to), rows = sortRows(all, sort.key, sort.dir), grids = monthGrid(log.entries, from, to);
@@ -38,7 +38,7 @@ export default function MoneySheet({log, today, label}: {log: MoneyLog; today: s
       <tbody>{rows.slice(0, SHOWN).map(r => <tr key={r.id}>
         <td>{formatDate(r.date, {year: false})}</td><td>{r.kind === 'income' ? 'in' : 'out'}</td><td>{r.category}{r.sub ? ` › ${r.sub}` : ''}</td><td>{r.note}</td>
         <td data-private-amount="">{r.kind === 'income' ? '+' : '−'}{moneyCents(r.amount, r.currency)}</td>
-        <td data-private-amount="">{r.as === 'counted' ? moneyCents(r.counted, r.currency) : AS_WORDS[r.as]}{r.spread > 1 ? <span className="fine"> · over {r.spread} months</span> : null}</td><td>{r.account}</td>
+        <td data-private-amount="">{r.as === 'counted' ? moneyCents(r.counted, r.currency) : r.as === 'refund' ? `${moneyCents(r.counted, r.currency)} · ${AS_WORDS.refund}` : AS_WORDS[r.as]}{r.spread > 1 ? <span className="fine"> · over {r.spread} months</span> : null}</td><td>{r.account}</td>
       </tr>)}</tbody>
     </table></div> : <p className="fine">No entries in this range. Log spending or income, or choose a longer range.</p>}
     {grids.map(g => <div key={g.currency} className="money-sheet-scroll" role="region" aria-label={`Month by month, ${g.currency}`} tabIndex={0}><table className="money-sheet-table">

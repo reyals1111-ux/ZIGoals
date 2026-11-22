@@ -2,6 +2,7 @@ import {billsThisMonth} from '../bills/month';
 import type {BillsRecord} from '../bills/schema';
 import {contributionCents, contributionDates, type ForecastPlanned, type PlannedContribution} from '../cash-forecast/model';
 import {monthOf, totals} from '../money-log/engine';
+import {countedKind, isCounted} from '../money-log/counted';
 import type {MoneyEntry} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
 import {isMoneyCurrency} from '../visual-format';
@@ -42,7 +43,7 @@ export function leftThisMonth(input: LeftInput): LeftThisMonth[] {
   const rows = new Map<string, LeftThisMonth>();
   const row = (currency: string) => { let r = rows.get(currency); if (!r) { r = {currency, month, income: 0, incomeEntries: 0, spent: 0, budgets: {cents: 0, items: []}, bills: {cents: 0, items: []}, goals: {cents: 0, items: []}, planned: {cents: 0, items: []}, left: 0}; rows.set(currency, r); } return r; };
   // Income and spending: Wealth → Spending's own totals for the month.
-  for (const t of totals(entries, start, end)) { const r = row(t.currency); r.income = t.income; r.spent = t.expenses; r.incomeEntries = entries.filter(e => e.kind === 'income' && e.currency === t.currency && e.date >= start && e.date <= end).length; }
+  for (const t of totals(entries, start, end)) { const r = row(t.currency); r.income = t.income; r.spent = t.expenses; r.incomeEntries = entries.filter(e => countedKind(e) === 'income' && isCounted(e) && e.currency === t.currency && e.date >= start && e.date <= end).length; }
   // What each budget still holds: its own amount this month, less what the Budgets rows say it spent. Review b3a #2: those
   // rows (lib/budgets/engine.ts monthView) count by the shared month rule (lib/money-log/counted.ts budgetMonthParts): an
   // entry spread over months counts one month's share, as on Budgets, so the two figures on that page agree.

@@ -1,7 +1,7 @@
 import {monthKey, shiftMonth} from '../budgets/engine';
 import {normalisePayee} from '../bills/detect';
 import type {MoneyEntry} from '../money-log/schema';
-import {countedBetween, countedByCategoryBetween, countedCents, countedDayParts, countedIn, isCounted} from '../money-log/counted';
+import {countedBetween, countedByCategoryBetween, countedCents, countedDayParts, countedIn, countedKind, inFigures, isSpending} from '../money-log/counted';
 import {monthOf} from '../money-log/engine';
 
 /**
@@ -43,15 +43,15 @@ export type CashFlow = {currency: string; rows: CashFlowRow[]; months: CashFlowM
  * spread cost reaches holds its share and counts as a month with a record.
  */
 export function cashFlow(entries: readonly MoneyEntry[], currency: string, today: string, limit = CASH_FLOW_MONTHS): CashFlow {
-  const spreadMonths = entries.filter(e => e.currency === currency && e.spread && e.kind === 'expense').flatMap(e => countedDayParts(e).filter(d => d.date <= today).map(d => monthKey(d.date)));
+  const spreadMonths = entries.filter(e => e.currency === currency && e.spread && isSpending(e)).flatMap(e => countedDayParts(e).filter(d => d.date <= today).map(d => monthKey(d.date)));
   const months = [...new Set([...recordMonths(entries, currency, today), ...spreadMonths])].sort().reverse().slice(0, limit).reverse(), wanted = new Set(months);
   const by = new Map<string, CashFlowMonth>(months.map(m => [m, {kind: 'month', month: m, income: 0, spending: 0, net: 0, count: 0}]));
   for (const e of entries) {
-    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
+    if (!inFigures(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.currency !== currency || e.date > today) continue;
     const row = by.get(monthKey(e.date)); if (!row || !wanted.has(row.month)) continue;
     // Review b4f #3: Wealth → Spending's rule (lib/money-log/counted.ts `countedCents`): a shared cost counts the person's share.
-    if (e.kind === 'income') row.income += countedCents(e);
+    if (countedKind(e) === 'income') row.income += countedCents(e); // Round 6 (#425): a refund is never income
     row.count++;
   }
   for (const row of by.values()) { const {start, end} = monthOf(`${row.month}-01`); row.spending = countedBetween(entries, start, end > today ? today : end, {currency}).get(currency) ?? 0; }
@@ -142,7 +142,7 @@ export function topPayees(entries: readonly MoneyEntry[], currency: string, toda
   // month is the figure the budgets and the other month views count. A month with a counted figure is a recorded month.
   const previousRecorded = countedIn(entries, currency, `${previous}-01`, monthOf(`${previous}-01`).end);
   for (const e of entries) {
-    if (e.kind !== 'expense' || e.currency !== currency || e.date > today) continue;
+    if (!isSpending(e) || e.currency !== currency || e.date > today) continue; // Round 6 (#425): a refund lowers its payee
     const key = keyOf(e);
     for (const d of countedDayParts(e)) {
       const m = monthKey(d.date), cents = d.parts.reduce((sum, p) => sum + p.cents, 0);

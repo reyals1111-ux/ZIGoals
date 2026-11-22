@@ -5,7 +5,7 @@ import {daysBetween, weekStart} from '../../../ai/tools/range';
 import {addLocalDays} from '../../../local-date';
 import {byCategory, fromCents} from '../../../money-log/engine';
 import type {MoneyEntry} from '../../../money-log/schema';
-import {countedCents, isCounted} from '../../../money-log/counted';
+import {countedCents, countedKind, inFigures, isSpending} from '../../../money-log/counted';
 import {formatCurrencyAmount, formatDate, formatMonth, formatPercent} from '../../../visual-format';
 
 /**
@@ -54,7 +54,7 @@ export function categoryRanks(entries: readonly MoneyEntry[], kind: FlowKind, pe
   const rows = byCategory(now.own, period.from, period.to, kind).filter(c => c.currency === cur)
     .map(c => ({key: c.category, label: axPlain(c.category), cents: c.total, text: axMoney(c.total, cur), share: now.total > 0 ? c.total / now.total : 0, percent: wholeShare(c.total, now.total)}));
   return {state: 'live', kind, period, currency: cur, totalCents: now.total, total: axMoney(now.total, cur), entries: now.own.length, rows, max: Math.max(1, ...rows.map(r => r.cents)),
-    others: now.others.map(o => ({currency: o.currency, text: o.text})), lastDate: newest(all.filter(e => isCounted(e) && inPeriod(e, period)))};
+    others: now.others.map(o => ({currency: o.currency, text: o.text})), lastDate: newest(all.filter(e => inFigures(e) && inPeriod(e, period)))};
 }
 
 // ---- The radar: categories as spokes, this period over the one before ----
@@ -149,7 +149,8 @@ export function savingsRate(entries: readonly MoneyEntry[], period: Period): Sav
 export function spendTrack(entries: readonly MoneyEntry[], today: string, currency: string | null): Track {
   const any = new Set<string>(), by = new Map<string, number>();
   // Review b2a #1: counted entries only, an expense by the person's own share (Wealth → Spending's rule).
-  for (const e of entries) { if (e.kind !== 'expense' || !isCounted(e)) continue; any.add(e.date); if (e.currency === currency) by.set(e.date, (by.get(e.date) ?? 0) + countedCents(e)); }
+  // Round 6 (#425): a refund lowers its day's figure (it is not a day with spending by itself).
+  for (const e of entries) { if (!isSpending(e)) continue; if (e.kind === 'expense') any.add(e.date); if (e.currency === currency) by.set(e.date, (by.get(e.date) ?? 0) + countedCents(e)); }
   return {key: 'spending', domain: 'spending', name: 'Spending', kind: 'event', did: ['spent', 'uitgegeven'], not: ['nothing logged', 'niets gelogd'], source: ['Your money log', 'Je geldlog'],
     points: days => days.map(date => ({date, value: by.get(date) ?? null, state: date === today ? 'open' : any.has(date) ? 'done' : 'none'})),
     measure: currency ? {text: value => axMoney(Math.round(value), currency), kind: 'sum', target: null} : null,
@@ -174,7 +175,7 @@ export type SpendingHeat = {
 };
 export function spendingHeat(entries: readonly MoneyEntry[], today: string): SpendingHeat {
   // Review b2a #1: the cells count by Wealth → Spending's rule (counted entries, an expense by the person's own share).
-  const from = addLocalDays(weekStart(today), -7 * (HEAT_WEEKS - 1)), expenses = entries.filter(e => e.kind === 'expense'), inRange = expenses.filter(e => isCounted(e) && e.date >= from && e.date <= today);
+  const from = addLocalDays(weekStart(today), -7 * (HEAT_WEEKS - 1)), expenses = entries.filter(e => e.kind === 'expense'), inRange = entries.filter(e => isSpending(e) && e.date >= from && e.date <= today); // Round 6 (#425): a refund lowers its day
   const per = new Map<string, number>();
   for (const e of inRange) per.set(e.currency, (per.get(e.currency) ?? 0) + countedCents(e));
   const ranked = [...per.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])), cur = ranked[0]?.[0] ?? null, total = ranked[0]?.[1] ?? 0;
@@ -214,18 +215,18 @@ export type CashRiver = {
 };
 export function cashRiver(entries: readonly MoneyEntry[], period: Period): CashRiver {
   // Review b2a #1: income and spending by Wealth → Spending's rule (no left-out entry, refund or transfer; an expense by its share).
-  const inRange = entries.filter(e => isCounted(e) && inPeriod(e, period)), per = new Map<string, number>();
+  const inRange = entries.filter(e => inFigures(e) && inPeriod(e, period)), per = new Map<string, number>(); // Round 6 (#425): a refund is spending below zero
   for (const e of inRange) per.set(e.currency, (per.get(e.currency) ?? 0) + countedCents(e));
   const ranked = [...per.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])), cur = ranked[0]?.[0] ?? null, own = inRange.filter(e => e.currency === cur);
   const span = daysBetween(period.from, period.to) + 1, step: CashRiver['step'] = span <= 31 ? 'day' : span <= 182 ? 'week' : 'month';
   const buckets: RiverBucket[] = [];
   for (let d = period.from; d <= period.to;) {
     const end = step === 'day' ? d : step === 'week' ? addLocalDays(weekStart(d), 6) : addLocalDays(`${addLocalDays(`${d.slice(0, 8)}28`, 4).slice(0, 8)}01`, -1), to = end > period.to ? period.to : end;
-    const of = (kind: FlowKind) => { const hit = own.filter(e => e.kind === kind && e.date >= d && e.date <= to); return hit.length ? hit.reduce((n, e) => n + countedCents(e), 0) : null; };
+    const of = (kind: FlowKind) => { const hit = own.filter(e => countedKind(e) === kind && e.date >= d && e.date <= to); return hit.length ? hit.reduce((n, e) => n + countedCents(e), 0) : null; };
     buckets.push({from: d, to, label: step === 'day' ? short(d) : step === 'week' ? spanWords(d, to) : formatMonth(d.slice(0, 7), {year: period.from.slice(0, 4) !== period.to.slice(0, 4)}), income: of('income'), spending: of('expense')});
     d = addLocalDays(to, 1);
   }
-  const sum = (kind: FlowKind) => { const hit = own.filter(e => e.kind === kind); return hit.length ? hit.reduce((n, e) => n + countedCents(e), 0) : null; };
+  const sum = (kind: FlowKind) => { const hit = own.filter(e => countedKind(e) === kind); return hit.length ? hit.reduce((n, e) => n + countedCents(e), 0) : null; };
   const income = sum('income'), spending = sum('expense'), net = income !== null && spending !== null ? income - spending : null, text = (value: number | null) => value === null || !cur ? 'nothing logged' : axMoney(value, cur);
   const gap = net === null ? (income === null ? 'no income logged' : 'no spending logged') : net === 0 ? 'as much in as out' : `${axMoney(Math.abs(net), cur!)} more ${net > 0 ? 'in than out' : 'out than in'}`;
   return {state: !entries.length ? 'empty' : !cur ? 'quiet' : 'live', period, step, currency: cur, buckets, max: Math.max(1, ...buckets.flatMap(b => [b.income ?? 0, b.spending ?? 0])),
