@@ -154,3 +154,6 @@
 .av2-routine-note { font-size: 14px; }
 .workout-calendar-mode { margin-bottom: 4px; }
 .workout-streak { margin: 0 0 6px; }
+/* Session AV lane 2 (body; LEDGER #201, #202): an exercise's own unit and its bodyweight load. */
+.workouts-ex-unit, .workouts-ex-load { flex: 0 1 200px; }
+.workouts-ex-unit select, .workouts-ex-load select { min-height: 44px; max-width: 100%; }

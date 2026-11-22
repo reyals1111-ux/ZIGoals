@@ -33,6 +33,7 @@ import {Skeleton} from '../../ui/skeleton';
 import {SlowReload} from '../slow-reload';
 import {pinnedNoteOf, setPinnedNote} from '../../../lib/workouts/notes';
 import {routineGroups, saveGuide} from '../../../lib/workouts/routines';
+import {LOAD_WORDS, setExerciseUnit, setLoad, unitFor} from '../../../lib/workouts/bodyweight';
 import {exerciseSeries, type SeriesMetric} from '../../../lib/workouts/analytics';
 import {goalProgress, runSummary, runWords} from '../../../lib/workouts/runs';
 import {progressed, targetFor, type Target} from '../../../lib/workouts/progression';
@@ -72,7 +73,7 @@ const KIND_WORDS: Record<WorkoutSet['kind'], string> = {warmup: 'Warm-up', norma
 const MEASURE_WORDS: Record<Measure, string> = {'weight-reps': 'Weight and reps', reps: 'Reps', time: 'Time', 'distance-time': 'Distance and time'};
 /** Session AK (4.9): one calm line for the new bests, shown once when the workout is saved. */
 const celebration = (bests: PersonalBest[], unit: 'kg' | 'lb') => bests.length === 1 ? `A new personal best: ${bestWords(bests[0]!, unit)}. Well earned.` : `${bests.length} new personal bests today. Well earned.`;
-const bestWords = (b: PersonalBest, unit: 'kg' | 'lb') => `${b.name}: ${b.what === 'weight' ? `heaviest ${weightShown(b.value, unit)}` : b.what === 'one-rep max' ? `estimated one-rep max ${estimateShown(b.value, unit)}` : b.what === 'reps' ? `most reps, ${b.value}` : b.what === 'time' ? `longest, ${clock(b.value)}` : `farthest, ${formatNumber(b.value)} km`}`;
+const bestWords = (b: PersonalBest, unit: 'kg' | 'lb') => `${b.name}: ${b.what === 'weight' ? `heaviest ${weightShown(b.value, unit)}` : b.what === 'one-rep max' ? `estimated one-rep max ${estimateShown(b.value, unit)}` : b.what === 'reps' ? `most reps, ${b.value}` : b.what === 'time' ? `longest, ${clock(b.value)}` : b.what === 'added weight' ? `most weight added, ${weightShown(b.value, unit)}` : b.what === 'least help' ? `least help, ${weightShown(b.value, unit)}` : `farthest, ${formatNumber(b.value)} km`}`;
 
 export default function WorkoutsView() {
   const record = useWorkouts(), health = useHealth();
@@ -248,7 +249,7 @@ export default function WorkoutsView() {
           {/* Session AV lane 2 (body; LEDGER #110, Strava's per-activity summary, no model): the run beside the runs before it. */}
           {(() => { const r = runSummary(w, splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null, x.id); return r ? <p className="fine workouts-run-summary">{runWords(r)}</p> : null; })()}
           {splitsRecord.data.workouts[x.id] && <WorkoutSplitsTable s={splitsRecord.data.workouts[x.id]!} name={x.name}/>}
-          <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unit)}`).join(' · ')}</span></li>)}</ul>
+          <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unitFor(w, e.exerciseId, unit))}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
             {!current && x.exercises.length > 0 && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
             {x.exercises.length > 0 && <SaveRoutine compact workout={x} onSave={name => change(y => saveTemplate(y, x, name, new Date()), `Routine ${name || x.name} saved.`)}/>}
@@ -330,9 +331,11 @@ function CalendarFold({w, today}: {w: Workouts; today: string}) {
   const [open, setOpen] = useState(false);
   return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today}/></Suspense>}</details>;
 }
-function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter, cue, target}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
+function ExerciseBlock({entry, index, count, previous, unit: pageUnit, change, onRest, w, letter, nextLetter, cue, target}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
   w: Workouts; letter?: string; nextLetter?: string; cue?: {line: string; cue: string; lang: Lang}; target?: Target | null}) {
   const headId = `ex-${entry.id}`, [tools, setTools] = useState(false), rpe = entry.measure === 'weight-reps' || entry.measure === 'reps';
+  // Session AV lane 2 (body; LEDGER #201): this exercise's own unit (the sets stay in kg), else the Health weight unit.
+  const unit = unitFor(w, entry.exerciseId, pageUnit);
   // Session AV (owner follow-up 1, F-SET-BEST): the bests of every finished workout, for the badge on a ticked set.
   const bests = useMemo(() => exerciseHistory(w, entry.exerciseId), [w, entry.exerciseId]);
   return <article className="workouts-exercise" aria-labelledby={headId} data-superset={letter ? '' : undefined}>
@@ -341,7 +344,7 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
       <button className="quiet" type="button" disabled={index === count - 1} aria-label={`Move ${entry.name} down`} onClick={() => change(x => moveExercise(x, entry.id, 1))}>↓</button>
       <button className="quiet" type="button" aria-label={`Remove ${entry.name}`} onClick={() => change(x => removeExercise(x, entry.id), `${entry.name} removed from this workout.`, `${entry.name} is back in this workout.`)}>Remove</button></div></header>
     <table className="workouts-sets"><caption className="sr-only">{entry.name}: sets</caption>
-      <thead><tr><th scope="col">Set</th><th scope="col">Last time</th>{entry.measure === 'weight-reps' && <th scope="col">{unit}</th>}{entry.measure === 'distance-time' && <th scope="col">km</th>}{(entry.measure === 'weight-reps' || entry.measure === 'reps') && <th scope="col">Reps</th>}{(entry.measure === 'time' || entry.measure === 'distance-time') && <th scope="col">Time</th>}{rpe && <th scope="col"><abbr title="Rate of perceived exertion: 10 is nothing left, 8 is about two reps left">RPE</abbr></th>}<th scope="col"><span className="sr-only">Done</span></th><th scope="col"><span className="sr-only">Remove</span></th></tr></thead>
+      <thead><tr><th scope="col">Set</th><th scope="col">Last time</th>{entry.measure === 'weight-reps' && <th scope="col">{unit}</th>}{entry.measure === 'reps' && entry.load && <th scope="col">{entry.load === 'weighted' ? `Added ${unit}` : `Help ${unit}`}</th>}{entry.measure === 'distance-time' && <th scope="col">km</th>}{(entry.measure === 'weight-reps' || entry.measure === 'reps') && <th scope="col">Reps</th>}{(entry.measure === 'time' || entry.measure === 'distance-time') && <th scope="col">Time</th>}{rpe && <th scope="col"><abbr title="Rate of perceived exertion: 10 is nothing left, 8 is about two reps left">RPE</abbr></th>}<th scope="col"><span className="sr-only">Done</span></th><th scope="col"><span className="sr-only">Remove</span></th></tr></thead>
       <tbody>{entry.sets.map((s, i) => <SetRow key={s.id} entry={entry} set={s} n={i + 1} previous={previous?.sets[i]} unit={unit} change={change} onDone={onRest} rpe={rpe} best={setBest(entry.measure, s, withEarlier(bests, entry.sets.slice(0, i)))}/* Session AV (q3 #40): one star per best */ />)}</tbody>
     </table>
     <div className="workouts-exercise-foot"><button className="secondary" type="button" onClick={() => change(x => addSet(x, entry.id))}>+ Add set</button>
@@ -358,6 +361,13 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
     <div className="workouts-exercise-foot">
       {letter ? <button className="quiet" type="button" onClick={() => change(x => leaveSuperset(x, entry.id), `${entry.name} is out of superset ${letter}.`)}>Leave superset {letter}</button>
         : index < count - 1 && <button className="quiet" type="button" onClick={() => change(x => supersetWithNext(x, entry.id), `${entry.name} is in a superset with the next exercise: do them back to back, then rest.`)}>{nextLetter ? `Join superset ${nextLetter}` : 'Superset with next'}</button>}
+      {/* Session AV lane 2 (body; LEDGER #201, #202): the exercise's unit, and added weight or help on a bodyweight move. */}
+      {(entry.measure === 'weight-reps' || (entry.measure === 'reps' && entry.load)) && <label className="field workouts-ex-unit"><span>Unit</span>
+        <select value={w.exerciseUnits?.[entry.exerciseId] ?? ''} onChange={e => change(x => setExerciseUnit(x, entry.exerciseId, (e.target.value || null) as 'kg' | 'lb' | null), e.target.value ? `${entry.name} is in ${e.target.value} from now on (kept in kg).` : `${entry.name} follows your Health unit (${pageUnit}).`)}>
+          <option value="">As Health ({pageUnit})</option><option value="kg">kg</option><option value="lb">lb</option></select></label>}
+      {entry.measure === 'reps' && <label className="field workouts-ex-load"><span>Body weight</span>
+        <select value={entry.load ?? ''} onChange={e => change(x => setLoad(x, entry.id, (e.target.value || null) as 'weighted' | 'assisted' | null))}>
+          <option value="">{LOAD_WORDS.none}</option><option value="weighted">{LOAD_WORDS.weighted}</option><option value="assisted">{LOAD_WORDS.assisted}</option></select></label>}
       <label className="field workouts-ex-rest"><span>Rest after a set</span>
         <select value={entry.restSeconds === undefined ? '' : String(entry.restSeconds)} onChange={e => change(x => setExerciseRest(x, entry.id, e.target.value === '' ? null : Number(e.target.value)))}>
           <option value="">{w.restSeconds ? `As set below (${clock(w.restSeconds)})` : 'As set below (off)'}</option>
@@ -376,6 +386,9 @@ function SetRow({entry, set, n, previous, unit, change, onDone, rpe, best}: {ent
   const m = entry.measure, label = `${entry.name}, set ${n}`;
   const [weight, setWeight] = useState(set.weightKg === undefined ? '' : weightPrefillText(set.weightKg, unit));
   const [reps, setReps] = useState(set.reps === undefined ? '' : String(set.reps)), [time, setTime] = useState(set.seconds ? clock(set.seconds) : ''), [dist, setDist] = useState(set.distanceKm === undefined ? '' : String(set.distanceKm));
+  // Session AV lane 2 (body; LEDGER #202): added weight or help on a bodyweight set, in this exercise's unit.
+  const load = m === 'reps' ? entry.load : undefined, loadKg = load === 'weighted' ? set.addedKg : load === 'assisted' ? set.assistKg : undefined;
+  const [extra, setExtra] = useState(loadKg === undefined ? '' : weightPrefillText(loadKg, unit));
   const [problem, setProblem] = useState('');
   const read = (): Partial<WorkoutSet> | null => {
     const num = (v: string) => v.trim() === '' ? undefined : Number(v.replace(',', '.'));
@@ -384,8 +397,10 @@ function SetRow({entry, set, n, previous, unit, change, onDone, rpe, best}: {ent
     if (r !== undefined && (!Number.isInteger(r) || r < 0 || r > 1000)) { setProblem('Enter whole reps from 0 to 1,000.'); return null; }
     if (km !== undefined && (!Number.isFinite(km) || km < 0 || km > 1000)) { setProblem('Enter a distance from 0 to 1,000 km.'); return null; }
     if (sec === null) { setProblem('Enter the time as minutes:seconds, such as 1:30.'); return null; }
+    const ex = num(extra);
+    if (load && ex !== undefined && (!Number.isFinite(ex) || ex < 0 || fromUnit(ex, unit) > 500)) { setProblem(`Enter the ${load === 'weighted' ? 'added weight' : 'help'} from 0 to ${unit === 'lb' ? '1,102' : '500'} ${unit}.`); return null; }
     setProblem('');
-    return {...(m === 'weight-reps' ? {weightKg: kg === undefined ? undefined : fromUnit(kg, unit)} : {}), ...(m === 'weight-reps' || m === 'reps' ? {reps: r} : {}), ...(m === 'time' || m === 'distance-time' ? {seconds: sec} : {}), ...(m === 'distance-time' ? {distanceKm: km} : {})};
+    return {...(load === 'weighted' ? {addedKg: ex === undefined ? undefined : fromUnit(ex, unit)} : load === 'assisted' ? {assistKg: ex === undefined ? undefined : fromUnit(ex, unit)} : {}),...(m === 'weight-reps' ? {weightKg: kg === undefined ? undefined : fromUnit(kg, unit)} : {}), ...(m === 'weight-reps' || m === 'reps' ? {reps: r} : {}), ...(m === 'time' || m === 'distance-time' ? {seconds: sec} : {}), ...(m === 'distance-time' ? {distanceKm: km} : {})};
   };
   const commit = () => { const patch = read(); if (patch) change(x => updateSet(x, entry.id, set.id, patch)); };
   const tick = () => {
@@ -394,11 +409,12 @@ function SetRow({entry, set, n, previous, unit, change, onDone, rpe, best}: {ent
     if (!setReady(m, {...set, ...patch})) { setProblem(m === 'weight-reps' ? 'Enter the weight and the reps first.' : m === 'reps' ? 'Enter the reps first.' : m === 'time' ? 'Enter the time first.' : 'Enter the distance or the time first.'); return; }
     if (change(x => updateSet(x, entry.id, set.id, {...patch, done: true}))) onDone();
   };
-  const fill = () => { if (!previous) return; if (previous.weightKg !== undefined) setWeight(weightPrefillText(previous.weightKg, unit)); if (previous.reps !== undefined) setReps(String(previous.reps)); if (previous.seconds) setTime(clock(previous.seconds)); if (previous.distanceKm !== undefined) setDist(String(previous.distanceKm)); };
+  const fill = () => { if (!previous) return; if (load === 'weighted' && previous.addedKg !== undefined) setExtra(weightPrefillText(previous.addedKg, unit)); if (load === 'assisted' && previous.assistKg !== undefined) setExtra(weightPrefillText(previous.assistKg, unit)); if (previous.weightKg !== undefined) setWeight(weightPrefillText(previous.weightKg, unit)); if (previous.reps !== undefined) setReps(String(previous.reps)); if (previous.seconds) setTime(clock(previous.seconds)); if (previous.distanceKm !== undefined) setDist(String(previous.distanceKm)); };
   return <><tr data-done={set.done || undefined} data-kind={set.kind}>
     <th scope="row"><select className="workouts-kind" value={set.kind} aria-label={`${label}: type`} onChange={e => change(x => updateSet(x, entry.id, set.id, {kind: e.target.value as WorkoutSet['kind']}))}>{SET_KINDS.map(k => <option key={k} value={k}>{k === 'normal' ? String(n) : k === 'warmup' ? 'W' : k === 'drop' ? 'D' : 'F'}</option>)}</select><span className="sr-only">{KIND_WORDS[set.kind]}</span></th>
     <td>{previous ? <button className="text-link workouts-prev" type="button" onClick={fill} aria-label={`${label}: use last time, ${setText(m, previous, unit)}`}>{setText(m, previous, unit)}</button> : <span className="fine">—</span>}</td>
     {m === 'weight-reps' && <td><input className="workouts-num" inputMode="decimal" aria-label={`${label}: weight in ${unit}`} value={weight} onChange={e => setWeight(e.target.value)} onBlur={commit} disabled={set.done}/></td>}
+    {load && <td><input className="workouts-num" inputMode="decimal" aria-label={`${label}: ${load === 'weighted' ? 'added weight' : 'help'} in ${unit}`} value={extra} onChange={e => setExtra(e.target.value)} onBlur={commit} disabled={set.done}/></td>}
     {m === 'distance-time' && <td><input className="workouts-num" inputMode="decimal" aria-label={`${label}: distance in km`} value={dist} onChange={e => setDist(e.target.value)} onBlur={commit} disabled={set.done}/></td>}
     {(m === 'weight-reps' || m === 'reps') && <td><input className="workouts-num" inputMode="numeric" aria-label={`${label}: reps`} value={reps} onChange={e => setReps(e.target.value)} onBlur={commit} disabled={set.done}/></td>}
     {(m === 'time' || m === 'distance-time') && <td><input className="workouts-num" inputMode="numeric" aria-label={`${label}: time, minutes:seconds`} placeholder="1:30" value={time} onChange={e => setTime(e.target.value)} onBlur={commit} disabled={set.done}/></td>}
@@ -466,11 +482,13 @@ function ProgressLine({h, unit, metric = 'e1rm'}: {h: NonNullable<ReturnType<typ
     <figcaption className="fine">{`Progress, session by session (${h.measure === 'weight-reps' ? 'estimated 1-rep max' : 'best set'}): ${shown(first.v)} on ${formatDate(first.date)} → ${shown(last.v)} on ${formatDate(last.date)}`}</figcaption>
   </figure>;
 }
-function ExerciseProgress({w, unit, library, value, onChange}: {w: Workouts; unit: 'kg' | 'lb'; library: LibraryExercise[]; value: string; onChange: (v: string) => void}) {
+function ExerciseProgress({w, unit: pageUnit, library, value, onChange}: {w: Workouts; unit: 'kg' | 'lb'; library: LibraryExercise[]; value: string; onChange: (v: string) => void}) {
   const done = useMemo(() => [...new Set(finished(w).flatMap(x => x.exercises.map(e => e.exerciseId)))], [w]);
   const [metric, setMetric] = useState<Exclude<SeriesMetric, 'reps'>>('e1rm');
   if (!done.length) return null;
   const chosen = value && done.includes(value) ? value : done[0]!, h = exerciseHistory(w, chosen);
+  // Session AV lane 2 (body; LEDGER #201): the chosen exercise in its own unit.
+  const unit = unitFor(w, chosen, pageUnit);
   const name = (id: string) => library.find(e => e.id === id)?.name ?? finished(w).flatMap(x => x.exercises).find(e => e.exerciseId === id)?.name ?? id;
   return <section className="panel workouts-progress" aria-labelledby="workouts-progress-title">
     <h2 id="workouts-progress-title">Exercise history</h2>
@@ -479,6 +497,8 @@ function ExerciseProgress({w, unit, library, value, onChange}: {w: Workouts; uni
       {h.bestWeightKg !== null && <div><dt>Heaviest</dt><dd>{weightShown(h.bestWeightKg, unit)}</dd></div>}
       {h.bestOneRepMaxKg !== null && <div><dt>Estimated one-rep max</dt><dd>{/* Session AL fourth pass (N-MO-15): an estimate at the progress line's precision (79.2 kg, not 79.17 kg) */}{estimateShown(h.bestOneRepMaxKg, unit)}</dd><dd className="dd-note"><small>an estimate (Epley)</small></dd></div>}
       {h.mostReps !== null && <div><dt>Most reps</dt><dd>{h.mostReps}</dd></div>}
+      {h.bestAddedKg !== null && <div><dt>Most weight added</dt><dd>{weightShown(h.bestAddedKg, unit)}</dd></div>}
+      {h.leastAssistKg !== null && <div><dt>Least help</dt><dd>{weightShown(h.leastAssistKg, unit)}</dd><dd className="dd-note"><small>less is stronger</small></dd></div>}
       {h.longestSeconds !== null && <div><dt>Longest</dt><dd>{clock(h.longestSeconds)}</dd></div>}
       {h.farthestKm !== null && <div><dt>Farthest</dt><dd>{formatNumber(h.farthestKm, {maximumFractionDigits: 2})} km</dd></div>}
       <div><dt>Sessions</dt><dd>{h.sessions.length}</dd><dd className="dd-note"><small>last {formatDate(h.sessions[0]!.date)}</small></dd></div>

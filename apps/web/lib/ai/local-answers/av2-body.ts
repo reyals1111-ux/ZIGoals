@@ -1,4 +1,4 @@
-import {finished} from '../../workouts/engine';
+import {exerciseHistory, finished} from '../../workouts/engine';
 import {HOW_TOS, howToOf, muscleList, type HowTo} from '../../workouts/howto';
 import {allExercises, EXERCISES} from '../../workouts/library';
 import {pinnedNoteOf} from '../../workouts/notes';
@@ -138,6 +138,19 @@ function readyRoutines(a: Asked): LocalReply | null {
   const list = GUIDES.filter(g => (!home || g.folder.en === 'At home') && (!short || g.minutes <= 25));
   return answer([say(lang, `${list.length} written routines${home ? ' for at home' : short ? ' for a short session' : ''}, in Health → Workouts → Ready-made routines (save one and it is yours to change):`, `${list.length} uitgeschreven routines${home ? ' voor thuis' : short ? ' voor een korte sessie' : ''}, in Health → Workouts → Ready-made routines (bewaar er een en pas hem aan):`),
     ...list.map(g => `• ${g.name[lang]} (${g.folder[lang]}, ${say(lang, 'about', 'ongeveer')} ${g.minutes} min): ${g.about[lang]}`)].join('\n'), CALLS);
+}
+
+/** "how much help do I use on pull-ups", "hoeveel extra gewicht bij dips": an assisted or weighted bodyweight best (LEDGER #202). */
+function bodyweightBest(a: Asked): LocalReply | null {
+  const en = /\b(?:help|assist(?:ed|ance)?|added weight|extra weight|weighted)\b/.test(a.f), nl = /\b(?:hulp|ondersteuning|extra gewicht|toegevoegd gewicht|met gewicht)\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const e = exerciseIn(a.f);
+  if (!e) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const h = exerciseHistory(logOf(a), e.id), lang = a.lang;
+  if (!h || (h.leastAssistKg === null && h.bestAddedKg === null)) return answer(say(lang, `No assisted or weighted ${e.name.toLowerCase()} is logged yet. While you train, choose “With added weight” or “Assisted” under the exercise.`, `Er is nog geen ${e.name.toLowerCase()} met hulp of extra gewicht gelogd. Kies tijdens je training onder de oefening “With added weight” of “Assisted”.`), CALLS);
+  const parts = [h.bestAddedKg !== null ? say(lang, `most weight added ${num(h.bestAddedKg)} kg`, `meeste extra gewicht ${num(h.bestAddedKg)} kg`) : null, h.leastAssistKg !== null ? say(lang, `least help ${num(h.leastAssistKg)} kg (less is stronger)`, `minste hulp ${num(h.leastAssistKg)} kg (minder is sterker)`) : null].filter(Boolean);
+  return answer(say(lang, `${e.name}: ${parts.join('; ')}, from ${h.sessions.length} ${h.sessions.length === 1 ? 'session' : 'sessions'}.`, `${e.name}: ${parts.join('; ')}, uit ${h.sessions.length} ${h.sessions.length === 1 ? 'training' : 'trainingen'}.`), CALLS);
 }
 
 // ── Progression (LEDGER #109) ──────────────────────────────────────────────────────────────────────────────────────
@@ -298,4 +311,4 @@ function eveningPlan(a: Asked): LocalReply | null {
   return answer([head, ...steps].join('\n'), calls);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun, fallAsleep, sleepVsUsual, eveningPlan];
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, bodyweightBest, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun, fallAsleep, sleepVsUsual, eveningPlan];

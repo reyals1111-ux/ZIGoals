@@ -22,5 +22,6 @@ export const AV2_BODY: readonly Intent[] = [
   {id: 'av2-fall-asleep', pillar: 'health', en: ['how long do I take to fall asleep', 'what is my sleep latency'], nl: ['hoe lang duurt het voor ik in slaap val', 'wat is mijn inslaaptijd']},
   {id: 'av2-sleep-usual', pillar: 'health', en: ['how did I sleep this week compared to usual', 'what is my usual sleep'], nl: ['hoe sliep ik deze week vergeleken met normaal', 'wat is mijn gewone slaap'], never: ['average adult', 'population']},
   {id: 'av2-evening-plan', pillar: 'health', en: ['what is my evening plan', 'am I ready for bed'], nl: ['wat is mijn avondplan', 'ben ik klaar voor bed']},
+  {id: 'av2-bodyweight', pillar: 'health', en: ['how much help do I use on pull-ups', 'what is my weighted dip record'], nl: ['hoeveel hulp gebruik ik bij optrekken', 'wat is mijn record dips met extra gewicht']},
   {id: 'av2-ready-routines', pillar: 'health', en: ['which ready-made routines are there', 'suggest a strength routine for at home'], nl: ['welke kant-en-klare routines zijn er', 'stel een routine voor thuis voor']},
 ];

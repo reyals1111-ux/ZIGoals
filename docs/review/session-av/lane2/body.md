@@ -257,3 +257,25 @@ erase); its skipped round trip in `av2-stored.test.ts` then runs. Hide figures: 
 - Another lane's row: q3 #36 Minor "hide figures offered in Settings and in Export" is LEDGER #69 (group 6, Bearable),
   which this lane's task does not list; left to that group's builder (not a cause from the list: it is in their scope).
 - Not this lane's area: q3's food Minors (#3, #18, #25, #29, #47) and #8 (Insights) are the food and mood lanes'.
+
+## 10. N8: a unit per exercise; assisted and weighted bodyweight — LEDGER #201 built, #202 built
+
+- What: while training, a weight exercise has "Unit: As Health (kg) / kg / lb" (a machine in lb beside the barbell in
+  kg); its sets, last time, history and past workouts read in that unit, and the log keeps kilograms. A reps exercise has
+  "Body weight: Body weight only / With added weight / Assisted (help taken off)", which adds an "Added kg" or "Help kg"
+  column; last time fills it; a routine and the next session keep it. Bests read the right way round: more weight added
+  beats, less help beats ("least help yet" on the set row and at the finish); volume counts the added weight only, an
+  assisted set none. Exercise history shows "Most weight added" and "Least help (less is stronger)".
+- Files: `lib/workouts/bodyweight.ts`, `lib/workouts/engine.ts` (volume, history, bests, carry the load),
+  `lib/workouts/set-best.ts`, `components/health/workouts/units.ts` (`8 reps +10 kg`, `8 reps, 20 kg help`),
+  `components/health/workouts/workouts-view.tsx`, `components/health/workouts/workouts.css`.
+- Tests: `lib/workouts/av2-bodyweight.test.ts` (and the existing workouts tests, unchanged and green); spec
+  `tests/av2-bodyweight-units.spec.ts`.
+- Stored: `load`, `addedKg`, `assistKg`, `exerciseUnits` (second stored commit).
+- Help (EN): **Can one exercise use pounds while the rest use kilograms?** Yes: while you train, choose its Unit (kg or
+  lb). Your log still keeps kilograms, so nothing is converted twice. **How do I log assisted pull-ups or weighted dips?**
+  Under the exercise, choose "Body weight": with added weight, or assisted. A column for the added weight or the help
+  appears; less help counts as a best, and so does more added weight.
+- What's new: "Workouts: a unit per exercise, and assisted or weighted bodyweight sets."
+- Answers: "how much help do I use on pull-ups" / "hoeveel hulp gebruik ik bij optrekken", "what is my weighted dip
+  record" / "wat is mijn record dips met extra gewicht".
