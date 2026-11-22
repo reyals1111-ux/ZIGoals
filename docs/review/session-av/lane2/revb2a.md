@@ -200,3 +200,23 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
   Spending). Existing apps/web/lib/av2-money-notices.test.ts green.
 - Spec: none (a device notice's tap is not driven in the browser suite; unit-tested in the plan).
 - Help: none. What's new: "A loan reminder opens your loans."
+
+## B2A-10 Minor: renaming the business space switched to it
+
+- Verdict: fixed. No stored change (`zigoals:money-more:v1` → `space` is only no longer set by a rename).
+- Fix: apps/web/lib/money-more/spaces.ts `withBusiness` sets `space: 'business'` only when the space is started; a rename
+  changes the name and keeps the space shown (Personal stays Personal; the business space stays itself).
+- Tests: apps/web/lib/money-more/revb2a-space-rename.test.ts. Existing apps/web/lib/money-more/av2-spaces.test.ts green.
+- Spec (lead runs): apps/web/tests/av2-revb2a-space-rename.spec.ts (rename from Personal: Personal stays checked, its
+  Groceries entry still listed, the record holds the new name and no `space`).
+- Help: none. What's new: "Renaming the business space keeps your view."
+
+## Summary for the lead
+
+- Stored changes: none in any finding.
+- Shared files to touch (lead): expected.json — re-record for the five Dutch answers listed under B2A-6 (the corpus test
+  fails on them until then); help-page.tsx — the Help sentences above (B2A-1, -2, -3, -4, -5, -8) and the What's new
+  labels; CI shard lists — the new specs: av2-revb2a-periods, av2-revb2a-payee, av2-revb2a-showcase-docs,
+  av2-revb2a-task-versions, av2-revb2a-formatters, av2-revb2a-balance-lines, av2-revb2a-space-rename.
+- Edited with the lead's permission: apps/web/lib/showcase-storage.ts (B2A-4, one line and its comment).
+- Nothing new on Today; no CSS touched; route weights: only Tasks' first chunk gains two small lazy calls (B2A-5).
