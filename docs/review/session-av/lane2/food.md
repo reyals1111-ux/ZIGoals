@@ -246,3 +246,26 @@ Shared-file needs for the lead are collected at the end ("For the lead").
 - Answers: intent `av2-food-pack-photos` (where they are; the photos are not read).
 - Showcase: none (no photo fixture is shipped for foods; the Showcase photo stores are cleared on entry and exit).
 - CSS touched: `food-plus.css`. Always visible on Today: nothing.
+
+## F9 — Recipe import: ingredients from the offline food library
+
+- LEDGER rows: **#87** MyFitnessPal Saved meals, recipes and Recipe Importer — built. **#95** Cronometer Custom recipes and
+  Recipe Importer — built (sharing with other people: against a named rule, nothing shared between people, as the
+  LEDGER says). **#104** MacroFactor Recipe importer — the import part built; part Carried: **needs a model** — a
+  cookbook photo.
+- What it does: Health → Import → a pasted recipe or a web address: each ingredient that matches none of your foods is
+  looked up in the offline food library with the same matcher as "Find these foods" (the plain food first, best 5);
+  the first is chosen and said ("From the offline food library, check it: Lentils, red, raw (330 kcal per 100 g,
+  CIQUAL)"); the row's picker lists the library's foods, "A new food (nutrition unknown)" and your own foods; a bare count
+  ("1 onion") gets grams at a usual portion. Save makes each library food a food of yours per 100 g with the library's
+  values (as the words-match flow does) and says how many came from the library.
+- Files: `lib/food-plus/recipe-library.ts`, `components/health/recipe-import.tsx`.
+- Tests: `lib/food-plus/av2-recipe-library.test.ts`. Spec: `tests/av2-recipe-import-library.spec.ts`.
+- Stored changes: none (ordinary foods and a recipe).
+- Help (EN). Q: "Why do imported recipes now have calories?" A: "When an ingredient matches none of your foods, ZIGoals
+  looks it up in its offline food library and picks the closest plain food. Check each row before you save: you can
+  choose another library food, one of your own, or a new food whose nutrition stays unknown."
+- What's new: "Imported recipes get their nutrition from the offline food library."
+- Answers: none new (recipes are already answered from the library the person saved).
+- Showcase: none (Import is a flow; nothing to seed).
+- Device keys: none. CSS touched: none. Always visible on Today: nothing.
