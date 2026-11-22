@@ -17,7 +17,9 @@ all findings fixed (docs/review/session-av/QUALITY.md); E4 closing table, STATUS
   button, oneline wider name; zigi-voice-z and account-browser Carried after two attempts, ADR-045 D-FU2-1b); L-9 and
   PK-18 with spec `av-companion-guarded`; 1c QUALITY.md (2 Blockers + 63 Majors fixed by four fresh fixers, then the
   follow-up 320 px / Tab-stop fixes on the fixed build); 1d What's new 77 → 30; Habits headroom 5.6 kB.
-- In progress: run 1999 on `d0df34f4` green on the first attempt (21:11 UTC); this docs commit starts the second.
+- In progress: runs 1999 green, 2000 red (D-SYNC), 2001 red (two NOVA openings, D36), 2002 red (shard 2's
+  `nova-stage-am2:301`). Cause found for the shard: 111 worker-minutes in a 60-minute job; its 56 AV specs repacked
+  into the other lists (ADR-045 D-CI2002, TIER 3 CI). Run 2003 on that head.
 - Next: fix what CI or the local run finds, push only when no run is in progress; two consecutive first-attempt green
   runs → "Safe to merge now: yes (CI runs N, M)" here and in the PR → freeze #108 → lane 2 on `feature/session-av-2`
   (LEDGER.md draft at the scratchpad's LEDGER.md: 138 rows with work left in 17 groups) and FU3's lane-2 items

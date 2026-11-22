@@ -615,6 +615,20 @@ Where a rule of the definition of done does not apply, it says so here.
   `au/sanne:64` and `zigi-oneline-z:225` (both from L-9's shorter title, fixed). 1998 (`70a288f4`, the 1c fixes):
   today-screens, the Tab-stop week, wiring-health, `tasks-ai:27` (found locally first), `nova-stage-am:121` and
   `dv-204-header-actions:46`, all fixed at `d0df34f4`. **1999 (`d0df34f4`): every job green on the first attempt.**
+- **D-CI2000–2002.** Docs-only heads after 1999 (no app code changed since `d0df34f4`). 2000 (`97d86a8c`): only the
+  integration job, account-browser D-SYNC (Carried; 5 of 5 locally afterwards). 2001 (`fbc0bdd2`): main shards 2 and 13,
+  `nova-stage-am2:301` and `l7-fifth-answers:144`, both NOVA's opening on a slow runner (D36's signature; 8 of 8 locally).
+  2002 (`41f1f6af`): main shard 2 only, `nova-stage-am2:301` again on both attempts; every other job green.
+- **D-CI2002 (cause: shard 2 overloaded; TIER 3 CI).** Shard 2 took 57 and 59 min of its 60 in 2001 and 2002, against
+  25–47 min for the other thirteen: every new AV spec had been added to it as one worker-minute (the shard file's rule
+  for a new spec), and its measured worker-minutes in 2002 were 111.3 against the 44.1 it was packed for. The opening
+  that ends late (`data-opening` still `play` at 5 s) runs on one worker while the other runs those AV specs the whole
+  time. Measured here: at 4x CPU the opening's play phase takes 5.5–6.2 s instead of 2.1 s, its long tasks are React's
+  renders and NOVA's row fitter (only the Habits panel searches during the opening, 7 reads of about 200 ms each, each a
+  full-document layout of 2,763 objects; `contain: layout` and `contain: strict` on the fitted body did not make it a
+  layout root: it is a flex item). The 56 AV specs moved from shard 2 to the other lists by 2002's measured minutes
+  (`playwright.main.shards.ts`): shard 2 54.2 worker-min, the others 68.7–69. No test, assertion, timeout or list of
+  selected specs changed (`scripts/ci/main-shards.test.ts` 4 of 4). Rollback: revert the commit.
 
 ## Closing table
 
