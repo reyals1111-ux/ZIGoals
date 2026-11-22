@@ -53,7 +53,9 @@
     // Session AV lane 2 (journal; LEDGER #40): the reminder to write, with the streak it keeps (never a word of the journal).
     // Session AV lane 2 (r3-notes; LEDGER #279): a letter to open later says so on its own line (never its words).
     (kinds.journal || []).filter(function (j) { return /^letter:/.test(String(j.id || '')); }).slice(0, 1).forEach(function () { lines.push('A letter you wrote opens today'); });
-    (kinds.journal || []).filter(function (j) { return !/^letter:/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('Time to write in your journal' + (j.detail ? ' · ' + j.detail : '')); });
+    // Session AV lane 2 (r4-mind; LEDGER #309): a morning with a memory says only how long ago (never its words).
+    (kinds.journal || []).filter(function (j) { return /^memory:/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('A memory from ' + (j.detail || 'your journal')); });
+    (kinds.journal || []).filter(function (j) { return !/^(?:letter|memory):/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('Time to write in your journal' + (j.detail ? ' · ' + j.detail : '')); });
     // Session AV lane 2 (money): budgets near or over, payday tomorrow, the low-balance line; words only where names are allowed.
     var moneyNotes = kinds.money || [];
     if (moneyNotes.length) lines.push(named && moneyNotes.every(function (m) { return m.label; }) ? moneyNotes.slice(0, 2).map(function (m) { return m.label + (m.detail ? ' · ' + m.detail : ''); }).join(' · ') : plural(moneyNotes.length, 'money notice: open Wealth', 'money notices: open Wealth'));
