@@ -1,9 +1,13 @@
 'use client';
 import Link from 'next/link';
 import {habitRuleOn} from '../../lib/habits';
-import {nextStepFor, walkHabit, type QuadrantId} from '../../lib/mood-words/words';
+import {nextStepFor, quadrantOfWord, walkHabit, type QuadrantId} from '../../lib/mood-words/words';
 import {strategiesFor, type Strategy} from '../../lib/mood-words/strategies';
 import {useHabits} from '../habits/use-habits';
+import {Suspense, lazy} from 'react';
+// Session AV lane 2, round 6 (r6-body; LEDGER #412, #416): on an unpleasant word, the person's own "What lifts you" first,
+// and a link to their own "On a low day" page; its own chunk.
+const Lifts = lazy(() => import('../health/r6/lifts'));
 
 /**
  * Session AV lane 2 (r4-mind; LEDGER #325, How We Feel's strategies): two or three choices for the corner of the day's
@@ -12,7 +16,11 @@ import {useHabits} from '../habits/use-habits';
  * Its own chunk, loaded with the feeling words.
  */
 export default function FeelingChoices({word, quadrant}: {word: string; quadrant: QuadrantId | null}) {
-  return nextStepFor(word) === 'walk' ? <WithWalk word={word} quadrant={quadrant}/> : <Choices list={strategiesFor(word, quadrant)} word={word}/>;
+  const q = quadrantOfWord(word)?.id ?? quadrant, unpleasant = !!q && q.endsWith('unpleasant');
+  return <>
+    {unpleasant && <Suspense fallback={null}><Lifts lowDay/></Suspense>}
+    {nextStepFor(word) === 'walk' ? <WithWalk word={word} quadrant={quadrant}/> : <Choices list={strategiesFor(word, quadrant)} word={word}/>}
+  </>;
 }
 function WithWalk({word, quadrant}: {word: string; quadrant: QuadrantId | null}) {
   const habits = useHabits();

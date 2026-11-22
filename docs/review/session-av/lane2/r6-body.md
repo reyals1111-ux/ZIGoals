@@ -112,3 +112,30 @@ the energy, food-plus and workouts fields; the two new keys' round trips run onc
 - Showcase hook: none needed (the Showcase's nights and goal fill both; no pinned count reads them).
 - Device keys / catalogue / export / erase: nothing new. Route weight: /app/health's first chunk gains one `lazy()` line
   on the Sleep card and `wallClock` (zone-time, already there); the rest is in the Sleep view's chunk and `r6/sleep-parts`.
+
+## 3. What lifts me — LEDGER #412 built
+
+- What: on an unpleasant feeling word (the check-in's word in the Journal, ZIGi's check-in and the evening check-in, all
+  through the shared feeling words), "What lifts you · your own list" comes first, above the built-in choices: the
+  person's own short lines (up to 12, each up to 80 characters), each with "Make it a task for today" (a task due today,
+  with Undo and "Open Tasks"). Empty, it teaches ("Write down a few small things that lift you, on a good day, so they
+  are here on a harder one"). "Edit what lifts you" adds, moves (↑ ↓, focus stays on the moved line) and removes (Undo;
+  focus to the next line or the field). Under it a calm link to the person's own "On a low day" page (#416). A pleasant
+  word shows the built-in choices only. Their own words: nothing is suggested from them, nothing is scored, and they are
+  never put in a notification (no notification reads the energy record's `lifts`).
+- Owner note (#412 close to the no-medical-advice rule): only the person's own lines and the existing built-in choices;
+  no new advice text.
+- Files: `lib/mood-words/lifts.ts` (pure; stored commit), `components/health/r6/lifts.tsx` (new),
+  `components/mood-words/feeling-choices.tsx` (one `lazy()` line; the built-in choices unchanged), `body-r6.css`.
+  `lib/mood-words/strategies.ts` is unchanged (the built-in choices stay as round 4 wrote them).
+- Tests: `lib/mood-words/av2-r6-lifts.test.ts`, `lib/av2-r6-body-stored.test.ts`; existing mood-words tests green. Spec:
+  `tests/av2-r6-lifts.spec.ts`.
+- Stored: `lifts` on `zigoals:energy:v1` (see the table).
+- Help (EN): **Can I keep my own list of things that lift me?** Yes. When you choose an unpleasant feeling word, "What lifts
+  you" shows your own list first. Add a few small things on a good day — a walk, a call, a song — and on a harder day tap
+  "Make it a task for today". The list stays on this device and is never put in a notification.
+- What's new: "Feeling words: your own list of what lifts you, first on a harder day, one tap to make it today's task."
+- Search (static.ts): "what lifts me", "my own coping list", "things that help me" → `/app/journal`.
+- Showcase hook: none (the list is the person's own; a Showcase list would put words in their mouth).
+- Device keys / catalogue / export / erase: nothing new (the energy record is registered). Route weight: the feeling words'
+  choices chunk gains one `lazy()` line; the rest is `r6/lifts`. /app/journal and /app/health are otherwise unchanged.
