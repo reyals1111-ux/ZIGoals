@@ -11,6 +11,22 @@ export const JOURNAL_KEY = 'zigoals:journal:v1';
 export const MAX_ENTRIES = 5000, MAX_TEXT = 5000;
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const stamp = z.iso.datetime({offset: true});
+/**
+ * Session AV lane 2 (journal; Day One's journals, media and imports; TIER 3 (stored format), additive and optional): ids
+ * and bounds of the fields below. A media id names a photo or an audio note kept in IndexedDB `zigoals-journal-media-v1`
+ * (lib/journal/media.ts), never in this record; a journal id names one of `journals`.
+ */
+export const JOURNAL_ID = /^j-[a-z0-9]{4,30}$/, MEDIA_ID = /^m-[A-Za-z0-9_-]{6,60}$/;
+export const MAX_ENTRY_PHOTOS = 4, MAX_ENTRY_AUDIO = 3, MAX_AUDIO_SECONDS = 300;
+export const MAX_JOURNALS = 10, JOURNAL_NAME_MAX = 40;
+/** A journal's colour, drawn from the theme's own tokens (journal.css) so it reads in Nebula, Light and Dark. */
+export const JOURNAL_THEMES = ['violet', 'cyan', 'magenta', 'teal', 'gold', 'green'] as const;
+export type JournalTheme = (typeof JOURNAL_THEMES)[number];
+export const IMPORT_SOURCES = ['dayone', 'text', 'markdown'] as const;
+const mediaId = z.string().regex(MEDIA_ID);
+/** Keeps the items `item` reads; null when the value is no list (the field then reads as absent). */
+const readable = <T extends z.ZodType>(item: T, max: number) => z.preprocess(v => Array.isArray(v) ? v.filter(x => item.safeParse(x).success).slice(-max) : undefined, z.array(item).max(max).optional());
 export const journalEntrySchema = z.looseObject({
   id, date: day, text: z.string().trim().min(1).max(MAX_TEXT), createdAt: z.iso.datetime({offset: true}), updatedAt: z.iso.datetime({offset: true}).optional(),
   /** Short tags the person chose (gratitude, work, family …). */
@@ -23,6 +39,16 @@ export const journalEntrySchema = z.looseObject({
    * the journal; older builds keep it as it is (the entry is loose).
    */
   template: z.string().regex(/^[a-z0-9-]{1,40}$/).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (journal; TIER 3 (stored format), additive and optional; a value this build cannot read is dropped on
+   * read, never failing the journal; older builds keep it as it is, the entry being loose, and show the entry in their one
+   * journal): the journal the entry is in (absent: the main Journal); its photos and audio notes (ids only; the bytes stay
+   * in this browser); where an imported entry came from.
+   */
+  journal: z.string().regex(JOURNAL_ID).optional().catch(undefined),
+  photos: z.array(mediaId).max(MAX_ENTRY_PHOTOS).optional().catch(undefined),
+  audio: z.array(z.looseObject({id: mediaId, seconds: z.number().int().min(0).max(MAX_AUDIO_SECONDS)})).max(MAX_ENTRY_AUDIO).optional().catch(undefined),
+  imported: z.enum(IMPORT_SOURCES).optional().catch(undefined),
 });
 /**
  * Session AV (owner follow-up 1, F-OWN-TEMPLATES; Day One's own templates; TIER 3 (stored format), additive and optional):
@@ -34,8 +60,24 @@ export const ownTemplateSchema = z.looseObject({
   id: z.string().regex(/^own-[a-z0-9]{6,30}$/),
   title: z.string().trim().min(1).max(OWN_TITLE_MAX),
   headings: z.array(z.string().trim().min(1).max(OWN_HEADING_MAX)).min(1).max(6),
+  /**
+   * Session AV lane 2 (journal; Day One saves an entry as a template; TIER 3 (stored format), additive and optional): the
+   * whole text a template starts from and its tags, when it was saved from an entry. Older builds start from the headings.
+   */
+  body: z.string().trim().min(1).max(MAX_TEXT).optional().catch(undefined),
+  tags: z.array(z.string().trim().min(1).max(24)).max(8).optional().catch(undefined),
 });
 export type OwnTemplate = z.infer<typeof ownTemplateSchema>;
+/** Session AV lane 2 (journal; Day One's journals and themes): one journal beside the main one. */
+export const journalBookSchema = z.looseObject({id: z.string().regex(JOURNAL_ID), name: z.string().trim().min(1).max(JOURNAL_NAME_MAX), theme: z.enum(JOURNAL_THEMES).catch('violet')});
+export type JournalBook = z.infer<typeof journalBookSchema>;
+/** Session AV lane 2 (journal; Notion's version history): an earlier text of an entry, kept when the entry is changed. */
+export const MAX_VERSIONS = 200, VERSIONS_PER_ENTRY = 10, MAX_VERSION_CHARS = 200_000;
+export const entryVersionSchema = z.looseObject({id: z.string().regex(/^v-[A-Za-z0-9_-]{4,60}$/), entryId: id, text: z.string().min(1).max(MAX_TEXT), tags: z.array(z.string().trim().min(1).max(24)).max(8).optional().catch(undefined), savedAt: stamp});
+export type EntryVersion = z.infer<typeof entryVersionSchema>;
+/** Session AV lane 2 (journal; Day One's reminders): a reminder to write, its time and weekdays (bit 0 is Sunday). */
+export const journalReminderSchema = z.looseObject({on: z.boolean(), time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/), days: z.number().int().min(1).max(127)});
+export type JournalReminder = z.infer<typeof journalReminderSchema>;
 const ownTemplates = z.preprocess(v => Array.isArray(v) ? v.filter(x => ownTemplateSchema.safeParse(x).success).slice(0, MAX_OWN_TEMPLATES) : undefined, z.array(ownTemplateSchema).max(MAX_OWN_TEMPLATES).optional());
 export const journalSchema = z.looseObject({
   version: z.literal(1),
@@ -52,6 +94,21 @@ export const journalSchema = z.looseObject({
    * is dropped on read; older builds keep it untouched (the record is loose) and show counts only.
    */
   todayLines: z.boolean().optional().catch(undefined),
+  /**
+   * Session AV lane 2 (journal; Day One's journals, prompt packs, reminders and default template; Notion's version history;
+   * TIER 3 (stored format), additive and optional). Each reads on its own: an item or a value this build cannot read is
+   * dropped on read and the rest kept; older builds keep the record's fields untouched (it is loose) and show one journal.
+   * - `journals`: up to 10 journals beside the main one, each with a name and a colour;
+   * - `packs`: the prompt packs switched on (lib/journal-prompts/packs.ts ids);
+   * - `reminder`: a reminder to write, read by the notification plan (lib/notify/plan.ts, kind `journal`);
+   * - `defaultTemplate`: the template a new entry starts from (a built-in or an own template's id);
+   * - `versions`: earlier texts of changed entries, at most 10 per entry and 200 in all (lib/journal/versions.ts).
+   */
+  journals: readable(journalBookSchema, MAX_JOURNALS),
+  packs: z.array(z.string().regex(/^[a-z0-9-]{1,30}$/)).max(20).optional().catch(undefined),
+  reminder: journalReminderSchema.optional().catch(undefined),
+  defaultTemplate: z.string().regex(/^[a-z0-9-]{1,40}$/).optional().catch(undefined),
+  versions: readable(entryVersionSchema, MAX_VERSIONS),
 });
 export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type Journal = z.infer<typeof journalSchema>;
