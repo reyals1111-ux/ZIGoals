@@ -11403,6 +11403,9 @@
             fill: CanvasText
         }
     }
+    :scope .sleep-stats dd.sleep-stat-how:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--muted, #dbdbdb) 25%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .supplements .eyebrow:not(#\-):not(#\-) {
@@ -27358,6 +27361,12 @@
     .budgets-payee-budget.is-over:not(#\-):not(#\-), .budgets-payee-budget.is-near:not(#\-):not(#\-) {
         color: inherit
     }
+    .budgets-more-tools:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
+    }
+    .budgets-more-tools>summary small:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--muted,#dadada) 25%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .debt-planner-empty:not(#\-):not(#\-) {
@@ -27507,6 +27516,9 @@
     }
     .fi-hint:not(#\-):not(#\-) {
         color: var(--text-meta,var(--muted))
+    }
+    .money-tools-group-name:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--muted,#dadada) 25%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {

@@ -2584,6 +2584,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-more-options[open] > summary:not(#\-) { margin-bottom: 3px; }
 :where(:root[data-density=compact]) .habit-filter-bar .habit-sort:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .habit-show-more:not(#\-) { margin-top: 12px; margin-bottom: 12px; }
+@container habit-card (min-width: 280px) { :root:where([data-density=compact]) .habit-card-heading:not(#\-) { row-gap: 0; } }
+@media (min-width: 1051px) { :where(:root[data-density=compact]) .habits-workspace .habit-grid > .habit-card:only-child > :is(.habit-completion, .habit-status):not(#\-) { margin-top: 0; } }
 /*  components/habits/habits.css  */
 :where(:root[data-density=compact]) .habits-workspace:not(#\-) { row-gap: 24px; }
 :where(:root[data-density=compact]) .habit-hero:not(#\-) { padding-top: 18px; padding-bottom: 18px; }
@@ -3527,6 +3529,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .sleep-wind-down-sounds p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .sleep-csv-import:not(#\-) { margin-top: 16px; }
 :where(:root[data-density=compact]) .night-dreams:not(#\-) { row-gap: 0; }
+:root:where([data-density=compact]) .sleep-nights > li > div:first-child > *:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:root:where([data-density=compact]) .sleep-nights > li > .actions:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .sleep-stat-how > details > summary.fold-summary:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .sleep-stat-how > details > small:not(#\-) { padding-bottom: 4px; }
 /*  components/health/supplements.css  */
 :where(:root[data-density=compact]) .supplements:not(#\-) { row-gap: 12px; padding-top: 6px; }
 :where(:root[data-density=compact]) .supplements h3:not(#\-), :where(:root[data-density=compact]) .supplements h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -8260,6 +8266,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .budgets-own-by legend:not(#\-), :where(:root[data-density=compact]) .budgets-own-cats legend:not(#\-) { margin-bottom: 4px; }
 :where(:root[data-density=compact]) .budgets-payee-amount:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .budgets-payee-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .budgets-more-tools:not(#\-) { padding-top: 4px; }
+:where(:root[data-density=compact]) .budgets-more-tools>summary:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .budgets-more-tools>summary>span:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .budgets-more-tools-body:not(#\-) { row-gap: 18px; padding-top: 10px; }
 /*  components/wealth/debt-planner.css  */
 :where(:root[data-density=compact]) .debt-planner:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .debt-planner h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -8348,6 +8358,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .fi-scenarios h4:not(#\-) { margin-top: 0; margin-bottom: 6px; }
 :where(:root[data-density=compact]) .fi-events li:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .fi-scenario-actions:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .money-tools-groups:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .money-tools-group:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .money-tools-group-name:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-tools-group .money-tools-buttons:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .money-tools-group .money-tools-buttons button:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
 /*  components/wealth/networth-history.css  */
 :where(:root[data-density=compact]) .networth-history:not(#\-) { row-gap: 10px; margin-top: 26px; padding-top: 20px; }
 :where(:root[data-density=compact]) .networth-history h3:not(#\-) { margin-top: 0; margin-bottom: 0; }

@@ -1822,6 +1822,7 @@
 :where(:root[data-text=large]) .sleep-nights > li > div:first-child span:not(#\-) { font-size: calc(.9375rem * 1.125); }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .sleep-stats dd:not(#\-) { font-size: calc(18px * 1.125); } }
 :where(:root[data-text=large]) .night-dreams .text-link:not(#\-) { font-size: calc(15px * 1.125); }
+:root:where([data-text=large]) .sleep-stats dd.sleep-stat-how:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/health/supplements.css  */
 :where(:root[data-text=large]) .supplements small:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/health/weight-csv-import.css  */
@@ -4136,6 +4137,7 @@
 :where(:root[data-text=large]) .budgets-year-months li:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .budgets-per-day:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .budgets-own-by legend:not(#\-), :where(:root[data-text=large]) .budgets-own-cats legend:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .budgets-more-tools>summary small:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/wealth/debt-planner.css  */
 :where(:root[data-text=large]) .debt-planner h4:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .debt-plan-date:not(#\-) { font-size: calc(18px * 1.125); }
@@ -4154,6 +4156,7 @@
 :where(:root[data-text=large]) .fi-table th small:not(#\-) { font-size: calc(12px * 1.125); }
 @media (max-width:400px) { :where(:root[data-text=large]) .fi-table:not(#\-) { font-size: calc(13px * 1.125); } }
 :where(:root[data-text=large]) .money-transfers h5:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .money-tools-group-name:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/wealth/networth-history.css  */
 :where(:root[data-text=large]) .networth-history h3:not(#\-) { font-size: calc(1.15rem * 1.125); }
 :where(:root[data-text=large]) .networth-series h4:not(#\-) { font-size: calc(.95rem * 1.125); }
