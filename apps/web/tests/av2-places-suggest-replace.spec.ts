@@ -51,13 +51,27 @@ for (const theme of THEMES) test(`${theme}: places and equipment, a suggested wo
   await expect(suggest.locator('.av2-suggest-list')).not.toContainText('Bench press');
   await expect(suggest).toContainText('not a programme');
   await expect(suggest).not.toContainText(/kcal|calorie/i);
-  const firstName = (await suggest.locator('.av2-suggest-list > li strong').first().innerText()).trim();
-  await suggest.getByRole('button', {name: `Replace ${firstName}`}).click();
-  const swap = suggest.getByRole('group', {name: `Replace ${firstName}`});
-  await expect(swap.getByRole('button').first()).toBeFocused();
-  const other = (await swap.locator('.av2-replace-list strong').first().innerText()).trim();
-  await swap.locator('.av2-replace-list button').first().click();
-  await expect(suggest.locator('.av2-suggest-list > li strong').first()).toHaveText(other);
+  // Session AV lane 2 (the first suggestion can be one Home has no other exercise for (Pull-up: its one match, the chin-up,
+  // is already suggested), and the app says so: such an exercise is checked for that sentence and kept, and the first one
+  // with similar exercises is replaced, deliberate)
+  let pick = -1, other = '';
+  for (let i = 0; i < 4 && pick < 0; i++) {
+    const name = (await suggest.locator('.av2-suggest-list > li strong').nth(i).innerText()).trim();
+    await suggest.getByRole('button', {name: `Replace ${name}`}).click();
+    const swap = suggest.getByRole('group', {name: `Replace ${name}`});
+    await expect(swap.getByRole('button').first()).toBeFocused();
+    if (await swap.locator('.av2-replace-list').count() === 0) {
+      await expect(swap).toContainText(`No similar exercise fits Home's equipment. Choose “Any place” under Places and equipment to see more, or keep ${name}.`);
+      await swap.getByRole('button', {name: `Keep ${name}`}).click();
+      await expect(swap).toHaveCount(0);
+      continue;
+    }
+    other = (await swap.locator('.av2-replace-list strong').first().innerText()).trim();
+    await swap.locator('.av2-replace-list button').first().click();
+    pick = i;
+  }
+  expect(pick).toBeGreaterThanOrEqual(0);
+  await expect(suggest.locator('.av2-suggest-list > li strong').nth(pick)).toHaveText(other);
   await expect(suggest.getByRole('button', {name: `Replace ${other}`})).toBeFocused();
   const suggestFindings = await axe(page, suggest);
   expect(suggestFindings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(suggestFindings)).toEqual([]);
@@ -67,7 +81,7 @@ for (const theme of THEMES) test(`${theme}: places and equipment, a suggested wo
   // The running workout; the picker shows only what Home has.
   const now = page.locator('#workout-now');
   await expect(now.locator('article.workouts-exercise')).toHaveCount(4);
-  await expect(now.locator('article.workouts-exercise').first().getByRole('heading')).toContainText(other);
+  await expect(now.locator('article.workouts-exercise').nth(pick).getByRole('heading')).toContainText(other);
   await now.getByRole('button', {name: '+ Add an exercise'}).click();
   const picker = now.getByRole('group', {name: 'Add an exercise'});
   await expect(picker.getByRole('combobox', {name: 'Place'})).toHaveValue(stored.places[0].id);

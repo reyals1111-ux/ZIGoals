@@ -41,6 +41,18 @@ export function voiceBaseType(mime: string): (typeof VOICE_TYPES)[number] | null
 /** "0:07", "1:00". */
 export const clockSeconds = (s: number) => { const n = Math.max(0, Math.round(s)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; };
 
+/**
+ * Session AV lane 2 (loose ends; review b1 #17): said on this window after every write to the store, so a reader that
+ * holds a count (ZIGi's and NOVA's answers, components/ai/use-ai-context.ts) reads it again.
+ */
+export const TASK_ATTACHMENTS_CHANGE = 'zigoals:task-attachments-change';
+const changed = () => { try { if (typeof window !== 'undefined') window.dispatchEvent(new Event(TASK_ATTACHMENTS_CHANGE)); } catch { /* nothing listens */ } };
+/** How many photos and voice notes the tasks carry, and on how many tasks; an orphan (its task removed) is not counted. Pure. */
+export function attachmentCounts(kept: readonly Pick<KeptAttachment, 'taskId' | 'kind' | 'orphanSince'>[]): {photos: number; voice: number; tasks: number} {
+  const live = kept.filter(a => !a.orphanSince);
+  return {photos: live.filter(a => a.kind === 'photo').length, voice: live.filter(a => a.kind === 'voice').length, tasks: new Set(live.map(a => a.taskId)).size};
+}
+
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') { reject(new Error('This browser cannot keep attachments.')); return; }
@@ -55,7 +67,7 @@ async function run<T>(mode: IDBTransactionMode, act: (store: IDBObjectStore) => 
     const t = db.transaction(TASK_ATTACHMENT_STORE, mode), req = act(t.objectStore(TASK_ATTACHMENT_STORE));
     let result: T | undefined;
     if (req) req.onsuccess = () => { result = req.result; };
-    t.oncomplete = () => { db.close(); resolve(result); };
+    t.oncomplete = () => { db.close(); resolve(result); if (mode === 'readwrite') changed(); };
     t.onerror = () => { db.close(); reject(t.error ?? new Error('The attachment was not kept.')); };
     t.onabort = () => { db.close(); reject(t.error ?? new Error('The attachment was not kept.')); };
   });

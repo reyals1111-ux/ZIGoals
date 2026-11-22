@@ -56,18 +56,26 @@ for (const theme of THEMES) test(`${theme}: the journal, money records and worko
   await expect(money).toHaveAccessibleDescription(/spending log, budgets and pay periods, bills, rules, tags/);
   await expect(workouts).toHaveAccessibleDescription(/This is Health data, so it travels only while Health sync is on\./);
   // Ticked with the keyboard: the choice is kept on this device, inside the extras' own choice.
+  // Session AV lane 2 (the boxes are disabled while the sync that the unlock starts is busy, and a choice is written after a
+  // lazy import, so the box follows it a moment later: each waits for its box to be enabled, and is clicked, then its state
+  // read, deliberate)
+  await expect(journal).toBeEnabled();
   await journal.focus();
   await page.keyboard.press('Space');
   await expect(journal).toBeChecked();
   await expect(journal).toBeFocused();
   await expect.poll(async () => (await stored(page))?.sections).toEqual({journal: true});
-  await money.check();
+  await expect(money).toBeEnabled();
+  await money.click();
+  await expect(money).toBeChecked();
   await expect.poll(async () => (await stored(page))?.sections).toEqual({journal: true, money: true});
   // "Remove … from the cloud" asks first; "Keep it" keeps focus on the control.
   await group.getByRole('button', {name: 'Remove my journal from the cloud…', exact: true}).click();
   await group.getByRole('button', {name: 'Keep it', exact: true}).click();
   await expect(group.getByRole('button', {name: 'Remove my journal from the cloud…', exact: true})).toBeFocused();
-  await money.uncheck();
+  await expect(money).toBeEnabled();
+  await money.click();
+  await expect(money).not.toBeChecked();
   await expect.poll(async () => (await stored(page))?.sections).toEqual({journal: true});
   const findings = await axe(page, extras);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);

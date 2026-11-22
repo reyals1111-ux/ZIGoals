@@ -40,9 +40,12 @@ for (const theme of THEMES) test(`${theme}: a business space kept apart`, async 
   const budgets = await openWealthSection(page, 'budgets', 'Budgets by category');
   await expect(budgets.getByRole('radiogroup', {name: 'Space'}).getByRole('radio', {name: 'Studio'})).toBeChecked();
   await budgets.getByRole('button', {name: '+ Set a monthly budget'}).click();
-  await budgets.getByLabel('Category').selectOption('Bills');
-  await budgets.getByLabel('Each month').fill('100');
-  await budgets.getByRole('button', {name: 'Save budget'}).click();
+  // Session AV lane 2 (Budgets has more forms with a Category field (watch, payee, own budgets) and more Save budget buttons:
+  // scoped to the "Set a monthly budget" form, deliberate)
+  const set = budgets.getByRole('form', {name: 'Set a monthly budget'});
+  await set.getByRole('combobox', {name: 'Category', exact: true}).selectOption('Bills');
+  await set.getByRole('textbox', {name: 'Each month', exact: true}).fill('100');
+  await set.getByRole('button', {name: 'Save budget', exact: true}).click();
   await expect.poll(async () => (await readRecord<{budgets: unknown[]}>(page, BUDGETS_BUSINESS_KEY_LITERAL))?.budgets.length).toBe(1);
   expect((await readRecord<{budgets: unknown[]}>(page, BUDGETS_KEY)).budgets).toEqual([]);
   // Back to Personal: its own entry is there, as before.

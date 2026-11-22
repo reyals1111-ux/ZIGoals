@@ -39,8 +39,14 @@ for (const theme of THEMES) test(`${theme}: a few times in any few days`, async 
   await expect(options.getByRole('checkbox', {name: /Never miss twice/})).toHaveCount(0);
   await expect(options.getByRole('checkbox', {name: /counts as skipped/})).toHaveCount(0);
   // Four in any ten: today is due again.
-  await options.getByLabel('Times', {exact: true}).selectOption('4');
-  await expect(options.getByLabel('Times', {exact: true})).toBeFocused();
+  // Session AV lane 2 (the select sits inside its label, so the label's text holds its options and an exact getByLabel never
+  // matched: the select by its role and exact name, deliberate)
+  // Session AV lane 2 (selectOption() sets the value without focusing the select, as a person's choice would: it is focused
+  // first, then the change keeps it there, deliberate)
+  const times = options.getByRole('combobox', {name: 'Times', exact: true});
+  await times.focus();
+  await times.selectOption('4');
+  await expect(times).toBeFocused();
   await expect(run.getByRole('status').filter({hasText: 'Now 4 times in any 10 days.'})).toBeVisible();
   await expect(run.locator('.habit-period-progress')).toHaveText('3 of 4 in the last 10 days');
   await expect(run.getByText('Not needed today')).toHaveCount(0);

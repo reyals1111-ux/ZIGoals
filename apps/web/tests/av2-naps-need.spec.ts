@@ -38,7 +38,8 @@ for (const theme of THEMES) test(`${theme}: naps in the balance and the curve, a
   // Today's nap on the energy curve.
   await page.locator('.energy-curve-fold > summary').click();
   const curve = page.locator('.energy-curve');
-  await expect(curve.getByText('Your nap today')).toBeVisible();
+  // Session AV lane 2 (the curve's note also says “… your nap today”: the term itself, exactly, deliberate)
+  await expect(curve.getByText('Your nap today', {exact: true})).toBeVisible();
   await expect(curve).toContainText('25 min');
   await expect(curve.getByRole('img')).toHaveAttribute('aria-label', /A small lift after today's nap, ending/);
 

@@ -8,7 +8,11 @@ import {axe, THEMES, applyTheme} from './p6-helpers';
  * the challenge is changed and stopped. Settings → Notifications lists "Meal reminders" (off by default). At 390 and
  * 1440 in Nebula, Light and Dark, axe-clean, no sideways scroll at 320. Fictional data; every /api call answers 503.
  */
+// Session AV lane 2 (missing setup: "3 more to go" needs at least three days left in the week, so the week is pinned to a
+// Monday; on a real Sunday the card rightly says the week can't reach it any more, deliberate)
+test.use({timezoneId: 'Europe/Amsterdam'});
 for (const theme of THEMES) test(`${theme}: a weekly logging challenge, a logged day, and the meal-reminder switch`, async ({page, isMobile}) => {
+  await page.clock.install({time: new Date('2026-11-23T10:00:00+01:00')});
   await offlineApi(page); await freshDevice(page);
   await applyTheme(page, theme);
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});

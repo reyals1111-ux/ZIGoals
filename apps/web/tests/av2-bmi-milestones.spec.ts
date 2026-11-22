@@ -32,7 +32,9 @@ for (const theme of THEMES) test(`${theme}: a BMI figure and weight milestones`,
   for (const w of ['overweight', 'underweight', 'obese', 'healthy weight', 'ideal weight']) expect(words).not.toContain(w);
   await panel.getByRole('radio', {name: /^Every 2 kg$/}).check();
   await panel.getByRole('button', {name: 'Turn on milestones'}).click();
-  await expect(panel.locator('.body-figures-marks li')).toHaveText([/^82 kg\s*next$/, /^80 kg$/, /^78 kg$/]);
+  // Session AV lane 2 (a mark that is not next keeps an empty note after its weight, so its text ends in a space: the weight
+  // alone, and nothing else, deliberate)
+  await expect(panel.locator('.body-figures-marks li')).toHaveText([/^82 kg\s*next$/, /^80 kg\s*$/, /^78 kg\s*$/]);
   expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)!).milestones, BODY_EXTRAS_KEY)).toMatchObject({step: '2kg', startGrams: 84_000, goalGrams: 78_000, reached: []});
   const findings = await axe(page, panel);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);

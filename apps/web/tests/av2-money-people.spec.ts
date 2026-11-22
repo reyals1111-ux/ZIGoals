@@ -22,8 +22,9 @@ for (const theme of THEMES) test(`${theme}: a shared cost, settle up, money lent
   await form.locator('summary', {hasText: 'Shared with others'}).click();
   await form.getByRole('button', {name: 'Add a person'}).click();
   await form.getByRole('button', {name: 'Add a person'}).click();
-  await form.getByLabel('Person 1').fill('Sam');
-  await form.getByLabel('Person 2').fill('Lee');
+  // Session AV lane 2 (getByLabel('Person 1') also matched the “Take person 1 off” button: the field by its role and exact name, deliberate)
+  await form.getByRole('textbox', {name: 'Person 1', exact: true}).fill('Sam');
+  await form.getByRole('textbox', {name: 'Person 2', exact: true}).fill('Lee');
   await expect(form.getByLabel('Your share (EUR)')).toHaveValue('20.00');
   await form.getByRole('button', {name: 'Keep the split'}).click();
   await expect.poll(async () => (await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).entries[0]!.share).toBe('20.00');

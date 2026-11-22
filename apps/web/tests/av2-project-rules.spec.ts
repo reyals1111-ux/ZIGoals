@@ -56,7 +56,10 @@ for (const theme of THEMES) test(`${theme}: project rules run with the change, o
   expect((await stored(page)).tasks.find(t => t.id === 'task_roses')!.doneAt).toBeUndefined();
 
   // Done by the box: the next one, a week later.
-  await page.getByRole('checkbox', {name: 'Mark “Mow the fictional lawn” done'}).check();
+  // Session AV lane 2 (click, not check(): the done row leaves the open list and the rule's next one comes in under the same
+  // name, so check() kept clicking new boxes; one click, then the stored doneAt of the one ticked, deliberate)
+  await page.getByRole('checkbox', {name: 'Mark “Mow the fictional lawn” done'}).click();
+  await expect.poll(async () => (await stored(page)).tasks.find(t => t.id === 'task_lawn')?.doneAt).toEqual(expect.any(String));
   await expect.poll(async () => (await stored(page)).tasks.filter(t => t.title === 'Mow the fictional lawn' && !t.doneAt).map(t => t.due)).toEqual(['2026-11-30']);
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

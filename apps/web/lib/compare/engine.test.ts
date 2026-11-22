@@ -95,6 +95,31 @@ describe('compare: "Does one thing go with another?" (Session AK lane S, item 2)
     expect(high.withDays).toBe(0);
     expect(high.state).toBe('pending');
   });
+  test('spending counts as Wealth → Spending does: left-out entries and transfers add nothing, a shared cost counts my share', () => {
+    // Session AV lane 2 (loose ends): the factor used to sum every expense in full.
+    const base = sources(40), start = addLocalDays(TODAY, -40);
+    const entries = Array.from({length: 40}, (_, i) => {
+      const date = addLocalDays(start, i);
+      // Even days: 60.00 paid, my share 6.00, plus a left-out 90.00 and a 200.00 card payment (transfer). Odd days: 5.00.
+      return i % 2 === 0
+        ? [{kind: 'expense', amount: '60.00', share: '6.00', currency: 'EUR', date}, {kind: 'expense', amount: '90.00', excluded: true as const, currency: 'EUR', date}, {kind: 'expense', amount: '200.00', transfer: `t${i}`, currency: 'EUR', date}]
+        : [{kind: 'expense', amount: '5.00', currency: 'EUR', date}];
+    }).flat();
+    // A currency used only by left-out entries is never the factor's currency.
+    const out = Array.from({length: 50}, () => ({kind: 'expense', amount: '1.00', excluded: true as const, currency: 'USD', date: start}));
+    const src = {...base, money: {entries: [...entries, ...out]}};
+    expect(spendBasis(src, TODAY)).toEqual({currency: 'EUR', usual: 5});
+    const r = compare(src, 'spend', 'mood', 'same', TODAY)!;
+    expect(r).toMatchObject({withDays: 20, withoutDays: 20, withValue: 5, withoutValue: 2});
+    // Above 10: only my share counts (6.00), so no day is above it; in full the even days were 350.00.
+    const ten = compare(src, 'spend', 'mood', 'same', TODAY, 10)!;
+    expect(ten.withDays).toBe(0);
+    expect(ten.state).toBe('pending');
+    // A day whose entries are all left out is a logged day without spending ("without"), not unknown.
+    const leftOutOnly = {...base, money: {entries: [...entries.filter(e => e.date !== start), {kind: 'expense', amount: '500.00', excluded: true as const, currency: 'EUR', date: start}]}};
+    const lo = compare(leftOutOnly, 'spend', 'mood', 'same', TODAY, 5.5)!;
+    expect(lo).toMatchObject({withDays: 19, withoutDays: 21});
+  });
   test('workouts, fasting and journal tags become factors from their own records', () => {
     const base = sources(40), start = addLocalDays(TODAY, -40);
     const src: CompareSources = {...base,

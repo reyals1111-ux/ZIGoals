@@ -29,7 +29,9 @@ for (const theme of THEMES) test(`${theme}: a package photo kept with a food and
   await page.getByText('Package photos (optional)', {exact: true}).click();
   const card = page.locator('#package-photos');
   await expect(card.getByLabel('Package photo')).toBeDisabled();
-  await card.getByLabel('Food', {exact: true}).selectOption({label: 'Fictional oat bar'});
+  // Session AV lane 2 (the select sits inside its label, so the label's text holds its options and an exact getByLabel never
+  // matched: the select by its role and exact name, deliberate)
+  await card.getByRole('combobox', {name: 'Food', exact: true}).selectOption({label: 'Fictional oat bar'});
   await card.getByLabel('Package photo').setInputFiles({name: 'pack.png', mimeType: 'image/png', buffer: PNG});
   await expect(card.getByRole('status')).toContainText('Package photo kept with Fictional oat bar on this device');
   const row = page.locator('.health-library-row').filter({hasText: 'Fictional oat bar'});

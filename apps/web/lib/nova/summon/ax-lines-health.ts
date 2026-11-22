@@ -16,6 +16,7 @@ import {RANGE_DAYS} from '../stage/record';
 import {durationWords} from '../widgets/words';
 import type {AxLine} from './ax-lines';
 import type {LineData, LineLang} from './lines';
+import {lineDays, nlShortDate, nlWeekDay} from './nl-dates';
 
 /**
  * Session AS (ADR-042 Part 2): the lines of Health's answer widgets, each from its widget's own selector
@@ -31,7 +32,7 @@ const exact = (domain: Domain, ask: Ask, shape: Shape, fallback: string): AxLine
   return healthAnswer(query(domain, ask, shape, params?.period ?? fallback, lang), d.health, d.workouts, d.healthDay)?.text ?? null;
 };
 const NAME: Partial<Record<Domain, string>> = {water: 'Water', steps: 'Stappen', sleep: 'Slaap', protein: 'Eiwit', workouts: 'Workouts', meditation: 'Meditatie'};
-const when = (date: string, day: string, lang: LineLang) => date === day ? say(lang, 'today', 'vandaag') : date === addLocalDays(day, -1) ? say(lang, 'yesterday', 'gisteren') : dayWords(date, day);
+const when = (date: string, day: string, lang: LineLang) => date === day ? say(lang, 'today', 'vandaag') : date === addLocalDays(day, -1) ? say(lang, 'yesterday', 'gisteren') : lang === 'nl' ? nlWeekDay(date, day) : dayWords(date, day);
 /** A calendar of one of Health's logs, as a count: the days that count, the days below a target and the days with nothing logged, said apart. */
 const days = (domain: Domain): AxLine => (params, d, lang) => {
   if (!d.health || (domain === 'workouts' && !d.workouts)) return null;
@@ -39,7 +40,7 @@ const days = (domain: Domain): AxLine => (params, d, lang) => {
   if (!track) return null;
   // Nothing logged at all: the exact layer's own words for it.
   if (!latestPoint(track, day)) return healthAnswer(query(domain, 'status', 'overview', null, lang), d.health, d.workouts, day)?.text ?? null;
-  const nl = lang === 'nl', period = widgetPeriod(params?.period, day), T = tally(track.points(period.days)), words = periodWords(period, lang, day), name = nl ? NAME[domain] ?? track.name : track.name;
+  const nl = lang === 'nl', period = widgetPeriod(params?.period, day), T = tally(track.points(period.days)), words = periodWords(period, lang, day, lineDays(lang)), name = nl ? NAME[domain] ?? track.name : track.name;
   const did = track.did[nl ? 1 : 0], not = track.not[nl ? 1 : 0], on = say(lang, 'on', 'op'), of = say(lang, 'of', 'van'), dayWord = (n: number) => nl ? (n === 1 ? 'dag' : 'dagen') : (n === 1 ? 'day' : 'days');
   const open = T.open && track.kind === 'log' ? say(lang, ' Today is still open.', ' Vandaag staat nog open.') : '';
   if (track.kind !== 'log') return `${name}: ${did} ${on} ${T.done} ${of} ${T.decided} ${dayWord(T.decided)} ${words}.`;
@@ -85,7 +86,7 @@ export const AX_HEALTH_LINES: Readonly<Record<string, AxLine>> = {
     if (!d.health) return null;
     const sleep = sleepOf(d);
     if (!sleep?.nights.length) return say(lang, 'No nights logged yet.', 'Nog geen nachten gelogd.');
-    const v = sleepStages(sleep, params?.period, d.healthDay), words = periodWords(v.period, lang, d.healthDay), a = v.average;
+    const v = sleepStages(sleep, params?.period, d.healthDay), words = periodWords(v.period, lang, d.healthDay, lineDays(lang)), a = v.average;
     if (!v.logged) return say(lang, `No night logged ${words}.`, `Geen nacht gelogd ${words}.`);
     const parts = a ? [a.deep !== null ? `${say(lang, 'deep', 'diep')} ${durationWords(a.deep)}` : '', a.rem !== null ? `REM ${durationWords(a.rem)}` : '', a.core !== null ? `${say(lang, 'core', 'kern')} ${durationWords(a.core)}` : ''].filter(Boolean).join(', ') : '';
     return say(lang, `Sleep stages: recorded for ${v.staged} of ${nights(v.logged, 'en')} ${words}.`, `Slaapfasen: vastgelegd voor ${v.staged} van ${nights(v.logged, 'nl')} ${words}.`) + (parts ? say(lang, ` A night on average: ${parts}.`, ` Gemiddeld per nacht: ${parts}.`) : '');
@@ -94,7 +95,7 @@ export const AX_HEALTH_LINES: Readonly<Record<string, AxLine>> = {
     if (!d.health) return null;
     const sleep = sleepOf(d);
     if (!sleep?.nights.length) return say(lang, 'No nights logged yet.', 'Nog geen nachten gelogd.');
-    const v = sleepTimes(sleep, params?.period, d.healthDay), words = periodWords(v.period, lang, d.healthDay);
+    const v = sleepTimes(sleep, params?.period, d.healthDay), words = periodWords(v.period, lang, d.healthDay, lineDays(lang));
     if (!v.logged || !v.bedText || !v.wakeText) return say(lang, `No night logged ${words}.`, `Geen nacht gelogd ${words}.`);
     return say(lang, `On average to bed at ${v.bedText} and up at ${v.wakeText} ${words}, over ${nights(v.logged, 'en')}.`, `Gemiddeld naar bed om ${v.bedText} en op om ${v.wakeText} ${words}, over ${nights(v.logged, 'nl')}.`);
   },
@@ -103,7 +104,7 @@ export const AX_HEALTH_LINES: Readonly<Record<string, AxLine>> = {
     const v = fastingWindows(d.fasting, now, d.healthDay), run = v.card.running, last = v.card.history[0];
     if (v.card.state === 'empty') return say(lang, 'No fast logged yet.', 'Nog geen vastenperiode gelogd.');
     const running = run ? say(lang, `A fast is running: ${run.elapsed} of ${run.targetHours} h.`, `Er loopt een vastenperiode: ${run.elapsed} van ${run.targetHours} h.`) : say(lang, 'No fast is running.', 'Er loopt geen vastenperiode.');
-    return last ? `${say(lang, `Last fast: ${last.hoursText} of a ${last.targetHours} h target, started ${last.dayText}.`, `Laatste vastenperiode: ${last.hoursText} van een doel van ${last.targetHours} h, begonnen op ${last.dayText}.`)} ${running}` : running;
+    return last ? `${say(lang, `Last fast: ${last.hoursText} of a ${last.targetHours} h target, started ${last.dayText}.`, `Laatste vastenperiode: ${last.hoursText} van een doel van ${last.targetHours} h, begonnen op ${nlShortDate(last.day, d.healthDay)}.`)} ${running}` : running;
   },
   'nutrition-gauges': (_params, d, lang) => {
     if (!d.health) return null;
@@ -129,7 +130,7 @@ export const AX_HEALTH_LINES: Readonly<Record<string, AxLine>> = {
   // Moods are read here only once the Health gate is open (the stage's `gateOpen`, checked before any line is written); a mood's note is never read.
   'mood-map': (params, d, lang) => {
     if (!d.health) return null;
-    const v = moodMap(d.health.moods?.days ?? {}, params?.period, d.healthDay), words = periodWords(v.period, lang, d.healthDay), nl = lang === 'nl';
+    const v = moodMap(d.health.moods?.days ?? {}, params?.period, d.healthDay), words = periodWords(v.period, lang, d.healthDay, lineDays(lang)), nl = lang === 'nl';
     if (!v.any) return say(lang, 'No mood kept yet.', 'Nog geen stemming bewaard.');
     if (!v.logged) return say(lang, `No mood kept ${words}.`, `Geen stemming bewaard ${words}.`);
     const most = Math.max(...v.counts), top = v.counts.flatMap((n, i) => n === most ? [(nl ? MOOD_NL : MOOD_EN)[i]!] : []).join(say(lang, ' and ', ' en '));

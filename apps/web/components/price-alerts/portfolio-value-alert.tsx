@@ -5,6 +5,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {showToast} from '../ui/undo-toast';
 import {addPortfolioAlert, checkPortfolioAlerts, newAlertId, portfolioAlertLine, removePortfolioAlert} from '../../lib/price-alerts/engine';
 import {PRICE_ALERTS} from '../../lib/price-alerts/schema';
+import {formatCurrencyAmount} from '../../lib/visual-format';
 import './price-alerts.css';
 // Session AV lane 2 (money; CoinStats' ±% portfolio alert): the whole value moving a percent from its value now.
 import {addPortfolioMove, directionWords, portfolioMoveLine, removeMove} from '../../lib/price-alerts/moves';
@@ -41,7 +42,7 @@ export default function PortfolioValueAlert({portfolioId, portfolioName, currenc
     const alert = {id: newAlertId(), portfolioId, portfolioName: portfolioName.slice(0, 100), currency, direction, value: v, createdAt: new Date().toISOString(), active: true};
     // Session AV (fresh-agent check q2, rank 35): a value already passed says so (the alert is reached at once).
     const passed = value !== null && (direction === 'above' ? Number(value) >= Number(v) : Number(value) <= Number(v));
-    try { alerts.update(r => addPortfolioAlert(r, alert)); setAmount(''); setStatus(passed ? `${portfolioName} is already ${direction} ${v} ${currency} (worth ${Number(value).toFixed(2)} ${currency} now), so this alert is reached at once.` : `Alert set: ${portfolioAlertLine(alert)}. Checked when this portfolio shows a full value, here and wherever the app checks your alerts; nothing is sent.`); }
+    try { alerts.update(r => addPortfolioAlert(r, alert)); setAmount(''); setStatus(passed ? `${portfolioName} is already ${direction} ${formatCurrencyAmount(v, currency)} (worth ${formatCurrencyAmount(Number(value).toFixed(2), currency)} now), so this alert is reached at once.` : `Alert set: ${portfolioAlertLine(alert)}. Checked when this portfolio shows a full value, here and wherever the app checks your alerts; nothing is sent.`); }
     catch (cause) { setStatus(cause instanceof Error ? cause.message : 'Not saved on this device.'); }
   };
   return <details className="price-alert-form portfolio-value-alert"><summary>Value alert{mine.some(a => a.active) || moves.some(a => a.active) ? ` (${mine.filter(a => a.active).length + moves.filter(a => a.active).length} set)` : ''}</summary>

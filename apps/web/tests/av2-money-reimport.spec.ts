@@ -22,6 +22,13 @@ async function importFile(page: Page, f: ReturnType<typeof file>): Promise<Locat
   await expect(sheet.locator('.bankfile-preview h3')).toBeVisible();
   return sheet;
 }
+// Session AV lane 2 (a bank file's import has no "Done" of its own: once it is added it says so, and the dialog's Close ends
+// it; each step checks the words and that the dialog is gone, deliberate)
+async function close(page: Page) {
+  const dialog = page.getByRole('dialog', {name: 'Import spending and income'});
+  await dialog.getByRole('button', {name: 'Close', exact: true}).click();
+  await expect(dialog).toHaveCount(0);
+}
 const CHECKING = (cafe: string) => ofx('CHECK-0001', [['20261110', '-450.00', 'C1', 'Card payment'], ['20261111', cafe, 'C2', 'Fictional Cafe']]);
 const CARD = ofx('CARD-0002', [['20261111', '450.00', 'K1', 'Payment received']]);
 
@@ -32,10 +39,12 @@ for (const theme of THEMES) test(`${theme}: a card payment across two files is o
   await page.goto('/app/wealth'); await hydrated(page);
   let sheet = await importFile(page, file('checking.ofx', CHECKING('-4.20')));
   await sheet.getByRole('button', {name: 'Add 2 to my money log', exact: true}).click();
-  await sheet.getByRole('button', {name: 'Done', exact: true}).click();
+  await expect(sheet.getByRole('status')).toContainText('2 entries added to your money log.');
+  await close(page);
   sheet = await importFile(page, file('card.ofx', CARD));
   await sheet.getByRole('button', {name: 'Add 1 to my money log', exact: true}).click();
-  await sheet.getByRole('button', {name: 'Done', exact: true}).click();
+  await expect(sheet.getByRole('status')).toContainText('1 entry added to your money log.');
+  await close(page);
   let log = await readRecord<MoneyLog>(page, MONEY_LOG_KEY);
   expect(log.entries.map(e => e.account).sort()).toEqual(['CARD-0002', 'CHECK-0001', 'CHECK-0001']);
   // To review pairs the €450 out of checking with the €450 into the card.
@@ -54,7 +63,7 @@ for (const theme of THEMES) test(`${theme}: a card payment across two files is o
   await expect(sheet.getByRole('row', {name: /Fictional Cafe.*Changed at your bank since your last import/})).toBeVisible();
   await sheet.getByRole('button', {name: 'Update 1 entry', exact: true}).click();
   await expect(sheet.locator('.bankfile-status')).toContainText("1 entry updated from the file; each change is in the entry's history.");
-  await sheet.getByRole('button', {name: 'Done', exact: true}).click();
+  await close(page);
   log = await readRecord<MoneyLog>(page, MONEY_LOG_KEY);
   const cafe = log.entries.find(e => e.note?.startsWith('Fictional Cafe'))!;
   expect(log.entries).toHaveLength(3);

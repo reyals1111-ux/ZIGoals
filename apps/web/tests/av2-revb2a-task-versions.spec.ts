@@ -23,6 +23,8 @@ test('a removed task takes its earlier versions with it; Undo brings both back',
   await page.goto('/app/settings'); await settle(page);
   await page.evaluate(([t, p]) => { localStorage.setItem('zigoals:tasks:v1', t!); localStorage.setItem('zigoals:task-plan:v1', p!); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, [JSON.stringify(seeded), JSON.stringify(plan)]);
   await page.goto('/app/tasks'); await settle(page);
+  // The two tasks have no day: they are in the Inbox (Tasks opens on Today).
+  await page.getByRole('navigation', {name: 'Task views'}).getByRole('button', {name: /^Inbox/}).click();
   await page.getByRole('button', {name: 'Remove the task “Write the fictional letter”'}).first().click();
   await expect.poll(() => versions(page)).toEqual(['tv-plants1']);
   expect(await page.evaluate(() => localStorage.getItem('zigoals:task-plan:v1'))).not.toContain('a private fictional line');
