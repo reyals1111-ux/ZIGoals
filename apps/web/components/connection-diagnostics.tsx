@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { TESTNET, formatUnits } from "@zigoals/chain-config";
 import { APP_ENVIRONMENT } from "../lib/app-environment";
-import { useVaultStatus } from "./vault-sync-controls";
+import { useVaultStatus } from "./vault-context";
 import { ACCOUNT_CHANGE, getAccountScope } from "../lib/account-session";
 import { diagnosticSummary } from "../lib/diagnostic-summary";
 import { deployment } from "../lib/deployment-config";

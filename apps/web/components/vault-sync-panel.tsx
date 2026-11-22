@@ -25,7 +25,8 @@ import {SyncSections} from './sync/section-status';
 import {ACCOUNT_CHANGE,getAccountScope,isAccountLocked} from '../lib/account-session';
 import {currentInstallContext} from '../lib/install/platform';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
-import {HEALTH_HELD_REFUSAL,HEALTH_RESTORE_ASK,HEALTH_UNVERIFIED_REFUSAL,REMEMBER_EXPIRED_NOTE,REMEMBER_LABEL,REMEMBER_NOTE,VAULT_MISSING,VAULT_OLDER,useVaultControls} from './vault-sync-controls';
+import {HEALTH_HELD_REFUSAL,HEALTH_RESTORE_ASK,HEALTH_UNVERIFIED_REFUSAL,REMEMBER_EXPIRED_NOTE,REMEMBER_LABEL,REMEMBER_NOTE,VAULT_MISSING,VAULT_OLDER} from '../lib/vault/vault-words';
+import {useVaultControls} from './vault-context';
 /** Session Z-Cloud Part 5 (A6, ADR-008 addendum): what a remembered device says after its 30 days (the provider sets the note). */
 export const REMEMBER_EXPIRED='This device remembered your account for 30 days, so it asks for the recovery secret once now. Your records on this device were not changed; tick Remember again to keep opening here without it.';
 /** Session AD item 11: what the status line says while no account is signed in on this tab (the public Alpha has none yet). */
@@ -44,7 +45,9 @@ export function VaultSyncControls(){
  // Session Y Part 5 (B4): after a Health restore the choice is the person's; the box takes the focus with the reason beside it.
  const healthAsk=c?.healthAsk;
  useEffect(()=>{if(!healthAsk)return;const frame=requestAnimationFrame(()=>consentRef.current?.focus());return()=>cancelAnimationFrame(frame);},[healthAsk]);
- if(!c)throw Error('Vault provider unavailable.');
+ // Session AV lane 2 (A45-1, TIER 3 sync): the engine loads as its own chunk as the app hydrates (vault-sync-lazy.tsx); until
+ // it has published its controls this says so for a moment, and sign-in starts only once the engine is there.
+ if(!c)return <div id="encrypted-sync" aria-busy="true"><p className="fine" role="status">Opening encrypted sync…</p></div>;
  const controls=c,finishing=!c.account&&(verifying||c.busy),healthRefused=c.error===HEALTH_HELD_REFUSAL||c.error===HEALTH_UNVERIFIED_REFUSAL,remembering=remember??installed;
  const rememberChoice=(name:string)=><><label className="checkbox" htmlFor={id+name}><input id={id+name} type="checkbox" checked={remembering} aria-describedby={id+name+'-note'} onChange={e=>setRemember(e.target.checked)}/>{REMEMBER_LABEL}</label><p className="fine" id={id+name+'-note'}>{REMEMBER_NOTE}</p></>;
  function downloadPending(){if(!controls.pendingRecovery||!pendingSaved||!controls.opened||isAccountLocked()||getAccountScope()!==controls.account)return;const url=URL.createObjectURL(new Blob([controls.pendingRecovery.file],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='zigoals-encrypted-pending-recovery-v1.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);controls.clearPendingRecovery();setPendingSaved(false);}

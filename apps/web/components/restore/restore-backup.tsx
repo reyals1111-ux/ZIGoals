@@ -5,7 +5,7 @@ import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import type {PartSummary, PlannedPart, RestoreGroup, RestoreMode} from '../../lib/restore/plan';
 import type {OpenedBackup} from '../../lib/restore/read-backup';
 import type {RestoreOutcome} from '../../lib/restore/apply';
-import {useVaultControls} from '../vault-sync-controls';
+import {useVaultControls} from '../vault-context';
 import {formatDate} from '../../lib/visual-format';
 import './restore-backup.css';
 import {plainErrorMessage} from '../../lib/plain-error';

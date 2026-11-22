@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {readDevices} from '../../lib/vault/device-unlock';
 import {SyncJournal} from '../../lib/vault/cloud-sync';
-import {useVaultStatus} from '../vault-sync-controls';
+import {useVaultStatus} from '../vault-context';
 
 /**
  * The account's Health permission, read fail-closed from what this device has persisted (ADR-012): the remembered

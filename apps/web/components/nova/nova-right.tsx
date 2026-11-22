@@ -16,7 +16,7 @@ import {factTiles, notRunningLine} from '../../lib/nova/right-facts';
 import {NOVA_STAGE} from '../../lib/nova/stage/record';
 import type {RightSection} from '../../lib/nova/store';
 import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
-import {useVaultControls, useVaultStatus} from '../vault-sync-controls';
+import {useVaultControls, useVaultStatus} from '../vault-context';
 import type {NovaPanelId} from './panels/nova-panels';
 import {useWholeRows} from './whole-rows';
 import {NovaIcon} from './icons';

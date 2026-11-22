@@ -2,7 +2,7 @@
 import {useEffect, useId, useState} from 'react';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {EXTRAS_CHOICE_KEY} from '../../lib/vault/extras-keys';
-import type {ExtrasStatus} from '../vault-sync-controls';
+import type {ExtrasStatus} from '../vault-context';
 
 /** On unless turned off on this device (owner decision, ADR-023); read without loading the sync code (also by Settings → Sync's section rows). */
 export function readExtrasChoiceNow(): {enabled: boolean; explained: boolean} {

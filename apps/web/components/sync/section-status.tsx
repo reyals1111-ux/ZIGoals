@@ -6,7 +6,7 @@ import {SyncJournal, type Domain} from '../../lib/vault/cloud-sync';
 import {portfolioSyncChosen} from '../../lib/vault/portfolio-sync';
 import {SYNC_WRITES} from '../../lib/vault/sync-writes';
 import {HEALTH_STAYS_LOCAL, SECTION_TIMES_NOTE, pendingBySection, sectionRows} from '../../lib/vault/section-status';
-import type {ExtrasStatus, SectionSync} from '../vault-sync-controls';
+import type {ExtrasStatus, SectionSync} from '../vault-context';
 import type {PortfolioStatus} from '../portfolio-sync-choice';
 import {readExtrasChoiceNow} from './extras-sync-choice';
 import './section-status.css';

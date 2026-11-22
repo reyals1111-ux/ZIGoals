@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {useEffect,useRef,useState} from 'react';
 import {syncStatus} from '../lib/sync-status/status';
 import {ACCOUNT_CHANGE,getAccountScope,isAccountLocked} from '../lib/account-session';
-import {useVaultStatus} from './vault-sync-controls';
+import {useVaultStatus} from './vault-context';
 import {useShowcase} from './showcase-controls';
 /** Account identity stays inside the app; only storage/sync state is presented. */
 export function useWorkspaceSelection(){
