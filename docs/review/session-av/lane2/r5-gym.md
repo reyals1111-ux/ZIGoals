@@ -149,3 +149,25 @@ The splits record (`zigoals:workout-splits:v1`, strict) is not touched.
   also stars the last Showcase leg day (#377's Favourites). No pinned count reads either.
 - Device keys / catalogue / export / erase: nothing new. CSS: none.
 
+## 5. Plates on one side — LEDGER #378 built
+
+- What: in a workout, under a weighted exercise, "Warm-up and plates" → "Your bar and plates" gains "Loaded on one side"
+  (a checkbox: "For a machine or a sled where every plate goes on one horn: all your plates (both of each pair) can go
+  there, and its own weight takes the bar's place.") and "The machine's or sled's own weight (kg, optional)", 0 to 500,
+  kept with the plate set. The sheet then says "Loaded on one side: the machine's own 40 kg; plates …", the heading
+  "Plates on the one side" and "20 + 20 + 20 + 10 kg on the one side, with the machine's own 40 kg." (or the nearest the
+  plates make, a tie to the lighter, the fewest plates: the same search as the bar's). The warm-up ramp rounds to what
+  the one horn loads and starts from the machine alone (left out without its own weight). Unticked, everything is as
+  before.
+- Files: `lib/workouts/one-side.ts` (new, pure), `lib/workouts/depth.ts` (`savePlates` keeps `oneSide` and `start`),
+  `components/health/workouts/workouts-tools.tsx`.
+- Tests: `lib/workouts/av2-r5-one-side.test.ts`, `lib/workouts/av2-r5-stored.test.ts`; `lib/workouts/depth.test.ts` green.
+  Spec: `tests/av2-r5-one-side.spec.ts`.
+- Stored: `oneSide` and `start` on the plate set (see the table).
+- Help (EN): **Can the plate calculator do a machine loaded on one side?** Yes. Under an exercise, open "Warm-up and
+  plates", then "Your bar and plates", tick "Loaded on one side" and type the machine's or sled's own weight. ZIGoals then
+  lists the plates for that one horn, using both plates of each pair.
+- What's new: "Workouts: the plate calculator for machines and sleds loaded on one side."
+- Search (static.ts): "single sided", "one side", "sled", "plate loaded machine" → `/app/health?view=workouts`.
+- Showcase hook: none (the Showcase keeps no plate set). Device keys: none. CSS: `gym-r5.css` (`.r5-plates-side`).
+
