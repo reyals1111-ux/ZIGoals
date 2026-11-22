@@ -126,9 +126,10 @@ export async function putTaskAttachment(scope: string, attachmentId: string, val
   if (!kept.some(a => a.id === attachmentId)) {
     // Session AV lane 2 (r5-notes; LEDGER #355): photos and voice notes, and files, each up to 10 on a task.
     if (kept.filter(a => a.taskId === clean.taskId && (a.kind === 'file') === (clean.kind === 'file')).length >= MAX_ATTACHMENTS_PER_TASK) throw new Error(clean.kind === 'file' ? `A task keeps ${MAX_ATTACHMENTS_PER_TASK} files. Remove one first.` : `A task keeps ${MAX_ATTACHMENTS_PER_TASK} photos and voice notes. Remove one first.`);
-    if (kept.length >= MAX_TASK_ATTACHMENTS) throw new Error(`At most ${MAX_TASK_ATTACHMENTS} task photos and voice notes on this device; remove one first.`);
-    // Session AV lane 2 (r5-notes; LEDGER #355): every task's files together stay under 100 MB.
+    // Session AV lane 2 (r5-notes; LEDGER #355): every task's files together stay under 100 MB (checked first for a file).
     if (clean.kind === 'file' && kept.filter(a => a.kind === 'file').reduce((n, a) => n + a.bytes, 0) + clean.bytes > TASK_FILES_MAX_TOTAL) throw new Error(`Files on tasks keep at most ${sizeWords(TASK_FILES_MAX_TOTAL)} on this device. Remove one in Tasks → Files first.`);
+    // Review b5i B5I-13: the 300 on a device count photos, voice notes and files together; a file is told so.
+    if (kept.length >= MAX_TASK_ATTACHMENTS) throw new Error(clean.kind === 'file' ? `At most ${MAX_TASK_ATTACHMENTS} photos, voice notes and files on tasks on this device. Remove one first (Tasks → Files lists the files).` : `At most ${MAX_TASK_ATTACHMENTS} task photos and voice notes on this device; remove one first.`);
   }
   await run('readwrite', s => s.put(clean, taskAttachmentKey(scope, attachmentId)));
 }
