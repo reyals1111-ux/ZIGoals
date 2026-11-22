@@ -73,6 +73,15 @@ export const restoreRace = (rec: Races, race: Race): Races => rec.races.some(r =
 
 const dayNumber = (d: string) => Math.round(Date.parse(`${d}T12:00:00Z`) / 86_400_000);
 export const weeksBetween = (a: string, b: string) => Math.floor((dayNumber(b) - dayNumber(a)) / 7);
+export const daysBetween = (a: string, b: string) => dayNumber(b) - dayNumber(a);
+/**
+ * Review B4E-8: a gap in plain words — days under a week ("6 days", never "0 weeks"), whole weeks after ("3 weeks").
+ */
+export function gapWords(days: number, lang: 'en' | 'nl' = 'en'): string {
+  if (days < 7) return lang === 'nl' ? `${days} ${days === 1 ? 'dag' : 'dagen'}` : `${days} ${days === 1 ? 'day' : 'days'}`;
+  const w = Math.floor(days / 7);
+  return lang === 'nl' ? `${w} ${w === 1 ? 'week' : 'weken'}` : `${w} ${w === 1 ? 'week' : 'weeks'}`;
+}
 export type RaceResult = {workoutId: string; km: number; seconds: number; vsGoal: number | null};
 /** The finished run on race day whose distance is within 5 % of the race's (the closest one), as the race's result. */
 export function raceResult(race: Race, w: Workouts | null): RaceResult | null {
@@ -82,11 +91,11 @@ export function raceResult(race: Race, w: Workouts | null): RaceResult | null {
   const seconds = runSeconds(best.x);
   return {workoutId: best.x.id, km: Math.round(best.km * 100) / 100, seconds, vsGoal: race.goalSeconds ? seconds - race.goalSeconds : null};
 }
-export type RaceRow = {race: Race; weeksFromToday: number; weeksAfterPrevious: number | null; result: RaceResult | null; past: boolean};
+export type RaceRow = {race: Race; weeksFromToday: number; weeksAfterPrevious: number | null; daysFromToday: number; daysAfterPrevious: number | null; result: RaceResult | null; past: boolean};
 /** The races of `today`'s year and the ones after it, in order, with the weeks to each and between them, and past results. */
 export function raceYear(rec: Races, w: Workouts | null, today: string): RaceRow[] {
   const year = today.slice(0, 4), list = rec.races.filter(r => r.date.slice(0, 4) >= year).sort((a, b) => a.date.localeCompare(b.date));
-  return list.map((race, i) => ({race, weeksFromToday: weeksBetween(today, race.date), weeksAfterPrevious: i ? weeksBetween(list[i - 1]!.date, race.date) : null, result: race.date <= today ? raceResult(race, w) : null, past: race.date < today}));
+  return list.map((race, i) => ({race, weeksFromToday: weeksBetween(today, race.date), weeksAfterPrevious: i ? weeksBetween(list[i - 1]!.date, race.date) : null, daysFromToday: daysBetween(today, race.date), daysAfterPrevious: i ? daysBetween(list[i - 1]!.date, race.date) : null, result: race.date <= today ? raceResult(race, w) : null, past: race.date < today}));
 }
 /** "2:50 under your goal", "1:05 over your goal", "right on your goal". */
 export const goalWords = (vs: number) => vs === 0 ? 'right on your goal' : `${timeText(Math.abs(vs))} ${vs < 0 ? 'under' : 'over'} your goal`;

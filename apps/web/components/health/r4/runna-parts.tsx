@@ -2,7 +2,7 @@
 import {useId, useState, type FormEvent, type ReactNode} from 'react';
 import type {Workouts} from '../../../lib/workouts/schema';
 import {clearMaxHr, MAX_HR_MAX, MAX_HR_MIN, setMaxHr, WORKOUT_HR, ZONE_EDGES, ZONE_SOURCE, zoneMinutes, zoneSeconds} from '../../../lib/workouts/hr-zones';
-import {distanceChoice, distanceWords, goalWords, RACE_DISTANCES, raceYear, RACES, removeRace, restoreRace, saveRace, timeText, type Race, type RaceDraft, type RaceIssue} from '../../../lib/workouts/races';
+import {distanceChoice, distanceWords, gapWords, goalWords, RACE_DISTANCES, raceYear, RACES, removeRace, restoreRace, saveRace, timeText, type Race, type RaceDraft, type RaceIssue} from '../../../lib/workouts/races';
 import {addCountdown, COUNTDOWNS} from '../../../lib/countdowns/schema';
 import {formatDate} from '../../../lib/visual-format';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
@@ -65,7 +65,7 @@ export function RacesAhead({w, today}: {w: Workouts; today: string}) {
     <p className="fine">Your races in one place: the weeks to each and between them, a main race or a B race, and after race day the run that matches (that day, the distance within 5 %) beside your goal time.</p>
     {rows.length ? <ul className="r4-list">{rows.map(row => { const r = row.race; return <li key={r.id}>
       <span><strong>{r.name}</strong> <small className="fine">{r.priority === 'main' ? 'Main race' : 'B race'} · {distanceWords(r.distanceKm)} · {formatDate(r.date, {weekday: true})}{r.goalSeconds ? ` · goal ${timeText(r.goalSeconds)}` : ''}</small>
-        <small className="fine">{row.past || r.date === today ? (row.result ? `Result: ${timeText(row.result.seconds)} for ${row.result.km.toLocaleString('en-US', {maximumFractionDigits: 2})} km${row.result.vsGoal !== null ? `, ${goalWords(row.result.vsGoal)}` : ''}.` : r.date === today ? 'Race day. The run you log today shows here as its result.' : 'No run that day matches its distance.') : `In ${row.weeksFromToday} ${row.weeksFromToday === 1 ? 'week' : 'weeks'}${row.weeksAfterPrevious !== null ? ` · ${row.weeksAfterPrevious} ${row.weeksAfterPrevious === 1 ? 'week' : 'weeks'} after the race before` : ''}.`}</small></span>
+        <small className="fine">{row.past || r.date === today ? (row.result ? `Result: ${timeText(row.result.seconds)} for ${row.result.km.toLocaleString('en-US', {maximumFractionDigits: 2})} km${row.result.vsGoal !== null ? `, ${goalWords(row.result.vsGoal)}` : ''}.` : r.date === today ? 'Race day. The run you log today shows here as its result.' : 'No run that day matches its distance.') : `In ${gapWords(row.daysFromToday)}${row.daysAfterPrevious !== null ? ` · ${row.daysAfterPrevious === 0 ? 'the same day as the race before' : `${gapWords(row.daysAfterPrevious)} after the race before`}` : ''}.`}</small></span>
       <span className="r4-row-actions"><button type="button" className="quiet" aria-expanded={editing === r.id} aria-label={`Edit ${r.name}`} onClick={() => setEditing(editing === r.id ? null : r.id)}>Edit</button>
         <button type="button" className="quiet" aria-label={`Remove ${r.name}`} onClick={() => { try { rec.update(c => removeRace(c, r.id)); setSaid(`${r.name} removed.`); showUndo({message: `${r.name} removed.`, undone: `${r.name} is back.`, restore: () => rec.update(c => restoreRace(c, r))}); } catch (err) { setSaid(errorText(err)); } }}>Remove</button></span>
       {editing === r.id && <RaceForm key={r.id} initial={draftOf(r)} edit onSave={(d, c) => save(d, c, r.id)} onCancel={() => setEditing(null)}/>}

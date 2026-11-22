@@ -20,7 +20,7 @@ import {weightText} from '../../health-units';
 import {freeDayShares, type CalorieWeek} from '../../health-aa/calorie-week';
 import {weekDays} from '../../health-aa/planner';
 import {zoneMinutes, zoneSeconds, ZONE_SOURCE, type WorkoutHr} from '../../workouts/hr-zones';
-import {distanceWords, goalWords, raceYear, timeText, type Races} from '../../workouts/races';
+import {distanceWords, gapWords, goalWords, raceYear, timeText, type Races} from '../../workouts/races';
 import {finished} from '../../workouts/engine';
 
 /**
@@ -149,8 +149,8 @@ function racesAnswer(a: Asked): LocalReply | null {
   if (rec === undefined) return notShared(a, 'your races', 'je wedstrijden');
   const today = a.env.healthDay, rows = rec ? raceYear(rec, ak(a).workouts ?? null, today) : [], ahead = rows.filter(r => !r.past), done = rows.filter(r => r.past && r.result).slice(-1);
   if (!ahead.length && !done.length) return answer(say(a.lang, 'No race is saved. Health → Workouts → Races ahead keeps your races, the weeks between them and each result beside your goal.', 'Er staat geen wedstrijd. Health → Workouts → Races ahead bewaart je wedstrijden, de weken ertussen en elke uitslag naast je doel.'), HEALTH_CALLS);
-  const en = ahead.map(r => `${r.race.name} (${r.race.priority === 'main' ? 'main' : 'B'}, ${distanceWords(r.race.distanceKm)}, ${dayIn('en', r.race.date, today)}, in ${r.weeksFromToday} ${r.weeksFromToday === 1 ? 'week' : 'weeks'})`);
-  const nl = ahead.map(r => `${r.race.name} (${r.race.priority === 'main' ? 'hoofdwedstrijd' : 'B'}, ${distanceWords(r.race.distanceKm).replace('Half marathon', 'halve marathon')}, ${nlDay(r.race.date, today)}, over ${r.weeksFromToday} ${r.weeksFromToday === 1 ? 'week' : 'weken'})`);
+  const en = ahead.map(r => `${r.race.name} (${r.race.priority === 'main' ? 'main' : 'B'}, ${distanceWords(r.race.distanceKm)}, ${dayIn('en', r.race.date, today)}, in ${gapWords(r.daysFromToday)})`);
+  const nl = ahead.map(r => `${r.race.name} (${r.race.priority === 'main' ? 'hoofdwedstrijd' : 'B'}, ${distanceWords(r.race.distanceKm).replace('Half marathon', 'halve marathon')}, ${nlDay(r.race.date, today)}, over ${gapWords(r.daysFromToday, 'nl')})`);
   const last = done[0], res = last?.result;
   const enLast = last && res ? ` Last: ${last.race.name}, ${timeText(res.seconds)}${res.vsGoal !== null ? `, ${goalWords(res.vsGoal)}` : ''}.` : '';
   const nlLast = last && res ? ` Laatste: ${last.race.name}, ${timeText(res.seconds)}${res.vsGoal !== null ? `, ${timeText(Math.abs(res.vsGoal))} ${res.vsGoal <= 0 ? 'onder' : 'boven'} je doel` : ''}.` : '';

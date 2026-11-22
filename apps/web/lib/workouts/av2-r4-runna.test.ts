@@ -4,7 +4,7 @@ import {nextValue, planParts} from '../restore/plan';
 import {readWorkoutFile} from './import-file';
 import {miniXmlParser} from './mini-xml';
 import {clearMaxHr, emptyWorkoutHr, hrHistogram, setMaxHr, WORKOUT_HR_KEY, withHr, withoutHr, workoutHrSchema, zoneRanges, zoneSeconds, zoneMinutes} from './hr-zones';
-import {distanceChoice, emptyRaces, goalWords, raceResult, RACES_KEY, racesSchema, raceYear, readTime, removeRace, restoreRace, saveRace, timeText, weeksBetween, type RaceDraft} from './races';
+import {distanceChoice, emptyRaces, gapWords, goalWords, raceResult, RACES_KEY, racesSchema, raceYear, readTime, removeRace, restoreRace, saveRace, timeText, weeksBetween, type RaceDraft} from './races';
 import {emptyWorkouts, type Workouts} from './schema';
 
 /** Session AV lane 2, round 4 (health; Runna, LEDGER #336, #337): heart-rate zones from your own maximum, races ahead. */
@@ -107,4 +107,12 @@ describe('races ahead (LEDGER #337)', () => {
     expect(distanceChoice(true, '10')).toBe('own');
     expect(distanceChoice(true, '5')).toBe('own');
   });
+  // Session AV lane 2 (review B4E-8): under a week the gap is said in days, never "0 weeks".
+  test('a race under a week ahead reads in days', () => {
+    expect(gapWords(6)).toBe('6 days'); expect(gapWords(1)).toBe('1 day'); expect(gapWords(7)).toBe('1 week'); expect(gapWords(20)).toBe('2 weeks');
+    expect(gapWords(3, 'nl')).toBe('3 dagen'); expect(gapWords(14, 'nl')).toBe('2 weken');
+    const out = saveRace(emptyRaces(), draft({date: '2026-11-26'}), 'race-1', NOW); if (!out.ok) throw new Error('fixture');
+    expect(raceYear(out.value, null, TODAY)[0]).toMatchObject({daysFromToday: 6, weeksFromToday: 0});
+  });
 });
+
