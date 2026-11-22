@@ -3093,6 +3093,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .health-meal-name-row:not(#\-) { margin-top: 9px; }
 :where(:root[data-density=compact]) .health-extra-empty:not(#\-), :where(:root[data-density=compact]) .health-meal-empty:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .health-extra-empty p:not(#\-), :where(:root[data-density=compact]) .health-meal-empty p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:root:where([data-density=compact]) .health-meal > .health-meal-empty:not(#\-) { row-gap: 4px; padding-top: 0; padding-bottom: 0; }
+:root:where([data-density=compact]) .health-meal:has(> .health-meal-empty):not(:has(.meal-words-list)) > .health-section-heading:not(#\-) { margin-bottom: 3px; }
 :where(:root[data-density=compact]) .health-page .health-checked:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .health-page .health-checked > .field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .health-page .health-editing-banner:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 12px; padding-top: 10px; padding-bottom: 10px; }
@@ -7716,10 +7718,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .tasks-layout:not(#\-) { row-gap: 18px; }
 :where(:root[data-density=compact]) .tasks-nav:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .tasks-nav ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 1.5px; }
-@media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav:not(#\-) { row-gap: 2px; } }
-@media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav ul:not(#\-) { row-gap: 4.5px; } }
+@media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav:not(#\-) { row-gap: 0; } }
+@media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav ul:not(#\-) { row-gap: 3px; } }
 @media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav .tasks-nav-item:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; } }
-@media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav h3:not(#\-) { margin-top: 8px; margin-bottom: 2px; } }
+@media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav h3:not(#\-) { margin-top: 6px; margin-bottom: 2px; } }
+@media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav .tasks-nav-area h4:not(#\-) { margin-top: 4px; margin-bottom: 2px; } }
+@media (min-width: 701px) and (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout .tasks-smart-add > .tasks-smart-help:not(#\-) { margin-bottom: 12px; } }
 :where(:root[data-density=compact]) .tasks-nav h3:not(#\-) { margin-top: 12px; margin-bottom: 2px; }
 :where(:root[data-density=compact]) .tasks-nav-item:not(#\-) { row-gap: 6px; padding-top: 4.5px; padding-bottom: 4.5px; }
 :where(:root[data-density=compact]) .tasks-nav-add:not(#\-) { row-gap: 8px; }
