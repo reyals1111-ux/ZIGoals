@@ -21,7 +21,9 @@ for (const theme of THEMES) test(`${theme}: turn on the slow left-right sound, s
   // Opt-in: off until ticked.
   await expect(box).not.toBeChecked();
   expect((await stored<{calm?: unknown}>(page, HABIT_EXTRAS_KEY))?.calm).toBeUndefined();
-  await box.check();
+  // Session AV lane 2 (the choice is saved before the controlled input follows it, so check() reads it too early: click, then the state, deliberate)
+  await box.click();
+  await expect(box).toBeChecked();
   await expect(page.getByText('Saved: the slow left-right sound at volume 40. It plays from your next session.')).toBeVisible();
   await expect(box).toBeFocused();
   const volume = page.getByRole('slider', {name: /^Volume of the sound/});
@@ -58,7 +60,9 @@ test('turned off again, it is gone from the record and from the sitting', async 
   await sum(page, 'Behind your sitting: a calm visual').click();
   const box = page.getByRole('checkbox', {name: /^Play a soft sound/});
   await expect(box).toBeChecked();
-  await box.uncheck();
+  // Session AV lane 2 (the choice is saved before the controlled input follows it, so check() reads it too early: click, then the state, deliberate)
+  await box.click();
+  await expect(box).not.toBeChecked();
   await expect(page.getByText('Saved: no sound. Sessions stay as quiet as your bells.')).toBeVisible();
   expect((await stored<{calm?: unknown}>(page, HABIT_EXTRAS_KEY)).calm).toBeUndefined();
   await page.getByRole('form', {name: 'Begin a session'}).getByRole('button', {name: 'Begin', exact: true}).click();
