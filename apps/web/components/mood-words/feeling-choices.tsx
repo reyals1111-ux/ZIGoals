@@ -5,6 +5,7 @@ import {nextStepFor, quadrantOfWord, walkHabit, type QuadrantId} from '../../lib
 import {strategiesFor, type Strategy} from '../../lib/mood-words/strategies';
 import {useHabits} from '../habits/use-habits';
 import {Suspense, lazy} from 'react';
+import {LoadBoundary} from '../load-boundary';
 // Session AV lane 2, round 6 (r6-body; LEDGER #412, #416): on an unpleasant word, the person's own "What lifts you" first,
 // and a link to their own "On a low day" page; its own chunk.
 const Lifts = lazy(() => import('../health/r6/lifts'));
@@ -20,9 +21,9 @@ const BringUpAdd = lazy(() => import('../health/r6/bring-up-add'));
 export default function FeelingChoices({word, quadrant, day}: {word: string; quadrant: QuadrantId | null; /** Session AV lane 2, round 6 (LEDGER #417): the check-in's day. */ day?: string}) {
   const q = quadrantOfWord(word)?.id ?? quadrant, unpleasant = !!q && q.endsWith('unpleasant');
   return <>
-    {unpleasant && <Suspense fallback={null}><Lifts lowDay/></Suspense>}
+    {unpleasant && <LoadBoundary quiet><Suspense fallback={null}><Lifts lowDay/></Suspense></LoadBoundary>}
     {nextStepFor(word) === 'walk' ? <WithWalk word={word} quadrant={quadrant}/> : <Choices list={strategiesFor(word, quadrant)} word={word}/>}
-    {day && <p className="mood-words-bring-up"><Suspense fallback={null}><BringUpAdd text={`Felt ${word}`} from="checkin" day={day} className="text-link"/></Suspense></p>}
+    {day && <p className="mood-words-bring-up"><LoadBoundary quiet><Suspense fallback={null}><BringUpAdd text={`Felt ${word}`} from="checkin" day={day} className="text-link"/></Suspense></LoadBoundary></p>}
   </>;
 }
 function WithWalk({word, quadrant}: {word: string; quadrant: QuadrantId | null}) {

@@ -1,5 +1,6 @@
 'use client';
 import {Suspense, lazy, useId, useMemo, useState} from 'react';
+import {LoadBoundary} from '../../load-boundary';
 import {exerciseHistory} from '../../../lib/workouts/engine';
 import {howToOf, muscleList} from '../../../lib/workouts/howto';
 import {searchExercises, type LibraryExercise} from '../../../lib/workouts/library';
@@ -61,7 +62,7 @@ export function ExerciseDetail({exercise, w, unit, change, compact = false}: {ex
       {h ? <p>{[h.bestWeightKg !== null ? `Heaviest ${weightShown(h.bestWeightKg, unit)}` : null, h.bestOneRepMaxKg !== null ? `estimated one-rep max ${estimateShown(h.bestOneRepMaxKg, unit)}` : null, h.mostReps !== null && h.measure !== 'weight-reps' ? `most reps ${h.mostReps}` : null,
         h.longestSeconds !== null ? `longest ${clock(h.longestSeconds)}` : null, h.farthestKm !== null ? `farthest ${formatNumber(h.farthestKm, {maximumFractionDigits: 2})} km` : null, `${h.sessions.length} ${h.sessions.length === 1 ? 'session' : 'sessions'}, the last ${formatDate(h.sessions[0]!.date)}`].filter(Boolean).join(' · ')}.</p>
         : <p className="fine">Not in your log yet. Your best shows here after the first workout with it.</p>}
-      <Suspense fallback={null}><ExerciseOwn exercise={exercise} w={w} unit={unit} change={change}/></Suspense>
+      <LoadBoundary quiet><Suspense fallback={null}><ExerciseOwn exercise={exercise} w={w} unit={unit} change={change}/></Suspense></LoadBoundary>
     </div>}
     <form className="av2-pin" onSubmit={e => { e.preventDefault(); change(x => setPinnedNote(x, exercise.id, draft), draft.trim() ? `Note pinned to ${exercise.name}: it shows every time you do it.` : `The pinned note of ${exercise.name} is removed.`); }}>
       <label className="field"><span>Pinned note for {exercise.name} (shown every time you do it)</span><textarea rows={2} maxLength={500} value={draft} onChange={e => setDraft(e.target.value)} placeholder="Seat at notch 4, wide grip…"/></label>

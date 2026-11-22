@@ -1,5 +1,6 @@
 'use client';
 import {Suspense, lazy, useId, useRef, useState, type FormEvent, type KeyboardEvent} from 'react';
+import {LoadBoundary} from '../load-boundary';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL, MAX_TEXT, OWN_TITLE_MAX, type JournalEntry} from '../../lib/journal/schema';
 import {bookOf, booksOf, moveEntry} from '../../lib/journal/books';
@@ -75,7 +76,7 @@ export default function EntryMore({entry, day}: {entry: JournalEntry; day: strin
   return <div className="journal-entry-more-body" ref={box}>
     <div className="journal-entry-more-actions">
       <button type="button" className="secondary" data-part="edit" aria-expanded={part === 'edit'} onClick={() => { setText(entry.text); setProblem(''); setPart(part === 'edit' ? null : 'edit'); }}>Edit the words</button>
-      <Suspense fallback={null}><BringUpAdd text={entry.text} from="journal" day={entry.date}/></Suspense>
+      <LoadBoundary quiet><Suspense fallback={null}><BringUpAdd text={entry.text} from="journal" day={entry.date}/></Suspense></LoadBoundary>
       <button type="button" className="quiet" data-part="template" aria-expanded={part === 'template'} onClick={() => { setTitle(suggestedTitle(entry.text)); setProblem(''); setPart(part === 'template' ? null : 'template'); }}>Save as a template</button>
       {/* Session AV lane 2 (r3-notes; LEDGER #265): every answer to the prompt this entry began from. */}
       {entry.template && <button type="button" className="quiet" onClick={() => { try { window.history.pushState(null, '', `/app/journal?prompt=${entry.template}`); } catch { /* the event is enough */ } window.dispatchEvent(new PopStateEvent('popstate')); }}>Every answer to this prompt</button>}
