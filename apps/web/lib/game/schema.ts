@@ -28,6 +28,8 @@ export const gameSchema = z.looseObject({
    * toward the level (lib/game/xp.ts countedXp); badges, history and freezes are kept. A later build's fields survive.
    */
   rebirth: z.looseObject({from: day, times: z.number().int().min(1).max(999)}).optional().catch(undefined),
+  /** Session AV lane 2 (LEDGER #55; `TIER 3 (stored format)`, additive): false hides the monthly theme (absent: shown with the layer). */
+  monthTheme: z.boolean().optional().catch(undefined),
 });
 export type GameRecord = z.infer<typeof gameSchema>;
 export const emptyGame = (): GameRecord => ({version: 1, enabled: false});
@@ -52,3 +54,6 @@ export const startAgain = (g: GameRecord, today: string): GameRecord =>
   gameSchema.parse({...g, levelSeen: 1, rebirth: {...(g.rebirth ?? {}), from: day.parse(today), times: Math.min(999, (g.rebirth?.times ?? 0) + 1)}});
 /** The day a rebirth started counting from, or null. */
 export const rebirthFrom = (g: GameRecord | null | undefined): string | null => g?.rebirth?.from ?? null;
+/** Session AV lane 2 (LEDGER #55): the monthly theme shown (with the game layer) or hidden. */
+export const setMonthTheme = (g: GameRecord, on: boolean): GameRecord => { const {monthTheme: _m, ...rest} = g; void _m; return gameSchema.parse(on ? rest : {...rest, monthTheme: false}); };
+export const monthThemeShown = (g: GameRecord | null | undefined): boolean => !!g && g.enabled && g.monthTheme !== false;
