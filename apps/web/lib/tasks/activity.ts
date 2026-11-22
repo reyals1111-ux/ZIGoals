@@ -23,7 +23,8 @@ export function getTaskActivities(record: Tasks | null | undefined, dayOf: (iso:
       if (c.at === t.doneAt) continue;
       out.push({id: `task-done:${t.id}:${c.at}`, category: 'TASK', title: t.title, detail: `Done${c.due ? ` · was due ${formatDate(c.due)}` : ''} · repeats`, at: c.at, day: dayOf(c.at), href, source: 'Marked by you'});
     }
-    if (t.doneAt) out.push({id: `task-done:${t.id}`, category: 'TASK', title: t.title, detail: `Done${t.due ? ` · was due ${formatDate(t.due)}` : ''}`, at: t.doneAt, day: dayOf(t.doneAt), href, source: 'Marked by you'});
+    // Session AV lane 2 (r5-plan, LEDGER #350): a cancelled task says so, never "Done".
+    if (t.doneAt) out.push({id: `task-done:${t.id}`, category: 'TASK', title: t.title, detail: `${t.state?.kind === 'cancelled' ? 'Cancelled' : 'Done'}${t.due ? ` · was due ${formatDate(t.due)}` : ''}`, at: t.doneAt, day: dayOf(t.doneAt), href, source: 'Marked by you'});
   }
   return out.sort((a, b) => b.at.localeCompare(a.at));
 }

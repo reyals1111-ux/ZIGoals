@@ -72,6 +72,9 @@ const ProjectSetup = lazy(() => import('./project-setup'));
 const AtRiskLine = lazy(() => import('./at-risk-line'));
 // Session AV lane 2 (r5-notes; LEDGER #355, Akiflow): every task's files, and a file dropped on Tasks, in their own chunk.
 const FilesView = lazy(() => import('./task-files').then(m => ({default: m.FilesView})));
+// Session AV lane 2 (r5-plan, LEDGER #349, #352): a week or a month without a day (Upcoming) and an earlier finish changed (Completed), each its own chunk.
+const PlanBuckets = lazy(() => import('./plan-buckets'));
+const OccurrenceEdit = lazy(() => import('./occurrence-edit'));
 const AREA_KEY = 'zigoals:task-area';
 const PLAN_KINDS = new Set<TaskView['kind']>(['week', 'table', 'days', 'timeline', 'insights', 'organise']);
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
@@ -332,10 +335,10 @@ export function TasksPage() {
     // Session AV (1c, q1 #6, fresh-agent review): the view's title already says "Completed"; this part says only the count.
     body = <section className="tasks-completed" aria-labelledby="tasks-done-title">
       <p id="tasks-done-title" className="tasks-done-count">{log.length ? `${plural(log.length, 'finish', 'finishes')} in the last 30 days` : 'Finished in the last 30 days'}</p>
-      {log.length > 0 ? <LoadBoundary quiet><Suspense fallback={null}><DoneChart log={log} today={today} doneDay={list.doneDay}/></Suspense></LoadBoundary> : <p className="fine">When you finish tasks, this view shows how many per day and per week, from the last 30 days.</p>}
+      {log.length > 0 ? <LoadBoundary quiet><Suspense fallback={null}><DoneChart log={log.filter(e => !e.cancelled) /* Session AV lane 2 (r5-plan, LEDGER #350): a cancelled task is not a finish */} today={today} doneDay={list.doneDay}/></Suspense></LoadBoundary> : <p className="fine">When you finish tasks, this view shows how many per day and per week, from the last 30 days.</p>}
       {recent.length > 0 && <p className="tasks-bulk-inline"><button type="button" className="secondary" onClick={() => list.change(clearDone, `Cleared ${plural(record.tasks.filter(t => t.doneAt).length, 'finished task')}.`, 'Finished tasks put back.')}>Clear done ({formatNumber(record.tasks.filter(t => t.doneAt).length)})</button></p>}
       {log.length ? <ul className="tasks-list" aria-label="Completed">{log.slice(0, 200).map(e => e.occurrence
-        ? <li key={`${e.task.id}@${e.at}`} className="task task-finished task-occurrence"><span className="task-done" aria-hidden="true">✓</span><span className="task-title" dir="auto">{e.task.title}</span><span className="task-meta"><span>Done {formatDate(e.at, {year: false})} · repeats, next {e.task.due ? formatDate(e.task.due, {weekday: true, year: false}) : '—'}</span></span></li>
+        ? <li key={`${e.task.id}@${e.at}`} className="task task-finished task-occurrence"><span className="task-done" aria-hidden="true">✓</span><span className="task-title" dir="auto">{e.task.title}</span><span className="task-meta"><span>Done {formatDate(e.at, {year: false})} · repeats, next {e.task.due ? formatDate(e.task.due, {weekday: true, year: false}) : '—'}</span></span><span className="task-actions"><LoadBoundary quiet><Suspense fallback={null}><OccurrenceEdit task={e.task} at={e.at} today={today} doneDay={list.doneDay} /></Suspense></LoadBoundary></span></li>
         : row(e.task))}</ul> : <p className="fine">Nothing finished in the last 30 days.</p>}
       {older > 0 && <p className="fine" role="note">{older === 1 ? '1 finish' : `${formatNumber(older)} finishes`} older than 30 days {older === 1 ? 'is' : 'are'} not listed; {older === 1 ? 'it leaves' : 'they leave'} this device’s list at the next change.</p>}
       <p className="fine">Finished tasks are kept 30 days, then they leave this device’s list (export them as CSV first to keep a copy). Tick one again to open it.</p>
@@ -360,15 +363,18 @@ export function TasksPage() {
     const days = Array.from({length: 14}, (_, i) => addLocalDays(today, i));
     // Session AV (1c, q1 #15, fresh-agent review; Things): a deadline shows on its own day too, ahead of time.
     const deadlinesOn = (d: string) => record.tasks.filter(t => !t.doneAt && !t.parentId && t.deadline === d && t.due !== d);
-    body = <>{record.tasks.some(t => t.deadline && !t.doneAt) && <LoadBoundary quiet><Suspense fallback={null}><AtRiskLine record={record} today={today} clock={clock} /></Suspense></LoadBoundary>}{days.map(d => { const items = shown.filter(t => t.due === d), due = deadlinesOn(d), name = d === today ? 'Today' : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false}); if (!items.length && !due.length) return null;
+    body = <>{record.tasks.some(t => t.plan && !t.doneAt && !t.due) && <LoadBoundary quiet><Suspense fallback={null}><PlanBuckets record={record} today={today} row={row} quiet={list.quiet} /></Suspense></LoadBoundary>}{record.tasks.some(t => t.deadline && !t.doneAt) && <LoadBoundary quiet><Suspense fallback={null}><AtRiskLine record={record} today={today} clock={clock} /></Suspense></LoadBoundary>}{days.map(d => { const items = shown.filter(t => t.due === d), due = deadlinesOn(d), name = d === today ? 'Today' : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false}); if (!items.length && !due.length) return null;
       const load = dayLoadWords(viewLoad(items)); /* Session AV lane 2 (q1 #39 Minor; Sunsama): the load of each day */
       return <Fragment key={d}>{items.length ? group(d, name, items, load ? <small className="fine tasks-day-load">{load}</small> : undefined) : <div className="tasks-group" data-state={d}><h3>{name}</h3></div>}{due.length > 0 && <p className="fine tasks-deadline-line"><span aria-hidden="true">⚑ </span>Deadline: {due.map((t, i) => <span key={t.id}>{i ? ' · ' : ''}<span dir="auto">{t.title}</span></span>)}</p>}</Fragment>; })}
       {group('later', 'Later', shown.filter(t => t.due! > days.at(-1)!))}</>;
   } else if (view.kind === 'inbox' && !query) {
     body = group('inbox', null, shown);
   } else {
-    const mine = view.kind === 'today' && !query ? shown.filter(t => picked.has(t.id)) : [], rest = mine.length ? shown.filter(t => !picked.has(t.id)) : shown;
-    body = <>{mine.length > 0 && group('myday', 'My Day', mine, <small className="fine tasks-day-load">picked for today; each keeps its own day</small>)}{STATE_GROUPS.map(g => group(g.state, g.title, rest.filter(t => taskState(t, today, clock) === g.state)))}</>;
+    // Session AV lane 2 (r5-plan, LEDGER #350; Logseq's DOING): the tasks being done come first in Today, as their own group.
+    const doing = view.kind === 'today' && !query ? shown.filter(t => t.state?.kind === 'doing') : [];
+    const notDoing = doing.length ? shown.filter(t => t.state?.kind !== 'doing') : shown;
+    const mine = view.kind === 'today' && !query ? notDoing.filter(t => picked.has(t.id)) : [], rest = mine.length ? notDoing.filter(t => !picked.has(t.id)) : notDoing;
+    body = <>{doing.length > 0 && group('doing', 'Doing', doing)}{mine.length > 0 && group('myday', 'My Day', mine, <small className="fine tasks-day-load">picked for today; each keeps its own day</small>)}{STATE_GROUPS.map(g => group(g.state, g.title, rest.filter(t => taskState(t, today, clock) === g.state)))}</>;
   }
   const title = viewTitle(view, record);
   const empty = view.kind !== 'completed' && !own && shown.length === 0 && !tasks.unreadable;

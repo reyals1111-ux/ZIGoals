@@ -26,13 +26,13 @@ export default function AgendaExport({input, tasks = null, hidden, view, viewFro
   const [from, to] = range === 'view' ? [viewFrom, viewTo] : [today, addLocalDays(today, range === 'next30' ? 29 : 59)];
   const items = useMemo(() => buildAgenda(input, from, to).flatMap(d => d.items), [input, from, to]);
   const [withTasks, setWithTasks] = useState(true);
-  const taskEvents = useMemo(() => tasks ? openTasks(tasks, today).filter(t => t.due && t.due >= from && t.due <= to).map(t => ({id: `task:${t.id}:${t.due}`, date: t.due!, time: t.time ?? null, minutes: t.time ? 30 : 0, title: t.title, detail: 'Task'})) : [], [tasks, today, from, to]);
+  const taskEvents = useMemo(() => tasks ? openTasks(tasks, today).filter(t => t.due && t.due >= from && t.due <= to).map(t => ({id: `task:${t.id}:${t.due}`, date: t.due!, time: t.time ?? null, minutes: t.time ? 30 : 0, title: t.title, detail: 'Task', ...(t.place ? {location: t.place} : {}) /* Session AV lane 2 (r5-plan, LEDGER #354) */})) : [], [tasks, today, from, to]);
   const picked = [...items.filter(i => chosen.has(i.source)), ...(withTasks ? taskEvents : [])];
   const count = (s: AgendaSource) => items.filter(i => i.source === s).length;
   // Security review F10 (R1-F3): a Showcase file marks every event, since a calendar app ignores the file's own name.
   const download = () => {
     try {
-      const ics = buildIcs(picked.map(i => ({id: i.id, date: i.date, time: i.time, minutes: i.minutes, summary: showcase ? `Example · ${i.title}` : i.title, ...(details && i.detail ? {description: i.detail} : {})})), {stamp: new Date(), name: showcase ? 'ZIGoals agenda (Example)' : 'ZIGoals agenda'});
+      const ics = buildIcs(picked.map(i => ({id: i.id, date: i.date, time: i.time, minutes: i.minutes, summary: showcase ? `Example · ${i.title}` : i.title, ...(details && i.detail ? {description: i.detail} : {}), ...('location' in i && typeof i.location === 'string' ? {location: i.location} : {})})), {stamp: new Date(), name: showcase ? 'ZIGoals agenda (Example)' : 'ZIGoals agenda'});
       const name = exportFileName(`zigoals-agenda-${from}-to-${to}.ics`, showcase);
       const url = URL.createObjectURL(new Blob([ics], {type: 'text/calendar;charset=utf-8'})), link = document.createElement('a');
       link.href = url; link.download = name; document.body.append(link); link.click(); link.remove();
@@ -52,7 +52,7 @@ export default function AgendaExport({input, tasks = null, hidden, view, viewFro
       {AGENDA_SOURCES.map(s => <label key={s} className="agenda-check" data-pillar={s}><input type="checkbox" checked={chosen.has(s)} onChange={e => setChosen(c => { const next = new Set(c); if (e.target.checked) next.add(s); else next.delete(s); return next; })} /><span>{SOURCE_LABEL[s]}</span><small>{formatNumber(count(s))}</small></label>)}
       <label className="agenda-check"><input type="checkbox" checked={details} onChange={e => setDetails(e.target.checked)} /><span>Add each item’s detail line (for example “Monthly bill due”)</span></label>
     </fieldset>
-    <p className="agenda-export-sum">{picked.length ? `${plural(picked.length, 'event')}: titles and days, with a time where an item has one${details ? ', and their detail lines' : ''}. Nothing else about you is in the file.` : 'Nothing to export with these choices.'}</p>
+    <p className="agenda-export-sum">{picked.length ? `${plural(picked.length, 'event')}: titles and days, with a time where an item has one, a task’s place where it has one${details ? ', and their detail lines' : ''}. Nothing else about you is in the file.` : 'Nothing to export with these choices.'}</p>
     <div className="agenda-export-actions">
       <button type="button" className="primary" disabled={!picked.length} onClick={download}>Download .ics</button>
       <button type="button" className="quiet" onClick={onClose}>Close</button>

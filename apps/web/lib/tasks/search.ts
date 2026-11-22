@@ -12,6 +12,7 @@ import {taskState} from './engine';
  * - `#Home` a project, `@bills` a label, `p1`…`p4` (or `priority:high|medium|normal|low`), `goal:` a linked goal key;
  * - days: `today`, `tomorrow`, `overdue`, `no date`, `due:today`, `due:tomorrow`, `due:week` (the next 7 days),
  *   `due:2026-12-05`, `due before:2026-12-05`, `due after:…`; `recurring`, `subtask`, `done`;
+ * - Session AV lane 2 (r5-plan): `doing`, `cancelled`, `plan:week`, `plan:month` (a week or a month without a day);
  * - `&` / `and` between terms (also plain spaces), `|` / `or` between groups, `!` or `-` before a term negates it.
  */
 type Pred = (t: Task) => boolean;
@@ -49,6 +50,10 @@ function term(raw: string, ctx: TaskSearchContext, record: Tasks): Pred | null {
     if (low === 'subtask' || low === 'subtasks') return t => !!t.parentId;
     if (low === 'done' || low === 'completed') return t => !!t.doneAt;
     if (low === 'open') return t => !t.doneAt;
+    // Session AV lane 2 (r5-plan, LEDGER #350, #349): Doing, Cancelled, and a week or a month without a day.
+    if (low === 'doing') return t => !t.doneAt && t.state?.kind === 'doing';
+    if (low === 'cancelled' || low === 'canceled') return t => !!t.doneAt && t.state?.kind === 'cancelled';
+    const pl = /^plan:(week|month)$/.exec(low); if (pl) return t => !t.doneAt && !t.due && t.plan?.kind === pl[1];
     return t => fold(`${t.title} ${t.notes ?? ''}`).includes(low);
   })();
   return negate ? t => !pred(t) : pred;
@@ -70,12 +75,12 @@ export function parseQuery(query: string): string[][] {
 export function matchTasks(record: Tasks, query: string, ctx: TaskSearchContext): Task[] {
   const groups = parseQuery(query);
   if (!groups.length) return [];
-  const wantsDone = groups.some(g => g.some(w => /^(done|completed)$/i.test(w)));
+  const wantsDone = groups.some(g => g.some(w => /^(done|completed|cancelled|canceled)$/i.test(w)));
   const preds = groups.map(g => g.map(w => term(w, ctx, record)).filter((p): p is Pred => !!p));
   return record.tasks.filter(t => (wantsDone || !t.doneAt) && preds.some(group => group.length > 0 && group.every(p => p(t))));
 }
 /** Whether a query uses an operator (so a search page can say "Tasks matching p1 & today"). */
-export const hasOperator = (query: string) => /(^|\s)([#@!]|p[1-4]\b|due:|priority:|goal:|today\b|overdue\b|tomorrow\b|no date\b|recurring\b)|[&|]/i.test(query);
+export const hasOperator = (query: string) => /(^|\s)([#@!]|p[1-4]\b|due:|priority:|goal:|today\b|overdue\b|tomorrow\b|no date\b|recurring\b|doing\b|cancell?ed\b|plan:)|[&|]/i.test(query);
 
 export type TaskSearchHit = {id: string; title: string; detail: string; href: string};
 /**

@@ -5,6 +5,7 @@ import {formatClock, formatDate, formatNumber} from '../../lib/visual-format';
 import {MOVE_TIMES, hourRows, movable, timedLoad, untimedOthers, untimedTasks} from '../../lib/agenda/hour-grid';
 import type {DayItem, DayWithExtras, TaskAgendaItem} from '../../lib/agenda/time-items';
 import {CountdownsOnDay} from '../countdowns/countdowns-on-day';
+import {BlockRow, EventTravel, TravelRow, ZoneClock, ZonePicker, useHourR5, type HourR5} from './hour-grid-r5';
 import './agenda-hour-grid.css';
 
 /**
@@ -21,6 +22,8 @@ type Props = {day: DayWithExtras; today: string; onMove: (taskId: string, date: 
 
 export default function AgendaHourGrid({day, today, onMove, onTick}: Props) {
   const id = useId(), rows = hourRows(day), waiting = untimedTasks(day), others = untimedOthers(day), load = timedLoad(day);
+  // Session AV lane 2 (r5-plan, LEDGER #348, #353, #357): time blocks, travel before an item, a second zone.
+  const r5 = useHourR5(day.date, day.items);
   const [over, setOver] = useState<number | null>(null);
   const drop = (hour: number, clock: string) => ({
     onDragOver: (e: DragEvent<HTMLLIElement>) => { if (e.dataTransfer.types.includes(DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setOver(hour); } },
@@ -30,19 +33,20 @@ export default function AgendaHourGrid({day, today, onMove, onTick}: Props) {
   return <section className="agenda-hours" aria-labelledby={`${id}-title`} data-load={load}>
     <h3 id={`${id}-title`} className="agenda-hours-title">By the hour <small>{load ? `${plural(load, 'item')} at a set time` : 'nothing at a set time yet'}</small></h3>
     <p className="agenda-hours-help">Drag a task to an hour, or use its “Move to…” to choose a time. Habits and events stay at their own time.</p>
+    <ZonePicker r5={r5} date={day.date} />
     <CountdownsOnDay date={day.date} today={today} />
     {(waiting.length > 0 || others.length > 0) && <div className="agenda-hours-waiting">
       <h4>No time yet</h4>
       <ul className="agenda-hours-items">{waiting.map(i => <GridItem key={i.id} item={i} date={day.date} onMove={onMove} onTick={onTick} />)}{others.map(i => <GridItem key={i.id} item={i} date={day.date} onMove={onMove} onTick={onTick} />)}</ul>
     </div>}
     <ol className="agenda-hours-grid" aria-label={`Hours of ${formatDate(day.date, {weekday: true, year: false})}`}>{rows.map(r => <li key={r.hour} className="agenda-hour" data-hour={r.hour} data-drop={over === r.hour || undefined} data-empty={r.items.length ? undefined : ''} {...drop(r.hour, r.clock)}>
-      <span className="agenda-hour-clock">{formatClock(r.clock)}</span>
-      {r.items.length > 0 ? <ul className="agenda-hours-items" aria-label={formatClock(r.clock)}>{r.items.map(i => <GridItem key={i.id} item={i} date={day.date} onMove={onMove} onTick={onTick} />)}</ul> : <span className="sr-only">Nothing at {formatClock(r.clock)}</span>}
+      <span className="agenda-hour-clock">{formatClock(r.clock)}<ZoneClock r5={r5} clock={r.clock} date={day.date} /></span>
+      {r.items.length + r5.blocksAt(r.hour).length + r5.travelAt(r.hour).length > 0 ? <ul className="agenda-hours-items" aria-label={formatClock(r.clock)}>{r5.blocksAt(r.hour).map(b => <BlockRow key={b.id} r5={r5} block={b} />)}{r5.travelAt(r.hour).map(t => <TravelRow key={`travel:${t.id}`} travel={t} />)}{r.items.map(i => <GridItem key={i.id} item={i} date={day.date} onMove={onMove} onTick={onTick} r5={r5} />)}</ul> : <span className="sr-only">Nothing at {formatClock(r.clock)}</span>}
     </li>)}</ol>
   </section>;
 }
 
-function GridItem({item, date, onMove, onTick}: {item: DayItem; date: string; onMove: Props['onMove']; onTick: Props['onTick']}) {
+function GridItem({item, date, onMove, onTick, r5}: {item: DayItem; date: string; onMove: Props['onMove']; onTick: Props['onTick']; r5?: HourR5}) {
   const [picking, setPicking] = useState(false), [time, setTime] = useState(item.time ?? '09:00'), task = movable(item) ? item : null;
   const when = item.time ? formatClock(item.time) : 'Any time';
   return <li className="agenda-hour-item" data-source={item.source} data-pillar={item.pillar} data-state={item.state} draggable={!!task || undefined}
@@ -52,6 +56,7 @@ function GridItem({item, date, onMove, onTick}: {item: DayItem; date: string; on
       {item.href ? <Link prefetch={false} className="agenda-item-title" href={item.href}>{item.title}</Link> : <span className="agenda-item-title">{item.title}</span>}
       <small>{KIND[item.source]} · {when}{item.state === 'done' ? ' · Done' : ''}{item.source === 'task' && item.overdueSince ? ` · Overdue since ${formatDate(item.overdueSince, {year: false})}` : ''}</small>
     </span>
+    {r5 && item.source === 'event' && <EventTravel r5={r5} item={item} />}
     {task && <button type="button" className="text-link agenda-hour-move" aria-expanded={picking} aria-label={`Move “${task.title}” to another time`} onClick={() => setPicking(p => !p)}>Move to…</button>}
     {task && picking && <form className="agenda-task-move" aria-label={`Move “${task.title}” to a time`} onSubmit={e => { e.preventDefault(); onMove(task.taskId, date, time || null); setPicking(false); }}>
       <label className="field"><span>Time</span><select value={time} onChange={e => setTime(e.target.value)}>

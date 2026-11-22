@@ -46,7 +46,8 @@ export function deadlineText(t: Task, today: string): string | null {
 export function dueText(t: Task, today: string, nowClock?: string): string {
   const s = taskState(t, today, nowClock), at = t.time ? ` at ${formatClock(t.time)}` : '';
   if (s === 'overdue') return t.due === today ? `Late · today${at}` : `Overdue · ${dayWords(t.due!, today)}${at}`;
-  return s === 'today' ? `Due today${at}` : s === 'someday' ? 'No day' : `Due ${dayWords(t.due!, today, true)}${at}`;
+  // Session AV lane 2 (r5-plan, LEDGER #349): a task with no day planned for a week or a month says so.
+  return s === 'today' ? `Due today${at}` : s === 'someday' ? (t.plan?.kind === 'week' ? 'This week, any day' : t.plan?.kind === 'month' ? 'This month, any day' : 'No day') : `Due ${dayWords(t.due!, today, true)}${at}`;
 }
 
 /** The title field: its own 140 limit (older builds read up to 140), and a paste that would be cut says so. */
@@ -132,7 +133,9 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
     <span className="task-title" dir="auto">{look && <span className="habit-look task-look" data-look-colour={look.colour} aria-hidden="true">{look.glyph} </span>}{onOpen ? <button type="button" className="task-title-button" dir="auto" onClick={onOpen}>{task.title}</button> : task.title}</span>
     <span className="task-meta">
       {level !== 3 && <span className={`task-chip task-chip-p${level}`} title={LEVEL_WORDS[level]}>P{level} · {LEVEL_SHORT[level]}</span>}
-      <span className="task-due">{done ? `Done ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
+      {/* Session AV lane 2 (r5-plan, LEDGER #350): Doing, and a cancelled task that is never called done */}
+      {!done && task.state?.kind === 'doing' && <span className="task-doing">Doing</span>}
+      <span className="task-due">{done ? `${task.state?.kind === 'cancelled' ? 'Cancelled' : 'Done'} ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
       {!done && task.minutes ? <span className="task-minutes">{minutesWords(task.minutes)}</span> : null}{/* Session AV (F-TASK-MINUTES) */}
       {!done && task.energy && task.energy !== 'neutral' ? <span className="task-energy">Energy · {task.energy[0]!.toUpperCase() + task.energy.slice(1)}</span> : null}{/* Session AV lane 2 (r3-plan, LEDGER #259) */}
       {!done && task.deadline && <span className={`task-deadline is-${deadlineState(task, today)}`}><span aria-hidden="true">⚑ </span>{deadlineText(task, today)}</span>}
@@ -145,6 +148,9 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
       {links?.projectName && <span className="task-project" data-colour={links.projectColour}><span aria-hidden="true"># </span>{links.projectName}</span>}
       {(task.labels ?? []).map(l => <span key={l} className="task-label" dir="auto">@{l}</span>)}
       {task.reminders?.length ? <span className="task-reminder"><span aria-hidden="true">⏰ </span>{task.reminders.length === 1 ? reminderLabel(task.reminders[0]!) : `${task.reminders.length} reminders`}</span> : null}
+      {/* Session AV lane 2 (r5-plan, LEDGER #354, #353): a place (a web link opens in a new tab) and the travel before its time */}
+      {task.place && <span className="task-place"><span aria-hidden="true">⌖ </span>{/^https?:\/\/[^\s]+$/i.test(task.place) ? <a href={task.place} target="_blank" rel="noopener noreferrer nofollow" dir="auto">{task.place.replace(/^https?:\/\//i, '').slice(0, 60)}</a> : <span dir="auto">{task.place}</span>}</span>}
+      {!done && task.travel && task.time ? <span className="task-travel">{minutesWords(task.travel)} travel before</span> : null}
       {task.notes && <span className="task-has-notes">Notes</span>}
       {showGoal && goal && <Link prefetch={false} className="task-goal" href={goal.href}>Goal · {goal.name}{goal.closed ? ` (${goal.closed})` : ''}</Link>}
       {task.habit && <Link prefetch={false} className="task-goal" href="/app/habits">Habit · {links?.habitTitle ?? 'linked'}</Link>}

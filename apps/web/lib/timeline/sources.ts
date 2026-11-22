@@ -26,6 +26,8 @@ export type TimelineSourceItem = {
    * check-in), drawn as a small mark at its time with its words, never as a block to do: no Done, no move.
    */
   mark?: true;
+  /** Session AV lane 2 (r5-plan, LEDGER #348, #353): a span's length in minutes (a time block, travel before a task); 0 when left out. */
+  minutes?: number;
 };
 /** What a source is given: today's records as the timeline read them (typed loosely here, so this file imports nothing). */
 export type TimelineSourceContext = {date: string; now: Date; stores: Record<string, unknown>};

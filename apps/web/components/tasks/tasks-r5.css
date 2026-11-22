@@ -1,0 +1,44 @@
+/* Session AV lane 2 (r5-plan, LEDGER #348–#357; Akiflow, Logseq, Tiimo): time blocks, a week or a month without a day,
+   Doing and Cancelled, playing a task's steps, earlier finishes, travel minutes, a place, a link and a second zone. Theme
+   variables only; never red; no motion of its own (the step countdown is text, so Motion Off and reduced motion change nothing). */
+.tasks-blocks { border: 1px solid var(--line); border-radius: var(--radius); padding: 0 12px 10px; margin: 12px 0; min-width: 0; }
+.tasks-blocks > summary { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; cursor: pointer; font-weight: 600; }
+.tasks-blocks > summary small { font-weight: 400; color: var(--text-secondary, var(--muted)); font-size: 14px; }
+.tasks-blocks button, .tasks-blocks-today button, .task-r5 button, .tasks-buckets button, .task-occurrence-edit button { min-height: 44px; }
+.tasks-blocks-list { margin: 8px 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.tasks-blocks-list > li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 15px; min-width: 0; overflow-wrap: anywhere; }
+.tasks-blocks-list small, .tasks-block-tasks small { color: var(--text-secondary, var(--muted)); font-size: 14px; }
+.tasks-block-swatch { flex: 0 0 12px; align-self: stretch; min-height: 24px; border-radius: 6px; background: var(--block-colour, var(--line)); opacity: .85; }
+.tasks-blocks-days { gap: 0 12px; }
+.tasks-blocks-today { margin: 10px 0; }
+.tasks-blocks-today h4 { margin: 0 0 4px; font-size: 16px; }
+.tasks-block-today { align-items: flex-start !important; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; }
+.tasks-block-body { flex: 1 1 200px; min-width: 0; }
+.tasks-block-body p { margin: 0; }
+.tasks-block-tasks { margin: 4px 0; padding: 0; list-style: none; font-size: 15px; display: grid; gap: 2px; }
+.tasks-block-actions { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: flex-end; }
+.tasks-block-actions .field { flex: 1 1 180px; min-width: 0; }
+/* A week or a month without a day (#349) */
+.tasks-buckets { margin: 4px 0 12px; }
+.tasks-buckets h3 { font-size: 16px; margin: 12px 0 4px; display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; }
+.tasks-buckets h3 small { font-weight: 400; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+/* The editor's round 5 parts */
+.task-r5 { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; min-width: 0; }
+.task-r5 > p { flex: 1 1 100%; margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.task-r5-fields { flex: 1 1 100%; border: 1px solid var(--line); border-radius: var(--radius); margin: 0; padding: 8px 12px 10px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; min-width: 0; }
+.task-r5-fields legend { font-size: 15px; padding: 0 4px; }
+.task-r5-fields .field { flex: 1 1 200px; min-width: 0; }
+.task-link-copy { flex: 1 1 100%; min-width: 0; }
+.task-link-copy input { width: 100%; }
+/* Play the steps (#351) */
+.task-play { flex: 1 1 100%; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; min-width: 0; }
+.task-play h4 { margin: 0 0 6px; font-size: 16px; }
+.task-play-now { font-size: 18px; margin: 4px 0; overflow-wrap: anywhere; }
+.task-play-clock { font-variant-numeric: tabular-nums; font-size: 22px; font-weight: 600; margin: 2px 0 8px; }
+.task-play-steps { margin: 6px 0; padding-left: 1.4em; font-size: 15px; display: grid; gap: 2px; }
+.task-play-steps [data-step=done] { color: var(--text-secondary, var(--muted)); }
+.task-play-steps [data-step=now] { font-weight: 600; }
+.task-play-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+/* Earlier finishes (#352) */
+.task-occurrence-edit { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: flex-end; margin-top: 4px; }
+.task-occurrence-edit .field { flex: 0 1 200px; min-width: 0; }

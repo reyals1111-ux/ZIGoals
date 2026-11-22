@@ -86,6 +86,13 @@ export const uiPrefsSchema = z.looseObject({
      */
     darkStyle: z.enum(['black', 'contrast']).optional().catch(undefined),
   }).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r5-plan, LEDGER #357; Akiflow's secondary time zone; TIER 3 (stored format), additive and optional):
+   * a second time zone (an IANA name such as "America/New_York") whose hours the Agenda's hour grid and the Day Timeline
+   * show beside the device's own. A value this build cannot read is dropped on read; older builds keep it untouched (the
+   * record is loose) and show one zone. Exported and erased with the rest of these preferences.
+   */
+  secondZone: z.string().regex(/^[A-Za-z][A-Za-z0-9_+-]*(?:\/[A-Za-z0-9_+-]+){0,2}$/).max(64).optional().catch(undefined),
 });
 export type UiPrefs = z.infer<typeof uiPrefsSchema>;
 export const emptyUiPrefs = (): UiPrefs => ({version: 1});

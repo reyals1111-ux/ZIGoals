@@ -62,6 +62,7 @@ import {WORKOUT_PLACES} from '../workouts/places-schema';
 import {PLANNED_WORKOUTS} from '../workouts/planned';
 import {RACES} from '../workouts/races';
 import {WORKOUT_HR} from '../workouts/hr-zones';
+import {NOTE_CARDS} from '../notes/cards';
 import {MORE_GOALS} from '../health-goals/more';
 import {CIRCUITS} from '../workouts/circuits';
 import {WEALTH_SHEET} from '../wealth-sheet/schema';
@@ -291,6 +292,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('plannedWorkouts', 'Planned workouts', 'Health', PLANNED_WORKOUTS, true),
   dev('races', 'Races', 'Health', RACES, true),
   dev('workoutHr', 'Heart-rate zones of runs', 'Health', WORKOUT_HR, true),
+  dev('noteCards', 'Review days of note cards', 'Today and Life', NOTE_CARDS),
   dev('foodPlus', 'Food diary extras (times, weekday macros, check-in)', 'Health', FOOD_PLUS, true),
   dev('wealthSheet', 'Your net-worth sheet', 'Goals and Wealth', WEALTH_SHEET),
   dev('moneyMore', 'Money extras: saved entries, own budgets, shared costs, lent and borrowed', 'Goals and Wealth', MONEY_MORE),

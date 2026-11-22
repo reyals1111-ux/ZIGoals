@@ -88,6 +88,9 @@ export type TaskEnergy = (typeof TASK_ENERGY)[number];
 export const MAX_TASK_MINUTES = 1440;
 /** Session AV lane 2 (r4-plan, LEDGER #303, #304): a long task's smallest piece, and how many tasks one can wait for. */
 export const MIN_CHUNK = 15, MAX_CHUNK = 240, MAX_AFTER = 3;
+/** Session AV lane 2 (r5-plan, LEDGER #350, #353, #354): a task's states, the longest travel before it, the longest place. */
+export const TASK_STATES = ['doing', 'cancelled'] as const;
+export const MAX_TRAVEL = 600, PLACE_MAX = 200;
 const ID = /^[A-Za-z0-9_-]{1,80}$/;
 export const taskSchema = z.looseObject({
   id,
@@ -178,6 +181,23 @@ export const taskSchema = z.looseObject({
   chunk: z.number().int().min(MIN_CHUNK).max(MAX_CHUNK).optional().catch(undefined),
   after: z.preprocess(v => { if (!Array.isArray(v)) return undefined; const ids = [...new Set(v.filter(x => typeof x === 'string' && ID.test(x)))].slice(0, MAX_AFTER); return ids.length ? ids : undefined; }, z.array(z.string()).optional()),
   afterHours: z.literal(true).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r5-plan; Akiflow, Logseq; TIER 3 (stored format), additive and optional, each dropped on read when it
+   * cannot be read; older builds keep them untouched (the object is loose) and do not show them):
+   * `state` (LEDGER #350, Logseq's DOING and CANCELED) "doing" — begun at `at` — or "cancelled" — closed at `at` without
+   * being done. A cancelled task also carries `doneAt`, so an older build shows it as finished, never as open; this build
+   * keeps it out of the done chart, the daily goal and its streak (lib/tasks/task-state.ts);
+   * `plan` (LEDGER #349, Akiflow's This week and This month) a task with no day planned for a week (`of`, a day of it) or a
+   * month (`of`, its first day); it means nothing once the task has a day (lib/tasks/plan-bucket.ts);
+   * `block` (LEDGER #348, Akiflow's time slots) the time block (`zigoals:task-plan:v1` `blocks`) it is dropped into, on its day;
+   * `travel` (LEDGER #353) the minutes of travel before its time, typed by the person (nothing is looked up);
+   * `place` (LEDGER #354) a written place, an address or a link (nothing is looked up), written as the LOCATION of the .ics export.
+   */
+  state: z.looseObject({kind: z.enum(TASK_STATES), at: z.iso.datetime({offset: true})}).optional().catch(undefined),
+  plan: z.looseObject({kind: z.enum(['week', 'month']), of: day}).refine(p => p.kind !== 'month' || p.of.endsWith('-01')).optional().catch(undefined),
+  block: id.optional().catch(undefined),
+  travel: z.number().int().min(1).max(MAX_TRAVEL).optional().catch(undefined),
+  place: z.string().trim().min(1).max(PLACE_MAX).optional().catch(undefined),
 });
 /**
  * Session AV lane 2 (tasks-r2, LEDGER #228; Any.do's automations; TIER 3 (stored format), additive and optional): a rule on a

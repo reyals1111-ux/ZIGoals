@@ -8,7 +8,8 @@ import type {Task, Tasks} from './schema';
  */
 export type TasksReview = {finished: number; before: number; added: number; open: number; overdue: number; titles: string[]};
 export function tasksReview(record: Tasks, window: {start: string; end: string; prevStart: string; prevEnd: string}, today: string, doneDay: (iso: string) => string): TasksReview {
-  const log = completedLog(record).map(e => ({...e, day: doneDay(e.at)}));
+  // Session AV lane 2 (r5-plan, LEDGER #350): a cancelled task is not a finish.
+  const log = completedLog(record).filter(e => !e.cancelled).map(e => ({...e, day: doneDay(e.at)}));
   const inWindow = log.filter(e => e.day >= window.start && e.day <= window.end);
   const before = log.filter(e => e.day >= window.prevStart && e.day <= window.prevEnd).length;
   const added = record.tasks.filter(t => { const d = doneDay(t.createdAt); return d >= window.start && d <= window.end; }).length;

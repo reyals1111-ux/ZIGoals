@@ -75,7 +75,8 @@ export function nextFreeSlot(minutes: number, busy: readonly Busy[], from: strin
  * LEDGER #303): a task in pieces holds one piece). `except` leaves some out (the tasks being planned again).
  */
 export function taskBusy(record: Tasks, day: string, except?: ReadonlySet<string>): Busy[] {
-  return record.tasks.filter(t => !t.doneAt && t.due === day && t.time && !t.parallel && !except?.has(t.id)).map(t => ({start: toMin(t.time!), end: toMin(t.time!) + blockLength(t), title: t.title}));
+  // Session AV lane 2 (r5-plan, LEDGER #353): the travel minutes typed before a timed task are busy too.
+  return record.tasks.filter(t => !t.doneAt && t.due === day && t.time && !t.parallel && !except?.has(t.id)).map(t => ({start: Math.max(0, toMin(t.time!) - (t.travel ?? 0)), end: toMin(t.time!) + blockLength(t), title: t.title}));
 }
 /** Sunsama's workload line: the minutes planned against the day's limit. */
 export function overLimit(minutes: number, limit: number | undefined): {over: boolean; by: number} {
