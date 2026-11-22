@@ -5,7 +5,7 @@ import {cents, monthOf} from '../money-log/engine';
 import {fromMinor, minorUnits} from '../money-split/parts';
 import {budgetedIn} from './engine';
 import {budgetsInOrder} from './order';
-import {budgetPeriodsSchema, type BudgetPeriods} from './periods';
+import {budgetPeriodsSchema, isDay, type BudgetPeriods} from './periods';
 import type {BudgetsRecord} from './schema';
 
 /**
@@ -16,17 +16,30 @@ import type {BudgetsRecord} from './schema';
  */
 export const MAX_PAYCHECKS = 6;
 export type Paycheck = NonNullable<BudgetPeriods['paychecks']>['items'][number];
-export type PaycheckInput = {name: string; every: Paycheck['every']; day: number; amount: string; currency: string};
+export type PaycheckInput = {name: string; every: Paycheck['every']; day: number; amount: string; currency: string;
+  /** Review B6O-7: for a two-weekly paycheck, one of its paydays (its weekday is the paycheck's day). */
+  from?: string};
 const ANCHOR = '2024-01-01'; // a Monday: two-weekly paychecks count their weeks from here, as the two-week budgets do
-const weeksFrom = (day: string) => Math.floor((Date.parse(`${day}T12:00:00Z`) - Date.parse(`${ANCHOR}T12:00:00Z`)) / (7 * 86_400_000));
+const weeksFrom = (day: string, anchor = ANCHOR) => Math.floor((Date.parse(`${day}T12:00:00Z`) - Date.parse(`${anchor}T12:00:00Z`)) / (7 * 86_400_000));
+const even = (n: number) => ((n % 2) + 2) % 2 === 0;
 
-/** The days a paycheck comes in `month` ("2026-11"): its day of the month (the last day when the month is shorter), or each of its weekdays (every week, or every other week). */
-export function paydaysIn(p: Pick<Paycheck, 'every' | 'day'>, month: string): string[] {
+/**
+ * The days a paycheck comes in `month` ("2026-11"): its day of the month (the last day when the month is shorter), or each
+ * of its weekdays (every week, or every other week). Review B6O-7: a two-weekly paycheck with `from` (one of its paydays)
+ * comes every 14 days from that day, before and after it; without one, in the weeks counted from 2024-01-01, as before.
+ */
+export function paydaysIn(p: Pick<Paycheck, 'every' | 'day'> & {from?: string | undefined}, month: string): string[] {
   const {start, end} = monthOf(`${month}-01`), last = Number(end.slice(8));
   if (p.every === 'month') return [`${month}-${String(Math.min(Math.max(1, p.day), last)).padStart(2, '0')}`];
-  const out: string[] = [];
-  for (let d = start; d <= end; d = addLocalDays(d, 1)) if (localWeekday(d) === p.day % 7 && (p.every === 'week' || ((weeksFrom(d) % 2) + 2) % 2 === 0)) out.push(d);
+  const out: string[] = [], from = p.every === 'fortnight' && p.from ? p.from : null, weekday = from ? localWeekday(from) : p.day % 7;
+  for (let d = start; d <= end; d = addLocalDays(d, 1)) if (localWeekday(d) === weekday && (p.every === 'week' || even(from ? weeksFrom(d, from) : weeksFrom(d)))) out.push(d);
   return out;
+}
+/** Review B6O-7: the next payday of a two-weekly paycheck on `day` (a weekday) on or after `today`, as paydays fall without a chosen one (the form's starting value). */
+export function nextFortnightPayday(day: number, today: string): string {
+  let d = today;
+  while (!(localWeekday(d) === day % 7 && even(weeksFrom(d)))) d = addLocalDays(d, 1);
+  return d;
 }
 export type PaycheckLine = {key: string; kind: 'budget' | 'bill'; name: string; currency: string; cents: number; due?: string[]};
 export type PaycheckPlan = {paycheck: Paycheck; dates: string[]; holds: number; lines: PaycheckLine[]; covered: number; left: number};
@@ -56,12 +69,15 @@ export function paycheckIssue(input: PaycheckInput): string | null {
   if (!/^[A-Z]{3}$/.test(input.currency)) return 'Choose a currency.';
   if (!/^\d{1,12}(?:\.\d{1,2})?$/.test(input.amount.trim()) || Number(input.amount) <= 0) return 'Enter what this paycheck brings in, such as 1250 or 1250.50.';
   if (input.every === 'month' ? !(input.day >= 1 && input.day <= 31) : !(input.day >= 0 && input.day <= 6)) return input.every === 'month' ? 'Choose a day of the month, 1 to 31.' : 'Choose a day of the week.';
+  if (input.every === 'fortnight' && input.from !== undefined && input.from !== '' && !isDay(input.from)) return 'Choose the date of a payday, such as your next one.';
   return null;
 }
 /** Adds a paycheck, or changes the one with `id`. */
 export function savePaycheck(plan: BudgetPeriods, input: PaycheckInput, id: string): BudgetPeriods {
   const issue = paycheckIssue(input); if (issue) throw new Error(issue);
-  const items = plan.paychecks?.items ?? [], item: Paycheck = {id, name: input.name.trim(), every: input.every, day: Math.floor(input.day), amount: fromMinor(minorUnits(input.amount.trim())), currency: input.currency};
+  // Review B6O-7: a two-weekly paycheck with a payday keeps it, and its weekday is that day's.
+  const from = input.every === 'fortnight' && input.from ? input.from : undefined;
+  const items = plan.paychecks?.items ?? [], item: Paycheck = {id, name: input.name.trim(), every: input.every, day: from ? localWeekday(from) : Math.floor(input.day), amount: fromMinor(minorUnits(input.amount.trim())), currency: input.currency, ...(from ? {from} : {})};
   const has = items.some(p => p.id === id);
   if (!has && items.length >= MAX_PAYCHECKS) throw new Error(`Up to ${MAX_PAYCHECKS} paychecks.`);
   return budgetPeriodsSchema.parse({...plan, paychecks: {...plan.paychecks, items: has ? items.map(p => p.id === id ? item : p) : [...items, item], lines: plan.paychecks?.lines ?? {}}});
@@ -80,4 +96,34 @@ export function setLine(plan: BudgetPeriods, key: string, paycheckId: string | n
   const lines = {...(plan.paychecks.lines ?? {})};
   if (paycheckId) lines[key] = paycheckId; else delete lines[key];
   return budgetPeriodsSchema.parse({...plan, paychecks: {...plan.paychecks, lines}});
+}
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+/**
+ * Review B6O-12: Undo for a change to the paycheck plan, into the latest record (`latest`), reverting only what the change
+ * made (`before` → `after`) and keeping every change made since: a paycheck added is taken off again (with any line set
+ * against it), one removed comes back in its place, one changed goes back while it is still as the change left it, and
+ * each "Paid from" line the change moved goes back while it is still where the change put it. The rest of the record —
+ * pay periods, the fill, a line set since — stays as it is now.
+ */
+export function revertPaychecks(latest: BudgetPeriods, before: BudgetPeriods, after: BudgetPeriods): BudgetPeriods {
+  const was = before.paychecks?.items ?? [], made = after.paychecks?.items ?? [];
+  let items = [...(latest.paychecks?.items ?? [])];
+  for (const p of made) if (!was.some(x => x.id === p.id)) items = items.filter(x => x.id !== p.id);
+  for (const p of was) {
+    const then = made.find(x => x.id === p.id), now = items.findIndex(x => x.id === p.id);
+    if (!then && now < 0) { const next = was.slice(was.indexOf(p) + 1).find(x => items.some(y => y.id === x.id)); items.splice(next ? items.findIndex(y => y.id === next.id) : items.length, 0, p); }
+    else if (then && now >= 0 && !same(then, p) && same(items[now], then)) items[now] = p;
+  }
+  items = items.slice(0, MAX_PAYCHECKS);
+  const ids = new Set(items.map(x => x.id)), wasLines = before.paychecks?.lines ?? {}, madeLines = after.paychecks?.lines ?? {}, lines: Record<string, string> = {...(latest.paychecks?.lines ?? {})};
+  for (const key of new Set([...Object.keys(wasLines), ...Object.keys(madeLines)])) {
+    if (wasLines[key] === madeLines[key] || lines[key] !== madeLines[key]) continue;
+    const back = wasLines[key];
+    if (back && ids.has(back)) lines[key] = back; else delete lines[key];
+  }
+  for (const [key, v] of Object.entries(lines)) if (!ids.has(v)) delete lines[key];
+  const next: Record<string, unknown> = {...latest};
+  if (items.length) next.paychecks = {...latest.paychecks, items, lines}; else delete next.paychecks;
+  return budgetPeriodsSchema.parse(next);
 }

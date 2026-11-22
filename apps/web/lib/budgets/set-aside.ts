@@ -11,12 +11,12 @@ import {budgetsSchema, MAX_AHEAD, type Budget, type BudgetsRecord} from './schem
  * A budget can be covered up to its own amount next month. The person's own amounts; never advice. Pure.
  */
 export type AheadItem = NonNullable<BudgetsRecord['ahead']>[number];
-/** What month `from` set aside for the month after, per currency (by each budget's currency). */
-export function setAsideFrom(record: Pick<BudgetsRecord, 'ahead' | 'budgets'>, from: string): Map<string, number> {
-  const out = new Map<string, number>();
-  for (const a of record.ahead ?? []) { if (a.from !== from) continue; const b = record.budgets.find(x => x.id === a.budgetId); if (b) out.set(b.currency, (out.get(b.currency) ?? 0) + cents(a.amount)); }
-  return out;
-}
+/**
+ * What month `from` set aside for the month after, per currency (by each budget's currency). Review B6O-2: held by the same
+ * cap as it covers there (`coveredIn`: never above a budget's amount next month), so when next month's amount is lowered
+ * after setting aside, the excess is ready money again in `from` and never held in neither month.
+ */
+export const setAsideFrom = (record: Pick<BudgetsRecord, 'ahead' | 'budgets'>, from: string): Map<string, number> => coveredByCurrency(record, shiftMonth(from, 1));
 /** What covers each budget in `month`, set aside in the month before (by budget id), never above its amount there. */
 export function coveredIn(record: Pick<BudgetsRecord, 'ahead' | 'budgets'>, month: string): Map<string, number> {
   const from = shiftMonth(month, -1), out = new Map<string, number>();
@@ -47,7 +47,8 @@ export function setAside(record: BudgetsRecord, month: string, amounts: Readonly
   for (const [budgetId, raw] of Object.entries(amounts)) {
     const text = raw.trim(), row = rows.get(budgetId);
     if (!row) throw new Error('That budget does not run next month.');
-    const old = (record.ahead ?? []).filter(a => a.from === month && a.budgetId === budgetId).reduce((s, a) => s + cents(a.amount), 0);
+    // Review B6O-2: what `before` holds for this budget (capped at its amount next month, as `setAsideFrom`).
+    const old = Math.min(row.next, (record.ahead ?? []).filter(a => a.from === month && a.budgetId === budgetId).reduce((s, a) => s + cents(a.amount), 0));
     after.set(row.budget.currency, (after.get(row.budget.currency) ?? 0) - old);
     if (!text || Number(text) === 0) continue;
     if (!/^\d{1,10}(?:\.\d{1,2})?$/.test(text)) throw new Error(`${row.budget.category}: enter an amount such as 50 or 50.50.`);

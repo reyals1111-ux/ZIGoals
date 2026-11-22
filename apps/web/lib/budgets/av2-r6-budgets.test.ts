@@ -5,7 +5,8 @@ import {emptyBudgets, type BudgetsRecord} from './schema';
 import {budgetsInOrder, clearOrder, hasOwnOrder, moveBudget, moveBudgetTo, setOrder} from './order';
 import {aheadRows, coveredIn, setAside, setAsideFrom} from './set-aside';
 import {emptyBudgetPeriods, periodRows} from './periods';
-import {monthLines, paycheckIssue, paycheckMonth, paydaysIn, removePaycheck, savePaycheck, setLine} from './paychecks';
+import {monthLines, nextFortnightPayday, revertPaychecks, paycheckIssue, paycheckMonth, paydaysIn, removePaycheck, savePaycheck, setLine} from './paychecks';
+import {budgetPeriodsSchema} from './periods';
 import {emptyBills, type BillsRecord} from '../bills/schema';
 import type {MoneyEntry} from '../money-log/schema';
 
@@ -67,6 +68,21 @@ describe('set aside for next month (#428)', () => {
   });
 });
 
+test('review B6O-2: next month’s amount lowered after setting aside — the excess is ready again where it came from, none lost', () => {
+  const b: BudgetsRecord = {...emptyBudgets(), budgets: [{id: 'food', category: 'Groceries', currency: 'EUR', monthly: '400.00', rollover: false, since: '2026-01'}]};
+  const pay = (m: string) => e(`s${m}`, '1000.00', {kind: 'income', category: 'Salary', date: `${m}-01`});
+  const set = setAside(b, '2026-11', {food: '300'}, new Map([['EUR', 60000]]), AT, () => 'a1');
+  const lowered: BudgetsRecord = {...set, budgets: [{...set.budgets[0]!, months: {'2026-12': '100.00'}}]};
+  const nov = readyToAssign([pay('2026-11')], lowered, '2026-11')[0]!, dec = readyToAssign([pay('2026-12')], lowered, '2026-12')[0]!;
+  expect(nov).toMatchObject({held: 50000, ready: 50000, setAside: 10000});
+  expect(dec).toMatchObject({held: 0, ready: 100000, covered: 10000});
+  expect(nov.status === 'ok' && dec.status === 'ok' ? nov.ready + dec.ready : null).toBe(150000); // €2,000 in, €400 + €100 budgeted: €1,500 ready, nothing gone
+  expect(setAsideFrom(lowered, '2026-11')).toEqual(new Map([['EUR', 10000]]));
+  expect([...coveredIn(lowered, '2026-12')]).toEqual([['food', 10000]]);
+  // Setting it again counts only what was held: up to the €500 ready, plus the €100 held now.
+  expect(setAsideFrom(setAside(lowered, '2026-11', {food: '100'}, new Map([['EUR', 50000]]), AT, () => 'a2'), '2026-11')).toEqual(new Map([['EUR', 10000]]));
+});
+
 describe('each paycheck’s plan (#426)', () => {
   const bills: BillsRecord = {...emptyBills(), bills: [{id: 'phone', title: 'Phone', amount: '25.00', currency: 'EUR', cadence: 'monthly', nextDue: '2026-12-08', origin: 'manual', createdAt: '2026-01-01T00:00:00.000Z'}]};
   test('the days a paycheck comes: a day of the month (clamped), each Friday, every other Friday', () => {
@@ -95,4 +111,47 @@ describe('each paycheck’s plan (#426)', () => {
     expect(() => savePaycheck(plan, {name: 'P7', every: 'month', day: 7, amount: '10', currency: 'EUR'}, 'p7')).toThrow(/Up to 6/);
     expect(() => setLine(emptyBudgetPeriods(), 'b:food', 'p1')).toThrow(/Add a paycheck first/);
   });
+});
+
+describe('review B6O-7: which week a two-weekly paycheck is paid', () => {
+  test('without a payday (every plan kept before) the weeks count as before; with one, every 14 days from it', () => {
+    expect(paydaysIn({every: 'fortnight', day: 5}, '2026-11')).toEqual(['2026-11-06', '2026-11-20']);
+    expect(paydaysIn({every: 'fortnight', day: 5}, '2026-10')).toEqual(['2026-10-09', '2026-10-23']);
+    // Paid on 30 Oct, 13 Nov and 27 Nov: the other week.
+    expect(paydaysIn({every: 'fortnight', day: 5, from: '2026-11-13'}, '2026-11')).toEqual(['2026-11-13', '2026-11-27']);
+    expect(paydaysIn({every: 'fortnight', day: 5, from: '2026-11-13'}, '2026-10')).toEqual(['2026-10-02', '2026-10-16', '2026-10-30']);
+    // A weekly or monthly paycheck ignores it.
+    expect(paydaysIn({every: 'week', day: 5, from: '2026-11-13'}, '2026-11')).toHaveLength(4);
+    expect(nextFortnightPayday(5, '2026-11-07')).toBe('2026-11-20');
+    expect(nextFortnightPayday(5, '2026-11-06')).toBe('2026-11-06');
+  });
+  test('kept on the paycheck (its weekday from the day), checked in words, read loosely; October holds three paydays', () => {
+    const plan = savePaycheck(emptyBudgetPeriods(), {name: 'Pay', every: 'fortnight', day: 1, amount: '800', currency: 'EUR', from: '2026-11-13'}, 'pp');
+    expect(plan.paychecks?.items[0]).toMatchObject({every: 'fortnight', day: 5, from: '2026-11-13'});
+    expect(paycheckMonth(RECORD, null, plan, '2026-10', TODAY).plans[0]).toMatchObject({dates: ['2026-10-02', '2026-10-16', '2026-10-30'], holds: 240000});
+    expect(savePaycheck(emptyBudgetPeriods(), {name: 'M', every: 'month', day: 1, amount: '800', currency: 'EUR', from: '2026-11-13'}, 'pm').paychecks?.items[0]).not.toHaveProperty('from');
+    expect(paycheckIssue({name: 'Pay', every: 'fortnight', day: 5, amount: '800', currency: 'EUR', from: '2026-02-30'})).toMatch(/date of a payday/);
+    const raw = {version: 1, paychecks: {items: [{id: 'a', name: 'A', every: 'fortnight', day: 5, amount: '800.00', currency: 'EUR', from: 'soon'}, {id: 'b', name: 'B', every: 'fortnight', day: 5, amount: '800.00', currency: 'EUR'}]}};
+    expect(budgetPeriodsSchema.parse(raw).paychecks?.items.map(p => [p.id, p.from])).toEqual([['a', undefined], ['b', undefined]]);
+  });
+});
+
+test('review B6O-12: the paycheck plan’s Undo reverts only what that change made, keeping later edits', () => {
+  let plan = savePaycheck(emptyBudgetPeriods(), {name: '1st', every: 'month', day: 1, amount: '1000', currency: 'EUR'}, 'p1');
+  plan = savePaycheck(plan, {name: '15th', every: 'month', day: 15, amount: '900', currency: 'EUR'}, 'p2');
+  plan = setLine(setLine({...plan, payday: 25}, 'b:rent', 'p1'), 'b:fun', 'p2');
+  // Remove a paycheck, then set a line, then Undo the removal: the paycheck and its line come back, the later line stays.
+  const removed = removePaycheck(plan, 'p1'), later = setLine(removed, 'b:food', 'p2');
+  const undone = revertPaychecks({...later, payday: 1}, plan, removed);
+  expect(undone.paychecks?.items.map(p => p.id)).toEqual(['p1', 'p2']);
+  expect(undone.paychecks?.lines).toEqual({'b:rent': 'p1', 'b:fun': 'p2', 'b:food': 'p2'});
+  expect(undone.payday).toBe(1); // a pay-period edit made since is kept
+  // Undo an add: the paycheck goes, with a line set against it since; other lines stay.
+  const added = savePaycheck(plan, {name: 'Fri', every: 'week', day: 5, amount: '100', currency: 'EUR'}, 'p3'), withLine = setLine(added, 'b:food', 'p3');
+  const noAdd = revertPaychecks(setLine(withLine, 'b:home', 'p2'), plan, added);
+  expect(noAdd.paychecks?.items.map(p => p.id)).toEqual(['p1', 'p2']);
+  expect(noAdd.paychecks?.lines).toEqual({'b:rent': 'p1', 'b:fun': 'p2', 'b:home': 'p2'});
+  // The last paycheck removed: Undo brings the plan back even though the record had none.
+  const one = savePaycheck(emptyBudgetPeriods(), {name: 'Only', every: 'month', day: 1, amount: '10', currency: 'EUR'}, 'o');
+  expect(revertPaychecks(removePaycheck(one, 'o'), one, removePaycheck(one, 'o')).paychecks?.items.map(p => p.id)).toEqual(['o']);
 });

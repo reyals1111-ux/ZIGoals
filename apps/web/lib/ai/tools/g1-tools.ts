@@ -175,7 +175,7 @@ export const moneySelectionTool: ToolDefinition<{words?: string; category?: stri
       .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
     const summary = summarizeSelection(hits, hits.map(e => e.id)), money = (cents: number, c: string) => `${fromCents(cents)} ${c}`;
     return ok('money_selection', label, source, {from, to, matched: plural(summary.count, 'entry', 'entries'), total: selectionLine(summary, money),
-      totals: summary.totals.map(t => ({currency: t.currency, net: `${t.cents < 0 ? '-' : t.cents > 0 ? '+' : ''}${fromCents(Math.abs(t.cents))} ${t.currency}`, expenses: t.expenses, income: t.income})),
+      totals: summary.totals.map(t => ({currency: t.currency, net: `${t.cents < 0 ? '-' : t.cents > 0 ? '+' : ''}${fromCents(Math.abs(t.cents))} ${t.currency}`, expenses: t.expenses, income: t.income, ...(t.refunds ? {refunds: t.refunds} : {})})), // B6O-11: a refund is not income
       entries: hits.slice(0, 20).map(e => ({day: e.date, category: text(e.category, 40), ...(e.note ? {note: text(e.note, 80)} : {}), amount: `${e.kind === 'income' ? '+' : '-'}${fromCents(minorUnits(e.amount))} ${e.currency}`})),
       ...(hits.length > 20 ? {notListed: hits.length - 20} : {}), rule: 'exact, per currency, never converted; an entry split into parts counts once, whole; not advice'});
   },

@@ -66,7 +66,10 @@ export function spendingAnswer(q: Query, env: ToolEnv): Exact | null {
   }
   // The largest single entry ("my biggest expense").
   if ((q.ask === 'best' || q.ask === 'worst') && /\b(?:expense|purchase|payment|entry|uitgave|aankoop|betaling)\b/.test(q.read)) {
-    const hit = now.own.filter(e => e.kind === kind).reduce((a, e) => (q.ask === 'best' ? cents(e.amount) > cents(a.amount) : cents(e.amount) < cents(a.amount)) ? e : a);
+    // Review B6O-10: a period whose spending is only refunds has no purchase to name (and `reduce` of nothing throws).
+    const list = now.own.filter(e => e.kind === kind);
+    if (!list.length) return out(t(lang, `${what}No ${income ? 'income entry' : 'purchase'} logged ${span}${income ? '' : ', only money back (refunds)'}.`, `${what}Geen ${income ? 'inkomst' : 'aankoop'} gelogd ${span}${income ? '' : ', alleen geld terug (terugbetalingen)'}.`), {...base, entry: null}, widgets, p);
+    const hit = list.reduce((a, e) => (q.ask === 'best' ? cents(e.amount) > cents(a.amount) : cents(e.amount) < cents(a.amount)) ? e : a);
     return out(t(lang, `Your ${q.ask === 'best' ? 'largest' : 'smallest'} ${income ? 'income entry' : 'expense'} ${span}: ${money(cents(hit.amount), cur)} on ${day(hit.date)} (${plain(hit.note?.trim() || hit.category)}).`, `Je ${q.ask === 'best' ? 'grootste' : 'kleinste'} ${income ? 'inkomst' : 'uitgave'} ${span}: ${money(cents(hit.amount), cur)} op ${day(hit.date)} (${plain(hit.note?.trim() || hit.category)}).`), {...base, entry: {day: hit.date, cents: cents(hit.amount), category: hit.category}}, widgets, p);
   }
   // Days without an entry, or with one.

@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, amountText, type MoneyEntry, type MoneyLog} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
+import {categoryKind} from '../money-log/counted';
 import {MAX_RULES, MAX_RULE_TEXT, moneyRulesSchema, tagText, type MoneyRule, type MoneyRules} from './schema';
 
 /**
@@ -12,9 +13,10 @@ export type RuleSubject = {payee: string; memo: string; whole: string; kind: 'ex
 export const fold = (text: string) => text.toLowerCase().replace(/\s+/g, ' ').trim();
 const SEP = ' · ';
 /** The note as payee and memo: a bank row's note is "payee · description" (lib/bankfiles noteOf); a typed one is all payee. */
-export function subjectOf(entry: Pick<MoneyEntry, 'note' | 'kind' | 'amount'>): RuleSubject {
+/** Review B6O-3: a refund is money out by the shared rule (`categoryKind`), so only a money-out or an either-way rule matches it. */
+export function subjectOf(entry: Pick<MoneyEntry, 'note' | 'kind' | 'amount'> & {refund?: true}): RuleSubject {
   const whole = entry.note ?? '', at = whole.indexOf(SEP);
-  return {payee: at < 0 ? whole : whole.slice(0, at), memo: at < 0 ? '' : whole.slice(at + SEP.length), whole, kind: entry.kind, cents: minorUnits(entry.amount)};
+  return {payee: at < 0 ? whole : whole.slice(0, at), memo: at < 0 ? '' : whole.slice(at + SEP.length), whole, kind: categoryKind(entry), cents: minorUnits(entry.amount)};
 }
 export function ruleMatches(rule: MoneyRule, s: RuleSubject): boolean {
   if (rule.enabled === false) return false;
@@ -27,9 +29,16 @@ export function ruleMatches(rule: MoneyRule, s: RuleSubject): boolean {
 }
 export const firstMatch = (rules: readonly MoneyRule[], s: RuleSubject): MoneyRule | undefined => rules.find(r => ruleMatches(r, s));
 /** The entry as the rule leaves it (the same object when nothing would change). */
+const fromList = (list: readonly string[], name: string) => list.some(c => c.toLowerCase() === name.toLowerCase());
+/**
+ * Review B6O-3: whether a rule's category may be given to this entry. A refund stays in a spending category: a money-out
+ * rule (its categories are spending ones) or an either-way rule naming one of the usual spending categories may move it;
+ * an either-way rule naming any other category (an income one, or one of the person's own) leaves its category alone.
+ */
+const categoryFits = (entry: MoneyEntry, category: string) => categoryKind(entry) !== 'expense' || entry.kind === 'expense' || fromList(EXPENSE_CATEGORIES, category) && !fromList(INCOME_CATEGORIES, category);
 export function applyRule(entry: MoneyEntry, rule: MoneyRule): MoneyEntry {
   let next: MoneyEntry = entry;
-  if (rule.category && rule.category !== entry.category) next = {...next, category: rule.category};
+  if (rule.category && rule.category !== entry.category && (rule.direction === 'out' || categoryFits(entry, rule.category))) next = {...next, category: rule.category};
   let note = next.note ?? '';
   if (rule.renameTo) { const s = subjectOf(next); note = s.memo ? `${rule.renameTo}${SEP}${s.memo}` : rule.renameTo; }
   if (rule.tag && !` ${note} `.includes(` #${rule.tag} `)) { const tag = `#${rule.tag}`; note = note ? `${note.slice(0, 200 - tag.length - 1).trimEnd()} ${tag}` : tag; }
@@ -108,7 +117,7 @@ export function moveRule(record: MoneyRules, id: string, by: -1 | 1): MoneyRules
 /** "Make a rule" from an entry: its payee, its direction and its (perhaps just corrected) category, ready to check. */
 export function ruleFromEntry(entry: MoneyEntry): RuleDraft {
   const s = subjectOf(entry), text = (s.payee || entry.category).trim().slice(0, MAX_RULE_TEXT);
-  return {field: 'payee', op: 'contains', text, direction: entry.kind === 'expense' ? 'out' : 'in', category: entry.category};
+  return {field: 'payee', op: 'contains', text, direction: categoryKind(entry) === 'expense' ? 'out' : 'in', category: entry.category}; // B6O-3: a refund's rule is money out
 }
 /** The categories offered for a direction (both lists when a rule matches either). */
 export const categoriesFor = (direction: MoneyRule['direction']): readonly string[] => direction === 'out' ? EXPENSE_CATEGORIES : direction === 'in' ? INCOME_CATEGORIES : [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];

@@ -1,4 +1,4 @@
-import type {MoneyEntry, MoneyLog} from '../../money-log/schema';
+import {readableYears, type MoneyEntry, type MoneyLog} from '../../money-log/schema';
 import type {BudgetsRecord} from '../../budgets/schema';
 import type {BudgetPeriods} from '../../budgets/periods';
 import {monthOf} from '../../money-log/engine';
@@ -153,7 +153,7 @@ function putAway(a: Asked): LocalReply | null {
   const nl = /\b(?:oude )?(?:boekingen|jaren|invoeren) op ?(?:bergen|geborgen)\b|\bberg (?:ik )?oude (?:boekingen|jaren|invoeren) op\b|\bopgeborgen\b/.test(a.f);
   if (!(en || nl)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
-  const log = logOf(a.env), away = log?.putAway?.years ?? [], years = log ? pastYears(log, a.today) : [], calls = call('money_log', {putAway: true}, 'Spending · put old entries away');
+  const log = logOf(a.env), away = log ? readableYears(log) : [], years = log ? pastYears(log, a.today) : [], calls = call('money_log', {putAway: true}, 'Spending · put old entries away');
   const where = (lang: Lang) => say(lang, `${SPENDING.en} → Check and tidy your money records → Put old entries away`, `${SPENDING.nl} → Check and tidy your money records → Put old entries away`);
   const awayWords = (lang: Lang) => away.length ? say(lang, ` Put away now: ${list(away.map(y => `${y.year} (${y.entries.length} entries)`), 'en')}; Bring back returns them.`, ` Nu opgeborgen: ${list(away.map(y => `${y.year} (${y.entries.length} boekingen)`), 'nl')}; Bring back haalt ze terug.`) : '';
   const can = (lang: Lang) => years.length ? say(lang, ` Years you can put away: ${list(years.map(y => `${y.year} (${y.count})`), 'en')}.`, ` Jaren die je kunt opbergen: ${list(years.map(y => `${y.year} (${y.count})`), 'nl')}.`) : say(lang, ` Only years before ${a.today.slice(0, 4)} can be put away; there are none yet.`, ` Alleen jaren vóór ${a.today.slice(0, 4)} kunnen worden opgeborgen; die zijn er nog niet.`);

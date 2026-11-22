@@ -21,6 +21,8 @@ import {budgetsInOrder} from './order';
  * Loose, versioned, bounded; device only (exported, restored, erased with the account; never synced). Pure.
  */
 export const BUDGET_PERIODS_KEY = 'zigoals:budget-periods:v1';
+/** Review B6O-7: a real calendar day, "2026-11-13" (never throws). */
+export const isDay = (v: string) => { try { return /^\d{4}-\d{2}-\d{2}$/.test(v) && addLocalDays(v, 0) === v; } catch { return false; } };
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), amountText = z.string().regex(/^\d{1,12}(?:\.\d{1,2})?$/);
 const record = <T extends z.ZodType>(value: T, max: number) => z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, x]) => id.safeParse(k).success && value.safeParse(x).success).slice(0, max)) : undefined, z.record(z.string(), value).optional());
 export const budgetPeriodsSchema = z.looseObject({
@@ -35,9 +37,13 @@ export const budgetPeriodsSchema = z.looseObject({
    * optional, dropped on read when unreadable: two or more paychecks a month (`items`, at most 6: a name, every month on a
    * day, or every week or two weeks on a weekday, and the person's own amount), and which paycheck covers each budget
    * (`b:<budget id>`) and bill (`bill:<bill id>`) in `lines`. Older builds keep it (loose object) and ignore it.
+   * Review B6O-7, TIER 3 (stored format), additive and optional: `from`, one payday of a two-weekly paycheck (a day,
+   * "2026-11-13"), which says which week it falls in; without it (every plan kept before) the weeks count from 2024-01-01
+   * as before. Dropped on read when unreadable, so the paycheck still reads; an older build keeps it and ignores it.
    */
   paychecks: z.looseObject({
-    items: z.array(z.looseObject({id, name: z.string().trim().min(1).max(40), every: z.enum(['month', 'week', 'fortnight']), day: z.number().int().min(0).max(31), amount: amountText, currency: z.string().regex(/^[A-Z]{3}$/)})).max(6),
+    items: z.array(z.looseObject({id, name: z.string().trim().min(1).max(40), every: z.enum(['month', 'week', 'fortnight']), day: z.number().int().min(0).max(31), amount: amountText, currency: z.string().regex(/^[A-Z]{3}$/),
+      from: z.string().refine(isDay).optional().catch(undefined)})).max(6),
     lines: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, x]) => /^(?:b|bill):[A-Za-z0-9_-]{1,80}$/.test(k) && id.safeParse(x).success).slice(0, 200)) : undefined, z.record(z.string(), z.string()).optional()),
   }).optional().catch(undefined),
 });

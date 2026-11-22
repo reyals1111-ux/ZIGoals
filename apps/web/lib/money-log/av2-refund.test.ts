@@ -1,7 +1,9 @@
 import {describe, expect, test} from 'vitest';
 import {countedBetween, countedByCategoryBetween, countedCents, countedKind, inFigures, isCounted, isRefund, isSpending} from './counted';
 import {byCategory, totals} from './engine';
-import {markRefund, refundOffers, refundTargets, unmarkRefund} from './refunds';
+import {markRefund, refundOffers, refundShare, refundTargets, unmarkRefund, withRefundShare} from './refunds';
+import {shareCost, unshareCost} from '../money-more/people';
+import {emptyMoneyMore} from '../money-more/schema';
 import {emptyMoneyLog, moneyEntrySchema, moneyLogSchema, type MoneyEntry} from './schema';
 import {searchEntries} from './search';
 import {countedAs, sheetRows} from './sheet';
@@ -20,6 +22,7 @@ import {cashFlow, topPayees} from '../money-insights/cash-flow';
 import {monthCalendar} from '../money-insights/month-days';
 import {ledger} from '../ai/local-answers/exact/money';
 import {resolvePeriod} from '../ai/local-answers/exact/period';
+import {answerQuery, exactQuery} from '../ai/local-answers/exact/index';
 import {cashRiver, categoryRanks, savingsRate, spendingHeat, spendTrack} from '../nova/cards/ax/money-spend';
 import {spendingCard} from '../nova/cards/spending';
 import {byPaidWith, bySub} from '../money-more/quick';
@@ -31,6 +34,8 @@ import {addLocalDays} from '../local-date';
 import {av2MoneyAnswer} from '../ai/local-answers/av2-money';
 import {novaEnv, showcaseAll} from '../ai/evals/as/harness';
 import {mineParts} from './counted';
+import {barWidths} from './bars';
+import {yourDays} from '../life-review/your-days';
 
 /**
  * Session AV lane 2, round 6 (money; Banktivity's refund, LEDGER #425): a refund is stored as income with `refund: true` in
@@ -111,6 +116,16 @@ describe('NOVA’s and ZIGi’s answers and cards', () => {
     expect(days.map(d => [d.value, d.state])).toEqual([[10000, 'done'], [-3000, 'none']]);
     expect(spendingCard({entries: PROBE}, TODAY, 'month')).toMatchObject({totalCents: 7000, largest: {cents: 10000}});
   });
+  test('review B6O-10: “my biggest expense this month” with only refunds this month says so, in English and Dutch', () => {
+    const base = novaEnv(showcaseAll()), env = {...base, habitDay: TODAY, moneyLog: {...base.moneyLog!, entries: [e('old', '50.00', {date: '2026-10-20'}), refund('r', '30.00', {refundOf: 'old'})]}};
+    const say = (words: string) => { const q = exactQuery(words, env); const a = q ? answerQuery(q, env) : null; return a && 'text' in a ? a.text : null; };
+    expect(say('what was my biggest expense this month')).toMatch(/^No purchase logged this month .*only money back \(refunds\)\.$/);
+    expect(say('wat was mijn grootste uitgave deze maand')).toMatch(/^Geen aankoop gelogd deze maand .*alleen geld terug \(terugbetalingen\)\.$/);
+    // With a purchase, the purchase is named, never the refund.
+    const both = {...env, moneyLog: {...env.moneyLog, entries: PROBE}};
+    const q = exactQuery('what was my biggest expense this month', both)!, a = answerQuery(q, both);
+    expect(a && 'text' in a ? a.text : '').toMatch(/^Your largest expense this month .*€100\.00/);
+  });
   test('the left-out answer never lists a refund as left out', () => {
     const base = novaEnv(showcaseAll()), env = {...base, moneyLog: {...base.moneyLog!, entries: PROBE}};
     const r = av2MoneyAnswer('which entries are not counted in my totals', env);
@@ -139,6 +154,24 @@ describe('Spending’s other figures', () => {
     expect(searchEntries(PROBE, {counted: 'counted'}).map(x => x.id).sort()).toEqual(['g', 'r', 's']);
     expect(searchEntries(PROBE, {counted: 'left-out'})).toEqual([]);
   });
+});
+
+describe('Life review', () => {
+  test('review B6O-1: Your days counts by the shared rule: €70 spent, €1,000 received; left out, transfers and shares as Spending', () => {
+    expect(yourDays({start: '2026-11-01', end: '2026-11-30', money: {entries: PROBE}}).money).toEqual([{currency: 'EUR', spent: 70, received: 1000, entries: 3}]);
+    expect(yourDays({start: '2026-11-01', end: '2026-11-30', money: {entries: [e('g', '100.00'), refund('r', '30.00')]}}).money).toEqual([{currency: 'EUR', spent: 70, received: 0, entries: 2}]);
+    const marked = [e('g', '100.00', {share: '40.00'}), e('x', '9.00', {excluded: true}), e('t', '50.00', {transfer: 'p'}), refund('rx', '5.00', {excluded: true}), e('i', '20.00', {kind: 'income', category: 'Gifts received', transfer: 'p'})];
+    expect(yourDays({start: '2026-11-01', end: '2026-11-30', money: {entries: marked}}).money).toEqual([{currency: 'EUR', spent: 40, received: 0, entries: 1}]);
+  });
+});
+
+test('review B6O-5: This month’s bars never draw a category at or below zero, and are never NaN', () => {
+  // €50 of clothing on 28 Oct and its €50 refund on 2 Nov: November's only EUR row is −€50.00.
+  const nov = byCategory([e('c', '50.00', {category: 'Shopping', date: '2026-10-28'}), refund('rc', '50.00', {category: 'Shopping', date: '2026-11-02'})], '2026-11-01', '2026-11-30');
+  expect(nov).toEqual([{category: 'Shopping', currency: 'EUR', total: -5000, count: 1}]);
+  expect(barWidths(nov)).toEqual([null]);
+  expect(barWidths([{currency: 'EUR', total: 0}])).toEqual([null]);
+  expect(barWidths([{currency: 'EUR', total: 8000}, {currency: 'EUR', total: 100}, {currency: 'EUR', total: -5000}, {currency: 'USD', total: -10}, {currency: 'USD', total: 2000}])).toEqual([100, 4, null, null, 100]);
 });
 
 describe('Compare', () => {
@@ -174,6 +207,31 @@ describe('marking a refund', () => {
     expect(() => markRefund(log, 'in', {category: 'Groceries', of: 'nope'}, AT)).toThrow(/no longer/);
     const back = unmarkRefund(marked, 'in', 'Other income', AT).entries[1]!;
     expect(back).not.toHaveProperty('refund'); expect(back).not.toHaveProperty('refundOf'); expect(back.category).toBe('Other income');
+  });
+  test('review B6O-4: a refund of a shared cost counts the person’s share of it — €120 dinner, my share €40, €120 back: €0', () => {
+    const dinner = e('d', '120.00', {category: 'Food & drink', note: 'Trattoria', share: '40.00', account: 'Card'});
+    const back = e('b', '120.00', {kind: 'income', category: 'Other income', note: 'Trattoria', account: 'Card', date: '2026-11-12'});
+    const shared = {...emptyMoneyLog(), entries: [dinner, back]};
+    expect(refundOffers(shared.entries).map(o => o.entry.id)).toEqual(['b']);
+    const marked = markRefund(shared, 'b', {category: 'Food & drink', of: 'd'}, AT);
+    expect(marked.entries[1]).toMatchObject({refund: true, refundOf: 'd', share: '40.00'});
+    expect(byCategory(marked.entries, '2026-11-01', '2026-11-30')).toEqual([{category: 'Food & drink', currency: 'EUR', total: 0, count: 2}]);
+    expect(totals(marked.entries, '2026-11-01', '2026-11-30')[0]).toMatchObject({expenses: 0, income: 0});
+    // Part of it back: by the same share, exact cents (to the nearest cent).
+    expect([refundShare('30.00', dinner), refundShare('10.00', dinner), refundShare('0.01', dinner), refundShare('5.00', {amount: '5.00'})]).toEqual(['10.00', '3.33', undefined, undefined]); // a cent back is one cent: whole
+    // Not linked, or linked to a purchase not shared: whole; unmarked: money received counts whole again.
+    expect(markRefund(shared, 'b', {category: 'Food & drink'}, AT).entries[1]).not.toHaveProperty('share');
+    expect(unmarkRefund(marked, 'b', 'Other income', AT).entries[1]).not.toHaveProperty('share');
+    // The purchase shared (or not) afterwards: its refunds follow.
+    const later = markRefund({...shared, entries: [e('d', '120.00', {category: 'Food & drink', note: 'Trattoria', account: 'Card'}), back]}, 'b', {category: 'Food & drink', of: 'd'}, AT);
+    expect(later.entries[1]).not.toHaveProperty('share');
+    const more = emptyMoneyMore();
+    const split = shareCost(later, more, 'd', '60.00', [{name: 'Sam', amount: '60.00'}], () => 'o1').log;
+    expect(split.entries[1]).toMatchObject({share: '60.00'});
+    expect(unshareCost(split, more, 'd').log.entries[1]).not.toHaveProperty('share');
+    // A refund whose purchase is gone keeps the share it has; any other entry is as it is.
+    expect(withRefundShare([], marked.entries[1]!)).toBe(marked.entries[1]);
+    expect(withRefundShare(marked.entries, dinner)).toBe(dinner);
   });
   test('the purchases a refund can point at: its category and currency, before it, newest first', () => {
     expect(refundTargets([e('a', '5.00', {date: '2026-11-01'}), e('b', '5.00', {date: '2026-11-11'}), e('c', '5.00', {category: 'Fun'}), e('d', '5.00', {date: '2026-11-15'})], {id: 'r', currency: 'EUR', category: 'groceries', date: '2026-11-12'}).map(x => x.id)).toEqual(['b', 'a']);

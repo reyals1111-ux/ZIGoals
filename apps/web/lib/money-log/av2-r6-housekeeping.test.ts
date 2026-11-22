@@ -1,8 +1,10 @@
 import {describe, expect, test} from 'vitest';
-import {addBackCategory, addBackSub, checkRecords, clearSub, dropBudget, dropSplit, forgetAccount, keepFirst, moveCategory, unlinkRefund, untransfer} from './check';
-import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, yearCsv} from './put-away';
+import {addBackCategory, addBackSub, checkRecords, clearSub, dropBudget, dropSplit, forgetAccount, keepFirst, moveCategory, undoAddBackCategory, undoAddBackSub, unforgetAccount, unlinkRefund, untransfer} from './check';
+import {itemChanges} from '../undo-removal';
+import {withAccountNote} from './counted';
+import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, staysPutAway, yearCsv} from './put-away';
 import {totals} from './engine';
-import {emptyMoneyLog, moneyLogSchema, type MoneyEntry, type MoneyLog} from './schema';
+import {emptyMoneyLog, moneyLogSchema, readableYears, type MoneyEntry, type MoneyLog} from './schema';
 import {emptyBudgets, type BudgetsRecord} from '../budgets/schema';
 
 /**
@@ -81,4 +83,67 @@ describe('put old entries away (#431)', () => {
     expect(back.entries.map(x => x.id)).toEqual(['a']);
     expect(back.putAway?.years[0]?.entries).toEqual([{id: 'future', kind: 'gift'}]);
   });
+});
+
+describe('review B6O-6: the repairs that change no entry have their own Undo', () => {
+  const gone = log([e({id: 'k'})], {accounts: {notes: {gone: 'my old card, closed in May', keep: 'main'}, checked: {gone: '2026-10-31'}, order: ['keep', 'gone', 'other']}});
+  test('Forget it: the shared item Undo has nothing to offer; its own Undo brings back the note, the checked day and the place', () => {
+    const forgot = forgetAccount(gone, 'gone');
+    expect(itemChanges(gone, forgot)).toBeNull();
+    expect(forgot.accounts).toEqual({notes: {keep: 'main'}, checked: {}, order: ['keep', 'other']});
+    expect(unforgetAccount(forgot, gone, 'gone').accounts).toEqual(gone.accounts);
+    // Later edits are kept: a new note for another account, an order changed since, a note typed for it again.
+    const later = withAccountNote(moneyLogSchema.parse({...forgot, accounts: {...forgot.accounts, order: ['other', 'keep']}}), 'keep', 'joint');
+    expect(unforgetAccount(later, gone, 'gone').accounts).toEqual({notes: {keep: 'joint', gone: 'my old card, closed in May'}, checked: {gone: '2026-10-31'}, order: ['gone', 'other', 'keep']}); // back before the account it came before
+    expect(unforgetAccount(withAccountNote(forgot, 'gone', 'new'), gone, 'gone').accounts?.notes).toEqual({keep: 'main', gone: 'new'});
+  });
+  test('Add … back: Undo takes only that category or subcategory off again', () => {
+    const base = log([e({category: 'Pets', sub: 'Vet'})], {own: {expense: ['Garden']}, subs: {Groceries: ['Bread']}});
+    const cat = addBackCategory(base, 'expense', 'Pets');
+    expect(itemChanges(base, cat)).toBeNull();
+    expect(undoAddBackCategory(cat, base, 'expense', 'Pets').own).toEqual({expense: ['Garden']});
+    expect(undoAddBackCategory(addBackCategory(cat, 'expense', 'Toys'), base, 'expense', 'Pets').own).toEqual({expense: ['Garden', 'Toys']});
+    expect(undoAddBackCategory(base, base, 'expense', 'Garden')).toBe(base); // it was there before: nothing to undo
+    const sub = addBackSub(base, 'Pets', 'Vet');
+    expect(undoAddBackSub(sub, base, 'Pets', 'Vet').subs).toEqual({Groceries: ['Bread']});
+    const both = addBackSub(addBackSub(base, 'Groceries', 'Fruit'), 'Groceries', 'Milk');
+    expect(undoAddBackSub(both, addBackSub(base, 'Groceries', 'Fruit'), 'Groceries', 'Milk').subs).toEqual({Groceries: ['Bread', 'Fruit']});
+  });
+});
+
+test('review B6O-8: a refund left out or marked a transfer is still checked against the spending categories', () => {
+  const kept = e({id: 'rk', kind: 'income', refund: true, category: 'Groceries'});
+  for (const marks of [{}, {excluded: true as const}, {transfer: 'x'}]) {
+    const found = checkRecords(log([{...kept, ...marks}])).filter(i => i.kind === 'category');
+    expect(found).toEqual([]); // Groceries is a spending category: nothing lost
+  }
+  const own = log([{...e({id: 'ro', kind: 'income', refund: true, category: 'Pets'}), excluded: true}]);
+  expect(checkRecords(own).filter(i => i.kind === 'category').map(i => i.kind === 'category' ? [i.category, i.entryKind] : null)).toEqual([['Pets', 'expense']]);
+  expect(addBackCategory(own, 'expense', 'Pets').own).toEqual({expense: ['Pets']});
+});
+
+test('review B6O-9: an entry put away whose id is in the log again stays put away when the year comes back', () => {
+  const live = e({id: 'clash', amount: '12.00', date: '2023-05-01'}), copy = {...live, amount: '15.00', note: 'the copy put away'}, other = e({id: 'o', date: '2023-06-01'});
+  const L2 = log([live], {putAway: {years: [{id: 'y', year: '2023', at: AT, entries: [copy, other, {id: 'future', kind: 'gift'}]}]}});
+  expect(staysPutAway(L2, L2.putAway!.years[0]!)).toEqual([copy, {id: 'future', kind: 'gift'}]);
+  const back = bringBack(L2, 'y');
+  expect(back.entries.map(x => [x.id, x.amount])).toEqual([['o', '10.00'], ['clash', '12.00']]);
+  expect(back.putAway?.years).toEqual([{id: 'y', year: '2023', at: AT, entries: [copy, {id: 'future', kind: 'gift'}]}]);
+});
+
+test('review B6O-13: one unreadable put-away year is kept in its place as stored; the readable years read as before', () => {
+  const good = {id: 'y23', year: '2023', at: AT, entries: [e({id: 'g1', date: '2023-03-01'})]}, good2 = {id: 'y21', year: '2021', at: AT, entries: [e({id: 'g2', date: '2021-03-01'})]};
+  const bad = {id: 'yb', year: '2022', at: 'last spring', entries: [{id: 'b1'}]}, odd = {id: 'yf', year: 'MMXX', at: AT, entries: [], later: 1};
+  const parsed = moneyLogSchema.parse({...emptyMoneyLog(), putAway: {years: [good2, bad, good, odd]}});
+  expect(parsed.putAway?.years).toEqual([good2, bad, good, odd]);
+  expect(readableYears(parsed)).toEqual([good2, good]);
+  // Valid data parses exactly as before.
+  expect(moneyLogSchema.parse({...emptyMoneyLog(), putAway: {years: [good2, good]}}).putAway).toEqual({years: [good2, good]});
+  // Putting a year away and bringing one back keep the unreadable years, as they are.
+  const away = putAwayYear({...parsed, entries: [e({id: 'n', date: '2024-05-01'}), e({id: 'now'})]}, null, '2024', TODAY, AT, 'y24');
+  expect(away.putAway?.years).toEqual([good2, good, {id: 'y24', year: '2024', at: AT, entries: [expect.objectContaining({id: 'n'})]}, bad, odd]);
+  expect(bringBack(away, 'y23').putAway?.years).toEqual([good2, {id: 'y24', year: '2024', at: AT, entries: [expect.objectContaining({id: 'n'})]}, bad, odd]);
+  expect(() => bringBack(away, 'yb')).toThrow(/no longer put away/);
+  // A refund naming an entry in an unreadable year is not an orphan.
+  expect(checkRecords(log([e({id: 'r', kind: 'income', refund: true, refundOf: 'b1'})], {putAway: parsed.putAway!}))).toEqual([]);
 });
