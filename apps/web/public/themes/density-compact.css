@@ -3112,6 +3112,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .health-repeat-days .checkbox:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .nutrient-range:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .health-plan-group summary:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .health-water .health-form .health-water-drink > .health-form-grid:not(#\-) { margin-top: 6px; }
+:where(:root[data-density=compact]) .health-water .health-water-settings > .r3-water:not(#\-) { margin-top: 0; }
+:where(:root[data-density=compact]) .health-water > .phone-fold:not(#\-) { margin-top: 12px; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .health-content > details.panel:not([open]):not(#\-) { padding-top: 0; padding-bottom: 0; margin-bottom: 6px; } }
 /*  components/health/health-day.css  */
 :where(:root[data-density=compact]) .health-page .health-date-bar:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .health-page .health-date-step:not(#\-) { padding-top: 0; padding-bottom: 0; }
