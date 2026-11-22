@@ -8,6 +8,15 @@
  * never for a habit that ticks itself off from Health; in the app, Today's reminder card shows them.
  */
 export const REMINDER_WORDS_MAX = 80, MORE_TIMES_MAX = 2, MAX_REMINDER_MORE = 400;
+/** The least gap between a habit's reminder times, in minutes (review B3B-5). */
+export const MIN_GAP = 40;
+const minutesOf = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+/** A habit's reminder times: the base time, then each extra time at least MIN_GAP minutes from every one kept before it. */
+export function spacedTimes(base: string, more: readonly string[]): string[] {
+  const kept = [base];
+  for (const t of [...more].sort()) if (CLOCK.test(t) && kept.every(k => Math.abs(minutesOf(k) - minutesOf(t)) >= MIN_GAP)) kept.push(t);
+  return kept.slice(0, 1 + MORE_TIMES_MAX);
+}
 export type ReminderMore = {words?: string; times: string[]};
 const CLOCK = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 // Letters or numbers somewhere (a line of spaces or invisible marks reads as none).
@@ -32,6 +41,9 @@ export function readReminderMore(wordsText: string, timeTexts: readonly string[]
   if (filled.some(t => !CLOCK.test(t))) return {ok: false, issue: {field: 'times', message: 'Enter each time like 07:30, or leave it blank.'}};
   if (filled.length > MORE_TIMES_MAX) return {ok: false, issue: {field: 'times', message: `Up to ${MORE_TIMES_MAX} more times a day.`}};
   const times = [...new Set(filled)].filter(t => t !== baseTime).sort();
+  // Review B3B-5: one notification shows the habits due in about half an hour, so times this close would say it twice.
+  const all = [...(CLOCK.test(baseTime) ? [baseTime] : []), ...times].map(minutesOf).sort((a, b) => a - b);
+  if (all.some((m, i) => i > 0 && m - all[i - 1]! < MIN_GAP)) return {ok: false, issue: {field: 'times', message: `Keep each reminder time at least ${MIN_GAP} minutes from the others.`}};
   return {ok: true, value: {...(words ? {words} : {}), times}};
 }
 /** The extras with this habit's words and times set (or removed when both are empty); the others kept, at most 400. */

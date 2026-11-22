@@ -1,6 +1,7 @@
 import {addDays, inQuiet, toMinutes, wallClock, weekdayBit, weekdayOf, zonedInstant} from './zone';
 import {eveningTime, moodTimes, morningTime, typeOn, type NotifyPrefs} from './prefs';
 import type {EnergyInput} from './energy-items';
+import {spacedTimes} from '../habit-reminder-words';
 
 /**
  * Session AK Part 2 (ADR-036 Q3, A1, A2): the notification plan of this device, pure. From what the page already knows
@@ -113,7 +114,7 @@ export function buildPlan(input: PlanInput): Plan {
     }
   };
   const EVERY = 127;
-  if (typeOn(prefs, 'habits')) for (const h of input.habits) for (const time of [h.time, ...(h.more ?? []).filter(t => t !== h.time).slice(0, 2)]) daily('habit', h.id, time, h.weekdays, () => ({label: label(h.words ?? h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
+  if (typeOn(prefs, 'habits')) for (const h of input.habits) for (const time of spacedTimes(h.time, h.more ?? [])) daily('habit', h.id, time, h.weekdays, () => ({label: label(h.words ?? h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
   // Session AK (F5): never labelled, whatever the names switch says (a supplement or medicine's name is health data).
   if (typeOn(prefs, 'supplements')) for (const s of input.supplements ?? []) daily('supplement', s.id, s.time, s.weekdays, () => ({href: '/app/health', actionable: false}), date => date === today && s.doneToday);
   // Session AV lane 2 (health r3; LEDGER #280): reminders through the day, each its own wake, quiet once today is on pace

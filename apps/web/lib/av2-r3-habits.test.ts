@@ -4,7 +4,7 @@ import {describe, expect, test} from 'vitest';
 import {createHabit, emptyHabitData, logHabitValue, saveHabitTimezone, type HabitData} from './habits';
 import {addLocalDays} from './local-date';
 import {habitTrend30, habitTrendList, trendSentence} from './habits-v2/trend';
-import {readReminderMore, reminderMoreOf, reminderWordsIn, withReminderMore} from './habit-reminder-words';
+import {readReminderMore, reminderMoreOf, reminderWordsIn, spacedTimes, withReminderMore} from './habit-reminder-words';
 import {habitExtrasSchema} from './habits-extras/schema';
 import {collectEverything} from './export/everything';
 import {nextValue, planParts} from './restore/plan';
@@ -41,6 +41,17 @@ describe('a habit reminder in your own words, and more times (LEDGER #275)', () 
     expect(readReminderMore('', ['07:00', ''], '07:00')).toEqual({ok: true, value: {times: []}});
     expect(readReminderMore('x'.repeat(81), [], '07:00')).toMatchObject({ok: false, issue: {field: 'words'}});
     expect(readReminderMore('   ', ['25:00'], '07:00')).toMatchObject({ok: false, issue: {field: 'times'}});
+  });
+  // Session AV lane 2 (review B3B-5): one habit never fills one notification twice.
+  test('times closer than 40 minutes are refused in the editor and dropped in the plan', () => {
+    expect(readReminderMore('', ['08:20'], '08:00')).toMatchObject({ok: false, issue: {field: 'times', message: 'Keep each reminder time at least 40 minutes from the others.'}});
+    expect(readReminderMore('', ['12:00', '12:30'], '08:00')).toMatchObject({ok: false, issue: {field: 'times'}});
+    expect(readReminderMore('', ['08:40', '18:00'], '08:00')).toMatchObject({ok: true});
+    expect(spacedTimes('08:00', ['08:20', '12:00', '12:10'])).toEqual(['08:00', '12:00']);
+    const plan = buildPlan(base({habits: [{id: 'h1', title: 'Run', words: 'Shoes by the door?', more: ['07:20'], time: '07:00', weekdays: 127, doneToday: false}], labels: true}));
+    const at = zonedInstant(TODAY, '07:20', 'UTC');
+    expect(plan.snapshot.items.filter(i => i.kind === 'habit' && i.at <= at && i.at > at - 3_600_000)).toHaveLength(1);
+    expect(composer()(plan.snapshot, at).body).not.toContain('Shoes by the door? · Shoes by the door?');
   });
   test('saved on its own, the other habits and fields kept; an old record reads as before; an odd one is dropped', () => {
     const old = habitExtrasSchema.parse({version: 1, times: {h1: '07:00'}});
