@@ -302,3 +302,21 @@ the existing one stays is the owner's call.
   (`zigoals:health-goals-more:v1`) and the circuit "Thirteen-minute legs (Showcase)" (`zigoals:workout-circuits:v1`). No
   pinned count reads them. Test: `lib/r3-health-showcase.test.ts`. The Showcase plans no notification, so the reminders
   (water, weigh-in, habit words) have no Showcase example; the habit trend shows on the Showcase's own history.
+
+## Review B3B fixes (one commit each, with unit tests)
+
+| id | fix | commit |
+|---|---|---|
+| B3B-1 (Major) | A measurement's or a number's goal averages exactly the last 7, 14 or 30 days through today (it took N + 1); the nutrient window (the last full days) is unchanged. Test at the window's edge. | `e53600a8` |
+| B3B-2 (Major) | `notAGoal` (lib/health-goals/more.ts): stems matched anywhere in the folded name (glucos, glykem, bloedsuiker, suikerspiegel, blood sugar, keton, hydroxybutyr, hydroxyboter, insulin, quetelet…) and abbreviations as words (BMI, BHB, HbA1c, A1C, GKI, CGM, BG); a test lists Bloedglucose, Nuchtere bloedglucose, Bloedsuikerspiegel, Blood sugars, BHB, Beta-hydroxybutyrate and more, and ordinary numbers that stay allowed. | `5b4ba416` |
+| B3B-3 (Major) | `weighedInOn` (lib/weigh-in.ts): the daily weight list or a timed weight reading on that day of its own zone, for the plan (sync.ts) and the card. `readingDay` is exported from lib/body-measurements.ts (unchanged). TIER 3 (PWA): the plan's weigh-in item. | `f62714bc` |
+| B3B-4 (Major) | Hide calories and weight: the water card's drink line, each own drink's kcal (own span) and a calorie goal's name and target, and a body goal's target, carry `data-body-figure`; drink buttons no longer read kcal aloud. Render test `lib/av2-r3-hide-figures.test.ts` (run from the repository root). | `c305237e` |
+| B3B-5 | A habit's reminder times stay at least 40 minutes apart: the editor says so; the plan drops a stored time closer than that (`spacedTimes`). TIER 3 (PWA). | `4b16cf79` |
+| B3B-6 | The drink line counts every drink with an energy or a sugar (`counted`, `uncounted` in `drinkEnergyDay`). | `8a66c886` |
+| B3B-7 | A reading's time through `formatClock`, beside the meal and in its history; `tests/av2-meal-readings.spec.ts` expects "1:45 PM" (labelled deliberate). | `0c3bac58` |
+| B3B-8 | Reminders through the day lists the Health journal's today (`spreadSlotsToday`), whatever day the Diary shows. | `4db3d334` |
+| B3B-9 | The weigh-in card says today's reminder stays quiet only on a reminder day (`weighInDueOn`). | `24f66b67` |
+| B3B-10 | "Every hour" / "Elk uur"; "over N metingen" for a measurement or number goal in Dutch (and the card's "every hour"). | `5fc6ad5f` |
+| B3B-11 | A body measurement counts on the day of its own zone (`readingDay`). | `818f644b` |
+| B3B-12 | Once a circuit is logged (or done) the player offers no Resume or Skip (`playerControls`). | `a03b6fb1` |
+| B3B-13 | The Showcase circuit is "Thirteen-minute legs (Showcase)", matching its own line. | `a03edcc3` |
