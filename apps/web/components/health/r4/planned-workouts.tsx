@@ -1,10 +1,10 @@
 'use client';
-import {useId, useMemo, useState, type DragEvent, type FormEvent} from 'react';
+import {useEffect, useId, useMemo, useRef, useState, type DragEvent, type FormEvent} from 'react';
 import {addLocalDays} from '../../../lib/local-date';
 import {formatDate} from '../../../lib/visual-format';
 import type {Workouts} from '../../../lib/workouts/schema';
 import {CIRCUITS} from '../../../lib/workouts/circuits';
-import {clearAway, EFFORT_WORDS, EFFORTS, missedThisWeek, mondayOf, moveWorkout, planStates, planWorkout, PLANNED_WORKOUTS, plannedLine, realign, removePlanned, restorePlanned, setAway, type Effort, type PlanDraft, type Planned, type PlanIssue, type PlanState, type PlannedRecord} from '../../../lib/workouts/planned';
+import {clearAway, EFFORT_WORDS, EFFORTS, missedThisWeek, mondayOf, moveWorkout, planStates, planWorkout, PLANNED_WORKOUTS, plannedLine, focusAfterRemove, realign, removePlanned, restorePlanned, setAway, undoRealign, type Effort, type PlanMove, type PlanDraft, type Planned, type PlanIssue, type PlanState, type PlannedRecord} from '../../../lib/workouts/planned';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {showUndo} from '../../ui/undo-toast';
@@ -31,17 +31,28 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
   if (rec.unreadable) return <p className="fine" role="alert">Your plan on this device could not be read, so it cannot be changed here now.</p>;
   const keep = (change: (c: PlannedRecord) => PlannedRecord, text: string) => { try { rec.update(change); setSaid(text); return true; } catch (e) { setSaid(e instanceof Error && !/storage|quota/i.test(e.message) ? e.message : `Not kept on this device. ${deviceSettingFailureMessage(e)}`); return false; } };
   const move = (item: Planned, date: string) => { if (date === item.date) return; const was = item.date; if (keep(c => moveWorkout(c, item.id, date), `${item.name} moved to ${formatDate(date, {weekday: true, year: false})}.`)) showUndo({message: `${item.name} moved to ${formatDate(date, {weekday: true, year: false})}.`, undone: `${item.name} is back on ${formatDate(was, {weekday: true, year: false})}.`, restore: () => rec.update(c => c.items.some(i => i.id === item.id) ? moveWorkout(c, item.id, was) : c)}); };
+  // Review B4E-2: worked out on the latest plan, and its Undo puts back only the workouts it moved.
+  const realignNow = () => {
+    const box: {moves: PlanMove[]} = {moves: []};
+    if (!keep(c => { const out = realign(c, w, today); box.moves = out.moves; return out.value; }, '')) return;
+    const made = box.moves, words = `${made.length} planned ${made.length === 1 ? 'workout' : 'workouts'} moved on, in order.`;
+    setSaid(words);
+    if (made.length) showUndo({message: words, undone: made.length === 1 ? 'The workout is back on its day.' : 'The workouts are back on their days.', restore: () => rec.update(c => undoRealign(c, made))});
+  };
   const start = mondayOf(today), days = Array.from({length: WEEKS * 7}, (_, i) => addLocalDays(start, i));
   const byDay = new Map<string, Planned[]>(); for (const i of r.items) byDay.set(i.date, [...(byDay.get(i.date) ?? []), i]);
   const upcoming = r.items.filter(i => i.date > days.at(-1)!), earlier = r.items.filter(i => i.date < start && states.get(i.id) !== 'done').slice(-5);
   const drop = (e: DragEvent, date: string) => { e.preventDefault(); setOver(null); const item = r.items.find(i => i.id === e.dataTransfer.getData('text/plain')); if (item) move(item, date); };
   const chosen = r.items.find(i => i.id === open) ?? null;
+  // Review B4E-12: focus follows the panel: to its heading on open, back to the workout after Move or Close, on to the next one after Remove.
+  const focusChip = (itemId: string) => requestAnimationFrame(() => document.getElementById(`${id}-chip-${itemId}`)?.focus());
+  const sortedIds = () => days.flatMap(d => (byDay.get(d) ?? []).map(i => i.id));
   return <div className="r4-plan" id="workouts-plan">
     {isShowcase() && r.items.some(i => /\(Showcase\)/.test(i.name)) && <p className="fine"><ShowcaseTag/> Fictional example plan.</p>}
     <p className="fine">Plan a routine, a circuit or a run on a day. Drag it to another day on the calendar, or open it to move it. A planned workout is done once a workout is logged that day.</p>
     {missed.length > 0 && <div className="r4-note" role="group" aria-labelledby={`${id}-missed`}>
       <p id={`${id}-missed`}>{missed.length === 1 ? `${missed[0]!.name} on ${formatDate(missed[0]!.date, {weekday: true, year: false})} was not done.` : `${missed.length} planned workouts this week were not done.`} Move {missed.length === 1 ? 'it' : 'them'} on, in order, from today?</p>
-      <div className="actions"><button type="button" className="secondary" onClick={() => { const before = r; const out = realign(r, w, today); if (keep(() => out.value, `${out.moved} planned ${out.moved === 1 ? 'workout' : 'workouts'} moved on, in order.`)) showUndo({message: `${out.moved} planned ${out.moved === 1 ? 'workout' : 'workouts'} moved on.`, undone: 'Your plan is as it was.', restore: () => rec.update(() => before)}); }}>I missed some: move them on</button></div>
+      <div className="actions"><button type="button" className="secondary" onClick={realignNow}>I missed some: move them on</button></div>
     </div>}
     {r.away ? <p className="r4-note">Away {r.away.from <= today ? 'until' : `from ${formatDate(r.away.from, {weekday: true, year: false})} until`} {formatDate(r.away.to, {weekday: true, year: false})}: planned workouts in that time are set aside. <button type="button" className="quiet" onClick={() => keep(clearAway, 'Welcome back: nothing is set aside now.')}>I’m back</button></p>
       : <div className="r3-toggle"><label className="field"><span>Away until</span><input type="date" min={today} value={awayTo} onChange={e => setAwayTo(e.target.value)}/></label><button type="button" className="quiet" onClick={() => keep(c => setAway(c, today, awayTo), `Away until ${formatDate(awayTo, {weekday: true, year: false})}: planned workouts in that time are set aside.`)}>Set them aside</button></div>}
@@ -51,13 +62,13 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
           return <li key={d} className="r4-day" data-today={d === today || undefined} data-over={over === d || undefined} data-away={away || undefined} aria-label={`${formatDate(d, {weekday: true, year: false})}${d === today ? ', today' : ''}: ${list.length ? `${list.length} planned` : 'nothing planned'}${away ? ', away' : ''}`}
             onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (over !== d) setOver(d); }} onDragLeave={() => setOver(o => o === d ? null : o)} onDrop={e => drop(e, d)}>
             <span className="r4-day-head" aria-hidden="true">{formatDate(d, {weekday: true, year: false})}</span>
-            <span>{list.map(i => <button key={i.id} type="button" className="quiet r4-chip" draggable data-state={states.get(i.id)} aria-expanded={open === i.id} aria-controls={`${id}-item`}
+            <span>{list.map(i => <button key={i.id} id={`${id}-chip-${i.id}`} type="button" className="quiet r4-chip" draggable data-state={states.get(i.id)} aria-expanded={open === i.id} aria-controls={open === i.id ? `${id}-item` : undefined}
               aria-label={`${plannedLine(i)}, ${STATE_WORDS[states.get(i.id) ?? 'planned']}. Open to move or remove it`} onDragStart={e => { e.dataTransfer.setData('text/plain', i.id); e.dataTransfer.effectAllowed = 'move'; }} onClick={() => setOpen(open === i.id ? null : i.id)}>{i.time ? `${i.time} ` : ''}{i.name}</button>)}</span>
           </li>; })}
       </ul>)}
     </div>
-    {chosen && <ItemPanel key={chosen.id} id={`${id}-item`} item={chosen} state={states.get(chosen.id) ?? 'planned'} today={today} onMove={d => move(chosen, d)} onClose={() => setOpen(null)}
-      onRemove={() => { setOpen(null); if (keep(c => removePlanned(c, chosen.id), `${chosen.name} removed from your plan.`)) showUndo({message: `${chosen.name} removed from your plan.`, undone: `${chosen.name} is back in your plan.`, restore: () => rec.update(c => restorePlanned(c, chosen))}); }}/>}
+    {chosen && <ItemPanel key={chosen.id} id={`${id}-item`} item={chosen} state={states.get(chosen.id) ?? 'planned'} today={today} onMove={d => { move(chosen, d); setOpen(null); focusChip(chosen.id); }} onClose={() => { setOpen(null); focusChip(chosen.id); }}
+      onRemove={() => { setOpen(null); const order = sortedIds(); requestAnimationFrame(() => { const next = focusAfterRemove(order, chosen.id); const el = next ? document.getElementById(`${id}-chip-${next}`) : document.querySelector<HTMLElement>(`#workouts-plan form select`); el?.focus(); }); if (keep(c => removePlanned(c, chosen.id), `${chosen.name} removed from your plan.`)) showUndo({message: `${chosen.name} removed from your plan.`, undone: `${chosen.name} is back in your plan.`, restore: () => rec.update(c => restorePlanned(c, chosen))}); }}/>}
     {(earlier.length > 0 || upcoming.length > 0) && <ul className="r4-list">{[...earlier, ...upcoming].map(i => <li key={i.id}><span><strong>{i.name}</strong><small className="fine">{formatDate(i.date, {weekday: true})}{i.time ? ` · ${i.time}` : ''} · {STATE_WORDS[states.get(i.id) ?? 'planned']}</small></span><span className="r4-row-actions"><button type="button" className="quiet" aria-label={`Open ${i.name} on ${formatDate(i.date)}`} onClick={() => setOpen(i.id)}>Open</button></span></li>)}</ul>}
     {!r.items.length && <p className="health-empty-inline">Nothing planned yet. Put your routine on Monday and an easy run on Thursday: they show here, on the Agenda and on the Day Timeline.</p>}
     <PlanForm w={w} circuits={circuits.loaded && !circuits.unreadable ? circuits.data.circuits : []} today={today} onPlan={d => { const out = planWorkout(r, d, `plan-${crypto.randomUUID()}`, new Date().toISOString()); if (!out.ok) return out.issue; keep(() => out.value, `${out.item.name} planned on ${formatDate(out.item.date, {weekday: true, year: false})}${out.item.time ? ` at ${out.item.time}` : ''}.`); return null; }}/>
@@ -66,9 +77,11 @@ export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}
 }
 
 function ItemPanel({id, item, state, today, onMove, onRemove, onClose}: {id: string; item: Planned; state: PlanState; today: string; onMove: (d: string) => void; onRemove: () => void; onClose: () => void}) {
-  const [to, setTo] = useState(item.date < today ? today : addLocalDays(item.date, 1));
-  return <section className="r4-note" id={id} aria-label={`${item.name}, ${formatDate(item.date)}`}>
-    <p><strong>{plannedLine(item)}</strong> · {formatDate(item.date, {weekday: true})} · {STATE_WORDS[state]}</p>
+  const [to, setTo] = useState(item.date < today ? today : addLocalDays(item.date, 1)), head = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { head.current?.focus(); }, []);
+  return <section className="r4-note" id={id} aria-labelledby={`${id}-head`}>
+    <h4 id={`${id}-head`} ref={head} tabIndex={-1}>{plannedLine(item)}</h4>
+    <p>{formatDate(item.date, {weekday: true})} · {STATE_WORDS[state]}</p>
     <div className="r3-toggle"><label className="field"><span>Move to</span><input type="date" value={to} onChange={e => setTo(e.target.value)}/></label><button type="button" className="secondary" disabled={!to || to === item.date} onClick={() => onMove(to)}>Move</button></div>
     <div className="actions"><button type="button" className="quiet" onClick={onRemove}>Remove from the plan</button><button type="button" className="quiet" onClick={onClose}>Close</button></div>
   </section>;

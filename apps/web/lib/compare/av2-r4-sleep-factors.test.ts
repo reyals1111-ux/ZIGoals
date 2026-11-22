@@ -84,4 +84,12 @@ describe('caffeine and steps as factors for the night (LEDGER #332)', () => {
     const none = {...s.drinks}; delete none[id]; s.drinks = none;
     expect(daySample(s, 'caffeine', 'sleep', 'same', TODAY, first, first, 100)!.days[0]!.a).toBe(false);
   });
+  // Session AV lane 2 (review B4E-14): a day with only minutes logged has no step count: unknown, never 0 steps.
+  test('a minutes-only activity day is unknown for steps', () => {
+    const s = sources(), day = addLocalDays(TODAY, -45);
+    s.health = {...s.health!, activity: [...s.health!.activity, {id: 'health_yoga-00000001', date: day, name: 'Yoga', steps: 0, minutes: 30, createdAt: `${day}T08:00:00.000Z`, updatedAt: `${day}T08:00:00.000Z`}]} as HealthData;
+    expect(daySample(s, 'steps', 'sleep', 'same', TODAY, day, day, 8000)!.days[0]!.a).toBeNull();
+    expect(daySample(s, 'steps', 'sleep', 'same', TODAY, addLocalDays(TODAY, -40), addLocalDays(TODAY, -40), 8000)!.days[0]!.a).toBe(true);
+  });
 });
+

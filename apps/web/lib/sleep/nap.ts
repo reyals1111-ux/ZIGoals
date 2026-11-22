@@ -1,5 +1,6 @@
 import {saveNight, SHORTEST_SLEEP_MS} from './engine';
 import type {Sleep} from './schema';
+import {healthExtrasSchema, type HealthExtras} from '../health-extras';
 
 /**
  * Session AV lane 2, round 4 (health; LEDGER #335, Pillow's power nap, recovery and full-cycle naps): "Start a nap" — 20,
@@ -14,6 +15,16 @@ export const NAP_CHOICES = [
   {minutes: 90, en: 'A long nap', nl: 'Een lang dutje'},
 ] as const;
 export type NapRun = {startedAt: number; minutes: number};
+/**
+ * Review B4E-3: a nap starts on the person's tap, and that tap wakes the audio (browsers such as iOS Safari allow sound only
+ * after a gesture), so the bell 20 to 90 minutes later can sound; the meditation timer does the same on its start.
+ */
+export function beginNap(minutes: number, bell: boolean, now: number, wake: () => unknown): NapRun {
+  if (bell) wake();
+  return {startedAt: now, minutes};
+}
+/** Turning the bell on during a nap is a tap too: it wakes the audio. */
+export function bellChoice(on: boolean, wake: () => unknown): boolean { if (on) wake(); return on; }
 export const napEndsAt = (run: NapRun) => run.startedAt + run.minutes * 60_000;
 /** Seconds left, never below zero. */
 export const napLeft = (run: NapRun, now: number) => Math.max(0, Math.ceil((napEndsAt(run) - now) / 1000));
@@ -28,3 +39,25 @@ export function logNap(s: Sleep, run: NapRun, endMs: number, zone: string, at: D
   if (end - run.startedAt < SHORTEST_SLEEP_MS) return null;
   return saveNight(s, {kind: 'nap', start: run.startedAt, end, timeZone: zone}, at);
 }
+/**
+ * Review B4E-4: the running nap is kept in the health extras (`napRun`), so leaving Health → Sleep or a reload never loses
+ * it: on return it shows running, or, when it ended meanwhile, it is logged then (the bell could not ring while Sleep was
+ * closed, and the page says so). Removed once the nap is logged or stopped.
+ */
+export function napRunOf(extras: HealthExtras | null | undefined): NapRun | null {
+  const r = extras?.napRun, at = r ? Date.parse(r.startedAt) : NaN;
+  return r && Number.isFinite(at) ? {startedAt: at, minutes: r.minutes} : null;
+}
+export const withNapRun = (extras: HealthExtras, run: NapRun): HealthExtras => healthExtrasSchema.parse({...extras, napRun: {startedAt: new Date(run.startedAt).toISOString(), minutes: run.minutes}});
+export const withoutNapRun = (extras: HealthExtras): HealthExtras => { if (!extras.napRun) return extras; const rest: Record<string, unknown> = {...extras}; delete rest.napRun; return healthExtrasSchema.parse(rest); };
+/** On return: still running, or ended while away. */
+export const napOnReturn = (run: NapRun, now: number): 'running' | 'ended' => now >= napEndsAt(run) ? 'ended' : 'running';
+/**
+ * Review B4E-13: what is said when a nap is logged — the sentence once, in the timer's status line, and a short toast that
+ * carries only the Undo (it repeated the whole sentence, so a screen reader said it twice).
+ */
+export function napLoggedWords(line: string, minutes: number, how: 'rang' | 'away' | 'up', endClock: string): {status: string; toast: string} {
+  const lead = how === 'rang' ? 'Time to wake up. ' : how === 'away' ? `Your nap ended at ${endClock} while Sleep was closed, so the bell could not ring. ` : '';
+  return {status: `${lead}Nap logged: ${line}, ${minutes} min.`, toast: 'Undo the nap?'};
+}
+

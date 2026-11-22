@@ -3,6 +3,8 @@ import type {DeviceRecordSpec} from '../device-record';
 import {dailyHealthSummary, type HealthData} from '../health';
 import {KCAL_FLOOR} from './energy';
 import {weekDays} from './planner';
+import {formatNumber} from '../visual-format';
+import {parseNumberInput} from '../numbers/parse';
 
 /**
  * Session AK (COMPETITORS N3, P2 #7): the weekly calorie budget, a display layer over the daily calorie target (the coach's
@@ -69,13 +71,26 @@ export function freeDayShares(r: CalorieWeek, base: number, days: readonly strin
 /** Plans the free day: a day from today on, 50–2,000 kcal, refused when the week's other days cannot give it above the floor. */
 export function planFreeDay(r: CalorieWeek, base: number, date: string, extraKcal: number, today: string): CalorieWeek {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < today) throw new Error('Choose a day from today on.');
-  if (!Number.isInteger(extraKcal) || extraKcal < MIN_FREE_EXTRA || extraKcal > MAX_FREE_EXTRA) throw new Error(`Choose an extra from ${MIN_FREE_EXTRA} to ${MAX_FREE_EXTRA} kcal.`);
+  if (!Number.isInteger(extraKcal) || extraKcal < MIN_FREE_EXTRA || extraKcal > MAX_FREE_EXTRA) throw new Error(`Choose an extra from ${formatKcal(MIN_FREE_EXTRA)} to ${formatKcal(MAX_FREE_EXTRA)} kcal.`);
   const next = calorieWeekSchema.parse({...r, freeDay: {date, extraKcal, plannedOn: today}});
   const shares = freeDayShares(next, base, weekDays(date));
   if (!shares || shares.extra < extraKcal) throw new Error(`The other days of that week can give ${formatKcal(shares?.extra ?? 0)} kcal at most without going below ${formatKcal(KCAL_FLOOR)}. Plan a smaller extra.`);
   return next;
 }
-const formatKcal = (n: number) => n.toLocaleString('en-US');
+// Review B4E-10: the app's own number format in these messages.
+const formatKcal = (n: number) => formatNumber(n);
+/** Reads the free day's extra as every number field does (grouping, a decimal comma), or says what to fix. */
+export function readFreeExtra(text: string): {ok: true; kcal: number} | {ok: false; message: string} {
+  const v = parseNumberInput(text);
+  return v.ok ? {ok: true, kcal: Math.round(v.value)} : {ok: false, message: v.error};
+}
+/**
+ * The food day's line for a planned free day (review B4E-9): "today" only on today; another day is named
+ * ("on Sat, Nov 21"), since the line shows whenever that day's diary is open.
+ */
+export function freeDayLine(extra: number, date: string, today: string, fmt: {number: (n: number) => string; day: (d: string) => string}): string {
+  return `A planned free day: ${fmt.number(extra)} kcal more ${date === today ? 'today' : `on ${fmt.day(date)}`}, taken evenly from ${date === today ? 'this' : 'that'} week’s other days.`;
+}
 export const clearFreeDay = (r: CalorieWeek): CalorieWeek => { const rest: Record<string, unknown> = {...r}; delete rest.freeDay; return calorieWeekSchema.parse(rest); };
 
 /** `partial` (Session AL, MO-013): some of the day's entries carry no calories, so `eaten` is the known part, a lower bound. */

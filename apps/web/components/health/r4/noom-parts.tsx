@@ -6,7 +6,7 @@ import {HEALTH_EXTRAS, RETURN_NOTE_MAX} from '../../../lib/health-extras';
 import {closeReturnNote, returnNoteDue, setReturnNote} from '../../../lib/food-log/return-note';
 import {MORE_GOALS, type MoreGoals} from '../../../lib/health-goals/more';
 import {bandDays, clearWeightBand, setWeightBand} from '../../../lib/health-goals/band';
-import {CALORIE_WEEK, clearFreeDay, freeDayShares, MAX_FREE_EXTRA, MIN_FREE_EXTRA, planFreeDay} from '../../../lib/health-aa/calorie-week';
+import {CALORIE_WEEK, clearFreeDay, freeDayLine, freeDayShares, readFreeExtra, MAX_FREE_EXTRA, MIN_FREE_EXTRA, planFreeDay} from '../../../lib/health-aa/calorie-week';
 import {weekDays} from '../../../lib/health-aa/planner';
 import {KCAL_FLOOR} from '../../../lib/health-aa/energy';
 import {GRAMS_PER_LB, weightText} from '../../../lib/health-units';
@@ -59,7 +59,7 @@ export function FreeDayPlanner({data, today}: {data: HealthData; today: string})
   if (!rec.loaded || !base) return null;
   const f = rec.loaded && !rec.unreadable ? rec.data.freeDay : undefined, live = f && f.date >= weekDays(today)[0]! ? f : undefined;
   const shares = live ? freeDayShares(rec.data, base, weekDays(live.date)) : null;
-  const plan = (e: FormEvent) => { e.preventDefault(); const kcal = Math.round(Number(extra.replace(',', '.'))); try { rec.update(r => planFreeDay(r, base, date, kcal, today)); setIssue(''); setSaid(`A free day on ${formatDate(date, {weekday: true, year: false})}: ${formatNumber(kcal)} kcal more that day, taken evenly from that week’s other days. The weekly total is the same.`); } catch (err) { setIssue(errorText(err)); document.getElementById(`${id}-extra`)?.focus(); } };
+  const plan = (e: FormEvent) => { e.preventDefault(); const read = readFreeExtra(extra); if (!read.ok) { setIssue(read.message); document.getElementById(`${id}-extra`)?.focus(); return; } const kcal = read.kcal; try { rec.update(r => planFreeDay(r, base, date, kcal, today)); setIssue(''); setSaid(`A free day on ${formatDate(date, {weekday: true, year: false})}: ${formatNumber(kcal)} kcal more that day, taken evenly from that week’s other days. The weekly total is the same.`); } catch (err) { setIssue(errorText(err)); document.getElementById(`${id}-extra`)?.focus(); } };
   return <section className="r4-free-day" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>A planned free day</h4>
     {live && shares ? <p data-body-figure="">{formatDate(live.date, {weekday: true, year: false})}: {formatNumber(shares.extra)} kcal more{shares.extra < shares.chosen ? ` (of the ${formatNumber(shares.chosen)} you chose: the other days cannot give more above ${formatNumber(KCAL_FLOOR)})` : ''}, taken evenly from {Object.keys(shares.gives).length} other {Object.keys(shares.gives).length === 1 ? 'day' : 'days'} of that week. It shows on that day only and is gone the week after.</p>
@@ -79,7 +79,7 @@ export function FoodDayNotes({data, date, today}: {data: HealthData; date: strin
   const shares = week.loaded && !week.unreadable && data.targets.kcal ? freeDayShares(week.data, data.targets.kcal, weekDays(date)) : null;
   const due = date === today && extras.loaded && !extras.unreadable && !closed ? returnNoteDue(data, extras.data, today) : null;
   return <>
-    {shares && shares.date === date && shares.extra > 0 && <p className="fine r4-free-line" data-body-figure="">A planned free day: {formatNumber(shares.extra)} kcal more today, taken evenly from this week’s other days.</p>}
+    {shares && shares.date === date && shares.extra > 0 && <p className="fine r4-free-line" data-body-figure="">{freeDayLine(shares.extra, date, today, {number: n => formatNumber(n), day: d => formatDate(d, {weekday: true, year: false})})}</p>}
     {due && <section className="r4-note" aria-labelledby={`${id}-note`}>
       <h3 id={`${id}-note`}>Your note for a harder week</h3>
       <p>{due.text}</p>

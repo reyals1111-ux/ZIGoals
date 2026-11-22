@@ -57,8 +57,20 @@ for (const theme of THEMES) test(`${theme}: your timing, a sleep tip and the nap
   await expect(timing).toContainText('Munich ChronoType Questionnaire');
   await expect(timing).toContainText('not medical advice');
 
-  // Start a nap: 20 minutes, counted down, logged at the end with Undo.
+  // Session AV lane 2 (review B4E-4): a running nap survives leaving Sleep; the Sleep card says it runs.
   const log = page.getByRole('region', {name: 'Log a night or a nap'});
+  await log.getByRole('region', {name: 'Start a nap'}).getByRole('button', {name: 'A rest: 30 min'}).click();
+  await expect(log.getByRole('region', {name: 'Napping: 30 minutes'})).toBeVisible();
+  await page.goto('/app/health'); await hydrated(page);
+  if (await fold.count()) await fold.first().click();
+  await expect(card).toContainText('A nap is running until 1:30 PM; its bell rings on Sleep.');
+  await page.goto('/app/health?view=sleep'); await hydrated(page);
+  const again = log.getByRole('region', {name: 'Napping: 30 minutes'});
+  await expect(again.getByRole('status')).toHaveText('Your nap is still running.');
+  await again.getByRole('button', {name: 'Stop without logging'}).click();
+  await expect(log.getByRole('region', {name: 'Start a nap'}).getByRole('status')).toHaveText('The nap timer is stopped. Nothing was logged.');
+
+  // Start a nap: 20 minutes, counted down, logged at the end with Undo.
   const nap = log.getByRole('region', {name: 'Start a nap'});
   await nap.getByRole('button', {name: 'A short nap: 20 min'}).click();
   const running = log.getByRole('region', {name: 'Napping: 20 minutes'});

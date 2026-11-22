@@ -1,8 +1,8 @@
 'use client';
 import {useId, useState, type FormEvent, type ReactNode} from 'react';
 import type {Workouts} from '../../../lib/workouts/schema';
-import {MAX_HR_MAX, MAX_HR_MIN, setMaxHr, WORKOUT_HR, ZONE_EDGES, ZONE_SOURCE, zoneMinutes, zoneSeconds} from '../../../lib/workouts/hr-zones';
-import {distanceWords, goalWords, RACE_DISTANCES, raceYear, RACES, removeRace, restoreRace, saveRace, timeText, type Race, type RaceDraft, type RaceIssue} from '../../../lib/workouts/races';
+import {clearMaxHr, MAX_HR_MAX, MAX_HR_MIN, setMaxHr, WORKOUT_HR, ZONE_EDGES, ZONE_SOURCE, zoneMinutes, zoneSeconds} from '../../../lib/workouts/hr-zones';
+import {distanceChoice, distanceWords, gapWords, goalWords, RACE_DISTANCES, raceYear, RACES, removeRace, restoreRace, saveRace, timeText, type Race, type RaceDraft, type RaceIssue} from '../../../lib/workouts/races';
 import {addCountdown, COUNTDOWNS} from '../../../lib/countdowns/schema';
 import {formatDate} from '../../../lib/visual-format';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
@@ -20,11 +20,14 @@ const errorText = (e: unknown) => e instanceof Error && !/storage|quota/i.test(e
 
 /** A run's minutes in each of five zones (LEDGER #336), shown under the run in "Your workouts". */
 export function HrZones({workoutId, name}: {workoutId: string; name: string}) {
-  const rec = useDeviceRecord(WORKOUT_HR), id = useId(), [text, setText] = useState(''), [issue, setIssue] = useState(''), [said, setSaid] = useState('');
+  const rec = useDeviceRecord(WORKOUT_HR), id = useId(), [typed, setText] = useState<string | null>(null), [issue, setIssue] = useState(''), [said, setSaid] = useState('');
   if (!rec.loaded || rec.unreadable) return null;
   const h = rec.data.runs[workoutId], max = rec.data.maxHr;
   if (!h) return null;
-  const keep = (e: FormEvent) => { e.preventDefault(); const out = setMaxHr(rec.data, text); if (!out.ok) { setIssue(out.message); document.getElementById(`${id}-max`)?.focus(); return; } try { rec.update(() => out.value); setIssue(''); setText(''); setSaid(out.value.maxHr ? `Your maximum: ${out.value.maxHr} beats a minute. Every run’s zones use it.` : 'Your maximum is removed.'); } catch (err) { setSaid(errorText(err)); } };
+  // Review B4E-5: the field shows the maximum kept; a blank one is refused, and removing it is its own button, with Undo.
+  const text = typed ?? (max ? String(max) : '');
+  const keep = (e: FormEvent) => { e.preventDefault(); const out = setMaxHr(rec.data, text); if (!out.ok) { setIssue(out.message); document.getElementById(`${id}-max`)?.focus(); return; } try { rec.update(() => out.value); setIssue(''); setText(null); setSaid(`Your maximum: ${out.value.maxHr} beats a minute. Every run’s zones use it.`); } catch (err) { setSaid(errorText(err)); } };
+  const remove = () => { const was = max; if (!was) return; try { rec.update(clearMaxHr); setText(null); setSaid('Your maximum is removed: the zones wait for it.'); showUndo({message: 'Your maximum heart rate is removed.', undone: `Your maximum is back: ${was} beats a minute.`, restore: () => rec.update(r => ({...r, maxHr: was}))}); } catch (err) { setSaid(errorText(err)); } };
   const z = max ? zoneSeconds(h, max) : null;
   return <section className="r4-zones" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>Heart-rate zones for {name}</h4>
@@ -34,8 +37,8 @@ export function HrZones({workoutId, name}: {workoutId: string; name: string}) {
       <p className="fine">Zones are {ZONE_EDGES.map((e, i) => `${Math.round(e * 100)}–${i < 4 ? Math.round(ZONE_EDGES[i + 1]! * 100) : 100}`).join(', ')} % of the maximum you typed ({max} bpm), the five-zone split of {ZONE_SOURCE}. <span className="health-estimate-tag">an estimate, not medical advice</span> ZIGoals never works the maximum out from your age.</p>
     </> : <p className="fine">This run kept the time at each heart rate from its file. Type your maximum heart rate (from a test or your watch, never guessed from age) to see its five zones.</p>}
     <form className="r3-toggle" aria-label="Your maximum heart rate" noValidate onSubmit={keep}>
-      <label className="field"><span>Maximum heart rate (bpm, {MAX_HR_MIN}–{MAX_HR_MAX}){max ? `, now ${max}` : ''}</span><input id={`${id}-max`} type="text" inputMode="numeric" value={text} aria-invalid={issue ? true : undefined} aria-describedby={issue ? `${id}-issue` : undefined} onChange={e => { setText(e.target.value); setIssue(''); }}/></label>
-      <button type="submit" className="secondary">{max ? 'Change it' : 'Keep it'}</button>
+      <label className="field"><span>Maximum heart rate (bpm, {MAX_HR_MIN}–{MAX_HR_MAX})</span><input id={`${id}-max`} type="text" inputMode="numeric" value={text} aria-invalid={issue ? true : undefined} aria-describedby={issue ? `${id}-issue` : undefined} onChange={e => { setText(e.target.value); setIssue(''); }}/></label>
+      <button type="submit" className="secondary">{max ? 'Change it' : 'Keep it'}</button>{max && <button type="button" className="quiet" onClick={remove}>Remove my maximum</button>}
       {issue && <p className="field-error" id={`${id}-issue`} role="alert">{issue}</p>}
     </form>
     <p className="fine" role="status" aria-live="polite">{said}</p>
@@ -62,7 +65,7 @@ export function RacesAhead({w, today}: {w: Workouts; today: string}) {
     <p className="fine">Your races in one place: the weeks to each and between them, a main race or a B race, and after race day the run that matches (that day, the distance within 5 %) beside your goal time.</p>
     {rows.length ? <ul className="r4-list">{rows.map(row => { const r = row.race; return <li key={r.id}>
       <span><strong>{r.name}</strong> <small className="fine">{r.priority === 'main' ? 'Main race' : 'B race'} · {distanceWords(r.distanceKm)} · {formatDate(r.date, {weekday: true})}{r.goalSeconds ? ` · goal ${timeText(r.goalSeconds)}` : ''}</small>
-        <small className="fine">{row.past || r.date === today ? (row.result ? `Result: ${timeText(row.result.seconds)} for ${row.result.km.toLocaleString('en-US', {maximumFractionDigits: 2})} km${row.result.vsGoal !== null ? `, ${goalWords(row.result.vsGoal)}` : ''}.` : r.date === today ? 'Race day. The run you log today shows here as its result.' : 'No run that day matches its distance.') : `In ${row.weeksFromToday} ${row.weeksFromToday === 1 ? 'week' : 'weeks'}${row.weeksAfterPrevious !== null ? ` · ${row.weeksAfterPrevious} ${row.weeksAfterPrevious === 1 ? 'week' : 'weeks'} after the race before` : ''}.`}</small></span>
+        <small className="fine">{row.past || r.date === today ? (row.result ? `Result: ${timeText(row.result.seconds)} for ${row.result.km.toLocaleString('en-US', {maximumFractionDigits: 2})} km${row.result.vsGoal !== null ? `, ${goalWords(row.result.vsGoal)}` : ''}.` : r.date === today ? 'Race day. The run you log today shows here as its result.' : 'No run that day matches its distance.') : `In ${gapWords(row.daysFromToday)}${row.daysAfterPrevious !== null ? ` · ${row.daysAfterPrevious === 0 ? 'the same day as the race before' : `${gapWords(row.daysAfterPrevious)} after the race before`}` : ''}.`}</small></span>
       <span className="r4-row-actions"><button type="button" className="quiet" aria-expanded={editing === r.id} aria-label={`Edit ${r.name}`} onClick={() => setEditing(editing === r.id ? null : r.id)}>Edit</button>
         <button type="button" className="quiet" aria-label={`Remove ${r.name}`} onClick={() => { try { rec.update(c => removeRace(c, r.id)); setSaid(`${r.name} removed.`); showUndo({message: `${r.name} removed.`, undone: `${r.name} is back.`, restore: () => rec.update(c => restoreRace(c, r))}); } catch (err) { setSaid(errorText(err)); } }}>Remove</button></span>
       {editing === r.id && <RaceForm key={r.id} initial={draftOf(r)} edit onSave={(d, c) => save(d, c, r.id)} onCancel={() => setEditing(null)}/>}
@@ -72,20 +75,22 @@ export function RacesAhead({w, today}: {w: Workouts; today: string}) {
   </div>;
 }
 
-function RaceForm({initial, edit = false, onSave, onCancel}: {initial: RaceDraft; edit?: boolean; onSave: (d: RaceDraft, countdown: boolean) => RaceIssue | null; onCancel: () => void}) {
+export function RaceForm({initial, edit = false, onSave, onCancel}: {initial: RaceDraft; edit?: boolean; onSave: (d: RaceDraft, countdown: boolean) => RaceIssue | null; onCancel: () => void}) {
   const id = useId(), [d, setD] = useState(initial), [countdown, setCountdown] = useState(false), [issue, setIssue] = useState<RaceIssue | null>(null);
+  // Review B4E-6: "Another distance" is a choice of its own, so the typed distance never flips the list (or drops focus).
+  const [own, setOwn] = useState(() => distanceChoice(false, initial.distanceKm) === 'own');
   const set = (patch: Partial<RaceDraft>) => { setD(x => ({...x, ...patch})); setIssue(null); };
   const submit = (e: FormEvent) => { e.preventDefault(); const problem = onSave(d, countdown); setIssue(problem); if (problem) document.getElementById(`${id}-${problem.field}`)?.focus(); };
   const field = (f: RaceIssue['field'], label: string, input: ReactNode) => <div><label className="field"><span>{label}</span>{input}</label>{issue?.field === f && <p className="field-error" id={`${id}-${f}-issue`} role="alert">{issue.message}</p>}</div>;
   const err = (f: RaceIssue['field']) => issue?.field === f ? {'aria-invalid': true as const, 'aria-describedby': `${id}-${f}-issue`} : {};
-  const preset = RACE_DISTANCES.find(x => String(x.km) === d.distanceKm)?.km;
+  const choice = distanceChoice(own, d.distanceKm);
   return <form className="health-form" aria-label={edit ? 'Edit the race' : 'Add a race'} noValidate onSubmit={submit}>
     <div className="health-form-grid">
       {field('name', 'Name', <input id={`${id}-name`} type="text" maxLength={60} value={d.name} onChange={e => set({name: e.target.value})} {...err('name')}/>)}
       {field('date', 'Race day', <input id={`${id}-date`} type="date" value={d.date} onChange={e => set({date: e.target.value})} {...err('date')}/>)}
-      <label className="field"><span>Distance</span><select value={preset !== undefined ? String(preset) : 'own'} onChange={e => set({distanceKm: e.target.value === 'own' ? '' : e.target.value})}>{RACE_DISTANCES.map(x => <option key={x.km} value={String(x.km)}>{x.en}</option>)}<option value="own">Another distance</option></select></label>
-      {preset === undefined && field('distance', 'Distance (km)', <input id={`${id}-distance`} type="text" inputMode="decimal" value={d.distanceKm} onChange={e => set({distanceKm: e.target.value})} {...err('distance')}/>)}
-      {field('goal', 'Goal time (optional, like 1:55:00)', <input id={`${id}-goal`} type="text" inputMode="numeric" value={d.goal} onChange={e => set({goal: e.target.value})} {...err('goal')}/>)}
+      <label className="field"><span>Distance</span><select value={String(choice)} onChange={e => { const v = e.target.value; setOwn(v === 'own'); set({distanceKm: v === 'own' ? '' : v}); }}>{RACE_DISTANCES.map(x => <option key={x.km} value={String(x.km)}>{x.en}</option>)}<option value="own">Another distance</option></select></label>
+      {choice === 'own' && field('distance', 'Distance (km)', <input id={`${id}-distance`} type="text" inputMode="decimal" value={d.distanceKm} onChange={e => set({distanceKm: e.target.value})} {...err('distance')}/>)}
+      {/* Review B4E-7: a text keypad, so the ":" of "1:55:00" can be typed on a phone */}{field('goal', 'Goal time (optional, like 1:55:00)', <input id={`${id}-goal`} type="text" inputMode="text" autoComplete="off" value={d.goal} onChange={e => set({goal: e.target.value})} {...err('goal')}/>)}
       <label className="field"><span>Which race</span><select value={d.priority} onChange={e => set({priority: e.target.value as RaceDraft['priority']})}><option value="main">Main race</option><option value="b">B race (on the way)</option></select></label>
     </div>
     {!edit && <label className="r3-toggle"><input type="checkbox" checked={countdown} onChange={e => setCountdown(e.target.checked)}/> <span>Also make a countdown for it</span></label>}

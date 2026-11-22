@@ -68,6 +68,10 @@ export const healthExtrasSchema = z.looseObject({
   // three or more days without a food log; `closedFor` is the last logged day of the return it was closed on (shown once).
   // Optional; a value this build cannot read is dropped on its own.
   returnNote: z.looseObject({text: z.string().trim().min(1).max(RETURN_NOTE_MAX), closedFor: z.iso.date().optional().catch(undefined)}).optional().catch(undefined),
+  // Session AV lane 2, round 4 (health; LEDGER #335, review B4E-4; TIER 3 (stored format), additive): the nap timer that is
+  // running, {startedAt, minutes}, so leaving Health → Sleep or a reload never loses it (as `meditationRun` keeps a
+  // meditation's bells). Removed when the nap is logged or stopped. Optional; a value this build cannot read is dropped.
+  napRun: z.looseObject({startedAt: z.iso.datetime(), minutes: z.number().int().min(1).max(180)}).optional().catch(undefined),
 });
 export type HealthExtras = z.infer<typeof healthExtrasSchema>;
 export const emptyHealthExtras = (): HealthExtras => ({version: 1});

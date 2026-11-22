@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {useEffect, useId, useRef, useState} from 'react';
 import {formatMinutes} from '../../../lib/zone-time';
 import {formatClock, formatTime} from '../../../lib/visual-format';
@@ -6,9 +7,9 @@ import {clockFromMidnight, deleteNight} from '../../../lib/sleep/engine';
 import type {Sleep} from '../../../lib/sleep/schema';
 import {EARLIER_BEFORE, LATER_AFTER, shiftWords, sleepTiming, TIMING_DAYS, TIMING_MIN_NIGHTS, TIMING_WORDS} from '../../../lib/sleep/timing';
 import {sleepTipOf} from '../../../lib/sleep-tips';
-import {logNap, NAP_CHOICES, napClock, napEndsAt, napLeft, type NapRun} from '../../../lib/sleep/nap';
+import {beginNap, bellChoice, logNap, NAP_CHOICES, napClock, napEndsAt, napLeft, napLoggedWords, napOnReturn, napRunOf, withNapRun, withoutNapRun, type NapRun} from '../../../lib/sleep/nap';
 import {HEALTH_EXTRAS, healthExtrasSchema} from '../../../lib/health-extras';
-import {ring} from '../../../lib/meditation/bells';
+import {ring, wakeAudio} from '../../../lib/meditation/bells';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {showUndo} from '../../ui/undo-toast';
@@ -44,7 +45,7 @@ export function SleepTiming({sleep, today}: {sleep: Sleep; today: string}) {
 /** A sleep tip a day on Health's Sleep card (LEDGER #334): off unless chosen; English or Dutch. */
 export function SleepTipCard({today}: {today: string}) {
   const rec = useDeviceRecord(HEALTH_EXTRAS), on = rec.loaded && !rec.unreadable && rec.data.sleepTips === true, id = useId();
-  const [step, setStep] = useState(0), [lang, setLang] = useState<'en' | 'nl'>('en'), [said, setSaid] = useState('');
+  const [step, setStep] = useState(0), [lang, setLang] = useState<'en' | 'nl'>('en'), [said, setSaid] = useState(''), [seenAt] = useState(() => Date.now());
   if (!rec.loaded) return null;
   const tip = sleepTipOf(today, step);
   const set = (next: boolean) => { try { rec.update(r => healthExtrasSchema.parse({...r, sleepTips: next || undefined})); setSaid(next ? 'A sleep tip shows here each day.' : 'Sleep tips are off.'); } catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
@@ -54,6 +55,7 @@ export function SleepTipCard({today}: {today: string}) {
       <p lang={lang} aria-live="polite">{tip[lang]}</p>
       <div className="actions"><button type="button" className="quiet" lang={lang} onClick={() => setStep(n => n + 1)}>{lang === 'en' ? 'Another tip' : 'Nog een tip'}</button><button type="button" className="quiet" lang={lang === 'en' ? 'nl' : 'en'} onClick={() => setLang(lang === 'en' ? 'nl' : 'en')}>{lang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>
     </section>}
+    {(() => { const nap = napRunOf(rec.unreadable ? null : rec.data); if (!nap) return null; const end = formatTime(new Date(napEndsAt(nap)).toISOString()); return <p className="fine r4-nap-away">{napOnReturn(nap, seenAt) === 'ended' ? `Your nap ended at ${end}.` : `A nap is running until ${end}; its bell rings on Sleep.`} <Link className="text-link" href="/app/health?view=sleep">Open Sleep →</Link></p>; })()}
     <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={on} aria-describedby={`${id}-note`} disabled={rec.unreadable} onClick={() => set(!on)}>Show a sleep tip each day</button><span className="fine" id={`${id}-note`}>Small habits for the evening and the morning. Off unless you choose it.</span></div>
     <p className="fine" role="status" aria-live="polite">{said}</p>
   </div>;
@@ -64,24 +66,40 @@ type WakeLock = {release: () => Promise<void>};
 export function NapTimer({store}: {store: SleepStore}) {
   const [run, setRun] = useState<NapRun | null>(null), [now, setNow] = useState(() => Date.now()), [bell, setBell] = useState(true), [said, setSaid] = useState('');
   const motion = useMotionAllowed(), lock = useRef<WakeLock | null>(null), heading = useRef<HTMLHeadingElement>(null), id = useId();
+  // Review B4E-4: the running nap is kept on this device (the health extras' napRun) and picked up again on return.
+  const extras = useDeviceRecord(HEALTH_EXTRAS), resumed = useRef(false), finishing = useRef(false);
+  const keepRun = (r: NapRun | null) => { try { extras.update(x => r ? withNapRun(x, r) : withoutNapRun(x)); return true; } catch { return false; } };
   const canWake = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
   useEffect(() => { if (!run) return; const t = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(t); }, [run]);
   useEffect(() => () => { void lock.current?.release().catch(() => undefined); }, []);
   const left = run ? napLeft(run, now) : 0;
-  async function finish(r: NapRun, endMs: number, rang: boolean) {
-    setRun(null); void lock.current?.release().catch(() => undefined); lock.current = null;
+  async function finish(r: NapRun, endMs: number, rang: boolean, away = false) {
+    if (finishing.current) return;
+    finishing.current = true;
+    setRun(null); void lock.current?.release().catch(() => undefined); lock.current = null; keepRun(null);
+    try { await logIt(r, endMs, rang, away); } finally { finishing.current = false; }
+  }
+  async function logIt(r: NapRun, endMs: number, rang: boolean, away: boolean) {
     const made: {id: string | null} = {id: null};
     try {
       await store.update(s => { const next = logNap(s, r, endMs, store.zone, new Date()); if (!next) return s; made.id = next.nights.find(n => n.kind === 'nap' && Date.parse(n.start) === r.startedAt)?.id ?? null; return next; });
     } catch (e) { setSaid(e instanceof Error ? e.message : 'The nap could not be logged.'); return; }
     if (!made.id) { setSaid('Under ten minutes, so nothing was logged.'); return; }
     const end = Math.min(endMs, napEndsAt(r)), mins = Math.round((end - r.startedAt) / 60_000), line = `${formatTime(new Date(r.startedAt).toISOString(), {timeZone: store.zone})}–${formatTime(new Date(end).toISOString(), {timeZone: store.zone})}`;
-    const text = `${rang ? 'Time to wake up. ' : ''}Nap logged: ${line}, ${mins} min.`;
-    setSaid(text);
+    const words = napLoggedWords(line, mins, rang ? 'rang' : away ? 'away' : 'up', formatTime(new Date(end).toISOString(), {timeZone: store.zone}));
+    setSaid(words.status);
     const napId = made.id;
-    showUndo({message: text, undone: 'The nap is no longer logged.', restore: () => store.update(s => s.nights.some(n => n.id === napId) ? deleteNight(s, napId) : s)});
+    showUndo({message: words.toast, undone: 'The nap is no longer logged.', restore: () => store.update(s => s.nights.some(n => n.id === napId) ? deleteNight(s, napId) : s)});
     requestAnimationFrame(() => document.getElementById(`${id}-start`)?.focus());
   }
+  useEffect(() => {
+    if (resumed.current || !extras.loaded || !store.loaded) return;
+    resumed.current = true;
+    const kept = napRunOf(extras.unreadable ? null : extras.data);
+    if (!kept) return;
+    queueMicrotask(() => { if (napOnReturn(kept, Date.now()) === 'ended') void finish(kept, napEndsAt(kept), false, true); else { setNow(Date.now()); setRun(kept); setSaid('Your nap is still running.'); } });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- once, when the record is first read
+  }, [extras.loaded, store.loaded]);
   useEffect(() => {
     if (!run || left > 0) return;
     if (bell) void ring('bowl', 50);
@@ -89,8 +107,8 @@ export function NapTimer({store}: {store: SleepStore}) {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once when the countdown reaches zero
   }, [left, run]);
   async function start(minutes: number) {
-    const r = {startedAt: new Date().getTime(), minutes}; // an event handler: the tap that starts the nap
-    setRun(r); setNow(r.startedAt); setSaid('');
+    const r = beginNap(minutes, bell, new Date().getTime(), () => void wakeAudio()); // the tap that starts the nap wakes the audio (review B4E-3)
+    setRun(r); setNow(r.startedAt); setSaid(keepRun(r) ? '' : 'This nap could not be kept on this device: stay on Sleep until it ends.');
     if (canWake) { try { lock.current = await (navigator as unknown as {wakeLock: {request: (type: 'screen') => Promise<WakeLock>}}).wakeLock.request('screen'); } catch { lock.current = null; } }
     requestAnimationFrame(() => heading.current?.focus());
   }
@@ -99,12 +117,12 @@ export function NapTimer({store}: {store: SleepStore}) {
     {!run ? <>
       <p className="fine">A soft bell rings at the end while this page stays open, and the nap is logged. {canWake ? 'The screen stays on while it runs.' : 'Keep the screen on: this browser may let it sleep.'} With the screen locked or the app closed it cannot ring.</p>
       <div className="actions" role="group" aria-label="Nap length">{NAP_CHOICES.map((c, i) => <button key={c.minutes} id={i === 0 ? `${id}-start` : undefined} type="button" className="secondary" onClick={() => void start(c.minutes)}>{c.en}: {c.minutes} min</button>)}</div>
-      <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={bell} onClick={() => setBell(b => !b)}>Bell at the end</button></div>
+      <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={bell} onClick={() => setBell(bellChoice(!bell, () => void wakeAudio()))}>Bell at the end</button></div>
     </> : <>
       <p className="r4-nap-count" role="timer" aria-live="off" aria-label={`${napClock(left)} left`}>{napClock(left)}</p>
       <div className="r3-player-bar" role="progressbar" aria-label="The nap so far" aria-valuemin={0} aria-valuemax={run.minutes * 60} aria-valuenow={run.minutes * 60 - left}><i style={{width: `${(1 - left / (run.minutes * 60)) * 100}%`}}/></div>
-      <p className="fine">Ends at {formatTime(new Date(napEndsAt(run)).toISOString(), {timeZone: store.zone})}.</p>
-      <div className="actions"><button type="button" className="primary" onClick={() => void finish(run, Date.now(), false)}>I’m up: log the nap</button><button type="button" className="quiet" onClick={() => { setRun(null); void lock.current?.release().catch(() => undefined); lock.current = null; setSaid('The nap timer is stopped. Nothing was logged.'); requestAnimationFrame(() => document.getElementById(`${id}-start`)?.focus()); }}>Stop without logging</button></div>
+      <p className="fine">Ends at {formatTime(new Date(napEndsAt(run)).toISOString(), {timeZone: store.zone})}. The bell rings here, on Sleep. If you leave, the nap is kept and logged when you come back.</p>
+      <div className="actions"><button type="button" className="primary" onClick={() => void finish(run, Date.now(), false)}>I’m up: log the nap</button><button type="button" className="quiet" onClick={() => { setRun(null); void lock.current?.release().catch(() => undefined); lock.current = null; keepRun(null); setSaid('The nap timer is stopped. Nothing was logged.'); requestAnimationFrame(() => document.getElementById(`${id}-start`)?.focus()); }}>Stop without logging</button></div>
     </>}
     <p className="fine" role="status" aria-live="polite">{said}</p>
   </section>;
