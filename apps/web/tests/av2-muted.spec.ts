@@ -31,7 +31,9 @@ for (const theme of THEMES) test(`${theme}: hide a question, a template and a br
   // Session AV lane 2 (the fold's own summary: the "Hidden: …" status names "Start from a prompt" too; deliberate)
   const prompts = form.locator('details.prompt-fold > summary').getByText('Start from a prompt', {exact: true});
   await prompts.click();
-  await expect(form.getByRole('list', {name: 'Prompts'}).getByRole('button', {name: /Gratitude/})).toBeVisible();
+  // Session AV lane 2 (the template's own card, whose name starts with it; the merged default-template feature adds a
+  // "Start new entries from “Gratitude”" button to the same list; the count of 0 below still covers both; deliberate)
+  await expect(form.getByRole('list', {name: 'Prompts'}).getByRole('button', {name: /^Gratitude/})).toBeVisible();
   await form.getByText('Hidden prompts and exercises').click();
   const hidden = form.getByRole('group', {name: 'Hidden daily questions (untick to ask again)'});
   const back = hidden.getByRole('checkbox', {name: first!});
