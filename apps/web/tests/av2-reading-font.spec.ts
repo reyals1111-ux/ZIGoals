@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {axe, THEMES, applyTheme, offline, settle} from './p6-helpers';
+import {openAllSettingsGroups} from './settings-open';
 
 /**
  * Session AV lane 2 (r3-plan, LEDGER #263; Structured's dyslexia-friendly font, without a font file): Settings → Appearance →
@@ -15,7 +16,8 @@ for (const theme of THEMES) test(`${theme}: the reading-friendly font, from the 
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   const fonts: string[] = [];
   page.on('request', r => { if (/\.(?:woff2?|ttf|otf)(?:\?|$)/.test(r.url())) fonts.push(r.url()); });
-  await page.goto('/app/settings'); await settle(page);
+  // Session AV lane 2 (fixb3: on a computer Settings starts folded, deliberate): Open all, as a person does.
+  await page.goto('/app/settings'); await settle(page); await openAllSettingsGroups(page);
   const group = page.getByRole('group', {name: 'Font'});
   await group.getByRole('radio', {name: 'Reading-friendly'}).check();
   await expect(page.locator('html')).toHaveAttribute('data-font', 'reading');
@@ -31,7 +33,7 @@ for (const theme of THEMES) test(`${theme}: the reading-friendly font, from the 
   expect(fonts).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   // System again removes it.
-  await page.goto('/app/settings'); await settle(page);
+  await page.goto('/app/settings'); await settle(page); await openAllSettingsGroups(page);
   await page.getByRole('group', {name: 'Font'}).getByRole('radio', {name: 'System'}).check();
   await expect(page.locator('html')).not.toHaveAttribute('data-font', /.+/);
 });

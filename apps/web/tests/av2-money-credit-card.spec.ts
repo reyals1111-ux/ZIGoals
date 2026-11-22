@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {noSideScroll, readRecord, seedDevice} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
+import {openDeskFold} from './ao/folds';
 import {ACCOUNTS_KEY} from '../lib/accounts/schema';
 import {BILLS_KEY, type BillsRecord} from '../lib/bills/schema';
 import {WEALTH_SHEET_KEY, type WealthSheet} from '../lib/wealth-sheet/schema';
@@ -18,6 +19,9 @@ for (const theme of THEMES) test(`${theme}: a credit card's limit, share used, s
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await seedDevice(page, {[ACCOUNTS_KEY]: {version: 1, items: [{id: CARD, kind: 'credit-card', name: 'Everyday Card', currency: 'EUR', snapshots: [{id: '00000000-0000-4000-8000-0000000e9999', date: '2026-11-10', value: '45000', decimals: 2}], payments: [], createdAt: AT, updatedAt: AT}]}});
   await page.goto('/app/wealth'); await hydrated(page);
+  // Session AV lane 2 (fixb3: on a phone "Accounts, debts & net worth" starts folded, so it is opened first, as
+  // tests/av2-money-debts.spec.ts does, deliberate).
+  if (isMobile) await openDeskFold(page, 'Accounts, debts & net worth');
   // Before anything is typed, the row teaches.
   await expect(page.locator('.accounts-card-line')).toHaveText('Add its limit and days under Sheet to see how much of it is used.');
   await page.getByRole('button', {name: 'Sheet options for Everyday Card'}).click();
@@ -29,7 +33,14 @@ for (const theme of THEMES) test(`${theme}: a credit card's limit, share used, s
   expect((await readRecord<WealthSheet>(page, WEALTH_SHEET_KEY)).cards).toEqual({[CARD]: {limit: '2000.00', statementDay: 5, dueDay: 25}});
   await expect(page.locator('.accounts-card-line')).toHaveText('€450.00 of €2,000.00 used (23%) · €1,550.00 available · statement Dec 5, 2026 · due Nov 25, 2026');
   // Review b3a #4: the line's amounts blur with Hide amounts, as the row's balance does.
-  await expect(page.locator('.accounts-card-line')).toHaveAttribute('data-private-amount', '');
+  // Session AV lane 2 (fixb3: React writes a bare data-private-amount as "true", and the stylesheet keys on the attribute
+  // being there, deliberate): the attribute is there, and the line blurs with Hide amounts and shows again with Show amounts.
+  const cardLine = page.locator('.accounts-card-line');
+  await expect(cardLine).toHaveAttribute('data-private-amount');
+  await page.getByRole('button', {name: 'Hide amounts', exact: true}).click();
+  await expect(cardLine).toHaveCSS('filter', 'blur(7px)');
+  await page.getByRole('button', {name: 'Show amounts', exact: true}).click();
+  await expect(cardLine).toHaveCSS('filter', 'none');
   // Review b3a #3: closed and opened again, the Sheet shows what is kept.
   await page.getByRole('button', {name: 'Sheet options for Everyday Card'}).click();
   await page.getByRole('button', {name: 'Sheet options for Everyday Card'}).click();

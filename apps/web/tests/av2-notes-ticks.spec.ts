@@ -56,7 +56,9 @@ for (const theme of THEMES) test(`${theme}: tick boxes, gathered, and highlights
   await expect(fold.locator('summary')).toContainText('2 across your notes');
   await fold.locator('summary').click();
   await expect(fold.getByRole('link', {name: 'Fictional house'})).toHaveAttribute('href', '/app/notes?note=n-b');
-  await fold.getByRole('checkbox', {name: 'call the fictional plumber'}).check();
+  // Session AV lane 2 (fixb3: a ticked box leaves this list at once, so check() waited for a box that was gone, deliberate):
+  // a click; the next lines hold that it left the list, focus went to the heading and the note now reads "- [x]".
+  await fold.getByRole('checkbox', {name: 'call the fictional plumber'}).click();
   await expect(fold.getByRole('checkbox', {name: 'call the fictional plumber'})).toHaveCount(0);
   await expect(page.locator('#notes-ticks-title')).toBeFocused();
   await expect.poll(async () => (await stored(page)).notes.find(n => n.id === 'n-b')!.body).toBe('- [x] call the fictional plumber');

@@ -17,6 +17,8 @@ for (const theme of THEMES) test(`${theme}: a letter to open later`, async ({pag
   await page.clock.install({time: new Date('2026-11-22T09:00:00.000Z')});
   await seedDevice(page, {[JOURNAL_KEY]: {version: 1, shareWithAi: false, followUps: false, entries: [
     {id: 'old', date: '2025-11-22', text: 'Dear future me, a fictional letter from last year.', createdAt: '2025-11-22T20:00:00.000Z', template: 'letter-future-you', opensOn: '2026-11-22'}]}});
+  // Session AV lane 2 (fixb3: seedDevice installs its own clock at Nov 14, deliberate): the spec's day again, the letter's day.
+  await page.clock.setSystemTime(new Date('2026-11-22T09:00:00.000Z'));
   await page.goto('/app#for-you-journal'); await hydrated(page);
   const letter = page.locator('.today-journal-card').getByRole('group', {name: 'A letter to you'});
   await expect(letter).toContainText('opens today: you wrote it on Nov 22, 2025.');
@@ -34,7 +36,8 @@ for (const theme of THEMES) test(`${theme}: a letter to open later`, async ({pag
   findings = await axe(page, form);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await form.getByRole('button', {name: 'Save entry'}).click();
-  await expect(page.locator('.journal-status')).toHaveText('Your letter is folded away until Nov 22, 2027. That day it opens on Today.');
+  // Session AV lane 2 (fixb3: Three good things on this page has its own .journal-status, deliberate): the entry form's own.
+  await expect(page.locator('.journal-status:not(#good-things .journal-status)')).toHaveText('Your letter is folded away until Nov 22, 2027. That day it opens on Today.');
   await expect.poll(() => page.evaluate(k => (JSON.parse(localStorage.getItem(k) ?? '{}') as {entries: {opensOn?: string}[]}).entries.at(-1)?.opensOn, JOURNAL_KEY)).toBe('2027-11-22');
   const row = page.locator('ol.journal-entries > li').first();
   await expect(row.locator('.journal-entry-sealed')).toContainText('A letter to open on');

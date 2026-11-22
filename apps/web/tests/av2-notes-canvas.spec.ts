@@ -41,7 +41,8 @@ for (const theme of THEMES) test(`${theme}: a canvas of cards, lines and a group
   await expect(textCard).toBeFocused();
   // Join it to the note card with a labelled line.
   const sel = panel.getByRole('region', {name: 'Text “Book the fictional train”'});
-  await sel.getByLabel('Join to').selectOption({label: 'Note “Fictional trip”'});
+  // Session AV lane 2 (fixb3: "Join to" also matched the form "Join to another card", deliberate): the list named exactly Join to.
+  await sel.getByRole('combobox', {name: 'Join to', exact: true}).selectOption({label: 'Note “Fictional trip”'});
   await sel.getByLabel('Line label — optional').fill('then');
   await sel.getByRole('button', {name: 'Join'}).click();
   const lines = panel.getByRole('region', {name: /^Lines on this board/});
