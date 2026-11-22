@@ -35,6 +35,7 @@ import {COUNTDOWNS} from '../countdowns/schema';
 import {COUNTDOWN_EXTRAS, countdownWakes} from '../countdowns/extras';
 import {JOURNAL} from '../journal/schema';
 import {reminderPlanInput} from '../journal/reminder';
+import {letterWakes} from '../journal/letters';
 import {MONEY_LOG} from '../money-log/schema';
 import {BUDGETS} from '../budgets/schema';
 import {ACCOUNTS} from '../accounts/schema';
@@ -117,6 +118,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   try { const wakes = countdownWakes(readDeviceRecord(storage, COUNTDOWNS).data, readDeviceRecord(storage, COUNTDOWN_EXTRAS).data, today); if (wakes.length) input.countdowns = wakes.map(w => ({id: w.id, title: w.title, date: w.date, days: w.days})); } catch { /* unreadable: no countdown wakes */ }
   // Session AV lane 2 (journal; LEDGER #40): the reminder to write — its time, weekdays, the days already written, the streak.
   try { const j = reminderPlanInput(readDeviceRecord(storage, JOURNAL).data, today); if (j) input.journal = j; } catch { /* unreadable: no journal wake */ }
+  // Session AV lane 2 (r3-notes; LEDGER #279): the days letters to open later open (an id and a day; never their words).
+  try { const letters = letterWakes(readDeviceRecord(storage, JOURNAL).data, today); if (letters.length) input.letters = letters; } catch { /* unreadable: no letter wakes */ }
   // Session AV lane 2 (money): budgets that crossed 80 % or their amount yesterday, payday tomorrow, the low-balance line ahead.
   try {
     const log = readDeviceRecord(storage, MONEY_LOG).data, budgets = readDeviceRecord(storage, BUDGETS).data, rows = cashForecast({accounts: readDeviceRecord(storage, ACCOUNTS).data, bills: readDeviceRecord(storage, BILLS).data, entries: log.entries, budgets, today}).rows;
