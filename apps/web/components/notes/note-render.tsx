@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {Fragment, useId, useMemo, type ReactNode} from 'react';
 import {parseBlocks, plainText, type NoteBlock, type NoteInline} from '../../lib/ai/safe-render';
 import {parseLinks, resolveLink, type LinkIndex} from '../../lib/notes/links';
+import {splitTags} from '../../lib/notes/tags';
 
 /**
  * Session AK (B3): a note on screen — React elements from the same safe Markdown parser ZIGi's replies use (headings,
@@ -12,36 +13,43 @@ import {parseLinks, resolveLink, type LinkIndex} from '../../lib/notes/links';
  * ==highlights== in six named colours, and "- [ ]" tick boxes that tick in the reading view (`onTick`, with the line).
  */
 const KIND_WORD = {note: 'note', goal: 'goal', habit: 'habit'} as const;
-function linkify(text: string, index: LinkIndex, onCreate?: (name: string) => void): ReactNode[] {
+type Ctx = {index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag focuses Notes on it. */ onTag?: (tag: string) => void};
+/** Session AV lane 2 (r4-notes; LEDGER #306): the #tags in plain words, each a button that focuses Notes on it. */
+function tagged(text: string, at: number, onTag?: (tag: string) => void): ReactNode[] {
+  return splitTags(text).map((p, i) => typeof p === 'string' ? p : onTag
+    ? <button key={`t${at}-${i}`} type="button" className="note-tag" aria-label={`#${p.tag}: show the notes with this tag`} onClick={() => onTag(p.tag)}>#{p.tag}</button>
+    : <span key={`t${at}-${i}`} className="note-tag">#{p.tag}</span>);
+}
+function linkify(text: string, {index, onCreate, onTag}: Ctx): ReactNode[] {
   const out: ReactNode[] = [];
   let at = 0;
   for (const l of parseLinks(text)) {
-    if (l.start > at) out.push(text.slice(at, l.start));
+    if (l.start > at) out.push(...tagged(text.slice(at, l.start), at, onTag));
     const shown = l.alias ?? l.target, t = l.embed && /\.(?:png|jpe?g|webp|gif|avif|heic)$/i.test(l.target) ? null : resolveLink(index, l.target);
     if (l.embed && !t) out.push(<span key={l.start} className="note-embed">{shown}</span>);
     else if (t) out.push(<Link key={l.start} className={`note-link is-${t.kind}`} href={t.href} title={`Open the ${KIND_WORD[t.kind]} “${t.name}”`}>{shown}</Link>);
     else out.push(onCreate ? <button key={l.start} type="button" className="note-link is-open" onClick={() => onCreate(l.target)} aria-label={`${shown}: no note yet. Create it`}>{shown}</button> : <span key={l.start} className="note-link is-open">{shown}</span>);
     at = l.end;
   }
-  if (at < text.length) out.push(text.slice(at));
+  if (at < text.length) out.push(...tagged(text.slice(at), at, onTag));
   return out;
 }
 export const COLOUR_WORDS = {yellow: 'Yellow', green: 'Green', blue: 'Blue', purple: 'Purple', red: 'Red', orange: 'Orange'} as const;
-function inline(nodes: readonly NoteInline[], index: LinkIndex, onCreate?: (name: string) => void): ReactNode[] {
+function inline(nodes: readonly NoteInline[], ctx: Ctx): ReactNode[] {
   return nodes.map((node, i) => {
     switch (node.type) {
-      case 'text': return <Fragment key={i}>{linkify(node.text, index, onCreate)}</Fragment>;
+      case 'text': return <Fragment key={i}>{linkify(node.text, ctx)}</Fragment>;
       case 'code': return <code key={i}>{node.text}</code>;
-      case 'strong': return <strong key={i}>{inline(node.children, index, onCreate)}</strong>;
-      case 'em': return <em key={i}>{inline(node.children, index, onCreate)}</em>;
-      case 'link': return <a key={i} href={node.href} target="_blank" rel="noopener noreferrer">{inline(node.children, index, onCreate)}</a>;
-      case 'mark': return <mark key={i} className="note-hl" data-hl={node.colour}><span className="sr-only">{COLOUR_WORDS[node.colour]} highlight: </span>{inline(node.children, index, onCreate)}</mark>;
+      case 'strong': return <strong key={i}>{inline(node.children, ctx)}</strong>;
+      case 'em': return <em key={i}>{inline(node.children, ctx)}</em>;
+      case 'link': return <a key={i} href={node.href} target="_blank" rel="noopener noreferrer">{inline(node.children, {index: ctx.index})}</a>;
+      case 'mark': return <mark key={i} className="note-hl" data-hl={node.colour}><span className="sr-only">{COLOUR_WORDS[node.colour]} highlight: </span>{inline(node.children, ctx)}</mark>;
     }
   });
 }
 type Tick = (line: number, checked: boolean, words: string) => void;
-function block(b: NoteBlock, i: number, index: LinkIndex, onCreate: ((name: string) => void) | undefined, onTick: Tick | undefined, id: string): ReactNode {
-  const r = (n: readonly NoteInline[]) => inline(n, index, onCreate);
+function block(b: NoteBlock, i: number, ctx: Ctx, onTick: Tick | undefined, id: string): ReactNode {
+  const r = (n: readonly NoteInline[]) => inline(n, ctx);
   switch (b.type) {
     case 'paragraph': return <p key={i}>{r(b.children)}</p>;
     case 'heading': { const hid = `${id}-h${i}`; return b.level === 1 ? <h3 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h3> : b.level === 2 ? <h4 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h4> : <h5 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h5>; }
@@ -70,7 +78,7 @@ function Outline({blocks, id}: {blocks: readonly NoteBlock[]; id: string}) {
     <ol>{heads.map(h => <li key={h.i} data-level={h.level}><button type="button" className="text-link" onClick={() => go(h.i)}>{h.words || 'Untitled heading'}</button></li>)}</ol>
   </details></nav>;
 }
-export function NoteRender({text, index, onCreate, onTick, outline = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #268: list the headings above. */ outline?: boolean}) {
-  const blocks = useMemo(() => parseBlocks(text, {notes: true}), [text]), id = useId();
-  return <>{outline && <Outline blocks={blocks} id={id}/>}<div className="note-render">{blocks.map((b, i) => block(b, i, index, onCreate, onTick, id))}</div></>;
+export function NoteRender({text, index, onCreate, onTick, onTag, outline = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #306: a #tag pressed. */ onTag?: (tag: string) => void; /** LEDGER #268: list the headings above. */ outline?: boolean}) {
+  const blocks = useMemo(() => parseBlocks(text, {notes: true}), [text]), id = useId(), ctx: Ctx = {index, onCreate, onTag};
+  return <>{outline && <Outline blocks={blocks} id={id}/>}<div className="note-render">{blocks.map((b, i) => block(b, i, ctx, onTick, id))}</div></>;
 }

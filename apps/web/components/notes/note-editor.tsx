@@ -9,6 +9,7 @@ import {MAX_BODY, MAX_TITLE, noteName, shortNoteName, type Note, type Notes} fro
 import {ensureDaily, removeNote, updateNote, type NotesUndo} from '../../lib/notes/store';
 import {updateNoteKeepingVersion} from '../../lib/notes/versions';
 import {tickNote} from '../../lib/notes/ticks';
+import {fieldTags, parseTagField, tagsForSave} from '../../lib/notes/tags';
 import type {LinkIndex} from '../../lib/notes/links';
 import {deleteNotePhoto, getNotePhoto} from '../../lib/notes/photos';
 import {keepCapturePhoto} from '../../lib/notes/capture';
@@ -34,30 +35,33 @@ const shortWords = (w: string) => { const t = w.replace(/\s+/g, ' ').trim(); ret
  * so opening a day never writes anything. The secret guard watches the words (in LinkField).
  */
 export type Change = (fn: (r: Notes) => Notes | {record: Notes; undo: NotesUndo}, said: string, undo?: NotesUndo | null) => boolean;
-export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, start, record}: {
+export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, start, record, onTag}: {
   note: Note | null; day?: string; index: LinkIndex; change: Change; onCreateLink: (name: string) => void; onDeleted?: () => void;
+  /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag pressed in the note focuses Notes on it. */ onTag?: (tag: string) => void;
   /** Session AV lane 2 (notes; LEDGER #33): the record, for the note's earlier versions. */ record?: Notes;
   /** Session AV lane 2 (notes; LEDGER #32): the words a new daily note starts from (its template), written only on Save. */ start?: string;
 }) {
   const [title, setTitle] = useState(note?.title ?? ''), [body, setBody] = useState(note?.body ?? start ?? '');
+  // Session AV lane 2 (r4-notes; LEDGER #306): the Tags field holds the kept tags not written in the text.
+  const savedField = note ? fieldTags(note).join(', ') : '', [tagText, setTagText] = useState(savedField);
   const [mode, setMode] = useState<'read' | 'edit'>(note?.body.trim() ? 'read' : 'edit');
   const [versionsOpen, setVersionsOpen] = useState(false), [printing, setPrinting] = useState(false), [propsOpen, setPropsOpen] = useState(false);
   const donePrinting = useCallback(() => { setPrinting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-print-button')?.focus()); }, []);
-  const dirty = (note?.title ?? '') !== title || (note?.body ?? '') !== body;
+  const dirty = (note?.title ?? '') !== title || (note?.body ?? '') !== body || parseTagField(tagText).join(',') !== parseTagField(savedField).join(',');
   const untouchedStart = !note && !!start && body === start; // a template not written in yet is not saved as a note
   const isDaily = note ? note.kind === 'daily' : !!day;
   const save = (): boolean => {
-    const now = new Date().toISOString();
-    if (!note && day) return change(r => { const d = ensureDaily(r, day, now); return updateNote(d.record, d.note.id, {body}, now); }, 'Saved on this device.');
+    const now = new Date().toISOString(), tags = tagsForSave(parseTagField(tagText), body);
+    if (!note && day) return change(r => { const d = ensureDaily(r, day, now); return updateNote(d.record, d.note.id, {body, tags}, now); }, 'Saved on this device.');
     if (!note) return false;
     // Session AV lane 2 (notes; LEDGER #33): a save keeps the words it replaces as an earlier version.
-    if (!isDaily && !title.trim() && note.kind !== 'inbox') { setTitle(note.title); return change(r => updateNoteKeepingVersion(r, note.id, {body}, now), 'Saved on this device. A note keeps its title.'); }
-    return change(r => updateNoteKeepingVersion(r, note.id, isDaily ? {body} : {title, body}, now), 'Saved on this device.');
+    if (!isDaily && !title.trim() && note.kind !== 'inbox') { setTitle(note.title); return change(r => updateNoteKeepingVersion(r, note.id, {body, tags}, now), 'Saved on this device. A note keeps its title.'); }
+    return change(r => updateNoteKeepingVersion(r, note.id, isDaily ? {body, tags} : {title, body, tags}, now), 'Saved on this device.');
   };
   const saveAndRead = () => { if (!dirty || save()) setMode('read'); };
   // Session AV lane 2 (r3-notes; LEDGER #264): while reading, the words follow the note (a tick, its Undo, a restore), so
   // Edit always starts from what is saved.
-  useEffect(() => { if (mode === 'read' && note) { setBody(note.body); setTitle(note.title); } }, [mode, note]);
+  useEffect(() => { if (mode === 'read' && note) { setBody(note.body); setTitle(note.title); setTagText(fieldTags(note).join(', ')); } }, [mode, note]);
   const tick = (line: number, checked: boolean, words: string) => {
     if (!note) return;
     change(r => tickNote(r, note.id, line, checked, new Date().toISOString()), checked ? `Ticked: “${shortWords(words)}”.` : `Open again: “${shortWords(words)}”.`);
@@ -70,6 +74,8 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {!isDaily && <SecretGuard text={title} onRemove={() => setTitle('')}/>}
       {/* Session AK G2 (RELEASE_REVIEW_2 R2-18): `[[` is explained here, in the field, where it is used. */}
       <LinkField label={isDaily ? 'This day’s note' : 'Note'} placeholder="Write here. Type [[ to link a goal, a habit or another note." value={body} onChange={setBody} index={index} exclude={note ? {kind: 'note', id: note.id} : undefined} maxLength={MAX_BODY} onSubmit={saveAndRead} rows={isDaily ? 6 : 10}/>
+      <label className="field note-tags-field"><span>Tags</span><input value={tagText} maxLength={400} onChange={e => setTagText(e.target.value)} placeholder="travel, work/meetings" aria-describedby={note ? `tags-help-${note.id}` : undefined}/></label>
+      <p className="fine" id={note ? `tags-help-${note.id}` : undefined}>Or write a #tag anywhere in the note; a / nests one under another (#work/meetings sits under #work).</p>
       <LoadBoundary quiet><Suspense fallback={null}><NoteMarks value={body} onChange={setBody} maxLength={MAX_BODY} field={() => box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea') ?? null}/></Suspense></LoadBoundary>
       <div className="note-actions">
         <button type="button" className="primary" disabled={!dirty || untouchedStart} onClick={saveAndRead}>Save</button>
@@ -77,7 +83,8 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
         <span className="fine">{body.length.toLocaleString('en-US')} / {MAX_BODY.toLocaleString('en-US')}</span>
       </div>
     </> : <>
-      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} outline/>
+      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} outline/>
+      {note && fieldTags(note).length > 0 && <p className="note-tag-line"><span className="fine">Tags: </span>{fieldTags(note).map(t => onTag ? <button key={t} type="button" className="note-tag" aria-label={`#${t}: show the notes with this tag`} onClick={() => onTag(t)}>#{t}</button> : <span key={t} className="note-tag">#{t}</span>)}</p>}
       {note && /@remind|!remind|@herinner|⏰/i.test(note.body) && <LoadBoundary quiet><Suspense fallback={null}><NoteReminderChips note={note}/></Suspense></LoadBoundary>}
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button>
         {note && <button type="button" className="quiet note-print-button" onPointerEnter={() => void import('./note-print').catch(() => undefined)} onClick={() => setPrinting(true)}>Print this note</button>}</div>

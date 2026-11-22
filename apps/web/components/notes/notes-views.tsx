@@ -126,7 +126,7 @@ export function NotesChart({notes, today}: {notes: readonly Note[]; today: strin
         <span className="notes-bar-label">{t.tag ? `#${t.tag}` : 'No tag'}</span>
         <span className="notes-bar" aria-hidden="true"><span style={{width: `${(t.count / top) * 100}%`}} data-none={t.tag ? undefined : ''}/></span>
         <span className="notes-bar-value">{t.count === 1 ? '1 note' : `${formatNumber(t.count)} notes`}</span>
-      </li>)}</ul> : <p className="fine">No note has a tag yet. A note imported with tags in its front matter (Files → Import), or a Showcase note, shows here.</p>}
+      </li>)}</ul> : <p className="fine">No note has a tag yet. Write a #tag in a note, or type it in the note’s Tags field (a / nests one: #work/meetings).</p>}
     </section>
     <section aria-labelledby="notes-chart-weeks"><h3 id="notes-chart-weeks">Written or changed, per week</h3>
       <ul className="notes-bars">{weeks.map(w => <li key={w.start}>
