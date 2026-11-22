@@ -67,7 +67,9 @@ describe('the plan, applying it, its Undo, and the round trip through the journa
       {id: 'e2', date: '2026-11-03', text: 'Second fictional day.', createdAt: '2026-11-03T08:00:00.000Z', template: 'gratitude'}]});
     j = moveEntry(addBook(j, {name: 'Fictional nights', theme: 'teal'}, 'j-nights01').journal, 'e1', 'j-nights01');
     const files = journalExportFiles(j, new Map([['m-photo0001', {data: new Uint8Array([1]), type: 'image/webp'}], ['m-audio0001', {data: new Uint8Array([2]), type: 'audio/webm'}]]), {now: new Date('2026-11-23T10:00:00.000Z')});
-    expect(files.map(f => f.name)).toEqual(['journal.json', 'README.txt', 'photos/m-photo0001.webp', 'audios/m-audio0001.webm']);
+    // Session AV lane 2 (r3-notes: the export also holds one Markdown file per entry, LEDGER #272, deliberate): the same four
+    // files first, then exactly the two entries' .md files.
+    expect(files.map(f => f.name)).toEqual(['journal.json', 'README.txt', 'photos/m-photo0001.webp', 'audios/m-audio0001.webm', 'Markdown/2026-11-02 A fictional late evening.md', 'Markdown/2026-11-03 Second fictional day.md']);
     const plan = planJournalImport(emptyJournal(), [{name: 'journal.json', text: files[0]!.data as string}], {today: TODAY, zone: 'Pacific/Auckland'});
     expect(plan.books).toEqual(['Fictional nights']);
     expect(plan.entries).toEqual([

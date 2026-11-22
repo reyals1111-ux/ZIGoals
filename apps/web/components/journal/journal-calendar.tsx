@@ -3,6 +3,7 @@ import {useMemo, useState} from 'react';
 import {formatDate, formatMonth} from '../../lib/visual-format';
 import {monthGrid, shiftMonth} from '../../lib/journal/search';
 import type {JournalEntry} from '../../lib/journal/schema';
+import {kindOf, periodWords, periodsInMonth} from '../../lib/journal/periods';
 
 /**
  * Session AV lane 2 (journal; LEDGER #43, Day One's calendar view): one month at a time, Monday first; a day with an
@@ -10,10 +11,15 @@ import type {JournalEntry} from '../../lib/journal/schema';
  * and days without an entry are plain numbers. Loaded when its fold opens.
  */
 const HEAD = [['M', 'Monday'], ['T', 'Tuesday'], ['W', 'Wednesday'], ['T', 'Thursday'], ['F', 'Friday'], ['S', 'Saturday'], ['S', 'Sunday']] as const;
-export default function JournalCalendar({entries, today, picked, onPick, startMonth}: {entries: readonly Pick<JournalEntry, 'date'>[]; today: string; picked: string | null; onPick: (day: string | null) => void; startMonth?: string}) {
+/**
+ * Session AV lane 2 (r3-notes; LEDGER #269, Grid Diary's week, month and year entries): under the month, the entries about
+ * its year, the month itself and its weeks, each a button that shows them (`onPeriod`).
+ */
+export default function JournalCalendar({entries, today, picked, onPick, startMonth, pickedPeriod = null, onPeriod}: {entries: readonly Pick<JournalEntry, 'date' | 'period'>[]; today: string; picked: string | null; onPick: (day: string | null) => void; startMonth?: string; pickedPeriod?: string | null; onPeriod?: (period: string | null) => void}) {
   const [month, setMonth] = useState((startMonth ?? picked ?? today).slice(0, 7));
   const weeks = useMemo(() => monthGrid(month, entries, today), [month, entries, today]);
   const written = weeks.flat().filter(d => d.inMonth && d.count > 0).length;
+  const periods = useMemo(() => { const counts = new Map<string, number>(); for (const e of entries) if (e.period) counts.set(e.period, (counts.get(e.period) ?? 0) + 1); return periodsInMonth(month).flatMap(p => counts.get(p) ? [{p, n: counts.get(p)!}] : []); }, [entries, month]);
   return <div className="journal-calendar">
     <div className="journal-calendar-head">
       <button type="button" className="quiet" aria-label={`The month before: ${formatMonth(shiftMonth(month, -1))}`} onClick={() => setMonth(m => shiftMonth(m, -1))}>←</button>
@@ -29,6 +35,11 @@ export default function JournalCalendar({entries, today, picked, onPick, startMo
           : <span className="journal-calendar-empty" data-today={d.date === today ? '' : undefined}>{Number(d.date.slice(8))}</span>}
       </td>)}</tr>)}</tbody>
     </table>
+    {onPeriod && <div className="journal-calendar-periods" role="group" aria-label={`Entries about a week, ${formatMonth(month)} or its year`}>
+      {periods.length ? periods.map(({p, n}) => <button key={p} type="button" className="quiet" aria-pressed={pickedPeriod === p} onClick={() => onPeriod(pickedPeriod === p ? null : p)}>
+        <span className="fine">{kindOf(p) === 'week' ? 'Week' : kindOf(p) === 'month' ? 'Month' : 'Year'}</span> {periodWords(p)} <small>{n === 1 ? '1 entry' : `${n} entries`}</small></button>)
+        : <p className="fine">No entry about a week, this month or its year yet. When you write, choose what the entry is about: this week, month or year, or the one before.</p>}
+    </div>}
     {picked && <button type="button" className="text-link" onClick={() => onPick(null)}>Show every day again</button>}
   </div>;
 }

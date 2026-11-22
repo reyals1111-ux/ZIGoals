@@ -51,6 +51,11 @@ export type PlanInput = {
    */
   journal?: {time: string; weekdays: number; written: readonly string[]; streak: number};
   /**
+   * Session AV lane 2 (r3-notes; LEDGER #279, Stoic's letter to open later; TIER 3 (PWA)): the days letters open
+   * (lib/journal/letters.ts letterWakes) — an id and a day only, never a word of the letter; under the journal switch.
+   */
+  letters?: {id: string; date: string}[];
+  /**
    * Session AV lane 2 (money; Copilot's custom alerts, Rocket Money): a budget near or over its amount, payday tomorrow,
    * the low-balance line ahead (lib/money-notices.ts moneyWakes) — the day and an id; a title and detail for names-on only.
    */
@@ -172,6 +177,14 @@ export function buildPlan(input: PlanInput): Plan {
     const at = zonedInstant(c.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'countdown');
     push({at, kind: 'countdown', id: `countdown:${c.id}@${c.date}`, label: label(c.title), detail: c.days === 0 ? 'today' : c.days === 1 ? 'tomorrow' : `in ${c.days} days`, href: '/app', actionable: false});
+  }
+  // Session AV lane 2 (r3-notes; LEDGER #279): a letter that opens today wakes at the morning time of its day (the end of
+  // quiet hours when the morning is quiet), as a countdown does, under the journal switch; never a word of it.
+  if (typeOn(prefs, 'journal')) for (const l of input.letters ?? []) {
+    if (l.date < today || l.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(l.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'journal');
+    push({at, kind: 'journal', id: `${l.id}@${l.date}`, detail: 'a letter you wrote opens today', href: '/app/journal', actionable: false});
   }
   // Session AV lane 2 (money): a money notice wakes at the morning time of its day (the end of quiet hours when the morning
   // is quiet), as a countdown does; its words only with names on.

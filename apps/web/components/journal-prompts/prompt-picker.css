@@ -18,3 +18,5 @@
 .prompt-picker-list > li { display: grid; gap: 2px; align-content: start; }
 .prompt-picker-default { justify-self: start; min-height: 44px; }
 .prompt-picker-default[aria-pressed="true"] { font-weight: 650; }
+/* Session AV lane 2 (r3-notes; LEDGER #266, #269): the second list, grids and look-backs. */
+.prompt-picker-more-title { margin: 8px 0 0; font-size: 15px; }

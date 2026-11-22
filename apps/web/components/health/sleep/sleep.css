@@ -113,3 +113,6 @@
 .sleep-key-usual { width: 18px; height: 0; border-top: 3px dotted #3fc1a5; }
 .sleep-bar.latency { fill: #3fc1a5; }
 @media (forced-colors: active) { .sleep-usual line { stroke: CanvasText; } .sleep-key-usual { border-top-color: CanvasText; } .sleep-bar.latency { fill: CanvasText; } }
+/* Session AV lane 2 (r3-notes; LEDGER #278): a night's dreams and "Write down a dream". */
+.night-dreams { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.night-dreams .text-link { min-height: 44px; display: inline-flex; align-items: center; font-size: 15px; }
