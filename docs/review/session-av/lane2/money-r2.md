@@ -79,3 +79,39 @@ the answers read `env.moneyMore` and, without it, say where the figures live.
 - Registries: `zigoals:money-more:v1` (above). CSS touched: `components/wealth/spending/quick-log.css` (new, theme
   variables only).
 - Today: nothing added.
+
+### R2-F2. Budgets: a day's amount left, your own budgets on a tag or categories (each month or once), payee budgets
+
+- LEDGER rows: #243 Spendee daily amount left — **built** ("About €6.44 a day left for 9 days" on every budget row of the
+  month still running with money left — the near-limit line keeps its own words — and on each budget in Pay periods,
+  in its own week or two weeks; left ÷ the days left, rounded down to the cent; a fact, not advice); #246 Spendee budgets
+  by label — **built** (a budget on one tag: the tagged entries in any category against an amount); #247 Wallet one-time
+  budgets across categories — **built** (once between two days or each month, over chosen categories or a tag, with
+  spent, left, days to go, "starts in N days", "ended", and a day's amount). Kept in `zigoals:money-more:v1` `budgets`,
+  apart from the monthly category budgets, so none of Budgets' totals, Ready to assign or Underfunded double-counts an
+  entry (the ledger's `tag` on the budget would have counted a tagged entry twice in the month's total);
+  #250 Emma merchant budgets — **built** (an amount a month on a watched payee: spent, left, "near the limit" from 80 %,
+  a day's amount).
+- Files: `lib/budgets/per-day.ts` (new), `lib/money-more/own-budgets.ts` (new), `components/wealth/budgets/own-budgets.tsx`
+  (new, lazy), `components/wealth/budgets/budgets-month.tsx`, `components/wealth/budgets/budget-periods.tsx`,
+  `components/wealth/budgets/budget-extras.tsx` (payee amount).
+- Tests: `lib/money-more/av2-own-budgets.test.ts`, `lib/ai/local-answers/av2-money-r2.test.ts`, round trip (payee `amount`;
+  `money-more` `budgets`).
+- Spec: `tests/av2-money-own-budgets.spec.ts`.
+- Stored: budgets `payees[].amount`; `zigoals:money-more:v1` `budgets`.
+- Help (EN): **Q: How much can I spend a day?** A: Each budget in Wealth → Budgets says about how much a day is left this
+  month: what is left divided by the days to go. It is a fact from your figures, not advice. **Q: Can I budget for a
+  trip across categories?** A: Budgets → Your own budgets → "Add your own budget": count the entries with a tag (holiday)
+  or chosen categories, once between two days or each month. It sits beside your category budgets. **Q: Can I give a
+  shop its own budget?** A: Watch the shop under Budgets → Watching payees and choose "Set an amount a month": its row
+  then shows spent and left, and says when it is near the limit.
+- What's new: "Budgets: about how much a day is left, budgets on a tag or several categories for a trip, and a budget for
+  one shop."
+- Answers: `dayLeft`, `ownBudgets`, `payeeBudgetsAnswer` (corpus `av2r2-money-day-left`, `-own-budgets`,
+  `-payee-budgets`). Tag budgets read `env.moneyTags`: **the lead adds `moneyTags: one(MONEY_TAGS_RECORD)` to the tool
+  sources** (lib/ai/tools/env.ts), gated with Wealth; without it a tag budget counts nothing in the answer.
+- Showcase hook: none (the Showcase budgets are pinned by the NOVA corpus — a payee amount or an own budget there would
+  change pinned answers; the per-day line shows on the Showcase rows by itself, from their own figures, as plain text with
+  no Tab stop — the lead re-records the corpus' screens if one pins a budget row's text).
+- Registries: `zigoals:money-more:v1` (above). CSS touched: `components/wealth/budgets/budgets.css` (theme variables).
+- Today: nothing always visible (the payee-budget piece on Today's money line is R2-F3).

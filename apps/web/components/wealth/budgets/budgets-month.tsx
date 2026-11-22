@@ -32,6 +32,9 @@ const BudgetExtras = lazy(() => import('./budget-extras'));
 // Session AV lane 2 (money; YNAB's assign mode and targets, Monarch's flex and non-monthly budgets): "Plan <month>" (lazy).
 const AssignPanel = lazy(() => import('./assign-panel'));
 const YearRecapView = lazy(() => import('./year-recap'));
+// Session AV lane 2, round 2 (money; Spendee, Wallet): your own budgets on a tag or chosen categories, each month or once (lazy).
+const OwnBudgets = lazy(() => import('./own-budgets'));
+import {perDayWords} from '../../../lib/budgets/per-day';
 
 /**
  * Session AK (7.7): category budgets, one month at a time, against the money log. Each row is the month's amount, plus
@@ -73,8 +76,8 @@ function AddTarget({row, thisMonth, onSave, onCancel}: {row: BudgetRow; thisMont
     <div className="budgets-form-actions"><button type="submit" className="secondary">Save target</button><button type="button" className="quiet" onClick={() => { setOpen(false); setProblem(''); onCancel(); }}>Cancel</button></div>
   </form>;
 }
-export type BudgetsViewProps = {record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; showcase?: boolean; unreadable?: boolean; onChange: (change: (current: BudgetsRecord) => BudgetsRecord) => void; /** Session AV lane 2 (money): the categories offered, with the person's own. */ categories?: readonly string[]};
-export function BudgetsView({record, entries, today, showcase = false, unreadable = false, onChange, categories = EXPENSE_CATEGORIES}: BudgetsViewProps) {
+export type BudgetsViewProps = {/** Session AV lane 2, round 2 (money; Emma's Spaces): the space shown. */ space?: 'personal' | 'business'; record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; showcase?: boolean; unreadable?: boolean; onChange: (change: (current: BudgetsRecord) => BudgetsRecord) => void; /** Session AV lane 2 (money): the categories offered, with the person's own. */ categories?: readonly string[]};
+export function BudgetsView({space = 'personal', record, entries, today, showcase = false, unreadable = false, onChange, categories = EXPENSE_CATEGORIES}: BudgetsViewProps) {
   const id = useId(), thisMonth = monthKey(today);
   const [month, setMonth] = useState(thisMonth), [status, setStatus] = useState(''), [problem, setProblem] = useState('');
   const startCurrency = useMoneyCurrency(); // Session AL (P-DVR-22): the one default currency, never a fixed EUR
@@ -135,6 +138,8 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
       </tr><tr className="budgets-detail"><td colSpan={4}>
         <span className="visually-hidden">{r.category}: </span>
         {w ? <small className={`budgets-pace is-${p!.state}`}>{w}</small> : null}{/* Session AV (F-BUDGET-PACE) */}
+        {/* Session AV lane 2, round 2 (money; Spendee's daily amount left): on every row of the month still running with money left. */}
+        {current && view.daysLeft !== null && p?.state !== 'near' && (d => d && <small className="budgets-per-day">{d}.</small>)(perDayWords(r.left, view.daysLeft, money, r.currency))}
         {r.target && <TargetLine row={r} current={current} onStop={() => { setFocusKey(`${r.id}-add`); change(x => setBudget(x, {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: r.rollover, target: null}, r.id, thisMonth), `The target for ${r.category} is off; the budget stays.`); }}/>}
         <span className="budgets-row-actions">
           {!r.target && current && <AddTarget row={r} thisMonth={thisMonth} onSave={target => { const input = {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: true, target}, issue = budgetIssue(input) ?? (target.by < thisMonth ? 'Choose this month or a later one to reach it by.' : null); if (issue) return issue; change(x => setBudget(x, input, r.id, thisMonth), `${r.category} now saves towards ${money(Math.round(Number(target.amount) * 100), r.currency)} by ${formatMonth(target.by)}, with rollover.`); setFocusKey(`${r.id}-stop`); return null; }} onCancel={() => setFocusKey(`${r.id}-add`)}/>}
@@ -164,6 +169,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     {!unreadable && <Suspense fallback={null}><BudgetPeriodsPanel record={record} entries={entries} today={today} startsOn="monday" onChange={onChange}/></Suspense>}
     {view.rows.length > 0 && month >= thisMonth && <Suspense fallback={null}><AssignPanel record={record} entries={entries} month={month} today={today} update={safeChange}/></Suspense>}
     <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange}/></Suspense>
+    <Suspense fallback={null}><OwnBudgets entries={entries} today={today} currencies={usedCurrencies} categories={categories} space={space}/></Suspense>
     <Suspense fallback={null}><BudgetExtras record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange}/></Suspense>
     <p className="fine">From your own money log, in each currency apart. An overspend is never carried into the next month. Not financial advice.</p>
   </div>;

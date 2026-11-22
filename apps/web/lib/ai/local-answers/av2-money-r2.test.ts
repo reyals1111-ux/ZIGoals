@@ -45,6 +45,20 @@ describe('quick logging', () => {
     expect(text(zigi('what did I spend per subcategory this month', s))).toBe('This month by subcategory — Food & drink: Coffee €5.00 and other €40.00.');
     expect(text(zigi('wat gaf ik uit per subcategorie', s))).toMatch(/^Deze maand per subcategorie — Food & drink: Coffee €5[.,]00 en overig €40[.,]00\.$/);
   });
+  test('budgets: a day left, your own budgets, payee budgets', () => {
+    const s: ToolSources = {...withLog(freshAll(), log => ({...log, entries: [mine({id: 'a', category: 'Groceries', note: 'Albert Heijn', amount: '80.00'}), mine({id: 'b', category: 'Fun', amount: '20.00'})]})),
+      nova: {...freshAll().nova, budgets: {version: 1, budgets: [{id: 'g', category: 'Groceries', currency: 'EUR', monthly: '300.00', rollover: false, since: month}], payees: [{payee: 'Albert Heijn', currency: 'EUR', amount: '100.00'}]}}};
+    const days = 30 - Number(DAY.slice(8)) + 1; // DAY is in November
+    expect(text(zigi('how much can I spend per day', s))).toMatch(new RegExp(`^About this much a day is left for the ${days} days to go: Groceries €\\d+\\.\\d\\d\\.`));
+    expect(text(zigi('hoeveel heb ik per dag over', s))).toMatch(/^Ongeveer zoveel per dag is er over/);
+    expect(text(zigi('how much can I spend per day', freshAll()))).toContain('no budgets yet');
+    expect(text(zigi('how are my payee budgets', s))).toBe('This month — Albert Heijn: €80.00 of €100.00, €20.00 left, near the limit.');
+    expect(text(zigi('hoe staan mijn winkelbudgetten', s))).toMatch(/^Deze maand — Albert Heijn: €80[.,]00 van €100[.,]00, €20[.,]00 over, bijna op\.$/);
+    const more: MoneyMore = {version: 1, budgets: [{id: 'o', name: 'Out', currency: 'EUR', amount: '50.00', categories: ['Fun'], every: 'month'}]};
+    expect(text(zigi('how are my own budgets', s, more))).toMatch(/^Out: €20\.00 of €50\.00, €30\.00 left, \d+ days to go \(about €[\d.]+ a day\)\.$/);
+    expect(text(zigi('hoe staan mijn eigen budgetten', s, more))).toMatch(/^Out: €20[.,]00 van €50[.,]00, €30[.,]00 over, \d+ dagen te gaan/);
+    expect(text(zigi('how are my own budgets', s))).toContain('none of your own budgets yet');
+  });
   test('never claims another question', () => {
     for (const q of ['what did I spend this month', 'log coffee 3.20', 'how much is left in my budgets', 'hoeveel heb ik uitgegeven']) expect(zigi(q), q).toBeNull();
   });

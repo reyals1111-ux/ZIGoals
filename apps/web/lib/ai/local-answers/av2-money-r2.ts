@@ -3,6 +3,9 @@ import {mineParts} from '../../money-log/counted';
 import {monthOf} from '../../money-log/engine';
 import type {MoneyMore} from '../../money-more/schema';
 import {PAID_WITH_WORDS, byPaidWith, bySub, savedLabel} from '../../money-more/quick';
+import {monthView} from '../../budgets/engine';
+import {daysLeftInMonth, perDay} from '../../budgets/per-day';
+import {ownBudgetRows, payeeBudgets} from '../../money-more/own-budgets';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, count, isQuestion, list, MIXED, money, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -71,3 +74,44 @@ function subcategories(a: Asked): LocalReply | null {
   return answer(say(a.lang, `This month by subcategory — ${parts('en').join('; ')}.`, `Deze maand per subcategorie — ${parts('nl').join('; ')}.`), calls);
 }
 addR2Answers(savedEntries, paidWith, subcategories);
+
+// ── Budgets: a day's amount left, your own budgets, payee budgets (#243, #246, #247, #250) ───────────────────────────
+/** The tags record, when the lead has added it to the tool sources (`moneyTags`); without it a tag budget counts nothing here. */
+const taggedOf = (env: ToolEnv) => { const tags = (env as ToolEnv & {moneyTags?: {tags: Record<string, readonly string[]>} | null}).moneyTags?.tags ?? {}; return (tag: string) => new Set(Object.entries(tags).filter(([, list]) => list.includes(tag)).map(([id]) => id)); };
+/** "How much can I spend per day", "hoeveel heb ik per dag over". */
+function dayLeft(a: Asked): LocalReply | null {
+  const en = /\b(?:per|a|each) day\b/.test(a.f) && /\b(?:left|spend|budgets?)\b/.test(a.f) && !/\b(?:steps?|water|calories|sleep|hours?)\b/.test(a.f);
+  const nl = /\bper dag\b/.test(a.f) && /\b(?:over|uitgeven|budgetten?|besteden)\b/.test(a.f) && !/\b(?:stappen|water|slaap|uur)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const record = a.env.nova?.budgets, month = a.today.slice(0, 7), calls = call('budgets', {month, perDay: true}, 'Budgets · a day left');
+  const rows = record?.budgets.length ? monthView(entriesOf(a.env), record, month, a.today).rows : [], days = daysLeftInMonth(a.today);
+  const lines = rows.map(r => ({r, d: perDay(r.left, days)})).filter(x => x.d !== null);
+  if (!rows.length) return answer(say(a.lang, `You have no budgets yet. Set one in ${BUDGETS_PLACE.en}; each row then says about how much a day is left.`, `Je hebt nog geen budgetten. Stel er een in bij ${BUDGETS_PLACE.nl}; elke rij zegt dan ongeveer hoeveel er per dag over is.`), calls);
+  if (!lines.length) return answer(say(a.lang, `No budget has money left this month, so there is nothing left a day. ${count(days, 'en', ['day', 'days'], ['', ''])} to go.`, `Geen budget heeft deze maand nog geld over, dus er is niets per dag over. Nog ${count(days, 'nl', ['', ''], ['dag', 'dagen'])}.`), calls);
+  const words = lines.map(x => `${x.r.category} ${money(x.d!, x.r.currency)}`);
+  return answer(say(a.lang, `About this much a day is left for the ${days} days to go: ${list(words, 'en')}. What is left divided by the days; a fact, not advice.`,
+    `Ongeveer zoveel per dag is er over voor de ${days} dagen die nog komen: ${list(words, 'nl')}. Wat over is gedeeld door de dagen; een feit, geen advies.`), calls);
+}
+/** "How are my own budgets", "hoe staat mijn vakantiebudget". */
+function ownBudgets(a: Asked): LocalReply | null {
+  const en = /\b(?:my own|custom|one[ -]time|trip|holiday|tag) budgets?\b|\bbudgets? (?:on|for|by) (?:a |my )?(?:tags?|labels?)\b/.test(a.f);
+  const nl = /\beigen budgetten?\b|\beenmalige? budgetten?\b|\b(?:vakantie|reis|label|tag)budgetten?\b|\b(?:vakantie|reis|label|tag)budget\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const rows = ownBudgetRows(moreOf(a.env), entriesOf(a.env), taggedOf(a.env), a.today), calls = call('money_more', {budgets: true}, 'Budgets · your own');
+  if (!rows.length) return answer(say(a.lang, `You have none of your own budgets yet. In ${BUDGETS_PLACE.en} → Your own budgets, add one on a tag (a trip) or on chosen categories, each month or once between two days.`,
+    `Je hebt nog geen eigen budgetten. In ${BUDGETS_PLACE.nl} → Your own budgets voeg je er een toe op een tag (een reis) of op gekozen categorieën, elke maand of eenmalig tussen twee dagen.`), calls);
+  const line = (lang: 'en' | 'nl', r: (typeof rows)[number]) => `${r.budget.name}: ${money(r.spent, r.budget.currency)} ${say(lang, 'of', 'van')} ${money(r.amount, r.budget.currency)}, ${r.over ? `${money(-r.left, r.budget.currency)} ${say(lang, 'over', 'te veel')}` : `${money(r.left, r.budget.currency)} ${say(lang, 'left', 'over')}`}${r.state === 'running' ? `, ${count(r.daysLeft!, lang, ['day', 'days'], ['dag', 'dagen'])} ${say(lang, 'to go', 'te gaan')}${r.perDay !== null ? ` (${say(lang, 'about', 'ongeveer')} ${money(r.perDay, r.budget.currency)} ${say(lang, 'a day', 'per dag')})` : ''}` : r.state === 'ended' ? ` (${say(lang, 'ended', 'afgelopen')})` : ` (${say(lang, 'starts in', 'begint over')} ${count(r.daysToStart!, lang, ['day', 'days'], ['dag', 'dagen'])})`}`;
+  return answer(say(a.lang, `${rows.map(r => line('en', r)).join('; ')}.`, `${rows.map(r => line('nl', r)).join('; ')}.`), calls);
+}
+/** "How are my payee budgets", "hoe staan mijn winkelbudgetten". */
+function payeeBudgetsAnswer(a: Asked): LocalReply | null {
+  if (!/\b(?:payee|merchant|shop|store) budgets?\b|\bbudgets? (?:per|for each) (?:payee|shop|store|merchant)\b|\bwinkelbudgetten?\b|\bbudgetten? per winkel\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const record = a.env.nova?.budgets, rows = record ? payeeBudgets(record, entriesOf(a.env), a.today) : [], calls = call('budgets', {payees: true, amounts: true}, 'Budgets · payee budgets');
+  if (!rows.length) return answer(say(a.lang, `No payee has a budget yet. In ${BUDGETS_PLACE.en} → Watching payees, watch a shop and choose “Set an amount a month”.`, `Nog geen winkel heeft een budget. In ${BUDGETS_PLACE.nl} → Watching payees volg je een winkel en kies je “Set an amount a month”.`), calls);
+  const line = (lang: 'en' | 'nl', r: (typeof rows)[number]) => `${r.payee}: ${money(r.thisMonth, r.currency)} ${say(lang, 'of', 'van')} ${money(r.amount, r.currency)}, ${r.over ? `${money(-r.left, r.currency)} ${say(lang, 'over', 'te veel')}` : `${money(r.left, r.currency)} ${say(lang, 'left', 'over')}`}${r.near ? say(lang, ', near the limit', ', bijna op') : ''}`;
+  return answer(say(a.lang, `This month — ${rows.map(r => line('en', r)).join('; ')}.`, `Deze maand — ${rows.map(r => line('nl', r)).join('; ')}.`), calls);
+}
+addR2Answers(dayLeft, ownBudgets, payeeBudgetsAnswer);
