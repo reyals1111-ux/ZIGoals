@@ -67,14 +67,23 @@
    Session AV lane 2 (P-4, deliberate): the cause was that the wrap rule below came before `.tasks-nav ul {display: grid}`
    and `.tasks-nav-item {width: 100%}` and lost to them. With the rule winning, the views are compact chips that wrap, and
    they stand above the list again, as the source and Tab order have them, so This week, Table, Calendar, Timeline and
-   Insights are found without scrolling past every task. Computers keep the side column. */
+   Insights are found without scrolling past every task. Computers keep the side column.
+   Session AV lane 2 (fixb3c): `order: 0` because globals.css gives every `nav` `order: 3` below 700 px (the phone's
+   header nav), which still put the views after the list in the built app. Chips 10 px at the sides with 4 px gaps and
+   headings 6 px apart, so three views share a row at 390 and the block stays compact once the counts load (553 px
+   measured in the Showcase before, under the spec's 520 after); every chip keeps its 44 px height. Between 701 and
+   900 px (a tablet in one column) the list stays first, as Session AL A10-11 pins (the first task on the first screen
+   at 768, tests/grok53/release/a10-life.spec.ts): with the views above it the first task began at y 1,395 of 1,024; with
+   them after it, its title still ended 1 px under the screen, so the smart-add help keeps 12 px below it there, not 20. */
 @media (max-width: 900px) {
-  .tasks-layout > .tasks-nav { position: static; gap: 2px; }
-  .tasks-layout > .tasks-nav ul { display: flex; flex-wrap: wrap; gap: 6px; }
-  .tasks-layout > .tasks-nav .tasks-nav-item { width: auto; padding: 6px 12px; border-radius: 999px; }
+  .tasks-layout > .tasks-nav { position: static; gap: 0; order: 0; }
+  .tasks-layout > .tasks-nav ul { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tasks-layout > .tasks-nav .tasks-nav-item { width: auto; padding: 6px 10px; border-radius: 999px; }
   .tasks-layout > .tasks-nav .tasks-nav-item:not([aria-current=page]) { border-color: var(--line, rgba(128, 128, 160, .3)); }
-  .tasks-layout > .tasks-nav h3 { margin: 8px 0 2px; }
+  .tasks-layout > .tasks-nav h3 { margin: 6px 0 2px; }
+  .tasks-layout > .tasks-nav .tasks-nav-area h4 { margin: 4px 0 2px; }
 }
+@media (min-width: 701px) and (max-width: 900px) { .tasks-layout > .tasks-nav { order: 1; } .tasks-layout .tasks-smart-add > .tasks-smart-help { margin-bottom: 12px; } }
 .tasks-nav h3 { margin: 12px 0 2px; font-size: 14px; font-weight: 650; color: var(--text-secondary, var(--muted)); }
 .tasks-nav-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
 .tasks-nav-item small { font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }

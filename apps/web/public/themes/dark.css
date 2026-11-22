@@ -28280,6 +28280,9 @@
     .task-travel:not(#\-), .task-place:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task[data-cancelled] .task-title:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 /*  components/tasks/tasks-plan.css  */
 @scope (:root[data-theme=dark]) {

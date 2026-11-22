@@ -26333,6 +26333,9 @@
     .task-travel:not(#\-):not(#\-), .task-place:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task[data-cancelled] .task-title:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .tasks-plan-view h3 small:not(#\-):not(#\-) {
