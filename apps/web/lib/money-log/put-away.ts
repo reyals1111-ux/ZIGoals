@@ -74,13 +74,21 @@ export function readable(year: PutAwayYear): {entries: MoneyEntry[]; unreadable:
   for (const raw of year.entries) { const r = moneyEntrySchema.safeParse(raw); if (r.success) entries.push(r.data); else unreadable++; }
   return {entries, unreadable};
 }
-/** Brings a year back: its readable entries return to the log, before the others (ids already there are skipped). */
+/**
+ * Review B6O-9: the entries of a put-away year that stay put away when it is brought back — those this build cannot read,
+ * and those whose id is already in the log (after a restore or a merge added it again): neither is lost.
+ */
+export function staysPutAway(log: Pick<MoneyLog, 'entries'>, year: PutAwayYear): unknown[] {
+  const have = new Set(log.entries.map(e => e.id));
+  return year.entries.filter(raw => { const r = moneyEntrySchema.safeParse(raw); return !r.success || have.has(r.data.id); });
+}
+/** Brings a year back: its readable entries return to the log, before the others (ids already there stay put away, with the unreadable ones). */
 export function bringBack(log: MoneyLog, yearId: string): MoneyLog {
   const years = log.putAway?.years ?? [], year = years.find(y => y.id === yearId);
   if (!year) throw new Error('That year is no longer put away.');
   const {entries} = readable(year), have = new Set(log.entries.map(e => e.id)), back = entries.filter(e => !have.has(e.id));
   if (log.entries.length + back.length > MAX_ENTRIES) throw new Error(`Your money log holds up to ${MAX_ENTRIES.toLocaleString('en')} entries; put another year away first.`);
-  const rest = year.entries.filter(raw => !moneyEntrySchema.safeParse(raw).success), others = years.filter(y => y.id !== yearId), nextYears = rest.length ? [...others, {...year, entries: rest}] : others;
+  const rest = staysPutAway(log, year), others = years.filter(y => y.id !== yearId), nextYears = rest.length ? [...others, {...year, entries: rest}] : others;
   const next: Record<string, unknown> = {...log, entries: [...back, ...log.entries]};
   if (nextYears.length) next.putAway = {...log.putAway, years: nextYears}; else delete next.putAway;
   return moneyLogSchema.parse(next);

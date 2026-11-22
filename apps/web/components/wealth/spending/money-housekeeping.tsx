@@ -8,7 +8,7 @@ import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
 import type {MoneyEntry, MoneyLog} from '../../../lib/money-log/schema';
 import {categoryChoices} from '../../../lib/money-log/counted';
 import {addBackCategory, addBackSub, checkRecords, clearSub, dropBudget, dropSplit, forgetAccount, keepFirst, moveCategory, undoAddBackCategory, undoAddBackSub, unforgetAccount, unlinkRefund, untransfer, type CheckIssue} from '../../../lib/money-log/check';
-import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, yearCsv} from '../../../lib/money-log/put-away';
+import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, staysPutAway, yearCsv} from '../../../lib/money-log/put-away';
 import {saveFile} from '../../../lib/notes/doc-image';
 import {formatDate, formatNumber} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
@@ -93,7 +93,11 @@ function PutAwayPanel({log, today}: {log: DeviceRecordState<MoneyLog>; today: st
   const plan = useMemo(() => { try { return chosen ? putAwayPlan(log.data, budgets.loaded ? budgets.data : null, chosen, today) : null; } catch { return null; } }, [chosen, log.data, budgets.loaded, budgets.data, today]);
   const away = log.data.putAway?.years ?? [];
   const put = () => { if (!plan) return; const words = `${chosen}: ${plan.moving.length} entries put away. Bring back returns them.`; void changeWithUndo(log.update, l => putAwayYear(l, budgets.loaded ? budgets.data : null, chosen, today, new Date().toISOString(), `y_${crypto.randomUUID().slice(0, 12)}`), words, {undone: `${chosen} is back in your money log.`, undoLabel: `Undo putting ${chosen} away`}).then(() => { setSaid(words); setYear(''); head.current?.focus(); }, cause => setSaid(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.')); };
-  const back = (yid: string, y: string) => { void changeWithUndo(log.update, l => bringBack(l, yid), `${y} is back in your money log.`, {undone: `${y} is put away again.`, undoLabel: `Undo bringing ${y} back`}).then(() => { setSaid(`${y} is back in your money log.`); head.current?.focus(); }, cause => setSaid(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.')); };
+  const back = (yid: string, y: string) => {
+    // Review B6O-9: what stays put away (already in the log, or not readable here) is said, never dropped.
+    const year = away.find(x => x.id === yid), stay = year ? staysPutAway(log.data, year).length : 0, words = `${y} is back in your money log.${stay ? ` ${formatNumber(stay)} ${stay === 1 ? 'entry stays' : 'entries stay'} put away: already in your log or not readable here.` : ''}`;
+    void changeWithUndo(log.update, l => bringBack(l, yid), words, {undone: `${y} is put away again.`, undoLabel: `Undo bringing ${y} back`}).then(() => { setSaid(words); head.current?.focus(); }, cause => setSaid(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.'));
+  };
   const figures = (rows: {currency: string; spent: number; received: number}[]) => rows.map(c => `spent ${moneyCents(c.spent, c.currency)}, received ${moneyCents(c.received, c.currency)}`).join('; ');
   return <section className="money-r6" aria-labelledby={`${id}-t`}>
     <h4 id={`${id}-t`} ref={head} tabIndex={-1}>Put old entries away</h4>

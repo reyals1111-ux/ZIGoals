@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {addBackCategory, addBackSub, checkRecords, clearSub, dropBudget, dropSplit, forgetAccount, keepFirst, moveCategory, undoAddBackCategory, undoAddBackSub, unforgetAccount, unlinkRefund, untransfer} from './check';
 import {itemChanges} from '../undo-removal';
 import {withAccountNote} from './counted';
-import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, yearCsv} from './put-away';
+import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, staysPutAway, yearCsv} from './put-away';
 import {totals} from './engine';
 import {emptyMoneyLog, moneyLogSchema, type MoneyEntry, type MoneyLog} from './schema';
 import {emptyBudgets, type BudgetsRecord} from '../budgets/schema';
@@ -120,4 +120,13 @@ test('review B6O-8: a refund left out or marked a transfer is still checked agai
   const own = log([{...e({id: 'ro', kind: 'income', refund: true, category: 'Pets'}), excluded: true}]);
   expect(checkRecords(own).filter(i => i.kind === 'category').map(i => i.kind === 'category' ? [i.category, i.entryKind] : null)).toEqual([['Pets', 'expense']]);
   expect(addBackCategory(own, 'expense', 'Pets').own).toEqual({expense: ['Pets']});
+});
+
+test('review B6O-9: an entry put away whose id is in the log again stays put away when the year comes back', () => {
+  const live = e({id: 'clash', amount: '12.00', date: '2023-05-01'}), copy = {...live, amount: '15.00', note: 'the copy put away'}, other = e({id: 'o', date: '2023-06-01'});
+  const L2 = log([live], {putAway: {years: [{id: 'y', year: '2023', at: AT, entries: [copy, other, {id: 'future', kind: 'gift'}]}]}});
+  expect(staysPutAway(L2, L2.putAway!.years[0]!)).toEqual([copy, {id: 'future', kind: 'gift'}]);
+  const back = bringBack(L2, 'y');
+  expect(back.entries.map(x => [x.id, x.amount])).toEqual([['o', '10.00'], ['clash', '12.00']]);
+  expect(back.putAway?.years).toEqual([{id: 'y', year: '2023', at: AT, entries: [copy, {id: 'future', kind: 'gift'}]}]);
 });
