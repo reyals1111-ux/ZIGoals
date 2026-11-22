@@ -11400,6 +11400,53 @@
         color: color-mix(in srgb, var(--amber, #76570b) 42%, #000)
     }
 }
+/*  components/health/r6/body-r6.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .r6-toggle button[aria-pressed="true"]:not(#\-), .r6-star[aria-pressed="true"]:not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+    .r6-days-bar:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r6-days-bar span:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r6-lines li:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r6-lines li[data-done="true"] > span:not(#\-) {
+        color: var(--muted, #1f2937)
+    }
+    .r6-help-line:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, #8fb6ff14)
+    }
+    .r6-grounding-step:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r6-grounding-count:not(#\-) {
+        color: var(--brand-cyan-ink)
+    }
+    .r6-portion:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r6-portion-line:not(#\-) {
+        color: var(--muted, #1f2937)
+    }
+    .r6-portion-settings fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .r6-bedtime-line strong:not(#\-) {
+        color: var(--brand-cyan-ink)
+    }
+    .r6-star[aria-pressed="true"] .r6-star-mark:not(#\-) {
+        color: color-mix(in srgb, var(--amber, #76570b) 42%, #000)
+    }
+    .r6-bests li[data-before="true"]:not(#\-) {
+        color: var(--muted, #1f2937)
+    }
+}
 /*  components/health/sleep/av2-bodymind-sleep.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .sleep-need:not(#\-) {
@@ -12628,6 +12675,47 @@
     }
     .journal-entry-star[aria-pressed=true]>span:first-child:not(#\-), .journal-list-star[aria-pressed=true]>span:first-child:not(#\-) {
         color: var(--pillar-wealth-ink)
+    }
+    .journal-word-goal[data-met]:not(#\-) {
+        color: var(--cyan-ink)
+    }
+    .journal-calendar-day[data-met]:not(#\-) {
+        box-shadow: inset 0 -3px 0 color-mix(in srgb,var(--cyan,currentColor) 75%,transparent)
+    }
+    .journal-person:not(#\-) {
+        border-color: var(--line)
+    }
+    .journal-person-name:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor;
+        color: inherit
+    }
+    .journal-person-remove:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor;
+        color: inherit
+    }
+    .journal-photo-open:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--brand-violet) 10%,transparent);
+        color: inherit
+    }
+    .journal-photo-open:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .journal-photo-day:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--bg) 78%,transparent);
+        color: var(--text)
+    }
+    @media (forced-colors:active) {
+        .journal-calendar-day[data-met]:not(#\-) {
+            border-bottom-color: currentcolor;
+            box-shadow: none
+        }
     }
 }
 /*  components/journal/on-this-day.css  */
@@ -14392,6 +14480,20 @@
     }
     .note-card-answer:not(#\-) {
         border-top-color: color-mix(in srgb, currentColor 30%, transparent)
+    }
+    .note-tag-rename-row:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .note-merge:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .notes-select-prop:not(#\-) {
+        border-color: currentcolor;
+        border-top-color: var(--line)
+    }
+    .notes-table tfoot th:not(#\-), .notes-table tfoot td:not(#\-) {
+        border-top-color: color-mix(in srgb, currentColor 30%, transparent);
+        border-bottom-color: currentcolor
     }
 }
 /*  components/notes/this-day-strip.css  */
@@ -27522,6 +27624,9 @@
     .task-travel:not(#\-), .task-place:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task[data-cancelled] .task-title:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 /*  components/tasks/tasks-plan.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -27793,6 +27898,30 @@
         border-color: var(--line)
     }
     .task-play-steps [data-step=done]:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
+/*  components/tasks/tasks-r6.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .tasks-r6-line:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-r6-line strong:not(#\-) {
+        color: var(--text, inherit)
+    }
+    .tasks-r6-line:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .tasks-r6-panel:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-r6-set:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-r6-review-item:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-r6-review small:not(#\-), .tasks-r6-later small:not(#\-), .tasks-r6-groups small:not(#\-), .task-r6 small:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
 }
@@ -29289,6 +29418,15 @@
     }
     .money-sheet-table th:not(#\-), .money-sheet-table td:not(#\-) {
         border-bottom-color: var(--line,rgba(140,160,220,.25))
+    }
+}
+/*  components/wealth/spending/money-r6.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .money-r6-group:not(#\-) {
+        border-color: currentcolor
+    }
+    .money-streak:not(#\-) {
+        color: var(--text-secondary,var(--muted))
     }
 }
 /*  components/wealth/spending/people-money.css  */

@@ -1798,6 +1798,23 @@
 :where(:root[data-text=large]) .r5-band-days:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .r5-band-scroll table:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .r5-photo-add input[type="file"]:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/health/r6/body-r6.css  */
+:where(:root[data-text=large]) .r6-subtitle:not(#\-) { font-size: calc(1.05rem * 1.125); }
+:where(:root[data-text=large]) .r6-consistency-line:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .r6-how p:not(#\-), :where(:root[data-text=large]) .r6-fine:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .r6-lines li:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .r6-add input:not(#\-), :where(:root[data-text=large]) .r6-add textarea:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .r6-help-line:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .r6-grounding-step h4:not(#\-) { font-size: calc(1.05rem * 1.125); }
+:where(:root[data-text=large]) .r6-grounding-count:not(#\-) { font-size: calc(2rem * 1.125); }
+:where(:root[data-text=large]) .r6-grounding-words input:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .r6-portion strong:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .r6-portion-count output:not(#\-) { font-size: calc(1.25rem * 1.125); }
+:where(:root[data-text=large]) .r6-portion-line:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .r6-bedtime-line:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .r6-picker-head:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .r6-bests:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .r6-defaults-form input:not(#\-) { font-size: calc(1rem * 1.125); }
 /*  components/health/sleep/av2-bodymind-sleep.css  */
 :where(:root[data-text=large]) .sleep-need-head strong:not(#\-) { font-size: calc(24px * 1.125); }
 :where(:root[data-text=large]) .sleep-balance-naps small:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2050,6 +2067,10 @@
 :where(:root[data-text=large]) .entry-grid strong:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .journal-compose-period select:not(#\-), :where(:root[data-text=large]) .journal-compose-period button:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .journal-letter select:not(#\-), :where(:root[data-text=large]) .journal-letter input:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .journal-person:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .journal-person-remove:not(#\-) { font-size: calc(18px * 1.125); }
+:where(:root[data-text=large]) .journal-photo-day:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .journal-photo-voice:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-text=large]) .on-this-day-title:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .today-journal-lines:not(#\-) { font-size: calc(15px * 1.125); }
@@ -3974,6 +3995,17 @@
 :where(:root[data-text=large]) .task-play-now:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .task-play-clock:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .task-play-steps:not(#\-) { font-size: calc(15px * 1.125); }
+/*  components/tasks/tasks-r6.css  */
+:where(:root[data-text=large]) .tasks-r6-line:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-r6-set > legend:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .tasks-r6-check:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-r6-review-item h4:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .tasks-r6-review-item h5:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-r6-review-item ul:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-r6-review small:not(#\-), :where(:root[data-text=large]) .tasks-r6-later small:not(#\-), :where(:root[data-text=large]) .tasks-r6-groups small:not(#\-), :where(:root[data-text=large]) .task-r6 small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .tasks-r6-later:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-r6-group-list > li:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .task-r6 p:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/tasks/tasks-when.css  */
 :where(:root[data-text=large]) .tasks-when-lede:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .tasks-when-actions .text-link:not(#\-), :where(:root[data-text=large]) .tasks-when-form button:not(#\-) { font-size: calc(15px * 1.125); }
@@ -4249,6 +4281,12 @@
 :where(:root[data-text=large]) .money-sheet-table:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .money-sheet-table caption:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .category-file input[type=file]:not(#\-) { font-size: calc(16px * 1.125); }
+/*  components/wealth/spending/money-r6.css  */
+:where(:root[data-text=large]) .money-r6 p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .money-r6-list li:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .money-r6-group legend:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .money-streak:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .money-order-list li:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/wealth/spending/people-money.css  */
 :where(:root[data-text=large]) .people-share:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .people-kind legend:not(#\-) { font-size: calc(14px * 1.125); }

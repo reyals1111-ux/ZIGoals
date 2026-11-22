@@ -4352,6 +4352,16 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .r6-days-bar span:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r6-help-line:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, #8fb6ff14)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .evening-ready:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent)
@@ -4652,6 +4662,22 @@
     .entry-grid > li.is-centre:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--brand-violet) 10%, transparent)
+    }
+    .journal-person-name:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .journal-person-remove:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .journal-photo-open:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--brand-violet) 10%,transparent)
+    }
+    .journal-photo-day:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--bg) 78%,transparent)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {

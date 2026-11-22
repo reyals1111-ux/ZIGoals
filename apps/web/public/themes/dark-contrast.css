@@ -11281,6 +11281,52 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .r6-toggle button[aria-pressed="true"]:not(#\-):not(#\-), .r6-star[aria-pressed="true"]:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f680)
+    }
+    .r6-days-bar:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r6-days-bar span:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #074951) 30%, #000)
+    }
+    .r6-lines li:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r6-lines li[data-done="true"] > span:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--muted, #dadada) 25%, #fff)
+    }
+    .r6-help-line:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--surface-2, #8fb6ff14) 30%, #000)
+    }
+    .r6-grounding-step:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r6-grounding-count:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--brand-cyan, #74ebfb) 25%, #fff)
+    }
+    .r6-portion:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r6-portion-line:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--muted, #dadada) 25%, #fff)
+    }
+    .r6-portion-settings fieldset:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .r6-bedtime-line strong:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--brand-cyan, #74ebfb) 25%, #fff)
+    }
+    .r6-star[aria-pressed="true"] .r6-star-mark:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--amber, #fcd58b) 25%, #fff)
+    }
+    .r6-bests li[data-before="true"]:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--muted, #dadada) 25%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .sleep-need:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
@@ -12399,6 +12445,47 @@
     }
     .journal-entry-star[aria-pressed=true]>span:first-child:not(#\-):not(#\-), .journal-list-star[aria-pressed=true]>span:first-child:not(#\-):not(#\-) {
         color: var(--pillar-wealth, var(--brand-magenta))
+    }
+    .journal-word-goal[data-met]:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--cyan,inherit) 25%, #fff)
+    }
+    .journal-calendar-day[data-met]:not(#\-):not(#\-) {
+        box-shadow: inset 0 -3px 0 color-mix(in srgb,var(--cyan,currentColor) 75%,transparent)
+    }
+    .journal-person:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .journal-person-name:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor;
+        color: inherit
+    }
+    .journal-person-remove:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor;
+        color: inherit
+    }
+    .journal-photo-open:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--brand-violet) 10%,transparent);
+        color: inherit
+    }
+    .journal-photo-open:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan) 40%, #fff)
+    }
+    .journal-photo-day:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--bg) 78%,transparent);
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    @media (forced-colors:active) {
+        .journal-calendar-day[data-met]:not(#\-):not(#\-) {
+            border-bottom-color: currentcolor;
+            box-shadow: none
+        }
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -14050,6 +14137,20 @@
     }
     .note-card-answer:not(#\-):not(#\-) {
         border-top-color: color-mix(in srgb, currentColor 30%, transparent)
+    }
+    .note-tag-rename-row:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .note-merge:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .notes-select-prop:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        border-top-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .notes-table tfoot th:not(#\-):not(#\-), .notes-table tfoot td:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, currentColor 30%, transparent);
+        border-bottom-color: currentcolor
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -26333,6 +26434,9 @@
     .task-travel:not(#\-):not(#\-), .task-place:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task[data-cancelled] .task-title:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .tasks-plan-view h3 small:not(#\-):not(#\-) {
@@ -26598,6 +26702,29 @@
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
     .task-play-steps [data-step=done]:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .tasks-r6-line:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-r6-line strong:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text, inherit) 25%, #fff)
+    }
+    .tasks-r6-line:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan) 40%, #fff)
+    }
+    .tasks-r6-panel:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-r6-set:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-r6-review-item:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-r6-review small:not(#\-):not(#\-), .tasks-r6-later small:not(#\-):not(#\-), .tasks-r6-groups small:not(#\-):not(#\-), .task-r6 small:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
 }
@@ -28018,6 +28145,14 @@
     }
     .money-sheet-table th:not(#\-):not(#\-), .money-sheet-table td:not(#\-):not(#\-) {
         border-bottom-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .money-r6-group:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .money-streak:not(#\-):not(#\-) {
+        color: var(--text-secondary,var(--muted))
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
