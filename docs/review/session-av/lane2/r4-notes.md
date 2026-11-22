@@ -82,6 +82,15 @@ record beside its `voice` choice, so no new device key, catalogue, export, erase
 `lib/notes/r4-stored.test.ts`). Older builds keep every field untouched (the records are loose) and show the notes as
 before (an archived note in its list; only the first photo).
 
+**Rollback limit (review B4G-17): a note's photos two to eight.** An older build does not know `photos`. When it opens
+Notes (after a rollback deploy, or in a tab still on the old version) its arrival sweep finds no note naming photos two
+to eight, marks them as unused, and deletes their bytes 30 days later. If this build opens Notes before then, it clears
+the mark and nothing is lost; so a rollback past this branch must not stay in use for 30 days or more, or those photos
+can be removed for good (the first photo, the words, the `photos` ids and everything else stay; the photo lines then
+say the photo is not in this browser). The notes' Markdown export made on this build keeps all eight; Export everything
+keeps them too once the lead's two lines below (#307) are in. **For the lead:** please carry this line into
+docs/STATUS.md's stored-format notes, as for r4-mind's `morePhotos`.
+
 ## Features
 
 ### F1 Tags in the text, nested, and a focus tag — LEDGER #306 (Bear)
@@ -415,3 +424,26 @@ before (an archived note in its list; only the first photo).
   can bring the photo back, its bytes now stay until the arrival sweep has found no note naming it for 30 days (the
   sweep's existing grace), and the confirmation says so instead of "This cannot be undone". `r4-photos.test.ts` reads
   the new return shape (a labelled deliberate change, same checks). Test: `lib/notes/b4g-photo-delete.test.ts`.
+- **B4G-6 (Minor):** a photo deleted while editing also leaves the unsaved words (`withoutPhotoLines` on them), so Save
+  never writes back a line for a deleted photo. Test: `lib/notes/b4g-edit-photo.test.ts`.
+- **B4G-7 (Minor):** find compares each place as written when lower case changes the length of the text or of the
+  words found, so a replace never leaves part of a letter (a decomposed i̇) behind. Test: `lib/notes/b4g-find-length.test.ts`.
+- **B4G-8 (Minor):** after Replace the current match is the first one after the words just put in (`nextAfter`), so
+  "cat" → "cats" twice never gives "catss". Test: `lib/notes/b4g-find-next.test.ts`.
+- **B4G-9 (Minor):** each Evernote image place takes the first unused resource of its type, else the first unused one,
+  whatever order the resources come in. Test: `lib/notes/b4g-enex-order.test.ts`.
+- **B4G-10 (Minor):** a malformed % in a Bear asset name is read as written and never stops the import. Test:
+  `lib/notes/b4g-bear-names.test.ts`.
+- **B4G-11 (Minor):** Cancel is disabled while an import keeps its photos; an import cancelled before it is written writes
+  nothing and deletes the photos it kept. Test: `lib/notes/b4g-import-cancel.test.ts` (reads the component's source).
+- **B4G-12 (Minor):** Evernote and Bear files past the first fifty are listed under "Skipped and why"; all .enex files
+  together are held to 100 MB. Test: `lib/notes/b4g-foreign-cap.test.ts`.
+- **B4G-13 (Minor):** an Evernote tag is cleaned to what a #tag holds (`foreignTag`: "a,b" → "a-b") before it is written,
+  so it comes back whole. Test: `lib/notes/b4g-enex-tags.test.ts`.
+- **B4G-14 (Minor):** Print this note reads every photo first and opens the print window only once each has loaded or is
+  known to be missing; it draws every photo the screen draws under the words. Test: `lib/notes/b4g-print-photos.test.ts`.
+- **B4G-15 (Minor):** restoring an earlier version recomputes the kept tags from its words (the field tags stay). Test:
+  `lib/notes/b4g-restore-tags.test.ts`.
+- **B4G-16 (Minor):** a journal line such as `![sunset](IMG_1)` stays its words in the e-book and the Word file. Test:
+  `lib/journal/b4g-ebook-lines.test.ts`.
+- **B4G-17 (Minor):** said plainly above ("Rollback limit"); nothing in an older build can be changed from here.
