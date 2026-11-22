@@ -212,3 +212,31 @@ the energy, food-plus and workouts fields; the two new keys' round trips run onc
 - Device keys / catalogue / export / erase: `zigoals:bring-up:v1` via `lib/av2-r6-body-keys.ts` (shared to-do). Route
   weight: /app/settings/data's first chunk gains one `lazy()` line and the fold; /app/journal's More chunk and the feeling
   words' choices chunk one `lazy()` line each; the report builder (lazy already) the record's schema.
+
+## 6. Portion counters — LEDGER #418 built
+
+- What: Health → Diary (the food day), under the day's entries: "Portions today" (or "on <day>" for a past diary day).
+  Nothing is on by default: it teaches ("Count portions of fruit, vegetables or fish with one tap, or something of your
+  own. None is on until you choose it, and there is no “off track”.") and "Choose what to count" opens the choices —
+  Fruit, Vegetables, Fish (checkboxes) and up to three of the person's own ("such as nuts or legumes"); each counter can
+  have its own aim, a number a day or a week ("Save the aim for …"), or none. Each counter is a card with − and + (44 px,
+  named "One more: Vegetables"), the count, and a plain line: "2 today · your aim 5 a day", "0 today · 2 this week · your
+  aim 2 a week · reached". No "off track", no "behind", nothing on by default (Lifesum's fish tracker told a vegetarian they
+  were off track: the ledger's owner note). Turning a built-in counter off keeps its days; removing an own one takes its
+  days. A portion is what the person counts as one; nothing is read from the diary and no calorie figure is involved.
+- Checked against the protected baseline (docs/STATUS.md "Current accepted baseline"): nothing there covers the Food diary's
+  layout; the counters are one panel after the day's entries, the rest of the page is unchanged.
+- Files: `lib/food-plus/portions.ts` (pure; stored commit), `components/health/food-plus/portion-counters.tsx` (new),
+  `components/health/food-plus/food-plus.tsx` (a `portions` part, one `lazy()` line), `components/health/health-app.tsx`
+  (one `<FoodPlus part="portions" …/>` element), `body-r6.css`.
+- Tests: `lib/food-plus/av2-r6-portions.test.ts`, `lib/av2-r6-body-stored.test.ts`. Spec: `tests/av2-r6-portions.spec.ts`.
+- Stored: `portions` on `zigoals:food-plus:v1` (see the table); in Export everything and the erase with Food (the record is
+  registered already).
+- Help (EN): **Can I count portions of fruit, vegetables or fish?** Yes. In Health → Diary, choose "Choose what to count"
+  and pick fruit, vegetables, fish or up to three things of your own. Tap + for each portion. You can give each an aim a
+  day or a week; it only says when it is reached. None is on until you choose it.
+- What's new: "Food: one-tap portion counters for fruit, vegetables, fish or your own — none on until you choose."
+- Search (static.ts): "portions", "fruit and vegetables", "fish per week", "count portions" → `/app/health?view=diary`.
+- Showcase hook: none (a Showcase counter would show on the Diary that other specs pin; nothing is on by default).
+- Device keys / catalogue / export / erase: nothing new. Route weight: /app/health's first chunk gains one element; the
+  counters are their own chunk through the food-plus entry (lazy already). Please measure /app/health.
