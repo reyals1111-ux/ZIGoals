@@ -16,14 +16,19 @@ export const MAX_OWN_WORDS = 12, MAX_NOTE = 140, MAX_GROUP = 30, KEEP_DAYS = 110
 export type CheckinExtras = {
   logged: Record<string, string>; ownWords: Record<QuadrantKey, string[]>; times: Record<string, Record<string, Part[]>>;
   notes: Record<string, string>; groups: Record<string, string>; moments: Record<string, Partial<Record<Part, number>>>;
+  /** LEDGER #67: the measures the person chose for the graph (at most four), in their order. */
+  graph: string[];
 };
+export const GRAPH_MAX = 4;
+const MEASURE = /^(?:mood|energy|sleep|steps|symptom:[a-z0-9-]{1,40}|habit:[0-9a-f-]{36})$/;
 const DAY = /^\d{4}-\d{2}-\d{2}$/, ITEM = /^[a-z0-9-]{1,40}$/, PLAIN = /^[^\u0000-\u001f\u007f]*$/;
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const text = (v: unknown, max: number) => typeof v === 'string' && v.trim().length > 0 && v.length <= max && PLAIN.test(v) ? v.trim() : null;
 const parts = (v: unknown): Part[] => Array.isArray(v) ? PARTS.filter(p => v.includes(p)) : [];
 export function readCheckin(energy: unknown): CheckinExtras {
   const c = isObj(energy) && isObj(energy.checkin) ? energy.checkin : {};
-  const out: CheckinExtras = {logged: {}, ownWords: {'high-unpleasant': [], 'high-pleasant': [], 'low-unpleasant': [], 'low-pleasant': []}, times: {}, notes: {}, groups: {}, moments: {}};
+  const out: CheckinExtras = {logged: {}, ownWords: {'high-unpleasant': [], 'high-pleasant': [], 'low-unpleasant': [], 'low-pleasant': []}, times: {}, notes: {}, groups: {}, moments: {}, graph: []};
+  if (Array.isArray(c.graph)) out.graph = [...new Set(c.graph.filter((g): g is string => typeof g === 'string' && MEASURE.test(g)))].slice(0, GRAPH_MAX);
   if (isObj(c.logged)) for (const [d, at] of Object.entries(c.logged)) if (DAY.test(d) && typeof at === 'string' && at.length <= 40) out.logged[d] = at;
   if (isObj(c.ownWords)) for (const q of QUADRANT_IDS) { const list = c.ownWords[q]; if (Array.isArray(list)) out.ownWords[q] = [...new Set(list.map(w => text(w, 32)).filter((w): w is string => !!w))].slice(0, MAX_OWN_WORDS); }
   if (isObj(c.times)) for (const [d, items] of Object.entries(c.times)) if (DAY.test(d) && isObj(items)) { const row: Record<string, Part[]> = {}; for (const [id, p] of Object.entries(items)) if (ITEM.test(id) && parts(p).length) row[id] = parts(p); if (Object.keys(row).length) out.times[d] = row; }
@@ -110,4 +115,10 @@ export function setOwnFeeling<T extends {words?: Record<string, unknown>}>(energ
 export function readyMatches(query: string, followed: readonly string[], lang: 'en' | 'nl' = 'en'): {name: string; kind: 'symptom' | 'factor'}[] {
   const q = query.trim().toLocaleLowerCase(), have = new Set(followed.map(n => n.toLocaleLowerCase()));
   return READY_FACTORS.filter(f => !have.has(f.en.toLocaleLowerCase()) && !have.has(f.nl.toLocaleLowerCase()) && (!q || f.en.toLocaleLowerCase().includes(q) || f.nl.toLocaleLowerCase().includes(q))).map(f => ({name: f[lang], kind: f.kind}));
+}
+/** LEDGER #67: the graph's chosen measures (order kept; at most four; an empty list falls back to the default). */
+export function setGraph<T extends object>(energy: T, measures: readonly string[]): T {
+  const list = [...new Set(measures)];
+  if (list.length > GRAPH_MAX || list.some(m => !MEASURE.test(m))) throw new Error(`Choose up to ${GRAPH_MAX} measures.`);
+  return withCheckin(energy, c => { if (list.length) c.graph = list; else delete c.graph; });
 }
