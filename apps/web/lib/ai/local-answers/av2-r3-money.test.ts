@@ -121,3 +121,13 @@ describe('spending beside a done habit, under Compare’s rules', () => {
     expect(text(zigi('do I spend less on days I do my habits', freshAll()))).toContain('This needs habits you tick');
   });
 });
+
+describe('what moved net worth this month', () => {
+  const acct = (id: string, kind: 'savings' | 'credit-card', name: string, snaps: [string, string][]) => ({id, kind, name, currency: 'EUR', snapshots: snaps.map(([date, value], i) => ({id: `${id.slice(0, -4)}${9000 + i}`, date, value, decimals: 2})), payments: [], createdAt: at, updatedAt: at});
+  const s: ToolSources = {...freshAll(), accounts: {version: 1, items: [acct('00000000-0000-4000-8000-00000000b001', 'savings', 'Savings', [['2026-10-20', '500000'], [DAY, '560000']]), acct('00000000-0000-4000-8000-00000000b002', 'credit-card', 'Card', [['2026-10-30', '20000'], [DAY, '45000']])]}};
+  test('EN and NL, largest first', () => {
+    expect(text(zigi('what moved my net worth this month', s))).toBe('In EUR, +€350.00 since the end of last month; most by Savings +€600.00 and Card −€250.00. From your own balances; never converted, not a return.');
+    expect(text(zigi('wat bewoog mijn vermogen deze maand', s))).toBe('In EUR, +€ 350,00 sinds eind vorige maand; het meest door Savings +€ 600,00 en Card −€ 250,00. Uit je eigen saldi; nooit omgerekend, geen rendement.');
+    expect(text(zigi('how did my net worth change this month', freshAll()))).toContain('Nothing to compare yet');
+  });
+});

@@ -11,6 +11,8 @@ import {NEED_WANT_WORDS, needWantMonth, shareOfIncome} from '../../money-insight
 import {monthWaterfall} from '../../money-insights/month-compare';
 import {compare, factorOptions, spendOutcomes} from '../../compare/engine';
 import {LABEL_WORDS} from '../../insights/cross-pillar';
+import {networthMovers} from '../../networth-movers';
+import type {NetworthHistory} from '../../networth-history';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, dayIn, isQuestion, list, MIXED, monthIn, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -201,3 +203,24 @@ function spendBesideHabits(a: Asked): LocalReply | null {
     `${ready.slice(0, 3).map(r => line('nl', r)).join('. ')}. Uit de laatste 90 dagen van je eigen gegevens; dagen die samen vielen bewijzen niet dat het een het ander brengt.`), calls);
 }
 add(spendBesideHabits);
+
+// ── What moved net worth this month (#298) ──────────────────────────────────────────────────────────────────────────
+/** The recorded net-worth history, when the lead adds it to the tool sources (`networthHistory`); without it, accounts only. */
+const historyOf = (env: ToolEnv): NetworthHistory | null => (env as ToolEnv & {networthHistory?: NetworthHistory | null}).networthHistory ?? ((env.ak as {networthHistory?: NetworthHistory | null} | null | undefined)?.networthHistory ?? null);
+/** "What moved my net worth this month", "wat bewoog mijn vermogen deze maand". */
+function netWorthMovers(a: Asked): LocalReply | null {
+  const en = /\bnet ?worth\b/.test(a.f) && /\b(?:moved|move|changed|change|drove|went up|went down)\b/.test(a.f) && /\bthis month\b/.test(a.f) && !/\bone total\b|\bmilestones?\b/.test(a.f);
+  const nl = /\bvermogen\b/.test(a.f) && /\b(?:bewoog|bewogen|veranderd|veranderde|gestegen|gedaald)\b/.test(a.f) && /\bdeze maand\b/.test(a.f) && !/\btotaal\b|\bhuis\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const rows = networthMovers(a.env.accounts, historyOf(a.env), a.today).filter(r => r.movers.length), calls = call('accounts', {movers: a.today.slice(0, 7)}, 'Net worth · what moved it this month');
+  if (!rows.length) return answer(say(a.lang, 'Nothing to compare yet: no account has a balance from both before this month and this month. Enter each balance once a month; Wealth → Net worth by source then lists what moved it most.',
+    'Nog niets te vergelijken: geen rekening heeft een saldo van voor deze maand én van deze maand. Vul elk saldo eens per maand in; Vermogen → Net worth by source toont dan wat het meest bewoog.'), calls);
+  const text = rows.map(r => {
+    const items = (lang: Lang) => r.movers.slice(0, 5).map(m => `${m.name} ${signedIn(lang, m.cents, r.currency)}`);
+    return say(a.lang, `In ${r.currency}, ${signedIn('en', r.total, r.currency)} since the end of last month; most by ${list(items('en'), 'en')}.`,
+      `In ${r.currency}, ${signedIn('nl', r.total, r.currency)} sinds eind vorige maand; het meest door ${list(items('nl'), 'nl')}.`);
+  }).join(' ');
+  return answer(`${text} ${say(a.lang, 'From your own balances; never converted, not a return.', 'Uit je eigen saldi; nooit omgerekend, geen rendement.')}`, calls);
+}
+add(netWorthMovers);

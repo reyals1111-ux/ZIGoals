@@ -203,3 +203,31 @@ locale ("€ 12,50"); the tests compare it with the no-break space shown as a sp
 - Noted for the lead (not changed): Compare's existing factor "Spending above an amount" (`spendBasis`, `factorTest`)
   still sums `Number(e.amount)` of every expense, left-out entries and the full amount of a shared cost included — not
   Wealth → Spending's rule. It is outside these rows; lane2/revb2a's shared rule should cover it.
+
+### R3-F5 (group T8). What moved your net worth this month
+
+- LEDGER row: #298 Simplifi "which accounts changed net worth this month" — **built** ("What moved your net worth in
+  <month>" at the top of Net worth by source (Wealth → Your wealth over time), per currency: the total move since the end
+  of last month and the five accounts and sources that moved it most, up or down, each with its amount and its two days;
+  a debt that grew moves it down and says so; an account with no balance from before this month is named apart as new,
+  never a move from zero; Wealth holdings and Portfolio by their recorded days (a day not recorded is a gap); "Accounts
+  and debts" are listed per account and tracked wallets are already inside Wealth holdings, so neither is added twice).
+- Spending function used: none (net worth comes from the balances and the recorded history, not from spending).
+- Files: `lib/networth-movers.ts` (new), `components/wealth/networth-movers.tsx` (new, lazy),
+  `components/wealth/networth-history.tsx`.
+- Tests: `lib/av2-networth-movers.test.ts`, `lib/ai/local-answers/av2-r3-money.test.ts`; `lib/networth-history*.test.ts`
+  green unchanged.
+- Spec: `tests/av2-money-networth-movers.spec.ts`.
+- Stored: nothing.
+- Help (EN): **Q: What moved my net worth this month?** A: Wealth → Your wealth over time → Net worth by source starts
+  with "What moved your net worth": the accounts and sources that moved it most since the end of last month, up or down,
+  each with its amount, in each currency. It compares each account's balance at the end of last month with today, so
+  enter your balances once a month.
+- What's new: "Net worth: what moved it most this month, account by account."
+- Answers: `netWorthMovers` (corpus `av2r3-money-networth-movers`). It reads `env.accounts`, and `env.networthHistory`
+  when the lead adds the recorded history to the tool sources (`networthHistory: one(NETWORTH_HISTORY)`, gated with
+  Wealth; the Showcase's own example history in the Showcase); without it the answer counts accounts only.
+- Showcase hook: none written. The Showcase's example history and accounts feed it by themselves; the lead re-records
+  any Wealth screen that pins Net worth by source.
+- Registries: none. CSS touched: `components/wealth/networth-history.css` (theme variables only).
+- Today: nothing added.

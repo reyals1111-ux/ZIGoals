@@ -13,4 +13,5 @@ export const AV2_R3_MONEY: readonly Intent[] = [
   {id: 'av2r3-money-needs-wants', pillar: 'wealth', en: ['how much went to needs and wants this month', 'what share of my income went to needs and wants'], nl: ['hoeveel ging er deze maand naar nodig en wensen', 'welk deel van mijn inkomen ging naar nodig en wensen']},
   {id: 'av2r3-money-waterfall', pillar: 'wealth', en: ['what changed in my spending since last month', 'show my spending waterfall'], nl: ['wat is er veranderd in mijn uitgaven sinds vorige maand', 'toon de waterval van mijn uitgaven']},
   {id: 'av2r3-money-beside-habits', pillar: 'wealth', en: ['do I spend less on days I do my habits', 'how much do I spend on days I complete a habit'], nl: ['geef ik minder uit op dagen dat ik mijn gewoontes doe', 'hoeveel geef ik uit op dagen met een gewoonte']},
+  {id: 'av2r3-money-networth-movers', pillar: 'wealth', en: ['what moved my net worth this month', 'how did my net worth change this month'], nl: ['wat bewoog mijn vermogen deze maand', 'hoe is mijn vermogen deze maand veranderd']},
 ];
