@@ -2,7 +2,7 @@ import {monthKey, shiftMonth} from '../budgets/engine';
 import {normalisePayee} from '../bills/detect';
 import type {MoneyEntry} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
-import {isCounted} from '../money-log/counted';
+import {countedCents, isCounted} from '../money-log/counted';
 import {byCategory, monthOf, totals} from '../money-log/engine';
 
 /**
@@ -46,7 +46,8 @@ export function cashFlow(entries: readonly MoneyEntry[], currency: string, today
     if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.currency !== currency || e.date > today) continue;
     const row = by.get(monthKey(e.date)); if (!row || !wanted.has(row.month)) continue;
-    const amount = minorUnits(e.amount);
+    // Review b4f #3: Wealth → Spending's rule (lib/money-log/counted.ts `countedCents`): a shared cost counts the person's share.
+    const amount = countedCents(e);
     if (e.kind === 'income') row.income += amount; else row.spending += amount;
     row.count++;
   }
