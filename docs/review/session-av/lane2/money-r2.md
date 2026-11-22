@@ -196,3 +196,32 @@ the answers read `env.moneyMore` and, without it, say where the figures live.
 - Registries: `zigoals:money-more:v1` (above). CSS touched: `components/wealth/spending/people-money.css` (new, theme
   variables only).
 - Today: nothing always visible; a reminded loan due soon joins the existing Money link (one Tab stop, as before).
+
+### R2-F5. Store and club cards with a barcode shown at the till
+
+- LEDGER row: #254 Wallet loyalty and club cards — **built in part**: Wealth → Spending → "Store and club cards" (a name, the
+  number typed or read from a photo of the card — the scanner ZIGoals already has: the browser's BarcodeDetector, else the
+  installed ZXing reader; the photo is never kept — a note, up to 50 cards); "Show" opens the barcode full screen in a
+  modal dialog, black on white in every theme, with the number in large type (Escape or Done closes it; focus returns to
+  Show). The 1D bars are drawn by ZIGoals' own encoder (`lib/store-cards/barcode.ts`: EAN-13, EAN-8, UPC-A with their
+  check digit, Code 128 with set C for runs of digits and set B for the rest) — **no new package**; QR codes use the app's
+  own `lib/qr`. Every format is checked in the unit test by decoding the drawn bars with the installed `@zxing/library`
+  readers. **Part Carried — native-only:** adding a card to Apple Wallet or Google Wallet (the panel says so in one line).
+- Files: `lib/store-cards/{schema,barcode,cards}.ts` (new), `components/wealth/store-cards/store-cards.tsx` (new, lazy),
+  `components/wealth/spending/spending-section.tsx`.
+- Tests: `lib/store-cards/av2-barcode.test.ts` (the Code 128 table, set C/B and checksum, decoding with ZXing, check digits,
+  format guessing, the record), round trip (`zigoals:store-cards:v1`, once wired).
+- Spec: `tests/av2-money-store-cards.spec.ts`.
+- Stored: **NEW** `zigoals:store-cards:v1` (see the table).
+- Help (EN): **Q: Can I keep my loyalty cards in ZIGoals?** A: Wealth → Spending → Store and club cards → "+ Add a card":
+  type the number on the card, or "Read it from a photo" of its barcode. "Show" puts the barcode on the whole screen for
+  the till; turn the brightness up if it does not read. Cards stay on this device; ZIGoals cannot add them to Apple or
+  Google Wallet.
+- What's new: "Money: your store and club cards, shown full screen as a barcode at the till."
+- Answers: `storeCards` (corpus `av2r2-money-store-cards`; names only, never a card number). **The lead adds
+  `storeCards: one(STORE_CARDS)` to the tool sources** (lib/ai/tools/env.ts), gated with Wealth; without it the answer says
+  where the cards live.
+- Showcase hook: none (hidden in the Showcase, as its write actions are; a fictional card there would be a fake number).
+- Registries: `zigoals:store-cards:v1` (above). CSS touched: `components/wealth/store-cards/store-cards.css` (new; theme
+  variables, and black on white for the barcode on purpose).
+- Today: nothing.

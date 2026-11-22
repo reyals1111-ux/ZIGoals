@@ -63,6 +63,8 @@ const UnusualLine = lazy(() => import('./unusual-line'));
 // Session AV lane 2, round 2 (money; Emma's split and settle, Wallet's lent and borrowed): between you and others (own chunk).
 const ShareFold = lazy(() => import('./people-money').then(m => ({default: m.ShareFold})));
 const PeoplePanel = lazy(() => import('./people-money'));
+// Session AV lane 2, round 2 (money; Wallet's loyalty and club cards): store cards with a barcode for the till (own chunk).
+const StoreCards = lazy(() => import('../store-cards/store-cards'));
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
   const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
@@ -253,6 +255,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     {log.data.entries.length > 0 && <details ref={searchFold} className="money-search-fold" onToggle={e => setSearching((e.currentTarget as HTMLDetailsElement).open)}><summary>Search all your entries</summary>{searching && <Suspense fallback={<p className="fine" aria-busy="true">Opening the search…</p>}>{drill && <p className="fine money-drill-note" role="status">{drill.category} this month, from your list above. Select them to change several at once.</p>}<MoneySearch key={drill ? `${drill.category}-${drill.n}` : 'all'} entries={log.data.entries} onEdit={startEdit} onBulk={bulk} categories={categoryChoices(log.data, 'expense')} {...(drill ? {initial: {category: drill.category, from: drill.from, to: drill.to, kind: 'expense' as const}} : {})}/></Suspense>}</details>}
     <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase}/></Suspense>
     {!showcase && <Suspense fallback={null}><PeoplePanel log={log.data} update={log.update} today={today} currencies={[...new Set([currency, ...CURRENCIES])]}/></Suspense>}
+    {!showcase && <Suspense fallback={null}><StoreCards/></Suspense>}
     {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
     : <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">
       <label className="field"><span>Weekly budget ({chosen}) — leave empty for none</span><input inputMode="decimal" value={budgetDraft ?? (log.data.budget ? fromCents(Math.round(Number(log.data.budget.weekly) * 100)) : '')} onChange={e => setBudgetDraft(e.target.value)} aria-describedby={`${id}-budget-calc`}/></label>

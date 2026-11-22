@@ -1,0 +1,25 @@
+/* Session AV lane 2, round 2 (money): store and club cards. Theme variables only, except the barcode itself and its full
+   screen, which stay black on white in every theme so a till's scanner can read them. */
+.store-cards{display:grid;gap:8px;margin:16px 0;padding:12px;border:1px solid var(--line,rgba(140,160,220,.35));border-radius:14px;min-width:0}
+.store-cards h3,.store-cards p{margin:0}
+.store-cards-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.store-cards-list li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;overflow-wrap:anywhere}
+.store-cards-what{flex:1 1 200px;min-width:0}
+.store-cards-actions{display:inline-flex;gap:6px}
+.store-cards button{min-height:44px}
+.store-cards-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.store-cards-form .field{flex:1 1 180px;min-width:0}
+.store-cards-photo{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line,rgba(140,160,220,.35));cursor:pointer;font-size:15px}
+.store-cards-photo input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.store-cards-photo:focus-within{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+.store-cards-preview{flex-basis:100%;max-width:320px}
+.store-card-bars{display:block;width:100%;max-width:320px;height:auto;aspect-ratio:10/3;background:#fff}
+.store-card-bars.is-wide{max-width:min(92vw,640px);aspect-ratio:20/7}
+.store-card-dialog{border:0;padding:0;margin:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;background:#fff;color:#000}
+.store-card-dialog::backdrop{background:rgba(0,0,0,.6)}
+.store-card-full{min-height:100%;box-sizing:border-box;display:grid;place-items:center;align-content:center;gap:16px;padding:24px 16px;text-align:center}
+.store-card-full h2{margin:0;font-size:22px;color:#000;overflow-wrap:anywhere}
+.store-card-number{margin:0;font-size:20px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;color:#000;overflow-wrap:anywhere}
+.store-card-tip{margin:0;font-size:15px;color:#333}
+.store-card-full .primary{min-height:48px;min-width:120px;background:#000;color:#fff;border:0;border-radius:999px;font-size:16px}
+.store-card-full .primary:focus-visible{outline:3px solid #0057d9;outline-offset:3px}

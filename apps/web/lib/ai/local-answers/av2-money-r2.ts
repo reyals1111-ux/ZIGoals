@@ -9,6 +9,7 @@ import {ownBudgetRows, payeeBudgets} from '../../money-more/own-budgets';
 import {billsToRecord, limitStates, unusualEntries} from '../../money-more/alerts';
 import type {WealthSheet} from '../../wealth-sheet/schema';
 import {besideWorth, loanRows, owedTotals} from '../../money-more/people';
+import type {StoreCards} from '../../store-cards/schema';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, count, dayIn, isQuestion, list, MIXED, money, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -180,3 +181,18 @@ function lentBorrowed(a: Asked): LocalReply | null {
   return answer(say(a.lang, `${cap(list(rows.map(r => line('en', r)), 'en'))}. Beside your net worth: ${list(totals, 'en')}.`, `${cap(list(rows.map(r => line('nl', r)), 'nl'))}. Naast je vermogen: ${list(totals, 'nl')}.`), calls);
 }
 addR2Answers(whoOwes, lentBorrowed);
+
+// ── Store and club cards (#254) ─────────────────────────────────────────────────────────────────────────────────────
+/** The store cards record, when the lead has added it to the tool sources (`storeCards`); the numbers are never said. */
+const cardsOf = (env: ToolEnv): StoreCards | null => (env as ToolEnv & {storeCards?: StoreCards | null}).storeCards ?? ((env.ak as {storeCards?: StoreCards | null} | null | undefined)?.storeCards ?? null);
+/** "Which store cards do I have", "welke klantenkaarten heb ik". */
+function storeCards(a: Asked): LocalReply | null {
+  if (!/\b(?:store|loyalty|club|membership|reward|bonus) cards?\b|\bklantenkaart(?:en)?\b|\bspaarkaart(?:en)?\b|\bpasjes? van (?:winkels|de winkel)\b|\bbonuskaart\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const cards = cardsOf(a.env)?.cards ?? [], calls = call('store_cards', {}, 'Store and club cards');
+  if (!cards.length) return answer(say(a.lang, `You have no store cards here yet. In ${SPENDING.en} → Store and club cards, add one: type its number or read it from a photo; “Show” puts the barcode on the whole screen for the till.`,
+    `Je hebt hier nog geen klantenkaarten. In ${SPENDING.nl} → Store and club cards voeg je er een toe: typ het nummer of lees het van een foto; “Show” zet de streepjescode schermvullend klaar voor de kassa.`), calls);
+  return answer(say(a.lang, `${count(cards.length, 'en', ['store card', 'store cards'], ['', ''])}: ${list(cards.map(c => c.name), 'en')}. Open ${SPENDING.en} → Store and club cards → Show for the barcode.`,
+    `${count(cards.length, 'nl', ['', ''], ['klantenkaart', 'klantenkaarten'])}: ${list(cards.map(c => c.name), 'nl')}. Open ${SPENDING.nl} → Store and club cards → Show voor de streepjescode.`), calls);
+}
+addR2Answers(storeCards);
