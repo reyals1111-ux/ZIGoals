@@ -47,8 +47,11 @@ for (const theme of THEMES) test(`${theme}: properties, the table's columns and 
   const f1 = filters.getByRole('group', {name: 'Filter 1'});
   await f1.getByLabel('Property').selectOption('Status');
   await f1.getByLabel('Which').selectOption('is');
-  await f1.getByLabel('Value').selectOption('Planning');
-  await expect.poll(() => table.locator('tbody th').allInnerTexts()).toEqual(['Fictional trip', 'Fictional idea']);
+  // Session AV lane 2 (fixb3: "Value" also matched the Which list's "has a value", deliberate): the list named exactly Value.
+  await f1.getByRole('combobox', {name: 'Value', exact: true}).selectOption('Planning');
+  // Session AV lane 2 (fixb3: the table starts sorted by Last changed, newest first, and the idea was changed just now when its
+  // property was added, deliberate): the same two notes, the idea first.
+  await expect.poll(() => table.locator('tbody th').allInnerTexts()).toEqual(['Fictional idea', 'Fictional trip']);
   await expect(page.getByText('2 notes of 3 pass the filters.')).toBeVisible();
   findings = await axe(page, page.locator('.notes-filters'));
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
