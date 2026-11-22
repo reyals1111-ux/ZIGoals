@@ -1,4 +1,5 @@
 import {addLocalDays, localWeekday} from '../local-date';
+import {heldProject} from './engine';
 import {tasksSchema, type Task, type Tasks} from './schema';
 
 /**
@@ -36,7 +37,8 @@ export const planFor = (choice: 'week' | 'next-week' | 'month' | 'next-month', t
 /** Writes the move of every task whose week or month has passed into the current one; `moved` names them (said once). */
 export function rollBuckets(record: Tasks, today: string, at = new Date()): {record: Tasks; moved: Task[]} {
   const moved: Task[] = [], stamp = at.toISOString();
-  const tasks = record.tasks.map(t => { const b = bucketOf(t, today); if (!b?.moved) return t; moved.push(t); return {...t, plan: {...t.plan!, of: b.of}, updatedAt: stamp}; });
+  // Review B6M-4: a task of a project on hold is never rewritten (it moves on once the project is back).
+  const tasks = record.tasks.map(t => { const b = bucketOf(t, today); if (!b?.moved || heldProject(record, t, today)) return t; moved.push(t); return {...t, plan: {...t.plan!, of: b.of}, updatedAt: stamp}; });
   return moved.length ? {record: tasksSchema.parse({...record, tasks}), moved} : {record, moved};
 }
 export type BucketGroup = {kind: BucketKind; of: string; end: string; tasks: Task[]};

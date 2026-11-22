@@ -1,5 +1,5 @@
 import {addLocalDays} from '../local-date';
-import {editTask, waitingFor} from './engine';
+import {editTask, setAside, waitingFor} from './engine';
 import {firstFit, taskBusy, toClock, toMin, type Busy} from './layouts';
 import {piecesOf, planAgain} from './pieces';
 import type {TaskPlan} from './plan-record';
@@ -46,7 +46,7 @@ export function taskSpan(t: Task, today: string, last: string): {from: string; t
 export function weekCandidates(record: Tasks, today: string, clock: string, days = WEEK_DAYS): Task[] {
   const last = addLocalDays(today, days - 1);
   // Session AV lane 2 (r5-plan, LEDGER #348): a task dropped into a time block is placed by Plan my day, inside its block.
-  return record.tasks.filter(t => !t.doneAt && !t.parentId && !t.parallel && !t.block && !!t.minutes && (!t.time || planAgain(t, today, clock)) && (!t.recur || !!t.recur.flex) && !waitingFor(record, t).length && !!taskSpan(t, today, last))
+  return record.tasks.filter(t => !t.doneAt && !t.parentId && !t.parallel && !t.block && !!t.minutes && (!t.time || planAgain(t, today, clock)) && (!t.recur || !!t.recur.flex) && !waitingFor(record, t).length && !setAside(record, t, today) /* Session AV lane 2 (r6-plan, LEDGER #392, #393) */ && !!taskSpan(t, today, last))
     .sort((a, b) => (a.deadline ?? '9999-12-31').localeCompare(b.deadline ?? '9999-12-31') || taskLevel(a) - taskLevel(b) || (a.due ?? '9999-12-31').localeCompare(b.due ?? '9999-12-31') || a.createdAt.localeCompare(b.createdAt));
 }
 /** Plan my week: where each task (or piece) would go, and what found no room. */

@@ -2,6 +2,7 @@ import {noteName, type Note, type Notes} from '../../notes/schema';
 import {inboxOf} from '../../notes/store';
 import {openTasks, taskCounts, tasksOnDay} from '../../tasks/engine';
 import type {Task, Tasks} from '../../tasks/schema';
+import {isOutOfPlay} from '../../tasks/focus';
 import {calendarDay, formatDate, formatTime} from '../../visual-format';
 
 /**
@@ -14,8 +15,9 @@ import {calendarDay, formatDate, formatTime} from '../../visual-format';
 export type TasksHud = {overdue: number; today: number; open: number; queue: Task[]; total: number};
 export function tasksHud(record: Tasks, today: string, doneDay: (iso: string) => string, queue = 4, nowClock?: string): TasksHud {
   const c = taskCounts(record, today, nowClock); // Release review AL (RR-8): late today counts as overdue, as on Tasks
-  const day = tasksOnDay(record, today, today, doneDay).filter(t => !t.doneAt);
-  const rest = day.length < queue ? openTasks(record, today).filter(t => !day.some(d => d.id === t.id) && !t.due).slice(0, queue - day.length) : [];
+  // Session AV lane 2 (r6-plan, review B6M-10): the queue leaves out what the counts leave out (a project on hold, a task waiting its turn).
+  const day = tasksOnDay(record, today, today, doneDay).filter(t => !t.doneAt && !isOutOfPlay(record, t, today));
+  const rest = day.length < queue ? openTasks(record, today).filter(t => !day.some(d => d.id === t.id) && !t.due && !isOutOfPlay(record, t, today)).slice(0, queue - day.length) : [];
   return {...c, queue: [...day, ...rest].slice(0, queue), total: record.tasks.length};
 }
 export type NoteLine = {id: string; name: string; /** The name a widget row shows (`noteRowName`). */ label: string; at: string; kind: string};

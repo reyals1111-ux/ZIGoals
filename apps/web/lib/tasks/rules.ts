@@ -1,4 +1,5 @@
-import {LABEL_PATTERN, MAX_RULES, MAX_TASKS, RULE_THEN, RULE_WHEN, TASK_LABELS_MAX, levelFields, tasksSchema, type Project, type Task, type TaskLevel, type Tasks} from './schema';
+import {withLabel} from './engine';
+import {LABEL_PATTERN, MAX_RULES, MAX_TASKS, RULE_THEN, RULE_WHEN, levelFields, tasksSchema, type Project, type Task, type TaskLevel, type Tasks} from './schema';
 
 /**
  * Session AV lane 2 (tasks-r2, LEDGER #228; Any.do's automations, Trello's rules): simple rules on a project, run on this
@@ -59,7 +60,8 @@ export function runRules(before: Tasks, after: Tasks, {today, at, newId}: {today
       const patch: Record<string, unknown> = {...next};
       switch (rule.then) {
         case 'level': Object.assign(patch, levelFields(rule.level as TaskLevel)); break;
-        case 'label': { const labels = next.labels ?? []; if (labels.includes(rule.label!) || labels.length >= TASK_LABELS_MAX) continue; patch.labels = [...labels, rule.label!]; break; }
+        // Review B6M-1: a rule's label honours the label groups (the group's other label goes), as every other way of giving one.
+        case 'label': { const labels = next.labels ?? [], given = withLabel(labels, rule.label!, after.labelGroups); if (given.length === labels.length && given.every((l, i) => l === labels[i])) continue; patch.labels = given; break; }
         case 'today': if (next.due === today) continue; patch.due = today; if (next.time && next.due !== today) delete patch.time; break;
         case 'done': if (next.recur || next.doneAt) continue; patch.doneAt = stamp; break;
         case 'move': if (next.sectionId === rule.to) continue; patch.sectionId = rule.to; break;

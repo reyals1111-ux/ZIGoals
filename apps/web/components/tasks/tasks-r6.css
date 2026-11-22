@@ -1,0 +1,28 @@
+/* Session AV lane 2 (r6-plan, LEDGER #391–#398; OmniFocus, Capacities): a project on hold, in order and up for review, the
+   Review view, Focus, label groups, a task's subtasks in order and a repeat's record. Theme variables only; never red; no
+   motion of its own (Motion Off and reduced motion change nothing). Every control 44 px; no fixed widths (320 px wraps). */
+.tasks-r6-states, .tasks-r6-focus { display: grid; gap: 6px; margin: 8px 0; min-width: 0; }
+.tasks-r6-states > .text-link, .tasks-r6-states button, .tasks-r6-focus button, .tasks-r6-panel button, .tasks-r6-review button, .tasks-r6-groups button, .task-r6 button { min-height: 44px; }
+.tasks-r6-line { margin: 0; font-size: 15px; overflow-wrap: anywhere; color: var(--text-secondary, var(--muted)); }
+.tasks-r6-line strong { color: var(--text, inherit); font-weight: 600; }
+.tasks-r6-line:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 6px; }
+.tasks-r6-panel { display: grid; gap: 10px; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; min-width: 0; }
+.tasks-r6-set { border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 12px 10px; margin: 0; min-width: 0; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px 12px; }
+.tasks-r6-set > legend { font-weight: 600; padding: 0 4px; font-size: 16px; }
+.tasks-r6-set > p { flex: 1 1 100%; margin: 0; }
+.tasks-r6-set .field { flex: 1 1 180px; min-width: 0; }
+.tasks-r6-set input[type="date"], .tasks-r6-set select, .tasks-r6-set input[type="text"], .tasks-r6-set input:not([type]) { min-height: 44px; max-width: 100%; }
+.tasks-r6-checks { display: flex; flex-wrap: wrap; gap: 4px 16px; flex: 1 1 100%; }
+.tasks-r6-check { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; overflow-wrap: anywhere; }
+.tasks-r6-check input { width: 22px; height: 22px; flex: 0 0 auto; }
+.tasks-r6-actions { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin: 6px 0 0; flex: 1 1 100%; }
+.tasks-r6-review-list, .tasks-r6-later, .tasks-r6-group-list { margin: 8px 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.tasks-r6-review-item { border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; min-width: 0; overflow-wrap: anywhere; }
+.tasks-r6-review-item h4 { margin: 0; font-size: 17px; }
+.tasks-r6-review-item h5 { margin: 8px 0 2px; font-size: 15px; }
+.tasks-r6-review-item ul { margin: 0; padding-left: 18px; font-size: 15px; }
+.tasks-r6-review small, .tasks-r6-later small, .tasks-r6-groups small, .task-r6 small { color: var(--text-secondary, var(--muted)); font-size: 14px; }
+.tasks-r6-later { gap: 2px; font-size: 15px; }
+.tasks-r6-group-list > li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 15px; min-width: 0; overflow-wrap: anywhere; }
+.task-r6 { display: grid; gap: 4px; margin: 6px 0; min-width: 0; }
+.task-r6 p { margin: 0; font-size: 15px; overflow-wrap: anywhere; }

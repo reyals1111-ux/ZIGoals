@@ -5,6 +5,7 @@ import {completedLog} from './engine';
 import {TASK_PLAN_KEY, timerMinutes} from './plan-key';
 import {MAX_TRAVEL, TASK_NOTES_MAX, TASK_TITLE_MAX, type Tasks} from './schema';
 import {MY_DAY_MAX, readMyDay} from './my-day';
+import {MAX_FOCUS, readFocus} from './focus';
 
 /**
  * Session AV lane 2 (tasks; TIER 3 (stored format), a new additive key `zigoals:task-plan:v1`): how this person plans
@@ -109,6 +110,12 @@ export const taskPlanSchema = z.looseObject({
    */
   blocks: z.preprocess(v => Array.isArray(v) ? v.filter(x => timeBlockSchema.safeParse(x).success).slice(0, MAX_TIME_BLOCKS) : undefined, z.array(timeBlockSchema).optional()),
   eventTravel: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, n]) => /^[0-9a-f]{16}$/.test(k) && Number.isInteger(n) && (n as number) >= 1 && (n as number) <= MAX_TRAVEL).slice(0, MAX_EVENT_TRAVEL)) : undefined, z.record(z.string(), z.number()).optional()),
+  /**
+   * Session AV lane 2 (r6-plan, LEDGER #394; OmniFocus's Focus; TIER 3 (stored format), additive and optional): the projects
+   * and areas the Tasks views are narrowed to on this device, until it is ended (lib/tasks/focus.ts reads it without this
+   * schema). An id that cannot be read is dropped; a focus with nothing left is no focus; older builds keep it untouched.
+   */
+  focus: z.preprocess(v => readFocus(v) ?? undefined, z.looseObject({projects: z.array(z.string()).max(MAX_FOCUS).optional(), areas: z.array(z.string()).max(MAX_FOCUS).optional()}).optional()),
 });
 export type TaskPlan = z.infer<typeof taskPlanSchema>;
 export const emptyTaskPlan = (): TaskPlan => ({version: 1});
@@ -120,6 +127,12 @@ export function setPlanPrefs(plan: TaskPlan, patch: {defaultReminder?: number | 
   for (const key of ['defaultReminder', 'dayLimit', 'dailyGoal', 'energyAmount'] as const) { const v = patch[key]; if (v === null) delete next[key]; else if (v !== undefined) next[key] = v; }
   if (patch.planTime === null) delete next.planReminder;
   else if (patch.planTime !== undefined) { if (!clock.safeParse(patch.planTime).success) throw new Error('Choose a time such as 07:30.'); next.planReminder = {...(plan.planReminder ?? {}), time: patch.planTime}; }
+  return taskPlanSchema.parse(next);
+}
+/** Session AV lane 2 (r6-plan, LEDGER #394): sets the focus (null, or nothing chosen, ends it); every other field stays. */
+export function setFocus(plan: TaskPlan, focus: {projects?: string[]; areas?: string[]} | null): TaskPlan {
+  const next: Record<string, unknown> = {...plan};
+  if (focus && (focus.projects?.length || focus.areas?.length)) next.focus = {...(focus.projects?.length ? {projects: focus.projects} : {}), ...(focus.areas?.length ? {areas: focus.areas} : {})}; else delete next.focus;
   return taskPlanSchema.parse(next);
 }
 /** Session AV lane 2 (r3-plan, LEDGER #260): the note kept with a running timer (an empty one is removed). */

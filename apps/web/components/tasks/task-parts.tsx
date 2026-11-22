@@ -3,7 +3,7 @@ import {minutesWords} from '../../lib/tasks/minutes';
 import Link from 'next/link';
 import {Suspense, lazy, useId, useMemo, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode} from 'react';
 import {LEVEL_SHORT, LEVEL_WORDS, TASK_PRIORITIES, TASK_TITLE_MAX, taskLevel, type HealthLink, type Task, type TaskLevel, type TaskPriority, type Tasks} from '../../lib/tasks/schema';
-import {deadlineState, subtaskProgress, taskState, waitingFor, type TaskInput} from '../../lib/tasks/engine';
+import {deadlineState, subtaskProgress, taskState, waitingFor, waitsTurn, type TaskInput} from '../../lib/tasks/engine';
 import {addLocalDays} from '../../lib/local-date';
 import {describeRecur} from '../../lib/tasks/recurrence';
 import {pausedRepeat} from '../../lib/tasks/paused';
@@ -145,6 +145,8 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
       {!done && task.deadline && <span className={`task-deadline is-${deadlineState(task, today)}`}><span aria-hidden="true">⚑ </span>{deadlineText(task, today)}</span>}
       {/* Session AV lane 2 (r4-plan, LEDGER #304, #303, #301): waiting for other tasks, in pieces, after hours */}
       {!done && record && task.after?.length ? (w => w.length ? <span className="task-waiting">Waiting for {w.map(b => `“${b.title}”`).join(', ')}</span> : null)(waitingFor(record, task)) : null}
+      {/* Session AV lane 2 (r6-plan, LEDGER #393): in an in-order project or task, the ones after the first wait their turn */}
+      {!done && record ? (w => w ? <span className="task-waiting">After “<span dir="auto">{w.title}</span>”</span> : null)(waitsTurn(record, task)) : null}
       {!done && task.chunk && (task.minutes ?? 0) > task.chunk ? <span className="task-pieces">In pieces of {minutesWords(task.chunk)}</span> : null}
       {!done && task.afterHours && <span className="task-after-hours">After hours</span>}
       {task.recur && <span className="task-recur"><span aria-hidden="true">↻ </span>{describeRecur(task.recur)}{/* Session AV lane 2 (minors, q1 #43): a paused repeat says so on its row */}{!done && (() => { const p = pausedRepeat(task, today); return p ? ` · paused until ${formatDate(p.until, {weekday: true, year: p.until.slice(0, 4) !== today.slice(0, 4)})}` : ''; })()}</span>}

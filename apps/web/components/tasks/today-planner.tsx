@@ -1,4 +1,5 @@
 'use client';
+import {inPlayRecord} from '../../lib/tasks/focus';
 import {Suspense, lazy, useEffect, useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus} from '../ui/undo-toast';
@@ -55,7 +56,9 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
     // Session AV lane 2 (r5-plan, LEDGER #353): an event's typed travel minutes are busy before it.
     const events = calendars.loaded ? eventAgendaItems(calendars.data, today, today, checklistZone()).flatMap(e => { const b = eventBusy(plan.data, e, DEFAULT_BLOCK); return b ? [b] : []; }) : [];
     // Session AV lane 2 (r4-plan, LEDGER #303): a task in pieces whose kept time has passed is planned again for its next piece.
-    return [...taskBusy(record, today, new Set(record.tasks.filter(t => planAgain(t, today, clock)).map(t => t.id))), ...events];
+    // Review B6M-3: a task of a project on hold, or one waiting its turn, keeps no time busy today.
+    const inPlay = inPlayRecord(record, today);
+    return [...taskBusy(inPlay, today, new Set(inPlay.tasks.filter(t => planAgain(t, today, clock)).map(t => t.id))), ...events];
   }, [record, today, clock, calendars.loaded, calendars.data, plan.data]);
   const open = shown.filter(t => !t.doneAt && !t.parentId);
   // Session AV lane 2 (r4-plan, LEDGER #301, #304): inside the working hours ("after hours" tasks in the evening); a waiting task is not placed.

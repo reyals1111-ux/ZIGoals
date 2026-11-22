@@ -1,9 +1,9 @@
 import {addLocalDays, localDate} from '../local-date';
-import {nextOccurrence, windowEnd} from './recurrence';
+import {nextOccurrence, olderDay, windowEnd} from './recurrence';
 import {isCancelled, isFinished} from './finished';
 import {
-  DEFAULT_LEVEL, LABEL_PATTERN, MAX_AFTER, MAX_COMPLETIONS, MAX_TASK_MINUTES, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
-  levelFields, taskLevel, taskSchema, tasksSchema, type HealthLink, type Project, type Recur, type SavedFilter, type Section,
+  DEFAULT_LEVEL, LABEL_PATTERN, MAX_AFTER, MAX_COMPLETIONS, MAX_SUBTASK_DEPTH, MAX_TASK_MINUTES, TASK_LABELS_MAX, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
+  levelFields, taskLevel, taskSchema, tasksSchema, type HealthLink, type LabelGroup, type Project, type Recur, type SavedFilter, type Section,
   type Task, type TaskColour, type TaskLevel, type TaskPriority, type TaskReminder, type Tasks,
 } from './schema';
 
@@ -52,7 +52,11 @@ export function addTask(record: Tasks, input: TaskInput, options: AddOptions): T
   const kept = prune(record, options.today);
   if (kept.tasks.length >= MAX_TASKS) throw new Error(TASK_LIMIT_MESSAGE);
   const at = options.at.toISOString();
-  const task = taskSchema.parse({id: options.id, title, priority: input.priority ?? 'normal', ...(input.due ? {due: input.due} : {}), ...(input.time ? {time: input.time} : {}), ...(input.goal ? {goal: input.goal} : {}), ...optional(input), createdAt: at, updatedAt: at});
+  const extra = optional(input);
+  // Session AV lane 2 (r6-plan, LEDGER #397, #398): one label of each group (the last typed wins); a repeat from the month's end keeps a plain day for older builds.
+  if (Array.isArray(extra.labels)) { const one = oneOfEachGroup(extra.labels as string[], [], record.labelGroups); if (one.length) extra.labels = one; }
+  if (input.recur && input.due) extra.recur = olderDay(input.recur, input.due);
+  const task = taskSchema.parse({id: options.id, title, priority: input.priority ?? 'normal', ...(input.due ? {due: input.due} : {}), ...(input.time ? {time: input.time} : {}), ...(input.goal ? {goal: input.goal} : {}), ...extra, createdAt: at, updatedAt: at});
   return tasksSchema.parse({...kept, tasks: [...kept.tasks, task]});
 }
 /** A finished occurrence of a repeating task is kept on the task (its `completions`), and the task moves to its next day. */
@@ -141,7 +145,8 @@ export function prune(record: Tasks, today: string, doneDay: (iso: string) => st
 export const onTimeUntil = (t: Pick<Task, 'due' | 'recur'>): string | undefined => t.due && t.recur?.flex ? windowEnd(t.recur.flex, t.due) : t.due;
 export const isLate = (t: Pick<Task, 'due' | 'recur'>, today: string): boolean => !!t.due && onTimeUntil(t)! < today;
 /** How many open tasks are late on `date` (the "Plan your day" notification's count, lib/notify/sync.ts). */
-export const lateCount = (record: Pick<Tasks, 'tasks'>, date: string): number => record.tasks.filter(t => !t.doneAt && isLate(t, date)).length;
+/** Session AV lane 2 (r6-plan, LEDGER #392): a task of a project on hold is not counted. */
+export const lateCount = (record: Pick<Tasks, 'tasks'> & Partial<Pick<Tasks, 'projects'>>, date: string): number => record.tasks.filter(t => !t.doneAt && isLate(t, date) && !heldProject(record, t, date)).length;
 export type TaskState = 'overdue' | 'today' | 'soon' | 'later' | 'someday';
 export function taskState(task: Task, today: string, nowClock?: string): TaskState {
   if (!task.due) return 'someday';
@@ -161,6 +166,94 @@ export function waitingFor(record: Pick<Tasks, 'tasks'>, task: Pick<Task, 'id' |
   return task.after.flatMap(id => { const t = id !== task.id ? record.tasks.find(x => x.id === id) : undefined; return t && !t.doneAt && !t.recur && !t.after?.includes(task.id) ? [t] : []; });
 }
 export const WAIT_LOOP_MESSAGE = 'That task already waits for this one, so this one cannot wait for it.';
+/* ---- Session AV lane 2 (r6-plan, LEDGER #392, #393, #397; OmniFocus's On Hold, sequential projects, tag groups) ---------- */
+/** Whether a project is on hold on `today`: from its hold until the day before `until` (none: until it is resumed). */
+export const projectHeld = (p: Pick<Project, 'hold'> | undefined, today: string): boolean => !!p?.hold && (!p.hold.until || p.hold.until > today);
+type Lookup = Pick<Tasks, 'tasks'> & Partial<Pick<Tasks, 'projects' | 'sections'>>;
+/** The project on hold a task belongs to (its own, or its top task's), or undefined. */
+export function heldProject(record: Lookup, task: Pick<Task, 'projectId' | 'parentId'>, today: string): Project | undefined {
+  const projects = record.projects;
+  if (!projects?.some(p => p.hold)) return undefined;
+  let t: Pick<Task, 'projectId' | 'parentId'> | undefined = task;
+  for (let steps = 0; t && !t.projectId && t.parentId && steps < MAX_SUBTASK_DEPTH; steps++) { const parent: string = t.parentId; t = record.tasks.find(x => x.id === parent); }
+  const pid = t?.projectId, p = pid ? projects.find(x => x.id === pid) : undefined;
+  return p && projectHeld(p, today) ? p : undefined;
+}
+const AHEAD = new WeakMap<object, Map<string, Task>>();
+/**
+ * In-order projects and tasks with subtasks: each open task that waits its turn, with the one now up (the first open one,
+ * in the order the project lists them, that waits for no other task: no section first, then each section; an archived
+ * section's tasks are put away). A
+ * repeating task never waits and never holds the others up (it never finishes for good).
+ */
+export function orderAhead(record: Lookup): Map<string, Task> {
+  const cached = AHEAD.get(record); if (cached) return cached;
+  // Review B6M-2: the task now up is the first open one that does not wait for another task (`after`), so a line can never
+  // block for good (a head waiting for a later task of its own line lets that task go first). A task that waits for another
+  // keeps that wait as its reason; every other open task of the line waits its turn after the one now up.
+  const out = new Map<string, Task>(), line = (list: Task[]) => {
+    const open = list.filter(t => !t.doneAt && !t.recur), free = open.filter(t => !waitingFor(record, t).length), head = free[0];
+    if (head) for (const t of free.slice(1)) out.set(t.id, head);
+  };
+  for (const p of record.projects ?? []) {
+    if (!p.inOrder) continue;
+    const sections = (record.sections ?? []).filter(s => s.projectId === p.id).sort((a, b) => a.order - b.order), at = new Map(sections.map((s, i) => [s.id, i])), away = new Set(sections.filter(s => s.archived).map(s => s.id));
+    const rank = (t: Task) => t.sectionId ? at.get(t.sectionId) ?? -1 : -1;
+    line(byOrder(record.tasks.filter(t => t.projectId === p.id && !t.parentId && !(t.sectionId && away.has(t.sectionId)))).sort((a, b) => rank(a) - rank(b)));
+  }
+  for (const t of record.tasks) if (t.inOrder && !t.doneAt) line(byOrder(record.tasks.filter(k => k.parentId === t.id)));
+  AHEAD.set(record, out);
+  return out;
+}
+/** The open task a task waits its turn after (its own, or the one a task above it waits after), or undefined. */
+export function waitsTurn(record: Lookup, task: Pick<Task, 'id' | 'parentId' | 'doneAt'>): Task | undefined {
+  if (task.doneAt) return undefined;
+  const ahead = orderAhead(record); // computed once per record (cached)
+  if (!ahead.size) return undefined;
+  let t: Pick<Task, 'id' | 'parentId'> | undefined = task;
+  for (let steps = 0; t && steps <= MAX_SUBTASK_DEPTH; steps++) { const a = ahead.get(t.id); if (a) return a; const parent: string | undefined = t.parentId; t = parent ? record.tasks.find(x => x.id === parent) : undefined; }
+  return undefined;
+}
+/** Out of Today, Upcoming, the matrix and the plans for now: its project is on hold, or it waits its turn. */
+export const setAside = (record: Lookup, task: Task, today: string): boolean => !!heldProject(record, task, today) || !!waitsTurn(record, task);
+/** One label of each group: where several of a group are given, the newly given one stays (the last one, if several are new). */
+export function oneOfEachGroup(labels: readonly string[], before: readonly string[], groups: readonly LabelGroup[] | undefined): string[] {
+  if (!groups?.length) return [...labels];
+  let out = [...labels];
+  for (const g of groups) {
+    const inGroup = out.filter(l => g.labels.includes(l));
+    if (inGroup.length < 2) continue;
+    const fresh = inGroup.filter(l => !before.includes(l)), keep = (fresh.length ? fresh : inGroup).at(-1)!;
+    out = out.filter(l => !g.labels.includes(l) || l === keep);
+  }
+  return out;
+}
+/**
+ * Review B6M-1: the one way a label is given to a task — by the Select bar, a project's rule and a rename (the editor and quick
+ * add give a whole list, read by the same oneOfEachGroup in editTask and addTask). The label is added and its group's other
+ * label goes; the list is returned unchanged when the task has it already, or carries the most labels a task keeps.
+ */
+export function withLabel(labels: readonly string[] | undefined, label: string, groups: readonly LabelGroup[] | undefined): string[] {
+  const now = [...(labels ?? [])];
+  if (now.includes(label)) return now;
+  const next = oneOfEachGroup([...now, label], now, groups);
+  return next.length > TASK_LABELS_MAX ? now : next;
+}
+/**
+ * Review B6M-12: what giving (`on`) or taking off a label does to each of these tasks — the ones it changes, how many had it
+ * already (or, taking it off, did not carry it), and the ones already carrying the most labels a task keeps (named).
+ */
+export function labelPlan(record: Pick<Tasks, 'tasks' | 'labelGroups'>, ids: readonly string[], label: string, on: boolean): {changed: string[]; had: number; full: Task[]} {
+  const out = {changed: [] as string[], had: 0, full: [] as Task[]};
+  for (const id of ids) {
+    const t = record.tasks.find(x => x.id === id); if (!t) continue;
+    const now = t.labels ?? [];
+    if (on ? now.includes(label) : !now.includes(label)) out.had++;
+    else if (on && !withLabel(now, label, record.labelGroups).includes(label)) out.full.push(t);
+    else out.changed.push(id);
+  }
+  return out;
+}
 /** Whether `from` waits for `target`, directly or through the tasks it waits for (bounded by the list). */
 function waitsThrough(record: Tasks, from: string, target: string): boolean {
   const seen = new Set<string>(), todo = [from];
@@ -192,7 +285,9 @@ export type TaskPatch = {title?: string; priority?: TaskPriority; due?: string |
   /** Session AV lane 2 (r4-plan, LEDGER #303, #304, #301): the smallest piece, the tasks it waits for ([] clears), "after hours". */
   chunk?: number | null; after?: string[]; afterHours?: true | null;
   /** Session AV lane 2 (r5-plan, LEDGER #349, #348, #353, #354): a week or a month without a day, the time block, travel minutes, a place. */
-  plan?: NonNullable<Task['plan']> | null; block?: string | null; travel?: number | null; place?: string | null};
+  plan?: NonNullable<Task['plan']> | null; block?: string | null; travel?: number | null; place?: string | null;
+  /** Session AV lane 2 (r6-plan, LEDGER #393): its subtasks one at a time, in order (null ends it). */
+  inOrder?: true | null};
 /**
  * Changes a task's title, priority, day, time or goal. `null` clears an optional field; a field left out is kept. A day
  * may be moved earlier than today only when it already was (an overdue task keeps its day until the person moves it),
@@ -205,12 +300,13 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.title !== undefined) { const title = patch.title.trim(); if (!title) throw new Error('Give the task a few words.'); if (title.length > TASK_TITLE_MAX) throw new Error(`A task title can be at most ${TASK_TITLE_MAX} characters (this one has ${title.length}).`); next.title = title; }
   if (patch.priority !== undefined) { next.priority = patch.priority; delete next.level; }
   if (patch.level !== undefined) Object.assign(next, levelFields(patch.level));
-  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective', 'look', 'energy', 'chunk', 'afterHours', 'plan', 'block', 'travel', 'place'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
+  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective', 'look', 'energy', 'chunk', 'afterHours', 'plan', 'block', 'travel', 'place', 'inOrder'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
   if (patch.projectId !== undefined && patch.sectionId === undefined && next.sectionId) {
     const section = record.sections?.find(s => s.id === next.sectionId);
     if (!section || section.projectId !== next.projectId) delete next.sectionId;
   }
-  if (patch.labels !== undefined) { const labels = cleanLabels(patch.labels); if (labels.length) next.labels = labels; else delete next.labels; }
+  // Session AV lane 2 (r6-plan, LEDGER #397): a label given from a group takes the group's other label away.
+  if (patch.labels !== undefined) { const labels = oneOfEachGroup(cleanLabels(patch.labels), task.labels ?? [], record.labelGroups); if (labels.length) next.labels = labels; else delete next.labels; }
   if (patch.reminders !== undefined) { if (patch.reminders.length) next.reminders = patch.reminders; else delete next.reminders; }
   if (patch.comments !== undefined) { if (patch.comments.length) next.comments = patch.comments; else delete next.comments; }
   if (patch.fields !== undefined) { if (patch.fields && Object.keys(patch.fields).length) next.fields = patch.fields; else delete next.fields; }
@@ -225,6 +321,7 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (next.time !== undefined && !next.due) throw new Error('Choose a day for the task before a time.');
   if (typeof next.time === 'string' && !TASK_CLOCK.test(next.time)) throw new Error('Choose a time such as 09:30.');
   if (next.recur && !next.due) throw new Error('A repeating task needs its first day.');
+  if (patch.recur && typeof next.due === 'string') next.recur = olderDay(patch.recur, next.due); // Session AV lane 2 (r6-plan, LEDGER #398)
   if (typeof patch.minutes === 'number') checkMinutes(patch.minutes);
   // Session AV (F-DEADLINES): checked when the deadline or the repeat changes; an old passed deadline left alone is kept.
   if (typeof next.deadline === 'string' && (next.deadline !== task.deadline || (next.recur && !task.recur))) checkDeadline(next.deadline, !!next.recur, next.deadline === task.deadline ? '0000-01-01' : today, allowPast);
@@ -281,7 +378,8 @@ export function shownDoneOn(task: Task, doneDay: (iso: string) => string): strin
 export function taskCounts(record: Tasks, today: string, nowClock: string | undefined): {open: number; overdue: number; today: number} {
   const open = record.tasks.filter(t => !t.doneAt);
   // Session AV lane 2 (r4-plan, LEDGER #304): a task that waits for another is not in Today's count.
-  return {open: open.length, overdue: open.filter(t => taskState(t, today, nowClock) === 'overdue').length, today: open.filter(t => taskState(t, today, nowClock) === 'today' && !waitingFor(record, t).length).length};
+  // Session AV lane 2 (r6-plan, LEDGER #392, #393): nor a task of a project on hold (not overdue either), nor one waiting its turn.
+  return {open: open.length, overdue: open.filter(t => taskState(t, today, nowClock) === 'overdue' && !heldProject(record, t, today)).length, today: open.filter(t => taskState(t, today, nowClock) === 'today' && !waitingFor(record, t).length && !setAside(record, t, today)).length};
 }
 /** Recently finished tasks (kept 30 days), newest first. */
 export const doneTasks = (record: Tasks): Task[] => record.tasks.filter(t => t.doneAt).sort((a, b) => b.doneAt!.localeCompare(a.doneAt!));
@@ -395,7 +493,13 @@ export function labelsInUse(record: Tasks): {name: string; open: number; colour?
 export function renameLabel(record: Tasks, from: string, to: string): Tasks {
   const clean = to.trim().replace(/^@/, '');
   if (!LABEL_PATTERN.test(clean)) throw new Error('A label is one word: letters, numbers, “_” or “-”, up to 40.');
-  return tasksSchema.parse({...record, tasks: record.tasks.map(t => t.labels?.includes(from) ? {...t, labels: [...new Set(t.labels.map(l => l === from ? clean : l))]} : t)});
+  // Review B6M-6: the label keeps its place in its group (renamed there too, in the same write and Undo), and a rename into
+  // a grouped label takes that group's other label away (withLabel). A label sits in one group, so a rename that would put
+  // it in two is refused in words.
+  const groups = record.labelGroups ?? [], home = groups.find(g => g.labels.includes(from)), other = groups.find(g => g !== home && g.labels.includes(clean));
+  if (home && other) throw new Error(`@${clean} is in “${other.name}” and @${from} is in “${home.name}”; a label sits in one group. Remove it from one group first.`);
+  const nextGroups = home ? groups.map(g => g === home ? {...g, labels: [...new Set(g.labels.map(l => l === from ? clean : l))]} : g) : groups;
+  return tasksSchema.parse({...record, ...(home ? {labelGroups: nextGroups} : {}), tasks: record.tasks.map(t => t.labels?.includes(from) ? {...t, labels: withLabel(t.labels.filter(l => l !== from), clean, nextGroups)} : t)});
 }
 export function saveFilter(record: Tasks, name: string, query: string, id = newId('filter')): Tasks {
   if (!name.trim() || !query.trim()) throw new Error('A saved filter needs a name and a search.');
@@ -415,7 +519,9 @@ export type TaskView =
   /** Session AP: "This evening" and "Someday" (their own record, lib/tasks/when.ts) and the Priority matrix (lib/tasks/matrix.ts). */
   | {kind: 'evening'} | {kind: 'someday'} | {kind: 'matrix'}
   /** Session AV lane 2 (tasks): This week, Table, Calendar, Timeline, Insights, Areas and templates (components/tasks/tasks-plan-views.tsx). */
-  | {kind: 'week'} | {kind: 'table'} | {kind: 'days'} | {kind: 'timeline'} | {kind: 'insights'} | {kind: 'organise'};
+  | {kind: 'week'} | {kind: 'table'} | {kind: 'days'} | {kind: 'timeline'} | {kind: 'insights'} | {kind: 'organise'}
+  /** Session AV lane 2 (r6-plan, LEDGER #395): the projects whose review has come round (components/tasks/project-review.tsx). */
+  | {kind: 'review'};
 /** The open top-level tasks a view lists (subtasks are shown under their parent), in the order it shows them. */
 export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock?: string): Task[] {
   const open = record.tasks.filter(t => !t.doneAt);
@@ -427,19 +533,21 @@ export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock
     // Session AV lane 2 (LEDGER #17; Things' start early): a task with `early` days shows from that many days before its day.
     // Session AV lane 2 (r4-plan, LEDGER #304): a task that waits for another joins Today once those are done.
     // Session AV lane 2 (r5-plan, LEDGER #350; Logseq's DOING): a task being done is in Today, first, also without a day.
-    case 'today': return dated(open.filter(t => !waitingFor(record, t).length && (t.state?.kind === 'doing' || (t.due && (t.due <= today || (t.early && addLocalDays(t.due, -t.early) <= today))) || deadlineDue(t, today)))).sort((a, b) => Number(b.state?.kind === 'doing') - Number(a.state?.kind === 'doing') || Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
-    case 'upcoming': return dated(open.filter(t => t.due && t.due >= today));
-    case 'overdue': return dated(open.filter(t => taskState(t, today, nowClock) === 'overdue'));
+    // Session AV lane 2 (r6-plan, LEDGER #392, #393): a task of a project on hold, or one waiting its turn, is out of Today,
+    // Upcoming and the matrix (Overdue: on hold only); it is in its project's list, and in All open, as before.
+    case 'today': return dated(open.filter(t => !waitingFor(record, t).length && !setAside(record, t, today) && (t.state?.kind === 'doing' || (t.due && (t.due <= today || (t.early && addLocalDays(t.due, -t.early) <= today))) || deadlineDue(t, today)))).sort((a, b) => Number(b.state?.kind === 'doing') - Number(a.state?.kind === 'doing') || Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
+    case 'upcoming': return dated(open.filter(t => t.due && t.due >= today && !setAside(record, t, today)));
+    case 'overdue': return dated(open.filter(t => taskState(t, today, nowClock) === 'overdue' && !heldProject(record, t, today)));
     case 'all': return dated(top(open));
     case 'project': return byOrder(top(open.filter(t => t.projectId === view.id)));
     case 'label': return dated(open.filter(t => t.labels?.includes(view.name)));
     case 'priority': return dated(open.filter(t => taskLevel(t) === view.level));
     case 'filter': return [];
     // Session AP: the matrix sorts every open top-level task into its boxes; the two lists read their own record, in their view.
-    case 'matrix': return dated(top(open));
+    case 'matrix': return dated(top(open.filter(t => !setAside(record, t, today))));
     case 'evening': case 'someday': return [];
     // Session AV lane 2 (tasks): the planning and layout views read the record themselves (tasks-plan-views.tsx).
-    case 'week': case 'table': case 'days': case 'timeline': case 'insights': case 'organise': return [];
+    case 'week': case 'table': case 'days': case 'timeline': case 'insights': case 'organise': case 'review': return [];
     case 'completed': return doneTasks(record);
   }
 }
