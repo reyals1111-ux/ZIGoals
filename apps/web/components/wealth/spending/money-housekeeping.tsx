@@ -2,11 +2,12 @@
 import {useEffect, useId, useMemo, useRef, useState} from 'react';
 import {useDeviceRecord, type DeviceRecordState} from '../../ai/use-device-record';
 import {changeWithUndo} from '../../ui/remove-with-undo';
+import {showUndo} from '../../ui/undo-toast';
 import {ACCOUNTS} from '../../../lib/accounts/schema';
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
 import type {MoneyEntry, MoneyLog} from '../../../lib/money-log/schema';
 import {categoryChoices} from '../../../lib/money-log/counted';
-import {addBackCategory, addBackSub, checkRecords, clearSub, dropBudget, dropSplit, forgetAccount, keepFirst, moveCategory, unlinkRefund, untransfer, type CheckIssue} from '../../../lib/money-log/check';
+import {addBackCategory, addBackSub, checkRecords, clearSub, dropBudget, dropSplit, forgetAccount, keepFirst, moveCategory, undoAddBackCategory, undoAddBackSub, unforgetAccount, unlinkRefund, untransfer, type CheckIssue} from '../../../lib/money-log/check';
 import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, yearCsv} from '../../../lib/money-log/put-away';
 import {saveFile} from '../../../lib/notes/doc-image';
 import {formatDate, formatNumber} from '../../../lib/visual-format';
@@ -36,7 +37,17 @@ const ISSUE_TITLE: Record<CheckIssue['kind'], string> = {
 function CheckPanel({log}: {log: DeviceRecordState<MoneyLog>}) {
   const id = useId(), budgets = useDeviceRecord(BUDGETS), accounts = useDeviceRecord(ACCOUNTS), [ran, setRan] = useState(false), [said, setSaid] = useState(''), head = useRef<HTMLHeadingElement>(null);
   const issues = useMemo(() => ran && log.loaded ? checkRecords(log.data, {budgets: budgets.loaded && !budgets.unreadable ? budgets.data : null, accountIds: accounts.loaded && !accounts.unreadable ? new Set(accounts.data.items.map(a => a.id)) : null}) : [], [ran, log.loaded, log.data, budgets.loaded, budgets.unreadable, budgets.data, accounts.loaded, accounts.unreadable, accounts.data]);
-  const fix = (fn: (l: MoneyLog) => MoneyLog, words: string) => { void changeWithUndo(log.update, fn, words, {undone: 'Put back as it was.', undoLabel: 'Undo the repair'}).then(() => { setSaid(words); head.current?.focus(); }, cause => setSaid(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.')); };
+  const failed = (cause: unknown) => setSaid(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.');
+  const fix = (fn: (l: MoneyLog) => MoneyLog, words: string) => { void changeWithUndo(log.update, fn, words, {undone: 'Put back as it was.', undoLabel: 'Undo the repair'}).then(() => { setSaid(words); head.current?.focus(); }, failed); };
+  // Review B6O-6: a repair that changes no entry ("Forget it", "Add … back") has its own Undo, in the same toast: it puts back
+  // only what the repair changed, into the latest record (lib/money-log/check.ts unforgetAccount, undoAddBack…).
+  const fixOwn = (fn: (l: MoneyLog) => MoneyLog, undo: (latest: MoneyLog, before: MoneyLog) => MoneyLog, words: string) => {
+    let before: MoneyLog | undefined;
+    void Promise.resolve(log.update(l => { before = l; return fn(l); })).then(() => {
+      setSaid(words); head.current?.focus();
+      if (before) { const was = before; showUndo({message: words, undoLabel: 'Undo the repair', restore: async () => { await log.update(latest => undo(latest, was)); return {undone: 'Put back as it was.'}; }}); }
+    }, failed);
+  };
   const entryWords = (e: Pick<MoneyEntry, 'date' | 'amount' | 'currency' | 'note' | 'category'>) => `${(e.note ?? e.category).split(' · ')[0]} · ${moneyCents(minorUnits(e.amount), e.currency)} · ${formatDate(e.date)}`;
   if (log.unreadable) return <p role="alert">This device’s money log could not be read, so it is not checked; nothing was changed.</p>;
   return <section className="money-r6" aria-labelledby={`${id}-t`}>
@@ -50,28 +61,28 @@ function CheckPanel({log}: {log: DeviceRecordState<MoneyLog>}) {
         : i.kind === 'account' ? 'A note, a place in your order or a checked day'
         : i.kind === 'budget' ? `${i.category} (${i.currency})${i.archived ? ', an archived category' : ''}`
         : entryWords(i.entry)}</span></span>
-      <span className="money-r6-actions">{repairs(i, log.data, fix, budgets, setSaid)}</span>
+      <span className="money-r6-actions">{repairs(i, log.data, fix, fixOwn, budgets, setSaid)}</span>
     </li>)}</ul> : <p role="status">Nothing looks wrong: {formatNumber(log.data.entries.length)} entries checked.</p>)}
     {issues.length > 50 && <p className="fine">The first 50 are shown; check again after repairing them.</p>}
     <p className="fine" role="status" aria-live="polite">{said}</p>
   </section>;
 }
-function repairs(i: CheckIssue, log: MoneyLog, fix: (fn: (l: MoneyLog) => MoneyLog, words: string) => void, budgets: DeviceRecordState<BudgetsRecord>, onSaid: (w: string) => void) {
+function repairs(i: CheckIssue, log: MoneyLog, fix: (fn: (l: MoneyLog) => MoneyLog, words: string) => void, fixOwn: (fn: (l: MoneyLog) => MoneyLog, undo: (latest: MoneyLog, before: MoneyLog) => MoneyLog, words: string) => void, budgets: DeviceRecordState<BudgetsRecord>, onSaid: (w: string) => void) {
   const ids = 'entries' in i ? new Set(i.entries.map(e => e.id)) : new Set<string>();
   switch (i.kind) {
     case 'duplicate': return <button type="button" className="secondary" onClick={() => fix(l => keepFirst(l, i.entries.map(e => e.id)), `Kept the first; ${i.entries.length - 1} ${i.entries.length === 2 ? 'copy' : 'copies'} removed.`)}>Keep the first, remove {i.entries.length === 2 ? 'the copy' : 'the copies'}</button>;
     case 'category': return <>
-      <button type="button" className="secondary" onClick={() => fix(l => addBackCategory(l, i.entryKind, i.category), `${i.category} is one of your categories again.`)}>Add {i.category} back</button>
+      <button type="button" className="secondary" onClick={() => fixOwn(l => addBackCategory(l, i.entryKind, i.category), (l, was) => undoAddBackCategory(l, was, i.entryKind, i.category), `${i.category} is one of your categories again.`)}>Add {i.category} back</button>
       <label className="money-r6-field"><span className="visually-hidden">Move these entries to</span><select value="" aria-label={`Move the ${i.category} entries to another category`} onChange={e => { const to = e.target.value; if (to) fix(l => moveCategory(l, ids, to), `${i.entries.length} moved to ${to}.`); }}><option value="">Move to…</option>{categoryChoices(log, i.entryKind).map(c => <option key={c} value={c}>{c}</option>)}</select></label>
     </>;
     case 'sub': return <>
-      <button type="button" className="secondary" onClick={() => fix(l => addBackSub(l, i.category, i.sub), `${i.sub} is back under ${i.category}.`)}>Add {i.sub} back</button>
+      <button type="button" className="secondary" onClick={() => fixOwn(l => addBackSub(l, i.category, i.sub), (l, was) => undoAddBackSub(l, was, i.category, i.sub), `${i.sub} is back under ${i.category}.`)}>Add {i.sub} back</button>
       <button type="button" className="quiet" onClick={() => fix(l => clearSub(l, ids), `${i.entries.length} now in ${i.category} without a subcategory.`)}>Clear the subcategory</button>
     </>;
     case 'split': return <button type="button" className="secondary" onClick={() => fix(l => dropSplit(l, i.entry.id), 'The split is removed; the entry counts whole, as it already did.')}>Remove the split</button>;
     case 'transfer': return <button type="button" className="secondary" onClick={() => fix(l => untransfer(l, i.entry.id), 'Counted again: no longer a transfer.')}>Count it again</button>;
     case 'refund-link': return <button type="button" className="secondary" onClick={() => fix(l => unlinkRefund(l, i.entry.id), 'The link is gone; the refund still lowers its category.')}>Remove the link</button>;
-    case 'account': return <button type="button" className="secondary" onClick={() => fix(l => forgetAccount(l, i.accountId), 'What was kept for that account is gone.')}>Forget it</button>;
+    case 'account': return <button type="button" className="secondary" onClick={() => fixOwn(l => forgetAccount(l, i.accountId), (l, was) => unforgetAccount(l, was, i.accountId), 'What was kept for that account is gone.')}>Forget it</button>;
     case 'budget': return <button type="button" className="secondary" onClick={() => { void changeWithUndo(budgets.update, b => dropBudget(b, i.budgetId), `The ${i.category} budget is removed.`, {undone: `The ${i.category} budget is back.`, undoLabel: `Undo removing the ${i.category} budget`}).then(() => onSaid(`The ${i.category} budget is removed.`), () => onSaid('This could not be saved on this device.')); }}>Remove the budget</button>;
   }
 }

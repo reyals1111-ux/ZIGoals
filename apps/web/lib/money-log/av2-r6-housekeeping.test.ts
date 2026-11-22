@@ -1,5 +1,7 @@
 import {describe, expect, test} from 'vitest';
-import {addBackCategory, addBackSub, checkRecords, clearSub, dropBudget, dropSplit, forgetAccount, keepFirst, moveCategory, unlinkRefund, untransfer} from './check';
+import {addBackCategory, addBackSub, checkRecords, clearSub, dropBudget, dropSplit, forgetAccount, keepFirst, moveCategory, undoAddBackCategory, undoAddBackSub, unforgetAccount, unlinkRefund, untransfer} from './check';
+import {itemChanges} from '../undo-removal';
+import {withAccountNote} from './counted';
 import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, yearCsv} from './put-away';
 import {totals} from './engine';
 import {emptyMoneyLog, moneyLogSchema, type MoneyEntry, type MoneyLog} from './schema';
@@ -80,5 +82,31 @@ describe('put old entries away (#431)', () => {
     const back = bringBack(odd, 'y');
     expect(back.entries.map(x => x.id)).toEqual(['a']);
     expect(back.putAway?.years[0]?.entries).toEqual([{id: 'future', kind: 'gift'}]);
+  });
+});
+
+describe('review B6O-6: the repairs that change no entry have their own Undo', () => {
+  const gone = log([e({id: 'k'})], {accounts: {notes: {gone: 'my old card, closed in May', keep: 'main'}, checked: {gone: '2026-10-31'}, order: ['keep', 'gone', 'other']}});
+  test('Forget it: the shared item Undo has nothing to offer; its own Undo brings back the note, the checked day and the place', () => {
+    const forgot = forgetAccount(gone, 'gone');
+    expect(itemChanges(gone, forgot)).toBeNull();
+    expect(forgot.accounts).toEqual({notes: {keep: 'main'}, checked: {}, order: ['keep', 'other']});
+    expect(unforgetAccount(forgot, gone, 'gone').accounts).toEqual(gone.accounts);
+    // Later edits are kept: a new note for another account, an order changed since, a note typed for it again.
+    const later = withAccountNote(moneyLogSchema.parse({...forgot, accounts: {...forgot.accounts, order: ['other', 'keep']}}), 'keep', 'joint');
+    expect(unforgetAccount(later, gone, 'gone').accounts).toEqual({notes: {keep: 'joint', gone: 'my old card, closed in May'}, checked: {gone: '2026-10-31'}, order: ['gone', 'other', 'keep']}); // back before the account it came before
+    expect(unforgetAccount(withAccountNote(forgot, 'gone', 'new'), gone, 'gone').accounts?.notes).toEqual({keep: 'main', gone: 'new'});
+  });
+  test('Add … back: Undo takes only that category or subcategory off again', () => {
+    const base = log([e({category: 'Pets', sub: 'Vet'})], {own: {expense: ['Garden']}, subs: {Groceries: ['Bread']}});
+    const cat = addBackCategory(base, 'expense', 'Pets');
+    expect(itemChanges(base, cat)).toBeNull();
+    expect(undoAddBackCategory(cat, base, 'expense', 'Pets').own).toEqual({expense: ['Garden']});
+    expect(undoAddBackCategory(addBackCategory(cat, 'expense', 'Toys'), base, 'expense', 'Pets').own).toEqual({expense: ['Garden', 'Toys']});
+    expect(undoAddBackCategory(base, base, 'expense', 'Garden')).toBe(base); // it was there before: nothing to undo
+    const sub = addBackSub(base, 'Pets', 'Vet');
+    expect(undoAddBackSub(sub, base, 'Pets', 'Vet').subs).toEqual({Groceries: ['Bread']});
+    const both = addBackSub(addBackSub(base, 'Groceries', 'Fruit'), 'Groceries', 'Milk');
+    expect(undoAddBackSub(both, addBackSub(base, 'Groceries', 'Fruit'), 'Groceries', 'Milk').subs).toEqual({Groceries: ['Bread', 'Fruit']});
   });
 });

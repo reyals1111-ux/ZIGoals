@@ -115,5 +115,37 @@ export function forgetAccount(log: MoneyLog, accountId: string): MoneyLog {
   delete notes[accountId]; delete checked[accountId];
   return moneyLogSchema.parse({...log, accounts: {...log.accounts, notes, checked, ...(log.accounts.order ? {order: log.accounts.order.filter(x => x !== accountId)} : {})}});
 }
+/**
+ * Review B6O-6: Undo for the repairs that change no listed entry (so the shared item Undo cannot offer one). Each puts
+ * back only what its repair changed, into the latest record, and keeps anything changed since.
+ * - "Forget it": the account's note, checked day and place in the order come back, unless the account has a note,
+ *   checked day or place of its own again by now.
+ */
+export function unforgetAccount(latest: MoneyLog, before: MoneyLog, accountId: string): MoneyLog {
+  const was = before.accounts;
+  if (!was) return latest;
+  const now = latest.accounts ?? {}, note = was.notes?.[accountId], day = was.checked?.[accountId], at = was.order?.indexOf(accountId) ?? -1;
+  const notes = note !== undefined && now.notes?.[accountId] === undefined ? {...now.notes, [accountId]: note} : now.notes;
+  const checked = day !== undefined && now.checked?.[accountId] === undefined ? {...now.checked, [accountId]: day} : now.checked;
+  let order = now.order;
+  if (at >= 0 && !(order ?? []).includes(accountId)) { const list = [...(order ?? [])], after = was.order!.slice(at + 1).find(x => list.includes(x)); list.splice(after === undefined ? list.length : list.indexOf(after), 0, accountId); order = list.slice(0, 200); }
+  return moneyLogSchema.parse({...latest, accounts: {...now, ...(notes ? {notes} : {}), ...(checked ? {checked} : {}), ...(order ? {order} : {})}});
+}
+/** "Add … back" (a category): takes that one category off the person's own list again, if it is still there. */
+export function undoAddBackCategory(latest: MoneyLog, before: MoneyLog, kind: MoneyEntry['kind'], category: string): MoneyLog {
+  const had = ((kind === 'expense' ? before.own?.expense : before.own?.income) ?? []).some(c => fold(c) === fold(category)), list = (kind === 'expense' ? latest.own?.expense : latest.own?.income) ?? [];
+  if (had || !list.some(c => fold(c) === fold(category))) return latest;
+  return moneyLogSchema.parse({...latest, own: {...latest.own, [kind]: list.filter(c => fold(c) !== fold(category))}});
+}
+/** "Add … back" (a subcategory): takes that subcategory off its category's list again, if it is still there. */
+export function undoAddBackSub(latest: MoneyLog, before: MoneyLog, category: string, sub: string): MoneyLog {
+  const had = (before.subs?.[category] ?? []).length, list = latest.subs?.[category];
+  if (!list) return latest;
+  const at = list.lastIndexOf(sub);
+  if (at < 0 || (before.subs?.[category] ?? []).filter(x => x === sub).length >= list.filter(x => x === sub).length) return latest;
+  const rest = list.filter((_, i) => i !== at), subs = {...latest.subs};
+  if (rest.length || had) subs[category] = rest; else delete subs[category];
+  return moneyLogSchema.parse({...latest, subs});
+}
 /** Removes a budget of a category no longer offered. */
 export const dropBudget = (budgets: BudgetsRecord, id: string): BudgetsRecord => budgetsSchema.parse({...budgets, budgets: budgets.budgets.filter(b => b.id !== id)});
