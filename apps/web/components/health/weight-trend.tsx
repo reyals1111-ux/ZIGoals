@@ -15,6 +15,11 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {MORE_GOALS} from '../../lib/health-goals/more';
 import {bandDays} from '../../lib/health-goals/band';
 
+/**
+ * Session AV lane 2, round 4 (review B4E-11): the band's key is a shaded swatch like the band itself (the same 12 %
+ * fill), never the trend line's key.
+ */
+export const BAND_LEGEND = {label: 'Your band', swatch: <svg className="chart-key r4-band-key" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><rect width="16" height="10" rx="2" fill="currentColor" opacity={0.12}/><rect x="0.5" y="0.5" width="15" height="9" rx="2" fill="none" stroke="currentColor" strokeOpacity={0.35}/></svg>};
 const H = 200, PAD = {top: 16, right: 12, bottom: 28, left: 52};
 // A trend reads to one decimal in the shown unit (Session AL fourth pass, PR-074: rounded once there, not in kg first).
 /**
@@ -54,7 +59,7 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
           <ChartXAxis ticks={t.points.flatMap((p, i) => i % 7 === 0 || i === t.points.length - 1 ? [{x: x(i), label: p.date.slice(5)}] : [])} y={H - 8} edge={false}/>
         </svg>
         {tip && <ChartTip>{tip}</ChartTip>}
-        <ChartLegend className="health-trend-key" items={[{label: 'Trend (smoothed)'}, {label: 'A reading', kind: 'dot'}, ...(goal !== null ? [{label: 'Goal', kind: 'dash' as const}] : []), ...(band ? [{label: 'Your band'}] : [])]}/>
+        <ChartLegend className="health-trend-key" items={[{label: 'Trend (smoothed)'}, {label: 'A reading', kind: 'dot'}, ...(goal !== null ? [{label: 'Goal', kind: 'dash' as const}] : []), ...(band ? [BAND_LEGEND] : [])]}/>
       </div>
       {band && inBand && <p className="fine health-trend-band" data-body-figure="">Your band: {weightText(band.lowGrams, unit)} to {weightText(band.highGrams, unit)}. {inBand.days ? `The trend was inside it on ${inBand.inside} of the last ${inBand.days} ${inBand.days === 1 ? 'day' : 'days'}.` : ''}</p>}
       <details className="health-trend-table"><summary>Show as a table</summary><table data-body-figure=""><thead><tr><th>Day</th><th>Reading</th><th>Trend</th></tr></thead><tbody>{t.points.filter(p => p.grams !== null).map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{weightReadingText(p.grams!, unit)}</td><td>{p.trend === null ? '—' : shown(p.trend)}</td></tr>)}</tbody></table></details>
