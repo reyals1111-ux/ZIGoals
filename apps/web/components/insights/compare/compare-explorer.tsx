@@ -26,6 +26,10 @@ import {HEALTH_NUMBERS} from '../../../lib/health-numbers/store';
 import {HEALTH_VITAMINS} from '../../../lib/health-vitamins/schema';
 import {NUTRIENT_EXTRAS_RECORD} from '../../../lib/health-vitamins/extras';
 import {wordsOf} from '../../../lib/mood-words/schema';
+// Session AV lane 2 (r5-body; Bevel, LEDGER #371): the late meal read from the food log, with the person's own two numbers.
+import {FOOD_PLUS, foodPlusSchema} from '../../../lib/food-plus/schema';
+import {LATE_MEAL_HOURS, LATE_MEAL_KCAL, lateMealRule} from '../../../lib/compare/late-meal';
+import {dailyData} from '../../../lib/health-daily';
 
 /**
  * Session AK (lane S, item 2): Health → Insights → Compare. The person picks a factor and an outcome, same day or next
@@ -40,14 +44,21 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
   // Session AV lane 2 (rest, LEDGER #98): the vitamins and further nutrients beside the diary, so every nutrient can be an outcome.
   const vitamins = useDeviceRecord(HEALTH_VITAMINS), extras = useDeviceRecord(NUTRIENT_EXTRAS_RECORD);
   // Session AV lane 2, round 4 (health; Pillow, LEDGER #332): what each drink was and its caffeine, for the caffeine factors.
-  const healthExtras = useDeviceRecord(HEALTH_EXTRAS);
+  const healthExtras = useDeviceRecord(HEALTH_EXTRAS), foodPlus = useDeviceRecord(FOOD_PLUS);
+  const [mealText, setMealText] = useState<string | null>(null), [mealError, setMealError] = useState('');
+  const zone = useMemo(() => { try { return dailyData(health).preferences.timezone ?? undefined; } catch { return undefined; } }, [health]);
   // The caffeine, hour and steps amounts are this visit's choices only (nothing more is stored): each starts at the usual day.
   const [dayAmounts, setDayAmounts] = useState<Partial<Record<'caffeine' | 'caffeine-late' | 'steps', number>>>({}), [dayText, setDayText] = useState<string | null>(null);
   const [fasting, setFasting] = useState<CompareSources['fasting']>(null), [note, setNote] = useState(''), id = useId();
   useEffect(() => { queueMicrotask(() => { try { const r = readFasting(getAppStorage()); setFasting(r.unreadable ? null : r.data); } catch { setFasting(null); } }); }, []);
   const ok = <T,>(r: {loaded: boolean; unreadable: boolean; data: T}) => r.loaded && !r.unreadable ? r.data : null;
-  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting, scales: ok(scales), cycle: ok(cycle) && cycleOn(ok(cycle)!) ? {periodDays: periodDays(ok(cycle)!)} : null, symptoms: ok(symptoms), supplements: ok(supplements), numbers: ok(numbers), nutrientRecords: {vitamins: ok(vitamins), extras: ok(extras)}, drinks: ok(healthExtras)?.drinks ?? null}),
-    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting, scales, cycle, symptoms, supplements, numbers, vitamins, extras, healthExtras]);
+  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting, scales: ok(scales), cycle: ok(cycle) && cycleOn(ok(cycle)!) ? {periodDays: periodDays(ok(cycle)!)} : null, symptoms: ok(symptoms), supplements: ok(supplements), numbers: ok(numbers), nutrientRecords: {vitamins: ok(vitamins), extras: ok(extras)}, drinks: ok(healthExtras)?.drinks ?? null, foodPlus: ok(foodPlus), zone}),
+    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting, scales, cycle, symptoms, supplements, numbers, vitamins, extras, healthExtras, foodPlus, zone]);
+  const meal = lateMealRule(ok(foodPlus));
+  const keepMeal = (change: Partial<{hours: number; kcal: number}>) => {
+    try { foodPlus.update(r => foodPlusSchema.parse({...r, lateMeal: {...meal, ...change}})); setNote(''); }
+    catch { setNote('This choice could not be kept on this device; the comparison still shows.'); }
+  };
   const factors = useMemo(() => factorOptions(src, today), [src, today]), outcomes = useMemo(() => outcomeOptions(src), [src]);
   const basis = useMemo(() => spendBasis(src, today), [src, today]);
   const saved = pair.data;
@@ -93,6 +104,15 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
         <select value={String(amount)} onChange={e => setDayAmounts(a => ({...a, 'caffeine-late': Number(e.target.value)}))}>{[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(h => <option key={h} value={h}>{`${String(h).padStart(2, '0')}:00`}</option>)}</select>
         <small className="fine">The time a drink was logged. Drinks logged later for an earlier day have no time and leave that day out.</small>
       </label>}
+      {factorId === 'late-meal' && <>
+        <label className="field"><span>Late meal: within this time before bed</span>
+          <select value={String(meal.hours)} onChange={e => keepMeal({hours: Number(e.target.value)})}>{[1, 2, 3, 4, 5, 6].map(h => <option key={h} value={h}>{h === 1 ? '1 hour' : `${h} hours`}</option>)}</select>
+        </label>
+        <label className="field"><span>Late meal: at least (kcal)</span>
+          <input inputMode="numeric" value={mealText ?? String(meal.kcal)} aria-invalid={mealError ? true : undefined} onChange={e => { setMealText(e.target.value); setMealError(''); }} onBlur={() => { if (mealText === null) return; const v = parseNumberInput(mealText); if (v.ok && v.value >= 50 && v.value <= 3000) { keepMeal({kcal: Math.round(v.value)}); setMealText(null); } else setMealError(v.ok ? 'Enter 50 to 3,000 kcal.' : v.error); }}/>
+          {mealError && <small role="alert">{mealError}</small>}<small className="fine">Your own numbers ({LATE_MEAL_HOURS} hours and {LATE_MEAL_KCAL} kcal until you change them), kept on this device. Read from the food log’s eaten-at times and your bedtime; a day with no food logged, or food without a time, is left out. Your hand-set “late meal” tag stays its own choice.</small>
+        </label>
+      </>}
       <label className="field"><span>…what was</span>
         <select value={outcomeId ?? ''} onChange={e => { const v = e.target.value; if (shown.some(o => o.id === v)) choose({outcome: v}); }}>
           {shown.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
