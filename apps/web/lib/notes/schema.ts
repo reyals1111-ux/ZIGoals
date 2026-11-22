@@ -95,6 +95,12 @@ export const noteSchema = z.looseObject({
    * this build cannot read is dropped (the note reads as before); older builds keep it untouched and never show it.
    */
   look: z.looseObject({cover: noteIdSchema.optional().catch(undefined), colour: z.enum(NOTE_LOOK_COLOURS).optional().catch(undefined)}).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r6-notes; LEDGER #402, Capacities' daily notes read back; TIER 3 (stored format), additive and
+   * optional): the day a daily note was read back (absent: not yet). A quiet mark on its day; never a count against the
+   * person. A value this build cannot read is dropped (the note reads as not read back); older builds keep it untouched.
+   */
+  readBack: daySchema.optional().catch(undefined),
   /** A fictional Showcase note. */
   example: z.boolean().optional(),
   createdAt: stamp,

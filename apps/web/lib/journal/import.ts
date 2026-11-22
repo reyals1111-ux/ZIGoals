@@ -1,5 +1,5 @@
 import {parseFrontMatter} from '../notes/markdown';
-import {IMPORT_SOURCES, PERIOD, MAX_AUDIO_SECONDS, MAX_ENTRIES, MAX_ENTRY_AUDIO, MAX_ENTRY_PHOTOS, MAX_ENTRY_PHOTOS_ALL, MAX_JOURNALS, MAX_TEXT, journalSchema, type Journal, type JournalEntry} from './schema';
+import {IMPORT_SOURCES, PERIOD, MAX_PEOPLE, PERSON_MAX, MAX_AUDIO_SECONDS, MAX_ENTRIES, MAX_ENTRY_AUDIO, MAX_ENTRY_PHOTOS, MAX_ENTRY_PHOTOS_ALL, MAX_JOURNALS, MAX_TEXT, journalSchema, type Journal, type JournalEntry} from './schema';
 import {MAIN_JOURNAL, booksOf, newJournalId} from './books';
 import {readTags} from './tags';
 import {FOLLOW_UP_MARK, followUpOfQuote} from './export';
@@ -19,14 +19,21 @@ import {FOLLOW_UP_MARK, followUpOfQuote} from './export';
  */
 export type ImportSource = (typeof IMPORT_SOURCES)[number];
 export type PlannedEntry = {date: string; text: string; createdAt: string; updatedAt?: string; tags?: string[]; book?: string; template?: string; source: ImportSource; photos: string[]; audio: {file: string; seconds: number}[]; followUp?: {question: string; answer?: string};
-  /** Session AV lane 2 (r3-notes; LEDGER #269, #278, #279, #272): an entry's period, night and opening day, read back from ZIGoals' own exports. */ extra?: {period?: string; night?: string; opensOn?: string; /** Session AV lane 2 (r4-mind; LEDGER #310): a starred entry (Day One's `starred`). */ star?: true};
+  /** Session AV lane 2 (r3-notes; LEDGER #269, #278, #279, #272): an entry's period, night and opening day, read back from ZIGoals' own exports. */ extra?: {period?: string; night?: string; opensOn?: string; /** Session AV lane 2 (r4-mind; LEDGER #310): a starred entry (Day One's `starred`). */ star?: true; /** Session AV lane 2 (r6-notes; LEDGER #401): who was there. */ people?: string[]};
   /** Session AV lane 2 (review B3C-5): read from ZIGoals' own Markdown file, its `createdAt` the entry's own (a day and creation time already in the journal is that entry). */ own?: true};
 /** Session AV lane 2 (r3-notes): the round-3 fields of an entry, from a ZIGoals export's `zigoals` block or Markdown front matter. */
-function extraOf(z: {period?: unknown; night?: unknown; opensOn?: unknown; 'opens-on'?: unknown; starred?: unknown} | null | undefined): PlannedEntry['extra'] | undefined {
+function extraOf(z: {period?: unknown; night?: unknown; opensOn?: unknown; 'opens-on'?: unknown; starred?: unknown; people?: unknown} | null | undefined): PlannedEntry['extra'] | undefined {
   if (!z) return undefined;
-  const opens = z.opensOn ?? z['opens-on'];
-  const out = {...(typeof z.period === 'string' && PERIOD.test(z.period) ? {period: z.period} : {}), ...(typeof z.night === 'string' && validDay(z.night) ? {night: z.night} : {}), ...(typeof opens === 'string' && validDay(opens) ? {opensOn: opens} : {}), ...(z.starred === true || z.starred === 'true' ? {star: true as const} : {})};
+  const opens = z.opensOn ?? z['opens-on'], people = readPeople(z.people);
+  const out = {...(typeof z.period === 'string' && PERIOD.test(z.period) ? {period: z.period} : {}), ...(typeof z.night === 'string' && validDay(z.night) ? {night: z.night} : {}), ...(typeof opens === 'string' && validDay(opens) ? {opensOn: opens} : {}), ...(z.starred === true || z.starred === 'true' ? {star: true as const} : {}), ...(people.length ? {people} : {})};
   return Object.keys(out).length ? out : undefined;
+}
+/** Session AV lane 2 (r6-notes; LEDGER #401): names read from a list or a comma-separated line, as the entry keeps them. */
+export function readPeople(v: unknown): string[] {
+  const list = Array.isArray(v) ? v : typeof v === 'string' ? v.split(',') : [];
+  const out: string[] = [];
+  for (const x of list) { if (typeof x !== 'string') continue; const n = x.trim().replace(/\s+/g, ' '); if (n && n.length <= PERSON_MAX && !out.some(o => o.toLowerCase() === n.toLowerCase())) out.push(n); }
+  return out.slice(0, MAX_PEOPLE);
 }
 export type ImportSkip = {name: string; reason: string};
 export type JournalImportPlan = {entries: PlannedEntry[]; skipped: ImportSkip[]; books: string[]; cut: number};
@@ -75,7 +82,7 @@ export function readDayOneJson(file: InFile, zone?: string): {entries: PlannedEn
     const label = `${file.name} #${i + 1}`;
     if (!e || typeof e !== 'object') { skipped.push({name: label, reason: 'it is not an entry'}); continue; }
     const created = typeof e.creationDate === 'string' && Number.isFinite(Date.parse(e.creationDate)) ? new Date(Date.parse(e.creationDate)).toISOString() : null;
-    const z = e.zigoals && typeof e.zigoals === 'object' ? e.zigoals as {date?: unknown; journal?: unknown; template?: unknown; question?: unknown; answer?: unknown; period?: unknown; night?: unknown; opensOn?: unknown} : null;
+    const z = e.zigoals && typeof e.zigoals === 'object' ? e.zigoals as {date?: unknown; journal?: unknown; template?: unknown; question?: unknown; answer?: unknown; period?: unknown; night?: unknown; opensOn?: unknown; people?: unknown} : null;
     const date = typeof z?.date === 'string' && validDay(z.date) ? z.date : created ? dayIn(created, typeof e.timeZone === 'string' ? e.timeZone : zone) : null;
     const words = typeof e.text === 'string' ? dayOneWords(e.text) : '';
     const photos = Array.isArray(e.photos) ? e.photos.flatMap(p => p && typeof p === 'object' && typeof (p as {md5?: unknown}).md5 === 'string' ? [`photos/${(p as {md5: string}).md5}.${String((p as {type?: unknown}).type ?? 'jpeg')}`] : []).slice(0, MAX_ENTRY_PHOTOS_ALL) : [];

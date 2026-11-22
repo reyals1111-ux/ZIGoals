@@ -29,7 +29,12 @@ export const MAX_JOURNALS = 10, JOURNAL_NAME_MAX = 40;
 /** A journal's colour, drawn from the theme's own tokens (journal.css) so it reads in Nebula, Light and Dark. */
 export const JOURNAL_THEMES = ['violet', 'cyan', 'magenta', 'teal', 'gold', 'green'] as const;
 export type JournalTheme = (typeof JOURNAL_THEMES)[number];
-export const IMPORT_SOURCES = ['dayone', 'text', 'markdown'] as const;
+/** Session AV lane 2 (r6-notes; LEDGER #410, Diarium's imports): `journey` (Journey's ZIP of JSON entries) and `csv` (a table of date, text, tags) are new source words; an older build reads an unknown one as absent. */
+export const IMPORT_SOURCES = ['dayone', 'text', 'markdown', 'journey', 'csv'] as const;
+/** Session AV lane 2 (r6-notes; LEDGER #401, Diarium's people): up to eight names on an entry, each at most 40 characters. */
+export const MAX_PEOPLE = 8, PERSON_MAX = 40;
+/** Session AV lane 2 (r6-notes; LEDGER #400, Diarium's word goal): a daily word goal between 10 and 5,000 words. */
+export const WORD_GOAL_MIN = 10, WORD_GOAL_MAX = 5000;
 /** Session AV lane 2 (r3-notes; LEDGER #269): an entry's period — an ISO week, a month or a year. */
 export const PERIOD = /^\d{4}(?:-W(?:0[1-9]|[1-4]\d|5[0-3])|-(?:0[1-9]|1[0-2]))?$/;
 const mediaId = z.string().regex(MEDIA_ID);
@@ -78,6 +83,13 @@ export const journalEntrySchema = z.looseObject({
    */
   star: z.literal(true).optional().catch(undefined),
   morePhotos: z.array(mediaId).max(MAX_MORE_PHOTOS).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r6-notes; LEDGER #401, Diarium's people in an entry; TIER 3 (stored format), additive and
+   * optional): the names the person typed under "Who was there" (nothing is read from the device's contacts), at most
+   * eight of 40 characters each. A name this build cannot read is dropped (the rest kept); older builds keep the list
+   * untouched (the entry is loose) and never show it.
+   */
+  people: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string').map(x => x.trim().replace(/\s+/g, ' ')).filter(x => x && x.length <= PERSON_MAX))].slice(0, MAX_PEOPLE) : undefined, z.array(z.string().min(1).max(PERSON_MAX)).max(MAX_PEOPLE).optional()),
 });
 /**
  * Session AV (owner follow-up 1, F-OWN-TEMPLATES; Day One's own templates; TIER 3 (stored format), additive and optional):
@@ -158,6 +170,13 @@ export const journalSchema = z.looseObject({
    * unless switched on; a value this build cannot read is dropped on read; older builds keep it untouched and show none.
    */
   quotes: z.boolean().optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r6-notes; LEDGER #400, Diarium's daily word goal; TIER 3 (stored format), additive and optional):
+   * the words a day the person aims for ("My goal: 200 words a day"); absent: no goal. Shown against today's words while
+   * writing and as a quiet mark on the days it was met, never a warning. A value this build cannot read is dropped;
+   * older builds keep it untouched and show nothing.
+   */
+  wordGoal: z.number().int().min(WORD_GOAL_MIN).max(WORD_GOAL_MAX).optional().catch(undefined),
 });
 export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type Journal = z.infer<typeof journalSchema>;
