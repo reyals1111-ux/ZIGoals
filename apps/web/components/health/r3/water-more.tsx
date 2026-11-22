@@ -117,7 +117,7 @@ function SpreadCard({data}: {data: HealthData}) {
   if (!prefs.loaded) return null;
   // Review B3B-8: today's reminders, from the Health journal's today, whatever day the Diary shows.
   const today = spreadSlotsToday(s, data), water = {...waterSummary(data, today.day), millilitres: today.millilitres}, unit = dailyData(data).preferences.waterUnit, quiet = quietHours(plan.data), slots = today.slots;
-  const save = (next: WaterSpread) => { try { prefs.update(p => withWaterSpread(p, next)); setDraft(null); setSaid(next.on ? `Water reminders on, every ${next.every / 60} ${plural(next.every / 60, 'hour')} from ${formatClock(next.from)} to ${formatClock(next.to)}.` : 'Water reminders through the day are off. Your choices are kept.'); } catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
+  const save = (next: WaterSpread) => { try { prefs.update(p => withWaterSpread(p, next)); setDraft(null); setSaid(next.on ? `Water reminders on, ${next.every === 60 ? 'every hour' : `every ${next.every / 60} hours`} from ${formatClock(next.from)} to ${formatClock(next.to)}.` : 'Water reminders through the day are off. Your choices are kept.'); } catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
   const valid = /^\d\d:\d\d$/.test(s.from) && /^\d\d:\d\d$/.test(s.to) && s.to > s.from;
   return <div className="r3-spread">
     <p className="fine">Reminders every one, two or three hours between a start and an end time. Each one is skipped when today is on pace for your target — halfway through the day, half your target — and the first once you have logged a drink. Quiet hours are kept.</p>

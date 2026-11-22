@@ -61,7 +61,7 @@ function waterReminders(a: Asked): LocalReply | null {
   const s = prefs?.waterSpread as WaterSpread | undefined;
   if (!s?.on) return answer(say(a.lang, 'Reminders through the day are off. Health → Water → Reminders through the day sets them every one, two or three hours between your times, each skipped when you are on pace.', 'Herinneringen door de dag staan uit. Health → Water → Reminders through the day zet ze elke één, twee of drie uur tussen jouw tijden, en slaat er een over als je op schema ligt.'), HEALTH_CALLS);
   const slots = spreadSlots(s, waterSummary(a.env.health!, a.env.healthDay)), ahead = slots.filter(x => x.onPace).length;
-  return answer(say(a.lang, `Every ${s.every / 60} ${s.every === 60 ? 'hour' : 'hours'} from ${clockIn('en', s.from)} to ${clockIn('en', s.to)}: ${list(slots.map(x => clockIn('en', x.time)), 'en')}. Today ${ahead} of ${slots.length} ${ahead === 1 ? 'is' : 'are'} skipped because you are on pace.`, `Elke ${s.every / 60} uur van ${s.from} tot ${s.to}: ${list(slots.map(x => x.time), 'nl')}. Vandaag ${ahead === 1 ? 'valt er 1' : `vallen er ${ahead}`} van de ${slots.length} weg omdat je op schema ligt.`), HEALTH_CALLS);
+  return answer(say(a.lang, `${s.every === 60 ? 'Every hour' : `Every ${s.every / 60} hours`} from ${clockIn('en', s.from)} to ${clockIn('en', s.to)}: ${list(slots.map(x => clockIn('en', x.time)), 'en')}. Today ${ahead} of ${slots.length} ${ahead === 1 ? 'is' : 'are'} skipped because you are on pace.`, `${s.every === 60 ? 'Elk uur' : `Elke ${s.every / 60} uur`} van ${s.from} tot ${s.to}: ${list(slots.map(x => x.time), 'nl')}. Vandaag ${ahead === 1 ? 'valt er 1' : `vallen er ${ahead}`} van de ${slots.length} weg omdat je op schema ligt.`), HEALTH_CALLS);
 }
 /** "what is today's water tip", "wat is de watertip van vandaag" (LEDGER #283). */
 function waterTip(a: Asked): LocalReply | null {
@@ -113,7 +113,7 @@ function moreGoals(a: Asked): LocalReply | null {
   const active = (rec?.goals ?? []).filter(g => g.status === 'active');
   if (!active.length) return answer(say(a.lang, 'No goal on a nutrient, a measurement or your own number yet. Goals → Health goals → “Goals on a nutrient, a measurement or your own number” sets one, with your own target.', 'Nog geen doel op een voedingsstof, een maat of een eigen getal. Goals → Health goals → “Goals on a nutrient, a measurement or your own number” zet er een, met je eigen doel.'));
   const numbers = (a.env.nova as {healthNumbers?: HealthNumbers | null} | null | undefined)?.healthNumbers ?? null;
-  const lines = active.map(g => { const p = moreGoalProgress(g, a.env.health, numbers, a.env.healthDay); return a.lang === 'nl' ? `${g.name}: ${p.average === null ? 'nog geen waarde in deze periode' : `gemiddeld ${num(Math.round(p.average * 10) / 10)} ${unitOf(g)} over ${p.days} ${p.days === 1 ? 'dag' : 'dagen'}${p.met ? ', gehaald' : ''}`}` : moreGoalLine(g, p, num); });
+  const lines = active.map(g => { const p = moreGoalProgress(g, a.env.health, numbers, a.env.healthDay); return a.lang === 'nl' ? `${g.name}: ${p.average === null ? 'nog geen waarde in deze periode' : `gemiddeld ${num(Math.round(p.average * 10) / 10)} ${unitOf(g)} over ${p.days} ${g.source === 'nutrient' ? (p.days === 1 ? 'dag' : 'dagen') : (p.days === 1 ? 'meting' : 'metingen')}${p.met ? ', gehaald' : ''}`}` : moreGoalLine(g, p, num); });
   return answer(say(a.lang, lines.join(' '), `${lines.join('. ')}.`), HEALTH_CALLS);
 }
 /** "what circuits do I have", "welke circuits heb ik" (LEDGER #289). */

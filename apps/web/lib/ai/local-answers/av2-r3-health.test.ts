@@ -53,6 +53,18 @@ describe('every corpus phrasing is answered, in its own language', () => {
 });
 
 describe('the answers read the features’ own figures', () => {
+  // Session AV lane 2 (review B3B-10): "Every hour" / "Elk uur", and readings counted as readings in Dutch.
+  test('an hourly spread and a measurement goal read naturally in both languages', () => {
+    const s = wired(), prefs = withWaterSpread(emptyNotifyPrefs(), {...DEFAULT_SPREAD, every: 60});
+    const hourly = {...s, ak: {...s.ak, notifyPrefs: prefs} as typeof s.ak};
+    expect(text(ask('when are my water reminders', hourly))).toMatch(/^Every hour from /);
+    expect(text(ask('wanneer zijn mijn waterherinneringen', hourly))).toMatch(/^Elk uur van /);
+    const at = `${DAY}T09:00:00.000Z`, waist = addMoreGoal(emptyMoreGoals(), {name: '', source: 'number', key: 'Rustpols', unit: 'bpm', target: '60', direction: 'at-most', windowDays: 7}, 'g9', at);
+    if (!waist.ok) throw new Error('fixture');
+    const nova = {...(s.nova ?? {}), healthNumbers: {version: 1, entries: [{id: 'p1', date: DAY, kind: 'lab', name: 'Rustpols', value: 58, unit: 'bpm'}, {id: 'p2', date: DAY, kind: 'lab', name: 'Rustpols', value: 60, unit: 'bpm'}]}} as typeof s.nova;
+    const withGoal = {...s, nova, ak: {...s.ak, healthGoalsMore: waist.value} as typeof s.ak};
+    expect(text(ask('hoe gaat het met mijn doelen op mijn getallen', withGoal))).toContain('over 2 metingen');
+  });
   test('drinks: only what was typed, never guessed', () => {
     expect(text(ask('how many calories from drinks today', wired()))).toBe('From today’s drinks, as you typed them: 250 kcal · 21.5 g sugar, from 2 drinks (Juice and Soft drink). Nothing is guessed.');
     expect(text(ask('hoeveel calorieën uit drankjes vandaag', wired()))).toContain('Er wordt niets geschat.');
