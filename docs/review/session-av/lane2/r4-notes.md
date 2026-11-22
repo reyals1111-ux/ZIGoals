@@ -405,3 +405,7 @@ before (an archived note in its list; only the first photo).
   `type: topic`, so a title such as "2026-11-01" makes its own note (its photos kept, its lines named) and never appends
   to that day's note; and words appended to a day's note never keep an import's `![photo](imp-…)` placeholder lines.
   Test: `lib/notes/b4g-import-days.test.ts`.
+- **B4G-4 (Major): the focus and daily notes.** With a focus tag, the Notes list (every layout) holds the tag's topic
+  notes, then its daily notes, newest first (each "· daily note", named by its day); the Tags fold counts only the notes
+  that list can show (no inbox captures, no archived notes), so "#gym · 5 notes" lists five. New `lib/notes/focus.ts`
+  (`taggableNotes`, `focusList`). Test: `lib/notes/b4g-focus-days.test.ts`.
