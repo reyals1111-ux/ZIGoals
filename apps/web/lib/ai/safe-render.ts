@@ -4,6 +4,7 @@
  * tables, and nothing else. Angle brackets are
  * text. A link is a link only with an https address; anything else stays as the words it came in. No images.
  */
+import {FENCE_OPEN, closesFence} from '../markdown-fence';
 export type Inline = {type: 'text'; text: string} | {type: 'strong'; children: Inline[]} | {type: 'em'; children: Inline[]} | {type: 'code'; text: string} | {type: 'link'; href: string; children: Inline[]};
 export type Align = 'left' | 'center' | 'right' | null;
 /** Session V Part 10: a GitHub-style table, its cells inline marks only; at most 20 columns and 100 rows (`cut` says how many more). */
@@ -96,12 +97,13 @@ export function parseBlocks(text: string, options: ParseOptions = {}): NoteBlock
   const paragraph: string[] = [];
   const flushParagraph = () => { if (paragraph.length) { blocks.push({type: 'paragraph', children: inlineOf(paragraph.join(' ').replace(/\s+/g, ' ').trim())}); paragraph.length = 0; } };
   while (i < lines.length) {
-    const line = lines[i]!, fence = /^\s*(```+|~~~+)\s*([A-Za-z0-9_+-]*)\s*$/.exec(line);
+    // Session AV lane 2 (review B3C-9): the fence rule lives in lib/markdown-fence.ts, shared with the notes' tick boxes.
+    const line = lines[i]!, fence = FENCE_OPEN.exec(line);
     if (fence) {
       flushParagraph();
       const marker = fence[1]!, language = fence[2] || null, body: string[] = [];
       i++;
-      while (i < lines.length && !new RegExp(`^\\s*${marker[0]}{${marker.length},}\\s*$`).test(lines[i]!)) { body.push(lines[i]!); i++; }
+      while (i < lines.length && !closesFence(marker, lines[i]!)) { body.push(lines[i]!); i++; }
       i++; // the closing fence (or the end)
       blocks.push({type: 'code', text: body.join('\n'), language});
       continue;

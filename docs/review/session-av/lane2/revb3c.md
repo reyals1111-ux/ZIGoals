@@ -132,3 +132,15 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
 - **Tests:** `lib/journal/revb3c-quotes.test.ts` pins both word for word and checks every line: a capital at a sentence
   start, or "…" and a small letter inside one.
 - **Help/corpus:** none.
+
+## B3C-9 (Minor): one fence rule for Open tick boxes and the reading view
+
+- **Verdict:** confirmed and fixed.
+- **Fix:** the fence rule moved to `lib/markdown-fence.ts` (constants only): `FENCE_OPEN` (three or more backticks or
+  tildes, at most a language name after) and `closesFence(marker, line)` (the same character, at least as many,
+  nothing else). `parseBlocks` (lib/ai/safe-render.ts, behaviour unchanged) and `tickLines` (lib/notes/ticks.ts) both
+  use it, so a `- [ ]` inside a four-backtick block is code in both, and a box after the block is found.
+- **Tests:** `lib/notes/revb3c-ticks.test.ts`: the review's case; a "```js some words" line; the close rules; mixed
+  notes where Open tick boxes and the reading view list the same lines; ticking from the list never rewrites code. The
+  safe-render tests pass unchanged.
+- **Help/corpus:** none.
