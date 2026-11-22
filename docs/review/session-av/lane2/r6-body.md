@@ -178,3 +178,37 @@ the energy, food-plus and workouts fields; the two new keys' round trips run onc
 - Showcase hook: none (the low-day page is the person's own; a Showcase page would put words in their mouth).
 - Device keys / catalogue / export / erase: `zigoals:low-day:v1` via `lib/av2-r6-body-keys.ts` (shared to-do). Route weight:
   the meditation view (lazy already) gains one `lazy()` line; the rest is `r6/calm-parts`.
+
+## 5. Things to bring up at a visit — LEDGER #417 built
+
+- What: Settings → Your data → Report for a visit → "To bring up at your next visit" (a fold; it opens by itself at
+  `#report-visit-title`, the toast's "Open the list"): the lines the person wants to mention, kept between visits (up to
+  20, each up to 200 characters), typed there or added in one tap — "Bring this up at my next visit" in a journal entry's
+  More (its first sentence, cut at a word) and under a feeling word in the check-in ("Felt tense", with its day). Each line
+  says where it came from; Remove with Undo. "Make a report" offers "At the top: what you want to bring up (n lines)"
+  (ticked while there are open lines) and the report prints them first, under "To bring up — in the person's own words,
+  written before this visit". After the visit each is ticked off; "Clear the ticked lines (n)" makes room, with Undo. The
+  person's own words, as written; nothing is interpreted or suggested.
+- Owner note (#417 close to the no-medical-advice rule): only the person's own lines; the report's header still says it is
+  not a medical record and holds no advice.
+- The ledger named "the report's own device record"; the visit report had none (it is built fresh each time), so the list
+  is a new device record, `zigoals:bring-up:v1`.
+- Files: `lib/clinician-report/bring-up.ts` (stored commit), `components/report/bring-up-list.tsx`,
+  `components/health/r6/bring-up-add.tsx` (new), `components/report/report-launcher.tsx` (one `lazy()` line, the fold),
+  `components/report/report-builder.tsx` (the record, the choice), `components/report/report-document.tsx` (the section at
+  the top, an optional prop), `components/journal/entry-more.tsx` and `components/mood-words/feeling-choices.tsx` (one
+  `lazy()` line each), `components/mood-words/mood-words-grid.tsx` (passes the day), `body-r6.css`.
+  `lib/clinician-report/build.ts` is unchanged (the lines are not part of the log summary; they are passed beside it).
+- Tests: `lib/clinician-report/av2-r6-bring-up.test.ts`, `lib/av2-r6-body-stored.test.ts`; existing report tests green.
+  Spec: `tests/av2-r6-bring-up.spec.ts`.
+- Stored: `zigoals:bring-up:v1` (new key, see the table and the shared to-do).
+- Help (EN): **Can I keep a list of things to bring up at my next appointment?** Yes. In Settings → Your data → Report for
+  a visit, open "To bring up at your next visit" and add a line, or tap "Bring this up at my next visit" on a journal entry
+  (under More) or under a feeling word. The lines print at the top of your report. Tick them off after the visit and clear
+  them. They stay on this device.
+- What's new: "Report for a visit: a list of things to bring up, added from your journal or a check-in, printed at the top."
+- Search (static.ts): "bring up at appointment", "questions for my doctor", "visit list" → `/app/settings/data#report-visit-title`.
+- Showcase hook: none (the list is the person's own).
+- Device keys / catalogue / export / erase: `zigoals:bring-up:v1` via `lib/av2-r6-body-keys.ts` (shared to-do). Route
+  weight: /app/settings/data's first chunk gains one `lazy()` line and the fold; /app/journal's More chunk and the feeling
+  words' choices chunk one `lazy()` line each; the report builder (lazy already) the record's schema.

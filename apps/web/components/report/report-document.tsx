@@ -95,7 +95,8 @@ function Wide({label, children}: {label: string; children: ReactNode}) {
 }
 const More = ({n, what}: {n: number; what: string}) => n > 0 ? <p className="report-more">{n} more {what} in these dates are not listed here.</p> : null;
 
-export function ReportDocument({report: r, weightUnit, showcase, journal}: {report: Report; weightUnit: WeightUnit; showcase: boolean; /** Session AV lane 2 (LEDGER #177): the Journal section, only when the person included it. */ journal?: JournalReportSection | null}) {
+export function ReportDocument({report: r, weightUnit, showcase, journal, bringUp = []}: {report: Report; weightUnit: WeightUnit; showcase: boolean; /** Session AV lane 2 (LEDGER #177): the Journal section, only when the person included it. */ journal?: JournalReportSection | null;
+  /** Session AV lane 2, round 6 (r6-body; LEDGER #417): the person's own lines to bring up, at the top, as written. */ bringUp?: readonly string[]}) {
   const none = <p className="report-none">Nothing logged in these dates.</p>;
   return <article className="report-sheet" aria-label="Report">
     <header className="report-head">
@@ -104,6 +105,10 @@ export function ReportDocument({report: r, weightUnit, showcase, journal}: {repo
       <p>From the person&rsquo;s own log in ZIGoals: entered by them or imported from their own devices and apps. Not a medical record; it holds no diagnosis and no advice. Days without an entry are left blank, never counted as zero.</p>
       {showcase && <p className="report-showcase"><strong>Showcase: fictional example data, not a real person&rsquo;s log.</strong></p>}
     </header>
+    {bringUp.length > 0 && <section className="report-section report-bring-up" aria-labelledby="report-bring-up"><h2 id="report-bring-up">To bring up</h2>
+      <p className="report-legend">In the person&rsquo;s own words, written before this visit.</p>
+      <ul className="report-facts">{bringUp.map((line, i) => <li key={i} dir="auto">{line}</li>)}</ul>
+    </section>}
     {r.sleep && <section className="report-section" aria-labelledby="report-sleep"><h2 id="report-sleep">Sleep</h2>
       {r.sleep.nights ? <>
         <ul className="report-facts"><li>Nights logged: {r.sleep.nights} of {r.range.days}</li><li>Asleep, average: {formatMinutes(r.sleep.avgAsleep!)}{r.sleep.estimated ? ' (some estimated from time in bed)' : ''}</li><li>Bedtime · wake time, average: {formatClock(r.sleep.avgBed!)} · {formatClock(r.sleep.avgWake!)}</li><li>Own quality rating, average: {r.sleep.avgQuality !== null ? `${formatNumber(r.sleep.avgQuality)} of 5` : 'not rated'}</li>{r.sleep.goal && <li>Own sleep goal: {formatMinutes(r.sleep.goal)}</li>}</ul>

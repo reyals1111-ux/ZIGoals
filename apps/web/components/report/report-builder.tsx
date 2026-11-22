@@ -15,6 +15,8 @@ import {SUPPLEMENTS} from '../../lib/supplements/schema';
 // Session AV lane 2 (journal; LEDGER #177, Daylio's PDF export): the Journal section, off unless the person includes it.
 import {JOURNAL} from '../../lib/journal/schema';
 import {hasJournalIn, journalReport} from '../../lib/journal/report';
+// Session AV lane 2, round 6 (r6-body; LEDGER #417): the lines to bring up, printed at the top while ticked here.
+import {BRING_UP, openBringUp} from '../../lib/clinician-report/bring-up';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
@@ -28,7 +30,8 @@ import './report.css';
  */
 const PRESETS = [{days: 30, label: '30 days'}, {days: 90, label: '90 days'}, {days: 365, label: 'A year'}] as const;
 export default function ReportBuilder() {
-  const today = useLocalToday(), health = useHealth(), habits = useHabits(), energy = useDeviceRecord(ENERGY), numbers = useDeviceRecord(HEALTH_NUMBERS), symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS), journalRecord = useDeviceRecord(JOURNAL), id = useId();
+  const today = useLocalToday(), health = useHealth(), habits = useHabits(), energy = useDeviceRecord(ENERGY), numbers = useDeviceRecord(HEALTH_NUMBERS), symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS), journalRecord = useDeviceRecord(JOURNAL), bringUp = useDeviceRecord(BRING_UP), id = useId();
+  const toBringUp = bringUp.loaded && !bringUp.unreadable ? openBringUp(bringUp.data).map(x => x.text) : [], [withBringUp, setWithBringUp] = useState(true);
   const [withJournal, setWithJournal] = useState(false); // private by default: off on every open
   const [from, setFrom] = useState(() => addLocalDays(today, -29)), [to, setTo] = useState(today);
   const [chosen, setChosen] = useState<ReadonlySet<ReportSectionId>>(() => new Set(['sleep', 'mood', 'notes', 'weight']));
@@ -61,9 +64,10 @@ export default function ReportBuilder() {
       <label className="check-row report-check report-check-private"><input type="checkbox" checked={withJournal} onChange={e => setWithJournal(e.target.checked)}/> <span>Journal entries, as written <span className="fine">· private: only when you tick this{valid && range && !hasJournalIn(journalRecord.loaded && !journalRecord.unreadable ? journalRecord.data : null, range) ? ' · nothing written in these dates' : ''}</span></span></label>
       <p className="fine">Your journal stays out of a report unless you tick this, each time you make one.</p>
     </fieldset>
-    <p><button ref={opener} type="button" className="primary" disabled={!valid || (chosen.size === 0 && !withJournal)} aria-describedby={`${id}-note`} onClick={() => setShown(true)}>Show the report</button></p>
+    {toBringUp.length > 0 && <label className="check-row report-check"><input type="checkbox" checked={withBringUp} onChange={e => setWithBringUp(e.target.checked)}/> <span>At the top: what you want to bring up ({toBringUp.length} {toBringUp.length === 1 ? 'line' : 'lines'})</span></label>}
+    <p><button ref={opener} type="button" className="primary" disabled={!valid || (chosen.size === 0 && !withJournal && !(withBringUp && toBringUp.length))} aria-describedby={`${id}-note`} onClick={() => setShown(true)}>Show the report</button></p>
     <p id={`${id}-note`} className="fine">It opens over this page. Print it, or choose “Save as PDF” in the print window. Nothing leaves this device unless you share the file.</p>
-    {report && <ReportOverlay onClose={close}><ReportDocument report={report} weightUnit={records.health ? dailyData(records.health).preferences.weightUnit : 'kg'} showcase={isShowcase()} journal={withJournal && range && journalRecord.loaded && !journalRecord.unreadable ? journalReport(journalRecord.data, range, records.energy) : null}/></ReportOverlay>}
+    {report && <ReportOverlay onClose={close}><ReportDocument report={report} weightUnit={records.health ? dailyData(records.health).preferences.weightUnit : 'kg'} showcase={isShowcase()} bringUp={withBringUp ? toBringUp : []} journal={withJournal && range && journalRecord.loaded && !journalRecord.unreadable ? journalReport(journalRecord.data, range, records.energy) : null}/></ReportOverlay>}
   </div>;
 }
 
