@@ -7,7 +7,10 @@ import {eventAgendaItems} from '../../lib/agenda/time-items';
 import {checklistZone} from '../../lib/checklist/zone';
 import {DEFAULT_BLOCK, addSpent, fitDay, overLimit, plannedVsActual, taskBusy, toClock, toMin, type Busy} from '../../lib/tasks/layouts';
 import {TASK_PLAN, finishesByDay, goalStreak, harvestDoneLog, runningTimer, settleTimers, startTimer, stopTimer, timerMinutes} from '../../lib/tasks/plan-record';
-import {editMany} from '../../lib/tasks/engine';
+import {editMany, waitingFor} from '../../lib/tasks/engine';
+import {planAgain} from '../../lib/tasks/pieces';
+import {afterHours, hoursOn} from '../../lib/tasks/work-hours';
+import './tasks-r4.css';
 import {minutesWords} from '../../lib/tasks/minutes';
 import type {Task, Tasks} from '../../lib/tasks/schema';
 import {formatClock, formatNumber} from '../../lib/visual-format';
@@ -25,10 +28,14 @@ import {formatClock, formatNumber} from '../../lib/visual-format';
 type Change = (fn: (r: Tasks) => Tasks, text: string, undone?: string) => boolean;
 /** Session AV lane 2 (r3-plan, LEDGER #259; Structured's Energy Monitor): the day's energy line, its own chunk. */
 const TaskEnergyLine = lazy(() => import('./task-energy-line'));
+/** Session AV lane 2 (r4-plan, LEDGER #300; Motion's auto-scheduling, as a proposal): Plan my week, its own chunk. */
+const PlanWeek = lazy(() => import('./plan-week'));
 const clockNow = () => Date.now();
 export default function TodayPlanner({record, today, clock, shown, change, doneDay}: {record: Tasks; today: string; clock: string; shown: readonly Task[]; change: Change; doneDay: (iso: string) => string}) {
   const plan = useDeviceRecord(TASK_PLAN), calendars = useDeviceRecord(CALENDAR_IMPORT), id = useId();
-  const [now, setNow] = useState(() => Date.now()), [until, setUntil] = useState('18:00');
+  // Session AV lane 2 (r4-plan, LEDGER #301): the day's working hours; "My day ends at" changes this visit only.
+  const [now, setNow] = useState(() => Date.now()), [untilTyped, setUntil] = useState<string | null>(null);
+  const hours = hoursOn(plan.data, today), evening = afterHours(plan.data), until = untilTyped ?? hours.at(-1)?.to ?? '18:00';
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(t); }, []);
   // The finishes per day are counted into the log once a day (so a year of them outlives the 30 days a task is kept), and
   // timers of tasks that are gone are dropped.
@@ -42,14 +49,22 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
   }, [plan, record, today, doneDay, change]);
   const busy = useMemo<Busy[]>(() => {
     const events = calendars.loaded ? eventAgendaItems(calendars.data, today, today, checklistZone()).filter(e => e.time).map(e => ({start: toMin(e.time!), end: toMin(e.time!) + (e.minutes || DEFAULT_BLOCK), title: e.title})) : [];
-    return [...taskBusy(record, today), ...events];
-  }, [record, today, calendars.loaded, calendars.data]);
+    // Session AV lane 2 (r4-plan, LEDGER #303): a task in pieces whose kept time has passed is planned again for its next piece.
+    return [...taskBusy(record, today, new Set(record.tasks.filter(t => planAgain(t, today, clock)).map(t => t.id))), ...events];
+  }, [record, today, clock, calendars.loaded, calendars.data]);
   const open = shown.filter(t => !t.doneAt && !t.parentId);
-  const fit = useMemo(() => fitDay(open, busy, {from: clock < '09:00' ? '09:00' : clock, until}), [open, busy, clock, until]);
+  // Session AV lane 2 (r4-plan, LEDGER #301, #304): inside the working hours ("after hours" tasks in the evening); a waiting task is not placed.
+  const fit = useMemo(() => {
+    const first = hours[0]?.from ?? '09:00', ready = open.filter(t => !waitingFor(record, t).length).map(t => planAgain(t, today, clock) ? {...t, time: undefined} : t);
+    return fitDay(ready, busy, {from: clock < first ? first : clock, until, windows: untilTyped ? hours.map(b => ({from: b.from, to: b.to < until ? b.to : until})).filter(b => b.from < b.to) : hours, after: [evening]});
+  }, [open, busy, clock, until, untilTyped, hours, evening, record, today]);
+  const waiting = record.tasks.filter(t => !t.doneAt && !t.parentId && t.due && t.due <= today).map(t => ({t, on: waitingFor(record, t)})).filter(w => w.on.length);
   const pva = plannedVsActual(open.concat(record.tasks.filter(t => t.doneAt && doneDay(t.doneAt) === today && !t.parentId)));
   const load = open.filter(t => !t.parallel).reduce((n, t) => n + (t.minutes ?? 0), 0), limit = plan.data.dayLimit, over = overLimit(load, limit);
   const goal = plan.data.dailyGoal, streak = goal ? goalStreak(finishesByDay(plan.data, record, doneDay), goal, today) : null;
-  const place = (items: typeof fit.placed) => {
+  const place = (all: typeof fit.placed) => {
+    // A task in pieces keeps its first piece: that is its day and time (the next one is planned once it has had its time).
+    const items = all.filter((p, i) => all.findIndex(x => x.task.id === p.task.id) === i);
     if (!items.length) return;
     const ok = change(r => items.reduce((rec, p) => editMany(rec, [p.task.id], () => ({due: today, time: p.start}), today, {allowPast: true}), r), items.length === 1 ? `“${items[0]!.task.title}” is at ${formatClock(items[0]!.start)} today.` : `${formatNumber(items.length)} tasks placed in today’s free time.`, 'Taken back off the clock.');
     if (ok) showStatus(items.length === 1 ? `Placed at ${formatClock(items[0]!.start)}: it shows on the Agenda.` : 'Placed: they show on the Agenda, each until it ends.');
@@ -73,20 +88,24 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
     {goal && streak && <p className="fine tasks-goal-line">Daily goal: {formatNumber(streak.today)} of {formatNumber(goal)} done today{streak.reached ? ' — reached' : ''}. {streak.current ? `${formatNumber(streak.current)} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'No streak yet'}{streak.best > streak.current ? ` (best ${formatNumber(streak.best)})` : ''}.</p>}
     {running.length > 0 && <ul className="tasks-timers" aria-label="Timers running">{running.map(({x, task}) => <li key={x.taskId}><span aria-hidden="true">⏱ </span><span dir="auto">{task.title}</span> · {minutesWords(timerMinutes(x.since, now))}{task.minutes ? ` of ${minutesWords(task.minutes)} planned` : ''}
       <button type="button" className="secondary" onClick={() => timer(task)}>Stop</button></li>)}</ul>}
+    {waiting.length > 0 && <p className="fine tasks-waiting-line">{waiting.length === 1 ? 'Waiting' : `${formatNumber(waiting.length)} waiting`}: {waiting.slice(0, 5).map(({t, on}, i) => <span key={t.id}>{i ? '; ' : ''}“<span dir="auto">{t.title}</span>” after {on.map(b => `“${b.title}”`).join(', ')}</span>)}. Each joins today once those are done.</p>}
     {(pva.planned > 0 || pva.actual > 0) && <p className="fine">Today: planned {minutesWords(pva.planned)}, spent {minutesWords(pva.actual)}.</p>}
     <details className="tasks-fit-day">
       <summary>Fit my day around the Agenda</summary>
-      <p className="fine">Tasks without a time go into the free time between your timed tasks and calendar events, each for its minutes (30 when it has none). Background tasks take no slot.</p>
-      <label className="field"><span>My day ends at</span><input type="time" value={until} onChange={e => setUntil(e.target.value || '18:00')} /></label>
+      <p className="fine">Tasks without a time go into the free time inside your working hours ({hours.length ? hours.map(b => `${formatClock(b.from)}–${formatClock(b.to)}`).join(' and ') : 'today is a day off'}; set them in Tasks → This week), between your timed tasks and calendar events, each for its minutes (30 when it has none). An “after hours” task goes in the evening; a long task with pieces goes piece by piece. Background tasks take no slot.</p>
+      <label className="field"><span>My day ends at</span><input type="time" value={until} onChange={e => setUntil(e.target.value || null)} /></label>
       {busy.length > 0 && <p className="fine">Fixed today: {[...busy].sort((a, b) => a.start - b.start).map(b => `${formatClock(toClock(b.start))} ${b.title}`).join(' · ')}</p>}
-      {fit.placed.length ? <><ol className="tasks-fit-list" aria-label="A plan for today">{fit.placed.map(p => <li key={p.task.id}>
-        <span><strong>{formatClock(p.start)}–{formatClock(p.end)}</strong> <span dir="auto">{p.task.title}</span>{p.task.minutes ? '' : <small> · 30 min, it has no length</small>}</span>
-        <button type="button" className="quiet" aria-label={`Place “${p.task.title}” at ${formatClock(p.start)}`} onClick={() => place([p])}>Place</button>
+      {fit.placed.length ? <><ol className="tasks-fit-list" aria-label="A plan for today">{fit.placed.map(p => <li key={`${p.task.id}:${p.part ?? 1}`}>
+        <span><strong>{formatClock(p.start)}–{formatClock(p.end)}</strong> <span dir="auto">{p.task.title}</span>{p.part ? <small> · part {formatNumber(p.part)} of {formatNumber(p.of!)}</small> : null}{p.task.minutes ? '' : <small> · 30 min, it has no length</small>}</span>
+        <button type="button" className="quiet" aria-label={`Place “${p.task.title}”${p.part ? ` (part ${p.part})` : ''} at ${formatClock(p.start)}`} onClick={() => place([p])}>Place</button>
         <button type="button" className="quiet" aria-label={`${runningTimer(plan.data, p.task.id) ? 'Stop the timer of' : 'Start a timer for'} “${p.task.title}”`} onClick={() => timer(p.task)}>{runningTimer(plan.data, p.task.id) ? 'Stop' : 'Start timer'}</button></li>)}</ol>
-        <button type="button" className="secondary" onClick={() => place(fit.placed)}>Place all {formatNumber(fit.placed.length)}</button></>
+        <button type="button" className="secondary" onClick={() => place(fit.placed)}>Place all {formatNumber(new Set(fit.placed.map(p => p.task.id)).size)}</button>
+        {fit.placed.some(p => p.part) && <p className="fine">A task in pieces keeps its first piece on the Agenda; once that time has passed, Plan my day offers the next piece (the time spent counts against the whole).</p>}</>
         : <p className="fine">{open.some(t => !t.time && !t.parallel) ? 'No free time is left before your day ends.' : 'Every task of today already has a time, or none is planned.'}</p>}
       {fit.left.length > 0 && <p className="fine">No room today for: {fit.left.map(t => `“${t.title}”`).join(', ')}.</p>}
+      {fit.rest.length > 0 && <p className="fine">Pieces for another day: {fit.rest.map(r => `“${r.task.title}” (${formatNumber(r.pieces)} more)`).join(', ')}. Plan my week finds them a day.</p>}
       {open.filter(t => t.time && !runningTimer(plan.data, t.id)).length > 0 && <p className="tasks-fit-timers">{open.filter(t => t.time && !runningTimer(plan.data, t.id)).slice(0, 8).map(t => <button key={t.id} type="button" className="quiet" aria-label={`Start a timer for “${t.title}”`} onClick={() => timer(t)}>⏱ {t.title}</button>)}</p>}
     </details>
+    <Suspense fallback={null}><PlanWeek record={record} today={today} clock={clock} change={change} /></Suspense>
   </section>;
 }

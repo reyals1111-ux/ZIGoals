@@ -1,5 +1,8 @@
 import {addLocalDays, localWeekday} from '../local-date';
 import {openTasks, byOrder} from './engine';
+import {DEFAULT_BLOCK, blockLength, piecesOf} from './pieces';
+import {closedBusy} from './work-hours';
+import type {HoursBlock} from './plan-record';
 import {MAX_AREAS, MAX_OBJECTIVES, MAX_TASK_MINUTES, TASK_TITLE_MAX, PROJECT_NAME_MAX, taskLevel, tasksSchema, type Area, type Objective, type Task, type Tasks} from './schema';
 
 /**
@@ -18,42 +21,61 @@ export const weekStart = (day: string) => addLocalDays(day, -((localWeekday(day)
 /* ---- Plan my day around the Agenda (Sunsama's timeboxing, LEDGER #21, #24) ------------------------------------- */
 
 export type Busy = {start: number; end: number; title: string};
-export type Placement = {task: Task; start: string; end: string; minutes: number};
-export const DEFAULT_BLOCK = 30;
+/** Session AV lane 2 (r4-plan, LEDGER #303): a piece of a long task says which part it is ("part 2 of 4"). */
+export type Placement = {task: Task; start: string; end: string; minutes: number; part?: number; of?: number};
+export {DEFAULT_BLOCK};
+/** The first start from `start` where `need` minutes fit before `end` without touching a taken block; -1 when none. Pure. */
+export function firstFit(need: number, taken: readonly {start: number; end: number}[], start: number, end: number, gap = 0): number {
+  let at = start;
+  for (let guard = 0; guard < 400 && at + need <= end; guard++) {
+    const clash = taken.find(b => at < b.end && at + need > b.start);
+    if (!clash) return at;
+    at = Math.max(at + 1, clash.end + gap);
+  }
+  return -1;
+}
 /**
  * Places today's tasks that have no time into the free time between the day's fixed items (timed tasks and imported
  * events), from `from` (now, rounded up to the next quarter hour, or the day's start) to `until`, in the order given,
  * each for its own minutes (30 when it has none). Background tasks (`parallel`) take no slot. A task that fits nowhere
  * is listed in `left`. Pure.
+ * Session AV lane 2 (r4-plan): with `windows` (LEDGER #301, the day's working hours) nothing is placed outside them, and an
+ * "after hours" task goes in `after` (the evening hours) instead, past `until`; a task in pieces (LEDGER #303, `chunk`)
+ * is placed piece by piece, each where it first fits, and the pieces that find no room today are counted in `rest`.
  */
-export function fitDay(tasks: readonly Task[], busy: readonly Busy[], {from, until, gap = 0}: {from: string; until: string; gap?: number}): {placed: Placement[]; left: Task[]} {
-  const blocks = [...busy].filter(b => b.end > b.start).sort((a, b) => a.start - b.start), placed: Placement[] = [], left: Task[] = [];
+export function fitDay(tasks: readonly Task[], busy: readonly Busy[], {from, until, gap = 0, windows, after}: {from: string; until: string; gap?: number; windows?: readonly HoursBlock[]; after?: readonly HoursBlock[]}): {placed: Placement[]; left: Task[]; rest: {task: Task; pieces: number}[]} {
+  const blocks = [...busy].filter(b => b.end > b.start).sort((a, b) => a.start - b.start), placed: Placement[] = [], left: Task[] = [], rest: {task: Task; pieces: number}[] = [];
   // First fit: each task takes the earliest free time that holds it, so a short one fills a gap a long one skipped.
   const start = Math.ceil(toMin(from) / 15) * 15, end = toMin(until);
   const taken: {start: number; end: number}[] = blocks.map(b => ({start: b.start, end: b.end}));
+  const closedWork = windows ? closedBusy(windows) : [], closedAfter = after ? closedBusy(after) : closedWork;
   for (const task of tasks) {
     if (task.time || task.parallel) continue;
-    const need = Math.min(task.minutes ?? DEFAULT_BLOCK, MAX_TASK_MINUTES);
-    let at = start, found = -1;
-    for (let guard = 0; guard < 200 && at + need <= end; guard++) {
-      const clash = taken.find(b => at < b.end && at + need > b.start);
-      if (!clash) { found = at; break; }
-      at = clash.end + gap;
+    const late = !!task.afterHours && !!after, closed = late ? closedAfter : closedWork, stop = late ? 24 * 60 : end;
+    const {pieces, done} = piecesOf(task), of = done + pieces.length, split = pieces.length > 1 || done > 0;
+    let cursor = start, kept = 0;
+    for (const piece of pieces) {
+      const need = Math.min(piece, MAX_TASK_MINUTES), found = firstFit(need, [...taken, ...closed], cursor, stop, gap);
+      if (found < 0) break;
+      taken.push({start: found, end: found + need});
+      placed.push({task, start: toClock(found), end: toClock(found + need), minutes: need, ...(split ? {part: done + kept + 1, of} : {})});
+      kept++; cursor = found + need;
     }
-    if (found < 0) { left.push(task); continue; }
-    taken.push({start: found, end: found + need});
-    placed.push({task, start: toClock(found), end: toClock(found + need), minutes: need});
+    if (!kept) left.push(task); else if (kept < pieces.length) rest.push({task, pieces: pieces.length - kept});
   }
-  return {placed: placed.sort((a, b) => a.start.localeCompare(b.start)), left};
+  return {placed: placed.sort((a, b) => a.start.localeCompare(b.start)), left, rest};
 }
 /** The next free slot of `minutes` after `from` (Sunsama's "next free slot"), or null when the day is full. */
 export function nextFreeSlot(minutes: number, busy: readonly Busy[], from: string, until: string): string | null {
   const fake = {id: 'slot', title: 'slot', priority: 'normal', createdAt: '2000-01-01T00:00:00.000Z', minutes} as Task;
   return fitDay([fake], busy, {from, until}).placed[0]?.start ?? null;
 }
-/** The day's fixed items as busy blocks: tasks with a time on that day (their minutes, else 30). */
-export function taskBusy(record: Tasks, day: string): Busy[] {
-  return record.tasks.filter(t => !t.doneAt && t.due === day && t.time && !t.parallel).map(t => ({start: toMin(t.time!), end: toMin(t.time!) + (t.minutes ?? DEFAULT_BLOCK), title: t.title}));
+/**
+ * The day's fixed items as busy blocks: tasks with a time on that day (their minutes, else 30; Session AV lane 2 (r4-plan,
+ * LEDGER #303): a task in pieces holds one piece). `except` leaves some out (the tasks being planned again).
+ */
+export function taskBusy(record: Tasks, day: string, except?: ReadonlySet<string>): Busy[] {
+  return record.tasks.filter(t => !t.doneAt && t.due === day && t.time && !t.parallel && !except?.has(t.id)).map(t => ({start: toMin(t.time!), end: toMin(t.time!) + blockLength(t), title: t.title}));
 }
 /** Sunsama's workload line: the minutes planned against the day's limit. */
 export function overLimit(minutes: number, limit: number | undefined): {over: boolean; by: number} {

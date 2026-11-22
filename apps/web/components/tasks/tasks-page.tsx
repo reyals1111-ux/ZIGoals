@@ -68,6 +68,8 @@ const NoteReminders = lazy(() => import('./note-reminders-in-tasks'));
 const TasksPrint = lazy(() => import('./tasks-print'));
 // Session AV lane 2 (tasks-r2, LEDGER #228, #229): a project's rules and custom fields, their own chunk.
 const ProjectSetup = lazy(() => import('./project-setup'));
+// Session AV lane 2 (r4-plan, LEDGER #302): a deadline at risk, one quiet line at the top of Upcoming, its own chunk.
+const AtRiskLine = lazy(() => import('./at-risk-line'));
 const AREA_KEY = 'zigoals:task-area';
 const PLAN_KINDS = new Set<TaskView['kind']>(['week', 'table', 'days', 'timeline', 'insights', 'organise']);
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
@@ -355,7 +357,7 @@ export function TasksPage() {
     const days = Array.from({length: 14}, (_, i) => addLocalDays(today, i));
     // Session AV (1c, q1 #15, fresh-agent review; Things): a deadline shows on its own day too, ahead of time.
     const deadlinesOn = (d: string) => record.tasks.filter(t => !t.doneAt && !t.parentId && t.deadline === d && t.due !== d);
-    body = <>{days.map(d => { const items = shown.filter(t => t.due === d), due = deadlinesOn(d), name = d === today ? 'Today' : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false}); if (!items.length && !due.length) return null;
+    body = <>{record.tasks.some(t => t.deadline && !t.doneAt) && <LoadBoundary quiet><Suspense fallback={null}><AtRiskLine record={record} today={today} clock={clock} /></Suspense></LoadBoundary>}{days.map(d => { const items = shown.filter(t => t.due === d), due = deadlinesOn(d), name = d === today ? 'Today' : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false}); if (!items.length && !due.length) return null;
       const load = dayLoadWords(viewLoad(items)); /* Session AV lane 2 (q1 #39 Minor; Sunsama): the load of each day */
       return <Fragment key={d}>{items.length ? group(d, name, items, load ? <small className="fine tasks-day-load">{load}</small> : undefined) : <div className="tasks-group" data-state={d}><h3>{name}</h3></div>}{due.length > 0 && <p className="fine tasks-deadline-line"><span aria-hidden="true">⚑ </span>Deadline: {due.map((t, i) => <span key={t.id}>{i ? ' · ' : ''}<span dir="auto">{t.title}</span></span>)}</p>}</Fragment>; })}
       {group('later', 'Later', shown.filter(t => t.due! > days.at(-1)!))}</>;
