@@ -61,7 +61,7 @@ function orderAnswer(a: Ask): LocalReply | null {
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const ordered = live(got.record).filter(p => p.inOrder);
   if (!ordered.length) return answer(say(a.lang, 'No project is done in order. Open a project, choose “Hold, order and review” and tick “Do the tasks one at a time”: only its first open task shows in Today, and finishing it brings the next forward.',
-    'Geen project gaat op volgorde. Open een project, kies “Hold, order and review” en vink “Do the tasks one at a time” aan: alleen de eerste open taak staat in Today, en als die af is komt de volgende.'), TASK_CALLS);
+    'Geen enkel project staat op volgorde. Open een project, kies “Hold, order and review” en vink “Do the tasks one at a time” aan: alleen de eerste open taak staat in Today, en als die af is komt de volgende.'), TASK_CALLS);
   const lines = ordered.slice(0, 8).map(p => { const next = nextInOrder(got.record, p.id), waiting = got.record.tasks.filter(t => t.projectId === p.id && !t.parentId && !!waitsTurn(got.record, t)).length;
     return `• ${clean(p.name, 50)}: ${next ? say(a.lang, `next is ${clean(next.title, 60)}`, `de volgende is ${clean(next.title, 60)}`) : say(a.lang, 'nothing open', 'niets open')}${waiting ? say(a.lang, ` (${waiting} waiting their turn)`, ` (${waiting} wachten op hun beurt)`) : ''}`; });
   return answer([say(a.lang, 'Projects done in order, one task at a time:', 'Projecten op volgorde, één taak tegelijk:'), ...lines].join('\n'), TASK_CALLS);
@@ -74,10 +74,10 @@ function focusAnswer(a: Ask): LocalReply | null {
   if (!(en || nl)) return null;
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const focus = liveFocus(readFocus(a.plan?.focus), got.record);
-  if (!focus) return answer(say(a.lang, 'No focus is on: every project shows. In Tasks → Today (or Upcoming, the matrix, the Calendar) choose “Focus…” and pick areas or projects; only their tasks show until you choose Show all. Tasks in the Inbox are never hidden.',
-    'Er staat geen focus aan: elk project is te zien. Kies in Tasks → Today (of Upcoming, de matrix, de Calendar) “Focus…” en kies gebieden of projecten; alleen hun taken zijn te zien tot je Show all kiest. Taken in de Inbox blijven altijd zichtbaar.'), TASK_CALLS);
-  return answer(say(a.lang, `You are focused on ${focusName(focus, got.record)}: Today, Upcoming, the matrix, the Calendar and Plan my day show only their tasks (and the Inbox) until you choose Show all.`,
-    `Je bent gefocust op ${focusName(focus, got.record, 'nl')}: Today, Upcoming, de matrix, de Calendar en Plan my day tonen alleen hun taken (en de Inbox) tot je Show all kiest.`), TASK_CALLS);
+  if (!focus) return answer(say(a.lang, 'No focus is on: every project shows. In Tasks → Today (or Upcoming, the Priority matrix, the Calendar) choose “Focus…” and pick areas or projects; only their tasks show until you choose Show all. Tasks in the Inbox are never hidden.',
+    'Er staat geen focus aan: elk project is te zien. Kies in Tasks → Today (of Upcoming, de Priority matrix, de Calendar) “Focus…” en kies gebieden of projecten; alleen hun taken zijn te zien tot je Show all kiest. Taken in de Inbox blijven altijd zichtbaar.'), TASK_CALLS);
+  return answer(say(a.lang, `You are focused on ${focusName(focus, got.record)}: Today, Upcoming, the Priority matrix, the Calendar and Plan my day show only their tasks (and the Inbox) until you choose Show all.`,
+    `Je bent gefocust op ${focusName(focus, got.record, 'nl')}: Today, Upcoming, de Priority matrix, de Calendar en Plan my day tonen alleen hun taken (en de Inbox) tot je Show all kiest.`), TASK_CALLS);
 }
 
 /** "which projects need a review", "welke projecten moet ik nakijken" (LEDGER #395). */
@@ -105,7 +105,8 @@ function recordAnswer(a: Ask): LocalReply | null {
   if (!rows.length) return answer(say(a.lang, 'You have no repeating task. Type “every Monday” or “every 2 weeks” with a task; its editor then shows how often it was done in the last 3 months.',
     'Je hebt geen herhalende taak. Typ “elke maandag” of “om de week” bij een taak; de editor toont dan hoe vaak die de laatste 3 maanden gedaan is.'), TASK_CALLS);
   const avg = (n: number | null) => n === null ? '' : say(a.lang, `, on average every ${n} ${n === 1 ? 'day' : 'days'}`, `, gemiddeld om de ${String(n).replace('.', ',')} ${n === 1 ? 'dag' : 'dagen'}`);
-  const lines = rows.map(({t, r}) => `• ${clean(t.title, 50)} (${say(a.lang, describeRecur(t.recur!).replace(/ \(\d+ left\)$/, '').toLowerCase(), 'herhaalt')}): ${say(a.lang, `done ${r.done === 1 ? 'once' : `${r.done} times`}`, `${r.done} keer gedaan`)}${r.onDay || r.late ? say(a.lang, ` (${r.onDay} by its day, ${r.late} after it)`, ` (${r.onDay} op of voor de dag, ${r.late} erna)`) : ''}${avg(r.average)}`);
+  // Review B6Q-19(b): the rule is named in English only (describeRecur has no Dutch words); a Dutch answer leaves it out.
+  const lines = rows.map(({t, r}) => `• ${clean(t.title, 50)}${a.lang === 'nl' ? '' : ` (${describeRecur(t.recur!).replace(/ \(\d+ left\)$/, '').toLowerCase()})`}: ${say(a.lang, `done ${r.done === 1 ? 'once' : `${r.done} times`}`, `${r.done} keer gedaan`)}${r.onDay || r.late ? say(a.lang, ` (${r.onDay} by its day, ${r.late} after it)`, ` (${r.onDay} op of voor de dag, ${r.late} erna)`) : ''}${avg(r.average)}`);
   return answer([say(a.lang, 'Your repeating tasks over the last 3 months:', 'Je herhalende taken over de laatste 3 maanden:'), ...lines].join('\n'), TASK_CALLS);
 }
 
@@ -127,19 +128,21 @@ function bulkAnswer(a: Ask): LocalReply | null {
   const nl = /\bmeerdere taken (?:tegelijk|in een keer|ineens)\b|\b(?:veel|meer) taken tegelijk\b/.test(a.f);
   if (!(en || nl)) return null;
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
-  return answer(say(a.lang, 'In Tasks, choose Select and tick the tasks. The bar then finishes them, sets a priority, gives them any day (or no day), moves them, adds a label or takes one off, or removes them — each as one change with one Undo. A repeating task keeps its day.',
-    'Kies in Tasks Select en vink de taken aan. De balk maakt ze af, geeft een prioriteit, een dag (of geen dag), verplaatst ze, zet er een label bij of haalt er een af, of verwijdert ze — elk als één wijziging met één Undo. Een herhalende taak houdt haar dag.'), TASK_CALLS);
+  return answer(say(a.lang, 'In Tasks, choose Select and tick the tasks. The bar then finishes them, sets a priority, gives them any day (or no day), moves them, adds a label or takes one off, or removes them — each as one change with one Undo. Given no day, a repeating task keeps its own day, as it needs one.',
+    'Kies in Tasks Select en vink de taken aan. De balk maakt ze af, geeft een prioriteit, een dag (of geen dag), verplaatst ze, zet er een label bij of haalt er een af, of verwijdert ze — elk als één wijziging die je met één keer Ongedaan maken terugdraait. Krijgt een herhalende taak geen dag, dan houdt ze haar eigen dag, want ze heeft er een nodig.'), TASK_CALLS);
 }
 
 /** "can a task repeat on the second-to-last Friday", "kan een taak herhalen op de voorlaatste vrijdag" (LEDGER #398). */
 function fromEndAnswer(a: Ask): LocalReply | null {
   const en = /\b(?:second|next) (?:to )?last (?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekday)\b|\bpenultimate\b|\blast (?:working|business) day of (?:the|a|each) month\b|\blast workday\b/.test(a.f);
   const nl = /\bvoorlaatste (?:maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag)\b|\blaatste werkdag\b/.test(a.f);
-  if (!(en || nl)) return null;
+  // Review B6Q-15: a question about repeating a task, never a date question ("what is the second to last Friday of the month").
+  if (!(en || nl) || !/\b(?:repeat\w*|recur\w*|tasks?|every|herhal\w*|taak|taken|elke)\b/.test(a.f)) return null;
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const using = got.record.tasks.filter(t => !t.doneAt && (t.recur?.fromEnd || t.recur?.workday));
-  const head = say(a.lang, 'Yes. Type “every second-to-last Friday” or “every last workday” with a task, or as its repeat in the editor: it comes back each month on that day (Monday to Friday counts as working days).',
-    'Ja. Typ “elke voorlaatste vrijdag” of “elke laatste werkdag” bij een taak, of als herhaling in de editor: hij komt elke maand op die dag terug (maandag tot vrijdag tellen als werkdagen).');
+  const yes = /^(?:can|could|does|is|will|kan|kun|kunnen|mag|gaat)\b/.test(a.f);
+  const head = say(a.lang, `${yes ? 'Yes. ' : ''}Type “every second-to-last Friday” or “every last workday” with a task, or as its repeat in the editor: it comes back each month on that day (Monday to Friday counts as working days).`,
+    `${yes ? 'Ja. ' : ''}Typ “elke voorlaatste vrijdag” of “elke laatste werkdag” bij een taak, of als herhaling in de editor: hij komt elke maand op die dag terug (maandag tot vrijdag tellen als werkdagen).`);
   if (!using.length) return answer(head, TASK_CALLS);
   return answer([head, say(a.lang, 'Yours now:', 'Die van jou nu:'), ...using.slice(0, 6).map(t => `• ${clean(t.title, 60)}${t.due ? say(a.lang, `, next on ${dayIn('en', t.due, a.today)}`, `, volgende op ${dayIn('nl', t.due, a.today)}`) : ''}`)].join('\n'), TASK_CALLS);
 }

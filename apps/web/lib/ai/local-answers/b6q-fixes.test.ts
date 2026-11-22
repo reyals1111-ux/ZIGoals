@@ -2,6 +2,7 @@ import {afterEach, describe, expect, test, vi} from 'vitest';
 import type {ToolSources} from '../tools/env';
 import {ask, DAY, freshAll, novaEnv, showcaseAll, zigiEnv} from '../evals/as/harness';
 import {av2R6MoneyAnswer} from './av2-r6-money';
+import {av2R6PlanAnswer} from './av2-r6-plan';
 import {av2R6BodyAnswer} from './av2-r6-body';
 import type {LocalReply} from './engine';
 import {emptyDayEnds, setCurrentDayEnds} from '../../day-boundary-core';
@@ -64,6 +65,46 @@ describe('B6Q-3: a light week is marked during the workout to keep a routine’s
     const nl = text(av2R6BodyAnswer('welke workouts zijn lichte weken', zigiEnv(light())));
     expect(nl.endsWith(` Hun sets blijven in je geschiedenis en volume. ${NL}`), nl).toBe(true);
     expect(nl).not.toMatch(ENGLISH_NAMES);
+  });
+});
+
+describe('B6Q-4 and B6Q-20 (plan): only "no day" leaves a repeating task’s day alone; Dutch says Ongedaan maken', () => {
+  test('several tasks at once', () => {
+    const en = text(av2R6PlanAnswer('how do I change several tasks at once', zigiEnv(showcaseAll())));
+    expect(en).toMatch(/each as one change with one Undo\. Given no day, a repeating task keeps its own day, as it needs one\.$/);
+    const nl = text(av2R6PlanAnswer('hoe pas ik meerdere taken tegelijk aan', zigiEnv(showcaseAll())));
+    expect(nl).toMatch(/elk als één wijziging die je met één keer Ongedaan maken terugdraait\. Krijgt een herhalende taak geen dag, dan houdt ze haar eigen dag, want ze heeft er een nodig\.$/);
+    expect(nl).not.toMatch(/\bUndo\b/);
+  });
+  test('the focus names the views as Tasks does: the Priority matrix, the Calendar', () => {
+    const s = showcaseAll(), plain = {...s, nova: {...s.nova, taskPlan: null}} as ToolSources;
+    expect(text(av2R6PlanAnswer('what am I focused on', zigiEnv(plain)))).toContain('(or Upcoming, the Priority matrix, the Calendar)');
+    expect(text(av2R6PlanAnswer('waar ben ik op gefocust', zigiEnv(plain)))).toContain('(of Upcoming, de Priority matrix, de Calendar)');
+  });
+});
+
+describe('B6Q-15: repeats from the month’s end answer a question about a task, never a date question', () => {
+  test('date questions are not this answer', () => {
+    for (const q of ['what is the second to last friday of the month', 'when is the last workday of the month', 'wat is de voorlaatste vrijdag van de maand', 'wanneer is de laatste werkdag van de maand']) expect(av2R6PlanAnswer(q, zigiEnv(showcaseAll())), q).toBeNull();
+  });
+  test('"Yes" only answers a yes-or-no question', () => {
+    expect(text(av2R6PlanAnswer('can a task repeat on the second to last Friday', zigiEnv(showcaseAll())))).toMatch(/^Yes\. Type “every second-to-last Friday”/);
+    expect(text(av2R6PlanAnswer('kan ik een taak laten herhalen op de voorlaatste vrijdag', zigiEnv(showcaseAll())))).toMatch(/^Ja\. Typ “elke voorlaatste vrijdag”/);
+    expect(text(av2R6PlanAnswer('how do I make a task repeat on the last workday', zigiEnv(showcaseAll())))).toMatch(/^Type “every second-to-last Friday”/);
+    expect(text(av2R6PlanAnswer('hoe laat ik een taak herhalen op de laatste werkdag', zigiEnv(showcaseAll())))).toMatch(/^Typ “elke voorlaatste vrijdag”/);
+  });
+});
+
+describe('B6Q-19 (plan): Dutch', () => {
+  test('no project in order, and a repeat’s record names no English rule', () => {
+    const s = showcaseAll(), none = {...s, nova: {...s.nova, tasks: {...s.nova!.tasks!, projects: []}}} as ToolSources;
+    expect(text(av2R6PlanAnswer('wat is de volgende taak in mijn project', zigiEnv(none)))).toMatch(/^Geen enkel project staat op volgorde\./);
+    const t = {id: 'r1', title: 'Fictional plants', createdAt: `${DAY}T08:00:00.000Z`, due: DAY, recur: {every: 'week', interval: 1, weekdays: [1]}};
+    const rec = {...s, nova: {...s.nova, tasks: {...s.nova!.tasks!, tasks: [t]}}} as ToolSources;
+    const nl = text(av2R6PlanAnswer('hoe vaak heb ik mijn herhalende taken gedaan', zigiEnv(rec)));
+    expect(nl).toMatch(/^Je herhalende taken over de laatste 3 maanden:\n• Fictional plants: 0 keer gedaan$/);
+    expect(nl).not.toMatch(/herhaalt|every|\bMon\b/i);
+    expect(text(av2R6PlanAnswer('how often did I do my repeating tasks', zigiEnv(rec)))).toMatch(/^Your repeating tasks over the last 3 months:\n• Fictional plants \(every week on mon\): done 0 times$/);
   });
 });
 
