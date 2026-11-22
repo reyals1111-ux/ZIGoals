@@ -25,8 +25,10 @@ import {SyncSections} from './sync/section-status';
 import {ACCOUNT_CHANGE,getAccountScope,isAccountLocked} from '../lib/account-session';
 import {currentInstallContext} from '../lib/install/platform';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
-import {HEALTH_HELD_REFUSAL,HEALTH_RESTORE_ASK,HEALTH_UNVERIFIED_REFUSAL,REMEMBER_EXPIRED_NOTE,REMEMBER_LABEL,REMEMBER_NOTE,VAULT_MISSING,VAULT_OLDER} from '../lib/vault/vault-words';
-import {useVaultControls} from './vault-context';
+// Session AV lane 2 (A45-1, TIER 3 sync): the panel imports the engine itself, so on Settings (the one page that shows the
+// panel) the engine is in the page's own first scripts and is there at once, as before; every other page loads it as its own
+// chunk (vault-sync-lazy.tsx). The layout's lazy import then finds this same module already loaded.
+import {HEALTH_HELD_REFUSAL,HEALTH_RESTORE_ASK,HEALTH_UNVERIFIED_REFUSAL,REMEMBER_EXPIRED_NOTE,REMEMBER_LABEL,REMEMBER_NOTE,VAULT_MISSING,VAULT_OLDER,useVaultControls} from './vault-sync-controls';
 /** Session Z-Cloud Part 5 (A6, ADR-008 addendum): what a remembered device says after its 30 days (the provider sets the note). */
 export const REMEMBER_EXPIRED='This device remembered your account for 30 days, so it asks for the recovery secret once now. Your records on this device were not changed; tick Remember again to keep opening here without it.';
 /** Session AD item 11: what the status line says while no account is signed in on this tab (the public Alpha has none yet). */
