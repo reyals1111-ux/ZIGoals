@@ -10,6 +10,7 @@ import {feelingTrends} from '../../feeling-trends/trends';
 import {guideOfTheDay} from '../../meditation/guides';
 import {CALM_WORDS, PACE_WORDS, readCalm} from '../../calm/visuals';
 import {STRETCH_PREFIX, STRETCHES} from '../../calm/stretches';
+import {moodLabel, readMoodLook} from '../../daylio/rule';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
 import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
 import {PATTERNS, type BreathingPattern} from '../../meditation/breathing';
@@ -28,7 +29,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual]) {
       const r = one(a);
       if (r) return r;
     }
@@ -216,4 +217,14 @@ function calmVisual(a: Asked): LocalReply | null {
   if (!c.visual) return answer(say(lang, `No calm visual is set: a session shows the clock alone. Health → Meditation → Behind your sitting offers ${all}.`, `Er is geen rustig beeld gekozen: een sessie toont alleen de klok. Health → Meditation → Behind your sitting biedt ${all}.`));
   const w = CALM_WORDS[c.visual], pace = c.visual === 'shift' ? say(lang, `, ${PACE_WORDS[c.pace].en.toLowerCase()}`, `, ${PACE_WORDS[c.pace].nl.toLowerCase()}`) : '';
   return answer(say(lang, `Behind your sitting: ${w.en}${pace}. It shows above the clock or the breathing guide, and stands still while Motion Off or reduced motion is on.`, `Achter je zitmeditatie: ${w.nl}${pace}. Het staat boven de klok of de ademhalingsgids, en staat stil zolang Motion Off of minder beweging aan staat.`));
+}
+/** LEDGER #178: "what are my mood words", "wat zijn mijn stemmingswoorden" — your own words and symbols for the five moods (Health gate; tags and activities stay unread). */
+function moodWordsOf(a: Asked): LocalReply | null {
+  const en = /\bmy (?:own )?mood (?:words|names|labels|symbols)\b|\bwords? for (?:my|the) moods\b/.test(a.f);
+  const nl = /\b(?:mijn (?:eigen )?)?(?:stemmingswoorden|humeurwoorden)\b|\bwoorden voor (?:mijn|de) stemmingen\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, look = readMoodLook(a.env.energy ?? null), all = [5, 4, 3, 2, 1].map(l => `${l} ${moodLabel(look, l)}`).join(', ');
+  if (!look.custom) return answer(say(lang, `Your moods use ZIGoals’ words: ${all}. Health → Diary → How does today feel? → Your own words for the moods lets you name them your way, with a symbol.`, `Je stemmingen gebruiken de woorden van ZIGoals: ${all}. Health → Diary → How does today feel? → Your own words for the moods laat je ze zelf benoemen, met een symbool.`));
+  return answer(say(lang, `Your own mood words, from best to hardest: ${all}. The mood kept is still 1 to 5.`, `Je eigen stemmingswoorden, van best tot zwaarst: ${all}. De bewaarde stemming blijft 1 tot 5.`));
 }

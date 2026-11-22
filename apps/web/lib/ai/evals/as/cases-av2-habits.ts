@@ -26,4 +26,6 @@ export const AV2_HABITS: readonly Intent[] = [
   // Calm visuals behind a sitting (LEDGER #79, #80), Move gently (LEDGER #81)
   {id: 'av2-habits-calm-visual', pillar: 'health', en: ['what visual is behind my meditation', 'which scene shows when i sit'], nl: ['welke achtergrond heb ik bij het mediteren', 'welk beeld staat er bij mijn meditatie']},
   {id: 'av2-habits-stretch-minutes', pillar: 'health', en: ['how many minutes did i stretch this week', 'did i stretch this week'], nl: ['hoeveel minuten heb ik deze week gerekt', 'heb ik deze week gerekt'], never: ['kcal', 'calories burned']},
+  // Your own mood words and symbols (LEDGER #178)
+  {id: 'av2-habits-mood-words', pillar: 'health', en: ['what are my mood words', 'what are my own mood words'], nl: ['wat zijn mijn stemmingswoorden', 'wat zijn mijn woorden voor de stemmingen']},
 ];
