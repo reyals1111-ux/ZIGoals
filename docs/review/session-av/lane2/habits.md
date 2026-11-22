@@ -387,6 +387,32 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 - Showcase hook: the Showcase's own scales (`lib/scales/showcase.ts`) show it with no new data.
 - CSS touched: `components/scales/your-scales.css`. Always visible on Today: nothing.
 
+## Feature 13 — The mood check-in reminder (LEDGER #180)
+
+**Verdict: built.**
+
+- Settings → Notifications → "Mood check-in" (a switch of its own, off by default): at its time (20:00 unless set) and,
+  with "A second mood check-in", a second time; inside quiet hours it is said on the card and wakes nothing, as the
+  others. The first stays quiet once today's mood is answered; the second asks again (the newer answer wins). The
+  notification says "How does today feel? One tap answers it." — never a mood or a name — and opens
+  `/app/health?mood=ask`: Health's mood card opens (also folded on a phone), comes into view and its first mood takes the
+  focus. Works with the existing wake registration (recurring minutes on a weekday mask); nothing new reaches the push
+  Worker.
+- Files: `lib/notify/{prefs,plan,sync}.ts`, `public/sw.js` (one line), `components/notify/notifications-card.tsx`,
+  `components/health/mood-chip.tsx`.
+- Tests: `lib/notify/av2-mood-notify.test.ts` (the switch off by default, times and the second one, older prefs, wakes at
+  both times, the first quiet once answered, quiet hours, the composer's words and link). Existing notify, sw and push
+  tests unchanged and green. Spec: `tests/av2-mood-notify.spec.ts`.
+- **Stored change (TIER 3 stored formats, additive, separate commit):** `zigoals:notify:v1` (loose, device-only) gains
+  optional `mood` ({time, second?}) and the type name `mood` in `types` (the record already keeps any type name). An older
+  build keeps both and has no mood type. **TIER 3 (PWA):** the service worker's composer gains the `mood` kind.
+- Help (EN): **Q: Can ZIGoals remind me to log my mood?** A: Yes. Settings → Notifications → Mood check-in, with its time
+  and an optional second one. The notification never says your mood; a tap opens the mood question.
+- What's new: "A mood check-in reminder, once or twice a day, that opens the mood question."
+- Answers: none new. Showcase hook: none (notifications are this device's). Device keys / catalogue: nothing new
+  (`zigoals:notify:v1` is already exported, erased and restored).
+- CSS touched: none. Always visible on Today: nothing. Settings gains one switch (two more fields while it is on).
+
 ## Not built yet (next for this pillar, in order)
 
 - Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm

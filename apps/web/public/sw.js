@@ -50,6 +50,8 @@
     // Session AV (1c, q1 #44): countdown reminders, by name only where names are allowed.
     var countdowns = kinds.countdown || [];
     if (countdowns.length) lines.push(named && countdowns.every(function (c) { return c.label; }) ? countdowns.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(countdowns.length, 'countdown reminder', 'countdown reminders'));
+    // Session AV lane 2 (LEDGER #180): the mood check-in; never a mood.
+    if (kinds.mood) lines.push('How does today feel? One tap answers it.');
     if (kinds.supplement) lines.push('A reminder you set in Health');
     if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
     // Session AL sweep 4 (C-DVG-68, C-BN-06): from the positions last read on the device; never a name or an amount.

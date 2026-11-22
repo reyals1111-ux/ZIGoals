@@ -17,7 +17,7 @@ import {storedHabits} from '../push/device';
 import {namesOn} from '../push/labels-sync';
 import {readHabitHealthLinks} from '../habit-health-links/store';
 import {deviceZone} from '../push/support';
-import {NOTIFY_PREFS} from './prefs';
+import {NOTIFY_PREFS, typeOn} from './prefs';
 import {addDays, wallClock} from './zone';
 import {buildPlan, withSnoozes, type Plan, type PlanInput, type Snooze} from './plan';
 import {BILLS} from '../bills/schema';
@@ -64,6 +64,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
       input.water = {time: reminders.water.time, toGo: left === null ? null : left >= 1000 ? `${formatNumber(left / 1000, {maximumFractionDigits: 1})} L` : `${Math.round(left)} mL`, done: left === 0 || reminders.dismissed.water === today};
     } catch { input.water = {time: reminders.water.time, toGo: null, done: false}; }
   }
+  // Session AV lane 2 (LEDGER #180): whether today's mood is answered, only when the mood check-in is on.
+  if (typeOn(prefs, 'mood')) { try { const health = await readHealth(storage); input.mood = {doneToday: !!health.moods?.days[today]}; } catch { input.mood = {doneToday: false}; } }
   if (w.windDown) input.windDown = {time: w.windDown.time, doneToday: w.dismissed[WIND_DOWN] === today};
   const review = plan.items?.review;
   if (review?.on) input.review = {time: review.time ?? '18:00', weekday: review.weekday ?? 0};

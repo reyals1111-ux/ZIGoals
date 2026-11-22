@@ -1,5 +1,5 @@
 import {addDays, inQuiet, toMinutes, wallClock, weekdayBit, weekdayOf, zonedInstant} from './zone';
-import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
+import {eveningTime, moodTimes, morningTime, typeOn, type NotifyPrefs} from './prefs';
 
 /**
  * Session AK Part 2 (ADR-036 Q3, A1, A2): the notification plan of this device, pure. From what the page already knows
@@ -9,7 +9,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'mood';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -43,6 +43,8 @@ export type PlanInput = {
    * countdownWakes): the day, the countdown's id, how many days are left then; its title only where names are allowed.
    */
   countdowns?: {id: string; title?: string; date: string; days: number}[];
+  /** Session AV lane 2 (LEDGER #180): whether today's mood is already answered (the first check-in then stays quiet). */
+  mood?: {doneToday: boolean};
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -78,6 +80,9 @@ export function buildPlan(input: PlanInput): Plan {
   if (typeOn(prefs, 'review') && input.review) daily('review', 'review', input.review.time, weekdayBit(input.review.weekday), () => ({href: '/app/review', actionable: false}), () => false);
   if (typeOn(prefs, 'morning')) daily('morning', 'morning', morningTime(prefs), EVERY, () => ({href: '/app/checklist', actionable: false}), () => false);
   if (typeOn(prefs, 'evening')) daily('evening', 'evening', eveningTime(prefs), EVERY, () => ({href: '/app/review', actionable: false}), () => false);
+  // Session AV lane 2 (LEDGER #180, Daylio): the mood check-in opens the mood question (Health's mood card); never a mood
+  // or a name. The first stays quiet once today's mood is answered; a second time asks again (the newer answer wins).
+  if (typeOn(prefs, 'mood')) moodTimes(prefs).forEach((time, i) => daily('mood', i ? 'mood-2' : 'mood', time, EVERY, () => ({href: '/app/health?mood=ask', actionable: false}), date => i === 0 && date === today && !!input.mood?.doneToday));
   // One-off wakes: contributions on the days they are due (today, tomorrow), bills on the morning before they are due.
   if (typeOn(prefs, 'contributions')) for (const c of input.contributions) {
     if (c.done || inQuiet(c.time, quiet)) continue;
