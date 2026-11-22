@@ -4,7 +4,7 @@ import {addLocalDays} from '../../lib/local-date';
 import {minutesWords} from '../../lib/tasks/minutes';
 import {Suspense, lazy, useId, useRef, useState, type FormEvent} from 'react';
 import {HEALTH_LINKS, LEVEL_WORDS, TASK_NOTES_MAX, taskLevel, type HealthLink, type Recur, type Task, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
-import {describeRecur} from '../../lib/tasks/recurrence';
+import {describeRecur, firstDue} from '../../lib/tasks/recurrence';
 import {parseTaskLine} from '../../lib/tasks/parse';
 import {REMINDER_CHOICES} from '../../lib/tasks/reminders';
 import {formatClock, formatDate} from '../../lib/visual-format';
@@ -96,6 +96,8 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <small id={`${id}-repeat`} className={recur === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={recur === 'invalid' ? 'alert' : undefined}>{recur === 'invalid' ? 'Try “every Monday”, “every 2 weeks”, “every month on the 1st” or “every! 3 days”.' : recur ? `${describeRecur(recur)}${due ? '' : ' · starts today'}` : 'Empty: it does not repeat.'}</small></label>
     {task.recur && !task.doneAt && <div className="task-editor-pause" role="group" aria-labelledby={`${id}-pause`}>
       <span id={`${id}-pause`} className="task-editor-pause-title">Pause the repeat</span>
+      {/* Session AV lane 2 (q1 #43 Minor): a paused repeat says so, with Resume (its next day from today). */}
+      {(() => { const natural = task.due && !task.recur.afterDone && task.recur.interval === 1 ? firstDue(task.recur, today) : null; return natural && task.due! > natural ? <p className="task-editor-paused" role="note">Paused until {formatDate(task.due!, {weekday: true, year: task.due!.slice(0, 4) !== today.slice(0, 4)})}. <button type="button" className="text-link" onClick={() => onSave({due: natural}, 'all')}>Resume from {formatDate(natural, {weekday: true, year: false})}</button></p> : null; })()}
       <label className="field"><span>Until</span><input type="date" min={addLocalDays(today, 1)} value={pauseUntil} aria-invalid={pauseError ? true : undefined} aria-describedby={pauseError ? `${id}-pause-error` : `${id}-pause-note`} onChange={e => { setPauseUntil(e.target.value); setPauseError(''); }} /></label>
       <button type="button" className="secondary" disabled={!pauseUntil} onClick={pause}>Pause until then</button>
       {pauseError ? <small id={`${id}-pause-error`} className="tasks-field-error" role="alert">{pauseError}</small> : <small id={`${id}-pause-note`} className="tasks-field-note">The times before that day are skipped, not marked done; it comes back on its first day from then.</small>}

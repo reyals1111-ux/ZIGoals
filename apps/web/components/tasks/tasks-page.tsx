@@ -331,7 +331,8 @@ export function TasksPage() {
     // Session AV (1c, q1 #15, fresh-agent review; Things): a deadline shows on its own day too, ahead of time.
     const deadlinesOn = (d: string) => record.tasks.filter(t => !t.doneAt && !t.parentId && t.deadline === d && t.due !== d);
     body = <>{days.map(d => { const items = shown.filter(t => t.due === d), due = deadlinesOn(d), name = d === today ? 'Today' : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false}); if (!items.length && !due.length) return null;
-      return <Fragment key={d}>{items.length ? group(d, name, items) : <div className="tasks-group" data-state={d}><h3>{name}</h3></div>}{due.length > 0 && <p className="fine tasks-deadline-line"><span aria-hidden="true">⚑ </span>Deadline: {due.map((t, i) => <span key={t.id}>{i ? ' · ' : ''}<span dir="auto">{t.title}</span></span>)}</p>}</Fragment>; })}
+      const load = dayLoadWords(viewLoad(items)); /* Session AV lane 2 (q1 #39 Minor; Sunsama): the load of each day */
+      return <Fragment key={d}>{items.length ? group(d, name, items, load ? <small className="fine tasks-day-load">{load}</small> : undefined) : <div className="tasks-group" data-state={d}><h3>{name}</h3></div>}{due.length > 0 && <p className="fine tasks-deadline-line"><span aria-hidden="true">⚑ </span>Deadline: {due.map((t, i) => <span key={t.id}>{i ? ' · ' : ''}<span dir="auto">{t.title}</span></span>)}</p>}</Fragment>; })}
       {group('later', 'Later', shown.filter(t => t.due! > days.at(-1)!))}</>;
   } else if (view.kind === 'inbox' && !query) {
     body = group('inbox', null, shown);

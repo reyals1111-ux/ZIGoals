@@ -162,7 +162,7 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
   };
   return <section className="tasks-matrix-view" aria-labelledby={`${id}-rule`}>
     <p id={`${id}-rule`} className="tasks-when-lede">{ruleWords(rules)}</p>
-    <MatrixRulesFold rules={rules}/>
+    <MatrixRulesFold rules={rules} record={list.tasks.data}/>
     <div className="tasks-matrix" data-dragging={dragging ? '' : undefined}>{QUADRANTS.map(q => {
       const words = QUADRANT_WORDS[q], items = boxes[q], partner = partnerOf(q);
       return <section key={q} className="tasks-matrix-box" data-quadrant={q} data-drop={over === q || undefined} aria-labelledby={`${id}-${q}`}>

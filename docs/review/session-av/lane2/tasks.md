@@ -71,7 +71,9 @@ Tests: lib/tasks/av2-planning.test.ts. Spec: tests/av2-task-planning.spec.ts.
 - #17 "Start early" (1–14 days) in the editor: the task is in Today that many days before its day.
 - #8 comments on a task (text; web links open in a new tab), kept with the task. A photo/voice note on a task: the owner's
   task text says "as text/links on this device"; photos and audio were not built here.
-- #14 several matrices and rules by label: **next row, not yet built** (see "Left").
+- #14 several matrices (save the lines as a named matrix, choose one in one step, up to 10) and rules by label ("Also
+  important / urgent with the label") and one project — in the matrix's "Your own lines" fold (display key `zigoals:matrix-rules`,
+  additive `importantLabels`, `urgentLabels`, `project`, `saved`; older builds read the two lines only). Test: lib/tasks/av2-matrix.test.ts.
 
 Files: lib/tasks/{layouts,templates}.ts, components/tasks/{tasks-plan-views,tasks-organise,tasks-nav,tasks-page,task-editor}.tsx, tasks-plan.css.
 
@@ -105,6 +107,24 @@ env carries them (`env.nova.taskPlan`, `env.nova.taskTemplates` are read when pr
 - Search (lib/search/static.ts, the lead's): "This week", "Table", "Calendar", "Timeline", "Insights", "Areas and templates" → `/app/tasks?view=week|table|days|timeline|insights|organise`.
 - Weight: every new view is a lazy chunk (tasks-plan-views, today-planner inside plan-day, note-reminders, split.ts); the Tasks first chunk gains the nav items, the area choice, the reminder parse wiring and the default-reminder reader only.
 
+## q1 Minors (QUALITY.md "Not fixed", Tasks/planning)
+
+- a daily task goal — built (Feature 2); a load per day — built: each day of Upcoming says its minutes; matrix rules by label — built (#14);
+  a paused-until note — built: a paused repeat says "Paused until …" in its editor with "Resume from …" (interval-1 repeats,
+  where the natural next day is known); the pause date's `min` was already tomorrow.
+- Showcase examples (more finished tasks, a task reminder, the Days until card, a repeating task with subtasks) — left:
+  against a named rule (the Showcase counts pinned by lib/nova/cards and local-answers tests, and Today's ≤ 90 Tab stops,
+  tests/ao/today-tab-stops.spec.ts); reported, not changed.
+- Help wording (q1 #1, #38) — the lead's file (help-page.tsx); the corrected text is in Help above.
+
+## M-9 (owner decision) — built
+
+The goal creator's step 1 has one primary button, "Continue →"; "Create goal" stays beside it as secondary. The name's
+length count shows only from 60 characters: a field may carry `data-count-from` (components/ui/length-counter.tsx
+`countShown`), and the goal name carries 60. Unit: components/ui/av2-length-counter.test.ts. Spec: tests/av2-goal-creator.spec.ts.
+
 ## Left (allowed causes only)
 
-- (none yet carried; next row is #14 several matrices and rules by label, then the q1 Minors, then M-9, then the lead's N11/N12.)
+- Showcase examples above: against a named rule (pinned counts). Writing to an outside calendar (#24) and a live calendar
+  subscription (#13): needs an outside service (as the ledger carries them). Nothing else in groups 1, 2 and 11 is left.
+- Next: the lead's added groups N11 (Goodbudget) and N12 (Kubera), Money.
