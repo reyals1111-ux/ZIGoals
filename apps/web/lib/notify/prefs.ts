@@ -9,7 +9,7 @@ import type {DeviceRecordSpec} from '../device-record';
  * contribution times stay where they always were.
  */
 export const NOTIFY_KEY = 'zigoals:notify:v1';
-export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns'] as const;
+export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns', 'mood'] as const;
 export type NotifyType = (typeof NOTIFY_TYPES)[number];
 const time = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 export const notifyPrefsSchema = z.looseObject({
@@ -18,6 +18,11 @@ export const notifyPrefsSchema = z.looseObject({
   types: z.record(z.string().max(40), z.boolean()).refine(t => Object.keys(t).length <= 40).default({}),
   morning: z.looseObject({time}).optional(),
   evening: z.looseObject({time}).optional(),
+  /**
+   * Session AV lane 2 (habits; LEDGER #180, Daylio's reminders to log; TIER 3 (stored format) and TIER 3 (PWA)): the mood
+   * check-in's time and an optional second one. Optional and loose; an older build keeps it and simply has no mood type.
+   */
+  mood: z.looseObject({time, second: time.optional()}).optional(),
   /** Set while notifications are on on this device: a cheap hint so most pages never load the notification code. */
   here: z.boolean().optional(),
 });
@@ -25,12 +30,19 @@ export type NotifyPrefs = z.infer<typeof notifyPrefsSchema>;
 export const emptyNotifyPrefs = (): NotifyPrefs => ({version: 1, types: {}});
 export const NOTIFY_PREFS: DeviceRecordSpec<NotifyPrefs> = {key: NOTIFY_KEY, schema: notifyPrefsSchema, empty: emptyNotifyPrefs};
 /** On by default: what most people want from a reminder app; the evening wrap-up is opt-in. */
-export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */};
-export const DEFAULT_TIMES = {morning: '08:00', evening: '20:30'} as const;
+export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */, mood: false /* Session AV lane 2 (LEDGER #180): opt-in */};
+export const DEFAULT_TIMES = {morning: '08:00', evening: '20:30', mood: '20:00'} as const;
 export const typeOn = (p: NotifyPrefs, type: NotifyType) => p.types[type] ?? DEFAULT_ON[type];
 export const morningTime = (p: NotifyPrefs) => p.morning?.time ?? DEFAULT_TIMES.morning;
 export const eveningTime = (p: NotifyPrefs) => p.evening?.time ?? DEFAULT_TIMES.evening;
 export const setType = (p: NotifyPrefs, type: NotifyType, on: boolean): NotifyPrefs => notifyPrefsSchema.parse({...p, types: {...p.types, [type]: on}});
+/** Session AV lane 2 (LEDGER #180): the mood check-in's time, and the second one when set. */
+export const moodTimes = (p: NotifyPrefs): string[] => [p.mood?.time ?? DEFAULT_TIMES.mood, ...(p.mood?.second ? [p.mood.second] : [])];
+export function setMoodTimes(p: NotifyPrefs, first: string, second: string | null): NotifyPrefs {
+  const mood: Record<string, unknown> = {...(p.mood ?? {}), time: time.parse(first)};
+  if (second) mood.second = time.parse(second); else delete mood.second;
+  return notifyPrefsSchema.parse({...p, mood});
+}
 export const setTime = (p: NotifyPrefs, which: 'morning' | 'evening', value: string): NotifyPrefs => notifyPrefsSchema.parse({...p, [which]: {time: time.parse(value)}});
 export const NOTIFY_LABELS: Record<NotifyType, {title: string; blurb: string}> = {
   habits: {title: 'Habits due', blurb: 'At each habit’s reminder time, unless it is already done.'},
@@ -44,5 +56,6 @@ export const NOTIFY_LABELS: Record<NotifyType, {title: string; blurb: string}> =
   bills: {title: 'Bills due', blurb: 'The morning before a bill you track is due.'},
   supplements: {title: 'Supplements and medication', blurb: 'At the times you set in Health. The notification never names what you take.'},
   tasks: {title: 'Task reminders', blurb: 'At each reminder you set on a task, with Snooze 1 h; the task’s name only if names are on.'},
+  mood: {title: 'Mood check-in', blurb: 'At your mood time, and a second one if you like, unless you already said how today feels; a tap opens the mood question. It never says a mood.'},
   countdowns: {title: 'Countdown reminders', blurb: 'In the morning when a countdown’s reminder starts, and on its day; its name only if names are on.'},
 };
