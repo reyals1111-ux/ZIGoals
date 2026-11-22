@@ -4346,6 +4346,19 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .planned-list li:not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--line,#969696) 40%, #fff)
+    }
+    .left-month:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line,#969696) 40%, #fff);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#004952) 6%,transparent)
+    }
+    .left-month-parts .left-month-total:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line,#969696) 40%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .zg-chart .zgc-a0:not(#\-):not(#\-) {
         stop-color: color-mix(in srgb, var(--zgc-a0) 40%, #fff)
     }
@@ -5663,6 +5676,9 @@
     .cycle-chip:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
+    .agenda-cycle:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .dashboard-summary-item:not(#\-):not(#\-) {
@@ -6910,6 +6926,9 @@
     }
     .pomodoro-block:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
+    }
+    .pomodoro-note-text:not(#\-):not(#\-) {
+        border-inline-start-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -12051,6 +12070,37 @@
     .journal-import-plan:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
+    .prompt-answers-title:focus:not(#\-):not(#\-) {
+        outline-color: currentcolor
+    }
+    .prompt-answers-title:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan, #45d8ef) 40%, #fff)
+    }
+    .prompt-answers-list li:not(#\-):not(#\-) {
+        box-shadow: inset 2px 0 0 color-mix(in srgb, var(--brand-violet, #826cff80) 55%, transparent)
+    }
+    .compose-grid-cell:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff)
+    }
+    .compose-grid-cell.is-centre:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #9287f9) 70%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #481cb1) 10%, transparent)
+    }
+    .entry-grid > li:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff)
+    }
+    .entry-grid > li.is-centre:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #9287f9) 70%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #481cb1) 10%, transparent)
+    }
+    .journal-letter:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff)
+    }
+    .journal-entry-sealed:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #9287f9) 60%, transparent)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .on-this-day-list li:not(#\-):not(#\-) {
@@ -12087,6 +12137,12 @@
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .today-affirmation-text:not(#\-):not(#\-) {
+        color: var(--text-strong, var(--text))
+    }
+    .today-quote-text:not(#\-):not(#\-) {
+        border-inline-start-color: color-mix(in srgb, var(--brand-violet, #9287f9) 60%, transparent)
+    }
+    .today-quote-text p:not(#\-):not(#\-) {
         color: var(--text-strong, var(--text))
     }
 }
@@ -13211,6 +13267,106 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    @media print {
+        :scope.zg-print-note:not(#\-):not(#\-), :scope.zg-print-note body:not(#\-):not(#\-) {
+            background-image: none !important;
+            background-color: #000000 !important
+        }
+    }
+    @media print {
+        :scope.zg-print-note .note-print-sheet:not(#\-):not(#\-) {
+            color: #dbdbdb;
+            background-image: none;
+            background-color: #000000
+        }
+    }
+    @media print {
+        .note-print-meta:not(#\-):not(#\-) {
+            color: #dbdbdb
+        }
+    }
+    @media print {
+        .note-print-sheet a:not(#\-):not(#\-) {
+            color: #dbdbdb
+        }
+    }
+    @media print {
+        .note-print-sheet .note-hl:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            border-bottom-color: #959595
+        }
+    }
+    @media print {
+        .note-print-sheet th:not(#\-):not(#\-), .note-print-sheet td:not(#\-):not(#\-) {
+            border-color: #999999
+        }
+    }
+    @media print {
+        .note-print-sheet pre:not(#\-):not(#\-) {
+            border-color: #cccccc
+        }
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .canvas-tools:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff)
+    }
+    .canvas-surface:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff);
+        background-color: color-mix(in srgb, var(--text, #000000) 3%, transparent);
+        background-image: radial-gradient(color-mix(in srgb, var(--text, #000000) 14%, transparent) 1px, transparent 1px)
+    }
+    .canvas-plane:focus-visible:not(#\-):not(#\-), .canvas-surface:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, #fff)
+    }
+    .canvas-lines line:not(#\-):not(#\-) {
+        stroke: color-mix(in srgb, var(--text, #e8eefc) 55%, transparent)
+    }
+    .canvas-lines marker path:not(#\-):not(#\-) {
+        fill: color-mix(in srgb, var(--text, #e8eefc) 55%, transparent)
+    }
+    .canvas-lines text:not(#\-):not(#\-) {
+        fill: color-mix(in srgb, var(--text, #e8eefc) 40%, #fff);
+        stroke: color-mix(in srgb, var(--bg, #8d95b2) 40%, #fff)
+    }
+    .canvas-card:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--card-colour, var(--brand-violet, #9287f9)) 55%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--card-colour, var(--brand-violet, #481cb1)) 14%, var(--surface, var(--bg, #000000)));
+        color: color-mix(in srgb, var(--text, inherit) 25%, #fff)
+    }
+    .canvas-card.is-group:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--card-colour, var(--brand-cyan, #094953)) 6%, transparent)
+    }
+    .canvas-card.is-selected:not(#\-):not(#\-) {
+        box-shadow: 0 0 0 2px var(--brand-cyan, #63e7ff80)
+    }
+    .canvas-card:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan, #45d8ef) 40%, #fff)
+    }
+    .canvas-handle:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary, inherit) 25%, #fff)
+    }
+    .canvas-panel:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #9287f9) 45%, transparent)
+    }
+    .canvas-lines-list h3:focus:not(#\-):not(#\-) {
+        outline-color: currentcolor
+    }
+    @media (forced-colors: active) {
+        .canvas-lines line:not(#\-):not(#\-) {
+            stroke: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .canvas-card:not(#\-):not(#\-) {
+            border-color: CanvasText
+        }
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .note-voice-ask:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff)
     }
@@ -13409,6 +13565,48 @@
     .notes-bar > span[data-none]:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--brand-cyan) 45%, transparent)
+    }
+    .note-hl:not(#\-):not(#\-) {
+        color: inherit;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--hl) 34%, transparent);
+        border-bottom-color: color-mix(in srgb, var(--hl) 80%, transparent)
+    }
+    @media (forced-colors: active) {
+        .note-hl:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: MarkText
+        }
+    }
+    .note-hl-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--hl) 30%, #000)
+    }
+    .note-tick-box:not(#\-):not(#\-) {
+        accent-color: color-mix(in srgb, var(--brand-violet, #9287f9) 40%, #fff)
+    }
+    .note-tick[data-ticked] > .note-tick-words:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary, inherit) 25%, #fff)
+    }
+    .note-render :is(h3, h4, h5):focus:not(#\-):not(#\-) {
+        outline-color: currentcolor
+    }
+    .note-render :is(h3, h4, h5):focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan, #45d8ef) 40%, #fff)
+    }
+    .note-props-row:not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .notes-board:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff)
+    }
+    .notes-board-col:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #481cb1) 7%, transparent)
+    }
+    .notes-board-card:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -25677,6 +25875,11 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .task-energy:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .tasks-plan-view h3 small:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
@@ -25858,6 +26061,37 @@
     }
     .tasks-rule-list li:not(#\-):not(#\-), .tasks-field-list li:not(#\-):not(#\-) {
         border-top-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .task-look-field:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .task-look-choice:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff);
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .task-look-choice[data-look-colour]:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--habit-look) 25%, #fff)
+    }
+    .task-look-colours .task-look-choice span:last-child:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .task-look-choice:has(input:checked):not(#\-):not(#\-) {
+        border-color: currentColor
+    }
+    .task-look-choice:has(input:focus-visible):not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--focus, currentColor) 40%, #fff)
+    }
+    .task-look-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--habit-look) 30%, #000)
+    }
+    .tasks-energy-marks:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .agenda-day-tools:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -26989,6 +27223,9 @@
     :scope[data-hide-amounts="on"] .networth-spark:not(#\-):not(#\-) {
         filter: blur(7px)
     }
+    .networth-movers:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .nwm-celebration:not(#\-):not(#\-) {
@@ -27119,6 +27356,27 @@
         .money-insights-vs-last td[data-was]:not(#\-):not(#\-)::after {
             color: var(--text-secondary, var(--muted))
         }
+    }
+    .waterfall-total:not(#\-):not(#\-) {
+        fill: color-mix(in srgb,var(--text,#f0f5ff) 55%,transparent)
+    }
+    .waterfall-up:not(#\-):not(#\-) {
+        fill: color-mix(in srgb, var(--violet,#a698ff) 40%, #fff)
+    }
+    .waterfall-down:not(#\-):not(#\-) {
+        fill: color-mix(in srgb, var(--cyan,#45d8ef) 40%, #fff)
+    }
+    .waterfall-key-total:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--text,#000000) 55%,transparent)
+    }
+    .waterfall-key-up:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet,#47318e) 30%, #000)
+    }
+    .waterfall-key-down:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--cyan,#004952) 30%, #000)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {

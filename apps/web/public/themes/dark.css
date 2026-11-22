@@ -4505,6 +4505,20 @@
         border-bottom-color: var(--line,#25334f)
     }
 }
+/*  components/cash-forecast/planned.css  */
+@scope (:root[data-theme=dark]) {
+    .planned-list li:not(#\-) {
+        border-bottom-color: var(--line,#25334f)
+    }
+    .left-month:not(#\-) {
+        border-color: var(--line,#25334f);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#45d8ef) 6%,transparent)
+    }
+    .left-month-parts .left-month-total:not(#\-) {
+        border-top-color: var(--line,#25334f)
+    }
+}
 /*  components/charts/chart-look.css  */
 @scope (:root[data-theme=dark]) {
     :is(.zg-chart, .zg-legend):not(#\-) {
@@ -5895,6 +5909,9 @@
     .cycle-chip:not(#\-) {
         border-color: var(--line)
     }
+    .agenda-cycle:not(#\-) {
+        border-top-color: var(--line)
+    }
 }
 /*  components/dashboard/dashboard.css  */
 @scope (:root[data-theme=dark]) {
@@ -7198,6 +7215,9 @@
     }
     .pomodoro-block:not(#\-) {
         color: var(--text-secondary, var(--muted))
+    }
+    .pomodoro-note-text:not(#\-) {
+        border-inline-start-color: var(--line)
     }
 }
 /*  components/footer/site-footer.css  */
@@ -12592,6 +12612,37 @@
     .journal-import-plan:not(#\-) {
         border-color: var(--line)
     }
+    .prompt-answers-title:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .prompt-answers-title:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .prompt-answers-list li:not(#\-) {
+        box-shadow: inset 2px 0 0 color-mix(in srgb, var(--brand-violet, #826cff) 55%, transparent)
+    }
+    .compose-grid-cell:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3))
+    }
+    .compose-grid-cell.is-centre:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 70%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 10%, transparent)
+    }
+    .entry-grid > li:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3))
+    }
+    .entry-grid > li.is-centre:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 70%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 10%, transparent)
+    }
+    .journal-letter:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3))
+    }
+    .journal-entry-sealed:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent)
+    }
 }
 /*  components/journal/on-this-day.css  */
 @scope (:root[data-theme=dark]) {
@@ -12631,6 +12682,12 @@
 /*  components/journal/today-affirmation.css  */
 @scope (:root[data-theme=dark]) {
     .today-affirmation-text:not(#\-) {
+        color: var(--text-strong, var(--text))
+    }
+    .today-quote-text:not(#\-) {
+        border-inline-start-color: color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent)
+    }
+    .today-quote-text p:not(#\-) {
         color: var(--text-strong, var(--text))
     }
 }
@@ -13830,6 +13887,116 @@
         background-color: var(--pink)
     }
 }
+/*  components/notes/note-print.css  */
+@scope (:root[data-theme=dark]) {
+    @media print {
+        :scope.zg-print-note:not(#\-), :scope.zg-print-note body:not(#\-) {
+            background-image: none !important;
+            background-color: #fff !important
+        }
+    }
+    @media print {
+        :scope.zg-print-note .note-print-sheet:not(#\-) {
+            color: #000;
+            background-image: none;
+            background-color: #fff
+        }
+    }
+    @media print {
+        .note-print-meta:not(#\-) {
+            color: #333
+        }
+    }
+    @media print {
+        .note-print-sheet a:not(#\-) {
+            color: #000
+        }
+    }
+    @media print {
+        .note-print-sheet .note-hl:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            border-bottom-color: #555
+        }
+    }
+    @media print {
+        .note-print-sheet th:not(#\-), .note-print-sheet td:not(#\-) {
+            border-color: #999
+        }
+    }
+    @media print {
+        .note-print-sheet pre:not(#\-) {
+            border-color: #ccc
+        }
+    }
+}
+/*  components/notes/notes-canvas.css  */
+@scope (:root[data-theme=dark]) {
+    .notes-canvas:not(#\-) {
+        --canvas-1: #e5484d;
+        --canvas-2: #f08c38;
+        --canvas-3: #e2b93b;
+        --canvas-4: #46a758;
+        --canvas-5: #12a5c4;
+        --canvas-6: #8e6cf0
+    }
+    .canvas-tools:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3))
+    }
+    .canvas-surface:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3));
+        background-color: color-mix(in srgb, var(--text, #e8eefc) 3%, transparent);
+        background-image: radial-gradient(color-mix(in srgb, var(--text, #e8eefc) 14%, transparent) 1px, transparent 1px)
+    }
+    .canvas-plane:focus-visible:not(#\-), .canvas-surface:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #63e7ff)
+    }
+    .canvas-lines line:not(#\-) {
+        stroke: color-mix(in srgb, var(--text, #e8eefc) 55%, transparent)
+    }
+    .canvas-lines marker path:not(#\-) {
+        fill: color-mix(in srgb, var(--text, #e8eefc) 55%, transparent)
+    }
+    .canvas-lines text:not(#\-) {
+        fill: var(--text, #e8eefc);
+        stroke: var(--bg, #0b0f24)
+    }
+    .canvas-card:not(#\-) {
+        border-color: color-mix(in srgb, var(--card-colour, var(--brand-violet, #826cff)) 55%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--card-colour, var(--brand-violet, #826cff)) 14%, var(--surface, var(--bg, #0f1116)));
+        color: var(--text, inherit)
+    }
+    .canvas-card.is-group:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--card-colour, var(--brand-cyan, #63e7ff)) 6%, transparent)
+    }
+    .canvas-card.is-selected:not(#\-) {
+        box-shadow: 0 0 0 2px var(--brand-cyan, #63e7ff)
+    }
+    .canvas-card:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .canvas-handle:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .canvas-panel:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent)
+    }
+    .canvas-lines-list h3:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    @media (forced-colors: active) {
+        .canvas-lines line:not(#\-) {
+            stroke: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .canvas-card:not(#\-) {
+            border-color: CanvasText
+        }
+    }
+}
 /*  components/notes/notes.css  */
 @scope (:root[data-theme=dark]) {
     .note-voice-ask:not(#\-) {
@@ -14030,6 +14197,67 @@
     .notes-bar > span[data-none]:not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--brand-cyan) 45%, transparent)
+    }
+    .note-hl:not(#\-) {
+        --hl: #e2b93b;
+        color: inherit;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--hl) 34%, transparent);
+        border-bottom-color: color-mix(in srgb, var(--hl) 80%, transparent)
+    }
+    [data-hl=yellow]:not(#\-) {
+        --hl: #e2b93b
+    }
+    [data-hl=green]:not(#\-) {
+        --hl: #46a758
+    }
+    [data-hl=blue]:not(#\-) {
+        --hl: #3e8bf0
+    }
+    [data-hl=purple]:not(#\-) {
+        --hl: #8e6cf0
+    }
+    [data-hl=red]:not(#\-) {
+        --hl: #e5484d
+    }
+    [data-hl=orange]:not(#\-) {
+        --hl: #f08c38
+    }
+    @media (forced-colors: active) {
+        .note-hl:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: MarkText
+        }
+    }
+    .note-hl-swatch:not(#\-) {
+        background-image: none;
+        background-color: var(--hl)
+    }
+    .note-tick-box:not(#\-) {
+        accent-color: var(--brand-violet, #826cff)
+    }
+    .note-tick[data-ticked] > .note-tick-words:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .note-render :is(h3, h4, h5):focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .note-render :is(h3, h4, h5):focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .note-props-row:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .notes-board:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .notes-board-col:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 7%, transparent)
+    }
+    .notes-board-card:not(#\-) {
+        border-color: var(--line)
     }
 }
 /*  components/notes/this-day-strip.css  */
@@ -27507,6 +27735,12 @@
         color: var(--danger, #e0605a)
     }
 }
+/*  components/tasks/task-row-r3.css  */
+@scope (:root[data-theme=dark]) {
+    .task-energy:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
 /*  components/tasks/tasks-plan.css  */
 @scope (:root[data-theme=dark]) {
     .tasks-plan-view h3 small:not(#\-) {
@@ -27692,6 +27926,38 @@
     }
     .tasks-rule-list li:not(#\-), .tasks-field-list li:not(#\-) {
         border-top-color: var(--line)
+    }
+}
+/*  components/tasks/tasks-r3.css  */
+@scope (:root[data-theme=dark]) {
+    .task-look-field:not(#\-) {
+        border-color: var(--line)
+    }
+    .task-look-choice:not(#\-) {
+        border-color: var(--line);
+        color: var(--text)
+    }
+    .task-look-choice[data-look-colour]:not(#\-) {
+        color: var(--habit-look)
+    }
+    .task-look-colours .task-look-choice span:last-child:not(#\-) {
+        color: var(--text)
+    }
+    .task-look-choice:has(input:checked):not(#\-) {
+        border-color: currentColor
+    }
+    .task-look-choice:has(input:focus-visible):not(#\-) {
+        outline-color: var(--focus, currentColor)
+    }
+    .task-look-swatch:not(#\-) {
+        background-image: none;
+        background-color: var(--habit-look)
+    }
+    .tasks-energy-marks:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .agenda-day-tools:not(#\-) {
+        border-color: var(--line)
     }
 }
 /*  components/tasks/tasks-when.css  */
@@ -28881,6 +29147,9 @@
     :scope[data-hide-amounts="on"] .networth-spark:not(#\-) {
         filter: blur(7px)
     }
+    .networth-movers:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
 }
 /*  components/wealth/networth-milestones.css  */
 @scope (:root[data-theme=dark]) {
@@ -29014,6 +29283,27 @@
         .money-insights-vs-last td[data-was]:not(#\-)::after {
             color: var(--text-secondary, var(--muted))
         }
+    }
+    .waterfall-total:not(#\-) {
+        fill: color-mix(in srgb,var(--text,#f0f5ff) 55%,transparent)
+    }
+    .waterfall-up:not(#\-) {
+        fill: var(--violet,#a698ff)
+    }
+    .waterfall-down:not(#\-) {
+        fill: var(--cyan,#45d8ef)
+    }
+    .waterfall-key-total:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--text,#f0f5ff) 55%,transparent)
+    }
+    .waterfall-key-up:not(#\-) {
+        background-image: none;
+        background-color: var(--violet,#a698ff)
+    }
+    .waterfall-key-down:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan,#45d8ef)
     }
 }
 /*  components/wealth/spending/people-money.css  */

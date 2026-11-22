@@ -1201,6 +1201,22 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .cash-forecast-extra p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .cash-forecast-low-form:not(#\-) { row-gap: 8px; margin-top: 6px; }
 :where(:root[data-density=compact]) .cash-forecast-low-form .field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/cash-forecast/planned.css  */
+:where(:root[data-density=compact]) .planned-costs:not(#\-) { row-gap: 8px; margin-top: 10px; }
+:where(:root[data-density=compact]) .planned-costs h5:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .planned-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .planned-list li:not(#\-) { row-gap: 3px; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .planned-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .planned-form .field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .planned-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .forecast-length:not(#\-) { row-gap: 8px; margin-top: 4px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .left-month:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 8px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .left-month h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .left-month-figure:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .left-month-parts:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .left-month-parts li:not(#\-) { row-gap: 1.5px; }
+:where(:root[data-density=compact]) .left-month-parts .left-month-total:not(#\-) { padding-top: 4px; }
+:where(:root[data-density=compact]) .left-month-items:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/charts/charts.css  */
 :root:where([data-density=compact]) .chart-tip:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
 :root:where([data-density=compact]) .chart-legend:not(#\-) { row-gap: 6px; margin-top: 10px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
@@ -1500,6 +1516,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .cycle-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .cycle-recent ul:not(#\-) { margin-top: 4.5px; margin-bottom: 0; row-gap: 3px; }
 :where(:root[data-density=compact]) .cycle-actions:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .cycle-plan-choice:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .cycle-on-plan-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .agenda-cycle:not(#\-) { margin-top: 12px; margin-bottom: 12px; padding-top: 4px; padding-bottom: 0; }
+:where(:root[data-density=compact]) .agenda-cycle h3:not(#\-) { margin-top: 8px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .cycle-on-plan-list:not(#\-) { margin-top: 0; margin-bottom: 4.5px; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
 /*  components/dashboard/dashboard.css  */
 :where(:root[data-density=compact]) .personalized-today:not(#\-) { row-gap: 1.5rem; }
 :where(:root[data-density=compact]) .personalized-today .today-primary:not(#\-) { row-gap: 1.5rem; }
@@ -1866,6 +1887,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .pomodoro-readout p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .pomodoro-result p:not(#\-) { margin-top: 0; margin-bottom: 6px; }
 :where(:root[data-density=compact]) .focus-modes:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .pomodoro-note:not(#\-) { row-gap: 4px; margin-top: 12px; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .pomodoro-note-kept:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .pomodoro-note-text:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
 /*  components/footer/site-footer.css  */
 :where(:root[data-density=compact]) .site-footer:not(#\-) { margin-top: 64px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .site-footer-inner:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: clamp(60px, 6.4cqw, 132px); padding-bottom: 56px; }
@@ -3417,6 +3441,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .sleep-wind-down-sounds:not(#\-) { row-gap: 8px; margin-top: 10px; padding-top: 12px; }
 :where(:root[data-density=compact]) .sleep-wind-down-sounds p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .sleep-csv-import:not(#\-) { margin-top: 16px; }
+:where(:root[data-density=compact]) .night-dreams:not(#\-) { row-gap: 0; }
 /*  components/health/supplements.css  */
 :where(:root[data-density=compact]) .supplements:not(#\-) { row-gap: 12px; padding-top: 6px; }
 :where(:root[data-density=compact]) .supplements h3:not(#\-), :where(:root[data-density=compact]) .supplements h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3754,6 +3779,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .prompt-picker-form:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .prompt-picker-form-actions:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .prompt-picker-list > li:not(#\-) { row-gap: 1.5px; }
+:where(:root[data-density=compact]) .prompt-picker-more-title:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 /*  components/journal/journal.css  */
 :where(:root[data-density=compact]) .journal-compose:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .journal-energy:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
@@ -3844,6 +3870,24 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .journal-import-plan p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .journal-import-skipped summary:not(#\-) { padding-top: 7.5px; padding-bottom: 7.5px; }
 :where(:root[data-density=compact]) .journal-import-skipped ul:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .prompt-answers:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .prompt-answers-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .prompt-answers-heading h4:not(#\-) { margin-top: 0; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .prompt-answers-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .prompt-answers-list li:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .prompt-answers-words:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .compose-grid:not(#\-) { row-gap: 7.5px; margin-top: 0; margin-bottom: 7.5px; }
+:where(:root[data-density=compact]) .compose-grid-cell:not(#\-) { row-gap: 4.5px; padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .entry-grid:not(#\-) { row-gap: 6px; margin-top: 3px; margin-bottom: 3px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .entry-grid > li:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .entry-grid p:not(#\-) { margin-top: 2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .journal-compose-period:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .journal-calendar-periods:not(#\-) { row-gap: 8px; margin-top: 8px; }
+:where(:root[data-density=compact]) .journal-period-line:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .journal-dream-line:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .journal-letter:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 10px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .journal-letter legend:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .journal-entry-sealed:not(#\-) { margin-top: 3px; margin-bottom: 3px; row-gap: 3px; padding-top: 7.5px; padding-bottom: 7.5px; }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-density=compact]) .on-this-day > summary:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .on-this-day-list:not(#\-) { margin-top: 6px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 9px; }
@@ -3866,6 +3910,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/journal/today-affirmation.css  */
 :where(:root[data-density=compact]) .today-affirmation:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .today-challenge-actions:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .today-quote:not(#\-) { margin-top: 8px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .today-quote-text:not(#\-) { margin-top: 2px; margin-bottom: 2px; }
+:where(:root[data-density=compact]) .today-quote-text p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .today-quote-actions:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .today-letter:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 /*  components/journal/write-it-out.css  */
 :where(:root[data-density=compact]) .write-it-out:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .write-it-out-page:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
@@ -4162,6 +4211,25 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar .app-nav [data-group-start]:not(#\-) { margin-top: 18px; } }
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar:not(#\-) { padding-top: 16px; } }
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar .app-nav:not(#\-) { margin-top: 12px; row-gap: 0; } }
+/*  components/notes/note-print.css  */
+@media print { :where(:root[data-density=compact]) .note-print-sheet h1:not(#\-) { margin-top: 0; margin-bottom: 4pt; } }
+@media print { :where(:root[data-density=compact]) .note-print-meta:not(#\-) { margin-top: 0; margin-bottom: 12pt; } }
+@media print { :where(:root[data-density=compact]) .note-print-sheet h3:not(#\-), :where(:root[data-density=compact]) .note-print-sheet h4:not(#\-), :where(:root[data-density=compact]) .note-print-sheet h5:not(#\-) { margin-top: 12pt; margin-bottom: 4pt; } }
+@media print { :where(:root[data-density=compact]) .note-print-sheet .note-tick-box:not(#\-) { margin-top: 2pt; margin-bottom: 0; } }
+@media print { :where(:root[data-density=compact]) .note-print-sheet .note-tick-words:not(#\-) { padding-top: 0; padding-bottom: 0; } }
+@media print { :where(:root[data-density=compact]) .note-print-sheet th:not(#\-), :where(:root[data-density=compact]) .note-print-sheet td:not(#\-) { padding-top: 3pt; padding-bottom: 3pt; } }
+@media print { :where(:root[data-density=compact]) .note-print-sheet pre:not(#\-) { padding-top: 6pt; padding-bottom: 6pt; } }
+@media print { :where(:root[data-density=compact]) .note-print-photo:not(#\-) { margin-top: 12pt; } }
+/*  components/notes/notes-canvas.css  */
+:where(:root[data-density=compact]) .notes-canvas:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .canvas-row:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .canvas-tools:not(#\-) { row-gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .canvas-card:not(#\-) { row-gap: 3px; padding-top: 4.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .canvas-card-text:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .canvas-panel:not(#\-) { row-gap: 7.5px; padding-top: 9px; padding-bottom: 9px; }
+:where(:root[data-density=compact]) .canvas-panel h3:not(#\-), :where(:root[data-density=compact]) .canvas-lines-list h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .canvas-lines-list ul:not(#\-) { margin-top: 4.5px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .canvas-lines-list li:not(#\-) { row-gap: 3px; }
 /*  components/notes/notes.css  */
 :where(:root[data-density=compact]) .notes-workspace:not(#\-) { row-gap: 16px; }
 :where(:root[data-density=compact]) .notes-privacy:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -4267,6 +4335,29 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .notes-chart h3:not(#\-) { margin-top: 0; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .notes-bars:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .notes-bars li:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .note-hl:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-tick:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .note-tick-box:not(#\-) { margin-top: 11px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-tick-words:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .note-marks:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-marks-hl:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .notes-ticks-groups:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 10px; }
+:where(:root[data-density=compact]) .notes-ticks-note:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .note-outline details > summary:not(#\-) { padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .note-outline ol:not(#\-) { margin-top: 0; margin-bottom: 6px; padding-top: 0; padding-bottom: 0; row-gap: 0; }
+:where(:root[data-density=compact]) .note-props:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .note-props-list:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .note-props-row:not(#\-) { row-gap: 3px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .note-props-row dd:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .note-props-add:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .notes-filters:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 10px; }
+:where(:root[data-density=compact]) .notes-filter:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .notes-board-pick:not(#\-) { row-gap: 8px; margin-bottom: 10px; }
+:where(:root[data-density=compact]) .notes-board:not(#\-) { row-gap: 12px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .notes-board-col:not(#\-) { row-gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .notes-board-col h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .notes-board-col ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .notes-board-card:not(#\-) { row-gap: 3px; padding-top: 7.5px; padding-bottom: 7.5px; }
 /*  components/notes/this-day-strip.css  */
 :where(:root[data-density=compact]) .note-this-day:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .note-this-day-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -7521,6 +7612,16 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .tasks-rule-list li:not(#\-), :where(:root[data-density=compact]) .tasks-field-list li:not(#\-) { row-gap: 3px; padding-top: 3px; padding-bottom: 3px; }
 :where(:root[data-density=compact]) .tasks-rule-form:not(#\-), :where(:root[data-density=compact]) .tasks-field-form:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .tasks-rule-form .tasks-field-error:not(#\-), :where(:root[data-density=compact]) .tasks-field-form .tasks-field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/tasks/tasks-r3.css  */
+:where(:root[data-density=compact]) .task-look-field:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 10px; row-gap: 8px; }
+:where(:root[data-density=compact]) .task-look-field legend:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .task-look-offer:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .task-look-glyphs:not(#\-), :where(:root[data-density=compact]) .task-look-colours:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .task-look-choice:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-energy-line:not(#\-) { margin-top: 4px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .tasks-energy-marks:not(#\-) { margin-top: 0; margin-bottom: 8px; padding-top: 0; padding-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .agenda-day-tools:not(#\-) { margin-top: 12px; margin-bottom: 12px; padding-top: 0; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .agenda-day-tools-row:not(#\-) { row-gap: 6px; margin-top: 6px; margin-bottom: 6px; }
 /*  components/tasks/tasks-when.css  */
 :where(:root[data-density=compact]) .tasks-when:not(#\-), :where(:root[data-density=compact]) .tasks-matrix-view:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .tasks-when-lede:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -7698,6 +7799,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .timeline-block:not(#\-) { padding-top: 8px; padding-bottom: 8px; } }
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .timeline-block:not(#\-) { row-gap: 8px; } }
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .today-timeline-card:not(#\-) { row-gap: 3px; padding-top: 9px; padding-bottom: 9px; } }
+:where(:root[data-density=compact]) .timeline-day-picker:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 16px; }
 /*  components/today-orbits/today-orbits.css  */
 :where(:root[data-density=compact]) .today-orbits:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .today-orbits-head:not(#\-) { row-gap: 4px; }
@@ -8073,6 +8175,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .networth-series-missing:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .networth-days caption:not(#\-) { padding-bottom: 6px; }
 :where(:root[data-density=compact]) .networth-days th:not(#\-), :where(:root[data-density=compact]) .networth-days td:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .networth-movers:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 12px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .networth-movers h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .networth-movers p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .networth-movers-list:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 3px; }
 /*  components/wealth/networth-milestones.css  */
 :where(:root[data-density=compact]) .nwm:not(#\-) { row-gap: 10px; margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .nwm-celebration:not(#\-) { row-gap: 12px; padding-top: 14px; padding-bottom: 14px; }
@@ -8122,6 +8228,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .money-flow-wrap:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .money-flow-labels:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .money-flow-name:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .needs-wants-grid:not(#\-) { row-gap: 6px; }
 /*  components/wealth/spending/people-money.css  */
 :where(:root[data-density=compact]) .people-share-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
 :where(:root[data-density=compact]) .people-share-list li:not(#\-), :where(:root[data-density=compact]) .people-share-row:not(#\-) { row-gap: 6px; }
