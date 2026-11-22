@@ -29,3 +29,26 @@ export function workoutMonth(w: Workouts, month: string, today: string): Workout
   }
   return {month, weeks, weekdays: weeks[0]!.map(d => formatWeekday(d.date)), days: byDay.size, sessions: [...byDay.values()].reduce((n, v) => n + v.length, 0)};
 }
+
+/**
+ * Session AV lane 2 (body; LEDGER #118, Hevy's yearly calendar and consistency streak): a calendar year as its twelve
+ * months (each laid out as `workoutMonth` does), with the days trained in the year, and the streak of weeks in a row with
+ * at least one finished workout — this week counts once it has one, and a week not over yet never breaks the streak —
+ * with the longest such run. From the person's own log. Pure.
+ */
+export type WorkoutYear = {year: number; months: WorkoutMonth[]; days: number; sessions: number};
+export function workoutYear(w: Workouts, year: number, today: string): WorkoutYear {
+  const months = Array.from({length: 12}, (_, i) => workoutMonth(w, `${year}-${pad(i + 1)}`, today));
+  return {year, months, days: months.reduce((n, m) => n + m.days, 0), sessions: months.reduce((n, m) => n + m.sessions, 0)};
+}
+const mondayOf = (d: string) => addLocalDays(d, -((new Date(`${d}T12:00:00Z`).getUTCDay() + 6) % 7));
+export type WeekStreak = {current: number; best: number; thisWeek: boolean};
+export function weekStreak(w: Workouts, today: string): WeekStreak {
+  const weeks = new Set(finished(w).filter(x => x.date <= today).map(x => mondayOf(x.date))), now = mondayOf(today), thisWeek = weeks.has(now);
+  let current = 0;
+  for (let at = thisWeek ? now : addLocalDays(now, -7); weeks.has(at); at = addLocalDays(at, -7)) current++;
+  const sorted = [...weeks].sort();
+  let best = 0, run = 0, prev = '';
+  for (const k of sorted) { run = prev && addLocalDays(prev, 7) === k ? run + 1 : 1; best = Math.max(best, run); prev = k; }
+  return {current, best, thisWeek};
+}

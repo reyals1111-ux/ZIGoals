@@ -7,6 +7,7 @@ import {routineGroups} from '../../workouts/routines';
 import {targetFor} from '../../workouts/progression';
 import {monthFigures, muscleWeeks, previousMonth} from '../../workouts/analytics';
 import {categoryLookup} from '../../workouts/depth';
+import {weekStreak, workoutYear} from '../../workouts/calendar';
 import type {Workouts} from '../../workouts/schema';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
@@ -187,4 +188,25 @@ function setsPerMuscle(a: Asked): LocalReply | null {
   return answer(say(lang, `Working sets per muscle group, this week / the last 8 weeks: ${rows.map(r => `${name(r.muscle)} ${r.sets[k]} / ${r.total}`).join(', ')}. Warm-ups are left out.`, `Werksets per spiergroep, deze week / de afgelopen 8 weken: ${rows.map(r => `${name(r.muscle)} ${r.sets[k]} / ${r.total}`).join(', ')}. Warming-ups tellen niet mee.`), CALLS);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle];
+// ── The calendar (LEDGER #118) ─────────────────────────────────────────────────────────────────────────────────────
+
+/** "how many weeks in a row have I trained", "hoeveel weken op rij heb ik getraind": the week streak and the longest. */
+function trainingStreak(a: Asked): LocalReply | null {
+  const en = /\bweeks? in a row\b.*\b(?:train|trained|workout|worked out|work out|exercis|gym)|\b(?:workout|training|gym) streak\b/.test(a.f), nl = /\bweken op rij\b.*\b(?:getraind|train|workout|gesport|sport)|\b(?:workout|trainings|sport)reeks\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const s = weekStreak(logOf(a), a.env.healthDay), lang = a.lang;
+  if (!s.current) return answer(say(lang, `No week in a row yet: a workout this week starts one.${s.best ? ` Your longest run was ${s.best} weeks.` : ''}`, `Nog geen week op rij: een workout deze week begint er een.${s.best ? ` Je langste reeks was ${s.best} weken.` : ''}`), CALLS);
+  return answer(say(lang, `${s.current} ${s.current === 1 ? 'week' : 'weeks'} in a row with at least one workout${s.thisWeek ? ', this week included' : ' (this week has none yet, so it still counts)'}; your longest run is ${s.best} weeks. Health → Workouts → Calendar shows the month and the year.`,
+    `${s.current} ${s.current === 1 ? 'week' : 'weken'} op rij met minstens één workout${s.thisWeek ? ', deze week meegeteld' : ' (deze week nog geen, dus hij telt nog)'}; je langste reeks is ${s.best} weken. Health → Workouts → Calendar toont de maand en het jaar.`), CALLS);
+}
+/** "how many days did I train this year", "hoeveel dagen heb ik dit jaar getraind": the year view's count. */
+function trainingDaysYear(a: Asked): LocalReply | null {
+  const en = /\bhow many days\b.*\b(?:train|trained|work out|worked out|exercised|gym)\b.*\b(?:this|last) year\b/.test(a.f), nl = /\bhoeveel dagen\b.*\b(?:getraind|gesport|workout)\b/.test(a.f) && /\b(?:dit|vorig) jaar\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, year = Number(a.env.healthDay.slice(0, 4)) - (/\blast year\b|\bvorig jaar\b/.test(a.f) ? 1 : 0), y = workoutYear(logOf(a), year, a.env.healthDay);
+  return answer(say(lang, `${y.days} ${y.days === 1 ? 'day' : 'days'} with a workout in ${year}${y.sessions > y.days ? ` (${y.sessions} workouts)` : ''}. Health → Workouts → Calendar → Year shows each one.`, `${y.days} ${y.days === 1 ? 'dag' : 'dagen'} met een workout in ${year}${y.sessions > y.days ? ` (${y.sessions} workouts)` : ''}. Health → Workouts → Calendar → Year toont ze.`), CALLS);
+}
+
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear];

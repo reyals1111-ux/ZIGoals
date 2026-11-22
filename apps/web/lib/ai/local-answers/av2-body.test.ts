@@ -57,6 +57,16 @@ describe('progression (LEDGER #109)', () => {
   });
 });
 
+describe('the calendar (LEDGER #118)', () => {
+  test('the Showcase\'s weeks in a row and its days this year', () => {
+    // The Showcase trains on days −13 … −1 before 17 Nov: the weeks of 2 Nov, 9 Nov and 16 Nov.
+    expect(text(ask('how many weeks in a row have I trained'))).toContain('3 weeks in a row with at least one workout, this week included');
+    expect(text(ask('hoeveel weken op rij heb ik getraind'))).toContain('3 weken op rij');
+    expect(text(ask('how many days did I train this year'))).toMatch(/^\d+ days with a workout in 2026/);
+    expect(text(ask('what is my workout streak', freshAll()))).toContain('No week in a row yet');
+  });
+});
+
 describe('progress analytics (LEDGER #117)', () => {
   test('the month beside the month before, in English and Dutch', () => {
     const en = text(ask('how did my training go this month'));

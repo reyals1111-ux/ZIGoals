@@ -126,3 +126,22 @@ test `apps/web/lib/workouts/av2-stored.test.ts`.
 - Answers: "how did my training go this month" / "hoe ging mijn training deze maand", "show my sets per muscle group" /
   "laat mijn sets per spiergroep zien". (Never "how many workouts this month": the corpus's `workouts-month` keeps it.)
 - Showcase: the Showcase's two weeks of training fill the report and the table (no new records).
+
+## 5. The year calendar and the week streak — LEDGER #118 built
+
+- What: Health → Workouts → Calendar has "Month" (as before) and "Year": the twelve months of a year as small grids
+  (Monday first), each day trained a filled square, today ringed, each month's days trained beside its name, earlier
+  years by the arrows; every cell is named for a screen reader ("Mon, Nov 2: Fictional push"). Above both: the week
+  streak — weeks in a row with at least one workout (an open week never breaks it) and the longest run.
+- Files: `lib/workouts/calendar.ts` (`workoutYear`, `weekStreak`), `components/health/workouts/workout-calendar.tsx`
+  (the view switch and the streak line; the month view unchanged), `components/health/workouts/workout-year.tsx` (its own
+  chunk), `components/health/workouts/av2-body.css`, `components/health/workouts/workouts.css`.
+- Tests: `lib/workouts/av2-calendar-year.test.ts`, `lib/ai/local-answers/av2-body.test.ts`; spec `tests/av2-workout-year.spec.ts`
+  (`tests/av-workout-calendar.spec.ts` still holds: the month view and its texts are as they were).
+- Stored: nothing.
+- Help (EN): **Can I see a whole year of workouts?** Yes: in Health → Workouts, open Calendar and choose "Year". Each day
+  you trained is filled in, month by month. Above it, "weeks in a row" counts the weeks with at least one workout; a week
+  that is not over yet never breaks it.
+- What's new: "Workouts: a year calendar and your weeks in a row."
+- Answers: "how many weeks in a row have I trained" / "hoeveel weken op rij heb ik getraind", "how many days did I train
+  this year" / "hoeveel dagen heb ik dit jaar getraind".

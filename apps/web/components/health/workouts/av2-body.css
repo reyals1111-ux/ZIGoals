@@ -55,3 +55,17 @@
 .av2-heat td[data-zero] { color: var(--text-secondary, #c9d6ea); }
 :root[data-theme=light] .av2-heat td { background: color-mix(in srgb, #0b6f84 calc(var(--heat, 0) * 45%), transparent); }
 @media (forced-colors: active) { .av2-heat td { forced-color-adjust: auto; } }
+/* The year calendar (LEDGER #118). */
+.av2-year { display: grid; gap: 8px; }
+.av2-year-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.av2-year-month { border-collapse: separate; border-spacing: 2px; }
+.av2-year-month caption { text-align: start; font-size: 14px; padding-bottom: 2px; display: flex; gap: 6px; justify-content: space-between; }
+.av2-year-month caption span { color: var(--text-secondary, #c9d6ea); }
+.av2-year-month th { padding: 0; height: 0; }
+.av2-year-month td { width: 16px; height: 16px; padding: 0; border-radius: 4px; background: color-mix(in srgb, var(--text-secondary, #c9d6ea) 14%, transparent); }
+.av2-year-month td.is-out { background: none; }
+.av2-year-month td.is-trained, .av2-year-key.is-trained { background: var(--success, #47d6a1); }
+.av2-year-month td.is-today { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: -1px; }
+.av2-year-key { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: middle; }
+:root[data-theme=light] .av2-year-month td.is-trained, :root[data-theme=light] .av2-year-key.is-trained { background: #16865c; }
+@media (forced-colors: active) { .av2-year-month td.is-trained, .av2-year-key.is-trained { background: CanvasText; } }
