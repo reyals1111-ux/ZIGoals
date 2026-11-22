@@ -61,8 +61,11 @@ export function indexMedia(...sets: readonly MediaRecords[]): Index {
       }
     }
     for (const n of list(r.notes, 'notes')) {
-      const id = str(n.photoId), safe = id?.replace(/[^A-Za-z0-9_-]/g, '');
-      if (id && safe) for (const type of IMAGE_TYPES) add(`notes/photos/${safe}.${type === 'image/webp' ? 'webp' : 'jpg'}`, {store: 'notes', id, type, kind: 'photo', cap: NOTE_PHOTO_MAX_BYTES});
+      // Round 4 (r4-notes #307): a note's first photo (`photoId`) and the others (`photos`) come back alike.
+      for (const raw of [n.photoId, ...(Array.isArray(n.photos) ? n.photos : [])]) {
+        const id = str(raw), safe = id?.replace(/[^A-Za-z0-9_-]/g, '');
+        if (id && safe) for (const type of IMAGE_TYPES) add(`notes/photos/${safe}.${type === 'image/webp' ? 'webp' : 'jpg'}`, {store: 'notes', id, type, kind: 'photo', cap: NOTE_PHOTO_MAX_BYTES});
+      }
     }
     for (const e of [...list(r.moneyLog, 'entries'), ...list(r.moneyLogBusiness, 'entries')]) {
       const id = str(e.id), date = str(e.date) ?? undefined;

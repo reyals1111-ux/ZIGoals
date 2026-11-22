@@ -60,7 +60,7 @@ export function outgoing(note: Pick<Note, 'body'>, index: LinkIndex): {targets: 
 }
 /** The notes that link to a note, a goal or a habit (newest change first; never the note itself). */
 export function backlinks(notes: readonly Note[], target: Pick<LinkTarget, 'kind' | 'id'>, index: LinkIndex): Note[] {
-  return notes.filter(n => !(target.kind === 'note' && n.id === target.id) && parseLinks(n.body).some(l => { const t = resolveLink(index, l.target); return !!t && same(t, target); }))
+  return notes.filter(n => !n.locked && !(target.kind === 'note' && n.id === target.id) && parseLinks(n.body).some(l => { const t = resolveLink(index, l.target); return !!t && same(t, target); }))
     .sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt));
 }
 /** One line around the first link to the target, for a backlink list (at most ~140 characters). */

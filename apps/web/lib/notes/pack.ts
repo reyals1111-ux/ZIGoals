@@ -11,7 +11,7 @@ import {noteName, type Note} from './schema';
 export type NotesPackOptions = {budget?: number; perNote?: number; question?: string; includeInbox?: boolean};
 export function notesPackLines(notes: readonly Note[], {budget = 4000, perNote = 400, question = '', includeInbox = false}: NotesPackOptions = {}): {lines: string[]; included: number; total: number} {
   const words = question.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w => w.length > 2);
-  const pool = notes.filter(n => includeInbox || n.kind !== 'inbox');
+  const pool = notes.filter(n => (includeInbox || n.kind !== 'inbox') && !n.locked); // Session AV lane 2 (r4-notes; LEDGER #318): never a locked note
   const rel = (n: Note) => { const text = `${noteName(n)} ${n.body}`.toLowerCase(); return words.reduce((s, w) => s + (text.includes(w) ? 1 : 0), 0); };
   const ranked = [...pool].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || rel(b) - rel(a) || (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt));
   const lines: string[] = [];

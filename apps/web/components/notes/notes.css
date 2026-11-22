@@ -288,3 +288,82 @@ label.note-tick-words { cursor: pointer; }
 .notes-board-card a { min-height: 44px; display: inline-flex; align-items: center; overflow-wrap: anywhere; font-weight: 650; }
 .notes-board-card select { min-height: 44px; font-size: 15px; max-width: 100%; }
 @media (max-width: 560px) { .notes-board { grid-auto-flow: row; grid-auto-columns: auto; overflow-x: visible; } }
+
+/* Session AV lane 2 (r4-notes; LEDGER #306, Bear's tags): #tags in the words (inline, so their target is the line, as a
+   link's is), the note's own Tags line, the nested tag list and the focus line. */
+.note-tag { display: inline; padding: 0 4px; margin: 0; border: 0; border-radius: 6px; font: inherit; color: inherit; background: color-mix(in srgb, var(--brand-cyan, #63e7ff) 16%, transparent); text-decoration: none; overflow-wrap: anywhere; }
+button.note-tag { cursor: pointer; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 3px; }
+button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
+.note-tag-line { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin: 4px 0 8px; font-size: 15px; }
+.note-tag-line .note-tag { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+.note-tag-tree { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 2px; }
+.note-tag-tree li[data-depth="1"] { padding-inline-start: 20px; }
+.note-tag-tree li[data-depth="2"] { padding-inline-start: 40px; }
+.note-tag-tree li[data-depth="3"], .note-tag-tree li[data-depth="4"] { padding-inline-start: 60px; }
+.note-tag-pick { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; min-height: 44px; max-width: 100%; padding: 0 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); background: transparent; color: inherit; font: inherit; font-size: 15px; text-align: start; overflow-wrap: anywhere; cursor: pointer; }
+.note-tag-pick[aria-pressed="true"] { border-color: color-mix(in srgb, var(--brand-violet, #826cff) 75%, transparent); background: color-mix(in srgb, var(--brand-violet, #826cff) 18%, transparent); }
+.note-focus-line { margin: 0 0 8px; padding: 8px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent); font-size: 15px; overflow-wrap: anywhere; }
+.note-focus-line .text-link { min-height: 44px; }
+.note-tags-field input { width: 100%; box-sizing: border-box; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #307): photos placed in a note's words, and the list of a note's photos. */
+.note-photo-figure { margin: 12px 0; }
+.note-photo-figure .note-photo { display: block; }
+.note-photo-missing { margin: 8px 0; }
+.note-photo-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; }
+.note-photo-list li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: space-between; }
+.note-photo-list button { min-height: 44px; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #311): the note's info. */
+.note-info { display: grid; gap: 4px; margin: 0 0 8px; font-size: 15px; }
+.note-info > div { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.note-info dt { font-weight: 600; min-inline-size: 8.5rem; }
+.note-info dd { margin: 0; overflow-wrap: anywhere; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #312): find and replace in a note. */
+.note-find { display: grid; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent); }
+.note-find-title { margin: 0; font-size: 16px; }
+.note-find-row { display: grid; gap: 6px; }
+.note-find-row .field input { inline-size: 100%; box-sizing: border-box; }
+.note-find-count, .note-find-context { margin: 0; overflow-wrap: anywhere; }
+.note-find-context mark { color: inherit; background: color-mix(in srgb, var(--brand-cyan, #63e7ff) 34%, transparent); border-radius: 3px; padding: 0 2px; }
+.note-find .switch-row { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #313): folding a note's sections while reading. No motion. */
+.note-fold-all { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 4px; }
+.note-fold-all > button { min-height: 44px; }
+.note-fold-head { display: flex; align-items: center; gap: 4px 6px; flex-wrap: wrap; }
+.note-fold-head > h3, .note-fold-head > h4, .note-fold-head > h5 { margin-block: 8px; flex: 1 1 auto; min-inline-size: 0; overflow-wrap: anywhere; }
+.note-fold-toggle { display: inline-grid; place-items: center; min-inline-size: 44px; min-block-size: 44px; margin-inline-start: -10px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: inherit; font: inherit; font-size: 16px; cursor: pointer; }
+.note-fold-toggle:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.note-fold-toggle:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
+.note-folded-count { flex-basis: 100%; margin: -6px 0 6px 38px; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #314): callouts — five calm boxes, each with its word; colour only underlines it. */
+.note-callout { --co: var(--brand-cyan, #63e7ff); margin: 12px 0; padding: 10px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--co) 40%, transparent); border-inline-start: 4px solid var(--co); background: color-mix(in srgb, var(--co) 9%, transparent); overflow-wrap: anywhere; }
+.note-callout[data-callout="tip"] { --co: #4fbf7a; }
+.note-callout[data-callout="important"] { --co: var(--brand-violet, #826cff); }
+.note-callout[data-callout="warning"] { --co: #d9a53a; }
+.note-callout[data-callout="caution"] { --co: #e0706b; }
+.note-callout > p { margin: 4px 0; }
+.note-callout-head { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.note-callout-icon { inline-size: 1.25em; text-align: center; }
+@media (forced-colors: active) { .note-callout { border-color: CanvasText; } }
+
+/* Session AV lane 2 (r4-notes; LEDGER #315): an archived note says so, with the way back. */
+.note-archived-line { margin: 0 0 8px; padding: 8px 12px; border-radius: 12px; border: 1px dashed color-mix(in srgb, currentColor 35%, transparent); font-size: 15px; overflow-wrap: anywhere; }
+.note-archived-line .text-link, .note-archived-fold .text-link { min-height: 44px; }
+.note-archived-fold .note-list li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #318): a locked note's cover. */
+.note-lock { display: grid; gap: 8px; padding: 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent); }
+.note-lock-title { margin: 0; font-size: 17px; }
+.note-lock-form { display: grid; gap: 8px; max-inline-size: 22rem; }
+.note-lock-form input { inline-size: 100%; box-sizing: border-box; }
+.note-lock-form button, .note-lock > button { min-height: 44px; justify-self: start; }
+.note-editor:focus { outline: none; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #319): Save this note as… */
+.note-save { display: grid; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent); }
+.note-save-title { margin: 0; font-size: 16px; }
+.note-save p { margin: 0; }

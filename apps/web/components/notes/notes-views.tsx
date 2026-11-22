@@ -1,4 +1,5 @@
 'use client';
+import {snippetOf} from '../../lib/notes/lock';
 import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
 import type {Note, Notes} from '../../lib/notes/schema';
@@ -113,7 +114,7 @@ export function NotesGallery({notes}: {notes: readonly Note[]}) {
   return <ul className="notes-gallery" aria-label="Notes as a gallery">{notes.map(n => { const r = rows.get(n.id)!; return <li key={n.id} className="notes-card">
     {n.photoId && <Thumb note={n}/>}
     <Link className="notes-card-link" href={noteHref(n.id)}><strong>{r.name}</strong></Link>
-    <p className="fine notes-card-text">{n.body.replace(/\(SHOWCASE DATA\)/g, '').replace(/\s+/g, ' ').trim().slice(0, 140) || 'No words yet.'}</p>
+    <p className="fine notes-card-text">{snippetOf({...n, body: n.body.replace(/\(SHOWCASE DATA\)/g, '').trim()}, 140) || 'No words yet.'}</p>
     <p className="fine">{[r.tags.map(t => `#${t}`).join(' '), `${formatNumber(r.words)} words`, `changed ${formatDate(r.changed, {year: false})}`].filter(Boolean).join(' · ')}{n.example ? ' · example' : ''}</p>
   </li>; })}</ul>;
 }
@@ -126,7 +127,7 @@ export function NotesChart({notes, today}: {notes: readonly Note[]; today: strin
         <span className="notes-bar-label">{t.tag ? `#${t.tag}` : 'No tag'}</span>
         <span className="notes-bar" aria-hidden="true"><span style={{width: `${(t.count / top) * 100}%`}} data-none={t.tag ? undefined : ''}/></span>
         <span className="notes-bar-value">{t.count === 1 ? '1 note' : `${formatNumber(t.count)} notes`}</span>
-      </li>)}</ul> : <p className="fine">No note has a tag yet. A note imported with tags in its front matter (Files → Import), or a Showcase note, shows here.</p>}
+      </li>)}</ul> : <p className="fine">No note has a tag yet. Write a #tag in a note, or type it in the note’s Tags field (a / nests one: #work/meetings).</p>}
     </section>
     <section aria-labelledby="notes-chart-weeks"><h3 id="notes-chart-weeks">Written or changed, per week</h3>
       <ul className="notes-bars">{weeks.map(w => <li key={w.start}>

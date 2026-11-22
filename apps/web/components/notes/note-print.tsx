@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useState} from 'react';
 import {createPortal} from 'react-dom';
-import type {Note} from '../../lib/notes/schema';
+import {notePhotoIdsOf, type Note} from '../../lib/notes/schema';
 import type {LinkIndex} from '../../lib/notes/links';
 import {getNotePhoto} from '../../lib/notes/photos';
 import {photoScope} from '../../lib/health-aa/photos';
@@ -39,7 +39,7 @@ export default function NotePrint({note, heading, index, onDone}: {note: Note; h
   return createPortal(<section className="note-print-sheet" aria-label={`${heading}, as printed`}>
     <h1>{heading}</h1>
     <p className="note-print-meta">{meta}{note.tags?.length ? ` · ${note.tags.map(t => `#${t}`).join(' ')}` : ''} · ZIGoals</p>
-    <NoteRender text={note.body.replace(/\n*\(SHOWCASE DATA\)\s*$/, '\n\n(Showcase example)')} index={index}/>
+    <NoteRender text={note.body.replace(/\n*\(SHOWCASE DATA\)\s*$/, '\n\n(Showcase example)')} index={index} photos={notePhotoIdsOf(note)}/>
     {/* eslint-disable-next-line @next/next/no-img-element -- a local blob of the person's own photo */}
     {photo && <img className="note-print-photo" src={photo} alt={`Your photo with “${heading}”`}/>}
   </section>, document.body);

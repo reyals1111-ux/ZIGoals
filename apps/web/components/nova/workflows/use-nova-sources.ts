@@ -1,4 +1,5 @@
 'use client';
+import {withoutLocked} from '../../../lib/notes/lock';
 import {useMemo} from 'react';
 import {toolEnv} from '../../../lib/ai/tools/env';
 import {scopedEnv, type BriefScopes} from '../../../lib/nova/briefs';
@@ -30,7 +31,7 @@ export function useNovaSources(): NovaSources {
     const base = {scopes, healthShared: scopes.health, connected};
     const sources = settings.loaded ? toolSources() : null;
     if (!sources) return {...base, ready: settings.loaded && ready, local: null, send: null};
-    const extra = {focus: focus.loaded && !focus.unreadable ? focus.data : null, tasks: tasks.loaded && !tasks.unreadable ? tasks.data : null, notes: scopes.notes && notes.loaded && !notes.unreadable ? notes.data : null};
+    const extra = {focus: focus.loaded && !focus.unreadable ? focus.data : null, tasks: tasks.loaded && !tasks.unreadable ? tasks.data : null, notes: scopes.notes && notes.loaded && !notes.unreadable ? withoutLocked(notes.data) : null}; // Session AV lane 2 (r4-notes; LEDGER #318): never a locked note
     const local = {env: scopedEnv(toolEnv(sources, gates, 'local'), scopes), scopes, ...extra};
     const send = connected ? {env: scopedEnv(toolEnv(sources, gates, 'provider'), scopes), scopes, ...extra} : null;
     return {...base, ready: ready && focus.loaded && tasks.loaded && notes.loaded && setup.loaded, local, send};

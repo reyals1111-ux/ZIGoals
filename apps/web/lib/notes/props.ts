@@ -8,7 +8,7 @@ import {updateNote, type NotesUndo} from './store';
  * (lib/notes/markdown.ts). Pure.
  */
 export const PROP_WORDS: Record<PropType, string> = {text: 'Text', number: 'Number', date: 'Day', choice: 'Choice', tick: 'Tick'};
-export const RESERVED_KEYS = new Set(['title', 'zigoals-id', 'type', 'day', 'created', 'updated', 'tags', 'source', 'photo', 'example', 'aliases', 'cssclasses', 'zigoals-stub', 'zigoals-props', 'date']);
+export const RESERVED_KEYS = new Set(['title', 'zigoals-id', 'type', 'day', 'created', 'updated', 'tags', 'source', 'photo', 'example', 'aliases', 'cssclasses', 'zigoals-stub', 'zigoals-props', 'date', 'photos', 'archived']); // Session AV lane 2 (r4-notes; LEDGER #307, #315): ZIGoals' own keys
 export const propsOf = (note: Pick<Note, 'props'>): NoteProp[] => note.props ?? [];
 export const propOf = (note: Pick<Note, 'props'>, name: string) => propsOf(note).find(p => p.k.toLowerCase() === name.trim().toLowerCase()) ?? null;
 /** A property's name: trimmed, single spaces, within bounds; null when it cannot be one. */

@@ -2,7 +2,8 @@ import {readDeviceRecord, type DeviceRecordSpec} from '../../device-record';
 import {TASKS} from '../../tasks/schema';
 import {FOCUS_SESSIONS} from '../../focus-sessions/schema';
 import {BUDGETS} from '../../budgets/schema';
-import {NOTES} from '../../notes/schema';
+import {NOTES, type Notes} from '../../notes/schema';
+import {withoutLocked} from '../../notes/lock';
 import {MUSIC} from '../../music/schema';
 import {CALENDAR_IMPORT} from '../../ics/calendar';
 import type {NovaToolSources} from './nova-tools';
@@ -22,11 +23,13 @@ import {CHESS_COMPUTER} from '../../chess/computer-record';
  * are read only when the caller says NOVA's Notes scope is granted; ZIGi's page paths never pass them.
  */
 type Read = {getItem(key: string): string | null};
+/** Session AV lane 2 (r4-notes; LEDGER #318): a locked note's words never reach NOVA (its tools, answers or packed notes). */
+const unlockedOnly = (record: Notes | null): Notes | null => record && withoutLocked(record);
 export function readNovaToolSources(storage: Read, {notes = false}: {notes?: boolean} = {}): NovaToolSources {
   const one = <T>(spec: DeviceRecordSpec<T>): T | null => { try { const r = readDeviceRecord(storage, spec); return r.unreadable ? null : r.data; } catch { return null; } };
   // Owner follow-up 2 (G8): BUILD list 2's records. Your numbers and the cycle log describe health: toolEnv drops them while
   // the Health gate is closed, and their tools run only through it (the cycle log also needs its own switch).
-  return {tasks: one(TASKS), focus: one(FOCUS_SESSIONS), budgets: one(BUDGETS), music: one(MUSIC), calendar: one(CALENDAR_IMPORT), ...(notes ? {notes: one(NOTES)} : {}),
+  return {tasks: one(TASKS), focus: one(FOCUS_SESSIONS), budgets: one(BUDGETS), music: one(MUSIC), calendar: one(CALENDAR_IMPORT), ...(notes ? {notes: unlockedOnly(one(NOTES))} : {}),
     healthNumbers: one(HEALTH_NUMBERS), cycle: one(CYCLE), scales: one(SCALES), /* Session AV (1c, f1) */ countdowns: one(COUNTDOWNS), countdownExtras: one(COUNTDOWN_EXTRAS),
     /* Session AV lane 2 */ taskPlan: one(TASK_PLAN), taskTemplates: one(TASK_TEMPLATES), budgetPeriods: one(BUDGET_PERIODS), chessComputer: one(CHESS_COMPUTER)};
 }

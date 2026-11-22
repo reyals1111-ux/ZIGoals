@@ -249,3 +249,8 @@
 .journal-list-options select{min-height:44px;max-width:100%}
 .journal-list-star{min-height:44px}
 .journal-list-hint{flex-basis:100%;margin:0}
+
+/* Session AV lane 2 (r4-notes; LEDGER #320): the journal as an e-book or Word file. */
+.journal-ebook-fields { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.journal-ebook-fields .field { min-inline-size: min(100%, 12rem); }
+.journal-ebook-fields select, .journal-ebook-fields input { inline-size: 100%; box-sizing: border-box; min-height: 44px; }

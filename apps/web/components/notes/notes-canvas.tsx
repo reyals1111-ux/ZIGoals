@@ -1,4 +1,5 @@
 'use client';
+import {snippetOf} from '../../lib/notes/lock';
 import Link from 'next/link';
 import {useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type RefObject} from 'react';
 import {CANVAS_COLOURS, MAX_CANVASES, noteName, type CanvasNode, type NoteCanvas, type Notes} from '../../lib/notes/schema';
@@ -132,7 +133,7 @@ export default function NotesCanvas({record, change}: {record: Notes; change: Ch
           return <div key={n.id} data-card={n.id} className={`canvas-card is-${n.type}${selected === n.id ? ' is-selected' : ''}`} style={{left: p.x - box!.minX, top: p.y - box!.minY, width: n.w, height: n.h, ...colour(n)}} role="group" aria-label={name} aria-describedby={`${id}-how`} tabIndex={0} onKeyDown={keys(n)} onFocus={() => setSelected(n.id)}>
             <span className="canvas-handle" aria-hidden="true" onPointerDown={down(n)} onPointerMove={move} onPointerUp={up(n)} onPointerCancel={() => setDrag(null)} title="Drag to move">⠿</span>
             {n.type === 'group' ? <strong className="canvas-group-label">{n.label || 'Group'}</strong>
-              : n.type === 'note' ? (() => { const note = notes.find(x => x.id === n.note); return note ? <><Link className="text-link" href={noteHref(note.id)}>{note.kind === 'daily' && note.day ? note.day : noteName(note)}</Link><p className="canvas-card-text">{note.body.replace(/\(SHOWCASE DATA\)/g, '').replace(/\s+/g, ' ').trim().slice(0, 160)}</p></> : <p className="fine">This note is no longer on this device.</p>; })()
+              : n.type === 'note' ? (() => { const note = notes.find(x => x.id === n.note); return note ? <><Link className="text-link" href={noteHref(note.id)}>{note.kind === 'daily' && note.day ? note.day : noteName(note)}</Link><p className="canvas-card-text">{snippetOf({...note, body: note.body.replace(/\(SHOWCASE DATA\)/g, '').trim()}, 160)}</p></> : <p className="fine">This note is no longer on this device.</p>; })()
               : n.type === 'photo' ? <Photo id={n.photo ?? ''}/> : <p className="canvas-card-text">{n.text}</p>}
           </div>; })}
       </div>
