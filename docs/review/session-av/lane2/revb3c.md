@@ -69,3 +69,20 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
 - **Tests:** `lib/journal/revb3c-search.test.ts` (jsdom): words find nothing, an opened letter is found, tags and day
   still find it, Read it now and its day make the words searchable; Search everything gives no hit from a sealed letter.
 - **Help/corpus:** none.
+
+## B3C-5 (Major): the Markdown journal import doubles nothing
+
+- **Verdict:** confirmed and fixed.
+- **Fix:** export and import agree on the follow-up's form. `entryMarkdown` writes ZIGi's question and answer after the
+  words as a quote block, every line marked `> ` (a multi-line answer was not quoted before), the question and answer
+  apart by an empty `>` line, and says so in the front matter (`follow-up: quote`). On import of a ZIGoals file
+  (`app: ZIGoals`) with that line, `followUpOfQuote` takes the trailing quote block off the words and gives it back as the
+  entry's follow-up. The duplicate check also knows a ZIGoals Markdown entry by its day and creation time (`created:`),
+  so an entry edited since the export is not doubled either. A quote of the person's own before the follow-up, or at the
+  end of an entry without one, stays words; another app's file is read as before.
+- **Not a stored format:** the device record is unchanged; the export file gains one front-matter line.
+- **Tests:** `lib/journal/revb3c-markdown-followup.test.ts`: the file's form; read back; into the journal they came from
+  (all already there); into an empty journal (words and follow-up as they were, then a second import adds nothing); an
+  entry changed since; another app's file. Existing `r3-markdown-export` and `av2-import` tests pass unchanged.
+- **Spec:** `tests/av2-revb3c-markdown-import.spec.ts`.
+- **Help/corpus:** none.
