@@ -85,3 +85,30 @@ counts whole (`countedCents`).
   "Dagen tot ${next.title}: 3 (za 14 nov); daarna nog 1.".
 - Corpus: apps/web/lib/ai/evals/as/corpus.test.ts passes unchanged (no corpus case is a widget caption).
 - Help text: none needed.
+
+## 5. Review b1 #17: "how many photos are on my tasks" could not be counted
+
+- Verdict: fixed (the lead allowed edits to engine.ts and the AI context hook for this item).
+- Fix: the answers are synchronous and the attachment store is IndexedDB, so the count is read before the question,
+  following the weekly review's precedent in the same hook. apps/web/components/ai/use-ai-context.ts
+  `useTaskAttachmentCounts` loads the store's code on demand (dynamic import, nothing added to a first chunk), reads
+  `taskAttachments(photoScope())` once, again after every write to the store (new window event
+  `TASK_ATTACHMENTS_CHANGE`, said by lib/tasks/attachments.ts after each read-write transaction), on an account change and
+  when the tab becomes visible, and puts `{photos, voice, tasks}` on the tool sources as `taskAttachments` (new optional
+  field on `ToolSources`, apps/web/lib/ai/tools/env.ts; counts only, never a file). lib/tasks/attachments.ts
+  `attachmentCounts` counts photos and voice notes apart and the tasks that carry them; an orphan (its task removed, kept
+  30 days for Undo) is not counted. apps/web/lib/ai/local-answers/engine.ts passes it:
+  `av2RoadmapAnswer(question, env, {attachments: env.taskAttachments ?? null})`. Both ZIGi and NOVA read their
+  environment from this hook, so both say the count. One new sentence in apps/web/lib/ai/local-answers/av2-roadmap.ts:
+  a count read and found empty is said as none ("No photo or voice note is on your tasks in this browser yet." /
+  "Er staat in deze browser nog geen foto of spraakmemo bij je taken."), followed by the how-to as before.
+- Tests: apps/web/lib/ai/local-answers/loose-ends-attachments.test.ts (through the engine, ZIGi's and NOVA's
+  environments, EN and NL: "3 photos and 1 voice note on 2 tasks, in this browser." / "3 foto's en 1 spraakmemo bij 2
+  taken, in deze browser."; empty count; no count; how-to unchanged; the counter and its orphans). The existing
+  revb1-roadmap-count.test.ts stays green unchanged.
+- Corpus: passes unchanged (the corpus environments read no attachment store, so their answer is still "I can’t count
+  them from here…").
+- Stored data: none (a window event and an in-memory count). No device key.
+- Help text (EN), for the lead's Help page if wanted — Q: "Can ZIGi or NOVA tell me how many photos are on my tasks?"
+  A: "Yes. Ask “how many photos are on my tasks”. The count comes from this browser, where a task’s photos and voice
+  notes are kept; nothing is uploaded."

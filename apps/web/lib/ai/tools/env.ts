@@ -89,6 +89,8 @@ export type ToolSources = {
   ak?: AkToolSources | null;
   /** Owner follow-up 2 (N4): tasks, focus sessions, budgets and (only under NOVA's Notes scope) the notes, for nova-tools.ts. */
   nova?: NovaToolSources | null;
+  /** Session AV lane 2 (loose ends; review b1 #17): how many photos and voice notes the tasks carry on this device, read from the attachment store (IndexedDB) before the question (components/ai/use-ai-context.ts); null or absent: not read. */
+  taskAttachments?: {photos: number; voice: number; tasks: number} | null;
   /** Session AL Part 14 (Denver DV-027c): the Health goals on this device (Goals → Health goals); Health data, so only with the Health gate. */
   healthGoals?: readonly HealthGoal[] | null;
   /**
