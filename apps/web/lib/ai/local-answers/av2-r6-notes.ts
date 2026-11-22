@@ -150,11 +150,11 @@ function sky(a: Asked): LocalReply | null {
   if (!(sunEn || moonEn || sunNl || moonNl) || /\bweather\b|\bweer\b/.test(a.f)) return null;
   const day = a.today, moon = moonOn(day), city = SKY_CITIES.find(c => c.zone === deviceZone()), lang = a.lang;
   const moonText = say(lang, `${MOON_WORDS[moon.phase].en}, ${Math.round(moon.lit * 100)}% lit`, `${MOON_WORDS[moon.phase].nl}, ${Math.round(moon.lit * 100)}% verlicht`);
-  if (!city) return answer(say(lang, `Today the moon is: ${moonText}. For sunrise and sunset, choose a place under Journal → Entries → Sun and moon on a day; it is worked out on this device, nothing is looked up.`, `Vandaag is de maan: ${moonText}. Kies voor zonsopkomst en zonsondergang een plaats onder Journal → Entries → Sun and moon on a day; het wordt op dit apparaat berekend, er wordt niets opgezocht.`), JOURNAL_CALL);
+  if (!city) return answer(say(lang, `Today the moon is: ${moonText}. For sunrise and sunset, choose a place under Journal → Entries → Sun and moon on a day; it is worked out on this device, nothing is looked up.`, `Vandaag is de maan: ${moonText}. Kies voor zonsopkomst en zonsondergang een plaats onder Journal → Entries, bij zon en maan van een dag; het wordt op dit apparaat berekend, er wordt niets opgezocht.`), JOURNAL_CALL);
   const sun = sunOn(day, city.lat, city.lon), at = (ms: number) => wallClock(ms, city.zone).clock;
   const sunText = sun.kind === 'normal' ? say(lang, `sunrise ${at(sun.rise)} and sunset ${at(sun.set)} in ${city.name}`, `zonsopkomst ${at(sun.rise)} en zonsondergang ${at(sun.set)} in ${city.name}`) : sun.kind === 'up' ? say(lang, `the sun stays up all day in ${city.name}`, `de zon blijft de hele dag op in ${city.name}`) : say(lang, `the sun stays down all day in ${city.name}`, `de zon blijft de hele dag onder in ${city.name}`);
   return answer(say(lang, `Today: ${sunText} (this device’s time zone; good to a few minutes), and the moon: ${moonText}. Worked out on this device, nothing looked up; choose another place under Journal → Entries → Sun and moon on a day.`,
-    `Vandaag: ${sunText} (de tijdzone van dit apparaat; op een paar minuten na), en de maan: ${moonText}. Op dit apparaat berekend, er wordt niets opgezocht; kies een andere plaats onder Journal → Entries → Sun and moon on a day.`), JOURNAL_CALL);
+    `Vandaag: ${sunText} (de tijdzone van dit apparaat; op een paar minuten na), en de maan: ${moonText}. Op dit apparaat berekend, er wordt niets opgezocht; kies een andere plaats onder Journal → Entries, bij zon en maan van een dag.`), JOURNAL_CALL);
 }
 /** LEDGER #406: "can ZIGoals lock again after I am away", "kan ZIGoals opnieuw vergrendelen als ik even weg ben". */
 function lockAway(a: Asked): LocalReply | null {
