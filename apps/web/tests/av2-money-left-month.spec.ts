@@ -35,6 +35,7 @@ for (const theme of THEMES) test(`${theme}: left this month, a planned cost, the
   const form = left.getByRole('form', {name: 'Add a planned cost'});
   await form.getByLabel('What').fill('Birthday present');
   await form.getByLabel('Amount').fill('60');
+  await form.getByLabel('Currency').selectOption('EUR');
   await form.getByLabel('On').fill('2026-11-27');
   await form.getByRole('button', {name: 'Add planned cost'}).click();
   await expect(left.locator('.left-month-figure')).toHaveText('€1,620.00 left · EUR');

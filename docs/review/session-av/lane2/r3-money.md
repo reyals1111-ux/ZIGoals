@@ -231,3 +231,36 @@ locale ("€ 12,50"); the tests compare it with the no-break space shown as a sp
   any Wealth screen that pins Net worth by source.
 - Registries: none. CSS touched: `components/wealth/networth-history.css` (theme variables only).
 - Today: nothing added.
+
+### R3-F6 (group T8). Tags and cheque numbers from imported files
+
+- LEDGER row: #299 Simplifi imports carry tags and check numbers — **built** (Monarch's Tags, Copilot's tags and Mint's
+  Labels columns are matched by the app presets, and any file's Tags/Labels column by the general guess, as a new
+  "Tags" field of the CSV mapping; each row's tags (split at commas, semicolons or bars, cleaned as the tags record
+  keeps them, at most five) show in the preview ("Tags: holiday, work trip") and are kept as the entries' tags in the
+  existing tags record `zigoals:money-tags:v1` — nothing new on the entry; an entry's own tags come first. A reference or
+  cheque number column ("Check Number", "Cheque number", "Reference number", "Chequenummer" … as Reference) shows in the
+  preview ("No. 1042") and is kept with the entry in its existing `ref` (the bank files' own reference key,
+  `direction|currency|reference`), so a re-import finds the row and Spending's search finds the number).
+- Spending function used: none (no figure).
+- Files: `lib/csv/templates/presets.ts` (the Tags field; cheque synonyms for Reference), `lib/csv/templates/app-exports.ts`,
+  `lib/csv/templates/money-rows.ts` (`tagsCell`), `lib/bankfiles/types.ts` (an in-memory `tags` on a read row),
+  `lib/money-tags/tags.ts` (`withImportTags`), `lib/money-log/search.ts` (the reference searched),
+  `components/import/holdings-import.tsx` (`withImportMarks` on CSV entries too; the tags written after the entries; the
+  preview's tags and number; "N entries keep their tags from the file").
+- Tests: `lib/csv/templates/av2-import-tags.test.ts`; the existing `lib/csv`, `lib/bankfiles`, `lib/money-tags`,
+  `lib/money-log` and `lib/wealth-al-pass3` tests green unchanged.
+- Spec: `tests/av2-money-import-tags.spec.ts`.
+- Stored: nothing new. Tags go in the existing tags record (its strict format unchanged); the number in the entry's
+  existing optional `ref` (format unchanged). Undo of an import removes its entries; their tags stay in the record unseen
+  (every tag reader filters by the ids the log holds, as the record's own note says) and come back with the entries.
+- Help (EN): **Q: Do my tags come with me from Monarch or Copilot?** A: Yes. When you import their CSV export in Wealth →
+  Spending → Import from your bank → CSV, the Tags column is matched by itself; the preview shows each row's tags and the
+  entries keep them (Your money over time → Tags). A file's cheque or reference number is kept with its entry too, and
+  search finds it.
+- What's new: "Imports: tags from Monarch, Copilot and Mint, and cheque numbers, are kept with your entries."
+- Answers: none new — the imported tags are read by the existing tag answers and Tags view; a number is found by search.
+  (No data of its own: the row adds no figure for NOVA or ZIGi to answer.)
+- Showcase hook: none (an import in the Showcase writes to its own tab, as before).
+- Registries: none. CSS touched: none.
+- Today: nothing added.

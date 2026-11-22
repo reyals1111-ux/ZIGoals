@@ -22,6 +22,8 @@ export type BankTransaction = {
   index: number;
   /** A possible repeat of an earlier row in the same file (same date, amount, payee and reference). */
   duplicate?: boolean;
+  /** Session AV lane 2, round 3 (money, LEDGER #299): a CSV's tags column, as tags (in memory; kept in the tags record on import). */
+  tags?: readonly string[];
 };
 export type RefusedRow = {index: number; reason: string};
 export type BankStatement = {
