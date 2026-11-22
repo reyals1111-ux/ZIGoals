@@ -215,7 +215,6 @@ Shared-file needs for the lead are collected at the end ("For the lead").
   estimate, at that pace. It comes from your trend so far and is not a promise."
 - What's new: "Choose your check-in day, mark a partly logged day, and see your goal date."
 - Answers: intents `av2-food-goal-date`, `av2-food-check-in`.
-- Showcase: the Showcase's goal weight and trend already give a goal date (the coach and Today's compact coach show it);
-  no seed.
-- Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: Today's compact coach card gains one line
-  (the goal date) where the coach is already shown; no new control (the check-in day select is on Health only).
+- Showcase: the Showcase's goal weight and trend already give a goal date (Health's coach shows it); no seed.
+- Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: nothing (the goal date and the check-in
+  day are on Health's coach card only; Today's compact coach is unchanged, for its 390 px ceilings).
