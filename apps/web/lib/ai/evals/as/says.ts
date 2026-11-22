@@ -43,6 +43,8 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'au-r3-run-week': ['Nov 15', '6 km'], 'au-r3-run-lastweek': ['6 km', 'Nov 15'], 'au-r4-date': ['Nov 17'], 'au-r6-bill-price': ['Streaming', '12.99', '13.99'], 'au-r7-coin-price': ['65,000 USD', 'Showcase example price'],
   'au-r8-stake-earn': ['Earn'], 'au-r10-stake-safe': ['ZIG', 'Alpha', 'unbonding'], 'au-r11-next-bill': ['Rent', '950.00', 'Dec 1'], 'av-debt-free': ['Apr 2028', '$316.87'],
   'journey-level': ['8', 'Nebula', '3,577', '377', '850', 'Showcase'],
+  // Session AV lane 2 (cases-av2-tasks.ts): the Showcase keeps no planning record, so these name no figure.
+  'av2-week-objectives': [], 'av2-daily-goal': [], 'av2-time-spent': [], 'av2-timers': [], 'av2-day-limit': [], 'av2-start-early': [], 'av2-areas': [], 'av2-templates': [], 'av2-pay-period': [], 'av2-note-reminders': [],
   // Session AV (owner follow-up 2, item 1c; cases-av.ts): the AV features' own questions.
   'av-task-reminders': [], 'av-weekly-intention': ['one short walk after lunch'], 'av-countdown-until': ['Mum’s birthday', '3'], 'av-countdowns-list': ['Mum’s birthday', 'Trip to Lisbon'], 'av-plan-day': ['Sketch the garden bed'],
   'av-bills-year': ['13,139.88', '1,094.99'], 'av-bills-paid': ['Energy', 'Music', 'Rent'], 'av-payday': [], 'av-budget-targets': ['Groceries', '300.00'], 'av-budget-near': ['Groceries', '75%'],

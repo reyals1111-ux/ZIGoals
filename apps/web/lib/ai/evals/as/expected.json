@@ -6592,5 +6592,85 @@
   "widgets": [],
   "fresh": "No focus habit is picked for today. On Habits, “Make it today’s focus” on a habit’s card picks one for the day.",
   "freshNl": "Er is voor vandaag geen focusgewoonte gekozen. Op Habits kiest “Make it today’s focus” op de kaart van een gewoonte er een voor vandaag."
+ },
+ "av2-week-objectives": {
+  "en": "No objectives for this week yet. Add them in Tasks → This week, then link the tasks that move them on.",
+  "nl": "Nog geen weekdoelen voor deze week. Voeg ze toe in Tasks → This week en koppel de taken die ze vooruit helpen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No objectives for this week yet. Add them in Tasks → This week, then link the tasks that move them on.",
+  "freshNl": "Nog geen weekdoelen voor deze week. Voeg ze toe in Tasks → This week en koppel de taken die ze vooruit helpen."
+ },
+ "av2-daily-goal": {
+  "en": "0 tasks finished today. No daily goal is set: choose one in Tasks → This week to count a streak.",
+  "nl": "Vandaag 0 taken afgerond. Er is geen dagdoel: kies er een in Tasks → This week om een reeks te tellen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "0 tasks finished today. No daily goal is set: choose one in Tasks → This week to count a streak.",
+  "freshNl": "Vandaag 0 taken afgerond. Er is geen dagdoel: kies er een in Tasks → This week om een reeks te tellen."
+ },
+ "av2-time-spent": {
+  "en": "Today: planned 15 min, spent 0 min.",
+  "nl": "Vandaag: gepland 15 min, besteed 0 min.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No minutes planned or spent today yet. Give a task its minutes in its editor, and time it with Start timer in Tasks → Today.",
+  "freshNl": "Vandaag nog geen minuten gepland of besteed. Geef een taak minuten in de editor en tijd hem met Start timer in Tasks → Today."
+ },
+ "av2-timers": {
+  "en": "No task timer is running. Start one in Tasks → Today (Fit my day), several at once if you like.",
+  "nl": "Er loopt geen taaktimer. Start er een in Tasks → Today (Fit my day), ook meerdere tegelijk.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task timer is running. Start one in Tasks → Today (Fit my day), several at once if you like.",
+  "freshNl": "Er loopt geen taaktimer. Start er een in Tasks → Today (Fit my day), ook meerdere tegelijk."
+ },
+ "av2-day-limit": {
+  "en": "About 15 min of tasks planned today. Set how much your day holds in Tasks → This week, and Today warns past it.",
+  "nl": "Vandaag zo’n 15 min aan taken gepland. Stel in Tasks → This week in hoeveel je dag aankan; Today waarschuwt daarboven.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "About 0 min of tasks planned today. Set how much your day holds in Tasks → This week, and Today warns past it.",
+  "freshNl": "Vandaag zo’n 0 min aan taken gepland. Stel in Tasks → This week in hoeveel je dag aankan; Today waarschuwt daarboven."
+ },
+ "av2-start-early": {
+  "en": "No task starts early. In a task’s editor, “Start early” shows it in Today some days before its day.",
+  "nl": "Geen taak begint eerder. In de editor van een taak zet “Start early” hem een paar dagen voor zijn dag al in Today.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task starts early. In a task’s editor, “Start early” shows it in Today some days before its day.",
+  "freshNl": "Geen taak begint eerder. In de editor van een taak zet “Start early” hem een paar dagen voor zijn dag al in Today."
+ },
+ "av2-areas": {
+  "en": "No areas yet. In Tasks → Areas and templates, add one (Work, Home) and put projects in it.",
+  "nl": "Nog geen gebieden. Voeg er in Tasks → Areas and templates een toe (Werk, Thuis) en zet er projecten in.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No areas yet. In Tasks → Areas and templates, add one (Work, Home) and put projects in it.",
+  "freshNl": "Nog geen gebieden. Voeg er in Tasks → Areas and templates een toe (Werk, Thuis) en zet er projecten in."
+ },
+ "av2-templates": {
+  "en": "4 templates for a new project: Moving house, A trip, A new job and Weekly reset. Use one in Tasks → Areas and templates; save a project as one there too.",
+  "nl": "4 sjablonen voor een nieuw project: Moving house, A trip, A new job en Weekly reset. Gebruik er een in Tasks → Areas and templates; daar bewaar je ook een project als sjabloon.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "4 templates for a new project: Moving house, A trip, A new job and Weekly reset. Use one in Tasks → Areas and templates; save a project as one there too.",
+  "freshNl": "4 sjablonen voor een nieuw project: Moving house, A trip, A new job en Weekly reset. Gebruik er een in Tasks → Areas and templates; daar bewaar je ook een project als sjabloon."
+ },
+ "av2-pay-period": {
+  "en": "Left in each budget, in its own period:\n• Groceries: €62.90 of €250.00 (Sun, Nov 1 – Mon, Nov 30)\n• Food & drink: €70.90 of €120.00 (Sun, Nov 1 – Mon, Nov 30)\n• Fun: €36.00 of €60.00 (Sun, Nov 1 – Mon, Nov 30)",
+  "nl": "Over in elk budget, in zijn eigen periode:\n• Groceries: €62.90 van €250.00 (zo 1 nov – ma 30 nov)\n• Food & drink: €70.90 van €120.00 (zo 1 nov – ma 30 nov)\n• Fun: €36.00 van €60.00 (zo 1 nov – ma 30 nov)",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No budgets yet. Add one in Wealth → Budgets; under “Pay periods and fills” choose the day your budget month starts.",
+  "freshNl": "Nog geen budgetten. Voeg er een toe in Wealth → Budgets; kies onder “Pay periods and fills” de dag waarop je budgetmaand begint."
+ },
+ "av2-note-reminders": {
+  "en": "No reminder is written in your notes. Put “@remind tomorrow 9:00 call the plumber” on a line of any note.",
+  "nl": "Er staat geen herinnering in je notities. Zet “@remind morgen 9:00 loodgieter bellen” op een regel van een notitie.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No reminder is written in your notes. Put “@remind tomorrow 9:00 call the plumber” on a line of any note.",
+  "freshNl": "Er staat geen herinnering in je notities. Zet “@remind morgen 9:00 loodgieter bellen” op een regel van een notitie."
  }
 }
