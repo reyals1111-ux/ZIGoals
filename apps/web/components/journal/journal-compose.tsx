@@ -117,18 +117,22 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
     const opensOn = !opens ? null : opens === 'day' ? (/^\d{4}-\d{2}-\d{2}$/.test(opensDay) && opensDay > today ? opensDay : null) : opensOnFor(opens, today);
     if (opens === 'day' && !opensOn) return setProblem('Choose a day after today to open the letter on.');
     const tags = compact ? [] : readTags(tagText);
-    let photos: string[] = [], audio: {id: string; seconds: number}[] = [];
+    let photos: string[] = [], audio: {id: string; seconds: number}[] = [], photoFields: {photos?: string[]; morePhotos?: string[]} = {};
     if (hasMedia) {
       setSaving(true); setStatus('Keeping the photos and the voice note on this device…');
       try {
-        const keep = await import('../../lib/journal/keep-media');
+        // Session AV lane 2 (r4-mind; LEDGER #317): room for the photos is checked first; five to twelve go in morePhotos.
+        const [keep, more, {photoScope}] = await Promise.all([import('../../lib/journal/keep-media'), import('../../lib/journal/more-photos'), import('../../lib/health-aa/photos')]);
+        const room = await more.photoRoom(photoScope(), media.photos.length + (media.audio ? 1 : 0));
+        if (!room.ok) throw new Error(`${room.reason} Nothing was saved.`);
         try { for (const f of media.photos) photos.push(await keep.keepJournalPhoto(f)); if (media.audio) audio = [{id: await keep.keepJournalAudio(media.audio.blob, media.audio.seconds), seconds: media.audio.seconds}]; }
         catch (e) { await keep.forgetJournalMedia([...photos, ...audio.map(a => a.id)]); throw e; }
+        photoFields = more.splitPhotos(photos);
       } catch (e) { setSaving(false); setStatus(''); photos = []; audio = []; return setProblem(e instanceof Error ? e.message : 'The photos could not be kept on this device. Nothing was saved.'); }
       setSaving(false);
     }
     const fallback = audio.length && photos.length ? 'Photos and a voice note.' : audio.length ? 'A voice note.' : photos.length > 1 ? 'Photos.' : 'A photo.';
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: (words || fallback).slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {}), ...(period && !compact ? {period} : {}), ...(opensOn && !compact ? {opensOn} : {})};
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: (words || fallback).slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {}), ...photoFields, ...(audio.length ? {audio} : {}), ...(period && !compact ? {period} : {}), ...(opensOn && !compact ? {opensOn} : {})};
     const question = words && journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     // Session AV lane 2 (r3-notes; LEDGER #278): a dream goes in the Dreams journal (made on first use), linked to its night.
     const dreamOf = dream;
