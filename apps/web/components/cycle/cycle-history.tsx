@@ -27,7 +27,8 @@ export default function CycleHistory({today}: {today: string}) {
     try { rec.update(r => setLeftOut(r, c.start, out)); setSaid(out ? `The cycle from ${formatDate(c.start)} is left out of the averages and the estimate.` : `The cycle from ${formatDate(c.start)} is back in the averages.`); }
     catch { setSaid('Not saved on this device. Nothing was changed.'); }
   };
-  const toggle = (c: PastCycle) => <button type="button" className="quiet cycle-leave" aria-pressed={c.leftOut} disabled={rec.unreadable} aria-label={`Leave the cycle from ${formatDate(c.start)} out of the averages`} onClick={() => leave(c, !c.leftOut)}>{c.leftOut ? 'Left out' : 'Leave out'}</button>;
+  // Review B5H-4: the name holds the visible words ("Leave out", the same in both states; aria-pressed says which).
+  const toggle = (c: PastCycle) => <button type="button" className="quiet cycle-leave" aria-pressed={c.leftOut} disabled={rec.unreadable} onClick={() => leave(c, !c.leftOut)}><span aria-hidden="true">{c.leftOut ? '✓ ' : ''}</span>Leave out<span className="sr-only"> the cycle from {formatDate(c.start)}</span></button>;
   return <div className="cycle-history">
     <dl className="cycle-stats">
       <div><dt>Average cycle</dt><dd>{stats.cycle ? <><strong>{days(stats.cycle.average)}</strong> <span className="fine">({spreadWords(stats.cycle)} {stats.cycle.count === 1 ? 'cycle' : 'cycles'})</span></> : <span className="fine">Shows once one cycle is complete (the next period logged).</span>}</dd></div>

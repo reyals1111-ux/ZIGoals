@@ -1,4 +1,5 @@
 import {describe, expect, test} from 'vitest';
+import {readFileSync} from 'node:fs';
 import {addLocalDays} from '../local-date';
 import {CYCLE_LINE, TOO_MANY_WORDS, cycleLengths, nextPeriodEstimate, setCycleDay, setCycleOn} from './engine';
 import {MAX_SYMPTOMS} from './store';
@@ -148,5 +149,15 @@ describe('the rules', () => {
   });
   test('the Showcase cycle still reads with the new parts', () => {
     expect(cycleHistory(showcaseCycle(TODAY), TODAY).length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe('the Leave out toggle keeps its visible words in its name (review B5H-4)', () => {
+  test('no aria-label over the words; the date is an sr-only suffix; the state is aria-pressed', () => {
+    const src = readFileSync(new URL('../../components/cycle/cycle-history.tsx', import.meta.url), 'utf8');
+    const toggle = src.split('\n').find(l => l.includes('className="quiet cycle-leave"'))!;
+    expect(toggle).not.toContain('aria-label');
+    expect(toggle).toContain('aria-pressed={c.leftOut}');
+    expect(toggle).toContain('</span>Leave out<span className="sr-only"> the cycle from {formatDate(c.start)}</span>');
   });
 });
