@@ -6,6 +6,8 @@ import {inPlayRecord, isOutOfPlay, readFocus} from './focus';
 import {emptyTaskPlan, setFocus, startTimer} from './plan-record';
 import {bucketGroups, rollBuckets} from './plan-bucket';
 import {hasOperator, matchTasks} from './search';
+import {wrapUpTasks} from '../wrap-up-tasks/move';
+import {tasksHud} from '../nova/holo/lists';
 import {runRules} from './rules';
 import {setLabelGroup} from './label-groups';
 import {tasksSchema, type Tasks} from './schema';
@@ -79,6 +81,18 @@ describe('B6M-9: is:hold and is:waiting, so “hold” and “waiting” in a ti
     expect(matchTasks(r, 'is:hold', {today: TODAY}).map(t => t.id)).toEqual(['h']);
     expect(hasOperator('hold music')).toBe(false);
     expect(hasOperator('is:waiting')).toBe(true);
+  });
+});
+describe('B6M-10: the evening wrap-up and NOVA’s Tasks queue leave a held project’s tasks out, as the counts do', () => {
+  test('neither lists them; both list them again once resumed', () => {
+    const r = add(add(grouped(), 'h', {title: 'Fictional held', due: '2026-11-20', projectId: 'p'}), 'i', {title: 'Fictional inbox', due: TODAY});
+    const held = holdProject(r, 'p', TODAY);
+    expect(wrapUpTasks(held, TODAY).map(t => t.id)).toEqual(['i']);
+    expect(wrapUpTasks(r, TODAY).map(t => t.id)).toEqual(['h', 'i']);
+    const hud = tasksHud(held, TODAY, iso => iso.slice(0, 10));
+    expect(hud.queue.map(t => t.id)).toEqual(['i']);
+    expect(hud.overdue).toBe(0);
+    expect(tasksHud(r, TODAY, iso => iso.slice(0, 10)).queue.map(t => t.id)).toEqual(['h', 'i']);
   });
 });
 describe('B6M-2: in order with a wait for another task never blocks for good', () => {
