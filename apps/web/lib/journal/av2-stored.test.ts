@@ -23,7 +23,7 @@ export const FULL_JOURNAL: Journal = journalSchema.parse({
   templates: [{id: 'own-abc123def4', title: 'Fictional evening', headings: ['Best bit:'], body: 'Best bit:\nA walk.', tags: ['evening']}],
   journals: [{id: 'j-travel', name: 'Fictional travel', theme: 'teal'}],
   packs: ['sleep', 'training'],
-  reminder: {on: true, time: '21:15', days: 62},
+  reminder: {on: true, time: '21:15', days: 31},
   defaultTemplate: 'own-abc123def4',
   versions: [{id: 'v-first001', entryId: 'e2', text: 'Fictional quiet evening.', savedAt: '2026-11-20T10:00:00.000Z'}],
 });
@@ -38,7 +38,7 @@ export const FULL_NOTES: Notes = notesSchema.parse({
 describe('the new journal fields read on their own', () => {
   test('a full record keeps every new field', () => {
     expect(FULL_JOURNAL.entries[0]).toMatchObject({journal: 'j-travel', photos: ['m-photo0001'], audio: [{id: 'm-audio0001', seconds: 42}], imported: 'dayone'});
-    expect(FULL_JOURNAL).toMatchObject({packs: ['sleep', 'training'], reminder: {on: true, time: '21:15', days: 62}, defaultTemplate: 'own-abc123def4'});
+    expect(FULL_JOURNAL).toMatchObject({packs: ['sleep', 'training'], reminder: {on: true, time: '21:15', days: 31}, defaultTemplate: 'own-abc123def4'});
     expect(FULL_JOURNAL.templates![0]).toMatchObject({body: 'Best bit:\nA walk.', tags: ['evening']});
     expect(FULL_JOURNAL.journals).toEqual([{id: 'j-travel', name: 'Fictional travel', theme: 'teal'}]);
     expect(FULL_JOURNAL.versions).toHaveLength(1);

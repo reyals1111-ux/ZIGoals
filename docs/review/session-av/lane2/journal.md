@@ -28,7 +28,7 @@ Builder: the Journal-and-notes builder. Scope: LEDGER group 7 (Day One: #32, #35
 | own template | `body`, `tags` | the whole text and tags of a template saved from an entry |
 | journal | `journals` | up to 10 `{id, name, theme}` (theme: violet, cyan, magenta, teal, gold, green) |
 | journal | `packs` | prompt pack ids switched on |
-| journal | `reminder` | `{on, time, days}` a reminder to write (days: weekday bit mask, bit 0 Sunday) |
+| journal | `reminder` | `{on, time, days}` a reminder to write (days: weekday mask, bit 0 Monday … bit 6 Sunday, as the push Workers) |
 | journal | `defaultTemplate` | the template a new entry starts from |
 | journal | `versions` | earlier texts of changed entries: `{id, entryId, text, tags?, savedAt}`, ≤ 10 per entry, ≤ 200, ≤ 200,000 chars |
 | `zigoals:notes:v1` | `versions` | earlier words of changed notes: `{id, noteId, title, body, savedAt}`, ≤ 10 per note, ≤ 300, ≤ 300,000 chars |

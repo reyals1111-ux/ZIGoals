@@ -75,7 +75,7 @@ export type JournalBook = z.infer<typeof journalBookSchema>;
 export const MAX_VERSIONS = 200, VERSIONS_PER_ENTRY = 10, MAX_VERSION_CHARS = 200_000;
 export const entryVersionSchema = z.looseObject({id: z.string().regex(/^v-[A-Za-z0-9_-]{4,60}$/), entryId: id, text: z.string().min(1).max(MAX_TEXT), tags: z.array(z.string().trim().min(1).max(24)).max(8).optional().catch(undefined), savedAt: stamp});
 export type EntryVersion = z.infer<typeof entryVersionSchema>;
-/** Session AV lane 2 (journal; Day One's reminders): a reminder to write, its time and weekdays (bit 0 is Sunday). */
+/** Session AV lane 2 (journal; Day One's reminders): a reminder to write, its time and weekdays (bit 0 is Monday … bit 6 Sunday, as the notification plan's weekday masks). */
 export const journalReminderSchema = z.looseObject({on: z.boolean(), time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/), days: z.number().int().min(1).max(127)});
 export type JournalReminder = z.infer<typeof journalReminderSchema>;
 const ownTemplates = z.preprocess(v => Array.isArray(v) ? v.filter(x => ownTemplateSchema.safeParse(x).success).slice(0, MAX_OWN_TEMPLATES) : undefined, z.array(ownTemplateSchema).max(MAX_OWN_TEMPLATES).optional());
