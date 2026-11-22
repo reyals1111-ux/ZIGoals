@@ -166,3 +166,25 @@ box too."
 What's new: "Focus: notes during a session, added to the task when you like."
 Showcase: none. Today: nothing. Weight: the panel and the timer are lazy chunks already.
 CSS: components/focus/focus.css (five lines), components/tasks/tasks-r3.css.
+
+## Feature 6 — Copy and clear a day (LEDGER #261, Structured) — built
+
+- The Agenda's Day view (any day, with ← →), when the day has a task: "Copy or clear this day".
+  - "Copy to" a date, then "Copy 2 tasks to Wed, Nov 25": each task of the day is made again there as a new task with its
+    time, minutes, priority, project and section, labels, notes, symbol, energy and reminders before its time; subtasks
+    come along under their copy; a finished task is copied open; a repeating one is copied once, without the repeat (said).
+    Refused for the same day and past the 500 tasks a device keeps.
+  - "Clear this day (2 open tasks)": the open tasks move to no day (their time and start-early go; a reminder at its own
+    date and time stays); repeating tasks keep their day (a repeat needs one; said); nothing is deleted.
+  - Each is one change with Undo in the Agenda's status line (and Ctrl/⌘+Z).
+Files: lib/tasks/day-tools.ts, components/agenda/{agenda-day-tools.tsx (own chunk), agenda-page.tsx (one lazy mount)},
+components/tasks/tasks-r3.css.
+Tests: lib/tasks/r3-day-tools.test.ts. Spec: tests/av2-copy-clear-day.spec.ts.
+Stored: nothing new (normal writes to `zigoals:tasks:v1`).
+Answers: "how do I copy a day to another day" / "hoe kopieer ik een dag naar een andere dag"; "can I clear my whole day" /
+"hoe maak ik mijn dag leeg".
+Help: Q "Can I copy a day's tasks, or clear a day?" A "Yes. Open the Agenda, choose Day and go to the day. Under “Copy or
+clear this day”, pick a day and press Copy to make its tasks again there with the same times, or press “Clear this day” to
+move its open tasks to no day. Both have Undo; nothing is deleted."
+What's new: "Agenda: copy a day's tasks to another day, or clear a day."
+Showcase: works on the Showcase's tasks (nothing new stored). Today: nothing. Weight: /app/agenda gains one lazy mount.

@@ -72,3 +72,11 @@ describe('notes kept with focus sessions (LEDGER #260)', () => {
     expect(text(av2R3PlanAnswer('what did I note in my focus sessions', zigiEnv(freshAll())))).toMatch(/^No focus session has a note yet\./);
   });
 });
+describe('copy and clear a day (LEDGER #261)', () => {
+  test('where to find each, with today’s count', () => {
+    const s = withTasks(r => addTask(r, {title: 'Fictional groceries', due: DAY}, {id: 'cd1', at, today: DAY}), freshAll());
+    expect(text(av2R3PlanAnswer('how do I copy a day to another day', zigiEnv(s)))).toMatch(/^Open the Agenda's Day view .+ then Copy: .+ Today holds 1 task\.$/);
+    expect(text(av2R3PlanAnswer('can I clear my whole day', zigiEnv(s)))).toMatch(/“Clear this day”: its open tasks move to no day/);
+    expect(text(av2R3PlanAnswer('hoe maak ik mijn dag leeg', zigiEnv(s)))).toMatch(/“Clear this day”: de open taken krijgen geen dag meer.+Vandaag heeft 1 taak\.$/);
+  });
+});

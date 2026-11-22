@@ -6,6 +6,7 @@ import {habitDay, habitRuleOn} from '../../habits';
 import {addLocalDays} from '../../local-date';
 import {taskTimelineItems} from '../../tasks/timeline-source';
 import {dayEnergy} from '../../tasks/energy-load';
+import {dayTasks} from '../../tasks/day-tools';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, count, dayIn, isQuestion, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -138,4 +139,19 @@ function focusNotes(a: Ask): LocalReply | null {
   return answer([say(a.lang, `${count(noted.length, 'en', ['focus session has', 'focus sessions have'], ['', ''])} a note; the latest:`, `${count(noted.length, 'nl', ['', ''], ['focussessie heeft', 'focussessies hebben'])} een notitie; de laatste:`), ...lines].join('\n'), calls);
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow, dayEnergyAnswer, focusNotes];
+/** "how do I copy a day", "can I clear my day", "hoe kopieer ik een dag", "hoe maak ik mijn dag leeg" (LEDGER #261). */
+function copyClearDay(a: Ask): LocalReply | null {
+  const copy = /\b(?:copy|duplicate)\b.*\bday\b|\bkopieer\w*\b.*\bdag\b|\bdag\b.*\bkopieren\b/.test(a.f);
+  const clear = /\bclear\b.*\bday\b|\bempty\b.*\bday\b|\bdag\b.*\bleeg\b|\bleeg\w*\b.*\bdag\b/.test(a.f);
+  if (!(copy || clear)) return null;
+  const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
+  const n = dayTasks(got.record, a.today).length;
+  const now = n ? say(a.lang, ` Today holds ${count(n, 'en', ['task', 'tasks'], ['', ''])}.`, ` Vandaag heeft ${count(n, 'nl', ['', ''], ['taak', 'taken'])}.`) : '';
+  return answer(clear && !copy
+    ? say(a.lang, `Open the Agenda's Day view on that day and choose “Copy or clear this day” → “Clear this day”: its open tasks move to no day (they stay in Tasks), with Undo. A repeating task keeps its day; nothing is deleted.${now}`,
+      `Open de Agenda in de dagweergave op die dag en kies “Copy or clear this day” → “Clear this day”: de open taken krijgen geen dag meer (ze blijven in Tasks), met Undo. Een herhalende taak houdt zijn dag; er wordt niets verwijderd.${now}`)
+    : say(a.lang, `Open the Agenda's Day view on that day and choose “Copy or clear this day”, pick the day to copy to, then Copy: each task is made again there with its time, minutes, labels and notes (subtasks too), with Undo.${now}`,
+      `Open de Agenda in de dagweergave op die dag en kies “Copy or clear this day”, kies de dag om naartoe te kopiëren en dan Copy: elke taak komt daar opnieuw, met tijd, minuten, labels en notities (ook subtaken), met Undo.${now}`), TASK_CALLS);
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow, dayEnergyAnswer, focusNotes, copyClearDay];
