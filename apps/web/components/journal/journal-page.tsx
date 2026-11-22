@@ -55,6 +55,8 @@ const JournalFiles = lazy(() => import('./journal-files'));
 const WriteItOut = lazy(() => import('./write-it-out'));
 // Session AV lane 2 (bodymind-r2; LEDGER #233, Moodnotes): the thought check with thinking traps, loaded when its fold opens.
 const ThoughtCheck = lazy(() => import('./thought-check'));
+// Session AV lane 2 (r3-notes; LEDGER #265, Grid Diary): every answer to one prompt, loaded when its fold opens.
+const PromptAnswers = lazy(() => import('./prompt-answers'));
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -77,8 +79,12 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   // Session AV lane 2 (journal; LEDGER #43, Day One): a journal, and a day range (From / To, the calendar, a typed date, or
   // ?day= and ?journal= in the address, which a [[day]] link and NOVA open) beside the words and the tag.
   const [book, setBook] = useState<BookChoice>('all'), [from, setFrom] = useState(''), [to, setTo] = useState('');
+  // Session AV lane 2 (r3-notes; LEDGER #265): ?prompt=<template> opens "Every answer to a prompt" on that template (an
+  // entry's More offers it).
+  const [promptPick, setPromptPick] = useState<string | null>(null);
   useEffect(() => {
-    const read = () => { const p = new URLSearchParams(window.location.search), d = p.get('day'), j = p.get('journal'); if (d && DAY_RE.test(d)) { setFrom(d); setTo(d); } if (j) setBook(j === 'main' ? 'main' : j); };
+    const read = () => { const p = new URLSearchParams(window.location.search), d = p.get('day'), j = p.get('journal'), q = p.get('prompt'); if (d && DAY_RE.test(d)) { setFrom(d); setTo(d); } if (j) setBook(j === 'main' ? 'main' : j);
+      if (q && /^[a-z0-9-]{1,40}$/.test(q)) { setPromptPick(q); requestAnimationFrame(() => { const f = document.getElementById('journal-prompt-answers') as HTMLDetailsElement | null; if (f) { f.open = true; f.scrollIntoView({block: 'start'}); } }); } };
     read(); window.addEventListener('popstate', read); return () => window.removeEventListener('popstate', read);
   }, []);
   // Session AV lane 2 (LEDGER #35, #42): photos and voice notes no entry names any more leave this browser after 30 days.
@@ -147,6 +153,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         </div>
         <JournalCalendar entries={journal.data.entries} today={today} picked={from && from === to ? from : null} onPick={d => { setFrom(d ?? ''); setTo(d ?? ''); }}/>
       </JournalFold>
+      {(() => { const n = new Set(journal.data.entries.flatMap(e => e.template ? [e.template] : [])).size; return <JournalFold id="journal-prompt-answers" className="journal-prompt-answers-fold" label="every answer to a prompt" open={!!promptPick} summary={<>Every answer to a prompt <span className="fine">· {n ? `${n === 1 ? '1 prompt' : `${n} prompts`} written from` : 'what you wrote under each heading'}</span></>}><PromptAnswers journal={journal.data} picked={promptPick} onDay={showDay}/></JournalFold>; })()}
       {tags.length > 0 && <div className="journal-tag-filter" role="group" aria-label="Filter by tag">
         <button type="button" className="quiet" aria-pressed={!shownTag} onClick={() => setTag(null)}>All entries</button>
         {tags.map(t => <button key={t.tag} type="button" className="quiet" aria-pressed={shownTag?.toLowerCase() === t.tag.toLowerCase()} onClick={() => setTag(t.tag)}>#{t.tag} <small>{t.count}</small></button>)}

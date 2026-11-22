@@ -17,6 +17,7 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #267 Obsidian Highlights in six colours | built | F1 |
 | #268 Obsidian Outline of a note | built (reordering sections by dragging left out, as the row says) | F2 |
 | #271 Obsidian Print a note or save it as PDF | built | F2 |
+| #265 Grid Diary Every answer to one prompt | built | F3 |
 
 ## Features
 
@@ -77,3 +78,25 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 - Showcase: none needed (any note with headings shows it).
 - CSS touched: `components/notes/notes.css`, new `components/notes/note-print.css` (imported by its lazy chunk only).
 - Today: nothing added.
+
+### F3 Every answer to one prompt — LEDGER #265 (Grid Diary; Stoic's Journey search by prompt)
+
+- Verdict: **built** (by template; Stoic's daily question is written into the text without a mark, so it is found by
+  the journal's word search as before).
+- What: Journal → Entries → "Every answer to a prompt" (a fold; its face counts the prompts written from): choose a
+  template your entries began from (built-in or your own, with how many entries) and see, under each of its headings,
+  what you wrote, oldest first, each answer with its day as a button that shows that day's entries. English and Dutch
+  headings read the same; a heading with its words on the same line ("A good thing today: …") splits too; entries whose
+  headings were changed are listed whole under "Written in its own way". An entry's More → "Every answer to this
+  prompt" opens the fold on its template (`/app/journal?prompt=<template>` works from anywhere), focus on its title.
+- Files: `lib/journal/prompt-answers.ts`, `components/journal/prompt-answers.tsx` (lazy), `components/journal/journal-page.tsx`,
+  `components/journal/entry-more.tsx`, `components/journal/journal.css`.
+- Tests: `lib/journal/r3-prompt-answers.test.ts`. Spec: `tests/av2-journal-prompt-answers.spec.ts`.
+- Stored: nothing (derived from each entry's `template`).
+- Help (EN). Q: "Can I see everything I wrote under one prompt?" A: "Yes. Journal → Entries → Every answer to a prompt:
+  choose a template you wrote from, and each of its headings lists your answers, oldest first, with their days. From an
+  entry, More → Every answer to this prompt opens it straight away."
+- What's new: "Journal: every answer to one prompt, heading by heading, oldest first."
+- Showcase: the Showcase's "Three good things" entry already shows here (one prompt, three headings). No count changes.
+- Search palette (the lead's, optional): "Every answer to a prompt" → `/app/journal?prompt=three-good-things`.
+- CSS touched: `components/journal/journal.css`. Today: nothing added.

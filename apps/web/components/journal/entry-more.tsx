@@ -71,6 +71,8 @@ export default function EntryMore({entry, day}: {entry: JournalEntry; day: strin
     <div className="journal-entry-more-actions">
       <button type="button" className="secondary" data-part="edit" aria-expanded={part === 'edit'} onClick={() => { setText(entry.text); setProblem(''); setPart(part === 'edit' ? null : 'edit'); }}>Edit the words</button>
       <button type="button" className="quiet" data-part="template" aria-expanded={part === 'template'} onClick={() => { setTitle(suggestedTitle(entry.text)); setProblem(''); setPart(part === 'template' ? null : 'template'); }}>Save as a template</button>
+      {/* Session AV lane 2 (r3-notes; LEDGER #265): every answer to the prompt this entry began from. */}
+      {entry.template && <button type="button" className="quiet" onClick={() => { try { window.history.pushState(null, '', `/app/journal?prompt=${entry.template}`); } catch { /* the event is enough */ } window.dispatchEvent(new PopStateEvent('popstate')); }}>Every answer to this prompt</button>}
     </div>
     {part === 'edit' && <form className="journal-entry-edit" aria-label={`Edit the entry of ${day}`} onSubmit={save} onKeyDown={escape('[data-part="edit"]')}>
       <label className="field"><span>The entry&rsquo;s words</span><textarea autoFocus rows={6} maxLength={MAX_TEXT} value={text} onChange={e => { setText(e.target.value); setProblem(''); }}/></label>
