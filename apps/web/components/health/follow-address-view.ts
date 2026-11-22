@@ -9,7 +9,7 @@ import {useEffect, useRef, useState} from 'react';
  * (On opening, the page's own hash handler shows the card.)
  */
 export function useFollowAddressView<V>(param: string, views: Readonly<Record<string, V>>, current: V, show: (view: V) => void, reveal: (id: string) => void) {
-  const [followed, setFollowed] = useState(param), first = useRef(true);
+  const [followed, setFollowed] = useState(param), first = useRef(true), [, setHash] = useState('');
   if (param !== followed) {
     setFollowed(param);
     const next = views[param];
@@ -17,7 +17,10 @@ export function useFollowAddressView<V>(param: string, views: Readonly<Record<st
   }
   useEffect(() => {
     if (first.current) { first.current = false; return; }
+    // The address is written once this change is drawn, so the view is drawn again with its hash (a fold the hash names,
+    // such as the logging challenge's, opens then), and the card is shown once it is there.
     const hash = window.location.hash.slice(1);
+    setHash(hash);
     if (hash.includes('-')) reveal(hash);
   }, [param]); // eslint-disable-line react-hooks/exhaustive-deps -- once per change of the address's view
 }
