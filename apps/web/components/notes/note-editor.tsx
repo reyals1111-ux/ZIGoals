@@ -24,6 +24,8 @@ const NoteVersions = lazy(() => import('./note-versions'));
 const NoteMarks = lazy(() => import('./note-marks'));
 // Session AV lane 2 (r3-notes; LEDGER #271): the note as printed (or saved as a PDF), loaded on the press.
 const NotePrint = lazy(() => import('./note-print'));
+// Session AV lane 2 (r3-notes; LEDGER #270): the note's own properties, loaded when their fold opens.
+const NoteProps = lazy(() => import('./note-props'));
 const shortWords = (w: string) => { const t = w.replace(/\s+/g, ' ').trim(); return t.length > 40 ? `${t.slice(0, 39).trimEnd()}…` : t; };
 
 /**
@@ -39,7 +41,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
 }) {
   const [title, setTitle] = useState(note?.title ?? ''), [body, setBody] = useState(note?.body ?? start ?? '');
   const [mode, setMode] = useState<'read' | 'edit'>(note?.body.trim() ? 'read' : 'edit');
-  const [versionsOpen, setVersionsOpen] = useState(false), [printing, setPrinting] = useState(false);
+  const [versionsOpen, setVersionsOpen] = useState(false), [printing, setPrinting] = useState(false), [propsOpen, setPropsOpen] = useState(false);
   const donePrinting = useCallback(() => { setPrinting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-print-button')?.focus()); }, []);
   const dirty = (note?.title ?? '') !== title || (note?.body ?? '') !== body;
   const untouchedStart = !note && !!start && body === start; // a template not written in yet is not saved as a note
@@ -82,6 +84,9 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {note && printing && <LoadBoundary quiet><Suspense fallback={null}><NotePrint note={note} heading={heading || noteName(note)} index={index} onDone={donePrinting}/></Suspense></LoadBoundary>}
     </>}
     {note && <NoteExtras note={note} change={change} onDeleted={onDeleted}/>}
+    {note && record && <details className="note-fold note-props-fold" onToggle={e => setPropsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Properties <span className="fine">· {note.props?.length ? note.props.slice(0, 3).map(p => `${p.k}: ${p.t === 'tick' ? (p.v ? 'yes' : 'no') : String(p.v)}`).join(', ') : 'your own fields, such as a status or a day'}</span></summary>
+      {propsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteProps note={note} record={record} change={change}/></Suspense></LoadBoundary>}
+    </details>}
     {note && record && <details className="note-fold note-versions-fold" onToggle={e => setVersionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Earlier versions <span className="fine">· {(record.versions ?? []).filter(v => v.noteId === note.id).length || 'none yet'}</span></summary>
       {versionsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteVersions note={note} record={record} change={change} onRestored={v => { setBody(v.body); if (!isDaily && v.title) setTitle(v.title); setMode('read'); }}/></Suspense></LoadBoundary>}
     </details>}

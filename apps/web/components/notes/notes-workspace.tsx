@@ -36,7 +36,7 @@ const DailyTemplate = lazy(() => import('./daily-template'));
 const NotesViews = lazy(() => import('./notes-views'));
 // Session AV lane 2 (r3-notes; LEDGER #264): the open tick boxes of every note, loaded when the fold opens.
 const NotesTicks = lazy(() => import('./notes-ticks'));
-const LAYOUTS = [['list', 'List'], ['table', 'Table'], ['gallery', 'Gallery'], ['chart', 'Chart']] as const;
+const LAYOUTS = [['list', 'List'], ['table', 'Table'], ['gallery', 'Gallery'], ['board', 'Board'], ['chart', 'Chart']] as const; // Session AV lane 2 (r3-notes; LEDGER #270): Board
 type Layout = (typeof LAYOUTS)[number][0];
 
 /**
@@ -158,7 +158,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       </details>; })()}
       {topicsOf(record).length > 0 && !searching && <div className="note-layouts" role="group" aria-label="Show notes as">{LAYOUTS.map(([l, label]) => <button key={l} type="button" className="quiet" aria-pressed={layout === l} onClick={() => setLayout(l)}>{label}</button>)}</div>}
       {/* Session AL (PR-105, P-PR-43): while a search is typed, its results are the list (the full list no longer stays below "No note has those words.") */}
-      {searching ? null : topicsOf(record).length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? record.notes : topicsOf(record)} layout={layout} today={today}/></Suspense></LoadBoundary> : topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
+      {searching ? null : topicsOf(record).length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? record.notes : topicsOf(record)} layout={layout} today={today} record={record} change={change}/></Suspense></LoadBoundary> : topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
         : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. A note that links a goal or a habit shows on its page.</p>}
     </section>}
 

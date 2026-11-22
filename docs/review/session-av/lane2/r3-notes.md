@@ -24,6 +24,7 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #277 Stoic Quotes from Stoic writers | built | F7 |
 | #278 Stoic Dream journal from the sleep log | built; Stoic's insomnia lessons Carried: needs content made for ZIGoals | F8 |
 | #279 Stoic A letter to open later | built | F9 |
+| #270 Obsidian Bases: your own properties, table and board | built (as the row names it) | F10 |
 
 ## Features
 
@@ -259,3 +260,34 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
   nothing in the Showcase.
 - Notification kinds: none new (the existing `journal` kind and its Settings switch "Reminder to write").
 - CSS touched: `components/journal/journal.css`, `components/journal/today-affirmation.css`.
+
+### F10 Your own properties on a note, with table columns, filters and a board — LEDGER #270 (Obsidian's Bases)
+
+- Verdict: **built**, as the LEDGER row names it (Bases' map view is not in the row and would need an outside map
+  service).
+- What: an open note → "Properties" (a fold; its face shows the first three): add a property — a name (names already
+  used on other notes are offered, with the type they have), a type (text, number, day, choice, tick) and a value (a
+  choice offers the values other notes gave it); change a value in place (kept when the field is left or on Enter; a
+  tick at once); remove it, with Undo. Up to ten per note. Notes → Notes → Table: a column for each property (up to ten,
+  the most used first), sortable like the others (no value last); "Add a filter" (up to three): a property, "is / is
+  not / contains / is at least / is at most / is ticked / has a value / has no value" and a value, with a line saying how
+  many notes pass. Notes → Notes → Board (a new layout): the notes in columns by a choice property ("Group by"), one
+  column per value and "No Status"; each card has "Move … to" (a select, keyboard-friendly; focus stays on it; Undo).
+  Markdown export writes each property as a front-matter key Obsidian reads, plus `zigoals-props` holding them exactly;
+  import keeps `zigoals-props`, else turns another app's front-matter keys into properties (the type read from the
+  value: true/false a tick, a number, a day, else text; ZIGoals' own keys are left out).
+- Files: `lib/notes/props.ts`, `lib/notes/markdown.ts`, `lib/notes/store.ts` (`props` in a patch), `lib/notes/schema.ts`,
+  `components/notes/note-props.tsx` (lazy), `components/notes/note-editor.tsx`, `components/notes/notes-views.tsx` (lazy:
+  table columns, filters, board), `components/notes/notes-workspace.tsx` (the Board layout), `lib/notes/showcase.ts`,
+  `components/notes/notes.css`.
+- Tests: `lib/notes/r3-props.test.ts`; stored round trip in `lib/notes/r3-stored.test.ts`.
+- Spec: `tests/av2-notes-props.spec.ts`.
+- Stored: note `props` (TIER 3 commit `7e1bfce4`).
+- Help (EN). Q: "Can I give notes my own fields, like a status?" A: "Yes. Open a note, then Properties: add a name, a
+  type (text, number, day, choice or tick) and a value. In Notes → Notes, Table shows a column for each property, with
+  filters, and Board groups your notes by a choice property — move a card with its Move to choice. Properties go with
+  the note in the Markdown export, and front matter from Obsidian comes in as properties."
+- What's new: "Notes: your own properties on a note, as table columns with filters, and a board."
+- Showcase: `lib/notes/showcase.ts` gives "Japan trip ideas" Status: Planning and Budget: 2400, and "Books to read"
+  Status: Reading (no count changes; no note's words change).
+- CSS touched: `components/notes/notes.css`. Today: nothing added.
