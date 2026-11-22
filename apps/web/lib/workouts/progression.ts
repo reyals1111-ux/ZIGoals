@@ -15,7 +15,8 @@ const working = (e: Pick<ExerciseEntry, 'sets' | 'measure'>) => e.sets.filter(s 
 const round = (kg: number) => Math.round(kg * 1000) / 1000;
 /** The last finished session of this exercise from this routine (else any), started before `before`. */
 function lastFrom(w: Workouts, routineId: string, exerciseId: string, before?: string): {entry: ExerciseEntry; date: string} | null {
-  const past = finished(w).filter(x => !before || x.startedAt < before);
+  // Session AV lane 2, round 6 (r6-body; LEDGER #421): a light week is not built on for the next weights.
+  const past = finished(w).filter(x => (!before || x.startedAt < before) && !x.light);
   for (const pick of [(x: (typeof past)[number]) => x.templateId === routineId, () => true]) for (const x of past) { if (!pick(x)) continue; const entry = x.exercises.find(e => e.exerciseId === exerciseId); if (entry && working(entry).length) return {entry, date: x.date}; }
   return null;
 }

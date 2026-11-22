@@ -240,3 +240,47 @@ the energy, food-plus and workouts fields; the two new keys' round trips run onc
 - Showcase hook: none (a Showcase counter would show on the Diary that other specs pin; nothing is on by default).
 - Device keys / catalogue / export / erase: nothing new. Route weight: /app/health's first chunk gains one element; the
   counters are their own chunk through the food-plus entry (lazy already). Please measure /app/health.
+
+## 7. Favourite exercises, a light week out of the bests, bests with their days, an exercise's defaults — LEDGER #420, #421, #422, #424 built
+
+- What (Health → Workouts):
+  - #420 a star on an exercise: "☆ Favourite" in "Exercises and how-tos" (the exercise's card; a ★ on its row in the list,
+    read as ", a favourite") and on every row of "+ Add an exercise" (a 44 px pressed button, "Favourite: Squat"). When
+    adding one, "Favourites" comes first (in the order starred), then "All exercises"; the search, the muscle group and the
+    place filter apply to both.
+  - #421 "Light week (not in my bests)" on a finished workout (Your workouts, opened; pressed while on; its row says
+    "· light week"): its sets stay in the history, the calendar, the volume, the weekly summary and the progress chart, but
+    are left out of the bests, the "new best" marks (none in that workout, and it is not one to beat), the progression's
+    next weights and the first sets of an exercise added later (the last workout that counts fills them). The exercise's
+    card says "1 light week is left out of these bests; it stays in your history."
+  - #422 the exercise's card: "Your bests and their days" — "Heaviest: 100 kg · Mon, Oct 12", "Estimated one-rep max: …",
+    and so on for what it measures, each with the day it was first reached; "Count bests from today" for this exercise or
+    "for all exercises" (after an injury or a new gym): the history stays; the bests and the "new best" marks start again
+    from that day, and the earlier bests show greyed under "Before <day>: … (before)"; "Count every workout again" undoes it.
+  - #424 the exercise's card: "Its own defaults" — sets, reps each (or seconds each for a timed exercise) and rest
+    ("Now: 3 × 8, 2 min rest."), used when it is added to a workout and has no earlier sets; earlier sets still win (as
+    Hevy's row has it). Out-of-range values say a sentence.
+- Files: `lib/workouts/engine.ts` (`countsForBests`, `bestsFromOf`, `exerciseHistory` with `bestDays`, `from`, `before`,
+  `lightLeftOut` and each session's `counts`; `personalBests`; `lastEntryFor(…, {skipLight})`; `addExercise` with the
+  defaults), `lib/workouts/progression.ts` (a light week is not built on), `lib/workouts/r6-gym.ts` (new, pure),
+  `components/health/r6/exercise-own.tsx` (new), `components/health/workouts/exercise-library.tsx` (one `lazy()` line, the
+  ★ on a row), `components/health/workouts/workouts-view.tsx` (the picker's Favourites and stars, the light-week button,
+  `body-r6.css`), `body-r6.css`. The strict splits record is not touched.
+- Tests: `lib/workouts/av2-r6-gym.test.ts`, `lib/av2-r6-body-stored.test.ts`; the existing workouts, set-best, progression,
+  analytics and answers tests green (the answers' bests now follow the light weeks and fresh starts, as the page does).
+  Spec: `tests/av2-r6-gym.spec.ts`.
+- Stored: `light`, `favouriteExercises`, `bestsFrom`, `exerciseDefaults` on `zigoals:workouts:v1` (see the table).
+- Help (EN): **Can I star exercises I do often?** Yes. Choose ☆ Favourite on an exercise in "Exercises and how-tos" or in
+  the list when you add one; your favourites come first when you add an exercise. **Can a light week stay out of my
+  bests?** Yes. Open the workout under Your workouts and choose "Light week (not in my bests)". Its sets stay in your
+  history and volume, but your bests, the "new best" marks and the next weights leave it out. **Can I see when I set a
+  best, or start my bests again?** In "Exercises and how-tos", an exercise shows each best with the day you set it.
+  "Count bests from today", for that exercise or all of them, starts your bests again after an injury or a new gym; earlier
+  ones stay, greyed as "before". **Can an exercise have its own sets and rest?** Yes: under "Its own defaults" set the
+  sets, reps (or seconds) and rest. They are used when you add it with no earlier sets; your last sets still win.
+- What's new: "Workouts: favourite exercises first, a light week out of your bests, bests with their days and a fresh start, and an exercise's own defaults."
+- Search (static.ts): "favourite exercises", "deload", "light week", "personal best date", "reset bests", "exercise
+  defaults", "default sets and reps" → `/app/health?view=workouts`.
+- Showcase hook: none (a Showcase star would change the add-exercise list that Showcase specs walk; no pinned count moves).
+- Device keys / catalogue / export / erase: nothing new (the workouts record is registered). Route weight: the Workouts
+  chunk (lazy already) gains `r6-gym.ts` (small) and the CSS; the card's part is `r6/exercise-own`.
