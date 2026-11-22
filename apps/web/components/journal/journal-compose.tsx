@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {Suspense, lazy, useEffect, useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {localDate} from '../../lib/local-date';
+import {addLocalDays, localDate} from '../../lib/local-date';
 import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
 import {JOURNAL, MAX_TEXT, type JournalEntry} from '../../lib/journal/schema';
 import {followUpFor, patternLine, patterns} from '../../lib/journal/reflect';
@@ -25,6 +25,7 @@ type PacksModule = typeof import('../../lib/journal-prompts/packs');
 import {readTags, tagCounts} from '../../lib/journal/tags';
 import {periodChoices, periodWords} from '../../lib/journal/periods';
 import {addDream, dreamsBook} from '../../lib/journal/dreams';
+import {OPENS_WORDS, addMonths, opensOnFor, type OpensChoice} from '../../lib/journal/letters';
 import {formatDate} from '../../lib/visual-format';
 import {setQuestionLang, useQuestionLang} from './question-lang';
 import {addOwnTemplate, asJournalTemplate, editOwnTemplate, removeOwnTemplate, withDefault} from '../../lib/journal-prompts/own';
@@ -61,6 +62,8 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   const [period, setPeriod] = useState('');
   // Session AV lane 2 (r3-notes; LEDGER #278): "Write down a dream" on the sleep log opens ?dream=<the night's day>.
   const [dream, setDream] = useState<string | null>(null);
+  // Session AV lane 2 (r3-notes; LEDGER #279, Stoic): a letter to open later — when it opens ('' not a letter).
+  const [opens, setOpens] = useState<'' | OpensChoice | 'day'>(''), [opensDay, setOpensDay] = useState(''), [asLetter, setAsLetter] = useState(false);
   useEffect(() => { if (compact) return; try { const d = new URLSearchParams(window.location.search).get('dream'); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today) setDream(d); } catch { /* no address */ } }, [compact, today]);
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
@@ -108,6 +111,8 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
     if (!words && !hasMedia) return setProblem('Write a few words first.');
     if (words && prompt && onlyHeadings(words)) return setProblem('Write a few words under the headings first.');
     { const own = prompt ? (journal.data.templates ?? []).find(t => t.id === prompt.id) : null; if (own?.body && words === own.body.trim()) return setProblem('Change the template’s words to today’s first.'); }
+    const opensOn = !opens ? null : opens === 'day' ? (/^\d{4}-\d{2}-\d{2}$/.test(opensDay) && opensDay > today ? opensDay : null) : opensOnFor(opens, today);
+    if (opens === 'day' && !opensOn) return setProblem('Choose a day after today to open the letter on.');
     const tags = compact ? [] : readTags(tagText);
     let photos: string[] = [], audio: {id: string; seconds: number}[] = [];
     if (hasMedia) {
@@ -120,13 +125,13 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       setSaving(false);
     }
     const fallback = audio.length && photos.length ? 'Photos and a voice note.' : audio.length ? 'A voice note.' : photos.length > 1 ? 'Photos.' : 'A photo.';
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: (words || fallback).slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {}), ...(period && !compact ? {period} : {})};
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: (words || fallback).slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {}), ...(period && !compact ? {period} : {}), ...(opensOn && !compact ? {opensOn} : {})};
     const question = words && journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     // Session AV lane 2 (r3-notes; LEDGER #278): a dream goes in the Dreams journal (made on first use), linked to its night.
     const dreamOf = dream;
     try { journal.update(current => { const full = {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}; if (dreamOf) return addDream(current, full, dreamOf).journal; return {...current, entries: [...current.entries, full].slice(-5000)}; }); }
     catch { if (photos.length || audio.length) void import('../../lib/journal/keep-media').then(k => k.forgetJournalMedia([...photos, ...audio.map(a => a.id)])); return setProblem('This could not be saved on this device. Nothing was changed.'); }
-    setText(''); setTagText(''); setPrompt(null); setGridOn(null); setPeriod(''); setDream(null); setFillDefault(true); setMedia(NO_MEDIA); setMediaOpen(false); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
+    setText(''); setTagText(''); setPrompt(null); setGridOn(null); setPeriod(''); setDream(null); setOpens(''); setOpensDay(''); setAsLetter(false); setFillDefault(true); setMedia(NO_MEDIA); setMediaOpen(false); setStatus(opensOn ? `Your letter is folded away until ${formatDate(opensOn)}. That day it opens on Today.` : 'Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
     if (question) zigiSignals.emit('journal_reflecting'); // Session AK Part 12: ZIGi asks its one question (a Studio-4 reaction once its art lands)
   };
   const pending = asked ? journal.data.entries.find(e => e.id === asked) : null;
@@ -166,6 +171,12 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       <SecretGuard text={text} onRemove={() => setText('')}/>
       {/* Session AV (1c, q4 #5; Day One suggests tags): the tags already in use, offered after what is typed so far. */}
       {!compact && <label className="field journal-compose-tags"><span>Tags — optional</span><input maxLength={200} autoComplete="off" list={tagOffers.length ? `${id}-known-tags` : undefined} value={tagText} onChange={e => setTagText(e.target.value)} placeholder="work, family" aria-describedby={`${id}-tags-hint`}/><small id={`${id}-tags-hint`} className="fine">Separate tags with commas; up to 8.</small></label>}
+      {!compact && !dream && (prompt?.id === 'letter-future-you' || asLetter || opens ? <fieldset className="journal-letter">
+        <legend>Open it later, as a letter</legend>
+        <label className="field"><span>Open this entry</span><select value={opens} onChange={e => setOpens(e.target.value as typeof opens)}><option value="">Now: not a letter</option>{(['month', 'half', 'year'] as const).map(c => <option key={c} value={c}>{OPENS_WORDS[c]} ({formatDate(opensOnFor(c, today))})</option>)}<option value="day">On a day I choose</option></select></label>
+        {opens === 'day' && <label className="field"><span>The day it opens</span><input type="date" min={addLocalDays(today, 1)} max={addMonths(today, 120)} value={opensDay} onChange={e => setOpensDay(e.target.value)}/></label>}
+        <p className="fine">Until then it stays folded away in your journal, its words hidden. On its day it opens on Today, and the Journal&rsquo;s reminder tells you that morning (if notifications are on).</p>
+      </fieldset> : <button type="button" className="quiet journal-letter-open" onClick={() => { setAsLetter(true); requestAnimationFrame(() => document.querySelector<HTMLElement>('.journal-letter select')?.focus()); }}>Open it later, as a letter…</button>)}
       {!compact && (() => { const choices = periodChoices(today), lookBack = period ? ALL_TEMPLATES.find(t => t.period === (period.includes('-W') ? 'week' : period.length === 7 ? 'month' : 'year')) : null;
         const word = (c: (typeof choices)[number]) => !c.kind ? 'This day' : `${c.which === 'this' ? 'This' : 'Last'} ${c.kind} · ${periodWords(c.value)}`;
         return <div className="journal-compose-period">

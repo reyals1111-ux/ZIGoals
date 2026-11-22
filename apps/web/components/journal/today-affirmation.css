@@ -13,3 +13,5 @@
 .today-quote figcaption { font-size: 14px; }
 .today-quote-actions { display: flex; flex-wrap: wrap; gap: 0 16px; }
 .today-quote-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+/* Session AV lane 2 (r3-notes; LEDGER #279): a letter that opens today. */
+.today-letter { margin: 8px 0 0; font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }

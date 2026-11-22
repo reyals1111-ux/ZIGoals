@@ -23,6 +23,7 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #272 Grid Diary Export as Markdown | built | F6 |
 | #277 Stoic Quotes from Stoic writers | built | F7 |
 | #278 Stoic Dream journal from the sleep log | built; Stoic's insomnia lessons Carried: needs content made for ZIGoals | F8 |
+| #279 Stoic A letter to open later | built | F9 |
 
 ## Features
 
@@ -230,3 +231,31 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 - What's new: "Sleep and Journal: write down a dream from the morning's night; it goes in your Dreams journal."
 - Showcase: none (a Showcase entry would change the pinned entry count of 10).
 - CSS touched: `components/health/sleep/sleep.css`, `components/journal/journal.css`. Today: nothing added.
+
+### F9 A letter to open later — LEDGER #279 (Stoic)
+
+- Verdict: **built**.
+- What: Journal → Write: with "A letter to future you" (or after "Open it later, as a letter…", focus on the choice),
+  "Open this entry": now (not a letter), in a month, six months or a year (each with its day), or on a day you choose.
+  Saved, the entry stays folded away in the list ("A letter to open on Sun, Nov 22, 2027, folded away until then"), its
+  words, ZIGi's question and its photos hidden; "Read it now" shows it on this visit only (nothing is changed). On its
+  day, Today's journal card says "A letter to you opens today: you wrote it on …" with "Read your letter" (for a week;
+  nothing on Today on any other day), and the notification plan wakes the device that morning (the morning time, or the
+  end of quiet hours) under the journal switch, saying "A letter you wrote opens today" — never a word of it.
+- Files: `lib/journal/letters.ts`, `components/journal/journal-compose.tsx`, `components/journal/journal-page.tsx`,
+  `components/journal/today-letter.tsx` (lazy), `components/journal/today-journal-card.tsx`,
+  `components/journal/today-affirmation.css`, `components/journal/journal.css`; TIER 3 (PWA) commit `8feb4c73`:
+  `lib/notify/plan.ts` (`letters` input, one-off journal wakes), `lib/notify/sync.ts`, `public/sw.js` (its own line).
+- Tests: `lib/journal/r3-letters.test.ts` (days, folding, Today's week, the plan's wake, the worker's words, the switch).
+- Spec: `tests/av2-journal-letter.spec.ts`.
+- Stored: entry `opensOn` (TIER 3 commit `3c7c0bbe`).
+- Help (EN). Q: "Can I write a letter to open later?" A: "Yes. When you write, choose Open it later, as a letter (or
+  start from A letter to future you) and pick a month, six months, a year or a day. The letter stays folded away in your
+  journal until then. On its day it shows on Today, and the journal reminder tells you that morning if notifications
+  are on. It never shows the letter's words in a notification."
+- What's new: "Journal: a letter to open later — folded away until its day, then on Today."
+- Showcase: none (a Showcase entry would change the pinned entry count of 10).
+- Today: **visible only in the week a letter opens** (a line and one link on the journal card); nothing otherwise, and
+  nothing in the Showcase.
+- Notification kinds: none new (the existing `journal` kind and its Settings switch "Reminder to write").
+- CSS touched: `components/journal/journal.css`, `components/journal/today-affirmation.css`.

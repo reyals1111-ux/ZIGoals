@@ -234,3 +234,10 @@
 /* Session AV lane 2 (r3-notes; LEDGER #278): writing down a dream. */
 .journal-dream-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .journal-dream-line .text-link { min-height: 44px; }
+/* Session AV lane 2 (r3-notes; LEDGER #279): a letter to open later — its choice when writing, and folded away in the list. */
+.journal-letter { display: grid; gap: 8px; margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); min-width: 0; }
+.journal-letter legend { padding: 0 4px; font-weight: 650; }
+.journal-letter select, .journal-letter input { min-height: 44px; font-size: 16px; max-width: 100%; }
+.journal-letter-open { min-height: 44px; justify-self: start; }
+.journal-entry-sealed { margin: 4px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 10px 12px; border-radius: 12px; border: 1px dashed color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent); }
+.journal-entry-sealed .text-link { min-height: 44px; }
