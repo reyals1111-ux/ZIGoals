@@ -10,7 +10,7 @@ import {MOON_WORDS, moonOn, sunOn} from '../../journal/sky';
 import {addDays, wallClock} from '../../zone-time';
 import {emptyDayEnds, setCurrentDayEnds} from '../../day-boundary-core';
 import {emptyWorkouts, workoutsSchema} from '../../workouts/schema';
-import {setLight} from '../../workouts/r6-gym';
+import {setExerciseDefaults, setLight} from '../../workouts/r6-gym';
 
 /**
  * Session AV lane 2 (fixb6q): review B6Q's findings on round 6's on-device answers (NOVA and ZIGi), each pinned here in
@@ -164,6 +164,25 @@ describe('B6Q-17: the word goal reached says so', () => {
   test('English and Dutch', () => {
     expect(text(av2R6NotesAnswer('did I reach my word goal today', novaEnv(journal(5))))).toBe('Your goal is 5 words a day, and today holds 5: goal reached. The journal calendar marks each day you reached it.');
     expect(text(av2R6NotesAnswer('heb ik mijn woorddoel vandaag gehaald', novaEnv(journal(5))))).toBe('Je doel is 5 woorden per dag, en vandaag staan er 5: doel gehaald. De dagboekkalender markeert elke dag dat je het haalde.');
+  });
+});
+
+describe('B6Q-18: a late session is one that begins between midnight and the day’s end', () => {
+  test('English and Dutch', () => {
+    setCurrentDayEnds({version: 1, endsAt: 180});
+    expect(text(av2R6BodyAnswer('which day does a late meditation count on', zigiEnv(showcaseAll())))).toContain('so a session that begins between midnight and 3:00 counts on the evening before:');
+    expect(text(av2R6BodyAnswer('op welke dag telt een late meditatie?', zigiEnv(showcaseAll())))).toContain('dus een sessie die tussen middernacht en 3:00 begint telt op de avond ervoor:');
+  });
+});
+
+describe('B6Q-19 (body): Dutch', () => {
+  test('a star for an exercise; "1 set" stays one set', () => {
+    const s = showcaseAll(), w = setExerciseDefaults(setExerciseDefaults(emptyWorkouts(), 'plank', {sets: 1}), 'squat', {sets: 3});
+    const with_ = {...s, ak: {...s.ak, workouts: w}} as ToolSources, none = {...s, ak: {...s.ak, workouts: emptyWorkouts()}} as ToolSources;
+    expect(text(av2R6BodyAnswer('wat zijn mijn favoriete oefeningen', zigiEnv(none)))).toMatch(/^Nog geen favoriete oefeningen\. Geef een oefening een ster in /);
+    const nl = text(av2R6BodyAnswer('wat zijn de standaardwaarden van mijn oefeningen', zigiEnv(with_)));
+    expect(nl).toMatch(/^Eigen standaardwaarden van je oefeningen: (?:Plank 1 set en Squat 3 sets|Squat 3 sets en Plank 1 set)\./);
+    expect(nl).not.toMatch(/\b1 sets\b/);
   });
 });
 
