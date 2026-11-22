@@ -48,3 +48,18 @@ describe('the exercise library (LEDGER #116, #119)', () => {
     expect(ask('how do I do my taxes')).toBeNull();
   });
 });
+
+describe('routines (LEDGER #112, #115, #119)', () => {
+  test('own routines by folder, with the Showcase\'s labelled note', () => {
+    const en = text(ask('what routines do I have'));
+    expect(en).toContain('2 routines:');
+    expect(en).toContain('• Gym: Push day (note: Example · 90 s rest between sets), Leg day');
+    expect(text(ask('welke routines heb ik', freshAll()))).toContain('Er is nog geen routine opgeslagen');
+  });
+  test('the ready-made library, filtered for at home', () => {
+    expect(text(ask('which ready-made routines are there'))).toContain('Full body A (Gym, about 45 min)');
+    const home = text(ask('stel een routine voor thuis voor'));
+    expect(home).toContain('Lichaamsgewicht thuis');
+    expect(home).not.toContain('Duwdag');
+  });
+});

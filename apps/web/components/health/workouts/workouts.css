@@ -144,3 +144,11 @@
 .workouts-last-note { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 4px 0 0; overflow-wrap: anywhere; }
 .workouts-last-note .text-link { min-height: 44px; }
 .workouts-calendar-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+/* Session AV lane 2 (body; LEDGER #115, #119, #112): pinned and routine notes, a library routine's plan line, folders,
+   the lazy folds (their content's own sheet is av2-body.css). */
+.av2-fold > summary, .av2-howto > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.av2-howto > summary { font-size: 15px; }
+.av2-pinned { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 15px; overflow-wrap: anywhere; }
+.av2-pinned .text-link { min-height: 44px; }
+.av2-folder { margin: 10px 0 0; font-size: 1rem; }
+.av2-routine-note { font-size: 14px; }

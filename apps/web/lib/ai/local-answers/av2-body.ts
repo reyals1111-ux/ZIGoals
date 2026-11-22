@@ -2,6 +2,8 @@ import {finished} from '../../workouts/engine';
 import {HOW_TOS, howToOf, muscleList, type HowTo} from '../../workouts/howto';
 import {EXERCISES} from '../../workouts/library';
 import {pinnedNoteOf} from '../../workouts/notes';
+import {GUIDES} from '../../workouts/routine-library';
+import {routineGroups} from '../../workouts/routines';
 import type {Workouts} from '../../workouts/schema';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
@@ -104,4 +106,28 @@ function exercisesFor(a: Asked): LocalReply | null {
   return answer(say(lang, `Exercises that work it most: ${list.slice(0, 10).join(', ')}. Each has written steps in Health → Workouts → Exercises and how-tos.`, `Oefeningen die er vooral op werken: ${list.slice(0, 10).join(', ')}. Elk heeft uitgeschreven stappen in Health → Workouts → Exercises and how-tos.`), CALLS);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor];
+// ── Routines (LEDGER #112, #115, #119) ─────────────────────────────────────────────────────────────────────────────
+
+/** "what routines do I have", "welke routines heb ik": the own routines by folder, with their notes. */
+function myRoutines(a: Asked): LocalReply | null {
+  const en = /\b(?:what|which) (?:workout )?routines? (?:do i have|have i (?:saved|got)|are (?:saved|mine))\b|\bmy (?:workout )?routines\b|\broutine folders?\b/.test(a.f), nl = /\bwelke (?:workout ?)?routines? heb ik\b|\bmijn (?:workout ?)?routines\b|\broutinemappen?\b|\bmappen (?:met|van) (?:mijn )?routines\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a) || /\bready|\bkant en klare?\b|\blibrary\b|\bbibliotheek\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const w = logOf(a), lang = a.lang;
+  if (!w.templates.length) return answer(say(lang, 'No routine is saved yet. In Health → Workouts, open “Ready-made routines” to save one, or save a finished workout as a routine.', 'Er is nog geen routine opgeslagen. Open in Health → Workouts “Ready-made routines” om er een te bewaren, of bewaar een afgeronde workout als routine.'), CALLS);
+  const lines = routineGroups(w).map(g => `${g.folder ?? say(lang, 'No folder', 'Geen map')}: ${g.routines.map(t => `${clean(t.name, 40)}${t.note ? ` (${say(lang, 'note', 'notitie')}: ${clean(t.note, 80)})` : ''}`).join(', ')}`);
+  return answer([say(lang, `${w.templates.length} ${w.templates.length === 1 ? 'routine' : 'routines'}:`, `${w.templates.length} ${w.templates.length === 1 ? 'routine' : 'routines'}:`), ...lines.map(l => `• ${l}`)].join('\n'), CALLS);
+}
+/** "which ready-made routines are there", "welke kant-en-klare routines zijn er": the written library. */
+function readyRoutines(a: Asked): LocalReply | null {
+  const en = /\b(?:ready made|readymade|premade|pre made|built in|guided) (?:workout |strength )?(?:routines?|workouts?|plans?)\b|\broutine library\b|\b(?:suggest|recommend) (?:a |me a )?(?:strength )?(?:routine|workout)\b/.test(a.f);
+  const nl = /\bkant en klare? (?:routines?|workouts?|trainingen)\b|\broutinebibliotheek\b|\b(?:stel|raad) (?:een |me een )?(?:routine|workout|training) voor\b|\bwelke routines zijn er\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, home = /\b(?:home|thuis|no equipment|zonder spullen|bodyweight|lichaamsgewicht)\b/.test(a.f), short = /\b(?:short|quick|kort|korte|snel|10 min)\b/.test(a.f);
+  const list = GUIDES.filter(g => (!home || g.folder.en === 'At home') && (!short || g.minutes <= 25));
+  return answer([say(lang, `${list.length} written routines${home ? ' for at home' : short ? ' for a short session' : ''}, in Health → Workouts → Ready-made routines (save one and it is yours to change):`, `${list.length} uitgeschreven routines${home ? ' voor thuis' : short ? ' voor een korte sessie' : ''}, in Health → Workouts → Ready-made routines (bewaar er een en pas hem aan):`),
+    ...list.map(g => `• ${g.name[lang]} (${g.folder[lang]}, ${say(lang, 'about', 'ongeveer')} ${g.minutes} min): ${g.about[lang]}`)].join('\n'), CALLS);
+}
+
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines];

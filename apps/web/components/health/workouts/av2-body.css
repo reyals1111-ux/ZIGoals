@@ -20,6 +20,15 @@
 .av2-exercise-own p { margin: 0; font-size: 15px; }
 .av2-pin { display: grid; gap: 8px; }
 .av2-pin textarea { min-height: 44px; width: 100%; }
-.av2-pinned { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 15px; overflow-wrap: anywhere; }
-.av2-pinned .text-link, .av2-howto > summary { min-height: 44px; }
-.av2-howto > summary { display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 600; }
+/* The routine library (LEDGER #112, #115). */
+.av2-routines { display: grid; gap: 10px; }
+.av2-guide-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.av2-guide { display: grid; gap: 6px; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); align-content: start; min-width: 0; }
+.av2-guide h4 { margin: 0; font-size: 1.05rem; }
+.av2-guide p { margin: 0; font-size: 15px; }
+.av2-guide-meta { color: var(--text-secondary, #c9d6ea); }
+.av2-guide-exercises { margin: 0; padding-inline-start: 1.3em; display: grid; gap: 4px; font-size: 15px; }
+.av2-guide-exercises span { font-variant-numeric: tabular-nums; }
+.av2-guide-exercises small { display: block; font-size: 14px; color: var(--text-secondary, #c9d6ea); }
+.av2-routine-edit { display: grid; gap: 8px; flex-basis: 100%; }
+.av2-routine-edit textarea { width: 100%; min-height: 44px; }

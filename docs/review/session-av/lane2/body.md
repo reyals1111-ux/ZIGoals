@@ -56,3 +56,30 @@ test `apps/web/lib/workouts/av2-stored.test.ts`.
   oefeningen trainen mijn billen".
 - Device keys / catalogue / export / erase: nothing new (inside `zigoals:workouts:v1`). Search (static.ts): "Exercise
   library", "how-to", "pinned note" → `/app/health?view=workouts`.
+
+## 2. Ready-made routines (written guided workouts, EN+NL), routine folders, routine notes — LEDGER #112 built, #115 built, #119 built (with feature 1)
+
+- What: Health → Workouts → Start a workout → "Ready-made routines" (a fold; its own chunk): twelve routines written in
+  the repository (Full body A/B, Push/Pull/Leg day, Upper/Lower body, Body weight at home, Dumbbells only, Core in ten
+  minutes, Strength for runners, Easy mobility), each with what it is for, its minutes and level, every exercise's sets ×
+  reps or seconds, rest and one cue, and a suggested progression, in English or Dutch. "Save to my routines" copies it
+  into the person's routines in its folder; "Start it now" saves and starts it. While training, each exercise of a library
+  routine shows "Plan: 3 × 8 · rest 2:00 · cue" (in the language it was saved in) and its rest timer is the plan's.
+  "Your routines" is grouped by folder; Edit sets a folder (new or one in use, the same name typed another way is the same
+  folder) and a routine note, shown under the routine and at the top of a workout started from it. Not a multi-week
+  programme (#113, #120 stay Carried: needs content made for ZIGoals).
+- Files: `lib/workouts/routine-library.ts` (the written routines), `lib/workouts/routines.ts`, `lib/workouts/notes.ts`
+  (`setRoutineNote`), `components/health/workouts/routine-library-view.tsx` (+ `RoutineEdit`),
+  `components/health/workouts/workouts-view.tsx`, `components/health/workouts/workouts.css` (view-level lines),
+  `components/health/workouts/av2-body.css`, `lib/workouts/showcase.ts` (Showcase: both routines in "Gym"; Push day's
+  note "Example · 90 s rest between sets").
+- Tests: `lib/workouts/av2-library.test.ts`, `lib/ai/local-answers/av2-body.test.ts`; spec `tests/av2-routine-library.spec.ts`.
+- Stored: routine `folder`, `note`, `guideId`, `progression` (see Stored changes).
+- Help (EN): **Are there ready-made workouts?** Yes. In Health → Workouts, open "Ready-made routines": twelve written
+  routines, from full body to ten minutes of core, in English or Dutch, with sets, reps, rest and a cue for each exercise.
+  "Save to my routines" makes it yours to change; "Start it now" starts it. **Can I sort routines into folders?** Yes:
+  Edit a routine to put it in a folder (Gym, At home…) and give it a note that shows when you start it.
+- What's new: "Workouts: twelve ready-made routines in English and Dutch, routine folders and routine notes."
+- Answers: "what routines do I have" / "welke routines heb ik" (by folder, with notes), "which ready-made routines are
+  there" / "welke kant-en-klare routines zijn er", "suggest a strength routine for at home" / "stel een routine voor thuis voor".
+- Search (static.ts): "Ready-made routines", "routine folders", "guided workout" → `/app/health?view=workouts`.

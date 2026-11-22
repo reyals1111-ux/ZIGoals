@@ -32,6 +32,8 @@ import {ArtNote} from '../../illustrations/art-note';
 import {Skeleton} from '../../ui/skeleton';
 import {SlowReload} from '../slow-reload';
 import {pinnedNoteOf, setPinnedNote} from '../../../lib/workouts/notes';
+import {routineGroups, saveGuide} from '../../../lib/workouts/routines';
+import {guideLine, guideOf, routineLang, type Guide, type Lang} from '../../../lib/workouts/routine-library';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
 const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
@@ -48,6 +50,9 @@ const WorkoutsMuscles = lazy(() => import('./workouts-muscles'));
 const MuscleFreshToday = lazy(() => import('./muscle-freshness-today'));
 // Session AV lane 2 (body; LEDGER #116, #119): the exercise library with written how-tos and pinned notes, its own chunk.
 const ExerciseLibrary = lazy(() => import('./exercise-library'));
+// Session AV lane 2 (body; LEDGER #112, #115): the ready-made routines and an own routine's folder and note, one chunk.
+const RoutineLibrary = lazy(() => import('./routine-library-view'));
+const RoutineEdit = lazy(() => import('./routine-library-view').then(m => ({default: m.RoutineEdit})));
 const ExerciseHowTo = lazy(() => import('./exercise-library').then(m => ({default: m.ExerciseDetail})));
 
 /**
@@ -69,7 +74,7 @@ export default function WorkoutsView() {
   const [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now()), [restUntil, setRestUntil] = useState<number | null>(null);
   const [tookMinutes, setTookMinutes] = useState('');
   const [asking, setAsking] = useState<null | 'finish' | 'discard' | {remove: string}>(null), [summary, setSummary] = useState<{workout: Workout; bests: PersonalBest[]} | null>(null);
-  const [historyOf, setHistoryOf] = useState('');
+  const [historyOf, setHistoryOf] = useState(''), [editing, setEditing] = useState<string | null>(null);
   const ready = record.loaded && health.loaded && !health.error;
   const unit = ready ? dailyData(health.data).preferences.weightUnit : 'kg';
   const today = ready ? healthDay(dailyData(health.data).preferences.timezone) : '';
@@ -94,6 +99,12 @@ export default function WorkoutsView() {
   if (health.error) return <section className="panel"><h1>Workouts</h1><p role="alert">Workouts keep their minutes in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const w = record.data, past = finished(w), last = past[0], week = weekSummary(w, today), library = allExercises(w.exercises);
 
+  // Session AV lane 2 (body; LEDGER #112, #115): a ready-made routine is copied into the person's routines, then (Start it now) started.
+  function saveFromLibrary(g: Guide, lang: Lang, start: boolean) {
+    let made: ReturnType<typeof saveGuide> | undefined;
+    if (!change(x => { made = saveGuide(x, g, lang, new Date()); return made.workouts; }, start ? undefined : `${g.name[lang]} is in your routines, in ${g.folder[lang]}.`) || !made) return;
+    if (start) begin({date: logDay, now: new Date(), template: made.routine});
+  }
   const begin = (input: Parameters<typeof startWorkout>[1]) => { setSummary(null); if (change(x => startWorkout(x, input), 'Workout started. Add an exercise, then log your sets.')) document.getElementById('workout-now')?.scrollIntoView({block: 'start'}); };
   async function finish() {
     setAsking(null);
@@ -197,11 +208,17 @@ export default function WorkoutsView() {
           <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
           {last && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: last})}>Repeat {last.name}</button>}
         </div>
-        {w.templates.length > 0 && <><h3>Your routines</h3><ul className="workouts-routines">{w.templates.map(t => <li key={t.id}>
-          <div><strong>{t.name}</strong><span>{t.exercises.map(e => e.name).join(' · ')}</span></div>
+        {/* Session AV lane 2 (body; LEDGER #115, #119): routines by folder, each with its note and an Edit for both. */}
+        {w.templates.length > 0 && <><h3>Your routines</h3>{routineGroups(w).map(g => <div key={g.folder ?? ''} className="av2-routine-group">
+          {(g.folder || routineGroups(w).length > 1) && <h4 className="av2-folder">{g.folder ?? 'No folder'} <span className="fine">({g.routines.length})</span></h4>}
+          <ul className="workouts-routines">{g.routines.map(t => <li key={t.id}>
+          <div><strong>{t.name}</strong><span>{t.exercises.map(e => e.name).join(' · ')}</span>{t.note && <span className="av2-routine-note">Note: {t.note}</span>}{t.progression && <span className="av2-routine-note">{progressionWords(t.progression)}</span>}</div>
           <div className="workouts-row-actions"><button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), template: t})} aria-label={`Start ${t.name}`}>Start</button>
+            <button className="quiet" type="button" aria-expanded={editing === t.id} aria-label={`Edit routine ${t.name}`} onClick={() => setEditing(editing === t.id ? null : t.id)}>Edit</button>
             <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`, `Routine ${t.name} is back.`)}>Remove</button></div>
-        </li>)}</ul></>}
+          {editing === t.id && <Suspense fallback={<p className="fine" role="status">Opening…</p>}><RoutineEdit w={w} routine={t} change={change} onDone={() => setEditing(null)}/></Suspense>}
+        </li>)}</ul></div>)}</>}
+        <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines: full body, push, pull, legs, at home" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)}/></Fold>
       </section>}
     {asking === 'finish' && current && <ConfirmInline title="Finish with unticked sets?" confirmLabel="Finish workout" cancelLabel="Keep logging" tone="neutral" onConfirm={() => void finish()} onCancel={() => setAsking(null)}><p>Sets you have not ticked are left out. Tick a set when you finish it.</p></ConfirmInline>}
     {asking === 'discard' && <ConfirmInline title="Discard this workout?" confirmLabel="Discard workout" cancelLabel="Keep it" onConfirm={() => { setAsking(null); setRestUntil(null); change(discardWorkout, 'The workout in progress is discarded. Nothing was added to Health.'); }} onCancel={() => setAsking(null)}><p>Its sets are not kept.</p></ConfirmInline>}
@@ -257,20 +274,25 @@ function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRe
   const [picking, setPicking] = useState(workout.exercises.length === 0);
   const letters = supersetLabels(workout.exercises);
   const elapsed = Math.max(0, Math.floor((now - Date.parse(workout.startedAt)) / 1000));
+  // Session AV lane 2 (body; LEDGER #112, #119): the routine's note, and a library routine's plan and cue per exercise.
+  const routine = workout.templateId ? w.templates.find(t => t.id === workout.templateId) : undefined, guide = guideOf(routine?.guideId), cueLang: Lang = guide && routine ? routineLang(guide, routine.name) : 'en';
   return <section className="panel workouts-now" id="workout-now" aria-labelledby="workout-now-title">
     <div className="workouts-now-head">
       <label className="field workouts-name"><span id="workout-now-title">Workout in progress</span><input defaultValue={workout.name} maxLength={80} onBlur={e => { if (e.target.value.trim() !== workout.name) change(x => renameWorkout(x, e.target.value)); }}/></label>
       <p className="workouts-elapsed"><span>Started {formatTime(workout.startedAt)}</span> <strong>{clock(elapsed)}</strong></p>
     </div>
+    {routine?.note && <p className="av2-pinned workouts-routine-note"><span>Routine note: <q dir="auto">{routine.note}</q></span></p>}
     {restUntil !== null && <p className="workouts-rest" role="timer" aria-live="off">Rest <strong>{clock(Math.max(0, Math.ceil((restUntil - now) / 1000)))}</strong> <button className="text-link" type="button" onClick={onSkipRest}>Skip rest</button></p>}
     {workout.exercises.map((e, i) => <ExerciseBlock key={e.id} entry={e} index={i} count={workout.exercises.length} previous={lastEntryFor(w, e.exerciseId, workout.startedAt)} unit={unit} change={change} onRest={() => onRest(e.id)}
-      w={w} letter={letters.get(e.id)} nextLetter={letters.get(workout.exercises[i + 1]?.id ?? '')}/>)}
+      w={w} letter={letters.get(e.id)} nextLetter={letters.get(workout.exercises[i + 1]?.id ?? '')} cue={(() => { const x = guide?.exercises.find(g => g.exerciseId === e.exerciseId); return x ? {line: guideLine(x, cueLang), cue: x.cue[cueLang], lang: cueLang} : undefined; })()}/>)}
     {picking ? <ExercisePicker library={library} onPick={x => { if (change(y => addExercise(y, x))) setPicking(false); }} onCreate={input => { let made: LibraryExercise | undefined; if (change(y => { const r = addCustomExercise(y, input); made = r.exercise; return addExercise(r.workouts, r.exercise); })) { setPicking(false); void made; } }} onClose={workout.exercises.length ? () => setPicking(false) : undefined}/>
       : <button className="secondary workouts-add" type="button" onClick={() => setPicking(true)}>+ Add an exercise</button>}
     <div className="workouts-now-actions"><button className="primary" type="button" onClick={onFinish}>Finish workout</button><button className="quiet" type="button" onClick={onDiscard}>Discard</button></div>
   </section>;
 }
 
+/** Session AV lane 2 (body; LEDGER #109): a routine's progression rule in a line. */
+const progressionWords = (p: NonNullable<Workouts['templates'][number]['progression']>) => p.kind === 'double' ? `Progression: ${p.minReps}–${p.maxReps} reps, then +${p.stepKg} kg` : `Progression: +${p.stepKg} kg each session`;
 /** Session AV lane 2 (body): a fold whose lazy content loads when it is first opened. */
 function Fold({className, summary, loading, children}: {className: string; summary: string; loading: string; children: ReactNode}) {
   const [open, setOpen] = useState(false);
@@ -281,8 +303,8 @@ function CalendarFold({w, today}: {w: Workouts; today: string}) {
   const [open, setOpen] = useState(false);
   return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today}/></Suspense>}</details>;
 }
-function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
-  w: Workouts; letter?: string; nextLetter?: string}) {
+function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter, cue}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
+  w: Workouts; letter?: string; nextLetter?: string; cue?: {line: string; cue: string; lang: Lang}}) {
   const headId = `ex-${entry.id}`, [tools, setTools] = useState(false), rpe = entry.measure === 'weight-reps' || entry.measure === 'reps';
   // Session AV (owner follow-up 1, F-SET-BEST): the bests of every finished workout, for the badge on a ticked set.
   const bests = useMemo(() => exerciseHistory(w, entry.exerciseId), [w, entry.exerciseId]);
@@ -298,6 +320,7 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
     <div className="workouts-exercise-foot"><button className="secondary" type="button" onClick={() => change(x => addSet(x, entry.id))}>+ Add set</button>
       <label className="field workouts-ex-note"><span className="sr-only">Note for {entry.name}</span><input key={entry.note ?? ''} placeholder="Note (seat height, grip…)" maxLength={500} defaultValue={entry.note ?? ''} onBlur={e => { if ((entry.note ?? '') !== e.target.value) change(x => setExerciseNote(x, entry.id, e.target.value)); }}/></label></div>
     {/* Session AV (owner follow-up 1, F-SET-BEST; Hevy's pinned note): last time's note, carried over on a tap. */}
+    {cue && <p className="av2-pinned workouts-guide-cue" lang={cue.lang}><span>Plan: {cue.line} · {cue.cue}</span></p>}
     {/* Session AV lane 2 (body; LEDGER #119, Hevy's pinned note): the exercise's pinned note, every time; the session note can be pinned. */}
     {pinnedNoteOf(w, entry.exerciseId) && <p className="av2-pinned workouts-pinned-note"><span>Pinned note: <q dir="auto">{pinnedNoteOf(w, entry.exerciseId)}</q></span></p>}
     {entry.note?.trim() && entry.note.trim() !== pinnedNoteOf(w, entry.exerciseId) && <p className="av2-pinned"><button type="button" className="text-link" aria-label={`Pin this note to ${entry.name}`} onClick={() => change(x => setPinnedNote(x, entry.exerciseId, entry.note!), `Note pinned to ${entry.name}: it shows every time you do it.`)}>Pin this note to {entry.name}</button></p>}
