@@ -671,6 +671,16 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   local branches, unreviewed and not integrated; they are not in this PR.
 - Polish part 3 (started on round 7's base) was stopped with it; nothing of it is in this PR.
 
+## D-CI2006 — PR #109's first run (2006, `303c02f8`): every job red, one cause
+- All 25 jobs failed at the type check: `pnpm typecheck` in the checks job and `next build`'s "Running TypeScript" in every
+  build job ran out of memory at Node's default 4 GB heap ("Ineffective mark-compacts near heap limit").
+- Measured locally (`tsc --noEmit --extendedDiagnostics`, root project): 8,053 files, 457,894 lines of TypeScript,
+  1.64M types, 3.84M instantiations, **4.86 GB** used. That is proportional to lane 2's added code, not a runaway type.
+- Fix (`73e75d67`, TIER 3 CI): the root `typecheck` script and the app's `build` script set
+  `NODE_OPTIONS=--max-old-space-size=6144`, so CI, the Alpha build (build:alpha passes its environment on to the app's
+  build script) and local builds all get it. No workflow file changed; no check, budget or timeout changed. Proof:
+  `pnpm typecheck` exit 0 and `pnpm build` (production, `PUBLIC_ALPHA_UNDEPLOYED`) exit 0 on `73e75d67`.
+
 ## Follow-ups 2 and 3 — decisions and measurements
 
 - **D-FU2-1a (food Worker, TIER 3 Workers, `0dc926b5`).** Cause measured: a slot was reserved on time but its request
