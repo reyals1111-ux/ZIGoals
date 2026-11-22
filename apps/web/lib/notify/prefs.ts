@@ -9,7 +9,7 @@ import type {DeviceRecordSpec} from '../device-record';
  * contribution times stay where they always were.
  */
 export const NOTIFY_KEY = 'zigoals:notify:v1';
-export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns', 'journal', 'money', 'meals', 'mood', 'energy'] as const;
+export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns', 'journal', 'money', 'meals', 'mood', 'energy', 'planDay'] as const;
 export type NotifyType = (typeof NOTIFY_TYPES)[number];
 const time = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 export const notifyPrefsSchema = z.looseObject({
@@ -37,7 +37,7 @@ export type NotifyPrefs = z.infer<typeof notifyPrefsSchema>;
 export const emptyNotifyPrefs = (): NotifyPrefs => ({version: 1, types: {}});
 export const NOTIFY_PREFS: DeviceRecordSpec<NotifyPrefs> = {key: NOTIFY_KEY, schema: notifyPrefsSchema, empty: emptyNotifyPrefs};
 /** On by default: what most people want from a reminder app; the evening wrap-up is opt-in. */
-export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */, journal: true /* Session AV lane 2: the reminder to write is itself off until set in the Journal */, money: true /* Session AV lane 2 (money): budgets near or over, payday, the low-balance line */, meals: false /* Session AV lane 2 (food, LEDGER #90): opt-in */, mood: false /* Session AV lane 2 (LEDGER #180): opt-in */, energy: false /* Session AV lane 2 (bodymind-r2, LEDGER #235, #236): opt-in */};
+export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */, journal: true /* Session AV lane 2: the reminder to write is itself off until set in the Journal */, money: true /* Session AV lane 2 (money): budgets near or over, payday, the low-balance line */, meals: false /* Session AV lane 2 (food, LEDGER #90): opt-in */, mood: false /* Session AV lane 2 (LEDGER #180): opt-in */, energy: false /* Session AV lane 2 (bodymind-r2, LEDGER #235, #236): opt-in */, planDay: true /* Session AV lane 2 (r3-plan, LEDGER #256): the reminder itself is off until a time is set in Tasks → This week */};
 export const DEFAULT_TIMES = {morning: '08:00', evening: '20:30', mood: '20:00'} as const;
 export const typeOn = (p: NotifyPrefs, type: NotifyType) => p.types[type] ?? DEFAULT_ON[type];
 export const morningTime = (p: NotifyPrefs) => p.morning?.time ?? DEFAULT_TIMES.morning;
@@ -53,7 +53,7 @@ export function setMoodTimes(p: NotifyPrefs, first: string, second: string | nul
 export const setTime = (p: NotifyPrefs, which: 'morning' | 'evening', value: string): NotifyPrefs => notifyPrefsSchema.parse({...p, [which]: {time: time.parse(value)}});
 export const NOTIFY_LABELS: Record<NotifyType, {title: string; blurb: string}> = {
   habits: {title: 'Habits due', blurb: 'At each habit’s reminder time, unless it is already done.'},
-  morning: {title: 'Morning orbit', blurb: 'What is next today and any contribution due; a tap opens the Checklist.'},
+  morning: {title: 'Morning orbit', blurb: 'What is next today, any contribution due and how many tasks are overdue (a count only); a tap opens the Checklist.'},
   evening: {title: 'Evening wrap-up', blurb: 'How the day went and what is still open.'},
   water: {title: 'Water', blurb: 'At your water reminder time, with how much is left to drink.'},
   contributions: {title: 'Goal contributions', blurb: 'On days a plan has an amount due, at the plan’s reminder time.'},
@@ -70,6 +70,8 @@ export const NOTIFY_LABELS: Record<NotifyType, {title: string; blurb: string}> =
   // Session AV lane 2 (food, LEDGER #90): off by default; the meal reminders themselves are switched on in Health.
   meals: {title: 'Meal reminders', blurb: 'At each meal’s usual time set in Health, while nothing is logged for it; never what you ate.'},
   // Session AV lane 2 (bodymind-r2, LEDGER #235, #236): off by default; which ones is chosen under the energy curve and the plan steps.
+  // Session AV lane 2 (r3-plan, LEDGER #256; Structured's morning planning): its time is set in Tasks → This week.
+  planDay: {title: 'Plan your day', blurb: 'At the time you set in Tasks → This week, with how many tasks are overdue; a tap opens Plan my day. Never a task’s name.'},
   energy: {title: 'Energy curve and plan steps', blurb: 'From your energy curve (the focus window, before the dip, winding down) and at the steps of your morning and evening plan you chose, in Health → Sleep. Never a sleep figure.'},
 };
 export type EnergyReminders = {focus: boolean; dip: boolean; windDown: boolean};

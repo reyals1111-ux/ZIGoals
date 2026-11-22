@@ -10,7 +10,7 @@ import type {EnergyInput} from './energy-items';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy' | 'planDay';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -68,6 +68,14 @@ export type PlanInput = {
    * line; an own habit's name only as a label, shown where names are allowed. Never a sleep figure.
    */
   energy?: EnergyInput;
+  /**
+   * Session AV lane 2 (r3-plan, LEDGER #256; Structured's morning planning and overdue reminders): the "Plan your day" time
+   * the person set in Tasks (lib/tasks/plan-record.ts `planReminder`), and how many open tasks are overdue on each of the
+   * plan's days (a count only, never a name): one quiet line on the plan-your-day notification, else on the morning one,
+   * instead of a notification per task.
+   */
+  planDay?: {time: string};
+  overdue?: readonly {date: string; count: number}[];
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -104,7 +112,12 @@ export function buildPlan(input: PlanInput): Plan {
   // Session AV lane 2 (journal; LEDGER #40): the reminder to write, on its weekdays, unless that day already has an entry;
   // its line keeps the streak ("keeps your 4-day streak"), a count only, never a word of the journal.
   if (typeOn(prefs, 'journal') && input.journal) { const j = input.journal; daily('journal', 'journal', j.time, j.weekdays & EVERY, () => ({...(j.streak > 0 ? {detail: `keeps your ${j.streak}-day streak`} : {}), href: '/app/journal', actionable: false}), date => j.written.includes(date)); }
-  if (typeOn(prefs, 'morning')) daily('morning', 'morning', morningTime(prefs), EVERY, () => ({href: '/app/checklist', actionable: false}), () => false);
+  // Session AV lane 2 (r3-plan, LEDGER #256): "Plan your day" at its own time, opening Plan my day; the overdue count rides on
+  // it, or on the morning orbit when there is no plan-your-day reminder (one line, never one notification per task).
+  const overdueLine = (date: string): {detail?: string} => { const n = input.overdue?.find(o => o.date === date)?.count ?? 0; return n > 0 ? {detail: n === 1 ? '1 task overdue' : `${n} tasks overdue`} : {}; };
+  const planDay = typeOn(prefs, 'planDay') && input.planDay ? input.planDay : null;
+  if (planDay) daily('planDay', 'plan-day', planDay.time, EVERY, date => ({...overdueLine(date), href: '/app/tasks?view=today&plan=1', actionable: false}), () => false);
+  if (typeOn(prefs, 'morning')) daily('morning', 'morning', morningTime(prefs), EVERY, date => ({...(planDay ? {} : overdueLine(date)), href: '/app/checklist', actionable: false}), () => false);
   if (typeOn(prefs, 'evening')) daily('evening', 'evening', eveningTime(prefs), EVERY, () => ({href: '/app/review', actionable: false}), () => false);
   if (typeOn(prefs, 'meals')) for (const m of input.meals ?? []) daily('meal', `meal:${m.meal}`, m.time, EVERY, () => ({label: label(m.label), href: '/app/health?view=diary', actionable: false}), date => date === today && m.doneToday);
   // Session AV lane 2 (LEDGER #180, Daylio): the mood check-in opens the mood question (Health's mood card); never a mood

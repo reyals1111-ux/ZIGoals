@@ -1,5 +1,5 @@
 'use client';
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import TodayPlanner from './today-planner';
 import {useCarried, useMyDay} from './my-day-parts';
 import type {Task} from '../../lib/tasks/schema';
@@ -17,6 +17,8 @@ import './plan-day.css';
  * tomorrow", which a new tab did not keep). With an overdue suggestion the fold opens itself (it sits below the list).
  * Nothing shows when there is nothing to suggest. Its own chunk.
  */
+/** Session AV lane 2 (r3-plan, LEDGER #256): the "Plan your day" notification opens Tasks → Today with ?plan=1. */
+const askedToPlan = () => { try { return new URLSearchParams(window.location.search).get('plan') === '1'; } catch { return false; } };
 const asideKey = (today: string) => `zigoals:plan-day:aside:${today}`;
 function readAside(today: string): string[] { try { const v = JSON.parse(sessionStorage.getItem(asideKey(today)) ?? '[]'); return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 200) : []; } catch { return []; } }
 export default function PlanDay({record, today, onPlan, clock, shown, change, doneDay}: {record: Tasks; today: string; onPlan: (id: string) => void;
@@ -28,7 +30,15 @@ export default function PlanDay({record, today, onPlan, clock, shown, change, do
   // its day alone; the last day's picks still open come back as "From yesterday".
   const my = useMyDay(today), carriedAll = useCarried(record, today, my.myDay), carried = carriedAll ? {...carriedAll, tasks: carriedAll.tasks.filter(t => !aside.includes(t.id))} : null;
   // Opened once, as the view opens, when something is overdue; after that it stays as the person leaves it.
-  const [openAtFirst] = useState(() => planSuggestions(record, today, new Set(readAside(today))).some(s => s.why === 'overdue'));
+  const [openAtFirst] = useState(() => askedToPlan() || planSuggestions(record, today, new Set(readAside(today))).some(s => s.why === 'overdue'));
+  // Session AV lane 2 (r3-plan, LEDGER #256): from the notification, the fold opens with the focus on it (the day planner when
+  // nothing is suggested), and the address forgets ?plan=1 so a reload does not jump again.
+  useEffect(() => {
+    if (!askedToPlan()) return;
+    const target = document.querySelector<HTMLElement>('.tasks-plan-day > summary') ?? document.querySelector<HTMLElement>('.tasks-today-planner');
+    if (target) { if (!target.matches('summary')) target.tabIndex = -1; target.scrollIntoView({block: 'start'}); target.focus({preventScroll: true}); }
+    try { const url = new URL(window.location.href); url.searchParams.delete('plan'); window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* the address stays */ }
+  }, []);
   // Session AV lane 2 (LEDGER #21, #24–#27, #9): the day planner shows also when nothing is suggested.
   const planner = clock && shown && change && doneDay ? <TodayPlanner record={record} today={today} clock={clock} shown={shown} change={change} doneDay={doneDay}/> : null;
   if (!suggestions.length && !carried?.tasks.length) return planner;
