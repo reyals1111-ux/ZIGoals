@@ -97,7 +97,7 @@ export function removeNote(record: Notes, id: string, now: string = new Date().t
   return {record: checked(toTrash(record, [note], now)), undo: {before: [note], created: [], said: `“${shortNoteName(note)}” is back.`}};
 }
 /* ---- Session AV lane 2 (r5-notes; LEDGER #360): Recently deleted, the parts every change needs ------------------- */
-/** The trash kept to its caps: the oldest leave first. */
+/** The trash kept to its caps: the oldest leave first (for a record read from elsewhere; a delete never calls it, review b5i B5I-1). */
 export function capTrash(trash: readonly TrashedNote[]): TrashedNote[] {
   const kept: TrashedNote[] = [];
   let chars = 0;
@@ -117,11 +117,28 @@ export const withTrash = (record: Notes, trash: TrashedNote[]): Notes => {
   if (next.versions?.some(v => !ids.has(v.noteId))) { const versions = next.versions.filter(v => ids.has(v.noteId)); if (versions.length) next.versions = versions; else delete next.versions; }
   return next;
 };
-/** Moves notes into Recently deleted (newest last); a note already there is replaced. */
+/**
+ * Review b5i B5I-1, B5I-2: whether these notes fit in Recently deleted beside what it holds; the sentence that says why
+ * not, or null. A delete never makes room by dropping a note: it is refused, in words, before anything changes.
+ */
+export function trashRoom(record: Pick<Notes, 'trash'>, notes: readonly Pick<Note, 'id' | 'title' | 'body'>[]): string | null {
+  const ids = new Set(notes.map(n => n.id)), kept = (record.trash ?? []).filter(n => !ids.has(n.id));
+  const count = kept.length + notes.length, chars = [...kept, ...notes].reduce((s, n) => s + n.title.length + n.body.length, 0);
+  if (count <= MAX_TRASH && chars <= MAX_TRASH_CHARS) return null;
+  if (notes.length > MAX_TRASH) return `Recently deleted keeps at most ${MAX_TRASH} notes, so ${notes.length} cannot be deleted at once. Choose ${MAX_TRASH} or fewer; nothing was deleted.`;
+  return `Recently deleted is full (at most ${MAX_TRASH} notes and ${MAX_TRASH_CHARS.toLocaleString('en-US')} characters), so nothing was deleted. Open Notes → Notes → Recently deleted and delete some there for good (or Empty now) first.`;
+}
+/**
+ * Moves notes into Recently deleted (newest last); a note already there is replaced. Review b5i B5I-1, B5I-2: it never
+ * drops a note to make room — when they would not fit, it throws `trashRoom`'s sentence and changes nothing, so an Undo
+ * of a delete always gives back the trash exactly as it was.
+ */
 export function toTrash(record: Notes, notes: readonly Note[], now: string): Notes {
+  const full = trashRoom(record, notes);
+  if (full) throw new Error(full);
   const ids = new Set(notes.map(n => n.id));
   const added = notes.map(n => ({...n, deletedAt: now}) as TrashedNote);
-  return {...record, notes: record.notes.filter(n => !ids.has(n.id)), trash: capTrash([...(record.trash ?? []).filter(n => !ids.has(n.id)), ...added])};
+  return {...record, notes: record.notes.filter(n => !ids.has(n.id)), trash: [...(record.trash ?? []).filter(n => !ids.has(n.id)), ...added]};
 }
 /** After an Undo: a note back in the notes is no longer in Recently deleted. */
 export function untrashBack(record: Notes): Notes {
