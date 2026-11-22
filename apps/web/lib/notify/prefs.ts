@@ -9,7 +9,7 @@ import type {DeviceRecordSpec} from '../device-record';
  * contribution times stay where they always were.
  */
 export const NOTIFY_KEY = 'zigoals:notify:v1';
-export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns', 'journal', 'money', 'meals', 'mood', 'energy', 'planDay', 'weighIn'] as const;
+export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns', 'journal', 'money', 'meals', 'mood', 'energy', 'planDay', 'weighIn', 'moneyMorning'] as const;
 export type NotifyType = (typeof NOTIFY_TYPES)[number];
 const time = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 export const notifyPrefsSchema = z.looseObject({
@@ -58,7 +58,7 @@ export type NotifyPrefs = z.infer<typeof notifyPrefsSchema>;
 export const emptyNotifyPrefs = (): NotifyPrefs => ({version: 1, types: {}});
 export const NOTIFY_PREFS: DeviceRecordSpec<NotifyPrefs> = {key: NOTIFY_KEY, schema: notifyPrefsSchema, empty: emptyNotifyPrefs};
 /** On by default: what most people want from a reminder app; the evening wrap-up is opt-in. */
-export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */, journal: true /* Session AV lane 2: the reminder to write is itself off until set in the Journal */, money: true /* Session AV lane 2 (money): budgets near or over, payday, the low-balance line */, meals: false /* Session AV lane 2 (food, LEDGER #90): opt-in */, mood: false /* Session AV lane 2 (LEDGER #180): opt-in */, energy: false /* Session AV lane 2 (bodymind-r2, LEDGER #235, #236): opt-in */, planDay: true /* Session AV lane 2 (r3-plan, LEDGER #256): the reminder itself is off until a time is set in Tasks → This week */, weighIn: true};
+export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */, journal: true /* Session AV lane 2: the reminder to write is itself off until set in the Journal */, money: true /* Session AV lane 2 (money): budgets near or over, payday, the low-balance line */, meals: false /* Session AV lane 2 (food, LEDGER #90): opt-in */, mood: false /* Session AV lane 2 (LEDGER #180): opt-in */, energy: false /* Session AV lane 2 (bodymind-r2, LEDGER #235, #236): opt-in */, planDay: true /* Session AV lane 2 (r3-plan, LEDGER #256): the reminder itself is off until a time is set in Tasks → This week */, weighIn: true, moneyMorning: false /* Session AV lane 2, round 5 (money; LEDGER #384): Yesterday's money is off unless chosen */};
 export const DEFAULT_TIMES = {morning: '08:00', evening: '20:30', mood: '20:00'} as const;
 export const typeOn = (p: NotifyPrefs, type: NotifyType) => p.types[type] ?? DEFAULT_ON[type];
 export const morningTime = (p: NotifyPrefs) => p.morning?.time ?? DEFAULT_TIMES.morning;
@@ -95,6 +95,8 @@ export const NOTIFY_LABELS: Record<NotifyType, {title: string; blurb: string}> =
   planDay: {title: 'Plan your day', blurb: 'At the time you set in Tasks → This week, with how many tasks are overdue; a tap opens Plan my day. Never a task’s name.'},
   // Session AV lane 2 (health r3, LEDGER #286): the reminder itself is set in Health → Weight.
   weighIn: {title: 'Weigh-in', blurb: 'At the weigh-in time you set in Health → Weight, unless a weight is already logged that day. Never a weight.'},
+  // Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384): off by default; also switched on in Wealth → Spending → Yesterday’s money.
+  moneyMorning: {title: 'Yesterday’s money', blurb: 'Each morning, how many entries you logged yesterday; with names on, also what you spent and received and your cash balances. Never a payee.'},
   energy: {title: 'Energy curve and plan steps', blurb: 'From your energy curve (the focus window, before the dip, winding down) and at the steps of your morning and evening plan you chose, in Health → Sleep. Never a sleep figure.'},
 };
 export type EnergyReminders = {focus: boolean; dip: boolean; windDown: boolean};
