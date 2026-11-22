@@ -67,3 +67,14 @@ describe('several journals and what was written on a day (LEDGER #43)', () => {
     expect(zigi('what did I write in my journal yesterday')).toBeNull(); // no "on": left to the other answers
   });
 });
+
+describe('prompt packs (LEDGER #38)', () => {
+  test('none on: where they are; on: their names; today’s question names its pack, and with none on is left to av-life', () => {
+    expect(text(zigi('which prompt packs are on'))).toContain('No prompt pack is on. Journal → Write → Prompt packs has Sleep, Training');
+    const s = withJournal(showcaseAll(), j => ({...j, packs: ['sleep', 'training']}));
+    expect(text(zigi('which prompt packs are on', s))).toBe('2 prompt packs are on: Sleep and Training. Their questions take turns with the everyday one as today’s question.');
+    expect(text(zigi('welke vragenpakketten staan aan', s))).toBe('2 vragenpakketten staan aan: Slaap en Training. Hun vragen wisselen af met de gewone vraag van de dag.');
+    expect(text(zigi('what is today\'s journal question', s))).toMatch(/^Today’s journal question( \((?:Sleep|Training) pack\))?: “.+\?” Journal → Another question shows the next one\.$/);
+    expect(zigi('what is today\'s journal question')).toBeNull();
+  });
+});

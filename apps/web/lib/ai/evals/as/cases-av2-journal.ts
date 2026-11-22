@@ -10,4 +10,5 @@ export const AV2_JOURNAL: readonly Intent[] = [
   {id: 'av2-journal-streak', pillar: 'journal', en: ['what is my writing streak', 'how many days in a row have I written in my journal'], nl: ['wat is mijn schrijfreeks', 'hoeveel dagen op rij heb ik in mijn dagboek geschreven'], never: ['habit']},
   {id: 'av2-journal-books', pillar: 'journal', en: ['which journals do I have', 'how many journals do I have'], nl: ['welke dagboeken heb ik', 'hoeveel dagboeken heb ik']},
   {id: 'av2-journal-on-day', pillar: 'journal', en: ['what did I write in my journal on 14 nov', 'what did I write on 2026-11-14'], nl: ['wat heb ik op 14 nov geschreven', 'wat schreef ik op 14 november in mijn dagboek'], never: ['written on 10 days']},
+  {id: 'av2-journal-packs', pillar: 'journal', en: ['which prompt packs are on', 'what prompt packs do I have'], nl: ['welke vragenpakketten staan aan', 'welke vragenpakketten heb ik']},
 ];

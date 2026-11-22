@@ -1,0 +1,9 @@
+/* Session AV lane 2 (journal; LEDGER #38): the prompt packs to switch on, and their questions. Theme tokens only. */
+.prompt-packs { display: grid; gap: 8px; padding-top: 6px; }
+.prompt-packs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.prompt-pack { border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.prompt-pack .switch-row span { overflow-wrap: anywhere; }
+.prompt-pack-questions > summary { min-height: 44px; display: list-item; padding: 10px 0; box-sizing: border-box; cursor: pointer; color: var(--text-secondary); }
+.prompt-pack-question-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.prompt-packs .prompt-picker-card { width: 100%; min-height: 44px; display: grid; text-align: start; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: transparent; color: inherit; font: inherit; font-size: 15px; cursor: pointer; overflow-wrap: anywhere; }
+.prompt-packs .prompt-picker-card:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }

@@ -95,3 +95,22 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
   count unchanged (10).
 - Search palette (`lib/search/static.ts`, the lead's): "Journal on a day" → `/app/journal?day=` could be offered; optional.
 - CSS touched: `components/journal/journal.css`. Today: nothing added.
+
+### F3 Prompt packs — LEDGER #38 (Day One: Prompt Packs)
+
+- Verdict: **built**. Six packs written in the repository, EN and NL (Sleep, Training, Gratitude, Creativity, Work and
+  life, The year; eight questions each). Switched on in Journal → Write → "Prompt packs"; a switched-on pack takes turns
+  with the everyday question as today's question (labelled "· Sleep pack"); "Another question" steps on; each pack's
+  questions can be used one by one. With no pack on, today's question is exactly as before.
+- Files: `lib/journal-prompts/packs.ts` (loaded on demand: only once a pack is on, or the fold opens),
+  `components/journal-prompts/prompt-packs.tsx` + `prompt-packs.css` (lazy), `components/journal/journal-compose.tsx`.
+- Tests: `lib/journal-prompts/av2-packs.test.ts`; answers ("which prompt packs are on"; today's question while a pack is
+  on — with none on, av-life.ts keeps answering, so expected.json does not move).
+- Spec: `tests/av2-journal-packs.spec.ts`.
+- Stored: `journal.packs` (F0 table).
+- Help (EN). Q: "What are prompt packs?" A: "Sets of journal questions on one theme — sleep, training, gratitude,
+  creativity, work and life, the year — in English and Dutch. Switch one on in Journal → Write → Prompt packs and its
+  questions take turns with the everyday question. You can also open a pack and use any of its questions straight away."
+- What's new: "Journal: prompt packs — sleep, training and more, in English and Dutch."
+- Showcase: none on purpose (a pack on would change the Showcase's question of the day, which the corpus pins).
+- CSS: `components/journal-prompts/prompt-packs.css` (new). Today: nothing added (the compact Today card shows no question).

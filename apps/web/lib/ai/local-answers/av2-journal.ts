@@ -4,6 +4,7 @@ import {writingStreak} from '../../journal/stats';
 import {daysWords, reminderOf} from '../../journal/reminder';
 import {bookCounts} from '../../journal/books';
 import {dateQuery} from '../../journal/search';
+import {PROMPT_PACKS, packsOn, questionWithPacks} from '../../journal-prompts/packs';
 import {answer, asked, count, dayIn, isQuestion, journalClosed, list, MIXED, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
 
@@ -19,7 +20,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak, journals, onDay]) {
+    for (const one of [reminder, streak, journals, onDay, packs, packQuestion]) {
       const r = one(a);
       if (r) return r;
     }
@@ -87,3 +88,19 @@ function onDay(a: Asked): LocalReply | null {
   return answer(say(lang, `${count(hits.length, 'en', ['journal entry', 'journal entries'], ['', ''])} on ${when}${!one && days > 1 ? ` (${count(days, 'en', ['day', 'days'], ['', ''])})` : ''}. Their words stay on the Journal page: ${where}.`, `${count(hits.length, 'nl', ['', ''], ['dagboekstuk', 'dagboekstukken'])} op ${when}${!one && days > 1 ? ` (${count(days, 'nl', ['', ''], ['dag', 'dagen'])})` : ''}. De woorden blijven op de Journal-pagina: ${where}.`), CALL);
 }
 const addDay = (day: string, by: number) => { const d = new Date(`${day}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + by); return d.toISOString().slice(0, 10); };
+
+/** LEDGER #38: "which prompt packs are on" (lib/journal-prompts/packs.ts, as Journal → Prompt packs shows them). */
+function packs(a: Asked): LocalReply | null {
+  if (!/\b(?:prompt|question|journal) packs?\b|\b(?:vragen|vraag|schrijf)pakket(?:ten)?\b|\bpakket(?:ten)? (?:met )?vragen\b/.test(a.f)) return null;
+  const shut = journalClosed(a); if (shut) return shut;
+  const lang = a.lang, on = packsOn(journalOf(a).packs).map(p => p.title[lang]), all = PROMPT_PACKS.map(p => p.title[lang]);
+  if (!on.length) return answer(say(lang, `No prompt pack is on. Journal → Write → Prompt packs has ${list(all, 'en')}; a pack you switch on takes turns with the everyday question.`, `Er staat geen vragenpakket aan. Journal → Write → Prompt packs heeft ${list(all, 'nl')}; een pakket dat je aanzet wisselt af met de gewone vraag.`), CALL);
+  return answer(say(lang, `${count(on.length, 'en', ['prompt pack is', 'prompt packs are'], ['', ''])} on: ${list(on, 'en')}. Their questions take turns with the everyday one as today’s question.`, `${count(on.length, 'nl', ['', ''], ['vragenpakket staat', 'vragenpakketten staan'])} aan: ${list(on, 'nl')}. Hun vragen wisselen af met de gewone vraag van de dag.`), CALL);
+}
+/** LEDGER #38: "what is today's journal question" while a pack is on (the question the Journal shows; with no pack on, av-life.ts answers). */
+function packQuestion(a: Asked): LocalReply | null {
+  if (!/\b(?:todays|today s|daily|days) (?:journal |journaling |writing )?(?:question|prompt)\b|\bjournal (?:question|prompt)\b.*\btoday\b|\bquestion of the day\b|\bdagboekvraag\b|\bvraag van (?:de dag|vandaag)\b|\bschrijfvraag\b/.test(a.f)) return null;
+  if (!a.env.journal || !packsOn(a.env.journal.packs).length) return null;
+  const q = questionWithPacks(a.today, 0, a.lang, a.env.journal.packs);
+  return answer(say(a.lang, `Today’s journal question${q.pack ? ` (${q.pack.title.en} pack)` : ''}: “${q.question}” Journal → Another question shows the next one.`, `De dagboekvraag van vandaag${q.pack ? ` (pakket ${q.pack.title.nl})` : ''}: “${q.question}” Journal → Another question toont de volgende.`), CALL);
+}
