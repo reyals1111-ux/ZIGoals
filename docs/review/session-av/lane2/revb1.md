@@ -208,3 +208,13 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
   IndexedDB, so a count would have to be read before the question (e.g. in use-ai-context, `taskAttachments(photoScope())`
   → `{photos, voice, tasks}`) and passed as `av2RoadmapAnswer(question, env, {attachments})`.
 - Test: apps/web/lib/ai/local-answers/revb1-roadmap-count.test.ts (through the engine, EN and NL).
+
+### #13 "Your usual" never fills in the Showcase; the registry note said it did
+- Verdict: the registry note is corrected (docs/review/session-av/lane2/habits.md, its "Showcase hook" line for
+  LEDGER #66); the Showcase is not given more moods — reported instead, by the brief's pinned-counts rule: the Showcase
+  holds two weeks of example moods (lib/showcase/au-examples.ts, Session AU D8), and 20+ mood and energy days in the
+  last 90 would move what is pinned on them (the corpus's Showcase answers in expected.json, e.g. `av2-habits-usual-mood`
+  and the mood/energy answers, and the Health diary's example days). The card shows its teaching "Not enough days yet"
+  state with the days counted (Mood 12 of 20, Energy 14 of 20), which is true. The other empty Showcase parts the
+  reviewer lists (week objectives, areas, timers, chess results, prompt packs, habit options, journal photos) are
+  teaching empty states by the same rule.
