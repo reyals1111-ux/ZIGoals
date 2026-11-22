@@ -29,14 +29,18 @@ Lane 2's own state is kept in this file's "Lane 2 — state" section on that bra
 - Pushed: batch 1 (`a3402096`) and batch 2 (`23100b66`: money, body, food, habits and mind part 2, sync, ledger
   remainders, round 2, Minors 70 of 79, restore-media, Dutch dates, loose ends; reviews b2a/b2b fixed; 572 of 574 specs —
   av2-backup-folder needs CI's real Chrome; unit green apart from load timeouts; frozen readers 21 of 21; weights inside).
-- Batch 3 (`lane2/batch3`, /home/user/zg-b3): round 3 + fixes, polish part 1, fixb3; unit green, frozen readers 21/21,
-  weights inside; specs on a45b6e3d: 379 passed, 17 failed (polish specs, pillar-phone-length) → lane2/fixb3c; then
-  rebuild, rerun, push.
-- Batch 4 (`lane2/batch4`, /home/user/zg-b4): round 4 (#300–#347) + reviews D–G fixed, polish part 2; unit green after
-  two fixes (504facf7). Next: frozen readers, build, specs, push after batch 3.
-- Batch 5 (`lane2/batch5`, /home/user/zg-b5): round 5 (#348–#390): r5-plan, r5-notes, r5-body, r5-gym merged and wired
-  (reviews H–J fixed), r5-money's review K fixes running; Help (36), corpus, shards, themes done.
-- Batch 6: round 6 (#391–#431) builders r6-plan, r6-notes, r6-body, r6-money from lane2/batch5.
+- Pushed: batch 3 (`331465aa`: round 3 + fixes, polish 1, fixb3/fixb3c, phone lengths; specs green on build dbf1f2a2,
+  unit green but the sandbox's pre-run11 pnpm check, frozen readers 39 of 39 in three files, weights inside).
+- Batch 4 (`lane2/batch4`, /home/user/zg-b4, `c434151b` with batch 3 merged): round 4 + reviews D–G, polish 2; unit
+  green, frozen readers 39/39, build c434151b green, weights inside (Settings 525.8/531). Specs running (58 files).
+  Next: fix failures, merge into feature/session-av-2, push.
+- Batch 5 (`lane2/batch5`, /home/user/zg-b5): round 5 (#348–#390) all five branches merged with reviews H–L, Help (43),
+  corpus, shards, themes. Next after batch 4: merge batch 4 in, full unit, lint, frozen readers, build, specs, push.
+- Batch 6 (`lane2/batch6`, /home/user/zg-b6, `3caddd6c`): round 6 (#391–#431) r6-plan (review M fixed), r6-notes
+  (review N fixed), r6-money, r6-body merged; answers wired, 41 corpus intents (none changed), Help (41), What's new,
+  15 specs in shards, themes, r6-body keys and the lock-away display key registered (TIER 3). Review O (r6-money: 4
+  Blockers) and P (r6-body: 1 Blocker) being fixed on their branches → merge again, then full checks.
+- Round 7 research (10 more apps → ledger rows #432+) running → scratchpad ledger-r7.md, then builders.
 - For the final STATUS entry: the rollback limits in r4-mind, r4-notes and r5-notes registries (an older build's 30-day
   photo sweep does not know the extra photos).
 - Owner items from lane 2: the private-sync Worker deploy (OWNER_STEPS.md); the visit report's two symptom charts;
