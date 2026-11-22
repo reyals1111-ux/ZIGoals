@@ -304,6 +304,30 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 - CSS touched: `components/health/meditation/calm.css` (new; theme variables for controls and text, the scenes are
   pictures). Always visible on Today: nothing. Meditation's first chunk: two fold rows and three lazy imports.
 
+## Feature 10 — Skip and an amount per day in the week grid (q4 #30 Minor; QUALITY "Not fixed")
+
+**Verdict: built.**
+
+- Habits → This week, Monday to Sunday: "A tap on a day" — "Marks it done" (as before, the default) or "Opens Skip
+  and amount". In the second, a build habit's scheduled day up to today (open, done, missed or skipped) opens that day's
+  panel under the table (its own chunk): Done, Skip this day (a habit counted per day; one counted per week or month
+  says its History skips it, as the planned skip does), an amount with the habit's unit (times, pages, minutes or "1 h
+  30 min", a quantity; Health's decimal-comma rule), Clear the day, Close. Each choice uses the journal's own mutators
+  and the app's toast with Undo. A right-click (a long press on Android) on a cell opens the panel in either mode. The
+  focus moves to the panel's heading and back to the cell on Close or Escape. A skipped cell is a button in this mode,
+  so a skip can be undone from the week.
+- Files: `lib/habits-order/week-day-edit.ts` (pure: what a day can become, the change, the toast words),
+  `components/habits/{week-day-editor.tsx,habit-week-grid.tsx,habit-week-grid.css}`.
+- Tests: `lib/habits-order/week-day-edit.test.ts` (what a day can be, skip → amount → done → clear, Undo, a note kept, a
+  later day refused, the words). Existing `av-week-grid.test.ts` unchanged and green. Spec: `tests/av2-week-day.spec.ts`.
+- Stored changes: none (ordinary habit entries: skipped, logged).
+- Help (EN): **Q: Can I skip a day or log an amount from the week grid?** A: Yes. In Habits → This week, choose "A tap
+  on a day: Opens Skip and amount", then tap a day: skip it, set an amount, mark it done or clear it, with Undo.
+- What's new: "The week grid skips a day and logs an amount, with Undo."
+- Answers: none new (the days read as before). Showcase hook: the Showcase's habits show it with no new data.
+- CSS touched: `components/habits/habit-week-grid.css`. Always visible on Today: nothing. Habits first chunk: unchanged
+  (the grid is already lazy; the panel is its own chunk).
+
 ## Not built yet (next for this pillar, in order)
 
 - Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm
