@@ -291,7 +291,7 @@ Shared files the lead edits (none were touched here):
   "saved entries", "paid with", "subcategory", "budget per day", "trip budget", "payee budget", "unusual payment",
   "balance limit", "record a bill", "shared cost", "settle up", "lent", "borrowed", "store card", "loyalty card",
   "business space" → Wealth → Spending / Budgets / Upcoming bills.
-- CI shard lists → the seven new specs: `tests/av2-money-quick-log.spec.ts`, `av2-money-own-budgets.spec.ts`,
+- CI shard lists → the six new specs: `tests/av2-money-quick-log.spec.ts`, `av2-money-own-budgets.spec.ts`,
   `av2-money-alerts.spec.ts`, `av2-money-people.spec.ts`, `av2-money-store-cards.spec.ts`, `av2-money-space.spec.ts`
   (and none on WebKit-only paths).
 - Theme sheets → regenerate for the CSS touched: `components/wealth/spending/{quick-log,people-money,space-switch}.css`
