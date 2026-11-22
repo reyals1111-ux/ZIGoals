@@ -1,7 +1,7 @@
 'use client';
 import {useId, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {ACCOUNTS, type Account} from '../../lib/accounts/schema';
+import {ACCOUNTS, MAX_SNAPSHOTS, type Account} from '../../lib/accounts/schema';
 import {MONEY_LOG} from '../../lib/money-log/schema';
 import {MONEY_TAGS_RECORD} from '../../lib/money-tags/schema';
 import {bankNamesFor, defaultAsName, mergeAccounts, mergeLog, mergeProblem, mergeTargets, planMerge, undoMergeAccounts, undoMergeLog, type MergeUndo} from '../../lib/money-log/merge-accounts';
@@ -56,6 +56,7 @@ export default function MergeAccounts({list, title}: {list: readonly Account[]; 
     {plan && from && into ? <>
       <ul className="money-merge-plan" aria-label="What the merge moves">
         <li>{plan.balances.moved ? `${plural(plan.balances.moved, 'balance', 'balances')} of ${from.name} ${plan.balances.moved === 1 ? 'goes' : 'go'} to ${into.name}` : `${from.name} has no balance to move`}{plan.balances.kept ? `; on ${plural(plan.balances.kept, 'day', 'days')} both have one, ${into.name}’s own stays` : ''}.</li>
+        {plan.balances.capped > 0 && <li>{plural(plan.balances.capped, 'older balance', 'older balances')} of {from.name} stay on it only: {into.name} can hold {formatNumber(MAX_SNAPSHOTS)} balances, and its own are all kept.</li>}
         {plan.payments > 0 && <li>{plural(plan.payments, 'payment', 'payments')} on {from.name} go with them.</li>}
         {plan.note && <li>Its note joins {into.name}&rsquo;s: &ldquo;{plan.note}&rdquo;.</li>}
         <li>{into.name} takes the earlier place in your order, and the later day you checked either against your bank.</li>

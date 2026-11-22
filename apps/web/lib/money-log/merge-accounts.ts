@@ -35,7 +35,7 @@ export function doubleOf(into: MoneyEntry, from: MoneyEntry, tags: Tags = {}): D
   const keepFrom = editWeight(from, tags) > editWeight(into, tags), keep = keepFrom ? from : into, remove = keepFrom ? into : from;
   return {keep, remove, differs, edited: editWeight(remove, tags) > 0 || differs.length > 0};
 }
-export type MergePlan = {from: Account; into: Account; balances: {moved: number; kept: number}; payments: number; entries: MoneyEntry[]; doubles: Double[]; names: string[]; note: string | null};
+export type MergePlan = {from: Account; into: Account; balances: {moved: number; kept: number; capped: number}; payments: number; entries: MoneyEntry[]; doubles: Double[]; names: string[]; note: string | null};
 const fold = (s: string) => s.trim().toLowerCase();
 /** Why these two cannot be merged, in words, or null. */
 export function mergeProblem(accounts: Accounts, fromId: string, intoId: string): string | null {
@@ -57,14 +57,19 @@ const sameMove = (a: MoneyEntry, b: MoneyEntry) => !!a.ref && a.ref === b.ref &&
 export function planMerge(accounts: Accounts, log: MoneyLog, fromId: string, intoId: string, names: readonly string[], asName: string, tags: Tags = {}): MergePlan {
   const problem = mergeProblem(accounts, fromId, intoId); if (problem) throw new Error(problem);
   const from = accounts.items.find(a => a.id === fromId)!, into = accounts.items.find(a => a.id === intoId)!;
-  const days = new Set(into.snapshots.map(s => s.date)), kept = from.snapshots.filter(s => days.has(s.date)).length;
+  const days = new Set(into.snapshots.map(s => s.date)), kept = from.snapshots.filter(s => days.has(s.date)).length, moving = movingSnapshots(from, into).length;
   const chosen = new Set(names.map(fold)), as = fold(asName);
   const entries = log.entries.filter(e => e.currency === from.currency && e.account && chosen.has(fold(e.account)) && fold(e.account) !== as);
   const already = log.entries.filter(e => e.currency === from.currency && e.account && fold(e.account) === as), doubles: Double[] = [];
   const taken = new Set<string>();
   for (const e of entries) { const twin = already.find(x => !taken.has(x.id) && sameMove(x, e)); if (twin) { taken.add(twin.id); doubles.push(doubleOf(twin, e, tags)); } }
   const notes = log.accounts?.notes ?? {};
-  return {from, into, balances: {moved: from.snapshots.length - kept, kept}, payments: isDebtKind(into.kind) ? from.payments.length : 0, entries, doubles, names: [...names], note: notes[from.id] ?? null};
+  return {from, into, balances: {moved: moving, kept, capped: from.snapshots.length - kept - moving}, payments: isDebtKind(into.kind) ? from.payments.length : 0, entries, doubles, names: [...names], note: notes[from.id] ?? null};
+}
+/** The merged account's balances that go to the other: on days it has none, the newest first while there is room under the cap. */
+function movingSnapshots(from: Account, into: Account): Account['snapshots'] {
+  const days = new Set(into.snapshots.map(s => s.date)), room = Math.max(0, MAX_SNAPSHOTS - into.snapshots.length);
+  return from.snapshots.filter(s => !days.has(s.date)).sort((x, y) => y.date.localeCompare(x.date)).slice(0, room);
 }
 export type MergeAdded = {snapshots: string[]; payments: string[]};
 export type MergeAfter = {note: string | null; checked: string | null; order: string[] | null};
@@ -73,12 +78,14 @@ export type MergeUndo = {fromBefore: Account; intoBefore: Account; at: string; a
 /** The accounts record after the merge — the other with the merged history, the one merged archived — and the ids it added. */
 export function mergeAccounts(accounts: Accounts, fromId: string, intoId: string, at: string): {accounts: Accounts; added: MergeAdded} {
   const problem = mergeProblem(accounts, fromId, intoId); if (problem) throw new Error(problem);
-  const from = accounts.items.find(a => a.id === fromId)!, days = new Set(accounts.items.find(a => a.id === intoId)!.snapshots.map(s => s.date)), added: MergeAdded = {snapshots: [], payments: []};
+  const from = accounts.items.find(a => a.id === fromId)!, added: MergeAdded = {snapshots: [], payments: []};
   const next = accountsSchema.parse({...accounts, items: accounts.items.map(a => {
     if (a.id === intoId) {
       const ids = new Set(a.snapshots.map(s => s.id)), payIds = new Set(a.payments.map(p => p.id));
-      const moved = from.snapshots.filter(s => !days.has(s.date)).map(s => ids.has(s.id) ? {...s, id: crypto.randomUUID()} : s);
-      const snapshots = [...a.snapshots, ...moved].sort((x, y) => x.date.localeCompare(y.date)).slice(-MAX_SNAPSHOTS);
+      // Review b5k #4: past the cap only the oldest of the merged account's balances stay behind (on the archived account,
+      // where they are kept); the other account's own balances are never dropped.
+      const moved = movingSnapshots(from, a).map(s => ids.has(s.id) ? {...s, id: crypto.randomUUID()} : s);
+      const snapshots = [...a.snapshots, ...moved].sort((x, y) => x.date.localeCompare(y.date));
       const paid = isDebtKind(a.kind) ? from.payments.map(p => payIds.has(p.id) ? {...p, id: crypto.randomUUID()} : p) : [];
       added.snapshots = moved.map(s => s.id); added.payments = paid.map(p => p.id);
       return {...a, snapshots, payments: [...a.payments, ...paid].sort((x, y) => x.date.localeCompare(y.date)), updatedAt: at};

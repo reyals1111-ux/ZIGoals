@@ -42,7 +42,7 @@ describe('which two can be merged', () => {
 describe('the merge', () => {
   const plan = planMerge(ACCOUNTS, LOG, OLD.id, NEW.id, ['ING Current', 'NL12 OLD FILE'], 'ING Betaalrekening');
   it('plans: balances on days the other has none, entries of the chosen names, exact doubles (same day, amount, reference)', () => {
-    expect(plan.balances).toEqual({moved: 2, kept: 1});
+    expect(plan.balances).toEqual({moved: 2, kept: 1, capped: 0});
     expect(plan.entries.map(x => x.ref)).toEqual(['R1', 'R2', 'R3', 'R4']); // the folded name matches too; the USD entry does not
     expect(plan.doubles.map(d => [d.remove.ref, d.keep.ref])).toEqual([['R1', 'R1']]);
     expect(plan.note).toBe('Closed in March');
@@ -54,7 +54,7 @@ describe('the merge', () => {
     expect(from.archivedAt).toBe(AT); expect(from.snapshots).toEqual(OLD.snapshots);
     expect(balanceOn(into, '2026-02-15')?.value).toBe(100000n);
     const {added} = mergeAccounts(ACCOUNTS, OLD.id, NEW.id, AT);
-    expect(added.snapshots).toEqual([id(9001), id(9002)]);
+    expect([...added.snapshots].sort()).toEqual([id(9001), id(9002)]);
     expect(undoMergeAccounts(next, {fromBefore: OLD, intoBefore: NEW, added, at: AT})).toEqual(ACCOUNTS);
   });
   it('a debt’s payments go with it', () => {
@@ -119,5 +119,17 @@ describe('the merge', () => {
     expect(undone.accounts?.notes?.[NEW.id]).toBe('Rewritten after the merge');
     expect(undone.accounts?.order).toEqual(LOG.accounts?.order);
     expect(undone.accounts?.checked).toEqual(LOG.accounts?.checked);
+  });
+  it('review b5k #4: past the balance cap the other account keeps all its own balances; the merged account’s oldest stay on it, said in the plan', () => {
+    const day = (k: number) => new Date(Date.UTC(2020, 0, 1 + k)).toISOString().slice(0, 10);
+    const big = acc(20, {name: 'Daily', snapshots: Array.from({length: 1999}, (_, k) => ({id: id(100000 + k), date: day(k), value: '100', decimals: 2}))});
+    const old = acc(21, {name: 'Old daily', snapshots: Array.from({length: 3}, (_, k) => ({id: id(200000 + k), date: day(3000 + k), value: '200', decimals: 2}))});
+    const accounts = accountsSchema.parse({version: 1, items: [big, old]});
+    const plan4 = planMerge(accounts, LOG, old.id, big.id, [], 'x');
+    expect(plan4.balances).toEqual({moved: 1, kept: 0, capped: 2});
+    const into = mergeAccountsRecord(accounts, old.id, big.id, AT).items.find(a => a.id === big.id)!;
+    expect(into.snapshots).toHaveLength(2000);
+    expect(into.snapshots.filter(x => x.value === '100')).toHaveLength(1999);
+    expect(into.snapshots.at(-1)!.date).toBe(day(3002));
   });
 });
