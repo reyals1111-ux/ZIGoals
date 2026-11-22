@@ -3970,6 +3970,10 @@
         background-image: none;
         background-color: #030303a6
     }
+    :scope .health-meal > .health-section-heading > span.health-meal-figure-empty:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
     .health-fold-button:not(#\-):not(#\-) {
         background-image: none;
         background-color: #ffffff0d
@@ -4437,6 +4441,10 @@
             background-image: none;
             background-color: transparent
         }
+    }
+    .workouts-weeks-pick button[aria-pressed="true"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan) 14%,transparent)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
