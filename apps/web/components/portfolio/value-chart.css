@@ -1,6 +1,9 @@
 /* Session W Part 15: Portfolio's value over time. */
 .portfolio-value-chart{display:grid;gap:10px;}
 .portfolio-ranges{display:flex;flex-wrap:wrap;gap:6px;}
+/* Session AV lane 2 (fixb2): beside the chart's title the range buttons may shrink and wrap (the card header keeps its
+   side parts at their own width), so the six of them keep to the screen at 320 px. */
+:root .portfolio-section-head > .portfolio-ranges:not(:first-child){flex:0 1 auto;min-width:0;max-width:100%;}
 .portfolio-ranges button{min-height:36px;padding:4px 12px;border-radius:999px;border:1px solid rgba(160,180,255,.22);background:transparent;color:inherit;font:inherit;font-size:.86rem;cursor:pointer;}
 .portfolio-ranges button[aria-pressed="true"]{background:rgba(120,140,255,.22);border-color:rgba(160,180,255,.6);}
 .portfolio-chart-quote{margin:0;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;}

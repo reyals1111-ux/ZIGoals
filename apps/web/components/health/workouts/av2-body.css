@@ -41,7 +41,9 @@
 .av2-problem { margin: 0; color: var(--danger-text, #ffb4c8); font-size: 15px; }
 :root[data-theme=light] .av2-problem { color: #a3123a; }
 /* Progress analytics (LEDGER #117). */
-.av2-progress { display: grid; gap: 14px; }
+/* Session AV lane 2 (fixb2): one column that may be narrower than its widest part (the weeks table, which scrolls in its own
+   box), so the report keeps to the screen at 320 px; an implicit grid column was as wide as the table. */
+.av2-progress { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .av2-progress h3 { margin: 0; font-size: 1.05rem; }
 .av2-month { display: grid; gap: 8px; }
 .av2-month-nav h3 { min-width: 10ch; text-align: center; }
