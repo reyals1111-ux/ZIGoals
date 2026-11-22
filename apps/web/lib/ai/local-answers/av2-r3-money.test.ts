@@ -86,3 +86,23 @@ describe('a credit card’s limit and use', () => {
     expect(text(zigi('when is my credit card due', freshAll()))).toContain('no credit card in What you owe');
   });
 });
+
+describe('needs, wants and saving: the person’s own shares, never a target', () => {
+  const entries = [mine({kind: 'income', amount: '2000.00', category: 'Salary', date: `${month}-01`}), mine({amount: '800.00', category: 'Home'}), mine({amount: '200.00', category: 'Fun'}), mine({amount: '40.00', category: 'Gifts'})];
+  const s = withLog(freshAll(), entries, {needWant: {Home: 'need', Fun: 'want'}});
+  test('EN and NL, with each share of income', () => {
+    expect(text(zigi('how much went to needs and wants this month', s))).toBe('This month in EUR, of €2,000.00 income logged: needs €800.00 (40%), wants €200.00 (10%), saving €0.00 (0%) and not marked €40.00 (2%). Your own marks and figures, not a target.');
+    expect(text(zigi('hoeveel ging er deze maand naar nodig en wensen', s))).toBe('Deze maand in EUR, van € 2.000,00 gelogd inkomen: nodig € 800,00 (40%), wensen € 200,00 (10%), sparen € 0,00 (0%) en niet gemarkeerd € 40,00 (2%). Je eigen markeringen en bedragen, geen doel.');
+    expect(text(zigi('am I on track for 50/30/20', s))).toContain('never a split to aim for');
+    expect(text(zigi('how much went to needs and wants this month', withLog(freshAll(), entries)))).toContain('No category is marked');
+  });
+});
+
+describe('what changed in my spending since last month', () => {
+  const s = withLog(freshAll(), [mine({amount: '100.00', category: 'Groceries', date: '2026-10-05'}), mine({amount: '150.00', category: 'Groceries'}), mine({amount: '20.00', category: 'Fun'})]);
+  test('EN and NL, largest move first', () => {
+    expect(text(zigi('what changed in my spending since last month', s))).toMatch(/^In EUR: €100\.00 last month to .+17.*, €170\.00 this month so far \(\+€70\.00\); most moved by Groceries \+€50\.00 and Fun \+€20\.00\. From your own entries; a comparison, not a forecast\.$/);
+    expect(text(zigi('wat is er veranderd in mijn uitgaven sinds vorige maand', s))).toMatch(/^In EUR: € 100,00 vorige maand t\/m .*17 okt.*, € 170,00 deze maand tot nu toe \(\+€ 70,00\); het meest door Groceries \+€ 50,00 en Fun \+€ 20,00\. Uit je eigen invoer; een vergelijking, geen voorspelling\.$/);
+    expect(text(zigi('show my spending waterfall', freshAll()))).toContain('nothing to compare yet');
+  });
+});

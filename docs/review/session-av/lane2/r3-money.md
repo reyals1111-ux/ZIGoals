@@ -122,3 +122,44 @@ locale ("€ 12,50"); the tests compare it with the no-break space shown as a sp
   The empty state teaches: "Add its limit and days under Sheet to see how much of it is used."
 - Registries: none new. CSS touched: `components/wealth/accounts.css` (`.accounts-card-line`, theme variables only).
 - Today: nothing added (a reminder the person adds is a bill, named as bills already are).
+
+### R3-F3 (group T8). Needs, wants and saving; a month waterfall
+
+- LEDGER rows: #295 PocketGuard needs, wants and savings — **built**, with its named part **Carried: against a named
+  rule** (no money advice: the 50/30/20 split is never shown, named or offered as a target). Built: each spending
+  category marked need, want or saving (the person's choice, "Mark your categories" under the view, kept on the money
+  log); the month (this month or last) per currency: Needs, Wants, Saving and Not marked, each with its categories, its
+  amount and its share of the income logged, and "Not spent" (income less all spending; never called saving unless the
+  person marks a category so); "Your figures only; nothing here is a target". #297 Simplifi comparison report with a
+  waterfall — **built** ("What changed": from last month's spending total to this month's, one step per category that
+  moved it, largest first, per currency; "This month so far" (against last month to the same day) or "Last month,
+  whole" (against the month before); a hand-drawn chart (more than eight steps fold into "N more") and a table with every
+  step and each category's before → after; a month without records in a currency is unknown and said so).
+- Spending function used: `totals` and `byCategory` (`lib/money-log/engine.ts`) in `lib/money-insights/needs-wants.ts`
+  and in `monthWaterfall` (`lib/money-insights/month-compare.ts`); the first bar plus every step equals the last bar.
+- Files: `lib/money-insights/needs-wants.ts` (new), `lib/money-insights/month-compare.ts` (`monthWaterfall`,
+  `waterfallPeriods`), `components/wealth/spending/insights/needs-wants-view.tsx` (new, lazy),
+  `components/wealth/spending/insights/month-waterfall.tsx` (new, lazy),
+  `components/wealth/spending/insights/spending-insights.tsx` (two views), `tests/ap/ap-money-fixtures.ts` (the two
+  view names added to `openInsight`'s list).
+- Tests: `lib/money-insights/av2-needs-wants.test.ts`, `lib/money-insights/av2-waterfall.test.ts`,
+  `lib/ai/local-answers/av2-r3-money.test.ts`, round trip. **Deliberate test change**:
+  `lib/money-insights/views.test.ts` "the container lists eight views" → "ten views": every label named and the count
+  exact (10), labelled `// Session AV lane 2 (round 3 money …, deliberate)`.
+- Spec: `tests/av2-money-needs-waterfall.spec.ts`.
+- Stored: `zigoals:money-log:v1` `needWant`.
+- Help (EN): **Q: Can I see how much goes to needs and wants?** A: In Wealth → Spending → Your money over time → "Needs,
+  wants and saving", mark each category as a need, a want or saving. The month then shows what went to each as a share
+  of the income you logged. They are your own marks and figures; ZIGoals sets no split to aim for. **Q: What moved my
+  spending since last month?** A: "What changed" in Your money over time starts from last month's total and adds each
+  category that moved it, the largest first, up to this month's total. Choose this month so far or last month whole.
+- What's new: "Spending: your own needs, wants and saving as shares of income, and a waterfall of what changed since
+  last month."
+- Answers: `needsWants` (a question naming 50/30/20 gets the person's own shares and "never a split to aim for"),
+  `spendingWaterfall` (corpus `av2r3-money-needs-wants`, `av2r3-money-waterfall`).
+- Showcase hook: none written (the Showcase money log is pinned by the NOVA corpus). Both views read the Showcase's own
+  entries; "Needs, wants and saving" there shows every category as Not marked until the person marks one (kept in the
+  Showcase tab only). Empty states teach ("Mark each spending category…", "No spending logged in these two months yet").
+- Registries: none new. CSS touched: `components/wealth/spending/insights/insights.css` (theme variables only).
+- Today: nothing added. Wealth → Spending gets two more buttons in "Your money over time" (10 instead of 8); the lead
+  checks any Wealth Tab-stop or 390 px ceiling that pins that row.

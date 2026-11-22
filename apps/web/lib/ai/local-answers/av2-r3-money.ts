@@ -7,6 +7,8 @@ import {plannedForForecast, plannedStates} from '../../cash-forecast/planned';
 import {formatCurrencyAmount, formatPercent} from '../../visual-format';
 import type {WealthSheet} from '../../wealth-sheet/schema';
 import {cardStates} from '../../wealth-sheet/cards';
+import {NEED_WANT_WORDS, needWantMonth, shareOfIncome} from '../../money-insights/needs-wants';
+import {monthWaterfall} from '../../money-insights/month-compare';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, dayIn, isQuestion, list, MIXED, monthIn, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -128,3 +130,45 @@ function cardUse(a: Asked): LocalReply | null {
   return answer(say(a.lang, `${cards.map(c => one('en', c)).join('. ')}. From the numbers you typed.`, `${cards.map(c => one('nl', c)).join('. ')}. Uit de getallen die je invulde.`), calls);
 }
 add(cardUse);
+
+// ── Needs, wants and saving as the person's own shares of income (#295) ───────────────────────────────────────────
+/** "How much went to needs and wants this month", "hoeveel ging er deze maand naar nodig en wensen". Never a target. */
+function needsWants(a: Asked): LocalReply | null {
+  const en = /\bneeds?\b.*\bwants?\b|\bwants?\b.*\bneeds?\b|\b50 ?30 ?20\b/.test(a.f);
+  const nl = /\bnodig\b.*\bwensen\b|\bwensen\b.*\bnodig\b|\bbehoeften\b.*\bwensen\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const marks = a.env.moneyLog?.needWant, rows = needWantMonth(entriesOf(a.env), marks, a.today.slice(0, 7)), calls = call('money_log', {by: 'need-want', month: a.today.slice(0, 7)}, 'Money log · needs, wants and saving');
+  const rule = /\b50 ?30 ?20\b/.test(a.f) ? say(a.lang, ' ZIGoals shows your own shares, never a split to aim for.', ' ZIGoals toont je eigen verdeling, nooit een verdeling om na te streven.') : '';
+  if (!marks || !Object.keys(marks).length) return answer(say(a.lang, `No category is marked as a need, a want or saving yet. In ${PLACES.spending.en} → Your money over time → Needs, wants and saving, mark your categories; the month then shows what went to each, as a share of your income.${rule}`,
+    `Nog geen categorie is gemarkeerd als nodig, wens of sparen. In ${PLACES.spending.nl} → Your money over time → Needs, wants and saving markeer je je categorieën; de maand toont dan wat er naar elk ging, als deel van je inkomen.${rule}`), calls);
+  if (!rows.length) return answer(say(a.lang, `Nothing logged this month yet.${rule}`, `Deze maand is nog niets gelogd.${rule}`), calls);
+  const text = rows.map(r => {
+    const part = (lang: Lang, k: 'need' | 'want' | 'saving' | 'unmarked') => { const sh = shareOfIncome(r.parts[k].cents, r), label = k === 'unmarked' ? say(lang, 'not marked', 'niet gemarkeerd') : NEED_WANT_WORDS[k][lang].toLowerCase(); return `${label} ${moneyIn(lang, r.parts[k].cents, r.currency)}${sh === null ? '' : ` (${lang === 'nl' ? `${Math.round(sh * 100)}%` : formatPercent(sh * 100)})`}`; };
+    const keys = (['need', 'want', 'saving', 'unmarked'] as const).filter(k => k !== 'unmarked' || r.parts.unmarked.cents > 0);
+    return say(a.lang, `This month in ${r.currency}${r.income ? `, of ${moneyIn('en', r.income, r.currency)} income logged` : ' (no income logged, so no shares)'}: ${list(keys.map(k => part('en', k)), 'en')}.`,
+      `Deze maand in ${r.currency}${r.income ? `, van ${moneyIn('nl', r.income, r.currency)} gelogd inkomen` : ' (geen inkomen gelogd, dus geen aandelen)'}: ${list(keys.map(k => part('nl', k)), 'nl')}.`);
+  }).join(' ');
+  return answer(`${text} ${say(a.lang, 'Your own marks and figures, not a target.', 'Je eigen markeringen en bedragen, geen doel.')}${rule}`, calls);
+}
+add(needsWants);
+
+// ── A month waterfall: what moved this month's spending from last month's (#297) ───────────────────────────────────
+const signedIn = (lang: Lang, cents: number, currency: string) => `${cents < 0 ? '−' : '+'}${moneyIn(lang, Math.abs(cents), currency)}`;
+/** "What changed in my spending since last month", "wat is er veranderd in mijn uitgaven sinds vorige maand". */
+function spendingWaterfall(a: Asked): LocalReply | null {
+  const en = /\bwhat (?:changed|moved)\b.*\bspending\b|\bspending\b.*\bwaterfall\b|\bwaterfall\b|\bwhy (?:did|has|is) my spending (?:go |gone )?(?:up|down)\b/.test(a.f);
+  const nl = /\bwat (?:is er )?veranderd\b.*\buitgaven\b|\bwaardoor\b.*\buitgaven\b.*\b(?:hoger|lager|gestegen|gedaald)\b|\bwaterval\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const rows = monthWaterfall(entriesOf(a.env), a.today, 'so-far').filter(w => w.recorded), calls = call('money_log', {waterfall: 'so-far'}, 'Spending · what changed');
+  if (!rows.length) return answer(say(a.lang, `There is nothing to compare yet: last month has no spending in your money log. Once it has, ${PLACES.spending.en} → Your money over time → What changed shows how the total moved, category by category.`,
+    `Er is nog niets te vergelijken: vorige maand staat er geen uitgave in je geldlog. Daarna toont ${PLACES.spending.nl} → Your money over time → What changed hoe het totaal bewoog, per categorie.`), calls);
+  const text = rows.map(w => {
+    const top = (lang: Lang) => w.steps.slice(0, 5).map(st => `${st.category} ${signedIn(lang, st.change, w.currency)}`), more = w.steps.length - 5;
+    return say(a.lang, `In ${w.currency}: ${moneyIn('en', w.before, w.currency)} last month to ${dayIn('en', w.from.end, a.today)}, ${moneyIn('en', w.after, w.currency)} this month so far (${signedIn('en', w.after - w.before, w.currency)})${w.steps.length ? `; most moved by ${list(top('en'), 'en')}${more > 0 ? ` and ${more} more` : ''}` : '; no category moved'}.`,
+      `In ${w.currency}: ${moneyIn('nl', w.before, w.currency)} vorige maand t/m ${dayIn('nl', w.from.end, a.today)}, ${moneyIn('nl', w.after, w.currency)} deze maand tot nu toe (${signedIn('nl', w.after - w.before, w.currency)})${w.steps.length ? `; het meest door ${list(top('nl'), 'nl')}${more > 0 ? ` en nog ${more}` : ''}` : '; geen categorie veranderde'}.`);
+  }).join(' ');
+  return answer(`${text} ${say(a.lang, 'From your own entries; a comparison, not a forecast.', 'Uit je eigen invoer; een vergelijking, geen voorspelling.')}`, calls);
+}
+add(spendingWaterfall);

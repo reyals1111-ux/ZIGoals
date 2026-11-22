@@ -22,6 +22,10 @@ const VIEWS = {
   pace: {label: 'Your usual pace', load: lazy(() => import('./pace-view'))},
   age: {label: 'Age of money', load: lazy(() => import('./age-view'))},
   tags: {label: 'Tags', load: lazy(() => import('./tags-view'))},
+  // Session AV lane 2, round 3 (money; PocketGuard, LEDGER #295): needs, wants and saving as the person's own shares of income.
+  needs: {label: 'Needs, wants and saving', load: lazy(() => import('./needs-wants-view'))},
+  // Session AV lane 2, round 3 (money; Simplifi, LEDGER #297): a waterfall from last month's spending total to this month's.
+  changed: {label: 'What changed', load: lazy(() => import('./month-waterfall'))},
 } as const;
 type View = keyof typeof VIEWS;
 export type InsightProps = {entries: readonly MoneyEntry[]; today: string; showcase?: boolean};
