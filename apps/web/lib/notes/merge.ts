@@ -57,6 +57,22 @@ function checkPair(record: Notes, sourceId: string, targetId: string): {source: 
   if (source.locked || target.locked) throw new Error('A locked note is never merged. Remove its lock first.');
   return {source, target};
 }
+/**
+ * Review b6n B6N-1: whether the links to the merged note can follow it. A link reaches a note by its name only, and a
+ * name with #, |, [ or ] cannot be written inside [[…]], while a name two notes share reaches the first of them. When
+ * links to the merged note exist and the other note cannot be reached by its own name, the merge is refused in words
+ * (the preview says why) — a link is never left pointing nowhere or at the wrong note. Null when the links can follow.
+ */
+function linkIssue(record: Notes, source: Note, target: Note): string | null {
+  const key = linkKey(nameFor(source)), index = linkIndex({notes: record.notes});
+  if (index.byKey.get(key)?.id !== source.id) return null; // links by this name reach another note: none is re-pointed
+  const linked = record.notes.some(n => parseLinks(n.body).some(l => linkKey(l.target) === key));
+  if (!linked) return null;
+  const name = nameFor(target);
+  if (/[#|[\]]/.test(name)) return `Links to “${noteName(source)}” would follow it into “${name}”, but a link cannot reach a note whose name holds #, |, [ or ]. Rename “${name}” first; nothing was merged.`;
+  if (index.byKey.get(linkKey(name))?.id !== target.id) return `Two notes are called “${name}”, so a link to that name reaches the other one. Rename one of them first, so the links to “${noteName(source)}” can follow it; nothing was merged.`;
+  return null;
+}
 /** The notes a topic note can be merged into: every other daily or topic note that is not locked. */
 export const mergeTargets = (record: Pick<Notes, 'notes'>, sourceId: string): Note[] => record.notes.filter(n => n.id !== sourceId && n.kind !== 'inbox' && !n.locked)
   .sort((a, b) => nameFor(a).localeCompare(nameFor(b)));
@@ -65,12 +81,13 @@ export function mergePreview(record: Notes, sourceId: string, targetId: string):
   const {source, target} = checkPair(record, sourceId, targetId), p = plan(source, target, nameFor(target));
   const key = linkKey(nameFor(source)), index = linkIndex({notes: record.notes}), mine = index.byKey.get(key)?.id === source.id;
   const linking = mine ? record.notes.filter(n => n.id !== source.id && parseLinks(n.body).some(l => linkKey(l.target) === key)) : [];
-  return {photos: notePhotoIdsOf(source).filter(x => !notePhotoIdsOf(target).includes(x)).length, tags: (source.tags ?? []).length, props: (source.props ?? []).length, propLines: p.propLines.length, links: linking.length, locked: linking.filter(n => n.locked).length, problem: p.problem};
+  return {photos: notePhotoIdsOf(source).filter(x => !notePhotoIdsOf(target).includes(x)).length, tags: (source.tags ?? []).length, props: (source.props ?? []).length, propLines: p.propLines.length, links: linking.length, locked: linking.filter(n => n.locked).length, problem: p.problem ?? linkIssue(record, source, target)};
 }
 export type MergeResult = {record: Notes; undo: NotesUndo; into: string; links: number};
 export function mergeNotes(record: Notes, sourceId: string, targetId: string, now: string, zone: string = checklistZone()): MergeResult {
   const {source, target} = checkPair(record, sourceId, targetId), targetName = nameFor(target), p = plan(source, target, targetName);
-  if (p.problem) throw new Error(p.problem);
+  const problem = p.problem ?? linkIssue(record, source, target); // review b6n B6N-1
+  if (problem) throw new Error(problem);
   const heading = cleanHeading(noteName(source)), key = linkKey(nameFor(source));
   const index = linkIndex({notes: record.notes}), mine = index.byKey.get(key)?.id === source.id; // a name two notes share stays with its first owner
   const merged: Note = {...target, body: p.body, updatedAt: now};
