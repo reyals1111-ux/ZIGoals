@@ -1,3 +1,4 @@
+import {NUTRIENT_EXTRAS_RECORD} from '../../health-vitamins/extras';
 import {EVENING_PLAN} from '../../evening-plan/schema';
 import {BODY_EXTRAS} from '../../body-extras/schema';
 import {WEALTH_SHEET} from '../../wealth-sheet/schema';
@@ -31,5 +32,5 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Session AV lane 2 (habits): the whole habit extras record, for each habit's own options, areas and focus days (av2-habits.ts).
     habitExtras: extras,
     // Session AV lane 2, batch 2 (body, money).
-    eveningPlan: one(EVENING_PLAN), bodyExtras: one(BODY_EXTRAS), wealthSheet: one(WEALTH_SHEET)};
+    eveningPlan: one(EVENING_PLAN), bodyExtras: one(BODY_EXTRAS), wealthSheet: one(WEALTH_SHEET), nutrientExtras: one(NUTRIENT_EXTRAS_RECORD)};
 }

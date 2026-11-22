@@ -7480,5 +7480,37 @@
   "widgets": [],
   "fresh": "A copy on a schedule is set in Settings → Your data: how often, and in Chrome or Edge on a computer a folder that ZIGoals writes Export everything into by itself. Nothing leaves your device.",
   "freshNl": "Een kopie op schema stel je in bij Settings → Your data: hoe vaak, en in Chrome of Edge op een computer een map waarin ZIGoals Export everything zelf wegschrijft. Er verlaat niets je apparaat."
+ },
+ "av2-repeating-projects": {
+  "en": "No project repeats yet. In Tasks → Areas and templates, choose a template and set “Repeats” to every week, every month or every few days: the project is then made each time its day comes round.",
+  "nl": "Er herhaalt zich nog geen project. Kies in Tasks → Areas and templates een sjabloon en zet “Repeats” op elke week, elke maand, om de paar dagen: het project wordt dan elke keer gemaakt als de dag komt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No project repeats yet. In Tasks → Areas and templates, choose a template and set “Repeats” to every week, every month or every few days: the project is then made each time its day comes round.",
+  "freshNl": "Er herhaalt zich nog geen project. Kies in Tasks → Areas and templates een sjabloon en zet “Repeats” op elke week, elke maand, om de paar dagen: het project wordt dan elke keer gemaakt als de dag komt."
+ },
+ "av2-task-versions": {
+  "en": "No earlier versions of a task are kept yet. When you change a task’s title or notes and save, what it said before is kept in its editor under “Earlier versions”, up to ten, on this device.",
+  "nl": "Er zijn nog geen eerdere versies van een taak bewaard. Als je een taak wijzigt (titel, notities) en bewaart, staat wat er eerst stond in de editor onder “Earlier versions”, tot tien, op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No earlier versions of a task are kept yet. When you change a task’s title or notes and save, what it said before is kept in its editor under “Earlier versions”, up to ten, on this device.",
+  "freshNl": "Er zijn nog geen eerdere versies van een taak bewaard. Als je een taak wijzigt (titel, notities) en bewaart, staat wat er eerst stond in de editor onder “Earlier versions”, tot tien, op dit apparaat."
+ },
+ "av2-shift-sound": {
+  "en": "The slow left-right sound is off (it is off unless you turn it on). Health → Meditation → Behind your sitting has “Play a soft sound that moves slowly between your left and right ear”, with its volume and “Try it”.",
+  "nl": "Het langzame links-rechts geluid staat uit (het staat uit tot je het aanzet). In Health → Meditation kies je, bij het rustige beeld, een zacht geluid dat langzaam van links naar rechts gaat, met het volume en “Try it”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The slow left-right sound is off (it is off unless you turn it on). Health → Meditation → Behind your sitting has “Play a soft sound that moves slowly between your left and right ear”, with its volume and “Try it”.",
+  "freshNl": "Het langzame links-rechts geluid staat uit (het staat uit tot je het aanzet). In Health → Meditation kies je, bij het rustige beeld, een zacht geluid dat langzaam van links naar rechts gaat, met het volume en “Try it”."
+ },
+ "av2-further-nutrient": {
+  "en": "Selenium: no food you logged today carries a value, so today’s total is unknown (never 0). Foods from the food library (CoFID) and barcodes that give it count; Health → Food → More from your foods shows it.",
+  "nl": "Selenium: geen eten dat je vandaag logde heeft een waarde, dus het totaal van vandaag is onbekend (nooit 0). Eten uit de voedingsbibliotheek (CoFID) en barcodes die het geven tellen mee; Health → Food toont het onder de extra voedingsstoffen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Selenium: no food you logged today carries a value, so today’s total is unknown (never 0). Foods from the food library (CoFID) and barcodes that give it count; Health → Food → More from your foods shows it.",
+  "freshNl": "Selenium: geen eten dat je vandaag logde heeft een waarde, dus het totaal van vandaag is onbekend (nooit 0). Eten uit de voedingsbibliotheek (CoFID) en barcodes die het geven tellen mee; Health → Food toont het onder de extra voedingsstoffen."
  }
 }

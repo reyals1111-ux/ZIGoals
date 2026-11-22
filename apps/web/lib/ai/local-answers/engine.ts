@@ -36,6 +36,7 @@ import {av2RoadmapAnswer} from './av2-roadmap';
 import {av2MoneyAnswer} from './av2-money';
 import {av2FoodAnswer, readFoodSources} from './av2-food';
 import {av2BodyAnswer} from './av2-body';
+import {av2RestAnswer} from './av2-rest';
 import {av2SyncAnswer, type Av2SyncExtra} from './av2-sync';
 import {readExtrasChoice, readExtrasSectionsChoice} from '../../vault/extras-sync';
 import {readTheme} from '../../ui-prefs/theme';
@@ -240,6 +241,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV (owner follow-up 2, item 1c; the fresh reviewers' check 5): the AV features' own questions (task reminders,
   // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
   // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).
+  // Session AV lane 2 (rest: repeating projects, task versions, calm sound, more nutrients, CSV re-import, mood words).
+  if (!subject) { const own = av2RestAnswer(question, env, {templates: env.nova?.taskTemplates, plan: env.nova?.taskPlan, nutrientExtras: (env.ak as {nutrientExtras?: never} | null | undefined)?.nutrientExtras}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (sync choices, the look, the scheduled copy): read from this device where there is one.
   if (!subject) { const extra: Av2SyncExtra = (() => { try { if (typeof window === 'undefined') return {}; const storage = getAppStorage(); return {sections: readExtrasSectionsChoice(storage), extrasOn: readExtrasChoice(storage).enabled, look: {theme: readTheme(), darkStyle: readDarkStyle(), font: readLook().font}, backup: readDeviceRecord(storage, BACKUP_REMINDER).data}; } catch { return {}; } })(); const own = av2SyncAnswer(question, env, extra); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
