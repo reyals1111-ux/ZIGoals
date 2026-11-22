@@ -28,7 +28,12 @@ export const PACE_WORDS: Record<ShiftPace, {en: string; nl: string}> = {
   slow: {en: 'Slow (3 s a side)', nl: 'Langzaam (3 s per kant)'},
   slower: {en: 'Slower (5 s a side)', nl: 'Langzamer (5 s per kant)'},
 };
-export type Calm = {visual: CalmVisual | null; pace: ShiftPace};
+/**
+ * Session AV lane 2 (rest, LEDGER #79; TIER 3 (stored formats), additive inside the loose `calm` object): the slow
+ * left-right sound, opt-in. `calm.sound` is its volume (1–100) while it is on; absent, it is off (the default).
+ */
+export const SHIFT_SOUND_DEFAULT = 40;
+export type Calm = {visual: CalmVisual | null; pace: ShiftPace; sound?: number};
 export const NO_CALM: Calm = {visual: null, pace: 'slow'};
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 export function readCalm(extras: unknown): Calm {
@@ -36,15 +41,21 @@ export function readCalm(extras: unknown): Calm {
   if (!isObj(c)) return NO_CALM;
   const visual = (CALM_VISUALS as readonly unknown[]).includes(c.visual) ? c.visual as CalmVisual : null;
   const pace = (SHIFT_PACES as readonly unknown[]).includes(c.pace) ? c.pace as ShiftPace : 'slow';
-  return {visual, pace};
+  const sound = Number.isInteger(c.sound) && (c.sound as number) >= 1 && (c.sound as number) <= 100 ? c.sound as number : undefined;
+  return {visual, pace, ...(sound ? {sound} : {})};
 }
-/** The extras with the calm visual set (null: none) and, optionally, the pace. Later fields of `calm` are kept. */
-export function withCalm<T extends object>(extras: T, change: {visual?: CalmVisual | null; pace?: ShiftPace}): T {
+/**
+ * The extras with the calm visual set (null: none), and optionally the pace and the slow left-right sound (its volume
+ * 1–100; null: off). Later fields of `calm` are kept.
+ */
+export function withCalm<T extends object>(extras: T, change: {visual?: CalmVisual | null; pace?: ShiftPace; sound?: number | null}): T {
   if (change.visual !== undefined && change.visual !== null && !CALM_VISUALS.includes(change.visual)) throw new Error('This visual could not be found.');
   if (change.pace !== undefined && !SHIFT_PACES.includes(change.pace)) throw new Error('This pace could not be found.');
+  if (change.sound !== undefined && change.sound !== null && !(Number.isInteger(change.sound) && change.sound >= 1 && change.sound <= 100)) throw new Error('Choose a volume from 1 to 100.');
   const old = (extras as {calm?: unknown}).calm, c: Record<string, unknown> = {...(isObj(old) ? old : {})};
   if (change.visual === null) delete c.visual; else if (change.visual) c.visual = change.visual;
   if (change.pace) c.pace = change.pace;
+  if (change.sound === null) delete c.sound; else if (change.sound !== undefined) c.sound = change.sound;
   const {calm: _drop, ...rest} = extras as T & {calm?: unknown}; void _drop;
   return (Object.keys(c).length ? {...rest, calm: c} : rest) as T;
 }
