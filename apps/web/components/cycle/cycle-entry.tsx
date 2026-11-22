@@ -15,7 +15,7 @@ export default function CycleEntry({today}: {today: string}) {
   const rec = useDeviceRecord(CYCLE), [open, setOpen] = useState(false);
   if (!rec.loaded || rec.unreadable || !cycleOn(rec.data)) return null;
   return <details className="panel cycle-fold" id="cycle-log" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
-    <summary style={{minHeight: 44, display: 'flex', alignItems: 'center', cursor: 'pointer'}}>Cycle log</summary>
+    <summary className="fold-summary" style={{minHeight: 44, display: 'flex', alignItems: 'center', cursor: 'pointer'}}>Cycle log</summary>
     {open && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening…"/>}><CycleLog today={today}/></Suspense></LoadBoundary>}
   </details>;
 }

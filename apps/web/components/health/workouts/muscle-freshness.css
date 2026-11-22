@@ -10,6 +10,11 @@
 .muscle-freshness-body text { fill: var(--text); font-size: 10px; }
 .muscle-freshness-body .mf-label { font-weight: 700; }
 .muscle-freshness-body .mf-view { fill: var(--muted); font-size: 10px; }
+/* Session AV lane 2 (P-24): the figure's own labels were about 10 px on a phone and ran into each other ("Shoulders 81%"
+   over "Chest 72%"). Under 600 px the figure keeps its shading and Front/Back, and the list under it (every group, its %
+   and a word) names them; wider, the figure is 460 px (scale 1.35) and its labels read at about 15 px. */
+@media (max-width: 599.98px) { .muscle-freshness-body :is(.mf-label, .mf-value, .mf-leader) { display: none; } .muscle-freshness-body .mf-view { font-size: 15px; } }
+@media (min-width: 600px) { .muscle-freshness-body text { font-size: 11px; } .muscle-freshness-body .mf-view { font-size: 11px; } }
 .muscle-freshness-days summary { min-block-size: 44px; display: flex; align-items: center; cursor: pointer; }
 .muscle-freshness-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
 .muscle-freshness-grid select { min-block-size: 44px; }

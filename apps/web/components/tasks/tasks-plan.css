@@ -7,6 +7,10 @@
 .tasks-plan-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .tasks-plan-head button, .tasks-plan-view button { min-height: 44px; }
 .tasks-plan-head .field { min-width: 0; flex: 0 1 220px; }
+/* Session AV lane 2 (P-7): the week's ← dates → stay on one row at 320 px; "This week" (back to now) gets its own row. */
+.tasks-week-nav { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 4px 8px; }
+.tasks-week-nav > h3 { text-align: center; text-wrap: balance; }
+.tasks-week-nav > .text-link { grid-column: 1 / -1; justify-self: center; }
 .tasks-plan-switch { display: inline-flex; gap: 4px; }
 .tasks-plan-switch [aria-pressed="true"] { outline: 2px solid var(--accent, currentColor); outline-offset: -2px; }
 .tasks-plan-settings { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 8px; }
@@ -24,7 +28,8 @@
 .tasks-table-frame:focus-visible { outline: 3px solid var(--accent, currentColor); outline-offset: 2px; }
 .tasks-table, .tasks-month { border-collapse: collapse; width: 100%; font-size: 14px; }
 .tasks-table th, .tasks-table td { padding: 6px 8px; text-align: start; border-bottom: 1px solid var(--line); vertical-align: top; white-space: nowrap; }
-.tasks-table tbody th { font-weight: 600; white-space: normal; min-width: 160px; overflow-wrap: anywhere; }
+.tasks-table tbody th { font-weight: 600; white-space: normal; min-width: 160px; overflow-wrap: break-word; }
+@media (min-width: 901px) { .tasks-table-tasks tbody th { min-width: 240px; } } /* Session AV lane 2 (P-8): a task name keeps a readable width on a computer */
 .tasks-table tr[aria-current="date"] th { color: var(--accent, inherit); }
 .tasks-table input[type="checkbox"] { width: 20px; height: 20px; }
 .tasks-sort { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: inherit; cursor: pointer; min-height: 44px; min-width: 44px; text-align: start; }

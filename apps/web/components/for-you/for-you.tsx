@@ -55,7 +55,7 @@ export function ForYou({cards, status = '', note = null, label = 'For you', open
       <button type="button" className="phone-fold-toggle" aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>
         {/* Gate C design review (finding 12): open, the row names what it hides ("Hide 6 cards", not a bare "Hide" mid-page),
             and its hint reads as every other fold row's does: "Show" or "Hide" beside the chevron. */}
-        <span>{open ? `Hide ${folded.length} ${folded.length === 1 ? 'card' : 'cards'}` : `Show more (${folded.length})`}</span><span className="phone-fold-hint" aria-hidden="true">{open ? null : 'Show'}<AppIcon name="chevron" size={18} /></span>
+        <span>{open ? `Hide ${folded.length} ${folded.length === 1 ? 'card' : 'cards'}` : `Show more (${folded.length})`}</span>{/* Session AV lane 2 (P-12): "Show more (12) … Show ⌄" said Show twice; the row's words already say it, the chevron stays */}<span className="phone-fold-hint" aria-hidden="true"><AppIcon name="chevron" size={18} /></span>
       </button>
       {open && <div id={id} className="phone-fold-body">{folded.map(card => <div key={card.id} id={`for-you-${card.id}`} className="for-you-slot" data-card={card.id}>{card.node}</div>)}</div>}
     </div>}
