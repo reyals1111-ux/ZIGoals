@@ -22,7 +22,10 @@ for (const theme of THEMES) test(`${theme}: archive a category and add a starter
   await form.locator('summary', {hasText: 'Your own categories'}).click();
   const more = form.locator('.category-more');
   await expect(more.getByRole('heading', {name: 'Archive a category'})).toBeVisible();
-  await more.getByLabel('Category', {exact: true}).selectOption('Gifts');
+  // Session AV lane 2 (fixb4; deliberate): getByLabel reads the <label>'s whole text, its options' words with it
+  // ("CategoryChoose…Gifts…"), so an exact "Category" never matched. The combobox's accessible name is exactly
+  // "Category"; as strict.
+  await more.getByRole('combobox', {name: 'Category', exact: true}).selectOption('Gifts');
   await more.getByRole('button', {name: 'Archive', exact: true}).click();
   await expect(more.getByRole('status').first()).toHaveText('Gifts archived: it is no longer offered for spending. Its 1 entry keeps it, and reports and search still show it.');
   await expect(form.getByRole('radio', {name: 'Gifts'})).toHaveCount(0);
@@ -33,8 +36,10 @@ for (const theme of THEMES) test(`${theme}: archive a category and add a starter
   await more.getByRole('button', {name: 'Bring back Gifts'}).click();
   await expect(form.getByRole('radio', {name: 'Gifts'})).toBeVisible();
   // A starter set, in Dutch: previewed, then added; the button stays focusable once everything is there.
-  await more.getByLabel('Set').selectOption('household');
-  await more.getByLabel('Names in').selectOption('nl');
+  // Session AV lane 2 (fixb4; deliberate): "Set" also matched the region "Start from a set"; each select by its exact
+  // accessible name, as strict.
+  await more.getByRole('combobox', {name: 'Set', exact: true}).selectOption('household');
+  await more.getByRole('combobox', {name: 'Names in', exact: true}).selectOption('nl');
   const preview = more.getByRole('list', {name: 'What A household adds'});
   await expect(preview).toContainText('Kinderen');
   await expect(preview).toContainText('Opvang');

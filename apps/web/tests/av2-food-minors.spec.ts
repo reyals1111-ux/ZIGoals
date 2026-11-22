@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {hydrated} from './ah-helpers';
+import {openPhoneRow} from './phone-length-folds';
 import {axe, THEMES, applyTheme, offline} from './p6-helpers';
 import {HEALTH_STORAGE_KEY, createEmptyHealth, logHealthItem, saveFood} from '../lib/health';
 import {saveMealFromDiary} from '../lib/health-daily';
@@ -44,6 +45,10 @@ for (const theme of THEMES) test(`${theme}: repeat plans grouped, today's plan o
   expect(await axe(page, group).then(f => f.filter(v => v.impact === 'serious' || v.impact === 'critical'))).toEqual([]);
 
   await page.goto('/app/health?view=diary'); await hydrated(page);
+  // Session AV lane 2 (phone-length, deliberate): on a phone the day's plans are one row naming them (tests/phone-length-
+  // folds.ts: there and closed on a phone, absent at 1440); the row names the plan, it is opened, then checked as before.
+  if (isMobile) await expect(page.locator('.phone-fold-toggle').filter({hasText: 'Planned for this day'})).toContainText('Breakfast · Morning bowl');
+  await openPhoneRow(page, 'Planned for this day');
   const planned = page.getByRole('region', {name: 'Planned for this day'});
   await expect(planned).toContainText('Breakfast · Morning bowl');
   await planned.getByRole('button', {name: 'Log planned Morning bowl to breakfast'}).click();

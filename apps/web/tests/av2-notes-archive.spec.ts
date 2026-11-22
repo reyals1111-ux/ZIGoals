@@ -37,7 +37,9 @@ for (const theme of THEMES) test(`${theme}: archive a note`, async ({page, isMob
   await list.getByLabel('Search', {exact: true}).fill('');
   // Not in the graph's list.
   await page.goto('/app/notes?view=graph'); await hydrated(page);
-  await page.getByRole('button', {name: 'List'}).click();
+  // Session AV lane 2 (fixb4; deliberate): exactly "List" — "Tuck the Checklist button away" also holds the word (as in
+  // notes.spec.ts); while the graph's chunk loads it was the only match, so the click went there. As strict.
+  await page.getByRole('button', {name: 'List', exact: true}).click();
   await expect(page.getByRole('list', {name: 'Notes, goals and habits and their links'})).not.toContainText('Fictional old plan');
   // Back to the list.
   await page.goto('/app/notes?view=notes'); await hydrated(page);

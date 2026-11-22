@@ -18,7 +18,7 @@ for (const theme of THEMES) test(`${theme}: today's written practice, another on
   const title = page.locator('.meditation-today-title');
   await expect(title).toHaveText(g.en.title);
   await expect(page.locator('.meditation-today-steps li')).toHaveCount(g.en.steps.length);
-  const findings = await axe(page, page.locator('.meditation-today-fold'));
+  const findings = await axe(page); // owner follow-up 6: the whole page, every Meditation fold included (446eb75f's narrowing to the practice's fold undone)
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   const another = page.getByRole('button', {name: 'Another one'});
   await another.click();

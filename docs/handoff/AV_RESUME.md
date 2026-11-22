@@ -20,6 +20,8 @@ with a merge commit, edits the shared registries, builds once per batch and push
 Lane 2's own state is kept in this file's "Lane 2 — state" section on that branch.
 
 ## Lane 2 — state (owner follow-up 4; keep current at every batch)
+- **Owner follow-up 6 (finish) rules now** (ADR-045). Alpha #58 = run 61 from `main` `1c1b5953`: version `f2729d28-e9db-436f-a66a-67922cf5d924`, rollback `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57), VERIFIED (3 reads), live prices VERIFIED, market policy ends 2026-11-30T16:00Z, archive SHA-256 `ef1aee3b…0a18e578`. Frozen readers #37–#58.
+- PR #109 (Draft, "Session AV (continued)"): runs 2006 (OOM, fixed), 2007, 2008 red → fixes at the cause; batches 1–4 in; 5 and 6 to join; then the friend-readiness pass and polish; END per follow-up 6 step 5.
 - Branch `feature/session-av-2` from #108's frozen head `807f247e`; LEDGER.md first (`fbeb3e54`). No PR until #108 merges.
   A push here starts no CI (`ci.yml`: push to main, pull_request): push after every integrated batch, local checks first.
 - Done (lead): A45-1 (the account-sync engine out of every page's first scripts, TIER 3 sync `a88abeb8`…`2d270bd9`:
@@ -29,14 +31,20 @@ Lane 2's own state is kept in this file's "Lane 2 — state" section on that bra
 - Pushed: batch 1 (`a3402096`) and batch 2 (`23100b66`: money, body, food, habits and mind part 2, sync, ledger
   remainders, round 2, Minors 70 of 79, restore-media, Dutch dates, loose ends; reviews b2a/b2b fixed; 572 of 574 specs —
   av2-backup-folder needs CI's real Chrome; unit green apart from load timeouts; frozen readers 21 of 21; weights inside).
-- Batch 3 (local `lane2/batch3`, /home/user/zg-b3): round 3 (LEDGER #256–#299: r3-plan, r3-money, r3-health, r3-notes),
-  reviews b3a/b3b/b3c fixed (revb3c merged), vault-b4 (test timing). First spec run on ed2a00d6: 126 passed, 66 failed
-  (12 tests) → lane2/fixb3 fixing; then rebuild, rerun, push.
-- Batch 4 (local `lane2/batch4`, /home/user/zg-b4): round 4 (LEDGER #300–#347: r4-plan, r4-mind, r4-health, r4-money,
-  r4-notes) wired with registries, corpus, Help; reviews b4d/b4e fixed, b4f (money: 2 Blockers) on lane2/r4-money, b4g
-  (notes) running. Polish (polish.md: 6 Majors, 34 Minors) on lane2/polish.
-- For the final STATUS entry: r4-mind's rollback limit (an older build's 30-day media sweep does not know photos 5–12,
-  registry "Rollback limit"); the stored-format list per batch from the registries.
+- Pushed: batch 3 (`331465aa`: round 3 + fixes, polish 1, fixb3/fixb3c, phone lengths; specs green on build dbf1f2a2,
+  unit green but the sandbox's pre-run11 pnpm check, frozen readers 39 of 39 in three files, weights inside).
+- Batch 4 (`lane2/batch4`, /home/user/zg-b4, `c434151b` with batch 3 merged): round 4 + reviews D–G, polish 2; unit
+  green, frozen readers 39/39, build c434151b green, weights inside (Settings 525.8/531). Specs running (58 files).
+  Next: fix failures, merge into feature/session-av-2, push.
+- Batch 5 (`lane2/batch5`, /home/user/zg-b5): round 5 (#348–#390) all five branches merged with reviews H–L, Help (43),
+  corpus, shards, themes. Next after batch 4: merge batch 4 in, full unit, lint, frozen readers, build, specs, push.
+- Batch 6 (`lane2/batch6`, /home/user/zg-b6, `3caddd6c`): round 6 (#391–#431) r6-plan (review M fixed), r6-notes
+  (review N fixed), r6-money, r6-body merged; answers wired, 41 corpus intents (none changed), Help (41), What's new,
+  15 specs in shards, themes, r6-body keys and the lock-away display key registered (TIER 3). Review O (r6-money: 4
+  Blockers) and P (r6-body: 1 Blocker) being fixed on their branches → merge again, then full checks.
+- Round 7 research (10 more apps → ledger rows #432+) running → scratchpad ledger-r7.md, then builders.
+- For the final STATUS entry: the rollback limits in r4-mind, r4-notes and r5-notes registries (an older build's 30-day
+  photo sweep does not know the extra photos).
 - Owner items from lane 2: the private-sync Worker deploy (OWNER_STEPS.md); the visit report's two symptom charts;
   #245 automatic recording; #41 passkey; a bundled reading font (#263); the Showcase examples the Minors left; Health →
   Activity's older "About N kcal used — an estimate" for manual activities (against "no calorie expenditure is estimated"?); the
