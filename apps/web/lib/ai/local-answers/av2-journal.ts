@@ -2,7 +2,9 @@ import type {ToolEnv} from '../tools/env';
 import type {Journal} from '../../journal/schema';
 import {writingStreak} from '../../journal/stats';
 import {daysWords, reminderOf} from '../../journal/reminder';
-import {answer, asked, count, isQuestion, journalClosed, MIXED, say, type Asked, type Lang} from './av-words';
+import {bookCounts} from '../../journal/books';
+import {dateQuery} from '../../journal/search';
+import {answer, asked, count, dayIn, isQuestion, journalClosed, list, MIXED, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -17,7 +19,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak]) {
+    for (const one of [reminder, streak, journals, onDay]) {
       const r = one(a);
       if (r) return r;
     }
@@ -55,3 +57,33 @@ function streak(a: Asked): LocalReply | null {
     s.current ? `Je schrijfreeks: ${run(s.current, 'nl')} op rij${s.writtenToday ? ', vandaag meegeteld' : '; schrijf vandaag om hem te houden'}.` : 'Nu geen schrijfreeks: gisteren en vandaag is niets geschreven.');
   return answer(`${now} ${say(lang, `Longest: ${run(s.longest, 'en')}.`, `Langste: ${run(s.longest, 'nl')}.`)}`, CALL);
 }
+
+/** LEDGER #43: "which journals do I have", "how many journals do I have" (lib/journal/books.ts, as Your journals lists them). */
+function journals(a: Asked): LocalReply | null {
+  const en = /\b(?:which|what|how many) journals\b|\bmy journals\b/.test(a.f), nl = /\b(?:welke|hoeveel) dagboeken\b|\bmijn dagboeken\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = journalClosed(a); if (shut) return shut;
+  const counts = bookCounts(journalOf(a)), lang = a.lang;
+  const line = (c: (typeof counts)[number]) => `${c.id === null ? say(lang, 'Journal (the main one)', 'Journal (het hoofddagboek)') : c.name}: ${count(c.count, lang, ['entry', 'entries'], ['stuk', 'stukken'])}`;
+  if (counts.length === 1) return answer(say(lang, `One journal, the main one, with ${count(counts[0]!.count, 'en', ['entry', 'entries'], ['', ''])}. Journal → Your journals makes another (Travel, Dreams…) with a colour of its own.`, `Eén dagboek, het hoofddagboek, met ${count(counts[0]!.count, 'nl', ['', ''], ['stuk', 'stukken'])}. Journal → Your journals maakt er nog een (Reizen, Dromen…) met een eigen kleur.`), CALL);
+  return answer(say(lang, `${counts.length} journals: ${list(counts.map(line), 'en')}.`, `${counts.length} dagboeken: ${list(counts.map(line), 'nl')}.`), CALL);
+}
+
+const ON_DAY_EN = /\b(?:what|which|did) (?:did i write|have i written|i write|entries|journal entries|i wrote)\b.*\b(?:on|in) (.+)$|\bjournal (?:entries )?(?:on|from|for) (.+)$/;
+const ON_DAY_NL = /\bwat (?:heb ik|schreef ik)\b.*?\b(?:op|in) (.+?)(?: (?:geschreven|in mijn dagboek))*$|\bdagboek(?:stukken)? (?:van|op) (.+)$/;
+/** LEDGER #43: "what did I write on 3 nov", "wat heb ik op 3 november geschreven" (lib/journal/search.ts dateQuery): the days and how many entries; the words stay on the Journal page. */
+function onDay(a: Asked): LocalReply | null {
+  // Read on the typed words (lower case), not the folded ones: folding drops the hyphens of "2026-11-14".
+  const typedLine = a.raw.toLowerCase().replace(/[?!.]+$/, '').replace(/\s+/g, ' ').trim(), m = ON_DAY_EN.exec(typedLine) ?? ON_DAY_NL.exec(typedLine);
+  const raw = m ? (m[1] ?? m[2] ?? '').replace(/\b(?:in my journal|in mijn dagboek|geschreven)\b/g, '').trim() : '';
+  const typed = raw === 'yesterday' || raw === 'gisteren' ? {from: addDay(a.today, -1), to: addDay(a.today, -1)} : raw === 'today' || raw === 'vandaag' ? {from: a.today, to: a.today} : raw ? dateQuery(raw, a.today) : null;
+  if (!typed) return null;
+  const shut = journalClosed(a); if (shut) return shut;
+  const hits = journalOf(a).entries.filter(e => e.date >= typed.from && e.date <= typed.to), lang = a.lang, one = typed.from === typed.to;
+  const when = one ? dayIn(lang, typed.from, a.today) : `${dayIn(lang, typed.from, a.today)} – ${dayIn(lang, typed.to, a.today)}`;
+  const where = one ? `/app/journal?day=${typed.from}` : 'Journal → Search by date';
+  if (!hits.length) return answer(say(lang, `No journal entry on ${when}. The calendar under Journal → Search by date marks the days you wrote.`, `Geen dagboekstuk op ${when}. De kalender onder Journal → Search by date toont de dagen waarop je schreef.`), CALL);
+  const days = new Set(hits.map(e => e.date)).size;
+  return answer(say(lang, `${count(hits.length, 'en', ['journal entry', 'journal entries'], ['', ''])} on ${when}${!one && days > 1 ? ` (${count(days, 'en', ['day', 'days'], ['', ''])})` : ''}. Their words stay on the Journal page: ${where}.`, `${count(hits.length, 'nl', ['', ''], ['dagboekstuk', 'dagboekstukken'])} op ${when}${!one && days > 1 ? ` (${count(days, 'nl', ['', ''], ['dag', 'dagen'])})` : ''}. De woorden blijven op de Journal-pagina: ${where}.`), CALL);
+}
+const addDay = (day: string, by: number) => { const d = new Date(`${day}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + by); return d.toISOString().slice(0, 10); };

@@ -28,12 +28,15 @@ const ThreeGoodThings = lazy(() => import('./three-good-things'));
  * journal, then ZIGi's ONE follow-up question (made on this device from what the entry says; never advice), with room to
  * answer it. Private by default; nothing here is sent anywhere. Used on Today (a For you card) and on the Journal page.
  */
-export function JournalCompose({compact = false}: {compact?: boolean}) {
+export function JournalCompose({compact = false, book = null}: {compact?: boolean; /** Session AV lane 2 (LEDGER #43): the journal a new entry goes in (the one the list shows). */ book?: string | null}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate(), id = useId();
   const [prompt, setPrompt] = useState<{id: string; lang: PromptLang} | null>(null), [prompts, setPrompts] = useState(false);
   // Session AV Part 7 (F-PROMPT): today's question, and how many times "Another question" was pressed.
   const [step, setStep] = useState(0), qLang = useQuestionLang(); // Session AV (F-OWN-TEMPLATES): the question in Dutch too
   const [tagText, setTagText] = useState(''); // Session AV (follow-up 1, F-JOURNAL-TAGS): tags as the entry is written
+  // Session AV lane 2 (journal; LEDGER #43, Day One): the journal this entry goes in (null: the main Journal).
+  const [chosenBook, setChosenBook] = useState<string | null | undefined>(undefined);
+  const books = journal.data.journals ?? [], target = (chosenBook === undefined ? book : chosenBook) ?? null, inBook = target && books.some(b => b.id === target) ? target : null;
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
   const tagOffers = useMemo(() => {
@@ -49,7 +52,7 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     if (!words) return setProblem('Write a few words first.');
     if (prompt && onlyHeadings(words)) return setProblem('Write a few words under the headings first.');
     const tags = compact ? [] : readTags(tagText);
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {})};
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {})};
     const question = journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     try { journal.update(current => ({...current, entries: [...current.entries, {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}].slice(-5000)})); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
     setText(''); setTagText(''); setPrompt(null); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
@@ -80,6 +83,7 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
       <SecretGuard text={text} onRemove={() => setText('')}/>
       {/* Session AV (1c, q4 #5; Day One suggests tags): the tags already in use, offered after what is typed so far. */}
       {!compact && <label className="field journal-compose-tags"><span>Tags — optional</span><input maxLength={200} autoComplete="off" list={tagOffers.length ? `${id}-known-tags` : undefined} value={tagText} onChange={e => setTagText(e.target.value)} placeholder="work, family" aria-describedby={`${id}-tags-hint`}/><small id={`${id}-tags-hint`} className="fine">Separate tags with commas; up to 8.</small></label>}
+      {!compact && books.length > 0 && <label className="field journal-compose-book"><span>Journal</span><select value={inBook ?? ''} onChange={e => setChosenBook(e.target.value || null)}><option value="">Journal (main)</option>{books.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>}
       {!compact && tagOffers.length > 0 && <datalist id={`${id}-known-tags`}>{tagOffers.map(o => <option key={o} value={o}/>)}</datalist>}
       {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>
         {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker startLang={qLang} own={journal.data.templates ?? []} onEditOwn={(ownId, title, headingsText) => { journal.update(current => editOwnTemplate(current, ownId, {title, headingsText})); setStatus(`Your template “${title}” is saved.`); }} onAddOwn={(title, headingsText, newId) => journal.update(current => addOwnTemplate(current, {title, headingsText}, newId))} onRemoveOwn={ownId => journal.update(current => removeOwnTemplate(current, ownId))} onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setPrompts(false); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}

@@ -95,3 +95,57 @@
 .journal-reminder-day-row button{min-width:48px;min-height:44px}
 .journal-reminder-day-row button[aria-pressed="true"]{border-color:var(--brand-cyan);color:var(--text-strong,var(--text))}
 .journal-reminder-note{margin:0}
+/* Session AV lane 2 (journal; LEDGER #43): several journals with a colour each, the date search and the calendar; an
+   entry's "More". Colours from the theme's own tokens, so each reads in Nebula, Light and Dark. */
+.journal-book-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:var(--brand-violet);flex:none}
+.journal-book-dot[data-tone="cyan"]{background:var(--brand-cyan)}
+.journal-book-dot[data-tone="magenta"]{background:var(--brand-magenta)}
+.journal-book-dot[data-tone="teal"]{background:var(--accent-teal,var(--brand-cyan))}
+.journal-book-dot[data-tone="gold"]{background:var(--pillar-wealth,#d9a441)}
+.journal-book-dot[data-tone="green"]{background:var(--pillar-habits,#4fbf7f)}
+.journal-entries li[data-tone]{padding-left:12px;border-left:4px solid var(--brand-violet)}
+.journal-entries li[data-tone="cyan"]{border-left-color:var(--brand-cyan)}
+.journal-entries li[data-tone="magenta"]{border-left-color:var(--brand-magenta)}
+.journal-entries li[data-tone="teal"]{border-left-color:var(--accent-teal,var(--brand-cyan))}
+.journal-entries li[data-tone="gold"]{border-left-color:var(--pillar-wealth,#d9a441)}
+.journal-entries li[data-tone="green"]{border-left-color:var(--pillar-habits,#4fbf7f)}
+.journal-entry-book{color:var(--text-secondary,var(--muted))}
+.journal-book-filter{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.journal-book-filter button{min-height:44px;display:inline-flex;align-items:center;gap:2px}
+.journal-book-filter small{margin-left:4px;font-size:14px}
+.journal-date-range{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px;margin-bottom:8px}
+.journal-date-range .field{flex:1 1 140px;min-width:0}
+.journal-date-range input,.journal-date-range button{min-height:44px;font-size:16px}
+.journal-calendar{display:grid;gap:6px;max-width:28rem}
+.journal-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.journal-calendar-head button{min-width:44px;min-height:44px}
+.journal-calendar-title{margin:0;text-align:center;font-size:15px}
+.journal-calendar-grid{width:100%;border-collapse:collapse;table-layout:fixed}
+.journal-calendar-grid th{font-size:14px;font-weight:600;color:var(--text-secondary,var(--muted));padding:4px 0}
+.journal-calendar-grid abbr{text-decoration:none}
+.journal-calendar-grid td{text-align:center;padding:1px}
+.journal-calendar-day,.journal-calendar-empty{display:inline-flex;align-items:center;justify-content:center;width:100%;max-width:44px;min-height:44px;border-radius:12px;font-size:15px;font-variant-numeric:tabular-nums}
+.journal-calendar-day{border:1px solid color-mix(in srgb,var(--brand-violet) 60%,transparent);background:color-mix(in srgb,var(--brand-violet) 22%,transparent);color:inherit;cursor:pointer;font-weight:650}
+.journal-calendar-day[aria-pressed="true"]{background:linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));color:#0b1020;border-color:transparent}
+.journal-calendar-empty{color:var(--text-secondary,var(--muted))}
+.journal-calendar-empty[data-today]{outline:1px dashed currentColor;outline-offset:-4px}
+.journal-books{display:grid;gap:12px}
+.journal-books-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.journal-books-row{display:grid;gap:4px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.journal-books-name{margin:0;display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:15px}
+.journal-books-actions{display:flex;flex-wrap:wrap;gap:4px 16px}
+.journal-books-actions button{min-height:44px}
+.journal-books-rename,.journal-books-make{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.journal-books-rename .field,.journal-books-make .field{flex:1 1 200px;min-width:0}
+.journal-books-rename input,.journal-books-make input,.journal-books-rename button,.journal-books-make button{min-height:44px;font-size:16px}
+.journal-theme-picker{display:flex;flex-wrap:wrap;gap:4px 10px;border:0;margin:0;padding:0;flex-basis:100%}
+.journal-theme-picker legend{font-size:14px;padding:0;margin-bottom:2px;color:var(--text-secondary,var(--muted))}
+.journal-theme-choice{display:inline-flex;align-items:center;gap:2px;min-height:44px;font-size:15px;cursor:pointer}
+.journal-theme-choice input{margin:0 6px 0 0;width:18px;height:18px}
+.journal-compose-book select{min-height:44px;font-size:16px;max-width:100%}
+.journal-entry-more summary{min-height:44px;display:list-item;padding:10px 0;box-sizing:border-box;cursor:pointer;color:var(--text-secondary)}
+.journal-entry-controls .journal-entry-more[open]{flex-basis:100%}
+.journal-entry-more-body{display:grid;gap:10px;padding:4px 0 8px}
+.journal-entry-move{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.journal-entry-move .field{flex:1 1 180px;min-width:0}
+.journal-entry-move select,.journal-entry-move button{min-height:44px;font-size:16px;max-width:100%}

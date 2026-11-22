@@ -68,3 +68,30 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
 - Device keys / catalogue / export / erase: none new (inside `zigoals:journal:v1`).
 - CSS touched: `components/journal/journal.css`.
 - Today: nothing added.
+
+### F2 Several journals with a colour each, search by date and the calendar — LEDGER #43 (Day One: collections, themes and search)
+
+- Verdict: **built** (tags and tag search were built earlier, `1f67dbc9`). Search "with media" comes with F5/F6 (photos, audio).
+- What: Journal → Entries → "Your journals" (make up to ten beside the main one, each with a name and one of six
+  colours from the theme's tokens; rename; colour; remove, its entries moving to the main Journal, with Undo); "Show a
+  journal" filter chips with counts; Write's "Journal" choice (the shown journal by default); an entry's colour stripe
+  and journal name; an entry's "More" → Move to another journal; "Search by date" (From / To, a month calendar with
+  the days you wrote as buttons), a typed date in the search box ("3 nov", "2026-11", "november 2026"), and
+  `/app/journal?day=YYYY-MM-DD` / `?journal=<id>` in the address.
+- Files: `lib/journal/books.ts`, `lib/journal/search.ts`, `components/journal/journal-books.tsx` (lazy),
+  `components/journal/journal-calendar.tsx` (lazy), `components/journal/entry-more.tsx` (lazy),
+  `components/journal/journal-page.tsx`, `components/journal/journal-compose.tsx`, `components/journal/journal.css`.
+- Tests: `lib/journal/av2-books.test.ts`; answers in `lib/ai/local-answers/av2-journal.test.ts` ("which journals do I
+  have", "what did I write on 14 nov", EN and NL).
+- Spec: `tests/av2-journal-books.spec.ts`.
+- Stored: entry `journal`, record `journals` (F0 table).
+- Help (EN). Q: "Can I keep more than one journal?" A: "Yes. Journal → Entries → Your journals makes up to ten beside
+  your main Journal, each with a colour. Choose one when you write, or move an entry there with More → Move. Removing a
+  journal keeps its entries: they go back to your main Journal." Q: "How do I find what I wrote on a day?" A: "Type the
+  date in Search your journal (3 nov, 2026-11) or open Search by date: choose From and To, or tap a day on the calendar;
+  the days you wrote are buttons."
+- What's new: "Journal: several journals with their own colour, and search by date with a calendar."
+- Showcase: `lib/journal/showcase.ts` adds the journal "Example · Runs" (teal) holding the two run entries; entry
+  count unchanged (10).
+- Search palette (`lib/search/static.ts`, the lead's): "Journal on a day" → `/app/journal?day=` could be offered; optional.
+- CSS touched: `components/journal/journal.css`. Today: nothing added.

@@ -52,3 +52,18 @@ describe('the reminder to write and the writing streak (LEDGER #40)', () => {
     for (const q of ['what is my writing streak', 'wanneer is mijn schrijfherinnering']) expect(av2JournalAnswer(q, env)?.kind, q).toBe('refusal');
   });
 });
+
+describe('several journals and what was written on a day (LEDGER #43)', () => {
+  test('the Showcase journals with their counts; a fresh profile has one and says how to make another', () => {
+    expect(text(zigi('which journals do I have'))).toMatch(/^2 journals: Journal \(the main one\): \d+ entries and Example · Runs: 2 entries\.$/);
+    expect(text(zigi('welke dagboeken heb ik'))).toMatch(/^2 dagboeken: Journal \(het hoofddagboek\): \d+ stukken en Example · Runs: 2 stukken\.$/);
+    expect(text(zigi('how many journals do I have', freshAll()))).toContain('One journal, the main one, with 0 entries.');
+  });
+  test('a day as the Journal’s date search reads it; the words stay on the page', () => {
+    const day = addLocalDays(DAY, -3);
+    expect(text(zigi(`what did I write on ${day}`))).toBe(`1 journal entry on Sat, Nov 14. Their words stay on the Journal page: /app/journal?day=${day}.`);
+    expect(text(zigi('wat heb ik op 14 nov geschreven'))).toContain('1 dagboekstuk op za 14 nov');
+    expect(text(zigi('what did I write in my journal on 13 nov'))).toContain('No journal entry on');
+    expect(zigi('what did I write in my journal yesterday')).toBeNull(); // no "on": left to the other answers
+  });
+});

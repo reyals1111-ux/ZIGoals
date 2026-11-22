@@ -20,9 +20,12 @@ export function showcaseJournal(day: string): Journal {
     ...(question ? {followUp: {question, from: 'device' as const, ...(answer ? {answer, answeredAt: `${addLocalDays(day, offset)}T21:05:00.000Z`} : {})}} : {})})).reverse();
   // Session AV (follow-up 1, F-JOURNAL-TAGS): a few tags, so the filter by tag shows in the Showcase.
   const TAGS: Record<number, string[]> = {0: ['outdoors', 'gratitude'], 3: ['work'], 7: ['work'], 8: ['running', 'proud']};
-  const tagged = entries.map(e => { const i = Number(e.id.slice('showcase-journal-'.length)); return TAGS[i] ? {...e, tags: TAGS[i]} : e; });
+  const tagged = entries.map(e => { const i = Number(e.id.slice('showcase-journal-'.length)); return TAGS[i] ? {...e, tags: TAGS[i]} : e; })
+    // Session AV lane 2 (journal; LEDGER #43): the two run entries sit in a second journal, labelled as an example.
+    .map(e => e.id === 'showcase-journal-8' || e.id === 'showcase-journal-3' ? {...e, journal: 'j-showcaseruns'} : e);
   // Session AV (F-OWN-TEMPLATES): one template of the Showcase's own, labelled as an example.
   return journalSchema.parse({version: 1, entries: tagged, shareWithAi: false, followUps: true, templates: [{id: 'own-showcase01', title: 'Example · Run diary', headings: ['How the run went:', 'What I noticed on the way:']}],
     // Session AV lane 2 (journal; LEDGER #40): the reminder to write, on at 21:00 every day (the Showcase sends no notification).
-    reminder: {on: true, time: '21:00', days: 127}});
+    reminder: {on: true, time: '21:00', days: 127},
+    journals: [{id: 'j-showcaseruns', name: 'Example · Runs', theme: 'teal'}]});
 }

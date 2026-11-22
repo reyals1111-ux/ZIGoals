@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useMemo, useState} from 'react';
+import {Suspense, lazy, useEffect, useMemo, useState} from 'react';
 import {formatDate, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays, localDate} from '../../lib/local-date';
@@ -24,9 +24,11 @@ import {ArtNote} from '../illustrations/art-note';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
 // Session AV (follow-up 1, F-JOURNAL-TAGS): tags on entries, and a filter by tag.
 import {EntryTags} from './entry-tags';
-import {changeEntry, hasTag, tagCounts, withTag, withoutTag} from '../../lib/journal/tags';
+import {changeEntry, tagCounts, withTag, withoutTag} from '../../lib/journal/tags';
 import {JournalFold} from './journal-fold';
 import {daysWords, reminderOf, streakNudge} from '../../lib/journal/reminder';
+import {bookCounts, bookOf, booksOf, type BookChoice} from '../../lib/journal/books';
+import {dateQuery, filterEntries} from '../../lib/journal/search';
 
 const YearPixels = lazy(() => import('./year-pixels'));
 // Session AK (BUILD list 2 #3): "On this day" and its Privacy switch, each loaded on its own after the page.
@@ -38,6 +40,11 @@ const ThisDayStrip = lazy(() => import('../notes/this-day-strip'));
 const YourScales = lazy(() => import('../scales/your-scales'));
 // Session AV lane 2 (journal; LEDGER #40): the reminder to write, its code loaded when its fold opens.
 const JournalReminder = lazy(() => import('./journal-reminder'));
+// Session AV lane 2 (journal; LEDGER #43): your journals and the calendar, each loaded when its fold opens.
+const JournalBooks = lazy(() => import('./journal-books'));
+const JournalCalendar = lazy(() => import('./journal-calendar'));
+const EntryMore = lazy(() => import('./entry-more'));
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Session AI (feature 6): the Journal page — write, ZIGi's question, the entries (newest first, delete with Undo), the
@@ -50,11 +57,20 @@ const dayWords = (day: string) => formatDate(day, {weekday: true, year: false});
 export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate();
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
-  const [query, setQuery] = useState(''), [tag, setTag] = useState<string | null>(null), [dayOpen, setDayOpen] = useState<ReadonlySet<string>>(new Set());
+  const [query, setQuery] = useState(''), [tag, setTag] = useState<string | null>(null), [dayOpen, setDayOpen] = useState<ReadonlySet<string>>(new Set()), [moreOpen, setMoreOpen] = useState<ReadonlySet<string>>(new Set());
   const tags = useMemo(() => tagCounts(journal.data.entries), [journal.data.entries]);
   const knownTags = useMemo(() => tags.map(t => t.tag), [tags]); // Session AV (1c, q4 #5): offered in the tag fields
   const shownTag = tag && tags.some(t => t.tag.toLowerCase() === tag.toLowerCase()) ? tag : null;
-  const entries = useMemo(() => [...journal.data.entries].reverse().filter(e => hasTag(e, shownTag) && (!query.trim() || e.text.toLowerCase().includes(query.trim().toLowerCase()) || (e.tags ?? []).some(t => t.toLowerCase().includes(query.trim().toLowerCase().replace(/^#/, ''))))), [journal.data.entries, query, shownTag]);
+  // Session AV lane 2 (journal; LEDGER #43, Day One): a journal, and a day range (From / To, the calendar, a typed date, or
+  // ?day= and ?journal= in the address, which a [[day]] link and NOVA open) beside the words and the tag.
+  const [book, setBook] = useState<BookChoice>('all'), [from, setFrom] = useState(''), [to, setTo] = useState('');
+  useEffect(() => {
+    const read = () => { const p = new URLSearchParams(window.location.search), d = p.get('day'), j = p.get('journal'); if (d && DAY_RE.test(d)) { setFrom(d); setTo(d); } if (j) setBook(j === 'main' ? 'main' : j); };
+    read(); window.addEventListener('popstate', read); return () => window.removeEventListener('popstate', read);
+  }, []);
+  const books = booksOf(journal.data), shownBook: BookChoice = book === 'all' || book === 'main' || books.some(b => b.id === book) ? book : 'all';
+  const entries = useMemo(() => filterEntries(journal.data, {query, tag: shownTag, book: shownBook, from: from || null, to: to || null}, today), [journal.data, query, shownTag, shownBook, from, to, today]);
+  const typedDate = dateQuery(query, today), dated = !!(from || to || typedDate);
   const retag = (id: string, change: (e: JournalEntry) => JournalEntry, said: string) => { try { journal.update(c => changeEntry(c, id, change)); showStatus(said); } catch { showStatus('The tag could not be saved on this device.', {tone: 'error'}); } };
   // Session AL Part 14 (RELEASE_REVIEW R18): an entry's day in words ("Mon, Nov 2, 2026"), never "2026-11-02".
   const entryDays = useMemo(() => new Map(journal.data.entries.map(e => [e.date, {long: formatDate(e.date, {weekday: true}), short: formatDate(e.date)}])), [journal.data.entries]);
@@ -78,7 +94,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     {showcase && <p className="fine">Fictional Showcase entries.</p>}
     {journal.unreadable && <p role="alert">This device&rsquo;s journal could not be read; it is not written over.</p>}
     <LoadBoundary quiet><Suspense fallback={null}><OnThisDay entries={journal.data.entries} today={today} energy={energy.data.days} moods={moodDays}/></Suspense></LoadBoundary>
-    <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose/>
+    <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose book={shownBook === 'all' || shownBook === 'main' ? null : shownBook}/>
       {/* Session AK (B2, lane B): the Journal's sibling for longer thoughts — today's note beside what this day holds. */}
       <p className="fine journal-notes-link">Longer thoughts and ideas go in <Link className="text-link" href="/app/notes?day=today">today&rsquo;s note</Link>, beside what this day holds. There, type <code>[[</code> and a name to link a goal or a habit, for example <code>[[Run a 10k]]</code>.</p></section>
     {/* Session AL (DV-190b, P-DV-124): your entries right after Write, not below every chart */}
@@ -91,13 +107,25 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       {/* Session AV lane 2 (journal; LEDGER #40, Day One's reminders and streaks): what today does to the streak, and the reminder to write. */}
       {journal.data.entries.length > 0 && <p className="fine journal-streak-nudge">{streakNudge(journal.data.entries, today)}</p>}
       <JournalFold id="journal-reminder" className="journal-reminder-fold" label="the reminder" summary={<>Reminder to write <span className="fine">· {reminderOf(journal.data).on ? `${reminderOf(journal.data).time}, ${daysWords(reminderOf(journal.data).days)}` : 'off'}</span></>}><JournalReminder/></JournalFold>
-      <label className="field"><span>Search your journal</span><input type="search" value={query} onChange={e => setQuery(e.target.value)}/></label>
+      {books.length > 0 && <div className="journal-book-filter" role="group" aria-label="Show a journal">
+        <button type="button" className="quiet" aria-pressed={shownBook === 'all'} onClick={() => setBook('all')}>Every journal</button>
+        {bookCounts(journal.data).map(b => <button key={b.id ?? 'main'} type="button" className="quiet" aria-pressed={shownBook === (b.id ?? 'main')} onClick={() => setBook(b.id ?? 'main')}><span className="journal-book-dot" data-tone={b.theme} aria-hidden="true"/>{b.name} <small>{b.count}</small></button>)}
+      </div>}
+      <label className="field"><span>Search your journal</span><input type="search" value={query} onChange={e => setQuery(e.target.value)} aria-describedby="journal-search-hint"/><small id="journal-search-hint" className="fine">Words, a #tag, or a date such as 3 nov or 2026-11.</small></label>
+      <JournalFold className="journal-date-fold" label="the calendar" open={!!(from || to)} summary={<>Search by date{from || to ? <span className="fine"> · {from && from === to ? formatDate(from) : `${from ? formatDate(from) : '…'} – ${to ? formatDate(to) : '…'}`}</span> : null}</>}>
+        <div className="journal-date-range" role="group" aria-label="Day range">
+          <label className="field"><span>From</span><input type="date" value={from} max={to || today} onChange={e => setFrom(e.target.value)}/></label>
+          <label className="field"><span>To</span><input type="date" value={to} min={from || undefined} max={today} onChange={e => setTo(e.target.value)}/></label>
+          {(from || to) && <button type="button" className="quiet" onClick={() => { setFrom(''); setTo(''); }}>Clear the dates</button>}
+        </div>
+        <JournalCalendar entries={journal.data.entries} today={today} picked={from && from === to ? from : null} onPick={d => { setFrom(d ?? ''); setTo(d ?? ''); }}/>
+      </JournalFold>
       {tags.length > 0 && <div className="journal-tag-filter" role="group" aria-label="Filter by tag">
         <button type="button" className="quiet" aria-pressed={!shownTag} onClick={() => setTag(null)}>All entries</button>
         {tags.map(t => <button key={t.tag} type="button" className="quiet" aria-pressed={shownTag?.toLowerCase() === t.tag.toLowerCase()} onClick={() => setTag(t.tag)}>#{t.tag} <small>{t.count}</small></button>)}
       </div>}
-      {entries.length ? <ol className="journal-entries">{entries.map(e => <li key={e.id}>
-        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time></p><p className="journal-entry-text">{e.text}</p>
+      {entries.length ? <ol className="journal-entries">{entries.map(e => { const inBook = bookOf(journal.data, e); return <li key={e.id} data-tone={inBook?.theme}>
+        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}</p><p className="journal-entry-text">{e.text}</p>
         <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}</p>
         {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
         {/* Session AV (1c, q4 #34): the entry's three controls (tags, That day, Remove) share one row. */}
@@ -105,9 +133,14 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <EntryTags tags={e.tags ?? []} day={entryDays.get(e.date)?.short ?? e.date} known={knownTags} onAdd={t => retag(e.id, x => withTag(x, t), `Tagged #${t}.`)} onRemove={t => retag(e.id, x => withoutTag(x, t), `The tag #${t} is off this entry.`)}/>
         {/* Session AV (owner follow-up 1, F-JOURNAL-DAY; Day One's metadata): that day's own records, as links, on the press. */}
         <details className="journal-that-day" onToggle={ev => { const open = (ev.currentTarget as HTMLDetailsElement).open; setDayOpen(d => { const n = new Set(d); if (open) n.add(e.id); else n.delete(e.id); return n; }); }}><summary>That day</summary>{dayOpen.has(e.id) && <Suspense fallback={<p className="fine">Reading that day…</p>}><ThisDayStrip day={e.date} exclude={['journal']} title={`On ${entryDays.get(e.date)?.short ?? e.date}`}/></Suspense>}</details>
+        {/* Session AV lane 2 (journal): the less frequent things — move, edit, earlier versions, save as a template — behind one "More". */}
+        <details className="journal-entry-more" onToggle={ev => { const open = (ev.currentTarget as HTMLDetailsElement).open; setMoreOpen(d => { const n = new Set(d); if (open) n.add(e.id); else n.delete(e.id); return n; }); }}><summary aria-label={`More for the entry of ${entryDays.get(e.date)?.short ?? e.date}`}>More</summary>{moreOpen.has(e.id) && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><EntryMore entry={e} day={entryDays.get(e.date)?.short ?? e.date}/></Suspense></LoadBoundary>}</details>
         <button type="button" className="text-link journal-entry-remove" aria-label={`Remove the entry of ${entryDays.get(e.date)?.short ?? e.date}`} onClick={() => remove(e)}>Remove</button>
         </div>
-      </li>)}</ol> : query || shownTag ? <p className="fine">{shownTag && !query ? `No entry has the tag #${shownTag}.` : 'No entry has those words.'}</p> : <ArtNote pillar="orbit"><p className="fine">No entries yet. Write a few lines above.</p></ArtNote>}
+      </li>; })}</ol> : dated && !query.trim() || typedDate ? <p className="fine">No entry on {from && from === to ? formatDate(from) : typedDate && typedDate.from === typedDate.to ? formatDate(typedDate.from) : 'those days'}{shownTag ? ` with the tag #${shownTag}` : ''}. The calendar under &ldquo;Search by date&rdquo; marks the days you wrote.</p>
+        : query || shownTag || shownBook !== 'all' ? <p className="fine">{shownTag && !query ? `No entry has the tag #${shownTag}.` : query ? 'No entry has those words.' : 'No entry in this journal yet. Choose it when you write, or move an entry into it.'}</p> : <ArtNote pillar="orbit"><p className="fine">No entries yet. Write a few lines above.</p></ArtNote>}
+      {/* Session AV lane 2 (journal; LEDGER #43, Day One's journals and themes): make, rename, colour and remove journals. */}
+      <JournalFold className="journal-books-fold" label="your journals" summary={<>Your journals <span className="fine">· {books.length ? `${books.length + 1} journals` : 'one journal'}</span></>}><JournalBooks onMade={id => setBook(id)}/></JournalFold>
     </section>
     <section className="panel" id="your-scales" aria-labelledby="journal-scales-title"><h2 id="journal-scales-title">Your own scales</h2><LoadBoundary quiet><Suspense fallback={null}><YourScales day={today}/></Suspense></LoadBoundary></section>
     <section className="panel journal-week" aria-labelledby="journal-week-title"><h2 id="journal-week-title">Your week</h2>
