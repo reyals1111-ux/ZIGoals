@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {createEmptyHealth, type HealthData} from '../health';
-import {CALORIE_WEEK, calorieWeekSchema, clearFreeDay, freeDayLine, freeDayShares, planFreeDay, shiftCalories, weekBudget, type CalorieWeek} from './calorie-week';
+import {CALORIE_WEEK, calorieWeekSchema, clearFreeDay, freeDayLine, freeDayShares, readFreeExtra, planFreeDay, shiftCalories, weekBudget, type CalorieWeek} from './calorie-week';
 import {KCAL_FLOOR} from './energy';
 import {weekDays} from './planner';
 import {emptyHealthExtras} from '../health-extras';
@@ -32,13 +32,26 @@ describe('a planned free day (LEDGER #328)', () => {
     expect(Math.min(...weekBudget(withTarget(1500), planFreeDay(shifted, 1500, '2026-11-22', 600, TODAY), TODAY, TODAY)!.days.map(d => d.budget))).toBeGreaterThanOrEqual(KCAL_FLOOR);
     expect(() => planFreeDay(empty, 1300, '2026-11-22', 2000, TODAY)).toThrow(/can give 400 kcal at most/);
     expect(() => planFreeDay(empty, 2000, '2026-11-10', 400, TODAY)).toThrow('Choose a day from today on.');
-    expect(() => planFreeDay(empty, 2000, '2026-11-21', 20, TODAY)).toThrow(/from 50 to 2000/);
+    // Session AV lane 2 (review B4E-10, deliberate): the range in the app's number format.
+    expect(() => planFreeDay(empty, 2000, '2026-11-21', 20, TODAY)).toThrow('Choose an extra from 50 to 2,000 kcal.');
   });
   test('shown in its own week only, gone the week after; cancel removes it', () => {
     const r = planFreeDay(empty, 2000, '2026-11-21', 600, TODAY);
     expect(weekBudget(withTarget(2000), r, '2026-11-25', '2026-11-25')!.days.every(d => !d.free && !d.gave && d.budget === 2000)).toBe(true);
     expect(clearFreeDay(r).freeDay).toBeUndefined();
     expect(calorieWeekSchema.parse(clearFreeDay(r))).toEqual(empty);
+  });
+});
+
+// Session AV lane 2 (review B4E-10): the extra is read like every number field.
+describe('the free day’s extra is read as numbers are', () => {
+  test('grouping and plain numbers read; an ambiguous or wordy text is refused with what to fix, never misread', () => {
+    expect(readFreeExtra('1 500')).toEqual({ok: true, kcal: 1500});
+    expect(readFreeExtra('1.500,0')).toEqual({ok: true, kcal: 1500});
+    const ambiguous = readFreeExtra('1,500');
+    expect(ambiguous.ok).toBe(false); // the app's reader asks (1500 or 1.5?), where Number(…) read 1.5 and refused it as out of range
+    expect(readFreeExtra(' 600 ')).toEqual({ok: true, kcal: 600});
+    expect(readFreeExtra('lots').ok).toBe(false);
   });
 });
 
