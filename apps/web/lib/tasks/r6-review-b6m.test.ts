@@ -2,7 +2,8 @@ import {describe, expect, test} from 'vitest';
 import {addTask, editTask, finishTask, orderAhead, renameLabel, viewTasks, waitsTurn, withLabel} from './engine';
 import {undoOfChange} from './undo';
 import {holdProject, setProjectInOrder} from './project-states';
-import {inPlayRecord, isOutOfPlay} from './focus';
+import {inPlayRecord, isOutOfPlay, readFocus} from './focus';
+import {emptyTaskPlan, setFocus, startTimer} from './plan-record';
 import {bucketGroups, rollBuckets} from './plan-bucket';
 import {runRules} from './rules';
 import {setLabelGroup} from './label-groups';
@@ -55,6 +56,17 @@ describe('B6M-7: a task waiting its turn may be ticked done early (as OmniFocus 
     expect(r.tasks.find(t => t.id === 'b')!.doneAt).toBeDefined();
     expect(viewTasks(r, {kind: 'today'}, TODAY).map(t => t.id)).toEqual(['a']);
     expect(waitsTurn(r, r.tasks.find(t => t.id === 'c')!)?.id).toBe('a');
+  });
+});
+describe('B6M-8: Focus and its Undo change the focus only', () => {
+  test('a timer started meanwhile stays when the focus is put back', () => {
+    const focused = setFocus(emptyTaskPlan(), {projects: ['p']});
+    expect(focused.focus).toEqual({projects: ['p']});
+    const timed = startTimer(focused, 't', 1000);
+    const undone = setFocus(timed, readFocus(emptyTaskPlan().focus));
+    expect(undone.focus).toBeUndefined();
+    expect(undone.timers).toEqual([{taskId: 't', since: 1000}]);
+    expect(setFocus(timed, {projects: [], areas: []}).focus).toBeUndefined();
   });
 });
 describe('B6M-2: in order with a wait for another task never blocks for good', () => {

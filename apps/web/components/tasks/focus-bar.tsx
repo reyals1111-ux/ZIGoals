@@ -2,8 +2,8 @@
 import {useId, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus, showUndo} from '../ui/undo-toast';
-import {TASK_PLAN, taskPlanSchema, type TaskPlan} from '../../lib/tasks/plan-record';
-import {focusName, type TaskFocus} from '../../lib/tasks/focus';
+import {TASK_PLAN, setFocus} from '../../lib/tasks/plan-record';
+import {focusName, readFocus, type TaskFocus} from '../../lib/tasks/focus';
 import type {Tasks} from '../../lib/tasks/schema';
 import './tasks-r6.css';
 
@@ -13,20 +13,16 @@ import './tasks-r6.css';
  * with the quiet line "Focused on Work · Show all" until it is ended. The Inbox and a project's own view are never narrowed.
  * Kept on this device in the planning record; ending it is one tap (with Undo).
  */
-export function withFocus(plan: TaskPlan, focus: TaskFocus | null): TaskPlan {
-  const next: Record<string, unknown> = {...plan};
-  if (focus && (focus.projects?.length || focus.areas?.length)) next.focus = {...(focus.projects?.length ? {projects: focus.projects} : {}), ...(focus.areas?.length ? {areas: focus.areas} : {})}; else delete next.focus;
-  return taskPlanSchema.parse(next);
-}
 export default function FocusBar({record, focus, choosing, onChoosing}: {record: Tasks; focus: TaskFocus | null; choosing: boolean; onChoosing: (on: boolean) => void}) {
   const id = useId(), plan = useDeviceRecord(TASK_PLAN), lineRef = useRef<HTMLParagraphElement>(null);
   const [areas, setAreas] = useState<string[]>(focus?.areas ?? []), [projects, setProjects] = useState<string[]>(focus?.projects ?? []), [error, setError] = useState('');
   const live = (record.projects ?? []).filter(p => !p.archived), allAreas = record.areas ?? [];
   const write = (next: TaskFocus | null, said: string, undone: string): boolean => {
     if (plan.unreadable) { showStatus('Your planning choices on this device could not be read, so nothing was changed.', {tone: 'error'}); return false; }
-    const was = plan.data;
-    try { plan.update(p => withFocus(p, next)); } catch (e) { setError(e instanceof Error ? e.message : 'That could not be kept on this device.'); return false; }
-    showUndo({message: said, undone, restore: () => plan.update(() => was)});
+    // Review B6M-8: the Undo puts back the focus only; anything else written to the planning record meanwhile stays.
+    const was = readFocus(plan.data.focus);
+    try { plan.update(p => setFocus(p, next)); } catch (e) { setError(e instanceof Error ? e.message : 'That could not be kept on this device.'); return false; }
+    showUndo({message: said, undone, restore: () => plan.update(p => setFocus(p, was))});
     return true;
   };
   const toggle = (list: string[], set: (v: string[]) => void, v: string, on: boolean) => set(on ? [...new Set([...list, v])] : list.filter(x => x !== v));

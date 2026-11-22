@@ -129,6 +129,12 @@ export function setPlanPrefs(plan: TaskPlan, patch: {defaultReminder?: number | 
   else if (patch.planTime !== undefined) { if (!clock.safeParse(patch.planTime).success) throw new Error('Choose a time such as 07:30.'); next.planReminder = {...(plan.planReminder ?? {}), time: patch.planTime}; }
   return taskPlanSchema.parse(next);
 }
+/** Session AV lane 2 (r6-plan, LEDGER #394): sets the focus (null, or nothing chosen, ends it); every other field stays. */
+export function setFocus(plan: TaskPlan, focus: {projects?: string[]; areas?: string[]} | null): TaskPlan {
+  const next: Record<string, unknown> = {...plan};
+  if (focus && (focus.projects?.length || focus.areas?.length)) next.focus = {...(focus.projects?.length ? {projects: focus.projects} : {}), ...(focus.areas?.length ? {areas: focus.areas} : {})}; else delete next.focus;
+  return taskPlanSchema.parse(next);
+}
 /** Session AV lane 2 (r3-plan, LEDGER #260): the note kept with a running timer (an empty one is removed). */
 export function setTimerNote(plan: TaskPlan, taskId: string, note: string): TaskPlan {
   if (!runningTimer(plan, taskId)) return plan;
