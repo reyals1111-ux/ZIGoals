@@ -14,7 +14,7 @@ const REMINDERS_CHANGE = 'zigoals:reminders-change', PRIVATE_CHANGE = 'zigoals:p
 /** The device lock's event (components/device-lock.tsx LOCK_EVENT): locking hides names from notifications at once (F5). */
 const LOCK_EVENT = 'zigoals-device-lock';
 export const NOTIFY_CHANGE = 'zigoals:notify-change';
-let headroomShown = false, lastBuildCheck = 0;
+let headroomShown = false, lastBuildCheck = 0, scheduleChecked = false;
 /** Session AV Part 2 (D-PWA): an open tab asks its own server which version it serves, at most every ten minutes. */
 const BUILD_CHECK_MS = 10 * 60_000;
 /** Session AV (PK-3): how long after the worker is known the page asks it to keep the later parts (the page settles first). */
@@ -118,6 +118,11 @@ export function NotifySync() {
     // as a toast on another page, and nothing is written until the person acts.
     // Session AK (A6): once per visit, if a module is nearly full, say so calmly with what to do.
     idle(() => { if (!active || headroomShown) return; headroomShown = true; void import('../../lib/storage-headroom').then(m => { const line = m.headroomMessage(m.moduleUse(window.localStorage)); if (line && active) showToast({message: line, link: {href: '/app/settings/data', label: 'Your data'}}); }).catch(() => {}); });
+    // Session AV lane 2 (N6 #193): once per visit, a scheduled copy that is due is written into the person's folder (or,
+    // where the browser wants a tap or cannot write to a folder, a calm note links to Your data). Loaded only on a device
+    // with a schedule; the file is made here and never leaves the device.
+    idle(() => { if (!active || scheduleChecked) return; scheduleChecked = true; let raw: string | null = null; try { raw = isShowcase() ? null : getAppStorage().getItem('zigoals:backup-reminder:v1'); } catch { raw = null; } if (!raw || !raw.includes('"schedule"')) return;
+      void import('../../lib/backup-folder/run').then(m => m.runScheduledBackup()).then(r => { if (!active) return; if (r.state === 'written') showToast({message: `A copy of everything was saved in your backup folder (${r.name}).`}); else if (r.state === 'ask' || r.state === 'remind' || r.state === 'failed') showToast({message: r.state === 'failed' ? 'Your scheduled copy could not be written.' : 'Your scheduled copy is due.', link: {href: '/app/settings/data#backup-schedule', label: r.state === 'remind' ? 'Make it' : 'Open Your data'}}); }).catch(() => {}); });
     // Session AV Part 3 (D-KEEP): after the person's first save in this tab, ask once to keep this site's data (only where the
     // browser never asks the person; lib/keep-data/persist-once.ts). Never on view.
     let keepAsked = false;

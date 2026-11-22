@@ -14,6 +14,17 @@ import {localDate} from '../local-date';
 /** Session Z-Cloud Part 5 (A7): the plain note on an export of a deleted account's records. */
 export const DELETED_EXPORT_NOTE = 'Your cloud copy was deleted; this export holds the records this device kept for that account. Nothing was changed or uploaded, and they stay locked in the app.';
 export async function makeEverythingExport(): Promise<{notes: string[]}> {
+  const {name, bytes, notes} = await buildEverythingExport();
+  const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
+  const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return {notes};
+}
+/**
+ * Session AV lane 2 (N6 #193, Loop's automatic backups): the same file, made on this device and handed back instead of
+ * downloaded, so a scheduled copy into a folder the person chose (lib/backup-folder/run.ts) is byte for byte what Export
+ * everything downloads. The backup format is unchanged.
+ */
+export async function buildEverythingExport(): Promise<{name: string; bytes: Uint8Array; notes: string[]}> {
   const {buildEverythingZip, collectEverything, readEverything} = await import('./everything');
   // Session Z-Cloud Part 5 (A7): an account whose cloud copy was deleted is locked, and its records stay here; the
   // export still copies them, read-only, and says so.
@@ -47,9 +58,7 @@ export async function makeEverythingExport(): Promise<{notes: string[]}> {
   const foodPhotos = kept ? [] : await Promise.all([import('../health-aa/photos'), import('../food-plus/photos')]).then(([a, f]) => f.exportFoodPhotoEntries(a.photoScope(), now)).catch(() => []);
   const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos, ...taskFiles, ...wealthDocs, ...foodPhotos];
   const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now, images}, photos);
-  const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
-  const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   const lines = [...(kept ? [DELETED_EXPORT_NOTE] : []), ...collected.warnings];
   if (collected.unreadable.length) lines.push(`Some records on this device could not be read and were left out: ${collected.unreadable.join(', ')}. They were not changed.`);
-  return {notes: lines};
+  return {name, bytes, notes: lines};
 }

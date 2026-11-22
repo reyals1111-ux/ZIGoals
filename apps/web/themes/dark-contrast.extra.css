@@ -1,0 +1,14 @@
+/* Session AV lane 2 (LEDGER #34, Notion's high contrast): Dark's High contrast style, by hand on top of the generated
+   copy of the Dark sheet. A black ground, a strong yellow focus ring on everything that takes focus (≥ 7:1 on black and
+   ≥ 3:1 against every fill the style leaves), links underlined, placeholders as readable as words, the sky's art layers
+   quiet. Colours and outlines only: no box moves, nothing animates (Motion Off and reduced motion are untouched). Two ids
+   more of weight than the generated rules, so the order of the layers does not matter. */
+:root[data-theme=dark][data-dark-style=contrast] body:not(#\-):not(#\-):not(#\-) { background: #000; color: #fff; }
+:root[data-theme=dark][data-dark-style=contrast] .app-content:not(#\-):not(#\-):not(#\-)::before,
+:root[data-theme=dark][data-dark-style=contrast] .app-sidebar:not(#\-):not(#\-):not(#\-),
+:root[data-theme=dark][data-dark-style=contrast] .checklist-sky:not(#\-):not(#\-):not(#\-) { background: #000; }
+:root[data-theme=dark][data-dark-style=contrast] :focus-visible:not(#\-):not(#\-):not(#\-) { outline: 3px solid #ffe14d !important; outline-offset: 3px !important; box-shadow: 0 0 0 6px #000 !important; }
+:root[data-theme=dark][data-dark-style=contrast] a:not([class]):not(#\-):not(#\-):not(#\-) { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+:root[data-theme=dark][data-dark-style=contrast] ::placeholder { color: #d9d9d9; opacity: 1; }
+:root[data-theme=dark][data-dark-style=contrast] :is(input, select, textarea):not(#\-):not(#\-):not(#\-) { background-color: #000; color: #fff; border-color: #fff; }
+:root[data-theme=dark][data-dark-style=contrast] :is(button, [role="button"]):disabled:not(#\-):not(#\-):not(#\-) { color: #d9d9d9; border-color: #bfbfbf; }

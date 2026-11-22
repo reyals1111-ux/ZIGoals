@@ -43,7 +43,9 @@ test('the defaults: every first choice checked, no attribute, no sheet, no font 
   for (const [legend, first] of [['Font', 'System'], ['Text size', 'Standard'], ['Density', 'Comfortable'], ['Glow', 'Full']] as const) {
     const set = group.getByRole('group', {name: legend});
     await expect(set.getByRole('radio', {name: first, exact: true})).toBeChecked();
-    await expect(set.getByRole('radio')).toHaveCount(2);
+    // Session AV lane 2 (N6 #192, three more system fonts, deliberate): Font has five choices (was: every group two); the
+    // other three groups still exactly two.
+    await expect(set.getByRole('radio')).toHaveCount(legend === 'Font' ? 5 : 2);
   }
   expect(await htmlAttrs(page)).toEqual(NONE);
   await expect(page.locator('#zigoals-text-sheet, #zigoals-density-sheet')).toHaveCount(0);
