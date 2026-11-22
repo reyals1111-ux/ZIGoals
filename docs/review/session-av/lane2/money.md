@@ -63,3 +63,41 @@ Device keys / catalogue / export / erase entries needed: none (existing keys onl
   explains itself, search says "nothing counted" / "left out of the figures, not added in".
 - Registries: none. CSS touched: `components/wealth/spending/spending.css` (theme variables only).
 - Today: nothing added.
+
+### F2. History, re-import, spread over months, card payments across two files, several receipts at once
+
+- LEDGER rows: #142 Monarch per-entry history (category, amount, rule) and a re-import that updates a changed row —
+  **built** (bank statement files: OFX, CAMT.053, MT940 rows carry a reference; a CSV row has none, so a CSV re-import
+  still lists a changed row as new — the files give nothing to match on, not a cause from the list: CSV columns could be
+  mapped to a reference later); #147 Copilot spreading one entry over several months in budgets — **built** (2, 3, 4,
+  6, 12 or 24 months, exact cents); #132 YNAB credit-card payment auto-match from files — **built** (the account a file
+  names is kept on each entry; the same amount out of one account and into another within 5 days is offered in To
+  review as one transfer; both sides then count as neither spending nor income; "Not a transfer" in the edit form);
+  #141 Monarch receipt matched to an entry by amount and date, several photos at once — **built** (a receipt draft whose
+  amount and day are already logged opens that entry; "Add several receipts" offers each photo the entries a week
+  either side of its day, the same amount first). Reading the amount off the photo without the person's own AI stays
+  with "Draft an entry from a receipt" (needs a model: carried part).
+- Files: `lib/bankfiles/reimport.ts` (new), `lib/money-photos/match.ts` (new), `components/money-photos/several-receipts.tsx`
+  (new, lazy), `components/money-photos/money-photos-panel.tsx`, `components/import/bankfiles/bank-file-import.tsx`,
+  `components/wealth/money-tools/review-inbox.tsx`, `components/wealth/spending/spending-section.tsx` (history, transfer,
+  spread, the receipt draft match).
+- Tests: `lib/bankfiles/av2-reimport.test.ts`, `lib/money-log/av2-counted.test.ts` (spread), `lib/ai/local-answers/av2-money.test.ts`.
+- Spec: `tests/av2-money-reimport.spec.ts`.
+- Stored: `account`, `ref`, `transfer`, `spread`, `history` (see the table).
+- Help (EN): **Q: I imported the same bank file twice and the bank had changed a row. What happens?** A: A row whose bank
+  reference is already in your log is never added again. If its amount, date or payee changed, the preview says
+  "Changed at your bank" and "Update" changes that entry in place; the entry's edit form lists every change under
+  "Changes to this entry". **Q: How do I stop a credit card payment counting twice?** A: Import the files of both
+  accounts. To review then offers the payment that left one account and arrived in the other as one transfer; marked,
+  it counts as neither spending nor income. **Q: Can I spread a yearly bill over the year in my budgets?** A: Edit the
+  entry and choose "Count in budgets over: 12 months". Budgets then count a twelfth each month; the month you paid it
+  still shows the whole amount in its totals. **Q: Can I add many receipt photos at once?** A: Money tools → Receipt
+  photos → "Add several receipts". Each photo is offered the entries near its day; type the receipt's amount to find
+  the one with the same amount.
+- What's new: "Money: re-import a bank file to update changed rows, card payments matched across two accounts, a year's
+  bill spread over its months, and several receipts at once."
+- Answers: `transfers` in `av2-money.ts` (corpus `av2-money-transfers`).
+- Showcase hook: none (the Showcase has no imported files; its money log is pinned).
+- Registries: none. CSS touched: `components/wealth/spending/spending.css`, `components/import/bankfiles/bankfiles.css`,
+  `components/money-photos/money-photos.css`, `components/wealth/money-tools/money-tools.css`.
+- Today: nothing added.

@@ -1,3 +1,4 @@
+import {transferPairs} from '../../bankfiles/reimport';
 import {isCounted} from '../../money-log/counted';
 import type {MoneyEntry} from '../../money-log/schema';
 import {summarizeSelection} from '../../money-log/selection';
@@ -66,4 +67,18 @@ function ownCategories(a: Asked): LocalReply | null {
   return answer(say(lang, [spent.length ? `For spending: ${list(spent, 'en')}.` : '', got.length ? `For money received: ${list(got, 'en')}.` : ''].filter(Boolean).join(' '),
     [spent.length ? `Voor uitgaven: ${list(spent, 'nl')}.` : '', got.length ? `Voor inkomsten: ${list(got, 'nl')}.` : ''].filter(Boolean).join(' ')), calls);
 }
-addAnswers(leftOut, taxMarked, ownCategories);
+/** "Which card payments are marked as transfers", "welke overboekingen tussen mijn rekeningen": pairs marked a transfer, and ones that look like one. */
+function transfers(a: Asked): LocalReply | null {
+  const en = /\b(?:card payments?|transfers? between (?:my )?accounts|moves? between (?:my )?accounts|marked (?:as )?(?:a )?transfers?)\b/.test(a.f);
+  const nl = /\b(?:overboekingen?|overschrijvingen?) (?:tussen|van) (?:mijn )?rekeningen\b|\bcreditcardbetaling(?:en)?\b|\bals overboeking\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const all = entriesOf(a.env), lang = a.lang, marked = all.filter(e => e.transfer && e.kind === 'expense'), open = transferPairs(all), calls = [{tool: 'money_log', args: {transfers: true}, label: 'Money log · transfers'}];
+  const line = (e: MoneyEntry) => `${money(Math.round(Number(e.amount) * 100), e.currency)} (${e.date})`;
+  const head = marked.length ? say(lang, `${count(marked.length, 'en', ['transfer', 'transfers'], ['', ''])} marked, left out of spending and income: ${list(marked.slice(0, 4).map(line), 'en')}.`, `${count(marked.length, 'nl', ['', ''], ['overboeking', 'overboekingen'])} gemarkeerd, buiten uitgaven en inkomsten gelaten: ${list(marked.slice(0, 4).map(line), 'nl')}.`)
+    : say(lang, 'No entry is marked as a transfer yet.', 'Nog geen post is als overboeking gemarkeerd.');
+  const more = open.length ? say(lang, ` ${count(open.length, 'en', ['pair looks', 'pairs look'], ['', ''])} like one (the same amount out of one imported account and into another): ${SPENDING_PLACE.en} → Money tools → To review.`, ` ${count(open.length, 'nl', ['', ''], ['paar lijkt', 'paren lijken'])} er een (hetzelfde bedrag uit de ene geïmporteerde rekening en in de andere): ${SPENDING_PLACE.nl} → Money tools → To review.`)
+    : say(lang, ' Card payments are matched when you import the files of both accounts.', ' Creditcardbetalingen worden gekoppeld als je de bestanden van beide rekeningen importeert.');
+  return answer(head + more, calls);
+}
+addAnswers(leftOut, taxMarked, ownCategories, transfers);

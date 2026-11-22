@@ -9,6 +9,8 @@ import {MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
 // Session AV lane 2 (money): left out of the figures, tax mark, spread over months, own categories, bulk changes, history.
 import {addOwnCategory, bulkCategory, bulkExcluded, categoryChoices, changesBetween, isCounted, removeOwnCategory, withMarks} from '../../../lib/money-log/counted';
 import type {BulkAction} from './money-search';
+import {draftAlreadyLogged} from '../../../lib/money-photos/match';
+import {setTransfer} from '../../../lib/bankfiles/reimport';
 import './spending.css';
 import {usePhoneShowAll} from '../../phone/phone-show-all';
 // Session AK (lane M): rules on new entries, the review mark, and Money tools (its own chunk, loaded after this body).
@@ -126,10 +128,15 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   // Session AK (#18): this month as a list (as before) or as a map.
   const [monthView, setMonthView] = useState<'list' | 'map'>('list');
   // Session AK (#10): a draft from a receipt photo (Money tools → Receipt photos) fills this form; nothing is saved until Save.
-  const amountField = useRef<HTMLInputElement>(null), noteField = useRef<HTMLInputElement>(null);
+  const amountField = useRef<HTMLInputElement>(null), noteField = useRef<HTMLInputElement>(null), latestEntries = useRef(log.data.entries);
+  useEffect(() => { latestEntries.current = log.data.entries; }, [log.data.entries]);
   useEffect(() => {
     const take = (event: Event) => {
       const d = (event as CustomEvent<MoneyDraft>).detail ?? {};
+      // Session AV lane 2 (money; Monarch): a receipt whose amount and day are already in the log (an imported card payment)
+      // opens that entry instead of drafting a second one.
+      const same = draftAlreadyLogged(latestEntries.current, d);
+      if (same) { setEditing(same); setKind(same.kind); setAmount(same.amount); setCategory(same.category); setNote(same.note ?? ''); setDate(same.date); setLeftOut(!!same.excluded); setTax(!!same.taxDeductible); setSpread(same.spread ?? 1); setProblem(''); setStatus(`This receipt looks like ${(same.note ?? same.category).split(' · ')[0]} on ${formatDate(same.date)}, already in your log (the same amount). It is open below; keep its photo in Receipt photos.`); setLogging(true); requestAnimationFrame(() => amountField.current?.focus()); return; }
       setEditing(null); setKind('expense'); setProblem('');
       if (d.amount) setAmount(d.amount);
       if (d.date) setDate(d.date);
@@ -163,6 +170,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
       </div>
       {!logging ? <div className="spending-actions"><button ref={logButton} type="button" className="primary" aria-expanded={false} aria-controls={`${id}-log`} onClick={() => setLogging(true)}>Log spending</button></div>
       : <form className="spending-form" id={`${id}-log`} onSubmit={save} aria-label={editing ? `Edit ${editing.category} ${editing.amount} ${editing.currency} on ${editing.date}` : 'Log spending or income'}>
+        {editing && <EntryHistory entry={editing} other={editing.transfer ? log.data.entries.find(x => x.id === editing.transfer) : undefined} onUntransfer={() => { const ent = editing; void changeWithUndo(log.update, current => setTransfer(current, ent.id, ent.transfer!, false, new Date().toISOString()), 'Counted again: no longer a transfer.', {undone: 'Transfer kept.', undoLabel: 'Undo: keep it a transfer'}).then(() => endEdit(), () => setProblem('This could not be saved on this device.')); }}/>}
         {editing ? <p className="spending-editing">Editing {editing.kind === 'income' ? 'money received' : 'spending'} in {editing.currency}: {editing.category} · {money(Math.round(Number(editing.amount) * 100), editing.currency)} · {formatDate(editing.date)}</p>
         : <div className="spending-kind" role="radiogroup" aria-label="Kind">
           {(['expense', 'income'] as const).map(k => <label key={k} className="spending-chip"><input type="radio" name={`${id}-kind`} checked={kind === k} onChange={() => { setKind(k); setCategory(k === 'expense' ? 'Food & drink' : 'Salary'); }}/><span>{k === 'expense' ? 'Spent' : 'Received'}</span></label>)}
@@ -241,4 +249,15 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         a reader of the page never takes the page without it for the whole page. */}
     <Suspense fallback={<div className="money-tools-loading" aria-busy="true" hidden/>}><MoneyTools showcase={showcase}/></Suspense>
   </div>;
+}
+
+/** Session AV lane 2 (money; Monarch's activity log): what changed on an entry, newest first, and its transfer twin. */
+const FIELD_WORDS: Record<string, string> = {category: 'Category', amount: 'Amount', date: 'Date', note: 'Note', excluded: 'Counting', spread: 'Budgets over', transfer: 'Transfer'};
+const BY_WORDS: Record<string, string> = {you: 'you', rule: 'one of your rules', bulk: 'you, with others at once', import: 'a re-import'};
+function EntryHistory({entry, other, onUntransfer}: {entry: MoneyEntry; other?: MoneyEntry; onUntransfer: () => void}) {
+  const list = [...(entry.history ?? [])].reverse();
+  return <>
+    {entry.transfer && <p className="fine spending-transfer">A transfer{other ? ` with ${(other.note ?? other.category).split(' · ')[0]} (${other.kind === 'income' ? 'in' : 'out'}, ${formatDate(other.date)})` : ''}: both sides are left out of spending and income. <button type="button" className="text-link" onClick={onUntransfer}>Not a transfer</button></p>}
+    {list.length > 0 && <details className="spending-history"><summary>Changes to this entry ({list.length})</summary><ul>{list.map((h, i) => <li key={i}><span className="fine">{formatDate(h.at.slice(0, 10))}</span> · {FIELD_WORDS[h.field] ?? h.field}: {h.from ?? '—'} → {h.to ?? '—'} <span className="fine">(by {BY_WORDS[h.by] ?? h.by})</span></li>)}</ul></details>}
+  </>;
 }

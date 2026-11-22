@@ -34,6 +34,17 @@ describe('group 5: the money log tools', () => {
   });
 });
 
+describe('group 5: transfers', () => {
+  test('marked pairs and pairs that look like one', () => {
+    const s = withLog(freshAll(), log => ({...log, entries: [
+      {id: 'o', kind: 'expense', amount: '450.00', currency: 'EUR', category: 'Other', date: '2026-11-10', createdAt: '2026-11-10T10:00:00.000Z', account: 'Checking'},
+      {id: 'i', kind: 'income', amount: '450.00', currency: 'EUR', category: 'Other income', date: '2026-11-11', createdAt: '2026-11-11T10:00:00.000Z', account: 'Card'}]}));
+    expect(text(zigi('which card payments are marked as transfers', s))).toBe('No entry is marked as a transfer yet. 1 pair looks like one (the same amount out of one imported account and into another): Wealth → Spending → Money tools → To review.');
+    const m = withLog(s, log => ({...log, entries: log.entries.map(e => ({...e, transfer: e.id === 'o' ? 'i' : 'o'}))}));
+    expect(text(zigi('welke overboekingen tussen mijn rekeningen zijn er', m))).toMatch(/^1 overboeking gemarkeerd, buiten uitgaven en inkomsten gelaten: €450[.,]00 \(2026-11-10\)\./);
+  });
+});
+
 describe('every answer under the Wealth switch, and only its own questions', () => {
   test('Wealth off: the refusal, never a figure', () => {
     for (const c of AV2_MONEY) for (const q of [...c.en, ...c.nl]) {

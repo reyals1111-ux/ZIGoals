@@ -6,6 +6,7 @@ import type {MoneyEntry, MoneyLog} from '../../../lib/money-log/schema';
 // Session AV lane 2 (money; YNAB and Copilot suggest on imports): the category this payee had before, own categories, history.
 import {categoryChoices, withChange} from '../../../lib/money-log/counted';
 import {pastCategory} from '../../../lib/money-log/suggest';
+import {setTransfer, transferPairs} from '../../../lib/bankfiles/reimport';
 import {acceptReview, pruneReview, toReview, type MoneyReview} from '../../../lib/money-review/review';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {money} from './format';
@@ -22,6 +23,9 @@ export default function ReviewInbox({log, review, onMakeRule}: {log: DeviceRecor
   const pending = useMemo(() => toReview(review.data, log.data.entries), [review.data, log.data.entries]);
   // Only entries already looked at teach a suggestion (an import never suggests from itself).
   const suggestions = useMemo(() => { const waiting = new Set(pending.map(e => e.id)), known = log.data.entries.filter(e => !waiting.has(e.id)); return new Map(pending.slice(0, 100).map(e => [e.id, e.note ? pastCategory(known, e.kind, e.note) : null])); }, [pending, log.data.entries]);
+  // Session AV lane 2 (money; YNAB's credit-card payment match): an amount leaving one imported account and arriving in another.
+  const pairs = useMemo(() => transferPairs(log.data.entries, new Set(pending.map(e => e.id))), [log.data.entries, pending]);
+  const markTransfer = (outId: string, inId: string, words: string) => { setError(''); try { log.update(current => setTransfer(current, outId, inId, true, new Date().toISOString())); setStatus(words); } catch (cause) { setError(plainErrorMessage(cause, 'This could not be saved on this device.')); } };
   const accept = (ids: string[], words: string) => {
     setError('');
     try { review.update(r => acceptReview(pruneReview(r, log.data.entries), ids)); setStatus(words); return true; }
@@ -38,6 +42,14 @@ export default function ReviewInbox({log, review, onMakeRule}: {log: DeviceRecor
   return <section className="money-panel" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>To review ({pending.length})</h4>
     {(pending.length > 0 || cards) && <p className="money-review-mode"><button type="button" className="secondary" aria-pressed={cards} onClick={() => setCards(v => !v)}>One at a time</button></p>}
+    {pairs.length > 0 && !cards && <section className="money-transfers" aria-labelledby={`${id}-pairs`}>
+      <h5 id={`${id}-pairs`}>Card payments and moves between your accounts ({pairs.length})</h5>
+      <p className="fine">The same amount left one account and arrived in another within a few days. Marked as a transfer, both stay in your log but count as neither spending nor income.</p>
+      <ul className="money-list">{pairs.slice(0, 20).map(p => { const words = `${money(p.out.amount, p.out.currency)}: ${p.out.account} → ${p.in.account}`; return <li key={`${p.out.id}-${p.in.id}`} className="money-review-row">
+        <span className="money-review-what"><strong>{words}</strong><span className="fine"> · out {formatDate(p.out.date)} ({(p.out.note ?? p.out.category).split(' · ')[0]}), in {formatDate(p.in.date)} ({(p.in.note ?? p.in.category).split(' · ')[0]})</span></span>
+        <span className="money-row-actions"><button type="button" className="secondary" aria-label={`Mark ${words} as a transfer`} onClick={() => { markTransfer(p.out.id, p.in.id, `${words} marked as a transfer; both are left out of spending and income.`); accept([p.out.id, p.in.id], `${words} marked as a transfer and reviewed.`); }}>Mark as a transfer</button></span>
+      </li>; })}</ul>
+    </section>}
     {cards ? <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><ReviewCardMode log={log} review={review} pending={pending} accept={accept} recategorise={recategorise} onMakeRule={onMakeRule} onExit={() => setCards(false)}/></Suspense>
     : pending.length ? <>
       <p className="fine">Entries from your last imports, as their category was set. They already count in your totals.</p>

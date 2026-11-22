@@ -11,6 +11,8 @@ import {MONEY_RULES, type MoneyRule} from '../../../lib/money-rules/schema';
 import {applyRules} from '../../../lib/money-rules/engine';
 import {loggedWithRules, ruleHint} from '../../../lib/money-rules/imports';
 import {MONEY_REVIEW, markForReview} from '../../../lib/money-review/review';
+// Session AV lane 2 (money; Monarch): each row's reference and account kept, a changed row updated on re-import, rule history.
+import {applyReimport, changedOnReimport, refInLog, withImportMarks, withRuleHistory, type Changed} from '../../../lib/bankfiles/reimport';
 
 /**
  * Session AK (A14): a bank statement file (CAMT.053, OFX/QFX, MT940) into the money log. The file is read on this
@@ -22,14 +24,17 @@ import {MONEY_REVIEW, markForReview} from '../../../lib/money-review/review';
 const money = (amount: string, currency: string) => formatCurrencyAmount(amount, currency);
 const PREVIEW_ROWS = 200;
 
-export type BankImportViewProps = {log: Pick<MoneyLog, 'entries'>; onAdd: (rows: BankTransaction[], categories: ReadonlyMap<number, string>) => {added: number; refused: RefusedRow[]}; onUndo?: () => void; rules?: readonly MoneyRule[]};
+export type BankImportViewProps = {log: Pick<MoneyLog, 'entries'>; onAdd: (rows: BankTransaction[], categories: ReadonlyMap<number, string>, account?: string) => {added: number; refused: RefusedRow[]}; onUndo?: () => void; rules?: readonly MoneyRule[]; onUpdate?: (changed: readonly Changed[]) => number};
 const NO_RULES: readonly MoneyRule[] = [];
-export function BankFileImportView({log, onAdd, onUndo, rules = NO_RULES}: BankImportViewProps) {
+export function BankFileImportView({log, onAdd, onUndo, rules = NO_RULES, onUpdate}: BankImportViewProps) {
   const id = useId();
   const [statement, setStatement] = useState<BankStatement | null>(null), [problem, setProblem] = useState(''), [status, setStatus] = useState('');
   const [included, setIncluded] = useState<ReadonlySet<number>>(new Set()), [later, setLater] = useState<RefusedRow[]>([]), [canUndo, setCanUndo] = useState(false);
   const [categories, setCategories] = useState<ReadonlyMap<number, string>>(new Map());
-  const logged = useMemo(() => new Set(statement?.transactions.filter(t => alreadyLogged(t, log) || loggedWithRules(t, log, rules)).map(t => t.index) ?? []), [statement, log, rules]);
+  // Session AV lane 2 (money): a row whose bank reference is already in the log is that entry (never a second one).
+  const known = (t: BankTransaction) => refInLog(t, log);
+  const logged = useMemo(() => new Set(statement?.transactions.filter(t => alreadyLogged(t, log) || loggedWithRules(t, log, rules) || refInLog(t, log)).map(t => t.index) ?? []), [statement, log, rules]);
+  const changed = useMemo(() => statement ? changedOnReimport(statement.transactions, log) : [], [statement, log]), changedAt = new Map(changed.map(c => [c.t.index, c]));
   const read = async (file: File | undefined) => {
     setProblem(''); setStatus(''); setStatement(null); setLater([]); setCanUndo(false); setCategories(new Map());
     if (!file) return;
@@ -39,13 +44,13 @@ export function BankFileImportView({log, onAdd, onUndo, rules = NO_RULES}: BankI
     const result = parseBankFile(text);
     if (!result.ok) { setProblem(result.error); return; }
     setStatement(result);
-    setIncluded(new Set(result.transactions.filter(t => !t.duplicate && !alreadyLogged(t, log) && !loggedWithRules(t, log, rules)).map(t => t.index)));
+    setIncluded(new Set(result.transactions.filter(t => !t.duplicate && !alreadyLogged(t, log) && !loggedWithRules(t, log, rules) && !known(t)).map(t => t.index)));
   };
   const toggle = (index: number) => setIncluded(current => { const next = new Set(current); if (next.has(index)) next.delete(index); else next.add(index); return next; });
   const chosen = statement?.transactions.filter(t => included.has(t.index)) ?? [];
   const add = () => {
     try {
-      const out = onAdd(chosen, categories);
+      const out = onAdd(chosen, categories, statement?.account);
       setLater(out.refused); setCanUndo(out.added > 0);
       setStatus(`${out.added} ${out.added === 1 ? 'entry' : 'entries'} added to your money log${out.refused.length ? `; ${out.refused.length} could not be added (listed below)` : ''}.`);
       setStatement(null);
@@ -69,11 +74,12 @@ export function BankFileImportView({log, onAdd, onUndo, rules = NO_RULES}: BankI
           <td className="bankfile-payee">{t.payee || '—'}{t.description && t.description !== t.payee && <span className="fine"> · {t.description}</span>}</td>
           <td className={t.direction === 'in' ? 'bankfile-in' : undefined}>{t.direction === 'in' ? '+' : '−'}{money(t.amount, t.currency)}</td>
           <td><CategoryPick t={t} guess={previewCategory(t, rules)} chosen={categories.get(t.index)} onChoose={c => setCategories(current => new Map(current).set(t.index, c))}/></td>
-          <td className="fine">{t.duplicate ? 'Possible repeat in this file' : logged.has(t.index) ? 'Already in your log' : ruleHint(t, rules) ?? ''}</td>
+          <td className="fine">{t.duplicate ? 'Possible repeat in this file' : changedAt.has(t.index) ? `Changed at your bank since your last import${changedAt.get(t.index)!.amount ? ` (was ${money(changedAt.get(t.index)!.entry.amount, t.currency)})` : ''}` : logged.has(t.index) ? 'Already in your log' : ruleHint(t, rules) ?? ''}</td>
         </tr>)}</tbody>
       </table></div>}
       {statement.transactions.length > PREVIEW_ROWS && <p className="fine">The first {PREVIEW_ROWS} rows are shown; the rest are added as ticked.</p>}
       <RefusedList rows={statement.refused} title="Not read"/>
+      {changed.length > 0 && onUpdate && <p className="bankfile-changed">{changed.length} {changed.length === 1 ? 'row has' : 'rows have'} changed at your bank since you imported {changed.length === 1 ? 'it' : 'them'} (amount, date or payee). <button type="button" className="secondary" onClick={() => { const n = onUpdate(changed); setStatus(`${n} ${n === 1 ? 'entry' : 'entries'} updated from the file; each change is in the entry's history.`); setStatement(null); }}>Update {changed.length} {changed.length === 1 ? 'entry' : 'entries'}</button></p>}
       <div className="bankfile-actions"><button type="button" className="primary" disabled={!chosen.length} onClick={add}>Add {chosen.length} to my money log</button><button type="button" className="quiet" onClick={() => setStatement(null)}>Cancel</button></div>
     </section>}
     <p role="status" aria-live="polite" className="bankfile-status">{status}{canUndo && onUndo && <> <button type="button" className="text-link" onClick={() => { onUndo(); setCanUndo(false); setStatus('The import was undone.'); }}>Undo</button></>}</p>
@@ -89,10 +95,12 @@ export default function BankFileImport() {
   const rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   if (!log.loaded) return <p className="fine">Loading your money log…</p>;
   if (log.unreadable) return <p role="alert">This device&rsquo;s money log could not be read, so nothing can be added to it now. Its bytes are kept.</p>;
-  return <BankFileImportView log={log.data} rules={rules.data.rules} onAdd={(rows, categories) => {
+  return <BankFileImportView log={log.data} rules={rules.data.rules} onUpdate={changed => { log.update(current => applyReimport(current, changed, new Date().toISOString())); return changed.length; }} onAdd={(rows, categories, account) => {
     const out = toMoneyEntries(rows, log.data, new Date(), () => crypto.randomUUID());
     // Session AK (lane M): the rules, first match wins; Session AV (L-6): then the categories chosen in the preview.
-    const entries = withChosenCategories(applyRules(out.entries, rules.data.rules).entries, out.indexes, categories);
+    // Session AV lane 2 (money): a rule's change goes into the entry's history; the file's account and each row's reference are kept.
+    const ruled = applyRules(out.entries, rules.data.rules), at = new Date().toISOString();
+    const entries = withImportMarks(withChosenCategories(withRuleHistory(ruled.entries, ruled.changes, at), out.indexes, categories), out.indexes, rows, account);
     if (entries.length) log.update(current => addEntries(current, entries));
     if (entries.length) try { review.update(r => markForReview(r, entries.map(e => e.id))); } catch { /* the entries are added; only the review mark is missing */ }
     setLastIds(new Set(entries.map(e => e.id)));

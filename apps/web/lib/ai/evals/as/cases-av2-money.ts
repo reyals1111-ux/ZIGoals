@@ -9,4 +9,5 @@ export const AV2_MONEY: readonly Intent[] = [
   {id: 'av2-money-left-out', pillar: 'wealth', en: ['what did I leave out of my spending', 'which entries are not counted in my totals'], nl: ['wat telt niet mee in mijn uitgaven', 'welke posten zijn weggelaten uit mijn totalen']},
   {id: 'av2-money-tax', pillar: 'wealth', en: ['what is tax deductible this year', 'which entries are tax-deductible'], nl: ['wat is aftrekbaar dit jaar', 'welke posten zijn aftrekbaar']},
   {id: 'av2-money-own-categories', pillar: 'wealth', en: ['what are my own categories', 'which custom categories do I have'], nl: ['welke eigen categorieën heb ik', 'wat zijn mijn eigen categorieen']},
+  {id: 'av2-money-transfers', pillar: 'wealth', en: ['which card payments are marked as transfers', 'what transfers between my accounts do I have'], nl: ['welke overboekingen tussen mijn rekeningen zijn er', 'welke creditcardbetalingen heb ik']},
 ];

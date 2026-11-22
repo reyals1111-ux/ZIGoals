@@ -19,10 +19,12 @@ import './money-photos.css';
  * person's own AI) is its own chunk, loaded on its button.
  */
 const ReceiptDraft = lazy(() => import('./receipt-draft'));
+// Session AV lane 2 (money; Monarch): several receipts at once, each matched to an entry by its day and amount (its own chunk).
+const SeveralReceipts = lazy(() => import('./several-receipts'));
 const SHOWN = 40;
 export default function MoneyPhotosPanel({log}: {log: DeviceRecordState<MoneyLog>}) {
   const id = useId(), [kept, setKept] = useState<string[] | null>(null), [note, setNote] = useState(''), [busy, setBusy] = useState(false);
-  const [confirming, setConfirming] = useState<'all' | 'orphans' | null>(null), [drafting, setDrafting] = useState(false), [onlyKept, setOnlyKept] = useState(false);
+  const [confirming, setConfirming] = useState<'all' | 'orphans' | null>(null), [drafting, setDrafting] = useState(false), [several, setSeveral] = useState(false), [onlyKept, setOnlyKept] = useState(false);
   const refresh = useCallback(() => { void moneyPhotoIds(photoScope()).then(setKept, () => { setKept([]); setNote('This browser cannot keep photos here.'); }); }, []);
   useEffect(() => {
     queueMicrotask(refresh);
@@ -33,6 +35,10 @@ export default function MoneyPhotosPanel({log}: {log: DeviceRecordState<MoneyLog
   const has = useMemo(() => new Set(kept ?? []), [kept]);
   const orphans = useMemo(() => kept ? orphanPhotoIds(kept, entries.map(e => e.id)) : [], [kept, entries]);
   const shown = (onlyKept ? entries.filter(e => has.has(e.id)) : entries).slice(0, SHOWN);
+  async function keep(entry: MoneyEntry, file: File) {
+    const out = await shrinkToLimit(step => compressImage(file, step.edge, step.quality));
+    await putMoneyPhoto(photoScope(), {entryId: entry.id, blob: out.blob, type: out.type, bytes: out.blob.size, takenAt: new Date().toISOString()});
+  }
   async function add(entry: MoneyEntry, file: File) {
     setBusy(true); setNote('Preparing the photo on this device…');
     try {
@@ -53,9 +59,11 @@ export default function MoneyPhotosPanel({log}: {log: DeviceRecordState<MoneyLog
     <p className="fine">Optional. A photo you add to an entry is shrunk to at most 200 kB and kept in this browser only (at most {MAX_MONEY_PHOTOS}). It is never uploaded or synced, it is in Export everything as a file, and Erase everything removes it.</p>
     <div className="actions">
       <button type="button" className="secondary" aria-expanded={drafting} onClick={() => setDrafting(v => !v)}>Draft an entry from a receipt</button>
+      {entries.length > 0 && <button type="button" className="secondary" aria-expanded={several} onClick={() => setSeveral(v => !v)}>Add several receipts</button>}
       {(kept?.length ?? 0) > 0 && <button type="button" className="quiet" aria-pressed={onlyKept} onClick={() => setOnlyKept(v => !v)}>Only entries with a photo</button>}
     </div>
     {drafting && <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><ReceiptDraft/></Suspense>}
+    {several && <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><SeveralReceipts entries={entries} withPhoto={has} onKeep={keep} onDone={words => { setNote(words); setSeveral(false); refresh(); }}/></Suspense>}
     {kept === null ? <p className="fine" aria-busy="true">Reading this device&rsquo;s photos…</p>
       : !entries.length ? <p className="fine">No entries yet. Log what you spend above (or import a bank file); then you can keep a receipt photo with any entry here.</p>
       : <>

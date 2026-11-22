@@ -81,3 +81,6 @@
 .money-drill-note{margin:0 0 8px}
 .money-review-suggest{flex-basis:100%;margin:4px 0 0}
 .money-review-suggest .text-link{min-height:44px}
+.spending-history summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:14px;font-weight:600}
+.spending-history ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px;overflow-wrap:anywhere}
+.spending-transfer .text-link{min-height:44px}
