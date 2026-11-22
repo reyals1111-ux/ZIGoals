@@ -11,6 +11,8 @@ import {CHECKLIST} from '../../lib/checklist/schema';
 import {PillarMark, pillarOf, pillarOfHref} from '../pillars';
 import {CHAIN_SETTINGS, HELP_ITEMS, PAGES, SETTINGS} from '../../lib/search/static';
 import {useChainChoice} from '../chain/use-chain-choice';
+// Session AV lane 2 (PK-10): chain answers are still found before the chain is chosen, with the note on how to choose it.
+import {chainHelpItem, chainHelpResult} from '../../lib/help/chain-help';
 import {SEARCH_RECENT, clearRecent, rememberQuery} from '../../lib/search/recent';
 import {GOAL_LIBRARY} from '../../lib/templates/goal-library';
 import {askZigiWhenShown} from '../zigi-door';
@@ -63,7 +65,7 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
   // A page under a navigation entry the person hid stays out of the results with it; other pages are always found.
   const pageShown = useMemo(() => { const shown = new Set<string>(nav.items.map(([href]) => href)); return (href: string) => { const root = href.split(/[?#]/)[0]!.split('/').slice(0, 3).join('/'); return !NAV_HREFS.has(root) || shown.has(root) || root === '/app'; }; }, [nav.items]);
   const items = useMemo<SearchItem[]>(() => {
-    const out: SearchItem[] = [...PAGES.filter(p => pageShown(p.href)), ...nav.items.filter(([href]) => !PAGES.some(p => p.href === href)).map(([href, label]): SearchItem => ({id: `page:${href}`, kind: 'page', title: label, href})), ...SETTINGS.filter(item => chainChosen || !CHAIN_SETTINGS.has(item.id)) /* Session AK X1 (R4) */, ...HELP_ITEMS];
+    const out: SearchItem[] = [...PAGES.filter(p => pageShown(p.href)), ...nav.items.filter(([href]) => !PAGES.some(p => p.href === href)).map(([href, label]): SearchItem => ({id: `page:${href}`, kind: 'page', title: label, href})), ...SETTINGS.filter(item => chainChosen || !CHAIN_SETTINGS.has(item.id)) /* Session AK X1 (R4) */, ...HELP_ITEMS.map(item => chainHelpItem(item, chainChosen)) /* Session AV lane 2 (PK-10) */];
     if (goals.loaded) for (const g of goals.goals) out.push({id: `goal:${g.key}`, kind: 'goal', title: g.name, subtitle: `${g.type} · ${g.status}`, href: g.href});
     if (averages.loaded && !averages.unreadable) for (const g of averages.data.goals) out.push({id: `goal:average:${g.id}`, kind: 'goal', title: g.name, subtitle: `Keep an average · ${g.status}`, href: `/app/goals/average/${g.id}`});
     // Session AH (GO12, B-177): Health goals are found too, and open where they live on Goals.
@@ -89,8 +91,8 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
   const hits = useMemo(() => {
     if (!deferred || actionsOnly(deferred)) return [];
     const taskFound = tasks.loaded && !tasks.unreadable && pageShown('/app/tasks') ? taskHits(tasks.data, deferred, tasksToday()) : [];
-    return search(items, deferred, {extra: taskFound});
-  }, [items, deferred, tasks.loaded, tasks.unreadable, tasks.data, pageShown]);
+    return search(items, deferred, {extra: taskFound}).map(hit => chainHelpResult(hit, chainChosen)); // Session AV lane 2 (PK-10)
+  }, [items, deferred, tasks.loaded, tasks.unreadable, tasks.data, pageShown, chainChosen]);
   // Session AK (F5d): the actions the words name (">" for actions only), before the results when they match as well.
   const actions = useMemo(() => [...PALETTE_ACTIONS, ...NOTE_ACTIONS, ...(platform.loaded && !platform.error ? goalContributionActions(platform.data.goals) : [])], [platform.loaded, platform.error, platform.data]);
   const actionHits = useMemo(() => trimmed ? searchActions(actions, trimmed, only ? 12 : 3) : [], [actions, trimmed, only]);
