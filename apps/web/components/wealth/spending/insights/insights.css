@@ -99,3 +99,37 @@
 .waterfall-key-total{background:color-mix(in srgb,var(--text,#f0f5ff) 55%,transparent)}
 .waterfall-key-up{background:var(--violet,#a698ff)}
 .waterfall-key-down{background:var(--cyan,#45d8ef)}
+/* Session AV lane 2, round 4 (money; Lunch Money's calendar, LEDGER #338): a calendar of the month. Theme tokens only,
+   14 px and larger copy, 44 px targets; on a phone the cells show a dot and the days are buttons under the grid. */
+.money-cal-pager{display:flex;align-items:center;gap:12px}
+.money-cal-pager button{min-height:44px;min-width:44px;font-size:20px}
+.money-cal-pager button[aria-disabled]{opacity:.5;cursor:default}
+.money-cal-pager strong{min-width:9ch;text-align:center}
+.money-cal-total{margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.money-cal-grid{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:3px}
+.money-cal-grid th{font-size:14px;font-weight:600;color:var(--text-secondary,var(--muted));text-align:center}
+.money-cal-grid td{vertical-align:top;height:60px;padding:0;border-radius:8px;border:1px solid var(--line,rgba(128,128,160,.3));overflow:hidden}
+.money-cal-grid td.is-out{border:0}
+.money-cal-grid td.is-today{outline:2px solid var(--cyan,#6fd3ff);outline-offset:-2px}
+.money-cal-grid td.level-1,.money-cal-key.level-1{background:color-mix(in srgb,var(--pink,#ed79d4) 10%,transparent)}
+.money-cal-grid td.level-2{background:color-mix(in srgb,var(--pink,#ed79d4) 18%,transparent)}
+.money-cal-grid td.level-3,.money-cal-key.level-3{background:color-mix(in srgb,var(--pink,#ed79d4) 28%,transparent)}
+.money-cal-cell{display:block;width:100%;height:100%;min-height:58px;padding:3px;margin:0;border:0;border-radius:8px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.money-cal-cell:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:-2px}
+.money-cal-plain{display:block;padding:3px}
+.money-cal-grid td.has-button .money-cal-plain{display:none}
+.money-cal-day{display:block;font-size:14px}
+.money-cal-cell small,.money-cal-plain small{display:block;font-size:14px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+.money-cal-in{color:var(--cyan,#6fd3ff)}
+.money-cal-dot{display:none;width:8px;height:8px;margin:4px auto 0;border-radius:50%;background:var(--text,#e8eefc)}
+.money-cal-key{border:1px solid var(--line,rgba(128,128,160,.4))}
+.money-cal-list{display:none;list-style:none;margin:0;padding:0;gap:4px}
+.money-cal-list button{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 10px;width:100%;min-height:44px;text-align:left;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media (max-width:640px){
+  .money-cal-grid td{height:44px;text-align:center}
+  .money-cal-grid td.has-button .money-cal-cell{display:none}
+  .money-cal-grid td.has-button .money-cal-plain{display:block}
+  .money-cal-plain small{display:none}
+  .money-cal-dot{display:block}
+  .money-cal-list{display:grid}
+}

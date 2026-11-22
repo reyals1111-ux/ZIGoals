@@ -12,6 +12,8 @@ import './insights.css';
  * is a gap, never a zero; comparisons of records, never forecasts. No motion.
  */
 const VIEWS = {
+  // Session AV lane 2, round 4 (money; Lunch Money, LEDGER #338): each day's spending and income on a calendar of the month.
+  calendar: {label: 'A calendar of the month', load: lazy(() => import('./month-calendar'))},
   // Session AV (follow-up 1, F-VS-LAST): this month against last, per category.
   vsLast: {label: 'This month vs last', load: lazy(() => import('./vs-last-view'))},
   // Session AV (follow-up 1, F-INCOME-FLOW): where this month's income went.
@@ -31,9 +33,11 @@ const VIEWS = {
 } as const;
 type View = keyof typeof VIEWS;
 /** Session AV lane 2, round 3 (review b3a #11): `space`, the money space shown, so a view that writes uses that space's own log. */
-export type InsightProps = {entries: readonly MoneyEntry[]; today: string; showcase?: boolean; space?: 'personal' | 'business'};
+export type InsightProps = {entries: readonly MoneyEntry[]; today: string; showcase?: boolean; space?: 'personal' | 'business';
+  /** Session AV lane 2, round 4 (money, LEDGER #338): opens one day's entries in "Search all your entries"; the week's first day. */
+  openDay?: (day: string) => void; weekStartsOn?: 'monday' | 'sunday'};
 
-export default function SpendingInsights({entries, today, showcase = false, space = 'personal'}: InsightProps) {
+export default function SpendingInsights({entries, today, showcase = false, space = 'personal', openDay, weekStartsOn}: InsightProps) {
   const id = useId(), [view, setView] = useState<View | null>(null), Chosen = view ? VIEWS[view].load : null;
   return <section className="money-insights" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`}>Your money over time</h3>
@@ -44,7 +48,7 @@ export default function SpendingInsights({entries, today, showcase = false, spac
     <div id={`${id}-panel`} className="money-insights-panel">
       {Chosen && <>
         {showcase && <p className="fine"><ShowcaseTag/> Fictional Showcase entries.</p>}
-        <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><Chosen entries={entries} today={today} space={space}/></Suspense>
+        <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><Chosen entries={entries} today={today} space={space} {...(openDay ? {openDay} : {})} {...(weekStartsOn ? {weekStartsOn} : {})}/></Suspense>
       </>}
     </div>
   </section>;
