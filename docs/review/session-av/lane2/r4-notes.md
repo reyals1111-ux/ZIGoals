@@ -180,3 +180,23 @@ before (an archived note in its list; only the first photo).
 - What's new: "Notes: archive a note — out of the list, still in Search."
 - Showcase: none (an archived Showcase note would move the pinned list counts). CSS touched: `components/notes/notes.css`.
   Today: nothing added.
+
+### F8 A writing view (typewriter mode) — LEDGER #316 (Bear)
+
+- Verdict: **built**.
+- What: while editing, "Write in full screen" opens the note alone in a modal dialog over the whole page (the browser's
+  own `<dialog>`: the rest is inert, focus in the words, the caret at the end). "Typewriter" (aria-pressed, kept on this
+  device) keeps the line being written in the middle of the screen (the text is moved at once, never animated, so
+  reduced motion and Motion Off see the same). Save saves there; Esc or Done goes back to the editor with the words (not
+  lost, saved with Save), focus on the button. 18 px words, at most 760 px wide, theme tokens only.
+- Baseline: the dialog covers the page only while open; nothing protected is touched.
+- Files: new `components/notes/note-focus.tsx` + `components/notes/note-focus.css` (lazy, its own chunk),
+  `components/notes/note-editor.tsx`.
+- Tests: the stored choice in `lib/notes/r4-stored.test.ts`. Spec: `tests/av2-notes-writing.spec.ts`.
+- Stored: notes `typewriter` (TIER 3 commit, see "Stored changes").
+- Help (EN). Q: "Can I write without distractions?" A: "Yes. Edit a note and press Write in full screen: only the note
+  shows. Turn on Typewriter to keep the line you write in the middle. Esc or Done takes you back; press Save to keep
+  your words."
+- What's new: "Notes: write in full screen, with a typewriter line."
+- Showcase: none needed. CSS touched: new `components/notes/note-focus.css` (imported by its lazy chunk only).
+  Today: nothing added.

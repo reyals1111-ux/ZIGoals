@@ -31,6 +31,8 @@ const NotePrint = lazy(() => import('./note-print'));
 const NoteProps = lazy(() => import('./note-props'));
 // Session AV lane 2 (r4-notes; LEDGER #312): find and replace in the note being edited, loaded on the press.
 const NoteFind = lazy(() => import('./note-find'));
+// Session AV lane 2 (r4-notes; LEDGER #316): the writing view (the note alone, typewriter), loaded on the press.
+const NoteFocus = lazy(() => import('./note-focus'));
 const shortWords = (w: string) => { const t = w.replace(/\s+/g, ' ').trim(); return t.length > 40 ? `${t.slice(0, 39).trimEnd()}…` : t; };
 
 /**
@@ -49,7 +51,8 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
   // Session AV lane 2 (r4-notes; LEDGER #306): the Tags field holds the kept tags not written in the text.
   const savedField = note ? fieldTags(note).join(', ') : '', [tagText, setTagText] = useState(savedField);
   const [mode, setMode] = useState<'read' | 'edit'>(note?.body.trim() ? 'read' : 'edit');
-  const [finding, setFinding] = useState(false);
+  const [finding, setFinding] = useState(false), [writing, setWriting] = useState(false);
+  const doneWriting = useCallback(() => { setWriting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-write-button')?.focus()); }, []);
   const closeFind = useCallback(() => { setFinding(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-find-button')?.focus()); }, []);
   const [versionsOpen, setVersionsOpen] = useState(false), [printing, setPrinting] = useState(false), [propsOpen, setPropsOpen] = useState(false);
   const donePrinting = useCallback(() => { setPrinting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-print-button')?.focus()); }, []);
@@ -89,9 +92,13 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       <div className="note-actions">
         <button type="button" className="primary" disabled={!dirty || untouchedStart} onClick={saveAndRead}>Save</button>
         {(note?.body.trim() || body.trim()) && <button type="button" className="quiet" onClick={() => { if (dirty) { setTitle(note?.title ?? ''); setBody(note?.body ?? ''); } setMode(note?.body.trim() ? 'read' : 'edit'); }}>{dirty ? 'Cancel changes' : 'Done'}</button>}
+        <button type="button" className="quiet note-write-button" onPointerEnter={() => void import('./note-focus').catch(() => undefined)} onClick={() => setWriting(true)}>Write in full screen</button>
         <button type="button" className="quiet note-find-button" aria-expanded={finding} onPointerEnter={() => void import('./note-find').catch(() => undefined)} onClick={() => finding ? closeFind() : setFinding(true)}>Find and replace</button>
         <span className="fine">{body.length.toLocaleString('en-US')} / {MAX_BODY.toLocaleString('en-US')}</span>
       </div>
+      {writing && <LoadBoundary quiet><Suspense fallback={null}><NoteFocus title={heading || (title.trim() || 'Your note')} value={body} onChange={setBody} maxLength={MAX_BODY}
+        typewriter={!!record?.typewriter} onTypewriter={on => change(r => { const next = {...r}; if (on) next.typewriter = true; else delete next.typewriter; return next; }, on ? 'Typewriter on: the line you write stays in the middle.' : 'Typewriter off.')}
+        canSave={dirty && !untouchedStart} onSave={() => { if (save()) doneWriting(); }} onDone={doneWriting}/></Suspense></LoadBoundary>}
       {finding && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteFind value={body} onChange={setBody} field={() => box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea') ?? null} onClose={closeFind}/></Suspense></LoadBoundary>}
     </> : <>
       <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} photos={note ? notePhotoIdsOf(note) : undefined} outline fold/>
