@@ -2,7 +2,7 @@
 import {afterEach, beforeEach, expect, test, vi} from 'vitest';
 import {act, createElement as h} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
-import {CardForm} from '../../components/wealth/credit-card';
+import CardLine, {CardForm} from '../../components/wealth/credit-card';
 import {LimitForm} from '../../components/wealth/account-limits';
 import type {Account} from '../accounts/schema';
 import {WEALTH_SHEET_KEY} from './schema';
@@ -30,6 +30,15 @@ test('the card form opens with the kept limit and days; changing the due day kee
   await type(field(/^Payment due day/), '28');
   await submit();
   expect(stored().cards).toEqual({[ID]: {limit: '2000.00', statementDay: 5, dueDay: 28}});
+});
+test('review b3a #4: the card line with its amounts is marked private, so Hide amounts blurs it as the row balance', async () => {
+  localStorage.setItem(WEALTH_SHEET_KEY, JSON.stringify({version: 1, cards: {[ID]: {limit: '2000.00', dueDay: 25}}}));
+  const owing: Account = {...card, snapshots: [{id: '00000000-0000-4000-8000-0000000000d1', date: '2026-11-10', value: '45000', decimals: 2}]};
+  await act(async () => root.render(h(CardLine, {account: owing, today: '2026-11-14'})));
+  await settle();
+  const line = element.querySelector('.accounts-card-line')!;
+  expect(line.textContent).toContain('€450.00 of €2,000.00 used');
+  expect(line.hasAttribute('data-private-amount')).toBe(true);
 });
 test('the balance lines open with the kept lines; changing one keeps the other', async () => {
   localStorage.setItem(WEALTH_SHEET_KEY, JSON.stringify({version: 1, limits: {[ID]: {below: '500.00', above: '20000.00'}}}));

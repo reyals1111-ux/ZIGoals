@@ -30,7 +30,8 @@ export default function CardLine({account, today}: {account: Account; today: str
   const sheet = useDeviceRecord(WEALTH_SHEET);
   if (!sheet.loaded || sheet.unreadable) return null;
   const words = cardWords(cardState(account, sheet.data, today));
-  return words.length ? <small className="accounts-card-line">{words.join(' · ')}</small> : <small className="accounts-card-line fine">Add its limit and days under Sheet to see how much of it is used.</small>;
+  // Review b3a #4: the owed amount, the limit and what is available blur with Hide amounts, as the row's balance does.
+  return words.length ? <small className="accounts-card-line" data-private-amount>{words.join(' · ')}</small> : <small className="accounts-card-line fine">Add its limit and days under Sheet to see how much of it is used.</small>;
 }
 /**
  * In a credit card's Sheet: its limit, statement day and due day, and a payment reminder. Review b3a #3: the fields start

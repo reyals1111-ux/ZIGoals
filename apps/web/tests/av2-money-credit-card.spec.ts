@@ -28,6 +28,8 @@ for (const theme of THEMES) test(`${theme}: a credit card's limit, share used, s
   await form.getByRole('button', {name: 'Keep', exact: true}).click();
   expect((await readRecord<WealthSheet>(page, WEALTH_SHEET_KEY)).cards).toEqual({[CARD]: {limit: '2000.00', statementDay: 5, dueDay: 25}});
   await expect(page.locator('.accounts-card-line')).toHaveText('€450.00 of €2,000.00 used (23%) · €1,550.00 available · statement Dec 5, 2026 · due Nov 25, 2026');
+  // Review b3a #4: the line's amounts blur with Hide amounts, as the row's balance does.
+  await expect(page.locator('.accounts-card-line')).toHaveAttribute('data-private-amount', '');
   // Review b3a #3: closed and opened again, the Sheet shows what is kept.
   await page.getByRole('button', {name: 'Sheet options for Everyday Card'}).click();
   await page.getByRole('button', {name: 'Sheet options for Everyday Card'}).click();
