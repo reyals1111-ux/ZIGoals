@@ -6659,7 +6659,7 @@
  },
  "av2-pay-period": {
   "en": "Left in each budget, in its own period:\n• Groceries: €62.90 of €250.00 (Sun, Nov 1 – Mon, Nov 30)\n• Food & drink: €70.90 of €120.00 (Sun, Nov 1 – Mon, Nov 30)\n• Fun: €36.00 of €60.00 (Sun, Nov 1 – Mon, Nov 30)",
-  "nl": "Over in elk budget, in zijn eigen periode:\n• Groceries: €62.90 van €250.00 (zo 1 nov – ma 30 nov)\n• Food & drink: €70.90 van €120.00 (zo 1 nov – ma 30 nov)\n• Fun: €36.00 van €60.00 (zo 1 nov – ma 30 nov)",
+  "nl": "Over in elk budget, in zijn eigen periode:\n• Groceries: € 62,90 van € 250,00 (zo 1 nov – ma 30 nov)\n• Food & drink: € 70,90 van € 120,00 (zo 1 nov – ma 30 nov)\n• Fun: € 36,00 van € 60,00 (zo 1 nov – ma 30 nov)",
   "facts": null,
   "widgets": [],
   "fresh": "No budgets yet. Add one in Wealth → Budgets; under “Pay periods and fills” choose the day your budget month starts.",

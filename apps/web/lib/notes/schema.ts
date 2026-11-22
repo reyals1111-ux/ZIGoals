@@ -38,6 +38,13 @@ export const noteSchema = z.looseObject({
   photoId: noteIdSchema.optional(),
   tags: z.array(z.string().trim().min(1).max(MAX_TAG)).max(MAX_TAGS).optional(),
   pinned: z.boolean().optional(),
+  /**
+   * Session AV lane 2 (review b1 #1; TIER 3 (stored format), additive and optional): the day each "@remind" line was
+   * first saved, keyed by its words (lib/notes/reminders.ts reminderKey), so "tomorrow" and "friday" keep the day they
+   * meant when written instead of moving with every new day. At most 20; a map this build cannot read is dropped (the
+   * line then reads against the note's last save), and older builds keep it untouched and never read it.
+   */
+  remindFrom: z.record(z.string().min(1).max(200), daySchema).optional().catch(undefined),
   /** A fictional Showcase note. */
   example: z.boolean().optional(),
   createdAt: stamp,

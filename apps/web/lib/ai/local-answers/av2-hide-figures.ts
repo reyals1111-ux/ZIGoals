@@ -7,17 +7,32 @@ import type {LocalReply} from './engine';
  * one plain line says why and where to switch it back. Steps, minutes, sleep and everything else stay. Applied to the
  * finished reply (the lead wires `withHiddenFigures` at the end of localAnswer in engine.ts); nothing stored changes.
  */
-const NUM = String.raw`[−-]?\d[\d.,   ]*\d|[−-]?\d`;
-const UNIT = String.raw`(?:kcal|kilocalories?|kilocalorieën|calories?|calorieën|cal|kg|kilo(?:gram)?s?|lbs?|pounds?|ponden|st)`;
-const AFTER = new RegExp(String.raw`(${NUM})(\s?)(${UNIT})\b`, 'gi');
+/*
+ * Review b1 #10: a number is digits with "." "," or a no-break space between digit groups (a plain space only before a
+ * group of three), so "In 2026, 72 kg" hides 72, not "2026, 72". The units are the body's: calories, and kilograms or
+ * pounds as "lb"/"lbs"; a bare "pounds" is money as often as weight, and "st" (stone) counts only after a space, so
+ * "Nov 21st" stays a date. Training volume ("you lifted 4,200 kg") is not a body figure: a line about lifting keeps its
+ * kilograms (its calories are still hidden).
+ */
+const NUM = String.raw`[−-]?\d+(?:(?:[.,  ]|\s(?=\d{3}(?!\d)))\d+)*`;
+const UNIT = String.raw`(?:kcal|kilocalories?|kilocalorieën|calories?|calorieën|cal|kg|kilo(?:gram)?s?|lbs?)`;
+const CALORIE_UNIT = /^(?:kcal|kilocalor|calor|cal)/i;
+const AFTER = new RegExp(String.raw`(${NUM})(\s?)(${UNIT})\b|(${NUM})(\s)(st)\b`, 'gi');
+const LIFTING = /\b(?:lift(?:ed|s|ing)?|volume|tonnage|reps?|sets?|tilde|getild|opgetild|tillen|trainingsvolume)\b/i;
 /** "weight 72.4", "weight: 72,4", "gewicht 72,4", "you weigh 72" — a number right after a weight word. */
 const WEIGHT = new RegExp(String.raw`\b(weight|weigh(?:ed|s)?|gewicht|woog|weeg(?:t)?)(:?\s+(?:is\s+|was\s+|of\s+|van\s+)?)(${NUM})`, 'gi');
 export const HIDDEN_NOTE = {en: 'Calorie and weight figures are hidden on this device; Health → “Show calories and weight” brings them back.', nl: 'Calorie- en gewichtscijfers zijn verborgen op dit apparaat; Health → “Show calories and weight” zet ze terug.'} as const;
 /** The text with every calorie and body-weight figure as "—"; `changed` says whether anything was hidden. */
 export function hideBodyFigures(text: string): {text: string; changed: boolean} {
   let changed = false;
-  const out = text.replace(AFTER, (_m, _n: string, space: string, unit: string) => { changed = true; return `—${space}${unit}`; })
-    .replace(WEIGHT, (_m, word: string, gap: string) => { changed = true; return `${word}${gap}—`; });
+  const out = text.split('\n').map(line => {
+    const lifting = LIFTING.test(line);
+    return line.replace(AFTER, (m, _n: string | undefined, space: string | undefined, unit: string | undefined, _n2: string | undefined, space2: string | undefined, stone: string | undefined) => {
+      const u = unit ?? stone!;
+      if (lifting && !CALORIE_UNIT.test(u)) return m;
+      changed = true; return `—${space ?? space2 ?? ''}${u}`;
+    }).replace(WEIGHT, (m, word: string, gap: string) => { if (lifting && !/gewicht|weight/i.test(word)) return m; changed = true; return `${word}${gap}—`; });
+  }).join('\n');
   return {text: out, changed};
 }
 /** The device's switch now (the same literal key and value as components/hide-figures.tsx); false on the server. */

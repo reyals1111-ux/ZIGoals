@@ -58,12 +58,14 @@ test('a reminder at its own date and time in the editor, and a note reminder on 
   await page.goto('/app/notes?view=notes'); await settle(page);
   await page.getByRole('textbox', {name: 'New note'}).fill('Fictional house');
   await page.getByRole('button', {name: 'Make note'}).click();
-  await page.getByRole('textbox', {name: 'Note'}).fill('Boiler\n@remind tomorrow 9:30 call the fictional plumber');
-  await page.getByRole('button', {name: 'Save'}).click();
+  // Session AV lane 2 (the new note's own editor: "Note" alone also matched "Capture a note" and "New note" on the page; deliberate)
+  const note = page.getByRole('article', {name: 'Fictional house'});
+  await note.getByRole('textbox', {name: 'Note', exact: true}).fill('Boiler\n@remind tomorrow 9:30 call the fictional plumber');
+  await note.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(page.getByRole('list', {name: 'Reminders in this note'})).toContainText('Reminder · Tue, Nov 24, 9:30 AM · call the fictional plumber');
 });
 
-test('a countdown that counts the days since', async ({page}) => {
+test('a countdown that counts the days since', async ({page, isMobile}) => {
   await offline(page);
   await page.clock.install({time: new Date('2026-11-23T08:00:00+01:00')});
   await page.goto('/app/settings'); await settle(page);
@@ -74,7 +76,11 @@ test('a countdown that counts the days since', async ({page}) => {
     localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true}));
   });
   await page.goto('/app'); await settle(page);
-  const up = page.getByRole('list', {name: 'Counting up'});
+  // Session AV lane 2 (on a phone the "Days until" card is folded to one row, as tests/av-countdown-yearly.spec.ts opens
+  // it; the list is then read inside that card, deliberate)
+  const card = page.locator('.today-device-card[data-card="countdowns"]');
+  if (isMobile) await card.locator('.phone-fold-toggle').click();
+  const up = card.getByRole('list', {name: 'Counting up'});
   await expect(up).toContainText('418 days since · 1 year, 1 month');
   await expect(up.getByRole('button', {name: 'Count the days since: “Fictional quit day”'})).toHaveAttribute('aria-pressed', 'true');
 });

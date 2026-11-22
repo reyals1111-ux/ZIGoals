@@ -32,7 +32,10 @@
 .sleep-key-window { width: 16px; height: 10px; border: 1px solid #c45bb080; border-radius: 2px; background: #c45bb02e; }
 .sleep-key-estimated { width: 12px; height: 12px; border: 1.5px solid #6f7ff5; border-radius: 3px; background: #6f7ff56b; }
 .sleep-chart-plot { position: relative; }
-.sleep-chart svg { display: block; overflow: visible; }
+/* Session AV lane 2 (fixb1): never wider than its plot, as the other measured charts (calculator, goal forecast, wealth
+   history): drawn at the measured width, so this only holds between a resize and the next measure, when the old width
+   made the page scroll sideways for a moment. */
+.sleep-chart svg { display: block; overflow: visible; max-width: 100%; height: auto; }
 .sleep-grid line { stroke: #7fc8ff1f; stroke-width: 1; }
 .sleep-grid text, .sleep-axis { fill: #bccae0; font-size: 14px; }
 .sleep-bar { fill: #6f7ff5; stroke: #0d1629; stroke-width: 1; }

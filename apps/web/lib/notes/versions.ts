@@ -40,3 +40,14 @@ export function restoreNoteVersion(record: Notes, noteId: string, versionId: str
   const next = updateNote(kept, noteId, {...(note.kind === 'daily' ? {} : {title: v.title || note.title}), body: v.body}, now);
   return {record: checked(next), undo: {before: [note], created: [], said: 'The note is back as it was.'}};
 }
+/**
+ * Review b1 #5 (privacy; Notion deletes history): one earlier version of a note, or all of them, deleted from this
+ * device — the words leave the notes record, so every later export and backup is without them. Undo puts them back.
+ */
+export function deleteNoteVersions(record: Notes, noteId: string, versionId?: string): {record: Notes; undo: NotesUndo} {
+  const removed = (record.versions ?? []).filter(v => v.noteId === noteId && (versionId === undefined || v.id === versionId));
+  if (!removed.length) throw new Error(versionId ? 'That version is no longer on this device.' : 'This note has no earlier versions.');
+  const gone = new Set(removed.map(v => v.id)), versions = (record.versions ?? []).filter(v => !gone.has(v.id)), next: Notes = {...record};
+  if (versions.length) next.versions = versions; else delete next.versions;
+  return {record: checked(next), undo: {before: [], created: [], said: removed.length === 1 ? 'The earlier version is back.' : 'The earlier versions are back.', versions: removed}};
+}

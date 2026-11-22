@@ -1715,6 +1715,7 @@
 /*  components/health/plus/evening-checkin.css  */
 :where(:root[data-text=large]) .checkin-logged:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .checkin-strip li > span:not(#\-), :where(:root[data-text=large]) .checkin-strip a:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .checkin-strip-day:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .checkin-row button:not(#\-) { font-size: calc(.9375rem * 1.125); }
 :where(:root[data-text=large]) .checkin-more > summary:not(#\-) { font-size: calc(.9375rem * 1.125); }
 :where(:root[data-text=large]) .checkin-parts select:not(#\-), :where(:root[data-text=large]) .checkin input:not(#\-), :where(:root[data-text=large]) .checkin textarea:not(#\-) { font-size: calc(1rem * 1.125); }
@@ -1851,6 +1852,9 @@
 :where(:root[data-text=large]) .help-page .keep-data .primary:not(#\-) { font-size: calc(15px * 1.125); }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) #your-ai > .eyebrow:not(#\-) { font-size: calc(15px * 1.125); } }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .help-page .help-topics-all:not(#\-) { font-size: calc(15px * 1.125); } }
+:where(:root[data-text=large]) .help-search-chain > p:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .help-search-chain-link:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .help-chain-note:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .help-updated:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/help/send-feedback.css  */
 :where(:root[data-text=large]) .send-feedback-add:not(#\-) { font-size: calc(15px * 1.125); }
@@ -3820,6 +3824,7 @@
 :where(:root[data-text=large]) .tasks-done-count:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .tasks-done-days:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .task-editor-check:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .task-timer:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .task-comments:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .tasks-nav-area h4:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .task-editor-paused:not(#\-) { font-size: calc(15px * 1.125); }

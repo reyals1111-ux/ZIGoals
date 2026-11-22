@@ -11002,6 +11002,9 @@
     .checkin h3:focus-visible:not(#\-) {
         outline-color: var(--cyan, #63e7ff)
     }
+    .checkin-strip li[data-today] > span:not(#\-), .checkin-strip li[data-today] a:not(#\-) {
+        outline-color: var(--cyan, currentColor)
+    }
     .checkin-strip .is-logged > span:not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--cyan, #63e7ff) 28%, transparent);
@@ -11733,6 +11736,16 @@
     }
     .help-status:not(#\-) {
         color: var(--accent-cyan-ink) !important
+    }
+    .help-search-chain:not(#\-) {
+        border-color: var(--line, #c2cbdd)
+    }
+    .help-search-chain-link:not(#\-) {
+        color: var(--text-strong, #0d0f14)
+    }
+    .help-chain-note:not(#\-) {
+        border-left-color: var(--brand-cyan, #accffa);
+        color: var(--text-secondary, #08111e)
     }
     .help-earlier > .help-earlier-lede:not(#\-) {
         color: var(--text-secondary, #08111e)
@@ -26743,6 +26756,34 @@
     .tasks-chart-bar:not(#\-) {
         background-image: none;
         background-color: var(--accent, currentColor)
+    }
+    .tasks-plan-task:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor;
+        color: inherit;
+        text-decoration-color: color-mix(in srgb, currentColor 35%, transparent)
+    }
+    .tasks-plan-task:hover:not(#\-) {
+        text-decoration-color: currentColor
+    }
+    .tasks-plan-task:focus-visible:not(#\-), .tasks-plan-here:focus-visible:not(#\-) {
+        outline-color: var(--accent, currentColor)
+    }
+    .tasks-plan-move[aria-pressed="true"]:not(#\-) {
+        outline-color: var(--accent, currentColor)
+    }
+    .tasks-plan-editor:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .tasks-day-column[data-drop]:not(#\-), .tasks-month td[data-drop]:not(#\-) {
+        outline-color: var(--line)
+    }
+    button.tasks-month-day:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: var(--accent, var(--line));
+        color: inherit
     }
 }
 /*  components/tasks/tasks-when.css  */

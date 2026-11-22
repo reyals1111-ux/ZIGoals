@@ -68,8 +68,11 @@ export const PAGE_NOTES: Record<PageArea, string> = {
 const NotesPanel = lazy(() => import('./ai-notes'));
 const NOTES_ANCHOR = 'zigi-notes', PACK_ANCHOR = 'zigi-pack', LOOK_ANCHOR = 'zigi-look', PAGE_SHARE_ANCHOR = 'zigi-page-share-title';
 /** A card that opens when the address names it (#zigi-notes, and #zigi-pack for ZIGi's /pack, Session V Part 10). */
-function useAnchoredCard(anchor: string) {
-  const [open, setOpen] = useState(false), card = useRef<HTMLDetailsElement>(null);
+export function useAnchoredCard(anchor: string) {
+  // Session AV lane 2 (ADR-045, zigi-voice-z:199): a card the address names is open in its first render. This body renders
+  // only in the browser (ai-settings-section.tsx loads it after the page's hydration), so the address is known there; the
+  // card used to open one effect later, a further render of the card after its first paint, on a page already late.
+  const [open, setOpen] = useState(() => typeof window !== 'undefined' && window.location.hash === `#${anchor}`), card = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     const follow = () => { if (window.location.hash !== `#${anchor}`) return; setOpen(true); requestAnimationFrame(() => card.current?.scrollIntoView({block: 'start'})); };
     follow(); window.addEventListener('hashchange', follow);

@@ -6,7 +6,10 @@
 .checkin-logged { font-weight: 650; font-size: 1rem; }
 .checkin-strip { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
 .checkin-strip li { min-width: 44px; }
-.checkin-strip li > span, .checkin-strip a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 8px; font-size: 1rem; }
+.checkin-strip li > span, .checkin-strip a { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 2px 4px; border-radius: 8px; font-size: 1rem; line-height: 1.15; }
+/* Review b1 #15: the day each box is ("M 16", "Today"). */
+.checkin-strip-day { font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.checkin-strip li[data-today] > span, .checkin-strip li[data-today] a { outline: 2px solid var(--cyan, currentColor); outline-offset: -2px; }
 .checkin-strip .is-logged > span { background: color-mix(in srgb, var(--cyan, #63e7ff) 28%, transparent); color: var(--text); }
 .checkin-strip .is-gap a { border: 1px dashed var(--text-secondary); color: var(--text-secondary); text-decoration: none; }
 .checkin-row { display: flex; flex-wrap: wrap; gap: 6px; }

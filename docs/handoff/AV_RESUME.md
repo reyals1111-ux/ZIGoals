@@ -26,17 +26,20 @@ Lane 2's own state is kept in this file's "Lane 2 — state" section on that bra
   every page but Settings 13–36 kB lighter; all 16 sync browser files green except `sign-in-codes-browser`, 2 of 2 alone,
   1 red in a full loaded run — watch it); CR-19 (`8a23eab9`); ten more competitors in COMPETITORS.md and LEDGER.md
   #176–#222 (`6926408c`).
-- Batch 1 integrated (merge commits, registries, corpus, Help, shards, theme sheets): lane2/tasks, lane2/habits,
-  lane2/journal, lane2/roadmap. Build of `115b134f` green; weights all inside (least: Settings 7.8 kB); unit suite green
-  but for the local-only pre-run11-setup. In progress: the batch's specs, then the fresh-agent review (scratchpad
-  review-b1/findings.md → QUALITY.md), then push.
-- Finished builders waiting to merge (batch 2): lane2/money (groups 5, 8, 10, 15, N12), lane2/body (groups 9, 12, N8,
-  N9), lane2/food (groups 4, 13, 16, N7 but #197). Their registries: `docs/review/session-av/lane2/<slug>.md` on their
-  branches (money: lib/av2-money-device-keys.ts; food: lib/av2-food-keys.ts; body: two keys evening-plan, body-extras).
-- Running builders: lane2/habits2 (#79–#81, q4 minors, N1, N2, N3, N5), lane2/food2 (#197, coach wiring), lane2/ci
-  (D36, D-SYNC, zigi-voice-z; may use the browser lock against :3101), lane2/sync (group 17, N6, N10).
-- Lead next: batch 1 specs → fixes → push; merge money/body/food with their registries (batch 2); PK-10; the group
-  answers' new parts for Journal; QUALITY.md lane 2 section.
+- Batch 1 on this branch (tasks, habits, journal, roadmap, CR-19, A45-1), pushed. Its spec run: 132 passed, 47 failed
+  (specs written unrun; strict-mode clashes after the merges and a few app bugs) → `lane2/fixb1` (helper) fixing.
+  Existing area specs: 566 passed; av-update:108's mock race fixed. Review (quality/lane2-b1.md): 1 Blocker (note
+  reminders re-read daily), 6 Major → `lane2/revb1` (helper) fixing. Then: merge both, build, rerun, push.
+- Batch 2 ready on the local branch `lane2/batch2` (worktree /home/user/zg-b2, not pushed): money, body, food,
+  food2, habits2, habits3, sync merged with registries, answers, corpus, Help (114 answers), shards, theme sheets;
+  typecheck clean, affected unit suites green. It joins this branch once batch 1's fixes are in; then one build and
+  its specs (all unrun) and a fresh-agent review.
+- Owner items from lane 2: the private-sync Worker must list the new extras sections (journal, money records,
+  workouts) before they sync (docs/review/session-av/lane2/sync.md); the visit report now draws two symptom charts
+  (body's and food's) — one should go.
+- Running: lane2/ci (D36, D-SYNC, zigi-voice-z), fixb1, revb1. Next after batch 2: LEDGER verdicts from the registry
+  files (E2), the next research round (item 4g), PK-10, polish with fresh eyes (Today, Health logging, Habits, Tasks,
+  Wealth → Spending).
 - Scripts (scratchpad): batch.sh (typecheck + build of HEAD in zg-wt; then start :3101 as its own background task),
   add_help.py (Help + static.ts), extract_help.py (Q/A from a registry), add_shards.sh (new specs to the suggested shard).
 

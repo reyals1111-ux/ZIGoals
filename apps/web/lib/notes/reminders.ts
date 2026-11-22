@@ -1,26 +1,32 @@
 import {instantAt} from '../zone-time';
+import {NOTE_REMIND, NOTE_REMINDERS_PER_NOTE, reminderKey, savedDay} from './reminder-anchors';
 import {parseTaskLine} from '../tasks/parse';
 import {noteName, type Note, type Notes} from './schema';
 
 /**
  * Session AV lane 2 (tasks, LEDGER #31; Notion's "@remind" inside a page): a reminder written in a note's own text. A line
  * with "@remind", "!remind" or "⏰" and a day or a time after it — "@remind tomorrow 9:00 call the plumber", "⏰ friday
- * 18:00", "@herinner morgen 9:00" — is a reminder at that moment (a day alone is 09:00; a time alone is today). The words
- * left after the moment say what it is about (else the note's name). Nothing is stored apart from the note's text: edit
- * or remove the line and the reminder changes with it. Pure: `today` and the zone come in.
+ * 18:00", "@herinner morgen 9:00" — is a reminder at that moment (a day alone is 09:00; a time alone is that day). The words
+ * left after the moment say what it is about (else the note's name). Pure: `today` and the zone come in.
+ *
+ * Review b1 #1: relative words are read against the day the line was written, never against today — else "tomorrow"
+ * slides forward every day and never goes off. That day is the note's `remindFrom` entry for the line's words (written by
+ * updateNote when a save brings the line in, kept while the line stays the same), else the day of the note's last save
+ * (a note no save of this build has touched: an older one, an import, a capture). Never later than today.
  */
-export const NOTE_REMIND = /(?:^|\s)(?:@remind|!remind|@herinner|⏰)\s+(.+)$/iu;
+export {NOTE_REMIND} from './reminder-anchors';
 export const NOTE_REMIND_CLOCK = '09:00', MAX_NOTE_REMINDERS = 60;
 export type NoteReminder = {note: Note; line: number; day: string; time: string; at: number; what: string; key: string};
 /** The reminders in one note's text, in the order written. */
 export function remindersInNote(note: Note, today: string, zone: string): NoteReminder[] {
-  const out: NoteReminder[] = [];
+  const out: NoteReminder[] = [], saved = savedDay(note, zone);
   note.body.split(/\r\n|\r|\n/).forEach((raw, line) => {
     const m = NOTE_REMIND.exec(raw);
-    if (!m || out.length >= 20) return;
-    const read = parseTaskLine(m[1]!.trim(), today);
+    if (!m || out.length >= NOTE_REMINDERS_PER_NOTE) return;
+    const written = note.remindFrom?.[reminderKey(m[1]!)] ?? saved, from = written && written <= today ? written : today;
+    const read = parseTaskLine(m[1]!.trim(), from);
     if (!read.due && !read.time) return;
-    const day = read.due ?? today, time = read.time ?? NOTE_REMIND_CLOCK;
+    const day = read.due ?? from, time = read.time ?? NOTE_REMIND_CLOCK;
     out.push({note, line, day, time, at: instantAt(day, time, zone), what: read.title || noteName(note), key: `${note.id}:${line}:${day}T${time}`});
   });
   return out;

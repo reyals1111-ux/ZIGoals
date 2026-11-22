@@ -1,4 +1,6 @@
 import {wallClock} from '../../zone-time';
+import {fromCents} from '../../money-log/engine';
+import {formatCurrencyAmount} from '../../visual-format';
 import {addLocalDays} from '../../local-date';
 import {noteReminders} from '../../notes/reminders';
 import {openTasks, viewTasks} from '../../tasks/engine';
@@ -150,7 +152,8 @@ function payPeriod(a: Ask): LocalReply | null {
   if (budgets === undefined) return null;
   if (!budgets?.budgets.length) return answer(say(a.lang, 'No budgets yet. Add one in Wealth → Budgets; under “Pay periods and fills” choose the day your budget month starts.', 'Nog geen budgetten. Voeg er een toe in Wealth → Budgets; kies onder “Pay periods and fills” de dag waarop je budgetmaand begint.'), calls);
   const rows = periodRows(a.env.moneyLog?.entries ?? [], budgets, a.extra.periods ?? {version: 1}, a.today);
-  const cash = (cents: number, currency: string) => money(cents, currency);
+  // Review b1 #16: a Dutch answer writes its money the Dutch way ("€ 62,90"), as its dates are.
+  const cash = (cents: number, currency: string) => a.lang === 'nl' ? formatCurrencyAmount(fromCents(cents), currency, 'nl-NL') : money(cents, currency);
   return answer([say(a.lang, 'Left in each budget, in its own period:', 'Over in elk budget, in zijn eigen periode:'), ...rows.slice(0, 10).map(r => `• ${clean(r.budget.category, 40)}: ${r.left >= 0 ? cash(r.left, r.budget.currency) : `-${cash(-r.left, r.budget.currency)}`} ${say(a.lang, 'of', 'van')} ${cash(r.amount, r.budget.currency)} (${dayIn(a.lang, r.start, a.today)} – ${dayIn(a.lang, r.end, a.today)})`)].join('\n'), calls);
 }
 

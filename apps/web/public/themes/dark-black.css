@@ -9723,6 +9723,14 @@
         background-image: none;
         background-color: var(--accent, currentColor)
     }
+    .tasks-plan-task:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    button.tasks-month-day:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
     .tasks-nav-item:not(#\-):not(#\-) {

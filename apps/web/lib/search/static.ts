@@ -306,6 +306,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av2-habits-can-i-meditate-without-a-set-length", "Can I meditate without a set length?"],
   ["av2-habits-can-a-habit-be-a-few-times-in-any-few-da", "Can a habit be a few times in any few days?"],
   ["av2-habits-can-i-bring-my-habits-from-habitbull-or", "Can I bring my habits from HabitBull or Tickmate?"],
+  ["av2-chain-help", "Why don’t I see answers about staking, wallets or Earn?"],
   ["your-ai-what", "What does ZIGi send, and to whom?"],
   ["your-ai-writes", "Can ZIGi change my records?"],
   ["your-ai-cost", "What does it cost?"],

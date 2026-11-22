@@ -70,6 +70,14 @@
 .help-search { display: grid; gap: 6px; margin: 0 0 16px; max-width: 640px; }
 .help-search input { min-height: 44px; }
 .help-search p:empty { display: none; }
+/* Session AV lane 2 (PK-10): until the chain is chosen, Help search lists the matching chain answers under the count,
+   with the note on how to choose it; each is a 44 px link that opens its answer in place. Theme colours only. */
+.help-search-chain { display: grid; gap: 4px; padding: 10px 14px; border: 1px solid var(--line, #25334f); border-radius: 12px; }
+.help-search-chain > p { margin: 0; font-size: 14px; }
+.help-search-chain ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.help-search-chain-link { display: flex; align-items: center; min-height: 44px; font-size: 15px; font-weight: 600; color: var(--text-strong, #f4f8ff); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+/* The note at the top of a chain answer a link opened before the chain was chosen. */
+.help-chain-note { margin: 0 0 10px; padding: 8px 12px; border-left: 3px solid var(--brand-cyan, #accffa); font-size: 14px; color: var(--text-secondary, #c2d0e5); }
 /* Session AK G2 (RELEASE_REVIEW R24): "Earlier updates" holds the release notes after What's new; its sections keep the panel look. */
 .help-earlier { margin-top: 14px; scroll-margin-top: 80px; }
 .help-earlier > .help-section { margin: 22px 0 0; }

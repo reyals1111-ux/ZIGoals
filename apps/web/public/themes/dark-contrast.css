@@ -10927,6 +10927,9 @@
     .checkin h3:focus-visible:not(#\-):not(#\-) {
         outline-color: color-mix(in srgb, var(--cyan, #63e7ff) 40%, #fff)
     }
+    .checkin-strip li[data-today] > span:not(#\-):not(#\-), .checkin-strip li[data-today] a:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan, currentColor) 40%, #fff)
+    }
     .checkin-strip .is-logged > span:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--cyan, #094953) 28%, transparent);
@@ -11588,6 +11591,16 @@
     }
     .help-status:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--accent-cyan, #9ee8f8) 25%, #fff) !important
+    }
+    .help-search-chain:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #969696) 40%, #fff)
+    }
+    .help-search-chain-link:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-strong, #f8f8f8) 25%, #fff)
+    }
+    .help-chain-note:not(#\-):not(#\-) {
+        border-left-color: color-mix(in srgb, var(--brand-cyan, #accffa) 40%, #fff);
+        color: color-mix(in srgb, var(--text-secondary, #dadada) 25%, #fff)
     }
     .help-earlier > .help-earlier-lede:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--text-secondary, #dadada) 25%, #fff)
@@ -25679,6 +25692,34 @@
     .tasks-chart-bar:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--accent, currentColor) 30%, #000)
+    }
+    .tasks-plan-task:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor;
+        color: inherit;
+        text-decoration-color: color-mix(in srgb, currentColor 35%, transparent)
+    }
+    .tasks-plan-task:hover:not(#\-):not(#\-) {
+        text-decoration-color: currentColor
+    }
+    .tasks-plan-task:focus-visible:not(#\-):not(#\-), .tasks-plan-here:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--accent, currentColor) 40%, #fff)
+    }
+    .tasks-plan-move[aria-pressed="true"]:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--accent, currentColor) 40%, #fff)
+    }
+    .tasks-plan-editor:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-day-column[data-drop]:not(#\-):not(#\-), .tasks-month td[data-drop]:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    button.tasks-month-day:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: var(--accent, var(--line));
+        color: inherit
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {

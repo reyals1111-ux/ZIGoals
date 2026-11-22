@@ -25,7 +25,9 @@ for (const theme of THEMES) test(`${theme}: a repeating note and the daily note 
   const form = fold.getByRole('form', {name: 'A new repeating note'});
   await form.getByLabel('Title').fill('Fictional week plan');
   await expect(form.getByRole('radio', {name: 'Every week'})).toBeChecked();
-  await form.getByLabel('On', {exact: true}).selectOption({label: 'Monday'});
+  // Session AV lane 2 (the <select> inside its <label> adds its options' words to the label text; the combobox's own name
+  // is "On", deliberate)
+  await form.getByRole('combobox', {name: 'On', exact: true}).selectOption({label: 'Monday'});
   await form.getByLabel('Its words').fill('Week of {date}\nThree things:');
   const findings = await axe(page, fold);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);

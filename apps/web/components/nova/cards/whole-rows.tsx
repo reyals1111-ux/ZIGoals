@@ -30,7 +30,7 @@ import './whole-rows.css';
  * (the opening ended late, lazy parts and answers arrived seconds late). So the fitter keeps what its last measure read
  * (the same lists, the same row elements, each box's size and overflow, each list's own size) and its answer: a render or
  * a resize that changed none of it reads those few numbers and leaves the page alone. A change of content (the
- * MutationObserver) and the fonts always measure. The fit's own writes (`hidden`, the last line's words) are not content,
+ * MutationObserver) and the fonts' arrival after the last measure always measure. The fit's own writes (`hidden`, the last line's words) are not content,
  * nor is an attribute written again with the value it had. (Measured on the Showcase at 1440 x 900: the browser lays the
  * whole page out for each step, about 40 ms on a processor-drawn page, so the steps a real change still takes are the
  * cost that is left: about 25 steps while NOVA opens.)
@@ -53,6 +53,8 @@ import './whole-rows.css';
  */
 type Member = {
   wrap: HTMLElement; list: HTMLElement; more: HTMLElement; min: number; keep: 'first' | 'last'; extra: number; collapse: boolean;
+  /** The last line's words for `hidden` rows not shown and `shown` shown: the very words the list renders for that answer. */
+  words: (hidden: number, shown: number) => string;
   report: (hidden: number, shown: number, line: boolean) => void;
 };
 type Fitter = {members: Set<Member>;
@@ -65,7 +67,9 @@ type Fitter = {members: Set<Member>;
    * the box's short mark, the last line's words), an attribute written again with the value it had (React writes a
    * field's `name` and `type` again on every render), or a field's `name` (it never changes a size).
    */
-  own: (record: MutationRecord) => boolean};
+  own: (record: MutationRecord) => boolean;
+  /** Whether the last measure ran before the page's fonts were all in (or none ran yet): their arrival must measure again. */
+  fontsPending: () => boolean};
 /** What a measure read and answered: while none of it has changed, the answer stands. */
 type Fitted = {lists: readonly Member[]; rows: readonly (readonly HTMLElement[])[]; boxes: readonly HTMLElement[]; sizes: readonly number[]};
 const sameItems = <T,>(a: readonly T[], b: readonly T[]) => a.length === b.length && a.every((x, i) => x === b[i]);
@@ -73,17 +77,20 @@ const sameItems = <T,>(a: readonly T[], b: readonly T[]) => a.length === b.lengt
 const sizesOf = (boxes: readonly HTMLElement[], lists: readonly Member[]) => [...boxes.flatMap(b => [b.clientHeight, b.clientWidth, b.scrollHeight]), ...lists.flatMap(m => [m.wrap.offsetHeight, m.wrap.offsetWidth])];
 const BODY = '.nova-widget[data-holo] .nova-widget-body';
 const setHidden = (el: HTMLElement, hidden: boolean) => { if (el.hidden !== hidden) el.hidden = hidden; };
+const setWords = (el: HTMLElement, words: string) => { if (el.textContent !== words) el.textContent = words; };
 const rowsOf = (list: HTMLElement) => Array.from(list.children).filter((el): el is HTMLElement => el instanceof HTMLElement && !el.hasAttribute('data-wr-keep'));
 const over = (el: HTMLElement) => el.scrollHeight - el.clientHeight;
 
 function createFitter(): Fitter {
   const members = new Set<Member>();
-  let busy = false, fitted: Fitted | null = null;
+  let busy = false, fitted: Fitted | null = null, fontsIn = false;
   const measure = (force = false) => {
     if (busy) return;
     const lists = [...members].filter(m => m.wrap.isConnected).sort((a, b) => a.wrap.compareDocumentPosition(b.wrap) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
     const first = lists[0];
     if (!first) { fitted = null; return; }
+    // Session AV lane 2 (ADR-045 D36): whether this measure reads the page with its fonts all in.
+    fontsIn = typeof document !== 'undefined' && document.fonts?.status === 'loaded';
     busy = true;
     try {
       const rows = lists.map(m => rowsOf(m.list)), all = rows.map(r => r.length);
@@ -106,10 +113,17 @@ function createFitter(): Fitter {
       }
       if (!force && sameRows() && sameItems(fitted!.sizes, sizesOf([...boxes], lists))) return;
       // `bare`: no "+N more" line at all (the measure's base, and the last resort below).
+      // Session AV lane 2 (ADR-045 D36): the last line carries its words for the counts being asked, so each question is
+      // asked of the very panel that would be painted. Its words used to arrive only with the render after the answer: the
+      // first measure of a list that had to drop rows read an empty last line (3 px instead of 23), and the next frame
+      // searched the whole list again (on the Showcase's opening, the Habits panel: four more full-page layouts of about
+      // 200 ms each at 4x CPU, inside the opening's 2.1 s). The line holds its words as its only child, plain text: React
+      // sets that as the element's text, compares only its own props, and writes these same words with the answer.
       const apply = (shown: readonly number[], bare = false) => lists.forEach((m, i) => {
-        const n = all[i]!, k = shown[i]!;
+        const n = all[i]!, k = shown[i]!, hidden = n - k + m.extra;
         rows[i]!.forEach((el, r) => setHidden(el, !rowShown(r, n, k, m.keep)));
-        setHidden(m.more, bare || n - k + m.extra <= 0);
+        setWords(m.more, hidden > 0 ? m.words(hidden, k) : '');
+        setHidden(m.more, bare || hidden <= 0);
         setHidden(m.wrap, m.collapse && k === 0 && n > 0);
       });
       let shown = all, line = true;
@@ -120,19 +134,25 @@ function createFitter(): Fitter {
           // Rows leave from the end, so a row of a single list that stays is never hidden and shown again on the way (it
           // would start its one arrival animation again while its widget is being made).
           const base = new Map<HTMLElement, number>([...boxes].map(b => [b, 0])), fits = () => [...boxes].every(b => over(b) <= base.get(b)!);
-          const specs = lists.map((m, i) => ({rows: all[i]!, min: m.min})), search = () => fitWholeRows(specs, counts => { apply(counts); return fits(); });
+          // Session AV lane 2 (ADR-045 D36): within one search an answer is never asked twice. The same counts write the same
+          // panel (rows, line and words), so the answer read once stands; each question asked again cost the browser a layout
+          // of the whole page (the search asked "every row" again, and the answer was checked once more after it).
+          let known = new Map<string, boolean>([[all.join(), false]]);
+          const ask = (counts: readonly number[]) => { const key = counts.join(), was = known.get(key); if (was !== undefined) return was; apply(counts); const now = fits(); known.set(key, now); return now; };
+          const specs = lists.map((m, i) => ({rows: all[i]!, min: m.min})), search = () => fitWholeRows(specs, ask);
           shown = search();
           apply(shown);
-          if (!fits()) {
+          if (!ask(shown)) {
             // Still too tall at every list's minimum. What runs past a box with no row at all is not the rows' doing:
             // measure that, and fit again against it (only the rows are ever blamed).
             apply(all.map(() => 0), true);
             let own = false;
             for (const b of boxes) { const o = Math.max(0, over(b)); base.set(b, o); own ||= o > 0; }
+            known = new Map(); // against the new base every answer is asked afresh
             if (own) shown = search();
             apply(shown);
             // And if the rows at their minimum and the line still do not fit: the rows stay whole and the line gives way (never a cut line).
-            if (!fits()) { apply(shown, true); line = !fits(); }
+            if (!ask(shown)) { apply(shown, true); line = !fits(); }
           }
         }
       }
@@ -158,7 +178,7 @@ function createFitter(): Fitter {
     if (typeof requestAnimationFrame !== 'function') return run();
     if (!frame) frame = requestAnimationFrame(run);
   };
-  return {members, measure, soon, own};
+  return {members, measure, soon, own, fontsPending: () => !fontsIn};
 }
 
 const GroupContext = createContext<Fitter | null>(null);
@@ -195,7 +215,11 @@ function useFitting(fitter: Fitter, anchor: {current: HTMLElement | null}, on: b
     const change = typeof MutationObserver === 'undefined' ? null : new MutationObserver(changed);
     resize?.observe(body);
     change?.observe(body, {childList: true, subtree: true, characterData: true, attributes: true, attributeOldValue: true});
-    void document.fonts?.ready.then(() => { if (live) fitter.soon(true); });
+    // Session AV lane 2 (ADR-045 D36): the fonts' arrival measures only when the last measure came before it. `ready` is
+    // already settled when the fonts were in before the panel was (the usual case: NOVA's own fonts load with the app), and
+    // that forced a whole new search of a list just fitted with the same fonts (on the Showcase's opening, the Habits panel
+    // again: two more full-page layouts of about 180 ms each at 4x CPU).
+    void document.fonts?.ready.then(() => { if (live && fitter.fontsPending()) fitter.soon(true); });
     return () => { live = false; cancelAnimationFrame(frame); resize?.disconnect(); change?.disconnect(); };
   }, [fitter, anchor, on]);
 }
@@ -239,7 +263,7 @@ export type WholeRowsProps = {
   children: ReactNode;
 };
 export function WholeRows({as = 'ul', className = '', wrapClassName = '', head, more, extra = 0, min = 0, keep = 'first', collapse = false, initial, limit = false, inline = false, children, ...list}: WholeRowsProps) {
-  const group = useContext(GroupContext), [own] = useState(createFitter), fitter = group ?? own;
+  const group = useContext(GroupContext), [own] = useState(createFitter), fitter = group ?? own, say = useRef(more);
   const wrap = useRef<HTMLElement | null>(null), listEl = useRef<HTMLElement | null>(null), moreEl = useRef<HTMLElement | null>(null);
   const [{setWrap, setList, setMore, setBoth}] = useState(() => ({
     setWrap: (el: HTMLElement | null) => { wrap.current = el; }, setList: (el: HTMLElement | null) => { listEl.current = el; }, setMore: (el: HTMLElement | null) => { moreEl.current = el; },
@@ -250,9 +274,11 @@ export function WholeRows({as = 'ul', className = '', wrapClassName = '', head, 
   const [fit, setFit] = useState<{hidden: number; shown: number; line: boolean} | null>(null);
   // Before the first measure: the rows rendered, and what the widget holds beyond them.
   const state = fit ?? {hidden: all.length - first + extra, shown: first, line: true};
+  // This render's `more`, for the words the fitter writes (set before any measure of this commit reads it).
+  useIsoLayoutEffect(() => { say.current = more; });
   useIsoLayoutEffect(() => {
     if (!wrap.current || !listEl.current || !moreEl.current) return;
-    const m: Member = {wrap: wrap.current, list: listEl.current, more: moreEl.current, min, keep, extra, collapse,
+    const m: Member = {wrap: wrap.current, list: listEl.current, more: moreEl.current, min, keep, extra, collapse, words: (hidden, shown) => (say.current ?? ((h, s) => moreWords(h, {shown: s})))(hidden, shown),
       report: (hidden, shown, line) => setFit(was => was && was.hidden === hidden && was.shown === shown && was.line === line ? was : {hidden, shown, line})};
     fitter.members.add(m);
     return () => { fitter.members.delete(m); };

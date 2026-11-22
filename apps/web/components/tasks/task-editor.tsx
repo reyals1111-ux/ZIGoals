@@ -16,6 +16,8 @@ import type {TaskPatch} from './use-task-list';
 const HabitLinkField = lazy(() => import('./habit-link-field'));
 /** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
 const TaskAttachments = lazy(() => import('./task-attachments'));
+/** Review b1 #14: start or stop the task's timer from its editor (its own chunk). */
+const TaskTimer = lazy(() => import('./task-timer'));
 /** Session AV (1c, q1 #1): the editor offers up to three reminders a task (the record keeps up to five). */
 const MAX_EDITOR_REMINDERS = 3;
 
@@ -115,6 +117,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     <label className="task-editor-check"><input type="checkbox" checked={parallel} onChange={e => setParallel(e.target.checked)} /> <span>Runs in the background (a wash, a download): not added to the day’s minutes</span></label>
     <label className="field"><span>Time spent (minutes) — optional</span><input inputMode="numeric" autoComplete="off" value={spent} placeholder="0" aria-invalid={spentValue === 'invalid' || undefined} aria-describedby={`${id}-spent`} onChange={e => setSpent(e.target.value)} />
       <small id={`${id}-spent`} className={spentValue === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={spentValue === 'invalid' ? 'alert' : undefined}>{spentValue === 'invalid' ? 'Enter whole minutes, for example 25.' : typeof minutesValue === 'number' && typeof spentValue === 'number' ? `Planned ${minutesWords(minutesValue)}, spent ${minutesWords(spentValue)}.` : 'The timer in Tasks → Today adds to this; you can also type it.'}</small></label>
+    <Suspense fallback={null}><TaskTimer task={task} onStopped={(m, at) => { if (at) base.current = at; setSpent(s => String((/^\d{1,5}$/.test(s.trim()) ? Number(s) : task.spent ?? 0) + m)); }} /></Suspense>
     {objectives.length > 0 && <label className="field"><span>Week objective</span><select value={objective} onChange={e => setObjective(e.target.value)}><option value="">None</option>{objectives.map(o => <option key={o.id} value={o.id}>{o.title}{o.week !== weekNow ? ` (week of ${formatDate(o.week, {year: false})})` : ''}</option>)}</select></label>}
     {due && reminders.length > 0 && reminders.length < MAX_EDITOR_REMINDERS && reminders.every(r => r !== '') && <p className="task-editor-more-reminders"><button type="button" className="text-link" onClick={() => setReminders(rs => [...rs, ''])}>+ Add another reminder</button></p>}
     {record && <label className="field"><span>Project</span><select value={projectId} onChange={e => { setProjectId(e.target.value); setSectionId(''); }}><option value="">Inbox</option>{(record.projects ?? []).filter(p => !p.archived || p.id === projectId).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}

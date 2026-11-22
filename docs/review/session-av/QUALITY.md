@@ -47,3 +47,14 @@ Their tables, unedited: [q1 Tasks](quality/q1.md), [q2 Money](quality/q2.md), [q
 
 - Unit: the full vitest suite after the fixes (see the STATUS entry for the run); typecheck clean; lint 0 errors.
 - Browser: every `tests/av-*.spec.ts` on a production build of the fixed head, then CI (ADR-045 D-CI entries).
+
+## Lane 2 (owner follow-up 4): fresh-agent checks per batch
+
+| batch | features | reviewer's table | Blocker | Major | Minor | status |
+|---|---|---|---|---|---|---|
+| 1 (Tasks, Habits and mind part 1, Journal and notes, roadmap: task attachments, ZIGi's hello, chess; CR-19, A45-1) | about 40 | [lane2-b1](quality/lane2-b1.md) | 1 | 6 | 11 | being fixed on `lane2/revb1` before batch 2 joins (follow-up 4, item 5) |
+
+Passed everywhere in batch 1: no sideways scroll and nothing cut on the Tasks views, Notes, Journal, Habits and Journey;
+axe 0 serious/critical on those routes and the chess game, the evening check-in and the journal calendar; keyboard play
+of chess and the check-in's focus order; the sync engine absent from Today's and Tasks' first scripts and present in
+Settings'; the six round-trip suites.
