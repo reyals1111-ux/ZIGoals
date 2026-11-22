@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {axe, THEMES, applyTheme, offline, settle} from './p6-helpers';
 import {HEALTH_EXTRAS_KEY} from '../lib/health-extras';
 import {NOTIFY_KEY} from '../lib/notify/prefs';
+import {openDrinkDetails, openPhoneRow} from './phone-length-folds';
 
 /**
  * Session AV lane 2 (health r3; LEDGER #280–#283, Waterllama): Health → Water. "Your drinks" makes Orange juice (Juice,
@@ -20,6 +21,10 @@ for (const theme of THEMES) test(`${theme}: own drinks, energy from drinks, a ti
   await page.evaluate(() => localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})));
   await page.goto('/app/health'); await settle(page);
   const water = page.getByRole('region', {name: 'Water journal'});
+  // Session AV lane 2 (phone-length, deliberate): on a phone "Your drinks", the reminders and the tip's switch are one row
+  // at the card's end (tests/phone-length-folds.ts: there and closed on a phone, absent at 1440); it is opened as a person
+  // would, then the same part is checked as before.
+  await openPhoneRow(page, 'Your drinks, reminders and tips', water);
   await expect(water.locator('.r3-water')).toBeVisible();
 
   // Your drinks: the empty state teaches, then Orange juice is made.
@@ -53,6 +58,8 @@ for (const theme of THEMES) test(`${theme}: own drinks, energy from drinks, a ti
   // A drink typed with its energy.
   const entry = water.getByRole('form', {name: 'Water entry'});
   await entry.getByLabel('Water amount', {exact: true}).fill('330');
+  // Session AV lane 2 (phone-length, deliberate): on a phone the drink and its energy sit in a fold under the amount.
+  await openDrinkDetails(page);
   // Session AV lane 2 (fixb3: a label around a list takes its options' words, so an exact label never matched, deliberate):
   // the list named exactly Drink.
   await entry.getByRole('combobox', {name: 'Drink', exact: true}).selectOption('soft drink');

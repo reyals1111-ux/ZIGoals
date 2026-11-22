@@ -8,6 +8,7 @@ import {audit} from './a11y-audit';
 import {openMealLog} from './phone-nav';
 import {chooseChain} from './chain-choice';
 import {pressZigi} from './zigi-open';
+import {openDrinkDetails, openPhoneRow} from './phone-length-folds';
 
 /**
  * Session V Part 16, the accessibility pass for people using a screen reader and for AI agents that drive a page by
@@ -49,6 +50,11 @@ test('food log, water and counters', async ({page}) => {
   await clean(sheet ?? page.getByRole('form', {name: 'Log a meal', exact: true}), 'Log a meal');
   if (sheet) { await page.keyboard.press('Escape'); await expect(sheet).toBeHidden(); }
   const water = page.getByRole('region', {name: 'Water journal'});
+  // Session AV lane 2 (phone-length, deliberate): on a phone the card's settings row ("Your drinks, reminders and tips")
+  // and its drink details are folds (tests/phone-length-folds.ts: there and closed on a phone, absent on a computer); both
+  // are opened first, so the whole card is audited as before.
+  await openPhoneRow(page, 'Your drinks, reminders and tips', water);
+  await openDrinkDetails(page);
   await clean(water, 'Water journal');
   // The reminder field is named by its label alone; its note is the description.
   const reminder = water.getByLabel('Reminder time — on this device', {exact: true});

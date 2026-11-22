@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {entry, moneyLog, noSideScroll, readRecord, seedDevice, spending} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
+import {openPhoneRow} from './phone-length-folds';
 import {MONEY_LOG_KEY, type MoneyLog} from '../lib/money-log/schema';
 import {MONEY_MORE_KEY, type MoneyMore} from '../lib/money-more/schema';
 
@@ -31,7 +32,12 @@ for (const theme of THEMES) test(`${theme}: a shared cost, settle up, money lent
   await form.getByRole('button', {name: 'Cancel edit'}).click();
   await expect(box.locator('.spending-bars')).toContainText('€20.00');
   // Between you and others: Sam settles up.
+  // Session AV lane 2 (phone-length, deliberate): on a phone "Between you and others" is one row of Spending that says what
+  // it holds (tests/phone-length-folds.ts: there and closed on a phone, absent at 1440); it is opened, then checked as before.
+  if (isMobile) await expect(box.locator('.phone-fold-toggle').filter({hasText: 'Between you and others'})).toContainText('1 person owes you');
+  await openPhoneRow(page, 'Between you and others', box);
   const people = box.locator('.people-money');
+  await expect(people).toBeVisible();
   await expect(people).toContainText('Sam owes you €20.00');
   await people.getByRole('button', {name: 'Settle up with Sam: €20.00'}).click();
   await expect.poll(async () => (await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).entries.find(e => e.kind === 'income')).toMatchObject({amount: '20.00', excluded: true, category: 'Refund'});

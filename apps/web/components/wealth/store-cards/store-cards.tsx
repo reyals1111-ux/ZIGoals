@@ -5,6 +5,7 @@ import {CARD_FORMATS, STORE_CARDS, type CardFormat, type StoreCard} from '../../
 import {FORMAT_WORDS, addCard, cardIssue, removeCard} from '../../../lib/store-cards/cards';
 import {barRuns, encodeBars, formatFromScan, guessFormat} from '../../../lib/store-cards/barcode';
 import {removeWithUndo} from '../../ui/remove-with-undo';
+import {PhoneFold} from '../../phone/phone-fold';
 import './store-cards.css';
 const QrCode = lazy(() => import('../../qr/qr-code'));
 
@@ -61,7 +62,10 @@ export default function StoreCards() {
     finally { setReading(false); if (photo.current) photo.current.value = ''; }
   };
   const list = cards.data.cards;
-  return <section className="store-cards" aria-labelledby={`${id}-t`}>
+  // Session AV lane 2 (phone-length): on a phone one row of Spending that says what it holds and opens in place (Wealth's
+  // pinned screens, tests/pillar-phone-length.spec.ts); elsewhere as it was. The till dialog opens from Show, inside it.
+  const holds = list.length ? `${list.length} ${list.length === 1 ? 'card' : 'cards'} to show at the till` : 'Loyalty and club cards, shown at the till';
+  return <PhoneFold label="Store and club cards" detail={holds}><section className="store-cards" aria-labelledby={`${id}-t`}>
     <h3 id={`${id}-t`} ref={heading} tabIndex={-1}>Store and club cards</h3>
     {list.length ? <ul className="store-cards-list">{list.map(c => <li key={c.id}>
       <span className="store-cards-what"><strong>{c.name}</strong> <span className="fine">· {FORMAT_WORDS[c.format]}{c.note ? ` · ${c.note}` : ''}</span></span>
@@ -92,5 +96,5 @@ export default function StoreCards() {
         <form method="dialog"><button type="submit" className="primary" autoFocus>Done</button></form>
       </div>}
     </dialog>
-  </section>;
+  </section></PhoneFold>;
 }
