@@ -171,11 +171,12 @@ function bestDaysAnswer(a: Asked): LocalReply | null {
   if (!(/\b(?:when|which days?|what days?)\b.*\b(?:set|reach\w*|get|got)\b.*\b(?:personal )?(?:bests|records|prs)\b|\bdays? of my (?:personal )?bests\b/.test(a.f) || /\b(?:wanneer|op welke dagen?)\b.*\b(?:persoonlijke )?records\b.*\b(?:gezet|gehaald|zette)\b|\b(?:wanneer|op welke dagen?)\b.*\b(?:zette|haalde)\b.*\brecords\b/.test(a.f))) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const w = logOf(a), lang = a.lang, today = a.env.healthDay, seen = new Set<string>(), rows: string[] = [];
-  for (const x of finished(w)) for (const e of x.exercises) {
+  // Review B6P-7: at most four, across every workout (the break leaves both loops).
+  workouts: for (const x of finished(w)) for (const e of x.exercises) {
     if (seen.has(e.exerciseId) || e.measure !== 'weight-reps') continue; seen.add(e.exerciseId);
     const h = exerciseHistory(w, e.exerciseId);
     if (h?.bestWeightKg && h.bestDays.bestWeightKg) rows.push(`${h.name} ${lang === 'nl' ? kgNl(h.bestWeightKg) : kg(h.bestWeightKg)} (${dayIn(lang, h.bestDays.bestWeightKg, today)})`);
-    if (rows.length === 4) break;
+    if (rows.length >= 4) break workouts;
   }
   if (!rows.length) return answer(say(lang, 'No best with a weight yet. After your first workouts each exercise in Health → Workouts → "Exercises and how-tos" shows its bests with the day you set them.', 'Nog geen record met een gewicht. Na je eerste workouts toont elke oefening in Health → Workouts → "Exercises and how-tos" zijn records met de dag waarop je ze zette.'), CALLS);
   return answer(say(lang, `Your heaviest sets and their days: ${list(rows, 'en')}. Light weeks and workouts before a fresh start are left out; each exercise's card shows all its bests.`, `Je zwaarste sets en hun dagen: ${list(rows, 'nl')}. Lichte weken en workouts vóór een nieuwe start tellen niet mee; de kaart van elke oefening toont al zijn records.`), CALLS);
