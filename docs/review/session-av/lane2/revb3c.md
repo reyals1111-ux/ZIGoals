@@ -58,3 +58,14 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
 - **Tests:** a sealed letter's words, follow-up question and answer never appear in the tool's output; it is counted;
   an open letter is read like any entry on its day; sharing off unchanged.
 - **Help/corpus:** none (the tool output shape only gains two optional keys; the NOVA corpus is untouched).
+
+### B3C-14 (Minor): journal search
+
+- **Verdict:** confirmed and fixed; the same leak was also in Search everything (and NOVA's search over this device,
+  `lib/search/notes-everything.ts`), fixed with it.
+- **Fix:** `filterEntries(journal, filter, today, readEarly)` matches a sealed letter's words only after "Read it now"
+  on this visit (the page passes its `readEarly` set) or from its day; its tags (shown on the folded row), its day and
+  the calendar still find it. `readEverythingSources` reads `unsealed(entries, today)` for the journal.
+- **Tests:** `lib/journal/revb3c-search.test.ts` (jsdom): words find nothing, an opened letter is found, tags and day
+  still find it, Read it now and its day make the words searchable; Search everything gives no hit from a sealed letter.
+- **Help/corpus:** none.

@@ -17,7 +17,7 @@ const records = {[JOURNAL_KEY]: {version: 1, todayLines: true, entries: [
   {id: 'journal_fictional-plain-0001', date: '2026-11-13', text: 'A fictional plain entry.', createdAt: '2026-11-13T09:00:00.000Z', template: 'letter-future-you'},
 ]}};
 
-test('Journal: no On this day and no answers from a folded letter', async ({page}) => {
+test('Journal: no On this day, no answers and no search hit from a folded letter', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   await seedDevice(page, records);
   await page.goto('/app/journal'); await hydrated(page);
@@ -30,6 +30,15 @@ test('Journal: no On this day and no answers from a folded letter', async ({page
   await expect(fold.locator('.prompt-answers-sealed')).toHaveText('3 letters are folded away, the next until Apr 14, 2027; each letter’s words show here from its day.');
   await expect(fold).toContainText('A fictional plain entry.');
   await expect(fold).not.toContainText(SECRET);
+  // B3C-14: the search finds no row by a folded letter's words; after Read it now it does.
+  const search = page.getByLabel('Search your journal');
+  await search.fill(SECRET);
+  await expect(page.locator('ol.journal-entries > li')).toHaveCount(0);
+  await search.fill('');
+  const row = page.locator('ol.journal-entries > li').filter({has: page.locator('.journal-entry-sealed')}).first();
+  await row.getByRole('button', {name: /^Read the letter of .* now$/}).click();
+  await search.fill(SECRET);
+  await expect(page.locator('ol.journal-entries > li')).toHaveCount(1);
 });
 
 test('Today: the letter written today is counted, its first line not shown', async ({page}) => {
