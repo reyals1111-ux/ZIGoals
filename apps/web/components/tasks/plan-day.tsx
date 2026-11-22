@@ -1,5 +1,5 @@
 'use client';
-import {focusedRecord, type TaskFocus} from '../../lib/tasks/focus';
+import {focusedRecord, isOutOfPlay, type TaskFocus} from '../../lib/tasks/focus';
 import {useEffect, useMemo, useState} from 'react';
 import TodayPlanner from './today-planner';
 import {useCarried, useMyDay} from './my-day-parts';
@@ -29,7 +29,7 @@ export default function PlanDay({record, today, onPlan, clock, shown, change, do
   const suggestions = useMemo(() => planSuggestions(focusedRecord(record, focus), today, new Set(aside)), [record, today, aside, focus]);
   // Session AV lane 2 (tasks-r2, LEDGER #223; Microsoft To Do's My Day): "Add to My Day" picks a task for today and leaves
   // its day alone; the last day's picks still open come back as "From yesterday".
-  const my = useMyDay(today), carriedAll = useCarried(record, today, my.myDay), carried = carriedAll ? {...carriedAll, tasks: carriedAll.tasks.filter(t => !aside.includes(t.id))} : null;
+  const my = useMyDay(today), carriedAll = useCarried(record, today, my.myDay), carried = carriedAll ? {...carriedAll, tasks: carriedAll.tasks.filter(t => !aside.includes(t.id) && !isOutOfPlay(record, t, today, focus) /* review B6M-3 */)} : null;
   // Opened once, as the view opens, when something is overdue; after that it stays as the person leaves it.
   const [openAtFirst] = useState(() => askedToPlan() || planSuggestions(record, today, new Set(readAside(today))).some(s => s.why === 'overdue'));
   // Session AV lane 2 (r3-plan, LEDGER #256): from the notification, the fold opens with the focus on it (the day planner when

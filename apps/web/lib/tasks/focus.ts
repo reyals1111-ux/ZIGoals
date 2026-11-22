@@ -2,6 +2,7 @@ import * as z from 'zod';
 import type {DeviceRecordSpec} from '../device-record';
 import {TASK_PLAN_KEY} from './plan-key';
 import type {Task, Tasks} from './schema';
+import {setAside} from './engine';
 
 /**
  * Session AV lane 2 (r6-plan, LEDGER #394; OmniFocus's Focus): the Tasks views narrowed to one or more projects or areas for a
@@ -41,6 +42,18 @@ export function inFocus(task: Pick<Task, 'projectId'>, focus: TaskFocus | null, 
 }
 /** The record with only the tasks in focus (the same record when there is no focus). */
 export const focusedRecord = <T extends Pick<Tasks, 'tasks' | 'projects'>>(record: T, focus: TaskFocus | null): T => focus ? {...record, tasks: record.tasks.filter(t => inFocus(t, focus, record))} : record;
+/**
+ * Review B6M-3, B6M-4: the one test of whether a task is out of play now — its project is on hold, it waits its turn in an
+ * in-order line, or (where a focus applies: pass it) it is out of the focus. My Day's picks, "From yesterday", Plan my day's
+ * planner, Upcoming's week and month lists, its deadline line and its at-risk line all read it (Today, Upcoming, the matrix,
+ * Plan my week and the counts read the same `setAside` in lib/tasks/engine.ts, the focus on the page).
+ */
+export const isOutOfPlay = (record: Pick<Tasks, 'tasks' | 'projects'> & Partial<Pick<Tasks, 'sections'>>, task: Task, today: string, focus: TaskFocus | null = null): boolean => setAside(record, task, today) || !inFocus(task, focus, record);
+/** The record with only the tasks in play (the same record when every task is). */
+export function inPlayRecord<T extends Pick<Tasks, 'tasks' | 'projects'> & Partial<Pick<Tasks, 'sections'>>>(record: T, today: string, focus: TaskFocus | null = null): T {
+  const tasks = record.tasks.filter(t => !isOutOfPlay(record, t, today, focus));
+  return tasks.length === record.tasks.length ? record : {...record, tasks};
+}
 /** "Work", "Work and Home", "Work and 2 more". */
 export function focusName(focus: TaskFocus, record: Pick<Tasks, 'projects' | 'areas'>): string {
   const names = [...(focus.areas ?? []).map(id => record.areas?.find(a => a.id === id)?.name), ...(focus.projects ?? []).map(id => record.projects?.find(p => p.id === id)?.name)].filter((n): n is string => !!n);

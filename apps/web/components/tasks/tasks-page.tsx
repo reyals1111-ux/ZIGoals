@@ -15,7 +15,7 @@ import {TasksNav, viewKey, readView, viewTitle} from './tasks-nav';
 import {useTaskList} from './use-task-list';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {MY_DAY_VIEW, picksToday} from '../../lib/tasks/my-day';
-import {FOCUS_VIEW, focusedRecord, inFocus, liveFocus} from '../../lib/tasks/focus';
+import {FOCUS_VIEW, focusedRecord, inFocus, inPlayRecord, isOutOfPlay, liveFocus} from '../../lib/tasks/focus';
 import {useGoalOptions} from './use-goal-options';
 import {
   addProject, addSection, addTask, childrenOf, clearDone, completedInWindow, dropOrder, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
@@ -167,7 +167,8 @@ export function TasksPage() {
     const listed = view.kind === 'completed' ? [] : viewTasks(record, view, today, clock);
     if (view.kind !== 'today' || !picked.size) return listed;
     const has = new Set(listed.map(t => t.id));
-    return [...record.tasks.filter(t => picked.has(t.id) && !t.doneAt && !has.has(t.id)), ...listed];
+    // Review B6M-3: a pick whose project is on hold, or that waits its turn, is out of Today with the rest.
+    return [...record.tasks.filter(t => picked.has(t.id) && !t.doneAt && !has.has(t.id) && !isOutOfPlay(record, t, today)), ...listed];
   }, [record, view, today, clock, query, matchTasks, picked]);
   const shown = useMemo(() => { const inArea = areaId ? viewed.filter(t => record.projects?.find(p => p.id === t.projectId)?.areaId === areaId) : viewed; return focusOn ? inArea.filter(t => inFocus(t, viewFocus, record)) : inArea; }, [viewed, areaId, record, focusOn, viewFocus]);
   // A saved filter view waits for the search chunk (it would read as empty); a typed query keeps the view's list meanwhile.
@@ -380,8 +381,10 @@ export function TasksPage() {
   } else if (view.kind === 'upcoming' && !query) {
     const days = Array.from({length: 14}, (_, i) => addLocalDays(today, i));
     // Session AV (1c, q1 #15, fresh-agent review; Things): a deadline shows on its own day too, ahead of time.
-    const deadlinesOn = (d: string) => record.tasks.filter(t => !t.doneAt && !t.parentId && t.deadline === d && t.due !== d);
-    body = <>{record.tasks.some(t => t.plan && !t.doneAt && !t.due) && <LoadBoundary quiet><Suspense fallback={null}><PlanBuckets record={record} today={today} row={row} quiet={list.quiet} /></Suspense></LoadBoundary>}{record.tasks.some(t => t.deadline && !t.doneAt) && <LoadBoundary quiet><Suspense fallback={null}><AtRiskLine record={record} today={today} clock={clock} /></Suspense></LoadBoundary>}{days.map(d => { const items = shown.filter(t => t.due === d), due = deadlinesOn(d), name = d === today ? 'Today' : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false}); if (!items.length && !due.length) return null;
+    // Review B6M-4: the week and month lists, the deadline line and the at-risk line read only the tasks in play (and in focus).
+    const inPlay = inPlayRecord(record, today, focusOn ? viewFocus : null);
+    const deadlinesOn = (d: string) => inPlay.tasks.filter(t => !t.doneAt && !t.parentId && t.deadline === d && t.due !== d);
+    body = <>{inPlay.tasks.some(t => t.plan && !t.doneAt && !t.due) && <LoadBoundary quiet><Suspense fallback={null}><PlanBuckets record={inPlay} today={today} row={row} quiet={list.quiet} /></Suspense></LoadBoundary>}{inPlay.tasks.some(t => t.deadline && !t.doneAt) && <LoadBoundary quiet><Suspense fallback={null}><AtRiskLine record={inPlay} today={today} clock={clock} /></Suspense></LoadBoundary>}{days.map(d => { const items = shown.filter(t => t.due === d), due = deadlinesOn(d), name = d === today ? 'Today' : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false}); if (!items.length && !due.length) return null;
       const load = dayLoadWords(viewLoad(items)); /* Session AV lane 2 (q1 #39 Minor; Sunsama): the load of each day */
       return <Fragment key={d}>{items.length ? group(d, name, items, load ? <small className="fine tasks-day-load">{load}</small> : undefined) : <div className="tasks-group" data-state={d}><h3>{name}</h3></div>}{due.length > 0 && <p className="fine tasks-deadline-line"><span aria-hidden="true">⚑ </span>Deadline: {due.map((t, i) => <span key={t.id}>{i ? ' · ' : ''}<span dir="auto">{t.title}</span></span>)}</p>}</Fragment>; })}
       {group('later', 'Later', shown.filter(t => t.due! > days.at(-1)!))}</>;

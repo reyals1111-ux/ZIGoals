@@ -1,6 +1,8 @@
 import {describe, expect, test} from 'vitest';
 import {addTask, editTask, finishTask, orderAhead, viewTasks, waitsTurn, withLabel} from './engine';
-import {setProjectInOrder} from './project-states';
+import {holdProject, setProjectInOrder} from './project-states';
+import {inPlayRecord, isOutOfPlay} from './focus';
+import {bucketGroups, rollBuckets} from './plan-bucket';
 import {runRules} from './rules';
 import {setLabelGroup} from './label-groups';
 import {tasksSchema, type Tasks} from './schema';
@@ -48,5 +50,28 @@ describe('B6M-2: in order with a wait for another task never blocks for good', (
     expect(orderAhead(r).size).toBe(0);
     const freed = finishTask(r, 'x', at, {today: TODAY, doneDay: TODAY});
     expect(viewTasks(freed, {kind: 'today'}, TODAY).map(t => t.id)).toEqual(['a']);
+  });
+});
+describe('B6M-3, B6M-4: one test of out of play, read by My Day, the planners and Upcoming’s lines', () => {
+  const r0 = add(add(add(grouped(), 'h', {title: 'Fictional held', due: TODAY, projectId: 'p', deadline: '2026-11-25'}), 'w', {title: 'Fictional week', projectId: 'p'}), 'i', {title: 'Fictional inbox', due: TODAY});
+  const r = editTask(r0, 'w', {plan: {kind: 'week', of: '2026-11-09'}}, TODAY);
+  test('a held project’s task, one waiting its turn, and one out of the focus are out of play; the Inbox never is', () => {
+    const held = holdProject(r, 'p', TODAY);
+    expect(isOutOfPlay(held, held.tasks[0]!, TODAY)).toBe(true);
+    expect(isOutOfPlay(r, r.tasks[0]!, TODAY)).toBe(false);
+    expect(isOutOfPlay(r, r.tasks[0]!, TODAY, {projects: ['other']})).toBe(true);
+    expect(isOutOfPlay(r, r.tasks[2]!, TODAY, {projects: ['other']})).toBe(false);
+    expect(inPlayRecord(held, TODAY).tasks.map(t => t.id)).toEqual(['i']);
+    expect(inPlayRecord(r, TODAY)).toBe(r);
+    const ordered = setProjectInOrder(r, 'p', true);
+    expect(inPlayRecord(ordered, TODAY).tasks.map(t => t.id)).toEqual(['h', 'i']);
+  });
+  test('Upcoming’s week list and deadline lines leave them out; the roll never rewrites a held task', () => {
+    const held = holdProject(r, 'p', TODAY);
+    expect(bucketGroups(inPlayRecord(held, TODAY), TODAY)).toEqual([]);
+    expect(bucketGroups(inPlayRecord(r, TODAY), TODAY).flatMap(g => g.tasks.map(t => t.id))).toEqual(['w']);
+    expect(rollBuckets(held, TODAY).moved).toEqual([]);
+    expect(rollBuckets(held, TODAY).record).toBe(held);
+    expect(rollBuckets(r, TODAY).moved.map(t => t.id)).toEqual(['w']);
   });
 });
