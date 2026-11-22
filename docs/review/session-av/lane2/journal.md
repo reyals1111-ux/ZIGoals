@@ -47,7 +47,7 @@ a template" are built here (F4). No journal Minor is left open.
    `av2-journal-import.spec.ts`, `av2-notes-repeating.spec.ts`, `av2-notes-versions.spec.ts`, `av2-notes-views.spec.ts`,
    `av2-journal-report.spec.ts`, `av2-journal-affirmation.spec.ts`.
 4. The answers: `lib/ai/local-answers/av2-journal.ts` (`av2JournalAnswer`) and `lib/ai/evals/as/cases-av2-journal.ts`
-   (`AV2_JOURNAL`, 20 intents, EN and NL) — wiring line under "Engine wiring" below.
+   (`AV2_JOURNAL`, 14 intents, 56 questions, EN and NL) — wiring line under "Engine wiring" below.
 5. Help and What's new: each feature's Q+A and label are below (for `help-page.tsx`).
 6. Route weight: every new part is a lazy chunk (folds, More, media, files, report journal, affirmation, notes views);
    the first chunks gained only the fold markup, small pure helpers (books, search, reminder, entry-links, schedules)
