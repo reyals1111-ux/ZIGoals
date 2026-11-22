@@ -16,6 +16,7 @@ chunk carries only those lines, two small props and the water form's two-line ha
 |---|---|---|
 | `zigoals:notify:v1` (existing, device-only, loose) | optional `waterSpread` `{on, from, to, every: 60 \| 120 \| 180}` and `weighIn` `{time, repeat: daily \| weekdays \| monthly, weekdays? (mask 1–127), day? (1–28)}`, each `.optional().catch(undefined)` (a part of `weighIn` it cannot read is dropped alone). Commit `cec6b6ee`. | Kept untouched; an older build keeps its one water time and has no weigh-in type. |
 | `zigoals:habit-extras:v1` (existing, loose, synced with the habit extras) | optional `reminderMore` `{habitId: {words? (≤ 80), times? (≤ 2 "HH:MM")}}`, `.optional().catch(undefined)`, each entry checked where read (`lib/habit-reminder-words.ts`). Commit `790a8490`. | Kept untouched; older builds remind at the one time with the habit's name. |
+| `zigoals:health-numbers:v1` (existing, device-only, loose) | a reading gains optional `meal` (Breakfast \| Lunch \| Dinner \| Snacks), `mealWhen` (before \| after) and `time` ("HH:MM"), each `.optional().catch(undefined)` on the loose reading. Commit `bf032010`. | Kept untouched; older builds show the reading without its meal. |
 | `zigoals:health-extras:v1` (existing, device-only, loose) | optional `ownDrinks` (≤ 30 `{id, name 1–24, type (a fixed drink type), sizeMl 1–2000, symbol?, colour?, caffeineMg?, kcal? 0–2000, sugarG? 0–300}`; an unreadable drink is dropped, the others kept), `waterTips` (boolean); a drink note gains optional `own` (its own drink's id), `kcal`, `sugarG`, each `.optional().catch(undefined)`. Commit `cec6b6ee`. | A drink note keeps its fixed `type` and `caffeineMg`, so an older build reads every entry as before. |
 
 ## TIER 3 (PWA)
@@ -136,3 +137,29 @@ chunk carries only those lines, two small props and the water form's two-line ha
 - Showcase hook: none (the Showcase plans no notification).
 - Device keys / catalogue / export / erase: nothing new. Settings → Notifications lists the new type by itself.
 - CSS: `components/health/r3/health-r3.css`.
+
+## 4. Glucose, ketones and other readings beside a meal — LEDGER #284 built (part Carried: the glucose-ketone index, against the no-medical-advice rule)
+
+- What: Health → Measurements → Your numbers → "Add lab values" gains "With a meal (optional)" (Before / After breakfast,
+  lunch, dinner, a snack) and "Time taken (optional)" for the sheet day's values; each value's history says "after lunch,
+  13:45". The Diary shows, under each of the four meals, "Your readings: Glucose 5.2 mmol/L before (12:00) · Glucose 7.8
+  mmol/L after (13:45) · Ketones 0.6 mmol/L after (13:45). As you typed them in Your numbers." Only the readings: no range,
+  no verdict, no index beside the meal (the Your numbers card keeps its own "inside / outside the range you copied").
+  Carried: the glucose-ketone index the ledger row names is left out — working one out and showing it beside a meal is
+  medical advice (the lead's brief for this lane: "no glucose-ketone index, no range or verdict"). Insulin doses stay with
+  medication (Bearable's row).
+- Files: `lib/health-numbers/store.ts` (stored commit), `lib/health-numbers/meals.ts` (new, pure),
+  `lib/health-numbers/engine.ts` (`labEntry` keeps the meal and time), `components/health-numbers/your-numbers.tsx`,
+  `components/health-numbers/your-numbers.css`, `components/health/r3/meal-readings.tsx` (new),
+  `components/health/r3/health-r3.tsx`, `components/health/health-app.tsx` (one lazy line in each meal section).
+- Tests: `lib/health-numbers/av2-r3-meals.test.ts`, `lib/health-numbers/av2-r3-stored.test.ts`; existing health-numbers
+  tests green. Spec: `tests/av2-meal-readings.spec.ts`; `tests/g1a-health-numbers.spec.ts` still reads (its status filter
+  "Saved 2 values" is kept; nothing it asserts moved).
+- Help (EN): **Can I see my glucose beside a meal?** Yes. When you add a value in Health → Measurements → Your numbers,
+  choose "With a meal", for example "After lunch", and the time. The Diary then shows it under that meal, exactly as you
+  typed it. ZIGoals shows the numbers only; it does not judge them or work anything out from them.
+- What's new: "Your numbers: readings before or after a meal, shown beside that meal in the Diary."
+- Search (static.ts): "glucose", "ketones", "readings by meal" → `/app/health?tab=measurements`.
+- Showcase hook: see "Showcase" at the end (one marked reading).
+- Device keys / catalogue / export / erase: nothing new.
+- CSS: `components/health/r3/health-r3.css`, `components/health-numbers/your-numbers.css`.

@@ -36,3 +36,4 @@
 .r3-toggle button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6); }
 .r3-weigh-in { display: grid; gap: 8px; }
 .r3-weigh-in h2, .r3-weigh-in p { margin: 0; }
+.r3-meal-readings { margin: 6px 0 0; overflow-wrap: anywhere; }
