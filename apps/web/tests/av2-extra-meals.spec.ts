@@ -17,6 +17,8 @@ const health = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getIte
 const foodPlus = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), FOOD_PLUS_KEY) as Promise<{extraMeals?: {slots?: Record<string, unknown>; entries?: Record<string, string>}} | null>;
 const serious = (findings: {impact?: string | null}[]) => findings.filter(v => v.impact === 'serious' || v.impact === 'critical');
 
+// Session AV lane 2 (the names “Fictional afternoon snack” and “Fictional second breakfast” were 25 and 26 characters, past
+// the 24 an extra meal's name may have, so the app rightly refused them: 23-character names, the same steps, deliberate)
 for (const theme of THEMES) test(`${theme}: an afternoon snack of my own, logged to, moved to Snacks, then taken off`, async ({page, isMobile}) => {
   await offlineApi(page); await freshDevice(page);
   await applyTheme(page, theme);
@@ -31,29 +33,29 @@ for (const theme of THEMES) test(`${theme}: an afternoon snack of my own, logged
   await row.getByLabel('Extra meal 1 usual time (optional)').fill('15:30');
   await row.getByRole('button', {name: 'Save extra meal 1'}).click();
   await expect(row.getByText('Give this meal a name first; its time and target belong to it.')).toBeVisible();
-  await row.getByLabel('Extra meal 1 name (blank for none)').fill('Fictional afternoon snack');
+  await row.getByLabel('Extra meal 1 name (blank for none)').fill('Fictional teatime snack');
   await row.getByLabel('Extra meal 1 calorie target (kcal, optional)').fill('200');
   await row.getByLabel('Extra meal 1 shows after').selectOption('Lunch');
   expect(serious(await axe(page, page.getByRole('region', {name: 'Meals of your own (up to two)'})))).toEqual([]);
   await row.getByRole('button', {name: 'Save extra meal 1'}).click();
-  await expect(page.getByText('Fictional afternoon snack is in your Diary at 15:30, after Lunch. Its calorie target: 200 kcal.').first()).toBeVisible();
+  await expect(page.getByText('Fictional teatime snack is in your Diary at 15:30, after Lunch. Its calorie target: 200 kcal.').first()).toBeVisible();
   await expect(page.getByRole('form', {name: 'Extra meal 1: name and time'}).getByRole('button', {name: 'Save extra meal 1'})).toBeFocused();
 
   // Its own section, after Lunch, with a teaching empty state and its target.
-  const extra = page.getByRole('region', {name: 'Fictional afternoon snack diary'});
-  await expect(extra.getByRole('heading', {level: 2})).toHaveText('Fictional afternoon snack · 15:30');
-  await expect(extra).toContainText('Nothing logged yet. Choose Fictional afternoon snack as the meal when you log, or start here.');
+  const extra = page.getByRole('region', {name: 'Fictional teatime snack diary'});
+  await expect(extra.getByRole('heading', {level: 2})).toHaveText('Fictional teatime snack · 15:30');
+  await expect(extra).toContainText('Nothing logged yet. Choose Fictional teatime snack as the meal when you log, or start here.');
   await expect(extra).toContainText('of 200 kcal');
   const order = await page.locator('.health-meal').evaluateAll(sections => sections.map(s => s.getAttribute('aria-label')));
-  expect(order).toEqual(['Breakfast diary', 'Lunch diary', 'Fictional afternoon snack diary', 'Dinner diary', 'Snacks diary']);
+  expect(order).toEqual(['Breakfast diary', 'Lunch diary', 'Fictional teatime snack diary', 'Dinner diary', 'Snacks diary']);
   expect(serious(await axe(page, extra))).toEqual([]);
 
   // "Log to …" starts the form on that meal; log 150 kcal with Just the calories.
-  await extra.getByRole('button', {name: 'Log to Fictional afternoon snack'}).click();
+  await extra.getByRole('button', {name: 'Log to Fictional teatime snack'}).click();
   await page.getByText('Just the calories', {exact: true}).click();
   const form = page.getByRole('form', {name: 'Log just the calories'});
   await expect(form.getByLabel('Meal')).toHaveValue('extra1');
-  await expect(form.getByLabel('Meal').locator('option:checked')).toHaveText('Fictional afternoon snack · 15:30');
+  await expect(form.getByLabel('Meal').locator('option:checked')).toHaveText('Fictional teatime snack · 15:30');
   await form.getByLabel('Calories (kcal)').fill('150');
   await form.getByLabel('What was it? (optional)').fill('Fictional rice cake');
   await form.getByRole('button', {name: 'Log calories'}).click();
@@ -79,7 +81,7 @@ for (const theme of THEMES) test(`${theme}: an afternoon snack of my own, logged
 
   // Take it off: its section goes, focus lands on its name field.
   const again = page.getByRole('form', {name: 'Extra meal 1: name and time'});
-  await again.getByRole('button', {name: 'Take Fictional afternoon snack off'}).click();
+  await again.getByRole('button', {name: 'Take Fictional teatime snack off'}).click();
   await expect(page.getByText('Extra meal 1 is off. Its entries show in Snacks again.').first()).toBeVisible();
   await expect(extra).toHaveCount(0);
   await expect(page.getByRole('form', {name: 'Extra meal 1: name and time'}).getByLabel('Extra meal 1 name (blank for none)')).toBeFocused();
@@ -94,22 +96,23 @@ test('a second extra meal before Breakfast’s neighbour, and the meal choice of
   await page.goto('/app/health'); await hydrated(page);
   await page.locator('summary', {hasText: 'Name your meals and set their times'}).click();
   const second = page.getByRole('form', {name: 'Extra meal 2: name and time'});
-  await second.getByLabel('Extra meal 2 name (blank for none)').fill('Fictional second breakfast');
+  await second.getByLabel('Extra meal 2 name (blank for none)').fill('Fictional 2nd breakfast');
   await second.getByLabel('Extra meal 2 shows after').selectOption('Breakfast');
   await second.getByRole('button', {name: 'Save extra meal 2'}).press('Enter');
-  await expect(page.getByRole('region', {name: 'Fictional second breakfast diary'})).toBeVisible();
+  await expect(page.getByRole('region', {name: 'Fictional 2nd breakfast diary'})).toBeVisible();
   const trigger = page.getByRole('button', {name: 'Log a meal', exact: true});
   if (await trigger.isVisible()) await trigger.click();
   await page.getByText('Just the calories', {exact: true}).click();
-  const options = await page.getByRole('form', {name: 'Log just the calories'}).getByLabel('Meal').locator('option').allTextContents();
-  expect(options).toEqual(['Breakfast', 'Fictional second breakfast', 'Lunch', 'Dinner', 'Snacks']);
+  // Session AV lane 2 (the form opens in its own chunk, and allTextContents() read it before it was there: the same list,
+  // read once it is, deliberate)
+  await expect(page.getByRole('form', {name: 'Log just the calories'}).getByLabel('Meal').locator('option')).toHaveText(['Breakfast', 'Fictional 2nd breakfast', 'Lunch', 'Dinner', 'Snacks']);
   // Words alone go to the extra meal too (kept as Snacks words, with the extra meal as this device's tag).
   const words = page.getByRole('form', {name: 'Just describe it'}).first();
   await words.getByLabel('What did you eat?').fill('Fictional porridge with pear');
   await words.getByLabel('Meal').selectOption('extra2');
   await words.getByRole('button', {name: 'Log in words'}).click();
-  await expect(words.getByRole('status')).toContainText('Logged in words for Fictional second breakfast');
+  await expect(words.getByRole('status')).toContainText('Logged in words for Fictional 2nd breakfast');
   if (await page.getByRole('dialog').isVisible().catch(() => false)) await page.keyboard.press('Escape');
-  await expect(page.getByRole('region', {name: 'Fictional second breakfast diary'}).getByRole('list', {name: 'Fictional second breakfast in words'})).toContainText('Fictional porridge with pear');
+  await expect(page.getByRole('region', {name: 'Fictional 2nd breakfast diary'}).getByRole('list', {name: 'Fictional 2nd breakfast in words'})).toContainText('Fictional porridge with pear');
   await expect(page.getByRole('region', {name: 'Snacks diary'})).not.toContainText('Fictional porridge with pear');
 });
