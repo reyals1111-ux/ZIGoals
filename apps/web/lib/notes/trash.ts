@@ -1,4 +1,5 @@
-import {MAX_BODY, TRASH_DAYS, noteName, notePhotoIdsOf, shortNoteName, type Note, type Notes, type TrashedNote} from './schema';
+import {MAX_TITLE, TRASH_DAYS, noteName, notePhotoIdsOf, shortNoteName, type Note, type Notes, type TrashedNote} from './schema';
+import {linkKey} from './links';
 import {checked, withTrash} from './store';
 export {capTrash, keptNoteIds, toTrash, untrashBack} from './store';
 
@@ -15,27 +16,26 @@ export const trashOf = (record: Pick<Notes, 'trash'>): TrashedNote[] => [...(rec
 export const daysLeft = (note: Pick<TrashedNote, 'deletedAt'>, now: number): number => Math.max(0, TRASH_DAYS - Math.floor((now - Date.parse(note.deletedAt)) / DAY_MS) - 1);
 const plain = (n: TrashedNote): Note => { const {deletedAt: _d, ...rest} = n; void _d; return rest as Note; };
 /**
- * A deleted note back in Notes. A daily note whose day has a new daily note meanwhile is added to the end of that note
- * (so a day never has two); anything else comes back as it was, pinned and tagged as before.
+ * A deleted note back in Notes, as it was — pinned, tagged, locked, with its photos, properties, look and earlier
+ * versions. Review b5i B5I-3, B5I-4: a daily note whose day has a new daily note meanwhile is never merged into that note
+ * (a merge could carry a locked note's words into an unlocked one, or drop photos, tags, properties or its look): it comes
+ * back as its own topic note, "2026-11-20 · restored", with everything it had, its lock included, and the message says so.
  */
 export function restoreFromTrash(record: Notes, id: string, now: string): {record: Notes; said: string; into: string} {
   const t = (record.trash ?? []).find(n => n.id === id);
   if (!t) throw new Error('That note is no longer in Recently deleted.');
-  const note = plain(t), rest = (record.trash ?? []).filter(n => n.id !== id);
-  const day = note.kind === 'daily' ? record.notes.find(n => n.kind === 'daily' && n.day === note.day) : undefined;
-  if (day) {
-    const body = [day.body.trimEnd(), note.body.trim()].filter(Boolean).join('\n\n');
-    if (body.length > MAX_BODY) throw new Error(`The note for ${note.day} would be too long. Shorten it first, then restore.`);
-    const photos = [...new Set([...notePhotoIdsOf(day), ...notePhotoIdsOf(note)])], merged: Note = {...day, body, updatedAt: now};
-    if (!merged.photoId && photos.length) merged.photoId = photos[0];
-    const extra = photos.filter(p => p !== merged.photoId).slice(0, 7);
-    if (extra.length) merged.photos = extra;
-    const kept = {...record, notes: record.notes.map(n => n.id === day.id ? merged : n), versions: (record.versions ?? []).map(v => v.noteId === id ? {...v, noteId: day.id} : v)};
-    if (!kept.versions.length) delete (kept as Partial<Notes>).versions;
-    return {record: checked(withTrash(kept, rest)), said: `Restored: added to the end of the note for ${note.day}, which was written again meanwhile.`, into: day.id};
+  let note = plain(t);
+  const rest = (record.trash ?? []).filter(n => n.id !== id);
+  const taken = note.kind === 'daily' && record.notes.some(n => n.kind === 'daily' && n.day === note.day);
+  if (taken) {
+    const names = new Set(record.notes.map(n => linkKey(noteName(n)))), base = `${note.day} · restored`;
+    let title = base;
+    for (let i = 2; names.has(linkKey(title)) && i < 100; i++) title = `${base} (${i})`;
+    note = {...note, kind: 'topic', title: title.slice(0, MAX_TITLE), updatedAt: now};
   }
   const notes = [...record.notes, note].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  return {record: checked(withTrash({...record, notes}, rest)), said: `“${shortNoteName(note)}” is back in your notes.`, into: id};
+  return {record: checked(withTrash({...record, notes}, rest)), into: id,
+    said: taken ? `Restored as its own note, “${note.title}”, because ${note.day} has a new daily note; nothing was added to that one.` : `“${shortNoteName(note)}” is back in your notes.`};
 }
 /**
  * Removes deleted notes for good: one (`ids`), all of them (Empty now), or those past 30 days (on arrival). Their earlier

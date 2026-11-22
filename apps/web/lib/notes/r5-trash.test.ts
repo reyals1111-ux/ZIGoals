@@ -42,7 +42,7 @@ describe('delete moves a note to Recently deleted', () => {
   });
 });
 describe('restore, days left and leaving for good', () => {
-  test('Restore puts it back as it was; a day written again meanwhile gets the words at its end', () => {
+  test('Restore puts it back as it was; a day written again meanwhile keeps its own note', () => {
     const r = removeNote(base(), 'a', DEL).record;
     const back = restoreFromTrash(r, 'a', AT);
     expect(back.record.notes.find(n => n.id === 'a')).toMatchObject({title: 'Fictional trip', photoId: 'p-1'});
@@ -50,9 +50,11 @@ describe('restore, days left and leaving for good', () => {
     expect(back.record.trash).toBeUndefined();
     const day = removeNote(base(), 'd', DEL).record;
     const again = notesSchema.parse({...day, notes: [...day.notes, {id: 'd2', kind: 'daily', title: '2026-11-20', day: '2026-11-20', body: 'Tea.', createdAt: DEL}]});
+    // Session AV lane 2 (review b5i B5I-3, B5I-4, deliberate): no merge any more; the restored day comes back as its own
+    // note with its words, and the new day's note is untouched (checked as strictly as the merge was).
     const merged = restoreFromTrash(again, 'd', AT);
-    expect(merged.into).toBe('d2');
-    expect(merged.record.notes.filter(n => n.day === '2026-11-20').map(n => n.body)).toEqual(['Tea.\n\nA walk.']);
+    expect(merged.into).toBe('d');
+    expect(merged.record.notes.filter(n => n.day === '2026-11-20').map(n => [n.id, n.kind, n.title, n.body])).toEqual([['d', 'topic', '2026-11-20 · restored', 'A walk.'], ['d2', 'daily', '2026-11-20', 'Tea.']]);
     expect(() => restoreFromTrash(base(), 'zz', AT)).toThrow(/no longer/);
   });
   test('days left, the 30 days and Empty now (with the photos no other note names)', () => {
