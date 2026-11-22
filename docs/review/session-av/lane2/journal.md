@@ -199,3 +199,29 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
 - Showcase: none (an import is the person's own act; the Showcase's Export names its file "example").
 - Search palette (the lead's `lib/search/static.ts`): "Import a journal" → `/app/journal#journal-files-title` (optional).
 - CSS: `components/journal/journal.css`. Today: nothing added.
+
+### F7 Repeating notes and the daily note template — LEDGER #32 (Notion: repeating database templates)
+
+- Verdict: **built**.
+- What: Notes → Notes → "Repeating notes": a title, words (`{date}` becomes the period's first day) and a rule —
+  every day, every week on a weekday, every month on a day (1–28). When Notes opens, each repeating note's note for the
+  current period is made once ("Week plan · 2026-11-23"), never for a period missed while closed, never twice (a note of
+  that title already there counts); a line says it was made, with a link to Notes. Edit (a new rule makes this
+  period's note again), Pause, Stop repeating (with Undo; the notes it made stay). Notes → Days → "Daily note template":
+  the words a new daily note starts from, shown in that day's editor and written only when saved (Save stays off while
+  the template is untouched).
+- Files: `lib/notes/schedules.ts`, `components/notes/note-schedules.tsx`, `components/notes/daily-template.tsx` (lazy),
+  `components/notes/notes-workspace.tsx`, `components/notes/note-editor.tsx` (`start`), `components/notes/notes.css`,
+  `lib/notes/showcase.ts`.
+- Tests: `lib/notes/av2-schedules.test.ts`; `lib/notes/fields.test.ts` (the secret guard beside every new field) stays
+  green; answers ("which repeating notes do I have", EN and NL, NOVA's Notes scope).
+- Spec: `tests/av2-notes-repeating.spec.ts`.
+- Stored: notes `schedules`, `dailyTemplate` (F0 table).
+- Help (EN). Q: "Can a note make itself every week?" A: "Yes. Notes → Notes → Repeating notes: give it a title and its
+  words, and choose every day, a weekday or a day of the month. When you open Notes, that period's note is made from
+  it, once. {date} in the words becomes the day." Q: "Can my daily note start from a template?" A: "Yes. Notes → Days →
+  Daily note template. A new daily note shows those words; it is written only when you save it."
+- What's new: "Notes: repeating notes and a daily note template."
+- Showcase: `lib/notes/showcase.ts` adds the repeating note "Example · Week plan" (every Monday), already made for this
+  week; the Showcase never makes notes itself, so its eight notes stay eight.
+- CSS: `components/notes/notes.css`. Today: nothing added.

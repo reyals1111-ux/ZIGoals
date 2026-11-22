@@ -178,3 +178,17 @@
 .note-day-head { flex-wrap: nowrap; }
 .note-day-head > .note-title { flex: 0 1 auto; min-width: 0; }
 .note-day-head > button { flex: none; }
+/* Session AV lane 2 (notes; LEDGER #32): repeating notes and the daily note template, folds in Notes and Days. */
+.note-fold { margin: 0 0 12px; }
+.note-fold > summary { min-height: 44px; display: list-item; padding: 10px 0; box-sizing: border-box; cursor: pointer; line-height: 1.5; }
+.note-fold > summary .fine { font-size: 14px; }
+.note-schedules, .note-daily-template { display: grid; gap: 10px; padding-top: 4px; }
+.note-schedule-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.note-schedule-list li { border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.note-schedule-name { margin: 0; overflow-wrap: anywhere; }
+.note-schedule-form { display: grid; gap: 8px; }
+.note-schedule-form input, .note-schedule-form select { min-height: 44px; font-size: 16px; max-width: 100%; }
+.note-schedule-every { display: flex; flex-wrap: wrap; gap: 4px 16px; border: 0; margin: 0; padding: 0; }
+.note-schedule-every legend { font-size: 14px; padding: 0; margin-bottom: 2px; }
+.note-schedule-choice { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.note-schedule-add { justify-self: start; min-height: 44px; }

@@ -6,7 +6,10 @@ import {bookCounts} from '../../journal/books';
 import {dateQuery} from '../../journal/search';
 import {PROMPT_PACKS, packsOn, questionWithPacks} from '../../journal-prompts/packs';
 import {templateById} from '../../journal-prompts/templates';
-import {answer, asked, count, dayIn, isQuestion, journalClosed, list, MIXED, say, type Asked, type Lang} from './av-words';
+import {everyWords, periodStart, schedulesOf, scheduleTitle} from '../../notes/schedules';
+import type {Notes} from '../../notes/schema';
+import {novaAreaClosed, novaEnvInfo} from './nova-env';
+import {answer, asked, closed, count, dayIn, isQuestion, journalClosed, list, MIXED, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -21,7 +24,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, changedEntries, media, imported]) {
+    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, changedEntries, media, imported, repeatingNotes]) {
       const r = one(a);
       if (r) return r;
     }
@@ -127,6 +130,29 @@ function changedEntries(a: Asked): LocalReply | null {
   const days = [...new Set(changed.map(e => e.date))].sort().slice(-5).map(d => dayIn(lang, d, a.today));
   return answer(say(lang, `${count(changed.length, 'en', ['journal entry has', 'journal entries have'], ['', ''])} been changed (${list(days, 'en')}), with ${count(versions.length, 'en', ['earlier version', 'earlier versions'], ['', ''])} kept on this device. Each entry’s More lists them, to read or restore.`, `${count(changed.length, 'nl', ['', ''], ['dagboekstuk is', 'dagboekstukken zijn'])} veranderd (${list(days, 'nl')}), met ${count(versions.length, 'nl', ['', ''], ['eerdere versie', 'eerdere versies'])} bewaard op dit apparaat. More bij elk stuk toont ze, om te lezen of terug te zetten.`), CALL);
 }
+// ── Notes ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+const NOTES_CALL = [{tool: 'search_notes', args: {}, label: 'Notes'}];
+/** The notes record where it is shared with this answer (NOVA: its Notes scope), else why not. */
+function notesOf(a: Asked): {record: Notes} | {shut: LocalReply} {
+  const today = closed(a.env, 'today', 'search_notes'); if (today) return {shut: today};
+  const record = a.env.nova?.notes;
+  if (record) return {record};
+  return {shut: record === undefined && novaEnvInfo(a.env) ? {kind: 'refusal', text: novaAreaClosed('Notes', a.lang), calls: []} : answer(say(a.lang, 'Your notes can’t be read on this device right now, so I can’t say.', 'Je notities kunnen nu niet gelezen worden op dit apparaat, dus dat kan ik niet zeggen.'))};
+}
+/** LEDGER #32: "which repeating notes do I have", "what is my daily note template" (lib/notes/schedules.ts). */
+function repeatingNotes(a: Asked): LocalReply | null {
+  const en = /\b(?:repeating|recurring|scheduled) notes?\b|\bnote templates?\b|\bdaily note template\b/.test(a.f), nl = /\b(?:terugkerende|herhalende) notitie s?\b|\b(?:terugkerende|herhalende) notities\b|\bnotitiesjablo(?:on|nen)\b|\bsjabloon\b.*\bdag(?:elijkse)? ?notitie\b/.test(a.f);
+  if (!en && !nl) return null;
+  const got = notesOf(a); if ('shut' in got) return got.shut;
+  const list0 = schedulesOf(got.record), lang = a.lang, daily = got.record.dailyTemplate?.trim();
+  const dailyLine = daily ? say(lang, ' A new daily note starts from your daily note template.', ' Een nieuwe dagnotitie begint met je sjabloon voor dagnotities.') : say(lang, ' Daily notes start empty (Notes → Days → Daily note template).', ' Dagnotities beginnen leeg (Notes → Days → Daily note template).');
+  if (!list0.length) return answer(say(lang, `No repeating note yet. Notes → Notes → Repeating notes makes a note every day, week or month from your words.${dailyLine}`, `Nog geen terugkerende notitie. Notes → Notes → Repeating notes maakt elke dag, week of maand een notitie van je eigen woorden.${dailyLine}`), NOTES_CALL);
+  const lines = list0.map(s => `${s.title} (${lang === 'nl' ? nlEvery(s) : everyWords(s)}${s.paused ? say(lang, ', paused', ', gepauzeerd') : s.lastMade === periodStart(s, a.today) ? say(lang, `, made “${scheduleTitle(s, periodStart(s, a.today))}”`, `, gemaakt: “${scheduleTitle(s, periodStart(s, a.today))}”`) : ''})`);
+  return answer(`${say(lang, `${count(list0.length, 'en', ['repeating note', 'repeating notes'], ['', ''])}: ${list(lines, 'en')}.`, `${count(list0.length, 'nl', ['', ''], ['terugkerende notitie', 'terugkerende notities'])}: ${list(lines, 'nl')}.`)}${dailyLine}`, NOTES_CALL);
+}
+const NL_WEEKDAY = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+const nlEvery = (s: {every: 'day' | 'week' | 'month'; weekday?: number; monthDay?: number}) => s.every === 'day' ? 'elke dag' : s.every === 'week' ? `elke ${NL_WEEKDAY[s.weekday ?? 1]}` : `op de ${s.monthDay ?? 1}e van elke maand`;
+
 /** LEDGER #44: "how many journal entries did I import" (each imported entry is marked with where it came from). */
 function imported(a: Asked): LocalReply | null {
   const en = /\bimport(?:ed)?\b/.test(a.f) && /\b(?:journal|entries|entry|day one|diary)\b/.test(a.f), nl = /\b(?:geimporteerd|ingelezen|importeerde|importeren)\b/.test(a.f) && /\b(?:dagboek\w*|stukken|day one)\b/.test(a.f);

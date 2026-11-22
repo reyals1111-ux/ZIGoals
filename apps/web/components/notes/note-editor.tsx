@@ -21,12 +21,14 @@ const NoteBacklinks = lazy(() => import('./note-backlinks'));
  * so opening a day never writes anything. The secret guard watches the words (in LinkField).
  */
 export type Change = (fn: (r: Notes) => Notes | {record: Notes; undo: NotesUndo}, said: string, undo?: NotesUndo | null) => boolean;
-export function NoteEditor({note, day, index, change, onCreateLink, onDeleted}: {
+export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, start}: {
   note: Note | null; day?: string; index: LinkIndex; change: Change; onCreateLink: (name: string) => void; onDeleted?: () => void;
+  /** Session AV lane 2 (notes; LEDGER #32): the words a new daily note starts from (its template), written only on Save. */ start?: string;
 }) {
-  const [title, setTitle] = useState(note?.title ?? ''), [body, setBody] = useState(note?.body ?? '');
+  const [title, setTitle] = useState(note?.title ?? ''), [body, setBody] = useState(note?.body ?? start ?? '');
   const [mode, setMode] = useState<'read' | 'edit'>(note?.body.trim() ? 'read' : 'edit');
   const dirty = (note?.title ?? '') !== title || (note?.body ?? '') !== body;
+  const untouchedStart = !note && !!start && body === start; // a template not written in yet is not saved as a note
   const isDaily = note ? note.kind === 'daily' : !!day;
   const save = (): boolean => {
     const now = new Date().toISOString();
@@ -44,7 +46,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted}: 
       {/* Session AK G2 (RELEASE_REVIEW_2 R2-18): `[[` is explained here, in the field, where it is used. */}
       <LinkField label={isDaily ? 'This day’s note' : 'Note'} placeholder="Write here. Type [[ to link a goal, a habit or another note." value={body} onChange={setBody} index={index} exclude={note ? {kind: 'note', id: note.id} : undefined} maxLength={MAX_BODY} onSubmit={saveAndRead} rows={isDaily ? 6 : 10}/>
       <div className="note-actions">
-        <button type="button" className="primary" disabled={!dirty} onClick={saveAndRead}>Save</button>
+        <button type="button" className="primary" disabled={!dirty || untouchedStart} onClick={saveAndRead}>Save</button>
         {(note?.body.trim() || body.trim()) && <button type="button" className="quiet" onClick={() => { if (dirty) { setTitle(note?.title ?? ''); setBody(note?.body ?? ''); } setMode(note?.body.trim() ? 'read' : 'edit'); }}>{dirty ? 'Cancel changes' : 'Done'}</button>}
         <span className="fine">{body.length.toLocaleString('en-US')} / {MAX_BODY.toLocaleString('en-US')}</span>
       </div>

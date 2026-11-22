@@ -24,7 +24,7 @@ describe('every corpus question gets its own answer, in its language, from NOVA 
       expect(r, `${q}`).not.toBeNull();
       expect(r!.kind, q).toBe('answer');
       for (const bad of c.never ?? []) expect(text(r), q).not.toContain(bad);
-      if (lang === 'nl') expect(text(r), q).toMatch(/\b(?:je|jouw|er|nog|geen|staat|op|het|de)\b/);
+      if (lang === 'nl') expect(text(r), q).toMatch(/\b(?:je|jouw|er|nog|geen|staat|op|het|de|een|elke|van|met|leeg)\b/);
     }
   });
   test('a question about something else is left to the other answers', () => {
@@ -90,6 +90,18 @@ describe('the default template and the earlier versions (LEDGER #39, #33)', () =
     expect(text(zigi('which journal entries have I changed'))).toBe('1 journal entry has been changed (Sun, Nov 15), with 1 earlier version kept on this device. Each entry’s More lists them, to read or restore.');
     expect(text(zigi('welke dagboekstukken heb ik veranderd'))).toBe('1 dagboekstuk is veranderd (zo 15 nov), met 1 eerdere versie bewaard op dit apparaat. More bij elk stuk toont ze, om te lezen of terug te zetten.');
     expect(text(zigi('do I have earlier versions of my journal entries', freshAll()))).toContain('No journal entry has been changed');
+  });
+});
+
+describe('repeating notes and the daily note template (LEDGER #32)', () => {
+  test('the Showcase’s repeating note, in English and Dutch; a fresh profile has none and says where', () => {
+    expect(text(zigi('which repeating notes do I have'))).toBe('1 repeating note: Example · Week plan (every Monday, made “Example · Week plan · 2026-11-16”). Daily notes start empty (Notes → Days → Daily note template).');
+    expect(text(zigi('welke terugkerende notities heb ik'))).toBe('1 terugkerende notitie: Example · Week plan (elke maandag, gemaakt: “Example · Week plan · 2026-11-16”). Dagnotities beginnen leeg (Notes → Days → Daily note template).');
+    expect(text(zigi('what are my note templates', freshAll()))).toContain('No repeating note yet.');
+  });
+  test('NOVA without its Notes scope refuses', () => {
+    const env = novaEnv(showcaseAll(), {...DEFAULT_NOVA_SCOPES, health: true, journal: true, notes: false});
+    expect(av2JournalAnswer('which repeating notes do I have', env)?.kind).toBe('refusal');
   });
 });
 

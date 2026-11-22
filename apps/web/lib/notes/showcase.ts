@@ -1,5 +1,6 @@
 import {addLocalDays} from '../local-date';
 import {notesSchema, type Notes} from './schema';
+import {periodStart} from './schedules';
 
 /**
  * Session AK (B): the Showcase's fictional notes, labelled as examples. They link to the Showcase's own goals ("Japan
@@ -18,5 +19,8 @@ export function showcaseNotes(day: string): Notes {
     {id: 'showcase-note-inbox-1', kind: 'inbox', title: '', body: 'Ask about the rail pass price in March', day, source: 'text', createdAt: at(0, '09:12:00')},
     {id: 'showcase-note-inbox-2', kind: 'inbox', title: '', body: 'Try a 5-minute breathing break after lunch', day: addLocalDays(day, -1), source: 'voice', createdAt: at(-1, '13:40:00')},
   ].map(n => ({...n, body: `${n.body}\n\n(SHOWCASE DATA)`, example: true}));
-  return notesSchema.parse({version: 1, notes: notes.sort((a, b) => a.createdAt.localeCompare(b.createdAt)), voice: false});
+  // Session AV lane 2 (notes; LEDGER #32): one repeating note, labelled as an example, already made for this week (the
+  // Showcase never makes notes on its own, so its counts stay as they are).
+  const weekly = {id: 's-showcase01', title: 'Example · Week plan', body: 'Week of {date}\n\nThree things this week:\n- \n- \n- \n\n(SHOWCASE DATA)', every: 'week' as const, weekday: 1};
+  return notesSchema.parse({version: 1, notes: notes.sort((a, b) => a.createdAt.localeCompare(b.createdAt)), voice: false, schedules: [{...weekly, lastMade: periodStart(weekly, day)}]});
 }
