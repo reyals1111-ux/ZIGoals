@@ -5,7 +5,7 @@ import {emptyBudgets, type BudgetsRecord} from './schema';
 import {budgetsInOrder, clearOrder, hasOwnOrder, moveBudget, moveBudgetTo, setOrder} from './order';
 import {aheadRows, coveredIn, setAside, setAsideFrom} from './set-aside';
 import {emptyBudgetPeriods, periodRows} from './periods';
-import {monthLines, nextFortnightPayday, paycheckIssue, paycheckMonth, paydaysIn, removePaycheck, savePaycheck, setLine} from './paychecks';
+import {monthLines, nextFortnightPayday, revertPaychecks, paycheckIssue, paycheckMonth, paydaysIn, removePaycheck, savePaycheck, setLine} from './paychecks';
 import {budgetPeriodsSchema} from './periods';
 import {emptyBills, type BillsRecord} from '../bills/schema';
 import type {MoneyEntry} from '../money-log/schema';
@@ -134,4 +134,24 @@ describe('review B6O-7: which week a two-weekly paycheck is paid', () => {
     const raw = {version: 1, paychecks: {items: [{id: 'a', name: 'A', every: 'fortnight', day: 5, amount: '800.00', currency: 'EUR', from: 'soon'}, {id: 'b', name: 'B', every: 'fortnight', day: 5, amount: '800.00', currency: 'EUR'}]}};
     expect(budgetPeriodsSchema.parse(raw).paychecks?.items.map(p => [p.id, p.from])).toEqual([['a', undefined], ['b', undefined]]);
   });
+});
+
+test('review B6O-12: the paycheck plan’s Undo reverts only what that change made, keeping later edits', () => {
+  let plan = savePaycheck(emptyBudgetPeriods(), {name: '1st', every: 'month', day: 1, amount: '1000', currency: 'EUR'}, 'p1');
+  plan = savePaycheck(plan, {name: '15th', every: 'month', day: 15, amount: '900', currency: 'EUR'}, 'p2');
+  plan = setLine(setLine({...plan, payday: 25}, 'b:rent', 'p1'), 'b:fun', 'p2');
+  // Remove a paycheck, then set a line, then Undo the removal: the paycheck and its line come back, the later line stays.
+  const removed = removePaycheck(plan, 'p1'), later = setLine(removed, 'b:food', 'p2');
+  const undone = revertPaychecks({...later, payday: 1}, plan, removed);
+  expect(undone.paychecks?.items.map(p => p.id)).toEqual(['p1', 'p2']);
+  expect(undone.paychecks?.lines).toEqual({'b:rent': 'p1', 'b:fun': 'p2', 'b:food': 'p2'});
+  expect(undone.payday).toBe(1); // a pay-period edit made since is kept
+  // Undo an add: the paycheck goes, with a line set against it since; other lines stay.
+  const added = savePaycheck(plan, {name: 'Fri', every: 'week', day: 5, amount: '100', currency: 'EUR'}, 'p3'), withLine = setLine(added, 'b:food', 'p3');
+  const noAdd = revertPaychecks(setLine(withLine, 'b:home', 'p2'), plan, added);
+  expect(noAdd.paychecks?.items.map(p => p.id)).toEqual(['p1', 'p2']);
+  expect(noAdd.paychecks?.lines).toEqual({'b:rent': 'p1', 'b:fun': 'p2', 'b:home': 'p2'});
+  // The last paycheck removed: Undo brings the plan back even though the record had none.
+  const one = savePaycheck(emptyBudgetPeriods(), {name: 'Only', every: 'month', day: 1, amount: '10', currency: 'EUR'}, 'o');
+  expect(revertPaychecks(removePaycheck(one, 'o'), one, removePaycheck(one, 'o')).paychecks?.items.map(p => p.id)).toEqual(['o']);
 });

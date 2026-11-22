@@ -97,3 +97,33 @@ export function setLine(plan: BudgetPeriods, key: string, paycheckId: string | n
   if (paycheckId) lines[key] = paycheckId; else delete lines[key];
   return budgetPeriodsSchema.parse({...plan, paychecks: {...plan.paychecks, lines}});
 }
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+/**
+ * Review B6O-12: Undo for a change to the paycheck plan, into the latest record (`latest`), reverting only what the change
+ * made (`before` → `after`) and keeping every change made since: a paycheck added is taken off again (with any line set
+ * against it), one removed comes back in its place, one changed goes back while it is still as the change left it, and
+ * each "Paid from" line the change moved goes back while it is still where the change put it. The rest of the record —
+ * pay periods, the fill, a line set since — stays as it is now.
+ */
+export function revertPaychecks(latest: BudgetPeriods, before: BudgetPeriods, after: BudgetPeriods): BudgetPeriods {
+  const was = before.paychecks?.items ?? [], made = after.paychecks?.items ?? [];
+  let items = [...(latest.paychecks?.items ?? [])];
+  for (const p of made) if (!was.some(x => x.id === p.id)) items = items.filter(x => x.id !== p.id);
+  for (const p of was) {
+    const then = made.find(x => x.id === p.id), now = items.findIndex(x => x.id === p.id);
+    if (!then && now < 0) { const next = was.slice(was.indexOf(p) + 1).find(x => items.some(y => y.id === x.id)); items.splice(next ? items.findIndex(y => y.id === next.id) : items.length, 0, p); }
+    else if (then && now >= 0 && !same(then, p) && same(items[now], then)) items[now] = p;
+  }
+  items = items.slice(0, MAX_PAYCHECKS);
+  const ids = new Set(items.map(x => x.id)), wasLines = before.paychecks?.lines ?? {}, madeLines = after.paychecks?.lines ?? {}, lines: Record<string, string> = {...(latest.paychecks?.lines ?? {})};
+  for (const key of new Set([...Object.keys(wasLines), ...Object.keys(madeLines)])) {
+    if (wasLines[key] === madeLines[key] || lines[key] !== madeLines[key]) continue;
+    const back = wasLines[key];
+    if (back && ids.has(back)) lines[key] = back; else delete lines[key];
+  }
+  for (const [key, v] of Object.entries(lines)) if (!ids.has(v)) delete lines[key];
+  const next: Record<string, unknown> = {...latest};
+  if (items.length) next.paychecks = {...latest.paychecks, items, lines}; else delete next.paychecks;
+  return budgetPeriodsSchema.parse(next);
+}

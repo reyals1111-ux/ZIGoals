@@ -14,7 +14,7 @@ import {aheadRows, setAside} from '../../../lib/budgets/set-aside';
 import {readyToAssign} from '../../../lib/budgets/ready-to-assign';
 import {shiftMonth} from '../../../lib/budgets/engine';
 import {BUDGET_PERIODS, isDay} from '../../../lib/budgets/periods';
-import {nextFortnightPayday, paycheckMonth, removePaycheck, savePaycheck, setLine, type Paycheck} from '../../../lib/budgets/paychecks';
+import {nextFortnightPayday, paycheckMonth, removePaycheck, revertPaychecks, savePaycheck, setLine, type Paycheck} from '../../../lib/budgets/paychecks';
 import {BILLS} from '../../../lib/bills/schema';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import '../spending/money-r6.css';
@@ -92,9 +92,10 @@ export function PaycheckPlan({record, month, today, currencies}: {record: Budget
   const shownPayday = payday && isDay(payday) ? payday : nextFortnightPayday(5, today); // B6O-7: as paydays fell before, until chosen
   const write = (fn: Parameters<typeof plan.update>[0], said: string, undo = true) => {
     if (plan.unreadable) { showStatus('Your pay periods could not be read on this device, so nothing was written over them.', {tone: 'error'}); return false; }
-    const before = plan.data;
-    try { plan.update(fn); } catch (cause) { setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); return false; }
-    if (undo) showUndo({message: said, undone: 'Put back as it was.', restore: () => { plan.update(() => before); }}); else showStatus(said);
+    let before = plan.data, after = plan.data;
+    try { after = plan.update(latest => { before = latest; return fn(latest); }); } catch (cause) { setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); return false; }
+    // Review B6O-12: Undo reverts only what this change made, into the latest record, keeping every change since.
+    if (undo) showUndo({message: said, undone: 'Put back as it was.', restore: () => { plan.update(latest => revertPaychecks(latest, before, after)); }}); else showStatus(said);
     return true;
   };
   const add = (event: FormEvent) => {
