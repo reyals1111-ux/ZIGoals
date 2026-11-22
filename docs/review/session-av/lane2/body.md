@@ -356,3 +356,41 @@ erase); its skipped round trip in `av2-stored.test.ts` then runs. Hide figures: 
 - What's new: "Weight: a BMI figure from your height, and milestones on the way to your goal."
 - Answers: "what is my BMI" / "wat is mijn BMI" (never a judgement word), "how are my weight milestones" / "hoe gaan mijn
   gewichtsmijlpalen".
+
+## Summary: rows and verdicts
+
+| LEDGER row | verdict | commit (feature) |
+|---|---|---|
+| #109 MacroFactor Workouts | built (rep progression); Live Activity Carried: native-only | 3 |
+| #110 Strava Athlete Intelligence | built (a no-model run summary) | 6 |
+| #111 Strava goals and Fitness Score | built (distance goals, training load); challenges with friends: against a named rule (nothing shared between people) | 6 |
+| #112 Strava coach-designed strength workouts | built (12 written routines, EN+NL, plan and cue per exercise) | 2 |
+| #115 Hevy routines, folders and library | built | 2 |
+| #116 Hevy exercise library | built (48 written how-tos, EN+NL, muscles) | 1 |
+| #117 Hevy progress analytics | built (month report, sets per muscle across 8 weeks, a line per metric, Wrapped's Training card) | 4 |
+| #118 Hevy calendar and streaks | built (year view, weeks in a row) | 5 |
+| #119 Hevy three-level notes | built (pinned exercise note, routine note; the session note was there) | 1, 2 |
+| #83 Calm Sleep evening plan | built; wearable sync Carried: native-only | 8 |
+| #123 Sleep Cycle statistics | built (time to fall asleep and quality charted, 7 days to a year) | 7 |
+| #124 Sleep Cycle benchmarks | built from the person's own nights (the task's wording; no outside data) | 7 |
+| COMPETITORS.md "seen in passing" | sleep-view header corrected (7); clinician-report header already correct at `fbeb3e54` | 7 |
+| q3 #48 Minor (a symptom chart) | built | 9 |
+| q3 #36 Minor (hide figures in Settings/Export) | LEDGER #69, group 6: not in this lane's list | — |
+| N8 #201 unit per exercise, #202 assisted/weighted | built | 10 |
+| N8 #203 shoes, #204 run-best mark, #208 running tips | built | 11 |
+| N8 #206 shared routine files, #207 CSV columns | built (#207's two export lines for the lead) | 12 |
+| N9 #205 weight milestones, #210 BMI | built (#210: ideal weight against the no-medical-advice rule; calories burned against the no-calorie-burn rule) | 13 |
+
+Lead's one-line items, collected: engine.ts `av2BodyAnswer` wiring; `AV2_BODY` into the corpus and `expected.json`;
+`eveningPlan` and `bodyExtras` in `lib/ai/tools/ak-sources.ts`/`ak-tools.ts`; the five registries for
+`zigoals:evening-plan:v1` and `zigoals:body-extras:v1`; `showcaseEvening(day)` in `lib/showcase-data.ts`;
+`workout-sets.csv` → `WORKOUT_SET_COLUMNS`/`workoutSetRows`; theme sheets for `components/health/workouts/av2-body.css`,
+`components/health/workouts/workouts.css`, `components/health/sleep/av2-sleep.css`, `components/health/sleep/sleep.css`,
+`components/health/body-figures.css`, `components/report/report.css`; Help and What's new texts above; search entries
+("exercise library", "ready-made routines", "routine folder", "progression", "training load", "distance goal",
+"shoes", "running tip", "time to fall asleep", "evening plan", "BMI", "weight milestones").
+
+Not run here (the brief's limits): Playwright (14 new `tests/av2-*.spec.ts`), next build, the theme build. Unit runs: the
+workouts, sleep, evening-plan, body-extras, wrapped, clinician-report, local-answers, evals, nova cards, restore, export
+and health-aa folders green (1,226 tests); `router-coverage.test.ts` failed once in that big parallel run and passed
+alone and in its folder (load on a shared machine).
