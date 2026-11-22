@@ -8,6 +8,7 @@ import {ConfirmInline} from '../ui/confirm-inline';
 import {MAX_BODY, MAX_TITLE, noteName, shortNoteName, type Note, type Notes} from '../../lib/notes/schema';
 import {ensureDaily, removeNote, updateNote, type NotesUndo} from '../../lib/notes/store';
 import {updateNoteKeepingVersion} from '../../lib/notes/versions';
+import {tickNote} from '../../lib/notes/ticks';
 import type {LinkIndex} from '../../lib/notes/links';
 import {deleteNotePhoto, getNotePhoto} from '../../lib/notes/photos';
 import {keepCapturePhoto} from '../../lib/notes/capture';
@@ -19,6 +20,9 @@ const NoteBacklinks = lazy(() => import('./note-backlinks'));
 const NoteReminderChips = lazy(() => import('./note-reminders'));
 // Session AV lane 2 (notes; LEDGER #33): a note's earlier versions, loaded when their fold opens.
 const NoteVersions = lazy(() => import('./note-versions'));
+// Session AV lane 2 (r3-notes; LEDGER #264, #267): the tick box and highlight buttons beside the text, in their own chunk.
+const NoteMarks = lazy(() => import('./note-marks'));
+const shortWords = (w: string) => { const t = w.replace(/\s+/g, ' ').trim(); return t.length > 40 ? `${t.slice(0, 39).trimEnd()}…` : t; };
 
 /**
  * Session AK (B1–B3): one note — read it (Markdown with live [[links]]) or edit it (with [[ autocomplete), its photo,
@@ -46,20 +50,29 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
     return change(r => updateNoteKeepingVersion(r, note.id, isDaily ? {body} : {title, body}, now), 'Saved on this device.');
   };
   const saveAndRead = () => { if (!dirty || save()) setMode('read'); };
+  // Session AV lane 2 (r3-notes; LEDGER #264): while reading, the words follow the note (a tick, its Undo, a restore), so
+  // Edit always starts from what is saved.
+  useEffect(() => { if (mode === 'read' && note) { setBody(note.body); setTitle(note.title); } }, [mode, note]);
+  const tick = (line: number, checked: boolean, words: string) => {
+    if (!note) return;
+    change(r => tickNote(r, note.id, line, checked, new Date().toISOString()), checked ? `Ticked: “${shortWords(words)}”.` : `Open again: “${shortWords(words)}”.`);
+  };
+  const box = useRef<HTMLElement>(null);
   const heading = note ? (note.kind === 'daily' && note.day ? formatDate(note.day, {weekday: true}) : noteName(note)) : day ? formatDate(day, {weekday: true}) : '';
-  return <article className="note-editor" aria-label={heading || 'Note'}>
+  return <article className="note-editor" aria-label={heading || 'Note'} ref={box}>
     {mode === 'edit' ? <>
       {!isDaily && <label className="field"><span>Title</span><input value={title} maxLength={MAX_TITLE} onChange={e => setTitle(e.target.value)} placeholder={note?.kind === 'inbox' ? 'Optional' : 'A title'}/></label>}
       {!isDaily && <SecretGuard text={title} onRemove={() => setTitle('')}/>}
       {/* Session AK G2 (RELEASE_REVIEW_2 R2-18): `[[` is explained here, in the field, where it is used. */}
       <LinkField label={isDaily ? 'This day’s note' : 'Note'} placeholder="Write here. Type [[ to link a goal, a habit or another note." value={body} onChange={setBody} index={index} exclude={note ? {kind: 'note', id: note.id} : undefined} maxLength={MAX_BODY} onSubmit={saveAndRead} rows={isDaily ? 6 : 10}/>
+      <LoadBoundary quiet><Suspense fallback={null}><NoteMarks value={body} onChange={setBody} maxLength={MAX_BODY} field={() => box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea') ?? null}/></Suspense></LoadBoundary>
       <div className="note-actions">
         <button type="button" className="primary" disabled={!dirty || untouchedStart} onClick={saveAndRead}>Save</button>
         {(note?.body.trim() || body.trim()) && <button type="button" className="quiet" onClick={() => { if (dirty) { setTitle(note?.title ?? ''); setBody(note?.body ?? ''); } setMode(note?.body.trim() ? 'read' : 'edit'); }}>{dirty ? 'Cancel changes' : 'Done'}</button>}
         <span className="fine">{body.length.toLocaleString('en-US')} / {MAX_BODY.toLocaleString('en-US')}</span>
       </div>
     </> : <>
-      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink}/>
+      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick}/>
       {note && /@remind|!remind|@herinner|⏰/i.test(note.body) && <LoadBoundary quiet><Suspense fallback={null}><NoteReminderChips note={note}/></Suspense></LoadBoundary>}
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button></div>
     </>}

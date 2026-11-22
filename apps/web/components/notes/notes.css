@@ -230,3 +230,24 @@
 .notes-bar > span[data-none] { background: color-mix(in srgb, var(--brand-cyan) 45%, transparent); }
 .notes-bar-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
 @media (max-width: 420px) { .notes-bars li { grid-template-columns: 1fr auto; } .notes-bar { grid-column: 1 / -1; grid-row: 2; } }
+/* Session AV lane 2 (r3-notes; LEDGER #264, #267): tick boxes and highlights in a note's own text. Six named highlight
+   colours mixed into the page's own background, so the text keeps its theme colour in Nebula, Light and Dark; a solid
+   underline in the colour keeps them apart, and each says its colour to a screen reader. */
+.note-hl { --hl: #e2b93b; color: inherit; background: color-mix(in srgb, var(--hl) 34%, transparent); border-bottom: 2px solid color-mix(in srgb, var(--hl) 80%, transparent); border-radius: 3px; padding: 0 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+[data-hl=yellow] { --hl: #e2b93b; } [data-hl=green] { --hl: #46a758; } [data-hl=blue] { --hl: #3e8bf0; }
+[data-hl=purple] { --hl: #8e6cf0; } [data-hl=red] { --hl: #e5484d; } [data-hl=orange] { --hl: #f08c38; }
+:root[data-theme=light] .note-hl { background: color-mix(in srgb, var(--hl) 28%, #fff); }
+@media (forced-colors: active) { .note-hl { background: Mark; color: MarkText; } }
+.note-hl-swatch { display: inline-block; width: 14px; height: 14px; margin-inline-end: 6px; border-radius: 4px; vertical-align: -2px; background: var(--hl); }
+.note-render ul.note-ticks, .notes-ticks ul.note-ticks { list-style: none; padding-inline-start: 0; }
+.note-tick { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; }
+.note-tick-box { flex: none; width: 22px; height: 22px; margin: 11px 0 0; accent-color: var(--brand-violet, #826cff); cursor: pointer; }
+.note-tick-words { padding: 10px 0; overflow-wrap: anywhere; cursor: default; }
+label.note-tick-words { cursor: pointer; }
+.note-tick[data-ticked] > .note-tick-words { text-decoration: line-through; color: var(--text-secondary, inherit); }
+.note-marks { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.note-marks button, .note-marks select { min-height: 44px; font-size: 15px; }
+.note-marks-hl { display: inline-flex; gap: 6px; align-items: center; }
+.notes-ticks-groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.notes-ticks-note { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.notes-ticks-note .text-link { min-height: 44px; display: inline-flex; align-items: center; overflow-wrap: anywhere; }
