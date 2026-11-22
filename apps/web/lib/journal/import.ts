@@ -2,6 +2,7 @@ import {parseFrontMatter} from '../notes/markdown';
 import {IMPORT_SOURCES, PERIOD, MAX_AUDIO_SECONDS, MAX_ENTRIES, MAX_ENTRY_AUDIO, MAX_ENTRY_PHOTOS, MAX_ENTRY_PHOTOS_ALL, MAX_JOURNALS, MAX_TEXT, journalSchema, type Journal, type JournalEntry} from './schema';
 import {MAIN_JOURNAL, booksOf, newJournalId} from './books';
 import {readTags} from './tags';
+import {FOLLOW_UP_MARK, followUpOfQuote} from './export';
 
 /**
  * Session AV lane 2 (journal; LEDGER #44, Day One's imports): reading another journal's export into this one, pure.
@@ -18,7 +19,8 @@ import {readTags} from './tags';
  */
 export type ImportSource = (typeof IMPORT_SOURCES)[number];
 export type PlannedEntry = {date: string; text: string; createdAt: string; updatedAt?: string; tags?: string[]; book?: string; template?: string; source: ImportSource; photos: string[]; audio: {file: string; seconds: number}[]; followUp?: {question: string; answer?: string};
-  /** Session AV lane 2 (r3-notes; LEDGER #269, #278, #279, #272): an entry's period, night and opening day, read back from ZIGoals' own exports. */ extra?: {period?: string; night?: string; opensOn?: string; /** Session AV lane 2 (r4-mind; LEDGER #310): a starred entry (Day One's `starred`). */ star?: true}};
+  /** Session AV lane 2 (r3-notes; LEDGER #269, #278, #279, #272): an entry's period, night and opening day, read back from ZIGoals' own exports. */ extra?: {period?: string; night?: string; opensOn?: string; /** Session AV lane 2 (r4-mind; LEDGER #310): a starred entry (Day One's `starred`). */ star?: true};
+  /** Session AV lane 2 (review B3C-5): read from ZIGoals' own Markdown file, its `createdAt` the entry's own (a day and creation time already in the journal is that entry). */ own?: true};
 /** Session AV lane 2 (r3-notes): the round-3 fields of an entry, from a ZIGoals export's `zigoals` block or Markdown front matter. */
 function extraOf(z: {period?: unknown; night?: unknown; opensOn?: unknown; 'opens-on'?: unknown; starred?: unknown} | null | undefined): PlannedEntry['extra'] | undefined {
   if (!z) return undefined;
@@ -102,6 +104,11 @@ export function readTextFile(file: InFile, today: string): {entries: PlannedEntr
   const fmTemplate = ours && typeof data.template === 'string' && /^[a-z0-9-]{1,40}$/.test(data.template) ? data.template : null;
   const fmExtra = ours ? extraOf(data as Record<string, unknown>) : undefined;
   if (ours) body = body.replace(/\n*(?:!\[[^\]\n]*\]\(\.\.\/(?:photos|audios)\/[^)\n]+\)\s*)+$/, ''); // its photos, named beside it
+  // Session AV lane 2 (review B3C-5): ZIGi's follow-up, written after the words as a quote block, is the entry's follow-up
+  // again, not part of its words (so the entry already in the journal is recognised and nothing doubles).
+  const quote = ours && data['follow-up'] === FOLLOW_UP_MARK ? followUpOfQuote(body) : null;
+  if (quote) body = quote.text;
+  const fmFollowUp = quote ? {question: quote.followUp.question.slice(0, 300), ...(quote.followUp.answer ? {answer: quote.followUp.answer.slice(0, 2000)} : {})} : undefined;
   const lines = body.split('\n'), heads = lines.map((l, i) => /^#{1,3}\s+/.test(l) && dayInLine(l) ? i : -1).filter(i => i >= 0);
   const out: PlannedEntry[] = [], skipped: ImportSkip[] = [];
   let cut = 0;
@@ -109,7 +116,7 @@ export function readTextFile(file: InFile, today: string): {entries: PlannedEntr
     const text = words.trim();
     if (!text) { skipped.push({name: label, reason: 'it has no words'}); return; }
     const day = date ?? today, c = clip(text); if (c.cut) cut++;
-    out.push({date: day, text: c.text, createdAt: fmCreated ?? `${day}T12:00:00.000Z`, ...(fmTags.length ? {tags: fmTags} : {}), ...(fmBook ? {book: fmBook} : {}), ...(fmTemplate ? {template: fmTemplate} : {}), ...(fmExtra && heads.length <= 1 ? {extra: fmExtra} : {}), source, photos: [], audio: []});
+    out.push({date: day, text: c.text, createdAt: fmCreated ?? `${day}T12:00:00.000Z`, ...(fmTags.length ? {tags: fmTags} : {}), ...(fmBook ? {book: fmBook} : {}), ...(fmTemplate ? {template: fmTemplate} : {}), ...(fmExtra && heads.length <= 1 ? {extra: fmExtra} : {}), ...(fmFollowUp && heads.length <= 1 ? {followUp: fmFollowUp} : {}), ...(fmCreated && heads.length <= 1 ? {own: true} : {}), source, photos: [], audio: []});
   };
   if (heads.length > 1 || (heads.length === 1 && !fmDate)) {
     heads.forEach((h, k) => push(dayInLine(lines[h]!), lines.slice(h + 1, heads[k + 1] ?? lines.length).join('\n'), `${file.name}: ${lines[h]!.replace(/^#+\s*/, '')}`));
@@ -144,12 +151,14 @@ export function planJournalImport(journal: Journal, files: readonly InFile[], {t
     if (!r) { skipped.push({name: f.name, reason: 'it is not a journal file ZIGoals reads (Day One JSON, Markdown, text or HTML)'}); continue; }
     entries.push(...r.entries); skipped.push(...r.skipped); cut += r.cut;
   }
-  const seen = new Set(journal.entries.map(e => `${e.date}\n${e.text.trim()}`)), kept: PlannedEntry[] = [];
+  // Session AV lane 2 (review B3C-5): an entry from ZIGoals' own Markdown is also known by its day and creation time, so it
+  // is recognised even when its words were changed here since the export.
+  const seen = new Set(journal.entries.map(e => `${e.date}\n${e.text.trim()}`)), made = new Set(journal.entries.map(e => `${e.date}\n${e.createdAt}`)), kept: PlannedEntry[] = [];
   for (const e of entries.sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
-    const key = `${e.date}\n${e.text.trim()}`;
-    if (seen.has(key)) { skipped.push({name: `${e.date}: ${e.text.slice(0, 40)}`, reason: 'it is already in your journal'}); continue; }
+    const key = `${e.date}\n${e.text.trim()}`, at = `${e.date}\n${e.createdAt}`;
+    if (seen.has(key) || (e.own && made.has(at))) { skipped.push({name: `${e.date}: ${e.text.slice(0, 40)}`, reason: 'it is already in your journal'}); continue; }
     if (e.date > today) { skipped.push({name: `${e.date}: ${e.text.slice(0, 40)}`, reason: 'its day is still to come'}); continue; }
-    seen.add(key); kept.push(e);
+    seen.add(key); if (e.own) made.add(at); kept.push(e);
     if (e.book && !books.some(b => b.toLowerCase() === e.book!.toLowerCase()) && e.book.toLowerCase() !== MAIN_JOURNAL.name.toLowerCase()) books.push(e.book);
   }
   const room = MAX_ENTRIES - journal.entries.length;

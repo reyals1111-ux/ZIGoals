@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {inBook, type BookChoice} from './books';
 import {hasTag} from './tags';
+import {isSealed} from './letters';
 import type {Journal, JournalEntry} from './schema';
 
 /**
@@ -39,14 +40,19 @@ export function dateQuery(raw: string, today: string): {from: string; to: string
   if (month && MONTHS[month[1]!]) { const y = Number(month[2]), mo = MONTHS[month[1]!]!; return {from: `${y}-${pad(mo)}-01`, to: `${y}-${pad(mo)}-${pad(lastDay(y, mo))}`}; }
   return null;
 }
-const wordsMatch = (e: JournalEntry, q: string) => { const w = q.toLowerCase(); return e.text.toLowerCase().includes(w) || (e.tags ?? []).some(t => t.toLowerCase().includes(w.replace(/^#/, ''))); };
-/** The entries the filter keeps, newest first. A typed date filters by day; any other words by text and tags. */
-export function filterEntries(journal: Pick<Journal, 'entries' | 'journals'>, filter: EntryFilter, today: string): JournalEntry[] {
+/** Words match an entry's text or its tags; a letter still folded away matches by its tags only (they show on its row). */
+const wordsMatch = (e: JournalEntry, q: string, folded: boolean) => { const w = q.toLowerCase(); return (!folded && e.text.toLowerCase().includes(w)) || (e.tags ?? []).some(t => t.toLowerCase().includes(w.replace(/^#/, ''))); };
+/**
+ * The entries the filter keeps, newest first. A typed date filters by day; any other words by text and tags.
+ * Session AV lane 2 (review B3C-14): a letter still folded away (`isSealed`) is not found by its words until its day, so
+ * a search does not tell what it holds; once "Read it now" was used on this visit (`readEarly`) it is found as any entry.
+ */
+export function filterEntries(journal: Pick<Journal, 'entries' | 'journals'>, filter: EntryFilter, today: string, readEarly: ReadonlySet<string> = new Set()): JournalEntry[] {
   const q = (filter.query ?? '').trim(), typedDate = dateQuery(q, today);
   const from = [filter.from, typedDate?.from].filter((d): d is string => !!d && DAY.test(d)).sort().at(-1) ?? null;
   const to = [filter.to, typedDate?.to].filter((d): d is string => !!d && DAY.test(d)).sort()[0] ?? null;
   const kept = [...journal.entries].reverse().filter(e => hasTag(e, filter.tag ?? null) && inBook(journal, e, filter.book ?? 'all') && (!filter.period || e.period === filter.period)
-    && (!from || e.date >= from) && (!to || e.date <= to) && (typedDate || !q || wordsMatch(e, q)) && (!filter.star || e.star === true) && (!filter.days || filter.days.has(e.date)));
+    && (!from || e.date >= from) && (!to || e.date <= to) && (typedDate || !q || wordsMatch(e, q, isSealed(e, today) && !readEarly.has(e.id))) && (!filter.star || e.star === true) && (!filter.days || filter.days.has(e.date)));
   return filter.order === 'oldest' ? kept.reverse() : kept;
 }
 /** The day range in words, for the list's line ("Nov 3, 2026" or "Nov 1 – Nov 30, 2026"). */

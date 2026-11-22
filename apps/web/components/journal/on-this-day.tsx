@@ -4,13 +4,13 @@ import {useMemo, useState} from 'react';
 import {ENERGY_WORDS} from '../../lib/energy/schema';
 import {formatDate} from '../../lib/visual-format';
 import {preview} from '../../lib/on-this-day/on-this-day';
-// Session AV lane 2 (r4-mind; LEDGER #309, Journey): a week ago and a month ago beside the years.
+// Session AV lane 2 (r4-mind; LEDGER #309, Journey): a week ago and a month ago beside the years (sealed letters left out).
 import {throwbacks} from '../../lib/on-this-day/throwback';
 import {HIDE_FULL_NOTE, JOURNAL_DISPLAY, hideMemory, hideMemoryFull, onThisDayShown, setOnThisDay} from '../../lib/on-this-day/store';
 import {useDeviceRecord} from '../ai/use-device-record';
 import './on-this-day.css';
 
-type Entry = {id: string; date: string; text: string};
+type Entry = {id: string; date: string; text: string; opensOn?: string};
 
 /**
  * Session AK (BUILD list 2 #3): "On this day" at the top of the Journal — what the person wrote on this date in earlier

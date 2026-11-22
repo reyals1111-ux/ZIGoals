@@ -14,6 +14,7 @@ import {deleteNotePhoto, getNotePhoto} from '../../lib/notes/photos';
 import {keepCapturePhoto} from '../../lib/notes/capture';
 import {photoScope} from '../../lib/health-aa/photos';
 import {formatDate} from '../../lib/visual-format';
+import {propsFace} from '../../lib/notes/prop-face'; // Session AV lane 2 (review B3C-13): days and numbers via the app's formatters
 
 const NoteBacklinks = lazy(() => import('./note-backlinks'));
 // Session AV lane 2 (LEDGER #31): the "@remind" lines of this note, in their own chunk.
@@ -84,7 +85,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {note && printing && <LoadBoundary quiet><Suspense fallback={null}><NotePrint note={note} heading={heading || noteName(note)} index={index} onDone={donePrinting}/></Suspense></LoadBoundary>}
     </>}
     {note && <NoteExtras note={note} change={change} onDeleted={onDeleted}/>}
-    {note && record && <details className="note-fold note-props-fold" onToggle={e => setPropsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Properties <span className="fine">· {note.props?.length ? note.props.slice(0, 3).map(p => `${p.k}: ${p.t === 'tick' ? (p.v ? 'yes' : 'no') : String(p.v)}`).join(', ') : 'your own fields, such as a status or a day'}</span></summary>
+    {note && record && <details className="note-fold note-props-fold" onToggle={e => setPropsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Properties <span className="fine">· {propsFace(note.props) ?? 'your own fields, such as a status or a day'}</span></summary>
       {propsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteProps note={note} record={record} change={change}/></Suspense></LoadBoundary>}
     </details>}
     {note && record && <details className="note-fold note-versions-fold" onToggle={e => setVersionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Earlier versions <span className="fine">· {(record.versions ?? []).filter(v => v.noteId === note.id).length || 'none yet'}</span></summary>
