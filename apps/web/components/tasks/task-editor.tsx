@@ -12,6 +12,7 @@ import {COMMENT_MAX, COMMENTS_MAX, commentParts, weekStart} from '../../lib/task
 import {HEALTH_WORDS, TaskTitleInput, type EditScope} from './task-parts';
 import type {GoalOption} from './use-goal-options';
 import type {TaskPatch} from './use-task-list';
+import {TaskFieldInputs, useTaskFields} from './task-fields';
 
 const HabitLinkField = lazy(() => import('./habit-link-field'));
 /** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
@@ -20,6 +21,8 @@ const TaskAttachments = lazy(() => import('./task-attachments'));
 const TaskTimer = lazy(() => import('./task-timer'));
 /** Session AV lane 2 (rest, LEDGER #33): the task's earlier titles and notes (its own chunk, loaded when the fold opens). */
 const TaskVersions = lazy(() => import('./task-versions'));
+/** Session AV lane 2 (tasks-r2, LEDGER #223): in or out of today's My Day (its own chunk). */
+const MyDayButton = lazy(() => import('./my-day-parts'));
 /** Session AV (1c, q1 #1): the editor offers up to three reminders a task (the record keeps up to five). */
 const MAX_EDITOR_REMINDERS = 3;
 
@@ -62,10 +65,13 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   // Session AL (P-LS-46, LS-048): the task changed elsewhere (another tab, ZIGi) while this editor was open.
   const base = useRef(task.updatedAt ?? task.createdAt), stale = (task.updatedAt ?? task.createdAt) !== base.current;
   const sections = (record?.sections ?? []).filter(s => s.projectId === projectId);
+  // Session AV lane 2 (tasks-r2, LEDGER #229): the values of the chosen project's own fields.
+  const custom = useTaskFields(task, record, projectId);
   const save = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) { setTitleError('A task needs a title.'); return; }
     if (recur === 'invalid' || minutesValue === 'invalid' || spentValue === 'invalid') return;
+    const fieldValues = custom.read(); if (fieldValues === 'invalid') return;
     // Session AV (1c, q1 #15): a repeating task has no separate deadline (the engine refuses one); the field said so.
     const repeating = !!recur;
     const unchangedRepeat = task.recur && repeat === (task.recur.text ?? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase());
@@ -74,7 +80,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       labels: labels.split(/[\s,]+/).map(l => l.replace(/^@/, '')).filter(Boolean),
       ...(record ? {projectId: projectId || null, sectionId: sectionId || null} : {}),
       reminders: [...[...new Set(reminders.filter(r => r !== '').map(Number))].slice(0, MAX_EDITOR_REMINDERS).map(before => ({before})), ...(remindAt ? [{before: 0, at: remindAt}] : [])], habit: habit || null, health: (health || null) as HealthLink | null,
-      early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments};
+      early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {})};
     // A change to the repeat itself is a change to the series; anything else on a repeating task asks which times.
     if (task.recur && task.due && !task.doneAt && unchangedRepeat) { setAsk(patch); requestAnimationFrame(() => askRef.current?.focus()); return; }
     onSave(patch);
@@ -93,6 +99,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     <label className="field"><span>Priority</span><select value={level} onChange={e => setLevel(Number(e.target.value) as TaskLevel)}>{([1, 2, 3, 4] as const).map(p => <option key={p} value={p}>{LEVEL_WORDS[p]}</option>)}</select></label>
     <label className="field"><span>Due</span><input type="date" value={due} aria-describedby={due && due < today ? `${id}-past` : undefined} onChange={e => { setDue(e.target.value); if (!e.target.value) setTime(''); }} />{due && due < today && <small id={`${id}-past`} className="tasks-field-note">A past day: it shows as overdue.</small>}</label>
     <label className="field"><span>Time</span><input type="time" value={time} disabled={!due} onChange={e => setTime(e.target.value)} /></label>
+    <Suspense fallback={null}><MyDayButton task={task} today={today}/></Suspense>
     {/* Session AV (owner follow-up 1, F-DEADLINES): the day it must be done by, apart from the day it is planned for. */}
     {/* Session AV (1c, q1 #15): off while the task repeats, with the engine's own sentence. */}
     <label className="field"><span>Deadline — optional</span><input type="date" value={repeatsNow ? '' : deadline} disabled={repeatsNow} aria-describedby={`${id}-deadline`} onChange={e => setDeadline(e.target.value)} /></label>
@@ -125,6 +132,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     {due && reminders.length > 0 && reminders.length < MAX_EDITOR_REMINDERS && reminders.every(r => r !== '') && <p className="task-editor-more-reminders"><button type="button" className="text-link" onClick={() => setReminders(rs => [...rs, ''])}>+ Add another reminder</button></p>}
     {record && <label className="field"><span>Project</span><select value={projectId} onChange={e => { setProjectId(e.target.value); setSectionId(''); }}><option value="">Inbox</option>{(record.projects ?? []).filter(p => !p.archived || p.id === projectId).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
     {record && sections.length > 0 && <label className="field"><span>Section</span><select value={sectionId} onChange={e => setSectionId(e.target.value)}><option value="">No section</option>{sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>}
+    <TaskFieldInputs fields={custom} />
     <label className="field"><span>Labels</span><input value={labels} maxLength={400} placeholder="@calls @home" onChange={e => setLabels(e.target.value)} /></label>
     {(goals.length > 0 || goal) && <label className="field"><span>Goal</span><select value={goal} onChange={e => setGoal(e.target.value)}><option value="">No goal</option>{!known && goal && <option value={goal}>{linked && (linked.key === goal || linked.id === goal) ? `${linked.name}${linked.closed ? ` (${linked.closed})` : ''}` : 'A goal no longer here'}</option>}{goals.map(g => <option key={g.key} value={g.key}>{g.name}</option>)}</select></label>}
     {habits.length > 0 ? <label className="field"><span>Habit</span><select value={habit} onChange={e => setHabit(e.target.value)}><option value="">No habit</option>{habit && !habits.some(h => h.id === habit) && <option value={habit}>A habit no longer here</option>}{habits.map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</select></label>

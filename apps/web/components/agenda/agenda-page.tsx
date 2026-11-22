@@ -41,6 +41,8 @@ const AgendaExport = lazy(() => import('./agenda-export'));
 const CalendarImport = lazy(() => import('./calendar-import'));
 // Session AP (time-blocking): the day by the hour, loaded the first time the person opens it.
 const AgendaHourGrid = lazy(() => import('./agenda-hour-grid'));
+// Session AV lane 2 (tasks-r2, LEDGER #224): the reminders written in notes on the day or week shown, linking to each note.
+const AgendaNoteReminders = lazy(() => import('../tasks/note-reminders-in-tasks').then(m => ({default: m.AgendaNoteReminders})));
 const VIEW_LABEL: Record<AgendaView, string> = {day: 'Day', week: 'Week', month: 'Month'};
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
 const TEACH: Record<AgendaSource, [string, string]> = {
@@ -141,6 +143,7 @@ export function AgendaPage() {
         {view === 'day' && days[0]!.date >= today && !list.tasks.unreadable && <rows.TaskAddForm compact onAdd={list.add} goals={[]} today={today} fixedDue={days[0]!.date} label={`Add a task for ${formatDate(days[0]!.date, {weekday: true, year: false})}`} submit="Add task" />}
         {view === 'week' && <ol className="agenda-week">{days.map(d => <li key={d.date}><rows.DayList day={d} heading {...rowProps} /></li>)}</ol>}
         {view === 'month' && <rows.MonthGrid days={days} first={range.first} last={range.last} selected={at} onSelect={setAnchor} {...rowProps} />}
+        {view !== 'month' && <LoadBoundary quiet><Suspense fallback={null}><AgendaNoteReminders from={range.from} to={range.to} today={today} /></Suspense></LoadBoundary>}
         <rows.TaskStatusLine status={list.status} error={list.error} onUndo={list.runUndo} />
         {note && <p className="fine" role="status">{note}</p>}
       </section>

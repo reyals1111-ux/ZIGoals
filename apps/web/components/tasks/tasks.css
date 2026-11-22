@@ -257,3 +257,6 @@
 .tasks-nav-area h4 { margin: 8px 0 2px; font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
 .tasks-area-pick { flex: 0 1 200px; min-width: 0; }
 .task-editor-paused { flex: 1 1 100%; margin: 0; font-size: 15px; }
+/* Session AV lane 2 (tasks-r2, LEDGER #225): "Print this list" under the list. */
+.tasks-print-line { margin: 8px 0 0; }
+.tasks-print-line button { min-height: 44px; font-size: 16px; }

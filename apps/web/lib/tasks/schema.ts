@@ -133,12 +133,49 @@ export const taskSchema = z.looseObject({
   parallel: z.literal(true).optional().catch(undefined),
   objective: id.optional().catch(undefined),
   comments: tolerantArray(z.looseObject({id, at: z.iso.datetime({offset: true}), text: z.string().trim().min(1).max(1000)}), 50),
+  /**
+   * Session AV lane 2 (tasks-r2, LEDGER #229; Any.do's custom fields; TIER 3 (stored format), additive and optional): the
+   * task's values of its project's own fields, by field id — text (≤ 200), a number, a day, one of the field's choices, or
+   * a tick. A value this build cannot read is dropped on read (never the task); older builds keep `fields` untouched.
+   */
+  fields: z.preprocess(v => {
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
+    const kept = Object.entries(v).filter(([k, x]) => /^[A-Za-z0-9_-]{1,80}$/.test(k) && ((typeof x === 'string' && x.length >= 1 && x.length <= FIELD_TEXT_MAX) || (typeof x === 'number' && Number.isFinite(x)) || x === true)).slice(0, 20);
+    return kept.length ? Object.fromEntries(kept) : undefined;
+  }, z.record(z.string(), z.union([z.string(), z.number(), z.literal(true)])).optional()),
+});
+/**
+ * Session AV lane 2 (tasks-r2, LEDGER #228; Any.do's automations; TIER 3 (stored format), additive and optional): a rule on a
+ * project — when a task is added, enters a section or is done, then set its priority, add a label, plan it for today, mark
+ * it done, move it to a section or create the next one (lib/tasks/rules.ts runs them). Each field is dropped on read when
+ * it cannot be read, and a rule that cannot be read is dropped (never the project); older builds keep `rules` untouched.
+ */
+export const RULE_WHEN = ['added', 'section', 'done'] as const;
+export const RULE_THEN = ['level', 'label', 'today', 'done', 'move', 'next'] as const;
+export const MAX_RULES = 10;
+export const ruleSchema = z.looseObject({
+  id, when: z.enum(RULE_WHEN), section: id.optional().catch(undefined), then: z.enum(RULE_THEN),
+  level: z.number().int().min(1).max(4).optional().catch(undefined), label: z.string().regex(LABEL_PATTERN).optional().catch(undefined),
+  to: id.optional().catch(undefined), title: z.string().trim().min(1).max(TASK_TITLE_MAX).optional().catch(undefined), days: z.number().int().min(0).max(365).optional().catch(undefined),
+});
+/**
+ * Session AV lane 2 (tasks-r2, LEDGER #229; Any.do's custom fields; TIER 3 (stored format), additive and optional): a field a
+ * project adds to its tasks (text, number, date, a choice from a list, a tick), up to five. Read tolerantly: a field that
+ * cannot be read is dropped (never the project); older builds keep `fields` untouched.
+ */
+export const FIELD_KINDS = ['text', 'number', 'date', 'choice', 'tick'] as const;
+export const MAX_FIELDS = 5, FIELD_NAME_MAX = 40, FIELD_TEXT_MAX = 200, MAX_FIELD_OPTIONS = 12;
+export const fieldDefSchema = z.looseObject({
+  id, name: z.string().trim().min(1).max(FIELD_NAME_MAX), kind: z.enum(FIELD_KINDS),
+  options: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter(x => typeof x === 'string' && x.trim() && x.trim().length <= FIELD_NAME_MAX).map(x => (x as string).trim()))].slice(0, MAX_FIELD_OPTIONS) : undefined, z.array(z.string()).optional()),
 });
 export const projectSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), colour: z.enum(TASK_COLOURS).catch('grey'),
   order: z.number().finite().catch(0), archived: z.boolean().optional().catch(undefined), view: z.enum(['list', 'board']).optional().catch(undefined),
   /** Session AV lane 2 (tasks, LEDGER #20, #12, #28; Things' Areas, TickTick's folders; TIER 3 (stored format), additive): the area it sits in. */
   areaId: id.optional().catch(undefined),
+  rules: tolerantArray(ruleSchema, MAX_RULES),
+  fields: tolerantArray(fieldDefSchema, MAX_FIELDS),
 });
 /** Session AV lane 2 (tasks, LEDGER #20): `archived` puts a finished section away as a block, its tasks with it. */
 export const sectionSchema = z.looseObject({id, projectId: id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0), archived: z.literal(true).optional().catch(undefined)});

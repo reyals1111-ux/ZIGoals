@@ -1,0 +1,37 @@
+/* Session AV lane 2 (tasks-r2, LEDGER #223–#229): My Day, reminders from notes, project fields and rules. Theme variables only. */
+.tasks-plan-day-sub { margin: 12px 0 4px; font-size: 16px; }
+.tasks-plan-day button { min-height: 44px; }
+.task-editor-myday { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0; }
+.task-editor-myday button { min-height: 44px; }
+.tasks-note-reminders { margin: 12px 0; padding: 0 0 4px; border-top: 1px solid var(--line); }
+.tasks-note-reminders h3 { margin: 12px 0 6px; font-size: 16px; }
+.tasks-note-reminders h3 small { font-weight: 400; color: var(--text-secondary, var(--muted)); }
+.tasks-note-reminder-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; font-size: 15px; }
+.tasks-note-reminder-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; min-height: 44px; overflow-wrap: anywhere; }
+.tasks-note-reminder-list li[data-gone] > span:not([aria-hidden]) { font-weight: 600; }
+.tasks-note-reminder-list a { min-height: 44px; display: inline-flex; align-items: center; }
+.tasks-gallery { margin: 12px 0; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 16px 8px; }
+.tasks-gallery > summary { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; cursor: pointer; font-weight: 600; }
+.tasks-gallery > summary small { font-weight: 400; color: var(--text-secondary, var(--muted)); }
+.tasks-gallery-lang { border: 0; margin: 4px 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.tasks-gallery-lang legend { font-size: 15px; padding: 0; margin-bottom: 4px; }
+.tasks-gallery-lang label { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 15px; }
+.tasks-gallery-group h5 { margin: 12px 0 4px; font-size: 15px; }
+.tasks-gallery-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tasks-gallery-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 6px 0; border-top: 1px solid var(--line); }
+.tasks-gallery-what { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; overflow-wrap: anywhere; font-size: 15px; }
+.tasks-gallery-what small { color: var(--text-secondary, var(--muted)); font-size: 14px; }
+.tasks-gallery-list button { min-height: 44px; }
+.task-editor-fields { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; }
+.task-editor-fields .field { flex: 1 1 180px; min-width: 0; }
+.tasks-project-setup { margin: 0 0 16px; display: grid; gap: 8px; }
+.tasks-project-setup h3 { margin: 0; font-size: 17px; overflow-wrap: anywhere; }
+.tasks-project-setup h4 { margin: 8px 0 4px; font-size: 16px; }
+.tasks-rule-list, .tasks-field-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tasks-rule-list li, .tasks-field-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-height: 44px; padding: 4px 0; border-top: 1px solid var(--line); font-size: 15px; overflow-wrap: anywhere; }
+.tasks-rule-list li > span, .tasks-field-list li > span { flex: 1 1 220px; min-width: 0; }
+.tasks-rule-list .text-link, .tasks-field-list .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+.tasks-rule-form, .tasks-field-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; }
+.tasks-rule-form .field, .tasks-field-form .field { flex: 1 1 180px; min-width: 0; }
+.tasks-rule-form button, .tasks-field-form button { min-height: 44px; }
+.tasks-rule-form .tasks-field-error, .tasks-field-form .tasks-field-error { flex: 1 1 100%; margin: 0; }

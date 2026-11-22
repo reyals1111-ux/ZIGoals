@@ -155,7 +155,9 @@ export type TaskPatch = {title?: string; priority?: TaskPriority; due?: string |
   /** Session AV (F-TASK-MINUTES). */
   minutes?: number | null;
   /** Session AV lane 2 (tasks): start-early days, a background task, minutes worked, the week objective, comments. */
-  early?: number | null; parallel?: true | null; spent?: number | null; objective?: string | null; comments?: NonNullable<Task['comments']>};
+  early?: number | null; parallel?: true | null; spent?: number | null; objective?: string | null; comments?: NonNullable<Task['comments']>;
+  /** Session AV lane 2 (tasks-r2, LEDGER #229): the values of the project's own fields (lib/tasks/custom-fields.ts checks them); null clears all. */
+  fields?: NonNullable<Task['fields']> | null};
 /**
  * Changes a task's title, priority, day, time or goal. `null` clears an optional field; a field left out is kept. A day
  * may be moved earlier than today only when it already was (an overdue task keeps its day until the person moves it),
@@ -176,6 +178,7 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.labels !== undefined) { const labels = cleanLabels(patch.labels); if (labels.length) next.labels = labels; else delete next.labels; }
   if (patch.reminders !== undefined) { if (patch.reminders.length) next.reminders = patch.reminders; else delete next.reminders; }
   if (patch.comments !== undefined) { if (patch.comments.length) next.comments = patch.comments; else delete next.comments; }
+  if (patch.fields !== undefined) { if (patch.fields && Object.keys(patch.fields).length) next.fields = patch.fields; else delete next.fields; }
   if (patch.order !== undefined) next.order = patch.order;
   if (typeof next.due === 'string' && next.due !== task.due && next.due < today && !allowPast) throw new Error(PAST_DAY_MESSAGE);
   if (next.time !== undefined && !next.due) throw new Error('Choose a day for the task before a time.');
