@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {afterGoto, openSettings} from './settings-open';
+import {openPhoneRow} from './phone-length-folds';
 
 // Session I, Part 8: in-app reminders. Times are kept on this device only (zigoals:reminders:v1), follow the device's
 // own clock, and show a card on Today until the habit is done or the card is dismissed for today.
@@ -75,6 +76,10 @@ test('a done habit has no reminder card; the editor shows and clears the saved t
 test('water: a reminder set in the Water journal shows until water is logged', async ({page}) => {
   await start(page, '19:58');
   await page.goto('/app/health');
+  // Session AV lane 2 (phone-length, deliberate): on a phone the water reminder sits in the Water card's row "Your drinks,
+  // reminders and tips" (tests/phone-length-folds.ts: there and closed on a phone, absent on a computer); it is opened as a
+  // person would, then the same form is used and checked as before.
+  await openPhoneRow(page, 'Your drinks, reminders and tips');
   const form = page.getByRole('form', {name: 'Water reminder'});
   await form.getByLabel('Reminder time — on this device').fill('20:00');
   await form.getByRole('button', {name: 'Save reminder time'}).click();

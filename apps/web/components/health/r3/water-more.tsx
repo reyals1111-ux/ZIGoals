@@ -33,7 +33,7 @@ export const facts = (d: OwnDrink) => <>{[`${formatNumber(d.sizeMl)} mL`, d.caff
  * one-tap buttons (each a water entry with its drink), the energy and sugar of today's drinks as typed, a tip a day (off
  * unless chosen), "Your drinks" to make up to 30, and "Reminders through the day". Its own chunk.
  */
-export default function WaterMore({data, date, perform}: {data: HealthData; date: string; perform: Perform}) {
+export default function WaterMore({data, date, perform, only}: {data: HealthData; date: string; perform: Perform; only?: 'taps' | 'settings'}) {
   const {extras, update, unreadable} = useHealthExtras(), store = useHealth(), [said, setSaid] = useState('');
   const drinks = ownDrinks(extras), lastTap = useRef(Number.NEGATIVE_INFINITY), energy = drinkEnergyDay(extras, dailyData(data).water, date);
   const [tipStep, setTipStep] = useState(0), [tipLang, setTipLang] = useState<'en' | 'nl'>('en'), tip = waterTipOf(date, tipStep);
@@ -47,7 +47,10 @@ export default function WaterMore({data, date, perform}: {data: HealthData; date
     });
   }
   const setTips = (on: boolean) => { try { update(r => healthExtrasSchema.parse({...r, waterTips: on || undefined})); setSaid(on ? 'A water tip shows here each day.' : 'Water tips are off.'); } catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
-  return <div className="r3-water">
+  // Session AV lane 2 (phone-length): on a phone the Water card shows the tip and the one-tap drinks where they were
+  // (`only="taps"`) and keeps "Your drinks", "Reminders through the day" and the tip's switch in the row "Your drinks,
+  // reminders and tips" at the card's end (`only="settings"`; components/health/daily-tools.tsx). Elsewhere: all of it here.
+  const taps = <>
     {extras?.waterTips && <section className="r3-tip" aria-labelledby={`r3-water-tip-${date}`}>
       <h3 id={`r3-water-tip-${date}`} lang={tipLang}>{tipLang === 'en' ? 'A water tip' : 'Een watertip'}</h3>
       <p lang={tipLang} aria-live="polite">{tip[tipLang]}</p>
@@ -55,13 +58,18 @@ export default function WaterMore({data, date, perform}: {data: HealthData; date
     </section>}
     {drinks.length > 0 && <div className="actions r3-own-drinks" role="group" aria-label="Your drinks, one tap each">{drinks.map(d => <button type="button" className="secondary" key={d.id} data-drink-colour={d.colour ?? 'blue'} aria-label={`Log ${d.name}, ${formatNumber(d.sizeMl)} mL`} onClick={e => tap(d, e.timeStamp)}><span aria-hidden="true" className="r3-drink-symbol">{d.symbol ?? '💧'}</span> {d.name} <small>{formatNumber(d.sizeMl)} mL</small></button>)}</div>}
     <DrinkDayEnergy energy={energy}/>
+  </>;
+  const settings = <>
     <details className="r3-fold"><summary>Your drinks{drinks.length ? ` (${drinks.length} of ${OWN_DRINKS_MAX})` : ''}</summary>
       {unreadable ? <p className="fine" role="alert">Your drinks on this device could not be read, so they cannot be changed here now.</p> : <DrinksEditor extras={extras} drinks={drinks} update={update}/>}
     </details>
     <details className="r3-fold"><summary>Reminders through the day</summary><SpreadCard data={data}/></details>
     <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={!!extras?.waterTips} aria-describedby={`r3-tip-note-${date}`} disabled={!extras} onClick={() => setTips(!extras?.waterTips)}>Show a water tip each day</button><span className="fine" id={`r3-tip-note-${date}`}>Small habits that make a glass easier to reach for. Off unless you choose it.</span></div>
     <p className="fine" role="status" aria-live="polite">{said}</p>
-  </div>;
+  </>;
+  if (only === 'taps') return extras?.waterTips || drinks.length > 0 || energy.kcal !== null || energy.sugarG !== null ? <div className="r3-water r3-water-taps">{taps}</div> : null;
+  if (only === 'settings') return <div className="r3-water r3-water-settings">{settings}</div>;
+  return <div className="r3-water">{taps}{settings}</div>;
 }
 
 /** The card's line of today's drink energy and sugar as typed; hidden by "Hide calories and weight" (review B3B-4). */
