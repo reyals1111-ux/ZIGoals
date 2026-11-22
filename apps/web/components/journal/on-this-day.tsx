@@ -3,12 +3,13 @@ import {useMoodLook} from '../mood-look/use-mood-look';
 import {useMemo, useState} from 'react';
 import {ENERGY_WORDS} from '../../lib/energy/schema';
 import {formatDate} from '../../lib/visual-format';
-import {onThisDay, preview} from '../../lib/on-this-day/on-this-day';
+import {preview} from '../../lib/on-this-day/on-this-day';
+import {journalMemories} from '../../lib/journal/today';
 import {HIDE_FULL_NOTE, JOURNAL_DISPLAY, hideMemory, hideMemoryFull, onThisDayShown, setOnThisDay} from '../../lib/on-this-day/store';
 import {useDeviceRecord} from '../ai/use-device-record';
 import './on-this-day.css';
 
-type Entry = {id: string; date: string; text: string};
+type Entry = {id: string; date: string; text: string; opensOn?: string};
 
 /**
  * Session AK (BUILD list 2 #3): "On this day" at the top of the Journal — what the person wrote on this date in earlier
@@ -20,7 +21,7 @@ export default function OnThisDay({entries, today, energy, moods}: {entries: rea
   const moodLook = useMoodLook(); // Session AV lane 2 (LEDGER #178): your own mood words, else ZIGoals'
   const display = useDeviceRecord(JOURNAL_DISPLAY);
   const [open, setOpen] = useState<string | null>(null), [note, setNote] = useState('');
-  const items = useMemo(() => onThisDay(entries, today, {hidden: display.data.hidden ?? []}), [entries, today, display.data.hidden]);
+  const items = useMemo(() => journalMemories(entries, today, {hidden: display.data.hidden ?? []}), [entries, today, display.data.hidden]);
   const change = (fn: Parameters<typeof display.update>[0], said: string) => { try { display.update(fn); setNote(said); } catch { setNote('This choice could not be kept on this device.'); } };
   if (!display.loaded) return null;
   if (!onThisDayShown(display.data)) return note ? <p className="fine on-this-day-note" role="status">{note}</p> : null;

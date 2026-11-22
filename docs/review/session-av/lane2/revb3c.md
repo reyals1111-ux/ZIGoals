@@ -18,3 +18,20 @@ registry is `r3-notes.md`). Branch `lane2/revb3c` from `lane2/batch3`. One commi
   words before, on and under headings and a heading written twice: no word is lost through the grid.
 - **Spec:** `tests/av2-revb3c-grid.spec.ts`.
 - **Help/corpus:** none.
+
+## Sealed letters (B3C-2, B3C-3, B3C-4, B3C-14): one rule everywhere
+
+All four read through `isSealed(entry, today)` and `unsealed(entries, today)` in `lib/journal/letters.ts` (a letter
+whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.test.ts`; spec:
+`tests/av2-revb3c-sealed.spec.ts`.
+
+### B3C-2 (Major): On this day and Today's line
+
+- **Verdict:** confirmed and fixed.
+- **Fix:** `journalMemories(entries, today)` in `lib/journal/today.ts` (On this day without sealed letters) is used by
+  the Journal page's On this day (`components/journal/on-this-day.tsx`) and by `journalToday` (Today's journal line).
+  Today's opt-in first lines are built by the new pure `journalLines(day, today)`, which leaves out a sealed letter
+  written today (it is still counted in "Written today: 1 entry"; the count shows no words).
+- **Tests:** a letter written a month ago and one a year ago, both sealed, are no memory; on its opening day the letter
+  is a memory again; Today's lines carry no sealed words.
+- **Help/corpus:** none.
