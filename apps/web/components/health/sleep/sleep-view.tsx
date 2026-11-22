@@ -45,6 +45,8 @@ const EnergyCurve = lazy(() => import('../../sleep/energy-curve'));
 const SleepLongChart = lazy(() => import('./sleep-long-chart'));
 // Session AV lane 2 (body; LEDGER #123, #124): your week beside your usual, time to fall asleep, quality by week or month.
 const SleepUsual = lazy(() => import('./sleep-usual'));
+// Session AV lane 2 (body; LEDGER #83): the evening plan with its "Ready for bed" bar, its own chunk.
+const EveningPlan = lazy(() => import('./evening-plan'));
 const SleepLatencyChart = lazy(() => import('./sleep-usual').then(m => ({default: m.SleepLatencyChart})));
 const SleepQualityTrend = lazy(() => import('./sleep-usual').then(m => ({default: m.SleepQualityTrend})));
 
@@ -85,7 +87,7 @@ export default function SleepView() {
       <p className="page-lede">Nights and naps you log or bring in. Private to your Health journal; it syncs only with Health, under the same consent.</p>
     </div><HeaderArtCorner><OrbitArt glyph={SleepGlyph} tone="health" spin={6}/></HeaderArtCorner></div>
     {note && <p className="sleep-note">{note}</p>}
-    <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
+    <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><LoadBoundary quiet><Suspense fallback={null}><EveningPlan zone={store.zone} now={store.now}/></Suspense></LoadBoundary><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
     {/* Session AH (HE3, D-199): the log form sits near the top, full width, not squeezed beside the goal at the bottom. */}
     <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}

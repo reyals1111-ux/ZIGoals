@@ -30,3 +30,7 @@
 :root[data-theme=light] .evening-ready span { background: #16865c; }
 :root[data-theme=light] .evening-problem { color: #a3123a; }
 @media (forced-colors: active) { .evening-ready span { background: CanvasText; } .evening-ready { outline: 1px solid CanvasText; } }
+.evening-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.evening-actions button { min-height: 44px; }
+.evening-actions .field { flex: 1 1 220px; }
+.evening-ready-line { margin: 0; font-size: 15px; font-weight: 600; }

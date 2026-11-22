@@ -9,6 +9,8 @@ import {monthFigures, muscleWeeks, previousMonth} from '../../workouts/analytics
 import {categoryLookup} from '../../workouts/depth';
 import {weekStreak, workoutYear} from '../../workouts/calendar';
 import {clockFromNoon} from '../../sleep/engine';
+import {eveningOf, readiness, sortSteps, stepClock} from '../../evening-plan/plan';
+import type {EveningRecord} from '../../evening-plan/schema';
 import type {Sleep} from '../../sleep/schema';
 import {latencySeries, usualSleep, USUAL_MIN_NIGHTS, weekVsUsual} from '../../sleep/usual';
 import {goalProgress, LOAD_WORDS, paceText, runSummary, runWords, trainingLoad} from '../../workouts/runs';
@@ -278,4 +280,22 @@ function sleepVsUsual(a: Asked): LocalReply | null {
     `De afgelopen 7 dagen (${v.nights} nachten) naast je gewone (het midden van je eigen ${usual.nights} nachten vóór deze week): geslapen ${m(v.asleep)} (gewoonlijk ${m(usual.asleep)}), naar bed om ${bed(v.bed)} (gewoonlijk ${bed(usual.bed)})${v.latency !== null && usual.latency !== null ? `, ${v.latency} min om in slaap te vallen (gewoonlijk ${usual.latency})` : ''}${v.quality !== null && usual.quality !== null ? `, kwaliteit ${v.quality} van 5 (gewoonlijk ${usual.quality})` : ''}. Geen cijfers van buiten: alleen je eigen nachten.`), SLEEP_CALLS);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun, fallAsleep, sleepVsUsual];
+// ── The evening plan (LEDGER #83) ──────────────────────────────────────────────────────────────────────────────────
+
+/** The evening plan record, once the lead adds it to the AK tool sources (`eveningPlan`); undefined until then. */
+const eveningOfEnv = (a: Asked): EveningRecord | null | undefined => (a.env.ak as {eveningPlan?: EveningRecord | null} | undefined)?.eveningPlan;
+/** "what is my evening plan", "wat is mijn avondplan", "am I ready for bed": tonight's steps and the bar. */
+function eveningPlan(a: Asked): LocalReply | null {
+  const en = /\bevening (?:plan|routine)\b|\bwind ?down (?:plan|steps)\b|\bready for bed\b|\bbedtime (?:plan|routine)\b/.test(a.f), nl = /\bavond(?:plan|routine)\b|\bklaar (?:om te slapen|voor bed)\b|\bslaapklaar\b|\bbedtijdroutine\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const r = eveningOfEnv(a), lang = a.lang, calls = [{tool: 'evening_plan', args: {}, label: 'Evening plan'}];
+  if (r === undefined) return answer(say(lang, 'Your evening plan is in Health → Sleep → Tonight; I can’t read it here yet.', 'Je avondplan staat in Health → Sleep → Tonight; dat kan ik hier nog niet lezen.'), calls);
+  if (!r?.plan) return answer(say(lang, 'No evening plan yet. In Health → Sleep → Tonight, “Make an evening plan” asks three questions and suggests a few steps, with a bar that fills as you tick them.', 'Nog geen avondplan. In Health → Sleep → Tonight stelt “Make an evening plan” drie vragen en stelt een paar stappen voor, met een balk die vol loopt als je ze afvinkt.'), calls);
+  const evening = eveningOf(a.env.now, a.env.habitZone || 'UTC'), ready = readiness(r, evening)!, ticked = new Set(r.days[evening] ?? []);
+  const steps = sortSteps(r.plan.steps).map(s => `• ${clockIn(lang, stepClock(r.plan!.bedtime, s.minutesBefore))} ${clean(s.label, 60)}${ticked.has(s.id) ? say(lang, ' (done)', ' (gedaan)') : ''}`);
+  const head = ready.ready ? say(lang, `Ready for bed: all ${ready.total} steps done tonight.`, `Klaar voor bed: alle ${ready.total} stappen gedaan vanavond.`) : say(lang, `Ready for bed: ${ready.done} of ${ready.total} steps tonight; lights out at ${clockIn('en', r.plan.bedtime)}.`, `Klaar voor bed: ${ready.done} van ${ready.total} stappen vanavond; licht uit om ${clockIn('nl', r.plan.bedtime)}.`);
+  return answer([head, ...steps].join('\n'), calls);
+}
+
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun, fallAsleep, sleepVsUsual, eveningPlan];

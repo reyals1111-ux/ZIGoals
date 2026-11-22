@@ -196,3 +196,32 @@ test `apps/web/lib/workouts/av2-stored.test.ts`.
 - Answers: "how long do I take to fall asleep" / "hoe lang duurt het voor ik in slaap val", "how did I sleep this week
   compared to usual" / "hoe sliep ik deze week vergeleken met normaal".
 - Showcase: its 30 nights (with time to fall asleep and ratings) fill the card and the charts; no new records.
+
+## 8. The evening plan with a "Ready for bed" bar — LEDGER #83 built (part Carried: wearable sync, native-only)
+
+- What: Health → Sleep → Tonight → "Your evening plan" (its own chunk). "Make an evening plan" asks three plain questions
+  — when do you want to be asleep, what gets in the way most evenings (screens, a busy head, coffee or tea late, no fixed
+  bedtime, light or noise, eating late), how long to wind down — and suggests four to six steps (lights low, a wind-down
+  sound or slow breaths and lights out always; "Screens away", "Write down what is on your mind", "Nothing with caffeine
+  from now", "Last meal or snack", "Room dark and cool" for the answers given), each at its time before bedtime. The
+  person keeps, drops or adds steps (up to 8), and can add an own habit as a step (named, never ticked for them). Each
+  evening (until 05:00 the evening is still the day before) the steps are listed with their times and checkboxes, the
+  "Ready for bed" bar fills ("Ready for bed: 2 of 5 steps." → "Ready for bed. Sleep well."), and the last 7 evenings are
+  counted. Change or remove the plan any time (ticked evenings stay). No medical claim.
+- Files: `lib/evening-plan/schema.ts` (stored commit), `lib/evening-plan/plan.ts`, `lib/evening-plan/showcase.ts`,
+  `components/health/sleep/evening-plan.tsx`, `components/health/sleep/sleep-view.tsx`, `components/health/sleep/av2-sleep.css`.
+- Tests: `lib/evening-plan/plan.test.ts`, `lib/workouts/av2-stored.test.ts` (the record; its export round trip runs once
+  registered), `lib/ai/local-answers/av2-body.test.ts`; spec `tests/av2-evening-plan.spec.ts`.
+- Stored: `zigoals:evening-plan:v1` (NEW key; see Stored changes and the registries it needs).
+- Showcase hook (one line in `lib/showcase-data.ts`, for the lead): `records[EVENING_PLAN_KEY] = JSON.stringify(showcaseEvening(day));`
+  with `import {showcaseEvening} from './evening-plan/showcase'` and `import {EVENING_PLAN_KEY} from './evening-plan/schema'`
+  (asleep by 23:00, five steps, two ticked tonight, four full evenings this week). It adds a record no pinned count reads.
+- AK sources (for the answers): `eveningPlan: one(EVENING_PLAN)` in `lib/ai/tools/ak-sources.ts` and the field in
+  `AkToolSources` (`lib/ai/tools/ak-tools.ts`). Until then the answer says where the plan lives.
+- Help (EN): **Can ZIGoals help me get ready for bed?** Yes. In Health → Sleep, under Tonight, "Make an evening plan"
+  asks when you want to be asleep, what gets in the way and how long you like to wind down, then suggests a few steps
+  with their times. Tick them as you go and the "Ready for bed" bar fills. You can add one of your habits as a step, and
+  change or remove the plan any time. It is kept on this device and is not medical advice.
+- What's new: "Sleep: an evening plan from three questions, with a Ready for bed bar."
+- Answers: "what is my evening plan" / "wat is mijn avondplan", "am I ready for bed" / "ben ik klaar voor bed".
+- Nothing on Today.

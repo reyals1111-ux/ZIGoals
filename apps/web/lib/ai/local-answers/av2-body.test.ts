@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {HEALTH_CLOSED} from '../tools/format';
-import {freshAll, showcaseAll, zigiEnv} from '../evals/as/harness';
+import {DAY, freshAll, showcaseAll, zigiEnv} from '../evals/as/harness';
+import {showcaseEvening} from '../../evening-plan/showcase';
 import {AV2_BODY} from '../evals/as/cases-av2-body';
 import {av2BodyAnswer} from './av2-body';
 import type {LocalReply} from './engine';
@@ -85,6 +86,22 @@ describe('sleep: time to fall asleep and your usual (LEDGER #123, #124)', () => 
     expect(usual).toContain('No outside figures');
     expect(text(ask('wat is mijn gewone slaap'))).toContain('Geen cijfers van buiten');
     expect(text(ask('what is my usual sleep', freshAll()))).toContain('There is no usual yet');
+  });
+});
+
+describe('the evening plan (LEDGER #83)', () => {
+  const withPlan = (plan: ReturnType<typeof showcaseEvening> | null) => { const s = showcaseAll(); s.ak = {...s.ak, eveningPlan: plan} as typeof s.ak; return s; };
+  test('tonight\'s steps and the bar, in English and Dutch, once the record is in the sources', () => {
+    const en = text(ask('am I ready for bed', withPlan(showcaseEvening(DAY))));
+    expect(en).toMatch(/^Ready for bed: 2 of 5 steps tonight; lights out at /);
+    expect(en).toContain('Write down what is on your mind (done)');
+    expect(en).toContain('Lights out');
+    const nl = text(ask('wat is mijn avondplan', withPlan(showcaseEvening(DAY))));
+    expect(nl).toContain('Klaar voor bed: 2 van 5 stappen vanavond; licht uit om 23:00.');
+    expect(nl).toContain('• 22:00 Write down what is on your mind (gedaan)');
+    expect(text(ask('what is my evening plan', withPlan(null)))).toContain('No evening plan yet');
+    // Before the lead adds the record to the sources: where it lives, never a guess.
+    expect(text(ask('what is my evening plan'))).toContain('Health → Sleep → Tonight');
   });
 });
 
