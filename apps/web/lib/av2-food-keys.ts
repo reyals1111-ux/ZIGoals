@@ -19,5 +19,12 @@ export const AV2_FOOD_CATALOG_LABELS = {
 } as const;
 /** Restore (`lib/restore/plan.ts` `dev(...)`): [name, label, area]. */
 export const AV2_FOOD_RESTORE = {foodPlus: ['Food diary extras (times, weekday macros, check-in)', 'Health']} as const;
+/**
+ * LEDGER #103: the package photos' IndexedDB database (lib/food-plus/photos.ts FOOD_PHOTO_DB): erased with Erase
+ * everything, its photos in Export everything as `food-photos/…` files (exportFoodPhotoEntries), the Showcase's scope
+ * cleared with the other photo stores (lib/showcase-storage.ts clearShowcasePhotos).
+ */
+export const FOOD_PHOTO_DB_LITERAL = 'zigoals-food-photos-v1';
+export const AV2_FOOD_DATABASES: readonly string[] = [FOOD_PHOTO_DB_LITERAL];
 /** The account erase (`lib/aa-device-forget.ts`): every key above. */
 export const AV2_FOOD_ERASE_KEYS: readonly string[] = [...AV2_FOOD_PERSONAL_KEYS];
