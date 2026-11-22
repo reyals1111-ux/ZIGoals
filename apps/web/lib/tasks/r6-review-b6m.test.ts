@@ -48,6 +48,15 @@ describe('B6M-6: renaming a label honours the groups and keeps the group’s mem
     expect(renameLabel(add(grouped(), 'c', {title: 'Fictional', labels: ['calls']}), 'calls', 'phone').labelGroups).toEqual(grouped().labelGroups);
   });
 });
+describe('B6M-7: a task waiting its turn may be ticked done early (as OmniFocus allows), said in the project and in Help', () => {
+  test('finishing the later one leaves the one now up as it was, and the line goes on', () => {
+    let r = add(add(add(grouped(), 'a', {title: 'Fictional one', due: TODAY, projectId: 'p', order: 1}), 'b', {title: 'Fictional two', due: TODAY, projectId: 'p', order: 2}), 'c', {title: 'Fictional three', due: TODAY, projectId: 'p', order: 3});
+    r = finishTask(setProjectInOrder(r, 'p', true), 'b', at, {today: TODAY, doneDay: TODAY});
+    expect(r.tasks.find(t => t.id === 'b')!.doneAt).toBeDefined();
+    expect(viewTasks(r, {kind: 'today'}, TODAY).map(t => t.id)).toEqual(['a']);
+    expect(waitsTurn(r, r.tasks.find(t => t.id === 'c')!)?.id).toBe('a');
+  });
+});
 describe('B6M-2: in order with a wait for another task never blocks for good', () => {
   test('a head that waits for a later task of its own line lets that task go first; then comes back', () => {
     let r = add(add(add(grouped(), 'a', {title: 'Fictional venue', due: TODAY, projectId: 'p', order: 1}), 'b', {title: 'Fictional budget', due: TODAY, projectId: 'p', order: 2}), 'c', {title: 'Fictional music', due: TODAY, projectId: 'p', order: 3});

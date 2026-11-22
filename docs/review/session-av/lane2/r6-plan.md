@@ -171,8 +171,8 @@ Help (EN):
   to resume on if you like. Until then its tasks stay in the project but leave Today, Upcoming, your plans and the reminders.
   They come back by themselves on that day, or at once with “Resume now”."
 - Q "Can a project's tasks be done one at a time?" A "Yes. Under “Hold, order and review”, tick “Do the tasks one at a time”.
-  Only the first open task shows in Today and Upcoming; the next says “After …” and comes forward when the first is done. A
-  task's own subtasks can go in order too, from its editor."
+  Only the first open task shows in Today and Upcoming; the next says “After …” and comes forward when the first is done. You
+  can still tick a later one done early. A task's own subtasks can go in order too, from its editor."
 - Q "What does Focus do?" A "“Focus…” in Tasks → Today (or Upcoming, the matrix, the Calendar) shows only the projects or
   areas you tick, until you choose Show all. Tasks in the Inbox are never hidden."
 - Q "How do project reviews work?" A "Set “Review it every … weeks” on a project. When its turn comes it is listed in Tasks →

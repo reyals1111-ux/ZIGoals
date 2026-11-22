@@ -50,7 +50,7 @@ export default function ProjectStates({list, project}: {list: List; project: Pro
       </fieldset>
       <fieldset className="tasks-r6-set"><legend>In order</legend>
         <label className="tasks-r6-check"><input type="checkbox" checked={!!project.inOrder} onChange={e => list.change(r => setProjectInOrder(r, project.id, e.target.checked), e.target.checked ? `“${project.name}” is in order: one task at a time, from the top.` : `“${project.name}”: every task is available again.`, 'As it was.')} /> <span>Do the tasks one at a time, from the top</span></label>
-        <p className="fine">Only the first open task shows in Today, Upcoming, the matrix and the plans; finishing it brings the next forward. Change the order by dragging, or with Move up and Move down. A repeating task is always available.</p>
+        <p className="fine">Only the first open task shows in Today, Upcoming, the matrix and the plans; finishing it brings the next forward. A later one can still be ticked done early, as you choose. Change the order by dragging, or with Move up and Move down. A repeating task is always available.</p>
       </fieldset>
       <fieldset className="tasks-r6-set"><legend>Review</legend>
         <label className="field"><span>Review it every</span><select value={project.review?.every ?? ''} onChange={e => { const v = e.target.value ? Number(e.target.value) : null; list.change(r => setReview(r, project.id, v, today), v ? `“${project.name}” comes up for review every ${v === 1 ? 'week' : `${v} weeks`}, in Tasks → Review.` : `“${project.name}” is no longer reviewed.`, 'As it was.'); }}>
