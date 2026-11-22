@@ -1,5 +1,5 @@
 'use client';
-import {useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useId, useMemo, useState} from 'react';
 import type {MoneyEntry, MoneyLog} from '../../../lib/money-log/schema';
 import {allCategories} from '../../../lib/money-log/counted';
 import {archiveCategory, archivedOf, entriesIn, isArchived, unarchiveCategory} from '../../../lib/money-log/category';
@@ -7,6 +7,8 @@ import {applyStarterSet, previewStarterSet, removeStarterAdds, STARTER_SETS, typ
 import {formatNumber} from '../../../lib/visual-format';
 import {showUndo} from '../../ui/undo-toast';
 import './money-r4.css';
+// Session AV lane 2, round 5 (money; PocketSmith, LEDGER #390): categories and rules in a file (its own chunk).
+const CategoryFile = lazy(() => import('./category-file'));
 
 /**
  * Session AV lane 2, round 4 (money; Lunch Money's archived categories and category template library, LEDGER #342,
@@ -71,5 +73,6 @@ export default function CategoryMore({log, update, kind, onArchived}: {log: Mone
       <button type="button" className="secondary" aria-disabled={!fresh || undefined} onClick={() => { if (fresh) addSet(); }}>{fresh ? `Add ${formatNumber(fresh)} new from this set` : 'All of it is already there'}</button>
       <p className="fine" role="status">{setNote2}</p>
     </section>
+    <Suspense fallback={null}><CategoryFile log={log} update={update}/></Suspense>
   </div>;
 }

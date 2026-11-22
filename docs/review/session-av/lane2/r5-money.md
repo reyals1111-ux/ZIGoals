@@ -270,3 +270,38 @@ corpus (`CORPUS`) nor round 4's (`AV2_R4_MONEY`), and the answers that run befor
   ("No entries in this range. Log spending or income, or choose a longer range.").
 - Registries: none. CSS touched: `components/wealth/spending/money-r5.css`, `components/wealth/spending/spending.css`.
 - Today: nothing added. Spending gains one fold (one Tab stop).
+
+### R5-F7 (group V7). Categories and rules in a file
+
+- LEDGER row: #390 PocketSmith categories and rules in a file — **built** (Wealth → Spending → Log spending → Your own
+  categories → "Categories and rules in a file", a part in its own chunk under "Start from a set": "Save categories and
+  rules" makes one small JSON file (`zigoals-categories-and-rules-<day>.json`) of the person's own categories of both
+  kinds, the subcategories and the rules — their match words, direction, amount range and what they set — never an entry,
+  an amount spent, an id or a Goal link. "Read categories and rules from a file" reads one (from another device or a
+  friend) as data only: nothing in it runs; it is refused in words when it is not such a file, larger than 256 KB or past
+  the limits; a rule this build cannot read is left out and counted. The plan lists each category, subcategory and rule
+  as "new" or "already there" (any case; an archived category counts as there); "Add N new items" adds only what is new
+  — nothing is removed or changed — through the money log's own `addOwnCategory` and `addSub` (the usual limits hold;
+  what is past them is said); new rules go after the person's own; the heading takes the focus; Undo takes out exactly
+  what was added. In the business space the categories go to the business money log; rules are shared, as they are).
+- Spending function used: none (no figure).
+- Files: `lib/money-log/category-file.ts` (new), `components/wealth/spending/category-file.tsx` (new, lazy),
+  `components/wealth/spending/category-more.tsx` (the lazy part), `components/wealth/spending/money-r5.css`
+  (`.category-file*`).
+- Tests: `lib/money-log/av2-category-file.test.ts` (what is saved and never saved, reading under caps, the plan, adding
+  only the new, the rules then working, the limits, Undo exact), `lib/ai/local-answers/av2-r5-money.test.ts`; the
+  existing `lib/money-log/av2-archive-starter.test.ts` and `lib/money-rules` tests green unchanged.
+- Spec: `tests/av2-money-category-file.spec.ts` (the saved file read back; a friend's file read through the file input).
+- Stored: nothing new. Normal writes of the existing `own` and `subs` (`zigoals:money-log:v1` or its business twin) and
+  `rules` (`zigoals:money-rules:v1`).
+- Help (EN): **Q: Can I copy my categories and rules to another device, or share them?** A: Yes. In Wealth → Spending →
+  Log spending → Your own categories, "Save categories and rules" makes one small file — no entries and no amounts. On
+  the other device (or a friend's), "Read categories and rules from a file" shows what is new and adds only that; nothing
+  there is removed or changed, and Undo takes it out again.
+- What's new: "Categories: save your categories and rules to a file, and read one on another device or from a friend."
+- Answers: `categoryFileAnswer` (corpus `av2r5-money-category-file`; reads `env.moneyLog` and, when the lead adds it,
+  `env.ak.moneyRules`; without it the answer says "your rules" instead of a count).
+- Showcase hook: none (the Showcase's categories and rules are pinned by the NOVA corpus; a file read in the Showcase
+  stays in its tab). The part's text teaches what a file holds.
+- Registries: none. CSS touched: `components/wealth/spending/money-r5.css`.
+- Today: nothing added.

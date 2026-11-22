@@ -54,3 +54,7 @@
 .money-sheet-table th,.money-sheet-table td{padding:6px 10px 6px 0;text-align:left;vertical-align:baseline;border-bottom:1px solid var(--line,rgba(140,160,220,.25));white-space:nowrap}
 .money-sheet-table td:nth-child(4){white-space:normal;min-width:10em;overflow-wrap:anywhere}
 .money-sheet-sort{min-height:44px;font-weight:600}
+.category-file input[type=file]{min-height:44px;font-size:16px;max-width:100%}
+.category-file-plan{display:grid;gap:6px}
+.category-file button{min-height:44px;justify-self:start}
+.category-file button[aria-disabled="true"]{opacity:.55;cursor:default}

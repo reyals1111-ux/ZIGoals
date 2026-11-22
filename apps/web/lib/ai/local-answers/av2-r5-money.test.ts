@@ -155,3 +155,14 @@ describe('your money as a spreadsheet (#389)', () => {
     expect(text(zigi('how do I open my spending in excel', freshAll()))).toMatch(/^Nothing is logged this year yet\./);
   });
 });
+
+describe('categories and rules in a file (#390)', () => {
+  const s = withAk(withLog(freshAll(), [], {own: {expense: ['Pets', 'Car']}, subs: {Groceries: ['Market']}}), {moneyRules: {version: 1, rules: [{id: 'r1', field: 'payee', op: 'contains', text: 'Albert Heijn', direction: 'out', category: 'Groceries', enabled: true}]}});
+  test('English: what the file would hold, where it is made and read', () => {
+    expect(text(zigi('how do I save my categories and rules to a file', s))).toMatch(/^Your file would hold 2 categories of your own, 1 subcategory and 1 rule — never an entry or an amount\. In Wealth → Spending → Log spending → Your own categories, "Save categories and rules" makes it;/);
+  });
+  test('Dutch; without the rules record it still says where', () => {
+    expect(text(zigi('hoe bewaar ik mijn categorieën en regels in een bestand', s))).toContain('Je bestand zou 2 eigen categorieën, 1 subcategorie en 1 regel bevatten');
+    expect(text(zigi('can I share my categories with a friend', freshAll()))).toContain('0 categories of your own, 0 subcategories');
+  });
+});

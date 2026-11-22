@@ -171,3 +171,19 @@ function moneySheet(a: Asked): LocalReply | null {
     `Dit jaar tot nu toe: ${rows.length} ${rows.length === 1 ? 'invoer' : 'invoeren'}, ${list(totals('nl'), 'nl')} uitgegeven zoals je cijfers het tellen. ${how}`), calls);
 }
 add(moneySheet);
+
+// ── Categories and rules in a file (#390) ──────────────────────────────────────────────────────────────────────────
+/** "How do I save my categories and rules to a file", "hoe bewaar ik mijn categorieën en regels in een bestand". */
+function categoryFileAnswer(a: Asked): LocalReply | null {
+  const en = /\bcategor(?:y|ies)\b/.test(a.f) && (/\b(?:file|back ?up|export|import)\b/.test(a.f) || /\bshare\b.*\b(?:friend|another device|other device)\b/.test(a.f));
+  const nl = /\bcategorie(?:en|n)?\b/.test(a.f) && (/\b(?:bestand|back ?up|exporteren|importeren)\b/.test(a.f) || /\bdelen\b/.test(a.f));
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const log = a.env.moneyLog, rules = akOf(a.env).moneyRules?.rules ?? null, calls = call('money_log', {categoryFile: true}, 'Spending · categories and rules in a file');
+  const own = (log?.own?.expense?.length ?? 0) + (log?.own?.income?.length ?? 0), subs = Object.values(log?.subs ?? {}).reduce((x, l) => x + l.length, 0);
+  const holds = (lang: Lang) => say(lang, `${own} ${own === 1 ? 'category' : 'categories'} of your own, ${subs} ${subs === 1 ? 'subcategory' : 'subcategories'}${rules ? ` and ${rules.length} ${rules.length === 1 ? 'rule' : 'rules'}` : ' and your rules'}`,
+    `${own} ${own === 1 ? 'eigen categorie' : 'eigen categorieën'}, ${subs} ${subs === 1 ? 'subcategorie' : 'subcategorieën'}${rules ? ` en ${rules.length} ${rules.length === 1 ? 'regel' : 'regels'}` : ' en je regels'}`);
+  return answer(say(a.lang, `Your file would hold ${holds('en')} — never an entry or an amount. In ${PLACES.spending.en} → Log spending → Your own categories, "Save categories and rules" makes it; "Read categories and rules from a file" reads one from another device or a friend, shows what is new, and adds only that, with Undo. Nothing you have is removed or changed.`,
+    `Je bestand zou ${holds('nl')} bevatten — nooit invoer of bedragen. In ${PLACES.spending.nl} → Log spending → Your own categories maakt "Save categories and rules" het; "Read categories and rules from a file" leest er een van een ander apparaat of een vriend, toont wat nieuw is en voegt alleen dat toe, met ongedaan maken. Niets wat je hebt wordt weggehaald of veranderd.`), calls);
+}
+add(categoryFileAnswer);

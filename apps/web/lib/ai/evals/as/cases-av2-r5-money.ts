@@ -12,4 +12,5 @@ export const AV2_R5_MONEY: readonly Intent[] = [
   {id: 'av2r5-money-merge-accounts', pillar: 'wealth', en: ['how do I merge two accounts', 'can I merge my accounts'], nl: ['hoe voeg ik twee rekeningen samen', 'kan ik mijn rekeningen samenvoegen']},
   {id: 'av2r5-money-what-if', pillar: 'wealth', en: ['what changes have I tried on my forecast', 'show my what if scenarios'], nl: ['welke wijzigingen heb ik op mijn prognose geprobeerd', 'toon mijn wat als scenario\'s']},
   {id: 'av2r5-money-sheet', pillar: 'wealth', en: ['can I get my money as a spreadsheet', 'how do I open my spending in excel'], nl: ['kan ik mijn uitgaven als spreadsheet krijgen', 'hoe open ik mijn geld in excel']},
+  {id: 'av2r5-money-category-file', pillar: 'wealth', en: ['how do I save my categories and rules to a file', 'can I share my categories with a friend'], nl: ['hoe bewaar ik mijn categorieën en regels in een bestand', 'kan ik mijn categorieën delen met een vriend']},
 ];
