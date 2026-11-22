@@ -93,3 +93,22 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
 - Help (EN), for the Showcase answer, add: "Documents you add to an account while trying the Showcase are deleted
   when it ends, like its photos."
 - What's new: "Documents added in the Showcase are deleted when it ends."
+
+## B2A-5 Minor: a removed task's earlier versions stayed on the device
+
+- Verdict: fixed. No stored change: `zigoals:task-plan:v1` → `versions` is the existing field; only its entries for the
+  removed tasks are taken out (and put back on Undo).
+- Fix: removing tasks (components/tasks/use-task-list.ts `removeIds`, the one remove path every surface uses: Tasks, a
+  goal's next actions, the Agenda, NOVA's widget) also removes the earlier versions of those tasks and their subtasks
+  from the planning record, in the versions' own lazy chunk (components/tasks/task-versions-keep.ts `dropVersions`,
+  built on the pure `dropTaskVersions` in apps/web/lib/tasks/versions.ts). The removal's Undo (the toast, the status
+  line, and a joined Undo of several removals) puts the tasks and their versions back (`putBackVersions` →
+  `putBackTaskVersions`). A planning record this device cannot read is never written over. The Tasks first chunk gains
+  only the two small lazy calls.
+- Tests: apps/web/lib/tasks/revb2a-task-versions.test.ts (pure drop and put-back in order; on the device the old words
+  are gone from the record and Undo writes them back; an unreadable record is left as it is). Existing
+  apps/web/lib/tasks/av2-task-versions.test.ts green unchanged.
+- Spec (lead runs): apps/web/tests/av2-revb2a-task-versions.spec.ts (remove a task: its version leaves the planning
+  record, another task's stays; Undo brings it back).
+- Help (EN), for the task versions answer, add: "Removing a task removes its earlier versions too; Undo brings both back."
+- What's new: "Removing a task removes its earlier versions too."

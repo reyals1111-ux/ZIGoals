@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useJournalZone} from '../use-journal-zone';
 import {TASKS, type Task, type Tasks} from '../../lib/tasks/schema';
+import type {TaskVersion} from '../../lib/tasks/plan-record';
 import {addTask, editOccurrence, editTask, finishTask, removeTask, reopenTask, restoreTasks, type TaskInput, type TaskPatch as EnginePatch} from '../../lib/tasks/engine';
 import {deviceDay, tasksClock, tasksToday} from '../../lib/tasks/device';
 import {subscribeDayEnds} from '../../lib/day-boundary-core';
@@ -43,7 +44,10 @@ function rulesNote(current: Tasks, fn: (r: Tasks) => Tasks): string {
 }
 const withNote = (text: string, note: string) => note ? `${text} ${note}` : text;
 /** The open removal toast that a next removal joins (one per page). */
-let removal: {toast: number; before: Task[]; count: number} | null = null;
+let removal: {toast: number; before: Task[]; count: number; versions: Promise<TaskVersion[]>[]} | null = null;
+// Review b2a #5 (privacy): a removed task's earlier versions go with it (their own chunk), and come back with its Undo.
+const dropVersionsOf = (ids: ReadonlySet<string>): Promise<TaskVersion[]> => import('./task-versions-keep').then(m => m.dropVersions(ids)).catch(() => []);
+const putVersionsBack = (lists: readonly Promise<TaskVersion[]>[]) => { void Promise.all(lists).then(all => { const flat = all.flat(); if (flat.length) return import('./task-versions-keep').then(m => m.putBackVersions(flat)); }).catch(() => undefined); };
 
 /** The app's day and wall-clock time, kept current (every 30 s, on focus and when the tab is shown again). */
 export function useTaskClock(): {today: string; clock: string} {
@@ -137,16 +141,17 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
       for (const id of ids) { gone.add(id); for (const t of record.tasks) { let p = t.parentId, n = 0; while (p && n++ < 50) { if (p === id) { gone.add(t.id); break; } p = record.tasks.find(x => x.id === p)?.parentId; } } }
       const before = record.tasks.filter(t => gone.has(t.id));
       latest.current.update(r => ids.reduce((acc, id) => removeTask(acc, id), r));
+      const versions = dropVersionsOf(gone);
       if (!toast) {
         const text = ids.length > 1 ? `Removed ${plural(ids.length, 'task')}.` : `Removed “${label}”.`;
-        setStatus({text, undo: () => { try { latest.current.update(r => restoreTasks(r, before)); setStatus({text: ids.length > 1 ? `${plural(ids.length, 'task')} put back.` : `“${label}” is back.`}); } catch (cause) { fail(cause); } }}); setError(''); return true;
+        setStatus({text, undo: () => { try { latest.current.update(r => restoreTasks(r, before)); putVersionsBack([versions]); setStatus({text: ids.length > 1 ? `${plural(ids.length, 'task')} put back.` : `“${label}” is back.`}); } catch (cause) { fail(cause); } }}); setError(''); return true;
       }
       const joined = removal && shownToasts().some(t => t.id === removal!.toast) ? removal : null;
-      const all = [...(joined?.before ?? []), ...before], count = (joined?.count ?? 0) + ids.length;
+      const all = [...(joined?.before ?? []), ...before], count = (joined?.count ?? 0) + ids.length, kept = [...(joined?.versions ?? []), versions];
       const text = count > 1 ? `Removed ${plural(count, 'task')}.` : `Removed “${label}”.`;
       const toastId = showUndo({message: text, undone: count > 1 ? `${plural(count, 'task')} put back.` : `“${label}” is back.`, undoLabel: count > 1 ? `Undo: put back ${plural(count, 'task')}` : `Undo: put back “${label}”`,
-        restore: () => { removal = null; latest.current.update(r => restoreTasks(r, all)); }});
-      removal = {toast: toastId, before: all, count};
+        restore: () => { removal = null; latest.current.update(r => restoreTasks(r, all)); putVersionsBack(kept); }});
+      removal = {toast: toastId, before: all, count, versions: kept};
       setStatus({text}); setError(''); return true;
     } catch (cause) { return fail(cause); }
   }, [guard, toast]);
