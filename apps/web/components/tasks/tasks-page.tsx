@@ -62,6 +62,8 @@ const DoneChart = lazy(() => import('./done-chart'));
 const PlanDay = lazy(() => import('./plan-day'));
 // Session AV lane 2 (tasks): This week, Table, Calendar, Timeline, Insights, Areas and templates, in one chunk.
 const PlanViews = lazy(() => import('./tasks-plan-views'));
+// Session AV lane 2 (tasks-r2, LEDGER #224): the reminders written in notes, in Today and Upcoming, their own chunk.
+const NoteReminders = lazy(() => import('./note-reminders-in-tasks'));
 const AREA_KEY = 'zigoals:task-area';
 const PLAN_KINDS = new Set<TaskView['kind']>(['week', 'table', 'days', 'timeline', 'insights', 'organise']);
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
@@ -392,6 +394,7 @@ export function TasksPage() {
           {empty && <EmptyState title={query ? 'Nothing matches' : !record.tasks.length ? 'Your list starts here' : view.kind === 'today' ? 'Nothing due today' : 'Nothing here'} level={2} art="orbit">
             {query ? 'Try fewer words, or one operator such as p1, today or #project.' : counts.open ? 'Open another view on the left, or add one above.' : 'Type a few words above, like “Call the dentist tomorrow 10am”. Add a day, “every …”, p1–p4, #project or @label as you type.'}
           </EmptyState>}
+          {(view.kind === 'today' || view.kind === 'upcoming') && !query && !tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><NoteReminders kind={view.kind} today={today} /></Suspense></LoadBoundary>}
           {/* Session AV (D-CI1987): below the list, so Today's first task starts where it did (A10-11). */}
           {view.kind === 'today' && !query && (() => { const w = dayLoadWords(viewLoad(shown)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (1c, q1 #39): every task in Today's list, overdue ones too */}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
           {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} clock={clock} shown={shown} change={list.change} doneDay={list.doneDay} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}

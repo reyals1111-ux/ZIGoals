@@ -43,6 +43,13 @@ describe('My Day (LEDGER #223)', () => {
     expect(av2TasksR2Answer('plan my day', zigiEnv(showcaseAll()))).toBeNull();
     expect(av2TasksR2Answer('is my day too full', zigiEnv(showcaseAll()))).toBeNull();
   });
+  test('note reminders of today and tomorrow (LEDGER #224), under the Notes scope', () => {
+    const s = showcaseAll(), stamp = s.now!.toISOString();
+    s.nova = {...s.nova, notes: {version: 1, voice: false, notes: [{id: 'nr', kind: 'topic', title: 'Fictional house', body: '@remind tomorrow 9:30 call the fictional plumber', createdAt: stamp, updatedAt: stamp}]} as never};
+    expect(text(av2TasksR2Answer('what note reminders do I have tomorrow', zigiEnv(s)))).toMatch(/^1 reminder from your notes tomorrow:\n• call the fictional plumber: at 9:30/);
+    expect(text(av2TasksR2Answer('welke herinneringen uit notities heb ik morgen', zigiEnv(s)))).toMatch(/^1 herinnering uit je notities morgen:\n• call the fictional plumber: om 09:30/);
+    expect(text(av2TasksR2Answer('which reminders from my notes are today', zigiEnv(s)))).toMatch(/^No reminder from your notes today/);
+  });
   test('the Today switch off refuses', () => {
     const env = zigiEnv(showcaseAll());
     expect(av2TasksR2Answer('what is in my day', {...env, areas: {...env.areas, today: false}})!.kind).toBe('refusal');

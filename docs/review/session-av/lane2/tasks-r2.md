@@ -36,3 +36,25 @@ Showcase: none (pinned counts); a hook would be one `myDay` pick in the Showcase
 Today: nothing new on Today (the dashboard); Tasks → Today gains the group only when something is picked.
 Weight: the Tasks first chunk gains the tolerant reader (my-day.ts, no planning schema) and the group; the pick code is lazy.
 CSS: components/tasks/tasks-r2.css (new; theme variables only).
+
+## Feature 2 — a note's reminders in Tasks and on the Agenda (LEDGER #224, Google Tasks / Keep) — built
+
+- Tasks → Today: "From your notes" lists today's reminders written in notes ("@remind 18:30 …"), each with its time, what it
+  is about, "gone off" once past, and "Open the note “…”". Tasks → Upcoming: the next 14 days, by day.
+- The Agenda (day and week): "Reminders in your notes" for the days shown, each opening its note.
+- They stay note lines: nothing is copied into the task list or stored; edit or delete the line to change one. Nothing shows
+  when no note holds one (the Notes page's "Reminders in your notes" teaches the words).
+- Reads `remindersInNote` (lib/notes/reminders.ts) only, so revb1's day-anchoring of relative words applies here unchanged.
+
+Files: lib/tasks/note-reminder-days.ts (pure), components/tasks/note-reminders-in-tasks.tsx (lazy; both the Tasks and the
+Agenda part), components/tasks/tasks-page.tsx (one lazy mount), components/agenda/agenda-page.tsx (one lazy mount), tasks-r2.css.
+Tests: lib/tasks/r2-note-reminders.test.ts. Spec: tests/av2-note-reminders-tasks.spec.ts.
+Stored: nothing (derived from the notes record).
+Answers: "which reminders from my notes are today" / "welke herinneringen uit mijn notities zijn er vandaag" (also tomorrow,
+this week), under NOVA's Notes scope.
+Help: Q "Do reminders in my notes show with my tasks?" A "Yes. A line like “@remind tomorrow 9:00 call the plumber” in any
+note shows in Tasks → Today on its day, in Upcoming and on the Agenda, with a link back to the note. It stays in the note:
+change the line there to change the reminder."
+What's new: "Tasks and the Agenda: reminders written in your notes show on their day."
+Showcase: none (no Showcase note holds a reminder; adding one would change the Notes counts other tests pin).
+Today: nothing new on Today. Weight: Tasks and Agenda first chunks gain one lazy mount each.
