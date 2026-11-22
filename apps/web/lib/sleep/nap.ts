@@ -52,4 +52,12 @@ export const withNapRun = (extras: HealthExtras, run: NapRun): HealthExtras => h
 export const withoutNapRun = (extras: HealthExtras): HealthExtras => { if (!extras.napRun) return extras; const rest: Record<string, unknown> = {...extras}; delete rest.napRun; return healthExtrasSchema.parse(rest); };
 /** On return: still running, or ended while away. */
 export const napOnReturn = (run: NapRun, now: number): 'running' | 'ended' => now >= napEndsAt(run) ? 'ended' : 'running';
+/**
+ * Review B4E-13: what is said when a nap is logged — the sentence once, in the timer's status line, and a short toast that
+ * carries only the Undo (it repeated the whole sentence, so a screen reader said it twice).
+ */
+export function napLoggedWords(line: string, minutes: number, how: 'rang' | 'away' | 'up', endClock: string): {status: string; toast: string} {
+  const lead = how === 'rang' ? 'Time to wake up. ' : how === 'away' ? `Your nap ended at ${endClock} while Sleep was closed, so the bell could not ring. ` : '';
+  return {status: `${lead}Nap logged: ${line}, ${minutes} min.`, toast: 'Undo the nap?'};
+}
 

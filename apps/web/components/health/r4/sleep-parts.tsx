@@ -7,7 +7,7 @@ import {clockFromMidnight, deleteNight} from '../../../lib/sleep/engine';
 import type {Sleep} from '../../../lib/sleep/schema';
 import {EARLIER_BEFORE, LATER_AFTER, shiftWords, sleepTiming, TIMING_DAYS, TIMING_MIN_NIGHTS, TIMING_WORDS} from '../../../lib/sleep/timing';
 import {sleepTipOf} from '../../../lib/sleep-tips';
-import {beginNap, bellChoice, logNap, NAP_CHOICES, napClock, napEndsAt, napLeft, napOnReturn, napRunOf, withNapRun, withoutNapRun, type NapRun} from '../../../lib/sleep/nap';
+import {beginNap, bellChoice, logNap, NAP_CHOICES, napClock, napEndsAt, napLeft, napLoggedWords, napOnReturn, napRunOf, withNapRun, withoutNapRun, type NapRun} from '../../../lib/sleep/nap';
 import {HEALTH_EXTRAS, healthExtrasSchema} from '../../../lib/health-extras';
 import {ring, wakeAudio} from '../../../lib/meditation/bells';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
@@ -86,10 +86,10 @@ export function NapTimer({store}: {store: SleepStore}) {
     } catch (e) { setSaid(e instanceof Error ? e.message : 'The nap could not be logged.'); return; }
     if (!made.id) { setSaid('Under ten minutes, so nothing was logged.'); return; }
     const end = Math.min(endMs, napEndsAt(r)), mins = Math.round((end - r.startedAt) / 60_000), line = `${formatTime(new Date(r.startedAt).toISOString(), {timeZone: store.zone})}–${formatTime(new Date(end).toISOString(), {timeZone: store.zone})}`;
-    const text = `${rang ? 'Time to wake up. ' : away ? `Your nap ended at ${formatTime(new Date(end).toISOString(), {timeZone: store.zone})} while Sleep was closed, so the bell could not ring. ` : ''}Nap logged: ${line}, ${mins} min.`;
-    setSaid(text);
+    const words = napLoggedWords(line, mins, rang ? 'rang' : away ? 'away' : 'up', formatTime(new Date(end).toISOString(), {timeZone: store.zone}));
+    setSaid(words.status);
     const napId = made.id;
-    showUndo({message: text, undone: 'The nap is no longer logged.', restore: () => store.update(s => s.nights.some(n => n.id === napId) ? deleteNight(s, napId) : s)});
+    showUndo({message: words.toast, undone: 'The nap is no longer logged.', restore: () => store.update(s => s.nights.some(n => n.id === napId) ? deleteNight(s, napId) : s)});
     requestAnimationFrame(() => document.getElementById(`${id}-start`)?.focus());
   }
   useEffect(() => {

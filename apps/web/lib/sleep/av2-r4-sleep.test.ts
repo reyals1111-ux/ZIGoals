@@ -4,7 +4,7 @@ import {formatMinutes} from '../zone-time';
 import {emptySleep, type Sleep} from './schema';
 import {saveNight} from './engine';
 import {shiftWords, shiftWordsNl, sleepMiddle, sleepTiming} from './timing';
-import {beginNap, bellChoice, logNap, napClock, napEndsAt, napLeft, napOnReturn, napRunOf, withNapRun, withoutNapRun} from './nap';
+import {beginNap, bellChoice, logNap, napClock, napEndsAt, napLeft, napLoggedWords, napOnReturn, napRunOf, withNapRun, withoutNapRun} from './nap';
 import {emptyHealthExtras} from '../health-extras';
 import {SLEEP_TIPS, sleepTipOf} from '../sleep-tips';
 import {WATER_TIPS} from '../water-tips';
@@ -116,6 +116,17 @@ describe('a running nap survives leaving Sleep (review B4E-4)', () => {
     expect(napOnReturn(run, napEndsAt(run))).toBe('ended');
     const s = logNap(emptySleep(), run, napEndsAt(run), 'UTC', AT)!;
     expect(s.nights[0]!.end).toBe('2026-11-20T13:20:00.000Z');
+  });
+});
+
+// Session AV lane 2 (review B4E-13): the nap's end is said once; the toast only offers the Undo.
+describe('the nap’s end is announced once (review B4E-13)', () => {
+  test('the sentence in the status line; a short toast that does not repeat it', () => {
+    const w = napLoggedWords('1:00 PM–1:20 PM', 20, 'rang', '1:20 PM');
+    expect(w.status).toBe('Time to wake up. Nap logged: 1:00 PM–1:20 PM, 20 min.');
+    expect(w.toast).toBe('Undo the nap?');
+    expect(w.status).not.toContain(w.toast);
+    expect(napLoggedWords('1:00 PM–1:20 PM', 20, 'away', '1:20 PM').status).toMatch(/^Your nap ended at 1:20 PM while Sleep was closed/);
   });
 });
 
