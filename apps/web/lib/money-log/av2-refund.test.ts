@@ -22,6 +22,7 @@ import {cashFlow, topPayees} from '../money-insights/cash-flow';
 import {monthCalendar} from '../money-insights/month-days';
 import {ledger} from '../ai/local-answers/exact/money';
 import {resolvePeriod} from '../ai/local-answers/exact/period';
+import {answerQuery, exactQuery} from '../ai/local-answers/exact/index';
 import {cashRiver, categoryRanks, savingsRate, spendingHeat, spendTrack} from '../nova/cards/ax/money-spend';
 import {spendingCard} from '../nova/cards/spending';
 import {byPaidWith, bySub} from '../money-more/quick';
@@ -114,6 +115,16 @@ describe('NOVA’s and ZIGi’s answers and cards', () => {
     const days = spendTrack(PROBE, TODAY, 'EUR').points(['2026-11-10', '2026-11-12']);
     expect(days.map(d => [d.value, d.state])).toEqual([[10000, 'done'], [-3000, 'none']]);
     expect(spendingCard({entries: PROBE}, TODAY, 'month')).toMatchObject({totalCents: 7000, largest: {cents: 10000}});
+  });
+  test('review B6O-10: “my biggest expense this month” with only refunds this month says so, in English and Dutch', () => {
+    const base = novaEnv(showcaseAll()), env = {...base, habitDay: TODAY, moneyLog: {...base.moneyLog!, entries: [e('old', '50.00', {date: '2026-10-20'}), refund('r', '30.00', {refundOf: 'old'})]}};
+    const say = (words: string) => { const q = exactQuery(words, env); const a = q ? answerQuery(q, env) : null; return a && 'text' in a ? a.text : null; };
+    expect(say('what was my biggest expense this month')).toMatch(/^No purchase logged this month .*only money back \(refunds\)\.$/);
+    expect(say('wat was mijn grootste uitgave deze maand')).toMatch(/^Geen aankoop gelogd deze maand .*alleen geld terug \(terugbetalingen\)\.$/);
+    // With a purchase, the purchase is named, never the refund.
+    const both = {...env, moneyLog: {...env.moneyLog, entries: PROBE}};
+    const q = exactQuery('what was my biggest expense this month', both)!, a = answerQuery(q, both);
+    expect(a && 'text' in a ? a.text : '').toMatch(/^Your largest expense this month .*€100\.00/);
   });
   test('the left-out answer never lists a refund as left out', () => {
     const base = novaEnv(showcaseAll()), env = {...base, moneyLog: {...base.moneyLog!, entries: PROBE}};
