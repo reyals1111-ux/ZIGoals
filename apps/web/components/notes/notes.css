@@ -425,3 +425,15 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-card-question { font-size: 18px; font-weight: 600; margin: 8px 0; }
 .note-card-answer { font-size: 17px; margin: 8px 0; padding-top: 8px; border-top: 1px dashed color-mix(in srgb, currentColor 30%, transparent); }
 .note-card-rate button, .note-cards .note-actions button { min-height: 44px; }
+/* Session AV lane 2 (r6-notes; LEDGER #399, #402, #405, #407, #408): rename or merge a tag, read back, a property on
+   several notes, merge two notes, sums under the table. Theme variables and color-mix only. */
+.note-tag-rename, .note-merge { margin: 8px 0; display: grid; gap: 6px; }
+.note-tag-rename-row { display: grid; gap: 6px; padding: 8px 0; border-top: 1px solid var(--line); }
+.note-tag-rename button, .note-merge button, .note-read-back-list button, .note-read-back-button, .note-merge-button { min-height: 44px; }
+.note-merge { padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); overflow-wrap: anywhere; }
+.notes-select-prop { border: 0; border-top: 1px solid var(--line); margin: 8px 0 0; padding: 8px 0 0; min-inline-size: 0; display: grid; gap: 6px; }
+.notes-select-prop legend { font-weight: 600; }
+.notes-select-prop .switch-row { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+.notes-table tfoot th, .notes-table tfoot td { border-top: 2px solid color-mix(in srgb, currentColor 30%, transparent); border-bottom: 0; font-variant-numeric: tabular-nums; }
+.note-read-back-list li { display: grid; gap: 2px; }
+.note-this-day-read { margin: 0 0 6px; }

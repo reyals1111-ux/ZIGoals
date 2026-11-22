@@ -24,10 +24,12 @@ const clipTitle = (s: string) => s.replace(/[\r\n]+/g, ' ').trim().slice(0, MAX_
  * What Undo puts back: the notes as they were (by id) and the ids a change created; `versions` (review b1 #5): earlier
  * versions a change deleted, put back when their note is still here.
  */
-export type NotesUndo = {before: Note[]; created: string[]; said: string; versions?: NoteVersion[]};
+export type NotesUndo = {before: Note[]; created: string[]; said: string; versions?: NoteVersion[];
+  /** Session AV lane 2 (r6-notes; LEDGER #399): the record's own fields a change touched (tag templates, the focus), put back with the notes. */ also?: (r: Notes) => Notes};
 /** Applies an Undo: created notes go, earlier versions come back (a deleted note returns in its place by date). */
 export function applyUndo(record: Notes, undo: NotesUndo): Notes {
   const created = new Set(undo.created), before = new Map(undo.before.map(n => [n.id, n]));
+  if (undo.also) record = undo.also(record);
   const kept = record.notes.filter(n => !created.has(n.id)).map(n => before.get(n.id) ?? n);
   const missing = undo.before.filter(n => !kept.some(k => k.id === n.id));
   const notes = [...kept, ...missing].sort((a, b) => a.createdAt.localeCompare(b.createdAt)), here = new Set(notes.map(n => n.id));

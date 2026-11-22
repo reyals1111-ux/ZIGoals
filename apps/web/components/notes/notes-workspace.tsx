@@ -12,7 +12,8 @@ import {NotesSearch} from './notes-search';
 import {useLinkIndex, useLinkTargets, useNotes} from './use-notes';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {formatDate} from '../../lib/visual-format';
-import {noteName, notePhotoIdsOf, shortNoteName, type Note} from '../../lib/notes/schema';
+import {noteName, notePhotoIdsOf, shortNoteName, type Note, type Notes} from '../../lib/notes/schema';
+import type {Change} from './note-editor';
 import {focusList, taggableNotes} from '../../lib/notes/focus';
 import {addTopic, dailiesOf, dailyNoteOf, inboxOf, updateNote} from '../../lib/notes/store';
 import {linkKey, noteHref} from '../../lib/notes/links';
@@ -22,6 +23,7 @@ import {photoScope} from '../../lib/health-aa/photos';
 import {openTicks} from '../../lib/notes/ticks';
 import {focused, tagTree} from '../../lib/notes/tags';
 import {snippetOf} from '../../lib/notes/lock';
+import {notReadBack} from '../../lib/notes/read-back';
 import './notes.css';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
 
@@ -49,6 +51,10 @@ const NotesSelect = lazy(() => import('./notes-select'));
 const TagTemplates = lazy(() => import('./tag-templates'));
 // Session AV lane 2 (r5-notes; LEDGER #365, Logseq): flashcards from the notes, loaded when their fold opens.
 const NotesCards = lazy(() => import('./notes-cards'));
+// Session AV lane 2 (r6-notes; LEDGER #399, Capacities): rename or merge a tag, loaded when its fold opens.
+const TagRename = lazy(() => import('./tag-rename'));
+// Session AV lane 2 (r6-notes; LEDGER #402, Capacities): the daily notes not read back yet, loaded when their fold opens.
+const ReadBackList = lazy(() => import('./read-back-list'));
 const LAYOUTS = [['list', 'List'], ['table', 'Table'], ['gallery', 'Gallery'], ['board', 'Board'], ['chart', 'Chart']] as const; // Session AV lane 2 (r3-notes; LEDGER #270): Board
 type Layout = (typeof LAYOUTS)[number][0];
 
@@ -113,6 +119,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
     // Once on arrival (the photos left go with the arrival sweep's grace).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes.loaded]);
+  const [readBackOpen, setReadBackOpen] = useState(false); // Session AV lane 2 (r6-notes; LEDGER #402)
   const [trashOpen, setTrashOpen] = useState(false), [selecting, setSelecting] = useState(false), [templatesOpen, setTemplatesOpen] = useState(false), [cardsOpen, setCardsOpen] = useState(false);
   const doneSelecting = () => { setSelecting(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('.note-select-button')?.focus()); };
   // Session AV lane 2 (notes; LEDGER #32): the repeating notes due for this period are made when Notes opens.
@@ -153,8 +160,8 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       <p className="note-back"><button type="button" className="text-link" onClick={() => go(open?.kind === 'daily' ? {view: 'days'} : open?.kind === 'inbox' ? {view: 'inbox'} : {view: 'notes'})}>← {open?.kind === 'daily' ? 'Days' : open?.kind === 'inbox' ? 'Inbox' : 'All notes'}</button></p>
       {open ? <>
         <h2 className="note-title">{/* Session AL (PR-107, P-PR-45): a note with no title of its own is not headed by its first line, which the note shows just below (it read twice) */open.kind === 'daily' && open.day ? formatDate(open.day, {weekday: true}) : open.title.trim() ? open.title.trim() : open.kind === 'inbox' ? `Inbox capture · ${formatDate(open.day ?? open.createdAt.slice(0, 10))}` : noteName(open)}{open.example && <span className="fine"> · Showcase example</span>}</h2>
-        {open.kind === 'daily' && open.day && <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={open.day}/></Suspense></LoadBoundary>}
-        <NoteEditor key={open.id} note={open} record={record} index={index} change={change} onCreateLink={createNote} onTag={focusTag} onDeleted={() => { const to: View = open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'; if (toastOf.current) toastOf.current.view = to; go({view: to}); }}/>
+        {open.kind === 'daily' && open.day && <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={open.day} readBack={open.readBack}/></Suspense></LoadBoundary>}
+        <NoteEditor key={open.id} note={open} record={record} index={index} change={change} onCreateLink={createNote} onTag={focusTag} onDeleted={() => { const to: View = open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'; if (toastOf.current) toastOf.current.view = to; go({view: to}); }} onMerged={id => router.push(noteHref(id))}/>
       </> : <p className="fine">This note is not on this device. It may have been deleted. <Link className="text-link" href="/app/notes?view=notes">All notes</Link></p>}
     </section>}
 
@@ -165,7 +172,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         <button type="button" className="quiet" aria-label="The day after" disabled={day >= today} onClick={() => go({day: addLocalDays(day, 1)})}>→</button>
         {day !== today && <button type="button" className="text-link" onClick={() => go({})}>Today</button>}
       </div>
-      <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={day}/></Suspense></LoadBoundary>
+      <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={day} readBack={note?.readBack}/></Suspense></LoadBoundary>
       <NoteEditor key={`day-${day}-${note?.id ?? 'new'}`} note={note} record={record} day={day} start={note ? undefined : dailyStart(record, day)} index={index} change={change} onCreateLink={createNote} onTag={focusTag}/>
       {!note && <p className="fine">A daily note for this day is made when you save.{record.dailyTemplate ? ' It starts from your daily note template (Days → Daily note template).' : ''}</p>}
     </section>; })()}
@@ -189,7 +196,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       <details className="note-fold note-tag-templates-fold" onToggle={e => setTemplatesOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Templates for tags <span className="fine">· {record.tagTemplates?.length ? record.tagTemplates.map(t => `#${t.tag}`).slice(0, 3).join(', ') : 'a new note with a tag starts from its words'}</span></summary>
         {templatesOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><TagTemplates record={record} change={change}/></Suspense></LoadBoundary>}
       </details>
-      <TagFocus notes={taggableNotes(record)} focus={focus} onFocus={setFocus}/>
+      <TagFocus notes={taggableNotes(record)} focus={focus} onFocus={setFocus} record={record} change={change}/>
       <NotesSearch notes={focused(record.notes, focus)} onSearching={setSearching}/>
       <LoadBoundary quiet><Suspense fallback={null}><NotesRemindersPanel record={record}/></Suspense></LoadBoundary>
       <details className="note-fold note-cards-fold" onToggle={e => setCardsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Review cards <span className="fine">· a line “question :: answer” in a note is a card</span></summary>
@@ -222,7 +229,11 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       <details className="note-fold note-daily-template-fold"><summary>Daily note template <span className="fine">· {record.dailyTemplate ? 'a new daily note starts from it' : 'a new daily note starts empty'}</span></summary>
         <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><DailyTemplate record={record} change={change}/></Suspense></LoadBoundary>
       </details>
-      {dailiesOf(record).some(n => !n.archived) ? <ul className="note-list">{dailiesOf(record).filter(n => !n.archived).map(n => <li key={n.id}><Link href={`/app/notes?day=${n.day}`}><strong>{formatDate(n.day!, {weekday: true})}</strong></Link><p className="fine">{snippetOf(n) || 'No words yet.'}</p></li>)}</ul>
+      {/* Session AV lane 2 (r6-notes; LEDGER #402): the daily notes of the last 30 days not read back yet. */}
+      {(() => { const left = notReadBack(record, today).length; return <details className="note-fold note-read-back-fold" onToggle={e => setReadBackOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Not read back yet <span className="fine">· {left ? `${left} ${left === 1 ? 'daily note' : 'daily notes'} of the last 30 days` : 'none of the last 30 days'}</span></summary>
+        {readBackOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><ReadBackList record={record} change={change} today={today}/></Suspense></LoadBoundary>}
+      </details>; })()}
+      {dailiesOf(record).some(n => !n.archived) ? <ul className="note-list">{dailiesOf(record).filter(n => !n.archived).map(n => <li key={n.id}><Link href={`/app/notes?day=${n.day}`}><strong>{formatDate(n.day!, {weekday: true})}</strong></Link>{n.readBack && <span className="fine note-read-back-mark"> · read back</span>}<p className="fine">{snippetOf(n) || 'No words yet.'}</p></li>)}</ul>
         : <p className="fine">No daily notes yet. <button type="button" className="text-link" onClick={() => go({})}>Write today&rsquo;s</button>: what you did shows beside it, from your habits, Health, money and goals.</p>}
     </section>}
 
@@ -252,8 +263,9 @@ function FocusLine({focus, onClear}: {focus: string; onClear: () => void}) {
   return <p className="note-focus-line">Showing notes tagged <strong>#{focus}</strong> (and the tags under it). <button type="button" className="text-link" onClick={onClear}>Clear focus</button></p>;
 }
 /** Session AV lane 2 (r4-notes; LEDGER #306, Bear's tag sidebar): every tag, nested, with its count; one becomes the focus. */
-function TagFocus({notes, focus, onFocus}: {notes: readonly Note[]; focus?: string; onFocus: (tag?: string) => void}) {
+function TagFocus({notes, focus, onFocus, record, change}: {notes: readonly Note[]; focus?: string; onFocus: (tag?: string) => void; record: Notes; change: Change}) {
   const tree = tagTree(notes), tops = tree.filter(t => !t.depth).length, on = (t: string) => focus?.toLowerCase() === t.toLowerCase();
+  const [renaming, setRenaming] = useState(false);
   return <>
     {focus && <FocusLine focus={focus} onClear={() => onFocus()}/>}
     <details className="note-fold note-tags-fold"><summary>Tags <span className="fine">· {tree.length ? `${tops} ${tops === 1 ? 'tag' : 'tags'}${tree.length > tops ? ` and ${tree.length - tops} nested` : ''}` : 'none yet; write #travel in a note'}</span></summary>
@@ -263,6 +275,10 @@ function TagFocus({notes, focus, onFocus}: {notes: readonly Note[]; focus?: stri
         </button></li>)}</ul>
         : <p className="fine">Write #travel anywhere in a note, or type it in the note&rsquo;s Tags field. A / nests a tag: #work/meetings sits under #work. Choose a tag here to focus Notes on it — the list, Search and the Graph — until you clear it.</p>}
       {tree.length > 0 && <p className="fine">Choose a tag to focus Notes on it (the list, Search and the Graph); choose it again, or Clear focus, to see every note.</p>}
+      {/* Session AV lane 2 (r6-notes; LEDGER #399): rename or merge a tag across every note. */}
+      {tree.length > 0 && <details className="note-fold note-tag-rename-fold" onToggle={e => setRenaming((e.currentTarget as HTMLDetailsElement).open)}><summary>Rename or merge a tag <span className="fine">· in every note at once, with Undo</span></summary>
+        {renaming && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><TagRename record={record} change={change}/></Suspense></LoadBoundary>}
+      </details>}
     </details>
   </>;
 }

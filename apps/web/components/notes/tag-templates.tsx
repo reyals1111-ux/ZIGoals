@@ -4,7 +4,7 @@ import {useId, useState} from 'react';
 import {MAX_TAG_TEMPLATES, MAX_TEMPLATE_BODY, type Notes} from '../../lib/notes/schema';
 import {removeTagTemplate, setTagTemplate, tagTemplatesOf, templateWords} from '../../lib/notes/tag-templates';
 import {addTopic, updateNote} from '../../lib/notes/store';
-import {cleanTag} from '../../lib/notes/bulk';
+import {cleanTag} from '../../lib/notes/clean-tag';
 import {noteHref} from '../../lib/notes/links';
 import {localDate} from '../../lib/local-date';
 import {formatDate} from '../../lib/visual-format';

@@ -10,6 +10,7 @@ import {noteHref} from '../../lib/notes/links';
 import {getNotePhoto} from '../../lib/notes/photos';
 import {photoScope} from '../../lib/health-aa/photos';
 import {formatDate, formatNumber} from '../../lib/visual-format';
+import {columnSum, hasSums} from '../../lib/notes/table-sums';
 
 /**
  * Session AV lane 2 (notes; LEDGER #29 Notion's database views: a table and a gallery of notes; #30 Notion's chart view:
@@ -71,6 +72,14 @@ export function NotesTable({notes}: {notes: readonly Note[]}) {
         <td>{formatDate(r.changed, {year: false})}</td><td>{formatDate(r.made, {year: false})}</td>
         {pcols.map(p => { const v = propOf(notesById.get(r.id)!, p.name); return <td key={p.name} className={v?.t === 'number' ? 'num' : undefined}>{v ? (v.t === 'date' ? formatDate(v.v) : v.t === 'number' ? formatNumber(v.v) : valueWords(v)) : <span className="fine">—</span>}</td>; })}
       </tr>)}</tbody>
+      {/* Session AV lane 2 (r6-notes; LEDGER #408, Capacities): sums under the Number and Tick columns of the notes shown. */}
+      {hasSums(pcols) && rows.length > 0 && <tfoot><tr className="notes-table-sums">
+        <th scope="row">Shown: {rows.length === 1 ? '1 note' : `${formatNumber(rows.length)} notes`}</th><td/>
+        <td className="num">{formatNumber(rows.reduce((n, r) => n + r.words, 0))} <span className="fine">in all</span></td><td/><td/><td/>
+        {pcols.map(p => { const sum = columnSum(shown, p.name, p.type); return <td key={p.name} className={sum?.kind === 'number' ? 'num' : undefined}>{!sum ? null
+          : sum.kind === 'number' ? (sum.count ? <><span>Sum {formatNumber(sum.sum)}</span><br/><span className="fine">Average {formatNumber(sum.average)}{sum.count < rows.length ? ` · ${formatNumber(sum.count)} with a value` : ''}</span></> : <span className="fine">No values</span>)
+          : <span>{formatNumber(sum.ticked)} of {formatNumber(sum.of)} ticked</span>}</td>; })}
+      </tr></tfoot>}
     </table>
   </div></>;
 }
