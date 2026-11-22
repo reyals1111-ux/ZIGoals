@@ -23,7 +23,10 @@ import {applyRules} from '../../lib/money-rules/engine';
 import {loggedWithRules, ruleHint} from '../../lib/money-rules/imports';
 import {MONEY_REVIEW, markForReview} from '../../lib/money-review/review';
 // Session AV lane 2 (rest, LEDGER #142): a re-imported CSV row the bank changed updates its entry instead of adding one.
-import {applyReimport, changedCsvRows, putBackEntries} from '../../lib/bankfiles/reimport';
+import {applyReimport, changedCsvRows, putBackEntries, withImportMarks} from '../../lib/bankfiles/reimport';
+// Session AV lane 2, round 3 (money; Simplifi, LEDGER #299): a file's tags kept as the entries' tags; its reference or cheque number kept on the entry.
+import {MONEY_TAGS_RECORD} from '../../lib/money-tags/schema';
+import {withImportTags} from '../../lib/money-tags/tags';
 import type {MoneyEntry} from '../../lib/money-log/schema';
 
 const OPTIONS: SetupOptions = {fields: HOLDINGS_FIELDS, numberFields: ['quantity', 'value']};
@@ -116,7 +119,7 @@ function moneySetup(text: string, found: (app: MoneyAppExport | null) => void): 
   return next.ambiguousDates && app.dateFormat ? {...next, dateFormat: app.dateFormat, ambiguousDates: false} : next;
 }
 export function MoneyCsvImport({onClose}: {onClose: () => void}) {
-  const log = useDeviceRecord(MONEY_LOG), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
+  const log = useDeviceRecord(MONEY_LOG), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW), tagsRecord = useDeviceRecord(MONEY_TAGS_RECORD);
   // Session AL (P-DVR-22): a file with no currency column starts in the log's own currency (the one it already holds most
   // of), else the one default; never a fixed EUR.
   const logTotals = useMemo(() => { const by = new Map<string, bigint>(); for (const e of log.data.entries) { const cents = BigInt(Math.round(Number(e.amount) * 100) || 0); by.set(e.currency, (by.get(e.currency) ?? 0n) + (cents < 0n ? -cents : cents)); } if (log.data.currency) by.set(log.data.currency, (by.get(log.data.currency) ?? 0n) + 1n); return [...by].map(([currency, value]) => ({currency, value})); }, [log.data.entries, log.data.currency]);
@@ -125,7 +128,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
   const [picked, setPicked] = useState<ReadonlySet<number> | null>(null), [error, setError] = useState(''), [app, setApp] = useState<MoneyAppExport | null>(null);
   // Session AV (L-6): categories changed in the preview, by file row.
   const [categories, setCategories] = useState<ReadonlyMap<number, string>>(new Map());
-  const [done, setDone] = useState<{added: number; refused: RefusedRow[]; ids: ReadonlySet<string>; updated: readonly MoneyEntry[]; undone?: boolean} | null>(null);
+  const [done, setDone] = useState<{added: number; refused: RefusedRow[]; ids: ReadonlySet<string>; updated: readonly MoneyEntry[]; undone?: boolean; tagged?: number} | null>(null);
   const [updateChanged, setUpdateChanged] = useState(true);
   const plan = useMemo(() => setup ? planMoneyRows({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, currency, positiveIsOut: app?.positiveIsOut}) : null, [setup, currency, app]);
   const logged = useMemo(() => new Set(plan && log.loaded ? plan.transactions.filter(t => alreadyLogged(t, log.data) || loggedWithRules(t, log.data, rules.data.rules)).map(t => t.index) : []), [plan, log.loaded, log.data, rules.data.rules]);
@@ -141,11 +144,13 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
     try {
       const out = toMoneyEntries(chosen, log.data, new Date(), () => crypto.randomUUID());
       // Session AK (lane M): the rules, first match wins; Session AV (L-6): then the categories chosen in the preview.
-      const entries = withChosenCategories(applyRules(out.entries, rules.data.rules).entries, out.indexes, categories);
+      const entries = withImportMarks(withChosenCategories(applyRules(out.entries, rules.data.rules).entries, out.indexes, categories), out.indexes, chosen);
       const before = log.data.entries.filter(e => updates.some(c => c.entry.id === e.id)), at = new Date().toISOString();
       if (entries.length || updates.length) log.update(current => applyReimport(entries.length ? addEntries(current, entries) : current, updates, at));
       if (entries.length) try { review.update(r => markForReview(r, entries.map(e => e.id))); } catch { /* the entries are added; only the review mark is missing */ }
-      setDone({added: entries.length, refused: out.refused, ids: new Set(entries.map(e => e.id)), updated: before});
+      let tagged = 0;
+      if (entries.length && !tagsRecord.unreadable && chosen.some(t => t.tags?.length)) try { const live = new Set([...log.data.entries, ...entries].map(e => e.id)); tagged = withImportTags(tagsRecord.data, entries, out.indexes, chosen, live).tagged; tagsRecord.update(r => withImportTags(r, entries, out.indexes, chosen, live).record); } catch { tagged = 0; /* the entries are added; only their tags are missing */ }
+      setDone({tagged, added: entries.length, refused: out.refused, ids: new Set(entries.map(e => e.id)), updated: before});
     } catch (cause) { setError(plainErrorMessage(cause, 'Nothing was added on this device.')); }
   }
   function undo() {
@@ -158,6 +163,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
   if (done) return <div className="import-step import-done">
     <p role="status">{done.undone ? `The import was undone: the entries it added are removed${done.updated.length ? ' and the ones it updated are as they were' : ''}.` : `${done.added} ${done.added === 1 ? 'entry' : 'entries'} added to your money log${done.updated.length ? `, ${done.updated.length} updated` : ''}${done.refused.length ? `; ${done.refused.length} could not be added (listed below)` : ''}.`}</p>
     {!done.undone && done.added > 0 && <p className="fine">They are listed under Money tools → To review on Wealth → Spending, so you can check their categories.</p>}
+    {!done.undone && (done.tagged ?? 0) > 0 && <p className="fine">{done.tagged} {done.tagged === 1 ? 'entry keeps its' : 'entries keep their'} tags from the file; Your money over time → Tags shows them.</p>}
     {!done.undone && done.refused.length > 0 && <RefusedRows refused={done.refused.map(r => ({row: r.index, reason: `Row ${r.index}: ${r.reason}`}))}/>}
     {error && <p role="alert">{error}</p>}
     <div className="actions">{!done.undone && (done.added > 0 || done.updated.length > 0) && <button type="button" className="secondary" onClick={undo}>Undo this import</button>}<button type="button" className="secondary" onClick={onClose}>Done</button></div>
@@ -179,7 +185,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
         <tbody>{plan.transactions.slice(0, PREVIEW_ROWS).map(t => <tr key={t.index}>
           <td><input type="checkbox" checked={included.has(t.index)} onChange={() => toggle(t.index)} aria-label={`Add ${t.payee || 'row'} ${t.amount} ${t.currency} on ${formatDate(t.date)}`}/></td>
           <td>{formatDate(t.date)}</td>
-          <td className="bankfile-payee">{t.payee || '—'}{t.description && t.description !== t.payee && <span className="fine"> · {t.description}</span>}</td>
+          <td className="bankfile-payee">{t.payee || '—'}{t.description && t.description !== t.payee && <span className="fine"> · {t.description}</span>}{setup?.mapping.reference !== undefined && t.reference && <span className="fine"> · No. {t.reference}</span>}{t.tags?.length ? <span className="fine"> · Tags: {t.tags.join(', ')}</span> : null}</td>
           <td className={t.direction === 'in' ? 'bankfile-in' : undefined}>{t.direction === 'in' ? '+' : '−'}{money(t.amount, t.currency)}</td>
           <td><CategoryPick t={t} guess={previewCategory(t, rules.data.rules)} chosen={categories.get(t.index)} onChoose={c => setCategories(current => new Map(current).set(t.index, c))}/></td>
           <td className="fine">{t.duplicate ? 'Possible repeat in this file' : changedAt.has(t.index) ? (() => { const c = changedAt.get(t.index)!; return `Changed at your bank${c.amount ? ` (was ${money(c.entry.amount, t.currency)})` : ''}${c.note ? ' (payee or note changed)' : ''}${updateChanged && !included.has(t.index) ? ': updates that entry' : ''}`; })() : logged.has(t.index) ? 'Already in your log' : ruleHint(t, rules.data.rules) ?? ''}</td>

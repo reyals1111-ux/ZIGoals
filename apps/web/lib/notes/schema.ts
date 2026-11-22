@@ -22,6 +22,19 @@ export const NOTE_SOURCES = ['text', 'voice', 'photo', 'import', 'nova'] as cons
 export type NoteSource = (typeof NOTE_SOURCES)[number];
 
 export const noteIdSchema = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
+/** Session AV lane 2 (r3-notes; LEDGER #270): a note's own property (name, type, value). */
+export const MAX_PROPS = 10, PROP_NAME_MAX = 40, PROP_TEXT_MAX = 500, PROP_CHOICE_MAX = 60;
+export const PROP_TYPES = ['text', 'number', 'date', 'choice', 'tick'] as const;
+export type PropType = (typeof PROP_TYPES)[number];
+const propName = z.string().trim().min(1).max(PROP_NAME_MAX).refine(n => !['__proto__', 'constructor', 'prototype'].includes(n));
+export const notePropSchema = z.union([
+  z.looseObject({k: propName, t: z.literal('text'), v: z.string().max(PROP_TEXT_MAX)}),
+  z.looseObject({k: propName, t: z.literal('number'), v: z.number().finite().min(-1e12).max(1e12)}),
+  z.looseObject({k: propName, t: z.literal('date'), v: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)}),
+  z.looseObject({k: propName, t: z.literal('choice'), v: z.string().trim().min(1).max(PROP_CHOICE_MAX)}),
+  z.looseObject({k: propName, t: z.literal('tick'), v: z.boolean()}),
+]);
+export type NoteProp = z.infer<typeof notePropSchema>;
 export const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const stamp = z.iso.datetime({offset: true});
 export const noteSchema = z.looseObject({
@@ -45,6 +58,13 @@ export const noteSchema = z.looseObject({
    * line then reads against the note's last save), and older builds keep it untouched and never read it.
    */
   remindFrom: z.record(z.string().min(1).max(200), daySchema).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r3-notes; LEDGER #270, Obsidian's properties and Bases; TIER 3 (stored format), additive and
+   * optional): the person's own properties on the note — up to ten, each a name with a typed value (text, a number, a
+   * day, a choice, a tick). An item this build cannot read is dropped on read (the rest kept); older builds keep the list
+   * untouched (the note is loose) and never show it.
+   */
+  props: z.preprocess(v => Array.isArray(v) ? v.filter(x => notePropSchema.safeParse(x).success).slice(0, MAX_PROPS) : undefined, z.array(notePropSchema).max(MAX_PROPS).optional()),
   /** A fictional Showcase note. */
   example: z.boolean().optional(),
   createdAt: stamp,
@@ -78,6 +98,28 @@ export const noteScheduleSchema = z.looseObject({
   paused: z.boolean().optional().catch(undefined),
 });
 export type NoteSchedule = z.infer<typeof noteScheduleSchema>;
+/** Session AV lane 2 (r3-notes; LEDGER #273): a board's cards and lines, in the shape JSON Canvas uses (jsoncanvas.org). */
+export const MAX_CANVASES = 10, MAX_CANVAS_NODES = 200, MAX_CANVAS_EDGES = 400, CANVAS_TEXT_MAX = 2000, CANVAS_LABEL_MAX = 60, CANVAS_SPAN = 20_000;
+export const CANVAS_COLOURS = ['1', '2', '3', '4', '5', '6'] as const;
+const coord = z.number().int().min(-CANVAS_SPAN).max(CANVAS_SPAN), size = z.number().int().min(40).max(4000);
+const canvasId = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/);
+export const canvasNodeSchema = z.looseObject({
+  id: canvasId, type: z.enum(['text', 'note', 'photo', 'group']), x: coord, y: coord, w: size, h: size,
+  text: z.string().max(CANVAS_TEXT_MAX).optional().catch(undefined),
+  note: noteIdSchema.optional().catch(undefined),
+  photo: noteIdSchema.optional().catch(undefined),
+  label: z.string().max(CANVAS_LABEL_MAX).optional().catch(undefined),
+  color: z.enum(CANVAS_COLOURS).optional().catch(undefined),
+});
+export const canvasEdgeSchema = z.looseObject({id: canvasId, from: canvasId, to: canvasId, label: z.string().max(CANVAS_LABEL_MAX).optional().catch(undefined)});
+export type CanvasNode = z.infer<typeof canvasNodeSchema>;
+export type CanvasEdge = z.infer<typeof canvasEdgeSchema>;
+const keep = <T extends z.ZodType>(item: T, max: number) => z.preprocess(v => Array.isArray(v) ? v.filter(x => item.safeParse(x).success).slice(0, max) : [], z.array(item).max(max));
+export const canvasSchema = z.looseObject({
+  id: z.string().regex(/^cv-[A-Za-z0-9_-]{4,40}$/), name: z.string().trim().min(1).max(CANVAS_LABEL_MAX),
+  nodes: keep(canvasNodeSchema, MAX_CANVAS_NODES), edges: keep(canvasEdgeSchema, MAX_CANVAS_EDGES), updatedAt: stamp,
+});
+export type NoteCanvas = z.infer<typeof canvasSchema>;
 const readable = <T extends z.ZodType>(item: T, max: number) => z.preprocess(v => Array.isArray(v) ? v.filter(x => item.safeParse(x).success).slice(-max) : undefined, z.array(item).max(max).optional());
 export const notesSchema = z.looseObject({
   version: z.literal(1),
@@ -87,6 +129,14 @@ export const notesSchema = z.looseObject({
   versions: readable(noteVersionSchema, MAX_NOTE_VERSIONS),
   dailyTemplate: z.string().max(MAX_TEMPLATE_BODY).optional().catch(undefined),
   schedules: readable(noteScheduleSchema, MAX_SCHEDULES),
+  /**
+   * Session AV lane 2 (r3-notes; LEDGER #273, Obsidian's Canvas; TIER 3 (stored format), additive and optional): boards
+   * of cards placed by hand — note cards, text cards, photos (their bytes in the notes' photo store) and named groups —
+   * joined by labelled lines; at most 10 boards, 200 cards and 400 lines each (lib/notes/canvas.ts). Kept in the notes
+   * record, so Export everything, the backup, Restore and Erase carry it with the notes. A board or a card this build
+   * cannot read is dropped on read (the rest kept); older builds keep the field untouched and never show it.
+   */
+  canvases: readable(canvasSchema, MAX_CANVASES),
 });
 export type Note = z.infer<typeof noteSchema>;
 export type Notes = z.infer<typeof notesSchema>;

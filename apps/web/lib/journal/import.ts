@@ -1,7 +1,8 @@
 import {parseFrontMatter} from '../notes/markdown';
-import {IMPORT_SOURCES, MAX_AUDIO_SECONDS, MAX_ENTRIES, MAX_ENTRY_AUDIO, MAX_ENTRY_PHOTOS, MAX_JOURNALS, MAX_TEXT, journalSchema, type Journal, type JournalEntry} from './schema';
+import {IMPORT_SOURCES, PERIOD, MAX_AUDIO_SECONDS, MAX_ENTRIES, MAX_ENTRY_AUDIO, MAX_ENTRY_PHOTOS, MAX_JOURNALS, MAX_TEXT, journalSchema, type Journal, type JournalEntry} from './schema';
 import {MAIN_JOURNAL, booksOf, newJournalId} from './books';
 import {readTags} from './tags';
+import {FOLLOW_UP_MARK, followUpOfQuote} from './export';
 
 /**
  * Session AV lane 2 (journal; LEDGER #44, Day One's imports): reading another journal's export into this one, pure.
@@ -17,7 +18,16 @@ import {readTags} from './tags';
  * here: the plan is shown first, applied with one Undo (lib/journal/import.ts applyImport).
  */
 export type ImportSource = (typeof IMPORT_SOURCES)[number];
-export type PlannedEntry = {date: string; text: string; createdAt: string; updatedAt?: string; tags?: string[]; book?: string; template?: string; source: ImportSource; photos: string[]; audio: {file: string; seconds: number}[]; followUp?: {question: string; answer?: string}};
+export type PlannedEntry = {date: string; text: string; createdAt: string; updatedAt?: string; tags?: string[]; book?: string; template?: string; source: ImportSource; photos: string[]; audio: {file: string; seconds: number}[]; followUp?: {question: string; answer?: string};
+  /** Session AV lane 2 (r3-notes; LEDGER #269, #278, #279, #272): an entry's period, night and opening day, read back from ZIGoals' own exports. */ extra?: {period?: string; night?: string; opensOn?: string};
+  /** Session AV lane 2 (review B3C-5): read from ZIGoals' own Markdown file, its `createdAt` the entry's own (a day and creation time already in the journal is that entry). */ own?: true};
+/** Session AV lane 2 (r3-notes): the round-3 fields of an entry, from a ZIGoals export's `zigoals` block or Markdown front matter. */
+function extraOf(z: {period?: unknown; night?: unknown; opensOn?: unknown; 'opens-on'?: unknown} | null | undefined): PlannedEntry['extra'] | undefined {
+  if (!z) return undefined;
+  const opens = z.opensOn ?? z['opens-on'];
+  const out = {...(typeof z.period === 'string' && PERIOD.test(z.period) ? {period: z.period} : {}), ...(typeof z.night === 'string' && validDay(z.night) ? {night: z.night} : {}), ...(typeof opens === 'string' && validDay(opens) ? {opensOn: opens} : {})};
+  return Object.keys(out).length ? out : undefined;
+}
 export type ImportSkip = {name: string; reason: string};
 export type JournalImportPlan = {entries: PlannedEntry[]; skipped: ImportSkip[]; books: string[]; cut: number};
 export type InFile = {name: string; text: string};
@@ -65,7 +75,7 @@ export function readDayOneJson(file: InFile, zone?: string): {entries: PlannedEn
     const label = `${file.name} #${i + 1}`;
     if (!e || typeof e !== 'object') { skipped.push({name: label, reason: 'it is not an entry'}); continue; }
     const created = typeof e.creationDate === 'string' && Number.isFinite(Date.parse(e.creationDate)) ? new Date(Date.parse(e.creationDate)).toISOString() : null;
-    const z = e.zigoals && typeof e.zigoals === 'object' ? e.zigoals as {date?: unknown; journal?: unknown; template?: unknown; question?: unknown; answer?: unknown} : null;
+    const z = e.zigoals && typeof e.zigoals === 'object' ? e.zigoals as {date?: unknown; journal?: unknown; template?: unknown; question?: unknown; answer?: unknown; period?: unknown; night?: unknown; opensOn?: unknown} : null;
     const date = typeof z?.date === 'string' && validDay(z.date) ? z.date : created ? dayIn(created, typeof e.timeZone === 'string' ? e.timeZone : zone) : null;
     const words = typeof e.text === 'string' ? dayOneWords(e.text) : '';
     const photos = Array.isArray(e.photos) ? e.photos.flatMap(p => p && typeof p === 'object' && typeof (p as {md5?: unknown}).md5 === 'string' ? [`photos/${(p as {md5: string}).md5}.${String((p as {type?: unknown}).type ?? 'jpeg')}`] : []).slice(0, MAX_ENTRY_PHOTOS) : [];
@@ -76,15 +86,29 @@ export function readDayOneJson(file: InFile, zone?: string): {entries: PlannedEn
     const tags = Array.isArray(e.tags) ? readTags(e.tags.filter((t): t is string => typeof t === 'string').join(',')) : [];
     const modified = typeof e.modifiedDate === 'string' && Number.isFinite(Date.parse(e.modifiedDate)) ? new Date(Date.parse(e.modifiedDate)).toISOString() : undefined;
     const ownBook = ours && typeof z?.journal === 'string' && z.journal.trim() ? z.journal.trim().slice(0, 40) : book ?? undefined;
-    entries.push({date, text: c.text, createdAt: created, ...(modified && modified !== created ? {updatedAt: modified} : {}), ...(tags.length ? {tags} : {}), ...(ownBook ? {book: ownBook} : {}), ...(ours && typeof z?.template === 'string' && /^[a-z0-9-]{1,40}$/.test(z.template) ? {template: z.template} : {}), ...(ours && typeof z?.question === 'string' && z.question.trim() ? {followUp: {question: z.question.trim().slice(0, 300), ...(typeof z.answer === 'string' && z.answer.trim() ? {answer: z.answer.trim().slice(0, 2000)} : {})}} : {}), source: 'dayone', photos, audio});
+    entries.push({date, text: c.text, createdAt: created, ...(modified && modified !== created ? {updatedAt: modified} : {}), ...(tags.length ? {tags} : {}), ...(ownBook ? {book: ownBook} : {}), ...(ours && typeof z?.template === 'string' && /^[a-z0-9-]{1,40}$/.test(z.template) ? {template: z.template} : {}), ...(ours && typeof z?.question === 'string' && z.question.trim() ? {followUp: {question: z.question.trim().slice(0, 300), ...(typeof z.answer === 'string' && z.answer.trim() ? {answer: z.answer.trim().slice(0, 2000)} : {})}} : {}), ...(ours && extraOf(z) ? {extra: extraOf(z)} : {}), source: 'dayone', photos, audio});
   }
   return {entries, skipped, book, cut};
 }
 /** A Markdown or text file: one entry, or one per dated heading. */
 export function readTextFile(file: InFile, today: string): {entries: PlannedEntry[]; skipped: ImportSkip[]; cut: number} {
   const md = /\.(?:md|markdown)$/i.test(file.name), source: ImportSource = md ? 'markdown' : 'text';
-  const {data, body} = parseFrontMatter(file.text.replace(/\r\n?/g, '\n'));
+  const parsed = parseFrontMatter(file.text.replace(/\r\n?/g, '\n')), data = parsed.data;
+  let body = parsed.body;
   const fmDate = typeof data.date === 'string' ? dayInLine(data.date) : null, fmTags = readTags(Array.isArray(data.tags) ? data.tags.join(',') : typeof data.tags === 'string' ? data.tags : '');
+  // Session AV lane 2 (r3-notes; LEDGER #272): ZIGoals' own Markdown export carries its journal, template, period, night,
+  // opening day and creation time in the front matter (`app: ZIGoals`); other apps' files are read as before.
+  const ours = data.app === 'ZIGoals';
+  const fmCreated = ours && typeof data.created === 'string' && Number.isFinite(Date.parse(data.created)) ? new Date(Date.parse(data.created)).toISOString() : null;
+  const fmBook = ours && typeof data.journal === 'string' && data.journal.trim() && data.journal.trim().toLowerCase() !== MAIN_JOURNAL.name.toLowerCase() ? data.journal.trim().slice(0, 40) : null;
+  const fmTemplate = ours && typeof data.template === 'string' && /^[a-z0-9-]{1,40}$/.test(data.template) ? data.template : null;
+  const fmExtra = ours ? extraOf(data as Record<string, unknown>) : undefined;
+  if (ours) body = body.replace(/\n*(?:!\[[^\]\n]*\]\(\.\.\/(?:photos|audios)\/[^)\n]+\)\s*)+$/, ''); // its photos, named beside it
+  // Session AV lane 2 (review B3C-5): ZIGi's follow-up, written after the words as a quote block, is the entry's follow-up
+  // again, not part of its words (so the entry already in the journal is recognised and nothing doubles).
+  const quote = ours && data['follow-up'] === FOLLOW_UP_MARK ? followUpOfQuote(body) : null;
+  if (quote) body = quote.text;
+  const fmFollowUp = quote ? {question: quote.followUp.question.slice(0, 300), ...(quote.followUp.answer ? {answer: quote.followUp.answer.slice(0, 2000)} : {})} : undefined;
   const lines = body.split('\n'), heads = lines.map((l, i) => /^#{1,3}\s+/.test(l) && dayInLine(l) ? i : -1).filter(i => i >= 0);
   const out: PlannedEntry[] = [], skipped: ImportSkip[] = [];
   let cut = 0;
@@ -92,7 +116,7 @@ export function readTextFile(file: InFile, today: string): {entries: PlannedEntr
     const text = words.trim();
     if (!text) { skipped.push({name: label, reason: 'it has no words'}); return; }
     const day = date ?? today, c = clip(text); if (c.cut) cut++;
-    out.push({date: day, text: c.text, createdAt: `${day}T12:00:00.000Z`, ...(fmTags.length ? {tags: fmTags} : {}), source, photos: [], audio: []});
+    out.push({date: day, text: c.text, createdAt: fmCreated ?? `${day}T12:00:00.000Z`, ...(fmTags.length ? {tags: fmTags} : {}), ...(fmBook ? {book: fmBook} : {}), ...(fmTemplate ? {template: fmTemplate} : {}), ...(fmExtra && heads.length <= 1 ? {extra: fmExtra} : {}), ...(fmFollowUp && heads.length <= 1 ? {followUp: fmFollowUp} : {}), ...(fmCreated && heads.length <= 1 ? {own: true} : {}), source, photos: [], audio: []});
   };
   if (heads.length > 1 || (heads.length === 1 && !fmDate)) {
     heads.forEach((h, k) => push(dayInLine(lines[h]!), lines.slice(h + 1, heads[k + 1] ?? lines.length).join('\n'), `${file.name}: ${lines[h]!.replace(/^#+\s*/, '')}`));
@@ -127,12 +151,14 @@ export function planJournalImport(journal: Journal, files: readonly InFile[], {t
     if (!r) { skipped.push({name: f.name, reason: 'it is not a journal file ZIGoals reads (Day One JSON, Markdown, text or HTML)'}); continue; }
     entries.push(...r.entries); skipped.push(...r.skipped); cut += r.cut;
   }
-  const seen = new Set(journal.entries.map(e => `${e.date}\n${e.text.trim()}`)), kept: PlannedEntry[] = [];
+  // Session AV lane 2 (review B3C-5): an entry from ZIGoals' own Markdown is also known by its day and creation time, so it
+  // is recognised even when its words were changed here since the export.
+  const seen = new Set(journal.entries.map(e => `${e.date}\n${e.text.trim()}`)), made = new Set(journal.entries.map(e => `${e.date}\n${e.createdAt}`)), kept: PlannedEntry[] = [];
   for (const e of entries.sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
-    const key = `${e.date}\n${e.text.trim()}`;
-    if (seen.has(key)) { skipped.push({name: `${e.date}: ${e.text.slice(0, 40)}`, reason: 'it is already in your journal'}); continue; }
+    const key = `${e.date}\n${e.text.trim()}`, at = `${e.date}\n${e.createdAt}`;
+    if (seen.has(key) || (e.own && made.has(at))) { skipped.push({name: `${e.date}: ${e.text.slice(0, 40)}`, reason: 'it is already in your journal'}); continue; }
     if (e.date > today) { skipped.push({name: `${e.date}: ${e.text.slice(0, 40)}`, reason: 'its day is still to come'}); continue; }
-    seen.add(key); kept.push(e);
+    seen.add(key); if (e.own) made.add(at); kept.push(e);
     if (e.book && !books.some(b => b.toLowerCase() === e.book!.toLowerCase()) && e.book.toLowerCase() !== MAIN_JOURNAL.name.toLowerCase()) books.push(e.book);
   }
   const room = MAX_ENTRIES - journal.entries.length;
@@ -155,7 +181,7 @@ export function applyJournalImport(journal: Journal, plan: JournalImportPlan, me
     const photos = e.photos.flatMap(f => media.get(f) ? [media.get(f)!] : []), audio = e.audio.flatMap(a => media.get(a.file) ? [{id: media.get(a.file)!, seconds: a.seconds}] : []);
     used.push(...photos, ...audio.map(a => a.id));
     const book = e.book ? byName.get(e.book.toLowerCase()) : undefined;
-    added.push({id: newId(), date: e.date, text: e.text, createdAt: e.createdAt, ...(e.updatedAt ? {updatedAt: e.updatedAt} : {}), ...(e.tags?.length ? {tags: e.tags} : {}), ...(book ? {journal: book} : {}), ...(e.template ? {template: e.template} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {}), ...(e.followUp ? {followUp: {question: e.followUp.question, from: 'device' as const, ...(e.followUp.answer ? {answer: e.followUp.answer} : {})}} : {}), imported: e.source});
+    added.push({...(e.extra ?? {}), id: newId(), date: e.date, text: e.text, createdAt: e.createdAt, ...(e.updatedAt ? {updatedAt: e.updatedAt} : {}), ...(e.tags?.length ? {tags: e.tags} : {}), ...(book ? {journal: book} : {}), ...(e.template ? {template: e.template} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {}), ...(e.followUp ? {followUp: {question: e.followUp.question, from: 'device' as const, ...(e.followUp.answer ? {answer: e.followUp.answer} : {})}} : {}), imported: e.source});
   }
   const entries = [...journal.entries, ...added].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   return {journal: journalSchema.parse({...journal, entries, journals: books}), undo: {entries: added.map(e => e.id), books: made, media: used}};

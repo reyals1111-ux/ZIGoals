@@ -1,8 +1,8 @@
 'use client';
 import {useState, type FormEvent} from 'react';
-import {useDeviceRecord} from '../ai/use-device-record';
+import {useDeviceRecord, type DeviceRecordState} from '../ai/use-device-record';
 import type {Account, Accounts} from '../../lib/accounts/schema';
-import {WEALTH_SHEET} from '../../lib/wealth-sheet/schema';
+import {WEALTH_SHEET, type WealthSheet} from '../../lib/wealth-sheet/schema';
 import {limitStates, withLimit} from '../../lib/money-more/alerts';
 import {readMoneyAmount} from '../../lib/money-log/form';
 import {formatDate, formatMoney} from '../../lib/visual-format';
@@ -23,10 +23,15 @@ export default function LimitNotices({accounts}: {accounts: Accounts}) {
   </li>)}</ul>;
 }
 /** In an account's Sheet: "Tell me when the balance goes below … or above …". */
-export function LimitForm({account: a}: {account: Account}) {
-  const sheet = useDeviceRecord(WEALTH_SHEET), now = sheet.data.limits?.[a.id];
-  const [below, setBelow] = useState(now?.below ?? ''), [above, setAbove] = useState(now?.above ?? ''), [said, setSaid] = useState(''), [problem, setProblem] = useState('');
+// Review b3a #3 (Session AV lane 2, round 3): the fields start from the record once it has loaded, so they show the kept lines.
+export function LimitForm({account}: {account: Account}) {
+  const sheet = useDeviceRecord(WEALTH_SHEET);
   if (!sheet.loaded || sheet.unreadable) return null;
+  return <LimitFields key={account.id} account={account} sheet={sheet}/>;
+}
+function LimitFields({account: a, sheet}: {account: Account; sheet: DeviceRecordState<WealthSheet>}) {
+  const now = sheet.data.limits?.[a.id];
+  const [below, setBelow] = useState(now?.below ?? ''), [above, setAbove] = useState(now?.above ?? ''), [said, setSaid] = useState(''), [problem, setProblem] = useState('');
   const save = (e: FormEvent) => {
     e.preventDefault(); setProblem('');
     const b = below.trim() ? readMoneyAmount(below) : null, h = above.trim() ? readMoneyAmount(above) : null;

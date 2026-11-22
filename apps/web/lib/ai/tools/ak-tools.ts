@@ -30,7 +30,7 @@ export type AkToolSources = {autoRules?: AutoRules | null; bills?: BillsRecord |
   /** Session AV (1c, f1): the runs' per-kilometre splits (the timed running bests), today's focus habit as the habit extras keep it (read with lib/habit-focus.ts), and the money log's import review (what waits for a look). */
   splits?: SplitsRecord | null; habitFocus?: unknown; moneyReview?: MoneyReview | null; habitExtras?: unknown;
   /** Session AV lane 2, batch 2: the evening plan and the workouts' extras (av2-body.ts), the net-worth sheet (av2-money.ts). */
-  eveningPlan?: unknown; bodyExtras?: unknown; wealthSheet?: unknown; nutrientExtras?: unknown; moneyMore?: unknown; storeCards?: unknown; moneyLogBusiness?: unknown; workoutPlaces?: unknown} & F9ToolSources;
+  eveningPlan?: unknown; bodyExtras?: unknown; wealthSheet?: unknown; nutrientExtras?: unknown; moneyMore?: unknown; storeCards?: unknown; moneyLogBusiness?: unknown; workoutPlaces?: unknown; healthExtras?: unknown; notifyPrefs?: unknown; healthGoalsMore?: unknown; workoutCircuits?: unknown} & F9ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
 
 export const autoRulesTool: ToolDefinition<Record<string, never>> = {

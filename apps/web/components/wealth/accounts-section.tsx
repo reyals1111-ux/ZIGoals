@@ -39,6 +39,8 @@ const AccountSheet = lazy(() => import('./account-sheet'));
 const PropertyEquity = lazy(() => import('./account-sheet').then(x => ({default: x.PropertyEquity})));
 // Session AV lane 2, round 2 (money; Wallet): balances past the person's own lines (lazy).
 const LimitNotices = lazy(() => import('./account-limits'));
+// Session AV lane 2, round 3 (money; Simplifi's credit card dashboard, LEDGER #293): a card's limit used and its days (lazy).
+const CardLine = lazy(() => import('./credit-card'));
 // Session AV lane 2, round 2 (money; Wallet): net worth with money lent and borrowed, beside the cards (lazy).
 const BesideWorth = lazy(() => import('./beside-worth'));
 
@@ -162,7 +164,7 @@ function AccountRow({account: a, today, open, setOpen, change, prefill, note, on
   const months = debt && b && a.ratePercent && Number.isFinite(monthlyNumber) ? payoffMonths(Number(moneyText(b)), Number(a.ratePercent), monthlyNumber) : undefined;
   const now = () => new Date().toISOString(), [sheetOpen, setSheetOpen] = useState(false);
   return <li className="accounts-row">
-    <div className="accounts-row-main"><strong>{a.name}</strong><small>{KIND_LABEL[a.kind]}{a.institution ? ` · ${a.institution}` : ''}{a.ratePercent ? ` · ${a.ratePercent} % a year (your figure)` : ''}</small>{note && <small className="accounts-note">Note: {note}</small>}{all && a.kind === 'property' && <Suspense fallback={null}><PropertyEquity accounts={all} account={a} today={today}/></Suspense>}</div>
+    <div className="accounts-row-main"><strong>{a.name}</strong><small>{KIND_LABEL[a.kind]}{a.institution ? ` · ${a.institution}` : ''}{a.ratePercent ? ` · ${a.ratePercent} % a year (your figure)` : ''}</small>{note && <small className="accounts-note">Note: {note}</small>}{all && a.kind === 'property' && <Suspense fallback={null}><PropertyEquity accounts={all} account={a} today={today}/></Suspense>}{a.kind === 'credit-card' && <Suspense fallback={null}><CardLine account={a} today={today}/></Suspense>}</div>
     {arrange && <div className="actions accounts-arrange"><button type="button" id={`account-move-${a.id}--1`} className="quiet" disabled={arrange.first} aria-label={`Move ${a.name} up`} onClick={() => arrange.move(-1)}>↑ Up</button><button type="button" id={`account-move-${a.id}-1`} className="quiet" disabled={arrange.last} aria-label={`Move ${a.name} down`} onClick={() => arrange.move(1)}>↓ Down</button></div>}
     <div className="accounts-row-balance">{b ? <><strong>{show(b, a.currency)}</strong><small>{debt ? 'owed' : 'balance'} on {formatDate(b.date)}</small>{debt && (() => { const o = owedAfterPayments(a, today); return o && o.payments > 0 ? <small className="accounts-owed-now">{show(o, a.currency)} after {o.payments} {o.payments === 1 ? 'payment' : 'payments'} since (until your next statement)</small> : null; })()}</> : <small>No balance yet</small>}</div>
     <div className="actions"><button type="button" className="quiet" aria-label={`Update the balance of ${a.name}`} onClick={() => setOpen(open === 'balance' ? null : 'balance')}>Update balance</button>{debt && <button type="button" className="quiet" aria-label={`Record a payment on ${a.name}`} onClick={() => setOpen(open === 'payment' ? null : 'payment')}>Record a payment</button>}<button type="button" className="quiet" aria-label={`Edit ${a.name}`} onClick={() => setOpen(open === 'edit' ? null : 'edit')}>Edit</button></div>

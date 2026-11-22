@@ -1,5 +1,6 @@
 import * as z from 'zod';
 import type {DeviceRecordSpec} from '../device-record';
+import {TASK_LOOK_COLOURS, TASK_LOOK_GLYPHS} from './look';
 
 /**
  * Session AI (B3 competitor gap: tasks with a priority and a due date; TIER 3 (stored format)). One-off things to do,
@@ -71,6 +72,12 @@ export const REMINDER_AT = /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/;
 export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320), at: z.string().regex(REMINDER_AT).optional().catch(undefined)});
 export type TaskReminder = z.infer<typeof reminderSchema>;
 
+/**
+ * Session AV lane 2 (r3-plan, LEDGER #259; Structured's Energy Monitor): how much a task asks of the person — restful
+ * (gives some back), neutral, light, medium or heavy. Words only; lib/tasks/energy-load.ts turns them into the day's total.
+ */
+export const TASK_ENERGY = ['restful', 'neutral', 'light', 'medium', 'heavy'] as const;
+export type TaskEnergy = (typeof TASK_ENERGY)[number];
 /** Session AV (F-TASK-MINUTES): the longest a task can be said to take, a whole day. */
 export const MAX_TASK_MINUTES = 1440;
 export const taskSchema = z.looseObject({
@@ -143,6 +150,14 @@ export const taskSchema = z.looseObject({
     const kept = Object.entries(v).filter(([k, x]) => /^[A-Za-z0-9_-]{1,80}$/.test(k) && ((typeof x === 'string' && x.length >= 1 && x.length <= FIELD_TEXT_MAX) || (typeof x === 'number' && Number.isFinite(x)) || x === true)).slice(0, 20);
     return kept.length ? Object.fromEntries(kept) : undefined;
   }, z.record(z.string(), z.union([z.string(), z.number(), z.literal(true)])).optional()),
+  /**
+   * Session AV lane 2 (r3-plan; TIER 3 (stored format), additive and optional, each dropped on read when it cannot be read;
+   * older builds keep them untouched (the object is loose) and do not show them):
+   * `look` (LEDGER #257, Structured's task icons and colours) a symbol and a named colour from the habit-look set, shown
+   * beside the title; `energy` (LEDGER #259, Structured's Energy Monitor) how much the task asks, for the day's total.
+   */
+  look: z.looseObject({glyph: z.enum(TASK_LOOK_GLYPHS), colour: z.enum(TASK_LOOK_COLOURS)}).optional().catch(undefined),
+  energy: z.enum(TASK_ENERGY).optional().catch(undefined),
 });
 /**
  * Session AV lane 2 (tasks-r2, LEDGER #228; Any.do's automations; TIER 3 (stored format), additive and optional): a rule on a

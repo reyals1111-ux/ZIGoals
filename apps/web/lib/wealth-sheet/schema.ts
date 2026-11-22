@@ -21,6 +21,7 @@ const accountId = z.string().regex(/^[0-9a-fA-F-]{8,40}$/);
 const currency = z.string().regex(/^[A-Z]{3}$/);
 const amount = z.string().regex(/^\d{1,13}(\.\d{1,2})?$/).refine(v => Number(v) > 0, 'Above zero.');
 const day = z.iso.date();
+const monthDay = z.number().int().min(1).max(31);
 const bounded = <T extends z.ZodType>(value: T) => z.record(accountId, value).refine(r => Object.keys(r).length <= MAX_SHEET_ACCOUNTS, `Up to ${MAX_SHEET_ACCOUNTS} accounts.`);
 export const flowSchema = z.looseObject({date: day, amount, kind: z.enum(['in', 'out'])});
 export const rateSchema = z.looseObject({from: currency, to: currency, rate: z.string().regex(/^\d{1,9}(\.\d{1,8})?$/).refine(v => Number(v) > 0, 'Above zero.'), on: day});
@@ -38,6 +39,12 @@ export const wealthSheetSchema = z.looseObject({
    * per account — tell me when its latest balance is below `below` or above `above` (in the account's own currency).
    */
   limits: bounded(z.looseObject({below: amount.optional().catch(undefined), above: amount.optional().catch(undefined)})).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 3 (money; Simplifi's credit card dashboard), TIER 3 (stored format), additive: per credit
+   * card, the limit the person types (in the card's own currency), the day of the month its statement is made and the day
+   * its payment is due (1–31; a shorter month uses its last day). Each part optional and dropped on read when unreadable.
+   */
+  cards: bounded(z.looseObject({limit: amount.optional().catch(undefined), statementDay: monthDay.optional().catch(undefined), dueDay: monthDay.optional().catch(undefined)})).optional().catch(undefined),
 });
 export type WealthSheet = z.infer<typeof wealthSheetSchema>;
 export const emptyWealthSheet = (): WealthSheet => ({version: 1});

@@ -1,4 +1,8 @@
 import * as z from 'zod';
+// Session AV lane 2, round 3 (money): planned one-off costs still open count in the forecast, as on the forecast card.
+import {plannedForForecast} from '../../cash-forecast/planned';
+import type {MoneyMore} from '../../money-more/schema';
+const moneyMoreOf = (env: ToolEnv): MoneyMore | null => (env as ToolEnv & {moneyMore?: MoneyMore | null}).moneyMore ?? ((env.ak as {moneyMore?: MoneyMore | null} | null | undefined)?.moneyMore ?? null);
 import type {HealthNumbers} from '../../health-numbers/store';
 import {BP_LINE, LAB_LINE, VERDICT_WORDS, bpReadings, markers, rangeText, verdictOf} from '../../health-numbers/engine';
 import type {Cycle} from '../../cycle/store';
@@ -135,7 +139,7 @@ export const cashForecastTool: ToolDefinition<{days?: number}> = {
     if (!accounts) return ok('cash_forecast', label, source, {currencies: [], note: absent(accounts, ''), model: FORECAST_LABEL});
     const days = args.days ?? FORECAST_DAYS, goals = env.areas.goals;
     const result = cashForecast({accounts, bills: env.ak?.bills ?? emptyBills(), entries: env.moneyLog?.entries ?? [], ...(env.nova?.budgets ? {budgets: env.nova.budgets} : {}),
-      contributions: goals ? plannedContributions(env.platform.goals) : [], today: env.habitDay, days});
+      contributions: goals ? plannedContributions(env.platform.goals) : [], planned: plannedForForecast(moneyMoreOf(env), env.moneyLog?.entries ?? [], env.habitDay), today: env.habitDay, days});
     if (!result.rows.length) return ok('cash_forecast', label, source, {currencies: [], note: 'This needs at least one cash or savings account with its balance (What you have → Accounts).', model: FORECAST_LABEL});
     const row = (r: KnownForecast) => {
       const last = r.points.at(-1)!, c = r.currency, m = (n: bigint) => centsText(n, c);

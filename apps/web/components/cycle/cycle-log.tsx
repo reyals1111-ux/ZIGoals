@@ -2,7 +2,7 @@
 import {useId, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {CYCLE, CYCLE_NOTE_MAX, FLOWS, SYMPTOMS, SYMPTOM_WORDS, type Flow} from '../../lib/cycle/store';
-import {CYCLE_LINE, clearCycleDays, cycleDay, nextPeriodEstimate, setCycleDay, setCycleOn} from '../../lib/cycle/engine';
+import {CYCLE_LINE, clearCycleDays, cycleDay, nextPeriodEstimate, setCycleDay, setCycleOn, setCycleOnPlan} from '../../lib/cycle/engine';
 import {formatDate} from '../../lib/visual-format';
 import {isShowcase} from '../../lib/showcase-storage';
 import './cycle.css';
@@ -40,6 +40,9 @@ export default function CycleLog({today}: {today: string}) {
     </fieldset>
     <label className="field"><span>Note (optional)</span><input maxLength={CYCLE_NOTE_MAX} value={noteDraft ?? entry.note ?? ''} onChange={e => setNoteDraft(e.target.value)}
       onBlur={() => { if (noteDraft !== null && noteDraft !== (entry.note ?? '')) write(r => setCycleDay(r, day, {note: noteDraft}, today), `Note kept for ${when}.`); setNoteDraft(null); }}/></label>
+    {/* Session AV lane 2 (r3-plan, LEDGER #262; Structured's Cycle Seasons, the days only): opt-in, on this device. */}
+    <label className="cycle-plan-choice"><input type="checkbox" checked={rec.data.plan === true} disabled={rec.unreadable} aria-describedby={`${id}-plan`} onChange={e => write(r => setCycleOnPlan(r, e.currentTarget.checked), e.currentTarget.checked ? 'Your cycle day and period days show on the Day Timeline and the Agenda.' : 'Your cycle no longer shows on the Day Timeline and the Agenda.')}/><span>Show my cycle day on the Day Timeline and the Agenda</span></label>
+    <small id={`${id}-plan`} className="fine">The day of your cycle and logged or estimated period days, nothing more: no phases and no advice. Only on this device, while Health is shown.</small>
     <p className="cycle-status" role="status" aria-live="polite">{status}</p>
     {recent.length > 0 ? <details className="cycle-recent"><summary>Recent entries</summary><ul>{recent.map(([d, e]) => <li key={d}><button type="button" className="text-link" onClick={() => { setDay(d); setNoteDraft(null); }}>{formatDate(d)}</button>: {[e.flow ? `${FLOW_WORDS[e.flow]} flow` : null, ...(e.symptoms ?? []).map(s => SYMPTOM_WORDS[s] ?? s), e.note ? `“${e.note}”` : null].filter(Boolean).join(' · ')}</li>)}</ul></details>
       : <p className="fine">Nothing logged yet. Tap a flow on each day of your period; after three cycles an estimate of the next one shows here. Period days can also be compared with your mood, energy or sleep in Health → Insights → Compare.</p>}

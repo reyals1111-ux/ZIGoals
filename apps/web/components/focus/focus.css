@@ -26,3 +26,9 @@
 .focus-modes { display: flex; flex-wrap: wrap; gap: 6px; }
 .focus-modes button { min-height: 44px; }
 
+/* Session AV lane 2 (r3-plan, LEDGER #260): notes during a focus session. */
+.pomodoro-note { display: grid; gap: 4px; margin: 12px 0; }
+.pomodoro-note textarea { width: 100%; min-height: 72px; font-size: 16px; }
+.pomodoro-note-kept { display: grid; gap: 6px; margin: 8px 0; }
+.pomodoro-note-text { margin: 0; padding: 8px 12px; border-inline-start: 3px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; }
+.pomodoro-note-kept button { min-height: 44px; justify-self: start; }

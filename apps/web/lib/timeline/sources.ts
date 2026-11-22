@@ -19,6 +19,8 @@ export type TimelineSourceItem = {
   label?: string;
   /** Session AG: its own colour (a CSS colour), the one it wears on the Checklist's path. */
   colour?: string;
+  /** Session AV lane 2 (r3-plan, LEDGER #257): a task's own symbol, shown before its title (decoration). */
+  glyph?: string;
 };
 /** What a source is given: today's records as the timeline read them (typed loosely here, so this file imports nothing). */
 export type TimelineSourceContext = {date: string; now: Date; stores: Record<string, unknown>};

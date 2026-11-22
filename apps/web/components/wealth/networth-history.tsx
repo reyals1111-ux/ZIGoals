@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useRef, type ReactNode} from 'react';
+import {Suspense, lazy, useEffect, useRef, type ReactNode} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {usePortfolios} from '../portfolio/use-portfolios';
 import {ShowcaseTag} from '../ui/showcase-tag';
@@ -14,6 +14,8 @@ import {WALLET_NAMES} from '../../lib/staking/tracked-wallets';
 import {NETWORTH_HISTORY, SOURCE_LABELS, drawnRuns, gapDays, seriesLines, snapshotOf, withSnapshot, wouldRecord, type SeriesLine, type SeriesPoint, type WealthRowInput} from '../../lib/networth-history';
 import {formatDate, formatDateTime, formatMoney} from '../../lib/visual-format';
 import './networth-history.css';
+// Session AV lane 2, round 3 (money; Simplifi, LEDGER #298): what moved net worth this month, its own chunk.
+const NetworthMovers = lazy(() => import('./networth-movers'));
 
 /**
  * Session AO (Part 5, backlog #11; ADR-039 owner rule 2): net worth by source, inside Wealth's "Your wealth over time".
@@ -52,6 +54,7 @@ export function NetworthHistory({rows, accounts, quotes, now, ready, showcase}: 
   const lines = seriesLines(history.data), first = history.data.days[0], gaps = gapDays(history.data), example = !!history.data.example;
   return <section className="networth-history" aria-labelledby="networth-history-title">
     <h3 id="networth-history-title">Net worth by source</h3>
+    {history.loaded && accounts.loaded && <Suspense fallback={null}><NetworthMovers accounts={accounts.unreadable ? null : accounts.data} history={history.unreadable ? null : history.data} today={day}/></Suspense>}
     {example && <p className="fine"><ShowcaseTag/>Fictional example history, kept in this Showcase tab and never mixed with your own records.</p>}
     {history.unreadable ? <p role="alert">The recorded history on this device could not be read. It has not been changed, and nothing new is recorded until it reads again.</p>
       : !first ? <p className="picker-mode-note">Recording starts today. A day is recorded each day you open Wealth; days you do not open stay empty and are never filled in.</p>

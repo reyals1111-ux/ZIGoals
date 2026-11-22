@@ -14,6 +14,10 @@ import {HEALTH_WORDS, TaskTitleInput, type EditScope} from './task-parts';
 import type {GoalOption} from './use-goal-options';
 import type {TaskPatch} from './use-task-list';
 import {TaskFieldInputs, useTaskFields} from './task-fields';
+import {TaskLookField} from './task-look-field';
+import {taskLook, type TaskLook} from '../../lib/tasks/look';
+import {ENERGY_HINTS, ENERGY_WORDS} from '../../lib/tasks/energy-load';
+import {TASK_ENERGY, type TaskEnergy} from '../../lib/tasks/schema';
 
 const HabitLinkField = lazy(() => import('./habit-link-field'));
 /** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
@@ -68,6 +72,10 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   const sections = (record?.sections ?? []).filter(s => s.projectId === projectId);
   // Session AV lane 2 (tasks-r2, LEDGER #229): the values of the chosen project's own fields.
   const custom = useTaskFields(task, record, projectId);
+  // Session AV lane 2 (r3-plan, LEDGER #257): the task's symbol and colour.
+  const [look, setLook] = useState<TaskLook | null>(() => taskLook(task));
+  // Session AV lane 2 (r3-plan, LEDGER #259): how much the task asks, for the day's energy.
+  const [energy, setEnergy] = useState<TaskEnergy | ''>(task.energy ?? '');
   const save = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) { setTitleError('A task needs a title.'); return; }
@@ -81,7 +89,8 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       labels: labels.split(/[\s,]+/).map(l => l.replace(/^@/, '')).filter(Boolean),
       ...(record ? {projectId: projectId || null, sectionId: sectionId || null} : {}),
       reminders: [...[...new Set(reminders.filter(r => r !== '').map(Number))].slice(0, MAX_EDITOR_REMINDERS).map(before => ({before})), ...(remindAt ? [{before: 0, at: remindAt}] : [])], habit: habit || null, health: (health || null) as HealthLink | null,
-      early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {})};
+      early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {}),
+      ...(look || task.look ? {look: look ?? null} : {}), ...(energy || task.energy ? {energy: energy || null} : {})};
     // A change to the repeat itself is a change to the series; anything else on a repeating task asks which times.
     if (task.recur && task.due && !task.doneAt && unchangedRepeat) { setAsk(patch); requestAnimationFrame(() => askRef.current?.focus()); return; }
     onSave(patch);
@@ -97,6 +106,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   return <form className="task-editor tasks-add" aria-label={`Edit “${task.title}”`} onSubmit={save} noValidate onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onCancel(); } }}>
     {stale && <p className="notice task-editor-stale" role="status">This task was changed in another tab or by an assistant while you edited it. Save to keep your version, or Cancel and open it again to see theirs.</p>}
     <TaskTitleInput label="Title" value={title} error={titleError} onChange={v => { setTitle(v); if (v.trim()) setTitleError(''); }} />
+    <TaskLookField title={title} value={look} onChange={setLook} />
     <label className="field"><span>Priority</span><select value={level} onChange={e => setLevel(Number(e.target.value) as TaskLevel)}>{([1, 2, 3, 4] as const).map(p => <option key={p} value={p}>{LEVEL_WORDS[p]}</option>)}</select></label>
     <label className="field"><span>Due</span><input type="date" value={due} aria-describedby={due && due < today ? `${id}-past` : undefined} onChange={e => { setDue(e.target.value); if (!e.target.value) setTime(''); }} />{due && due < today && <small id={`${id}-past`} className="tasks-field-note">A past day: it shows as overdue.</small>}</label>
     <label className="field"><span>Time</span><input type="time" value={time} disabled={!due} onChange={e => setTime(e.target.value)} /></label>
@@ -128,7 +138,9 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     <label className="task-editor-check"><input type="checkbox" checked={parallel} onChange={e => setParallel(e.target.checked)} /> <span>Runs in the background (a wash, a download): not added to the day’s minutes</span></label>
     <label className="field"><span>Time spent (minutes) — optional</span><input inputMode="numeric" autoComplete="off" value={spent} placeholder="0" aria-invalid={spentValue === 'invalid' || undefined} aria-describedby={`${id}-spent`} onChange={e => setSpent(e.target.value)} />
       <small id={`${id}-spent`} className={spentValue === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={spentValue === 'invalid' ? 'alert' : undefined}>{spentValue === 'invalid' ? 'Enter whole minutes, for example 25.' : typeof minutesValue === 'number' && typeof spentValue === 'number' ? `Planned ${minutesWords(minutesValue)}, spent ${minutesWords(spentValue)}.` : 'The timer in Tasks → Today adds to this; you can also type it.'}</small></label>
-    <Suspense fallback={null}><TaskTimer task={task} onStopped={(m, at) => { if (at) base.current = at; setSpent(s => String((/^\d{1,5}$/.test(s.trim()) ? Number(s) : task.spent ?? 0) + m)); }} /></Suspense>
+    <label className="field"><span>Energy — optional</span><select value={energy} aria-describedby={`${id}-energy`} onChange={e => setEnergy(e.target.value as TaskEnergy | '')}><option value="">Not set</option>{TASK_ENERGY.map(v => <option key={v} value={v}>{ENERGY_WORDS[v]}</option>)}</select>
+      <small id={`${id}-energy`} className="tasks-field-note">{energy ? `${ENERGY_WORDS[energy]}: ${ENERGY_HINTS[energy]}. Tasks → Today adds up the day’s energy against your amount.` : 'How much it asks of you. Tasks → Today adds up the day’s energy, in calm words.'}</small></label>
+    <Suspense fallback={null}><TaskTimer task={task} onNote={n => setNotes(v => v.trim() ? `${v.trimEnd()}\n\n${n}` : n)} onStopped={(m, at) => { if (at) base.current = at; setSpent(s => String((/^\d{1,5}$/.test(s.trim()) ? Number(s) : task.spent ?? 0) + m)); }} /></Suspense>
     {objectives.length > 0 && <label className="field"><span>Week objective</span><select value={objective} onChange={e => setObjective(e.target.value)}><option value="">None</option>{objectives.map(o => <option key={o.id} value={o.id}>{o.title}{o.week !== weekNow ? ` (week of ${formatDate(o.week, {year: false})})` : ''}</option>)}</select></label>}
     {due && reminders.length > 0 && reminders.length < MAX_EDITOR_REMINDERS && reminders.every(r => r !== '') && <p className="task-editor-more-reminders"><button type="button" className="text-link" onClick={() => setReminders(rs => [...rs, ''])}>+ Add another reminder</button></p>}
     {record && <label className="field"><span>Project</span><select value={projectId} onChange={e => { setProjectId(e.target.value); setSectionId(''); }}><option value="">Inbox</option>{(record.projects ?? []).filter(p => !p.archived || p.id === projectId).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}

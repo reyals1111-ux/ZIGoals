@@ -3,6 +3,10 @@ import type {NumberStyle} from '../numbers';
 import {markDuplicateRows} from '../../bankfiles';
 import {readAmount, textCleaner, flaggedWarning, isZero} from '../../bankfiles/text';
 import type {BankTransaction, RefusedRow} from '../../bankfiles/types';
+import {normaliseTag} from '../../money-tags/tags';
+import {MAX_TAGS_PER_ENTRY} from '../../money-tags/schema';
+/** Session AV lane 2, round 3 (money, LEDGER #299): a tags cell ("holiday, work trip" or "holiday|gifts") as tags; one that cannot be a tag is left out. */
+export const tagsCell = (raw: string): string[] => [...new Set(raw.split(/[,;|]/).map(t => normaliseTag(t)).filter((t): t is string => !!t))].slice(0, MAX_TAGS_PER_ENTRY);
 
 /**
  * Session AK (7.1): CSV rows mapped to MONEY_FIELDS → the same normalised transaction list the bank files give, so the
@@ -40,7 +44,8 @@ export function planMoneyRows({rows, mapping, numberStyle, dateFormat, currency 
     }
     const code = cell(row, 'currency').toUpperCase() || currency;
     if (!/^[A-Z]{3}$/.test(code)) { refused.push({index, reason: 'The currency could not be read.'}); return; }
-    transactions.push({date, amount, currency: code, direction: out ? 'out' : 'in', payee: clean.clean(cell(row, 'payee'), 80), reference: clean.clean(cell(row, 'reference'), 60), description: clean.clean([cell(row, 'note'), cell(row, 'category')].filter(Boolean).join(' · ')), index});
+    const tags = mapping.tags !== undefined ? tagsCell(cell(row, 'tags')) : [];
+    transactions.push({date, amount, currency: code, direction: out ? 'out' : 'in', payee: clean.clean(cell(row, 'payee'), 80), reference: clean.clean(cell(row, 'reference'), 60), description: clean.clean([cell(row, 'note'), cell(row, 'category')].filter(Boolean).join(' · ')), index, ...(tags.length ? {tags} : {})});
   });
   const warnings = [...flaggedWarning(clean.flagged)];
   if (unknownDirection) warnings.push(`${unknownDirection} ${unknownDirection === 1 ? 'row has' : 'rows have'} an in/out value ZIGoals does not know (such as POS or ATM); the amount's sign decided.`);

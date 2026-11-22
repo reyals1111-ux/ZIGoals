@@ -24,6 +24,8 @@ export const MAX_JOURNALS = 10, JOURNAL_NAME_MAX = 40;
 export const JOURNAL_THEMES = ['violet', 'cyan', 'magenta', 'teal', 'gold', 'green'] as const;
 export type JournalTheme = (typeof JOURNAL_THEMES)[number];
 export const IMPORT_SOURCES = ['dayone', 'text', 'markdown'] as const;
+/** Session AV lane 2 (r3-notes; LEDGER #269): an entry's period — an ISO week, a month or a year. */
+export const PERIOD = /^\d{4}(?:-W(?:0[1-9]|[1-4]\d|5[0-3])|-(?:0[1-9]|1[0-2]))?$/;
 const mediaId = z.string().regex(MEDIA_ID);
 /** Keeps the items `item` reads; null when the value is no list (the field then reads as absent). */
 const readable = <T extends z.ZodType>(item: T, max: number) => z.preprocess(v => Array.isArray(v) ? v.filter(x => item.safeParse(x).success).slice(-max) : undefined, z.array(item).max(max).optional());
@@ -49,6 +51,18 @@ export const journalEntrySchema = z.looseObject({
   photos: z.array(mediaId).max(MAX_ENTRY_PHOTOS).optional().catch(undefined),
   audio: z.array(z.looseObject({id: mediaId, seconds: z.number().int().min(0).max(MAX_AUDIO_SECONDS)})).max(MAX_ENTRY_AUDIO).optional().catch(undefined),
   imported: z.enum(IMPORT_SOURCES).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r3-notes; TIER 3 (stored format), additive and optional; a value this build cannot read is dropped
+   * on read, never failing the journal; older builds keep it untouched, the entry being loose, and show the entry on its
+   * `date` as before):
+   * - `period` (LEDGER #269, Grid Diary's week, month and year entries): the week ("2026-W47", ISO weeks, Monday first),
+   *   month ("2026-11") or year ("2026") the entry is about, listed under that period on the journal calendar;
+   * - `night` (LEDGER #278, Stoic's dream journal): the sleep log's night (the day it ended) a dream entry belongs to;
+   * - `opensOn` (LEDGER #279, Stoic's letter to open later): the day a letter opens; until then it stays folded away.
+   */
+  period: z.string().regex(PERIOD).optional().catch(undefined),
+  night: day.optional().catch(undefined),
+  opensOn: day.optional().catch(undefined),
 });
 /**
  * Session AV (owner follow-up 1, F-OWN-TEMPLATES; Day One's own templates; TIER 3 (stored format), additive and optional):
@@ -123,6 +137,12 @@ export const journalSchema = z.looseObject({
    */
   challenges: z.boolean().optional().catch(undefined),
   challengeDone: day.optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r3-notes; LEDGER #277, Stoic's quotes; TIER 3 (stored format), additive and optional): the person
+   * chose to see a quote of the day from the Stoic writers beside the affirmation on Today (lib/journal/quotes.ts). Off
+   * unless switched on; a value this build cannot read is dropped on read; older builds keep it untouched and show none.
+   */
+  quotes: z.boolean().optional().catch(undefined),
 });
 export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type Journal = z.infer<typeof journalSchema>;

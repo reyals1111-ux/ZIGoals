@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {inBook, type BookChoice} from './books';
 import {hasTag} from './tags';
+import {isSealed} from './letters';
 import type {Journal, JournalEntry} from './schema';
 
 /**
@@ -8,7 +9,7 @@ import type {Journal, JournalEntry} from './schema';
  * the words or a #tag typed, a tag chip, a journal, and a day range (From / To, a day picked on the calendar, or a date
  * typed in the search: "2026-11-03", "2026-11", "3 nov", "november 2026"; a month alone needs its year). Newest first. Pure; nothing is stored.
  */
-export type EntryFilter = {query?: string; tag?: string | null; book?: BookChoice; from?: string | null; to?: string | null};
+export type EntryFilter = {query?: string; tag?: string | null; book?: BookChoice; from?: string | null; to?: string | null; /** Session AV lane 2 (r3-notes; LEDGER #269): only the entries about this week, month or year. */ period?: string | null};
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const MONTHS: Record<string, number> = {jan: 1, january: 1, januari: 1, feb: 2, february: 2, februari: 2, mar: 3, march: 3, mrt: 3, maart: 3, apr: 4, april: 4, may: 5, mei: 5, jun: 6, june: 6, juni: 6, jul: 7, july: 7, juli: 7, aug: 8, august: 8, augustus: 8, sep: 9, sept: 9, september: 9, oct: 10, october: 10, okt: 10, oktober: 10, nov: 11, november: 11, dec: 12, december: 12};
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -36,14 +37,19 @@ export function dateQuery(raw: string, today: string): {from: string; to: string
   if (month && MONTHS[month[1]!]) { const y = Number(month[2]), mo = MONTHS[month[1]!]!; return {from: `${y}-${pad(mo)}-01`, to: `${y}-${pad(mo)}-${pad(lastDay(y, mo))}`}; }
   return null;
 }
-const wordsMatch = (e: JournalEntry, q: string) => { const w = q.toLowerCase(); return e.text.toLowerCase().includes(w) || (e.tags ?? []).some(t => t.toLowerCase().includes(w.replace(/^#/, ''))); };
-/** The entries the filter keeps, newest first. A typed date filters by day; any other words by text and tags. */
-export function filterEntries(journal: Pick<Journal, 'entries' | 'journals'>, filter: EntryFilter, today: string): JournalEntry[] {
+/** Words match an entry's text or its tags; a letter still folded away matches by its tags only (they show on its row). */
+const wordsMatch = (e: JournalEntry, q: string, folded: boolean) => { const w = q.toLowerCase(); return (!folded && e.text.toLowerCase().includes(w)) || (e.tags ?? []).some(t => t.toLowerCase().includes(w.replace(/^#/, ''))); };
+/**
+ * The entries the filter keeps, newest first. A typed date filters by day; any other words by text and tags.
+ * Session AV lane 2 (review B3C-14): a letter still folded away (`isSealed`) is not found by its words until its day, so
+ * a search does not tell what it holds; once "Read it now" was used on this visit (`readEarly`) it is found as any entry.
+ */
+export function filterEntries(journal: Pick<Journal, 'entries' | 'journals'>, filter: EntryFilter, today: string, readEarly: ReadonlySet<string> = new Set()): JournalEntry[] {
   const q = (filter.query ?? '').trim(), typedDate = dateQuery(q, today);
   const from = [filter.from, typedDate?.from].filter((d): d is string => !!d && DAY.test(d)).sort().at(-1) ?? null;
   const to = [filter.to, typedDate?.to].filter((d): d is string => !!d && DAY.test(d)).sort()[0] ?? null;
-  return [...journal.entries].reverse().filter(e => hasTag(e, filter.tag ?? null) && inBook(journal, e, filter.book ?? 'all')
-    && (!from || e.date >= from) && (!to || e.date <= to) && (typedDate || !q || wordsMatch(e, q)));
+  return [...journal.entries].reverse().filter(e => hasTag(e, filter.tag ?? null) && inBook(journal, e, filter.book ?? 'all') && (!filter.period || e.period === filter.period)
+    && (!from || e.date >= from) && (!to || e.date <= to) && (typedDate || !q || wordsMatch(e, q, isSealed(e, today) && !readEarly.has(e.id))));
 }
 /** The day range in words, for the list's line ("Nov 3, 2026" or "Nov 1 – Nov 30, 2026"). */
 export const rangeIsDay = (from: string | null | undefined, to: string | null | undefined) => !!from && from === to;

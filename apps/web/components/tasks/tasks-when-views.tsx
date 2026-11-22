@@ -173,7 +173,7 @@ function PriorityMatrix({list, goals, shown}: {list: List; goals: Goals; shown: 
           drag={{onPointerDown: startDrag(t.id), 'data-glass-carry': '', ...(dragging === t.id ? {'data-dragging': ''} : {})} as ComponentProps<typeof TaskRow>['drag']}>
           <div className="tasks-when-actions">
             <button type="button" className="text-link tasks-matrix-move" aria-label={`Move “${t.title}” to “${QUADRANT_WORDS[partner].title}”`} onClick={() => { if (quadrantOf(t, today, rules) === q) move(t, partner); }}>
-              {q === 'do' || q === 'plan' ? 'Not important' : 'Important'}
+              {/* Session AV lane 2 (P-10): it reads as a move, not as a status ("Not important" alone looked like a label) */}Move to {QUADRANT_WORDS[partner].title.toLowerCase()} <span aria-hidden="true">→</span>
             </button>
           </div>
         </TaskRow>)}</ul> : <p className="fine">Nothing here.</p>}

@@ -31,6 +31,8 @@ import {daysWords, reminderOf, streakNudge} from '../../lib/journal/reminder';
 import {bookCounts, bookOf, booksOf, type BookChoice} from '../../lib/journal/books';
 import {dateQuery, filterEntries} from '../../lib/journal/search';
 import {entriesLinkingTo, hasLinks} from '../../lib/journal/entry-links';
+import {periodWords} from '../../lib/journal/periods';
+import {isSealed} from '../../lib/journal/letters';
 
 const YearPixels = lazy(() => import('./year-pixels'));
 // Session AK (BUILD list 2 #3): "On this day" and its Privacy switch, each loaded on its own after the page.
@@ -55,6 +57,10 @@ const JournalFiles = lazy(() => import('./journal-files'));
 const WriteItOut = lazy(() => import('./write-it-out'));
 // Session AV lane 2 (bodymind-r2; LEDGER #233, Moodnotes): the thought check with thinking traps, loaded when its fold opens.
 const ThoughtCheck = lazy(() => import('./thought-check'));
+// Session AV lane 2 (r3-notes; LEDGER #265, Grid Diary): every answer to one prompt, loaded when its fold opens.
+const PromptAnswers = lazy(() => import('./prompt-answers'));
+// Session AV lane 2 (r3-notes; LEDGER #266): a Mandala entry drawn as its 3 × 3 grid.
+const EntryGrid = lazy(() => import('./entry-grid'));
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -77,8 +83,16 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   // Session AV lane 2 (journal; LEDGER #43, Day One): a journal, and a day range (From / To, the calendar, a typed date, or
   // ?day= and ?journal= in the address, which a [[day]] link and NOVA open) beside the words and the tag.
   const [book, setBook] = useState<BookChoice>('all'), [from, setFrom] = useState(''), [to, setTo] = useState('');
+  // Session AV lane 2 (r3-notes; LEDGER #265): ?prompt=<template> opens "Every answer to a prompt" on that template (an
+  // entry's More offers it).
+  const [promptPick, setPromptPick] = useState<string | null>(null);
+  // Session AV lane 2 (r3-notes; LEDGER #269): the week, month or year whose entries the list shows (the calendar's Periods).
+  const [periodPick, setPeriodPick] = useState<string | null>(null);
+  // Session AV lane 2 (r3-notes; LEDGER #279): sealed letters read early on this visit only (nothing is changed).
+  const [readEarly, setReadEarly] = useState<ReadonlySet<string>>(new Set());
   useEffect(() => {
-    const read = () => { const p = new URLSearchParams(window.location.search), d = p.get('day'), j = p.get('journal'); if (d && DAY_RE.test(d)) { setFrom(d); setTo(d); } if (j) setBook(j === 'main' ? 'main' : j); };
+    const read = () => { const p = new URLSearchParams(window.location.search), d = p.get('day'), j = p.get('journal'), q = p.get('prompt'); if (d && DAY_RE.test(d)) { setFrom(d); setTo(d); } if (j) setBook(j === 'main' ? 'main' : j);
+      if (q && /^[a-z0-9-]{1,40}$/.test(q)) { setPromptPick(q); requestAnimationFrame(() => { const f = document.getElementById('journal-prompt-answers') as HTMLDetailsElement | null; if (f) { f.open = true; f.scrollIntoView({block: 'start'}); } }); } };
     read(); window.addEventListener('popstate', read); return () => window.removeEventListener('popstate', read);
   }, []);
   // Session AV lane 2 (LEDGER #35, #42): photos and voice notes no entry names any more leave this browser after 30 days.
@@ -91,7 +105,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const showDay = (d: string) => { setFrom(d); setTo(d); setQuery(''); setTag(null); setBook('all'); try { window.history.pushState(null, '', `/app/journal?day=${d}`); } catch { /* the filter is enough */ } requestAnimationFrame(() => document.getElementById('journal-entries')?.scrollIntoView({block: 'start'})); };
   const linkedFrom = from && from === to ? entriesLinkingTo(journal.data.entries, from) : [];
   const books = booksOf(journal.data), shownBook: BookChoice = book === 'all' || book === 'main' || books.some(b => b.id === book) ? book : 'all';
-  const entries = useMemo(() => filterEntries(journal.data, {query, tag: shownTag, book: shownBook, from: from || null, to: to || null}, today), [journal.data, query, shownTag, shownBook, from, to, today]);
+  const entries = useMemo(() => filterEntries(journal.data, {query, tag: shownTag, book: shownBook, from: from || null, to: to || null, period: periodPick}, today, readEarly), [journal.data, query, shownTag, shownBook, from, to, today, periodPick, readEarly]);
   const typedDate = dateQuery(query, today), dated = !!(from || to || typedDate);
   const retag = (id: string, change: (e: JournalEntry) => JournalEntry, said: string) => { try { journal.update(c => changeEntry(c, id, change)); showStatus(said); } catch { showStatus('The tag could not be saved on this device.', {tone: 'error'}); } };
   // Session AL Part 14 (RELEASE_REVIEW R18): an entry's day in words ("Mon, Nov 2, 2026"), never "2026-11-02".
@@ -145,18 +159,20 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
           <label className="field"><span>To</span><input type="date" value={to} min={from || undefined} max={today} onChange={e => setTo(e.target.value)}/></label>
           {(from || to) && <button type="button" className="quiet" onClick={() => { setFrom(''); setTo(''); }}>Clear the dates</button>}
         </div>
-        <JournalCalendar entries={journal.data.entries} today={today} picked={from && from === to ? from : null} onPick={d => { setFrom(d ?? ''); setTo(d ?? ''); }}/>
+        <JournalCalendar entries={journal.data.entries} today={today} picked={from && from === to ? from : null} onPick={d => { setFrom(d ?? ''); setTo(d ?? ''); setPeriodPick(null); }} pickedPeriod={periodPick} onPeriod={p => { setPeriodPick(p); if (p) { setFrom(''); setTo(''); } }}/>
       </JournalFold>
+      {(() => { const n = new Set(journal.data.entries.flatMap(e => e.template ? [e.template] : [])).size; return <JournalFold id="journal-prompt-answers" className="journal-prompt-answers-fold" label="every answer to a prompt" open={!!promptPick} summary={<>Every answer to a prompt <span className="fine">· {n ? `${n === 1 ? '1 prompt' : `${n} prompts`} written from` : 'what you wrote under each heading'}</span></>}><PromptAnswers journal={journal.data} picked={promptPick} onDay={showDay}/></JournalFold>; })()}
       {tags.length > 0 && <div className="journal-tag-filter" role="group" aria-label="Filter by tag">
         <button type="button" className="quiet" aria-pressed={!shownTag} onClick={() => setTag(null)}>All entries</button>
         {tags.map(t => <button key={t.tag} type="button" className="quiet" aria-pressed={shownTag?.toLowerCase() === t.tag.toLowerCase()} onClick={() => setTag(t.tag)}>#{t.tag} <small>{t.count}</small></button>)}
       </div>}
+      {periodPick && <p className="fine journal-period-line" role="status">Entries about {periodWords(periodPick)}. <button type="button" className="text-link" onClick={() => setPeriodPick(null)}>Show every entry</button></p>}
       {linkedFrom.length > 0 && <p className="fine journal-linked-from">Linked from {linkedFrom.slice(0, 5).map((x, i) => <span key={x.id}>{i ? ', ' : ''}<a className="text-link" href={`/app/journal?day=${x.date}`} onClick={ev => { ev.preventDefault(); showDay(x.date); }}>{formatDate(x.date)}</a></span>)}.</p>}
       {entries.length ? <ol className="journal-entries">{entries.map(e => { const inBook = bookOf(journal.data, e); return <li key={e.id} data-tone={inBook?.theme}>
-        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}</p>{hasLinks(e.text) ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryRichText text={e.text} onDay={showDay}/></Suspense> : <p className="journal-entry-text">{e.text}</p>}
-        {(e.photos?.length || e.audio?.length) ? <LoadBoundary quiet><Suspense fallback={null}><EntryMedia entry={e} day={entryDays.get(e.date)?.short ?? e.date}/></Suspense></LoadBoundary> : null}
+        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}{e.period && <span className="journal-entry-period"> · about {periodWords(e.period)}</span>}{e.opensOn && <span className="journal-entry-letter"> · {isSealed(e, today) ? `a letter, opens ${formatDate(e.opensOn, {year: e.opensOn.slice(0, 4) !== today.slice(0, 4)})}` : `a letter, opened ${formatDate(e.opensOn, {year: false})}`}</span>}{e.night && <span className="journal-entry-night"> · a dream, the night ending {formatDate(e.night, {year: false})}</span>}</p>{isSealed(e, today) && !readEarly.has(e.id) ? <p className="journal-entry-sealed"><span>A letter to open on {formatDate(e.opensOn!, {weekday: true})}, folded away until then.</span> <button type="button" className="text-link" aria-label={`Read the letter of ${entryDays.get(e.date)?.short ?? e.date} now`} onClick={() => setReadEarly(r => new Set([...r, e.id]))}>Read it now</button></p> : e.template === 'mandala' ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryGrid entry={e}/></Suspense> : hasLinks(e.text) ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryRichText text={e.text} onDay={showDay}/></Suspense> : <p className="journal-entry-text">{e.text}</p>}
+        {(e.photos?.length || e.audio?.length) && !(isSealed(e, today) && !readEarly.has(e.id)) ? <LoadBoundary quiet><Suspense fallback={null}><EntryMedia entry={e} day={entryDays.get(e.date)?.short ?? e.date}/></Suspense></LoadBoundary> : null}
         <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}{e.updatedAt ? ' · changed' : ''}{versionCount.get(e.id) ? ` · ${versionCount.get(e.id) === 1 ? '1 earlier version' : `${versionCount.get(e.id)} earlier versions`} under More` : ''}</p>
-        {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
+        {e.followUp && !(isSealed(e, today) && !readEarly.has(e.id)) && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
         {/* Session AV (1c, q4 #34): the entry's three controls (tags, That day, Remove) share one row. */}
         <div className="journal-entry-controls">
         <EntryTags tags={e.tags ?? []} day={entryDays.get(e.date)?.short ?? e.date} known={knownTags} onAdd={t => retag(e.id, x => withTag(x, t), `Tagged #${t}.`)} onRemove={t => retag(e.id, x => withoutTag(x, t), `The tag #${t} is off this entry.`)}/>
@@ -201,6 +217,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       <label className="switch-row"><input type="checkbox" checked={journal.data.todayLines === true} onChange={e => journal.update(c => ({...c, todayLines: e.target.checked}))}/> <span>Show the first line of today&rsquo;s entries and memories on Today (off: Today shows counts only)</span></label>
       {/* Session AV lane 2 (journal; LEDGER #176, Fabulous): one affirmation a day on Today's journal card, off by default. */}
       <label className="switch-row"><input type="checkbox" checked={journal.data.affirmations === true} onChange={e => journal.update(c => ({...c, affirmations: e.target.checked}))}/> <span>Show a daily affirmation on Today, in the question&rsquo;s language (off by default)</span></label>
+      {/* Session AV lane 2 (r3-notes; LEDGER #277, Stoic): a quote of the day from the Stoic writers, off by default. */}
+      <label className="switch-row"><input type="checkbox" checked={journal.data.quotes === true} onChange={e => journal.update(c => ({...c, quotes: e.target.checked}))}/> <span>Show a quote of the day from the Stoic writers (Marcus Aurelius, Seneca, Epictetus) on Today, with Another one and Write about this (off by default)</span></label>
       {/* Session AV lane 2 (bodymind-r2; LEDGER #230, Reflectly): a small daily challenge beside it, off by default, never counted. */}
       <label className="switch-row"><input type="checkbox" checked={journal.data.challenges === true} onChange={e => journal.update(c => ({...c, challenges: e.target.checked}))}/> <span>Show a small daily challenge on Today, with Done and Another one (off by default; nothing is counted)</span></label>
       <p className="fine">The journal stays on this device and is in Export everything. Turning sharing off keeps every entry here.</p>

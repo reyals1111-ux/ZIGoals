@@ -13,6 +13,7 @@
 .habit-privacy { margin: -15px 0 0; }
 .habit-overview { display: grid; grid-template-columns: auto minmax(90px, 1fr) minmax(160px, 250px); gap: 28px; align-items: center; padding: 24px 28px; border-radius: 24px; border: 1px solid #bd9ffb22; background: linear-gradient(110deg, #472e692f, #16112680); }
 .habit-overview > div:first-child { display: grid; gap: 3px; }.habit-overview strong { color: var(--habit-ink); font-size: 2.5rem; letter-spacing: -.04em; }.habit-overview strong span { color: #9990b3; font-size: 1.3rem; }.habit-overview small, .habit-overview p { color: var(--habit-muted); font-size: .875rem; }.habit-overview p { line-height: 1.6; margin: 0; }
+.habit-overview strong.habit-overview-none { font-size: 1.5rem; letter-spacing: -.02em; } /* Session AV lane 2 (P-31) */
 .habit-overview-track { height: 8px; border-radius: 99px; }.habit-overview-track { --glass-ink: linear-gradient(90deg, #8970d6, #c6aeff); }
 .habit-filter-bar { display: flex; flex-wrap: wrap; gap: 6px; }.habit-filter-bar .quiet { padding: 10px 20px; border-radius: 99px; min-height: 44px; }.habit-filter-bar .quiet[aria-pressed="true"] { background: #a184e229; border-color: #b89ee844; color: #edddff; }
 .habit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 22px; }
@@ -62,6 +63,9 @@
 .habits-today .habit-completion-compact .habit-check-actions { flex-wrap:wrap;justify-content:flex-start; }
 .habit-count,.habit-card-heading small,.habit-metrics strong,.habit-metrics small { overflow-wrap:anywhere; }
 .habit-check-actions button { max-width:100%;white-space:normal;overflow-wrap:anywhere; }
+/* Session AV lane 2 (P-29): a step with its unit ("+5 min", "+1,000 steps") is set like Done and Complete beside it (14 px,
+   semibold); the bare − and + keep their larger glyphs. */
+.habit-check-actions .quiet.habit-step-amount { padding: 6px 12px; font-size: .875rem; font-weight: 650; }
 .habit-completion .habit-count strong { font-variant-numeric:tabular-nums; }
 .habit-quick-log form,.habit-day-editor { min-width:0; }
 .habit-quick-log .actions { flex-wrap:wrap; }
@@ -70,6 +74,9 @@
  .habits-today .habit-today-list li { grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); }
  .habits-today .habit-completion-compact { grid-template-columns:minmax(0,1fr) auto; }
 }
+/* Session AV lane 2 (P-6): the auto check-in note ("Done automatically · from your activity log · …") spans the compact
+   row and opens it, as in the Habits workspace (habits-ab.css); in the count's column it stood one word per line. */
+.habits-today .habit-completion-compact > .habit-auto-badge { grid-column:1 / -1; order:-1; }
 @media(max-width:380px) {
  .habit-card-heading { flex-wrap:wrap; }
  .habit-card-heading>div { flex-basis:100%; }

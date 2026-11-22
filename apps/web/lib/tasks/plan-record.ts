@@ -25,7 +25,12 @@ const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const MAX_TASK_VERSIONS = 300, TASK_VERSIONS_PER_TASK = 10, MAX_TASK_VERSION_CHARS = 200_000;
 const taskVersionSchema = z.looseObject({id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), taskId: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), title: z.string().max(TASK_TITLE_MAX), notes: z.string().max(TASK_NOTES_MAX).optional().catch(undefined), savedAt: z.iso.datetime({offset: true})});
 export type TaskVersion = z.infer<typeof taskVersionSchema>;
-const timerSchema = z.looseObject({taskId: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), since: z.number().int().min(0)});
+/** Session AV lane 2 (r3-plan, LEDGER #260): a note typed while a task's timer runs (kept with the timer until it stops). */
+export const TIMER_NOTE_MAX = 1000;
+const timerSchema = z.looseObject({taskId: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), since: z.number().int().min(0), note: z.string().max(TIMER_NOTE_MAX).optional().catch(undefined)});
+const clock = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
+/** Session AV lane 2 (r3-plan, LEDGER #259): the day's energy amount the person sets (Structured's default is 20). */
+export const ENERGY_AMOUNT_DEFAULT = 20, ENERGY_AMOUNT_CHOICES = [8, 12, 16, 20, 24, 28, 32, 40] as const;
 export const taskPlanSchema = z.looseObject({
   version: z.literal(1),
   defaultReminder: z.number().int().min(0).max(10_080).optional().catch(undefined),
@@ -44,16 +49,33 @@ export const taskPlanSchema = z.looseObject({
    * value this build cannot read is dropped on read; older builds keep it untouched (the record is loose).
    */
   myDay: z.preprocess(v => readMyDay(v) ?? undefined, z.looseObject({day, ids: z.array(z.string()).max(MY_DAY_MAX), before: z.looseObject({day, ids: z.array(z.string()).max(MY_DAY_MAX)}).optional()}).optional()),
+  /**
+   * Session AV lane 2 (r3-plan; TIER 3 (stored format), additive and optional, each dropped on read when it cannot be read;
+   * older builds keep them untouched (the record is loose) and do nothing with them):
+   * `planReminder` (LEDGER #256, Structured's morning planning) the time of the "Plan your day" notification, which opens
+   * Plan my day (lib/notify/plan.ts, its own notification type); `energyAmount` (LEDGER #259, Structured's Energy Monitor)
+   * how much energy a day holds, 1–100 (lib/tasks/energy-load.ts; 20 when not set).
+   */
+  planReminder: z.looseObject({time: clock}).optional().catch(undefined),
+  energyAmount: z.number().int().min(1).max(100).optional().catch(undefined),
 });
 export type TaskPlan = z.infer<typeof taskPlanSchema>;
 export const emptyTaskPlan = (): TaskPlan => ({version: 1});
 export const TASK_PLAN: DeviceRecordSpec<TaskPlan> = {key: TASK_PLAN_KEY, schema: taskPlanSchema, empty: emptyTaskPlan};
 
 /** Sets or clears (null) the person's choices. */
-export function setPlanPrefs(plan: TaskPlan, patch: {defaultReminder?: number | null; dayLimit?: number | null; dailyGoal?: number | null}): TaskPlan {
+export function setPlanPrefs(plan: TaskPlan, patch: {defaultReminder?: number | null; dayLimit?: number | null; dailyGoal?: number | null; energyAmount?: number | null; planTime?: string | null}): TaskPlan {
   const next: Record<string, unknown> = {...plan};
-  for (const key of ['defaultReminder', 'dayLimit', 'dailyGoal'] as const) { const v = patch[key]; if (v === null) delete next[key]; else if (v !== undefined) next[key] = v; }
+  for (const key of ['defaultReminder', 'dayLimit', 'dailyGoal', 'energyAmount'] as const) { const v = patch[key]; if (v === null) delete next[key]; else if (v !== undefined) next[key] = v; }
+  if (patch.planTime === null) delete next.planReminder;
+  else if (patch.planTime !== undefined) { if (!clock.safeParse(patch.planTime).success) throw new Error('Choose a time such as 07:30.'); next.planReminder = {...(plan.planReminder ?? {}), time: patch.planTime}; }
   return taskPlanSchema.parse(next);
+}
+/** Session AV lane 2 (r3-plan, LEDGER #260): the note kept with a running timer (an empty one is removed). */
+export function setTimerNote(plan: TaskPlan, taskId: string, note: string): TaskPlan {
+  if (!runningTimer(plan, taskId)) return plan;
+  const text = note.slice(0, TIMER_NOTE_MAX);
+  return taskPlanSchema.parse({...plan, timers: (plan.timers ?? []).map(t => { if (t.taskId !== taskId) return t; const {note: _n, ...rest} = t; void _n; return text.trim() ? {...rest, note: text} : rest; })});
 }
 
 /* ---- Timers (Sunsama: planned vs actual; several at once) ------------------------------------------------------ */
@@ -65,13 +87,13 @@ export function startTimer(plan: TaskPlan, taskId: string, nowMs: number): TaskP
   return taskPlanSchema.parse({...plan, timers: [...(plan.timers ?? []), {taskId, since: Math.round(nowMs)}]});
 }
 export {timerMinutes};
-/** Stops a task's timer: the plan without it and the minutes it ran (0 when none was running). */
-export function stopTimer(plan: TaskPlan, taskId: string, nowMs: number): {plan: TaskPlan; minutes: number} {
+/** Stops a task's timer: the plan without it, the minutes it ran (0 when none was running) and the note kept with it. */
+export function stopTimer(plan: TaskPlan, taskId: string, nowMs: number): {plan: TaskPlan; minutes: number; note?: string} {
   const t = runningTimer(plan, taskId);
   if (!t) return {plan, minutes: 0};
   const timers = (plan.timers ?? []).filter(x => x.taskId !== taskId), next: Record<string, unknown> = {...plan};
   if (timers.length) next.timers = timers; else delete next.timers;
-  return {plan: taskPlanSchema.parse(next), minutes: timerMinutes(t.since, nowMs)};
+  return {plan: taskPlanSchema.parse(next), minutes: timerMinutes(t.since, nowMs), ...(t.note?.trim() ? {note: t.note.trim()} : {})};
 }
 /** Timers of tasks no longer on the list are dropped. */
 export function tidyTimers(plan: TaskPlan, record: Tasks): TaskPlan { return settleTimers(plan, record).plan; }

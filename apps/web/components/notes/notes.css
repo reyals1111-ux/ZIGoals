@@ -230,3 +230,62 @@
 .notes-bar > span[data-none] { background: color-mix(in srgb, var(--brand-cyan) 45%, transparent); }
 .notes-bar-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
 @media (max-width: 420px) { .notes-bars li { grid-template-columns: 1fr auto; } .notes-bar { grid-column: 1 / -1; grid-row: 2; } }
+/* Session AV lane 2 (r3-notes; LEDGER #264, #267): tick boxes and highlights in a note's own text. Six named highlight
+   colours mixed into the page's own background, so the text keeps its theme colour in Nebula, Light and Dark; a solid
+   underline in the colour keeps them apart, and each says its colour to a screen reader. Session AV lane 2 (fixb3): the
+   words take the theme's own text colour, not the muted colour around them (Dark's yellow read 3.97:1 with it, under AA). */
+.note-hl { --hl: #e2b93b; color: var(--text, currentColor); background: color-mix(in srgb, var(--hl) 34%, transparent); border-bottom: 2px solid color-mix(in srgb, var(--hl) 80%, transparent); border-radius: 3px; padding: 0 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+[data-hl=yellow] { --hl: #e2b93b; } [data-hl=green] { --hl: #46a758; } [data-hl=blue] { --hl: #3e8bf0; }
+[data-hl=purple] { --hl: #8e6cf0; } [data-hl=red] { --hl: #e5484d; } [data-hl=orange] { --hl: #f08c38; }
+:root[data-theme=light] .note-hl { background: color-mix(in srgb, var(--hl) 28%, #fff); }
+@media (forced-colors: active) { .note-hl { background: Mark; color: MarkText; } }
+.note-hl-swatch { display: inline-block; width: 14px; height: 14px; margin-inline-end: 6px; border-radius: 4px; vertical-align: -2px; background: var(--hl); }
+.note-render ul.note-ticks, .notes-ticks ul.note-ticks { list-style: none; padding-inline-start: 0; }
+.note-tick { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; }
+.note-tick-box { flex: none; width: 22px; height: 22px; margin: 11px 0 0; accent-color: var(--brand-violet, #826cff); cursor: pointer; }
+.note-tick-words { padding: 10px 0; overflow-wrap: anywhere; cursor: default; }
+label.note-tick-words { cursor: pointer; }
+.note-tick[data-ticked] > .note-tick-words { text-decoration: line-through; color: var(--text-secondary, inherit); }
+.note-marks { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.note-marks button, .note-marks select { min-height: 44px; font-size: 15px; }
+.note-marks-hl { display: inline-flex; gap: 6px; align-items: center; }
+.notes-ticks-groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.notes-ticks-note { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.notes-ticks-note .text-link { min-height: 44px; display: inline-flex; align-items: center; overflow-wrap: anywhere; }
+/* Session AV lane 2 (r3-notes; LEDGER #268, #271): a note's outline above it, and Print this note. */
+.note-outline details > summary { min-height: 44px; display: list-item; padding: 10px 0; box-sizing: border-box; cursor: pointer; }
+.note-outline ol { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 0; }
+.note-outline li[data-level="2"] { padding-inline-start: 16px; }
+.note-outline li[data-level="3"] { padding-inline-start: 32px; }
+.note-outline .text-link { min-height: 44px; display: inline-flex; align-items: center; text-align: start; overflow-wrap: anywhere; }
+.note-render :is(h3, h4, h5):focus { outline: none; }
+.note-render :is(h3, h4, h5):focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; border-radius: 4px; }
+/* Session AV lane 2 (r3-notes; LEDGER #270): a note's own properties, the table's filters and the board. */
+.note-props { display: grid; gap: 10px; }
+.note-props-list { margin: 0; display: grid; gap: 6px; }
+.note-props-row { display: grid; grid-template-columns: minmax(7rem, 12rem) 1fr; gap: 4px 12px; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.note-props-row dt { font-weight: 650; overflow-wrap: anywhere; }
+.note-props-row dd { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; min-width: 0; }
+.note-props-row input:not([type=checkbox]) { min-height: 44px; font-size: 16px; flex: 1 1 10rem; min-width: 0; max-width: 100%; }
+.note-props-row input[type=checkbox] { width: 22px; height: 22px; }
+.note-props-row button, .note-props-add button { min-height: 44px; }
+.note-props-add { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; }
+.note-props-add .field { flex: 1 1 9rem; min-width: 0; }
+.note-props-add input, .note-props-add select { min-height: 44px; font-size: 16px; max-width: 100%; }
+@media (max-width: 420px) { .note-props-row { grid-template-columns: 1fr; } }
+.notes-filters { display: grid; gap: 8px; margin: 0 0 10px; }
+.notes-filter { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: flex-end; }
+.notes-filter .field { flex: 1 1 8rem; min-width: 0; }
+.notes-filter select, .notes-filter input, .notes-filter button, .notes-filters > button { min-height: 44px; font-size: 16px; max-width: 100%; }
+.notes-filters > button { justify-self: start; }
+.notes-board-pick { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-bottom: 10px; }
+.notes-board-pick select { min-height: 44px; font-size: 16px; }
+.notes-board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(min(100%, 230px), 1fr); gap: 12px; overflow-x: auto; padding-bottom: 6px; max-width: 100%; }
+.notes-board:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 2px; }
+.notes-board-col { display: grid; align-content: start; gap: 8px; padding: 10px; border-radius: 14px; background: color-mix(in srgb, var(--brand-violet, #826cff) 7%, transparent); min-width: 0; }
+.notes-board-col h3 { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.notes-board-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.notes-board-card { display: grid; gap: 4px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); min-width: 0; }
+.notes-board-card a { min-height: 44px; display: inline-flex; align-items: center; overflow-wrap: anywhere; font-weight: 650; }
+.notes-board-card select { min-height: 44px; font-size: 15px; max-width: 100%; }
+@media (max-width: 560px) { .notes-board { grid-auto-flow: row; grid-auto-columns: auto; overflow-x: visible; } }

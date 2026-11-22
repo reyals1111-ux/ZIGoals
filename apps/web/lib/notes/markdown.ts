@@ -2,6 +2,8 @@ import type {ZipEntry} from '../export/zip';
 import {linkIndex, linkKey, outgoing, type LinkSources} from './links';
 import {MAX_BODY, MAX_TAG, MAX_TAGS, MAX_TITLE, NOTE_KINDS, noteName, type Note, type NoteKind, type Notes} from './schema';
 import {checked, newNoteId, type NotesUndo} from './store';
+import {propsFromFrontMatter, propsFrontMatter} from './props';
+import {toJsonCanvas} from './canvas';
 
 /**
  * Session AK (B5): notes as Markdown files, the way Obsidian keeps them — one .md per note with YAML front-matter,
@@ -15,7 +17,9 @@ import {checked, newNoteId, type NotesUndo} from './store';
 /* ---- Front-matter ------------------------------------------------------------------------------------------------ */
 export type FrontMatter = Record<string, string | string[]>;
 const FM_MAX_CHARS = 8000, FM_MAX_KEYS = 60, FM_MAX_VALUE = 1000, FM_MAX_LIST = 50;
-const FM_KEY = /^[A-Za-z][A-Za-z0-9_-]{0,40}$/, BLOCKED = new Set(['__proto__', 'constructor', 'prototype']);
+// Session AV lane 2 (review B3C-6): a key may hold letters of any language, digits, spaces, - and _ (a note property's own
+// name, as Obsidian writes it: `Due date: 2026-12-01`); quotes, YAML tags and other marks still make a key that is dropped.
+const FM_KEY = /^[\p{L}\p{N}][\p{L}\p{N} _-]{0,40}$/u, BLOCKED = new Set(['__proto__', 'constructor', 'prototype']);
 /** A YAML double-quoted string written as JSON (valid YAML), so any title round-trips. */
 const quoted = (s: string) => JSON.stringify(s);
 function scalar(raw: string): string {
@@ -71,6 +75,7 @@ export function noteToMarkdown(note: Note, photoFile?: string): string {
   if (note.source) lines.push(`source: ${note.source}`);
   if (photoFile) lines.push(`photo: ${quoted(photoFile)}`);
   if (note.example) lines.push('example: true');
+  lines.push(...propsFrontMatter(note.props ?? [])); // Session AV lane 2 (r3-notes; LEDGER #270): the note's own properties
   lines.push('---', '');
   const body = note.body.replace(/\r\n?/g, '\n');
   return `${lines.join('\n')}${body}${photoFile ? `${body ? '\n\n' : ''}![[${photoFile}]]` : ''}\n`;
@@ -107,6 +112,14 @@ export function notesExportEntries(record: Notes, sources: Omit<LinkSources, 'no
     if (usedStub.has(path.toLowerCase())) continue;
     usedStub.add(path.toLowerCase());
     entries.push({name: path, data: `---\ntitle: ${quoted(s.name)}\nzigoals-stub: ${s.kind}\n---\n\nA ${s.kind} in ZIGoals. Its progress stays in the app; notes that link here are about it.\n`, modified: now});
+  }
+  // Session AV lane 2 (r3-notes; LEDGER #273): each board as a .canvas file (JSON Canvas) naming these notes' files.
+  const usedCanvas = new Set<string>();
+  for (const c of record.canvases ?? []) {
+    let name = `Canvas/${safeFileBase(c.name)}.canvas`, i = 2;
+    while (usedCanvas.has(name.toLowerCase())) name = `Canvas/${safeFileBase(c.name)} ${i++}.canvas`;
+    usedCanvas.add(name.toLowerCase());
+    entries.push({name, data: JSON.stringify(toJsonCanvas(c, paths), null, 2), modified: now});
   }
   return entries;
 }
@@ -171,7 +184,8 @@ export function planImport(record: Notes, files: readonly ImportFile[], now: str
     if (chars + title.length + body.length > 1_500_000) { skip('notes would be too large to keep in this browser'); continue; }
     const tags = fmList(data, 'tags').map(t => t.replace(/^#/, '').trim().slice(0, MAX_TAG)).filter(Boolean).slice(0, MAX_TAGS);
     const created = fmString(data, 'created');
-    const note: Note = {id: newNoteId(), kind, title, body, ...(day && kind !== 'topic' ? {day} : {}), source: 'import', ...(tags.length ? {tags} : {}), createdAt: validStamp(created) ? new Date(created!).toISOString() : now, ...(example ? {example: true} : {})};
+    const props = propsFromFrontMatter(data); // Session AV lane 2 (r3-notes; LEDGER #270): kept from the front matter
+    const note: Note = {id: newNoteId(), kind, title, body, ...(day && kind !== 'topic' ? {day} : {}), source: 'import', ...(tags.length ? {tags} : {}), ...(props.length ? {props} : {}), createdAt: validStamp(created) ? new Date(created!).toISOString() : now, ...(example ? {example: true} : {})};
     if (kind === 'inbox' && !note.day) note.day = today;
     plan.add.push(note); room--; chars += title.length + body.length;
     titles.add(linkKey(title)); if (kind === 'daily') daily.set(day!, note);

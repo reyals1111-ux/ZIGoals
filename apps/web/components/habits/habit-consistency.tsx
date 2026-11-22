@@ -8,6 +8,7 @@ import { useEntrance } from "../use-entrance";
 import { formatDate, formatWeekday } from "../../lib/visual-format";
 import { plural } from "../../lib/plural";
 import { AskZigiCorner } from "../ai/ask-zigi-item";
+import { HabitTrendList } from "./habit-trend-list";
 
 export function HabitConsistency({ habits, today, ...layout }: LayoutAttrs & { habits: Habit[]; today: string }) {
   const result = useMemo(() => habitConsistency(habits, today), [habits, today]);
@@ -28,5 +29,7 @@ export function HabitConsistency({ habits, today, ...layout }: LayoutAttrs & { h
       <div className="habit-week-bars" role="img" aria-label={`Last seven days: ${result.week.map(day => `${formatDate(day.date, {weekday: true, year: false})}: ${day.checkins} ${plural(day.checkins,'check-in')}`).join("; ")}`}>{result.week.map((day, index) => <div key={day.date}><strong>{day.checkins}</strong><div><i style={{ height: `${day.checkins / maximum * 100}%`, "--i": index } as CSSProperties} /></div><span>{formatWeekday(day.date)}</span></div>)}</div>
       <p className="fine">Check-ins can include partial progress. Skipped, paused and future days do not become invented successes. Review individual Habit history for target-period outcomes.</p>
     </article>}
+    {/* Session AV lane 2 (health r3; LEDGER #276): each habit's last 30 days beside the 30 before. */}
+    {!noHabits && <HabitTrendList habits={habits} today={today} />}
   </section>;
 }

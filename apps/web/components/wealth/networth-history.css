@@ -21,3 +21,11 @@
 .networth-gap-row td { color: var(--muted); font-style: italic; }
 :root[data-hide-amounts="on"] .networth-spark { filter: blur(7px); }
 @media (max-width: 720px) { .networth-history-grid { grid-template-columns: 1fr; } }
+/* Session AV lane 2, round 3 (money; Simplifi): what moved net worth this month. Theme tokens only. */
+.networth-movers{display:grid;gap:6px;margin:0 0 12px;padding:10px 12px;border-radius:14px;border:1px solid var(--line,rgba(140,160,220,.25));min-width:0}
+.networth-movers h4{margin:0;font-size:16px}
+.networth-movers p{margin:0}
+.networth-movers-list{margin:0;padding-left:20px;display:grid;gap:4px;font-size:15px}
+.networth-movers-list li>span:first-child{overflow-wrap:anywhere}
+.networth-movers-list li>span:last-child{float:right;white-space:nowrap;font-variant-numeric:tabular-nums;margin-left:8px}
+.networth-movers-list small{display:block}

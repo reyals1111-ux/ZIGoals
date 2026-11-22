@@ -1,0 +1,42 @@
+/* Session AV lane 2 (r3-notes; LEDGER #273): Notes → Canvas. Theme tokens only (Nebula, Light, Dark); the six JSON
+   Canvas colours as named hues mixed into the theme's own surface; 44 px targets; the surface scrolls inside its own
+   region, so the page never scrolls sideways at 320 px. No motion at all. */
+.notes-canvas { display: grid; gap: 12px; min-width: 0;
+  --canvas-1: #e5484d; --canvas-2: #f08c38; --canvas-3: #e2b93b; --canvas-4: #46a758; --canvas-5: #12a5c4; --canvas-6: #8e6cf0; }
+.canvas-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; min-width: 0; margin: 0; }
+.canvas-row .field { flex: 1 1 10rem; min-width: 0; }
+.canvas-row input, .canvas-row select, .canvas-row textarea { min-height: 44px; font-size: 16px; max-width: 100%; box-sizing: border-box; width: 100%; }
+.canvas-row button, .canvas-tools > button { min-height: 44px; }
+.canvas-tools { display: grid; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); }
+.canvas-tools > button { justify-self: start; }
+.canvas-surface { position: relative; overflow: auto; max-width: 100%; max-height: min(70vh, 720px); min-height: 280px; border-radius: 14px; border: 1px solid var(--line, rgba(140, 160, 220, .3));
+  background-color: color-mix(in srgb, var(--text, #e8eefc) 3%, transparent);
+  background-image: radial-gradient(color-mix(in srgb, var(--text, #e8eefc) 14%, transparent) 1px, transparent 1px); background-size: 20px 20px; }
+.canvas-plane { position: relative; }
+.canvas-plane:focus-visible, .canvas-surface:focus-visible { outline: 2px solid var(--brand-cyan, #63e7ff); outline-offset: -2px; }
+.canvas-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.canvas-lines line { stroke: color-mix(in srgb, var(--text, #e8eefc) 55%, transparent); stroke-width: 2; }
+.canvas-lines marker path { fill: color-mix(in srgb, var(--text, #e8eefc) 55%, transparent); }
+.canvas-lines text { fill: var(--text, #e8eefc); font-size: 14px; paint-order: stroke; stroke: var(--bg, #0b0f24); stroke-width: 4px; stroke-linejoin: round; }
+.canvas-card { position: absolute; box-sizing: border-box; display: grid; align-content: start; gap: 4px; padding: 6px 10px 10px 44px; overflow: hidden; border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--card-colour, var(--brand-violet, #826cff)) 55%, transparent);
+  background: color-mix(in srgb, var(--card-colour, var(--brand-violet, #826cff)) 14%, var(--surface, var(--bg, #0b0f24))); color: var(--text, inherit); overflow-wrap: anywhere; }
+.canvas-card.is-group { background: color-mix(in srgb, var(--card-colour, var(--brand-cyan, #63e7ff)) 6%, transparent); border-style: dashed; z-index: 0; }
+.canvas-card:not(.is-group) { z-index: 1; }
+.canvas-card.is-selected { box-shadow: 0 0 0 2px var(--brand-cyan, #63e7ff); }
+.canvas-card:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
+.canvas-handle { position: absolute; left: 0; top: 0; width: 44px; height: 44px; display: grid; place-items: center; cursor: grab; touch-action: none; user-select: none; font-size: 18px; color: var(--text-secondary, inherit); }
+.canvas-handle:active { cursor: grabbing; }
+.canvas-card .text-link { min-height: 44px; display: inline-flex; align-items: center; font-weight: 650; }
+.canvas-card-text { margin: 0; font-size: 14px; white-space: pre-wrap; }
+.canvas-group-label { font-size: 15px; min-height: 32px; display: flex; align-items: center; }
+.canvas-photo { width: 100%; height: calc(100% - 8px); object-fit: cover; border-radius: 8px; pointer-events: none; }
+.canvas-panel { display: grid; gap: 10px; padding: 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent); }
+.canvas-panel h3, .canvas-lines-list h3 { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
+.canvas-panel > button { justify-self: start; min-height: 44px; }
+.canvas-panel > .field select { min-height: 44px; font-size: 16px; }
+.canvas-lines-list ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }
+.canvas-lines-list li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; overflow-wrap: anywhere; }
+.canvas-lines-list .text-link, .canvas-line-label > summary { min-height: 44px; display: inline-flex; align-items: center; cursor: pointer; }
+.canvas-lines-list h3:focus { outline: none; }
+@media (forced-colors: active) { .canvas-lines line { stroke: CanvasText; } .canvas-card { border-color: CanvasText; } }

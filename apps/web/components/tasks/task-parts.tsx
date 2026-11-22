@@ -12,6 +12,9 @@ import {formatClock, formatDate} from '../../lib/visual-format';
 import type {GoalOption} from './use-goal-options';
 import type {TaskPatch} from './use-task-list';
 import {celebrateCompletion} from '../motion/completion';
+import {taskLook} from '../../lib/tasks/look';
+import '../habits/habit-look.css';
+import './task-row-r3.css';
 
 // Session AL fourth pass (LS-067): the full editor (repeat reader, reminders, links) loads when a task is first edited.
 const TaskEditor = lazy(() => import('./task-editor'));
@@ -119,16 +122,19 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
   record?: Tasks; nowClock?: string; links?: RowLinks; selected?: boolean; onSelect?: (on: boolean, shift: boolean) => void; onMove?: (step: -1 | 1) => void; drag?: React.HTMLAttributes<HTMLElement> & {draggable?: boolean}; depth?: number; editor?: 'inline' | 'none'; habits?: readonly {id: string; title: string}[]; children?: ReactNode; focused?: boolean; onOpen?: () => void; /** A repeating task: skip this occurrence (P-LS-02 "this one"). */ onSkip?: () => void}) {
   const [editing, setEditing] = useState(false), done = !!task.doneAt, state = taskState(task, today, nowClock), level = taskLevel(task);
   const progress = useMemo(() => record ? subtaskProgress(record, task.id) : null, [record, task.id]);
+  // Session AV lane 2 (r3-plan, LEDGER #257): the task's own symbol in its colour, decoration beside the title.
+  const look = taskLook(task);
   return <li id={`task-${task.id}`} className={`task task-${done ? 'finished' : state} task-priority-${task.priority} task-level-${level}${selected ? ' is-selected' : ''}`} data-done={done || undefined} data-depth={depth || undefined} data-focused={focused || undefined} style={depth ? {['--task-depth' as string]: depth} : undefined} {...(drag ?? {})}>
     {/* Release review AL (RR-18): one box per row. Selecting (bulk actions) is a mode the list turns on: then the box selects,
         and Done is the bulk bar's; otherwise the box marks the task done. Never two look-alike boxes side by side. */}
     {onSelect && <label className="task-select"><input type="checkbox" checked={!!selected} onClick={e => onSelect(!selected, e.shiftKey)} onChange={() => undefined} /><span className="sr-only">Select “{task.title}”</span></label>}
     {!onSelect && <label className="task-done"><input type="checkbox" checked={done} onChange={e => { if (e.target.checked) celebrateCompletion(e.currentTarget.parentElement); /* Session AK M1: the completion moment */ onToggle(e.target.checked); }} /><span className="sr-only">{done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}</span></label>}
-    <span className="task-title" dir="auto">{onOpen ? <button type="button" className="task-title-button" dir="auto" onClick={onOpen}>{task.title}</button> : task.title}</span>
+    <span className="task-title" dir="auto">{look && <span className="habit-look task-look" data-look-colour={look.colour} aria-hidden="true">{look.glyph} </span>}{onOpen ? <button type="button" className="task-title-button" dir="auto" onClick={onOpen}>{task.title}</button> : task.title}</span>
     <span className="task-meta">
       {level !== 3 && <span className={`task-chip task-chip-p${level}`} title={LEVEL_WORDS[level]}>P{level} · {LEVEL_SHORT[level]}</span>}
       <span className="task-due">{done ? `Done ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
       {!done && task.minutes ? <span className="task-minutes">{minutesWords(task.minutes)}</span> : null}{/* Session AV (F-TASK-MINUTES) */}
+      {!done && task.energy && task.energy !== 'neutral' ? <span className="task-energy">Energy · {task.energy[0]!.toUpperCase() + task.energy.slice(1)}</span> : null}{/* Session AV lane 2 (r3-plan, LEDGER #259) */}
       {!done && task.deadline && <span className={`task-deadline is-${deadlineState(task, today)}`}><span aria-hidden="true">⚑ </span>{deadlineText(task, today)}</span>}
       {task.recur && <span className="task-recur"><span aria-hidden="true">↻ </span>{describeRecur(task.recur)}{/* Session AV lane 2 (minors, q1 #43): a paused repeat says so on its row */}{!done && (() => { const p = pausedRepeat(task, today); return p ? ` · paused until ${formatDate(p.until, {weekday: true, year: p.until.slice(0, 4) !== today.slice(0, 4)})}` : ''; })()}</span>}
       {progress && progress.total > 0 && <span className="task-progress" role="img" aria-label={`${progress.done} of ${progress.total} subtasks done`}><span aria-hidden="true">☑ {progress.done}/{progress.total}</span></span>}{/* Session AV lane 2 (fixb2): role img, as a plain span may not carry a name (axe aria-prohibited-attr) */}

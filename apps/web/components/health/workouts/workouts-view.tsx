@@ -62,6 +62,8 @@ const MuscleFreshToday = lazy(() => import('./muscle-freshness-today'));
 const ExerciseLibrary = lazy(() => import('./exercise-library'));
 // Session AV lane 2 (body; LEDGER #112, #115): the ready-made routines and an own routine's folder and note, one chunk.
 const RoutineLibrary = lazy(() => import('./routine-library-view'));
+// Session AV lane 2 (health r3; LEDGER #289): timed circuits, their own chunk, loaded when the fold opens.
+const Circuits = lazy(() => import('./circuits'));
 const RoutineEdit = lazy(() => import('./routine-library-view').then(m => ({default: m.RoutineEdit})));
 // Session AV lane 2 (body; LEDGER #117): the month report and sets per muscle over 8 weeks, its own chunk.
 const WorkoutsProgress = lazy(() => import('./workouts-progress'));
@@ -249,7 +251,7 @@ export default function WorkoutsView() {
             <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`, `Routine ${t.name} is back.`)}>Remove</button></div>
           {editing === t.id && <Suspense fallback={<p className="fine" role="status">Opening…</p>}><RoutineEdit w={w} routine={t} change={change} unit={unit} onDone={() => setEditing(null)}/></Suspense>}
         </li>)}</ul></div>)}</>}
-        <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines, and routines shared with you" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)} onImport={share => change(x => addSharedRoutine(x, share, new Date()).workouts, `${share.name} is added to your routines.`)}/></Fold>
+        <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines, and routines shared with you" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)} onImport={share => change(x => addSharedRoutine(x, share, new Date()).workouts, `${share.name} is added to your routines.`)}/></Fold><Fold className="av2-fold workouts-circuits-fold" summary="Timed circuits: work, rest and rounds" loading="Opening the circuits…"><Circuits logDay={logDay || today}/></Fold>
       </section>}
     {asking === 'finish' && current && <ConfirmInline title="Finish with unticked sets?" confirmLabel="Finish workout" cancelLabel="Keep logging" tone="neutral" onConfirm={() => void finish()} onCancel={() => setAsking(null)}><p>Sets you have not ticked are left out. Tick a set when you finish it.</p></ConfirmInline>}
     {asking === 'discard' && <ConfirmInline title="Discard this workout?" confirmLabel="Discard workout" cancelLabel="Keep it" onConfirm={() => { setAsking(null); setRestUntil(null); change(discardWorkout, 'The workout in progress is discarded. Nothing was added to Health.'); }} onCancel={() => setAsking(null)}><p>Its sets are not kept.</p></ConfirmInline>}
@@ -547,6 +549,6 @@ function ExerciseProgress({w, unit: pageUnit, library, value, onChange}: {w: Wor
     {h.measure === 'weight-reps' && <div className="workouts-weeks-pick" role="group" aria-label="Line shows">{(Object.keys(METRIC_WORDS) as (keyof typeof METRIC_WORDS)[]).map(m => <button key={m} type="button" className="quiet" aria-pressed={metric === m} onClick={() => setMetric(m)}>{METRIC_WORDS[m]}</button>)}</div>}
     <ProgressLine h={h} unit={unit} metric={metric}/>
     <table className="workouts-history-table"><caption className="sr-only">{h.name}, last sessions</caption><thead><tr><th scope="col">Date</th><th scope="col">Best set</th><th scope="col">Sets</th>{h.measure === 'weight-reps' && <th scope="col">Volume</th>}</tr></thead>
-      <tbody>{h.sessions.slice(0, 10).map(s => <tr key={s.workoutId}><th scope="row">{formatDate(s.date)}</th><td>{s.best ? setText(h.measure, s.best, unit) : '—'}</td><td>{s.sets.length}</td>{h.measure === 'weight-reps' && <td>{weightShown(s.volumeKg, unit)}</td>}</tr>)}</tbody></table></>}
+      <tbody>{h.sessions.slice(0, 10).map(s => <tr key={s.workoutId}><th scope="row">{/* Session AV lane 2 (P-25): "Nov 21" (the year only when it is not this one) */}{formatDate(s.date, {year: s.date.slice(0, 4) === new Date().toISOString().slice(0, 4) ? false : undefined})}</th><td>{s.best ? setText(h.measure, s.best, unit) : '—'}</td><td>{s.sets.length}</td>{h.measure === 'weight-reps' && <td>{weightShown(s.volumeKg, unit)}</td>}</tr>)}</tbody></table></>}
   </section>;
 }

@@ -1740,6 +1740,12 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .left-month:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#45d8ef) 6%,transparent)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .zg-legend .money-key-band:not(#\-):not(#\-) {
         background-image: linear-gradient(180deg, color-mix(in srgb, var(--zgc-band) 40%, transparent), color-mix(in srgb, var(--zgc-band) 12%, transparent));
         background-color: transparent
@@ -3964,6 +3970,10 @@
         background-image: none;
         background-color: #030303a6
     }
+    :scope .health-meal > .health-section-heading > span.health-meal-figure-empty:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
     .health-fold-button:not(#\-):not(#\-) {
         background-image: none;
         background-color: #ffffff0d
@@ -4260,6 +4270,20 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .r3-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--r3-drink)
+    }
+    .r3-player-bar:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--line, #8fb6ff33)
+    }
+    .r3-player-bar i:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .evening-ready:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent)
@@ -4418,6 +4442,10 @@
             background-color: transparent
         }
     }
+    .workouts-weeks-pick button[aria-pressed="true"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan) 14%,transparent)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
     .help-topics a:not(#\-):not(#\-) {
@@ -4532,6 +4560,14 @@
     .journal-calendar-day:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb,var(--brand-violet) 22%,transparent)
+    }
+    .compose-grid-cell.is-centre:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet) 10%, transparent)
+    }
+    .entry-grid > li.is-centre:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet) 10%, transparent)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
@@ -5016,6 +5052,40 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    @media print {
+        :scope.zg-print-note:not(#\-):not(#\-), :scope.zg-print-note body:not(#\-):not(#\-) {
+            background-image: none !important;
+            background-color: #ffffff !important
+        }
+    }
+    @media print {
+        :scope.zg-print-note .note-print-sheet:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: #ffffff
+        }
+    }
+    @media print {
+        .note-print-sheet .note-hl:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
+    .canvas-surface:not(#\-):not(#\-) {
+        background-color: color-mix(in srgb, var(--text, #e8eefc) 3%, transparent);
+        background-image: radial-gradient(color-mix(in srgb, var(--text, #e8eefc) 14%, transparent) 1px, transparent 1px)
+    }
+    .canvas-card:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--card-colour, var(--brand-violet, #826cff)) 14%, var(--surface, var(--bg, #020202)))
+    }
+    .canvas-card.is-group:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--card-colour, var(--brand-cyan, #63e7ff)) 6%, transparent)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .note-tab:not(#\-):not(#\-) {
         background-image: none;
         background-color: transparent
@@ -5079,6 +5149,24 @@
     .notes-bar > span[data-none]:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--brand-cyan) 45%, transparent)
+    }
+    .note-hl:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--hl) 34%, transparent)
+    }
+    @media (forced-colors: active) {
+        .note-hl:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+    .note-hl-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--hl)
+    }
+    .notes-board-col:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 7%, transparent)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
@@ -9771,6 +9859,12 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .task-look-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--habit-look)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .tasks-nav-item:not(#\-):not(#\-) {
         background-image: none;
         background-color: transparent
@@ -10154,6 +10248,18 @@
     .money-insights-legend .out:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb,var(--pink,#ed79d4) 70%,var(--panel,#030303))
+    }
+    .waterfall-key-total:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--text,#f0f5ff) 55%,transparent)
+    }
+    .waterfall-key-up:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--violet,#a698ff)
+    }
+    .waterfall-key-down:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--cyan,#45d8ef)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {

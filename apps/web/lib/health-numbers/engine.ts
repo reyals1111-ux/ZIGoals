@@ -1,3 +1,4 @@
+import {readMealMark} from './meals';
 import {readFormNumber} from '../decimal-input';
 import {BP_LIMITS, LAB_VALUE_MAX, MAX_NUMBERS, NAME_MAX, NOTE_MAX, UNIT_MAX, healthNumbersSchema, type HealthNumber, type HealthNumbers} from './store';
 
@@ -12,7 +13,9 @@ export const BP_LINE = 'Your readings. Not a diagnosis.';
 export const LAB_LINE = 'ZIGoals sets no ranges and gives no interpretation. The only check is against the range you copied from your own lab sheet.';
 
 export type BpInput = {date: string; systolic: string; diastolic: string; pulse?: string; note?: string};
-export type LabInput = {date: string; name: string; value: string; unit?: string; refLow?: string; refHigh?: string; note?: string};
+export type LabInput = {date: string; name: string; value: string; unit?: string; refLow?: string; refHigh?: string; note?: string;
+  /** Session AV lane 2 (health r3; LEDGER #284): "before:Lunch" or "after:Dinner" (lib/health-numbers/meals.ts), and the time taken. */
+  meal?: string; time?: string};
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const clean = (s: string | undefined, max: number) => (s ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
 const named = (label: string, fn: () => number) => { try { return fn(); } catch (e) { throw new Error(`${label}: ${e instanceof Error ? e.message : 'check the number'}`); } };
@@ -37,7 +40,9 @@ export function labEntry(input: LabInput, id: string, today: string): HealthNumb
   const refHigh = input.refHigh?.trim() ? named('Range, high end', () => readFormNumber(input.refHigh!, {max: LAB_VALUE_MAX})) : undefined;
   if (refLow !== undefined && refHigh !== undefined && refLow > refHigh) throw new Error('The low end of the range is above the high end. Check the order.');
   const unit = clean(input.unit, UNIT_MAX), note = clean(input.note, NOTE_MAX);
-  return {id, date: input.date, kind: 'lab', name, value, ...(unit ? {unit} : {}), ...(refLow !== undefined ? {refLow} : {}), ...(refHigh !== undefined ? {refHigh} : {}), ...(note ? {note} : {})};
+  const mark = readMealMark(input.meal), time = input.time?.trim();
+  if (time && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new Error('Enter the time like 13:45, or leave it blank.');
+  return {id, date: input.date, kind: 'lab', name, value, ...(unit ? {unit} : {}), ...(refLow !== undefined ? {refLow} : {}), ...(refHigh !== undefined ? {refHigh} : {}), ...(note ? {note} : {}), ...(mark ? {meal: mark.meal, mealWhen: mark.when} : {}), ...(time ? {time} : {})};
 }
 
 export function addNumbers(rec: HealthNumbers, entries: readonly HealthNumber[]): HealthNumbers {

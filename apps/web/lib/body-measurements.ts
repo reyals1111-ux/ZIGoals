@@ -56,7 +56,7 @@ export function exportMeasurementsCsv(data:HealthData){
 }
 
 /** A timed reading belongs to the calendar day of the zone it was entered in, not the UTC day. */
-function readingDay(r:BodyMeasurement){try{return healthDay(r.timezone,new Date(r.observedAt));}catch{return r.observedAt.slice(0,10);}}
+export function readingDay(r:BodyMeasurement){try{return healthDay(r.timezone,new Date(r.observedAt));}catch{return r.observedAt.slice(0,10);}}
 /** Date-only legacy readings are never assigned a fabricated measurement instant. */
 export function latestWeightObservation(data:HealthData,through:string){
  const daily=[...data.weights].filter(r=>r.date<=through).sort((a,b)=>b.date.localeCompare(a.date))[0],timed=measurementHistory(data,'weight').readings.filter(r=>readingDay(r)<=through).at(-1),day=timed&&readingDay(timed);

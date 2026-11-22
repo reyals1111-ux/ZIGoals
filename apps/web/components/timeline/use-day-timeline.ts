@@ -23,7 +23,8 @@ import {loadTimelineSources, runTimelineSources, subscribeTimelineSources, timel
  * a clock that moves the now line once a minute while the page is visible. Reading writes nothing.
  */
 const deviceZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } };
-export function useDayTimeline({sources: wantSources = true}: {sources?: boolean} = {}) {
+export function useDayTimeline({sources: wantSources = true, date: chosen}: {sources?: boolean;
+  /** Session AV lane 2 (r3-plan, LEDGER #258): another day to show (YYYY-MM-DD); today when left out. */ date?: string | null} = {}) {
   const habits = useHabits(), health = useHealth(), sleep = useSleep(), meditation = useMeditation(), fasting = useFasting(), platform = usePlatform();
   const reminders = useReminders(), weekly = useWeeklyReview(), wReminders = useDeviceRecord(W_REMINDERS), plan = useDeviceRecord(REMINDERS_PLAN), record = useDeviceRecord(DAY_TIMELINE), extras = useDeviceRecord(HABIT_EXTRAS);
   const [now, setNow] = useState(() => new Date());
@@ -47,14 +48,15 @@ export function useDayTimeline({sources: wantSources = true}: {sources?: boolean
   const day = useMemo<DayTimeline | null>(() => {
     if (!loaded) return null;
     const stores = {habits: habits.data, habitsDay: habits.today, health: health.data, healthDay: hDay, sleep: sleep.sleep, meditation: meditation.meditation, meditationRun: meditation.run.data, fasting: fasting.data, platform: platform.data, zone: sleep.zone};
-    const extra = runTimelineSources(loadedSources ?? [], {date: habits.today, now, stores});
+    const date = chosen && chosen !== habits.today ? chosen : habits.today;
+    const extra = runTimelineSources(loadedSources ?? [], {date, now, stores});
     return buildDayTimeline({
-      date: habits.today, healthDay: hDay, now, zone, habits: habits.error ? {...habits.data, habits: []} : habits.data, health: health.error ? null : health.data,
+      date, today: habits.today, healthDay: date === habits.today ? hDay : date, now, zone, habits: habits.error ? {...habits.data, habits: []} : habits.data, health: health.error ? null : health.data,
       reminders: reminders.unreadable ? null : reminders.data, wReminders: wReminders.unreadable ? null : wReminders.data, plan: plan.unreadable ? null : plan.data,
       reviewWeekday: weekly.loaded ? weekly.data.weekday : undefined, times: record.unreadable ? {} : record.data.times, habitTimes: extras.loaded && !extras.unreadable ? extras.data.times ?? {} : {},
       fasting: fasting.unreadable ? null : fasting.data, meditationRun: meditation.runUnreadable ? null : meditation.run.data, sleep: sleep.error ? null : sleep.sleep, extra,
     });
-  }, [extras.loaded, extras.unreadable, extras.data, loaded, habits.data, habits.today, habits.error, health.data, health.error, hDay, sleep.sleep, sleep.zone, sleep.error, meditation.meditation, meditation.run.data, meditation.runUnreadable, fasting.data, fasting.unreadable, platform.data, reminders.data, reminders.unreadable, wReminders.data, wReminders.unreadable, plan.data, plan.unreadable, weekly.loaded, weekly.data, record.data, record.unreadable, loadedSources, now, zone]);
+  }, [extras.loaded, extras.unreadable, extras.data, loaded, habits.data, habits.today, habits.error, health.data, health.error, hDay, sleep.sleep, sleep.zone, sleep.error, meditation.meditation, meditation.run.data, meditation.runUnreadable, fasting.data, fasting.unreadable, platform.data, reminders.data, reminders.unreadable, wReminders.data, wReminders.unreadable, plan.data, plan.unreadable, weekly.loaded, weekly.data, record.data, record.unreadable, loadedSources, now, zone, chosen]);
   const refresh = useCallback(() => setNow(new Date()), []);
   return {loaded, day, now, refresh, habits, health, record, extras, failed: !!(habits.error || health.error)};
 }

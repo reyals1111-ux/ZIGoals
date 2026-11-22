@@ -21,6 +21,8 @@ import {useMoneyCurrency} from '../use-money-currency';
 import {categoryChoices} from '../../../lib/money-log/counted';
 // Session AP (feature 3): Ready to assign, its own chunk.
 const ReadyToAssign = lazy(() => import('./ready-to-assign'));
+// Session AV lane 2, round 3 (money; PocketGuard's Leftover, LEDGER #291, #292): Left this month, each part listed (lazy).
+const LeftThisMonth = lazy(() => import('./left-this-month'));
 // Session AV (owner follow-up 1, F-WATCH): categories watched without a budget.
 const WatchList = lazy(() => import('./watch-list'));
 // Session AV lane 2 (Money N11, LEDGER #212, #213, #216; Goodbudget): pay periods, a paycheck fill, debts paid from a budget.
@@ -126,6 +128,7 @@ export function BudgetsView({space = 'personal', record, entries, today, showcas
       <button type="button" className="quiet" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= thisMonth} aria-label="Next month">›</button>
     </div>
     <Suspense fallback={null}><ReadyToAssign entries={entries} record={record} month={month} current={month === thisMonth}/></Suspense>
+    {month === thisMonth && space === 'personal' && <Suspense fallback={null}><LeftThisMonth entries={entries} record={record} today={today} showcase={showcase}/></Suspense>}
     {view.totals.map(t => <p key={t.currency} className="budgets-total"><strong>{t.left >= 0 ? money(t.left, t.currency) : money(-t.left, t.currency)}</strong> {t.left >= 0 ? 'left' : 'over'} of {money(t.available, t.currency)} budgeted{view.daysLeft !== null ? ` · ${view.daysLeft === 1 ? 'last day of the month' : `${view.daysLeft} days to go`}` : ''}</p>)}
     {canFresh && <p className="budgets-fresh"><button type="button" className="quiet" onClick={fresh}>Start this month fresh</button> <small className="fine">What earlier months left stops carrying into {formatMonth(thisMonth)}; Undo brings it back.</small></p>}
     {/* Session AV (fresh-agent check q2, ranks 9 and 37): the pace and target lines, the target buttons and Remove sit in

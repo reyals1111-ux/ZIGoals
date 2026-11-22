@@ -18,7 +18,10 @@ export function showcaseNotes(day: string): Notes {
     {id: 'showcase-note-day-0', kind: 'daily', title: day, day, body: 'Calm start, a long walk before work.\n\nIdeas for the weekend: [[Japan trip ideas]].', createdAt: at(0, '07:45:00')},
     {id: 'showcase-note-inbox-1', kind: 'inbox', title: '', body: 'Ask about the rail pass price in March', day, source: 'text', createdAt: at(0, '09:12:00')},
     {id: 'showcase-note-inbox-2', kind: 'inbox', title: '', body: 'Try a 5-minute breathing break after lunch', day: addLocalDays(day, -1), source: 'voice', createdAt: at(-1, '13:40:00')},
-  ].map(n => ({...n, body: `${n.body}\n\n(SHOWCASE DATA)`, example: true}));
+  ].map(n => ({...n, body: `${n.body}\n\n(SHOWCASE DATA)`, example: true}))
+    // Session AV lane 2 (r3-notes; LEDGER #270): two notes carry their own properties, so Table and Board show them.
+    .map(n => n.id === 'showcase-note-japan' ? {...n, props: [{k: 'Status', t: 'choice' as const, v: 'Planning'}, {k: 'Budget', t: 'number' as const, v: 2400}]}
+      : n.id === 'showcase-note-books' ? {...n, props: [{k: 'Status', t: 'choice' as const, v: 'Reading'}]} : n);
   // Session AV lane 2 (notes; LEDGER #32): one repeating note, labelled as an example, already made for this week (the
   // Showcase never makes notes on its own, so its counts stay as they are).
   const weekly = {id: 's-showcase01', title: 'Example · Week plan', body: 'Week of {date}\n\nThree things this week:\n- \n- \n- \n\n(SHOWCASE DATA)', every: 'week' as const, weekday: 1};

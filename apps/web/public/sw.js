@@ -51,7 +51,9 @@
     var countdowns = kinds.countdown || [];
     if (countdowns.length) lines.push(named && countdowns.every(function (c) { return c.label; }) ? countdowns.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(countdowns.length, 'countdown reminder', 'countdown reminders'));
     // Session AV lane 2 (journal; LEDGER #40): the reminder to write, with the streak it keeps (never a word of the journal).
-    (kinds.journal || []).slice(0, 1).forEach(function (j) { lines.push('Time to write in your journal' + (j.detail ? ' · ' + j.detail : '')); });
+    // Session AV lane 2 (r3-notes; LEDGER #279): a letter to open later says so on its own line (never its words).
+    (kinds.journal || []).filter(function (j) { return /^letter:/.test(String(j.id || '')); }).slice(0, 1).forEach(function () { lines.push('A letter you wrote opens today'); });
+    (kinds.journal || []).filter(function (j) { return !/^letter:/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('Time to write in your journal' + (j.detail ? ' · ' + j.detail : '')); });
     // Session AV lane 2 (money): budgets near or over, payday tomorrow, the low-balance line; words only where names are allowed.
     var moneyNotes = kinds.money || [];
     if (moneyNotes.length) lines.push(named && moneyNotes.every(function (m) { return m.label; }) ? moneyNotes.slice(0, 2).map(function (m) { return m.label + (m.detail ? ' · ' + m.detail : ''); }).join(' · ') : plural(moneyNotes.length, 'money notice: open Wealth', 'money notices: open Wealth'));
@@ -60,6 +62,8 @@
     // Session AV lane 2 (bodymind-r2; LEDGER #235, #236): the energy curve's reminders and plan steps, in the app's own words;
     // an own habit's name only where names are allowed (it is the label); never a sleep figure.
     (kinds.energy || []).slice(0, 2).forEach(function (e) { lines.push((e.detail || 'A reminder from your energy curve') + (named && e.label ? ' · ' + e.label : '')); });
+    // Session AV lane 2 (health r3; LEDGER #286): the weigh-in reminder; never a weight.
+    if (kinds.weighIn) lines.push('Time to weigh in');
     if (kinds.supplement) lines.push('A reminder you set in Health');
     // Session AV lane 2 (food, LEDGER #90): a meal's usual time, by its name only where names are allowed; never food.
     var meals = kinds.meal || [];
@@ -71,13 +75,16 @@
     if (kinds.windDown) lines.push('Time to wind down');
     if (kinds.review) lines.push('Your weekly Life review is ready');
     var summary = summaryLine(snapshot);
-    if (kinds.morning) lines.unshift(summary ? 'Good morning. ' + summary : 'Good morning. Your orbit is ready.');
+    // Session AV lane 2 (r3-plan, LEDGER #256): "Plan your day" opens Plan my day; the overdue count is a number, never a name.
+    (kinds.planDay || []).slice(0, 1).forEach(function (p) { lines.unshift('Plan your day' + (p.detail ? ' · ' + p.detail : '')); });
+    var overdue = kinds.morning && kinds.morning[0].detail ? ' ' + kinds.morning[0].detail.charAt(0).toUpperCase() + kinds.morning[0].detail.slice(1) + '.' : '';
+    if (kinds.morning) lines.unshift((summary ? 'Good morning. ' + summary : 'Good morning. Your orbit is ready.') + overdue);
     if (kinds.evening) lines.unshift(summary ? 'Evening wrap-up. ' + summary : 'Evening wrap-up: how did today go?');
     var first = due[0], actionable = habits.concat(taskItems).filter(function (h) { return h.actionable; });
-    var url = kinds.morning ? '/app/checklist' : (first && appPath(first.href)) || '/app';
+    var url = kinds.planDay ? appPath(kinds.planDay[0].href) || '/app/tasks' : kinds.morning ? '/app/checklist' : (first && appPath(first.href)) || '/app';
     if (!lines.length) return {title: 'ZIGoals', body: summary ? summary + ' Nothing is due right now.' : 'Nothing is due right now.', tag: 'zigoals-summary', actions: [], data: {url: '/app', items: []}};
-    var actions = actionable.length ? [{action: 'done', title: 'Done'}, {action: 'snooze', title: 'Snooze 1 h'}] : (kinds.morning || kinds.evening || kinds.review) ? [] : [{action: 'snooze', title: 'Snooze 1 h'}];
-    return {title: 'ZIGoals', body: lines.join(' · ').slice(0, 240), tag: 'zigoals-reminder', actions: actions, data: {url: url, date: snapshot && snapshot.summary ? snapshot.summary.date : null, items: due.filter(function (i) { return i.kind !== 'morning' && i.kind !== 'evening'; }).map(function (i) { return {kind: i.kind, id: i.id, at: i.at}; })}};
+    var actions = actionable.length ? [{action: 'done', title: 'Done'}, {action: 'snooze', title: 'Snooze 1 h'}] : (kinds.morning || kinds.evening || kinds.review || kinds.planDay) ? [] : [{action: 'snooze', title: 'Snooze 1 h'}];
+    return {title: 'ZIGoals', body: lines.join(' · ').slice(0, 240), tag: 'zigoals-reminder', actions: actions, data: {url: url, date: snapshot && snapshot.summary ? snapshot.summary.date : null, items: due.filter(function (i) { return i.kind !== 'morning' && i.kind !== 'evening' && i.kind !== 'planDay'; }).map(function (i) { return {kind: i.kind, id: i.id, at: i.at}; })}};
   }
   // A price alert crossed (the same rule as lib/price-alerts/engine.ts): the quote's integer price over its decimals,
   // compared with the alert's decimal figure, both scaled to 12 decimals.

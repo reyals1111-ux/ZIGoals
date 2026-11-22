@@ -134,3 +134,7 @@
   .today-timeline-next > li[data-rank="2"] { display: none; }
   .today-timeline-now-row > span { margin-left: 80px; }
 }
+/* Session AV lane 2 (r3-plan, LEDGER #258): the day shown — Today, Tomorrow or another day. */
+.timeline-day-picker { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; margin: 0 0 16px; }
+.timeline-day-picker > button { min-height: 44px; }
+.timeline-day-field { flex: 0 1 200px; min-width: 0; }

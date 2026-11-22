@@ -3,6 +3,7 @@ import {Suspense, lazy, useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showUndo} from '../ui/undo-toast';
 import {HEALTH_NUMBERS, type HealthNumber} from '../../lib/health-numbers/store';
+import {MEAL_MARKS, mealTag} from '../../lib/health-numbers/meals';
 import {BP_LINE, LAB_LINE, VERDICT_WORDS, addNumbers, bpEntry, bpReadings, knownNames, labEntry, markers, rangeText, removeNumber, restoreNumber, verdictOf, type Marker} from '../../lib/health-numbers/engine';
 import type {DraftRow} from '../../lib/health-numbers/scan';
 import {formatDate, formatNumber} from '../../lib/visual-format';
@@ -68,7 +69,7 @@ function MarkerCard({marker: m, onRemove}: {marker: Marker; onRemove: (e: Health
     {m.points.length > 1 && <NumbersChart title={m.name} unit={m.unit} band={band} series={[{label: m.name, points: m.points.map(p => ({date: p.date, value: p.value!}))}]}/>}
     <details className="health-trend-table"><summary>Every {m.name} value ({m.points.length})</summary>
       <ul className="your-numbers-list">{[...m.points].reverse().map(p => { const pv = verdictOf(p), label = `${m.name} ${fmt(p.value!)} ${m.unit} on ${formatDate(p.date)}`; return <li key={p.id}>
-        <span>{formatDate(p.date)}: <strong>{fmt(p.value!)}</strong> {m.unit}{pv ? ` · ${VERDICT_WORDS[pv].toLowerCase()}` : ''}{p.note ? <small> {p.note}</small> : null}</span>
+        <span>{formatDate(p.date)}: <strong>{fmt(p.value!)}</strong> {m.unit}{pv ? ` · ${VERDICT_WORDS[pv].toLowerCase()}` : ''}{mealTag(p) ? ` · ${mealTag(p)}` : ''}{p.note ? <small> {p.note}</small> : null}</span>
         <button type="button" className="quiet" aria-label={`Remove ${label}`} onClick={() => onRemove(p, label)}>Remove</button>
       </li>; })}</ul>
     </details>
@@ -100,6 +101,8 @@ const blank = (): Row => ({key: newId(), name: '', value: '', unit: '', refLow: 
 function LabForm({today, names, onAdd}: {today: string; names: {name: string; unit: string}[]; onAdd: (entries: HealthNumber[], said: string) => boolean}) {
   const id = useId();
   const [date, setDate] = useState(today), [rows, setRows] = useState<Row[]>(() => [blank()]), [problem, setProblem] = useState(''), [scan, setScan] = useState(false), [fromPhoto, setFromPhoto] = useState(false);
+  // Session AV lane 2 (health r3; LEDGER #284): the values taken before or after a meal, and when, shown beside that meal.
+  const [meal, setMeal] = useState(''), [time, setTime] = useState('');
   const set = (key: string, patch: Partial<DraftRow>) => setRows(rs => rs.map(r => {
     if (r.key !== key) return r;
     const next = {...r, ...patch}, known = patch.name !== undefined && !r.unit ? names.find(n => n.name.toLocaleLowerCase('en') === patch.name!.trim().toLocaleLowerCase('en')) : undefined;
@@ -111,12 +114,15 @@ function LabForm({today, names, onAdd}: {today: string; names: {name: string; un
     if (!filled.length) { setProblem('Give a value its name and number first.'); return; }
     const entries: HealthNumber[] = [];
     for (const [i, r] of filled.entries()) {
-      try { entries.push(labEntry({date, ...r}, newId(), today)); } catch (e) { setProblem(`${filled.length > 1 ? `Row ${i + 1}: ` : ''}${e instanceof Error ? e.message : 'check the row'}`); return; }
+      try { entries.push(labEntry({date, ...r, meal, time}, newId(), today)); } catch (e) { setProblem(`${filled.length > 1 ? `Row ${i + 1}: ` : ''}${e instanceof Error ? e.message : 'check the row'}`); return; }
     }
-    if (onAdd(entries, `Saved ${entries.length} ${entries.length === 1 ? 'value' : 'values'} from ${formatDate(date)}.`)) { setRows([blank()]); setFromPhoto(false); }
+    const mark = MEAL_MARKS.find(m => m.value === meal);
+    if (onAdd(entries, `Saved ${entries.length} ${entries.length === 1 ? 'value' : 'values'} from ${formatDate(date)}${mark ? `, ${mark.label.toLowerCase()}: shown beside that meal in the Diary` : ''}.`)) { setRows([blank()]); setFromPhoto(false); setMeal(''); setTime(''); }
   };
   return <form className="your-numbers-form" aria-label="Add lab values" onSubmit={submit}>
     <label className="field"><span>Day on the sheet</span><input type="date" value={date} max={today} onChange={e => setDate(e.target.value)} required/></label>
+    <div className="your-numbers-meal"><label className="field"><span>With a meal (optional)</span><select value={meal} onChange={e => setMeal(e.target.value)}><option value="">Not with a meal</option>{MEAL_MARKS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}</select></label>
+      <label className="field"><span>Time taken (optional)</span><input type="time" value={time} onChange={e => setTime(e.target.value)}/></label></div>
     <datalist id={`${id}-names`}>{names.map(n => <option key={`${n.name}|${n.unit}`} value={n.name}/>)}</datalist>
     {fromPhoto && <p className="fine">Drafted from your photo. Check every name, number, unit and range against the sheet before saving.</p>}
     {rows.map((r, i) => <fieldset key={r.key} className="your-numbers-row"><legend className="sr-only">Row {i + 1}</legend>

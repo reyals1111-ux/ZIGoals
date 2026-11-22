@@ -67,3 +67,20 @@ export function tagTotals(entries: readonly MoneyEntry[], record: MoneyTags, fro
   }
   return [...by.values()].sort((a, b) => b.spent - a.spent || b.received - a.received || a.tag.localeCompare(b.tag) || a.currency.localeCompare(b.currency));
 }
+
+/**
+ * Session AV lane 2, round 3 (money; Simplifi's imports keep tags, LEDGER #299): the tags a CSV carried (Monarch's Tags,
+ * Copilot's tags, Mint's Labels), set on the entries an import made — `indexes[i]` is the file row of `entries[i]`. An
+ * entry's own tags, if any, are kept first. Returns the record and how many entries got tags.
+ */
+export function withImportTags(record: MoneyTags, entries: readonly {id: string}[], indexes: readonly number[], rows: readonly {index: number; tags?: readonly string[]}[], liveIds: ReadonlySet<string>): {record: MoneyTags; tagged: number} {
+  const byIndex = new Map(rows.map(r => [r.index, r.tags ?? []]));
+  let next = record, tagged = 0;
+  entries.forEach((e, i) => {
+    const tags = byIndex.get(indexes[i]!) ?? [];
+    if (!tags.length) return;
+    const all = [...new Set([...tagsOf(next, e.id), ...tags])].slice(0, MAX_TAGS_PER_ENTRY);
+    next = setEntryTags(next, e.id, all, new Set([...liveIds, e.id])); tagged++;
+  });
+  return {record: next, tagged};
+}

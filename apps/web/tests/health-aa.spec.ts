@@ -115,7 +115,8 @@ test('N6: pasted recipe text becomes confirmable rows, then foods and a recipe; 
   const panel = page.getByRole('region', {name: 'Import a recipe'});
   await panel.getByLabel('Recipe text').fill('Fictional chickpea stew\nServes 3\n\nIngredients\n400 g chickpeas\n1 onion, chopped\n2 tbsp olive oil\n100 g Fictional lentils\n\nMethod\n1. Cook.');
   await panel.getByRole('button', {name: 'Read the ingredients', exact: true}).click();
-  await expect(panel.getByText('4 ingredients found, 1 step left aside.')).toBeVisible();
+  // Session AV lane 2 (the recipe's steps are kept for the cooking view since food2, deliberate): the exact new words.
+  await expect(panel.getByText('4 ingredients found, 1 step kept for the cooking view.', {exact: false})).toBeVisible();
   await expect(panel.getByRole('textbox', {name: 'Ingredient 1 name'})).toHaveValue('chickpeas');
   await expect(panel.getByRole('textbox', {name: 'Ingredient 4 grams'})).toHaveValue('100');
   await panel.getByRole('button', {name: 'Drop ingredient 2'}).click();
@@ -123,7 +124,8 @@ test('N6: pasted recipe text becomes confirmable rows, then foods and a recipe; 
   await expect(page.getByText(/Recipe "Fictional chickpea stew" saved with 3 ingredients/)).toBeVisible();
   const data = await stored(page, HEALTH_STORAGE_KEY) as HealthData;
   expect(data.recipes.find(r => r.name === 'Fictional chickpea stew')!.ingredients).toHaveLength(3);
-  expect(data.foods.map(f => f.name)).toEqual(expect.arrayContaining(['chickpeas', 'olive oil'])); expect(data.foods.filter(f => f.name === 'Fictional lentils')).toHaveLength(1);
+  // Session AV lane 2 (food: an imported recipe's ingredient takes the offline library's food and name, deliberate).
+  expect(data.foods.map(f => f.name)).toEqual(expect.arrayContaining(['chickpeas', 'Olive oil, extra virgin'])); expect(data.foods.filter(f => f.name === 'Fictional lentils')).toHaveLength(1);
   expect(data.foods.find(f => f.name === 'chickpeas')!.nutrients.kcal).toBeNull();
   await view(page, 'Import');
   await page.getByRole('button', {name: 'A web address', exact: true}).click();

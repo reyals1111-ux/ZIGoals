@@ -2,6 +2,7 @@ import type {TimelineBand, TimelineSource, TimelineSourceItem} from '../timeline
 import {tasksOnDay} from './engine';
 import {deviceDay, readTasks, tasksToday} from './device';
 import type {Tasks} from './schema';
+import {LOOK_HEX, taskLook} from './look';
 
 /**
  * Session AL (PR-103, N-PR-08, P-PR-41): tasks on the Day Timeline — the day's tasks as the Agenda shows them (due that
@@ -13,6 +14,8 @@ const bandOf = (time?: string): TimelineBand => { if (!time) return 'anytime'; c
 export function taskTimelineItems(record: Tasks | null, date: string, today: string, doneDay: (iso: string) => string): TimelineSourceItem[] {
   if (!record) return [];
   return tasksOnDay(record, date, today, doneDay).map(t => ({
+    // Session AV lane 2 (r3-plan, LEDGER #257): the task's own symbol and colour.
+    ...((l => l ? {glyph: l.glyph, colour: LOOK_HEX[l.colour]} : {})(taskLook(t))),
     id: t.id, title: t.title, done: !!t.doneAt, href: `/app/tasks?task=${encodeURIComponent(t.id)}`, band: bandOf(t.time), ...(t.time ? {time: t.time} : {}),
     pillar: t.goal ? 'goals' : null, label: t.due && t.due < date && !t.doneAt ? 'Task · overdue' : 'Task',
   }));

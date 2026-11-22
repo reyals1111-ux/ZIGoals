@@ -33,6 +33,14 @@ export const healthNumberSchema = z.looseObject({
   refLow: labNumber.optional(),
   refHigh: labNumber.optional(),
   note: z.string().trim().max(NOTE_MAX).optional(),
+  /**
+   * Session AV lane 2 (health r3; LEDGER #284, Carb Manager's readings per meal; TIER 3 (stored format), additive): a reading
+   * marked before or after one of the diary's meals, and the time it was taken, so it shows beside that meal on the food
+   * day. Optional; a value this build cannot read is dropped on its own; older builds keep it untouched.
+   */
+  meal: z.enum(['Breakfast', 'Lunch', 'Dinner', 'Snacks']).optional().catch(undefined),
+  mealWhen: z.enum(['before', 'after']).optional().catch(undefined),
+  time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/).optional().catch(undefined),
 }).refine(e => e.kind === 'bp' ? e.systolic !== undefined && e.diastolic !== undefined : e.name !== undefined && e.value !== undefined, 'A reading needs its numbers.')
   .refine(e => e.refLow === undefined || e.refHigh === undefined || e.refLow <= e.refHigh, 'The low end of a range comes before the high end.');
 export const healthNumbersSchema = z.looseObject({

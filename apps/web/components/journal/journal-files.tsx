@@ -30,8 +30,12 @@ async function readPicked(list: readonly File[]): Promise<Read> {
   for (const f of list.slice(0, 200)) {
     if (/\.zip$/i.test(f.name) || f.type === 'application/zip') {
       const z = await readZip(new Uint8Array(await f.arrayBuffer()), name => TEXT_FILE.test(name) || MEDIA_FILE.test(name), {caps: CAPS, budget});
+      // Session AV lane 2 (r3-notes; LEDGER #272): a ZIGoals export holds every entry twice (journal.json and Markdown/);
+      // its journal.json is read and the Markdown copies left out, so nothing doubles.
+      const hasJson = z.files.some(f => /(^|\/)journal\.json$/i.test(f.name));
       for (const file of z.files) {
         if (MEDIA_FILE.test(file.name)) out.media.set(file.name.replace(/^.*?((?:photos|audios)\/[^/]+)$/i, '$1'), file.data);
+        else if (hasJson && /(^|\/)Markdown\/[^/]+\.md$/i.test(file.name)) continue;
         else if (!/(^|\/)readme\.txt$/i.test(file.name)) out.files.push({name: file.name, text: decode(file.data)});
       }
       out.skipped.push(...z.skipped);
@@ -113,7 +117,7 @@ export default function JournalFiles() {
     </section>
     <section aria-labelledby="journal-export-title" className="journal-files-part">
       <h3 id="journal-export-title">Export</h3>
-      <p className="fine">Your whole journal as one ZIP: every entry in Day One&rsquo;s shape, with its photos and voice notes. ZIGoals&rsquo; Import reads it back; Day One can import the JSON. Made on this device; keep it private.</p>
+      <p className="fine">Your whole journal as one ZIP: every entry in Day One&rsquo;s shape, with its photos and voice notes, and each entry as its own Markdown file (Markdown/, its day, journal and tags at the top) for Obsidian and other apps. ZIGoals&rsquo; Import reads it back; Day One can import the JSON. Made on this device; keep it private.</p>
       <button type="button" className="secondary" disabled={!!busy || !journal.data.entries.length} onClick={() => void exportAll()}>Export the journal</button>
     </section>
     {busy && <p className="fine" role="status">{busy}</p>}

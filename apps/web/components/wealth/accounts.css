@@ -70,6 +70,8 @@
 .debts-paid ul{margin:0;padding-left:18px;display:grid;gap:4px}
 /* Session AV lane 2 (money; Kubera): your sheet and each account's sheet options. */
 .accounts-equity{display:block;font-size:14px}
+/* Session AV lane 2, round 3 (money; Simplifi): a credit card's limit used and its days, under its name. */
+.accounts-card-line{display:block;font-size:14px;overflow-wrap:anywhere}
 .accounts-sheet-toggle button{min-height:44px}
 /* Session AV lane 2 (fixb2): "Your sheet" has its own class: it had taken .wealth-sheet, the name of Wealth's dialogs
    (components/platform/financial-ui.css), and with it their width (min(820px, 100vw - 32px)) and dark ground, so at

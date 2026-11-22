@@ -39,7 +39,7 @@ export function TimePicker({block, actions, onClose}: {block: TimelineBlock; act
     <div className="timeline-picker-actions">
       <button type="submit" className="primary">Save time</button>
       {block.timeFrom === 'its habit time' && actions.clearEveryDay && <button type="button" className="secondary" onClick={() => { actions.clearEveryDay!(block); onClose(); }}>Remove its everyday time</button>}
-      {block.timeFrom === 'moved here' && <button type="button" className="secondary" onClick={() => { actions.putBack(block); onClose(); }}>{own ? `Put it back at ${formatClock(own)}` : 'Put it back on Anytime'}</button>}
+      {block.timeFrom === 'moved here' && !block.everydayMove && <button type="button" className="secondary" onClick={() => { actions.putBack(block); onClose(); }}>{own ? `Put it back at ${formatClock(own)}` : 'Put it back on Anytime'}</button>}
       <button type="button" className="quiet" onClick={onClose}>Cancel</button>
     </div>
     {error && <p role="alert" className="fine">{error}</p>}
@@ -60,7 +60,7 @@ export function TimelineBlockRow({block, actions, busy}: {block: TimelineBlock; 
     <span className="timeline-time">{timed ? clockLabel(moving ? drag.pending! : block.start!) : 'Any time'}</span>
     <div className="timeline-block">
       <div className="timeline-block-main">
-        <p className="timeline-title"><strong>{block.title}</strong>{block.done && <span className="timeline-state">Done</span>}{block.skipped && <span className="timeline-state">Skipped</span>}</p>
+        <p className="timeline-title"><strong>{block.glyph && <span aria-hidden="true">{block.glyph} </span>}{block.title}</strong>{block.done && <span className="timeline-state">Done</span>}{block.skipped && <span className="timeline-state">Skipped</span>}</p>
         {meta && <p className="timeline-meta">{meta}</p>}
         {block.note && <p className="timeline-note">{block.note}</p>}
         {moving && <p className="timeline-moving" role="status">To {clockLabel(drag.pending!)}: let go (or press Enter) to save.</p>}

@@ -30,6 +30,8 @@ export function setCycleDay(rec: Cycle, date: string, input: DayInput, today: st
   return cycleSchema.parse({...rec, days});
 }
 export const setCycleOn = (rec: Cycle, on: boolean): Cycle => cycleSchema.parse({...rec, on});
+/** Session AV lane 2 (r3-plan, LEDGER #262): show the cycle day and period days on the day plan, or not. */
+export const setCycleOnPlan = (rec: Cycle, show: boolean): Cycle => { const next: Record<string, unknown> = {...rec}; if (show) next.plan = true; else delete next.plan; return cycleSchema.parse(next); };
 /** Deletes every entry (the person's confirmed choice); the on/off choice stays. */
 export const clearCycleDays = (rec: Cycle): Cycle => cycleSchema.parse({...rec, days: {}});
 
