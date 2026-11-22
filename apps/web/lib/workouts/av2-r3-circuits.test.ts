@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {collectEverything, DEVICE_KEYS} from '../export/everything';
 import {nextValue, planParts} from '../restore/plan';
 import {workoutsSchema} from './schema';
-import {CIRCUITS_KEY, circuitLine, circuitsSchema, circuitWorkout, emptyCircuits, phaseWords, positionAt, removeCircuit, restoreCircuit, saveCircuit, timeline, totalSeconds, type CircuitDraft} from './circuits';
+import {CIRCUITS_KEY, circuitLine, circuitsSchema, circuitWorkout, emptyCircuits, phaseWords, playerControls, positionAt, removeCircuit, restoreCircuit, saveCircuit, timeline, totalSeconds, type CircuitDraft} from './circuits';
 
 /**
  * Session AV lane 2 (health r3; LEDGER #289, Nike Training Club): timed circuits (work, rest, rounds, rest between rounds)
@@ -74,5 +74,12 @@ describe('timed circuits (LEDGER #289)', () => {
     const part = circuitWorkout(w, circuit, {date: '2026-11-23', startedAt: new Date(NOW), playedSeconds: 70});
     expect(part.workout.exercises.map(e => [e.exerciseId, e.sets.map(s => s.seconds)])).toEqual([['squat', [40]], ['push-up', [10]]]);
     expect(() => circuitWorkout(w, circuit, {date: '2026-11-23', startedAt: new Date(NOW), playedSeconds: 0})).toThrow('at least one move');
+  });
+  // Session AV lane 2 (review B3B-12): after "Stop and log what I did" there is no Resume or Skip.
+  test('the player offers no Resume or Skip once the run is logged or done', () => {
+    expect(playerControls({done: false, logged: false, elapsed: 30})).toEqual({pause: true, skip: true, log: true, close: 'Stop without logging'});
+    expect(playerControls({done: false, logged: true, elapsed: 30})).toEqual({pause: false, skip: false, log: false, close: 'Close'});
+    expect(playerControls({done: true, logged: false, elapsed: 400})).toEqual({pause: false, skip: false, log: true, close: 'Close'});
+    expect(playerControls({done: false, logged: false, elapsed: 0}).log).toBe(false);
   });
 });

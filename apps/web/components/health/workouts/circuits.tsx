@@ -2,7 +2,7 @@
 import {useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import {newHealthId, saveActivity} from '../../../lib/health';
 import {withActivity} from '../../../lib/workouts/engine';
-import {CIRCUIT_MOVES, CIRCUITS, circuitLine, circuitWorkout, LIMITS, MAX_MOVES, moveName, phaseWords, positionAt, removeCircuit, restoreCircuit, saveCircuit, timeline, totalSeconds, type Circuit, type CircuitDraft, type CircuitIssue} from '../../../lib/workouts/circuits';
+import {CIRCUIT_MOVES, CIRCUITS, circuitLine, circuitWorkout, LIMITS, MAX_MOVES, moveName, phaseWords, positionAt, playerControls, removeCircuit, restoreCircuit, saveCircuit, timeline, totalSeconds, type Circuit, type CircuitDraft, type CircuitIssue} from '../../../lib/workouts/circuits';
 import {ring} from '../../../lib/meditation/bells';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {useDeviceRecord} from '../../ai/use-device-record';
@@ -96,7 +96,7 @@ function Player({circuit, logDay, onClose}: {circuit: Circuit; logDay: string; o
       catch { setLogged(`Logged in your workouts: ${circuit.name}, ${minutes} min. Its minutes could not be added to Health.`); }
     } catch (e) { setLogged(e instanceof Error ? e.message : 'The circuit was not logged.'); }
   }
-  const share = total ? elapsed / total : 0;
+  const share = total ? elapsed / total : 0, controls = playerControls({done, logged: !!logged, elapsed});
   return <section className="r3-player" aria-labelledby={`player-${circuit.id}`} data-motion={motion ? 'on' : 'off'}>
     <h4 id={`player-${circuit.id}`} ref={heading} tabIndex={-1}>{circuit.name}</h4>
     {done ? <p className="r3-player-now">Done. {clock(Math.round(total))} in all.</p> : at && <>
@@ -107,11 +107,11 @@ function Player({circuit, logDay, onClose}: {circuit: Circuit; logDay: string; o
     </>}
     <div className="r3-player-bar" role="progressbar" aria-label="The circuit so far" aria-valuemin={0} aria-valuemax={Math.round(total)} aria-valuenow={Math.round(elapsed)} aria-valuetext={`${clock(Math.round(elapsed))} of ${clock(Math.round(total))}`}><i style={{width: `${share * 100}%`}}/></div>
     <div className="actions">
-      {!done && <button type="button" className="primary" onClick={pause}>{paused ? 'Resume' : 'Pause'}</button>}
-      {!done && <button type="button" className="secondary" onClick={skip}>Skip this part</button>}
+      {controls.pause && <button type="button" className="primary" onClick={pause}>{paused ? 'Resume' : 'Pause'}</button>}
+      {controls.skip && <button type="button" className="secondary" onClick={skip}>Skip this part</button>}
       <button type="button" className="quiet" aria-pressed={bell} onClick={() => setBell(b => !b)}>Bell</button>
-      {!logged && elapsed > 0 && <button type="button" className={done ? 'primary' : 'quiet'} onClick={() => void log()}>{done ? 'Log as a workout' : 'Stop and log what I did'}</button>}
-      <button type="button" className="quiet" onClick={onClose}>{logged || done ? 'Close' : 'Stop without logging'}</button>
+      {controls.log && <button type="button" className={done ? 'primary' : 'quiet'} onClick={() => void log()}>{done ? 'Log as a workout' : 'Stop and log what I did'}</button>}
+      <button type="button" className="quiet" onClick={onClose}>{controls.close}</button>
     </div>
     <p className="sr-only" role="status" aria-live="polite">{announce}</p>
     {logged && <p className="fine" role="status">{logged}</p>}

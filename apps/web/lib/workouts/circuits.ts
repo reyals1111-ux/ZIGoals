@@ -110,3 +110,11 @@ export function circuitWorkout(w: Workouts, c: Circuit, input: {date: string; st
   const parsed = workoutsSchema.parse({...w, workouts: [...w.workouts, workout]});
   return {workouts: parsed, workout: parsed.workouts.at(-1)!};
 }
+/**
+ * The player's buttons for its state (review B3B-12): once the run is logged (or done) it cannot be resumed or skipped on,
+ * since that time would never be logged; Log only once something is played and not yet logged.
+ */
+export function playerControls(state: {done: boolean; logged: boolean; elapsed: number}): {pause: boolean; skip: boolean; log: boolean; close: 'Close' | 'Stop without logging'} {
+  const ended = state.done || state.logged;
+  return {pause: !ended, skip: !ended, log: !state.logged && state.elapsed > 0, close: ended ? 'Close' : 'Stop without logging'};
+}
