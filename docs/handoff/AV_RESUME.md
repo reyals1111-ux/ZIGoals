@@ -34,9 +34,13 @@ Lane 2's own state is kept in this file's "Lane 2 — state" section on that bra
   What's new: one grouped line per area (av2-new-*). Review (quality/lane2-b2.md): 2 Blockers, 7 Majors, 9 Minors —
   B2B all fixed; B2A on `lane2/revb2a` (running). First build of batch 2 and its specs running; after revb2a and
   nl-days (Dutch dates in answers, hide-figures in Export) merge: corpus, one build, specs, push.
-- Batch 3 = round 3 (LEDGER #256–#299, COMPETITORS "round 3"): builders r3-plan, r3-notes, r3-health, r3-money.
+- Batch 3 = round 3 (LEDGER #256–#299, COMPETITORS "round 3"): r3-plan, r3-money, r3-health built (local branches);
+  r3-notes building; review b3a (1 Blocker, 4 Majors) being fixed by r3-money and r3-plan; review b3b (r3-health) running.
+  Also: loose-ends (Compare spending factor, tag totals, alert money, NOVA Dutch captions, task photo count), fixb2
+  (batch 2 specs), polish review.
 - Owner items from lane 2: the private-sync Worker deploy (OWNER_STEPS.md); the visit report's two symptom charts;
-  #245 automatic recording; #41 passkey; a bundled reading font (#263); the Showcase examples the Minors left.
+  #245 automatic recording; #41 passkey; a bundled reading font (#263); the Showcase examples the Minors left; Health →
+  Activity's older "About N kcal used — an estimate" for manual activities (against "no calorie expenditure is estimated"?).
 - Scripts (scratchpad): batch.sh (typecheck + build of HEAD in zg-wt; then start :3101 as its own background task),
   add_help.py (Help + static.ts), extract_help.py (Q/A from a registry), add_shards.sh (new specs to the suggested shard).
 
