@@ -72,3 +72,26 @@ describe('a calendar of the month (#338)', () => {
     expect(text(zigi('show the calendar of my spending', withLog(freshAll(), [])))).toContain('Nothing logged this month yet.');
   });
 });
+
+describe('archived categories and starter sets (#342, #347)', () => {
+  test('the archived categories with their entries, EN and NL', () => {
+    const s = withLog(freshAll(), [mine({category: 'Gifts'}), mine({category: 'Gifts'})], {archived: {expense: ['Gifts'], income: ['Freelance']}});
+    expect(text(zigi('which categories have I archived', s))).toBe('Archived: Gifts, 2 entries and Freelance (money received). They are no longer offered in the pickers; their entries keep them, and reports and search still show them. "Bring back" offers one again.');
+    expect(text(zigi('welke categorieën heb ik gearchiveerd', s))).toContain('Gearchiveerd: Gifts, 2 invoeren en Freelance (inkomsten).');
+    expect(text(zigi('show my archived categories', withLog(freshAll(), [])))).toContain('No category is archived.');
+  });
+  test('the four sets, EN and NL', () => {
+    expect(text(zigi('what starter category sets are there'))).toContain('Four written starter sets: a student (study costs, a room and a side job), a household');
+    expect(text(zigi('welke startsets met categorieën zijn er'))).toContain('Vier geschreven startsets: een student (studiekosten, een kamer en een bijbaan)');
+  });
+});
+
+describe('groups of entries (#341)', () => {
+  const g = {id: 'g1', name: 'Weekend in Ghent'};
+  const s = withLog(freshAll(), [mine({amount: '120.00', date: `${month}-07`, group: g}), mine({amount: '30.00', share: '15.00', date: `${month}-08`, group: g}), mine({kind: 'income', amount: '20.00', category: 'Refund', date: `${month}-09`, group: g}), mine({amount: '9.00'})]);
+  test('each group with its total by Wealth → Spending’s rule, EN and NL', () => {
+    expect(text(zigi('which groups of entries do I have', s))).toBe('Weekend in Ghent: 3 entries, €135.00 spent, €20.00 received (Sat, Nov 7 – Mon, Nov 9). Each entry still counts on its own in your totals and budgets.');
+    expect(text(zigi('welke groepen van invoer heb ik', s))).toContain('Weekend in Ghent: 3 invoeren, € 135,00 uitgegeven, € 20,00 ontvangen');
+    expect(text(zigi('show my grouped transactions', withLog(freshAll(), [])))).toContain('You have no groups yet.');
+  });
+});

@@ -1,0 +1,24 @@
+/* Session AV lane 2, round 4 (money; Actual Budget, Lunch Money): archive a category, starter sets, groups, places,
+   saved searches and checking against the bank. Theme tokens only, 14 px and larger copy, 44 px targets, no motion. */
+.category-more{display:grid;gap:14px;margin-top:8px}
+.category-more-part{display:grid;gap:8px;min-width:0}
+.category-more-part h4{font-size:15px;margin:0}
+.category-more select,.money-places select,.money-saved select{min-height:44px;width:100%;box-sizing:border-box;font-size:16px}
+.category-more-sub{margin:0;font-weight:600}
+.category-more-preview{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.category-more-preview li{display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline;overflow-wrap:anywhere;font-size:14px}
+.category-more-subs{flex-basis:100%}
+.category-more button[aria-disabled="true"],.money-group-form button[aria-disabled="true"],.money-reconcile button[aria-disabled="true"]{opacity:.55;cursor:default}
+.spending-entries > li.money-group{display:block;list-style:none}
+.money-group > details > summary{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;align-items:baseline;min-height:44px;padding:6px 0;cursor:pointer;overflow-wrap:anywhere}
+.money-group-what{min-width:0}
+.money-group-line{font-variant-numeric:tabular-nums}
+.money-group-entries{margin:4px 0 8px;padding-left:12px;border-left:2px solid var(--line,rgba(140,160,220,.35))}
+.money-group button{min-height:44px}
+.money-mark-checked{color:var(--text-secondary,var(--muted))}
+.money-places-payees{flex-basis:100%;display:grid;gap:4px}
+.money-places-payees ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 12px}
+.money-places-payees li{display:inline-flex;align-items:center;gap:4px}
+.money-places-payees button{min-height:44px;font-size:15px}
+.money-places-own{flex-basis:100%}
+.money-places > .fine{flex-basis:100%}

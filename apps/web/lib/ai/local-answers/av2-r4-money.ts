@@ -3,6 +3,9 @@ import {fromCents} from '../../money-log/engine';
 import type {MoneyMore} from '../../money-more/schema';
 import {formatCurrencyAmount} from '../../visual-format';
 import {busiestDays, calendarCurrencies, monthCalendar} from '../../money-insights/month-days';
+import {archivedOf, entriesIn} from '../../money-log/category';
+import {STARTER_SETS} from '../../money-log/starter-sets';
+import {groupsOf} from '../../money-log/groups';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, dayIn, isQuestion, list, MIXED, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -39,7 +42,6 @@ export const PLACES = {
   insights: {en: 'Wealth → Spending → Your money over time', nl: 'Vermogen → Uitgaven → Your money over time'},
   accounts: {en: 'Wealth → Accounts', nl: 'Vermogen → Rekeningen'},
 } as const;
-void logOf;
 
 // ── A calendar of the month (#338) ─────────────────────────────────────────────────────────────────────────────────
 /** "Which day did I spend the most this month", "op welke dag gaf ik deze maand het meest uit". */
@@ -61,3 +63,50 @@ function monthDays(a: Asked): LocalReply | null {
     `Elke dag staat op ${PLACES.insights.nl} → A calendar of the month; een kost verspreid over maanden telt elke maand zijn deel, zoals je budgetten.`)}`, calls);
 }
 add(monthDays);
+
+// ── Archived categories and starter sets (#342, #347) ──────────────────────────────────────────────────────────────
+/** "Which categories have I archived", "welke categorieën heb ik gearchiveerd". */
+function archivedCategories(a: Asked): LocalReply | null {
+  const en = /\barchived (?:categor(?:y|ies))\b|\bcategor(?:y|ies)\b.*\barchived\b/.test(a.f);
+  const nl = /\bgearchiveerde categorie(?:en|n)?\b|\bcategorie(?:en|n)?\b.*\bgearchiveerd\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const log = logOf(a.env), calls = call('money_log', {archived: true}, 'Money log · archived categories');
+  const rows = (['expense', 'income'] as const).flatMap(kind => (log ? archivedOf(log, kind) : []).map(name => ({kind, name, n: entriesIn(log?.entries ?? [], kind, name)})));
+  if (!rows.length) return answer(say(a.lang, `No category is archived. In ${PLACES.spending.en} → Log spending → Your own categories, "Archive a category" takes one out of the pickers; its entries keep it.`,
+    `Er is geen categorie gearchiveerd. In ${PLACES.spending.nl} → Log spending → Your own categories haalt "Archive a category" er een uit de keuzelijsten; je invoer houdt hem.`), calls);
+  const item = (lang: Lang, r: typeof rows[number]) => `${r.name}${r.kind === 'income' ? say(lang, ' (money received)', ' (inkomsten)') : ''}${r.n ? say(lang, `, ${r.n} ${r.n === 1 ? 'entry' : 'entries'}`, `, ${r.n} ${r.n === 1 ? 'invoer' : 'invoeren'}`) : ''}`;
+  return answer(say(a.lang, `Archived: ${list(rows.map(r => item('en', r)), 'en')}. They are no longer offered in the pickers; their entries keep them, and reports and search still show them. "Bring back" offers one again.`,
+    `Gearchiveerd: ${list(rows.map(r => item('nl', r)), 'nl')}. Ze staan niet meer in de keuzelijsten; je invoer houdt ze, en overzichten en zoeken tonen ze nog. "Bring back" maakt er weer een kiesbaar.`), calls);
+}
+/** "What starter category sets are there", "welke startsets met categorieën zijn er". */
+function starterSets(a: Asked): LocalReply | null {
+  const en = /\bstarter (?:category )?sets?\b|\bcategory (?:sets?|templates?)\b/.test(a.f);
+  const nl = /\bstartsets?\b|\bcategorieset\b|\bcategoriesets\b|\bset (?:met|van) categorie(?:en|n)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const calls = call('money_log', {starterSets: true}, 'Money log · starter sets');
+  const sets = (lang: Lang) => STARTER_SETS.map(s => `${s.title[lang].toLowerCase()} (${s.about[lang].replace(/\.$/, '').toLowerCase()})`);
+  return answer(say(a.lang, `Four written starter sets: ${list(sets('en'), 'en')}. In ${PLACES.spending.en} → Log spending → Your own categories → Start from a set, see what each adds (in English or Dutch), then add it in one tap; nothing already there is changed.`,
+    `Vier geschreven startsets: ${list(sets('nl'), 'nl')}. In ${PLACES.spending.nl} → Log spending → Your own categories → Start from a set zie je wat elke set toevoegt (in het Engels of Nederlands) en voeg je hem in één tik toe; wat er al is, blijft zoals het is.`), calls);
+}
+add(archivedCategories, starterSets);
+
+// ── Groups of entries (#341) ───────────────────────────────────────────────────────────────────────────────────────
+/** "Which groups of entries do I have", "welke groepen heb ik in mijn uitgaven". Totals by Wealth → Spending's `totals`. */
+function entryGroups(a: Asked): LocalReply | null {
+  const en = /\bgroups? of (?:my )?(?:entries|transactions|spending)\b|\b(?:entry|transaction|spending) groups?\b|\bgrouped (?:entries|transactions)\b/.test(a.f);
+  const nl = /\bgroepen? (?:van |in )?(?:mijn )?(?:invoer|uitgaven|transacties|boekingen)\b|\bgegroepeerde (?:invoer|uitgaven|transacties)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const groups = groupsOf(entriesOf(a.env)), calls = call('money_log', {groups: true}, 'Money log · groups');
+  if (!groups.length) return answer(say(a.lang, `You have no groups yet. In ${PLACES.spending.en} → Search all your entries, Select two or more entries and "Group" them under a name; they show as one line, and each still counts on its own.`,
+    `Je hebt nog geen groepen. In ${PLACES.spending.nl} → Search all your entries kies je met Select twee of meer invoeren en zet je ze met "Group" onder een naam; ze staan dan als één regel, en elke telt nog apart mee.`), calls);
+  const one = (lang: Lang, g: typeof groups[number]) => {
+    const sums = g.totals.map(t => [t.expenses ? say(lang, `${moneyIn(lang, t.expenses, t.currency)} spent`, `${moneyIn(lang, t.expenses, t.currency)} uitgegeven`) : '', t.income ? say(lang, `${moneyIn(lang, t.income, t.currency)} received`, `${moneyIn(lang, t.income, t.currency)} ontvangen`) : ''].filter(Boolean).join(', ')).filter(Boolean);
+    return `${g.name}: ${g.entries.length} ${say(lang, g.entries.length === 1 ? 'entry' : 'entries', g.entries.length === 1 ? 'invoer' : 'invoeren')}${sums.length ? `, ${sums.join('; ')}` : ''} (${dayIn(lang, g.from, a.today)}${g.to !== g.from ? ` – ${dayIn(lang, g.to, a.today)}` : ''})`;
+  };
+  return answer(say(a.lang, `${groups.slice(0, 5).map(g => one('en', g)).join('. ')}.${groups.length > 5 ? ` And ${groups.length - 5} more.` : ''} Each entry still counts on its own in your totals and budgets.`,
+    `${groups.slice(0, 5).map(g => one('nl', g)).join('. ')}.${groups.length > 5 ? ` En nog ${groups.length - 5}.` : ''} Elke invoer telt nog apart mee in je totalen en budgetten.`), calls);
+}
+add(entryGroups);

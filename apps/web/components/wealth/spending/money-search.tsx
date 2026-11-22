@@ -11,6 +11,9 @@ import {useDeviceRecord} from '../../ai/use-device-record';
 import {MONEY_TAGS_RECORD} from '../../../lib/money-tags/schema';
 import {allTags, normaliseTag, setEntryTags, tagsOf} from '../../../lib/money-tags/tags';
 import {PAID_WITH, PAID_WITH_WORDS, categoryPath} from '../../../lib/money-more/quick';
+import {groupRows, type GroupSummary} from '../../../lib/money-log/groups';
+import {MAX_GROUP} from '../../../lib/money-log/schema';
+import {GroupItem} from './group-row';
 
 /**
  * Session AV (owner follow-up 1, F-MONEY-SEARCH; Copilot, Monarch, YNAB): "Search all your entries" under Spending —
@@ -24,8 +27,9 @@ import {PAID_WITH, PAID_WITH_WORDS, categoryPath} from '../../../lib/money-more/
 const SHOWN = 100, money = (cents: number, currency: string) => moneyCents(cents, currency);
 /** Session AV (fresh-agent check q2, rank 21): an amount field read as cents ("12,50" too); empty or unreadable: no limit. */
 const toCents = (raw: string): number | undefined => { if (!raw.trim()) return undefined; const r = parseNumberInput(raw), n = Number(r.ok ? r.text : NaN); return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : undefined; };
-export type BulkAction = {kind: 'category'; category: string} | {kind: 'exclude'; out: boolean};
-export default function MoneySearch({entries, onEdit, onBulk, categories = [], initial}: {entries: readonly MoneyEntry[]; onEdit: (e: MoneyEntry) => void; onBulk?: (ids: ReadonlySet<string>, action: BulkAction) => void; categories?: readonly string[]; initial?: Partial<MoneyQuery>}) {
+/** Session AV lane 2, round 4 (money, LEDGER #341): `group` puts the selection in one named group; a refusal comes back in words. */
+export type BulkAction = {kind: 'category'; category: string} | {kind: 'exclude'; out: boolean} | {kind: 'group'; name: string};
+export default function MoneySearch({entries, onEdit, onBulk, onUngroup, categories = [], initial}: {entries: readonly MoneyEntry[]; onEdit: (e: MoneyEntry) => void; onBulk?: (ids: ReadonlySet<string>, action: BulkAction) => string | null | void; onUngroup?: (g: GroupSummary) => void; categories?: readonly string[]; initial?: Partial<MoneyQuery>}) {
   const id = useId(), [q, setQ] = useState<MoneyQuery>({text: '', kind: 'all', category: '', from: '', to: '', not: '', payee: '', counted: 'all', tax: false, paidWith: '', sub: '', ...initial}), [more, setMore] = useState(false);
   const [range, setRange] = useState({min: '', max: ''}), minCents = toCents(range.min), maxCents = toCents(range.max);
   const tags = useDeviceRecord(MONEY_TAGS_RECORD), [tag, setTag] = useState('');
@@ -46,7 +50,8 @@ export default function MoneySearch({entries, onEdit, onBulk, categories = [], i
   const pickedNow = useMemo(() => new Set(found.filter(e => picked.has(e.id)).map(e => e.id)), [found, picked]), selectButton = useRef<HTMLButtonElement>(null);
   const pickedSum = useMemo(() => summarizeSelection(found, pickedNow), [found, pickedNow]);
   const toggle = (entryId: string) => setPicked(c => { const n = new Set(c); if (!n.delete(entryId)) n.add(entryId); return n; });
-  const run = (action: BulkAction, words: string) => { if (!pickedNow.size || !onBulk) return; onBulk(pickedNow, action); setNote(words); };
+  const run = (action: BulkAction, words: string) => { if (!pickedNow.size || !onBulk) return; const refused = onBulk(pickedNow, action); setNote(refused || words); if (!refused && action.kind === 'group') setGroupName(''); };
+  const [groupName, setGroupName] = useState('');
   const addTag = () => {
     const clean = normaliseTag(bulkTag);
     if (!clean) { setNote('Type a tag: letters, digits, spaces, "-" or "_", at most 24.'); return; }
@@ -57,6 +62,13 @@ export default function MoneySearch({entries, onEdit, onBulk, categories = [], i
     } catch { setNote('The tag could not be saved on this device.'); }
   };
   const chooseCats = [...new Set([...categories, ...cats])];
+  const shownFound = found.slice(0, more ? found.length : SHOWN);
+  const item = (e: MoneyEntry) => <li key={e.id}>
+      {selecting && <label className="money-select-check"><input type="checkbox" checked={pickedNow.has(e.id)} onChange={() => toggle(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
+      <span className="spending-entry-what"><strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {formatDate(e.date)}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.taxDeductible && <span className="money-mark"> · Tax-deductible</span>}</span>
+      <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(Math.round(Number(e.amount) * 100), e.currency)}</span>
+      <span className="spending-entry-actions"><button type="button" className="text-link spending-edit" aria-label={`Edit ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => onEdit(e)}>Edit</button></span>
+    </li>;
   return <div className="money-search">
     <form className="money-search-form" role="search" aria-label="Search all your entries" onSubmit={e => e.preventDefault()}>
       <label className="field money-search-text"><span>Words or an amount</span><input type="search" value={q.text} autoComplete="off" enterKeyHint="search" placeholder="café, rent, 12.50" onChange={e => set({text: e.target.value})}/></label>
@@ -95,17 +107,17 @@ export default function MoneySearch({entries, onEdit, onBulk, categories = [], i
         <button type="button" className="secondary" disabled={!pickedNow.size || !bulkTag.trim()} onClick={addTag}>Add tag</button>
       </div>
       <div className="money-bulk-row">
+        <label className="field"><span>Group them as one, named</span><input value={groupName} maxLength={40} autoComplete="off" placeholder="Weekend in Ghent" onChange={e => setGroupName(e.target.value)}/></label>
+        <button type="button" className="secondary" aria-disabled={pickedNow.size < 2 || pickedNow.size > MAX_GROUP || !groupName.trim() || undefined} onClick={() => { if (pickedNow.size < 2) { setNote('Select at least two entries to group.'); return; } if (pickedNow.size > MAX_GROUP || !groupName.trim()) { setNote(groupName.trim() ? `A group holds up to ${MAX_GROUP} entries.` : 'Give the group a name, for example Weekend in Ghent.'); return; } run({kind: 'group', name: groupName}, `${formatNumber(pickedNow.size)} entries grouped as ${groupName.trim()}: one line in your lists, each still counted on its own.`); }}>Group</button>
+      </div>
+      {pickedNow.size > MAX_GROUP && <p className="fine">A group holds up to {MAX_GROUP} entries.</p>}
+      <div className="money-bulk-row">
         <button type="button" className="secondary" disabled={!pickedNow.size} onClick={() => run({kind: 'exclude', out: true}, `${formatNumber(pickedNow.size)} left out of your spending, budgets and insights; still in your log.`)}>Leave out of my spending</button>
         <button type="button" className="quiet" disabled={!pickedNow.size} onClick={() => run({kind: 'exclude', out: false}, `${formatNumber(pickedNow.size)} counted again.`)}>Count again</button>
       </div>
       <p className="money-status" role="status">{note}</p>
     </div>}
-    {found.length > 0 && <ul className="spending-entries money-search-results" aria-label="Entries found">{found.slice(0, more ? found.length : SHOWN).map(e => <li key={e.id}>
-      {selecting && <label className="money-select-check"><input type="checkbox" checked={pickedNow.has(e.id)} onChange={() => toggle(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
-      <span className="spending-entry-what"><strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {formatDate(e.date)}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.taxDeductible && <span className="money-mark"> · Tax-deductible</span>}</span>
-      <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(Math.round(Number(e.amount) * 100), e.currency)}</span>
-      <span className="spending-entry-actions"><button type="button" className="text-link spending-edit" aria-label={`Edit ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => onEdit(e)}>Edit</button></span>
-    </li>)}</ul>}
+    {found.length > 0 && <ul className="spending-entries money-search-results" aria-label="Entries found">{(selecting ? shownFound.map(entry => ({kind: 'entry' as const, entry})) : groupRows(shownFound, entries)).map(row => row.kind === 'entry' ? item(row.entry) : <GroupItem key={`g-${row.group.id}`} group={row.group} shown={row.shown} entry={item} money={money} {...(onUngroup ? {onUngroup} : {})}/>)}</ul>}
     {found.length > SHOWN && !more && <p><button type="button" className="secondary" onClick={() => setMore(true)}>Show all {formatNumber(found.length)}</button></p>}
   </div>;
 }

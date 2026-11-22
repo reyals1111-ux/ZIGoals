@@ -82,3 +82,74 @@ none of round 4's questions. Corpus: `AV2_R4_MONEY` from `apps/web/lib/ai/evals/
   income shows here on a calendar of the month.").
 - Registries: none. CSS touched: `components/wealth/spending/insights/insights.css` (`.money-cal-*`, theme variables only).
 - Today: nothing added. Wealth → Spending's "Your money over time" now has 12 view buttons (was 11).
+
+### R4-F2 (group U4). Archive a category; starter sets of categories
+
+- LEDGER rows: #342 Lunch Money archive a category — **built** (Wealth → Spending → Log spending → Your own categories →
+  "Archive a category": any category of the kind shown — one of the usual ones or the person's own — leaves every picker
+  (the entry form's chips and its "your most used lately", budgets' category picker, To review, Split an entry, the review
+  cards; each reads `categoryChoices`, which now leaves archived ones out); its entries keep it, and reports, insights,
+  search and the edit form of such an entry still show it; "Bring back" offers it again; adding an own category of that
+  name says it is archived; the last category offered cannot be archived; in the business space it is kept on the
+  business money log). An existing budget for an archived category stays as it is (the person's own budget is never
+  hidden); only the picker no longer offers it. #347 Lunch Money starter category sets — **built** ("Start from a set":
+  four written sets — a student, a household, a freelancer, a traveller — of own categories and subcategories, under the
+  usual categories or the set's own, for spending and income, with names in English or Dutch; a preview lists each
+  category and subcategory as new or already there; one tap adds what is new, with Undo that takes out exactly what was
+  added; nothing already there is changed; the usual limits hold and a full list is said).
+- Spending function used: none (no figure). The archive message counts entries (`entriesIn`), not money.
+- Files: `lib/money-log/category.ts` (`archiveCategory`, `unarchiveCategory`, `archivedOf`, `isArchived`, `entriesIn`),
+  `lib/money-log/counted.ts` (`allCategories`; `categoryChoices` leaves archived out; `addOwnCategory` names an archived
+  twin), `lib/recent-categories/recent.ts` (`hidden` in `categoriesRecentFirst`), `lib/money-log/starter-sets.ts` (new),
+  `components/wealth/spending/category-more.tsx` (new, lazy on the fold), `components/wealth/spending/money-r4.css` (new),
+  `components/wealth/spending/spending-section.tsx` (the lazy part in the fold; a new entry never takes an archived
+  category; the kind switch starts on the first category offered; an archived category is never suggested).
+- Tests: `lib/money-log/av2-archive-starter.test.ts`, `lib/ai/local-answers/av2-r4-money.test.ts`; existing
+  `lib/money-log`, `lib/recent-categories` tests green unchanged.
+- Spec: `tests/av2-money-categories.spec.ts`.
+- Stored: `zigoals:money-log:v1` `archived` (commit `0c11c3aa`); a starter set writes the existing `own` and `subs`.
+- Help (EN): **Q: Can I hide a category I no longer use?** A: Yes. In Wealth → Spending → Log spending → Your own
+  categories, choose it under "Archive a category". It is no longer offered when you log, in budgets or in To review; your
+  entries keep it, and reports and search still show it. "Bring back" offers it again. **Q: Is there a ready list of
+  categories to start from?** A: Under Your own categories → "Start from a set" there are four: a student, a household, a
+  freelancer and a traveller, in English or Dutch. See what each adds, then add it in one tap; nothing you already have is
+  changed, and Undo takes it out again.
+- What's new: "Categories: archive one you no longer use, and start from one of four written sets."
+- Answers: `archivedCategories`, `starterSets` (corpus `av2r4-money-archived`, `av2r4-money-starter-sets`).
+- Showcase hook: none (the Showcase money log is pinned by the NOVA corpus; an archive or a set added in the Showcase
+  stays in its tab). Empty states teach ("An archived category is no longer offered…", "Four written starter sets…").
+- Registries: none. CSS touched: `components/wealth/spending/money-r4.css` (new, theme variables only).
+- Today: nothing added.
+
+### R4-F3 (group U4). Group entries into one
+
+- LEDGER row: #341 Lunch Money group entries — **built** (Wealth → Spending → Search all your entries → Select → "Group
+  them as one, named …" → Group: two to twenty entries — a weekend away, a purchase and its refund — under a name (an
+  entry of another group moves to this one; fewer than two, more than twenty or no name is said in words, and the button
+  stays focusable); This week and the search results then show the group as one line where its newest entry is: its
+  name, "a group", its days, how many entries and what they add up to per currency ("3 entries · spent €162.40, received
+  €20.00", entries left out said apart); opened, each entry as the list shows it (with Edit and Remove), "N of its M
+  entries are in this list" when the list shows only some, and "Ungroup" with Undo; Select mode lists every entry flat;
+  Hide amounts blurs the line). Every total, budget, report, insight and answer still counts each entry on its own, as
+  it is — grouping changes only how a list shows them.
+- Spending function used: the group line is `totals` (lib/money-log/engine.ts) over the group's entries (`groupsOf` in
+  lib/money-log/groups.ts).
+- Files: `lib/money-log/groups.ts` (new: `groupEntries`, `ungroup`, `renameGroup`, `groupsOf`, `groupRows`, `groupLine`),
+  `components/wealth/spending/group-row.tsx` (new, `GroupItem`; small, in Spending's chunk with its CSS),
+  `components/wealth/spending/money-search.tsx` (the Group action in Select mode, group rows in the results, `onUngroup`;
+  `BulkAction` gains `group`, and `onBulk` may return a refusal in words), `components/wealth/spending/spending-section.tsx`
+  (This week's rows, the group action, Ungroup with Undo), `components/wealth/spending/money-r4.css`.
+- Tests: `lib/money-log/av2-groups.test.ts` (figures unchanged by grouping, the group's total, folding, limits, the row),
+  `lib/ai/local-answers/av2-r4-money.test.ts`.
+- Spec: `tests/av2-money-groups.spec.ts`.
+- Stored: `zigoals:money-log:v1` entry `group` (commit `0c11c3aa`).
+- Help (EN): **Q: Can I put a weekend's spending together as one line?** A: Yes. In Wealth → Spending → Search all your
+  entries, find them, tap Select, pick two to twenty entries, give the group a name and tap Group. Your lists then show
+  them as one line with their total; open it to see each entry. Your totals and budgets still count each entry on its
+  own. "Ungroup" puts them back on their own lines.
+- What's new: "Spending: group entries into one line, such as a weekend away, with their total."
+- Answers: `entryGroups` (corpus `av2r4-money-groups`).
+- Showcase hook: none (a group made in the Showcase stays in its tab; the pinned money log has none). Empty answer
+  teaches ("You have no groups yet. … Select two or more entries and Group them under a name").
+- Registries: none. CSS touched: `components/wealth/spending/money-r4.css` (`.money-group*`).
+- Today: nothing added.

@@ -69,17 +69,27 @@ export function budgetDayParts(e: MoneyEntry): {date: string; parts: EntryPart[]
 /** Whether an entry can reach a month's budgets (its own month, or a later one it is spread into). */
 export const reachesMonth = (e: MoneyEntry, month: string) => { const k = monthIndex(month) - monthIndex(e.date.slice(0, 7)); return k >= 0 && k < (e.spread ?? 1); };
 
-/** The categories offered for a kind: the usual ones, then the person's own (A to Z as they typed them). */
-export function categoryChoices(log: Pick<MoneyLog, 'own'>, kind: MoneyEntry['kind']): readonly string[] {
+/** Every category of a kind, archived ones included: the usual ones, then the person's own (as they typed them). */
+export function allCategories(log: Pick<MoneyLog, 'own'>, kind: MoneyEntry['kind']): readonly string[] {
   const base: readonly string[] = kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES, own = (kind === 'expense' ? log.own?.expense : log.own?.income) ?? [];
   return [...base, ...own.filter(c => !base.some(b => b.toLowerCase() === c.toLowerCase()))];
+}
+/**
+ * The categories offered for a kind: the usual ones, then the person's own (A to Z as they typed them). Session AV lane 2,
+ * round 4 (money; Lunch Money's archive, LEDGER #342): an archived category is not offered (lib/money-log/category.ts);
+ * its entries keep it, and reports and search still show it.
+ */
+export function categoryChoices(log: Pick<MoneyLog, 'own'> & Partial<Pick<MoneyLog, 'archived'>>, kind: MoneyEntry['kind']): readonly string[] {
+  const hidden = new Set(((kind === 'expense' ? log.archived?.expense : log.archived?.income) ?? []).map(c => c.toLowerCase()));
+  return allCategories(log, kind).filter(c => !hidden.has(c.toLowerCase()));
 }
 /** Adds one of the person's own categories (trimmed, at most 40 characters, once, at most 30 of a kind). */
 export function addOwnCategory(log: MoneyLog, kind: MoneyEntry['kind'], name: string): MoneyLog {
   const clean = name.trim().replace(/\s+/g, ' ');
   if (!clean) throw new Error('Type a name for the category.');
   if (clean.length > 40) throw new Error('A category has at most 40 characters.');
-  const twin = categoryChoices(log, kind).find(c => c.toLowerCase() === clean.toLowerCase());
+  const twin = allCategories(log, kind).find(c => c.toLowerCase() === clean.toLowerCase());
+  if (twin && ((kind === 'expense' ? log.archived?.expense : log.archived?.income) ?? []).some(c => c.toLowerCase() === twin.toLowerCase())) throw new Error(`${twin} is archived: bring it back under Archived categories.`);
   if (twin) throw new Error(`${twin} is already a category.`);
   const list = (kind === 'expense' ? log.own?.expense : log.own?.income) ?? [];
   if (list.length >= MAX_OWN_CATEGORIES) throw new Error(`Up to ${MAX_OWN_CATEGORIES} of your own categories.`);
