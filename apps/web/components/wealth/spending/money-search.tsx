@@ -14,6 +14,7 @@ import {PAID_WITH, PAID_WITH_WORDS, categoryPath} from '../../../lib/money-more/
 import {groupRows, type GroupSummary} from '../../../lib/money-log/groups';
 import {MAX_GROUP} from '../../../lib/money-log/schema';
 import {GroupItem} from './group-row';
+import {bulkCategoryChoices} from '../../../lib/money-log/category';
 // Session AV lane 2, round 4 (money; Lunch Money's Query Tool, LEDGER #344): a search kept with a name, drawn in Your money over time.
 import {MONEY_MORE} from '../../../lib/money-more/schema';
 import {fromQuestion, questionsOf, saveQuestion, toQuestion} from '../../../lib/money-log/saved-searches';
@@ -32,7 +33,8 @@ const SHOWN = 100, money = (cents: number, currency: string) => moneyCents(cents
 const toCents = (raw: string): number | undefined => { if (!raw.trim()) return undefined; const r = parseNumberInput(raw), n = Number(r.ok ? r.text : NaN); return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : undefined; };
 /** Session AV lane 2, round 4 (money, LEDGER #341): `group` puts the selection in one named group; a refusal comes back in words. */
 export type BulkAction = {kind: 'category'; category: string} | {kind: 'exclude'; out: boolean} | {kind: 'group'; name: string};
-export default function MoneySearch({entries, onEdit, onBulk, onUngroup, categories = [], initial}: {entries: readonly MoneyEntry[]; onEdit: (e: MoneyEntry) => void; onBulk?: (ids: ReadonlySet<string>, action: BulkAction) => string | null | void; onUngroup?: (g: GroupSummary) => void; categories?: readonly string[]; initial?: Partial<MoneyQuery>}) {
+export default function MoneySearch({entries, onEdit, onBulk, onUngroup, categories = [], archived = [], initial}: {entries: readonly MoneyEntry[]; onEdit: (e: MoneyEntry) => void; onBulk?: (ids: ReadonlySet<string>, action: BulkAction) => string | null | void; onUngroup?: (g: GroupSummary) => void; categories?: readonly string[];
+  /** Review b4f #8: archived categories, left out of "New category" for several at once (the filter keeps them). */ archived?: readonly string[]; initial?: Partial<MoneyQuery>}) {
   const id = useId(), [q, setQ] = useState<MoneyQuery>({text: '', kind: 'all', category: '', from: '', to: '', not: '', payee: '', counted: 'all', tax: false, paidWith: '', sub: '', ...initial}), [more, setMore] = useState(false);
   const [range, setRange] = useState({min: '', max: ''}), minCents = toCents(range.min), maxCents = toCents(range.max);
   const tags = useDeviceRecord(MONEY_TAGS_RECORD), [tag, setTag] = useState('');
@@ -78,7 +80,7 @@ export default function MoneySearch({entries, onEdit, onBulk, onUngroup, categor
     const st = fromQuestion(one); setQ(st.query); setRange({min: st.min, max: st.max}); setTag(st.tag); setMore(false);
     setSaveNote(`${one.name} is open: its filters are set above.`);
   };
-  const chooseCats = [...new Set([...categories, ...cats])];
+  const chooseCats = bulkCategoryChoices(categories, cats, archived);
   const shownFound = found.slice(0, more ? found.length : SHOWN);
   const item = (e: MoneyEntry) => <li key={e.id}>
       {selecting && <label className="money-select-check"><input type="checkbox" checked={pickedNow.has(e.id)} onChange={() => toggle(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
