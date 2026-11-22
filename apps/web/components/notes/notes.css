@@ -338,3 +338,14 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-fold-toggle:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
 .note-fold-toggle:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
 .note-folded-count { flex-basis: 100%; margin: -6px 0 6px 38px; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #314): callouts — five calm boxes, each with its word; colour only underlines it. */
+.note-callout { --co: var(--brand-cyan, #63e7ff); margin: 12px 0; padding: 10px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--co) 40%, transparent); border-inline-start: 4px solid var(--co); background: color-mix(in srgb, var(--co) 9%, transparent); overflow-wrap: anywhere; }
+.note-callout[data-callout="tip"] { --co: #4fbf7a; }
+.note-callout[data-callout="important"] { --co: var(--brand-violet, #826cff); }
+.note-callout[data-callout="warning"] { --co: #d9a53a; }
+.note-callout[data-callout="caution"] { --co: #e0706b; }
+.note-callout > p { margin: 4px 0; }
+.note-callout-head { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.note-callout-icon { inline-size: 1.25em; text-align: center; }
+@media (forced-colors: active) { .note-callout { border-color: CanvasText; } }

@@ -136,3 +136,25 @@ before (an archived note in its list; only the first photo).
   to fold what is under it, and again to open it. Fold all and Open all do every heading. The folds last for this visit."
 - What's new: "Notes: fold a section under its heading, or fold them all."
 - Showcase: none needed (a note with headings shows it). CSS touched: `components/notes/notes.css`. Today: nothing added.
+
+### F6 Callouts — LEDGER #314 (Bear)
+
+- Verdict: **built**.
+- What: in Notes, a quote whose first line is `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` or `[!CAUTION]` (any
+  case; words after the marker are its title; Obsidian's `+`/`-` fold sign is read) is drawn as a calm box: a sign
+  (decoration), its word in bold ("Tip: Pack light"), then its paragraphs (blank `>` lines split them), `role="note"`
+  named by its word — never colour alone. Obsidian's other markers fold into the nearest kind and keep their own word
+  (`[!info]` is an Info note, `[!danger]` a Danger caution); an unknown marker is a note with its word. A plain quote
+  stays a quote. The marker stays in the text, so the Markdown export keeps it as written (Obsidian and GitHub draw it).
+- ZIGi's replies: the callout is a notes-only block (`parseBlocks(text, {notes: true})`); ZIGi's and NOVA's renderers get
+  the old quote (unit-tested).
+- Files: `lib/ai/safe-render.ts` (the notes-only `callout` block, `CALLOUT_KINDS`), `components/notes/note-render.tsx`,
+  `components/notes/notes.css`.
+- Tests: `lib/notes/r4-callouts.test.ts`. Spec: `tests/av2-notes-callouts.spec.ts`.
+- Stored: nothing (the marker lives in the note's text).
+- Help (EN). Q: "Can I add a tip or warning box to a note?" A: "Yes. Start a quote with > [!NOTE], > [!TIP],
+  > [!IMPORTANT], > [!WARNING] or > [!CAUTION], and write its words on the next lines starting with >. Notes shows it as
+  a box with its word; the Markdown export keeps it as you wrote it."
+- What's new: "Notes: callouts — note, tip, important, warning and caution boxes."
+- Showcase: none (the Showcase notes' words are read by NOVA's pinned corpus). CSS touched: `components/notes/notes.css`.
+  Today: nothing added.

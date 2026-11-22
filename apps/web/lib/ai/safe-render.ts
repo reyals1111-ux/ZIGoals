@@ -25,7 +25,19 @@ export type NoteBlock = {type: 'paragraph'; children: NoteInline[]} | {type: 'he
   | {type: 'table'; align: Align[]; head: NoteInline[][]; rows: NoteInline[][][]; cut: number}
   | {type: 'list'; ordered: boolean; items: NoteInline[][]; /** Per item: null for a plain item, else whether its tick box is ticked; and the line (0-based) each item starts on. */ ticks?: (boolean | null)[]; lines?: number[]}
   /** Session AV lane 2 (r4-notes; LEDGER #307): a `![words](<photo id>)` line of its own — one of the note's own photos on this device, never an address. */
-  | {type: 'photo'; id: string; alt: string};
+  | {type: 'photo'; id: string; alt: string}
+  /** Session AV lane 2 (r4-notes; LEDGER #314): a `> [!TIP]` quote drawn as a callout, its word said, its paragraphs kept. */
+  | {type: 'callout'; kind: CalloutKind; word: string; title: NoteInline[] | null; paragraphs: NoteInline[][]};
+/**
+ * Session AV lane 2 (r4-notes; LEDGER #314, Bear's and GitHub's callouts): the five kinds, each drawn with its word (never
+ * colour alone). Obsidian's other markers fold into the nearest of the five and keep their own word ("> [!info]" is an
+ * Info note); an unknown marker is a note with its own word.
+ */
+export const CALLOUT_KINDS = ['note', 'tip', 'important', 'warning', 'caution'] as const;
+export type CalloutKind = (typeof CALLOUT_KINDS)[number];
+const CALLOUT_OF: Record<string, CalloutKind> = {note: 'note', info: 'note', abstract: 'note', summary: 'note', tldr: 'note', todo: 'note', example: 'note', quote: 'note', cite: 'note',
+  tip: 'tip', hint: 'tip', success: 'tip', check: 'tip', done: 'tip', important: 'important', question: 'important', help: 'important', faq: 'important',
+  warning: 'warning', attention: 'warning', bug: 'warning', caution: 'caution', danger: 'caution', error: 'caution', failure: 'caution', fail: 'caution', missing: 'caution'};
 export type ParseOptions = {notes?: boolean};
 const MARK = /^==(?:(\u{1F7E1}|\u{1F7E2}|\u{1F535}|\u{1F7E3}|\u{1F534}|\u{1F7E0})\s?)?(?=\S)((?:[^=\n]|=(?!=))+?)(?<=\S)==/u;
 const COLOUR_OF = new Map(Object.entries(HIGHLIGHT_EMOJI).map(([c, e]) => [e, c as HighlightColour]));
@@ -131,7 +143,21 @@ export function parseBlocks(text: string, options: ParseOptions = {}): NoteBlock
     const heading = /^\s{0,3}(#{1,3})\s+(.+?)\s*#*\s*$/.exec(line);
     if (heading) { flushParagraph(); blocks.push({type: 'heading', level: heading[1]!.length as 1 | 2 | 3, children: inlineOf(heading[2]!)}); i++; continue; }
     const quote = /^\s{0,3}>\s?(.*)$/.exec(line);
-    if (quote) { flushParagraph(); const parts = [quote[1]!]; i++; while (i < lines.length && /^\s{0,3}>\s?/.test(lines[i]!)) { parts.push(lines[i]!.replace(/^\s{0,3}>\s?/, '')); i++; } blocks.push({type: 'quote', children: inlineOf(parts.join(' ').trim())}); continue; }
+    if (quote) {
+      flushParagraph(); const parts = [quote[1]!]; i++; while (i < lines.length && /^\s{0,3}>\s?/.test(lines[i]!)) { parts.push(lines[i]!.replace(/^\s{0,3}>\s?/, '')); i++; }
+      // Session AV lane 2 (r4-notes; LEDGER #314): notes only — a first line "[!TIP] a title" makes the quote a callout.
+      const marker = notes ? /^\[!([A-Za-z]{1,20})\][+-]?(?:\s+(.*))?$/.exec(parts[0]!.trim()) : null;
+      if (marker) {
+        const name = marker[1]!.toLowerCase(), kind = CALLOUT_OF[name] ?? 'note', word = name === kind ? kind[0]!.toUpperCase() + kind.slice(1) : name[0]!.toUpperCase() + name.slice(1);
+        const paragraphs: NoteInline[][] = [], run: string[] = [];
+        const end = () => { if (run.length) { paragraphs.push(inlineOf(run.join(' ').replace(/\s+/g, ' ').trim())); run.length = 0; } };
+        for (const p of parts.slice(1)) { if (p.trim()) run.push(p.trim()); else end(); }
+        end();
+        blocks.push({type: 'callout', kind, word, title: marker[2]?.trim() ? inlineOf(marker[2].trim()) : null, paragraphs});
+        continue;
+      }
+      blocks.push({type: 'quote', children: inlineOf(parts.join(' ').trim())}); continue;
+    }
     const bullet = /^\s{0,3}(?:[-*+•]|\d{1,3}[.)])\s+(.+)$/.exec(line);
     if (bullet) {
       flushParagraph();
@@ -157,6 +183,6 @@ export function parseBlocks(text: string, options: ParseOptions = {}): NoteBlock
 /** The plain words of a tree, for copying and for read-aloud. */
 export function plainText(blocks: readonly (Block | NoteBlock)[]): string {
   const inline = (nodes: readonly NoteInline[]): string => nodes.map(n => n.type === 'text' || n.type === 'code' ? n.text : inline(n.children)).join('');
-  return blocks.map(b => b.type === 'code' ? b.text : b.type === 'photo' ? `(${b.alt || 'photo'})` : b.type === 'list' ? b.items.map((item, i) => `${b.ordered ? `${i + 1}.` : '•'} ${inline(item)}`).join('\n')
+  return blocks.map(b => b.type === 'code' ? b.text : b.type === 'photo' ? `(${b.alt || 'photo'})` : b.type === 'callout' ? [`${b.word}${b.title ? `: ${inline(b.title)}` : ''}`, ...b.paragraphs.map(inline)].join('\n') : b.type === 'list' ? b.items.map((item, i) => `${b.ordered ? `${i + 1}.` : '•'} ${inline(item)}`).join('\n')
     : b.type === 'table' ? [b.head, ...b.rows].map(row => row.map(inline).join(' | ')).join('\n') + (b.cut ? `\n(${b.cut} more rows)` : '') : inline(b.children)).join('\n\n');
 }

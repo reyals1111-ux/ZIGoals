@@ -68,6 +68,8 @@ function inline(nodes: readonly NoteInline[], ctx: Ctx): ReactNode[] {
   });
 }
 type Tick = (line: number, checked: boolean, words: string) => void;
+/** Session AV lane 2 (r4-notes; LEDGER #314): a calm sign beside each callout's word (decoration; the word says it). */
+const CALLOUT_ICON = {note: 'ℹ', tip: '✦', important: '❗', warning: '⚠', caution: '⛔'} as const;
 function block(b: NoteBlock, i: number, ctx: Ctx, onTick: Tick | undefined, id: string): ReactNode {
   const r = (n: readonly NoteInline[]) => inline(n, ctx);
   switch (b.type) {
@@ -93,6 +95,10 @@ function block(b: NoteBlock, i: number, ctx: Ctx, onTick: Tick | undefined, id: 
       const ticks = b.ticks?.some(t => t !== null) ? ' note-ticks' : '';
       return b.ordered ? <ol key={i} className={ticks.trim() || undefined}>{items}</ol> : <ul key={i} className={ticks.trim() || undefined}>{items}</ul>;
     }
+    case 'callout': return <div key={i} className="note-callout" data-callout={b.kind} role="note" aria-label={b.word}>
+      <p className="note-callout-head"><span className="note-callout-icon" aria-hidden="true">{CALLOUT_ICON[b.kind]}</span><strong>{b.word}</strong>{b.title && <>: {r(b.title)}</>}</p>
+      {b.paragraphs.map((p, k) => <p key={k}>{r(p)}</p>)}
+    </div>;
     case 'photo': return <NotePhotoFigure key={i} id={b.id} alt={b.alt} kept={!!ctx.photos?.includes(b.id)}/>;
     case 'table': return <div key={i} className="note-table-wrap" role="region" aria-label="Table" tabIndex={0}><table><thead><tr>{b.head.map((c, k) => <th key={k} scope="col">{r(c)}</th>)}</tr></thead><tbody>{b.rows.map((row, k) => <tr key={k}>{row.map((c, m) => <td key={m}>{r(c)}</td>)}</tr>)}</tbody></table></div>;
   }
