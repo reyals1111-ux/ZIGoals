@@ -36,7 +36,7 @@ import {NO_LIST_OPTIONS, type ListOptions} from '../../lib/journal/list-options'
 import {starEntry} from '../../lib/journal/favourites';
 import {periodWords} from '../../lib/journal/periods';
 import {isSealed} from '../../lib/journal/letters';
-import {peopleCounts, withPerson, withoutPerson} from '../../lib/journal/people';
+import {offeredPeople, withPerson, withoutPerson} from '../../lib/journal/people';
 import {galleryCount} from '../../lib/journal/gallery';
 
 const YearPixels = lazy(() => import('./year-pixels'));
@@ -95,7 +95,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const [query, setQuery] = useState(''), [tag, setTag] = useState<string | null>(null), [dayOpen, setDayOpen] = useState<ReadonlySet<string>>(new Set()), [moreOpen, setMoreOpen] = useState<ReadonlySet<string>>(new Set());
   const tags = useMemo(() => tagCounts(journal.data.entries), [journal.data.entries]);
   // Session AV lane 2 (r6-notes; LEDGER #401): the names used before, offered again; a name chosen shows "Entries with …".
-  const knownPeople = useMemo(() => peopleCounts(journal.data.entries).map(p => p.name), [journal.data.entries]), [person, setPerson] = useState<string | null>(null);
+  const knownPeople = useMemo(() => offeredPeople(journal.data.entries, today), [journal.data.entries, today]) /* review b6n B6N-2: never a name from a letter still folded away */, [person, setPerson] = useState<string | null>(null);
   const knownTags = useMemo(() => tags.map(t => t.tag), [tags]); // Session AV (1c, q4 #5): offered in the tag fields
   const shownTag = tag && tags.some(t => t.tag.toLowerCase() === tag.toLowerCase()) ? tag : null;
   // Session AV lane 2 (journal; LEDGER #43, Day One): a journal, and a day range (From / To, the calendar, a typed date, or

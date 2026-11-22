@@ -1,4 +1,5 @@
 import {MAX_PEOPLE, PERSON_MAX, type JournalEntry} from './schema';
+import {unsealed} from './letters';
 
 /**
  * Session AV lane 2 (r6-notes; LEDGER #401, Diarium's people): "Who was there" on an entry — up to eight names the person
@@ -32,3 +33,5 @@ export function personMatches(e: Pick<JournalEntry, 'people'>, query: string): b
   const q = words(query);
   return q.length > 0 && peopleOf(e).some(p => { const w = words(p); return q.every(x => w.includes(x)); });
 }
+/** Review b6n B6N-2: the names offered again under "Who was there" — never one from a letter still folded away. */
+export const offeredPeople = (entries: readonly Pick<JournalEntry, 'people' | 'opensOn'>[], today: string): string[] => peopleCounts(unsealed(entries, today)).map(p => p.name);
