@@ -284,3 +284,26 @@ the energy, food-plus and workouts fields; the two new keys' round trips run onc
 - Showcase hook: none (a Showcase star would change the add-exercise list that Showcase specs walk; no pinned count moves).
 - Device keys / catalogue / export / erase: nothing new (the workouts record is registered). Route weight: the Workouts
   chunk (lazy already) gains `r6-gym.ts` (small) and the CSS; the card's part is `r6/exercise-own`.
+
+## Answers (NOVA and ZIGi, on the device)
+
+- File: `lib/ai/local-answers/av2-r6-body.ts` exporting `av2R6BodyAnswer(question, env)`; cases
+  `lib/ai/evals/as/cases-av2-r6-body.ts` (`AV2_R6_BODY`, 14 intents, 28 English and 28 Dutch questions); test
+  `lib/ai/local-answers/av2-r6-body.test.ts`: every phrasing answered on the Showcase and fresh; Health closed → the Health
+  refusal; an action in the question → left alone; a Dutch answer holds no English filler; the figures from the features'
+  own functions; and none of the corpus questions (`CORPUS`, this round's own intents left out) is claimed.
+- Questions: which day a late meditation counts on (the "My day ends at" in force); your meditation consistency (30 or
+  90 days, the weeks the goal was met); several past days at once (how); the grounding exercise (how; nothing kept);
+  what lifts me (the person's own lines, as written); the low-day page (where it is, never its words, with the help lines);
+  what to bring up (counted, never quoted); tonight's bedtime (a fact from the goal and the last 14 nights, never "you
+  must"); time asleep of time in bed (the last 7 days, an estimate when it is one); portions counted today (by counter or
+  all, with the aim; never "off track"); favourite exercises; light weeks; the days of the heaviest sets; the exercises'
+  own defaults. Never a calorie figure, a medical reading or advice.
+- engine.ts wiring (one line, after `av2R5GymAnswer`, same shape):
+  `if (!subject) { const own = av2R6BodyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }`
+  with `import {av2R6BodyAnswer} from './av2-r6-body';`.
+- Corpus: add `AV2_R6_BODY` to `CORPUS` in `cases.ts` and record `expected.json`.
+- AK tool sources (`lib/ai/tools/ak-sources.ts`): `bringUp: one(BRING_UP)` (from `lib/clinician-report/bring-up.ts`; Health
+  gate checked by the answer). Until it is wired the bring-up answer says where the list is. The low-day page
+  (`zigoals:low-day:v1`) must NOT be added to any AI source: it is never sent to ZIGi's AI. The rest reads `env.health`
+  (meditation, sleep), `env.energy`, `env.foodPlus` and `ak.workouts`, all wired already.
