@@ -22,10 +22,14 @@ import type {DeviceRecordSpec} from '../device-record';
  *   (−0.5, −0.25, 0 or +0.25), which the weekly coach and the goal date then use.
  * - `steps` (LEDGER #200, Yazio's recipes with a cooking mode): a recipe's method, one line per step, by recipe id — its
  *   own part, so the strict recipe record (`recipeSchema`) is unchanged. A recipe removed later leaves its steps unread.
+ * - `marks` (LEDGER #198, #199; Lose It!'s diet plans that flag foods, Yazio's food ratings): the eating style whose
+ *   "fits" mark the Foods list shows (low carb, high protein, high fibre), and whether it shows the label levels (low,
+ *   medium or high fat, saturated fat, sugars and salt per 100 g, the UK front-of-pack rule).
  * - `photos` (LEDGER #103): which library foods have a front-of-pack photo on this device (the photo itself is in
  *   IndexedDB, lib/food-plus/photos.ts), with when it was taken.
  */
 export const FOOD_PLUS_KEY = 'zigoals:food-plus:v1';
+export const EATING_STYLES = ['low-carb', 'high-protein', 'high-fibre'] as const;
 const clock = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 const healthId = z.string().regex(/^health_[a-z0-9-]{8,80}$/);
 export const WEEKDAY_KEYS = ['0', '1', '2', '3', '4', '5', '6'] as const;
@@ -44,6 +48,7 @@ export const foodPlusSchema = z.looseObject({
   photos: z.record(healthId, z.looseObject({takenAt: z.iso.datetime()})).optional().catch(undefined),
   pace: z.number().min(-1).max(1).optional().catch(undefined),
   steps: z.record(healthId, z.array(z.string().trim().min(1).max(600)).min(1).max(60)).optional().catch(undefined),
+  marks: z.looseObject({style: z.enum(EATING_STYLES).optional().catch(undefined), levels: z.boolean().optional().catch(undefined)}).optional().catch(undefined),
 });
 export const MAX_RECIPE_STEPS = 60, MAX_STEP_CHARS = 600;
 export type FoodPlus = z.infer<typeof foodPlusSchema>;
