@@ -113,12 +113,13 @@ export function readEnex(text: string, fileName = 'Evernote.enex'): {notes: Fore
       const mime = (child(r, 'mime')?.textContent ?? '').trim(), data = child(r, 'data');
       return IMAGE.test(mime) && data ? [{mime, data}] : [];
     });
-    let next = 0;
+    // Review b4g B4G-9: each en-media takes the first unused resource of its type (else the first unused one), in any order.
+    const used = new Set<number>();
     const imageAt = (type: string) => {
       if (images.length >= MAX_NOTE_PHOTOS_EACH) return null;
-      const at = pending.findIndex((p, k) => k >= next && p.mime.toLowerCase() === type.toLowerCase()), pick = at >= 0 ? at : next < pending.length ? next : -1;
+      const free = (k: number) => !used.has(k), at = pending.findIndex((p, k) => free(k) && p.mime.toLowerCase() === type.toLowerCase()), pick = at >= 0 ? at : pending.findIndex((_, k) => free(k));
       if (pick < 0) return null;
-      next = pick + 1;
+      used.add(pick);
       const bytes = fromBase64(pending[pick]!.data.textContent);
       if (!bytes || !bytes.length || bytes.length > FOREIGN_IMAGE_MAX) return null;
       const key = `imp-${images.length + 1}`; images.push({key, data: bytes, type: pending[pick]!.mime.toLowerCase()});
@@ -158,7 +159,8 @@ export function readBear(files: readonly ZipFile[], archive = 'Bear'): {notes: F
     let text = bearTags(decode(b.text).replace(/^﻿/, '').replace(/\r\n?/g, '\n'));
     // Photos: `![…](assets/x.jpg)` (Bear also writes `[assets/x.jpg]`), each on a line of its own, up to eight.
     text = text.replace(/!\[[^\]\n]*\]\((?:\.\/)?assets\/([^)\n]+)\)|\[(?:\.\/)?assets\/([^\]\n]+)\]/g, (all, a?: string, c?: string) => {
-      const name = decodeURIComponent((a ?? c ?? '').trim()), data = b.assets.get(name), type = imageType(name);
+      // Review b4g B4G-10: a malformed % in an asset's name is read as written, never stopping the import.
+      const raw = (a ?? c ?? '').trim(), name = (() => { try { return decodeURIComponent(raw); } catch { return raw; } })(), data = b.assets.get(name), type = imageType(name);
       if (!data || !type) return `(${name.split('/').pop()}, a file from Bear, left out)`;
       if (images.length >= MAX_NOTE_PHOTOS_EACH || data.length > FOREIGN_IMAGE_MAX) return '(a photo from Bear, left out)';
       images.push({key: `imp-${images.length + 1}`, data, type});
@@ -172,6 +174,8 @@ export function readBear(files: readonly ZipFile[], archive = 'Bear'): {notes: F
   return {notes, skipped};
 }
 
+/** Review b4g B4G-13: an Evernote or Bear tag as a #tag can hold it ("a,b" → "a-b", `trip "x"` → "trip-x"). */
+export const foreignTag = (tag: string): string => tag.normalize('NFC').replace(/[^\p{L}\p{N}_/-]+/gu, '-').replace(/-{2,}/g, '-').replace(/^[-/]+|[-/]+$/g, '').slice(0, 32);
 /** The notes as Markdown files for planImport (front matter: title, created, tags), each with a file name of its own. */
 export function foreignFiles(notes: readonly ForeignNote[]): {files: ImportFile[]; images: Map<string, ForeignImage[]>} {
   const used = new Set<string>(), files: ImportFile[] = [], images = new Map<string, ForeignImage[]>(), enc = new TextEncoder();
@@ -179,7 +183,11 @@ export function foreignFiles(notes: readonly ForeignNote[]): {files: ImportFile[
     let name = n.name, k = 2;
     while (used.has(name.toLowerCase())) name = n.name.replace(/\.md$/, ` ${k++}.md`);
     used.add(name.toLowerCase());
-    const fm = ['---', `title: ${JSON.stringify(n.title)}`, ...(n.created ? [`created: ${n.created}`] : []), ...(n.tags.length ? [`tags: [${n.tags.map(t => JSON.stringify(t.replace(/\s+/g, '-'))).join(', ')}]`] : []), '---', ''];
+    // Review b4g B4G-13: a tag keeps only what a #tag may hold (letters, digits, _ - /), so the front matter's list reads it back whole.
+    const tags = n.tags.map(foreignTag).filter(Boolean);
+    // Review b4g B4G-3: always its own topic note — a title that is a day ("2026-11-01") must never append to that day's
+    // note, where its photos would be lost and their placeholders left in the words.
+    const fm = ['---', `title: ${JSON.stringify(n.title)}`, 'type: topic', ...(n.created ? [`created: ${n.created}`] : []), ...(tags.length ? [`tags: [${tags.join(', ')}]`] : []), '---', ''];
     files.push({name, data: enc.encode(`${fm.join('\n')}${n.body}\n`)});
     if (n.images.length) images.set(name, n.images);
   }

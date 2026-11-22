@@ -35,13 +35,19 @@ export async function readNoteFiles(list: readonly PickedFile[], {signal, budget
  * this device into notes for the Markdown import (lib/notes/import-enex.ts). An .enex is read as text (at most 50 MB); a
  * Bear archive through the careful ZIP reader with room for its photos (each at most 10 MB, 120 MB in all).
  */
+export const FOREIGN_MAX_FILES = 50, ENEX_TOTAL_MAX_BYTES = 100 * 1024 * 1024;
 export const BEAR_ZIP_CAPS = {maxArchive: 80 * 1024 * 1024, maxEntries: 8000, maxFile: 10 * 1024 * 1024, maxTotal: 120 * 1024 * 1024, maxRatio: 100};
 export async function readForeignFiles(list: readonly PickedFile[], {signal}: {signal?: AbortSignal} = {}): Promise<{notes: ForeignNote[]; skipped: ZipSkip[]}> {
   const notes: ForeignNote[] = [], skipped: ZipSkip[] = [], budget = inflateBudget(BEAR_ZIP_CAPS);
-  for (const f of list.slice(0, 50)) {
+  // Review b4g B4G-12: what is not read is said ("Skipped and why"), and all .enex files together are held to one budget.
+  let enexLeft = ENEX_TOTAL_MAX_BYTES;
+  for (const f of list.slice(FOREIGN_MAX_FILES)) skipped.push({name: f.name, reason: `only the first ${FOREIGN_MAX_FILES} Evernote or Bear files are read at once`});
+  for (const f of list.slice(0, FOREIGN_MAX_FILES)) {
     if (signal?.aborted) throw new ZipError(STOPPED_MESSAGE);
     if (isEnex(f.name)) {
       if (f.size > ENEX_MAX_BYTES) { skipped.push({name: f.name, reason: 'it is over 50 MB'}); continue; }
+      if (f.size > enexLeft) { skipped.push({name: f.name, reason: 'the Evernote files hold more than ZIGoals reads at once (100 MB)'}); continue; }
+      enexLeft -= f.size;
       const out = readEnex(new TextDecoder('utf-8').decode(await f.arrayBuffer()), f.name);
       notes.push(...out.notes); skipped.push(...out.skipped);
     } else if (isBearArchive(f.name)) {

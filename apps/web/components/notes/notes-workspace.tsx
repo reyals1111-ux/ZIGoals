@@ -12,8 +12,9 @@ import {NotesSearch} from './notes-search';
 import {useLinkIndex, useLinkTargets, useNotes} from './use-notes';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {formatDate} from '../../lib/visual-format';
-import {noteName, notePhotoIdsOf, shortNoteName, type Notes} from '../../lib/notes/schema';
-import {addTopic, dailiesOf, dailyNoteOf, inboxOf, topicsOf, updateNote} from '../../lib/notes/store';
+import {noteName, notePhotoIdsOf, shortNoteName, type Note} from '../../lib/notes/schema';
+import {focusList, taggableNotes} from '../../lib/notes/focus';
+import {addTopic, dailiesOf, dailyNoteOf, inboxOf, updateNote} from '../../lib/notes/store';
 import {linkKey, noteHref} from '../../lib/notes/links';
 import {sweepNotePhotos} from '../../lib/notes/photos';
 import {dailyStart, dueSchedules, everyWords, runSchedules, schedulesOf} from '../../lib/notes/schedules';
@@ -156,7 +157,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         : <p className="fine">Nothing to file. Capture a thought above, from Quick add, the search palette (&ldquo;Capture a note&rdquo;) or NOVA; it waits here until you file it into a day, a note, a goal or a habit.</p>}
     </section>}
 
-    {!noteId && view === 'notes' && (() => { const topics = focused(topicsOf(record).filter(n => !n.archived), focus), shelved = record.notes.filter(n => n.archived && n.kind !== 'inbox'); return <section className="panel" aria-labelledby="note-list-title">
+    {!noteId && view === 'notes' && (() => { const topics = focusList(record, focus), shelved = record.notes.filter(n => n.archived && n.kind !== 'inbox'); return <section className="panel" aria-labelledby="note-list-title">
       <h2 id="note-list-title">Notes</h2>
       <form className="note-new" onSubmit={e => { e.preventDefault(); createNote(newTitle); }}>
         <label className="field"><span>New note</span><input value={newTitle} maxLength={120} onChange={e => setNewTitle(e.target.value)} placeholder="A title, for example Trip ideas"/></label>
@@ -166,7 +167,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       <details className="note-fold note-schedules-fold"><summary>Repeating notes <span className="fine">· {schedulesOf(record).length ? schedulesOf(record).map(x => `${x.title} (${everyWords(x)})`).slice(0, 2).join(', ') : 'a note made every day, week or month'}</span></summary>
         <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteSchedules record={record} change={change} today={today}/></Suspense></LoadBoundary>
       </details>
-      <TagFocus record={record} focus={focus} onFocus={setFocus}/>
+      <TagFocus notes={taggableNotes(record)} focus={focus} onFocus={setFocus}/>
       <NotesSearch notes={focused(record.notes, focus)} onSearching={setSearching}/>
       <LoadBoundary quiet><Suspense fallback={null}><NotesRemindersPanel record={record}/></Suspense></LoadBoundary>
       {(() => { const n = openTickCount; return <details className="note-fold note-ticks-fold" open={ticksOpen || undefined} onToggle={e => setTicksOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Open tick boxes <span className="fine">· {n ? `${n} across your notes` : 'none yet; a line that starts with - [ ] is one'}</span></summary>
@@ -174,7 +175,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       </details>; })()}
       {topics.length > 0 && !searching && <div className="note-layouts" role="group" aria-label="Show notes as">{LAYOUTS.map(([l, label]) => <button key={l} type="button" className="quiet" aria-pressed={layout === l} onClick={() => setLayout(l)}>{label}</button>)}</div>}
       {/* Session AL (PR-105, P-PR-43): while a search is typed, its results are the list (the full list no longer stays below "No note has those words.") */}
-      {searching ? null : topics.length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? focused(record.notes.filter(n => !n.archived), focus) : topics} layout={layout} today={today} record={record} change={change}/></Suspense></LoadBoundary> : topics.length ? <ul className="note-list">{topics.map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{snippetOf(n)}</p></li>)}</ul>
+      {searching ? null : topics.length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? focused(record.notes.filter(n => !n.archived), focus) : topics} layout={layout} today={today} record={record} change={change}/></Suspense></LoadBoundary> : topics.length ? <ul className="note-list">{topics.map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{n.kind === 'daily' && n.day ? formatDate(n.day, {weekday: true}) : noteName(n)}</strong></Link>{n.kind === 'daily' && <span className="fine"> · daily note</span>}{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{snippetOf(n)}</p></li>)}</ul>
         : focus ? <p className="fine">No note is tagged #{focus} yet. <button type="button" className="text-link" onClick={() => setFocus()}>Clear the focus</button> to see every note.</p>
         : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. A note that links a goal or a habit shows on its page.</p>}
       {/* Session AV lane 2 (r4-notes; LEDGER #315): archived notes wait here, out of the list and the graph. */}
@@ -219,8 +220,8 @@ function FocusLine({focus, onClear}: {focus: string; onClear: () => void}) {
   return <p className="note-focus-line">Showing notes tagged <strong>#{focus}</strong> (and the tags under it). <button type="button" className="text-link" onClick={onClear}>Clear focus</button></p>;
 }
 /** Session AV lane 2 (r4-notes; LEDGER #306, Bear's tag sidebar): every tag, nested, with its count; one becomes the focus. */
-function TagFocus({record, focus, onFocus}: {record: Notes; focus?: string; onFocus: (tag?: string) => void}) {
-  const tree = tagTree(record.notes), tops = tree.filter(t => !t.depth).length, on = (t: string) => focus?.toLowerCase() === t.toLowerCase();
+function TagFocus({notes, focus, onFocus}: {notes: readonly Note[]; focus?: string; onFocus: (tag?: string) => void}) {
+  const tree = tagTree(notes), tops = tree.filter(t => !t.depth).length, on = (t: string) => focus?.toLowerCase() === t.toLowerCase();
   return <>
     {focus && <FocusLine focus={focus} onClear={() => onFocus()}/>}
     <details className="note-fold note-tags-fold"><summary>Tags <span className="fine">· {tree.length ? `${tops} ${tops === 1 ? 'tag' : 'tags'}${tree.length > tops ? ` and ${tree.length - tops} nested` : ''}` : 'none yet; write #travel in a note'}</span></summary>

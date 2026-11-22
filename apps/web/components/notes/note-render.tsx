@@ -16,18 +16,18 @@ import {photoScope} from '../../lib/health-aa/photos';
  * ==highlights== in six named colours, and "- [ ]" tick boxes that tick in the reading view (`onTick`, with the line).
  */
 const KIND_WORD = {note: 'note', goal: 'goal', habit: 'habit'} as const;
-type Ctx = {index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag focuses Notes on it. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids this note keeps. */ photos?: readonly string[]; /** LEDGER #313: the section folds of the reading view. */ fold?: Folds};
+type Ctx = {index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag focuses Notes on it. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids this note keeps. */ photos?: readonly string[]; /** Review b4g B4G-14: photos already read (the print sheet), drawn at once. */ photoUrls?: ReadonlyMap<string, string | null>; /** LEDGER #313: the section folds of the reading view. */ fold?: Folds};
 type Folds = {folded: ReadonlySet<number>; size: (i: number) => number; toggle: (i: number) => void};
 const NO_FOLDS: ReadonlySet<number> = new Set();
 /** Session AV lane 2 (r4-notes; LEDGER #307): one of the note's own photos, read from this device's photo store. */
-function NotePhotoFigure({id, alt, kept}: {id: string; alt: string; kept: boolean}) {
-  const [url, setUrl] = useState<string | null | undefined>(kept ? undefined : null);
+function NotePhotoFigure({id, alt, kept, given}: {id: string; alt: string; kept: boolean; given?: string | null}) {
+  const [read, setUrl] = useState<string | null | undefined>(kept ? undefined : null), url = given !== undefined ? given : read;
   useEffect(() => {
-    if (!kept) return;
+    if (!kept || given !== undefined) return;
     let made: string | null = null, live = true;
     void getNotePhoto(photoScope(), id).then(p => { if (!live) return; if (p) { made = URL.createObjectURL(p.blob); setUrl(made); } else setUrl(null); }, () => { if (live) setUrl(null); });
     return () => { live = false; if (made) URL.revokeObjectURL(made); };
-  }, [id, kept]);
+  }, [id, kept, given]);
   if (!kept) return <p className="fine note-photo-missing">A photo line for a photo this note does not keep ({alt || 'photo'}).</p>;
   if (url === undefined) return <p className="fine note-photo-missing">Opening the photo…</p>;
   if (url === null) return <p className="fine note-photo-missing">This photo is not in this browser (photos stay on the device where they were added).</p>;
@@ -99,7 +99,7 @@ function block(b: NoteBlock, i: number, ctx: Ctx, onTick: Tick | undefined, id: 
       <p className="note-callout-head"><span className="note-callout-icon" aria-hidden="true">{CALLOUT_ICON[b.kind]}</span><strong>{b.word}</strong>{b.title && <>: {r(b.title)}</>}</p>
       {b.paragraphs.map((p, k) => <p key={k}>{r(p)}</p>)}
     </div>;
-    case 'photo': return <NotePhotoFigure key={i} id={b.id} alt={b.alt} kept={!!ctx.photos?.includes(b.id)}/>;
+    case 'photo': return <NotePhotoFigure key={i} id={b.id} alt={b.alt} kept={!!ctx.photos?.includes(b.id)} given={ctx.photoUrls ? ctx.photoUrls.get(b.id) ?? null : undefined}/>;
     case 'table': return <div key={i} className="note-table-wrap" role="region" aria-label="Table" tabIndex={0}><table><thead><tr>{b.head.map((c, k) => <th key={k} scope="col">{r(c)}</th>)}</tr></thead><tbody>{b.rows.map((row, k) => <tr key={k}>{row.map((c, m) => <td key={m}>{r(c)}</td>)}</tr>)}</tbody></table></div>;
   }
 }
@@ -118,7 +118,7 @@ function Outline({blocks, id, onReveal}: {blocks: readonly NoteBlock[]; id: stri
     <ol>{heads.map(h => <li key={h.i} data-level={h.level}><button type="button" className="text-link" onClick={() => go(h.i)}>{h.words || 'Untitled heading'}</button></li>)}</ol>
   </details></nav>;
 }
-export function NoteRender({text, index, onCreate, onTick, onTag, photos, outline = false, fold = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #306: a #tag pressed. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids the note keeps (a photo line draws only these). */ photos?: readonly string[]; /** LEDGER #268: list the headings above. */ outline?: boolean; /** LEDGER #313: headings fold their sections. */ fold?: boolean}) {
+export function NoteRender({text, index, onCreate, onTick, onTag, photos, photoUrls, outline = false, fold = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #306: a #tag pressed. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids the note keeps (a photo line draws only these). */ photos?: readonly string[]; /** Review b4g B4G-14: photos already read. */ photoUrls?: ReadonlyMap<string, string | null>; /** LEDGER #268: list the headings above. */ outline?: boolean; /** LEDGER #313: headings fold their sections. */ fold?: boolean}) {
   const blocks = useMemo(() => parseBlocks(text, {notes: true}), [text]), id = useId();
   const levels = useMemo(() => blocks.map(b => b.type === 'heading' ? b.level : null), [blocks]);
   // The folds belong to this text: a changed text starts open (its block numbers move).
@@ -129,7 +129,7 @@ export function NoteRender({text, index, onCreate, onTick, onTag, photos, outlin
   const toggle = (i: number) => setFolded(f => { const next = new Set(f); if (next.has(i)) next.delete(i); else next.add(i); return next; });
   const reveal = (i: number) => setFolded(f => { const open = foldsHiding(levels, f, i); return open.length ? new Set([...f].filter(h => !open.includes(h))) : f; });
   const folds: Folds | undefined = fold && can.length ? {folded, size: i => sectionSize(levels, i), toggle} : undefined;
-  const ctx: Ctx = {index, onCreate, onTag, photos, fold: folds};
+  const ctx: Ctx = {index, onCreate, onTag, photos, photoUrls, fold: folds};
   return <>{outline && <Outline blocks={blocks} id={id} onReveal={folds ? reveal : undefined}/>}
     {folds && <div className="note-fold-all" role="group" aria-label="Fold the sections of this note">
       <button type="button" className="quiet" disabled={can.every(i => folded.has(i))} onClick={() => setFolded(new Set(can))}>Fold all</button>

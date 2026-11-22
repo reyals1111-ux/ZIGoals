@@ -24,11 +24,12 @@ describe('adding and deleting photos', () => {
   });
   test('deleting a photo takes its line out; the next becomes the first', () => {
     const r = record({photoId: 'p-1', photos: ['p-2', 'p-3'], body: 'A.\n\n![photo](p-2)\n\nB.\n\n![photo](p-3)'});
-    const a = removeNotePhoto(r, 'n1', 'p-2', NOW).notes[0]!;
+    // Session AV lane 2 (review b4g B4G-5, deliberate): removeNotePhoto now returns {record, undo}; the same notes are checked.
+    const a = removeNotePhoto(r, 'n1', 'p-2', NOW).record.notes[0]!;
     expect(a).toMatchObject({photoId: 'p-1', photos: ['p-3'], body: 'A.\n\nB.\n\n![photo](p-3)'});
-    const b = removeNotePhoto(r, 'n1', 'p-1', NOW).notes[0]!;
+    const b = removeNotePhoto(r, 'n1', 'p-1', NOW).record.notes[0]!;
     expect(b).toMatchObject({photoId: 'p-2', photos: ['p-3']});
-    const c = removeNotePhoto(record({photoId: 'p-1'}), 'n1', 'p-1', NOW).notes[0]!;
+    const c = removeNotePhoto(record({photoId: 'p-1'}), 'n1', 'p-1', NOW).record.notes[0]!;
     expect('photoId' in c || 'photos' in c).toBe(false);
   });
   test('a photo line goes on its own line at the caret', () => {

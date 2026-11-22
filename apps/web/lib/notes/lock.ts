@@ -1,4 +1,4 @@
-import type {Note, Notes} from './schema';
+import {isLockedHidden, type Note, type Notes} from './schema';
 import {updateNote} from './store';
 
 /**
@@ -12,7 +12,16 @@ import {updateNote} from './store';
  * Encrypting a note with its own passphrase (AES-GCM from PBKDF2) is left out: against a named rule (no key changes).
  * Pure.
  */
-export const isLocked = (note: Pick<Note, 'locked'>) => note.locked === true;
+export const isLocked = isLockedHidden;
+/**
+ * Session AV lane 2 (review b4g B4G-1, B4G-2): what a list, table, gallery, board or chart may draw of a note — a locked
+ * one keeps only its name, kind, days and the lock itself: no words, tags, photos or properties.
+ */
+export function shownOf<T extends Note>(note: T): T {
+  if (!isLockedHidden(note)) return note;
+  const {photoId: _p, photos: _q, props: _r, tags: _t, ...rest} = note; void _p; void _q; void _r; void _t;
+  return {...rest, body: ''} as T;
+}
 /** The notes whose words may be read beyond the note itself (search, graph, NOVA, export). */
 export const readableNotes = <T extends Pick<Note, 'locked'>>(notes: readonly T[]): T[] => notes.filter(n => !isLocked(n));
 /** The record without locked notes (for NOVA's tools and answers). */

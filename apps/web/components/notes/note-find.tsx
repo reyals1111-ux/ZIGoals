@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useId, useMemo, useRef, useState, type KeyboardEvent} from 'react';
-import {findMatches, replaceAll, replaceOne} from '../../lib/notes/find';
+import {findMatches, nextAfter, replaceAll, replaceOne} from '../../lib/notes/find';
 import {SecretGuard} from '../secret-guard/secret-guard';
 
 /**
@@ -25,7 +25,8 @@ export default function NoteFind({value, onChange, field, onClose}: {value: stri
     el.scrollTop = Math.max(0, (lines / all) * el.scrollHeight - el.clientHeight / 2);
   }, [hit, find.length]);
   const step = (by: number) => { if (!matches.length) return; setAt((current + by + matches.length) % matches.length); setSaid(''); };
-  const one = () => { if (hit === null) return; onChange(replaceOne(value, hit, find.length, replace)); setSaid('Replaced 1. Save keeps the earlier words under Earlier versions.'); };
+  // Review b4g B4G-8: the next match is the first after the words just put in (they may hold the found words).
+  const one = () => { if (hit === null) return; const next = replaceOne(value, hit, find.length, replace); onChange(next); setAt(nextAfter(findMatches(next, find, matchCase), hit + replace.length)); setSaid('Replaced 1. Save keeps the earlier words under Earlier versions.'); };
   const all = () => { if (!matches.length) return; const n = matches.length; onChange(replaceAll(value, find, replace, matchCase)); setAt(0); setSaid(`Replaced ${n}. Save keeps the earlier words under Earlier versions.`); };
   const keys = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } };
   const onFind = (e: KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') { e.preventDefault(); step(e.shiftKey ? -1 : 1); } };

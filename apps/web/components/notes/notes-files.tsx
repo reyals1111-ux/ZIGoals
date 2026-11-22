@@ -26,7 +26,7 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
   const input = useRef<HTMLInputElement>(null);
   const [said, setSaid] = useState(''), [busy, setBusy] = useState(false), [plan, setPlan] = useState<ImportPlan | null>(null);
   // Session AV lane 2 (r4-notes; LEDGER #321): the photos of Evernote and Bear notes, by the file each became.
-  const [images, setImages] = useState<Map<string, ForeignImage[]>>(new Map());
+  const [images, setImages] = useState<Map<string, ForeignImage[]>>(new Map()), cancelled = useRef(false);
   // Security review Z1B-5: one reading budget for all chosen files, and Stop while they are read.
   const reading = useRef<AbortController | null>(null);
   const exportZip = async () => {
@@ -58,6 +58,7 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
   };
   const confirm = async () => {
     if (!plan) return;
+    cancelled.current = false;
     const n = plan.add.length, m = plan.append.length, kept: string[] = [];
     let left = 0;
     setBusy(true);
@@ -73,7 +74,10 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
       add.push({...note, body: named.body, ...(named.photoId ? {photoId: named.photoId} : {}), ...(named.photos.length ? {photos: named.photos} : {})});
     }
     setBusy(false);
-    const ok = change(r => applyImport(r, {...plan, add}, new Date().toISOString()), `Imported ${n} ${n === 1 ? 'note' : 'notes'}${kept.length ? ` with ${kept.length} ${kept.length === 1 ? 'photo' : 'photos'}` : ''}${m ? `, and added words to ${m} daily ${m === 1 ? 'note' : 'notes'}` : ''}${left ? `; ${left === 1 ? '1 photo' : `${left} photos`} could not be read here and ${left === 1 ? 'was' : 'were'} left out` : ''}.`);
+    if (cancelled.current) { for (const id of kept) await deleteNotePhoto(photoScope(), id).catch(() => undefined); return; }
+    // Review b4g B4G-3: words added to a day's note never keep an import's photo placeholders.
+    const append = plan.append.map(a => ({...a, text: a.text.replace(/^[ \t]*!\[photo\]\(imp-\d+\)[ \t]*$/gm, '').replace(/\n{3,}/g, '\n\n').trim()}));
+    const ok = change(r => applyImport(r, {...plan, add, append}, new Date().toISOString()), `Imported ${n} ${n === 1 ? 'note' : 'notes'}${kept.length ? ` with ${kept.length} ${kept.length === 1 ? 'photo' : 'photos'}` : ''}${m ? `, and added words to ${m} daily ${m === 1 ? 'note' : 'notes'}` : ''}${left ? `; ${left === 1 ? '1 photo' : `${left} photos`} could not be read here and ${left === 1 ? 'was' : 'were'} left out` : ''}.`);
     if (ok) { setPlan(null); setImages(new Map()); } else for (const id of kept) await deleteNotePhoto(photoScope(), id).catch(() => undefined);
   };
   return <div className="note-files">
@@ -94,7 +98,8 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
         {plan.skipped.length > 0 && <details><summary>Skipped and why</summary><ul>{plan.skipped.slice(0, 100).map((s, i) => <li key={`${s.name}-${i}`}><code>{s.name}</code>: {s.reason}</li>)}</ul>{plan.skipped.length > 100 && <p className="fine">And {plan.skipped.length - 100} more.</p>}</details>}
         <div className="note-actions">
           <button type="button" className="primary" disabled={busy || (!plan.add.length && !plan.append.length)} onClick={() => void confirm()}>Import</button>
-          <button type="button" className="quiet" onClick={() => setPlan(null)}>Cancel</button>
+          {/* Review b4g B4G-11: while the photos are being kept, Cancel waits (the import is one step with Undo after it). */}
+          <button type="button" className="quiet" disabled={busy} onClick={() => { cancelled.current = true; setPlan(null); setImages(new Map()); }}>Cancel</button>
         </div>
       </div>}
     </section>
