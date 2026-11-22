@@ -112,10 +112,11 @@
   :root .habit-card-heading > div:first-child > h2:not(.eyebrow) { grid-column: 1; grid-row: 2; align-self: center; }
   :root .habit-card-heading > div:first-child > small:not(.eyebrow) { grid-column: 1 / -1; grid-row: 3; }
   :root .habit-card-heading > :is(button, .star-toggle, .pin-to-today) { grid-row: 2; align-self: center; }
-  :root .habit-card-heading:has(> div:first-child > .habit-focus-badge) > div:first-child > .habit-focus-badge:not(.eyebrow) { grid-column: 1 / -1; grid-row: 2; }
-  :root .habit-card-heading:has(> div:first-child > .habit-focus-badge) > div:first-child > h2:not(.eyebrow),
-  :root .habit-card-heading:has(> div:first-child > .habit-focus-badge) > :is(button, .star-toggle, .pin-to-today) { grid-row: 3; }
-  :root .habit-card-heading:has(> div:first-child > .habit-focus-badge) > div:first-child > small:not(.eyebrow) { grid-row: 4; }
+  /* Session AV lane 2 (batch 4 unit check): a class the card sets with the focus badge, not :has() (lib/perf/has-invalidation). */
+  :root .habit-card-heading.habit-card-heading-focus > div:first-child > .habit-focus-badge:not(.eyebrow) { grid-column: 1 / -1; grid-row: 2; }
+  :root .habit-card-heading.habit-card-heading-focus > div:first-child > h2:not(.eyebrow),
+  :root .habit-card-heading.habit-card-heading-focus > :is(button, .star-toggle, .pin-to-today) { grid-row: 3; }
+  :root .habit-card-heading.habit-card-heading-focus > div:first-child > small:not(.eyebrow) { grid-row: 4; }
 }
 /* …and where cards stand side by side (above 1050 px), a section's cards fill its row: two cards share it, one card takes
    it whole (it had left two of the three fixed columns empty). A lone card reads in two columns: its words on the left,
