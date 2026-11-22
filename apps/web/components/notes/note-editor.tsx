@@ -157,7 +157,8 @@ function NoteExtras({note, change, onDeleted, onPlace, onLocked}: {note: Note; c
   };
   const removePhoto = async (id: string) => {
     setConfirmPhoto(null);
-    if (change(r => removeNotePhoto(r, note.id, id, new Date().toISOString()), 'Photo deleted from this device.')) await deleteNotePhoto(photoScope(), id).catch(() => undefined);
+    // Review b4g B4G-5: Undo puts it back, so the bytes stay until the arrival sweep (30 days with no note naming it).
+    change(r => removeNotePhoto(r, note.id, id, new Date().toISOString()), 'Photo taken out of the note. Undo puts it back.');
   };
   return <div className="note-extras">
     {unplaced.map(id => <NotePhotoUnder key={id} id={id} name={noteName(note)}/>)}
@@ -180,7 +181,7 @@ function NoteExtras({note, change, onDeleted, onPlace, onLocked}: {note: Note; c
       <ul className="note-photo-list">{ids.map((id, i) => <li key={id}><span>Photo {i + 1} <span className="fine">· {unplaced.includes(id) ? 'under the words' : 'in the words'}</span></span>
         <button type="button" className="quiet" onClick={() => setConfirmPhoto(id)}>Delete photo {i + 1}…</button></li>)}</ul>
     </details>}
-    {confirmPhoto && <ConfirmInline title={ids.length > 1 ? `Delete photo ${ids.indexOf(confirmPhoto) + 1} from this device?` : 'Delete this photo from this device?'} confirmLabel="Delete photo" onConfirm={() => void removePhoto(confirmPhoto)} onCancel={() => setConfirmPhoto(null)}><p>The note&rsquo;s words stay{ids.length > 1 ? '; the photo’s line goes' : ''}. This cannot be undone.</p></ConfirmInline>}
+    {confirmPhoto && <ConfirmInline title={ids.length > 1 ? `Delete photo ${ids.indexOf(confirmPhoto) + 1} from this device?` : 'Delete this photo from this device?'} confirmLabel="Delete photo" onConfirm={() => void removePhoto(confirmPhoto)} onCancel={() => setConfirmPhoto(null)}><p>The note&rsquo;s words stay{ids.length > 1 ? '; only the photo’s own line goes (kept under Earlier versions)' : ''}. Undo in the message puts it back; the photo leaves this device after 30 days with no note naming it.</p></ConfirmInline>}
     {said && <p className="fine" role="status">{said}</p>}
   </div>;
 }

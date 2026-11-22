@@ -409,3 +409,9 @@ before (an archived note in its list; only the first photo).
   notes, then its daily notes, newest first (each "· daily note", named by its day); the Tags fold counts only the notes
   that list can show (no inbox captures, no archived notes), so "#gym · 5 notes" lists five. New `lib/notes/focus.ts`
   (`taggableNotes`, `focusList`). Test: `lib/notes/b4g-focus-days.test.ts`.
+- **B4G-5 (Major): deleting a photo changes only its own line.** `withoutPhotoLines` takes out that photo's lines (and
+  one blank line beside each) and nothing else; photo lines inside fenced code are not photos (`placedPhotoIds` too).
+  `removeNotePhoto` keeps the replaced words as an earlier version and returns an Undo, offered in the message. So Undo
+  can bring the photo back, its bytes now stay until the arrival sweep has found no note naming it for 30 days (the
+  sweep's existing grace), and the confirmation says so instead of "This cannot be undone". `r4-photos.test.ts` reads
+  the new return shape (a labelled deliberate change, same checks). Test: `lib/notes/b4g-photo-delete.test.ts`.
