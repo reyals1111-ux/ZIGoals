@@ -373,8 +373,9 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
     }};
   }
   if (kind === 'steps') {
-    const limit = amount ?? dayFactorBasis(src, today).steps ?? 8000, days = new Set((src.health?.activity ?? []).map(a => a.date));
-    // Only a past day with activity logged counts: a day with nothing logged is unknown, never a day without steps.
+    const limit = amount ?? dayFactorBasis(src, today).steps ?? 8000, days = new Set((src.health?.activity ?? []).filter(a => a.steps > 0).map(a => a.date));
+    // Only a past day with steps logged counts: a day with nothing logged, or only minutes ("Yoga 30 min", review B4E-14),
+    // is unknown, never a day without steps.
     return {phrase: `On days you walked over ${formatNumber(limit)} steps`, test: d => src.health && d < today && days.has(d) ? dailyHealthSummary(src.health, d).steps > limit : null};
   }
   if (kind === 'spend') {
