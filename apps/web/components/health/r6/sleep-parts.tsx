@@ -15,8 +15,8 @@ import './body-r6.css';
  * - `week-efficiency` (LEDGER #423): the last 7 days' time asleep out of time in bed, on average a night.
  * Facts from the person's own nights, never "you must"; nothing stored.
  */
-export default function SleepR6({part, sleep, today, compact = false}: {part: 'bedtime' | 'week-efficiency'; sleep: Sleep; today: string; compact?: boolean}) {
-  return part === 'bedtime' ? <Bedtime sleep={sleep} today={today} compact={compact}/> : <WeekEfficiency sleep={sleep} today={today}/>;
+export default function SleepR6({part, sleep, today, zone, compact = false}: {part: 'bedtime' | 'week-efficiency'; sleep: Sleep; today: string; /** Where tonight is lived (the Sleep page's zone), for the bedtime (review B6P-3). */ zone?: string; compact?: boolean}) {
+  return part === 'bedtime' ? <Bedtime sleep={sleep} today={today} zone={zone} compact={compact}/> : <WeekEfficiency sleep={sleep} today={today}/>;
 }
 
 export function bedtimeWords(t: ReturnType<typeof tonight>): string {
@@ -26,8 +26,8 @@ export function bedtimeWords(t: ReturnType<typeof tonight>): string {
   return `Bed by ${formatClock(t.bed)} for your ${formatMinutes(t.goal)} before your ${t.wakeFrom === 'typed' ? '' : 'usual '}${formatClock(t.wake)} wake${t.latency !== null ? `, with your usual ${formatMinutes(t.latency)} to fall asleep` : ''}.`;
 }
 
-function Bedtime({sleep, today, compact}: {sleep: Sleep; today: string; compact: boolean}) {
-  const [wake, setWake] = useState<string | null>(null), id = useId(), t = tonight(sleep, today, wake);
+function Bedtime({sleep, today, zone, compact}: {sleep: Sleep; today: string; zone?: string; compact: boolean}) {
+  const [wake, setWake] = useState<string | null>(null), id = useId(), t = tonight(sleep, today, wake, zone);
   if (compact) return t.kind === 'bedtime' || t.kind === 'window' ? <p className="r6-bedtime-line fine">Tonight: {bedtimeWords(t)}</p> : null;
   return <div className="r6-bedtime" role="group" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`} className="r6-subtitle">Tonight’s bedtime</h3>
