@@ -43,7 +43,10 @@ for (const theme of THEMES) for (const width of [320, 390, 1440]) test(`${theme}
   await expect(history).toContainText('Average period');
   await expect(history.getByRole('listitem').first()).toContainText('27 days so far (still going)');
   await expect(history).not.toContainText(/fertile|ovulat|phase|predict/i);
-  await history.getByRole('button', {name: /^Leave the cycle from Jul 29\b.* out of the averages$/}).click();
+  const leave = history.getByRole('button', {name: /^Leave out the cycle from Jul 29\b/});
+  await expect(leave).toHaveAttribute('aria-pressed', 'false');
+  await leave.click();
+  await expect(leave).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(async () => (await read(page)).leftOut).toEqual(['2026-07-29']);
   await expect(history).toContainText('1 cycle is left out of the averages and the estimate');
   await expect(history).toContainText('from 3 cycles');
@@ -76,6 +79,16 @@ for (const theme of THEMES) for (const width of [320, 390, 1440]) test(`${theme}
   await words.getByRole('button', {name: 'Move Migraine up'}).focus();
   await page.keyboard.press('Enter');
   await expect(words.getByRole('button', {name: 'Move Migraine up'})).toBeFocused();
+  // Session AV lane 2 (review B5H-3): at the bottom, focus moves to the word's other button; at the top, the same.
+  await words.getByRole('button', {name: 'Move Migraine down'}).focus();
+  await page.keyboard.press('Enter');
+  await expect(words.getByRole('button', {name: 'Move Migraine down'})).toBeDisabled();
+  await expect(words.getByRole('button', {name: 'Move Migraine up'})).toBeFocused();
+  await words.getByRole('button', {name: 'Move Headache up'}).focus();
+  await page.keyboard.press('Enter');
+  await expect(words.getByRole('button', {name: 'Move Headache up'})).toBeDisabled();
+  await expect(words.getByRole('button', {name: 'Move Headache down'})).toBeFocused();
+  await expect(words.getByRole('listitem').first()).toContainText('Headache');
   await words.getByRole('checkbox', {name: 'Perimenopause words'}).check();
   await expect(log.getByRole('checkbox', {name: 'Hot flushes'})).toBeVisible();
   await words.getByRole('checkbox', {name: 'No period'}).check();

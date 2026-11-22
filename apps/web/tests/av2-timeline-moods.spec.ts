@@ -31,7 +31,7 @@ for (const theme of THEMES) for (const width of [320, 390, 1440]) test(`${theme}
   await expect(evening.locator('[data-kind=mark]').first()).toContainText('Mood check-in');
   await expect(evening.locator('[data-kind=mark]').nth(1)).toContainText('Feeling: calm (quite)');
   await expect(marks.getByRole('button')).toHaveCount(0);
-  await expect(evening.getByRole('link', {name: 'Mood: Good (4 of 5)'})).toHaveAttribute('href', '/app/health?mood=ask');
+  await expect(evening.getByRole('link', {name: 'Mood: Good (4 of 5)'})).toHaveAttribute('href', `/app/health?date=${DAY}`);
   const f = await axe(page, page.locator('main'));
   expect(f.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(f)).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);

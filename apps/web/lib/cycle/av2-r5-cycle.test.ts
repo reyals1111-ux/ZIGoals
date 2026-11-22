@@ -1,6 +1,8 @@
 import {describe, expect, test} from 'vitest';
+import {readFileSync} from 'node:fs';
 import {addLocalDays} from '../local-date';
-import {CYCLE_LINE, cycleLengths, nextPeriodEstimate, setCycleDay, setCycleOn} from './engine';
+import {CYCLE_LINE, TOO_MANY_WORDS, cycleLengths, nextPeriodEstimate, setCycleDay, setCycleOn} from './engine';
+import {MAX_SYMPTOMS} from './store';
 import {emptyCycle, type Cycle} from './store';
 import {cycleGlance, cycleHistory, cycleStats, setLeftOut} from './history';
 import {addOwnWord, allWords, chipWords, moveWord, removeOwnWord, setCycleChoice, setWordHidden, wordIdOf, wordLabel} from './words';
@@ -35,6 +37,12 @@ describe('Your cycles (#379)', () => {
     expect(h.find(c => c.start === '2026-01-01')).toMatchObject({pause: true});
     expect(cycleStats(h).cycle).toEqual({average: 28, shortest: 28, longest: 28, count: 1});
   });
+  test('the cycle still going is never a pause, however long; the glance shows it (review B5H-5)', () => {
+    const rec = periods([[addLocalDays(TODAY, -174), 3]]);
+    expect(cycleHistory(rec, TODAY)).toEqual([expect.objectContaining({length: 175, complete: false, pause: false})]);
+    expect(cycleGlance(rec, TODAY)[0]!.days).toHaveLength(60);
+    expect(cycleStats(cycleHistory(rec, TODAY)).cycle).toBeNull();
+  });
   test('nothing logged: no cycles', () => { expect(cycleHistory(emptyCycle(), TODAY)).toEqual([]); expect(cycleStats([])).toEqual({cycle: null, period: null, leftOut: 0}); });
 });
 
@@ -48,6 +56,22 @@ describe('Leave a cycle out of the averages (#382)', () => {
     expect(nextPeriodEstimate(out, TODAY)).toMatchObject({kind: 'range', shortest: 25, longest: 28});
     expect(nextPeriodEstimate(REC, TODAY)).toMatchObject({kind: 'range', shortest: 25, longest: 32});
     expect(setLeftOut(out, '2026-07-29', false).leftOut).toEqual([]);
+  });
+});
+
+describe('a left-out cycle stays left out when its start moves (review B5H-6)', () => {
+  test('an earlier flow day logged, or the first one cleared: the entry follows its period; a period cleared goes with it', () => {
+    const out = setLeftOut(REC, '2026-08-30', true);
+    const earlier = setCycleDay(out, '2026-08-29', {flow: 'light'}, TODAY);
+    expect(earlier.leftOut).toEqual(['2026-08-29']);
+    expect(cycleHistory(earlier, TODAY).find(c => c.start === '2026-08-29')).toMatchObject({leftOut: true});
+    const later = setCycleDay(out, '2026-08-30', {flow: null}, TODAY);
+    expect(later.leftOut).toEqual(['2026-08-31']);
+    expect(cycleLengths(later)).toEqual([28, 33, 28, 25]); // the cycle from 31 Aug (27 days) stays out
+    let gone = out;
+    for (let i = 0; i < 6; i++) gone = setCycleDay(gone, addLocalDays('2026-08-30', i), {flow: null}, TODAY);
+    expect(gone.leftOut).toEqual([]);
+    expect(setCycleDay(out, '2026-11-01', {note: 'Fictional'}, TODAY).leftOut).toEqual(['2026-08-30']);
   });
 });
 
@@ -101,6 +125,23 @@ describe('Your own words, hidden and in your order (#380)', () => {
     const moved = moveWord(REC, 'tired', -1);
     expect(chipWords(moved).indexOf('tired')).toBe(chipWords(REC).indexOf('tired') - 1);
     expect(moveWord(REC, 'cramps', -1)).toBe(REC);
+    // Review B5H-3: a word moved to the top or the bottom lands there (its button for that direction is then disabled).
+    const ids = chipWords(REC), top = moveWord(REC, ids[1]!, -1), bottom = moveWord(REC, ids.at(-2)!, 1);
+    expect(chipWords(top)[0]).toBe(ids[1]);
+    expect(chipWords(bottom).at(-1)).toBe(ids.at(-2));
+    expect(moveWord(bottom, ids.at(-2)!, 1)).toBe(bottom);
+  });
+});
+
+describe('a day keeps up to 12 words, and a 13th is refused in words (review B5H-1)', () => {
+  test('12 kept; the 13th throws its own sentence and changes nothing; never dropped silently', () => {
+    const words = chipWords(setCycleChoice(REC, 'peri', true));
+    expect(words.length).toBeGreaterThan(MAX_SYMPTOMS);
+    const twelve = setCycleDay(REC, TODAY, {symptoms: words.slice(0, MAX_SYMPTOMS)}, TODAY);
+    expect(twelve.days[TODAY]!.symptoms).toHaveLength(MAX_SYMPTOMS);
+    expect(() => setCycleDay(twelve, TODAY, {symptoms: words.slice(0, MAX_SYMPTOMS + 1)}, TODAY)).toThrow(TOO_MANY_WORDS);
+    expect(TOO_MANY_WORDS).toBe('Choose up to 12 words for one day: untick one first.');
+    expect(setCycleDay(twelve, TODAY, {symptoms: words.slice(1, MAX_SYMPTOMS)}, TODAY).days[TODAY]!.symptoms).toHaveLength(MAX_SYMPTOMS - 1);
   });
 });
 
@@ -130,5 +171,15 @@ describe('the rules', () => {
   });
   test('the Showcase cycle still reads with the new parts', () => {
     expect(cycleHistory(showcaseCycle(TODAY), TODAY).length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe('the Leave out toggle keeps its visible words in its name (review B5H-4)', () => {
+  test('no aria-label over the words; the date is an sr-only suffix; the state is aria-pressed', () => {
+    const src = readFileSync(new URL('../../components/cycle/cycle-history.tsx', import.meta.url), 'utf8');
+    const toggle = src.split('\n').find(l => l.includes('className="quiet cycle-leave"'))!;
+    expect(toggle).not.toContain('aria-label');
+    expect(toggle).toContain('aria-pressed={c.leftOut}');
+    expect(toggle).toContain('</span>Leave out<span className="sr-only"> the cycle from {formatDate(c.start)}</span>');
   });
 });

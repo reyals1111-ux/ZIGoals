@@ -19,7 +19,7 @@ export type PastCycle = {
   periodLength: number;
   /** false for the cycle still going (no next period logged yet). */
   complete: boolean;
-  /** Over 90 days to the next start: a pause in logging, not a cycle. */
+  /** Over 90 days to the next start: a pause in logging, not a cycle. Review B5H-5: never the cycle still going. */
   pause: boolean;
   leftOut: boolean;
   /** The period may still be going (its last logged day is today or yesterday). */
@@ -34,7 +34,7 @@ export function cycleHistory(rec: Rec, today: string): PastCycle[] {
     let last = start;
     for (const d of flow) { if (d < start) continue; if (d >= ends || between(last, d) > 2) break; last = d; }
     const length = between(start, next ?? addLocalDays(today, 1));
-    return {start, length, periodLength: between(start, last) + 1, complete: !!next, pause: length > MAX_CYCLE_LENGTH, leftOut: left.has(start), periodSoFar: !next && last >= addLocalDays(today, -1)};
+    return {start, length, periodLength: between(start, last) + 1, complete: !!next, pause: !!next && length > MAX_CYCLE_LENGTH, leftOut: left.has(start), periodSoFar: !next && last >= addLocalDays(today, -1)};
   }).reverse();
 }
 export type Spread = {average: number; shortest: number; longest: number; count: number};

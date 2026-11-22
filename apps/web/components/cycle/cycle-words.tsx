@@ -1,5 +1,5 @@
 'use client';
-import {useId, useRef, useState} from 'react';
+import {useEffect, useId, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {CYCLE, OWN_WORDS_MAX, OWN_WORD_MAX} from '../../lib/cycle/store';
 import {addOwnWord, allWords, moveWord, removeOwnWord, setCycleChoice, setWordHidden} from '../../lib/cycle/words';
@@ -12,12 +12,20 @@ import {addOwnWord, allWords, moveWord, removeOwnWord, setCycleChoice, setWordHi
  */
 export default function CycleWords() {
   const rec = useDeviceRecord(CYCLE), id = useId(), [draft, setDraft] = useState(''), [error, setError] = useState(''), [said, setSaid] = useState('');
-  const list = useRef<HTMLUListElement>(null);
+  const list = useRef<HTMLUListElement>(null), pending = useRef<{id: string; by: -1 | 1} | null>(null);
+  // Session AV lane 2 (review B5H-3): after a move, once the list has its new order, focus stays on the moved word's own
+  // button for that direction, or (at the top or the bottom, where it is disabled) on its button for the other one.
+  useEffect(() => {
+    const want = pending.current; if (!want || !list.current) return;
+    const of = (by: number) => list.current!.querySelector<HTMLButtonElement>(`[data-word="${want.id}"][data-move="${by}"]`);
+    const same = of(want.by), target = same && !same.disabled ? same : of(-want.by);
+    if (target && !target.disabled) { target.focus(); pending.current = null; }
+  });
   if (!rec.loaded) return <p className="fine">Reading your words…</p>;
   const write = (fn: Parameters<typeof rec.update>[0], text: string) => { try { rec.update(fn); setSaid(text); return true; } catch { setSaid('Not saved on this device. Nothing was changed.'); return false; } };
   const words = allWords(rec.data), own = words.filter(w => w.own).length;
   // Focus stays on the word's own button after a move (the row moved, so its button is found again by the word's id).
-  const move = (wid: string, label: string, by: -1 | 1) => { if (write(r => moveWord(r, wid, by), `${label} moved ${by < 0 ? 'up' : 'down'}.`)) queueMicrotask(() => list.current?.querySelector<HTMLButtonElement>(`[data-word="${wid}"][data-move="${by}"]`)?.focus()); };
+  const move = (wid: string, label: string, by: -1 | 1) => { pending.current = {id: wid, by}; if (!write(r => moveWord(r, wid, by), `${label} moved ${by < 0 ? 'up' : 'down'}.`)) pending.current = null; };
   const add = () => {
     const out = addOwnWord(rec.data, draft);
     if (!out.ok) { setError(out.message); return; }

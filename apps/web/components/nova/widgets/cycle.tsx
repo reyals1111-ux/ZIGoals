@@ -1,7 +1,7 @@
 'use client';
 import {useMemo} from 'react';
 import {CYCLE} from '../../../lib/cycle/store';
-import {cycleCard, cycleRows} from '../../../lib/nova/cards/health-more';
+import {cycleCard, cycleReadout, cycleRows} from '../../../lib/nova/cards/health-more';
 import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {CardFoot, CardNotice, type CardProps} from '../cards/kit';
@@ -43,14 +43,16 @@ function CycleBody({size}: {size: CardProps['size']}) {
   if (card.state === 'off') return <CardNotice kind="off" ghost="ring" title="The cycle log is off" href="/app/health#cycle-log" action="Go to the cycle log">{size === 'S' ? null : 'Your cycle log has its own switch on Health. While it is off, nothing of it is shown here.'}</CardNotice>;
   if (card.state === 'empty') return <CardNotice kind="empty" ghost="ring" title="Nothing logged yet" href="/app/health#cycle-log" action="Go to the cycle log">{size === 'S' ? null : 'Log the first day of a period on Health. The day of your cycle then shows here, on your screen only.'}</CardNotice>;
   const day = (date: string) => formatDate(date, {year: date.slice(0, 4) !== today.slice(0, 4)}), e = card.estimate;
+  // Session AV lane 2 (review B5H-2): the readout's words, "No period" included (text only; the card's look is unchanged).
+  const readout = cycleReadout(card, (from, to) => `${formatDate(from, {year: false})} – ${formatDate(to, {year: false})}`);
   return <div className="nc-body nx-card" data-size={size} data-lay="dial">
     <NxDial share={card.day !== null && e ? Math.min(1, card.day / Math.max(1, e.longest)) : null} figure={card.day === null ? '—' : String(card.day)} caption={card.day === null ? null : 'day'}/>
     <NxHead pulse label="Day of this cycle" title={card.day === null ? 'No recent period logged' : `Day ${card.day}`} note={card.lastStart ? `Last period started ${day(card.lastStart)}.` : null}/>
     {size !== 'S' && <div className="nx-main" data-fit="rows" data-keep="">
       <p className="nx-readout">
         <span className="nx-readout-label">Next period, an estimate</span>
-        <span className="nx-readout-value" data-long={e ? '' : undefined}>{e ? `${formatDate(e.from, {year: false})} – ${formatDate(e.to, {year: false})}` : 'Not yet'}</span>
-        <span className="nx-readout-sub">{e ? `${e.passed ? 'These days have passed. ' : ''}From your cycles of ${e.shortest} to ${e.longest} days.` : `After ${card.need} more complete ${card.need === 1 ? 'cycle' : 'cycles'}.`}</span>
+        <span className="nx-readout-value" data-long={readout.long ? '' : undefined}>{readout.value}</span>
+        <span className="nx-readout-sub">{readout.sub}</span>
       </p>
       {size === 'L' && <p className="nx-note">{card.rule}</p>}
     </div>}

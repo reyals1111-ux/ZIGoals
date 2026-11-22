@@ -13,13 +13,17 @@ export const MIN_CYCLES = 3, ESTIMATE_FROM = 6, MAX_CYCLE_LENGTH = 90;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const between = (a: string, b: string) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
 
+/** Session AV lane 2 (review B5H-1): the words said when a day already has its 12 words. */
+export const TOO_MANY_WORDS = `Choose up to ${MAX_SYMPTOMS} words for one day: untick one first.`;
 export type DayInput = {flow?: Flow | null; symptoms?: readonly string[]; note?: string};
 /** Changes one day (a field left out is kept; `flow: null` clears it). A day left with nothing is removed. */
 export function setCycleDay(rec: Cycle, date: string, input: DayInput, today: string): Cycle {
   if (!DAY.test(date) || date > today) throw new Error('Choose today or an earlier day.');
   const current = {...(rec.days[date] ?? {})};
   if (input.flow !== undefined) { if (input.flow === null) delete current.flow; else current.flow = input.flow; }
-  if (input.symptoms !== undefined) { const list = [...new Set(input.symptoms)].slice(0, MAX_SYMPTOMS); if (list.length) current.symptoms = list; else delete current.symptoms; }
+  // Session AV lane 2 (review B5H-1): a day keeps up to 12 words (the day's `symptoms` is capped at 12 without a catch in
+  // every older build, so a longer list would make their whole record unreadable): a 13th is refused, never dropped.
+  if (input.symptoms !== undefined) { const list = [...new Set(input.symptoms)]; if (list.length > MAX_SYMPTOMS) throw new Error(TOO_MANY_WORDS); if (list.length) current.symptoms = list; else delete current.symptoms; }
   if (input.note !== undefined) { const note = input.note.replace(/\s+/g, ' ').trim().slice(0, CYCLE_NOTE_MAX); if (note) current.note = note; else delete current.note; }
   const days = {...rec.days};
   if (current.flow || current.symptoms?.length || current.note) days[date] = current; else delete days[date];
@@ -27,7 +31,30 @@ export function setCycleDay(rec: Cycle, date: string, input: DayInput, today: st
     const keep = new Set(Object.keys(days).sort().slice(-MAX_CYCLE_DAYS));
     for (const d of Object.keys(days)) if (!keep.has(d)) delete days[d];
   }
-  return cycleSchema.parse({...rec, days});
+  // Session AV lane 2 (review B5H-6): a cycle left out stays left out when its period's first day moves.
+  const leftOut = rec.leftOut?.length ? carryLeftOut(rec, {days}) : undefined;
+  return cycleSchema.parse({...rec, days, ...(leftOut ? {leftOut} : {})});
+}
+/** Each logged period as its first and last flow day (a one-day gap inside it still counts), oldest first. */
+function periodRuns(rec: Pick<Cycle, 'days'>): {start: string; end: string}[] {
+  const runs: {start: string; end: string}[] = [];
+  for (const d of periodDays(rec)) { const last = runs.at(-1); if (last && between(last.end, d) <= 2) last.end = d; else runs.push({start: d, end: d}); }
+  return runs;
+}
+/**
+ * Session AV lane 2 (review B5H-6): the left-out starts after a change of days — a start that moved (an earlier flow day
+ * logged, or the first one cleared) follows its period to the new first day; a period cleared entirely takes its cycle
+ * with it. A start this build cannot place is kept as it was.
+ */
+export function carryLeftOut(before: Pick<Cycle, 'days' | 'leftOut'>, after: Pick<Cycle, 'days'>): string[] {
+  const old = periodRuns(before), now = periodRuns(after), starts = new Set(now.map(r => r.start));
+  return [...new Set((before.leftOut ?? []).flatMap(s => {
+    if (starts.has(s)) return [s];
+    const was = old.find(r => r.start === s);
+    if (!was) return [s];
+    const moved = now.find(r => r.start <= was.end && r.end >= was.start);
+    return moved ? [moved.start] : [];
+  }))].sort();
 }
 export const setCycleOn = (rec: Cycle, on: boolean): Cycle => cycleSchema.parse({...rec, on});
 /** Session AV lane 2 (r3-plan, LEDGER #262): show the cycle day and period days on the day plan, or not. */

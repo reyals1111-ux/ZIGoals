@@ -1,7 +1,7 @@
 'use client';
 import {Suspense, lazy, useId, useState, type ReactNode} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {CYCLE, CYCLE_NOTE_MAX, FLOWS, type Flow} from '../../lib/cycle/store';
+import {CYCLE, CYCLE_NOTE_MAX, FLOWS, MAX_SYMPTOMS, type Flow} from '../../lib/cycle/store';
 import {chipWords, wordLabel} from '../../lib/cycle/words';
 import {LoadBoundary} from '../load-boundary';
 import {Skeleton} from '../ui/skeleton';
@@ -52,6 +52,7 @@ export default function CycleLog({today}: {today: string}) {
       <div className="cycle-chips">{FLOWS.map(f => <button key={f} type="button" className="secondary" aria-pressed={entry.flow === f} onClick={() => write(r => setCycleDay(r, day, {flow: entry.flow === f ? null : f}, today), entry.flow === f ? `Flow cleared for ${when}.` : `${FLOW_WORDS[f]} flow, ${when}.`)}>{FLOW_WORDS[f]}</button>)}</div>
     </fieldset>}
     <fieldset className="cycle-symptoms"><legend>How it feels, {when} (optional)</legend>
+      {symptoms.length >= MAX_SYMPTOMS && <p className="fine">A day keeps up to {MAX_SYMPTOMS} words; untick one to choose another.</p>}
       <div className="cycle-chips">{chipWords(rec.data, symptoms).map(s => <label key={s} className="cycle-chip"><input type="checkbox" checked={symptoms.includes(s)} onChange={e => toggle(s, e.target.checked)}/><span>{word(s)}</span></label>)}</div>
     </fieldset>
     <label className="field"><span>Note (optional)</span><input maxLength={CYCLE_NOTE_MAX} value={noteDraft ?? entry.note ?? ''} onChange={e => setNoteDraft(e.target.value)}
