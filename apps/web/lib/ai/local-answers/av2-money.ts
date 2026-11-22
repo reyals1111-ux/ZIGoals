@@ -158,3 +158,28 @@ function accountNotes(a: Asked): LocalReply | null {
   return answer(lines.length ? lines.join('\n') : say(lang, 'None of your accounts has a note. Edit an account in What you have → Accounts to add one.', 'Geen van je rekeningen heeft een notitie. Bewerk een rekening in What you have → Accounts om er een toe te voegen.'), calls);
 }
 addAnswers(payeesWatched, challenges, untilPayday, lowLine, yearInReview, accountNotes);
+
+// ── Group 8: CoinStats ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/** "Which move alerts do I have", "welke bewegingsalarmen heb ik": the 24 h move alerts and the portfolio percent alerts. */
+function moveAlerts(a: Asked): LocalReply | null {
+  const en = /\b(?:move|moves|movement|24 ?h(?:our)?|percent|%) alerts?\b|\balerts? (?:on|for) (?:a )?(?:24 ?h(?:our)?|daily) moves?\b/.test(a.f), nl = /\bbewegingsalarm(?:en)?\b|\b24[- ]?uurs?alarm(?:en)?\b|\bprocentalarm(?:en)?\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const record = a.env.ak?.priceAlerts, lang = a.lang, calls = [{tool: 'price_alerts', args: {moves: true}, label: 'Price alerts · moves'}];
+  const moves = (record?.moves ?? []).filter(x => x.active), pm = (record?.portfolioMoves ?? []).filter(x => x.active);
+  if (!moves.length && !pm.length) return answer(say(lang, 'No move alert is set. On a coin’s page, Price alert → “moves a percent within 24 hours”; on a portfolio, Value alert → “a percent more or less than now”.', 'Er staat geen bewegingsalarm. Op de pagina van een munt: Price alert → “moves a percent within 24 hours”; bij een portefeuille: Value alert → “a percent more or less than now”.'), calls);
+  const dir = (d: 'up' | 'down' | 'either') => d === 'up' ? say(lang, 'up', 'omhoog') : d === 'down' ? say(lang, 'down', 'omlaag') : say(lang, 'up or down', 'omhoog of omlaag');
+  const lines = [...moves.map(m => say(lang, `${m.coinName}: ${m.percent}% ${dir(m.direction)} within 24 h in ${m.currency}${m.firedAt ? `, last told ${dayIn('en', m.firedAt.slice(0, 10), a.today)}` : ''}`, `${m.coinName}: ${m.percent}% ${dir(m.direction)} binnen 24 uur in ${m.currency}${m.firedAt ? `, laatst gemeld ${dayIn('nl', m.firedAt.slice(0, 10), a.today)}` : ''}`)),
+    ...pm.map(m => say(lang, `${m.portfolioName}: worth ${m.percent}% ${dir(m.direction)} from ${m.base} ${m.currency}`, `${m.portfolioName}: ${m.percent}% ${dir(m.direction)} vanaf ${m.base} ${m.currency}`))];
+  return answer(`${lines.join('. ')}. ${say(lang, 'Checked with the market figures this app already reads; information, not advice.', 'Gecontroleerd met de marktcijfers die deze app al leest; informatie, geen advies.')}`, calls);
+}
+/** "What was my portfolio worth a month ago", "wat was mijn portefeuille vorige maand waard": where the Time Machine is. */
+function timeMachine(a: Asked): LocalReply | null {
+  const en = /\bwhat (?:was|were) my (?:portfolio|coins|crypto)\b.*\bworth\b|\btime machine\b/.test(a.f), nl = /\bwat was mijn (?:portefeuille|crypto)\b.*\bwaard\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  return answer(say(a.lang, 'Portfolio → your portfolio → Analysis → “On a past day” shows what it held at the end of any day in the last year and what that was worth then, from your transactions and the market history the value chart reads. Past prices are not on this device for me to read, so I cannot say the figure here.',
+    'Portfolio → je portefeuille → Analysis → “On a past day” toont wat je op elke dag van het afgelopen jaar bezat en wat dat toen waard was, uit je transacties en de koersgeschiedenis die de waardegrafiek leest. Oude koersen staan niet op dit apparaat voor mij, dus het bedrag kan ik hier niet noemen.'), [{tool: 'portfolio', args: {timeMachine: true}, label: 'Portfolio · on a past day'}]);
+}
+addAnswers(moveAlerts, timeMachine);

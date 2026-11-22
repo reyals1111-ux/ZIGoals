@@ -16,4 +16,6 @@ export const AV2_MONEY: readonly Intent[] = [
   {id: 'av2-money-low-line', pillar: 'wealth', en: ['will my cash go below my line', 'when will my balance drop below my low-balance line'], nl: ['zakt mijn geld onder mijn grens', 'komt mijn saldo onder mijn grens']},
   {id: 'av2-money-year', pillar: 'wealth', en: ['how was my year for money', 'show my year in review'], nl: ['hoe was mijn jaar voor mijn geld', 'toon mijn jaar in cijfers']},
   {id: 'av2-money-account-notes', pillar: 'wealth', en: ['what notes do I have on my accounts', 'show my account notes'], nl: ['welke notities heb ik bij mijn rekeningen', 'toon mijn notities bij mijn rekeningen']},
+  {id: 'av2-money-move-alerts', pillar: 'wealth', en: ['which move alerts do I have', 'what 24 hour alerts are set'], nl: ['welke bewegingsalarmen heb ik', 'welke procentalarmen staan er']},
+  {id: 'av2-money-time-machine', pillar: 'wealth', en: ['what was my portfolio worth a month ago', 'what were my coins worth last year'], nl: ['wat was mijn portefeuille vorige maand waard', 'wat was mijn crypto vorig jaar waard']},
 ];

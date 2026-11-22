@@ -22,6 +22,7 @@ import {useScrollEdges} from '../ui/use-scroll-edges';
 /** Session W Part 15: the pieces of Portfolio v2 and its coin page. Unknown is written as unknown, never as 0. */
 export const KIND_LABEL = {real: 'Real holdings', hypothetical: 'Hypothetical'} as const;
 import {RECEIPTS, RECEIPT_LABEL, receiptOf} from '../../lib/portfolio/receipts';
+import {setCounted} from '../../lib/portfolio/counted';
 import {IMPORTS} from '../../lib/portfolio/wallet-import';
 import {useDeviceRecord} from '../ai/use-device-record';
 export const TX_LABEL: Record<PortfolioTransaction['kind'], string> = {buy: 'Buy', sell: 'Sell', 'transfer-in': 'Transfer in', 'transfer-out': 'Transfer out'};
@@ -162,11 +163,16 @@ export function AllTransactions({portfolio, onRemove, run}: {portfolio: Portfoli
   </section>;
 }
 export function TransactionList({portfolio, list, names, onRemove, run}: {portfolio: Portfolio; list: PortfolioTransaction[]; names: Map<string, PortfolioCoin>; onRemove: (id: string) => void; run?: Run}) {
-  const currency = portfolio.currency, [editing, setEditing] = useState<string | null>(null), receipts = useDeviceRecord(RECEIPTS).data, imported = useDeviceRecord(IMPORTS).data.rows; // Session AI (J15, WE20)
+  const receiptsRecord = useDeviceRecord(RECEIPTS), currency = portfolio.currency, [editing, setEditing] = useState<string | null>(null), receipts = receiptsRecord.data, imported = useDeviceRecord(IMPORTS).data.rows; // Session AI (J15, WE20)
+  // Session AV lane 2 (money; CoinStats' "Include in Profit/Loss"): each transaction can be left out of the results.
+  const [countNote, setCountNote] = useState<{id: string; text: string} | null>(null), uncounted = new Set(receipts.uncounted ?? []);
+  const toggleCounted = (id: string, counted: boolean) => { try { receiptsRecord.update(r => setCounted(r, portfolio, id, counted)); setCountNote({id, text: counted ? 'Counted in the results again.' : 'Left out of the results; its coins still count in what you hold.'}); } catch (cause) { setCountNote({id, text: cause instanceof Error ? cause.message : 'Not saved on this device.'}); } };
   return <ol className="portfolio-transactions">{list.map(t => <li key={t.id} data-direction={t.kind === 'buy' || t.kind === 'transfer-in' ? 'in' : 'out'}>
     {/* Session AH (J17): what came in reads "+", in green; what went out "−" */}<span><strong>{(t.kind === 'transfer-in' && receiptOf(receipts, t.id) ? RECEIPT_LABEL[receiptOf(receipts, t.id)!] : null) ?? TX_LABEL[t.kind]}</strong> <span className="portfolio-tx-amount">{t.kind === 'buy' || t.kind === 'transfer-in' ? '+' : '−'}{formatExactNumber(t.quantity)}</span> {names.get(t.coin)?.symbol ?? ''}{t.price !== undefined ? ` at ${formatPrice(t.price, currency)}` : ' · no price'}{t.fee ? ` · fee ${formatMoney(t.fee, currency)}` : ''}</span>
     <small><time dateTime={t.date}>{formatDate(t.date)}</time>{t.note ? ` · ${t.note}` : ''}</small>
     {/* Session AH (WE2, N-146): a recorded transaction can be corrected, not only removed */}{imported[t.id] && <small className="portfolio-from-wallet">from wallet</small>}{run && names.get(t.coin) && !imported[t.id] && <button type="button" className="quiet" aria-expanded={editing === t.id} onClick={() => setEditing(editing === t.id ? null : t.id)}>Edit</button>}<button type="button" className="quiet" onClick={() => onRemove(t.id)}>Remove</button>
+    {receiptsRecord.loaded && !receiptsRecord.unreadable && <label className="portfolio-counted"><input type="checkbox" checked={!uncounted.has(t.id)} aria-label={`Count in results: ${TX_LABEL[t.kind]} ${formatExactNumber(t.quantity)} ${names.get(t.coin)?.symbol ?? ''} on ${formatDate(t.date)}`} onChange={e => toggleCounted(t.id, e.target.checked)}/><span aria-hidden="true">Count in results</span></label>}
+    {countNote?.id === t.id && <small role="status" className="portfolio-counted-note">{countNote.text}</small>}
     {run && editing === t.id && names.get(t.coin) && <TransactionForm portfolio={portfolio} run={run} coin={names.get(t.coin)} edit={{transaction: t, onDone: () => setEditing(null)}} />}
   </li>)}</ol>;
 }

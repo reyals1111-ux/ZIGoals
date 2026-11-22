@@ -163,3 +163,35 @@ Device keys / catalogue / export / erase entries needed: none (existing keys onl
   `components/wealth/accounts.css`, `components/tasks/today-tasks-due.css` (`.today-budgets-left`).
 - Today: nothing always visible. The opt-in "Budgets left" line adds no Tab stop; the low-balance piece joins the
   existing Money link (one Tab stop, as before) only when the person set a line.
+
+### F4. CoinStats: a rolling 24 h move alert, a ±% portfolio alert, "Count in results", the Time Machine
+
+- LEDGER rows: #173 a rolling "moves X % in 24 h" from the quotes already read — **built** (the 24 h change the market
+  insights already carry; up, down or either way; it can tell again the next day while the move lasts); #174 the ±X %
+  portfolio form — **built** (from its value when the alert was set; fires once; checked app-wide where alerts are);
+  #172 "count in results" per transaction — **built** (cost, profit and loss and the all-time result leave it out; the
+  holdings and value keep it; refused, in words, when a later sale needs its coins); #175 Time Machine — **built**
+  ("On a past day" under Analysis: holdings at the end of the day, each price and value then from the market history the
+  value chart already reads, a year back; unknown stays unknown). No new outside service: only `/api/market-insights`
+  and `/api/market-history`, which the app already calls.
+- Files: `lib/price-alerts/moves.ts` (new), `lib/price-alerts/engine.ts` (Today's card, Seen, the watch gate count the new
+  lists), `components/price-alerts/price-alerts.tsx`, `components/price-alerts/portfolio-value-alert.tsx`,
+  `lib/portfolio/counted.ts` (new), `lib/portfolio/time-machine.ts` (new), `components/portfolio/time-machine.tsx` (new,
+  lazy), `components/portfolio/portfolio-view.tsx`, `components/portfolio/portfolio-sections.tsx`.
+- Tests: `lib/price-alerts/av2-moves.test.ts`, round trip (`moves`, `portfolioMoves`, `uncounted`).
+- Spec: `tests/av2-money-crypto.spec.ts` (MOCK quotes and a MOCK 24 h change).
+- Help (EN): **Q: Can an alert follow a day's move rather than a fixed price?** A: Yes: on a coin, Price alert → "moves
+  a percent within 24 hours", up, down or either way. It uses the 24-hour change the app already reads and can tell you
+  again the next day while the move lasts. On a portfolio, Value alert → "a percent more or less than now".
+  **Q: Can I leave a transaction out of my profit and loss?** A: Untick "Count in results" on it (Portfolio → Insights,
+  or a coin's transactions). Its coins still count in what you hold and its value. **Q: What was my portfolio worth on
+  a past day?** A: Portfolio → Analysis → "On a past day": pick a day in the last year.
+- What's new: "Portfolio: 24-hour move alerts, a portfolio percent alert, leave a transaction out of your results, and
+  what you held on a past day."
+- Answers: `moveAlerts`, `timeMachine` (corpus `av2-money-move-alerts`, `av2-money-time-machine`). Note for the lead:
+  the existing `priceAlerts` answer in `av-answers.ts` lists coin, goal and value alerts only; the move alerts are
+  answered by `moveAlerts` ("which move alerts do I have").
+- Showcase hook: none (the Showcase portfolio's alerts are hidden by design, `!showcase`); the Time Machine shows the
+  Showcase's labelled fixture prices.
+- Registries: none. CSS touched: `components/portfolio/portfolio.css`.
+- Today: the existing "Your price alerts" card also lists a reached move alert (no new card).

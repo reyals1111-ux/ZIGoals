@@ -23,6 +23,10 @@ import {storageMessageOr} from '../../lib/storage-error-copy';
 import {type Portfolio, type PortfolioCoin, type PortfolioCurrency} from '../../lib/portfolio/schema';
 import {HoldingsBelowZero, holdings, portfolioTotals} from '../../lib/portfolio/math';
 import {allTimeResult, dayChange} from '../../lib/portfolio/performance';
+// Session AV lane 2 (money; CoinStats): transactions left out of the results.
+import {forResults, uncountedOf} from '../../lib/portfolio/counted';
+import {RECEIPTS} from '../../lib/portfolio/receipts';
+import {useDeviceRecord} from '../ai/use-device-record';
 import {realizedGainsCsv} from '../../lib/portfolio/realized-csv';
 import {HideAmountsToggle} from '../hide-amounts';
 import {PortfolioUnreadable, createPortfolio, deletePortfolio, exportPortfolios, parsePortfolioImport, removeTransaction, renamePortfolio} from '../../lib/portfolio/store';
@@ -59,6 +63,8 @@ const WalletHoldings = lazy(() => import('../wallet/wallet-holdings'));
 const TraderTools = lazy(() => import('./trader-tools').then(m => ({default: m.TraderTools})));
 // Session AV (owner follow-up 1, F-MOVE-ALERT): an alert on a portfolio's whole value.
 const PortfolioValueAlert = lazy(() => import('../price-alerts/portfolio-value-alert'));
+// Session AV lane 2 (money; CoinStats' Time Machine): what the portfolio held and was worth on a past day (its own chunk).
+const TimeMachine = lazy(() => import('./time-machine'));
 export function PortfolioView() {
   const store = usePortfolios();
   const [selectedId, setSelectedId] = useState<string | null>(null), [creating, setCreating] = useState(false);
@@ -162,8 +168,12 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
   const [sort, setSort] = useState<'value' | 'name' | 'result'>('value'), [renaming, setRenaming] = useState(false), [removing, setRemoving] = useState(false);
   // Session AB-Design (owner request 27): Coins / Analysis / Insights, one view at a time; nothing is removed.
   const [tab, setTab] = useState<'coins' | 'analysis' | 'insights'>('coins');
-  const held = holdings(portfolio), rows = rowsFor(portfolio, held, marketOf), priceOf = (coin: string) => rows.find(r => r.holding.coin === coin)?.market.price?.value;
-  const totals = portfolioTotals(portfolio, priceOf), day = dayChange(rows.map(r => ({quantity: r.holding.quantity, value: r.value, change24h: r.market.change24h}))), allTime = allTimeResult(portfolio, priceOf);
+  const receipts = useDeviceRecord(RECEIPTS), counted = forResults(portfolio, uncountedOf(receipts.loaded && !receipts.unreadable ? receipts.data : null)), leftOut = portfolio.transactions.length - counted.transactions.length;
+  const held = holdings(portfolio), all = rowsFor(portfolio, held, marketOf), priceOf = (coin: string) => all.find(r => r.holding.coin === coin)?.market.price?.value;
+  // Session AV lane 2 (money): what it holds and is worth from every transaction; each result without those left out.
+  const resultRows = leftOut ? rowsFor(counted, holdings(counted), marketOf) : all, rows = leftOut ? all.map(r => { const res = resultRows.find(x => x.holding.coin === r.holding.coin); return {...r, unrealized: res?.unrealized, unrealizedPct: res?.unrealizedPct}; }) : all;
+  const whole = portfolioTotals(portfolio, priceOf), part = leftOut ? portfolioTotals(counted, priceOf) : whole;
+  const totals = {...whole, cost: part.cost, costKnown: part.costKnown, unrealized: part.unrealized, unrealizedPct: part.unrealizedPct}, day = dayChange(rows.map(r => ({quantity: r.holding.quantity, value: r.value, change24h: r.market.change24h}))), allTime = allTimeResult(counted, priceOf);
   const stale = rows.some(r => r.market.price?.stale && Number(r.holding.quantity) > 0);
   return <section className="panel portfolio-panel" aria-labelledby={`portfolio-${portfolio.id}-title`}>
     <header className="portfolio-panel-head">
@@ -173,6 +183,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
     {renaming && <form className="portfolio-inline-form" aria-label="Rename portfolio" onSubmit={event => { event.preventDefault(); const name = String(new FormData(event.currentTarget).get('name') ?? ''); if (name.trim() && run(data => renamePortfolio(data, portfolio.id, name), 'Portfolio renamed.', 'The new name was not saved.')) setRenaming(false); }}><label className="field"><span>New name</span><input name="name" required maxLength={80} defaultValue={portfolio.name} /></label><button className="secondary" type="submit">Save name</button></form>}
     {removing && <div className="portfolio-confirm" role="alertdialog" aria-label="Delete portfolio"><p>Delete “{portfolio.name}” and its {portfolio.transactions.length} transactions from this device? Export it first to keep a copy.</p><div className="actions"><button type="button" className="secondary" onClick={() => run(data => deletePortfolio(data, portfolio.id), 'Portfolio deleted.', 'The portfolio was not deleted.')}>Delete portfolio</button><button type="button" className="quiet" onClick={() => setRemoving(false)}>Keep it</button></div></div>}
     <div className="portfolio-summary-big"><PortfolioSummary portfolio={portfolio} totals={totals} day={day} allTime={allTime} stale={stale} /></div>
+    {leftOut > 0 && <p className="fine portfolio-left-out">{leftOut} {leftOut === 1 ? 'transaction is' : 'transactions are'} left out of the results (cost, profit and loss); {leftOut === 1 ? 'its coins still count' : 'their coins still count'} in what this portfolio holds and is worth.</p>}
     {!showcase && <SinceLastVisit portfolio={portfolio} value={totals.knownValue} ready={totals.held > 0 && totals.unpriced === 0 && !stale} />}
     {/* Session AV (owner follow-up 1, F-MOVE-ALERT): an alert on the whole value, checked here when the value is complete. */}
     {!showcase && portfolio.kind === 'real' && <Suspense fallback={null}><PortfolioValueAlert portfolioId={portfolio.id} portfolioName={portfolio.name} currency={portfolio.currency} value={totals.held > 0 && totals.unpriced === 0 && !stale ? totals.knownValue : null}/></Suspense>}
@@ -186,6 +197,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
       </div>
       <div id={`${portfolio.id}-panel-analysis`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-analysis`} hidden={tab !== 'analysis'}>
         <div className="portfolio-overview"><PortfolioValueChart portfolio={portfolio} showcase={showcase} />{rows.some(r => r.value !== undefined && Number(r.value) > 0) && <AllocationDonut portfolio={portfolio} rows={rows} />}</div>
+        {tab === 'analysis' && <Suspense fallback={null}><TimeMachine portfolio={portfolio} showcase={showcase} valueNow={totals.held > 0 && totals.unpriced === 0 && !stale ? totals.knownValue : null}/></Suspense>}
       </div>
       <div id={`${portfolio.id}-panel-insights`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-insights`} hidden={tab !== 'insights'}>
         <AllTransactions portfolio={portfolio} onRemove={id => removeTx(portfolio.id, id)} run={run} />
