@@ -2183,6 +2183,9 @@
 /*  components/navigation.css  */
 @media (min-width:901px) { :where(:root[data-text=large]) .sidebar-destination .brand-wordmark:not(#\-) { font-size: calc(37px * 1.125); } }
 :where(:root[data-text=large]) .workspace-status:not(#\-) { font-size: calc(.875rem * 1.125); }
+/*  components/notes/note-focus.css  */
+:where(:root[data-text=large]) .note-focus-title:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .note-focus-field:not(#\-) { font-size: calc(18px * 1.125); }
 /*  components/notes/notes-canvas.css  */
 :where(:root[data-text=large]) .canvas-row input:not(#\-), :where(:root[data-text=large]) .canvas-row select:not(#\-), :where(:root[data-text=large]) .canvas-row textarea:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .canvas-lines text:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2220,6 +2223,15 @@
 :where(:root[data-text=large]) .notes-board-pick select:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .notes-board-col h3:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .notes-board-card select:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .note-tag-line:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .note-tag-pick:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .note-focus-line:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .note-info:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .note-find-title:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .note-fold-toggle:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .note-archived-line:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .note-lock-title:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .note-save-title:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/notes/this-day-strip.css  */
 :where(:root[data-text=large]) .note-this-day-title:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .note-day-chip-detail:not(#\-) { font-size: calc(14px * 1.125); }

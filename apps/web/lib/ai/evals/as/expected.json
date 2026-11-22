@@ -8187,7 +8187,7 @@
  },
  "av2r4-steps-sleep": {
   "en": "On days you walked over 7,500 steps, you slept 8 h 11 min that night on average; on other days, 7 h 16 min. (24 days with, 31 without, your last 90 days.) Something else could explain it: active days are often different days too, such as weekends, trips or days off. It is what happened together, never a cause.",
-  "nl": "Op dagen met meer dan 7500 stappen sliep je die nacht gemiddeld 8 h 11 min; na andere dagen 7 h 16 min (24 met, 31 zonder, je laatste 90 dagen). Iets anders kan het verklaren, zoals drukke dagen of weekenden. Het is wat samen gebeurde, nooit een oorzaak.",
+  "nl": "Op dagen met meer dan 7.500 stappen sliep je die nacht gemiddeld 8 h 11 min; na andere dagen 7 h 16 min (24 met, 31 zonder, je laatste 90 dagen). Iets anders kan het verklaren, zoals drukke dagen of weekenden. Het is wat samen gebeurde, nooit een oorzaak.",
   "facts": null,
   "widgets": [],
   "fresh": "There is no steps in your log to compare with your nights yet. Log steps in Health → Activity. Then Health → Insights → Compare sets the days with it beside the days without, night by night.",
@@ -8320,5 +8320,101 @@
   "widgets": [],
   "fresh": "No income category is marked as investment income yet. In Wealth → Spending → Your money over time → Month by month → Investment income beside spending, mark the categories that are (interest, dividends, staking rewards); each month is then set beside your spending.",
   "freshNl": "Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In Vermogen → Uitgaven → Your money over time → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven."
+ },
+ "av2r4-tags": {
+  "en": "Notes per tag: #reading 1 and #travel 1; 6 notes have no tag. Notes → Chart draws them.",
+  "nl": "Notities per tag: #reading 1 en #travel 1; 6 notities hebben geen tag. Notes → Chart tekent ze.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note has a tag yet. Notes imported with tags (Notes → Files → Import) show under Notes → Chart.",
+  "freshNl": "Nog geen notitie heeft een tag. Notities die met tags zijn geïmporteerd (Notes → Files → Import) staan onder Notes → Chart."
+ },
+ "av2r4-note-photos": {
+  "en": "No note has a photo yet. Open a note and press Add a photo; a note holds up to eight, each placed in the words where you add it.",
+  "nl": "Nog geen notitie heeft een foto. Open een notitie en druk op Add a photo; een notitie houdt er tot acht, elk op de plek in de tekst waar je hem toevoegt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note has a photo yet. Open a note and press Add a photo; a note holds up to eight, each placed in the words where you add it.",
+  "freshNl": "Nog geen notitie heeft een foto. Open een notitie en druk op Add a photo; een notitie houdt er tot acht, elk op de plek in de tekst waar je hem toevoegt."
+ },
+ "av2r4-note-words": {
+  "en": "Your notes hold 139 words in 8 notes, about 1 min to read (an estimate at 230 words a minute). The longest is “Japan trip ideas” (32 words). An open note’s Note info says its own.",
+  "nl": "Je notities hebben 139 woorden in 8 notities, ongeveer 1 min lezen (een schatting bij 230 woorden per minuut). De langste is “Japan trip ideas” (32 woorden). Note info bij een open notitie zegt het per notitie.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your notes hold no words yet. An open note’s Note info says its words, characters and minutes to read.",
+  "freshNl": "Je notities hebben nog geen woorden. Note info bij een open notitie zegt de woorden, tekens en leesminuten."
+ },
+ "av2r4-find-replace": {
+  "en": "Open the note, press Edit, then Find and replace: type the words, step through each match with Next (Enter) and Previous, and press Replace or Replace all. Save keeps the earlier words under Earlier versions.",
+  "nl": "Open de notitie, druk op Edit en dan op Find and replace: typ de woorden, loop door elke vondst met Next (Enter) en Previous, en druk op Replace of Replace all. Save bewaart de eerdere woorden onder Earlier versions.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open the note, press Edit, then Find and replace: type the words, step through each match with Next (Enter) and Previous, and press Replace or Replace all. Save keeps the earlier words under Earlier versions.",
+  "freshNl": "Open de notitie, druk op Edit en dan op Find and replace: typ de woorden, loop door elke vondst met Next (Enter) en Previous, en druk op Replace of Replace all. Save bewaart de eerdere woorden onder Earlier versions."
+ },
+ "av2r4-fold": {
+  "en": "When you read a note, each heading has a fold button before it: it folds the words under it, up to the next heading of its level. Fold all and Open all do every heading at once. Folds last for this visit; nothing changes in the note.",
+  "nl": "Als je een notitie leest, staat er voor elke kop een vouwknop: die vouwt de woorden eronder in, tot de volgende kop van zijn niveau. Fold all en Open all doen alle koppen tegelijk. Het vouwen geldt voor dit bezoek; de notitie verandert niet.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "When you read a note, each heading has a fold button before it: it folds the words under it, up to the next heading of its level. Fold all and Open all do every heading at once. Folds last for this visit; nothing changes in the note.",
+  "freshNl": "Als je een notitie leest, staat er voor elke kop een vouwknop: die vouwt de woorden eronder in, tot de volgende kop van zijn niveau. Fold all en Open all doen alle koppen tegelijk. Het vouwen geldt voor dit bezoek; de notitie verandert niet."
+ },
+ "av2r4-callouts": {
+  "en": "Start a quote with a marker: > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING] or > [!CAUTION], with words after it on the next > lines. Notes draws it as a calm box with its word. The Markdown export keeps it as written, so Obsidian and GitHub show it too.",
+  "nl": "Begin een citaat met een teken: > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING] of > [!CAUTION], met woorden op de volgende > regels. Notes tekent het als een rustig kader met zijn woord. De Markdown-export houdt het zoals geschreven, dus Obsidian en GitHub tonen het ook.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Start a quote with a marker: > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING] or > [!CAUTION], with words after it on the next > lines. Notes draws it as a calm box with its word. The Markdown export keeps it as written, so Obsidian and GitHub show it too.",
+  "freshNl": "Begin een citaat met een teken: > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING] of > [!CAUTION], met woorden op de volgende > regels. Notes tekent het als een rustig kader met zijn woord. De Markdown-export houdt het zoals geschreven, dus Obsidian en GitHub tonen het ook."
+ },
+ "av2r4-writing-view": {
+  "en": "Open a note, press Edit, then Write in full screen: only the note shows until Esc or Done, and your words go back to the note. Typewriter keeps the line you write in the middle of the screen; the choice stays on this device.",
+  "nl": "Open een notitie, druk op Edit en dan op Write in full screen: alleen de notitie staat er tot Esc of Done, en je woorden gaan terug naar de notitie. Typewriter houdt de regel waarin je schrijft midden in beeld; die keuze blijft op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open a note, press Edit, then Write in full screen: only the note shows until Esc or Done, and your words go back to the note. Typewriter keeps the line you write in the middle of the screen; the choice stays on this device.",
+  "freshNl": "Open een notitie, druk op Edit en dan op Write in full screen: alleen de notitie staat er tot Esc of Done, en je woorden gaan terug naar de notitie. Typewriter houdt de regel waarin je schrijft midden in beeld; die keuze blijft op dit apparaat."
+ },
+ "av2r4-archive": {
+  "en": "No note is archived. Archive (on an open note) takes a note out of the list and the graph; it stays in Search and the export, and Back to the list brings it back.",
+  "nl": "Geen notitie is gearchiveerd. Archive (bij een open notitie) haalt een notitie uit de lijst en de grafiek; ze blijft in Search en de export, en Back to the list zet haar terug.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note is archived. Archive (on an open note) takes a note out of the list and the graph; it stays in Search and the export, and Back to the list brings it back.",
+  "freshNl": "Geen notitie is gearchiveerd. Archive (bij een open notitie) haalt een notitie uit de lijst en de grafiek; ze blijft in Search en de export, en Back to the list zet haar terug."
+ },
+ "av2r4-lock": {
+  "en": "Open the note and press Lock this note. It then shows only after this device’s screen-cover PIN (Settings → Account & devices), and stays out of Search, the Graph, NOVA and the Markdown export — so I never read a locked note. Its words are hidden, not encrypted: they stay in this browser and in Export everything.",
+  "nl": "Open de notitie en druk op Lock this note. Ze toont dan pas na de pincode van de schermafdekking van dit apparaat (Settings → Account & devices), en blijft uit Search, de grafiek, NOVA en de Markdown-export — ik lees een vergrendelde notitie dus nooit. De woorden zijn verborgen, niet versleuteld: ze blijven in deze browser en in Export everything.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open the note and press Lock this note. It then shows only after this device’s screen-cover PIN (Settings → Account & devices), and stays out of Search, the Graph, NOVA and the Markdown export — so I never read a locked note. Its words are hidden, not encrypted: they stay in this browser and in Export everything.",
+  "freshNl": "Open de notitie en druk op Lock this note. Ze toont dan pas na de pincode van de schermafdekking van dit apparaat (Settings → Account & devices), en blijft uit Search, de grafiek, NOVA en de Markdown-export — ik lees een vergrendelde notitie dus nooit. De woorden zijn verborgen, niet versleuteld: ze blijven in deze browser en in Export everything."
+ },
+ "av2r4-save-note": {
+  "en": "Yes. Open the note and press Save this note as…: an HTML page (its photos inside), plain text, or a Word file (.docx). Each is made on this device and saved where you choose.",
+  "nl": "Ja. Open de notitie en druk op Save this note as…: een HTML-pagina (met de foto’s erin), platte tekst of een Word-bestand (.docx). Elk wordt op dit apparaat gemaakt en bewaard waar jij kiest.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. Open the note and press Save this note as…: an HTML page (its photos inside), plain text, or a Word file (.docx). Each is made on this device and saved where you choose.",
+  "freshNl": "Ja. Open de notitie en druk op Save this note as…: een HTML-pagina (met de foto’s erin), platte tekst of een Word-bestand (.docx). Elk wordt op dit apparaat gemaakt en bewaard waar jij kiest."
+ },
+ "av2r4-journal-book": {
+  "en": "Yes. Journal → Import and export → E-book and Word: choose a journal and the days from and to, then Save as e-book (.epub, a chapter per month with a contents page and your photos) or Save as Word (.docx). Letters that have not opened yet stay out. You have 12 entries.",
+  "nl": "Ja. Journal → Import and export → E-book and Word: kies een dagboek en de dagen van en tot, dan Save as e-book (.epub, een hoofdstuk per maand met een inhoud en je foto’s) of Save as Word (.docx). Brieven die nog niet open zijn blijven eruit. Je hebt 12 stukken.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. Journal → Import and export → E-book and Word: choose a journal and the days from and to, then Save as e-book (.epub, a chapter per month with a contents page and your photos) or Save as Word (.docx). Letters that have not opened yet stay out. You have 0 entries.",
+  "freshNl": "Ja. Journal → Import and export → E-book and Word: kies een dagboek en de dagen van en tot, dan Save as e-book (.epub, een hoofdstuk per maand met een inhoud en je foto’s) of Save as Word (.docx). Brieven die nog niet open zijn blijven eruit. Je hebt 0 stukken."
+ },
+ "av2r4-imports": {
+  "en": "Yes. Notes → Files → Choose files to import takes Evernote’s export (.enex) and Bear’s (.bear2bk backups, .textbundle and .textpack): titles, days, tags, the words with their lists and to-dos, and up to eight photos a note. You see what would come in before anything is saved, and Undo takes it back.",
+  "nl": "Ja. Notes → Files → Choose files to import neemt de export van Evernote (.enex) en van Bear (.bear2bk-back-ups, .textbundle en .textpack): titels, dagen, tags, de woorden met lijsten en taken, en tot acht foto’s per notitie. Je ziet eerst wat er binnenkomt, en Undo draait het terug.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. Notes → Files → Choose files to import takes Evernote’s export (.enex) and Bear’s (.bear2bk backups, .textbundle and .textpack): titles, days, tags, the words with their lists and to-dos, and up to eight photos a note. You see what would come in before anything is saved, and Undo takes it back.",
+  "freshNl": "Ja. Notes → Files → Choose files to import neemt de export van Evernote (.enex) en van Bear (.bear2bk-back-ups, .textbundle en .textpack): titels, dagen, tags, de woorden met lijsten en taken, en tot acht foto’s per notitie. Je ziet eerst wat er binnenkomt, en Undo draait het terug."
  }
 }

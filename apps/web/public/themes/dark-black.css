@@ -5090,6 +5090,19 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .note-focus:not(#\-):not(#\-) {
+        background: var(--surface, var(--bg, #020202))
+    }
+    .note-focus:not(#\-):not(#\-)::backdrop {
+        background-image: none;
+        background-color: var(--bg, #020202)
+    }
+    .note-focus-field:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     @media print {
         :scope.zg-print-note:not(#\-):not(#\-), :scope.zg-print-note body:not(#\-):not(#\-) {
             background-image: none !important;
@@ -5205,6 +5218,34 @@
     .notes-board-col:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--brand-violet, #826cff) 7%, transparent)
+    }
+    .note-tag:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 16%, transparent)
+    }
+    .note-tag-pick:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .note-tag-pick[aria-pressed="true"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 18%, transparent)
+    }
+    .note-find-context mark:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 34%, transparent)
+    }
+    .note-fold-toggle:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .note-fold-toggle:hover:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, currentColor 10%, transparent)
+    }
+    .note-callout:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--co) 9%, transparent)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {

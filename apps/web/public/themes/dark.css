@@ -14112,6 +14112,27 @@
         background-color: var(--pink)
     }
 }
+/*  components/notes/note-focus.css  */
+@scope (:root[data-theme=dark]) {
+    .note-focus:not(#\-) {
+        border-color: currentcolor;
+        background: var(--surface, var(--bg, #0f1116));
+        color: var(--text, inherit)
+    }
+    .note-focus:not(#\-)::backdrop {
+        background-image: none;
+        background-color: var(--bg, #0f1116)
+    }
+    .note-focus-field:not(#\-) {
+        color: inherit;
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in srgb, currentColor 18%, transparent)
+    }
+    .note-focus-field:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+}
 /*  components/notes/note-print.css  */
 @scope (:root[data-theme=dark]) {
     @media print {
@@ -14483,6 +14504,89 @@
     }
     .notes-board-card:not(#\-) {
         border-color: var(--line)
+    }
+    .note-tag:not(#\-) {
+        border-color: currentcolor;
+        color: inherit;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 16%, transparent)
+    }
+    button.note-tag:not(#\-) {
+        text-decoration-color: color-mix(in srgb, currentColor 40%, transparent)
+    }
+    button.note-tag:focus-visible:not(#\-), .note-tag-pick:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .note-tag-pick:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 20%, transparent);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .note-tag-pick[aria-pressed="true"]:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 75%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 18%, transparent)
+    }
+    .note-focus-line:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent)
+    }
+    .note-find:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent)
+    }
+    .note-find-context mark:not(#\-) {
+        color: inherit;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 34%, transparent)
+    }
+    .note-fold-toggle:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .note-fold-toggle:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, currentColor 10%, transparent)
+    }
+    .note-fold-toggle:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .note-callout:not(#\-) {
+        --co: var(--brand-cyan, #63e7ff);
+        border-color: color-mix(in srgb, var(--co) 40%, transparent);
+        border-inline-start-color: var(--co);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--co) 9%, transparent)
+    }
+    .note-callout[data-callout="tip"]:not(#\-) {
+        --co: #4fbf7a
+    }
+    .note-callout[data-callout="important"]:not(#\-) {
+        --co: var(--brand-violet, #826cff)
+    }
+    .note-callout[data-callout="warning"]:not(#\-) {
+        --co: #d9a53a
+    }
+    .note-callout[data-callout="caution"]:not(#\-) {
+        --co: #e0706b
+    }
+    @media (forced-colors: active) {
+        .note-callout:not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    .note-archived-line:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 35%, transparent)
+    }
+    .note-lock:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent)
+    }
+    .note-editor:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .note-save:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent)
     }
 }
 /*  components/notes/this-day-strip.css  */

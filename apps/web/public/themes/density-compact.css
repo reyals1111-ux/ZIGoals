@@ -3983,6 +3983,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .journal-list-options:not(#\-) { row-gap: 6px; margin-top: 6px; margin-bottom: 6px; }
 :where(:root[data-density=compact]) .journal-list-options .field:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .journal-list-hint:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .journal-ebook-fields:not(#\-) { row-gap: 8px; }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-density=compact]) .on-this-day > summary:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .on-this-day-list:not(#\-) { margin-top: 6px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 9px; }
@@ -4317,6 +4318,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar .app-nav [data-group-start]:not(#\-) { margin-top: 18px; } }
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar:not(#\-) { padding-top: 16px; } }
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar .app-nav:not(#\-) { margin-top: 12px; row-gap: 0; } }
+/*  components/notes/note-focus.css  */
+:where(:root[data-density=compact]) .note-focus:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 12px; padding-bottom: 12px; row-gap: 8px; }
+:where(:root[data-density=compact]) .note-focus-head:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-focus-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-focus-field:not(#\-) { padding-top: 16px; padding-bottom: 16px; }
+:where(:root[data-density=compact]) .note-focus[data-typewriter] .note-focus-field:not(#\-) { padding-top: 40dvh; padding-bottom: 40dvh; }
+:where(:root[data-density=compact]) .note-focus-foot:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/notes/note-print.css  */
 @media print { :where(:root[data-density=compact]) .note-print-sheet h1:not(#\-) { margin-top: 0; margin-bottom: 4pt; } }
 @media print { :where(:root[data-density=compact]) .note-print-meta:not(#\-) { margin-top: 0; margin-bottom: 12pt; } }
@@ -4464,6 +4472,41 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .notes-board-col h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .notes-board-col ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .notes-board-card:not(#\-) { row-gap: 3px; padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .note-tag:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-tag-line:not(#\-) { row-gap: 4px; margin-top: 4px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .note-tag-line .note-tag:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-tag-tree:not(#\-) { margin-top: 0; margin-bottom: 8px; padding-top: 0; padding-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .note-tag-pick:not(#\-) { row-gap: 4px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-focus-line:not(#\-) { margin-top: 0; margin-bottom: 8px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .note-photo-figure:not(#\-) { margin-top: 12px; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .note-photo-missing:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .note-photo-list:not(#\-) { margin-top: 0; margin-bottom: 6px; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .note-photo-list li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .note-info:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .note-info > div:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .note-info dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-find:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .note-find-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-find-row:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .note-find-count:not(#\-), :where(:root[data-density=compact]) .note-find-context:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-find-context mark:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-find .switch-row:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .note-fold-all:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .note-fold-head:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .note-fold-head > h3:not(#\-), :where(:root[data-density=compact]) .note-fold-head > h4:not(#\-), :where(:root[data-density=compact]) .note-fold-head > h5:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .note-fold-toggle:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-folded-count:not(#\-) { margin-top: -6px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .note-callout:not(#\-) { margin-top: 12px; margin-bottom: 12px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .note-callout > p:not(#\-) { margin-top: 4px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .note-callout-head:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .note-archived-line:not(#\-) { margin-top: 0; margin-bottom: 8px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .note-archived-fold .note-list li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .note-lock:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .note-lock-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-lock-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-save:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .note-save-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-save p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/notes/this-day-strip.css  */
 :where(:root[data-density=compact]) .note-this-day:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .note-this-day-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
