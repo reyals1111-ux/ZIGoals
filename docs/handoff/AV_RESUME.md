@@ -20,6 +20,8 @@ with a merge commit, edits the shared registries, builds once per batch and push
 Lane 2's own state is kept in this file's "Lane 2 — state" section on that branch.
 
 ## Lane 2 — state (owner follow-up 4; keep current at every batch)
+- **Owner follow-up 6 (finish) rules now** (ADR-045). Alpha #58 = run 61 from `main` `1c1b5953`: version `f2729d28-e9db-436f-a66a-67922cf5d924`, rollback `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57), VERIFIED (3 reads), live prices VERIFIED, market policy ends 2026-11-30T16:00Z, archive SHA-256 `ef1aee3b…0a18e578`. Frozen readers #37–#58.
+- PR #109 (Draft, "Session AV (continued)"): runs 2006 (OOM, fixed), 2007, 2008 red → fixes at the cause; batches 1–4 in; 5 and 6 to join; then the friend-readiness pass and polish; END per follow-up 6 step 5.
 - Branch `feature/session-av-2` from #108's frozen head `807f247e`; LEDGER.md first (`fbeb3e54`). No PR until #108 merges.
   A push here starts no CI (`ci.yml`: push to main, pull_request): push after every integrated batch, local checks first.
 - Done (lead): A45-1 (the account-sync engine out of every page's first scripts, TIER 3 sync `a88abeb8`…`2d270bd9`:

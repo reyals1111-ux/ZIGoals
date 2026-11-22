@@ -671,6 +671,51 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   local branches, unreviewed and not integrated; they are not in this PR.
 - Polish part 3 (started on round 7's base) was stopped with it; nothing of it is in this PR.
 
+## Owner follow-up 6 — finish (23 Nov 2026, 00:40 Brussels, verbatim)
+
+> OWNER FOLLOW-UP 6 TO SESSION AV: FINISH (23 Nov 2026, 00:40 Brussels; pre-approved by the owner; no reply needed; continue in auto mode; check the mode selector shows Auto; no questions). Record this verbatim in ADR-045 under "Owner follow-up 6". Where it differs from follow-ups 4–5, it wins.
+>
+> 0. RECORD ALPHA #58 in PR #109's Part 0 records (ADR-045, STATUS draft, AV_RESUME, the deploy table in docs/STATUS.md):
+>  - Manual Alpha deployment run 61, from main 1c1b5953ebadb45c8afd228fd64f2d38bfd6cd00, 22 Nov 2026 about 23:55 Brussels;
+>  - new version f2729d28-e9db-436f-a66a-67922cf5d924, rollback e0bc17f3-27c0-4900-aa55-416f20ece6f6 (#57);
+>  - VERIFIED after 3 reads, live prices VERIFIED, market policy period ends 2026-11-30T16:00:00Z (7 days left);
+>  - build archive SHA-256 ef1aee3bcfad982d902e944065d38a1f8534b6f328c3d778bfdded4f0a18e578.
+>  Add #58 = 1c1b5953 to the frozen readers (`scripts/frozen-readers.mjs`) and prove every stored-format change in lane 2 against #37–#58.
+>
+> 1. NOTHING NEW. No new research, rows, rounds or features from now on. Only batches 5 and 6, which are already built, get finished and integrated, with their reviews (O, P and the rest) fixed. Any row in them that cannot meet amendment 1's definition of done is unwired (not visible anywhere) and Carried with its cause. Nothing half-built stays visible.
+>
+> 2. CI ON PR #109 FIRST: the goal is two consecutive full runs green on the first attempt.
+>  - Fix every red at its cause, at most 2 attempts each; push only when no run is in progress on this PR; keep fixing locally while a run goes.
+>  - Never weaken an assertion, raise a timeout, or narrow a check to get green. Undo the narrowing in `av2-todays-practice` (the axe check scoped to the practice's own fold): the whole page's axe check stays as strict as before, and whatever the wider check found is fixed in the app. Re-read every "(deliberate)" test change in lane 2 and confirm each has an equally strict replacement; any that doesn't is restored and the app fixed.
+>  - Fallback only if the owner writes "wrap up" first: the last run is green except jobs that failed only on a registered known intermittent and passed on their one allowed re-run, named exactly.
+>
+> 3. FRIEND-READINESS PASS, after batches 5 and 6 are in. Up to 4 fresh helpers who wrote none of lane 2, on one production build, browser runs one at a time, at most 2 workers. Each takes one or two of AU's personas (Sanne, Tom, Lina, Max, Jules) and lives their first week on an empty profile, then on the Showcase, at 390 and 1440, in Nebula plus one other theme, with Playwright's clock moving across days and past midnight. They check:
+>  - every main path still easy to find, with advanced options tucked away. With hundreds of new features, each pillar's first screen stays calm and readable: no new card or row pushes the main action below the fold on a phone, and nothing shown is empty, broken or placeholder;
+>  - nothing crashes, nothing shows NaN, unknown is never 0, estimates say so;
+>  - NOVA and ZIGi answer their real questions correctly in EN and NL;
+>  - export → erase → restore keeps everything;
+>  - Help, What's new, FIRST_WEEK.md and FRIENDS_GUIDE.md match what is really there;
+>  - every page stays inside its route budget with at least 5 kB of headroom, and the production build's type check and build fit CI's limits.
+>  They report findings by severity in docs/review/session-av/FRIEND_READINESS.md. Fix every Blocker and Major and the quick Minors, and re-check the fixes with a fresh helper.
+>
+> 4. POLISH while CI runs: the design language and readability rules on every lane-2 screen (headings white→nebula, liquid-glass hover without pointer tracking, labels ≥ 14 px, body 15–16 px, inputs ≥ 16 px on phones, targets ≥ 44 px, contrast ≥ 4.5:1, no tiny grey copy), Motion Off and reduced motion still and complete, consistent wording across pillars, Dutch where NL is offered.
+>
+> 5. END when steps 1–4 are done and step 2's goal is met (or the owner wrote "wrap up"):
+>  - ADR-045's closing table: ledger counts per round (built / Carried by cause / unwired), QUALITY and FRIEND_READINESS counts, the CI history;
+>  - "Safe to merge now: yes (CI runs N, M)" in AV_RESUME and PR #109's description, which also lists the owner steps lane 2 added (private-sync Worker deploy, the food Worker redeploy, anything else in OWNER_STEPS.md);
+>  - the STATUS entry as the final commit;
+>  - a ≤ 12-line report with preview steps.
+>
+> If the owner writes "wrap up" at any point: finish the fix in hand, unwire anything half-done, push, and END honestly as in step 5.
+>
+> UNCHANGED: every rule from the AV prompt, the nine amendments and follow-ups 1–5. That includes: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudflare; no new dependencies or outside services; no wallet, signing or key changes; protected areas untouched; stored data additive with TIER 3 labels; route budgets never raised; helpers at most 8; merge commits only, never rebase or force-push.
+
+### Follow-up 6 — records and how it is read
+- **Alpha #58** = Manual Alpha deployment run 61, source `main` `1c1b5953ebadb45c8afd228fd64f2d38bfd6cd00` (22 Nov 2026, about 23:55 Brussels): version `f2729d28-e9db-436f-a66a-67922cf5d924`, rollback `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57); **VERIFIED** after 3 reads, live prices **VERIFIED** (owner); market policy period ends 2026-11-30T16:00:00Z; build archive SHA-256 `ef1aee3bcfad982d902e944065d38a1f8534b6f328c3d778bfdded4f0a18e578`.
+- **Frozen readers** are #37–#58 from now on (`scripts/frozen-readers.mjs`: #58 = `1c1b5953`). The proof runs on batch 6's head, which holds every lane 2 stored-format change.
+- `av2-todays-practice`: the scoped axe check (`446eb75f`) is undone; the page's axe check covers every Meditation fold again (the whole page), and what it finds is fixed in the app.
+- Round 7's drafts stay off this branch (follow-up 5); "nothing new" also stops polish part 3's new items: step 4's polish applies the existing design rules to lane 2's screens only.
+
 ## D-CI2006 — PR #109's first run (2006, `303c02f8`): every job red, one cause
 - All 25 jobs failed at the type check: `pnpm typecheck` in the checks job and `next build`'s "Running TypeScript" in every
   build job ran out of memory at Node's default 4 GB heap ("Ineffective mark-compacts near heap limit").
