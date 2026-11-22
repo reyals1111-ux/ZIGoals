@@ -261,3 +261,48 @@ the answers read `env.moneyMore` and, without it, say where the figures live.
 - Registries: the two business records (see "Registry entries the lead adds" above). CSS touched:
   `components/wealth/spending/space-switch.css` (new, theme variables only).
 - Today: nothing.
+
+## Summary: rows and what the lead wires
+
+| row | verdict |
+|---|---|
+| #242 saved entries | built (R2-F1) |
+| #243 a day's amount left | built (R2-F2) |
+| #244 paid with | built (R2-F1) |
+| #245 planned payments | built as a reminder with one tap to record (R2-F3); **"record it for me on its day" not built: owner decision pending** (`lib/bills/tracker.ts`: every mark is the person's own record) |
+| #246 budgets on a tag | built (R2-F2) |
+| #247 one-time budgets across categories | built (R2-F2) |
+| #248 unusual-entry line | built (R2-F3) |
+| #249 balance limit per account | built (R2-F3) |
+| #250 payee budgets | built (R2-F2) |
+| #251 subcategories | built (R2-F1) |
+| #252 my share and settle up | built on this device (R2-F4); the group shared between people's devices **Carried: against a named rule** (nothing is shared between people) |
+| #253 lent and borrowed | built (R2-F4) |
+| #254 store cards with a barcode | built, own encoder, no new package (R2-F5); adding to Apple/Google Wallet **Carried: native-only** |
+| #255 a business space | built inside Wealth's own sections (R2-F6); the protected baseline is untouched |
+
+Shared files the lead edits (none were touched here):
+- `lib/av2-device-keys.ts` → spread `AV2_MONEY_R2_*` from `lib/av2-money-r2-keys.ts`; `lib/restore/plan.ts` → the four
+  `dev(...)` parts listed above. Then `lib/av2-money-r2/round-trip.test.ts`'s skipped test runs by itself.
+- `lib/ai/local-answers/engine.ts` → `av2MoneyR2Answer` before `av2MoneyAnswer`; `lib/ai/tools/env.ts` → `moneyMore`,
+  `moneyTags`, `storeCards`, `moneyLogBusiness` in the tool sources (gated with Wealth); `cases.ts` → `AV2_MONEY_R2`;
+  record `expected.json`.
+- `components/help/help-page.tsx` → the Help Q+A and What's new lines in each feature above; `lib/search/static.ts` →
+  "saved entries", "paid with", "subcategory", "budget per day", "trip budget", "payee budget", "unusual payment",
+  "balance limit", "record a bill", "shared cost", "settle up", "lent", "borrowed", "store card", "loyalty card",
+  "business space" → Wealth → Spending / Budgets / Upcoming bills.
+- CI shard lists → the seven new specs: `tests/av2-money-quick-log.spec.ts`, `av2-money-own-budgets.spec.ts`,
+  `av2-money-alerts.spec.ts`, `av2-money-people.spec.ts`, `av2-money-store-cards.spec.ts`, `av2-money-space.spec.ts`
+  (and none on WebKit-only paths).
+- Theme sheets → regenerate for the CSS touched: `components/wealth/spending/{quick-log,people-money,space-switch}.css`
+  (new), `components/wealth/store-cards/store-cards.css` (new), `components/wealth/spending/spending.css`,
+  `components/wealth/budgets/budgets.css`, `components/wealth/bills/bills.css`, `components/wealth/accounts.css`.
+- `lib/showcase-data.ts`: nothing (no pinned count moves: every new write action is hidden in the Showcase; the per-day
+  line on Budgets rows shows from the Showcase's own figures as plain text, with no Tab stop).
+- Route weights: every new UI part is a lazy chunk (`quick-log`, `unusual-line`, `people-money`, `store-cards`,
+  `own-budgets`, `due-to-record`, `account-limits`, `beside-worth`); the space switch and `perDayWords` ride in the
+  Spending and Budgets chunks, which Wealth already loads lazily. Nothing is added to Today's first chunk; Today's money
+  line reads two more records inside its own lazy chunk.
+- Today: nothing always visible; Showcase Today unchanged (the round 2 pieces are left out there).
+
+Next row: none left in groups R5, R7, R8. Open for the owner: #245's automatic recording.
