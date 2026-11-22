@@ -13,6 +13,8 @@ Builder: the remainders builder, on `lane2/rest` (from `lane2/batch2`). Scope: t
 | #79 Calm Shift — the slow left-right sound | **built** | R4 |
 | #93 Cronometer nutrients | **built** for CoFID (22 further nutrients, 25 → 47); CIQUAL's further nutrients left: **needs an outside service** (its source answered 503, URL below) | R5 |
 | #98 Cronometer custom charts — more nutrients as Compare series | **built** | R6 |
+| #124 Sleep Cycle benchmark line | left: **needs content made for ZIGoals** (no public population figure with its source is in the repository) | R7 |
+| #142 Monarch re-import — CSV | **built** | R8 |
 | #41 Day One, #134 YNAB, #209 Strong — the sync service side | **built** in the repository (Worker and its tests); its deploy is the owner's (OWNER_STEPS line below) | R3 |
 
 ## Answers wiring line for engine.ts (one line, before AV's own answers)
@@ -214,3 +216,38 @@ Corpus: `AV2_REST` in `lib/ai/evals/as/cases-av2-rest.ts` (add to CORPUS and exp
   more. A day counts only when every food you logged that day gives that nutrient.
 - What's new: "Compare: fibre, sodium, vitamins and every other nutrient as outcomes."
 - Showcase hook: none needed (the Showcase's diary offers its own nutrients automatically). CSS: none. Nothing on Today.
+
+## R7 Sleep Cycle's benchmark line — LEDGER #124: left, needs content made for ZIGoals
+
+- The row wants a line against published population averages. No such figure, with its source and year, is anywhere in
+  the repository (searched `apps/web/lib`, `docs`: only the LEDGER and COMPETITORS rows that ask for it). Adding one
+  means choosing a dataset (which country, which age group, self-reported or measured), writing a small table of values
+  with the publication and year and having it checked, so the app never shows a health comparison it cannot cite: that
+  is content made for ZIGoals, not code. Once such a table is in the repository (for example
+  `apps/web/lib/sleep/benchmarks.ts`: value, unit, population, source, year), the week digest's "your usual" line can
+  draw it as a labelled reference line.
+
+## R8 A CSV re-import updates a changed row — LEDGER #142 (Monarch)
+
+- What: Wealth → Spending → Import from your bank → CSV file. A CSV carries no bank reference, so a row the bank changed
+  since the last import is recognised by its shape (`changedCsvRows`): the same date, direction and currency as an entry
+  already in the log, an amount within the tolerance (at most 2.00 or a fifth of the entry's, whichever is more) and a
+  similar payee (one's words inside the other's, or half shared). Entries matched exactly by another row of the file,
+  split entries and transfers are never taken; each entry and each row once, the closest amounts first. The preview
+  says "N rows look like entries already in your log that changed at your bank", marks each row "Changed at your bank
+  (was €42.10): updates that entry", counts "· 1 to update", and offers "Update those entries instead of adding new ones
+  (recommended)" (ticked); ticking a changed row's Add box adds it as a new entry instead. The confirm button says
+  "Add 1 to my money log, update 1". The update keeps the entry's id, with the change in its history (by "import", as
+  the bank-file re-import does). "Undo this import" removes the added entries and puts the updated ones back exactly.
+- Files: `lib/bankfiles/reimport.ts` (`changedCsvRows`, `similarPayee`, `CSV_TOLERANCE`, `putBackEntries`),
+  `components/import/holdings-import.tsx` (`MoneyCsvImport`).
+- Tests: `lib/bankfiles/av2-csv-reimport.test.ts` (the matcher's cases, closest pairing, history, Undo, the import flow
+  in jsdom). Spec: `tests/av2-csv-reimport.spec.ts`.
+- Stored change: none new (the existing optional `history` on money entries).
+- Answers: none new (the entries' history is answered as before).
+- Help (EN): **Q: I imported the same bank CSV again and a payment had changed. Do I get it twice?** A: No. When a row
+  has the same day as an entry you already have, a similar payee and an amount close to it, the preview says it changed
+  at your bank and updates that entry instead of adding a new one; what changed is kept in the entry's history. Untick
+  “Update those entries” to add them as new ones, and “Undo this import” puts everything back.
+- What's new: "Importing a bank CSV again updates the rows your bank changed."
+- Showcase hook: none. CSS: none (existing `notice import-duplicates`). Nothing on Today.
