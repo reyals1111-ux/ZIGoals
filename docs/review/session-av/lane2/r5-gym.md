@@ -26,6 +26,26 @@ that). Whether the existing estimate stays under the no-calorie-burn-guessing ru
 
 The splits record (`zigoals:workout-splits:v1`, strict) is not touched.
 
+## Summary: rows and verdicts
+
+| LEDGER row | verdict | feature | commit |
+|---|---|---|---|
+| #372 Gentler Streak: how you feel changes the suggestion | built (everyday words; nothing stored) | 2 | `39df9f4c` |
+| #373 Bevel: a routine that keeps your last weights | built | 4 | `3c724539` |
+| #374 Gentler Streak: a status for ill, injured or a break | built (never in a notification) | 1 | `ec898ba3` |
+| #375 Gentler Streak: how much movement suits this week | built (facts only; no calories, no "you must rest") | 7 | `6da48814` |
+| #376 Gentler Streak: everyday movement as activities | built (no energy figure; the existing MET estimate is the owner's decision) | 3 | `f13b3936` |
+| #377 Gentler Streak: photos and favourites | built; part Carried: photos pinned on a map (needs an outside service: map tiles) | 6 | `36f6e048` |
+| #378 Bevel: plates on one side | built | 5 | `729fd45f` |
+
+Stored formats: `8393f575` (TIER 3). Answers: `692314b0`.
+
+Specs for the shard lists (none run here): `tests/av2-r5-status.spec.ts`, `tests/av2-r5-feel.spec.ts`,
+`tests/av2-r5-everyday.spec.ts`, `tests/av2-r5-keep-weights.spec.ts`, `tests/av2-r5-one-side.spec.ts`,
+`tests/av2-r5-photos.spec.ts`, `tests/av2-r5-movement.spec.ts`.
+
+QUALITY Minors: none of the open "Not fixed" Minors is in Workouts; none taken up.
+
 ## Shared to-do for the lead (all features)
 
 - engine.ts wiring and the corpus: see "Answers" at the end.
