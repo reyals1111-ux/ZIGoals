@@ -26,9 +26,14 @@ describe('setting and clearing a status', () => {
     expect(lastEnded(cleared, TODAY)).toMatchObject({kind: 'injured'});
     expect(lastEnded(cleared, '2027-01-01')).toBeNull();
   });
-  test('cleared on its first day it keeps that day; Undo puts the statuses back', () => {
-    const r = set(emptyPlanned(), 'ill', TODAY), cleared = clearStatus(r, TODAY);
-    expect(cleared.statuses![0]!.to).toBe(TODAY);
+  // Session AV lane 2 (review B5J-3, deliberate): cleared on its first day the status is removed, so today is uncovered —
+  // replaces "keeps that day", with the plan, the streak's pauses and the load each checked.
+  test('cleared on its first day it is removed and today counts again; Undo puts the statuses back', () => {
+    const r = plan(set(emptyPlanned(), 'ill', TODAY), TODAY), cleared = clearStatus(r, TODAY);
+    expect(cleared.statuses).toBeUndefined();
+    expect([...planStates(cleared, null, TODAY).values()]).toEqual(['planned']);
+    expect(pausesOf(cleared, TODAY)).toEqual([]);
+    expect(trainingLoad(log('2026-11-18'), TODAY, 'minutes', pausesOf(cleared, TODAY)).words).not.toMatch(/paused|after-break/);
     expect(withStatuses(cleared, r.statuses)).toEqual(r);
     expect(withStatuses(r, undefined).statuses).toBeUndefined();
   });
@@ -55,6 +60,20 @@ describe('what a status changes', () => {
     // Once cleared, a later planned workout counts again; the ones in its days stay set aside.
     const back = clearStatus(r, TODAY);
     expect([...planStates(back, null, TODAY).values()]).toEqual(['aside', 'planned']);
+  });
+  test('review B5J-1: missed before an open status are held (never moved years ahead); a closed one is jumped over', () => {
+    // Planned Mon 16 and Tue 17; Ill since Wed 18 (open): on Thu 19 both are missed and held where they are.
+    let r = plan(plan(emptyPlanned(), '2026-11-16', 'Push day'), '2026-11-17', 'Leg day');
+    r = set(r, 'ill', '2026-11-18', '2026-11-19');
+    expect(missedThisWeek(r, null, '2026-11-19')).toHaveLength(2);
+    const out = realign(r, null, '2026-11-19');
+    expect(out).toMatchObject({moved: 0, moves: [], held: true});
+    expect(out.value).toBe(r);
+    // Cleared on Thu 19 (it covered Wed 18): the chain starts today; a closed status ahead is jumped over to its next day.
+    const back = clearStatus(r, '2026-11-19');
+    expect(realign(back, null, '2026-11-19').moves.map(m => m.to)).toEqual(['2026-11-19', '2026-11-20']);
+    const ahead = {...back, statuses: [...back.statuses!, {id: 'st-x', kind: 'travel' as const, from: '2026-11-20', to: '2026-11-23', createdAt: AT}]};
+    expect(realign(ahead, null, '2026-11-19').moves.map(m => m.to)).toEqual(['2026-11-19', '2026-11-24']);
   });
   test('its weeks pass over the streak; without a status the streak is as before', () => {
     // Workouts in the weeks of Oct 19 and Oct 26, none in Nov 2 and Nov 9, one this week (Nov 16).

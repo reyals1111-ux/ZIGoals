@@ -54,7 +54,13 @@ QUALITY Minors: none of the open "Not fixed" Minors is in Workouts; none taken u
 - Today: nothing new is always visible on Today.
 - Route weights: /app/health's first chunk gains one `lazy()` line on the Workouts card (`r5/card-status`) and the
   everyday-movement list (#376); everything else is in the Workouts chunk, lazy already. Please measure /app/health.
-- New device store (one): `lib/av2-r5-gym-keys.ts` — the IndexedDB `zigoals-workout-photos-v1` into Erase everything
+- New device store (one): **wired by this branch with the lead's permission** (commit below, TIER 3 stored formats): Erase
+  everything `KNOWN_DATABASES`, `erase-areas.ts` `STORE_NAMES` ("Workout photos", with the photos), `AK_DATABASES` and its
+  pinned tests (`ak-device-keys.test.ts`, `aa-device-keys.test.ts`), `restore/media-dbs.ts` (store and `MEDIA_ENTRY`),
+  `restore/media.ts` (a `workouts` media store, put by id when missing, capped at 200 kB, broken bytes skipped and counted),
+  the restore preview's words ("on workouts"), `export/make-everything.ts` (`workout-photos/<id>.<ext>`) and the data
+  catalogue's `DEVICE_STORES`; test `lib/restore/av2-r5-workout-photos.test.ts` (export → erase → restore). The original
+  list for the lead, now done: `lib/av2-r5-gym-keys.ts` — the IndexedDB `zigoals-workout-photos-v1` into Erase everything
   (`AV2_R5_GYM_ERASE_DBS`, lib/erase-everything.ts's database names), Restore's media stores
   (`AV2_R5_GYM_RESTORE_MEDIA` into `RESTORE_MEDIA_STORES`, `workout-photos` into `MEDIA_ENTRY`, and lib/restore/media.ts
   indexing each `photos` id of each workout of `zigoals:workouts:v1` under `workoutPhotoFileName(id, type)` for both
@@ -210,8 +216,7 @@ QUALITY Minors: none of the open "Not fixed" Minors is in Workouts; none taken u
   (export → erase → restore of `photos` and `star`), `lib/av2-r5-gym-keys.test.ts`; `lib/showcase-photos.test.ts` green.
   Spec: `tests/av2-r5-photos.spec.ts` (sets a small PNG on the file field).
 - Stored: `photos` and `star` on the workout; the new photo database (see the table).
-- Export everything / Restore / Erase of the photo bytes: the lead's lines, listed in the shared to-do above
-  (`lib/av2-r5-gym-keys.ts`). Until then the ids travel in the workout log and the photos stay in this browser only.
+- Export everything / Restore / Erase of the photo bytes: wired (see the shared to-do above).
 - Help (EN): **Can I add photos to a workout?** Yes. In Health → Workouts → Your workouts, open a finished workout and
   choose "Add a photo": up to four. They stay in this browser, are never uploaded or synced, and nothing reads them.
   **Can I keep favourite workouts?** Yes. Open a workout and choose Favourite; "Favourites" above the list shows only those.
@@ -265,4 +270,15 @@ QUALITY Minors: none of the open "Not fixed" Minors is in Workouts; none taken u
 - Corpus: add `AV2_R5_GYM` to `CORPUS` in `cases.ts` and record `expected.json`.
 - AK tool sources: nothing new (`workouts` and `plannedWorkouts` are wired). `lib/ai/local-answers/av2-body.ts`'s streak
   and load answers now pass the status's days (#374), as the page does.
+
+## Review B5J fixes (one commit, with unit tests)
+
+| id | fix |
+|---|---|
+| B5J-1 (Major) | `realign` jumps away days and a closed status to the day after they end; under an open status it moves nothing (`held`), and the plan's note says "Your status is set, so they stay where they are until you clear it; then you can move them on." (no "I missed some" button). Never a day years ahead. Test with an open, a cleared and a later closed status. |
+| B5J-2 (Major, a11y) | "Change it" moves focus to the form's checked choice; Cancel moves it back to "Change it". Spec step added. |
+| B5J-3 | A status cleared on its first day is removed (it covered no whole day): today's planned workouts count again, no pause, the load is not "paused"; the toast says so. The unit test's "keeps that day" case is a labelled deliberate change with a stricter replacement. |
+| B5J-4 | Sore rounds down in the person's own unit to their own plates (the smallest plate on each side or on the one horn, from the saved set, else 2.5 kg / 5 lb; below the bar 1 kg / 2.5 lb). Tests in kg, lb and on one side. |
+| B5J-5 | The line under a tired or sore suggestion says only what changed (`easierLine`), or that a short suggestion stays as it is; the general words (answers) say "up to". The feel spec's line follows. |
+| B5J-6 | A workout's photos load only once its row in Your workouts is opened. |
 

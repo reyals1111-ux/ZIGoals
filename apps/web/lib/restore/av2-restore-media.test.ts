@@ -16,6 +16,7 @@ import {NOTE_PHOTO_DB, getNotePhoto, notePhotoIds, putNotePhoto} from '../notes/
 import {MONEY_PHOTO_DB} from '../money-photos/store';
 import {MEAL_PHOTO_DB} from '../meal-estimates/photos';
 import {FOOD_PHOTO_DB} from '../food-plus/photos';
+import {WORKOUT_PHOTO_DB} from '../workouts/photos';
 import {WEALTH_DOCS_DB} from '../wealth-sheet/docs';
 import {buildStoredZip} from '../export/zip';
 import {MEDIA_ENTRY, RESTORE_MEDIA_DBS, RESTORE_MEDIA_STORES} from './media-dbs';
@@ -200,8 +201,9 @@ describe('broken, oversize and unopenable', () => {
 
 describe('names and places', () => {
   test('the databases a restore may write are the stores’ own, each with its one object store', () => {
-    expect(RESTORE_MEDIA_DBS).toEqual([TASK_ATTACHMENT_DB, JOURNAL_MEDIA_DB, NOTE_PHOTO_DB, MONEY_PHOTO_DB, MEAL_PHOTO_DB, FOOD_PHOTO_DB, WEALTH_DOCS_DB]);
-    expect(Object.values(RESTORE_MEDIA_STORES)).toEqual(['items', 'media', 'photos', 'photos', 'photos', 'photos', 'docs']);
+    // Session AV lane 2, round 5 (deliberate: the workout photos' database, pinned in its place, LEDGER #377).
+    expect(RESTORE_MEDIA_DBS).toEqual([TASK_ATTACHMENT_DB, JOURNAL_MEDIA_DB, NOTE_PHOTO_DB, MONEY_PHOTO_DB, MEAL_PHOTO_DB, FOOD_PHOTO_DB, WORKOUT_PHOTO_DB, WEALTH_DOCS_DB]);
+    expect(Object.values(RESTORE_MEDIA_STORES)).toEqual(['items', 'media', 'photos', 'photos', 'photos', 'photos', 'photos', 'docs']);
   });
 
   test('receipts, meals, foods and account documents are found by the ids their records keep; two tasks titled alike are not guessed', () => {

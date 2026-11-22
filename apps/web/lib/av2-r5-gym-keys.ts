@@ -1,6 +1,8 @@
 /**
  * Session AV lane 2, round 5 (gym; TIER 3 stored formats: additive only): this round's one new device store, for the
- * shared registries, as literals in a module with no imports (the lib/av-device-keys.ts pattern). No new localStorage key:
+ * shared registries, as literals in a module with no imports (the lib/av-device-keys.ts pattern). Wired by this branch with
+ * the lead's permission (lib/erase-everything.ts, lib/erase-areas.ts, lib/ak-device-keys.ts, lib/restore/media-dbs.ts,
+ * lib/restore/media.ts, lib/export/make-everything.ts, lib/data-health/catalog.ts; test lib/restore/av2-r5-workout-photos.test.ts). No new localStorage key:
  * the round's other stored changes are optional fields on records that are registered already (`zigoals:workouts:v1`,
  * `zigoals:planned-workouts:v1`). lib/av2-r5-gym-keys.test.ts proves each literal equals its owner's constant.
  * - IndexedDB `zigoals-workout-photos-v1`, store `photos` (lib/workouts/photos.ts): up to four photos of a finished

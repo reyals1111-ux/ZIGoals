@@ -10,7 +10,7 @@ import {formatDate} from '../../../lib/visual-format';
 import {clock, weightShown} from './units';
 import './av2-bodymind-workouts.css';
 // Session AV lane 2, round 5 (gym; LEDGER #372, Gentler Streak's "How I feel"): the day's feeling shapes the suggestion.
-import {adjustForFeeling, EASIER_WORDS, FEELINGS, FEEL_WORDS, walkInstead, type Feeling} from '../../../lib/workouts/feel';
+import {adjustForFeeling, easierLine, FEELINGS, FEEL_WORDS, walkInstead, type Feeling} from '../../../lib/workouts/feel';
 import '../r5/gym-r5.css';
 
 const ReplaceExercise = lazy(() => import('./replace-exercise'));
@@ -28,7 +28,8 @@ export default function SuggestWorkout({w, library, today, unit, places, onStart
   const place = places?.places.find(p => p.id === placeId) ?? null;
   // Session AV lane 2, round 5 (LEDGER #372): kept for this suggestion only; nothing is stored.
   const [feel, setFeel] = useState<Feeling | null>(null);
-  const made = useMemo(() => adjustForFeeling(w, suggestWorkout({w, library, now: new Date(), today, recovery: recovery.loaded && !recovery.unreadable ? recovery.data : null, place, minutes}), feel), [w, library, today, recovery.loaded, recovery.unreadable, recovery.data, place, minutes, feel]);
+  const plain = useMemo(() => suggestWorkout({w, library, now: new Date(), today, recovery: recovery.loaded && !recovery.unreadable ? recovery.data : null, place, minutes}), [w, library, today, recovery.loaded, recovery.unreadable, recovery.data, place, minutes]);
+  const made = useMemo(() => adjustForFeeling(w, plain, feel, new Date(), unit), [w, plain, feel, unit]);
   const s = edited ?? made;
   const reset = () => { setEdited(null); setReplacing(null); };
   const setLine = (x: Suggested) => x.sets.map(set => set.weightKg !== undefined ? `${weightShown(set.weightKg, unit)} × ${set.reps ?? '?'}` : set.reps !== undefined ? `${set.reps} reps` : set.seconds !== undefined ? clock(set.seconds) : '—').join(' · ');
@@ -42,7 +43,7 @@ export default function SuggestWorkout({w, library, today, unit, places, onStart
     </div>
     {!s.exercises.length ? <p className="fine" role="status">{place ? `Nothing in the library fits ${place.name}'s equipment for today's groups. Add equipment to the place, or choose Any place.` : 'Nothing to suggest right now.'}</p> : <>
       <p className="av2-suggest-why" role="status"><span className="av2-suggest-label">Suggestion</span> {s.groups.length ? `For your freshest muscle groups: ${s.groups.map(g => `${g.muscle.toLowerCase()} (${g.freshness === null ? 'not in your log yet' : `about ${g.freshness}% fresh`})`).join(', ')}` : ''}{s.place ? `, at ${s.place}` : ''}.{s.tired ? ' Everything is still recovering, so keep it light today.' : ''}</p>
-      {(feel === 'tired' || feel === 'sore') && <div className="r5-feel"><p className="r5-easier">{EASIER_WORDS[feel].en}</p>
+      {(feel === 'tired' || feel === 'sore') && <div className="r5-feel"><p className="r5-easier">{easierLine(plain, made, feel)}</p>
         <div className="actions"><button type="button" className="secondary" onClick={() => onStart(walkInstead())}>Or start an easy walk instead</button></div></div>}
       <ol className="av2-suggest-list">{s.exercises.map(x => <li key={x.exerciseId}>
         <div><strong>{x.name}</strong> <span className="fine">· {x.group}</span></div>

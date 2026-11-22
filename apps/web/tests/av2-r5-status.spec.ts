@@ -33,6 +33,11 @@ for (const theme of THEMES) test(`${theme}: a status for a break sets planned wo
   await panel.getByRole('button', {name: 'Set this status'}).click();
   await expect(panel).toContainText('On a break since Mon, Nov 16. Planned workouts are set aside until you clear it.');
   await expect(page.getByRole('button', {name: 'I’m back: clear the status'})).toBeFocused();
+  // Review B5J-2: Change it focuses the form; Cancel goes back to Change it (focus is never dropped to the page).
+  await panel.getByRole('button', {name: 'Change it'}).click();
+  await expect(panel.getByRole('radio', {name: 'On a break'})).toBeFocused();
+  await panel.getByRole('button', {name: 'Cancel'}).click();
+  await expect(panel.getByRole('button', {name: 'Change it'})).toBeFocused();
   const stored = await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), PLANNED_KEY);
   expect(stored.statuses).toMatchObject([{kind: 'break', from: '2026-11-16'}]);
   expect(stored.statuses[0].to).toBeUndefined();

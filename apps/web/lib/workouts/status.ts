@@ -42,12 +42,16 @@ export function setStatus(rec: PlannedRecord, input: {kind: StatusKind; from: st
       : input.from > open.from ? [...rest, {...open, to: addLocalDays(input.from, -1)}, fresh] : [...rest, fresh];
   return plannedRecordSchema.parse({...rec, statuses: next.sort((a, b) => a.from.localeCompare(b.from)).slice(-STATUSES_MAX)});
 }
-/** Clears the open status: it covered up to yesterday (or its first day, when cleared on that day). */
+/**
+ * Clears the open status: it covered up to yesterday. Review B5J-3: cleared on its first day it had covered no whole day,
+ * so it is removed — today's planned workouts count again, the streak and the load read today as an ordinary day.
+ */
 export function clearStatus(rec: PlannedRecord, today: string): PlannedRecord {
   const open = currentStatus(rec, today);
   if (!open) return rec;
   const yesterday = addLocalDays(today, -1);
-  return plannedRecordSchema.parse({...rec, statuses: (rec.statuses ?? []).map(s => s.id === open.id ? {...s, to: yesterday < s.from ? s.from : yesterday} : s)});
+  if (yesterday < open.from) return withStatuses(rec, (rec.statuses ?? []).filter(s => s.id !== open.id));
+  return plannedRecordSchema.parse({...rec, statuses: (rec.statuses ?? []).map(s => s.id === open.id ? {...s, to: yesterday} : s)});
 }
 /** Undo of a set or a clear: the statuses as they were before it. */
 export const withStatuses = (rec: PlannedRecord, before: PlannedRecord['statuses']): PlannedRecord => {

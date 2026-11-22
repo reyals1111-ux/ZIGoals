@@ -65,7 +65,9 @@ export async function buildEverythingExport(): Promise<{name: string; bytes: Uin
   // Session AV lane 2 (review b1 #3): the journal's photos and voice notes as files, named by the id each entry keeps.
   const journalMedia = kept ? {files: [], missing: 0} : await Promise.all([import('../health-aa/photos'), import('../journal/export-media'), import('../journal/media'), import('../journal/schema'), import('../device-record')]).then(([a, j, m, sch, dr]) =>
     j.exportJournalMediaEntries(a.photoScope(), m.namedMedia(dr.readDeviceRecord(storage, sch.JOURNAL).data.entries), now)).catch(() => ({files: [], missing: 0}));
-  const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos, ...taskFiles, ...journalMedia.files, ...wealthDocs, ...foodPhotos];
+  // Session AV lane 2, round 5 (LEDGER #377): the photos of finished workouts, as workout-photos/<id>.<webp|jpg>.
+  const workoutPhotos = kept ? [] : await Promise.all([import('../health-aa/photos'), import('../workouts/photos')]).then(([a, p]) => p.exportWorkoutPhotoEntries(a.photoScope(), now)).catch(() => []);
+  const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos, ...taskFiles, ...journalMedia.files, ...wealthDocs, ...foodPhotos, ...workoutPhotos];
   const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now, images}, photos);
   const lines = [...(kept ? [DELETED_EXPORT_NOTE] : []), ...collected.warnings];
   if (journalMedia.files.length) lines.push(JOURNAL_MEDIA_EXPORT_NOTE);

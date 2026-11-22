@@ -126,6 +126,8 @@ export default function WorkoutsView() {
   const [historyOf, setHistoryOf] = useState(''), [editing, setEditing] = useState<string | null>(null);
   // Session AV lane 2, round 5 (LEDGER #377): the history shows every workout, or only the favourites.
   const [onlyFavs, setOnlyFavs] = useState(false);
+  // Review B5J-6: a workout's photos load only once its row is opened (no IndexedDB reads for closed rows).
+  const [openedPast, setOpenedPast] = useState<ReadonlySet<string>>(() => new Set());
   const ready = record.loaded && health.loaded && !health.error;
   const unit = ready ? dailyData(health.data).preferences.weightUnit : 'kg';
   const today = ready ? healthDay(dailyData(health.data).preferences.timezone) : '';
@@ -314,7 +316,7 @@ export default function WorkoutsView() {
       </div>}
       {past.length > 0 && onlyFavs && !past.some(x => x.star) && <p className="health-empty-inline">No favourites yet. Under All, open a workout and choose Favourite to keep it here.</p>}
       {past.length ? <ul className="workouts-past">{(onlyFavs ? past.filter(x => x.star) : past).slice(0, 30).map(x => <li key={x.id}>
-        <details><summary><strong>{x.name}</strong>{x.star && <><span className="r5-star-mark" aria-hidden="true"> ★</span><span className="sr-only">, a favourite</span></>}{(x.photos ?? []).length > 0 && <span className="sr-only">, {(x.photos ?? []).length} {plural((x.photos ?? []).length, 'photo')}</span>} <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
+        <details onToggle={e => { const on = (e.currentTarget as HTMLDetailsElement).open; setOpenedPast(prev => on === prev.has(x.id) ? prev : new Set(on ? [...prev, x.id] : [...prev].filter(y => y !== x.id))); }}><summary><strong>{x.name}</strong>{x.star && <><span className="r5-star-mark" aria-hidden="true"> ★</span><span className="sr-only">, a favourite</span></>}{(x.photos ?? []).length > 0 && <span className="sr-only">, {(x.photos ?? []).length} {plural((x.photos ?? []).length, 'photo')}</span>} <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
           {importInfo(x) && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
           {/* Session AV lane 2 (body; LEDGER #110, Strava's per-activity summary, no model): the run beside the runs before it. */}
           {(() => { const r = runSummary(w, splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null, x.id); return r ? <p className="fine workouts-run-summary">{runWords(r)}</p> : null; })()}
@@ -323,7 +325,7 @@ export default function WorkoutsView() {
             <option value="">No shoes picked</option>{(w.shoes ?? []).filter(s => !s.retiredAt || s.id === x.shoeId).map(s => <option key={s.id} value={s.id}>{s.name}{s.retiredAt ? ' (retired)' : ''}</option>)}</select></label>}
           {splitsRecord.data.workouts[x.id] && <WorkoutSplitsTable s={splitsRecord.data.workouts[x.id]!} name={x.name}/>}
           {hrRecord.loaded && hrRecord.data.runs[x.id] && <Suspense fallback={null}><HrZones workoutId={x.id} name={x.name}/></Suspense>}
-          <Suspense fallback={null}><WorkoutPhotos workout={x} change={change}/></Suspense>
+          {openedPast.has(x.id) && <Suspense fallback={null}><WorkoutPhotos workout={x} change={change}/></Suspense>}
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unitFor(w, e.exerciseId, unit))}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
             {!current && x.exercises.length > 0 && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}

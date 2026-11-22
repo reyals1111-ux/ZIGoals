@@ -130,19 +130,35 @@ export function missedThisWeek(rec: PlannedRecord, w: Workouts | null, today: st
  * when nothing reached it.
  */
 export type PlanMove = {id: string; from: string; to: string};
-export function realign(rec: PlannedRecord, w: Workouts | null, today: string): {value: PlannedRecord; moved: number; moves: PlanMove[]} {
+/**
+ * Review B5J-1 (round 5, LEDGER #374): away days and a closed status are jumped over to the day after they end; a day under
+ * an open status (it has no end yet) stops the realign — nothing moves (`held`), the page says the missed workouts wait
+ * until the status is cleared. Never a day years ahead.
+ */
+export function realign(rec: PlannedRecord, w: Workouts | null, today: string): {value: PlannedRecord; moved: number; moves: PlanMove[]; held?: true} {
   const missed = missedThisWeek(rec, w, today);
   if (!missed.length) return {value: rec, moved: 0, moves: []};
   const states = planStates(rec, w, today), later = sorted(rec.items).filter(i => i.date >= today && states.get(i.id) === 'planned');
-  // Round 5: a status day is skipped one day at a time (an open status has no end, so it is capped at a year).
-  const next = (d: string) => { let x = d; for (let i = 0; i < 400 && inAway(rec, x); i++) x = rec.away && x >= rec.away.from && x <= rec.away.to ? addLocalDays(rec.away.to, 1) : addLocalDays(x, 1); return x; };
+  const next = (d: string): string | null => {
+    let x = d;
+    for (let i = 0; i < 60; i++) {
+      if (rec.away && x >= rec.away.from && x <= rec.away.to) { x = addLocalDays(rec.away.to, 1); continue; }
+      const s = (rec.statuses ?? []).find(t => x >= t.from && (!t.to || x <= t.to));
+      if (!s) return x;
+      if (!s.to) return null;
+      x = addLocalDays(s.to, 1);
+    }
+    return null;
+  };
   const dates = new Map<string, string>();
+  const held = {value: rec, moved: 0, moves: [] as PlanMove[], held: true as const};
   // `cursor` is the first day after the days the moved chain fills.
   let cursor = next(today);
-  for (const i of missed) { dates.set(i.id, cursor); cursor = next(addLocalDays(cursor, 1)); }
+  if (cursor === null) return held;
+  for (const i of missed) { dates.set(i.id, cursor); const n = next(addLocalDays(cursor, 1)); if (n === null) return held; cursor = n; }
   for (const i of later) {
     if (i.date >= cursor) continue; // the chain has not reached its day: it keeps it
-    dates.set(i.id, cursor); cursor = next(addLocalDays(cursor, 1));
+    dates.set(i.id, cursor); const n = next(addLocalDays(cursor, 1)); if (n === null) return held; cursor = n;
   }
   const moves = [...dates].flatMap(([id, to]) => { const from = rec.items.find(i => i.id === id)!.date; return from === to ? [] : [{id, from, to}]; });
   return {value: plannedRecordSchema.parse({...rec, items: sorted(rec.items.map(i => dates.has(i.id) ? {...i, date: dates.get(i.id)!} : i))}), moved: moves.length, moves};
