@@ -4266,6 +4266,20 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .r3-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--r3-drink)
+    }
+    .r3-player-bar:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--line, #8fb6ff33)
+    }
+    .r3-player-bar i:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .evening-ready:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent)

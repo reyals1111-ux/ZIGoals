@@ -8432,6 +8432,14 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .habit-reminder-times:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-trend-items li:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .habit-week .habit-week-table th[scope=row]:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--bg, #000000) 30%, #000)
@@ -11025,6 +11033,63 @@
     }
     .ap-splits th:not(#\-):not(#\-), .ap-splits td:not(#\-):not(#\-) {
         border-bottom-color: color-mix(in srgb, var(--line, #6a9cc3) 40%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .r3-own-drinks button:not(#\-):not(#\-) {
+        box-shadow: inset 3px 0 0 var(--r3-drink, var(--line, #8fb6ff1a))
+    }
+    .r3-own-drinks small:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary, #dadada) 25%, #fff)
+    }
+    .r3-list > li:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r3-list > li[data-drink-colour]:not(#\-):not(#\-) {
+        box-shadow: inset 3px 0 0 var(--r3-drink), inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r3-choices:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .r3-choice:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8fb6ff) 40%, #fff)
+    }
+    .r3-choice:has(input:checked):not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #6fe6f6) 40%, #fff)
+    }
+    .r3-choice:has(input:focus-visible):not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--focus, currentColor) 40%, #fff)
+    }
+    .r3-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--r3-drink) 30%, #000)
+    }
+    .r3-tip:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r3-toggle button[aria-pressed="true"]:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f680)
+    }
+    .r3-library-filters:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r3-moves:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .r3-player:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r3-player-kind:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary, #dadada) 25%, #fff)
+    }
+    .r3-player-bar:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--line, #8fb6ff33) 30%, #000)
+    }
+    .r3-player-bar i:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #074951) 30%, #000)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {

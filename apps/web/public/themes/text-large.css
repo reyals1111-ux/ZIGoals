@@ -1278,6 +1278,10 @@
 :where(:root[data-text=large]) .habit-area-week-line:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .habit-area-goal input:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .habit-option-rolling-fields select:not(#\-) { font-size: calc(1rem * 1.125); }
+/*  components/habits/habit-r3.css  */
+:where(:root[data-text=large]) .habit-reminder-times legend:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .habit-trend-list h3:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .habit-trend-items li:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/habits/habit-week-grid.css  */
 :where(:root[data-text=large]) .habit-week-mode legend:not(#\-) { font-size: calc(.9375rem * 1.125); }
 :where(:root[data-text=large]) .habit-week-amount input:not(#\-) { font-size: calc(16px * 1.125); }
@@ -1753,6 +1757,21 @@
 :where(:root[data-text=large]) .ap-food-month li:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ap-splits:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .ap-splits th:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/health/r3/health-r3.css  */
+:where(:root[data-text=large]) .r3-own-drinks small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .r3-drink-symbol:not(#\-) { font-size: calc(1.05rem * 1.125); }
+:where(:root[data-text=large]) .r3-check:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .r3-list > li:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .r3-choices legend:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .r3-choice:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .r3-tip h3:not(#\-), :where(:root[data-text=large]) .r3-sub:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .r3-tip p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .r3-library-filters > legend:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .r3-moves > legend:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .r3-player h4:not(#\-) { font-size: calc(1.1rem * 1.125); }
+:where(:root[data-text=large]) .r3-player-kind:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .r3-player-now:not(#\-) { font-size: calc(1.4rem * 1.125); }
+:where(:root[data-text=large]) .r3-player-count:not(#\-) { font-size: calc(clamp(2.6rem, 12vw, 4.5rem) * 1.125); }
 /*  components/health/sleep/av2-bodymind-sleep.css  */
 :where(:root[data-text=large]) .sleep-need-head strong:not(#\-) { font-size: calc(24px * 1.125); }
 :where(:root[data-text=large]) .sleep-balance-naps small:not(#\-) { font-size: calc(14px * 1.125); }

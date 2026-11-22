@@ -41,6 +41,7 @@ import {av2MoneyR2Answer} from './av2-money-r2';
 import {av2R3MoneyAnswer} from './av2-r3-money';
 import {av2R3PlanAnswer} from './av2-r3-plan';
 import {av2R3NotesAnswer} from './av2-r3-notes';
+import {av2R3HealthAnswer} from './av2-r3-health';
 import {av2TasksR2Answer} from './av2-tasks-r2';
 import {av2BodymindR2Answer} from './av2-bodymind-r2';
 import {av2SyncAnswer, type Av2SyncExtra} from './av2-sync';
@@ -265,6 +266,7 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   if (!subject) { const found = av2R3NotesAnswer(question, env) ?? avAnswer(question, env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Body: sleep and workouts), after AV's own answers.
   if (!subject) { const own = av2BodyAnswer(question, env) ?? av2BodymindR2Answer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  if (!subject) { const own = av2R3HealthAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;
   // A misspelt question the exact layer reads once its slips are fixed is asked of the layers below in the fixed words.

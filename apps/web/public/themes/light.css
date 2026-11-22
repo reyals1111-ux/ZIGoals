@@ -8368,6 +8368,15 @@
         accent-color: var(--brand-cyan, #63e7ff)
     }
 }
+/*  components/habits/habit-r3.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .habit-reminder-times:not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-trend-items li:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+}
 /*  components/habits/habit-week-grid.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .habit-week .habit-week-table th[scope=row]:not(#\-) {
@@ -11112,6 +11121,91 @@
     }
     .ap-splits th:not(#\-), .ap-splits td:not(#\-) {
         border-bottom-color: var(--line, #6a9cc342)
+    }
+}
+/*  components/health/r3/health-r3.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    [data-drink-colour=grey]:not(#\-) {
+        --r3-drink: #8a8fa3
+    }
+    [data-drink-colour=red]:not(#\-) {
+        --r3-drink: #e5484d
+    }
+    [data-drink-colour=orange]:not(#\-) {
+        --r3-drink: #f08c38
+    }
+    [data-drink-colour=yellow]:not(#\-) {
+        --r3-drink: #d4a72c
+    }
+    [data-drink-colour=green]:not(#\-) {
+        --r3-drink: #46a758
+    }
+    [data-drink-colour=teal]:not(#\-) {
+        --r3-drink: #12a594
+    }
+    [data-drink-colour=blue]:not(#\-) {
+        --r3-drink: #3e8bf0
+    }
+    [data-drink-colour=violet]:not(#\-) {
+        --r3-drink: #8e6cf0
+    }
+    [data-drink-colour=pink]:not(#\-) {
+        --r3-drink: #e05aa8
+    }
+    .r3-own-drinks button:not(#\-) {
+        box-shadow: inset 3px 0 0 var(--r3-drink, var(--line, #8fb6ff33))
+    }
+    .r3-own-drinks small:not(#\-) {
+        color: var(--text-secondary, #070f1c)
+    }
+    .r3-list > li:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r3-list > li[data-drink-colour]:not(#\-) {
+        box-shadow: inset 3px 0 0 var(--r3-drink), inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r3-choices:not(#\-) {
+        border-color: currentcolor
+    }
+    .r3-choice:not(#\-) {
+        border-color: var(--line, #8fb6ff33)
+    }
+    .r3-choice:has(input:checked):not(#\-) {
+        border-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r3-choice:has(input:focus-visible):not(#\-) {
+        outline-color: var(--focus, currentColor)
+    }
+    .r3-swatch:not(#\-) {
+        background-image: none;
+        background-color: var(--r3-drink)
+    }
+    .r3-tip:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r3-toggle button[aria-pressed="true"]:not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+    .r3-library-filters:not(#\-) {
+        border-color: currentcolor;
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r3-moves:not(#\-) {
+        border-color: currentcolor
+    }
+    .r3-player:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r3-player-kind:not(#\-) {
+        color: var(--text-secondary, #070f1c)
+    }
+    .r3-player-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--line, #8fb6ff33)
+    }
+    .r3-player-bar i:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
     }
 }
 /*  components/health/sleep/av2-bodymind-sleep.css  */

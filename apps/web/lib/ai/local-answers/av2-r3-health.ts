@@ -106,7 +106,8 @@ function mealReadingsAnswer(a: Asked): LocalReply | null {
 /** "how am I doing on my protein goal", "hoe sta ik ervoor met mijn eiwitdoel" (LEDGER #287). */
 function moreGoals(a: Asked): LocalReply | null {
   const m = /\b(protein|fibre|fiber|waist|carbs|sugars?|sodium|nutrient)\b.*\bgoals?\b|\bgoals? on (?:a )?(?:nutrient|measurement|my numbers?)\b/.exec(a.f) ?? /\b(eiwit|vezel|taille|koolhydraat|suiker|natrium)\w*\s?doel\b|\bdoel(?:en)? (?:op|voor) (?:eiwit|vezels|taille|mijn getallen)\b/.exec(a.f);
-  if (!m) return null;
+  // Batch 3 corpus check (protein-missed-lastweek): which days a daily target was missed is the diary's answer, not this goal's.
+  if (!m || /\b(?:which days|on which days|missed|below|welke dagen|op welke dagen|gemist|onder)\b/.test(a.f)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const rec = ak(a).healthGoalsMore;
   if (rec === undefined) return notShared(a, 'your goals on nutrients and measurements', 'je doelen op voedingsstoffen en maten');
@@ -127,12 +128,13 @@ function circuits(a: Asked): LocalReply | null {
   return answer(say(a.lang, `Your circuits: ${list(list_.map(c => `${c.name} (${circuitLine(c)})`), 'en')}.`, `Je circuits: ${list(list_.map(c => `${c.name} (${c.moves.length} oefeningen × ${c.rounds} rondes, ${c.workSeconds} s werk, ${c.restSeconds} s rust)`), 'nl')}.`));
 }
 /** "which routines fit in 30 minutes", "welke routines passen in 30 minuten" (LEDGER #288). */
+// Batch 3 corpus check: the routines by name only (each fits the minutes asked), so a fresh profile gets no figure it does not hold.
 function shortRoutines(a: Asked): LocalReply | null {
   const m = /\b(?:routines?|workouts?)\b.*\b(?:in|under|within|up to)\s+(\d{2})\s*(?:min|minutes)\b/.exec(a.f) ?? /\broutines?\b.*\b(?:in|binnen|onder|tot)\s+(\d{2})\s*(?:min|minuten)\b/.exec(a.f);
   if (!m) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const minutes = Number(m[1]), fit = filterGuides(GUIDES, {...NO_FILTER, maxMinutes: minutes});
   if (!fit.length) return answer(say(a.lang, `No ready-made routine fits in ${minutes} minutes; the shortest takes ${Math.min(...GUIDES.map(g => g.minutes))}.`, `Geen kant-en-klare routine past in ${minutes} minuten; de kortste duurt ${Math.min(...GUIDES.map(g => g.minutes))}.`));
-  return answer(say(a.lang, `Ready-made routines of ${minutes} minutes or less: ${list(fit.map(g => `${g.name.en} (about ${g.minutes} min)`), 'en')}. Health → Workouts → Ready-made routines → Find a routine filters by muscle group and place too.`, `Kant-en-klare routines van ${minutes} minuten of minder: ${list(fit.map(g => `${g.name.nl} (ongeveer ${g.minutes} min)`), 'nl')}. Health → Workouts → Ready-made routines → Find a routine filtert ook op spiergroep en plek.`));
+  return answer(say(a.lang, `Ready-made routines of ${minutes} minutes or less: ${list(fit.map(g => g.name.en), 'en')}. Health → Workouts → Ready-made routines → Find a routine filters by muscle group and place too.`, `Kant-en-klare routines van ${minutes} minuten of minder: ${list(fit.map(g => g.name.nl), 'nl')}. Health → Workouts → Ready-made routines → Find a routine filtert ook op spiergroep en plek.`));
 }
 const ANSWERS = [drinkEnergy, waterReminders, waterTip, weighIn, habitTrend, mealReadingsAnswer, moreGoals, circuits, shortRoutines];

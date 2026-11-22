@@ -14,5 +14,5 @@ export const AV2_R3_HEALTH: readonly Intent[] = [
   {id: 'av2r3-meal-readings', pillar: 'health', en: ['what readings did I log with meals today', 'what were my glucose readings at lunch'], nl: ['welke metingen heb ik bij maaltijden gelogd', 'wat waren mijn glucose metingen bij de lunch'], never: ['normal', 'too high', 'too low', 'normaal', 'te hoog', 'te laag', 'GKI']},
   {id: 'av2r3-more-goals', pillar: 'health', en: ['how am I doing on my protein goal', 'how is my waist goal going'], nl: ['hoe sta ik ervoor met mijn eiwitdoel', 'hoe gaat het met mijn taille doel'], never: ['you should', 'je moet']},
   {id: 'av2r3-circuits', pillar: 'health', en: ['what circuits do I have', 'which timed circuits are saved'], nl: ['welke circuits heb ik', 'welke circuits staan er'], never: ['kcal', 'calorie']},
-  {id: 'av2r3-short-routines', pillar: 'health', en: ['which routines fit in 30 minutes', 'what workouts can I do in 45 minutes'], nl: ['welke routines passen in 30 minuten', 'welke routines kan ik doen binnen 45 minuten']},
+  {id: 'av2r3-short-routines', pillar: 'health', en: ['which routines fit in 30 minutes', 'what workouts can I do in 30 minutes'], nl: ['welke routines passen in 30 minuten', 'welke routines kan ik doen binnen 30 minuten']},
 ];

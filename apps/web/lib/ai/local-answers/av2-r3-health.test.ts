@@ -68,7 +68,9 @@ describe('the answers read the features’ own figures', () => {
   test('drinks: only what was typed, never guessed', () => {
     expect(text(ask('how many calories from drinks today', wired()))).toBe('From today’s drinks, as you typed them: 250 kcal · 21.5 g sugar, from 2 drinks (Juice and Soft drink). Nothing is guessed.');
     expect(text(ask('hoeveel calorieën uit drankjes vandaag', wired()))).toContain('Er wordt niets geschat.');
-    expect(text(ask('how many calories from drinks today'))).toContain('I can’t read what your drinks were here yet');
+    // Session AV lane 2 (the lead wired healthExtras into the AK tool sources, deliberate): with no drink typed with calories
+    // or sugar the answer now says so in full, instead of "I can’t read … here yet".
+    expect(text(ask('how many calories from drinks today'))).toBe('No drink today has calories or sugar typed for it, so nothing is counted. Type them in the water form, or make one of your drinks with them in Health → Water → Your drinks. Nothing is guessed.');
   });
   test('water reminders through the day, with today’s pace', () => {
     const en = text(ask('when are my water reminders', wired()));

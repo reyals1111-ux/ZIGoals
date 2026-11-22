@@ -59,6 +59,8 @@ import {CHESS_COMPUTER} from '../chess/computer-record';
 import {EVENING_PLAN} from '../evening-plan/schema';
 import {BODY_EXTRAS} from '../body-extras/schema';
 import {WORKOUT_PLACES} from '../workouts/places-schema';
+import {MORE_GOALS} from '../health-goals/more';
+import {CIRCUITS} from '../workouts/circuits';
 import {WEALTH_SHEET} from '../wealth-sheet/schema';
 import {FOOD_PLUS} from '../food-plus/schema';
 import {MONEY_MORE} from '../money-more/schema';
@@ -281,6 +283,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('eveningPlan', 'Sleep: the evening plan', 'Health', EVENING_PLAN, true),
   dev('bodyExtras', 'Height and weight milestones', 'Health', BODY_EXTRAS, true),
   dev('workoutPlaces', 'Workouts: places and equipment', 'Health', WORKOUT_PLACES, true),
+  dev('healthGoalsMore', 'Health goals on any number', 'Health', MORE_GOALS, true),
+  dev('workoutCircuits', 'Workouts: timed circuits', 'Health', CIRCUITS, true),
   dev('foodPlus', 'Food diary extras (times, weekday macros, check-in)', 'Health', FOOD_PLUS, true),
   dev('wealthSheet', 'Your net-worth sheet', 'Goals and Wealth', WEALTH_SHEET),
   dev('moneyMore', 'Money extras: saved entries, own budgets, shared costs, lent and borrowed', 'Goals and Wealth', MONEY_MORE),
