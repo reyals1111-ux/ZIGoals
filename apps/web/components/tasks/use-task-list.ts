@@ -7,6 +7,7 @@ import {addTask, editOccurrence, editTask, finishTask, removeTask, reopenTask, r
 import {deviceDay, tasksClock, tasksToday} from '../../lib/tasks/device';
 import {subscribeDayEnds} from '../../lib/day-boundary-core';
 import {undoOfChange} from '../../lib/tasks/undo';
+import {withDeviceDefault} from '../../lib/tasks/plan-key';
 import {showStatus, showUndo, shownToasts} from '../ui/undo-toast';
 import {changeWithUndo} from '../ui/remove-with-undo';
 
@@ -94,7 +95,8 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
     try {
       // Session AL (DV-164): the Tasks page takes a past day; it shows as overdue.
       const id = `task_${crypto.randomUUID()}`;
-      latest.current.update(r => addTask(r, input, {id, at: new Date(), today: tasksToday(), allowPast: true}));
+      // Session AV lane 2 (LEDGER #11): a task with a day and no reminder takes the default reminder chosen on this device.
+      latest.current.update(r => addTask(r, withDeviceDefault(input), {id, at: new Date(), today: tasksToday(), allowPast: true}));
       const text = `Added “${input.title.trim()}”.`;
       // Session AV (M-12a): the toast keeps clear of the row just added.
       setStatus({text}); setError(''); if (toast) showStatus(text, {clearOf: `#task-${id}`}); return true;

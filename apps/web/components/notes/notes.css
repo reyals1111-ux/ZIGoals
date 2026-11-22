@@ -178,3 +178,9 @@
 .note-day-head { flex-wrap: nowrap; }
 .note-day-head > .note-title { flex: 0 1 auto; min-width: 0; }
 .note-day-head > button { flex: none; }
+/* Session AV lane 2 (LEDGER #31): reminders written inside notes. */
+.note-reminders { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 6px; font-size: 15px; overflow-wrap: anywhere; }
+.note-reminders li { min-height: 24px; }
+.note-reminders li[data-due] { font-weight: 600; }
+.note-reminders-panel { margin: 12px 0; }
+.note-reminders-panel > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 16px; }

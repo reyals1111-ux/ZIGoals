@@ -14,6 +14,8 @@ import {photoScope} from '../../lib/health-aa/photos';
 import {formatDate} from '../../lib/visual-format';
 
 const NoteBacklinks = lazy(() => import('./note-backlinks'));
+// Session AV lane 2 (LEDGER #31): the "@remind" lines of this note, in their own chunk.
+const NoteReminderChips = lazy(() => import('./note-reminders'));
 
 /**
  * Session AK (B1–B3): one note — read it (Markdown with live [[links]]) or edit it (with [[ autocomplete), its photo,
@@ -50,6 +52,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted}: 
       </div>
     </> : <>
       <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink}/>
+      {note && /@remind|!remind|@herinner|⏰/i.test(note.body) && <LoadBoundary quiet><Suspense fallback={null}><NoteReminderChips note={note}/></Suspense></LoadBoundary>}
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button></div>
     </>}
     {note && <NoteExtras note={note} change={change} onDeleted={onDeleted}/>}

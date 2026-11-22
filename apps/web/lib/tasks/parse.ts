@@ -17,7 +17,7 @@ import {LABEL_PATTERN, type Recur, type TaskLevel} from './schema';
  * Every piece it took is returned as a span (start, end, kind) so the add field can highlight it, and any span can be
  * kept as plain text (`keep`), as Todoist offers. Pure: `today` is passed in.
  */
-export type SpanKind = 'date' | 'time' | 'recur' | 'priority' | 'project' | 'label' | 'deadline' | 'minutes';
+export type SpanKind = 'date' | 'time' | 'recur' | 'priority' | 'project' | 'label' | 'deadline' | 'minutes' | 'reminder';
 export type ParseSpan = {start: number; end: number; kind: SpanKind; text: string};
 export type ParsedTask = {
   title: string; due?: string; time?: string; level?: TaskLevel; project?: string; labels: string[]; recur?: Recur;
@@ -25,12 +25,17 @@ export type ParsedTask = {
   deadline?: string;
   /** Session AV (F-TASK-MINUTES): "for 30 min", "45 minuten", "for 1h30" — how long it takes. */
   minutes?: number;
+  /**
+   * Session AV lane 2 (tasks, LEDGER #3; Todoist's "!" reminders): "!2h", "!30m", "!1d" remind that long before the task's
+   * time (its day at 09:00 when it has no time); "!18:30" reminds at that clock time on its day (today when none). Up to three.
+   */
+  reminders?: {before: number; at?: string}[];
   spans: ParseSpan[];
 };
 export const PARSE_MAX = 500;
 
 type Tok = {text: string; low: string; start: number; end: number};
-const TOKEN = /[#@][\p{L}\p{N}_\-/]+|[pP][1-4](?![\p{L}\p{N}])|!{1,3}[1-4]?(?![\p{L}\p{N}])|\d{4}-\d{2}-\d{2}|\d{1,2}[:.]\d{2}\s?(?:am|pm|a\.m\.|p\.m\.)?|\d+(?:st|nd|rd|th|e)\b|\d+\s?(?:am|pm|a\.m\.|p\.m\.)|\d+|[\p{L}]+(?:['’][\p{L}]+)?!?|\S/gu;
+const TOKEN = /![0-9]{1,4}\s?(?:m|min|mins|h|hr|hrs|u|d|w)(?![\p{L}\p{N}])|!(?:[01]?\d|2[0-3])[:.][0-5]\d(?![\p{N}])|[#@][\p{L}\p{N}_\-/]+|[pP][1-4](?![\p{L}\p{N}])|!{1,3}[1-4]?(?![\p{L}\p{N}])|\d{4}-\d{2}-\d{2}|\d{1,2}[:.]\d{2}\s?(?:am|pm|a\.m\.|p\.m\.)?|\d+(?:st|nd|rd|th|e)\b|\d+\s?(?:am|pm|a\.m\.|p\.m\.)|\d+|[\p{L}]+(?:['’][\p{L}]+)?!?|\S/gu;
 function tokenize(text: string): Tok[] {
   const out: Tok[] = [];
   for (const m of text.matchAll(TOKEN)) {
@@ -330,6 +335,11 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     if (kept.has(w.start)) return null;
     if (w.low.startsWith('#') && w.low.length > 1) { const name = w.text.slice(1).replace(/[_/]+/g, ' ').trim(); return name ? {len: 1, kind: 'project', apply: o => { o.project = name.slice(0, 60); }} : null; }
     if (w.low.startsWith('@') && w.low.length > 1 && (i === 0 || toks[i - 1]!.end < w.start)) { const name = w.text.slice(1).replace(/\//g, ''); return LABEL_PATTERN.test(name) ? {len: 1, kind: 'label', apply: o => { if (!o.labels.some(l => l.toLowerCase() === name.toLowerCase())) o.labels.push(name); }} : null; }
+    // Session AV lane 2 (LEDGER #3): "!2h" (before the task's time) and "!18:30" (at a clock time on its day).
+    const rel = /^!(\d{1,4})\s?(m|min|mins|h|hr|hrs|u|d|w)$/.exec(w.low);
+    if (rel) { const n = Number(rel[1]), unit = rel[2]!, before = n * (unit.startsWith('m') ? 1 : unit === 'd' ? 1440 : unit === 'w' ? 10_080 : 60); if (before <= 40_320) return {len: 1, kind: 'reminder', apply: o => { (o.reminders ??= []).push({before}); }}; }
+    const abs = /^!(\d{1,2})[:.](\d{2})$/.exec(w.low);
+    if (abs) return {len: 1, kind: 'reminder', apply: o => { (o.reminders ??= []).push({before: 0, at: `${pad(Number(abs[1]))}:${abs[2]}`}); }};
     const p = /^p([1-4])$/.exec(w.low) ?? /^!([1-4])$/.exec(w.low);
     if (p) return {len: 1, kind: 'priority', apply: o => { o.level = Number(p[1]) as TaskLevel; }};
     if (/^!{1,3}$/.test(w.low) && (i === toks.length - 1 || toks[i + 1]!.start > w.end) && (i === 0 || toks[i - 1]!.end < w.start)) return {len: 1, kind: 'priority', apply: o => { o.level = w.low.length >= 2 ? 1 : 2; }};
@@ -352,6 +362,7 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     // One of each: a second day or a second repeat stays text (the first one wins).
     if (!found || (seen.has(found.kind) && (found.kind === 'date' || found.kind === 'time' || found.kind === 'recur' || found.kind === 'priority' || found.kind === 'project' || found.kind === 'deadline' || found.kind === 'minutes'))) continue;
     // A date token that a span starting with it would only half cover ("the" alone) is not taken.
+    if (found.kind === 'reminder' && (out.reminders?.length ?? 0) >= 3) continue;
     found.apply(out); take(i, found.len, found.kind); seen.add(found.kind);
     i += found.len - 1;
   }
@@ -360,6 +371,12 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
   else if (out.recur && out.due) out.due = firstDue(out.recur, out.due);
   // A time without a day is today's (or tomorrow's when that time has passed is not known here: today, shown as such).
   if (out.time && !out.due) out.due = today;
+  // Session AV lane 2 (LEDGER #3): a "!18:30" reminder is on the task's day (today when it has none); "!2h" needs a day,
+  // so a line with only that is planned for today, as a time alone is.
+  if (out.reminders) {
+    if (!out.due && out.reminders.some(r => !r.at)) out.due = today;
+    out.reminders = out.reminders.map(r => r.at ? {before: 0, at: `${out.due ?? today}T${r.at}`} : r);
+  }
   // The title: the text with every taken span cut out, spaces tidied.
   let title = '', last = 0;
   for (const s of [...out.spans].sort((a, b) => a.start - b.start)) { title += text.slice(last, s.start) + ' '; last = s.end; }

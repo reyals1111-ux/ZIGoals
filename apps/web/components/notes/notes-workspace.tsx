@@ -21,6 +21,8 @@ import './notes.css';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
 
 const ThisDayStrip = lazy(() => import('./this-day-strip'));
+// Session AV lane 2 (LEDGER #31): reminders written inside notes ("@remind tomorrow 9:00 …").
+const NotesRemindersPanel = lazy(() => import('./note-reminders').then(m => ({default: m.NotesRemindersPanel})));
 const GraphView = lazy(() => import('./graph-view'));
 const NotesFiles = lazy(() => import('./notes-files'));
 /** Session AK WA (B5): "Ask about my notes" through NOVA's chat (its permission, privacy mode and the person's own model). */
@@ -124,6 +126,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         <SecretGuard text={newTitle} onRemove={() => setNewTitle('')}/>
       </form>
       <NotesSearch notes={record.notes} onSearching={setSearching}/>
+      <LoadBoundary quiet><Suspense fallback={null}><NotesRemindersPanel record={record}/></Suspense></LoadBoundary>
       {/* Session AL (PR-105, P-PR-43): while a search is typed, its results are the list (the full list no longer stays below "No note has those words.") */}
       {searching ? null : topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
         : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. A note that links a goal or a habit shows on its page.</p>}
