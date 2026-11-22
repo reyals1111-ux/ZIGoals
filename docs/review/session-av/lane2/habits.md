@@ -578,6 +578,43 @@ Branch `lane2/habits3` (continues `lane2/habits2`). **Verdict: built.**
   nothing new (a habit on a window that is not needed today simply leaves Today's due list, as a Whenever habit does).
   Weight: `lib/habits.ts` (shared by Habits and Today) gains a few hundred bytes; the options UI stays lazy.
 
+## Feature 19 — Imports from HabitBull and Tickmate (LEDGER #194)
+
+**Verdict: built** (both layouts are open source: read to Loop Habit Tracker's own importers, uhabits v2.3.1
+`HabitBullCSVImporter.kt` and `TickmateDBImporter.kt`, read on 22 Nov 2026; Tickmate is open source too; sources in
+docs/product/IMPORT_FORMATS.md [L9], [L10]).
+
+- Settings → Switch to ZIGoals → "From Daylio, Habitica or YNAB" gains **HabitBull (habits and amounts)** and
+  **Tickmate (tracks and ticks)**. Each file is read on this device into a preview — the habits with their days ("Fictional
+  reading · 2 days from 2026-10-01", "· with amounts"), what is kept, what was left out and why — and nothing is written
+  until "Import N habits". "Undo this import" removes exactly what it added (the Habitica path: `previewHabits` /
+  `undoHabits`). The same file gives the same ids, so a second import adds nothing twice; ZIGoals never merges by name.
+- HabitBull: name, description, category (kept as the habit's category), each day's value (1 done, 0 not done, more an
+  amount: the habit then counts times) and its comment as the day's note; dates `2026-11-03` or `11/03/2026` (a row in
+  the phone's own short date is left out and counted in the preview). Tickmate: an SQLite backup with `tracks` and
+  `ticks` (month counted from 0), read by a small reader of the published SQLite file format
+  (`lib/import/switch/sqlite-read.ts`: table b-trees, overflow pages, records; no dependency, read-only, refuses loops,
+  pages outside the file and WITHOUT ROWID tables; a damaged file says so in plain words). Neither file keeps a
+  schedule, so every habit comes in as every day (as Loop does), said in the preview. Future days are left out.
+- Files: `lib/import/switch/{habit-apps.ts,sqlite-read.ts}`, `components/import/switch-import-more.tsx`,
+  `docs/product/IMPORT_FORMATS.md`.
+- Tests: `lib/import/switch/habit-apps.test.ts` (HabitBull: habits, notes, amounts, odd dates, the same ids twice, not
+  HabitBull's file, preview → import → undo; Tickmate built with Node's own SQLite in the test: tracks, ticks once a
+  day, the 0-based month, future/odd/orphan ticks, 3,000 rows over interior pages and a long description on overflow
+  pages at 512 and 4,096-byte pages, not a database, not Tickmate's, a cut file, 300 damaged files all said in plain
+  words; CREATE TABLE column names). Existing import tests unchanged and green. Spec: `tests/av2-habit-imports.spec.ts`.
+- Stored changes: none (imported habits are ordinary habit records; the Undo note stays in memory, as Habitica's, so
+  the strict import-batches record and its format list are unchanged).
+- Help (EN): **Q: Can I bring my habits from HabitBull or Tickmate?** A: Yes. Settings → Switch to ZIGoals → From
+  Daylio, Habitica or YNAB: choose HabitBull (its CSV export) or Tickmate (its database backup). You see the habits and
+  their days first; nothing changes until you import, and Undo this import takes it back.
+- What's new: "Bring your habits from HabitBull and Tickmate, with a preview and Undo."
+- For the lead: the fold's title "From Daylio, Habitica or YNAB" is pinned by tests/switch-more-ak.spec.ts (`hasText`),
+  so it is unchanged; "From other apps: Daylio, Habitica, HabitBull, Tickmate or YNAB" would need that spec's locator
+  changed together (a deliberate change). The search entry for "import" (lib/search/static.ts) could name the two apps.
+- Answers: none new (imported habits are read as habits already). Showcase hook: none (imports are off in Showcase).
+  CSS touched: none. Always visible on Today: nothing. Weight: the readers load only when a file is chosen.
+
 ## q4 / QUALITY "Not fixed" Minors for habits and mood — where each stands
 
 - Skip and an amount per week-grid cell: built here (Feature 10).
@@ -591,7 +628,6 @@ Branch `lane2/habits3` (continues `lane2/habits2`). **Verdict: built.**
 
 - **#184** built (Feature 17).
 - **#185** built (Feature 18).
-- **#194** HabitBull and Tickmate imports: only where the layout is documented or open source
-  (`lib/import/switch/formats.ts`'s rule); check each file layout before building.
+- **#194** built (Feature 19).
 - Rows of the lead's other groups for this pillar (#191 pure-black Dark, #192 fonts, #193 automatic backups) are N6,
   not in this builder's scope.

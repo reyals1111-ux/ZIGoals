@@ -28,7 +28,7 @@ const zone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
 export default function SwitchImportMore() {
   const health = useHealth(), habits = useHabits(), journal = useDeviceRecord(JOURNAL), money = useDeviceRecord(MONEY_LOG);
-  const [app, setApp] = useState<'daylio' | 'habitica' | 'ynab'>('daylio');
+  const [app, setApp] = useState<keyof typeof APPS>('daylio');
   const [error, setError] = useState(''), [status, setStatus] = useState(''), [busy, setBusy] = useState(false), [undo, setUndo] = useState<Undo | null>(null);
   const [daylio, setDaylio] = useState<DaylioPlan | null>(null), [moodMap, setMoodMap] = useState<Record<string, number | null>>({}), [moodsToHealth, setMoodsToHealth] = useState(false);
   const [habitica, setHabitica] = useState<Omit<HabitsPlan, 'format'> | null>(null);
@@ -45,7 +45,10 @@ export default function SwitchImportMore() {
     if (file.size > 30 * 1024 * 1024) { setError('This file is larger than 30 MB, more than these exports hold. Nothing was changed.'); return; }
     reset(); setUndo(null);
     await guarded(async () => {
+      // Session AV lane 2 (LEDGER #194): Tickmate's backup is an SQLite database, read as bytes; HabitBull's is CSV text.
+      if (app === 'tickmate') { const {readTickmate} = await import('../../lib/import/switch/habit-apps'); setHabitica(readTickmate(new Uint8Array(await file.arrayBuffer()), {now: Date.now(), zone: zone()})); return; }
       const text = await file.text();
+      if (app === 'habitbull') { const {readHabitBull} = await import('../../lib/import/switch/habit-apps'); setHabitica(await readHabitBull(text, {now: Date.now(), zone: zone()})); return; }
       if (app === 'daylio') { const {readDaylio} = await import('../../lib/import/switch/daylio'); const plan = await readDaylio(text, {today: today()}); setDaylio(plan); setMoodMap(Object.fromEntries(plan.moods.map(m => [m.label, m.mapped]))); }
       else if (app === 'habitica') { const {readHabitica} = await import('../../lib/import/switch/habitica'); setHabitica(readHabitica(text, {now: Date.now(), zone: zone()})); }
       else { setYnabText(text); await readYnabNow(text, currency, undefined); }
@@ -83,10 +86,10 @@ export default function SwitchImportMore() {
       let created: string[] = [], entries: [string, string][] = [];
       await habits.update(latest => { const r = previewHabits(latest, plan.habits); created = r.created; entries = r.entries; return r.next; });
       setHabitica(null);
-      setStatus(`Imported from Habitica: ${n(created.length)} ${created.length === 1 ? 'habit' : 'habits'}.`);
+      setStatus(`Imported from ${plan.label}: ${n(created.length)} ${created.length === 1 ? 'habit' : 'habits'}.`);
       // The undo note lives in memory only (see the comment at the top); its shape is the one undoHabits reads.
-      const note = {id: crypto.randomUUID(), format: 'loop', label: 'Habitica', at: new Date().toISOString(), counts: {}, refs: {habits: {habitIds: created, entries}}} as ImportBatch;
-      setUndo({label: 'Habitica', run: async () => { await habits.update(latest => undoHabits(latest, note)); }});
+      const note = {id: crypto.randomUUID(), format: 'loop', label: plan.label, at: new Date().toISOString(), counts: {}, refs: {habits: {habitIds: created, entries}}} as ImportBatch;
+      setUndo({label: plan.label, run: async () => { await habits.update(latest => undoHabits(latest, note)); }});
     });
   }
   async function confirmYnab(plan: YnabPlan) {
@@ -105,7 +108,7 @@ export default function SwitchImportMore() {
   return <div className="switch-more">
     <fieldset className="field" disabled={busy}>
       <legend>Which app</legend>
-      {(['daylio', 'habitica', 'ynab'] as const).map(id => <label key={id} className="check"><input type="radio" name="switch-more-app" checked={app === id} onChange={() => { setApp(id); reset(); }} /> {APPS[id].label}</label>)}
+      {(Object.keys(APPS) as (keyof typeof APPS)[]).map(id => <label key={id} className="check"><input type="radio" name="switch-more-app" checked={app === id} onChange={() => { setApp(id); reset(); }} /> {APPS[id].label}</label>)}
     </fieldset>
     <p className="fine">{APPS[app].steps}</p>
     <label className="field import-file"><span>Choose the {APPS[app].file}</span>
@@ -124,8 +127,9 @@ export default function SwitchImportMore() {
     </div>}
 
     {habitica && <div className="switch-preview">
-      <p className="import-summary">Habitica: {n(habitica.habits.length)} {habitica.habits.length === 1 ? 'habit' : 'habits'} ({habitica.habits.slice(0, 5).map(h => h.title).join(', ')}{habitica.habits.length > 5 ? '…' : ''}).</p>
-      <p className="fine">Habits and dailies come in as habits with their schedule; to-dos and rewards stay in Habitica. ZIGoals never merges habits by name.</p>
+      <p className="import-summary">{habitica.label}: {n(habitica.habits.length)} {habitica.habits.length === 1 ? 'habit' : 'habits'} ({habitica.habits.slice(0, 5).map(h => h.title).join(', ')}{habitica.habits.length > 5 ? '…' : ''}).</p>
+      <p className="fine">{habitica.label === 'Habitica' ? 'Habits and dailies come in as habits with their schedule; to-dos and rewards stay in Habitica.' : 'Each habit comes in as a new habit with its days.'} ZIGoals never merges habits by name.</p>
+      {habitica.label !== 'Habitica' && <ul aria-label={`Habits from ${habitica.label}`}>{habitica.habits.slice(0, 12).map(h => <li key={h.id}>{h.title} · {n(h.entries.length)} {h.entries.length === 1 ? 'day' : 'days'}{h.entries[0] ? ` from ${h.entries[0].date}` : ''}{h.rules[0]?.measurement.kind === 'count' ? ' · with amounts' : ''}</li>)}{habitica.habits.length > 12 && <li>and {n(habitica.habits.length - 12)} more</li>}</ul>}
       {[...habitica.summarised, ...habitica.warnings].map(w => <p key={w} className="notice">{w}</p>)}
       <div className="actions"><button type="button" className="primary" disabled={busy || !habitica.habits.length} onClick={() => void confirmHabitica(habitica)}>{busy ? 'Importing…' : `Import ${n(habitica.habits.length)} ${habitica.habits.length === 1 ? 'habit' : 'habits'}`}</button><button type="button" className="quiet" disabled={busy} onClick={reset}>Cancel</button></div>
     </div>}
@@ -148,5 +152,8 @@ const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'CAD', 'AUD', 'SEK', 'NOK', 'DKK
 const APPS = {
   daylio: {label: 'Daylio (moods and notes)', file: 'Daylio CSV', accept: '.csv,text/csv', steps: 'Daylio → More → Export Entries → CSV, then share the file to this device.'},
   habitica: {label: 'Habitica (habits and dailies)', file: 'userdata.json', accept: '.json,application/json', steps: 'Habitica on the web → Settings → Site Data → Export → userdata.json.'},
+  // Session AV lane 2 (LEDGER #194): read to the layouts Loop Habit Tracker's open-source importers read (lib/import/switch/habit-apps.ts).
+  habitbull: {label: 'HabitBull (habits and amounts)', file: 'HabitBull CSV', accept: '.csv,text/csv', steps: 'In HabitBull, export your data as CSV and share the file to this device. Its first line starts HabitName,HabitDescription,HabitCategory.'},
+  tickmate: {label: 'Tickmate (tracks and ticks)', file: 'Tickmate database backup', accept: '.db,.sqlite,.sqlite3,application/octet-stream,application/x-sqlite3', steps: 'In Tickmate, export the database from its settings and share the file to this device.'},
   ynab: {label: 'YNAB (spending and income)', file: 'Register CSV', accept: '.csv,text/csv', steps: 'YNAB on the web → your plan’s name → Export Plan, then choose the Register file from the ZIP.'},
 } as const;
