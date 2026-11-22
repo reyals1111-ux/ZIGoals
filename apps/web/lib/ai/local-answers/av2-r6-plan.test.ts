@@ -65,6 +65,13 @@ describe('the focus, a repeat’s record, label groups (LEDGER #394, #396, #397)
     expect(text(av2R6PlanAnswer('waar ben ik op gefocust', zigiEnv(s), {plan: {version: 1, focus: {projects: ['p_work']}}}))).toMatch(/^Je bent gefocust op Fictional work: /);
     expect(text(av2R6PlanAnswer('what am I focused on', zigiEnv(s), {plan: {version: 1, focus: {projects: ['p_gone']}}}))).toMatch(/^No focus is on/);
   });
+  test('review B6M-11: the Dutch form is built in Dutch, and a name with “and” in it is left as it is', () => {
+    const s = withTasks(r => addProject(addProject(addProject(r, {name: 'Bread and butter'}, 'p_a'), {name: 'Fictional work'}, 'p_b'), {name: 'Fictional home'}, 'p_c'));
+    const plan = (projects: string[]) => ({plan: {version: 1 as const, focus: {projects}}});
+    expect(text(av2R6PlanAnswer('waar ben ik op gefocust', zigiEnv(s), plan(['p_a', 'p_b'])))).toMatch(/^Je bent gefocust op Bread and butter en Fictional work: /);
+    expect(text(av2R6PlanAnswer('waar ben ik op gefocust', zigiEnv(s), plan(['p_a', 'p_b', 'p_c'])))).toMatch(/^Je bent gefocust op Bread and butter en nog 2: /);
+    expect(text(av2R6PlanAnswer('what am I focused on', zigiEnv(s), plan(['p_a', 'p_b', 'p_c'])))).toMatch(/^You are focused on Bread and butter and 2 more: /);
+  });
   test('a repeat’s record: done, by its day and after it, the average days, as facts', () => {
     const s = withTasks(r => {
       let x = add(r, 'b', {title: 'Fictional bins', due: addLocalDays(DAY, -14), recur: {every: 'week', interval: 1}});

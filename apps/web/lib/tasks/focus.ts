@@ -54,8 +54,9 @@ export function inPlayRecord<T extends Pick<Tasks, 'tasks' | 'projects'> & Parti
   const tasks = record.tasks.filter(t => !isOutOfPlay(record, t, today, focus));
   return tasks.length === record.tasks.length ? record : {...record, tasks};
 }
-/** "Work", "Work and Home", "Work and 2 more". */
-export function focusName(focus: TaskFocus, record: Pick<Tasks, 'projects' | 'areas'>): string {
+/** "Work", "Work and Home", "Work and 2 more"; in Dutch (review B6M-11) "Werk en Thuis", "Werk en nog 2". Names are never changed. */
+export function focusName(focus: TaskFocus, record: Pick<Tasks, 'projects' | 'areas'>, lang: 'en' | 'nl' = 'en'): string {
   const names = [...(focus.areas ?? []).map(id => record.areas?.find(a => a.id === id)?.name), ...(focus.projects ?? []).map(id => record.projects?.find(p => p.id === id)?.name)].filter((n): n is string => !!n);
-  return names.length <= 2 ? names.join(' and ') : `${names[0]} and ${names.length - 1} more`;
+  const and = lang === 'nl' ? ' en ' : ' and ';
+  return names.length <= 2 ? names.join(and) : lang === 'nl' ? `${names[0]} en nog ${names.length - 1}` : `${names[0]} and ${names.length - 1} more`;
 }

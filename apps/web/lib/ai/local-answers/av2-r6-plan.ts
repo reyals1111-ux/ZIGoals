@@ -77,7 +77,7 @@ function focusAnswer(a: Ask): LocalReply | null {
   if (!focus) return answer(say(a.lang, 'No focus is on: every project shows. In Tasks → Today (or Upcoming, the matrix, the Calendar) choose “Focus…” and pick areas or projects; only their tasks show until you choose Show all. Tasks in the Inbox are never hidden.',
     'Er staat geen focus aan: elk project is te zien. Kies in Tasks → Today (of Upcoming, de matrix, de Calendar) “Focus…” en kies gebieden of projecten; alleen hun taken zijn te zien tot je Show all kiest. Taken in de Inbox blijven altijd zichtbaar.'), TASK_CALLS);
   return answer(say(a.lang, `You are focused on ${focusName(focus, got.record)}: Today, Upcoming, the matrix, the Calendar and Plan my day show only their tasks (and the Inbox) until you choose Show all.`,
-    `Je bent gefocust op ${focusName(focus, got.record).replace(/ and /g, ' en ').replace(/ more$/, ' meer')}: Today, Upcoming, de matrix, de Calendar en Plan my day tonen alleen hun taken (en de Inbox) tot je Show all kiest.`), TASK_CALLS);
+    `Je bent gefocust op ${focusName(focus, got.record, 'nl')}: Today, Upcoming, de matrix, de Calendar en Plan my day tonen alleen hun taken (en de Inbox) tot je Show all kiest.`), TASK_CALLS);
 }
 
 /** "which projects need a review", "welke projecten moet ik nakijken" (LEDGER #395). */
