@@ -161,9 +161,12 @@ function lightAnswer(a: Asked): LocalReply | null {
   if (!(/\blight weeks?\b|\bdeload\b|\bworkouts?\b.*\bleft out of (?:my )?bests\b/.test(a.f) || /\blichte weken?\b|\bdeload\b|\bworkouts?\b.*\btellen niet mee\b.*\brecords?\b/.test(a.f))) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const light = finished(logOf(a)).filter(x => x.light), lang = a.lang, today = a.env.healthDay;
-  if (!light.length) return answer(say(lang, 'No workout is marked as a light week. Open one under Health → Workouts → Your workouts and choose "Light week (not in my bests)": its sets stay in your history and volume and leave your bests.', 'Geen workout is als lichte week gemarkeerd. Open er een onder Health → Workouts → Your workouts en kies "Light week (not in my bests)": de sets blijven in je geschiedenis en volume en tellen niet mee voor je records.'), CALLS);
+  // Review B6Q-3: only a light week marked during the workout keeps a routine's kept weights clean (keep-weights.ts reads it at Finish).
+  const when = say(lang, 'Mark a light week during the workout ("Light week (not in my bests)", above Finish workout) and a routine that keeps your last weights leaves its weights out too; marked afterwards under Health → Workouts → Your workouts, it is left out of your bests and "new best" marks only.',
+    'Markeer een lichte week tijdens de workout ("Light week (not in my bests)", boven Finish workout), dan laat een routine die je laatste gewichten bewaart de gewichten ervan ook weg; markeer je hem achteraf onder Health → Workouts → Your workouts, dan blijft hij alleen buiten je records en de "new best"-markeringen.');
+  if (!light.length) return answer(say(lang, `No workout is marked as a light week. ${when} Either way its sets stay in your history and volume.`, `Geen workout is als lichte week gemarkeerd. ${when} Hoe dan ook blijven de sets in je geschiedenis en volume.`), CALLS);
   const items = light.slice(0, 5).map(x => `${x.name} (${dayIn(lang, x.date, today)})`);
-  return answer(say(lang, `Light weeks, left out of your bests: ${list(items, 'en')}. Their sets stay in your history and volume.`, `Lichte weken, buiten je records gelaten: ${list(items, 'nl')}. Hun sets blijven in je geschiedenis en volume.`), CALLS);
+  return answer(say(lang, `Light weeks, left out of your bests: ${list(items, 'en')}. Their sets stay in your history and volume. ${when}`, `Lichte weken, buiten je records gelaten: ${list(items, 'nl')}. Hun sets blijven in je geschiedenis en volume. ${when}`), CALLS);
 }
 
 /** "when did I set my personal bests", "wanneer heb ik mijn persoonlijke records gezet" (LEDGER #422). */
