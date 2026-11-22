@@ -107,3 +107,15 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
 - **Spec:** none (it shows only through a file export and import; the unit test runs the same `planImport` the
   Notes → Files import calls).
 - **Help/corpus:** none.
+
+## B3C-7 (Major): Encheiridion 22 as printed
+
+- **Verdict:** confirmed and fixed. Checked against Wikisource's transcription of Long's 1877 Encheiridion (section
+  XXII), which reads "Do you not show a supercilious look; but hold on to the things which seem to you best as one
+  appointed by God to this station." (the review quoted "and do you hold on"; the Wikisource text has "but hold on").
+- **Fix:** `ep-22` is now "…hold on to the things which seem to you best as one appointed by God to this station." — the
+  original's own small letter after "…" (it starts inside the sentence), ending at its full stop. Dutch: "…houd vast aan
+  wat jou het beste lijkt, als iemand die door God op deze plek is gezet." Same id and place, so the day's order stays.
+- **Tests:** `lib/journal/revb3c-quotes.test.ts` pins the line word for word; every line ends at a full stop; an excerpt
+  marked "…" in English is marked in Dutch.
+- **Help/corpus:** none (no corpus case or spec pins a quote's words).
