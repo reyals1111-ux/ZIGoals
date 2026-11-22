@@ -233,3 +233,48 @@ Device keys / catalogue / export / erase entries needed: none (existing keys onl
   pinned answers — the lead can add one with the corpus re-recorded).
 - Registries: none. CSS touched: `components/wealth/budgets/budgets.css`, `components/wealth/money-tools/money-tools.css`.
 - Today: nothing.
+
+### F6. The debt planner: more orders, the kept plan followed, payments that lower the balance, the debt-free date on Wealth, CSV and trend, a to-pay list, paid-off-by months, what-if, consolidation, Debt Blaster, the bill tracker, promo rates and notes, paid off, printables
+
+- LEDGER rows: #157 highest monthly interest, highest payment and Cash Flow Index orders — **built** (plus "by your
+  paid-off-by months"; a chosen order is kept as "Your order", so older builds read the same plan); #158 Today following
+  the kept plan — **built** (the Money line names it when what is owed is behind the kept plan; "pay-down goals": the
+  kept plan's month-by-month balances are the goal line it is measured against); #159 the debt's own shown balance
+  lowered by its payments until the next statement — **built** (Wealth → each debt: "€X after 1 payment since"; the
+  planner and the glance use it too); #161 the debt-free date and 12-month progress on Wealth's debts group — **built**;
+  #162 a CSV of the plan and a small balance trend per debt — **built**; #163 debt minimums in the same list and "Mark
+  paid" — **built** (Bill tracker: a bill's Mark paid adds an expense to the money log, a debt's records a payment);
+  #164 a per-debt "paid off by" month the plan funds first — **built** (its order, and what each needs a month);
+  #165 reverse what-if — **built**; #166 consolidation, labelled a model — **built**; #167 Debt Blaster — **built**;
+  #168 a payment history per bill across months, autopay, editing a bill — **built**; #169 a promo rate with an end date
+  and a debt note — **built**; #170 a paid-off list with dates and "paid down this year" — **built**; #171 printable debt
+  and bill tracker sheets — **built** (Print the plan / Print the bill tracker: the sheet alone, print CSS).
+- Files: `lib/debt-planner/more.ts` (new), `lib/debt-planner/wealth.ts` (new), `lib/debt-planner/plan.ts` (`stepUp`,
+  `promoRate`/`promoMonths`), `lib/bills/tracker.ts` (new), `components/wealth/debt-planner-tools.tsx` (new, lazy),
+  `components/wealth/debt-planner.tsx`, `components/wealth/debts-summary.tsx` (new, lazy),
+  `components/wealth/accounts-section.tsx`, `components/wealth/bills/bill-tracker.tsx` (new, lazy),
+  `components/wealth/bills/upcoming-bills.tsx`, `lib/money-attention.ts`, `components/wealth/today-money-attention.tsx`.
+- Tests: `lib/debt-planner/av2-more.test.ts`, round trip (planner `promoRate`, `promoUntil`, `note`, `payoffBy`,
+  `method`, `stepUp`, `tracked.method`/`stepUp`; bill `autopay`). Existing planner tests and `av-debt-plan` logic
+  unchanged and green.
+- Spec: `tests/av2-money-debts.spec.ts`.
+- Help (EN): **Q: Which order should I pay my debts in?** A: ZIGoals does not advise; the planner shows each order's
+  debt-free month and interest: snowball, avalanche, highest monthly interest, highest payment, the Cash Flow Index
+  (what is owed ÷ its minimum, lowest first) and your own paid-off-by months. "Use" keeps one. **Q: What is Debt
+  Blaster?** A: The extra a month rises by an amount you choose every 1, 3, 6 or 12 months. **Q: How much extra would
+  make me debt-free by a month?** A: Planner → "Debt-free by a month?". **Q: Would one consolidation loan cost less?** A:
+  Planner → "One consolidation loan?": its rate, term and fee against your plan; a model, not an offer. **Q: My card is
+  at 0 % until March. Can the plan know?** A: Planner → "Each debt": a promo rate and the month it ends; the usual rate
+  follows. **Q: Where do I mark a bill or a debt payment paid?** A: Upcoming bills → Bill tracker: "Mark paid" adds the
+  bill to your money log, or records the debt's payment; each bill shows its last 12 months, an "autopay" mark and Edit.
+  "Print" makes a sheet of the plan or the bills.
+- What's new: "Debts: more orders, Debt Blaster, debt-free by a month, a consolidation model, promo rates and notes, your
+  debts at a glance on Wealth, and a bill tracker with Mark paid and history."
+- Answers: `paidOff`, `paidDown`, `keptPlan`, `debtFreeBy` (corpus `av2-money-paid-off`, `-paid-down`, `-kept-plan`,
+  `-debt-free-by`).
+- Showcase hook: none (the Showcase planner has no kept plan or minimums: the existing Showcase Today line stays as it
+  is; the bill tracker is hidden in the Showcase, like the other Showcase-hidden write actions).
+- Registries: none. CSS touched: `components/wealth/debt-planner.css`, `components/wealth/accounts.css`,
+  `components/wealth/bills/bills.css`.
+- Today: nothing always visible; the "behind your kept plan" piece joins the existing Money link only for a person who
+  keeps a plan and is behind it.

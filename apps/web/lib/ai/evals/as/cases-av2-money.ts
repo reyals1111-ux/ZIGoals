@@ -21,4 +21,8 @@ export const AV2_MONEY: readonly Intent[] = [
   {id: 'av2-money-underfunded', pillar: 'wealth', en: ['what is underfunded this month', 'which budgets are underfunded'], nl: ['welke budgetten komen tekort', 'wat komt er tekort in mijn budgetten']},
   {id: 'av2-money-flexible', pillar: 'wealth', en: ['how much flexible budget is left', 'what is my flexible spending left'], nl: ['hoeveel flexibel budget heb ik nog', 'hoeveel flexibele uitgaven heb ik nog over']},
   {id: 'av2-money-suggested-budget', pillar: 'wealth', en: ['what should my groceries budget be', 'can you suggest a budget for groceries'], nl: ['wat is een voorstel voor mijn budget voor groceries', 'wat is mijn gemiddelde budget voor groceries']},
+  {id: 'av2-money-paid-off', pillar: 'wealth', en: ['which debts have I paid off', 'what debts are paid off'], nl: ['welke schulden heb ik afgelost', 'welke leningen zijn afbetaald']},
+  {id: 'av2-money-paid-down', pillar: 'wealth', en: ['how much debt did I pay down this year', 'how much have I paid down'], nl: ['hoeveel schuld heb ik dit jaar afgelost', 'hoeveel heb ik afbetaald']},
+  {id: 'av2-money-kept-plan', pillar: 'wealth', en: ['am I on track with my debt plan', 'am I ahead of my debt plan'], nl: ['lig ik op schema met mijn aflosplan', 'loop ik achter op mijn aflosplan']},
+  {id: 'av2-money-debt-free-by', pillar: 'wealth', en: ['how much extra do I need to be debt free by 2030', 'how much extra to be debt free by 2029'], nl: ['hoeveel extra heb ik nodig om in 2030 schuldenvrij te zijn', 'hoeveel extra moet ik betalen om in 2029 schuldenvrij te zijn']},
 ];

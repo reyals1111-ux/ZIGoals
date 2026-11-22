@@ -59,3 +59,12 @@
 .accounts-group-head button,.accounts-arrange button{min-height:44px}
 .accounts-note{display:block;font-size:14px;overflow-wrap:anywhere}
 .accounts-arrange{display:flex;gap:8px}
+.accounts-owed-now{display:block;font-size:14px}
+.debts-summary{display:grid;gap:6px;margin:4px 0 10px;min-width:0;overflow-wrap:anywhere}
+.debts-summary p{margin:0}
+.debts-trends{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:14px}
+.debts-trends li{display:flex;align-items:center;gap:8px}
+.debts-spark{flex:none}
+.debts-spark path{fill:none;stroke:var(--cyan,#6fd3ff);stroke-width:2}
+.debts-paid summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.debts-paid ul{margin:0;padding-left:18px;display:grid;gap:4px}

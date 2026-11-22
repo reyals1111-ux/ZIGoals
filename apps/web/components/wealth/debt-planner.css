@@ -74,3 +74,19 @@
 /* The fold's content box is a grid item too (details' content slot), so the table's own width still reached it; a table
    box whose width never comes from its rows keeps the fold to the planner's width, and the table scrolls inside it. */
 .debt-planner .money-table-wrap{contain:inline-size}
+/* Session AV lane 2 (money; Undebt.it): the planner's further tools, and its printable sheet. */
+.debt-tools{display:grid;gap:8px;margin-top:12px;min-width:0}
+.debt-tools-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.debt-tools-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px 12px;align-items:end;margin:6px 0}
+.debt-tools-form input,.debt-tools-form select,.debt-tools-form button,.debt-tools-actions button,.debt-tools-fold td button{min-height:44px;width:100%;box-sizing:border-box}
+.debt-tools-fold td button{width:auto}
+.debt-tools-name,.debt-tools-note,.debt-tools-form .field-error{grid-column:1/-1}
+.debt-tools-debts,.debt-tools-targets{list-style:none;margin:0;padding:0;display:grid;gap:8px;overflow-wrap:anywhere}
+.debt-tools p{margin:4px 0;overflow-wrap:anywhere}
+@media print{
+  :root.zg-print-debts body *{visibility:hidden}
+  :root.zg-print-debts .debt-planner,:root.zg-print-debts .debt-planner *{visibility:visible}
+  :root.zg-print-debts .debt-planner{position:absolute;inset:0 auto auto 0;width:100%;background:#fff;color:#000;border:0;box-shadow:none}
+  :root.zg-print-debts .debt-planner button,:root.zg-print-debts .debt-planner input,:root.zg-print-debts .debt-planner select{display:none}
+  :root.zg-print-debts .debt-planner details>*{display:block}
+}

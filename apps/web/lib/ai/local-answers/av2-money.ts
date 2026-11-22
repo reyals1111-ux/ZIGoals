@@ -6,6 +6,9 @@ import {challengeStates, lowBalanceCross, paydayCash, payeeRows, yearRecap} from
 import {signedMoney} from '../../money-log/selection';
 import {dayIn, monthIn} from './av-words';
 import {assignView, averageSpent} from '../../budgets/assign';
+import {debtSummary, paidOffDebts, trackedProgress} from '../../debt-planner/wealth';
+import {extraFor} from '../../debt-planner/more';
+import {debtView} from '../tools/f9-debt';
 import type {MoneyEntry} from '../../money-log/schema';
 import {summarizeSelection} from '../../money-log/selection';
 import type {ToolEnv} from '../tools/env';
@@ -21,7 +24,7 @@ import type {LocalReply} from './engine';
 export function av2MoneyAnswer(question: string, env: ToolEnv): LocalReply | null {
   try {
     const a = asked(question, env);
-    if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:will|would|zakt|komt|gaat|zal)\b/.test(a.f))) return null;
+    if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:will|would|zakt|komt|gaat|zal|lig|loop)\b/.test(a.f))) return null;
     for (const one of ANSWERS) { const r = one(a); if (r) return r; }
     return null;
   } catch { return null; }
@@ -219,3 +222,48 @@ function suggestedBudget(a: Asked): LocalReply | null {
   return answer(`${say(lang, 'Suggested from your own spending', 'Voorgesteld uit je eigen uitgaven')}: ${lines.join('; ')}. ${say(lang, 'Budgets → Plan → “Use it” sets it for this month.', 'Budgets → Plan → “Use it” zet het voor deze maand.')}`, calls);
 }
 addAnswers(underfunded, flexibleLeft, suggestedBudget);
+
+// ── Group 15: the debt planner ───────────────────────────────────────────────────────────────────────────────────
+
+const debtMoney = (c: bigint, currency: string) => money(Number(c < 0n ? -c : c), currency);
+/** "Which debts have I paid off", "welke schulden heb ik afbetaald". */
+function paidOff(a: Asked): LocalReply | null {
+  if (!/\bdebts?\b.*\bpaid off\b|\bpaid off\b.*\bdebts?\b|\b(?:schulden|lening(?:en)?)\b.*\b(?:afbetaald|afgelost)\b/.test(a.f) || /\bwhen\b|\bwanneer\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, list = paidOffDebts(a.env.accounts, a.today), calls = [{tool: 'accounts', args: {paidOff: true}, label: 'What you owe · paid off'}];
+  if (!list.length) return answer(say(lang, 'No debt is paid off yet: a debt counts as paid off once its balance (or its balance less your payments) reaches zero.', 'Nog geen schuld is afgelost: een schuld telt als afgelost zodra het saldo (of het saldo min je betalingen) op nul staat.'), calls);
+  return answer(list.map(p => say(lang, `${p.name}: paid off on ${dayIn('en', p.on, a.today)}${p.from ? `, from ${debtMoney(p.from, p.currency)}` : ''}`, `${p.name}: afgelost op ${dayIn('nl', p.on, a.today)}${p.from ? `, van ${debtMoney(p.from, p.currency)}` : ''}`)).join('. ') + '.', calls);
+}
+/** "How much debt did I pay down this year", "hoeveel schuld heb ik dit jaar afgelost". */
+function paidDown(a: Asked): LocalReply | null {
+  if (!/\bpaid? down\b|\bpay down\b|\bhoeveel\b.*\b(?:afgelost|afbetaald)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, rows = debtSummary(a.env.accounts, a.env.ak?.debtPlanner, a.today), calls = [{tool: 'accounts', args: {paidDown: true}, label: 'What you owe · paid down'}];
+  if (!rows.length) return answer(say(lang, 'You have no debts with a balance in Wealth → What you owe.', 'Je hebt geen schulden met een saldo in Vermogen → Wat je schuldig bent.'), calls);
+  return answer(rows.map(r => say(lang, `${r.currency}: ${debtMoney(r.owed, r.currency)} owed now${r.thisYear !== null ? `; ${r.thisYear >= 0n ? 'paid down' : 'up'} ${debtMoney(r.thisYear, r.currency)} this year` : ''}${r.last12 !== null ? `; ${r.last12 >= 0n ? 'paid down' : 'up'} ${debtMoney(r.last12, r.currency)} over 12 months` : ''}.`, `${r.currency}: nu ${debtMoney(r.owed, r.currency)} schuld${r.thisYear !== null ? `; dit jaar ${r.thisYear >= 0n ? 'afgelost' : 'erbij'} ${debtMoney(r.thisYear, r.currency)}` : ''}${r.last12 !== null ? `; over 12 maanden ${r.last12 >= 0n ? 'afgelost' : 'erbij'} ${debtMoney(r.last12, r.currency)}` : ''}.`)).join('\n'), calls);
+}
+/** "Am I on track with my debt plan", "lig ik op schema met mijn aflosplan". */
+function keptPlan(a: Asked): LocalReply | null {
+  if (!/\b(?:on track|ahead|behind)\b.*\bdebt plan\b|\bdebt plan\b.*\b(?:on track|ahead|behind)\b|\b(?:op schema|voor|achter)\b.*\baflos\w*plan\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, p = trackedProgress(a.env.accounts, a.env.ak?.debtPlanner, a.today), calls = [{tool: 'debt_plan', args: {tracked: true}, label: 'Debt planner · kept plan'}];
+  if (!p) return answer(say(lang, 'No plan is kept yet. In the debt planner, “Track this plan” keeps one to compare with what you record.', 'Er is nog geen plan bewaard. In de aflosplanner bewaart “Track this plan” er een om te vergelijken met wat je vastlegt.'), calls);
+  if (!p.months) return answer(say(lang, 'Your kept plan has its first payment month still ahead, so there is nothing to compare yet.', 'De eerste betaalmaand van je plan moet nog komen, dus er valt nog niets te vergelijken.'), calls);
+  return answer(p.ahead >= 0n ? say(lang, `Ahead: you owe ${debtMoney(p.actual, p.currency)}, ${debtMoney(p.ahead, p.currency)} less than the kept plan expected after ${count(p.months, 'en', ['month', 'months'], ['', ''])}.`, `Voor: je bent ${debtMoney(p.actual, p.currency)} schuldig, ${debtMoney(p.ahead, p.currency)} minder dan het plan na ${count(p.months, 'nl', ['', ''], ['maand', 'maanden'])} verwachtte.`)
+    : say(lang, `Behind: you owe ${debtMoney(p.actual, p.currency)}, ${debtMoney(p.ahead, p.currency)} more than the kept plan expected after ${count(p.months, 'en', ['month', 'months'], ['', ''])}.`, `Achter: je bent ${debtMoney(p.actual, p.currency)} schuldig, ${debtMoney(p.ahead, p.currency)} meer dan het plan na ${count(p.months, 'nl', ['', ''], ['maand', 'maanden'])} verwachtte.`), calls);
+}
+/** "How much extra to be debt-free by 2028", "hoeveel extra om in 2028 schuldenvrij te zijn": the reverse what-if, by a year's end. */
+function debtFreeBy(a: Asked): LocalReply | null {
+  const y = /\b(20\d\d)\b/.exec(a.f)?.[1];
+  if (!y || !/\bdebt free\b|\bschuldenvrij\b/.test(a.f) || !/\b(?:how much|extra|hoeveel)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const lang = a.lang, by = `${y}-12`, calls = [{tool: 'debt_plan', args: {by}, label: `Debt planner · debt-free by ${y}`}];
+  const v = debtView(a.env.accounts, a.env.ak?.debtPlanner, a.today).find(x => x.comparison);
+  if (!v?.comparison) return answer(say(lang, 'The debt planner needs each debt’s rate and minimum first (Wealth → What you owe → Plan paying off your debts).', 'De aflosplanner heeft eerst per schuld de rente en het minimum nodig (Vermogen → Wat je schuldig bent → Plan je aflossing).'), calls);
+  const debts = v.debts.filter(d => d.ratePercent && d.minimum).map(d => ({id: d.id, name: d.name, balance: d.owed, ratePercent: d.ratePercent!, minimum: d.minimum!}));
+  const need = extraFor(debts, 'avalanche', by, a.today);
+  if (need === null) return answer(say(lang, `December ${y} is too close for these debts with any extra I can work out.`, `December ${y} is te dichtbij voor deze schulden met elk extra bedrag dat ik kan uitrekenen.`), calls);
+  return answer(need === 0n ? say(lang, `Your payments as they are already make you debt-free by December ${y} (avalanche order). A model, not advice.`, `Met je huidige betalingen ben je al schuldenvrij in december ${y} (lawinevolgorde). Een model, geen advies.`)
+    : say(lang, `About ${debtMoney(need, v.currency)} extra a month on top of the minimums makes you debt-free by December ${y} (avalanche order; now ${debtMoney(v.extra, v.currency)}). A model, not advice.`, `Ongeveer ${debtMoney(need, v.currency)} extra per maand bovenop de minimums maakt je schuldenvrij in december ${y} (lawinevolgorde; nu ${debtMoney(v.extra, v.currency)}). Een model, geen advies.`), calls);
+}
+addAnswers(paidOff, paidDown, keptPlan, debtFreeBy);
