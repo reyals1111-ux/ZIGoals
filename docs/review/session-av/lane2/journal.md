@@ -247,3 +247,23 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
 - What's new: "Notes: earlier versions of a note, to read and restore."
 - Showcase: "Books to read" has one earlier version (no count changes).
 - CSS: `components/notes/notes.css`. Today: nothing added.
+
+### F9 Notes as a table, a gallery and a chart — LEDGER #29 and #30 (their notes parts)
+
+- Verdict: **built** for notes. #29's task table / timeline and #30's "tasks done per week" are the Tasks builder's
+  (group 11); not built here.
+- What: Notes → Notes → "Show notes as": List (as before), Table (columns Note, Tags, Words, Links, Changed, Made; each
+  header a button that sorts and says its order with `aria-sort`; the table scrolls in its own focusable region on a
+  phone), Gallery (a card per note with its photo, first words, tags, words and when changed), Chart (notes per tag,
+  the untagged apart, and notes written or changed per week over eight weeks; labelled bars with the numbers in words).
+- Files: `lib/notes/table.ts`, `components/notes/notes-views.tsx` (lazy), `components/notes/notes-workspace.tsx`,
+  `components/notes/notes.css`.
+- Tests: `lib/notes/av2-table.test.ts`; answers ("how many notes do I have per tag", EN and NL).
+- Spec: `tests/av2-notes-views.spec.ts`.
+- Stored: nothing (the layout is the page's state).
+- Help (EN). Q: "Can I see my notes as a table?" A: "Yes. Notes → Notes → Show notes as: Table sorts by any column (press
+  a column's name, again to turn the order round), Gallery shows a card per note with its photo, and Chart counts your
+  notes per tag and per week."
+- What's new: "Notes: a sortable table, a gallery and a chart of your notes."
+- Showcase: the Showcase's notes already carry tags (travel, reading), so the chart shows them; nothing added.
+- CSS: `components/notes/notes.css`. Today: nothing added.

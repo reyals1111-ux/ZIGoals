@@ -114,6 +114,14 @@ describe('earlier versions of notes (LEDGER #33)', () => {
   });
 });
 
+describe('notes per tag (LEDGER #30)', () => {
+  test('the Showcase’s tags with their counts, in English and Dutch; journal tags stay the journal’s answer', () => {
+    expect(text(zigi('how many notes do I have per tag'))).toBe('Notes per tag: #reading 1 and #travel 1; 6 notes have no tag. Notes → Chart draws them.');
+    expect(text(zigi('hoeveel notities heb ik per tag'))).toBe('Notities per tag: #reading 1 en #travel 1; 6 notities hebben geen tag. Notes → Chart tekent ze.');
+    expect(zigi('which journal entries are tagged work')).toBeNull();
+  });
+});
+
 describe('imported entries (LEDGER #44)', () => {
   test('none yet: where to import; imported: how many and from when', () => {
     expect(text(zigi('how many journal entries did I import'))).toContain('No journal entry was imported yet.');

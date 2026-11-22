@@ -29,6 +29,10 @@ const NotesAsk = lazy(() => import('./notes-ask'));
 // Session AV lane 2 (notes; LEDGER #32): repeating notes and the daily note template, each loaded when its fold opens.
 const NoteSchedules = lazy(() => import('./note-schedules'));
 const DailyTemplate = lazy(() => import('./daily-template'));
+// Session AV lane 2 (notes; LEDGER #29, #30): the notes as a table, a gallery or a chart, loaded when chosen.
+const NotesViews = lazy(() => import('./notes-views'));
+const LAYOUTS = [['list', 'List'], ['table', 'Table'], ['gallery', 'Gallery'], ['chart', 'Chart']] as const;
+type Layout = (typeof LAYOUTS)[number][0];
 
 /**
  * Session AK (B): the Notes page — built on the Journal's ideas, all on this device. Capture at the top; then Today (the
@@ -45,6 +49,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
   const {notes, status, change: changeNotes} = useNotes(), targets = useLinkTargets();
   const record = notes.data, index = useLinkIndex(record, targets), today = localDate();
   const [searching, setSearching] = useState(false);
+  const [layout, setLayout] = useState<Layout>('list'); // Session AV lane 2 (LEDGER #29, #30)
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
   const noteId = params.get('note'), dayParam = params.get('day'), capture = params.get('capture') === '1';
   const day = dayParam === 'today' || !dayParam ? today : DAY.test(dayParam) ? dayParam : today;
@@ -142,8 +147,9 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteSchedules record={record} change={change} today={today}/></Suspense></LoadBoundary>
       </details>
       <NotesSearch notes={record.notes} onSearching={setSearching}/>
+      {topicsOf(record).length > 0 && !searching && <div className="note-layouts" role="group" aria-label="Show notes as">{LAYOUTS.map(([l, label]) => <button key={l} type="button" className="quiet" aria-pressed={layout === l} onClick={() => setLayout(l)}>{label}</button>)}</div>}
       {/* Session AL (PR-105, P-PR-43): while a search is typed, its results are the list (the full list no longer stays below "No note has those words.") */}
-      {searching ? null : topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
+      {searching ? null : topicsOf(record).length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? record.notes : topicsOf(record)} layout={layout} today={today}/></Suspense></LoadBoundary> : topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
         : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. A note that links a goal or a habit shows on its page.</p>}
     </section>}
 

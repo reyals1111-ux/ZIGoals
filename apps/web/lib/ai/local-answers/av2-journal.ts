@@ -8,6 +8,7 @@ import {PROMPT_PACKS, packsOn, questionWithPacks} from '../../journal-prompts/pa
 import {templateById} from '../../journal-prompts/templates';
 import {everyWords, periodStart, schedulesOf, scheduleTitle} from '../../notes/schedules';
 import type {Notes} from '../../notes/schema';
+import {notesPerTag} from '../../notes/table';
 import {novaAreaClosed, novaEnvInfo} from './nova-env';
 import {answer, asked, closed, count, dayIn, isQuestion, journalClosed, list, MIXED, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -24,7 +25,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, media, imported, repeatingNotes, noteVersions, changedEntries]) {
+    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, media, imported, repeatingNotes, noteVersions, notesPerTagAnswer, changedEntries]) {
       const r = one(a);
       if (r) return r;
     }
@@ -160,6 +161,17 @@ function noteVersions(a: Asked): LocalReply | null {
   const names = ids.flatMap(id => { const n = got.record.notes.find(x => x.id === id); return n ? [n.kind === 'daily' && n.day ? dayIn(lang, n.day, a.today) : (n.title.trim() || say(lang, 'an untitled note', 'een notitie zonder titel'))] : []; });
   if (!names.length) return answer(say(lang, 'No note has an earlier version yet. Each save that changes a note keeps the words it had, under its Earlier versions.', 'Nog geen notitie heeft een eerdere versie. Elke keer dat je een notitie verandert en bewaart, blijven de oude woorden onder Earlier versions.'), NOTES_CALL);
   return answer(say(lang, `${count(versions.length, 'en', ['earlier version', 'earlier versions'], ['', ''])} of ${count(names.length, 'en', ['note', 'notes'], ['', ''])}: ${list(names.slice(0, 6), 'en')}. Each note’s Earlier versions shows them, to read or restore.`, `${count(versions.length, 'nl', ['', ''], ['eerdere versie', 'eerdere versies'])} van ${count(names.length, 'nl', ['', ''], ['notitie', 'notities'])}: ${list(names.slice(0, 6), 'nl')}. Earlier versions bij elke notitie toont ze, om te lezen of terug te zetten.`), NOTES_CALL);
+}
+/** LEDGER #30: "how many notes per tag", "which tags do my notes have" (lib/notes/table.ts, as Notes → Chart draws them). */
+function notesPerTagAnswer(a: Asked): LocalReply | null {
+  const en = /\bnotes?\b/.test(a.f) && /\b(?:per|by|each) tag\b|\btags?\b.*\bnotes\b|\bnotes\b.*\btags?\b/.test(a.f) && !/\b(?:journal|entries|entry)\b/.test(a.f);
+  const nl = /\bnotities\b/.test(a.f) && /\b(?:per|op) (?:tag|label)\b|\b(?:tags|labels)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const got = notesOf(a); if ('shut' in got) return got.shut;
+  const per = notesPerTag(got.record.notes), lang = a.lang;
+  if (!per.tags.length) return answer(say(lang, 'No note has a tag yet. Notes imported with tags (Notes → Files → Import) show under Notes → Chart.', 'Nog geen notitie heeft een tag. Notities die met tags zijn geïmporteerd (Notes → Files → Import) staan onder Notes → Chart.'), NOTES_CALL);
+  const lines = per.tags.slice(0, 8).map(t => `#${t.tag} ${t.count}`);
+  return answer(say(lang, `Notes per tag: ${list(lines, 'en')}${per.untagged ? `; ${count(per.untagged, 'en', ['note has', 'notes have'], ['', ''])} no tag` : ''}. Notes → Chart draws them.`, `Notities per tag: ${list(lines, 'nl')}${per.untagged ? `; ${count(per.untagged, 'nl', ['', ''], ['notitie heeft', 'notities hebben'])} geen tag` : ''}. Notes → Chart tekent ze.`), NOTES_CALL);
 }
 const NL_WEEKDAY = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
 const nlEvery = (s: {every: 'day' | 'week' | 'month'; weekday?: number; monthDay?: number}) => s.every === 'day' ? 'elke dag' : s.every === 'week' ? `elke ${NL_WEEKDAY[s.weekday ?? 1]}` : `op de ${s.monthDay ?? 1}e van elke maand`;
