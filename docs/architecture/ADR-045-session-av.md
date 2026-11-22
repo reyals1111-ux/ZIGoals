@@ -638,6 +638,39 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
 - PR #108 frozen at this commit. App code at its head = `d0df34f4` (checked: `git diff --stat d0df34f4 HEAD -- apps/web ':!apps/web/playwright.main.shards.ts'` is empty). Since `d0df34f4`: docs, and one TIER 3 (CI) commit `9c24050c` that only repacks the main shard lists (ADR-045 D-CI2002); no test, assertion or app file.
 - Runs: 1999 (`d0df34f4`) green on the first attempt; 2000 (`97d86a8c`, docs) red only on account-browser D-SYNC; 2001 (`fbc0bdd2`, docs) red only on `nova-stage-am2:301` and `l7-fifth-answers:144` (D36's signature: NOVA's opening on a slow runner); 2002 (`41f1f6af`, docs) red only on main shard 2, `nova-stage-am2:301` (D36's signature) on both attempts; 2003 (`35a09f76`, the shard repack) in progress at the freeze.
 
+## Owner follow-up 5 (22 Nov 2026, 22:30 Brussels, verbatim)
+
+> OWNER FOLLOW-UP 5 TO SESSION AV (22 Nov 2026, 22:30 Brussels; pre-approved by the owner; no reply needed; continue in auto mode; check the mode selector shows Auto; no questions). Record this verbatim in ADR-045 under "Owner follow-up 5". Where it differs from follow-up 4, it wins.
+>
+> 1. PR #108 IS MERGED: main = 1c1b5953ebadb45c8afd228fd64f2d38bfd6cd00 (merge commit; parents 836534c3 and 807f247e). Alpha #58 is not deployed yet; the owner sends its run number, version id and rollback id later, and you record them then.
+>
+> 2. NOW, before anything else:
+>  - merge origin/main into feature/session-av-2 with a merge commit (never rebase or force-push);
+>  - push, and open the Draft PR "Session AV (continued)" against main;
+>  - its Part 0 records the #108 merge (1c1b5953) and says Alpha #58's ids will follow;
+>  - the description carries "Safe to merge now: no (CI run N)" and is kept current at every batch.
+>
+> 3. FOCUS: from now on, turn the work into a merge-ready PR.
+>  - Start no new research rounds. Round 7 stops at what is already researched: its rows get a ledger verdict, and the rows not yet started are "to build — next session" with no build.
+>  - Finish only the batches already in flight (4, 6, and the open reviews O and P), each to amendment 1's definition of done, with its fresh-agent review fixed.
+>
+> 4. CI ON THE NEW PR IS THE MAIN WORK. This is lane 2's first CI run.
+>  - Read every red job of every run at its cause, with at most 2 fix attempts each. The usual suspects: `sign-in-codes-browser` after A45-1 (TIER 3 sync), `av2-backup-folder` (real Chrome), the shard lists and their minutes (rebalance by measured minutes if a shard nears 60 min, TIER 3 CI), WebKit on the new screens, and the route budgets in the production build.
+>  - Never weaken an assertion, raise a timeout or raise a budget to get green.
+>  - Runs are never cancelled on a PR, so push only when no run is in progress on this PR. Keep fixing locally in the meantime and push the batch when the run ends. Nobody waits idle.
+>  - The goal is two consecutive full runs green on the first attempt. If the remaining budget would run out first, the honest fallback: the last run is green except jobs that failed only on a registered known intermittent and passed on their one allowed re-run, named in the line.
+>
+> 5. END once the in-flight batches are in and CI meets step 4: the ADR-045 closing table (ledger counts per round, QUALITY counts, carried causes), "Safe to merge now: yes (CI runs N, M)", the STATUS final entry, and a ≤ 12-line report with preview steps. The owner merges and deploys.
+>
+> UNCHANGED: every rule from the AV prompt, the nine amendments and follow-ups 1–4. That includes: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudflare; no new dependencies or outside services; no wallet, signing or key changes; protected areas untouched; stored data additive with TIER 3 labels and frozen readers (#58 = 1c1b5953 joins the frozen readers once deployed); Motion Off and reduced motion respected; Playwright at most 2 workers, one build or browser run at a time; helpers at most 8 (6 builders + 2 review/research); merge commits only.
+
+### Follow-up 5 — how it is read (recorded with it)
+- In flight are batches 4, 5 and 6: batch 6 is built on batch 5, so batch 5 joins with them. Batch 7 (round 7) is not in flight: its
+  builders and reviewers were stopped on receipt. Round 7's 33 rows keep their ledger verdicts; every to-build row is
+  "to build — next session". Drafts made before the stop (r7-plan #432–#440, r7-notes #441–#446, r7-food #449–#455) stayed on
+  local branches, unreviewed and not integrated; they are not in this PR.
+- Polish part 3 (started on round 7's base) was stopped with it; nothing of it is in this PR.
+
 ## Follow-ups 2 and 3 — decisions and measurements
 
 - **D-FU2-1a (food Worker, TIER 3 Workers, `0dc926b5`).** Cause measured: a slot was reserved on time but its request
