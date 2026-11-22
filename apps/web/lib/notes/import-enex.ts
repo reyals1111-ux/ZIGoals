@@ -113,12 +113,13 @@ export function readEnex(text: string, fileName = 'Evernote.enex'): {notes: Fore
       const mime = (child(r, 'mime')?.textContent ?? '').trim(), data = child(r, 'data');
       return IMAGE.test(mime) && data ? [{mime, data}] : [];
     });
-    let next = 0;
+    // Review b4g B4G-9: each en-media takes the first unused resource of its type (else the first unused one), in any order.
+    const used = new Set<number>();
     const imageAt = (type: string) => {
       if (images.length >= MAX_NOTE_PHOTOS_EACH) return null;
-      const at = pending.findIndex((p, k) => k >= next && p.mime.toLowerCase() === type.toLowerCase()), pick = at >= 0 ? at : next < pending.length ? next : -1;
+      const free = (k: number) => !used.has(k), at = pending.findIndex((p, k) => free(k) && p.mime.toLowerCase() === type.toLowerCase()), pick = at >= 0 ? at : pending.findIndex((_, k) => free(k));
       if (pick < 0) return null;
-      next = pick + 1;
+      used.add(pick);
       const bytes = fromBase64(pending[pick]!.data.textContent);
       if (!bytes || !bytes.length || bytes.length > FOREIGN_IMAGE_MAX) return null;
       const key = `imp-${images.length + 1}`; images.push({key, data: bytes, type: pending[pick]!.mime.toLowerCase()});
