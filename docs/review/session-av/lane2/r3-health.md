@@ -17,6 +17,7 @@ chunk carries only those lines, two small props and the water form's two-line ha
 | `zigoals:notify:v1` (existing, device-only, loose) | optional `waterSpread` `{on, from, to, every: 60 \| 120 \| 180}` and `weighIn` `{time, repeat: daily \| weekdays \| monthly, weekdays? (mask 1–127), day? (1–28)}`, each `.optional().catch(undefined)` (a part of `weighIn` it cannot read is dropped alone). Commit `cec6b6ee`. | Kept untouched; an older build keeps its one water time and has no weigh-in type. |
 | `zigoals:habit-extras:v1` (existing, loose, synced with the habit extras) | optional `reminderMore` `{habitId: {words? (≤ 80), times? (≤ 2 "HH:MM")}}`, `.optional().catch(undefined)`, each entry checked where read (`lib/habit-reminder-words.ts`). Commit `790a8490`. | Kept untouched; older builds remind at the one time with the habit's name. |
 | `zigoals:health-numbers:v1` (existing, device-only, loose) | a reading gains optional `meal` (Breakfast \| Lunch \| Dinner \| Snacks), `mealWhen` (before \| after) and `time` ("HH:MM"), each `.optional().catch(undefined)` on the loose reading. Commit `bf032010`. | Kept untouched; older builds show the reading without its meal. |
+| `zigoals:health-goals-more:v1` (NEW, device-only, loose, versioned) | `{version: 1, goals[≤ 50]: {id, name (1–60), source: nutrient \| body \| number, key, unit?, target, direction: at-least \| at-most, windowDays: 7 \| 14 \| 30, status: active \| closed, createdAt}}`; an unreadable goal is dropped, the others kept; unknown top-level parts kept. Commit `f6fe645e`. | New key; older builds never read it. |
 | `zigoals:health-extras:v1` (existing, device-only, loose) | optional `ownDrinks` (≤ 30 `{id, name 1–24, type (a fixed drink type), sizeMl 1–2000, symbol?, colour?, caffeineMg?, kcal? 0–2000, sugarG? 0–300}`; an unreadable drink is dropped, the others kept), `waterTips` (boolean); a drink note gains optional `own` (its own drink's id), `kcal`, `sugarG`, each `.optional().catch(undefined)`. Commit `cec6b6ee`. | A drink note keeps its fixed `type` and `caffeineMg`, so an older build reads every entry as before. |
 
 ## TIER 3 (PWA)
@@ -163,3 +164,31 @@ chunk carries only those lines, two small props and the water form's two-line ha
 - Showcase hook: see "Showcase" at the end (one marked reading).
 - Device keys / catalogue / export / erase: nothing new.
 - CSS: `components/health/r3/health-r3.css`, `components/health-numbers/your-numbers.css`.
+
+## 5. Goals on a nutrient, a body measurement or your own number — LEDGER #287 built (part Carried: a ketone target, against the no-medical-advice rule; a BMI goal left out)
+
+- What: Goals → Health goals → "Goals on a nutrient, a measurement or your own number" (a fold, its own chunk; open at
+  once on a device that keeps some): at least or at most your own target, as an average over the last 7, 14 or 30 days —
+  from the food log a day (protein, fibre, carbs, fat, sugars, sodium, calories eaten; the last full days, today counted
+  once it ends; a day with a food whose value is unknown is left out), a body measurement (waist, hips, chest, arm, thigh,
+  in cm, each day's latest), or one of your own numbers (by its name and unit). The line says the average, how many days
+  or readings it rests on, the goal and "Met."; a bar shows the share. Close, Reopen, Remove with Undo. The empty state
+  teaches. Nothing is suggested. Carried: targets on ketones, glucose, insulin and HbA1c are not offered (the ledger's
+  carried part names ketones; glucose, insulin and HbA1c for the same reason), and a BMI goal is left out (Yazio's row:
+  the number only). No calorie expenditure anywhere: "Calories eaten" is the food log's own sum.
+- Files: `lib/health-goals/more.ts` (new: the record, pure progress; stored commit), `components/health-goals/more-goals.tsx`
+  (new), `components/health-goals/health-goals-section.tsx` (the fold), `components/health-goals/health-goals.css`.
+- Tests: `lib/health-goals/av2-r3-more.test.ts` (its export → erase → restore case is `skipIf(!registered)` and runs once
+  the key is in `DEVICE_KEYS`); existing health-goals tests green. Spec: `tests/av2-more-health-goals.spec.ts`.
+- Help (EN): **Can I set a goal on protein, fibre or my waist?** Yes. Under Goals → Health goals, open "Goals on a nutrient,
+  a measurement or your own number": choose what, at least or at most, your target and 7, 14 or 30 days. The goal is an
+  average of the days that have a value; days without one are left out, never counted as zero. A target on ketones,
+  glucose or BMI is not offered, because setting one is medical advice.
+- What's new: "Health goals: protein, fibre, your waist or your own numbers, as an average over 7, 14 or 30 days."
+- Search (static.ts): "protein goal", "fibre goal", "waist goal" → `/app/goals#goals-health`.
+- Registries for the NEW key `zigoals:health-goals-more:v1` (the lead): `lib/av-device-keys.ts` (a device key, personal
+  and health-describing), `lib/export/everything.ts` `DEVICE_KEYS` (e.g. `healthGoalsMore`), restore plan (replace),
+  `lib/erase-everything.ts`, `lib/data-health/catalog.ts` (Health, device-only), the frozen-reader fixture if it lists
+  device keys. AK tool sources: `healthGoalsMore: one(MORE_GOALS)` behind the Health gate (for the answers, below).
+- Showcase hook: see "Showcase" at the end (one protein goal).
+- CSS: `components/health-goals/health-goals.css`.

@@ -11,3 +11,10 @@
 .health-goal-window { display: grid; gap: 8px; }.health-goal-window label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; }.health-goal-window input[type="radio"] { width: 22px; height: 22px; margin: 0; }
 .health-goal-window input[type="date"], .health-goal-window input[type="text"] { min-height: 44px; font-size: 16px; }.health-goal-window input[type="text"] { width: 5rem; }
 @media (max-width: 600px) { .health-goal-creator input, .health-goal-creator select, .health-goal-creator textarea { font-size: 16px; } }
+/* Session AV lane 2 (health r3; LEDGER #287): goals on a nutrient, a measurement or your own number. */
+.more-goals-fold { margin-top: 12px; }
+.more-goals-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.more-goals { display: grid; gap: 10px; }
+.more-goal-row { display: grid; gap: 6px; }
+.more-goal-row p { margin: 0; overflow-wrap: anywhere; }
+.more-goal-row .actions button { min-height: 44px; }
