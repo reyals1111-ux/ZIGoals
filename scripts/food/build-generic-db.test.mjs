@@ -8,7 +8,7 @@ import {deflateRawSync} from 'node:zlib';
 import {crcStep} from '../../apps/web/lib/import/zip-stream.ts';
 import {assertPlainXml, decodeXml} from './lib/xml.mjs';
 import {columnIndex, openXlsx} from './lib/xlsx.mjs';
-import {COLUMNS, decimal, pack, rounded, serialise, sig3} from './lib/pack.mjs';
+import {COLUMNS, MORE_COLUMNS, decimal, pack, packMore, rounded, roundedMore, serialise, sig3} from './lib/pack.mjs';
 import {csvText, parseCsv, readCiqual, readCofid, readFineli} from './lib/sources.mjs';
 import {build, parseArgs, readLicences} from './build-generic-db.mjs';
 
@@ -149,6 +149,16 @@ describe('the build', () => {
     const pinned = structuredClone(licences); pinned.sources.ciqual.download.md5['alim_2099_01_01.xml'] = '0'.repeat(32);
     expect((await build({from, out, only: ['ciqual'], licences: pinned, log: () => {}}))[0].error).toContain('does not match the pinned');
   }, 60_000);
+  test('Session AV lane 2 (LEDGER #93): the further nutrients — read when the workbook has them, refused in another unit, packed beside the library file and bound to it', async () => {
+    const read = await readCofid(await workbook()), foods = byId(read);
+    // The fixture workbook carries none of them: nothing new, and the build writes no side file (checked in the --from test).
+    expect(foods['50-001']?.more).toBeUndefined();
+    const sample = [{id: 'a', nameEn: 'A', aliases: [], values: {}, more: {waterMg: 76_712, cholesterolMg: 12.34, seleniumUg: 2, biotinUg: null}}, {id: 'b', nameEn: 'B', aliases: [], values: {}, more: {waterMg: null}}, {id: 'c', nameEn: 'C', aliases: [], values: {}, more: {iodineUg: 5}}];
+    const side = packMore({source: 'cofid', datasetVersion: '2021'}, sample, {ids: new Set(['a', 'b']), main: 'f'.repeat(64)});
+    expect(side).toEqual({schemaVersion: 1, source: 'cofid', datasetVersion: '2021', main: 'f'.repeat(64), columns: ['id', ...MORE_COLUMNS], foods: [['a', 76_700, null, null, null, null, null, null, null, null, null, null, 12.3, null, null, null, null, 2]]});
+    expect(packMore({source: 'cofid', datasetVersion: '2021'}, [sample[1]], {ids: new Set(['b']), main: 'f'.repeat(64)})).toBeNull();
+    expect([roundedMore('waterMg', 1e6), roundedMore('seleniumUg', 1e6), roundedMore('copperMg', -1), roundedMore('copperMg', 0.27)]).toEqual([null, 1_000_000, null, 0.27]);
+  });
   test('options: only the known flags and sources', () => {
     expect(parseArgs(['--only', 'ciqual,cofid', '--from', 'x'])).toMatchObject({only: ['ciqual', 'cofid']});
     for (const bad of [['--only', 'nevo'], ['--from'], ['--evil', 'x'], ['--out', '--from']]) expect(() => parseArgs(bad), bad.join(' ')).toThrow();
@@ -168,5 +178,17 @@ test('the committed library matches its manifest, its licence record and the col
     for (const key of ['name', 'licence', 'licenceUrl', 'attribution', 'notice', 'link', 'datasetVersion']) { expect(entry[key], key).toBe(about[key]); expect(json[key], key).toBe(about[key]); }
     expect(json.columns).toEqual(COLUMNS); expect(json.foods).toHaveLength(entry.foods);
   }
-  expect((await readdir(dir)).sort()).toEqual(['manifest.json', ...manifest.sources.map((/** @type {any} */ s) => s.file)].sort());
+  // Session AV lane 2 (rest, LEDGER #93, deliberate: a source may have its side file of further nutrients; each is bound
+  // to its library file by checksum, in the MORE_COLUMNS header, every food in the library; nothing else is in the folder).
+  const sides = (await readdir(dir)).filter(f => /-more-v1\.json$/.test(f));
+  for (const side of sides) {
+    const json = JSON.parse(await readFile(join(dir, side), 'utf8')), entry = manifest.sources.find((/** @type {any} */ s) => `${s.source}-more-v1.json` === side);
+    expect(entry, side).toBeTruthy();
+    expect([json.schemaVersion, json.source, json.datasetVersion, json.main]).toEqual([1, entry.source, entry.datasetVersion, entry.sha256]);
+    expect(json.columns).toEqual(['id', ...MORE_COLUMNS]);
+    const ids = new Set(JSON.parse(await readFile(join(dir, entry.file), 'utf8')).foods.map((/** @type {any[]} */ f) => f[0]));
+    expect(json.foods.every((/** @type {any[]} */ f) => ids.has(f[0]) && f.length > 1 && f.length <= MORE_COLUMNS.length + 1)).toBe(true);
+  }
+  expect(sides).toEqual(['cofid-more-v1.json']);
+  expect((await readdir(dir)).sort()).toEqual(['manifest.json', ...manifest.sources.map((/** @type {any} */ s) => s.file), ...sides].sort());
 });

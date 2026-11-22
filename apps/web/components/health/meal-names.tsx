@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useState, type ReactNode} from 'react';
 import {HEALTH_MEALS} from '../../lib/health';
 import {HEALTH_EXTRAS, MEAL_NAME_MAX, mealKcalTarget, mealLabel, mealTime, setMealPref, type HealthExtras, type Meal} from '../../lib/health-extras';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -18,14 +18,17 @@ export function useHealthExtras() {
  * Name each of the four diary meals your way ("Pre-workout" for Breakfast) and give it a usual time. Entries keep their
  * meal; only the words shown change, on this device. Blank goes back to the meal's own name.
  */
-export function MealNamesEditor() {
+export function MealNamesEditor({children}: {children?: ReactNode}) {
   const {extras, update, unreadable} = useHealthExtras();
-  return <details className="health-meal-names"><summary>Name your meals and set their times</summary>{/* Session AL fourth pass: and an optional calorie target each */}
-    <p className="fine">Your words for the four diary meals, with a usual time and, if you like, a calorie target for each. Entries stay in their meal; only the names shown change, on this device.</p>
+  // Session AV lane 2 (food, LEDGER #197): `children` is the two extra meals' editor, loaded once this fold opens.
+  const [open, setOpen] = useState(false);
+  return <details className="health-meal-names" onToggle={event => setOpen(event.currentTarget.open)}><summary>Name your meals and set their times</summary>{/* Session AL fourth pass: and an optional calorie target each */}
+    <p className="fine">Your words for the four diary meals, with a usual time and, if you like, a calorie target for each. Entries stay in their meal; only the names shown change, on this device. Below them you can add up to two meals of your own.</p>
     {unreadable && <p className="notice">Your meal names on this device could not be read, so the usual names are shown.</p>}
     {/* Session AL sweep 3 (C-MO-10, C-MO-37): an in-app reminder at each usual time, on Today, until that meal is logged */}
-    <label className="checkbox health-meal-reminders"><input type="checkbox" checked={mealRemindersOn(extras)} disabled={unreadable} onChange={event => { const on = event.target.checked; try { update(r => setMealReminders(r, on)); showStatus(on ? 'Meal reminders are on: Today shows one at each usual time until that meal is logged.' : 'Meal reminders are off.'); } catch { showStatus('This choice could not be saved on this device.', {tone: 'error'}); } }}/><span>Remind me on Today at each usual time while nothing is logged for that meal (on this device; no notification is sent)</span></label>
+    <label className="checkbox health-meal-reminders"><input type="checkbox" checked={mealRemindersOn(extras)} disabled={unreadable} onChange={event => { const on = event.target.checked; try { update(r => setMealReminders(r, on)); showStatus(on ? 'Meal reminders are on: Today shows one at each usual time until that meal is logged. To have them on this device too, turn on Meal reminders in Settings → Notifications.' : 'Meal reminders are off.'); } catch { showStatus('This choice could not be saved on this device.', {tone: 'error'}); } }}/><span>Remind me on Today at each usual time while nothing is logged for that meal (on this device; no notification is sent)</span></label>
     {HEALTH_MEALS.map(meal => <MealNameRow key={`${meal}:${mealLabel(extras, meal)}:${mealTime(extras, meal) ?? ''}:${mealKcalTarget(extras, meal) ?? ''}`} meal={meal} extras={extras} update={update} />)}
+    {open && children}
   </details>;
 }
 

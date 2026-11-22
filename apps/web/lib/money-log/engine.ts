@@ -1,6 +1,6 @@
 import {addLocalDays} from '../local-date';
 import type {MoneyEntry, MoneyLog} from './schema';
-import {entryParts} from '../money-split/parts';
+import {isCounted, mineCents, mineParts} from './counted';
 
 /**
  * Session AI: the expense log's figures, in cents (integers), per currency, never converted. The week runs from the
@@ -18,9 +18,9 @@ export type Totals = {currency: string; expenses: number; income: number; count:
 export function totals(entries: readonly MoneyEntry[], from: string, to: string): Totals[] {
   const by = new Map<string, Totals>();
   for (const e of entries) {
-    if (e.date < from || e.date > to) continue;
+    if (e.date < from || e.date > to || !isCounted(e)) continue; // Session AV lane 2: left-out entries and transfers are not counted
     const t = by.get(e.currency) ?? {currency: e.currency, expenses: 0, income: 0, count: 0};
-    if (e.kind === 'expense') t.expenses += cents(e.amount); else t.income += cents(e.amount);
+    if (e.kind === 'expense') t.expenses += mineCents(e); else t.income += cents(e.amount); // Session AV lane 2 round 2: my share of a shared cost
     t.count++; by.set(e.currency, t);
   }
   return [...by.values()].sort((a, b) => a.currency.localeCompare(b.currency));
@@ -28,9 +28,9 @@ export function totals(entries: readonly MoneyEntry[], from: string, to: string)
 export function byCategory(entries: readonly MoneyEntry[], from: string, to: string, kind: 'expense' | 'income' = 'expense'): {category: string; currency: string; total: number; count: number}[] {
   const by = new Map<string, {category: string; currency: string; total: number; count: number}>();
   for (const e of entries) {
-    if (e.kind !== kind || e.date < from || e.date > to) continue;
+    if (e.kind !== kind || e.date < from || e.date > to || !isCounted(e)) continue;
     // Session AK (lane M, item 22): a split entry counts in each of its parts' categories (the whole entry otherwise).
-    for (const part of entryParts(e)) {
+    for (const part of mineParts(e)) { // Session AV lane 2 round 2: my share of a shared cost
       const k = `${e.currency}\u0000${part.category}`, row = by.get(k) ?? {category: part.category, currency: e.currency, total: 0, count: 0};
       row.total += part.cents; row.count++; by.set(k, row);
     }

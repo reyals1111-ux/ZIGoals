@@ -2,6 +2,7 @@ import type {Nutrition} from '../health';
 import type {Vitamins} from '../health-vitamins/schema';
 import type {GenericSourceEntry} from './catalog';
 import {notEatenAsFood, usualPortionGrams} from './portion';
+import {moreOf, type MoreColumn} from './more';
 import {GENERIC_COLUMNS, loadGenericLibrary, type GenericNutrientColumn, type GenericSourceFile, type LoadedGenericSource, type SourceLoaderOptions} from './load';
 
 /**
@@ -15,7 +16,8 @@ import {GENERIC_COLUMNS, loadGenericLibrary, type GenericNutrientColumn, type Ge
  */
 export type GenericMatch = 'exact' | 'prefix' | 'word-prefix' | 'substring';
 const MATCHES: GenericMatch[] = ['exact', 'prefix', 'word-prefix', 'substring'];
-export type GenericFoodMore = Partial<Record<'magnesiumMg' | 'zincMg' | 'b1Mg' | 'b2Mg' | 'b3Mg' | 'b6Mg' | 'omega3Mg', number>>;
+/** Session AV lane 2 (LEDGER #93): with a source's further nutrients (lib/food-generic/more.ts), every one in mg. */
+export type GenericFoodMore = Partial<Record<'magnesiumMg' | 'zincMg' | 'b1Mg' | 'b2Mg' | 'b3Mg' | 'b6Mg' | 'omega3Mg' | MoreColumn, number>>;
 export type GenericFoodEntry = {
   source: GenericSourceEntry['source']; sourceName: string; id: string; name: string; aliases: string[]; basis: 'per-100g';
   nutrients: Nutrition; vitamins: Vitamins; more: GenericFoodMore;
@@ -60,7 +62,10 @@ export function entryOf(file: GenericSourceFile, entry: GenericSourceEntry, row:
     ...optional([['fiberMg', whole('fiberMg')], ['sugarMg', whole('sugarMg')], ['saturatedFatMg', whole('satFatMg')], ['sodiumMg', whole('sodiumMg')], ['potassiumMg', whole('potassiumMg')], ['calciumMg', whole('calciumMg')], ['ironMg', whole('ironMg')]])};
   const thousandths = (c: GenericNutrientColumn) => { const x = v(c); return x === null ? null : Math.round(x * 1000); };
   const vitamins: Vitamins = optional([['aUg', thousandths('vitAUg')], ['cMg', thousandths('vitCMg')], ['dUg', thousandths('vitDUg')], ['eMg', thousandths('vitEMg')], ['kUg', thousandths('vitKUg')], ['b12Ug', thousandths('b12Ug')], ['folateUg', thousandths('folateUg')]]);
-  const more: GenericFoodMore = optional([['magnesiumMg', v('magnesiumMg')], ['zincMg', v('zincMg')], ['b1Mg', v('b1Mg')], ['b2Mg', v('b2Mg')], ['b3Mg', v('b3Mg')], ['b6Mg', v('b6Mg')], ['omega3Mg', v('omega3Mg')]]);
+  const further = moreOf(file, row[0]);
+  // The further nutrients in mg, as `more` is (a µg value is a thousandth of a mg).
+  const more: GenericFoodMore = {...optional([['magnesiumMg', v('magnesiumMg')], ['zincMg', v('zincMg')], ['b1Mg', v('b1Mg')], ['b2Mg', v('b2Mg')], ['b3Mg', v('b3Mg')], ['b6Mg', v('b6Mg')], ['omega3Mg', v('omega3Mg')]]),
+    ...(further ? Object.fromEntries(Object.entries(further).map(([k, x]) => [k, k.endsWith('Ug') ? x / 1000 : x])) : {})};
   return {source: entry.source, sourceName: entry.name, id: row[0], name: row[1], aliases: row[2], basis: 'per-100g', nutrients, vitamins, more,
     attribution: entry.attribution, licence: entry.licence, licenceUrl: entry.licenceUrl, link: entry.link, notice: entry.notice, datasetVersion: entry.datasetVersion};
 }

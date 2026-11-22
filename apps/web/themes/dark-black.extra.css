@@ -1,0 +1,7 @@
+/* Session AV lane 2 (N6 #191, Loop Habit Tracker's pure black): Dark's Pure black style, by hand on top of the generated
+   copy of the Dark sheet. The page's ground and the sidebar are true black (#000), so an OLED screen leaves those pixels
+   off; cards keep a near-black that still tells them from the page. Words, lines and colours stay Dark's. Colours only. */
+:root[data-theme=dark][data-dark-style=black] body:not(#\-):not(#\-):not(#\-) { background: #000; }
+:root[data-theme=dark][data-dark-style=black] .app-content:not(#\-):not(#\-):not(#\-)::before,
+:root[data-theme=dark][data-dark-style=black] .app-sidebar:not(#\-):not(#\-):not(#\-),
+:root[data-theme=dark][data-dark-style=black] .checklist-sky:not(#\-):not(#\-):not(#\-) { background: #000; }

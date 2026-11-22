@@ -4,7 +4,8 @@ import {addLocalDays} from '../../lib/local-date';
 import {minutesWords} from '../../lib/tasks/minutes';
 import {Suspense, lazy, useId, useRef, useState, type FormEvent} from 'react';
 import {HEALTH_LINKS, LEVEL_WORDS, TASK_NOTES_MAX, taskLevel, type HealthLink, type Recur, type Task, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
-import {describeRecur, firstDue} from '../../lib/tasks/recurrence';
+import {describeRecur} from '../../lib/tasks/recurrence';
+import {pausedRepeat} from '../../lib/tasks/paused';
 import {parseTaskLine} from '../../lib/tasks/parse';
 import {REMINDER_CHOICES} from '../../lib/tasks/reminders';
 import {formatClock, formatDate} from '../../lib/visual-format';
@@ -12,12 +13,17 @@ import {COMMENT_MAX, COMMENTS_MAX, commentParts, weekStart} from '../../lib/task
 import {HEALTH_WORDS, TaskTitleInput, type EditScope} from './task-parts';
 import type {GoalOption} from './use-goal-options';
 import type {TaskPatch} from './use-task-list';
+import {TaskFieldInputs, useTaskFields} from './task-fields';
 
 const HabitLinkField = lazy(() => import('./habit-link-field'));
 /** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
 const TaskAttachments = lazy(() => import('./task-attachments'));
 /** Review b1 #14: start or stop the task's timer from its editor (its own chunk). */
 const TaskTimer = lazy(() => import('./task-timer'));
+/** Session AV lane 2 (rest, LEDGER #33): the task's earlier titles and notes (its own chunk, loaded when the fold opens). */
+const TaskVersions = lazy(() => import('./task-versions'));
+/** Session AV lane 2 (tasks-r2, LEDGER #223): in or out of today's My Day (its own chunk). */
+const MyDayButton = lazy(() => import('./my-day-parts'));
 /** Session AV (1c, q1 #1): the editor offers up to three reminders a task (the record keeps up to five). */
 const MAX_EDITOR_REMINDERS = 3;
 
@@ -45,6 +51,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   const pause = () => { try { const d = pausedDue(task, pauseUntil, today); setPauseError(''); onSave({due: d}, 'all'); } catch (e) { setPauseError(e instanceof Error ? e.message : PAUSE_PAST_MESSAGE); } };
   // Session AV (owner follow-up 1, F-TASK-MINUTES): how long it takes, in minutes.
   const [minutes, setMinutes] = useState(task.minutes ? String(task.minutes) : ''), minutesValue = minutes.trim() === '' ? null : /^\d{1,4}$/.test(minutes.trim()) && Number(minutes) >= 1 && Number(minutes) <= 1440 ? Number(minutes) : 'invalid' as const;
+  const [versionsOpen, setVersionsOpen] = useState(false);
   const [notes, setNotes] = useState(task.notes ?? ''), [repeat, setRepeat] = useState(task.recur?.text ?? (task.recur ? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase() : '')), [labels, setLabels] = useState((task.labels ?? []).map(l => `@${l}`).join(' '));
   const [projectId, setProjectId] = useState(task.projectId ?? ''), [sectionId, setSectionId] = useState(task.sectionId ?? ''), [reminders, setReminders] = useState<string[]>(() => (task.reminders ?? []).filter(r => !r.at).map(r => String(r.before)));
   // Session AV lane 2 (tasks, LEDGER #3, #17, #25, #27, #8, #23): a reminder at its own date and time, start-early days, a
@@ -59,10 +66,13 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   // Session AL (P-LS-46, LS-048): the task changed elsewhere (another tab, ZIGi) while this editor was open.
   const base = useRef(task.updatedAt ?? task.createdAt), stale = (task.updatedAt ?? task.createdAt) !== base.current;
   const sections = (record?.sections ?? []).filter(s => s.projectId === projectId);
+  // Session AV lane 2 (tasks-r2, LEDGER #229): the values of the chosen project's own fields.
+  const custom = useTaskFields(task, record, projectId);
   const save = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) { setTitleError('A task needs a title.'); return; }
     if (recur === 'invalid' || minutesValue === 'invalid' || spentValue === 'invalid') return;
+    const fieldValues = custom.read(); if (fieldValues === 'invalid') return;
     // Session AV (1c, q1 #15): a repeating task has no separate deadline (the engine refuses one); the field said so.
     const repeating = !!recur;
     const unchangedRepeat = task.recur && repeat === (task.recur.text ?? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase());
@@ -71,7 +81,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       labels: labels.split(/[\s,]+/).map(l => l.replace(/^@/, '')).filter(Boolean),
       ...(record ? {projectId: projectId || null, sectionId: sectionId || null} : {}),
       reminders: [...[...new Set(reminders.filter(r => r !== '').map(Number))].slice(0, MAX_EDITOR_REMINDERS).map(before => ({before})), ...(remindAt ? [{before: 0, at: remindAt}] : [])], habit: habit || null, health: (health || null) as HealthLink | null,
-      early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments};
+      early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {})};
     // A change to the repeat itself is a change to the series; anything else on a repeating task asks which times.
     if (task.recur && task.due && !task.doneAt && unchangedRepeat) { setAsk(patch); requestAnimationFrame(() => askRef.current?.focus()); return; }
     onSave(patch);
@@ -90,6 +100,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     <label className="field"><span>Priority</span><select value={level} onChange={e => setLevel(Number(e.target.value) as TaskLevel)}>{([1, 2, 3, 4] as const).map(p => <option key={p} value={p}>{LEVEL_WORDS[p]}</option>)}</select></label>
     <label className="field"><span>Due</span><input type="date" value={due} aria-describedby={due && due < today ? `${id}-past` : undefined} onChange={e => { setDue(e.target.value); if (!e.target.value) setTime(''); }} />{due && due < today && <small id={`${id}-past`} className="tasks-field-note">A past day: it shows as overdue.</small>}</label>
     <label className="field"><span>Time</span><input type="time" value={time} disabled={!due} onChange={e => setTime(e.target.value)} /></label>
+    <Suspense fallback={null}><MyDayButton task={task} today={today}/></Suspense>
     {/* Session AV (owner follow-up 1, F-DEADLINES): the day it must be done by, apart from the day it is planned for. */}
     {/* Session AV (1c, q1 #15): off while the task repeats, with the engine's own sentence. */}
     <label className="field"><span>Deadline — optional</span><input type="date" value={repeatsNow ? '' : deadline} disabled={repeatsNow} aria-describedby={`${id}-deadline`} onChange={e => setDeadline(e.target.value)} /></label>
@@ -101,7 +112,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     {task.recur && !task.doneAt && <div className="task-editor-pause" role="group" aria-labelledby={`${id}-pause`}>
       <span id={`${id}-pause`} className="task-editor-pause-title">Pause the repeat</span>
       {/* Session AV lane 2 (q1 #43 Minor): a paused repeat says so, with Resume (its next day from today). */}
-      {(() => { const natural = task.due && !task.recur.afterDone && task.recur.interval === 1 ? firstDue(task.recur, today) : null; return natural && task.due! > natural ? <p className="task-editor-paused" role="note">Paused until {formatDate(task.due!, {weekday: true, year: task.due!.slice(0, 4) !== today.slice(0, 4)})}. <button type="button" className="text-link" onClick={() => onSave({due: natural}, 'all')}>Resume from {formatDate(natural, {weekday: true, year: false})}</button></p> : null; })()}
+      {/* Session AV lane 2 (minors, q1 #43): read by lib/tasks/paused.ts, so a daily task due tomorrow is never called paused. */}{(() => { const paused = pausedRepeat(task, today); return paused ? <p className="task-editor-paused" role="note">Paused until {formatDate(paused.until, {weekday: true, year: paused.until.slice(0, 4) !== today.slice(0, 4)})}. <button type="button" className="text-link" onClick={() => onSave({due: paused.resume}, 'all')}>Resume from {formatDate(paused.resume, {weekday: true, year: false})}</button></p> : null; })()}
       <label className="field"><span>Until</span><input type="date" min={addLocalDays(today, 1)} value={pauseUntil} aria-invalid={pauseError ? true : undefined} aria-describedby={pauseError ? `${id}-pause-error` : `${id}-pause-note`} onChange={e => { setPauseUntil(e.target.value); setPauseError(''); }} /></label>
       <button type="button" className="secondary" disabled={!pauseUntil} onClick={pause}>Pause until then</button>
       {pauseError ? <small id={`${id}-pause-error`} className="tasks-field-error" role="alert">{pauseError}</small> : <small id={`${id}-pause-note`} className="tasks-field-note">The times before that day are skipped, not marked done; it comes back on its first day from then.</small>}
@@ -122,6 +133,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     {due && reminders.length > 0 && reminders.length < MAX_EDITOR_REMINDERS && reminders.every(r => r !== '') && <p className="task-editor-more-reminders"><button type="button" className="text-link" onClick={() => setReminders(rs => [...rs, ''])}>+ Add another reminder</button></p>}
     {record && <label className="field"><span>Project</span><select value={projectId} onChange={e => { setProjectId(e.target.value); setSectionId(''); }}><option value="">Inbox</option>{(record.projects ?? []).filter(p => !p.archived || p.id === projectId).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
     {record && sections.length > 0 && <label className="field"><span>Section</span><select value={sectionId} onChange={e => setSectionId(e.target.value)}><option value="">No section</option>{sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>}
+    <TaskFieldInputs fields={custom} />
     <label className="field"><span>Labels</span><input value={labels} maxLength={400} placeholder="@calls @home" onChange={e => setLabels(e.target.value)} /></label>
     {(goals.length > 0 || goal) && <label className="field"><span>Goal</span><select value={goal} onChange={e => setGoal(e.target.value)}><option value="">No goal</option>{!known && goal && <option value={goal}>{linked && (linked.key === goal || linked.id === goal) ? `${linked.name}${linked.closed ? ` (${linked.closed})` : ''}` : 'A goal no longer here'}</option>}{goals.map(g => <option key={g.key} value={g.key}>{g.name}</option>)}</select></label>}
     {habits.length > 0 ? <label className="field"><span>Habit</span><select value={habit} onChange={e => setHabit(e.target.value)}><option value="">No habit</option>{habit && !habits.some(h => h.id === habit) && <option value={habit}>A habit no longer here</option>}{habits.map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</select></label>
@@ -137,6 +149,9 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <button type="button" className="secondary" disabled={!comment.trim() || comments.length >= COMMENTS_MAX} onClick={() => { setComments(cs => [...cs, {id: `c_${crypto.randomUUID().slice(0, 12)}`, at: new Date().toISOString(), text: comment.trim()}]); setComment(''); }}>Add comment</button>
       <small className="tasks-field-note">Comments are kept with the task when you Save, on this device only.</small>
     </div>
+    <details className="task-versions-fold" onToggle={e => setVersionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Earlier versions</summary>
+      {versionsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><TaskVersions task={task} onRestore={v => onSave({title: v.title, notes: v.notes ?? null}, task.recur ? 'all' : undefined)} /></Suspense>}
+    </details>
     <Suspense fallback={null}><TaskAttachments taskId={task.id} taskTitle={task.title} liveTaskIds={record?.tasks.map(t => t.id)}/></Suspense>
     <span className="task-editor-actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={onCancel}>Cancel</button></span>
   </form>;

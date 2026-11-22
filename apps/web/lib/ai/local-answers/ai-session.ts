@@ -10,6 +10,7 @@ import type {LocalReply, ToolCallRecord} from './engine';
 import {isNativeZig, quoteIsStale, type MarketQuote} from '../../market-quotes';
 import {ADVICE_REPLIES} from '../safety-guard';
 import {formatDate} from '../../visual-format';
+import {nlDate, nlDay} from './exact/period';
 import {addLocalDays} from '../../local-date';
 import {habitDay, latestHabitRule, type Habit} from '../../habits';
 
@@ -75,11 +76,13 @@ function onTrackAnswer(lang: Lang, named: string | undefined, env: ToolEnv): Loc
   // function and day format); the plan's completion date is said as the plan's ("With your plan", as the page labels it).
   const day = (v?: string) => v && /^\d{4}-\d{2}-\d{2}/.test(v) ? formatDate(v.slice(0, 10)) : null;
   const pace = d.paceForecast, planDate = day(d.plan?.projectedCompletion), target = day(d.targetDate);
+  // Session AV lane 2 (Dutch dates, R5): the Dutch answer writes the same days the Dutch way ("16 nov 2028").
+  const dayNl = (v?: string) => v && /^\d{4}-\d{2}-\d{2}/.test(v) ? nlDate(v.slice(0, 10), null) : null, planDateNl = dayNl(d.plan?.projectedCompletion), targetNl = dayNl(d.targetDate);
   const paceEn = pace ? pace.state === 'estimate' ? ` ${pace.headline} (the pace forecast from your recorded progress; an estimate, not a promise).` : ` Pace forecast: ${pace.headline}.` : '';
-  const paceNl = pace?.state === 'estimate' && pace.date ? ` In dit tempo: rond ${formatDate(pace.date)} (de tempovoorspelling uit je vastgelegde voortgang; een schatting, geen belofte).` : '';
+  const paceNl = pace?.state === 'estimate' && pace.date ? ` In dit tempo: rond ${nlDate(pace.date, null)} (de tempovoorspelling uit je vastgelegde voortgang; een schatting, geen belofte).` : '';
   const en = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} of ${d.target})` : ''}.${status ? ` Against your plan: ${status}.` : ''}${paceEn}${planDate ? ` With your plan: about ${planDate}.` : ''}${target ? ` Target date: ${target}.` : ''}`;
   const nlStatus = status?.replace(/^ahead by/, 'voor met').replace(/^behind by/, 'achter met').replace(/^on track$/, 'op schema').replace(/^ahead$/, 'voor').replace(/^behind$/, 'achter');
-  const nl = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} van ${d.target})` : ''}.${nlStatus ? ` Ten opzichte van je plan: ${nlStatus}.` : ''}${paceNl}${planDate ? ` Met je plan: rond ${planDate}.` : ''}${target ? ` Doeldatum: ${target}.` : ''}`;
+  const nl = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} van ${d.target})` : ''}.${nlStatus ? ` Ten opzichte van je plan: ${nlStatus}.` : ''}${paceNl}${planDateNl ? ` Met je plan: rond ${planDateNl}.` : ''}${targetNl ? ` Doeldatum: ${targetNl}.` : ''}`;
   return {kind: 'answer', text: say(lang, en, nl), calls: [goals.record, g.record]};
 }
 function worstHabitAnswer(lang: Lang, env: ToolEnv): LocalReply {
@@ -286,7 +289,7 @@ function missedDayAnswer(lang: Lang, word: string, env: ToolEnv): LocalReply {
   const listed = call('list_habits', {}, env);
   if (!listed.result.ok) return refusalOf(listed.result, [listed.record]);
   const yesterday = /^(?:yesterday|gisteren)$/i.test(word), date = yesterday ? addLocalDays(env.habitDay, -1) : env.habitDay;
-  const when = say(lang, `${yesterday ? 'Yesterday' : 'Today'} (${formatDate(date, {weekday: true, year: false})})`, `${yesterday ? 'Gisteren' : 'Vandaag'} (${formatDate(date, {weekday: true, year: false})})`);
+  const when = say(lang, `${yesterday ? 'Yesterday' : 'Today'} (${formatDate(date, {weekday: true, year: false})})`, `${yesterday ? 'Gisteren' : 'Vandaag'} (${nlDay(date, date)})`);
   const rows = env.habits.habits.filter(h => latestHabitRule(h).state !== 'archived').map(h => ({h, day: habitDay(h, date, env.habitDay)})).filter(r => r.day.scheduled);
   if (!rows.length) return {kind: 'answer', text: say(lang, `${when} no habit was scheduled.`, `${when} stond er geen gewoonte gepland.`), calls: [listed.record]};
   const open = yesterday ? rows.filter(r => r.day.status === 'failed') : rows.filter(r => r.day.status === 'due' || r.day.status === 'partial' || r.day.status === 'failed');

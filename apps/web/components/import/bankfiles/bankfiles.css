@@ -22,3 +22,6 @@
 .csv-templates button,.csv-saved button{min-height:44px}
 .csv-saved{display:grid;gap:8px}
 .csv-saved-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+/* Session AV lane 2 (money): rows the bank changed since the last import. */
+.bankfile-changed{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
+.bankfile-changed button{min-height:44px}

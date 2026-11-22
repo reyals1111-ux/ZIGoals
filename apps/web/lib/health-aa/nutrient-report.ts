@@ -1,7 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {additionalNutrients, scaleNutrition, type HealthData, type HealthDiaryEntry} from '../health';
 import {VITAMINS, VITAMIN_SCALE, entryVitamins, vitaminTarget, type HealthVitamins} from '../health-vitamins/schema';
-import {EXTRA_REFERENCE, EXTRA_SCALE, NUTRIENT_EXTRAS, entryExtras, type NutrientExtras} from '../health-vitamins/extras';
+import {EXTRA_AT_MOST, EXTRA_REFERENCE, NUTRIENT_EXTRAS, entryExtras, extraScale, type ExtraKey, type NutrientExtras} from '../health-vitamins/extras';
 import {MICRO_DIRECTION, microTarget, type MicroTargets} from './micro';
 
 /**
@@ -27,9 +27,13 @@ export function reportNutrients(ctx: Pick<ReportContext, 'vitamins' | 'micro'>):
     ...MACROS,
     ...additionalNutrients.map(([key, label, unit, scale]) => ({key, label, unit, group: (scale === 1000 ? 'Carbs and fats' : 'Minerals') as ReportGroup, scale, reference: microTarget(ctx.micro, key), direction: MICRO_DIRECTION[key]})),
     ...VITAMINS.map(([key, label, unit]) => ({key: `vitamin:${key}`, label, unit, group: 'Vitamins' as ReportGroup, scale: VITAMIN_SCALE, reference: vitaminTarget(ctx.vitamins, key), direction: 'at-least' as const})),
-    ...NUTRIENT_EXTRAS.map(([key, label, unit]) => ({key: `extra:${key}`, label, unit, group: (key === 'magnesiumMg' || key === 'zincMg' ? 'Minerals' : key === 'omega3Mg' ? 'More' : 'Vitamins') as ReportGroup, scale: EXTRA_SCALE, reference: EXTRA_REFERENCE[key], direction: 'at-least' as const})),
+    ...NUTRIENT_EXTRAS.map(([key, label, unit]) => ({key: `extra:${key}`, label, unit, group: extraGroup(key), scale: extraScale(unit), reference: EXTRA_REFERENCE[key] ?? null, direction: EXTRA_REFERENCE[key] === undefined ? null : EXTRA_AT_MOST.has(key) ? 'at-most' as const : 'at-least' as const})),
   ];
 }
+// Session AV lane 2 (LEDGER #93): the library's further nutrients in their groups (as before for the first seven).
+const EXTRA_MINERALS = new Set<ExtraKey>(['magnesiumMg', 'zincMg', 'phosphorusMg', 'copperMg', 'chlorideMg', 'manganeseMg', 'seleniumUg', 'iodineUg']);
+const EXTRA_CARBS_FATS = new Set<ExtraKey>(['starchMg', 'glucoseMg', 'fructoseMg', 'sucroseMg', 'lactoseMg', 'monoFatMg', 'polyFatMg', 'omega6Mg', 'transFatMg', 'cholesterolMg']);
+const extraGroup = (key: ExtraKey): ReportGroup => EXTRA_MINERALS.has(key) ? 'Minerals' : EXTRA_CARBS_FATS.has(key) ? 'Carbs and fats' : key === 'omega3Mg' || key === 'waterMg' || key === 'alcoholMg' ? 'More' : 'Vitamins';
 /** Every known value of one entry, by report key, in stored units. */
 export function entryNutrients(ctx: ReportContext, entry: HealthDiaryEntry): Record<string, number> {
   const out: Record<string, number> = {};

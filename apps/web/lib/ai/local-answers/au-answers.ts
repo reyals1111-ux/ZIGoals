@@ -5,7 +5,7 @@ import {stakeEarnAnswer, stakeSafeAnswer} from '../earn/coach';
 import type {ToolEnv} from '../tools/env';
 import {priceAnswer} from './ai-session';
 import type {LocalReply} from './engine';
-import {weekdayName} from './exact/period';
+import {nlDate, weekdayName} from './exact/period';
 
 /**
  * Session AU (dress rehearsal, docs/review/session-au/REHEARSAL.md): questions five fresh personas asked that are not a
@@ -39,9 +39,9 @@ export function dateAnswer(question: string, env: ToolEnv): LocalReply | null {
   const written = formatDate(day, {year: false}), weekday = weekdayName(localWeekday(day), nl ? 'nl' : 'en');
   if (calendar !== day && ends > 0) {
     const now = weekdayName(localWeekday(calendar), nl ? 'nl' : 'en');
-    return {kind: 'answer', text: nl ? `Voor jou is het ${weekday}, ${written}: je dag eindigt om ${clock(ends)} (de kalender zegt al ${now}).` : `It's ${weekday}, ${written} for you: your day ends at ${clock(ends)} (the calendar already says ${now}).`, calls: []};
+    return {kind: 'answer', text: nl ? `Voor jou is het ${weekday} ${nlDate(day, day)}: je dag eindigt om ${clock(ends)} (de kalender zegt al ${now}).` : `It's ${weekday}, ${written} for you: your day ends at ${clock(ends)} (the calendar already says ${now}).`, calls: []};
   }
-  return {kind: 'answer', text: nl ? `Het is ${weekday}, ${written}.` : `It's ${weekday}, ${written}.`, calls: []};
+  return {kind: 'answer', text: nl ? `Het is ${weekday} ${nlDate(day, day)}.` : `It's ${weekday}, ${written}.`, calls: []};
 }
 export function coinPriceAnswer(question: string, env: ToolEnv): LocalReply | null {
   const q = question.trim().replace(/\s+/g, ' ');

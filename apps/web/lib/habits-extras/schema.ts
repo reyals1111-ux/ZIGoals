@@ -76,6 +76,10 @@ export const habitExtrasSchema = z.looseObject({
   areaGoals: z.record(z.string().min(1).max(60), z.unknown()).optional(),
   /** Session AV lane 2 (LEDGER #56; TIER 3 (stored format)): what is not offered, {questions?, templates?, breathing?} (lib/muted/rule.ts); loose, checked where read. */
   muted: z.looseObject({}).optional(),
+  /** Session AV lane 2 (LEDGER #79, #80; TIER 3 (stored format)): the calm visual behind a sitting, {visual?, pace?} (lib/calm/visuals.ts); loose, checked where read. */
+  calm: z.looseObject({}).optional(),
+  /** Session AV lane 2 (LEDGER #184; TIER 3 (stored format)): the meditation timer's saved presets, {presets: [...]}, at most 20 (lib/meditation/presets.ts); loose, each checked where read. */
+  meditationTimer: z.looseObject({}).optional(),
 }).refine(r => Object.keys(r.options ?? {}).length <= 400 && Object.keys(r.focusDays ?? {}).length <= 400 && Object.keys(r.areaGoals ?? {}).length <= 100 && Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400 && Object.keys(r.intentions ?? {}).length <= 400 && Object.keys(r.monthWeekday ?? {}).length <= 400 && Object.keys(r.checklists ?? {}).length <= 400, 'Too many habits remembered.');
 export type HabitExtras = z.infer<typeof habitExtrasSchema>;
 export const emptyHabitExtras = (): HabitExtras => ({version: 1});

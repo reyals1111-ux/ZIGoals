@@ -24,7 +24,8 @@ export const clock = (seconds: number) => { const h = Math.floor(seconds / 3600)
 /** A set in words: "60 kg × 8", "12 reps", "1:30", "5 km in 25:00". */
 export function setText(measure: Measure, s: Partial<WorkoutSet>, unit: 'kg' | 'lb'): string {
   if (measure === 'weight-reps') return s.weightKg !== undefined && s.reps ? `${weightShown(s.weightKg, unit)} × ${s.reps}` : '—';
-  if (measure === 'reps') return s.reps ? `${s.reps} ${s.reps === 1 ? 'rep' : 'reps'}` : '—';
+  // Session AV lane 2 (body; LEDGER #202): "8 reps +10 kg" with added weight, "8 reps, 20 kg help" when assisted.
+  if (measure === 'reps') return s.reps ? `${s.reps} ${s.reps === 1 ? 'rep' : 'reps'}${s.addedKg ? ` +${weightShown(s.addedKg, unit)}` : s.assistKg ? `, ${weightShown(s.assistKg, unit)} help` : ''}` : '—';
   if (measure === 'time') return s.seconds ? clock(s.seconds) : '—';
   return [s.distanceKm ? `${formatNumber(s.distanceKm, {maximumFractionDigits: 2})} km` : '', s.seconds ? `in ${clock(s.seconds)}` : ''].filter(Boolean).join(' ') || '—';
 }

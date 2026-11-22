@@ -87,7 +87,9 @@ export function ListRowTools({state, dot}: {state: ChecklistState; dot: DerivedD
     const habits = state.stores.habits, now = new Date(), day = habitCalendarDay(habits.data, now);
     const before = habits.data.habits.find(h => h.id === habitId);
     try {
-      await habits.update(h => setHabitEntryStatus(h, habitId, day, 'skipped', 'Skipped from the Checklist', now));
+      // Review b2b (seen in passing, as #5): the day's own note stays; the skip words only on a day without one.
+      const note = before?.entries.find(e => e.date === day)?.note || 'Skipped from the Checklist';
+      await habits.update(h => setHabitEntryStatus(h, habitId, day, 'skipped', note, now));
       const words = `${dot.label}: skipped today, on Habits.`;
       setStatus(words);
       showUndo({message: words, undone: `${dot.label}: today is as it was.`, restore: () => habits.update(h => restoreHabit(h, before))});

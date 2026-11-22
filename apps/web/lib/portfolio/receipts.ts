@@ -13,7 +13,12 @@ export const RECEIPT_KINDS = ['reward', 'income', 'airdrop'] as const;
 export type ReceiptKind = (typeof RECEIPT_KINDS)[number];
 export const RECEIPT_LABEL: Record<ReceiptKind, string> = {reward: 'Staking reward', income: 'Income', airdrop: 'Airdrop'};
 export const MAX_RECEIPTS = 20_000;
-export const receiptsSchema = z.looseObject({version: z.literal(1), kinds: z.record(z.string().min(1).max(80), z.enum(RECEIPT_KINDS).or(z.string().max(20)))})
+/**
+ * Session AV lane 2 (money; CoinStats' "Include in Profit/Loss"), TIER 3 (stored format), additive and optional: `uncounted`,
+ * the ids of transactions the person left out of the results (profit and loss, cost); the holdings still count them.
+ */
+export const receiptsSchema = z.looseObject({version: z.literal(1), kinds: z.record(z.string().min(1).max(80), z.enum(RECEIPT_KINDS).or(z.string().max(20))),
+  uncounted: z.array(z.string().min(1).max(80)).max(MAX_RECEIPTS).optional().catch(undefined)})
   .refine(r => Object.keys(r.kinds).length <= MAX_RECEIPTS, `Up to ${MAX_RECEIPTS} entries.`);
 export type Receipts = z.infer<typeof receiptsSchema>;
 export const emptyReceipts = (): Receipts => ({version: 1, kinds: {}});

@@ -9,6 +9,7 @@ import {MICRO_TARGETS, DEFAULT_MICRO_TARGETS, type MicroKey} from '../../health-
 import {MACRO_MODE, KETO_SPLIT} from '../../health-aa/macro-mode';
 import {HEALTH_COACH} from '../../health-aa/coach-schema';
 import {coachCheckIn} from '../../health-aa/coach';
+import {coachOptionsOf, foodPlusFor} from '../../food-plus/checkin';
 import {parseRecipeText} from '../../health-aa/recipe-text';
 import {newHealthId, saveFood, saveRecipe, setHealthTargets} from '../../health';
 import {GAME} from '../../game/schema';
@@ -120,7 +121,9 @@ export function planAaAction(action: Action, env: Env, h: AaHelpers): PlanResult
       return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: words, lines: ['How your macros are shown; the targets themselves never change', 'On this device; under Health → Targets'], where: 'Health · Targets · Macro mode', day: null, estimate: false}, write: () => ({}), undo: null, device: {key: MACRO_MODE.key, patch: {mode: action.mode, ...(split && action.mode === 'custom' ? {split} : {})}, label: words}}};
     }
     case 'coach-answer': {
-      const c = coachCheckIn(stores.health, {version: 1}, env.healthDay, env.weightUnit);
+      // Session AV lane 2 (food, LEDGER #106, #107): the week is the person's check-in week (so the answer is the one Health
+      // → Your coach shows), with their partly logged days and chosen pace, as the coach card reads them.
+      const c = coachCheckIn(stores.health, {version: 1}, env.healthDay, env.weightUnit, coachOptionsOf(foodPlusFor(env.foodPlus)));
       if (c.rateGrams === null) return h.refuse('The coach needs two weight readings in the last week before it can ask.');
       const kcal = action.answer === 'adjust' ? action.kcal ?? c.suggestion?.kcal ?? null : null;
       if (action.answer === 'adjust' && kcal === null) return h.refuse('No suggested target yet: the energy estimate needs about two weeks of logs; give a figure, or keep the target.');

@@ -14,12 +14,18 @@ export type PixelMetric = 'mood' | 'energy';
 export type Pixel = {date: string; value: number | null; inYear: boolean; future: boolean; entries: number; word: string | null};
 export type PixelYear = {weeks: Pixel[][]; months: {label: string; week: number}[]; counts: [number, number, number, number, number]; rated: number; summary: string};
 /** The app's own words for each level (the wrap-up's moods, the check-in's energy). */
-export const levelWord = (metric: PixelMetric, v: number): string => { const w = (metric === 'mood' ? MOOD_WORDS : ENERGY_WORDS.en)[v - 1]; return w ? w[0]!.toUpperCase() + w.slice(1) : String(v); };
+export const levelWord = (metric: PixelMetric, v: number, moodWords?: readonly string[]): string => {
+  // Session AV lane 2 (rest, LEDGER #178): the person's own mood words (useMoodLook) where given, else the app's.
+  const own = metric === 'mood' ? moodWords?.[v - 1]?.trim() : undefined;
+  if (own) return own;
+  const w = (metric === 'mood' ? MOOD_WORDS : ENERGY_WORDS.en)[v - 1]; return w ? w[0]!.toUpperCase() + w.slice(1) : String(v);
+};
 
 export type PixelSources = {moods?: Readonly<Record<string, {mood: number}>>; energy?: Readonly<Record<string, {energy: number}>>; journalDates?: readonly string[]; words?: Readonly<Record<string, {word: string}>>};
 const rating = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 5 ? v : null;
 
-export function pixelYear(year: number, today: string, metric: PixelMetric, src: PixelSources): PixelYear {
+/** `moodWords`: the person's own five mood words (Session AV lane 2, LEDGER #178), for the year sentence. */
+export function pixelYear(year: number, today: string, metric: PixelMetric, src: PixelSources, moodWords?: readonly string[]): PixelYear {
   const journal = new Map<string, number>(); for (const d of src.journalDates ?? []) journal.set(d, (journal.get(d) ?? 0) + 1);
   const counts: PixelYear['counts'] = [0, 0, 0, 0, 0];
   let rated = 0;
@@ -30,16 +36,19 @@ export function pixelYear(year: number, today: string, metric: PixelMetric, src:
     if (value !== null) { counts[value - 1] = (counts[value - 1] ?? 0) + 1; rated++; }
     return {date, value, inYear, future, entries: inYear && !future ? journal.get(date) ?? 0 : 0, word: inYear && !future ? src.words?.[date]?.word ?? null : null};
   }));
+  return {weeks, months: monthStarts(grid, year), counts, rated, summary: pixelSummary(year, metric, counts, rated, moodWords)};
+}
+/** The year in one sentence ("2026: 41 days with a mood rating. Hard 2, Low 5, …"), in the person's own mood words where given. */
+export function pixelSummary(year: number, metric: PixelMetric, counts: PixelYear['counts'], rated: number, moodWords?: readonly string[]): string {
   const what = metric === 'mood' ? 'mood' : 'energy';
-  const summary = rated ? `${year}: ${rated} ${rated === 1 ? 'day' : 'days'} with a ${what} rating. ${counts.map((n, i) => `${levelWord(metric, i + 1)} ${n}`).join(', ')}.` : `${year}: no ${what} rating yet.`;
-  return {weeks, months: monthStarts(grid, year), counts, rated, summary};
+  return rated ? `${year}: ${rated} ${rated === 1 ? 'day' : 'days'} with a ${what} rating. ${counts.map((n, i) => `${levelWord(metric, i + 1, moodWords)} ${n}`).join(', ')}.` : `${year}: no ${what} rating yet.`;
 }
 /** A square's label in words ("Tuesday, Mar 3, 2026: mood Good, 4 of 5 · calm · 1 journal entry"). */
-export function pixelLabel(p: Pixel, metric: PixelMetric): string {
+export function pixelLabel(p: Pixel, metric: PixelMetric, moodWords?: readonly string[]): string {
   const day = formatDate(p.date, {weekday: true});
   if (!p.inYear) return day;
   if (p.future) return `${day}: ahead`;
-  const parts = [p.value === null ? `no ${metric} rating` : `${metric} ${levelWord(metric, p.value)}, ${p.value} of 5`];
+  const parts = [p.value === null ? `no ${metric} rating` : `${metric} ${levelWord(metric, p.value, moodWords)}, ${p.value} of 5`];
   if (p.word) parts.push(p.word);
   if (p.entries) parts.push(`${p.entries} journal ${p.entries === 1 ? 'entry' : 'entries'}`);
   return `${day}: ${parts.join(' · ')}`;

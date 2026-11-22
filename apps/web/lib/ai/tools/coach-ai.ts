@@ -1,5 +1,6 @@
 import {coachCheckIn} from '../../health-aa/coach';
 import {dailyData} from '../../health-daily';
+import {coachOptionsOf, foodPlusFor} from '../../food-plus/checkin';
 import type {ToolEnv} from './env';
 import {ok} from './format';
 import {gated, where} from './health';
@@ -21,7 +22,8 @@ export const coachCheckinTool: ToolDefinition<Record<string, never>> = {
   run(_args, env: ToolEnv, label) {
     const g = gated(env, 'coach_checkin', label); if (!g.ok) return g;
     const unit = dailyData(g.health).preferences.weightUnit;
-    const c = coachCheckIn(g.health, env.coach ?? {version: 1}, env.healthDay, unit);
+    // Session AV lane 2 (food, LEDGER #106, #107): the person's check-in day, partly logged days and chosen pace.
+    const c = coachCheckIn(g.health, env.coach ?? {version: 1}, env.healthDay, unit, coachOptionsOf(foodPlusFor(env.foodPlus)));
     return ok('coach_checkin', label, where(env, 'the weekly coach check-in', null), {
       weekStart: c.weekStart, answeredThisWeek: c.answered ?? 'not yet', week: c.sentence,
       canAsk: c.rateGrams !== null, currentTargetKcal: c.currentKcal ?? 'no target set',

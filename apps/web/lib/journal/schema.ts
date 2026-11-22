@@ -115,6 +115,14 @@ export const journalSchema = z.looseObject({
    * on; a value this build cannot read is dropped on read; older builds keep it untouched and show none.
    */
   affirmations: z.boolean().optional().catch(undefined),
+  /**
+   * Session AV lane 2 (bodymind-r2; LEDGER #230, Reflectly's daily challenge; TIER 3 (stored format), additive and
+   * optional): the person chose to see one small challenge a day beside the affirmation (lib/journal/challenges.ts), and
+   * the last day they tapped Done (never counted or streaked against them). Off unless switched on; a value this build
+   * cannot read is dropped on read; older builds keep both untouched and show none.
+   */
+  challenges: z.boolean().optional().catch(undefined),
+  challengeDone: day.optional().catch(undefined),
 });
 export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type Journal = z.infer<typeof journalSchema>;

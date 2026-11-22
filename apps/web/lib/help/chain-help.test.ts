@@ -24,7 +24,8 @@ const answer = (id: string) => help.slice(help.indexOf(`<HelpQuestion id="${id}"
 
 describe('the chain answers (CHAIN_HELP)', () => {
   it('is exactly this list, so adding or removing one is a deliberate change', () => {
-    expect(CHAIN_HELP_IDS).toEqual(['av-move-alert', 'al-more-pages', 'al-wallets', 'al-ledger', 'al-ecosystem', 'al-reward-goals', 'w-portfolio', 'ae-wallets', 'ae-wallet-card', 'af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-start-here', 'af-academy', 'af-earn-dock', 'af-validator-alerts', 'af-wallets', 'af-add-money', 'af-goal-vaults', 'af-earn-coach', 'aj-wealth', 'aj-v6', 'ak-wallets', 'ak-staking-clarity']);
+    // Session AV lane 2 (batch 2's three Portfolio answers join the chain answers, deliberate): the exact list, three ids longer.
+    expect(CHAIN_HELP_IDS).toEqual(['av-move-alert', 'av2-money-can-an-alert-follow-a-day-s-move-rather', 'av2-money-can-i-leave-a-transaction-out-of-my-prof', 'av2-money-what-was-my-portfolio-worth-on-a-past-da', 'al-more-pages', 'al-wallets', 'al-ledger', 'al-ecosystem', 'al-reward-goals', 'w-portfolio', 'ae-wallets', 'ae-wallet-card', 'af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-start-here', 'af-academy', 'af-earn-dock', 'af-validator-alerts', 'af-wallets', 'af-add-money', 'af-goal-vaults', 'af-earn-coach', 'aj-wealth', 'aj-v6', 'ak-wallets', 'ak-staking-clarity']);
     expect(new Set(CHAIN_HELP_IDS).size).toBe(CHAIN_HELP_IDS.length);
   });
   it('holds Help’s own questions, word for word as Search has them, in Help’s page order', () => {
@@ -186,9 +187,11 @@ describe('ChainHelp, ChainText, HelpTopics and HelpSearch on the page', () => {
     });
     render(createElement(HelpSearch));
     type('alert');
-    expect([...host.querySelectorAll('.help-search-chain a')].map(a => a.getAttribute('href'))).toEqual(['#help-av-move-alert', '#help-af-validator-alerts']);
+    // Session AV lane 2 (batch 2's day-move alert answer is a chain answer too, deliberate): the exact list.
+    expect([...host.querySelectorAll('.help-search-chain a')].map(a => a.getAttribute('href'))).toEqual(['#help-av-move-alert', '#help-av2-money-can-an-alert-follow-a-day-s-move-rather', '#help-af-validator-alerts']);
     act(() => { window.history.replaceState(null, '', '/app/help#help-af-validator-alerts'); window.dispatchEvent(new HashChangeEvent('hashchange')); });
-    expect([...host.querySelectorAll('.help-search-chain a')].map(a => a.getAttribute('href'))).toEqual(['#help-av-move-alert']);
-    expect(host.querySelector('[role="status"]')!.textContent).toBe('1 answer about the money and chain pages matches, listed under the search.');
+    // Session AV lane 2 (batch 2's day-move alert answer is a chain answer too, deliberate): the other two stay listed.
+    expect([...host.querySelectorAll('.help-search-chain a')].map(a => a.getAttribute('href'))).toEqual(['#help-av-move-alert', '#help-av2-money-can-an-alert-follow-a-day-s-move-rather']);
+    expect(host.querySelector('[role="status"]')!.textContent).toBe('2 answers about the money and chain pages match, listed under the search.');
   });
 });

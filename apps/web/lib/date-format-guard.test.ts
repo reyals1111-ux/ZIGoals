@@ -31,6 +31,8 @@ const ALLOWED: {file: string; rule: string; count: number; reason: string}[] = [
   {file: 'components/ai/zigi-reminders-panel.tsx', rule: 'month or weekday names by hand', count: 1, reason: 'the weekday of a weekly reminder ("Monday at 9:00 AM"), a schedule, not a date'},
   {file: 'components/weekly-review/weekly-review-day.tsx', rule: 'month or weekday names by hand', count: 1, reason: 'the options of the weekly review day choice, a schedule, not a date'},
   {file: 'components/habits/habit-editor.tsx', rule: 'month or weekday names by hand', count: 1, reason: 'the weekday choices of a habit schedule, not a date'},
+  // Session AV lane 2 (batch 2): a fired move alert's id carries the UTC day it fired on, so it fires once a day; never shown.
+  {file: 'components/price-alerts/price-alerts.tsx', rule: 'ISO date shown', count: 1, reason: 'a fired move alert\'s id ("<id>@2026-11-22"), its UTC day, never shown'},
 ];
 function files(dir: string): string[] { return readdirSync(dir).flatMap(name => { const path = join(dir, name); return statSync(path).isDirectory() ? files(path) : [path]; }); }
 // Comments may name what they replace; only code counts.

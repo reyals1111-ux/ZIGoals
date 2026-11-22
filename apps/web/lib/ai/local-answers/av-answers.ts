@@ -207,7 +207,7 @@ function budgetTargets(a: Asked): LocalReply | null {
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const record = a.env.nova?.budgets, calls = [{tool: 'budgets', args: {}, label: 'Budgets'}], lang = a.lang;
   if (!record?.budgets.length) return answer(say(lang, 'No budget is set yet, so there is no target. Wealth → Budgets sets them.', 'Er is nog geen budget, dus ook geen doel. Wealth → Budgets stelt ze in.'), calls);
-  const lines = budgetsCard(record, entriesOf(a.env), a.today).lines, ids = new Set(named.map(b => b.id)), pick = ids.size ? lines.filter(l => ids.has(l.id)) : lines;
+  const lines = budgetsCard(record, entriesOf(a.env), a.today, m => monthIn('nl', m)).lines, ids = new Set(named.map(b => b.id)), pick = ids.size ? lines.filter(l => ids.has(l.id)) : lines;
   const withTarget = pick.filter(l => l.target), without = pick.filter(l => !l.target).map(l => l.category);
   if (!withTarget.length) return answer(say(lang, `${list(without, 'en')} ${without.length === 1 ? 'has' : 'have'} no target. A target is set on a budget in Wealth → Budgets.`, `${list(without, 'nl')} ${without.length === 1 ? 'heeft' : 'hebben'} geen doel. Een doel stel je in op een budget in Wealth → Budgets.`), calls);
   const rows = withTarget.map(l => `${l.category}: ${l.target![lang]}`);

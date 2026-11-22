@@ -8,6 +8,14 @@ import {AV2_TASKS} from './cases-av2-tasks';
 import {AV2_HABITS} from './cases-av2-habits';
 import {AV2_JOURNAL} from './cases-av2-journal';
 import {AV2_ROADMAP} from './cases-av2-roadmap';
+import {AV2_MONEY} from './cases-av2-money';
+import {AV2_FOOD} from './cases-av2-food';
+import {AV2_BODY} from './cases-av2-body';
+import {AV2_SYNC} from './cases-av2-sync';
+import {AV2_REST} from './cases-av2-rest';
+import {AV2_MONEY_R2} from './cases-av2-money-r2';
+import {AV2_TASKS_R2} from './cases-av2-tasks-r2';
+import {AV2_BODYMIND_R2} from './cases-av2-bodymind-r2';
 
 /**
  * Session AS (ADR-042 Part 1): the corpus — what people ask every day, in the ways they ask it (English and Dutch, typos
@@ -16,5 +24,5 @@ import {AV2_ROADMAP} from './cases-av2-roadmap';
  * `never`: what the answer must not contain (the wrong answer the question used to get).
  */
 export type Intent = {id: string; pillar: Pillar; en: readonly string[]; nl: readonly string[]; never?: readonly string[]};
-export const CORPUS: readonly Intent[] = [...HABITS, ...HEALTH, ...MONEY, ...DAYS, ...AV, /* Session AV lane 2 */ ...AV2_TASKS, ...AV2_HABITS, ...AV2_JOURNAL, ...AV2_ROADMAP];
+export const CORPUS: readonly Intent[] = [...HABITS, ...HEALTH, ...MONEY, ...DAYS, ...AV, /* Session AV lane 2 */ ...AV2_TASKS, ...AV2_HABITS, ...AV2_JOURNAL, ...AV2_ROADMAP, ...AV2_MONEY, ...AV2_FOOD, ...AV2_BODY, ...AV2_SYNC, ...AV2_REST, ...AV2_MONEY_R2, ...AV2_TASKS_R2, ...AV2_BODYMIND_R2];
 export const questionCount = (): number => CORPUS.reduce((n, c) => n + c.en.length + c.nl.length, 0);

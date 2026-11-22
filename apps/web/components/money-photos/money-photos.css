@@ -8,3 +8,10 @@
 .money-photos-draft{display:grid;gap:8px;padding:12px;border-radius:14px;border:1px solid var(--line,#25334f)}
 .money-photos-title{margin:0;font-weight:600}
 .money-photos .actions button{min-height:44px}
+/* Session AV lane 2 (money): several receipts at once, each with its entry. */
+.money-receipts{display:grid;gap:8px;padding:12px;border-radius:14px;border:1px solid var(--line,#25334f);min-width:0}
+.money-receipts h5{margin:0;font-size:16px}
+.money-receipts input,.money-receipts select{min-height:44px;width:100%;box-sizing:border-box;max-width:100%}
+.money-receipts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:8px 12px;align-items:end;min-width:0}
+.money-receipts-name{grid-column:1/-1;overflow-wrap:anywhere;font-size:14px}
+.money-receipts-entry{grid-column:1/-1}

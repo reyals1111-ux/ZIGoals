@@ -1,5 +1,6 @@
 import {addDays, inQuiet, toMinutes, wallClock, weekdayBit, weekdayOf, zonedInstant} from './zone';
-import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
+import {eveningTime, moodTimes, morningTime, typeOn, type NotifyPrefs} from './prefs';
+import type {EnergyInput} from './energy-items';
 
 /**
  * Session AK Part 2 (ADR-036 Q3, A1, A2): the notification plan of this device, pure. From what the page already knows
@@ -9,7 +10,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -20,7 +21,7 @@ export type PlanInput = {
    * A habit with a reminder time: its weekday mask for the coming week and whether today is already done. `title` only for
    * a habit not linked to Health (ADR-010's rule, security review F4): a Health-linked habit never shows its name.
    */
-  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean}[];
+  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean; routine?: boolean}[];
   water?: {time: string; toGo: string | null; done: boolean};
   windDown?: {time: string; doneToday: boolean};
   review?: {time: string; weekday: number};
@@ -49,6 +50,24 @@ export type PlanInput = {
    * streak a new entry keeps. Never a word of the journal.
    */
   journal?: {time: string; weekdays: number; written: readonly string[]; streak: number};
+  /**
+   * Session AV lane 2 (money; Copilot's custom alerts, Rocket Money): a budget near or over its amount, payday tomorrow,
+   * the low-balance line ahead (lib/money-notices.ts moneyWakes) — the day and an id; a title and detail for names-on only.
+   */
+  money?: {id: string; date: string; title?: string; detail?: string}[];
+  /**
+   * Session AV lane 2 (food, LEDGER #90; MyFitnessPal): the meal reminders the person switched on in Health, at each meal's
+   * usual time (lib/food-plus/meal-notify.ts mealWakes); the meal's own name only where names are allowed, never food.
+   */
+  meals?: {meal: string; label?: string; time: string; doneToday: boolean}[];
+  /** Session AV lane 2 (LEDGER #180): whether today's mood is already answered (the first check-in then stays quiet). */
+  mood?: {doneToday: boolean};
+  /**
+   * Session AV lane 2 (bodymind-r2; LEDGER #235, #236, Rise): the energy curve's reminders and the plan steps with a
+   * reminder (lib/notify/energy-items.ts energyItems): one-off instants and recurring clock times, each with the app's own
+   * line; an own habit's name only as a label, shown where names are allowed. Never a sleep figure.
+   */
+  energy?: EnergyInput;
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -58,6 +77,12 @@ export type Plan = {snapshot: Snapshot; registration: Registration; refused: {ki
 /** A copy without its `label` (no name may reach the snapshot without the opt-in). */
 function withoutLabel<T extends {label?: string}>(value: T): Omit<T, 'label'> { const copy = {...value}; delete copy.label; return copy; }
 
+/**
+ * Review b2a #9: where a money notice opens — a budget over or near its amount opens Budgets; a reminded loan, payday
+ * and the low-balance line open Spending (its "Between you and others" and the 60-day forecast live there), as Today's
+ * lines for them do.
+ */
+export const moneyHref = (id: string) => /^money:(?:over|near):/.test(id) ? '/app/wealth?view=budgets' : '/app/wealth#spending';
 export function buildPlan(input: PlanInput): Plan {
   const {now, zone, prefs, quiet, labels} = input, today = wallClock(now, zone).date, until = now + WINDOW_MS;
   const items: PlanItem[] = [], recurring: {m: number; d: number; kind: ItemKind; id: string; done: (date: string) => boolean}[] = [], once = new Map<number, ItemKind>(), refused: Plan['refused'] = [];
@@ -76,7 +101,7 @@ export function buildPlan(input: PlanInput): Plan {
     }
   };
   const EVERY = 127;
-  if (typeOn(prefs, 'habits')) for (const h of input.habits) daily('habit', h.id, h.time, h.weekdays, () => ({label: label(h.title), href: '/app/habits', actionable: true}), date => date === today && h.doneToday);
+  if (typeOn(prefs, 'habits')) for (const h of input.habits) daily('habit', h.id, h.time, h.weekdays, () => ({label: label(h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
   // Session AK (F5): never labelled, whatever the names switch says (a supplement or medicine's name is health data).
   if (typeOn(prefs, 'supplements')) for (const s of input.supplements ?? []) daily('supplement', s.id, s.time, s.weekdays, () => ({href: '/app/health', actionable: false}), date => date === today && s.doneToday);
   if (typeOn(prefs, 'water') && input.water) { const w = input.water; daily('water', 'water', w.time, EVERY, () => ({...(w.toGo ? {detail: `${w.toGo} to go`} : {}), href: '/app/health', actionable: false}), date => date === today && w.done); }
@@ -87,6 +112,23 @@ export function buildPlan(input: PlanInput): Plan {
   if (typeOn(prefs, 'journal') && input.journal) { const j = input.journal; daily('journal', 'journal', j.time, j.weekdays & EVERY, () => ({...(j.streak > 0 ? {detail: `keeps your ${j.streak}-day streak`} : {}), href: '/app/journal', actionable: false}), date => j.written.includes(date)); }
   if (typeOn(prefs, 'morning')) daily('morning', 'morning', morningTime(prefs), EVERY, () => ({href: '/app/checklist', actionable: false}), () => false);
   if (typeOn(prefs, 'evening')) daily('evening', 'evening', eveningTime(prefs), EVERY, () => ({href: '/app/review', actionable: false}), () => false);
+  if (typeOn(prefs, 'meals')) for (const m of input.meals ?? []) daily('meal', `meal:${m.meal}`, m.time, EVERY, () => ({label: label(m.label), href: '/app/health?view=diary', actionable: false}), date => date === today && m.doneToday);
+  // Session AV lane 2 (LEDGER #180, Daylio): the mood check-in opens the mood question (Health's mood card); never a mood
+  // or a name. The first stays quiet once today's mood is answered; a second time asks again (the newer answer wins).
+  if (typeOn(prefs, 'mood')) moodTimes(prefs).forEach((time, i) => daily('mood', i ? 'mood-2' : 'mood', time, EVERY, () => ({href: '/app/health?mood=ask', actionable: false}), date => i === 0 && date === today && !!input.mood?.doneToday));
+  // Session AV lane 2 (bodymind-r2; LEDGER #235, #236): the energy curve's reminders and the plan steps' reminders. An
+  // evening step is a recurring wake at its clock time (quiet once ticked that evening); the curve's and a morning step's
+  // times follow the wake time, so each is a one-off wake, refused inside quiet hours as a task reminder is.
+  if (typeOn(prefs, 'energy') && input.energy) {
+    for (const d of input.energy.daily) daily('energy', d.id, d.time, EVERY, () => ({detail: d.detail, label: label(d.label), href: '/app/health?view=sleep', actionable: false}), date => d.done.includes(date));
+    for (const o of input.energy.once) {
+      if (o.at <= now || o.at > until) continue;
+      const time = wallClock(o.at, zone).time;
+      if (inQuiet(time, quiet)) { refused.push({kind: 'energy', time}); continue; }
+      once.set(Math.floor(o.at / 60000), 'energy');
+      push({at: o.at, kind: 'energy', id: o.id, detail: o.detail, label: label(o.label), href: '/app/health?view=sleep', actionable: false});
+    }
+  }
   // One-off wakes: contributions on the days they are due (today, tomorrow), bills on the morning before they are due.
   if (typeOn(prefs, 'contributions')) for (const c of input.contributions) {
     if (c.done || inQuiet(c.time, quiet)) continue;
@@ -117,6 +159,14 @@ export function buildPlan(input: PlanInput): Plan {
     const at = zonedInstant(c.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'countdown');
     push({at, kind: 'countdown', id: `countdown:${c.id}@${c.date}`, label: label(c.title), detail: c.days === 0 ? 'today' : c.days === 1 ? 'tomorrow' : `in ${c.days} days`, href: '/app', actionable: false});
+  }
+  // Session AV lane 2 (money): a money notice wakes at the morning time of its day (the end of quiet hours when the morning
+  // is quiet), as a countdown does; its words only with names on.
+  if (typeOn(prefs, 'money')) for (const m of input.money ?? []) {
+    if (m.date < today || m.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'money');
+    push({at, kind: 'money', id: m.id, label: label(m.title), ...(labels && m.detail ? {detail: m.detail} : {}), href: moneyHref(m.id), actionable: false});
   }
   // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
   // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end

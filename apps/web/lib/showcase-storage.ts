@@ -69,7 +69,7 @@ export function undoShowcaseReset(session:Storage):boolean{
 }
 /**
  * Security review Z1B-9: the photos kept under the Showcase's scope (notes, meals, progress, money, tasks, the journal's
- * photos and voice notes) belong to the Showcase, not to the person: they are deleted when a Showcase starts (load or reset) and when it ends. Only the
+ * photos and voice notes, the accounts' documents) belong to the Showcase, not to the person: they are deleted when a Showcase starts (load or reset) and when it ends. Only the
  * `showcase` scope, never an account's or the local person's. Best effort: a store that cannot open is left as it is.
  * (The photo modules load only here, and only where the browser has IndexedDB; vision photos are never kept for it.)
  */
@@ -85,7 +85,9 @@ export async function clearShowcasePhotos(waitMs=1500):Promise<void>{
   import('./meal-estimates/photos').then(m=>m.deleteAllMealPhotos(SHOWCASE_PHOTO_SCOPE)),
   import('./money-photos/store').then(m=>m.deleteMoneyPhotos(SHOWCASE_PHOTO_SCOPE)),
   import('./tasks/attachments').then(m=>m.deleteTaskAttachments(SHOWCASE_PHOTO_SCOPE)), // Session AV lane 2 (LEDGER #8)
+  import('./food-plus/photos').then(m=>m.deleteAllFoodPhotos(SHOWCASE_PHOTO_SCOPE)), // Session AV lane 2 (LEDGER #103)
   import('./journal/media').then(m=>m.deleteAllJournalMedia(SHOWCASE_PHOTO_SCOPE)), // Session AV lane 2 (review b1 #4)
+  import('./wealth-sheet/docs').then(m=>m.deleteWealthDocs(SHOWCASE_PHOTO_SCOPE)), // Session AV lane 2 (review b2a #4): account documents
  ]).then(()=>undefined);
  await Promise.race([work,wait]);clearTimeout(timer);
 }

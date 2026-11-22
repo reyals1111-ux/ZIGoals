@@ -25,7 +25,8 @@ for (const theme of THEMES) test(`${theme}: symptoms as rated and supplements as
   await page.getByRole('button', {name: 'Make a report'}).click();
   const builder = page.locator('.report-builder'), include = builder.getByRole('group', {name: 'Include'});
   const boxes = include.getByRole('checkbox');
-  await expect(boxes).toHaveCount(8); // the builder loads on demand: every section's box is there before any is changed
+  // Session AV lane 2 (food, LEDGER #98; deliberate, as strict): one more section, Nutrition (from the food diary), so nine boxes.
+  await expect(boxes).toHaveCount(9); // the builder loads on demand: every section's box is there before any is changed
   for (let i = 0; i < await boxes.count(); i++) await boxes.nth(i).uncheck();
   await include.getByRole('checkbox', {name: /^Symptoms and factors/}).check();
   await include.getByRole('checkbox', {name: /^Supplements and medication/}).check();

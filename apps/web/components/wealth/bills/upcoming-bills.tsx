@@ -19,6 +19,10 @@ const PriceChanges = lazy(() => import('./price-changes'));
 const BillMonthGrid = lazy(() => import('./bill-month-grid'));
 // Session AV (follow-up 1, F-BILLS-MONTH): this month's bills against the money log, and until payday; its own chunk.
 const BillsMonth = lazy(() => import('./bills-month'));
+// Session AV lane 2 (money; Undebt.it): the bill tracker — to pay this month with debt minimums and Mark paid, history, autopay, edit, print.
+const BillTracker = lazy(() => import('./bill-tracker'));
+// Session AV lane 2, round 2 (money; Wallet's planned payments): a bill due now, with one tap to record it (own chunk).
+const DueToRecord = lazy(() => import('./due-to-record'));
 
 /**
  * Session AK (7.3, COMPETITORS M7): Upcoming bills. Bills come from the person: confirmed from a repeat the money log
@@ -41,7 +45,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
   const id = useId();
   const [days, setDays] = useState<30 | 60>(30), [status, setStatus] = useState(''), [problem, setProblem] = useState(''), [adding, setAdding] = useState(false);
   const occurrences = useMemo(() => billOccurrences(record, today, days), [record, today, days]);
-  const [calendar, setCalendar] = useState(false);
+  const [calendar, setCalendar] = useState(false), [tracking, setTracking] = useState(false);
   const candidates = useMemo(() => openCandidates(detectBills(entries, today), record), [entries, record, today]);
   const totals = totalsByCurrency(occurrences), monthly = monthlyEstimate(record), yearly = yearlyEstimate(record), notes = cancelReminders(record, today);
   const change = (fn: (r: BillsRecord) => BillsRecord, done: string) => {
@@ -66,8 +70,10 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
         {yearly.length > 0 && <div><dt>A year of these bills <small>(an estimate)</small></dt><dd>{yearly.map(t => <span key={t.currency}>{money(t.cents, t.currency)}</span>)}</dd></div>}
       </dl>
     </div>
+    {record.bills.length > 0 && !showcase && <Suspense fallback={null}><DueToRecord record={record} entries={entries} today={today}/></Suspense>}
     {notes.length > 0 && <ul className="bills-notes" aria-label="Notes to self due soon">{notes.map(n => <li key={n.billId}><strong>{n.title}</strong> · {formatDate(n.cancelBy)}: {n.note}</li>)}</ul>}
     {record.bills.length > 0 && <Suspense fallback={null}><BillsMonth record={record} entries={entries} today={today}/></Suspense>}
+    {record.bills.length > 0 && !showcase && <details className="bills-calendar-fold bill-tracker-fold" onToggle={e => setTracking((e.currentTarget as HTMLDetailsElement).open)}><summary>Bill tracker: mark paid, history, edit</summary>{tracking && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><BillTracker record={record} entries={entries} today={today} onChange={onChange}/></Suspense>}</details>}
     <Suspense fallback={null}><PriceChanges bills={record.bills} candidates={candidates} entries={entries} today={today}/></Suspense>
     <section aria-labelledby={`${id}-list`}>
       <h3 id={`${id}-list`}>Upcoming</h3>

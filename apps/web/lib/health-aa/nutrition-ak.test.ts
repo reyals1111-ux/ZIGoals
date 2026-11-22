@@ -31,7 +31,8 @@ const ctx = (over: Partial<ReportContext> = {}): ReportContext => ({data: H, vit
 describe('4.4 the nutrient extras record (zigoals:nutrient-extras:v1)', () => {
   test('a food’s values per serving and its logged entry, scaled and frozen; recipes only when every ingredient gives one', () => {
     expect(NUTRIENT_EXTRAS_KEY).toBe('zigoals:nutrient-extras:v1');
-    expect(EXTRA_KEYS).toEqual(['magnesiumMg', 'zincMg', 'b1Mg', 'b2Mg', 'b3Mg', 'b6Mg', 'omega3Mg']);
+    // Session AV lane 2 (rest, LEDGER #93, deliberate: the offline library's further nutrients are kept too; the list pinned exactly).
+    expect(EXTRA_KEYS).toEqual(['magnesiumMg', 'zincMg', 'b1Mg', 'b2Mg', 'b3Mg', 'b6Mg', 'omega3Mg', 'waterMg', 'starchMg', 'alcoholMg', 'glucoseMg', 'fructoseMg', 'sucroseMg', 'lactoseMg', 'monoFatMg', 'polyFatMg', 'omega6Mg', 'transFatMg', 'cholesterolMg', 'phosphorusMg', 'copperMg', 'chlorideMg', 'manganeseMg', 'seleniumUg', 'iodineUg', 'retinolUg', 'caroteneUg', 'pantothenateMg', 'biotinUg']);
     let r = rememberExtras(emptyNutrientExtras(), ['health_e-000001'], 'health_f-spinach', {magnesiumMg: 79_000, b1Mg: 78}, {id: 'health_e-000001', quantityMilli: 2000});
     expect(r.entries?.['health_e-000001']).toEqual({magnesiumMg: 158_000, b1Mg: 156});
     const entry = H.diary[0]!;
@@ -63,7 +64,8 @@ describe('4.4 the nutrient report', () => {
     expect(iron).toMatchObject({total: 13, known: 2, entries: 3, reference: 18, direction: 'at-least'});
     const shown = withData(day).map(r => r.key);
     expect(shown).toContain('calciumMg'); expect(shown).not.toContain('sodiumMg'); expect(shown).not.toContain('vitamin:cMg');
-    expect(reportNutrients(ctx()).filter(n => n.group === 'Vitamins').length).toBe(7 + 4); // A, C, D, E, K, B12, folate + B1, B2, B3, B6
+    // Session AV lane 2 (rest, LEDGER #93, deliberate: the library's further vitamins join the group; the list pinned exactly).
+    expect(reportNutrients(ctx()).filter(n => n.group === 'Vitamins').map(n => n.key)).toEqual(['vitamin:aUg', 'vitamin:cMg', 'vitamin:dUg', 'vitamin:eMg', 'vitamin:kUg', 'vitamin:b12Ug', 'vitamin:folateUg', 'extra:b1Mg', 'extra:b2Mg', 'extra:b3Mg', 'extra:b6Mg', 'extra:retinolUg', 'extra:caroteneUg', 'extra:pantothenateMg', 'extra:biotinUg']); // A, C, D, E, K, B12, folate + B1, B2, B3, B6 + retinol, carotene, B5, B7
   });
   test('vitamins and extras come from their records, scaled to the amount', () => {
     const vitamins = setNewFoodVitamins(emptyHealthVitamins(), 'health_f-spinach', {cMg: 28_000});

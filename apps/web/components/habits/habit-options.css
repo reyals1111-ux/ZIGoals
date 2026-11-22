@@ -19,3 +19,8 @@
 .habit-area-goal input { min-height: 44px; width: 8rem; font-size: 1rem; }
 .habit-area-goal button { min-height: 44px; }
 .habit-area-week > p.fine:empty { display: none; }
+/* LEDGER #185: a few times in any few days. */
+.habit-option-rolling { display: grid; gap: 6px; min-width: 0; }
+.habit-option-rolling-fields { display: flex; flex-wrap: wrap; gap: 10px; padding-left: 28px; }
+.habit-option-rolling-fields .field { display: grid; gap: 4px; }
+.habit-option-rolling-fields select { min-height: 44px; font-size: 1rem; min-width: 7rem; }

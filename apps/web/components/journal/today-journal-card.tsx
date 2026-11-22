@@ -9,6 +9,8 @@ const Body = lazy(() => import('./journal-compose').then(m => ({default: () => <
 const Line = lazy(() => import('./today-journal-line'));
 // Session AV lane 2 (journal; LEDGER #176): the daily affirmation, only when switched on (nothing otherwise).
 const Affirmation = lazy(() => import('./today-affirmation'));
+// Session AV lane 2 (bodymind-r2; LEDGER #230): a small daily challenge beside it, only when switched on (nothing otherwise).
+const Challenge = lazy(() => import('./today-challenge'));
 /** Session AI (feature 6): Today's journal card, one DOM root; the body loads after Today's first paint. */
 export function TodayJournalCard(layout: Partial<LayoutAttrs>) {
   return <section {...layout} className="panel today-journal-card" aria-labelledby="today-journal-title">
@@ -16,6 +18,7 @@ export function TodayJournalCard(layout: Partial<LayoutAttrs>) {
     <LoadBoundary quiet><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><Body/></Suspense></LoadBoundary>
     <LoadBoundary quiet><Suspense fallback={null}><Line/></Suspense></LoadBoundary>
     <LoadBoundary quiet><Suspense fallback={null}><Affirmation/></Suspense></LoadBoundary>
+    <LoadBoundary quiet><Suspense fallback={null}><Challenge/></Suspense></LoadBoundary>
   </section>;
 }
 export default TodayJournalCard;

@@ -5,7 +5,13 @@ import {localDate} from '../../../lib/local-date';
 import {formatDate} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
 import {addEntry, byCategory, fromCents, monthOf, removeEntry, roomToSpend, totals, weekOf} from '../../../lib/money-log/engine';
-import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, MONEY_LOG, type MoneyEntry} from '../../../lib/money-log/schema';
+import {MONEY_LOG, type MoneyEntry, type PaidWith} from '../../../lib/money-log/schema';
+import {categoryPath, PAID_WITH_WORDS} from '../../../lib/money-more/quick';
+// Session AV lane 2 (money): left out of the figures, tax mark, spread over months, own categories, bulk changes, history.
+import {addOwnCategory, bulkCategory, bulkExcluded, categoryChoices, changesBetween, isCounted, removeOwnCategory, withMarks} from '../../../lib/money-log/counted';
+import type {BulkAction} from './money-search';
+import {draftAlreadyLogged} from '../../../lib/money-photos/match';
+import {setTransfer} from '../../../lib/bankfiles/reimport';
 import './spending.css';
 import {usePhoneShowAll} from '../../phone/phone-show-all';
 // Session AK (lane M): rules on new entries, the review mark, and Money tools (its own chunk, loaded after this body).
@@ -48,12 +54,36 @@ const withOwn = (chips: readonly string[], own: string | undefined): readonly st
 const MonthRoom = lazy(() => import('../budgets/month-room'));
 // Session AV (owner follow-up 1, F-MONEY-SEARCH): the whole money log searched, loaded when its fold opens.
 const MoneySearch = lazy(() => import('./money-search'));
+// Session AV lane 2, round 2 (money; Wallet, Emma): saved entries, subcategory and paid with, the month by method (own chunk).
+const SavedChips = lazy(() => import('./quick-log').then(m => ({default: m.SavedChips})));
+const FormExtras = lazy(() => import('./quick-log').then(m => ({default: m.FormExtras})));
+const MonthExtras = lazy(() => import('./quick-log').then(m => ({default: m.MonthExtras})));
+// Session AV lane 2, round 2 (money; Emma's unusual-transaction alerts): one calm line, with "That's fine" (own chunk).
+const UnusualLine = lazy(() => import('./unusual-line'));
+// Session AV lane 2, round 2 (money; Emma's split and settle, Wallet's lent and borrowed): between you and others (own chunk).
+const ShareFold = lazy(() => import('./people-money').then(m => ({default: m.ShareFold})));
+const PeoplePanel = lazy(() => import('./people-money'));
+// Session AV lane 2, round 2 (money; Wallet's loyalty and club cards): store cards with a barcode for the till (own chunk).
+const StoreCards = lazy(() => import('../store-cards/store-cards'));
+// Session AV lane 2, round 2 (money; Emma's Spaces): a business space with its own records, switched inside Spending.
+import SpaceSwitch, {SpaceSetup, useMoneySpace} from './space-switch';
+import {logSpec, type MoneySpace} from '../../../lib/money-more/spaces';
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
-  const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
+  // Session AV lane 2, round 2: the Showcase always shows Personal; a space change mounts the body afresh on its own records.
+  const {space, ready} = useMoneySpace(), shown: MoneySpace = showcase ? 'personal' : space;
+  if (!ready) return <p className="fine">Loading your spending…</p>;
+  return <>{!showcase && <SpaceSwitch where="spending"/>}<SpendingBody key={shown} showcase={showcase} space={shown}/></>;
+}
+function SpendingBody({showcase = false, space}: {showcase?: boolean; space: MoneySpace}) {
+  const log = useDeviceRecord(space === 'business' ? logSpec('business') : MONEY_LOG), business = space === 'business', today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
   const [kind, setKind] = useState<'expense' | 'income'>('expense'), [amount, setAmount] = useState(''), [category, setCategory] = useState<string>('Food & drink');
   const [note, setNote] = useState(''), [date, setDate] = useState(today), [problem, setProblem] = useState(''), [status, setStatus] = useState('');
   const [budgetDraft, setBudgetDraft] = useState<string | null>(null);
+  // Session AV lane 2 (money): the entry's own marks in the form, and the search fold opened from a category (drill-down).
+  const [paidWith, setPaidWith] = useState<PaidWith | ''>(''), [sub, setSub] = useState('');
+  const [leftOut, setLeftOut] = useState(false), [tax, setTax] = useState(false), [spread, setSpread] = useState(1), [ownDraft, setOwnDraft] = useState(''), [ownNote, setOwnNote] = useState('');
+  const [drill, setDrill] = useState<{category: string; from: string; to: string; n: number} | null>(null), searchFold = useRef<HTMLDetailsElement>(null);
   // Session AK RB (RELEASE_REVIEW_2 R2-8): the entry form and the weekly budget open from their buttons (an empty Wealth
   // showed both forms in full). Once open the entry form stays open for the next entry; a receipt draft opens it.
   const [logging, setLogging] = useState(false), [budgeting, setBudgeting] = useState(false), logButton = useRef<HTMLButtonElement>(null);
@@ -69,13 +99,18 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   const monthTotals = useMemo(() => totals(log.data.entries, month.start, month.end), [log.data.entries, month.start, month.end]);
   // PR-052: an entry being edited in the same form (its amount, category, note and date), or null for a new one.
   const [editing, setEditing] = useState<MoneyEntry | null>(null);
-  const endEdit = () => { setEditing(null); setAmount(''); setNote(''); setDate(today); setLogging(false); requestAnimationFrame(() => logButton.current?.focus()); };
+  const clearMarks = () => { setLeftOut(false); setTax(false); setSpread(1); setPaidWith(''); setSub(''); };
+  /** Session AV lane 2, round 2: the form's subcategory and paid with, on an entry (cleared when the form has none). */
+  const withQuick = (e: MoneyEntry): MoneyEntry => { const {sub: _s, paidWith: _p, ...rest} = e; void _s; void _p; return {...rest, ...(sub && e.kind === 'expense' ? {sub} : {}), ...(paidWith ? {paidWith} : {})}; };
+  const endEdit = () => { setEditing(null); setAmount(''); setNote(''); setDate(today); clearMarks(); setLogging(false); requestAnimationFrame(() => logButton.current?.focus()); };
   const [searching, setSearching] = useState(false);
-  const startEdit = (entry: MoneyEntry) => { setEditing(entry); setKind(entry.kind); setAmount(entry.amount); setCategory(entry.category); setNote(entry.note ?? ''); setDate(entry.date); setProblem(''); setStatus(''); setLogging(true); requestAnimationFrame(() => amountField.current?.focus()); };
+  const startEdit = (entry: MoneyEntry) => { setEditing(entry); setKind(entry.kind); setAmount(entry.amount); setCategory(entry.category); setNote(entry.note ?? ''); setDate(entry.date); setLeftOut(!!entry.excluded); setTax(!!entry.taxDeductible); setSpread(entry.spread ?? 1); setPaidWith(entry.paidWith ?? ''); setSub(entry.sub ?? ''); setProblem(''); setStatus(''); setLogging(true); requestAnimationFrame(() => amountField.current?.focus()); };
   const saveEdit = (entry: MoneyEntry) => {
     const checked = checkMoneyEdit(entry, {amount, category, note, date}, today);
     if (!checked.ok) return setProblem(checked.problem);
-    void changeWithUndo(log.update, current => replaceEntry(current, checked.entry), 'Saved.', {undone: 'Edit undone.', undoLabel: `Undo the edit to ${checked.entry.category}`})
+    // Session AV lane 2 (money): what changed goes into the entry's history (by you), with its marks.
+    const at = new Date().toISOString(), marked = withMarks(changesBetween(entry, withQuick(checked.entry), 'you', at), {excluded: leftOut, taxDeductible: tax, spread: entry.kind === 'expense' ? spread : null}, at);
+    void changeWithUndo(log.update, current => replaceEntry(current, marked), 'Saved.', {undone: 'Edit undone.', undoLabel: `Undo the edit to ${checked.entry.category}`})
       .then(() => { endEdit(); setStatus('Saved.'); }, () => setProblem('This could not be saved on this device. Nothing was changed.'));
   };
   const save = (event: FormEvent) => {
@@ -84,11 +119,12 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     const checked = checkMoneyForm({amount, date, today});
     if (!checked.ok) return setProblem(checked.problem);
     const value = checked.amount;
-    const typed: MoneyEntry = {id: crypto.randomUUID(), kind, amount: value, currency: chosen, category, ...(note.trim() ? {note: note.trim().slice(0, 200)} : {}), date, createdAt: new Date().toISOString(), source: 'form'};
+    const typed: MoneyEntry = {id: crypto.randomUUID(), kind, amount: value, currency: chosen, category, ...(note.trim() ? {note: note.trim().slice(0, 200)} : {}), date, createdAt: new Date().toISOString(), source: 'form',
+      ...(leftOut ? {excluded: true as const} : {}), ...(tax ? {taxDeductible: true as const} : {}), ...(kind === 'expense' && spread >= 2 ? {spread} : {}), ...(kind === 'expense' && sub ? {sub} : {}), ...(paidWith ? {paidWith} : {})};
     // Session AK (lane M, item 1): the person's rules run on a new entry too (first match wins); the status names it.
     const ruled = applyRules([typed], rules.data.rules), entry = ruled.entries[0]!, byRule = ruled.changes.length > 0;
     try { log.update(current => addEntry(current, entry)); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
-    setAmount(''); setNote(''); setStatus(`${kind === 'expense' ? 'Spent' : 'Received'} ${money(Math.round(Number(value) * 100), chosen)} · ${entry.category} · saved${byRule ? ' (set by one of your rules)' : ''}.`);
+    setAmount(''); setNote(''); clearMarks(); setStatus(`${kind === 'expense' ? 'Spent' : 'Received'} ${money(Math.round(Number(value) * 100), chosen)} · ${categoryPath(entry)} · saved${byRule ? ' (set by one of your rules)' : ''}.`);
   };
   // Session AL (3e): the one Undo toast; its restore puts the entry back in the LATEST money log (removeWithUndo).
   const remove = (entry: MoneyEntry) => { setStatus(''); void removeWithUndo(log.update, current => removeEntry(current, entry.id), `Removed: ${entry.category} ${money(Math.round(Number(entry.amount) * 100), entry.currency)}.`, 'Put back.').catch(() => setStatus('This could not be removed on this device.')); };
@@ -100,7 +136,12 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     log.update(current => ({...current, budget: {weekly: value, currency: chosen}})); setBudgetDraft(null); setBudgeting(false); setStatus(`Weekly budget set: ${money(Math.round(Number(value) * 100), chosen)}.`);
   };
   const share = room ? Math.max(0, Math.min(1, room.spent / Math.max(1, room.budget))) : 0, r = 46, circumference = 2 * Math.PI * r;
-  const categories = kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+  const categories = useMemo(() => categoryChoices(log.data, kind), [log.data, kind]);
+  const addOwn = () => { setOwnNote(''); try { const name = ownDraft.trim().replace(/\s+/g, ' '); log.update(current => addOwnCategory(current, kind, name)); setCategory(name); setOwnDraft(''); setOwnNote(`${name} added to your categories.`); } catch (e) { setOwnNote(e instanceof Error ? e.message : 'This could not be saved on this device.'); } };
+  const removeOwn = (name: string) => { try { log.update(current => removeOwnCategory(current, kind, name)); if (category === name) setCategory(categories[0]!); setOwnNote(`${name} removed from the choices; entries that use it keep it.`); } catch { setOwnNote('This could not be saved on this device.'); } };
+  const ownList = (kind === 'expense' ? log.data.own?.expense : log.data.own?.income) ?? [];
+  const bulk = (ids: ReadonlySet<string>, action: BulkAction) => { const at = new Date().toISOString(); void changeWithUndo(log.update, current => action.kind === 'category' ? bulkCategory(current, ids, action.category, at) : bulkExcluded(current, ids, action.out, at), action.kind === 'category' ? `${ids.size} moved to ${action.category}.` : action.out ? `${ids.size} left out of the figures.` : `${ids.size} counted again.`, {undone: 'Change undone.', undoLabel: 'Undo the change to the selected entries'}).catch(() => setStatus('This could not be saved on this device. Nothing was changed.')); };
+  const openDrill = (c: string) => { setDrill(d => ({category: c, from: month.start, to: today, n: (d?.n ?? 0) + 1})); if (searchFold.current) searchFold.current.open = true; setSearching(true); requestAnimationFrame(() => searchFold.current?.querySelector<HTMLElement>('summary')?.scrollIntoView({block: 'start'})); };
   // Session AK (#6): the three most used in the last 30 days first, then the usual order (counted, never stored).
   const ordered = useMemo(() => categoriesRecentFirst(log.data.entries, kind, categories, today), [log.data.entries, kind, categories, today]);
   const suggested = useMemo(() => note.trim() ? pastCategory(log.data.entries.filter(e => e.id !== editing?.id), kind, note) : null, [log.data.entries, kind, note, editing?.id]);
@@ -111,10 +152,15 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   // Session AK (#18): this month as a list (as before) or as a map.
   const [monthView, setMonthView] = useState<'list' | 'map'>('list');
   // Session AK (#10): a draft from a receipt photo (Money tools → Receipt photos) fills this form; nothing is saved until Save.
-  const amountField = useRef<HTMLInputElement>(null), noteField = useRef<HTMLInputElement>(null);
+  const amountField = useRef<HTMLInputElement>(null), noteField = useRef<HTMLInputElement>(null), latestEntries = useRef(log.data.entries);
+  useEffect(() => { latestEntries.current = log.data.entries; }, [log.data.entries]);
   useEffect(() => {
     const take = (event: Event) => {
       const d = (event as CustomEvent<MoneyDraft>).detail ?? {};
+      // Session AV lane 2 (money; Monarch): a receipt whose amount and day are already in the log (an imported card payment)
+      // opens that entry instead of drafting a second one.
+      const same = draftAlreadyLogged(latestEntries.current, d);
+      if (same) { setEditing(same); setKind(same.kind); setAmount(same.amount); setCategory(same.category); setNote(same.note ?? ''); setDate(same.date); setLeftOut(!!same.excluded); setTax(!!same.taxDeductible); setSpread(same.spread ?? 1); setPaidWith(same.paidWith ?? ''); setSub(same.sub ?? ''); setProblem(''); setStatus(`This receipt looks like ${(same.note ?? same.category).split(' · ')[0]} on ${formatDate(same.date)}, already in your log (the same amount). It is open below; keep its photo in Receipt photos.`); setLogging(true); requestAnimationFrame(() => amountField.current?.focus()); return; }
       setEditing(null); setKind('expense'); setProblem('');
       if (d.amount) setAmount(d.amount);
       if (d.date) setDate(d.date);
@@ -146,8 +192,9 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
             : <Suspense fallback={<><strong>No weekly budget</strong><span className="fine">Set a weekly budget to see your room to spend.</span></>}><MonthRoom entries={log.data.entries} today={today}/></Suspense>}
         </div>
       </div>
-      {!logging ? <div className="spending-actions"><button ref={logButton} type="button" className="primary" aria-expanded={false} aria-controls={`${id}-log`} onClick={() => setLogging(true)}>Log spending</button></div>
+      {!logging ? <div className="spending-actions"><button ref={logButton} type="button" className="primary" aria-expanded={false} aria-controls={`${id}-log`} onClick={() => setLogging(true)}>Log spending</button>{!showcase && <Suspense fallback={null}><SavedChips update={log.update} today={today} onSaid={setStatus}/></Suspense>}</div>
       : <form className="spending-form" id={`${id}-log`} onSubmit={save} aria-label={editing ? `Edit ${editing.category} ${editing.amount} ${editing.currency} on ${editing.date}` : 'Log spending or income'}>
+        {editing && <EntryHistory entry={editing} other={editing.transfer ? log.data.entries.find(x => x.id === editing.transfer) : undefined} onUntransfer={() => { const ent = editing; void changeWithUndo(log.update, current => setTransfer(current, ent.id, ent.transfer!, false, new Date().toISOString()), 'Counted again: no longer a transfer.', {undone: 'Transfer kept.', undoLabel: 'Undo: keep it a transfer'}).then(() => endEdit(), () => setProblem('This could not be saved on this device.')); }}/>}
         {editing ? <p className="spending-editing">Editing {editing.kind === 'income' ? 'money received' : 'spending'} in {editing.currency}: {editing.category} · {money(Math.round(Number(editing.amount) * 100), editing.currency)} · {formatDate(editing.date)}</p>
         : <div className="spending-kind" role="radiogroup" aria-label="Kind">
           {(['expense', 'income'] as const).map(k => <label key={k} className="spending-chip"><input type="radio" name={`${id}-kind`} checked={kind === k} onChange={() => { setKind(k); setCategory(k === 'expense' ? 'Food & drink' : 'Salary'); }}/><span>{k === 'expense' ? 'Spent' : 'Received'}</span></label>)}
@@ -158,16 +205,30 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
           <label className="field"><span>Date</span><input type="date" value={date} max={today} min="1990-01-01" onChange={e => setDate(e.target.value)}/></label>
         </div>
         <CalcHint value={amount} id={`${id}-calc`}/>
-        <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{withOwn(ordered.chips, editing?.category).map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={category === c} onChange={() => setCategory(c)}/><span>{c}</span></label>)}</fieldset>
+        <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{withOwn(ordered.chips, editing?.category).map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={category === c} onChange={() => { setCategory(c); setSub(''); }}/><span>{c}</span></label>)}</fieldset>
+        <Suspense fallback={null}><FormExtras log={log.data} update={log.update} category={category} sub={sub} setSub={setSub} paidWith={paidWith} setPaidWith={setPaidWith} draft={{kind, amount: readAmount(amount), currency: editing?.currency ?? chosen, note: note.trim()}} editing={!!editing}/></Suspense>
         <label className="field"><span>Note — optional</span><input ref={noteField} maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
         {/* Session AV (owner follow-up 1, F-CATEGORY-SUGGEST): the category this payee or note had before, offered, never chosen for you. */}
         {suggested && suggested.category !== category && <p className="fine spending-suggest" role="status">Before, “{suggested.payee ?? note.trim()}” was {suggested.category}{suggested.times > 1 ? ` (${suggested.times} times)` : ''}. <button type="button" className="text-link" onClick={() => { setCategory(suggested.category); noteField.current?.focus(); /* Session AV (q2 rank 22): the hint goes, so focus returns to the note */ }}>Use {suggested.category}</button></p>}
         <SecretGuard text={note} onRemove={() => setNote('')}/>
+        <details className="spending-own"><summary>Your own categories{ownList.length ? ` (${ownList.length})` : ''}</summary>
+          <p className="fine">Add a category of your own for {kind === 'expense' ? 'spending' : 'money received'}; it is offered here, in budgets and in To review.</p>
+          <div className="spending-own-row"><label className="field"><span>New category</span><input value={ownDraft} maxLength={40} autoComplete="off" placeholder={kind === 'expense' ? 'Pets' : 'Side job'} onChange={e => setOwnDraft(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addOwn(); } }}/></label><button type="button" className="secondary" onClick={addOwn}>Add category</button></div>
+          {ownList.length > 0 && <ul className="spending-own-list">{ownList.map(c => <li key={c}><span>{c}</span><button type="button" className="text-link" aria-label={`Remove ${c} from your categories`} onClick={() => removeOwn(c)}>Remove</button></li>)}</ul>}
+          <p className="fine" role="status">{ownNote}</p>
+        </details>
+        {editing && editing.kind === 'expense' && !showcase && !business && <Suspense fallback={null}><ShareFold key={editing.id} entry={log.data.entries.find(x => x.id === editing.id) ?? editing} log={log.data} update={log.update} onDone={setStatus}/></Suspense>}
+        <fieldset className="spending-marks"><legend className="visually-hidden">Marks</legend>
+          <label className="spending-check"><input type="checkbox" checked={leftOut} onChange={e => setLeftOut(e.target.checked)}/><span>Not part of my spending <span className="fine">(card interest, a refund you passed on: kept in your log, left out of totals and budgets)</span></span></label>
+          <label className="spending-check"><input type="checkbox" checked={tax} onChange={e => setTax(e.target.checked)}/><span>Tax-deductible <span className="fine">(your own mark, to find it later)</span></span></label>
+          {kind === 'expense' && <label className="field spending-spread"><span>Count in budgets over</span><select value={spread} onChange={e => setSpread(Number(e.target.value))}><option value={1}>This month only</option>{[2, 3, 4, 6, 12, 24].map(n => <option key={n} value={n}>{n} months, a {n === 2 ? 'half' : n === 12 ? 'twelfth' : `1/${n}`} each</option>)}</select></label>}
+        </fieldset>
         {problem && <p role="alert">{problem}</p>}
         <div className="spending-form-actions"><button type="submit" className="primary">{editing ? 'Save changes' : 'Save'}</button>{editing ? <button type="button" className="quiet" onClick={() => { setProblem(''); endEdit(); }}>Cancel edit</button> : <button type="button" className="quiet" onClick={() => { setLogging(false); setProblem(''); requestAnimationFrame(() => logButton.current?.focus()); }}>Done</button>}</div>
       </form>}
     </div>
     <p className="spending-status" role="status" aria-live="polite">{status}</p>
+    {!showcase && <Suspense fallback={null}><UnusualLine entries={log.data.entries} today={today} update={log.update} onEdit={startEdit}/></Suspense>}
     <div className="spending-lists">
       <section aria-labelledby={`${id}-week`}>
         <div className="money-select-head"><h3 id={`${id}-week`}>This week</h3>
@@ -179,7 +240,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         </div>
         {weekEntries.length ? <ul className={`spending-entries${selecting ? ' money-selecting' : ''}`} {...(selecting ? {} : weekMore.listProps(weekEntries.length))}>{weekEntries.map(e => <li key={e.id}>
           {selecting && <label className="money-select-check"><input type="checkbox" checked={picked.has(e.id)} onChange={() => togglePick(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
-          <span className="spending-entry-what">{toReview.has(e.id) && <span className="spending-review-dot" title="To review"><span className="visually-hidden">To review: </span></span>}<strong>{e.category}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {e.date}</span></span>
+          <span className="spending-entry-what">{toReview.has(e.id) && <span className="spending-review-dot" title="To review"><span className="visually-hidden">To review: </span></span>}<strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {e.date}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.spread && <span className="money-mark"> · over {e.spread} months</span>}</span>
           <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(Math.round(Number(e.amount) * 100), e.currency)}</span>
           <span className="spending-entry-actions"><button type="button" className="text-link spending-edit" aria-label={`Edit ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => startEdit(e)}>Edit</button><button type="button" className="text-link spending-remove" aria-label={`Remove ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => { if (editing?.id === e.id) endEdit(); remove(e); }}>Remove</button></span>
         </li>)}</ul> : <p className="fine">Nothing logged this week yet.</p>}
@@ -194,13 +255,16 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
           </span>}
         </div>
         {monthView === 'map' && monthCats.length > 0 ? <Suspense fallback={<p className="fine" aria-busy="true">Drawing the map…</p>}><SpendingMap entries={log.data.entries} from={month.start} to={month.end}/></Suspense> : monthCats.length ? <ul className="spending-bars">{monthCats.slice(0, 8).map(c => { const max = monthCats.filter(x => x.currency === c.currency)[0]!.total; return <li key={`${c.currency}-${c.category}`}>
-          <span className="spending-bar-label">{c.category}</span><span className="spending-bar" aria-hidden="true"><span style={{width: `${Math.max(4, Math.round(100 * c.total / max))}%`}}/></span><span className="spending-amount">{money(c.total, c.currency)}</span></li>; })}</ul>
+          <span className="spending-bar-label"><button type="button" className="text-link spending-drill" aria-label={`See this month's ${c.category} entries`} onClick={() => openDrill(c.category)}>{c.category}</button></span><span className="spending-bar" aria-hidden="true"><span style={{width: `${Math.max(4, Math.round(100 * c.total / max))}%`}}/></span><span className="spending-amount">{money(c.total, c.currency)}</span></li>; })}</ul>
           : <p className="fine">No spending logged this month.</p>}
+        <Suspense fallback={null}><MonthExtras entries={log.data.entries} from={month.start} to={month.end}/></Suspense>
         {monthTotals.map(t => <p key={t.currency} className="fine">This month in {t.currency}: spent {money(t.expenses, t.currency)}, received {money(t.income, t.currency)}.</p>)}
       </section>
     </div>
-    {log.data.entries.length > 0 && <details className="money-search-fold" onToggle={e => setSearching((e.currentTarget as HTMLDetailsElement).open)}><summary>Search all your entries</summary>{searching && <Suspense fallback={<p className="fine" aria-busy="true">Opening the search…</p>}><MoneySearch entries={log.data.entries} onEdit={startEdit}/></Suspense>}</details>}
+    {log.data.entries.length > 0 && <details ref={searchFold} className="money-search-fold" onToggle={e => setSearching((e.currentTarget as HTMLDetailsElement).open)}><summary>Search all your entries</summary>{searching && <Suspense fallback={<p className="fine" aria-busy="true">Opening the search…</p>}>{drill && <p className="fine money-drill-note" role="status">{drill.category} this month, from your list above. Select them to change several at once.</p>}<MoneySearch key={drill ? `${drill.category}-${drill.n}` : 'all'} entries={log.data.entries} onEdit={startEdit} onBulk={bulk} categories={categoryChoices(log.data, 'expense')} {...(drill ? {initial: {category: drill.category, from: drill.from, to: drill.to, kind: 'expense' as const}} : {})}/></Suspense>}</details>}
     <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase}/></Suspense>
+    {!showcase && !business && <Suspense fallback={null}><PeoplePanel log={log.data} update={log.update} today={today} currencies={[...new Set([currency, ...CURRENCIES])]}/></Suspense>}
+    {!showcase && !business && <Suspense fallback={null}><StoreCards/></Suspense>}
     {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
     : <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">
       <label className="field"><span>Weekly budget ({chosen}) — leave empty for none</span><input inputMode="decimal" value={budgetDraft ?? (log.data.budget ? fromCents(Math.round(Number(log.data.budget.weekly) * 100)) : '')} onChange={e => setBudgetDraft(e.target.value)} aria-describedby={`${id}-budget-calc`}/></label>
@@ -213,6 +277,18 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     {/* Session AK (lane M): buffer days, To review, Rules, Split an entry and the emergency sheet. */}
     {/* Session AK X1 (verification): while its chunk loads, Money tools says so (aria-busy, as Wealth's later parts do), so
         a reader of the page never takes the page without it for the whole page. */}
-    <Suspense fallback={<div className="money-tools-loading" aria-busy="true" hidden/>}><MoneyTools showcase={showcase}/></Suspense>
+    {business ? <p className="fine">Money tools (To review, rules, receipts, the 60-day forecast) work on your personal space.</p> : <Suspense fallback={<div className="money-tools-loading" aria-busy="true" hidden/>}><MoneyTools showcase={showcase}/></Suspense>}
+    {!showcase && <SpaceSetup/>}
   </div>;
+}
+
+/** Session AV lane 2 (money; Monarch's activity log): what changed on an entry, newest first, and its transfer twin. */
+const FIELD_WORDS: Record<string, string> = {category: 'Category', amount: 'Amount', date: 'Date', note: 'Note', excluded: 'Counting', spread: 'Budgets over', transfer: 'Transfer'};
+const BY_WORDS: Record<string, string> = {you: 'you', rule: 'one of your rules', bulk: 'you, with others at once', import: 'a re-import'};
+function EntryHistory({entry, other, onUntransfer}: {entry: MoneyEntry; other?: MoneyEntry; onUntransfer: () => void}) {
+  const list = [...(entry.history ?? [])].reverse();
+  return <>
+    {entry.transfer && <p className="fine spending-transfer">A transfer{other ? ` with ${(other.note ?? other.category).split(' · ')[0]} (${other.kind === 'income' ? 'in' : 'out'}, ${formatDate(other.date)})` : ''}: both sides are left out of spending and income. <button type="button" className="text-link" onClick={onUntransfer}>Not a transfer</button></p>}
+    {list.length > 0 && <details className="spending-history"><summary>Changes to this entry ({list.length})</summary><ul>{list.map((h, i) => <li key={i}><span className="fine">{formatDate(h.at.slice(0, 10))}</span> · {FIELD_WORDS[h.field] ?? h.field}: {h.from ?? '—'} → {h.to ?? '—'} <span className="fine">(by {BY_WORDS[h.by] ?? h.by})</span></li>)}</ul></details>}
+  </>;
 }

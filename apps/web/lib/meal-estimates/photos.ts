@@ -70,7 +70,7 @@ export async function deleteAllMealPhotos(scope: string): Promise<number> {
  * Session AK (4.2): the file name of a kept meal photo inside Export everything (a food id is made safe for a path).
  * Session AK Part 15 (F9): a short hash of the id itself follows, so ids that read the same once made safe ("a.b" and
  * "a_b", or two long ids alike in their first 80 characters) never share a file name and overwrite each other in the ZIP.
- * Restore does not read meal photos back (Help and docs/PRIVACY.md say so).
+ * Restore puts meal photos back by this name when asked (lib/restore, review b1 #18; Help and docs/PRIVACY.md say so).
  */
 export const mealPhotoFileName = (foodId: string, type: string) => `meal-photos/${foodId.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 80)}-${idHash(foodId)}.${type === 'image/jpeg' ? 'jpg' : 'webp'}`;
 /** 32-bit FNV-1a of the id's UTF-16 code units, as 8 hexadecimal characters. */

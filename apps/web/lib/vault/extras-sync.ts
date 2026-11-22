@@ -2,8 +2,8 @@ import * as z from 'zod';
 import {openRecord, sealRecord, type EncryptedEnvelope, type VaultManifest} from './crypto';
 import {RevisionConflict} from './cloud-sync';
 import {canonical, mergeExtras, same, setOwn} from './extras-merge';
-import {EXTRAS_SECTIONS, type ExtrasRecord, type ExtrasSection, type ExtrasSectionName} from './extras-sections';
-import {EXTRAS_CHOICE_KEY, EXTRAS_OPTIONAL_SECTIONS} from './extras-keys';
+import {ALL_EXTRAS_SECTIONS, EXTRAS_CHOICE_SECTION_LIST, EXTRAS_SECTIONS, type ExtrasRecord, type ExtrasSection, type ExtrasSectionName} from './extras-sections';
+import {EXTRAS_CHOICE_KEY, EXTRAS_CHOICE_SECTIONS, EXTRAS_CHOICE_SECTIONS_FIELD, EXTRAS_OPTIONAL_SECTIONS, type ExtrasChoiceSectionName} from './extras-keys';
 import {announceSyncedDeviceChanges} from './account-data';
 
 /**
@@ -21,15 +21,17 @@ import {announceSyncedDeviceChanges} from './account-data';
  * the merged snapshot is uploaded only when it differs from the cloud's.
  */
 export const EXTRAS_PART_CHARS = 48_000, EXTRAS_MAX_PARTS = 14, EXTRAS_SEALED_MAX = 1_000_000;
-const SECTION_INDEX: Record<ExtrasSectionName, number> = {goals: 0, life: 1, habits: 2, health: 3, checklist: 4, nova: 5};
+// Session AV lane 2 (sync): the chosen sections take the next places (0x4C0 … 0x51F), still apart from every other object.
+const SECTION_INDEX: Record<ExtrasSectionName, number> = {goals: 0, life: 1, habits: 2, health: 3, checklist: 4, nova: 5, journal: 6, money: 7, workouts: 8};
 // Fixed objects, distinct from every vault record (random v4 ids) and from the Portfolio's (0x100 + index).
 const partObject = (section: ExtrasSectionName, index: number) => `00000000-0000-4000-8000-${(0x400 + SECTION_INDEX[section] * 0x20 + index).toString(16).padStart(12, '0')}`;
 // Session AK (8.10, AFL8): the Checklist section, asked for by name (a private-sync that predates it simply never lists it).
 // Session AM (ADR-038 D18): the NOVA section, asked for the same way.
-const sectionName = z.enum(['goals', 'life', 'habits', 'health', 'checklist', 'nova']);
+// Session AV lane 2 (sync): the journal, the money records and the workout log, asked for the same way once chosen.
+const sectionName = z.enum(['goals', 'life', 'habits', 'health', 'checklist', 'nova', 'journal', 'money', 'workouts']);
 const partSchema = z.object({version: z.literal(1), section: sectionName, index: z.number().int().min(0), count: z.number().int().min(1).max(EXTRAS_MAX_PARTS), text: z.string().max(EXTRAS_PART_CHARS)}).strict();
 const headSchema = z.object({revision: z.number().int().min(0), generation: z.number().int().min(0), epoch: z.number().int().min(1).nullable(), parts: z.number().int().min(0).max(16)}).strict();
-export const extrasHeadsSchema = z.object({protocol: z.literal(1), sections: z.object({goals: headSchema, life: headSchema, habits: headSchema, health: headSchema, checklist: headSchema.optional(), nova: headSchema.optional()}).strict()}).strict();
+export const extrasHeadsSchema = z.object({protocol: z.literal(1), sections: z.object({goals: headSchema, life: headSchema, habits: headSchema, health: headSchema, checklist: headSchema.optional(), nova: headSchema.optional(), journal: headSchema.optional(), money: headSchema.optional(), workouts: headSchema.optional()}).strict()}).strict();
 export const extrasSectionCloudSchema = z.object({protocol: z.literal(1), section: sectionName, revision: z.number().int().min(0), generation: z.number().int().min(0), epoch: z.number().int().min(1).nullable(), parts: z.array(z.unknown()).max(16)}).strict();
 export type ExtrasHeads = z.infer<typeof extrasHeadsSchema>;
 export type ExtrasSectionCloud = z.infer<typeof extrasSectionCloudSchema>;
@@ -44,8 +46,9 @@ export const extrasBaseSchema = z.object({version: z.literal(1), vault: z.uuid()
   held: z.literal(true).optional()}).strict();
 export type ExtrasBase = z.infer<typeof extrasBaseSchema>;
 export class ExtrasTooLarge extends Error { constructor(section: string) { super(`Your ${SECTION_LABEL[section as ExtrasSectionName] ?? section} are larger than their encrypted copy can hold (about 1 MB). They stay on this device; nothing was uploaded.`); } }
-export const SECTION_LABEL: Record<ExtrasSectionName, string> = {goals: 'goal extras', life: 'calculator, Life review and Today extras', habits: 'habit extras', health: 'Health extras', checklist: 'Checklist items', nova: 'NOVA requests, pinned widgets and layout'};
+export const SECTION_LABEL: Record<ExtrasSectionName, string> = {goals: 'goal extras', life: 'calculator, Life review and Today extras', habits: 'habit extras', health: 'Health extras', checklist: 'Checklist items', nova: 'NOVA requests, pinned widgets and layout', journal: 'journal entries', money: 'money records', workouts: 'workouts and routines'};
 
+const isRecord = (v: unknown): v is Records => !!v && typeof v === 'object' && !Array.isArray(v);
 /** The canonical text a section is sealed and compared as (sorted keys, so key order never reads as a change). */
 export const sectionText = (records: Records) => canonical({version: 1, records});
 export async function digestOf(text: string) { return [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))].map(v => v.toString(16).padStart(2, '0')).join(''); }
@@ -71,16 +74,50 @@ export async function openSection(key: CryptoKey, manifest: VaultManifest, cloud
 
 /** Where this device keeps its bases (IndexedDB in the app; a map in tests). */
 export type ExtrasBases = {get: (section: ExtrasSectionName) => Promise<ExtrasBase | null>; put: (section: ExtrasSectionName, base: ExtrasBase) => Promise<void>; clear: () => Promise<void>};
-export type ExtrasTransport = {heads: () => Promise<unknown>; read: (section: ExtrasSectionName) => Promise<unknown>; write: (operation: unknown) => Promise<unknown>};
+/** Session AV lane 2 (sync): `heads` names the chosen sections to ask for too (none: the request as before). */
+export type ExtrasTransport = {heads: (chosen?: readonly ExtrasChoiceSectionName[]) => Promise<unknown>; read: (section: ExtrasSectionName) => Promise<unknown>; write: (operation: unknown) => Promise<unknown>};
 
 /** The person's choice on this device (kept in the account's storage). Owner decision 2026-10-13: on unless turned off. */
 export type ExtrasChoice = {enabled: boolean; explained: boolean};
 export function readExtrasChoice(storage: Pick<Storage, 'getItem'>): ExtrasChoice {
   try { const raw = storage.getItem(EXTRAS_CHOICE_KEY); if (raw === null) return {enabled: true, explained: false}; const v = JSON.parse(raw); return {enabled: v?.enabled !== false, explained: v?.explained === true}; } catch { return {enabled: true, explained: false}; }
 }
-export function writeExtrasChoice(storage: Pick<Storage, 'setItem'>, choice: ExtrasChoice) { storage.setItem(EXTRAS_CHOICE_KEY, JSON.stringify({version: 1, enabled: choice.enabled, ...(choice.explained ? {explained: true} : {})})); }
+/**
+ * Session AV lane 2 (sync; TIER 3 (sync)): the record keeps the sections chosen (its optional `sections`) when the
+ * extras' choice is written again; a storage that cannot be read starts it without them.
+ */
+export function writeExtrasChoice(storage: Pick<Storage, 'setItem'> & Partial<Pick<Storage, 'getItem'>>, choice: ExtrasChoice) {
+  const sections = storage.getItem ? chosenField(storage as Pick<Storage, 'getItem'>) : {};
+  storage.setItem(EXTRAS_CHOICE_KEY, JSON.stringify({version: 1, enabled: choice.enabled, ...(choice.explained ? {explained: true} : {}), ...(Object.keys(sections).length ? {[EXTRAS_CHOICE_SECTIONS_FIELD]: sections} : {})}));
+}
+/** The `sections` field as stored: only well-formed names chosen (`true`), a name this build does not know included. */
+function chosenField(storage: Pick<Storage, 'getItem'>): Records {
+  const out: Records = {};
+  try {
+    const raw = storage.getItem(EXTRAS_CHOICE_KEY), v = raw === null ? null : JSON.parse(raw), field = isRecord(v) ? v[EXTRAS_CHOICE_SECTIONS_FIELD] : undefined;
+    if (isRecord(field)) for (const [name, value] of Object.entries(field)) if (/^[a-z][a-z0-9-]{0,31}$/.test(name) && value === true) setOwn(out, name, true);
+  } catch { /* none chosen */ }
+  return out;
+}
+/**
+ * Session AV lane 2 (sync; TIER 3 (sync)): the sections the person chose on this device (EXTRAS_CHOICE_SECTIONS). Off
+ * unless chosen: a missing or unreadable record, and any value but `true`, reads as not chosen.
+ */
+export type ExtrasSectionsChoice = Record<ExtrasChoiceSectionName, boolean>;
+export function readExtrasSectionsChoice(storage: Pick<Storage, 'getItem'>): ExtrasSectionsChoice {
+  const field = chosenField(storage);
+  return Object.fromEntries(EXTRAS_CHOICE_SECTIONS.map(name => [name, field[name] === true])) as ExtrasSectionsChoice;
+}
+/** Chooses one section on this device, or not; the extras' own choice (on, explained) is kept as it is. */
+export function writeExtrasSectionChoice(storage: Pick<Storage, 'getItem' | 'setItem'>, section: ExtrasChoiceSectionName, on: boolean) {
+  const sections = chosenField(storage), choice = readExtrasChoice(storage);
+  if (on) setOwn(sections, section, true); else delete sections[section];
+  storage.setItem(EXTRAS_CHOICE_KEY, JSON.stringify({version: 1, enabled: choice.enabled, ...(choice.explained ? {explained: true} : {}), ...(Object.keys(sections).length ? {[EXTRAS_CHOICE_SECTIONS_FIELD]: sections} : {})}));
+}
+const isChoiceSection = (name: ExtrasSectionName): name is ExtrasChoiceSectionName => (EXTRAS_CHOICE_SECTIONS as readonly string[]).includes(name);
+/** The chosen sections, in protocol order. */
+export const chosenSections = (storage: Pick<Storage, 'getItem'>): ExtrasChoiceSectionName[] => { const choice = readExtrasSectionsChoice(storage); return EXTRAS_CHOICE_SECTIONS.filter(name => choice[name]); };
 
-const isRecord = (v: unknown): v is Records => !!v && typeof v === 'object' && !Array.isArray(v);
 /** Session AM (D18): the fields of an allow-list record that travel, and nothing else; `undefined` when there is no record. */
 function travelling(value: unknown, fields: readonly string[]): Records | undefined {
   if (!isRecord(value)) return undefined;
@@ -184,6 +221,8 @@ export function applySection(storage: Pick<Storage, 'getItem' | 'setItem' | 'rem
 }
 const older = (name: ExtrasSectionName) => `An older or altered encrypted copy of your ${SECTION_LABEL[name]} was refused. Nothing was changed.`;
 export const HEALTH_HELD_NOTE = 'Health was deleted from the cloud, so your Health extras stay on this device until you turn Health sync on again here.';
+/** Session AV lane 2 (sync): a chosen section's cloud copy was removed on another device. */
+export const REMOVED_ELSEWHERE_NOTE = (section: ExtrasSectionName) => `Your ${SECTION_LABEL[section]} were removed from the cloud on another device${section === 'workouts' ? ' (deleting Health from the cloud removes them too)' : ''}, so they stopped syncing here and stay on this device. Tick them again to upload this device's.`;
 /** The person turned Health sync on again on this device: the Health extras may travel again (finding 6). */
 export async function releaseHealthHold(bases: ExtrasBases): Promise<void> {
   const base = await bases.get('health');
@@ -214,6 +253,11 @@ export async function syncSection(input: SyncInput, section: ExtrasSection, head
   // The cloud copy was removed since this device last synced.
   if (base && head.generation !== base.generation) {
     await record({revision: head.revision, generation: head.generation, digest: null, text: null, ...(name === 'health' ? {held: true as const} : {})});
+    // Session AV lane 2 (sync): a chosen section removed from the cloud on another device (by itself, with all the
+    // extras, or the workout log with a Health deletion) stops here too, and this device keeps its records; only choosing
+    // it again here uploads them, so nothing Health-describing travels again without the person's own tick. The rest of
+    // the extras go on.
+    if (isChoiceSection(name)) { writeExtrasSectionChoice(storage, name, false); return {section: name, state: 'deleted', message: REMOVED_ELSEWHERE_NOTE(name)}; }
     return {section: name, state: 'deleted'};
   }
   // Unchanged in the cloud since this device's last sync: upload this device's change, if any.
@@ -267,9 +311,12 @@ export async function syncSection(input: SyncInput, section: ExtrasSection, head
  */
 export const SERVICE_UPDATE_NOTE = (section: ExtrasSectionName) => `Your ${SECTION_LABEL[section]} sync once the sync service is updated. Nothing was changed here.`;
 export async function syncExtras(input: SyncInput & {health: boolean}): Promise<ExtrasOutcome[]> {
-  const heads = extrasHeadsSchema.parse(await input.transport.heads()); input.fence();
+  // Session AV lane 2 (sync): the sections chosen on this device are asked for and synced after the six; one not chosen
+  // is neither asked for nor named in the outcomes, so a device that chose none syncs exactly as before.
+  const chosen = chosenSections(input.storage);
+  const heads = extrasHeadsSchema.parse(await (chosen.length ? input.transport.heads(chosen) : input.transport.heads())); input.fence();
   const outcomes: ExtrasOutcome[] = [];
-  for (const section of EXTRAS_SECTIONS) {
+  for (const section of [...EXTRAS_SECTIONS, ...EXTRAS_CHOICE_SECTION_LIST.filter(s => (chosen as string[]).includes(s.name))]) {
     if (section.consent === 'health' && !input.health) { outcomes.push({section: section.name, state: 'skipped'}); continue; }
     // Session AK (AFL8): a private-sync that predates an optional section never lists it; that section waits, untouched.
     const first = heads.sections[section.name];
@@ -278,7 +325,7 @@ export async function syncExtras(input: SyncInput & {health: boolean}): Promise<
       try { outcomes.push(await syncSection(input, section, first)); }
       catch (error) {
         if (!(error instanceof RevisionConflict)) throw error;
-        const again = extrasHeadsSchema.parse(await input.transport.heads()); input.fence();
+        const again = extrasHeadsSchema.parse(await (chosen.length ? input.transport.heads(chosen) : input.transport.heads())); input.fence();
         const head = again.sections[section.name]; if (!head) throw Error(SERVICE_UPDATE_NOTE(section.name));
         outcomes.push(await syncSection(input, section, head));
       }
@@ -291,17 +338,38 @@ export async function syncExtras(input: SyncInput & {health: boolean}): Promise<
   return outcomes;
 }
 
-/** "Remove from the cloud": deletes every extras section (each counts a deletion); this device stops syncing them. */
+/**
+ * "Remove from the cloud": deletes every extras section (each counts a deletion); this device stops syncing them.
+ * Session AV lane 2 (sync): the chosen sections' copies are asked for and deleted too, chosen here or not (another
+ * device may have uploaded them), and this device's choices of them are turned off.
+ */
 export async function deleteExtrasCopies({transport, manifest, storage, bases, fence}: Omit<SyncInput, 'key'>) {
-  const heads = extrasHeadsSchema.parse(await transport.heads()); fence();
-  for (const section of EXTRAS_SECTIONS) {
+  const heads = extrasHeadsSchema.parse(await transport.heads(EXTRAS_CHOICE_SECTIONS)); fence();
+  for (const section of ALL_EXTRAS_SECTIONS) {
     const head = heads.sections[section.name];
     if (!head || (!head.parts && head.revision === 0)) continue;
     await transport.write({protocol: 1, action: 'delete', vault: manifest.vault, operation: crypto.randomUUID(), section: section.name, base: head.revision, generation: head.generation}); fence();
   }
   writeExtrasChoice(storage, {...readExtrasChoice(storage), enabled: false});
+  for (const name of chosenSections(storage)) writeExtrasSectionChoice(storage, name, false);
   await bases.clear();
 }
+/**
+ * Session AV lane 2 (sync; TIER 3 (sync)): "Remove my journal (money records, workout log) from the cloud": deletes that
+ * one chosen section (it counts a deletion, so every other device stops syncing it and keeps its own records), turns its
+ * choice off here and forgets its base. The other extras go on.
+ */
+export async function deleteExtrasSection({transport, manifest, storage, bases, fence}: Omit<SyncInput, 'key'>, name: ExtrasChoiceSectionName) {
+  const heads = extrasHeadsSchema.parse(await transport.heads([name])); fence();
+  const head = heads.sections[name];
+  writeExtrasSectionChoice(storage, name, false);
+  if (!head || (!head.parts && head.revision === 0)) return;
+  const answer = z.object({revision: z.number().int().min(0), generation: z.number().int().min(0)}).passthrough().parse(await transport.write({protocol: 1, action: 'delete', vault: manifest.vault, operation: crypto.randomUUID(), section: name, base: head.revision, generation: head.generation})); fence();
+  // This device's base follows the deletion, so choosing the section again uploads this device's records (it is not read
+  // as a deletion made elsewhere).
+  await bases.put(name, extrasBaseSchema.parse({version: 1, vault: manifest.vault, revision: answer.revision, generation: answer.generation, digest: null, text: null}));
+}
+export {stopsExtras} from './extras-keys';
 
 /**
  * The heads request's query: every optional section asked for by name, each as its own `with` (Session AM, ADR-038 A6).
@@ -310,11 +378,13 @@ export async function deleteExtrasCopies({transport, manifest, storage, bases, f
  * (the four sections and the Checklist), and NOVA is simply not listed. One name per `with`, never a list in one value.
  */
 export const EXTRAS_HEADS_QUERY = EXTRAS_OPTIONAL_SECTIONS.map(name => `&with=${name}`).join('');
+/** Session AV lane 2 (sync): the chosen sections follow, one `with` each, in protocol order; none chosen, the query above unchanged. */
+export const extrasHeadsQuery = (chosen: readonly ExtrasChoiceSectionName[] = []) => EXTRAS_HEADS_QUERY + EXTRAS_CHOICE_SECTIONS.filter(name => chosen.includes(name)).map(name => `&with=${name}`).join('');
 /** The relay's extras calls (lib/server/private-account.ts), with the vault transport's errors. */
 export function extrasTransport(account: string, fence: () => void): ExtrasTransport {
-  async function request(query: string | null, operation?: unknown, heads = false) {
+  async function request(query: string | null, operation?: unknown, heads: readonly ExtrasChoiceSectionName[] | false = false) {
     fence();
-    const response = await fetch('/api/private-account' + (operation ? '' : `?action=extras${query ? `&section=${query}` : heads ? EXTRAS_HEADS_QUERY : ''}`), {method: operation ? 'POST' : 'GET', headers: {'X-Zigoals-Account': account, ...(operation ? {'Content-Type': 'application/json'} : {})}, ...(operation ? {body: JSON.stringify({action: 'extras', operation})} : {}), cache: 'no-store', signal: AbortSignal.timeout(20000)});
+    const response = await fetch('/api/private-account' + (operation ? '' : `?action=extras${query ? `&section=${query}` : heads ? extrasHeadsQuery(heads) : ''}`), {method: operation ? 'POST' : 'GET', headers: {'X-Zigoals-Account': account, ...(operation ? {'Content-Type': 'application/json'} : {})}, ...(operation ? {body: JSON.stringify({action: 'extras', operation})} : {}), cache: 'no-store', signal: AbortSignal.timeout(20000)});
     const text = await response.text(); if (text.length > (operation ? 32768 : 1_100_000)) throw Error('Sync response exceeds capacity.'); fence();
     const data = JSON.parse(text);
     if (!response.ok) {
@@ -323,7 +393,7 @@ export function extrasTransport(account: string, fence: () => void): ExtrasTrans
     }
     return data;
   }
-  return {heads: () => request(null, undefined, true), read: section => request(section), write: operation => request(null, operation)};
+  return {heads: chosen => request(null, undefined, chosen ?? []), read: section => request(section), write: operation => request(null, operation)};
 }
 
 /** This device's bases in IndexedDB (`zigoals-extras-sync-v1`), per account. */

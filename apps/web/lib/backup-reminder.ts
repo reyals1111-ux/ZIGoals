@@ -16,7 +16,15 @@ const day = z.iso.date();
 export const backupReminderSchema = z.looseObject({version: z.literal(1), savedOn: day.optional(), askedOn: day.optional(), off: z.boolean().optional(),
   countAt: z.number().int().min(0).max(10_000_000).optional(), remindedOn: day.optional(),
   persistAskedOn: day.optional(), persistResult: z.enum(['kept', 'not-kept', 'unsupported', 'error']).optional(),
-  iosNoteDoneOn: day.optional(), iosNoteLaterOn: day.optional(), restoreOfferDoneOn: day.optional()});
+  iosNoteDoneOn: day.optional(), iosNoteLaterOn: day.optional(), restoreOfferDoneOn: day.optional(),
+  /**
+   * Session AV lane 2 (N6 #193, Loop's automatic backups; TIER 3 (stored format), additive and optional, read on its own:
+   * a value this build cannot read is dropped, never failing the record; older builds keep it untouched): a scheduled copy
+   * of Export everything — how often (`every`), whether it writes into a folder chosen once on this device (`folder`, the
+   * folder's name for display; the folder itself is a browser handle in IndexedDB `zigoals-backup-folder-v1`) or only
+   * reminds, the day of the last copy written there (`lastOn`) and the day the last try could not write (`failedOn`).
+   */
+  schedule: z.looseObject({every: z.enum(['day', 'week', 'month']), folder: z.string().max(200).optional(), lastOn: day.optional(), failedOn: day.optional()}).optional().catch(undefined)});
 export type BackupReminder = z.infer<typeof backupReminderSchema>;
 export const emptyBackupReminder = (): BackupReminder => ({version: 1});
 export const BACKUP_REMINDER: DeviceRecordSpec<BackupReminder> = {key: BACKUP_REMINDER_KEY, schema: backupReminderSchema, empty: emptyBackupReminder};

@@ -2,6 +2,7 @@ import {monthKey, shiftMonth} from '../budgets/engine';
 import {monthOf} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
+import {isCounted} from '../money-log/counted';
 
 /**
  * Session AP (owner-approved): spending pace beside your usual month, pure, one currency at a time. "By the 14th you
@@ -21,6 +22,7 @@ export function spendingPace(entries: readonly MoneyEntry[], currency: string, t
   const sums = new Map<string, number>();
   let thisMonth = 0;
   for (const e of entries) {
+    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.kind !== 'expense' || e.currency !== currency || e.date > today) continue;
     const m = monthKey(e.date);
     if (m === current) { thisMonth += minorUnits(e.amount); continue; }

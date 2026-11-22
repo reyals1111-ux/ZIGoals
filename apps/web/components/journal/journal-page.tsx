@@ -12,7 +12,7 @@ import {patternLine, patterns} from '../../lib/journal/reflect';
 import {wordCount, wordsThisYear, writingStreak} from '../../lib/journal/stats';
 import {JournalCompose} from './journal-compose';
 import {weekLines, weekPattern} from '../../lib/checkin/week';
-import {MOOD_WORDS} from '../../lib/wrap-up/engine';
+import {useMoodLook} from '../mood-look/use-mood-look';
 import {healthGroupIn} from '../../lib/vault/w-homes';
 import {isShown} from '../../lib/pages/visibility';
 import {useHealth} from '../health/use-health';
@@ -51,6 +51,10 @@ const EntryRichText = lazy(() => import('./entry-rich-text'));
 const EntryMedia = lazy(() => import('./entry-media'));
 // Session AV lane 2 (journal; LEDGER #44): Import and export, loaded when its fold opens.
 const JournalFiles = lazy(() => import('./journal-files'));
+// Session AV lane 2 (bodymind-r2; LEDGER #231, Reflectly): a page that is never saved, loaded when its fold opens.
+const WriteItOut = lazy(() => import('./write-it-out'));
+// Session AV lane 2 (bodymind-r2; LEDGER #233, Moodnotes): the thought check with thinking traps, loaded when its fold opens.
+const ThoughtCheck = lazy(() => import('./thought-check'));
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -63,6 +67,8 @@ const dayWords = (day: string) => formatDate(day, {weekday: true, year: false});
 
 export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate();
+  // Session AV lane 2 (LEDGER #178 follow-up): the week's screen-reader line says the mood in the person's own words.
+  const moodWords = useMoodLook().words;
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
   const [query, setQuery] = useState(''), [tag, setTag] = useState<string | null>(null), [dayOpen, setDayOpen] = useState<ReadonlySet<string>>(new Set()), [moreOpen, setMoreOpen] = useState<ReadonlySet<string>>(new Set());
   const tags = useMemo(() => tagCounts(journal.data.entries), [journal.data.entries]);
@@ -115,7 +121,9 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <LoadBoundary quiet><Suspense fallback={null}><OnThisDay entries={journal.data.entries} today={today} energy={energy.data.days} moods={moodDays}/></Suspense></LoadBoundary>
     <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose book={shownBook === 'all' || shownBook === 'main' ? null : shownBook}/>
       {/* Session AK (B2, lane B): the Journal's sibling for longer thoughts — today's note beside what this day holds. */}
-      <p className="fine journal-notes-link">Longer thoughts and ideas go in <Link className="text-link" href="/app/notes?day=today">today&rsquo;s note</Link>, beside what this day holds. There, type <code>[[</code> and a name to link a goal or a habit, for example <code>[[Run a 10k]]</code>.</p></section>
+      <p className="fine journal-notes-link">Longer thoughts and ideas go in <Link className="text-link" href="/app/notes?day=today">today&rsquo;s note</Link>, beside what this day holds. There, type <code>[[</code> and a name to link a goal or a habit, for example <code>[[Run a 10k]]</code>.</p>
+      <JournalFold className="write-it-out-fold" label="Write it out" summary={<>Write it out <span className="fine">· a page that is never saved</span></>}><WriteItOut/></JournalFold>
+      <JournalFold className="thought-check-fold" label="the thought check" summary={<>Check a thought <span className="fine">· thinking traps, as self-reflection</span></>}><ThoughtCheck/></JournalFold></section>
     {/* Session AL (DV-190b, P-DV-124): your entries right after Write, not below every chart */}
     <section className="panel" aria-labelledby="journal-entries"><h2 id="journal-entries">Entries</h2>
       {journal.data.entries.length > 0 && <dl className="journal-stats" aria-label="Your writing">
@@ -171,7 +179,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <span className="journal-week-day">{formatWeekday(`${d.date}T12:00:00Z`, {timeZone: 'UTC'})}</span>
         <span className="journal-week-dot" data-level={d.energy ?? undefined}>{d.energy ?? '·'}</span>
         {healthShown && <span className="journal-week-dot is-mood" data-level={d.mood ?? undefined}>{d.mood ?? '·'}</span>}
-        <span className="sr-only">{/* Session AL fourth pass (DV-190c): a day a screen reader says as words, not "2026-11-02" */}{formatDate(d.date, {weekday: true, year: false})}: {d.energy === null && d.mood === null ? 'no check-in' : [d.energy !== null ? `energy ${d.energy} of 5` : null, d.mood !== null ? `mood ${MOOD_WORDS[d.mood - 1]}` : null].filter(Boolean).join(', ')}</span>
+        <span className="sr-only">{/* Session AL fourth pass (DV-190c): a day a screen reader says as words, not "2026-11-02" */}{formatDate(d.date, {weekday: true, year: false})}: {d.energy === null && d.mood === null ? 'no check-in' : [d.energy !== null ? `energy ${d.energy} of 5` : null, d.mood !== null ? `mood ${moodWords[d.mood - 1]}` : null].filter(Boolean).join(', ')}</span>
       </li>)}</ol>
       {week.shown ? <ul className="journal-week-lines">{weekLines(week).map(line => <li key={line}>{line}</li>)}</ul> : <p className="fine">The week&rsquo;s averages show once 4 of its days have a check-in ({week.rated} so far).</p>}
       <p className="fine">Counted from your own check-ins on this device; never a judgement and not advice.</p>
@@ -193,6 +201,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       <label className="switch-row"><input type="checkbox" checked={journal.data.todayLines === true} onChange={e => journal.update(c => ({...c, todayLines: e.target.checked}))}/> <span>Show the first line of today&rsquo;s entries and memories on Today (off: Today shows counts only)</span></label>
       {/* Session AV lane 2 (journal; LEDGER #176, Fabulous): one affirmation a day on Today's journal card, off by default. */}
       <label className="switch-row"><input type="checkbox" checked={journal.data.affirmations === true} onChange={e => journal.update(c => ({...c, affirmations: e.target.checked}))}/> <span>Show a daily affirmation on Today, in the question&rsquo;s language (off by default)</span></label>
+      {/* Session AV lane 2 (bodymind-r2; LEDGER #230, Reflectly): a small daily challenge beside it, off by default, never counted. */}
+      <label className="switch-row"><input type="checkbox" checked={journal.data.challenges === true} onChange={e => journal.update(c => ({...c, challenges: e.target.checked}))}/> <span>Show a small daily challenge on Today, with Done and Another one (off by default; nothing is counted)</span></label>
       <p className="fine">The journal stays on this device and is in Export everything. Turning sharing off keeps every entry here.</p>
     </section>
   </div>;

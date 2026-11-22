@@ -15,10 +15,14 @@ import {RATE_WINDOW_DAYS, weeklyRateOf} from './trend';
  */
 export const KCAL_PER_KG = 7700, ENERGY_WINDOW_DAYS = RATE_WINDOW_DAYS, ENERGY_MIN_LOGGED_DAYS = 14, ENERGY_MIN_WEIGHTS = 10;
 export type EnergyEstimate = {ready: boolean; /** The logs read as incomplete (HE2). */ implausible?: boolean; loggedDays: number; weights: number; expenditure: number | null; low: number | null; high: number | null; meanIntake: number | null; weeklyChangeGrams: number | null; windowDays: number};
-export function energyEstimate(data: HealthData, today: string): EnergyEstimate {
+/**
+ * Session AV lane 2 (food, LEDGER #106; MacroFactor's check-in): `partial` names days the person marked "partly logged";
+ * their intake is left out of the mean (as a day with no entries is). Additive: without it nothing changes.
+ */
+export function energyEstimate(data: HealthData, today: string, partial?: ReadonlySet<string>): EnergyEstimate {
   const first = addLocalDays(today, -(ENERGY_WINDOW_DAYS - 1));
   const intakes: number[] = [];
-  for (let i = 0; i < ENERGY_WINDOW_DAYS; i++) { const date = addLocalDays(first, i); const s = dailyHealthSummary(data, date); if (s.entries > 0 && s.nutrients.kcal !== null) intakes.push(s.nutrients.kcal); }
+  for (let i = 0; i < ENERGY_WINDOW_DAYS; i++) { const date = addLocalDays(first, i); if (partial?.has(date)) continue; const s = dailyHealthSummary(data, date); if (s.entries > 0 && s.nutrients.kcal !== null) intakes.push(s.nutrients.kcal); }
   const weights = data.weights.filter(w => w.date >= first && w.date <= today).length;
   const rate = weeklyRateOf(data.weights, today);
   const ready = intakes.length >= ENERGY_MIN_LOGGED_DAYS && weights >= ENERGY_MIN_WEIGHTS && rate !== null;

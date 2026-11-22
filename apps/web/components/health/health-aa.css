@@ -280,6 +280,11 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .health-meal-names { margin-top: 16px; }
 .health-meal-names > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
 .health-meal-name-row { margin-top: 12px; }
+/* Session AV lane 2 (food, LEDGER #197): an extra meal's section — "Save this meal" in its heading, and its teaching empty state. */
+.health-extra-save { min-height: 44px; }
+.health-extra-empty { display: grid; gap: 8px; justify-items: start; }
+.health-extra-empty p { margin: 0; font-size: .875rem; }
+.health-extra-empty button { min-height: 44px; }
 .import-warnings ul { padding-left: 20px; }
 
 /* Session AL: the lanes' later rules sit above the AK G3 block, so that block stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
@@ -350,3 +355,5 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .health-repeat-days .checkbox { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
 /* Session AV (F-NUTRIENT-RANGE): the nutrient report's own dates. */
 .nutrient-range { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+/* Session AV lane 2 (food; q3 #29): the days one "Repeat on" planned, as one group. */
+.health-plan-group summary { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; cursor: pointer; }

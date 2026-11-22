@@ -22,6 +22,9 @@ import {MONEY_RULES} from '../../lib/money-rules/schema';
 import {applyRules} from '../../lib/money-rules/engine';
 import {loggedWithRules, ruleHint} from '../../lib/money-rules/imports';
 import {MONEY_REVIEW, markForReview} from '../../lib/money-review/review';
+// Session AV lane 2 (rest, LEDGER #142): a re-imported CSV row the bank changed updates its entry instead of adding one.
+import {applyReimport, changedCsvRows, putBackEntries} from '../../lib/bankfiles/reimport';
+import type {MoneyEntry} from '../../lib/money-log/schema';
 
 const OPTIONS: SetupOptions = {fields: HOLDINGS_FIELDS, numberFields: ['quantity', 'value']};
 const REQUIRED = ['name', 'currency'];
@@ -122,10 +125,14 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
   const [picked, setPicked] = useState<ReadonlySet<number> | null>(null), [error, setError] = useState(''), [app, setApp] = useState<MoneyAppExport | null>(null);
   // Session AV (L-6): categories changed in the preview, by file row.
   const [categories, setCategories] = useState<ReadonlyMap<number, string>>(new Map());
-  const [done, setDone] = useState<{added: number; refused: RefusedRow[]; ids: ReadonlySet<string>; undone?: boolean} | null>(null);
+  const [done, setDone] = useState<{added: number; refused: RefusedRow[]; ids: ReadonlySet<string>; updated: readonly MoneyEntry[]; undone?: boolean} | null>(null);
+  const [updateChanged, setUpdateChanged] = useState(true);
   const plan = useMemo(() => setup ? planMoneyRows({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, currency, positiveIsOut: app?.positiveIsOut}) : null, [setup, currency, app]);
   const logged = useMemo(() => new Set(plan && log.loaded ? plan.transactions.filter(t => alreadyLogged(t, log.data) || loggedWithRules(t, log.data, rules.data.rules)).map(t => t.index) : []), [plan, log.loaded, log.data, rules.data.rules]);
-  const included = picked ?? new Set(plan?.transactions.filter(t => !t.duplicate && !logged.has(t.index)).map(t => t.index) ?? []);
+  const changed = useMemo(() => plan && log.loaded ? changedCsvRows(plan.transactions, log.data, logged) : [], [plan, log.loaded, log.data, logged]), changedAt = new Map(changed.map(c => [c.t.index, c]));
+  const included = picked ?? new Set(plan?.transactions.filter(t => !t.duplicate && !logged.has(t.index) && !changedAt.has(t.index)).map(t => t.index) ?? []);
+  // A changed row ticked to Add is added as a new entry instead (the person's choice); the others update their entry.
+  const updates = updateChanged ? changed.filter(c => !included.has(c.t.index)) : [];
   const chosen = plan?.transactions.filter(t => included.has(t.index)) ?? [];
   const mappingReady = !!setup && setup.mapping.date !== undefined && ['amount', 'debit', 'credit'].some(f => setup.mapping[f] !== undefined);
   const toggle = (index: number) => setPicked(() => { const next = new Set(included); if (next.has(index)) next.delete(index); else next.add(index); return next; });
@@ -135,24 +142,25 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
       const out = toMoneyEntries(chosen, log.data, new Date(), () => crypto.randomUUID());
       // Session AK (lane M): the rules, first match wins; Session AV (L-6): then the categories chosen in the preview.
       const entries = withChosenCategories(applyRules(out.entries, rules.data.rules).entries, out.indexes, categories);
-      if (entries.length) log.update(current => addEntries(current, entries));
+      const before = log.data.entries.filter(e => updates.some(c => c.entry.id === e.id)), at = new Date().toISOString();
+      if (entries.length || updates.length) log.update(current => applyReimport(entries.length ? addEntries(current, entries) : current, updates, at));
       if (entries.length) try { review.update(r => markForReview(r, entries.map(e => e.id))); } catch { /* the entries are added; only the review mark is missing */ }
-      setDone({added: entries.length, refused: out.refused, ids: new Set(entries.map(e => e.id))});
+      setDone({added: entries.length, refused: out.refused, ids: new Set(entries.map(e => e.id)), updated: before});
     } catch (cause) { setError(plainErrorMessage(cause, 'Nothing was added on this device.')); }
   }
   function undo() {
     if (!done) return;
-    try { log.update(current => removeEntries(current, done.ids)); setDone({...done, undone: true}); }
+    try { log.update(current => putBackEntries(removeEntries(current, done.ids), done.updated)); setDone({...done, undone: true}); }
     catch (cause) { setError(plainErrorMessage(cause, 'The import was not undone.')); }
   }
   if (!log.loaded) return <p className="fine">Loading your money log…</p>;
   if (log.unreadable) return <p role="alert">This device&rsquo;s money log could not be read, so nothing can be added to it now. Its bytes are kept.</p>;
   if (done) return <div className="import-step import-done">
-    <p role="status">{done.undone ? 'The import was undone: the entries it added are removed.' : `${done.added} ${done.added === 1 ? 'entry' : 'entries'} added to your money log${done.refused.length ? `; ${done.refused.length} could not be added (listed below)` : ''}.`}</p>
+    <p role="status">{done.undone ? `The import was undone: the entries it added are removed${done.updated.length ? ' and the ones it updated are as they were' : ''}.` : `${done.added} ${done.added === 1 ? 'entry' : 'entries'} added to your money log${done.updated.length ? `, ${done.updated.length} updated` : ''}${done.refused.length ? `; ${done.refused.length} could not be added (listed below)` : ''}.`}</p>
     {!done.undone && done.added > 0 && <p className="fine">They are listed under Money tools → To review on Wealth → Spending, so you can check their categories.</p>}
     {!done.undone && done.refused.length > 0 && <RefusedRows refused={done.refused.map(r => ({row: r.index, reason: `Row ${r.index}: ${r.reason}`}))}/>}
     {error && <p role="alert">{error}</p>}
-    <div className="actions">{!done.undone && done.added > 0 && <button type="button" className="secondary" onClick={undo}>Undo this import</button>}<button type="button" className="secondary" onClick={onClose}>Done</button></div>
+    <div className="actions">{!done.undone && (done.added > 0 || done.updated.length > 0) && <button type="button" className="secondary" onClick={undo}>Undo this import</button>}<button type="button" className="secondary" onClick={onClose}>Done</button></div>
   </div>;
   return <div className="import-step">
     {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep target="money" fields={MONEY_FIELDS} onFile={f => { try { setSetup(moneySetup(f.text, setApp)); setFile(f); setPicked(null); setCategories(new Map()); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} /><StepActions onBack={onClose} /></>}
@@ -161,7 +169,9 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
       <p className="fine">Choose the Date and either an Amount column (a minus sign is money out) or Money out and Money in. An &ldquo;In or out&rdquo; column, when the file has one, decides the direction.</p>
     </MappingStep><StepActions onBack={() => setStep(1)} onNext={() => setStep(3)} nextDisabled={!mappingReady} disabledReason={setup ? (setup.mapping.date === undefined ? 'Match the Date column to continue.' : 'Match an Amount column, or Money out and Money in, to continue.') : null} /></>}
     {step === 3 && plan && <><StepHeading step={3} title="Preview" />
-      <p className="import-summary" aria-live="polite">{plan.transactions.length} {plan.transactions.length === 1 ? 'row' : 'rows'} read · {chosen.length} ticked · {plan.refused.length} {plan.refused.length === 1 ? 'row' : 'rows'} refused</p>
+      <p className="import-summary" aria-live="polite">{plan.transactions.length} {plan.transactions.length === 1 ? 'row' : 'rows'} read · {chosen.length} ticked{updates.length ? ` · ${updates.length} to update` : ''} · {plan.refused.length} {plan.refused.length === 1 ? 'row' : 'rows'} refused</p>
+      {changed.length > 0 && <div className="notice import-duplicates" role="note" data-import-changed><p>{changed.length === 1 ? '1 row looks like an entry already in your log that changed at your bank' : `${changed.length} rows look like entries already in your log that changed at your bank`} (the same day, a similar payee, an amount close to it). Updating keeps one entry, with what changed in its history.</p>
+        <label className="check"><input type="checkbox" checked={updateChanged} onChange={e => setUpdateChanged(e.target.checked)}/> Update {changed.length === 1 ? 'that entry' : 'those entries'} instead of adding {changed.length === 1 ? 'a new one' : 'new ones'} (recommended)</label></div>}
       {plan.warnings.map(w => <p key={w} className="fine">{w}</p>)}
       {plan.transactions.length > 0 && <div className="bankfile-table-wrap"><table className="bankfile-table">
         <caption className="fine">Ticked rows are added. Possible repeats and rows already in your log start unticked.</caption>
@@ -172,19 +182,19 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
           <td className="bankfile-payee">{t.payee || '—'}{t.description && t.description !== t.payee && <span className="fine"> · {t.description}</span>}</td>
           <td className={t.direction === 'in' ? 'bankfile-in' : undefined}>{t.direction === 'in' ? '+' : '−'}{money(t.amount, t.currency)}</td>
           <td><CategoryPick t={t} guess={previewCategory(t, rules.data.rules)} chosen={categories.get(t.index)} onChoose={c => setCategories(current => new Map(current).set(t.index, c))}/></td>
-          <td className="fine">{t.duplicate ? 'Possible repeat in this file' : logged.has(t.index) ? 'Already in your log' : ruleHint(t, rules.data.rules) ?? ''}</td>
+          <td className="fine">{t.duplicate ? 'Possible repeat in this file' : changedAt.has(t.index) ? (() => { const c = changedAt.get(t.index)!; return `Changed at your bank${c.amount ? ` (was ${money(c.entry.amount, t.currency)})` : ''}${c.note ? ' (payee or note changed)' : ''}${updateChanged && !included.has(t.index) ? ': updates that entry' : ''}`; })() : logged.has(t.index) ? 'Already in your log' : ruleHint(t, rules.data.rules) ?? ''}</td>
         </tr>)}</tbody>
       </table></div>}
       {plan.transactions.length > PREVIEW_ROWS && <p className="fine">The first {PREVIEW_ROWS} rows are shown; the rest are added as ticked.</p>}
       <RefusedRows refused={plan.refused.map(r => ({row: r.index, reason: `Row ${r.index}: ${r.reason}`}))} />
       {plan.transactions.length === 0 && <p role="alert">Nothing to import: every row was refused.</p>}
-      <StepActions onBack={() => setStep(2)} onNext={() => setStep(4)} nextDisabled={chosen.length === 0} disabledReason="Tick at least one row to add." />
+      <StepActions onBack={() => setStep(2)} onNext={() => setStep(4)} nextDisabled={chosen.length === 0 && updates.length === 0} disabledReason="Tick at least one row to add." />
     </>}
     {step === 4 && plan && <><StepHeading step={4} title="Confirm" />
-      <p className="import-summary">{chosen.length} {chosen.length === 1 ? 'entry' : 'entries'} will be added to your money log: {chosen.filter(t => t.direction === 'out').length} spent, {chosen.filter(t => t.direction === 'in').length} received.</p>
+      <p className="import-summary">{chosen.length} {chosen.length === 1 ? 'entry' : 'entries'} will be added to your money log: {chosen.filter(t => t.direction === 'out').length} spent, {chosen.filter(t => t.direction === 'in').length} received.{updates.length ? ` ${updates.length} ${updates.length === 1 ? 'entry changed at your bank is' : 'entries changed at your bank are'} updated.` : ''}</p>
       <p className="fine">Each entry gets the category shown in the preview (read from its payee and note{rules.data.rules.length ? ', then your rules' : ''}, or the one you chose there); you can change any entry afterwards. You can undo this import right after it.</p>
       {error && <p role="alert">{error}</p>}
-      <StepActions onBack={() => setStep(3)} onNext={confirm} nextLabel={`Add ${chosen.length} to my money log`} primary />
+      <StepActions onBack={() => setStep(3)} onNext={confirm} nextLabel={chosen.length ? `Add ${chosen.length} to my money log${updates.length ? `, update ${updates.length}` : ''}` : `Update ${updates.length} in my money log`} primary />
     </>}
   </div>;
 }

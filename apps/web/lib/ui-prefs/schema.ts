@@ -71,10 +71,18 @@ export const uiPrefsSchema = z.looseObject({
    * never synced; exported, restored and erased with the rest of these preferences.
    */
   look: z.looseObject({
-    font: z.enum(['system', 'inter']).optional().catch(undefined),
+    // Session AV lane 2 (N6 #192; TIER 3 (stored format), additive): three more system fonts. Older builds read them as
+    // System (their enum drops the value on read) and keep the group.
+    font: z.enum(['system', 'inter', 'serif', 'rounded', 'mono']).optional().catch(undefined),
     textSize: z.enum(['standard', 'large']).optional().catch(undefined),
     density: z.enum(['comfortable', 'compact']).optional().catch(undefined),
     glow: z.enum(['full', 'soft']).optional().catch(undefined),
+    /**
+     * Session AV lane 2 (LEDGER #34 Notion's high contrast, N6 #191 Loop's pure black; TIER 3 (stored format), additive and
+     * optional): Dark's style, used whenever Dark is on — "black" (Pure black) or "contrast" (High contrast); absent is
+     * Dark as it is. Older builds keep it untouched (the group is loose) and show Dark.
+     */
+    darkStyle: z.enum(['black', 'contrast']).optional().catch(undefined),
   }).optional().catch(undefined),
 });
 export type UiPrefs = z.infer<typeof uiPrefsSchema>;

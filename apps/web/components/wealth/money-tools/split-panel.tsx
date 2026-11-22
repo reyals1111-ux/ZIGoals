@@ -3,12 +3,13 @@ import {useId, useMemo, useState, type FormEvent} from 'react';
 import type {DeviceRecordState} from '../../ai/use-device-record';
 import {addLocalDays, localDate} from '../../../lib/local-date';
 import {formatDate} from '../../../lib/visual-format';
-import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, MAX_PARTS, type MoneyEntry, type MoneyLog} from '../../../lib/money-log/schema';
+import {MAX_PARTS, type MoneyEntry, type MoneyLog} from '../../../lib/money-log/schema';
 import {MIN_SPLIT, evenSplit, fromMinor, isSplit, minorUnits, setSplit, splitIssue, type PartDraft} from '../../../lib/money-split/parts';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {useMoneyGoals} from './use-money-goals';
 import {money} from './format';
 import {parseNumberInput} from '../../../lib/numbers/parse';
+import {categoryChoices} from '../../../lib/money-log/counted';
 
 /**
  * Session AK (lane M, item 22): split one entry into 2 to 5 parts, each with a category and/or a Goal. The parts must add
@@ -45,7 +46,7 @@ export default function SplitPanel({log, onMakeRule}: {log: DeviceRecordState<Mo
     catch (cause) { setProblem(plainErrorMessage(cause, 'Not changed on this device.')); }
   };
   if (!log.loaded) return <p className="fine">Loading…</p>;
-  const categories = entry ? (entry.kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES) : EXPENSE_CATEGORIES;
+  const categories = categoryChoices(log.data, entry?.kind ?? 'expense'); // Session AV lane 2 (money): with the person's own categories
   return <section className="money-panel" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>Split an entry</h4>
     {recent.length ? <label className="field"><span>Entry from the last 90 days</span>

@@ -15,3 +15,23 @@
 .your-scales-suggest { display: flex; flex-wrap: wrap; gap: 6px; }
 .your-scales-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
 .your-scales-fields input { min-height: 44px; min-width: 0; }
+/* Session AV lane 2 (habits; LEDGER #189): each scale's statistics. Theme tokens only. */
+.scale-stats-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.scale-stats { display: grid; gap: 10px; min-width: 0; padding-top: 6px; }
+.scale-stats p, .scale-stats h3 { margin: 0; overflow-wrap: anywhere; }
+.scale-stats-title small { font-weight: 400; color: var(--muted); }
+.scale-stats-pick { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-end; }
+.scale-stats-pick select { min-height: 44px; font-size: 16px; }
+.scale-stats-spans { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.scale-stats-spans legend { font-size: .9375rem; padding: 0 0 4px; }
+.scale-stats-spans label { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+.scale-stats-levels { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.scale-stats-levels li { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(60px, 2fr) auto; gap: 8px; align-items: center; font-size: 1rem; }
+.scale-stats-levels li > span:first-child { overflow-wrap: anywhere; }
+.scale-stats-bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.scale-stats-bar span { display: block; height: 100%; background: var(--cyan); }
+.scale-stats-chart { width: 100%; max-width: 560px; height: auto; }
+.scale-stats-chart text { font-size: 10px; fill: currentColor; }
+.scale-stats-grid { stroke: var(--line); }
+.scale-stats-dot { fill: var(--cyan); }
+@media (forced-colors: active) { .scale-stats-bar span, .scale-stats-dot { background: Highlight; fill: Highlight; } }

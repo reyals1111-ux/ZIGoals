@@ -10,6 +10,8 @@ import {PATTERNS, type BreathingPattern} from '../../../lib/meditation/breathing
 import {mutedNow} from '../../../lib/muted/rule';
 const MutedPanel = lazy(() => import('../../muted/muted-panel'));
 import {customMinutesIssue, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, startRun} from '../../../lib/meditation/timer';
+// Session AV lane 2 (LEDGER #184): your timer presets as one choice, and a session with no set length.
+import {planFromBells, planSummary, startPlannedRun, timerPresetsNow, type TimerPlan, type TimerPreset} from '../../../lib/meditation/presets';
 import {instantAt, wallClock} from '../../../lib/zone-time';
 import type {MeditationStore} from './use-meditation';
 import {zigiSignals} from '../../zigi/bus';
@@ -34,11 +36,28 @@ export function BeginForm({store, onStarted}: {store: MeditationStore; onStarted
   const [kind, setKind] = useState<'timer' | 'breathing'>('timer'), [pattern, setPattern] = useState<BreathingPattern>('box'), [hideOpen, setHideOpen] = useState(false), [hiddenPatterns, setHiddenPatterns] = useState<ReadonlySet<string>>(() => new Set());
   // Read after mount (never on the server), and again when the hide list closes; the first pattern offered is chosen.
   useEffect(() => { const h = mutedNow().breathing; setHiddenPatterns(h); setPattern(current => h.has(current) && h.size < BREATHING_PATTERNS.length ? BREATHING_PATTERNS.find(p => !h.has(p)) ?? current : current); }, [hideOpen]);
-  const [minutes, setMinutes] = useState<number | 'custom'>(kind === 'timer' ? 10 : 3), [custom, setCustom] = useState(''), [mood, setMood] = useState<number | undefined>(), [error, setError] = useState('');
+  const [minutes, setMinutes] = useState<number | 'custom' | 'open'>(kind === 'timer' ? 10 : 3), [custom, setCustom] = useState(''), [mood, setMood] = useState<number | undefined>(), [error, setError] = useState('');
+  const [presets, setPresets] = useState<TimerPreset[]>([]), [presetId, setPresetId] = useState(''), [busy, setBusy] = useState(false);
+  useEffect(() => { setPresets(timerPresetsNow()); }, []);
   const bells = store.meditation.bells ?? {...DEFAULT_BELLS, updatedAt: ''}, form = useFormErrors();
+  const preset = kind === 'timer' ? presets.find(p => p.id === presetId) : undefined;
+  /** A preset (its bells kept beside the run, keyed by its start) or no set length: the run from its plan. */
+  async function beginPlanned(plan: TimerPlan, own: boolean) {
+    // The tap wakes the sound: the start bell now, or (with a moment to settle in) on the audio clock when it ends.
+    if (plan.warmup) void wakeAudio(); else void ring(plan.start, plan.volume);
+    setBusy(true);
+    try {
+      const run = startPlannedRun({now: new Date(), plan, ...(mood !== undefined ? {moodBefore: mood} : {})});
+      if (own) { const {saveRunPlan} = await import('../../../lib/meditation/presets-write'); saveRunPlan(run.run!.startedAt, plan); }
+      store.run.update(() => run);
+    } catch (err) { setError(`This device could not start the session. ${message(err)}`); setBusy(false); return; }
+    onStarted();
+  }
   function begin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); setError(''); form.clear();
-    const chosen = minutes === 'custom' ? Number(custom.trim()) : minutes;
+    if (preset) { void beginPlanned(preset, true); return; }
+    if (kind === 'timer' && minutes === 'open') { void beginPlanned(planFromBells(bells, null), false); return; }
+    const chosen = minutes === 'custom' ? Number(custom.trim()) : minutes === 'open' ? MIN_MINUTES : minutes;
     // Session AO (PR-018): the field says why, at the field (the app's field-error pattern): a session is planned in whole
     // minutes from the one timer minimum (lib/health-timer-rules.ts), since a shorter one would save nothing.
     if (minutes === 'custom' && (!/^\d{1,3}$/.test(custom.trim()) || chosen < MIN_MINUTES || chosen > MAX_MINUTES)) { form.fail({minutes: customMinutesIssue(custom)}); return; }
@@ -53,19 +72,25 @@ export function BeginForm({store, onStarted}: {store: MeditationStore; onStarted
     <fieldset className="meditation-segment"><legend>What would you like to do?</legend>
       {(['timer', 'breathing'] as const).map(k => <label key={k}><input type="radio" name="kind" checked={kind === k} onChange={() => { setKind(k); setMinutes(k === 'timer' ? 10 : 3); }}/><span>{k === 'timer' ? 'Sit with a timer' : 'Breathe with a guide'}</span></label>)}
     </fieldset>
+    {kind === 'timer' && presets.length > 0 && <fieldset className="meditation-segment meditation-presets"><legend>Your presets</legend>
+      <label><input type="radio" name="preset" checked={!preset} onChange={() => setPresetId('')}/><span>No preset</span></label>
+      {presets.map(p => <label key={p.id}><input type="radio" name="preset" checked={presetId === p.id} onChange={() => setPresetId(p.id)}/><span><strong>{p.name}</strong><small>{planSummary(p)}</small></span></label>)}
+    </fieldset>}
     {kind === 'breathing' && <fieldset className="meditation-segment meditation-patterns"><legend>Pattern</legend>
       {BREATHING_PATTERNS.filter(p => p === pattern || hiddenPatterns.size >= BREATHING_PATTERNS.length || !hiddenPatterns.has(p)).map(p => <label key={p}><input type="radio" name="pattern" checked={pattern === p} onChange={() => setPattern(p)}/><span><strong>{PATTERNS[p].label}</strong><small>{PATTERNS[p].summary}</small></span></label>)}
       <details className="muted-fold" onToggle={e => setHideOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Hide a pattern</summary>{hideOpen && <Suspense fallback={null}><MutedPanel kinds={['breathing']} /></Suspense>}</details>
     </fieldset>}
-    <fieldset className="meditation-segment"><legend>How long?</legend>
+    {!preset && <fieldset className="meditation-segment"><legend>How long?</legend>
       {PRESET_MINUTES.map(m => <label key={m}><input type="radio" name="minutes" checked={minutes === m} onChange={() => setMinutes(m)}/><span>{m} min</span></label>)}
       <label><input type="radio" name="minutes" checked={minutes === 'custom'} onChange={() => setMinutes('custom')}/><span>Your own</span></label>
-    </fieldset>
-    {minutes === 'custom' && <><label className="field meditation-custom">Minutes ({MIN_MINUTES}–{MAX_MINUTES})<input {...form.field('minutes')} type="text" inputMode="numeric" autoComplete="off" value={custom} onChange={e => { setCustom(e.target.value); form.clear('minutes'); }}/></label><FieldError {...form.message('minutes')}/></>}
+      {kind === 'timer' && <label><input type="radio" name="minutes" checked={minutes === 'open'} onChange={() => setMinutes('open')}/><span>No set length</span></label>}
+    </fieldset>}
+    {!preset && kind === 'timer' && minutes === 'open' && <p className="fine">The clock counts up until you end the session (at most {MAX_MINUTES / 60} hours).</p>}
+    {!preset && minutes === 'custom' && <><label className="field meditation-custom">Minutes ({MIN_MINUTES}–{MAX_MINUTES})<input {...form.field('minutes')} type="text" inputMode="numeric" autoComplete="off" value={custom} onChange={e => { setCustom(e.target.value); form.clear('minutes'); }}/></label><FieldError {...form.message('minutes')}/></>}
     <MoodPicker legend="How do you feel before? (optional)" value={mood} onChange={setMood}/>
     {kind === 'breathing' && <p className="fine">Breathe gently and comfortably. If you feel dizzy or unwell, stop and breathe normally.</p>}
     {error && <p role="alert">{error}</p>}
-    <button type="submit" className="primary meditation-begin">Begin</button>
+    <button type="submit" className="primary meditation-begin" disabled={busy}>Begin</button>
   </form>;
 }
 

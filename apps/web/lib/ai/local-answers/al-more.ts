@@ -3,7 +3,7 @@ import {text as clean} from '../tools/format';
 import {runTool} from '../tools/registry';
 import type {ToolOk} from '../tools/types';
 import type {LocalReply} from './engine';
-import {amount, dayText} from './words';
+import {amount, dayText, nlDayText} from './words';
 import {MEMORY_CATEGORIES} from '../store/records';
 import {allowHealth, novaEnvInfo, novaHealthClosed} from './nova-env';
 import {taskIntent} from '../../tasks/intent';
@@ -247,7 +247,7 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     if (!recent.length) return {kind: 'answer', text: `${/not read on this path/i.test(String(d.note)) ? say(lang, 'Your workout log is not read on this path, so I can’t say it here (unknown, not none).', 'Je trainingslog wordt hier niet gelezen (onbekend, niet nul).') : say(lang, 'No workout is logged yet.', 'Er is nog geen training gelogd.')} ${say(lang, 'Health → Workouts shows them.', 'Health → Workouts toont ze.')}` + open('workouts'), calls: [r.record]};
     const last = recent[0]!;
     // Session AL fourth pass (L7-4b; Moscow ZP-06, NP-05): the workout's own name, a readable day, minutes with their unit.
-    const name = clean(String(last.workout ?? last.name ?? last.title ?? say(lang, 'a workout', 'een training')), 60), day = last.day ? dayText(String(last.day), env.healthDay.slice(0, 4)) : '';
+    const name = clean(String(last.workout ?? last.name ?? last.title ?? say(lang, 'a workout', 'een training')), 60), day = last.day ? (lang === 'nl' ? nlDayText : dayText)(String(last.day), env.healthDay.slice(0, 4)) : '';
     const week = d.thisWeek ? say(lang, ` This week: ${d.thisWeek.workouts === 1 ? '1 workout' : `${d.thisWeek.workouts} workouts`}, ${d.thisWeek.minutes} min.`, ` Deze week: ${d.thisWeek.workouts} trainingen, ${d.thisWeek.minutes} min.`) : '';
     return {kind: 'answer', text: say(lang, `Your last workout: ${name}${last.type ? ` (${last.type})` : ''}${day ? ` on ${day}` : ''}${last.minutes ? `, ${last.minutes} min` : ''}${last.sets ? `, ${last.sets === 1 ? '1 set' : `${last.sets} sets`}` : ''}.${week}`, `Je laatste training: ${name}${day ? ` op ${day}` : ''}${last.minutes ? `, ${last.minutes} min` : ''}.${week}`), calls: [r.record]};
   }

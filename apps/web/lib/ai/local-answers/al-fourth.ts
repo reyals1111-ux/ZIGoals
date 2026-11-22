@@ -18,7 +18,7 @@ import {amount, plural} from './words';
 import {checklistWeek} from './exact/day';
 import {namesNonGoal} from './exact/lexicon';
 import {PRICE_CHANGE} from './exact/money';
-import {dayWords} from './exact/period';
+import {dayIn, nlDate} from './exact/period';
 import {actionSchema} from '../actions/schema';
 import {memoryCategory} from './al-more';
 import {ADVICE_REPLIES, DO_WITH_LINE, doWithAsk, isMoneyThing} from '../safety-guard';
@@ -143,7 +143,7 @@ export function checklistAnswer(question: string, env: ToolEnv, lang: Lang): Loc
     // in the same day words, with every day whose dots were all lit counted as a perfect orbit.
     const week = checklistWeek(env, lang, q.toLowerCase(), list ? {total: list.total, done: list.done} : null);
     if (week) return {kind: 'answer', text: week.text, calls};
-    const from = addLocalDays(env.checklist.date, -6), kept = days.filter(([d]) => d >= from && d < env.checklist!.date), perfect = kept.filter(([, s]) => s.perfect || (s.total > 0 && s.done >= s.total)).length, day = (d: string) => dayWords(d, env.checklist!.date);
+    const from = addLocalDays(env.checklist.date, -6), kept = days.filter(([d]) => d >= from && d < env.checklist!.date), perfect = kept.filter(([, s]) => s.perfect || (s.total > 0 && s.done >= s.total)).length, day = (d: string) => dayIn(lang, d, env.checklist!.date);
     return {kind: 'answer', text: say(lang, `This week on your Checklist (${kept.length} earlier ${kept.length === 1 ? 'day' : 'days'} kept): ${kept.map(([d, s]) => `${day(d)} ${s.done} of ${s.total}`).join(', ') || 'no earlier day kept yet'}${kept.length ? `; ${plural(perfect, 'perfect orbit')}` : ''}. Today so far: ${list?.done ?? 0} of ${list?.total ?? 0}.`, `Deze week op je Checklist: ${kept.map(([d, s]) => `${day(d)} ${s.done} van ${s.total}`).join(', ') || 'nog geen eerdere dag bewaard'}. Vandaag: ${list?.done ?? 0} van ${list?.total ?? 0}.`), calls};
   }
   if (!list || !list.total) return {kind: 'answer', text: say(lang, `Your Checklist has no dots today yet.${hidden}${healthHidden} Add one with “add … to my checklist”, or open the Checklist.`, `Je Checklist heeft vandaag nog geen stippen.${hidden}${healthHidden}`) + open('checklist'), calls};
@@ -620,7 +620,8 @@ function goalAsk(env: ToolEnv, said: string, q: string, lang: Lang): LocalReply 
   const d = dataOf(r.result), date = d.targetDate && d.targetDate !== 'none' ? d.targetDate : null, projected = typeof d.plan === 'object' && d.plan.projectedCompletion && d.plan.projectedCompletion !== 'unknown' ? d.plan.projectedCompletion : null;
   const head = say(lang, `${clean(goal.name, 60)}: ${money(d.now)} of ${money(d.target)} (${d.progress}); ${money(d.remaining)} to go.`, `${clean(goal.name, 60)}: ${money(d.now)} van ${money(d.target)} (${d.progress}); nog ${money(d.remaining)}.`);
   // Release review AL (RR-4): dates in the goal page's format; the pace forecast is the page's own, said as such.
-  const day = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? formatDate(v.slice(0, 10)) : String(v);
+  // Session AV lane 2 (Dutch dates, R5): the same days the Dutch way in a Dutch answer ("16 apr 2027").
+  const day = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? lang === 'nl' ? nlDate(v.slice(0, 10), null) : formatDate(v.slice(0, 10)) : String(v);
   const when = date ? say(lang, ` Target date: ${day(date)}.`, ` Streefdatum: ${day(date)}.`) : say(lang, ' No target date is set.', ' Er is geen streefdatum.');
   const proj = projected ? say(lang, ` With your plan: about ${day(projected)}.`, ` Met je plan: rond ${day(projected)}.`) : /\bwhen\b/i.test(q) ? say(lang, ' With no plan, there is no projected date (unknown).', ' Zonder plan is er geen verwachte datum.') : '';
   const pace = typeof d.paceForecast === 'object' && d.paceForecast?.state === 'estimate' ? say(lang, ` ${d.paceForecast.headline} (the pace forecast from your recorded progress; an estimate).`, ` In dit tempo: rond ${day(d.paceForecast.date)} (een schatting).`) : '';

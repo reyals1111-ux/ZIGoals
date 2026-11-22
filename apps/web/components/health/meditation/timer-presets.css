@@ -1,0 +1,23 @@
+/* Session AV lane 2 (LEDGER #184): the meditation timer's presets, and the running session's settling-in and count-up
+   lines. Theme variables only; every control is at least 44 px; nothing moves. */
+.timer-presets { display: grid; gap: 12px; padding-top: 8px; min-width: 0; }
+.timer-presets p { margin: 0; overflow-wrap: anywhere; }
+.timer-preset-empty { font-size: 1rem; color: var(--muted); }
+.timer-preset-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.timer-preset-list > li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); min-width: 0; }
+.timer-preset-list > li > div:first-child { display: grid; gap: 4px; min-width: 0; flex: 1 1 220px; }
+.timer-preset-list span, .timer-preset-list small { font-size: .9375rem; color: var(--muted); overflow-wrap: anywhere; }
+.timer-preset-list .actions button, .timer-presets > button, .timer-preset-form button { min-height: 44px; }
+.timer-preset-form { padding: 12px 0 0; border-top: 1px solid var(--line); }
+.timer-preset-sounds { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.timer-preset-sound { display: flex; align-items: flex-end; gap: 8px; min-width: 0; }
+.timer-preset-sound .field { flex: 1 1 auto; min-width: 0; }
+.timer-preset-intervals { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: 10px; }
+.timer-preset-intervals > legend { font-weight: 600; margin-bottom: 6px; font-size: 1rem; }
+.timer-preset-intervals > button { justify-self: start; }
+.timer-preset-interval { margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.timer-preset-interval > legend { padding: 0 4px; font-size: .9375rem; }
+.timer-preset-interval > .actions { grid-column: 1 / -1; }
+@media (forced-colors: active) {
+  .timer-preset-list > li, .timer-preset-interval { border-color: CanvasText; }
+}

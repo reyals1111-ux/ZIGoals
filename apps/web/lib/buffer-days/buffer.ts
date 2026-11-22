@@ -3,6 +3,7 @@ import {balanceOn} from '../accounts/net-worth';
 import type {Accounts, AccountKind} from '../accounts/schema';
 import type {MoneyEntry} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
+import {isCounted} from '../money-log/counted';
 
 /**
  * Session AK (lane M, item 11, COMPETITORS M4): buffer days — how many days the person's cash would cover their usual
@@ -26,7 +27,7 @@ function measure(accounts: Accounts, entries: readonly MoneyEntry[], currency: s
     if (b) { cash += toCents(b.value, b.decimals); withBalance++; } else missing++;
   }
   if (!withBalance) return {currency, known: false, reason: 'no-cash', missingBalances: missing};
-  const mine = entries.filter(e => e.currency === currency && e.date <= day);
+  const mine = entries.filter(e => isCounted(e) && e.currency === currency && e.date <= day);
   const first = mine.reduce<string | null>((m, e) => m === null || e.date < m ? e.date : m, null);
   const from = addLocalDays(day, -(WINDOW_DAYS - 1)), start = first && first > from ? first : from;
   const windowDays = first ? dayDiff(start, day) + 1 : 0;
@@ -52,7 +53,7 @@ export function bufferDays(accounts: Accounts, entries: readonly MoneyEntry[], t
   const cashCurrencies = [...new Set(accounts.items.filter(a => !a.archivedAt && CASH_LIKE.includes(a.kind)).map(a => a.currency))];
   if (!cashCurrencies.length) return [];
   const from = addLocalDays(today, -(WINDOW_DAYS - 1));
-  const spentIn = [...new Set(entries.filter(e => e.kind === 'expense' && e.date >= from && e.date <= today).map(e => e.currency))];
+  const spentIn = [...new Set(entries.filter(e => isCounted(e) && e.kind === 'expense' && e.date >= from && e.date <= today).map(e => e.currency))];
   const currencies = spentIn.length ? spentIn : cashCurrencies;
   const rows: BufferRow[] = currencies.map(currency => {
     const now = measure(accounts, entries, currency, today);

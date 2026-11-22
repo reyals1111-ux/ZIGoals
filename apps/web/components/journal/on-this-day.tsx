@@ -1,7 +1,7 @@
 'use client';
+import {useMoodLook} from '../mood-look/use-mood-look';
 import {useMemo, useState} from 'react';
 import {ENERGY_WORDS} from '../../lib/energy/schema';
-import {MOOD_WORDS} from '../../lib/wrap-up/engine';
 import {formatDate} from '../../lib/visual-format';
 import {onThisDay, preview} from '../../lib/on-this-day/on-this-day';
 import {HIDE_FULL_NOTE, JOURNAL_DISPLAY, hideMemory, hideMemoryFull, onThisDayShown, setOnThisDay} from '../../lib/on-this-day/store';
@@ -17,6 +17,7 @@ type Entry = {id: string; date: string; text: string};
  * Loaded on its own after the Journal page; reads only, writes only the display key on the person's choice.
  */
 export default function OnThisDay({entries, today, energy, moods}: {entries: readonly Entry[]; today: string; energy: Readonly<Record<string, {energy: number}>>; moods: Readonly<Record<string, number>>}) {
+  const moodLook = useMoodLook(); // Session AV lane 2 (LEDGER #178): your own mood words, else ZIGoals'
   const display = useDeviceRecord(JOURNAL_DISPLAY);
   const [open, setOpen] = useState<string | null>(null), [note, setNote] = useState('');
   const items = useMemo(() => onThisDay(entries, today, {hidden: display.data.hidden ?? []}), [entries, today, display.data.hidden]);
@@ -28,7 +29,7 @@ export default function OnThisDay({entries, today, energy, moods}: {entries: rea
     <summary><span className="on-this-day-title">On this day</span> <span className="fine">· {items[0]!.label.toLowerCase()}{items.length > 1 ? ` and ${items.length - 1} more` : ''}</span></summary>
     <ol className="on-this-day-list">{items.map(({entry, label}) => {
       const short = preview(entry.text), full = open === entry.id, e = energy[entry.date]?.energy, m = moods[entry.date];
-      const words = [e ? `Energy: ${ENERGY_WORDS.en[e - 1]}` : null, m ? `Mood: ${MOOD_WORDS[m - 1]}` : null].filter(Boolean).join(' · ');
+      const words = [e ? `Energy: ${ENERGY_WORDS.en[e - 1]}` : null, m ? `Mood: ${moodLook.words[m - 1]}` : null].filter(Boolean).join(' · ');
       return <li key={entry.id}>
         <p className="eyebrow">{label} · {formatDate(entry.date)}</p>
         <p className="on-this-day-text" id={`on-this-day-${entry.id}`}>{full ? entry.text : short.text}</p>

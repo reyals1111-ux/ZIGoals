@@ -14,7 +14,7 @@ import type {LocalReply, ToolCallRecord} from './engine';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
 import {novaAreaClosed, novaHealthClosed, type NovaEnvInfo} from './nova-env';
-import {dayText, goalMoney, nlUnits, plural} from './words';
+import {dayText, goalMoney, nlDayText, nlUnits, plural} from './words';
 
 /**
  * Release review 2 (R2-2): the natural questions people ask NOVA first, answered on this device from the person's own
@@ -90,7 +90,7 @@ function goalsAnswer(env: ToolEnv, lang: Lang): LocalReply {
   const line = (g: Data) => {
     const figures = g.now && g.target && g.now !== 'unknown' && g.target !== 'unknown' ? say(lang, ` — ${money(g.now)} of ${money(g.target)}`, ` — ${money(g.now)} van ${money(g.target)}`) : '';
     const left = g.remaining && !/^0(?:\.0+)? /.test(String(g.remaining)) && g.remaining !== 'unknown' ? say(lang, `, ${money(g.remaining)} to go`, `, nog ${money(g.remaining)} te gaan`) : '';
-    const next = /^\d{4}-\d{2}-\d{2}$/.test(String(g.nextPlannedDate ?? '')) ? say(lang, `; next planned ${dayText(g.nextPlannedDate, year)}`, `; volgende geplande stap ${dayText(g.nextPlannedDate, year)}`) : '';
+    const next = /^\d{4}-\d{2}-\d{2}$/.test(String(g.nextPlannedDate ?? '')) ? say(lang, `; next planned ${dayText(g.nextPlannedDate, year)}`, `; volgende geplande stap ${nlDayText(g.nextPlannedDate, year)}`) : '';
     return `• ${clean(String(g.name), 60)}: ${g.progress && g.progress !== 'unknown' ? g.progress : say(lang, 'progress unknown', 'voortgang onbekend')}${figures}${left}${next}`;
   };
   const head = say(lang, `${plural(active.length, 'active goal')}, from your own records:`, `${active.length} actieve ${active.length === 1 ? 'doel' : 'doelen'}, uit je eigen gegevens:`);
@@ -135,7 +135,7 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
       const tags = (r: Data) => [...(r.priority === 'high' ? [say(lang, 'high', 'hoog')] : []), ...(r.state === 'overdue' ? [say(lang, 'late', 'te laat')] : [])];
       const name = (r: Data) => `${clean(String(r.task), 80)}${r.time ? say(lang, ` at ${formatClock(r.time)}`, ` om ${formatClock(r.time)}`) : ''}${tags(r).length ? ` (${tags(r).join(', ')})` : ''}`;
       if (dueNow.length) { anything = true; lines.push(say(lang, `Tasks due today: ${dueNow.map(name).join(', ')}`, `Taken voor vandaag: ${dueNow.map(name).join(', ')}`)); }
-      if (late.length) { anything = true; lines.push(say(lang, `Still open from earlier: ${late.map(r => `${clean(String(r.task), 80)} (since ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`, `Nog open van eerder: ${late.map(r => `${clean(String(r.task), 80)} (sinds ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`)); }
+      if (late.length) { anything = true; lines.push(say(lang, `Still open from earlier: ${late.map(r => `${clean(String(r.task), 80)} (since ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`, `Nog open van eerder: ${late.map(r => `${clean(String(r.task), 80)} (sinds ${nlDayText(String(r.due), today.slice(0, 4))})`).join(', ')}`)); }
       for (const r of [...dueNow, ...late]) said.add(taskKey(r.task));
       if (!dueNow.length && !late.length) lines.push(say(lang, 'Tasks: none due today.', 'Taken: niets voor vandaag.'));
     }
@@ -147,7 +147,7 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
     const items = ((dataOf(a.result).items ?? []) as Data[]).filter(i => i.kind !== 'habit' && i.state !== 'done' && i.state !== 'skipped' && !(String(i.kind).startsWith('task') && said.has(taskKey(i.what))));
     if (items.length) { anything = true; lines.push(say(lang, `Also planned today: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${i.kind})`).join(', ')}`, `Ook gepland vandaag: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${AGENDA_KIND_NL[i.kind] ?? i.kind})`).join(', ')}`)); }
   }
-  const head = say(lang, `Today (${dayText(today)}), from your own records:`, `Vandaag (${dayText(today)}), uit je eigen gegevens:`);
+  const head = say(lang, `Today (${dayText(today)}), from your own records:`, `Vandaag (${nlDayText(today)}), uit je eigen gegevens:`);
   // Session AL fourth pass (L7-4b; Denver N-025): a habit's own target is shown ("0 of 2 liters"), so the line names what stays out: money.
   const tail = anything ? say(lang, 'Titles, times and habit targets, no money amounts; each item opens where it lives.', 'Titels, tijden en gewoontedoelen, geen geldbedragen; elk item opent waar het staat.') : say(lang, 'Nothing else is due today in your records.', 'Verder staat er vandaag niets in je gegevens.');
   return {kind: 'answer', text: [head, ...lines.map(l => `• ${l}`), tail].join('\n'), calls};

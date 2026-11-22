@@ -32,7 +32,8 @@ export function av2TasksAnswer(question: string, env: ToolEnv, extra: Av2TasksEx
   const a = asked(question, env);
   if (!a || !isQuestion(a)) return null;
   const nova = env.nova as (typeof env.nova & {taskPlan?: TaskPlan | null; taskTemplates?: TaskTemplates | null}) | null | undefined;
-  const ask: Ask = {...a, extra: {plan: extra.plan ?? nova?.taskPlan ?? null, templates: extra.templates ?? nova?.taskTemplates ?? null}};
+  // Review b2a #2: the pay periods reach the pay-period answer (they were dropped here, so it always read calendar months).
+  const ask: Ask = {...a, extra: {plan: extra.plan ?? nova?.taskPlan ?? null, templates: extra.templates ?? nova?.taskTemplates ?? null, periods: extra.periods ?? nova?.budgetPeriods ?? null}};
   for (const one of [payPeriod, noteReminderAnswer, objectives, dailyGoal, spentTime, timers, dayLimit, startEarly, areas, templates]) {
     const r = one(ask);
     if (r) return r;

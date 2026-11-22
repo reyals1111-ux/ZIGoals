@@ -13,6 +13,7 @@ import {historyMoney} from '../cards/net-worth-history';
 import type {WidgetParams} from '../stage/record';
 import type {AxLine} from './ax-lines';
 import type {LineData, LineLang} from './lines';
+import {lineDays, nlShortDate, nlWeekDay} from './nl-dates';
 
 /**
  * Session AS (ADR-042 Part 2): the lines of the answer widgets of this group, each from its widget's own selector
@@ -33,7 +34,7 @@ const PACE_NL: Record<string, string> = {'Ahead of plan': 'voor op schema', 'On 
 
 const ranks = (kind: FlowKind): AxLine => (params, d, lang) => {
   if (!d.moneyLog) return null;
-  const p = period(params, d, 'this-month'), view = categoryRanks(d.moneyLog.entries, kind, p), words = periodWords(p, lang, d.day);
+  const p = period(params, d, 'this-month'), view = categoryRanks(d.moneyLog.entries, kind, p), words = periodWords(p, lang, d.day, lineDays(lang));
   if (view.state === 'empty') return pick(NONE[kind], lang);
   if (view.state === 'quiet') return `${pick(QUIET[kind], lang)} ${words}.`;
   const top = listWords(view.rows.slice(0, 3).map(r => `${r.label} (${r.percent})`), lang);
@@ -52,7 +53,7 @@ export const AX_MONEY_LINES: Readonly<Record<string, AxLine>> = {
   },
   'spending-radar': (params, d, lang) => {
     if (!d.moneyLog) return null;
-    const p = period(params, d, 'this-month'), view = spendingRadar(d.moneyLog.entries, p, d.day), words = periodWords(p, lang, d.day), lead = view.spokes[0];
+    const p = period(params, d, 'this-month'), view = spendingRadar(d.moneyLog.entries, p, d.day), words = periodWords(p, lang, d.day, lineDays(lang)), lead = view.spokes[0];
     if (view.state === 'empty') return pick(NONE.expense, lang);
     if (view.state === 'quiet' || !lead) return `${pick(QUIET.expense, lang)} ${words}.`;
     const before = view.beforeTotal ? say(lang, `${view.beforeTotal} in the period before`, `${view.beforeTotal} in de periode ervoor`) : say(lang, 'nothing logged in the period before', 'in de periode ervoor is niets gelogd');
@@ -69,7 +70,7 @@ export const AX_MONEY_LINES: Readonly<Record<string, AxLine>> = {
     if (!d.bills) return null;
     const view = billGrid(d.bills, d.day), n = view.due.length, next = view.next, sums = listWords(view.totals.map(t => t.text), lang);
     if (view.state === 'empty' || !next) return NO_BILLS(lang);
-    const then = say(lang, `the next is ${next.title} on ${next.date}`, `de eerstvolgende is ${next.title} op ${next.date}`);
+    const then = say(lang, `the next is ${next.title} on ${next.date}`, `de eerstvolgende is ${next.title} op ${nlWeekDay(next.due, d.day)}`);
     return n ? say(lang, `${n} ${n === 1 ? 'bill falls' : 'bills fall'} due in the next ${BILL_DAYS} days (${sums}); ${then}.`, `${n} ${n === 1 ? 'rekening vervalt' : 'rekeningen vervallen'} in de komende ${BILL_DAYS} dagen (${sums}); ${then}.`)
       : say(lang, `No bill falls due in the next ${BILL_DAYS} days; ${then}.`, `Geen rekening vervalt in de komende ${BILL_DAYS} dagen; ${then}.`);
   },
@@ -79,11 +80,11 @@ export const AX_MONEY_LINES: Readonly<Record<string, AxLine>> = {
     if (view.state === 'empty') return pick(NONE.expense, lang);
     if (view.state === 'quiet' || !peak) return say(lang, `Nothing logged as spent in the last ${HEAT_WEEKS} weeks.`, `Niets als uitgegeven gelogd in de afgelopen ${HEAT_WEEKS} weken.`);
     return say(lang, `${view.total} spent in the last ${HEAT_WEEKS} weeks, on ${view.daysWith} of ${view.days} days; the largest day was ${dayWords(peak.date, d.day)} (${peak.text}).`,
-      `${view.total} uitgegeven in de afgelopen ${HEAT_WEEKS} weken, op ${view.daysWith} van ${view.days} dagen; de grootste dag was ${dayWords(peak.date, d.day)} (${peak.text}).`);
+      `${view.total} uitgegeven in de afgelopen ${HEAT_WEEKS} weken, op ${view.daysWith} van ${view.days} dagen; de grootste dag was ${nlWeekDay(peak.date, d.day)} (${peak.text}).`);
   },
   'cash-river': (params, d, lang) => {
     if (!d.moneyLog) return null;
-    const p = period(params, d, 'last-90-days'), view = cashRiver(d.moneyLog.entries, p), words = periodWords(p, lang, d.day), net = view.netCents, cur = view.currency;
+    const p = period(params, d, 'last-90-days'), view = cashRiver(d.moneyLog.entries, p), words = periodWords(p, lang, d.day, lineDays(lang)), net = view.netCents, cur = view.currency;
     if (view.state === 'empty') return say(lang, 'Nothing logged yet.', 'Nog niets gelogd.');
     if (view.state === 'quiet' || !cur) return say(lang, `Nothing logged ${words}.`, `Niets gelogd ${words}.`);
     if (net === null) return view.incomeCents === null ? say(lang, `${view.spending} spent ${words}; no income logged.`, `${view.spending} uitgegeven ${words}; geen inkomsten gelogd.`) : say(lang, `${view.income} came in ${words}; nothing logged as spent.`, `${view.income} binnengekomen ${words}; niets als uitgegeven gelogd.`);
@@ -92,17 +93,17 @@ export const AX_MONEY_LINES: Readonly<Record<string, AxLine>> = {
   },
   'net-worth-river': (params, d, lang) => {
     if (!d.networthHistory) return null;
-    const p = period(params, d, 'last-90-days'), words = periodWords(p, lang, d.day);
+    const p = period(params, d, 'last-90-days'), words = periodWords(p, lang, d.day, lineDays(lang));
     let view: ReturnType<typeof netWorthRiver>;
     try { view = netWorthRiver(d.networthHistory, p, d.day); } catch { return null; }
     const known = view.latestKnown, cur = view.currency ?? '', change = view.change;
     if (view.state === 'empty') return say(lang, 'No day of net worth is recorded yet.', 'Er is nog geen dag vermogen vastgelegd.');
     if (view.state === 'quiet' || !known) return say(lang, `No net worth was recorded ${words}.`, `Er is geen vermogen vastgelegd ${words}.`);
-    const head = say(lang, `Net worth ${historyMoney(known.cents, cur)} on ${dayWords(known.day, d.day)}`, `Nettovermogen ${historyMoney(known.cents, cur)} op ${dayWords(known.day, d.day)}`);
+    const head = say(lang, `Net worth ${historyMoney(known.cents, cur)} on ${dayWords(known.day, d.day)}`, `Nettovermogen ${historyMoney(known.cents, cur)} op ${nlWeekDay(known.day, d.day)}`);
     if (!change) return say(lang, `${head}; one recorded day ${words}, so no change to state.`, `${head}; één vastgelegde dag ${words}, dus nog geen verandering.`);
-    if (change.direction === 'flat') return say(lang, `${head}; no change since ${dayWords(change.since, d.day)}.`, `${head}; geen verandering sinds ${dayWords(change.since, d.day)}.`);
+    if (change.direction === 'flat') return say(lang, `${head}; no change since ${dayWords(change.since, d.day)}.`, `${head}; geen verandering sinds ${nlWeekDay(change.since, d.day)}.`);
     const size = historyMoney(change.cents < 0n ? -change.cents : change.cents, cur), share = change.percent === null ? '' : ` (${formatPercent(Math.abs(change.percent))})`, up = change.direction === 'up';
-    return say(lang, `${head}; ${up ? 'up' : 'down'} ${size}${share} since ${dayWords(change.since, d.day)}.`, `${head}; ${size}${share} ${up ? 'hoger' : 'lager'} dan op ${dayWords(change.since, d.day)}.`);
+    return say(lang, `${head}; ${up ? 'up' : 'down'} ${size}${share} since ${dayWords(change.since, d.day)}.`, `${head}; ${size}${share} ${up ? 'hoger' : 'lager'} dan op ${nlWeekDay(change.since, d.day)}.`);
   },
   'budget-gauges': (_params, d, lang) => {
     if (!d.budgets || !d.moneyLog) return null;
@@ -114,7 +115,7 @@ export const AX_MONEY_LINES: Readonly<Record<string, AxLine>> = {
   },
   'savings-rate': (params, d, lang) => {
     if (!d.moneyLog) return null;
-    const p = period(params, d, 'this-month'), view = savingsRate(d.moneyLog.entries, p), words = periodWords(p, lang, d.day);
+    const p = period(params, d, 'this-month'), view = savingsRate(d.moneyLog.entries, p), words = periodWords(p, lang, d.day, lineDays(lang));
     if (view.state === 'empty') return say(lang, 'Nothing logged yet.', 'Nog niets gelogd.');
     if (view.state === 'no-income') return say(lang, `No income is logged ${words}, so there is no share to state.`, `Er zijn geen inkomsten gelogd ${words}, dus er is geen aandeel te noemen.`);
     if (view.state === 'no-spending' || view.rate === null) return say(lang, `${view.income} came in ${words}; nothing is logged as spent, so there is no share to state.`, `${view.income} binnengekomen ${words}; er is niets als uitgegeven gelogd, dus er is geen aandeel te noemen.`);
@@ -139,7 +140,7 @@ export const AX_MONEY_LINES: Readonly<Record<string, AxLine>> = {
     if (!d.bills) return null;
     const view = billTimeline(d.bills, d.day), next = view.next, rest = view.count - 1;
     if (!next) return NO_BILLS(lang);
-    return say(lang, `Next bill: ${next.title} ${next.amount}, ${next.when} (${next.date})${rest > 0 ? `; ${rest} more after it` : ''}.`, `Volgende rekening: ${next.title} ${next.amount}, ${dueNl(next.days)} (${next.date})${rest > 0 ? `; daarna nog ${rest}` : ''}.`);
+    return say(lang, `Next bill: ${next.title} ${next.amount}, ${next.when} (${next.date})${rest > 0 ? `; ${rest} more after it` : ''}.`, `Volgende rekening: ${next.title} ${next.amount}, ${dueNl(next.days)} (${nlWeekDay(next.due, d.day)})${rest > 0 ? `; daarna nog ${rest}` : ''}.`);
   },
   'goal-dates': (_params, d, lang) => {
     if (!d.goals) return null;
@@ -147,7 +148,7 @@ export const AX_MONEY_LINES: Readonly<Record<string, AxLine>> = {
     if (!d.goals.active) return NO_GOALS(lang);
     if (!view.dated) return say(lang, 'No active goal has a target date.', 'Geen actief doel heeft een streefdatum.');
     if (!next) return say(lang, 'No active goal has a target date ahead.', 'Geen actief doel heeft een streefdatum in de toekomst.');
-    return say(lang, `The next target date is ${next.dateWords}: ${next.name}, ${next.when}.`, `De eerstvolgende streefdatum is ${next.dateWords}: ${next.name}, ${dueNl(next.days)}.`);
+    return say(lang, `The next target date is ${next.dateWords}: ${next.name}, ${next.when}.`, `De eerstvolgende streefdatum is ${nlShortDate(next.date, null)}: ${next.name}, ${dueNl(next.days)}.`);
   },
   'savings-jars': (_params, d, lang) => {
     if (!d.goals) return null;
@@ -160,11 +161,11 @@ export const AX_MONEY_LINES: Readonly<Record<string, AxLine>> = {
     if (!d.bills) return null;
     const next = billDial(d.bills, d.day).next;
     if (!next) return NO_BILLS(lang);
-    return say(lang, `${next.title}: ${next.amount}, due ${next.when} (${next.date}).`, `${next.title}: ${next.amount}, ${dueNl(next.days)} (${next.date}).`);
+    return say(lang, `${next.title}: ${next.amount}, due ${next.when} (${next.date}).`, `${next.title}: ${next.amount}, ${dueNl(next.days)} (${nlWeekDay(next.due, d.day)}).`);
   },
   'spending-compare': (params, d, lang) => {
     if (!d.moneyLog) return null;
-    const kind: FlowKind = params?.ref === 'income' ? 'income' : 'expense', p = period(params, d, 'this-month'), view = spendingCompare(d.moneyLog.entries, kind, p, d.day), words = periodWords(p, lang, d.day), verb = pick(VERB[kind], lang);
+    const kind: FlowKind = params?.ref === 'income' ? 'income' : 'expense', p = period(params, d, 'this-month'), view = spendingCompare(d.moneyLog.entries, kind, p, d.day), words = periodWords(p, lang, d.day, lineDays(lang)), verb = pick(VERB[kind], lang);
     if (view.state === 'empty') return pick(NONE[kind], lang);
     if (view.state === 'quiet' || !view.currency) return `${pick(QUIET[kind], lang)} ${words}.`;
     const before = say(lang, 'in the period before', 'in de periode ervoor'), diff = view.diffCents;

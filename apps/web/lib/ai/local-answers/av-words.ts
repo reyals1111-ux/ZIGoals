@@ -1,9 +1,9 @@
 import {fromCents} from '../../money-log/engine';
-import {formatClock, formatCurrencyAmount, formatMonth, formatNumber} from '../../visual-format';
+import {formatClock, formatCurrencyAmount, formatNumber} from '../../visual-format';
 import type {ToolEnv} from '../tools/env';
 import {HEALTH_CLOSED} from '../tools/format';
 import type {LocalReply, ToolCallRecord} from './engine';
-import {dayWords, nlDay} from './exact/period';
+import {dayIn, monthIn, nlDate, nlDay} from './exact/period';
 import {fold, langOf} from './exact/text';
 import {novaAreaClosed, novaEnvInfo} from './nova-env';
 
@@ -42,15 +42,16 @@ export const isQuestion = (a: Asked) => QUESTION.test(a.f) || /\?\s*$/.test(a.ra
 /** "…, and log one more glass": a question with an action in it is the model's or a card's, never only this answer. */
 export const MIXED = /\b(?:and|then|also|plus|en|dan|ook)\s+(?:please\s+|ook\s+|even\s+)?(?:log|add|track|mark|tick|skip|create|make|set|remind|start|stop|delete|remove|note|save|zet|voeg|noteer|vink|sla|registreer|verwijder|maak|plan)\b/;
 
-const MONTH_NL = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
-export {nlDay};
-/** A day in the answer's language: "Tue, Nov 17" or "di 17 nov". */
-export const dayIn = (lang: Lang, date: string, today: string) => lang === 'nl' ? nlDay(date, today) : dayWords(date, today);
-/** A month key ("2026-10") in words: "Oct 2026" or "oktober 2026". */
-export const monthIn = (lang: Lang, month: string) => lang === 'nl' ? `${MONTH_NL[Number(month.slice(5, 7)) - 1]} ${month.slice(0, 4)}` : formatMonth(month);
+// Session AV lane 2 (Dutch dates, R5): the day and month writers live with the exact answers' (exact/period.ts), so every answer uses the same ones.
+export {nlDay, nlDate, dayIn, monthIn};
 /** A wall clock ("18:30") in the answer's language: the app's own hour cycle in English, 24 hours in Dutch. */
 export const clockIn = (lang: Lang, clock: string) => lang === 'nl' ? clock : formatClock(clock);
 export const money = (amountCents: number, currency: string) => formatCurrencyAmount(fromCents(amountCents), currency);
+/**
+ * Review b2a #6 (as review b1 #16 did for the pay-period answer): money in the answer's language — a Dutch answer writes
+ * it the Dutch way ("€ 40,00"), as it writes its dates; an English answer in the app's display format, as the screens.
+ */
+export const moneyIn = (lang: Lang, amountCents: number, currency: string) => lang === 'nl' ? formatCurrencyAmount(fromCents(amountCents), currency, 'nl-NL') : money(amountCents, currency);
 export const num = (n: number) => formatNumber(n, {maximumFractionDigits: 2});
 export const count = (n: number, lang: Lang, en: [string, string], nl: [string, string]) => `${formatNumber(n)} ${(lang === 'nl' ? nl : en)[n === 1 ? 0 : 1]}`;
 export function list(items: readonly string[], lang: Lang): string {

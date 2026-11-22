@@ -24,7 +24,8 @@ describe('Session AV (F-MOVE-ALERT): a portfolio worth above or below a value', 
     expect(checkPortfolioAlerts(r, () => null, at).fired).toEqual([]);
     expect(checkPortfolioAlerts(r, () => '9999.99', at).fired).toEqual([]);
     const hit = checkPortfolioAlerts(r, () => '10250.456', at);
-    expect(hit.fired.map(f => f.text)).toEqual(['Mine is worth above 10000 EUR: 10250.45 EUR now.']);
+    // Session AV lane 2 (loose ends: amounts through the app's money formatter, as review b2a #7 did for the move alert, deliberate)
+    expect(hit.fired.map(f => f.text)).toEqual(['Mine is worth above €10,000.00: €10,250.45 now.']);
     expect(hit.record.portfolio![0]).toMatchObject({active: false, firedAt: at});
     expect(checkPortfolioAlerts(hit.record, () => '20000', at).fired).toEqual([]);
     expect(priceAlertsSchema.parse(JSON.parse(JSON.stringify(hit.record)))).toEqual(hit.record);
@@ -45,7 +46,9 @@ describe('Session AV (q2 rank 35): portfolio-value alerts on Today', () => {
   it('lists a reached value alert as fresh and a waiting one as waiting, until seen', () => {
     const t = alertsForToday(base);
     expect(t.fresh).toEqual([{id: 'alert_value-0001', line: 'Fictional coins is worth above 30000 USD: 35000 USD now.', firedAt: '2026-11-20T10:00:00.000Z'}]);
-    expect(t.waiting).toEqual([{id: 'alert_value-0002', line: 'Fictional coins worth below 20000 USD'}]);
+    // Session AV lane 2 (loose ends: amounts through the app's money formatter, deliberate). A line already in the fired log
+    // (stored by an older build) is shown as it was written, above.
+    expect(t.waiting).toEqual([{id: 'alert_value-0002', line: 'Fictional coins worth below $20,000.00'}]);
     expect(anyActive(base)).toBe(true);
     expect(alertsForToday(avMarkSeen(base, '2026-11-21T10:00:00.000Z')).fresh).toEqual([]);
     expect(anyActive({...base, portfolio: [base.portfolio[0]!]})).toBe(false);
@@ -57,5 +60,23 @@ describe('Session AV (q2 rank 35): portfolio-value alerts on Today', () => {
     const quote = {base: {network: 'coingecko-coin', denom: 'bitcoin', decimals: 0}, marketRef: {provider: 'coingecko', kind: 'coin', id: 'bitcoin'}, currency: 'USD', price: '70000', priceDecimals: 0, source: 'CoinGecko', providerAssetId: 'bitcoin', observedAt: at, fetchedAt: at, verification: 'VERIFIED'} as never;
     expect(portfolioValueNow(portfolio, [quote], now)).toBe('35000');
     expect(portfolioValueNow(portfolio, [], now)).toBeNull();
+  });
+});
+
+// Session AV lane 2 (loose ends): the portfolio value alert writes money as the rest of the app does, in the display
+// locale; an unknown code keeps its own name after the exact number.
+describe('Session AV lane 2 (loose ends): portfolio value alert amounts', () => {
+  it('writes the value and the value now with the money formatter, in English and Dutch', async () => {
+    const {checkPortfolioAlerts, portfolioAlertLine} = await import('./engine');
+    const {emptyPriceAlerts} = await import('./schema');
+    const {setDisplayLocale} = await import('../visual-format');
+    const alert = {id: 'alert_portfolio-0009', portfolioId: 'p', portfolioName: 'Mine', currency: 'EUR' as const, direction: 'below' as const, value: '2500.5', createdAt: '2026-11-23T10:00:00.000Z', active: true};
+    const r = {...emptyPriceAlerts(), portfolio: [alert]};
+    try {
+      expect(portfolioAlertLine(alert)).toBe('Mine worth below €2,500.50');
+      expect(checkPortfolioAlerts(r, () => '1999.999', '2026-11-23T10:00:00.000Z').fired.map(f => f.text)).toEqual(['Mine is worth below €2,500.50: €1,999.99 now.']);
+      setDisplayLocale('nl-NL');
+      expect(portfolioAlertLine(alert)).toBe('Mine worth below €\u00a02.500,50');
+    } finally { setDisplayLocale('en-US'); }
   });
 });

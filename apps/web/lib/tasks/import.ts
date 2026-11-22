@@ -1,5 +1,6 @@
 import {csvSafeCell} from '../export/csv-safe';
 import {parseTaskLine} from './parse';
+import {looksLikeAsana, looksLikeTrello, readAsanaCsv, readTrelloJson} from './import-boards';
 import {describeRecur} from './recurrence';
 import {MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, TASK_CLOCK, TASK_NOTES_MAX, TASK_TITLE_MAX, LABEL_PATTERN, levelFields, taskLevel, tasksSchema, type Recur, type Task, type TaskLevel, type Tasks} from './schema';
 
@@ -11,7 +12,8 @@ import {MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, TASK_CLOCK, TASK_NOTES_MAX, TASK_
  */
 export const MAX_IMPORT_BYTES = 2_000_000;
 export type ImportedTask = {ref: string; parentRef?: string; title: string; level?: TaskLevel; due?: string; time?: string; recur?: Recur; labels?: string[]; notes?: string; project?: string; section?: string; done?: boolean};
-export type ImportPlan = {source: 'todoist' | 'ticktick' | 'ics'; tasks: ImportedTask[]; skipped: {done: number; unreadable: number; notes: number}; projects: string[]};
+/** Session AV lane 2 (tasks-r2, LEDGER #227): also Trello's board JSON and Asana's CSV (lib/tasks/import-boards.ts), which count archived cards and the people left out. */
+export type ImportPlan = {source: 'todoist' | 'ticktick' | 'ics' | 'trello' | 'asana'; tasks: ImportedTask[]; skipped: {done: number; unreadable: number; notes: number; archived?: number; people?: number}; projects: string[]};
 
 /** RFC 4180 rows: quoted cells, doubled quotes, line breaks inside quotes; a BOM is dropped. */
 export function readCsv(text: string): string[][] {
@@ -145,13 +147,16 @@ export function readIcsTodos(text: string, {includeDone = false}: {includeDone?:
   return plan;
 }
 /** Which reader a file needs, by its name and first lines. */
-export function readTaskFile(text: string, {fileName, today}: {fileName: string; today: string}): ImportPlan {
+export function readTaskFile(text: string, {fileName, today, zone = 'UTC'}: {fileName: string; today: string; zone?: string}): ImportPlan {
   if (text.length > MAX_IMPORT_BYTES) throw new Error('This file is over 2 MB, more than ZIGoals reads.');
   if (/BEGIN:VCALENDAR/i.test(text.slice(0, 2000))) return readIcsTodos(text);
+  // Session AV lane 2 (tasks-r2, LEDGER #227): Trello's board export and Asana's project CSV.
+  if (looksLikeTrello(text)) return readTrelloJson(text, {zone});
+  if (looksLikeAsana(text)) return readAsanaCsv(text, {project: fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim().slice(0, 60) || undefined});
   const first = text.slice(0, 4000);
   if (/"?TYPE"?\s*,\s*"?CONTENT"?/i.test(first)) return readTodoistCsv(text, {today, project: fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim().slice(0, 60) || undefined});
   if (/List Name/.test(first) && /Title/.test(first)) return readTickTickCsv(text);
-  throw new Error('This file is not one ZIGoals reads: a Todoist CSV, a TickTick CSV backup or a calendar (.ics) file.');
+  throw new Error('This file is not one ZIGoals reads: a Todoist CSV, a TickTick CSV backup, a Trello board (JSON), an Asana CSV or a calendar (.ics) file.');
 }
 
 /**

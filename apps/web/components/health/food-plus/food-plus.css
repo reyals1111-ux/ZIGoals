@@ -1,0 +1,61 @@
+/* Session AV lane 2 (food): the food-logging parts that load on demand (quick-add macros, saving a meal from its menu,
+   eaten-at times, weekday macros, the mic, reminders and the rest). Theme variables only; copy 14 px and up, inputs
+   16 px, targets 44 px; nothing moves, so Motion Off and reduced motion need nothing more. */
+.health-quick-macros { border: 1px solid var(--line, #6a9cc342); border-radius: 14px; padding: 8px 12px 12px; margin: 12px 0; min-width: 0; }
+.health-quick-macros legend { font-size: 15px; padding: 0 4px; }
+.food-plus-inline { display: grid; gap: 10px; margin: 8px 0 12px; padding: 12px; border: 1px solid var(--line, #6a9cc342); border-radius: 14px; min-width: 0; }
+.food-plus-inline .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.food-plus-inline .actions button, .food-plus-row button { min-height: 44px; }
+.food-plus-inline p, .food-plus-card p, .food-plus-card li { font-size: 15px; margin: 0; overflow-wrap: anywhere; }
+.food-plus-card { display: grid; gap: 12px; min-width: 0; }
+.food-plus-card h2, .food-plus-card h3 { margin: 0; }
+.food-plus-card .fine, .food-plus-inline .fine { font-size: 14px; }
+.food-plus-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.food-plus-row > .field { flex: 1 1 120px; min-width: 0; }
+.food-plus-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.food-plus-list li { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line, #6a9cc342); }
+.food-plus-table-frame { overflow-x: auto; max-width: 100%; }
+.food-plus-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.food-plus-table th, .food-plus-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line, #6a9cc342); white-space: nowrap; }
+.food-plus-table th[scope="row"] { font-weight: 600; }
+.food-plus-bars { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.food-plus-bars li { display: grid; grid-template-columns: minmax(84px, auto) 1fr auto; gap: 8px; align-items: center; font-size: 15px; }
+.food-plus-bar { height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--pillar-health, #ff74be) 18%, transparent); overflow: hidden; }
+.food-plus-bar > i { display: block; height: 100%; border-radius: 6px; background: var(--pillar-health, #ff74be); }
+.food-plus-time { font-variant-numeric: tabular-nums; }
+.food-plus-mic { min-height: 44px; min-width: 44px; }
+.food-plus-mic[aria-pressed="true"] { outline: 2px solid var(--pillar-health, #ff74be); outline-offset: 2px; }
+.food-plus-photo { max-width: 160px; max-height: 160px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line, #6a9cc342); }
+.food-plus-choice { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 15px; }
+.food-plus-choice input { width: 20px; height: 20px; }
+.food-plus-window { margin: 0 0 12px; }
+.food-plus-mic-row { display: grid; gap: 6px; margin: 4px 0 8px; min-width: 0; }
+.food-plus-mic-row .food-plus-mic { justify-self: start; }
+.food-plus-mic-how summary { font-size: 14px; min-height: 44px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; cursor: pointer; }
+.food-plus-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.food-plus-week li { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; border: 1px solid var(--line, #6a9cc342); border-radius: 10px; font-size: 14px; min-width: 0; }
+.food-plus-week li[data-logged] { background: color-mix(in srgb, var(--pillar-health, #ff74be) 16%, transparent); }
+.food-plus-week li[data-today] { outline: 2px solid var(--pillar-health, #ff74be); outline-offset: -2px; }
+.food-plus-challenge-line { margin: 0 0 12px; }
+.food-plus-partial { margin: 0 0 12px; }
+.food-plus-partial .checkbox { min-height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.food-plus-partial .fine:empty { display: none; }
+.food-plus-photo-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+.food-plus-photo-row .food-plus-photo { width: 72px; height: 72px; }
+.food-plus-photo-row button { min-height: 44px; }
+.food-plus-book-item { align-items: flex-start; }
+.food-plus-book-main { flex: 1 1 240px; min-width: 0; display: grid; gap: 4px; }
+.food-plus-book-main h3 { font-size: 17px; }
+.food-plus-book-main ul, .food-plus-book-main ol { margin: 6px 0; padding-left: 20px; font-size: 15px; }
+.food-plus-cook { display: grid; gap: 12px; margin: 8px 0 12px; padding: 16px; border: 1px solid var(--line, #6a9cc342); border-radius: 16px; min-width: 0; }
+.food-plus-cook-step { font-size: 20px; line-height: 1.45; margin: 0; overflow-wrap: anywhere; }
+.food-plus-cook textarea { min-height: 140px; font-size: 16px; width: 100%; }
+.food-plus-day-plans { margin-bottom: 12px; }
+.food-plus-marks { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin: 4px 0; font-size: 14px; }
+.food-plus-mark { padding: 2px 8px; border: 1px solid var(--line, #6a9cc342); border-radius: 999px; font-size: 14px; }
+/* Session AV lane 2 (food, LEDGER #197): the two meals of the person's own, in "Name your meals and set their times". */
+.food-plus-extra-meals { display: grid; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line, #6a9cc342); min-width: 0; }
+.food-plus-extra-meals h3 { margin: 0; font-size: 17px; }
+.food-plus-extra-meals .fine, .food-plus-extra-meals .notice { font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+.food-plus-extra-row .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.food-plus-extra-row .actions button { min-height: 44px; }

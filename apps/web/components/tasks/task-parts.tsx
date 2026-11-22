@@ -6,6 +6,7 @@ import {LEVEL_SHORT, LEVEL_WORDS, TASK_PRIORITIES, TASK_TITLE_MAX, taskLevel, ty
 import {deadlineState, subtaskProgress, taskState, type TaskInput} from '../../lib/tasks/engine';
 import {addLocalDays} from '../../lib/local-date';
 import {describeRecur} from '../../lib/tasks/recurrence';
+import {pausedRepeat} from '../../lib/tasks/paused';
 import {reminderLabel} from '../../lib/tasks/reminders';
 import {formatClock, formatDate} from '../../lib/visual-format';
 import type {GoalOption} from './use-goal-options';
@@ -129,8 +130,8 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
       <span className="task-due">{done ? `Done ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
       {!done && task.minutes ? <span className="task-minutes">{minutesWords(task.minutes)}</span> : null}{/* Session AV (F-TASK-MINUTES) */}
       {!done && task.deadline && <span className={`task-deadline is-${deadlineState(task, today)}`}><span aria-hidden="true">⚑ </span>{deadlineText(task, today)}</span>}
-      {task.recur && <span className="task-recur"><span aria-hidden="true">↻ </span>{describeRecur(task.recur)}</span>}
-      {progress && progress.total > 0 && <span className="task-progress" aria-label={`${progress.done} of ${progress.total} subtasks done`}><span aria-hidden="true">☑ {progress.done}/{progress.total}</span></span>}
+      {task.recur && <span className="task-recur"><span aria-hidden="true">↻ </span>{describeRecur(task.recur)}{/* Session AV lane 2 (minors, q1 #43): a paused repeat says so on its row */}{!done && (() => { const p = pausedRepeat(task, today); return p ? ` · paused until ${formatDate(p.until, {weekday: true, year: p.until.slice(0, 4) !== today.slice(0, 4)})}` : ''; })()}</span>}
+      {progress && progress.total > 0 && <span className="task-progress" role="img" aria-label={`${progress.done} of ${progress.total} subtasks done`}><span aria-hidden="true">☑ {progress.done}/{progress.total}</span></span>}{/* Session AV lane 2 (fixb2): role img, as a plain span may not carry a name (axe aria-prohibited-attr) */}
       {links?.projectName && <span className="task-project" data-colour={links.projectColour}><span aria-hidden="true"># </span>{links.projectName}</span>}
       {(task.labels ?? []).map(l => <span key={l} className="task-label" dir="auto">@{l}</span>)}
       {task.reminders?.length ? <span className="task-reminder"><span aria-hidden="true">⏰ </span>{task.reminders.length === 1 ? reminderLabel(task.reminders[0]!) : `${task.reminders.length} reminders`}</span> : null}

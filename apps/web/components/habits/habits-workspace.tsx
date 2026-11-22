@@ -171,7 +171,7 @@ export function HabitsWorkspace() {
   // Session AA-Local Part 1: areas (H6), the routine player (H5) and the year view (H8).
   const extras = useHabitExtras();
   const [area, setArea] = useState<string>("all");
-  const [routine, setRoutine] = useState<string | null>(null);
+  const [routine, setRoutine] = useState<string | null>(null), [routineAtOpen, setRoutineAtOpen] = useState(false);
   const [yearOpen, setYearOpen] = useState(false);
   const [perfectOpen, setPerfectOpen] = useState(false);
   // Session AK (5.6): the rules runner hands its state here once it runs; (5.7) the reorder mode.
@@ -186,7 +186,7 @@ export function HabitsWorkspace() {
     try { await links.update(current => setHabitHealthLink(current, id, link, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch { /* the habit is saved; the link can be set from its editor */ }
   };
   useEffect(() => {
-    const follow = () => { const match = /#routine=([^&]+)/.exec(window.location.hash); if (match) { setRoutine(decodeURIComponent(match[1]!)); history.replaceState(null, "", window.location.pathname + window.location.search); } if (window.location.hash === "#year") { setYearOpen(true); requestAnimationFrame(() => document.getElementById("habit-year-title")?.scrollIntoView({block: "start"})); } if (window.location.hash === "#routines") requestAnimationFrame(() => document.getElementById("habit-routines-title")?.scrollIntoView({block: "start"})); };
+    const follow = () => { const match = /#routine=([^&]+)/.exec(window.location.hash); if (match) { setRoutine(decodeURIComponent(match[1]!)); setRoutineAtOpen(/&open\b/.test(window.location.hash)); /* Session AV lane 2 (LEDGER #181) */ history.replaceState(null, "", window.location.pathname + window.location.search); } if (window.location.hash === "#year") { setYearOpen(true); requestAnimationFrame(() => document.getElementById("habit-year-title")?.scrollIntoView({block: "start"})); } if (window.location.hash === "#routines") requestAnimationFrame(() => document.getElementById("habit-routines-title")?.scrollIntoView({block: "start"})); };
     follow(); window.addEventListener("hashchange", follow); return () => window.removeEventListener("hashchange", follow);
   }, []);
   // Where keyboard focus goes once the editor closes (QA-20): the new or edited habit's card, or back to "+ New habit".
@@ -313,7 +313,7 @@ export function HabitsWorkspace() {
             setMessage(""); showStatus(saved, {clearOf: `#${CSS.escape(`habit-${id}`)}` /* Session AV (M-12a): off the card just added */}); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
   return <HealthLinkContext.Provider value={healthLinkContext}><HabitExtrasContext.Provider value={extras}><AutoRulesContext.Provider value={autoRules}><LayoutPage page="habits"><div className="habits-workspace">
     {store.loaded && !store.error && <LoadBoundary quiet><Suspense fallback={null}><AutoRulesKeeper store={store} health={health} healthApplied={healthApplied} healthLinkedIds={healthLinkedIds} goals={platform.data.goals} events={platform.data.contributions} goalsReady={platform.loaded && !platform.error} onApi={setAutoRules}/></Suspense></LoadBoundary>}
-    {routine && <RoutineSheet onClose={() => setRoutine(null)}><Suspense fallback={null}><RoutinePlayer headId={routine} store={store} extras={extras} onClose={() => setRoutine(null)} /></Suspense></RoutineSheet>}
+    {routine && <RoutineSheet onClose={() => setRoutine(null)}><Suspense fallback={null}><RoutinePlayer headId={routine} atOpen={routineAtOpen} store={store} extras={extras} onClose={() => { setRoutine(null); setRoutineAtOpen(false); }} /></Suspense></RoutineSheet>}
     {/* Session AB-Design Phase 2 (ADR-024 P5): the shared pillar header, cut from this page's own. Habit ideas opens from the new-habit editor as "Start from an idea"; Vacation is a small button beside the lock (PageTools). */}
     <PillarHero pillar="habits" titleId="habits-title" className="habit-hero" actionsClass="habit-hero-actions" eyebrow="Small steps. Your own rhythm." title="Find your daily cadence." lede="Make room for what matters. Every small return adds to the pattern." about="habits"
       buttons={<button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button>}
@@ -359,7 +359,7 @@ export function HabitsWorkspace() {
         // movable block, by default right after the groups; the filters, the groups and the year view stay one block.
         {id: "habits:routines", label: "Routines", node: <div className="habit-routines-block">
           <LoadBoundary quiet><Suspense fallback={null}><HabitStacks data={store.data} today={store.today} onView={viewStack} /></Suspense></LoadBoundary>
-          <LoadBoundary quiet><Suspense fallback={null}><RoutinesPanel store={store} onPlay={(id) => { setRoutine(id); setMessage(""); }} onView={viewStack} /></Suspense></LoadBoundary>
+          <LoadBoundary quiet><Suspense fallback={null}><RoutinesPanel store={store} onPlay={(id) => { setRoutine(id); setRoutineAtOpen(false); setMessage(""); }} onView={viewStack} /></Suspense></LoadBoundary>
         </div>},
         // Session AK RB (RELEASE_REVIEW_2 R2-15): unknown is not zero — the weekday strip waits for the first habit (it showed
         // seven zeros with no habit at all).

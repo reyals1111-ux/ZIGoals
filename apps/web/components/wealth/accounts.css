@@ -54,3 +54,36 @@
 :root .accounts-row > .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px 14px; }
 :root .accounts-row > .actions > :is(button, a) { width: auto; flex: none; }
 .accounts-plan-button { min-height: 44px; margin: 10px 0 4px; } /* Session AK (F5a, item 1) */
+/* Session AV lane 2 (money; Monarch): a note on an account, and arranging the list. */
+.accounts-group-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px}
+.accounts-group-head button,.accounts-arrange button{min-height:44px}
+.accounts-note{display:block;font-size:14px;overflow-wrap:anywhere}
+.accounts-arrange{display:flex;gap:8px}
+.accounts-owed-now{display:block;font-size:14px}
+.debts-summary{display:grid;gap:6px;margin:4px 0 10px;min-width:0;overflow-wrap:anywhere}
+.debts-summary p{margin:0}
+.debts-trends{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:14px}
+.debts-trends li{display:flex;align-items:center;gap:8px}
+.debts-spark{flex:none}
+.debts-spark path{fill:none;stroke:var(--cyan,#6fd3ff);stroke-width:2}
+.debts-paid summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.debts-paid ul{margin:0;padding-left:18px;display:grid;gap:4px}
+/* Session AV lane 2 (money; Kubera): your sheet and each account's sheet options. */
+.accounts-equity{display:block;font-size:14px}
+.accounts-sheet-toggle button{min-height:44px}
+/* Session AV lane 2 (fixb2): "Your sheet" has its own class: it had taken .wealth-sheet, the name of Wealth's dialogs
+   (components/platform/financial-ui.css), and with it their width (min(820px, 100vw - 32px)) and dark ground, so at
+   768 px with Large text it stuck out of Accounts and the page scrolled sideways. */
+.wealth-own-sheet{display:grid;gap:8px;margin-top:16px;padding:12px;border-radius:14px;border:1px solid var(--line,rgba(140,160,220,.25));min-width:0;overflow-wrap:anywhere}
+.wealth-own-sheet h3,.wealth-own-sheet p{margin:0}
+.wealth-sheet-figure{margin-inline-end:8px}
+.wealth-sheet-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px 12px;align-items:end;margin:6px 0}
+.wealth-sheet-form input,.wealth-sheet-form select,.wealth-sheet-form button,.account-sheet select{min-height:44px;width:100%;box-sizing:border-box}
+.account-sheet{display:grid;gap:8px;grid-column:1/-1;padding:10px 0;min-width:0}
+.account-sheet-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.account-sheet-flows{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:14px}
+.account-sheet-flows li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px}
+.account-sheet-flows button,.account-sheet-fold>button{min-height:44px}
+/* Session AV lane 2, round 2 (money): balances past their own lines; the lines form. Theme variables only. */
+.account-limits{list-style:none;margin:8px 0;padding:10px 12px;display:grid;gap:4px;border:1px solid var(--line,rgba(140,160,220,.35));border-radius:12px;font-size:15px;overflow-wrap:anywhere}
+.account-limit-form{align-items:end}

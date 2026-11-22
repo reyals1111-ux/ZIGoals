@@ -1,5 +1,5 @@
-import {latestHabitRule, type Habit} from '../../habits';
-import {DIFFICULTY_WORDS, DIFFICULTY_XP, FOCUS_BONUS_XP, readHabitOptions, type HabitOptions} from '../../habit-options/rule';
+import {habitRuleOn, latestHabitRule, type Habit} from '../../habits';
+import {DIFFICULTY_WORDS, DIFFICULTY_XP, FOCUS_BONUS_XP, readHabitOptions, rollingWords, type HabitOptions} from '../../habit-options/rule';
 import {areaWeekRows} from '../../habit-areas/week';
 import {AREA_LABELS} from '../../habits-extras/areas-mirror';
 import {THEME_DAYS, themeMonthsReached, themeProgress} from '../../game/month-theme';
@@ -8,6 +8,13 @@ import {loggedStrip, readCheckin, QUADRANT_IDS} from '../../checkin-extras/rule'
 import {addLocalDays} from '../../local-date';
 import {feelingTrends} from '../../feeling-trends/trends';
 import {guideOfTheDay} from '../../meditation/guides';
+import {CALM_WORDS, PACE_WORDS, readCalm} from '../../calm/visuals';
+import {STRETCH_PREFIX, STRETCHES} from '../../calm/stretches';
+import {moodLabel, readMoodLook} from '../../daylio/rule';
+import {meditationMilestones} from '../../meditation/milestones';
+import {intervalText, planSummary, readPresets} from '../../meditation/presets';
+import {strengthByWeek, totalsBy} from '../../habits-v2/history';
+import {healthGroupIn} from '../../vault/w-homes';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
 import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
 import {PATTERNS, type BreathingPattern} from '../../meditation/breathing';
@@ -26,7 +33,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, ownWords, usualFeeling, todaysPractice]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual, meditationMilestonesOf, strengthOverYear, timerPresetsOf, rollingHabits]) {
       const r = one(a);
       if (r) return r;
     }
@@ -190,4 +197,98 @@ function todaysPractice(a: Asked): LocalReply | null {
   if (!en && !nl) return null;
   const g = guideOfTheDay(a.today), lang = a.lang, t = g[lang];
   return answer(say(lang, `Today’s practice: “${t.title}”, ${g.minutes} minutes. It begins: ${t.steps[0]} Health → Meditation → Today’s practice has all of it, “Another one”, and Begin with the bell.`, `De oefening van vandaag: “${t.title}”, ${g.minutes} minuten. Hij begint zo: ${t.steps[0]} Health → Meditation → Today’s practice heeft de hele oefening, “Another one” en Begin met de bel.`));
+}
+/** LEDGER #81: "how many minutes did i stretch this week", "hoeveel minuten heb ik deze week gerekt" — Move gently's minutes in Health's activity (minutes only, never calories). */
+function stretchedMinutes(a: Asked): LocalReply | null {
+  const en = /\b(?:stretch|stretched|stretching|stretches|move gently|daily move)\b/.test(a.f) && /\b(?:how (?:much|many|long|often)|minutes|this week|last week|when|did i)\b/.test(a.f);
+  const nl = /\b(?:gerekt|rekken|rekoefeningen?|rekoefening|stretchen|gestretcht|rustig bewegen)\b/.test(a.f) && /\b(?:hoeveel|hoe lang|hoe vaak|minuten|deze week|wanneer|heb ik)\b/.test(a.f);
+  if ((!en && !nl) || /\bstretch (?:goals?|targets?)\b/.test(a.f)) return null;
+  // Batch 2 unit check (golden set x-stretch-minutes, L7 l74b-hb-did): a person with a stretch habit ("Stretch morning") asks
+  // about the habit; Move gently's minutes answer when it is named, or when no habit is about stretching.
+  if (!/\b(?:move gently|daily move|rustig bewegen|meditation|meditatie)\b/.test(a.f) && live(a).some(h => /\b(?:stretch\w*|rek\w*)\b/i.test(h.title))) return null;
+  const shut = closed(a.env, 'health'); if (shut || !a.env.health) return shut;
+  const lang = a.lang, from = addLocalDays(a.today, -6);
+  const days = a.env.health.activity.filter(x => x.name.startsWith(STRETCH_PREFIX) && x.date >= from && x.date <= a.today);
+  const minutes = days.reduce((n, x) => n + x.minutes, 0), all = a.env.health.activity.filter(x => x.name.startsWith(STRETCH_PREFIX));
+  const names = STRETCHES.map(q => say(lang, q.en, q.nl));
+  if (!days.length) return answer(say(lang, `No stretch saved in the last 7 days${all.length ? ` (${count(all.length, 'en', ['stretch', 'stretches'], ['', ''])} saved before)` : ''}. Health → Meditation → Move gently has ${STRETCHES.length} short ones: ${list(names, 'en')}. Minutes only; no calories.`, `Geen rekoefening bewaard in de laatste 7 dagen${all.length ? ` (${count(all.length, 'nl', ['', ''], ['rekoefening', 'rekoefeningen'])} eerder)` : ''}. Health → Meditation → Move gently heeft er ${STRETCHES.length} korte: ${list(names, 'nl')}. Alleen minuten; geen calorieën.`));
+  const which = [...new Set(days.map(x => clean(x.name.slice(STRETCH_PREFIX.length), 40)))];
+  return answer(say(lang, `${minutes} minutes of stretching in the last 7 days, ${count(days.length, 'en', ['time', 'times'], ['', ''])}: ${list(which, 'en')}. Saved as activity minutes in Health (no calories).`, `${minutes} minuten rekken in de laatste 7 dagen, ${count(days.length, 'nl', ['', ''], ['keer', 'keer'])}: ${list(which, 'nl')}. Bewaard als activiteitsminuten in Health (geen calorieën).`));
+}
+/** LEDGER #79, #80: "what visual is behind my sitting", "welke achtergrond heb ik bij het mediteren" — the device's calm visual. */
+function calmVisual(a: Asked): LocalReply | null {
+  const en = /\b(?:visual|scene|scenes|background|left and right)\b/.test(a.f) && /\b(?:meditation|meditate|sitting|sit|breathing|calm)\b/.test(a.f);
+  const nl = /\b(?:achtergrond|beeld|scene|links en rechts)\b/.test(a.f) && /\b(?:meditatie|mediteren|mediteer|zitten|ademhaling|rustig)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, c = readCalm(a.env.ak?.habitExtras ?? null);
+  const all = list(Object.values(CALM_WORDS).map(w => say(lang, w.en, w.nl)), lang);
+  if (!c.visual) return answer(say(lang, `No calm visual is set: a session shows the clock alone. Health → Meditation → Behind your sitting offers ${all}.`, `Er is geen rustig beeld gekozen: een sessie toont alleen de klok. Health → Meditation → Behind your sitting biedt ${all}.`));
+  const w = CALM_WORDS[c.visual], pace = c.visual === 'shift' ? say(lang, `, ${PACE_WORDS[c.pace].en.toLowerCase()}`, `, ${PACE_WORDS[c.pace].nl.toLowerCase()}`) : '';
+  return answer(say(lang, `Behind your sitting: ${w.en}${pace}. It shows above the clock or the breathing guide, and stands still while Motion Off or reduced motion is on.`, `Achter je zitmeditatie: ${w.nl}${pace}. Het staat boven de klok of de ademhalingsgids, en staat stil zolang Motion Off of minder beweging aan staat.`));
+}
+/** LEDGER #178: "what are my mood words", "wat zijn mijn stemmingswoorden" — your own words and symbols for the five moods (Health gate; tags and activities stay unread). */
+function moodWordsOf(a: Asked): LocalReply | null {
+  const en = /\bmy (?:own )?mood (?:words|names|labels|symbols)\b|\bwords? for (?:my|the) moods\b/.test(a.f);
+  const nl = /\b(?:mijn (?:eigen )?)?(?:stemmingswoorden|humeurwoorden)\b|\bwoorden voor (?:mijn|de) stemmingen\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, look = readMoodLook(a.env.energy ?? null), all = [5, 4, 3, 2, 1].map(l => `${l} ${moodLabel(look, l)}`).join(', ');
+  if (!look.custom) return answer(say(lang, `Your moods use ZIGoals’ words: ${all}. Health → Diary → How does today feel? → Your own words for the moods lets you name them your way, with a symbol.`, `Je stemmingen gebruiken de woorden van ZIGoals: ${all}. Health → Diary → How does today feel? → Your own words for the moods laat je ze zelf benoemen, met een symbool.`));
+  return answer(say(lang, `Your own mood words, from best to hardest: ${all}. The mood kept is still 1 to 5.`, `Je eigen stemmingswoorden, van best tot zwaarst: ${all}. De bewaarde stemming blijft 1 tot 5.`));
+}
+/** LEDGER #186: "which meditation milestones have i reached", "welke meditatiemijlpalen heb ik bereikt" — days, never a score. */
+function meditationMilestonesOf(a: Asked): LocalReply | null {
+  const en = /\bmeditation (?:milestones?|badges?)\b|\bmilestones? (?:for|in) meditation\b/.test(a.f);
+  const nl = /\bmeditatie ?(?:mijlpalen|mijlpaal|badges?)\b|\bmijlpalen (?:voor|bij) (?:het )?mediteren\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut || !a.env.health) return shut;
+  const lang = a.lang, ms = meditationMilestones(healthGroupIn(a.env.health, 'meditation'), a.today);
+  const NL: Record<string, string> = {'meditate-7': 'Zeven dagen op rij', 'meditate-50': 'Vijftig dagen', 'meditate-100': 'Honderd dagen'};
+  const name = (id: string, title: string) => lang === 'nl' ? NL[id] ?? title : title;
+  const reached = ms.filter(m => m.reached).map(m => name(m.id, m.title)), next = ms.find(m => !m.reached);
+  const nextLine = next ? say(lang, ` Next: ${next.title}, ${Math.min(next.have, next.need)} of ${next.need}${next.kind === 'row' ? ' days in a row (your longest run)' : ' days'}.`, ` Volgende: ${name(next.id, next.title)}, ${Math.min(next.have, next.need)} van ${next.need}${next.kind === 'row' ? ' dagen op rij (je langste reeks)' : ' dagen'}.`) : '';
+  if (!reached.length) return answer(say(lang, `No meditation milestone yet.${nextLine} A rest day never takes one away.`, `Nog geen meditatiemijlpaal.${nextLine} Een rustdag neemt er nooit een af.`));
+  return answer(say(lang, `Meditation milestones reached: ${list(reached, 'en')}.${nextLine || ' All three are reached.'}`, `Meditatiemijlpalen bereikt: ${list(reached, 'nl')}.${nextLine || ' Alle drie zijn bereikt.'}`));
+}
+/** LEDGER #187, #190: "how has my habit strength changed this year", "hoe is de sterkte van mijn gewoontes dit jaar veranderd". */
+function strengthOverYear(a: Asked): LocalReply | null {
+  const en = /\bhabits?\b/.test(a.f) && /\b(?:strength|score)\b/.test(a.f) && /\b(?:year|this year|over time|changed|trend|weeks)\b/.test(a.f);
+  const nl = /\bgewoontes?\b/.test(a.f) && /\b(?:sterkte|score)\b/.test(a.f) && /\b(?:jaar|dit jaar|in de tijd|veranderd|trend|weken)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'habits'); if (shut) return shut;
+  const lang = a.lang, rows = live(a).flatMap(h => {
+    const known = strengthByWeek(h, a.today).filter(w => w.score !== null);
+    if (!known.length) return [];
+    const first = known[0]!, last = known.at(-1)!, month = totalsBy(h, a.today, 'month')[0];
+    return [say(lang, `${clean(h.title, 50)}: ${last.score} now, ${first.score} in the week to ${dayIn('en', first.weekEnd, a.today)}${month ? `; this month ${month.done} of ${month.scheduled} days` : ''}`, `${clean(h.title, 50)}: nu ${last.score}, ${first.score} in de week tot ${dayIn('nl', first.weekEnd, a.today)}${month ? `; deze maand ${month.done} van ${month.scheduled} dagen` : ''}`)];
+  }).slice(0, 8);
+  if (!rows.length) return answer(say(lang, 'No habit has seven scheduled days behind it yet, so there is no strength to follow. A habit’s Consistency & trends → More history shows it week by week once there is.', 'Nog geen gewoonte heeft zeven geplande dagen achter zich, dus er is nog geen sterkte te volgen. Consistency & trends → More history van een gewoonte toont die per week zodra die er is.'), OPEN);
+  return answer(say(lang, `Strength (0 to 100) over the last year: ${rows.join('. ')}. A habit's Consistency & trends → More history has the weekly line, months, quarters and years.`, `Sterkte (0 tot 100) over het afgelopen jaar: ${rows.join('. ')}. Consistency & trends → More history van een gewoonte heeft de lijn per week, maanden, kwartalen en jaren.`), OPEN);
+}
+/** LEDGER #184: "which meditation timer presets do i have", "welke timerpresets heb ik voor meditatie" — the saved presets (Health gate). */
+function timerPresetsOf(a: Asked): LocalReply | null {
+  const en = /\b(?:timer )?presets?\b/.test(a.f) && /\b(?:meditation|meditate|timer|sitting|bells?)\b/.test(a.f);
+  const nl = /\b(?:timer)?presets?\b|\bvoorinstellingen?\b/.test(a.f) && /\b(?:meditatie|mediteren|timer|zitten|bel|bellen)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, presets = readPresets(a.env.ak?.habitExtras ?? null);
+  if (!presets.length) return answer(say(lang, 'No timer presets yet. Health → Meditation → Your timer presets keeps a length (or no set length), a moment to settle in, a start and an end bell and bells along the way; each one is then a single choice under Begin.', 'Nog geen timerpresets. Health → Meditation → Your timer presets bewaart een lengte (of geen vaste lengte), een moment om te landen, een begin- en eindbel en bellen onderweg; elke preset is dan één keuze onder Begin.'));
+  const rows = presets.slice(0, 8).map(p => `${clean(p.name, 40)} (${planSummary(p, lang)}${p.intervals.length ? `: ${p.intervals.map(i => intervalText(i, lang)).join('; ')}` : ''})`);
+  return answer(say(lang, `${count(presets.length, 'en', ['timer preset', 'timer presets'], ['', ''])}: ${rows.join('. ')}. Choose one under Begin on Health → Meditation.`, `${count(presets.length, 'nl', ['', ''], ['timerpreset', 'timerpresets'])}: ${rows.join('. ')}. Kies er een onder Begin op Health → Meditation.`));
+}
+/** LEDGER #185: "which habits are 3 times in any 10 days", "welke gewoontes zijn 3 keer in elke 10 dagen" — each rolling window and how it stands today. */
+function rollingHabits(a: Asked): LocalReply | null {
+  const en = /\bhabits?\b/.test(a.f) && /\b(?:\d+|a few|few|x) times? in any (?:\d+ |few |y )?days\b|\brolling (?:window|schedule|frequency)\b|\btimes in any days\b/.test(a.f);
+  const nl = /\bgewoontes?\b/.test(a.f) && /\b(?:\d+|een paar|paar|x) keer in elke (?:\d+ |paar |y )?dagen\b|\bschuivend(?:e)? (?:venster|schema)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'habits'); if (shut) return shut;
+  const lang = a.lang, o = readHabitOptions(extrasOf(a)), hs = live(a).filter(h => o[h.id]?.rolling && latestHabitRule(h).schedule.kind === 'daily');
+  if (!hs.length) return answer(say(lang, 'No habit asks for a few times in any few days. On Habits, an every-day habit’s Details → Habit options → “A few times in any few days” sets one, such as 3 times in any 10 days.', 'Geen gewoonte vraagt een paar keer in elke paar dagen. Op Habits stelt Details → Habit options → “A few times in any few days” van een dagelijkse gewoonte er een in, zoals 3 keer in elke 10 dagen.'), OPEN);
+  const rows = hs.slice(0, 12).map(h => {
+    const r = o[h.id]!.rolling!, start = addLocalDays(a.today, -(r.days - 1));
+    const done = h.entries.filter(e => e.date >= start && e.date <= a.today && e.disposition === 'logged' && e.count > 0 && e.count >= (habitRuleOn(h, e.date)?.target ?? 1)).length;
+    return say(lang, `${clean(h.title, 50)}: ${rollingWords(r)}, ${done} done in the last ${r.days} days${done >= r.times ? ' (enough: today can be a rest day)' : ` (${r.times - done} more needed)`}`, `${clean(h.title, 50)}: ${rollingWords(r, 'nl')}, ${done} gedaan in de laatste ${r.days} dagen${done >= r.times ? ' (genoeg: vandaag mag een rustdag zijn)' : ` (nog ${r.times - done} nodig)`}`);
+  });
+  return answer(say(lang, `${rows.join('. ')}. A day off is a rest day while the window holds enough; it is missed only when it does not.`, `${rows.join('. ')}. Een vrije dag is een rustdag zolang het venster genoeg heeft; hij is pas gemist als dat niet zo is.`), OPEN);
 }

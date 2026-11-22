@@ -18,3 +18,12 @@ export function doneByWeek(log: readonly {at: string}[], today: string, doneDay:
   for (const e of log) { const d = doneDay(e.at), w = out.find(x => d >= x.start && d <= x.end); if (w) w.count++; }
   return out;
 }
+/**
+ * Session AV lane 2 (minors, q1 #6 check 8; Todoist draws the daily goal on its chart): the daily goal kept in Tasks →
+ * This week (zigoals:task-plan:v1 `dailyGoal`) as a line across the bars — `top` is the bars' scale with the goal in it —
+ * and how many of the days shown reached it. Null without a goal. Pure.
+ */
+export function goalLine(days: readonly DoneDay[], goal: number | undefined): {goal: number; top: number; reached: number} | null {
+  if (!goal || !Number.isInteger(goal) || goal < 1) return null;
+  return {goal, top: Math.max(goal, ...days.map(d => d.count)), reached: days.filter(d => d.count >= goal).length};
+}

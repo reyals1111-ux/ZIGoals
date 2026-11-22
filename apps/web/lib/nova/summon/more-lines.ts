@@ -11,6 +11,7 @@ import type {SavingsChallenges} from '../../savings-challenges/challenges';
 import type {Supplements} from '../../supplements/schema';
 import type {Tasks} from '../../tasks/schema';
 import {formatDate, formatNumber} from '../../visual-format';
+import {nlMonth, nlShortDate, nlWeekDay} from './nl-dates';
 import type {WeeklyReview} from '../../weekly-review/schema';
 import {fastingCard, foodDaysCard, healthTrendsCard, meditationCard, supplementsCard} from '../cards/health-more';
 import {accountsCard, cashFlowCard, debtPlanCard, priceAlertsCard, savingsChallengesCard} from '../cards/money-more';
@@ -77,7 +78,7 @@ function moneyLine(id: string, d: Base & MoreData, lang: Lang): string | null {
     if (c.state === 'unkept') return say(lang, 'No figures are kept for the payoff planner yet.', 'Er zijn nog geen cijfers bewaard voor het aflosplan.');
     if (c.state === 'needs' || !p) return say(lang, 'The payoff plan misses a figure; the widget says which.', 'Het aflosplan mist een cijfer; de widget zegt welk.');
     if (!p.monthName) return say(lang, 'With the figures you kept, the debts would not be cleared within 100 years.', 'Met de cijfers die je bewaarde zouden de schulden niet binnen 100 jaar zijn afgelost.');
-    return say(lang, `With the figures you kept, your debts would be cleared by ${p.monthName}, highest rate first: a projection, not a promise.`, `Met de cijfers die je bewaarde zouden je schulden tegen ${p.monthName} zijn afgelost, hoogste rente eerst: een projectie, geen belofte.`);
+    return say(lang, `With the figures you kept, your debts would be cleared by ${p.monthName}, highest rate first: a projection, not a promise.`, `Met de cijfers die je bewaarde zouden je schulden tegen ${p.month ? nlMonth(p.month) : p.monthName} zijn afgelost, hoogste rente eerst: een projectie, geen belofte.`);
   }
   if (id === 'savings-challenges') {
     if (!d.savingsChallenges || !d.platform || !d.moneyLog) return null;
@@ -89,7 +90,7 @@ function moneyLine(id: string, d: Base & MoreData, lang: Lang): string | null {
   if (!d.priceAlerts) return null;
   const c = priceAlertsCard(d.priceAlerts);
   if (c.state === 'empty') return say(lang, 'No price alerts yet.', 'Nog geen prijsalerts.');
-  const fired = c.last ? say(lang, `; the last one fired ${on(c.last.at.slice(0, 10))}`, `; de laatste ging af op ${on(c.last.at.slice(0, 10))}`) : '';
+  const fired = c.last ? say(lang, `; the last one fired ${on(c.last.at.slice(0, 10))}`, `; de laatste ging af op ${nlShortDate(c.last.at.slice(0, 10), d.day)}`) : '';
   return say(lang, `${c.waiting} price ${c.waiting === 1 ? 'alert is' : 'alerts are'} waiting${fired}.`, `${c.waiting} ${c.waiting === 1 ? 'prijsalert wacht' : 'prijsalerts wachten'}${fired}.`);
 }
 
@@ -99,7 +100,7 @@ function healthLine(id: string, d: Base & MoreData, lang: Lang, now: Date): stri
     const c = fastingCard(d.fasting, now, d.healthDay), last = c.history[0];
     if (c.state === 'empty') return say(lang, 'No fast logged yet.', 'Nog geen vastenperiode gelogd.');
     if (c.running) return say(lang, `A fast is running: ${c.running.elapsed} of ${c.running.targetHours} h.`, `Er loopt een vastenperiode: ${c.running.elapsed} van ${c.running.targetHours} uur.`);
-    return last ? say(lang, `No fast is running; the last one was ${last.hoursText}, ${last.dayText}.`, `Er loopt geen vastenperiode; de laatste was ${last.hoursText}, ${last.dayText}.`) : say(lang, 'No fast is running.', 'Er loopt geen vastenperiode.');
+    return last ? say(lang, `No fast is running; the last one was ${last.hoursText}, ${last.dayText}.`, `Er loopt geen vastenperiode; de laatste was ${last.hoursText}, ${nlShortDate(last.day, d.healthDay)}.`) : say(lang, 'No fast is running.', 'Er loopt geen vastenperiode.');
   }
   if (id === 'supplements') {
     if (!d.supplements) return null;
@@ -142,9 +143,9 @@ export function moreLine(id: string, d: Base & MoreData, lang: Lang, now: Date):
       const w = reviewsCard(d.weekly, null, d.day).weekly;
       if (!w) return null;
       const next = formatDate(w.nextDay, {weekday: true, year: false}), week = formatDate(w.weekStart, {year: false});
-      if (w.state === 'due') return say(lang, `Your weekly review is due, for the week of ${week}.`, `Je weekreview staat klaar, voor de week van ${week}.`);
-      if (w.state === 'draft') return say(lang, `Your weekly review is started, for the week of ${week}.`, `Je weekreview is begonnen, voor de week van ${week}.`);
-      return say(lang, `This week’s review is ${w.state === 'done' ? 'done' : 'skipped'}; the next review day is ${next}.`, `De review van deze week is ${w.state === 'done' ? 'klaar' : 'overgeslagen'}; de volgende reviewdag is ${next}.`);
+      if (w.state === 'due') return say(lang, `Your weekly review is due, for the week of ${week}.`, `Je weekreview staat klaar, voor de week van ${nlShortDate(w.weekStart, w.weekStart)}.`);
+      if (w.state === 'draft') return say(lang, `Your weekly review is started, for the week of ${week}.`, `Je weekreview is begonnen, voor de week van ${nlShortDate(w.weekStart, w.weekStart)}.`);
+      return say(lang, `This week’s review is ${w.state === 'done' ? 'done' : 'skipped'}; the next review day is ${next}.`, `De review van deze week is ${w.state === 'done' ? 'klaar' : 'overgeslagen'}; de volgende reviewdag is ${nlWeekDay(w.nextDay, w.nextDay)}.`);
     }
     case 'milestones': {
       if (!d.platform) return null;

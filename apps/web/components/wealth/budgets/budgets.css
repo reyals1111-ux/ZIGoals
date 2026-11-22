@@ -96,3 +96,40 @@
 .budgets-periods-what { display: grid; flex: 1 1 220px; min-width: 0; }
 .budgets-periods-list li[data-over] small { color: var(--danger, inherit); }
 .budgets-periods button { min-height: 44px; }
+/* Session AV lane 2 (money): watched payees, challenges, budgets on Today and the year in review. */
+.budgets-challenge{font-weight:600}
+.budgets-challenge.is-over,.budgets-challenge.is-lost{color:var(--amber,#f5b65b)}
+.budgets-today-switch{max-width:60ch}
+.budgets-year{display:grid;gap:10px;min-width:0}
+.budgets-year-pick select{min-height:44px}
+.budgets-year-card{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}
+.budgets-year-card p{margin:0}
+.budgets-year-months{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:4px}
+.budgets-year-months li{display:grid;grid-template-columns:minmax(72px,110px) 1fr auto;gap:8px;align-items:center;font-size:14px;font-variant-numeric:tabular-nums}
+.budgets-year-months .spending-bar{display:block;height:8px;border-radius:999px;background:color-mix(in srgb,var(--text,#e8eefc) 12%,transparent);overflow:hidden}
+.budgets-year-months .spending-bar span{display:block;height:100%;background:var(--cyan,#6fd3ff)}
+.budgets-assign{display:grid;gap:10px;margin-top:16px;padding:12px;border-radius:14px;border:1px solid var(--line,rgba(140,160,220,.25));min-width:0}
+.budgets-assign h4,.budgets-assign h5,.budgets-assign p{margin:0}
+.budgets-assign-sums{display:grid;gap:4px;overflow-wrap:anywhere}
+.budgets-assign-quick{display:flex;flex-wrap:wrap;gap:8px}
+.budgets-assign-quick button,.budgets-assign button{min-height:44px}
+.budgets-assign-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.budgets-assign-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.budgets-underfunded{color:var(--amber,#f5b65b);font-weight:600}
+.budgets-assign-edit{display:grid;gap:10px;margin:6px 0 8px}
+.budgets-assign-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:8px 12px;align-items:end}
+.budgets-assign-form input,.budgets-assign-form select{min-height:44px;width:100%;box-sizing:border-box}
+.budgets-assign-form .fine{grid-column:1/-1}
+.budgets-move summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+/* Session AV lane 2, round 2 (money): the day's amount left, your own budgets, payee budgets. Theme variables only. */
+.budgets-per-day{display:block;margin-top:4px;font-size:14px;color:var(--text-secondary, var(--muted))}
+.budgets-own-list li{align-items:flex-start}
+.budgets-own-what{display:grid;gap:4px;flex:1 1 220px;min-width:0}
+.budgets-own-what .budgets-bar{max-width:320px}
+.budgets-own-by,.budgets-own-cats{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:4px 14px}
+.budgets-own-by legend,.budgets-own-cats legend{font-size:14px;margin-bottom:4px}
+.budgets-own-list li[data-over] .budgets-own-figures{color:inherit;font-weight:600}
+.budgets-payee-amount{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;flex-basis:100%}
+.budgets-payee-amount .text-link{min-height:44px}
+.budgets-payee-budget.is-over,.budgets-payee-budget.is-near{color:inherit;font-weight:600}
+.budgets-payee-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}

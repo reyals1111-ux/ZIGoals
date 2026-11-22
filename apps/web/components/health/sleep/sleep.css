@@ -108,3 +108,8 @@
 .sleep-csv-import { margin-top: 16px; }
 .sleep-csv-import > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
 .sleep-csv-import .health-preview ul { padding-left: 20px; line-height: 1.6; }
+/* Session AV lane 2 (body; LEDGER #123, #124): "your usual" from your own nights, a dotted line; time to fall asleep. */
+.sleep-usual line { stroke: #3fc1a5; stroke-width: 2; stroke-dasharray: 1 4; stroke-linecap: round; }
+.sleep-key-usual { width: 18px; height: 0; border-top: 3px dotted #3fc1a5; }
+.sleep-bar.latency { fill: #3fc1a5; }
+@media (forced-colors: active) { .sleep-usual line { stroke: CanvasText; } .sleep-key-usual { border-top-color: CanvasText; } .sleep-bar.latency { fill: CanvasText; } }

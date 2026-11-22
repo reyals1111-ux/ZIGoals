@@ -30,9 +30,31 @@ const templateSchema = z.looseObject({
   items: z.preprocess(v => Array.isArray(v) ? v.filter(x => itemSchema.safeParse(x).success).slice(0, MAX_TEMPLATE_ITEMS) : [], z.array(itemSchema).min(1)),
 });
 export type TaskTemplate = z.infer<typeof templateSchema>;
+/**
+ * Session AV lane 2 (rest, LEDGER #17; Things' repeating projects; TIER 3 (stored formats), an additive optional field
+ * `repeats` on the loose templates record): a project that comes round by itself. Each keeps its own copy of the items
+ * (a built-in template is never stored, so it is copied in), how often (`every`: a week or a month from `start`, or every
+ * `days` days), the first day, and the period whose project was last made (`lastMade`), so a project is made once per
+ * period, when Tasks opens, never for periods missed while it was closed. Older records without it read as none.
+ */
+export const MAX_REPEATS = 10, REPEAT_EVERY = ['week', 'month', 'days'] as const;
+export type RepeatEvery = (typeof REPEAT_EVERY)[number];
+const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const repeatSchema = z.looseObject({
+  id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),
+  name: z.string().trim().min(1).max(PROJECT_NAME_MAX),
+  every: z.enum(REPEAT_EVERY),
+  days: z.number().int().min(2).max(365).optional().catch(undefined),
+  start: day,
+  lastMade: day.optional().catch(undefined),
+  paused: z.literal(true).optional().catch(undefined),
+  items: z.preprocess(v => Array.isArray(v) ? v.filter(x => itemSchema.safeParse(x).success).slice(0, MAX_TEMPLATE_ITEMS) : [], z.array(itemSchema).min(1)),
+});
+export type ProjectRepeat = z.infer<typeof repeatSchema>;
 export const taskTemplatesSchema = z.looseObject({
   version: z.literal(1),
   items: z.preprocess(v => Array.isArray(v) ? v.filter(x => templateSchema.safeParse(x).success).slice(0, MAX_TEMPLATES) : [], z.array(templateSchema)),
+  repeats: z.preprocess(v => Array.isArray(v) ? v.filter(x => repeatSchema.safeParse(x).success).slice(0, MAX_REPEATS) : undefined, z.array(repeatSchema).optional()).optional().catch(undefined),
 });
 export type TaskTemplates = z.infer<typeof taskTemplatesSchema>;
 export const emptyTaskTemplates = (): TaskTemplates => ({version: 1, items: []});

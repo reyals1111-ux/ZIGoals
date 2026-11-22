@@ -86,13 +86,13 @@ export function paceCard(log: Log, today: string): PaceCard {
 export const paceRows = (card: PaceCard): [string, string][] => card.rows.length ? card.rows.map(r => [`Your usual pace in ${r.currency}`, `${r.words}. A comparison of your records, not a forecast`]) : [['Your usual pace', 'Nothing logged yet']];
 
 /* ---- Bill changes ---- */
-export type BillChangeLine = {id: string; title: string; direction: 'up' | 'down'; by: string; then: string; now: string; since: string; words: string};
+export type BillChangeLine = {id: string; title: string; direction: 'up' | 'down'; by: string; then: string; now: string; since: string; /** The month of `since` ("2026-07"), for a Dutch line (Session AV lane 2, loose ends). */ month: string; words: string};
 export type BillChangesCard = {/** 'empty': no bills kept; 'none': bills kept, no payment differs from the one before it. */ state: 'empty' | 'none' | 'live'; bills: number;
   /** Bills found in the money log: only those have payments to compare. */ fromLog: number; lines: BillChangeLine[]};
 export function billChangesCard(bills: BillsRecord, log: Log, today: string): BillChangesCard {
   const line = (id: string, title: string, c: PriceChange): BillChangeLine => {
     const by = cardMoney(c.cents, c.currency), then = cardMoney(c.previous, c.currency), now = cardMoney(c.latest, c.currency), since = formatMonth(c.sinceMonth);
-    return {id, title, direction: c.direction, by, then, now, since, words: `went ${c.direction} by ${by} since ${since} (${then} then, ${now} now)`};
+    return {id, title, direction: c.direction, by, then, now, since, month: c.sinceMonth.slice(0, 7), words: `went ${c.direction} by ${by} since ${since} (${then} then, ${now} now)`};
   };
   // Session AU (ADR-044 D-SHOWCASE, helper E): the bills found in the money log but not confirmed yet count too, as Wealth →
   // Bills and ZIGi's answer count them (lib/ai/local-answers/exact/money.ts), so the three never disagree.

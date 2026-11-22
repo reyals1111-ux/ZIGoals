@@ -1,3 +1,11 @@
+import {WORKOUT_PLACES} from '../../workouts/places-schema';
+import {MONEY_MORE} from '../../money-more/schema';
+import {STORE_CARDS} from '../../store-cards/schema';
+import {MONEY_LOG_BUSINESS} from '../../money-more/spaces';
+import {NUTRIENT_EXTRAS_RECORD} from '../../health-vitamins/extras';
+import {EVENING_PLAN} from '../../evening-plan/schema';
+import {BODY_EXTRAS} from '../../body-extras/schema';
+import {WEALTH_SHEET} from '../../wealth-sheet/schema';
 import {AUTO_RULES} from '../../auto-rules/schema';
 import {BILLS} from '../../bills/schema';
 import {readDeviceRecord, type DeviceRecordSpec} from '../../device-record';
@@ -26,5 +34,7 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Session AV (1c, f1): what the on-device answers read for the running bests, today's focus habit and money that asks for a look.
     splits: one(WORKOUT_SPLITS), habitFocus: (extras as {focus?: unknown} | null)?.focus ?? null, moneyReview: one(MONEY_REVIEW),
     // Session AV lane 2 (habits): the whole habit extras record, for each habit's own options, areas and focus days (av2-habits.ts).
-    habitExtras: extras};
+    habitExtras: extras,
+    // Session AV lane 2, batch 2 (body, money).
+    eveningPlan: one(EVENING_PLAN), bodyExtras: one(BODY_EXTRAS), wealthSheet: one(WEALTH_SHEET), nutrientExtras: one(NUTRIENT_EXTRAS_RECORD), moneyMore: one(MONEY_MORE), storeCards: one(STORE_CARDS), moneyLogBusiness: one(MONEY_LOG_BUSINESS), workoutPlaces: one(WORKOUT_PLACES)};
 }

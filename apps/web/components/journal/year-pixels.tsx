@@ -5,7 +5,7 @@ import {JOURNAL} from '../../lib/journal/schema';
 import {healthGroupIn} from '../../lib/vault/w-homes';
 import {isShown} from '../../lib/pages/visibility';
 import {isShowcase} from '../../lib/showcase-storage';
-import {findDay, levelWord, moveDay, pixelLabel, pixelYear, pixelYears, type Pixel, type PixelMetric} from '../../lib/year-pixels/grid';
+import {findDay, levelWord, moveDay, pixelLabel, pixelSummary, pixelYear, pixelYears, type Pixel, type PixelMetric} from '../../lib/year-pixels/grid';
 import {formatDate} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useHealth} from '../health/use-health';
@@ -14,6 +14,7 @@ import {ShowcaseTag} from '../ui/showcase-tag';
 import {downloadPixelsPng} from './year-pixels-export';
 import './year-pixels.css';
 import {wordsOf} from '../../lib/mood-words/schema';
+import {useMoodLook} from '../mood-look/use-mood-look';
 
 /**
  * Session AK (lane S, item 13): Journal → Year, a year of the person's days, one square each, by the day's mood (Health's
@@ -23,11 +24,14 @@ import {wordsOf} from '../../lib/mood-words/schema';
  */
 export default function YearPixels({today}: {today: string}) {
   const energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), health = useHealth(), healthShown = isShown(usePagesView(), 'health'), id = useId();
+  // Session AV lane 2 (LEDGER #178 follow-up): the key and the day's line say the moods in the person's own words.
+  const moodWords = useMoodLook().words, word = (metric: PixelMetric, v: number) => levelWord(metric, v, moodWords);
   const moods = useMemo(() => healthShown && health.loaded && !health.error ? healthGroupIn(health.data, 'moods')?.days ?? {} : {}, [healthShown, health.loaded, health.error, health.data]);
   const src = useMemo(() => ({moods, energy: energy.data.days, words: wordsOf(energy.data), journalDates: journal.data.entries.map(e => e.date)}), [moods, energy.data, journal.data.entries]);
   const [metric, setMetric] = useState<PixelMetric>(healthShown ? 'mood' : 'energy'), years = useMemo(() => pixelYears(today, src), [today, src]);
   const [year, setYear] = useState(Number(today.slice(0, 4)));
   const shownMetric: PixelMetric = healthShown ? metric : 'energy';
+  // Session AV lane 2 (rest, LEDGER #178): the year sentence, the squares' titles and the image in your own mood words.
   const grid = useMemo(() => pixelYear(year, today, shownMetric, src), [year, today, shownMetric, src]);
   const [at, setAt] = useState<{w: number; d: number} | null>(null), [selected, setSelected] = useState<string | null>(null), [status, setStatus] = useState('');
   const focus = at ?? findDay(grid.weeks, today <= `${year}-12-31` && today >= `${year}-01-01` ? today : `${year}-01-01`) ?? {w: 0, d: 0};
@@ -55,7 +59,7 @@ export default function YearPixels({today}: {today: string}) {
     if (next) { setAt(next); setSelected(grid.weeks[next.w]![next.d]!.date); }
   };
   const save = async () => {
-    try { await downloadPixelsPng(grid, shownMetric, year); setStatus('The image is saved to your downloads.'); } catch { setStatus('The image could not be made on this device.'); }
+    try { await downloadPixelsPng(grid, shownMetric, year, moodWords); setStatus('The image is saved to your downloads.'); } catch { setStatus('The image could not be made on this device.'); }
   };
   if (!energy.loaded || !journal.loaded) return <p className="fine">Reading your year…</p>;
   const day = selected ? grid.weeks.flat().find(p => p.date === selected && p.inYear) ?? null : null;
@@ -67,22 +71,22 @@ export default function YearPixels({today}: {today: string}) {
       {healthShown && <div role="group" aria-label="Colour the days by" className="year-pixels-toggle">{(['mood', 'energy'] as const).map(m => <button key={m} type="button" className="secondary" aria-pressed={shownMetric === m} onClick={() => setMetric(m)}>{m === 'mood' ? 'Mood' : 'Energy'}</button>)}</div>}
       <div className="year-pixels-nav"><button type="button" className="quiet" aria-label="Previous year" disabled={year <= years[0]!} onClick={() => { setYear(y => y - 1); setAt(null); setSelected(null); }}>←</button><strong>{year}</strong><button type="button" className="quiet" aria-label="Next year" disabled={year >= years.at(-1)!} onClick={() => { setYear(y => y + 1); setAt(null); setSelected(null); }}>→</button></div>
     </div>
-    <p className="year-pixels-summary" role="status">{grid.summary}</p>
+    <p className="year-pixels-summary" role="status">{pixelSummary(year, shownMetric, grid.counts, grid.rated, moodWords)}</p>
     {/* Session AK (lane D, empty start): say how a square fills in, not only that none has. */}
     {grid.rated === 0 && <p className="fine">{shownMetric === 'mood' ? 'Rate your mood in Health' : 'Rate your energy in the daily check-in or the Journal'} and that day&rsquo;s square fills in here.</p>}
     <div className="year-pixels-scroll" ref={scroller}>
       <div className="year-pixels-months" aria-hidden="true" style={{'--weeks': grid.weeks.length} as React.CSSProperties}>{grid.months.map(m => <span key={m.label} style={{gridColumnStart: m.week + 1}}>{m.label}</span>)}</div>
       <div ref={gridRef} className="year-pixels-grid" role="grid" aria-label={`${year}, by ${shownMetric}. Arrow keys move by a day or a week; Enter shows the day.`} tabIndex={0} aria-activedescendant={cellId(focus.w, focus.d)} onKeyDown={onKey}>
         {Array.from({length: 7}, (_, d) => <div key={d} role="row" className="year-pixels-row">
-          {grid.weeks.map((week, w) => { const p = week[d]!; return <div key={w} id={cellId(w, d)} role="gridcell" aria-label={p.inYear ? pixelLabel(p, shownMetric) : undefined} aria-selected={p.inYear ? selected === p.date : undefined} aria-hidden={p.inYear ? undefined : true}
+          {grid.weeks.map((week, w) => { const p = week[d]!; return <div key={w} id={cellId(w, d)} role="gridcell" aria-label={p.inYear ? pixelLabel(p, shownMetric, moodWords) : undefined} aria-selected={p.inYear ? selected === p.date : undefined} aria-hidden={p.inYear ? undefined : true}
             className="year-pixels-cell" data-level={!p.inYear ? 'out' : p.future ? 'ahead' : p.value ?? 'none'} data-entry={p.entries ? '' : undefined} data-focus={focus.w === w && focus.d === d ? '' : undefined} onClick={() => pick(p, w, d)}/>; })}
         </div>)}
       </div>
     </div>
-    <ul className="year-pixels-legend" aria-label="Key">{[1, 2, 3, 4, 5].map(v => <li key={v}><i data-level={v} aria-hidden="true"/>{v} {levelWord(shownMetric, v)} ({grid.counts[v - 1]})</li>)}<li><i data-level="none" aria-hidden="true"/>Not rated</li><li><i data-level="none" data-entry="" aria-hidden="true"/>Dot: a journal entry</li></ul>
+    <ul className="year-pixels-legend" aria-label="Key">{[1, 2, 3, 4, 5].map(v => <li key={v}><i data-level={v} aria-hidden="true"/>{v} {word(shownMetric, v)} ({grid.counts[v - 1]})</li>)}<li><i data-level="none" aria-hidden="true"/>Not rated</li><li><i data-level="none" data-entry="" aria-hidden="true"/>Dot: a journal entry</li></ul>
     {day && <section className="year-pixels-day" aria-labelledby={`${id}-day`}>
       <h3 id={`${id}-day`}>{formatDate(day.date, {weekday: true})}</h3>
-      <p>{[mood !== null && healthShown ? `Mood: ${levelWord('mood', mood)} (${mood} of 5)` : null, en !== null ? `Energy: ${levelWord('energy', en)} (${en} of 5)` : null, day.word ? `Feeling: ${day.word}` : null].filter(Boolean).join(' · ') || 'No rating that day.'}</p>
+      <p>{[mood !== null && healthShown ? `Mood: ${word('mood', mood)} (${mood} of 5)` : null, en !== null ? `Energy: ${levelWord('energy', en)} (${en} of 5)` : null, day.word ? `Feeling: ${day.word}` : null].filter(Boolean).join(' · ') || 'No rating that day.'}</p>
       {entries.length ? <ul className="year-pixels-entries">{entries.map(e => <li key={e.id}><p>{e.text}</p></li>)}</ul> : <p className="fine">No journal entry that day.</p>}
       <p className="year-pixels-day-nav"><button type="button" className="secondary" onClick={() => step(-1)}>Previous day</button><button type="button" className="secondary" onClick={() => step(1)}>Next day</button></p>
     </section>}

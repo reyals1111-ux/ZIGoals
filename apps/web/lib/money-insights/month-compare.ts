@@ -2,6 +2,7 @@ import {monthKey, shiftMonth} from '../budgets/engine';
 import {monthOf} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import {entryParts} from '../money-split/parts';
+import {isCounted} from '../money-log/counted';
 
 /**
  * Session AV (owner follow-up 1, F-VS-LAST; Copilot, Rocket Money's watchlist): each spending category this month so far
@@ -16,6 +17,7 @@ export function vsLastMonth(entries: readonly MoneyEntry[], currency: string, to
   const now = new Map<string, number>(), same = new Map<string, number>(), whole = new Map<string, number>();
   let previousRecorded = false;
   for (const e of entries) {
+    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.currency !== currency || e.date > today) continue;
     const m = monthKey(e.date);
     if (m === previous) previousRecorded = true;

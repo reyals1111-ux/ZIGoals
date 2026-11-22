@@ -1,5 +1,4 @@
 'use client';
-import {SYMPTOMS} from '../../../lib/symptoms/schema';
 import {useEffect, useId, useMemo, useState} from 'react';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import type {HealthData} from '../../../lib/health';
@@ -20,6 +19,11 @@ import {useHabits} from '../../habits/use-habits';
 import {EmptyState} from '../../ui/empty-state';
 import {ShowcaseTag} from '../../ui/showcase-tag';
 import './compare.css';
+import {SYMPTOMS} from '../../../lib/symptoms/schema';
+import {SUPPLEMENTS} from '../../../lib/supplements/schema';
+import {HEALTH_NUMBERS} from '../../../lib/health-numbers/store';
+import {HEALTH_VITAMINS} from '../../../lib/health-vitamins/schema';
+import {NUTRIENT_EXTRAS_RECORD} from '../../../lib/health-vitamins/extras';
 import {wordsOf} from '../../../lib/mood-words/schema';
 
 /**
@@ -29,12 +33,16 @@ import {wordsOf} from '../../../lib/mood-words/schema';
  * last chosen pair is stored (zigoals:compare-pair:v1), and only when the person changes it.
  */
 export default function CompareExplorer({health, today}: {health: HealthData; today: string}) {
-  const habits = useHabits(), energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), workouts = useDeviceRecord(WORKOUTS), money = useDeviceRecord(MONEY_LOG), pair = useDeviceRecord(COMPARE_PAIR), scales = useDeviceRecord(SCALES), cycle = useDeviceRecord(CYCLE), symptoms = useDeviceRecord(SYMPTOMS);
+  const habits = useHabits(), energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), workouts = useDeviceRecord(WORKOUTS), money = useDeviceRecord(MONEY_LOG), pair = useDeviceRecord(COMPARE_PAIR), scales = useDeviceRecord(SCALES), cycle = useDeviceRecord(CYCLE);
+  // Session AV lane 2 (food, LEDGER #92, #98): symptoms and doses as factors and outcomes, beside the diary's own.
+  const symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS), numbers = useDeviceRecord(HEALTH_NUMBERS);
+  // Session AV lane 2 (rest, LEDGER #98): the vitamins and further nutrients beside the diary, so every nutrient can be an outcome.
+  const vitamins = useDeviceRecord(HEALTH_VITAMINS), extras = useDeviceRecord(NUTRIENT_EXTRAS_RECORD);
   const [fasting, setFasting] = useState<CompareSources['fasting']>(null), [note, setNote] = useState(''), id = useId();
   useEffect(() => { queueMicrotask(() => { try { const r = readFasting(getAppStorage()); setFasting(r.unreadable ? null : r.data); } catch { setFasting(null); } }); }, []);
   const ok = <T,>(r: {loaded: boolean; unreadable: boolean; data: T}) => r.loaded && !r.unreadable ? r.data : null;
-  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting, scales: ok(scales), cycle: ok(cycle) && cycleOn(ok(cycle)!) ? {periodDays: periodDays(ok(cycle)!)} : null, /* Session AV lane 2 (LEDGER #64) */ symptoms: ok(symptoms)}),
-    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting, scales, cycle, symptoms]);
+  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting, scales: ok(scales), cycle: ok(cycle) && cycleOn(ok(cycle)!) ? {periodDays: periodDays(ok(cycle)!)} : null, symptoms: ok(symptoms), supplements: ok(supplements), numbers: ok(numbers), nutrientRecords: {vitamins: ok(vitamins), extras: ok(extras)}}),
+    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting, scales, cycle, symptoms, supplements, numbers, vitamins, extras]);
   const factors = useMemo(() => factorOptions(src, today), [src, today]), outcomes = useMemo(() => outcomeOptions(src), [src]);
   const basis = useMemo(() => spendBasis(src, today), [src, today]);
   const saved = pair.data;

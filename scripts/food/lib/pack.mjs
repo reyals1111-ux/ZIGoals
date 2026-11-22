@@ -12,7 +12,35 @@ export const SCHEMA_VERSION = 1;
 export const NUTRIENT_COLUMNS = /** @type {const} */ (['kcal', 'proteinMg', 'carbsMg', 'fatMg', 'fiberMg', 'sugarMg', 'satFatMg', 'sodiumMg', 'potassiumMg', 'calciumMg', 'ironMg', 'magnesiumMg', 'zincMg', 'vitAUg', 'vitCMg', 'vitDUg', 'vitEMg', 'vitKUg', 'b1Mg', 'b2Mg', 'b3Mg', 'b6Mg', 'b12Ug', 'folateUg', 'omega3Mg']);
 export const COLUMNS = ['id', 'nameEn', 'aliases', ...NUTRIENT_COLUMNS];
 /** @typedef {typeof NUTRIENT_COLUMNS[number]} NutrientColumn */
-/** @typedef {{id:string,nameEn:string,aliases:string[],values:Partial<Record<NutrientColumn,number|null>>}} Food */
+/**
+ * Session AV lane 2 (rest, LEDGER #93): the further nutrients a source carries, in a side file of their own
+ * (<source>-more-v1.json) so the library file, its manifest and every released reader stay exactly as they are:
+ * {schemaVersion:1, source, datasetVersion, main:<the library file's sha256>, columns:['id', …MORE_COLUMNS], foods:[[id, …]]}
+ * Units as the column names (mg or µg; the gram nutrients in whole mg); unknown is null; trailing unknowns left off;
+ * a food with none is left out.
+ */
+export const MORE_COLUMNS = /** @type {const} */ (['waterMg', 'starchMg', 'alcoholMg', 'glucoseMg', 'fructoseMg', 'sucroseMg', 'lactoseMg', 'monoFatMg', 'polyFatMg', 'omega6Mg', 'transFatMg', 'cholesterolMg', 'phosphorusMg', 'copperMg', 'chlorideMg', 'manganeseMg', 'seleniumUg', 'iodineUg', 'retinolUg', 'caroteneUg', 'pantothenateMg', 'biotinUg']);
+/** @typedef {typeof MORE_COLUMNS[number]} MoreColumn */
+/** @typedef {{id:string,nameEn:string,aliases:string[],values:Partial<Record<NutrientColumn,number|null>>,more?:Partial<Record<MoreColumn,number|null>>}} Food */
+const MORE_GRAMS = new Set(['waterMg', 'starchMg', 'alcoholMg', 'glucoseMg', 'fructoseMg', 'sucroseMg', 'lactoseMg', 'monoFatMg', 'polyFatMg', 'omega6Mg', 'transFatMg']);
+/** A side-file value: the gram nutrients whole mg after 3 significant figures, others 3 significant figures; implausible → null. @param {MoreColumn} column @param {number|null|undefined} x */
+export function roundedMore(column, x) {
+  if (typeof x !== 'number' || !Number.isFinite(x) || x < 0 || x > (column.endsWith('Ug') ? 100_000_000 : 100_000)) return null;
+  return MORE_GRAMS.has(column) ? Math.round(sig3(x)) : sig3(x);
+}
+/** The side file for one source, or null when no food carries a further nutrient. @param {{source:string,datasetVersion:string}} about @param {Food[]} foods @param {{ids:Set<string>,main:string}} packed */
+export function packMore(about, foods, {ids, main}) {
+  const rows = [], seen = new Set();
+  for (const food of foods) {
+    const id = String(food.id).trim();
+    if (!food.more || !ids.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    const row = [id, ...MORE_COLUMNS.map(c => roundedMore(c, food.more?.[c]))];
+    while (row.length > 1 && row[row.length - 1] === null) row.pop();
+    if (row.length > 1) rows.push(row);
+  }
+  return rows.length ? {schemaVersion: SCHEMA_VERSION, source: about.source, datasetVersion: about.datasetVersion, main, columns: ['id', ...MORE_COLUMNS], foods: rows} : null;
+}
 const WHOLE_MG = new Set(['proteinMg', 'carbsMg', 'fatMg', 'fiberMg', 'sugarMg', 'satFatMg', 'omega3Mg']);
 // The most 100 g can hold, per column (in the column's unit); anything above is a data error and becomes unknown.
 const MAX = {kcal: 1000, ...Object.fromEntries([...WHOLE_MG].map(c => [c, 100_000])), sodiumMg: 100_000, potassiumMg: 100_000, calciumMg: 100_000, ironMg: 100_000, magnesiumMg: 100_000, zincMg: 100_000, vitCMg: 100_000, vitEMg: 100_000, b1Mg: 100_000, b2Mg: 100_000, b3Mg: 100_000, b6Mg: 100_000, vitAUg: 100_000_000, vitDUg: 100_000_000, vitKUg: 100_000_000, b12Ug: 100_000_000, folateUg: 100_000_000};

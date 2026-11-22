@@ -22,6 +22,7 @@ import {countdownsCard, dayRulesCard, journalNumbersCard, perfectDaysCard, tasks
 import {ageCard, billChangesCard, moneyTagsCard, paceCard, readyCard} from '../cards/money-insights';
 import {NET_WORTH_HISTORY_RANGE, historyMoney, netWorthHistoryCard} from '../cards/net-worth-history';
 import type {WidgetParams, WidgetRange} from '../stage/record';
+import {nlLogDay, nlMonth, nlShortDate, nlWeekDay} from './nl-dates';
 
 /**
  * Session AM-2 (step 3, "NOVA connected"; design review AM-D2): the one-line figure summaries of the widgets that show
@@ -61,16 +62,16 @@ const NO_LOG = (lang: Lang) => say(lang, 'Nothing is in your money log yet.', 'E
 function wealthLine(id: string, params: WidgetParams | undefined, d: Base & ConnectData, lang: Lang): string | null | undefined {
   if (id === 'net-worth-history') {
     if (!d.networthHistory) return null;
-    const c = netWorthHistoryCard(d.networthHistory, d.day, params?.range ?? NET_WORTH_HISTORY_RANGE), on = (day: string) => formatDate(day, {year: !day.startsWith(d.day.slice(0, 4))});
+    const c = netWorthHistoryCard(d.networthHistory, d.day, params?.range ?? NET_WORTH_HISTORY_RANGE), on = (day: string) => formatDate(day, {year: !day.startsWith(d.day.slice(0, 4))}), onNl = (day: string) => nlShortDate(day, d.day);
     if (c.state === 'empty') return say(lang, 'No day of net worth is recorded yet; Wealth records one each day you open it.', 'Er is nog geen dag vastgelegd; Vermogen legt er één vast op elke dag dat je het opent.');
     if (c.state === 'quiet' || !c.latest || !c.currency) return say(lang, `No day was recorded in ${c.rangeWords}.`, `Er is geen dag vastgelegd in ${NL_RANGE[c.range]}.`);
     const money = (cents: bigint) => historyMoney(cents, c.currency!), example = c.example ? say(lang, ' (example history)', ' (voorbeeldgeschiedenis)') : '';
     if (c.latest.cents === null) return say(lang, `Net worth was not known on ${on(c.latest.day)}: something had no value that day${c.latestKnown ? `; last known ${money(c.latestKnown.cents)} on ${on(c.latestKnown.day)}` : ''}${example}.`,
-      `Je vermogen was op ${on(c.latest.day)} niet bekend: iets had die dag geen waarde${c.latestKnown ? `; laatst bekend ${money(c.latestKnown.cents)} op ${on(c.latestKnown.day)}` : ''}${example}.`);
+      `Je vermogen was op ${onNl(c.latest.day)} niet bekend: iets had die dag geen waarde${c.latestKnown ? `; laatst bekend ${money(c.latestKnown.cents)} op ${onNl(c.latestKnown.day)}` : ''}${example}.`);
     const size = c.change ? money(c.change.cents < 0n ? -c.change.cents : c.change.cents) : '';
-    const change = !c.change ? '' : c.change.direction === 'flat' ? say(lang, `, no change since ${on(c.change.since)}`, `, geen verandering sinds ${on(c.change.since)}`)
-      : say(lang, `, ${c.change.direction} ${size} since ${on(c.change.since)}`, `, ${size} ${c.change.direction === 'up' ? 'hoger' : 'lager'} dan op ${on(c.change.since)}`);
-    return say(lang, `Net worth ${money(c.latest.cents)} on ${on(c.latest.day)}${change}${example}.`, `Vermogen ${money(c.latest.cents)} op ${on(c.latest.day)}${change}${example}.`);
+    const change = !c.change ? '' : c.change.direction === 'flat' ? say(lang, `, no change since ${on(c.change.since)}`, `, geen verandering sinds ${onNl(c.change.since)}`)
+      : say(lang, `, ${c.change.direction} ${size} since ${on(c.change.since)}`, `, ${size} ${c.change.direction === 'up' ? 'hoger' : 'lager'} dan op ${onNl(c.change.since)}`);
+    return say(lang, `Net worth ${money(c.latest.cents)} on ${on(c.latest.day)}${change}${example}.`, `Vermogen ${money(c.latest.cents)} op ${onNl(c.latest.day)}${change}${example}.`);
   }
   if (!d.moneyLog) return null;
   if (id === 'ready-to-assign') {
@@ -101,7 +102,7 @@ function wealthLine(id: string, params: WidgetParams | undefined, d: Base & Conn
     if (!l) return say(lang, 'No bill’s latest payment differs from the one before it.', 'Bij geen rekening wijkt de laatste betaling af van de vorige.');
     const more = c.lines.length - 1;
     return say(lang, `${plain(l.title)} ${l.words}${more > 0 ? `; ${more} more changed` : ''}.`,
-      `${plain(l.title)} is ${l.by} ${l.direction === 'up' ? 'duurder' : 'goedkoper'} sinds ${l.since} (toen ${l.then}, nu ${l.now})${more > 0 ? `; nog ${more} veranderd` : ''}.`);
+      `${plain(l.title)} is ${l.by} ${l.direction === 'up' ? 'duurder' : 'goedkoper'} sinds ${nlMonth(l.month)} (toen ${l.then}, nu ${l.now})${more > 0 ? `; nog ${more} veranderd` : ''}.`);
   }
   if (id === 'money-tags') {
     if (!d.moneyTags) return null;
@@ -119,7 +120,7 @@ function healthLine(id: string, d: Base & ConnectData, lang: Lang): string | nul
     const run = runSplitsCard(d.workouts, d.splits, d.healthDay).run;
     if (!run) return say(lang, 'No run with a pace yet; a GPX or TCX file you import brings one.', 'Nog geen run met een tempo; een GPX- of TCX-bestand dat je importeert brengt er een.');
     return say(lang, `${plain(run.name)}, ${run.dateText}: average pace ${run.paceText}${run.distanceText ? ` over ${run.distanceText}` : ''}${run.fastest ? `; fastest kilometre ${run.fastest.paceText}` : ''}.`,
-      `${plain(run.name)}, ${run.dateText}: gemiddeld tempo ${run.paceText}${run.distanceText ? ` over ${run.distanceText}` : ''}${run.fastest ? `; snelste kilometer ${run.fastest.paceText}` : ''}.`);
+      `${plain(run.name)}, ${nlLogDay(run.date, d.healthDay)}: gemiddeld tempo ${run.paceText}${run.distanceText ? ` over ${run.distanceText}` : ''}${run.fastest ? `; snelste kilometer ${run.fastest.paceText}` : ''}.`);
   }
   if (id === 'mood-tags') {
     if (!d.health || !d.moodTags) return null;
@@ -170,8 +171,8 @@ export function connectLine(id: string, params: WidgetParams | undefined, d: Bas
       if (c.state === 'empty') return say(lang, 'No countdowns yet.', 'Nog geen aftellingen.');
       if (!next) return say(lang, `Nothing is ahead; ${c.passed} ${c.passed === 1 ? 'day has' : 'days have'} passed.`, `Er komt niets aan; ${c.passed} ${c.passed === 1 ? 'dag is' : 'dagen zijn'} voorbij.`);
       const rest = more > 0 ? say(lang, `; ${more} more coming up`, `; daarna nog ${more}`) : '';
-      if (next.days === 0) return say(lang, `${plain(next.title)} is today (${next.dateText})${rest}.`, `${plain(next.title)} is vandaag (${next.dateText})${rest}.`);
-      return say(lang, `Days until ${plain(next.title)}: ${formatNumber(next.days)} (${next.dateText})${rest}.`, `Dagen tot ${plain(next.title)}: ${formatNumber(next.days)} (${next.dateText})${rest}.`);
+      if (next.days === 0) return say(lang, `${plain(next.title)} is today (${next.dateText})${rest}.`, `${plain(next.title)} is vandaag (${nlWeekDay(next.date, d.day)})${rest}.`);
+      return say(lang, `Days until ${plain(next.title)}: ${formatNumber(next.days)} (${next.dateText})${rest}.`, `Dagen tot ${plain(next.title)}: ${formatNumber(next.days)} (${nlWeekDay(next.date, d.day)})${rest}.`);
     }
     case 'journal-numbers': {
       if (!d.journal) return null;

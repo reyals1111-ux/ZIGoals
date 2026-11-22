@@ -1,3 +1,5 @@
+import {monthIn, nlDate} from '../../local-answers/exact/period';
+
 /**
  * Session AS (ADR-042 Part 1, approval item 7): the facts every phrasing of a question must state, written by hand from
  * the Showcase's records for 17 November 2026 (a Tuesday; this week is Mon 16 – Tue 17, last week Mon 9 – Sun 15). Names,
@@ -47,6 +49,12 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'av2-week-objectives': [], 'av2-daily-goal': [], 'av2-time-spent': [], 'av2-timers': [], 'av2-day-limit': [], 'av2-start-early': [], 'av2-areas': [], 'av2-templates': [], 'av2-pay-period': [], 'av2-note-reminders': [],
   'av2-habits-whenever': [], 'av2-habits-never-twice': [], 'av2-habits-unlogged': [], 'av2-habits-difficulty': [], 'av2-habits-areas-week': [], 'av2-habits-month-theme': [], 'av2-habits-hidden': [], 'av2-habits-day-logged': [], 'av2-habits-own-words': [], 'av2-habits-usual-mood': [], 'av2-habits-todays-practice': [],
   'av2-journal-reminder': [], 'av2-journal-streak': [], 'av2-journal-books': [], 'av2-journal-on-day': [], 'av2-journal-packs': [], 'av2-journal-default-template': [], 'av2-journal-versions': [], 'av2-journal-media': [], 'av2-journal-imported': [], 'av2-notes-repeating': [], 'av2-notes-versions': [], 'av2-notes-per-tag': [], 'av2-journal-report': [], 'av2-journal-affirmation': [], 'av2-chess-results': [], 'av2-chess-game': [], 'av2-task-attachments': [],
+  'av2-money-left-out': [], 'av2-money-tax': [], 'av2-money-own-categories': [], 'av2-money-transfers': [], 'av2-money-payees': [], 'av2-money-challenges': [], 'av2-money-until-payday': [], 'av2-money-low-line': [], 'av2-money-year': [], 'av2-money-account-notes': [], 'av2-money-move-alerts': [], 'av2-money-time-machine': [], 'av2-money-underfunded': [], 'av2-money-flexible': [], 'av2-money-suggested-budget': [], 'av2-money-paid-off': [], 'av2-money-paid-down': [], 'av2-money-kept-plan': [], 'av2-money-debt-free-by': [], 'av2-money-equity': [], 'av2-money-stale': [], 'av2-money-one-total': [], 'av2-money-irr': [], 'av2-food-when-eaten': [], 'av2-food-eating-window': [], 'av2-food-weekday-targets': [], 'av2-food-net-carbs': [], 'av2-food-timing': [], 'av2-food-oracle-protein': [], 'av2-food-oracle-vitamin': [], 'av2-food-meal-reminders': [], 'av2-food-challenge': [], 'av2-food-goal-date': [], 'av2-food-check-in': [], 'av2-food-pack-photos': [], 'av2-food-recipe-ideas': [], 'av2-food-fit-plan': [], 'av2-food-style-foods': [], 'av2-howto': [], 'av2-muscles': [], 'av2-pinned': [], 'av2-exercises-for': [], 'av2-my-routines': [], 'av2-next-target': [], 'av2-month-report': [], 'av2-sets-muscle': [], 'av2-week-streak': [], 'av2-days-year': [], 'av2-distance-goal': [], 'av2-training-load': [], 'av2-last-run': [], 'av2-fall-asleep': [], 'av2-sleep-usual': [], 'av2-evening-plan': [], 'av2-bodyweight': [], 'av2-shoes': [], 'av2-run-tip': [], 'av2-bmi': [], 'av2-milestones': [], 'av2-ready-routines': [],
+  'av2-sync-sections': [], 'av2-sync-money': [], 'av2-look-dark-style': [], 'av2-look-font': [], 'av2-backup-schedule': [], 'av2-food-extra-meals': [], 'av2-habits-calm-visual': [], 'av2-habits-stretch-minutes': [], 'av2-habits-mood-words': [], 'av2-habits-meditation-milestones': [], 'av2-habits-strength-year': [],
+  'av2-habits-timer-presets': [], 'av2-habits-rolling': [],
+  'av2-repeating-projects': [], 'av2-task-versions': [], 'av2-shift-sound': [], 'av2-further-nutrient': [],
+  'av2r2-money-saved': [], 'av2r2-money-paid-with': [], 'av2r2-money-subcategories': [], 'av2r2-money-day-left': [], 'av2r2-money-own-budgets': [], 'av2r2-money-payee-budgets': [], 'av2r2-money-unusual': [], 'av2r2-money-balance-lines': [], 'av2r2-money-to-record': [], 'av2r2-money-who-owes': [], 'av2r2-money-lent-borrowed': [], 'av2r2-money-store-cards': [], 'av2r2-money-business': [], 'av2r2-my-day': [], 'av2r2-note-reminders-today': [], 'av2r2-print': [], 'av2r2-template-gallery': [], 'av2r2-import-boards': [], 'av2r2-project-rules': [], 'av2r2-custom-fields': [],
+  'av2r2-sleep-need': [], 'av2r2-naps': [], 'av2r2-morning-steps': [], 'av2r2-challenge': [], 'av2r2-vent': [], 'av2r2-feelings': [], 'av2r2-thinking-traps': [], 'av2r2-today-workout': [], 'av2r2-equipment': [], 'av2r2-instead': [],
   // Session AV (owner follow-up 2, item 1c; cases-av.ts): the AV features' own questions.
   'av-task-reminders': [], 'av-weekly-intention': ['one short walk after lunch'], 'av-countdown-until': ['Mum’s birthday', '3'], 'av-countdowns-list': ['Mum’s birthday', 'Trip to Lisbon'], 'av-plan-day': ['Sketch the garden bed'],
   'av-bills-year': ['13,139.88', '1,094.99'], 'av-bills-paid': ['Energy', 'Music', 'Rent'], 'av-payday': [], 'av-budget-targets': ['Groceries', '300.00'], 'av-budget-near': ['Groceries', '75%'],
@@ -58,3 +66,18 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'av-good-things': ['3'], 'av-journal-tag': ['“work”'], 'av-journal-count': ['1'], 'av-journal-templates': ['8', 'Run diary'], 'av-journal-question': ['Journal → Another question'],
   'av-yesterday-open': [], 'av-focus-habit': ['Make it today’s focus'] /* the Showcase sets no focus (D-028) */,
 };
+
+// Session AV lane 2 (Dutch dates, deliberate): a Dutch answer now writes its dates the Dutch way (exact/period.ts nlDay,
+// nlDate, monthIn), so a date fact is checked in a Dutch phrasing as the Dutch answer writes that same date: "Nov 3" →
+// "3 nov", "Apr 16, 2027" → "16 apr 2027", "Apr 2028" → "april 2028". Every other fact, and every English phrasing, is
+// checked exactly as written above. Equally strict: the same day, month and year must be said.
+const SHOWCASE_DAY = '2026-11-17', MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const pad = (n: number) => String(n).padStart(2, '0');
+export function nlFact(fact: string): string {
+  const day = /^([A-Z][a-z]{2}) (\d{1,2})(?:, (\d{4}))?$/.exec(fact), month = /^([A-Z][a-z]{2}) (\d{4})$/.exec(fact);
+  if (day && MON.includes(day[1]!)) return nlDate(`${day[3] ?? SHOWCASE_DAY.slice(0, 4)}-${pad(MON.indexOf(day[1]!) + 1)}-${pad(Number(day[2]))}`, SHOWCASE_DAY);
+  if (month && MON.includes(month[1]!)) return monthIn('nl', `${month[2]}-${pad(MON.indexOf(month[1]!) + 1)}`);
+  return fact;
+}
+/** The facts a phrasing in `lang` must state. */
+export const saysIn = (id: string, lang: 'en' | 'nl'): readonly string[] => lang === 'nl' ? (SAYS[id] ?? []).map(nlFact) : SAYS[id] ?? [];
