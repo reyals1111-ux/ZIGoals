@@ -286,3 +286,29 @@ and mood figures move only with a shared or spread cost in their window). expect
   "Reorder budgets" (two budgets or more) and "Paychecks and next month"; the Refund chip is one more radio in the form's
   group (no extra Tab stop). Showcase Today: nothing added.
 - Not run here (the lead's): `next build`, Playwright, the theme build.
+
+## Review B6O fixes
+
+All 13 findings fixed on `lane2/r6-money` (from `b1b3a062`), one commit each, each with a unit test that fails before the
+fix. Refunds go through the shared rule (`lib/money-log/counted.ts`); its new `categoryKind` says a refund sits in a
+spending category whatever its marks. No assertion was weakened or removed; no spec changed.
+
+| id | commit | what changed | test |
+|---|---|---|---|
+| B6O-1 | `f7e8138b` | Life review's Your days sums with `inFigures`/`countedKind`/`countedCents`: a refund lowers spent and is never received; left out, transfers and shares count as on Spending. | `lib/money-log/av2-refund.test.ts` "Life review" |
+| B6O-2 | `168a2f4b`, `813b5fb7` | `setAsideFrom` holds by the same cap as `coveredIn` covers (a budget's amount next month), so a lowered amount returns the excess to the source month; `setAside` checks against the capped amount. | `lib/budgets/av2-r6-budgets.test.ts` "review B6O-2" |
+| B6O-3 | `2ea5c460`, `813b5fb7` | Rules match a refund as money out (`subjectOf` via `categoryKind`); a refund only takes a money-out rule's category or a usual spending one; "Make a rule" from a refund is a money-out rule. | `lib/money-rules/rules.test.ts` "review B6O-3" |
+| B6O-4 | `fc347bb8` | A refund's `share` (existing field) follows the purchase it names: refund × share ÷ paid, exact cents. Set by "Count as a refund", the form (typed or edited) and when the purchase is shared or unshared later; the form says it in words. ShareFold stays on spending (it writes "owes you" lines). | `lib/money-log/av2-refund.test.ts` "review B6O-4" |
+| B6O-5 | `8af3cbf8` | `barWidths` (`lib/money-log/bars.ts`): the biggest over totals above zero; no bar at or below zero; never NaN. | `lib/money-log/av2-refund.test.ts` "review B6O-5" |
+| B6O-6 | `25856677` | "Forget it" and "Add … back" show the same Undo toast as other repairs; `unforgetAccount`, `undoAddBackCategory`, `undoAddBackSub` revert only what the repair changed. | `lib/money-log/av2-r6-housekeeping.test.ts` "review B6O-6" |
+| B6O-7 | `c3f2e7b2` (TIER 3) | Fortnightly paychecks take a "Next payday" date (starts on the old count's payday); stored as optional `from`, every 14 days from it. Without `from` (every plan kept before) nothing changes. | `lib/budgets/av2-r6-budgets.test.ts` "review B6O-7" |
+| B6O-8 | `29196d37` | The check uses `categoryKind`: a left-out or transfer refund is checked against spending categories. | `lib/money-log/av2-r6-housekeeping.test.ts` "review B6O-8" |
+| B6O-9 | `8dab1532` | `staysPutAway`: an entry whose id is in the log again stays in the put-away year with the unreadable ones; Bring back says how many stay. | `lib/money-log/av2-r6-housekeeping.test.ts` "review B6O-9" |
+| B6O-10 | `96204a3f` | "My biggest/smallest expense" with only refunds answers "No purchase logged …, only money back (refunds)" (NL too) instead of throwing. | `lib/money-log/av2-refund.test.ts` "review B6O-10" |
+| B6O-11 | `e6bc8934` | Select totals count a refund as "refund" (summary `refunds`); the net is unchanged; `money_selection` passes `refunds`. | `lib/money-log/selection.test.ts` "review B6O-11" |
+| B6O-12 | `a1e27d10` | `revertPaychecks` reverts only what the paycheck change made into the latest record (a removed paycheck comes back with its lines; later lines and pay-period edits kept). | `lib/budgets/av2-r6-budgets.test.ts` "review B6O-12" |
+| B6O-13 | `06ad6324` (TIER 3) | `putAway.years` read per year: an unreadable year is kept in place as stored and written back unchanged; valid data parses as before; `readableYears`/`isReadableYear` for the consumers. | `lib/money-log/av2-r6-housekeeping.test.ts` "review B6O-13" |
+
+For the lead: Help could mention the fortnightly "Next payday" (B6O-7) and that a refund of a shared cost counts your
+share (B6O-4). Specs to look at in the Playwright run: `tests/av2-money-r6-budgets.spec.ts` (paycheck form, unchanged
+for monthly paychecks), `tests/av2-money-records-check.spec.ts` (Undo toast now also after "Forget it").
