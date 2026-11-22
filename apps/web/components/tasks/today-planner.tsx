@@ -5,11 +5,12 @@ import {showStatus} from '../ui/undo-toast';
 import {CALENDAR_IMPORT} from '../../lib/ics/calendar';
 import {eventAgendaItems} from '../../lib/agenda/time-items';
 import {checklistZone} from '../../lib/checklist/zone';
-import {DEFAULT_BLOCK, addSpent, fitDay, overLimit, plannedVsActual, taskBusy, toClock, toMin, type Busy} from '../../lib/tasks/layouts';
+import {DEFAULT_BLOCK, addSpent, fitDay, overLimit, plannedVsActual, taskBusy, toClock, type Busy} from '../../lib/tasks/layouts';
 import {TASK_PLAN, finishesByDay, goalStreak, harvestDoneLog, runningTimer, settleTimers, startTimer, stopTimer, timerMinutes} from '../../lib/tasks/plan-record';
 import {editMany, waitingFor} from '../../lib/tasks/engine';
 import {planAgain} from '../../lib/tasks/pieces';
 import {afterHours, hoursOn, hoursUntil} from '../../lib/tasks/work-hours';
+import {blocksOn, eventBusy, fitWithBlocks} from '../../lib/tasks/time-blocks';
 import './tasks-r4.css';
 import {minutesWords} from '../../lib/tasks/minutes';
 import type {Task, Tasks} from '../../lib/tasks/schema';
@@ -30,6 +31,8 @@ type Change = (fn: (r: Tasks) => Tasks, text: string, undone?: string) => boolea
 const TaskEnergyLine = lazy(() => import('./task-energy-line'));
 /** Session AV lane 2 (r4-plan, LEDGER #300; Motion's auto-scheduling, as a proposal): Plan my week, its own chunk. */
 const PlanWeek = lazy(() => import('./plan-week'));
+/** Session AV lane 2 (r5-plan, LEDGER #348; Akiflow's time slots): today's time blocks, "2 of 4 done", Move what is left (its own chunk). */
+const TodayBlocks = lazy(() => import('./time-blocks'));
 const clockNow = () => Date.now();
 export default function TodayPlanner({record, today, clock, shown, change, doneDay}: {record: Tasks; today: string; clock: string; shown: readonly Task[]; change: Change; doneDay: (iso: string) => string}) {
   const plan = useDeviceRecord(TASK_PLAN), calendars = useDeviceRecord(CALENDAR_IMPORT), id = useId();
@@ -48,16 +51,19 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
     for (const s of spent) { const t = record.tasks.find(x => x.id === s.taskId); if (t) change(r => addSpent(r, t.id, s.minutes), `Stopped: ${minutesWords(s.minutes)} on “${t.title}”.`, 'The minutes are taken back.'); }
   }, [plan, record, today, doneDay, change]);
   const busy = useMemo<Busy[]>(() => {
-    const events = calendars.loaded ? eventAgendaItems(calendars.data, today, today, checklistZone()).filter(e => e.time).map(e => ({start: toMin(e.time!), end: toMin(e.time!) + (e.minutes || DEFAULT_BLOCK), title: e.title})) : [];
+    // Session AV lane 2 (r5-plan, LEDGER #353): an event's typed travel minutes are busy before it.
+    const events = calendars.loaded ? eventAgendaItems(calendars.data, today, today, checklistZone()).flatMap(e => { const b = eventBusy(plan.data, e, DEFAULT_BLOCK); return b ? [b] : []; }) : [];
     // Session AV lane 2 (r4-plan, LEDGER #303): a task in pieces whose kept time has passed is planned again for its next piece.
     return [...taskBusy(record, today, new Set(record.tasks.filter(t => planAgain(t, today, clock)).map(t => t.id))), ...events];
-  }, [record, today, clock, calendars.loaded, calendars.data]);
+  }, [record, today, clock, calendars.loaded, calendars.data, plan.data]);
   const open = shown.filter(t => !t.doneAt && !t.parentId);
   // Session AV lane 2 (r4-plan, LEDGER #301, #304): inside the working hours ("after hours" tasks in the evening); a waiting task is not placed.
   const fit = useMemo(() => {
     const first = hours[0]?.from ?? '09:00', ready = open.filter(t => !waitingFor(record, t).length).map(t => planAgain(t, today, clock) ? {...t, time: undefined} : t);
-    return fitDay(ready, busy, {from: clock < first ? first : clock, until, windows: untilTyped ? hoursUntil(hours, until) : hours, after: [evening]});
-  }, [open, busy, clock, until, untilTyped, hours, evening, record, today]);
+    // Session AV lane 2 (r5-plan, LEDGER #348): a block's tasks go inside the block, every other task outside the blocks.
+    const blocks = blocksOn(plan.data, today), opts = {from: clock < first ? first : clock, until, windows: untilTyped ? hoursUntil(hours, until) : hours, after: [evening]};
+    return blocks.length ? fitWithBlocks(ready, busy, opts, blocks) : {...fitDay(ready, busy, opts), inBlock: new Map<string, string>()};
+  }, [open, busy, clock, until, untilTyped, hours, evening, record, today, plan.data]);
   const waiting = record.tasks.filter(t => !t.doneAt && !t.parentId && t.due && t.due <= today).map(t => ({t, on: waitingFor(record, t)})).filter(w => w.on.length);
   const pva = plannedVsActual(open.concat(record.tasks.filter(t => t.doneAt && doneDay(t.doneAt) === today && !t.parentId)));
   const load = open.filter(t => !t.parallel).reduce((n, t) => n + (t.minutes ?? 0), 0), limit = plan.data.dayLimit, over = overLimit(load, limit);
@@ -90,14 +96,15 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
       <button type="button" className="secondary" onClick={() => timer(task)}>Stop</button></li>)}</ul>}
     {waiting.length > 0 && <p className="fine tasks-waiting-line">{waiting.length === 1 ? 'Waiting' : `${formatNumber(waiting.length)} waiting`}: {waiting.slice(0, 5).map(({t, on}, i) => <span key={t.id}>{i ? '; ' : ''}“<span dir="auto">{t.title}</span>” after {on.map(b => `“${b.title}”`).join(', ')}</span>)}. Each joins today once those are done.</p>}
     {(pva.planned > 0 || pva.actual > 0) && <p className="fine">Today: planned {minutesWords(pva.planned)}, spent {minutesWords(pva.actual)}.</p>}
+    {blocksOn(plan.data, today).length > 0 && <Suspense fallback={null}><TodayBlocks record={record} today={today} change={change} /></Suspense>}
     <details className="tasks-fit-day">
       <summary>Fit my day around the Agenda</summary>
-      <p className="fine">Tasks without a time go into the free time inside your working hours ({hours.length ? hours.map(b => `${formatClock(b.from)}–${formatClock(b.to)}`).join(' and ') : 'today is a day off'}; set them in Tasks → This week), between your timed tasks and calendar events, each for its minutes (30 when it has none). An “after hours” task goes in the evening; a long task with pieces goes piece by piece. Background tasks take no slot.</p>
+      <p className="fine">Tasks without a time go into the free time inside your working hours ({hours.length ? hours.map(b => `${formatClock(b.from)}–${formatClock(b.to)}`).join(' and ') : 'today is a day off'}; set them in Tasks → This week), between your timed tasks and calendar events, each for its minutes (30 when it has none). An “after hours” task goes in the evening; a long task with pieces goes piece by piece. Background tasks take no slot. A task dropped into a time block goes inside it; the others stay outside your blocks; travel minutes before a time count as taken.</p>
       <label className="field"><span>My day ends at</span><input type="time" value={until} aria-describedby={`${id}-until`} onChange={e => setUntil(e.target.value || null)} />
         <small id={`${id}-until`} className="tasks-field-note">{hours.length ? 'Moves the end of today’s last hours, later or earlier, for this visit only.' : 'Today is a day off in your working hours, so nothing is placed.'}</small></label>
       {busy.length > 0 && <p className="fine">Fixed today: {[...busy].sort((a, b) => a.start - b.start).map(b => `${formatClock(toClock(b.start))} ${b.title}`).join(' · ')}</p>}
       {fit.placed.length ? <><ol className="tasks-fit-list" aria-label="A plan for today">{fit.placed.map(p => <li key={`${p.task.id}:${p.part ?? 1}`}>
-        <span><strong>{formatClock(p.start)}–{formatClock(p.end)}</strong> <span dir="auto">{p.task.title}</span>{p.part ? <small> · part {formatNumber(p.part)} of {formatNumber(p.of!)}</small> : null}{p.task.minutes ? '' : <small> · 30 min, it has no length</small>}</span>
+        <span><strong>{formatClock(p.start)}–{formatClock(p.end)}</strong> <span dir="auto">{p.task.title}</span>{p.part ? <small> · part {formatNumber(p.part)} of {formatNumber(p.of!)}</small> : null}{fit.inBlock.get(`${p.task.id}:${p.part ?? 1}`) ? <small> · in “{fit.inBlock.get(`${p.task.id}:${p.part ?? 1}`)}”</small> : null}{p.task.minutes ? '' : <small> · 30 min, it has no length</small>}</span>
         <button type="button" className="quiet" aria-label={`Place “${p.task.title}”${p.part ? ` (part ${p.part})` : ''} at ${formatClock(p.start)}`} onClick={() => place([p])}>Place</button>
         <button type="button" className="quiet" aria-label={`${runningTimer(plan.data, p.task.id) ? 'Stop the timer of' : 'Start a timer for'} “${p.task.title}”`} onClick={() => timer(p.task)}>{runningTimer(plan.data, p.task.id) ? 'Stop' : 'Start timer'}</button></li>)}</ol>
         <button type="button" className="secondary" onClick={() => place(fit.placed)}>Place all {formatNumber(new Set(fit.placed.map(p => p.task.id)).size)}</button>

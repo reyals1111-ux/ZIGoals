@@ -8,6 +8,7 @@ import type {useTaskList} from './use-task-list';
 import type {useGoalOptions} from './use-goal-options';
 import {addLocalDays} from '../../lib/local-date';
 import {editMany, openTasks} from '../../lib/tasks/engine';
+import {bucketOf, bucketTitle, planFor} from '../../lib/tasks/plan-bucket';
 import {minutesWords} from '../../lib/tasks/minutes';
 import {LEVEL_SHORT, taskLevel, type Task, type Tasks} from '../../lib/tasks/schema';
 import {TASK_PLAN, finishesByDay, goalStreak, harvestDoneLog} from '../../lib/tasks/plan-record';
@@ -27,6 +28,8 @@ const TaskEditor = lazy(() => import('./task-editor'));
 const PlanWeek = lazy(() => import('./plan-week'));
 const FloatingRepeats = lazy(() => import('./plan-week').then(m => ({default: m.FloatingRepeats})));
 const TaskHoursSettings = lazy(() => import('./task-hours-settings'));
+/** Session AV lane 2 (r5-plan, LEDGER #348; Akiflow's time slots): named time blocks (its own chunk). */
+const TimeBlocksSettings = lazy(() => import('./time-blocks-settings'));
 
 /**
  * Session AV lane 2 (tasks; Sunsama, Todoist, TickTick, Notion), one chunk loaded when one of these Tasks views opens:
@@ -109,11 +112,15 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
     <Suspense fallback={null}><FloatingRepeats record={record} today={today} week={week} change={list.change} /></Suspense>
     <h4>Plan into the week</h4>
     {unplanned.length ? <ul className="tasks-week-unplanned" aria-label="Open tasks with no day">{unplanned.map(t => <li key={t.id}><span dir="auto">{t.title}</span>
-      <label className="field"><span className="sr-only">Plan “{t.title}” for</span><select value="" onChange={e => { const d = e.target.value; if (d) list.change(r => editMany(r, [t.id], () => ({due: d}), today, {allowPast: true}), `“${t.title}” is planned for ${day(d, today)}.`, 'It has no day again.'); }}><option value="">Plan for…</option>{days.filter(d => d >= today).map(d => <option key={d} value={d}>{day(d, today)}</option>)}</select></label></li>)}</ul>
+      <label className="field"><span className="sr-only">Plan “{t.title}” for</span><select value="" onChange={e => { const d = e.target.value; if (d === 'week' || d === 'month' || d === 'next-week' || d === 'next-month') { const plan = planFor(d, today), name = bucketTitle(plan.kind, plan.of, today, formatMonth, x => formatDate(x, {year: false})); list.change(r => editMany(r, [t.id], () => ({plan}), today, {allowPast: true}), `“${t.title}” is planned for ${name.toLowerCase()}, any day. It shows in Upcoming.`, 'It has no week or month again.'); } else if (d) list.change(r => editMany(r, [t.id], () => ({due: d, plan: null}), today, {allowPast: true}), `“${t.title}” is planned for ${day(d, today)}.`, 'It has no day again.'); }}><option value="">Plan for…</option>{days.filter(d => d >= today).map(d => <option key={d} value={d}>{day(d, today)}</option>)}
+        {/* Session AV lane 2 (r5-plan, LEDGER #349; Akiflow's This week and This month): a week or a month, no day yet. */}
+        <option value="week">This week, any day</option><option value="next-week">Next week, any day</option><option value="month">This month, any day</option><option value="next-month">Next month, any day</option></select></label>
+        {(b => b ? <small className="fine">{bucketTitle(b.kind, b.of, today, formatMonth, x => formatDate(x, {year: false}))}</small> : null)(bucketOf(t, today))}</li>)}</ul>
       : <p className="fine">Every open task has a day.</p>}
     <WeekTable list={list} record={record} days={days} today={today} />
     <TaskPlanSettings />
     <Suspense fallback={null}><TaskHoursSettings /></Suspense>
+    <Suspense fallback={null}><TimeBlocksSettings today={today} /></Suspense>
   </section>;
 }
 function WeekTable({list, record, days, today}: {list: List; record: Tasks; days: string[]; today: string}) {

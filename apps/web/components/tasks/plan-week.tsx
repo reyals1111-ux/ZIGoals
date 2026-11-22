@@ -9,9 +9,10 @@ import {checklistZone} from '../../lib/checklist/zone';
 import {addLocalDays} from '../../lib/local-date';
 import {editTask, isLate} from '../../lib/tasks/engine';
 import {dayEnergy} from '../../lib/tasks/energy-load';
-import {DEFAULT_BLOCK, toMin, type Busy} from '../../lib/tasks/layouts';
+import {DEFAULT_BLOCK, type Busy} from '../../lib/tasks/layouts';
 import {minutesWords} from '../../lib/tasks/minutes';
-import {TASK_PLAN} from '../../lib/tasks/plan-record';
+import {TASK_PLAN, type TaskPlan} from '../../lib/tasks/plan-record';
+import {eventBusy} from '../../lib/tasks/time-blocks';
 import {WEEK_DAYS, fitWeek, keepPlacements, weekCandidates, type WeekPlacement} from '../../lib/tasks/plan-week';
 import {windowEnd, windowStart} from '../../lib/tasks/recurrence';
 import type {Task, Tasks} from '../../lib/tasks/schema';
@@ -27,16 +28,16 @@ import './tasks-r4.css';
  */
 type Change = (fn: (r: Tasks) => Tasks, text: string, undone?: string) => boolean;
 const dayName = (d: string, today: string) => d === today ? `Today · ${formatDate(d, {weekday: true, year: false})}` : d === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(d, {weekday: true, year: false})}` : formatDate(d, {weekday: true, year: false});
-function useEvents(today: string): (day: string) => Busy[] {
+function useEvents(today: string, plan: TaskPlan): (day: string) => Busy[] {
   const calendars = useDeviceRecord(CALENDAR_IMPORT);
   return useMemo(() => {
     const by = new Map<string, Busy[]>();
-    if (calendars.loaded) for (const e of eventAgendaItems(calendars.data, today, addLocalDays(today, WEEK_DAYS - 1), checklistZone())) if (e.time) by.set(e.date, [...(by.get(e.date) ?? []), {start: toMin(e.time), end: toMin(e.time) + (e.minutes || DEFAULT_BLOCK), title: e.title}]);
+    if (calendars.loaded) for (const e of eventAgendaItems(calendars.data, today, addLocalDays(today, WEEK_DAYS - 1), checklistZone())) { const b = eventBusy(plan, e, DEFAULT_BLOCK); /* Session AV lane 2 (r5-plan, LEDGER #353): its travel minutes before it */ if (b) by.set(e.date, [...(by.get(e.date) ?? []), b]); }
     return (day: string) => by.get(day) ?? [];
-  }, [calendars.loaded, calendars.data, today]);
+  }, [calendars.loaded, calendars.data, today, plan]);
 }
 export default function PlanWeek({record, today, clock, change, open: startOpen = false}: {record: Tasks; today: string; clock: string; change: Change; open?: boolean}) {
-  const plan = useDeviceRecord(TASK_PLAN), id = useId(), extra = useEvents(today);
+  const plan = useDeviceRecord(TASK_PLAN), id = useId(), extra = useEvents(today, plan.data);
   const [unticked, setUnticked] = useState<ReadonlySet<string>>(new Set());
   const waiting = useMemo(() => weekCandidates(record, today, clock).length, [record, today, clock]);
   const week = useMemo(() => fitWeek({record, plan: plan.data, today, clock, extra}), [record, plan.data, today, clock, extra]);

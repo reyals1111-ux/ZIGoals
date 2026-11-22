@@ -18,6 +18,8 @@ import {TimelineDayPicker} from './timeline-day-picker';
 import {LoadBoundary} from '../load-boundary';
 // Session AV lane 2 (r3-plan, LEDGER #262): the cycle day on the all-day line, opt-in under the Health gate (its own chunk).
 const CycleOnTimeline = lazy(() => import('../cycle/cycle-on-plan'));
+// Session AV lane 2 (r5-plan, LEDGER #357): a second time zone's hours, when one is chosen (its own chunk).
+const SecondZoneLine = lazy(() => import('./second-zone-line'));
 import {entryOn, restoreHabitEntry, type HabitEntry} from '../../lib/timeline/actions';
 import {setHabitTime} from '../../lib/habits-extras/store';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
@@ -130,6 +132,7 @@ export function DayTimelinePage() {
       {state.failed && <p role="status" className="timeline-note">Some of your records could not be read on this device; the timeline shows what it can.</p>}
       <ReplanCard leftovers={day.leftovers} actions={actions} busy={busy} />
       <LoadBoundary quiet><Suspense fallback={null}><CycleOnTimeline date={day.date} today={today} /></Suspense></LoadBoundary>
+      <LoadBoundary quiet><Suspense fallback={null}><SecondZoneLine date={day.date} today={today} bands={bands} /></Suspense></LoadBoundary>
       {day.anytime.length > 0 && <section className="timeline-band timeline-anytime" aria-labelledby="timeline-anytime-title">
         <h2 id="timeline-anytime-title">Anytime</h2>
         <ul className="timeline-list">{day.anytime.map(b => <TimelineBlockRow key={b.id} block={b} actions={actions} busy={busy} />)}</ul>

@@ -173,7 +173,8 @@ export function settleTimers(plan: TaskPlan, record: Tasks): {plan: TaskPlan; sp
 /** The finishes per device day the task list still holds (one-off tasks and each finished time of a repeating one). */
 export function liveFinishes(record: Tasks, doneDay: (iso: string) => string): Map<string, number> {
   const out = new Map<string, number>();
-  for (const e of completedLog(record)) { const d = doneDay(e.at); out.set(d, (out.get(d) ?? 0) + 1); }
+  // Session AV lane 2 (r5-plan, LEDGER #350): a cancelled task is not a finish (the daily goal and its streak leave it out).
+  for (const e of completedLog(record)) { if (e.cancelled) continue; const d = doneDay(e.at); out.set(d, (out.get(d) ?? 0) + 1); }
   return out;
 }
 /**

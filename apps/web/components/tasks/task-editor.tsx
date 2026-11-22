@@ -19,6 +19,7 @@ import {TaskLookField} from './task-look-field';
 import {taskLook, type TaskLook} from '../../lib/tasks/look';
 import {ENERGY_HINTS, ENERGY_WORDS} from '../../lib/tasks/energy-load';
 import {TASK_ENERGY, type TaskEnergy} from '../../lib/tasks/schema';
+import {r5FieldsOf, r5Patch, type R5Fields} from '../../lib/tasks/r5-fields';
 
 const HabitLinkField = lazy(() => import('./habit-link-field'));
 /** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
@@ -31,6 +32,10 @@ const TaskVersions = lazy(() => import('./task-versions'));
 const MyDayButton = lazy(() => import('./my-day-parts'));
 /** Session AV lane 2 (r4-plan, LEDGER #301, #303, #304): pieces, waiting for other tasks and "after hours" (its own chunk). */
 const TaskPlanFields = lazy(() => import('./task-plan-fields'));
+/** Session AV lane 2 (r5-plan, LEDGER #348, #349, #353, #354): a place, travel minutes, a week or a month, a time block (its own chunk). */
+const TaskR5Fields = lazy(() => import('./task-r5-fields'));
+/** Session AV lane 2 (r5-plan, LEDGER #350, #351, #356): Doing, Cancel, Copy link and Play the steps (its own chunk). */
+const TaskR5Actions = lazy(() => import('./task-r5-actions'));
 /** Session AV lane 2 (r4-plan, LEDGER #305; Motion): a repeat that floats in its week or month, typed in words. */
 const FLOATING = /^(?:once (?:a|per|this|each|every) (week|month)(?:,? any day)?|any day (?:this|a|each|every|of the) (week|month)|(?:een keer|eens|1x) per (week|maand))$/i;
 /** Session AV (1c, q1 #1): the editor offers up to three reminders a task (the record keeps up to five). */
@@ -85,11 +90,14 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   const [energy, setEnergy] = useState<TaskEnergy | ''>(task.energy ?? '');
   // Session AV lane 2 (r4-plan, LEDGER #301, #303, #304): how Plan my day and Plan my week treat it.
   const [planFields, setPlanFields] = useState<PlanFields>(() => ({chunk: task.chunk ? String(task.chunk) : '', after: (task.after ?? []).filter(x => !record || record.tasks.some(t => t.id === x)) /* a task no longer here drops out on save */, afterHours: !!task.afterHours}));
+  // Session AV lane 2 (r5-plan, LEDGER #348, #349, #353, #354): where and when.
+  const [r5, setR5] = useState<R5Fields>(() => r5FieldsOf(task));
   const save = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) { setTitleError('A task needs a title.'); return; }
     if (recur === 'invalid' || minutesValue === 'invalid' || spentValue === 'invalid') return;
     const fieldValues = custom.read(); if (fieldValues === 'invalid') return;
+    const where = r5Patch(r5, due, time, today); if (where === 'invalid') return;
     // Session AV (1c, q1 #15): a repeating task has no separate deadline (the engine refuses one); the field said so.
     const repeating = !!recur;
     const unchangedRepeat = task.recur && repeat === (task.recur.text ?? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase());
@@ -102,7 +110,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       reminders: [...[...new Set(reminders.filter(r => r !== '').map(Number))].slice(0, MAX_EDITOR_REMINDERS).map(before => ({before})), ...(remindAt ? [{before: 0, at: remindAt}] : [])], habit: habit || null, health: (health || null) as HealthLink | null,
       early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {}),
       ...(look || task.look ? {look: look ?? null} : {}), ...(energy || task.energy ? {energy: energy || null} : {}),
-      ...(planFields.chunk || task.chunk ? {chunk: planFields.chunk ? Number(planFields.chunk) : null} : {}), ...(planFields.after.length || task.after ? {after: planFields.after} : {}), ...(planFields.afterHours || task.afterHours ? {afterHours: planFields.afterHours ? true : null} : {})};
+      ...(planFields.chunk || task.chunk ? {chunk: planFields.chunk ? Number(planFields.chunk) : null} : {}), ...(planFields.after.length || task.after ? {after: planFields.after} : {}), ...(planFields.afterHours || task.afterHours ? {afterHours: planFields.afterHours ? true : null} : {}), ...where};
     // A change to the repeat itself is a change to the series; anything else on a repeating task asks which times.
     if (task.recur && task.due && !task.doneAt && unchangedRepeat) { setAsk(patch); requestAnimationFrame(() => askRef.current?.focus()); return; }
     onSave(patch);
@@ -116,6 +124,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     </span>
   </div>;
   return <form className="task-editor tasks-add" aria-label={`Edit “${task.title}”`} onSubmit={save} noValidate onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onCancel(); } }}>
+    <Suspense fallback={null}><TaskR5Actions task={task} onWrote={at => { if (at) base.current = at; }} onClosed={onCancel} /></Suspense>
     {stale && <p className="notice task-editor-stale" role="status">This task was changed in another tab or by an assistant while you edited it. Save to keep your version, or Cancel and open it again to see theirs.</p>}
     <TaskTitleInput label="Title" value={title} error={titleError} onChange={v => { setTitle(v); if (v.trim()) setTitleError(''); }} />
     <TaskLookField title={title} value={look} onChange={setLook} />
@@ -152,6 +161,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <small id={`${id}-spent`} className={spentValue === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={spentValue === 'invalid' ? 'alert' : undefined}>{spentValue === 'invalid' ? 'Enter whole minutes, for example 25.' : typeof minutesValue === 'number' && typeof spentValue === 'number' ? `Planned ${minutesWords(minutesValue)}, spent ${minutesWords(spentValue)}.` : 'The timer in Tasks → Today adds to this; you can also type it.'}</small></label>
     <label className="field"><span>Energy — optional</span><select value={energy} aria-describedby={`${id}-energy`} onChange={e => setEnergy(e.target.value as TaskEnergy | '')}><option value="">Not set</option>{TASK_ENERGY.map(v => <option key={v} value={v}>{ENERGY_WORDS[v]}</option>)}</select>
       <small id={`${id}-energy`} className="tasks-field-note">{energy ? `${ENERGY_WORDS[energy]}: ${ENERGY_HINTS[energy]}. Tasks → Today adds up the day’s energy against your amount.` : 'How much it asks of you. Tasks → Today adds up the day’s energy, in calm words.'}</small></label>
+    <Suspense fallback={null}><TaskR5Fields task={task} today={today} due={due} time={time} value={r5} onChange={setR5} /></Suspense>
     <Suspense fallback={null}><TaskPlanFields task={task} record={record} minutes={typeof minutesValue === 'number' ? minutesValue : null} value={planFields} onChange={setPlanFields} /></Suspense>
     <Suspense fallback={null}><TaskTimer task={task} onNote={n => setNotes(v => v.trim() ? `${v.trimEnd()}\n\n${n}` : n)} onStopped={(m, at) => { if (at) base.current = at; setSpent(s => String((/^\d{1,5}$/.test(s.trim()) ? Number(s) : task.spent ?? 0) + m)); }} /></Suspense>
     {objectives.length > 0 && <label className="field"><span>Week objective</span><select value={objective} onChange={e => setObjective(e.target.value)}><option value="">None</option>{objectives.map(o => <option key={o.id} value={o.id}>{o.title}{o.week !== weekNow ? ` (week of ${formatDate(o.week, {year: false})})` : ''}</option>)}</select></label>}

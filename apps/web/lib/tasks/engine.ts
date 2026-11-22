@@ -70,13 +70,15 @@ export function finishTask(record: Tasks, id: string, at: Date, {today, doneDay}
       const next = nextOccurrence(t.recur, t.due ?? finished, finished, now);
       const completions = [...(t.completions ?? []), {at: stamp, ...(t.due ? {due: t.due} : {})}].slice(-MAX_COMPLETIONS);
       // Session AV lane 2 (r4-plan, review B4D-2): a floating repeat's next copy floats again: no kept time, due by its window's last day.
-      if (next) return {...(t.recur.flex ? omit(t, 'time') : t), due: next.due, recur: next.rule, completions, updatedAt: stamp};
-      return {...t, doneAt: stamp, completions, updatedAt: stamp};
+      // Session AV lane 2 (r5-plan, LEDGER #350): a finished time is no longer "doing".
+      if (next) return {...omit(t, ...(t.recur.flex ? ['time', 'state'] as const : ['state'] as const)), due: next.due, recur: next.rule, completions, updatedAt: stamp};
+      return {...omit(t, 'state'), doneAt: stamp, completions, updatedAt: stamp};
     }
-    return t.id === id || children.has(t.id) ? {...t, doneAt: stamp, updatedAt: stamp} : t;
+    return t.id === id || children.has(t.id) ? {...omit(t, 'state'), doneAt: stamp, updatedAt: stamp} : t;
   })});
 }
-export const reopenTask = (record: Tasks, id: string): Tasks => tasksSchema.parse({...record, tasks: record.tasks.map(t => t.id === id ? omit(t, 'doneAt') : t)});
+/** Session AV lane 2 (r5-plan, LEDGER #350): a cancelled task ticked open again is an open task (its state goes). */
+export const reopenTask = (record: Tasks, id: string): Tasks => tasksSchema.parse({...record, tasks: record.tasks.map(t => t.id === id ? omit(t, 'doneAt', 'state') : t)});
 /** Session AL: removing a task removes its subtasks too (Undo puts them all back). */
 export const removeTask = (record: Tasks, id: string): Tasks => { const gone = new Set([id, ...descendants(record, id).map(t => t.id)]); return {...record, tasks: record.tasks.filter(t => !gone.has(t.id))}; };
 export const restoreTask = (record: Tasks, task: Task): Tasks => record.tasks.some(t => t.id === task.id) ? record : tasksSchema.parse({...record, tasks: [...record.tasks, task]});
@@ -187,7 +189,9 @@ export type TaskPatch = {title?: string; priority?: TaskPriority; due?: string |
   /** Session AV lane 2 (r3-plan, LEDGER #257, #259): the task's symbol and colour, and how much it asks (null clears). */
   look?: NonNullable<Task['look']> | null; energy?: NonNullable<Task['energy']> | null;
   /** Session AV lane 2 (r4-plan, LEDGER #303, #304, #301): the smallest piece, the tasks it waits for ([] clears), "after hours". */
-  chunk?: number | null; after?: string[]; afterHours?: true | null};
+  chunk?: number | null; after?: string[]; afterHours?: true | null;
+  /** Session AV lane 2 (r5-plan, LEDGER #349, #348, #353, #354): a week or a month without a day, the time block, travel minutes, a place. */
+  plan?: NonNullable<Task['plan']> | null; block?: string | null; travel?: number | null; place?: string | null};
 /**
  * Changes a task's title, priority, day, time or goal. `null` clears an optional field; a field left out is kept. A day
  * may be moved earlier than today only when it already was (an overdue task keeps its day until the person moves it),
@@ -200,7 +204,7 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.title !== undefined) { const title = patch.title.trim(); if (!title) throw new Error('Give the task a few words.'); if (title.length > TASK_TITLE_MAX) throw new Error(`A task title can be at most ${TASK_TITLE_MAX} characters (this one has ${title.length}).`); next.title = title; }
   if (patch.priority !== undefined) { next.priority = patch.priority; delete next.level; }
   if (patch.level !== undefined) Object.assign(next, levelFields(patch.level));
-  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective', 'look', 'energy', 'chunk', 'afterHours'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
+  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective', 'look', 'energy', 'chunk', 'afterHours', 'plan', 'block', 'travel', 'place'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
   if (patch.projectId !== undefined && patch.sectionId === undefined && next.sectionId) {
     const section = record.sections?.find(s => s.id === next.sectionId);
     if (!section || section.projectId !== next.projectId) delete next.sectionId;
@@ -420,7 +424,8 @@ export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock
     // Session AV (F-DEADLINES): a task whose deadline is today or has passed is in Today too, whatever its planned day.
     // Session AV lane 2 (LEDGER #17; Things' start early): a task with `early` days shows from that many days before its day.
     // Session AV lane 2 (r4-plan, LEDGER #304): a task that waits for another joins Today once those are done.
-    case 'today': return dated(open.filter(t => !waitingFor(record, t).length && ((t.due && (t.due <= today || (t.early && addLocalDays(t.due, -t.early) <= today))) || deadlineDue(t, today)))).sort((a, b) => Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
+    // Session AV lane 2 (r5-plan, LEDGER #350; Logseq's DOING): a task being done is in Today, first, also without a day.
+    case 'today': return dated(open.filter(t => !waitingFor(record, t).length && (t.state?.kind === 'doing' || (t.due && (t.due <= today || (t.early && addLocalDays(t.due, -t.early) <= today))) || deadlineDue(t, today)))).sort((a, b) => Number(b.state?.kind === 'doing') - Number(a.state?.kind === 'doing') || Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
     case 'upcoming': return dated(open.filter(t => t.due && t.due >= today));
     case 'overdue': return dated(open.filter(t => taskState(t, today, nowClock) === 'overdue'));
     case 'all': return dated(top(open));
@@ -439,10 +444,11 @@ export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock
 /** Session AL (LS-037): finished tasks whose local finish day is within the last 30 days. */
 export const recentlyDone = (record: Tasks, today: string, doneDay: (iso: string) => string): Task[] => doneTasks(record).filter(t => doneDay(t.doneAt!) >= addLocalDays(today, -DONE_KEEP_DAYS));
 /** Every finished occurrence, newest first: finished tasks and the past occurrences of repeating ones. */
-export function completedLog(record: Tasks): {task: Task; at: string; occurrence: boolean}[] {
-  const out: {task: Task; at: string; occurrence: boolean}[] = [];
+/** Session AV lane 2 (r5-plan, LEDGER #350): `cancelled` marks a task closed without being done (never counted as a finish). */
+export function completedLog(record: Tasks): {task: Task; at: string; occurrence: boolean; cancelled?: true}[] {
+  const out: {task: Task; at: string; occurrence: boolean; cancelled?: true}[] = [];
   for (const t of record.tasks) {
-    if (t.doneAt) out.push({task: t, at: t.doneAt, occurrence: false});
+    if (t.doneAt) out.push({task: t, at: t.doneAt, occurrence: false, ...(t.state?.kind === 'cancelled' ? {cancelled: true as const} : {})});
     for (const c of t.completions ?? []) if (c.at !== t.doneAt) out.push({task: t, at: c.at, occurrence: true});
   }
   return out.sort((a, b) => b.at.localeCompare(a.at));
