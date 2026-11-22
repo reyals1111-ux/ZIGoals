@@ -18,6 +18,8 @@ import type {DeviceRecordSpec} from '../device-record';
  *   logged" that the energy estimate leaves out.
  * - `challenge` (LEDGER #90, MyFitnessPal's challenges): a weekly logging challenge — days a week, and since when.
  * - `notify` (LEDGER #90): meal reminders as device notifications too (the in-app cards stay as they are).
+ * - `pace` (LEDGER #107, MacroFactor's goal pace): the weekly change in kg chosen on the maintenance-estimate card
+ *   (−0.5, −0.25, 0 or +0.25), which the weekly coach and the goal date then use.
  * - `photos` (LEDGER #103): which library foods have a front-of-pack photo on this device (the photo itself is in
  *   IndexedDB, lib/food-plus/photos.ts), with when it was taken.
  */
@@ -38,6 +40,7 @@ export const foodPlusSchema = z.looseObject({
   challenge: z.looseObject({daysPerWeek: z.number().int().min(1).max(7), since: day}).optional().catch(undefined),
   notify: z.boolean().optional().catch(undefined),
   photos: z.record(healthId, z.looseObject({takenAt: z.iso.datetime()})).optional().catch(undefined),
+  pace: z.number().min(-1).max(1).optional().catch(undefined),
 });
 export type FoodPlus = z.infer<typeof foodPlusSchema>;
 export const emptyFoodPlus = (): FoodPlus => ({version: 1});
