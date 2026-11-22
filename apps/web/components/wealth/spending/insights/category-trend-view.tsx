@@ -67,6 +67,6 @@ export default function CategoryTrendView({entries, today}: InsightProps) {
   return <>
     <div className="money-insights-views money-avg-span" role="group" aria-label="Average over">{AVERAGE_SPANS.map(n => <button key={n} type="button" className="quiet" aria-pressed={span === n} onClick={() => setSpan(n)}>{n}-month average</button>)}</div>
     {views.map((v, i) => <Currency key={v.currency} view={v} avg={avgs[i]!} all={alls[i]!}/>)}
-    <p className="fine">The average is of the months before this one with records; this month counts so far. Figures, not a target.</p>
+    <p className="fine">The average is of the months before this one with records; this month counts so far. A cost spread over months counts its share in each month, as your budgets do. Figures, not a target.</p>
   </>;
 }

@@ -1,5 +1,6 @@
 import {monthKey, shiftMonth} from '../budgets/engine';
-import {byCategory, monthOf, totals} from '../money-log/engine';
+import {monthOf} from '../money-log/engine';
+import {countedBetween, countedByCategoryBetween, countedIn} from '../money-log/counted';
 import type {MoneyEntry, MoneyLog} from '../money-log/schema';
 import {MAX_INVEST_INCOME} from '../money-log/schema';
 
@@ -9,8 +10,9 @@ import {MAX_INVEST_INCOME} from '../money-log/schema';
  * one currency at a time, and the share it covers ("covers 6 % of spending"). Facts from the person's own records: no
  * projection, no "years to freedom" (that stays the FI model, labelled a model), never a target. Pure.
  *
- * One figure: investment income is Wealth → Spending's own `byCategory(…, 'income')` for the marked categories, spending
- * is its own `totals` (left out, transfers and refunds not counted; a shared cost by the person's share). A month with no
+ * One figure: by the shared rule in lib/money-log/counted.ts (review b4f #2: `countedByCategoryBetween` for the marked
+ * income, `countedBetween` for spending — left out, transfers and refunds not counted; a shared cost by the person's share;
+ * a spread cost by its share in each of its months, as the budgets do). A month with no
  * record in the currency is a gap (unknown), never a zero.
  */
 export const CROSSOVER_MONTHS = 24;
@@ -32,11 +34,12 @@ export type Crossover = {currency: string; months: CrossoverMonth[]; invest: num
 /** The 24 calendar months to today's (the month still running counts to today), oldest first. */
 export function crossover(entries: readonly MoneyEntry[], marks: readonly string[] | undefined, currency: string, today: string, span = CROSSOVER_MONTHS): Crossover {
   const last = monthKey(today), mine = entries.filter(e => e.currency === currency && e.date <= today);
-  const recordedSet = new Set(mine.map(e => monthKey(e.date)));
   const months = Array.from({length: span}, (_, i) => shiftMonth(last, i - span + 1)).map((month): CrossoverMonth => {
-    const {start, end} = monthOf(`${month}-01`), to = end > today ? today : end, recorded = recordedSet.has(month);
-    const invest = recorded ? byCategory(mine, start, to, 'income').filter(r => r.currency === currency && isMarked(marks, r.category)).reduce((s, r) => s + r.total, 0) : 0;
-    const spending = recorded ? totals(mine, start, to).find(t => t.currency === currency)?.expenses ?? 0 : 0;
+    // Review b4f #6: a month counts as recorded only with a counted figure (not a left-out entry or a transfer alone);
+    // review b4f #2: spending as the budgets count it, a spread cost by its share in each of its months.
+    const {start, end} = monthOf(`${month}-01`), to = end > today ? today : end, recorded = countedIn(mine, currency, start, to);
+    const invest = recorded ? countedByCategoryBetween(mine, start, to, 'income').filter(r => r.currency === currency && isMarked(marks, r.category)).reduce((s, r) => s + r.total, 0) : 0;
+    const spending = recorded ? countedBetween(mine, start, to, {currency}).get(currency) ?? 0 : 0;
     return {month, recorded, invest, spending, share: recorded && spending > 0 ? invest / spending : null};
   });
   const known = months.filter(m => m.recorded), invest = known.reduce((s, m) => s + m.invest, 0), spending = known.reduce((s, m) => s + m.spending, 0);

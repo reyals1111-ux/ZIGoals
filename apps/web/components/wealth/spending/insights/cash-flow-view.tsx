@@ -43,6 +43,6 @@ export default function CashFlowView({entries, today, space = 'personal'}: Insig
         : <tr key={r.month}><th scope="row">{monthName(r.month)}</th><td>{money(r.income, flow.currency)}</td><td>{money(r.spending, flow.currency)}</td><td>{signed(r.net, flow.currency)}</td></tr>)}</tbody>
     </table>
   </section>)}
-  <p className="fine">Net is what you logged as received minus what you logged as spent that month. Your records, not your bank balance.</p>
+  <p className="fine">Net is what you logged as received minus what you logged as spent that month. A shared cost counts your share, and a cost spread over months its share in each month, as your budgets do. Your records, not your bank balance.</p>
   <Suspense fallback={null}><Crossover entries={entries} today={today} space={space}/></Suspense></>;
 }

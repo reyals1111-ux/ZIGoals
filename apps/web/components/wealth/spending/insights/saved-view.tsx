@@ -55,7 +55,7 @@ export default function SavedView({entries, today, weekStartsOn = 'monday'}: Ins
         <tbody>{c.bars.map(b => <tr key={b.key}><th scope="row">{barLabel(c, b.key)}</th><td data-private-amount>{money(b.cents, c.currency)}</td></tr>)}</tbody>
       </table>
     </div>)}
-    <p className="fine">Counted as Wealth → Spending counts: entries left out and transfers are not added in, and a shared cost counts your share. Only the filters are kept, so the chart reads your log as it is now.</p>
+    <p className="fine">Counted as Wealth → Spending counts: entries left out and transfers are not added in, a shared cost counts your share, and a cost spread over months its share in each month. Only the filters are kept, so the chart reads your log as it is now.</p>
     <button type="button" id={`${id}-remove`} className="quiet" aria-label={`Remove the saved search ${q.name}`} onClick={remove}>Remove this saved search</button>
     <p className="fine" role="status">{note}</p>
   </section>;
