@@ -155,3 +155,44 @@ the answers read `env.moneyMore` and, without it, say where the figures live.
 - Registries: none new (fields on records already wired). CSS touched: `components/wealth/spending/spending.css`,
   `components/wealth/bills/bills.css`, `components/wealth/accounts.css` (theme variables only).
 - Today: nothing always visible. The new pieces join the existing Money link (one Tab stop, as before) only when one asks.
+
+### R2-F4. Between you and others: my share of a shared cost and settling up; money lent and borrowed
+
+- LEDGER rows: #252 Emma custom split and settle — **built in part**: an expense's edit form → "Shared with others" (add
+  people, split evenly to the cent or type each part; your share is what spending, budgets and every figure built on
+  `totals`/`byCategory`/`budgetMonthParts` count — the log keeps what was paid); "Between you and others" lists what each
+  person owes you with "Settle up" (all of one person's open parts at once: the money back is an income entry left out
+  of the figures, since the spending already counts only your share; Undo puts both records back). **Part Carried —
+  against a named rule:** a group shared with other people's devices (Emma Groups, settling in the other person's app) is
+  against the rule that nothing is shared between people; the names and amounts stay on this device. #253 Wallet lent
+  and borrowed — **built** ("+ Money lent or borrowed": a name, amount, day, a due day with an optional reminder,
+  repayments in parts that close it when paid, Close, Forgive for money lent, Remove when done; net worth with them under
+  the net-worth cards on Wealth — the cards keep their own figures; a reminded loan due within three days or past due on
+  Today's money line, and the day before and the day itself as a money notice when Money notices are on).
+- Readers that count the share: `lib/money-log/engine.ts` (`totals`, `byCategory`: the week's room, This month, NOVA's
+  spending totals that use them), `lib/money-log/counted.ts` (`budgetMonthParts`: every budget figure), round 2's own
+  figures. The insights that read `entryParts` directly (month compare, pace, cash flow, age of money, top payees) count
+  the amount paid, which is also what left the account — the registry note for the lead: a later pass can move them to
+  `mineParts`, one reader at a time, each with its pinned figures checked.
+- Files: `lib/money-more/people.ts` (new), `lib/money-log/counted.ts` (`mineCents`, `mineParts`), `lib/money-log/engine.ts`,
+  `components/wealth/spending/people-money.tsx` (new, lazy: `ShareFold`, `PeoplePanel`), `components/wealth/beside-worth.tsx`
+  (new, lazy), `components/wealth/spending/spending-section.tsx`, `components/wealth/accounts-section.tsx`,
+  `lib/money-more/today.ts`, `lib/notify/sync.ts` (loan wakes join the money notices; no new notification type).
+- Tests: `lib/money-more/av2-people.test.ts`, `lib/money-more/av2-quick.test.ts` (share in totals and budgets),
+  `lib/ai/local-answers/av2-money-r2.test.ts`; notify tests unchanged and green.
+- Spec: `tests/av2-money-people.spec.ts`.
+- Stored: entry `share`; `zigoals:money-more:v1` `owed`, `loans`.
+- Help (EN): **Q: I paid for dinner for three. Can I count only my part?** A: Edit the entry → "Shared with others", add
+  the people (Split evenly, or type each part) and keep the split. Your spending and budgets count your share; each
+  person's part is listed under Spending → Between you and others until they pay you back. "Settle up" puts the money back
+  in your log, left out of your figures. Nothing is sent to anyone. **Q: Can I keep track of money I lent a friend?** A:
+  Between you and others → "+ Money lent or borrowed": a name, the amount, and a due day with a reminder if you like.
+  Add repayments as they come; Close or Forgive when done. Wealth shows your net worth with them beside the usual cards.
+- What's new: "Money: split a cost and count only your share, settle up, and keep track of money lent and borrowed."
+- Answers: `whoOwes`, `lentBorrowed` (corpus `av2r2-money-who-owes`, `-lent-borrowed`). The answer wrapper also takes a
+  question that starts with "who" / "wie" (the shared question words do not list them).
+- Showcase hook: none (hidden in the Showcase, as its other write actions are; a Showcase split would change the pinned
+  spending figures).
+- Registries: `zigoals:money-more:v1` (above). CSS touched: `components/wealth/spending/people-money.css` (new, theme
+  variables only).
+- Today: nothing always visible; a reminded loan due soon joins the existing Money link (one Tab stop, as before).

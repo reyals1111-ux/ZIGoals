@@ -7,6 +7,9 @@ import {ATTENTION_HREF} from '../money-attention';
 import {limitStates, unusualEntries} from './alerts';
 import {ownBudgetRows, payeeBudgets} from './own-budgets';
 import type {MoneyMore} from './schema';
+import {loansDue} from './people';
+import {fromMinor} from '../money-split/parts';
+import {formatCurrencyAmount} from '../visual-format';
 
 /**
  * Session AV lane 2, round 2 (money; Emma, Wallet): the pieces round 2 adds to Today's one money line (still one link,
@@ -25,5 +28,6 @@ export function todayExtras(s: Sources): Piece[] {
     const tagged = (tag: string) => new Set(Object.entries(s.tags?.tags ?? {}).filter(([, list]) => list.includes(tag)).map(([id]) => id));
     for (const r of ownBudgetRows(s.more, s.entries, tagged, s.today)) if (r.state === 'running' && (r.over || r.share >= 0.8)) out.push({text: r.over ? `${r.budget.name} over its budget` : `${r.budget.name} near its budget`, href: ATTENTION_HREF.budgets});
   }
+  for (const r of loansDue(s.more, s.today)) out.push({text: `${r.loan.kind === 'lent' ? `${r.loan.name} owes you` : `You owe ${r.loan.name}`} ${formatCurrencyAmount(fromMinor(r.left), r.loan.currency)}, ${r.state === 'overdue' ? 'past due' : r.days === 0 ? 'due today' : r.days === 1 ? 'due tomorrow' : `due in ${r.days} days`}`, href: '/app/wealth#spending'});
   return out;
 }

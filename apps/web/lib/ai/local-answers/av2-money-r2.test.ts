@@ -68,6 +68,14 @@ describe('quick logging', () => {
     expect(text(zigi('show my balance alerts', freshAll()))).toContain('No account has a balance line yet');
     expect(text(zigi('which bills do I still need to record', freshAll()))).toContain('No bill due in the last three days');
   });
+  test('between you and others: who owes you, lent and borrowed', () => {
+    const more: MoneyMore = {version: 1, owed: [{id: 'o1', name: 'Sam', amount: '20.00', currency: 'EUR', date: `${month}-03`, entryId: 'd1'}],
+      loans: [{id: 'l1', kind: 'borrowed', name: 'Mum', amount: '50.00', currency: 'EUR', date: `${month}-01`}]};
+    expect(text(zigi('who owes me money', freshAll(), more))).toBe('Owed to you: Sam €20.00 for shared costs. Kept on this device only.');
+    expect(text(zigi('wie is mij nog geld schuldig', freshAll(), more))).toMatch(/^Je tegoed: Sam €20[.,]00 voor gedeelde kosten\./);
+    expect(text(zigi('what have I lent and borrowed', freshAll(), more))).toBe('Borrowed from Mum €50.00 left. Beside your net worth: −€30.00.');
+    expect(text(zigi('who owes me money', freshAll()))).toContain('Nobody owes you anything here');
+  });
   test('never claims another question', () => {
     for (const q of ['what did I spend this month', 'log coffee 3.20', 'how much is left in my budgets', 'hoeveel heb ik uitgegeven']) expect(zigi(q), q).toBeNull();
   });

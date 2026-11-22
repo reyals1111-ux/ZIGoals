@@ -8,6 +8,7 @@ import {daysLeftInMonth, perDay} from '../../budgets/per-day';
 import {ownBudgetRows, payeeBudgets} from '../../money-more/own-budgets';
 import {billsToRecord, limitStates, unusualEntries} from '../../money-more/alerts';
 import type {WealthSheet} from '../../wealth-sheet/schema';
+import {besideWorth, loanRows, owedTotals} from '../../money-more/people';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, count, dayIn, isQuestion, list, MIXED, money, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -23,7 +24,7 @@ import type {LocalReply} from './engine';
 export function av2MoneyR2Answer(question: string, env: ToolEnv): LocalReply | null {
   try {
     const a = asked(question, env);
-    if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
+    if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:who|wie|aan wie)\b/.test(a.f))) return null;
     for (const one of ANSWERS) { const r = one(a); if (r) return r; }
     return null;
   } catch { return null; }
@@ -154,3 +155,28 @@ function toRecord(a: Asked): LocalReply | null {
     `Verlopen en nog niet in je geldlog: ${list(due.map(l => line('nl', l)), 'nl')}. Vermogen → Upcoming bills → Record it zet er een in, met Ongedaan maken.`), calls);
 }
 addR2Answers(unusual, balanceLines, toRecord);
+
+// ── Between you and others: shared costs, lent and borrowed (#252, #253) ─────────────────────────────────────────────
+/** "Who owes me money", "wie is mij nog geld schuldig". */
+function whoOwes(a: Asked): LocalReply | null {
+  if (!/\bwho owes me\b|\bowed to me\b|\bowes? me (?:money|anything)\b|\bshared costs?\b|\bsettle up\b|\bwie (?:is )?mij (?:nog )?(?:geld )?schuldig\b|\bwie moet mij (?:nog )?(?:geld )?(?:terug)?betalen\b|\bgedeelde kosten\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const more = moreOf(a.env), owed = owedTotals(more), lent = loanRows(more, a.today).filter(r => r.loan.kind === 'lent' && !r.loan.closed), calls = call('money_more', {owed: true}, 'Money · owed to you');
+  if (!owed.length && !lent.length) return answer(say(a.lang, `Nobody owes you anything here. Share a cost by editing it in ${SPENDING.en} → Shared with others, or add money lent under Between you and others.`,
+    `Niemand is je hier iets schuldig. Deel een uitgave door hem te bewerken in ${SPENDING.nl} → Shared with others, of voeg uitgeleend geld toe onder Between you and others.`), calls);
+  const parts = (lang: 'en' | 'nl') => [...owed.map(o => `${o.name} ${money(o.cents, o.currency)} ${say(lang, 'for shared costs', 'voor gedeelde kosten')}`), ...lent.map(r => `${r.loan.name} ${money(r.left, r.loan.currency)} ${say(lang, 'lent', 'uitgeleend')}${r.loan.due ? ` (${say(lang, 'due', 'terug op')} ${dayIn(lang, r.loan.due, a.today)})` : ''}`)];
+  return answer(say(a.lang, `Owed to you: ${list(parts('en'), 'en')}. Kept on this device only.`, `Je tegoed: ${list(parts('nl'), 'nl')}. Alleen op dit apparaat.`), calls);
+}
+/** "What have I lent and borrowed", "wat heb ik uitgeleend en geleend". */
+function lentBorrowed(a: Asked): LocalReply | null {
+  if (!/\b(?:lent|borrowed|lend|borrow|loans? (?:to|from) (?:friends|family|people))\b|\bwho do i owe\b|\b(?:uitgeleend|geleend|uitlenen|lenen)\b|\baan wie ben ik (?:nog )?(?:geld )?schuldig\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const rows = loanRows(moreOf(a.env), a.today).filter(r => !r.loan.closed), calls = call('money_more', {loans: true}, 'Money · lent and borrowed');
+  if (!rows.length) return answer(say(a.lang, `Nothing lent or borrowed is open. Add one under ${SPENDING.en} → Between you and others: a name, an amount, and a due day with a reminder if you want one.`,
+    `Er staat niets uitgeleend of geleend open. Voeg het toe onder ${SPENDING.nl} → Between you and others: een naam, een bedrag, en een terugbetaaldag met herinnering als je wilt.`), calls);
+  const line = (lang: 'en' | 'nl', r: (typeof rows)[number]) => `${r.loan.kind === 'lent' ? say(lang, `lent to ${r.loan.name}`, `uitgeleend aan ${r.loan.name}`) : say(lang, `borrowed from ${r.loan.name}`, `geleend van ${r.loan.name}`)} ${money(r.left, r.loan.currency)} ${say(lang, 'left', 'over')}${r.loan.due ? ` (${r.state === 'overdue' ? say(lang, 'past due since', 'over tijd sinds') : say(lang, 'due', 'terug op')} ${dayIn(lang, r.loan.due, a.today)})` : ''}`;
+  const totals = besideWorth(moreOf(a.env)).map(b => `${b.net < 0 ? '−' : '+'}${money(Math.abs(b.net), b.currency)}`);
+  const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+  return answer(say(a.lang, `${cap(list(rows.map(r => line('en', r)), 'en'))}. Beside your net worth: ${list(totals, 'en')}.`, `${cap(list(rows.map(r => line('nl', r)), 'nl'))}. Naast je vermogen: ${list(totals, 'nl')}.`), calls);
+}
+addR2Answers(whoOwes, lentBorrowed);

@@ -60,6 +60,9 @@ const FormExtras = lazy(() => import('./quick-log').then(m => ({default: m.FormE
 const MonthExtras = lazy(() => import('./quick-log').then(m => ({default: m.MonthExtras})));
 // Session AV lane 2, round 2 (money; Emma's unusual-transaction alerts): one calm line, with "That's fine" (own chunk).
 const UnusualLine = lazy(() => import('./unusual-line'));
+// Session AV lane 2, round 2 (money; Emma's split and settle, Wallet's lent and borrowed): between you and others (own chunk).
+const ShareFold = lazy(() => import('./people-money').then(m => ({default: m.ShareFold})));
+const PeoplePanel = lazy(() => import('./people-money'));
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
   const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
@@ -203,6 +206,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
           {ownList.length > 0 && <ul className="spending-own-list">{ownList.map(c => <li key={c}><span>{c}</span><button type="button" className="text-link" aria-label={`Remove ${c} from your categories`} onClick={() => removeOwn(c)}>Remove</button></li>)}</ul>}
           <p className="fine" role="status">{ownNote}</p>
         </details>
+        {editing && editing.kind === 'expense' && !showcase && <Suspense fallback={null}><ShareFold key={editing.id} entry={log.data.entries.find(x => x.id === editing.id) ?? editing} log={log.data} update={log.update} onDone={setStatus}/></Suspense>}
         <fieldset className="spending-marks"><legend className="visually-hidden">Marks</legend>
           <label className="spending-check"><input type="checkbox" checked={leftOut} onChange={e => setLeftOut(e.target.checked)}/><span>Not part of my spending <span className="fine">(card interest, a refund you passed on: kept in your log, left out of totals and budgets)</span></span></label>
           <label className="spending-check"><input type="checkbox" checked={tax} onChange={e => setTax(e.target.checked)}/><span>Tax-deductible <span className="fine">(your own mark, to find it later)</span></span></label>
@@ -248,6 +252,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     </div>
     {log.data.entries.length > 0 && <details ref={searchFold} className="money-search-fold" onToggle={e => setSearching((e.currentTarget as HTMLDetailsElement).open)}><summary>Search all your entries</summary>{searching && <Suspense fallback={<p className="fine" aria-busy="true">Opening the search…</p>}>{drill && <p className="fine money-drill-note" role="status">{drill.category} this month, from your list above. Select them to change several at once.</p>}<MoneySearch key={drill ? `${drill.category}-${drill.n}` : 'all'} entries={log.data.entries} onEdit={startEdit} onBulk={bulk} categories={categoryChoices(log.data, 'expense')} {...(drill ? {initial: {category: drill.category, from: drill.from, to: drill.to, kind: 'expense' as const}} : {})}/></Suspense>}</details>}
     <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase}/></Suspense>
+    {!showcase && <Suspense fallback={null}><PeoplePanel log={log.data} update={log.update} today={today} currencies={[...new Set([currency, ...CURRENCIES])]}/></Suspense>}
     {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
     : <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">
       <label className="field"><span>Weekly budget ({chosen}) — leave empty for none</span><input inputMode="decimal" value={budgetDraft ?? (log.data.budget ? fromCents(Math.round(Number(log.data.budget.weekly) * 100)) : '')} onChange={e => setBudgetDraft(e.target.value)} aria-describedby={`${id}-budget-calc`}/></label>
