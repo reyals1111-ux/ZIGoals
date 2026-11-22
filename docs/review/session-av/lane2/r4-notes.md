@@ -158,3 +158,25 @@ before (an archived note in its list; only the first photo).
 - What's new: "Notes: callouts — note, tip, important, warning and caution boxes."
 - Showcase: none (the Showcase notes' words are read by NOVA's pinned corpus). CSS touched: `components/notes/notes.css`.
   Today: nothing added.
+
+### F7 Archive a note — LEDGER #315 (Bear)
+
+- Verdict: **built**.
+- What: an open daily or topic note has "Archive" (beside Pin and Delete): the message says "… archived: out of the list
+  and the graph, still in Search" with Undo. An archived note leaves the Notes list (every layout and the chart), the
+  Days list and the Graph; it waits under Notes → Notes → "Archived · 1 note, still in Search" (each with Back to the
+  list); Search and the palette show it marked "· archived"; opened, it says "Archived: … Back to the list". The
+  Markdown export writes `archived: true` in its front matter and an import keeps it archived (the key is ZIGoals' own,
+  so it never becomes a property — `photos` is now kept out of properties the same way, for #307's export). Export
+  everything carries it with the note. "The daily strip" of the row: the This day strip lists no notes
+  (`lib/notes/this-day.ts`, opened), so an archived daily note leaves the Days list instead.
+- Files: `components/notes/note-editor.tsx`, `components/notes/notes-workspace.tsx`, `components/notes/notes-search.tsx`,
+  `lib/search/notes.ts`, `lib/notes/markdown.ts`, `lib/notes/props.ts` (`RESERVED_KEYS`), `components/notes/notes.css`.
+- Tests: `lib/notes/r4-archive.test.ts`; stored round trip in `lib/notes/r4-stored.test.ts`. Spec: `tests/av2-notes-archive.spec.ts`.
+- Stored: note `archived` (TIER 3 commit, see "Stored changes").
+- Help (EN). Q: "Can I put a note away without deleting it?" A: "Yes. Open it and press Archive. It leaves your list and
+  the Graph but stays in Search and in your exports. Notes → Notes → Archived lists them; Back to the list brings one
+  back."
+- What's new: "Notes: archive a note — out of the list, still in Search."
+- Showcase: none (an archived Showcase note would move the pinned list counts). CSS touched: `components/notes/notes.css`.
+  Today: nothing added.

@@ -349,3 +349,8 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-callout-head { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
 .note-callout-icon { inline-size: 1.25em; text-align: center; }
 @media (forced-colors: active) { .note-callout { border-color: CanvasText; } }
+
+/* Session AV lane 2 (r4-notes; LEDGER #315): an archived note says so, with the way back. */
+.note-archived-line { margin: 0 0 8px; padding: 8px 12px; border-radius: 12px; border: 1px dashed color-mix(in srgb, currentColor 35%, transparent); font-size: 15px; overflow-wrap: anywhere; }
+.note-archived-line .text-link, .note-archived-fold .text-link { min-height: 44px; }
+.note-archived-fold .note-list li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }

@@ -13,7 +13,7 @@ export const NOTE_KEYWORD_CHARS = 1200;
 const KIND_WORD = {inbox: 'Inbox', daily: 'Daily note', topic: 'Note'} as const;
 /** The palette's items for these notes (the words are cut to their start so typing stays quick with many notes). */
 export function noteSearchItems(notes: readonly Note[]): SearchItem[] {
-  return notes.map(n => ({id: `note:${n.id}`, kind: 'note', title: n.kind === 'daily' && n.day ? `Daily note ${n.day}` : noteName(n), subtitle: n.example ? `${KIND_WORD[n.kind]} · Showcase example` : KIND_WORD[n.kind], href: noteHref(n.id), keywords: [n.body.slice(0, NOTE_KEYWORD_CHARS), ...(n.tags ?? [])]}));
+  return notes.map(n => ({id: `note:${n.id}`, kind: 'note', title: n.kind === 'daily' && n.day ? `Daily note ${n.day}` : noteName(n), subtitle: `${KIND_WORD[n.kind]}${n.archived ? ' · archived' : ''}${n.example ? ' · Showcase example' : ''}`, href: noteHref(n.id), keywords: [n.body.slice(0, NOTE_KEYWORD_CHARS), ...(n.tags ?? [])]}));
 }
 export const NOTE_ACTIONS: readonly PaletteAction[] = [
   {id: 'action:capture-note', title: 'Capture a note', subtitle: 'Notes · type, speak or add a photo; file it later', keywords: ['note', 'capture', 'inbox', 'jot', 'write', 'idea', 'remember', 'memo', 'add'], href: '/app/notes?capture=1', effect: 'confirm'},

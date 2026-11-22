@@ -77,6 +77,7 @@ export function noteToMarkdown(note: Note, photoFile?: string, moreFiles: Readon
   if (note.source) lines.push(`source: ${note.source}`);
   if (photoFile) lines.push(`photo: ${quoted(photoFile)}`);
   if (moreFiles.size) lines.push(`photos: [${[...moreFiles.values()].map(quoted).join(', ')}]`);
+  if (note.archived) lines.push('archived: true'); // Session AV lane 2 (r4-notes; LEDGER #315)
   if (note.example) lines.push('example: true');
   lines.push(...propsFrontMatter(note.props ?? [])); // Session AV lane 2 (r3-notes; LEDGER #270): the note's own properties
   lines.push('---', '');
@@ -190,7 +191,8 @@ export function planImport(record: Notes, files: readonly ImportFile[], now: str
     const tags = fmList(data, 'tags').map(t => t.replace(/^#/, '').trim().slice(0, MAX_TAG)).filter(Boolean).slice(0, MAX_TAGS);
     const created = fmString(data, 'created');
     const props = propsFromFrontMatter(data); // Session AV lane 2 (r3-notes; LEDGER #270): kept from the front matter
-    const note: Note = {id: newNoteId(), kind, title, body, ...(day && kind !== 'topic' ? {day} : {}), source: 'import', ...(tags.length ? {tags} : {}), ...(props.length ? {props} : {}), createdAt: validStamp(created) ? new Date(created!).toISOString() : now, ...(example ? {example: true} : {})};
+    const archived = kind !== 'inbox' && /^(?:true|yes)$/i.test(fmString(data, 'archived') ?? ''); // Session AV lane 2 (r4-notes; LEDGER #315)
+    const note: Note = {id: newNoteId(), kind, title, body, ...(day && kind !== 'topic' ? {day} : {}), source: 'import', ...(tags.length ? {tags} : {}), ...(props.length ? {props} : {}), ...(archived ? {archived: true} : {}), createdAt: validStamp(created) ? new Date(created!).toISOString() : now, ...(example ? {example: true} : {})};
     if (kind === 'inbox' && !note.day) note.day = today;
     plan.add.push(note); room--; chars += title.length + body.length;
     titles.add(linkKey(title)); if (kind === 'daily') daily.set(day!, note);

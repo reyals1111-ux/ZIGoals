@@ -77,6 +77,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
   const placePhoto = (id: string) => { const field = box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea'); setBody(b => insertPhotoLine(b, field ? field.selectionStart : b.length, id)); };
   const heading = note ? (note.kind === 'daily' && note.day ? formatDate(note.day, {weekday: true}) : noteName(note)) : day ? formatDate(day, {weekday: true}) : '';
   return <article className="note-editor" aria-label={heading || 'Note'} ref={box}>
+    {note?.archived && <p className="note-archived-line">Archived: this note is out of the list and the graph, and still in Search and the export. <button type="button" className="text-link" onClick={() => change(r => updateNote(r, note.id, {archived: false}, new Date().toISOString()), `“${shortNoteName(note)}” is back in the list.`)}>Back to the list</button></p>}
     {mode === 'edit' ? <>
       {!isDaily && <label className="field"><span>Title</span><input value={title} maxLength={MAX_TITLE} onChange={e => setTitle(e.target.value)} placeholder={note?.kind === 'inbox' ? 'Optional' : 'A title'}/></label>}
       {!isDaily && <SecretGuard text={title} onRemove={() => setTitle('')}/>}
@@ -142,6 +143,8 @@ function NoteExtras({note, change, onDeleted, onPlace}: {note: Note; change: Cha
       <input ref={input} type="file" accept="image/*" hidden tabIndex={-1} aria-hidden="true" onChange={e => { const f = e.target.files?.[0]; if (f) void addPhoto(f); e.target.value = ''; }}/>
       <button type="button" className="quiet" disabled={busy || full} onClick={() => input.current?.click()}>{!multi && note.photoId ? 'Replace photo' : ids.length ? 'Add another photo' : 'Add a photo'}</button>
       {ids.length === 1 && <button type="button" className="quiet" onClick={() => setConfirmPhoto(ids[0]!)}>Delete photo…</button>}
+      {/* Session AV lane 2 (r4-notes; LEDGER #315, Bear): out of the lists and the graph, kept in Search and the exports. */}
+      {note.kind !== 'inbox' && !note.archived && <button type="button" className="quiet" onClick={() => change(r => ({record: updateNote(r, note.id, {archived: true}, new Date().toISOString()), undo: {before: [note], created: [], said: `“${shortNoteName(note)}” is back in the list.`}}), `“${shortNoteName(note)}” archived: out of the list and the graph, still in Search.`)}>Archive</button>}
       {note.kind === 'topic' && <button type="button" className="quiet" aria-pressed={!!note.pinned} onClick={() => change(r => updateNote(r, note.id, {pinned: !note.pinned}, new Date().toISOString()), note.pinned ? 'Unpinned.' : 'Pinned to the top of your notes.')}>{note.pinned ? 'Unpin' : 'Pin'}</button>}
       <button type="button" className="quiet" onClick={() => { if (change(r => removeNote(r, note.id), `“${shortNoteName(note)}” deleted.`)) onDeleted?.(); }}>Delete note</button>
     </div>
