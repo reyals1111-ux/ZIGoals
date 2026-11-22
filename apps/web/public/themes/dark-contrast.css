@@ -12161,32 +12161,32 @@
         outline-color: currentcolor
     }
     .prompt-answers-title:focus-visible:not(#\-):not(#\-) {
-        outline-color: color-mix(in srgb, var(--cyan, #45d8ef) 40%, #fff)
+        outline-color: color-mix(in srgb, var(--cyan) 40%, #fff)
     }
     .prompt-answers-list li:not(#\-):not(#\-) {
-        box-shadow: inset 2px 0 0 color-mix(in srgb, var(--brand-violet, #826cff80) 55%, transparent)
+        box-shadow: inset 2px 0 0 color-mix(in srgb, var(--brand-violet) 55%, transparent)
     }
     .compose-grid-cell:not(#\-):not(#\-) {
-        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff)
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
     .compose-grid-cell.is-centre:not(#\-):not(#\-) {
-        border-color: color-mix(in srgb, var(--brand-violet, #9287f9) 70%, transparent);
+        border-color: color-mix(in srgb, var(--brand-violet) 70%, transparent);
         background-image: none;
-        background-color: color-mix(in srgb, var(--brand-violet, #481cb1) 10%, transparent)
+        background-color: color-mix(in srgb, var(--brand-violet) 10%, transparent)
     }
     .entry-grid > li:not(#\-):not(#\-) {
-        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff)
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
     .entry-grid > li.is-centre:not(#\-):not(#\-) {
-        border-color: color-mix(in srgb, var(--brand-violet, #9287f9) 70%, transparent);
+        border-color: color-mix(in srgb, var(--brand-violet) 70%, transparent);
         background-image: none;
-        background-color: color-mix(in srgb, var(--brand-violet, #481cb1) 10%, transparent)
+        background-color: color-mix(in srgb, var(--brand-violet) 10%, transparent)
     }
     .journal-letter:not(#\-):not(#\-) {
-        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff)
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
     .journal-entry-sealed:not(#\-):not(#\-) {
-        border-color: color-mix(in srgb, var(--brand-violet, #9287f9) 60%, transparent)
+        border-color: color-mix(in srgb, var(--brand-violet) 60%, transparent)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {

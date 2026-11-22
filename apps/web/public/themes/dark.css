@@ -12732,32 +12732,32 @@
         outline-color: currentcolor
     }
     .prompt-answers-title:focus-visible:not(#\-) {
-        outline-color: var(--cyan, #45d8ef)
+        outline-color: var(--cyan)
     }
     .prompt-answers-list li:not(#\-) {
-        box-shadow: inset 2px 0 0 color-mix(in srgb, var(--brand-violet, #826cff) 55%, transparent)
+        box-shadow: inset 2px 0 0 color-mix(in srgb, var(--brand-violet) 55%, transparent)
     }
     .compose-grid-cell:not(#\-) {
-        border-color: var(--line, rgba(140, 160, 220, .3))
+        border-color: var(--line)
     }
     .compose-grid-cell.is-centre:not(#\-) {
-        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 70%, transparent);
+        border-color: color-mix(in srgb, var(--brand-violet) 70%, transparent);
         background-image: none;
-        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 10%, transparent)
+        background-color: color-mix(in srgb, var(--brand-violet) 10%, transparent)
     }
     .entry-grid > li:not(#\-) {
-        border-color: var(--line, rgba(140, 160, 220, .3))
+        border-color: var(--line)
     }
     .entry-grid > li.is-centre:not(#\-) {
-        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 70%, transparent);
+        border-color: color-mix(in srgb, var(--brand-violet) 70%, transparent);
         background-image: none;
-        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 10%, transparent)
+        background-color: color-mix(in srgb, var(--brand-violet) 10%, transparent)
     }
     .journal-letter:not(#\-) {
-        border-color: var(--line, rgba(140, 160, 220, .3))
+        border-color: var(--line)
     }
     .journal-entry-sealed:not(#\-) {
-        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent)
+        border-color: color-mix(in srgb, var(--brand-violet) 60%, transparent)
     }
 }
 /*  components/journal/on-this-day.css  */

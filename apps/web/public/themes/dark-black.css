@@ -4563,11 +4563,11 @@
     }
     .compose-grid-cell.is-centre:not(#\-):not(#\-) {
         background-image: none;
-        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 10%, transparent)
+        background-color: color-mix(in srgb, var(--brand-violet) 10%, transparent)
     }
     .entry-grid > li.is-centre:not(#\-):not(#\-) {
         background-image: none;
-        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 10%, transparent)
+        background-color: color-mix(in srgb, var(--brand-violet) 10%, transparent)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
