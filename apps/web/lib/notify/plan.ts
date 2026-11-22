@@ -21,7 +21,13 @@ export type PlanInput = {
    * A habit with a reminder time: its weekday mask for the coming week and whether today is already done. `title` only for
    * a habit not linked to Health (ADR-010's rule, security review F4): a Health-linked habit never shows its name.
    */
-  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean; routine?: boolean}[];
+  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean; routine?: boolean;
+    /**
+     * Session AV lane 2 (health r3; LEDGER #275, Way of Life; TIER 3 (PWA)): the reminder's own words (shown, as the
+     * name is, only where names are allowed; never for a Health-linked habit, which then has none) and up to two more
+     * times a day, each its own wake with the same Done.
+     */
+    words?: string; more?: string[]}[];
   water?: {time: string; toGo: string | null; done: boolean};
   /**
    * Session AV lane 2 (health r3; LEDGER #280, Waterllama; TIER 3 (PWA)): the water reminders through the day
@@ -101,7 +107,7 @@ export function buildPlan(input: PlanInput): Plan {
     }
   };
   const EVERY = 127;
-  if (typeOn(prefs, 'habits')) for (const h of input.habits) daily('habit', h.id, h.time, h.weekdays, () => ({label: label(h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
+  if (typeOn(prefs, 'habits')) for (const h of input.habits) for (const time of [h.time, ...(h.more ?? []).filter(t => t !== h.time).slice(0, 2)]) daily('habit', h.id, time, h.weekdays, () => ({label: label(h.words ?? h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
   // Session AK (F5): never labelled, whatever the names switch says (a supplement or medicine's name is health data).
   if (typeOn(prefs, 'supplements')) for (const s of input.supplements ?? []) daily('supplement', s.id, s.time, s.weekdays, () => ({href: '/app/health', actionable: false}), date => date === today && s.doneToday);
   // Session AV lane 2 (health r3; LEDGER #280): reminders through the day, each its own wake, quiet once today is on pace

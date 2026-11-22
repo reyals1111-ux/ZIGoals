@@ -15,6 +15,7 @@ chunk carries only those lines, two small props and the water form's two-line ha
 | record | change | readers of #37–#57 |
 |---|---|---|
 | `zigoals:notify:v1` (existing, device-only, loose) | optional `waterSpread` `{on, from, to, every: 60 \| 120 \| 180}` and `weighIn` `{time, repeat: daily \| weekdays \| monthly, weekdays? (mask 1–127), day? (1–28)}`, each `.optional().catch(undefined)` (a part of `weighIn` it cannot read is dropped alone). Commit `cec6b6ee`. | Kept untouched; an older build keeps its one water time and has no weigh-in type. |
+| `zigoals:habit-extras:v1` (existing, loose, synced with the habit extras) | optional `reminderMore` `{habitId: {words? (≤ 80), times? (≤ 2 "HH:MM")}}`, `.optional().catch(undefined)`, each entry checked where read (`lib/habit-reminder-words.ts`). Commit `790a8490`. | Kept untouched; older builds remind at the one time with the habit's name. |
 | `zigoals:health-extras:v1` (existing, device-only, loose) | optional `ownDrinks` (≤ 30 `{id, name 1–24, type (a fixed drink type), sizeMl 1–2000, symbol?, colour?, caffeineMg?, kcal? 0–2000, sugarG? 0–300}`; an unreadable drink is dropped, the others kept), `waterTips` (boolean); a drink note gains optional `own` (its own drink's id), `kcal`, `sugarG`, each `.optional().catch(undefined)`. Commit `cec6b6ee`. | A drink note keeps its fixed `type` and `caffeineMg`, so an older build reads every entry as before. |
 
 ## TIER 3 (PWA)
@@ -22,6 +23,9 @@ chunk carries only those lines, two small props and the water form's two-line ha
 - `lib/notify/plan.ts`: `waterSpread` items (the `water` kind, ids `water-1`…`water-12`, recurring wakes; skipped today
   once on pace; refused inside quiet hours; when present they stand in for the one water time). The service worker's
   existing water line composes them (`Water: 400 mL to be on pace`); `public/sw.js` unchanged. Feature 1.
+- `lib/notify/plan.ts` and `lib/notify/sync.ts`: a habit's own reminder words (as its `label`, so only where names are
+  allowed, never for a Health-linked habit) and up to two more times a day (each a recurring wake, the same habit id, so
+  Done and Snooze work as before). `public/sw.js` unchanged. Feature 2.
 
 ## Shared to-do for the lead (all features)
 
@@ -29,7 +33,9 @@ chunk carries only those lines, two small props and the water form's two-line ha
 - Search (static.ts): see each feature.
 - Showcase hook: see "Showcase" at the end.
 - CSS files touched (for the theme sheets): `components/health/r3/health-r3.css` (new) and those listed per feature.
-- Nothing is added to Today.
+- Today: nothing new is always visible. A habit's reminder card (only when it is due) says the person's own words
+  instead of "Not done yet today." alone (feature 2); this adds the small `lib/habit-reminder-words.ts` reader (no schema)
+  to Today's reminder-cards chunk and no Tab stop.
 
 ## 1. Water: reminders through the day, your own drinks, energy and sugar from drinks, a tip a day — LEDGER #280 built, #281 built, #282 built, #283 built
 
@@ -72,3 +78,35 @@ chunk carries only those lines, two small props and the water form's two-line ha
 - Search (static.ts): "own drinks", "drink calories", "water reminders", "water tip" → `/app/health#water`.
 - Device keys / catalogue / export / erase: nothing new (both records are registered).
 - CSS: `components/health/r3/health-r3.css`. Nothing on Today.
+
+## 2. Habits: a reminder in your own words with more times a day, and a trend per habit — LEDGER #275 built, #276 built
+
+- What: a habit's editor (for a saved habit), under its reminder time: "Your own words and more times" (its own chunk)
+  — a line of the person's own for the reminder (up to 80 characters, with a count) and up to two more times a day,
+  saved with its own button in the habit extras. Today's reminder card says "Shoes by the door? Not done yet today."; a
+  notification shows the words in place of the name where names are allowed (never for a Health-linked habit), and wakes
+  at each extra time with the same Done. Under the habits' history ("Your last 30 days"), "Trend per habit": every active
+  habit's share of decided scheduled days in the last 30 days beside the 30 before, grouped More often (the biggest rise
+  first), About the same (within 10 points), Less often, Not enough days yet (each window needs 5); each habit's
+  Consistency & trends says it in a sentence ("100% (29 of 29 days) in the last 30 days, 50% (15 of 30 days) the 30 before:
+  more often."). No "needs attention" wording anywhere; skipped, paused and rest days count for nothing.
+- Files: `lib/habits-extras/schema.ts` (stored commit), `lib/habit-reminder-words.ts`, `lib/habits-v2/trend.ts` (new,
+  pure); `lib/notify/plan.ts`, `lib/notify/sync.ts`; `components/habits/reminder-more.tsx`,
+  `components/habits/habit-trend-list.tsx`, `components/habits/habit-r3.css` (new); `components/habits/habit-editor.tsx`
+  (one lazy line), `components/habits/habit-consistency.tsx`, `components/habits/habit-patterns.tsx` (both lazy chunks
+  already), `components/reminders/reminder-cards.tsx` (the card's words).
+- Tests: `lib/av2-r3-habits.test.ts` (reads, the editor's checks, export → erase → restore, the plan and the service
+  worker's line with names on and off, the trend words and order); existing habit-extras, notify and reminders tests green.
+  Spec: `tests/av2-habit-words-trend.spec.ts`.
+- Stored: `reminderMore` on the habit extras (see the table).
+- Help (EN): **Can a habit reminder say something of my own?** Yes. Edit the habit and open "Your own words and more
+  times" under its reminder time: write a line like "Shoes by the door?" and, if you like, up to two more times a day.
+  Today's reminder card shows your words; a notification shows them only if names are on in Settings → Notifications.
+  **What does a habit's trend mean?** It compares the share of scheduled days you did in the last 30 days with the 30
+  days before: more often, about the same (within 10 points) or less often. Skipped, paused and rest days don't count.
+- What's new: "Habits: reminders in your own words, up to three a day, and a trend for each habit."
+- Search (static.ts): "reminder words", "habit trend" → `/app/habits`.
+- Showcase hook: none needed (the Showcase's habits have two months of history, so the trend list shows there under the
+  labelled "Showcase example history"; no pinned count reads it).
+- Device keys / catalogue / export / erase: nothing new (the habit extras are registered).
+- CSS: `components/habits/habit-r3.css` (new).

@@ -49,6 +49,8 @@ import {EVENING_PLAN} from '../evening-plan/schema';
 import {energyItems} from './energy-items';
 import {healthGroupIn} from '../vault/w-homes';
 import {spreadSlots, spreadTimes} from '../water-spread';
+import {HABIT_EXTRAS} from '../habits-extras/schema';
+import {reminderMoreOf} from '../habit-reminder-words';
 
 /**
  * Session AK Part 2 (ADR-036 A1): gathers this device's records into the plan's input. Reads only; never throws (a record
@@ -68,13 +70,16 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
     const habits = await storedHabits(storage);
     if (habits) {
       const day = habitCalendarDay(habits, new Date(now));
+      let habitExtras: unknown = null; try { habitExtras = readDeviceRecord(storage, HABIT_EXTRAS).data; } catch { /* unreadable: no own words or extra times */ }
       // Session AV lane 2 (LEDGER #181): a routine's head habit's reminder opens the routine's player.
       for (const habit of habits.habits) {
         const status = habitDay(habit, day, day).status;
         if (status === 'due' || status === 'partial' || status === 'complete') { input.orbit.total++; if (status === 'complete') input.orbit.done++; }
         const reminder = reminders.habits[habit.id];
         if (!reminder) continue;
-        input.habits.push({id: habit.id, ...(isRoutineHead(habits, habit.id) ? {routine: true} : {}), ...(healthLinked?.has(habit.id) ? {} : {title: habit.title}), time: reminder.time, weekdays: habitWeekdays(habits, habit.id, day), doneToday: !(status === 'due' || status === 'partial') || reminders.dismissed[habit.id] === day});
+        // Session AV lane 2 (health r3; LEDGER #275): the reminder's own words (never for a Health-linked habit) and its extra times.
+        const more = reminderMoreOf(habitExtras, habit.id), linked = !!healthLinked?.has(habit.id);
+        input.habits.push({id: habit.id, ...(isRoutineHead(habits, habit.id) ? {routine: true} : {}), ...(linked ? {} : {title: habit.title}), ...(!linked && more.words ? {words: more.words} : {}), ...(more.times.length ? {more: more.times} : {}), time: reminder.time, weekdays: habitWeekdays(habits, habit.id, day), doneToday: !(status === 'due' || status === 'partial') || reminders.dismissed[habit.id] === day});
       }
     }
   } catch { /* habits unreadable: no habit wakes */ }

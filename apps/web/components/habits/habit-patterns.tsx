@@ -6,6 +6,7 @@ import {formatClock, formatDate} from '../../lib/visual-format';
 import { plural } from '../../lib/plural';
 import {habitStrength} from '../../lib/habits-v2/strength';
 import {missReasonCounts} from '../../lib/habits-yesterday';
+import {HabitTrendLine} from './habit-trend-list';
 
 /**
  * A habit's patterns (Session W Part 10), inside its "Consistency & trends": days done by weekday and by week over the
@@ -21,6 +22,8 @@ export function HabitPatterns({habit, today, zone}: {habit: Habit; today: string
   if (!days.some(d => d.scheduled) && !usual) return <p className="fine">Patterns appear after a few scheduled days.</p>;
   return <div className="habit-patterns">
     {strength && <p className="habit-strength"><strong>Strength {strength.score}</strong> <span className="fine">of 100, from {strength.days} scheduled {plural(strength.days, 'day')} in the last 90. Each one moves it a tenth of the way toward done or not done, so one miss dents it and never resets it; skipped and rest days don&rsquo;t count.</span></p>}
+    {/* Session AV lane 2 (health r3; LEDGER #276): the last 30 days beside the 30 before, in plain words. */}
+    <HabitTrendLine habit={habit} today={today} />
     <h3>By weekday · last {WEEKS} weeks</h3>
     <ul className="habit-weekdays">{days.map(d => <li key={d.weekday}><span>{WEEKDAY_NAMES[d.weekday]!.slice(0, 3)}</span><strong>{d.scheduled ? `${d.done} of ${d.scheduled}` : '—'}</strong></li>)}</ul>
     <h3>By week</h3>
