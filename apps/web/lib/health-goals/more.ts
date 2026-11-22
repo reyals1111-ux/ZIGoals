@@ -59,7 +59,17 @@ const goalSchema = z.looseObject({
 });
 export type MoreGoal = z.infer<typeof goalSchema>;
 const goalsSchema = z.preprocess(v => Array.isArray(v) ? v.filter(x => goalSchema.safeParse(x).success).slice(0, MORE_GOALS_MAX) : v, z.array(goalSchema).max(MORE_GOALS_MAX));
-export const moreGoalsSchema = z.looseObject({version: z.literal(1), goals: goalsSchema.default([])});
+/**
+ * Session AV lane 2, round 4 (health; LEDGER #331, Noom's Maintenance Mode; TIER 3 (stored format), additive): "Keep my
+ * weight between …", a band the person sets, shaded on the weight trend. A top-level part of this loose record (never a
+ * new goal kind: a round 3 reader would drop a goal it cannot read, while it keeps an unknown top-level part as written).
+ * Grams; low below high, at least 0.5 kg apart. Optional; a value this build cannot read is dropped on its own.
+ */
+export const BAND_MIN_GRAMS = 20_000, BAND_MAX_GRAMS = 500_000, BAND_MIN_WIDTH = 500;
+export const weightBandSchema = z.looseObject({lowGrams: z.number().int().min(BAND_MIN_GRAMS).max(BAND_MAX_GRAMS), highGrams: z.number().int().min(BAND_MIN_GRAMS).max(BAND_MAX_GRAMS), createdAt: z.iso.datetime()})
+  .refine(b => b.highGrams - b.lowGrams >= BAND_MIN_WIDTH, 'The band is at least 0.5 kg wide.');
+export type WeightBand = z.infer<typeof weightBandSchema>;
+export const moreGoalsSchema = z.looseObject({version: z.literal(1), goals: goalsSchema.default([]), weightBand: weightBandSchema.optional().catch(undefined)});
 export type MoreGoals = z.infer<typeof moreGoalsSchema>;
 export const emptyMoreGoals = (): MoreGoals => ({version: 1, goals: []});
 export const MORE_GOALS: DeviceRecordSpec<MoreGoals> = {key: MORE_GOALS_KEY, schema: moreGoalsSchema, empty: emptyMoreGoals};
