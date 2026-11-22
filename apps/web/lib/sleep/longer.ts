@@ -36,3 +36,13 @@ export function rangeAverage(points: readonly DayPoint[]): {asleep: number; nigh
   const logged = points.filter(p => p.asleep !== null);
   return logged.length ? {asleep: Math.round(logged.reduce((t, p) => t + p.asleep!, 0) / logged.length), nights: logged.length} : null;
 }
+/**
+ * Session AV lane 2, round 6 (r6-body; LEDGER #423): the days' time asleep out of their time in bed, added up over the
+ * nights logged ("Asleep 6 h 50 of 7 h 40 in bed (89 %)", the averages a night), an estimate when any night was.
+ */
+export function efficiencyOf(points: readonly DayPoint[]): {asleep: number; inBed: number; percent: number; estimated: boolean; nights: number} | null {
+  const logged = points.filter(p => p.asleep !== null && p.inBed !== null && p.inBed > 0);
+  if (!logged.length) return null;
+  const asleep = logged.reduce((t, p) => t + p.asleep!, 0), inBed = logged.reduce((t, p) => t + p.inBed!, 0);
+  return {asleep: Math.round(asleep / logged.length), inBed: Math.round(inBed / logged.length), percent: Math.min(100, Math.round(asleep / inBed * 100)), estimated: logged.some(p => p.estimated), nights: logged.length};
+}

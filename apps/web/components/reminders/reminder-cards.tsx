@@ -27,6 +27,7 @@ import {habitCalendarDay} from '../../lib/habits';
 import {MEDITATION_RUN} from '../../lib/meditation/schema';
 import {sessionDay} from '../../lib/meditation/stats';
 import {localDate} from '../../lib/local-date';
+import {boundaryDay} from '../../lib/day-boundary-core';
 import {healthGroupIn} from '../../lib/vault/w-homes';
 import {HEALTH_EXTRAS} from '../../lib/health-extras';
 import {dismissFastStart, dismissMeal, fastStartDue, mealsDue} from '../../lib/meal-reminders';
@@ -85,7 +86,7 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   // Session W Part 4: the wind-down time, until a night is running (Health → Sleep).
   const windDown = wReminders.loaded && !wReminders.unreadable ? windDownDue({w: wReminders.data, running: !!health && (healthGroupIn(health, 'sleep')?.nights ?? []).some(n => n.end === null), now}) : null;
   // Session W Part 5: the meditation time, until a session is logged today or one runs (Health → Meditation).
-  const meditation = wReminders.loaded && !wReminders.unreadable && meditationRun.loaded ? meditationDue({w: wReminders.data, doneToday: !!health && (healthGroupIn(health, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === localDate(now)), running: !!meditationRun.data.run, now}) : null;
+  const meditation = wReminders.loaded && !wReminders.unreadable && meditationRun.loaded ? meditationDue({w: wReminders.data, doneToday: !!health && (healthGroupIn(health, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === boundaryDay(now, null)), running: !!meditationRun.data.run, now}) : null;
   // Session W Part 10: a stack's chained reminder, once the habit before it is done today.
   let chained: ReturnType<typeof chainedDue> = [];
   try { chained = habits && wReminders.loaded && !wReminders.unreadable ? chainedDue(wReminders.data, habits, habitCalendarDay(habits, now)) : []; } catch { chained = []; }

@@ -98,6 +98,12 @@ export const workoutSchema = z.looseObject({
    */
   photos: z.array(z.string().regex(/^wph-[A-Za-z0-9-]{8,80}$/)).max(4).optional().catch(undefined),
   star: z.boolean().optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 6 (body; LEDGER #421, Caliber's deload week; TIER 3 (stored format), additive): "Light week
+   * (not in my bests)" on a finished workout — its sets stay in the history, the calendar and the volume, but the bests,
+   * the "new best" marks and the progression's next weights leave it out. Optional and tolerant on the loose workout.
+   */
+  light: z.boolean().optional().catch(undefined),
 });
 /**
  * Session AV lane 2 (body; TIER 3 (stored format), additive; Hevy's routine folders and notes, MacroFactor's progression):
@@ -140,6 +146,21 @@ export const GOAL_PERIODS = ['week', 'month', 'year'] as const;
 export const distanceGoalSchema = z.looseObject({id, sport: z.enum(GOAL_SPORTS), period: z.enum(GOAL_PERIODS), km: z.number().finite().min(1).max(100_000), createdAt: z.iso.datetime({offset: true})});
 export type DistanceGoal = z.infer<typeof distanceGoalSchema>;
 const exerciseKey = z.string().min(1).max(80).refine(k => k !== '__proto__' && k !== 'constructor' && k !== 'prototype', 'Not an exercise id.');
+/** Session AV lane 2, round 6 (LEDGER #420, #422, #424): the limits and item shapes of the round's three workout-record parts. */
+export const MAX_FAVOURITE_EXERCISES = 100, ALL_EXERCISES_KEY = '*';
+const bestsFromDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const exerciseDefaultsSchema = z.looseObject({
+  sets: z.number().int().min(1).max(20),
+  reps: z.number().int().min(1).max(100).optional().catch(undefined),
+  seconds: z.number().int().min(1).max(3600).optional().catch(undefined),
+  restSeconds: z.number().int().min(0).max(900).optional().catch(undefined),
+});
+export type ExerciseDefaults = z.infer<typeof exerciseDefaultsSchema>;
+/** A record's readable entries only (at most `max`), so one bad entry is dropped alone; anything else is no record. */
+function keepValid(v: unknown, item: z.ZodType, max: number): unknown {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
+  return Object.fromEntries(Object.entries(v as Record<string, unknown>).filter(([k, x]) => exerciseKey.safeParse(k).success && item.safeParse(x).success).slice(0, max));
+}
 export const customExerciseSchema = z.looseObject({id, name: z.string().trim().min(1).max(80), category: z.enum(CATEGORIES), measure: z.enum(MEASURES), load: entryExtras.load});
 /**
  * Session AV lane 2 (body; LEDGER #203; TIER 3 (stored format), additive): a pair of shoes — its name, the distance it had
@@ -184,6 +205,18 @@ export const workoutsSchema = z.looseObject({
   shoes: z.array(shoeSchema).max(30).optional().catch(undefined),
   /** Session AV lane 2 (body; LEDGER #204, Nike Run Club's PR achievements; additive): the run bests already marked ("<workout id>:<km>"), so each is marked once. */
   seenBests: z.array(z.string().regex(/^[A-Za-z0-9_-]{1,80}:[0-9.]{1,8}$/)).max(100).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 6 (body; Caliber; TIER 3 (stored format), additive, each optional and tolerant on its own):
+   * - `favouriteExercises` (LEDGER #420): the starred exercises' ids, shown first when adding an exercise (up to 100).
+   * - `bestsFrom` (LEDGER #422): "Count bests from today" — the first day whose sets count for an exercise's bests, by
+   *   exercise id, or for every exercise under `*`; earlier sets stay in the history and show as "before".
+   * - `exerciseDefaults` (LEDGER #424): an exercise's own sets, reps or time and rest, by exercise id (a library one or
+   *   the person's own), used when it is added with no earlier sets of it. One map for both kinds, so one reader.
+   * An item this build cannot read is dropped alone; older builds keep the three untouched (the record is loose).
+   */
+  favouriteExercises: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter(x => exerciseKey.safeParse(x).success))].slice(0, MAX_FAVOURITE_EXERCISES) : undefined, z.array(exerciseKey).max(MAX_FAVOURITE_EXERCISES).optional()).optional().catch(undefined),
+  bestsFrom: z.preprocess(v => keepValid(v, bestsFromDay, 300), z.record(exerciseKey, bestsFromDay).optional()).optional().catch(undefined),
+  exerciseDefaults: z.preprocess(v => keepValid(v, exerciseDefaultsSchema, 300), z.record(exerciseKey, exerciseDefaultsSchema).optional()).optional().catch(undefined),
 });
 export type WorkoutSet = z.infer<typeof setSchema>;
 export type ExerciseEntry = z.infer<typeof exerciseEntrySchema>;

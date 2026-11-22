@@ -33,6 +33,9 @@ import type {DeviceRecordSpec} from '../device-record';
  * - `photos` (LEDGER #103): which library foods have a front-of-pack photo on this device (the photo itself is in
  *   IndexedDB, lib/food-plus/photos.ts), with when it was taken.
  * - `lateMeal` (LEDGER #371, Bevel): the hours before bedtime and the calories that make a late-meal night in Compare.
+ * - `portions` (LEDGER #418, Lifesum's fruit, vegetable and fish trackers): the portion counters the person turned on
+ *   (fruit, vegetables, fish and up to three of their own), each with an optional aim a day or a week, and the count per
+ *   day (lib/food-plus/portions.ts). None is on until chosen; there is no "off track" line.
  */
 export const FOOD_PLUS_KEY = 'zigoals:food-plus:v1';
 export const EATING_STYLES = ['low-carb', 'high-protein', 'high-fibre'] as const;
@@ -62,6 +65,9 @@ export const foodPlusSchema = z.looseObject({
   // and optional): what counts as a late meal in Compare — food of at least `kcal` logged within `hours` before bedtime.
   // The person's own two numbers; missing means 3 hours and 300 kcal. A value this build cannot read is dropped on its own.
   lateMeal: z.looseObject({hours: z.number().int().min(1).max(6), kcal: z.number().int().min(50).max(3000)}).optional().catch(undefined),
+  // Session AV lane 2, round 6 (r6-body, LEDGER #418, Lifesum; TIER 3 (stored format), additive and optional): the portion
+  // counters. A counter or a day this build cannot read is dropped on its own (lib/food-plus/portions.ts readPortions).
+  portions: z.looseObject({counters: z.array(z.unknown()).max(12).optional().catch(undefined), days: z.record(z.string().max(12), z.unknown()).optional().catch(undefined)}).optional().catch(undefined),
 });
 export const MAX_RECIPE_STEPS = 60, MAX_STEP_CHARS = 600;
 export type FoodPlus = z.infer<typeof foodPlusSchema>;

@@ -11,6 +11,8 @@ import {ConfirmInline} from '../ui/confirm-inline';
 import {showStatus, showUndo} from '../ui/undo-toast';
 // Session AV lane 2 (r4-mind; LEDGER #308): the format bar while the words are edited, its own chunk.
 const JournalFormat = lazy(() => import('./journal-format'));
+// Session AV lane 2, round 6 (r6-body; LEDGER #417): one tap puts the entry's first sentence on the list for the next visit.
+const BringUpAdd = lazy(() => import('../health/r6/bring-up-add'));
 
 /**
  * Session AV lane 2 (journal): an entry's "More" — the things done less often than tagging, so each row stays light
@@ -73,6 +75,7 @@ export default function EntryMore({entry, day}: {entry: JournalEntry; day: strin
   return <div className="journal-entry-more-body" ref={box}>
     <div className="journal-entry-more-actions">
       <button type="button" className="secondary" data-part="edit" aria-expanded={part === 'edit'} onClick={() => { setText(entry.text); setProblem(''); setPart(part === 'edit' ? null : 'edit'); }}>Edit the words</button>
+      <Suspense fallback={null}><BringUpAdd text={entry.text} from="journal" day={entry.date}/></Suspense>
       <button type="button" className="quiet" data-part="template" aria-expanded={part === 'template'} onClick={() => { setTitle(suggestedTitle(entry.text)); setProblem(''); setPart(part === 'template' ? null : 'template'); }}>Save as a template</button>
       {/* Session AV lane 2 (r3-notes; LEDGER #265): every answer to the prompt this entry began from. */}
       {entry.template && <button type="button" className="quiet" onClick={() => { try { window.history.pushState(null, '', `/app/journal?prompt=${entry.template}`); } catch { /* the event is enough */ } window.dispatchEvent(new PopStateEvent('popstate')); }}>Every answer to this prompt</button>}

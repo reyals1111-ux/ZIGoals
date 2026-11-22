@@ -1,5 +1,6 @@
 import type {Meditation, MeditationSession} from './schema';
 import {addDays, wallClock} from '../zone-time';
+import {activityDay, currentDayEnds, type DayEnds} from '../day-boundary-core';
 
 /**
  * Meditation figures (Session W Part 5), from the person's own sessions. A session belongs to the day it started in the
@@ -7,7 +8,18 @@ import {addDays, wallClock} from '../zone-time';
  * end, so "minutes this week" is exact. No score: totals, counts, the longest session and the days in a row, which say
  * nothing about a rest day.
  */
-export const sessionDay = (s: Pick<MeditationSession, 'startedAt' | 'timeZone'>) => wallClock(Date.parse(s.startedAt), s.timeZone).date;
+/**
+ * Session AV lane 2, round 6 (r6-body; LEDGER #411, a fix of a real inconsistency): the day a session counts on follows
+ * "My day ends at", as habits, the Checklist and streaks do (lib/day-boundary.ts), so a night owl's 01:00 session counts
+ * on the evening's day in the minutes, the weekly bars, the days in a row and the weekly goal. Read only: each session's
+ * start and zone are as stored (the strict, synced Health group is unchanged). Owner rule 1 holds: a session started
+ * before the latest change of the setting counts under the end in force then (`activityDay`), so a change never
+ * re-dates the sessions behind it. With the default (midnight) and no change, the calendar day exactly as before.
+ */
+export function sessionDayUnder(s: Pick<MeditationSession, 'startedAt' | 'timeZone'>, ends: DayEnds): string {
+  return ends.endsAt || ends.change ? activityDay(ends, new Date(s.startedAt), s.timeZone) : wallClock(Date.parse(s.startedAt), s.timeZone).date;
+}
+export const sessionDay = (s: Pick<MeditationSession, 'startedAt' | 'timeZone'>) => sessionDayUnder(s, currentDayEnds());
 const minutes = (seconds: number) => Math.round(seconds / 60);
 /** Monday of the week a day falls in. */
 export function weekStart(day: string): string {

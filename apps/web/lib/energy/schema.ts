@@ -17,7 +17,10 @@ export const energyDaySchema = z.looseObject({energy: z.number().int().min(1).ma
 // unreadable here, and survives this build's read-modify-write.
 export const energySchema = z.looseObject({version: z.literal(1), days: z.record(z.iso.date(), energyDaySchema), words: z.record(z.string().max(10), z.unknown()).optional(),
   // Session AV lane 2 (LEDGER #60–#63, #68; TIER 3 (stored format), additive): the evening check-in's own fields (lib/checkin-extras/rule.ts), loose and checked where read.
-  checkin: z.looseObject({}).optional()})
+  checkin: z.looseObject({}).optional(),
+  // Session AV lane 2, round 6 (r6-body, LEDGER #412, Moodfit's own strategies; TIER 3 (stored format), additive): "What
+  // lifts me", the person's own short lines (lib/mood-words/lifts.ts), checked where read so one bad line drops alone.
+  lifts: z.array(z.unknown()).max(24).optional().catch(undefined)})
   .refine(r => Object.keys(r.days).length <= MAX_ENERGY_DAYS, `Up to ${MAX_ENERGY_DAYS} days.`)
   .refine(r => Object.keys(r.words ?? {}).length <= MAX_MOOD_WORD_DAYS, `Up to ${MAX_MOOD_WORD_DAYS} days of feeling words.`);
 export type EnergyDay = z.infer<typeof energyDaySchema>;
