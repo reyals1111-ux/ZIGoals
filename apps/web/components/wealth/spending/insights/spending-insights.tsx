@@ -30,6 +30,8 @@ const VIEWS = {
   changed: {label: 'What changed', load: lazy(() => import('./month-waterfall'))},
   // Session AV lane 2, round 3 (money; PocketGuard, LEDGER #296): a done habit beside what was spent, under Compare's rules.
   habits: {label: 'Beside your habits', load: lazy(() => import('./spend-compare-view'))},
+  // Session AV lane 2, round 4 (money; Lunch Money's Query Tool, LEDGER #344): saved money searches drawn as a chart.
+  saved: {label: 'Saved searches', load: lazy(() => import('./saved-view'))},
 } as const;
 type View = keyof typeof VIEWS;
 /** Session AV lane 2, round 3 (review b3a #11): `space`, the money space shown, so a view that writes uses that space's own log. */

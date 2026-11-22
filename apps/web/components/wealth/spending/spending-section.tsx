@@ -14,6 +14,7 @@ import type {BulkAction} from './money-search';
 import {groupEntries, groupRows, ungroup, type GroupSummary, type ListRow} from '../../../lib/money-log/groups';
 import {GroupItem} from './group-row';
 import type {KeepPayee} from './places';
+import {uncheck} from '../../../lib/money-log/reconcile';
 import {draftAlreadyLogged} from '../../../lib/money-photos/match';
 import {setTransfer} from '../../../lib/bankfiles/reimport';
 import './spending.css';
@@ -116,7 +117,9 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
     if (!checked.ok) return setProblem(checked.problem);
     // Session AV lane 2 (money): what changed goes into the entry's history (by you), with its marks.
     const at = new Date().toISOString(), marked = withMarks(changesBetween(entry, withQuick(checked.entry), 'you', at), {excluded: leftOut, taxDeductible: tax, spread: entry.kind === 'expense' ? spread : null}, at);
-    void changeWithUndo(log.update, current => replaceEntry(current, marked), 'Saved.', {undone: 'Edit undone.', undoLabel: `Undo the edit to ${checked.entry.category}`})
+    // Session AV lane 2, round 4 (money, LEDGER #340): a checked entry whose amount changes is no longer checked against the bank.
+    const kept = marked.checked && marked.amount !== entry.amount ? (() => { const {checked: _c, ...rest} = marked; void _c; return rest; })() : marked;
+    void changeWithUndo(log.update, current => replaceEntry(current, kept), 'Saved.', {undone: 'Edit undone.', undoLabel: `Undo the edit to ${checked.entry.category}`})
       .then(() => { endEdit(); setStatus('Saved.'); }, () => setProblem('This could not be saved on this device. Nothing was changed.'));
   };
   const save = (event: FormEvent) => {
@@ -202,7 +205,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
   const ungroupOne = (g: GroupSummary) => { void changeWithUndo(log.update, current => ungroup(current, g.id), `${g.name}: its ${g.entries.length} entries are on their own again.`, {undone: `${g.name} is a group again.`, undoLabel: `Undo ungrouping ${g.name}`}).catch(() => setStatus('This could not be saved on this device. Nothing was changed.')); };
   const entryItem = (e: MoneyEntry) => <li key={e.id}>
           {selecting && <label className="money-select-check"><input type="checkbox" checked={picked.has(e.id)} onChange={() => togglePick(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
-          <span className="spending-entry-what">{toReview.has(e.id) && <span className="spending-review-dot" title="To review"><span className="visually-hidden">To review: </span></span>}<strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {e.date}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.spread && <span className="money-mark"> · over {e.spread} months</span>}</span>
+          <span className="spending-entry-what">{toReview.has(e.id) && <span className="spending-review-dot" title="To review"><span className="visually-hidden">To review: </span></span>}<strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {e.date}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.spread && <span className="money-mark"> · over {e.spread} months</span>}{e.checked && <span className="money-mark money-mark-checked" title={`Checked against your bank for ${formatDate(e.checked)}`}> · checked</span>}</span>
           <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(Math.round(Number(e.amount) * 100), e.currency)}</span>
           <span className="spending-entry-actions"><button type="button" className="text-link spending-edit" aria-label={`Edit ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => startEdit(e)}>Edit</button><button type="button" className="text-link spending-remove" aria-label={`Remove ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => { if (editing?.id === e.id) endEdit(); remove(e); }}>Remove</button></span>
         </li>;
@@ -225,7 +228,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
       </div>
       {!logging ? <div className="spending-actions"><button ref={logButton} type="button" className="primary" aria-expanded={false} aria-controls={`${id}-log`} onClick={() => setLogging(true)}>Log spending</button>{!showcase && <Suspense fallback={null}><SavedChips update={log.update} today={today} onSaid={setStatus}/></Suspense>}</div>
       : <form className="spending-form" id={`${id}-log`} onSubmit={save} aria-label={editing ? `Edit ${editing.category} ${editing.amount} ${editing.currency} on ${editing.date}` : 'Log spending or income'}>
-        {editing && <EntryHistory entry={editing} other={editing.transfer ? log.data.entries.find(x => x.id === editing.transfer) : undefined} onUntransfer={() => { const ent = editing; void changeWithUndo(log.update, current => setTransfer(current, ent.id, ent.transfer!, false, new Date().toISOString()), 'Counted again: no longer a transfer.', {undone: 'Transfer kept.', undoLabel: 'Undo: keep it a transfer'}).then(() => endEdit(), () => setProblem('This could not be saved on this device.')); }}/>}
+        {editing && <EntryHistory entry={editing} other={editing.transfer ? log.data.entries.find(x => x.id === editing.transfer) : undefined} onUncheck={() => { const ent = editing; void changeWithUndo(log.update, current => uncheck(current, ent.id), 'No longer checked against your bank.', {undone: 'Checked again.', undoLabel: 'Undo: keep it checked'}).then(() => endEdit(), () => setProblem('This could not be saved on this device.')); }} onUntransfer={() => { const ent = editing; void changeWithUndo(log.update, current => setTransfer(current, ent.id, ent.transfer!, false, new Date().toISOString()), 'Counted again: no longer a transfer.', {undone: 'Transfer kept.', undoLabel: 'Undo: keep it a transfer'}).then(() => endEdit(), () => setProblem('This could not be saved on this device.')); }}/>}
         {editing ? <p className="spending-editing">Editing {editing.kind === 'income' ? 'money received' : 'spending'} in {editing.currency}: {editing.category} · {money(Math.round(Number(editing.amount) * 100), editing.currency)} · {formatDate(editing.date)}</p>
         : <div className="spending-kind" role="radiogroup" aria-label="Kind">
           {(['expense', 'income'] as const).map(k => <label key={k} className="spending-chip"><input type="radio" name={`${id}-kind`} checked={kind === k} onChange={() => { setKind(k); setCategory(categoryChoices(log.data, k)[0] ?? (k === 'expense' ? 'Food & drink' : 'Salary')); /* Session AV lane 2, round 4: the first category still offered */ }}/><span>{k === 'expense' ? 'Spent' : 'Received'}</span></label>)}
@@ -312,10 +315,11 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
 /** Session AV lane 2 (money; Monarch's activity log): what changed on an entry, newest first, and its transfer twin. */
 const FIELD_WORDS: Record<string, string> = {category: 'Category', amount: 'Amount', date: 'Date', note: 'Note', excluded: 'Counting', spread: 'Budgets over', transfer: 'Transfer'};
 const BY_WORDS: Record<string, string> = {you: 'you', rule: 'one of your rules', bulk: 'you, with others at once', import: 'a re-import'};
-function EntryHistory({entry, other, onUntransfer}: {entry: MoneyEntry; other?: MoneyEntry; onUntransfer: () => void}) {
+function EntryHistory({entry, other, onUntransfer, onUncheck}: {entry: MoneyEntry; other?: MoneyEntry; onUntransfer: () => void; onUncheck?: () => void}) {
   const list = [...(entry.history ?? [])].reverse();
   return <>
     {entry.transfer && <p className="fine spending-transfer">A transfer{other ? ` with ${(other.note ?? other.category).split(' · ')[0]} (${other.kind === 'income' ? 'in' : 'out'}, ${formatDate(other.date)})` : ''}: both sides are left out of spending and income. <button type="button" className="text-link" onClick={onUntransfer}>Not a transfer</button></p>}
+    {entry.checked && <p className="fine spending-transfer">Checked against your bank for {formatDate(entry.checked)}.{onUncheck && <> <button type="button" className="text-link" onClick={onUncheck}>Not checked</button></>}</p>}
     {list.length > 0 && <details className="spending-history"><summary>Changes to this entry ({list.length})</summary><ul>{list.map((h, i) => <li key={i}><span className="fine">{formatDate(h.at.slice(0, 10))}</span> · {FIELD_WORDS[h.field] ?? h.field}: {h.from ?? '—'} → {h.to ?? '—'} <span className="fine">(by {BY_WORDS[h.by] ?? h.by})</span></li>)}</ul></details>}
   </>;
 }

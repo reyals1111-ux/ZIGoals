@@ -191,3 +191,73 @@ none of round 4's questions. Corpus: `AV2_R4_MONEY` from `apps/web/lib/ai/evals/
 - Showcase hook: none (places are the person's own; in the Showcase they stay in its tab).
 - Registries: none (the field is on a record already in every registry). CSS touched: `components/wealth/spending/money-r4.css`.
 - Today: nothing added.
+
+### R4-F5 (group U8). Check an account against the bank
+
+- LEDGER row: #340 Actual reconcile — **built** (Wealth → Accounts → a cash, savings or credit-card account → "Check
+  against my bank": the statement's first and last day (from the day after the last check, else 30 days back), its
+  opening balance — started from the account's own balance before the statement when one is kept, said so — and its
+  closing balance (a decimal comma, a minus or a sum works); the money-log entries in the account's currency not yet
+  checked in that time, oldest first, narrowed to one bank file's account name when the log has them; tick one by one
+  or "Tick all"; the running line says what is ticked and the difference until "it matches your statement"; then "Mark N
+  as checked" (with Undo) marks them with the statement's day; a difference left is said in words and the button stays
+  focusable; Spending's This week and search show a quiet "checked" mark; the entry's edit form says "Checked against
+  your bank for <day>" with "Not checked"; an entry whose amount is edited loses its mark). For a credit card the
+  balance is what is owed, so spending raises it.
+- Spending function used: none, on purpose. A bank statement lists what the bank moved, so reconciling counts every
+  entry whole and as it is (the full amount paid, transfers and left-out entries included; `movement` in
+  lib/money-log/reconcile.ts). No spending figure changes; the unit test shows Spending's `totals` stays the person's
+  share without the transfer.
+- Files: `lib/money-log/reconcile.ts` (new), `components/wealth/reconcile.tsx` (new, lazy), `components/wealth/accounts-section.tsx`
+  (the toggle on the row and the lazy panel), `components/wealth/spending/spending-section.tsx` (the mark, "Not checked",
+  the mark dropped when the amount changes), `components/wealth/spending/money-search.tsx` (the mark).
+- Tests: `lib/money-log/av2-reconcile.test.ts` (pure, and the panel in jsdom: ticks, difference, mark),
+  `lib/ai/local-answers/av2-r4-money.test.ts`.
+- Spec: `tests/av2-money-reconcile.spec.ts`.
+- Stored: `zigoals:money-log:v1` entry `checked` (commit `0c11c3aa`).
+- Help (EN): **Q: Can I check my entries against my bank statement?** A: Yes. In Wealth → Accounts, open "Check
+  against my bank" on the account. Type the statement's days and its opening and closing balance, then tick the entries
+  the statement shows until the difference is zero, and tap "Mark as checked". Those entries then carry a quiet "checked"
+  mark in Spending, and the next check starts after that day.
+- What's new: "Accounts: check your entries against your bank statement until the difference is zero."
+- Answers: `checkedWithBank` (corpus `av2r4-money-reconcile`).
+- Showcase hook: none (the Showcase's accounts and money log are pinned; a check made in the Showcase stays in its tab).
+  Empty states teach ("No entry in EUR waits to be checked…", "No balance of yours from before this statement: type the
+  opening one.").
+- Registries: none. CSS touched: `components/wealth/spending/money-r4.css` (shared with the other round 4 parts).
+- Today: nothing added. Wealth's account rows gain one button for cash, savings and credit-card accounts (a Tab stop
+  each; the lead checks any Wealth Tab-stop ceiling that pins the account rows).
+
+### R4-F6 (group U8). Saved searches with a chart
+
+- LEDGER row: #344 Lunch Money saved questions with a chart — **built** (Wealth → Spending → Search all your entries:
+  "Save this search as …" keeps the search's filters with a name — words, words to leave out, kind, category,
+  subcategory, payee, tag, paid with, dates, the amount range, counted or left out, tax-deductible — up to ten, the same
+  name replacing the old one; "Open a saved search" sets its filters again. Your money over time → "Saved searches"
+  (a new view): one search at a time (buttons when there are more), drawn "By month" (with a dashed monthly-average line
+  and a key), "By week" (the last 26) or "By category" (the choice kept with the search), per currency, never converted;
+  its total, its days, the entries counted and its monthly average over the calendar months of its range in one line; a
+  table of every bar; Remove with Undo (focus kept). Only the filters are kept, so the chart reads the log as it is now).
+- Spending function used: `totals` (lib/money-log/engine.ts) for the total, each month and each week, and `byCategory`
+  for "By category", over what the search finds (`questionChart` in lib/money-log/saved-searches.ts) — so left-out
+  entries, transfers and refunds are not added in and a shared cost counts the person's share, as in Spending. (The
+  search's own result line keeps Session AV's selection total of what was found, as before.)
+- Files: `lib/money-log/saved-searches.ts` (new), `components/wealth/spending/insights/saved-view.tsx` (new, lazy),
+  `components/wealth/spending/insights/spending-insights.tsx` (the view), `components/wealth/spending/money-search.tsx`
+  (save and open), `components/wealth/spending/insights/insights.css`, `tests/ap/ap-money-fixtures.ts` (the view's name).
+- Tests: `lib/money-log/av2-saved-searches.test.ts` (pure and the view in jsdom), `lib/ai/local-answers/av2-r4-money.test.ts`.
+  **Deliberate test change**: `lib/money-insights/views.test.ts` "twelve views" → "thirteen views": every label named and
+  the count exact (13), labelled.
+- Spec: `tests/av2-money-saved-searches.spec.ts`.
+- Stored: `zigoals:money-more:v1` `questions` (commit `0c11c3aa`).
+- Help (EN): **Q: Can I keep a search and see it as a chart?** A: Yes. In Wealth → Spending → Search all your entries,
+  set your filters, type a name under "Save this search as" and tap Save this search. Your money over time → "Saved
+  searches" then draws it by month, by week or by category, with its total and its monthly average. Up to ten; only the
+  filters are kept, so the chart always shows your log as it is now.
+- What's new: "Spending: save a search with a name and see it as a chart by month, week or category."
+- Answers: `savedSearches` (corpus `av2r4-money-saved-searches`; reads `env.moneyMore`, and `env.moneyTags` for a
+  search with a tag, as round 3's answers already do).
+- Showcase hook: none (the Showcase's money extras hold no saved search; one saved there stays in its tab). The empty
+  state teaches ("No saved searches yet. Under “Search all your entries”, choose your filters and tap “Save this search”…").
+- Registries: none. CSS touched: `components/wealth/spending/insights/insights.css` (`.money-saved-*`).
+- Today: nothing added. "Your money over time" now has 13 view buttons.

@@ -104,3 +104,22 @@ describe('payee places, typed names only (#346)', () => {
     expect(text(zigi('show my payee places', freshAll(), {version: 1}))).toContain('ZIGoals never reads where you are.');
   });
 });
+
+describe('checked against the bank (#340)', () => {
+  test('how far it is checked, and what waits, EN and NL', () => {
+    const s = withLog(freshAll(), [mine({date: `${month}-02`, checked: `${month}-10`}), mine({date: `${month}-09`, checked: `${month}-10`}), mine({date: `${month}-12`}), mine({date: `${month}-13`})]);
+    expect(text(zigi('when did I last check my entries against my bank', s))).toBe('In EUR: checked up to Tue, Nov 10 (2 entries); 2 entries since then not yet checked.');
+    expect(text(zigi('wanneer is mijn rekening voor het laatst afgestemd met de bank', s))).toContain('In EUR: gecontroleerd tot');
+    expect(text(zigi('how far have I reconciled my account', withLog(freshAll(), [])))).toContain('Nothing is checked against your bank yet.');
+  });
+});
+
+describe('saved searches with a chart (#344)', () => {
+  test('each saved search with its total and monthly average by Wealth → Spending’s rule, EN and NL', () => {
+    const s = withLog(freshAll(), [mine({note: 'Café Noël', date: `${month}-03`}), mine({note: 'Café Noël', amount: '24.00', share: '12.00', date: '2026-10-10'}), mine({note: 'Café Noël', amount: '50.00', excluded: true, date: '2026-10-11'}), mine({note: 'Rent', amount: '900.00', category: 'Home'})]);
+    const more: MoneyMore = {version: 1, questions: [{id: 'q1', name: 'Eating out', text: 'café', kind: 'expense'}, {id: 'q2', name: 'Taxis', text: 'taxi'}]};
+    expect(text(zigi('what are my saved searches', s, more))).toBe('Eating out: €22.00 spent since Sat, Oct 10, €11.00 a month on average. Taxis: nothing found right now. Counted as Wealth → Spending counts; each is drawn in Wealth → Spending → Your money over time → Saved searches.');
+    expect(text(zigi('wat zijn mijn opgeslagen zoekopdrachten', s, more))).toContain('Eating out: € 22,00 uitgegeven sinds');
+    expect(text(zigi('show my saved money searches', freshAll(), {version: 1}))).toContain('You have no saved searches yet.');
+  });
+});

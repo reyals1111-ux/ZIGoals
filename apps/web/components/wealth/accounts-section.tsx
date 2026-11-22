@@ -41,6 +41,9 @@ const PropertyEquity = lazy(() => import('./account-sheet').then(x => ({default:
 const LimitNotices = lazy(() => import('./account-limits'));
 // Session AV lane 2, round 3 (money; Simplifi's credit card dashboard, LEDGER #293): a card's limit used and its days (lazy).
 const CardLine = lazy(() => import('./credit-card'));
+// Session AV lane 2, round 4 (money; Actual's reconcile, LEDGER #340): check an account's entries against the bank's statement (lazy).
+const Reconcile = lazy(() => import('./reconcile'));
+const RECONCILE_KINDS = new Set<AccountKind>(['cash', 'savings', 'credit-card']);
 // Session AV lane 2, round 2 (money; Wallet): net worth with money lent and borrowed, beside the cards (lazy).
 const BesideWorth = lazy(() => import('./beside-worth'));
 
@@ -162,7 +165,7 @@ function AccountRow({account: a, today, open, setOpen, change, prefill, note, on
   const typedMonthly = monthly.trim() ? readNumber(monthly) : NaN, monthlyBad = monthly.trim() !== '' && !(typedMonthly > 0 && !amountIssue(typedMonthly));
   const monthlyNumber = monthly.trim() ? (monthlyBad ? NaN : typedMonthly) : usual ? Number(moneyText(usual)) : NaN;
   const months = debt && b && a.ratePercent && Number.isFinite(monthlyNumber) ? payoffMonths(Number(moneyText(b)), Number(a.ratePercent), monthlyNumber) : undefined;
-  const now = () => new Date().toISOString(), [sheetOpen, setSheetOpen] = useState(false);
+  const now = () => new Date().toISOString(), [sheetOpen, setSheetOpen] = useState(false), [checking, setChecking] = useState(false);
   return <li className="accounts-row">
     <div className="accounts-row-main"><strong>{a.name}</strong><small>{KIND_LABEL[a.kind]}{a.institution ? ` · ${a.institution}` : ''}{a.ratePercent ? ` · ${a.ratePercent} % a year (your figure)` : ''}</small>{note && <small className="accounts-note">Note: {note}</small>}{all && a.kind === 'property' && <Suspense fallback={null}><PropertyEquity accounts={all} account={a} today={today}/></Suspense>}{a.kind === 'credit-card' && <Suspense fallback={null}><CardLine account={a} today={today}/></Suspense>}</div>
     {arrange && <div className="actions accounts-arrange"><button type="button" id={`account-move-${a.id}--1`} className="quiet" disabled={arrange.first} aria-label={`Move ${a.name} up`} onClick={() => arrange.move(-1)}>↑ Up</button><button type="button" id={`account-move-${a.id}-1`} className="quiet" disabled={arrange.last} aria-label={`Move ${a.name} down`} onClick={() => arrange.move(1)}>↓ Down</button></div>}
@@ -187,7 +190,8 @@ function AccountRow({account: a, today, open, setOpen, change, prefill, note, on
       <label className="field">Yearly rate, your own figure (%)<input name="rate" inputMode="decimal" autoComplete="off" defaultValue={a.ratePercent ?? ''} aria-invalid={rateError ? true : undefined} aria-describedby={rateError ? `${fe.messageId}-rate` : undefined} /></label>{rateError && <p className="field-error" role="alert" id={`${fe.messageId}-rate`}>{rateError}</p>}
       <div className="actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={() => { if (change(g => editAccount(g, a.id, {archived: true}, now()), `${a.name} archived; its history is kept.`, {fn: unarchiveAccount(a.id), done: `${a.name} is back.`})) setOpen(null); }}>Archive</button></div>
     </form>}
-    {all && <div className="accounts-sheet-toggle"><button type="button" className="quiet" aria-expanded={sheetOpen} aria-label={`Sheet options for ${a.name}`} onClick={() => setSheetOpen(v => !v)}>Sheet</button></div>}
+    {all && <div className="accounts-sheet-toggle"><button type="button" className="quiet" aria-expanded={sheetOpen} aria-label={`Sheet options for ${a.name}`} onClick={() => setSheetOpen(v => !v)}>Sheet</button>{RECONCILE_KINDS.has(a.kind) && <button type="button" className="quiet" aria-expanded={checking} aria-label={`Check ${a.name} against my bank`} onClick={() => setChecking(v => !v)}>Check against my bank</button>}</div>}
+    {all && checking && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><Reconcile account={a} today={today}/></Suspense>}
     {all && sheetOpen && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><AccountSheet accounts={all} account={a} today={today}/></Suspense>}
     {debt && b && b.value > 0n && <details className="accounts-payoff"><summary>When would it be paid off?</summary>
       {a.ratePercent ? <><label className="field">Monthly payment ({a.currency}){usual ? `, usual: ${moneyText(usual)}` : ''}<input inputMode="decimal" value={monthly} onChange={e => setMonthly(e.target.value)} placeholder={usual ? moneyText(usual) : 'for example 250'} /></label>

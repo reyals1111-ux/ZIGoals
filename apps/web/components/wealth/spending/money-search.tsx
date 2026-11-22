@@ -14,6 +14,9 @@ import {PAID_WITH, PAID_WITH_WORDS, categoryPath} from '../../../lib/money-more/
 import {groupRows, type GroupSummary} from '../../../lib/money-log/groups';
 import {MAX_GROUP} from '../../../lib/money-log/schema';
 import {GroupItem} from './group-row';
+// Session AV lane 2, round 4 (money; Lunch Money's Query Tool, LEDGER #344): a search kept with a name, drawn in Your money over time.
+import {MONEY_MORE} from '../../../lib/money-more/schema';
+import {fromQuestion, questionsOf, saveQuestion, toQuestion} from '../../../lib/money-log/saved-searches';
 
 /**
  * Session AV (owner follow-up 1, F-MONEY-SEARCH; Copilot, Monarch, YNAB): "Search all your entries" under Spending —
@@ -33,6 +36,7 @@ export default function MoneySearch({entries, onEdit, onBulk, onUngroup, categor
   const id = useId(), [q, setQ] = useState<MoneyQuery>({text: '', kind: 'all', category: '', from: '', to: '', not: '', payee: '', counted: 'all', tax: false, paidWith: '', sub: '', ...initial}), [more, setMore] = useState(false);
   const [range, setRange] = useState({min: '', max: ''}), minCents = toCents(range.min), maxCents = toCents(range.max);
   const tags = useDeviceRecord(MONEY_TAGS_RECORD), [tag, setTag] = useState('');
+  const saved = useDeviceRecord(MONEY_MORE), [saveName, setSaveName] = useState(''), [saveNote, setSaveNote] = useState(''), [openSaved, setOpenSaved] = useState('');
   const unreadable = (range.min.trim() && minCents === undefined) || (range.max.trim() && maxCents === undefined);
   const subs = useMemo(() => [...new Set(entries.filter(e => e.sub && (!q.category || e.category === q.category)).map(e => e.sub!))].sort((a, b) => a.localeCompare(b)), [entries, q.category]);
   const cats = useMemo(() => usedCategories(entries), [entries]), payees = useMemo(() => usedPayees(entries), [entries]);
@@ -61,11 +65,24 @@ export default function MoneySearch({entries, onEdit, onBulk, onUngroup, categor
       setNote(`Tag “${clean}” added to ${formatNumber(pickedNow.size)} ${pickedNow.size === 1 ? 'entry' : 'entries'} (an entry that has five tags already keeps its own).`); setBulkTag('');
     } catch { setNote('The tag could not be saved on this device.'); }
   };
+  const keepSearch = () => {
+    try {
+      const q2 = toQuestion(`q_${crypto.randomUUID().slice(0, 12)}`, saveName, {query: q, min: range.min, max: range.max, tag});
+      saved.update(m => saveQuestion(m, q2)); setSaveName('');
+      setSaveNote(`Saved as ${q2.name}. Your money over time → Saved searches draws it as a chart, with its total and monthly average.`);
+    } catch (err) { setSaveNote(err instanceof Error ? err.message : 'This could not be saved on this device.'); }
+  };
+  const openOne = (qid: string) => {
+    setOpenSaved('');
+    const one = questionsOf(saved.data).find(x => x.id === qid); if (!one) return;
+    const st = fromQuestion(one); setQ(st.query); setRange({min: st.min, max: st.max}); setTag(st.tag); setMore(false);
+    setSaveNote(`${one.name} is open: its filters are set above.`);
+  };
   const chooseCats = [...new Set([...categories, ...cats])];
   const shownFound = found.slice(0, more ? found.length : SHOWN);
   const item = (e: MoneyEntry) => <li key={e.id}>
       {selecting && <label className="money-select-check"><input type="checkbox" checked={pickedNow.has(e.id)} onChange={() => toggle(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
-      <span className="spending-entry-what"><strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {formatDate(e.date)}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.taxDeductible && <span className="money-mark"> · Tax-deductible</span>}</span>
+      <span className="spending-entry-what"><strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {formatDate(e.date)}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.taxDeductible && <span className="money-mark"> · Tax-deductible</span>}{e.checked && <span className="money-mark money-mark-checked"> · checked with the bank {formatDate(e.checked)}</span>}</span>
       <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(Math.round(Number(e.amount) * 100), e.currency)}</span>
       <span className="spending-entry-actions"><button type="button" className="text-link spending-edit" aria-label={`Edit ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => onEdit(e)}>Edit</button></span>
     </li>;
@@ -91,6 +108,12 @@ export default function MoneySearch({entries, onEdit, onBulk, onUngroup, categor
         </div>
       </details>
     </form>
+    {saved.loaded && !saved.unreadable && (asked || questionsOf(saved.data).length > 0) && <div className="money-bulk-row money-saved-row">
+      {asked && <><label className="field"><span>Save this search as</span><input value={saveName} maxLength={60} autoComplete="off" placeholder="Eating out on weekends" onChange={e => setSaveName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); keepSearch(); } }}/></label>
+        <button type="button" className="secondary" onClick={keepSearch}>Save this search</button></>}
+      {questionsOf(saved.data).length > 0 && <label className="field"><span>Open a saved search</span><select value={openSaved} onChange={e => openOne(e.target.value)}><option value="">Choose…</option>{questionsOf(saved.data).map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>}
+      <p className="fine" role="status">{saveNote}</p>
+    </div>}
     <p id={`${id}-total`} className="money-select-total" aria-live="polite">{!asked ? `Type a word or choose a filter to search all ${formatNumber(entries.length)} entries.` : found.length ? `${formatNumber(found.length)} found · ${totals.length === 0 ? 'nothing counted' : totals.length === 1 ? totals[0] : `${totals.length} currencies: ${totals.slice(0, -1).join(', ')} and ${totals.at(-1)}`}${totals.length > 1 ? ', each on its own, never converted' : ''}${leftOut ? ` (${formatNumber(leftOut)} left out of the figures, not added in)` : ''}` : 'Nothing found. Fewer words, or a wider date range, find more.'}</p>
     {found.length > 0 && onBulk && <div className="money-select-head money-search-select">
       <button ref={selectButton} type="button" className="quiet" aria-pressed={selecting} onClick={() => { setSelecting(v => !v); setPicked(new Set()); setNote(''); }}>Select</button>

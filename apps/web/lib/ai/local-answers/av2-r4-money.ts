@@ -7,6 +7,10 @@ import {archivedOf, entriesIn} from '../../money-log/category';
 import {STARTER_SETS} from '../../money-log/starter-sets';
 import {groupsOf} from '../../money-log/groups';
 import {placesOf} from '../../money-log/places';
+import {lastChecked} from '../../money-log/reconcile';
+import {questionChart, questionEntries, questionsOf} from '../../money-log/saved-searches';
+import {tagsOf} from '../../money-tags/tags';
+import type {MoneyTags} from '../../money-tags/schema';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, dayIn, isQuestion, list, MIXED, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -127,3 +131,45 @@ function payeePlaces(a: Asked): LocalReply | null {
     `${places.map(p => one('nl', p)).join('. ')}. Plekken zijn namen die je typte, bewaard op dit apparaat; "Forget places" wist ze.`), calls);
 }
 add(payeePlaces);
+
+// ── Checked against the bank (#340) ────────────────────────────────────────────────────────────────────────────────
+/** "When did I last check my account against my bank", "wanneer heb ik voor het laatst met mijn bank gecontroleerd". */
+function checkedWithBank(a: Asked): LocalReply | null {
+  const en = /\b(?:check(?:ed)?|reconcil(?:e|ed|iation))\b.*\b(?:against|with) (?:my|the) (?:bank|statement)\b|\breconcil(?:e|ed|iation)\b/.test(a.f);
+  const nl = /\b(?:gecontroleerd|controleren|afgestemd|afstemmen|vergeleken)\b.*\b(?:met|tegen) (?:mijn|de) (?:bank|afschrift)\b|\b(?:met|tegen) (?:mijn|de) (?:bank|afschrift)\b.*\b(?:gecontroleerd|afgestemd)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const entries = entriesOf(a.env), calls = call('money_log', {checked: true}, 'Money log · checked against the bank');
+  const currencies = [...new Set(entries.map(e => e.currency))].sort().filter(c => entries.some(e => e.currency === c && e.checked));
+  if (!currencies.length) return answer(say(a.lang, `Nothing is checked against your bank yet. In ${PLACES.accounts.en}, "Check against my bank" on an account takes your statement's balances; tick the entries it shows until the difference is zero, then mark them checked.`,
+    `Er is nog niets met je bank gecontroleerd. In ${PLACES.accounts.nl} neemt "Check against my bank" bij een rekening de saldi van je afschrift; vink de invoer aan die erop staat tot het verschil nul is, en markeer ze als gecontroleerd.`), calls);
+  const text = currencies.map(c => {
+    const last = lastChecked(entries, c)!, done = entries.filter(e => e.currency === c && e.checked).length, open = entries.filter(e => e.currency === c && !e.checked && e.date > last && e.date <= a.today).length;
+    return say(a.lang, `In ${c}: checked up to ${dayIn('en', last, a.today)} (${done} ${done === 1 ? 'entry' : 'entries'}); ${open} ${open === 1 ? 'entry' : 'entries'} since then not yet checked.`,
+      `In ${c}: gecontroleerd tot ${dayIn('nl', last, a.today)} (${done} ${done === 1 ? 'invoer' : 'invoeren'}); ${open} ${open === 1 ? 'invoer' : 'invoeren'} sindsdien nog niet gecontroleerd.`);
+  }).join(' ');
+  return answer(text, calls);
+}
+add(checkedWithBank);
+
+// ── Saved searches with a chart (#344) ─────────────────────────────────────────────────────────────────────────────
+const tagsRecordOf = (env: ToolEnv): MoneyTags | null => (env as ToolEnv & {moneyTags?: MoneyTags | null}).moneyTags ?? ((env.ak as {moneyTags?: MoneyTags | null} | null | undefined)?.moneyTags ?? null);
+/** "What are my saved searches", "wat zijn mijn opgeslagen zoekopdrachten". Each with its total and monthly average. */
+function savedSearches(a: Asked): LocalReply | null {
+  const en = /\bsaved (?:money )?(?:searches|search|queries|query|questions)\b/.test(a.f);
+  const nl = /\bopgeslagen (?:zoekopdrachten|zoekopdracht|zoekvragen|vragen)\b|\bbewaarde (?:zoekopdrachten|zoekvragen)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const list = questionsOf(moreOf(a.env)), entries = entriesOf(a.env), tags = tagsRecordOf(a.env), calls = call('money_more', {questions: true}, 'Money · saved searches');
+  if (!list.length) return answer(say(a.lang, `You have no saved searches yet. In ${PLACES.spending.en} → Search all your entries, set your filters and tap "Save this search"; ${PLACES.insights.en} → Saved searches then draws it as a chart, with its total and monthly average.`,
+    `Je hebt nog geen opgeslagen zoekopdrachten. In ${PLACES.spending.nl} → Search all your entries kies je je filters en tik je op "Save this search"; ${PLACES.insights.nl} → Saved searches tekent hem dan als grafiek, met het totaal en het maandgemiddelde.`), calls);
+  const one = (lang: Lang, q: typeof list[number]) => {
+    const tagged = q.tag && tags ? new Set(entries.filter(e => tagsOf(tags, e.id).includes(q.tag!)).map(e => e.id)) : undefined;
+    const charts = questionChart(questionEntries(entries, q, tagged), q, a.today, a.env.moneyLog?.weekStartsOn ?? 'monday');
+    if (!charts.length) return say(lang, `${q.name}: nothing found right now`, `${q.name}: nu niets gevonden`);
+    return `${q.name}: ${charts.map(c => say(lang, `${moneyIn(lang, c.total, c.currency)} ${c.figure} since ${dayIn(lang, c.from, a.today)}, ${moneyIn(lang, c.monthly, c.currency)} a month on average`, `${moneyIn(lang, c.total, c.currency)} ${c.figure === 'spent' ? 'uitgegeven' : 'ontvangen'} sinds ${dayIn(lang, c.from, a.today)}, gemiddeld ${moneyIn(lang, c.monthly, c.currency)} per maand`)).join('; ')}`;
+  };
+  return answer(say(a.lang, `${list.map(q => one('en', q)).join('. ')}. Counted as Wealth → Spending counts; each is drawn in ${PLACES.insights.en} → Saved searches.`,
+    `${list.map(q => one('nl', q)).join('. ')}. Geteld zoals Vermogen → Uitgaven telt; elke staat als grafiek in ${PLACES.insights.nl} → Saved searches.`), calls);
+}
+add(savedSearches);

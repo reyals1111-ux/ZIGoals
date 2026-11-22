@@ -133,3 +133,13 @@
   .money-cal-dot{display:block}
   .money-cal-list{display:grid}
 }
+/* Session AV lane 2, round 4 (money; Lunch Money's Query Tool, LEDGER #344; Actual's averages, #343; crossover, #345). */
+.money-saved-chart{display:grid;gap:8px;min-width:0}
+.money-saved-total{margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.money-saved-average,.money-insights-spark .avg{stroke:color-mix(in srgb,var(--text,#e8eefc) 70%,transparent);stroke-width:1.5;stroke-dasharray:4 3;fill:none}
+.money-insights-legend i.money-saved-key{background:none;border-top:2px dashed color-mix(in srgb,var(--text,#e8eefc) 70%,transparent);height:0;width:14px;border-radius:0}
+.money-avg-span{display:flex;flex-wrap:wrap;gap:8px}
+.money-avg-line{margin:0;font-size:14px;overflow-wrap:anywhere}
+.money-cross-marks{display:flex;flex-wrap:wrap;gap:6px 14px;border:0;padding:0;margin:0}
+.money-cross-marks label{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-size:15px}
+.money-cross-marks input{width:20px;height:20px}

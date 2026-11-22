@@ -24,7 +24,7 @@ export const moneyLog = (entries: MoneyEntry[]) => ({version: 1, entries, weekSt
 export const spending = (page: Page) => page.locator('#spending');
 export const readRecord = async <T>(page: Page, key: string) => JSON.parse((await page.evaluate(k => localStorage.getItem(k), key)) ?? 'null') as T;
 /** Wealth → Spending, then one view of "Your money over time". */
-export async function openInsight(page: Page, view: 'This month vs last' | 'Where income went' | 'Month by month' | 'Categories over a year' | 'Top payees' | 'Your usual pace' | 'Age of money' | 'Tags' | /* Session AV lane 2, round 3 */ 'Needs, wants and saving' | 'What changed' | 'Beside your habits' | /* Session AV lane 2, round 4 */ 'A calendar of the month') {
+export async function openInsight(page: Page, view: 'This month vs last' | 'Where income went' | 'Month by month' | 'Categories over a year' | 'Top payees' | 'Your usual pace' | 'Age of money' | 'Tags' | /* Session AV lane 2, round 3 */ 'Needs, wants and saving' | 'What changed' | 'Beside your habits' | /* Session AV lane 2, round 4 */ 'A calendar of the month' | 'Saved searches') {
   await page.goto('/app/wealth'); await hydrated(page);
   await expect(spending(page).getByRole('heading', {name: 'Your money over time'})).toBeVisible();
   const button = spending(page).getByRole('group', {name: 'Show'}).getByRole('button', {name: view, exact: true});
