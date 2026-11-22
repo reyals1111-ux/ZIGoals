@@ -69,3 +69,7 @@ html.report-open { overflow: hidden; }
 /* Session AV lane 2 (body; q3 #48): the symptom lines and their key (line style and marker, never colour alone). */
 .report-figure { margin: 8px 0; }
 .report-key { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 0; margin: 4px 0 0; font-size: 14px; }
+/* Session AV lane 2 (food; q3 #48): a symptom's level over the range, small and printable. */
+.report-symptom-chart { margin: 8px 0 12px; max-width: 100%; }
+.report-symptom-chart svg { display: block; color: var(--text, #10213a); }
+.report-symptom-chart figcaption { font-size: 14px; }

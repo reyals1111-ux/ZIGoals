@@ -88,8 +88,16 @@ describe('report for a visit (Session AK lane S, item 14)', () => {
     // new ones included, has data in the range; the assertion is unchanged.
     const symptoms = {version: 1 as const, items: [{id: 'headache', name: 'Fictional headache', kind: 'symptom' as const, createdAt: `${TODAY}T08:00:00.000Z`}], days: {[TODAY]: {headache: 1}}};
     const supplements = {version: 1 as const, items: [{id: 'supp_fictional-d', name: 'Fictional vitamin D', kind: 'supplement' as const, times: ['08:00'], weekdays: 127, createdAt: `${TODAY}T08:00:00.000Z`}]};
-    const base = {...fixture(), symptoms, supplements, from: addLocalDays(TODAY, -9), to: TODAY, today: TODAY};
+    // Session AV lane 2 (food, LEDGER #98; deliberate, the assertion unchanged): the fixture gains a diary entry, so the
+    // new Nutrition section has data in the range as every other one does.
+    const f = fixture(), entry = {id: 'health_diary-report-01', sourceId: 'health_food-report-01', sourceKind: 'food' as const, snapshot: {name: 'Fictional soup', servingGrams: 300, nutrients: {kcal: 250, proteinMg: 12_000, carbsMg: 30_000, fatMg: 8000}}, date: TODAY, meal: 'Lunch' as const, quantityMilli: 1000, createdAt: `${TODAY}T12:00:00.000Z`, updatedAt: `${TODAY}T12:00:00.000Z`};
+    const base = {...f, health: f.health ? {...f.health, diary: [...f.health.diary, entry]} : f.health, symptoms, supplements, from: addLocalDays(TODAY, -9), to: TODAY, today: TODAY};
     expect(REPORT_SECTIONS.filter(id => sectionHasData(base, id))).toEqual([...REPORT_SECTIONS]);
     expect(sectionHasData({...base, from: '2025-06-01', to: '2025-06-30'}, 'weight')).toBe(false);
+    expect(sectionHasData({...base, from: '2025-06-01', to: '2025-06-30'}, 'nutrition')).toBe(false);
+    const n = buildReport({...base, sections: ['nutrition']}).nutrition!;
+    expect(n.loggedDays).toBe(1);
+    expect(n.rows.find(r => r.name === 'Protein')).toEqual({name: 'Protein', unit: 'g', average: 12, days: 1});
+    expect(n.rows.find(r => r.name === 'Fiber')).toEqual({name: 'Fiber', unit: 'g', average: null, days: 0});
   });
 });

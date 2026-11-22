@@ -10,6 +10,7 @@ import {formatNumber} from '../../lib/visual-format';
 import type {HealthData} from '../../lib/health';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import './health-highlights.css';
+import {useCoachPrefs} from './food-plus/use-day-targets';
 
 /** The trend line as a small ink sparkline (no axis: the tile's figure and the card below carry the numbers). Session AK
  * (G3): in the one chart look's gradient (its own ids per tile, Light's ink twins); a sparkline, so no glow. */
@@ -32,8 +33,9 @@ function TrendInk({values}: {values: number[]}) {
  * (#health-weight-trend, #health-energy, #health-coach) opens that view at its card (components/health/health-app.tsx).
  */
 export default function HealthHighlights({data, today, unit}: {data: HealthData; today: string; unit: WeightUnit}) {
-  const trend = weightTrend(data, today, 42), energy = energyEstimate(data, today);
-  const coachRecord = useDeviceRecord(HEALTH_COACH), coach = coachCheckIn(data, coachRecord.loaded && !coachRecord.unreadable ? coachRecord.data : {version: 1}, today, unit);
+  // Session AV lane 2 (food, LEDGER #106, #107): the coach's own check-in day, partly logged days and chosen pace.
+  const coachPrefs = useCoachPrefs(), trend = weightTrend(data, today, 42), energy = energyEstimate(data, today, coachPrefs.partialDays);
+  const coachRecord = useDeviceRecord(HEALTH_COACH), coach = coachCheckIn(data, coachRecord.loaded && !coachRecord.unreadable ? coachRecord.data : {version: 1}, today, unit, coachPrefs);
   const ink = trend.points.flatMap(p => p.trend === null ? [] : [p.trend]);
   const rate = trend.weeklyRate === null ? null : weightChangeText(trend.weeklyRate, unit) /* Session AL fourth pass (PR-074): rounded once, in the shown unit, as the coach does (−0.6 lb, not −0.7 lb from 0.3 kg) */;
   return <section className="health-highlights" aria-label="Health highlights">

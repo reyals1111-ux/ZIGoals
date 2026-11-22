@@ -56,6 +56,9 @@
     var moneyNotes = kinds.money || [];
     if (moneyNotes.length) lines.push(named && moneyNotes.every(function (m) { return m.label; }) ? moneyNotes.slice(0, 2).map(function (m) { return m.label + (m.detail ? ' · ' + m.detail : ''); }).join(' · ') : plural(moneyNotes.length, 'money notice: open Wealth', 'money notices: open Wealth'));
     if (kinds.supplement) lines.push('A reminder you set in Health');
+    // Session AV lane 2 (food, LEDGER #90): a meal's usual time, by its name only where names are allowed; never food.
+    var meals = kinds.meal || [];
+    if (meals.length) lines.push(named && meals.every(function (m) { return m.label; }) ? 'Time for ' + meals.slice(0, 2).map(function (m) { return m.label; }).join(' · ') : 'A meal reminder you set in Health');
     if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
     // Session AL sweep 4 (C-DVG-68, C-BN-06): from the positions last read on the device; never a name or an amount.
     if (kinds.unbonding) lines.push('Unstaked ZIG is back in your wallet today');

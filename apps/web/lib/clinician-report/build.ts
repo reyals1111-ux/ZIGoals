@@ -1,5 +1,5 @@
 import {habitDay, habitRuleOn, type HabitData} from '../habits';
-import type {HealthData} from '../health';
+import {scaleNutrition, type HealthData} from '../health';
 import {addLocalDays, localDate} from '../local-date';
 import {asleep, bedClock, clockFromMidnight, clockFromNoon, dailySeries, nightDay, wakeClock} from '../sleep/engine';
 import {healthGroupIn} from '../vault/w-homes';
@@ -22,9 +22,9 @@ import {scheduledOn} from '../supplements/log';
  * Session AV (owner follow-up 1, F-REPORT-MORE): the symptoms and factors the person rates each day, and the supplements
  * and medication they log, are sections too — as they recorded them, with nothing interpreted.
  */
-export const REPORT_SECTIONS = ['sleep', 'mood', 'notes', 'weight', 'habits', 'numbers', 'symptoms', 'supplements'] as const;
+export const REPORT_SECTIONS = ['sleep', 'mood', 'notes', 'weight', 'habits', 'numbers', 'symptoms', 'supplements', 'nutrition'] as const;
 export type ReportSectionId = typeof REPORT_SECTIONS[number];
-export const SECTION_LABELS: Readonly<Record<ReportSectionId, string>> = {sleep: 'Sleep', mood: 'Mood and energy', notes: 'Notes with mood and sleep', weight: 'Weight', habits: 'Habits', numbers: 'Your numbers (blood pressure and lab values)', symptoms: 'Symptoms and factors', supplements: 'Supplements and medication'};
+export const SECTION_LABELS: Readonly<Record<ReportSectionId, string>> = {sleep: 'Sleep', mood: 'Mood and energy', notes: 'Notes with mood and sleep', weight: 'Weight', habits: 'Habits', numbers: 'Your numbers (blood pressure and lab values)', symptoms: 'Symptoms and factors', supplements: 'Supplements and medication', nutrition: 'Nutrition (from the food diary)'};
 export const MAX_RANGE_DAYS = 366, MAX_ROWS = 120, MAX_HABITS = 40;
 
 export type ReportInput = {from: string; to: string; today: string; sections: readonly ReportSectionId[]; health: HealthData | null; habits: HabitData | null;
@@ -55,11 +55,21 @@ export type SymptomRow = {name: string; kind: 'symptom' | 'factor'; rated: numbe
  * symptoms (the most days rated first), each day's level (0–3) or null for a day not rated, for the report's line chart.
  */
 export type SymptomChart = {dates: string[]; lines: {name: string; values: (number | null)[]}[]};
-export type SymptomsSection = {rows: SymptomRow[]; chart?: SymptomChart};
+/** Session AV lane 2 (food; q3 #48 check 8, Bearable's report charts): each rated symptom's level day by day (null when not rated). */
+export type SymptomSeries = {name: string; levels: (number | null)[]};
+export type SymptomsSection = {rows: SymptomRow[]; chart?: SymptomChart; days?: string[]; series?: SymptomSeries[]};
 /** Session AV (F-REPORT-MORE): per supplement or medication, the planned doses in the range and what was logged of them. */
 export type SupplementRow = {name: string; dose: string | null; kind: 'supplement' | 'medication'; planned: number | null; taken: number; skipped: number; notLogged: number | null};
 export type SupplementsSection = {rows: SupplementRow[]};
-export type Report = {range: Range; sleep?: SleepSection; mood?: MoodSection; notes?: NotesSection; weight?: WeightSection; habits?: HabitsSection; numbers?: NumbersSection; symptoms?: SymptomsSection; supplements?: SupplementsSection};
+/**
+ * Session AV lane 2 (food, LEDGER #98; Cronometer's reports): what the food diary holds for the range — the days with food
+ * logged and, per nutrient, the average a day over the days that carry a value (a day without one is left out, never
+ * counted as 0), as the nutrient report counts them.
+ */
+export type NutritionRow = {name: string; unit: string; average: number | null; days: number};
+export type NutritionSection = {loggedDays: number; rows: NutritionRow[]};
+const NUTRITION_ROWS = [['kcal', 'Calories', 'kcal', 1], ['proteinMg', 'Protein', 'g', 1000], ['carbsMg', 'Carbohydrates', 'g', 1000], ['fatMg', 'Fat', 'g', 1000], ['fiberMg', 'Fiber', 'g', 1000], ['sugarMg', 'Sugars', 'g', 1000], ['saturatedFatMg', 'Saturated fat', 'g', 1000], ['sodiumMg', 'Sodium', 'mg', 1], ['potassiumMg', 'Potassium', 'mg', 1], ['calciumMg', 'Calcium', 'mg', 1], ['ironMg', 'Iron', 'mg', 1]] as const;
+export type Report = {range: Range; sleep?: SleepSection; mood?: MoodSection; notes?: NotesSection; weight?: WeightSection; habits?: HabitsSection; numbers?: NumbersSection; symptoms?: SymptomsSection; nutrition?: NutritionSection; supplements?: SupplementsSection};
 
 const avg = (v: readonly number[]) => v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
 const round1 = (v: number | null) => v === null ? null : Math.round(v * 10) / 10;
@@ -89,6 +99,7 @@ export function sectionHasData(input: Omit<ReportInput, 'sections'>, id: ReportS
     case 'numbers': return (input.numbers?.entries ?? []).some(e => inRange(e.date, r));
     case 'symptoms': return Object.entries(input.symptoms?.days ?? {}).some(([d, v]) => inRange(d, r) && Object.keys(v).length > 0);
     case 'supplements': return (input.supplements?.items ?? []).length > 0;
+    case 'nutrition': return (input.health?.diary ?? []).some(e => inRange(e.date, r));
   }
 }
 
@@ -157,6 +168,9 @@ export function buildReport(input: ReportInput): Report {
     const lines = (input.symptoms?.items ?? []).filter(i => i.kind === 'symptom').map(item => ({name: item.name, values: dates.map(d => { const v = byDay.get(d)?.[item.id]; return typeof v === 'number' ? v : null; })}))
       .filter(l => l.values.some(v => v !== null)).sort((a, b) => b.values.filter(v => v !== null).length - a.values.filter(v => v !== null).length).slice(0, 4);
     if (lines.length) out.symptoms.chart = {dates, lines};
+    const all = daysOf(range), rated = (input.symptoms?.items ?? []).filter(item => days.some(([, v]) => typeof v[item.id] === 'number')).slice(0, 8);
+    out.symptoms.days = all;
+    out.symptoms.series = rated.map(item => ({name: item.name, levels: all.map(d => { const v = input.symptoms?.days[d]?.[item.id]; return typeof v === 'number' ? v : null; })}));
   }
   if (want.has('supplements')) {
     const marks = (input.supplements?.log ?? []).filter(m => inRange(m.date, range));
@@ -167,6 +181,15 @@ export function buildReport(input: ReportInput): Report {
       const planned = item.times?.length ? daysOf(range).filter(d => d >= added && scheduledOn(item, d)).length * item.times.length : null;
       const mine = marks.filter(m => m.itemId === item.id), taken = mine.filter(m => m.status === 'taken').length, skipped = mine.filter(m => m.status === 'skipped').length;
       return {name: item.name, dose: item.dose ?? null, kind: item.kind ?? 'supplement', planned, taken, skipped, notLogged: planned === null ? null : Math.max(0, planned - taken - skipped)};
+    })};
+  }
+  if (want.has('nutrition')) {
+    const days = daysOf(range).filter(d => (input.health?.diary ?? []).some(e => e.date === d));
+    const totals = days.map(d => { const entries = input.health!.diary.filter(e => e.date === d).map(e => scaleNutrition(e.snapshot.nutrients, e.quantityMilli)); return entries; });
+    out.nutrition = {loggedDays: days.length, rows: NUTRITION_ROWS.map(([key, name, unit, scale]) => {
+      // A day counts for a nutrient only when every entry of it carries the value (else that day's total is unknown).
+      const known = totals.filter(entries => entries.every(n => typeof n[key] === 'number')).map(entries => entries.reduce((t, n) => t + (n[key] as number), 0));
+      return {name, unit, average: known.length ? Math.round(known.reduce((a, b) => a + b, 0) / known.length / scale * 10) / 10 : null, days: known.length};
     })};
   }
   return out;

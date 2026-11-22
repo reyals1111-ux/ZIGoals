@@ -39,6 +39,8 @@ import {BUDGETS} from '../budgets/schema';
 import {ACCOUNTS} from '../accounts/schema';
 import {cashForecast} from '../cash-forecast/model';
 import {moneyWakes} from '../money-notices';
+import {HEALTH_EXTRAS} from '../health-extras';
+import {mealWakes} from '../food-plus/meal-notify';
 
 /**
  * Session AK Part 2 (ADR-036 A1): gathers this device's records into the plan's input. Reads only; never throws (a record
@@ -111,6 +113,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
     const wakes = moneyWakes({entries: log.entries, budgets, rows, line: log.lowBalance, today});
     if (wakes.length) input.money = wakes.map(w => ({id: w.id, date: w.date, title: w.title, ...(w.detail ? {detail: w.detail} : {})}));
   } catch { /* unreadable: no money wakes */ }
+  // Session AV lane 2 (food, LEDGER #90): the meal reminders switched on in Health — each meal's time; its name for names-on only.
+  try { const extras = readDeviceRecord(storage, HEALTH_EXTRAS).data; if (extras.mealReminders?.on) { const meals = mealWakes(extras, await readHealth(storage), new Date(now)); if (meals.length) input.meals = meals.map(m => ({meal: m.meal, label: m.label, time: m.time, doneToday: m.doneToday})); } } catch { /* unreadable: no meal wakes */ }
   // Owner follow-up 1 (F4): governance vote reminders the person set on a proposal — an instant and an id, never a title.
   try { input.votes = governanceEvents(readDeviceRecord(storage, GOV_REMINDERS).data, {now, timeZone: zone}).map(e => ({id: e.id, at: Date.parse(e.at)})); } catch { /* unreadable: no wakes */ }
   // Session AL sweep 4 (C-DVG-68, C-BN-06): unstaked ZIG back on its day and a validator not earning, from the positions

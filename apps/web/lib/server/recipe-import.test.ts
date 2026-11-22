@@ -32,7 +32,8 @@ describe('N6 recipe URL import (SSRF-safe, TIER 3)', () => {
   }, 20_000);
   test('reads only a schema.org Recipe (inside @graph too), trims it, and refuses pages without one', () => {
     const r = extractRecipe(page(recipe), 'https://www.example-recipes.com/soup');
-    expect(r).toEqual({name: 'Fictional lentil soup', ingredients: ['200 g red lentils', '1 onion', '2 tbsp olive oil'], servings: 4, steps: 2, source: 'www.example-recipes.com'});
+    // Session AV lane 2 (the method is kept for the cooking view, LEDGER #200; deliberate): the same exact object, now with the steps' text.
+    expect(r).toEqual({name: 'Fictional lentil soup', ingredients: ['200 g red lentils', '1 onion', '2 tbsp olive oil'], servings: 4, steps: 2, source: 'www.example-recipes.com', instructions: ['Fry.', 'Simmer.']});
     expect(extractRecipe(page({'@graph': [{'@type': 'WebPage'}, recipe]}), 'https://www.example-recipes.com/x')).toMatchObject({name: 'Fictional lentil soup'});
     expect(extractRecipe(page({'@type': 'Article', name: 'Not food'}), 'https://www.example-recipes.com/x')).toEqual({code: 'NO_RECIPE'});
     expect(extractRecipe('<html><body>no json-ld</body></html>', 'https://www.example-recipes.com/x')).toEqual({code: 'NO_RECIPE'});

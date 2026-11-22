@@ -154,7 +154,20 @@ export function ReportDocument({report: r, weightUnit, showcase, journal}: {repo
       {r.symptoms.rows.length ? <><p>Rated by the person each day from None to Strong (0 to 3). Days without a rating are left out, never counted as None.</p>
         {r.symptoms.chart && <SymptomLines chart={r.symptoms.chart}/>}
         <Wide label="Symptom ratings"><table><thead><tr><th scope="col">Symptom or factor</th><th scope="col">Days rated</th><th scope="col">Above None</th><th scope="col">Strong</th><th scope="col">Average</th></tr></thead>
-          <tbody>{r.symptoms.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'factor' ? ' (factor)' : ''}</th><td>{s.rated}</td><td>{s.noted}</td><td>{s.strong}</td><td>{s.average === null ? '—' : `${formatNumber(s.average)} (${s.averageWord})`}</td></tr>)}</tbody></table></Wide></> : none}
+          <tbody>{r.symptoms.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'factor' ? ' (factor)' : ''}</th><td>{s.rated}</td><td>{s.noted}</td><td>{s.strong}</td><td>{s.average === null ? '—' : `${formatNumber(s.average)} (${s.averageWord})`}</td></tr>)}</tbody></table></Wide>
+        {/* Session AV lane 2 (food; q3 #48 check 8): each symptom's level over the range, a dot per rated day (none for a day not rated). */}
+        {(r.symptoms.series ?? []).map(s => { const n = s.levels.length, x = (i: number) => n > 1 ? 4 + i * 292 / (n - 1) : 150, y = (v: number) => 44 - v * 13, rated = s.levels.flatMap((v, i) => v === null ? [] : [[i, v] as const]);
+          return <figure key={s.name} className="report-symptom-chart"><svg viewBox="0 0 300 48" width="100%" height="48" role="img" aria-label={`${s.name}: ${rated.length} ${rated.length === 1 ? 'day' : 'days'} rated, highest ${['None', 'Mild', 'Moderate', 'Strong'][Math.max(...rated.map(([, v]) => v))] ?? 'None'}`} preserveAspectRatio="none">
+            <line x1="4" x2="296" y1="44" y2="44" stroke="currentColor" strokeOpacity=".3"/>
+            {rated.length > 1 && <polyline fill="none" stroke="currentColor" strokeWidth="1.5" points={rated.map(([i, v]) => `${x(i)},${y(v)}`).join(' ')}/>}
+            {rated.map(([i, v]) => <circle key={i} cx={x(i)} cy={y(v)} r="2.5" fill="currentColor"/>)}
+          </svg><figcaption className="fine">{s.name}, None (0) to Strong (3), {r.range.days} days</figcaption></figure>; })}</> : none}
+    </section>}
+    {/* Session AV lane 2 (food, LEDGER #98): the food diary's averages for the range. */}
+    {r.nutrition && <section className="report-section" aria-labelledby="report-nutrition"><h2 id="report-nutrition">Nutrition</h2>
+      {r.nutrition.loggedDays ? <><p>From the food diary: {r.nutrition.loggedDays} {r.nutrition.loggedDays === 1 ? 'day' : 'days'} with food logged. Each average is over the days whose every entry gives that value; others are left out, never counted as 0. As logged, not measured.</p>
+        <Wide label="Nutrition averages"><table><thead><tr><th scope="col">Nutrient</th><th scope="col">Average a day</th><th scope="col">Days counted</th></tr></thead>
+          <tbody>{r.nutrition.rows.map(n => <tr key={n.name}><th scope="row" className="report-name">{n.name}</th><td>{n.average === null ? '—' : `${formatNumber(n.average)} ${n.unit}`}</td><td>{n.days}</td></tr>)}</tbody></table></Wide></> : none}
     </section>}
     {r.supplements && <section className="report-section" aria-labelledby="report-supplements"><h2 id="report-supplements">Supplements and medication</h2>
       {r.supplements.rows.length ? <><p>As the person wrote them and logged each dose. ZIGoals checks no dose and gives no advice.</p>
