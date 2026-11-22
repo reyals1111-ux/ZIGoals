@@ -5,6 +5,8 @@ import type {ToolSources} from '../tools/env';
 import {setEatenAt} from '../../food-plus/times';
 import {emptyFoodPlus, type FoodPlus} from '../../food-plus/schema';
 import {av2FoodAnswer} from './av2-food';
+import {healthExtrasSchema} from '../../health-extras';
+import {setMealReminders} from '../../meal-reminders';
 import type {LocalReply} from './engine';
 
 /**
@@ -80,6 +82,19 @@ describe('diary times and nutrient timing', () => {
     expect(text(zigi('which foods are high in protein', freshAll()))).toMatch(/^None of your own foods carries protein yet\./);
     // Today's protein and the iron list keep their own answers.
     for (const q of ['how much protein did I eat today', 'which foods are high in iron']) expect(zigi(q), q).toBeNull();
+  });
+  test('meal reminders and the logging challenge, as set on the device', () => {
+    const extras = setMealReminders(healthExtrasSchema.parse({version: 1, meals: {Lunch: {time: '12:30'}, Dinner: {time: '19:00', name: 'Fictional supper'}}}), true);
+    const en = text(av2FoodAnswer('when are my meal reminders', zigiEnv(showcaseAll()), {extras}));
+    expect(en).toMatch(/^Your meal reminders: Lunch 12:30( \(done today\))? and Fictional supper 19:00/);
+    expect(text(av2FoodAnswer('welke maaltijdherinneringen heb ik', zigiEnv(showcaseAll()), {extras}))).toMatch(/^Je maaltijdherinneringen: /);
+    const food = {...emptyFoodPlus(), challenge: {daysPerWeek: 5, since: '2026-11-09'}};
+    const ch = text(zigi('how is my logging challenge going', showcaseAll(), food));
+    expect(ch).toMatch(/^Your logging challenge \(5 days a week\): /);
+    expect(ch).toMatch(/\d+ weeks? met in a row; \d+ of \d+ since it started\./);
+    expect(text(zigi('hoe gaat mijn logchallenge', showcaseAll(), food))).toMatch(/^Je logchallenge \(5 dagen per week\): /);
+    // Task reminders keep their own answer.
+    expect(zigi('which task reminders do I have')).toBeNull();
   });
   test('questions that are not about times are left to the other layers', () => {
     for (const q of ['what did I eat today', 'how much water did I drink', 'when should I eat', 'log 2 eggs and then remind me']) expect(zigi(q), q).toBeNull();

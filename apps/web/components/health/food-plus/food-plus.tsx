@@ -13,12 +13,15 @@ export type FoodPlusProps =
   | {part: 'timing'; data: HealthData; today: string}
   | {part: 'weekdays'; targets: HealthTargets; today: string}
   | {part: 'sugar-alcohols'; data: HealthData}
-  | {part: 'oracle'; data: HealthData; today: string};
+  | {part: 'oracle'; data: HealthData; today: string}
+  | {part: 'challenge-line' | 'challenge'; data: HealthData; today: string};
 const SaveMeal = lazy(() => import('./save-meal'));
 const EntryTimes = lazy(() => import('./entry-times'));
 const NutrientTiming = lazy(() => import('./nutrient-timing'));
 const WeekdayTargets = lazy(() => import('./weekday-targets').then(m => ({default: m.WeekdayTargets})));
 const Oracle = lazy(() => import('./oracle'));
+const ChallengeLine = lazy(() => import('./challenge').then(m => ({default: m.ChallengeLine})));
+const ChallengeCard = lazy(() => import('./challenge').then(m => ({default: m.ChallengeCard})));
 const SugarAlcohols = lazy(() => import('./weekday-targets').then(m => ({default: m.SugarAlcohols})));
 export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'save-meal') return <SaveMeal {...props}/>;
@@ -27,5 +30,7 @@ export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'weekdays') return <WeekdayTargets targets={props.targets} today={props.today}/>;
   if (props.part === 'sugar-alcohols') return <SugarAlcohols data={props.data}/>;
   if (props.part === 'oracle') return <Oracle data={props.data} today={props.today}/>;
+  if (props.part === 'challenge-line') return <ChallengeLine data={props.data} today={props.today}/>;
+  if (props.part === 'challenge') return <ChallengeCard data={props.data} today={props.today}/>;
   return null;
 }

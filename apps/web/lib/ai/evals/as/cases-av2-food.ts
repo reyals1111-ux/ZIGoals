@@ -13,4 +13,6 @@ export const AV2_FOOD: readonly Intent[] = [
   {id: 'av2-food-timing', pillar: 'health', en: ['how much protein do I eat in the morning', 'when do I eat most of my carbs'], nl: ['hoeveel eiwit eet ik in de ochtend', 'wanneer eet ik de meeste koolhydraten']},
   {id: 'av2-food-oracle-protein', pillar: 'health', en: ['which foods are high in protein', 'what foods are rich in protein'], nl: ['welk eten bevat veel eiwit', 'welke voedingsmiddelen zijn rijk aan eiwit']},
   {id: 'av2-food-oracle-vitamin', pillar: 'health', en: ['which foods are high in vitamin C', 'what is a good source of vitamin B12'], nl: ['welk eten bevat veel vitamine C', 'welke voedingsmiddelen zijn rijk aan vitamine B12']},
+  {id: 'av2-food-meal-reminders', pillar: 'health', en: ['when are my meal reminders', 'which meal reminders do I have'], nl: ['welke maaltijdherinneringen heb ik', 'wanneer zijn mijn maaltijdherinneringen']},
+  {id: 'av2-food-challenge', pillar: 'health', en: ['how is my logging challenge going', 'how am I doing on my food logging challenge'], nl: ['hoe gaat mijn logchallenge', 'hoe sta ik ervoor met mijn eetuitdaging']},
 ];

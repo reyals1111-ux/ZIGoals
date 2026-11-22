@@ -150,3 +150,37 @@ Shared-file needs for the lead are collected at the end ("For the lead").
   `av2-food-oracle-vitamin` (where the list is; the library is not read by the answers, it loads in the page).
 - Showcase: the Oracle reads the app's own offline library, so the Showcase shows it filled; nothing to seed.
 - Device keys: none. CSS touched: `food-plus.css`. Always visible on Today: nothing.
+
+## F6 — Meal reminders on the device, and a weekly logging challenge
+
+- LEDGER rows: **#90** MyFitnessPal Today screen, streaks, habit challenges and meal reminders — built (meal reminders as
+  device notifications; a weekly logging challenge).
+- What it does: Settings → Notifications → "Meal reminders" (off by default): once the meal reminders are on in Health
+  (Diary → "Name your meals and set their times"), a daily wake at each meal's usual time; today's is left out once the
+  meal is logged or "Not today" was chosen (as Today's in-app card). The notification reads "Time for Lunch" with names
+  on, else "A meal reminder you set in Health"; it opens the Diary; never what was eaten. Inside quiet hours it is said
+  on the card and wakes nothing (the plan's rule). Health → Insights → "Weekly logging challenge": 1 to 7 days a week,
+  Monday to Sunday; the week day by day (✓ logged), "N more to go" or "can’t reach it any more", weeks met in a row and
+  in all; change or stop; the Diary shows one line with "See the week" while it runs.
+- Files: `lib/food-plus/meal-notify.ts`, `lib/notify/prefs.ts` (type `meals`, off), `lib/notify/plan.ts` (kind `meal`,
+  input `meals`), `lib/notify/sync.ts` (reads health-extras + Health), `public/sw.js` (the line), `lib/food-plus/challenge.ts`,
+  `components/health/food-plus/challenge.tsx` (parts `challenge-line`, `challenge`), `components/health/meal-names.tsx`
+  (the status line points to Settings → Notifications), `components/health/health-app.tsx` (the Diary line; an Insights
+  fold that opens on `#health-challenge`; `LazyFold` takes `open`).
+- Tests: `lib/notify/av2-meal-notify.test.ts` (plan, prefs, the worker's words), `lib/food-plus/av2-challenge.test.ts`,
+  `lib/ai/local-answers/av2-food.test.ts`. Spec: `tests/av2-logging-challenge.spec.ts`.
+- Stored changes: the notify prefs' loose `types` record gains the key `meals` when switched (the record already keeps
+  any type name); the `challenge` part of `zigoals:food-plus:v1`. The food-plus `notify` part is reserved, not written
+  (the notify prefs carry the switch).
+- TIER 3 (PWA): the notification plan and `public/sw.js` — own commit.
+- Help (EN). Q: "Can meal reminders come as notifications?" A: "Yes. Turn on the meal reminders in Health → Diary → Name
+  your meals and set their times, then turn on Meal reminders in Settings → Notifications. Each comes at the meal's time
+  until that meal is logged that day. It never says what you ate." Q: "What is the logging challenge?" A: "A goal you
+  set yourself in Health → Insights → Weekly logging challenge: log your food on a number of days a week. A day counts
+  when the Diary has an entry. Each week starts afresh."
+- What's new: "Meal reminders as notifications, and a weekly logging challenge."
+- Answers: intents `av2-food-meal-reminders`, `av2-food-challenge`; `readFoodSources` now also reads `zigoals:health-extras:v1`.
+- Showcase: none (a running challenge would add a line to the Showcase Diary that other Health specs pin by text; the
+  Showcase has no meal times, so no reminder).
+- Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: nothing (no Today change).
+- Settings: the Notifications card lists one more switch (Settings' tab stops grow by one).

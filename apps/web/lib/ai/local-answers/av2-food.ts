@@ -1,5 +1,9 @@
 import {formatNutrient, recipeNutrition, scaleNutrition} from '../../health';
 import {oracleNutrient} from '../../food-plus/oracle';
+import {challengeWeek} from '../../food-plus/challenge';
+import {mealWakes} from '../../food-plus/meal-notify';
+import {HEALTH_EXTRAS, type HealthExtras} from '../../health-extras';
+import {mealRemindersOn} from '../../meal-reminders';
 import {dayTargets, sugarAlcoholMg, weekdayOfDay} from '../../food-plus/day-target';
 import {netCarbs} from '../../health-aa/macro-mode';
 import {healthZone, dailyData} from '../../health-daily';
@@ -20,16 +24,17 @@ import type {LocalReply} from './engine';
  * caller with `readFoodSources(storage)`; without it every answer reads as on a device where nothing was changed
  * (an entry's time is the one it was logged at).
  */
-export type FoodSources = {food?: FoodPlus | null};
+export type FoodSources = {food?: FoodPlus | null; extras?: HealthExtras | null};
 export function readFoodSources(storage: Pick<Storage, 'getItem'>): FoodSources {
-  try { return {food: readDeviceRecord(storage, FOOD_PLUS).data}; } catch { return {food: null}; }
+  const one = <T,>(read: () => T): T | null => { try { return read(); } catch { return null; } };
+  return {food: one(() => readDeviceRecord(storage, FOOD_PLUS).data), extras: one(() => readDeviceRecord(storage, HEALTH_EXTRAS).data)};
 }
-type Ask = Asked & {food: FoodPlus | null};
+type Ask = Asked & {food: FoodPlus | null; extras: HealthExtras | null};
 export function av2FoodAnswer(question: string, env: ToolEnv, sources: FoodSources = {}): LocalReply | null {
   try {
     const base = asked(question, env);
     if (!base || MIXED.test(base.f)) return null;
-    const a: Ask = {...base, food: sources.food ?? null};
+    const a: Ask = {...base, food: sources.food ?? null, extras: sources.extras ?? null};
     for (const one of HANDLERS) { const r = one(a); if (r) return r; }
     return null;
   } catch { return null; }
@@ -177,5 +182,32 @@ function oracleAnswer(a: Ask): LocalReply | null {
   return answer(`${say(lang, `Your own foods highest in protein: ${list(rows, 'en')}.`, `Je eigen voedingsmiddelen met het meeste eiwit: ${list(rows, 'nl')}.`)} ${where}`, calls);
 }
 
-const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer];
+// ── Meal reminders and the logging challenge (LEDGER #90) ──────────────────────────────────────────────────────────
+
+/** "when are my meal reminders", "welke maaltijdherinneringen heb ik". */
+function mealRemindersAnswer(a: Ask): LocalReply | null {
+  const en = /\bmeal reminders?\b|\breminders?\b.*\b(?:meals?|breakfast|lunch|dinner)\b|\bremind(?:ed)? to (?:eat|log)\b/.test(a.f), nl = /\bmaaltijdherinnering(?:en)?\b|\bherinnering(?:en)?\b.*\b(?:maaltijd(?:en)?|ontbijt|lunch|avondeten)\b/.test(a.f);
+  if (!(en || nl) || /\b(?:set|turn|zet)\b.*\b(?:on|off|aan|uit)\b/.test(a.f) && !/\?$/.test(a.raw)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, wakes = mealWakes(a.extras, a.env.health!, a.env.now), calls = [{tool: 'diary_entries', args: {}, label: 'Meal reminders'}];
+  const where = say(lang, 'Health → Diary → “Name your meals and set their times” switches them on; Settings → Notifications → “Meal reminders” sends them to this device too.', 'Health → Diary → “Name your meals and set their times” zet ze aan; Settings → Notifications → “Meal reminders” stuurt ze ook naar dit apparaat.');
+  if (!mealRemindersOn(a.extras)) return answer(`${say(lang, 'Meal reminders are off.', 'Maaltijdherinneringen staan uit.')} ${where}`, calls);
+  if (!wakes.length) return answer(`${say(lang, 'Meal reminders are on, but no meal has a usual time yet, so none comes.', 'Maaltijdherinneringen staan aan, maar geen maaltijd heeft nog een vaste tijd, dus er komt er geen.')} ${where}`, calls);
+  const rows = wakes.map(w => `${clean(w.label, 24)} ${w.time}${w.doneToday ? say(lang, ' (done today)', ' (vandaag klaar)') : ''}`);
+  return answer(`${say(lang, `Your meal reminders: ${list(rows, 'en')}. Each comes at its time until that meal is logged that day.`, `Je maaltijdherinneringen: ${list(rows, 'nl')}. Elke komt op zijn tijd tot die maaltijd die dag gelogd is.`)} ${where}`, calls);
+}
+/** "how is my logging challenge going", "hoe gaat mijn logchallenge". */
+function challengeAnswer(a: Ask): LocalReply | null {
+  if (!/\b(?:logging|food|diary|log) challenge\b|\bchallenge\b.*\b(?:log|logging|food|diary)\b|\blog ?challenge\b|\b(?:eet|log)uitdaging\b|\buitdaging\b.*\b(?:loggen|eten|eetdagboek)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, w = challengeWeek(a.env.health!, a.food, a.env.healthDay), calls = [{tool: 'diary_entries', args: {}, label: 'Logging challenge'}];
+  if (!w) return answer(say(lang, 'No logging challenge is running. Health → Insights → “Weekly logging challenge” sets one: log your food on a number of days a week, Monday to Sunday.', 'Er loopt geen logchallenge. Health → Insights → “Weekly logging challenge” zet er een: je eten loggen op een aantal dagen per week, maandag tot zondag.'), calls);
+  const state = w.met ? say(lang, `done for this week: ${w.logged} of ${w.daysPerWeek} days logged`, `klaar voor deze week: ${w.logged} van ${w.daysPerWeek} dagen gelogd`)
+    : w.reachable ? say(lang, `${w.logged} of ${w.daysPerWeek} days logged this week, ${w.daysPerWeek - w.logged} more to go`, `${w.logged} van ${w.daysPerWeek} dagen gelogd deze week, nog ${w.daysPerWeek - w.logged} te gaan`)
+    : say(lang, `${w.logged} of ${w.daysPerWeek} days logged; this week can’t reach it any more`, `${w.logged} van ${w.daysPerWeek} dagen gelogd; deze week haalt het niet meer`);
+  return answer(say(lang, `Your logging challenge (${w.daysPerWeek} days a week): ${state}. ${w.weeksInRow} ${w.weeksInRow === 1 ? 'week' : 'weeks'} met in a row; ${w.weeksMet} of ${w.weeksTotal} since it started.`,
+    `Je logchallenge (${w.daysPerWeek} dagen per week): ${state}. ${w.weeksInRow} ${w.weeksInRow === 1 ? 'week' : 'weken'} op rij gehaald; ${w.weeksMet} van ${w.weeksTotal} sinds de start.`), calls);
+}
+
+const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer];
 export const AV2_FOOD_HANDLER_COUNT = HANDLERS.length;

@@ -32,3 +32,8 @@
 .food-plus-mic-row { display: grid; gap: 6px; margin: 4px 0 8px; min-width: 0; }
 .food-plus-mic-row .food-plus-mic { justify-self: start; }
 .food-plus-mic-how summary { font-size: 14px; min-height: 44px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; cursor: pointer; }
+.food-plus-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.food-plus-week li { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; border: 1px solid var(--line, #6a9cc342); border-radius: 10px; font-size: 14px; min-width: 0; }
+.food-plus-week li[data-logged] { background: color-mix(in srgb, var(--pillar-health, #ff74be) 16%, transparent); }
+.food-plus-week li[data-today] { outline: 2px solid var(--pillar-health, #ff74be); outline-offset: -2px; }
+.food-plus-challenge-line { margin: 0 0 12px; }
