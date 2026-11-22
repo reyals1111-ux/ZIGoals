@@ -1,10 +1,10 @@
 'use client';
 import {useEffect, useRef, useState, type FormEvent} from 'react';
-import {useDeviceRecord} from '../ai/use-device-record';
+import {useDeviceRecord, type DeviceRecordState} from '../ai/use-device-record';
 import type {Account} from '../../lib/accounts/schema';
 import {BILLS} from '../../lib/bills/schema';
 import {addManualBill} from '../../lib/bills/store';
-import {WEALTH_SHEET} from '../../lib/wealth-sheet/schema';
+import {WEALTH_SHEET, type WealthSheet} from '../../lib/wealth-sheet/schema';
 import {cardState, hasReminder, reminderBill, reminderId, withCard, type CardState} from '../../lib/wealth-sheet/cards';
 import {readMoneyAmount} from '../../lib/money-log/form';
 import {formatDate, formatPercent} from '../../lib/visual-format';
@@ -32,15 +32,22 @@ export default function CardLine({account, today}: {account: Account; today: str
   const words = cardWords(cardState(account, sheet.data, today));
   return words.length ? <small className="accounts-card-line">{words.join(' · ')}</small> : <small className="accounts-card-line fine">Add its limit and days under Sheet to see how much of it is used.</small>;
 }
-/** In a credit card's Sheet: its limit, statement day and due day, and a payment reminder. */
-export function CardForm({account: a, today}: {account: Account; today: string}) {
-  const sheet = useDeviceRecord(WEALTH_SHEET), bills = useDeviceRecord(BILLS), now = sheet.data.cards?.[a.id];
+/**
+ * In a credit card's Sheet: its limit, statement day and due day, and a payment reminder. Review b3a #3: the fields start
+ * from the record once it has loaded (the form is drawn only then), so they show what is kept and Keep never erases it.
+ */
+export function CardForm({account, today}: {account: Account; today: string}) {
+  const sheet = useDeviceRecord(WEALTH_SHEET);
+  if (!sheet.loaded || sheet.unreadable) return null;
+  return <CardFields key={account.id} account={account} today={today} sheet={sheet}/>;
+}
+function CardFields({account: a, today, sheet}: {account: Account; today: string; sheet: DeviceRecordState<WealthSheet>}) {
+  const bills = useDeviceRecord(BILLS), now = sheet.data.cards?.[a.id];
   const [limit, setLimit] = useState(now?.limit ?? ''), [statement, setStatement] = useState(now?.statementDay ? String(now.statementDay) : ''), [due, setDue] = useState(now?.dueDay ? String(now.dueDay) : '');
   const [said, setSaid] = useState(''), [problem, setProblem] = useState(''), [added, setAdded] = useState(false), done = useRef<HTMLParagraphElement>(null);
   // The reminder button is replaced by its confirmation, so focus moves there instead of dropping to the page.
   const hasNow = bills.loaded && hasReminder(bills.data, a.id);
   useEffect(() => { if (added && hasNow && done.current) { done.current.focus(); setAdded(false); } }, [added, hasNow]);
-  if (!sheet.loaded || sheet.unreadable) return null;
   const day = (raw: string) => raw.trim() ? Number(raw.trim()) : null;
   const save = (e: FormEvent) => {
     e.preventDefault(); setProblem('');
