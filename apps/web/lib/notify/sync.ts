@@ -29,6 +29,7 @@ import {supplementReminders} from '../supplements/log';
 import {GOV_REMINDERS, governanceEvents} from '../zigchain-eco/governance';
 import {stakingItems} from './staking-items';
 import {TASKS} from '../tasks/schema';
+import {lateCount} from '../tasks/engine';
 import {TASK_PLAN} from '../tasks/plan-record';
 import {reminderInstants} from '../tasks/reminders';
 import {NOTES} from '../notes/schema';
@@ -132,9 +133,10 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   // Session AV lane 2 (r3-plan, LEDGER #256): the "Plan your day" time set in Tasks, and how many open tasks are overdue on
   // each of the plan's days (a task due today is overdue tomorrow if still open) — a count, never a name.
   try {
-    const tasks = readDeviceRecord(storage, TASKS).data.tasks.filter(t => !t.doneAt && t.due), plan = readDeviceRecord(storage, TASK_PLAN).data;
+    const tasks = readDeviceRecord(storage, TASKS).data, plan = readDeviceRecord(storage, TASK_PLAN).data;
     if (plan.planReminder) input.planDay = {time: plan.planReminder.time};
-    input.overdue = [today, addDays(today, 1), addDays(today, 2)].map(date => ({date, count: tasks.filter(t => t.due! < date).length}));
+    // Session AV lane 2 (r4-plan, review B4D-2; TIER 3 (PWA)): a repeat that floats in its week is late only after its week.
+    input.overdue = [today, addDays(today, 1), addDays(today, 2)].map(date => ({date, count: lateCount(tasks, date)}));
   } catch { /* tasks unreadable: no overdue line */ }
   // Session AV lane 2 (LEDGER #31; Notion): reminders written inside notes ("@remind tomorrow 9:00 …") wake the device as
   // task reminders do, under the same switch; each opens its note (no Done). A title only where names are allowed.

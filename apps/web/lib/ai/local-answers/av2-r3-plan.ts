@@ -7,6 +7,7 @@ import {addLocalDays} from '../../local-date';
 import {taskTimelineItems} from '../../tasks/timeline-source';
 import {dayEnergy} from '../../tasks/energy-load';
 import {dayTasks} from '../../tasks/day-tools';
+import {isLate} from '../../tasks/engine';
 import {cyclePlanDays} from '../../cycle/plan-days';
 import {CYCLE_LINE} from '../../cycle/engine';
 import type {Cycle} from '../../cycle/store';
@@ -55,7 +56,7 @@ function planDayReminder(a: Ask): LocalReply | null {
   const nl = /\bherinnering\b.*\bdag (?:te )?plannen\b|\bdag (?:te )?plannen\b.*\b(?:herinnering|melding)\b|\bmelding\b.*\bplan (?:je|mijn) dag\b|\bmelding\b.*\bplan your day\b|\bplan your day\b.*\bmelding\b/.test(a.f);
   if (!(en || nl)) return null;
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
-  const overdue = got.record.tasks.filter(t => !t.doneAt && t.due && t.due < a.today).length;
+  const overdue = got.record.tasks.filter(t => !t.doneAt && t.due && isLate(t, a.today)).length;
   const late = overdue ? say(a.lang, ` Today it would say ${count(overdue, 'en', ['task is', 'tasks are'], ['', ''])} overdue.`, ` Vandaag zou hij zeggen dat ${count(overdue, 'nl', ['', ''], ['taak', 'taken'])} over tijd ${overdue === 1 ? 'is' : 'zijn'}.`) : '';
   const time = a.plan?.planReminder?.time;
   if (!time) return answer(say(a.lang, `No “Plan your day” reminder is set. Choose its time in Tasks → This week (Your planning choices): it opens Plan my day and says how many tasks are overdue, never their names. With notifications on it reaches this device while ZIGoals is closed.${late}`,

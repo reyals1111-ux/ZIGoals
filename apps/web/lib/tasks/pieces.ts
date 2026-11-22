@@ -19,5 +19,8 @@ export function piecesOf(t: Pick<Task, 'chunk' | 'minutes' | 'spent'>): {pieces:
   for (let rest = minutesLeft(t); rest > 0 && pieces.length < 96; rest -= chunk) pieces.push(Math.min(chunk, rest));
   return {pieces, done: Math.min(Math.floor((t.spent ?? 0) / chunk), 96)};
 }
-/** A task in pieces whose kept time has passed: its next piece is planned again (its own block is no longer fixed). */
-export const planAgain = (t: Task, today: string, clock: string): boolean => inPieces(t) && !!t.time && !!t.due && (t.due < today || (t.due === today && t.time < clock));
+/**
+ * A task in pieces whose kept time has passed: its next piece is planned again (its own block is no longer fixed).
+ * Session AV lane 2 (r4-plan, review B4D-2): so is a floating repeat whose planned time passed while it was not done.
+ */
+export const planAgain = (t: Task, today: string, clock: string): boolean => (inPieces(t) || !!t.recur?.flex) && !!t.time && !!t.due && (t.due < today || (t.due === today && t.time < clock));

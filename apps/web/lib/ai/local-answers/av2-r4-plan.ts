@@ -1,11 +1,11 @@
 import type {TaskPlan} from '../../tasks/plan-record';
 import type {Tasks} from '../../tasks/schema';
-import {waitingFor} from '../../tasks/engine';
+import {isLate, waitingFor} from '../../tasks/engine';
 import {minutesWords, minutesWordsNl} from '../../tasks/minutes';
 import {fitWeek} from '../../tasks/plan-week';
 import {deadlineAtRisk} from '../../tasks/at-risk';
 import {inPieces, piecesOf} from '../../tasks/pieces';
-import {WEEKDAY_ORDER, afterHours, hoursSet, weekdayHours} from '../../tasks/work-hours';
+import {DEFAULT_WORK, WEEKDAY_ORDER, afterHours, hoursSet, weekdayHours} from '../../tasks/work-hours';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, count, dayIn, isQuestion, say, type Asked, type Lang} from './av-words';
@@ -81,7 +81,7 @@ function hoursAnswer(a: Ask): LocalReply | null {
   const plan = planOf(a), names = a.lang === 'nl' ? NL_WEEKDAY : EN_WEEKDAY;
   const lines = WEEKDAY_ORDER.map(d => `• ${names[d]}: ${blocksIn(a.lang, weekdayHours(plan, d))}`);
   const eve = afterHours(plan);
-  const head = hoursSet(plan) ? say(a.lang, 'Your working hours, where Plan my day and Plan my week place tasks:', 'Je werkuren, waarin Plan my day en Plan my week taken plaatsen:') : say(a.lang, 'You have not set working hours yet, so tasks are placed in the usual 9:00 AM–6:00 PM every day:', 'Je hebt nog geen werkuren ingesteld, dus taken komen elke dag in de gewone uren 09:00–18:00:');
+  const head = hoursSet(plan) ? say(a.lang, 'Your working hours, where Plan my day and Plan my week place tasks:', 'Je werkuren, waarin Plan my day en Plan my week taken plaatsen:') : say(a.lang, `You have not set working hours yet, so tasks are placed in the usual ${blocksIn('en', DEFAULT_WORK)} every day:`, `Je hebt nog geen werkuren ingesteld, dus taken komen elke dag in de gewone uren ${blocksIn('nl', DEFAULT_WORK)}:`);
   const foot = say(a.lang, `Evening hours for “after hours” tasks: ${blocksIn('en', [eve])}. Change them in Tasks → This week → Working hours.`, `Avonduren voor taken “after hours”: ${blocksIn('nl', [eve])}. Wijzigen kan in Tasks → This week → Working hours.`);
   return answer([head, ...lines, foot].join('\n'), TASK_CALLS);
 }
@@ -137,7 +137,7 @@ function floatingAnswer(a: Ask): LocalReply | null {
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const open = got.record.tasks.filter(t => !t.doneAt && t.recur?.flex && t.due).sort((x, y) => x.due!.localeCompare(y.due!));
   if (!open.length) return answer(say(a.lang, 'No task repeats once a week or a month, any day. Type “once a week” or “once a month” as a task’s repeat: it stays in Tasks → This week until done, then comes back; a missed week is one overdue task, never a pile.', 'Geen taak herhaalt een keer per week of maand op een willekeurige dag. Typ “once a week” of “once a month” als herhaling: de taak blijft in Tasks → This week tot hij af is en komt dan terug; een gemiste week is één taak over tijd, nooit een stapel.'), TASK_CALLS);
-  const lines = open.slice(0, 8).map(t => `• ${clean(t.title, 60)}: ${t.due! < a.today ? say(a.lang, `open since ${dayIn('en', t.due!, a.today)}`, `open sinds ${dayIn('nl', t.due!, a.today)}`) : say(a.lang, `once a ${t.recur!.flex}, by ${dayIn('en', t.due!, a.today)}`, `een keer per ${t.recur!.flex === 'week' ? 'week' : 'maand'}, uiterlijk ${dayIn('nl', t.due!, a.today)}`)}`);
+  const lines = open.slice(0, 8).map(t => `• ${clean(t.title, 60)}: ${isLate(t, a.today) ? say(a.lang, `open since ${dayIn('en', t.due!, a.today)}`, `open sinds ${dayIn('nl', t.due!, a.today)}`) : say(a.lang, `once a ${t.recur!.flex}, by ${dayIn('en', t.due!, a.today)}`, `een keer per ${t.recur!.flex === 'week' ? 'week' : 'maand'}, uiterlijk ${dayIn('nl', t.due!, a.today)}`)}`);
   return answer([say(a.lang, `${count(open.length, 'en', ['task floats', 'tasks float'], ['', ''])} in its week or month:`, `${count(open.length, 'nl', ['', ''], ['taak zweeft', 'taken zweven'])} binnen de week of maand:`), ...lines].join('\n'), TASK_CALLS);
 }
 

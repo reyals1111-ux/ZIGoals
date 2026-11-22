@@ -1,5 +1,5 @@
 import {addLocalDays, localDate} from '../local-date';
-import {nextOccurrence} from './recurrence';
+import {nextOccurrence, windowEnd} from './recurrence';
 import {
   DEFAULT_LEVEL, LABEL_PATTERN, MAX_AFTER, MAX_COMPLETIONS, MAX_TASK_MINUTES, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
   levelFields, taskLevel, taskSchema, tasksSchema, type HealthLink, type Project, type Recur, type SavedFilter, type Section,
@@ -69,7 +69,8 @@ export function finishTask(record: Tasks, id: string, at: Date, {today, doneDay}
     if (t.id === id && t.recur && !t.doneAt) {
       const next = nextOccurrence(t.recur, t.due ?? finished, finished, now);
       const completions = [...(t.completions ?? []), {at: stamp, ...(t.due ? {due: t.due} : {})}].slice(-MAX_COMPLETIONS);
-      if (next) return {...t, due: next.due, recur: next.rule, completions, updatedAt: stamp};
+      // Session AV lane 2 (r4-plan, review B4D-2): a floating repeat's next copy floats again: no kept time, due by its window's last day.
+      if (next) return {...(t.recur.flex ? omit(t, 'time') : t), due: next.due, recur: next.rule, completions, updatedAt: stamp};
       return {...t, doneAt: stamp, completions, updatedAt: stamp};
     }
     return t.id === id || children.has(t.id) ? {...t, doneAt: stamp, updatedAt: stamp} : t;
@@ -130,12 +131,21 @@ export function prune(record: Tasks, today: string, doneDay: (iso: string) => st
   const from = addLocalDays(today, -DONE_KEEP_DAYS);
   return {...record, tasks: record.tasks.filter(t => !t.doneAt || doneDay(t.doneAt) >= from)};
 }
+/**
+ * Session AV lane 2 (r4-plan, review B4D-2): the last day a task is on time — its day; for a repeat that floats in its week
+ * or month, the last day of that window (planned for a Wednesday, it is not late on Thursday while its week runs).
+ */
+export const onTimeUntil = (t: Pick<Task, 'due' | 'recur'>): string | undefined => t.due && t.recur?.flex ? windowEnd(t.recur.flex, t.due) : t.due;
+export const isLate = (t: Pick<Task, 'due' | 'recur'>, today: string): boolean => !!t.due && onTimeUntil(t)! < today;
+/** How many open tasks are late on `date` (the "Plan your day" notification's count, lib/notify/sync.ts). */
+export const lateCount = (record: Pick<Tasks, 'tasks'>, date: string): number => record.tasks.filter(t => !t.doneAt && isLate(t, date)).length;
 export type TaskState = 'overdue' | 'today' | 'soon' | 'later' | 'someday';
 export function taskState(task: Task, today: string, nowClock?: string): TaskState {
   if (!task.due) return 'someday';
-  if (task.due < today) return 'overdue';
-  // Session AL (P-LS-12, LS-011): a timed task due today is late once its time has passed (when the clock is given).
-  if (task.due === today) return nowClock && task.time && task.time < nowClock ? 'overdue' : 'today';
+  if (task.due < today) return isLate(task, today) ? 'overdue' : 'today';
+  // Session AL (P-LS-12, LS-011): a timed task due today is late once its time has passed (when the clock is given); a
+  // floating repeat is not, while its window runs (review B4D-2).
+  if (task.due === today) return nowClock && task.time && task.time < nowClock && isLate(task, addLocalDays(today, 1)) ? 'overdue' : 'today';
   return task.due <= addLocalDays(today, 7) ? 'soon' : 'later';
 }
 /**
@@ -327,7 +337,7 @@ export function skipOccurrence(record: Tasks, id: string, today: string, at = ne
   if (!task?.recur || !task.due) throw new Error('Only a repeating task can skip a day.');
   const next = nextOccurrence({...task.recur, afterDone: false}, task.due, today, today);
   if (!next) throw new Error('This was the last time it repeats. Finish or remove it instead.');
-  return editTask(record, id, {due: next.due, recur: next.rule}, today, {allowPast: true, at});
+  return editTask(record, id, {due: next.due, recur: next.rule, ...(task.recur.flex ? {time: null} : {})}, today, {allowPast: true, at});
 }
 
 const newId = (prefix: string) => `${prefix}_${typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
