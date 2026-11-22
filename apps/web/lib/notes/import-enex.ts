@@ -174,6 +174,8 @@ export function readBear(files: readonly ZipFile[], archive = 'Bear'): {notes: F
   return {notes, skipped};
 }
 
+/** Review b4g B4G-13: an Evernote or Bear tag as a #tag can hold it ("a,b" → "a-b", `trip "x"` → "trip-x"). */
+export const foreignTag = (tag: string): string => tag.normalize('NFC').replace(/[^\p{L}\p{N}_/-]+/gu, '-').replace(/-{2,}/g, '-').replace(/^[-/]+|[-/]+$/g, '').slice(0, 32);
 /** The notes as Markdown files for planImport (front matter: title, created, tags), each with a file name of its own. */
 export function foreignFiles(notes: readonly ForeignNote[]): {files: ImportFile[]; images: Map<string, ForeignImage[]>} {
   const used = new Set<string>(), files: ImportFile[] = [], images = new Map<string, ForeignImage[]>(), enc = new TextEncoder();
@@ -181,9 +183,11 @@ export function foreignFiles(notes: readonly ForeignNote[]): {files: ImportFile[
     let name = n.name, k = 2;
     while (used.has(name.toLowerCase())) name = n.name.replace(/\.md$/, ` ${k++}.md`);
     used.add(name.toLowerCase());
+    // Review b4g B4G-13: a tag keeps only what a #tag may hold (letters, digits, _ - /), so the front matter's list reads it back whole.
+    const tags = n.tags.map(foreignTag).filter(Boolean);
     // Review b4g B4G-3: always its own topic note — a title that is a day ("2026-11-01") must never append to that day's
     // note, where its photos would be lost and their placeholders left in the words.
-    const fm = ['---', `title: ${JSON.stringify(n.title)}`, 'type: topic', ...(n.created ? [`created: ${n.created}`] : []), ...(n.tags.length ? [`tags: [${n.tags.map(t => JSON.stringify(t.replace(/\s+/g, '-'))).join(', ')}]`] : []), '---', ''];
+    const fm = ['---', `title: ${JSON.stringify(n.title)}`, 'type: topic', ...(n.created ? [`created: ${n.created}`] : []), ...(tags.length ? [`tags: [${tags.join(', ')}]`] : []), '---', ''];
     files.push({name, data: enc.encode(`${fm.join('\n')}${n.body}\n`)});
     if (n.images.length) images.set(name, n.images);
   }
