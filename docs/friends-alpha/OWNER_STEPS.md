@@ -185,3 +185,9 @@ curl -sSI https://www.zigoals.app/
   > Settings → Send feedback writes me a mail with the details I need (nothing is sent until you press Send).
   > Please put no real money into anything: it is an unaudited test.
 - **Done when:** each friend has the link and the guide.
+
+## Lane 2 (feature/session-av-2, after PR #108): one deploy step for you
+- Deploy the private-sync Worker from `main` once lane 2 merges (`workers/private-sync`; `extras.mjs` now takes the
+  journal, money records and workouts sections, workouts with Health's deletion rule). Until then a journal, money
+  records or workout log chosen under Settings → Account & sync → Also sync my extras waits on each device with
+  "… sync once the sync service is updated." Nothing else changes for devices that chose none.

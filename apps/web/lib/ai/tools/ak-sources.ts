@@ -1,3 +1,4 @@
+import {WORKOUT_PLACES} from '../../workouts/places-schema';
 import {MONEY_MORE} from '../../money-more/schema';
 import {STORE_CARDS} from '../../store-cards/schema';
 import {MONEY_LOG_BUSINESS} from '../../money-more/spaces';
@@ -35,5 +36,5 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Session AV lane 2 (habits): the whole habit extras record, for each habit's own options, areas and focus days (av2-habits.ts).
     habitExtras: extras,
     // Session AV lane 2, batch 2 (body, money).
-    eveningPlan: one(EVENING_PLAN), bodyExtras: one(BODY_EXTRAS), wealthSheet: one(WEALTH_SHEET), nutrientExtras: one(NUTRIENT_EXTRAS_RECORD), moneyMore: one(MONEY_MORE), storeCards: one(STORE_CARDS), moneyLogBusiness: one(MONEY_LOG_BUSINESS)};
+    eveningPlan: one(EVENING_PLAN), bodyExtras: one(BODY_EXTRAS), wealthSheet: one(WEALTH_SHEET), nutrientExtras: one(NUTRIENT_EXTRAS_RECORD), moneyMore: one(MONEY_MORE), storeCards: one(STORE_CARDS), moneyLogBusiness: one(MONEY_LOG_BUSINESS), workoutPlaces: one(WORKOUT_PLACES)};
 }

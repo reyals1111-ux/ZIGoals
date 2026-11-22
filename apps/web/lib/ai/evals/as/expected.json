@@ -7672,5 +7672,85 @@
   "widgets": [],
   "fresh": "No project has fields of its own yet. Open a project in Tasks, then Rules and fields, and add one (a budget, a room, an order-by day); fill it in each task’s editor and sort by it in Tasks → Table.",
   "freshNl": "Nog geen project heeft eigen velden. Open een project in Tasks en dan Rules and fields, en voeg er een toe (een budget, een kamer, een besteldatum); vul hem in de editor van elke taak in en sorteer erop in Tasks → Table."
+ },
+ "av2r2-sleep-need": {
+  "en": "About 7 h 30 min a night, an estimate: the middle of your 8 weekend nights in the last 30 days. Your goal is 8 h 00 min; Health → Sleep → Your sleep goal can switch it, with Undo. Not a measurement and not medical advice.",
+  "nl": "Ongeveer 7 h 30 min per nacht, een schatting: het midden van je 8 weekendnachten van de afgelopen 30 dagen. Je doel is 8 h 00 min; Health → Sleep → Your sleep goal kan het aanpassen, met Ongedaan maken. Geen meting en geen medisch advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Not enough nights yet to estimate it. Log at least 10 nights in 30 days (or 4 weekend nights) in Health → Sleep, and an estimate of your own sleep need shows under Your sleep goal.",
+  "freshNl": "Nog niet genoeg nachten om hem te schatten. Log in Health → Sleep minstens 10 nachten in 30 dagen (of 4 weekendnachten), dan staat er een schatting van je eigen slaapbehoefte bij Your sleep goal."
+ },
+ "av2r2-naps": {
+  "en": "Yes: 1 nap (0 h 25 min) in the last 14 days count on the day each ended, marked as naps. Nights only: about 64 min under your goal a night; with the naps: about 62 min under your goal a night.",
+  "nl": "Ja: 1 dutje (0 h 25 min) in de afgelopen 14 dagen tellen mee op de dag waarop ze eindigden, gemarkeerd als dutje. Alleen nachten: ongeveer 64 min onder je doel per nacht; met de dutjes: ongeveer 62 min onder je doel per nacht.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Naps are counted in the sleep balance once you have a sleep goal (Health → Sleep → Your sleep goal).",
+  "freshNl": "Dutjes tellen mee in de slaapbalans zodra je een slaapdoel hebt (Health → Sleep → Your sleep goal)."
+ },
+ "av2r2-morning-steps": {
+  "en": "Timed from your wake time today, 7:20 AM:\n• 7:35 AM Daylight outside, or by a bright window (done)\n• 8:50 AM First coffee or tea, once the grogginess has passed",
+  "nl": "Vanaf je wektijd van vandaag, 07:20:\n• 07:35 Daglicht buiten, of bij een licht raam (gedaan)\n• 08:50 Eerste koffie of thee, als de sufheid voorbij is",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your morning steps are in Health → Sleep → Tonight; I can’t read them here yet.",
+  "freshNl": "Je ochtendstappen staan in Health → Sleep → Tonight; die kan ik hier nog niet lezen."
+ },
+ "av2r2-challenge": {
+  "en": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
+  "nl": "Er loopt geen uitgavenuitdaging. Vermogen → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
+  "freshNl": "Er loopt geen uitgavenuitdaging. Vermogen → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand."
+ },
+ "av2r2-vent": {
+  "en": "In Journal → Write, open “Write it out”: a page that is never saved — no draft, nothing on this device, nothing sent. “Let it go” clears it with a calm line; “Keep as an entry” is the only way it is kept.",
+  "nl": "Open in Journal → Write “Write it out”: een pagina die nooit wordt bewaard — geen concept, niets op dit apparaat, niets verstuurd. “Laat het gaan” wist hem met een rustige zin; alleen “Bewaar als dagboekstuk” bewaart hem.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "In Journal → Write, open “Write it out”: a page that is never saved — no draft, nothing on this device, nothing sent. “Let it go” clears it with a calm line; “Keep as an entry” is the only way it is kept.",
+  "freshNl": "Open in Journal → Write “Write it out”: een pagina die nooit wordt bewaard — geen concept, niets op dit apparaat, niets verstuurd. “Laat het gaan” wist hem met een rustige zin; alleen “Bewaar als dagboekstuk” bewaart hem."
+ },
+ "av2r2-feelings": {
+  "en": "No day is marked logged in the last 14 days. Health → Diary → Evening check-in goes through the day in six skippable steps and marks it “Day logged” at the end.",
+  "nl": "Vandaag: focused.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No day is marked logged in the last 14 days. Health → Diary → Evening check-in goes through the day in six skippable steps and marks it “Day logged” at the end.",
+  "freshNl": "De afgelopen 7 dagen geen gevoelswoord. Na je energie van vandaag kun je met “Add a feeling word” er tot drie kiezen, elk met hoe sterk het voelt (een beetje, best wel, heel erg)."
+ },
+ "av2r2-thinking-traps": {
+  "en": "Thinking traps are common ways a thought can tilt: All or nothing, Expecting the worst, Always and never, Mind reading, Fortune telling, Feelings as facts, Shoulds and musts, Labelling, Taking all the blame, Blaming others, Only the bad, That does not count. In Journal → Write, “Check a thought” walks through what happened, the thought, any traps that fit and another way to see it, and saves it as an entry. Self-reflection, not a diagnosis or a treatment.",
+  "nl": "Denkvalkuilen zijn gewone manieren waarop een gedachte kan scheeftrekken: Alles of niets, Het ergste verwachten, Altijd en nooit, Gedachten lezen, Waarzeggen, Gevoel als feit, Moeten en horen, Een etiket plakken, Alle schuld nemen, Anderen de schuld geven, Alleen het slechte, Dat telt niet. In Journal → Write loopt “Check a thought” door wat er gebeurde, de gedachte, passende valkuilen en een andere kijk, en bewaart het als dagboekstuk. Zelfreflectie, geen diagnose of behandeling.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Thinking traps are common ways a thought can tilt: All or nothing, Expecting the worst, Always and never, Mind reading, Fortune telling, Feelings as facts, Shoulds and musts, Labelling, Taking all the blame, Blaming others, Only the bad, That does not count. In Journal → Write, “Check a thought” walks through what happened, the thought, any traps that fit and another way to see it, and saves it as an entry. Self-reflection, not a diagnosis or a treatment.",
+  "freshNl": "Denkvalkuilen zijn gewone manieren waarop een gedachte kan scheeftrekken: Alles of niets, Het ergste verwachten, Altijd en nooit, Gedachten lezen, Waarzeggen, Gevoel als feit, Moeten en horen, Een etiket plakken, Alle schuld nemen, Anderen de schuld geven, Alleen het slechte, Dat telt niet. In Journal → Write loopt “Check a thought” door wat er gebeurde, de gedachte, passende valkuilen en een andere kijk, en bewaart het als dagboekstuk. Zelfreflectie, geen diagnose of behandeling."
+ },
+ "av2r2-today-workout": {
+  "en": "A suggestion for about 45 minutes, for your freshest groups (core, back, shoulders), from your own last sets:\n• Plank: 3 × 30 s (new to your log)\n• Deadlift: 3 × 105 kg × 6\n• Overhead press: 3 × 37.5 kg × 9\n• Side plank: 3 × 30 s (new to your log)\n• Barbell row: 3 × 55 kg × 9\nChange it or start it in Health → Workouts → Suggest a workout for today. A suggestion, not a programme.",
+  "nl": "Een voorstel voor ongeveer 45 minuten, voor je frisste spiergroepen (romp, rug, schouders), op basis van je eigen laatste sets:\n• Plank: 3 × 30 s (nieuw in je logboek)\n• Deadlift: 3 × 105 kg × 6\n• Overhead press: 3 × 37.5 kg × 9\n• Side plank: 3 × 30 s (nieuw in je logboek)\n• Barbell row: 3 × 55 kg × 9\nPas het aan of start het in Health → Workouts → Suggest a workout for today. Een voorstel, geen programma.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "A suggestion for about 45 minutes, for your freshest groups (chest, back, legs), from your own last sets:\n• Bench press: 3 × 10 reps (new to your log)\n• Deadlift: 3 × 10 reps (new to your log)\n• Squat: 3 × 10 reps (new to your log)\n• Incline dumbbell press: 3 × 10 reps (new to your log)\n• Barbell row: 3 × 10 reps (new to your log)\nChange it or start it in Health → Workouts → Suggest a workout for today. A suggestion, not a programme.",
+  "freshNl": "Een voorstel voor ongeveer 45 minuten, voor je frisste spiergroepen (borst, rug, benen), op basis van je eigen laatste sets:\n• Bench press: 3 × 10 herhalingen (nieuw in je logboek)\n• Deadlift: 3 × 10 herhalingen (nieuw in je logboek)\n• Squat: 3 × 10 herhalingen (nieuw in je logboek)\n• Incline dumbbell press: 3 × 10 herhalingen (nieuw in je logboek)\n• Barbell row: 3 × 10 herhalingen (nieuw in je logboek)\nPas het aan of start het in Health → Workouts → Suggest a workout for today. Een voorstel, geen programma."
+ },
+ "av2r2-equipment": {
+  "en": "Bench press needs: Barbell and plates + Bench.",
+  "nl": "Bench press vraagt: Halterstang en schijven + Bank.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Bench press needs: Barbell and plates + Bench.",
+  "freshNl": "Bench press vraagt: Halterstang en schijven + Bank."
+ },
+ "av2r2-instead": {
+  "en": "Instead of Bench press (the same main muscle): Incline dumbbell press, Push-up, Dip, Chest fly, Burpee. While you train, Replace on the exercise swaps it and keeps your sets.",
+  "nl": "In plaats van Bench press (dezelfde hoofdspier): Incline dumbbell press, Push-up, Dip, Chest fly, Burpee. Tijdens het trainen wisselt Replace bij de oefening hem om en houdt je sets.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Instead of Bench press (the same main muscle): Incline dumbbell press, Push-up, Dip, Chest fly, Burpee. While you train, Replace on the exercise swaps it and keeps your sets.",
+  "freshNl": "In plaats van Bench press (dezelfde hoofdspier): Incline dumbbell press, Push-up, Dip, Chest fly, Burpee. Tijdens het trainen wisselt Replace bij de oefening hem om en houdt je sets."
  }
 }

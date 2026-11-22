@@ -4542,6 +4542,18 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .thought-check textarea:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface, transparent)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
+    .write-it-out-page:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface, transparent)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .year-pixels-cell:not(#\-):not(#\-), .year-pixels-legend i:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--violet) var(--share, 0%), transparent)
@@ -4783,6 +4795,14 @@
     .mood-words-word[aria-pressed="true"]:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--tone) 40%, transparent)
+    }
+    .mood-words-strength:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .mood-words-strength[aria-pressed="true"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 18%, transparent)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
@@ -9534,6 +9554,10 @@
         background-image: none;
         background-color: var(--text)
     }
+    .energy-curve-key i.is-nap:not(#\-):not(#\-), .energy-curve-band.is-nap rect:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--teal, var(--cyan)) 30%, transparent)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
     .staking-actions.is-practice:not(#\-):not(#\-) {
@@ -9730,6 +9754,20 @@
     button.tasks-month-day:not(#\-):not(#\-) {
         background-image: none;
         background-color: transparent
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
+    @media print {
+        :scope.zg-print-tasks:not(#\-):not(#\-), :scope.zg-print-tasks body:not(#\-):not(#\-) {
+            background-image: none !important;
+            background-color: #ffffff !important
+        }
+    }
+    @media print {
+        :scope.zg-print-tasks .tasks-print-sheet:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: #ffffff
+        }
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
@@ -10119,6 +10157,18 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .quick-chip:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 12%,transparent)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
+    .money-space-chip input:checked+span:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .spending-room:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb,var(--violet,#8b7cff) 10%,transparent)
@@ -10138,6 +10188,24 @@
     .spending-review-dot:not(#\-):not(#\-) {
         background-image: none;
         background-color: var(--amber,#f5b65b)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
+    .store-card-bars:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: #ffffff
+    }
+    .store-card-dialog:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: #ffffff
+    }
+    .store-card-dialog:not(#\-):not(#\-)::backdrop {
+        background-image: none;
+        background-color: #00000099
+    }
+    .store-card-full .primary:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: #000000
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {

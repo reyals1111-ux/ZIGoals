@@ -52,6 +52,7 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'av2-habits-timer-presets': [], 'av2-habits-rolling': [],
   'av2-repeating-projects': [], 'av2-task-versions': [], 'av2-shift-sound': [], 'av2-further-nutrient': [],
   'av2r2-money-saved': [], 'av2r2-money-paid-with': [], 'av2r2-money-subcategories': [], 'av2r2-money-day-left': [], 'av2r2-money-own-budgets': [], 'av2r2-money-payee-budgets': [], 'av2r2-money-unusual': [], 'av2r2-money-balance-lines': [], 'av2r2-money-to-record': [], 'av2r2-money-who-owes': [], 'av2r2-money-lent-borrowed': [], 'av2r2-money-store-cards': [], 'av2r2-money-business': [], 'av2r2-my-day': [], 'av2r2-note-reminders-today': [], 'av2r2-print': [], 'av2r2-template-gallery': [], 'av2r2-import-boards': [], 'av2r2-project-rules': [], 'av2r2-custom-fields': [],
+  'av2r2-sleep-need': [], 'av2r2-naps': [], 'av2r2-morning-steps': [], 'av2r2-challenge': [], 'av2r2-vent': [], 'av2r2-feelings': [], 'av2r2-thinking-traps': [], 'av2r2-today-workout': [], 'av2r2-equipment': [], 'av2r2-instead': [],
   // Session AV (owner follow-up 2, item 1c; cases-av.ts): the AV features' own questions.
   'av-task-reminders': [], 'av-weekly-intention': ['one short walk after lunch'], 'av-countdown-until': ['Mum’s birthday', '3'], 'av-countdowns-list': ['Mum’s birthday', 'Trip to Lisbon'], 'av-plan-day': ['Sketch the garden bed'],
   'av-bills-year': ['13,139.88', '1,094.99'], 'av-bills-paid': ['Energy', 'Music', 'Rent'], 'av-payday': [], 'av-budget-targets': ['Groceries', '300.00'], 'av-budget-near': ['Groceries', '75%'],

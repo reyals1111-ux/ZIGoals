@@ -3246,6 +3246,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .calm-choice input:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .calm-choice > span:last-child:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .calm-shift-swatch span:not(#\-) { margin-top: -6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .calm-volume:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .calm-sound-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .calm-layer:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .calm-layer-shown:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .calm-light:not(#\-) { margin-top: -22px; margin-bottom: 0; }
@@ -3337,6 +3339,18 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .ap-food-month:not(#\-) { row-gap: 4px; margin-top: 12px; margin-bottom: 12px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .ap-splits:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .ap-splits th:not(#\-), :where(:root[data-density=compact]) .ap-splits td:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
+/*  components/health/sleep/av2-bodymind-sleep.css  */
+:where(:root[data-density=compact]) .sleep-need:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 12px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .sleep-need-head:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .sleep-need-empty:not(#\-) { margin-top: 0; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .curve-reminders:not(#\-), :where(:root[data-density=compact]) .morning-steps:not(#\-) { row-gap: 8px; margin-top: 12px; }
+:where(:root[data-density=compact]) .curve-reminders h3:not(#\-), :where(:root[data-density=compact]) .morning-steps h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .curve-reminders label:not(#\-), :where(:root[data-density=compact]) .morning-steps label:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .curve-reminders input[type="checkbox"]:not(#\-), :where(:root[data-density=compact]) .morning-steps input[type="checkbox"]:not(#\-) { margin-top: 2px; }
+:where(:root[data-density=compact]) .curve-reminders ul:not(#\-), :where(:root[data-density=compact]) .morning-steps ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .morning-steps .evening-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .morning-steps fieldset:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .morning-steps legend:not(#\-) { margin-bottom: 6px; }
 /*  components/health/sleep/av2-sleep.css  */
 :where(:root[data-density=compact]) .sleep-usual-card:not(#\-) { row-gap: 7.5px; }
 :where(:root[data-density=compact]) .sleep-usual-card h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3472,6 +3486,22 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .av2-import:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .av2-import h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .av2-check:not(#\-) { row-gap: 8px; }
+/*  components/health/workouts/av2-bodymind-workouts.css  */
+:where(:root[data-density=compact]) .av2-places:not(#\-), :where(:root[data-density=compact]) .av2-suggest:not(#\-), :where(:root[data-density=compact]) .av2-replace:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .av2-places-list:not(#\-), :where(:root[data-density=compact]) .av2-suggest-list:not(#\-), :where(:root[data-density=compact]) .av2-replace-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .av2-places-list > li:not(#\-), :where(:root[data-density=compact]) .av2-suggest-list > li:not(#\-) { row-gap: 4.5px; padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .av2-place-now:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .av2-place-edit fieldset:not(#\-), :where(:root[data-density=compact]) .av2-suggest fieldset:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .av2-place-now legend:not(#\-), :where(:root[data-density=compact]) .av2-place-edit legend:not(#\-), :where(:root[data-density=compact]) .av2-suggest legend:not(#\-) { margin-bottom: 6px; }
+:where(:root[data-density=compact]) .av2-place-now:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .av2-place-now label:not(#\-), :where(:root[data-density=compact]) .av2-equipment label:not(#\-), :where(:root[data-density=compact]) .av2-suggest-lengths label:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .av2-equipment:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .av2-place-add:not(#\-), :where(:root[data-density=compact]) .av2-suggest-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .av2-suggest-lengths:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .av2-suggest-why:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .av2-suggest-sets:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .av2-suggest-label:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .av2-replace-list button:not(#\-) { row-gap: 2px; }
 /*  components/health/workouts/muscle-freshness.css  */
 :where(:root[data-density=compact]) .muscle-freshness-body:not(#\-) { margin-top: 8px; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .muscle-freshness-grid:not(#\-) { row-gap: 6px; }
@@ -3822,8 +3852,23 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .on-this-day-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .today-journal-line:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .today-journal-lines:not(#\-) { margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+/*  components/journal/thought-check.css  */
+:where(:root[data-density=compact]) .thought-check:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .thought-check textarea:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .thought-check-traps:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .thought-check-traps legend:not(#\-) { margin-bottom: 6px; }
+:where(:root[data-density=compact]) .thought-check-asks:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .thought-check-traps ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .thought-check-traps label:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .thought-check-traps input[type="checkbox"]:not(#\-) { margin-top: 2px; }
 /*  components/journal/today-affirmation.css  */
 :where(:root[data-density=compact]) .today-affirmation:not(#\-) { margin-top: 8px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .today-challenge-actions:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+/*  components/journal/write-it-out.css  */
+:where(:root[data-density=compact]) .write-it-out:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .write-it-out-page:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .write-it-out-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .write-it-out-closing:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/journal/year-pixels.css  */
 :where(:root[data-density=compact]) .year-pixels:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .year-pixels-controls:not(#\-) { row-gap: 8px; }
@@ -4021,6 +4066,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .mood-words-actions:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 16px; }
 :where(:root[data-density=compact]) .mood-words-own:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .mood-words-add:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .mood-words-strengths:not(#\-) { row-gap: 8px; margin-top: 8px; }
+:where(:root[data-density=compact]) .mood-words-strength-row:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .mood-words-strength:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .mood-words-another:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/motion/motion-2026.css  */
 :where(:root[data-density=compact]) .zg-burst-ring:not(#\-) { margin-top: calc(var(--zg-r) * -1); margin-bottom: 0; }
 :where(:root[data-density=compact]) .zg-burst-spark:not(#\-) { margin-top: -3px; margin-bottom: 0; }
@@ -7440,6 +7489,36 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .tasks-plan-editor:not(#\-) { padding-top: 12px; }
 :where(:root[data-density=compact]) .tasks-day-column .tasks-plan-here:not(#\-) { margin-bottom: 6px; }
 :where(:root[data-density=compact]) button.tasks-month-more:not(#\-) { padding-top: 0; padding-bottom: 0; }
+/*  components/tasks/tasks-print.css  */
+@media print { :where(:root[data-density=compact]) .tasks-print-sheet h1:not(#\-) { margin-top: 0; margin-bottom: 4pt; } }
+@media print { :where(:root[data-density=compact]) .tasks-print-sheet h2:not(#\-) { margin-top: 12pt; margin-bottom: 4pt; } }
+@media print { :where(:root[data-density=compact]) .tasks-print-meta:not(#\-) { margin-top: 0; margin-bottom: 10pt; } }
+@media print { :where(:root[data-density=compact]) .tasks-print-sheet ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; } }
+@media print { :where(:root[data-density=compact]) .tasks-print-sheet li:not(#\-) { row-gap: 0; padding-top: 3pt; padding-bottom: 3pt; } }
+/*  components/tasks/tasks-r2.css  */
+:where(:root[data-density=compact]) .tasks-plan-day-sub:not(#\-) { margin-top: 12px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .task-editor-myday:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-note-reminders:not(#\-) { margin-top: 12px; margin-bottom: 12px; padding-top: 0; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .tasks-note-reminders h3:not(#\-) { margin-top: 12px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .tasks-note-reminder-list:not(#\-) { margin-top: 0; margin-bottom: 6px; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .tasks-note-reminder-list li:not(#\-) { row-gap: 1.5px; }
+:where(:root[data-density=compact]) .tasks-gallery:not(#\-) { margin-top: 12px; margin-bottom: 12px; padding-top: 0; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .tasks-gallery > summary:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .tasks-gallery-lang:not(#\-) { margin-top: 4px; margin-bottom: 8px; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .tasks-gallery-lang legend:not(#\-) { padding-top: 0; padding-bottom: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .tasks-gallery-lang label:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .tasks-gallery-group h5:not(#\-) { margin-top: 12px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .tasks-gallery-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .tasks-gallery-list li:not(#\-) { row-gap: 4.5px; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .tasks-gallery-what:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .task-editor-fields:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-project-setup:not(#\-) { margin-top: 0; margin-bottom: 16px; row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-project-setup h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-project-setup h4:not(#\-) { margin-top: 8px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .tasks-rule-list:not(#\-), :where(:root[data-density=compact]) .tasks-field-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .tasks-rule-list li:not(#\-), :where(:root[data-density=compact]) .tasks-field-list li:not(#\-) { row-gap: 3px; padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .tasks-rule-form:not(#\-), :where(:root[data-density=compact]) .tasks-field-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-rule-form .tasks-field-error:not(#\-), :where(:root[data-density=compact]) .tasks-field-form .tasks-field-error:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/tasks/tasks-when.css  */
 :where(:root[data-density=compact]) .tasks-when:not(#\-), :where(:root[data-density=compact]) .tasks-matrix-view:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .tasks-when-lede:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -7548,8 +7627,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .task-editor-comments:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .task-comments:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .task-comments li:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .task-versions-fold > summary:not(#\-), :where(:root[data-density=compact]) .task-versions-list summary:not(#\-) { padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .task-versions-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .task-version-words:not(#\-) { margin-top: 4px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .task-versions-actions:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .tasks-nav-area h4:not(#\-) { margin-top: 8px; margin-bottom: 2px; }
 :where(:root[data-density=compact]) .task-editor-paused:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-print-line:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 /*  components/tasks/today-tasks-due.css  */
 :where(:root[data-density=compact]) .today-tasks-due:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .today-tasks-due-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -7775,6 +7859,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .account-sheet:not(#\-) { row-gap: 8px; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .account-sheet-flows:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .account-sheet-flows li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .account-limits:not(#\-) { margin-top: 8px; margin-bottom: 8px; padding-top: 10px; padding-bottom: 10px; row-gap: 4px; }
 /*  components/wealth/allocation/allocation.css  */
 :where(:root[data-density=compact]) .alloc-body:not(#\-), :where(:root[data-density=compact]) .purpose-body:not(#\-), :where(:root[data-density=compact]) .autopilot-body:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .alloc-currency h3:not(#\-), :where(:root[data-density=compact]) .alloc-body h3:not(#\-) { margin-top: 0; margin-bottom: 6px; }
@@ -7826,6 +7911,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .bill-tracker-bills:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 10px; }
 :where(:root[data-density=compact]) .bill-tracker-head:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .bill-tracker-history:not(#\-) { margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .bills-to-record:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 12px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .bills-to-record h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .bills-to-record .bills-actions:not(#\-) { row-gap: 6px; }
 /*  components/wealth/budgets/budgets.css  */
 :where(:root[data-density=compact]) .budgets-body:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .budgets-month-nav:not(#\-) { row-gap: 8px; }
@@ -7877,6 +7965,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .budgets-assign-head:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .budgets-assign-edit:not(#\-) { row-gap: 10px; margin-top: 6px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .budgets-assign-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .budgets-per-day:not(#\-) { margin-top: 4px; }
+:where(:root[data-density=compact]) .budgets-own-what:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .budgets-own-by:not(#\-), :where(:root[data-density=compact]) .budgets-own-cats:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .budgets-own-by legend:not(#\-), :where(:root[data-density=compact]) .budgets-own-cats legend:not(#\-) { margin-bottom: 4px; }
+:where(:root[data-density=compact]) .budgets-payee-amount:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .budgets-payee-form:not(#\-) { row-gap: 8px; }
 /*  components/wealth/debt-planner.css  */
 :where(:root[data-density=compact]) .debt-planner:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .debt-planner h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -8025,6 +8119,35 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .money-flow-wrap:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .money-flow-labels:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .money-flow-name:not(#\-) { row-gap: 6px; }
+/*  components/wealth/spending/people-money.css  */
+:where(:root[data-density=compact]) .people-share-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .people-share-list li:not(#\-), :where(:root[data-density=compact]) .people-share-row:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .people-money:not(#\-) { row-gap: 8px; margin-top: 16px; margin-bottom: 16px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .people-money h3:not(#\-), :where(:root[data-density=compact]) .people-money h4:not(#\-), :where(:root[data-density=compact]) .people-money p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .people-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .people-list li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .people-actions:not(#\-), :where(:root[data-density=compact]) .people-repay:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .people-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .people-kind:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .people-kind legend:not(#\-) { margin-bottom: 4px; }
+:where(:root[data-density=compact]) .beside-worth:not(#\-) { margin-top: 6px; margin-bottom: 6px; }
+/*  components/wealth/spending/quick-log.css  */
+:where(:root[data-density=compact]) .quick-saved:not(#\-) { row-gap: 6px; margin-top: 4px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .quick-saved-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .quick-saved-list:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .quick-chip:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .quick-saved-arrange:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .quick-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .quick-subs:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .quick-subs legend:not(#\-) { margin-bottom: 4px; }
+:where(:root[data-density=compact]) .quick-month:not(#\-) { row-gap: 4px; margin-top: 6px; }
+:where(:root[data-density=compact]) .quick-month p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/wealth/spending/space-switch.css  */
+:where(:root[data-density=compact]) .money-space:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 10px; }
+:where(:root[data-density=compact]) .money-space-chip span:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .money-space-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-space-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .money-space-form p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wealth/spending/spending.css  */
 :where(:root[data-density=compact]) .spending-body:not(#\-) { row-gap: 16px; }
 :where(:root[data-density=compact]) .spending-top:not(#\-) { row-gap: 20px; }
@@ -8066,6 +8189,22 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .money-drill-note:not(#\-) { margin-top: 0; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .money-review-suggest:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .spending-history ul:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .spending-unusual:not(#\-) { margin-top: 0; margin-bottom: 8px; padding-top: 10px; padding-bottom: 10px; row-gap: 6px; }
+:where(:root[data-density=compact]) .spending-unusual li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .spending-unusual-actions:not(#\-) { row-gap: 8px; }
+/*  components/wealth/store-cards/store-cards.css  */
+:where(:root[data-density=compact]) .store-cards:not(#\-) { row-gap: 8px; margin-top: 16px; margin-bottom: 16px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .store-cards h3:not(#\-), :where(:root[data-density=compact]) .store-cards p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .store-cards-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .store-cards-list li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .store-cards-actions:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .store-cards-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .store-cards-photo:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .store-card-dialog:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .store-card-full:not(#\-) { row-gap: 12px; padding-top: 18px; padding-bottom: 18px; }
+:where(:root[data-density=compact]) .store-card-full h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .store-card-number:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .store-card-tip:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wealth/wealth-history-chart.css  */
 :where(:root[data-density=compact]) .wealth-history-chart:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 10px; }
 :where(:root[data-density=compact]) .wealth-history-tools:not(#\-) { row-gap: 6px; }

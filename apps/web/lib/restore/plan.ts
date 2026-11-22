@@ -57,6 +57,7 @@ import {BUDGET_PERIODS} from '../budgets/periods';
 import {CHESS_COMPUTER} from '../chess/computer-record';
 import {EVENING_PLAN} from '../evening-plan/schema';
 import {BODY_EXTRAS} from '../body-extras/schema';
+import {WORKOUT_PLACES} from '../workouts/places-schema';
 import {WEALTH_SHEET} from '../wealth-sheet/schema';
 import {FOOD_PLUS} from '../food-plus/schema';
 import {MONEY_MORE} from '../money-more/schema';
@@ -276,6 +277,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AV lane 2, batch 2 (Health records restore with Health and its consent, as the other Health device records).
   dev('eveningPlan', 'Sleep: the evening plan', 'Health', EVENING_PLAN, true),
   dev('bodyExtras', 'Workouts: units, assisted sets and shoes', 'Health', BODY_EXTRAS, true),
+  dev('workoutPlaces', 'Workouts: places and equipment', 'Health', WORKOUT_PLACES, true),
   dev('foodPlus', 'Food diary extras (times, weekday macros, check-in)', 'Health', FOOD_PLUS, true),
   dev('wealthSheet', 'Your net-worth sheet', 'Goals and Wealth', WEALTH_SHEET),
   dev('moneyMore', 'Money extras: saved entries, own budgets, shared costs, lent and borrowed', 'Goals and Wealth', MONEY_MORE),

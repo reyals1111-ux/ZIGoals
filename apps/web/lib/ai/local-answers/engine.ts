@@ -39,6 +39,7 @@ import {av2BodyAnswer} from './av2-body';
 import {av2RestAnswer} from './av2-rest';
 import {av2MoneyR2Answer} from './av2-money-r2';
 import {av2TasksR2Answer} from './av2-tasks-r2';
+import {av2BodymindR2Answer} from './av2-bodymind-r2';
 import {av2SyncAnswer, type Av2SyncExtra} from './av2-sync';
 import {readExtrasChoice, readExtrasSectionsChoice} from '../../vault/extras-sync';
 import {readTheme} from '../../ui-prefs/theme';
@@ -259,7 +260,7 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   if (!subject) { const own = av2TasksAnswer(question, env, {plan: env.nova?.taskPlan, templates: env.nova?.taskTemplates, periods: env.nova?.budgetPeriods}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const found = avAnswer(question, env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Body: sleep and workouts), after AV's own answers.
-  if (!subject) { const own = av2BodyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  if (!subject) { const own = av2BodyAnswer(question, env) ?? av2BodymindR2Answer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;
   // A misspelt question the exact layer reads once its slips are fixed is asked of the layers below in the fixed words.
