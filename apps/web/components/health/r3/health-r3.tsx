@@ -14,13 +14,16 @@ export type DrinkFieldsHandle = {read: () => DrinkFieldsResult; clear: () => voi
 export type HealthR3Props =
   | {part: 'water-more'; data: HealthData; date: string; perform: Perform}
   | {part: 'drink-fields'; handle: RefObject<DrinkFieldsHandle | null>; initial?: {kcal?: number; sugarG?: number}}
-  | {part: 'drink-energy'; data: HealthData; date: string; foodKcal: number | null};
+  | {part: 'drink-energy'; data: HealthData; date: string; foodKcal: number | null}
+  | {part: 'weigh-in'; data: HealthData; today: string};
 const WaterMore = lazy(() => import('./water-more'));
 const DrinkFields = lazy(() => import('./drink-fields'));
+const WeighInCard = lazy(() => import('./weigh-in'));
 const DrinkEnergyLine = lazy(() => import('./drink-fields').then(m => ({default: m.DrinkEnergyLine})));
 export default function HealthR3(props: HealthR3Props) {
   if (props.part === 'water-more') return <WaterMore data={props.data} date={props.date} perform={props.perform}/>;
   if (props.part === 'drink-fields') return <DrinkFields handle={props.handle} initial={props.initial}/>;
   if (props.part === 'drink-energy') return <DrinkEnergyLine data={props.data} date={props.date} foodKcal={props.foodKcal}/>;
+  if (props.part === 'weigh-in') return <WeighInCard data={props.data} today={props.today}/>;
   return null;
 }

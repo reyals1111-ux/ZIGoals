@@ -26,6 +26,10 @@ chunk carries only those lines, two small props and the water form's two-line ha
 - `lib/notify/plan.ts` and `lib/notify/sync.ts`: a habit's own reminder words (as its `label`, so only where names are
   allowed, never for a Health-linked habit) and up to two more times a day (each a recurring wake, the same habit id, so
   Done and Snooze work as before). `public/sw.js` unchanged. Feature 2.
+- `lib/notify/prefs.ts`, `lib/notify/plan.ts`, `lib/notify/sync.ts`, `public/sw.js`: a new notification type and kind
+  `weighIn` (on by default; the reminder itself is off until set in Health → Weight): a recurring wake on its weekdays, or
+  a one-off on a monthly reminder's day; quiet once a weight is logged that day; the service worker's one new line "Time to
+  weigh in" (never a weight). Settings → Notifications gains one switch, "Weigh-in". Feature 3.
 
 ## Shared to-do for the lead (all features)
 
@@ -110,3 +114,25 @@ chunk carries only those lines, two small props and the water form's two-line ha
   labelled "Showcase example history"; no pinned count reads it).
 - Device keys / catalogue / export / erase: nothing new (the habit extras are registered).
 - CSS: `components/habits/habit-r3.css` (new).
+
+## 3. Weigh-in reminders — LEDGER #286 built
+
+- What: Health → Weight → "Weigh-in reminder" (its own chunk): off until set and says so; every day, on chosen weekdays
+  (Mon…Sun, each named for screen readers) or once a month on a day 1–28, at a chosen time; skipped on a day a weight is
+  already logged (the card says so that day); a time inside quiet hours is said on the card. Saving switches the new
+  "Weigh-in" notification type on; the card says when notifications are off on this device or the type is muted. Turn it
+  off removes it. The reminder never says a weight; a tap opens Health → Weight.
+- Files: `lib/weigh-in.ts` (new, pure); `lib/notify/prefs.ts` (the type; the stored field is in commit `cec6b6ee`),
+  `lib/notify/plan.ts`, `lib/notify/sync.ts`, `public/sw.js`; `components/health/r3/weigh-in.tsx` (new),
+  `components/health/r3/health-r3.tsx`, `components/health/health-app.tsx` (one lazy line in the Weight view).
+- Tests: `lib/av2-r3-weigh-in.test.ts` (and the stored test of feature 1); existing notify, push and sw tests green (run
+  `lib/push` from the repository root: from `apps/web`, `not-configured-answers.test.ts` cannot resolve `server-only`, as
+  before this branch). Spec: `tests/av2-weigh-in.spec.ts`.
+- Help (EN): **Can ZIGoals remind me to weigh in?** Yes. In Health → Weight, "Weigh-in reminder" reminds you every day, on
+  the days you choose, or once a month, at your time. It stays quiet on a day you already logged a weight, and never says
+  a number. Notifications must be on for this device.
+- What's new: "Weight: a weigh-in reminder every day, on your days or once a month, quiet once you have weighed in."
+- Search (static.ts): "weigh-in reminder" → `/app/health?view=weight`.
+- Showcase hook: none (the Showcase plans no notification).
+- Device keys / catalogue / export / erase: nothing new. Settings → Notifications lists the new type by itself.
+- CSS: `components/health/r3/health-r3.css`.

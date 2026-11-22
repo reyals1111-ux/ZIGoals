@@ -51,6 +51,7 @@ import {healthGroupIn} from '../vault/w-homes';
 import {spreadSlots, spreadTimes} from '../water-spread';
 import {HABIT_EXTRAS} from '../habits-extras/schema';
 import {reminderMoreOf} from '../habit-reminder-words';
+import {weighInOf, weighInPlanInput} from '../weigh-in';
 
 /**
  * Session AK Part 2 (ADR-036 A1): gathers this device's records into the plan's input. Reads only; never throws (a record
@@ -141,6 +142,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   // Session AV lane 2 (bodymind-r2; LEDGER #235, #236): the energy curve's reminders and the plan steps with a reminder,
   // only when that type is on; the curve is read from the sleep group of Health, the steps from the evening plan record.
   if (typeOn(prefs, 'energy')) { try { const sleep = healthGroupIn(await readHealth(storage), 'sleep') ?? null, evening = readDeviceRecord(storage, EVENING_PLAN).data, e = energyItems({sleep, evening, prefs, today, zone}); if (e.once.length || e.daily.length) input.energy = e; } catch { /* unreadable: no energy wakes */ } }
+  // Session AV lane 2 (health r3; LEDGER #286): the weigh-in reminder set in Health → Weight, quiet once today has a weight.
+  if (prefs.weighIn && typeOn(prefs, 'weighIn')) { let weights: readonly {date: string}[] = []; try { weights = (await readHealth(storage)).weights; } catch { /* unreadable: remind anyway */ } const w = weighInPlanInput(weighInOf(prefs), weights, today); if (w) input.weighIn = w; }
   // Owner follow-up 1 (F4): governance vote reminders the person set on a proposal — an instant and an id, never a title.
   try { input.votes = governanceEvents(readDeviceRecord(storage, GOV_REMINDERS).data, {now, timeZone: zone}).map(e => ({id: e.id, at: Date.parse(e.at)})); } catch { /* unreadable: no wakes */ }
   // Session AL sweep 4 (C-DVG-68, C-BN-06): unstaked ZIG back on its day and a validator not earning, from the positions

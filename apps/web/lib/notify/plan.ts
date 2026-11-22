@@ -10,7 +10,7 @@ import type {EnergyInput} from './energy-items';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy' | 'weighIn';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -80,6 +80,12 @@ export type PlanInput = {
    * line; an own habit's name only as a label, shown where names are allowed. Never a sleep figure.
    */
   energy?: EnergyInput;
+  /**
+   * Session AV lane 2 (health r3; LEDGER #286, Carb Manager; TIER 3 (PWA)): the weigh-in reminder (lib/weigh-in.ts
+   * weighInPlanInput): its time, its weekday mask (every day or chosen days), a monthly reminder's dates, and whether a
+   * weight is logged today. Never a weight.
+   */
+  weighIn?: {time: string; weekdays: number; dates: string[]; doneToday: boolean};
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -137,6 +143,19 @@ export function buildPlan(input: PlanInput): Plan {
       if (inQuiet(time, quiet)) { refused.push({kind: 'energy', time}); continue; }
       once.set(Math.floor(o.at / 60000), 'energy');
       push({at: o.at, kind: 'energy', id: o.id, detail: o.detail, label: label(o.label), href: '/app/health?view=sleep', actionable: false});
+    }
+  }
+  // Session AV lane 2 (health r3; LEDGER #286): the weigh-in reminder — a recurring wake on its weekdays, or a one-off on a
+  // monthly reminder's day (refused inside quiet hours, as a task reminder is); quiet once a weight is logged that day.
+  if (typeOn(prefs, 'weighIn') && input.weighIn) {
+    const w = input.weighIn;
+    if (w.weekdays) daily('weighIn', 'weigh-in', w.time, w.weekdays & EVERY, () => ({href: '/app/health?view=weight', actionable: false}), date => date === today && w.doneToday);
+    for (const date of w.dates) {
+      if (date === today && w.doneToday) continue;
+      if (inQuiet(w.time, quiet)) { refused.push({kind: 'weighIn', time: w.time}); break; }
+      const at = zonedInstant(date, w.time, zone); if (at <= now || at > now + ONCE_AHEAD_DAYS * 86_400_000) continue;
+      once.set(Math.floor(at / 60000), 'weighIn');
+      push({at, kind: 'weighIn', id: `weigh-in@${date}`, href: '/app/health?view=weight', actionable: false});
     }
   }
   // One-off wakes: contributions on the days they are due (today, tomorrow), bills on the morning before they are due.
