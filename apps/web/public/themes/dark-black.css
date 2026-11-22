@@ -4497,6 +4497,10 @@
         background-image: none;
         background-color: color-mix(in srgb,var(--text,#e8eefc) 14%,transparent)
     }
+    .journal-calendar-day[aria-pressed="true"]:not(#\-):not(#\-) {
+        background-image: linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
+        background-color: transparent
+    }
     .journal-tag-remove:not(#\-):not(#\-) {
         background-image: none;
         background-color: transparent
@@ -4519,19 +4523,15 @@
     }
     .journal-book-dot[data-tone="gold"]:not(#\-):not(#\-) {
         background-image: none;
-        background-color: var(--pillar-wealth,#d9a441)
+        background-color: var(--pillar-wealth)
     }
     .journal-book-dot[data-tone="green"]:not(#\-):not(#\-) {
         background-image: none;
-        background-color: var(--pillar-habits,#4fbf7f)
+        background-color: var(--pillar-habits)
     }
     .journal-calendar-day:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb,var(--brand-violet) 22%,transparent)
-    }
-    .journal-calendar-day[aria-pressed="true"]:not(#\-):not(#\-) {
-        background-image: linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
-        background-color: transparent
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {

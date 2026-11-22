@@ -689,6 +689,8 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .agenda-legend:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-load:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-hours-toggle:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .agenda-deadlines:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .agenda-deadline:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 4px; }
 /*  components/ai/agent-tools.css  */
 :where(:root[data-density=compact]) .zigi-agent-calls:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .zigi-agent-details summary:not(#\-) { padding-top: 9px; padding-bottom: 9px; }
@@ -7608,6 +7610,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .tasks-done-chart:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 12px; }
 :where(:root[data-density=compact]) .tasks-done-chart h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-done-axis:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-done-goal-words:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .tasks-done-weeks:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-done-table th:not(#\-), :where(:root[data-density=compact]) .tasks-done-table td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .tasks-paste-list:not(#\-) { row-gap: 4.5px; margin-top: 6px; margin-bottom: 0; padding-top: 7.5px; padding-bottom: 7.5px; }

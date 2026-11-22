@@ -20,7 +20,8 @@ describe('group 5: the money log tools', () => {
   const marked = withLog(showcaseAll(), log => ({...log, own: {expense: ['Pets']}, entries: log.entries.map((e, i) => i === 1 ? {...e, excluded: true as const} : i === 2 ? {...e, taxDeductible: true as const} : e)}));
   test('left out: what, how much, where it stays (EN and NL)', () => {
     expect(text(zigi('what did I leave out of my spending', marked))).toMatch(/^1 entry left out, together €12\.50\./);
-    expect(text(zigi('wat telt niet mee in mijn uitgaven', marked))).toMatch(/^1 post weggelaten, samen €12,50|^1 post weggelaten, samen €12\.50/);
+    // Session AV lane 2 (review b2a #6: a Dutch answer writes its money the Dutch way, "€ 40,00"; each Dutch figure is now matched exactly in that form, deliberate)
+    expect(text(zigi('wat telt niet mee in mijn uitgaven', marked))).toMatch(/^1 post weggelaten, samen €\s12,50/);
     expect(text(zigi('what did I leave out of my spending'))).toContain('Nothing is left out');
   });
   test('tax-deductible: the marked entries this year, never advice', () => {
@@ -41,7 +42,8 @@ describe('group 5: transfers', () => {
       {id: 'i', kind: 'income', amount: '450.00', currency: 'EUR', category: 'Other income', date: '2026-11-11', createdAt: '2026-11-11T10:00:00.000Z', account: 'Card'}]}));
     expect(text(zigi('which card payments are marked as transfers', s))).toBe('No entry is marked as a transfer yet. 1 pair looks like one (the same amount out of one imported account and into another): Wealth → Spending → Money tools → To review.');
     const m = withLog(s, log => ({...log, entries: log.entries.map(e => ({...e, transfer: e.id === 'o' ? 'i' : 'o'}))}));
-    expect(text(zigi('welke overboekingen tussen mijn rekeningen zijn er', m))).toMatch(/^1 overboeking gemarkeerd, buiten uitgaven en inkomsten gelaten: €450[.,]00 \(2026-11-10\)\./);
+    // Session AV lane 2 (review b2a #6: a Dutch answer writes its money the Dutch way, "€ 40,00"; each Dutch figure is now matched exactly in that form, deliberate)
+    expect(text(zigi('welke overboekingen tussen mijn rekeningen zijn er', m))).toMatch(/^1 overboeking gemarkeerd, buiten uitgaven en inkomsten gelaten: €\s450,00 \(2026-11-10\)\./);
   });
 });
 
@@ -50,7 +52,8 @@ describe('group 5: notices', () => {
   test('watched payees and challenges, from the Showcase money log', () => {
     const s = withBudgets(showcaseAll(), {payees: [{payee: 'Weekly shop', currency: 'EUR'}], challenges: [{id: 'c1', category: 'Food & drink', currency: 'EUR', month: DAY.slice(0, 7)}]});
     expect(text(zigi('which payees am I watching', s))).toMatch(/^Weekly shop: €[\d.,]+ so far/);
-    expect(text(zigi('welke winkels volg ik', s))).toMatch(/^Weekly shop: €[\d.,]+ tot nu toe/);
+    // Session AV lane 2 (review b2a #6: a Dutch answer writes its money the Dutch way, "€ 40,00"; each Dutch figure is now matched exactly in that form, deliberate)
+    expect(text(zigi('welke winkels volg ik', s))).toMatch(/^Weekly shop: €\s[\d.]+,\d{2} tot nu toe/);
     expect(text(zigi('how is my spending challenge going', s))).toMatch(/^Food & drink \(Nov 2026\): €[\d.,]+ against €[\d.,]+ last month: /);
     expect(text(zigi('hoe gaat mijn uitdaging', s))).toMatch(/^Food & drink \(november 2026\): /);
     expect(text(zigi('how is my spending challenge going'))).toContain('No spending challenge is running');

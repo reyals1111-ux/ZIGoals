@@ -6,6 +6,7 @@ import {WEALTH_SHEET} from '../../lib/wealth-sheet/schema';
 import {limitStates, withLimit} from '../../lib/money-more/alerts';
 import {readMoneyAmount} from '../../lib/money-log/form';
 import {formatDate, formatMoney} from '../../lib/visual-format';
+import {localDate} from '../../lib/local-date';
 
 /**
  * Session AV lane 2, round 2 (money; Wallet's balance-limit notifications): a low and a high line per account, checked
@@ -15,7 +16,7 @@ import {formatDate, formatMoney} from '../../lib/visual-format';
 export default function LimitNotices({accounts}: {accounts: Accounts}) {
   const sheet = useDeviceRecord(WEALTH_SHEET);
   if (!sheet.loaded || sheet.unreadable) return null;
-  const states = limitStates(accounts, sheet.data);
+  const states = limitStates(accounts, sheet.data, localDate()); // review b2a #8: a debt less the payments logged since
   if (!states.length) return null;
   return <ul className="account-limits" aria-label="Balances past your own lines">{states.map(s => <li key={s.id}>
     <strong>{s.name}</strong>: {formatMoney(s.balance, s.currency)} on {formatDate(s.date)} is {s.side} your line of {formatMoney(s.line, s.currency)}.

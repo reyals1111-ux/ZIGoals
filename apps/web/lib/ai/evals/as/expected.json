@@ -5155,7 +5155,7 @@
  },
  "tasks-done-week": {
   "en": "1 task done this week (Mon, Nov 16 to Tue, Nov 17): Renew the library card.",
-  "nl": "1 taak gedaan deze week (Mon, Nov 16 t/m Tue, Nov 17): Renew the library card.",
+  "nl": "1 taak gedaan deze week (ma 16 nov t/m di 17 nov): Renew the library card.",
   "facts": {
    "about": "tasks",
    "ask": "done",
@@ -5177,7 +5177,7 @@
  },
  "tasks-done-lastweek": {
   "en": "No task done last week (Mon, Nov 9 to Sun, Nov 15).",
-  "nl": "Geen taak gedaan vorige week (Mon, Nov 9 t/m Sun, Nov 15).",
+  "nl": "Geen taak gedaan vorige week (ma 9 nov t/m zo 15 nov).",
   "facts": {
    "about": "tasks",
    "ask": "done",
@@ -7019,7 +7019,7 @@
  },
  "av2-money-year": {
   "en": "2026 so far in EUR: €666.95 spent, €2,550.00 came in; most on Groceries €268.00, Bills €120.00 and Food & drink €71.60; the largest expense Energy €120.00.",
-  "nl": "2026 tot nu toe in EUR: €666.95 uitgegeven, €2,550.00 binnengekomen; het meest aan Groceries €268.00, Bills €120.00 en Food & drink €71.60; de grootste uitgave Energy €120.00.",
+  "nl": "2026 tot nu toe in EUR: € 666,95 uitgegeven, € 2.550,00 binnengekomen; het meest aan Groceries € 268,00, Bills € 120,00 en Food & drink € 71,60; de grootste uitgave Energy € 120,00.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in 2026 yet.",
@@ -7067,7 +7067,7 @@
  },
  "av2-money-suggested-budget": {
   "en": "Suggested from your own spending: Groceries: €27.00 (your average over 3 months; set now: €250.00). Budgets → Plan → “Use it” sets it for this month.",
-  "nl": "Voorgesteld uit je eigen uitgaven: Groceries: €27.00 (je gemiddelde over 3 maanden; nu: €250.00). Budgets → Plan → “Use it” zet het voor deze maand.",
+  "nl": "Voorgesteld uit je eigen uitgaven: Groceries: € 27,00 (je gemiddelde over 3 maanden; nu: € 250,00). Budgets → Plan → “Use it” zet het voor deze maand.",
   "facts": null,
   "widgets": [],
   "fresh": "There is not enough spending in the last three months to suggest an amount yet.",
@@ -7083,7 +7083,7 @@
  },
  "av2-money-paid-down": {
   "en": "USD: $7,551.00 owed now; paid down $3,159.00 this year.",
-  "nl": "USD: nu $7,551.00 schuld; dit jaar afgelost $3,159.00.",
+  "nl": "USD: nu US$ 7.551,00 schuld; dit jaar afgelost US$ 3.159,00.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no debts with a balance in Wealth → What you owe.",
@@ -7123,7 +7123,7 @@
  },
  "av2-money-one-total": {
   "en": "One total in USD: $29,229.00.",
-  "nl": "Eén totaal in USD: $29,229.00.",
+  "nl": "Eén totaal in USD: US$ 29.229,00.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no accounts yet (Wealth → Accounts, debts & net worth).",
@@ -7539,7 +7539,7 @@
  },
  "av2r2-money-day-left": {
   "en": "About this much a day is left for the 14 days to go: Groceries €4.49, Food & drink €5.06 and Fun €2.57. What is left divided by the days; a fact, not advice.",
-  "nl": "Ongeveer zoveel per dag is er over voor de 14 dagen die nog komen: Groceries €4.49, Food & drink €5.06 en Fun €2.57. Wat over is gedeeld door de dagen; een feit, geen advies.",
+  "nl": "Ongeveer zoveel per dag is er over voor de 14 dagen die nog komen: Groceries € 4,49, Food & drink € 5,06 en Fun € 2,57. Wat over is gedeeld door de dagen; een feit, geen advies.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no budgets yet. Set one in Wealth → Budgets; each row then says about how much a day is left.",

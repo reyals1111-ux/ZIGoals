@@ -77,6 +77,12 @@ export type Plan = {snapshot: Snapshot; registration: Registration; refused: {ki
 /** A copy without its `label` (no name may reach the snapshot without the opt-in). */
 function withoutLabel<T extends {label?: string}>(value: T): Omit<T, 'label'> { const copy = {...value}; delete copy.label; return copy; }
 
+/**
+ * Review b2a #9: where a money notice opens — a budget over or near its amount opens Budgets; a reminded loan, payday
+ * and the low-balance line open Spending (its "Between you and others" and the 60-day forecast live there), as Today's
+ * lines for them do.
+ */
+export const moneyHref = (id: string) => /^money:(?:over|near):/.test(id) ? '/app/wealth?view=budgets' : '/app/wealth#spending';
 export function buildPlan(input: PlanInput): Plan {
   const {now, zone, prefs, quiet, labels} = input, today = wallClock(now, zone).date, until = now + WINDOW_MS;
   const items: PlanItem[] = [], recurring: {m: number; d: number; kind: ItemKind; id: string; done: (date: string) => boolean}[] = [], once = new Map<number, ItemKind>(), refused: Plan['refused'] = [];
@@ -160,7 +166,7 @@ export function buildPlan(input: PlanInput): Plan {
     if (m.date < today || m.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
     const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'money');
-    push({at, kind: 'money', id: m.id, label: label(m.title), ...(labels && m.detail ? {detail: m.detail} : {}), href: '/app/wealth?view=budgets', actionable: false});
+    push({at, kind: 'money', id: m.id, label: label(m.title), ...(labels && m.detail ? {detail: m.detail} : {}), href: moneyHref(m.id), actionable: false});
   }
   // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
   // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end

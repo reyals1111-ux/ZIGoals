@@ -126,6 +126,7 @@ describe('answers', () => {
     expect(text('how much debt did I pay down this year')).toBe('EUR: €6,000.00 owed now; paid down €4,200.00 this year.');
     expect(text('am I on track with my debt plan')).toContain('No plan is kept yet');
     expect(text('how much extra do I need to be debt free by 2028')).toMatch(/^About €[\d,.]+ extra a month on top of the minimums makes you debt-free by December 2028/);
-    expect(text('hoeveel extra heb ik nodig om in 2028 schuldenvrij te zijn')).toMatch(/^Ongeveer €[\d,.]+ extra per maand/);
+    // Session AV lane 2 (review b2a #6: a Dutch answer writes its money the Dutch way, "€ 7,27"; matched only in that form, deliberate)
+    expect(text('hoeveel extra heb ik nodig om in 2028 schuldenvrij te zijn')).toMatch(/^Ongeveer €\s[\d.]+,\d{2} extra per maand/);
   });
 });

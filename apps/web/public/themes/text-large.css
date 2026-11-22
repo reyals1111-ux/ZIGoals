@@ -514,6 +514,7 @@
 :where(:root[data-text=large]) .agenda-check[data-pillar=task]:not(#\-), :where(:root[data-text=large]) .agenda-check[data-pillar=event]:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .agenda-calendars small:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .agenda-load:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .agenda-deadline small:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/ai/agent-tools.css  */
 :where(:root[data-text=large]) .zigi-agent-calls:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .zigi-agent-details:not(#\-) { font-size: calc(14px * 1.125); }

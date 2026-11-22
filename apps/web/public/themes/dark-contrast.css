@@ -2504,6 +2504,15 @@
     .agenda-load:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
     }
+    .agenda-deadline:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #ffffff) 40%, #fff)
+    }
+    .agenda-deadline small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .agenda-deadline[data-passed] .agenda-deadline-mark:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--warning, #fed39c) 25%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .zigi-agent-result pre:not(#\-):not(#\-) {
@@ -11914,6 +11923,12 @@
     .journal-week-dot:not(#\-):not(#\-) {
         border-color: currentColor
     }
+    .journal-calendar-day[aria-pressed="true"]:not(#\-):not(#\-) {
+        background-image: linear-gradient(135deg,var(--violet,#4526a5),var(--cyan,#0b475d));
+        background-color: transparent;
+        color: #dadada;
+        border-color: transparent
+    }
     :scope :where(.journal-page) .panel:not(#\-):not(#\-) {
         box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-violet) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
     }
@@ -11973,11 +11988,11 @@
     }
     .journal-book-dot[data-tone="gold"]:not(#\-):not(#\-) {
         background-image: none;
-        background-color: color-mix(in srgb, var(--pillar-wealth,#583d01) 30%, #000)
+        background-color: color-mix(in srgb, var(--pillar-wealth) 30%, #000)
     }
     .journal-book-dot[data-tone="green"]:not(#\-):not(#\-) {
         background-image: none;
-        background-color: color-mix(in srgb, var(--pillar-habits,#0a4c2b) 30%, #000)
+        background-color: color-mix(in srgb, var(--pillar-habits) 30%, #000)
     }
     .journal-entries li[data-tone]:not(#\-):not(#\-) {
         border-left-color: color-mix(in srgb, var(--brand-violet) 40%, #fff)
@@ -11992,10 +12007,10 @@
         border-left-color: var(--accent-teal,var(--brand-cyan))
     }
     .journal-entries li[data-tone="gold"]:not(#\-):not(#\-) {
-        border-left-color: color-mix(in srgb, var(--pillar-wealth,#d9a441) 40%, #fff)
+        border-left-color: color-mix(in srgb, var(--pillar-wealth) 40%, #fff)
     }
     .journal-entries li[data-tone="green"]:not(#\-):not(#\-) {
-        border-left-color: color-mix(in srgb, var(--pillar-habits,#4fbf7f) 40%, #fff)
+        border-left-color: color-mix(in srgb, var(--pillar-habits) 40%, #fff)
     }
     .journal-entry-book:not(#\-):not(#\-) {
         color: var(--text-secondary,var(--muted))
@@ -12008,12 +12023,6 @@
         background-image: none;
         background-color: color-mix(in srgb,var(--brand-violet) 22%,transparent);
         color: inherit
-    }
-    .journal-calendar-day[aria-pressed="true"]:not(#\-):not(#\-) {
-        background-image: linear-gradient(135deg,var(--violet,#4526a5),var(--cyan,#0b475d));
-        background-color: transparent;
-        color: #dadada;
-        border-color: transparent
     }
     .journal-calendar-empty:not(#\-):not(#\-) {
         color: var(--text-secondary,var(--muted))
@@ -26028,6 +26037,12 @@
     }
     .tasks-done-bars rect:not(#\-):not(#\-) {
         fill: color-mix(in srgb, var(--cyan, #6fd3ff) 40%, #fff)
+    }
+    .tasks-done-bars .tasks-done-goal:not(#\-):not(#\-) {
+        stroke: color-mix(in srgb, var(--text, currentColor) 40%, #fff)
+    }
+    .tasks-done-goal-key:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--text, currentColor) 40%, #fff)
     }
     .tasks-paste-list:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff)

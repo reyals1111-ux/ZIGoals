@@ -48,7 +48,8 @@ describe('lent and borrowed', () => {
     expect(besideWorth(m)).toEqual([{currency: 'EUR', lent: 6000, borrowed: 5000, owed: 0, net: 1000}]);
     expect(loansDue(m, '2026-11-14').map(r => r.loan.id)).toEqual(['l1']);
     expect(loansDue(m, '2026-11-10')).toEqual([]);
-    expect(loanWakes(m, '2026-11-14')).toEqual([{id: 'money:loan:l1:1', date: '2026-11-14', title: 'Noor owes you: due tomorrow', detail: 'EUR 60.00 left'}, {id: 'money:loan:l1:0', date: '2026-11-15', title: 'Noor owes you: due today', detail: 'EUR 60.00 left'}]);
+    // Session AV lane 2 (review b2a #7: money through the app's formatter, "€60.00", not "EUR 60.00", deliberate)
+    expect(loanWakes(m, '2026-11-14')).toEqual([{id: 'money:loan:l1:1', date: '2026-11-14', title: 'Noor owes you: due tomorrow', detail: '€60.00 left'}, {id: 'money:loan:l1:0', date: '2026-11-15', title: 'Noor owes you: due today', detail: '€60.00 left'}]);
     expect(todayExtras({entries: [], today: '2026-11-14', more: m})).toEqual([{text: 'Noor owes you €60.00, due tomorrow', href: '/app/wealth#spending'}]);
     const paid = repay(m, 'l1', '60.00', '2026-11-14');
     expect(paid.loans![0]!.closed).toBe('2026-11-14');

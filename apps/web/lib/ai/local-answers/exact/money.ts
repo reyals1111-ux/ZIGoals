@@ -1,5 +1,6 @@
 import {byCategory, cents, fromCents} from '../../../money-log/engine';
 import type {MoneyEntry} from '../../../money-log/schema';
+import {countedCents, isCounted} from '../../../money-log/counted';
 import {detectBills, openCandidates} from '../../../bills/detect';
 import {billPriceChange, candidatePriceChange, type PriceChange} from '../../../bills/price-change';
 import {billsCard} from '../../../nova/cards/bills';
@@ -25,11 +26,15 @@ const SOURCE = ['Your money log', 'Je geldlog'] as const;
 const money = (amountCents: number, currency: string) => formatCurrencyAmount(fromCents(amountCents), currency);
 const plain = (name: string) => clean(name.replace(/\s*[·:•|–-]?\s*\(?SHOWCASE DATA\)?.*$/i, '').replace(/^Example · /, '').trim() || name.trim(), 80);
 type Kind = 'expense' | 'income';
-/** The entries of one kind inside a period, in the currency that carries most of them. */
+/**
+ * The counted entries of one kind inside a period, in the currency that carries most of them. Review b2a #1: by Wealth →
+ * Spending's rule (lib/money-log/counted.ts `countedCents`): entries left out, Settle-up refunds and transfers are not in
+ * it, and a shared cost counts the person's own share, so "how much did I spend" says what Wealth → Spending says.
+ */
 export function ledger(entries: readonly MoneyEntry[], kind: Kind, p: Period, category?: string | null) {
-  const inRange = entries.filter(e => e.kind === kind && e.date >= p.from && e.date <= p.to && (p.weekday === null || p.days.includes(e.date)) && (!category || e.category.toLowerCase() === category.toLowerCase()));
+  const inRange = entries.filter(e => e.kind === kind && isCounted(e) && e.date >= p.from && e.date <= p.to && (p.weekday === null || p.days.includes(e.date)) && (!category || e.category.toLowerCase() === category.toLowerCase()));
   const per = new Map<string, number>();
-  for (const e of inRange) per.set(e.currency, (per.get(e.currency) ?? 0) + cents(e.amount));
+  for (const e of inRange) per.set(e.currency, (per.get(e.currency) ?? 0) + countedCents(e));
   const ranked = [...per.entries()].sort((a, b) => b[1] - a[1]), currency = ranked[0]?.[0] ?? null, own = inRange.filter(e => e.currency === currency);
   return {own, currency, total: ranked[0]?.[1] ?? 0, others: ranked.slice(1).map(([c, v]) => ({currency: c, cents: v, text: money(v, c)}))};
 }

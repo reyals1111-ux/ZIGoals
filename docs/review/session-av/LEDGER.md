@@ -712,6 +712,254 @@ Notes for the owner:
   - Money: 14
   - All: 32
 
+## Verdicts (exit criterion E2; 22 Nov 2026)
+
+Checked on `lane2/batch2` at `cdd996db`, then re-checked at `8f4926e1` after the remainders (lane2/rest), the batch 1 review fixes (revb1, fixb1b) and restore-media (`git log --oneline fbeb3e54..HEAD`, 155 commits). Each row: the LEDGER commit(s) found by `git log --grep` (ranges such as "#157-#159" and "#7–#10" read as ranges), the registry claim, and the files opened in the code. Rows #1–#222 that had work (old verdict "to build" or "built in part"): 181. Open findings from the batch-1 fresh review (`docs/review/session-av/quality/lane2-b1.md` on `feature/session-av-2`, said there to be fixed on `lane2/revb1`, which holds none of them) are named where they touch a row; they are still in this branch's code.
+
+### Each row
+
+| # | app and feature (short) | old verdict | new verdict | evidence (commit sha, file) | what is still missing, if any |
+|---|---|---|---|---|---|
+| 1 | Todoist: Quick Add with natural language | built in part | built | `6257d24a` (`lib/tasks/split.ts`, `components/quick-add-line.tsx`: "Make 2 tasks" on a long line) | — |
+| 3 | Todoist: Reminders | built in part | built | `6257d24a`, `1f9f6935` TIER 3 stored (reminder `at`): "Remind me at" in `task-editor.tsx`, `!2h`/`!30m`/`!18:30` in `lib/tasks/parse.ts:339` | — (the notification keeps Snooze 1 h: QUALITY.md "Not fixed", as before) |
+| 4 | Todoist: Ramble voice capture | to build | built | `6257d24a` (`lib/tasks/split.ts` `spokenTasks`: "and then", "daarna"; "remove that" / "haal dat weg", test in `av2-reminders-capture.test.ts:74`) | — |
+| 7 | Todoist: Layouts: list, board, calendar, table | to build | built | `7dc424dc`, `1f9f6935` (`lib/tasks/layouts.ts` `tableRows`, `dayColumns` (3 days), `monthGrid` by project; `components/tasks/tasks-plan-views.tsx`) | lane2-b1 #7 fixed (revb1: tasks open and move from the Table, Calendar and Timeline) |
+| 8 | Todoist: Task descriptions and comments | to build | built | `7dc424dc` (comments: `layouts.ts` `addComment`), `de1106d4` + `e98d2905` (`lib/tasks/attachments.ts`, `components/tasks/task-attachments.tsx`), `97627b13` (database registered; `zigoals-task-attachments-v1` in `lib/erase-everything.ts`, export in `lib/export/make-everything.ts:55`) | — (lane2-b1 #18 fixed (restore-media); #17: the answer says it cannot count from the store (a count needs the engine to read IndexedDB first; listed)) |
+| 9 | Todoist: Productivity insights and Karma | built in part | built | `7dc424dc`, `1f9f6935` (`lib/tasks/plan-record.ts` `dailyGoal`, `goalStreak`, `doneLog` past 30 days) | — |
+| 10 | Todoist: Templates | to build | built | `7dc424dc` (`lib/tasks/templates.ts` `BUILT_IN_TEMPLATES` incl. Moving house, `templateFromProject`; `tasks-organise.tsx`) | — |
+| 11 | TickTick: Reminders | built in part | built | `6257d24a` (default reminder in `lib/tasks/device.ts` and Tasks → This week; "Start focus" in `components/tasks/reminder-rows.tsx:50`) | — (email reminders: needs an outside service, not proposed, as the ledger) |
+| 12 | TickTick: Filters, lists, folders and tags | to build | built | `7dc424dc` (areas group projects: `layouts.ts` `addArea`, `projectsByArea`; Table sorts by `created` / `changed`) | — |
+| 13 | TickTick: Calendar views and timeline | to build (part Carried: needs an outside service) | built (part Carried: needs an outside service) | `7dc424dc` (`dayColumns` n = 3, `yearGrid` heatmap, `timelineBars` Gantt) | Carried part: a live URL/Google calendar subscription (outside service); lane2-b1 #7 fixed (revb1) |
+| 14 | TickTick: Eisenhower Matrix | built in part | built | `c6571ee9`, `47564542` (named saved matrices up to 10, rules by label, display key `zigoals:matrix-rules`) | — |
+| 15 | TickTick: Countdowns / anniversaries | built in part | built | `6257d24a`, `1f9f6935` (`lib/countdowns/extras.ts` `since`; "418 days since · 1 year, 1 month" in `countdowns-card.tsx`) | — |
+| 17 | Things: Repeating to-dos and projects | built in part | built | `7dc424dc` ("Start early" `early`, `layouts.ts` `startsEarlyBy`; templates); `e01a761d` merge (lane2/rest R1: a project from a template comes round by itself) | — |
+| 20 | Things: Projects, Areas and Headings | to build | built | `7dc424dc` (project `areaId`, `layouts.ts` `archiveSection`) | — |
+| 21 | Sunsama: Guided daily planning | built in part | built | `7dc424dc` (`layouts.ts` `fitDay` between timed tasks and calendar events; `components/tasks/today-planner.tsx`) | — |
+| 22 | Sunsama: Weekly planning | built in part | built | `7dc424dc` (`objectives` per week: `weekObjectives`, `linkObjective`, `carryObjectives`; Tasks → This week) | — |
+| 23 | Sunsama: Weekly objectives | to build | built | `7dc424dc` (`objectives` per week: `weekObjectives`, `linkObjective`, `carryObjectives`; Tasks → This week) | — |
+| 24 | Sunsama: Timeboxing / auto-scheduling | built in part (part Carried: needs an outside service) | built (part Carried: needs an outside service) | `7dc424dc` (`nextFreeSlot`; the block ends at its minutes, `lib/agenda/time-items.ts`) | Carried part: writing to an outside calendar |
+| 25 | Sunsama: Planned vs actual time and timers | built in part | built | `7dc424dc` (`plan-record.ts` `startTimer`/`stopTimer`, `spent`, `plannedVsActual`) | lane2-b1 #2 fixed (revb1); #14 fixed (revb1) |
+| 26 | Sunsama: Workload counter and overcommit warning | built in part | built | `7dc424dc` (`dayLimit`, `overLimit`, the overcommit notice) | — |
+| 27 | Sunsama: Parallel tasks and timers | to build | built | `7dc424dc` (task `parallel`, up to 10 timers) | — |
+| 28 | Sunsama: Channels and contexts | to build | built | `7dc424dc` (the area choice narrows every list view, display key `zigoals:task-area`) | — |
+| 29 | Notion: Database views | to build | built | `7dc424dc` (task table, timeline), `95e265c6` (`lib/notes/table.ts`, `components/notes/notes-views.tsx`: table and gallery of notes) | lane2-b1 #6 and #7 fixed (revb1) |
+| 30 | Notion: Chart view | to build | built | `7dc424dc` (`layouts.ts` `chartSeries`: done/open/minutes by week, project, label, priority), `95e265c6` (notes per tag and per week) | — |
+| 31 | Notion: Reminders | built in part | built | `6257d24a`, `d775e9c5` TIER 3 PWA (`lib/notes/reminders.ts`, `components/notes/note-reminders.tsx`); revb1 #1 (`988f59db`): a note reminder keeps the day the line was written | — |
+| 32 | Notion: Repeating database templates | to build | built | `b8e378d7`, `673180c6` (`lib/notes/schedules.ts`, `components/notes/daily-template.tsx`) | — |
+| 33 | Notion: Version history across workspace | to build | built | `25857a52` (`lib/notes/versions.ts`), `0be442c3` (`lib/journal/versions.ts`), `673180c6`; lane2/rest R2 (earlier versions of a task: read, restore, delete) | — |
+| 34 | Notion: High contrast mode | to build | built | `d2286de9`, `55c8d86a`, `9388558a` (`lib/ui-prefs/dark-style.ts`, `themes/dark-contrast.extra.css`, `DARK_STYLES` in `scripts/themes/build-themes.mjs`; sheets regenerated in `aa9a30cc`) | — (a Dark style, beside the PR #22 baseline) |
+| 35 | Day One: Rich journal entries | to build | built | `82285c14`, `673180c6` (`lib/journal/media.ts`, `lib/journal/entry-links.ts`, `components/journal/compose-media.tsx`; `zigoals-journal-media-v1` in `lib/erase-everything.ts:27`) | lane2-b1 #3 and #4 fixed (revb1); Restore puts the files back (restore-media, #18) |
+| 38 | Day One: Prompt Packs | built in part | built | `4ca82685` (`lib/journal-prompts/packs.ts`, six packs EN/NL) | a pack's box does not stay ticked on the tap: fixed on `lane2/fixb1` `55041b03` (in both branches now) |
+| 39 | Day One: Templates | built in part | built | `0be442c3` (More → Save as a template; `lib/journal-prompts/own.ts` `body`, `tags`) | — |
+| 40 | Day One: Journaling reminders and streaks | to build | built | `0aefdfcf`, `4c9b3aee` TIER 3 PWA (`lib/journal/reminder.ts`, notification kind `journal`; streak line) | — |
+| 41 | Day One: End-to-end encryption and passcode | to build | built | `148e9774` TIER 3 sync (`lib/vault/extras-keys.ts` `EXTRAS_CHOICE_SECTIONS`, `lib/vault/extras-sync.ts`, `components/sync/extras-sync-choice.tsx`), `9388558a`; lane2/rest R3 TIER 3 sync (the Worker takes the journal section; its deploy is the owner's, OWNER_STEPS.md) | — |
+| 42 | Day One: Audio recorder and Apple Watch (Watch native-only) | to build | built (part Carried: native-only) | `82285c14` (voice note by MediaRecorder in `compose-media.tsx`, kept in `zigoals-journal-media-v1`) | Carried part: Apple Watch; open Majors as #35 |
+| 43 | Day One: Journal Collections, Themes and search | built in part | built | `8e904ced` (`lib/journal/books.ts` journals with a colour, `lib/journal/search.ts` dates, `journal-calendar.tsx`) | — |
+| 44 | Day One: Imports and integrations | to build (part Carried: needs an outside service) | built (part Carried: needs an outside service) | `54e0fde6` (`lib/journal/import.ts`: Day One ZIP/JSON, Markdown, text, Apple Journal HTML; `lib/journal/export.ts`) | Carried part: Strava, Zapier, IFTTT |
+| 45 | Habitica: Dailies with flexible repeat | to build | built | `d4751a1b`, `9675fccd` (habit options `difficulty` 5/10/15/20 XP, `lib/game/xp.ts`) | — |
+| 48 | Habitica: Orb of Rebirth (restart at level 1) | to build | built | `d4751a1b`, `9675fccd` (`components/game/rebirth.tsx`, game `rebirth`) | — |
+| 49 | Streaks: 2-Day Rule | built in part | built | `d4751a1b` (per-habit `twoDay` in `lib/habit-options/rule.ts`, off by default) | — |
+| 50 | Streaks: Unscheduled tasks | to build | built | `d4751a1b` (`whenever`: never due, never missed) | — |
+| 52 | Finch: Goal of the Day | built in part | built | `d4751a1b` (+5 XP for the focus habit, `focusDays`) | — |
+| 53 | Finch: Self-Care Areas and Weekly Milestones | to build | built | `f634be4f`, `929e616a` (`lib/habit-areas/week.ts`, `habit-areas-week.tsx`, `areaGoals`) | — |
+| 55 | Finch: Seasonal events | to build | built | `f634be4f` (`lib/game/month-theme.ts`, "Theme month" badge in `lib/game/badges.ts`, can be hidden) | — |
+| 56 | Finch: Muted tags and exercises | to build | built | `fa76a303`, `37e35a1c` (one device list hiding questions, templates and breathing patterns) | — |
+| 57 | Habitify: Status Update automation [native-only] | to build | built | `d4751a1b` (`unloggedSkip`) | — |
+| 60 | Bearable: Daily health check-in | to build | built | `add9df48`, `2b80c4fd` (`components/health/plus/evening-checkin.tsx`, six skippable steps) | — (lane2-b1 #15 fixed (revb1) |
+| 61 | Bearable: Mood and emotions | to build | built | `add9df48` (own words in `components/mood-words/mood-words-grid.tsx`) | — |
+| 62 | Bearable: Symptoms with severity and time periods | to build | built (part Carried: against a named rule) | `add9df48` (`lib/checkin-extras/rule.ts`: parts of the day, groups, day total, a mood per part of the day) | Carried part: a second mood a day in Health's strict `moods` record — frozen readers #37–#57 (ADR-045) would refuse it |
+| 63 | Bearable: Factors (lifestyle and triggers) | to build (part Carried: needs an outside service) | built (part Carried: needs an outside service) | `add9df48` (ready list of 18 factors EN/NL, "Why I track this") | Carried part: weather |
+| 64 | Bearable: Health Experiments | to build | built | `f065b953` (`lib/experiments/engine.ts` `MAX_OUTCOMES` 8, `symptom` kind; `lib/compare/engine.ts`) | — |
+| 66 | Bearable: Trends & Insights baselines and weekly report | to build | built | `fc213932` (`lib/feeling-trends/trends.ts`, 90 against 365 days) | — (lane2-b1 #13: the Showcase keeps its teaching empty state (pinned counts)) |
+| 67 | Bearable: Customisable graph | to build | built | `fc213932`, `75c834bd` (`components/health/plus/feelings-card.tsx` "Week by week", up to four measures on one week axis) | — (small multiples, not overlaid lines: the one-scale chart rule) |
+| 68 | Bearable: Mark day complete | to build | built | `add9df48` (`components/health/day-logged.tsx`, the 14-day strip with gaps as links) | — |
+| 69 | Bearable: Hide triggering data | built in part | built (part Carried: a protected area) | `e147b4fc` (`lib/ai/local-answers/av2-hide-figures.ts`, wired at `engine.ts:226`; Settings → Data & privacy; `components/export-everything.tsx`) | Carried part: figures drawn inside NOVA's widgets and cards (`components/nova/widgets`, `cards/ax`) — AR's NOVA composition (ADR-045 protected areas); lane2-b1 #10 fixed (revb1) |
+| 71 | Headspace: Today's Meditation (daily) | to build | built | `689c8a56` (`lib/meditation/guides.ts`, 12 written guides EN/NL; `today-practice.tsx`) | — |
+| 77 | Calm: Guided meditation and dailies | to build (part Carried: needs content made for ZIGoals) | built (part Carried: needs content made for ZIGoals) | `689c8a56` (the daily part, as #71) | Carried part: the recorded meditation library |
+| 79 | Calm: Shift (bilateral audio) | to build | built | `ef097afc`, `0b4fbf87` (`lib/calm/visuals.ts`: a light that glides left and right); lane2/rest R4 (a slow left-right sound made on the device) | — |
+| 80 | Calm: Scenes | to build | built | `ef097afc` (four scenes, still under Motion Off; `calm-layer.tsx`) | — |
+| 81 | Calm: Daily Move | to build | built | `ef097afc` (`lib/calm/stretches.ts` five sequences EN/NL, `daily-move.tsx`, minutes to activity, no calories) | — |
+| 83 | Calm: Calm Sleep companion app [native-only for wearable sync] | to build (part Carried: native-only) | built (part Carried: native-only) | `84b53b1b`, `3685d5e4` (`lib/evening-plan/plan.ts`, Ready for bed bar) | Carried part: wearable sync |
+| 85 | MyFitnessPal: Voice Log | built in part | built | `9ef4256a` (a microphone on Health's meal field) | — |
+| 86 | MyFitnessPal: Quick Add | built in part | built | `409493f6` (Quick add with protein, carbs and fat) | — |
+| 87 | MyFitnessPal: Saved meals, recipes and Recipe Importer | to build | built | `11d55010` (recipe import matched to the offline library) | — |
+| 88 | MyFitnessPal: Custom macro goals by day and Net Carbs mode | to build | built | `e30e9665` (macros per weekday, sugar alcohols in net carbs) | — |
+| 89 | MyFitnessPal: Meal Planner and grocery list | to build (part Carried: needs an outside service) | built (part Carried: needs an outside service) | `52de2fcc` (a day planned from your recipes to fit kcal and macro targets) | Carried part: grocery delivery |
+| 90 | MyFitnessPal: Today screen, streaks, habit challenges and meal reminders | to build | built | `c3e8a4a3`, `ae356287` TIER 3 PWA (meal kind in `lib/notify/plan.ts`; weekly logging challenge) | — |
+| 91 | MyFitnessPal: Plan tab | to build | built | `8e8e45b4` (`lib/food-plus/recipe-book.ts`, 20 recipes EN/NL, filtered by style) | — |
+| 92 | MyFitnessPal: GLP-1 support | to build | built | `4ecc62ef`, `143b0c34` (`lib/compare/engine.ts` dose and symptom factors, symptom outcomes; `compare-explorer.tsx` reads `SYMPTOMS`, `SUPPLEMENTS`) | — |
+| 93 | Cronometer: Food diary with 95 nutrients | to build | built | `4ecc62ef` (`lib/food-plus/library-extras.ts`: the library's 25 nutrients now kept on foods saved by the new flows); lane2/rest R5 (CoFID: 25 → 47 nutrients); CIQUAL's further nutrients Carried: needs an outside service (its download answered 503) | Carried part: CIQUAL (needs an outside service) |
+| 95 | Cronometer: Custom recipes and Recipe Importer | to build | built (part Carried: against a named rule) | `11d55010` (as #87) | Carried part: sharing recipes with users (nothing shared between people) |
+| 97 | Cronometer: Macro Scheduler | to build | built | `e30e9665` (as #88) | — |
+| 98 | Cronometer: Custom Charts and Reports | to build | built | `4ecc62ef`, `143b0c34` (Compare outcomes `kcal`, `protein`, `weight`, `bp`, `lab:<name>`; report section `nutrition` in `lib/clinician-report/build.ts`); lane2/rest R6 (every nutrient as a Compare outcome) | — |
+| 100 | Cronometer: Oracle nutrient search and food suggestions | built in part | built | `b165be9c` (Oracle with protein and the vitamins) | — |
+| 101 | Cronometer: Diary timestamps | to build | built | `26265cb7`, `69db6bb3` (an eaten-at time per entry, `zigoals:food-plus:v1`) | — |
+| 103 | MacroFactor: Custom food from product photos [camera] | to build (part Carried: needs a model) | built (part Carried: needs a model) | `d61e8a19`, `a60b8521` (photo kept with the food, `zigoals-food-photos-v1`) | Carried part: reading name and brand from the photo |
+| 104 | MacroFactor: Recipe importer (URL or cookbook photo) | to build (part Carried: needs a model) | built (part Carried: needs a model) | `11d55010` (as #87) | Carried part: a cookbook photo |
+| 106 | MacroFactor: Weekly check-in with coaching modules | to build | built | `3bd2f6b2`, `bd73c6f2` (check-in day; partly logged days left out) | — |
+| 107 | MacroFactor: Per-day macro targets and fasting days | to build | built | `e30e9665`, `3bd2f6b2`, `dfc1b0e4`, `bd73c6f2`, `1bdf0099` (macros per weekday, goal date, the chosen pace in the coach) | — (fasting days below the 1,200 kcal floor: by design, not asked) |
+| 108 | MacroFactor: Micronutrients and top contributors | built in part | built | `26265cb7` (nutrient timing from entry times) | — |
+| 109 | MacroFactor: MacroFactor Workouts (separate app) | to build (part Carried: native-only) | built (part Carried: native-only) | `96658369`, `3685d5e4` (`lib/workouts/progression.ts`) | Carried part: Live Activity |
+| 110 | Strava: Athlete Intelligence | built in part | built | `145a980a` (`lib/workouts/runs.ts`: a no-model summary against earlier runs) | — |
+| 111 | Strava: Goals, challenges and Fitness Score | to build | built (part Carried: against a named rule) | `145a980a`, `3685d5e4` (distance goals, training load, never calories) | Carried part: challenges with friends (nothing shared between people) |
+| 112 | Strava: Coach-designed strength workouts | to build | built | `04428d4b` (`lib/workouts/routine-library.ts`, 12 written routines EN/NL) | — |
+| 115 | Hevy: Routines, folders and routine library | to build | built | `04428d4b` (routine folders and the library) | — |
+| 116 | Hevy: Exercise library and custom exercises | to build | built | `511663cd` (`lib/workouts/howto.ts`, 48 how-tos EN/NL with target muscles) | — |
+| 117 | Hevy: Progress analytics | built in part | built | `0fd36539` (`lib/workouts/analytics.ts`: month report, sets per muscle over 8 weeks; Wrapped's training card) | — |
+| 118 | Hevy: Calendar and streaks | built in part | built | `11e3d06d` (`lib/workouts/calendar.ts` year view, weeks in a row) | — |
+| 119 | Hevy: Three-level notes | built in part | built | `511663cd`, `04428d4b` (`lib/workouts/notes.ts` pinned exercise note; routine note) | — |
+| 123 | Sleep Cycle: Statistics tab | built in part | built | `d380d0ea` (`lib/sleep/usual.ts`; time-to-fall-asleep chart and quality line in `sleep-charts.tsx`) | — |
+| 124 | Sleep Cycle: Weekly reports and global benchmarks | to build | **built in part** | `d380d0ea` ("your usual" from your own nights) | the row's line against published population averages (static reference figures, labelled as such): the lane's task re-scoped it to the person's own nights (body.md §7); no cause from the list applies |
+| 126 | YNAB: Targets (category goals) | built in part | built | `20ff7e1e`, `bea18120` (`lib/budgets/assign.ts` `neededIn` weekly/yearly, Underfunded, snooze) | — |
+| 127 | YNAB: New Assign Mode (preview) | to build | built | `20ff7e1e` (`setMonthAmount`, `quickAssign`, `moveMoney`, `assign-panel.tsx`) | — |
+| 128 | YNAB: Spotlight | built in part | built | `62c3d42d` (`lib/money-notices.ts` `billNotesDue` in Spotlight) | — |
+| 129 | YNAB: Home tab "command center" (mobile) | built in part | built | `62c3d42d` (`budgetsLeft`, opt-in line on Today) | — |
+| 131 | YNAB: Habit-matching auto-categorisation | built in part | built | `43efefa0` (suggestion on imported entries, `review-inbox.tsx`) | — |
+| 132 | YNAB: Credit card payment auto-match | to build | built | `e5a592fe`, `91ccab36` (account and `transfer` on entries, matched across two files in To review) | — |
+| 133 | YNAB: Credit card interest handling | to build | built | `43efefa0`, `91ccab36` (`excluded`; `lib/money-log/counted.ts` `isCounted` read by every figure) | — |
+| 134 | YNAB: Multi-device sync, offline, widgets, Apple Card import | to build | built | `148e9774` TIER 3 sync, `9388558a` (money section `money` in the extras choice); lane2/rest R3 TIER 3 sync (the money section; deploy is the owner's) | — |
+| 135 | Monarch Money: Flex budgeting | to build | built | `20ff7e1e` (bucket fixed / flexible / non-monthly, "Flexible left") | — |
+| 136 | Monarch Money: Category budgets with rollovers | to build | built | `20ff7e1e` (non-monthly budgets, starting balance, groups) | — |
+| 137 | Monarch Money: Budget page refinements | to build | built | `20ff7e1e` (`budgetCsv`) | — |
+| 138 | Monarch Money: Forecasting | to build | built | `20ff7e1e` (life events in `lib/fi-model/model.ts`, `fi-scenarios.tsx` up to four side by side) | — |
+| 139 | Monarch Money: Reports (Sankey, treemap, mobile) | built in part | built | `43efefa0` (drill-down from a category, bulk recategorise) | — |
+| 140 | Monarch Money: Exclude filters | built in part | built | `43efefa0` (`lib/money-log/search.ts` exclude, payee and tag filters, totals follow) | — |
+| 141 | Monarch Money: Receipt scanning and forwarding | to build | built (part Carried: needs a model) | `e5a592fe` (`lib/money-photos/match.ts`, `several-receipts.tsx`) | Carried part: reading the amount off the photo |
+| 142 | Monarch Money: Transaction review and activity log | to build | built | `e5a592fe` (entry `history`; `lib/bankfiles/reimport.ts` updates a changed OFX/CAMT.053/MT940 row); lane2/rest R8 (a CSV re-import updates a changed row) | — |
+| 143 | Monarch Money: Accounts: sort, notes, net worth range | to build | built | `62c3d42d` (account note and order) | — |
+| 144 | Copilot Money: To Review queue + Copilot Intelligence | built in part | built | `43efefa0` (suggestion per entry in To review, "Use every suggestion") | — |
+| 145 | Copilot Money: Budgets with rollovers | to build | built | `20ff7e1e` (`averageSpent`, "This month only") | — |
+| 147 | Copilot Money: Split transactions (rebuilt on web) | to build | built | `e5a592fe` (`spread` over 2–24 months) | — |
+| 148 | Copilot Money: Running totals: search, filter, multi-select | built in part | built | `43efefa0` (Select, bulk category / tag / leave out) | — |
+| 149 | Copilot Money: Month and Year in Review | built in part | built | `62c3d42d` (`yearRecap` with the bills' total, `year-recap.tsx`) | — |
+| 150 | Copilot Money: Custom alerts | built in part | built | `62c3d42d` (`moneyWakes`, notification type `money`, `public/sw.js`) | — |
+| 151 | Rocket Money: Budgets | built in part | built | `20ff7e1e`, `62c3d42d` (suggested average; near-limit device notice) | — |
+| 152 | Rocket Money: Watchlist | built in part | built | `62c3d42d` (`payeeRows`, NOVA answer `payeesWatched`) | — |
+| 153 | Rocket Money: Challenges | to build | built | `62c3d42d` (`challengeStates`) | — |
+| 154 | Rocket Money: Payday View | built in part | built | `62c3d42d` (`paydayCash`) | — |
+| 155 | Rocket Money: Low-balance alerts | to build | built | `62c3d42d` (`lowBalanceCross`, Today and a notice) | — |
+| 156 | Rocket Money: Transaction tools | to build | built | `43efefa0` (own categories, "Not part of my spending", tax-deductible mark) | — |
+| 157 | Undebt.it: Debt payoff planner (8 methods) | built in part | built | `d8584402` (`lib/debt-planner/more.ts` `methodOrder`: interest, payment, `cashFlowIndex`) | — |
+| 158 | Undebt.it: Compare Payoff Methods | built in part | built | `d8584402` (`trackedProgress`; Today's Money line when behind the kept plan) | — |
+| 159 | Undebt.it: Payment tracking | built in part | built | `d8584402` (`lib/debt-planner/wealth.ts` `owedNow`) | — |
+| 161 | Undebt.it: Redesign: top bar, alerts, dark mode | to build | built | `d8584402` (`components/wealth/debts-summary.tsx`, `debtSummary`) | — |
+| 162 | Undebt.it: Easy Mode landing page | to build | built | `d8584402` (`scheduleCsv`, `debtTrend`) | — |
+| 163 | Undebt.it: Plan.it | built in part | built | `d8584402` (`lib/bills/tracker.ts` `debtMinimumsThisMonth`, `paidEntry`; Mark paid in `bill-tracker.tsx`) | — |
+| 164 | Undebt.it: Pay off by a target date (Plus) | to build | built | `d8584402` (`payoffBy`, `targetChecks`) | — |
+| 165 | Undebt.it: What-if Scenarios (Plus) | to build | built | `d8584402` (`extraFor`: debt-free by a month) | — |
+| 166 | Undebt.it: Debt Restructuring (Plus) | to build | built | `d8584402` (`consolidation`, labelled a model) | — |
+| 167 | Undebt.it: Debt Blaster (Plus) | to build | built | `d8584402` (`stepUp` in `lib/debt-planner/plan.ts:22,122`) | — |
+| 168 | Undebt.it: Bill Tracker (Plus) | built in part | built | `d8584402` (`billHistory`, `setAutopay`, `editBill`) | — |
+| 169 | Undebt.it: Debt details: history, projection, amortization | built in part | built | `d8584402` (`promoRate`/`promoMonths` in `plan.ts:31`, debt note) | — |
+| 170 | Undebt.it: Payoff Snapshots and Progress (Plus) | to build | built | `d8584402` (`paidOffDebts`, paid down this year) | — |
+| 171 | Undebt.it: 52-Week Savings Challenge + printables | to build | built | `d8584402` (Print the plan / the bill tracker, print CSS) | — |
+| 172 | CoinStats: Include in Profit/Loss switch | to build | built | `3d3d15d4` (`lib/portfolio/counted.ts`) | — |
+| 173 | CoinStats: Price, volume and market-cap alerts | built in part | built | `3d3d15d4` (`lib/price-alerts/moves.ts`, 24 h move) | — |
+| 174 | CoinStats: Portfolio Value Alerts | built in part | built | `3d3d15d4` (±% in `portfolio-value-alert.tsx`) | — |
+| 175 | CoinStats: Time Machine | to build | built | `3d3d15d4` (`lib/portfolio/time-machine.ts`, `time-machine.tsx`) | — |
+| 176 | Fabulous: Daily affirmations | to build | built | `a8d84c8f`, `3f0fc85d` (`lib/journal/affirmations.ts`, 28 EN/NL, off by default) | — |
+| 177 | Daylio: PDF export | to build | built | `b633cef3` (`lib/journal/report.ts`, `components/report/report-journal.tsx`, off on every open) | — |
+| 178 | Daylio: Custom moods | to build | built | `27b65d92`, `cd5d60f5`, `c6951071` (`lib/daylio/rule.ts`, `mood-look-editor.tsx`; Year in pixels key and the Journal's week line); lane2/rest R9 (the Year in pixels in your own mood words; NOVA's mood heat card stays Carried: a protected area) | Carried part: NOVA's mood heat card (a protected area) |
+| 179 | Daylio: Activities with icons and groups | to build | built | `27b65d92`, `cd5d60f5` (activities in groups with symbols, `activities.tsx`) | — |
+| 180 | Daylio: Reminders to log | to build | built | `237450bb` TIER 3 PWA, `2d3aac26` (mood reminder opening the question, a second time) | — |
+| 181 | Fabulous: Routine reminder | to build | built | `0c9e219c` (`lib/routines/reminder-href.ts`: opens the player at the next open step) | — |
+| 182 | Fabulous: Complete a habit from the routine card | to build | built | `0c9e219c` (`routine-card-extras.tsx`: a tick per step) | — |
+| 183 | Fabulous: Picture-in-Picture routine progress | to build (part Carried: native-only) | built (part Carried: native-only) | `0c9e219c` (`components/habits/routine-pip.tsx`, Document Picture-in-Picture) | Carried part: Lock Screen Live Activity, Dynamic Island |
+| 184 | Insight Timer: Meditation timer | to build | built | `85f6977e`, `e52ce016` (presets, start/end bells, interval bells, warm-up, open-ended) | — |
+| 185 | Loop Habit Tracker: Custom frequency "x times in y days" | to build | built | `fb4e6700`, `5e8b8f1e` (N times in any M days; streaks, due and missed days) | — |
+| 186 | Insight Timer: Milestones | to build | built | `c8f63e32` (7 in a row, 50 and 100 days) | — |
+| 187 | Loop Habit Tracker: Habit score with its chart | to build | built | `01a40caf` (strength week by week over the year) | — |
+| 188 | Daylio: Activity and mood statistics | to build | built | `27b65d92` (`components/mood-look/tag-stats.tsx`) | — |
+| 189 | Daylio: Scale statistics | to build | built | `7b96f289` (each scale over 30, 90, 365 days) | — |
+| 190 | Loop Habit Tracker: History and frequency charts | to build | built | `01a40caf` (months, quarters, years, weekdays) | — |
+| 191 | Loop Habit Tracker: Pure black dark mode | to build | built | `d2286de9`, `55c8d86a` (Dark style Pure black) | — |
+| 192 | Daylio: Custom fonts | to build | built | `d2286de9`, `55c8d86a` (Serif, Rounded, Monospace) | — (as system font stacks, not self-hosted files as the ledger proposed; nothing fetched) |
+| 193 | Loop Habit Tracker: Automatic backups | to build | built | `40d698ed`, `55c8d86a`, `aa9a30cc` (`lib/backup-folder/*`; `zigoals-backup-folder-v1` in `lib/erase-everything.ts:33`) | — |
+| 194 | Loop Habit Tracker: Imports from other habit apps | to build | built | `9e089c55` (HabitBull and Tickmate, preview and Undo) | — |
+| 197 | Lose It!: Meal names, snacks and meal targets | to build | built | `7e629436`, `d4a4efae` (two extra named diary meals, optional `extraMeals`) | — (a Today pin for an extra meal: against a named rule, stored data additive only) |
+| 198 | Lose It!: Diet plans that flag foods | to build | built | `be300b51`, `da5125a6` (`lib/food-plus/marks.ts` `fitsStyle`) | — |
+| 199 | Yazio: Food ratings | to build | built | `be300b51` (`labelLevels`: UK front-of-pack levels for every food in grams) | — (a Nutri-Score-like letter for generic foods: the owner's open decision, per the ledger note) |
+| 200 | Yazio: Recipes with a cooking mode | to build | built | `8e8e45b4`, `e5c2a049` (`lib/food-plus/steps.ts`, `components/health/food-plus/cook-view.tsx`, Wake Lock) | — |
+| 201 | Strong: Imperial, metric or mixed units | to build | built | `bb92307f`, `09f577ad` (a unit per exercise) | — |
+| 202 | Strong: Assisted and weighted bodyweight exercises | to build | built | `bb92307f` (`lib/workouts/bodyweight.ts`) | — |
+| 203 | Nike Run Club: Shoe tagging | to build | built | `674ac530` (`lib/workouts/shoes.ts`) | — |
+| 204 | Nike Run Club: Achievements for personal records | to build | built | `674ac530` (a beaten run best marked once) | — |
+| 205 | Yazio: Milestones | to build | built | `847ef6d5`, `09f577ad` (opt-in weight milestones, `lib/body-extras/body.ts`) | — |
+| 206 | Strong: Sharing routines and workouts | to build | built | `472654bd` (`lib/workouts/share.ts`, file with preview) | — |
+| 207 | Strong: CSV export with notes | to build | built | `472654bd` (`lib/workouts/csv.ts`), wired in `lib/export/everything.ts:301,436` | — |
+| 208 | Nike Run Club: Training tips | to build | built | `674ac530` (`lib/workouts/run-tips.ts` EN/NL) | — |
+| 209 | Strong: Strong Cloud | to build | built | `148e9774` TIER 3 sync (section `workouts`, under the Health consent); lane2/rest R3 TIER 3 sync (the workouts section under the Health consent; deploy is the owner's) | — |
+| 210 | Yazio: Calculators | to build (part Carried: against a named rule) | built (part Carried: against a named rule) | `847ef6d5` (BMI number only, from a typed height) | Carried part: ideal weight (no medical advice), calories burned (no calorie-burn guessing) |
+| 212 | Goodbudget: Budget period | to build | built | `2bd995a5`, `0c4e060f` (`lib/budgets/periods.ts`: payday month, weekly and two-weekly) | — (lane2-b1 #16 fixed (revb1)) |
+| 213 | Goodbudget: Scheduled Fill from a paycheck | to build | built | `2bd995a5` (paycheck fill offered on income) | — |
+| 214 | Kubera: Any currency, one total | to build (part Carried: needs an outside service) | built (part Carried: needs an outside service) | `f8cbb54c`, `9388a66d` (`lib/wealth-sheet/sheet.ts` one total from typed rates) | Carried part: fetched exchange rates |
+| 215 | Kubera: Sheets and sections | to build | built | `f8cbb54c` (own groups, subtotal per currency) | — |
+| 216 | Goodbudget: Debt accounts linked to an envelope | to build | built | `2bd995a5` (a debt paid from a budget) | — |
+| 217 | Kubera: Mark as stale | to build | built | `f8cbb54c` ("Due for an update" on Wealth and on Today's Money line) | — (on Today's Money line rather than in For you, which the row named) |
+| 218 | Kubera: Link a mortgage to a home | to build | built | `f8cbb54c`, `9388a66d` (mortgage linked to property, equity on its row) | — |
+| 219 | Kubera: Portfolio share % | to build | built | `f8cbb54c`, `9388a66d` (ownership share in Your sheet) | — |
+| 220 | Kubera: IRR of an investment | to build | built | `f8cbb54c` (money in and out, IRR, labelled a result) | — |
+| 221 | Kubera: Documents | to build | built | `f8cbb54c` (`lib/wealth-sheet/docs.ts`; `zigoals-wealth-docs-v1` in `lib/erase-everything.ts:30`, export in `lib/export/make-everything.ts:57`) | — |
+| 222 | Kubera: Fast Forward rules | to build | built | `f8cbb54c` (today's money with an inflation figure, tax rate per income event) | — |
+
+### Totals (181 rows with work)
+
+| new verdict | rows |
+|---|---|
+| built (whole row, or all but a part Carried with an allowed cause) | 180 |
+| built in part (the rest Carried: needs content made for ZIGoals) | 1 (#124) |
+| already have | 0 |
+| Carried (whole row), any cause | 0 |
+| to build (nothing built) | 0 |
+| **all** | **181** |
+
+Rows with no work before lane 2 are unchanged: 24 built, 14 Carried (13 needs content made for ZIGoals, 1 needs an outside service) in #1–#175; 3 Carried (needs content made for ZIGoals) in #176–#222.
+
+Parts Carried inside rows counted above (cause: rows):
+
+| cause | rows |
+|---|---|
+| needs an outside service | #13 (calendar subscription), #24 (writing to an outside calendar), #44 (Strava, Zapier, IFTTT), #63 (weather), #89 (grocery delivery), #214 (fetched rates); also #11 and #31 email reminders (not proposed) |
+| needs a model | #103 (name from a package photo), #104 (cookbook photo), #141 (amount off a receipt photo) |
+| needs content made for ZIGoals | #77 (recorded meditation library) |
+| native-only | #42 (Apple Watch), #83 (wearable sync), #109 (Live Activity), #183 (Live Activity, Dynamic Island) |
+| against a named rule | #62 (frozen readers #37–#57: a second mood a day in `moods`), #95 and #111 (nothing shared between people), #197 (stored data additive only: a Today pin for an extra meal), #210 (no medical advice; no calorie-burn guessing); #41 passkey claimed under ADR-045 "no wallet, signing or key changes" (owner to confirm: the ledger judged it inside the rules) |
+| a protected area | #69 (figures inside NOVA's widgets), #178 (NOVA's mood heat card): both "AR's NOVA composition", ADR-045 |
+| a new dependency / 2 failed attempts | none |
+
+Carried causes re-checked: the sync Worker for #41, #134 and #209 is now built in the repository (lane2/rest R3; its
+deploy is the owner's, OWNER_STEPS.md); #93's CoFID nutrients are built from the public tables at build time, and only
+CIQUAL's further nutrients wait (its download answered HTTP 503: needs an outside service at build time).
+
+### Rows still "built in part": exactly what remains (1)
+
+- **#124 Sleep Cycle: Weekly reports and global benchmarks** — "your usual" from the person's own nights is built; the
+  line against published population averages needs a cited table (population, source, year) that no file in the
+  repository holds: needs content made for ZIGoals (lane2/rest R7 names where it would go).
+
+The other eleven rows of the first check are built: #17, #33, #79, #98, #142, #178 and the sync side of #41, #134,
+#209 (lane2/rest), #93 (CoFID, lane2/rest), #31 (revb1 #1).
+
+No row is left "to build". Round 3 (#256–#299) is below, built as batch 3.
+
+### Also in lane 2 (not COMPETITORS.md rows)
+
+| item | verdict on `lane2/batch2` |
+|---|---|
+| CR-19 Erase names each area | built `8a23eab9` (lane2-b1 #11 fixed (revb1: stores named)) |
+| M-9 goal creator's Continue, counter from 60 | built `c6571ee9` |
+| PK-6 ZIGi's hello in place | built `83873270`, `7d1f5849` |
+| PK-10 chain Help topics hidden | built `4777ff00` (plus batch 2's three Portfolio answers, `2af60036`) |
+| PK-16 Dependabot dev bumps | already have (unchanged) |
+| QUALITY.md's Minors (79 rows in q1–q4; the summary said 74) | 70 fixed, 9 left with a cause (pinned Showcase counts; lane2/minors.md R4); batch 1's review: Blocker and Majors fixed, Minors fixed but #9 (a named rule) and #13 (pinned counts) |
+| CI at the cause: A45-1 | built `a88abeb8`, `145483e9`, `2c61a5f6`, `2d270bd9` |
+| CI at the cause: D36, D-SYNC, zigi-voice-z:199 | on `lane2/ci` (`4eaa7aef`, `0ab98163`, `ec66b42d`, `0387a28a`, `0cc2f962`), merged (`b848d352`); D-SYNC Carried with new diagnostics |
+| 10 more competitors | done `6926408c` (rows #176–#222) |
+| UNFINISHED.md carried rows re-read; BL-10 chess engine | done `421cf71f`; BL-10 built `f46b1391`, `b82ef6e0` |
+| COMPETITORS.md "seen in passing" notes | done: sleep header `d380d0ea`; report header already right at `fbeb3e54` |
+
+
+
 ## Round 3: rows #256–#299 (owner follow-up 4, item 4g; 22 Nov 2026)
 
 
