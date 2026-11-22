@@ -78,4 +78,12 @@ function noteRemindersOn(a: Ask): LocalReply | null {
     ...list.slice(0, 8).map(r => `• ${clean(r.what, 80)}: ${when === 'week' ? `${dayIn(a.lang, r.day, a.today)} ` : ''}${say(a.lang, 'at', 'om')} ${clockIn(a.lang, r.time)}${r.gone ? say(a.lang, ' (gone off)', ' (al geweest)') : ''}`)].join('\n'), calls);
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn];
+/** "how do I print my tasks", "hoe print ik mijn takenlijst" (LEDGER #225, Google Tasks' print). */
+function printList(a: Ask): LocalReply | null {
+  if (!(/\bprint\b|\bprinting\b|\bprinten\b|\bprint ik\b|\buitprinten\b|\bafdrukken\b/.test(a.f) && /\btasks?\b|\bto ?do\b|\btaken(?:lijst)?\b|\blijst\b|\bproject\b/.test(a.f))) return null;
+  const shut = closed(a.env, 'today'); if (shut) return shut;
+  return answer(say(a.lang, 'Open the list in Tasks (a project, Today, Upcoming or any view) and press “Print this list” under it. The sheet has the title, the sections or days, a tick box per task, its day and priority, and subtasks indented; choose Save as PDF in the print window to keep a file.',
+    'Open de lijst in Tasks (een project, Today, Upcoming, elke weergave) en druk eronder op “Print this list”. Het blad heeft de titel, de secties en dagen, een vakje per taak, de dag en prioriteit, en subtaken ingesprongen; kies Opslaan als pdf in het printvenster voor een bestand.'), CALLS);
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn, printList];

@@ -58,3 +58,22 @@ change the line there to change the reminder."
 What's new: "Tasks and the Agenda: reminders written in your notes show on their day."
 Showcase: none (no Showcase note holds a reminder; adding one would change the Notes counts other tests pin).
 Today: nothing new on Today. Weight: Tasks and Agenda first chunks gain one lazy mount each.
+
+## Feature 3 — print a list (LEDGER #225, Google Tasks) — built
+
+- "Print this list" under every list view's tasks (Inbox, Today, Upcoming, All open, a project, a label, a priority, a filter;
+  below the list, so the first task starts where it did — A10-11). It puts a print sheet on the page and opens the
+  browser's print (Save as PDF works there): the view's title, the count and day printed, a project's sections or
+  Upcoming's days as headings, a tick box per task (☐, ☑ when done), its day and time, priority, deadline, minutes and labels,
+  and open subtasks indented (three levels). The sheet is hidden on screen and taken away after printing (`afterprint`, or a
+  minute); focus stays on the button. Print CSS on the page, as the bills print does; nothing is sent anywhere.
+
+Files: lib/tasks/print-list.ts (pure), components/tasks/{tasks-print.tsx, tasks-print.css} (lazy chunk), tasks-page.tsx (the
+button and one lazy mount), tasks.css (two lines for the button).
+Tests: lib/tasks/r2-print.test.ts. Spec: tests/av2-task-print.spec.ts (the browser's print stubbed to read the sheet).
+Stored: nothing.
+Answers: "how do I print my tasks" / "hoe print ik mijn taken".
+Help: Q "Can I print my tasks?" A "Yes. Open the list (a project, Today, Upcoming or any view) and press “Print this list”
+under it. The sheet has tick boxes, days, priorities and subtasks; choose Save as PDF in the print window to keep a file."
+What's new: "Tasks: print any list, with tick boxes and subtasks."
+Showcase: none needed (works on any list). Today: nothing. CSS: components/tasks/tasks-print.css (new), tasks.css (2 lines).

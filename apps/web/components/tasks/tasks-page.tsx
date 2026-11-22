@@ -64,6 +64,8 @@ const PlanDay = lazy(() => import('./plan-day'));
 const PlanViews = lazy(() => import('./tasks-plan-views'));
 // Session AV lane 2 (tasks-r2, LEDGER #224): the reminders written in notes, in Today and Upcoming, their own chunk.
 const NoteReminders = lazy(() => import('./note-reminders-in-tasks'));
+// Session AV lane 2 (tasks-r2, LEDGER #225): "Print this list", the print sheet in its own chunk.
+const TasksPrint = lazy(() => import('./tasks-print'));
 const AREA_KEY = 'zigoals:task-area';
 const PLAN_KINDS = new Set<TaskView['kind']>(['week', 'table', 'days', 'timeline', 'insights', 'organise']);
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
@@ -83,6 +85,8 @@ export function TasksPage() {
   // the bar's; Escape, Clear or "Select" again ends it.
   const [selecting, setSelecting] = useState(false);
   const [focus, setFocus] = useState<Task | null>(null), [showcase, setShowcase] = useState(false), [help, setHelp] = useState(false), [io, setIo] = useState(false);
+  const [printing, setPrinting] = useState(false);
+  const donePrinting = useCallback(() => setPrinting(false), []);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set()), [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set()), [now, setNow] = useState(() => Date.now());
   const focusBox = useRef<HTMLDivElement>(null), addField = useRef<HTMLInputElement>(null), filterField = useRef<HTMLInputElement>(null), asked = useRef(false), lastPick = useRef<string | null>(null), gPressed = useRef(0);
   const projects = useMemo(() => byOrderProjects(record), [record]);
@@ -399,10 +403,13 @@ export function TasksPage() {
           {view.kind === 'today' && !query && (() => { const w = dayLoadWords(viewLoad(shown)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (1c, q1 #39): every task in Today's list, overdue ones too */}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
           {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} clock={clock} shown={shown} change={list.change} doneDay={list.doneDay} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}
           {view.kind === 'today' && !query && record.tasks.some(t => t.doneAt && list.doneDay(t.doneAt) === today) && <p className="fine"><button type="button" className="text-link" onClick={() => go({kind: 'completed'})}>Done today: {formatNumber(record.tasks.filter(t => t.doneAt && list.doneDay(t.doneAt) === today).length)} →</button></p>}
+          {/* Session AV lane 2 (tasks-r2, LEDGER #225): below the list, so the list starts where it did (A10-11). */}
+          {view.kind !== 'completed' && !own && visibleIds.length > 0 && <p className="tasks-print-line"><button type="button" className="text-link" onPointerEnter={() => void import('./tasks-print').catch(() => undefined)} onClick={() => setPrinting(true)}>Print this list</button></p>}
         </section>
       </div>
       <p className="fine tasks-fine">{formatNumber(record.tasks.length)} of {formatNumber(MAX_TASKS)} tasks kept on this device (finished ones count for 30 days). Focus starts a Pomodoro on a task. Press ? for keyboard shortcuts. They are also in Settings › Export everything.</p>
     </>}
+    {printing && <LoadBoundary quiet><Suspense fallback={null}><TasksPrint title={title} record={record} shown={shown} grouping={view.kind === 'project' ? 'section' : view.kind === 'upcoming' ? 'day' : 'none'} projectId={view.kind === 'project' ? view.id : undefined} today={today} onDone={donePrinting} /></Suspense></LoadBoundary>}
     {help && <LoadBoundary quiet><Suspense fallback={null}><TasksShortcuts onClose={() => setHelp(false)} /></Suspense></LoadBoundary>}
   </div>;
 }

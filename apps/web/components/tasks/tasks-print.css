@@ -1,0 +1,15 @@
+/* Session AV lane 2 (tasks-r2, LEDGER #225): "Print this list" — a sheet only the printer sees (as the bills print). */
+.tasks-print-sheet { display: none; }
+@media print {
+  :root.zg-print-tasks body > *:not(.tasks-print-sheet) { display: none !important; }
+  :root.zg-print-tasks, :root.zg-print-tasks body { background: #fff !important; }
+  :root.zg-print-tasks .tasks-print-sheet { display: block; color: #000; background: #fff; font: 12pt/1.4 system-ui, sans-serif; }
+  .tasks-print-sheet h1 { font-size: 18pt; margin: 0 0 4pt; }
+  .tasks-print-sheet h2 { font-size: 13pt; margin: 12pt 0 4pt; border-bottom: 1px solid #999; }
+  .tasks-print-meta { margin: 0 0 10pt; color: #333; font-size: 10pt; }
+  .tasks-print-sheet ul { list-style: none; margin: 0; padding: 0; }
+  .tasks-print-sheet li { display: flex; flex-wrap: wrap; gap: 0 8pt; padding: 3pt 0 3pt calc(var(--print-depth, 0) * 18pt); break-inside: avoid; }
+  .tasks-print-box { font-size: 13pt; line-height: 1; }
+  .tasks-print-title { flex: 1 1 60%; overflow-wrap: anywhere; }
+  .tasks-print-what { flex: 1 1 100%; padding-inline-start: 21pt; color: #333; font-size: 10pt; }
+}
