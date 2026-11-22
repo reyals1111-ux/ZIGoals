@@ -576,6 +576,68 @@ Where a rule of the definition of done does not apply, it says so here.
 >
 > Every other decided row is an owner action or "keep": nothing to build. Leave those rows decided, with no code.
 
+## Owner follow-up 4 (22 Nov 2026, verbatim)
+
+OWNER FOLLOW-UP 4 TO SESSION AV: THE GIANT LEAP (22 Nov 2026, 01:30 Brussels; pre-approved by the owner; no reply needed; continue in auto mode; check the mode selector shows Auto; no questions). Record this verbatim in ADR-045 under "Owner follow-up 4". Where it differs from follow-ups 1–3, it wins.
+
+STOP WAITING. Since about 21:20 UTC you have only waited for CI and pushed notes. That gate is the owner's mistake in follow-up 2, and it ends now.
+
+1. FREEZE PR #108 NOW (one docs commit, then never push to #108 again unless the owner asks).
+ - The app code at #108's head is identical to `d0df34f4`, and run 1999 on `d0df34f4` was green on the first attempt.
+ - Runs 2000 and 2001 failed only on registered intermittents (D-SYNC, D36's signature), on commits that changed docs only.
+ - The owner accepts that as E1. Write in AV_RESUME and the PR description: "Safe to merge now: yes — app code = d0df34f4, CI run 1999 green on the first attempt; runs 2000/2001 red only on registered intermittents (D-SYNC, D36) on docs-only commits; run 2002: <its result>". Do not wait for run 2002 to write it; fill in 2002's result later if it is known by then.
+ - The owner merges and deploys on Sunday.
+
+2. LANE 2 STARTS IMMEDIATELY on `feature/session-av-2`, branched from #108's frozen head.
+ - First commit: LEDGER.md from your scratchpad (138 rows with work left, 17 groups), with every half/missing row of COMPETITORS.md and its verdict or "to build".
+ - Open no PR until the owner has merged #108. Then merge main in with a merge commit and open the Draft PR "Session AV (continued)". Its Part 0 records the merge and the Alpha #58 ids the owner gives you.
+ - Read `.github/workflows/ci.yml`. If a push without a PR starts CI, push at most every 30 minutes; otherwise push after every integrated batch. Local checks gate every push.
+
+3. A REAL TEAM. The owner lifts the helper limit for this follow-up: up to 6 builder helpers at once, plus up to 2 helpers for review or research (8 at once at most).
+ - Every builder works in its own git worktree (isolation: worktree) on a sub-branch, and owns one pillar group from LEDGER.md: Tasks and planning; Journal and notes; Habits and mind; Food; Sleep, workouts and body; Money (budgets, bills, spending, debt, crypto).
+ - Builders write code, unit tests, specs, Help text and Showcase data for their group. They run typecheck, lint and unit tests in their worktree. They never start a production build or a browser run themselves.
+ - Shared files only the integrator (you) edits: `components/help/help-page.tsx`, What's new, the CI shard lists, the theme sheets (`build-themes`), the data catalogue and export/erase/backup registries, the device-key lists, the frozen-reader fixture, the NOVA corpus `expected.json`, and `docs/STATUS.md`. A builder returns a short "registry list" of what to add there.
+ - You integrate each finished group into `feature/session-av-2` with a merge commit, add the registry entries and regenerate the theme sheets. Then you run, in this order: typecheck, lint, the full unit suite, frozen readers #37–#57, ONE production build per batch, route budgets, and the batch's specs plus the touched areas' specs (Playwright at most 2 workers, through the shared lock, one browser run at a time on the machine). Then push.
+ - While a build or a browser run goes, the builders keep building. Nobody waits idle. You never wait on CI to start the next batch.
+
+4. WHAT TO BUILD (nothing here may be skipped for effort, time or "not daily"; the only causes to carry a row are those of follow-up 2's E2):
+ a. Every "to build" row of LEDGER.md, grouped into coherent features as competitors have them (follow-up 2's 2b examples). Make each as deep as the competitor's version, not a minimal stand-in.
+ b. QUALITY.md's 74 open Minors.
+ c. Follow-up 3's lane-2 items: CR-19, M-9, PK-6, PK-10, PK-16 (dev-only bumps, lockfile only, TIER 3 dependencies).
+ d. CI stability at the cause, in its own helper lane, at most 2 attempts each, never weakening an assertion or raising a timeout:
+ - D36: the star's first WebGL setup holding the main thread without a GPU;
+ - D-SYNC: the account-browser stall (TIER 3 sync);
+ - `zigi-voice-z:199`;
+ - A45-1: the account-sync engine (~80 kB) out of every page's first load, so a remembered device still reopens in `remember-device-browser`'s cross-tab step. This gives every page 25+ kB of headroom for this lane's features. TIER 3 sync, with full evidence.
+ e. More competitors: one research helper applies follow-up 2's method (official pages, 2025–2026 release notes, a source URL per row, our own code opened) to 10 more apps: Daylio, Loop Habit Tracker, Fabulous, Yazio, Lose It!, Strong, Nike Run Club, Insight Timer, Goodbudget, Kubera. Their new half/missing rows join COMPETITORS.md and LEDGER.md and get built like the rest.
+ f. Roadmap items with no owner input needed:
+ - re-read every `carried` row in UNFINISHED.md and build what is now possible;
+ - BL-10 chess: a small own engine (no dependency) in a Web Worker loaded only when a game starts, with three levels, the chess route's budget kept and Lichess play unchanged;
+ - the two "seen in passing" notes in COMPETITORS.md (the clinician report's header and the sleep view's "No score").
+ g. When the ledger runs dry, keep going: run the research helper again for the next most-used apps and features, and polish what friends will touch most (Today, Health logging, Habits, Tasks, Wealth → Spending), checked with fresh eyes at 320/390/1440 in three themes.
+
+5. QUALITY BAR, for every feature:
+ - amendment 1's definition of done in full;
+ - a fresh-agent check by a reviewer helper that did not write it, on every batch of about 8 features (follow-up 2's 1c checks), with Blockers and Majors fixed before the next batch is integrated;
+ - findings appended to QUALITY.md;
+ - stored data only additive (TIER 3 labels, frozen readers);
+ - NOVA and ZIGi answer about it in EN and NL where it holds data;
+ - Help and the grouped What's new line;
+ - inside the route budgets, with everything new loading lazily.
+
+6. NO EARLY END. While any LEDGER row is "to build" and usage remains:
+ - never write "complete", a closing table, a final STATUS entry or a report;
+ - if a usage limit pauses you, continue from AV_RESUME after the Sunday 12:00 reset without asking;
+ - keep AV_RESUME current at every batch (done / in progress / next / team assignments).
+ The END (ADR-045 closing table with ledger counts, the STATUS final entry, a ≤ 12-line report) comes only when every row has a verdict, or the owner says "wrap up".
+
+UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudflare; no new runtime dependencies or outside services; no wallet, signing or key changes; protected areas untouched (Today hero and slogan, Checklist orbit path, footer finale, swan intro, shell navigation, AR's NOVA composition, the locked ZIGi look); Motion Off and reduced motion respected; route budgets never raised; at most 2 fix attempts per problem, then Carried with its cause; deliberate test changes labelled, each with an equally strict replacement; merge commits only, never rebase or force-push.
+
+### Follow-up 4 — the freeze (recorded with it)
+
+- PR #108 frozen at this commit. App code at its head = `d0df34f4` (checked: `git diff --stat d0df34f4 HEAD -- apps/web ':!apps/web/playwright.main.shards.ts'` is empty). Since `d0df34f4`: docs, and one TIER 3 (CI) commit `9c24050c` that only repacks the main shard lists (ADR-045 D-CI2002); no test, assertion or app file.
+- Runs: 1999 (`d0df34f4`) green on the first attempt; 2000 (`97d86a8c`, docs) red only on account-browser D-SYNC; 2001 (`fbc0bdd2`, docs) red only on `nova-stage-am2:301` and `l7-fifth-answers:144` (D36's signature: NOVA's opening on a slow runner); 2002 (`41f1f6af`, docs) red only on main shard 2, `nova-stage-am2:301` (D36's signature) on both attempts; 2003 (`35a09f76`, the shard repack) in progress at the freeze.
+
 ## Follow-ups 2 and 3 — decisions and measurements
 
 - **D-FU2-1a (food Worker, TIER 3 Workers, `0dc926b5`).** Cause measured: a slot was reserved on time but its request

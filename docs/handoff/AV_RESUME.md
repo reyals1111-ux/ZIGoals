@@ -8,9 +8,16 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 finish or unwire the current feature, push, get CI green, write "Safe to merge now: yes (CI run N)", push nothing until
 "continue". After PR #108 merges: `feature/session-av-2` from the new main, Draft PR "Session AV (continued)".
 
-**Safe to merge now: no.** Owner follow-ups 2 and 3 (21 Nov, verbatim in ADR-045) reopened AV: E1 two consecutive
-first-attempt green CI runs on #108's head; E2 LEDGER.md (lane 2); E3 fresh-agent quality check of every AV feature,
-all findings fixed (docs/review/session-av/QUALITY.md); E4 closing table, STATUS, report.
+**Safe to merge now: yes — app code = d0df34f4, CI run 1999 green on the first attempt; runs 2000/2001 red only on
+registered intermittents (D-SYNC, D36) on docs-only commits; run 2002: red only on main shard 2, `nova-stage-am2:301`
+(D36's signature) on both attempts, on a docs-only commit.** (Owner follow-up 4, 22 Nov: the owner accepts this as E1.)
+PR #108 is frozen at this commit: nothing more is pushed to it unless the owner asks. Since `d0df34f4` it carries docs
+and one TIER 3 (CI) shard-list repack (`9c24050c`, ADR-045 D-CI2002; run 2003 on it was in progress at the freeze).
+
+**Lane 2 (follow-up 4) is the work now:** branch `feature/session-av-2` from #108's frozen head; LEDGER.md first; up to
+6 builder helpers (one pillar group each, own worktree) and 2 review/research helpers; the lead integrates each group
+with a merge commit, edits the shared registries, builds once per batch and pushes. No PR until the owner merges #108.
+Lane 2's own state is kept in this file's "Lane 2 — state" section on that branch.
 
 ## Follow-ups 2 and 3 — state (keep current)
 - Done: FU2/FU3 recorded; 1a food Worker (`0dc926b5`); 1b fixes (habits-routines, o3, voice hint 44 px, sanne one
