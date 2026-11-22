@@ -14,6 +14,7 @@ import {ML_PER_US_FL_OZ} from './health-units';
  *   entry's id. Every drink still counts as water as you logged it: no hydration factor is applied.
  */
 export const HEALTH_EXTRAS_KEY = 'zigoals:health-extras:v1';
+export const RETURN_NOTE_MAX = 400;
 export const DRINK_TYPES = ['water', 'coffee', 'tea', 'milk', 'juice', 'soft drink', 'other'] as const;
 export type DrinkType = (typeof DRINK_TYPES)[number];
 export type Meal = (typeof HEALTH_MEALS)[number];
@@ -59,6 +60,14 @@ export const healthExtrasSchema = z.looseObject({
   // shows a tip a day (off unless chosen). Optional; a value this build cannot read is dropped on its own.
   ownDrinks: ownDrinksSchema.optional().catch(undefined),
   waterTips: z.boolean().optional().catch(undefined),
+  // Session AV lane 2, round 4 (health; LEDGER #334; TIER 3 (stored format), additive): whether Health's Sleep card shows a
+  // sleep tip a day (off unless chosen). Optional; a value this build cannot read is dropped on its own.
+  sleepTips: z.boolean().optional().catch(undefined),
+  // Session AV lane 2, round 4 (health; LEDGER #329, Noom's Motivation SOS Plan; TIER 3 (stored format), additive): "A note
+  // for a harder week", a few lines the person writes to themselves, shown on Health's food day when they come back after
+  // three or more days without a food log; `closedFor` is the last logged day of the return it was closed on (shown once).
+  // Optional; a value this build cannot read is dropped on its own.
+  returnNote: z.looseObject({text: z.string().trim().min(1).max(RETURN_NOTE_MAX), closedFor: z.iso.date().optional().catch(undefined)}).optional().catch(undefined),
 });
 export type HealthExtras = z.infer<typeof healthExtrasSchema>;
 export const emptyHealthExtras = (): HealthExtras => ({version: 1});

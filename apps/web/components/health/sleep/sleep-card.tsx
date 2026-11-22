@@ -1,6 +1,9 @@
 'use client';
 import Link from 'next/link';
-import {useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
+import {LoadBoundary} from '../../load-boundary';
+// Session AV lane 2, round 4 (health; Pillow, LEDGER #334): a sleep tip a day, off unless chosen; its own chunk.
+const HealthR4 = lazy(() => import('../r4/health-r4'));
 import {asleep, dailySeries, nightDay, runningNights, summary} from '../../../lib/sleep/engine';
 import {formatMinutes} from '../../../lib/zone-time';
 import {formatDate, formatTime} from '../../../lib/visual-format';
@@ -28,6 +31,7 @@ export function SleepCard(layout: LayoutAttrs) {
       <PastDayLine date={day.date} today={day.today}>{dayAsleep ? <>{formatMinutes(dayAsleep.minutes)} asleep that night</> : 'no night logged'} · <Link className="text-link" href={`/app/health?view=sleep&date=${day.date}`}>{dayAsleep ? 'Edit it in Sleep →' : 'Log this night →'}</Link></PastDayLine>
       {!day.past && <SleepTonight store={store} onDone={setNote}/>}
       {note && <p role="status">{note}</p>}
+      {!day.past && <LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="sleep-tip" today={store.today}/></Suspense></LoadBoundary>}
       <Link className="text-link" href="/app/health?view=sleep">Open Sleep →</Link>
     </>}
   </section>;

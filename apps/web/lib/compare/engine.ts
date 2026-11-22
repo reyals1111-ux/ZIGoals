@@ -97,7 +97,7 @@ const FOOD_GAP: Readonly<Record<FoodOutcomeId, number>> = {kcal: 150, protein: 1
 const FOOD_LABELS: Readonly<Record<FoodOutcomeId, string>> = {kcal: 'Calories logged', protein: 'Protein logged (g)', weight: 'Weight (kg)', bp: 'Blood pressure, upper (mmHg)'};
 const isFoodOutcome = (id: string): id is FoodOutcomeId => (FOOD_OUTCOMES as readonly string[]).includes(id);
 export type Lag = 'same' | 'next';
-export type FactorKind = 'habit' | 'sleep-tag' | 'journal-tag' | 'workout' | 'fasting' | 'spend' | 'scale' | 'cycle' | 'dose' | 'symptom';
+export type FactorKind = 'habit' | 'sleep-tag' | 'journal-tag' | 'workout' | 'fasting' | 'spend' | 'scale' | 'cycle' | 'dose' | 'symptom' | 'caffeine' | 'caffeine-late' | 'steps';
 export type FactorOption = {id: string; kind: FactorKind; label: string; group: string};
 export type OutcomeOption = {id: OutcomeId; label: string};
 
@@ -124,6 +124,11 @@ export type CompareSources = {
   numbers?: {entries: readonly {date: string; kind: string; systolic?: number; name?: string; value?: number; unit?: string}[]} | null;
   /** Session AV lane 2 (rest, LEDGER #98): the vitamins and the further nutrients kept beside the diary (as the nutrient report reads them). */
   nutrientRecords?: {vitamins?: HealthVitamins | null; extras?: NutrientExtras | null} | null;
+  /**
+   * Session AV lane 2, round 4 (health; Pillow, LEDGER #332): what each water entry was and the caffeine typed for it
+   * (zigoals:health-extras:v1 `drinks`, keyed by the entry's id), for the caffeine factors.
+   */
+  drinks?: Readonly<Record<string, {type: string; caffeineMg?: number}>> | null;
 };
 
 /** Each outcome's meaningful gap (as the cross-pillar pairings: 0.4 points, 20 minutes, 10 percentage points). */
@@ -180,6 +185,9 @@ export const CONFOUNDERS: Readonly<Record<FactorKind, string>> = {
   cycle: 'other things change across the month as well, such as sleep and plans',
   dose: 'a dose may be taken, or skipped, because of how the day already feels',
   symptom: 'how a day feels can shape both what you notice and the rest of the day',
+  caffeine: 'busy or tiring days can bring both more coffee and a different night',
+  'caffeine-late': 'late coffee often comes with late evenings, which shape the night as well',
+  steps: 'active days are often different days too, such as weekends, trips or days off',
 };
 const MAX_TAGS = 20, MAX_HABITS = 60;
 
@@ -216,6 +224,36 @@ export function spendBasis(src: CompareSources, today: string): {currency: strin
   return {currency, usual: Math.round((sorted[Math.ceil(sorted.length / 2) - 1] ?? 0) / 100)};
 }
 
+const CAFFEINATED = new Set(['coffee', 'tea', 'soft drink']);
+type CaffeineEntry = {mg: number | null; hour: number | null};
+type CaffeineDay = {date: string; entries: CaffeineEntry[]; knownMg: number; unknown: number};
+/**
+ * Session AV lane 2, round 4 (LEDGER #332): each day with a drink logged, its caffeine as typed. A coffee, tea or soft
+ * drink without an amount is unknown (never zero); plain water and the like count as no caffeine. A drink's hour is when
+ * it was logged, and only when it was logged on its own day (one logged afterwards has no known hour).
+ */
+function caffeineDays(src: CompareSources | undefined): CaffeineDay[] {
+  const water = (src?.health as {daily?: {water?: readonly {id: string; date: string; createdAt: string}[]}} | null | undefined)?.daily?.water ?? [];
+  const local = src?.localTime ?? deviceTime, byDay = new Map<string, CaffeineDay>();
+  for (const w of water) {
+    const drink = src?.drinks?.[w.id], mg = drink?.caffeineMg ?? (drink && CAFFEINATED.has(drink.type) ? null : 0);
+    let hour: number | null = null;
+    try { const at = local(w.createdAt); hour = at.date === w.date ? at.hour : null; } catch { hour = null; }
+    const day = byDay.get(w.date) ?? {date: w.date, entries: [], knownMg: 0, unknown: 0};
+    day.entries.push({mg, hour});
+    if (mg === null) day.unknown++; else day.knownMg += mg;
+    byDay.set(w.date, day);
+  }
+  return [...byDay.values()];
+}
+/** The usual amounts the caffeine and steps factors start from: the middle day of the window, rounded. */
+export function dayFactorBasis(src: CompareSources, today: string): {caffeineMg: number | null; steps: number | null; hour: number} {
+  const {start} = compareWindow(today), mid = (v: number[]) => { const s = [...v].sort((a, b) => a - b); return s.length ? s[Math.ceil(s.length / 2) - 1]! : null; };
+  const mg = mid(caffeineDays(src).filter(d => d.date >= start && d.date <= today && d.knownMg > 0).map(d => d.knownMg));
+  const steps = mid([...new Set((src.health?.activity ?? []).filter(a => a.date >= start && a.date < today).map(a => a.date))].map(d => dailyHealthSummary(src.health!, d).steps).filter(n => n > 0));
+  return {caffeineMg: mg === null ? null : Math.max(10, Math.round(mg / 10) * 10), steps: steps === null ? null : Math.max(500, Math.round(steps / 500) * 500), hour: 14};
+}
+
 /** The factors the person's own records can offer, grouped for the picker. */
 export function factorOptions(src: CompareSources, today: string): FactorOption[] {
   const out: FactorOption[] = [], {start} = compareWindow(today);
@@ -230,6 +268,10 @@ export function factorOptions(src: CompareSources, today: string): FactorOption[
   if (src.workouts?.workouts.length) out.push({id: 'workout', kind: 'workout', label: 'Workout day', group: 'Days'});
   if (fastingEnds(src).length) out.push({id: 'fasting', kind: 'fasting', label: 'Fasting day (a fast ended)', group: 'Days'});
   if (spendBasis(src, today)) out.push({id: 'spend', kind: 'spend', label: 'Spending above an amount', group: 'Days'});
+  // Session AV lane 2, round 4 (health; Pillow, LEDGER #332): caffeine that day above an amount, caffeine after a time,
+  // and steps above an amount — the night after is the sleep outcome, under the same rules.
+  if (caffeineDays(src).some(d => d.date >= start && d.knownMg > 0)) out.push({id: 'caffeine', kind: 'caffeine', label: 'Caffeine above an amount', group: 'Days'}, {id: 'caffeine-late', kind: 'caffeine-late', label: 'Caffeine after a time', group: 'Days'});
+  if ((src.health?.activity ?? []).some(a => a.date >= start && a.steps > 0)) out.push({id: 'steps', kind: 'steps', label: 'Steps above an amount', group: 'Days'});
   // Session AK (#12): each of the person's own scales with a rating, as "rated 4 or 5" against "rated 1 to 3".
   for (const sc of src.scales?.scales ?? []) if (Object.values(src.scales!.days).some(d => d[sc.id] !== undefined)) out.push({id: `scale:${sc.id}`, kind: 'scale', label: `Rated “${sc.name}” 4 or 5 (toward “${sc.high}”)`, group: 'Your scales'});
   // Session AK (#16): a day with a period logged (only while the opt-in cycle log is on).
@@ -319,6 +361,27 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
     // Taken on a day is "with"; only skipped marks that day is "without"; a day with no mark is neither (unknown).
     for (const m of src.supplements?.log ?? []) if (m.itemId === arg) byDay.set(m.date, (byDay.get(m.date) ?? false) || m.status === 'taken');
     return {phrase: `On days you took “${item.name}”`, test: d => byDay.get(d) ?? null};
+  }
+  if (kind === 'caffeine' || kind === 'caffeine-late') {
+    const basis = dayFactorBasis(src, today), byDay = new Map(caffeineDays(src).map(d => [d.date, d]));
+    if (kind === 'caffeine') {
+      const limit = amount ?? basis.caffeineMg ?? 200;
+      // Above the amount from what is known is "with"; at or under it with nothing unknown is "without"; else unknown.
+      return {phrase: `On days with over ${formatNumber(limit)} mg of caffeine logged`, test: d => { const day = byDay.get(d); if (!day) return null; return day.knownMg > limit ? true : day.unknown ? null : false; }};
+    }
+    const hour = Math.min(23, Math.max(0, Math.round(amount ?? basis.hour)));
+    // A drink with caffeine logged at or after the hour is "with"; a day whose drinks are all known and none of them is,
+    // "without"; a day with a drink of unknown caffeine or unknown hour that could be one is unknown.
+    return {phrase: `On days with caffeine logged after ${String(hour).padStart(2, '0')}:00`, test: d => {
+      const day = byDay.get(d); if (!day) return null;
+      if (day.entries.some(e => e.hour !== null && e.hour >= hour && e.mg !== null && e.mg > 0)) return true;
+      return day.entries.some(e => (e.mg === null || e.mg > 0) && (e.hour === null || e.hour >= hour)) ? null : false;
+    }};
+  }
+  if (kind === 'steps') {
+    const limit = amount ?? dayFactorBasis(src, today).steps ?? 8000, days = new Set((src.health?.activity ?? []).map(a => a.date));
+    // Only a past day with activity logged counts: a day with nothing logged is unknown, never a day without steps.
+    return {phrase: `On days you walked over ${formatNumber(limit)} steps`, test: d => src.health && d < today && days.has(d) ? dailyHealthSummary(src.health, d).steps > limit : null};
   }
   if (kind === 'spend') {
     const basis = spendBasis(src, today);

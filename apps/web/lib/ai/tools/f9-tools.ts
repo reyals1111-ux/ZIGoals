@@ -1,4 +1,6 @@
 import * as z from 'zod';
+// Session AV lane 2, round 4 (health; LEDGER #330): the person's planned workouts on the agenda (AK source `plannedWorkouts`, the lead's registry step).
+import {agendaPlanned, type PlannedRecord} from '../../workouts/planned';
 import type {DebtPlannerRecord} from '../../debt-planner/store';
 import type {Supplements} from '../../supplements/schema';
 import {dayDoses, supplementSummary} from '../../supplements/log';
@@ -66,7 +68,7 @@ export const supplementsTool: ToolDefinition<{days?: number}> = {
 
 /** The agenda's input from ZIGi's records, each source only where its area is open (meals and workouts behind the Health gate). */
 export function agendaInputOf(env: ToolEnv): AgendaInput {
-  const now = env.now.getTime(), extras = env.showcase ? showcaseAgendaExtras(env.habitDay) : {plannedWorkouts: [], unbonding: env.areas.wealth ? unbondingEvents(env.platform.positions, {now}).map(e => ({id: e.id, date: e.date, title: e.title, href: e.href})) : []};
+  const now = env.now.getTime(), extras = env.showcase ? showcaseAgendaExtras(env.habitDay) : {plannedWorkouts: agendaPlanned((env.ak as {plannedWorkouts?: PlannedRecord | null} | null | undefined)?.plannedWorkouts ?? null, env.ak?.workouts ?? null, env.habitDay), unbonding: env.areas.wealth ? unbondingEvents(env.platform.positions, {now}).map(e => ({id: e.id, date: e.date, title: e.title, href: e.href})) : []};
   return {today: env.habitDay, now, habits: env.areas.habits ? env.habits : null, habitTimes: env.ak?.habitTimes ?? {}, platform: env.areas.goals ? env.platform : null, bills: env.areas.wealth ? env.ak?.bills ?? null : null,
     workouts: env.health ? env.ak?.workouts ?? null : null, plannedWorkouts: env.health ? extras.plannedWorkouts : [], health: env.health, unbonding: env.areas.wealth ? extras.unbonding : [],
     plan: env.ak?.remindersPlan ?? null, weeklyReview: env.weekly};
