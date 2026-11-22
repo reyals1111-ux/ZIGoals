@@ -5,12 +5,12 @@ import {MONEY_LOG, type MoneyEntry} from '../../lib/money-log/schema';
 import type {Account} from '../../lib/accounts/schema';
 import {balanceOn, moneyText} from '../../lib/accounts/net-worth';
 import {isDebtKind} from '../../lib/accounts/schema';
-import {balanceCents, bankAccountNames, difference, lastChecked, markChecked, movement, toCheck} from '../../lib/money-log/reconcile';
+import {accountChecked, balanceCents, bankAccountNames, difference, lastChecked, markChecked, movement, toCheck, undoCheck, withAccountChecked} from '../../lib/money-log/reconcile';
 import {readMoneyAmount} from '../../lib/money-log/form';
 import {addLocalDays} from '../../lib/local-date';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import {moneyCents} from './money-tools/format';
-import {changeWithUndo} from '../ui/remove-with-undo';
+import {showUndo} from '../ui/undo-toast';
 import {CalcHint} from '../money-calc/calc-hint';
 import './spending/money-r4.css';
 
@@ -27,7 +27,8 @@ const signed = (cents: number, currency: string) => `${cents < 0 ? '−' : cents
 export default function Reconcile({account, today}: {account: Account; today: string}) {
   const id = useId(), log = useDeviceRecord(MONEY_LOG), debt = isDebtKind(account.kind), currency = account.currency;
   const [bank, setBank] = useState(''), [through, setThrough] = useState(today), [note, setNote] = useState(''), markButton = useRef<HTMLButtonElement>(null);
-  const last = log.loaded ? lastChecked(log.data.entries, currency, bank) : null;
+  // Review b4f #7: this account's own last statement day (a bank file's account name narrows it further), never another account's.
+  const last = log.loaded ? accountChecked(log.data, account.id) ?? (bank ? lastChecked(log.data.entries, currency, bank) : null) : null;
   const [fromDraft, setFrom] = useState<string | null>(null), from = fromDraft ?? (last ? addLocalDays(last, 1) : addLocalDays(through, -30));
   const before = balanceOn(account, addLocalDays(from, -1));
   const [opening, setOpening] = useState<string | null>(null), [closing, setClosing] = useState('');
@@ -43,8 +44,10 @@ export default function Reconcile({account, today}: {account: Account; today: st
   const mark = () => {
     if (diff !== 0 || !picked.length) { setNote(diff === null ? 'Type the statement’s opening and closing balance first.' : !picked.length ? 'Tick the entries your statement shows first.' : `There is still a difference of ${signed(diff, currency)}. Tick or untick entries until it is zero.`); return; }
     const ids = new Set(picked.map(e => e.id)), n = ids.size;
-    void changeWithUndo(log.update, current => markChecked(current, ids, through), `${formatNumber(n)} ${n === 1 ? 'entry' : 'entries'} checked against your bank for ${formatDate(through)}.`, {undone: 'The checked marks are taken off again.', undoLabel: 'Undo checking against the bank'})
-      .then(() => { setTicked(new Set()); setNote(`${formatNumber(n)} ${n === 1 ? 'entry' : 'entries'} checked against your statement of ${formatDate(through)}. They carry a quiet “checked” mark in Spending.`); requestAnimationFrame(() => markButton.current?.focus()); }, () => setNote('This could not be saved on this device. Nothing was changed.'));
+    const day = through, before = accountChecked(log.data, account.id), said = `${formatNumber(n)} ${n === 1 ? 'entry' : 'entries'} checked against your bank for ${formatDate(day)}.`;
+    try { log.update(current => withAccountChecked(markChecked(current, ids, day), account.id, before && before > day ? before : day)); } catch { setNote('This could not be saved on this device. Nothing was changed.'); return; }
+    showUndo({message: said, undoLabel: 'Undo checking against the bank', undone: 'The checked marks are taken off again.', restore: () => { log.update(current => undoCheck(current, ids, day, account.id, before)); }});
+    setTicked(new Set()); setNote(`${formatNumber(n)} ${n === 1 ? 'entry' : 'entries'} checked against your statement of ${formatDate(day)}. They carry a quiet “checked” mark in Spending.`); requestAnimationFrame(() => markButton.current?.focus());
   };
   const words = debt ? 'owed' : 'balance';
   return <section className="money-reconcile" aria-labelledby={`${id}-t`}>

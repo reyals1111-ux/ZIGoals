@@ -55,3 +55,19 @@ export function balanceCents(raw: string, read: (text: string) => string | null)
   const value = read(rest);
   return value === null ? null : (negative ? -1 : 1) * minorUnits(value);
 }
+/**
+ * Review b4f #7: the last statement day checked is kept per account (the money log's loose `accounts.checked`, by the
+ * accounts record's id), so checking one account never moves where another account's next statement starts.
+ */
+export const accountChecked = (log: Pick<MoneyLog, 'accounts'>, accountId: string): string | null => log.accounts?.checked?.[accountId] ?? null;
+export function withAccountChecked(log: MoneyLog, accountId: string, day: string | null): MoneyLog {
+  const checked = {...log.accounts?.checked};
+  if (day) checked[accountId] = day; else delete checked[accountId];
+  return {...log, accounts: {...log.accounts, checked}};
+}
+/** Undo of one check: the marks of that statement day taken off those entries, and the account's earlier day put back. */
+export function undoCheck(log: MoneyLog, ids: ReadonlySet<string>, day: string, accountId: string, before: string | null): MoneyLog {
+  let next = log;
+  for (const e of log.entries) if (ids.has(e.id) && e.checked === day) next = uncheck(next, e.id);
+  return withAccountChecked(next, accountId, before);
+}

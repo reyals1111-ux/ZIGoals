@@ -59,3 +59,13 @@ describe('a calendar of the month', () => {
     expect(text(renderToStaticMarkup(createElement(MonthCalendarView, {entries: [], today: TODAY})))).toContain('Nothing logged yet.');
   });
 });
+
+describe('review b4f #11: a day holding only a spread share is text, not a button, on a phone too', () => {
+  test('the list under the grid has a button only for a day with entries', () => {
+    const html = renderToStaticMarkup(createElement(MonthCalendarView, {entries: probe, today: TODAY, openDay: () => {}}));
+    const list = html.slice(html.indexOf('class="money-cal-list"'));
+    expect(list).toContain('<span>Thu, Nov 12, 2026: spent €10.00</span>');
+    expect(list).not.toMatch(/<button[^>]*><span>Thu, Nov 12, 2026<\/span>/);
+    expect(list).toMatch(/<button[^>]*><span>Tue, Nov 3, 2026<\/span>/);
+  });
+});

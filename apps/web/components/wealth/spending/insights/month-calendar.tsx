@@ -45,7 +45,8 @@ export default function MonthCalendarView({entries, today, openDay, weekStartsOn
       </table>
       <p className="money-insights-legend" aria-hidden="true"><span><i className="money-cal-key level-1"/>Smaller days</span><span><i className="money-cal-key level-3"/>The larger days</span></p>
       {days.length > 0 && <ul className="money-cal-list" aria-label={`Days with entries in ${title}`}>{days.map(d => <li key={d.date}>
-        {openDay ? <button type="button" className="quiet" onClick={() => open(d)}><span>{formatDate(d.date, {weekday: true})}</span> <span data-private-amount>{d.spent ? `−${money(d.spent, currency)}` : ''}{d.received ? ` +${money(d.received, currency)}` : ''}</span></button>
+        {/* Review b4f #11: a button only for a day with entries of its own (a spread share alone opens nothing). */}
+        {openDay && d.count > 0 ? <button type="button" className="quiet" onClick={() => open(d)}><span>{formatDate(d.date, {weekday: true})}</span> <span data-private-amount>{d.spent ? `−${money(d.spent, currency)}` : ''}{d.received ? ` +${money(d.received, currency)}` : ''}</span></button>
           : <span>{words(d)}</span>}
       </li>)}</ul>}
       {days.length === 0 && <p className="fine">Nothing logged in {currency} in {title}.</p>}

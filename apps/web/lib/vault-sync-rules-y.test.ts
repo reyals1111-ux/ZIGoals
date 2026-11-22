@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {afterEach,beforeEach,expect,test,vi} from 'vitest';
+import {afterEach,beforeAll,beforeEach,expect,test,vi} from 'vitest';
 import {act,createElement} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {activateAccount,clearAccountSession,isAccountLocked} from './account-session';
@@ -42,7 +42,14 @@ beforeEach(async()=>{
 });
 afterEach(async()=>{await act(async()=>root.unmount());clearAccountSession();localStorage.clear();sessionStorage.clear();element.remove();vi.unstubAllGlobals();});
 async function signIn(){await act(async()=>activateAccount(A));await act(async()=>h.access.onAuthenticated(A));await settle();}
-async function open(){await signIn();const input=element.querySelector('input[type=password]')!;await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'fictional');input.dispatchEvent(new Event('input',{bubbles:true}));});await act(async()=>element.querySelector('form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();expect(isAccountLocked()).toBe(false);}
+async function open(){await signIn();const input=element.querySelector('input[type=password]')!;await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'fictional');input.dispatchEvent(new Event('input',{bubbles:true}));});await act(async()=>element.querySelector('form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();expect(isAccountLocked()).toBe(false);await idle();}
+// Session AV lane 2 (test setup timing, deliberate; vault-b4): unlocking starts a sync that loads the extras module
+// (lib/vault/extras-sync) on demand. Its first, cold load took seconds on a loaded machine, so the fixed settle() above
+// ended while that sync still ran, and the panel (one person's action at a time, as designed) ignored the test's next
+// action: whichever test ran first in this file failed. The module is now loaded once before the tests, and open() waits
+// until the panel says it is idle, and asserts so, before a test acts. No assertion below changed.
+beforeAll(async()=>{await import('./vault/extras-sync');},60000);
+async function idle(){for(let i=0;i<250&&h.domain.busy!==false;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,20));});expect(h.domain.busy).toBe(false);}
 
 test('B4: a Health restore completes but leaves Health sync off; the consent box asks, with the reason, and takes the focus',async()=>{
  await open();const calls=h.synchronize.mock.calls.length;

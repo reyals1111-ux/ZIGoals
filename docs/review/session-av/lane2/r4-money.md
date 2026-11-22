@@ -339,3 +339,59 @@ none of round 4's questions. Corpus: `AV2_R4_MONEY` from `apps/web/lib/ai/evals/
     other money amounts; LEDGER's evidence missed it. Round 4 added the split parts. The lead may mark the row "already
     have" with the extension.
 13. **QUALITY Minors**: not taken in this branch (the task named rows #338–#347 only).
+
+## Review B4F fixes (after `7fe1ab19`)
+
+One commit each, unit tests in each. The lead's decision for B4F-2: every figure that shows a month or a day spreads a
+cost over its months exactly as the budgets do. A new shared helper in `lib/money-log/counted.ts` does this:
+`countedDayParts` builds on `budgetDayParts` (and counts income whole on its own day), with `countedBetween`,
+`countedByCategoryBetween` and `countedIn`. So €1,200 spread over 12 months is €100.00 in each of its months
+everywhere, and a period that holds all twelve months still counts €1,200.00, as `totals` does.
+
+| id | verdict | commit | fix | tests |
+|---|---|---|---|---|
+| B4F-1 Blocker | fixed | `9f6dfe66` | A saved search on a category counts only that category's parts of a split entry, in the total, each month, each week and By category (By category then lists only that category). A search on a subcategory counts only the parts in the entry's own category. NOVA's and ZIGi's `savedSearches` answer reads the same chart. | `lib/money-log/revb4f-saved-split.test.ts` |
+| B4F-2 Blocker | fixed, as decided | `46b0ddba` | These now count through the one rule: the 3/6/12-month average, All spending (`totalTrend`), the category lines (`categoryTrend`), Month by month (`cashFlow`), investment income beside spending (`crossover`) and the saved-search charts. The calendar already did. A month reached only by a spread share counts as a month with records, and Month by month lists it. The views' notes each say so in one sentence. | `lib/money-insights/revb4f-spread.test.ts` |
+| B4F-3 Major | fixed | `21b3e835` | Month by month (`cashFlow`) counts each entry by `countedCents`: the person's share of a shared cost, and left-out entries, transfers and refunds not at all. | `lib/money-insights/revb4f-cash-flow.test.ts` |
+| B4F-4 Major | fixed | `ba262481` | Save this search reads the amount range with `parseNumberInput`, as the search does ("1.250,00", "1,250.00", "12,5"), and keeps two decimals. An amount it cannot read (or an ambiguous "1,234", which the search also leaves out) is refused in words, never dropped. | `lib/money-log/revb4f-saved-amount.test.ts` |
+| B4F-5 Minor | fixed | `a637eac3` | "(N entries counted)" counts only the counted entries of the kind charted (spent or received) that add to the figure. | `lib/money-log/revb4f-saved-count.test.ts` |
+| B4F-6 Minor | fixed in `46b0ddba`; test `5211ad61` | — | Investment income beside spending treats a month as recorded only when it has a counted figure (`countedIn`). A month holding only a left-out entry or a transfer reads "No records". | `lib/money-insights/revb4f-crossover-recorded.test.ts` |
+| B4F-7 Minor | fixed | TIER 3 `136f0cd1`, fix `de2634d6` | Check against my bank keeps the last statement day per account, in a new optional `accounts.checked` field on the money log's loose `accounts` record (account id → day, at most 200). An account never checked starts 30 days back. Undo takes the marks off and puts the account's earlier day back. | `lib/money-log/revb4f-reconcile-account.test.ts`; round trip in `lib/av2-money-r4/round-trip.test.ts` |
+| B4F-8 Minor | fixed | `5413097c` | Search → Select → New category leaves archived categories out (`bulkCategoryChoices`). The search's own filter keeps them. | `lib/money-log/revb4f-archive-bulk.test.ts` |
+| B4F-9 Minor | fixed | `1c6094d4` | Remove on a place (with its payees) and Forget on one payee offer Undo (`restorePlace`, `restorePayeeAt`), as Forget places does. | `lib/money-log/revb4f-places-undo.test.ts` |
+| B4F-10 Minor | fixed | `0832d411` | A saved search's bar tooltips name the month, week or category only. The amounts are in the table, which Hide amounts blurs. | added to `lib/money-log/av2-saved-searches.test.ts` |
+| B4F-11 Minor | fixed | `496a3e08` | On a phone, a day under the calendar is a button only when it has entries of its own. A day holding only a spread share is plain text. | added to `lib/money-insights/av2-month-days.test.ts` |
+
+**Stored changes added by these fixes:** `zigoals:money-log:v1` (and `…business`) `accounts.checked`, commit `136f0cd1`. The
+lead labels it TIER 3 (stored formats). The record is already in every registry, so no new key is needed.
+
+**Corpus cases whose answer changes:** none. `pnpm exec vitest run apps/web/lib/ai/evals/as/corpus.test.ts` passes
+unchanged against the recorded expected.json. The Showcase money log holds no shared, spread, split or left-out entry, so
+B4F-2 and B4F-3 move no Showcase figure. NOVA's money card (`lib/nova/cards/money-more.ts`) reads `cashFlow`, and its
+tests pass unchanged. Round 4's own answers are not in the corpus yet (see item 1 above), and none of their test
+expectations changed. expected.json was not re-recorded.
+
+**Registry corrections that follow from these fixes:**
+- R4-F1: the calendar's rule is now the rule of every month figure in "Your money over time".
+- R4-F6: the saved-search figures are `countedBetween` / `countedByCategoryBetween`, limited to the searched category's
+  parts.
+- R4-F7: the average, All spending, the category lines and the crossover spending all spread a cost over its months.
+  Month by month counts the person's share and spreads too.
+
+**Follow-up (the lead's request): Top payees and Compare's spending factor.**
+
+`lane2/batch3` was merged into this branch with a merge commit, `7d8af67d`. After the merge:
+- **Compare's spending factor** (`lib/compare/engine.ts` `expenses`, `spentByDay`) already counts by the shared rule,
+  through lane2/loose-ends: counted entries only, and a shared cost by `mineCents`. It is a figure per day, counted on the
+  day a cost was paid, so no change was needed. The `lib/compare` tests are green.
+- **Top payees** (`topPayees` in `lib/money-insights/cash-flow.ts`) now counts each expense by `countedDayParts`, in its
+  own commit, `5de45379`:
+  - the person's share of a shared cost;
+  - nothing for an entry left out, a transfer or a refund;
+  - a cost spread over months by its share in this month and in last month, a share placed after today not yet counted.
+
+  A month counts as recorded only with a counted figure (`countedIn`). This month's payees add up to `countedBetween`
+  for the month. Test: `lib/money-insights/revb4f-top-payees.test.ts`. NOVA's money card reads `topPayees`; its tests
+  pass unchanged.
+- **Corpus:** `corpus.test.ts` passes unchanged after the merge and this fix, so no corpus case changes. expected.json was
+  not re-recorded.

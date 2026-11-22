@@ -53,3 +53,8 @@ export function unarchiveCategory(log: MoneyLog, kind: Kind, name: string): Mone
 }
 /** How many entries carry a category (as their own or in a part), so "Archive" can say they stay. */
 export const entriesIn = (entries: readonly MoneyEntry[], kind: Kind, name: string) => entries.filter(e => e.kind === kind && (e.category.toLowerCase() === name.toLowerCase() || e.parts?.some(p => p.category?.toLowerCase() === name.toLowerCase()))).length;
+/** Review b4f #8: the categories "New category" offers for several entries at once — the choices and the ones in use, archived ones left out. */
+export function bulkCategoryChoices(choices: readonly string[], used: readonly string[], archived: readonly string[]): string[] {
+  const hidden = new Set(archived.map(c => c.toLowerCase()));
+  return [...new Set([...choices, ...used])].filter(c => !hidden.has(c.toLowerCase()));
+}

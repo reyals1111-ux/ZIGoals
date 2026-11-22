@@ -68,6 +68,8 @@ describe('saved searches with a chart (#344)', () => {
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
     expect(box.querySelector('.money-saved-total')!.textContent).toBe('Café · EUR: spent €30.00 from Sep 2, 2026 to Nov 14, 2026 (3 entries counted), €10.00 a month on average over 3 months.');
     expect(box.querySelector('svg[role="img"]')).not.toBeNull();
+    // Review b4f #10: a bar's tooltip names its month only; its amount is in the table, which Hide amounts blurs.
+    expect([...box.querySelector('svg')!.querySelectorAll('title')].map(t => t.textContent)).toEqual(['Sep 2026', 'Oct 2026', 'Nov 2026']);
     expect([...box.querySelectorAll('tbody tr')].map(r => r.textContent)).toContain('Oct 2026€12.00');
     await act(async () => { again.unmount(); });
   });

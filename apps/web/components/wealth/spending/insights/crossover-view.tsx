@@ -41,7 +41,7 @@ export default function CrossoverView({entries, today, space = 'personal'}: Insi
             : <tr key={m.month} className="money-insights-gap"><th scope="row">{monthName(m.month)}</th><td colSpan={3}>No records</td></tr>)}</tbody>
         </table>
       </div>)}
-      <p className="fine">Your own records and marks, month by month; not a forecast and not advice. The Financial freedom model in Money tools is where a projection lives, labelled as a model.</p>
+      <p className="fine">Your own records and marks, month by month (a cost spread over months counts its share in each month, as your budgets do); not a forecast and not advice. The Financial freedom model in Money tools is where a projection lives, labelled as a model.</p>
     </>}
   </section>;
 }

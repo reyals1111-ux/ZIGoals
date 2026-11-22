@@ -1,7 +1,9 @@
 import {addLocalDays} from '../local-date';
 import {monthKey, shiftMonth} from '../budgets/engine';
-import {byCategory, monthOf, totals, weekOf} from './engine';
+import {monthOf, weekOf} from './engine';
+import {countedBetween, countedByCategoryBetween, countedDayParts, foldName, type CountedFilter} from './counted';
 import {searchEntries, type MoneyQuery} from './search';
+import {parseNumberInput} from '../numbers/parse';
 import type {MoneyEntry} from './schema';
 import {MAX_QUESTIONS, type MoneyMore, type SavedQuestion} from '../money-more/schema';
 
@@ -11,13 +13,23 @@ import {MAX_QUESTIONS, type MoneyMore, type SavedQuestion} from '../money-more/s
  * monthly average. Only the filters are kept (on the money extras record, `questions`), never an entry or an amount
  * found, so the chart always reads the log as it is now. Pure.
  *
- * One figure: what the search finds is summed by Wealth → Spending's own `totals` (a month, a week, the range) and
- * `byCategory` (by category) — left out, transfers and refunds not counted, a shared cost by the person's share — so a
- * saved search of "Groceries" says what Spending says for Groceries.
+ * One figure: what the search finds is summed by the shared rule in lib/money-log/counted.ts (review b4f #2:
+ * `countedBetween` for a month, a week and the range, `countedByCategoryBetween` by category) — left out, transfers and
+ * refunds not counted, a shared cost by the person's share, a spread cost by its share in each of its months.
  */
 export type SearchState = {query: MoneyQuery; min: string; max: string; tag: string};
 const clip = (s: string | undefined, n: number) => { const t = (s ?? '').trim(); return t ? t.slice(0, n) : undefined; };
-const amount = (raw: string) => { const t = raw.trim().replace(',', '.'); return /^\d{1,10}(\.\d{1,2})?$/.test(t) && Number(t) > 0 ? Number(t).toFixed(2) : undefined; };
+/**
+ * Review b4f #4: an amount limit read as the search reads it (`parseNumberInput`: "1.250,00", "1,250.00", "12,50"), kept
+ * as two decimals; empty or zero is no limit. One that cannot be read, or has more than two decimals, is refused in words
+ * (never dropped), so the saved search is the search the person sees.
+ */
+function amount(raw: string, which: 'from' | 'up to'): string | undefined {
+  if (!raw.trim()) return undefined;
+  const r = parseNumberInput(raw);
+  if (!r.ok || !/^\d{1,10}(?:\.\d{1,2})?$/.test(r.text)) throw new Error(`The amount ${which} “${raw.trim()}” cannot be read: type it as a number, for example 50 or 12,50.`);
+  return r.value > 0 ? r.value.toFixed(2) : undefined;
+}
 /** The filters of the search as kept (empty ones left out). */
 export function toQuestion(id: string, name: string, s: SearchState, by?: 'week' | 'category'): SavedQuestion {
   const clean = name.trim().replace(/\s+/g, ' ');
@@ -26,7 +38,7 @@ export function toQuestion(id: string, name: string, s: SearchState, by?: 'week'
   const q = s.query, out: Record<string, unknown> = {id, name: clean,
     text: clip(q.text, 80), not: clip(q.not, 80), payee: clip(q.payee, 80), category: clip(q.category, 40), sub: clip(q.sub, 40),
     kind: q.kind && q.kind !== 'all' ? q.kind : undefined, from: q.from || undefined, to: q.to || undefined,
-    min: amount(s.min), max: amount(s.max), counted: q.counted && q.counted !== 'all' ? q.counted : undefined, tax: q.tax ? true : undefined,
+    min: amount(s.min, 'from'), max: amount(s.max, 'up to'), counted: q.counted && q.counted !== 'all' ? q.counted : undefined, tax: q.tax ? true : undefined,
     paidWith: q.paidWith || undefined, tag: clip(s.tag, 24), by};
   return Object.fromEntries(Object.entries(out).filter(([, v]) => v !== undefined)) as SavedQuestion;
 }
@@ -68,16 +80,21 @@ export function questionChart(found: readonly MoneyEntry[], q: SavedQuestion, to
   const first = found.reduce((m, e) => e.date < m ? e.date : m, found[0]!.date), to = q.to && q.to < today ? q.to : today, from = q.from ?? first;
   const by = q.by ?? 'month', months = Math.max(1, (Number(to.slice(0, 4)) * 12 + Number(to.slice(5, 7))) - (Number(from.slice(0, 4)) * 12 + Number(from.slice(5, 7))) + 1);
   return [...new Set(found.map(e => e.currency))].sort().map(currency => {
-    const mine = found.filter(e => e.currency === currency), pick = (t: ReturnType<typeof totals>) => { const r = t.find(x => x.currency === currency); return r ? (figure === 'spent' ? r.expenses : r.income) : 0; };
-    const sum = totals(mine, from, to), total = pick(sum), count = sum.find(x => x.currency === currency)?.count ?? 0;
+    // Review b4f #2: every bar, the total and the average count as the budgets do (`countedBetween`), a spread cost by its share in each month.
+    // Review b4f #1: a search on a category counts only the parts in that category (a split entry adds just its part there, as
+    // This month by category does); on a subcategory, only the parts in the entry's own category.
+    const only: CountedFilter['only'] = q.category ? (_e, p) => foldName(p.category) === foldName(q.category!) : q.sub ? (e, p) => foldName(p.category) === foldName(e.category) : undefined;
+    const mine = found.filter(e => e.currency === currency), sum = (a: string, b: string) => countedBetween(mine, a, b, {kind, currency, ...(only ? {only} : {})}).get(currency) ?? 0;
+    // Review b4f #5: "N entries counted" counts only the counted entries of the kind charted (spent or received) that add to it.
+    const total = sum(from, to), count = mine.filter(e => e.kind === kind && countedDayParts(e).some(d => d.date >= from && d.date <= to && d.parts.some(p => p.cents > 0 && (!only || only(e, p))))).length;
     let bars: Bar[];
-    if (by === 'category') bars = byCategory(mine, from, to, kind).filter(r => r.currency === currency).map(r => ({key: r.category, label: r.category, cents: r.total}));
+    if (by === 'category') bars = countedByCategoryBetween(mine, from, to, kind, only).filter(r => r.currency === currency).map(r => ({key: r.category, label: r.category, cents: r.total}));
     else if (by === 'week') {
       bars = [];
-      for (let w = weekOf(to, weekStartsOn).start; w >= weekOf(from, weekStartsOn).start && bars.length < MAX_WEEKS; w = addLocalDays(w, -7)) bars.unshift({key: w, label: w, cents: pick(totals(mine, w < from ? from : w, addLocalDays(w, 6) > to ? to : addLocalDays(w, 6)))});
+      for (let w = weekOf(to, weekStartsOn).start; w >= weekOf(from, weekStartsOn).start && bars.length < MAX_WEEKS; w = addLocalDays(w, -7)) bars.unshift({key: w, label: w, cents: sum(w < from ? from : w, addLocalDays(w, 6) > to ? to : addLocalDays(w, 6))});
     } else {
       bars = [];
-      for (let m = monthKey(to); m >= monthKey(from) && bars.length < MAX_MONTHS; m = shiftMonth(m, -1)) { const r = monthOf(`${m}-01`); bars.unshift({key: m, label: m, cents: pick(totals(mine, r.start < from ? from : r.start, r.end > to ? to : r.end))}); }
+      for (let m = monthKey(to); m >= monthKey(from) && bars.length < MAX_MONTHS; m = shiftMonth(m, -1)) { const r = monthOf(`${m}-01`); bars.unshift({key: m, label: m, cents: sum(r.start < from ? from : r.start, r.end > to ? to : r.end)}); }
     }
     return {currency, figure, from, to, by, bars, total, months, monthly: Math.round(total / months), count};
   });

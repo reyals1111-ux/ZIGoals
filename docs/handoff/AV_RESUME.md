@@ -26,21 +26,21 @@ Lane 2's own state is kept in this file's "Lane 2 — state" section on that bra
   every page but Settings 13–36 kB lighter; all 16 sync browser files green except `sign-in-codes-browser`, 2 of 2 alone,
   1 red in a full loaded run — watch it); CR-19 (`8a23eab9`); ten more competitors in COMPETITORS.md and LEDGER.md
   #176–#222 (`6926408c`).
-- Batch 1 (tasks, habits, journal, roadmap, CR-19, A45-1) with its fixes (fixb1, revb1, pk10, ci, fixb1b) is pushed:
-  `a3402096`; its specs 80/80 on that build (plus 411 earlier); route weights all inside (Settings 523.6/531).
-- Batch 2 (local `lane2/batch2`, worktree /home/user/zg-b2): money, body, food, food2, habits2, habits3, sync, rest,
-  round 2 (tasks-r2, money-r2, bodymind-r2), restore-media (#18), minors (70 of 79 Minors; 9 left: pinned Showcase
-  counts), revb2b merged; unit suite green except pre-run11-setup (sandbox pnpm version; fails on #108's head too);
-  What's new: one grouped line per area (av2-new-*). Review (quality/lane2-b2.md): 2 Blockers, 7 Majors, 9 Minors —
-  B2B all fixed; B2A on `lane2/revb2a` (running). First build of batch 2 and its specs running; after revb2a and
-  nl-days (Dutch dates in answers, hide-figures in Export) merge: corpus, one build, specs, push.
-- Batch 3 = round 3 (LEDGER #256–#299, COMPETITORS "round 3"): r3-plan, r3-money, r3-health built (local branches);
-  r3-notes building; review b3a (1 Blocker, 4 Majors) being fixed by r3-money and r3-plan; review b3b (r3-health) running.
-  Also: loose-ends (Compare spending factor, tag totals, alert money, NOVA Dutch captions, task photo count), fixb2
-  (batch 2 specs), polish review.
+- Pushed: batch 1 (`a3402096`) and batch 2 (`23100b66`: money, body, food, habits and mind part 2, sync, ledger
+  remainders, round 2, Minors 70 of 79, restore-media, Dutch dates, loose ends; reviews b2a/b2b fixed; 572 of 574 specs —
+  av2-backup-folder needs CI's real Chrome; unit green apart from load timeouts; frozen readers 21 of 21; weights inside).
+- Batch 3 (local `lane2/batch3`, /home/user/zg-b3): round 3 (LEDGER #256–#299: r3-plan, r3-money, r3-health, r3-notes),
+  reviews b3a/b3b/b3c fixed (revb3c merged), vault-b4 (test timing). First spec run on ed2a00d6: 126 passed, 66 failed
+  (12 tests) → lane2/fixb3 fixing; then rebuild, rerun, push.
+- Batch 4 (local `lane2/batch4`, /home/user/zg-b4): round 4 (LEDGER #300–#347: r4-plan, r4-mind, r4-health, r4-money,
+  r4-notes) wired with registries, corpus, Help; reviews b4d/b4e fixed, b4f (money: 2 Blockers) on lane2/r4-money, b4g
+  (notes) running. Polish (polish.md: 6 Majors, 34 Minors) on lane2/polish.
+- For the final STATUS entry: r4-mind's rollback limit (an older build's 30-day media sweep does not know photos 5–12,
+  registry "Rollback limit"); the stored-format list per batch from the registries.
 - Owner items from lane 2: the private-sync Worker deploy (OWNER_STEPS.md); the visit report's two symptom charts;
   #245 automatic recording; #41 passkey; a bundled reading font (#263); the Showcase examples the Minors left; Health →
-  Activity's older "About N kcal used — an estimate" for manual activities (against "no calorie expenditure is estimated"?).
+  Activity's older "About N kcal used — an estimate" for manual activities (against "no calorie expenditure is estimated"?); the
+  Showcase's maintenance estimate needs 10 weigh-ins (it has 7).
 - Scripts (scratchpad): batch.sh (typecheck + build of HEAD in zg-wt; then start :3101 as its own background task),
   add_help.py (Help + static.ts), extract_help.py (Q/A from a registry), add_shards.sh (new specs to the suggested shard).
 
