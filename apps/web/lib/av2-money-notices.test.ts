@@ -84,7 +84,8 @@ describe('device notices (no new stored state)', () => {
     expect(moneyWakes({entries: log, budgets: r, rows, today: '2026-11-15'}).filter(w => w.id.startsWith('money:near'))).toEqual([]);
     const plan = (labels: boolean) => buildPlan({now: Date.parse('2026-11-14T06:00:00Z'), zone: 'UTC', prefs: emptyNotifyPrefs(), quiet: {from: '22:00', to: '07:00'}, labels, habits: [], contributions: [], bills: [], orbit: {done: 0, total: 0}, prices: [], money: wakes.map(w => ({id: w.id, date: w.date, title: w.title, ...(w.detail ? {detail: w.detail} : {})}))});
     const named = plan(true).snapshot.items.filter(i => i.kind === 'money');
-    expect(named[0]).toMatchObject({label: 'Groceries is near its limit', detail: 'EUR 15.00 left'});
+    // Session AV lane 2 (review b2a #7: money through the app's formatter, "€15.00", not "EUR 15.00", deliberate)
+    expect(named[0]).toMatchObject({label: 'Groceries is near its limit', detail: '€15.00 left'});
     expect(plan(false).snapshot.items.filter(i => i.kind === 'money').every(i => i.label === undefined && i.detail === undefined)).toBe(true);
     expect(plan(false).registration.once.length).toBeGreaterThan(0);
   });

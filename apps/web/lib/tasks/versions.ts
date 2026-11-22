@@ -5,7 +5,8 @@ import type {Task} from './schema';
  * Session AV lane 2 (rest, LEDGER #33; Notion's version history, for a task as the notes and journal have it): each save
  * that changes a task's title or notes keeps what it replaced as an earlier version, in this device's planning record
  * (`zigoals:task-plan:v1` → `versions`, newest last; never synced): at most 10 per task, 300 in all and 200,000
- * characters together (the oldest go first), none for a task that is gone. A version already holding the same words is
+ * characters together (the oldest go first), none for a task that is gone (removing a task removes its versions, and its
+ * Undo puts them back: `dropTaskVersions`). A version already holding the same words is
  * not doubled. A version can be read, restored (through the task's own Save, which keeps the words it replaces), deleted,
  * or all of a task's earlier versions deleted. Pure.
  */
@@ -44,6 +45,17 @@ export function deleteTaskVersion(plan: TaskPlan, versionId: string): {plan: Tas
 export function deleteTaskVersions(plan: TaskPlan, taskId: string): {plan: TaskPlan; removed: TaskVersion[]} {
   const removed = (plan.versions ?? []).filter(v => v.taskId === taskId);
   return {plan: removed.length ? taskPlanSchema.parse({...plan, versions: (plan.versions ?? []).filter(v => v.taskId !== taskId)}) : plan, removed};
+}
+/**
+ * Review b2a #5 (privacy): the earlier versions of tasks being removed (a task and its subtasks) go with them; returns
+ * them, so the removal's Undo puts them back (`putBackTaskVersions`). The same plan when there are none.
+ */
+export function dropTaskVersions(plan: TaskPlan, taskIds: ReadonlySet<string>): {plan: TaskPlan; removed: TaskVersion[]} {
+  const removed = (plan.versions ?? []).filter(v => taskIds.has(v.taskId));
+  if (!removed.length) return {plan, removed};
+  const kept = (plan.versions ?? []).filter(v => !taskIds.has(v.taskId)), next: Record<string, unknown> = {...plan};
+  if (kept.length) next.versions = kept; else delete next.versions;
+  return {plan: taskPlanSchema.parse(next), removed};
 }
 /** Undo of a deletion: the versions back in their order (by saved time), within the caps. */
 export function putBackTaskVersions(plan: TaskPlan, versions: readonly TaskVersion[]): TaskPlan {

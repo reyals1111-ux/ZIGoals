@@ -60,6 +60,15 @@ export async function putDoc(scope: string, doc: WealthDoc): Promise<void> {
   await run('readwrite', s => s.put(value, docKey(scope, value.accountId, value.docId)));
 }
 export async function deleteDoc(scope: string, accountId: string, docId: string): Promise<void> { await run('readwrite', s => s.delete(docKey(scope, accountId, docId))); }
+/**
+ * Review b2a #4 (privacy): deletes every document of one scope (the Showcase's, when a Showcase starts or ends:
+ * lib/showcase-storage.ts `clearShowcasePhotos`); every other scope's documents stay. Returns how many were deleted.
+ */
+export async function deleteWealthDocs(scope: string): Promise<number> {
+  const keys = await docKeys(scope);
+  if (keys.length) await run('readwrite', s => { for (const k of keys) s.delete(`${scope}:${k}`); });
+  return keys.length;
+}
 /** The file name inside Export everything: the account id, the document's name made safe for a path. */
 export const docFileName = (d: Pick<WealthDoc, 'accountId' | 'docId' | 'name' | 'type'>) => `wealth-docs/${d.accountId}/${d.docId}-${d.name.replace(/\.[A-Za-z0-9]{1,5}$/, '').replace(/[^A-Za-z0-9_-]+/g, '_').slice(0, 60) || 'document'}.${d.type === 'application/pdf' ? 'pdf' : d.type === 'image/jpeg' ? 'jpg' : 'webp'}`;
 /** Every kept document of this scope as a ZIP entry for Export everything (the lead adds it beside the money photos). */

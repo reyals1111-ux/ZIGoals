@@ -1,3 +1,4 @@
+// Session AV lane 2 (review b2a #7: a repeating project is named with its day as the app writes days, "Nov 23, 2026", deliberate)
 import {expect, test} from '@playwright/test';
 import {axe, THEMES, applyTheme, offline, settle} from './p6-helpers';
 import {addRepeat} from '../lib/tasks/repeat-projects';
@@ -26,10 +27,10 @@ for (const theme of THEMES) test(`${theme}: a repeating project comes round on o
   await page.evaluate(v => { localStorage.setItem('zigoals:task-templates:v1', v); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, JSON.stringify(seeded));
   await page.goto('/app/tasks?view=today'); await settle(page);
   // This week's project, made once, its tasks due on its first day.
-  await expect.poll(async () => (await tasks(page)).projects?.map(p => p.name)).toEqual(['Fictional reset · 2026-11-23']);
+  await expect.poll(async () => (await tasks(page)).projects?.map(p => p.name)).toEqual(['Fictional reset · Nov 23, 2026']);
   const made = await tasks(page);
   expect(made.tasks.filter(t => t.projectId === made.projects![0]!.id).map(t => t.title)).toEqual(reset.items.map(i => i.title));
-  await expect(page.getByText('Made “Fictional reset · 2026-11-23”: it comes round every week.')).toBeVisible();
+  await expect(page.getByText('Made “Fictional reset · Nov 23, 2026”: it comes round every week.')).toBeVisible();
   await expect.poll(async () => (await templates(page)).repeats?.[0]?.lastMade).toBe('2026-11-23');
   // Opened again: nothing new.
   await page.reload(); await settle(page);
@@ -43,7 +44,7 @@ for (const theme of THEMES) test(`${theme}: a repeating project comes round on o
   await page.getByRole('textbox', {name: 'Project name'}).fill('Fictional city trip');
   await page.getByRole('combobox', {name: 'Repeats'}).selectOption({label: 'Every month'});
   await page.getByRole('button', {name: 'Make it and repeat'}).click();
-  await expect.poll(async () => (await tasks(page)).projects?.map(p => p.name)).toContain('Fictional city trip · 2026-11-23');
+  await expect.poll(async () => (await tasks(page)).projects?.map(p => p.name)).toContain('Fictional city trip · Nov 23, 2026');
   await expect.poll(async () => (await templates(page)).repeats?.map(r => `${r.name}:${r.every}`)).toEqual(['Fictional reset:week', 'Fictional city trip:month']);
   await expect(list).toContainText('every month · next on 2026-12-23');
   await clean(page);
@@ -54,7 +55,7 @@ for (const theme of THEMES) test(`${theme}: a repeating project comes round on o
   await list.getByRole('button', {name: 'Stop repeating “Fictional city trip”'}).click();
   await expect.poll(async () => (await templates(page)).repeats?.length).toBe(1);
   // Its project stays; Undo brings the repeat back.
-  expect((await tasks(page)).projects?.map(p => p.name)).toContain('Fictional city trip · 2026-11-23');
+  expect((await tasks(page)).projects?.map(p => p.name)).toContain('Fictional city trip · Nov 23, 2026');
   await page.getByRole('button', {name: /^Undo/}).first().click();
   await expect.poll(async () => (await templates(page)).repeats?.length).toBe(2);
   await clean(page);

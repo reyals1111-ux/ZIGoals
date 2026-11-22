@@ -14,7 +14,7 @@ import {accountValueNow, equityOf, irr, oneTotal, shareTotals, staleAccounts} fr
 import type {MoneyEntry} from '../../money-log/schema';
 import {summarizeSelection} from '../../money-log/selection';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, closed, count, isQuestion, list, MIXED, money, say, type Asked} from './av-words';
+import {answer, asked, closed, count, isQuestion, list, MIXED, moneyIn, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 import {challengeOf} from '../../habits-v2/challenge';
 
@@ -27,11 +27,18 @@ import {challengeOf} from '../../habits-v2/challenge';
 export function av2MoneyAnswer(question: string, env: ToolEnv): LocalReply | null {
   try {
     const a = asked(question, env);
+    answerLang = a?.lang ?? 'en';
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:will|would|zakt|komt|gaat|zal|lig|loop)\b/.test(a.f))) return null;
     for (const one of ANSWERS) { const r = one(a); if (r) return r; }
     return null;
-  } catch { return null; }
+  } catch { return null; } finally { answerLang = 'en'; }
 }
+/**
+ * Review b2a #6: the language of the answer being written, for its money (`moneyIn`): set for the one synchronous pass
+ * above, so a Dutch answer writes "€ 40,00" and an English one the display format.
+ */
+let answerLang: 'en' | 'nl' = 'en';
+const money = (amountCents: number, currency: string) => moneyIn(answerLang, amountCents, currency);
 type Answer = (a: Asked) => LocalReply | null;
 const ANSWERS: Answer[] = [];
 /** Each feature adds its answers here, in the order they are asked. */

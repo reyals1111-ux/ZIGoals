@@ -1,4 +1,5 @@
 import {addLocalDays} from '../local-date';
+import {formatDate} from '../visual-format';
 import {PROJECT_NAME_MAX, type Tasks} from './schema';
 import {MAX_REPEATS, applyTemplate, taskTemplatesSchema, type ProjectRepeat, type RepeatEvery, type TaskTemplates, type TemplateItem} from './templates';
 
@@ -6,7 +7,7 @@ import {MAX_REPEATS, applyTemplate, taskTemplatesSchema, type ProjectRepeat, typ
  * Session AV lane 2 (rest, LEDGER #17; Things' repeating projects): a project made from a template comes round by itself,
  * every week or month from its first day, or every few days. The project for the current period is made when Tasks
  * opens (one per period; never for periods missed while it was closed; never twice: `lastMade`), named with the period's
- * first day ("Weekly reset · 2026-11-30") and with its days counted from that day. Modelled on the repeating notes
+ * first day ("Weekly reset · Nov 30, 2026") and with its days counted from that day. Modelled on the repeating notes
  * (lib/notes/schedules.ts). Pure: records in, records out.
  */
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -38,8 +39,13 @@ export function repeatWords(r: Pick<ProjectRepeat, 'every' | 'days'>, lang: 'en'
   if (r.every === 'month') return lang === 'nl' ? 'elke maand' : 'every month';
   return lang === 'nl' ? `elke ${stepOf(r)} dagen` : `every ${stepOf(r)} days`;
 }
-/** The project's name for a period: the repeat's name and the period's first day (within the project name limit). */
-export const repeatProjectName = (r: Pick<ProjectRepeat, 'name'>, period: string) => `${r.name.trim().slice(0, PROJECT_NAME_MAX - 18)} · ${period}`;
+/**
+ * The project's name for a period: the repeat's name and the period's first day, as the app writes days ("Weekly reset ·
+ * Nov 30, 2026"; review b2a #7), within the project name limit. `legacyRepeatName` is the name older builds gave it
+ * ("Weekly reset · 2026-11-30"), so a project made by one is never made twice.
+ */
+export const repeatProjectName = (r: Pick<ProjectRepeat, 'name'>, period: string) => { const day = formatDate(period).slice(0, 24); return `${r.name.trim().slice(0, PROJECT_NAME_MAX - 8 - day.length)} · ${day}`; }; // at most 55, as before
+const legacyRepeatName = (r: Pick<ProjectRepeat, 'name'>, period: string) => `${r.name.trim().slice(0, PROJECT_NAME_MAX - 18)} · ${period}`;
 export const repeatsOf = (record: Pick<TaskTemplates, 'repeats'>): ProjectRepeat[] => record.repeats ?? [];
 /** The repeats whose project for the current period is still to be made. */
 export const dueRepeats = (record: Pick<TaskTemplates, 'repeats'>, today: string) => repeatsOf(record).filter(r => {
@@ -82,8 +88,8 @@ export function runRepeats(tasks: Tasks, templates: TaskTemplates, {today, at, i
   if (!due.length) return {tasks, templates, made: []};
   let next = tasks; const made: {repeat: ProjectRepeat; projectId: string; name: string}[] = [];
   for (const r of due) {
-    const period = repeatPeriod(r, today)!, name = repeatProjectName(r, period);
-    if ((next.projects ?? []).some(p => p.name.toLowerCase() === name.toLowerCase())) continue;
+    const period = repeatPeriod(r, today)!, name = repeatProjectName(r, period), names = new Set([name, legacyRepeatName(r, period)].map(x => x.toLowerCase()));
+    if ((next.projects ?? []).some(p => names.has(p.name.toLowerCase()))) continue;
     const out = applyTemplate(next, {name: r.name, items: r.items}, {name, start: period, today, at, ids});
     next = out.record; made.push({repeat: r, projectId: out.projectId, name});
   }

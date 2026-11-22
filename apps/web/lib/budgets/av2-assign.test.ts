@@ -21,7 +21,9 @@ describe('target types and Underfunded (YNAB)', () => {
     expect(weeksIn('2026-11')).toBe(5); expect(weeksIn('2026-12')).toBe(4);
     const r = rec([{...g, need: {kind: 'weekly', amount: '70.00'}}, {...d, need: {kind: 'monthly', amount: '120.00'}}, {id: 'i', category: 'Insurance', currency: 'EUR', monthly: '50.00', rollover: true, since: '2026-11', need: {kind: 'yearly', amount: '600.00', month: '2027-03'}}]);
     const v = assignView([], r, '2026-11', TODAY), row = (id: string) => v.rows.find(x => x.id === id)!;
-    expect(row('g').need).toEqual({cents: 35000, words: '70.00 a week × 5 weeks'});
+    // Session AV lane 2 (review b2a #7: the words carry the money through the app's formatter, deliberate)
+    expect(row('g').need).toEqual({cents: 35000, words: '€70.00 a week × 5 weeks'});
+    expect(row('i').need!.words).toBe('€600.00 by Mar 2027, 5 months left');
     expect(row('g').underfunded).toBe(5000);
     expect(row('d').underfunded).toBe(2000);
     expect(row('i').need!.cents).toBe(12000); // 600 over November to March (5 months)

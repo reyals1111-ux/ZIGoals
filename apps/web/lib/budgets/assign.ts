@@ -1,8 +1,8 @@
 import {csvSafeCell} from '../export/csv-safe';
-import {isCounted} from '../money-log/counted';
+import {isCounted, mineParts} from '../money-log/counted';
 import {cents, fromCents} from '../money-log/engine';
+import {formatCurrencyAmount, formatMonth} from '../visual-format';
 import type {MoneyEntry} from '../money-log/schema';
-import {entryParts} from '../money-split/parts';
 import {budgetedIn, monthView, shiftMonth, type BudgetRow} from './engine';
 import {MAX_MOVES, budgetsSchema, type Budget, type BudgetsRecord} from './schema';
 
@@ -29,17 +29,18 @@ export type Need = {cents: number; words: string};
 /** What this budget needs in `month` by its own target, or null without one (or snoozed). */
 export function neededIn(b: Budget, row: Pick<BudgetRow, 'carried' | 'target'>, month: string): Need | null {
   if (b.snoozed === month) return null;
-  const n = b.need;
-  if (n?.kind === 'weekly') { const w = weeksIn(month); return {cents: cents(n.amount) * w, words: `${fromCents(cents(n.amount))} a week × ${w} weeks`}; }
-  if (n?.kind === 'monthly') return {cents: cents(n.amount), words: `${fromCents(cents(n.amount))} a month`};
+  // Review b2a #7: the words carry the budget's money and month through the app's formatters ("€70.00 a week", "Mar 2027").
+  const n = b.need, cash = (c: number) => formatCurrencyAmount(fromCents(c), b.currency);
+  if (n?.kind === 'weekly') { const w = weeksIn(month); return {cents: cents(n.amount) * w, words: `${cash(cents(n.amount))} a week × ${w} weeks`}; }
+  if (n?.kind === 'monthly') return {cents: cents(n.amount), words: `${cash(cents(n.amount))} a month`};
   if (n?.kind === 'yearly') {
     // The next due month on or after this one (the same month each year).
     const dueMonth = n.month ? n.month.slice(5, 7) : '12';
     let due = `${month.slice(0, 4)}-${dueMonth}`; if (due < month) due = `${Number(month.slice(0, 4)) + 1}-${dueMonth}`;
     const left = monthsBetween(month, due) + 1, toGo = Math.max(0, cents(n.amount) - Math.max(0, row.carried));
-    return {cents: Math.ceil(toGo / left), words: `${fromCents(cents(n.amount))} by ${due}, ${left} ${left === 1 ? 'month' : 'months'} left`};
+    return {cents: Math.ceil(toGo / left), words: `${cash(cents(n.amount))} by ${formatMonth(due)}, ${left} ${left === 1 ? 'month' : 'months'} left`};
   }
-  if (row.target && (row.target.state === 'short' || row.target.state === 'on-track')) return {cents: row.target.perMonth, words: `towards ${fromCents(row.target.amount)} by ${row.target.by}`};
+  if (row.target && (row.target.state === 'short' || row.target.state === 'on-track')) return {cents: row.target.perMonth, words: `towards ${cash(row.target.amount)} by ${formatMonth(row.target.by)}`};
   return null;
 }
 export type AssignRow = BudgetRow & {need: Need | null; underfunded: number; group: string | null; bucket: 'fixed' | 'flexible' | 'non-monthly'; own: boolean; snoozed: boolean; period?: {every: number; amount: number}};
@@ -62,7 +63,7 @@ export function averageSpent(entries: readonly MoneyEntry[], category: string, c
     const m = e.date.slice(0, 7);
     if (e.kind !== 'expense' || e.currency !== currency || !isCounted(e) || m < from || m >= month) continue;
     seen.add(m);
-    for (const p of entryParts(e)) if (p.category.toLowerCase() === name) total += p.cents;
+    for (const p of mineParts(e)) if (p.category.toLowerCase() === name) total += p.cents; // Review b2a #3: own share
   }
   const logged = [...seen].length;
   if (!logged) return null;

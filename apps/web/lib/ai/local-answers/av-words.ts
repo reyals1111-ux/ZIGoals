@@ -51,6 +51,11 @@ export const monthIn = (lang: Lang, month: string) => lang === 'nl' ? `${MONTH_N
 /** A wall clock ("18:30") in the answer's language: the app's own hour cycle in English, 24 hours in Dutch. */
 export const clockIn = (lang: Lang, clock: string) => lang === 'nl' ? clock : formatClock(clock);
 export const money = (amountCents: number, currency: string) => formatCurrencyAmount(fromCents(amountCents), currency);
+/**
+ * Review b2a #6 (as review b1 #16 did for the pay-period answer): money in the answer's language — a Dutch answer writes
+ * it the Dutch way ("€ 40,00"), as it writes its dates; an English answer in the app's display format, as the screens.
+ */
+export const moneyIn = (lang: Lang, amountCents: number, currency: string) => lang === 'nl' ? formatCurrencyAmount(fromCents(amountCents), currency, 'nl-NL') : money(amountCents, currency);
 export const num = (n: number) => formatNumber(n, {maximumFractionDigits: 2});
 export const count = (n: number, lang: Lang, en: [string, string], nl: [string, string]) => `${formatNumber(n)} ${(lang === 'nl' ? nl : en)[n === 1 ? 0 : 1]}`;
 export function list(items: readonly string[], lang: Lang): string {

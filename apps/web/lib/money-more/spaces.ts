@@ -17,12 +17,15 @@ export const budgetsSpec = (space: MoneySpace) => space === 'business' ? BUDGETS
 /** The space shown: business only while the business space exists and was chosen. */
 export const spaceOf = (more: Pick<MoneyMore, 'space' | 'business'> | null | undefined): MoneySpace => more?.business && more.space === 'business' ? 'business' : 'personal';
 export const spaceName = (more: Pick<MoneyMore, 'business'> | null | undefined, space: MoneySpace) => space === 'business' ? more?.business?.name ?? 'Business' : 'Personal';
-/** Starts (or renames) the business space and shows it. */
+/**
+ * Starts the business space and shows it, or renames it. Review b2a #10: a rename keeps the space shown as it was (renaming
+ * from Personal stays on Personal); only starting the space switches to it.
+ */
 export function withBusiness(more: MoneyMore, name: string): MoneyMore {
   const clean = name.trim().replace(/\s+/g, ' ').slice(0, 30);
   if (!clean) throw new Error('Give the space a name, for example Business or Studio.');
   if (clean.toLowerCase() === 'personal') throw new Error('Personal is your own space already: choose another name.');
-  return {...more, business: {name: clean}, space: 'business'};
+  return more.business ? {...more, business: {...more.business, name: clean}} : {...more, business: {name: clean}, space: 'business'};
 }
 export function showSpace(more: MoneyMore, space: MoneySpace): MoneyMore {
   const {space: _s, ...rest} = more; void _s;
