@@ -102,22 +102,28 @@ export function missedThisWeek(rec: PlannedRecord, w: Workouts | null, today: st
 }
 /**
  * "I missed some": this week's missed planned workouts move on in order, the first to today, each next one to the day after;
- * a later planned workout keeps its day unless a moved one reaches it, then it moves on one day too. Days set aside (away)
- * are skipped. Returns the record and how many moved.
+ * a later planned workout keeps its day unless the moved chain reaches it (its day is one the chain already fills), then it
+ * moves on to the chain's next day too. Nothing the chain does not reach moves, in any week. Days set aside (away) are
+ * skipped. Returns the record, how many moved (exactly the workouts whose day changed) and each move.
+ * Review B4E-1: every later workout went through the chain's cursor, so a second workout on one day moved a day on even
+ * when nothing reached it.
  */
-export function realign(rec: PlannedRecord, w: Workouts | null, today: string): {value: PlannedRecord; moved: number} {
+export type PlanMove = {id: string; from: string; to: string};
+export function realign(rec: PlannedRecord, w: Workouts | null, today: string): {value: PlannedRecord; moved: number; moves: PlanMove[]} {
   const missed = missedThisWeek(rec, w, today);
-  if (!missed.length) return {value: rec, moved: 0};
+  if (!missed.length) return {value: rec, moved: 0, moves: []};
   const states = planStates(rec, w, today), later = sorted(rec.items).filter(i => i.date >= today && states.get(i.id) === 'planned');
   const next = (d: string) => { let x = d; while (inAway(rec, x)) x = addLocalDays(rec.away!.to, 1); return x; };
   const dates = new Map<string, string>();
+  // `cursor` is the first day after the days the moved chain fills.
   let cursor = next(today);
-  for (const i of [...missed, ...later]) {
-    const target = missed.includes(i) ? cursor : next(i.date > cursor ? i.date : cursor);
-    dates.set(i.id, target); cursor = next(addLocalDays(target, 1));
+  for (const i of missed) { dates.set(i.id, cursor); cursor = next(addLocalDays(cursor, 1)); }
+  for (const i of later) {
+    if (i.date >= cursor) continue; // the chain has not reached its day: it keeps it
+    dates.set(i.id, cursor); cursor = next(addLocalDays(cursor, 1));
   }
-  const moved = [...dates].filter(([id, d]) => rec.items.find(i => i.id === id)!.date !== d).length;
-  return {value: plannedRecordSchema.parse({...rec, items: sorted(rec.items.map(i => dates.has(i.id) ? {...i, date: dates.get(i.id)!} : i))}), moved};
+  const moves = [...dates].flatMap(([id, to]) => { const from = rec.items.find(i => i.id === id)!.date; return from === to ? [] : [{id, from, to}]; });
+  return {value: plannedRecordSchema.parse({...rec, items: sorted(rec.items.map(i => dates.has(i.id) ? {...i, date: dates.get(i.id)!} : i))}), moved: moves.length, moves};
 }
 export function setAway(rec: PlannedRecord, from: string, to: string): PlannedRecord {
   if (!day.safeParse(from).success || !day.safeParse(to).success) throw Error('Choose the day you are back.');

@@ -55,6 +55,19 @@ describe('planned workouts (LEDGER #330)', () => {
     expect(clearAway(setAway(r, TODAY, '2026-11-22')).away).toBeUndefined();
     expect(() => setAway(r, TODAY, '2026-11-01')).toThrow();
   });
+  // Session AV lane 2 (review B4E-1): only what the moved chain reaches moves; two workouts on one day stay together.
+  test('"I missed some" moves only what must move, and counts exactly', () => {
+    const today = '2026-11-18'; // Wednesday
+    const r = plan({name: 'Missed', date: '2026-11-16'}, {name: 'Fri AM', date: '2026-11-20', time: '07:00'}, {name: 'Fri PM', date: '2026-11-20', time: '18:00'}, {name: 'Dec AM', date: '2026-12-01', time: '07:00'}, {name: 'Dec PM', date: '2026-12-01', time: '18:00'});
+    const out = realign(r, null, today);
+    expect(out.value.items.map(i => [i.name, i.date])).toEqual([['Missed', '2026-11-18'], ['Fri AM', '2026-11-20'], ['Fri PM', '2026-11-20'], ['Dec AM', '2026-12-01'], ['Dec PM', '2026-12-01']]);
+    expect(out.moved).toBe(1);
+    expect(out.moves).toEqual([{id: 'plan-0', from: '2026-11-16', to: '2026-11-18'}]);
+    // A workout on the day the chain fills moves on one day, and only that one.
+    const reach = realign(plan({name: 'Missed', date: '2026-11-16'}, {name: 'Today', date: today}, {name: 'Tomorrow', date: '2026-11-19'}, {name: 'Sat', date: '2026-11-21'}), null, today);
+    expect(reach.value.items.map(i => [i.name, i.date])).toEqual([['Missed', '2026-11-18'], ['Today', '2026-11-19'], ['Tomorrow', '2026-11-20'], ['Sat', '2026-11-21']]);
+    expect(reach.moved).toBe(3);
+  });
   test('the Agenda and the Day Timeline draw the ones still to do or missed', () => {
     const r = plan({name: 'Missed one', date: '2026-11-17'}, {name: 'Upper body', date: '2026-11-20', time: '07:30', minutes: '45'}, {name: 'Done one', date: '2026-11-18'});
     expect(agendaPlanned(r, finishedOn('2026-11-18'), TODAY).map(p => p.title)).toEqual(['Missed one', 'Upper body']);
