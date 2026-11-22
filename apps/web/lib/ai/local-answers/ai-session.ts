@@ -1,4 +1,4 @@
-import {novaEnvInfo} from './nova-env';
+import {novaAreaClosed, novaEnvInfo} from './nova-env';
 import Decimal from 'decimal.js';
 import {briefChatText} from '../proactive/brief';
 import type {ToolEnv} from '../tools/env';
@@ -260,7 +260,10 @@ export const isEnergyRatingAsk = (q: string): boolean => ENERGY_Q.test(q) && !/\
 /** Session AI (feature 6): journal patterns, on this device only (nothing is sent; the words never leave it). */
 function journalAnswer(lang: Lang, env: ToolEnv): LocalReply {
   const j = env.journal;
-  if (!j || !j.entries.length) return {kind: 'answer', text: say(lang, 'Your journal is empty on this device. Write a few lines on Today or the Journal page.', 'Je dagboek is leeg op dit apparaat. Schrijf een paar regels op Vandaag of de dagboekpagina.'), calls: []};
+  // Review b1 #12: no journal record is not an empty journal — NOVA with its Journal permission off says so; a journal
+  // that does not read says that. Only a journal with no entries is "empty".
+  if (!j) return novaEnvInfo(env) ? {kind: 'refusal', text: novaAreaClosed('Journal', lang), calls: []} : {kind: 'answer', text: say(lang, 'Your journal can’t be read on this device right now, so I can’t say.', 'Je dagboek kan nu niet gelezen worden op dit apparaat, dus dat kan ik niet zeggen.'), calls: []};
+  if (!j.entries.length) return {kind: 'answer', text: say(lang, 'Your journal is empty on this device. Write a few lines on Today or the Journal page.', 'Je dagboek is leeg op dit apparaat. Schrijf een paar regels op Vandaag of de dagboekpagina.'), calls: []};
   const found = patterns(j, env.energy ?? null).slice(0, 3);
   if (!found.length) return {kind: 'answer', text: say(lang, `${j.entries.length} entries so far; no theme came up three times in your last 14 yet.`, `Tot nu toe ${j.entries.length} stukjes; nog geen thema kwam drie keer terug in je laatste 14.`), calls: []};
   return {kind: 'answer', text: `${found.map(p => patternLine(p, lang)).join('\n')}\n${say(lang, 'Counts from your own entries, made on this device; never a diagnosis.', 'Tellingen uit je eigen stukjes, op dit apparaat gemaakt; nooit een diagnose.')}`, calls: []};

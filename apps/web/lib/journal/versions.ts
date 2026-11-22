@@ -62,3 +62,15 @@ export function putBackVersions(journal: Journal, versions: readonly EntryVersio
   const have = new Set((journal.versions ?? []).map(v => v.id));
   return journalSchema.parse({...journal, versions: capVersions([...(journal.versions ?? []), ...versions.filter(v => !have.has(v.id))].sort((a, b) => a.savedAt.localeCompare(b.savedAt)), journal.entries)});
 }
+/**
+ * Review b1 #5 (privacy; Notion and Day One delete history): one earlier version of an entry, or all of them, deleted
+ * from this device — the words leave the journal record, so every later export and backup is without them. `removed`
+ * is what Undo puts back (putBackVersions). A version already gone throws.
+ */
+export function deleteVersions(journal: Journal, entryId: string, versionId?: string): {journal: Journal; removed: EntryVersion[]} {
+  const removed = (journal.versions ?? []).filter(v => v.entryId === entryId && (versionId === undefined || v.id === versionId));
+  if (!removed.length) throw new Error(versionId ? 'That version is no longer on this device.' : 'This entry has no earlier versions.');
+  const gone = new Set(removed.map(v => v.id)), versions = (journal.versions ?? []).filter(v => !gone.has(v.id)), next: Record<string, unknown> = {...journal};
+  if (versions.length) next.versions = versions; else delete next.versions;
+  return {journal: journalSchema.parse(next), removed};
+}

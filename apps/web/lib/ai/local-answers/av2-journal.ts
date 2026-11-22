@@ -83,10 +83,13 @@ const ON_DAY_EN = /\b(?:what|which|did) (?:did i write|have i written|i write|en
 const ON_DAY_NL = /\bwat (?:heb ik|schreef ik)\b.*?\b(?:op|in) (.+?)(?: (?:geschreven|in mijn dagboek))*$|\bdagboek(?:stukken)? (?:van|op) (.+)$/;
 /** LEDGER #43: "what did I write on 3 nov", "wat heb ik op 3 november geschreven" (lib/journal/search.ts dateQuery): the days and how many entries; the words stay on the Journal page. */
 function onDay(a: Asked): LocalReply | null {
-  // Read on the typed words (lower case), not the folded ones: folding drops the hyphens of "2026-11-14".
-  const typedLine = a.raw.toLowerCase().replace(/[?!.]+$/, '').replace(/\s+/g, ' ').trim(), m = ON_DAY_EN.exec(typedLine) ?? ON_DAY_NL.exec(typedLine);
-  const raw = m ? (m[1] ?? m[2] ?? '').replace(/\b(?:in my journal|in mijn dagboek|geschreven)\b/g, '').trim() : '';
-  const typed = raw === 'yesterday' || raw === 'gisteren' ? {from: addDay(a.today, -1), to: addDay(a.today, -1)} : raw === 'today' || raw === 'vandaag' ? {from: a.today, to: a.today} : raw ? dateQuery(raw, a.today) : null;
+  // Read on the typed words (lower case), not the folded ones: folding drops the hyphens of "2026-11-14". Review b1 #12:
+  // "in my journal" / "in mijn dagboek" go first (they held the "in" the day was read after), and a day may follow the
+  // words with no "on": "what did I write yesterday", "wat heb ik gisteren geschreven", "what did I write last tuesday".
+  const typedLine = a.raw.toLowerCase().replace(/[?!.]+$/, '').replace(/\b(?:in|from) my (?:journal|diary)\b|\bin mijn dagboek\b/g, ' ').replace(/\s+/g, ' ').trim();
+  const m = ON_DAY_EN.exec(typedLine) ?? ON_DAY_NL.exec(typedLine) ?? WROTE_EN.exec(typedLine) ?? WROTE_NL.exec(typedLine);
+  const raw = m ? (m[1] ?? m[2] ?? '').replace(/\bgeschreven\b/g, '').trim() : '';
+  const typed = raw === 'yesterday' || raw === 'gisteren' ? {from: addDay(a.today, -1), to: addDay(a.today, -1)} : raw === 'today' || raw === 'vandaag' ? {from: a.today, to: a.today} : raw ? dateQuery(raw, a.today) ?? weekdayQuery(raw, a.today) : null;
   if (!typed) return null;
   const shut = journalClosed(a); if (shut) return shut;
   const hits = journalOf(a).entries.filter(e => e.date >= typed.from && e.date <= typed.to), lang = a.lang, one = typed.from === typed.to;
@@ -95,6 +98,18 @@ function onDay(a: Asked): LocalReply | null {
   if (!hits.length) return answer(say(lang, `No journal entry on ${when}. The calendar under Journal → Search by date marks the days you wrote.`, `Geen dagboekstuk op ${when}. De kalender onder Journal → Search by date toont de dagen waarop je schreef.`), CALL);
   const days = new Set(hits.map(e => e.date)).size;
   return answer(say(lang, `${count(hits.length, 'en', ['journal entry', 'journal entries'], ['', ''])} on ${when}${!one && days > 1 ? ` (${count(days, 'en', ['day', 'days'], ['', ''])})` : ''}. Their words stay on the Journal page: ${where}.`, `${count(hits.length, 'nl', ['', ''], ['dagboekstuk', 'dagboekstukken'])} op ${when}${!one && days > 1 ? ` (${count(days, 'nl', ['', ''], ['dag', 'dagen'])})` : ''}. De woorden blijven op de Journal-pagina: ${where}.`), CALL);
+}
+const WROTE_EN = /\b(?:what did i write|what have i written|what i wrote)\b (.+)$/, WROTE_NL = /\bwat (?:heb ik|schreef ik) (.+?)(?: geschreven)?$/;
+const WEEKDAYS: Record<string, number> = {sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, zondag: 0, maandag: 1, dinsdag: 2, woensdag: 3, donderdag: 4, vrijdag: 5, zaterdag: 6};
+/** Review b1 #12: "tuesday" (the last one, today included), "last tuesday" / "afgelopen dinsdag" / "vorige dinsdag" (the last one before today). */
+function weekdayQuery(raw: string, today: string): {from: string; to: string} | null {
+  const m = /^(?:(last|past|previous|afgelopen|vorige) )?(?:on )?([a-z]+)$/.exec(raw.trim()), wd = m ? WEEKDAYS[m[2]!] : undefined;
+  if (!m || wd === undefined) return null;
+  const now = new Date(`${today}T12:00:00Z`).getUTCDay();
+  let back = (now - wd + 7) % 7;
+  if (m[1] && back === 0) back = 7;
+  const d = addDay(today, -back);
+  return {from: d, to: d};
 }
 const addDay = (day: string, by: number) => { const d = new Date(`${day}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + by); return d.toISOString().slice(0, 10); };
 
@@ -137,18 +152,26 @@ function changedEntries(a: Asked): LocalReply | null {
 }
 // ── Notes ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 const NOTES_CALL = [{tool: 'search_notes', args: {}, label: 'Notes'}];
-/** The notes record where it is shared with this answer (NOVA: its Notes scope), else why not. */
-function notesOf(a: Asked): {record: Notes} | {shut: LocalReply} {
+/**
+ * The notes record where it is shared with this answer (NOVA: its Notes scope), else why not. Review b1 #6: ZIGi never
+ * receives the notes (components/ai/use-ai-context.ts passes them only on NOVA's surface, with its Notes scope), so ZIGi
+ * says where to see them (`where`, EN and NL) instead of a read failure; "can't be read" is kept for a record that
+ * really does not read (null).
+ */
+type Where = readonly [en: string, nl: string];
+function notesOf(a: Asked, where: Where): {record: Notes} | {shut: LocalReply} {
   const today = closed(a.env, 'today', 'search_notes'); if (today) return {shut: today};
   const record = a.env.nova?.notes;
   if (record) return {record};
-  return {shut: record === undefined && novaEnvInfo(a.env) ? {kind: 'refusal', text: novaAreaClosed('Notes', a.lang), calls: []} : answer(say(a.lang, 'Your notes can’t be read on this device right now, so I can’t say.', 'Je notities kunnen nu niet gelezen worden op dit apparaat, dus dat kan ik niet zeggen.'))};
+  if (record === undefined && novaEnvInfo(a.env)) return {shut: {kind: 'refusal', text: novaAreaClosed('Notes', a.lang), calls: []}};
+  if (record === null) return {shut: answer(say(a.lang, 'Your notes can’t be read on this device right now, so I can’t say.', 'Je notities kunnen nu niet gelezen worden op dit apparaat, dus dat kan ik niet zeggen.'))};
+  return {shut: answer(say(a.lang, `ZIGi doesn’t read your notes. Open ${where[0]} to see them; NOVA can answer this with Notes on in NOVA → Permissions.`, `ZIGi leest je notities niet. Open ${where[1]} om ze te zien; NOVA kan dit beantwoorden met Notes aan in NOVA → Permissions.`))};
 }
 /** LEDGER #32: "which repeating notes do I have", "what is my daily note template" (lib/notes/schedules.ts). */
 function repeatingNotes(a: Asked): LocalReply | null {
   const en = /\b(?:repeating|recurring|scheduled) notes?\b|\bnote templates?\b|\bdaily note template\b/.test(a.f), nl = /\b(?:terugkerende|herhalende) notitie s?\b|\b(?:terugkerende|herhalende) notities\b|\bnotitiesjablo(?:on|nen)\b|\bsjabloon\b.*\bdag(?:elijkse)? ?notitie\b/.test(a.f);
   if (!en && !nl) return null;
-  const got = notesOf(a); if ('shut' in got) return got.shut;
+  const got = notesOf(a, ['Notes → Notes → Repeating notes', 'Notes → Notes → Repeating notes']); if ('shut' in got) return got.shut;
   const list0 = schedulesOf(got.record), lang = a.lang, daily = got.record.dailyTemplate?.trim();
   const dailyLine = daily ? say(lang, ' A new daily note starts from your daily note template.', ' Een nieuwe dagnotitie begint met je sjabloon voor dagnotities.') : say(lang, ' Daily notes start empty (Notes → Days → Daily note template).', ' Dagnotities beginnen leeg (Notes → Days → Daily note template).');
   if (!list0.length) return answer(say(lang, `No repeating note yet. Notes → Notes → Repeating notes makes a note every day, week or month from your words.${dailyLine}`, `Nog geen terugkerende notitie. Notes → Notes → Repeating notes maakt elke dag, week of maand een notitie van je eigen woorden.${dailyLine}`), NOTES_CALL);
@@ -160,7 +183,7 @@ function noteVersions(a: Asked): LocalReply | null {
   const en = /\bnotes?\b/.test(a.f) && /\b(?:earlier|older|previous) versions?\b|\bversion history\b.*\bnotes?\b|\bnotes?\b.*\bversion history\b/.test(a.f) && !/\bjournal|entries|entry\b/.test(a.f);
   const nl = /\bnotitie s?\b|\bnotities\b/.test(a.f) && /\b(?:eerdere|oudere|vorige) versies\b|\bversiegeschiedenis\b/.test(a.f);
   if (!en && !nl) return null;
-  const got = notesOf(a); if ('shut' in got) return got.shut;
+  const got = notesOf(a, ['a note’s Earlier versions (Notes → the note)', 'Earlier versions bij een notitie (Notes → de notitie)']); if ('shut' in got) return got.shut;
   const versions = got.record.versions ?? [], lang = a.lang, ids = [...new Set(versions.map(v => v.noteId))];
   const names = ids.flatMap(id => { const n = got.record.notes.find(x => x.id === id); return n ? [n.kind === 'daily' && n.day ? dayIn(lang, n.day, a.today) : (n.title.trim() || say(lang, 'an untitled note', 'een notitie zonder titel'))] : []; });
   if (!names.length) return answer(say(lang, 'No note has an earlier version yet. Each save that changes a note keeps the words it had, under its Earlier versions.', 'Nog geen notitie heeft een eerdere versie. Elke keer dat je een notitie verandert en bewaart, blijven de oude woorden onder Earlier versions.'), NOTES_CALL);
@@ -171,7 +194,7 @@ function notesPerTagAnswer(a: Asked): LocalReply | null {
   const en = /\bnotes?\b/.test(a.f) && /\b(?:per|by|each) tag\b|\btags?\b.*\bnotes\b|\bnotes\b.*\btags?\b/.test(a.f) && !/\b(?:journal|entries|entry)\b/.test(a.f);
   const nl = /\bnotities\b/.test(a.f) && /\b(?:per|op) (?:tag|label)\b|\b(?:tags|labels)\b/.test(a.f);
   if (!en && !nl) return null;
-  const got = notesOf(a); if ('shut' in got) return got.shut;
+  const got = notesOf(a, ['Notes → Chart', 'Notes → Chart']); if ('shut' in got) return got.shut;
   const per = notesPerTag(got.record.notes), lang = a.lang;
   if (!per.tags.length) return answer(say(lang, 'No note has a tag yet. Notes imported with tags (Notes → Files → Import) show under Notes → Chart.', 'Nog geen notitie heeft een tag. Notities die met tags zijn geïmporteerd (Notes → Files → Import) staan onder Notes → Chart.'), NOTES_CALL);
   const lines = per.tags.slice(0, 8).map(t => `#${t.tag} ${t.count}`);

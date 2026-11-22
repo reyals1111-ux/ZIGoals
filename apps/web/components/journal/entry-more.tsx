@@ -3,10 +3,11 @@ import {useId, useRef, useState, type FormEvent, type KeyboardEvent} from 'react
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL, MAX_TEXT, OWN_TITLE_MAX, type JournalEntry} from '../../lib/journal/schema';
 import {bookOf, booksOf, moveEntry} from '../../lib/journal/books';
-import {editEntry, restoreVersion, undoEntryChange, versionsOf, type EntryUndo} from '../../lib/journal/versions';
+import {deleteVersions, editEntry, putBackVersions, restoreVersion, undoEntryChange, versionsOf, type EntryUndo} from '../../lib/journal/versions';
 import {newOwnTemplateId, suggestedTitle, templateFromEntry} from '../../lib/journal-prompts/own';
 import {formatClock, formatDate, formatNumber} from '../../lib/visual-format';
 import {SecretGuard} from '../secret-guard/secret-guard';
+import {ConfirmInline} from '../ui/confirm-inline';
 import {showStatus, showUndo} from '../ui/undo-toast';
 
 /**
@@ -24,6 +25,8 @@ export default function EntryMore({entry, day}: {entry: JournalEntry; day: strin
   const books = booksOf(journal.data), current = bookOf(journal.data, entry)?.id ?? '';
   const [to, setTo] = useState(current), [part, setPart] = useState<'edit' | 'template' | null>(null);
   const [text, setText] = useState(entry.text), [title, setTitle] = useState(() => suggestedTitle(entry.text)), [problem, setProblem] = useState('');
+  // Review b1 #5: the version (its id) or 'all' whose deletion is being confirmed.
+  const [deleting, setDeleting] = useState<string | null>(null);
   if (!journal.loaded) return <p className="fine">Loading…</p>;
   const versions = versionsOf(journal.data, entry.id);
   const back = (selector: string) => requestAnimationFrame(() => box.current?.querySelector<HTMLElement>(selector)?.focus());
@@ -42,6 +45,16 @@ export default function EntryMore({entry, day}: {entry: JournalEntry; day: strin
     try { journal.update(c => { const out = restoreVersion(c, entry.id, versionId, new Date().toISOString()); undo = out.undo; return out.journal; }); } catch (e) { showStatus(e instanceof Error ? e.message : 'This could not be restored on this device.', {tone: 'error'}); return; }
     if (undo) offerUndo(`The words of ${when(savedAt)} are back. The words they replaced are kept as a version.`, undo);
     back('[data-part="edit"]');
+  };
+  // Review b1 #5 (privacy): an earlier version, or all of them, deleted from this device after a confirmation; Undo puts
+  // them back. Focus goes to the versions heading (the row it was on is gone).
+  const removeVersions = (versionId?: string) => {
+    let removed: ReturnType<typeof deleteVersions>['removed'] = [];
+    try { journal.update(c => { const out = deleteVersions(c, entry.id, versionId); removed = out.removed; return out.journal; }); } catch (e) { showStatus(e instanceof Error ? e.message : 'This could not be deleted on this device.', {tone: 'error'}); return; }
+    setDeleting(null);
+    const gone = removed as typeof removed;
+    showUndo({message: gone.length === 1 ? 'The earlier version is deleted from this device.' : `${formatNumber(gone.length)} earlier versions are deleted from this device.`, undone: gone.length === 1 ? 'The earlier version is back.' : 'The earlier versions are back.', restore: () => journal.update(c => putBackVersions(c, gone))});
+    back('.journal-versions-title');
   };
   const keepTemplate = (event: FormEvent) => {
     event.preventDefault();
@@ -62,7 +75,7 @@ export default function EntryMore({entry, day}: {entry: JournalEntry; day: strin
     {part === 'edit' && <form className="journal-entry-edit" aria-label={`Edit the entry of ${day}`} onSubmit={save} onKeyDown={escape('[data-part="edit"]')}>
       <label className="field"><span>The entry&rsquo;s words</span><textarea autoFocus rows={6} maxLength={MAX_TEXT} value={text} onChange={e => { setText(e.target.value); setProblem(''); }}/></label>
       <SecretGuard text={text} onRemove={() => setText(entry.text)}/>
-      <p className="fine">{formatNumber(text.length)} / {formatNumber(MAX_TEXT)}. The words you change are kept as an earlier version, on this device.</p>
+      <p className="fine">{formatNumber(text.length)} / {formatNumber(MAX_TEXT)}. The words you change are kept as an earlier version, on this device, until you delete it under Earlier versions.</p>
       <div className="journal-actions"><button type="submit" className="primary" disabled={!text.trim() || text.trim() === entry.text}>Save the change</button><button type="button" className="quiet" onClick={() => close('[data-part="edit"]')}>Cancel</button></div>
     </form>}
     {part === 'template' && <form className="journal-entry-template" aria-label={`Save the entry of ${day} as a template`} onSubmit={keepTemplate} onKeyDown={escape('[data-part="template"]')}>
@@ -72,13 +85,22 @@ export default function EntryMore({entry, day}: {entry: JournalEntry; day: strin
     </form>}
     {problem && <p className="field-error" role="alert">{problem}</p>}
     <section className="journal-versions" aria-labelledby={`${id}-versions`}>
-      <h3 id={`${id}-versions`} className="journal-versions-title">Earlier versions <span className="fine">· {versions.length ? versions.length : 'none yet'}</span></h3>
-      {versions.length ? <ol className="journal-versions-list">{versions.map(v => <li key={v.id}>
+      <h3 id={`${id}-versions`} className="journal-versions-title" tabIndex={-1}>Earlier versions <span className="fine">· {versions.length ? versions.length : 'none yet'}</span></h3>
+      {versions.length ? <><ol className="journal-versions-list">{versions.map(v => <li key={v.id}>
         <details><summary>Saved {when(v.savedAt)} <span className="fine">· {v.text.replace(/\s+/g, ' ').slice(0, 60)}{v.text.length > 60 ? '…' : ''}</span></summary>
           <p className="journal-entry-text">{v.text}</p>
-          <button type="button" className="secondary" aria-label={`Restore the words of ${when(v.savedAt)}`} onClick={() => restore(v.id, v.savedAt)}>Restore this version</button>
+          <div className="journal-actions">
+            <button type="button" className="secondary" aria-label={`Restore the words of ${when(v.savedAt)}`} onClick={() => restore(v.id, v.savedAt)}>Restore this version</button>
+            <button type="button" className="quiet" aria-label={`Delete the version of ${when(v.savedAt)}`} aria-expanded={deleting === v.id} onClick={() => setDeleting(deleting === v.id ? null : v.id)}>Delete this version</button>
+          </div>
+          {deleting === v.id && <ConfirmInline title="Delete this earlier version?" confirmLabel="Delete this version" onConfirm={() => removeVersions(v.id)} onCancel={() => setDeleting(null)}>
+            <p>Its words leave this device and every export or backup you make from now on. The entry keeps its words as they are now.</p></ConfirmInline>}
         </details>
-      </li>)}</ol> : <p className="fine">When you change this entry&rsquo;s words, the words it had are kept here, up to ten, so you can read or restore them.</p>}
+      </li>)}</ol>
+        <div className="journal-actions"><button type="button" className="quiet" aria-expanded={deleting === 'all'} onClick={() => setDeleting(deleting === 'all' ? null : 'all')}>Delete all earlier versions</button></div>
+        {deleting === 'all' && <ConfirmInline title={versions.length === 1 ? 'Delete the one earlier version?' : `Delete all ${formatNumber(versions.length)} earlier versions?`} confirmLabel="Delete all earlier versions" onConfirm={() => removeVersions()} onCancel={() => setDeleting(null)}>
+          <p>Their words leave this device and every export or backup you make from now on. The entry keeps its words as they are now.</p></ConfirmInline>}
+      </> : <p className="fine">When you change this entry&rsquo;s words, the words it had are kept here, up to ten, so you can read, restore or delete them.</p>}
     </section>
     {books.length > 0 ? <div className="journal-entry-move" role="group" aria-labelledby={`${id}-move`}>
       <span id={`${id}-move`} className="sr-only">Move the entry of {day}</span>

@@ -185,7 +185,7 @@ corpus, regenerates theme sheets, edits Help / What's new / search / shard lists
 - Answers: "how is my mood compared to usual" / "hoe is mijn stemming vergeleken met normaal" (mood and energy only,
   Health gate; symptoms stay unread by ZIGi and NOVA). Case `av2-habits-usual-mood`. Lead: put it after any existing
   mood-trend intent in engine.ts if one claims the same words.
-- Showcase hook: the Showcase's own moods fill it with no new data. CSS: `components/health/plus/feelings-card.css`.
+- Showcase hook: none that fills it — the Showcase holds two weeks of example moods (12 of the 20 days the comparison needs in 90; energy 14 of 20), so it shows the teaching "Not enough days yet" state with the days counted (corrected in review b1 #13: adding days would move the Showcase's pinned mood counts; see revb1.md). CSS: `components/health/plus/feelings-card.css`.
   Always visible on Today: nothing.
 
 ## Feature 6 — Hidden figures in NOVA and ZIGi, Settings and Export (LEDGER #69; QUALITY "Not fixed")
