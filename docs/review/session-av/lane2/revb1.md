@@ -146,3 +146,17 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
   with the switch on.
 - Tests: apps/web/lib/ai/local-answers/revb1-hide-figures.test.ts (and av2-hide-figures.test.ts still green).
   Spec: none new (av2-hide-figures.spec.ts covers the switch).
+
+### #9 Journal calendar: day buttons 34 × 44 px at 320 px
+- Verdict: left — against a named rule (the 16 px side gutters and "no sideways scroll at 320"): seven 44 px columns need
+  308 px, and 320 px less the page's 16 px gutters leaves 288 px before the Journal's own panel padding, so a whole
+  week cannot be seven 44 px columns at 320 without sideways scroll. Each day keeps its 44 px height and the 2 px gap
+  between buttons; at 34 px wide they are above WCAG 2.5.8's 24 px minimum. From 390 px up they are 44 px wide.
+
+### #11 Erase named only the records' areas, not the stores
+- Verdict: fixed. lib/erase-areas.ts `storesOf` names each IndexedDB store in plain words (photos and recordings
+  first: "Journal photos and voice notes", "Task photos and voice notes", "Photos in notes", "Receipt photos"…, a
+  store this build does not know is "Other stores"); Settings → Erase everything shows "The stores (photos, recordings
+  and more): …" before, and "Stores: …" in its status after (components/settings/erase-everything.tsx).
+- Tests: apps/web/lib/revb1-erase-stores.test.ts (every KNOWN_DATABASES entry has a name). Spec (lead runs):
+  apps/web/tests/revb1-erase-stores.spec.ts. av2-erase-areas.spec.ts's status pattern still holds.
