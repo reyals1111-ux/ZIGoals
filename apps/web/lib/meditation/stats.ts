@@ -30,6 +30,15 @@ export function meditationDayAt(calendarDay: string, now: Date, zone: string): s
   const ends = currentDayEnds();
   return ends.endsAt || ends.change ? activityDay(ends, now, zone) : calendarDay;
 }
+/**
+ * Review B6P-9: "Several days" by default runs over the week to the Meditation view's today (which follows "My day ends
+ * at", as `useMeditation` says it); the latest day it takes stays the calendar day now in `zone`, so a session typed
+ * for just after midnight can still be logged.
+ */
+export function rangeDefaults(now: number, zone: string): {from: string; to: string; max: string} {
+  const today = activityDay(currentDayEnds(), new Date(now), zone);
+  return {from: addDays(today, -6), to: today, max: wallClock(now, zone).date};
+}
 const minutes = (seconds: number) => Math.round(seconds / 60);
 /** Monday of the week a day falls in. */
 export function weekStart(day: string): string {
