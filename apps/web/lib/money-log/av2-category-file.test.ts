@@ -78,4 +78,15 @@ describe('reading', () => {
     const out = readCategoryFile(file({categories: {expense: ['Pets', 'x'.repeat(41)], income: ['Side job']}, subs: {Pets: ['Vet', ''], ['y'.repeat(41)]: ['A', 'B']}, rules: [{text: 'Albert Heijn'}, {text: ''}]}));
     expect(out).toEqual({ok: true, file: {categories: {expense: ['Pets'], income: ['Side job']}, subs: {Pets: ['Vet']}, rules: [{field: 'either', op: 'contains', text: 'Albert Heijn', direction: 'any', enabled: true}], dropped: 5}});
   });
+  it('review b5k #6: a name with doubled spaces is read as the log keeps it, and Undo finds it', () => {
+    const out = readCategoryFile(JSON.stringify({kind: 'zigoals-categories-and-rules', version: 1, categories: {expense: ['Pet  care', ' Car '], income: []}, subs: {'Pet  care': ['Dog   food']}}));
+    if (!out.ok) throw new Error('unreadable');
+    expect(out.file.categories.expense).toEqual(['Pet care', 'Car']);
+    expect(planCategoryFile(MINE, MY_RULES, out.file).own.map(c => c.isNew)).toEqual([true, false]);
+    const r = applyCategoryFile(MINE, MY_RULES, out.file, ids, AT);
+    expect(r.added.own).toEqual([{kind: 'expense', name: 'Pet care'}]);
+    expect(r.added.subs).toEqual([{category: 'Pet care', name: 'Dog food'}]);
+    expect(undoCategoryLog(r.log, r.added).own).toEqual(MINE.own);
+    expect(undoCategoryLog(r.log, r.added).subs?.['Pet care'] ?? []).toEqual([]);
+  });
 });

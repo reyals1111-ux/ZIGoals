@@ -16,7 +16,8 @@ import {removeStarterAdds, type StarterAdded} from './starter-sets';
  * added. Pure.
  */
 export const CATEGORY_FILE_KIND = 'zigoals-categories-and-rules', CATEGORY_FILE_MAX_BYTES = 256 * 1024;
-const name = z.string().trim().min(1).max(40);
+// Review b5k #6: a name as the money log keeps it — trimmed, inner runs of spaces made one (as `addOwnCategory` and `addSub` store it).
+const name = z.string().transform(v => v.trim().replace(/\s+/g, ' ')).pipe(z.string().min(1).max(40));
 const fileRule = z.object({
   field: z.enum(RULE_FIELDS).catch('either'), op: z.enum(RULE_OPS).catch('contains'), text: z.string().trim().min(1).max(MAX_RULE_TEXT), direction: z.enum(RULE_DIRECTIONS).catch('any'),
   min: amountText.optional().catch(undefined), max: amountText.optional().catch(undefined), category: name.optional().catch(undefined),
@@ -76,10 +77,10 @@ export type CategoryAdded = StarterAdded & {ruleIds: string[]};
 export function applyCategoryFile(log: MoneyLog, rules: MoneyRules, file: CategoryFile, newId: () => string, at: string): {log: MoneyLog; rules: MoneyRules; added: CategoryAdded; full: number} {
   const plan = planCategoryFile(log, rules, file), added: CategoryAdded = {own: [], subs: [], ruleIds: []};
   let next = log, full = 0;
-  for (const c of plan.own) if (c.isNew) { try { next = addOwnCategory(next, c.kind, c.name); added.own.push({kind: c.kind, name: c.name}); } catch { full++; } }
+  for (const c of plan.own) if (c.isNew) { try { next = addOwnCategory(next, c.kind, c.name); added.own.push({kind: c.kind, name: ((c.kind === 'expense' ? next.own?.expense : next.own?.income) ?? []).at(-1) ?? c.name}); } catch { full++; } }
   for (const s of plan.subs) if (s.isNew) {
     const parent = [...allCategories(next, 'expense'), ...allCategories(next, 'income')].find(c => same(c, s.category)) ?? s.category;
-    try { next = addSub(next, parent, s.name); added.subs.push({category: parent, name: s.name}); } catch { full++; }
+    try { next = addSub(next, parent, s.name); added.subs.push({category: parent, name: subsOf(next, parent).at(-1) ?? s.name}); } catch { full++; }
   }
   const list = [...rules.rules];
   for (const r of plan.rules) if (r.isNew) {
