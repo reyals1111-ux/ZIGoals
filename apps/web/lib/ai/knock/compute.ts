@@ -10,7 +10,7 @@ import {contributionDue, dismissContribution} from '../../reminders/contribution
 import {habitCalendarDay, type HabitData} from '../../habits';
 import {sessionDay} from '../../meditation/stats';
 import {healthGroupIn} from '../../vault/w-homes';
-import {localDate} from '../../local-date';
+import {boundaryDay} from '../../day-boundary-core';
 import type {HealthData} from '../../health';
 
 /**
@@ -33,7 +33,7 @@ export function knockCandidates({reminders, habits, health, w, meditationRunning
   // Session W Part 4: the wind-down time, until a night is running.
   const running = (healthGroupIn(health, 'sleep')?.nights ?? []).some(n => n.end === null), windDown = w === null ? null : windDownDue({w, running, now});
   // Session W Part 5: the meditation time, until a session is logged today or one runs.
-  const doneToday = (healthGroupIn(health, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === localDate(now)), meditation = w === null ? null : meditationDue({w, doneToday, running: meditationRunning, now});
+  const doneToday = (healthGroupIn(health, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === boundaryDay(now, null)), meditation = w === null ? null : meditationDue({w, doneToday, running: meditationRunning, now});
   // Session W Part 10: a stack's chained reminder, once the habit before it is done today.
   let chained: KnockCandidate[] = [];
   // Session AK F0 (M4): the chained reminder's clock in the same zone as the habit journal's day.
