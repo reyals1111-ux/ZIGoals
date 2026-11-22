@@ -83,3 +83,16 @@
 .budgets-month-nav h3:focus{outline:none}
 .budgets-month-nav h3:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
 @media (max-width:560px){.budgets-table th,.budgets-table td{padding-inline:4px}}
+/* Session AV lane 2 (Money N11): pay periods, a paycheck fill, debts paid from a budget. Theme variables only. */
+.budgets-periods { margin: 12px 0; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 16px 12px; }
+.budgets-periods > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; font-size: 16px; }
+.budgets-periods > * + * { margin-top: 10px; }
+.budgets-periods h4 { margin: 0; font-size: 16px; }
+.budgets-periods-fields, .budgets-fill, .budgets-debts { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; }
+.budgets-periods-fields .field, .budgets-fill .field, .budgets-debts .field { flex: 1 1 200px; min-width: 0; }
+.budgets-fill > h4, .budgets-fill > p, .budgets-debts > h4, .budgets-debts > p { flex: 1 1 100%; margin: 0; }
+.budgets-periods-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.budgets-periods-list li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; min-height: 44px; font-size: 15px; overflow-wrap: anywhere; }
+.budgets-periods-what { display: grid; flex: 1 1 220px; min-width: 0; }
+.budgets-periods-list li[data-over] small { color: var(--danger, inherit); }
+.budgets-periods button { min-height: 44px; }

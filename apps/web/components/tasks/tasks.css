@@ -234,3 +234,15 @@
 .tasks-done-count { margin: 4px 0 8px; font-size: 15px; color: var(--text-secondary, var(--muted)); }
 .tasks-done-days{display:grid;grid-template-columns:repeat(14,1fr);margin:2px 0 0;font-size:14px;line-height:1.2;text-align:center;color:var(--text-secondary, var(--muted))}
 .tasks-done-days [data-today]{font-weight:700;color:inherit}
+/* Session AV lane 2 (tasks, LEDGER #8, #27): the editor's background switch and its comments. */
+.task-editor-check { display: flex; align-items: center; gap: 8px; min-height: 44px; flex: 1 1 100%; font-size: 15px; }
+.task-editor-check input { width: 20px; height: 20px; flex: none; }
+.task-editor-comments { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 100%; align-items: flex-end; }
+.task-editor-comments .field { flex: 1 1 240px; }
+.task-comments { list-style: none; margin: 0; padding: 0; flex: 1 1 100%; display: grid; gap: 6px; font-size: 15px; overflow-wrap: anywhere; }
+.task-comments li { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.task-comments a { color: var(--accent, inherit); text-decoration: underline; }
+/* Session AV lane 2 (LEDGER #20, #28): projects under their area in the nav, and the area choice over the list. */
+.tasks-nav-area h4 { margin: 8px 0 2px; font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
+.tasks-area-pick { flex: 0 1 200px; min-width: 0; }
+.task-editor-paused { flex: 1 1 100%; margin: 0; font-size: 15px; }

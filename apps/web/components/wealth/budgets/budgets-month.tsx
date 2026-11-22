@@ -22,6 +22,8 @@ import {useMoneyCurrency} from '../use-money-currency';
 const ReadyToAssign = lazy(() => import('./ready-to-assign'));
 // Session AV (owner follow-up 1, F-WATCH): categories watched without a budget.
 const WatchList = lazy(() => import('./watch-list'));
+// Session AV lane 2 (Money N11, LEDGER #212, #213, #216; Goodbudget): pay periods, a paycheck fill, debts paid from a budget.
+const BudgetPeriodsPanel = lazy(() => import('./budget-periods'));
 // Session AV (follow-up 1, F-MONTH-RECAP): a month in short, loaded when its fold opens.
 const MonthRecapView = lazy(() => import('./month-recap'));
 
@@ -149,6 +151,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     {(view.rows.length > 0 || entries.length > 0) && <details className="budgets-recap-fold" onToggle={e => setRecapOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{formatMonth(`${recapMonth}-01`)} in short</summary>{recapOpen && <Suspense fallback={<p className="fine">Opening…</p>}><MonthRecapView entries={entries} record={record} month={recapMonth} today={today}/></Suspense>}</details>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
+    {!unreadable && <Suspense fallback={null}><BudgetPeriodsPanel record={record} entries={entries} today={today} startsOn="monday" onChange={onChange}/></Suspense>}
     <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={(() => { const count = new Map<string, number>(); for (const e of entries) count.set(e.currency, (count.get(e.currency) ?? 0) + 1); const used = [...count].sort((a, b) => b[1] - a[1]).map(([c]) => c); return used.length ? used : [currency]; })()} onChange={fn => { try { onChange(fn); } catch { setProblem('Not saved on this device.'); } }}/></Suspense>
     <p className="fine">From your own money log, in each currency apart. An overspend is never carried into the next month. Not financial advice.</p>
   </div>;

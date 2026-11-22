@@ -153,7 +153,9 @@ export type TaskPatch = {title?: string; priority?: TaskPriority; due?: string |
   /** Session AV (F-DEADLINES). */
   deadline?: string | null;
   /** Session AV (F-TASK-MINUTES). */
-  minutes?: number | null};
+  minutes?: number | null;
+  /** Session AV lane 2 (tasks): start-early days, a background task, minutes worked, the week objective, comments. */
+  early?: number | null; parallel?: true | null; spent?: number | null; objective?: string | null; comments?: NonNullable<Task['comments']>};
 /**
  * Changes a task's title, priority, day, time or goal. `null` clears an optional field; a field left out is kept. A day
  * may be moved earlier than today only when it already was (an overdue task keeps its day until the person moves it),
@@ -166,13 +168,14 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.title !== undefined) { const title = patch.title.trim(); if (!title) throw new Error('Give the task a few words.'); if (title.length > TASK_TITLE_MAX) throw new Error(`A task title can be at most ${TASK_TITLE_MAX} characters (this one has ${title.length}).`); next.title = title; }
   if (patch.priority !== undefined) { next.priority = patch.priority; delete next.level; }
   if (patch.level !== undefined) Object.assign(next, levelFields(patch.level));
-  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
+  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
   if (patch.projectId !== undefined && patch.sectionId === undefined && next.sectionId) {
     const section = record.sections?.find(s => s.id === next.sectionId);
     if (!section || section.projectId !== next.projectId) delete next.sectionId;
   }
   if (patch.labels !== undefined) { const labels = cleanLabels(patch.labels); if (labels.length) next.labels = labels; else delete next.labels; }
   if (patch.reminders !== undefined) { if (patch.reminders.length) next.reminders = patch.reminders; else delete next.reminders; }
+  if (patch.comments !== undefined) { if (patch.comments.length) next.comments = patch.comments; else delete next.comments; }
   if (patch.order !== undefined) next.order = patch.order;
   if (typeof next.due === 'string' && next.due !== task.due && next.due < today && !allowPast) throw new Error(PAST_DAY_MESSAGE);
   if (next.time !== undefined && !next.due) throw new Error('Choose a day for the task before a time.');
@@ -364,7 +367,9 @@ export type TaskView =
   | {kind: 'inbox'} | {kind: 'today'} | {kind: 'upcoming'} | {kind: 'all'} | {kind: 'overdue'} | {kind: 'completed'}
   | {kind: 'project'; id: string} | {kind: 'label'; name: string} | {kind: 'priority'; level: TaskLevel} | {kind: 'filter'; id: string}
   /** Session AP: "This evening" and "Someday" (their own record, lib/tasks/when.ts) and the Priority matrix (lib/tasks/matrix.ts). */
-  | {kind: 'evening'} | {kind: 'someday'} | {kind: 'matrix'};
+  | {kind: 'evening'} | {kind: 'someday'} | {kind: 'matrix'}
+  /** Session AV lane 2 (tasks): This week, Table, Calendar, Timeline, Insights, Areas and templates (components/tasks/tasks-plan-views.tsx). */
+  | {kind: 'week'} | {kind: 'table'} | {kind: 'days'} | {kind: 'timeline'} | {kind: 'insights'} | {kind: 'organise'};
 /** The open top-level tasks a view lists (subtasks are shown under their parent), in the order it shows them. */
 export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock?: string): Task[] {
   const open = record.tasks.filter(t => !t.doneAt);
@@ -373,7 +378,8 @@ export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock
   switch (view.kind) {
     case 'inbox': return byOrder(top(open.filter(t => !t.projectId)));
     // Session AV (F-DEADLINES): a task whose deadline is today or has passed is in Today too, whatever its planned day.
-    case 'today': return dated(open.filter(t => (t.due && t.due <= today) || deadlineDue(t, today))).sort((a, b) => Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
+    // Session AV lane 2 (LEDGER #17; Things' start early): a task with `early` days shows from that many days before its day.
+    case 'today': return dated(open.filter(t => (t.due && (t.due <= today || (t.early && addLocalDays(t.due, -t.early) <= today))) || deadlineDue(t, today))).sort((a, b) => Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
     case 'upcoming': return dated(open.filter(t => t.due && t.due >= today));
     case 'overdue': return dated(open.filter(t => taskState(t, today, nowClock) === 'overdue'));
     case 'all': return dated(top(open));
@@ -384,6 +390,8 @@ export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock
     // Session AP: the matrix sorts every open top-level task into its boxes; the two lists read their own record, in their view.
     case 'matrix': return dated(top(open));
     case 'evening': case 'someday': return [];
+    // Session AV lane 2 (tasks): the planning and layout views read the record themselves (tasks-plan-views.tsx).
+    case 'week': case 'table': case 'days': case 'timeline': case 'insights': case 'organise': return [];
     case 'completed': return doneTasks(record);
   }
 }

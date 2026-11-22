@@ -28,6 +28,8 @@ import {GOV_REMINDERS, governanceEvents} from '../zigchain-eco/governance';
 import {stakingItems} from './staking-items';
 import {TASKS} from '../tasks/schema';
 import {reminderInstants} from '../tasks/reminders';
+import {NOTES} from '../notes/schema';
+import {noteReminders} from '../notes/reminders';
 import {COUNTDOWNS} from '../countdowns/schema';
 import {COUNTDOWN_EXTRAS, countdownWakes} from '../countdowns/extras';
 
@@ -89,6 +91,9 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   // Session AV (follow-up 1, F-TASK-NOTIFY): the reminders set on open tasks — the instant, the id, and a title for the
   // plan to show only where names are allowed.
   try { const tasks = reminderInstants(readDeviceRecord(storage, TASKS).data, zone).filter(r => r.at > now); if (tasks.length) input.tasks = tasks.slice(0, 60).map(r => ({id: r.task.id, title: r.task.title, at: r.at})); } catch { /* tasks unreadable: no task wakes */ }
+  // Session AV lane 2 (LEDGER #31; Notion): reminders written inside notes ("@remind tomorrow 9:00 …") wake the device as
+  // task reminders do, under the same switch; each opens its note (no Done). A title only where names are allowed.
+  try { const fromNotes = noteReminders(readDeviceRecord(storage, NOTES).data, today, zone, now, {pastMs: 0}); if (fromNotes.length) input.tasks = [...(input.tasks ?? []), ...fromNotes.slice(0, 30).map(r => ({id: r.note.id, note: r.note.id, title: r.what, at: r.at}))]; } catch { /* notes unreadable: no note wakes */ }
   // Session AV (1c, q1 #44): the countdowns with a reminder — the mornings it starts and its day; a title for names-on only.
   try { const wakes = countdownWakes(readDeviceRecord(storage, COUNTDOWNS).data, readDeviceRecord(storage, COUNTDOWN_EXTRAS).data, today); if (wakes.length) input.countdowns = wakes.map(w => ({id: w.id, title: w.title, date: w.date, days: w.days})); } catch { /* unreadable: no countdown wakes */ }
   // Owner follow-up 1 (F4): governance vote reminders the person set on a proposal — an instant and an id, never a title.

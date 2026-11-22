@@ -25,6 +25,10 @@ type Parse = typeof import('../../lib/tasks/parse').parseTaskLine;
 let parser: Parse | null = null;
 const loadParser = () => import('../../lib/tasks/parse').then(m => (parser = m.parseTaskLine));
 if (typeof window !== 'undefined') void loadParser().catch(() => undefined);
+// Session AV lane 2 (LEDGER #1; Todoist's split suggestion): a long line joined by "and then", "also" … is offered as
+// several tasks; the rule (lib/tasks/split.ts) is a chunk of its own, like the reader.
+let splitter: ((text: string) => string[] | null) | null = null;
+const loadSplit = () => import('../../lib/tasks/split').then(m => (splitter = m.splitSuggestion));
 const plainLine = (text: string): ParsedTask => ({title: text.replace(/\s+/g, ' ').trim(), labels: [], spans: []});
 /** The pieces read from a line in plain words ("Tomorrow · 6:00 PM · Every week · P1 · #Home · @bills"). */
 function pieceWords(parsed: ParsedTask, record: Tasks, today: string): string[] {
@@ -36,6 +40,8 @@ function pieceWords(parsed: ParsedTask, record: Tasks, today: string): string[] 
   if (parsed.deadline) pieces.push(`Deadline ${formatDate(parsed.deadline, {weekday: true, year: parsed.deadline.slice(0, 4) !== today.slice(0, 4)})}`);
   // Session AV (F-TASK-MINUTES): "for 30 min".
   if (parsed.minutes) pieces.push(`Takes ${minutesWords(parsed.minutes)}`);
+  // Session AV lane 2 (LEDGER #3): "!2h", "!18:30".
+  for (const r of parsed.reminders ?? []) pieces.push(r.at ? `Reminder ${formatClock(r.at.slice(11))}` : `Reminder ${minutesWords(r.before)} before`);
   if (parsed.level) pieces.push(LEVEL_WORDS[parsed.level]);
   if (parsed.project) pieces.push(existing ? `#${existing.name}` : `#${parsed.project} (a new project)`);
   for (const l of parsed.labels) pieces.push(`@${l}`);
@@ -43,7 +49,7 @@ function pieceWords(parsed: ParsedTask, record: Tasks, today: string): string[] 
 }
 /** Session AV (1c, q1 #17): a pasted subtask names its parent line by index until the page gives the parent its id. */
 export const PASTE_PARENT = 'paste:';
-const KIND_WORDS: Record<ParseSpan['kind'], string> = {date: 'Day', time: 'Time', recur: 'Repeat', priority: 'Priority', project: 'Project', label: 'Label', deadline: 'Deadline', minutes: 'Length'};
+const KIND_WORDS: Record<ParseSpan['kind'], string> = {date: 'Day', time: 'Time', recur: 'Repeat', priority: 'Priority', project: 'Project', label: 'Label', deadline: 'Deadline', minutes: 'Length', reminder: 'Reminder'};
 /** "More options" (Session AK G2, R2-17, kept): priority, a day, a time and a goal for the line; what the line itself says wins. */
 const PRIORITY_CHOICES: [string, TaskLevel, string][] = [['high', 1, LEVEL_WORDS[1]], ['medium', 2, LEVEL_WORDS[2]], ['normal', 3, LEVEL_WORDS[3]], ['low', 4, LEVEL_WORDS[4]]];
 export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputRef, makeProject, goals = []}: {record: Tasks; today: string; onAdd: (input: TaskInput) => boolean;
@@ -57,6 +63,8 @@ export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputR
   const [pasted, setPasted] = useState<{lines: string[]; parents: (number | null)[]; more: number; typed?: boolean} | null>(null), listRef = useRef<HTMLDivElement>(null);
   const [reader, setReader] = useState<Parse | null>(() => parser);
   useEffect(() => { if (!reader) loadParser().then(fn => setReader(() => fn), () => undefined); }, [reader]);
+  const [, setSplitReady] = useState(!!splitter);
+  useEffect(() => { if (!splitter) loadSplit().then(() => setSplitReady(true), () => undefined); }, []);
   const parsed = useMemo(() => reader ? reader(text, today, {keep}) : plainLine(text), [reader, text, today, keep]);
   const pieces = pieceWords(parsed, record, today);
   const submit = (e: FormEvent) => {
@@ -76,6 +84,7 @@ export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputR
       ...(parsed.recur ? {recur: {...parsed.recur, text: parsed.spans.find(s => s.kind === 'recur')?.text.slice(0, 120)}} : {}),
       ...(parsed.deadline ? {deadline: parsed.deadline} : {}),
       ...(parsed.minutes ? {minutes: parsed.minutes} : {}),
+      ...(parsed.reminders?.length ? {reminders: parsed.reminders} : {}),
       labels: [...new Set([...(defaults.labels ?? []), ...parsed.labels])]};
     return input;
   };
@@ -115,7 +124,7 @@ export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputR
   const asOne = () => { if (!pasted) return; setText(pasted.typed ? text : pasted.lines.join(' ')); setPasted(null); field.current?.focus(); };
   // Session AV (1c, q1 #17; Todoist): one typed line naming several things ("melk, brood en eieren") is offered as that
   // many tasks; only when every part has words of its own (not "Call mum, tomorrow").
-  const several = useMemo(() => { if (!onAddMany || !reader || pasted) return null; const items = lineList(text.trim()); return items && items.every(l => reader(l, today).title) ? items : null; }, [onAddMany, reader, pasted, text, today]);
+  const several = useMemo(() => { if (!onAddMany || !reader || pasted) return null; const items = lineList(text.trim()) ?? splitter?.(text) ?? null; return items && items.every(l => reader(l, today).title) ? items : null; }, [onAddMany, reader, pasted, text, today]);
   const offerList = () => { if (!several) return; setPasted({lines: several, parents: several.map(() => null), more: 0, typed: true}); setError(''); requestAnimationFrame(() => listRef.current?.focus()); };
   return <form className="tasks-smart-add" onSubmit={submit} aria-label="Add a task" noValidate>
     <div className="tasks-smart-row">
@@ -132,7 +141,7 @@ export function SmartAdd({record, today, onAdd, onAddMany, defaults = {}, inputR
       {goals.length > 0 && <label className="field"><span>Goal (optional)</span><select value={goal} onChange={e => setGoal(e.target.value)}><option value="">No goal</option>{goals.map(g => <option key={g.key} value={g.key}>{g.name}</option>)}</select></label>}
     </div>}
     {/* Session AV (A10-11, CI 1941): one line at 768, so the first task starts on the first screen; the Dutch examples are in Help. */}
-    <p id={`${id}-help`} className="fine tasks-smart-help">A day, a time, “every …”, “deadline …”, p1–p4, #project or @label, in English or Dutch.</p>
+    <p id={`${id}-help`} className="fine tasks-smart-help">A day, a time, “every …”, “deadline …”, !2h (a reminder), p1–p4, #project or @label, in English or Dutch.</p>
     {parsed.spans.length > 0 && <ul className="tasks-pieces" aria-label="Read from your line">
       {parsed.spans.map(s => <li key={s.start} className="tasks-piece" data-kind={s.kind}><mark dir="auto">{s.text}</mark> <span className="sr-only">is read as the</span> <small>{KIND_WORDS[s.kind]}</small>
         <button type="button" className="text-link" aria-label={`Keep “${s.text}” as text`} onClick={() => setKeep(k => [...k, s.start])}>Keep as text</button></li>)}

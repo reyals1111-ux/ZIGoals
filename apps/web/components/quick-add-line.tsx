@@ -21,6 +21,7 @@ import {describeRecur} from '../lib/tasks/recurrence';
 import {LEVEL_WORDS} from '../lib/tasks/schema';
 import {minutesWords} from '../lib/tasks/minutes';
 import {lineList, pastedOutline} from '../lib/tasks/paste-list';
+import {splitSuggestion, spokenTasks} from '../lib/tasks/split';
 import {parseTaskLine, type ParsedTask} from '../lib/tasks/parse';
 import {formatDate} from '../lib/visual-format';
 import {showUndo} from './ui/undo-toast';
@@ -55,11 +56,12 @@ export function savedRecordId(item: QuickAddKnown, write: QuickAddWrite, at: str
 }
 /** Session AV (1c, q1 #15): what a read task line saves (its deadline and minutes included). */
 function taskInput(p: ParsedTask) {
-  return {title: p.title, ...(p.due ? {due: p.due} : {}), ...(p.time ? {time: p.time} : {}), ...(p.level ? {level: p.level} : {}), ...(p.labels.length ? {labels: p.labels} : {}), ...(p.recur ? {recur: p.recur} : {}), ...(p.deadline ? {deadline: p.deadline} : {}), ...(p.minutes ? {minutes: p.minutes} : {})};
+  return {title: p.title, ...(p.due ? {due: p.due} : {}), ...(p.time ? {time: p.time} : {}), ...(p.level ? {level: p.level} : {}), ...(p.labels.length ? {labels: p.labels} : {}), ...(p.recur ? {recur: p.recur} : {}), ...(p.deadline ? {deadline: p.deadline} : {}), ...(p.minutes ? {minutes: p.minutes} : {}), ...(p.reminders?.length ? {reminders: p.reminders} : {})};
 }
 /** Session AV (1c, q1 #17): a to-do line naming several things ("taak: melk, brood en eieren"), each with words of its own. */
 function severalOf(intent: TaskIntent): ParsedTask[] | null {
-  const items = lineList(intent.line);
+  // Session AV lane 2 (LEDGER #1; Todoist's split suggestion): a long line joined by "and then", "also" … is offered too.
+  const items = lineList(intent.line) ?? splitSuggestion(intent.line);
   if (!items) return null;
   const today = tasksToday(), read = items.map(l => parseTaskLine(l, today));
   return read.every(p => p.title) ? read : null;
@@ -91,13 +93,26 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false, close, onUn
   const [multi, setMulti] = useState<string | null>(null), [task, setTask] = useState<TaskIntent | null>(null);
   // Session AV (1c, q1 #17): a pasted list (one task per line), or a to-do line naming several things, as several tasks.
   const [taskList, setTaskList] = useState<ParsedTask[] | null>(null);
+  // Session AV lane 2 (LEDGER #4; Todoist's Ramble): what "remove that" took out of a spoken list.
+  const [dropped, setDropped] = useState<string[]>([]);
+  /** A spoken line naming several to-dos ("buy milk and then call mum, remove that, book the dentist") as that many tasks. */
+  function spoken(words: string): boolean {
+    const said = spokenTasks(words), today = tasksToday();
+    if (!said) return false;
+    const read = said.items.map(l => taskIntent(l, today)?.parsed ?? null);
+    if (!said.items.length || read.some(p => !p?.title)) return false;
+    setSaved(''); setError(''); setResult(null); setChosen(null); setMulti(null); setTask(null); setDropped(said.removed);
+    if (read.length === 1) { setTaskList(null); setTask({confidence: 'sure', parsed: read[0]!, line: said.items[0]!}); return true; }
+    setTaskList(read as ParsedTask[]);
+    return true;
+  }
   /**
    * Session AL (P-LS-04, LS-004): a to-do ("call mom tomorrow at 5pm", "task buy milk", "remind me to floss at 21:00")
    * becomes a task preview, never a food or health log. A sure to-do is read before anything else; a line that only
    * might be one ("dentist friday 10am") is offered as a task when no log reading takes it.
    */
   function preview(line = text) {
-    setSaved(''); setError(''); setChosen(null); setWake(''); setTask(null); setTaskList(null);
+    setSaved(''); setError(''); setChosen(null); setWake(''); setTask(null); setTaskList(null); setDropped([]);
     const intent = taskIntent(line, tasksToday());
     if (intent?.confidence === 'sure') { setMulti(null); setResult(null); setTask(intent); return; }
     const several = splitItems(line).length >= 2; setMulti(several ? line : null);
@@ -170,8 +185,9 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false, close, onUn
     <div className="actions"><button type="submit" className="secondary" disabled={!ready || busy || !text.trim()} aria-describedby={!ready || !text.trim() ? 'quick-add-preview-why' : undefined}>Preview</button>
       {/* Session AL (D-072, P-DVR-69): a disabled Preview says why */}
       <span id="quick-add-preview-why" className={ready ? 'sr-only' : 'fine quick-add-line-why'}>{health.error || habits.error ? 'Quick add needs your Health and Habits, which could not be read on this device.' : !ready ? 'Reading your habits and Health on this device…' : !text.trim() ? 'Type a line to preview it.' : ''}</span></div>
-    {!onlyIfUnderstood && <QuickAddMic disabled={!ready || busy} onText={words => { setText(words); preview(words); }}/>}
+    {!onlyIfUnderstood && <QuickAddMic disabled={!ready || busy} onText={words => { setText(words); if (!spoken(words)) preview(words); }}/>}
     <div aria-live="polite" className="quick-add-line-preview">
+      {dropped.length > 0 && (task || taskList) && <p className="fine">Left out, as you said “remove that”: “{dropped.join('”, “')}”.</p>}
       {active && <div className="quick-add-line-card"><p className="quick-add-line-will">Will save: {describeQuickAdd(active)} · {active.day}</p>
         {active.kind === 'water' && active.shown.unit === 'glasses' && <p className="fine">A glass is counted as 250 mL.</p>}
         {active.kind === 'sleep' && <><label className="field"><span>When did you wake up ({active.day})?</span><input type="time" required value={wake} onChange={event => setWake(event.target.value)} /></label>

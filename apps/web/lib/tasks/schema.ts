@@ -62,7 +62,13 @@ export const recurSchema = z.looseObject({
   text: z.string().max(120).optional().catch(undefined),
 });
 export type Recur = z.infer<typeof recurSchema>;
-export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320)});
+/**
+ * Session AV lane 2 (tasks, LEDGER #3; Todoist's custom reminder; TIER 3 (stored format), additive and optional): `at` is
+ * a reminder at a date and time of its own ("YYYY-MM-DDTHH:MM", the device's wall clock), apart from the task's day.
+ * `before` stays (0 for such a reminder), so an older build still reads the reminder as "at the time" of a dated task.
+ */
+export const REMINDER_AT = /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/;
+export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320), at: z.string().regex(REMINDER_AT).optional().catch(undefined)});
 export type TaskReminder = z.infer<typeof reminderSchema>;
 
 /** Session AV (F-TASK-MINUTES): the longest a task can be said to take, a whole day. */
@@ -115,12 +121,32 @@ export const taskSchema = z.looseObject({
    * this build cannot read is dropped on read; older builds keep it untouched (the object is loose) and ignore it.
    */
   snooze: z.looseObject({of: z.number().int().min(0), until: z.number().int().min(0), before: z.number().int().min(0).max(40_320).optional().catch(undefined)}).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (tasks; Sunsama, Things, Todoist; TIER 3 (stored format), additive and optional, each dropped on
+   * read when it cannot be read; older builds keep them untouched (the object is loose) and do not show them):
+   * `spent` the minutes actually worked on it (the timer, planned vs actual); `early` start-early days (it shows in Today
+   * that many days before its day); `parallel` a background task (not added to the day's load); `objective` the week
+   * objective it serves (`objectives` on the record); `comments` short notes in time order (text and links, this device).
+   */
+  spent: z.number().int().min(0).max(100_000).optional().catch(undefined),
+  early: z.number().int().min(1).max(60).optional().catch(undefined),
+  parallel: z.literal(true).optional().catch(undefined),
+  objective: id.optional().catch(undefined),
+  comments: tolerantArray(z.looseObject({id, at: z.iso.datetime({offset: true}), text: z.string().trim().min(1).max(1000)}), 50),
 });
 export const projectSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), colour: z.enum(TASK_COLOURS).catch('grey'),
   order: z.number().finite().catch(0), archived: z.boolean().optional().catch(undefined), view: z.enum(['list', 'board']).optional().catch(undefined),
+  /** Session AV lane 2 (tasks, LEDGER #20, #12, #28; Things' Areas, TickTick's folders; TIER 3 (stored format), additive): the area it sits in. */
+  areaId: id.optional().catch(undefined),
 });
-export const sectionSchema = z.looseObject({id, projectId: id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0)});
+/** Session AV lane 2 (tasks, LEDGER #20): `archived` puts a finished section away as a block, its tasks with it. */
+export const sectionSchema = z.looseObject({id, projectId: id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0), archived: z.literal(true).optional().catch(undefined)});
+/** Session AV lane 2 (tasks, LEDGER #20, #12, #28): an Area (a folder, a context) that groups projects. */
+export const areaSchema = z.looseObject({id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0)});
+/** Session AV lane 2 (tasks, LEDGER #22, #23; Sunsama's weekly objectives): an objective for the week that starts on `week` (a Monday). */
+export const objectiveSchema = z.looseObject({id, week: day, title: z.string().trim().min(1).max(TASK_TITLE_MAX), doneAt: z.iso.datetime({offset: true}).optional().catch(undefined), goal: z.string().max(120).optional().catch(undefined)});
+export const MAX_AREAS = 30, MAX_OBJECTIVES = 200;
 export const filterSchema = z.looseObject({id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), query: z.string().trim().min(1).max(200)});
 /**
  * Session AL (security delta review B, SB-3; TIER 3 (stored format), no shape change): a task whose parent is itself,
@@ -153,12 +179,17 @@ export const tasksSchema = z.looseObject({
   sections: tolerantArray(sectionSchema, MAX_SECTIONS),
   labelColors: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, c]) => LABEL_PATTERN.test(k) && (TASK_COLOURS as readonly unknown[]).includes(c)).slice(0, 200)) : undefined, z.record(z.string(), z.enum(TASK_COLOURS)).optional()),
   filters: tolerantArray(filterSchema, MAX_FILTERS),
+  // Session AV lane 2 (tasks; TIER 3 (stored format), additive): areas above projects and the week objectives.
+  areas: tolerantArray(areaSchema, MAX_AREAS),
+  objectives: tolerantArray(objectiveSchema, MAX_OBJECTIVES),
 }).transform(breakParentLoops);
 export type Task = z.infer<typeof taskSchema>;
 export type Tasks = z.infer<typeof tasksSchema>;
 export type Project = z.infer<typeof projectSchema>;
 export type Section = z.infer<typeof sectionSchema>;
 export type SavedFilter = z.infer<typeof filterSchema>;
+export type Area = z.infer<typeof areaSchema>;
+export type Objective = z.infer<typeof objectiveSchema>;
 export const emptyTasks = (): Tasks => ({version: 1, tasks: []});
 export const TASKS: DeviceRecordSpec<Tasks> = {key: TASKS_KEY, schema: tasksSchema, empty: emptyTasks};
 
