@@ -6,7 +6,7 @@ import {addWater, dailyData, undoWaterLog, waterSummary} from '../../../lib/heal
 import {DRINK_TYPES, drinkWord, healthExtrasSchema, OWN_DRINKS_MAX, setDrink, type HealthExtras, type OwnDrink} from '../../../lib/health-extras';
 import {drinkEnergyDay, moveOwnDrink, OWN_DRINK_COLOURS, OWN_DRINK_SYMBOL_NAMES, OWN_DRINK_SYMBOLS, ownDrinks, removeOwnDrink, saveOwnDrink, tapNote, type DrinkFormInput, type DrinkIssue} from '../../../lib/own-drinks';
 import {waterTipOf} from '../../../lib/water-tips';
-import {DEFAULT_SPREAD, SPREAD_EVERY, spreadSlots, withWaterSpread, type WaterSpread} from '../../../lib/water-spread';
+import {DEFAULT_SPREAD, SPREAD_EVERY, spreadSlotsToday, withWaterSpread, type WaterSpread} from '../../../lib/water-spread';
 import {NOTIFY_PREFS, typeOn} from '../../../lib/notify/prefs';
 import {REMINDERS_PLAN, quietHours} from '../../../lib/reminders-plan/schema';
 import {inQuiet} from '../../../lib/notify/zone';
@@ -58,7 +58,7 @@ export default function WaterMore({data, date, perform}: {data: HealthData; date
     <details className="r3-fold"><summary>Your drinks{drinks.length ? ` (${drinks.length} of ${OWN_DRINKS_MAX})` : ''}</summary>
       {unreadable ? <p className="fine" role="alert">Your drinks on this device could not be read, so they cannot be changed here now.</p> : <DrinksEditor extras={extras} drinks={drinks} update={update}/>}
     </details>
-    <details className="r3-fold"><summary>Reminders through the day</summary><SpreadCard data={data} date={date}/></details>
+    <details className="r3-fold"><summary>Reminders through the day</summary><SpreadCard data={data}/></details>
     <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={!!extras?.waterTips} aria-describedby={`r3-tip-note-${date}`} disabled={!extras} onClick={() => setTips(!extras?.waterTips)}>Show a water tip each day</button><span className="fine" id={`r3-tip-note-${date}`}>Small habits that make a glass easier to reach for. Off unless you choose it.</span></div>
     <p className="fine" role="status" aria-live="polite">{said}</p>
   </div>;
@@ -110,12 +110,13 @@ function DrinksEditor({extras, drinks, update}: {extras: HealthExtras | null; dr
 }
 
 /** Health → Water → "Reminders through the day" (LEDGER #280): from, to, every; today's times and which are skipped. */
-function SpreadCard({data, date}: {data: HealthData; date: string}) {
+function SpreadCard({data}: {data: HealthData}) {
   const prefs = useDeviceRecord(NOTIFY_PREFS), plan = useDeviceRecord(REMINDERS_PLAN), id = useId(), [said, setSaid] = useState('');
   const saved: WaterSpread = prefs.data.waterSpread ?? {...DEFAULT_SPREAD, on: false};
   const [draft, setDraft] = useState<WaterSpread | null>(null), s = draft ?? saved;
   if (!prefs.loaded) return null;
-  const water = waterSummary(data, date), unit = dailyData(data).preferences.waterUnit, quiet = quietHours(plan.data), slots = spreadSlots(s, water);
+  // Review B3B-8: today's reminders, from the Health journal's today, whatever day the Diary shows.
+  const today = spreadSlotsToday(s, data), water = {...waterSummary(data, today.day), millilitres: today.millilitres}, unit = dailyData(data).preferences.waterUnit, quiet = quietHours(plan.data), slots = today.slots;
   const save = (next: WaterSpread) => { try { prefs.update(p => withWaterSpread(p, next)); setDraft(null); setSaid(next.on ? `Water reminders on, every ${next.every / 60} ${plural(next.every / 60, 'hour')} from ${formatClock(next.from)} to ${formatClock(next.to)}.` : 'Water reminders through the day are off. Your choices are kept.'); } catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
   const valid = /^\d\d:\d\d$/.test(s.from) && /^\d\d:\d\d$/.test(s.to) && s.to > s.from;
   return <div className="r3-spread">

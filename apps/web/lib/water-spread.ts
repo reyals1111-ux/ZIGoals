@@ -1,4 +1,6 @@
 import {notifyPrefsSchema, type NotifyPrefs} from './notify/prefs';
+import {dailyData, healthDay, waterSummary} from './health-daily';
+import type {HealthData} from './health';
 /**
  * Session AV lane 2 (health r3; LEDGER #280, Waterllama's reminders through the day): water reminders every 1, 2 or 3
  * hours between a start and an end time, each skipped when the day is on pace for the person's own target. Pure.
@@ -42,4 +44,12 @@ export function spreadSlots(s: WaterSpread, day: {targetMl: number | null; milli
 /** Saves the spread (switching it on also switches the Water notifications on: one tap, where it is chosen). */
 export function withWaterSpread(p: NotifyPrefs, s: WaterSpread): NotifyPrefs {
   return notifyPrefsSchema.parse({...p, waterSpread: {on: s.on, from: s.from, to: s.to, every: s.every}, ...(s.on ? {types: {...p.types, water: true}} : {})});
+}
+/**
+ * Review B3B-8: the reminders are about the Health journal's today (its zone), whatever day the Diary shows; the card and
+ * the notification plan both read them here.
+ */
+export function spreadSlotsToday(s: WaterSpread, data: HealthData, now = new Date()): {day: string; slots: SpreadSlot[]; millilitres: number} {
+  const day = healthDay(dailyData(data).preferences.timezone, now), water = waterSummary(data, day);
+  return {day, slots: spreadSlots(s, water), millilitres: water.millilitres};
 }

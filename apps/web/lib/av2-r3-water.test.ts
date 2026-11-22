@@ -4,7 +4,9 @@ import {describe, expect, it} from 'vitest';
 import {buildPlan, type PlanInput} from './notify/plan';
 import {emptyNotifyPrefs, setType, typeOn} from './notify/prefs';
 import {zonedInstant} from './notify/zone';
-import {DEFAULT_SPREAD, paceDue, spreadSlots, spreadTimes, withWaterSpread} from './water-spread';
+import {DEFAULT_SPREAD, paceDue, spreadSlots, spreadSlotsToday, spreadTimes, withWaterSpread} from './water-spread';
+import {addWater, dailyData, saveHealthPreferences} from './health-daily';
+import {createEmptyHealth} from './health';
 import {drinkEnergyDay, moveOwnDrink, ownDrinks, readDrinkEnergy, removeOwnDrink, saveOwnDrink, tapNote, type DrinkFormInput} from './own-drinks';
 import {emptyHealthExtras, setDrink, type HealthExtras} from './health-extras';
 import {WATER_TIPS, waterTipOf} from './water-tips';
@@ -69,6 +71,19 @@ describe('water reminders through the day (LEDGER #280)', () => {
   it('the notification says what is left to be on pace, in the existing water line', () => {
     const plan = buildPlan(base({waterSpread: [{time: '13:00', done: false, detail: '400 mL to be on pace'}]}));
     expect(composer()(plan.snapshot, zonedInstant(TODAY, '13:00', ZONE)).body).toContain('Water: 400 mL to be on pace');
+  });
+});
+
+// Session AV lane 2 (review B3B-8): the card's "Today" list is the Health journal's today, never the Diary's chosen day.
+describe('reminders through the day: today', () => {
+  it('reads the Health journal’s today, whatever day the Diary shows', () => {
+    const at = '2026-11-20T08:00:00.000Z';
+    let data = addWater(createEmptyHealth(), {id: 'health_pastwater1', date: '2026-11-19', amountMilli: 3_000_000, unit: 'ml'}, at);
+    data = saveHealthPreferences(data, {...dailyData(data).preferences, waterTargetMl: 2000, timezone: 'UTC'});
+    const today = spreadSlotsToday(DEFAULT_SPREAD, data, new Date('2026-11-20T15:00:00Z'));
+    expect(today.day).toBe('2026-11-20');
+    expect(today.millilitres).toBe(0);
+    expect(today.slots.some(s => s.onPace)).toBe(false);
   });
 });
 
