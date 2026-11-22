@@ -24,5 +24,5 @@ export function showcaseWorkouts(day: string): Workouts {
   const template = (id: string, name: string, plan: Plan[]) => ({id, name, type: 'strength' as const, createdAt: at(-13, 9), folder: 'Gym', ...(id === 'showcase-routine-push' ? {note: 'Example · 90 s rest between sets', progression: {kind: 'double' as const, minReps: 6, maxReps: 10, stepKg: 2.5}} : {}), exercises: plan.map(([exerciseId, n, sets]) => ({exerciseId, name: n, measure: 'weight-reps' as const, sets: sets.map(([kg, reps], j) => ({kind: j === 0 ? 'warmup' as const : 'normal' as const, weightKg: kg, reps}))}))});
   // Session AV lane 2 (body; LEDGER #119): a note pinned to the squat, labelled, so the library and the workout show one.
   return workoutsSchema.parse({version: 1, workouts, templates: [template('showcase-routine-push', 'Push day', PUSH), template('showcase-routine-legs', 'Leg day', LEGS)], exercises: [], restSeconds: 90,
-    pinnedNotes: {squat: 'Example · safety bars at hole 6'}});
+    pinnedNotes: {squat: 'Example · safety bars at hole 6'}, distanceGoals: [{id: 'showcase-goal-run', sport: 'run', period: 'month', km: 30, createdAt: at(-13, 9)}]});
 }

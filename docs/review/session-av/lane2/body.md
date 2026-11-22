@@ -145,3 +145,25 @@ test `apps/web/lib/workouts/av2-stored.test.ts`.
 - What's new: "Workouts: a year calendar and your weeks in a row."
 - Answers: "how many weeks in a row have I trained" / "hoeveel weken op rij heb ik getraind", "how many days did I train
   this year" / "hoeveel dagen heb ik dit jaar getraind".
+
+## 6. A run's summary, distance goals and the training load — LEDGER #110 built, #111 built (challenges with friends: against a named rule, nothing shared between people)
+
+- What: every run in "Your workouts" says, with no model, its distance and pace beside the average of up to five runs
+  before it, its fastest kilometre (from the splits) and a running best it set. "Distance goals and training load" (a
+  panel; its content its own chunk): distance goals for a week, a month or a year, for running, cycling, swimming,
+  walking or every sport — a bar, what is left, the kilometres a day to get there, on pace or not; the first two show on
+  the panel's face. The training load: minutes (or kilometres) in the last 7 days beside the usual week (the average of
+  the 4 weeks before), in plain words ("About your usual week", "Well above your usual week: a big step up…"), with 12
+  weeks as bars and the usual as a dashed line, and a table. Never calories.
+- Files: `lib/workouts/runs.ts`, `components/health/workouts/distance-goals.tsx`, `components/health/workouts/workouts-view.tsx`,
+  `components/health/workouts/av2-body.css`, `lib/workouts/showcase.ts` (Showcase: a 30 km running goal this month).
+- Tests: `lib/workouts/av2-runs.test.ts`, `lib/ai/local-answers/av2-body.test.ts`; spec `tests/av2-distance-goals.spec.ts`.
+- Stored: `distanceGoals` (see Stored changes).
+- Help (EN): **Can I set a distance goal?** Yes: in Health → Workouts, open "Distance goals and training load" and set a
+  distance for a week, a month or a year — running, cycling, swimming, walking or all sports. It counts your distance sets
+  and imported files. **What is the training load?** Your minutes (or kilometres) in the last 7 days beside your usual
+  week, the average of the four weeks before. It never counts calories. **What does a run's summary say?** Its pace and
+  distance beside your last few runs, its fastest kilometre and any running best it set.
+- What's new: "Workouts: distance goals, a training load beside your usual week, and a summary under each run."
+- Answers: "how is my running goal going" / "hoe gaat mijn hardloopdoel", "what is my training load" / "wat is mijn
+  trainingsbelasting", "how did my last run compare" / "hoe was mijn laatste loop".

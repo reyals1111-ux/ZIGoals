@@ -57,6 +57,25 @@ describe('progression (LEDGER #109)', () => {
   });
 });
 
+describe('runs, distance goals and the training load (LEDGER #110, #111)', () => {
+  test('the Showcase\'s running goal this month, in English and Dutch', () => {
+    expect(text(ask('how is my running goal going'))).toMatch(/^Your distance goals, from your own log:\n• running this month: \d+(?:\.\d+)? of 30 km/);
+    expect(text(ask('hoe gaat mijn hardloopdoel'))).toMatch(/• hardlopen deze maand: \d+(?:\.\d+)? van 30 km/);
+    expect(text(ask('what are my distance goals', freshAll()))).toContain('No distance goal is set yet');
+  });
+  test('the load in minutes, never calories; the last run beside the one before', () => {
+    const en = text(ask('what is my training load'));
+    expect(en).toMatch(/^Training load, the last 7 days: \d+ min/);
+    expect(en).toContain('never calories');
+    expect(en).not.toMatch(/kcal|calories burned/);
+    expect(text(ask('wat is mijn trainingsbelasting'))).toContain('nooit calorieën');
+    const run = text(ask('how did my last run compare'));
+    expect(run).toContain('Easy run, ');
+    expect(run).toContain('6 km at 5:40 a km. Against your last run: 4 s a km slower, 1 km longer.');
+    expect(text(ask('hoe was mijn laatste loop'))).toContain('Tegenover je laatste loop: 4 s per km langzamer, 1 km langer.');
+  });
+});
+
 describe('the calendar (LEDGER #118)', () => {
   test('the Showcase\'s weeks in a row and its days this year', () => {
     // The Showcase trains on days −13 … −1 before 17 Nov: the weeks of 2 Nov, 9 Nov and 16 Nov.

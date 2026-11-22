@@ -34,6 +34,7 @@ import {SlowReload} from '../slow-reload';
 import {pinnedNoteOf, setPinnedNote} from '../../../lib/workouts/notes';
 import {routineGroups, saveGuide} from '../../../lib/workouts/routines';
 import {exerciseSeries, type SeriesMetric} from '../../../lib/workouts/analytics';
+import {goalProgress, runSummary, runWords} from '../../../lib/workouts/runs';
 import {progressed, targetFor, type Target} from '../../../lib/workouts/progression';
 import {guideLine, guideOf, routineLang, type Guide, type Lang} from '../../../lib/workouts/routine-library';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
@@ -57,6 +58,8 @@ const RoutineLibrary = lazy(() => import('./routine-library-view'));
 const RoutineEdit = lazy(() => import('./routine-library-view').then(m => ({default: m.RoutineEdit})));
 // Session AV lane 2 (body; LEDGER #117): the month report and sets per muscle over 8 weeks, its own chunk.
 const WorkoutsProgress = lazy(() => import('./workouts-progress'));
+// Session AV lane 2 (body; LEDGER #111): distance goals and the training load, its own chunk.
+const DistanceGoals = lazy(() => import('./distance-goals'));
 const ExerciseHowTo = lazy(() => import('./exercise-library').then(m => ({default: m.ExerciseDetail})));
 
 /**
@@ -242,6 +245,8 @@ export default function WorkoutsView() {
       {past.length ? <ul className="workouts-past">{past.slice(0, 30).map(x => <li key={x.id}>
         <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
           {importInfo(x) && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
+          {/* Session AV lane 2 (body; LEDGER #110, Strava's per-activity summary, no model): the run beside the runs before it. */}
+          {(() => { const r = runSummary(w, splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null, x.id); return r ? <p className="fine workouts-run-summary">{runWords(r)}</p> : null; })()}
           {splitsRecord.data.workouts[x.id] && <WorkoutSplitsTable s={splitsRecord.data.workouts[x.id]!} name={x.name}/>}
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unit)}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
@@ -256,6 +261,12 @@ export default function WorkoutsView() {
 
     <ExerciseProgress w={w} unit={unit} library={library} value={historyOf} onChange={setHistoryOf}/>
     {past.some(x => x.exercises.length) && <Suspense fallback={<section className="panel"><p className="fine">Opening muscle groups…</p></section>}><WorkoutsMuscles w={w} unit={unit} library={library} today={today}/></Suspense>}
+    {/* Session AV lane 2 (body; LEDGER #111): distance goals (their line on the fold's face) and the training load. */}
+    <section className="panel workouts-goals" aria-labelledby="workouts-goals-title">
+      <h2 id="workouts-goals-title">Distance goals and training load</h2>
+      {(w.distanceGoals ?? []).slice(0, 2).map(g => { const p = goalProgress(w, g, today); return <p key={g.id} className="fine workouts-goal-line">{`${({run: 'Running', ride: 'Cycling', swim: 'Swimming', walk: 'Walking', any: 'All sports'} as const)[g.sport]} ${g.period === 'week' ? 'this week' : g.period === 'month' ? 'this month' : 'this year'}: ${formatNumber(p.km, {maximumFractionDigits: 1})} of ${formatNumber(g.km, {maximumFractionDigits: 1})} km${p.done ? ', reached' : p.onPace ? ', on pace' : ''}.`}</p>; })}
+      <Fold className="av2-fold workouts-goals-fold" summary={(w.distanceGoals ?? []).length ? 'Your goals and the last 7 days beside your usual week' : 'Set a distance goal; see the last 7 days beside your usual week'} loading="Opening goals and load…"><DistanceGoals w={w} today={today} change={change}/></Fold>
+    </section>
     {past.some(x => x.exercises.length) && <section className="panel workouts-progress-report" aria-labelledby="workouts-report-title">
       <h2 id="workouts-report-title">Progress</h2>
       <Fold className="av2-fold workouts-report-fold" summary="This month beside the last, and sets per muscle group" loading="Opening your progress…"><WorkoutsProgress w={w} unit={unit} library={library} today={today}/></Fold>

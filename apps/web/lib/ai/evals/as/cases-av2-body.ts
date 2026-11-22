@@ -16,5 +16,8 @@ export const AV2_BODY: readonly Intent[] = [
   {id: 'av2-sets-muscle', pillar: 'health', en: ['how many sets per muscle group did I do', 'show my sets per muscle group'], nl: ['hoeveel sets per spiergroep heb ik gedaan', 'laat mijn sets per spiergroep zien']},
   {id: 'av2-week-streak', pillar: 'health', en: ['how many weeks in a row have I trained', 'what is my workout streak'], nl: ['hoeveel weken op rij heb ik getraind', 'wat is mijn workoutreeks']},
   {id: 'av2-days-year', pillar: 'health', en: ['how many days did I train this year', 'how many days have I worked out this year'], nl: ['hoeveel dagen heb ik dit jaar getraind', 'hoeveel dagen heb ik dit jaar gesport']},
+  {id: 'av2-distance-goal', pillar: 'health', en: ['how is my running goal going', 'what are my distance goals'], nl: ['hoe gaat mijn hardloopdoel', 'wat zijn mijn afstandsdoelen']},
+  {id: 'av2-training-load', pillar: 'health', en: ['what is my training load', 'how is my training load this week'], nl: ['wat is mijn trainingsbelasting', 'hoe is mijn trainingsbelasting deze week'], never: ['kcal']},
+  {id: 'av2-last-run', pillar: 'health', en: ['how did my last run compare', 'how was my last run'], nl: ['hoe was mijn laatste loop', 'mijn laatste loop vergeleken met de vorige']},
   {id: 'av2-ready-routines', pillar: 'health', en: ['which ready-made routines are there', 'suggest a strength routine for at home'], nl: ['welke kant-en-klare routines zijn er', 'stel een routine voor thuis voor']},
 ];

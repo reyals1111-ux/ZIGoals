@@ -8,6 +8,7 @@ import {targetFor} from '../../workouts/progression';
 import {monthFigures, muscleWeeks, previousMonth} from '../../workouts/analytics';
 import {categoryLookup} from '../../workouts/depth';
 import {weekStreak, workoutYear} from '../../workouts/calendar';
+import {goalProgress, LOAD_WORDS, paceText, runSummary, runWords, trainingLoad} from '../../workouts/runs';
 import type {Workouts} from '../../workouts/schema';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
@@ -209,4 +210,42 @@ function trainingDaysYear(a: Asked): LocalReply | null {
   return answer(say(lang, `${y.days} ${y.days === 1 ? 'day' : 'days'} with a workout in ${year}${y.sessions > y.days ? ` (${y.sessions} workouts)` : ''}. Health → Workouts → Calendar → Year shows each one.`, `${y.days} ${y.days === 1 ? 'dag' : 'dagen'} met een workout in ${year}${y.sessions > y.days ? ` (${y.sessions} workouts)` : ''}. Health → Workouts → Calendar → Year toont ze.`), CALLS);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear];
+// ── Runs, distance goals and the training load (LEDGER #110, #111) ─────────────────────────────────────────────────
+
+const SPORT_EN: Record<string, string> = {run: 'running', ride: 'cycling', swim: 'swimming', walk: 'walking', any: 'all sports'}, SPORT_NL: Record<string, string> = {run: 'hardlopen', ride: 'fietsen', swim: 'zwemmen', walk: 'wandelen', any: 'alle sporten'};
+const PERIOD_EN: Record<string, string> = {week: 'this week', month: 'this month', year: 'this year'}, PERIOD_NL: Record<string, string> = {week: 'deze week', month: 'deze maand', year: 'dit jaar'};
+/** "how is my running goal going", "hoe gaat mijn hardloopdoel": each distance goal, what is left and the pace. */
+function distanceGoals(a: Asked): LocalReply | null {
+  const en = /\b(?:distance|running|run|cycling|ride|swim(?:ming)?|walking|mileage|km) goals?\b|\bgoal (?:for|of) (?:km|kilometres|kilometers|running|cycling)\b/.test(a.f), nl = /\b(?:afstands|hardloop|loop|fiets|zwem|wandel|kilometer)doel(?:en)?\b|\bdoel (?:voor|van) (?:km|kilometers|hardlopen|fietsen)\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const w = logOf(a), lang = a.lang, goals = w.distanceGoals ?? [];
+  if (!goals.length) return answer(say(lang, 'No distance goal is set yet. In Health → Workouts → Distance goals and training load, set one for a week, a month or a year.', 'Er is nog geen afstandsdoel. Stel in Health → Workouts → Distance goals and training load een doel in voor een week, een maand of een jaar.'), CALLS);
+  const lines = goals.map(g => { const p = goalProgress(w, g, a.env.healthDay); return lang === 'nl'
+    ? `• ${SPORT_NL[g.sport]} ${PERIOD_NL[g.period]}: ${num(p.km)} van ${num(g.km)} km${p.done ? ', gehaald' : `, nog ${num(p.left)} km${p.perDay ? ` (ongeveer ${num(p.perDay)} km per dag)` : ''}, ${p.onPace ? 'op schema' : 'nu achter op schema'}`}`
+    : `• ${SPORT_EN[g.sport]} ${PERIOD_EN[g.period]}: ${num(p.km)} of ${num(g.km)} km${p.done ? ', reached' : `, ${num(p.left)} km to go${p.perDay ? ` (about ${num(p.perDay)} km a day)` : ''}, ${p.onPace ? 'on pace' : 'behind pace for now'}`}`; });
+  return answer([say(lang, 'Your distance goals, from your own log:', 'Je afstandsdoelen, uit je eigen log:'), ...lines].join('\n'), CALLS);
+}
+const LOAD_NL: Record<string, string> = {none: 'Nog niets gelogd in de afgelopen vijf weken.', new: 'Dit is je eerste week hier, dus er is nog geen gewone week.', lighter: 'Lichter dan je gewone week.', usual: 'Ongeveer je gewone week.', more: 'Meer dan je gewone week.', 'much-more': 'Ruim boven je gewone week: een flinke stap. Rustig opbouwen is het gewone advies.'};
+/** "what is my training load", "wat is mijn trainingsbelasting": the last 7 days beside the usual week (minutes). */
+function load(a: Asked): LocalReply | null {
+  if (!/\btraining (?:load|volume per week)\b|\bworkload\b.*\b(?:training|workouts?)\b|\btrainingsbelasting\b|\btrainingslast\b|\bbelasting\b.*\btraining\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const t = trainingLoad(logOf(a), a.env.healthDay, /\b(?:km|kilomet|distance|afstand)\w*\b/.test(a.f) ? 'km' : 'minutes'), lang = a.lang, u = (v: number) => t.metric === 'km' ? `${num(v)} km` : `${Math.round(v)} min`;
+  return answer(say(lang, `Training load, the last 7 days: ${u(t.last7)}${t.usual !== null ? `; your usual week (the 4 weeks before): ${u(t.usual)}` : ''}. ${LOAD_WORDS[t.words]} Counted from your own ${t.metric === 'km' ? 'distance' : 'minutes'}; never calories.`,
+    `Trainingsbelasting, de afgelopen 7 dagen: ${u(t.last7)}${t.usual !== null ? `; je gewone week (de 4 weken ervoor): ${u(t.usual)}` : ''}. ${LOAD_NL[t.words]} Geteld uit je eigen ${t.metric === 'km' ? 'afstand' : 'minuten'}; nooit calorieën.`), CALLS);
+}
+/** "how did my last run compare", "hoe was mijn laatste loop": the run's summary against the runs before it. */
+function lastRun(a: Asked): LocalReply | null {
+  const en = /\b(?:last|latest|most recent) run\b/.test(a.f) && /\b(?:compare|compared|how (?:did|was)|summary|go|against)\b/.test(a.f), nl = /\b(?:laatste|vorige) (?:loop|hardloopronde|run|duurloop)\b/.test(a.f) && /\b(?:vergeleken|hoe (?:ging|was)|samenvatting|tegenover)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const w = logOf(a), lang = a.lang, last = finished(w).find(x => runSummary(w, null, x.id));
+  if (!last) return answer(say(lang, 'No run with a distance is logged yet.', 'Er is nog geen loop met een afstand gelogd.'), CALLS);
+  const r = runSummary(w, a.env.ak?.splits ?? null, last.id)!;
+  if (lang === 'en') return answer(`${clean(last.name, 40)}, ${dayIn('en', last.date, a.today)}: ${runWords(r)}`, CALLS);
+  const vs = r.earlier === 0 ? 'Je eerste loop hier: de volgende worden ermee vergeleken.' : `Tegenover je laatste ${r.earlier === 1 ? 'loop' : `${r.earlier} lopen`}: ${r.paceDelta === 0 ? 'hetzelfde tempo' : `${Math.abs(r.paceDelta!)} s per km ${r.paceDelta! < 0 ? 'sneller' : 'langzamer'}`}, ${r.kmDelta === 0 ? 'dezelfde afstand' : `${num(Math.abs(r.kmDelta!))} km ${r.kmDelta! > 0 ? 'langer' : 'korter'}`}.`;
+  return answer(`${clean(last.name, 40)}, ${dayIn('nl', last.date, a.today)}: ${num(r.km)} km in ${paceText(r.pace)} per km. ${vs}${r.fastestKm !== null ? ` Snelste kilometer ${paceText(r.fastestKm)}.` : ''}`, CALLS);
+}
+
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun];

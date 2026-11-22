@@ -69,3 +69,25 @@
 .av2-year-key { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: middle; }
 :root[data-theme=light] .av2-year-month td.is-trained, :root[data-theme=light] .av2-year-key.is-trained { background: #16865c; }
 @media (forced-colors: active) { .av2-year-month td.is-trained, .av2-year-key.is-trained { background: CanvasText; } }
+/* Distance goals and the training load (LEDGER #111). */
+.av2-goals { display: grid; gap: 16px; }
+.av2-goals section { display: grid; gap: 8px; min-width: 0; }
+.av2-goals h3 { margin: 0; font-size: 1.05rem; }
+.av2-goal-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.av2-goal-list li { display: grid; gap: 4px; }
+.av2-goal-list p { margin: 0; }
+.av2-goal-list button { justify-self: start; min-height: 44px; }
+.av2-goal-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 15px; }
+.av2-goal-bar { block-size: 12px; border-radius: 6px; background: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent); overflow: hidden; }
+.av2-goal-bar span { display: block; block-size: 100%; background: var(--success, #47d6a1); border-radius: 6px; }
+.av2-goal-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.av2-goal-form .field { flex: 1 1 130px; }
+.av2-goal-form select, .av2-goal-form input { min-height: 44px; }
+.av2-load-line { margin: 0; font-size: 15px; }
+.av2-load-bars { width: 100%; height: 70px; }
+.av2-load-bars rect { fill: var(--brand-cyan, #6fe6f6); opacity: .65; }
+.av2-load-bars rect.is-this-week { opacity: 1; }
+.av2-load-usual { fill: none; stroke: var(--pillar, #ff74be); stroke-width: 2; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+:root[data-theme=light] .av2-goal-bar span { background: #16865c; }
+:root[data-theme=light] .av2-load-bars rect { fill: #0b6f84; }
+@media (forced-colors: active) { .av2-goal-bar span, .av2-load-bars rect { background: CanvasText; fill: CanvasText; } .av2-load-usual { stroke: Highlight; } }
