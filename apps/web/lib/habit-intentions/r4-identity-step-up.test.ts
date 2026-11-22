@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {createHabit, emptyHabitData, logHabitValue, type HabitData, type HabitInput} from '../habits';
 import {addLocalDays} from '../local-date';
 import {countLine, identitiesOf, identityCounts, pruneIdentityHabits, removeIdentity, restoreIdentity, saveIdentity} from './identity';
-import {restUntil, setStepUp, sizeWords, stepOffer, stepOffers, stepUpOf} from '../habits-v2/step-up';
+import {restUntil, restoreStepUpEntry, setStepUp, sizeWords, stepOffer, stepOffers, stepUpEntry, stepUpOf} from '../habits-v2/step-up';
 
 /**
  * Session AV lane 2 (r4-mind; LEDGER #323, #327, Atoms): the person behind the habits — lines in their own words, each
@@ -80,5 +80,15 @@ describe('start small, then step up', () => {
     const x = setStepUp({version: 1}, A, {small: 'One page', next: 'Two pages', now: 'next', since: '2026-10-20', card: true});
     expect(stepOffer(h, stepUpOf(x, A), TODAY)).toMatchObject({kind: 'down', words: 'One page'});
     expect(stepOffer(h, stepUpOf(setStepUp(x, A, {small: null}), A), TODAY)).toBeNull();
+  });
+  test('Undo of Yes puts the entry back exactly: its size, the four-week clock and a resting card (review B4D-5)', () => {
+    const start = {version: 1, stepUp: {[A]: {small: 'One page', next: 'Two pages', now: 'small', since: '2026-10-24', card: true, later: '2026-11-01', later2: 'a later build'}, [B]: {small: 'x'}}};
+    const before = stepUpEntry(start, A);
+    const yes = setStepUp(start, A, {now: 'full', since: TODAY, later: null});
+    expect(stepUpOf(yes, A)).toMatchObject({now: 'full', since: TODAY});
+    const back = restoreStepUpEntry({...yes, stepUp: {...(yes as {stepUp: Record<string, unknown>}).stepUp, [B]: {small: 'y'}}}, A, before);
+    expect((back as {stepUp: Record<string, unknown>}).stepUp[A]).toEqual(start.stepUp[A]);
+    expect((back as {stepUp: Record<string, unknown>}).stepUp[B]).toEqual({small: 'y'}); // other habits as they are now
+    expect(restoreStepUpEntry(setStepUp({version: 1}, A, {small: 'x'}), A, stepUpEntry({version: 1}, A))).toEqual({version: 1});
   });
 });

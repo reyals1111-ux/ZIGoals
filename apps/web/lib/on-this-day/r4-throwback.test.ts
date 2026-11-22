@@ -31,6 +31,19 @@ describe('a week, a month and a year back', () => {
     expect([agoWords({years: 1, months: null}), agoWords({years: 4, months: null}), agoWords({years: null, months: 1}), agoWords({years: null, months: null, weeks: 1})]).toEqual(['a year ago', '4 years ago', 'a month ago', 'a week ago']);
   });
 });
+describe('a letter still folded away is never a memory (review B4D-4)', () => {
+  const letter = {id: 'letter', date: '2026-11-15', text: 'Dear future me, fictional words.', opensOn: '2027-11-15'};
+  test('a letter written a week ago to open in a year: not a week back, not a month or a year back, no morning wake', () => {
+    const list = [...entries, letter, {...letter, id: 'old-letter', date: '2025-11-22', opensOn: '2027-01-01'}, {...letter, id: 'month-letter', date: '2026-10-22'}];
+    expect(throwbacks(list, '2026-11-22').map(i => i.entry.id)).toEqual(['y1', 'y3', 'm', 'w']);
+    expect(memoryWakes([letter], {memoryNotify: true}, '2026-11-22')).toEqual([]);
+    expect(JSON.stringify(memoryWakes(list, {memoryNotify: true}, '2026-11-22'))).not.toContain('letter');
+  });
+  test('once its day has come it is an entry like any other', () => {
+    expect(throwbacks([{...letter, opensOn: '2026-11-20'}], '2026-11-22').map(i => [i.entry.id, i.label])).toEqual([['letter', 'A week ago']]);
+    expect(memoryWakes([{...letter, opensOn: '2026-11-22'}], {memoryNotify: true}, '2026-11-22')).toEqual([{id: 'memory:2026-11-22', date: '2026-11-22', detail: 'a week ago'}]);
+  });
+});
 describe('the morning wake', () => {
   test('only when asked, and not while On this day is hidden; today and tomorrow; never a word', () => {
     expect(memoryWakes(entries, {}, '2026-11-22')).toEqual([]);

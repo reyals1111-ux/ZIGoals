@@ -3,7 +3,9 @@
  * only when the person switches it on (the journal record's `quotes`). The English lines are public-domain translations,
  * quoted as printed (checked against the Wikisource transcriptions): Marcus Aurelius' Meditations in George Long's
  * translation (1862), Seneca's Moral Letters to Lucilius in Richard Mott Gummere's (Loeb, 1917–1925) and Epictetus'
- * Encheiridion in George Long's (1877). The Dutch lines are written for ZIGoals from those English words. Chosen for calm
+ * Encheiridion in George Long's (1877). Session AV lane 2 (review B3C-7, B3C-8): a line is a whole sentence of the
+ * original, or, where it starts inside one, starts with "…" and the original's own small letter; it ends where the
+ * original has a full stop, a colon or a semicolon. The Dutch lines are written for ZIGoals from those English words. Chosen for calm
  * words: nothing about death, illness or what to eat. The order is fixed, one a day by the date alone; "Another one"
  * steps on. Nothing is stored here; nothing is sent. Pure.
  */
@@ -16,7 +18,7 @@ export const WRITERS: Record<StoicWriter, {name: string; work: {en: string; nl: 
 };
 export const STOIC_QUOTES: readonly StoicQuote[] = [
   {id: 'ma-4-3', writer: 'marcus', where: 'IV.3', en: 'The universe is transformation: life is opinion.', nl: 'Alles verandert; het leven is wat je ervan denkt.'},
-  {id: 'se-1-a', writer: 'seneca', where: '1', en: 'Hold every hour in your grasp. Lay hold of to-day’s task, and you will not need to depend so much upon to-morrow’s.', nl: 'Houd elk uur vast. Pak de taak van vandaag op, dan hoef je minder op morgen te rekenen.'},
+  {id: 'se-1-a', writer: 'seneca', where: '1', en: 'Therefore, Lucilius, do as you write me that you are doing: hold every hour in your grasp. Lay hold of to-day’s task, and you will not need to depend so much upon to-morrow’s.', nl: 'Doe dus, Lucilius, wat je me schrijft dat je doet: houd elk uur vast. Pak de taak van vandaag op, dan hoef je minder op morgen te rekenen.'},
   {id: 'ep-1', writer: 'epictetus', where: '1', en: 'Of things some are in our power, and others are not.', nl: 'Sommige dingen liggen in onze macht, andere niet.'},
   {id: 'ma-4-18', writer: 'marcus', where: 'IV.18', en: 'How much trouble he avoids who does not look to see what his neighbor says or does or thinks, but only to what he does himself, that it may be just and pure.', nl: 'Hoeveel moeite bespaart wie niet kijkt wat een ander zegt, doet of denkt, maar alleen naar wat hij zelf doet: dat het eerlijk en zuiver is.'},
   {id: 'se-1-b', writer: 'seneca', where: '1', en: 'While we are postponing, life speeds by.', nl: 'Terwijl wij uitstellen, gaat het leven snel voorbij.'},
@@ -38,8 +40,8 @@ export const STOIC_QUOTES: readonly StoicQuote[] = [
   {id: 'ep-5-b', writer: 'epictetus', where: '5', en: 'When then we are impeded or disturbed or grieved, let us never blame others, but ourselves, that is, our opinions.', nl: 'Als iets ons hindert, van streek maakt of verdriet doet, geven we niet anderen de schuld, maar kijken we naar onze eigen opvattingen.'},
   {id: 'ma-7-59', writer: 'marcus', where: 'VII.59', en: 'Look within. Within is the fountain of good, and it will ever bubble up, if thou wilt ever dig.', nl: 'Kijk naar binnen. Daar is de bron van het goede, en die blijft opborrelen als je blijft graven.'},
   {id: 'se-13', writer: 'seneca', where: '13', en: 'There are more things, Lucilius, likely to frighten us than there are to crush us; we suffer more often in imagination than in reality.', nl: 'Er is meer dat ons bang maakt dan wat ons echt kan breken, Lucilius; we lijden vaker in gedachten dan in werkelijkheid.'},
-  {id: 'ep-22', writer: 'epictetus', where: '22', en: 'Hold on to the things which seem to you best.', nl: 'Houd vast aan wat jou het beste lijkt.'},
-  {id: 'ma-7-67', writer: 'marcus', where: 'VII.67', en: 'Very little indeed is necessary for living a happy life.', nl: 'Er is maar heel weinig nodig voor een gelukkig leven.'},
+  {id: 'ep-22', writer: 'epictetus', where: '22', en: '…hold on to the things which seem to you best as one appointed by God to this station.', nl: '…houd vast aan wat jou het beste lijkt, als iemand die door God op deze plek is gezet.'},
+  {id: 'ma-7-67', writer: 'marcus', where: 'VII.67', en: '…very little indeed is necessary for living a happy life.', nl: '…er is maar heel weinig nodig voor een gelukkig leven.'},
   {id: 'se-28', writer: 'seneca', where: '28', en: 'You need a change of soul rather than a change of climate.', nl: 'Je hebt eerder een andere blik nodig dan een andere plek.'},
   {id: 'ep-33', writer: 'epictetus', where: '33', en: 'In company take care not to speak much and excessively about your own acts or dangers.', nl: 'Praat in gezelschap niet te veel en te lang over wat jij hebt gedaan of meegemaakt.'},
   {id: 'ma-8-36', writer: 'marcus', where: 'VIII.36', en: 'Do not disturb thyself by thinking of the whole of thy life.', nl: 'Maak je niet onrustig door aan je hele leven tegelijk te denken.'},

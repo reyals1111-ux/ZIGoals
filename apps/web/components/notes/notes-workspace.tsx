@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
-import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {hideToast, lastToastId} from '../ui/undo-toast';
 import {LoadBoundary} from '../load-boundary';
 import {SecretGuard} from '../secret-guard/secret-guard';
@@ -57,6 +57,10 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
   const record = notes.data, index = useLinkIndex(record, targets), today = localDate();
   const [searching, setSearching] = useState(false);
   const [layout, setLayout] = useState<Layout>('list'); // Session AV lane 2 (LEDGER #29, #30)
+  // Session AV lane 2 (review B3C-12): Open tick boxes loads its chunk only when its fold opens; the count is worked out
+  // once per change of the notes, not on every keystroke in the search.
+  const [ticksOpen, setTicksOpen] = useState(false);
+  const openTickCount = useMemo(() => openTicks(record.notes).length, [record.notes]);
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
   const noteId = params.get('note'), dayParam = params.get('day'), capture = params.get('capture') === '1';
   const day = dayParam === 'today' || !dayParam ? today : DAY.test(dayParam) ? dayParam : today;
@@ -156,8 +160,8 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       </details>
       <NotesSearch notes={record.notes} onSearching={setSearching}/>
       <LoadBoundary quiet><Suspense fallback={null}><NotesRemindersPanel record={record}/></Suspense></LoadBoundary>
-      {(() => { const n = openTicks(record.notes).length; return <details className="note-fold note-ticks-fold"><summary>Open tick boxes <span className="fine">· {n ? `${n} across your notes` : 'none yet; a line that starts with - [ ] is one'}</span></summary>
-        <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NotesTicks record={record} change={change}/></Suspense></LoadBoundary>
+      {(() => { const n = openTickCount; return <details className="note-fold note-ticks-fold" open={ticksOpen || undefined} onToggle={e => setTicksOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Open tick boxes <span className="fine">· {n ? `${n} across your notes` : 'none yet; a line that starts with - [ ] is one'}</span></summary>
+        {ticksOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NotesTicks record={record} change={change}/></Suspense></LoadBoundary>}
       </details>; })()}
       {topicsOf(record).length > 0 && !searching && <div className="note-layouts" role="group" aria-label="Show notes as">{LAYOUTS.map(([l, label]) => <button key={l} type="button" className="quiet" aria-pressed={layout === l} onClick={() => setLayout(l)}>{label}</button>)}</div>}
       {/* Session AL (PR-105, P-PR-43): while a search is typed, its results are the list (the full list no longer stays below "No note has those words.") */}

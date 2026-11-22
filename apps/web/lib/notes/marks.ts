@@ -9,7 +9,8 @@ import {HIGHLIGHT_EMOJI, type HighlightColour} from '../ai/safe-render';
 export type Edit = {text: string; start: number; end: number};
 const LIST = /^(\s{0,3}(?:[-*+•]|\d{1,3}[.)])\s+)/;
 export function insertTick(text: string, caret: number): Edit {
-  const at = Math.max(0, Math.min(caret, text.length)), from = text.lastIndexOf('\n', at - 1) + 1, toNl = text.indexOf('\n', at), to = toNl < 0 ? text.length : toNl;
+  // Session AV lane 2 (review B3C-11): at 0 the line starts at 0 (lastIndexOf from -1 would find a newline at 0).
+  const at = Math.max(0, Math.min(caret, text.length)), from = at === 0 ? 0 : text.lastIndexOf('\n', at - 1) + 1, toNl = text.indexOf('\n', at), to = toNl < 0 ? text.length : toNl;
   const line = text.slice(from, to);
   if (/^\s{0,3}(?:[-*+•]|\d{1,3}[.)])\s+\[[ xX]\]/.test(line)) return {text, start: to, end: to};
   const list = LIST.exec(line), next = list ? `${list[1]}[ ] ${line.slice(list[1]!.length)}` : `- [ ] ${line}`;

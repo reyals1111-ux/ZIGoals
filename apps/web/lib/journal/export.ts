@@ -50,13 +50,32 @@ export function journalExportFiles(journal: Journal, media: ReadonlyMap<string, 
   ].join('\n');
   return [{name: 'journal.json', data: json, modified: now}, {name: 'README.txt', data: readme, modified: now}, ...files];
 }
+/**
+ * Session AV lane 2 (review B3C-5): ZIGi's follow-up in a Markdown file — a quote block after the entry's words, the
+ * question, an empty quote line, then the answer, every line marked "> ". The front matter says it is there
+ * (`follow-up: quote`), so Journal → Import takes it back off the words as the entry's follow-up (`followUpOfQuote`).
+ */
+export const FOLLOW_UP_MARK = 'quote';
+const quoteLines = (s: string) => s.replace(/\r\n?/g, '\n').split('\n').map(l => l ? `> ${l}` : '>').join('\n');
+export const followUpQuote = (f: {question: string; answer?: string}) => `${quoteLines(f.question)}${f.answer ? `\n>\n${quoteLines(f.answer)}` : ''}`;
+/** The words and the follow-up of a body that ends in `followUpQuote`; null when it does not end in a quote block. */
+export function followUpOfQuote(body: string): {text: string; followUp: {question: string; answer?: string}} | null {
+  const lines = body.replace(/\s+$/, '').split('\n');
+  let start = lines.length;
+  while (start > 0 && /^>(?: |$)/.test(lines[start - 1]!)) start--;
+  if (start === lines.length || (start > 0 && lines[start - 1]!.trim())) return null; // a blank line before the quote
+  const quoted = lines.slice(start).map(l => l.replace(/^> ?/, '')), gap = quoted.indexOf('');
+  const question = (gap < 0 ? quoted : quoted.slice(0, gap)).join('\n').trim(), answer = gap < 0 ? '' : quoted.slice(gap + 1).join('\n').trim();
+  if (!question) return null;
+  return {text: lines.slice(0, start).join('\n').replace(/\s+$/, ''), followUp: {question, ...(answer ? {answer} : {})}};
+}
 /** Session AV lane 2 (r3-notes; LEDGER #272): one entry as Markdown with YAML front matter (strings written as JSON, valid YAML). */
 export function entryMarkdown(journal: Pick<Journal, 'journals'>, e: JournalEntry, present: ReadonlySet<string> = new Set()): string {
   const q = (v: string) => JSON.stringify(v), book = bookOf(journal, e);
   const lines = ['---', `date: ${e.date}`, `created: ${e.createdAt}`, ...(e.updatedAt ? [`updated: ${e.updatedAt}`] : []), `journal: ${q(book?.name ?? 'Journal')}`,
     ...(e.tags?.length ? [`tags: [${e.tags.map(q).join(', ')}]`] : []), ...(e.template ? [`template: ${e.template}`] : []), ...(e.period ? [`period: ${q(e.period)}`] : []),
-    ...(e.night ? [`night: ${e.night}`] : []), ...(e.opensOn ? [`opens-on: ${e.opensOn}`] : []), ...(e.star ? ['starred: true'] : []), `zigoals-id: ${q(e.id)}`, 'app: ZIGoals', '---', ''];
+    ...(e.night ? [`night: ${e.night}`] : []), ...(e.opensOn ? [`opens-on: ${e.opensOn}`] : []), ...(e.star ? ['starred: true'] : []), ...(e.followUp ? [`follow-up: ${FOLLOW_UP_MARK}`] : []), `zigoals-id: ${q(e.id)}`, 'app: ZIGoals', '---', ''];
   const media = [...(e.photos ?? []), ...(e.morePhotos ?? [])].flatMap(id => { const f = [...present].find(n => n.startsWith(`photos/${id}.`)); return f ? [`![Photo](../${f})`] : []; });
-  const answer = e.followUp ? `\n\n> ${e.followUp.question}${e.followUp.answer ? `\n>\n> ${e.followUp.answer}` : ''}` : '';
+  const answer = e.followUp ? `\n\n${followUpQuote(e.followUp)}` : '';
   return `${lines.join('\n')}${e.text.replace(/\r\n?/g, '\n')}${answer}${media.length ? `\n\n${media.join('\n')}` : ''}\n`;
 }

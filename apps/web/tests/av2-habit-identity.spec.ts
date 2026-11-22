@@ -14,7 +14,7 @@ import {axe, THEMES, applyTheme, offline} from './p6-helpers';
 test.use({timezoneId: 'Europe/Amsterdam'});
 const START = new Date('2026-10-20T08:00:00+02:00'), NOW = new Date('2026-11-23T08:00:00+01:00');
 const READ = 'aaaaaaaa-0000-4000-8000-000000000002';
-const extras = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null') as {identities?: {text: string; habits: string[]}[]; stepUp?: Record<string, {now?: string}>} | null, HABIT_EXTRAS_KEY);
+const extras = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null') as {identities?: {text: string; habits: string[]}[]; stepUp?: Record<string, {now?: string; since?: string}>} | null, HABIT_EXTRAS_KEY);
 for (const theme of THEMES) test(`${theme}: who you are becoming, and a step up`, async ({page, isMobile}) => {
   await applyTheme(page, theme);
   await offline(page);
@@ -38,7 +38,8 @@ for (const theme of THEMES) test(`${theme}: who you are becoming, and a step up`
   await expect.poll(async () => (await extras(page))?.stepUp?.[READ]?.now ?? 'full').toBe('full');
   await expect(card).toHaveCount(0);
   await page.getByRole('button', {name: 'Undo', exact: true}).click();
-  await expect.poll(async () => (await extras(page))?.stepUp?.[READ]?.now).toBe('small');
+  // Review B4D-5: Undo puts the entry back exactly, the four-week clock included.
+  await expect.poll(async () => (await extras(page))?.stepUp?.[READ]).toEqual(x.stepUp[READ]);
 
   // Who you are becoming: one line, joined to the habit.
   const self = page.getByRole('region', {name: 'Who you are becoming'});
