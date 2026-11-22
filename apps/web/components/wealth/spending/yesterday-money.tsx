@@ -9,6 +9,8 @@ import {NOTIFY_PREFS, notifyPrefsSchema, setType, typeOn} from '../../../lib/not
 import {formatDate} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
 import './money-r5.css';
+// Session AV lane 2, round 6 (money; EveryDollar, LEDGER #427): the money streak's switch, beside the other daily choices.
+import {MoneyStreakChoice} from './money-streak';
 
 /**
  * Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384): Wealth → Spending → "Yesterday's money", its own
@@ -40,6 +42,7 @@ export default function YesterdayMoney({entries, today, showcase = false}: {entr
       <label className="money-search-check"><input type="checkbox" checked={onToday} disabled={!canSave} onChange={e => setOnToday(e.target.checked)}/><span>A quiet line on Today</span></label>
       {morning && !prefs.data.here && <p className="fine">Notifications are not on on this device yet: turn them on in <Link className="text-link" href="/app/settings#notifications">Settings → Notifications</Link>.</p>}
     </fieldset>}
+    {!showcase && <fieldset className="money-yesterday-choices"><legend>A money streak, if you want it</legend><MoneyStreakChoice disabled={!canSave}/></fieldset>}
     <p className="fine" role="status" aria-live="polite">{said}</p>
   </div>;
 }

@@ -73,6 +73,7 @@ const YesterdayMoney = lazy(() => import('./yesterday-money'));
 const MoneySheet = lazy(() => import('./money-sheet'));
 // Session AV lane 2, round 6 (money; Banktivity, LEDGER #425): the purchase a refund is for, and the money streak (own chunks).
 const RefundOf = lazy(() => import('./refund-of'));
+const MoneyStreakLine = lazy(() => import('./money-streak'));
 // Session AV lane 2, round 2 (money; Emma's split and settle, Wallet's lent and borrowed): between you and others (own chunk).
 const ShareFold = lazy(() => import('./people-money').then(m => ({default: m.ShareFold})));
 const PeoplePanel = lazy(() => import('./people-money'));
@@ -274,6 +275,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
       </form>}
     </div>
     <p className="spending-status" role="status" aria-live="polite">{status}</p>
+    {!showcase && !business && <Suspense fallback={null}><MoneyStreakLine entries={log.data.entries} today={today}/></Suspense>}
     {!showcase && <Suspense fallback={null}><UnusualLine entries={log.data.entries} today={today} update={log.update} onEdit={startEdit}/></Suspense>}
     <div className="spending-lists">
       <section aria-labelledby={`${id}-week`}>
