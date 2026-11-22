@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {hydrated, loadShowcase, offlineApi} from './ah-helpers';
 import {axe, THEMES, applyTheme} from './p6-helpers';
+import {HEALTH_STORAGE_KEY} from '../lib/health';
 
 /**
  * Session AV lane 2 (food, LEDGER #106, #107; MacroFactor's check-in, goal pace and goal date): in the Showcase, Health →
@@ -14,7 +15,19 @@ for (const theme of THEMES) test(`${theme}: check-in day, chosen pace, goal date
   await applyTheme(page, theme);
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await loadShowcase(page);
+  // Session AV lane 2 (missing setup: the maintenance estimate, where the pace is chosen, needs 10 weigh-ins in its 28 days
+  // and the Showcase keeps 7 there (its readings every fourth day, which lib/insights pins), so three more fictional
+  // weigh-ins are added on the days between, on the same line; deliberate)
+  await page.evaluate(key => {
+    const k = Object.keys(sessionStorage).find(x => x.startsWith('zigoals:showcase:v1:') && x.endsWith(`:${key}`))!;
+    const h = JSON.parse(sessionStorage.getItem(k)!) as {weights: {id: string; date: string; grams: number; createdAt: string; updatedAt: string}[]};
+    const day = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+    for (const n of [-3, -7, -11]) { const at = `${day(n)}T07:00:00.000Z`; h.weights.push({id: `health_weight-fixb2${-n}`, date: day(n), grams: 74_600 - (n + 29) * 40, createdAt: at, updatedAt: at}); }
+    h.weights.sort((a, b) => a.date.localeCompare(b.date));
+    sessionStorage.setItem(k, JSON.stringify(h));
+  }, HEALTH_STORAGE_KEY);
   await page.goto('/app/health?view=weight'); await hydrated(page);
+  await expect(page.locator('#health-energy .health-big')).toBeVisible();
   const coach = page.locator('#health-coach');
   await expect(coach.locator('.health-coach-eta')).toContainText(/^Goal [\d.,]+ kg: at your trend \(−[\d.,]+ kg\/week\), about /);
   await coach.getByLabel('Check-in day').selectOption({label: 'Friday'});

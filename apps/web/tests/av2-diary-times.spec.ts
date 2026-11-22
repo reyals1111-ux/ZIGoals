@@ -57,7 +57,8 @@ for (const theme of THEMES) test(`${theme}: an entry's eaten-at time, changed, a
   const table = card.getByRole('region', {name: 'Protein by part of the day, table'});
   await expect(table.getByRole('row', {name: /Morning \(5:00–11:00\) 1 18 g 100 %/})).toBeVisible();
   await card.getByLabel('Nutrient').selectOption('kcal');
-  await expect(table.getByRole('row', {name: /Morning \(5:00–11:00\) 1 350 kcal 100 %/})).toBeVisible();
+  // Session AV lane 2 (the table is named by the nutrient shown, so with Calories it is the calories table, deliberate)
+  await expect(card.getByRole('region', {name: 'Calories by part of the day, table'}).getByRole('row', {name: /Morning \(5:00–11:00\) 1 350 kcal 100 %/})).toBeVisible();
   const findings = await axe(page, card);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});
