@@ -290,3 +290,25 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
 - What's new: "Report for a visit: your journal entries, only if you include them."
 - Showcase: none needed (the Showcase's journal fills it when ticked).
 - CSS: `components/report/report.css`. Today: nothing added.
+
+### F11 A daily affirmation on Today — LEDGER #176 (Fabulous: daily affirmations; group N4)
+
+- Verdict: **built**.
+- What: 28 affirmations written in the repository, EN and NL (calm, first-person; no promise, no advice, nothing about
+  weight, food, money or health results), one a day by the date, "Another one" / "Nog een" steps on; in the language of
+  the Journal's daily question. Off by default; Journal → Privacy → "Show a daily affirmation on Today" switches it on.
+  It shows on Today's journal card ("How was today?") under its line; off, nothing renders (no Tab stop added).
+- Files: `lib/journal/affirmations.ts`, `components/journal/today-affirmation.tsx` + `today-affirmation.css` (lazy),
+  `components/journal/today-journal-card.tsx` (one lazy line), `components/journal/journal-page.tsx` (the switch).
+- Tests: `lib/journal/av2-affirmations.test.ts`; `lib/journal/av2-stored.test.ts` (the field's round trip); answers
+  ("what is today's affirmation", EN and NL).
+- Spec: `tests/av2-journal-affirmation.spec.ts`.
+- Stored: `journal.affirmations` (TIER 3 stored commit `3f0fc85d`).
+- Help (EN). Q: "Can Today show me an affirmation?" A: "Yes, if you want one: Journal → Privacy → Show a daily
+  affirmation on Today. One short, kind line a day on the journal card, in English or Dutch (the daily question's
+  language), with Another one. It is off until you switch it on."
+- What's new: "Today: a daily affirmation, if you switch it on."
+- Showcase: off (it would add a Tab stop to Showcase Today, pinned at ≤ 90).
+- **Always visible on Today: nothing by default**; when switched on, one line and one button on the journal card (a
+  For you card), not in Today's top part.
+- CSS: `components/journal/today-affirmation.css` (new).

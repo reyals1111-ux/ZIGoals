@@ -6,6 +6,7 @@ import {av2JournalAnswer} from './av2-journal';
 import type {LocalReply} from './engine';
 import {addLocalDays} from '../../local-date';
 import {DEFAULT_NOVA_SCOPES} from '../context-pack/nova';
+import {affirmationOfTheDay} from '../../journal/affirmations';
 
 /**
  * Session AV lane 2 (journal and notes): NOVA's and ZIGi's on-device answers to the lane's Journal and Notes questions, in
@@ -126,6 +127,14 @@ describe('the journal in the printable report (LEDGER #177)', () => {
   test('where to include it, private by default, and how many entries the last 30 days hold', () => {
     expect(text(zigi('can I put my journal in the report'))).toMatch(/^Your journal is in a report only when you choose it: .+ The last 30 days hold \d+ entries\.$/);
     expect(text(zigi('staat mijn dagboek in het rapport'))).toMatch(/^Je dagboek staat alleen in een rapport als je dat kiest: .+ De laatste 30 dagen bevatten \d+ stukken\.$/);
+  });
+});
+
+describe('the daily affirmation (LEDGER #176)', () => {
+  test('today’s, in English and Dutch, the same one Today shows; where to switch it on', () => {
+    expect(text(zigi('what is today\'s affirmation'))).toBe(`Today’s affirmation: “${affirmationOfTheDay(DAY)}” To see one each day on Today, switch it on in Journal → Privacy.`);
+    expect(text(zigi('wat is de affirmatie van vandaag'))).toBe(`De affirmatie van vandaag: “${affirmationOfTheDay(DAY, 0, 'nl')}” Wil je er elke dag een op Today zien, zet het dan aan in Journal → Privacy.`);
+    expect(text(zigi('give me an affirmation', withJournal(showcaseAll(), j => ({...j, affirmations: true}))))).toContain('It is on your Today screen');
   });
 });
 

@@ -6,6 +6,7 @@ import {bookCounts} from '../../journal/books';
 import {dateQuery} from '../../journal/search';
 import {PROMPT_PACKS, packsOn, questionWithPacks} from '../../journal-prompts/packs';
 import {templateById} from '../../journal-prompts/templates';
+import {affirmationOfTheDay} from '../../journal/affirmations';
 import {everyWords, periodStart, schedulesOf, scheduleTitle} from '../../notes/schedules';
 import type {Notes} from '../../notes/schema';
 import {notesPerTag} from '../../notes/table';
@@ -25,7 +26,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, media, imported, repeatingNotes, noteVersions, notesPerTagAnswer, journalInReport, changedEntries]) {
+    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, media, imported, repeatingNotes, noteVersions, notesPerTagAnswer, journalInReport, affirmation, changedEntries]) {
       const r = one(a);
       if (r) return r;
     }
@@ -176,6 +177,13 @@ function notesPerTagAnswer(a: Asked): LocalReply | null {
 const NL_WEEKDAY = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
 const nlEvery = (s: {every: 'day' | 'week' | 'month'; weekday?: number; monthDay?: number}) => s.every === 'day' ? 'elke dag' : s.every === 'week' ? `elke ${NL_WEEKDAY[s.weekday ?? 1]}` : `op de ${s.monthDay ?? 1}e van elke maand`;
 
+/** LEDGER #176: "what is today's affirmation" (lib/journal/affirmations.ts, the same one Today shows when it is on). */
+function affirmation(a: Asked): LocalReply | null {
+  if (!/\baffirmations?\b|\baffirmatie s?\b|\baffirmaties\b/.test(a.f)) return null;
+  const on = a.env.journal?.affirmations === true, lang = a.lang;
+  const words = affirmationOfTheDay(a.today, 0, lang);
+  return answer(say(lang, `Today’s affirmation: “${words}”${on ? ' It is on your Today screen, with Another one.' : ' To see one each day on Today, switch it on in Journal → Privacy.'}`, `De affirmatie van vandaag: “${words}”${on ? ' Hij staat op je Today-scherm, met Nog een.' : ' Wil je er elke dag een op Today zien, zet het dan aan in Journal → Privacy.'}`), CALL);
+}
 /** LEDGER #177: "can I put my journal in the report", "is my journal in the visit report" (lib/journal/report.ts). */
 function journalInReport(a: Asked): LocalReply | null {
   const en = /\b(?:journal|diary)\b/.test(a.f) && /\b(?:report|pdf|print|printable)\b/.test(a.f), nl = /\b(?:dagboek\w*)\b/.test(a.f) && /\b(?:rapport|verslag|pdf|afdrukken|printen)\b/.test(a.f);

@@ -191,6 +191,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       <LoadBoundary quiet><Suspense fallback={null}><OnThisDaySwitch/></Suspense></LoadBoundary>
       {/* Session AV (1c, q4 #33, owner decision: the smaller suggestion): off by default; Today shows counts only unless chosen. */}
       <label className="switch-row"><input type="checkbox" checked={journal.data.todayLines === true} onChange={e => journal.update(c => ({...c, todayLines: e.target.checked}))}/> <span>Show the first line of today&rsquo;s entries and memories on Today (off: Today shows counts only)</span></label>
+      {/* Session AV lane 2 (journal; LEDGER #176, Fabulous): one affirmation a day on Today's journal card, off by default. */}
+      <label className="switch-row"><input type="checkbox" checked={journal.data.affirmations === true} onChange={e => journal.update(c => ({...c, affirmations: e.target.checked}))}/> <span>Show a daily affirmation on Today, in the question&rsquo;s language (off by default)</span></label>
       <p className="fine">The journal stays on this device and is in Export everything. Turning sharing off keeps every entry here.</p>
     </section>
   </div>;
