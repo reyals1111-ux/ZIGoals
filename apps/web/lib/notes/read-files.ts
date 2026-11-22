@@ -1,5 +1,6 @@
 import {IMPORT_MAX_FILES, IMPORT_MAX_FILE_BYTES, isNoteFile, type ImportFile} from './markdown';
 import {NOTE_ZIP_CAPS, STOPPED_MESSAGE, ZipError, inflateBudget, readZip, type InflateBudget, type ZipSkip} from './zip-read';
+import {ENEX_MAX_BYTES, bearWanted, isBearArchive, isEnex, readBear, readEnex, type ForeignNote} from './import-enex';
 
 /**
  * Session AK security review Z1B-5: the files one Markdown import reads (the notes' "Choose files to import"), with ONE
@@ -27,4 +28,28 @@ export async function readNoteFiles(list: readonly PickedFile[], {signal, budget
     } else skipped.push({name: f.name, reason: 'it is not a Markdown, text or ZIP file'});
   }
   return {files, skipped};
+}
+
+/**
+ * Session AV lane 2 (r4-notes; LEDGER #321): Evernote (.enex) and Bear (.bear2bk, .textpack, .textbundle) files, read on
+ * this device into notes for the Markdown import (lib/notes/import-enex.ts). An .enex is read as text (at most 50 MB); a
+ * Bear archive through the careful ZIP reader with room for its photos (each at most 10 MB, 120 MB in all).
+ */
+export const BEAR_ZIP_CAPS = {maxArchive: 80 * 1024 * 1024, maxEntries: 8000, maxFile: 10 * 1024 * 1024, maxTotal: 120 * 1024 * 1024, maxRatio: 100};
+export async function readForeignFiles(list: readonly PickedFile[], {signal}: {signal?: AbortSignal} = {}): Promise<{notes: ForeignNote[]; skipped: ZipSkip[]}> {
+  const notes: ForeignNote[] = [], skipped: ZipSkip[] = [], budget = inflateBudget(BEAR_ZIP_CAPS);
+  for (const f of list.slice(0, 50)) {
+    if (signal?.aborted) throw new ZipError(STOPPED_MESSAGE);
+    if (isEnex(f.name)) {
+      if (f.size > ENEX_MAX_BYTES) { skipped.push({name: f.name, reason: 'it is over 50 MB'}); continue; }
+      const out = readEnex(new TextDecoder('utf-8').decode(await f.arrayBuffer()), f.name);
+      notes.push(...out.notes); skipped.push(...out.skipped);
+    } else if (isBearArchive(f.name)) {
+      if (f.size > BEAR_ZIP_CAPS.maxArchive) { skipped.push({name: f.name, reason: 'it is over 80 MB'}); continue; }
+      const z = await readZip(new Uint8Array(await f.arrayBuffer()), bearWanted, {caps: BEAR_ZIP_CAPS, budget, signal});
+      const out = readBear(z.files, f.name.replace(/\.[^.]+$/, ''));
+      notes.push(...out.notes); skipped.push(...z.skipped, ...out.skipped);
+    }
+  }
+  return {notes, skipped};
 }

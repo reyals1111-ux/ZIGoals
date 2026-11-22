@@ -290,3 +290,32 @@ before (an archived note in its list; only the first photo).
 - What's new: "Journal: your journal as an e-book or a Word file, for the days you choose."
 - Showcase: the Showcase journal's ten entries make an example book (its file name says example). CSS touched:
   `components/journal/journal.css`. Today: nothing added.
+
+### F12 Imports from Evernote and Bear — LEDGER #321 (Bear)
+
+- Verdict: **built**. One change from the row's words: the row says Evernote's XML is "read with the browser's
+  DOMParser"; the app's Content Security Policy enforces Trusted Types, which refuses DOMParser on plain strings
+  (`lib/workouts/mini-xml.ts` says why), so the export and each note's ENML are read with that strict reader instead
+  (a file declaring its own entities is refused; ENML's HTML characters such as `&nbsp;` are read as text).
+- What: Notes → Files → "Import Markdown, Evernote or Bear" now also takes Evernote's .enex and Bear's .bear2bk backup,
+  .textbundle and .textpack (ZIPs of `<name>.textbundle/text.md`, `info.json` and `assets/`), alone or with Markdown
+  files, read on this device and turned into the same plan as a Markdown import (its caps, "Skipped and why", nothing
+  saved before Import, Undo after). Evernote: title, created day, tags, the words as Markdown (headings, paragraphs and
+  lines, bullets and numbers, to-dos as tick boxes, bold, italics, https links only, code, quotes, tables), encrypted
+  text and attachments said in words, and the note's first eight images as its photos, each placed where it was. Bear:
+  the first `# line` as the title, `info.json`'s creation day, `#tags` kept in the words (nested ones and Bear's
+  `#multi word#` as `#multi-word`), where F1 reads them, and its `assets/` photos, up to eight. Photos are kept on this
+  device (shrunk as a captured photo is) only when Import is pressed; one this browser cannot read (HEIC on some
+  browsers) is left out and counted in the message. Caps: 50 MB for an .enex, 80 MB for a Bear archive (10 MB a photo,
+  120 MB unpacked in all), 1000 notes, the notes' own caps after that.
+- Files: new `lib/notes/import-enex.ts`; `lib/notes/read-files.ts` (`readForeignFiles`), `lib/notes/markdown.ts`
+  (`ImportPlan.from`: the file each added note came from), `components/notes/notes-files.tsx`.
+- Tests: `lib/notes/r4-import-enex.test.ts`. Spec: `tests/av2-notes-imports.spec.ts` (an .enex and a .bear2bk made in
+  the spec).
+- Stored: nothing new (normal note writes; photos in the notes' photo store).
+- Help (EN). Q: "Can I bring my notes from Evernote or Bear?" A: "Yes. In Evernote, export notes as .enex; in Bear,
+  make a backup (.bear2bk) or export as TextBundle. Then Notes → Files → Choose files to import. You see what would come
+  in first — titles, days, tags and up to eight photos a note — and Undo takes it back."
+- What's new: "Notes: import from Evernote (.enex) and Bear (.bear2bk, TextBundle)."
+- Search palette (the lead's, optional): "Import notes from Evernote or Bear" → `/app/notes?view=files`.
+- Showcase: none. CSS: none. Today: nothing added.

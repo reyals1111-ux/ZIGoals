@@ -140,7 +140,7 @@ export const notesExportName = (day: string, showcase: boolean) => `zigoals-${sh
 const SHOWCASE_EXAMPLE = 'it is a Showcase example note, so it stays out of your own notes';
 const isExample = (data: FrontMatter, body: string) => /^(?:true|yes)$/i.test(fmString(data, 'example') ?? '') || /\(SHOWCASE DATA\)\s*$/.test(body);
 export type ImportFile = {name: string; data: Uint8Array};
-export type ImportPlan = {add: Note[]; append: {id: string; name: string; text: string}[]; skipped: {name: string; reason: string}[]};
+export type ImportPlan = {add: Note[]; append: {id: string; name: string; text: string}[]; skipped: {name: string; reason: string}[]; /** Session AV lane 2 (r4-notes; LEDGER #321): the file each added note came from, in the same order. */ from?: string[]};
 const clean = (text: string) => text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').replace(/[\0-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '');
 const baseOf = (path: string) => path.split('/').pop()!.replace(/\.(?:md|markdown|txt)$/i, '');
 const validStamp = (s: string | undefined) => !!s && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:\d{2})$/.test(s) && Number.isFinite(Date.parse(s));
@@ -152,7 +152,7 @@ const validStamp = (s: string | undefined) => !!s && /^\d{4}-\d{2}-\d{2}T\d{2}:\
  * Showcase (`showcase: true`) they are imported, still marked `example`.
  */
 export function planImport(record: Notes, files: readonly ImportFile[], now: string, today: string, {showcase = false}: {showcase?: boolean} = {}): ImportPlan {
-  const plan: ImportPlan = {add: [], append: [], skipped: []};
+  const plan: ImportPlan = {add: [], append: [], skipped: [], from: []};
   const ids = new Set(record.notes.map(n => n.id)), titles = new Set(record.notes.filter(n => n.kind !== 'daily').map(n => linkKey(noteName(n))));
   const daily = new Map(record.notes.filter(n => n.kind === 'daily' && n.day).map(n => [n.day!, n]));
   let room = Math.max(0, 2000 - record.notes.length), chars = record.notes.reduce((s, n) => s + n.title.length + n.body.length, 0);
@@ -195,7 +195,7 @@ export function planImport(record: Notes, files: readonly ImportFile[], now: str
     const archived = kind !== 'inbox' && /^(?:true|yes)$/i.test(fmString(data, 'archived') ?? ''); // Session AV lane 2 (r4-notes; LEDGER #315)
     const note: Note = {id: newNoteId(), kind, title, body, ...(day && kind !== 'topic' ? {day} : {}), source: 'import', ...(tags.length ? {tags} : {}), ...(props.length ? {props} : {}), ...(archived ? {archived: true} : {}), createdAt: validStamp(created) ? new Date(created!).toISOString() : now, ...(example ? {example: true} : {})};
     if (kind === 'inbox' && !note.day) note.day = today;
-    plan.add.push(note); room--; chars += title.length + body.length;
+    plan.add.push(note); plan.from!.push(file.name); room--; chars += title.length + body.length;
     titles.add(linkKey(title)); if (kind === 'daily') daily.set(day!, note);
   }
   return plan;
