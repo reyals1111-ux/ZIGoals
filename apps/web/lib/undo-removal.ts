@@ -18,7 +18,9 @@ export function removedItems(before: unknown, after: unknown): Removed[] | null 
   const walk = (b: unknown, a: unknown, path: string[]) => {
     if (!isPlain(b) || !isPlain(a) || path.length > MAX_DEPTH) return;
     for (const key of Object.keys(b)) {
-      const bv = b[key], av = a[key];
+      // Session AV lane 2 (fixb2): a list whose key the save dropped (a record that leaves out an empty list) lost all of
+      // its items: that is a removal too, as itemChanges reads it, so the last item removed still gets its Undo.
+      const bv = b[key], av = a[key] === undefined && idList(bv) ? [] : a[key];
       if (idList(bv) && Array.isArray(av)) {
         if (!idList(av)) { other = true; continue; }
         const kept = new Set(av.map(x => x.id)), had = new Set(bv.map(x => x.id));

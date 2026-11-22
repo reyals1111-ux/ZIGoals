@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {readRecord, seedDevice} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
+import {openDeskFold} from './ao/folds';
 import {ACCOUNTS_KEY} from '../lib/accounts/schema';
 import {WEALTH_SHEET_KEY, type WealthSheet} from '../lib/wealth-sheet/schema';
 
@@ -19,6 +20,8 @@ for (const theme of THEMES) test(`${theme}: equity, a 50 % share and a group, a 
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await seedDevice(page, {[ACCOUNTS_KEY]: {version: 1, items: [acct(HOME, 'property', 'Home', 'EUR', '2026-03-01', '40000000'), acct(MORT, 'mortgage', 'Mortgage', 'EUR', '2026-11-01', '25000000'), acct(JOINT, 'savings', 'Joint savings', 'EUR', '2026-10-20', '1000000'), acct(USD, 'investment', 'US fund', 'USD', '2026-11-10', '500000')]}});
   await page.goto('/app/wealth'); await hydrated(page);
+  // Session AV lane 2 (on a phone "Accounts, debts & net worth" starts folded, so it is opened first, as tests/g1b-networth-share.spec.ts does, deliberate)
+  if (isMobile) await openDeskFold(page, 'Accounts, debts & net worth');
   // The mortgage secured on the home: the home's row shows its equity.
   await page.getByRole('button', {name: 'Sheet options for Mortgage'}).click();
   await page.getByRole('group', {name: 'SHEET · Mortgage'}).getByLabel('Secured on').selectOption({label: 'Home'});
@@ -28,12 +31,16 @@ for (const theme of THEMES) test(`${theme}: equity, a 50 % share and a group, a 
   const joint = page.getByRole('group', {name: 'SHEET · Joint savings'});
   await joint.getByLabel(/^Your share/).fill('50');
   await joint.getByLabel(/^Your group/).fill('Savings');
-  await joint.getByRole('button', {name: 'Keep'}).click();
+  // Session AV lane 2 (“Keep” also matched “Keep the lines” of the balance lines form: the exact name, deliberate)
+  await joint.getByRole('button', {name: 'Keep', exact: true}).click();
   await joint.getByLabel('Remind me to update it').selectOption('month');
   await joint.locator('summary', {hasText: 'Money in and out'}).click();
-  await joint.getByLabel(/^Amount \(EUR\)/).fill('9000');
-  await joint.getByLabel('On').fill('2025-11-14');
-  await joint.getByRole('button', {name: 'Add', exact: true}).click();
+  // Session AV lane 2 (getByLabel('On') also matched "Your group — optional", "Remind me to update it" and more: the money
+  // in or out form's own fields, by role and exact name, deliberate)
+  const flow = joint.getByRole('form', {name: 'Joint savings: money in or out'});
+  await flow.getByLabel(/^Amount \(EUR\)/).fill('9000');
+  await flow.getByRole('textbox', {name: 'On', exact: true}).fill('2025-11-14');
+  await flow.getByRole('button', {name: 'Add', exact: true}).click();
   await expect(joint).toContainText(/Annual return \(IRR\): [\d.,]+ % a year/);
   await joint.locator('summary', {hasText: 'Documents'}).click();
   await joint.locator('input[type=file]').setInputFiles({name: 'statement.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% fictional statement\n')});

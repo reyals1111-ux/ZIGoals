@@ -46,7 +46,8 @@ test('make a preset, begin it: settling in, then its own bells', async ({page}) 
   await form.getByLabel('Name').fill('Morning sit');
   await form.getByRole('radio', {name: '10 min', exact: true}).check();
   await form.getByLabel('Settle in before the first bell').selectOption({label: '15 s'});
-  await form.getByLabel('End bell').selectOption({label: 'Chime'});
+  // Session AV lane 2 (getByLabel('End bell') also matched the “Try the end bell” button: the select by its role and exact name, deliberate)
+  await form.getByRole('combobox', {name: 'End bell', exact: true}).selectOption({label: 'Chime'});
   await form.getByRole('button', {name: 'Add a bell along the way', exact: true}).click();
   const bell = form.getByRole('group', {name: 'Bell 1 along the way'});
   await bell.getByLabel('Sound').selectOption({label: 'Soft tone'});

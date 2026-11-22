@@ -60,6 +60,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, lazy, useState, useEffect, useId, useRef, type FormEvent, type ReactNode } from "react";
+import { useFollowAddressView } from "./follow-address-view";
 import { tabKeys } from "../ui/tab-keys";
 import { Checked, FeedbackSlot, HealthFieldProvider, useHealthFieldChecks } from "./health-field";
 import type { HealthCheck } from "../../lib/health-field-rules";
@@ -353,6 +354,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const fields = useHealthFieldChecks();
+  useFollowAddressView(viewParam, HASH_VIEWS, view, next => { setViewState(next); fields.clear(); }, id => revealWhenShown(id)); // Session AV lane 2 (fixb2): a link to another view, followed
   const [error, setError] = useState("");
   const perform: Perform = async (updater, success, after) => {
     if (saving.current) return;

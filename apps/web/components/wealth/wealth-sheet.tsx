@@ -28,7 +28,7 @@ export default function WealthSheetPanel({accounts, today}: {accounts: Accounts;
   if (!sheet.loaded) return null;
   if (sheet.unreadable) return <p role="alert">Your sheet could not be read on this device; nothing was changed.</p>;
   const multi = shares.length > 1, anyShare = shares.some(s => s.shared > 0), anyGroup = groups.some(g => g.group);
-  return <section className="wealth-sheet" aria-labelledby={`${id}-title`}>
+  return <section className="wealth-own-sheet" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`}>Your sheet</h3>
     {anyShare && <p>At your shares: {shares.map(s => <strong key={s.currency} className="wealth-sheet-figure">{m(s.net, s.currency)}</strong>)} <span className="fine">(all of each account: {shares.map(s => m(s.whole, s.currency)).join(' · ')})</span></p>}
     {anyGroup ? <div className="money-table-wrap"><table className="money-table wealth-sheet-groups"><caption className="fine">Your groups, at your shares</caption>

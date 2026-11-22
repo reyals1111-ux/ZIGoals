@@ -51,7 +51,9 @@ export default function CalmChooser() {
     </fieldset>
     <fieldset className="calm-choices calm-sound"><legend>A slow left-right sound</legend>
       <label className="calm-choice"><input type="checkbox" checked={!!calm.sound} onChange={e => void save({sound: e.target.checked ? SHIFT_SOUND_DEFAULT : null})}/><span><strong>Play a soft sound that moves slowly between your left and right ear</strong><small>Off unless you tick it. A gentle hush made on this device, in step with the light. Best with headphones; for relaxation, not therapy.</small></span></label>
-      {!!calm.sound && <label className="field calm-volume"><span>Volume of the sound <output>{calm.sound}</output></span><input type="range" min={1} max={100} step={1} value={calm.sound} aria-valuetext={`${calm.sound} of 100`} onChange={e => void save({sound: Number(e.target.value)})}/></label>}
+      {/* Session AV lane 2 (fixb2): the label names the slider by its id: an <output> is labelable too, and as the label's
+          first labelable child it took the label, which left the slider without a name. */}
+      {!!calm.sound && <label className="field calm-volume" htmlFor={`${name}-volume`}><span>Volume of the sound <output>{calm.sound}</output></span><input id={`${name}-volume`} type="range" min={1} max={100} step={1} value={calm.sound} aria-valuetext={`${calm.sound} of 100`} onChange={e => void save({sound: Number(e.target.value)})}/></label>}
       <p><button type="button" className="secondary" onClick={() => void tryIt()}>{playing ? 'Stop' : `Try it (${TRY_SECONDS} seconds)`}</button></p>
     </fieldset>
     {(calm.visual === 'shift' || !!calm.sound) && <fieldset className="calm-choices calm-paces"><legend>{calm.sound && calm.visual === 'shift' ? 'Pace of the light and the sound' : calm.sound ? 'Pace of the sound' : 'Pace of the light'}</legend>

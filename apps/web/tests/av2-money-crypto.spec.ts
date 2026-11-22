@@ -36,7 +36,8 @@ for (const theme of THEMES) test(`${theme}: a 24 h move alert, a portfolio perce
   await section.getByText(/^Price alert/).click();
   const form = section.getByRole('form', {name: 'Price alert for Bitcoin'});
   await form.getByLabel('Bitcoin moves a percent within 24 hours').check();
-  await form.getByLabel('Moves').selectOption('either');
+  // Session AV lane 2 (getByLabel('Moves') also matched the radio “… moves a percent …”: the select by its role and name, deliberate)
+  await form.getByRole('combobox', {name: /^Moves/}).selectOption('either');
   await form.getByLabel('By at least (%)').fill('5');
   const findings = await axe(page, section);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
@@ -51,12 +52,14 @@ for (const theme of THEMES) test(`${theme}: a 24 h move alert, a portfolio perce
   await value.locator('summary').click();
   const vform = value.getByRole('form', {name: 'Value alert for Fictional coins'});
   await vform.getByLabel(/worth a percent more or less than now \(42000\.00 USD\)/).check();
-  await vform.getByLabel('Moves').selectOption('down');
+  // Session AV lane 2 (getByLabel('Moves') also matched the radio “… moves a percent …”: the select by its role and name, deliberate)
+  await vform.getByRole('combobox', {name: /^Moves/}).selectOption('down');
   await vform.getByLabel('By at least (%)').fill('10');
   await vform.getByRole('button', {name: 'Set alert'}).click();
   await expect(vform.getByRole('status')).toContainText('Alert set: Fictional coins worth 10% down from 42000 USD.');
   // Count in results: the gift left out; its coins still count in the value.
-  await page.getByRole('tab', {name: 'Insights'}).first().click();
+  // Session AV lane 2 (the portfolio's third tab is named "Transactions" since Session AL: its own name, exactly, deliberate)
+  await page.getByRole('tab', {name: 'Transactions', exact: true}).first().click();
   await page.getByRole('checkbox', {name: /^Count in results: .* 0\.1 BTC/}).uncheck();
   await expect.poll(async () => (await stored(page, 'zigoals:portfolio-receipts:v1'))?.uncounted).toEqual(['t2']);
   await expect(page.locator('.portfolio-left-out')).toContainText('1 transaction is left out of the results');

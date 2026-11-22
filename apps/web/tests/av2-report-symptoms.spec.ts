@@ -22,12 +22,15 @@ for (const theme of THEMES) test(`${theme}: symptoms as lines in the visit repor
   await page.getByRole('button', {name: 'Make a report'}).click();
   const builder = page.locator('.report-builder'), include = builder.getByRole('group', {name: 'Include'});
   const boxes = include.getByRole('checkbox');
-  await expect(boxes).toHaveCount(8);
+  // Session AV lane 2 (the food lane's Nutrition section joined the report in the same batch: nine sections, as
+  // tests/av-report-more.spec.ts counts, deliberate)
+  await expect(boxes).toHaveCount(9);
   for (let i = 0; i < await boxes.count(); i++) await boxes.nth(i).uncheck();
   await include.getByRole('checkbox', {name: /^Symptoms and factors/}).check();
   await builder.getByRole('button', {name: 'Show the report'}).click();
   const sym = page.getByRole('article', {name: 'Report'}).getByRole('region', {name: 'Symptoms and factors'});
-  await expect(sym.getByRole('img')).toHaveAttribute('aria-label', 'Symptom levels per day, 0 None to 3 Strong: Fictional headache (solid line, circles); Fictional tiredness (dashed line, squares). Gaps are days without a rating.');
+  // Session AV lane 2 (each symptom now has its own small line too: the report's chart by its class, its whole name, deliberate)
+  await expect(sym.locator('svg.report-chart')).toHaveAttribute('aria-label', 'Symptom levels per day, 0 None to 3 Strong: Fictional headache (solid line, circles); Fictional tiredness (dashed line, squares). Gaps are days without a rating.');
   await expect(sym.locator('.report-key li')).toHaveText(['Fictional headache: solid line, circles', 'Fictional tiredness: dashed line, squares']);
   const findings = await axe(page, sym);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);

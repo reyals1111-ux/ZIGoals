@@ -37,7 +37,8 @@ for (const theme of THEMES) test(`${theme}: repeat plans grouped, today's plan o
   await form.getByRole('button', {name: 'Save plan'}).click();
   const group = page.locator('.health-plan-group');
   await expect(group).toHaveCount(1);
-  await expect(group.locator('summary')).toContainText('Morning bowl Breakfast · 4 days, Nov 23 to Dec 3 · 0 logged');
+  // Session AV lane 2 (the group writes its days as every plan row does, with the year: the whole line, deliberate)
+  await expect(group.locator('summary')).toContainText('Morning bowl Breakfast · 4 days, Nov 23, 2026 to Dec 3, 2026 · 0 logged');
   await group.locator('summary').click();
   await expect(group.getByRole('button', {name: 'Log planned Morning bowl'})).toHaveCount(4);
   expect(await axe(page, group).then(f => f.filter(v => v.impact === 'serious' || v.impact === 'critical'))).toEqual([]);

@@ -23,3 +23,10 @@
 .store-card-tip{margin:0;font-size:15px;color:#333}
 .store-card-full .primary{min-height:48px;min-width:120px;background:#000;color:#fff;border:0;border-radius:999px;font-size:16px}
 .store-card-full .primary:focus-visible{outline:3px solid #0057d9;outline-offset:3px}
+/* Session AV lane 2 (fixb2): Light's generated sheet turned the white behind the bars and the full screen to near-black
+   (#242424), so the black bars stood on black. Written for Light itself, these rules are carried as they are into its sheet
+   and keep the till's black on white there too. */
+:root[data-theme=light] .store-card-bars{background:#fff}
+:root[data-theme=light] .store-card-dialog{background:#fff;color:#000}
+:root[data-theme=light] .store-card-dialog::backdrop{background:rgba(0,0,0,.6)}
+:root[data-theme=light] .store-card-full .primary{background:#000;color:#fff}

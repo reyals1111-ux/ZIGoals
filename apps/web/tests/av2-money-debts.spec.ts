@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {entry, moneyLog, openWealthSection, readRecord, seedDevice, TODAY} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
+import {openDeskFold} from './ao/folds';
 import {MONEY_LOG_KEY, type MoneyLog} from '../lib/money-log/schema';
 import {ACCOUNTS_KEY} from '../lib/accounts/schema';
 import {DEBT_PLANNER_KEY, type DebtPlannerRecord} from '../lib/debt-planner/store';
@@ -50,6 +51,8 @@ for (const theme of THEMES) test(`${theme}: more orders, Debt Blaster, debt-free
   expect(csv.suggestedFilename()).toBe(`debt-plan-${TODAY}.csv`);
   // Wealth's "What you owe": owed after the payment, paid off, a trend.
   await page.goto('/app/wealth'); await hydrated(page);
+  // Session AV lane 2 (on a phone "Accounts, debts & net worth" starts folded, so it is opened first, as tests/g1b-networth-share.spec.ts does, deliberate)
+  if (isMobile) await openDeskFold(page, 'Accounts, debts & net worth');
   const glance = page.getByRole('group', {name: 'YOUR DEBTS AT A GLANCE'});
   await expect(glance).toContainText('€7,250.00 owed');
   await expect(glance).toContainText(/debt-free by \w+ \d{4}/);

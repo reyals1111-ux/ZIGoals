@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {entry, moneyLog, openWealthSection, readRecord, seedDevice, spending, TODAY} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
+import {openDeskFold} from './ao/folds';
 import {MONEY_LOG_KEY, type MoneyLog} from '../lib/money-log/schema';
 import {BUDGETS_KEY, type BudgetsRecord} from '../lib/budgets/schema';
 import {ACCOUNTS_KEY} from '../lib/accounts/schema';
@@ -53,6 +54,8 @@ for (const theme of THEMES) test(`${theme}: payee watched, a challenge, budgets 
   expect((await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).lowBalance).toEqual({amount: '2000.00', currency: 'EUR'});
   await expect(spending(page).locator('.cash-forecast-extra')).toContainText('Your forecast goes below €2,000.00 around');
   // Accounts: arranged, Holiday pot first.
+  // Session AV lane 2 (on a phone "Accounts, debts & net worth" starts folded, so it is opened first, as tests/g1b-networth-share.spec.ts does, deliberate)
+  if (isMobile) await openDeskFold(page, 'Accounts, debts & net worth');
   await page.getByRole('button', {name: 'Arrange What you own'}).click();
   await page.getByRole('button', {name: 'Move Holiday pot up'}).click();
   await expect(page.getByRole('button', {name: 'Move Holiday pot down'})).toBeFocused();
