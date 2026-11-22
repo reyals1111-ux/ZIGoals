@@ -146,7 +146,7 @@ const sheetOf = (env: ToolEnv): WealthSheet | null => (env as ToolEnv & {wealthS
 function balanceLines(a: Asked): LocalReply | null {
   if (!/\b(?:balance|account) (?:limits?|lines?|alerts?)\b|\baccounts? (?:below|above|past|over|under) (?:my |their |its )?(?:limits?|lines?)\b|\bsaldo ?(?:grenzen|grens|limieten?|alarmen?)\b|\brekeningen? (?:staan |zijn |komen )?(?:onder|boven|voorbij) (?:hun |mijn )?(?:grens|limiet)\b/.test(a.f)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
-  const sheet = sheetOf(a.env), states = limitStates(a.env.accounts, sheet), calls = call('accounts', {limits: true}, 'Accounts · your balance lines');
+  const sheet = sheetOf(a.env), states = limitStates(a.env.accounts, sheet, a.today), calls = call('accounts', {limits: true}, 'Accounts · your balance lines');
   const set = Object.keys(sheet?.limits ?? {}).length;
   if (!states.length) return answer(say(a.lang, set ? `Every account with a line of yours is within it (${count(set, 'en', ['account', 'accounts'], ['', ''])} with a line).` : 'No account has a balance line yet. On Wealth, open an account’s Sheet and fill in “Tell me when it is below” (or above).',
     set ? `Elke rekening met een eigen grens zit erbinnen (${count(set, 'nl', ['', ''], ['rekening', 'rekeningen'])} met een grens).` : 'Nog geen rekening heeft een saldogrens. Open op Vermogen de Sheet van een rekening en vul “Tell me when it is below” (of above) in.'), calls);

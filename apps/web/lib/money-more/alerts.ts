@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import type {Accounts} from '../accounts/schema';
-import {balanceOn, moneyText} from '../accounts/net-worth';
+import {balanceOn, moneyText, owedAfterPayments} from '../accounts/net-worth';
+import {isDebtKind} from '../accounts/schema';
 import {amountText, type MoneyEntry, type MoneyLog} from '../money-log/schema';
 import {isCounted, mineCents} from '../money-log/counted';
 import {noteKey, payeePart} from '../money-log/suggest';
@@ -55,11 +56,17 @@ export function withLimit(sheet: WealthSheet, accountId: string, limit: {below?:
   const {limits: _l, ...rest} = sheet; void _l;
   return Object.keys(limits).length ? {...rest, limits} : rest;
 }
-/** Accounts whose latest balance is below or above the person's own line (archived accounts left out). */
-export function limitStates(accounts: Accounts | null | undefined, sheet: WealthSheet | null | undefined): LimitState[] {
+/**
+ * Accounts whose balance is below or above the person's own line (archived accounts left out). Review b2a #8: a debt
+ * (a card, a loan, a mortgage) is read as Wealth shows what it owes — its latest typed balance less the payments logged
+ * since, up to `today` (`owedAfterPayments`), dated today when payments were taken off; any other account by its latest
+ * balance.
+ */
+export function limitStates(accounts: Accounts | null | undefined, sheet: WealthSheet | null | undefined, today?: string): LimitState[] {
   const out: LimitState[] = [];
   for (const a of accounts?.items ?? []) {
-    const l = sheet?.limits?.[a.id], b = l && !a.archivedAt ? balanceOn(a) : null;
+    const l = sheet?.limits?.[a.id], owed = l && !a.archivedAt && today && isDebtKind(a.kind) ? owedAfterPayments(a, today) : null;
+    const b = owed ? {...owed, date: owed.payments ? today! : owed.date} : l && !a.archivedAt ? balanceOn(a) : null;
     if (!l || !b) continue;
     const value = Number(moneyText(b));
     if (l.below && value < Number(l.below)) out.push({id: a.id, name: a.name, currency: a.currency, balance: moneyText(b), date: b.date, line: l.below, side: 'below'});

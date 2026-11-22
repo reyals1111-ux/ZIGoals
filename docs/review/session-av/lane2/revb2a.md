@@ -169,3 +169,21 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
 - NOVA corpus: no case changes from this finding.
 - Spec (lead runs): apps/web/tests/av2-revb2a-formatters.spec.ts (the Sheet's Remove button names "€9,000.00").
 - Help: none. What's new: "Notices and names write money and days the way the app does."
+
+## B2A-8 Minor: a debt's balance line ignored the payments logged since its balance
+
+- Verdict: fixed.
+- Fix: apps/web/lib/money-more/alerts.ts `limitStates(accounts, sheet, today)` reads a debt (credit card, loan,
+  mortgage: `isDebtKind`) as Wealth shows what it owes — the typed balance less the payments logged since, up to today
+  (`owedAfterPayments`, the same reader Wealth's sheet and the payoff plan use), dated today when payments were taken off;
+  any other account by its latest balance as before. The three readers pass today: Wealth's notices
+  (components/wealth/account-limits.tsx), Today's money line (lib/money-more/today.ts) and ZIGi's balance-line answer
+  (lib/ai/local-answers/av2-money-r2.ts). Without `today` the old reading stays (no caller is left without it).
+- Tests: apps/web/lib/money-more/revb2a-balance-lines.test.ts (€1,200 typed and €300 paid since: under an "above
+  €1,000" line; before the payment above it; a low line after two payments reads €800 dated today; Today and ZIGi name
+  only the account still past its line). Existing apps/web/lib/money-more/av2-alerts.test.ts green unchanged.
+- NOVA corpus: no case changes (the Showcase keeps no balance lines).
+- Spec (lead runs): apps/web/tests/av2-revb2a-balance-lines.spec.ts.
+- Help (EN), for the balance lines answer, add: "For a card or a loan the line is checked against what it owes after
+  the payments you logged since its balance."
+- What's new: "A paid-down card no longer reads past its line."

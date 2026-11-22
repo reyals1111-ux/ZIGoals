@@ -22,7 +22,7 @@ type Sources = {entries: readonly MoneyEntry[]; today: string; budgets?: Budgets
 export function todayExtras(s: Sources): Piece[] {
   const out: Piece[] = [];
   for (const u of unusualEntries(s.entries, s.today).slice(0, 2)) out.push({text: `${u.name} above its usual`, href: ATTENTION_HREF.review});
-  for (const l of limitStates(s.accounts, s.sheet)) out.push({text: `${l.name} ${l.side} your line`, href: '/app/wealth'});
+  for (const l of limitStates(s.accounts, s.sheet, s.today)) out.push({text: `${l.name} ${l.side} your line`, href: '/app/wealth'});
   if (s.budgets?.payees?.some(p => p.amount)) for (const p of payeeBudgets(s.budgets, s.entries, s.today)) if (p.over || p.near) out.push({text: p.over ? `${p.payee} over its budget` : `${p.payee} near its budget`, href: ATTENTION_HREF.budgets});
   if (s.more?.budgets?.length) {
     const tagged = (tag: string) => new Set(Object.entries(s.tags?.tags ?? {}).filter(([, list]) => list.includes(tag)).map(([id]) => id));
