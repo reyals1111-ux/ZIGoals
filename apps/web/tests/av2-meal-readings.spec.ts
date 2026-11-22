@@ -42,12 +42,13 @@ for (const theme of THEMES) test(`${theme}: glucose and ketones beside a meal`, 
   await expect(page.getByRole('status').filter({hasText: 'after lunch'})).toBeVisible();
   const stored = await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), HEALTH_NUMBERS_KEY);
   expect(stored.entries.map((e: {name: string; meal?: string; mealWhen?: string; time?: string}) => [e.name, e.meal, e.mealWhen, e.time])).toEqual([['Glucose', 'Lunch', 'before', '12:00'], ['Glucose', 'Lunch', 'after', '13:45'], ['Ketones', 'Lunch', 'after', '13:45']]);
-  await expect(page.locator('.your-numbers-marker').filter({hasText: 'Glucose'})).toContainText('after lunch, 13:45');
+  // Session AV lane 2 (review B3B-7, deliberate): the time in the locale's hour cycle (en-US here: 1:45 PM).
+  await expect(page.locator('.your-numbers-marker').filter({hasText: 'Glucose'})).toContainText('after lunch, 1:45 PM');
 
   await page.goto('/app/health?view=diary'); await settle(page);
   const lunch = page.getByRole('region', {name: /^Lunch diary/});
   const line = lunch.locator('.r3-meal-readings');
-  await expect(line).toHaveText('Your readings: Glucose 5.2 mmol/L before (12:00) · Glucose 7.8 mmol/L after (13:45) · Ketones 0.6 mmol/L after (13:45). As you typed them in Your numbers.');
+  await expect(line).toHaveText('Your readings: Glucose 5.2 mmol/L before (12:00 PM) · Glucose 7.8 mmol/L after (1:45 PM) · Ketones 0.6 mmol/L after (1:45 PM). As you typed them in Your numbers.');
   await expect(line).not.toContainText(/range|inside|outside|index|GKI|normal|high|low/i);
   await expect(page.getByRole('region', {name: /^Breakfast diary/}).locator('.r3-meal-readings')).toHaveCount(0);
   const findings = await axe(page, lunch);

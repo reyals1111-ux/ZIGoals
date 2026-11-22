@@ -1,4 +1,5 @@
 import type {HealthNumber, HealthNumbers} from './store';
+import {formatClock} from '../visual-format';
 
 /**
  * Session AV lane 2 (health r3; LEDGER #284, Carb Manager's glucose and ketones per meal): a reading of "Your numbers"
@@ -15,10 +16,11 @@ export function readMealMark(text: string | undefined): {meal: MealName; when: M
   const m = /^(before|after):(Breakfast|Lunch|Dinner|Snacks)$/.exec((text ?? '').trim());
   return m ? {when: m[1] as MealWhen, meal: m[2] as MealName} : null;
 }
-/** "after lunch, 13:45" for a marked reading, or null. */
+/** "after lunch, 1:45 PM" for a marked reading, or null. */
 export function mealTag(e: Pick<HealthNumber, 'meal' | 'mealWhen' | 'time'>): string | null {
-  if (!e.meal || !e.mealWhen) return e.time ? e.time : null;
-  return `${e.mealWhen} ${e.meal === 'Snacks' ? 'a snack' : e.meal.toLowerCase()}${e.time ? `, ${e.time}` : ''}`;
+  // Review B3B-7: the time in the app's own hour cycle ("1:45 PM" or "13:45"), as the other cards say it.
+  if (!e.meal || !e.mealWhen) return e.time ? formatClock(e.time) : null;
+  return `${e.mealWhen} ${e.meal === 'Snacks' ? 'a snack' : e.meal.toLowerCase()}${e.time ? `, ${formatClock(e.time)}` : ''}`;
 }
 export type MealReading = {id: string; name: string; value: number; unit: string; when: MealWhen; time?: string};
 /** A meal's marked readings on a day, before ones first, then by time. */

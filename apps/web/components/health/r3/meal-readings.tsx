@@ -1,7 +1,7 @@
 'use client';
 import {HEALTH_NUMBERS} from '../../../lib/health-numbers/store';
 import {mealReadings, type MealName} from '../../../lib/health-numbers/meals';
-import {formatNumber} from '../../../lib/visual-format';
+import {formatClock, formatNumber} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import './health-r3.css';
 
@@ -15,5 +15,5 @@ export default function MealReadings({date, meal}: {date: string; meal: MealName
   if (!rec.loaded || rec.unreadable) return null;
   const list = mealReadings(rec.data, date, meal);
   if (!list.length) return null;
-  return <p className="fine r3-meal-readings" data-body-figure=""><strong>Your readings</strong>: {list.map(r => `${r.name} ${formatNumber(r.value, {maximumFractionDigits: 3})}${r.unit ? ` ${r.unit}` : ''} ${r.when}${r.time ? ` (${r.time})` : ''}`).join(' · ')}. As you typed them in Your numbers.</p>;
+  return <p className="fine r3-meal-readings" data-body-figure=""><strong>Your readings</strong>: {list.map(r => `${r.name} ${formatNumber(r.value, {maximumFractionDigits: 3})}${r.unit ? ` ${r.unit}` : ''} ${r.when}${r.time ? ` (${formatClock(r.time)})` : ''}`).join(' · ')}. As you typed them in Your numbers.</p>;
 }

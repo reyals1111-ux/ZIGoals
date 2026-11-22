@@ -2,6 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {labEntry} from './engine';
 import {MEAL_MARKS, mealReadings, mealTag, readMealMark} from './meals';
 import {healthNumbersSchema} from './store';
+import {formatClock} from '../visual-format';
 
 /**
  * Session AV lane 2 (health r3; LEDGER #284, Carb Manager): readings marked before or after a meal and shown beside it —
@@ -32,7 +33,8 @@ describe('readings beside a meal (LEDGER #284)', () => {
     ]});
     expect(mealReadings(rec, TODAY, 'Lunch').map(r => r.id)).toEqual(['b', 'c', 'a']);
     expect(mealReadings(rec, TODAY, 'Breakfast')).toEqual([]);
-    expect(mealTag(rec.entries[0]!)).toBe('after lunch, 13:45');
+    // Session AV lane 2 (review B3B-7, deliberate): the time in the app's hour cycle, as formatClock says it.
+    expect(mealTag(rec.entries[0]!)).toBe(`after lunch, ${formatClock('13:45')}`);
     expect(mealTag(rec.entries[5]!)).toBeNull();
     // Only the readings: nothing in the result is a verdict, a range or an index.
     expect(Object.keys(mealReadings(rec, TODAY, 'Lunch')[0]!).sort()).toEqual(['id', 'name', 'time', 'unit', 'value', 'when']);
