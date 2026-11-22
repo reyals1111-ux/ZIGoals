@@ -74,7 +74,9 @@ test('5.4: a routine from a template plays in full screen (done, skip, close kee
   const morning = routines.getByRole('group', {name: 'Routine templates'}).getByRole('listitem').filter({hasText: 'Morning routine'});
   await morning.getByRole('button', {name: 'Add routine'}).click();
   await morning.getByRole('button', {name: 'Add 4 habits'}).click();
-  await expect(routines.getByRole('status')).toHaveText('Morning routine ready: 4 new habits.');
+  // Session AV lane 2 (CI run 2007; deliberate): each routine now keeps its own status line (empty until it has news), so
+  // Routines holds more than one status region; exactly one says anything, and it says exactly this (stricter).
+  await expect(routines.getByRole('status').filter({hasText: /\S/})).toHaveText(['Morning routine ready: 4 new habits.']);
   await routines.getByRole('button', {name: 'Start'}).click();
   const player = page.locator('section.routine-player');
   await expect(player).toContainText('Morning routine · step 1 of 4');
