@@ -225,3 +225,39 @@ the answers read `env.moneyMore` and, without it, say where the figures live.
 - Registries: `zigoals:store-cards:v1` (above). CSS touched: `components/wealth/store-cards/store-cards.css` (new; theme
   variables, and black on white for the barcode on purpose).
 - Today: nothing.
+
+### R2-F6. A business space with its own entries, budgets and totals
+
+- LEDGER row: #255 Emma Spaces — **built**. "Keep business money apart: add a business space" at the foot of Spending
+  (a name: Business, Studio…); a "Space" switch (Personal · Studio) then sits at the top of Spending's and Budgets' own
+  bodies on Wealth. The business space has its own money log and budgets in **two new records of the same formats**
+  (`zigoals:money-log-business:v1`, `zigoals:budgets-business:v1`), so the personal records are never touched and every
+  other reader — Today's lines, NOVA and ZIGi, the notices, insights read from the personal log, Export of the personal log
+  — stays exactly as it was. Deviation from the ledger's sketch (a space id on each entry), on purpose: a space id on
+  personal records would make every older build (#37–#57) and every existing reader add business entries into personal
+  totals; separate records cannot. In the business space: the form, saved entries, subcategories, paid with, search,
+  insights, weekly room, unusual line, budgets with their targets, assign, watches and own targets work on its own
+  records; the personal-only parts (Money tools, shared costs and people, store cards, pay periods, "On Today") say so or
+  stay hidden. "End the business space" hides the switch (Undo); its records stay on the device and in Export everything
+  until erased. The Showcase always shows Personal.
+- Protected baseline: read `docs/STATUS.md` "Current accepted baseline" (PR #22: the nav highlight, the hero star and
+  slogan sweep, motion polish, goal tiles). The switch is inside Wealth's own Spending and Budgets sections, not in the
+  shell, the navigation or Today's hero, so the baseline is unchanged.
+- Files: `lib/money-more/spaces.ts` (new), `components/wealth/spending/space-switch.tsx` (new: `SpaceSwitch`, `SpaceSetup`,
+  `useMoneySpace`), `components/wealth/spending/spending-section.tsx` (the body keyed by space), `components/wealth/budgets/
+  budgets-month.tsx` (the same), `components/wealth/budgets/budget-extras.tsx` ("On Today" personal only).
+- Tests: `lib/money-more/av2-spaces.test.ts`, `lib/ai/local-answers/av2-money-r2.test.ts`, round trip (the two business
+  records, once wired).
+- Spec: `tests/av2-money-space.spec.ts`.
+- Stored: `zigoals:money-more:v1` `space`, `business`; **NEW** `zigoals:money-log-business:v1`, `zigoals:budgets-business:v1`.
+- Help (EN): **Q: Can I keep business spending apart?** A: At the foot of Wealth → Spending, choose "Keep business money
+  apart: add a business space" and give it a name. A Space switch then sits at the top of Spending and Budgets: the
+  business space has its own entries, budgets and totals, and your personal money, Today and NOVA are not changed.
+  "End the business space" hides it; its entries stay on this device until you erase them.
+- What's new: "Money: a business space with its own entries, budgets and totals, beside your personal money."
+- Answers: `businessSpace` (corpus `av2r2-money-business`). **The lead adds `moneyLogBusiness: one(MONEY_LOG_BUSINESS)`
+  to the tool sources** (lib/ai/tools/env.ts), gated with Wealth; without it the answer says where the figures live.
+- Showcase hook: none (the Showcase always shows Personal).
+- Registries: the two business records (see "Registry entries the lead adds" above). CSS touched:
+  `components/wealth/spending/space-switch.css` (new, theme variables only).
+- Today: nothing.

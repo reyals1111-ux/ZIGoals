@@ -65,8 +65,17 @@ const ShareFold = lazy(() => import('./people-money').then(m => ({default: m.Sha
 const PeoplePanel = lazy(() => import('./people-money'));
 // Session AV lane 2, round 2 (money; Wallet's loyalty and club cards): store cards with a barcode for the till (own chunk).
 const StoreCards = lazy(() => import('../store-cards/store-cards'));
+// Session AV lane 2, round 2 (money; Emma's Spaces): a business space with its own records, switched inside Spending.
+import SpaceSwitch, {SpaceSetup, useMoneySpace} from './space-switch';
+import {logSpec, type MoneySpace} from '../../../lib/money-more/spaces';
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
-  const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
+  // Session AV lane 2, round 2: the Showcase always shows Personal; a space change mounts the body afresh on its own records.
+  const {space, ready} = useMoneySpace(), shown: MoneySpace = showcase ? 'personal' : space;
+  if (!ready) return <p className="fine">Loading your spending…</p>;
+  return <>{!showcase && <SpaceSwitch where="spending"/>}<SpendingBody key={shown} showcase={showcase} space={shown}/></>;
+}
+function SpendingBody({showcase = false, space}: {showcase?: boolean; space: MoneySpace}) {
+  const log = useDeviceRecord(space === 'business' ? logSpec('business') : MONEY_LOG), business = space === 'business', today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);
   const [kind, setKind] = useState<'expense' | 'income'>('expense'), [amount, setAmount] = useState(''), [category, setCategory] = useState<string>('Food & drink');
   const [note, setNote] = useState(''), [date, setDate] = useState(today), [problem, setProblem] = useState(''), [status, setStatus] = useState('');
@@ -208,7 +217,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
           {ownList.length > 0 && <ul className="spending-own-list">{ownList.map(c => <li key={c}><span>{c}</span><button type="button" className="text-link" aria-label={`Remove ${c} from your categories`} onClick={() => removeOwn(c)}>Remove</button></li>)}</ul>}
           <p className="fine" role="status">{ownNote}</p>
         </details>
-        {editing && editing.kind === 'expense' && !showcase && <Suspense fallback={null}><ShareFold key={editing.id} entry={log.data.entries.find(x => x.id === editing.id) ?? editing} log={log.data} update={log.update} onDone={setStatus}/></Suspense>}
+        {editing && editing.kind === 'expense' && !showcase && !business && <Suspense fallback={null}><ShareFold key={editing.id} entry={log.data.entries.find(x => x.id === editing.id) ?? editing} log={log.data} update={log.update} onDone={setStatus}/></Suspense>}
         <fieldset className="spending-marks"><legend className="visually-hidden">Marks</legend>
           <label className="spending-check"><input type="checkbox" checked={leftOut} onChange={e => setLeftOut(e.target.checked)}/><span>Not part of my spending <span className="fine">(card interest, a refund you passed on: kept in your log, left out of totals and budgets)</span></span></label>
           <label className="spending-check"><input type="checkbox" checked={tax} onChange={e => setTax(e.target.checked)}/><span>Tax-deductible <span className="fine">(your own mark, to find it later)</span></span></label>
@@ -254,8 +263,8 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     </div>
     {log.data.entries.length > 0 && <details ref={searchFold} className="money-search-fold" onToggle={e => setSearching((e.currentTarget as HTMLDetailsElement).open)}><summary>Search all your entries</summary>{searching && <Suspense fallback={<p className="fine" aria-busy="true">Opening the search…</p>}>{drill && <p className="fine money-drill-note" role="status">{drill.category} this month, from your list above. Select them to change several at once.</p>}<MoneySearch key={drill ? `${drill.category}-${drill.n}` : 'all'} entries={log.data.entries} onEdit={startEdit} onBulk={bulk} categories={categoryChoices(log.data, 'expense')} {...(drill ? {initial: {category: drill.category, from: drill.from, to: drill.to, kind: 'expense' as const}} : {})}/></Suspense>}</details>}
     <Suspense fallback={null}><SpendingInsights entries={log.data.entries} today={today} showcase={showcase}/></Suspense>
-    {!showcase && <Suspense fallback={null}><PeoplePanel log={log.data} update={log.update} today={today} currencies={[...new Set([currency, ...CURRENCIES])]}/></Suspense>}
-    {!showcase && <Suspense fallback={null}><StoreCards/></Suspense>}
+    {!showcase && !business && <Suspense fallback={null}><PeoplePanel log={log.data} update={log.update} today={today} currencies={[...new Set([currency, ...CURRENCIES])]}/></Suspense>}
+    {!showcase && !business && <Suspense fallback={null}><StoreCards/></Suspense>}
     {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
     : <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">
       <label className="field"><span>Weekly budget ({chosen}) — leave empty for none</span><input inputMode="decimal" value={budgetDraft ?? (log.data.budget ? fromCents(Math.round(Number(log.data.budget.weekly) * 100)) : '')} onChange={e => setBudgetDraft(e.target.value)} aria-describedby={`${id}-budget-calc`}/></label>
@@ -268,7 +277,8 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     {/* Session AK (lane M): buffer days, To review, Rules, Split an entry and the emergency sheet. */}
     {/* Session AK X1 (verification): while its chunk loads, Money tools says so (aria-busy, as Wealth's later parts do), so
         a reader of the page never takes the page without it for the whole page. */}
-    <Suspense fallback={<div className="money-tools-loading" aria-busy="true" hidden/>}><MoneyTools showcase={showcase}/></Suspense>
+    {business ? <p className="fine">Money tools (To review, rules, receipts, the 60-day forecast) work on your personal space.</p> : <Suspense fallback={<div className="money-tools-loading" aria-busy="true" hidden/>}><MoneyTools showcase={showcase}/></Suspense>}
+    {!showcase && <SpaceSetup/>}
   </div>;
 }
 

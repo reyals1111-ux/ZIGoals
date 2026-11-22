@@ -76,6 +76,16 @@ describe('quick logging', () => {
     expect(text(zigi('what have I lent and borrowed', freshAll(), more))).toBe('Borrowed from Mum €50.00 left. Beside your net worth: −€30.00.');
     expect(text(zigi('who owes me money', freshAll()))).toContain('Nobody owes you anything here');
   });
+  test('store cards by name only, and the business space', () => {
+    const cards = {version: 1 as const, cards: [{id: 'c1', name: 'Bonus card', number: '4006381333931', format: 'ean13' as const, addedAt: at}]};
+    const env = {...zigiEnv(freshAll()), storeCards: cards} as ToolEnv;
+    expect(text(av2MoneyR2Answer('which store cards do I have', env))).toBe('1 store card: Bonus card. Open Wealth → Spending → Store and club cards → Show for the barcode.');
+    expect(text(av2MoneyR2Answer('welke klantenkaarten heb ik', env))).not.toContain('4006381333931');
+    const biz = {...zigiEnv(freshAll()), moneyMore: {version: 1, business: {name: 'Studio'}}, moneyLogBusiness: {version: 1, weekStartsOn: 'monday', entries: [mine({id: 'b', amount: '90.00'})]}} as ToolEnv;
+    expect(text(av2MoneyR2Answer('how much did my business spend this month', biz))).toBe('Studio this month: €90.00 spent, €0.00 received. Kept apart from your personal money.');
+    expect(text(av2MoneyR2Answer('hoeveel heb ik zakelijk uitgegeven', biz))).toMatch(/^Studio deze maand: €90[.,]00 uitgegeven/);
+    expect(text(zigi('show my business spending', freshAll(), {version: 1}))).toContain('no business space yet');
+  });
   test('never claims another question', () => {
     for (const q of ['what did I spend this month', 'log coffee 3.20', 'how much is left in my budgets', 'hoeveel heb ik uitgegeven']) expect(zigi(q), q).toBeNull();
   });

@@ -1,6 +1,6 @@
-import type {MoneyEntry} from '../../money-log/schema';
+import type {MoneyEntry, MoneyLog} from '../../money-log/schema';
 import {mineParts} from '../../money-log/counted';
-import {monthOf} from '../../money-log/engine';
+import {monthOf, totals} from '../../money-log/engine';
 import type {MoneyMore} from '../../money-more/schema';
 import {PAID_WITH_WORDS, byPaidWith, bySub, savedLabel} from '../../money-more/quick';
 import {monthView} from '../../budgets/engine';
@@ -196,3 +196,23 @@ function storeCards(a: Asked): LocalReply | null {
     `${count(cards.length, 'nl', ['', ''], ['klantenkaart', 'klantenkaarten'])}: ${list(cards.map(c => c.name), 'nl')}. Open ${SPENDING.nl} → Store and club cards → Show voor de streepjescode.`), calls);
 }
 addR2Answers(storeCards);
+
+// ── A business space (#255) ─────────────────────────────────────────────────────────────────────────────────────────
+/** The business space's money log, when the lead has added it to the tool sources (`moneyLogBusiness`). */
+const businessLogOf = (env: ToolEnv): MoneyLog | null => (env as ToolEnv & {moneyLogBusiness?: MoneyLog | null}).moneyLogBusiness ?? ((env.ak as {moneyLogBusiness?: MoneyLog | null} | null | undefined)?.moneyLogBusiness ?? null);
+/** "How much did my business spend this month", "wat heb ik zakelijk uitgegeven deze maand". */
+function businessSpace(a: Asked): LocalReply | null {
+  if (!/\bbusiness (?:space|spending|money|expenses?|income|budgets?)\b|\bmy business\b.*\b(?:spend|spent|earn|earned|income|expenses?)\b|\bzakelijke? (?:ruimte|uitgaven|kosten|inkomsten|geld|budgetten)\b|\bzakelijk uitgegeven\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const more = moreOf(a.env), calls = call('money_log', {space: 'business'}, 'Money log · business space');
+  if (more && !more.business) return answer(say(a.lang, `You have no business space yet. At the foot of ${SPENDING.en}, “add a business space” keeps its entries, budgets and totals apart from your personal money.`,
+    `Je hebt nog geen zakelijke ruimte. Onderaan ${SPENDING.nl} houdt “add a business space” de posten, budgetten en totalen apart van je persoonlijke geld.`), calls);
+  const log = businessLogOf(a.env), name = more?.business?.name ?? say(a.lang, 'Business', 'Zakelijk');
+  if (!log) return answer(say(a.lang, `${name}'s figures are in ${SPENDING.en}: choose ${name} under Space at the top. Its entries and budgets are kept apart from your personal money.`,
+    `De cijfers van ${name} staan in ${SPENDING.nl}: kies ${name} bij Space bovenaan. De posten en budgetten staan apart van je persoonlijke geld.`), calls);
+  const {start, end} = thisMonth(a), rows = totals(log.entries, start, end);
+  if (!rows.length) return answer(say(a.lang, `${name}: nothing logged this month yet.`, `${name}: deze maand nog niets gelogd.`), calls);
+  return answer(say(a.lang, `${name} this month: ${list(rows.map(t => `${money(t.expenses, t.currency)} spent, ${money(t.income, t.currency)} received`), 'en')}. Kept apart from your personal money.`,
+    `${name} deze maand: ${list(rows.map(t => `${money(t.expenses, t.currency)} uitgegeven, ${money(t.income, t.currency)} ontvangen`), 'nl')}. Apart van je persoonlijke geld.`), calls);
+}
+addR2Answers(businessSpace);

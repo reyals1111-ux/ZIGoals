@@ -18,4 +18,5 @@ export const AV2_MONEY_R2: readonly Intent[] = [
   {id: 'av2r2-money-who-owes', pillar: 'wealth', en: ['who owes me money', 'what is owed to me for shared costs'], nl: ['wie is mij nog geld schuldig', 'wie moet mij nog terugbetalen']},
   {id: 'av2r2-money-lent-borrowed', pillar: 'wealth', en: ['what have I lent and borrowed', 'how much money have I borrowed'], nl: ['wat heb ik uitgeleend en geleend', 'hoeveel geld heb ik geleend']},
   {id: 'av2r2-money-store-cards', pillar: 'wealth', en: ['which store cards do I have', 'show my loyalty cards'], nl: ['welke klantenkaarten heb ik', 'toon mijn klantenkaarten']},
+  {id: 'av2r2-money-business', pillar: 'wealth', en: ['how much did my business spend this month', 'show my business spending'], nl: ['wat zijn mijn zakelijke uitgaven deze maand', 'hoeveel heb ik zakelijk uitgegeven']},
 ];

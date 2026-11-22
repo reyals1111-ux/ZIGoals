@@ -19,12 +19,12 @@ import {readMoneyAmount} from '../../../lib/money-log/form';
  */
 const money = (cents: number, currency: string) => moneyCents(cents, currency);
 const STATE_WORDS: Record<ChallengeState['state'], string> = {'on-track': 'on track', close: 'close to last month', over: 'past last month', won: 'done: less than last month', lost: 'ended above last month', 'no-last': 'nothing spent last month to beat'};
-type Props = {record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; currencies: readonly string[]; onChange: (fn: (r: BudgetsRecord) => BudgetsRecord) => void};
+type Props = {record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; currencies: readonly string[]; onChange: (fn: (r: BudgetsRecord) => BudgetsRecord) => void; /** Session AV lane 2, round 2: Today reads the personal space only. */ space?: 'personal' | 'business'};
 export default function BudgetExtras(props: Props) {
   return <>
     <PayeeWatch {...props}/>
     <Challenges {...props}/>
-    <OnToday {...props}/>
+    {props.space !== 'business' && <OnToday {...props}/>}
   </>;
 }
 function PayeeWatch({record, entries, today, currencies, onChange}: Props) {

@@ -31,6 +31,9 @@ const MonthRecapView = lazy(() => import('./month-recap'));
 const BudgetExtras = lazy(() => import('./budget-extras'));
 // Session AV lane 2 (money; YNAB's assign mode and targets, Monarch's flex and non-monthly budgets): "Plan <month>" (lazy).
 const AssignPanel = lazy(() => import('./assign-panel'));
+// Session AV lane 2, round 2 (money; Emma's Spaces): the business space's own budgets and entries.
+import SpaceSwitch, {useMoneySpace} from '../spending/space-switch';
+import {budgetsSpec, logSpec} from '../../../lib/money-more/spaces';
 const YearRecapView = lazy(() => import('./year-recap'));
 // Session AV lane 2, round 2 (money; Spendee, Wallet): your own budgets on a tag or chosen categories, each month or once (lazy).
 const OwnBudgets = lazy(() => import('./own-budgets'));
@@ -166,16 +169,21 @@ export function BudgetsView({space = 'personal', record, entries, today, showcas
     {(view.rows.length > 0 || entries.length > 0) && <details className="budgets-recap-fold" onToggle={e => setRecapOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{formatMonth(`${recapMonth}-01`)} in short</summary>{recapOpen && <Suspense fallback={<p className="fine">Opening…</p>}><MonthRecapView entries={entries} record={record} month={recapMonth} today={today}/></Suspense>}</details>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
-    {!unreadable && <Suspense fallback={null}><BudgetPeriodsPanel record={record} entries={entries} today={today} startsOn="monday" onChange={onChange}/></Suspense>}
+    {!unreadable && space === 'personal' && <Suspense fallback={null}><BudgetPeriodsPanel record={record} entries={entries} today={today} startsOn="monday" onChange={onChange}/></Suspense>}
     {view.rows.length > 0 && month >= thisMonth && <Suspense fallback={null}><AssignPanel record={record} entries={entries} month={month} today={today} update={safeChange}/></Suspense>}
     <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange}/></Suspense>
     <Suspense fallback={null}><OwnBudgets entries={entries} today={today} currencies={usedCurrencies} categories={categories} space={space}/></Suspense>
-    <Suspense fallback={null}><BudgetExtras record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange}/></Suspense>
+    <Suspense fallback={null}><BudgetExtras record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange} space={space}/></Suspense>
     <p className="fine">From your own money log, in each currency apart. An overspend is never carried into the next month. Not financial advice.</p>
   </div>;
 }
 export default function BudgetsMonth({showcase = false}: {showcase?: boolean}) {
-  const budgets = useDeviceRecord(BUDGETS), log = useDeviceRecord(MONEY_LOG), today = localDate();
+  const {space, ready} = useMoneySpace(), shown = showcase ? 'personal' : space;
+  if (!ready) return <p className="fine" role="status">Loading your budgets…</p>;
+  return <>{!showcase && <SpaceSwitch where="budgets"/>}<BudgetsSpace key={shown} showcase={showcase} space={shown}/></>;
+}
+function BudgetsSpace({showcase, space}: {showcase: boolean; space: 'personal' | 'business'}) {
+  const budgets = useDeviceRecord(space === 'business' ? budgetsSpec('business') : BUDGETS), log = useDeviceRecord(space === 'business' ? logSpec('business') : MONEY_LOG), today = localDate();
   if (!budgets.loaded || !log.loaded) return <p className="fine" role="status">Loading your budgets…</p>;
-  return <BudgetsView record={budgets.data} entries={log.data.entries} today={today} showcase={showcase} unreadable={budgets.unreadable} categories={categoryChoices(log.data, 'expense')} onChange={fn => { budgets.update(fn); }}/>;
+  return <BudgetsView space={space} record={budgets.data} entries={log.data.entries} today={today} showcase={showcase} unreadable={budgets.unreadable} categories={categoryChoices(log.data, 'expense')} onChange={fn => { budgets.update(fn); }}/>;
 }
