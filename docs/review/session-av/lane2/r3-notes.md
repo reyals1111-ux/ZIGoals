@@ -18,6 +18,7 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #268 Obsidian Outline of a note | built (reordering sections by dragging left out, as the row says) | F2 |
 | #271 Obsidian Print a note or save it as PDF | built | F2 |
 | #265 Grid Diary Every answer to one prompt | built | F3 |
+| #266 Grid Diary Grid layout and the Mandala | built | F4 |
 
 ## Features
 
@@ -100,3 +101,32 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 - Showcase: the Showcase's "Three good things" entry already shows here (one prompt, three headings). No count changes.
 - Search palette (the lead's, optional): "Every answer to a prompt" → `/app/journal?prompt=three-good-things`.
 - CSS touched: `components/journal/journal.css`. Today: nothing added.
+
+### F4 A grid entry and the 3 × 3 Mandala — LEDGER #266 (Grid Diary)
+
+- Verdict: **built**.
+- What: Journal → Write → Start from a prompt has a second list, "Grids and look-backs": the Mandala ("one theme,
+  eight sides": your theme in the centre, then body and health, work and learning, money, people I love, rest and fun,
+  home, mind and mood, one small step; English and Dutch) opens as a 3 × 3 grid of labelled boxes (centre first, then
+  clockwise from the top left — the order they are written and read in; one column on a phone, the 3 × 3 from 560 px).
+  Any other template (two headings or more) can be written as a grid of cards too: "Write as a grid" / "Write as one
+  text" (aria-pressed) switches with the words kept. The entry is still saved as text with headings (an untouched grid
+  is exactly the template's headings, so it is never saved empty), so the export, Every answer to a prompt and older
+  builds read it as before; a Mandala entry is drawn as its grid in the list. The month and year look-back templates of
+  F5 are in the same list.
+- The eight first templates stay as they were (`JOURNAL_TEMPLATES`, pinned by `templates.test.ts`, the "Prompts" list's
+  eight items in `g1a-journal-prompts.spec.ts` and the answers that list them): the new ones are `MORE_TEMPLATES`; the
+  picker, `templateById`, `startFrom` and `onlyHeadings` read both (`ALL_TEMPLATES`). Hidden prompts (LEDGER #56) list
+  the eight only.
+- Files: `lib/journal-prompts/templates.ts`, `lib/journal/grid.ts`, `components/journal/compose-grid.tsx` (lazy),
+  `components/journal/entry-grid.tsx` (lazy), `components/journal/journal-compose.tsx`, `components/journal/journal-page.tsx`,
+  `components/journal-prompts/prompt-picker.tsx` + `prompt-picker.css`, `components/journal/journal.css`.
+- Tests: `lib/journal/r3-grid.test.ts` (the word checks of the eight applied to the new templates, too).
+- Spec: `tests/av2-journal-grid.spec.ts`.
+- Stored: nothing new (`template: 'mandala'` uses the existing field).
+- Help (EN). Q: "Can I write an entry as a grid?" A: "Yes. Start from a prompt, then press Write as a grid: each heading
+  gets its own box. The Mandala (under Grids and look-backs) is a 3 × 3 grid: your theme in the centre and eight sides of
+  life around it. It is saved as ordinary text with headings."
+- What's new: "Journal: write an entry as a grid of cards, and the 3 × 3 Mandala."
+- Showcase: none (a Showcase entry would change the pinned entry count of 10).
+- CSS touched: `components/journal/journal.css`, `components/journal-prompts/prompt-picker.css`. Today: nothing added.

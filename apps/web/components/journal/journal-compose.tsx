@@ -32,6 +32,8 @@ const PromptPacks = lazy(() => import('../journal-prompts/prompt-packs'));
 const ThreeGoodThings = lazy(() => import('./three-good-things'));
 // Session AV lane 2 (journal; LEDGER #35, #42): photos and a voice note for the entry, loaded when opened.
 const ComposeMedia = lazy(() => import('./compose-media'));
+// Session AV lane 2 (r3-notes; LEDGER #266, Grid Diary): a templated entry written as a grid of cards (the Mandala 3 × 3).
+const ComposeGrid = lazy(() => import('./compose-grid'));
 const NO_MEDIA: PendingMedia = {photos: [], audio: null};
 
 /**
@@ -51,6 +53,7 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   // Session AV lane 2 (journal; LEDGER #43, Day One): the journal this entry goes in (null: the main Journal).
   const [chosenBook, setChosenBook] = useState<string | null | undefined>(undefined);
   const books = journal.data.journals ?? [], target = (chosenBook === undefined ? book : chosenBook) ?? null, inBook = target && books.some(b => b.id === target) ? target : null;
+  const [gridOn, setGridOn] = useState<boolean | null>(null); // null: the template's own way (the Mandala is a grid)
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
   // Session AV lane 2 (journal; LEDGER #39, Day One's default template): a new entry starts from the chosen template, on
@@ -100,7 +103,7 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
     const question = words && journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     try { journal.update(current => ({...current, entries: [...current.entries, {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}].slice(-5000)})); }
     catch { if (photos.length || audio.length) void import('../../lib/journal/keep-media').then(k => k.forgetJournalMedia([...photos, ...audio.map(a => a.id)])); return setProblem('This could not be saved on this device. Nothing was changed.'); }
-    setText(''); setTagText(''); setPrompt(null); setFillDefault(true); setMedia(NO_MEDIA); setMediaOpen(false); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
+    setText(''); setTagText(''); setPrompt(null); setGridOn(null); setFillDefault(true); setMedia(NO_MEDIA); setMediaOpen(false); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
     if (question) zigiSignals.emit('journal_reflecting'); // Session AK Part 12: ZIGi asks its one question (a Studio-4 reaction once its art lands)
   };
   const pending = asked ? journal.data.entries.find(e => e.id === asked) : null;
@@ -110,6 +113,10 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
     journal.update(current => ({...current, entries: current.entries.map(e => e.id === pending.id && e.followUp ? {...e, followUp: {...e.followUp, answer: answer.trim().slice(0, 2000), answeredAt: new Date().toISOString()}} : e)}));
     setAsked(null); setAnswer(''); setStatus('Your answer is with the entry.');
   };
+  // Session AV lane 2 (r3-notes; LEDGER #266): the template the entry started from, and whether it is written as a grid.
+  const promptTemplate = prompt ? (() => { const own = (journal.data.templates ?? []).find(t => t.id === prompt.id); return own ? asJournalTemplate(own) : templateById(prompt.id); })() : null;
+  const canGrid = !compact && !!promptTemplate && !promptTemplate.body && promptTemplate.headings[prompt!.lang].length >= 2;
+  const asGrid = canGrid && (gridOn ?? promptTemplate!.grid === 'mandala');
   if (!journal.loaded || !energy.loaded) return <p className="fine">Loading your journal…</p>;
   return <div className={`journal-compose${compact ? ' journal-compose-compact' : ''}`}>
     <fieldset className="journal-energy"><legend>Energy today</legend>
@@ -123,7 +130,9 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       {/* Session AV Part 7 (ADR-045 F-PROMPT): one question a day (lib/journal-prompts/daily.ts); using it only writes it into the text. */}
       {!compact && !text.trim() && <div className="journal-today-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question{todayQ.pack ? <> · <span lang={qLang}>{todayQ.pack.title[qLang]}</span> pack</> : null}</span> <strong lang={qLang}>{todayQ.question}</strong></p>
         <div className="journal-today-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, todayQ.question))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button>{/* Session AV lane 2 (#56): a pack's own question is chosen in Prompt packs, so only the daily one hides here. */}{!todayQ.pack && <button type="button" className="quiet" onClick={() => { const i = questionIndexOfTheDay(today, step, qLang, mutedQ); void import('../../lib/muted/write').then(m => { m.setMuted('questions', i, true); setHidden(n => n + 1); setHiddenSaid('Hidden: it will not be asked again. Journal → Start from a prompt → Hidden lists it.'); }).catch(() => setHiddenSaid('This could not be hidden on this device.')); }}>Don’t ask this again</button>}<button type="button" className="quiet" lang={qLang === 'en' ? 'nl' : 'en'} onClick={() => setQuestionLang(qLang === 'en' ? 'nl' : 'en')}>{qLang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>{hiddenSaid && <p className="fine" role="status">{hiddenSaid}</p>}</div>}
-      <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
+      {canGrid && <button type="button" className="quiet journal-grid-toggle" aria-pressed={asGrid} onClick={() => setGridOn(!asGrid)}>{asGrid ? 'Write as one text' : 'Write as a grid'}</button>}
+      {asGrid ? <Suspense fallback={<p className="fine">Opening the grid…</p>}><ComposeGrid key={`${prompt!.id}-${prompt!.lang}`} template={promptTemplate!} lang={prompt!.lang} text={text} onChange={setText}/></Suspense>
+        : <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>}
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       {/* Session AV lane 2 (journal; LEDGER #35, Day One's links to other entries): a day's entries, or a note, goal or habit, by [[name]]. */}
       {!compact && <details className="prompt-fold journal-link-fold"><summary>Link another day <span className="fine">· or type [[a note, goal or habit]]</span></summary>
@@ -136,7 +145,7 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       {!compact && books.length > 0 && <label className="field journal-compose-book"><span>Journal</span><select value={inBook ?? ''} onChange={e => setChosenBook(e.target.value || null)}><option value="">Journal (main)</option>{books.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>}
       {!compact && tagOffers.length > 0 && <datalist id={`${id}-known-tags`}>{tagOffers.map(o => <option key={o} value={o}/>)}</datalist>}
       {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>
-        {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker startLang={qLang} own={journal.data.templates ?? []} onEditOwn={(ownId, title, headingsText) => { journal.update(current => editOwnTemplate(current, ownId, {title, headingsText})); setStatus(`Your template “${title}” is saved.`); }} onAddOwn={(title, headingsText, newId) => journal.update(current => addOwnTemplate(current, {title, headingsText}, newId))} onRemoveOwn={ownId => journal.update(current => removeOwnTemplate(current, ownId))} defaultId={journal.data.defaultTemplate ?? null} onDefault={(templateId, title) => { try { journal.update(c => withDefault(c, templateId)); setStatus(templateId ? `A new entry starts from “${title}”.` : 'A new entry starts empty.'); } catch { setStatus('This choice could not be kept on this device.'); } }} onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setPrompts(false); if (t.tags?.length) setTagText(current => current.trim() ? current : t.tags!.join(', ')); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
+        {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker startLang={qLang} own={journal.data.templates ?? []} onEditOwn={(ownId, title, headingsText) => { journal.update(current => editOwnTemplate(current, ownId, {title, headingsText})); setStatus(`Your template “${title}” is saved.`); }} onAddOwn={(title, headingsText, newId) => journal.update(current => addOwnTemplate(current, {title, headingsText}, newId))} onRemoveOwn={ownId => journal.update(current => removeOwnTemplate(current, ownId))} defaultId={journal.data.defaultTemplate ?? null} onDefault={(templateId, title) => { try { journal.update(c => withDefault(c, templateId)); setStatus(templateId ? `A new entry starts from “${title}”.` : 'A new entry starts empty.'); } catch { setStatus('This choice could not be kept on this device.'); } }} onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setGridOn(null); setPrompts(false); if (t.tags?.length) setTagText(current => current.trim() ? current : t.tags!.join(', ')); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
       </details>}
       {!compact && <details className="prompt-fold journal-media-fold" open={mediaOpen || hasMedia || undefined} onToggle={e => setMediaOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Photos and a voice note <span className="fine">· {hasMedia ? [media.photos.length ? `${media.photos.length} ${media.photos.length === 1 ? 'photo' : 'photos'}` : '', media.audio ? 'a voice note' : ''].filter(Boolean).join(' and ') : 'on this device only'}</span></summary>
         {(mediaOpen || hasMedia) && <Suspense fallback={<p className="fine">Opening…</p>}><ComposeMedia value={media} onChange={setMedia}/></Suspense>}

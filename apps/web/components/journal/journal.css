@@ -203,3 +203,23 @@
 .prompt-answers-list li { display: grid; gap: 0; padding-inline-start: 12px; box-shadow: inset 2px 0 0 color-mix(in srgb, var(--brand-violet, #826cff) 55%, transparent); }
 .prompt-answers-day { min-height: 44px; justify-self: start; display: inline-flex; align-items: center; }
 .prompt-answers-words { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Session AV lane 2 (r3-notes; LEDGER #266): an entry written as a grid of cards, and the 3 × 3 Mandala (one column on a
+   phone, centre first; the 3 × 3 from 560 px). Theme tokens only. */
+.compose-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); margin: 0 0 10px; }
+.compose-grid-prefix { grid-column: 1 / -1; }
+.compose-grid-cell { display: grid; gap: 6px; align-content: start; padding: 10px; border-radius: 14px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); min-width: 0; }
+.compose-grid-cell > span { font-size: 14px; font-weight: 650; overflow-wrap: anywhere; }
+.compose-grid-cell textarea { width: 100%; box-sizing: border-box; resize: vertical; font-size: 16px; }
+.compose-grid-cell.is-centre { border-color: color-mix(in srgb, var(--brand-violet, #826cff) 70%, transparent); background: color-mix(in srgb, var(--brand-violet, #826cff) 10%, transparent); }
+.compose-grid.is-mandala { grid-template-columns: 1fr; }
+@media (min-width: 560px) {
+  .compose-grid.is-mandala { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .compose-grid.is-mandala .compose-grid-cell { grid-row: var(--row); grid-column: var(--col); }
+}
+.journal-grid-toggle { min-height: 44px; }
+.entry-grid { display: grid; gap: 8px; grid-template-columns: 1fr; margin: 4px 0; padding: 0; list-style: none; }
+.entry-grid > li { padding: 8px 10px; border-radius: 12px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); min-width: 0; overflow-wrap: anywhere; }
+.entry-grid > li.is-centre { border-color: color-mix(in srgb, var(--brand-violet, #826cff) 70%, transparent); background: color-mix(in srgb, var(--brand-violet, #826cff) 10%, transparent); }
+.entry-grid strong { display: block; font-size: 14px; }
+.entry-grid p { margin: 2px 0 0; white-space: pre-wrap; }
+@media (min-width: 560px) { .entry-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .entry-grid > li { grid-row: var(--row); grid-column: var(--col); } }

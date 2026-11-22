@@ -57,6 +57,8 @@ const WriteItOut = lazy(() => import('./write-it-out'));
 const ThoughtCheck = lazy(() => import('./thought-check'));
 // Session AV lane 2 (r3-notes; LEDGER #265, Grid Diary): every answer to one prompt, loaded when its fold opens.
 const PromptAnswers = lazy(() => import('./prompt-answers'));
+// Session AV lane 2 (r3-notes; LEDGER #266): a Mandala entry drawn as its 3 × 3 grid.
+const EntryGrid = lazy(() => import('./entry-grid'));
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -160,7 +162,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       </div>}
       {linkedFrom.length > 0 && <p className="fine journal-linked-from">Linked from {linkedFrom.slice(0, 5).map((x, i) => <span key={x.id}>{i ? ', ' : ''}<a className="text-link" href={`/app/journal?day=${x.date}`} onClick={ev => { ev.preventDefault(); showDay(x.date); }}>{formatDate(x.date)}</a></span>)}.</p>}
       {entries.length ? <ol className="journal-entries">{entries.map(e => { const inBook = bookOf(journal.data, e); return <li key={e.id} data-tone={inBook?.theme}>
-        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}</p>{hasLinks(e.text) ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryRichText text={e.text} onDay={showDay}/></Suspense> : <p className="journal-entry-text">{e.text}</p>}
+        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}</p>{e.template === 'mandala' ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryGrid entry={e}/></Suspense> : hasLinks(e.text) ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryRichText text={e.text} onDay={showDay}/></Suspense> : <p className="journal-entry-text">{e.text}</p>}
         {(e.photos?.length || e.audio?.length) ? <LoadBoundary quiet><Suspense fallback={null}><EntryMedia entry={e} day={entryDays.get(e.date)?.short ?? e.date}/></Suspense></LoadBoundary> : null}
         <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}{e.updatedAt ? ' · changed' : ''}{versionCount.get(e.id) ? ` · ${versionCount.get(e.id) === 1 ? '1 earlier version' : `${versionCount.get(e.id)} earlier versions`} under More` : ''}</p>
         {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}

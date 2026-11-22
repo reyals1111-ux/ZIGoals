@@ -3,7 +3,7 @@ import {Suspense, lazy, useId, useRef, useState} from 'react';
 import {mutedNow} from '../../lib/muted/rule';
 // Session AV lane 2 (LEDGER #56): what the person hid, in one list; loaded when its fold opens.
 const MutedPanel = lazy(() => import('../muted/muted-panel'));
-import {JOURNAL_TEMPLATES, type JournalTemplate, type PromptLang} from '../../lib/journal-prompts/templates';
+import {JOURNAL_TEMPLATES, MORE_TEMPLATES, type JournalTemplate, type PromptLang} from '../../lib/journal-prompts/templates';
 import {asJournalTemplate, headingsOf, newOwnTemplateId, ownTemplateIssue, readHeadings} from '../../lib/journal-prompts/own';
 import {MAX_TEXT, OWN_TITLE_MAX, emptyJournal, type OwnTemplate} from '../../lib/journal/schema';
 import {showUndo} from '../ui/undo-toast';
@@ -61,6 +61,15 @@ export default function PromptPicker({onPick, own = [], onAddOwn, onRemoveOwn, o
         <strong>{t.title[lang]}</strong>
         <span className="fine">{t.headings[lang].join(' · ')}</span>
         {t.note && <span className="fine prompt-picker-note">{t.note[lang]}</span>}
+      </button>
+      {defaultButton(t.id, t.title[lang])}
+    </li>)}</ul>
+    {/* Session AV lane 2 (r3-notes; LEDGER #266, #269, Grid Diary): the Mandala grid and the month and year look-backs. */}
+    <h3 className="prompt-picker-more-title">Grids and look-backs</h3>
+    <ul className="prompt-picker-list" aria-label="Grids and look-backs">{MORE_TEMPLATES.map(t => <li key={t.id}>
+      <button type="button" className="prompt-picker-card" lang={lang} onClick={() => onPick(t, lang)}>
+        <strong>{t.title[lang]}</strong>
+        <span className="fine">{t.grid ? (lang === 'nl' ? 'Een raster van 3 × 3: je thema in het midden, acht vakken eromheen' : 'A 3 × 3 grid: your theme in the centre, eight boxes around it') : t.headings[lang].join(' · ')}</span>
       </button>
       {defaultButton(t.id, t.title[lang])}
     </li>)}</ul>
