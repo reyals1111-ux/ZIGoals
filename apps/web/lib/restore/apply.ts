@@ -13,6 +13,7 @@ import {deleteImages, getImage, putImage} from '../vision/store';
 import {imageSize, tooLarge} from '../image-header';
 import {DEVICE_PARTS, MODULE_PARTS, nextValue, type PlannedPart, type RestoreMode} from './plan';
 import {entryBytes, RESTORE_LIMITS, type OpenedBackup} from './read-backup';
+import {RESTORE_MEDIA_DBS, anyMediaLeft, removeMedia, type RestoreMediaDb} from './media-dbs';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): writes the parts the person chose, each through the
@@ -42,7 +43,8 @@ type UndoStep =
   | {kind: 'module'; key: string; label: string; before: string | null; after: string; text?: string | null}
   | {kind: 'device'; key: string; label: string; before: string | null; after: string}
   | {kind: 'vision'; scope: string; ids: string[]}
-  | {kind: 'photos'; scope: string; ids: string[]; before: string | null; after: string};
+  | {kind: 'photos'; scope: string; ids: string[]; before: string | null; after: string}
+  | {kind: 'media'; db: RestoreMediaDb; scope: string; ids: string[]};
 /** `undoAfterReload`: the undo record was kept, so Undo also works after a reload. `stopped`: the person stopped it midway. `health`: a Health part was restored. */
 export type RestoreOutcome = {restored: string[]; failed: {label: string; error: string}[]; photos: {added: number; skipped: number}; undoable: boolean; undoAfterReload: boolean; stopped: boolean; health: boolean};
 /** `erase`: the session is an "Erase one area" (erase-area.ts), whose copies of what it erased go when its Undo ends. */
@@ -57,12 +59,19 @@ const stepSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('device'), key: name, label: name, before: z.string().max(RESTORE_UNDO_MAX_CHARS).nullable(), after: hex}),
   z.strictObject({kind: z.literal('vision'), scope: name, ids}),
   z.strictObject({kind: z.literal('photos'), scope: name, ids, before: z.string().max(RESTORE_UNDO_MAX_CHARS).nullable(), after: hex}),
+  // Session AV lane 2 (review b1 #18; TIER 3 (stored formats), additive): the ids a restore added to one media database.
+  z.strictObject({kind: z.literal('media'), db: z.enum(RESTORE_MEDIA_DBS), scope: name, ids}),
 ]);
 /**
  * The undo record (version 1, strict): when the restore ran, until when it can be undone, and its steps in order.
  * Session AL (security delta review B, SB-1; TIER 3 (stored format), additive and optional): `erase` marks the Undo of
  * an "Erase one area", so the copies it kept of what it erased are removed when that Undo ends, also after a reload. An
  * older build does not read a record with it (strict), so there it offers no Undo and removes the record; nothing else.
+ * Session AV lane 2 (review b1 #18; TIER 3 (stored formats), additive): a new step kind, `media` ({db, scope, ids}). The
+ * record stays version 1 and every record an earlier build wrote still reads (its four kinds are unchanged). A step kind
+ * this build does not know (a newer build's) makes the whole record unread, as `erase` above does for an older build:
+ * no Undo is offered and the record is removed, and nothing a restore wrote is touched. So a build before this one offers
+ * no Undo for a restore that put files back; the files stay, named by their records.
  */
 export const restoreUndoSchema = z.strictObject({version: z.literal(1), at: z.iso.datetime(), expiresAt: z.iso.datetime(), steps: z.array(stepSchema).min(1).max(200), erase: z.literal(true).optional()});
 export type RestoreUndoRecord = z.infer<typeof restoreUndoSchema>;
@@ -301,6 +310,7 @@ async function anyStillRestored(session: Session): Promise<boolean> {
     try {
       if (step.kind === 'module') { const text = await moduleText(storage, step.key); if (text !== null && await sha256(text) === step.after) return true; }
       else if (step.kind === 'device' || step.kind === 'photos') { const text = storage.getItem(step.kind === 'device' ? step.key : PROGRESS_PHOTOS_KEY); if (text !== null && await sha256(text) === step.after) return true; }
+      else if (step.kind === 'media') { if (await anyMediaLeft(step.db, step.scope, step.ids)) return true; }
       else for (const id of step.ids) if (await getImage(step.scope, id)) return true;
     } catch { /* this step does not read; look at the next */ }
   }
@@ -362,6 +372,7 @@ export async function undoRestore(): Promise<{failed: string[]; kept: string[]; 
         if (step.before === null) storage.removeItem(step.key); else storage.setItem(step.key, step.before);
         announceDevice(step.key);
       } else if (step.kind === 'vision') await deleteImages(step.scope, step.ids);
+      else if (step.kind === 'media') await removeMedia(step.db, step.scope, step.ids);
       else {
         const now = storage.getItem(PROGRESS_PHOTOS_KEY);
         if (now === null || await sha256(now) !== step.after) { kept.push('Progress photos'); continue; }
@@ -369,7 +380,7 @@ export async function undoRestore(): Promise<{failed: string[]; kept: string[]; 
         if (step.before === null) storage.removeItem(PROGRESS_PHOTOS_KEY); else storage.setItem(PROGRESS_PHOTOS_KEY, step.before);
         announceDevice(PROGRESS_PHOTOS_KEY);
       }
-    } catch { failed.push(step.kind === 'module' || step.kind === 'device' ? step.label : 'Photos'); if (step.kind === 'module' || step.kind === 'device') notUndone.add(step.key); }
+    } catch { failed.push(step.kind === 'module' || step.kind === 'device' ? step.label : step.kind === 'media' ? 'Photos, voice notes and documents' : 'Photos'); if (step.kind === 'module' || step.kind === 'device') notUndone.add(step.key); }
   }
   // SB-1: after an erase's Undo, what was put back is live again and the rest was changed since, so the erase's copies go;
   // a part whose Undo failed keeps its copy (the page says so), listed on the Data health page.
