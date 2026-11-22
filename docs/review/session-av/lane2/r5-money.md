@@ -344,3 +344,11 @@ corpus (`CORPUS`) nor round 4's (`AV2_R4_MONEY`), and the answers that run befor
 11. **QUALITY Minors**: QUALITY.md "Not fixed" holds no open Money Minor (its "near-limit budget" Showcase example is
     left for the pinned Showcase counts); lane2-b4's money findings are all fixed. Nothing left here.
 12. **Rows left**: none. All seven rows (#384–#390) are built.
+
+## Review B5K fixes (after `d0d2a2ff`)
+
+One commit each, unit tests in each.
+
+| id | verdict | fix | tests |
+|---|---|---|---|
+| B5K-1 Major | fixed | A payment satisfies one due date only. The early window (lib/bills/month.ts `earlyFits`) takes an entry of the bill's own words only when it lies more than 4 days after the previous due date (found on the bill's own steps, `previousDue`, so also when that date was last month) and is closer to this date than to that one. "Paid early?" offers only such entries. The existing ±4-day rule is unchanged and its tests are green. | `lib/bills/av2-paid-early.test.ts` (the 10-26 / 10-28 / 11-02 weekly case, a true early payment, a monthly case) |

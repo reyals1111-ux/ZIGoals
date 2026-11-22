@@ -1,7 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {cents} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
-import {daysBetween, dueDatesBetween, dueOnOrAfter, stepDue} from './cadence';
+import {addMonths, CADENCE_DAYS, daysBetween, dueDatesBetween, dueOnOrAfter, stepDue} from './cadence';
 import {AMOUNT_TOLERANCE, normalisePayee} from './detect';
 import type {Bill, BillsRecord} from './schema';
 
@@ -43,7 +43,25 @@ export const EARLY_DAYS = 14, EARLY_DAYS_WEEKLY = 6;
 export const earlyDays = (cadence: Bill['cadence']) => cadence === 'weekly' ? EARLY_DAYS_WEEKLY : EARLY_DAYS;
 /** An entry's match words as a bill keeps them (without the cadence): `currency|category|payee`. */
 export const entryMatchKey = (e: Pick<MoneyEntry, 'currency' | 'category' | 'note'>) => `${e.currency}|${e.category}|${normalisePayee(e.note) || normalisePayee(e.category)}`;
-const learned = (b: Bill, e: MoneyEntry, due: string) => !!b.matchKey && b.matchKey.startsWith(`${entryMatchKey(e)}|`) && daysBetween(e.date, due) >= 0 && daysBetween(e.date, due) <= earlyDays(b.cadence);
+/** The due date one step before `due` on the bill's own steps from its anchor (the 31st stays the month's last day). */
+export function previousDue(anchor: string, cadence: Bill['cadence'], due: string): string {
+  const months = CADENCE_DAYS[cadence].months, guess = cadence === 'weekly' ? Math.round(daysBetween(anchor, due) / 7)
+    : Math.round(((Number(due.slice(0, 4)) - Number(anchor.slice(0, 4))) * 12 + Number(due.slice(5, 7)) - Number(anchor.slice(5, 7))) / months);
+  for (const k of [guess, guess - 1, guess + 1]) if (stepDue(anchor, cadence, k) === due) return stepDue(anchor, cadence, k - 1);
+  return cadence === 'weekly' ? addLocalDays(due, -7) : addMonths(due, -months);
+}
+/**
+ * Review b5k #1: an early payment belongs to this due date only when it lies outside the previous due date's own window
+ * (more than 4 days after it) and is closer to this date than to that one — so a payment can satisfy one due date only,
+ * even when the previous date fell in last month and its line is not built here.
+ */
+export function earlyFits(b: Pick<Bill, 'nextDue' | 'cadence'>, e: Pick<MoneyEntry, 'date'>, due: string): boolean {
+  const before = daysBetween(e.date, due);
+  if (before < 0 || before > earlyDays(b.cadence)) return false;
+  const after = daysBetween(previousDue(b.nextDue, b.cadence, due), e.date);
+  return after > MATCH_DAYS && before < after;
+}
+const learned = (b: Bill, e: MoneyEntry, due: string) => !!b.matchKey && b.matchKey.startsWith(`${entryMatchKey(e)}|`) && earlyFits(b, e, due);
 /** This month's bill dates with the entry each one matched (by line: `billId|due`). */
 export function monthMatches(record: BillsRecord, entries: readonly MoneyEntry[], today: string): {lines: MonthBill[]; matched: Map<string, string>} {
   const first = `${today.slice(0, 7)}-01`, last = addLocalDays(dueOnOrAfter(first, 'monthly', addLocalDays(first, 1)), -1);

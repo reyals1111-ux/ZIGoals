@@ -2,7 +2,7 @@ import {addLocalDays} from '../local-date';
 import {cents} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import {AMOUNT_TOLERANCE} from './detect';
-import {earlyDays, entryMatchKey, monthMatches} from './month';
+import {earlyDays, earlyFits, entryMatchKey, monthMatches} from './month';
 import {billsSchema, MAX_DISMISSED, type Bill, type BillsRecord} from './schema';
 
 /**
@@ -16,7 +16,7 @@ import {billsSchema, MAX_DISMISSED, type Bill, type BillsRecord} from './schema'
 export type EarlyCandidate = {entry: MoneyEntry; days: number; off: number};
 export function paidEarlyCandidates(record: BillsRecord, entries: readonly MoneyEntry[], bill: Bill, due: string, today: string): EarlyCandidate[] {
   const {matched} = monthMatches(record, entries, today), used = new Set(matched.values()), amount = cents(bill.amount), from = addLocalDays(due, -earlyDays(bill.cadence));
-  return entries.filter(e => e.kind === 'expense' && e.currency === bill.currency && !used.has(e.id) && e.date >= from && e.date < due && Math.abs(cents(e.amount) - amount) <= amount * AMOUNT_TOLERANCE)
+  return entries.filter(e => e.kind === 'expense' && e.currency === bill.currency && !used.has(e.id) && e.date >= from && e.date < due && earlyFits(bill, e, due) && Math.abs(cents(e.amount) - amount) <= amount * AMOUNT_TOLERANCE)
     .map(entry => ({entry, days: Math.round((Date.parse(`${due}T12:00:00Z`) - Date.parse(`${entry.date}T12:00:00Z`)) / 86_400_000), off: Math.abs(cents(entry.amount) - amount)}))
     .sort((a, b) => a.off - b.off || a.days - b.days || a.entry.id.localeCompare(b.entry.id));
 }

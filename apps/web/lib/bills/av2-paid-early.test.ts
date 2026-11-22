@@ -59,4 +59,18 @@ describe('paid early', () => {
     expect(billsThisMonth(learned, near, TODAY).lines.find(l => l.billId === 'rent')!.state).toBe('seen');
     expect(near[0]!.date).toBe('2026-11-13');
   });
+  it('review b5k #1: a payment satisfies one due date only — the previous date’s late payment never counts as this one’s, across a month boundary', () => {
+    const gym: BillsRecord = {version: 1, dismissed: [], bills: [{id: 'gym', title: 'Gym', amount: '10.00', currency: 'EUR', cadence: 'weekly', nextDue: '2026-11-09', origin: 'detected', matchKey: 'EUR|Sport|gym co|weekly', category: 'Sport', createdAt: A}]};
+    const late = [e({amount: '10.00', category: 'Sport', note: 'Gym Co', date: '2026-10-28'})]; // due 2026-10-26, paid two days late
+    const lines = billsThisMonth(gym, late, '2026-11-05').lines;
+    expect(lines.find(l => l.due === '2026-11-02')!.state).toBe('passed');
+    expect(paidEarlyCandidates(gym, late, gym.bills[0]!, '2026-11-02', '2026-11-05')).toEqual([]);
+    // A real early payment, closer to this date and outside the previous one's window, still counts.
+    const early = [e({amount: '10.00', category: 'Sport', note: 'Gym Co', date: '2026-10-31'})];
+    expect(billsThisMonth(gym, early, '2026-11-05').lines.find(l => l.due === '2026-11-02')!.state).toBe('seen');
+    // A monthly bill: a payment 3 days after last month's date is that date's, not this month's.
+    const rent: BillsRecord = {version: 1, dismissed: [], bills: [{...RECORD.bills[0]!, matchKey: 'EUR|Home|landlord november|monthly'}]};
+    expect(billsThisMonth(rent, [e({date: '2026-10-18'})], TODAY).lines.find(l => l.billId === 'rent')!.state).toBe('passed');
+    expect(billsThisMonth(rent, [e({date: '2026-11-04'})], TODAY).lines.find(l => l.billId === 'rent')!.state).toBe('seen');
+  });
 });
