@@ -22,7 +22,7 @@ export default function TaskAttachments({taskId, taskTitle, liveTaskIds}: {taskI
   // Read after mount, so a server render and the first client render agree.
   const [canRecord, setCanRecord] = useState(false);
   useEffect(() => { const can = typeof MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia && !!voiceRecorderType(t => MediaRecorder.isTypeSupported(t)); queueMicrotask(() => setCanRecord(can)); }, []);
-  const refresh = useCallback(() => { void taskAttachmentsFor(photoScope(), taskId).then(setKept, () => { setKept([]); setNote('This browser cannot keep photos or voice notes here.'); }); }, [taskId]);
+  const refresh = useCallback(() => { void taskAttachmentsFor(photoScope(), taskId).then(list => setKept(list.filter(a => a.kind !== 'file')),  /* Session AV lane 2 (r5-notes; LEDGER #355): files show under Files */ () => { setKept([]); setNote('This browser cannot keep photos or voice notes here.'); }); }, [taskId]);
   const liveKey = liveTaskIds?.join(',');
   useEffect(() => {
     queueMicrotask(refresh);
@@ -114,6 +114,7 @@ function AttachmentView({attachment: a, n, taskTitle}: {attachment: KeptAttachme
     </a>}
     <small>Photo · {when}</small>
   </span>;
+  if (a.kind !== 'voice') return null; // Session AV lane 2 (r5-notes; LEDGER #355): a file is drawn by task-files.tsx
   return <span className="task-attachment-item task-attachment-voice">
     {url && <audio controls preload="metadata" src={url} aria-label={`Voice note ${n} of “${taskTitle}”, ${clockSeconds(a.seconds)}, added ${when}`}/>}
     <small>Voice note · {clockSeconds(a.seconds)} · {when}</small>

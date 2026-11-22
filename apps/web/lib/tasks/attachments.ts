@@ -14,6 +14,15 @@ export const TASK_ATTACHMENT_DB = 'zigoals-task-attachments-v1', TASK_ATTACHMENT
 export const MAX_TASK_ATTACHMENTS = 300, MAX_ATTACHMENTS_PER_TASK = 10;
 export const TASK_PHOTO_MAX_BYTES = 200_000, TASK_VOICE_MAX_BYTES = 1_500_000, TASK_VOICE_MAX_SECONDS = 60;
 export const TASK_ATTACHMENT_ORPHAN_GRACE_DAYS = 30;
+/**
+ * Session AV lane 2 (r5-notes; LEDGER #355, Akiflow's files on a task; TIER 3 (stored format), a third kind in the same
+ * store, additive): any file (a PDF, a document, a sheet) on a task, at most 10 MB each and 100 MB for every task's files
+ * together in a scope, kept as it is (its name and type kept with it). It opens only on the person's tap: a kind the
+ * browser shows safely (PDF, a picture, plain text, sound or film) in the browser's own viewer, anything else as a
+ * download, never as a page of this site (an HTML or SVG file could run in it). Older builds skip a kind they do not know
+ * (their reader drops it, so their sweep never touches it).
+ */
+export const TASK_FILE_MAX_BYTES = 10_000_000, TASK_FILES_MAX_TOTAL = 100_000_000, TASK_FILE_NAME_MAX = 120;
 export const PHOTO_TYPES = ['image/webp', 'image/jpeg'] as const;
 export const VOICE_TYPES = ['audio/webm', 'audio/mp4', 'audio/ogg'] as const;
 /** MediaRecorder containers in order of preference: Chrome and Firefox record WebM/Opus, Safari MP4/AAC. */
@@ -22,11 +31,35 @@ export const VOICE_RECORDER_CANDIDATES = ['audio/webm;codecs=opus', 'audio/webm'
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
 const photoValue = z.object({taskId: id, kind: z.literal('photo'), blob: z.instanceof(Blob), type: z.enum(PHOTO_TYPES), bytes: z.number().int().min(1).max(TASK_PHOTO_MAX_BYTES), at: z.iso.datetime(), orphanSince: z.iso.datetime().optional()});
 const voiceValue = z.object({taskId: id, kind: z.literal('voice'), blob: z.instanceof(Blob), type: z.enum(VOICE_TYPES), bytes: z.number().int().min(1).max(TASK_VOICE_MAX_BYTES), seconds: z.number().min(0).max(TASK_VOICE_MAX_SECONDS + 2), at: z.iso.datetime(), orphanSince: z.iso.datetime().optional()});
-export const taskAttachmentValueSchema = z.discriminatedUnion('kind', [photoValue, voiceValue]);
+const fileValue = z.object({taskId: id, kind: z.literal('file'), blob: z.instanceof(Blob), type: z.string().max(100), name: z.string().min(1).max(TASK_FILE_NAME_MAX), bytes: z.number().int().min(1).max(TASK_FILE_MAX_BYTES), at: z.iso.datetime(), orphanSince: z.iso.datetime().optional()});
+export const taskAttachmentValueSchema = z.discriminatedUnion('kind', [photoValue, voiceValue, fileValue]);
 export type TaskAttachment = z.infer<typeof taskAttachmentValueSchema>;
 export type KeptAttachment = TaskAttachment & {id: string};
 export const taskAttachmentKey = (scope: string, attachmentId: string) => `${scope}:${attachmentId}`;
-export const newAttachmentId = (kind: 'photo' | 'voice') => `${kind === 'photo' ? 'tp' : 'tv'}_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
+export const newAttachmentId = (kind: 'photo' | 'voice' | 'file') => `${kind === 'photo' ? 'tp' : kind === 'voice' ? 'tv' : 'tf'}_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
+/** Session AV lane 2 (r5-notes; LEDGER #355): a file's name as kept — no folders, no control characters, at most 120 characters. */
+export function cleanFileName(name: string): string {
+  const base = name.split(/[\\/]/).pop() ?? '', clean = base.replace(/[\u0000-\u001f\u007f<>:"|?*]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (clean.length <= TASK_FILE_NAME_MAX) return clean || 'file';
+  const dot = clean.lastIndexOf('.'), ext = dot > 0 && clean.length - dot <= 10 ? clean.slice(dot) : '';
+  return `${clean.slice(0, TASK_FILE_NAME_MAX - ext.length - 1).trimEnd()}…${ext}`;
+}
+/** The types a browser shows in its own viewer without running anything; every other file is saved instead. */
+const VIEWABLE = /^(?:application\/pdf|image\/(?:png|jpeg|webp|gif|avif)|text\/plain|audio\/[a-z0-9.+-]+|video\/(?:mp4|webm|ogg))$/;
+const TEXT_NAMES = /\.(?:txt|md|markdown|csv|log|json)$/i;
+/** How a kept file opens: `view` with the type it is shown as (a text file always as plain text), or `save` as a download. */
+export function openWay(type: string, name: string): {way: 'view'; type: string} | {way: 'save'} {
+  const t = type.split(';')[0]!.trim().toLowerCase();
+  if (TEXT_NAMES.test(name) || t.startsWith('text/plain') || t === 'text/csv' || t === 'text/markdown') return {way: 'view', type: 'text/plain;charset=utf-8'};
+  return VIEWABLE.test(t) ? {way: 'view', type: t} : {way: 'save'};
+}
+/** Session AV lane 2 (r5-notes; LEDGER #355): how many files the tasks carry, on how many tasks, and their bytes; orphans not counted. */
+export function fileCounts(kept: readonly Pick<KeptAttachment, 'taskId' | 'kind' | 'orphanSince' | 'bytes'>[]): {files: number; tasks: number; bytes: number} {
+  const live = kept.filter(a => !a.orphanSince && a.kind === 'file');
+  return {files: live.length, tasks: new Set(live.map(a => a.taskId)).size, bytes: live.reduce((n, a) => n + a.bytes, 0)};
+}
+/** Bytes in plain words: "820 kB", "4.2 MB". */
+export const sizeWords = (bytes: number) => bytes < 1_000_000 ? `${Math.max(1, Math.round(bytes / 1000))} kB` : `${(bytes / 1_000_000).toFixed(bytes < 10_000_000 ? 1 : 0)} MB`;
 
 /** The recording type this browser offers, or null (no voice notes then). */
 export function voiceRecorderType(isTypeSupported: (type: string) => boolean): string | null {
@@ -49,7 +82,7 @@ export const TASK_ATTACHMENTS_CHANGE = 'zigoals:task-attachments-change';
 const changed = () => { try { if (typeof window !== 'undefined') window.dispatchEvent(new Event(TASK_ATTACHMENTS_CHANGE)); } catch { /* nothing listens */ } };
 /** How many photos and voice notes the tasks carry, and on how many tasks; an orphan (its task removed) is not counted. Pure. */
 export function attachmentCounts(kept: readonly Pick<KeptAttachment, 'taskId' | 'kind' | 'orphanSince'>[]): {photos: number; voice: number; tasks: number} {
-  const live = kept.filter(a => !a.orphanSince);
+  const live = kept.filter(a => !a.orphanSince && a.kind !== 'file'); // Session AV lane 2 (r5-notes; LEDGER #355): files are counted by fileCounts
   return {photos: live.filter(a => a.kind === 'photo').length, voice: live.filter(a => a.kind === 'voice').length, tasks: new Set(live.map(a => a.taskId)).size};
 }
 
@@ -91,8 +124,11 @@ export async function putTaskAttachment(scope: string, attachmentId: string, val
   id.parse(attachmentId);
   const clean = taskAttachmentValueSchema.parse(value), kept = await taskAttachments(scope);
   if (!kept.some(a => a.id === attachmentId)) {
-    if (kept.filter(a => a.taskId === clean.taskId).length >= MAX_ATTACHMENTS_PER_TASK) throw new Error(`A task keeps ${MAX_ATTACHMENTS_PER_TASK} photos and voice notes. Remove one first.`);
+    // Session AV lane 2 (r5-notes; LEDGER #355): photos and voice notes, and files, each up to 10 on a task.
+    if (kept.filter(a => a.taskId === clean.taskId && (a.kind === 'file') === (clean.kind === 'file')).length >= MAX_ATTACHMENTS_PER_TASK) throw new Error(clean.kind === 'file' ? `A task keeps ${MAX_ATTACHMENTS_PER_TASK} files. Remove one first.` : `A task keeps ${MAX_ATTACHMENTS_PER_TASK} photos and voice notes. Remove one first.`);
     if (kept.length >= MAX_TASK_ATTACHMENTS) throw new Error(`At most ${MAX_TASK_ATTACHMENTS} task photos and voice notes on this device; remove one first.`);
+    // Session AV lane 2 (r5-notes; LEDGER #355): every task's files together stay under 100 MB.
+    if (clean.kind === 'file' && kept.filter(a => a.kind === 'file').reduce((n, a) => n + a.bytes, 0) + clean.bytes > TASK_FILES_MAX_TOTAL) throw new Error(`Files on tasks keep at most ${sizeWords(TASK_FILES_MAX_TOTAL)} on this device. Remove one in Tasks → Files first.`);
   }
   await run('readwrite', s => s.put(clean, taskAttachmentKey(scope, attachmentId)));
 }
@@ -129,8 +165,10 @@ export async function sweepTaskAttachments(scope: string, liveTaskIds: Iterable<
 const EXTENSIONS: Record<string, string> = {'image/webp': 'webp', 'image/jpeg': 'jpg', 'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/ogg': 'ogg'};
 const safe = (s: string, max = 40) => s.normalize('NFKD').replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, max);
 /** The file name an attachment gets inside Export everything: the task's title (made safe for a path), its kind, its id. */
-export const taskAttachmentFileName = (a: Pick<KeptAttachment, 'id' | 'taskId' | 'kind' | 'type'>, title?: string) =>
-  `tasks/attachments/${safe(title ?? '') || safe(a.taskId, 80)}-${a.kind === 'photo' ? 'photo' : 'voice'}-${safe(a.id, 80)}.${EXTENSIONS[a.type] ?? 'bin'}`;
+export const taskAttachmentFileName = (a: Pick<KeptAttachment, 'id' | 'taskId' | 'kind' | 'type'> & {name?: string}, title?: string) => a.kind === 'file'
+  // Session AV lane 2 (r5-notes; LEDGER #355): a file keeps its own name after its id ("…-file-tf_ab12-Ticket.pdf").
+  ? `tasks/attachments/${safe(title ?? '') || safe(a.taskId, 80)}-file-${safe(a.id, 80)}-${safe((a.name ?? '').replace(/\.[^.]{1,10}$/, ''), 60) || 'file'}.${/\.([A-Za-z0-9]{1,10})$/.exec(a.name ?? '')?.[1]?.toLowerCase() ?? 'bin'}`
+  : `tasks/attachments/${safe(title ?? '') || safe(a.taskId, 80)}-${a.kind === 'photo' ? 'photo' : 'voice'}-${safe(a.id, 80)}.${EXTENSIONS[a.type] ?? 'bin'}`;
 /**
  * Every kept task attachment of this scope as a ZIP entry for Export everything (the lead adds it beside the receipt
  * photos in lib/export/make-everything.ts). `titles` names each task where the list still has it; an orphan keeps its id.
