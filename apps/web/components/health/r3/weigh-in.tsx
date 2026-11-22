@@ -5,7 +5,7 @@ import type {HealthData} from '../../../lib/health';
 import {NOTIFY_PREFS, typeOn} from '../../../lib/notify/prefs';
 import {REMINDERS_PLAN, quietHours} from '../../../lib/reminders-plan/schema';
 import {inQuiet} from '../../../lib/notify/zone';
-import {DEFAULT_WEIGH_IN, WEEKDAY_BITS, weighInOf, weighInWords, withWeighIn, type WeighIn} from '../../../lib/weigh-in';
+import {DEFAULT_WEIGH_IN, weighedInOn, WEEKDAY_BITS, weighInOf, weighInWords, withWeighIn, type WeighIn} from '../../../lib/weigh-in';
 import {formatClock} from '../../../lib/visual-format';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {useDeviceRecord} from '../../ai/use-device-record';
@@ -25,7 +25,7 @@ export default function WeighInCard({data, today}: {data: HealthData; today: str
     try { prefs.update(p => withWeighIn(p, next)); setDraft(null); setSaid(next ? `Weigh-in reminder set: ${weighInWords(next, formatClock)}.` : 'Weigh-in reminder off.'); }
     catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); }
   };
-  const valid = /^\d\d:\d\d$/.test(w.time) && (w.repeat !== 'weekdays' || !!w.weekdays), quiet = inQuiet(w.time, quietHours(plan.data)), loggedToday = data.weights.some(x => x.date === today);
+  const valid = /^\d\d:\d\d$/.test(w.time) && (w.repeat !== 'weekdays' || !!w.weekdays), quiet = inQuiet(w.time, quietHours(plan.data)), loggedToday = weighedInOn(data, today);
   return <section className="panel r3-weigh-in" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">A GENTLE NUDGE</p><h2 id={`${id}-title`}>Weigh-in reminder</h2>
     <p>{saved ? <><strong>{weighInWords(saved, formatClock)}</strong>{loggedToday ? '. A weight is logged today, so today’s reminder stays quiet.' : '.'}</> : 'Off. Choose when you like to weigh in; the reminder is skipped on a day a weight is already logged, and never says a weight.'}</p>

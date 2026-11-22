@@ -1,5 +1,7 @@
 import {notifyPrefsSchema, type NotifyPrefs} from './notify/prefs';
 import {addDays} from './notify/zone';
+import type {HealthData} from './health';
+import {measurementHistory, readingDay} from './body-measurements';
 
 /**
  * Session AV lane 2 (health r3; LEDGER #286, Carb Manager's weigh-in reminders): an opt-in reminder to weigh in at a
@@ -27,10 +29,19 @@ export function monthlyDates(w: WeighIn, today: string): string[] {
   for (let i = 0; i <= 31; i++) { const d = addDays(today, i); if (Number(d.slice(8, 10)) === (w.day ?? 1)) out.push(d); }
   return out;
 }
+/**
+ * Whether a weight is logged on `day`: in the daily weight list, or as a timed weight reading in Health → Measurements on
+ * that day of its own zone (review B3B-3; the two are joined as lib/body-measurements.ts latestWeightObservation joins them).
+ */
+export function weighedInOn(health: HealthData | null | undefined, day: string): boolean {
+  if (!health) return false;
+  if (health.weights.some(x => x.date === day)) return true;
+  try { return measurementHistory(health, 'weight').readings.some(r => readingDay(r) === day); } catch { return false; }
+}
 /** What the notification plan needs: the time, the weekday mask, a monthly reminder's dates, and whether today has a weight. */
-export function weighInPlanInput(w: WeighIn | null, weights: readonly {date: string}[], today: string): {time: string; weekdays: number; dates: string[]; doneToday: boolean} | null {
+export function weighInPlanInput(w: WeighIn | null, weighedInToday: boolean, today: string): {time: string; weekdays: number; dates: string[]; doneToday: boolean} | null {
   if (!w) return null;
-  return {time: w.time, weekdays: weighInMask(w), dates: monthlyDates(w, today), doneToday: weights.some(x => x.date === today)};
+  return {time: w.time, weekdays: weighInMask(w), dates: monthlyDates(w, today), doneToday: weighedInToday};
 }
 const ordinal = (d: number) => `${d}${d === 1 || d === 21 ? 'st' : d === 2 || d === 22 ? 'nd' : d === 3 || d === 23 ? 'rd' : 'th'}`;
 /** "Every day at 07:30", "Mon and Thu at 07:30", "On the 1st of each month at 07:30". */
