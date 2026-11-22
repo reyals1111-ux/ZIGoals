@@ -1,5 +1,6 @@
 import {ZIP_ERRORS, entryStream, entryText, listZip, type ZipEntry} from '../import/zip-stream';
 import {isShowcaseBackup} from '../showcase-detect';
+import {MEDIA_ENTRY, MEDIA_MAX_BYTES} from './media-dbs';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): opens an Export everything ZIP for "Restore from a
@@ -41,8 +42,12 @@ export type EverythingFile = {format: 'zigoals-everything'; version: 1; exported
  * `oversized`: photos in the file above the restore's size limit, left out and counted for the preview. `notRestored`
  * (review b1 #3, #18): the other photos and recordings in the file (the notes', receipts', meals', tasks' and the
  * journal's), which Restore does not put back yet, counted so the preview says so.
+ * `media` (Session AV lane 2, review b1 #18): the tasks', journal's, notes', receipts', meals', foods' and accounts' files
+ * (lib/restore/media-dbs.ts MEDIA_ENTRY), which Restore now puts back by the ids their records keep (lib/restore/media.ts);
+ * one larger than any of those stores keeps is left out here and counted in `oversized`. Since then `notRestored` counts
+ * only the photos and recordings in folders Restore does not read.
  */
-export type OpenedBackup = {file: Blob; json: EverythingFile; vision: ZipEntry[]; photos: ZipEntry[]; oversized: number; demo: boolean; notRestored?: number};
+export type OpenedBackup = {file: Blob; json: EverythingFile; vision: ZipEntry[]; photos: ZipEntry[]; oversized: number; demo: boolean; notRestored?: number; media?: ZipEntry[]};
 const MEDIA_FILE = /\.(?:webp|jpe?g|png|webm|m4a|mp4|ogg)$/i;
 const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 
@@ -70,12 +75,14 @@ export async function openBackup(file: Blob): Promise<OpenedBackup> {
   const record = json as unknown as EverythingFile, modules = record.modules;
   const demo = isShowcaseBackup('platform', modules.finance) || isShowcaseBackup('habits', modules.habits) || isShowcaseBackup('health', modules.health);
   const vision = entries.filter(e => /^vision\/img-[A-Za-z0-9-]{1,80}\.(jpg|png|webp)$/.test(e.name)), photos = entries.filter(e => /^photos\/\d{4}-\d{2}-\d{2}-(front|side|back|other)-[a-z0-9-]{8,80}\.(webp|jpg)$/.test(e.name));
+  const media = entries.filter(e => MEDIA_ENTRY.test(e.name));
   return {
     file, json: record, demo,
     vision: vision.filter(e => e.uncompressed <= RESTORE_LIMITS.visionBytes),
     photos: photos.filter(e => e.uncompressed <= RESTORE_LIMITS.photoBytes),
-    oversized: vision.filter(e => e.uncompressed > RESTORE_LIMITS.visionBytes).length + photos.filter(e => e.uncompressed > RESTORE_LIMITS.photoBytes).length,
-    notRestored: entries.filter(e => MEDIA_FILE.test(e.name) && !vision.includes(e) && !photos.includes(e)).length,
+    media: media.filter(e => e.uncompressed <= MEDIA_MAX_BYTES),
+    oversized: vision.filter(e => e.uncompressed > RESTORE_LIMITS.visionBytes).length + photos.filter(e => e.uncompressed > RESTORE_LIMITS.photoBytes).length + media.filter(e => e.uncompressed > MEDIA_MAX_BYTES).length,
+    notRestored: entries.filter(e => MEDIA_FILE.test(e.name) && !vision.includes(e) && !photos.includes(e) && !media.includes(e)).length,
   };
 }
 async function isZipStart(file: Blob) { const b = new Uint8Array(await file.slice(0, 4).arrayBuffer()); return b[0] === 0x50 && b[1] === 0x4b && b[2] === 3 && b[3] === 4; }

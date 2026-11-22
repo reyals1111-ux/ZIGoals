@@ -13,8 +13,11 @@ import {localDate} from '../local-date';
  */
 /** Session Z-Cloud Part 5 (A7): the plain note on an export of a deleted account's records. */
 export const DELETED_EXPORT_NOTE = 'Your cloud copy was deleted; this export holds the records this device kept for that account. Nothing was changed or uploaded, and they stay locked in the app.';
-/** Review b1 #3: what the file holds of the journal's photos and voice notes, and what Restore does with them (said honestly). */
-export const JOURNAL_MEDIA_EXPORT_NOTE = 'The journal’s photos and voice notes are in the file’s journal folder. Restore does not put them back into the journal yet; to move a journal with its photos and voice notes, use Journal → Import and export.';
+/**
+ * Review b1 #3: what the file holds of the journal's photos and voice notes, and what Restore does with them (said
+ * honestly). Session AV lane 2 (review b1 #18): Restore now puts them back (lib/restore/media.ts), so the note says so.
+ */
+export const JOURNAL_MEDIA_EXPORT_NOTE = 'The journal’s photos and voice notes are in the file’s journal folder. Restore from a backup puts them back into this browser for the entries that name them, as it does for the photos and voice notes of tasks and notes; Journal → Import and export also moves a journal with its photos and voice notes.';
 export async function makeEverythingExport(): Promise<{notes: string[]}> {
   const {name, bytes, notes} = await buildEverythingExport();
   const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
