@@ -80,6 +80,13 @@ export const habitExtrasSchema = z.looseObject({
   calm: z.looseObject({}).optional(),
   /** Session AV lane 2 (LEDGER #184; TIER 3 (stored format)): the meditation timer's saved presets, {presets: [...]}, at most 20 (lib/meditation/presets.ts); loose, each checked where read. */
   meditationTimer: z.looseObject({}).optional(),
+  /**
+   * Session AV lane 2 (health r3; LEDGER #275, Way of Life's reminders in your own words; TIER 3 (stored format)): per habit,
+   * the reminder's own line (up to 80 characters) and up to two more reminder times a day, {habitId: {words?, times?}}
+   * (lib/habit-reminder-words.ts). Loose and checked where read, so one odd entry never makes the record unreadable; a value
+   * this build cannot read is dropped on read. The times apply on a device where the habit has its reminder time.
+   */
+  reminderMore: z.record(habitId, z.unknown()).optional().catch(undefined),
 }).refine(r => Object.keys(r.options ?? {}).length <= 400 && Object.keys(r.focusDays ?? {}).length <= 400 && Object.keys(r.areaGoals ?? {}).length <= 100 && Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400 && Object.keys(r.intentions ?? {}).length <= 400 && Object.keys(r.monthWeekday ?? {}).length <= 400 && Object.keys(r.checklists ?? {}).length <= 400, 'Too many habits remembered.');
 export type HabitExtras = z.infer<typeof habitExtrasSchema>;
 export const emptyHabitExtras = (): HabitExtras => ({version: 1});
