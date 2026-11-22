@@ -21,19 +21,27 @@ export function promptsUsed(journal: Pick<Journal, 'entries' | 'templates'>, lan
     .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
 }
 const fold = (s: string) => s.trim().replace(/\s+/g, ' ').toLowerCase();
+/**
+ * Which heading a line is, with the words after it on the same line: a heading on its own line, or a heading that ends in
+ * a mark (":", "?", ",", "…") with words after it on the same line ("A good thing today: …", "Dear future me, I hope …").
+ * A heading that ends in a letter or digit counts only on its own line, so an ordinary sentence that starts with the same
+ * word is not taken for it. The one rule the grid and Every answer to a prompt share (review B3C-1). Pure.
+ */
+export function headingOf(line: string, headings: readonly (readonly string[])[]): {at: number; rest: string} | null {
+  const l = fold(line);
+  if (!l) return null;
+  for (const [at, alts] of headings.entries()) for (const h of alts) {
+    const f = fold(h);
+    if (!f) continue;
+    if (l === f) return {at, rest: ''};
+    if (/[^\p{L}\p{N}]$/u.test(f) && l.startsWith(`${f} `)) return {at, rest: line.trim().replace(/\s+/g, ' ').slice(f.length).trim()};
+  }
+  return null;
+}
 /** An entry's text split at a template's headings: each heading's index with the words under it (empty when none). */
 export function splitAtHeadings(text: string, headings: readonly (readonly string[])[]): {at: number; words: string}[] {
   const lines = text.replace(/\r\n?/g, '\n').split('\n'), out: {at: number; words: string[]}[] = [];
-  // A heading on its own line, or a heading that ends in ":" or "?" with words after it on the same line ("A good thing today: …").
-  const which = (line: string): {at: number; rest: string} | null => {
-    const l = fold(line);
-    for (const [at, alts] of headings.entries()) for (const h of alts) {
-      const f = fold(h);
-      if (l === f) return {at, rest: ''};
-      if (/[:?]$/.test(f) && l.startsWith(`${f} `)) return {at, rest: line.trim().slice(h.trim().length).trim()};
-    }
-    return null;
-  };
+  const which = (line: string) => headingOf(line, headings);
   let current: {at: number; words: string[]} | null = null;
   for (const line of lines) {
     const hit = line.trim() ? which(line) : null;
