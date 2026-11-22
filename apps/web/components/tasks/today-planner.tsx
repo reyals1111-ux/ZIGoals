@@ -6,7 +6,7 @@ import {CALENDAR_IMPORT} from '../../lib/ics/calendar';
 import {eventAgendaItems} from '../../lib/agenda/time-items';
 import {checklistZone} from '../../lib/checklist/zone';
 import {DEFAULT_BLOCK, addSpent, fitDay, overLimit, plannedVsActual, taskBusy, toClock, toMin, type Busy} from '../../lib/tasks/layouts';
-import {TASK_PLAN, finishesByDay, goalStreak, harvestDoneLog, runningTimer, startTimer, stopTimer, tidyTimers, timerMinutes} from '../../lib/tasks/plan-record';
+import {TASK_PLAN, finishesByDay, goalStreak, harvestDoneLog, runningTimer, settleTimers, startTimer, stopTimer, timerMinutes} from '../../lib/tasks/plan-record';
 import {editMany} from '../../lib/tasks/engine';
 import {minutesWords} from '../../lib/tasks/minutes';
 import type {Task, Tasks} from '../../lib/tasks/schema';
@@ -30,11 +30,14 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(t); }, []);
   // The finishes per day are counted into the log once a day (so a year of them outlives the 30 days a task is kept), and
   // timers of tasks that are gone are dropped.
+  // Review b1 #2: a timer of a task finished elsewhere gives its minutes (up to the finish) to the task's time spent.
   useEffect(() => {
     if (!plan.loaded || plan.unreadable) return;
-    const next = tidyTimers(harvestDoneLog(plan.data, record, today, doneDay), record);
-    if (next !== plan.data) { try { plan.update(() => next); } catch { /* counted next time */ } }
-  }, [plan, record, today, doneDay]);
+    const {plan: next, spent} = settleTimers(harvestDoneLog(plan.data, record, today, doneDay), record);
+    if (next === plan.data) return;
+    try { plan.update(() => next); } catch { return; /* counted next time */ }
+    for (const s of spent) { const t = record.tasks.find(x => x.id === s.taskId); if (t) change(r => addSpent(r, t.id, s.minutes), `Stopped: ${minutesWords(s.minutes)} on “${t.title}”.`, 'The minutes are taken back.'); }
+  }, [plan, record, today, doneDay, change]);
   const busy = useMemo<Busy[]>(() => {
     const events = calendars.loaded ? eventAgendaItems(calendars.data, today, today, checklistZone()).filter(e => e.time).map(e => ({start: toMin(e.time!), end: toMin(e.time!) + (e.minutes || DEFAULT_BLOCK), title: e.title})) : [];
     return [...taskBusy(record, today), ...events];

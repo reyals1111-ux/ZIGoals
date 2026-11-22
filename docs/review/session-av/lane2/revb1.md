@@ -28,3 +28,20 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
 - Help (EN), for help-page.tsx's notes reminder answer, one sentence to add: "“Tomorrow” and “friday” mean the day after,
   or the Friday after, the day you write the line; they stay that day."
 - What's new: "Reminders in notes stay on the day you meant."
+
+## #2 Major: a running timer's minutes were lost when the task was marked Done
+
+- Verdict: fixed.
+- Fix: the Done box (use-task-list `toggle`, so every surface that finishes a task: Tasks, Today's card, the Agenda,
+  a goal's next actions, NOVA's widget) reads the task's running timer without a schema (`timerOnDone` in
+  lib/tasks/plan-key.ts, which the add path already loads), adds its minutes to the task's time spent in the same change
+  as the finish (one Undo), says "Done: “…”. Timer stopped: 40 min added to its time spent.", and only then takes the
+  timer off the planning record. A task finished where the box could not stop it (another tab, an older build) is
+  settled when Tasks → Today next tidies the timers (`settleTimers` in lib/tasks/plan-record.ts, minutes up to the
+  task's `doneAt`, the status line "Stopped: … on “…”."); timers of tasks that are gone are dropped as before.
+- Files: lib/tasks/plan-key.ts, lib/tasks/plan-record.ts (`timerMinutes` now lives in plan-key and is re-exported),
+  components/tasks/use-task-list.ts, components/tasks/today-planner.tsx.
+- Stored changes: none (the existing `spent` field and `timers` list).
+- Tests: apps/web/lib/tasks/revb1-timers.test.ts. Spec (lead runs): apps/web/tests/revb1-timer-done.spec.ts.
+- Help (EN), add to the timers answer: "Ticking a task Done while its timer runs stops the timer and keeps the minutes."
+- What's new: "Done stops a task's timer and keeps its minutes."

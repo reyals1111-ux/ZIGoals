@@ -2,7 +2,7 @@ import * as z from 'zod';
 import type {DeviceRecordSpec} from '../device-record';
 import {addLocalDays} from '../local-date';
 import {completedLog} from './engine';
-import {TASK_PLAN_KEY} from './plan-key';
+import {TASK_PLAN_KEY, timerMinutes} from './plan-key';
 import type {Tasks} from './schema';
 
 /**
@@ -51,8 +51,7 @@ export function startTimer(plan: TaskPlan, taskId: string, nowMs: number): TaskP
   if ((plan.timers?.length ?? 0) >= MAX_TIMERS) throw new Error(`At most ${MAX_TIMERS} timers run at once. Stop one first.`);
   return taskPlanSchema.parse({...plan, timers: [...(plan.timers ?? []), {taskId, since: Math.round(nowMs)}]});
 }
-/** Whole minutes a timer has run (at least 1 once started, so a short burst still counts). */
-export const timerMinutes = (since: number, nowMs: number) => Math.max(1, Math.round((nowMs - since) / 60_000));
+export {timerMinutes};
 /** Stops a task's timer: the plan without it and the minutes it ran (0 when none was running). */
 export function stopTimer(plan: TaskPlan, taskId: string, nowMs: number): {plan: TaskPlan; minutes: number} {
   const t = runningTimer(plan, taskId);
@@ -62,11 +61,25 @@ export function stopTimer(plan: TaskPlan, taskId: string, nowMs: number): {plan:
   return {plan: taskPlanSchema.parse(next), minutes: timerMinutes(t.since, nowMs)};
 }
 /** Timers of tasks no longer on the list are dropped. */
-export function tidyTimers(plan: TaskPlan, record: Tasks): TaskPlan {
-  const live = new Set(record.tasks.filter(t => !t.doneAt).map(t => t.id)), timers = plan.timers?.filter(t => live.has(t.taskId));
-  if (!plan.timers || timers!.length === plan.timers.length) return plan;
-  const next: Record<string, unknown> = {...plan}; if (timers!.length) next.timers = timers; else delete next.timers;
-  return taskPlanSchema.parse(next);
+export function tidyTimers(plan: TaskPlan, record: Tasks): TaskPlan { return settleTimers(plan, record).plan; }
+/**
+ * Review b1 #2: timers of tasks that are done (finished somewhere the Done box could not stop the timer: another tab, an
+ * older build) give their minutes up to the moment the task was finished, for the task's time spent; timers of tasks that
+ * are gone are dropped. `spent` lists what to add; the plan is the same object when nothing changes.
+ */
+export function settleTimers(plan: TaskPlan, record: Tasks): {plan: TaskPlan; spent: {taskId: string; minutes: number}[]} {
+  if (!plan.timers?.length) return {plan, spent: []};
+  const byId = new Map(record.tasks.map(t => [t.id, t])), spent: {taskId: string; minutes: number}[] = [];
+  const timers = plan.timers.filter(x => {
+    const t = byId.get(x.taskId);
+    if (t && !t.doneAt) return true;
+    const done = t?.doneAt ? Date.parse(t.doneAt) : NaN;
+    if (t && Number.isFinite(done) && done >= x.since) spent.push({taskId: t.id, minutes: timerMinutes(x.since, done)});
+    return false;
+  });
+  if (timers.length === plan.timers.length) return {plan, spent};
+  const next: Record<string, unknown> = {...plan}; if (timers.length) next.timers = timers; else delete next.timers;
+  return {plan: taskPlanSchema.parse(next), spent};
 }
 
 /* ---- Finishes per day, kept past the 30 days (Todoist's history, TickTick's year) ------------------------------ */

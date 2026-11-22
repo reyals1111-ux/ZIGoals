@@ -7,7 +7,9 @@ import {addTask, editOccurrence, editTask, finishTask, removeTask, reopenTask, r
 import {deviceDay, tasksClock, tasksToday} from '../../lib/tasks/device';
 import {subscribeDayEnds} from '../../lib/day-boundary-core';
 import {undoOfChange} from '../../lib/tasks/undo';
-import {withDeviceDefault} from '../../lib/tasks/plan-key';
+import {timerOnDone, withDeviceDefault, withTimedMinutes} from '../../lib/tasks/plan-key';
+import {minutesWords} from '../../lib/tasks/minutes';
+import {getAppStorage} from '../../lib/showcase-storage';
 import {showStatus, showUndo, shownToasts} from '../ui/undo-toast';
 import {changeWithUndo} from '../ui/remove-with-undo';
 
@@ -102,9 +104,16 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
       setStatus({text}); setError(''); if (toast) showStatus(text, {clearOf: `#task-${id}`}); return true;
     } catch (cause) { return fail(cause); }
   }, [guard, toast]);
-  const toggle = useCallback((t: Task, done: boolean) => done
-    ? change(r => finishTask(r, t.id, new Date(), {today: tasksToday(), doneDay: tasksToday()}), t.recur ? `Done: “${t.title}”. It comes back on its next day.` : `Done: “${t.title}”.`, `“${t.title}” is open again.`)
-    : change(r => reopenTask(r, t.id), `“${t.title}” is open again.`, `Done: “${t.title}”.`), [change]);
+  // Review b1 #2: Done while the task's timer runs stops it and adds its minutes to the time spent, as Stop does.
+  const toggle = useCallback((t: Task, done: boolean) => {
+    if (!done) return change(r => reopenTask(r, t.id), `“${t.title}” is open again.`, `Done: “${t.title}”.`);
+    let timed: ReturnType<typeof timerOnDone> = null;
+    try { timed = timerOnDone(getAppStorage(), t.id, Date.now()); } catch { timed = null; }
+    const said = `${t.recur ? `Done: “${t.title}”. It comes back on its next day.` : `Done: “${t.title}”.`}${timed ? ` Timer stopped: ${minutesWords(timed.minutes)} added to its time spent.` : ''}`;
+    const ok = change(r => { const next = finishTask(r, t.id, new Date(), {today: tasksToday(), doneDay: tasksToday()}); return timed ? withTimedMinutes(next, t.id, timed.minutes) : next; }, said, `“${t.title}” is open again.`);
+    if (ok && timed) { try { timed.stop(); } catch { /* the planner settles it from the finish time */ } }
+    return ok;
+  }, [change]);
   /** Removes tasks (with their subtasks). A removal made while the last removal's toast is up joins its Undo. */
   const removeIds = useCallback((ids: readonly string[], label: string): boolean => {
     if (!guard() || !ids.length) return false;

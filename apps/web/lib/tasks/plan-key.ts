@@ -1,4 +1,6 @@
 import type {TaskInput} from './engine';
+import type {Tasks} from './schema';
+import {ZIGI_STORE_EVENT} from '../ai/store/keys';
 import {getAppStorage} from '../showcase-storage';
 
 /**
@@ -26,3 +28,31 @@ export function withDeviceDefault<T extends Pick<TaskInput, 'due' | 'reminders'>
   try { if (!from && typeof window !== 'undefined') from = getAppStorage(); } catch { from = null; }
   return withDefaultReminder(input, defaultReminderOf(from));
 }
+
+/** Whole minutes a timer has run (at least 1 once started, so a short burst still counts). */
+export const timerMinutes = (since: number, nowMs: number) => Math.max(1, Math.round((nowMs - since) / 60_000));
+/**
+ * Session AV lane 2 (review b1 #2): a task ticked Done while its timer runs keeps those minutes, as Stop does. This reads
+ * the task's running timer without a schema (the add and Done paths stay light): its minutes up to `nowMs`, and `stop`,
+ * which takes that timer off the planning record — called once the task's change is kept, so a change that fails leaves
+ * the timer running. Null when the task has no timer (or the record cannot be read: then nothing is written over it).
+ */
+export function timerOnDone(storage: Pick<Storage, 'getItem' | 'setItem'> | null | undefined, taskId: string, nowMs: number): {minutes: number; stop: () => void} | null {
+  try {
+    const raw = storage?.getItem(TASK_PLAN_KEY), v = raw ? JSON.parse(raw) as {version?: unknown; timers?: unknown} : null;
+    if (!storage || !v || v.version !== 1 || !Array.isArray(v.timers)) return null;
+    const t = (v.timers as {taskId?: unknown; since?: unknown}[]).find(x => x && x.taskId === taskId && typeof x.since === 'number' && Number.isFinite(x.since));
+    if (!t) return null;
+    return {minutes: timerMinutes(t.since as number, nowMs), stop: () => {
+      const now = JSON.parse(storage.getItem(TASK_PLAN_KEY) ?? 'null') as Record<string, unknown> | null;
+      if (!now || !Array.isArray(now.timers)) return;
+      const timers = (now.timers as {taskId?: unknown}[]).filter(x => !x || x.taskId !== taskId), next = {...now};
+      if (timers.length) next.timers = timers; else delete next.timers;
+      storage.setItem(TASK_PLAN_KEY, JSON.stringify(next));
+      if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: TASK_PLAN_KEY}));
+    }};
+  } catch { return null; }
+}
+/** The minutes added to a task's time spent (capped as the schema caps it). */
+export const withTimedMinutes = (record: Tasks, id: string, minutes: number): Tasks => minutes > 0
+  ? {...record, tasks: record.tasks.map(t => t.id === id ? {...t, spent: Math.min((t.spent ?? 0) + Math.round(minutes), 100_000)} : t)} : record;
