@@ -279,3 +279,29 @@ erase); its skipped round trip in `av2-stored.test.ts` then runs. Hide figures: 
 - What's new: "Workouts: a unit per exercise, and assisted or weighted bodyweight sets."
 - Answers: "how much help do I use on pull-ups" / "hoeveel hulp gebruik ik bij optrekken", "what is my weighted dip
   record" / "wat is mijn record dips met extra gewicht".
+
+## 11. N8: shoes, a beaten run best marked once, running tips — LEDGER #203 built, #204 built, #208 built
+
+- What: Health → Workouts → "Shoes" (a panel; its content its own chunk): add a pair with the distance it already has and
+  a distance to retire it at (700 km offered); each pair shows its distance (start + the runs it was picked on) as a bar,
+  its runs and last run, "Near its limit: 70 km to go." from 90 % and "Past its retire distance…" after; retire a pair
+  (kept, under "Retired shoes", "Use again" or Remove). A run in "Your workouts" picks its pair; a finished or imported
+  run takes the usual pair (the one on the latest run still in use). "Your running bests" marks a best beaten since the
+  last look once, quietly ("★ A new running best: 5 km in 24:10 (…). Well run." with "Noted"); bests from before the
+  mark existed are never marked (the first run added keeps them as seen). "A running tip": one of twenty short tips
+  written in the repository in English and Dutch, one a day, "Another tip", "In het Nederlands"; not medical advice (the
+  pain tip says a doctor or physio can help).
+- Files: `lib/workouts/shoes.ts`, `lib/workouts/run-tips.ts`, `components/health/workouts/shoes.tsx`,
+  `components/health/workouts/run-tip.tsx`, `components/health/workouts/run-bests.tsx`, `components/health/workouts/workouts-view.tsx`,
+  `components/health/workouts/av2-body.css`, `components/health/workouts/workouts.css`, `lib/workouts/showcase.ts`
+  (Showcase: "Example · blue trainers" on both runs, 631 of 700 km, near its limit).
+- Tests: `lib/workouts/av2-shoes.test.ts`, `lib/ai/local-answers/av2-body.test.ts`; spec `tests/av2-shoes-tips.spec.ts`.
+- Stored: `shoes`, `shoeId`, `seenBests` (second stored commit).
+- Always visible on Workouts (not Today): the running tip card (three Tab stops: two buttons; the region).
+- Help (EN): **Can I track my running shoes?** Yes: in Health → Workouts, open "Shoes", add a pair with the distance it
+  already has and when you retire shoes. Pick it on a run (new runs take your usual pair); its distance adds up, and it
+  says when it nears its limit. **What does the star in Your running bests mean?** A running best you beat since you last
+  looked, shown once; "Noted" puts it away. **Are there running tips?** One a day on the Workouts page, in English or Dutch.
+- What's new: "Workouts: shoes with their distance, a once-only mark for a new running best, and a running tip a day."
+- Answers: "how far have my running shoes gone" / "hoeveel km hebben mijn hardloopschoenen", "when should I replace my
+  shoes" / "wanneer moet ik mijn schoenen vervangen", "give me a running tip" / "geef me een looptip".

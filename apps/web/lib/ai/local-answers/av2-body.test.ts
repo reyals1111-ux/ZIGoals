@@ -105,6 +105,16 @@ describe('the evening plan (LEDGER #83)', () => {
   });
 });
 
+describe('shoes and running tips (LEDGER #203, #208)', () => {
+  test('the Showcase\'s labelled pair near its limit; a tip of the day in both languages', () => {
+    expect(text(ask('how far have my running shoes gone'))).toBe('Your shoes in use:\n• Example · blue trainers: 631 of 700 km, near its limit (69 km to go)');
+    expect(text(ask('hoeveel km hebben mijn hardloopschoenen'))).toContain('631 van 700 km, bijna op (nog 69 km)');
+    expect(text(ask('when should I replace my shoes', freshAll()))).toContain('No shoes are added yet');
+    expect(text(ask('give me a running tip'))).toMatch(/^A running tip for today: .+ \(Health → Workouts has one each day\.\)$/);
+    expect(text(ask('geef me een looptip'))).toMatch(/^Een looptip voor vandaag: /);
+  });
+});
+
 describe('the calendar (LEDGER #118)', () => {
   test('the Showcase\'s weeks in a row and its days this year', () => {
     // The Showcase trains on days −13 … −1 before 17 Nov: the weeks of 2 Nov, 9 Nov and 16 Nov.

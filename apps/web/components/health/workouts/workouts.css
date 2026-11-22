@@ -157,3 +157,5 @@
 /* Session AV lane 2 (body; LEDGER #201, #202): an exercise's own unit and its bodyweight load. */
 .workouts-ex-unit, .workouts-ex-load { flex: 0 1 200px; }
 .workouts-ex-unit select, .workouts-ex-load select { min-height: 44px; max-width: 100%; }
+.workouts-run-shoe { max-width: 20rem; margin: 6px 0; }
+.workouts-run-shoe select { min-height: 44px; max-width: 100%; }

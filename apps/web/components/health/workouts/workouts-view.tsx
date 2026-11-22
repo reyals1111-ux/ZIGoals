@@ -36,6 +36,7 @@ import {routineGroups, saveGuide} from '../../../lib/workouts/routines';
 import {LOAD_WORDS, setExerciseUnit, setLoad, unitFor} from '../../../lib/workouts/bodyweight';
 import {exerciseSeries, type SeriesMetric} from '../../../lib/workouts/analytics';
 import {goalProgress, runSummary, runWords} from '../../../lib/workouts/runs';
+import {seedSeen, setRunShoe, withUsualShoe} from '../../../lib/workouts/shoes';
 import {progressed, targetFor, type Target} from '../../../lib/workouts/progression';
 import {guideLine, guideOf, routineLang, type Guide, type Lang} from '../../../lib/workouts/routine-library';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
@@ -61,6 +62,9 @@ const RoutineEdit = lazy(() => import('./routine-library-view').then(m => ({defa
 const WorkoutsProgress = lazy(() => import('./workouts-progress'));
 // Session AV lane 2 (body; LEDGER #111): distance goals and the training load, its own chunk.
 const DistanceGoals = lazy(() => import('./distance-goals'));
+// Session AV lane 2 (body; LEDGER #203, #208): shoes and the running tip, each its own chunk.
+const Shoes = lazy(() => import('./shoes'));
+const RunTip = lazy(() => import('./run-tip'));
 const ExerciseHowTo = lazy(() => import('./exercise-library').then(m => ({default: m.ExerciseDetail})));
 
 /**
@@ -122,7 +126,8 @@ export default function WorkoutsView() {
       // Session AL (P-MO-82, MO-148): a workout logged afterwards takes the minutes typed; else it runs until now.
       const typed = tookMinutes.trim(), took = typed ? Number(typed) : undefined;
       if (took !== undefined && (!/^\d{1,4}$/.test(typed) || took < 1 || took > 1440)) { setNote('Enter whole minutes from 1 to 1,440, or leave “Took” empty to end it now.'); return; }
-      record.update(x => { result = finishWorkout(x, new Date(), took); return result.workouts; });
+      // Session AV lane 2 (body; LEDGER #204): the first run added keeps the bests before it as seen (only a new one is marked).
+      record.update(x => { result = finishWorkout(x, new Date(), took); return seedSeen(x, withUsualShoe(result.workouts, result.workout.id), splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null); });
       setTookMinutes(''); setNote(''); // the "Workout started…" line no longer stays above the finished workout (MO-137)
       const {workout, bests} = result!, minutes = Math.min(1440, Math.max(1, durationMinutes(workout)));
       // The minutes go to Health's activity log, so Today, the weekly review and a linked exercise habit count them.
@@ -149,11 +154,12 @@ export default function WorkoutsView() {
   async function addImported(list: ImportChoice[]): Promise<string> {
     const {addImportedWorkout} = await import('../../../lib/workouts/import-file');
     const made: Workout[] = [];
-    record.update(x => { made.length = 0; return list.reduce((acc, {summary, day}) => {
+    // Session AV lane 2 (body; LEDGER #203): an imported run takes the usual pair of shoes (it can be changed on the run).
+    record.update(x => { made.length = 0; return seedSeen(x, list.reduce((acc, {summary, day}) => {
       const next = addImportedWorkout(acc, summary, new Date(), day), workout = next.workouts.find(y => importInfo(y)?.importId === summary.importId);
       if (workout) made.push(workout);
-      return next;
-    }, x); });
+      return workout ? withUsualShoe(next, workout.id) : next;
+    }, x), splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null); });
     const paced = made.flatMap(x => { const s = list.find(c => c.summary.importId === importInfo(x)?.importId)?.summary.splits; return s ? [[x.id, s] as const] : []; });
     let splitsMissed = false;
     if (paced.length) { try { splitsRecord.update(r => paced.reduce((acc, [id, s]) => withSplits(acc, id, s), r)); } catch { splitsMissed = true; } }
@@ -211,7 +217,8 @@ export default function WorkoutsView() {
         <p className="fine">This week: {week.workouts} {plural(week.workouts, 'workout')}{week.workouts ? ` · ${week.minutes} min · ${week.sets} ${plural(week.sets, 'set')}${week.volumeKg ? ` · ${weightShown(week.volumeKg, unit)} lifted` : ''}` : ''}.</p>
         {past.length > 0 ? <Suspense fallback={null}><WeeklyChart w={w} today={today} unit={unit}/></Suspense>
           : /* Session AV (q3 #11): the weekly chart's teaching line before the first workout, so a fresh device knows it is coming */ <p className="fine workouts-weeks-teach">Finish a workout and the last 12 weeks show here: time, distance and weight lifted per week.</p>}
-        {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null}/></Suspense>}
+        {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null} onNoted={fn => change(fn)}/></Suspense>}
+        <Suspense fallback={null}><RunTip today={today}/></Suspense>
         {past.length > 0 && <CalendarFold w={w} today={today}/>}
         <div className="workouts-start-actions">
           <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
@@ -248,6 +255,9 @@ export default function WorkoutsView() {
           {importInfo(x) && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
           {/* Session AV lane 2 (body; LEDGER #110, Strava's per-activity summary, no model): the run beside the runs before it. */}
           {(() => { const r = runSummary(w, splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null, x.id); return r ? <p className="fine workouts-run-summary">{runWords(r)}</p> : null; })()}
+          {/* Session AV lane 2 (body; LEDGER #203): a run picks the shoes it was run in. */}
+          {(w.shoes ?? []).length > 0 && runSummary(w, null, x.id) && <label className="field workouts-run-shoe"><span>Shoes for {x.name}</span><select value={x.shoeId ?? ''} onChange={e => change(y => setRunShoe(y, x.id, e.target.value || null), e.target.value ? `${(w.shoes ?? []).find(s => s.id === e.target.value)?.name ?? 'Shoes'} picked for ${x.name}.` : `No shoes for ${x.name}.`)}>
+            <option value="">No shoes picked</option>{(w.shoes ?? []).filter(s => !s.retiredAt || s.id === x.shoeId).map(s => <option key={s.id} value={s.id}>{s.name}{s.retiredAt ? ' (retired)' : ''}</option>)}</select></label>}
           {splitsRecord.data.workouts[x.id] && <WorkoutSplitsTable s={splitsRecord.data.workouts[x.id]!} name={x.name}/>}
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unitFor(w, e.exerciseId, unit))}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
@@ -262,6 +272,12 @@ export default function WorkoutsView() {
 
     <ExerciseProgress w={w} unit={unit} library={library} value={historyOf} onChange={setHistoryOf}/>
     {past.some(x => x.exercises.length) && <Suspense fallback={<section className="panel"><p className="fine">Opening muscle groups…</p></section>}><WorkoutsMuscles w={w} unit={unit} library={library} today={today}/></Suspense>}
+    {/* Session AV lane 2 (body; LEDGER #203): shoes and their distance, a note near the limit. */}
+    <section className="panel workouts-shoes" aria-labelledby="workouts-shoes-title">
+      <h2 id="workouts-shoes-title">Shoes</h2>
+      {(w.shoes ?? []).filter(s => !s.retiredAt).length > 0 && <p className="fine workouts-shoes-line">{(w.shoes ?? []).filter(s => !s.retiredAt).length} {(w.shoes ?? []).filter(s => !s.retiredAt).length === 1 ? 'pair' : 'pairs'} in use.</p>}
+      <Fold className="av2-fold workouts-shoes-fold" summary={(w.shoes ?? []).length ? 'Your shoes and their distance' : 'Add your running shoes and count their distance'} loading="Opening your shoes…"><Shoes w={w} change={change}/></Fold>
+    </section>
     {/* Session AV lane 2 (body; LEDGER #111): distance goals (their line on the fold's face) and the training load. */}
     <section className="panel workouts-goals" aria-labelledby="workouts-goals-title">
       <h2 id="workouts-goals-title">Distance goals and training load</h2>

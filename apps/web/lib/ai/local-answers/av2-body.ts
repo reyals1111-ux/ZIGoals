@@ -5,6 +5,8 @@ import {pinnedNoteOf} from '../../workouts/notes';
 import {GUIDES} from '../../workouts/routine-library';
 import {routineGroups} from '../../workouts/routines';
 import {targetFor} from '../../workouts/progression';
+import {shoeStates} from '../../workouts/shoes';
+import {tipOf} from '../../workouts/run-tips';
 import {monthFigures, muscleWeeks, previousMonth} from '../../workouts/analytics';
 import {categoryLookup} from '../../workouts/depth';
 import {weekStreak, workoutYear} from '../../workouts/calendar';
@@ -266,6 +268,24 @@ function lastRun(a: Asked): LocalReply | null {
   return answer(`${clean(last.name, 40)}, ${dayIn('nl', last.date, a.today)}: ${num(r.km)} km in ${paceText(r.pace)} per km. ${vs}${r.fastestKm !== null ? ` Snelste kilometer ${paceText(r.fastestKm)}.` : ''}`, CALLS);
 }
 
+/** "how far have my shoes gone", "hoeveel km hebben mijn schoenen": each pair in use, its distance and its limit (LEDGER #203). */
+function shoesAnswer(a: Asked): LocalReply | null {
+  if (!/\b(?:running )?shoes?\b|\btrainers\b|\bsneakers\b|\b(?:hardloop)?schoenen\b/.test(a.f) || !isQuestion(a)) return null;
+  if (!/\b(?:how (?:far|many|much)|distance|km|kilomet|mileage|retire|replace|new pair|hoeveel|afstand|vervangen|nieuwe)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const w = logOf(a), lang = a.lang, states = shoeStates(w).filter(s => !s.shoe.retiredAt);
+  if (!states.length) return answer(say(lang, 'No shoes are added yet. In Health → Workouts → Shoes, add a pair with the distance it has and the distance to retire it at; pick it on a run and its distance adds up.', 'Er zijn nog geen schoenen toegevoegd. Voeg in Health → Workouts → Shoes een paar toe met de afstand die het al heeft en de afstand waarop je het vervangt; kies het bij een loop en de afstand telt op.'), CALLS);
+  return answer([say(lang, 'Your shoes in use:', 'Je schoenen in gebruik:'), ...states.map(s => `• ${clean(s.shoe.name, 60)}: ${num(s.km)} ${say(lang, 'of', 'van')} ${num(s.shoe.retireKm)} km${s.over ? say(lang, ', past its retire distance', ', voorbij de vervangafstand') : s.near ? say(lang, `, near its limit (${num(Math.round((s.shoe.retireKm - s.km) * 10) / 10)} km to go)`, `, bijna op (nog ${num(Math.round((s.shoe.retireKm - s.km) * 10) / 10)} km)`) : ''}`)].join('\n'), CALLS);
+}
+/** "give me a running tip", "geef me een looptip": the tip of the day (LEDGER #208). */
+function runTip(a: Asked): LocalReply | null {
+  if (!/\b(?:running|run) tips?\b|\btips? (?:for|on|about) (?:running|my runs?)\b|\blooptips?\b|\bhardlooptips?\b|\btips? (?:voor|bij) (?:het )?(?:hardlopen|lopen)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  // A Dutch word for the tip decides the language ("geef me een looptip" has as many English-only words as Dutch-only ones).
+  const t = tipOf(a.env.healthDay), lang = /\blooptips?\b|\bhardlooptips?\b|\btips? (?:voor|bij)\b/.test(a.f) ? 'nl' : a.lang;
+  return answer(`${say(lang, 'A running tip for today:', 'Een looptip voor vandaag:')} ${t[lang]} ${say(lang, '(Health → Workouts has one each day.)', '(Health → Workouts heeft er elke dag een.)')}`, CALLS);
+}
+
 // ── Sleep: time to fall asleep and your usual (LEDGER #123, #124) ───────────────────────────────────────────────────
 
 const sleepOf = (a: Asked): Sleep => a.env.health!.sleep ?? ({version: 1, nights: []} as unknown as Sleep);
@@ -311,4 +331,4 @@ function eveningPlan(a: Asked): LocalReply | null {
   return answer([head, ...steps].join('\n'), calls);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, bodyweightBest, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun, fallAsleep, sleepVsUsual, eveningPlan];
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, bodyweightBest, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun, shoesAnswer, runTip, fallAsleep, sleepVsUsual, eveningPlan];

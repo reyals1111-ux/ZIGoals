@@ -91,3 +91,14 @@
 :root[data-theme=light] .av2-goal-bar span { background: #16865c; }
 :root[data-theme=light] .av2-load-bars rect { fill: #0b6f84; }
 @media (forced-colors: active) { .av2-goal-bar span, .av2-load-bars rect { background: CanvasText; fill: CanvasText; } .av2-load-usual { stroke: Highlight; } }
+/* Shoes, the run-best mark and the running tip (LEDGER #203, #204, #208). */
+.av2-shoes { display: grid; gap: 12px; }
+.av2-shoe-note { margin: 0; font-size: 15px; font-weight: 600; }
+.av2-shoe-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.av2-shoe-actions button { min-height: 44px; }
+.av2-form-title { flex-basis: 100%; margin: 0; font-size: 1rem; }
+.av2-tip-card { display: grid; gap: 6px; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); margin: 8px 0; }
+.av2-tip-card h3 { margin: 0; font-size: 1rem; }
+.av2-tip-card p { margin: 0; font-size: 15px; }
+.av2-best-mark { margin: 0; padding: 8px 12px; border-radius: 12px; font-size: 15px; font-weight: 600; background: color-mix(in srgb, var(--success, #47d6a1) 16%, transparent); }
+:root[data-theme=light] .av2-best-mark { background: #e3f6ee; color: #0b4d34; }
