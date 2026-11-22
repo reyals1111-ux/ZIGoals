@@ -365,3 +365,16 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .nutrient-range { display: flex; flex-wrap: wrap; gap: 8px 12px; }
 /* Session AV lane 2 (food; q3 #29): the days one "Repeat on" planned, as one group. */
 .health-plan-group summary { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; cursor: pointer; }
+/* Session AV lane 2 (phone-length): Health's phone page within its pinned screens (tests/pillar-phone-length.spec.ts).
+   On a phone the Water card's drink, caffeine, energy and sugar fold under the amount (one 44 px row, the whole width;
+   it opens by itself while a drink with its details is corrected), and the card's settings sit in one row at its end
+   ("Your drinks, reminders and tips"; components/health/daily-tools.tsx). The Diary's closed folds under the meals (a meal
+   from a photo, supplements, the cycle log) are rows as tall as their 44 px summary; open, each keeps its panel padding.
+   Desktop is as it was: the drink fold and the settings row are phone markup only, and the rows rule is in the phone query. */
+.health-water .health-form .health-water-drink { grid-column: 1 / -1; min-width: 0; }
+.health-water .health-form .health-water-drink > .health-form-grid { margin-top: 8px; }
+.health-water .health-water-settings > .r3-water { margin-top: 0; }
+.health-water > .phone-fold { margin-top: 12px; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .health-content > details.panel:not([open]) { padding-block: 0; margin-bottom: 8px; }
+}
