@@ -426,3 +426,50 @@ DISHES/ARTICLE, `components/health/daily-tools.tsx` "fresh", `components/health/
 - Answers: intent `av2-food-style-foods` (the foods that fit, with the rule).
 - Showcase: none (off by default; the Showcase rows stay as other specs read them).
 - Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: nothing.
+
+## Left, and the next row
+
+- **#197** Lose It! Meal names, snacks and meal targets (N7) — **not built yet; it is the next row.** Plan for a fresh
+  builder: the strict `diarySchema.meal` enum stays (an older build must not refuse a new meal, and a new field on the
+  strict entry would be refused too), so a fifth and sixth meal ("Afternoon snack", "Late meal") are a tag kept beside
+  the entry in `zigoals:food-plus:v1` (a new optional part, e.g. `extraMeals: {entryId: 'afternoon' | 'late'}`, TIER 3
+  stored formats in its own commit), with the entry stored as `Snacks`; the Diary shows the two extra sections (and their
+  names, times and kcal targets in "Name your meals"), the Log-a-meal meal choice offers them, every total keeps counting
+  them in Snacks for older readers. Files to touch: `components/health/health-app.tsx` DiaryView and MealField,
+  `components/health/meal-names.tsx`, `lib/health-extras.ts` (names/times for the two, loose), lib/food-plus.
+- Carried parts, each with its cause (named in its feature above): #84 branded foods (outside service); #89 grocery
+  delivery (outside service); #93 the ~45 nutrients not in the shipped tables (outside service: the source datasets
+  must be downloaded again); #95 sharing recipes (against a named rule: nothing shared between people); #103 reading
+  the name from a package photo and #104 a cookbook photo (needs a model); #199 a letter for generic foods (the
+  nutri-score.tsx choice, the owner's).
+
+## For the lead (shared files and wiring)
+
+- **engine.ts**: beside `avAnswer`, the same wrapper: `const found = av2FoodAnswer(question, env, readFoodSources(getAppStorage()))`
+  (`lib/ai/local-answers/av2-food.ts`; in node pass `{}`). It reads `zigoals:food-plus:v1` and `zigoals:health-extras:v1`.
+  Suggested order: before `avAnswer` is safe (every pattern is specific; tests check that task reminders, budget
+  targets, Goals, "plan my day" and "what did I eat today" are left alone).
+- **Corpus**: add `AV2_FOOD` (`lib/ai/evals/as/cases-av2-food.ts`, 17 intents, EN + NL) to `CORPUS` in `cases.ts` and
+  record `expected.json`.
+- **Registries** (`lib/av2-food-keys.ts`): personal key, export (`foodPlus`), catalog (Health), restore (`dev('foodPlus',
+  …, FOOD_PLUS, true)` with Health), erase; the IndexedDB database `zigoals-food-photos-v1` in the erased databases,
+  `exportFoodPhotoEntries(scope)` in Export everything (`food-photos/…`), `deleteAllFoodPhotos('showcase')` in
+  `clearShowcasePhotos`.
+- **Help and What's new** (`help-page.tsx`, `lib/search/static.ts`): one Q+A set and one label per feature above (F1–F14).
+- **Theme sheets**: CSS touched — `components/health/food-plus/food-plus.css` (new), `components/health/health-aa.css`,
+  `components/report/report.css`.
+- **CI shards**: the new specs `tests/av2-*.spec.ts` (14 files: quick-macros, diary-times, weekday-targets, meal-mic,
+  oracle, logging-challenge, coach-checkin, pack-photos, recipe-import-library, recipe-book, fit-plan,
+  compare-report, food-minors, food-marks).
+- **Deliberate test changes** (labelled in the files, as strict): `lib/server/recipe-import.test.ts` (the exact object
+  carries `instructions`), `lib/clinician-report/build.test.ts` (the fixture gains a diary entry), `tests/av-report-more.spec.ts`
+  (nine section boxes).
+- **TIER 3 commits**: stored formats `69db6bb3` (the key), `1bdf0099` (`pace`), `e5c2a049` (`steps`), `a60b8521` (the photo
+  database), `da5125a6` (`marks`); PWA `ae356287` (meal reminders in the plan and `public/sw.js`).
+- **Weight**: Health's and Today's first chunks gain only the schema-free reader (`lib/food-plus/day-target.ts`,
+  `components/health/food-plus/use-day-targets.ts`), one `lazy()` line, empty slots and the plan-group helper; every
+  form, card and fold is in `components/health/food-plus/*` (lazy). Please measure `/app/health` and `/app`.
+- **Watch in the browser run**: the Diary's "Planned for this day" section on Showcase days with a plan (Health phone
+  length); Settings' Notifications card has one more switch ("Meal reminders").
+- Not wired (named): NOVA's coach tool (`lib/ai/tools/coach-ai.ts`) and `lib/ai/actions/plan-aa.ts` call `coachCheckIn`
+  without the person's check-in day and pace; pass `readFoodSources(...).food` there to follow them.
