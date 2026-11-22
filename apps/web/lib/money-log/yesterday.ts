@@ -39,6 +39,9 @@ export const hasDayMoney = (d: DayMoney) => d.entries > 0 || d.byCurrency.length
 const fmt = (cents: number, currency: string, locale?: string) => formatCurrencyAmount(fromCents(cents), currency, locale);
 /** "3 entries" — the count alone: what a notification says while names are off. */
 export const countWords = (n: number) => `${n} ${n === 1 ? 'entry' : 'entries'}`;
+/** Review b5k #10: what a day's line says first — its count, or (a day holding only a spread cost's share) that share; never "0 entries". */
+export const SPREAD_ONLY = 'a share of a cost spread over months';
+export const dayWords = (d: Pick<DayMoney, 'entries'>) => d.entries > 0 ? countWords(d.entries) : SPREAD_ONLY;
 /** "spent €42.10, received €2,000.00" per currency, joined with " · ". */
 export const figureWords = (d: DayMoney, locale?: string) => d.byCurrency.map(c => `spent ${fmt(c.spent, c.currency, locale)}${c.received ? `, received ${fmt(c.received, c.currency, locale)}` : ''}`).join(' · ');
 /** "Current account €1,230.00" for each cash and savings account with a balance (at most `max`). */
@@ -55,7 +58,7 @@ export function morningMoneyWakes(entries: readonly MoneyEntry[], accounts: Acco
   return [today, addLocalDays(today, 1)].flatMap(date => {
     const d = dayMoney(entries, accounts, addLocalDays(date, -1), today);
     if (!hasDayMoney(d)) return [];
-    const plain = countWords(d.entries), figures = figureWords(d), balances = balanceWords(d);
+    const plain = dayWords(d), figures = figureWords(d), balances = balanceWords(d);
     return [{id: `money:yesterday:${date}`, date, title: 'Yesterday’s money', plain, detail: [plain, figures, balances].filter(Boolean).join(' · ')}];
   });
 }

@@ -29,7 +29,7 @@ import {plannedContributions} from '../../lib/cash-forecast/model';
 import {plannedForForecast} from '../../lib/cash-forecast/planned';
 // Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384): yesterday's money as a quiet line (opt-in).
 import {NOTIFY_PREFS} from '../../lib/notify/prefs';
-import {countWords, figureWords, hasDayMoney, yesterdayMoney} from '../../lib/money-log/yesterday';
+import {dayWords, figureWords, hasDayMoney, yesterdayMoney} from '../../lib/money-log/yesterday';
 
 /**
  * Session AV (owner follow-up 1, F-MONEY-ATTENTION; YNAB's Spotlight): one line on Today, beside "Tasks due today",
@@ -62,7 +62,7 @@ export default function TodayMoneyAttention() {
   const prefs = useDeviceRecord(NOTIFY_PREFS);
   const yesterday = useMemo(() => ready && prefs.loaded && !prefs.unreadable && prefs.data.moneyMorning?.onToday && !isShowcase() && !log.unreadable ? yesterdayMoney(log.data.entries, accounts.unreadable ? null : accounts.data, today) : null,
     [ready, prefs.loaded, prefs.unreadable, prefs.data.moneyMorning, log.unreadable, log.data.entries, accounts.unreadable, accounts.data, today]);
-  const yesterdayLine = yesterday && hasDayMoney(yesterday) ? <p className="today-tasks-due-line today-yesterday-money"><span><strong>Yesterday:</strong> {countWords(yesterday.entries)}{yesterday.byCurrency.length ? <> · <span data-private-amount="">{figureWords(yesterday)}</span></> : null}</span></p> : null;
+  const yesterdayLine = yesterday && hasDayMoney(yesterday) ? <p className="today-tasks-due-line today-yesterday-money"><span><strong>Yesterday:</strong> {dayWords(yesterday)}{yesterday.byCurrency.length ? <> · <span data-private-amount="">{figureWords(yesterday)}</span></> : null}</span></p> : null;
   if (!a || (!a.count && !left.length)) return yesterdayLine ? <section className="today-tasks-due today-money-attention" aria-label="Money that asks for a look">{yesterdayLine}</section> : null;
   const pieces = attentionLinks(a), shown = pieces.slice(0, 3);
   // Session AV lane 2 (money; YNAB's home tab): what is left in each budget, as plain text (no Tab stop), only when the

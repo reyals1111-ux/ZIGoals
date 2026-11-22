@@ -64,7 +64,7 @@ function yesterday(a: Asked): LocalReply | null {
     : say(lang, ` ${PLACES.spending.en} → Yesterday’s money can send it each morning, or show it on Today.`, ` ${PLACES.spending.nl} → Yesterday’s money kan het elke ochtend sturen, of op Vandaag tonen.`);
   const figures = (lang: Lang) => d.byCurrency.map(c => say(lang, `spent ${moneyIn('en', c.spent, c.currency)}${c.received ? `, received ${moneyIn('en', c.received, c.currency)}` : ''}`, `${moneyIn('nl', c.spent, c.currency)} uitgegeven${c.received ? `, ${moneyIn('nl', c.received, c.currency)} ontvangen` : ''}`));
   const balances = (lang: Lang) => d.balances.map(b => `${b.name} ${moneyIn(lang, b.cents, b.currency)}`);
-  const count = (lang: Lang) => say(lang, `${d.entries} ${d.entries === 1 ? 'entry' : 'entries'}`, `${d.entries} ${d.entries === 1 ? 'invoer' : 'invoeren'}`);
+  const count = (lang: Lang) => d.entries ? say(lang, `${d.entries} ${d.entries === 1 ? 'entry' : 'entries'}`, `${d.entries} ${d.entries === 1 ? 'invoer' : 'invoeren'}`) : say(lang, 'nothing logged, a cost spread over months counts its share', 'niets gelogd, een kost verspreid over maanden telt zijn deel');
   if (!d.entries && !d.byCurrency.length) return answer(say(a.lang, `Nothing was logged for ${when('en')}.${balances('en').length ? ` Your cash and savings: ${list(balances('en'), 'en')}.` : ''}${tail('en')}`,
     `Voor ${when('nl')} is niets gelogd.${balances('nl').length ? ` Je contant geld en spaargeld: ${list(balances('nl'), 'nl')}.` : ''}${tail('nl')}`), calls);
   return answer(say(a.lang, `${when('en')}: ${count('en')}${figures('en').length ? `, ${list(figures('en'), 'en')}` : ''}.${balances('en').length ? ` Cash and savings: ${list(balances('en'), 'en')}.` : ''} Counted as Spending counts it.${tail('en')}`,

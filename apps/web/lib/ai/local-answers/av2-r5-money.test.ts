@@ -80,6 +80,16 @@ describe('yesterday’s money (#384)', () => {
   });
 });
 
+describe('review b5k #10: yesterday holding only a spread share', () => {
+  test('never "0 entries", EN and NL', () => {
+    const s = withLog(freshAll(), [mine({amount: '1200.00', date: '2026-10-16', spread: 12, category: 'Bills'})]);
+    const en = text(zigi('what was yesterday\'s money', s)), nl = text(zigi('wat was mijn geld van gisteren', s));
+    expect(en).toContain('Mon, Nov 16: nothing logged, a cost spread over months counts its share, spent €100.00.');
+    expect(nl).toContain('niets gelogd, een kost verspreid over maanden telt zijn deel, € 100,00 uitgegeven.');
+    expect(`${en} ${nl}`).not.toMatch(/\b0 (?:entries|invoeren)\b/);
+  });
+});
+
 describe('this year so far against the budgets (#385)', () => {
   const budgets = {version: 1 as const, budgets: [
     {id: 'b1', category: 'Groceries', currency: 'EUR', monthly: '300.00', rollover: false, since: '2026-01'},
