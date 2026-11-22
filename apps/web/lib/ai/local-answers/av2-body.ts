@@ -14,6 +14,7 @@ import {clockFromNoon} from '../../sleep/engine';
 import {eveningOf, readiness, sortSteps, stepClock} from '../../evening-plan/plan';
 import type {EveningRecord} from '../../evening-plan/schema';
 import {bmiOf, milestoneView, reachMilestones} from '../../body-extras/body';
+import {bodyFiguresHidden} from './av2-hide-figures';
 import type {BodyExtras} from '../../body-extras/schema';
 import type {Sleep} from '../../sleep/schema';
 import {latencySeries, usualSleep, USUAL_MIN_NIGHTS, weekVsUsual} from '../../sleep/usual';
@@ -350,6 +351,9 @@ function bmiAnswer(a: Asked): LocalReply | null {
   if (r === undefined) return answer(say(lang, 'Your BMI is in Health → Weight → BMI and milestones; I can’t read it here yet.', 'Je BMI staat in Health → Weight → BMI and milestones; dat kan ik hier nog niet lezen.'), calls);
   if (!r?.heightCm) return answer(say(lang, 'There is no BMI yet: it needs your height. Type it in Health → Weight → BMI and milestones; it stays on this device.', 'Er is nog geen BMI: daarvoor is je lengte nodig. Vul hem in bij Health → Weight → BMI and milestones; hij blijft op dit apparaat.'), calls);
   if (!w) return answer(say(lang, 'There is no BMI yet: log a weight first.', 'Er is nog geen BMI: log eerst een gewicht.'), calls);
+  // Review b2b #3: with "Hide calories and weight" on, the BMI is hidden as on the page (`data-body-figure`): a BMI and the
+  // height together give the hidden weight back, so neither number is said, and no reading's day either.
+  if (bodyFiguresHidden()) return answer(say(lang, 'Your BMI is hidden with your weight figures on this device; Health → “Show calories and weight” brings it back.', 'Je BMI is verborgen, samen met je gewichtscijfers op dit apparaat; Health → “Show calories and weight” zet hem terug.'), calls);
   const v = bmiOf(r.heightCm, w.grams)!;
   return answer(say(lang, `Your BMI is ${num(v)}: ${num(Math.round(w.grams / 100) / 10)} kg on ${dayIn('en', w.date, a.today)} and ${num(r.heightCm)} cm (weight in kg ÷ height in metres, squared). It is a number only; on its own it says nothing about your health.`,
     `Je BMI is ${num(v)}: ${num(Math.round(w.grams / 100) / 10)} kg op ${dayIn('nl', w.date, a.today)} en ${num(r.heightCm)} cm (gewicht in kg ÷ lengte in meters, in het kwadraat). Het is alleen een getal; op zich zegt het niets over je gezondheid.`), calls);

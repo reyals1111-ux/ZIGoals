@@ -19,8 +19,11 @@ const UNIT = String.raw`(?:kcal|kilocalories?|kilocalorieën|calories?|calorieë
 const CALORIE_UNIT = /^(?:kcal|kilocalor|calor|cal)/i;
 const AFTER = new RegExp(String.raw`(${NUM})(\s?)(${UNIT})\b|(${NUM})(\s)(st)\b`, 'gi');
 const LIFTING = /\b(?:lift(?:ed|s|ing)?|volume|tonnage|reps?|sets?|tilde|getild|opgetild|tillen|trainingsvolume)\b/i;
-/** "weight 72.4", "weight: 72,4", "gewicht 72,4", "you weigh 72" — a number right after a weight word. */
-const WEIGHT = new RegExp(String.raw`\b(weight|weigh(?:ed|s)?|gewicht|woog|weeg(?:t)?)(:?\s+(?:is\s+|was\s+|of\s+|van\s+)?)(${NUM})`, 'gi');
+/**
+ * "weight 72.4", "weight: 72,4", "gewicht 72,4", "you weigh 72" — a number right after a weight word. Review b2b #3: a
+ * BMI too ("Your BMI is 24.3", "BMI van 22,1"), as the page hides it: with the height it gives the weight back.
+ */
+const WEIGHT = new RegExp(String.raw`\b(weight|weigh(?:ed|s)?|gewicht|woog|weeg(?:t)?|bmi)(:?\s+(?:is\s+|was\s+|of\s+|van\s+)?)(${NUM})`, 'gi');
 export const HIDDEN_NOTE = {en: 'Calorie and weight figures are hidden on this device; Health → “Show calories and weight” brings them back.', nl: 'Calorie- en gewichtscijfers zijn verborgen op dit apparaat; Health → “Show calories and weight” zet ze terug.'} as const;
 /** The text with every calorie and body-weight figure as "—"; `changed` says whether anything was hidden. */
 export function hideBodyFigures(text: string): {text: string; changed: boolean} {
@@ -31,7 +34,7 @@ export function hideBodyFigures(text: string): {text: string; changed: boolean} 
       const u = unit ?? stone!;
       if (lifting && !CALORIE_UNIT.test(u)) return m;
       changed = true; return `—${space ?? space2 ?? ''}${u}`;
-    }).replace(WEIGHT, (m, word: string, gap: string) => { if (lifting && !/gewicht|weight/i.test(word)) return m; changed = true; return `${word}${gap}—`; });
+    }).replace(WEIGHT, (m, word: string, gap: string) => { if (lifting && !/gewicht|weight|bmi/i.test(word)) return m; changed = true; return `${word}${gap}—`; });
   }).join('\n');
   return {text: out, changed};
 }
