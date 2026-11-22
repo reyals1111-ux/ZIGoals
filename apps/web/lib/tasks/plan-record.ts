@@ -4,6 +4,7 @@ import {addLocalDays} from '../local-date';
 import {completedLog} from './engine';
 import {TASK_PLAN_KEY} from './plan-key';
 import type {Tasks} from './schema';
+import {MY_DAY_MAX, readMyDay} from './my-day';
 
 /**
  * Session AV lane 2 (tasks; TIER 3 (stored format), a new additive key `zigoals:task-plan:v1`): how this person plans
@@ -31,6 +32,12 @@ export const taskPlanSchema = z.looseObject({
     through: day.optional().catch(undefined),
     days: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, n]) => /^\d{4}-\d{2}-\d{2}$/.test(k) && Number.isInteger(n) && (n as number) >= 0 && (n as number) <= 1000).sort(([a], [b]) => a.localeCompare(b)).slice(-MAX_LOG_DAYS)) : {}, z.record(z.string(), z.number())),
   }).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (tasks-r2, LEDGER #223; Microsoft To Do's My Day; TIER 3 (stored format), additive and optional):
+   * the tasks picked for one day (`day`, `ids`) and the last day's picks before it (`before`), lib/tasks/my-day.ts. A
+   * value this build cannot read is dropped on read; older builds keep it untouched (the record is loose).
+   */
+  myDay: z.preprocess(v => readMyDay(v) ?? undefined, z.looseObject({day, ids: z.array(z.string()).max(MY_DAY_MAX), before: z.looseObject({day, ids: z.array(z.string()).max(MY_DAY_MAX)}).optional()}).optional()),
 });
 export type TaskPlan = z.infer<typeof taskPlanSchema>;
 export const emptyTaskPlan = (): TaskPlan => ({version: 1});
