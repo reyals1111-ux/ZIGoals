@@ -140,3 +140,35 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
 - Showcase: `lib/journal/showcase.ts` marks one entry changed with one earlier version (no count changes); no default
   template (it would fill Write in Showcase specs).
 - CSS: `components/journal/journal.css`, `components/journal-prompts/prompt-picker.css`. Today: nothing added.
+
+### F5 Photos, a voice note and [[links]] in an entry — LEDGER #35, #42 (Day One: rich entries; audio recorder)
+
+- Verdict: **built**. #42's Apple Watch part: native-only (not part of the row's build, as the LEDGER says). Video and
+  drawing in an entry (COMPETITORS.md "not covered either") are not built: video would need a far larger device store
+  than this one keeps (the photos' 200 kB shrink has no video counterpart without a new dependency) — **left: a new
+  dependency** (an on-device video encoder); drawing is left to the next builder as **to build** if the owner wants it
+  (no cause; not in the LEDGER row's "What is missing").
+- What: Write → "Photos and a voice note": up to 4 photos (shrunk on the device to ≤ 200 kB when saved) and one voice
+  note recorded in the browser (MediaRecorder, ≤ 5 minutes, 32 kbit/s, Stop shows the length), previews and Remove
+  before saving; an entry of only a photo or a voice note gets the words "A photo." / "A voice note." (editable). Under
+  the entry: the photos (named "Your photo with the entry of Nov 3 (1 of 2)") and the player ("Voice note · 0:42"), each
+  "Remove" with Undo (the file leaves after 30 days unnamed: the sweep on arrival). Never synced, never sent, never
+  transcribed. Write → "Link another day" puts `[[2026-11-03]]` in the words; `[[a note, goal or habit]]` links by name
+  (Notes' link index); a day link opens that day's entries, and that day says "Linked from …".
+- Files: `lib/journal/media.ts` (F0), `lib/journal/keep-media.ts`, `lib/journal/entry-links.ts`,
+  `components/journal/compose-media.tsx`, `entry-media.tsx`, `entry-rich-text.tsx` (all lazy),
+  `components/journal/journal-compose.tsx` (Save is async while media is kept), `journal-page.tsx`, `journal.css`.
+- Tests: `lib/journal/av2-media.test.ts`, `lib/journal/av2-stored.test.ts` (store and sweep); answers ("how many photos
+  are in my journal", "do I have voice notes in my journal", EN and NL).
+- Spec: `tests/av2-journal-media.spec.ts` (Chromium only: a test tone stands in for the microphone).
+- Stored: entry `photos`, `audio`; IndexedDB `zigoals-journal-media-v1` — **the lead's registries (see the top)**.
+- Help (EN). Q: "Can I add photos or a voice note to a journal entry?" A: "Yes. Under Write, open Photos and a voice
+  note: add up to four photos, or record a voice note of up to five minutes. They are kept in this browser on this
+  device only — never synced, never sent, never turned into text." Q: "How do I link one entry to another day?" A: "Open
+  Link another day, choose the day and press Add the link, or type [[2026-11-03]]. The link opens that day's entries.
+  [[A name]] links a note, a goal or a habit."
+- What's new: "Journal: photos, a voice note and links to other days in an entry, on this device only."
+- Showcase: none (photos and audio live in IndexedDB, which the Showcase loader does not fill; a link in a Showcase
+  entry would change entry words other answers read). Reported instead.
+- Export: the media are not in Export everything (as the notes' photos); F6's journal export carries them in its zip.
+- CSS: `components/journal/journal.css`. Today: nothing added (the compact card has no media).

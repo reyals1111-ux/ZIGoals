@@ -13,4 +13,5 @@ export const AV2_JOURNAL: readonly Intent[] = [
   {id: 'av2-journal-packs', pillar: 'journal', en: ['which prompt packs are on', 'what prompt packs do I have'], nl: ['welke vragenpakketten staan aan', 'welke vragenpakketten heb ik']},
   {id: 'av2-journal-default-template', pillar: 'journal', en: ['what is my default journal template', 'which template do new entries start from'], nl: ['wat is mijn standaardsjabloon', 'welk sjabloon krijgen nieuwe stukken']},
   {id: 'av2-journal-versions', pillar: 'journal', en: ['which journal entries have I changed', 'do I have earlier versions of my journal entries'], nl: ['welke dagboekstukken heb ik veranderd', 'zijn er eerdere versies van mijn dagboekstukken'], never: ['written on 10 days']},
+  {id: 'av2-journal-media', pillar: 'journal', en: ['how many photos are in my journal', 'do I have voice notes in my journal'], nl: ['hoeveel foto’s staan er in mijn dagboek', 'heb ik spraakmemo’s in mijn dagboek'], never: ['progress photo']},
 ];

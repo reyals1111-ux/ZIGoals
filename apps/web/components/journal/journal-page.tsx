@@ -30,6 +30,7 @@ import {JournalFold} from './journal-fold';
 import {daysWords, reminderOf, streakNudge} from '../../lib/journal/reminder';
 import {bookCounts, bookOf, booksOf, type BookChoice} from '../../lib/journal/books';
 import {dateQuery, filterEntries} from '../../lib/journal/search';
+import {entriesLinkingTo, hasLinks} from '../../lib/journal/entry-links';
 
 const YearPixels = lazy(() => import('./year-pixels'));
 // Session AK (BUILD list 2 #3): "On this day" and its Privacy switch, each loaded on its own after the page.
@@ -45,6 +46,9 @@ const JournalReminder = lazy(() => import('./journal-reminder'));
 const JournalBooks = lazy(() => import('./journal-books'));
 const JournalCalendar = lazy(() => import('./journal-calendar'));
 const EntryMore = lazy(() => import('./entry-more'));
+// Session AV lane 2 (journal; LEDGER #35, #42): an entry's [[links]], photos and voice note, each loaded only for an entry that has them.
+const EntryRichText = lazy(() => import('./entry-rich-text'));
+const EntryMedia = lazy(() => import('./entry-media'));
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -69,6 +73,15 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     const read = () => { const p = new URLSearchParams(window.location.search), d = p.get('day'), j = p.get('journal'); if (d && DAY_RE.test(d)) { setFrom(d); setTo(d); } if (j) setBook(j === 'main' ? 'main' : j); };
     read(); window.addEventListener('popstate', read); return () => window.removeEventListener('popstate', read);
   }, []);
+  // Session AV lane 2 (LEDGER #35, #42): photos and voice notes no entry names any more leave this browser after 30 days.
+  useEffect(() => {
+    if (!journal.loaded || journal.unreadable) return;
+    void Promise.all([import('../../lib/journal/media'), import('../../lib/health-aa/photos')]).then(([m, p]) => m.sweepJournalMedia(p.photoScope(), m.namedMedia(journal.data.entries))).catch(() => undefined);
+    // Only on arrival: media taken off an entry during this visit can still come back with Undo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [journal.loaded]);
+  const showDay = (d: string) => { setFrom(d); setTo(d); setQuery(''); setTag(null); setBook('all'); try { window.history.pushState(null, '', `/app/journal?day=${d}`); } catch { /* the filter is enough */ } requestAnimationFrame(() => document.getElementById('journal-entries')?.scrollIntoView({block: 'start'})); };
+  const linkedFrom = from && from === to ? entriesLinkingTo(journal.data.entries, from) : [];
   const books = booksOf(journal.data), shownBook: BookChoice = book === 'all' || book === 'main' || books.some(b => b.id === book) ? book : 'all';
   const entries = useMemo(() => filterEntries(journal.data, {query, tag: shownTag, book: shownBook, from: from || null, to: to || null}, today), [journal.data, query, shownTag, shownBook, from, to, today]);
   const typedDate = dateQuery(query, today), dated = !!(from || to || typedDate);
@@ -128,8 +141,10 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         <button type="button" className="quiet" aria-pressed={!shownTag} onClick={() => setTag(null)}>All entries</button>
         {tags.map(t => <button key={t.tag} type="button" className="quiet" aria-pressed={shownTag?.toLowerCase() === t.tag.toLowerCase()} onClick={() => setTag(t.tag)}>#{t.tag} <small>{t.count}</small></button>)}
       </div>}
+      {linkedFrom.length > 0 && <p className="fine journal-linked-from">Linked from {linkedFrom.slice(0, 5).map((x, i) => <span key={x.id}>{i ? ', ' : ''}<a className="text-link" href={`/app/journal?day=${x.date}`} onClick={ev => { ev.preventDefault(); showDay(x.date); }}>{formatDate(x.date)}</a></span>)}.</p>}
       {entries.length ? <ol className="journal-entries">{entries.map(e => { const inBook = bookOf(journal.data, e); return <li key={e.id} data-tone={inBook?.theme}>
-        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}</p><p className="journal-entry-text">{e.text}</p>
+        <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}</p>{hasLinks(e.text) ? <Suspense fallback={<p className="journal-entry-text">{e.text}</p>}><EntryRichText text={e.text} onDay={showDay}/></Suspense> : <p className="journal-entry-text">{e.text}</p>}
+        {(e.photos?.length || e.audio?.length) ? <LoadBoundary quiet><Suspense fallback={null}><EntryMedia entry={e} day={entryDays.get(e.date)?.short ?? e.date}/></Suspense></LoadBoundary> : null}
         <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}{e.updatedAt ? ' · changed' : ''}{versionCount.get(e.id) ? ` · ${versionCount.get(e.id) === 1 ? '1 earlier version' : `${versionCount.get(e.id)} earlier versions`} under More` : ''}</p>
         {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
         {/* Session AV (1c, q4 #34): the entry's three controls (tags, That day, Remove) share one row. */}

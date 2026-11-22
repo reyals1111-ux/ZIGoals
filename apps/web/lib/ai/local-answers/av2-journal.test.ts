@@ -92,3 +92,12 @@ describe('the default template and the earlier versions (LEDGER #39, #33)', () =
     expect(text(zigi('do I have earlier versions of my journal entries', freshAll()))).toContain('No journal entry has been changed');
   });
 });
+
+describe('photos and voice notes in entries (LEDGER #35, #42)', () => {
+  test('none yet: where to add them; with media: the counts and the minutes, in English and Dutch', () => {
+    expect(text(zigi('how many photos are in my journal'))).toContain('No photo or voice note in your journal yet.');
+    const s = withJournal(showcaseAll(), j => ({...j, entries: j.entries.map((e, i) => i === 0 ? {...e, photos: ['m-photo00001', 'm-photo00002'], audio: [{id: 'm-audio00001', seconds: 150}]} : e)}));
+    expect(text(zigi('do I have voice notes in my journal', s))).toBe('2 photos and 1 voice note (about 3 minutes) in 1 entry, kept on this device only.');
+    expect(text(zigi('hoeveel foto’s staan er in mijn dagboek', s))).toBe('2 foto’s en 1 spraakmemo (ongeveer 3 minuten) in 1 stuk, alleen op dit apparaat bewaard.');
+  });
+});

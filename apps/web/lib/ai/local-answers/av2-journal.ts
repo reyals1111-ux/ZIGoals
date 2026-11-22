@@ -21,7 +21,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, changedEntries]) {
+    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, changedEntries, media]) {
       const r = one(a);
       if (r) return r;
     }
@@ -126,4 +126,16 @@ function changedEntries(a: Asked): LocalReply | null {
   if (!changed.length && !versions.length) return answer(say(lang, 'No journal entry has been changed, so there are no earlier versions. An entry’s More → Edit the words keeps the words it had, up to ten versions.', 'Geen dagboekstuk is veranderd, dus er zijn geen eerdere versies. More → Edit the words bij een stuk bewaart de woorden die het had, tot tien versies.'), CALL);
   const days = [...new Set(changed.map(e => e.date))].sort().slice(-5).map(d => dayIn(lang, d, a.today));
   return answer(say(lang, `${count(changed.length, 'en', ['journal entry has', 'journal entries have'], ['', ''])} been changed (${list(days, 'en')}), with ${count(versions.length, 'en', ['earlier version', 'earlier versions'], ['', ''])} kept on this device. Each entry’s More lists them, to read or restore.`, `${count(changed.length, 'nl', ['', ''], ['dagboekstuk is', 'dagboekstukken zijn'])} veranderd (${list(days, 'nl')}), met ${count(versions.length, 'nl', ['', ''], ['eerdere versie', 'eerdere versies'])} bewaard op dit apparaat. More bij elk stuk toont ze, om te lezen of terug te zetten.`), CALL);
+}
+/** LEDGER #35, #42: "how many photos are in my journal", "do I have voice notes in my journal" (the entries' own media ids). */
+function media(a: Asked): LocalReply | null {
+  const en = /\b(?:photos?|pictures?|voice notes?|audio(?: notes?)?|recordings?)\b/.test(a.f) && /\b(?:journal|diary|entries)\b/.test(a.f);
+  const nl = /\b(?:foto s?|fotos|foto|spraakmemo s?|spraakmemos|spraakberichten|opnames?|geluidsopnames?)\b/.test(a.f) && /\b(?:dagboek\w*|stukken)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = journalClosed(a); if (shut) return shut;
+  const entries = journalOf(a).entries, photos = entries.reduce((n, e) => n + (e.photos?.length ?? 0), 0), voice = entries.reduce((n, e) => n + (e.audio?.length ?? 0), 0);
+  const seconds = entries.reduce((n, e) => n + (e.audio ?? []).reduce((m, x) => m + x.seconds, 0), 0), withMedia = entries.filter(e => e.photos?.length || e.audio?.length), lang = a.lang;
+  if (!photos && !voice) return answer(say(lang, 'No photo or voice note in your journal yet. Under Write, “Photos and a voice note” adds them; they stay on this device.', 'Nog geen foto of spraakmemo in je dagboek. Onder Write voegt “Photos and a voice note” ze toe; ze blijven op dit apparaat.'), CALL);
+  const minutes = Math.round(seconds / 60);
+  return answer(say(lang, `${count(photos, 'en', ['photo', 'photos'], ['', ''])} and ${count(voice, 'en', ['voice note', 'voice notes'], ['', ''])}${voice ? ` (about ${count(minutes, 'en', ['minute', 'minutes'], ['', ''])})` : ''} in ${count(withMedia.length, 'en', ['entry', 'entries'], ['', ''])}, kept on this device only.`, `${count(photos, 'nl', ['', ''], ['foto', 'foto’s'])} en ${count(voice, 'nl', ['', ''], ['spraakmemo', 'spraakmemo’s'])}${voice ? ` (ongeveer ${count(minutes, 'nl', ['', ''], ['minuut', 'minuten'])})` : ''} in ${count(withMedia.length, 'nl', ['', ''], ['stuk', 'stukken'])}, alleen op dit apparaat bewaard.`), CALL);
 }

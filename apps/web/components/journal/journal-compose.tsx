@@ -13,6 +13,7 @@ import './journal.css';
 import {MoodWordsFold} from '../mood-words/mood-words-fold';
 // Session AK (BUILD list 2 #1): a calm line while a note looks like recovery words or a key.
 import {SecretGuard} from '../secret-guard/secret-guard';
+import type {PendingMedia} from './compose-media';
 // Session AK (BUILD list 2 #13, lane G1a): "Start from a prompt" (its list loads when the fold opens).
 import {onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
 import {questionOfTheDay, withQuestion} from '../../lib/journal-prompts/daily';
@@ -27,6 +28,9 @@ const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
 const PromptPacks = lazy(() => import('../journal-prompts/prompt-packs'));
 // Session AV (follow-up 1, F-GOOD-THINGS): three good things in one go, its own chunk.
 const ThreeGoodThings = lazy(() => import('./three-good-things'));
+// Session AV lane 2 (journal; LEDGER #35, #42): photos and a voice note for the entry, loaded when opened.
+const ComposeMedia = lazy(() => import('./compose-media'));
+const NO_MEDIA: PendingMedia = {photos: [], audio: null};
 
 /**
  * Session AI (feature 6, the journal and the daily energy rating): today's energy (1–5) in one tap, a few lines of
@@ -38,6 +42,7 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   const [prompt, setPrompt] = useState<{id: string; lang: PromptLang} | null>(null), [prompts, setPrompts] = useState(false);
   // Session AV Part 7 (F-PROMPT): today's question, and how many times "Another question" was pressed.
   const [step, setStep] = useState(0), qLang = useQuestionLang(); // Session AV (F-OWN-TEMPLATES): the question in Dutch too
+  const [linkDay, setLinkDay] = useState(''); // Session AV lane 2 (LEDGER #35): the day a [[link]] points to
   const [tagText, setTagText] = useState(''); // Session AV (follow-up 1, F-JOURNAL-TAGS): tags as the entry is written
   // Session AV lane 2 (journal; LEDGER #43, Day One): the journal this entry goes in (null: the main Journal).
   const [chosenBook, setChosenBook] = useState<string | null | undefined>(undefined);
@@ -65,17 +70,33 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   }, [compact, tagText, journal.data.entries]);
   const pattern = useMemo(() => { const p = patterns(journal.data, energy.data)[0]; return p ? patternLine(p, 'en') : null; }, [journal.data, energy.data]);
   const rate = (n: number) => { try { energy.update(current => rateEnergy(current, today, n, new Date().toISOString())); setStatus(`Energy today: ${ENERGY_WORDS.en[n - 1]}.`); } catch { setStatus('This could not be saved on this device.'); } };
-  const save = (event: FormEvent) => {
-    event.preventDefault(); setProblem('');
+  // Session AV lane 2 (journal; LEDGER #35, #42): photos and a voice note wait here until Save, then are kept on this device.
+  const [media, setMedia] = useState<PendingMedia>(NO_MEDIA), [mediaOpen, setMediaOpen] = useState(false), [saving, setSaving] = useState(false);
+  const hasMedia = media.photos.length > 0 || !!media.audio;
+  const save = async (event?: FormEvent) => {
+    event?.preventDefault(); setProblem('');
+    if (saving) return;
     const words = text.trim();
-    if (!words) return setProblem('Write a few words first.');
-    if (prompt && onlyHeadings(words)) return setProblem('Write a few words under the headings first.');
+    if (!words && !hasMedia) return setProblem('Write a few words first.');
+    if (words && prompt && onlyHeadings(words)) return setProblem('Write a few words under the headings first.');
     { const own = prompt ? (journal.data.templates ?? []).find(t => t.id === prompt.id) : null; if (own?.body && words === own.body.trim()) return setProblem('Change the template’s words to today’s first.'); }
     const tags = compact ? [] : readTags(tagText);
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {})};
-    const question = journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
-    try { journal.update(current => ({...current, entries: [...current.entries, {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}].slice(-5000)})); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
-    setText(''); setTagText(''); setPrompt(null); setFillDefault(true); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
+    let photos: string[] = [], audio: {id: string; seconds: number}[] = [];
+    if (hasMedia) {
+      setSaving(true); setStatus('Keeping the photos and the voice note on this device…');
+      try {
+        const keep = await import('../../lib/journal/keep-media');
+        try { for (const f of media.photos) photos.push(await keep.keepJournalPhoto(f)); if (media.audio) audio = [{id: await keep.keepJournalAudio(media.audio.blob, media.audio.seconds), seconds: media.audio.seconds}]; }
+        catch (e) { await keep.forgetJournalMedia([...photos, ...audio.map(a => a.id)]); throw e; }
+      } catch (e) { setSaving(false); setStatus(''); photos = []; audio = []; return setProblem(e instanceof Error ? e.message : 'The photos could not be kept on this device. Nothing was saved.'); }
+      setSaving(false);
+    }
+    const fallback = audio.length && photos.length ? 'Photos and a voice note.' : audio.length ? 'A voice note.' : photos.length > 1 ? 'Photos.' : 'A photo.';
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: (words || fallback).slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {})};
+    const question = words && journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
+    try { journal.update(current => ({...current, entries: [...current.entries, {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}].slice(-5000)})); }
+    catch { if (photos.length || audio.length) void import('../../lib/journal/keep-media').then(k => k.forgetJournalMedia([...photos, ...audio.map(a => a.id)])); return setProblem('This could not be saved on this device. Nothing was changed.'); }
+    setText(''); setTagText(''); setPrompt(null); setFillDefault(true); setMedia(NO_MEDIA); setMediaOpen(false); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
     if (question) zigiSignals.emit('journal_reflecting'); // Session AK Part 12: ZIGi asks its one question (a Studio-4 reaction once its art lands)
   };
   const pending = asked ? journal.data.entries.find(e => e.id === asked) : null;
@@ -94,12 +115,17 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
     {todayEnergy !== null && <MoodWordsFold day={today}/>}
     {/* Session AV (1c, q4 #4, fresh-agent review; Day One, Finch): "Three good things" open at the top of Write, one step. */}
     {!compact && !pending && <Suspense fallback={null}><ThreeGoodThings/></Suspense>}
-    {!pending && <form onSubmit={save} aria-label="Write in your journal">
+    {!pending && <form onSubmit={e => void save(e)} aria-label="Write in your journal">
       {/* Session AV Part 7 (ADR-045 F-PROMPT): one question a day (lib/journal-prompts/daily.ts); using it only writes it into the text. */}
       {!compact && !text.trim() && <div className="journal-today-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question{todayQ.pack ? <> · <span lang={qLang}>{todayQ.pack.title[qLang]}</span> pack</> : null}</span> <strong lang={qLang}>{todayQ.question}</strong></p>
         <div className="journal-today-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, todayQ.question))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button><button type="button" className="quiet" lang={qLang === 'en' ? 'nl' : 'en'} onClick={() => setQuestionLang(qLang === 'en' ? 'nl' : 'en')}>{qLang === 'en' ? 'In het Nederlands' : 'In English'}</button></div></div>}
       <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
+      {/* Session AV lane 2 (journal; LEDGER #35, Day One's links to other entries): a day's entries, or a note, goal or habit, by [[name]]. */}
+      {!compact && <details className="prompt-fold journal-link-fold"><summary>Link another day <span className="fine">· or type [[a note, goal or habit]]</span></summary>
+        <div className="journal-link-day"><label className="field"><span>Day to link</span><input type="date" max={today} value={linkDay} onChange={e => setLinkDay(e.target.value)}/></label>
+          <button type="button" className="secondary" disabled={!/^\d{4}-\d{2}-\d{2}$/.test(linkDay)} onClick={() => { setText(current => `${current.replace(/\s+$/, '')}${current.trim() ? ' ' : ''}[[${linkDay}]]`); setStatus(`A link to ${linkDay} is in your entry; it opens that day's entries.`); }}>Add the link</button></div>
+      </details>}
       <SecretGuard text={text} onRemove={() => setText('')}/>
       {/* Session AV (1c, q4 #5; Day One suggests tags): the tags already in use, offered after what is typed so far. */}
       {!compact && <label className="field journal-compose-tags"><span>Tags — optional</span><input maxLength={200} autoComplete="off" list={tagOffers.length ? `${id}-known-tags` : undefined} value={tagText} onChange={e => setTagText(e.target.value)} placeholder="work, family" aria-describedby={`${id}-tags-hint`}/><small id={`${id}-tags-hint`} className="fine">Separate tags with commas; up to 8.</small></label>}
@@ -108,11 +134,14 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>
         {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker startLang={qLang} own={journal.data.templates ?? []} onEditOwn={(ownId, title, headingsText) => { journal.update(current => editOwnTemplate(current, ownId, {title, headingsText})); setStatus(`Your template “${title}” is saved.`); }} onAddOwn={(title, headingsText, newId) => journal.update(current => addOwnTemplate(current, {title, headingsText}, newId))} onRemoveOwn={ownId => journal.update(current => removeOwnTemplate(current, ownId))} defaultId={journal.data.defaultTemplate ?? null} onDefault={(templateId, title) => { try { journal.update(c => withDefault(c, templateId)); setStatus(templateId ? `A new entry starts from “${title}”.` : 'A new entry starts empty.'); } catch { setStatus('This choice could not be kept on this device.'); } }} onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setPrompts(false); if (t.tags?.length) setTagText(current => current.trim() ? current : t.tags!.join(', ')); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
       </details>}
+      {!compact && <details className="prompt-fold journal-media-fold" open={mediaOpen || hasMedia || undefined} onToggle={e => setMediaOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Photos and a voice note <span className="fine">· {hasMedia ? [media.photos.length ? `${media.photos.length} ${media.photos.length === 1 ? 'photo' : 'photos'}` : '', media.audio ? 'a voice note' : ''].filter(Boolean).join(' and ') : 'on this device only'}</span></summary>
+        {(mediaOpen || hasMedia) && <Suspense fallback={<p className="fine">Opening…</p>}><ComposeMedia value={media} onChange={setMedia}/></Suspense>}
+      </details>}
       {!compact && <details className="prompt-fold prompt-packs-fold" open={packsOpen || undefined} onToggle={e => setPacksOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Prompt packs <span className="fine">· {(journal.data.packs ?? []).length ? `${(journal.data.packs ?? []).length} on` : 'sleep, training and more'}</span></summary>
         {packsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPacks on={journal.data.packs ?? []} lang={qLang} onToggle={(packId, on) => { void import('../../lib/journal-prompts/packs').then(m => { setPacks(m); try { journal.update(c => ({...c, packs: m.withPack(c.packs, packId, on)})); setStatus(on ? 'Pack on: its questions join today’s question.' : 'Pack off.'); } catch { setStatus('This choice could not be kept on this device.'); } }, () => setStatus('The packs could not be opened. Try again.')); }} onUse={q => { setText(current => withQuestion(current, q)); setStatus('The question is in your entry. Write under it, or change anything.'); }}/></Suspense>}
       </details>}
       {problem && <p role="alert">{problem}</p>}
-      <div className="journal-actions"><button type="submit" className="primary">Save entry</button>{compact && <Link className="text-link" href="/app/journal">Open your journal</Link>}{compact && <Link className="text-link" href="/app/journal#good-things">Three good things</Link>}</div>
+      <div className="journal-actions"><button type="submit" className="primary" disabled={saving}>{saving ? 'Saving…' : 'Save entry'}</button>{compact && <Link className="text-link" href="/app/journal">Open your journal</Link>}{compact && <Link className="text-link" href="/app/journal#good-things">Three good things</Link>}</div>
     </form>}
     {pending?.followUp && <form className="journal-followup" onSubmit={saveAnswer} aria-label="ZIGi's question">
       {/* Session AL fourth pass (DV-190b): the same words as the saved entry ("Question for later"); it is made on this device, not by an AI chat. */}
