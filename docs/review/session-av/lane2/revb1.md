@@ -176,3 +176,10 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
 ### #16 The pay-period answer wrote Dutch dates with English money
 - Verdict: fixed. lib/ai/local-answers/av2-tasks.ts `payPeriod` formats money with nl-NL in a Dutch answer ("€ 62,90
   van € 250,00"); English is unchanged. Test: apps/web/lib/ai/local-answers/revb1-pay-period.test.ts.
+
+### #15 The evening check-in's 14-day strip: fourteen identical boxes
+- Verdict: fixed. Each box shows its day — the weekday's initial and the day of the month ("M 16"), "Today" on the
+  last (outlined) — above its ✓ or ·; the full date stays in each box's name and title. Files:
+  components/health/plus/evening-checkin.tsx, components/health/plus/evening-checkin.css (theme variables; text 14 px;
+  boxes still ≥ 44 px), lib/checkin-extras/strip-label.ts (new, pure).
+- Tests: apps/web/lib/checkin-extras/revb1-strip-label.test.ts. Spec (lead runs): apps/web/tests/revb1-checkin-strip.spec.ts.

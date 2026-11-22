@@ -1,4 +1,5 @@
 'use client';
+import {stripLabel} from '../../../lib/checkin-extras/strip-label';
 import Link from 'next/link';
 import {Suspense, lazy, useEffect, useRef, useState, type ReactNode} from 'react';
 import {useDeviceRecord, type DeviceRecordState} from '../../ai/use-device-record';
@@ -41,9 +42,10 @@ export default function EveningCheckin({date, today}: {date: string; today: stri
   const gaps = strip.filter(s => !s.logged).length;
   const header = <div className="checkin-head">
     <p className="checkin-logged" data-testid="checkin-logged">{logged ? <><span aria-hidden="true">✓ </span>Day logged · {when}</> : `Not logged yet · ${when}`}</p>
-    <ol className="checkin-strip" aria-label={`The last 14 days: ${14 - gaps} logged, ${gaps} not yet`}>{strip.map(s => <li key={s.day} className={s.logged ? 'is-logged' : 'is-gap'}>{s.logged
-      ? <span title={formatDate(s.day)}><span className="sr-only">{formatDate(s.day)}: logged</span><span aria-hidden="true">✓</span></span>
-      : <Link href={`/app/health?date=${s.day}`} aria-label={`${formatDate(s.day)}: not logged; open it`}><span aria-hidden="true">·</span></Link>}</li>)}</ol>
+    {/* Review b1 #15: each box shows its day ("M 16", "Today"); the full date stays in its name. */}
+    <ol className="checkin-strip" aria-label={`The last 14 days: ${14 - gaps} logged, ${gaps} not yet`}>{strip.map(s => <li key={s.day} className={s.logged ? 'is-logged' : 'is-gap'} data-today={s.day === today || undefined}>{s.logged
+      ? <span title={formatDate(s.day)}><span className="sr-only">{formatDate(s.day)}: logged</span><span className="checkin-strip-day" aria-hidden="true">{stripLabel(s.day, today)}</span><span aria-hidden="true">✓</span></span>
+      : <Link href={`/app/health?date=${s.day}`} aria-label={`${formatDate(s.day)}: not logged; open it`} title={formatDate(s.day)}><span className="checkin-strip-day" aria-hidden="true">{stripLabel(s.day, today)}</span><span aria-hidden="true">·</span></Link>}</li>)}</ol>
   </div>;
   if (step === null) return <section className="checkin" aria-labelledby="checkin-title"><h3 id="checkin-title" className="sr-only">Evening check-in</h3>{header}
     <p className="fine">Six short steps for {when}, each one skippable. Every answer is saved the moment you give it.</p>
