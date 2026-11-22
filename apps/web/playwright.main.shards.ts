@@ -251,6 +251,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-revb2b-load-break.spec.ts',
     'av2-journal-grid.spec.ts',
     'av2-notes-props.spec.ts',
+    'av2-plan-week.spec.ts',
   ],
   // Shard 7, 65.5 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -514,7 +515,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [79, 78.2, 79, 78.7, 79, 78, 78, 78.7, 78, 78, 78, 78.7, 78.8, 78];
+export const MAIN_SHARD_MINUTES: readonly number[] = [79, 78.2, 79, 78.7, 79, 79, 78, 78.7, 78, 78, 78, 78.7, 78.8, 78];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {

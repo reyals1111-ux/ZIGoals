@@ -25943,6 +25943,9 @@
     .task-energy:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task-waiting:not(#\-):not(#\-), .task-pieces:not(#\-):not(#\-), .task-after-hours:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .tasks-plan-view h3 small:not(#\-):not(#\-) {
@@ -26156,6 +26159,29 @@
         color: var(--text-secondary, var(--muted))
     }
     .agenda-day-tools:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .tasks-hours:not(#\-):not(#\-), .tasks-plan-week:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-hours > summary small:not(#\-):not(#\-), .tasks-plan-week > summary small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-hours-form fieldset:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .tasks-plan-week-day small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-plan-week-list small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-at-risk:not(#\-):not(#\-) {
+        border-left-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .task-plan-fields:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
 }

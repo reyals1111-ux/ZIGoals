@@ -8048,5 +8048,53 @@
   "widgets": [],
   "fresh": "Ready-made routines of 30 minutes or less: Body weight at home, Core in ten minutes, Strength for runners and Easy mobility. Health → Workouts → Ready-made routines → Find a routine filters by muscle group and place too.",
   "freshNl": "Kant-en-klare routines van 30 minuten of minder: Lichaamsgewicht thuis, Buik in tien minuten, Kracht voor hardlopers en Rustig bewegen. Health → Workouts → Ready-made routines → Find a routine filtert ook op spiergroep en plek."
+ },
+ "av2r4-plan-week": {
+  "en": "Nothing to place this week: Plan my week places open tasks that have minutes and no time yet. Give a task its length (“Takes” in its editor), and it finds the task a day inside your working hours, the earliest deadline first.",
+  "nl": "Deze week valt er niets in te plannen: Plan my week plant open taken met minuten en nog zonder tijd. Geef een taak zijn duur (“Takes” in de editor), dan zoekt het een dag binnen je werkuren, de vroegste deadline eerst.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing to place this week: Plan my week places open tasks that have minutes and no time yet. Give a task its length (“Takes” in its editor), and it finds the task a day inside your working hours, the earliest deadline first.",
+  "freshNl": "Deze week valt er niets in te plannen: Plan my week plant open taken met minuten en nog zonder tijd. Geef een taak zijn duur (“Takes” in de editor), dan zoekt het een dag binnen je werkuren, de vroegste deadline eerst."
+ },
+ "av2r4-working-hours": {
+  "en": "You have not set working hours yet, so tasks are placed in the usual 9:00 AM–6:00 PM every day:\n• Monday: 9:00 AM–6:00 PM\n• Tuesday: 9:00 AM–6:00 PM\n• Wednesday: 9:00 AM–6:00 PM\n• Thursday: 9:00 AM–6:00 PM\n• Friday: 9:00 AM–6:00 PM\n• Saturday: 9:00 AM–6:00 PM\n• Sunday: 9:00 AM–6:00 PM\nEvening hours for “after hours” tasks: 8:00 PM–11:00 PM. Change them in Tasks → This week → Working hours.",
+  "nl": "Je hebt nog geen werkuren ingesteld, dus taken komen elke dag in de gewone uren 09:00–18:00:\n• maandag: 09:00–18:00\n• dinsdag: 09:00–18:00\n• woensdag: 09:00–18:00\n• donderdag: 09:00–18:00\n• vrijdag: 09:00–18:00\n• zaterdag: 09:00–18:00\n• zondag: 09:00–18:00\nAvonduren voor taken “after hours”: 20:00–23:00. Wijzigen kan in Tasks → This week → Working hours.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have not set working hours yet, so tasks are placed in the usual 9:00 AM–6:00 PM every day:\n• Monday: 9:00 AM–6:00 PM\n• Tuesday: 9:00 AM–6:00 PM\n• Wednesday: 9:00 AM–6:00 PM\n• Thursday: 9:00 AM–6:00 PM\n• Friday: 9:00 AM–6:00 PM\n• Saturday: 9:00 AM–6:00 PM\n• Sunday: 9:00 AM–6:00 PM\nEvening hours for “after hours” tasks: 8:00 PM–11:00 PM. Change them in Tasks → This week → Working hours.",
+  "freshNl": "Je hebt nog geen werkuren ingesteld, dus taken komen elke dag in de gewone uren 09:00–18:00:\n• maandag: 09:00–18:00\n• dinsdag: 09:00–18:00\n• woensdag: 09:00–18:00\n• donderdag: 09:00–18:00\n• vrijdag: 09:00–18:00\n• zaterdag: 09:00–18:00\n• zondag: 09:00–18:00\nAvonduren voor taken “after hours”: 20:00–23:00. Wijzigen kan in Tasks → This week → Working hours."
+ },
+ "av2r4-deadline-risk": {
+  "en": "Your 1 task with a deadline in the next two weeks fit in your free working hours before it (counting the tasks that have minutes).",
+  "nl": "Je 1 taak met een deadline in de komende twee weken past in je vrije werkuren ervoor (de taken met minuten meegeteld).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task has a deadline ahead. Give a task a deadline (and its minutes) in its editor, and Upcoming says it quietly when the free hours before it look short.",
+  "freshNl": "Geen open taak heeft een deadline in het verschiet. Geef een taak een deadline (en zijn minuten) in de editor; Upcoming zegt het rustig als de vrije uren ervoor krap lijken."
+ },
+ "av2r4-waiting": {
+  "en": "No task is waiting for another. In a task’s editor, “Waits for” names up to three tasks: until they are done it stays out of Today and out of a plan, then it joins its day.",
+  "nl": "Geen taak wacht op een andere. In de editor van een taak noemt “Waits for” tot drie taken: tot die af zijn blijft hij uit Today en uit een plan, daarna komt hij op zijn dag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is waiting for another. In a task’s editor, “Waits for” names up to three tasks: until they are done it stays out of Today and out of a plan, then it joins its day.",
+  "freshNl": "Geen taak wacht op een andere. In de editor van een taak noemt “Waits for” tot drie taken: tot die af zijn blijft hij uit Today en uit een plan, daarna komt hij op zijn dag."
+ },
+ "av2r4-pieces": {
+  "en": "No task is in pieces yet. In a task’s editor, give it its minutes (“Takes”) and a piece length under “In pieces of”: Plan my day and Plan my week then place it piece by piece (“part 2 of 4”), and time spent counts against the whole.",
+  "nl": "Nog geen taak is in stukken verdeeld. Geef een taak in de editor zijn minuten (“Takes”) en een stuklengte bij “In pieces of”: Plan my day en Plan my week plaatsen hem dan stuk voor stuk (“part 2 of 4”), en bestede tijd telt mee voor het geheel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is in pieces yet. In a task’s editor, give it its minutes (“Takes”) and a piece length under “In pieces of”: Plan my day and Plan my week then place it piece by piece (“part 2 of 4”), and time spent counts against the whole.",
+  "freshNl": "Nog geen taak is in stukken verdeeld. Geef een taak in de editor zijn minuten (“Takes”) en een stuklengte bij “In pieces of”: Plan my day en Plan my week plaatsen hem dan stuk voor stuk (“part 2 of 4”), en bestede tijd telt mee voor het geheel."
+ },
+ "av2r4-floating": {
+  "en": "No task repeats once a week or a month, any day. Type “once a week” or “once a month” as a task’s repeat: it stays in Tasks → This week until done, then comes back; a missed week is one overdue task, never a pile.",
+  "nl": "Geen taak herhaalt een keer per week of maand op een willekeurige dag. Typ “once a week” of “once a month” als herhaling: de taak blijft in Tasks → This week tot hij af is en komt dan terug; een gemiste week is één taak over tijd, nooit een stapel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task repeats once a week or a month, any day. Type “once a week” or “once a month” as a task’s repeat: it stays in Tasks → This week until done, then comes back; a missed week is one overdue task, never a pile.",
+  "freshNl": "Geen taak herhaalt een keer per week of maand op een willekeurige dag. Typ “once a week” of “once a month” als herhaling: de taak blijft in Tasks → This week tot hij af is en komt dan terug; een gemiste week is één taak over tijd, nooit een stapel."
  }
 }

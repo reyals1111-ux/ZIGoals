@@ -3892,6 +3892,20 @@
 :where(:root[data-text=large]) .tasks-energy-line:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .tasks-energy-marks:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .task-timer-note textarea:not(#\-) { font-size: calc(16px * 1.125); }
+/*  components/tasks/tasks-r4.css  */
+:where(:root[data-text=large]) .tasks-hours > summary small:not(#\-), :where(:root[data-text=large]) .tasks-plan-week > summary small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .tasks-hours-week:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-hours-form legend:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-hours-form label.tasks-hours-choice:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-plan-week-day:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .tasks-plan-week-day small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .tasks-plan-week-list label:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-plan-week-list small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .tasks-plan-week-left:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-floating li:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-at-risk:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-waiting-line:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .task-plan-fields legend:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/tasks/tasks-when.css  */
 :where(:root[data-text=large]) .tasks-when-lede:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .tasks-when-actions .text-link:not(#\-), :where(:root[data-text=large]) .tasks-when-form button:not(#\-) { font-size: calc(15px * 1.125); }

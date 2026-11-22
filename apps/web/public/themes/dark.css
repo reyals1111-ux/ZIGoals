@@ -27834,6 +27834,9 @@
     .task-energy:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task-waiting:not(#\-), .task-pieces:not(#\-), .task-after-hours:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 /*  components/tasks/tasks-plan.css  */
 @scope (:root[data-theme=dark]) {
@@ -28051,6 +28054,30 @@
         color: var(--text-secondary, var(--muted))
     }
     .agenda-day-tools:not(#\-) {
+        border-color: var(--line)
+    }
+}
+/*  components/tasks/tasks-r4.css  */
+@scope (:root[data-theme=dark]) {
+    .tasks-hours:not(#\-), .tasks-plan-week:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-hours > summary small:not(#\-), .tasks-plan-week > summary small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-hours-form fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .tasks-plan-week-day small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-plan-week-list small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-at-risk:not(#\-) {
+        border-left-color: var(--line)
+    }
+    .task-plan-fields:not(#\-) {
         border-color: var(--line)
     }
 }
