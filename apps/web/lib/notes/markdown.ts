@@ -144,6 +144,16 @@ export function dailyNotesBetween(record: Notes, from: string, to: string): Note
   const {canvases: _c, trash: _t, versions: _v, ...rest} = record; void _c; void _t; void _v;
   return {...rest, notes};
 }
+/**
+ * Review b5i B5I-11: what the range says before its export — only the daily notes the export will hold (a locked note
+ * stays out of it), and how many locked ones stay out. `count` is what the button exports.
+ */
+export function dailyRangeWords(notes: readonly Pick<Note, 'locked'>[]): {count: number; words: string} {
+  const count = notes.filter(n => !n.locked).length, locked = notes.length - count;
+  const held = locked ? ` ${locked === 1 ? '1 locked daily note stays' : `${locked} locked daily notes stay`} out (open one and use Save this note as… to take it out).` : '';
+  if (!count) return {count, words: locked ? `No daily note to export in these days.${held}` : 'No daily note in these days. Write one under Notes → Today, or choose other days.'};
+  return {count, words: `${count} daily ${count === 1 ? 'note' : 'notes'} in these days, with ${count === 1 ? 'its' : 'their'} photos.${held}`};
+}
 export const dailyExportName = (from: string, to: string, showcase: boolean) => `zigoals-${showcase ? 'example-' : ''}daily-notes-${from <= to ? from : to}-to-${from <= to ? to : from}.zip`;
 
 /* ---- Import ------------------------------------------------------------------------------------------------------ */

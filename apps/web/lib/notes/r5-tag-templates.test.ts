@@ -25,9 +25,13 @@ describe('a template for every note with a tag', () => {
     expect(() => setTagTemplate(r, '###', 'x')).toThrow(/Name the tag/);
     expect(tagTemplatesOf(setTagTemplate(r, 't3', 'changed'))[3]).toEqual({tag: 't3', body: 'changed'});
   });
-  test('the editor starts a still empty note from it once, unsaved until Save', () => {
+  test('the editor starts a still empty note from it once the tag is final, unsaved until Save', () => {
+    // Session AV lane 2 (review b5i B5I-6, deliberate): the template is chosen when the Tags field is left or the note is
+    // saved, not on a keystroke; the same two places are checked (no saved words; the words set once found).
     const src = readFileSync(join(__dirname, '../../components/notes/note-editor.tsx'), 'utf8');
-    expect(src).toMatch(/if \(started\.current \|\| !record \|\| body\.trim\(\) \|\| note\?\.body\.trim\(\)\) return;/);
-    expect(src).toMatch(/started\.current = true; setStartedFrom\(t\.tag\); setBody\(/);
+    expect(src).toMatch(/if \(!record \|\| note\?\.body\.trim\(\)\) return null;/);
+    expect(src).toMatch(/startedWords\.current = got\.words; setStartedFrom\(got\.tag\); setBody\(got\.words\);/);
+    expect(src).toMatch(/onChange=\{e => setTagText\(e\.target\.value\)\} onBlur=\{e => \{ startFromTag\(e\.currentTarget\.value\); \}\}/);
+    expect(src).toMatch(/const words = startFromTag\(tagText\) \?\? body;/);
   });
 });

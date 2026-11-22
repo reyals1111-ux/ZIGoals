@@ -34,6 +34,8 @@ for (const theme of THEMES) test(`${theme}: a template for a tag`, async ({page,
   await page.goto('/app/notes?note=n-a'); await hydrated(page);
   const note = page.getByRole('region', {name: 'Open note'});
   await note.getByLabel('Tags', {exact: true}).fill('meeting');
+  // Review b5i B5I-6: the template is chosen once the tag is final (the field is left, or Save).
+  await note.getByLabel('Tags', {exact: true}).blur();
   await expect(note.getByRole('textbox', {name: 'Note'})).toHaveValue('## Who\n\n## Decided on 2026-11-22');
   await expect(note.getByRole('status').filter({hasText: 'Started from the #meeting template'})).toBeVisible();
   expect((await stored(page)).notes[0].body).toBe('');

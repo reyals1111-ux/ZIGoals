@@ -21,15 +21,31 @@ export function templateForTags(record: Pick<Notes, 'tagTemplates'>, tags: reado
   return null;
 }
 export const templateWords = (t: TagTemplate, day: string) => t.body.replace(/\{date\}/g, day);
-/** Sets (or replaces) a tag's template; empty words remove it. */
-export function setTagTemplate(record: Notes, tag: string, body: string): Notes {
+/**
+ * Review b5i B5I-6: the words a note starts from once its tags are final (the Tags field left, or Save): only while the
+ * note has no words of its own — empty, or still exactly the template it started from (`started`), so a changed tag
+ * picks again. The first tag's own template wins over the one of a tag above it. Null when nothing changes.
+ */
+export function startWords(record: Pick<Notes, 'tagTemplates'>, tags: readonly string[], body: string, started: string | null, day: string): {tag: string; words: string} | null {
+  if (body.trim() && body !== started) return null;
+  const t = templateForTags(record, tags);
+  if (!t) return null;
+  const words = templateWords(t, day);
+  return words === body ? null : {tag: t.tag, words};
+}
+/**
+ * Sets (or replaces) a tag's template; empty words remove it. Review b5i B5I-8: `replacing` is the tag whose template is
+ * being changed (renamed): it is left out before the cap is checked and the new one takes its place in the list.
+ */
+export function setTagTemplate(record: Notes, tag: string, body: string, replacing?: string): Notes {
   const name = cleanTag(tag);
   if (!name) throw new Error('Name the tag first, for example meeting.');
   if (body.length > MAX_TEMPLATE_BODY) throw new Error(`A template holds at most ${MAX_TEMPLATE_BODY.toLocaleString('en-US')} characters.`);
-  const rest = tagTemplatesOf(record).filter(t => key(t.tag) !== key(name));
+  const gone = (t: TagTemplate) => key(t.tag) === key(name) || (replacing !== undefined && key(t.tag) === key(replacing));
+  const rest = tagTemplatesOf(record).filter(t => !gone(t));
   if (!body.trim()) return removeTagTemplate(record, name);
   if (rest.length >= MAX_TAG_TEMPLATES) throw new Error(`At most ${MAX_TAG_TEMPLATES} tags can have a template. Remove one first.`);
-  const at = tagTemplatesOf(record).findIndex(t => key(t.tag) === key(name)), next = [...rest];
+  const at = tagTemplatesOf(record).findIndex(gone), next = [...rest];
   next.splice(at < 0 ? next.length : at, 0, {tag: name, body});
   return notesSchema.parse({...record, tagTemplates: next});
 }

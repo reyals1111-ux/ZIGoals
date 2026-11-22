@@ -5,7 +5,7 @@ import {SecretGuard} from '../secret-guard/secret-guard';
 import {photoScope} from '../../lib/health-aa/photos';
 import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {formatDate} from '../../lib/visual-format';
-import {MAX_ATTACHMENTS_PER_TASK, TASK_ATTACHMENTS_CHANGE, TASK_FILE_MAX_BYTES, TASK_FILES_MAX_TOTAL, cleanFileName, deleteTaskAttachment, newAttachmentId, openWay, putTaskAttachment, sizeWords, taskAttachments, type KeptAttachment} from '../../lib/tasks/attachments';
+import {MAX_ATTACHMENTS_PER_TASK, TASK_ATTACHMENTS_CHANGE, TASK_FILE_MAX_BYTES, TASK_FILES_MAX_TOTAL, cleanFileName, deleteTaskAttachment, fileCounts, newAttachmentId, openWay, putTaskAttachment, sizeWords, taskAttachments, type KeptAttachment} from '../../lib/tasks/attachments';
 import './task-attachments.css';
 
 /**
@@ -93,12 +93,13 @@ function FileLine({file: a, task}: {file: FileAttachment; task?: string}) {
 export function FilesView({titles, onOpenTask}: {titles: ReadonlyMap<string, string>; onOpenTask?: (taskId: string) => void}) {
   const {kept} = useFiles(), [q, setQ] = useState(''), [note, setNote] = useState('');
   const shown = useMemo(() => { const k = q.trim().toLowerCase(); return (kept ?? []).filter(a => !a.orphanSince && (!k || a.name.toLowerCase().includes(k) || (titles.get(a.taskId) ?? '').toLowerCase().includes(k))).sort((x, y) => y.at.localeCompare(x.at)); }, [kept, q, titles]);
-  const used = (kept ?? []).reduce((n, a) => n + a.bytes, 0);
+  // Review b5i B5I-12: the line counts what the list shows (a file of a removed task waits unseen for its 30 days).
+  const live = fileCounts(kept ?? []), used = live.bytes;
   const remove = async (a: FileAttachment) => { try { await removeWithUndo(a); setNote(''); } catch { setNote('It could not be removed. Try again.'); } };
   if (kept === null) return <p className="fine" aria-busy="true">Reading this device’s files…</p>;
   return <div className="task-files-view">
-    <p className="fine">{kept.length ? `${kept.length} ${kept.length === 1 ? 'file' : 'files'} on your tasks, ${sizeWords(used)} of ${sizeWords(TASK_FILES_MAX_TOTAL)} on this device.` : 'No files on tasks yet. Open a task and use Add a file, or drop a file on Tasks to make an Inbox task holding it.'}</p>
-    {kept.length > 0 && <>
+    <p className="fine">{live.files ? `${live.files} ${live.files === 1 ? 'file' : 'files'} on your tasks, ${sizeWords(used)} of ${sizeWords(TASK_FILES_MAX_TOTAL)} on this device.` : 'No files on tasks yet. Open a task and use Add a file, or drop a file on Tasks to make an Inbox task holding it.'}</p>
+    {live.files > 0 && <>
       <label className="field"><span>Search files</span><input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="A file or task name"/></label>
       <SecretGuard text={q} onRemove={() => setQ('')}/>
       {shown.length ? <ul className="task-attachment-list" aria-label="Files on your tasks">{shown.map(a => <li key={a.id}>

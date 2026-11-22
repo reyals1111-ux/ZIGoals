@@ -21,8 +21,8 @@ export default function NoteTableEdit({value, onChange, onClose}: {value: string
   };
   const colName = (c: number) => t?.head[c]?.trim() || `Column ${c + 1}`;
   return <div className="note-table-edit" ref={box} role="group" aria-label="Change a table" onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } }}>
-    {!t ? <p className="fine">This note has no table yet. Write a header line such as <code>| Item | Price |</code>, then <code>| --- | --- |</code> under it, and each row on its own line.</p> : <>
-      {tables.length > 1 && <label className="field"><span>Table</span><select value={which} onChange={e => { setWhich(Number(e.target.value)); setRow(0); setCol(0); }}>{tables.map((x, i) => <option key={i} value={i}>Table {i + 1}: {x.head.slice(0, 3).join(', ')}{x.head.length > 3 ? '…' : ''}</option>)}</select></label>}
+    {tables.length > 1 && <label className="field"><span>Table</span><select value={which} onChange={e => { setWhich(Number(e.target.value)); setRow(0); setCol(0); }}>{tables.map((x, i) => <option key={i} value={i}>Table {i + 1}: {x.head.slice(0, 3).join(', ')}{x.head.length > 3 ? '…' : ''}</option>)}</select></label>}
+    {t?.blocked ? <p className="fine" role="status">{t.blocked}</p> : !t ? <p className="fine">This note has no table yet. Write a header line such as <code>| Item | Price |</code>, then <code>| --- | --- |</code> under it, and each row on its own line.</p> : <>
       <div className="note-table-grid" role="region" aria-label={`Table ${Math.min(which, tables.length - 1) + 1}, ${t.head.length} columns and ${t.rows.length} rows`} tabIndex={0}>
         <table><thead><tr>{t.head.map((h, c) => <th key={c} scope="col"><Cell label={`Heading of column ${c + 1}`} value={h} onChange={w => apply(x => setCell(x, -1, c, w), '')}/></th>)}</tr></thead>
           <tbody>{t.rows.map((r, i) => <tr key={i}>{r.map((v, c) => <td key={c}><Cell label={`Row ${i + 1}, ${colName(c)}`} value={v} onChange={w => apply(x => setCell(x, i, c, w), '')}/></td>)}</tr>)}</tbody></table>

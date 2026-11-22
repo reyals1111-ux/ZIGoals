@@ -20,7 +20,7 @@ export default function TagTemplates({record, change}: {record: Notes; change: C
   const router = useRouter(), list = tagTemplatesOf(record), id = useId();
   const [editing, setEditing] = useState<string | null>(list.length ? null : ''), [tag, setTag] = useState(''), [text, setText] = useState('');
   const open = (t?: {tag: string; body: string}) => { setEditing(t?.tag ?? ''); setTag(t?.tag ?? ''); setText(t?.body ?? ''); };
-  const save = () => { const name = cleanTag(tag); if (change(r => { const next = setTagTemplate(r, tag, text); return editing && name && editing.toLowerCase() !== name.toLowerCase() ? removeTagTemplate(next, editing) : next; }, `A new note tagged #${name ?? tag} starts from these words.`)) setEditing(null); };
+  const save = () => { const name = cleanTag(tag); if (change(r => setTagTemplate(r, tag, text, editing || undefined), `A new note tagged #${name ?? tag} starts from these words.`)) setEditing(null); };
   const make = (t: {tag: string; body: string}) => {
     const today = localDate(), title = `${t.tag.split('/').pop()!.replace(/^./, c => c.toUpperCase())} · ${formatDate(today)}`;
     let made = '';

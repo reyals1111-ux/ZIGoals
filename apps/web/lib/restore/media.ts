@@ -1,5 +1,5 @@
 import {imageSize, tooLarge} from '../image-header';
-import {TASK_ATTACHMENT_DB, TASK_PHOTO_MAX_BYTES, TASK_VOICE_MAX_BYTES, TASK_VOICE_MAX_SECONDS, putTaskAttachment, taskAttachmentFileName} from '../tasks/attachments';
+import {TASK_ATTACHMENT_DB, TASK_FILE_MAX_BYTES, TASK_PHOTO_MAX_BYTES, TASK_VOICE_MAX_BYTES, TASK_VOICE_MAX_SECONDS, putTaskAttachment, taskAttachmentFileName} from '../tasks/attachments';
 import {AUDIO_TYPES, JOURNAL_AUDIO_MAX_BYTES, JOURNAL_MEDIA_DB, JOURNAL_PHOTO_MAX_BYTES, PHOTO_TYPES, putJournalMedia} from '../journal/media';
 import {journalMediaFileName} from '../journal/export-media';
 import {NOTE_PHOTO_DB, NOTE_PHOTO_MAX_BYTES, putNotePhoto} from '../notes/photos';
@@ -36,7 +36,7 @@ export const MEDIA_STORES: readonly MediaStore[] = ['tasks', 'journal', 'notes',
 export const MEDIA_RECORD_NAMES = ['tasks', 'journal', 'notes', 'moneyLog', 'moneyLogBusiness', 'mealEstimates', 'accounts'] as const;
 export type MediaRecords = Partial<Record<(typeof MEDIA_RECORD_NAMES)[number] | 'health', unknown>>;
 
-type Kind = 'photo' | 'audio' | 'pdf';
+type Kind = 'photo' | 'audio' | 'pdf' | /** Session AV lane 2 (r5-notes; LEDGER #355): any file on a task. */ 'file';
 /** One file's place: the store, the id the record keeps, its type and kind, the store's cap, and what else the store keeps with it. */
 export type MediaTarget = {store: MediaStore; id: string; type: string; kind: Kind; cap: number; taskId?: string; seconds?: number; accountId?: string; docId?: string; name?: string};
 type Index = {byName: Map<string, MediaTarget>; tasks: {prefix: string; id: string; title: string}[]; accounts: Set<string>};
@@ -46,6 +46,12 @@ const list = (v: unknown, key: string): Record<string, unknown>[] => isObject(v)
 const str = (v: unknown): string | null => typeof v === 'string' && v ? v : null;
 const IMAGE_TYPES = ['image/webp', 'image/jpeg'] as const;
 const TASK_EXT: Record<string, string> = {jpg: 'image/jpeg', webp: 'image/webp', webm: 'audio/webm', m4a: 'audio/mp4', ogg: 'audio/ogg'};
+/**
+ * Session AV lane 2 (r5-notes; LEDGER #355): a task file's type from its name's extension (the ZIP keeps no type). Only
+ * kinds the browser shows safely get their own type; every other file is kept as plain bytes (it opens as a download).
+ */
+const FILE_EXT: Record<string, string> = {pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', txt: 'text/plain', md: 'text/plain', csv: 'text/plain'};
+export const taskFileType = (ext: string) => FILE_EXT[ext.toLowerCase()] ?? 'application/octet-stream';
 
 /** Every file name the given records (several sets: the backup's, this device's) name, with its place. Pure. */
 export function indexMedia(...sets: readonly MediaRecords[]): Index {
@@ -60,7 +66,8 @@ export function indexMedia(...sets: readonly MediaRecords[]): Index {
         if (id) for (const type of AUDIO_TYPES) add(journalMediaFileName(id, 'audio', type), {store: 'journal', id, type, kind: 'audio', cap: JOURNAL_AUDIO_MAX_BYTES, seconds});
       }
     }
-    for (const n of list(r.notes, 'notes')) {
+    // Session AV lane 2 (r5-notes; LEDGER #360): the photos of notes in Recently deleted come back with them.
+    for (const n of [...list(r.notes, 'notes'), ...list(r.notes, 'trash')]) {
       // Round 4 (r4-notes #307): a note's first photo (`photoId`) and the others (`photos`) come back alike.
       for (const raw of [n.photoId, ...(Array.isArray(n.photos) ? n.photos : [])]) {
         const id = str(raw), safe = id?.replace(/[^A-Za-z0-9_-]/g, '');
@@ -99,6 +106,13 @@ export function mediaTarget(name: string, index: Index): MediaTarget | null {
         if (!m || !type || (kind === 'photo') !== type.startsWith('image/')) continue;
         if (taskAttachmentFileName({id: m[1]!, taskId: t.id, kind, type: type as 'image/jpeg'}, t.title) !== name) continue;
         found.set(t.id, {store: 'tasks', id: m[1]!, type, kind: kind === 'photo' ? 'photo' : 'audio', cap: kind === 'photo' ? TASK_PHOTO_MAX_BYTES : TASK_VOICE_MAX_BYTES, taskId: t.id});
+      }
+      // Session AV lane 2 (r5-notes; LEDGER #355): `<task>-file-<tf_ id>-<its name made safe>.<ext>`.
+      const fileHead = `${t.prefix}-file-`;
+      const f = name.startsWith(fileHead) ? /^(tf_[A-Za-z0-9]{1,77})-([A-Za-z0-9_-]{1,60})\.([A-Za-z0-9]{1,10})$/.exec(name.slice(fileHead.length)) : null;
+      if (f) {
+        const shown = `${f[2]!.replace(/-+/g, ' ').trim() || 'file'}.${f[3]!}`, type = taskFileType(f[3]!);
+        if (taskAttachmentFileName({id: f[1]!, taskId: t.id, kind: 'file', type, name: shown}, t.title) === name) found.set(t.id, {store: 'tasks', id: f[1]!, type, kind: 'file', cap: TASK_FILE_MAX_BYTES, taskId: t.id, name: shown});
       }
     }
     // Two tasks whose titles read alike could both own the file: it is left in the ZIP rather than guessed.
@@ -146,6 +160,16 @@ export function bytesMatch(bytes: Uint8Array, type: string): boolean {
 }
 
 /**
+ * Session AV lane 2 (r5-notes; LEDGER #355): a task file is any file, so only what its name claims is checked — a PDF
+ * starts as one, a picture is the picture its name says (under the image caps); anything else is kept as bytes.
+ */
+export function fileBytesMatch(bytes: Uint8Array, type: string): boolean {
+  if (!bytes.length) return false;
+  if (type === 'application/pdf' || type === 'image/jpeg' || type === 'image/webp') return bytesMatch(bytes, type);
+  if (type.startsWith('image/')) { const s = imageSize(bytes); return !!s && !tooLarge(s); }
+  return true;
+}
+/**
  * How long a task's voice note lasts, read by this browser from the recording (a task keeps its length; the file in the
  * ZIP does not carry it). 0 when the browser cannot tell within a moment; the player still plays it whole.
  */
@@ -171,6 +195,7 @@ async function put(scope: string, t: MediaTarget, blob: Blob, bytes: number, at:
   switch (t.store) {
     case 'tasks':
       if (t.kind === 'photo') return putTaskAttachment(scope, t.id, {taskId: t.taskId!, kind: 'photo', blob, type, bytes, at});
+      if (t.kind === 'file') return putTaskAttachment(scope, t.id, {taskId: t.taskId!, kind: 'file', blob, type: t.type, name: t.name!, bytes, at}); // r5-notes (#355)
       return putTaskAttachment(scope, t.id, {taskId: t.taskId!, kind: 'voice', blob, type, bytes, seconds: Math.min(TASK_VOICE_MAX_SECONDS, Math.round((await seconds(blob)) * 10) / 10), at});
     case 'journal':
       if (t.kind === 'photo') return putJournalMedia(scope, t.id, {kind: 'photo', blob, type, bytes, at});
@@ -205,7 +230,7 @@ export async function putBackMedia(opened: Pick<OpenedBackup, 'file' | 'media' |
     if (entry.uncompressed > t.cap) { outcome.skipped++; continue; }
     let bytes: Uint8Array<ArrayBuffer>;
     try { bytes = await entryBytes(opened.file, entry, t.cap); } catch { outcome.skipped++; continue; } // a damaged entry
-    if (!bytesMatch(bytes, t.type)) { outcome.skipped++; continue; }
+    if (!(t.kind === 'file' ? fileBytesMatch(bytes, t.type) : bytesMatch(bytes, t.type))) { outcome.skipped++; continue; }
     fence();
     try { await put(scope, t, new Blob([bytes], {type: t.type}), bytes.length, at, seconds); } catch { outcome.skipped++; continue; } // a store at its cap, a value it refuses
     ids.add(t.id); added.set(db, [...(added.get(db) ?? []), t.id]); outcome.added++;

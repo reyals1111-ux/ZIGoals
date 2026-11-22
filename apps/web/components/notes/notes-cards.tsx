@@ -22,7 +22,8 @@ export default function NotesCards({notes}: {notes: readonly Note[]}) {
   // The cards of this sitting are fixed when it starts, so a rating never reshuffles what is on screen.
   const [sitting, setSitting] = useState<string[] | null>(null), [at, setAt] = useState(0), [shown, setShown] = useState(false), [said, setSaid] = useState('');
   const box = useRef<HTMLDivElement>(null);
-  const focusCard = () => requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-card-face')?.focus());
+  // Review b5i B5I-10: after the last card the place to land is the closing words, never the page.
+  const focusCard = () => requestAnimationFrame(() => (box.current?.querySelector<HTMLElement>('.note-card-face') ?? box.current?.querySelector<HTMLElement>('.note-card-done') ?? box.current)?.focus());
   if (!record.loaded) return <p className="fine">Opening…</p>;
   if (record.unreadable) return <p role="alert">The review days on this device could not be read; they are not written over.</p>;
   const plan = dueToday(cards, record.data, today), byId = new Map(cards.map(c => [c.id, c]));
@@ -36,7 +37,7 @@ export default function NotesCards({notes}: {notes: readonly Note[]}) {
     setAt(i => i + 1); setShown(false); focusCard();
   };
   const next = plan.next ? formatDate(plan.next) : null;
-  return <div className="note-cards" ref={box}>
+  return <div className="note-cards" ref={box} tabIndex={-1}>
     {!list ? <>
       <p>{plan.due.length ? `${plan.due.length} ${plan.due.length === 1 ? 'card' : 'cards'} to look at today` : 'Nothing to look at today.'} <span className="fine">· {cards.length} {cards.length === 1 ? 'card' : 'cards'} in your notes{next ? `; the next ones come back ${next}` : ''}</span></p>
       {plan.due.length > 0 && <button type="button" className="primary" onClick={start}>Review cards</button>}
@@ -50,7 +51,7 @@ export default function NotesCards({notes}: {notes: readonly Note[]}) {
       {!shown ? <div className="note-actions"><button type="button" className="secondary" onClick={() => { setShown(true); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-card-rate button')?.focus()); }}>Show the answer</button>
         <button type="button" className="quiet" onClick={() => setSitting(null)}>Stop for now</button></div>
         : <div className="note-actions note-card-rate" role="group" aria-label="How well did you know it?">{RATINGS.map(r => { const prev = record.data.reviews.find(x => x.id === card.id); return <button key={r} type="button" className={r === 'good' ? 'primary' : 'secondary'} onClick={() => rate(r)}>{WORDS[r]} <span className="fine">· {when(daysFor(prev, r, today))}</span></button>; })}</div>}
-    </section> : <div className="note-card-done">
+    </section> : <div className="note-card-done" tabIndex={-1}>
       <p>That is all for today.{next ? ` The next cards come back ${next}.` : ''}</p>
       <button type="button" className="quiet" onClick={() => setSitting(null)}>Back</button>
     </div>}

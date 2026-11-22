@@ -109,7 +109,7 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /** The text with the parts that are not words to search blanked (same length): [[links]], `code`, fenced code, addresses. */
 function blanked(text: string): string {
   const blank = (m: string) => ' '.repeat(m.length);
-  return text.replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, blank).replace(/!?\[\[[^\]\n]*\]\]/g, blank).replace(/`[^`\n]*`/g, blank).replace(/\b(?:https?:\/\/|www\.)\S+/gi, blank).replace(/\]\([^)\n]*\)/g, blank);
+  return text.replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, blank).replace(/!?\[\[[^\]\n]*\]\]/g, blank).replace(/!?\[[^\]\n]*\]\([^)\n]*\)/g, blank /* review b5i B5I-7: a Markdown link's words too */).replace(/`[^`\n]*`/g, blank).replace(/\b(?:https?:\/\/|www\.)\S+/gi, blank).replace(/\]\([^)\n]*\)/g, blank);
 }
 /**
  * The notes whose words name a note's title (whole words, any case) but do not link it — never the note itself, a
