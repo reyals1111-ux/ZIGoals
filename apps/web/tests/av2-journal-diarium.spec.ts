@@ -42,6 +42,9 @@ for (const theme of THEMES) {
     await expect(page.locator('.journal-word-goal')).toHaveText('6 of 10 words today.');
     await page.getByLabel('Today’s entry').fill('more words here now');
     await expect(page.locator('.journal-word-goal')).toHaveText('10 words today: your 10 are written.');
+    // Review b6n B6N-7: the count is no live region; a status says once that the goal is reached.
+    await expect(page.locator('.journal-word-goal')).not.toHaveAttribute('aria-live', /.+/);
+    await expect(page.getByRole('status').filter({hasText: 'Your 10 words for today are written.'})).toHaveCount(1);
     await page.locator('.journal-date-fold > summary').click();
     await expect(page.getByRole('button', {name: /Nov 21, 2026: 1 entry, word goal met/})).toBeVisible();
     // #401: who was there, then "Entries with …".

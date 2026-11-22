@@ -2,7 +2,7 @@
 import {useId, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL, type JournalEntry} from '../../lib/journal/schema';
-import {goalLine, readGoal, setWordGoal, wordsOn} from '../../lib/journal/word-goal';
+import {goalLine, goalReachedWords, readGoal, setWordGoal, wordsOn} from '../../lib/journal/word-goal';
 import {wordCount} from '../../lib/journal/stats';
 import {showStatus} from '../ui/undo-toast';
 
@@ -13,7 +13,12 @@ import {showStatus} from '../ui/undo-toast';
  */
 export default function WordGoalLine({entries, goal, today, draft}: {entries: readonly Pick<JournalEntry, 'date' | 'text'>[]; goal: number; today: string; draft: string}) {
   const line = goalLine(wordsOn(entries, today) + (draft.trim() ? wordCount(draft) : 0), goal);
-  return <p className="fine journal-word-goal" data-met={line.met ? '' : undefined} aria-live="polite">{line.text}</p>;
+  // Review b6n B6N-7: the count is not a live region (it changes with every word typed); a status says only once that the
+  // goal is reached — its words stay the same while more is written, so it is announced once.
+  return <>
+    <p className="fine journal-word-goal" data-met={line.met ? '' : undefined}>{line.text}</p>
+    <span className="sr-only" role="status">{goalReachedWords(line.met, goal)}</span>
+  </>;
 }
 export function WordGoalSettings() {
   const journal = useDeviceRecord(JOURNAL), id = useId(), goal = journal.data.wordGoal ?? null;

@@ -34,3 +34,5 @@ export function setWordGoal(journal: Journal, goal: number | null): Journal {
 export function goalLine(today: number, goal: number): {text: string; met: boolean} {
   return today >= goal ? {text: `${today.toLocaleString('en-US')} words today: your ${goal.toLocaleString('en-US')} are written.`, met: true} : {text: `${today.toLocaleString('en-US')} of ${goal.toLocaleString('en-US')} words today.`, met: false};
 }
+/** Review b6n B6N-7: what the status says — once the goal is reached, the same words until it is not; else nothing. */
+export const goalReachedWords = (met: boolean, goal: number): string => met ? `Your ${goal.toLocaleString('en-US')} words for today are written.` : '';
