@@ -29,14 +29,16 @@ Lane 2's own state is kept in this file's "Lane 2 — state" section on that bra
 - Pushed: batch 1 (`a3402096`) and batch 2 (`23100b66`: money, body, food, habits and mind part 2, sync, ledger
   remainders, round 2, Minors 70 of 79, restore-media, Dutch dates, loose ends; reviews b2a/b2b fixed; 572 of 574 specs —
   av2-backup-folder needs CI's real Chrome; unit green apart from load timeouts; frozen readers 21 of 21; weights inside).
-- Batch 3 (local `lane2/batch3`, /home/user/zg-b3): round 3 (LEDGER #256–#299: r3-plan, r3-money, r3-health, r3-notes),
-  reviews b3a/b3b/b3c fixed (revb3c merged), vault-b4 (test timing). First spec run on ed2a00d6: 126 passed, 66 failed
-  (12 tests) → lane2/fixb3 fixing; then rebuild, rerun, push.
-- Batch 4 (local `lane2/batch4`, /home/user/zg-b4): round 4 (LEDGER #300–#347: r4-plan, r4-mind, r4-health, r4-money,
-  r4-notes) wired with registries, corpus, Help; reviews b4d/b4e fixed, b4f (money: 2 Blockers) on lane2/r4-money, b4g
-  (notes) running. Polish (polish.md: 6 Majors, 34 Minors) on lane2/polish.
-- For the final STATUS entry: r4-mind's rollback limit (an older build's 30-day media sweep does not know photos 5–12,
-  registry "Rollback limit"); the stored-format list per batch from the registries.
+- Batch 3 (`lane2/batch3`, /home/user/zg-b3): round 3 + fixes, polish part 1, fixb3; unit green, frozen readers 21/21,
+  weights inside; specs on a45b6e3d: 379 passed, 17 failed (polish specs, pillar-phone-length) → lane2/fixb3c; then
+  rebuild, rerun, push.
+- Batch 4 (`lane2/batch4`, /home/user/zg-b4): round 4 (#300–#347) + reviews D–G fixed, polish part 2; unit green after
+  two fixes (504facf7). Next: frozen readers, build, specs, push after batch 3.
+- Batch 5 (`lane2/batch5`, /home/user/zg-b5): round 5 (#348–#390): r5-plan, r5-notes, r5-body, r5-gym merged and wired
+  (reviews H–J fixed), r5-money's review K fixes running; Help (36), corpus, shards, themes done.
+- Batch 6: round 6 (#391–#431) builders r6-plan, r6-notes, r6-body, r6-money from lane2/batch5.
+- For the final STATUS entry: the rollback limits in r4-mind, r4-notes and r5-notes registries (an older build's 30-day
+  photo sweep does not know the extra photos).
 - Owner items from lane 2: the private-sync Worker deploy (OWNER_STEPS.md); the visit report's two symptom charts;
   #245 automatic recording; #41 passkey; a bundled reading font (#263); the Showcase examples the Minors left; Health →
   Activity's older "About N kcal used — an estimate" for manual activities (against "no calorie expenditure is estimated"?); the
