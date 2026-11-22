@@ -62,7 +62,8 @@ let cache: {log: MoneyLog; ids: Set<string>} | null = null;
 function putAwayIds(log: MoneyLog): Set<string> {
   if (cache?.log === log) return cache.ids;
   const ids = new Set<string>();
-  for (const y of log.putAway?.years ?? []) for (const raw of y.entries) { const id = (raw as {id?: unknown} | null)?.id; if (typeof id === 'string') ids.add(id); }
+  // Review B6O-13: a year this build cannot read still holds its entries (by their ids where they have one).
+  for (const y of log.putAway?.years ?? []) { const list = (y as {entries?: unknown} | null)?.entries; if (Array.isArray(list)) for (const raw of list) { const id = (raw as {id?: unknown} | null)?.id; if (typeof id === 'string') ids.add(id); } }
   cache = {log, ids};
   return ids;
 }

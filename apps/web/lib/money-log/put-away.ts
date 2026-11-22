@@ -1,7 +1,7 @@
 import {monthView} from '../budgets/engine';
 import type {BudgetsRecord} from '../budgets/schema';
 import {countedBetween} from './counted';
-import {MAX_ENTRIES, MAX_PUT_AWAY_YEARS, moneyEntrySchema, moneyLogSchema, type MoneyEntry, type MoneyLog} from './schema';
+import {MAX_ENTRIES, MAX_PUT_AWAY_YEARS, isReadableYear, moneyEntrySchema, moneyLogSchema, type MoneyEntry, type MoneyLog, type PutAwayYear, type UnreadablePutAwayYear} from './schema';
 import {sheetCsv, sheetRows} from './sheet';
 
 /**
@@ -13,7 +13,7 @@ import {sheetCsv, sheetRows} from './sheet';
  * ZIGoals come from each account's own balances (Wealth → Accounts), never from summed entries, so no balance changes and
  * no opening line is needed. Pure.
  */
-export type PutAwayYear = NonNullable<MoneyLog['putAway']>['years'][number];
+export type {PutAwayYear};
 export type YearSummary = {year: string; count: number; byCurrency: {currency: string; spent: number; received: number}[]};
 const yearOf = (e: Pick<MoneyEntry, 'date'>) => e.date.slice(0, 4);
 const monthIndex = (m: string) => Number(m.slice(0, 4)) * 12 + Number(m.slice(5, 7)) - 1;
@@ -61,37 +61,41 @@ export function putAwayPlan(log: Pick<MoneyLog, 'entries'>, budgets: BudgetsReco
 export function putAwayYear(log: MoneyLog, budgets: BudgetsRecord | null | undefined, year: string, today: string, at: string, id: string): MoneyLog {
   const plan = putAwayPlan(log, budgets, year, today);
   if (!plan.moving.length) throw new Error(`Nothing of ${year} can be put away.`);
-  const years = log.putAway?.years ?? [], same = years.find(y => y.year === year);
+  // Review B6O-13: a year this build cannot read stays in its place, as it is.
+  const years = log.putAway?.years ?? [], same = years.filter(isReadableYear).find(y => y.year === year);
   if (!same && years.length >= MAX_PUT_AWAY_YEARS) throw new Error(`Up to ${MAX_PUT_AWAY_YEARS} years can be put away.`);
   if ((same?.entries.length ?? 0) + plan.moving.length > MAX_ENTRIES) throw new Error('That year holds too many entries to put away at once.');
   const ids = new Set(plan.moving.map(e => e.id)), item: PutAwayYear = same ? {...same, at, entries: [...same.entries, ...plan.moving]} : {id, year, at, entries: plan.moving};
-  return moneyLogSchema.parse({...log, entries: log.entries.filter(e => !ids.has(e.id)), putAway: {...log.putAway, years: same ? years.map(y => y.id === same.id ? item : y) : [...years, item].sort((a, b) => a.year.localeCompare(b.year))}});
+  const added = () => { const read = [...years.filter(isReadableYear), item].sort((a, b) => a.year.localeCompare(b.year)); return [...read, ...years.filter(y => !isReadableYear(y))]; };
+  return moneyLogSchema.parse({...log, entries: log.entries.filter(e => !ids.has(e.id)), putAway: {...log.putAway, years: same ? years.map(y => y === same ? item : y) : added()}});
 }
+/** Review B6O-13: a put-away year's entries as stored, also for a year this build cannot read (none when they are not a list). */
+const storedEntries = (year: PutAwayYear | UnreadablePutAwayYear): readonly unknown[] => Array.isArray(year.entries) ? year.entries : [];
 /** The entries of a year put away that this build can read (the rest stay put away, as they were). */
-export function readable(year: PutAwayYear): {entries: MoneyEntry[]; unreadable: number} {
+export function readable(year: PutAwayYear | UnreadablePutAwayYear): {entries: MoneyEntry[]; unreadable: number} {
   const entries: MoneyEntry[] = [];
   let unreadable = 0;
-  for (const raw of year.entries) { const r = moneyEntrySchema.safeParse(raw); if (r.success) entries.push(r.data); else unreadable++; }
+  for (const raw of storedEntries(year)) { const r = moneyEntrySchema.safeParse(raw); if (r.success) entries.push(r.data); else unreadable++; }
   return {entries, unreadable};
 }
 /**
  * Review B6O-9: the entries of a put-away year that stay put away when it is brought back — those this build cannot read,
  * and those whose id is already in the log (after a restore or a merge added it again): neither is lost.
  */
-export function staysPutAway(log: Pick<MoneyLog, 'entries'>, year: PutAwayYear): unknown[] {
+export function staysPutAway(log: Pick<MoneyLog, 'entries'>, year: PutAwayYear | UnreadablePutAwayYear): unknown[] {
   const have = new Set(log.entries.map(e => e.id));
-  return year.entries.filter(raw => { const r = moneyEntrySchema.safeParse(raw); return !r.success || have.has(r.data.id); });
+  return storedEntries(year).filter(raw => { const r = moneyEntrySchema.safeParse(raw); return !r.success || have.has(r.data.id); });
 }
 /** Brings a year back: its readable entries return to the log, before the others (ids already there stay put away, with the unreadable ones). */
 export function bringBack(log: MoneyLog, yearId: string): MoneyLog {
-  const years = log.putAway?.years ?? [], year = years.find(y => y.id === yearId);
+  const years = log.putAway?.years ?? [], year = years.filter(isReadableYear).find(y => y.id === yearId);
   if (!year) throw new Error('That year is no longer put away.');
   const {entries} = readable(year), have = new Set(log.entries.map(e => e.id)), back = entries.filter(e => !have.has(e.id));
   if (log.entries.length + back.length > MAX_ENTRIES) throw new Error(`Your money log holds up to ${MAX_ENTRIES.toLocaleString('en')} entries; put another year away first.`);
-  const rest = staysPutAway(log, year), others = years.filter(y => y.id !== yearId), nextYears = rest.length ? [...others, {...year, entries: rest}] : others;
+  const rest = staysPutAway(log, year), others = years.filter(y => y !== year), nextYears = rest.length ? [...others, {...year, entries: rest}] : others;
   const next: Record<string, unknown> = {...log, entries: [...back, ...log.entries]};
   if (nextYears.length) next.putAway = {...log.putAway, years: nextYears}; else delete next.putAway;
   return moneyLogSchema.parse(next);
 }
 /** A put-away year as the spreadsheet's CSV (lib/money-log/sheet.ts), to keep as a file. */
-export const yearCsv = (year: PutAwayYear) => sheetCsv(sheetRows(readable(year).entries, `${year.year}-01-01`, `${year.year}-12-31`));
+export const yearCsv = (year: PutAwayYear | UnreadablePutAwayYear) => { const y = isReadableYear(year) ? year.year : null; return sheetCsv(sheetRows(readable(year).entries, y ? `${y}-01-01` : '0000-01-01', y ? `${y}-12-31` : '9999-12-31')); };

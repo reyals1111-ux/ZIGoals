@@ -5,7 +5,7 @@ import {changeWithUndo} from '../../ui/remove-with-undo';
 import {showUndo} from '../../ui/undo-toast';
 import {ACCOUNTS} from '../../../lib/accounts/schema';
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
-import type {MoneyEntry, MoneyLog} from '../../../lib/money-log/schema';
+import {readableYears, type MoneyEntry, type MoneyLog} from '../../../lib/money-log/schema';
 import {categoryChoices} from '../../../lib/money-log/counted';
 import {addBackCategory, addBackSub, checkRecords, clearSub, dropBudget, dropSplit, forgetAccount, keepFirst, moveCategory, undoAddBackCategory, undoAddBackSub, unforgetAccount, unlinkRefund, untransfer, type CheckIssue} from '../../../lib/money-log/check';
 import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, staysPutAway, yearCsv} from '../../../lib/money-log/put-away';
@@ -91,7 +91,7 @@ function PutAwayPanel({log, today}: {log: DeviceRecordState<MoneyLog>; today: st
   const id = useId(), budgets = useDeviceRecord(BUDGETS), years = useMemo(() => pastYears(log.data, today), [log.data, today]), [year, setYear] = useState(''), [said, setSaid] = useState(''), head = useRef<HTMLHeadingElement>(null);
   const chosen = year || years[0]?.year || '';
   const plan = useMemo(() => { try { return chosen ? putAwayPlan(log.data, budgets.loaded ? budgets.data : null, chosen, today) : null; } catch { return null; } }, [chosen, log.data, budgets.loaded, budgets.data, today]);
-  const away = log.data.putAway?.years ?? [];
+  const away = readableYears(log.data), odd = (log.data.putAway?.years.length ?? 0) - away.length; // B6O-13: a year this build cannot read is kept, as it is
   const put = () => { if (!plan) return; const words = `${chosen}: ${plan.moving.length} entries put away. Bring back returns them.`; void changeWithUndo(log.update, l => putAwayYear(l, budgets.loaded ? budgets.data : null, chosen, today, new Date().toISOString(), `y_${crypto.randomUUID().slice(0, 12)}`), words, {undone: `${chosen} is back in your money log.`, undoLabel: `Undo putting ${chosen} away`}).then(() => { setSaid(words); setYear(''); head.current?.focus(); }, cause => setSaid(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.')); };
   const back = (yid: string, y: string) => {
     // Review B6O-9: what stays put away (already in the log, or not readable here) is said, never dropped.
@@ -116,6 +116,7 @@ function PutAwayPanel({log, today}: {log: DeviceRecordState<MoneyLog>; today: st
       <span className="money-r6-actions"><button type="button" className="quiet" onClick={() => { try { saveFile(yearCsv(y), `zigoals-money-${y.year}.csv`, 'text/csv;charset=utf-8'); setSaid(`${y.year} saved as a CSV file.`); } catch { setSaid('The file could not be made on this device.'); } }}>Save {y.year} as a file</button>
         <button type="button" className="secondary" onClick={() => back(y.id, y.year)}>Bring {y.year} back</button></span>
     </li>; })}</ul>}
+    {odd > 0 && <p className="fine">{odd === 1 ? 'One year put away is' : `${formatNumber(odd)} years put away are`} in a form this build cannot read; kept exactly as it was, never deleted.</p>}
     <p className="fine" role="status" aria-live="polite">{said}</p>
   </section>;
 }

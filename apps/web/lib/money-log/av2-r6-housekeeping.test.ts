@@ -4,7 +4,7 @@ import {itemChanges} from '../undo-removal';
 import {withAccountNote} from './counted';
 import {bringBack, pastYears, putAwayPlan, putAwayYear, readable, staysPutAway, yearCsv} from './put-away';
 import {totals} from './engine';
-import {emptyMoneyLog, moneyLogSchema, type MoneyEntry, type MoneyLog} from './schema';
+import {emptyMoneyLog, moneyLogSchema, readableYears, type MoneyEntry, type MoneyLog} from './schema';
 import {emptyBudgets, type BudgetsRecord} from '../budgets/schema';
 
 /**
@@ -129,4 +129,21 @@ test('review B6O-9: an entry put away whose id is in the log again stays put awa
   const back = bringBack(L2, 'y');
   expect(back.entries.map(x => [x.id, x.amount])).toEqual([['o', '10.00'], ['clash', '12.00']]);
   expect(back.putAway?.years).toEqual([{id: 'y', year: '2023', at: AT, entries: [copy, {id: 'future', kind: 'gift'}]}]);
+});
+
+test('review B6O-13: one unreadable put-away year is kept in its place as stored; the readable years read as before', () => {
+  const good = {id: 'y23', year: '2023', at: AT, entries: [e({id: 'g1', date: '2023-03-01'})]}, good2 = {id: 'y21', year: '2021', at: AT, entries: [e({id: 'g2', date: '2021-03-01'})]};
+  const bad = {id: 'yb', year: '2022', at: 'last spring', entries: [{id: 'b1'}]}, odd = {id: 'yf', year: 'MMXX', at: AT, entries: [], later: 1};
+  const parsed = moneyLogSchema.parse({...emptyMoneyLog(), putAway: {years: [good2, bad, good, odd]}});
+  expect(parsed.putAway?.years).toEqual([good2, bad, good, odd]);
+  expect(readableYears(parsed)).toEqual([good2, good]);
+  // Valid data parses exactly as before.
+  expect(moneyLogSchema.parse({...emptyMoneyLog(), putAway: {years: [good2, good]}}).putAway).toEqual({years: [good2, good]});
+  // Putting a year away and bringing one back keep the unreadable years, as they are.
+  const away = putAwayYear({...parsed, entries: [e({id: 'n', date: '2024-05-01'}), e({id: 'now'})]}, null, '2024', TODAY, AT, 'y24');
+  expect(away.putAway?.years).toEqual([good2, good, {id: 'y24', year: '2024', at: AT, entries: [expect.objectContaining({id: 'n'})]}, bad, odd]);
+  expect(bringBack(away, 'y23').putAway?.years).toEqual([good2, {id: 'y24', year: '2024', at: AT, entries: [expect.objectContaining({id: 'n'})]}, bad, odd]);
+  expect(() => bringBack(away, 'yb')).toThrow(/no longer put away/);
+  // A refund naming an entry in an unreadable year is not an orphan.
+  expect(checkRecords(log([e({id: 'r', kind: 'income', refund: true, refundOf: 'b1'})], {putAway: parsed.putAway!}))).toEqual([]);
 });
