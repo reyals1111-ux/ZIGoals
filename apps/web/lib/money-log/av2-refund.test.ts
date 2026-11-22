@@ -1,7 +1,9 @@
 import {describe, expect, test} from 'vitest';
 import {countedBetween, countedByCategoryBetween, countedCents, countedKind, inFigures, isCounted, isRefund, isSpending} from './counted';
 import {byCategory, totals} from './engine';
-import {markRefund, refundOffers, refundTargets, unmarkRefund} from './refunds';
+import {markRefund, refundOffers, refundShare, refundTargets, unmarkRefund, withRefundShare} from './refunds';
+import {shareCost, unshareCost} from '../money-more/people';
+import {emptyMoneyMore} from '../money-more/schema';
 import {emptyMoneyLog, moneyEntrySchema, moneyLogSchema, type MoneyEntry} from './schema';
 import {searchEntries} from './search';
 import {countedAs, sheetRows} from './sheet';
@@ -184,6 +186,31 @@ describe('marking a refund', () => {
     expect(() => markRefund(log, 'in', {category: 'Groceries', of: 'nope'}, AT)).toThrow(/no longer/);
     const back = unmarkRefund(marked, 'in', 'Other income', AT).entries[1]!;
     expect(back).not.toHaveProperty('refund'); expect(back).not.toHaveProperty('refundOf'); expect(back.category).toBe('Other income');
+  });
+  test('review B6O-4: a refund of a shared cost counts the person’s share of it — €120 dinner, my share €40, €120 back: €0', () => {
+    const dinner = e('d', '120.00', {category: 'Food & drink', note: 'Trattoria', share: '40.00', account: 'Card'});
+    const back = e('b', '120.00', {kind: 'income', category: 'Other income', note: 'Trattoria', account: 'Card', date: '2026-11-12'});
+    const shared = {...emptyMoneyLog(), entries: [dinner, back]};
+    expect(refundOffers(shared.entries).map(o => o.entry.id)).toEqual(['b']);
+    const marked = markRefund(shared, 'b', {category: 'Food & drink', of: 'd'}, AT);
+    expect(marked.entries[1]).toMatchObject({refund: true, refundOf: 'd', share: '40.00'});
+    expect(byCategory(marked.entries, '2026-11-01', '2026-11-30')).toEqual([{category: 'Food & drink', currency: 'EUR', total: 0, count: 2}]);
+    expect(totals(marked.entries, '2026-11-01', '2026-11-30')[0]).toMatchObject({expenses: 0, income: 0});
+    // Part of it back: by the same share, exact cents (to the nearest cent).
+    expect([refundShare('30.00', dinner), refundShare('10.00', dinner), refundShare('0.01', dinner), refundShare('5.00', {amount: '5.00'})]).toEqual(['10.00', '3.33', undefined, undefined]); // a cent back is one cent: whole
+    // Not linked, or linked to a purchase not shared: whole; unmarked: money received counts whole again.
+    expect(markRefund(shared, 'b', {category: 'Food & drink'}, AT).entries[1]).not.toHaveProperty('share');
+    expect(unmarkRefund(marked, 'b', 'Other income', AT).entries[1]).not.toHaveProperty('share');
+    // The purchase shared (or not) afterwards: its refunds follow.
+    const later = markRefund({...shared, entries: [e('d', '120.00', {category: 'Food & drink', note: 'Trattoria', account: 'Card'}), back]}, 'b', {category: 'Food & drink', of: 'd'}, AT);
+    expect(later.entries[1]).not.toHaveProperty('share');
+    const more = emptyMoneyMore();
+    const split = shareCost(later, more, 'd', '60.00', [{name: 'Sam', amount: '60.00'}], () => 'o1').log;
+    expect(split.entries[1]).toMatchObject({share: '60.00'});
+    expect(unshareCost(split, more, 'd').log.entries[1]).not.toHaveProperty('share');
+    // A refund whose purchase is gone keeps the share it has; any other entry is as it is.
+    expect(withRefundShare([], marked.entries[1]!)).toBe(marked.entries[1]);
+    expect(withRefundShare(marked.entries, dinner)).toBe(dinner);
   });
   test('the purchases a refund can point at: its category and currency, before it, newest first', () => {
     expect(refundTargets([e('a', '5.00', {date: '2026-11-01'}), e('b', '5.00', {date: '2026-11-11'}), e('c', '5.00', {category: 'Fun'}), e('d', '5.00', {date: '2026-11-15'})], {id: 'r', currency: 'EUR', category: 'groceries', date: '2026-11-12'}).map(x => x.id)).toEqual(['b', 'a']);

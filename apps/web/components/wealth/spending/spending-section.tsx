@@ -30,6 +30,7 @@ const MoneyTools = lazy(() => import('../money-tools/money-tools'));
 // (its own chunk, on "Map"), and a calculator in the amount fields. Pure parts in lib/; nothing new is stored.
 import {categoriesRecentFirst} from '../../../lib/recent-categories/recent';
 import {pastCategory} from '../../../lib/money-log/suggest';
+import {withRefundShare} from '../../../lib/money-log/refunds';
 import {selectionLine, summarizeSelection} from '../../../lib/money-log/selection';
 import {amountProblem} from '../../../lib/money-calc/expression';
 // PR-052: one form check for a new entry and an edit, and the edit itself (in place, the same id).
@@ -126,7 +127,8 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
     const checked = checkMoneyEdit(entry, {amount, category, note, date}, today);
     if (!checked.ok) return setProblem(checked.problem);
     // Session AV lane 2 (money): what changed goes into the entry's history (by you), with its marks.
-    const linked = (x: MoneyEntry): MoneyEntry => { if (!x.refund) return x; const {refundOf: _o, ...rest} = x; void _o; return refundOf ? {...rest, refundOf} : rest; };
+    // Review B6O-4: a refund's share follows the shared purchase it names (lib/money-log/refunds.ts withRefundShare).
+    const linked = (x: MoneyEntry): MoneyEntry => { if (!x.refund) return x; const {refundOf: _o, ...rest} = x; void _o; return withRefundShare(log.data.entries, refundOf ? {...rest, refundOf} : rest); };
     const at = new Date().toISOString(), marked = withMarks(changesBetween(entry, linked(withQuick(checked.entry)), 'you', at), {excluded: leftOut, taxDeductible: tax, spread: entry.kind === 'expense' ? spread : null}, at);
     // Session AV lane 2, round 4 (money, LEDGER #340): a checked entry whose amount changes is no longer checked against the bank.
     const kept = marked.checked && marked.amount !== entry.amount ? (() => { const {checked: _c, ...rest} = marked; void _c; return rest; })() : marked;
@@ -143,7 +145,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
     const typed: MoneyEntry = {id: crypto.randomUUID(), kind: refund ? 'income' : kind, ...(refund ? {refund: true as const, ...(refundOf ? {refundOf} : {})} : {}), amount: value, currency: chosen, category: formCategory, ...(note.trim() ? {note: note.trim().slice(0, 200)} : {}), date, createdAt: new Date().toISOString(), source: 'form',
       ...(leftOut ? {excluded: true as const} : {}), ...(tax ? {taxDeductible: true as const} : {}), ...(kind === 'expense' && !refund && spread >= 2 ? {spread} : {}), ...(kind === 'expense' && !refund && sub ? {sub} : {}), ...(paidWith ? {paidWith} : {})};
     // Session AK (lane M, item 1): the person's rules run on a new entry too (first match wins); the status names it.
-    const ruled = applyRules([typed], rules.data.rules), entry = ruled.entries[0]!, byRule = ruled.changes.length > 0;
+    const ruled = applyRules([withRefundShare(log.data.entries, typed)], rules.data.rules), entry = ruled.entries[0]!, byRule = ruled.changes.length > 0; // B6O-4
     try { log.update(current => addEntry(current, entry)); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
     if (note.trim()) keepPlace.current?.(note.trim());
     setAmount(''); setNote(''); clearMarks(); setStatus(`${refund ? 'Refund' : kind === 'expense' ? 'Spent' : 'Received'} ${money(Math.round(Number(value) * 100), chosen)} · ${categoryPath(entry)} · saved${refund ? `; it lowers ${entry.category}` : ''}${byRule ? ' (set by one of your rules)' : ''}.`);
@@ -253,7 +255,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
         <CalcHint value={amount} id={`${id}-calc`}/>
         <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{withOwn(ordered.chips, editing?.category).map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={formCategory === c} onChange={() => { setCategory(c); setSub(''); }}/><span>{c}</span></label>)}</fieldset>
         <Suspense fallback={null}><FormExtras log={log.data} update={log.update} category={formCategory} sub={sub} setSub={setSub} paidWith={paidWith} setPaidWith={setPaidWith} draft={{kind, amount: readAmount(amount), currency: editing?.currency ?? chosen, note: note.trim()}} editing={!!editing} keepPlace={keepPlace} onPayee={(payee, c) => { setNote(payee); if (c && !hidden.has(c.toLowerCase()) && categories.includes(c)) { setCategory(c); setSub(''); } }}/></Suspense>
-        {refund && <Suspense fallback={null}><RefundOf entries={log.data.entries} draft={{id: editing?.id ?? '', currency: editing?.currency ?? chosen, category: formCategory, date}} value={refundOf} onChange={setRefundOf}/></Suspense>}
+        {refund && <Suspense fallback={null}><RefundOf entries={log.data.entries} draft={{id: editing?.id ?? '', currency: editing?.currency ?? chosen, category: formCategory, date}} amount={readAmount(amount)} value={refundOf} onChange={setRefundOf}/></Suspense>}
         <label className="field"><span>Note — optional</span><input ref={noteField} maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
         {/* Session AV (owner follow-up 1, F-CATEGORY-SUGGEST): the category this payee or note had before, offered, never chosen for you. */}
         {suggested && suggested.category !== formCategory && !hidden.has(suggested.category.toLowerCase()) && <p className="fine spending-suggest" role="status">Before, “{suggested.payee ?? note.trim()}” was {suggested.category}{suggested.times > 1 ? ` (${suggested.times} times)` : ''}. <button type="button" className="text-link" onClick={() => { setCategory(suggested.category); noteField.current?.focus(); /* Session AV (q2 rank 22): the hint goes, so focus returns to the note */ }}>Use {suggested.category}</button></p>}

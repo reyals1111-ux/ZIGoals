@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {amountText, currencyCode, type MoneyEntry, type MoneyLog} from '../money-log/schema';
 import {minorUnits, fromMinor} from '../money-split/parts';
+import {withRefundShare} from '../money-log/refunds';
 import {formatCurrencyAmount} from '../visual-format';
 import {MAX_LOANS, MAX_OWED, MAX_REPAID, type Loan, type MoneyMore, type Owed} from './schema';
 
@@ -33,6 +34,8 @@ export function evenShares(amount: string, people: number): string[] {
   const whole = minorUnits(amount), n = Math.max(2, people + 1), base = Math.floor(whole / n), rest = whole - base * n;
   return Array.from({length: n}, (_, i) => fromMinor(base + (i < rest ? 1 : 0)));
 }
+/** Review B6O-4: each refund of this purchase counts the person's share of it again (or whole, once it is not shared). */
+const refundsFollow = (log: MoneyLog, purchaseId: string): MoneyLog => ({...log, entries: log.entries.map(e => e.refundOf === purchaseId ? withRefundShare(log.entries, e) : e)});
 /** The entry with your share, and a line in `owed` for each other person (a split already kept is replaced, its open lines too). */
 export function shareCost(log: MoneyLog, more: MoneyMore, entryId: string, mine: string, others: readonly SharePart[], ids: () => string): {log: MoneyLog; more: MoneyMore} {
   const entry = log.entries.find(e => e.id === entryId);
@@ -43,13 +46,13 @@ export function shareCost(log: MoneyLog, more: MoneyMore, entryId: string, mine:
   const lines: Owed[] = others.map(o => ({id: ids(), name: name40(o.name), amount: fromMinor(minorUnits(o.amount)), currency: entry.currency, date: entry.date, entryId, ...(entry.note ? {note: entry.note.split(' · ')[0]!.slice(0, 80)} : {})}));
   const mineText = fromMinor(minorUnits(mine));
   return {
-    log: {...log, entries: log.entries.map(e => { if (e.id !== entryId) return e; const {share: _s, ...rest} = e; void _s; return {...rest, share: mineText}; })},
+    log: refundsFollow({...log, entries: log.entries.map(e => { if (e.id !== entryId) return e; const {share: _s, ...rest} = e; void _s; return {...rest, share: mineText}; })}, entryId),
     more: {...more, owed: [...kept, ...lines]},
   };
 }
 /** Takes a split off: the entry counts whole again and its open lines go (settled ones stay, as a record). */
 export function unshareCost(log: MoneyLog, more: MoneyMore, entryId: string): {log: MoneyLog; more: MoneyMore} {
-  return {log: {...log, entries: log.entries.map(e => { if (e.id !== entryId) return e; const {share: _s, ...rest} = e; void _s; return rest; })}, more: {...more, owed: (more.owed ?? []).filter(o => o.entryId !== entryId || o.settled)}};
+  return {log: refundsFollow({...log, entries: log.entries.map(e => { if (e.id !== entryId) return e; const {share: _s, ...rest} = e; void _s; return rest; })}, entryId), more: {...more, owed: (more.owed ?? []).filter(o => o.entryId !== entryId || o.settled)}};
 }
 export type OwedTotal = {name: string; currency: string; cents: number; lines: Owed[]};
 /** What each person owes you, open lines only, per currency, the most first. */

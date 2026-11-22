@@ -1,5 +1,5 @@
 import {addLocalDays} from '../local-date';
-import {minorUnits} from '../money-split/parts';
+import {fromMinor, minorUnits} from '../money-split/parts';
 import {isCounted, isRefund, withChange} from './counted';
 import type {MoneyEntry, MoneyLog} from './schema';
 import {noteKey, payeePart} from './suggest';
@@ -51,18 +51,46 @@ export function markRefund(log: MoneyLog, id: string, {category, of}: {category:
   if (entry.transfer) throw new Error('A transfer cannot be a refund: mark it “Not a transfer” first.');
   const name = category.trim().slice(0, 40);
   if (!name) throw new Error('Choose the category it was spent in.');
-  if (of && !log.entries.some(e => e.id === of && e.kind === 'expense')) throw new Error('That purchase is no longer in your money log.');
+  const purchase = of ? log.entries.find(e => e.id === of && e.kind === 'expense') : undefined;
+  if (of && !purchase) throw new Error('That purchase is no longer in your money log.');
   return {...log, entries: log.entries.map(e => {
     if (e.id !== id) return e;
-    const {refundOf: _o, sub: _s, spread: _p, ...rest} = e; void _o; void _s; void _p;
-    return withChange({...rest, kind: 'income', refund: true, category: name, ...(of ? {refundOf: of} : {})}, {by: 'you', field: 'category', from: e.category, to: name}, at);
+    const {refundOf: _o, sub: _s, spread: _p, share: _h, ...rest} = e; void _o; void _s; void _p; void _h;
+    const share = refundShare(e.amount, purchase); // Review B6O-4: a refund of a shared cost counts the person's share of it
+    return withChange({...rest, kind: 'income', refund: true, category: name, ...(of ? {refundOf: of} : {}), ...(share ? {share} : {})}, {by: 'you', field: 'category', from: e.category, to: name}, at);
   })};
+}
+/**
+ * Review B6O-4: the person's share of a refund of a shared cost — the refund × their share ÷ what was paid, in exact cents
+ * (to the nearest cent, at least one) — or undefined when the purchase is not shared (the refund counts whole). The share
+ * is kept on the refund (`share`, as on any cost), so every figure counts it by the shared rule (`mineCents`).
+ */
+export function refundShare(amount: string, purchase: Pick<MoneyEntry, 'amount' | 'share'> | null | undefined): string | undefined {
+  if (!purchase?.share) return undefined;
+  const whole = BigInt(minorUnits(purchase.amount)), mine = BigInt(minorUnits(purchase.share)), back = BigInt(minorUnits(amount));
+  if (mine <= 0n || mine >= whole || back <= 0n) return undefined;
+  let part = (2n * back * mine + whole) / (2n * whole);
+  if (part < 1n) part = 1n;
+  return part < back ? fromMinor(Number(part)) : undefined;
+}
+/**
+ * Review B6O-4: a refund with its share following the purchase it names (taken off when it names none, or one not
+ * shared). A refund naming a purchase no longer in the log keeps the share it has. Any other entry: as it is.
+ */
+export function withRefundShare(entries: readonly MoneyEntry[], e: MoneyEntry): MoneyEntry {
+  if (e.kind !== 'income' || !e.refund) return e;
+  const purchase = refundedPurchase(entries, e);
+  if (e.refundOf && !purchase) return e;
+  const share = refundShare(e.amount, purchase);
+  if (share === e.share) return e;
+  const {share: _h, ...rest} = e; void _h;
+  return share ? {...rest, share} : rest;
 }
 /** Takes the refund mark off: it is money received again, in `category` (an income category). */
 export function unmarkRefund(log: MoneyLog, id: string, category: string, at: string): MoneyLog {
   return {...log, entries: log.entries.map(e => {
     if (e.id !== id || !e.refund) return e;
-    const {refund: _r, refundOf: _o, ...rest} = e; void _r; void _o;
+    const {refund: _r, refundOf: _o, share: _h, ...rest} = e; void _r; void _o; void _h; // B6O-4: money received counts whole
     return withChange({...rest, category}, {by: 'you', field: 'category', from: e.category, to: category}, at);
   })};
 }
