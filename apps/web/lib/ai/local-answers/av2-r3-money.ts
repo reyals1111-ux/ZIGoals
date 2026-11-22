@@ -4,7 +4,9 @@ import type {MoneyMore} from '../../money-more/schema';
 import {leftThisMonth} from '../../budgets/left-this-month';
 import {cashForecast, forecastDays, monthLows, plannedContributions, type ForecastLength, type KnownForecast} from '../../cash-forecast/model';
 import {plannedForForecast, plannedStates} from '../../cash-forecast/planned';
-import {formatCurrencyAmount} from '../../visual-format';
+import {formatCurrencyAmount, formatPercent} from '../../visual-format';
+import type {WealthSheet} from '../../wealth-sheet/schema';
+import {cardStates} from '../../wealth-sheet/cards';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, dayIn, isQuestion, list, MIXED, monthIn, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -102,3 +104,27 @@ function forecastLows(a: Asked): LocalReply | null {
   return answer(`${text} ${say(a.lang, 'An estimate from your own records, not a promise.', 'Een schatting uit je eigen gegevens, geen belofte.')}`, calls);
 }
 add(leftMonth, plannedCosts, forecastLows);
+
+// ── A credit card's limit, share used, statement and due days (#293) ───────────────────────────────────────────────
+const sheetOf = (env: ToolEnv): WealthSheet | null => (env as ToolEnv & {wealthSheet?: WealthSheet | null}).wealthSheet ?? ((env.ak as {wealthSheet?: WealthSheet | null} | null | undefined)?.wealthSheet ?? null);
+const pctIn = (lang: Lang, share: number) => lang === 'nl' ? `${Math.round(share * 100)}%` : formatPercent(share * 100);
+/** "How much of my credit card limit have I used", "hoeveel van mijn creditcardlimiet heb ik gebruikt". */
+function cardUse(a: Asked): LocalReply | null {
+  const en = /\bcredit ?cards?\b/.test(a.f) && /\b(?:limits?|used|use|utili[sz]ation|available|due|statement)\b/.test(a.f);
+  const nl = /creditcardlimiet/.test(a.f) || (/\bcreditcards?\b/.test(a.f) && /\b(?:limiet|gebruikt|beschikbaar|betalen|betaald|afschrift|vervalt)\b/.test(a.f));
+  if (!(en || nl) || /\b(?:paid with|betaald met|spent with|uitgegeven met|by payment|per betaalwijze)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const cards = cardStates(a.env.accounts, sheetOf(a.env), a.today), calls = call('accounts', {kind: 'credit-card'}, 'Accounts · credit cards');
+  if (!cards.length) return answer(say(a.lang, 'You have no credit card in What you owe. Add one as a credit card account, then its Sheet keeps its limit, statement day and due day.',
+    'Je hebt geen creditcard bij What you owe. Voeg er een toe als creditcardrekening; het Sheet ervan bewaart de limiet, de afschriftdag en de betaaldag.'), calls);
+  const one = (lang: Lang, c: typeof cards[number]) => {
+    const m = (x: number) => moneyIn(lang, x, c.currency), bits: string[] = [];
+    if (c.limit !== null && c.owed !== null) bits.push(say(lang, `${m(c.owed)} of ${m(c.limit)} used (${pctIn(lang, c.share ?? 0)}), ${c.available! >= 0 ? `${m(c.available!)} available` : `${m(-c.available!)} over the limit`}`, `${m(c.owed)} van ${m(c.limit)} gebruikt (${pctIn(lang, c.share ?? 0)}), ${c.available! >= 0 ? `${m(c.available!)} beschikbaar` : `${m(-c.available!)} boven de limiet`}`));
+    else bits.push(say(lang, c.limit === null ? 'no limit kept yet (its Sheet keeps one)' : 'no balance yet, so the share used is not known', c.limit === null ? 'nog geen limiet bewaard (het Sheet bewaart er een)' : 'nog geen saldo, dus het gebruikte deel is niet bekend'));
+    if (c.nextStatement) bits.push(say(lang, `statement ${dayIn('en', c.nextStatement, a.today)}`, `afschrift ${dayIn('nl', c.nextStatement, a.today)}`));
+    if (c.nextDue) bits.push(say(lang, `due ${dayIn('en', c.nextDue, a.today)}`, `te betalen ${dayIn('nl', c.nextDue, a.today)}`));
+    return `${c.name}: ${bits.join('; ')}`;
+  };
+  return answer(say(a.lang, `${cards.map(c => one('en', c)).join('. ')}. From the numbers you typed.`, `${cards.map(c => one('nl', c)).join('. ')}. Uit de getallen die je invulde.`), calls);
+}
+add(cardUse);

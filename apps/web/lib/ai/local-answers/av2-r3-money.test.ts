@@ -69,8 +69,20 @@ describe('left this month, planned costs, the forecast by month', () => {
     const acc = '00000000-0000-4000-8000-0000000000a1';
     const withCash: ToolSources = {...s, accounts: {version: 1, items: [{id: acc, kind: 'cash', name: 'Current', currency: 'EUR', snapshots: [{id: '00000000-0000-4000-8000-0000000000b1', date: DAY, value: '100000', decimals: 2}], payments: [], createdAt: at, updatedAt: at}]}};
     const en = text(zigi('what is my lowest cash in the next 6 months', withCash, more)), nl = text(zigi('wat is mijn laagste saldo de komende 6 maanden', withCash, more));
-    expect(en).toMatch(/^EUR, the next 6 months: lowest about €[\d,]+ around .+\. Each month's lowest: Nov 2026 about|Nov 2026 €/);
-    expect(en).toContain('An estimate from your own records, not a promise.');
-    expect(nl).toMatch(/^EUR, de komende 6 maanden: het laagst ongeveer € [\d.]+ rond .+november 2026 € /);
+    expect(en).toMatch(/^EUR, the next 6 months: lowest about €[\d,]+ around .+\. Each month's lowest: Nov 2026 €[\d,]+, Dec 2026 €[\d,]+, .+ and May 2027 €[\d,]+\. An estimate from your own records, not a promise\.$/);
+    expect(nl).toMatch(/^EUR, de komende 6 maanden: het laagst ongeveer € [\d.]+ rond .+\. Het laagste punt per maand: november 2026 € [\d.]+, december 2026 € [\d.]+, .+ en mei 2027 € [\d.]+\. Een schatting uit je eigen gegevens, geen belofte\.$/);
+  });
+});
+
+describe('a credit card’s limit and use', () => {
+  const ID = '00000000-0000-4000-8000-0000000000c1';
+  const s: ToolSources = {...freshAll(), accounts: {version: 1, items: [{id: ID, kind: 'credit-card', name: 'Everyday Card', currency: 'EUR', snapshots: [{id: '00000000-0000-4000-8000-0000000000d1', date: DAY, value: '45000', decimals: 2}], payments: [], createdAt: at, updatedAt: at}]}};
+  const sheet = {version: 1 as const, cards: {[ID]: {limit: '2000.00', statementDay: 5, dueDay: 25}}};
+  const withSheet = (q: string) => av2R3MoneyAnswer(q, {...zigiEnv(s), wealthSheet: sheet} as ToolEnv);
+  test('the share used, what is available and the days, EN and NL', () => {
+    expect(text(withSheet('how much of my credit card limit have I used'))).toMatch(/^Everyday Card: €450\.00 of €2,000\.00 used \(23%\), €1,550\.00 available; statement .+5.*; due .+25.*\. From the numbers you typed\.$/);
+    expect(text(withSheet('hoeveel van mijn creditcardlimiet heb ik gebruikt'))).toMatch(/^Everyday Card: € 450,00 van € 2\.000,00 gebruikt \(23%\), € 1\.550,00 beschikbaar; afschrift .*5 dec.*; te betalen .*25 nov.*\. Uit de getallen die je invulde\.$/);
+    expect(text(zigi('when is my credit card due', s))).toContain('no limit kept yet');
+    expect(text(zigi('when is my credit card due', freshAll()))).toContain('no credit card in What you owe');
   });
 });

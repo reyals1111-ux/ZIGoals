@@ -9,4 +9,5 @@ export const AV2_R3_MONEY: readonly Intent[] = [
   {id: 'av2r3-money-left-month', pillar: 'wealth', en: ['how much is left this month', 'what is my leftover this month'], nl: ['hoeveel heb ik deze maand over', 'wat blijft er deze maand over']},
   {id: 'av2r3-money-planned', pillar: 'wealth', en: ['which planned costs do I have', 'what one-off costs have I planned'], nl: ['welke geplande kosten heb ik', 'welke eenmalige kosten heb ik gepland']},
   {id: 'av2r3-money-forecast-months', pillar: 'wealth', en: ['what is my lowest cash in the next 6 months', 'how low will my balance get in the next 12 months'], nl: ['wat is mijn laagste saldo de komende 6 maanden', 'hoe laag wordt mijn saldo de komende 12 maanden']},
+  {id: 'av2r3-money-credit-card', pillar: 'wealth', en: ['how much of my credit card limit have I used', 'when is my credit card due'], nl: ['hoeveel van mijn creditcardlimiet heb ik gebruikt', 'wanneer moet mijn creditcard betaald worden']},
 ];

@@ -96,3 +96,29 @@ locale ("€ 12,50"); the tests compare it with the no-break space shown as a sp
   the person turned "Show what is left in each budget on Today" on, and never in the Showcase.
 - Noted for the lead: the Money tools button that opens the forecast keeps its label "Next 60 days" (an existing spec
   pins it); the card's own heading says the chosen length.
+
+### R3-F2 (group T8). A credit card's limit and use
+
+- LEDGER row: #293 Simplifi credit card dashboard — **built** (per credit card, from numbers the person types in its
+  Sheet: the limit, the statement day and the payment due day (1–31; a short month uses its last day); its row in What
+  you owe says "€450.00 of €2,000.00 used (23%) · €1,550.00 available · statement Dec 5, 2026 · due Nov 25, 2026";
+  "used" is what it owes today, its latest balance less the payments recorded since (`owedAfterPayments`); "Add a payment
+  reminder on <due day>" adds an ordinary monthly bill (id `card-<account id>`, for what is owed now) to Upcoming bills,
+  which Upcoming bills and Today's money line then name like any bill; focus moves to its confirmation).
+- Spending function used: none (no spending total; the card's balance and payments come from the accounts record).
+- Files: `lib/wealth-sheet/cards.ts` (new), `components/wealth/credit-card.tsx` (new: `CardLine` lazy on the row,
+  `CardForm` in the Sheet's own lazy chunk), `components/wealth/account-sheet.tsx`, `components/wealth/accounts-section.tsx`.
+- Tests: `lib/wealth-sheet/av2-cards.test.ts`, `lib/ai/local-answers/av2-r3-money.test.ts`, round trip.
+- Spec: `tests/av2-money-credit-card.spec.ts`.
+- Stored: `zigoals:wealth-sheet:v1` `cards`. A payment reminder is a bill in the existing `zigoals:bills:v1` format.
+- Help (EN): **Q: Can I see how much of my credit card limit I use?** A: Open the card's Sheet in What you owe and type
+  its limit, the day its statement is made and the day its payment is due. Its row then shows what is used of the limit,
+  the share, what is still available and the next statement and due days. "Add a payment reminder" puts the payment in
+  Upcoming bills on the due day.
+- What's new: "Credit cards: your limit, the share used, what is available, and the statement and due days, with a
+  payment reminder."
+- Answers: `cardUse` (corpus `av2r3-money-credit-card`). Reads `env.wealthSheet` (round 1's sheet answers read it too).
+- Showcase hook: none (the Showcase has no credit card account; adding one would change the pinned net-worth figures).
+  The empty state teaches: "Add its limit and days under Sheet to see how much of it is used."
+- Registries: none new. CSS touched: `components/wealth/accounts.css` (`.accounts-card-line`, theme variables only).
+- Today: nothing added (a reminder the person adds is a bill, named as bills already are).
