@@ -31,6 +31,15 @@ export function muscleWeeks(w: Workouts, lookup: CategoryLookup, today: string, 
   return {weeks: starts, rows};
 }
 
+/**
+ * Review B6P-5 (r6-body; LEDGER #422): the counts of past bests (a month's report, the year in training) are history, so
+ * "Count bests from today" leaves them as they were; a light week still sets no best (LEDGER #421).
+ */
+function historyBests(w: Workouts, x: Workouts['workouts'][number]): number {
+  if (!w.bestsFrom) return personalBests(w, x).length;
+  const {bestsFrom: _from, ...all} = w; void _from;
+  return personalBests(all, x).length;
+}
 export type MonthFigures = {month: string; workouts: number; days: number; minutes: number; sets: number; volumeKg: number; distanceKm: number; bests: number; topMuscle: MuscleGroup | null; topExercise: string | null};
 export function monthFigures(w: Workouts, month: string, lookup: CategoryLookup, today: string): MonthFigures {
   const all = finished(w), inMonth = all.filter(x => x.date.slice(0, 7) === month && x.date <= today);
@@ -39,7 +48,7 @@ export function monthFigures(w: Workouts, month: string, lookup: CategoryLookup,
   for (const x of inMonth) {
     distance += distanceOf(x);
     // A best counts against every workout before it (the same rule as the line at the finish).
-    bests += personalBests(w, x).length;
+    bests += historyBests(w, x);
     for (const e of x.exercises) {
       const n = e.sets.filter(working).length;
       sets += n; volume += volumeKg(e);
@@ -72,7 +81,7 @@ export function trainingYear(w: Workouts, start: string, end: string): TrainingY
   const inYear = finished(w).filter(x => x.date >= start && x.date <= end), exercises = new Map<string, number>(), months = new Map<string, number>();
   let volume = 0, distance = 0, minutes = 0, bests = 0;
   for (const x of inYear) {
-    minutes += durationMinutes(x); distance += distanceOf(x); bests += personalBests(w, x).length;
+    minutes += durationMinutes(x); distance += distanceOf(x); bests += historyBests(w, x);
     months.set(x.date.slice(0, 7), (months.get(x.date.slice(0, 7)) ?? 0) + 1);
     for (const e of x.exercises) { volume += volumeKg(e); if (e.sets.some(working)) exercises.set(e.name, (exercises.get(e.name) ?? 0) + 1); }
   }

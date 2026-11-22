@@ -337,3 +337,21 @@ the energy, food-plus and workouts fields; the two new keys' round trips run onc
   gate checked by the answer). Until it is wired the bring-up answer says where the list is. The low-day page
   (`zigoals:low-day:v1`) must NOT be added to any AI source: it is never sent to ZIGi's AI. The rest reads `env.health`
   (meditation, sleep), `env.energy`, `env.foodPlus` and `ak.workouts`, all wired already.
+
+## Review B6P fixes
+
+One commit per finding, each with a unit test that fails before the fix and passes after. No stored format changes
+(`light` and the bring-up and journal records are read as before). No spec was changed.
+
+| id | commit | what changed | test |
+|---|---|---|---|
+| B6P-1 | `7b4a4088` | Grounding's "Save these words as a journal line" writes through the new `addToDeviceRecord` (lib/device-record.ts): an unreadable journal is never written over, the words stay, and it says so (EN and NL); the button gives way to that sentence while the journal reads as unreadable. | `lib/calm/b6p-grounding-save.test.ts` |
+| B6P-4 | `2351c5bd` | "Bring this up at my next visit" and its Undo go through `addBringUpIn` / `takeBackBringUpIn` (lib/clinician-report/bring-up.ts): a list that cannot be read is left as it is, with an alert; the Undo says nothing was changed. | `lib/clinician-report/b6p-bring-up-in.test.ts` |
+| B6P-2 | `9a4df909` | `meditationDayAt` (lib/meditation/stats.ts): habit links (and their marker), Today's meditation widget and the Checklist's Meditate step ask for the meditation day ("My day ends at"); midnight unchanged. | `lib/meditation/b6p-meditation-day.test.ts` |
+| B6P-3 | `05d0a938` | `tonight()` works from tomorrow's wake instant in the zone (instantAt / wallClock); the Sleep page, the Sleep card and ZIGi's answer pass the zone. 00:15 on 24/25 Oct, 22:15 on 28/29 Mar 2026 (Europe/Amsterdam). | `lib/sleep/b6p-tonight-dst.test.ts` |
+| B6P-5 | `163ea755` | `monthFigures` and `trainingYear` count history bests without the fresh start (light weeks still set none). | `lib/workouts/b6p-history-bests.test.ts` |
+| B6P-6 | `a524cad1` | "Light week" can be set on the workout in progress (toggle above Finish); `keepLastWeights` leaves a light week out; marking a finished keep-weights workout light says the routine already kept them. | `lib/workouts/b6p-light-keep-weights.test.ts` |
+| B6P-7 | `14b2e63e` | The bests answer's cap of four leaves both loops (labelled break). | `lib/ai/local-answers/b6p-best-days.test.ts` |
+| B6P-8 | `70a26fd0` | Round 6's lazy parts in meditation-view, exercise-library, feeling-choices and entry-more sit in `<LoadBoundary quiet>`. | `lib/b6p-load-boundaries.test.ts` |
+| B6P-9 | `e55e2a9c` | "Several days" defaults to the week up to the view's today (`rangeDefaults`); the calendar day now stays the latest day it takes. | `lib/meditation/b6p-range-defaults.test.ts` |
+| B6P-10 | `7972dd9d` | The grounding line is written on the Meditation view's today; "Count bests from today" uses the Workouts view's today (passed through the library); no `localDate()` in either part. | `lib/b6p-app-day.test.ts` |

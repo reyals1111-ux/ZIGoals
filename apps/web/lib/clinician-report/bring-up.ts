@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import type {DeviceRecordSpec} from '../device-record';
+import {addToDeviceRecord, type DeviceRecordSpec} from '../device-record';
 
 /**
  * Session AV lane 2, round 6 (r6-body; LEDGER #417, Moodfit's notes for an appointment): "To bring up" — a short list of
@@ -66,3 +66,15 @@ export function clearTicked(r: BringUp): {record: BringUp; removed: BringUpItem[
 }
 export const openBringUp = (r: BringUp | null | undefined) => (r?.items ?? []).filter(x => !x.doneAt);
 export const BRING_UP_FROM_WORDS: Record<BringUpSource, string> = {typed: 'typed here', journal: 'from your journal', checkin: 'from a check-in'};
+/**
+ * Review B6P-4: "Bring this up at my next visit" (a journal entry, a feeling word) adds to the list from outside its own
+ * page, so it never writes over a list this device cannot read (a newer version, a bad shape): nothing is written and
+ * these words come back. The Undo of such an add does the same.
+ */
+export const BRING_UP_UNREADABLE = 'Your list to bring up at your next visit could not be read on this device, so nothing was added. It was not changed.';
+export const BRING_UP_UNREADABLE_UNDO = 'Your list to bring up could not be read on this device, so nothing was changed.';
+type Store = Pick<Storage, 'getItem' | 'setItem'>;
+/** Adds a line to the stored list; null (nothing written) when the list cannot be read. Throws `addBringUp`'s sentences. */
+export const addBringUpIn = (storage: Store, input: {text: string; from: BringUpSource; day?: string}, id: string, at: Date): BringUp | null => addToDeviceRecord(storage, BRING_UP, r => addBringUp(r, input, id, at));
+/** Takes back a line added in one tap (its Undo), when it is still there; null (nothing written) when the list cannot be read. */
+export const takeBackBringUpIn = (storage: Store, id: string): BringUp | null => addToDeviceRecord(storage, BRING_UP, r => r.items.some(x => x.id === id) ? removeBringUp(r, id) : r);

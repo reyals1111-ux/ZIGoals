@@ -20,6 +20,25 @@ export function sessionDayUnder(s: Pick<MeditationSession, 'startedAt' | 'timeZo
   return ends.endsAt || ends.change ? activityDay(ends, new Date(s.startedAt), s.timeZone) : wallClock(Date.parse(s.startedAt), s.timeZone).date;
 }
 export const sessionDay = (s: Pick<MeditationSession, 'startedAt' | 'timeZone'>) => sessionDayUnder(s, currentDayEnds());
+/**
+ * Review B6P-2: the meditation day `now` counts for in `zone`, as the Meditation view's today (use-meditation.ts) and the
+ * sessions' days (`sessionDay`), for a caller that holds Health's calendar day (`calendarDay`, in the same zone): exactly
+ * that day with the default end (midnight) and no change, else the day under "My day ends at". So a habit link, Today's
+ * widget and the Checklist ask for the day the 01:00 session counts on.
+ */
+export function meditationDayAt(calendarDay: string, now: Date, zone: string): string {
+  const ends = currentDayEnds();
+  return ends.endsAt || ends.change ? activityDay(ends, now, zone) : calendarDay;
+}
+/**
+ * Review B6P-9: "Several days" by default runs over the week to the Meditation view's today (which follows "My day ends
+ * at", as `useMeditation` says it); the latest day it takes stays the calendar day now in `zone`, so a session typed
+ * for just after midnight can still be logged.
+ */
+export function rangeDefaults(now: number, zone: string): {from: string; to: string; max: string} {
+  const today = activityDay(currentDayEnds(), new Date(now), zone);
+  return {from: addDays(today, -6), to: today, max: wallClock(now, zone).date};
+}
 const minutes = (seconds: number) => Math.round(seconds / 60);
 /** Monday of the week a day falls in. */
 export function weekStart(day: string): string {

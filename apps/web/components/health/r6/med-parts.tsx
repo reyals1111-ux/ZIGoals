@@ -2,7 +2,7 @@
 import {useId, useState, type FormEvent} from 'react';
 import {consistency, consistencyLine} from '../../../lib/meditation/consistency';
 import {MAX_RANGE_DAYS, rangeDays, removeSessions, saveManualRange} from '../../../lib/meditation/engine';
-import {addDays, wallClock} from '../../../lib/zone-time';
+import {rangeDefaults} from '../../../lib/meditation/stats';
 import {formatClock, formatDate} from '../../../lib/visual-format';
 import {showUndo} from '../../ui/undo-toast';
 import type {MeditationStore} from '../meditation/use-meditation';
@@ -36,8 +36,9 @@ function Consistency({store}: {store: MeditationStore}) {
 }
 
 function SeveralDays({store}: {store: MeditationStore}) {
-  const zone = store.zone, now = wallClock(store.now, zone), id = useId();
-  const [from, setFrom] = useState(() => addDays(now.date, -6)), [to, setTo] = useState(now.date), [time, setTime] = useState('07:00'), [minutes, setMinutes] = useState('10');
+  // Review B6P-9: the default last day is the view's today ("My day ends at"); the calendar day now is the latest.
+  const zone = store.zone, start = rangeDefaults(store.now, zone), max = start.max, id = useId();
+  const [from, setFrom] = useState(start.from), [to, setTo] = useState(start.to), [time, setTime] = useState('07:00'), [minutes, setMinutes] = useState('10');
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [said, setSaid] = useState('');
   const days = rangeDays(from, to);
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -57,8 +58,8 @@ function SeveralDays({store}: {store: MeditationStore}) {
   return <form className="meditation-form r6-range" onSubmit={submit} aria-label="Log several days" noValidate>
     <p className="fine">One session a day for each day from the first to the last (up to {MAX_RANGE_DAYS} days), at the same time and length. A day that already has a session at that time is skipped.</p>
     <div className="meditation-form-row">
-      <label className="field">First day<input type="date" value={from} max={now.date} onChange={e => setFrom(e.target.value)} required/></label>
-      <label className="field">Last day<input type="date" value={to} max={now.date} onChange={e => setTo(e.target.value)} required/></label>
+      <label className="field">First day<input type="date" value={from} max={max} onChange={e => setFrom(e.target.value)} required/></label>
+      <label className="field">Last day<input type="date" value={to} max={max} onChange={e => setTo(e.target.value)} required/></label>
     </div>
     <div className="meditation-form-row">
       <label className="field">Began (time)<input type="time" value={time} onChange={e => setTime(e.target.value)} required/></label>

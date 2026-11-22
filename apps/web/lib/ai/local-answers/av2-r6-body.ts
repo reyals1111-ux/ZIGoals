@@ -116,7 +116,7 @@ function bringUpAnswer(a: Asked): LocalReply | null {
 function bedtimeAnswer(a: Asked): LocalReply | null {
   if (!(/\bbedtime tonight\b|\btonight(?:'| )?s bedtime\b|\bwhat time\b.*\bbed tonight\b.*\b(?:goal|wake)\b|\bwhen\b.*\bbed tonight\b.*\b(?:sleep goal|wake)\b/.test(a.f) || /\bbedtijd vanavond\b|\bhoe laat\b.*\bvanavond naar bed\b.*\b(?:doel|wakker)\b/.test(a.f))) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
-  const t = tonight(sleepOf(a), a.env.healthDay), lang = a.lang;
+  const t = tonight(sleepOf(a), a.env.healthDay, null, a.env.healthZone), lang = a.lang;
   if (t.kind === 'no-goal') return answer(say(lang, 'Tonight’s bedtime needs your own sleep goal: set it in Health → Sleep, and the bedtime is worked out from it and your usual wake time.', 'De bedtijd van vanavond heeft je eigen slaapdoel nodig: stel het in bij Health → Sleep, dan wordt de bedtijd berekend uit dat doel en je gewone wektijd.'), CALLS);
   if (t.kind === 'window') return answer(say(lang, `Your bedtime window: ${formatClock(t.from)}–${formatClock(t.to)}, for your ${formatMinutes(t.goal)}.`, `Je bedtijdvenster: ${t.from}–${t.to}, voor je ${minNl(t.goal)}.`), CALLS);
   if (t.kind === 'needs-wake') return answer(say(lang, `Tonight’s bedtime needs your usual wake time: log 4 nights in 14 days (${t.wakes} so far), or type tomorrow's wake time in Health → Sleep → Tonight.`, `De bedtijd van vanavond heeft je gewone wektijd nodig: log 4 nachten in 14 dagen (${t.wakes} tot nu toe), of typ de wektijd van morgen in Health → Sleep → Tonight.`), CALLS);
@@ -171,11 +171,12 @@ function bestDaysAnswer(a: Asked): LocalReply | null {
   if (!(/\b(?:when|which days?|what days?)\b.*\b(?:set|reach\w*|get|got)\b.*\b(?:personal )?(?:bests|records|prs)\b|\bdays? of my (?:personal )?bests\b/.test(a.f) || /\b(?:wanneer|op welke dagen?)\b.*\b(?:persoonlijke )?records\b.*\b(?:gezet|gehaald|zette)\b|\b(?:wanneer|op welke dagen?)\b.*\b(?:zette|haalde)\b.*\brecords\b/.test(a.f))) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const w = logOf(a), lang = a.lang, today = a.env.healthDay, seen = new Set<string>(), rows: string[] = [];
-  for (const x of finished(w)) for (const e of x.exercises) {
+  // Review B6P-7: at most four, across every workout (the break leaves both loops).
+  workouts: for (const x of finished(w)) for (const e of x.exercises) {
     if (seen.has(e.exerciseId) || e.measure !== 'weight-reps') continue; seen.add(e.exerciseId);
     const h = exerciseHistory(w, e.exerciseId);
     if (h?.bestWeightKg && h.bestDays.bestWeightKg) rows.push(`${h.name} ${lang === 'nl' ? kgNl(h.bestWeightKg) : kg(h.bestWeightKg)} (${dayIn(lang, h.bestDays.bestWeightKg, today)})`);
-    if (rows.length === 4) break;
+    if (rows.length >= 4) break workouts;
   }
   if (!rows.length) return answer(say(lang, 'No best with a weight yet. After your first workouts each exercise in Health → Workouts → "Exercises and how-tos" shows its bests with the day you set them.', 'Nog geen record met een gewicht. Na je eerste workouts toont elke oefening in Health → Workouts → "Exercises and how-tos" zijn records met de dag waarop je ze zette.'), CALLS);
   return answer(say(lang, `Your heaviest sets and their days: ${list(rows, 'en')}. Light weeks and workouts before a fresh start are left out; each exercise's card shows all its bests.`, `Je zwaarste sets en hun dagen: ${list(rows, 'nl')}. Lichte weken en workouts vóór een nieuwe start tellen niet mee; de kaart van elke oefening toont al zijn records.`), CALLS);

@@ -32,7 +32,7 @@ export function SleepCard(layout: LayoutAttrs) {
       {week && <p className="fine">Last 7 days: {formatMinutes(week.asleep)} a night on average over {week.nights} {week.nights === 1 ? 'night' : 'nights'}{store.sleep.goal ? `, goal ${formatMinutes(store.sleep.goal.minutes)}` : ''}.</p>}
       <PastDayLine date={day.date} today={day.today}>{dayAsleep ? <>{formatMinutes(dayAsleep.minutes)} asleep that night</> : 'no night logged'} · <Link className="text-link" href={`/app/health?view=sleep&date=${day.date}`}>{dayAsleep ? 'Edit it in Sleep →' : 'Log this night →'}</Link></PastDayLine>
       {!day.past && <SleepTonight store={store} onDone={setNote}/>}
-      {!day.past && !running && wallClock(store.now, store.zone).minutes >= 17 * 60 && <LoadBoundary quiet><Suspense fallback={null}><SleepR6 part="bedtime" compact sleep={store.sleep} today={store.today}/></Suspense></LoadBoundary>}
+      {!day.past && !running && wallClock(store.now, store.zone).minutes >= 17 * 60 && <LoadBoundary quiet><Suspense fallback={null}><SleepR6 part="bedtime" compact sleep={store.sleep} today={store.today} zone={store.zone}/></Suspense></LoadBoundary>}
       {note && <p role="status">{note}</p>}
       {!day.past && <LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="sleep-tip" today={store.today}/></Suspense></LoadBoundary>}
       <Link className="text-link" href="/app/health?view=sleep">Open Sleep →</Link>
