@@ -5,6 +5,7 @@ import {parseBlocks, plainText, type NoteBlock, type NoteInline} from '../../lib
 import {parseLinks, resolveLink, type LinkIndex} from '../../lib/notes/links';
 import {splitTags} from '../../lib/notes/tags';
 import {getNotePhoto} from '../../lib/notes/photos';
+import {foldable, foldsHiding, hiddenBlocks, sectionSize} from '../../lib/notes/fold';
 import {photoScope} from '../../lib/health-aa/photos';
 
 /**
@@ -15,7 +16,9 @@ import {photoScope} from '../../lib/health-aa/photos';
  * ==highlights== in six named colours, and "- [ ]" tick boxes that tick in the reading view (`onTick`, with the line).
  */
 const KIND_WORD = {note: 'note', goal: 'goal', habit: 'habit'} as const;
-type Ctx = {index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag focuses Notes on it. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids this note keeps. */ photos?: readonly string[]};
+type Ctx = {index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag focuses Notes on it. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids this note keeps. */ photos?: readonly string[]; /** LEDGER #313: the section folds of the reading view. */ fold?: Folds};
+type Folds = {folded: ReadonlySet<number>; size: (i: number) => number; toggle: (i: number) => void};
+const NO_FOLDS: ReadonlySet<number> = new Set();
 /** Session AV lane 2 (r4-notes; LEDGER #307): one of the note's own photos, read from this device's photo store. */
 function NotePhotoFigure({id, alt, kept}: {id: string; alt: string; kept: boolean}) {
   const [url, setUrl] = useState<string | null | undefined>(kept ? undefined : null);
@@ -69,7 +72,17 @@ function block(b: NoteBlock, i: number, ctx: Ctx, onTick: Tick | undefined, id: 
   const r = (n: readonly NoteInline[]) => inline(n, ctx);
   switch (b.type) {
     case 'paragraph': return <p key={i}>{r(b.children)}</p>;
-    case 'heading': { const hid = `${id}-h${i}`; return b.level === 1 ? <h3 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h3> : b.level === 2 ? <h4 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h4> : <h5 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h5>; }
+    case 'heading': {
+      const hid = `${id}-h${i}`, head = b.level === 1 ? <h3 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h3> : b.level === 2 ? <h4 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h4> : <h5 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h5>;
+      // Session AV lane 2 (r4-notes; LEDGER #313, Bear): a heading with words under it folds them, for this visit.
+      const f = ctx.fold, n = f ? f.size(i) : 0;
+      if (!f || !n) return head;
+      const shut = f.folded.has(i), words = plainText([b]).trim() || 'this heading';
+      return <div key={i} className="note-fold-head" data-level={b.level}>
+        <button type="button" className="note-fold-toggle" aria-expanded={!shut} aria-label={`${shut ? 'Open' : 'Fold'} “${words}”${shut ? ` (${n} ${n === 1 ? 'part' : 'parts'} folded)` : ''}`} onClick={() => f.toggle(i)}><span aria-hidden="true">{shut ? '▸' : '▾'}</span></button>
+        {head}{shut && <span className="fine note-folded-count" aria-hidden="true">{n} {n === 1 ? 'part' : 'parts'} folded</span>}
+      </div>;
+    }
     case 'quote': return <blockquote key={i}><p>{r(b.children)}</p></blockquote>;
     case 'code': return <pre key={i}><code>{b.text}</code></pre>;
     case 'list': {
@@ -88,15 +101,33 @@ function block(b: NoteBlock, i: number, ctx: Ctx, onTick: Tick | undefined, id: 
  * Session AV lane 2 (r3-notes; LEDGER #268, Obsidian's outline): a note with two headings or more lists them above it, in
  * a fold (closed, so a phone's first screen keeps the words); each jumps to its section and puts focus on that heading.
  */
-function Outline({blocks, id}: {blocks: readonly NoteBlock[]; id: string}) {
+function Outline({blocks, id, onReveal}: {blocks: readonly NoteBlock[]; id: string; /** LEDGER #313: opens the folds hiding a heading. */ onReveal?: (i: number) => void}) {
   const heads = blocks.flatMap((b, i) => b.type === 'heading' ? [{i, level: b.level, words: plainText([b]).trim()}] : []);
   if (heads.length < 2) return null;
-  const go = (i: number) => { const el = document.getElementById(`${id}-h${i}`); if (!el) return; el.scrollIntoView({block: 'start'}); el.focus({preventScroll: true}); };
+  const go = (i: number) => {
+    onReveal?.(i);
+    requestAnimationFrame(() => { const el = document.getElementById(`${id}-h${i}`); if (!el) return; el.scrollIntoView({block: 'start'}); el.focus({preventScroll: true}); });
+  };
   return <nav className="note-outline" aria-label="Outline of this note"><details><summary>Outline <span className="fine">· {heads.length} headings</span></summary>
     <ol>{heads.map(h => <li key={h.i} data-level={h.level}><button type="button" className="text-link" onClick={() => go(h.i)}>{h.words || 'Untitled heading'}</button></li>)}</ol>
   </details></nav>;
 }
-export function NoteRender({text, index, onCreate, onTick, onTag, photos, outline = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #306: a #tag pressed. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids the note keeps (a photo line draws only these). */ photos?: readonly string[]; /** LEDGER #268: list the headings above. */ outline?: boolean}) {
-  const blocks = useMemo(() => parseBlocks(text, {notes: true}), [text]), id = useId(), ctx: Ctx = {index, onCreate, onTag, photos};
-  return <>{outline && <Outline blocks={blocks} id={id}/>}<div className="note-render">{blocks.map((b, i) => block(b, i, ctx, onTick, id))}</div></>;
+export function NoteRender({text, index, onCreate, onTick, onTag, photos, outline = false, fold = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #306: a #tag pressed. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids the note keeps (a photo line draws only these). */ photos?: readonly string[]; /** LEDGER #268: list the headings above. */ outline?: boolean; /** LEDGER #313: headings fold their sections. */ fold?: boolean}) {
+  const blocks = useMemo(() => parseBlocks(text, {notes: true}), [text]), id = useId();
+  const levels = useMemo(() => blocks.map(b => b.type === 'heading' ? b.level : null), [blocks]);
+  // The folds belong to this text: a changed text starts open (its block numbers move).
+  const [kept, setKept] = useState<{text: string; folded: ReadonlySet<number>}>(() => ({text, folded: new Set()}));
+  const folded = kept.text === text ? kept.folded : NO_FOLDS;
+  const setFolded = (next: ReadonlySet<number> | ((f: ReadonlySet<number>) => ReadonlySet<number>)) => setKept(k => ({text, folded: typeof next === 'function' ? next(k.text === text ? k.folded : NO_FOLDS) : next}));
+  const hidden = useMemo(() => hiddenBlocks(levels, folded), [levels, folded]), can = useMemo(() => foldable(levels), [levels]);
+  const toggle = (i: number) => setFolded(f => { const next = new Set(f); if (next.has(i)) next.delete(i); else next.add(i); return next; });
+  const reveal = (i: number) => setFolded(f => { const open = foldsHiding(levels, f, i); return open.length ? new Set([...f].filter(h => !open.includes(h))) : f; });
+  const folds: Folds | undefined = fold && can.length ? {folded, size: i => sectionSize(levels, i), toggle} : undefined;
+  const ctx: Ctx = {index, onCreate, onTag, photos, fold: folds};
+  return <>{outline && <Outline blocks={blocks} id={id} onReveal={folds ? reveal : undefined}/>}
+    {folds && <div className="note-fold-all" role="group" aria-label="Fold the sections of this note">
+      <button type="button" className="quiet" disabled={can.every(i => folded.has(i))} onClick={() => setFolded(new Set(can))}>Fold all</button>
+      <button type="button" className="quiet" disabled={!folded.size} onClick={() => setFolded(new Set())}>Open all</button>
+    </div>}
+    <div className="note-render">{blocks.map((b, i) => hidden.has(i) ? null : block(b, i, ctx, onTick, id))}</div></>;
 }

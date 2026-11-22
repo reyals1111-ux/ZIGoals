@@ -328,3 +328,13 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-find-count, .note-find-context { margin: 0; overflow-wrap: anywhere; }
 .note-find-context mark { color: inherit; background: color-mix(in srgb, var(--brand-cyan, #63e7ff) 34%, transparent); border-radius: 3px; padding: 0 2px; }
 .note-find .switch-row { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #313): folding a note's sections while reading. No motion. */
+.note-fold-all { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 4px; }
+.note-fold-all > button { min-height: 44px; }
+.note-fold-head { display: flex; align-items: center; gap: 4px 6px; flex-wrap: wrap; }
+.note-fold-head > h3, .note-fold-head > h4, .note-fold-head > h5 { margin-block: 8px; flex: 1 1 auto; min-inline-size: 0; overflow-wrap: anywhere; }
+.note-fold-toggle { display: inline-grid; place-items: center; min-inline-size: 44px; min-block-size: 44px; margin-inline-start: -10px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: inherit; font: inherit; font-size: 16px; cursor: pointer; }
+.note-fold-toggle:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.note-fold-toggle:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
+.note-folded-count { flex-basis: 100%; margin: -6px 0 6px 38px; }

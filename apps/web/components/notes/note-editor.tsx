@@ -93,7 +93,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       </div>
       {finding && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteFind value={body} onChange={setBody} field={() => box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea') ?? null} onClose={closeFind}/></Suspense></LoadBoundary>}
     </> : <>
-      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} photos={note ? notePhotoIdsOf(note) : undefined} outline/>
+      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} photos={note ? notePhotoIdsOf(note) : undefined} outline fold/>
       {note && fieldTags(note).length > 0 && <p className="note-tag-line"><span className="fine">Tags: </span>{fieldTags(note).map(t => onTag ? <button key={t} type="button" className="note-tag" aria-label={`#${t}: show the notes with this tag`} onClick={() => onTag(t)}>#{t}</button> : <span key={t} className="note-tag">#{t}</span>)}</p>}
       {note && /@remind|!remind|@herinner|⏰/i.test(note.body) && <LoadBoundary quiet><Suspense fallback={null}><NoteReminderChips note={note}/></Suspense></LoadBoundary>}
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button>

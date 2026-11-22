@@ -119,3 +119,20 @@ before (an archived note in its list; only the first photo).
   earlier words under Earlier versions."
 - What's new: "Notes: find and replace inside a note."
 - Showcase: none needed. CSS touched: `components/notes/notes.css`. Today: nothing added.
+
+### F5 Fold a section — LEDGER #313 (Bear)
+
+- Verdict: **built**.
+- What: in the reading view, each heading with words under it has a fold button before it ("Fold “Packing”", 44 px,
+  aria-expanded): it folds the blocks under it up to the next heading of its level or higher (a heading inside goes
+  with it), and says "3 parts folded". "Fold all" and "Open all" (a group above the words) do every heading. Round 3's
+  outline opens the folds hiding a heading before it jumps there. For this visit only; a changed text starts open.
+  Nothing stored; no motion.
+- Files: new `lib/notes/fold.ts`; `components/notes/note-render.tsx`, `components/notes/note-editor.tsx` (`fold` on),
+  `components/notes/notes.css`.
+- Tests: `lib/notes/r4-fold.test.ts`. Spec: `tests/av2-notes-fold.spec.ts`.
+- Stored: nothing.
+- Help (EN). Q: "Can I fold part of a long note?" A: "Yes. When you read a note, press the small arrow before a heading
+  to fold what is under it, and again to open it. Fold all and Open all do every heading. The folds last for this visit."
+- What's new: "Notes: fold a section under its heading, or fold them all."
+- Showcase: none needed (a note with headings shows it). CSS touched: `components/notes/notes.css`. Today: nothing added.
