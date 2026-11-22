@@ -1,0 +1,5 @@
+/* Session AV lane 2 (journal; LEDGER #176): the daily affirmation on Today's journal card. Theme tokens only, no motion. */
+.today-affirmation { margin: 8px 0 0; font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.today-affirmation-label { margin-right: 4px; }
+.today-affirmation-text { font-style: italic; color: var(--text-strong, var(--text)); }
+.today-affirmation-next { min-height: 44px; display: inline-flex; align-items: center; }

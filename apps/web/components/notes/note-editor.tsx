@@ -7,6 +7,7 @@ import {SecretGuard} from '../secret-guard/secret-guard';
 import {ConfirmInline} from '../ui/confirm-inline';
 import {MAX_BODY, MAX_TITLE, noteName, shortNoteName, type Note, type Notes} from '../../lib/notes/schema';
 import {ensureDaily, removeNote, updateNote, type NotesUndo} from '../../lib/notes/store';
+import {updateNoteKeepingVersion} from '../../lib/notes/versions';
 import type {LinkIndex} from '../../lib/notes/links';
 import {deleteNotePhoto, getNotePhoto} from '../../lib/notes/photos';
 import {keepCapturePhoto} from '../../lib/notes/capture';
@@ -16,6 +17,8 @@ import {formatDate} from '../../lib/visual-format';
 const NoteBacklinks = lazy(() => import('./note-backlinks'));
 // Session AV lane 2 (LEDGER #31): the "@remind" lines of this note, in their own chunk.
 const NoteReminderChips = lazy(() => import('./note-reminders'));
+// Session AV lane 2 (notes; LEDGER #33): a note's earlier versions, loaded when their fold opens.
+const NoteVersions = lazy(() => import('./note-versions'));
 
 /**
  * Session AK (B1–B3): one note — read it (Markdown with live [[links]]) or edit it (with [[ autocomplete), its photo,
@@ -23,19 +26,24 @@ const NoteReminderChips = lazy(() => import('./note-reminders'));
  * so opening a day never writes anything. The secret guard watches the words (in LinkField).
  */
 export type Change = (fn: (r: Notes) => Notes | {record: Notes; undo: NotesUndo}, said: string, undo?: NotesUndo | null) => boolean;
-export function NoteEditor({note, day, index, change, onCreateLink, onDeleted}: {
+export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, start, record}: {
   note: Note | null; day?: string; index: LinkIndex; change: Change; onCreateLink: (name: string) => void; onDeleted?: () => void;
+  /** Session AV lane 2 (notes; LEDGER #33): the record, for the note's earlier versions. */ record?: Notes;
+  /** Session AV lane 2 (notes; LEDGER #32): the words a new daily note starts from (its template), written only on Save. */ start?: string;
 }) {
-  const [title, setTitle] = useState(note?.title ?? ''), [body, setBody] = useState(note?.body ?? '');
+  const [title, setTitle] = useState(note?.title ?? ''), [body, setBody] = useState(note?.body ?? start ?? '');
   const [mode, setMode] = useState<'read' | 'edit'>(note?.body.trim() ? 'read' : 'edit');
+  const [versionsOpen, setVersionsOpen] = useState(false);
   const dirty = (note?.title ?? '') !== title || (note?.body ?? '') !== body;
+  const untouchedStart = !note && !!start && body === start; // a template not written in yet is not saved as a note
   const isDaily = note ? note.kind === 'daily' : !!day;
   const save = (): boolean => {
     const now = new Date().toISOString();
     if (!note && day) return change(r => { const d = ensureDaily(r, day, now); return updateNote(d.record, d.note.id, {body}, now); }, 'Saved on this device.');
     if (!note) return false;
-    if (!isDaily && !title.trim() && note.kind !== 'inbox') { setTitle(note.title); return change(r => updateNote(r, note.id, {body}, now), 'Saved on this device. A note keeps its title.'); }
-    return change(r => updateNote(r, note.id, isDaily ? {body} : {title, body}, now), 'Saved on this device.');
+    // Session AV lane 2 (notes; LEDGER #33): a save keeps the words it replaces as an earlier version.
+    if (!isDaily && !title.trim() && note.kind !== 'inbox') { setTitle(note.title); return change(r => updateNoteKeepingVersion(r, note.id, {body}, now), 'Saved on this device. A note keeps its title.'); }
+    return change(r => updateNoteKeepingVersion(r, note.id, isDaily ? {body} : {title, body}, now), 'Saved on this device.');
   };
   const saveAndRead = () => { if (!dirty || save()) setMode('read'); };
   const heading = note ? (note.kind === 'daily' && note.day ? formatDate(note.day, {weekday: true}) : noteName(note)) : day ? formatDate(day, {weekday: true}) : '';
@@ -46,7 +54,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted}: 
       {/* Session AK G2 (RELEASE_REVIEW_2 R2-18): `[[` is explained here, in the field, where it is used. */}
       <LinkField label={isDaily ? 'This day’s note' : 'Note'} placeholder="Write here. Type [[ to link a goal, a habit or another note." value={body} onChange={setBody} index={index} exclude={note ? {kind: 'note', id: note.id} : undefined} maxLength={MAX_BODY} onSubmit={saveAndRead} rows={isDaily ? 6 : 10}/>
       <div className="note-actions">
-        <button type="button" className="primary" disabled={!dirty} onClick={saveAndRead}>Save</button>
+        <button type="button" className="primary" disabled={!dirty || untouchedStart} onClick={saveAndRead}>Save</button>
         {(note?.body.trim() || body.trim()) && <button type="button" className="quiet" onClick={() => { if (dirty) { setTitle(note?.title ?? ''); setBody(note?.body ?? ''); } setMode(note?.body.trim() ? 'read' : 'edit'); }}>{dirty ? 'Cancel changes' : 'Done'}</button>}
         <span className="fine">{body.length.toLocaleString('en-US')} / {MAX_BODY.toLocaleString('en-US')}</span>
       </div>
@@ -56,6 +64,9 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted}: 
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button></div>
     </>}
     {note && <NoteExtras note={note} change={change} onDeleted={onDeleted}/>}
+    {note && record && <details className="note-fold note-versions-fold" onToggle={e => setVersionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Earlier versions <span className="fine">· {(record.versions ?? []).filter(v => v.noteId === note.id).length || 'none yet'}</span></summary>
+      {versionsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteVersions note={note} record={record} change={change} onRestored={v => { setBody(v.body); if (!isDaily && v.title) setTitle(v.title); setMode('read'); }}/></Suspense></LoadBoundary>}
+    </details>}
     {note && <LoadBoundary quiet><Suspense fallback={null}><NoteBacklinks kind="note" id={note.id} name={isDaily && note.day ? note.day : noteName(note)} teach={false}/></Suspense></LoadBoundary>}
   </article>;
 }

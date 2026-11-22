@@ -9,7 +9,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -43,6 +43,12 @@ export type PlanInput = {
    * countdownWakes): the day, the countdown's id, how many days are left then; its title only where names are allowed.
    */
   countdowns?: {id: string; title?: string; date: string; days: number}[];
+  /**
+   * Session AV lane 2 (journal; LEDGER #40, Day One): the reminder to write the person set in the Journal
+   * (lib/journal/reminder.ts reminderPlanInput): its time and weekdays, the days of the window already written, and the
+   * streak a new entry keeps. Never a word of the journal.
+   */
+  journal?: {time: string; weekdays: number; written: readonly string[]; streak: number};
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -76,6 +82,9 @@ export function buildPlan(input: PlanInput): Plan {
   if (typeOn(prefs, 'water') && input.water) { const w = input.water; daily('water', 'water', w.time, EVERY, () => ({...(w.toGo ? {detail: `${w.toGo} to go`} : {}), href: '/app/health', actionable: false}), date => date === today && w.done); }
   if (typeOn(prefs, 'windDown') && input.windDown) { const w = input.windDown; daily('windDown', 'wind-down', w.time, EVERY, () => ({href: '/app/health?view=sleep', actionable: false}), date => date === today && w.doneToday); }
   if (typeOn(prefs, 'review') && input.review) daily('review', 'review', input.review.time, weekdayBit(input.review.weekday), () => ({href: '/app/review', actionable: false}), () => false);
+  // Session AV lane 2 (journal; LEDGER #40): the reminder to write, on its weekdays, unless that day already has an entry;
+  // its line keeps the streak ("keeps your 4-day streak"), a count only, never a word of the journal.
+  if (typeOn(prefs, 'journal') && input.journal) { const j = input.journal; daily('journal', 'journal', j.time, j.weekdays & EVERY, () => ({...(j.streak > 0 ? {detail: `keeps your ${j.streak}-day streak`} : {}), href: '/app/journal', actionable: false}), date => j.written.includes(date)); }
   if (typeOn(prefs, 'morning')) daily('morning', 'morning', morningTime(prefs), EVERY, () => ({href: '/app/checklist', actionable: false}), () => false);
   if (typeOn(prefs, 'evening')) daily('evening', 'evening', eveningTime(prefs), EVERY, () => ({href: '/app/review', actionable: false}), () => false);
   // One-off wakes: contributions on the days they are due (today, tomorrow), bills on the morning before they are due.

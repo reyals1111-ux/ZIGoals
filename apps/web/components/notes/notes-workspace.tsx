@@ -16,6 +16,7 @@ import {noteName} from '../../lib/notes/schema';
 import {addTopic, dailiesOf, dailyNoteOf, inboxOf, topicsOf} from '../../lib/notes/store';
 import {linkKey, noteHref} from '../../lib/notes/links';
 import {sweepNotePhotos} from '../../lib/notes/photos';
+import {dailyStart, dueSchedules, everyWords, runSchedules, schedulesOf} from '../../lib/notes/schedules';
 import {photoScope} from '../../lib/health-aa/photos';
 import './notes.css';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
@@ -27,6 +28,13 @@ const GraphView = lazy(() => import('./graph-view'));
 const NotesFiles = lazy(() => import('./notes-files'));
 /** Session AK WA (B5): "Ask about my notes" through NOVA's chat (its permission, privacy mode and the person's own model). */
 const NotesAsk = lazy(() => import('./notes-ask'));
+// Session AV lane 2 (notes; LEDGER #32): repeating notes and the daily note template, each loaded when its fold opens.
+const NoteSchedules = lazy(() => import('./note-schedules'));
+const DailyTemplate = lazy(() => import('./daily-template'));
+// Session AV lane 2 (notes; LEDGER #29, #30): the notes as a table, a gallery or a chart, loaded when chosen.
+const NotesViews = lazy(() => import('./notes-views'));
+const LAYOUTS = [['list', 'List'], ['table', 'Table'], ['gallery', 'Gallery'], ['chart', 'Chart']] as const;
+type Layout = (typeof LAYOUTS)[number][0];
 
 /**
  * Session AK (B): the Notes page — built on the Journal's ideas, all on this device. Capture at the top; then Today (the
@@ -43,6 +51,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
   const {notes, status, change: changeNotes} = useNotes(), targets = useLinkTargets();
   const record = notes.data, index = useLinkIndex(record, targets), today = localDate();
   const [searching, setSearching] = useState(false);
+  const [layout, setLayout] = useState<Layout>('list'); // Session AV lane 2 (LEDGER #29, #30)
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
   const noteId = params.get('note'), dayParam = params.get('day'), capture = params.get('capture') === '1';
   const day = dayParam === 'today' || !dayParam ? today : DAY.test(dayParam) ? dayParam : today;
@@ -68,6 +77,16 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
     // Only on arrival: a photo deleted with its note during this visit can still come back with Undo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes.loaded]);
+  // Session AV lane 2 (notes; LEDGER #32): the repeating notes due for this period are made when Notes opens.
+  const [madeNote, setMadeNote] = useState(0);
+  useEffect(() => {
+    if (!notes.loaded || notes.unreadable || showcase || !dueSchedules(record, today).length) return;
+    let made = 0;
+    change(r => { const out = runSchedules(r, today, new Date().toISOString()); made = out.made.length; return out.record; }, '');
+    if (made) setTimeout(() => setMadeNote(made), 0);
+    // Once on arrival, and when the day changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes.loaded, today]);
   const createNote = (title: string) => {
     const name = title.trim(); if (!name) return;
     const existing = index.byKey.get(linkKey(name));
@@ -89,6 +108,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       <CaptureBox autoFocus={capture} showInboxLink={view !== 'inbox'}/>
     </section>
     {status && <p className="note-status" role="status" aria-live="polite">{status}</p>}
+    {madeNote > 0 && !status && <p className="note-status" role="status">{madeNote === 1 ? 'A repeating note was made for this period' : `${madeNote} repeating notes were made for this period`}: see <button type="button" className="text-link" onClick={() => { setMadeNote(0); go({view: 'notes'}); }}>Notes</button>.</p>}
 
     {/* "Open note", not "Note": the note's text box is labelled "Note", and the region around it shared that name (lane NV). */}
     {noteId && <section className="panel" aria-label="Open note">
@@ -96,7 +116,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       {open ? <>
         <h2 className="note-title">{/* Session AL (PR-107, P-PR-45): a note with no title of its own is not headed by its first line, which the note shows just below (it read twice) */open.kind === 'daily' && open.day ? formatDate(open.day, {weekday: true}) : open.title.trim() ? open.title.trim() : open.kind === 'inbox' ? `Inbox capture · ${formatDate(open.day ?? open.createdAt.slice(0, 10))}` : noteName(open)}{open.example && <span className="fine"> · Showcase example</span>}</h2>
         {open.kind === 'daily' && open.day && <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={open.day}/></Suspense></LoadBoundary>}
-        <NoteEditor key={open.id} note={open} index={index} change={change} onCreateLink={createNote} onDeleted={() => { const to: View = open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'; if (toastOf.current) toastOf.current.view = to; go({view: to}); }}/>
+        <NoteEditor key={open.id} note={open} record={record} index={index} change={change} onCreateLink={createNote} onDeleted={() => { const to: View = open.kind === 'inbox' ? 'inbox' : open.kind === 'daily' ? 'days' : 'notes'; if (toastOf.current) toastOf.current.view = to; go({view: to}); }}/>
       </> : <p className="fine">This note is not on this device. It may have been deleted. <Link className="text-link" href="/app/notes?view=notes">All notes</Link></p>}
     </section>}
 
@@ -108,8 +128,8 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         {day !== today && <button type="button" className="text-link" onClick={() => go({})}>Today</button>}
       </div>
       <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={day}/></Suspense></LoadBoundary>
-      <NoteEditor key={`day-${day}-${note?.id ?? 'new'}`} note={note} day={day} index={index} change={change} onCreateLink={createNote}/>
-      {!note && <p className="fine">A daily note for this day is made when you save.</p>}
+      <NoteEditor key={`day-${day}-${note?.id ?? 'new'}`} note={note} record={record} day={day} start={note ? undefined : dailyStart(record, day)} index={index} change={change} onCreateLink={createNote}/>
+      {!note && <p className="fine">A daily note for this day is made when you save.{record.dailyTemplate ? ' It starts from your daily note template (Days → Daily note template).' : ''}</p>}
     </section>; })()}
 
     {!noteId && view === 'inbox' && <section className="panel" aria-labelledby="note-inbox-title">
@@ -125,15 +145,22 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         <button type="submit" className="secondary" disabled={!newTitle.trim()}>Make note</button>
         <SecretGuard text={newTitle} onRemove={() => setNewTitle('')}/>
       </form>
+      <details className="note-fold note-schedules-fold"><summary>Repeating notes <span className="fine">· {schedulesOf(record).length ? schedulesOf(record).map(x => `${x.title} (${everyWords(x)})`).slice(0, 2).join(', ') : 'a note made every day, week or month'}</span></summary>
+        <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteSchedules record={record} change={change} today={today}/></Suspense></LoadBoundary>
+      </details>
       <NotesSearch notes={record.notes} onSearching={setSearching}/>
       <LoadBoundary quiet><Suspense fallback={null}><NotesRemindersPanel record={record}/></Suspense></LoadBoundary>
+      {topicsOf(record).length > 0 && !searching && <div className="note-layouts" role="group" aria-label="Show notes as">{LAYOUTS.map(([l, label]) => <button key={l} type="button" className="quiet" aria-pressed={layout === l} onClick={() => setLayout(l)}>{label}</button>)}</div>}
       {/* Session AL (PR-105, P-PR-43): while a search is typed, its results are the list (the full list no longer stays below "No note has those words.") */}
-      {searching ? null : topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
+      {searching ? null : topicsOf(record).length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? record.notes : topicsOf(record)} layout={layout} today={today}/></Suspense></LoadBoundary> : topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
         : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. A note that links a goal or a habit shows on its page.</p>}
     </section>}
 
     {!noteId && view === 'days' && <section className="panel" aria-labelledby="note-days-title">
       <h2 id="note-days-title">Days</h2>
+      <details className="note-fold note-daily-template-fold"><summary>Daily note template <span className="fine">· {record.dailyTemplate ? 'a new daily note starts from it' : 'a new daily note starts empty'}</span></summary>
+        <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><DailyTemplate record={record} change={change}/></Suspense></LoadBoundary>
+      </details>
       {dailiesOf(record).length ? <ul className="note-list">{dailiesOf(record).map(n => <li key={n.id}><Link href={`/app/notes?day=${n.day}`}><strong>{formatDate(n.day!, {weekday: true})}</strong></Link><p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120) || 'No words yet.'}</p></li>)}</ul>
         : <p className="fine">No daily notes yet. <button type="button" className="text-link" onClick={() => go({})}>Write today&rsquo;s</button>: what you did shows beside it, from your habits, Health, money and goals.</p>}
     </section>}

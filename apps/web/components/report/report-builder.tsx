@@ -12,6 +12,9 @@ import {HEALTH_NUMBERS} from '../../lib/health-numbers/store';
 // Session AV (owner follow-up 1, F-REPORT-MORE): symptoms and factors, supplements and medication, as sections.
 import {SYMPTOMS} from '../../lib/symptoms/schema';
 import {SUPPLEMENTS} from '../../lib/supplements/schema';
+// Session AV lane 2 (journal; LEDGER #177, Daylio's PDF export): the Journal section, off unless the person includes it.
+import {JOURNAL} from '../../lib/journal/schema';
+import {hasJournalIn, journalReport} from '../../lib/journal/report';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
@@ -25,11 +28,12 @@ import './report.css';
  */
 const PRESETS = [{days: 30, label: '30 days'}, {days: 90, label: '90 days'}, {days: 365, label: 'A year'}] as const;
 export default function ReportBuilder() {
-  const today = useLocalToday(), health = useHealth(), habits = useHabits(), energy = useDeviceRecord(ENERGY), numbers = useDeviceRecord(HEALTH_NUMBERS), symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS), id = useId();
+  const today = useLocalToday(), health = useHealth(), habits = useHabits(), energy = useDeviceRecord(ENERGY), numbers = useDeviceRecord(HEALTH_NUMBERS), symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS), journalRecord = useDeviceRecord(JOURNAL), id = useId();
+  const [withJournal, setWithJournal] = useState(false); // private by default: off on every open
   const [from, setFrom] = useState(() => addLocalDays(today, -29)), [to, setTo] = useState(today);
   const [chosen, setChosen] = useState<ReadonlySet<ReportSectionId>>(() => new Set(['sleep', 'mood', 'notes', 'weight']));
   const [shown, setShown] = useState(false), opener = useRef<HTMLButtonElement>(null);
-  const ready = health.loaded && habits.loaded && energy.loaded && numbers.loaded && symptoms.loaded && supplements.loaded;
+  const ready = health.loaded && habits.loaded && energy.loaded && numbers.loaded && symptoms.loaded && supplements.loaded && journalRecord.loaded;
   const records = useMemo(() => ({health: health.loaded && !health.error ? health.data : null, habits: habits.loaded && !habits.error ? habits.data : null, energy: energy.loaded && !energy.unreadable ? energy.data : null, numbers: numbers.loaded && !numbers.unreadable ? numbers.data : null, symptoms: symptoms.loaded && !symptoms.unreadable ? symptoms.data : null, supplements: supplements.loaded && !supplements.unreadable ? supplements.data : null}), [health.loaded, health.error, health.data, habits.loaded, habits.error, habits.data, energy.loaded, energy.unreadable, energy.data, numbers.loaded, numbers.unreadable, numbers.data, symptoms.loaded, symptoms.unreadable, symptoms.data, supplements.loaded, supplements.unreadable, supplements.data]);
   const valid = /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to);
   const range = valid ? reportRange(from, to, today) : null;
@@ -52,9 +56,14 @@ export default function ReportBuilder() {
       {REPORT_SECTIONS.map(s => <label key={s} className="check-row report-check"><input type="checkbox" checked={chosen.has(s)} onChange={e => toggle(s, e.target.checked)}/> <span>{SECTION_LABELS[s]}{!has[s] && <span className="fine"> · nothing logged in these dates</span>}</span></label>)}
       <p className="fine">Symptoms and factors are the ratings you gave in Health; supplements and medication are the doses you logged there, as you wrote them. Notes are the short ones you wrote with a mood or a night.</p>
     </fieldset>
-    <p><button ref={opener} type="button" className="primary" disabled={!valid || chosen.size === 0} aria-describedby={`${id}-note`} onClick={() => setShown(true)}>Show the report</button></p>
+    {/* Session AV lane 2 (journal; LEDGER #177): the journal is its own, private part — off on every open, never with the others. */}
+    <fieldset className="report-sections report-private"><legend>Private</legend>
+      <label className="check-row report-check report-check-private"><input type="checkbox" checked={withJournal} onChange={e => setWithJournal(e.target.checked)}/> <span>Journal entries, as written <span className="fine">· private: only when you tick this{valid && range && !hasJournalIn(journalRecord.loaded && !journalRecord.unreadable ? journalRecord.data : null, range) ? ' · nothing written in these dates' : ''}</span></span></label>
+      <p className="fine">Your journal stays out of a report unless you tick this, each time you make one.</p>
+    </fieldset>
+    <p><button ref={opener} type="button" className="primary" disabled={!valid || (chosen.size === 0 && !withJournal)} aria-describedby={`${id}-note`} onClick={() => setShown(true)}>Show the report</button></p>
     <p id={`${id}-note`} className="fine">It opens over this page. Print it, or choose “Save as PDF” in the print window. Nothing leaves this device unless you share the file.</p>
-    {report && <ReportOverlay onClose={close}><ReportDocument report={report} weightUnit={records.health ? dailyData(records.health).preferences.weightUnit : 'kg'} showcase={isShowcase()}/></ReportOverlay>}
+    {report && <ReportOverlay onClose={close}><ReportDocument report={report} weightUnit={records.health ? dailyData(records.health).preferences.weightUnit : 'kg'} showcase={isShowcase()} journal={withJournal && range && journalRecord.loaded && !journalRecord.unreadable ? journalReport(journalRecord.data, range, records.energy) : null}/></ReportOverlay>}
   </div>;
 }
 

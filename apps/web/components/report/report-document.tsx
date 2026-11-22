@@ -1,4 +1,7 @@
 'use client';
+// Session AV lane 2 (journal; LEDGER #177): the Journal section, private unless included.
+import {ReportJournal} from './report-journal';
+import type {JournalReportSection} from '../../lib/journal/report';
 import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
 import type {Report} from '../../lib/clinician-report/build';
 import {weightChangeText, weightText, type WeightUnit} from '../../lib/health-units';
@@ -73,7 +76,7 @@ function Wide({label, children}: {label: string; children: ReactNode}) {
 }
 const More = ({n, what}: {n: number; what: string}) => n > 0 ? <p className="report-more">{n} more {what} in these dates are not listed here.</p> : null;
 
-export function ReportDocument({report: r, weightUnit, showcase}: {report: Report; weightUnit: WeightUnit; showcase: boolean}) {
+export function ReportDocument({report: r, weightUnit, showcase, journal}: {report: Report; weightUnit: WeightUnit; showcase: boolean; /** Session AV lane 2 (LEDGER #177): the Journal section, only when the person included it. */ journal?: JournalReportSection | null}) {
   const none = <p className="report-none">Nothing logged in these dates.</p>;
   return <article className="report-sheet" aria-label="Report">
     <header className="report-head">
@@ -138,6 +141,7 @@ export function ReportDocument({report: r, weightUnit, showcase}: {report: Repor
         <Wide label="Doses logged"><table><thead><tr><th scope="col">Name</th><th scope="col">Dose</th><th scope="col">Planned doses</th><th scope="col">Taken</th><th scope="col">Skipped</th><th scope="col">Not logged</th></tr></thead>
           <tbody>{r.supplements.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'medication' ? ' (medication)' : ''}</th><td>{s.dose ?? '—'}</td><td>{s.planned ?? 'as needed'}</td><td>{s.taken}</td><td>{s.skipped}</td><td>{s.notLogged ?? '—'}</td></tr>)}</tbody></table></Wide></> : none}
     </section>}
+    {journal && <ReportJournal section={journal}/>}
     <footer className="report-foot"><p>Made on the person&rsquo;s own device with ZIGoals. Nothing in this report was uploaded.</p></footer>
   </article>;
 }
