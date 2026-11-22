@@ -3,8 +3,11 @@ import {useEffect, useId, useRef, useState} from 'react';
 import {GROUNDING, GROUNDING_WORDS, GROUNDING_WORD_MAX, groundingLine, stepWords} from '../../../lib/calm/grounding';
 import {HELP_LINE} from '../../../lib/calm/help-line';
 import {addLowDayLine, LOW_DAY, LOW_DAY_LINE_MAX, LOW_DAY_MAX, LOW_DAY_NOTE_MAX, LOW_DAY_PARTS, LOW_DAY_WORDS, removeLowDayLine, restoreLowDayLine, setLowDayNote, type LowDayPart} from '../../../lib/calm/low-day';
-import {JOURNAL, type JournalEntry} from '../../../lib/journal/schema';
+import {JOURNAL} from '../../../lib/journal/schema';
 import {localDate} from '../../../lib/local-date';
+import {saveGroundingLine} from '../../../lib/calm/grounding-save';
+import {getAppStorage} from '../../../lib/showcase-storage';
+import {ZIGI_STORE_EVENT} from '../../../lib/ai/store/keys';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {showUndo} from '../../ui/undo-toast';
 import './body-r6.css';
@@ -29,9 +32,11 @@ function Grounding() {
   const restart = () => { setAnswers(GROUNDING.map(x => Array.from({length: x.count}, () => ''))); setStatus(''); setStep(0); };
   function save() {
     if (!line) { setStatus(w.nothing); return; }
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: localDate(), text: line, createdAt: new Date().toISOString()};
-    try { journal.update(current => ({...current, entries: [...current.entries, entry].slice(-5000)})); setStatus(w.saved); }
-    catch { setStatus(lang === 'nl' ? 'Dit kon niet op dit apparaat worden bewaard. Er is niets veranderd.' : 'This could not be saved on this device. Nothing was changed.'); }
+    // Review B6P-1: an unreadable journal is never written over; the words stay on screen.
+    try {
+      if (saveGroundingLine(getAppStorage(), line, localDate()) === 'unreadable') { setStatus(w.unreadable); return; }
+      window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: JOURNAL.key})); setStatus(w.saved);
+    } catch { setStatus(lang === 'nl' ? 'Dit kon niet op dit apparaat worden bewaard. Er is niets veranderd.' : 'This could not be saved on this device. Nothing was changed.'); }
   }
   return <div className="r6-grounding" lang={lang}>
     <p className="fine">{w.about}</p>
@@ -48,7 +53,8 @@ function Grounding() {
     </section> : <section className="r6-grounding-step" aria-labelledby={`${id}-done`}>
       <h4 id={`${id}-done`} ref={heading} tabIndex={-1}>{w.done}</h4>
       {line && <p className="fine">{line}</p>}
-      <div className="r6-row">{line && <button type="button" className="secondary" onClick={save}>{w.save}</button>}<button type="button" className="quiet" onClick={restart}>{w.again}</button></div>
+      {line && journal.loaded && journal.unreadable && <p className="fine">{w.unreadable}</p>}
+      <div className="r6-row">{line && !(journal.loaded && journal.unreadable) && <button type="button" className="secondary" onClick={save}>{w.save}</button>}<button type="button" className="quiet" onClick={restart}>{w.again}</button></div>
     </section>}
     <p className="fine" role="status" aria-live="polite">{status}</p>
   </div>;

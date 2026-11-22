@@ -25,3 +25,16 @@ export function updateDeviceRecord<T>(storage: ReadWrite, spec: DeviceRecordSpec
   storage.setItem(spec.key, JSON.stringify(next));
   return next;
 }
+/**
+ * Review B6P-1 and B6P-4 (Session AV lane 2, r6-body): a writer that adds to a record the person keeps (a line in the
+ * journal, a line to bring up at a visit) from somewhere other than that record's own page. When what this device holds
+ * cannot be read, nothing is written and null comes back, so the record is never replaced by the empty value plus one
+ * line; otherwise exactly `updateDeviceRecord`.
+ */
+export function addToDeviceRecord<T>(storage: ReadWrite, spec: DeviceRecordSpec<T>, change: (current: T) => T): T | null {
+  const read = readDeviceRecord(storage, spec);
+  if (read.unreadable) return null;
+  const next = spec.schema.parse(change(read.data));
+  storage.setItem(spec.key, JSON.stringify(next));
+  return next;
+}
