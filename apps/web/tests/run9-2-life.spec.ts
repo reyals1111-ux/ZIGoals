@@ -21,7 +21,9 @@ test('Life dashboards use Showcase records and expose exact history and working 
   await expect(page.getByRole('region', { name: 'Nutrition history table', exact: true })).not.toBeVisible();
   await expect(page.getByRole('region', { name: 'Nutrition patterns' })).toContainText('Showcase example history');
   await page.getByText('View nutrition history table', { exact: true }).click();
-  await expect(page.getByRole('table')).toContainText('1,970 kcal');
+  // Session AV lane 2 (CI run 2007; deliberate): Insights also holds lane 2's "Protein by part of the day" table, so the
+  // history table is found in its own region and by its caption (stricter than the page's only table).
+  await expect(page.getByRole('region', {name: 'Nutrition history table', exact: true}).getByRole('table', {name: 'Showcase example nutrition · last 30 days', exact: true})).toContainText('1,970 kcal');
   await page.getByRole('link', { name: 'Breakfast', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Breakfast diary' })).toBeInViewport();
   await page.getByRole('button', { name: 'Edit Berry overnight oats', exact: true }).click();
