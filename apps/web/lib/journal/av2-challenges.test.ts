@@ -13,6 +13,12 @@ describe('the small daily challenge', () => {
       for (const c of list) { expect(c.length, c).toBeLessThanOrEqual(70); expect(c, c).toMatch(/\.$/); expect(c, c).not.toMatch(/\b(?:must|should|weight|calorie|diet|money|buy|spend|streak|moet|gewicht|calorie|dieet|geld|koop|reeks)\b/i); }
     }
   });
+  test('review b2b #6: nothing needs anyone else to take part, in English or Dutch', () => {
+    for (const c of CHALLENGES) expect(c, c).not.toMatch(/\b(?:someone|somebody|anyone|anybody|a friend|others?|people|together)\b/i);
+    for (const c of CHALLENGES_NL) expect(c, c).not.toMatch(/\b(?:iemand|niemand|een vriend(?:in)?|anderen|mensen|samen)\b/i);
+    expect(CHALLENGES).toContain('Ask yourself how you are, and listen to the answer.');
+    expect(CHALLENGES_NL[CHALLENGES.indexOf('Ask yourself how you are, and listen to the answer.')]).toBe('Vraag jezelf hoe het gaat en luister naar het antwoord.');
+  });
   test('one a day, the same for everyone that day, beside (not equal to) the affirmation; Another one steps on; Dutch in the same place', () => {
     const today = challengeOfTheDay('2026-11-23'), next = challengeOfTheDay('2026-11-23', 1);
     expect(today).not.toBe(next);

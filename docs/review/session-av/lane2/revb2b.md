@@ -61,3 +61,18 @@ there). One commit per finding. No stored format changes in any of them; no new 
 - Seen in passing, not changed (outside this finding): Checklist's skip (components/checklist/list-extras.tsx:90, "Skipped
   from the Checklist") writes its words over a day's note the same way.
 - Help / What's new: none needed (a fix).
+
+## B2B-6 Minor: four daily challenges needed another person
+
+- Verdict: fixed (the list now keeps its own rule).
+- Fix: in apps/web/lib/journal/challenges.ts the four challenges that needed someone else are replaced, in the same
+  places in English and Dutch (so a day's challenge and its Dutch line stay paired; 28 in each): "Smile at yourself in
+  the mirror." / "Glimlach naar jezelf in de spiegel."; "Write down one thing you are thankful for today." / "Schrijf één
+  ding op waar je vandaag dankbaar voor bent."; "Give yourself one honest compliment." / "Geef jezelf één eerlijk
+  compliment."; "Ask yourself how you are, and listen to the answer." / "Vraag jezelf hoe het gaat en luister naar het
+  antwoord." Stored: nothing (the journal keeps only the day of Done, `challengeDone`).
+- Tests: `apps/web/lib/journal/av2-challenges.test.ts` → "review b2b #6: nothing needs anyone else to take part" (no
+  someone/anyone/friend/others/people/together, NL iemand/anderen/mensen/samen; the pairs stay in place). The existing
+  length, kindness and word checks pass unchanged.
+- Spec: none needed (av2-challenge-write-out.spec reads the card, not a given line).
+- Help / What's new: none needed.
