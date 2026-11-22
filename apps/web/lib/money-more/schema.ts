@@ -51,6 +51,32 @@ export const plannedSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(60), amount: amountText, currency: currencyCode, date: day,
   category: name.optional().catch(undefined),
 });
+/**
+ * Session AV lane 2, round 4 (money; Lunch Money's Query Tool): a money search kept with a name, shown as a chart. Only
+ * the filters (never an entry or an amount found); each one optional and dropped on read when unreadable.
+ */
+export const MAX_QUESTIONS = 10, MAX_PLACES = 20, MAX_PLACE_PAYEES = 40;
+const filterText = z.string().trim().min(1).max(80);
+export const questionSchema = z.looseObject({
+  id, name: z.string().trim().min(1).max(60),
+  text: filterText.optional().catch(undefined), not: filterText.optional().catch(undefined), payee: filterText.optional().catch(undefined),
+  kind: z.enum(['expense', 'income']).optional().catch(undefined), category: name.optional().catch(undefined), sub: name.optional().catch(undefined),
+  from: day.optional().catch(undefined), to: day.optional().catch(undefined),
+  min: amountText.optional().catch(undefined), max: amountText.optional().catch(undefined),
+  counted: z.enum(['counted', 'left-out']).optional().catch(undefined), tax: z.literal(true).optional().catch(undefined),
+  paidWith: z.enum(['cash', 'debit', 'credit', 'transfer', 'other', 'unmarked']).optional().catch(undefined), tag: z.string().min(1).max(24).optional().catch(undefined),
+  /** How the chart is drawn: by month (missing), by week or by category. */
+  by: z.enum(['week', 'category']).optional().catch(undefined),
+});
+/**
+ * Session AV lane 2, round 4 (money; Actual's payee locations, without location data): a place the person names
+ * ("Work", "The market") and the payees they logged while they chose it, so Quick log offers those first there. Typed
+ * names only: no coordinates, no map and no outside service; never on an entry; "Forget places" clears them.
+ */
+export const placeSchema = z.looseObject({
+  id, name: z.string().trim().min(1).max(40),
+  payees: z.array(z.string().trim().min(1).max(60)).max(MAX_PLACE_PAYEES).optional().catch(undefined),
+});
 export const moneyMoreSchema = z.looseObject({
   version: z.literal(1),
   saved: z.array(savedEntrySchema).max(MAX_SAVED).optional().catch(undefined),
@@ -67,12 +93,21 @@ export const moneyMoreSchema = z.looseObject({
   planned: z.array(plannedSchema).max(MAX_PLANNED).optional().catch(undefined),
   /** Session AV lane 2, round 3 (money; Simplifi's projected cash flow): the forecast's length (missing: 60 days). */
   forecast: z.enum(['6m', '12m']).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 4 (money), TIER 3 (stored format), additive and optional, dropped on read when unreadable:
+   * `questions`, up to ten saved money searches with a chart (Lunch Money's Query Tool), and `places`, up to twenty
+   * typed place names with their payees (Actual's payee locations, without location data).
+   */
+  questions: z.array(questionSchema).max(MAX_QUESTIONS).optional().catch(undefined),
+  places: z.array(placeSchema).max(MAX_PLACES).optional().catch(undefined),
 });
 export type SavedEntry = z.infer<typeof savedEntrySchema>;
 export type OwnBudget = z.infer<typeof ownBudgetSchema>;
 export type Owed = z.infer<typeof owedSchema>;
 export type Loan = z.infer<typeof loanSchema>;
 export type PlannedCost = z.infer<typeof plannedSchema>;
+export type SavedQuestion = z.infer<typeof questionSchema>;
+export type PayeePlace = z.infer<typeof placeSchema>;
 export type MoneyMore = z.infer<typeof moneyMoreSchema>;
 export const emptyMoneyMore = (): MoneyMore => ({version: 1});
 export const MONEY_MORE: DeviceRecordSpec<MoneyMore> = {key: MONEY_MORE_KEY, schema: moneyMoreSchema, empty: emptyMoneyMore};
