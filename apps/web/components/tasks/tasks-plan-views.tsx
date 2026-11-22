@@ -170,7 +170,7 @@ function TableView({list, goals, record, today}: {list: List; goals: Goals; reco
     {rows.length ? <div className="tasks-table-frame" role="region" aria-labelledby={`${id}-title`} tabIndex={0}>
       <table className="tasks-table"><thead><tr><th scope="col"><span className="sr-only">Done</span></th>{TABLE_COLUMNS.map(c => <th key={c} scope="col" aria-sort={c === sort ? (dir === 'asc' ? 'ascending' : 'descending') : undefined}>
         <button type="button" className="tasks-sort" onClick={() => by(c)}>{COLUMN_WORDS[c]}<span aria-hidden="true">{c === sort ? (dir === 'asc' ? ' ▲' : ' ▼') : ''}</span></button></th>)}</tr></thead>
-        <tbody>{rows.map(t => <tr key={t.id}><td><input type="checkbox" aria-label={`Done: ${t.title}`} checked={false} onChange={() => list.toggle(t, true)} /></td>{TABLE_COLUMNS.map(c => c === 'title' ? <th key={c} scope="row">{cell(t, c)}</th> : <td key={c}>{cell(t, c)}</td>)}</tr>)}</tbody></table>
+        <tbody>{rows.map(t => <tr key={t.id}><td className="tasks-table-done"><label className="tasks-table-box"><input type="checkbox" aria-label={`Done: ${t.title}`} checked={false} onChange={() => list.toggle(t, true)} /></label></td>{TABLE_COLUMNS.map(c => c === 'title' ? <th key={c} scope="row">{cell(t, c)}</th> : <td key={c}>{cell(t, c)}</td>)}</tr>)}</tbody></table>
     </div> : <p className="fine">No open tasks{project ? ' in this project' : ''}. Add some, and sort them here by day, deadline, priority, length, or when they were added or changed.</p>}
     {rows.length > 0 && !edit.editor && <p className="fine">Choose a task’s name to change it.</p>}
     {edit.editor}

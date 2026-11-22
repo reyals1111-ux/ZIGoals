@@ -130,3 +130,10 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
   editor. In the Calendar, drag a task to another day, or choose Move and then Move here on the day (in a month, the
   day’s number). A day’s “+2 more” shows the rest."
 - What's new: "Open, edit and move tasks from the Table, Calendar and Timeline."
+
+## Minors
+
+### #8 Tasks Table: 44 px targets at 320 px
+- Verdict: fixed. The Done box sits in a 44 × 44 px label (`.tasks-table-box`, as task rows do); the sort buttons have
+  `min-width: 44px`. Files: components/tasks/tasks-plan-views.tsx, components/tasks/tasks-plan.css.
+- Spec (lead runs): apps/web/tests/revb1-table-targets.spec.ts. (No unit test: a size is a browser behaviour.)
