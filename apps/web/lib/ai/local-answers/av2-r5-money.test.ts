@@ -132,3 +132,15 @@ describe('merge two accounts (#387)', () => {
     expect(text(zigi('can I merge my accounts', freshAll()))).toMatch(/^No two of your accounts can be merged now/);
   });
 });
+
+describe('try a change on the forecast (#388)', () => {
+  const more = {version: 1 as const, whatIfs: [{id: 'w1', name: 'A trip', currency: 'EUR', changes: [{kind: 'once' as const, dir: 'out' as const, amount: '2000.00', from: '2027-01-10'}]}]};
+  const s = withAk({...freshAll(), accounts: {version: 1 as const, items: [cashAccount('Current account', '500000')]}}, {bills: {version: 1, bills: [], dismissed: []}, moneyMore: more});
+  test('English: each kept set, its lowest point beside the forecast’s', () => {
+    expect(text(zigi('what changes have I tried on my forecast', s))).toMatch(/^Kept changes, over the next 12 months: "A trip" \(1 change\): lowest about €3,000\.00 around .+, against €5,000\.00 without\. A model from your own records, not a plan; nothing is written to your records\.$/);
+  });
+  test('Dutch; none kept teaches', () => {
+    expect(text(zigi('welke wijzigingen heb ik op mijn prognose geprobeerd', s))).toContain('"A trip" (1 wijziging): het laagst ongeveer € 3.000,00');
+    expect(text(zigi('show my what if scenarios', freshAll()))).toMatch(/^No changes are kept\./);
+  });
+});

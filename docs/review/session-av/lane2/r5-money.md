@@ -187,3 +187,41 @@ corpus (`CORPUS`) nor round 4's (`AV2_R4_MONEY`), and the answers that run befor
 - Registries: none. CSS touched: `components/wealth/spending/money-r5.css`.
 - Today: nothing added. Each of What you own and What you owe gains one button ("Merge two") when it has two accounts or
   more (one Tab stop; the lead checks any Wealth Tab-stop ceiling that pins the group heads).
+
+### R5-F5 (group V7). Try a change on the forecast
+
+- LEDGER row: #388 PocketSmith what-if on the cash forecast — **built** (Wealth → Spending → Money tools → Next 60 days
+  (or 6 / 12 months) → "Try a change — a model", a fold that loads its own chunk when the forecast has a line: "A model,
+  not a plan"; up to three made-up changes, each "Once" on a day or "Each month" from a day (until a day, optional),
+  "More going out" or "More coming in", an amount (a sum works) and an optional name ("Rent more"); each is listed with
+  "Take out". The forecast's own line and the dashed line "with your changes (a model)" are drawn together with a key;
+  the lowest point of both and the end of both are said in words, with what the changes move in all; a change that falls
+  outside the forecast's length is said; a table week by week holds both lines. Nothing is written while trying; "Keep
+  these changes as …" keeps them by name on this device (up to five, the same name replacing), "Open" brings a kept set
+  back, "Remove" offers Undo and keeps the focus in the panel. Never written as entries, bills, budgets or plans).
+- Spending function used: none of its own. The second line is the forecast's own points (lib/cash-forecast/model.ts,
+  unchanged) with each change added from its day on (`withChanges` in lib/cash-forecast/what-if.ts, exact cents as
+  BigInt; a range moves with it). The forecast's everyday part already reads the money log as before.
+- Deviation from the ledger's file list, said here: the ledger named `lib/cash-forecast/model.ts` for "changes as extra
+  flows". The model is left untouched, so no forecast anywhere else (Today's low line, money notices, NOVA's tool) can
+  ever see a made-up change; the flows are added in the new `what-if.ts` on top of the model's result.
+- Files: `lib/cash-forecast/what-if.ts` (new), `components/cash-forecast/try-a-change.tsx` (new, lazy on its fold),
+  `components/cash-forecast/cash-forecast.tsx` (the fold), `components/cash-forecast/cash-forecast.css` (the fold's
+  summary), `components/wealth/spending/money-r5.css` (`.money-whatif*`).
+- Tests: `lib/cash-forecast/av2-what-if.test.ts` (flows, the second line, the forecast unchanged, refusals, kept sets
+  with Undo, the panel in jsdom writing nothing), `lib/ai/local-answers/av2-r5-money.test.ts`; the existing
+  `lib/cash-forecast` tests green unchanged.
+- Spec: `tests/av2-money-try-a-change.spec.ts`.
+- Stored: `zigoals:money-more:v1` `whatIfs` (commit `f9c7bcae`).
+- Help (EN): **Q: Can I see what a change would do to my cash forecast?** A: Yes. Under Money tools → Next 60 days, open
+  "Try a change". Add up to three made-up changes — a rent that goes up from a month, a trip, more pay each month — and
+  a second, dashed line shows your forecast with them. It is a model only: nothing is added to your records. Keep a set
+  by name to look at it again later.
+- What's new: "Forecast: try a change — a model line beside your forecast, kept by name if you like."
+- Answers: `whatIfs` (corpus `av2r5-money-what-if`; reads `env.moneyMore` / `env.ak.moneyMore`, `env.accounts`,
+  `env.ak.bills`, `env.nova.budgets`): each kept set's lowest point over 12 months beside the forecast's.
+- Showcase hook: none (the Showcase's money extras hold no kept set; one kept there stays in its tab). The fold reads the
+  Showcase's forecast by itself. Empty state teaches ("Try a change — a higher rent from a month, a trip, more pay each
+  month — to see your forecast beside it.").
+- Registries: none. CSS touched: `components/wealth/spending/money-r5.css`, `components/cash-forecast/cash-forecast.css`.
+- Today: nothing added. The forecast card gains one fold (one Tab stop).

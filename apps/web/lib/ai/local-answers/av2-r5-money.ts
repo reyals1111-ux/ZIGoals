@@ -5,6 +5,10 @@ import {yearSoFar} from '../../budgets/year-so-far';
 import type {BudgetsRecord} from '../../budgets/schema';
 import {MATCH_DAYS, monthMatches} from '../../bills/month';
 import {mergeTargets} from '../../money-log/merge-accounts';
+import {cashForecast, forecastDays, plannedContributions, type KnownForecast} from '../../cash-forecast/model';
+import {plannedForForecast} from '../../cash-forecast/planned';
+import {withChanges} from '../../cash-forecast/what-if';
+import type {MoneyMore} from '../../money-more/schema';
 import type {NotifyPrefs} from '../../notify/prefs';
 import {typeOn} from '../../notify/prefs';
 import type {ToolEnv} from '../tools/env';
@@ -124,3 +128,28 @@ function mergeAccounts(a: Asked): LocalReply | null {
   return answer(say(a.lang, `These could be merged: ${list(pairs.slice(0, 5), 'en')}${pairs.length > 5 ? ` and ${pairs.length - 5} more` : ''}. ${how}`, `Deze kun je samenvoegen: ${list(pairs.slice(0, 5), 'nl')}${pairs.length > 5 ? ` en nog ${pairs.length - 5}` : ''}. ${how}`), calls);
 }
 add(mergeAccounts);
+
+// ── Try a change on the forecast (#388) ────────────────────────────────────────────────────────────────────────────
+const moreOf = (env: ToolEnv): MoneyMore | null => (env as ToolEnv & {moneyMore?: MoneyMore | null}).moneyMore ?? akOf(env).moneyMore ?? null;
+/** "What changes have I tried on my forecast", "welke wijzigingen heb ik op mijn prognose geprobeerd". */
+function whatIfs(a: Asked): LocalReply | null {
+  const en = /\bwhat ifs?\b|\bscenarios?\b|\bchanges?\b.*\btried\b|\btried\b.*\bchanges?\b|\btry a change\b/.test(a.f) && /\bforecast\b|\bwhat ifs?\b|\bscenarios?\b|\btry a change\b/.test(a.f);
+  const nl = /\bwat als\b|\bscenarios?\b|\bwijziging(?:en)?\b.*\bgeprobeerd\b/.test(a.f) && /\bprognose\b|\bwat als\b|\bscenarios?\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const kept = moreOf(a.env)?.whatIfs ?? [], calls = call('cash_forecast', {whatIfs: kept.length}, 'Cash forecast · try a change');
+  if (!kept.length) return answer(say(a.lang, `No changes are kept. Under ${PLACES.forecast.en} → "Try a change — a model", try up to three made-up changes (a higher rent, a trip, more pay each month) beside your forecast; they are never written as entries or bills, and you can keep them by name.`,
+    `Er zijn geen wijzigingen bewaard. Onder ${PLACES.forecast.nl} → "Try a change — a model" probeer je tot drie verzonnen wijzigingen (een hogere huur, een reis, meer loon per maand) naast je prognose; ze worden nooit als invoer of rekening opgeslagen, en je kunt ze bewaren onder een naam.`), calls);
+  const days = forecastDays('12m', a.today), goals = a.env.areas.goals ? plannedContributions(a.env.platform.goals) : [];
+  const rows = a.env.accounts && akOf(a.env).bills ? cashForecast({accounts: a.env.accounts, bills: akOf(a.env).bills!, entries: entriesOf(a.env), ...(a.env.nova?.budgets ? {budgets: a.env.nova.budgets} : {}), contributions: goals, planned: plannedForForecast(moreOf(a.env), entriesOf(a.env), a.today), today: a.today, days}).rows.filter((r): r is KnownForecast => r.known) : [];
+  const one = (lang: Lang, w: typeof kept[number]) => {
+    const row = rows.find(r => r.currency === w.currency), count = say(lang, `${w.changes.length} ${w.changes.length === 1 ? 'change' : 'changes'}`, `${w.changes.length} ${w.changes.length === 1 ? 'wijziging' : 'wijzigingen'}`);
+    if (!row) return say(lang, `"${w.name}" (${count}, ${w.currency}: no forecast line in ${w.currency})`, `"${w.name}" (${count}, ${w.currency}: geen prognose in ${w.currency})`);
+    const t = withChanges(row, w.changes);
+    return say(lang, `"${w.name}" (${count}): lowest about ${moneyIn('en', Number(t.lowest.cents), w.currency)} around ${dayIn('en', t.lowest.date, a.today)}, against ${moneyIn('en', Number(row.lowest.cents), w.currency)} without`,
+      `"${w.name}" (${count}): het laagst ongeveer ${moneyIn('nl', Number(t.lowest.cents), w.currency)} rond ${dayIn('nl', t.lowest.date, a.today)}, tegenover ${moneyIn('nl', Number(row.lowest.cents), w.currency)} zonder`);
+  };
+  return answer(say(a.lang, `Kept changes, over the next 12 months: ${list(kept.map(w => one('en', w)), 'en')}. A model from your own records, not a plan; nothing is written to your records.`,
+    `Bewaarde wijzigingen, de komende 12 maanden: ${list(kept.map(w => one('nl', w)), 'nl')}. Een model uit je eigen gegevens, geen plan; er wordt niets in je gegevens gezet.`), calls);
+}
+add(whatIfs);

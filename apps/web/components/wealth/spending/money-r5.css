@@ -7,7 +7,6 @@
 .money-yesterday-list li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .money-yesterday-choices{border:0;margin:0;padding:0;display:grid;gap:6px;min-width:0}
 .money-yesterday-choices legend{font-weight:600;font-size:15px;padding:0;margin-bottom:4px}
-.money-yesterday-fold summary,.money-sheet-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
 .money-ytd{display:grid;gap:8px;min-width:0}
 .money-ytd-total{margin:0;font-size:15px}
 .money-ytd-scroll{max-width:100%;overflow-x:auto}
@@ -29,3 +28,19 @@
 .money-merge-names legend,.money-merge-doubles legend{font-weight:600;font-size:15px;padding:0;margin-bottom:4px}
 .money-merge-doubles ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .money-merge button{min-height:44px;justify-self:start}
+.money-whatif{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line,rgba(140,160,220,.25));min-width:0}
+.money-whatif h5{margin:0;font-size:15px}
+.money-whatif-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px 12px;align-items:end}
+.money-whatif select,.money-whatif input{min-height:44px;width:100%;box-sizing:border-box;font-size:16px}
+.money-whatif button{min-height:44px}
+.money-whatif-list,.money-whatif-kept ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.money-whatif-list li,.money-whatif-kept li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 12px;font-size:14px;overflow-wrap:anywhere}
+.money-whatif-words{margin:0;font-size:15px}
+.money-whatif-figure{margin:0;display:grid;gap:4px}
+.money-whatif-line{fill:none;stroke:var(--violet,var(--accent,#a78bfa));stroke-width:2.5;stroke-dasharray:6 5;vector-effect:non-scaling-stroke}
+.money-whatif-key{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.money-whatif-key-forecast,.money-whatif-key-model{display:inline-block;width:22px;height:0;border-top:3px solid var(--cyan,#45d8ef)}
+.money-whatif-key-model{border-top:3px dashed var(--violet,var(--accent,#a78bfa));margin-left:8px}
+.money-whatif-keep{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:end}
+@media (max-width:480px){.money-whatif-keep{grid-template-columns:1fr}}
+.money-whatif-actions{display:inline-flex;gap:4px}

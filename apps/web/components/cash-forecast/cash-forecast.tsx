@@ -12,6 +12,8 @@ import {MONEY_MORE} from '../../lib/money-more/schema';
 import {plannedForForecast} from '../../lib/cash-forecast/planned';
 import './planned.css';
 const PlannedCosts = lazy(() => import('./planned-costs'));
+// Session AV lane 2, round 5 (money; PocketSmith's what-if scenarios, LEDGER #388): Try a change, a model beside the forecast (lazy, on its fold).
+const TryAChange = lazy(() => import('./try-a-change'));
 import {localDate} from '../../lib/local-date';
 import {formatDate, formatMonth} from '../../lib/visual-format';
 import {centsText, moneyCents, moneyWhole} from '../wealth/money-tools/format';
@@ -37,6 +39,7 @@ export default function CashForecast({log, showcase = false}: {log: DeviceRecord
   const planned = useMemo(() => more.unreadable ? [] : plannedForForecast(more.data, log.data.entries, today), [more.unreadable, more.data, log.data.entries, today]);
   const result = useMemo(() => ready ? cashForecast({accounts: accounts.data, bills: bills.data, entries: log.data.entries, budgets: budgets.data, contributions: plannedContributions(platform.data.goals), planned, today, days}) : null,
     [ready, accounts.data, bills.data, log.data.entries, budgets.data, platform.data.goals, planned, today, days]);
+  const [trying, setTrying] = useState(false);
   const choose = (next: ForecastLength) => { setPicked(next); if (more.unreadable) return; try { more.update(m => { const {forecast: _f, ...rest} = m; void _f; return next === '60d' ? rest : {...rest, forecast: next}; }); } catch { /* the choice still shows; it is not kept */ } };
   return <section className="money-panel cash-forecast" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>Next {words}</h4>
@@ -53,6 +56,7 @@ export default function CashForecast({log, showcase = false}: {log: DeviceRecord
     {result && result.rows.length > 0 && !bills.unreadable && <PaydayLow rows={result.rows} log={log} bills={bills.data} today={today}/>}
     {result && result.unplaced.length > 0 && <p className="fine">Not drawn: bills or plans in {result.unplaced.join(', ')}, which {result.unplaced.length === 1 ? 'has' : 'have'} no cash or savings account here.</p>}
     {ready && <Suspense fallback={null}><PlannedCosts entries={log.data.entries} today={today} showcase={showcase}/></Suspense>}
+    {result && result.rows.some(r => r.known) && <details className="money-whatif-fold" onToggle={e => setTrying((e.currentTarget as HTMLDetailsElement).open)}><summary>Try a change — a model</summary>{trying && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><TryAChange rows={result.rows} today={today} words={words}/></Suspense>}</details>}
   </section>;
 }
 
