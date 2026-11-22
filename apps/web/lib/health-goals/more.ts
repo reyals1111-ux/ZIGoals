@@ -89,22 +89,24 @@ export function nutrientOn(data: HealthData, date: string, key: NutrientKey): nu
 }
 /** The average over the window (the last N days before today), the days it rests on, and whether it meets the target. */
 export function moreGoalProgress(goal: MoreGoal, data: HealthData | null, numbers: HealthNumbers | null, today: string): MoreProgress {
-  const to = addLocalDays(today, -1), from = addLocalDays(today, -goal.windowDays), values: number[] = [];
+  // The nutrient window is the last N full days (today counts once it ends); a measurement's or a number's is the last N
+  // days through today (review B3B-1: it took N + 1 days).
+  const to = addLocalDays(today, -1), from = addLocalDays(today, -goal.windowDays), since = addLocalDays(today, -(goal.windowDays - 1)), values: number[] = [];
   if (goal.source === 'nutrient' && data) for (let d = from; d <= to; d = addLocalDays(d, 1)) { const v = nutrientOn(data, d, goal.key as NutrientKey); if (v !== null) values.push(v); }
   if (goal.source === 'body' && data) {
     // The body measurements of the window, each day's latest (a day measured twice counts once), in cm.
     const byDay = new Map<string, number>();
-    for (const r of measurementHistory(data, goal.key as BodyKey).readings) { const day = r.observedAt.slice(0, 10); if (day >= from && day <= today) byDay.set(day, r.canonical / 10_000); }
+    for (const r of measurementHistory(data, goal.key as BodyKey).readings) { const day = r.observedAt.slice(0, 10); if (day >= since && day <= today) byDay.set(day, r.canonical / 10_000); }
     values.push(...byDay.values());
   }
   if (goal.source === 'number' && numbers) {
     const name = goal.key.toLocaleLowerCase('en'), unit = (goal.unit ?? '').toLocaleLowerCase('en');
-    for (const e of numbers.entries) if (e.kind === 'lab' && e.value !== undefined && e.name?.toLocaleLowerCase('en') === name && (e.unit ?? '').toLocaleLowerCase('en') === unit && e.date >= from && e.date <= today) values.push(e.value);
+    for (const e of numbers.entries) if (e.kind === 'lab' && e.value !== undefined && e.name?.toLocaleLowerCase('en') === name && (e.unit ?? '').toLocaleLowerCase('en') === unit && e.date >= since && e.date <= today) values.push(e.value);
   }
   const average = avg(values);
   const met = average === null ? null : goal.direction === 'at-least' ? average >= goal.target : average <= goal.target;
   const percent = average === null ? null : goal.direction === 'at-least' ? Math.min(100, Math.round(average / goal.target * 100)) : met ? 100 : Math.max(0, Math.round(goal.target / average * 100));
-  return {average, days: values.length, from: goal.source === 'nutrient' ? from : addLocalDays(today, -goal.windowDays + 1), to: goal.source === 'nutrient' ? to : today, met, percent};
+  return {average, days: values.length, from: goal.source === 'nutrient' ? from : since, to: goal.source === 'nutrient' ? to : today, met, percent};
 }
 const round = (n: number, unit: string) => unit === 'kcal' || unit === 'mg' ? Math.round(n) : Math.round(n * 10) / 10;
 /** "Protein: 92 g a day on average over 6 of the last 7 days. Your goal: at least 100 g." */

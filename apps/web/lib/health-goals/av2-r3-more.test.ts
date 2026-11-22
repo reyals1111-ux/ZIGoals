@@ -88,6 +88,22 @@ describe('goals on any health number (LEDGER #287)', () => {
     expect(r.goal.name).toBe('Resting pulse at most 60 bpm');
     expect(moreGoalProgress(r.goal, null, numbers, TODAY)).toMatchObject({average: 60, days: 2, met: true});
   });
+  // Session AV lane 2 (review B3B-1): "the last 7 days" of a number or a measurement are today and the 6 before, no more.
+  test('a number’s or a measurement’s window is exactly the last N days through today', () => {
+    const numbers = healthNumbersSchema.parse({version: 1, entries: [
+      {id: 'a', date: addLocalDays(TODAY, -7), kind: 'lab', name: 'Pulse', value: 90, unit: 'bpm'},
+      {id: 'b', date: addLocalDays(TODAY, -6), kind: 'lab', name: 'Pulse', value: 58, unit: 'bpm'},
+      {id: 'c', date: TODAY, kind: 'lab', name: 'Pulse', value: 50, unit: 'bpm'},
+    ]});
+    const r = addMoreGoal(emptyMoreGoals(), draft({source: 'number', key: 'Pulse', unit: 'bpm', target: '60', direction: 'at-most'}), 'g5', NOW);
+    if (!r.ok) throw new Error(r.issue.message);
+    expect(moreGoalProgress(r.goal, null, numbers, TODAY)).toMatchObject({average: 54, days: 2, from: addLocalDays(TODAY, -6), to: TODAY, met: true});
+    let data = createEmptyHealth();
+    for (const [ago, cm, n] of [[7, 99, 1], [6, 80, 2]] as const) data = saveMeasurement(data, {id: `health_edge000${n}`, kind: 'waist', quantityMilli: cm * 1000, unit: 'cm', observedAt: `${addLocalDays(TODAY, -ago)}T12:00:00+00:00`, timezone: 'UTC', sourceLabel: 'Manual'}, NOW);
+    const w = addMoreGoal(emptyMoreGoals(), draft({source: 'body', key: 'waist', target: '85', direction: 'at-most'}), 'g6', NOW);
+    if (!w.ok) throw new Error(w.issue.message);
+    expect(moreGoalProgress(w.goal, data, null, TODAY)).toMatchObject({average: 80, days: 1});
+  });
   test('close, reopen, remove and Undo keep its place', () => {
     let rec = emptyMoreGoals();
     for (const id of ['g1', 'g2', 'g3']) { const r = addMoreGoal(rec, draft(), id, NOW); if (!r.ok) throw new Error('no'); rec = r.value; }
