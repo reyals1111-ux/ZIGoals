@@ -488,14 +488,28 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
   (Habits gate; case `av2-habits-strength-year`). Showcase hook: the Showcase's habits fill it with no new data.
 - CSS touched: `components/habits/habit-longer-history.css` (new; theme variables only). Always visible on Today: nothing.
 
+## q4 / QUALITY "Not fixed" Minors for habits and mood — where each stands
+
+- Skip and an amount per week-grid cell: built here (Feature 10).
+- A paused-until note: built by the tasks lane (`lane2/tasks`, docs/review/session-av/lane2/tasks.md: "a paused repeat
+  says Paused until … with Resume from …"); it is a task repeat's note (q1 #43), not a habit's.
+- Grouped repeat plans and the symptom chart in the visit report: built by the food lane (`lane2/food`,
+  docs/review/session-av/lane2/food.md F13: plan groups, and the Symptoms section's level chart). A second symptom
+  chart was started here and dropped so the two lanes do not collide in `lib/clinician-report/build.ts`.
+
 ## Not built yet (next for this pillar, in order)
 
-- Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm
-  visuals with Motion Off respected), **#81** Daily Move (written stretch cues with a timer, minutes logged only, never
-  calories). Next row: **#79**.
-- q4 / QUALITY "Not fixed" Minors for habits and mood: Skip and amount per week-grid cell
-  (`components/habits/habit-week-grid.tsx`), a paused-until note, grouped repeat plans, a symptom chart in the visit
-  report (q3 #48).
-- Lead's added groups (LEDGER "Ten more apps", pillar Habits and mind): N1 Daylio (#178, #179, #180, #188, #189), N2
-  Insight Timer (#184, #186), N3 Fabulous (#181, #182, #183; Lock Screen native-only), N5 Loop (#185 rolling schedule
-  as a separate TIER 3 commit, #187, #190, #194).
+- **#184** Insight Timer's meditation timer (next row): saved presets (length, start and end bell, several interval
+  bells with a repeat count or "before the end", a warm-up, open-ended). Note for the next builder: `bellPrefsSchema` and
+  `meditationRunSchema` are strict (Health v4, synced, and the device run), so presets and the running session's extra
+  bells need a loose home — the habit extras (as `calm` is) for presets, and a loose device field keyed by the run's
+  `startedAt` for an open-ended run (the strict run keeps `plannedSec` at its 240-minute ceiling meanwhile).
+- **#185** Loop's rolling schedule, N times in any M days: `habitScheduleSchema` is a strict union in the synced
+  habit record, so a new kind there would make builds #37–#57 refuse the journal (against the named rule). The way is
+  the first builder's: a habit-extras entry read through `setHabitDayOverlay` (lib/habit-options), as `monthWeekday`
+  and the habit options are — separate TIER 3 (stored formats) commit; streaks, NOVA and ZIGi read it through the
+  overlay.
+- **#194** HabitBull and Tickmate imports: only where the layout is documented or open source
+  (`lib/import/switch/formats.ts`'s rule); check each file layout before building.
+- Rows of the lead's other groups for this pillar (#191 pure-black Dark, #192 fonts, #193 automatic backups) are N6,
+  not in this builder's scope.
