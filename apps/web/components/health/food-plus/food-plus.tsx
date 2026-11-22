@@ -12,11 +12,13 @@ export type FoodPlusProps =
   | {part: 'times'; data: HealthData; date: string}
   | {part: 'timing'; data: HealthData; today: string}
   | {part: 'weekdays'; targets: HealthTargets; today: string}
-  | {part: 'sugar-alcohols'; data: HealthData};
+  | {part: 'sugar-alcohols'; data: HealthData}
+  | {part: 'oracle'; data: HealthData; today: string};
 const SaveMeal = lazy(() => import('./save-meal'));
 const EntryTimes = lazy(() => import('./entry-times'));
 const NutrientTiming = lazy(() => import('./nutrient-timing'));
 const WeekdayTargets = lazy(() => import('./weekday-targets').then(m => ({default: m.WeekdayTargets})));
+const Oracle = lazy(() => import('./oracle'));
 const SugarAlcohols = lazy(() => import('./weekday-targets').then(m => ({default: m.SugarAlcohols})));
 export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'save-meal') return <SaveMeal {...props}/>;
@@ -24,5 +26,6 @@ export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'timing') return <NutrientTiming data={props.data} today={props.today}/>;
   if (props.part === 'weekdays') return <WeekdayTargets targets={props.targets} today={props.today}/>;
   if (props.part === 'sugar-alcohols') return <SugarAlcohols data={props.data}/>;
+  if (props.part === 'oracle') return <Oracle data={props.data} today={props.today}/>;
   return null;
 }

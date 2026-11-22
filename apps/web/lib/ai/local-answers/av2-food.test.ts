@@ -71,6 +71,16 @@ describe('diary times and nutrient timing', () => {
     expect(grams(plain) - grams(less)).toBe(Math.round(5 * first.quantityMilli / 1000));
     expect(less).toContain('g sugar alcohols');
   });
+  test('the Oracle: own foods highest in protein, and where the library\'s list is; vitamins in both languages', () => {
+    const en = text(zigi('which foods are high in protein'));
+    expect(en).toMatch(/^Your own foods highest in protein: Salmon, rice and greens 48 g per serving/);
+    expect(en).toContain('Health → Insights → “Foods high in a nutrient (the Oracle)”');
+    expect(text(zigi('which foods are high in vitamin C'))).toContain('richest foods in vitamin C');
+    expect(text(zigi('welke voedingsmiddelen zijn rijk aan vitamine B12'))).toContain('voor vitamine B12');
+    expect(text(zigi('which foods are high in protein', freshAll()))).toMatch(/^None of your own foods carries protein yet\./);
+    // Today's protein and the iron list keep their own answers.
+    for (const q of ['how much protein did I eat today', 'which foods are high in iron']) expect(zigi(q), q).toBeNull();
+  });
   test('questions that are not about times are left to the other layers', () => {
     for (const q of ['what did I eat today', 'how much water did I drink', 'when should I eat', 'log 2 eggs and then remind me']) expect(zigi(q), q).toBeNull();
   });

@@ -1,4 +1,5 @@
-import {formatNutrient, scaleNutrition} from '../../health';
+import {formatNutrient, recipeNutrition, scaleNutrition} from '../../health';
+import {oracleNutrient} from '../../food-plus/oracle';
 import {dayTargets, sugarAlcoholMg, weekdayOfDay} from '../../food-plus/day-target';
 import {netCarbs} from '../../health-aa/macro-mode';
 import {healthZone, dailyData} from '../../health-daily';
@@ -149,5 +150,32 @@ function netCarbsAnswer(a: Ask): LocalReply | null {
     `Netto koolhydraten ${when}: ${n.grams} g${minus.length ? ` (koolhydraten min ${list(minus, 'nl')})` : ' (gewone koolhydraten)'}.${fiberNote} Suikeralcoholen per voedingsmiddel: Health → Targets → “Sugar alcohols for net carbs”.`), calls);
 }
 
-const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets];
+// ── The Oracle: protein and the vitamins (LEDGER #100) ─────────────────────────────────────────────────────────────
+
+const ORACLE_WORDS: [RegExp, string][] = [
+  [/\b(?:protein|eiwit(?:ten)?|proteine)\b/, 'protein'], [/\bvitamine? ?b ?12\b|\bb12\b/, 'vitamin-b12'], [/\bvitamine? ?b ?6\b/, 'vitamin-b6'],
+  [/\bvitamine? ?b ?1\b|\bthiamine?\b/, 'vitamin-b1'], [/\bvitamine? ?b ?2\b|\bribofla(?:vin|vine)\b/, 'vitamin-b2'], [/\bvitamine? ?b ?3\b|\bniacine?\b/, 'vitamin-b3'],
+  [/\bvitamine? ?a\b/, 'vitamin-a'], [/\bvitamine? ?c\b/, 'vitamin-c'], [/\bvitamine? ?d\b/, 'vitamin-d'], [/\bvitamine? e\b|\bvitamine$/, 'vitamin-e'], [/\bvitamine? ?k\b/, 'vitamin-k'],
+  [/\bfolate\b|\bfolic acid\b|\bfoliumzuur\b/, 'folate'], [/\bmagnesium\b/, 'magnesium'], [/\bzinc\b|\bzink\b/, 'zinc'], [/\bomega ?3\b/, 'omega-3'],
+];
+/** "which foods are high in protein", "what is rich in vitamin C", "welk eten bevat veel eiwit": own foods for protein; where the Oracle is. */
+function oracleAnswer(a: Ask): LocalReply | null {
+  const hit = ORACLE_WORDS.find(([re]) => re.test(a.f));
+  if (!hit) return null;
+  const en = /\b(?:high|rich) in\b|\b(?:most|lots of|a lot of|full of)\b.*\b(?:foods?)\b|\bfoods?\b.*\b(?:most|highest|with)\b|\bwhat (?:has|contains|gives)\b|\bgood source of\b|\bsources? of\b/.test(a.f);
+  const nl = /\b(?:veel|rijk aan|hoog in|het meeste|bron van|bevat)\b/.test(a.f) && /\b(?:eten|voedsel|voeding|producten|voedingsmiddelen|welk|welke|wat)\b/.test(a.f);
+  if (!(en || nl) || /\b(?:today|vandaag|average|gemiddeld|target|doel)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, nutrient = oracleNutrient(hit[1])!, shown = lang === 'nl' ? nutrient.nl : nutrient.label, name = /^vitamin/i.test(shown) ? `${shown.charAt(0).toLowerCase()}${shown.slice(1)}` : shown.toLowerCase(), calls = [{tool: 'search_foods', args: {}, label: 'Your foods'}];
+  const where = say(lang, `The offline food library’s richest foods in ${name}, by a usual portion or per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. From public food tables; information, not advice.`,
+    `De rijkste voedingsmiddelen uit de offline bibliotheek voor ${name}, per gewone portie of per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. Uit openbare voedingstabellen; informatie, geen advies.`);
+  if (hit[1] !== 'protein') return answer(where, calls);
+  const health = a.env.health!;
+  const own = [...health.foods.map(f => ({name: f.name, mg: f.nutrients.proteinMg})), ...health.recipes.map(r => ({name: r.name, mg: recipeNutrition(r).proteinMg}))].filter((f): f is {name: string; mg: number} => typeof f.mg === 'number' && f.mg > 0).sort((x, y) => y.mg - x.mg).slice(0, 6);
+  if (!own.length) return answer(`${say(lang, 'None of your own foods carries protein yet.', 'Nog geen van je eigen voedingsmiddelen heeft eiwit.')} ${where}`, calls);
+  const rows = own.map(f => `${clean(f.name, 50)} ${num(Math.round(f.mg / 100) / 10)} g ${say(lang, 'per serving', 'per portie')}`);
+  return answer(`${say(lang, `Your own foods highest in protein: ${list(rows, 'en')}.`, `Je eigen voedingsmiddelen met het meeste eiwit: ${list(rows, 'nl')}.`)} ${where}`, calls);
+}
+
+const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer];
 export const AV2_FOOD_HANDLER_COUNT = HANDLERS.length;

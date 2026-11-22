@@ -105,3 +105,48 @@ Shared-file needs for the lead are collected at the end ("For the lead").
 - Device keys: none new (the F2 key).
 - CSS touched: none new.
 - Always visible on Today: nothing new (Today's Health module's existing target line reads the day's target).
+
+## F4 — A microphone on the meal field
+
+- LEDGER rows: **#85** MyFitnessPal Voice Log — the remainder built (the mic on Health's meal field). #94 Cronometer
+  Voice Logging was already built; its mic is this.
+- What it does: Health → Log a meal → "Just describe it" has "Speak your meal" beside "What did you eat?" where the
+  browser has speech recognition (SpeechRecognition or webkitSpeechRecognition); where it has none, nothing is shown.
+  The browser's recognition, English or Dutch by the device language, read the spoken way (fillers out, numbers as
+  digits), fills the field (appended to what is there); nothing is logged until "Log in words". "Stop listening",
+  aria-pressed, a Listening status, and "Speech is handled by your browser, not by ZIGoals" with the browser's own words.
+  No model reads the words.
+- Files: `components/health/food-plus/meal-mic.tsx`, `components/health/meal-words.tsx` (a lazy MealMic, in HealthPlus's
+  chunk), `food-plus.css`.
+- Tests: `lib/food-plus/av2-meal-mic.test.ts`. Spec: `tests/av2-meal-mic.spec.ts` (a FAKE recognition; and a browser
+  without one).
+- Stored changes: none.
+- Help (EN). Q: "Can I say what I ate?" A: "Yes, where your browser can turn speech into text. In Health → Log a meal →
+  Just describe it, press Speak your meal and say it. The words land in the field so you can check them; nothing is
+  logged until you press Log in words. Your browser handles the speech, not ZIGoals."
+- What's new: "Say what you ate: a microphone on the meal field."
+- Answers: none new (the words are the existing meal-words record).
+- Showcase: none (speech needs the person's own voice).
+- Device keys: none. CSS touched: `food-plus.css`. Always visible on Today: nothing.
+
+## F5 — The Oracle with protein and the vitamins
+
+- LEDGER rows: **#100** Cronometer Oracle nutrient search and food suggestions — the remainder built (protein and the
+  vitamins; the minerals, omega-3 and the B vitamins the offline library carries too).
+- What it does: Health → Insights → "Foods high in a nutrient (the Oracle)" (a fold): any of 19 nutrients the offline
+  library carries (protein, fiber, potassium, calcium, iron, magnesium, zinc, vitamins A, C, D, E, K, B1, B2, B3, B6, B12,
+  folate, omega-3); the richest foods as people eat them (no dried herbs, spices, seaweed or powders), ranked by a usual
+  portion or per 100 kcal (nutrient density), with the per-100 g value; for protein with a target, today's gap and what a
+  portion covers of it. The library loads on the fold's first opening.
+- Files: `lib/food-plus/oracle.ts`, `components/health/food-plus/oracle.tsx` (part `oracle`), `health-app.tsx` (a LazyFold
+  in Insights).
+- Tests: `lib/food-plus/av2-oracle.test.ts`, `lib/ai/local-answers/av2-food.test.ts`. Spec: `tests/av2-oracle.spec.ts`.
+- Stored changes: none.
+- Help (EN). Q: "Which foods are high in protein or a vitamin?" A: "Health → Insights → Foods high in a nutrient lists the
+  offline food library's richest foods in the nutrient you choose, by a usual portion or per 100 kcal. Dried herbs,
+  spices and powders are left out. It comes from public food tables and is information, not advice."
+- What's new: "The Oracle: foods high in protein, vitamins and minerals."
+- Answers: intents `av2-food-oracle-protein` (own foods highest in protein, and where the library's list is) and
+  `av2-food-oracle-vitamin` (where the list is; the library is not read by the answers, it loads in the page).
+- Showcase: the Oracle reads the app's own offline library, so the Showcase shows it filled; nothing to seed.
+- Device keys: none. CSS touched: `food-plus.css`. Always visible on Today: nothing.

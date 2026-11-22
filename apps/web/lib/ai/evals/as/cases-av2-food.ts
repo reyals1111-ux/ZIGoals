@@ -11,4 +11,6 @@ export const AV2_FOOD: readonly Intent[] = [
   {id: 'av2-food-weekday-targets', pillar: 'health', en: ['what are my targets by weekday', 'what is my calorie target on saturday'], nl: ['wat zijn mijn doelen per weekdag', 'wat is mijn caloriedoel voor zaterdag']},
   {id: 'av2-food-net-carbs', pillar: 'health', en: ['what are my net carbs today', 'how many net carbs did I eat yesterday'], nl: ['hoeveel netto koolhydraten heb ik vandaag', 'wat waren mijn netto koolhydraten gisteren']},
   {id: 'av2-food-timing', pillar: 'health', en: ['how much protein do I eat in the morning', 'when do I eat most of my carbs'], nl: ['hoeveel eiwit eet ik in de ochtend', 'wanneer eet ik de meeste koolhydraten']},
+  {id: 'av2-food-oracle-protein', pillar: 'health', en: ['which foods are high in protein', 'what foods are rich in protein'], nl: ['welk eten bevat veel eiwit', 'welke voedingsmiddelen zijn rijk aan eiwit']},
+  {id: 'av2-food-oracle-vitamin', pillar: 'health', en: ['which foods are high in vitamin C', 'what is a good source of vitamin B12'], nl: ['welk eten bevat veel vitamine C', 'welke voedingsmiddelen zijn rijk aan vitamine B12']},
 ];
