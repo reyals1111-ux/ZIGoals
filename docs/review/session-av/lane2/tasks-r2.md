@@ -161,3 +161,54 @@ change tasks, and Undo takes back the change and what the rule did."
 What's new: "Tasks: rules on a project — when a task is added, moved or done, Tasks does the next step."
 Showcase / Today: nothing new on Today. Weight: the Tasks first chunk gains rules.ts (no zod of its own; it is in use-task-list,
 which every task surface loads) and one button; the panel is lazy.
+
+## Feature 7 — custom fields on tasks (LEDGER #229, Any.do) — built
+
+- A project's "Rules and fields" → Fields: up to five per project — Text, Number, Date, A choice from a list (up to 12
+  choices), A tick — each with how many tasks are filled in, and Remove (its values leave the project's tasks; Undo).
+- A task's editor shows "Project fields" for the chosen project, each an input of its kind; a value that does not fit says
+  why under it ("“Budget” is a number, for example 12 or 4.5.") and Save waits. Saved with the task (its Undo).
+- Tasks → Table: with one project chosen, its fields are columns after the fixed ones, sortable (numbers by size, choices
+  in their own order, dates by day, empty values last either way).
+- Built beside revb1's Table work: the Table gains its field columns only (sort state widened to `field:<id>`); nothing of
+  the fixed columns, the Calendar or the Timeline is touched.
+
+Files: lib/tasks/custom-fields.ts (pure: define, read, clean, words, sort), lib/tasks/schema.ts (fieldDefSchema on the
+project, `fields` values on the task), lib/tasks/engine.ts (`fields` in TaskPatch / editTask, one line), components/tasks/
+{task-fields.tsx (editor chunk), task-editor.tsx, project-setup.tsx (lazy), tasks-plan-views.tsx (Table columns), tasks-r2.css}.
+Tests: lib/tasks/r2-custom-fields.test.ts (kinds, refusals, values read, sort, removal, export → erase → restore, tolerant read).
+Spec: tests/av2-custom-fields.spec.ts.
+Stored (TIER 3, own commit 05bb42c2): `zigoals:tasks:v1` project gains optional `fields` ([{id, name ≤ 40, kind: text|number|
+date|choice|tick, options? ≤ 12}] ≤ 5); task gains optional `fields` ({fieldId: string ≤ 200 | number | true}, ≤ 20 keys).
+A field or value this build cannot read is dropped on read (never the project or task); older builds keep both untouched
+(loose objects) and show nothing.
+Answers: "which custom fields do my projects have" / "welke eigen velden hebben mijn projecten" (fields per project, how many
+open tasks filled in, a number field's total).
+Help: Q "Can I add my own fields to tasks?" A "Yes. Open a project, then Rules and fields, and add up to five: text, a
+number, a date, a choice or a tick. Fill them in each task's editor, and sort by them in Tasks → Table with the project chosen."
+What's new: "Tasks: your own fields on a project's tasks, as Table columns."
+Showcase / Today: nothing. Weight: all lazy (editor chunk, planning views chunk, the panel).
+CSV export (tasksCsv) is unchanged: the fields travel in Export everything; adding them as CSV columns is the lead's call.
+
+## Lead: what I need from you (shared files)
+
+- engine.ts: the wiring line at the top of this file (before av2TasksAnswer); corpus: `AV2_TASKS_R2` (7 intents, 28 questions).
+- help-page.tsx: the seven Help Q+A and What's new lines above.
+- lib/search/static.ts: "My Day" → `/app/tasks?view=today`; "Template gallery" → `/app/tasks?view=organise`; "Print tasks" →
+  `/app/tasks?view=inbox` (the button is under every list); "Rules and fields" (no deep link: a project's tools).
+- No new device keys, catalogue, export, erase or restore entries: every stored change is an additive field on
+  `zigoals:tasks:v1` or `zigoals:task-plan:v1`, which are already registered (round-trips tested in my unit tests).
+- Theme sheets: new CSS files components/tasks/{tasks-r2.css, tasks-print.css}; two lines appended to tasks.css.
+- Playwright specs to run: tests/av2-{my-day, note-reminders-tasks, task-print, template-gallery, board-imports,
+  project-rules, custom-fields}.spec.ts (not run here, as the brief says).
+- Nothing new is always visible on Today (the dashboard). Tasks → Today gains "My Day" and "From your notes" groups only
+  when they hold something; "Print this list" is under the list.
+
+## Left (allowed causes only)
+
+- #228: rules that assign people — against a named rule (nothing is shared between people).
+- #227: ClickUp and Monday.com imports — their export layouts are not published, so the importer's documented-layout rule
+  (lib/import/switch/formats.ts) keeps them off (the ledger's own wording for this row).
+- Showcase examples for these features — against a named rule (the Showcase counts pinned by lib/nova/cards and the
+  local-answers tests); hooks suggested per feature above.
+Nothing else in R1 (#223, #224) or R9 (#225–#229) is left.

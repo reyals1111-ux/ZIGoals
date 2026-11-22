@@ -2,12 +2,13 @@ import {addLocalDays} from '../../local-date';
 import {carriedPicks, picksToday, readMyDay} from '../../tasks/my-day';
 import {noteRemindersBetween} from '../../tasks/note-reminder-days';
 import {projectRules, type ProjectRule} from '../../tasks/rules';
+import {projectFields} from '../../tasks/custom-fields';
 import {galleryByGroup, type GalleryGroup} from '../../tasks/template-gallery';
 import type {TaskPlan} from '../../tasks/plan-record';
 import type {Tasks} from '../../tasks/schema';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, clockIn, closed, count, dayIn, isQuestion, list, say, type Asked} from './av-words';
+import {answer, asked, clockIn, closed, count, dayIn, isQuestion, list, num, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -136,4 +137,20 @@ function ruleLine(r: ProjectRule, record: Tasks, lang: 'en' | 'nl'): string {
   return `${when} → ${then}`;
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn, printList, gallery, importFrom, projectRulesAnswer];
+/** "which custom fields do my projects have", "welke eigen velden hebben mijn projecten" (LEDGER #229). */
+function customFields(a: Ask): LocalReply | null {
+  if (!(/\b(?:custom|own|extra|project) fields?\b|\bfields?\b.*\b(?:projects?|tasks?)\b/.test(a.f) || /\b(?:eigen|extra|aangepaste) velden\b|\bvelden?\b.*\b(?:project(?:en)?|taken)\b/.test(a.f))) return null;
+  const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
+  const withFields = (got.record.projects ?? []).filter(p => !p.archived && projectFields(got.record, p.id).length);
+  if (!withFields.length) return answer(say(a.lang, 'No project has fields of its own yet. Open a project in Tasks, then Rules and fields, and add one (a budget, a room, an order-by day); fill it in each task’s editor and sort by it in Tasks → Table.',
+    'Nog geen project heeft eigen velden. Open een project in Tasks en dan Rules and fields, en voeg er een toe (een budget, een kamer, een besteldatum); vul hem in de editor van elke taak in en sorteer erop in Tasks → Table.'), CALLS);
+  const lines = withFields.slice(0, 6).map(p => {
+    const tasks = got.record.tasks.filter(t => t.projectId === p.id && !t.doneAt);
+    return `• ${clean(p.name, 60)}: ${projectFields(got.record, p.id).map(f => { const filled = tasks.filter(t => t.fields?.[f.id] !== undefined).length; const sum = f.kind === 'number' ? tasks.reduce((n, t) => n + (typeof t.fields?.[f.id] === 'number' ? t.fields![f.id] as number : 0), 0) : null;
+      return `${clean(f.name, 40)} (${say(a.lang, `${filled} of ${tasks.length} open tasks filled in`, `${filled} van ${tasks.length} open taken ingevuld`)}${sum !== null && filled ? say(a.lang, `, ${num(sum)} in all`, `, ${num(sum)} samen`) : ''})`; }).join(', ')}`;
+  });
+  return answer([say(a.lang, `${count(withFields.length, 'en', ['project has', 'projects have'], ['', ''])} fields of ${withFields.length === 1 ? 'its' : 'their'} own:`, `${count(withFields.length, 'nl', ['', ''], ['project heeft', 'projecten hebben'])} eigen velden:`), ...lines,
+    say(a.lang, 'Sort by them in Tasks → Table with the project chosen.', 'Sorteer erop in Tasks → Table met het project gekozen.')].join('\n'), CALLS);
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn, printList, gallery, importFrom, projectRulesAnswer, customFields];

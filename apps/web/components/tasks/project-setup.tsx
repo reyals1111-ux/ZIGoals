@@ -1,13 +1,16 @@
 'use client';
-import {useId, useState, type ReactNode} from 'react';
+import {useId, useState} from 'react';
 import type {useTaskList} from './use-task-list';
 import {LEVEL_WORDS, type Project, type Tasks} from '../../lib/tasks/schema';
+import {FIELD_KINDS, FIELD_KIND_WORDS, MAX_FIELDS, projectFields, setProjectField, type FieldKind} from '../../lib/tasks/custom-fields';
 import {MAX_RULES, RULE_THEN, RULE_WHEN, projectRules, ruleProblem, setProjectRule, type ProjectRule, type RuleThen, type RuleWhen} from '../../lib/tasks/rules';
 import './tasks-r2.css';
 
 /**
  * Session AV lane 2 (tasks-r2, LEDGER #228, #229; Any.do's automations and custom fields), a project's "Rules and fields",
  * opened from the project's tools; its own chunk.
+ * - Fields (#229): up to five a project — text, a number, a date, a choice from a list, a tick — set in each task's editor,
+ *   shown and sorted as columns in Tasks → Table when the Table shows this project.
  * - Rules: "When a task is added / enters a section / is done, then set the priority / add a label / plan it for today /
  *   mark it done / move it to a section / create the next one". They run on this device inside the change that sets them
  *   off (one Undo for both). Assigning people is not offered: nothing in ZIGoals is shared between people.
@@ -23,13 +26,39 @@ export function ruleWords(rule: ProjectRule, record: Tasks): string {
     : rule.then === 'move' ? `move it to ${section(rule.to)}` : `create the next one${rule.title ? ` (“${rule.title}”)` : ''}${rule.days !== undefined ? `, due ${rule.days === 0 ? 'today' : rule.days === 1 ? 'the next day' : `${rule.days} days later`}` : ''}`;
   return `${when}, ${then}.`;
 }
-export default function ProjectSetup({list, record, project, fields}: {list: List; record: Tasks; project: Project; /** The custom fields part (#229). */ fields?: ReactNode}) {
+export default function ProjectSetup({list, record, project}: {list: List; record: Tasks; project: Project}) {
   const id = useId();
   return <section className="panel tasks-project-setup" aria-labelledby={`${id}-t`}>
     <h3 id={`${id}-t`}>Rules and fields for “{project.name}”</h3>
+    <Fields list={list} record={record} project={project} />
     <Rules list={list} record={record} project={project} />
-    {fields}
   </section>;
+}
+
+function Fields({list, record, project}: {list: List; record: Tasks; project: Project}) {
+  const id = useId(), fields = projectFields(record, project.id);
+  const [name, setName] = useState(''), [kind, setKind] = useState<FieldKind>('text'), [options, setOptions] = useState(''), [error, setError] = useState('');
+  const filled = (fieldId: string) => record.tasks.filter(t => t.projectId === project.id && t.fields?.[fieldId] !== undefined).length;
+  const add = () => {
+    if (!name.trim()) { setError('Give the field a name.'); return; }
+    const field = {id: `field_${crypto.randomUUID().slice(0, 12)}`, name: name.trim(), kind, ...(kind === 'choice' ? {options: options.split(',').map(o => o.trim()).filter(Boolean)} : {})};
+    try { setProjectField(record, project.id, field); } catch (e) { setError(e instanceof Error ? e.message : 'That field could not be kept.'); return; }
+    if (list.change(r => setProjectField(r, project.id, field), `Field added: “${field.name}”. Fill it in each task’s editor.`, 'The field is taken back.')) { setName(''); setOptions(''); setError(''); }
+  };
+  return <div className="tasks-fields" role="group" aria-labelledby={`${id}-t`}>
+    <h4 id={`${id}-t`}>Fields</h4>
+    {fields.length ? <ul className="tasks-field-list" aria-label={`Fields of “${project.name}”`}>{fields.map(f => <li key={f.id}>
+      <span><strong dir="auto">{f.name}</strong> · {FIELD_KIND_WORDS[f.kind]}{f.options?.length ? `: ${f.options.join(', ')}` : ''} · {filled(f.id) === 1 ? '1 task filled in' : `${filled(f.id)} tasks filled in`}</span>
+      <button type="button" className="text-link" aria-label={`Remove the field “${f.name}”`} onClick={() => list.change(r => setProjectField(r, project.id, {id: f.id, remove: true}), `Removed the field “${f.name}” and its values.`, 'The field is back.')}>Remove</button>
+    </li>)}</ul> : <p className="fine">No fields yet. Add what this project needs to track per task — a budget (a number), a room (a choice), an order-by day, a tick for “ordered” — and sort by it in Tasks → Table.</p>}
+    {fields.length < MAX_FIELDS ? <form className="tasks-field-form" noValidate onSubmit={e => { e.preventDefault(); add(); }}>
+      <label className="field"><span>Field name</span><input dir="auto" value={name} maxLength={40} placeholder="Budget" aria-invalid={error ? true : undefined} onChange={e => { setName(e.target.value); setError(''); }} /></label>
+      <label className="field"><span>It holds</span><select value={kind} onChange={e => { setKind(e.target.value as FieldKind); setError(''); }}>{FIELD_KINDS.map(k => <option key={k} value={k}>{FIELD_KIND_WORDS[k]}</option>)}</select></label>
+      {kind === 'choice' && <label className="field"><span>Choices, separated by commas</span><input dir="auto" value={options} maxLength={500} placeholder="Kitchen, Hall, Bathroom" onChange={e => { setOptions(e.target.value); setError(''); }} /></label>}
+      <button type="submit" className="secondary">Add field</button>
+      {error && <p className="tasks-field-error" role="alert">{error}</p>}
+    </form> : <p className="fine">This project has {MAX_FIELDS} fields, the most it keeps.</p>}
+  </div>;
 }
 
 function Rules({list, record, project}: {list: List; record: Tasks; project: Project}) {

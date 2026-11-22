@@ -5,7 +5,8 @@ import {AV2_TASKS_R2} from '../evals/as/cases-av2-tasks-r2';
 import {av2TasksR2Answer} from './av2-tasks-r2';
 import type {LocalReply} from './engine';
 import {addLocalDays} from '../../local-date';
-import {addProject, addSection, addTask} from '../../tasks/engine';
+import {addProject, addSection, addTask, editTask} from '../../tasks/engine';
+import {setProjectField} from '../../tasks/custom-fields';
 import {setProjectRule} from '../../tasks/rules';
 import {emptyTaskPlan} from '../../tasks/plan-record';
 import {pickForToday} from '../../tasks/my-day';
@@ -61,6 +62,16 @@ describe('My Day (LEDGER #223)', () => {
     expect(text(av2TasksR2Answer('which rules do my projects have', zigiEnv(s)))).toMatch(/^2 rules in 1 project:\n• Fictional garden: in “Done” → mark done; when done → make the next one in 7 days/);
     expect(text(av2TasksR2Answer('welke regels hebben mijn projecten', zigiEnv(s)))).toMatch(/^2 regels in 1 project:\n• Fictional garden: in “Done” → afvinken; als klaar → maak de volgende over 7 dagen/);
     expect(text(av2TasksR2Answer('which rules do my projects have', zigiEnv(freshAll())))).toMatch(/^No project has rules yet/);
+  });
+  test('custom fields (LEDGER #229)', () => {
+    const s = withTasks(r => {
+      let x = setProjectField(addProject(r, {name: 'Fictional redo'}, 'pf'), 'pf', {id: 'fb', name: 'Budget', kind: 'number'});
+      x = addTask(addTask(x, {title: 'Fictional tiles', projectId: 'pf'}, {id: 'ft', at, today: DAY}), {title: 'Fictional paint', projectId: 'pf'}, {id: 'fp', at, today: DAY});
+      return editTask(x, 'ft', {fields: {fb: 450}}, DAY);
+    });
+    expect(text(av2TasksR2Answer('which custom fields do my projects have', zigiEnv(s)))).toMatch(/^1 project has fields of its own:\n• Fictional redo: Budget \(1 of 2 open tasks filled in, 450 in all\)/);
+    expect(text(av2TasksR2Answer('welke eigen velden hebben mijn projecten', zigiEnv(s)))).toMatch(/^1 project heeft eigen velden:\n• Fictional redo: Budget \(1 van 2 open taken ingevuld, 450 samen\)/);
+    expect(text(av2TasksR2Answer('what project fields do I have', zigiEnv(freshAll())))).toMatch(/^No project has fields of its own yet/);
   });
   test('the Today switch off refuses', () => {
     const env = zigiEnv(showcaseAll());

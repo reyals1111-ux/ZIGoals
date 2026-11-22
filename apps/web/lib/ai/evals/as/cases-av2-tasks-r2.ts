@@ -12,4 +12,5 @@ export const AV2_TASKS_R2: readonly Intent[] = [
   {id: 'av2r2-template-gallery', pillar: 'tasks', en: ['which templates are there for home', 'what templates are in the gallery for family'], nl: ['welke sjablonen zijn er voor thuis', 'welke sjablonen heb je voor het gezin']},
   {id: 'av2r2-import-boards', pillar: 'tasks', en: ['can I import my tasks from Trello', 'how do I bring my Asana project over'], nl: ['kan ik mijn taken uit Trello importeren', 'hoe zet ik mijn Asana-project over']},
   {id: 'av2r2-project-rules', pillar: 'tasks', en: ['which rules do my projects have', 'what automations do I have in tasks'], nl: ['welke regels hebben mijn projecten', 'welke automatiseringen heb ik in mijn taken']},
+  {id: 'av2r2-custom-fields', pillar: 'tasks', en: ['which custom fields do my projects have', 'what project fields do I have'], nl: ['welke eigen velden hebben mijn projecten', 'welke velden hebben mijn taken']},
 ];

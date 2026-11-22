@@ -15,6 +15,7 @@ import {
   removeObjective, tableRows, timelineBars, weekObjectives, weekStart, yearGrid, type ChartGroup, type ChartMeasure, type TableColumn,
 } from '../../lib/tasks/layouts';
 import {formatClock, formatDate, formatMonth, formatNumber, formatWeekday} from '../../lib/visual-format';
+import {fieldText, projectFields, sortByField} from '../../lib/tasks/custom-fields';
 /** A Monday-to-Sunday week (any), for the month grid's weekday heads in the person's language (lib/visual-format.ts). */
 const WEEK_HEADS = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'] as const;
 import TasksOrganise from './tasks-organise';
@@ -115,9 +116,11 @@ function WeekTable({list, record, days, today}: {list: List; record: Tasks; days
 
 const COLUMN_WORDS: Record<TableColumn, string> = {title: 'Task', project: 'Project', priority: 'Priority', due: 'Day', deadline: 'Deadline', minutes: 'Planned', spent: 'Spent', labels: 'Labels', created: 'Added', changed: 'Changed'};
 function TableView({list, record, today}: {list: List; record: Tasks; today: string}) {
-  const id = useId(), [sort, setSort] = useState<TableColumn>('due'), [dir, setDir] = useState<'asc' | 'desc'>('asc'), [project, setProject] = useState('');
-  const rows = useMemo(() => tableRows(record, today, sort, dir, project || undefined), [record, today, sort, dir, project]);
-  const by = (c: TableColumn) => { if (c === sort) setDir(dir === 'asc' ? 'desc' : 'asc'); else { setSort(c); setDir(c === 'created' || c === 'changed' ? 'desc' : 'asc'); } };
+  const id = useId(), [sort, setSort] = useState<TableColumn | `field:${string}`>('due'), [dir, setDir] = useState<'asc' | 'desc'>('asc'), [project, setProject] = useState('');
+  // Session AV lane 2 (tasks-r2, LEDGER #229): with one project chosen, its own fields are columns too, sortable.
+  const defs = useMemo(() => project ? projectFields(record, project) : [], [record, project]), byField = sort.startsWith('field:') ? defs.find(f => `field:${f.id}` === sort) : undefined;
+  const rows = useMemo(() => byField ? sortByField(tableRows(record, today, 'title', 'asc', project || undefined), byField, dir) : tableRows(record, today, sort.startsWith('field:') ? 'due' : sort as TableColumn, dir, project || undefined), [record, today, sort, dir, project, byField]);
+  const by = (c: TableColumn | `field:${string}`) => { if (c === sort) setDir(dir === 'asc' ? 'desc' : 'asc'); else { setSort(c); setDir(c === 'created' || c === 'changed' ? 'desc' : 'asc'); } };
   const cell = (t: Task, c: TableColumn) => {
     switch (c) {
       case 'title': return <span dir="auto">{t.title}</span>;
@@ -136,8 +139,9 @@ function TableView({list, record, today}: {list: List; record: Tasks; today: str
     <div className="tasks-plan-head"><h3 id={`${id}-title`}>Table <small>{n(rows.length)} open</small></h3><ProjectPick record={record} value={project} onChange={setProject} /></div>
     {rows.length ? <div className="tasks-table-frame" role="region" aria-labelledby={`${id}-title`} tabIndex={0}>
       <table className="tasks-table"><thead><tr><th scope="col"><span className="sr-only">Done</span></th>{TABLE_COLUMNS.map(c => <th key={c} scope="col" aria-sort={c === sort ? (dir === 'asc' ? 'ascending' : 'descending') : undefined}>
-        <button type="button" className="tasks-sort" onClick={() => by(c)}>{COLUMN_WORDS[c]}<span aria-hidden="true">{c === sort ? (dir === 'asc' ? ' ▲' : ' ▼') : ''}</span></button></th>)}</tr></thead>
-        <tbody>{rows.map(t => <tr key={t.id}><td><input type="checkbox" aria-label={`Done: ${t.title}`} checked={false} onChange={() => list.toggle(t, true)} /></td>{TABLE_COLUMNS.map(c => c === 'title' ? <th key={c} scope="row">{cell(t, c)}</th> : <td key={c}>{cell(t, c)}</td>)}</tr>)}</tbody></table>
+        <button type="button" className="tasks-sort" onClick={() => by(c)}>{COLUMN_WORDS[c]}<span aria-hidden="true">{c === sort ? (dir === 'asc' ? ' ▲' : ' ▼') : ''}</span></button></th>)}
+        {defs.map(f => <th key={f.id} scope="col" aria-sort={byField?.id === f.id ? (dir === 'asc' ? 'ascending' : 'descending') : undefined}><button type="button" className="tasks-sort" onClick={() => by(`field:${f.id}`)}><span dir="auto">{f.name}</span><span aria-hidden="true">{byField?.id === f.id ? (dir === 'asc' ? ' ▲' : ' ▼') : ''}</span></button></th>)}</tr></thead>
+        <tbody>{rows.map(t => <tr key={t.id}><td><input type="checkbox" aria-label={`Done: ${t.title}`} checked={false} onChange={() => list.toggle(t, true)} /></td>{TABLE_COLUMNS.map(c => c === 'title' ? <th key={c} scope="row">{cell(t, c)}</th> : <td key={c}>{cell(t, c)}</td>)}{defs.map(f => <td key={f.id} dir="auto">{fieldText(f, t.fields?.[f.id])}</td>)}</tr>)}</tbody></table>
     </div> : <p className="fine">No open tasks{project ? ' in this project' : ''}. Add some, and sort them here by day, deadline, priority, length, or when they were added or changed.</p>}
   </section>;
 }

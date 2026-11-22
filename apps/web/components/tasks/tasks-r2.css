@@ -22,6 +22,8 @@
 .tasks-gallery-what { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; overflow-wrap: anywhere; font-size: 15px; }
 .tasks-gallery-what small { color: var(--text-secondary, var(--muted)); font-size: 14px; }
 .tasks-gallery-list button { min-height: 44px; }
+.task-editor-fields { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; }
+.task-editor-fields .field { flex: 1 1 180px; min-width: 0; }
 .tasks-project-setup { margin: 0 0 16px; display: grid; gap: 8px; }
 .tasks-project-setup h3 { margin: 0; font-size: 17px; overflow-wrap: anywhere; }
 .tasks-project-setup h4 { margin: 8px 0 4px; font-size: 16px; }
