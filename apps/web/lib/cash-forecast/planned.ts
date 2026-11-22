@@ -62,6 +62,6 @@ export function plannedStates(planned: readonly PlannedCost[] | undefined, entri
   return list.map((cost, i) => { const entry = hit.get(i); return entry ? {cost, state: 'seen', overdue: false, entry} : {cost, state: 'open', overdue: cost.date < today}; });
 }
 /** The open planned costs, as the forecast reads them. */
-export const openPlanned = (states: readonly PlannedState[]): ForecastPlanned[] => states.filter(s => s.state === 'open').map(s => ({name: s.cost.name, amount: s.cost.amount, currency: s.cost.currency, date: s.cost.date}));
+export const openPlanned = (states: readonly PlannedState[]): ForecastPlanned[] => states.filter(s => s.state === 'open').map(s => ({name: s.cost.name, amount: s.cost.amount, currency: s.cost.currency, date: s.cost.date, ...(s.cost.category ? {category: s.cost.category} : {})}));
 /** The open planned costs of a record, straight from the money log (the forecast and Left this month both read this). */
 export const plannedForForecast = (more: MoneyMore | null | undefined, entries: readonly MoneyEntry[], today: string): ForecastPlanned[] => openPlanned(plannedStates(more?.planned, entries, today));

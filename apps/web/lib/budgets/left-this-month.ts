@@ -18,7 +18,8 @@ import type {BudgetsRecord} from './schema';
  *   − the bills still due this month that the log does not show yet and that no budget covers (a bill whose category has
  *     a budget in its currency is in that budget already)
  *   − the Goal plans still to come this month (each active plan's dates from today to the month's end)
- *   − the planned one-off costs still open up to the month's end (lib/cash-forecast/planned.ts; an overdue one too).
+ *   − the planned one-off costs still open up to the month's end (lib/cash-forecast/planned.ts; an overdue one too); one
+ *     in a budgeted category counts only the part above what that budget still holds (it is in that budget already).
  * The spending and income figures are Wealth → Spending's own (`totals`, `byCategory` in lib/money-log/engine.ts: left-out
  * entries, transfers and Settle-up refunds are not counted, a shared cost counts the person's share), so this agrees with
  * Spending, Budgets and NOVA. A fact from the person's records, never advice and never a projection. Pure.
@@ -44,9 +45,10 @@ export function leftThisMonth(input: LeftInput): LeftThisMonth[] {
   for (const t of totals(entries, start, end)) { const r = row(t.currency); r.income = t.income; r.spent = t.expenses; r.incomeEntries = entries.filter(e => e.kind === 'income' && e.currency === t.currency && e.date >= start && e.date <= end).length; }
   // What each budget still holds: its own amount this month, less what its category has spent (Wealth → Spending's byCategory).
   const spentIn = new Map(byCategory(entries, start, end).map(c => [`${c.currency}|${fold(c.category)}`, c.total]));
-  const active = (input.budgets?.budgets ?? []).filter(b => b.since <= month), covered = new Set(active.map(b => `${b.currency}|${fold(b.category)}`));
+  const active = (input.budgets?.budgets ?? []).filter(b => b.since <= month), covered = new Set(active.map(b => `${b.currency}|${fold(b.category)}`)), stillBy = new Map<string, number>();
   for (const b of active) {
     const held = budgetedIn(b, month) + movedIn(input.budgets ?? undefined, b.id, month), still = Math.max(0, held - (spentIn.get(`${b.currency}|${fold(b.category)}`) ?? 0));
+    stillBy.set(`${b.currency}|${fold(b.category)}`, (stillBy.get(`${b.currency}|${fold(b.category)}`) ?? 0) + still);
     const r = row(b.currency); if (still > 0) { r.budgets.cents += still; r.budgets.items.push({name: b.category, cents: still}); }
   }
   // Bills still due this month, not in the log yet, that no budget covers.
@@ -66,10 +68,15 @@ export function leftThisMonth(input: LeftInput): LeftThisMonth[] {
     if (cents <= 0) continue;
     for (const day of contributionDates(p, today, end)) { const r = row(p.asset); r.goals.cents += cents; r.goals.items.push({name: p.goalName, cents, date: day}); }
   }
-  // Planned one-off costs still open up to the month's end.
+  // Planned one-off costs still open up to the month's end. Review b3a #1: one in a category that has a budget is paid
+  // from what that budget still holds (already taken off above), so only the part above it counts here, never twice.
   for (const p of input.planned ?? []) {
     if (p.date > end || !/^\d{1,10}(\.\d{1,2})?$/.test(p.amount)) continue;
-    const cents = minorUnits(p.amount), r = row(p.currency); r.planned.cents += cents; r.planned.items.push({name: p.name, cents, date: p.date});
+    const key = p.category ? `${p.currency}|${fold(p.category)}` : null, whole = minorUnits(p.amount);
+    const absorbed = key && covered.has(key) ? Math.min(whole, stillBy.get(key) ?? 0) : 0, cents = whole - absorbed;
+    if (key && absorbed) stillBy.set(key, (stillBy.get(key) ?? 0) - absorbed);
+    if (cents <= 0) continue;
+    const r = row(p.currency); r.planned.cents += cents; r.planned.items.push({name: p.name, cents, date: p.date});
   }
   const out = [...rows.values()];
   for (const r of out) {

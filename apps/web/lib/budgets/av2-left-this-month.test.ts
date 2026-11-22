@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {leftThisMonth} from './left-this-month';
 import {totals} from '../money-log/engine';
+import {plannedForForecast} from '../cash-forecast/planned';
 import type {MoneyEntry} from '../money-log/schema';
 import type {BudgetsRecord} from './schema';
 import type {BillsRecord} from '../bills/schema';
@@ -54,5 +55,21 @@ describe('Left this month', () => {
     const usd = leftThisMonth({entries: [], planned: [{name: 'Visa fee', amount: '30.00', currency: 'USD', date: '2026-11-30'}], today: TODAY});
     expect(usd).toEqual([expect.objectContaining({currency: 'USD', income: 0, left: -3000})]);
     expect(leftThisMonth({entries: [], today: TODAY})).toEqual([]);
+  });
+  test('review b3a #1: a planned cost in a budgeted category is paid from that budget first, never taken off twice', () => {
+    const gifts: BudgetsRecord = {version: 1, budgets: [{id: 'gi', category: 'Gifts', currency: 'EUR', monthly: '100.00', rollover: false, since: '2026-11'}]};
+    const inside = leftThisMonth({entries: [], budgets: gifts, planned: [{name: 'Birthday present', amount: '60.00', currency: 'EUR', date: '2026-11-28', category: 'gifts'}], today: TODAY})[0]!;
+    expect([inside.budgets.cents, inside.planned.cents, inside.left]).toEqual([10000, 0, -10000]);
+    // above what the budget still holds: only the part above it counts as planned; two costs share the budget once
+    const above = leftThisMonth({entries: [], budgets: gifts, planned: [{name: 'Present', amount: '60.00', currency: 'EUR', date: '2026-11-28', category: 'Gifts'}, {name: 'Flowers', amount: '70.00', currency: 'EUR', date: '2026-11-29', category: 'Gifts'}], today: TODAY})[0]!;
+    expect(above.planned).toEqual({cents: 3000, items: [{name: 'Flowers', cents: 3000, date: '2026-11-29'}]});
+    expect(above.left).toBe(-13000);
+    // without a category, or in a category with no budget, the whole cost counts
+    const loose = leftThisMonth({entries: [], budgets: gifts, planned: [{name: 'Train', amount: '40.00', currency: 'EUR', date: '2026-11-28'}, {name: 'Shoes', amount: '50.00', currency: 'EUR', date: '2026-11-28', category: 'Shopping'}], today: TODAY})[0]!;
+    expect(loose.planned.cents).toBe(9000);
+  });
+  test('review b3a #1: the planned cost keeps its category on its way from the record', () => {
+    const states = plannedForForecast({version: 1, planned: [{id: 'p', name: 'Present', amount: '60.00', currency: 'EUR', date: '2026-11-28', category: 'Gifts'}]}, [], TODAY);
+    expect(states).toEqual([{name: 'Present', amount: '60.00', currency: 'EUR', date: '2026-11-28', category: 'Gifts'}]);
   });
 });

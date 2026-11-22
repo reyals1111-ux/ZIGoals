@@ -46,7 +46,7 @@ export type PlannedContribution = {goalName: string; amount: string; asset: stri
  * log matches it and the person has not cleared it; lib/cash-forecast/planned.ts). Its day in the forecast is its own
  * date, or tomorrow when that date has passed and it is still open.
  */
-export type ForecastPlanned = {name: string; amount: string; currency: string; date: string};
+export type ForecastPlanned = {name: string; amount: string; currency: string; date: string; /** Review b3a #1: the category it names, so Left this month counts it inside that category's budget. */ category?: string};
 export type ForecastInput = {accounts: Accounts; bills: BillsRecord; entries: readonly MoneyEntry[]; budgets?: BudgetsRecord; contributions?: readonly PlannedContribution[]; planned?: readonly ForecastPlanned[]; today: string; days?: number};
 
 export const toCents = (value: bigint, decimals: number) => decimals >= 2 ? value / 10n ** BigInt(decimals - 2) : value * 10n ** BigInt(2 - decimals);
