@@ -1,0 +1,109 @@
+/* Session AV lane 2 (body): the exercise library, routine library, progression, analytics, year calendar, run summary,
+   distance goals and training load. Theme tokens only, 14 px or more, 44 px targets, nothing moves with Motion Off. */
+.av2-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.av2-library { display: grid; gap: 10px; }
+.av2-library-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.av2-library-list button { width: 100%; min-height: 52px; display: grid; justify-items: start; gap: 2px; text-align: left; }
+.av2-library-list button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6); }
+.av2-library-list span { color: var(--text-secondary, #c9d6ea); font-size: 14px; }
+.av2-exercise { display: grid; gap: 8px; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); min-width: 0; }
+.av2-exercise-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.av2-exercise-head h3, .av2-exercise-head h4 { margin: 0; font-size: 1.1rem; overflow-wrap: anywhere; }
+.av2-exercise-head button { min-height: 44px; }
+.av2-exercise-facts { display: grid; gap: 6px; margin: 0; }
+.av2-exercise-facts div { display: grid; gap: 0; }
+.av2-exercise-facts dt { font-size: 14px; color: var(--text-meta, #c2d0e5); }
+.av2-exercise-facts dd { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.av2-steps { margin: 4px 0; padding-inline-start: 1.4em; display: grid; gap: 4px; font-size: 15px; }
+.av2-tip { margin: 0; font-size: 15px; }
+.av2-exercise-own h4 { margin: 4px 0; font-size: 1rem; }
+.av2-exercise-own p { margin: 0; font-size: 15px; }
+.av2-pin { display: grid; gap: 8px; }
+.av2-pin textarea { min-height: 44px; width: 100%; }
+/* The routine library (LEDGER #112, #115). */
+.av2-routines { display: grid; gap: 10px; }
+.av2-guide-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.av2-guide { display: grid; gap: 6px; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); align-content: start; min-width: 0; }
+.av2-guide h4 { margin: 0; font-size: 1.05rem; }
+.av2-guide p { margin: 0; font-size: 15px; }
+.av2-guide-meta { color: var(--text-secondary, #c9d6ea); }
+.av2-guide-exercises { margin: 0; padding-inline-start: 1.3em; display: grid; gap: 4px; font-size: 15px; }
+.av2-guide-exercises span { font-variant-numeric: tabular-nums; }
+.av2-guide-exercises small { display: block; font-size: 14px; color: var(--text-secondary, #c9d6ea); }
+.av2-routine-edit { display: grid; gap: 8px; flex-basis: 100%; }
+.av2-routine-edit textarea { width: 100%; min-height: 44px; }
+/* The progression rule (LEDGER #109). */
+.av2-progression { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; min-width: 0; }
+.av2-progression legend { font-weight: 600; margin-bottom: 4px; font-size: 15px; }
+.av2-progression select, .av2-progression input { min-height: 44px; max-width: 100%; }
+.av2-progression-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.av2-progression-row .field { flex: 1 1 120px; }
+.av2-problem { margin: 0; color: var(--danger-text, #ffb4c8); font-size: 15px; }
+:root[data-theme=light] .av2-problem { color: #a3123a; }
+/* Progress analytics (LEDGER #117). */
+.av2-progress { display: grid; gap: 14px; }
+.av2-progress h3 { margin: 0; font-size: 1.05rem; }
+.av2-month { display: grid; gap: 8px; }
+.av2-month-nav h3 { min-width: 10ch; text-align: center; }
+.av2-month-nav button { min-width: 44px; min-height: 44px; }
+.av2-scroll { overflow-x: auto; max-width: 100%; }
+.av2-scroll:focus-visible { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
+.av2-heat { border-collapse: separate; border-spacing: 3px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.av2-heat th { font-size: 14px; font-weight: 600; text-align: left; white-space: nowrap; padding: 2px 6px; color: var(--text-meta, #c2d0e5); }
+.av2-heat tbody th { color: inherit; }
+.av2-heat td { min-width: 40px; height: 36px; text-align: center; border-radius: 8px; background: color-mix(in srgb, var(--brand-cyan, #6fe6f6) calc(var(--heat, 0) * 38%), transparent); box-shadow: inset 0 0 0 1px var(--line, #8fb6ff26); }
+.av2-heat td[data-zero] { color: var(--text-secondary, #c9d6ea); }
+:root[data-theme=light] .av2-heat td { background: color-mix(in srgb, #0b6f84 calc(var(--heat, 0) * 45%), transparent); }
+@media (forced-colors: active) { .av2-heat td { forced-color-adjust: auto; } }
+/* The year calendar (LEDGER #118). */
+.av2-year { display: grid; gap: 8px; }
+.av2-year-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.av2-year-month { border-collapse: separate; border-spacing: 2px; }
+.av2-year-month caption { text-align: start; font-size: 14px; padding-bottom: 2px; display: flex; gap: 6px; justify-content: space-between; }
+.av2-year-month caption span { color: var(--text-secondary, #c9d6ea); }
+.av2-year-month th { padding: 0; height: 0; }
+.av2-year-month td { width: 16px; height: 16px; padding: 0; border-radius: 4px; background: color-mix(in srgb, var(--text-secondary, #c9d6ea) 14%, transparent); }
+.av2-year-month td.is-out { background: none; }
+.av2-year-month td.is-trained, .av2-year-key.is-trained { background: var(--success, #47d6a1); }
+.av2-year-month td.is-today { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: -1px; }
+.av2-year-key { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: middle; }
+:root[data-theme=light] .av2-year-month td.is-trained, :root[data-theme=light] .av2-year-key.is-trained { background: #16865c; }
+@media (forced-colors: active) { .av2-year-month td.is-trained, .av2-year-key.is-trained { background: CanvasText; } }
+/* Distance goals and the training load (LEDGER #111). */
+.av2-goals { display: grid; gap: 16px; }
+.av2-goals section { display: grid; gap: 8px; min-width: 0; }
+.av2-goals h3 { margin: 0; font-size: 1.05rem; }
+.av2-goal-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.av2-goal-list li { display: grid; gap: 4px; }
+.av2-goal-list p { margin: 0; }
+.av2-goal-list button { justify-self: start; min-height: 44px; }
+.av2-goal-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 15px; }
+.av2-goal-bar { block-size: 12px; border-radius: 6px; background: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent); overflow: hidden; }
+.av2-goal-bar span { display: block; block-size: 100%; background: var(--success, #47d6a1); border-radius: 6px; }
+.av2-goal-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.av2-goal-form .field { flex: 1 1 130px; }
+.av2-goal-form select, .av2-goal-form input { min-height: 44px; }
+.av2-load-line { margin: 0; font-size: 15px; }
+.av2-load-bars { width: 100%; height: 70px; }
+.av2-load-bars rect { fill: var(--brand-cyan, #6fe6f6); opacity: .65; }
+.av2-load-bars rect.is-this-week { opacity: 1; }
+.av2-load-usual { fill: none; stroke: var(--pillar, #ff74be); stroke-width: 2; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+:root[data-theme=light] .av2-goal-bar span { background: #16865c; }
+:root[data-theme=light] .av2-load-bars rect { fill: #0b6f84; }
+@media (forced-colors: active) { .av2-goal-bar span, .av2-load-bars rect { background: CanvasText; fill: CanvasText; } .av2-load-usual { stroke: Highlight; } }
+/* Shoes, the run-best mark and the running tip (LEDGER #203, #204, #208). */
+.av2-shoes { display: grid; gap: 12px; }
+.av2-shoe-note { margin: 0; font-size: 15px; font-weight: 600; }
+.av2-shoe-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.av2-shoe-actions button { min-height: 44px; }
+.av2-form-title { flex-basis: 100%; margin: 0; font-size: 1rem; }
+.av2-tip-card { display: grid; gap: 6px; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); margin: 8px 0; }
+.av2-tip-card h3 { margin: 0; font-size: 1rem; }
+.av2-tip-card p { margin: 0; font-size: 15px; }
+.av2-best-mark { margin: 0; padding: 8px 12px; border-radius: 12px; font-size: 15px; font-weight: 600; background: color-mix(in srgb, var(--success, #47d6a1) 16%, transparent); }
+:root[data-theme=light] .av2-best-mark { background: #e3f6ee; color: #0b4d34; }
+/* Shared routine files (LEDGER #206). */
+.av2-import { display: grid; gap: 8px; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); }
+.av2-import h4 { margin: 0; font-size: 1rem; }
+.av2-import input[type="file"] { min-height: 44px; max-width: 100%; }
+.av2-check { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; }

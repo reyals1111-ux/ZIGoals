@@ -48,6 +48,25 @@ function ScaleChart({series}: {series: {date: string; mood: number | null; energ
     <Axis labels={dateLabels(series.map(p => p.date), x)}/>
   </svg>;
 }
+/**
+ * Session AV lane 2 (body; q3 #48): up to four symptoms' daily levels (0 None to 3 Strong) as lines, told apart by line style
+ * and marker shape (never colour alone), named in the key below; a day not rated is a gap. The table beside it has the counts.
+ */
+const STYLES = [{dash: '', mark: 'circle', word: 'solid line, circles'}, {dash: '6 4', mark: 'square', word: 'dashed line, squares'}, {dash: '2 3', mark: 'triangle', word: 'dotted line, triangles'}, {dash: '8 3 2 3', mark: 'diamond', word: 'dash-dot line, diamonds'}] as const;
+function SymptomLines({chart}: {chart: NonNullable<NonNullable<Report['symptoms']>['chart']>}) {
+  const n = chart.dates.length, step = pw / Math.max(1, n - 1 || 1), x = (i: number) => PAD.left + (n === 1 ? pw / 2 : i * step), y = (v: number) => PAD.top + ph - v / 3 * ph;
+  const path = (values: (number | null)[]) => { let d = '', open = false; values.forEach((v, i) => { if (v === null) { open = false; return; } d += `${open ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`; open = true; }); return d; };
+  const mark = (kind: typeof STYLES[number]['mark'], cx: number, cy: number, key: string) => kind === 'circle' ? <circle key={key} className="report-dot" cx={cx} cy={cy} r={2.6}/> : kind === 'square' ? <rect key={key} className="report-dot is-open" x={cx - 2.4} y={cy - 2.4} width={4.8} height={4.8}/>
+    : kind === 'triangle' ? <path key={key} className="report-dot" d={`M${cx},${cy - 3}L${cx + 3},${cy + 2.4}L${cx - 3},${cy + 2.4}Z`}/> : <path key={key} className="report-dot is-open" d={`M${cx},${cy - 3.2}L${cx + 3.2},${cy}L${cx},${cy + 3.2}L${cx - 3.2},${cy}Z`}/>;
+  return <figure className="report-figure">
+    <svg className="report-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Symptom levels per day, 0 None to 3 Strong: ${chart.lines.map((l, i) => `${l.name} (${STYLES[i]!.word})`).join('; ')}. Gaps are days without a rating.`}>
+      {[0, 1, 2, 3].map(v => <g key={v} className="report-grid"><line x1={PAD.left} x2={W - PAD.right} y1={y(v)} y2={y(v)}/><text x={PAD.left - 4} y={y(v) + 4} textAnchor="end">{v}</text></g>)}
+      {chart.lines.map((l, i) => <g key={l.name}><path className="report-line" d={path(l.values)} style={STYLES[i]!.dash ? {strokeDasharray: STYLES[i]!.dash} : undefined}/>{l.values.map((v, k) => v === null ? null : mark(STYLES[i]!.mark, x(k), y(v), `${i}-${k}`))}</g>)}
+      <Axis labels={dateLabels(chart.dates, x)}/>
+    </svg>
+    <figcaption><ul className="report-key">{chart.lines.map((l, i) => <li key={l.name}>{l.name}: {STYLES[i]!.word}</li>)}</ul></figcaption>
+  </figure>;
+}
 function WeightChart({rows, unit}: {rows: {date: string; grams: number}[]; unit: WeightUnit}) {
   const lo = Math.min(...rows.map(r => r.grams)), hi = Math.max(...rows.map(r => r.grams)), span = Math.max(1000, hi - lo), base = lo - span * 0.1, top = hi + span * 0.1;
   const t0 = Date.parse(`${rows[0]!.date}T12:00:00Z`), t1 = Date.parse(`${rows.at(-1)!.date}T12:00:00Z`), x = (d: string) => PAD.left + (t1 === t0 ? pw / 2 : (Date.parse(`${d}T12:00:00Z`) - t0) / (t1 - t0) * pw), y = (g: number) => PAD.top + ph - (g - base) / (top - base) * ph;
@@ -133,6 +152,7 @@ export function ReportDocument({report: r, weightUnit, showcase, journal}: {repo
     {/* Session AV (owner follow-up 1, F-REPORT-MORE): symptoms and factors as rated, supplements and medication as logged. */}
     {r.symptoms && <section className="report-section" aria-labelledby="report-symptoms"><h2 id="report-symptoms">Symptoms and factors</h2>
       {r.symptoms.rows.length ? <><p>Rated by the person each day from None to Strong (0 to 3). Days without a rating are left out, never counted as None.</p>
+        {r.symptoms.chart && <SymptomLines chart={r.symptoms.chart}/>}
         <Wide label="Symptom ratings"><table><thead><tr><th scope="col">Symptom or factor</th><th scope="col">Days rated</th><th scope="col">Above None</th><th scope="col">Strong</th><th scope="col">Average</th></tr></thead>
           <tbody>{r.symptoms.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'factor' ? ' (factor)' : ''}</th><td>{s.rated}</td><td>{s.noted}</td><td>{s.strong}</td><td>{s.average === null ? '—' : `${formatNumber(s.average)} (${s.averageWord})`}</td></tr>)}</tbody></table></Wide></> : none}
     </section>}

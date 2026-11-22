@@ -50,7 +50,12 @@ export type LabRow = {date: string; name: string; value: number; unit: string; r
 export type NumbersSection = {bp: BpRow[]; bpMore: number; labs: LabRow[]; labsMore: number};
 /** Session AV (F-REPORT-MORE): per symptom or factor, the days rated in the range, the days above None, the strong days and the average level. */
 export type SymptomRow = {name: string; kind: 'symptom' | 'factor'; rated: number; noted: number; strong: number; average: number | null; averageWord: string | null};
-export type SymptomsSection = {rows: SymptomRow[]};
+/**
+ * Session AV lane 2 (body; q3 #48, Bearable's report charts symptoms over time): the days of the range and, for up to four
+ * symptoms (the most days rated first), each day's level (0–3) or null for a day not rated, for the report's line chart.
+ */
+export type SymptomChart = {dates: string[]; lines: {name: string; values: (number | null)[]}[]};
+export type SymptomsSection = {rows: SymptomRow[]; chart?: SymptomChart};
 /** Session AV (F-REPORT-MORE): per supplement or medication, the planned doses in the range and what was logged of them. */
 export type SupplementRow = {name: string; dose: string | null; kind: 'supplement' | 'medication'; planned: number | null; taken: number; skipped: number; notLogged: number | null};
 export type SupplementsSection = {rows: SupplementRow[]};
@@ -148,6 +153,10 @@ export function buildReport(input: ReportInput): Report {
       const levels = days.map(([, v]) => v[item.id]).filter((n): n is number => typeof n === 'number'), a = avg(levels), r1 = round1(a);
       return {name: item.name, kind: item.kind, rated: levels.length, noted: levels.filter(n => n > 0).length, strong: levels.filter(n => n === 3).length, average: r1, averageWord: a === null ? null : SEVERITY_WORDS[Math.round(a)] ?? null};
     }).filter(r => r.rated > 0)};
+    const dates = daysOf(range), byDay = new Map(days);
+    const lines = (input.symptoms?.items ?? []).filter(i => i.kind === 'symptom').map(item => ({name: item.name, values: dates.map(d => { const v = byDay.get(d)?.[item.id]; return typeof v === 'number' ? v : null; })}))
+      .filter(l => l.values.some(v => v !== null)).sort((a, b) => b.values.filter(v => v !== null).length - a.values.filter(v => v !== null).length).slice(0, 4);
+    if (lines.length) out.symptoms.chart = {dates, lines};
   }
   if (want.has('supplements')) {
     const marks = (input.supplements?.log ?? []).filter(m => inRange(m.date, range));

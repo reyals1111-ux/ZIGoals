@@ -22,6 +22,12 @@ export const CATEGORIES = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core',
 const entryExtras = {
   supersetId: z.string().regex(/^[A-Za-z0-9_-]{1,40}$/).optional().catch(undefined),
   restSeconds: z.number().int().min(0).max(900).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (body; LEDGER #202, Strong's assisted and weighted bodyweight; TIER 3 (stored format), additive): a
+   * reps exercise done with added weight (a belt, a vest) or with help (an assisted machine, a band). The measure stays
+   * `reps` (a new MEASURES value would make older builds refuse the log); each set keeps `addedKg` or `assistKg`.
+   */
+  load: z.enum(['weighted', 'assisted']).optional().catch(undefined),
 };
 export const setSchema = z.looseObject({
   id,
@@ -36,6 +42,9 @@ export const setSchema = z.looseObject({
    * tolerant: an unreadable value is dropped, never a reason to refuse the record; older builds keep it untouched (loose).
    */
   rpe: z.number().min(6).max(10).multipleOf(0.5).optional().catch(undefined),
+  /** Session AV lane 2 (body; LEDGER #202; additive): weight added to a bodyweight set, or the help taken off it, in kg. */
+  addedKg: z.number().finite().min(0).max(500).optional().catch(undefined),
+  assistKg: z.number().finite().min(0).max(500).optional().catch(undefined),
 });
 export const exerciseEntrySchema = z.looseObject({
   id, exerciseId: z.string().min(1).max(80), name: z.string().trim().min(1).max(80),
@@ -52,6 +61,8 @@ export const workoutSchema = z.looseObject({
   /** The Health activity this workout wrote its minutes to, so editing or removing it keeps them in step. */
   activityId: z.string().max(120).optional(),
   templateId: id.optional(),
+  /** Session AV lane 2 (body; LEDGER #203, Nike Run Club's shoe tagging; additive): the shoes this run was in. */
+  shoeId: id.optional().catch(undefined),
   /**
    * Session AJ (item 27, D12; TIER 3 (stored format)): a workout imported from a GPX or TCX file keeps its summary here,
    * never the route's points. Optional and tolerant: an unreadable value is dropped, never a reason to refuse the record.
@@ -80,13 +91,48 @@ export const workoutSchema = z.looseObject({
     durationSeconds: z.number().int().min(0).max(172_800).optional(),
   }).optional().catch(undefined),
 });
+/**
+ * Session AV lane 2 (body; TIER 3 (stored format), additive; Hevy's routine folders and notes, MacroFactor's progression):
+ * a routine may sit in a folder, keep a note, name the ready-made routine it was copied from (`guideId`, so its written
+ * form tips stay at hand) and keep a progression rule — `double`: when every working set reached `maxReps`, the next
+ * session adds `stepKg` and starts again at `minReps`; `linear`: every session adds `stepKg` once all working sets were
+ * done. All optional and tolerant (an unreadable value is dropped, never a reason to refuse the log); older builds keep
+ * them untouched (loose objects).
+ */
+export const PROGRESSION_KINDS = ['double', 'linear'] as const;
+export const progressionSchema = z.looseObject({
+  kind: z.enum(PROGRESSION_KINDS),
+  minReps: z.number().int().min(1).max(50).optional(),
+  maxReps: z.number().int().min(1).max(50).optional(),
+  stepKg: z.number().finite().min(0.25).max(20),
+}).refine(p => p.kind !== 'double' || (p.minReps !== undefined && p.maxReps !== undefined && p.minReps < p.maxReps), 'A double progression needs a rep range, lowest first.');
+export type Progression = z.infer<typeof progressionSchema>;
 export const templateSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(80), type: z.enum(WORKOUT_TYPES).default('strength'),
   exercises: z.array(z.looseObject({exerciseId: z.string().min(1).max(80), name: z.string().trim().min(1).max(80), measure: z.enum(MEASURES).default('weight-reps'),
     sets: z.array(setSchema.omit({id: true, done: true})).max(50), ...entryExtras})).max(40),
   createdAt: z.iso.datetime({offset: true}),
+  folder: z.string().trim().min(1).max(40).optional().catch(undefined),
+  note: z.string().max(500).optional().catch(undefined),
+  guideId: z.string().regex(/^[a-z0-9-]{1,60}$/).optional().catch(undefined),
+  progression: progressionSchema.optional().catch(undefined),
 });
-export const customExerciseSchema = z.looseObject({id, name: z.string().trim().min(1).max(80), category: z.enum(CATEGORIES), measure: z.enum(MEASURES)});
+/**
+ * Session AV lane 2 (body; TIER 3 (stored format), additive; Strava's goals): a distance goal for a week, a month or a
+ * year, for one sport or for all of them. Counted from the person's own log (distance sets and imported files).
+ */
+export const GOAL_SPORTS = ['run', 'ride', 'swim', 'walk', 'any'] as const;
+export const GOAL_PERIODS = ['week', 'month', 'year'] as const;
+export const distanceGoalSchema = z.looseObject({id, sport: z.enum(GOAL_SPORTS), period: z.enum(GOAL_PERIODS), km: z.number().finite().min(1).max(100_000), createdAt: z.iso.datetime({offset: true})});
+export type DistanceGoal = z.infer<typeof distanceGoalSchema>;
+const exerciseKey = z.string().min(1).max(80).refine(k => k !== '__proto__' && k !== 'constructor' && k !== 'prototype', 'Not an exercise id.');
+export const customExerciseSchema = z.looseObject({id, name: z.string().trim().min(1).max(80), category: z.enum(CATEGORIES), measure: z.enum(MEASURES), load: entryExtras.load});
+/**
+ * Session AV lane 2 (body; LEDGER #203; TIER 3 (stored format), additive): a pair of shoes — its name, the distance it had
+ * before it was added here, the distance to retire it at, and when it was retired (kept for its history).
+ */
+export const shoeSchema = z.looseObject({id, name: z.string().trim().min(1).max(60), startKm: z.number().finite().min(0).max(20_000), retireKm: z.number().finite().min(50).max(20_000), createdAt: z.iso.datetime({offset: true}), retiredAt: z.iso.datetime({offset: true}).optional().catch(undefined)});
+export type Shoe = z.infer<typeof shoeSchema>;
 export const workoutsSchema = z.looseObject({
   version: z.literal(1),
   workouts: z.array(workoutSchema).max(3000),
@@ -103,6 +149,19 @@ export const workoutsSchema = z.looseObject({
     bar: z.number().finite().min(0).max(100),
     plates: z.array(z.looseObject({size: z.number().finite().min(0.1).max(100), pairs: z.number().int().min(0).max(20)})).max(12),
   }).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (body; TIER 3 (stored format), additive; Hevy's pinned exercise notes): one note per exercise that
+   * shows every time it is done (seat height, grip), by exercise id. Optional and tolerant, as above.
+   */
+  pinnedNotes: z.record(exerciseKey, z.string().trim().min(1).max(500)).refine(r => Object.keys(r).length <= 300, 'Up to 300 pinned notes.').optional().catch(undefined),
+  /** Session AV lane 2 (body; TIER 3 (stored format), additive): up to 12 distance goals (above). */
+  distanceGoals: z.array(distanceGoalSchema).max(12).optional().catch(undefined),
+  /** Session AV lane 2 (body; LEDGER #201, Strong's unit per exercise; additive): an exercise shown in kg or lb; the sets stay in kg. */
+  exerciseUnits: z.record(exerciseKey, z.enum(['kg', 'lb'])).refine(r => Object.keys(r).length <= 300, 'Up to 300 exercise units.').optional().catch(undefined),
+  /** Session AV lane 2 (body; LEDGER #203; additive): up to 30 pairs of shoes. */
+  shoes: z.array(shoeSchema).max(30).optional().catch(undefined),
+  /** Session AV lane 2 (body; LEDGER #204, Nike Run Club's PR achievements; additive): the run bests already marked ("<workout id>:<km>"), so each is marked once. */
+  seenBests: z.array(z.string().regex(/^[A-Za-z0-9_-]{1,80}:[0-9.]{1,8}$/)).max(100).optional().catch(undefined),
 });
 export type WorkoutSet = z.infer<typeof setSchema>;
 export type ExerciseEntry = z.infer<typeof exerciseEntrySchema>;

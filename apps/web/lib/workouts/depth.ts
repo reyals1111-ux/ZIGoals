@@ -172,7 +172,7 @@ export const CATEGORY_MUSCLES: Record<typeof CATEGORIES[number], readonly Muscle
   Chest: ['Chest'], Back: ['Back'], Legs: ['Legs'], Shoulders: ['Shoulders'], Arms: ['Arms'], Core: ['Core'],
   'Full body': ['Legs', 'Back', 'Shoulders', 'Core'], Cardio: [], Mobility: [],
 };
-type CategoryLookup = (exerciseId: string) => typeof CATEGORIES[number] | null;
+export type CategoryLookup = (exerciseId: string) => typeof CATEGORIES[number] | null;
 export const categoryLookup = (library: readonly Pick<LibraryExercise, 'id' | 'category'>[]): CategoryLookup => {
   const map = new Map(library.map(e => [e.id, e.category]));
   return id => map.get(id) ?? null;

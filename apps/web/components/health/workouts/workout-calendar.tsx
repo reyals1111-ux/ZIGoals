@@ -1,7 +1,7 @@
 'use client';
-import {useMemo, useState} from 'react';
+import {lazy, Suspense, useMemo, useState} from 'react';
 import type {Workouts} from '../../../lib/workouts/schema';
-import {shiftMonthKey, workoutMonth} from '../../../lib/workouts/calendar';
+import {shiftMonthKey, weekStreak, workoutMonth} from '../../../lib/workouts/calendar';
 import {formatDate, formatMonth, formatWeekdayLong} from '../../../lib/visual-format';
 import './workout-calendar.css';
 
@@ -12,7 +12,17 @@ import './workout-calendar.css';
  * Session AV (q3 #41): a day with a workout is a button; the chosen day's workouts are listed under the grid at 14 px. On a
  * phone the cells show a dot instead of a cut-off name ("Pu…"), so the names are read in the list, never in the cell.
  */
+// Session AV lane 2 (body; LEDGER #118, Hevy's yearly calendar): the year view, its own chunk, loaded when chosen.
+const WorkoutYearView = lazy(() => import('./workout-year'));
 export default function WorkoutCalendar({w, today}: {w: Workouts; today: string}) {
+  const [mode, setMode] = useState<'month' | 'year'>('month'), streak = useMemo(() => weekStreak(w, today), [w, today]);
+  return <>
+    <div className="workouts-weeks-pick workout-calendar-mode" role="group" aria-label="Calendar view">{(['month', 'year'] as const).map(m => <button key={m} type="button" className="quiet" aria-pressed={mode === m} onClick={() => setMode(m)}>{m === 'month' ? 'Month' : 'Year'}</button>)}</div>
+    <p className="fine workout-streak">{streak.current ? `${streak.current} ${streak.current === 1 ? 'week' : 'weeks'} in a row with a workout${streak.thisWeek ? '' : ' (this week still open)'}` : 'No week in a row yet: a workout this week starts one'}{streak.best > streak.current ? ` · longest ${streak.best} weeks` : ''}.</p>
+    {mode === 'month' ? <MonthView w={w} today={today}/> : <Suspense fallback={<p className="fine" role="status">Opening the year…</p>}><WorkoutYearView w={w} today={today}/></Suspense>}
+  </>;
+}
+function MonthView({w, today}: {w: Workouts; today: string}) {
   const thisMonth = today.slice(0, 7), [month, setMonth] = useState(thisMonth);
   const m = useMemo(() => workoutMonth(w, month, today), [w, month, today]);
   const trained = useMemo(() => m.weeks.flat().filter(d => d.inMonth && d.names.length > 0), [m]);
