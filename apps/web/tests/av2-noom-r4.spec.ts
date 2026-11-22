@@ -49,7 +49,8 @@ for (const theme of THEMES) test(`${theme}: a note for a harder week, a free day
   await page.goto('/app/health?view=targets'); await hydrated(page);
   await page.getByText('Weekly calorie budget (optional)').click();
   const free = page.getByRole('form', {name: 'Plan a free day'});
-  await free.getByLabel('Day').fill('2026-11-21');
+  // Session AV lane 2 (fixb4; deliberate): "Day" also matched "Extra that day (kcal, …)"; exactly "Day", as strict.
+  await free.getByLabel('Day', {exact: true}).fill('2026-11-21');
   await free.getByRole('textbox', {name: /^Extra that day/}).fill('600');
   await free.getByRole('button', {name: 'Plan the free day'}).click();
   await expect(page.getByRole('region', {name: 'A planned free day'})).toContainText('600 kcal more, taken evenly from 4 other days of that week.');
