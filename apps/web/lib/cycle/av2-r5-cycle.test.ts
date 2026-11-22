@@ -37,6 +37,12 @@ describe('Your cycles (#379)', () => {
     expect(h.find(c => c.start === '2026-01-01')).toMatchObject({pause: true});
     expect(cycleStats(h).cycle).toEqual({average: 28, shortest: 28, longest: 28, count: 1});
   });
+  test('the cycle still going is never a pause, however long; the glance shows it (review B5H-5)', () => {
+    const rec = periods([[addLocalDays(TODAY, -174), 3]]);
+    expect(cycleHistory(rec, TODAY)).toEqual([expect.objectContaining({length: 175, complete: false, pause: false})]);
+    expect(cycleGlance(rec, TODAY)[0]!.days).toHaveLength(60);
+    expect(cycleStats(cycleHistory(rec, TODAY)).cycle).toBeNull();
+  });
   test('nothing logged: no cycles', () => { expect(cycleHistory(emptyCycle(), TODAY)).toEqual([]); expect(cycleStats([])).toEqual({cycle: null, period: null, leftOut: 0}); });
 });
 
