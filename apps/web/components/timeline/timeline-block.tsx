@@ -47,6 +47,17 @@ export function TimePicker({block, actions, onClose}: {block: TimelineBlock; act
 }
 
 export function TimelineBlockRow({block, actions, busy}: {block: TimelineBlock; actions: BlockActions; busy: boolean}) {
+  if (block.kind === 'mark') return <TimelineMarkRow block={block}/>;
+  return <TimelineBlockBody block={block} actions={actions} busy={busy}/>;
+}
+/** Session AV lane 2 (r5-body, LEDGER #370): a small mark at its time (a mood check-in), in words as well as colour. */
+function TimelineMarkRow({block}: {block: TimelineBlock}) {
+  return <li className="timeline-row timeline-mark" data-kind="mark" data-pillar={block.pillar ?? undefined} data-block={block.id} style={block.colour ? {'--item-colour': block.colour} as CSSProperties : undefined}>
+    <span className="timeline-time">{block.start !== null ? clockLabel(block.start) : 'Any time'}</span>
+    <p className="timeline-mark-line"><span className="timeline-mark-dot" aria-hidden="true"/><Link href={block.href} className="text-link">{block.title}</Link>{block.note && <span className="timeline-meta"> · {block.note}</span>}</p>
+  </li>;
+}
+function TimelineBlockBody({block, actions, busy}: {block: TimelineBlock; actions: BlockActions; busy: boolean}) {
   const [picking, setPicking] = useState(false);
   const drag = useMoveBlock({start: block.start ?? 0, onCommit: m => actions.move(block, m)});
   const timed = block.start !== null, moving = drag.pending !== null && drag.pending !== block.start;

@@ -21,6 +21,11 @@ export type TimelineSourceItem = {
   colour?: string;
   /** Session AV lane 2 (r3-plan, LEDGER #257): a task's own symbol, shown before its title (decoration). */
   glyph?: string;
+  /**
+   * Session AV lane 2 (r5-body, LEDGER #370, Tiimo's moods on the day): a record of something that happened (a mood
+   * check-in), drawn as a small mark at its time with its words, never as a block to do: no Done, no move.
+   */
+  mark?: true;
 };
 /** What a source is given: today's records as the timeline read them (typed loosely here, so this file imports nothing). */
 export type TimelineSourceContext = {date: string; now: Date; stores: Record<string, unknown>};

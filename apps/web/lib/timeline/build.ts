@@ -21,7 +21,7 @@ import type {TimelineBand, TimelineSourceItem} from './sources';
  * part of the day (morning 08:00, afternoon 14:00, evening 19:00); "anytime" habits wait on the Anytime shelf. Fasts and
  * running timers keep their own clocks and never move; reminders, sleep and Checklist dots move where they belong.
  */
-export type BlockKind = 'habit' | 'meal' | 'sleep' | 'fast' | 'timer' | 'meditation' | 'reminder' | 'checklist';
+export type BlockKind = 'habit' | 'meal' | 'sleep' | 'fast' | 'timer' | 'meditation' | 'reminder' | 'checklist' | 'mark';
 export type BlockPillar = 'goals' | 'habits' | 'health' | 'wealth' | null;
 export type TimelineBlock = {
   id: string; kind: BlockKind; title: string;
@@ -49,6 +49,7 @@ export type TimelineBlock = {
   /** Session AV lane 2 (r3-plan, LEDGER #258): on another day, the time is the everyday move (a move here keeps this date only). */
   everydayMove?: true;
 };
+// Session AV lane 2 (r5-body, LEDGER #370): a source's mark (a mood check-in) is kind 'mark': a moment with its words.
 export type DayTimeline = {date: string; nowMinute: number; blocks: TimelineBlock[]; anytime: TimelineBlock[]; leftovers: TimelineBlock[]; replanFrom: number; quiet: boolean};
 export type TimelineInput = {
   /** The day shown (today, by the habits journal, unless another day is chosen). */
@@ -83,7 +84,7 @@ export const BANDS: {band: DayBand; label: string; from: number; to: number}[] =
   {band: 'afternoon', label: 'Afternoon', from: 720, to: 1020}, {band: 'evening', label: 'Evening', from: 1020, to: 1440},
 ];
 export const bandOf = (minute: number): DayBand => BANDS.find(b => minute >= b.from && minute < b.to)?.band ?? 'evening';
-const ORDER: Record<BlockKind, number> = {sleep: 0, fast: 1, reminder: 2, habit: 3, meal: 4, checklist: 5, timer: 6, meditation: 7};
+const ORDER: Record<BlockKind, number> = {sleep: 0, fast: 1, reminder: 2, habit: 3, meal: 4, checklist: 5, timer: 6, meditation: 7, mark: 8};
 const clampDay = (m: number) => Math.min(1439, Math.max(0, Math.round(m)));
 const wall = (iso: string, zone: string) => wallClock(Date.parse(iso), zone);
 const nowMinuteOf = (now: Date, zone: string) => wallClock(now.getTime(), zone).minutes;
@@ -188,6 +189,7 @@ export function buildDayTimeline(input: TimelineInput): DayTimeline {
   for (const item of input.extra ?? []) {
     if (item.habitId && habitBlocks.has(item.habitId)) { habitBlocks.get(item.habitId)!.onChecklist = true; continue; }
     const band: TimelineBand = item.band ?? 'anytime', time = item.time && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.time) ? item.time : band === 'anytime' ? null : PART_OF_DAY[band];
+    if (item.mark) { out.push({id: item.id, kind: 'mark', title: item.title, start: time ? clockMinutes(time) : null, minutes: 0, pillar: item.pillar ?? null, ...(item.colour ? {colour: item.colour} : {}), href: item.href || '/app/health', done: false, movable: false, timeFrom: 'its record', action: 'open', ...(item.label ? {note: item.label} : {})}); continue; }
     out.push({id: item.id, kind: 'checklist', title: item.title, start: time ? clockMinutes(time) : null, minutes: 0, pillar: item.pillar ?? null, ...(item.colour ? {colour: item.colour} : {}), ...(item.glyph ? {glyph: item.glyph} : {}), href: item.href || '/app/checklist', done: item.done, movable: false, lockedReason: 'Its place is set on the Checklist.', timeFrom: 'the Checklist', action: 'open', note: item.label ?? 'Checklist'});
   }
 
