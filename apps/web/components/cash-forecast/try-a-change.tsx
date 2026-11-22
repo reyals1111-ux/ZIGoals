@@ -25,11 +25,14 @@ const about = (cents: bigint, currency: string) => moneyWhole(centsText(cents), 
 export const describeChange = (c: WhatIfChange, currency: string) => `${c.label ? `${c.label}: ` : ''}${moneyCents(BigInt(minorUnits(c.amount)), currency)} ${c.dir === 'out' ? 'more out' : 'more in'}${c.kind === 'monthly' ? ` each month from ${formatDate(c.from)}${c.until ? ` until ${formatDate(c.until)}` : ''}` : ` on ${formatDate(c.from)}`}`;
 export default function TryAChange({rows, today, words}: {rows: readonly CurrencyForecast[]; today: string; words: string}) {
   const id = useId(), more = useDeviceRecord(MONEY_MORE), known = rows.filter((r): r is KnownForecast => r.known), heading = useRef<HTMLHeadingElement>(null);
-  const [currency, setCurrency] = useState(known[0]?.currency ?? ''), [changes, setChanges] = useState<WhatIfChange[]>([]);
+  const [currency, setCurrency] = useState(known[0]?.currency ?? ''), [tried0, setChangesIn] = useState<{currency: string; list: WhatIfChange[]}>({currency: known[0]?.currency ?? '', list: []});
   const [kind, setKind] = useState<WhatIfChange['kind']>('once'), [dir, setDir] = useState<WhatIfChange['dir']>('out'), [amount, setAmount] = useState(''), [from, setFrom] = useState(addLocalDays(today, 30)), [until, setUntil] = useState(''), [label, setLabel] = useState('');
   const [name, setName] = useState(''), [problem, setProblem] = useState(''), [said, setSaid] = useState('');
   const row = known.find(r => r.currency === currency) ?? known[0];
   if (!row) return null;
+  // Review b5k #7: changes are kept with their own currency and drawn only on that currency's line, never on another's.
+  const changes = tried0.currency === row.currency ? tried0.list : [];
+  const setChanges = (fn: WhatIfChange[] | ((list: WhatIfChange[]) => WhatIfChange[])) => setChangesIn({currency: row.currency, list: typeof fn === 'function' ? fn(changes) : fn});
   const tried: Tried | null = changes.length ? withChanges(row, changes) : null, kept = more.loaded && !more.unreadable ? more.data.whatIfs ?? [] : [];
   const add = (e: FormEvent) => {
     e.preventDefault(); setSaid('');
@@ -40,13 +43,15 @@ export default function TryAChange({rows, today, words}: {rows: readonly Currenc
   };
   const removeChange = (i: number) => { setChanges(c => c.filter((_, k) => k !== i)); setSaid('Change taken out of the model.'); requestAnimationFrame(() => heading.current?.focus()); };
   const keep = () => { try { more.update(m => saveWhatIf(m, {name, currency: row.currency, changes}, crypto.randomUUID())); setSaid(`Kept on this device as “${name.trim()}”.`); setProblem(''); } catch (cause) { setProblem(plainErrorMessage(cause, 'Not kept on this device.')); } };
-  const open = (w: WhatIf) => { setCurrency(w.currency); setChanges(w.changes.map(c => ({...c}))); setName(w.name); setSaid(`Opened “${w.name}”: ${w.changes.length} ${w.changes.length === 1 ? 'change' : 'changes'}.`); };
+  const open = (w: WhatIf) => {
+    if (!known.some(r => r.currency === w.currency)) { setSaid(''); setProblem(`“${w.name}” is in ${w.currency}, and your forecast has no ${w.currency} line now: it needs a cash or savings account in ${w.currency} with its balance. Nothing was opened.`); return; }
+    setProblem(''); setCurrency(w.currency); setChangesIn({currency: w.currency, list: w.changes.map(c => ({...c}))}); setName(w.name); setSaid(`Opened “${w.name}”: ${w.changes.length} ${w.changes.length === 1 ? 'change' : 'changes'}.`); };
   const remove = (w: WhatIf, index: number) => { try { more.update(m => removeWhatIf(m, w.id)); showUndo({message: `“${w.name}” removed.`, undoLabel: `Undo removing ${w.name}`, undone: `“${w.name}” is back.`, restore: () => { more.update(m => restoreWhatIf(m, w, index)); }}); setSaid(`“${w.name}” removed.`); requestAnimationFrame(() => heading.current?.focus()); } catch { setProblem('Not saved on this device.'); } };
   const c = row.currency, end = row.points.at(-1)!;
   return <section className="money-whatif" aria-labelledby={`${id}-title`}>
     <h5 id={`${id}-title`} ref={heading} tabIndex={-1}>Try a change</h5>
     <p className="fine"><strong>A model, not a plan.</strong> Made-up changes drawn beside your forecast; they are never written as entries, bills or plans.</p>
-    {known.length > 1 && <label className="field"><span>Currency</span><select value={row.currency} onChange={e => { setCurrency(e.target.value); setChanges([]); }}>{known.map(r => <option key={r.currency} value={r.currency}>{r.currency}</option>)}</select></label>}
+    {known.length > 1 && <label className="field"><span>Currency</span><select value={row.currency} onChange={e => { setCurrency(e.target.value); setChangesIn({currency: e.target.value, list: []}); }}>{known.map(r => <option key={r.currency} value={r.currency}>{r.currency}</option>)}</select></label>}
     <form className="money-whatif-form" onSubmit={add} aria-label="A change to try">
       <label className="field"><span>How often</span><select value={kind} onChange={e => setKind(e.target.value as WhatIfChange['kind'])}><option value="once">Once</option><option value="monthly">Each month</option></select></label>
       <label className="field"><span>Money</span><select value={dir} onChange={e => setDir(e.target.value as WhatIfChange['dir'])}><option value="out">More going out</option><option value="in">More coming in</option></select></label>
