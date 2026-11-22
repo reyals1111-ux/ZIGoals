@@ -1,7 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {monthKey, shiftMonth} from '../budgets/engine';
 import {monthOf, totals, weekOf} from './engine';
-import {countedBetween, countedByCategoryBetween} from './counted';
+import {countedBetween, countedByCategoryBetween, foldName, type CountedFilter} from './counted';
 import {searchEntries, type MoneyQuery} from './search';
 import type {MoneyEntry} from './schema';
 import {MAX_QUESTIONS, type MoneyMore, type SavedQuestion} from '../money-more/schema';
@@ -70,10 +70,13 @@ export function questionChart(found: readonly MoneyEntry[], q: SavedQuestion, to
   const by = q.by ?? 'month', months = Math.max(1, (Number(to.slice(0, 4)) * 12 + Number(to.slice(5, 7))) - (Number(from.slice(0, 4)) * 12 + Number(from.slice(5, 7))) + 1);
   return [...new Set(found.map(e => e.currency))].sort().map(currency => {
     // Review b4f #2: every bar, the total and the average count as the budgets do (`countedBetween`), a spread cost by its share in each month.
-    const mine = found.filter(e => e.currency === currency), sum = (a: string, b: string) => countedBetween(mine, a, b, {kind, currency}).get(currency) ?? 0;
+    // Review b4f #1: a search on a category counts only the parts in that category (a split entry adds just its part there, as
+    // This month by category does); on a subcategory, only the parts in the entry's own category.
+    const only: CountedFilter['only'] = q.category ? (_e, p) => foldName(p.category) === foldName(q.category!) : q.sub ? (e, p) => foldName(p.category) === foldName(e.category) : undefined;
+    const mine = found.filter(e => e.currency === currency), sum = (a: string, b: string) => countedBetween(mine, a, b, {kind, currency, ...(only ? {only} : {})}).get(currency) ?? 0;
     const sums = totals(mine, from, to), total = sum(from, to), count = sums.find(x => x.currency === currency)?.count ?? 0;
     let bars: Bar[];
-    if (by === 'category') bars = countedByCategoryBetween(mine, from, to, kind).filter(r => r.currency === currency).map(r => ({key: r.category, label: r.category, cents: r.total}));
+    if (by === 'category') bars = countedByCategoryBetween(mine, from, to, kind, only).filter(r => r.currency === currency).map(r => ({key: r.category, label: r.category, cents: r.total}));
     else if (by === 'week') {
       bars = [];
       for (let w = weekOf(to, weekStartsOn).start; w >= weekOf(from, weekStartsOn).start && bars.length < MAX_WEEKS; w = addLocalDays(w, -7)) bars.unshift({key: w, label: w, cents: sum(w < from ? from : w, addLocalDays(w, 6) > to ? to : addLocalDays(w, 6))});

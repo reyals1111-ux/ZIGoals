@@ -77,32 +77,34 @@ export function countedDayParts(e: MoneyEntry): {date: string; parts: EntryPart[
   if (!isCounted(e)) return [];
   return e.kind === 'expense' ? budgetDayParts(e) : [{date: e.date, parts: entryParts(e)}];
 }
-export type CountedFilter = {kind?: MoneyEntry['kind']; currency?: string; category?: string};
-const foldName = (s: string) => s.toLowerCase().normalize('NFKD').replace(/\p{M}+/gu, '').trim();
+export type CountedFilter = {kind?: MoneyEntry['kind']; currency?: string; category?: string;
+  /** Review b4f #1: only the parts this keeps count (a saved search on a subcategory: the parts in the entry's own category). */
+  only?: (e: MoneyEntry, part: EntryPart) => boolean};
+export const foldName = (s: string) => s.toLowerCase().normalize('NFKD').replace(/\p{M}+/gu, '').trim();
 /**
  * Spending (or income) from `from` to `to` (both included), per currency, by `countedDayParts`. With `category`, only the
  * parts in that category count (a split entry adds just its part there, as This month by category does).
  */
-export function countedBetween(entries: readonly MoneyEntry[], from: string, to: string, {kind = 'expense', currency, category}: CountedFilter = {}): Map<string, number> {
+export function countedBetween(entries: readonly MoneyEntry[], from: string, to: string, {kind = 'expense', currency, category, only}: CountedFilter = {}): Map<string, number> {
   const out = new Map<string, number>(), cat = category ? foldName(category) : '';
   for (const e of entries) {
     if (e.kind !== kind || (currency && e.currency !== currency)) continue;
     for (const d of countedDayParts(e)) {
       if (d.date < from || d.date > to) continue;
-      const cents = d.parts.reduce((sum, p) => !cat || foldName(p.category) === cat ? sum + p.cents : sum, 0);
+      const cents = d.parts.reduce((sum, p) => (!cat || foldName(p.category) === cat) && (!only || only(e, p)) ? sum + p.cents : sum, 0);
       if (cents) out.set(e.currency, (out.get(e.currency) ?? 0) + cents);
     }
   }
   return out;
 }
 /** As `byCategory` (lib/money-log/engine.ts), by `countedDayParts`: each part in its category, biggest first. */
-export function countedByCategoryBetween(entries: readonly MoneyEntry[], from: string, to: string, kind: MoneyEntry['kind'] = 'expense'): {category: string; currency: string; total: number; count: number}[] {
+export function countedByCategoryBetween(entries: readonly MoneyEntry[], from: string, to: string, kind: MoneyEntry['kind'] = 'expense', only?: (e: MoneyEntry, part: EntryPart) => boolean): {category: string; currency: string; total: number; count: number}[] {
   const by = new Map<string, {category: string; currency: string; total: number; count: number}>();
   for (const e of entries) {
     if (e.kind !== kind) continue;
     for (const d of countedDayParts(e)) {
       if (d.date < from || d.date > to) continue;
-      for (const p of d.parts) { if (!p.cents) continue; const k = `${e.currency}\u0000${p.category}`, row = by.get(k) ?? {category: p.category, currency: e.currency, total: 0, count: 0}; row.total += p.cents; row.count++; by.set(k, row); }
+      for (const p of d.parts) { if (!p.cents || (only && !only(e, p))) continue; const k = `${e.currency}\u0000${p.category}`, row = by.get(k) ?? {category: p.category, currency: e.currency, total: 0, count: 0}; row.total += p.cents; row.count++; by.set(k, row); }
     }
   }
   return [...by.values()].sort((a, b) => b.total - a.total || a.category.localeCompare(b.category));
