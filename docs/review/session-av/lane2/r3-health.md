@@ -18,6 +18,7 @@ chunk carries only those lines, two small props and the water form's two-line ha
 | `zigoals:habit-extras:v1` (existing, loose, synced with the habit extras) | optional `reminderMore` `{habitId: {words? (≤ 80), times? (≤ 2 "HH:MM")}}`, `.optional().catch(undefined)`, each entry checked where read (`lib/habit-reminder-words.ts`). Commit `790a8490`. | Kept untouched; older builds remind at the one time with the habit's name. |
 | `zigoals:health-numbers:v1` (existing, device-only, loose) | a reading gains optional `meal` (Breakfast \| Lunch \| Dinner \| Snacks), `mealWhen` (before \| after) and `time` ("HH:MM"), each `.optional().catch(undefined)` on the loose reading. Commit `bf032010`. | Kept untouched; older builds show the reading without its meal. |
 | `zigoals:health-goals-more:v1` (NEW, device-only, loose, versioned) | `{version: 1, goals[≤ 50]: {id, name (1–60), source: nutrient \| body \| number, key, unit?, target, direction: at-least \| at-most, windowDays: 7 \| 14 \| 30, status: active \| closed, createdAt}}`; an unreadable goal is dropped, the others kept; unknown top-level parts kept. Commit `f6fe645e`. | New key; older builds never read it. |
+| `zigoals:workout-circuits:v1` (NEW, device-only, loose, versioned) | `{version: 1, circuits[≤ 30]: {id, name (1–60), moves[1–12]: {exerciseId}, workSeconds 5–600, restSeconds 0–300, rounds 1–20, roundRestSeconds 0–600, createdAt}}`; an unreadable circuit is dropped, the others kept. Commit `802e4604`. | New key; older builds never read it. A logged circuit is an ordinary finished workout (timed sets) in `zigoals:workouts`, readable by every build. |
 | `zigoals:health-extras:v1` (existing, device-only, loose) | optional `ownDrinks` (≤ 30 `{id, name 1–24, type (a fixed drink type), sizeMl 1–2000, symbol?, colour?, caffeineMg?, kcal? 0–2000, sugarG? 0–300}`; an unreadable drink is dropped, the others kept), `waterTips` (boolean); a drink note gains optional `own` (its own drink's id), `kcal`, `sugarG`, each `.optional().catch(undefined)`. Commit `cec6b6ee`. | A drink note keeps its fixed `type` and `caffeineMg`, so an older build reads every entry as before. |
 
 ## TIER 3 (PWA)
@@ -212,4 +213,35 @@ chunk carries only those lines, two small props and the water form's two-line ha
 - What's new: "Workouts: find a ready-made routine by length, muscle group, level and place."
 - Search (static.ts): "find a workout", "workout by muscle" → `/app/health?view=workouts`.
 - Showcase hook: none needed. Device keys / catalogue / export / erase: nothing new.
+- CSS: `components/health/r3/health-r3.css`.
+
+## 7. Timed circuit workouts — LEDGER #289 built
+
+- What: Health → Workouts → Start a workout → "Timed circuits: work, rest and rounds" (a fold, its own chunk): the empty
+  state teaches ("40 seconds on and 20 off, three rounds, is a good start"); "+ New circuit": a name, moves in order from
+  the exercise library (all but distance cardio; up to 12; move earlier, later, take out), work seconds, rest after a
+  move, rounds and rest between rounds, with the total time. Saved circuits list with Play, Edit, Remove (with Undo).
+  The player takes focus on its heading and shows the round and move, the move's name, a big countdown (`role="timer"`,
+  `aria-live="off"`: not read every second), "Next: …" and a progress bar; each change is said once in a polite status
+  ("Squat, 40 seconds, round 1 of 3. Next: Push-up.") and rings the meditation chime (Bell, a pressed toggle, turns it
+  off). Pause / Resume, Skip this part, Stop and log what I did, Stop without logging. At the end "Log as a workout" adds a
+  finished workout (one timed set per round reached for each move; its real minutes) and writes the minutes to Health's
+  activity as a finished workout does, named "Timed circuit: …" (so no activity type, and no energy estimate, matches
+  it). Never calories. With Motion Off or reduced motion the bar does not glide (`data-motion`); nothing else moves.
+  Focus returns to the circuit's Play button on Close.
+- Files: `lib/workouts/circuits.ts` (new: the record, the timeline, the workout; stored commit),
+  `components/health/workouts/circuits.tsx` (new), `components/health/workouts/workouts-view.tsx` (one lazy line, the
+  fold), `components/health/r3/health-r3.css`.
+- Tests: `lib/workouts/av2-r3-circuits.test.ts` (its export → erase → restore case is `skipIf(!registered)`); existing
+  workouts tests green. Spec: `tests/av2-circuits.spec.ts` (drives the page clock).
+- Help (EN): **Can I do a timed circuit?** Yes. In Health → Workouts, open "Timed circuits": choose a few moves, how many
+  seconds of work and rest, and how many rounds. Play counts down each part, names the next move and rings a soft chime;
+  at the end, log it as a workout with its minutes. ZIGoals never counts calories for it.
+- What's new: "Workouts: timed circuits — work, rest and rounds with a countdown and a chime, logged with their minutes."
+- Search (static.ts): "circuit", "interval workout", "HIIT" → `/app/health?view=workouts`.
+- Registries for the NEW key `zigoals:workout-circuits:v1` (the lead): `lib/av-device-keys.ts`, `lib/export/everything.ts`
+  `DEVICE_KEYS` (e.g. `workoutCircuits`), restore plan (replace), `lib/erase-everything.ts`, `lib/data-health/catalog.ts`
+  (Health → Workouts, device-only), the frozen-reader fixture if it lists device keys. AK tool sources:
+  `workoutCircuits: one(CIRCUITS)` (for the answers, below).
+- Showcase hook: see "Showcase" at the end (one circuit).
 - CSS: `components/health/r3/health-r3.css`.

@@ -39,3 +39,17 @@
 .r3-meal-readings { margin: 6px 0 0; overflow-wrap: anywhere; }
 .r3-library-filters { border: 0; padding: 10px 12px; margin: 0; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); display: grid; gap: 8px; min-width: 0; }
 .r3-library-filters > legend { font-weight: 600; font-size: 15px; padding: 0 4px; }
+.r3-circuits { display: grid; gap: 10px; }
+.r3-circuit-form { display: grid; gap: 8px; }
+.r3-moves { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; min-width: 0; }
+.r3-moves > legend { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.r3-player { display: grid; gap: 6px; justify-items: start; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); min-width: 0; }
+.r3-player h4 { margin: 0; font-size: 1.1rem; }
+.r3-player p { margin: 0; }
+.r3-player-kind { font-size: 15px; color: var(--text-secondary, #c9d6ea); }
+.r3-player-now { font-size: 1.4rem; font-weight: 700; overflow-wrap: anywhere; }
+.r3-player-count { font-size: clamp(2.6rem, 12vw, 4.5rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.r3-player-bar { width: 100%; height: 10px; border-radius: 999px; background: var(--line, #8fb6ff33); overflow: hidden; }
+.r3-player-bar i { display: block; height: 100%; background: var(--brand-cyan, #6fe6f6); }
+.r3-player[data-motion="on"] .r3-player-bar i { transition: width .25s linear; }
+@media (prefers-reduced-motion: reduce) { .r3-player-bar i { transition: none !important; } }
