@@ -40,6 +40,8 @@ for (const theme of THEMES) test(`${theme}: review cards from notes`, async ({pa
   await second.getByRole('button', {name: 'Show the answer'}).click();
   await second.getByRole('button', {name: /^Easy · in 4 days/}).click();
   await expect(fold).toContainText('That is all for today. The next cards come back Nov 23, 2026.');
+  // Review b5i B5I-10: focus lands on the closing words, never on the page.
+  await expect(fold.locator('.note-card-done')).toBeFocused();
   await expect(fold).not.toContainText('secret');
   await expect.poll(async () => (await cards(page)).reviews.map((r: {due: string}) => r.due).sort()).toEqual(['2026-11-23', '2026-11-26']);
   await page.setViewportSize({width: 320, height: 720});
