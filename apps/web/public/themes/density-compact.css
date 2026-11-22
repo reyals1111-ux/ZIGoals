@@ -7856,8 +7856,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .debts-trends:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .debts-trends li:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .debts-paid ul:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 3px; }
-:where(:root[data-density=compact]) .wealth-sheet:not(#\-) { row-gap: 8px; margin-top: 16px; padding-top: 12px; padding-bottom: 12px; }
-:where(:root[data-density=compact]) .wealth-sheet h3:not(#\-), :where(:root[data-density=compact]) .wealth-sheet p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .wealth-own-sheet:not(#\-) { row-gap: 8px; margin-top: 16px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .wealth-own-sheet h3:not(#\-), :where(:root[data-density=compact]) .wealth-own-sheet p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .wealth-sheet-form:not(#\-) { row-gap: 8px; margin-top: 6px; margin-bottom: 6px; }
 :where(:root[data-density=compact]) .account-sheet:not(#\-) { row-gap: 8px; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .account-sheet-flows:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }

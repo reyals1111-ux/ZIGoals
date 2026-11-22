@@ -26564,7 +26564,7 @@
         fill: none;
         stroke: color-mix(in srgb, var(--cyan,#6fd3ff) 40%, #fff)
     }
-    .wealth-sheet:not(#\-):not(#\-) {
+    .wealth-own-sheet:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
     }
     .account-limits:not(#\-):not(#\-) {

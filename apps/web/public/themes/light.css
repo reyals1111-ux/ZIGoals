@@ -27674,7 +27674,7 @@
         fill: none;
         stroke: var(--cyan,#6fd3ff)
     }
-    .wealth-sheet:not(#\-) {
+    .wealth-own-sheet:not(#\-) {
         border-color: var(--line,rgba(140,160,220,.25))
     }
     .account-limits:not(#\-) {
@@ -28414,6 +28414,20 @@
     }
     .store-card-full .primary:focus-visible:not(#\-) {
         outline-color: #0057d9
+    }
+    :scope[data-theme=light] .store-card-bars:not(#\-) {
+        background: #fff
+    }
+    :scope[data-theme=light] .store-card-dialog:not(#\-) {
+        background: #fff;
+        color: #000
+    }
+    :scope[data-theme=light] .store-card-dialog:not(#\-)::backdrop {
+        background: rgba(0,0,0,.6)
+    }
+    :scope[data-theme=light] .store-card-full .primary:not(#\-) {
+        background: #000;
+        color: #fff
     }
 }
 /*  components/wealth/wealth-history-chart.css  */
