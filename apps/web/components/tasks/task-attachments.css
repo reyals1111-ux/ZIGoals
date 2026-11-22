@@ -1,0 +1,16 @@
+/* Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on a task. Theme tokens, 44 px targets, no motion. */
+.task-attachments { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 100%; align-items: center; min-width: 0; }
+.task-attachment-list { list-style: none; margin: 0; padding: 0; flex: 1 1 100%; display: grid; gap: 8px; font-size: 15px; min-width: 0; }
+.task-attachment-list > li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.task-attachment-list > li > .confirm-inline { flex: 1 1 100%; }
+.task-attachment-item { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; max-width: 100%; }
+.task-attachment-item small { font-size: 14px; color: var(--muted, inherit); }
+.task-attachment-thumb { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; border-radius: 10px; }
+.task-attachment-thumb img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--line, #25334f); }
+.task-attachment-thumb:focus-visible { outline: 2px solid var(--text, #f0f5ff); outline-offset: 2px; }
+.task-attachment-voice audio { width: min(260px, 100%); min-height: 44px; }
+.task-attachment-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.task-attachment-actions button, .task-attachment-list button { min-height: 44px; }
+.task-attachment-recording { margin: 0; flex: 1 1 100%; }
+.task-attachment-recording span { color: var(--danger, #e0605a); }
+.task-attachment-status { margin: 0; flex: 1 1 100%; }
