@@ -81,7 +81,7 @@ corpus (`CORPUS`) nor round 4's (`AV2_R4_MONEY`), and the answers that run befor
   Today line is never shown; in the Showcase the panel says its choices are not kept. The fold itself reads the Showcase
   money log. Empty state teaches ("Nothing counted yesterday. Each day you log spending or income, it adds up here the
   next morning.").
-- Registries: none. CSS touched: `components/wealth/spending/money-r5.css` (new, theme variables only).
+- Registries: none. CSS touched: `components/wealth/spending/money-r5.css` (new, theme variables only), `components/wealth/spending/spending.css` (the fold summary).
 - Today: nothing always visible. The line shows only after the person ticks "A quiet line on Today", as plain text with
   no Tab stop, and never in the Showcase. Settings → Notifications gains one switch ("Yesterday's money").
 
@@ -305,3 +305,42 @@ corpus (`CORPUS`) nor round 4's (`AV2_R4_MONEY`), and the answers that run befor
   stays in its tab). The part's text teaches what a file holds.
 - Registries: none. CSS touched: `components/wealth/spending/money-r5.css`.
 - Today: nothing added.
+
+## For the lead (everything in one list)
+
+1. **engine.ts**: `av2R5MoneyAnswer(question, env) ?? av2R4MoneyAnswer(question, env) ?? av2R3MoneyAnswer(question, env) ?? …`
+   (import from `./av2-r5-money`). Corpus: `AV2_R5_MONEY` (`lib/ai/evals/as/cases-av2-r5-money.ts`, 7 intents, 28
+   questions) into `cases.ts`; record expected.json. The test proves no earlier corpus question and no round 4 question is
+   claimed, and that `rehearsalAnswer`, `av2RestAnswer`, `av2SyncAnswer`, `av2R4MoneyAnswer` and the earlier money answers
+   claim none of round 5's.
+2. **Tool sources**: one optional addition — `moneyRules: one(MONEY_RULES)` in `readAkToolSources`
+   (`lib/ai/tools/ak-sources.ts`) and its type; `categoryFileAnswer` reads `env.ak.moneyRules` and, without it, says
+   "your rules" instead of a count (its test passes either way). Everything else is read already: `env.moneyLog`,
+   `env.accounts`, `env.ak.bills`, `env.ak.notifyPrefs`, `env.ak.moneyMore` / `env.moneyMore`, `env.nova.budgets`.
+3. **Help + What's new** (`help-page.tsx`): the Q+A and labels under R5-F1 … R5-F7 above (7 answers, 7 labels).
+4. **Registries**: no new key, no new record (see Stored changes; #388 uses the money extras record instead of a new one).
+   Optionally the `moneyMore` catalogue label (lib/av2-money-r2-keys.ts): add "kept forecast changes".
+5. **TIER 3 commits to label**: stored formats `f9c7bcae`; PWA `7fb90d07` (the notification type `moneyMorning`, its plan
+   input and the service worker's line).
+6. **Specs to run** (shard lists): `tests/av2-money-yesterday.spec.ts`, `tests/av2-money-year-budgets.spec.ts`,
+   `tests/av2-money-paid-early.spec.ts`, `tests/av2-money-merge-accounts.spec.ts`, `tests/av2-money-try-a-change.spec.ts`,
+   `tests/av2-money-spreadsheet.spec.ts`, `tests/av2-money-category-file.spec.ts`. (`tests/av2-money-sheet.spec.ts` is
+   Kubera's net-worth sheet from round 1, unchanged.)
+7. **Theme sheets**: CSS touched — `components/wealth/spending/money-r5.css` (new), `components/wealth/spending/spending.css`
+   (two fold summaries), `components/cash-forecast/cash-forecast.css` (one fold summary).
+8. **Screens and counts to check**: Settings → Notifications gains one switch ("Yesterday's money", off). Wealth →
+   Spending gains two folds ("Yesterday's money" in the personal space, "Your money as a spreadsheet"); Budgets gains
+   "<year> so far against your budgets" when a budget exists (also on the Showcase); the Bill tracker gains "Paid early?"
+   on a passed date; What you own / What you owe gain "Merge two" with two accounts or more; the cash forecast gains
+   "Try a change — a model"; Your own categories gains "Categories and rules in a file". Today: nothing always visible.
+9. **Weights**: every new panel is its own lazy chunk (yesterday, year so far, merge, try a change, spreadsheet, category
+   file); "Paid early?" sits in the Bill tracker's own lazy chunk. Today's lazy money line now also reads the
+   notification prefs and `lib/money-log/yesterday.ts` (small; its imports — net worth, counted, buffer kinds — are
+   already in that chunk through the cash forecast); Spending's chunk gains two lazy lines and two folds. The lead checks
+   the Wealth and Today budgets in the build.
+10. **One rule widened** (said under R5-F3): a bill's own match words (`matchKey`) now count an expense up to 14 days (6
+    for weekly) before its due date as its payment; every other matching rule is as before, and the existing bills,
+    budgets, forecast and money-extras tests pass unchanged.
+11. **QUALITY Minors**: QUALITY.md "Not fixed" holds no open Money Minor (its "near-limit budget" Showcase example is
+    left for the pinned Showcase counts); lane2-b4's money findings are all fixed. Nothing left here.
+12. **Rows left**: none. All seven rows (#384–#390) are built.
