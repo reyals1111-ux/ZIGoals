@@ -60,3 +60,6 @@ html.report-open { overflow: hidden; }
   html.report-open .report-sheet thead { display: table-header-group; }
   @page { margin: 14mm; }
 }
+/* Session AV lane 2 (body; q3 #48): the symptom lines and their key (line style and marker, never colour alone). */
+.report-figure { margin: 8px 0; }
+.report-key { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 0; margin: 4px 0 0; font-size: 14px; }

@@ -225,3 +225,23 @@ test `apps/web/lib/workouts/av2-stored.test.ts`.
 - What's new: "Sleep: an evening plan from three questions, with a Ready for bed bar."
 - Answers: "what is my evening plan" / "wat is mijn avondplan", "am I ready for bed" / "ben ik klaar voor bed".
 - Nothing on Today.
+
+## 9. Open q3 Minors (sleep, workouts, body) — the symptom chart built; the rest already fixed or another lane's
+
+- Built: **q3 #48 Minor, "a small symptom line chart"** (QUALITY.md "Not fixed": "a symptom chart"). The visit report's
+  "Symptoms and factors" draws up to four symptoms' daily levels (0 None to 3 Strong) as lines told apart by line style
+  and marker shape, never colour alone, named in a key under it; a day not rated is a gap; the table stays beside it.
+  Files: `lib/clinician-report/build.ts` (an optional `chart` on the section; the rows unchanged), `components/report/report-document.tsx`,
+  `components/report/report.css`. Tests: `lib/clinician-report/av2-symptom-chart.test.ts` (the existing
+  `av-more.test.ts` and `tests/av-report-more.spec.ts` hold unchanged); spec `tests/av2-report-symptoms.spec.ts`.
+  Answers: none new (the symptoms log stays private to NOVA and ZIGi, av-life's rule). Help (EN): **Does the visit report
+  show my symptoms over time?** Yes: "Symptoms and factors" draws each symptom's daily rating as a line (up to four), with
+  the counts in the table beside it. What's new: "Visit report: your symptoms as lines over the range."
+- Already fixed at `fbeb3e54` (checked in the code, nothing left): #11 the weekly chart's teaching line, week labels and
+  distance per sport (`workouts-view.tsx:189`, `weekly-chart.tsx`); #27 unknown regularity and debt left out and the
+  weeks before (`lib/health-aa/sleep-score.ts`, `sleep-score-card.tsx`); #40 one star per best (`withEarlier`) and the
+  bench answer (`av-life.ts exerciseBest`); #41 the calendar on phones; #46 bedtime and wake per group (the long chart's
+  table) — and now quality and time to fall asleep by week or month too (feature 7); #48 the local date of doses.
+- Another lane's row: q3 #36 Minor "hide figures offered in Settings and in Export" is LEDGER #69 (group 6, Bearable),
+  which this lane's task does not list; left to that group's builder (not a cause from the list: it is in their scope).
+- Not this lane's area: q3's food Minors (#3, #18, #25, #29, #47) and #8 (Insights) are the food and mood lanes'.
