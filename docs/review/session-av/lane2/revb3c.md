@@ -163,3 +163,16 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
 - **Tests:** `lib/notes/revb3c-marks.test.ts`: caret 0 on an empty first line of a text that starts with a newline marks
   the first line; caret 0 with words; caret after the newline; two leading newlines. The round-3 tests pass unchanged.
 - **Help/corpus:** none.
+
+## B3C-12 (Minor): Open tick boxes loads when its fold opens; its count is memoised
+
+- **Verdict:** confirmed and fixed.
+- **Fix:** `components/notes/notes-workspace.tsx`: the fold keeps an `open` state (`ticksOpen`, as Properties and
+  Earlier versions do) and mounts the lazy `NotesTicks` only while open; the count is `useMemo` on `record.notes`, so
+  typing in the notes search no longer scans every note.
+- **Tests:** `lib/notes/revb3c-folds.test.ts` (source checks in the manner of `fields.test.ts`: the chunk stays lazy and
+  mounts only under `ticksOpen`; one `openTicks` call, inside the memo).
+- **Spec:** `tests/av2-revb3c-notes-folds.spec.ts` (the count on the closed fold, no list inside until opened, the
+  count unchanged while searching).
+- **Route weight:** lower on arrival (one chunk fewer).
+- **Help/corpus:** none.
