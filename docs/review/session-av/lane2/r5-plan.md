@@ -13,7 +13,7 @@ an outside service, a maps service); they are typed by the person.
 
 - **TIER 3 (stored formats)** — commit `3e8dd40a`, all additive and optional on loose records, each dropped on read when it
   cannot be read; **no new key**. Listed under "Stored changes".
-- **TIER 3 (PWA)** — its own commit (see "Commits"): the "Leave by 8:40" wake (LEDGER #353) in lib/notify/sync.ts (input),
+- **TIER 3 (PWA)** — commit `5d931132`: the "Leave by 8:40" wake (LEDGER #353) in lib/notify/sync.ts (input),
   lib/notify/plan.ts (the item) and public/sw.js (its words).
 - **engine.ts wiring** (see "NOVA and ZIGi").
 - **Help + What's new** text below (help-page.tsx is yours).
@@ -44,9 +44,8 @@ an outside service, a maps service); they are typed by the person.
 ## Commits
 
 - `3e8dd40a` TIER 3 (stored formats): the task, planning-record and UI-prefs fields.
-- Feature commit: Session AV lane 2 (planning): Akiflow's planned day — LEDGER #348–#354, #356, #357.
-- TIER 3 (PWA) commit: the "Leave by" wake.
-(The two later shas are in the lead's merge; `git log lane2/r5-plan` lists them.)
+- `399487ff` Session AV lane 2 (planning): Akiflow's planned day — LEDGER #348–#354, #356, #357.
+- `5d931132` TIER 3 (PWA): the "Leave by" wake (LEDGER #353).
 
 ## Stored changes (TIER 3 (stored formats), commit `3e8dd40a`)
 
