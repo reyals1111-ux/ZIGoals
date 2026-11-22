@@ -37,7 +37,7 @@ export type PlanInput = {
    * Session AV (follow-up 1, F-TASK-NOTIFY; Todoist, TickTick, Things): the reminders the person set on open tasks
    * (lib/tasks/reminders.ts reminderInstants): the instant and the task's id; its title only where names are allowed.
    */
-  tasks?: {id: string; title?: string; at: number}[];
+  tasks?: {id: string; title?: string; at: number; /** Session AV lane 2 (LEDGER #31): a reminder written in a note opens its note and has no Done. */ note?: string}[];
   /**
    * Session AV (1c, q1 #44; TickTick): the mornings a countdown's reminder reaches the device (lib/countdowns/extras.ts
    * countdownWakes): the day, the countdown's id, how many days are left then; its title only where names are allowed.
@@ -98,7 +98,8 @@ export function buildPlan(input: PlanInput): Plan {
     const time = wallClock(t.at, zone).time;
     if (inQuiet(time, quiet)) { refused.push({kind: 'task', time}); continue; }
     once.set(Math.floor(t.at / 60000), 'task');
-    push({at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: true});
+    push(t.note ? {at: t.at, kind: 'task', id: `note:${t.note}@${t.at}`, label: label(t.title), href: `/app/notes?note=${encodeURIComponent(t.note)}`, actionable: false}
+      : {at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: true});
   }
   // Session AV (1c, q1 #44): a countdown's reminder wakes at the morning time (the end of quiet hours when the morning is
   // quiet) on the first day of its reminder and on its day, as bills do. Labelled only with names on.
