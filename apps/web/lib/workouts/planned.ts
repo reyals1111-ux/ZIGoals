@@ -99,7 +99,9 @@ export const removePlanned = (rec: PlannedRecord, id: string): PlannedRecord => 
 export const restorePlanned = (rec: PlannedRecord, item: Planned): PlannedRecord => rec.items.some(i => i.id === item.id) ? rec : plannedRecordSchema.parse({...rec, items: sorted([...rec.items, item])});
 
 export type PlanState = 'planned' | 'done' | 'missed' | 'aside';
-const inAway = (rec: PlannedRecord, date: string) => !!rec.away && date >= rec.away.from && date <= rec.away.to;
+// Session AV lane 2, round 5 (LEDGER #374): a day under a workout status (open: until it is cleared) is set aside as well.
+const inStatus = (rec: PlannedRecord, date: string) => (rec.statuses ?? []).some(s => date >= s.from && (!s.to || date <= s.to));
+const inAway = (rec: PlannedRecord, date: string) => (!!rec.away && date >= rec.away.from && date <= rec.away.to) || inStatus(rec, date);
 /** Each planned workout's state today: done (a finished workout that day, one each, in time order), missed, set aside or planned. */
 export function planStates(rec: PlannedRecord, w: Workouts | null, today: string): Map<string, PlanState> {
   const finishedOn = new Map<string, number>(), out = new Map<string, PlanState>();
@@ -132,7 +134,8 @@ export function realign(rec: PlannedRecord, w: Workouts | null, today: string): 
   const missed = missedThisWeek(rec, w, today);
   if (!missed.length) return {value: rec, moved: 0, moves: []};
   const states = planStates(rec, w, today), later = sorted(rec.items).filter(i => i.date >= today && states.get(i.id) === 'planned');
-  const next = (d: string) => { let x = d; while (inAway(rec, x)) x = addLocalDays(rec.away!.to, 1); return x; };
+  // Round 5: a status day is skipped one day at a time (an open status has no end, so it is capped at a year).
+  const next = (d: string) => { let x = d; for (let i = 0; i < 400 && inAway(rec, x); i++) x = rec.away && x >= rec.away.from && x <= rec.away.to ? addLocalDays(rec.away.to, 1) : addLocalDays(x, 1); return x; };
   const dates = new Map<string, string>();
   // `cursor` is the first day after the days the moved chain fills.
   let cursor = next(today);

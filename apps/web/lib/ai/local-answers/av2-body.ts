@@ -18,6 +18,8 @@ import {bodyFiguresHidden} from './av2-hide-figures';
 import type {BodyExtras} from '../../body-extras/schema';
 import type {Sleep} from '../../sleep/schema';
 import {latencySeries, usualSleep, USUAL_MIN_NIGHTS, weekVsUsual} from '../../sleep/usual';
+import {pausesOf} from '../../workouts/status';
+import type {PlannedRecord} from '../../workouts/planned';
 import {goalProgress, LOAD_WORDS, paceText, runSummary, runWords, trainingLoad} from '../../workouts/runs';
 import type {Workouts} from '../../workouts/schema';
 import type {ToolEnv} from '../tools/env';
@@ -221,7 +223,7 @@ function trainingStreak(a: Asked): LocalReply | null {
   const en = /\bweeks? in a row\b.*\b(?:train|trained|workout|worked out|work out|exercis|gym)|\b(?:workout|training|gym) streak\b/.test(a.f), nl = /\bweken op rij\b.*\b(?:getraind|train|workout|gesport|sport)|\b(?:workout|trainings|sport)reeks\b/.test(a.f);
   if (!(en || nl) || !isQuestion(a)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
-  const s = weekStreak(logOf(a), a.env.healthDay), lang = a.lang;
+  const s = weekStreak(logOf(a), a.env.healthDay, pausesIn(a)), lang = a.lang;
   if (!s.current) return answer(say(lang, `No week in a row yet: a workout this week starts one.${s.best ? ` Your longest run was ${s.best} weeks.` : ''}`, `Nog geen week op rij: een workout deze week begint er een.${s.best ? ` Je langste reeks was ${s.best} weken.` : ''}`), CALLS);
   return answer(say(lang, `${s.current} ${s.current === 1 ? 'week' : 'weeks'} in a row with at least one workout${s.thisWeek ? ', this week included' : ' (this week has none yet, so it still counts)'}; your longest run is ${s.best} weeks. Health → Workouts → Calendar shows the month and the year.`,
     `${s.current} ${s.current === 1 ? 'week' : 'weken'} op rij met minstens één workout${s.thisWeek ? ', deze week meegeteld' : ' (deze week nog geen, dus hij telt nog)'}; je langste reeks is ${s.best} weken. Health → Workouts → Calendar toont de maand en het jaar.`), CALLS);
@@ -251,12 +253,16 @@ function distanceGoals(a: Asked): LocalReply | null {
     : `• ${SPORT_EN[g.sport]} ${PERIOD_EN[g.period]}: ${num(p.km)} of ${num(g.km)} km${p.done ? ', reached' : `, ${num(p.left)} km to go${p.perDay ? ` (about ${num(p.perDay)} km a day)` : ''}, ${p.onPace ? 'on pace' : 'behind pace for now'}`}`; });
   return answer([say(lang, 'Your distance goals, from your own log:', 'Je afstandsdoelen, uit je eigen log:'), ...lines].join('\n'), CALLS);
 }
-const LOAD_NL: Record<string, string> = {none: 'Nog niets gelogd in de afgelopen vijf weken.', new: 'Dit is je eerste week hier, dus er is nog geen gewone week.', back: 'Welkom terug: niets in de vier weken ervoor, dus er is nog geen gewone week om mee te vergelijken.', lighter: 'Lichter dan je gewone week.', usual: 'Ongeveer je gewone week.', more: 'Meer dan je gewone week.', 'much-more': 'Ruim boven je gewone week: een flinke stap. Rustig opbouwen is het gewone advies.'};
+const LOAD_NL: Record<string, string> = {none: 'Nog niets gelogd in de afgelopen vijf weken.', new: 'Dit is je eerste week hier, dus er is nog geen gewone week.', back: 'Welkom terug: niets in de vier weken ervoor, dus er is nog geen gewone week om mee te vergelijken.', lighter: 'Lichter dan je gewone week.', usual: 'Ongeveer je gewone week.', more: 'Meer dan je gewone week.', 'much-more': 'Ruim boven je gewone week: een flinke stap. Rustig opbouwen is het gewone advies.',
+  // Session AV lane 2, round 5 (LEDGER #374): a workout status open, or one just ended.
+  paused: 'Je status staat aan, dus deze dagen worden niet met je gewone week vergeleken.', 'after-break': 'Terug na een pauze: de weken eromheen worden niet vergeleken, dus er is nu geen gewone week.'};
+/** Session AV lane 2, round 5 (LEDGER #374): the days a workout status covered, from the planned-workouts record. */
+const pausesIn = (a: Asked) => pausesOf((a.env.ak as {plannedWorkouts?: PlannedRecord | null} | undefined)?.plannedWorkouts, a.env.healthDay);
 /** "what is my training load", "wat is mijn trainingsbelasting": the last 7 days beside the usual week (minutes). */
 function load(a: Asked): LocalReply | null {
   if (!/\btraining (?:load|volume per week)\b|\bworkload\b.*\b(?:training|workouts?)\b|\btrainingsbelasting\b|\btrainingslast\b|\bbelasting\b.*\btraining\b/.test(a.f)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
-  const t = trainingLoad(logOf(a), a.env.healthDay, /\b(?:km|kilomet|distance|afstand)\w*\b/.test(a.f) ? 'km' : 'minutes'), lang = a.lang, u = (v: number) => t.metric === 'km' ? `${num(v)} km` : `${Math.round(v)} min`;
+  const t = trainingLoad(logOf(a), a.env.healthDay, /\b(?:km|kilomet|distance|afstand)\w*\b/.test(a.f) ? 'km' : 'minutes', pausesIn(a)), lang = a.lang, u = (v: number) => t.metric === 'km' ? `${num(v)} km` : `${Math.round(v)} min`;
   return answer(say(lang, `Training load, the last 7 days: ${u(t.last7)}${t.usual !== null ? `; your usual week (the 4 weeks before): ${u(t.usual)}` : ''}. ${LOAD_WORDS[t.words]} Counted from your own ${t.metric === 'km' ? 'distance' : 'minutes'}; never calories.`,
     `Trainingsbelasting, de afgelopen 7 dagen: ${u(t.last7)}${t.usual !== null ? `; je gewone week (de 4 weken ervoor): ${u(t.usual)}` : ''}. ${LOAD_NL[t.words]} Geteld uit je eigen ${t.metric === 'km' ? 'afstand' : 'minuten'}; nooit calorieën.`), CALLS);
 }

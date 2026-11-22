@@ -45,6 +45,9 @@ import {guideLine, guideOf, routineLang, type Guide, type Lang} from '../../../l
 import {WORKOUT_PLACES, type Place, type WorkoutPlaces} from '../../../lib/workouts/places-schema';
 import {availableWith} from '../../../lib/workouts/equipment';
 import {WORKOUT_HR, withHr, withoutHr} from '../../../lib/workouts/hr-zones';
+// Session AV lane 2, round 5 (gym; LEDGER #374): a workout status (kept in the plan's record) and the days it covered.
+import {PLANNED_WORKOUTS} from '../../../lib/workouts/planned';
+import {currentStatus, pausesOf, STATUS_WORDS} from '../../../lib/workouts/status';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
 const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
@@ -83,6 +86,8 @@ const PlannedWorkouts = lazy(() => import('../r4/planned-workouts'));
 // Session AV lane 2, round 4 (health; Runna, LEDGER #336, #337): a run's heart-rate zones, and races ahead.
 const HrZones = lazy(() => import('../r4/runna-parts').then(m => ({default: m.HrZones})));
 const RacesAhead = lazy(() => import('../r4/runna-parts').then(m => ({default: m.RacesAhead})));
+// Session AV lane 2, round 5 (gym; Gentler Streak, Bevel; LEDGER #374): your status, its own chunk.
+const WorkoutStatus = lazy(() => import('../r5/workout-status'));
 const placeNow = (r: WorkoutPlaces | null): Place | null => r?.places.find(p => p.id === r.current) ?? null;
 
 /**
@@ -104,6 +109,8 @@ export default function WorkoutsView() {
   // Session AV lane 2, round 4 (LEDGER #336): the seconds at each heart rate of an imported run, for its zones.
   const hrRecord = useDeviceRecord(WORKOUT_HR);
   // Session AV lane 2 (bodymind-r2; LEDGER #239): the places and the one chosen now.
+  // Session AV lane 2, round 5 (LEDGER #374): the plan's record, for the status and the days it covered.
+  const plannedRecord = useDeviceRecord(PLANNED_WORKOUTS), plan = plannedRecord.loaded && !plannedRecord.unreadable ? plannedRecord.data : null;
   const placesRecord = useDeviceRecord(WORKOUT_PLACES), places = placesRecord.loaded && !placesRecord.unreadable ? placesRecord.data : null, place = placeNow(places);
   const [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now()), [restUntil, setRestUntil] = useState<number | null>(null);
   const [tookMinutes, setTookMinutes] = useState('');
@@ -132,6 +139,7 @@ export default function WorkoutsView() {
   if (!record.loaded || !health.loaded) return <section className="panel"><h1>Workouts</h1><p>Opening your workout log…</p><Skeleton label="Opening your workout log" lines={4}/><SlowReload/></section>;
   if (health.error) return <section className="panel"><h1>Workouts</h1><p role="alert">Workouts keep their minutes in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const w = record.data, past = finished(w), last = past[0], week = weekSummary(w, today), library = allExercises(w.exercises);
+  const status = currentStatus(plan, today), pauses = pausesOf(plan, today);
 
   // Session AV lane 2 (body; LEDGER #112, #115): a ready-made routine is copied into the person's routines, then (Start it now) started.
   function saveFromLibrary(g: Guide, lang: Lang, start: boolean) {
@@ -247,7 +255,9 @@ export default function WorkoutsView() {
         {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null} onNoted={fn => change(fn)}/></Suspense>}
         <Suspense fallback={null}><RunTip today={today}/></Suspense>
         <PlanFold w={w} today={today}/>
-        {past.length > 0 && <CalendarFold w={w} today={today}/>}
+        {/* Session AV lane 2, round 5 (gym; LEDGER #374, Gentler Streak): ill, injured, a break or travelling, until cleared. */}
+        <Fold className="av2-fold workouts-status-fold" summary={status ? `Your status: ${STATUS_WORDS[status.kind].since} since ${formatDate(status.from, {weekday: true, year: false})}` : 'Your status: ill, injured, a break or travelling'} loading="Opening your status…"><WorkoutStatus today={today}/></Fold>
+        {past.length > 0 && <CalendarFold w={w} today={today} pauses={pauses}/>}
         {/* Session AV lane 2 (bodymind-r2; LEDGER #240, Fitbod): a workout for today from your own history, freshness and place. */}
         <Fold className="av2-fold workouts-suggest-fold" summary="Suggest a workout for today, from your own sets" loading="Working out a suggestion…"><SuggestWorkout w={w} library={library} today={today} unit={unit} places={places} onStart={x => begin({date: logDay, now: new Date(), repeat: x})}/></Fold>
         <Fold className="av2-fold workouts-places-fold" summary={place ? `Places and equipment · now: ${place.name}` : 'Places and equipment · where you train and what is there'} loading="Opening your places…"><Places/></Fold>
@@ -319,7 +329,7 @@ export default function WorkoutsView() {
     <section className="panel workouts-goals" aria-labelledby="workouts-goals-title">
       <h2 id="workouts-goals-title">Distance goals and training load</h2>
       {(w.distanceGoals ?? []).slice(0, 2).map(g => { const p = goalProgress(w, g, today); return <p key={g.id} className="fine workouts-goal-line">{`${({run: 'Running', ride: 'Cycling', swim: 'Swimming', walk: 'Walking', any: 'All sports'} as const)[g.sport]} ${g.period === 'week' ? 'this week' : g.period === 'month' ? 'this month' : 'this year'}: ${formatNumber(p.km, {maximumFractionDigits: 1})} of ${formatNumber(g.km, {maximumFractionDigits: 1})} km${p.done ? ', reached' : p.onPace ? ', on pace' : ''}.`}</p>; })}
-      <Fold className="av2-fold workouts-goals-fold" summary={(w.distanceGoals ?? []).length ? 'Your goals and the last 7 days beside your usual week' : 'Set a distance goal; see the last 7 days beside your usual week'} loading="Opening goals and load…"><DistanceGoals w={w} today={today} change={change}/></Fold>
+      <Fold className="av2-fold workouts-goals-fold" summary={(w.distanceGoals ?? []).length ? 'Your goals and the last 7 days beside your usual week' : 'Set a distance goal; see the last 7 days beside your usual week'} loading="Opening goals and load…"><DistanceGoals w={w} today={today} change={change} pauses={pauses}/></Fold>
     </section>
     {past.some(x => x.exercises.length) && <section className="panel workouts-progress-report" aria-labelledby="workouts-report-title">
       <h2 id="workouts-report-title">Progress</h2>
@@ -386,9 +396,9 @@ function PlanFold({w, today}: {w: Workouts; today: string}) {
   return <details className="av2-fold workouts-plan-fold" open={open || undefined} onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Your plan: planned workouts on a calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening your plan…</p>}><PlannedWorkouts w={w} today={today}/></Suspense>}</details>;
 }
 /** Session AV (F-WORKOUT-CALENDAR): the fold whose content loads when opened. */
-function CalendarFold({w, today}: {w: Workouts; today: string}) {
+function CalendarFold({w, today, pauses}: {w: Workouts; today: string; pauses: readonly {from: string; to: string}[]}) {
   const [open, setOpen] = useState(false);
-  return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today}/></Suspense>}</details>;
+  return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today} pauses={pauses}/></Suspense>}</details>;
 }
 function ExerciseBlock({entry, index, count, previous, unit: pageUnit, change, onRest, w, letter, nextLetter, cue, target, library, place, inWorkout}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
   w: Workouts; letter?: string; nextLetter?: string; cue?: {line: string; cue: string; lang: Lang}; target?: Target | null; library: LibraryExercise[]; place: Place | null; inWorkout: string[]}) {

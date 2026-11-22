@@ -8,6 +8,9 @@ import {localDate} from '../../../lib/local-date';
 import type {LayoutAttrs} from '../../layout-edit';
 import './workouts.css';
 import {PastDayLine, useHealthDay} from '../health-day';
+import {lazy, Suspense} from 'react';
+// Session AV lane 2, round 5 (LEDGER #374): "Paused since …" when a workout status is set, its own small chunk.
+const CardStatus = lazy(() => import('../r5/card-status'));
 
 /** The Health page's Workouts card (Session AH Part 6, DE8): the week, the last workout, and the way in. */
 export function WorkoutsCard(layout: LayoutAttrs) {
@@ -21,6 +24,7 @@ export function WorkoutsCard(layout: LayoutAttrs) {
       {current ? <p className="workouts-card-week" role="status">{current.name} is in progress.</p>
         : <p className="workouts-card-week"><strong>{week!.workouts} {plural(week!.workouts, 'workout')}</strong> this week{week!.minutes ? ` · ${week!.minutes} min` : ''}</p>}
       {last && !current && <p className="fine">Last: {last.name}, {formatDate(last.date)}.</p>}
+      {!current && <Suspense fallback={null}><CardStatus/></Suspense>}
       <PastDayLine date={day.date} today={day.today}>{onDay.length ? onDay.map(x => x.name).join(', ') : 'no workout logged'} · <Link className="text-link" href={`/app/health?view=workouts&date=${day.date}`}>Log a workout for this day →</Link></PastDayLine>
       <Link className={current ? 'primary' : 'secondary'} href="/app/health?view=workouts">{current ? 'Back to your workout' : last ? 'Start a workout' : 'Log your first workout'}</Link>
     </>}

@@ -1,0 +1,39 @@
+/* Session AV lane 2, round 5 (gym; Gentler Streak, Bevel): this round's Workouts parts. Theme variables only. */
+.r5-status, .r5-feel, .r5-band, .r5-photos { display: grid; gap: 8px; min-width: 0; }
+.r5-status .actions, .r5-feel .actions, .r5-photos .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.r5-status button, .r5-feel button, .r5-band button, .r5-photos button, .r5-star, .r5-filter button { min-height: 44px; }
+.r5-status-now { margin: 0; padding: 8px 10px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); font-size: 1rem; }
+.r5-status-form { display: grid; gap: 8px; }
+.r5-status-form fieldset, .r5-feel fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.r5-status-form legend, .r5-feel legend { font-weight: 600; padding: 0; margin-bottom: 4px; }
+.r5-choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.r5-choice { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); font-size: 1rem; cursor: pointer; }
+.r5-choice:has(input:checked) { box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6); }
+.r5-choice:focus-within { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
+.r5-easier { margin: 0; padding: 8px 10px; border-radius: 10px; background: var(--surface-2, #8fb6ff14); font-size: 1rem; }
+/* The movement band: the usual range shaded on a bar, this week's minutes filling it. */
+.r5-band-bar { position: relative; height: 28px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); overflow: hidden; }
+.r5-band-bar .r5-band-range { position: absolute; top: 0; bottom: 0; background: currentColor; opacity: .14; }
+.r5-band-bar .r5-band-fill { position: absolute; left: 0; top: 8px; bottom: 8px; border-radius: 6px; background: var(--brand-cyan, #6fe6f6); }
+.r5-band-key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; font-size: 14px; }
+.r5-band-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 14px; text-align: center; }
+.r5-band-days li { display: grid; gap: 2px; padding: 4px 2px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); min-width: 0; overflow-wrap: anywhere; }
+.r5-band-days li[data-today="true"] { box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6); }
+.r5-band-30 { width: 100%; height: 64px; display: block; }
+.r5-band-30 rect { fill: currentColor; opacity: .55; }
+.r5-band-30 rect.is-today { fill: var(--brand-cyan, #6fe6f6); opacity: 1; }
+.r5-band-scroll { overflow-x: auto; max-width: 100%; }
+.r5-band-scroll table { border-collapse: collapse; font-size: 14px; }
+.r5-band-scroll th, .r5-band-scroll td { padding: 4px 8px; text-align: left; }
+/* Workout photos and the star. */
+.r5-photo-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.r5-photo-list li { display: grid; gap: 4px; justify-items: start; }
+.r5-photo { width: 96px; height: 96px; object-fit: cover; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); }
+.r5-photo-add input[type="file"] { max-width: 100%; font-size: 14px; }
+.r5-star { display: inline-flex; align-items: center; gap: 6px; }
+.r5-star[aria-pressed="true"] .r5-star-mark { color: var(--amber, #ffc857); }
+.r5-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.r5-filter button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6); }
+.r5-plates-side { display: grid; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { .r5-band-fill { transition: none !important; } }
+:root[data-app-motion="off"] .r5-band-fill { transition: none !important; }

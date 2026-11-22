@@ -21,7 +21,7 @@ import './health-r4.css';
  * Undo; "Away until …" sets a range aside. Planned workouts show on the Agenda and the Day Timeline. Its own chunk.
  */
 const WEEKS = 4;
-const STATE_WORDS: Record<PlanState, string> = {planned: 'planned', done: 'done', missed: 'missed', aside: 'set aside while you are away'};
+const STATE_WORDS: Record<PlanState, string> = {planned: 'planned', done: 'done', missed: 'missed', aside: 'set aside while you are away or a status is set'};
 export default function PlannedWorkouts({w, today}: {w: Workouts; today: string}) {
   const rec = useDeviceRecord(PLANNED_WORKOUTS), circuits = useDeviceRecord(CIRCUITS), id = useId();
   const [said, setSaid] = useState(''), [open, setOpen] = useState<string | null>(null), [over, setOver] = useState<string | null>(null), [awayTo, setAwayTo] = useState(addLocalDays(today, 6));
