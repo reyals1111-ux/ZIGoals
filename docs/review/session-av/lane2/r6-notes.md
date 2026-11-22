@@ -51,7 +51,7 @@ always visible** (the word-goal line shows only in the Journal page's Write, nev
 | `a43bdb4d` | TIER 3 (stored formats): the new key `zigoals:device-lock-away:v1` and its registry module (#406) |
 | `c8875f22` | TIER 3 (auth: the device lock): #406 in the gate and the lock's settings |
 | `97778eeb` | NOVA's and ZIGi's answers (all rows) |
-| (next) | this registry |
+| `41021f15` | this registry |
 
 Checks: typecheck (through the shared lock) clean after W2, after W3 and on the final head; eslint clean on every changed
 file; unit tests green for `lib/notes`, `lib/journal`, `lib/on-this-day`, `lib/av2-r6-notes-keys.test.ts`,
@@ -342,3 +342,39 @@ new tab, as before. **For the lead:** please carry these into docs/STATUS.md's s
   `lib/ai/local-answers/av2-r6-notes.test.ts` (every case in both languages from NOVA and ZIGi; each its own intent's
   answer; other questions left alone; no other question of today's CORPUS answered here, its own intents left out).
 - Wiring line for engine.ts: see "For the lead" 1.
+
+## Review b6n fixes (`scratchpad/review-b6n.md`, at `41021f15`; #406 found clean and left as it is)
+
+- **B6N-1 (Blocker), `7e73e4cd`: a merge never leaves a link pointing nowhere or at the wrong note.** A link reaches a
+  note by its name only; a name with #, |, [ or ] cannot be written inside [[…]], and a name two notes share reaches the
+  first. When links to the merged note exist and the other note cannot be reached by its own name, Merge into… is refused
+  in words and its panel says why ("…a link cannot reach a note whose name holds #, |, [ or ]. Rename “C# basics” first;
+  nothing was merged." / "Two notes are called “…”, so a link to that name reaches the other one…"). Without links to it,
+  the merge goes ahead. Test: `lib/notes/b6n-merge-links.test.ts` ("C# basics", a duplicate name, re-pointed links resolve).
+- **B6N-2 (Blocker, privacy), `d848b9ee`: the names offered under Who was there never come from a letter still folded
+  away** (`offeredPeople`, over `unsealed(entries, today)`). Test: `lib/journal/b6n-people-sealed.test.ts`.
+- **B6N-3 (Major), `500c3dbb`: a tag rename never pushes out other notes' earlier versions, and its Undo restores them
+  exactly.** Each changed note's earlier words are kept while Earlier versions has room (a note's own tenth version may
+  give way, as on any save of it); the rest are counted and said ("Earlier versions is full, so the earlier words of 3
+  notes were not kept as a version (no other note's versions were pushed out); Undo in the message still puts them
+  back."). The Undo puts the version list back as it was. Test: `lib/notes/b6n-tag-rename.test.ts`.
+- **B6N-4 (Major), `ee28a4f0`: On this day for another date is reachable on a day with no memory.** Such a day keeps no
+  empty panel (as before; specs pin `details.on-this-day` absent then) and shows its way in, "On this day for another
+  date · nothing from earlier years today"; pressed, the panel opens with its arrows (focus on the first) and stays,
+  Back to today included. Test: `lib/on-this-day/b6n-any-day.test.ts`; the spec walks it.
+- **B6N-5, `6548deb9`:** a Journey entry with a time outside the calendar is skipped with its reason; the import never
+  fails on it. Test: `lib/journal/b6n-journey-dates.test.ts`.
+- **B6N-6, `11ab9506`:** a tag rename never cuts a tag: a typed name, or a moved nested tag, past 32 characters is
+  refused in words ("#… would be 33 characters, and a tag holds at most 32. Choose a shorter name; nothing was
+  renamed."), live in the panel too. Test: `lib/notes/b6n-tag-rename.test.ts`.
+- **B6N-7, `62f96d3d`:** the word-goal count is no live region any more; a status says once "Your 200 words for today are
+  written." (its words stay the same while more is written). Test: `lib/journal/b6n-word-goal-status.test.ts`; the spec
+  checks it.
+- **B6N-8, `5ffead14`:** a CSV's slash, dot or dash dates are read in the order the file shows (month-day-year when
+  every date fits it and some cannot be day-month-year), and the import plan says which order was used; when every date
+  fits both it says they could be read two ways and how to write them plainly; a row that fits neither is left out with
+  its reason. Test: `lib/journal/b6n-csv-dates.test.ts`.
+- Help (EN) changes: #407 gains "If links to the note could not follow it — the other note's name holds #, |, [ or ], or
+  two notes share it — Merge says so and changes nothing; rename it first." #410 gains "Dates such as 3/11/2026 are read
+  in the order your file uses, and the preview says which."
+- Stored formats: none changed by these fixes.
