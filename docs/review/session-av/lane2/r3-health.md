@@ -299,6 +299,6 @@ the existing one stays is the owner's call.
   `withR3HealthShowcase(records, day);` with `import {withR3HealthShowcase} from './r3-health-showcase';`.
 - It writes two own drinks "Oat latte (Showcase)" and "Juice (Showcase)" into the health extras (no entry logged with
   them, so no water, caffeine or food total moves), the goal "Protein at least 90 g (Showcase)"
-  (`zigoals:health-goals-more:v1`) and the circuit "Twenty-minute legs (Showcase)" (`zigoals:workout-circuits:v1`). No
+  (`zigoals:health-goals-more:v1`) and the circuit "Thirteen-minute legs (Showcase)" (`zigoals:workout-circuits:v1`). No
   pinned count reads them. Test: `lib/r3-health-showcase.test.ts`. The Showcase plans no notification, so the reminders
   (water, weigh-in, habit words) have no Showcase example; the habit trend shows on the Showcase's own history.

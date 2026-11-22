@@ -17,6 +17,6 @@ export function withR3HealthShowcase(records: Record<string, string>, day: strin
     {id: 'orange-juice-showcase', name: 'Juice (Showcase)', type: 'juice', sizeMl: 250, symbol: '🧃', colour: 'orange', kcal: 110, sugarG: 21},
   ]}));
   records[MORE_GOALS_KEY] ??= JSON.stringify(moreGoalsSchema.parse({version: 1, goals: [{id: 'more_showcase_protein', name: 'Protein at least 90 g (Showcase)', source: 'nutrient', key: 'proteinMg', target: 90, direction: 'at-least', windowDays: 7, status: 'active', createdAt: at}]}));
-  records[CIRCUITS_KEY] ??= JSON.stringify(circuitsSchema.parse({version: 1, circuits: [{id: 'circuit-showcase-legs', name: 'Twenty-minute legs (Showcase)', moves: [{exerciseId: 'squat'}, {exerciseId: 'lunge'}, {exerciseId: 'hip-thrust'}, {exerciseId: 'plank'}], workSeconds: 40, restSeconds: 20, rounds: 3, roundRestSeconds: 60, createdAt: at}]}));
+  records[CIRCUITS_KEY] ??= JSON.stringify(circuitsSchema.parse({version: 1, circuits: [{id: 'circuit-showcase-legs', name: 'Thirteen-minute legs (Showcase)', moves: [{exerciseId: 'squat'}, {exerciseId: 'lunge'}, {exerciseId: 'hip-thrust'}, {exerciseId: 'plank'}], workSeconds: 40, restSeconds: 20, rounds: 3, roundRestSeconds: 60, createdAt: at}]}));
   return records;
 }
