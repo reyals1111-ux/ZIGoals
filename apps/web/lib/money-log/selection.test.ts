@@ -40,3 +40,11 @@ describe('BUILD list 2 #7: the running total of selected entries', () => {
     expect(signedMoney(-1, 'EUR', fmt)).toBe('−€0.01');
   });
 });
+
+test('review B6O-11: a refund is counted as a refund, never as income; the net still takes it in', () => {
+  const entries = [e('g', '100.00'), e('r', '30.00', 'income', 'EUR', {refund: true, category: 'Groceries'}), e('s', '5.00', 'income'), e('rx', '2.00', 'income', 'EUR', {refund: true, excluded: true})];
+  const s = summarizeSelection(entries, ['g', 'r']);
+  expect(s).toMatchObject({count: 2, expenses: 1, income: 0, refunds: 1, totals: [{currency: 'EUR', cents: -7000, expenses: 1, income: 0, refunds: 1}]});
+  expect(selectionLine(s, fmt)).toBe('2 selected · −€70.00 (1 expense, 1 refund)');
+  expect(selectionLine(summarizeSelection(entries, ['g', 'r', 's', 'rx']), fmt)).toBe('4 selected · −€63.00 (1 expense, 2 refunds, 1 income)');
+});
