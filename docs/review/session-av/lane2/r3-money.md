@@ -294,3 +294,22 @@ locale ("€ 12,50"); the tests compare it with the no-break space shown as a sp
     and the full amount of a shared cost included), unlike Wealth → Spending — for lane2/revb2a's shared rule. The
     tags record's `tagTotals` also counts an entry whole, not the person's share (same rule).
 11. **QUALITY Minors**: not taken in this branch (the task named rows #291–#299 only).
+
+## Review B3A fixes (after `7a76fbfe`; lane2/batch2 merged in first, `c6b25d1c`)
+
+One commit each, unit tests in each; no stored-format change in any of them.
+
+| id | verdict | commit | fix | tests |
+|---|---|---|---|---|
+| B3A-1 Blocker | fixed | `3730e010` | A planned cost keeps its category on its way out of the record (`ForecastPlanned.category`, `openPlanned`). In Left this month, a planned cost in a budgeted category is paid from what that budget still holds, which is already taken off. Only the part above it counts as planned, and two costs share the budget once. So Budgets, Today's line and NOVA's answer show one figure. | `lib/budgets/av2-left-this-month.test.ts` ("review b3a #1", two tests) |
+| B3A-2 Major | fixed | `ddbc9750` | What a budget still holds is now the Budgets rows' own figure, `monthView(...).rows` with `budgeted − spent`. That counts a spread entry by one month's share through the shared rule in `lib/money-log/counted.ts` (`budgetMonthParts`), so Left this month and the Budgets rows agree. Income and "spent so far" are still Wealth → Spending's `totals`. | `lib/budgets/av2-left-this-month.test.ts` ("review b3a #2") |
+| B3A-3 Major | fixed | `27c994ad` | The card form (`CardForm`) and the older balance-lines form (`LimitForm`) now draw their fields only after the wealth sheet has loaded, in an inner form keyed by account. The fields open with what is kept, and Keep no longer erases the fields that were not changed. | `lib/wealth-sheet/revb3a-forms.test.ts` (jsdom); spec step in `tests/av2-money-credit-card.spec.ts` that closes and reopens the Sheet |
+| B3A-4 Major | fixed | `faa9b6c8` | The card line in What you owe carries `data-private-amount`, so Hide amounts blurs it as it does the row's balance. | `lib/wealth-sheet/revb3a-forms.test.ts`; spec check |
+| B3A-9 Minor | fixed | `3f5e1841` | Dutch: "dus geen deel van je inkomen" replaces "aandelen". | `lib/ai/local-answers/av2-r3-money.test.ts` |
+| B3A-10 Minor | fixed | `8c9c2bdf` | The Dutch finding carries Compare's confidence label (`LABEL_NL`: "een eerste teken", "bestendig"). | `lib/ai/local-answers/av2-r3-money.test.ts` |
+| B3A-11 Minor | fixed | `baa9d44f` | "Your money over time" passes the space shown. In the business space, needs, wants and saving marks are read from and written to the business money log (`logSpec(space)`). | `lib/money-insights/revb3a-needs-space.test.ts` (jsdom) |
+
+Registry corrections that follow from these fixes:
+- R3-F1, #291: "still in your budgets" is each budget's own amount less what the Budgets rows say it spent, with a spread entry counted by one month's share. A planned cost in a budgeted category counts only the part above what that budget still holds.
+- R3-F3, #295: the marks belong to the space shown.
+- Help for Left this month, one sentence the lead may add: "A planned cost in a category with a budget is counted inside that budget."
