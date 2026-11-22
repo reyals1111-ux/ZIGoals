@@ -113,6 +113,8 @@ export default function JournalFiles() {
       {plan && <div className="journal-import-plan" role="group" aria-label="What the files hold">
         {plan.entries.length ? <p><strong>{plan.entries.length === 1 ? '1 entry' : `${formatNumber(plan.entries.length)} entries`}</strong> {dates.length ? `from ${formatDate(dates[0]!)}${dates.at(-1) !== dates[0] ? ` to ${formatDate(dates.at(-1)!)}` : ''}` : ''}{photoCount ? `, with ${photoCount} photos and audio notes` : ''}.</p> : <p>No new entry in these files.</p>}
         {plan.books.length > 0 && <p className="fine">Journals: {plan.books.join(', ')} (made here when there is room).</p>}
+        {/* Review b6n B6N-8: how a file was read where it could be read two ways. */}
+        {plan.notes?.map(n => <p key={n} className="fine journal-import-note">{n}</p>)}
         {plan.cut > 0 && <p className="fine">{plan.cut === 1 ? '1 entry is' : `${plan.cut} entries are`} longer than 5,000 characters and will be cut there.</p>}
         {plan.skipped.length > 0 && <details className="journal-import-skipped"><summary>Left out: {plan.skipped.length}</summary><ul>{plan.skipped.slice(0, 50).map((s, i) => <li key={i}>{s.name}: {s.reason}.</li>)}</ul>{plan.skipped.length > 50 && <p className="fine">And {plan.skipped.length - 50} more.</p>}</details>}
         <div className="journal-actions">

@@ -36,7 +36,7 @@ export function readPeople(v: unknown): string[] {
   return out.slice(0, MAX_PEOPLE);
 }
 export type ImportSkip = {name: string; reason: string};
-export type JournalImportPlan = {entries: PlannedEntry[]; skipped: ImportSkip[]; books: string[]; cut: number};
+export type JournalImportPlan = {entries: PlannedEntry[]; skipped: ImportSkip[]; books: string[]; cut: number; /** Review b6n B6N-8: how a file was read where it could be read two ways (a CSV's day order), said in the plan. */ notes?: string[]};
 export type InFile = {name: string; text: string};
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const validDay = (d: string) => DAY.test(d) && !Number.isNaN(Date.parse(`${d}T12:00:00Z`)) && new Date(`${d}T12:00:00Z`).toISOString().slice(0, 10) === d;
@@ -208,17 +208,35 @@ const CSV_DATE = /^(?:date|datum|day|dag|created|creation date|date created)$/i,
  * A CSV of entries: a row per entry with its date, words and tags. The columns are found by their header (date, text,
  * tags, in English or Dutch); without a header row they are read as date, text, tags. Commas or semicolons both work.
  */
-export function readCsvFile(file: InFile, today: string): {entries: PlannedEntry[]; skipped: ImportSkip[]; cut: number} {
+/**
+ * Review b6n B6N-8: the order of a CSV's numeric dates (3/11/2026, 11.03.2026, 3-11-2026), found from the file itself:
+ * month-day-year when every one fits that order and some do not fit day-month-year (12/25/2026); else day-month-year.
+ * Never silent: the plan says which order was used, and when every date fits both orders it says they could be read two
+ * ways and how to make them plain (2026-11-03).
+ */
+const NUM_DATE = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b/;
+const numDay = (m: RegExpExecArray, order: 'dmy' | 'mdy') => { const [d, mo] = order === 'dmy' ? [m[1]!, m[2]!] : [m[2]!, m[1]!]; const day = `${m[3]}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`; return validDay(day) ? day : null; };
+export function csvDateOrder(raws: readonly string[], file: string): {order: 'dmy' | 'mdy'; note: string | null} {
+  const nums = raws.flatMap(r => { const m = NUM_DATE.exec(r.trim()); return m ? [m] : []; });
+  if (!nums.length) return {order: 'dmy', note: null};
+  const dmy = nums.every(m => numDay(m, 'dmy')), mdy = nums.every(m => numDay(m, 'mdy'));
+  const two = nums.find(m => m[1] !== m[2] && Number(m[1]) <= 12 && Number(m[2]) <= 12);
+  if (mdy && !dmy) return {order: 'mdy', note: `The dates in ${file} were read as month-day-year (${nums.find(m => !numDay(m, 'dmy'))![0]} is ${numDay(nums.find(m => !numDay(m, 'dmy'))!, 'mdy')}), as every one of them fits that order.`};
+  if (dmy && mdy && two) return {order: 'dmy', note: `Dates such as ${two[0]} in ${file} can be read two ways; they were read as day-month-year (${two[0]} is ${numDay(two, 'dmy')}). If they are month-day-year, cancel and write them as year-month-day (such as 2026-11-03) first.`};
+  return {order: 'dmy', note: `The dates in ${file} were read as day-month-year${dmy ? ', as the file writes them' : ''}.`};
+}
+export function readCsvFile(file: InFile, today: string): {entries: PlannedEntry[]; skipped: ImportSkip[]; cut: number; notes?: string[]} {
   const first = file.text.split(/\r?\n/, 1)[0] ?? '', delimiter = (first.match(/;/g)?.length ?? 0) > (first.match(/,/g)?.length ?? 0) ? ';' : ',';
   const rows = csvRows(file.text, delimiter), head = rows[0]?.map(h => h.trim()) ?? [];
   const named = head.some(h => CSV_DATE.test(h)) && head.some(h => CSV_TEXT.test(h));
   const col = named ? {date: head.findIndex(h => CSV_DATE.test(h)), text: head.findIndex(h => CSV_TEXT.test(h)), tags: head.findIndex(h => CSV_TAGS.test(h))} : {date: 0, text: 1, tags: 2};
-  const entries: PlannedEntry[] = [], skipped: ImportSkip[] = [];
+  const entries: PlannedEntry[] = [], skipped: ImportSkip[] = [], data = named ? rows.slice(1) : rows;
+  const {order, note} = csvDateOrder(data.map(r => r[col.date] ?? ''), file.name);
   let cut = 0;
-  for (const [i, r] of (named ? rows.slice(1) : rows).entries()) {
+  for (const [i, r] of data.entries()) {
     const label = `${file.name} row ${i + (named ? 2 : 1)}`, rawDate = (r[col.date] ?? '').trim(), words = (r[col.text] ?? '').replace(/\r\n?/g, '\n').trim();
-    const date = dayInLine(rawDate) ?? (() => { const m = /^(\d{1,2})[/.](\d{1,2})[/.](\d{4})/.exec(rawDate); if (!m) return null; const d = `${m[3]}-${m[2]!.padStart(2, '0')}-${m[1]!.padStart(2, '0')}`; return validDay(d) ? d : null; })();
-    if (!date) { skipped.push({name: label, reason: rawDate ? 'its date cannot be read (use 2026-11-03 or 3-11-2026)' : 'it has no date'}); continue; }
+    const num = NUM_DATE.exec(rawDate), date = num ? numDay(num, order) : dayInLine(rawDate);
+    if (!date) { skipped.push({name: label, reason: rawDate ? `its date cannot be read${num ? ` as ${order === 'dmy' ? 'day-month-year' : 'month-day-year'}, as the file's other dates are` : ''} (use 2026-11-03)` : 'it has no date'}); continue; }
     if (!words) { skipped.push({name: label, reason: 'it has no words'}); continue; }
     const c = clip(words); if (c.cut) cut++;
     const tags = col.tags >= 0 ? readTags((r[col.tags] ?? '').replace(/;/g, ',')) : [];
@@ -226,17 +244,17 @@ export function readCsvFile(file: InFile, today: string): {entries: PlannedEntry
   }
   if (!rows.length) skipped.push({name: file.name, reason: 'it holds no rows'});
   void today;
-  return {entries, skipped, cut};
+  return {entries, skipped, cut, ...(note ? {notes: [note]} : {})};
 }
 /** The plan for every file read: entries in date order, duplicates (with the journal or each other) left out and said. */
 export function planJournalImport(journal: Journal, files: readonly InFile[], {today, zone, skipped: already = []}: {today: string; zone?: string; skipped?: readonly ImportSkip[]}): JournalImportPlan {
-  const entries: PlannedEntry[] = [], skipped: ImportSkip[] = [...already], books: string[] = [];
+  const entries: PlannedEntry[] = [], skipped: ImportSkip[] = [...already], books: string[] = [], notes: string[] = [];
   let cut = 0;
   for (const f of files) {
     // Session AV lane 2 (r6-notes; LEDGER #410): Journey's JSON entries and a CSV of entries.
     const r = /\.json$/i.test(f.name) && isJourneyJson(f.text) ? {...readJourneyJson(f, zone), book: null} : /\.csv$/i.test(f.name) ? {...readCsvFile(f, today), book: null} : /\.json$/i.test(f.name) ? readDayOneJson(f, zone) : /\.html?$/i.test(f.name) ? {...readHtmlFile(f, today), book: null} : /\.(?:md|markdown|txt)$/i.test(f.name) ? {...readTextFile(f, today), book: null} : null;
     if (!r) { skipped.push({name: f.name, reason: 'it is not a journal file ZIGoals reads (Day One or Journey JSON, Markdown, text, HTML or CSV)'}); continue; }
-    entries.push(...r.entries); skipped.push(...r.skipped); cut += r.cut;
+    entries.push(...r.entries); skipped.push(...r.skipped); cut += r.cut; notes.push(...((r as {notes?: string[]}).notes ?? []));
   }
   // Session AV lane 2 (review B3C-5): an entry from ZIGoals' own Markdown is also known by its day and creation time, so it
   // is recognised even when its words were changed here since the export.
@@ -250,7 +268,7 @@ export function planJournalImport(journal: Journal, files: readonly InFile[], {t
   }
   const room = MAX_ENTRIES - journal.entries.length;
   if (kept.length > room) { for (const e of kept.slice(room)) skipped.push({name: `${e.date}: ${e.text.slice(0, 40)}`, reason: `the journal keeps at most ${MAX_ENTRIES.toLocaleString('en-US')} entries`}); kept.length = Math.max(0, room); }
-  return {entries: kept, skipped, books, cut};
+  return {entries: kept, skipped, books, cut, ...(notes.length ? {notes} : {})};
 }
 export type ImportUndo = {entries: string[]; books: string[]; media: string[]};
 /**
