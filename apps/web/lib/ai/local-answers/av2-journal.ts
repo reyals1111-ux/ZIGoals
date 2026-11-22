@@ -137,18 +137,26 @@ function changedEntries(a: Asked): LocalReply | null {
 }
 // ── Notes ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 const NOTES_CALL = [{tool: 'search_notes', args: {}, label: 'Notes'}];
-/** The notes record where it is shared with this answer (NOVA: its Notes scope), else why not. */
-function notesOf(a: Asked): {record: Notes} | {shut: LocalReply} {
+/**
+ * The notes record where it is shared with this answer (NOVA: its Notes scope), else why not. Review b1 #6: ZIGi never
+ * receives the notes (components/ai/use-ai-context.ts passes them only on NOVA's surface, with its Notes scope), so ZIGi
+ * says where to see them (`where`, EN and NL) instead of a read failure; "can't be read" is kept for a record that
+ * really does not read (null).
+ */
+type Where = readonly [en: string, nl: string];
+function notesOf(a: Asked, where: Where): {record: Notes} | {shut: LocalReply} {
   const today = closed(a.env, 'today', 'search_notes'); if (today) return {shut: today};
   const record = a.env.nova?.notes;
   if (record) return {record};
-  return {shut: record === undefined && novaEnvInfo(a.env) ? {kind: 'refusal', text: novaAreaClosed('Notes', a.lang), calls: []} : answer(say(a.lang, 'Your notes can’t be read on this device right now, so I can’t say.', 'Je notities kunnen nu niet gelezen worden op dit apparaat, dus dat kan ik niet zeggen.'))};
+  if (record === undefined && novaEnvInfo(a.env)) return {shut: {kind: 'refusal', text: novaAreaClosed('Notes', a.lang), calls: []}};
+  if (record === null) return {shut: answer(say(a.lang, 'Your notes can’t be read on this device right now, so I can’t say.', 'Je notities kunnen nu niet gelezen worden op dit apparaat, dus dat kan ik niet zeggen.'))};
+  return {shut: answer(say(a.lang, `ZIGi doesn’t read your notes. Open ${where[0]} to see them; NOVA can answer this with Notes on in NOVA → Permissions.`, `ZIGi leest je notities niet. Open ${where[1]} om ze te zien; NOVA kan dit beantwoorden met Notes aan in NOVA → Permissions.`))};
 }
 /** LEDGER #32: "which repeating notes do I have", "what is my daily note template" (lib/notes/schedules.ts). */
 function repeatingNotes(a: Asked): LocalReply | null {
   const en = /\b(?:repeating|recurring|scheduled) notes?\b|\bnote templates?\b|\bdaily note template\b/.test(a.f), nl = /\b(?:terugkerende|herhalende) notitie s?\b|\b(?:terugkerende|herhalende) notities\b|\bnotitiesjablo(?:on|nen)\b|\bsjabloon\b.*\bdag(?:elijkse)? ?notitie\b/.test(a.f);
   if (!en && !nl) return null;
-  const got = notesOf(a); if ('shut' in got) return got.shut;
+  const got = notesOf(a, ['Notes → Notes → Repeating notes', 'Notes → Notes → Repeating notes']); if ('shut' in got) return got.shut;
   const list0 = schedulesOf(got.record), lang = a.lang, daily = got.record.dailyTemplate?.trim();
   const dailyLine = daily ? say(lang, ' A new daily note starts from your daily note template.', ' Een nieuwe dagnotitie begint met je sjabloon voor dagnotities.') : say(lang, ' Daily notes start empty (Notes → Days → Daily note template).', ' Dagnotities beginnen leeg (Notes → Days → Daily note template).');
   if (!list0.length) return answer(say(lang, `No repeating note yet. Notes → Notes → Repeating notes makes a note every day, week or month from your words.${dailyLine}`, `Nog geen terugkerende notitie. Notes → Notes → Repeating notes maakt elke dag, week of maand een notitie van je eigen woorden.${dailyLine}`), NOTES_CALL);
@@ -160,7 +168,7 @@ function noteVersions(a: Asked): LocalReply | null {
   const en = /\bnotes?\b/.test(a.f) && /\b(?:earlier|older|previous) versions?\b|\bversion history\b.*\bnotes?\b|\bnotes?\b.*\bversion history\b/.test(a.f) && !/\bjournal|entries|entry\b/.test(a.f);
   const nl = /\bnotitie s?\b|\bnotities\b/.test(a.f) && /\b(?:eerdere|oudere|vorige) versies\b|\bversiegeschiedenis\b/.test(a.f);
   if (!en && !nl) return null;
-  const got = notesOf(a); if ('shut' in got) return got.shut;
+  const got = notesOf(a, ['a note’s Earlier versions (Notes → the note)', 'Earlier versions bij een notitie (Notes → de notitie)']); if ('shut' in got) return got.shut;
   const versions = got.record.versions ?? [], lang = a.lang, ids = [...new Set(versions.map(v => v.noteId))];
   const names = ids.flatMap(id => { const n = got.record.notes.find(x => x.id === id); return n ? [n.kind === 'daily' && n.day ? dayIn(lang, n.day, a.today) : (n.title.trim() || say(lang, 'an untitled note', 'een notitie zonder titel'))] : []; });
   if (!names.length) return answer(say(lang, 'No note has an earlier version yet. Each save that changes a note keeps the words it had, under its Earlier versions.', 'Nog geen notitie heeft een eerdere versie. Elke keer dat je een notitie verandert en bewaart, blijven de oude woorden onder Earlier versions.'), NOTES_CALL);
@@ -171,7 +179,7 @@ function notesPerTagAnswer(a: Asked): LocalReply | null {
   const en = /\bnotes?\b/.test(a.f) && /\b(?:per|by|each) tag\b|\btags?\b.*\bnotes\b|\bnotes\b.*\btags?\b/.test(a.f) && !/\b(?:journal|entries|entry)\b/.test(a.f);
   const nl = /\bnotities\b/.test(a.f) && /\b(?:per|op) (?:tag|label)\b|\b(?:tags|labels)\b/.test(a.f);
   if (!en && !nl) return null;
-  const got = notesOf(a); if ('shut' in got) return got.shut;
+  const got = notesOf(a, ['Notes → Chart', 'Notes → Chart']); if ('shut' in got) return got.shut;
   const per = notesPerTag(got.record.notes), lang = a.lang;
   if (!per.tags.length) return answer(say(lang, 'No note has a tag yet. Notes imported with tags (Notes → Files → Import) show under Notes → Chart.', 'Nog geen notitie heeft een tag. Notities die met tags zijn geïmporteerd (Notes → Files → Import) staan onder Notes → Chart.'), NOTES_CALL);
   const lines = per.tags.slice(0, 8).map(t => `#${t.tag} ${t.count}`);

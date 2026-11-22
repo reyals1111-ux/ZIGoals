@@ -90,3 +90,20 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
   choose Delete this version, or Delete all earlier versions. You are asked first, and Undo puts them back for a moment.
   Their words then leave this device and every export you make."
 - What's new: "Delete earlier versions of journal entries and notes."
+
+## #6 Major: ZIGi said the notes "can't be read on this device"
+
+- Verdict: fixed, and the eval harness was wrong for ZIGi (fixed, labelled deliberate).
+- Fix: lib/ai/local-answers/av2-journal.ts `notesOf` tells the three cases apart: NOVA with its Notes scope off refuses
+  as before; a notes record that really does not read (null) keeps "can’t be read"; ZIGi, which never receives the notes
+  (components/ai/use-ai-context.ts reads them only on NOVA's surface), says "ZIGi doesn’t read your notes. Open Notes →
+  Notes → Repeating notes to see them; NOVA can answer this with Notes on in NOVA → Permissions." (NL: "ZIGi leest je
+  notities niet. Open … om ze te zien; NOVA kan dit beantwoorden met Notes aan in NOVA → Permissions."), with the place
+  that fits each question (Repeating notes; a note's Earlier versions; Notes → Chart for notes per tag).
+- Harness (apps/web/lib/ai/evals/as/harness.ts): `zigiEnv` now strips `nova.notes`, as the app does. The three
+  av2-journal unit tests that read the notes' facts from ZIGi now read them from NOVA (same exact strings) and assert
+  ZIGi's exact new sentences in EN and NL, plus a new case for the unreadable record — labelled
+  `Session AV lane 2 (review b1 #6, deliberate)`. lib/ai (178 files) green; the corpus (corpus.test.ts, expected.json)
+  unchanged and green.
+- Spec (lead runs): apps/web/tests/revb1-zigi-notes.spec.ts.
+- Answers wiring: none new (av2JournalAnswer is already wired). Stored changes: none.

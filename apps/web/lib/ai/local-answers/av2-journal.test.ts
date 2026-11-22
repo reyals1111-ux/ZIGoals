@@ -96,29 +96,43 @@ describe('the default template and the earlier versions (LEDGER #39, #33)', () =
 
 describe('repeating notes and the daily note template (LEDGER #32)', () => {
   test('the Showcase’s repeating note, in English and Dutch; a fresh profile has none and says where', () => {
-    expect(text(zigi('which repeating notes do I have'))).toBe('1 repeating note: Example · Week plan (every Monday, made “Example · Week plan · 2026-11-16”). Daily notes start empty (Notes → Days → Daily note template).');
-    expect(text(zigi('welke terugkerende notities heb ik'))).toBe('1 terugkerende notitie: Example · Week plan (elke maandag, gemaakt: “Example · Week plan · 2026-11-16”). Dagnotities beginnen leeg (Notes → Days → Daily note template).');
-    expect(text(zigi('what are my note templates', freshAll()))).toContain('No repeating note yet.');
+    // Session AV lane 2 (review b1 #6, deliberate): ZIGi never receives the notes (as in the app), so the notes' facts are NOVA's
+    // (Notes on); ZIGi says exactly where to see them, in both languages.
+    expect(text(nova('which repeating notes do I have'))).toBe('1 repeating note: Example · Week plan (every Monday, made “Example · Week plan · 2026-11-16”). Daily notes start empty (Notes → Days → Daily note template).');
+    expect(text(nova('welke terugkerende notities heb ik'))).toBe('1 terugkerende notitie: Example · Week plan (elke maandag, gemaakt: “Example · Week plan · 2026-11-16”). Dagnotities beginnen leeg (Notes → Days → Daily note template).');
+    expect(text(nova('what are my note templates', freshAll()))).toContain('No repeating note yet.');
+    expect(text(zigi('which repeating notes do I have'))).toBe('ZIGi doesn’t read your notes. Open Notes → Notes → Repeating notes to see them; NOVA can answer this with Notes on in NOVA → Permissions.');
+    expect(text(zigi('welke terugkerende notities heb ik'))).toBe('ZIGi leest je notities niet. Open Notes → Notes → Repeating notes om ze te zien; NOVA kan dit beantwoorden met Notes aan in NOVA → Permissions.');
+    expect(text(zigi('which repeating notes do I have'))).not.toMatch(/can’t be read/);
   });
-  test('NOVA without its Notes scope refuses', () => {
+  test('NOVA without its Notes scope refuses; a notes record that does not read says so', () => {
     const env = novaEnv(showcaseAll(), {...DEFAULT_NOVA_SCOPES, health: true, journal: true, notes: false});
     expect(av2JournalAnswer('which repeating notes do I have', env)?.kind).toBe('refusal');
+    const s = showcaseAll(), unreadable = novaEnv({...s, nova: {...s.nova!, notes: null}});
+    expect(text(av2JournalAnswer('which repeating notes do I have', unreadable))).toBe('Your notes can’t be read on this device right now, so I can’t say.');
   });
 });
 
 describe('earlier versions of notes (LEDGER #33)', () => {
   test('the Showcase’s one, in English and Dutch; journal versions stay the journal’s answer', () => {
-    expect(text(zigi('which notes have earlier versions'))).toBe('1 earlier version of 1 note: Books to read. Each note’s Earlier versions shows them, to read or restore.');
-    expect(text(zigi('welke notities hebben eerdere versies'))).toBe('1 eerdere versie van 1 notitie: Books to read. Earlier versions bij elke notitie toont ze, om te lezen of terug te zetten.');
+    // Session AV lane 2 (review b1 #6, deliberate): ZIGi never receives the notes (as in the app), so the notes' facts are NOVA's
+    // (Notes on); ZIGi says exactly where to see them, in both languages.
+    expect(text(nova('which notes have earlier versions'))).toBe('1 earlier version of 1 note: Books to read. Each note’s Earlier versions shows them, to read or restore.');
+    expect(text(nova('welke notities hebben eerdere versies'))).toBe('1 eerdere versie van 1 notitie: Books to read. Earlier versions bij elke notitie toont ze, om te lezen of terug te zetten.');
     expect(text(zigi('do I have earlier versions of my journal entries'))).toContain('1 journal entry has been changed');
-    expect(text(zigi('which notes have earlier versions', freshAll()))).toContain('No note has an earlier version yet.');
+    expect(text(nova('which notes have earlier versions', freshAll()))).toContain('No note has an earlier version yet.');
+    expect(text(zigi('which notes have earlier versions'))).toBe('ZIGi doesn’t read your notes. Open a note’s Earlier versions (Notes → the note) to see them; NOVA can answer this with Notes on in NOVA → Permissions.');
+    expect(text(zigi('welke notities hebben eerdere versies'))).toBe('ZIGi leest je notities niet. Open Earlier versions bij een notitie (Notes → de notitie) om ze te zien; NOVA kan dit beantwoorden met Notes aan in NOVA → Permissions.');
   });
 });
 
 describe('notes per tag (LEDGER #30)', () => {
   test('the Showcase’s tags with their counts, in English and Dutch; journal tags stay the journal’s answer', () => {
-    expect(text(zigi('how many notes do I have per tag'))).toBe('Notes per tag: #reading 1 and #travel 1; 6 notes have no tag. Notes → Chart draws them.');
-    expect(text(zigi('hoeveel notities heb ik per tag'))).toBe('Notities per tag: #reading 1 en #travel 1; 6 notities hebben geen tag. Notes → Chart tekent ze.');
+    // Session AV lane 2 (review b1 #6, deliberate): ZIGi never receives the notes (as in the app), so the notes' facts are NOVA's
+    // (Notes on); ZIGi says exactly where to see them, in both languages.
+    expect(text(nova('how many notes do I have per tag'))).toBe('Notes per tag: #reading 1 and #travel 1; 6 notes have no tag. Notes → Chart draws them.');
+    expect(text(nova('hoeveel notities heb ik per tag'))).toBe('Notities per tag: #reading 1 en #travel 1; 6 notities hebben geen tag. Notes → Chart tekent ze.');
+    expect(text(zigi('how many notes do I have per tag'))).toBe('ZIGi doesn’t read your notes. Open Notes → Chart to see them; NOVA can answer this with Notes on in NOVA → Permissions.');
     expect(zigi('which journal entries are tagged work')).toBeNull();
   });
 });

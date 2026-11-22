@@ -50,7 +50,14 @@ export const freshAll = (): ToolSources => ({...showcaseSources(DAY), now: NOW, 
 const SCOPES = {...DEFAULT_NOVA_SCOPES, health: true, journal: true, notes: true};
 /** NOVA's own environment with every permission on (the corpus is about the answers; the switches have their own tests). */
 export const novaEnv = (sources: ToolSources, scopes = SCOPES, health = true): ToolEnv => novaLocalEnv({sources, gates: gatesFor(health, 'today'), scopes, chainChosen: true})!;
-export const zigiEnv = (sources: ToolSources, health = true): ToolEnv => toolEnv(sources, gatesFor(health, 'today'), 'local');
+/**
+ * Session AV lane 2 (review b1 #6, deliberate): ZIGi's environment carries no notes record, as in the app — the app's
+ * context reads the notes only on NOVA's surface, with its Notes scope (components/ai/use-ai-context.ts: `nova` is
+ * `readNovaToolSources(storage)` without `{notes: true}`). The corpus had given ZIGi the notes too, so its notes answers
+ * passed here and failed in the app.
+ */
+const withoutNotes = (sources: ToolSources): ToolSources => { if (!sources.nova || !('notes' in sources.nova)) return sources; const {notes: _notes, ...nova} = sources.nova; void _notes; return {...sources, nova}; };
+export const zigiEnv = (sources: ToolSources, health = true): ToolEnv => toolEnv(withoutNotes(sources), gatesFor(health, 'today'), 'local');
 export type Asked = {reply: LocalReply; text: string; kind: LocalReply['kind']; tools: string[]; facts: Record<string, unknown> | null; widgets: string[]};
 /** The device's reply with no model, the facts of its lookup (run again) and the widgets that answer asks for (their first-choice kinds). */
 export function ask(question: string, env: ToolEnv): Asked {
