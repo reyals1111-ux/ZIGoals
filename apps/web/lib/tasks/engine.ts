@@ -1,7 +1,7 @@
 import {addLocalDays, localDate} from '../local-date';
 import {nextOccurrence, olderDay, windowEnd} from './recurrence';
 import {
-  DEFAULT_LEVEL, LABEL_PATTERN, MAX_AFTER, MAX_COMPLETIONS, MAX_SUBTASK_DEPTH, MAX_TASK_MINUTES, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
+  DEFAULT_LEVEL, LABEL_PATTERN, MAX_AFTER, MAX_COMPLETIONS, MAX_SUBTASK_DEPTH, MAX_TASK_MINUTES, TASK_LABELS_MAX, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
   levelFields, taskLevel, taskSchema, tasksSchema, type HealthLink, type LabelGroup, type Project, type Recur, type SavedFilter, type Section,
   type Task, type TaskColour, type TaskLevel, type TaskPriority, type TaskReminder, type Tasks,
 } from './schema';
@@ -219,6 +219,17 @@ export function oneOfEachGroup(labels: readonly string[], before: readonly strin
     out = out.filter(l => !g.labels.includes(l) || l === keep);
   }
   return out;
+}
+/**
+ * Review B6M-1: the one way a label is given to a task — by the Select bar, a project's rule and a rename (the editor and quick
+ * add give a whole list, read by the same oneOfEachGroup in editTask and addTask). The label is added and its group's other
+ * label goes; the list is returned unchanged when the task has it already, or carries the most labels a task keeps.
+ */
+export function withLabel(labels: readonly string[] | undefined, label: string, groups: readonly LabelGroup[] | undefined): string[] {
+  const now = [...(labels ?? [])];
+  if (now.includes(label)) return now;
+  const next = oneOfEachGroup([...now, label], now, groups);
+  return next.length > TASK_LABELS_MAX ? now : next;
 }
 /** Whether `from` waits for `target`, directly or through the tasks it waits for (bounded by the list). */
 function waitsThrough(record: Tasks, from: string, target: string): boolean {
