@@ -71,7 +71,8 @@ export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
   // Finished: how many, which, and which of them after their day.
   if (q.ask === 'done' || /\b(?:finished|completed|afgerond|voltooid|gedaan|done)\b/.test(q.read) && q.ask !== 'not-done' && q.ask !== 'open') {
     const p = periodFor({...q, shape: 'list'}, today, 'today'), hit = record.tasks.filter(x => { const d = doneDay(x); return !!d && p.days.includes(d); }), late = hit.filter(x => x.due && doneDay(x)! > x.due);
-    const span = periodSpan(p, lang, today);
+    // Session AV lane 2 (minors, q1 #2 check 5): the span's days the Dutch way too ("deze week (ma 16 nov t/m di 17 nov)").
+    const span = periodSpan(p, lang, today, lang === 'nl' ? nlDay : dayWords);
     if (q.ask === 'late') return out(late.length ? t(lang, `${late.length} of ${hit.length} tasks done ${span} ${late.length === 1 ? 'was' : 'were'} finished after ${late.length === 1 ? 'its' : 'their'} day: ${listWords(late.map(x => plain(x.title)), 'en')}.`, `${late.length} van de ${hit.length} taken gedaan ${span} ${late.length === 1 ? 'is' : 'zijn'} na de geplande dag afgerond: ${listWords(late.map(x => plain(x.title)), 'nl')}.`) : t(lang, `No task done ${span} was finished late (${hit.length} done).`, `Geen taak gedaan ${span} is te laat afgerond (${hit.length} gedaan).`), {...base, done: hit.length, late: late.map(x => plain(x.title))}, timeline);
     return out(hit.length ? t(lang, `${hit.length} ${hit.length === 1 ? 'task' : 'tasks'} done ${span}: ${listWords(hit.slice(0, 8).map(x => plain(x.title)), 'en')}.`, `${hit.length} ${hit.length === 1 ? 'taak' : 'taken'} gedaan ${span}: ${listWords(hit.slice(0, 8).map(x => plain(x.title)), 'nl')}.`) : t(lang, `No task done ${span}.`, `Geen taak gedaan ${span}.`), {...base, done: hit.length, tasks: hit.map(x => plain(x.title))}, timeline);
   }
