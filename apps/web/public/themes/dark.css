@@ -28810,7 +28810,7 @@
         fill: none;
         stroke: var(--cyan,#6fd3ff)
     }
-    .wealth-sheet:not(#\-) {
+    .wealth-own-sheet:not(#\-) {
         border-color: var(--line,rgba(140,160,220,.25))
     }
     .account-limits:not(#\-) {

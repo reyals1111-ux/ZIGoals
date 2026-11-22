@@ -23,7 +23,9 @@ for (const theme of THEMES) test(`${theme}: own mood words and an activity on th
   await best.getByRole('combobox', {name: 'Symbol'}).selectOption('☀');
   await page.getByRole('button', {name: 'Save my words'}).click();
   await expect(page.getByText('Your mood words are saved.')).toBeVisible();
-  await expect(card.getByRole('group', {name: 'Mood'}).getByRole('button', {name: '☀ Sunny'})).toBeVisible();
+  // Session AV lane 2 (the symbol is shown but hidden from screen readers, so the button is named by its word: the name
+  // exactly, and the symbol in its shown text, deliberate)
+  await expect(card.getByRole('group', {name: 'Mood'}).getByRole('button', {name: 'Sunny', exact: true})).toHaveText('☀ Sunny');
   expect((await stored<{checkin?: {moodLook?: unknown}}>(page, ENERGY_KEY)).checkin?.moodLook).toEqual({'5': {word: 'Sunny', symbol: '☀'}});
   const findings = await axe(page, card);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
@@ -31,10 +33,13 @@ for (const theme of THEMES) test(`${theme}: own mood words and an activity on th
   await page.locator('summary', {hasText: 'Edit your activities'}).click();
   const form = page.getByRole('form', {name: 'Add an activity'});
   await form.getByRole('textbox', {name: /^Activity/}).fill('Fictional walk');
-  await form.getByRole('textbox', {name: 'Group (optional)'}).fill('Outside');
+  // Session AV lane 2 (the group field offers your groups as you type, so it is a combobox: its role and exact name, deliberate)
+  await form.getByRole('combobox', {name: 'Group (optional)', exact: true}).fill('Outside');
   await form.getByRole('radio', {name: 'Symbol ☕'}).check();
   await form.getByRole('button', {name: 'Add activity'}).click();
-  const chip = page.getByRole('group', {name: 'Outside'}).getByRole('button', {name: '☕ Fictional walk'});
+  // Session AV lane 2 (as above: the chip is named by its word, its symbol in its shown text, deliberate)
+  const chip = page.getByRole('group', {name: 'Outside'}).getByRole('button', {name: 'Fictional walk', exact: true});
+  await expect(chip).toHaveText('☕ Fictional walk');
   await expect(chip).toHaveAttribute('aria-pressed', 'false');
   await chip.click();
   await expect(chip).toHaveAttribute('aria-pressed', 'true');

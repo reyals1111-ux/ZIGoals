@@ -56,10 +56,16 @@ for (const theme of THEMES) test(`${theme}: own category, left out, drill-down a
   // The exclude filter: every Pet shop left out of the results.
   await box.locator('.money-search summary', {hasText: 'More filters'}).click();
   const search = page.getByRole('search', {name: 'Search all your entries'});
-  await search.getByLabel('Leave out entries with').fill('pet');
-  await search.getByLabel('Category', {exact: true}).selectOption('');
-  await expect(found.getByRole('listitem')).toHaveCount(1);
+  // Session AV lane 2 (the filter leaves out entries with the word in their category too, and the step above moved Market
+  // into Pets, so "pet" rightly left Market out as well: "shop" leaves out every Pet shop (and Shopping) and keeps Market
+  // and the left-out Pets entry, deliberate)
+  await search.getByLabel('Leave out entries with').fill('shop');
+  // Session AV lane 2 (the select sits inside its label, so the label's text holds its options and an exact getByLabel never
+  // matched: the select by its role and exact name, deliberate)
+  await search.getByRole('combobox', {name: 'Category', exact: true}).selectOption('');
+  await expect(found.getByRole('listitem')).toHaveCount(2);
   await expect(found).toContainText('Market');
+  await expect(found).not.toContainText(/shop/i);
   // To review: the imported pet shop gets the category its payee had before.
   await box.getByRole('button', {name: /^To review \(1\)/}).click();
   const suggest = box.locator('.money-review-suggest');

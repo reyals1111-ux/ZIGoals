@@ -20,11 +20,15 @@ for (const theme of THEMES) test(`${theme}: choose the slow left-right light, th
   await sum(page, 'Behind your sitting: a calm visual').click();
   const shift = page.getByRole('radio', {name: /^Slow left and right/});
   await expect(page.getByRole('radio', {name: /^No visual/})).toBeChecked();
-  await shift.check();
+  // Session AV lane 2 (the choice is saved before the controlled input follows it, so check() reads it too early: click, then the state, deliberate)
+  await shift.click();
+  await expect(shift).toBeChecked();
   await expect(page.getByText('Saved: Slow left and right, slow (3 s a side). It shows from your next session.')).toBeVisible();
   await expect(shift).toBeFocused();
-  await page.getByRole('radio', {name: 'Slower (5 s a side)'}).check();
-  expect((await stored<{calm?: unknown}>(page, HABIT_EXTRAS_KEY)).calm).toEqual({visual: 'shift', pace: 'slower'});
+  const slower = page.getByRole('radio', {name: 'Slower (5 s a side)'});
+  await slower.click(); // Session AV lane 2 (as above, deliberate)
+  await expect(slower).toBeChecked();
+  await expect.poll(async () => (await stored<{calm?: unknown}>(page, HABIT_EXTRAS_KEY)).calm).toEqual({visual: 'shift', pace: 'slower'});
   const findings = await axe(page, page.locator('.calm-chooser'));
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});

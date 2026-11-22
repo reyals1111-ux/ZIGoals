@@ -6,6 +6,7 @@ import {formatCurrencyAmount, formatDate, formatNumber} from '../visual-format';
 // Session AV lane 2, round 3 (money; PocketGuard's Financial Wellness, LEDGER #296): the day's spending as an outcome, by Wealth → Spending's own sums.
 import {byCategory, totals} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
+import {isCounted, mineCents} from '../money-log/counted';
 import {healthGroupIn} from '../vault/w-homes';
 import {wallClock} from '../zone-time';
 import {entryNutrients, reportNutrients, type ReportNutrient} from '../health-aa/nutrient-report';
@@ -199,15 +200,20 @@ function fastingEnds(src: CompareSources): string[] {
   }
   return out;
 }
-const expenses = (src: CompareSources, from: string, to: string) => (src.money?.entries ?? []).filter(e => e.kind === 'expense' && e.date >= from && e.date <= to);
+/**
+ * Session AV lane 2 (loose ends; review b2a #1's one spending rule): the spending factor counts as Wealth → Spending
+ * does — an entry left out of the figures and either side of a transfer add nothing, and a shared cost counts the
+ * person's own share (lib/money-log/counted.ts). In cents.
+ */
+const expenses = (src: CompareSources, from: string, to: string) => (src.money?.entries ?? []).filter(e => e.kind === 'expense' && e.date >= from && e.date <= to && isCounted(e));
+const spentByDay = (entries: ReturnType<typeof expenses>, currency: string) => { const totals = new Map<string, number>(); for (const e of entries) if (e.currency === currency) totals.set(e.date, (totals.get(e.date) ?? 0) + mineCents(e)); return totals; };
 /** The spending factor's currency (the most used expense currency in the window) and a usual amount (the median day). */
 export function spendBasis(src: CompareSources, today: string): {currency: string; usual: number} | null {
   const {start, end} = compareWindow(today), spent = expenses(src, start, end);
   const currency = [...spent.reduce((m, e) => m.set(e.currency, (m.get(e.currency) ?? 0) + 1), new Map<string, number>())].sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))[0]?.[0];
   if (!currency) return null;
-  const totals = new Map<string, number>(); for (const e of spent) if (e.currency === currency) totals.set(e.date, (totals.get(e.date) ?? 0) + Number(e.amount));
-  const sorted = [...totals.values()].sort((a, b) => a - b);
-  return {currency, usual: Math.round(sorted[Math.ceil(sorted.length / 2) - 1] ?? 0)};
+  const sorted = [...spentByDay(spent, currency).values()].sort((a, b) => a - b);
+  return {currency, usual: Math.round((sorted[Math.ceil(sorted.length / 2) - 1] ?? 0) / 100)};
 }
 
 /** The factors the person's own records can offer, grouped for the picker. */
@@ -317,10 +323,10 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
   if (kind === 'spend') {
     const basis = spendBasis(src, today);
     if (!basis) return null;
-    const limit = amount ?? basis.usual, logged = new Set((src.money?.entries ?? []).map(e => e.date)), totals = new Map<string, number>();
-    for (const e of src.money?.entries ?? []) if (e.kind === 'expense' && e.currency === basis.currency) totals.set(e.date, (totals.get(e.date) ?? 0) + Number(e.amount));
+    const limit = amount ?? basis.usual, logged = new Set((src.money?.entries ?? []).map(e => e.date)), totals = spentByDay(expenses(src, '0000-01-01', '9999-12-31'), basis.currency);
     // Only days with something in the money log count: a day with nothing logged is unknown, not a day without spending.
-    return {phrase: `On days you spent above ${formatNumber(limit)} ${basis.currency}`, test: d => logged.has(d) ? (totals.get(d) ?? 0) > limit : null};
+    // A day whose entries are all left out or transfers is a logged day that counts no spending.
+    return {phrase: `On days you spent above ${formatNumber(limit)} ${basis.currency}`, test: d => logged.has(d) ? (totals.get(d) ?? 0) > Math.round(limit * 100) : null};
   }
   return null;
 }

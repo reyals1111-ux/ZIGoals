@@ -14,6 +14,7 @@ import {streakFlames} from '../cards/ax/habit-flames';
 import {YEAR_WEEKS, habitYear} from '../cards/ax/habit-lattice';
 import type {AxLine} from './ax-lines';
 import type {LineData, LineLang} from './lines';
+import {lineDays, nlMonth} from './nl-dates';
 
 /**
  * Session AS (ADR-042 Part 2): the lines of the answer widgets of this group, each from its widget's own selector (or
@@ -83,7 +84,7 @@ export const AX_DAY_LINES: Readonly<Record<string, AxLine>> = {
     if (!d.tasks.tasks.length) return NO_TASKS(lang);
     const m = tasksMonth(d.tasks, widgetPeriod(params?.period, d.day, 'this-month'), d.day, tasksClock(now), deviceDay), open = m.dueDays.length + m.overdueDays.length;
     return say(lang, `Tasks in ${m.view.title}: ${m.due} still open on ${count(open, 'en', ...DAYS)}, ${m.done} done on ${count(m.doneDays.length, 'en', ...DAYS)}.`,
-      `Taken in ${m.view.title}: ${m.due} nog open op ${count(open, 'nl', ...DAYS)}, ${m.done} gedaan op ${count(m.doneDays.length, 'nl', ...DAYS)}.`);
+      `Taken in ${nlMonth(m.view.period.to.slice(0, 7))}: ${m.due} nog open op ${count(open, 'nl', ...DAYS)}, ${m.done} gedaan op ${count(m.doneDays.length, 'nl', ...DAYS)}.`);
   },
   'task-overdue': (_params, d, lang, now) => {
     if (!d.tasks) return null;
@@ -117,7 +118,7 @@ export const AX_DAY_LINES: Readonly<Record<string, AxLine>> = {
     if (h?.now.n !== undefined) parts.push(say(lang, `habits ${h.now.n} of ${h.now.of} done`, `gewoontes ${h.now.n} van ${h.now.of} gedaan`) + before(h.before.n, h.before.of));
     if (t?.now.n !== undefined) parts.push(say(lang, `${count(t.now.n, 'en', ...TASKS)} done`, `${count(t.now.n, 'nl', ...TASKS)} gedaan`) + before(t.before.n));
     if (!parts.length) return say(lang, 'Nothing is recorded yet.', 'Er is nog niets vastgelegd.');
-    return `${say(lang, 'Your records', 'Je gegevens')} ${periodWords(view.period, lang, d.day)}: ${parts.join('; ')}.`;
+    return `${say(lang, 'Your records', 'Je gegevens')} ${periodWords(view.period, lang, d.day, lineDays(lang))}: ${parts.join('; ')}.`;
   },
   'day-scan': (_params, d, lang, now) => {
     const habits = habitsOpen(d) ? d.habits ?? null : null, tasks = d.tasks ?? null;

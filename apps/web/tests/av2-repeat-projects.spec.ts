@@ -40,7 +40,8 @@ for (const theme of THEMES) test(`${theme}: a repeating project comes round on o
   const list = page.getByRole('list', {name: 'Repeating projects'});
   await expect(list).toContainText('Fictional reset');
   await expect(list).toContainText('every week · next on 2026-11-30');
-  await page.getByRole('combobox', {name: 'Template'}).selectOption({label: 'A trip'});
+  // Session AV lane 2 (“Template” also matched “Save a project as a template” once a project exists: the exact name, deliberate)
+  await page.getByRole('combobox', {name: 'Template', exact: true}).selectOption({label: 'A trip'});
   await page.getByRole('textbox', {name: 'Project name'}).fill('Fictional city trip');
   await page.getByRole('combobox', {name: 'Repeats'}).selectOption({label: 'Every month'});
   await page.getByRole('button', {name: 'Make it and repeat'}).click();

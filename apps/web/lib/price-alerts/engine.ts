@@ -1,4 +1,5 @@
 import type {MarketQuote} from '../market-quotes';
+import {formatCurrencyAmount} from '../visual-format';
 import {anyMoveActive, movesForToday, movesSeen} from './moves';
 import {MAX_ALERTS, MAX_FIRED, MAX_PORTFOLIO_ALERTS, portfolioAlertSchema, priceAlertSchema, type PortfolioAlert, type PriceAlert, type PriceAlerts} from './schema';
 
@@ -86,7 +87,8 @@ export function movePrice(current: string, percent: number, up: boolean): string
 }
 
 /* ---- Session AV (owner follow-up 1, F-MOVE-ALERT): a portfolio's whole value above or below a value ---------------- */
-export const portfolioAlertLine = (a: PortfolioAlert) => `${a.portfolioName} worth ${a.direction} ${a.value} ${a.currency}`;
+// Session AV lane 2 (loose ends; as review b2a #7 did for the move alert): amounts through the app's money formatter ("$30,000.00"), never "30000 USD".
+export const portfolioAlertLine = (a: PortfolioAlert) => `${a.portfolioName} worth ${a.direction} ${formatCurrencyAmount(a.value, a.currency)}`;
 export function addPortfolioAlert(record: PriceAlerts, alert: PortfolioAlert): PriceAlerts {
   const parsed = portfolioAlertSchema.parse(alert), list = record.portfolio ?? [];
   if (list.filter(a => a.active).length >= MAX_PORTFOLIO_ALERTS) throw new Error(`Up to ${MAX_PORTFOLIO_ALERTS} portfolio alerts at a time.`);
@@ -111,7 +113,7 @@ export function checkPortfolioAlerts(record: PriceAlerts, valueOf: (portfolioId:
     const nowV = decimalScaled(v), limit = decimalScaled(a.value);
     if (a.direction === 'above' ? nowV < limit : nowV > limit) return a;
     const shown = (() => { const [w, p = ''] = v.split('.'); return `${w}${p ? `.${p.slice(0, 2)}` : ''}`; })();
-    fired.push({alert: a, text: `${a.portfolioName} is worth ${a.direction} ${a.value} ${a.currency}: ${shown} ${a.currency} now.`});
+    fired.push({alert: a, text: `${a.portfolioName} is worth ${a.direction} ${formatCurrencyAmount(a.value, a.currency)}: ${formatCurrencyAmount(shown, a.currency)} now.`});
     return {...a, active: false, firedAt: now};
   });
   if (!fired.length) return {record, fired};

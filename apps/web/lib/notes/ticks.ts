@@ -1,6 +1,7 @@
 import {noteName, type Note, type Notes} from './schema';
 import type {NotesUndo} from './store';
 import {updateNoteKeepingVersion} from './versions';
+import {FENCE_OPEN, closesFence} from '../markdown-fence';
 
 /**
  * Session AV lane 2 (r3-notes; LEDGER #264, Obsidian's tick boxes): "- [ ] words" lines in a note are tick boxes. Ticking
@@ -9,16 +10,19 @@ import {updateNoteKeepingVersion} from './versions';
  * They stay lines of the note, never tasks. Nothing new is stored: the tick lives in the text. Pure.
  */
 export const TICK_LINE = /^(\s{0,3}(?:[-*+•]|\d{1,3}[.)])\s+)\[( |x|X)\](\s+)(\S.*)$/;
-const FENCE = /^\s*(```+|~~~+)/;
 export type TickLine = {line: number; checked: boolean; text: string};
-/** Every tick-box line of a text (outside fenced code), with its 0-based line, as the reading view numbers them. */
+/**
+ * Every tick-box line of a text (outside fenced code), with its 0-based line, as the reading view numbers them.
+ * Session AV lane 2 (review B3C-9): fenced code by the reading view's own rule (lib/markdown-fence.ts), so a "- [ ]"
+ * inside a four-backtick block is code here too, and a box after the block is found.
+ */
 export function tickLines(body: string): TickLine[] {
   const out: TickLine[] = [];
   let fence: string | null = null;
   body.replace(/\r\n?/g, '\n').split('\n').forEach((l, line) => {
-    const f = FENCE.exec(l);
-    if (f) { if (!fence) fence = f[1]![0]!; else if (l.trim().startsWith(fence)) fence = null; return; }
-    if (fence) return;
+    if (fence) { if (closesFence(fence, l)) fence = null; return; }
+    const f = FENCE_OPEN.exec(l);
+    if (f) { fence = f[1]!; return; }
     const m = TICK_LINE.exec(l);
     if (m) out.push({line, checked: m[2] !== ' ', text: m[4]!.trim()});
   });

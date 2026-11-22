@@ -21,8 +21,9 @@ for (const theme of THEMES) test(`${theme}: a food marked as fitting high protei
   await quick.getByLabel('Food name').fill('Fictional skyr');
   await quick.getByLabel('Calories (kcal)').fill('120');
   await quick.getByLabel('Portion weight (g)').fill('150');
-  await quick.getByLabel('Protein (g)').fill('16');
-  await quick.getByLabel('Fat (g)').fill('0.3');
+  // Session AV lane 2 (the quick add names these fields “… (g, optional)”: their own names, exactly, deliberate)
+  await quick.getByLabel('Protein (g, optional)', {exact: true}).fill('16');
+  await quick.getByLabel('Fat (g, optional)', {exact: true}).fill('0.3');
   await quick.getByRole('button', {name: 'Log and save food'}).click();
   await expect(page.getByText('Fictional skyr logged and saved to your library.').first()).toBeVisible();
 

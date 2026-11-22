@@ -54,7 +54,12 @@
 .import-entry p { margin: 0; font-size: 15px; }
 @media (max-width: 767.98px) { .import-panel input, .import-panel select, .import-panel textarea { font-size: 16px; } .import-fields { grid-template-columns: 1fr; } }
 /* Session W Part 7: Settings → Switch to ZIGoals. */
-.switch-import { display: grid; gap: 12px; }
+/* Session AV lane 2 (fixb2): one column that may be narrower than its widest part, and words that may break anywhere (the
+   HabitBull steps quote its CSV's first line, "HabitName,HabitDescription,HabitCategory.", one 300 px word), so the panel
+   keeps to the screen at 320 px; the file fields take the column's width. */
+.switch-import { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.switch-import input[type=file] { max-width: 100%; }
+.switch-more p { overflow-wrap: anywhere; }
 .switch-import h3 { margin: 0; font-size: 1.1rem; }
 .switch-import h4 { margin: 0; font-size: 15px; }
 .switch-choose { display: grid; gap: 12px; }

@@ -51,8 +51,10 @@ test('High contrast: chosen from Nebula it turns Dark on, holds the Appearance g
   await expect(page.locator('html')).toHaveAttribute('data-dark-style', 'black');
   await page.keyboard.press('ArrowRight');
   await expect(page.locator('html')).toHaveAttribute('data-dark-style', 'contrast');
-  const ring = await page.evaluate(() => { const s = getComputedStyle(document.activeElement!); return {width: parseFloat(s.outlineWidth), style: s.outlineStyle}; });
-  expect(ring.width).toBeGreaterThanOrEqual(3); expect(ring.style).toBe('solid');
+  // Session AV lane 2 (Pure black and back swaps the style's sheet, and the contrast sheet's ring lands once it has loaded
+  // again: read until it has, the same 3 px solid ring, deliberate)
+  await expect(page.locator('#zigoals-dark-style-sheet')).toHaveAttribute('href', /^\/themes\/dark-contrast\.css\?v=[0-9a-f]{12}$/);
+  await expect.poll(() => page.evaluate(() => { const s = getComputedStyle(document.activeElement!); return {wide: parseFloat(s.outlineWidth) >= 3, style: s.outlineStyle}; })).toEqual({wide: true, style: 'solid'});
   // The next page: on <html> before hydration.
   await page.goto('/app/goals', {waitUntil: 'commit'});
   await expect(page.locator('html')).toHaveAttribute('data-dark-style', 'contrast');

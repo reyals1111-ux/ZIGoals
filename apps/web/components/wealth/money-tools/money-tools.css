@@ -70,7 +70,9 @@
 .money-key-b,.money-key-target{border-top:3px dashed var(--amber,#f5b65b)}
 .money-key-band{height:10px;border:0;background:color-mix(in srgb,var(--violet,#8b7cff) 26%,transparent)}
 .fee-drag-result,.fi-result{margin:0;font-variant-numeric:tabular-nums}
-.money-calc-tools{display:grid;gap:16px}
+/* Session AV lane 2 (fixb2): one column that may be narrower than its widest part (Financial freedom's scenario table, which
+   scrolls in its own box), so the calculator keeps to the screen at 320 px; an implicit grid column was as wide as the table. */
+.money-calc-tools{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
 .money-calc-tools .money-tools-buttons{margin:0}
 /* Session AK (F5a, item 4): Financial freedom polish — hints under fields, the plain line, a legend list, phones at 320 px. */
 .fi-fields .field{display:grid;gap:4px;min-width:0;align-self:start}
@@ -87,7 +89,7 @@
 .money-transfers{display:grid;gap:6px;margin:0 0 12px}
 .money-transfers h5{margin:0;font-size:16px}
 /* Session AV lane 2 (money): life events and scenarios under Financial freedom. */
-.fi-scenarios{display:grid;gap:14px;margin-top:14px}
+.fi-scenarios{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:14px}
 .fi-scenarios h4{margin:0 0 6px}
 .fi-events li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;overflow-wrap:anywhere}
 .fi-events button,.fi-scenario-actions button,.fi-event-form button{min-height:44px}

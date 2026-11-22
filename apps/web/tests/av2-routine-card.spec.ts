@@ -36,7 +36,8 @@ for (const theme of THEMES) test(`${theme}: tick a step from the routine card, w
   const steps = page.getByRole('list', {name: /: today’s steps$/});
   const stretch = steps.getByRole('checkbox', {name: 'Fictional stretch'});
   await expect(stretch).not.toBeChecked();
-  await stretch.check();
+  // Session AV lane 2 (the box follows the saved journal, a controlled input, so check() reads it before the write lands: click, then the state, deliberate)
+  await stretch.click();
   await expect.poll(() => stored(page, B)).toBe(1);
   await expect(stretch).toBeChecked();
   await expect(stretch).toBeFocused();

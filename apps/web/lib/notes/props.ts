@@ -1,4 +1,4 @@
-import {MAX_PROPS, PROP_CHOICE_MAX, PROP_NAME_MAX, PROP_TEXT_MAX, notePropSchema, type Note, type NoteProp, type Notes, type PropType} from './schema';
+import {MAX_PROPS, PROP_CHOICE_MAX, PROP_NAME_MAX, PROP_TEXT_MAX, PROP_TYPES, notePropSchema, type Note, type NoteProp, type Notes, type PropType} from './schema';
 import {updateNote, type NotesUndo} from './store';
 
 /**
@@ -98,20 +98,52 @@ export function boardColumns<T extends Pick<Note, 'props'>>(notes: readonly T[],
 }
 
 /* ---- Front matter (lib/notes/markdown.ts) ------------------------------------------------------------------------ */
-/** Lines of YAML for the properties (readable in Obsidian), and `zigoals-props` holding them exactly, as JSON. */
+/**
+ * Lines of YAML for the properties, readable in Obsidian (`Due date: 2026-12-01`, `Status: "Done"`), and `zigoals-props`
+ * naming each one's type (`[["Due date","date"],["Status","choice"]]`), so a choice stays a choice and "0042" stays text.
+ * Session AV lane 2 (review B3C-6): the values are written once, each on its own line (a text or choice quoted, so it reads
+ * back exactly), and `zigoals-props` holds only names and types; the whole list was one JSON value before, which the
+ * front-matter reader cuts at 1,000 characters, and with the readable lines it did not fit the front matter at ten
+ * properties. A name ZIGoals cannot write as a plain key (only an older import can give one) is left out.
+ */
+const PLAIN_KEY = /^[\p{L}\p{N}][\p{L}\p{N} _-]*$/u;
+/** A YAML string that reads back exactly: double-quoted as JSON, or single-quoted when that is shorter (no line breaks). */
+const yamlString = (v: string) => { const json = JSON.stringify(v), single = `'${v.replace(/'/g, "''")}'`; return /[\n\r]/.test(v) || single.length >= json.length ? json : single; };
 export function propsFrontMatter(props: readonly NoteProp[]): string[] {
-  if (!props.length) return [];
-  const line = (p: NoteProp) => `${/^[A-Za-z][A-Za-z0-9_-]*$/.test(p.k) ? p.k : JSON.stringify(p.k)}: ${p.t === 'number' || p.t === 'tick' || p.t === 'date' ? String(p.v) : JSON.stringify(p.v)}`;
-  return [...props.filter(p => !RESERVED_KEYS.has(p.k.toLowerCase())).map(line), `zigoals-props: ${JSON.stringify(JSON.stringify(props.map(p => ({k: p.k, t: p.t, v: p.v}))))}`];
+  const kept = props.filter(p => !RESERVED_KEYS.has(p.k.toLowerCase()) && PLAIN_KEY.test(p.k) && p.k.length <= PROP_NAME_MAX);
+  if (!kept.length) return [];
+  const value = (p: NoteProp) => p.t === 'number' || p.t === 'tick' || p.t === 'date' ? String(p.v) : yamlString(p.v);
+  return [...kept.map(p => `${p.k}: ${value(p)}`), `zigoals-props: ${JSON.stringify(JSON.stringify(kept.map(p => [p.k, p.t])))}`];
+}
+/** A value read from front matter as the type `zigoals-props` names (null when it does not fit). */
+function typedValue(t: PropType, raw: string | string[]): NoteProp['v'] | null {
+  const s = Array.isArray(raw) ? raw.join(', ') : raw;
+  if (t === 'tick') return /^true$/i.test(s.trim()) ? true : /^false$/i.test(s.trim()) ? false : null;
+  if (t === 'number') { const n = Number(s.trim()); return s.trim() && Number.isFinite(n) ? n : null; }
+  if (t === 'date' || t === 'choice') return s.trim() || null;
+  return s.slice(0, PROP_TEXT_MAX);
 }
 /**
- * The properties of an imported file: ZIGoals' own `zigoals-props` exactly when it is there; else every other key of the
- * front matter that is not one ZIGoals uses itself, its type read from its value (true/false a tick, a number, a day,
- * else text; a list as text joined by commas). Up to ten.
+ * The properties of an imported file: ZIGoals' own exactly, by `zigoals-props` (names and types, the values on their own
+ * lines; an export of round 3 held the values in it too, and is read as well); else every other key of the front matter
+ * that is not one ZIGoals uses itself, its type read from its value (true/false a tick, a number, a day, else text; a
+ * list as text joined by commas). Up to ten.
  */
 export function propsFromFrontMatter(data: Record<string, string | string[]>): NoteProp[] {
   const own = data['zigoals-props'];
-  if (typeof own === 'string') { try { const list: unknown = JSON.parse(own); if (Array.isArray(list)) return list.filter(x => notePropSchema.safeParse(x).success).slice(0, MAX_PROPS) as NoteProp[]; } catch { /* read the keys instead */ } }
+  if (typeof own === 'string') { try {
+    const list: unknown = JSON.parse(own);
+    if (Array.isArray(list) && list.length && list.every(x => Array.isArray(x))) {
+      const typed: NoteProp[] = [];
+      for (const [k, t] of list as unknown[][]) {
+        if (typeof k !== 'string' || typeof t !== 'string' || !(PROP_TYPES as readonly string[]).includes(t) || !Object.hasOwn(data, k)) continue;
+        const v = typedValue(t as PropType, data[k]!), prop = {k, t, v};
+        if (v !== null && notePropSchema.safeParse(prop).success && !typed.some(p => p.k.toLowerCase() === k.toLowerCase())) typed.push(prop as NoteProp);
+      }
+      return typed.slice(0, MAX_PROPS);
+    }
+    if (Array.isArray(list)) return list.filter(x => notePropSchema.safeParse(x).success).slice(0, MAX_PROPS) as NoteProp[];
+  } catch { /* read the keys instead */ } }
   const out: NoteProp[] = [];
   for (const [k, raw] of Object.entries(data)) {
     if (out.length >= MAX_PROPS || RESERVED_KEYS.has(k.toLowerCase()) || propNameIssue(k)) continue;

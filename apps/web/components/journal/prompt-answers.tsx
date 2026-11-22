@@ -29,6 +29,8 @@ export default function PromptAnswers({journal, picked, onDay}: {journal: Pick<J
           <p className="prompt-answers-words">{a.words.replace(/\s*\(SHOWCASE DATA\)\s*$/, '')}</p>
         </li>)}</ol> : <p className="fine">Nothing written under this heading yet.</p>}
       </section>)}
+      {/* Session AV lane 2 (review B3C-3): a letter still folded away is counted with its day, never its words. */}
+      {found.sealed.length > 0 && <p className="fine prompt-answers-sealed">{found.sealed.length === 1 ? `1 letter is folded away until ${formatDate(found.sealed[0]!)}; its words show here from that day.` : `${formatNumber(found.sealed.length)} letters are folded away, the next until ${formatDate(found.sealed[0]!)}; each letter’s words show here from its day.`}</p>}
       {found.unsplit.length > 0 && <section className="prompt-answers-heading" aria-labelledby={`${id}-own`}><h4 id={`${id}-own`}>Written in its own way</h4>
         <p className="fine">These entries began from the prompt, but its headings were changed, so they are shown whole.</p>
         <ol className="prompt-answers-list">{found.unsplit.map(e => <li key={e.id}><button type="button" className="text-link prompt-answers-day" aria-label={`${formatDate(e.date, {weekday: true})}: show that day’s entries`} onClick={() => onDay(e.date)}>{formatDate(e.date)}</button><p className="prompt-answers-words">{e.text}</p></li>)}</ol>

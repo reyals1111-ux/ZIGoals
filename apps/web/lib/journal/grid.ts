@@ -1,5 +1,5 @@
 import type {JournalTemplate, PromptLang} from '../journal-prompts/templates';
-import {splitAtHeadings} from './prompt-answers';
+import {headingOf, splitAtHeadings} from './prompt-answers';
 
 /**
  * Session AV lane 2 (r3-notes; LEDGER #266, Grid Diary's grid and Mandala): a templated entry written as a grid of cards,
@@ -11,7 +11,9 @@ export type Grid = {prefix: string; cells: string[]};
 /** The boxes of a text for a template's headings (in either language); a heading not found is an empty box. */
 export function gridOf(text: string, t: JournalTemplate): Grid {
   const alts = t.headings.en.map((h, i) => [h, t.headings.nl[i] ?? h]), lines = text.replace(/\r\n?/g, '\n').split('\n');
-  const first = lines.findIndex(l => alts.some(a => a.some(h => l.trim().toLowerCase().startsWith(h.trim().toLowerCase()))));
+  // Session AV lane 2 (review B3C-1): the first heading by the same rule `splitAtHeadings` uses, so every line before it is
+  // kept above the grid and every line from it on falls in a box; no line is left out when the grid is written back.
+  const first = lines.findIndex(l => headingOf(l, alts) !== null);
   const prefix = first < 0 ? text.trim() : lines.slice(0, first).join('\n').trim();
   const cells = t.headings.en.map(() => '');
   if (first >= 0) for (const p of splitAtHeadings(lines.slice(first).join('\n'), alts)) cells[p.at] = p.words;

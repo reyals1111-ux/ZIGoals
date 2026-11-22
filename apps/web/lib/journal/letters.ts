@@ -19,6 +19,12 @@ export const OPENS_WORDS: Record<OpensChoice, string> = {month: 'In a month', ha
 export const opensOnFor = (choice: OpensChoice, today: string) => addMonths(today, choice === 'month' ? 1 : choice === 'half' ? 6 : 12);
 /** Whether an entry is a letter still folded away. */
 export const isSealed = (e: Pick<JournalEntry, 'opensOn'>, today: string) => !!e.opensOn && e.opensOn > today;
+/**
+ * Session AV lane 2 (review B3C-2/3/4/14): the entries whose words may be shown or read: every entry but the letters still
+ * folded away. On this day, Today's first lines, Every answer to a prompt, the journal search and ZIGi's and NOVA's
+ * journal tool all read through this, so a letter stays folded everywhere until its day.
+ */
+export const unsealed = <E extends Pick<JournalEntry, 'opensOn'>>(entries: readonly E[], today: string): E[] => entries.filter(e => !isSealed(e, today));
 /** How long a letter stays on Today after its day. */
 export const LETTER_DAYS_ON_TODAY = 7;
 /** The letters that opened today or in the last week, the newest opening first. */
