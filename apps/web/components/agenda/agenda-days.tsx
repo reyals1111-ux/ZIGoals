@@ -10,6 +10,7 @@ import type {GoalOption} from '../tasks/use-goal-options';
 import {addLocalDays} from '../../lib/local-date';
 import {timedLoad} from '../../lib/agenda/hour-grid';
 import {CountdownsOnDay} from '../countdowns/countdowns-on-day';
+import {DeadlinesOnDay} from './deadlines-on-day';
 
 /**
  * CI14 (page weights; budgets are never raised): the Agenda's days, rows and month grid, and the task form and status
@@ -38,6 +39,8 @@ export function DayList({day, today, heading, goals, onTick, onMove}: {day: DayW
     {heading ? <h3 className="agenda-day-title">{title}</h3> : loadWords && <p className="agenda-load">{loadWords}</p>}
     {/* Session AP ("Days until"): the person's countdowns on their day */}
     <CountdownsOnDay date={day.date} today={today} />
+    {/* Session AV lane 2 (minors, q1 #15): a task's deadline on its own day, as Tasks → Upcoming shows it */}
+    <DeadlinesOnDay date={day.date} today={today} />
     {day.items.length ? <ul className="agenda-items">{fold.rest.map(i => i.source === 'task' ? <TaskItemRow key={i.id} item={i} goals={goals} onTick={onTick} onMove={onMove} today={today} /> : i.source === 'event' ? <EventItemRow key={i.id} item={i} /> : <ItemRow key={i.id} item={i} />)}
       {/* Session AL (DV-193, P-DV-125): in the week and month views, habits with no time are one row ("4 habits · any time") */}
       {fold.habits.length > 0 && <li className="agenda-item agenda-habit-group" data-source="habit" data-pillar="habits">

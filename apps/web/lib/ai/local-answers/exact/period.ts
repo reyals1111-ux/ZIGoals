@@ -77,22 +77,23 @@ export function nlDay(date: string, today: string): string {
 /** A day as the app writes it ("Tue, Nov 3"; with the year when it is not this year). */
 export const dayWords = (day: string, today: string): string => formatDate(day, {weekday: true, year: day.slice(0, 4) !== today.slice(0, 4)});
 /** The period in words: "this month", "last week", "the last 14 days", "since Sun, Nov 1", "on Mondays this month". */
-export function periodWords(p: Period, lang: Lang, today: string): string {
+/** Session AV lane 2 (minors, q1 #2): `day` writes the days; a caller with a Dutch answer may pass `nlDay` (the default keeps every pinned answer as it was). */
+export function periodWords(p: Period, lang: Lang, today: string, day: (date: string, today: string) => string = dayWords): string {
   const base = p.token.split('@')[0]!, nl = lang === 'nl';
   const fixed: Record<string, [string, string]> = {today: ['today', 'vandaag'], yesterday: ['yesterday', 'gisteren'], 'this-week': ['this week', 'deze week'], 'last-week': ['last week', 'vorige week'], 'this-month': ['this month', 'deze maand'], 'last-month': ['last month', 'vorige maand'], 'this-year': ['this year', 'dit jaar'], 'last-year': ['last year', 'vorig jaar']};
   let words: string;
   if (fixed[base]) words = fixed[base]![nl ? 1 : 0];
   else if (base.startsWith('last-')) { const n = Number(base.split('-')[1]); words = nl ? `in de afgelopen ${n} dagen` : `in the last ${n} days`; }
-  else if (base.startsWith('since:')) words = `${nl ? 'sinds' : 'since'} ${dayWords(p.from, today)}`;
-  else if (base.startsWith('on:')) words = `${nl ? 'op' : 'on'} ${dayWords(p.from, today)}`;
+  else if (base.startsWith('since:')) words = `${nl ? 'sinds' : 'since'} ${day(p.from, today)}`;
+  else if (base.startsWith('on:')) words = `${nl ? 'op' : 'on'} ${day(p.from, today)}`;
   else words = `in ${formatMonth(`${p.from}T12:00:00Z`, {year: p.from.slice(0, 4) !== today.slice(0, 4), timeZone: 'UTC'})}`;
   return p.weekday === null ? words : nl ? `op ${weekdayName(p.weekday, 'nl')} ${words}` : `on ${weekdayName(p.weekday, 'en', true)} ${words}`;
 }
 /** The period with its dates, as a sentence opens with it: "this month (Sun, Nov 1 to Tue, Nov 17)"; one day: "yesterday (Mon, Nov 16)". */
-export function periodSpan(p: Period, lang: Lang, today: string): string {
-  const words = periodWords(p, lang, today), base = p.token.split('@')[0]!;
+export function periodSpan(p: Period, lang: Lang, today: string, day: (date: string, today: string) => string = dayWords): string {
+  const words = periodWords(p, lang, today, day), base = p.token.split('@')[0]!;
   if (base.startsWith('on:') || base.startsWith('since:')) return words;
-  return p.from === p.to ? `${words} (${dayWords(p.from, today)})` : `${words} (${dayWords(p.from, today)} ${lang === 'nl' ? 't/m' : 'to'} ${dayWords(p.to, today)})`;
+  return p.from === p.to ? `${words} (${day(p.from, today)})` : `${words} (${day(p.from, today)} ${lang === 'nl' ? 't/m' : 'to'} ${day(p.to, today)})`;
 }
 
 const NUM: Record<string, number> = {one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, ten: 10, een: 1, twee: 2, drie: 3, vier: 4, vijf: 5, zes: 6, zeven: 7, tien: 10, a: 1, couple: 2};
