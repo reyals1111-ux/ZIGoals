@@ -61,6 +61,12 @@ export const recurSchema = z.looseObject({
   /** Occurrences left, this one included. */
   left: z.number().int().min(1).max(999).optional().catch(undefined),
   text: z.string().max(120).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r4-plan, LEDGER #305; Motion's repeat window; TIER 3 (stored format), additive and optional): the
+   * repeat floats — once a week or once a month, any day of it. Written with `every` week (on Sunday, the week's last day)
+   * or month (on its last day) and `interval` 1, so an older build reads it as that fixed repeat; it keeps `flex` untouched.
+   */
+  flex: z.enum(['week', 'month']).optional().catch(undefined),
 });
 export type Recur = z.infer<typeof recurSchema>;
 /**
@@ -80,6 +86,9 @@ export const TASK_ENERGY = ['restful', 'neutral', 'light', 'medium', 'heavy'] as
 export type TaskEnergy = (typeof TASK_ENERGY)[number];
 /** Session AV (F-TASK-MINUTES): the longest a task can be said to take, a whole day. */
 export const MAX_TASK_MINUTES = 1440;
+/** Session AV lane 2 (r4-plan, LEDGER #303, #304): a long task's smallest piece, and how many tasks one can wait for. */
+export const MIN_CHUNK = 15, MAX_CHUNK = 240, MAX_AFTER = 3;
+const ID = /^[A-Za-z0-9_-]{1,80}$/;
 export const taskSchema = z.looseObject({
   id,
   title: z.string().trim().min(1).max(TASK_TITLE_MAX),
@@ -158,6 +167,17 @@ export const taskSchema = z.looseObject({
    */
   look: z.looseObject({glyph: z.enum(TASK_LOOK_GLYPHS), colour: z.enum(TASK_LOOK_COLOURS)}).optional().catch(undefined),
   energy: z.enum(TASK_ENERGY).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r4-plan; Motion; TIER 3 (stored format), additive and optional, each dropped on read when it cannot
+   * be read; older builds keep them untouched (the object is loose) and do not use them):
+   * `chunk` (LEDGER #303, Motion's chunks) the smallest piece, 15–240 minutes, Plan my day and Plan my week place a long
+   * task in; `after` (LEDGER #304, Motion's blockers) up to three tasks it waits for, by id (one no longer on the list, done,
+   * repeating or itself is not waited for: lib/tasks/engine.ts waitingFor); `afterHours` (LEDGER #301, Motion's schedules)
+   * placed in the evening hours of the planning record rather than the working hours.
+   */
+  chunk: z.number().int().min(MIN_CHUNK).max(MAX_CHUNK).optional().catch(undefined),
+  after: z.preprocess(v => { if (!Array.isArray(v)) return undefined; const ids = [...new Set(v.filter(x => typeof x === 'string' && ID.test(x)))].slice(0, MAX_AFTER); return ids.length ? ids : undefined; }, z.array(z.string()).optional()),
+  afterHours: z.literal(true).optional().catch(undefined),
 });
 /**
  * Session AV lane 2 (tasks-r2, LEDGER #228; Any.do's automations; TIER 3 (stored format), additive and optional): a rule on a
