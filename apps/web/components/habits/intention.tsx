@@ -1,11 +1,13 @@
 'use client';
-import {useEffect, useRef, useState} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState} from 'react';
 import type {Habit} from '../../lib/habits';
 import {habitIntention, intentionLine, INTENTION_MAX, setHabitIntention, WHY_MAX} from '../../lib/habit-intentions/intentions';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import type {HabitExtrasState} from './use-habit-extras';
 import {TimeSuggest} from './time-suggest';
 import './intention.css';
+// Session AV lane 2 (r4-mind; LEDGER #327, Atoms): the habit's small version and next step, its own chunk.
+const HabitStepUp = lazy(() => import('./habit-step-up'));
 
 /**
  * Session AK (F5b): a habit's implementation intention on its card ("After I pour my coffee → 2 min stretch · in the
@@ -40,6 +42,7 @@ export function HabitIntention({habit, extras, keep, today, zone}: {habit: Habit
     </form>}
     {error && <p role="alert">{error}</p>}
     <TimeSuggest habit={habit} today={today} zone={zone} keep={keep} />
+    {usable && <Suspense fallback={null}><HabitStepUp habit={habit} extras={extras!} today={today}/></Suspense>}
   </div>;
 }
 export default HabitIntention;
