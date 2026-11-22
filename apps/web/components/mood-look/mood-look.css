@@ -1,0 +1,34 @@
+/* Session AV lane 2 (habits; LEDGER #178, #179, #188): own mood words, activities in groups, each tag month by month.
+   Theme variables only. */
+.mood-look, .mood-activities, .tag-stats { display: grid; gap: 10px; min-width: 0; }
+.mood-look p, .mood-activities p, .tag-stats p { margin: 0; overflow-wrap: anywhere; }
+.mood-look-form { display: grid; gap: 10px; }
+.mood-look-row { border: 1px solid var(--line); border-radius: 12px; margin: 0; padding: 8px 10px; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 8px; min-width: 0; }
+.mood-look-row legend { font-weight: 600; font-size: .9375rem; padding: 0 4px; }
+.mood-look-row legend small { font-weight: 400; color: var(--muted); }
+.mood-look-row input, .mood-look-row select, .mood-activity-form input { min-height: 44px; font-size: 16px; width: 100%; box-sizing: border-box; }
+.mood-look .actions, .mood-activities .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.mood-look button, .mood-activities button { min-height: 44px; }
+.mood-activity-group h4 { margin: 0 0 4px; font-size: .9375rem; }
+.mood-activities-edit > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.mood-activity-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.mood-activity-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; font-size: 1rem; }
+.mood-activity-list small { color: var(--muted); }
+.mood-activity-form { display: grid; gap: 10px; }
+.mood-symbols { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.mood-symbols legend { font-size: .9375rem; padding: 0 0 4px; }
+.mood-symbol { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); font-size: 1.25rem; cursor: pointer; }
+.mood-symbol input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.mood-symbol:has(input:checked) { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+.mood-symbol:has(input:focus-visible) { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.tag-stats-table { width: 100%; border-collapse: collapse; font-size: 1rem; }
+.tag-stats-table th, .tag-stats-table td { text-align: left; padding: 6px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+.tag-stats-bars { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 4px; background: var(--line); }
+.tag-stats-bars span[data-level="5"] { background: var(--cyan); }
+.tag-stats-bars span[data-level="4"] { background: color-mix(in srgb, var(--cyan) 65%, transparent); }
+.tag-stats-bars span[data-level="3"] { background: var(--muted); }
+.tag-stats-bars span[data-level="2"] { background: color-mix(in srgb, var(--violet) 65%, transparent); }
+.tag-stats-bars span[data-level="1"] { background: var(--violet); }
+.tag-stats-words { font-size: .9375rem; }
+@media (max-width: 479px) { .mood-look-row { grid-template-columns: minmax(0, 1fr); } .tag-stats-table th, .tag-stats-table td { padding: 4px 3px; } }
+@media (forced-colors: active) { .mood-symbol:has(input:checked) { outline: 2px solid Highlight; } }

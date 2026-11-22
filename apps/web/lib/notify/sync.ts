@@ -17,7 +17,8 @@ import {storedHabits} from '../push/device';
 import {namesOn} from '../push/labels-sync';
 import {readHabitHealthLinks} from '../habit-health-links/store';
 import {deviceZone} from '../push/support';
-import {NOTIFY_PREFS} from './prefs';
+import {NOTIFY_PREFS, typeOn} from './prefs';
+import {isRoutineHead} from '../routines/reminder-href';
 import {addDays, wallClock} from './zone';
 import {buildPlan, withSnoozes, type Plan, type PlanInput, type Snooze} from './plan';
 import {BILLS} from '../bills/schema';
@@ -60,12 +61,13 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
     const habits = await storedHabits(storage);
     if (habits) {
       const day = habitCalendarDay(habits, new Date(now));
+      // Session AV lane 2 (LEDGER #181): a routine's head habit's reminder opens the routine's player.
       for (const habit of habits.habits) {
         const status = habitDay(habit, day, day).status;
         if (status === 'due' || status === 'partial' || status === 'complete') { input.orbit.total++; if (status === 'complete') input.orbit.done++; }
         const reminder = reminders.habits[habit.id];
         if (!reminder) continue;
-        input.habits.push({id: habit.id, ...(healthLinked?.has(habit.id) ? {} : {title: habit.title}), time: reminder.time, weekdays: habitWeekdays(habits, habit.id, day), doneToday: !(status === 'due' || status === 'partial') || reminders.dismissed[habit.id] === day});
+        input.habits.push({id: habit.id, ...(isRoutineHead(habits, habit.id) ? {routine: true} : {}), ...(healthLinked?.has(habit.id) ? {} : {title: habit.title}), time: reminder.time, weekdays: habitWeekdays(habits, habit.id, day), doneToday: !(status === 'due' || status === 'partial') || reminders.dismissed[habit.id] === day});
       }
     }
   } catch { /* habits unreadable: no habit wakes */ }
@@ -75,6 +77,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
       input.water = {time: reminders.water.time, toGo: left === null ? null : left >= 1000 ? `${formatNumber(left / 1000, {maximumFractionDigits: 1})} L` : `${Math.round(left)} mL`, done: left === 0 || reminders.dismissed.water === today};
     } catch { input.water = {time: reminders.water.time, toGo: null, done: false}; }
   }
+  // Session AV lane 2 (LEDGER #180): whether today's mood is answered, only when the mood check-in is on.
+  if (typeOn(prefs, 'mood')) { try { const health = await readHealth(storage); input.mood = {doneToday: !!health.moods?.days[today]}; } catch { input.mood = {doneToday: false}; } }
   if (w.windDown) input.windDown = {time: w.windDown.time, doneToday: w.dismissed[WIND_DOWN] === today};
   const review = plan.items?.review;
   if (review?.on) input.review = {time: review.time ?? '18:00', weekday: review.weekday ?? 0};

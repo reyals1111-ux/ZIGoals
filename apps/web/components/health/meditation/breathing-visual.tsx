@@ -4,7 +4,7 @@ import {phaseAt, phaseAnnouncement, PATTERNS, type BreathingPattern} from '../..
 import {entranceAllowed, MOTION_PREFERENCE_KEY} from '../../use-entrance';
 
 /** Whether motion is allowed now: not under the device's reduced motion, the app's Motion Off, or unreadable storage. */
-function useMotionAllowed(): boolean {
+export function useMotionAllowed(): boolean {
   const [allowed, setAllowed] = useState(false);
   useEffect(() => {
     const check = () => setAllowed(entranceAllowed());

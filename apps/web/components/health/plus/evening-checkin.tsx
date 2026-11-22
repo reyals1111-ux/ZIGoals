@@ -1,4 +1,5 @@
 'use client';
+import {useMoodLook} from '../../mood-look/use-mood-look';
 import Link from 'next/link';
 import {Suspense, lazy, useEffect, useRef, useState, type ReactNode} from 'react';
 import {useDeviceRecord, type DeviceRecordState} from '../../ai/use-device-record';
@@ -8,7 +9,7 @@ import {SEVERITY_WORDS, SYMPTOMS, type Symptoms} from '../../../lib/symptoms/sch
 import {addItem, levelOn, setLevel} from '../../../lib/symptoms/symptoms';
 import {SUPPLEMENTS} from '../../../lib/supplements/schema';
 import {dayDoses, markSupplement} from '../../../lib/supplements/log';
-import {MOOD_WORDS, moodOn, setMood, setMoodNote} from '../../../lib/wrap-up/engine';
+import {moodOn, setMood, setMoodNote} from '../../../lib/wrap-up/engine';
 import {healthGroupIn} from '../../../lib/vault/w-homes';
 import {dailySeries} from '../../../lib/sleep/engine';
 import {wordsOf} from '../../../lib/mood-words/schema';
@@ -29,6 +30,7 @@ const MoodWordsGrid = lazy(() => import('../../mood-words/mood-words-grid'));
  */
 const STEPS = [['mood', 'How was the day?'], ['feeling', 'A word for it'], ['symptoms', 'Symptoms and factors'], ['night', 'Last night'], ['supplements', 'Supplements and medication'], ['note', 'A note']] as const;
 export default function EveningCheckin({date, today}: {date: string; today: string}) {
+  const moodLook = useMoodLook(); // Session AV lane 2 (LEDGER #178): your own mood words, else ZIGoals'
   const day = date > today ? today : date, when = day === today ? 'today' : formatDate(day);
   const health = useHealth(), energy = useDeviceRecord(ENERGY), symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS);
   const [step, setStep] = useState<number | null>(null), [said, setSaid] = useState(''), heading = useRef<HTMLHeadingElement>(null), start = useRef<HTMLButtonElement>(null), moved = useRef(false);
@@ -56,9 +58,9 @@ export default function EveningCheckin({date, today}: {date: string; today: stri
   const finish = () => { save(() => energy.update(r => setLogged(r, day, true, at())), `Day logged: ${when}.`); moved.current = true; setStep(null); };
   let body: ReactNode = null;
   if (id === 'mood') body = <>
-    <div className="checkin-row" role="group" aria-label={`Mood ${when}`}>{MOOD_WORDS.map((w, i) => <button key={w} type="button" className="secondary" aria-pressed={mood?.mood === i + 1} onClick={() => void health.update(h => setMood(h, day, i + 1, at())).then(() => setSaid(`Mood ${when}: ${w.toLowerCase()}.`), () => setSaid('Your mood was not saved. Nothing was changed.'))}>{w}</button>)}</div>
+    <div className="checkin-row" role="group" aria-label={`Mood ${when}`}>{moodLook.words.map((w, i) => <button key={i} type="button" className="secondary" aria-pressed={mood?.mood === i + 1} onClick={() => void health.update(h => setMood(h, day, i + 1, at())).then(() => setSaid(`Mood ${when}: ${w.toLowerCase()}.`), () => setSaid('Your mood was not saved. Nothing was changed.'))}>{w}</button>)}</div>
     <div className="checkin-row" role="group" aria-label={`Energy ${when}`}>{ENERGY_WORDS.en.map((w, i) => <button key={w} type="button" className="secondary" aria-pressed={energyToday === i + 1} onClick={() => save(() => energy.update(r => rateEnergy(r, day, i + 1, at())), `Energy ${when}: ${w}.`)}>{w}</button>)}</div>
-    <details className="checkin-more"><summary>By part of the day (optional)</summary><div className="checkin-parts">{PARTS.map(p => <label key={p} className="field"><span>{PART_WORDS[p].en}</span><select value={c.moments[day]?.[p] ?? ''} onChange={e => save(() => energy.update(r => setMoment(r, day, p, e.target.value ? Number(e.target.value) : null)), `${PART_WORDS[p].en}: ${e.target.value ? MOOD_WORDS[Number(e.target.value) - 1]!.toLowerCase() : 'no answer'}.`)}><option value="">No answer</option>{MOOD_WORDS.map((w, i) => <option key={w} value={i + 1}>{w}</option>)}</select></label>)}</div></details>
+    <details className="checkin-more"><summary>By part of the day (optional)</summary><div className="checkin-parts">{PARTS.map(p => <label key={p} className="field"><span>{PART_WORDS[p].en}</span><select value={c.moments[day]?.[p] ?? ''} onChange={e => save(() => energy.update(r => setMoment(r, day, p, e.target.value ? Number(e.target.value) : null)), `${PART_WORDS[p].en}: ${e.target.value ? moodLook.words[Number(e.target.value) - 1]!.toLowerCase() : 'no answer'}.`)}><option value="">No answer</option>{moodLook.words.map((w, i) => <option key={i} value={i + 1}>{w}</option>)}</select></label>)}</div></details>
   </>;
   if (id === 'feeling') body = <>{wordsOf(energy.data)[day] && <p className="fine">Chosen: {wordsOf(energy.data)[day]!.word}.</p>}<Suspense fallback={<p className="fine">Opening the words…</p>}><MoodWordsGrid day={day} onClose={() => go(step + 1)}/></Suspense></>;
   if (id === 'symptoms') body = <SymptomStep day={day} when={when} symptoms={symptoms} energy={energy} save={save}/>;

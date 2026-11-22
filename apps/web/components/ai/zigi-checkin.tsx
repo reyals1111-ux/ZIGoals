@@ -1,4 +1,5 @@
 'use client';
+import {useMoodLook} from '../mood-look/use-mood-look';
 import {Suspense, lazy, useId, useState} from 'react';
 import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
 import {CELEBRATIONS} from '../../lib/celebrations';
@@ -7,7 +8,7 @@ import {dismissedOn, dismissFor} from '../../lib/ai/proactive/dismiss';
 import {ZIGI, zigiPersonality} from '../../lib/ai/store/records';
 import {ZIGI_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {dailyData, healthDay} from '../../lib/health-daily';
-import {MOOD_WORDS, moodOn, setMood, setMoodNote} from '../../lib/wrap-up/engine';
+import {moodOn, setMood, setMoodNote} from '../../lib/wrap-up/engine';
 import {isShown} from '../../lib/pages/visibility';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {useHealth} from '../health/use-health';
@@ -30,6 +31,7 @@ const YourScales = lazy(() => import('../scales/your-scales'));
  */
 export const CHECKIN_ID = 'checkin';
 export function ZigiCheckIn({day}: {day: string}) {
+  const moodLook = useMoodLook(); // Session AV lane 2 (LEDGER #178): your own mood words, else ZIGoals'
   const energy = useDeviceRecord(ENERGY), zigi = useDeviceRecord(ZIGI), celebrations = useDeviceRecord(CELEBRATIONS), health = useHealth(), id = useId();
   const showMood = isShown(usePagesView(), 'health');
   const [status, setStatus] = useState(''), [draft, setDraft] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export function ZigiCheckIn({day}: {day: string}) {
     const first = todayEnergy === null && todayMood === null;
     try {
       await health.update(h => setMood(h, moodDay, n, new Date().toISOString()));
-      setStatus(`Mood today: ${MOOD_WORDS[n - 1]}. Saved in your Health journal on this device.`);
+      setStatus(`Mood today: ${moodLook.words[n - 1]}. Saved in your Health journal on this device.`);
       react(followUpLine({energy: todayEnergy, mood: n})?.low ?? false, first, Object.keys(energy.data.days));
     } catch (cause) { setStatus(cause instanceof Error && cause.message ? cause.message : 'Not saved. Your Health journal is unchanged.'); }
   };
@@ -83,7 +85,7 @@ export function ZigiCheckIn({day}: {day: string}) {
       <span className="fine journal-energy-word">{todayEnergy ? ENERGY_WORDS.en[todayEnergy - 1] : '1 drained · 5 full of energy'}</span>
     </fieldset>
     {moodDay && <fieldset className="zigi-checkin-mood"><legend>{todayMood ? 'How the day feels' : 'And how does the day feel?'}</legend>
-      <div className="wrap-up-mood-choices">{MOOD_WORDS.map((word, i) => <button key={word} type="button" className="secondary" aria-pressed={todayMood === i + 1} onClick={() => void feel(i + 1)}>{word}</button>)}</div>
+      <div className="wrap-up-mood-choices">{moodLook.words.map((word, i) => <button key={i} type="button" className="secondary" aria-pressed={todayMood === i + 1} onClick={() => void feel(i + 1)}>{moodLook.symbols[i] && <span aria-hidden="true">{moodLook.symbols[i]} </span>}{word}</button>)}</div>
     </fieldset>}
     {(todayEnergy !== null || todayMood !== null) && <MoodWordsFold day={day}/>}
     <Suspense fallback={null}><YourScales day={day} compact onStatus={setStatus}/></Suspense>

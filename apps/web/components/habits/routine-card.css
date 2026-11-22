@@ -1,0 +1,17 @@
+/* Session AV lane 2 (habits; LEDGER #181, #182, #183): ticks and the reminder on a routine's card, and the small window.
+   Theme variables only. */
+.routine-card-extras { flex-basis: 100%; display: grid; gap: 8px; min-width: 0; }
+.routine-card-extras p { margin: 0; }
+.routine-card-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.routine-card-step { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-size: 1rem; overflow-wrap: anywhere; }
+.routine-card-step.is-still small { color: var(--muted); }
+.routine-card-remind { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.routine-card-remind input { min-height: 44px; font-size: 16px; }
+.routine-card-remind button { min-height: 44px; }
+.routine-pip-body { margin: 0; background: var(--bg); color: var(--text); }
+.routine-pip { display: grid; gap: 10px; padding: 16px; font-size: 1rem; }
+.routine-pip p, .routine-pip h1 { margin: 0; overflow-wrap: anywhere; }
+.routine-pip-step { font-size: 1.5rem; }
+.routine-pip-timer { font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+.routine-pip .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.routine-pip button { min-height: 44px; }

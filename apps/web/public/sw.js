@@ -55,6 +55,8 @@
     // Session AV lane 2 (money): budgets near or over, payday tomorrow, the low-balance line; words only where names are allowed.
     var moneyNotes = kinds.money || [];
     if (moneyNotes.length) lines.push(named && moneyNotes.every(function (m) { return m.label; }) ? moneyNotes.slice(0, 2).map(function (m) { return m.label + (m.detail ? ' · ' + m.detail : ''); }).join(' · ') : plural(moneyNotes.length, 'money notice: open Wealth', 'money notices: open Wealth'));
+    // Session AV lane 2 (LEDGER #180): the mood check-in; never a mood.
+    if (kinds.mood) lines.push('How does today feel? One tap answers it.');
     if (kinds.supplement) lines.push('A reminder you set in Health');
     // Session AV lane 2 (food, LEDGER #90): a meal's usual time, by its name only where names are allowed; never food.
     var meals = kinds.meal || [];

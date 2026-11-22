@@ -23,4 +23,13 @@ export const AV2_HABITS: readonly Intent[] = [
   {id: 'av2-habits-usual-mood', pillar: 'health', en: ['how is my mood compared to usual', 'how is my energy compared to normal'], nl: ['hoe is mijn stemming vergeleken met normaal', 'hoe is mijn energie vergeleken met normaal']},
   // Today's written practice (LEDGER #71, #77)
   {id: 'av2-habits-todays-practice', pillar: 'health', en: ['what is today\'s meditation', 'what is the meditation of the day'], nl: ['wat is de meditatie van vandaag', 'wat is de oefening van vandaag']},
+  // Calm visuals behind a sitting (LEDGER #79, #80), Move gently (LEDGER #81)
+  {id: 'av2-habits-calm-visual', pillar: 'health', en: ['what visual is behind my meditation', 'which scene shows when i sit'], nl: ['welke achtergrond heb ik bij het mediteren', 'welk beeld staat er bij mijn meditatie']},
+  {id: 'av2-habits-stretch-minutes', pillar: 'health', en: ['how many minutes did i stretch this week', 'did i stretch this week'], nl: ['hoeveel minuten heb ik deze week gerekt', 'heb ik deze week gerekt'], never: ['kcal', 'calories burned']},
+  // Your own mood words and symbols (LEDGER #178)
+  {id: 'av2-habits-mood-words', pillar: 'health', en: ['what are my mood words', 'what are my own mood words'], nl: ['wat zijn mijn stemmingswoorden', 'wat zijn mijn woorden voor de stemmingen']},
+  // Meditation milestones (LEDGER #186)
+  {id: 'av2-habits-meditation-milestones', pillar: 'health', en: ['which meditation milestones have i reached', 'what are my meditation milestones'], nl: ['welke meditatiemijlpalen heb ik bereikt', 'wat zijn mijn mijlpalen bij het mediteren']},
+  // A habit's strength over the year, months and quarters (LEDGER #187, #190)
+  {id: 'av2-habits-strength-year', pillar: 'habits', en: ['how has my habit strength changed this year', 'what is the strength of my habits over the year'], nl: ['hoe is de sterkte van mijn gewoontes dit jaar veranderd', 'wat is de sterkte van mijn gewoontes over het jaar']},
 ];
