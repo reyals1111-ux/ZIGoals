@@ -3,7 +3,7 @@ import {editTask, waitingFor} from './engine';
 import {firstFit, taskBusy, toClock, toMin, type Busy} from './layouts';
 import {piecesOf, planAgain} from './pieces';
 import type {TaskPlan} from './plan-record';
-import {windowStart} from './recurrence';
+import {windowEnd, windowStart} from './recurrence';
 import {taskLevel, type Task, type Tasks} from './schema';
 import {closedBusy, taskHoursOn} from './work-hours';
 
@@ -34,7 +34,8 @@ export {planAgain};
 export function taskSpan(t: Task, today: string, last: string): {from: string; to: string; byDeadline: boolean} | null {
   let from = today, to = last, byDeadline = false;
   const flex = t.recur?.flex;
-  if (flex && t.due) { from = later(today, windowStart(flex, t.due)); if (t.due < to) to = later(today, t.due); }
+  // Review B4D-2: a floating repeat's day may be a planned day inside its window; the window's last day is its limit.
+  if (flex && t.due) { const end = windowEnd(flex, t.due); from = later(today, windowStart(flex, t.due)); if (end < to) to = later(today, end); }
   else if (t.due && t.due > today) from = t.early ? later(today, addLocalDays(t.due, -t.early)) : t.due;
   if (t.deadline && t.deadline < to) { to = later(today, t.deadline); byDeadline = true; }
   if (from > to) { if (!byDeadline) return null; from = to; }

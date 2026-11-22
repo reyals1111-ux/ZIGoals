@@ -1,5 +1,5 @@
 import {formatDate} from '../visual-format';
-import {deadlineState, openTasks} from './engine';
+import {deadlineState, isLate, openTasks} from './engine';
 import {taskLevel, type Task, type Tasks} from './schema';
 
 /**
@@ -17,7 +17,7 @@ export function planSuggestions(record: Tasks, today: string, setAside: Readonly
   for (const task of openTasks(record, today)) {
     if (task.parentId || setAside.has(task.id) || task.due === today) continue;
     const d = deadlineState(task, today), level = taskLevel(task);
-    if (task.due && task.due < today) out.push({task, why: 'overdue', words: `Was planned for ${formatDate(task.due, {weekday: true, year: false})}`});
+    if (task.due && isLate(task, today)) out.push({task, why: 'overdue', words: `Was planned for ${formatDate(task.due, {weekday: true, year: false})}`});
     else if (d === 'passed' || d === 'today' || d === 'soon') out.push({task, why: 'deadline', words: d === 'passed' ? `Deadline passed on ${formatDate(task.deadline!, {year: false})}` : d === 'today' ? 'Deadline today' : `Deadline ${formatDate(task.deadline!, {weekday: true, year: false})}`});
     else if (!task.due && level <= 2) out.push({task, why: 'priority', words: `Priority ${level}, no day yet`});
   }

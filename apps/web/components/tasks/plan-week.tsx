@@ -7,7 +7,7 @@ import {CALENDAR_IMPORT} from '../../lib/ics/calendar';
 import {eventAgendaItems} from '../../lib/agenda/time-items';
 import {checklistZone} from '../../lib/checklist/zone';
 import {addLocalDays} from '../../lib/local-date';
-import {editTask} from '../../lib/tasks/engine';
+import {editTask, isLate} from '../../lib/tasks/engine';
 import {dayEnergy} from '../../lib/tasks/energy-load';
 import {DEFAULT_BLOCK, toMin, type Busy} from '../../lib/tasks/layouts';
 import {minutesWords} from '../../lib/tasks/minutes';
@@ -88,7 +88,7 @@ export function FloatingRepeats({record, today, week, change}: {record: Tasks; t
   return <ul className="tasks-floating" aria-label="Once this week or month, any day">{open.map(t => {
     const flex = t.recur!.flex!, last = windowEnd(flex, t.due! < today ? today : t.due!), choices: string[] = [];
     for (let d = t.due! < today ? today : later(today, windowStart(flex, t.due!)); d <= last && choices.length < 31; d = addLocalDays(d, 1)) choices.push(d);
-    return <li key={t.id}><span><span dir="auto">{t.title}</span> <small>· once a {flex}{t.due! < today ? `, open since ${formatDate(t.due!, {weekday: true, year: false})}` : `, by ${formatDate(t.due!, {weekday: true, year: false})}`}</small></span>
+    return <li key={t.id}><span><span dir="auto">{t.title}</span> <small>· once a {flex}{isLate(t, today) ? `, open since ${formatDate(t.due!, {weekday: true, year: false})}` : `, by ${formatDate(t.due!, {weekday: true, year: false})}`}</small></span>
       <label className="field"><span className="sr-only">Plan “{t.title}” for</span><select value="" onChange={e => { const d = e.target.value; if (d) change(r => editTask(r, t.id, {due: d}, today, {allowPast: true}), `“${t.title}” is planned for ${formatDate(d, {weekday: true, year: false})}; done, it comes back next ${flex}.`, 'It is back on its own day.'); }}><option value="">Plan for…</option>{choices.map(d => <option key={d} value={d}>{formatDate(d, {weekday: true, year: false})}</option>)}</select></label></li>;
   })}</ul>;
 }
