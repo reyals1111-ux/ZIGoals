@@ -44,6 +44,13 @@ export const notifyPrefsSchema = z.looseObject({
    * build cannot read is dropped on read; an older build keeps it untouched.
    */
   weighIn: z.looseObject({time, repeat: z.enum(['daily', 'weekdays', 'monthly']), weekdays: z.number().int().min(1).max(127).optional().catch(undefined), day: z.number().int().min(1).max(28).optional().catch(undefined)}).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384; TIER 3 (stored format) and TIER 3 (PWA)): the
+   * choices of "Yesterday's money" beside its notification switch (`types.moneyMorning`, off unless chosen): `onToday`, a
+   * quiet line on Today. Optional and loose; a value this build cannot read is dropped on read; an older build keeps it
+   * untouched and simply shows no such line.
+   */
+  moneyMorning: z.looseObject({onToday: z.literal(true).optional().catch(undefined)}).optional().catch(undefined),
   /** Set while notifications are on on this device: a cheap hint so most pages never load the notification code. */
   here: z.boolean().optional(),
 });
