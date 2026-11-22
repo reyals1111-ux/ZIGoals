@@ -332,3 +332,41 @@ Shared-file needs for the lead are collected at the end ("For the lead").
 - Showcase: the Showcase has one recipe, so the fold shows its teaching state there; seeding two more recipes would move
   the Showcase's recipe counts other answers pin (listed for the lead, not done).
 - Device keys: none. CSS touched: none new. Always visible on Today: nothing.
+
+## F12 — Nutrient depth and charts: every library nutrient kept, Compare with food, weight, symptoms and doses, a nutrition report section
+
+- LEDGER rows: **#93** Cronometer Food diary with 95 nutrients — built for every nutrient the offline data has (25: the
+  label's eleven, seven vitamins, magnesium, zinc, B1, B2, B3, B6, omega-3; all already in the app's model): foods saved
+  from the library by the new flows (recipe import, recipes to start from) now keep their vitamins and extras beside them
+  (`zigoals:health-vitamins:v1`, `zigoals:nutrient-extras:v1`), as the barcode and library lookup do, so the nutrient
+  report and the Oracle count them. Part left — **needs an outside service**: the ~45 further nutrients of Cronometer's
+  list are not in the shipped tables; adding them means downloading the public source datasets again at build time
+  (`scripts/food/build-generic-db.mjs` fetches them; the raw files are not in the repository) and widening the strict
+  file format. **#98** Cronometer Custom Charts and Reports — built: calories, protein and weight as Compare outcomes;
+  a "Nutrition (from the food diary)" section in the visit report (days logged; average a day over the days whose every
+  entry gives the value, for eleven nutrients). Blood pressure and lab values are already their own report section
+  ("Your numbers"); as Compare outcomes they are **not built** — left as the next row (see "Next"). **#92** MyFitnessPal
+  GLP-1 support — built: a dose taken (supplements and medication log: taken against skipped, no mark unknown) and a
+  symptom logged are Compare factors, and each symptom's level 0–3 is an outcome — "On days you took “X”, your
+  “nausea” level that day averaged 0.0 of 3; on other days, 2.0 of 3", under Compare's own rules (14 days a side).
+- Files: `lib/food-plus/library-extras.ts`, `lib/food-plus/recipe-library.ts`, `lib/food-plus/recipe-book-apply.ts`
+  (`made` callback), `components/health/recipe-import.tsx`, `components/health/food-plus/recipe-book.tsx`,
+  `lib/compare/engine.ts` (outcomes `kcal`, `protein`, `weight`, `symptom:<id>`; factors `dose:<id>`, `symptom:<id>`;
+  sources `symptoms`, `supplements`; additive), `components/insights/compare/compare-explorer.tsx` (reads the two logs),
+  `lib/experiments/engine.ts` (says the new outcomes by Compare's label), `lib/clinician-report/build.ts` (section
+  `nutrition`), `components/report/report-document.tsx`.
+- Tests: `lib/compare/av2-compare-food.test.ts`, `lib/clinician-report/build.test.ts` (deliberate, labelled: the
+  fixture gains a diary entry so every section has data, the assertion unchanged; plus the nutrition rows),
+  `lib/food-plus/av2-recipe-book.test.ts` (library extras), `lib/food-plus/av2-recipe-library.test.ts`. Specs:
+  `tests/av2-compare-report.spec.ts`; `tests/av-report-more.spec.ts` (deliberate, labelled: nine section boxes, not eight).
+- Stored changes: none new (the existing vitamins and extras records gain values for new library foods; Compare's saved
+  pair may now name a new outcome id, which older builds treat as unknown and fall back to the first outcome).
+- Help (EN). Q: "Can I compare a symptom with the days I took a dose?" A: "Yes. Health → Insights → Compare: choose Took
+  (your supplement or medication) and, under what was, the symptom's level. After 14 days on each side it says how the
+  levels differed. It shows what went together, never what caused it." Q: "Can the visit report include what I ate?"
+  A: "Yes: tick Nutrition (from the food diary) in Make a report. It gives the average a day of calories, protein,
+  carbs, fat, fiber and more over the days you logged."
+- What's new: "Compare doses, symptoms, calories and weight; nutrition in the visit report."
+- Answers: none new (Compare is a page of its own; the symptoms log is never read by the answers, by design).
+- Showcase: the Showcase's symptoms, supplements, diary and weights make the new options appear in Compare there.
+- Device keys: none. CSS touched: none. Always visible on Today: nothing.

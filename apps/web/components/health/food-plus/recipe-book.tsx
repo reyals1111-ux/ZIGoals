@@ -9,6 +9,9 @@ import {setRecipeSteps} from '../../../lib/food-plus/steps';
 import {FOOD_PLUS} from '../../../lib/food-plus/schema';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {formatNumber} from '../../../lib/visual-format';
+import {HEALTH_VITAMINS} from '../../../lib/health-vitamins/schema';
+import {NUTRIENT_EXTRAS_RECORD} from '../../../lib/health-vitamins/extras';
+import {bookExtras, hasLibraryExtras, keepLibraryExtras, type LibraryExtras} from '../../../lib/food-plus/library-extras';
 import './food-plus.css';
 
 /**
@@ -21,12 +24,13 @@ import './food-plus.css';
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
 const g = (mg: number | null, partial?: number) => mg === null ? '?' : `${formatNumber(Math.round(mg / 1000))}${partial ? '+' : ''}`;
 export default function RecipeBook({data, perform}: {data: HealthData; perform: Perform}) {
-  const id = useId(), steps = useDeviceRecord(FOOD_PLUS);
+  const id = useId(), steps = useDeviceRecord(FOOD_PLUS), vitaminRecord = useDeviceRecord(HEALTH_VITAMINS), extrasRecord = useDeviceRecord(NUTRIENT_EXTRAS_RECORD);
+  const [more, setMore] = useState<Partial<Record<FoodKey, LibraryExtras>>>({});
   const [lang, setLang] = useState<Lang>(() => typeof navigator !== 'undefined' && /^nl\b/i.test(navigator.language) ? 'nl' : 'en');
   const [style, setStyle] = useState<BookTag | 'all'>('all'), [foods, setFoods] = useState<Partial<Record<FoodKey, GenericFood>> | null | 'failed'>(null);
   useEffect(() => {
     let live = true;
-    void import('../../../lib/food-generic/load').then(async load => { const {sources} = await load.loadGenericLibrary(); if (live) setFoods(sources.length ? resolveTemplateFoods(bookFoods(), sources).foods : 'failed'); }).catch(() => { if (live) setFoods('failed'); });
+    void import('../../../lib/food-generic/load').then(async load => { const {sources} = await load.loadGenericLibrary(); if (!live) return; setFoods(sources.length ? resolveTemplateFoods(bookFoods(), sources).foods : 'failed'); setMore(bookExtras(bookFoods(), sources)); }).catch(() => { if (live) setFoods('failed'); });
     return () => { live = false; };
   }, []);
   if (foods === null) return <p className="fine" role="status">Opening the offline food library…</p>;
@@ -34,9 +38,11 @@ export default function RecipeBook({data, perform}: {data: HealthData; perform: 
   const rows = RECIPE_BOOK.map(recipe => { const serving = bookServing(recipe, foods); return {recipe, serving, tags: bookTags(recipe, serving)}; }).filter(r => style === 'all' || r.tags.includes(style));
   const label = (tag: BookTag) => { const s = BOOK_STYLES.find(x => x.id === tag)!; return lang === 'nl' ? s.nl : s.en; };
   const save = (recipe: (typeof RECIPE_BOOK)[number]) => {
-    const recipeId = newHealthId(), name = bookName(recipe, lang);
-    void perform(latest => saveBookRecipe(latest, recipe, foods, lang, new Date().toISOString(), {recipeId}), `“${name}” saved to your recipes, with its method. Log it from Log a meal, or cook it from Foods & recipes.`, () => {
+    const recipeId = newHealthId(), name = bookName(recipe, lang), made: [FoodKey, string][] = [];
+    void perform(latest => { made.length = 0; return saveBookRecipe(latest, recipe, foods, lang, new Date().toISOString(), {recipeId, made: (key, foodId) => made.push([key, foodId])}); }, `“${name}” saved to your recipes, with its method. Log it from Log a meal, or cook it from Foods & recipes.`, () => {
       try { steps.update(r => setRecipeSteps(r, recipeId, recipe.steps[lang])); } catch { /* the recipe is saved; only its method is not kept on this device */ }
+      // LEDGER #93: each new library food keeps the vitamins and extras the library carries.
+      for (const [key, foodId] of made) { const x = more[key]; if (!hasLibraryExtras(x)) continue; try { const both = keepLibraryExtras({vitamins: vitaminRecord.data, extras: extrasRecord.data}, foodId, x!, data.diary.map(d => d.id)); vitaminRecord.update(() => both.vitamins); extrasRecord.update(() => both.extras); } catch { /* the food keeps its label values */ } }
     });
   };
   return <div className="food-plus-card">

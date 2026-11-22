@@ -11,6 +11,9 @@ import {RECIPE_BOOK} from './recipe-book';
 import {bookFoods, bookName, bookServing, bookTags, saveBookRecipe} from './recipe-book-apply';
 import {setRecipeSteps, stepsFromText} from './steps';
 import {emptyFoodPlus} from './schema';
+import {bookExtras, hasLibraryExtras, keepLibraryExtras} from './library-extras';
+import {emptyHealthVitamins} from '../health-vitamins/schema';
+import {emptyNutrientExtras} from '../health-vitamins/extras';
 
 /** Session AV lane 2 (food, LEDGER #91, #200): the built-in recipes (EN and NL) from the shipped offline library, and their methods. */
 const pub = join(__dirname, '..', '..', 'public', 'food-generic');
@@ -55,6 +58,19 @@ describe('the recipe collection', () => {
     const chilli = saveBookRecipe(h, RECIPE_BOOK.find(r => r.id === 'three-bean-chilli')!, foods, 'en', AT, {recipeId: 'health_book-recipe-003', newId});
     expect(chilli.foods.filter(f => /onion/i.test(f.name))).toHaveLength(1); // the onion is reused
     expect(bookName(soup, 'en')).toBe('Lentil and tomato soup');
+  });
+});
+describe('every nutrient the library carries (LEDGER #93)', () => {
+  it('a library food keeps its vitamins and extras beside it, per 100 g', () => {
+    const x = bookExtras(['salmon', 'almonds', 'spinach'], sources);
+    expect(hasLibraryExtras(x.salmon)).toBe(true);
+    expect(x.almonds!.extras.magnesiumMg).toBeGreaterThan(100_000); // more than 100 mg per 100 g, in thousandths
+    const kept = keepLibraryExtras({vitamins: emptyHealthVitamins(), extras: emptyNutrientExtras()}, 'health_book-food-001', x.almonds!, []);
+    expect(kept.extras.foods!['health_book-food-001']).toEqual(x.almonds!.extras);
+    const withVit = keepLibraryExtras({vitamins: emptyHealthVitamins(), extras: emptyNutrientExtras()}, 'health_book-food-002', x.spinach!, []);
+    expect(Object.keys(withVit.vitamins.foods?.['health_book-food-002'] ?? {}).length).toBeGreaterThan(0);
+    // A food that already has its own vitamins keeps them.
+    expect(keepLibraryExtras(withVit, 'health_book-food-002', x.salmon!, []).vitamins.foods!['health_book-food-002']).toEqual(withVit.vitamins.foods!['health_book-food-002']);
   });
 });
 describe('a recipe\'s method', () => {

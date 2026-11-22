@@ -19,6 +19,8 @@ import {useHabits} from '../../habits/use-habits';
 import {EmptyState} from '../../ui/empty-state';
 import {ShowcaseTag} from '../../ui/showcase-tag';
 import './compare.css';
+import {SYMPTOMS} from '../../../lib/symptoms/schema';
+import {SUPPLEMENTS} from '../../../lib/supplements/schema';
 import {wordsOf} from '../../../lib/mood-words/schema';
 
 /**
@@ -29,11 +31,13 @@ import {wordsOf} from '../../../lib/mood-words/schema';
  */
 export default function CompareExplorer({health, today}: {health: HealthData; today: string}) {
   const habits = useHabits(), energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), workouts = useDeviceRecord(WORKOUTS), money = useDeviceRecord(MONEY_LOG), pair = useDeviceRecord(COMPARE_PAIR), scales = useDeviceRecord(SCALES), cycle = useDeviceRecord(CYCLE);
+  // Session AV lane 2 (food, LEDGER #92, #98): symptoms and doses as factors and outcomes, beside the diary's own.
+  const symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS);
   const [fasting, setFasting] = useState<CompareSources['fasting']>(null), [note, setNote] = useState(''), id = useId();
   useEffect(() => { queueMicrotask(() => { try { const r = readFasting(getAppStorage()); setFasting(r.unreadable ? null : r.data); } catch { setFasting(null); } }); }, []);
   const ok = <T,>(r: {loaded: boolean; unreadable: boolean; data: T}) => r.loaded && !r.unreadable ? r.data : null;
-  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting, scales: ok(scales), cycle: ok(cycle) && cycleOn(ok(cycle)!) ? {periodDays: periodDays(ok(cycle)!)} : null}),
-    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting, scales, cycle]);
+  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting, scales: ok(scales), cycle: ok(cycle) && cycleOn(ok(cycle)!) ? {periodDays: periodDays(ok(cycle)!)} : null, symptoms: ok(symptoms), supplements: ok(supplements)}),
+    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting, scales, cycle, symptoms, supplements]);
   const factors = useMemo(() => factorOptions(src, today), [src, today]), outcomes = useMemo(() => outcomeOptions(src), [src]);
   const basis = useMemo(() => spendBasis(src, today), [src, today]);
   const saved = pair.data;

@@ -24,10 +24,22 @@ export const OUTCOMES = ['mood', 'energy', 'sleep', 'habits', 'steps', 'feeling'
 export type BaseOutcomeId = typeof OUTCOMES[number];
 /** Session AK (BUILD list 2 #12): one of the person's own 1–5 scales (zigoals:scales:v1), as `scale:<id>`. */
 export type ScaleOutcomeId = `scale:${string}`;
-export type OutcomeId = BaseOutcomeId | ScaleOutcomeId;
+/**
+ * Session AV lane 2 (food, LEDGER #98, #92; Cronometer's custom charts, Bearable's symptoms against doses): the day's
+ * calories and protein from the food diary (a day with no entry, or no value, is unknown), the weight on a weigh-in day,
+ * and a symptom's level 0–3 on a day it was logged (`symptom:<id>`).
+ */
+export type FoodOutcomeId = 'kcal' | 'protein' | 'weight';
+export type SymptomOutcomeId = `symptom:${string}`;
+export type OutcomeId = BaseOutcomeId | ScaleOutcomeId | FoodOutcomeId | SymptomOutcomeId;
 export const isScaleOutcome = (id: string): id is ScaleOutcomeId => /^scale:[a-z0-9-]{1,24}$/.test(id);
+export const isSymptomOutcome = (id: string): id is SymptomOutcomeId => /^symptom:[a-z0-9-]{1,40}$/.test(id);
+export const FOOD_OUTCOMES: readonly FoodOutcomeId[] = ['kcal', 'protein', 'weight'];
+const FOOD_GAP: Readonly<Record<FoodOutcomeId, number>> = {kcal: 150, protein: 10, weight: 0.3};
+const FOOD_LABELS: Readonly<Record<FoodOutcomeId, string>> = {kcal: 'Calories logged', protein: 'Protein logged (g)', weight: 'Weight (kg)'};
+const isFoodOutcome = (id: string): id is FoodOutcomeId => (FOOD_OUTCOMES as readonly string[]).includes(id);
 export type Lag = 'same' | 'next';
-export type FactorKind = 'habit' | 'sleep-tag' | 'journal-tag' | 'workout' | 'fasting' | 'spend' | 'scale' | 'cycle';
+export type FactorKind = 'habit' | 'sleep-tag' | 'journal-tag' | 'workout' | 'fasting' | 'spend' | 'scale' | 'cycle' | 'dose' | 'symptom';
 export type FactorOption = {id: string; kind: FactorKind; label: string; group: string};
 export type OutcomeOption = {id: OutcomeId; label: string};
 
@@ -46,16 +58,20 @@ export type CompareSources = {
   scales?: {scales: readonly {id: string; name: string; low: string; high: string}[]; retired?: readonly {id: string; name: string; low: string; high: string}[]; days: Readonly<Record<string, Readonly<Record<string, number>>>>} | null;
   /** Session AK (BUILD list 2 #16): the opt-in cycle log's days with a period logged (only when it is turned on). */
   cycle?: {periodDays: readonly string[]} | null;
+  /** Session AV lane 2 (food, LEDGER #92, #98): the symptoms log (zigoals:symptoms:v1) and the supplements and medication log. */
+  symptoms?: {items: readonly {id: string; name: string; kind: string}[]; days: Readonly<Record<string, Readonly<Record<string, number>>>>} | null;
+  supplements?: {items?: readonly {id: string; name: string; kind?: string}[]; log?: readonly {itemId: string; date: string; status: string}[]} | null;
 };
 
 /** Each outcome's meaningful gap (as the cross-pillar pairings: 0.4 points, 20 minutes, 10 percentage points). */
 export const GAP: Readonly<Record<BaseOutcomeId, number>> = {mood: 0.4, energy: 0.4, sleep: 20, habits: 0.1, steps: 1000, feeling: 0.1};
 export const OUTCOME_LABELS: Readonly<Record<BaseOutcomeId, string>> = {mood: 'Mood (1–5)', energy: 'Energy (1–5)', sleep: 'Time asleep', habits: 'Habit completion', steps: 'Steps', feeling: 'Pleasant feeling words'};
 /** An outcome's meaningful gap; a person's own 1–5 scale uses mood's 0.4 points. */
-export const gapOf = (outcome: OutcomeId): number => isScaleOutcome(outcome) ? 0.4 : GAP[outcome];
+export const gapOf = (outcome: OutcomeId): number => isScaleOutcome(outcome) ? 0.4 : isSymptomOutcome(outcome) ? 0.5 : isFoodOutcome(outcome) ? FOOD_GAP[outcome] : GAP[outcome];
 const scaleOf = (src: CompareSources | undefined, id: string) => src?.scales?.scales.find(s => s.id === id) ?? src?.scales?.retired?.find(s => s.id === id) ?? null;
 /** An outcome's label; a scale by its own name ("Stress (1–5)"), or a plain fallback when it is gone. */
-export const outcomeLabel = (outcome: OutcomeId, src?: CompareSources): string => isScaleOutcome(outcome) ? `${scaleOf(src, outcome.slice(6))?.name ?? 'Your scale'} (1–5)` : OUTCOME_LABELS[outcome];
+const symptomOf = (src: CompareSources | undefined, id: string) => src?.symptoms?.items.find(s => s.id === id) ?? null;
+export const outcomeLabel = (outcome: OutcomeId, src?: CompareSources): string => isScaleOutcome(outcome) ? `${scaleOf(src, outcome.slice(6))?.name ?? 'Your scale'} (1–5)` : isSymptomOutcome(outcome) ? `${symptomOf(src, outcome.slice(8))?.name ?? 'A symptom'} (0–3)` : isFoodOutcome(outcome) ? FOOD_LABELS[outcome] : OUTCOME_LABELS[outcome];
 export const CONFOUNDERS: Readonly<Record<FactorKind, string>> = {
   habit: 'a calm or a busy stretch can shape both the habit and the rest of the day',
   'sleep-tag': 'the evenings you tag may differ in other ways too, such as the day of the week',
@@ -65,6 +81,8 @@ export const CONFOUNDERS: Readonly<Record<FactorKind, string>> = {
   spend: 'paydays, weekends and plans with others can shape both',
   scale: 'a rating can reflect the same day it is compared with',
   cycle: 'other things change across the month as well, such as sleep and plans',
+  dose: 'a dose may be taken, or skipped, because of how the day already feels',
+  symptom: 'a symptom and what follows it can share a cause, such as a cold or a poor night',
 };
 const MAX_TAGS = 20, MAX_HABITS = 60;
 
@@ -114,17 +132,25 @@ export function factorOptions(src: CompareSources, today: string): FactorOption[
   for (const sc of src.scales?.scales ?? []) if (Object.values(src.scales!.days).some(d => d[sc.id] !== undefined)) out.push({id: `scale:${sc.id}`, kind: 'scale', label: `Rated “${sc.name}” 4 or 5 (toward “${sc.high}”)`, group: 'Your scales'});
   // Session AK (#16): a day with a period logged (only while the opt-in cycle log is on).
   if (src.cycle?.periodDays.length) out.push({id: 'cycle', kind: 'cycle', label: 'Period day (from your cycle log)', group: 'Days'});
+  // Session AV lane 2 (food, LEDGER #92): a dose taken (against skipped) and a symptom logged (level 1–3 against 0).
+  for (const s of (src.supplements?.items ?? []).filter(i => (src.supplements?.log ?? []).some(m => m.itemId === i.id && m.date >= start)).slice(0, MAX_TAGS))
+    out.push({id: `dose:${s.id}`, kind: 'dose', label: `Took “${s.name}”`, group: 'Supplements and medication'});
+  for (const s of (src.symptoms?.items ?? []).filter(i => Object.entries(src.symptoms!.days).some(([d, l]) => d >= start && l[i.id] !== undefined)).slice(0, MAX_TAGS))
+    out.push({id: `symptom:${s.id}`, kind: 'symptom', label: `Had “${s.name}” (level 1 or more)`, group: 'Symptoms and factors'});
   return out;
 }
 /** The outcomes with at least one recorded day. */
 export function outcomeOptions(src: CompareSources): OutcomeOption[] {
   const moods = src.health ? healthGroupIn(src.health, 'moods')?.days ?? {} : {};
-  const has: Record<OutcomeId, boolean> = {
+  const has: Record<BaseOutcomeId, boolean> = {
     mood: Object.keys(moods).length > 0, energy: Object.keys(src.energy?.days ?? {}).length > 0, sleep: sleepNights(src).length > 0,
     habits: (src.habits?.habits.length ?? 0) > 0, steps: (src.health?.activity.length ?? 0) > 0, feeling: Object.keys(src.energy?.words ?? {}).length > 0,
   };
   const own = (src.scales?.scales ?? []).filter(sc => Object.values(src.scales!.days).some(d => d[sc.id] !== undefined)).map(sc => ({id: `scale:${sc.id}` as ScaleOutcomeId, label: `${sc.name} (1–5)`}));
-  return [...OUTCOMES.filter(id => has[id]).map(id => ({id, label: OUTCOME_LABELS[id]})), ...own];
+  // Session AV lane 2 (food, LEDGER #98, #92): the diary's calories and protein, the weight, and each symptom's level.
+  const food: OutcomeOption[] = [...((src.health?.diary.length ?? 0) > 0 ? (['kcal', 'protein'] as const) : []), ...((src.health?.weights.length ?? 0) > 0 ? (['weight'] as const) : [])].map(id => ({id, label: FOOD_LABELS[id]}));
+  const symptoms = (src.symptoms?.items ?? []).filter(i => Object.values(src.symptoms!.days).some(l => l[i.id] !== undefined)).map(i => ({id: `symptom:${i.id}` as SymptomOutcomeId, label: `${i.name} (0–3)`}));
+  return [...OUTCOMES.filter(id => has[id]).map(id => ({id, label: OUTCOME_LABELS[id]})), ...own, ...food, ...symptoms];
 }
 
 type DayTest = (d: string) => boolean | null;
@@ -172,6 +198,19 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
     // that span a day is unknown (the person may not have been logging), never "without".
     return first && last ? {phrase: 'On period days', test: d => d < first || d > last ? null : days.has(d)} : null;
   }
+  if (kind === 'dose') {
+    const item = src.supplements?.items?.find(i => i.id === arg);
+    if (!item) return null;
+    const byDay = new Map<string, boolean>();
+    // Taken on a day is "with"; only skipped marks that day is "without"; a day with no mark is neither (unknown).
+    for (const m of src.supplements?.log ?? []) if (m.itemId === arg) byDay.set(m.date, (byDay.get(m.date) ?? false) || m.status === 'taken');
+    return {phrase: `On days you took “${item.name}”`, test: d => byDay.get(d) ?? null};
+  }
+  if (kind === 'symptom') {
+    const item = src.symptoms?.items.find(i => i.id === arg);
+    if (!item) return null;
+    return {phrase: `On days you had “${item.name}”`, test: d => { const v = src.symptoms!.days[d]?.[arg]; return v === undefined ? null : v >= 1; }};
+  }
   if (kind === 'spend') {
     const basis = spendBasis(src, today);
     if (!basis) return null;
@@ -184,6 +223,9 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
 }
 function outcomeValue(src: CompareSources, outcome: OutcomeId, today: string, span = CROSS_WINDOW_DAYS + 3): DayValue {
   if (isScaleOutcome(outcome)) { const id = outcome.slice(6); return d => src.scales?.days[d]?.[id] ?? null; }
+  if (isSymptomOutcome(outcome)) { const id = outcome.slice(8); return d => src.symptoms?.days[d]?.[id] ?? null; }
+  if (outcome === 'kcal' || outcome === 'protein') return d => { if (!src.health || d >= today) return null; const s = dailyHealthSummary(src.health, d); if (!s.entries) return null; const v = outcome === 'kcal' ? s.nutrients.kcal : s.nutrients.proteinMg; return v === null ? null : outcome === 'kcal' ? v : v / 1000; };
+  if (outcome === 'weight') { const byDay = new Map<string, number>(); for (const w of src.health?.weights ?? []) byDay.set(w.date, w.grams / 1000); return d => byDay.get(d) ?? null; }
   if (outcome === 'mood') { const moods = src.health ? healthGroupIn(src.health, 'moods')?.days ?? {} : {}; return d => moods[d]?.mood ?? null; }
   if (outcome === 'energy') return d => src.energy?.days[d]?.energy ?? null;
   if (outcome === 'feeling') return d => { const w = src.energy?.words?.[d]; return w ? (w.pleasantness === 'pleasant' ? 1 : 0) : null; };
@@ -218,6 +260,10 @@ export function daySample(src: CompareSources, factorId: string, outcome: Outcom
 /** One value in its outcome's own words ("3.8 of 5", "7 h 20 min", "64%", "8,210"). */
 export function outcomeText(outcome: OutcomeId, v: number): string {
   if (outcome === 'mood' || outcome === 'energy' || isScaleOutcome(outcome)) return `${formatNumber(v, {minimumFractionDigits: 1, maximumFractionDigits: 1})} of 5`;
+  if (isSymptomOutcome(outcome)) return `${formatNumber(v, {minimumFractionDigits: 1, maximumFractionDigits: 1})} of 3`;
+  if (outcome === 'kcal') return `${formatNumber(Math.round(v))} kcal`;
+  if (outcome === 'protein') return `${formatNumber(Math.round(v))} g`;
+  if (outcome === 'weight') return `${formatNumber(v, {minimumFractionDigits: 1, maximumFractionDigits: 1})} kg`;
   if (outcome === 'sleep') return hoursMinutes(v);
   if (outcome === 'habits' || outcome === 'feeling') return pct(v);
   return formatNumber(Math.round(v));
@@ -225,6 +271,10 @@ export function outcomeText(outcome: OutcomeId, v: number): string {
 function outcomeSay(outcome: OutcomeId, lag: Lag, v: string, src?: CompareSources): string {
   const when = lag === 'same' ? 'that day' : 'the next day';
   if (isScaleOutcome(outcome)) return `your “${scaleOf(src, outcome.slice(6))?.name ?? 'scale'}” rating ${when} averaged ${v}`;
+  if (isSymptomOutcome(outcome)) return `your “${symptomOf(src, outcome.slice(8))?.name ?? 'symptom'}” level ${when} averaged ${v}`;
+  if (outcome === 'kcal') return `you logged ${v} ${when} on average`;
+  if (outcome === 'protein') return `you logged ${v} of protein ${when} on average`;
+  if (outcome === 'weight') return `your weight ${when} averaged ${v}`;
   switch (outcome) {
     case 'mood': return `your mood ${when} averaged ${v}`;
     case 'energy': return `your energy ${when} averaged ${v}`;

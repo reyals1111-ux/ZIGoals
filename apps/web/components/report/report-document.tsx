@@ -133,6 +133,12 @@ export function ReportDocument({report: r, weightUnit, showcase}: {report: Repor
         <Wide label="Symptom ratings"><table><thead><tr><th scope="col">Symptom or factor</th><th scope="col">Days rated</th><th scope="col">Above None</th><th scope="col">Strong</th><th scope="col">Average</th></tr></thead>
           <tbody>{r.symptoms.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'factor' ? ' (factor)' : ''}</th><td>{s.rated}</td><td>{s.noted}</td><td>{s.strong}</td><td>{s.average === null ? '—' : `${formatNumber(s.average)} (${s.averageWord})`}</td></tr>)}</tbody></table></Wide></> : none}
     </section>}
+    {/* Session AV lane 2 (food, LEDGER #98): the food diary's averages for the range. */}
+    {r.nutrition && <section className="report-section" aria-labelledby="report-nutrition"><h2 id="report-nutrition">Nutrition</h2>
+      {r.nutrition.loggedDays ? <><p>From the food diary: {r.nutrition.loggedDays} {r.nutrition.loggedDays === 1 ? 'day' : 'days'} with food logged. Each average is over the days whose every entry gives that value; others are left out, never counted as 0. As logged, not measured.</p>
+        <Wide label="Nutrition averages"><table><thead><tr><th scope="col">Nutrient</th><th scope="col">Average a day</th><th scope="col">Days counted</th></tr></thead>
+          <tbody>{r.nutrition.rows.map(n => <tr key={n.name}><th scope="row" className="report-name">{n.name}</th><td>{n.average === null ? '—' : `${formatNumber(n.average)} ${n.unit}`}</td><td>{n.days}</td></tr>)}</tbody></table></Wide></> : none}
+    </section>}
     {r.supplements && <section className="report-section" aria-labelledby="report-supplements"><h2 id="report-supplements">Supplements and medication</h2>
       {r.supplements.rows.length ? <><p>As the person wrote them and logged each dose. ZIGoals checks no dose and gives no advice.</p>
         <Wide label="Doses logged"><table><thead><tr><th scope="col">Name</th><th scope="col">Dose</th><th scope="col">Planned doses</th><th scope="col">Taken</th><th scope="col">Skipped</th><th scope="col">Not logged</th></tr></thead>

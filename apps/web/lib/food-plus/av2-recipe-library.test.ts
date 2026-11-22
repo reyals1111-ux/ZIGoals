@@ -17,7 +17,7 @@ describe('recipe ingredients from the offline library', () => {
   it('the plain food first, at most five, each with its calories per 100 g', async () => {
     const lentils = await libraryFoodsFor(parseIngredientLine('200 g red lentils')!);
     expect(lentils.map(f => f.name)).toEqual(['Lentils, red, raw', 'Lentils, red, boiled', 'Lentil soup, canned']);
-    expect(lentils[0]).toMatchObject({sourceName: 'CIQUAL', kcalPer100g: 330, portionGrams: null});
+    expect(lentils[0]).toMatchObject({sourceName: 'CIQUAL', kcalPer100g: 330, portionGrams: null, extras: {vitamins: {}, extras: {}}});
     const onion = await libraryFoodsFor(parseIngredientLine('1 onion')!);
     expect(onion[0]!.name).toBe('Onion, raw');
     expect(onion[0]!.portionGrams).toBeGreaterThan(0);

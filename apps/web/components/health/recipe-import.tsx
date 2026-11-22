@@ -12,6 +12,9 @@ import {libraryFoodsFor, type LibraryFood} from '../../lib/food-plus/recipe-libr
 import {FOOD_PLUS} from '../../lib/food-plus/schema';
 import {setRecipeSteps} from '../../lib/food-plus/steps';
 import {useDeviceRecord} from '../ai/use-device-record';
+import {HEALTH_VITAMINS} from '../../lib/health-vitamins/schema';
+import {NUTRIENT_EXTRAS_RECORD} from '../../lib/health-vitamins/extras';
+import {hasLibraryExtras, keepLibraryExtras} from '../../lib/food-plus/library-extras';
 
 // Session AK (task 4.8): each row shows its match (exact, close or none) and the person can point it at any of their foods
 // or make it a new one; a row the person pointed stays put while its name is edited, others follow the name.
@@ -28,6 +31,8 @@ const CODES: Record<string, string> = {INVALID_URL: 'That is not a web address t
  */
 export function RecipeImport({data, perform}: {data: HealthData; perform: HealthPerform}) {
   const steps = useDeviceRecord(FOOD_PLUS); // Session AV lane 2 (food, LEDGER #200): the method, kept with the saved recipe
+  // Session AV lane 2 (food, LEDGER #93): a library food keeps the vitamins and extras the library carries.
+  const vitaminRecord = useDeviceRecord(HEALTH_VITAMINS), extrasRecord = useDeviceRecord(NUTRIENT_EXTRAS_RECORD);
   const [mode, setMode] = useState<'paste' | 'url'>('paste'), [text, setText] = useState(''), [url, setUrl] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [parsed, setParsed] = useState<ParsedRecipe | null>(null), [rows, setRows] = useState<Row[]>([]), [title, setTitle] = useState(''), [servings, setServings] = useState('4');
   function show(p: ParsedRecipe) {
@@ -65,7 +70,9 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
       });
       next = saveRecipe(next, {id: recipeId, name: title.trim().slice(0, 80) || "Imported recipe", portionsMilli: Math.round(portions * 1000), items: ingredients}, at);
       return next;
-    }, `Recipe "${title.trim() || 'Imported recipe'}" saved with ${kept.length} ${plural(kept.length, 'ingredient')}${(() => { const fromLib = kept.filter(r => !r.existing && r.lib !== null).length; return fromLib ? `, ${fromLib} from the offline food library` : ''; })()}. Foods without a label stay unknown until you fill them in.`, () => { if (method.length) { try { steps.update(r => setRecipeSteps(r, recipeId, method)); } catch { /* the recipe is saved; only its method is not kept */ } } setParsed(null); setRows([]); setText(''); setUrl(''); });
+    }, `Recipe "${title.trim() || 'Imported recipe'}" saved with ${kept.length} ${plural(kept.length, 'ingredient')}${(() => { const fromLib = kept.filter(r => !r.existing && r.lib !== null).length; return fromLib ? `, ${fromLib} from the offline food library` : ''; })()}. Foods without a label stay unknown until you fill them in.`, () => { if (method.length) { try { steps.update(r => setRecipeSteps(r, recipeId, method)); } catch { /* the recipe is saved; only its method is not kept */ } }
+      for (const r of kept) { const lib = !r.existing && r.lib !== null && Array.isArray(r.libraryOptions) ? r.libraryOptions[r.lib] : undefined; if (!lib || !hasLibraryExtras(lib.extras)) continue; try { const both = keepLibraryExtras({vitamins: vitaminRecord.data, extras: extrasRecord.data}, r.foodId, lib.extras, data.diary.map(d => d.id)); vitaminRecord.update(() => both.vitamins); extrasRecord.update(() => both.extras); } catch { /* the food keeps its label values */ } }
+      setParsed(null); setRows([]); setText(''); setUrl(''); });
   }
   return <section className="panel health-aa-card" aria-labelledby="recipe-import-title">
     <p className="eyebrow">From text or a page</p><h2 id="recipe-import-title"><NebulaFlow identity="recipe-import-title">Import a recipe</NebulaFlow></h2>

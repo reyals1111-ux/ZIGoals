@@ -1,6 +1,6 @@
 import {addLocalDays} from '../local-date';
 import {formatDate} from '../visual-format';
-import {CONFOUNDERS, OUTCOMES, daySample, gapOf, isScaleOutcome, outcomeText, type BaseOutcomeId, type CompareSources, type FactorKind, type FactorOption, type Lag, type OutcomeId} from '../compare/engine';
+import {CONFOUNDERS, OUTCOMES, daySample, gapOf, isScaleOutcome, outcomeLabel, outcomeText, type BaseOutcomeId, type CompareSources, type FactorKind, type FactorOption, type Lag, type OutcomeId} from '../compare/engine';
 import {CROSS_MIN_PER_SIDE, LABEL_WORDS, confidenceOf, type CrossLabel} from '../insights/cross-pillar';
 import {DEFAULT_LENGTH, EXPERIMENT_LENGTHS, MAX_EXPERIMENTS, experimentsSchema, type Experiment, type Experiments} from './store';
 
@@ -26,7 +26,8 @@ const say = (outcome: OutcomeId, v: number, src?: CompareSources) => {
     case 'habits': return `you completed ${t} of your scheduled habits`;
     case 'steps': return `you walked ${t} steps on average`;
     case 'feeling': return `a pleasant feeling word was picked on ${t} of days`;
-    default: return `${OUTCOME_WORDS[outcome]} ${t}`;
+    // Session AV lane 2 (food, LEDGER #92, #98): the diary's calories and protein, the weight and a symptom, by Compare's own label.
+    default: return outcome in OUTCOME_WORDS ? `${OUTCOME_WORDS[outcome as BaseOutcomeId]} ${t}` : `${outcomeLabel(outcome, src).replace(/ \(.*\)$/, '').toLowerCase()} averaged ${t}`;
   }
 };
 export const SPAN_NOTE = 'A few weeks can differ in other ways too, such as the season, the weather or a busy month.';

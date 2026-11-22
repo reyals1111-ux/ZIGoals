@@ -43,7 +43,7 @@ export function bookTags(recipe: BookRecipe, serving: BookNutrition): BookTag[] 
  * the same name and source is reused), the recipe is made with the book's servings, and its method is returned as the
  * steps for `zigoals:food-plus:v1`. A recipe of the same name already saved is refused, so a double tap adds one.
  */
-export function saveBookRecipe(data: HealthData, recipe: BookRecipe, foods: Partial<Record<FoodKey, GenericFood>>, lang: Lang, at: string, ids: {recipeId: string; newId?: () => string}): HealthData {
+export function saveBookRecipe(data: HealthData, recipe: BookRecipe, foods: Partial<Record<FoodKey, GenericFood>>, lang: Lang, at: string, ids: {recipeId: string; newId?: () => string; /** Told each food this save made (LEDGER #93: its vitamins and extras are kept beside it). */ made?: (key: FoodKey, foodId: string) => void}): HealthData {
   const name = bookName(recipe, lang);
   if (data.recipes.some(r => r.name === name)) throw new Error(`“${name}” is already in your recipes.`);
   const missing = recipe.items.filter(([k]) => !foods[k]);
@@ -53,7 +53,7 @@ export function saveBookRecipe(data: HealthData, recipe: BookRecipe, foods: Part
   const items = recipe.items.map(([key, grams]) => {
     const g = foods[key]!, brand = g.sourceName.slice(0, 80), foodName = g.name.slice(0, 120);
     let food = next.foods.find(f => f.name === foodName && f.brand === brand && f.servingGrams === 100);
-    if (!food) { const id = newId(); next = saveFood(next, {id, name: foodName, brand, servingGrams: 100, nutrients: {...g.nutrients} as Nutrition, createdAt: at, updatedAt: at}); food = next.foods.find(f => f.id === id)!; }
+    if (!food) { const id = newId(); next = saveFood(next, {id, name: foodName, brand, servingGrams: 100, nutrients: {...g.nutrients} as Nutrition, createdAt: at, updatedAt: at}); food = next.foods.find(f => f.id === id)!; ids.made?.(key, id); }
     return {foodId: food.id, quantityMilli: Math.max(1, Math.round(grams * 10))};
   });
   return saveRecipe(next, {id: ids.recipeId, name, portionsMilli: recipe.servings * 1000, items}, at);
