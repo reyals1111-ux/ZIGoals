@@ -4,6 +4,8 @@ import {GUIDES, guideLine, type Guide, type Lang} from '../../../lib/workouts/ro
 import {EXERCISES} from '../../../lib/workouts/library';
 import {setRoutineNote} from '../../../lib/workouts/notes';
 import {folderNames, setRoutineFolder} from '../../../lib/workouts/routines';
+import {setProgression} from '../../../lib/workouts/progression';
+import {fromUnit} from './units';
 import type {Workouts, WorkoutTemplate} from '../../../lib/workouts/schema';
 import './av2-body.css';
 
@@ -41,12 +43,30 @@ function GuideCard({g, lang, saved, onSave, onStart}: {g: Guide; lang: Lang; sav
 
 type Change = (fn: (w: Workouts) => Workouts, said?: string) => boolean;
 /** An own routine's folder (a new one or one in use) and its note (shown when it is started). */
-export function RoutineEdit({w, routine, change, onDone}: {w: Workouts; routine: WorkoutTemplate; change: Change; onDone: () => void}) {
+export function RoutineEdit({w, routine, change, unit, onDone}: {w: Workouts; routine: WorkoutTemplate; change: Change; unit: 'kg' | 'lb'; onDone: () => void}) {
   const [folder, setFolder] = useState(routine.folder ?? ''), [note, setNote] = useState(routine.note ?? ''), id = useId();
-  return <form className="av2-routine-edit" onSubmit={e => { e.preventDefault(); if (change(x => setRoutineNote(setRoutineFolder(x, routine.id, folder), routine.id, note), `Routine ${routine.name} saved${folder.trim() ? ` in ${folder.trim()}` : ''}.`)) onDone(); }}>
+  // Session AV lane 2 (body; LEDGER #109): the progression rule — none, a rep range (double) or a step every session (linear).
+  const p = routine.progression, [kind, setKind] = useState<'' | 'double' | 'linear'>(p?.kind ?? ''), [low, setLow] = useState(String(p?.minReps ?? 8)), [high, setHigh] = useState(String(p?.maxReps ?? 12));
+  const [step, setStep] = useState(String(Math.round((p ? (unit === 'lb' ? p.stepKg / 0.45359237 : p.stepKg) : unit === 'lb' ? 5 : 2.5) * 100) / 100)), [problem, setProblem] = useState('');
+  function save() {
+    const stepKg = fromUnit(Number(step.replace(',', '.')), unit), lo = Number(low), hi = Number(high);
+    if (kind && !(Number.isFinite(stepKg) && stepKg >= 0.25 && stepKg <= 20)) { setProblem(`Enter a step from ${unit === 'lb' ? '0.5 to 44 lb' : '0.25 to 20 kg'}.`); return; }
+    if (kind === 'double' && !(Number.isInteger(lo) && Number.isInteger(hi) && lo >= 1 && hi <= 50 && lo < hi)) { setProblem('Enter a rep range with the lowest first, such as 8 to 12.'); return; }
+    setProblem('');
+    const rule = kind === 'double' ? {kind, minReps: lo, maxReps: hi, stepKg} : kind === 'linear' ? {kind, stepKg} : null;
+    if (change(x => setProgression(setRoutineNote(setRoutineFolder(x, routine.id, folder), routine.id, note), routine.id, rule), `Routine ${routine.name} saved${folder.trim() ? ` in ${folder.trim()}` : ''}.`)) onDone();
+  }
+  return <form className="av2-routine-edit" onSubmit={e => { e.preventDefault(); save(); }}>
     <label className="field"><span>Folder (optional)</span><input value={folder} maxLength={40} list={`${id}-folders`} onChange={e => setFolder(e.target.value)} placeholder="Gym, At home…"/></label>
     <datalist id={`${id}-folders`}>{folderNames(w).map(f => <option key={f} value={f}/>)}</datalist>
     <label className="field"><span>Routine note (shown when you start it)</span><textarea rows={2} maxLength={500} value={note} onChange={e => setNote(e.target.value)} placeholder="Light week, 90 s rest…"/></label>
+    <fieldset className="av2-progression"><legend>Progression (next session&rsquo;s targets from your last sets)</legend>
+      <label className="field"><span>Rule</span><select value={kind} onChange={e => setKind(e.target.value as typeof kind)}><option value="">None</option><option value="double">A rep range: add weight when every set reaches the top</option><option value="linear">Add weight every session all sets are done</option></select></label>
+      {kind === 'double' && <div className="av2-progression-row"><label className="field"><span>Fewest reps</span><input inputMode="numeric" value={low} onChange={e => setLow(e.target.value)}/></label><label className="field"><span>Most reps</span><input inputMode="numeric" value={high} onChange={e => setHigh(e.target.value)}/></label></div>}
+      {kind && <label className="field"><span>Weight to add ({unit})</span><input inputMode="decimal" value={step} onChange={e => setStep(e.target.value)}/></label>}
+      {kind && <p className="fine">{kind === 'double' ? 'Reps-only exercises add a rep, timed ones five seconds.' : 'Reps-only exercises add a rep, timed ones five seconds. A missed set keeps the weight.'}</p>}
+    </fieldset>
+    {problem && <p role="alert" className="av2-problem">{problem}</p>}
     <div className="workouts-row-actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={onDone}>Cancel</button></div>
   </form>;
 }

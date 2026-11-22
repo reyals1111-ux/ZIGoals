@@ -4,10 +4,11 @@ import {EXERCISES} from '../../workouts/library';
 import {pinnedNoteOf} from '../../workouts/notes';
 import {GUIDES} from '../../workouts/routine-library';
 import {routineGroups} from '../../workouts/routines';
+import {targetFor} from '../../workouts/progression';
 import type {Workouts} from '../../workouts/schema';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
-import {answer, asked, closed, isQuestion, MIXED, say, type Asked} from './av-words';
+import {answer, asked, closed, dayIn, isQuestion, MIXED, num, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 import {fold} from './exact/text';
 
@@ -130,4 +131,26 @@ function readyRoutines(a: Asked): LocalReply | null {
     ...list.map(g => `• ${g.name[lang]} (${g.folder[lang]}, ${say(lang, 'about', 'ongeveer')} ${g.minutes} min): ${g.about[lang]}`)].join('\n'), CALLS);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines];
+// ── Progression (LEDGER #109) ──────────────────────────────────────────────────────────────────────────────────────
+
+/** "what is my next target for bench press", "wat is mijn volgende doel voor bankdrukken": the routine's rule, from the last sets. */
+function nextTarget(a: Asked): LocalReply | null {
+  const en = /\b(?:next|todays|today s) (?:target|goal|weight|session)\b|\bprogression\b|\bhow much should i (?:lift|put on|use)\b/.test(a.f), nl = /\bvolgende (?:doel|gewicht|training)\b|\bopbouw\b|\bprogressie\b|\bhoeveel (?:moet|zal) ik (?:tillen|nemen|doen)\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const e = exerciseIn(a.f);
+  if (!e && !/\brules?\b|\bregels?\b|\broutines?\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const w = logOf(a), lang = a.lang, ruled = w.templates.filter(t => t.progression);
+  if (!ruled.length) return answer(say(lang, 'No routine has a progression rule yet. In Health → Workouts, Edit a routine and choose one: a rep range (add weight when every set reaches the top) or a step every session.', 'Nog geen routine heeft een opbouwregel. Kies in Health → Workouts bij Edit van een routine een regel: een herhalingsbereik (meer gewicht als elke set de bovenkant haalt) of een stap per training.'), CALLS);
+  const rule = (t: (typeof ruled)[number]) => t.progression!.kind === 'double' ? say(lang, `${t.progression!.minReps}–${t.progression!.maxReps} reps, then +${num(t.progression!.stepKg)} kg`, `${t.progression!.minReps}–${t.progression!.maxReps} herhalingen, dan +${num(t.progression!.stepKg)} kg`) : say(lang, `+${num(t.progression!.stepKg)} kg each session`, `+${num(t.progression!.stepKg)} kg per training`);
+  const lines = ruled.flatMap(t => t.exercises.filter(x => !e || x.exerciseId === e.id).map(x => {
+    const target = targetFor(w, t, x.exerciseId), s = target?.sets[0];
+    const what = !target || !s ? say(lang, 'no target yet (the first session sets it)', 'nog geen doel (de eerste training legt het vast)') : s.weightKg !== undefined ? `${num(s.weightKg)} kg × ${target.sets.map(y => y.reps).join('/')}` : s.reps !== undefined ? `${target.sets.map(y => y.reps).join('/')} ${say(lang, 'reps', 'herhalingen')}` : `${s.seconds} s`;
+    const why = !target ? '' : target.why === 'up' ? say(lang, `: every set reached its target on ${dayIn('en', target.lastDate, a.today)}`, `: elke set haalde zijn doel op ${dayIn('nl', target.lastDate, a.today)}`) : target.why === 'more-reps' ? say(lang, `: one more rep than on ${dayIn('en', target.lastDate, a.today)}`, `: één herhaling meer dan op ${dayIn('nl', target.lastDate, a.today)}`) : say(lang, `: as on ${dayIn('en', target.lastDate, a.today)}`, `: zoals op ${dayIn('nl', target.lastDate, a.today)}`);
+    return `• ${clean(t.name, 40)} (${rule(t)}), ${clean(x.name, 40)}: ${what}${why}`;
+  }));
+  if (!lines.length) return answer(say(lang, `${e!.name} is in no routine with a progression rule.`, `${e!.name} zit in geen routine met een opbouwregel.`), CALLS);
+  return answer([say(lang, 'Next session, from your progression rule and your last sets:', 'Volgende training, volgens je opbouwregel en je laatste sets:'), ...lines.slice(0, 10)].join('\n'), CALLS);
+}
+
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget];

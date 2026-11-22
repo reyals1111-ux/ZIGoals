@@ -32,3 +32,11 @@
 .av2-guide-exercises small { display: block; font-size: 14px; color: var(--text-secondary, #c9d6ea); }
 .av2-routine-edit { display: grid; gap: 8px; flex-basis: 100%; }
 .av2-routine-edit textarea { width: 100%; min-height: 44px; }
+/* The progression rule (LEDGER #109). */
+.av2-progression { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; min-width: 0; }
+.av2-progression legend { font-weight: 600; margin-bottom: 4px; font-size: 15px; }
+.av2-progression select, .av2-progression input { min-height: 44px; max-width: 100%; }
+.av2-progression-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.av2-progression-row .field { flex: 1 1 120px; }
+.av2-problem { margin: 0; color: var(--danger-text, #ffb4c8); font-size: 15px; }
+:root[data-theme=light] .av2-problem { color: #a3123a; }

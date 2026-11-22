@@ -83,3 +83,23 @@ test `apps/web/lib/workouts/av2-stored.test.ts`.
 - Answers: "what routines do I have" / "welke routines heb ik" (by folder, with notes), "which ready-made routines are
   there" / "welke kant-en-klare routines zijn er", "suggest a strength routine for at home" / "stel een routine voor thuis voor".
 - Search (static.ts): "Ready-made routines", "routine folders", "guided workout" → `/app/health?view=workouts`.
+
+## 3. A progression rule on a routine — LEDGER #109 built (part Carried: Live Activity, native-only)
+
+- What: a routine's Edit has "Progression": None, a rep range ("double": when every working set reaches the top, add the
+  step and start again at the bottom; otherwise one more rep on each set below the top) or "Add weight every session all
+  sets are done" ("linear"; a missed set keeps the weight). The step is typed in the Health weight unit and kept in kg.
+  Starting the routine fills each set with today's target from the last time that routine's exercise was done (else
+  the exercise's last session), and the exercise says why ("Progression: 62.5 kg × 8 today. Every set reached its target
+  on Nov 20, so the weight goes up."). Reps-only exercises add a rep, timed ones five seconds; a first session has no
+  target. Ready-made routines come with a suggested rule. Nothing new is stored beyond the rule.
+- Files: `lib/workouts/progression.ts`, `components/health/workouts/workouts-view.tsx` (start at targets; the line per
+  exercise; the routine's rule line), `components/health/workouts/routine-library-view.tsx` (`RoutineEdit`),
+  `components/health/workouts/av2-body.css`, `lib/workouts/showcase.ts` (Showcase: Push day keeps "6–10 reps, then +2.5 kg").
+- Tests: `lib/workouts/av2-progression.test.ts`, `lib/ai/local-answers/av2-body.test.ts`; spec `tests/av2-progression.spec.ts`.
+- Stored: routine `progression` (see Stored changes).
+- Help (EN): **Can a routine tell me what to lift next time?** Yes. Edit a routine and choose a progression: a rep range
+  (say 8 to 12: when every set reaches 12, the weight goes up by your step and you start again at 8) or a step every
+  session. When you start the routine, each set is filled with today's target from your last sets, and the exercise says why.
+- What's new: "Workouts: a progression rule on a routine fills in next time's weights and reps."
+- Answers: "what is my next target for bench press" / "wat is mijn volgende doel voor bankdrukken".

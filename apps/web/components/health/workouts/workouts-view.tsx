@@ -33,6 +33,7 @@ import {Skeleton} from '../../ui/skeleton';
 import {SlowReload} from '../slow-reload';
 import {pinnedNoteOf, setPinnedNote} from '../../../lib/workouts/notes';
 import {routineGroups, saveGuide} from '../../../lib/workouts/routines';
+import {progressed, targetFor, type Target} from '../../../lib/workouts/progression';
 import {guideLine, guideOf, routineLang, type Guide, type Lang} from '../../../lib/workouts/routine-library';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
 const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
@@ -105,7 +106,8 @@ export default function WorkoutsView() {
     if (!change(x => { made = saveGuide(x, g, lang, new Date()); return made.workouts; }, start ? undefined : `${g.name[lang]} is in your routines, in ${g.folder[lang]}.`) || !made) return;
     if (start) begin({date: logDay, now: new Date(), template: made.routine});
   }
-  const begin = (input: Parameters<typeof startWorkout>[1]) => { setSummary(null); if (change(x => startWorkout(x, input), 'Workout started. Add an exercise, then log your sets.')) document.getElementById('workout-now')?.scrollIntoView({block: 'start'}); };
+  // Session AV lane 2 (body; LEDGER #109): a routine with a progression rule starts at today's targets (from your last sets).
+  const begin = (input: Parameters<typeof startWorkout>[1]) => { setSummary(null); if (change(x => startWorkout(x, input.template?.progression ? {...input, template: progressed(x, input.template)} : input), 'Workout started. Add an exercise, then log your sets.')) document.getElementById('workout-now')?.scrollIntoView({block: 'start'}); };
   async function finish() {
     setAsking(null);
     try {
@@ -216,7 +218,7 @@ export default function WorkoutsView() {
           <div className="workouts-row-actions"><button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), template: t})} aria-label={`Start ${t.name}`}>Start</button>
             <button className="quiet" type="button" aria-expanded={editing === t.id} aria-label={`Edit routine ${t.name}`} onClick={() => setEditing(editing === t.id ? null : t.id)}>Edit</button>
             <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`, `Routine ${t.name} is back.`)}>Remove</button></div>
-          {editing === t.id && <Suspense fallback={<p className="fine" role="status">Opening…</p>}><RoutineEdit w={w} routine={t} change={change} onDone={() => setEditing(null)}/></Suspense>}
+          {editing === t.id && <Suspense fallback={<p className="fine" role="status">Opening…</p>}><RoutineEdit w={w} routine={t} change={change} unit={unit} onDone={() => setEditing(null)}/></Suspense>}
         </li>)}</ul></div>)}</>}
         <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines: full body, push, pull, legs, at home" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)}/></Fold>
       </section>}
@@ -284,13 +286,20 @@ function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRe
     {routine?.note && <p className="av2-pinned workouts-routine-note"><span>Routine note: <q dir="auto">{routine.note}</q></span></p>}
     {restUntil !== null && <p className="workouts-rest" role="timer" aria-live="off">Rest <strong>{clock(Math.max(0, Math.ceil((restUntil - now) / 1000)))}</strong> <button className="text-link" type="button" onClick={onSkipRest}>Skip rest</button></p>}
     {workout.exercises.map((e, i) => <ExerciseBlock key={e.id} entry={e} index={i} count={workout.exercises.length} previous={lastEntryFor(w, e.exerciseId, workout.startedAt)} unit={unit} change={change} onRest={() => onRest(e.id)}
-      w={w} letter={letters.get(e.id)} nextLetter={letters.get(workout.exercises[i + 1]?.id ?? '')} cue={(() => { const x = guide?.exercises.find(g => g.exerciseId === e.exerciseId); return x ? {line: guideLine(x, cueLang), cue: x.cue[cueLang], lang: cueLang} : undefined; })()}/>)}
+      w={w} letter={letters.get(e.id)} nextLetter={letters.get(workout.exercises[i + 1]?.id ?? '')} cue={(() => { const x = guide?.exercises.find(g => g.exerciseId === e.exerciseId); return x ? {line: guideLine(x, cueLang), cue: x.cue[cueLang], lang: cueLang} : undefined; })()}
+      target={routine?.progression ? targetFor(w, routine, e.exerciseId, workout.startedAt) : null}/>)}
     {picking ? <ExercisePicker library={library} onPick={x => { if (change(y => addExercise(y, x))) setPicking(false); }} onCreate={input => { let made: LibraryExercise | undefined; if (change(y => { const r = addCustomExercise(y, input); made = r.exercise; return addExercise(r.workouts, r.exercise); })) { setPicking(false); void made; } }} onClose={workout.exercises.length ? () => setPicking(false) : undefined}/>
       : <button className="secondary workouts-add" type="button" onClick={() => setPicking(true)}>+ Add an exercise</button>}
     <div className="workouts-now-actions"><button className="primary" type="button" onClick={onFinish}>Finish workout</button><button className="quiet" type="button" onClick={onDiscard}>Discard</button></div>
   </section>;
 }
 
+/** Session AV lane 2 (body; LEDGER #109): today's target from the routine's progression rule, and why, in a line. */
+function targetWords(t: Target, unit: 'kg' | 'lb'): string {
+  const first = t.sets[0], what = first?.weightKg !== undefined ? `${weightShown(first.weightKg, unit)} × ${first.reps}` : first?.reps !== undefined ? `${first.reps} reps` : first?.seconds !== undefined ? clock(first.seconds) : '';
+  const when = formatDate(t.lastDate, {year: false});
+  return t.why === 'up' ? `Progression: ${what} today. Every set reached its target on ${when}, so the weight goes up.` : t.why === 'more-reps' ? `Progression: ${what} today, one more rep than on ${when}.` : `Progression: ${what} today, as on ${when}: not every set reached its target then.`;
+}
 /** Session AV lane 2 (body; LEDGER #109): a routine's progression rule in a line. */
 const progressionWords = (p: NonNullable<Workouts['templates'][number]['progression']>) => p.kind === 'double' ? `Progression: ${p.minReps}–${p.maxReps} reps, then +${p.stepKg} kg` : `Progression: +${p.stepKg} kg each session`;
 /** Session AV lane 2 (body): a fold whose lazy content loads when it is first opened. */
@@ -303,8 +312,8 @@ function CalendarFold({w, today}: {w: Workouts; today: string}) {
   const [open, setOpen] = useState(false);
   return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today}/></Suspense>}</details>;
 }
-function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter, cue}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
-  w: Workouts; letter?: string; nextLetter?: string; cue?: {line: string; cue: string; lang: Lang}}) {
+function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter, cue, target}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
+  w: Workouts; letter?: string; nextLetter?: string; cue?: {line: string; cue: string; lang: Lang}; target?: Target | null}) {
   const headId = `ex-${entry.id}`, [tools, setTools] = useState(false), rpe = entry.measure === 'weight-reps' || entry.measure === 'reps';
   // Session AV (owner follow-up 1, F-SET-BEST): the bests of every finished workout, for the badge on a ticked set.
   const bests = useMemo(() => exerciseHistory(w, entry.exerciseId), [w, entry.exerciseId]);
@@ -320,6 +329,7 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
     <div className="workouts-exercise-foot"><button className="secondary" type="button" onClick={() => change(x => addSet(x, entry.id))}>+ Add set</button>
       <label className="field workouts-ex-note"><span className="sr-only">Note for {entry.name}</span><input key={entry.note ?? ''} placeholder="Note (seat height, grip…)" maxLength={500} defaultValue={entry.note ?? ''} onBlur={e => { if ((entry.note ?? '') !== e.target.value) change(x => setExerciseNote(x, entry.id, e.target.value)); }}/></label></div>
     {/* Session AV (owner follow-up 1, F-SET-BEST; Hevy's pinned note): last time's note, carried over on a tap. */}
+    {target && <p className="av2-pinned workouts-progression-note"><span>{targetWords(target, unit)}</span></p>}
     {cue && <p className="av2-pinned workouts-guide-cue" lang={cue.lang}><span>Plan: {cue.line} · {cue.cue}</span></p>}
     {/* Session AV lane 2 (body; LEDGER #119, Hevy's pinned note): the exercise's pinned note, every time; the session note can be pinned. */}
     {pinnedNoteOf(w, entry.exerciseId) && <p className="av2-pinned workouts-pinned-note"><span>Pinned note: <q dir="auto">{pinnedNoteOf(w, entry.exerciseId)}</q></span></p>}

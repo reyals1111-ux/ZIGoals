@@ -49,6 +49,14 @@ describe('the exercise library (LEDGER #116, #119)', () => {
   });
 });
 
+describe('progression (LEDGER #109)', () => {
+  test('the Showcase\'s Push day: one more rep at 62.5 kg, in English and Dutch', () => {
+    expect(text(ask('what is my next target for bench press'))).toContain('• Push day (6–10 reps, then +2.5 kg), Bench press: 62.5 kg × 9/9/8: one more rep than on Mon, Nov 16');
+    expect(text(ask('wat is mijn volgende doel voor bankdrukken'))).toContain('62.5 kg × 9/9/8: één herhaling meer dan op ma 16 nov');
+    expect(text(ask('what is my next target for the squat', freshAll()))).toContain('No routine has a progression rule yet');
+  });
+});
+
 describe('routines (LEDGER #112, #115, #119)', () => {
   test('own routines by folder, with the Showcase\'s labelled note', () => {
     const en = text(ask('what routines do I have'));
