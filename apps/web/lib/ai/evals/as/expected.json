@@ -8763,19 +8763,19 @@
  },
  "av2r6-order": {
   "en": "No project is done in order. Open a project, choose “Hold, order and review” and tick “Do the tasks one at a time”: only its first open task shows in Today, and finishing it brings the next forward.",
-  "nl": "Geen project gaat op volgorde. Open een project, kies “Hold, order and review” en vink “Do the tasks one at a time” aan: alleen de eerste open taak staat in Today, en als die af is komt de volgende.",
+  "nl": "Geen enkel project staat op volgorde. Open een project, kies “Hold, order and review” en vink “Do the tasks one at a time” aan: alleen de eerste open taak staat in Today, en als die af is komt de volgende.",
   "facts": null,
   "widgets": [],
   "fresh": "No project is done in order. Open a project, choose “Hold, order and review” and tick “Do the tasks one at a time”: only its first open task shows in Today, and finishing it brings the next forward.",
-  "freshNl": "Geen project gaat op volgorde. Open een project, kies “Hold, order and review” en vink “Do the tasks one at a time” aan: alleen de eerste open taak staat in Today, en als die af is komt de volgende."
+  "freshNl": "Geen enkel project staat op volgorde. Open een project, kies “Hold, order and review” en vink “Do the tasks one at a time” aan: alleen de eerste open taak staat in Today, en als die af is komt de volgende."
  },
  "av2r6-focus": {
-  "en": "No focus is on: every project shows. In Tasks → Today (or Upcoming, the matrix, the Calendar) choose “Focus…” and pick areas or projects; only their tasks show until you choose Show all. Tasks in the Inbox are never hidden.",
-  "nl": "Er staat geen focus aan: elk project is te zien. Kies in Tasks → Today (of Upcoming, de matrix, de Calendar) “Focus…” en kies gebieden of projecten; alleen hun taken zijn te zien tot je Show all kiest. Taken in de Inbox blijven altijd zichtbaar.",
+  "en": "No focus is on: every project shows. In Tasks → Today (or Upcoming, the Priority matrix, the Calendar) choose “Focus…” and pick areas or projects; only their tasks show until you choose Show all. Tasks in the Inbox are never hidden.",
+  "nl": "Er staat geen focus aan: elk project is te zien. Kies in Tasks → Today (of Upcoming, de Priority matrix, de Calendar) “Focus…” en kies gebieden of projecten; alleen hun taken zijn te zien tot je Show all kiest. Taken in de Inbox blijven altijd zichtbaar.",
   "facts": null,
   "widgets": [],
-  "fresh": "No focus is on: every project shows. In Tasks → Today (or Upcoming, the matrix, the Calendar) choose “Focus…” and pick areas or projects; only their tasks show until you choose Show all. Tasks in the Inbox are never hidden.",
-  "freshNl": "Er staat geen focus aan: elk project is te zien. Kies in Tasks → Today (of Upcoming, de matrix, de Calendar) “Focus…” en kies gebieden of projecten; alleen hun taken zijn te zien tot je Show all kiest. Taken in de Inbox blijven altijd zichtbaar."
+  "fresh": "No focus is on: every project shows. In Tasks → Today (or Upcoming, the Priority matrix, the Calendar) choose “Focus…” and pick areas or projects; only their tasks show until you choose Show all. Tasks in the Inbox are never hidden.",
+  "freshNl": "Er staat geen focus aan: elk project is te zien. Kies in Tasks → Today (of Upcoming, de Priority matrix, de Calendar) “Focus…” en kies gebieden of projecten; alleen hun taken zijn te zien tot je Show all kiest. Taken in de Inbox blijven altijd zichtbaar."
  },
  "av2r6-review": {
   "en": "No project has a review yet. Open a project, choose “Hold, order and review” and set “Review it every … weeks”: when its turn comes it is listed in Tasks → Review.",
@@ -8802,12 +8802,12 @@
   "freshNl": "Je hebt geen labelgroep. Maak er een in Tasks, onder “Areas and templates → Label groups”, zoals “Waar: @thuis @kantoor @boodschap”: een taak heeft er dan één, en een andere geven haalt de eerste weg."
  },
  "av2r6-bulk": {
-  "en": "In Tasks, choose Select and tick the tasks. The bar then finishes them, sets a priority, gives them any day (or no day), moves them, adds a label or takes one off, or removes them — each as one change with one Undo. A repeating task keeps its day.",
-  "nl": "Kies in Tasks Select en vink de taken aan. De balk maakt ze af, geeft een prioriteit, een dag (of geen dag), verplaatst ze, zet er een label bij of haalt er een af, of verwijdert ze — elk als één wijziging met één Undo. Een herhalende taak houdt haar dag.",
+  "en": "In Tasks, choose Select and tick the tasks. The bar then finishes them, sets a priority, gives them any day (or no day), moves them, adds a label or takes one off, or removes them — each as one change with one Undo. Given no day, a repeating task keeps its own day, as it needs one.",
+  "nl": "Kies in Tasks Select en vink de taken aan. De balk maakt ze af, geeft een prioriteit, een dag (of geen dag), verplaatst ze, zet er een label bij of haalt er een af, of verwijdert ze — elk als één wijziging die je met één keer Ongedaan maken terugdraait. Krijgt een herhalende taak geen dag, dan houdt ze haar eigen dag, want ze heeft er een nodig.",
   "facts": null,
   "widgets": [],
-  "fresh": "In Tasks, choose Select and tick the tasks. The bar then finishes them, sets a priority, gives them any day (or no day), moves them, adds a label or takes one off, or removes them — each as one change with one Undo. A repeating task keeps its day.",
-  "freshNl": "Kies in Tasks Select en vink de taken aan. De balk maakt ze af, geeft een prioriteit, een dag (of geen dag), verplaatst ze, zet er een label bij of haalt er een af, of verwijdert ze — elk als één wijziging met één Undo. Een herhalende taak houdt haar dag."
+  "fresh": "In Tasks, choose Select and tick the tasks. The bar then finishes them, sets a priority, gives them any day (or no day), moves them, adds a label or takes one off, or removes them — each as one change with one Undo. Given no day, a repeating task keeps its own day, as it needs one.",
+  "freshNl": "Kies in Tasks Select en vink de taken aan. De balk maakt ze af, geeft een prioriteit, een dag (of geen dag), verplaatst ze, zet er een label bij of haalt er een af, of verwijdert ze — elk als één wijziging die je met één keer Ongedaan maken terugdraait. Krijgt een herhalende taak geen dag, dan houdt ze haar eigen dag, want ze heeft er een nodig."
  },
  "av2r6-fromend": {
   "en": "Yes. Type “every second-to-last Friday” or “every last workday” with a task, or as its repeat in the editor: it comes back each month on that day (Monday to Friday counts as working days).",
@@ -8819,19 +8819,19 @@
  },
  "av2r6-tag-rename": {
   "en": "Notes per tag: #reading 1 and #travel 1; 6 notes have no tag. Notes → Chart draws them.",
-  "nl": "Notes → Notes → Tags → Rename or merge a tag: kies de tag, geef hem een nieuwe naam (Rename tag) of kies een andere tag (Merge into …). De #tag verandert in elke notitie tegelijk — in de woorden en het veld Tags, met de tags eronder — de eerdere woorden blijven onder Earlier versions, en één Undo zet alle notities terug.",
+  "nl": "Notes → Notes → Tags → Rename or merge a tag: kies de tag, geef hem een nieuwe naam (Rename tag) of kies een andere tag (Merge into …). De #tag verandert in elke notitie tegelijk — in de woorden en het veld Tags, met de tags eronder — de eerdere woorden blijven onder Earlier versions zolang daar plaats is, en één keer Ongedaan maken zet altijd alle notities terug.",
   "facts": null,
   "widgets": [],
   "fresh": "No note has a tag yet. Notes imported with tags (Notes → Files → Import) show under Notes → Chart.",
-  "freshNl": "Notes → Notes → Tags → Rename or merge a tag: kies de tag, geef hem een nieuwe naam (Rename tag) of kies een andere tag (Merge into …). De #tag verandert in elke notitie tegelijk — in de woorden en het veld Tags, met de tags eronder — de eerdere woorden blijven onder Earlier versions, en één Undo zet alle notities terug."
+  "freshNl": "Notes → Notes → Tags → Rename or merge a tag: kies de tag, geef hem een nieuwe naam (Rename tag) of kies een andere tag (Merge into …). De #tag verandert in elke notitie tegelijk — in de woorden en het veld Tags, met de tags eronder — de eerdere woorden blijven onder Earlier versions zolang daar plaats is, en één keer Ongedaan maken zet altijd alle notities terug."
  },
  "av2r6-merge-notes": {
   "en": "Open the topic note and press Merge into…, then choose the note it joins. Its words go under the other note’s, below a heading with its name; its tags, photos and properties are added where the other has none, and links to it point at that heading. The note itself waits 30 days in Recently deleted, and one Undo puts both back as they were. A locked note is never merged.",
-  "nl": "Open de onderwerpnotitie en druk op Merge into…, en kies de notitie waar ze bij komt. De woorden komen onder die van de andere notitie, onder een kop met haar naam; tags, foto’s en eigenschappen komen erbij waar de andere ze niet heeft, en links ernaar wijzen naar die kop. De notitie zelf wacht 30 dagen in Recently deleted, en één Undo zet beide terug. Een vergrendelde notitie wordt nooit samengevoegd.",
+  "nl": "Open de onderwerpnotitie en druk op Merge into…, en kies de notitie waar ze bij komt. De woorden komen onder die van de andere notitie, onder een kop met haar naam; tags, foto’s en eigenschappen komen erbij waar de andere ze niet heeft, en links ernaar wijzen naar die kop. De notitie zelf wacht 30 dagen in Recently deleted, en één keer Ongedaan maken zet beide terug. Een vergrendelde notitie wordt nooit samengevoegd.",
   "facts": null,
   "widgets": [],
   "fresh": "Open the topic note and press Merge into…, then choose the note it joins. Its words go under the other note’s, below a heading with its name; its tags, photos and properties are added where the other has none, and links to it point at that heading. The note itself waits 30 days in Recently deleted, and one Undo puts both back as they were. A locked note is never merged.",
-  "freshNl": "Open de onderwerpnotitie en druk op Merge into…, en kies de notitie waar ze bij komt. De woorden komen onder die van de andere notitie, onder een kop met haar naam; tags, foto’s en eigenschappen komen erbij waar de andere ze niet heeft, en links ernaar wijzen naar die kop. De notitie zelf wacht 30 dagen in Recently deleted, en één Undo zet beide terug. Een vergrendelde notitie wordt nooit samengevoegd."
+  "freshNl": "Open de onderwerpnotitie en druk op Merge into…, en kies de notitie waar ze bij komt. De woorden komen onder die van de andere notitie, onder een kop met haar naam; tags, foto’s en eigenschappen komen erbij waar de andere ze niet heeft, en links ernaar wijzen naar die kop. De notitie zelf wacht 30 dagen in Recently deleted, en één keer Ongedaan maken zet beide terug. Een vergrendelde notitie wordt nooit samengevoegd."
  },
  "av2r6-read-back": {
   "en": "2 daily notes of the last 30 days are not read back yet: Sun, Nov 15 and Mon, Nov 16. Notes → Days → Not read back yet lists them, oldest first.",
@@ -8851,11 +8851,11 @@
  },
  "av2r6-prop-many": {
   "en": "In Notes → Notes, press Select and tick the notes. Under Set a property, give the name, the type and the value, then Set property (or Remove property): one step for all of them, and one Undo puts them back. A note with ten properties already, or a locked note, is left as it is and counted.",
-  "nl": "Druk in Notes → Notes op Select en vink de notities aan. Geef onder Set a property de naam, het type en de waarde, en kies Set property (of Remove property): één stap voor allemaal, en één Undo zet ze terug. Een notitie die al tien eigenschappen heeft, of een vergrendelde notitie, blijft zoals ze is en wordt geteld.",
+  "nl": "Druk in Notes → Notes op Select en vink de notities aan. Geef onder Set a property de naam, het type en de waarde, en kies Set property (of Remove property): één stap voor allemaal, en één keer Ongedaan maken zet ze terug. Een notitie die al tien eigenschappen heeft, of een vergrendelde notitie, blijft zoals ze is en wordt geteld.",
   "facts": null,
   "widgets": [],
   "fresh": "In Notes → Notes, press Select and tick the notes. Under Set a property, give the name, the type and the value, then Set property (or Remove property): one step for all of them, and one Undo puts them back. A note with ten properties already, or a locked note, is left as it is and counted.",
-  "freshNl": "Druk in Notes → Notes op Select en vink de notities aan. Geef onder Set a property de naam, het type en de waarde, en kies Set property (of Remove property): één stap voor allemaal, en één Undo zet ze terug. Een notitie die al tien eigenschappen heeft, of een vergrendelde notitie, blijft zoals ze is en wordt geteld."
+  "freshNl": "Druk in Notes → Notes op Select en vink de notities aan. Geef onder Set a property de naam, het type en de waarde, en kies Set property (of Remove property): één stap voor allemaal, en één keer Ongedaan maken zet ze terug. Een notitie die al tien eigenschappen heeft, of een vergrendelde notitie, blijft zoals ze is en wordt geteld."
  },
  "av2r6-word-goal": {
   "en": "You have no daily word goal. Journal → Entries → Daily word goal sets one (for example 200 words a day): Write then shows today’s words beside it, and the calendar marks the days you reached it. Nothing is said on a day you do not.",
@@ -8931,11 +8931,11 @@
  },
  "av2r6-money-streak": {
   "en": "The money streak is off. Turn it on in Wealth → Spending → Yesterday’s money: it counts the days in a row you logged an entry, read a bank file or said you looked at your money; never an amount, and a day off is fine.",
-  "nl": "De geldreeks staat uit. Zet hem aan in Vermogen → Uitgaven → Yesterday’s money: hij telt de dagen op rij dat je iets logde, een bankbestand inlas of zei dat je naar je geld keek; nooit een bedrag, en een dag overslaan mag.",
+  "nl": "Je reeks voor je geld staat uit. Zet hem aan in Vermogen → Uitgaven → Yesterday’s money: hij telt de dagen op rij dat je iets logde, een bankbestand inlas of zei dat je naar je geld keek; nooit een bedrag, en een dag overslaan mag.",
   "facts": null,
   "widgets": [],
   "fresh": "The money streak is off. Turn it on in Wealth → Spending → Yesterday’s money: it counts the days in a row you logged an entry, read a bank file or said you looked at your money; never an amount, and a day off is fine.",
-  "freshNl": "De geldreeks staat uit. Zet hem aan in Vermogen → Uitgaven → Yesterday’s money: hij telt de dagen op rij dat je iets logde, een bankbestand inlas of zei dat je naar je geld keek; nooit een bedrag, en een dag overslaan mag."
+  "freshNl": "Je reeks voor je geld staat uit. Zet hem aan in Vermogen → Uitgaven → Yesterday’s money: hij telt de dagen op rij dat je iets logde, een bankbestand inlas of zei dat je naar je geld keek; nooit een bedrag, en een dag overslaan mag."
  },
  "av2r6-money-set-aside": {
   "en": "Nothing is set aside for Dec 2026 yet. In Wealth → Budgets → Paychecks and next month, give part of this month’s ready money to next month’s budgets.",
@@ -9051,23 +9051,23 @@
  },
  "av2r6-fav-exercises": {
   "en": "No favourite exercises yet. Star one in Health → Workouts → \"Exercises and how-tos\" or in the list when you add one; favourites come first when you add an exercise.",
-  "nl": "Nog geen favoriete oefeningen. Geef er een een ster in Health → Workouts → \"Exercises and how-tos\" of in de lijst als je er een toevoegt; favorieten staan bovenaan als je een oefening toevoegt.",
+  "nl": "Nog geen favoriete oefeningen. Geef een oefening een ster in Health → Workouts → \"Exercises and how-tos\" of in de lijst als je er een toevoegt; favorieten staan bovenaan als je een oefening toevoegt.",
   "facts": null,
   "widgets": [],
   "fresh": "No favourite exercises yet. Star one in Health → Workouts → \"Exercises and how-tos\" or in the list when you add one; favourites come first when you add an exercise.",
-  "freshNl": "Nog geen favoriete oefeningen. Geef er een een ster in Health → Workouts → \"Exercises and how-tos\" of in de lijst als je er een toevoegt; favorieten staan bovenaan als je een oefening toevoegt."
+  "freshNl": "Nog geen favoriete oefeningen. Geef een oefening een ster in Health → Workouts → \"Exercises and how-tos\" of in de lijst als je er een toevoegt; favorieten staan bovenaan als je een oefening toevoegt."
  },
  "av2r6-light": {
-  "en": "No workout is marked as a light week. Open one under Health → Workouts → Your workouts and choose \"Light week (not in my bests)\": its sets stay in your history and volume and leave your bests.",
-  "nl": "Geen workout is als lichte week gemarkeerd. Open er een onder Health → Workouts → Your workouts en kies \"Light week (not in my bests)\": de sets blijven in je geschiedenis en volume en tellen niet mee voor je records.",
+  "en": "No workout is marked as a light week. Mark a light week during the workout (\"Light week (not in my bests)\", above Finish workout) and a routine that keeps your last weights leaves its weights out too; marked afterwards under Health → Workouts → Your workouts, it is left out of your bests and \"new best\" marks only. Either way its sets stay in your history and volume.",
+  "nl": "Geen workout is als lichte week gemarkeerd. Markeer een lichte week tijdens de workout (\"Light week (not in my bests)\", boven Finish workout), dan laat een routine die je laatste gewichten bewaart de gewichten ervan ook weg; markeer je hem achteraf onder Health → Workouts → Your workouts, dan blijft hij alleen buiten je records en de \"new best\"-markeringen. Hoe dan ook blijven de sets in je geschiedenis en volume.",
   "facts": null,
   "widgets": [],
-  "fresh": "No workout is marked as a light week. Open one under Health → Workouts → Your workouts and choose \"Light week (not in my bests)\": its sets stay in your history and volume and leave your bests.",
-  "freshNl": "Geen workout is als lichte week gemarkeerd. Open er een onder Health → Workouts → Your workouts en kies \"Light week (not in my bests)\": de sets blijven in je geschiedenis en volume en tellen niet mee voor je records."
+  "fresh": "No workout is marked as a light week. Mark a light week during the workout (\"Light week (not in my bests)\", above Finish workout) and a routine that keeps your last weights leaves its weights out too; marked afterwards under Health → Workouts → Your workouts, it is left out of your bests and \"new best\" marks only. Either way its sets stay in your history and volume.",
+  "freshNl": "Geen workout is als lichte week gemarkeerd. Markeer een lichte week tijdens de workout (\"Light week (not in my bests)\", boven Finish workout), dan laat een routine die je laatste gewichten bewaart de gewichten ervan ook weg; markeer je hem achteraf onder Health → Workouts → Your workouts, dan blijft hij alleen buiten je records en de \"new best\"-markeringen. Hoe dan ook blijven de sets in je geschiedenis en volume."
  },
  "av2r6-best-days": {
-  "en": "Your heaviest sets and their days: Bench press 62.5 kg (Wed, Nov 11), Overhead press 37.5 kg (Wed, Nov 11), Triceps pushdown 27.5 kg (Wed, Nov 11), Squat 85 kg (Fri, Nov 13), Deadlift 105 kg (Thu, Nov 12), Barbell row 55 kg (Thu, Nov 12), Bicep curl 17 kg (Thu, Nov 12), Romanian deadlift 65 kg (Fri, Nov 13) and Calf raise 65 kg (Fri, Nov 13). Light weeks and workouts before a fresh start are left out; each exercise's card shows all its bests.",
-  "nl": "Je zwaarste sets en hun dagen: Bench press 62,5 kg (wo 11 nov), Overhead press 37,5 kg (wo 11 nov), Triceps pushdown 27,5 kg (wo 11 nov), Squat 85 kg (vr 13 nov), Deadlift 105 kg (do 12 nov), Barbell row 55 kg (do 12 nov), Bicep curl 17 kg (do 12 nov), Romanian deadlift 65 kg (vr 13 nov) en Calf raise 65 kg (vr 13 nov). Lichte weken en workouts vóór een nieuwe start tellen niet mee; de kaart van elke oefening toont al zijn records.",
+  "en": "Your heaviest sets and their days: Bench press 62.5 kg (Wed, Nov 11), Overhead press 37.5 kg (Wed, Nov 11), Triceps pushdown 27.5 kg (Wed, Nov 11) and Squat 85 kg (Fri, Nov 13). Light weeks and workouts before a fresh start are left out; each exercise's card shows all its bests.",
+  "nl": "Je zwaarste sets en hun dagen: Bench press 62,5 kg (wo 11 nov), Overhead press 37,5 kg (wo 11 nov), Triceps pushdown 27,5 kg (wo 11 nov) en Squat 85 kg (vr 13 nov). Lichte weken en workouts vóór een nieuwe start tellen niet mee; de kaart van elke oefening toont al zijn records.",
   "facts": null,
   "widgets": [],
   "fresh": "No best with a weight yet. After your first workouts each exercise in Health → Workouts → \"Exercises and how-tos\" shows its bests with the day you set them.",
