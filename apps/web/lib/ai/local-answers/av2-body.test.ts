@@ -210,3 +210,19 @@ describe('BMI under hidden figures (review b2b #3)', () => {
     expect(hideBodyFigures('3 sets of 8 reps; BMI 23').text).toBe('3 sets of 8 reps; BMI —');
   });
 });
+
+/** Review b2b #8: the training-load answer after a long break, in English and Dutch. */
+describe('training load after a break (review b2b #8)', () => {
+  test('older history and nothing in the four weeks before: "welcome back", never "first week"', () => {
+    const s = showcaseAll(), all = s.ak!.workouts!.workouts, recent = all.filter(x => x.date > '2026-11-10' && x.date <= DAY && x.endedAt);
+    expect(recent.length).toBeGreaterThan(0);
+    const older = {...recent[0]!, id: `${recent[0]!.id}-older`, date: '2026-07-01'};
+    s.ak = {...s.ak, workouts: {...s.ak!.workouts!, workouts: [older, ...recent]}} as typeof s.ak;
+    const en = text(ask('what is my training load', s)), nl = text(ask('wat is mijn trainingsbelasting', s));
+    expect(en).toContain('Welcome back: nothing in the four weeks before, so there is no usual to compare with yet.');
+    expect(nl).toContain('Welkom terug: niets in de vier weken ervoor, dus er is nog geen gewone week om mee te vergelijken.');
+    expect(en).not.toContain('first week');
+    expect(nl).not.toContain('eerste week');
+  });
+});
+

@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {addDistanceGoal, goalProgress, paceText, periodOf, removeDistanceGoal, runSummary, runWords, trainingLoad} from './runs';
+import {addDistanceGoal, goalProgress, LOAD_WORDS, paceText, periodOf, removeDistanceGoal, runSummary, runWords, trainingLoad} from './runs';
 import {workoutsSchema} from './schema';
 
 /** Session AV lane 2 (body; LEDGER #110, #111): a run against the runs before it; distance goals; the training load. */
@@ -50,3 +50,24 @@ describe('the training load (never calories)', () => {
     expect(trainingLoad(w, '2026-11-14', 'km').last7).toBe(54);
   });
 });
+
+/** Review b2b #8: "your first week here" only on a first week; after a long break with older history, "Welcome back". */
+describe('the training load after a break (review b2b #8)', () => {
+  const log = (dates: string[]) => workoutsSchema.parse({version: 1, templates: [], exercises: [], restSeconds: 90, workouts: dates.map((d, i) => run(`x${i}`, d, 5, 1800))});
+  test('a first week: new, and its words say so', () => {
+    const t = trainingLoad(log(['2026-11-12']), '2026-11-14');
+    expect(t).toMatchObject({usual: null, words: 'new'});
+    expect(LOAD_WORDS[t.words]).toBe('This is your first week here, so there is no usual yet.');
+  });
+  test('back after five weeks off, with months of history: never "first week"', () => {
+    const t = trainingLoad(log(['2026-07-04', '2026-08-15', '2026-09-30', '2026-11-12']), '2026-11-14');
+    expect(t).toMatchObject({usual: null, words: 'back'});
+    expect(LOAD_WORDS[t.words]).toBe('Welcome back: nothing in the four weeks before, so there is no usual to compare with yet.');
+    expect(LOAD_WORDS[t.words]).not.toMatch(/first week/);
+    // Within the four weeks before, the usual is counted as before.
+    expect(trainingLoad(log(['2026-10-20', '2026-11-12']), '2026-11-14').usual).not.toBeNull();
+    // Nothing in the last five weeks at all: still "none".
+    expect(trainingLoad(log(['2026-08-15']), '2026-11-14').words).toBe('none');
+  });
+});
+

@@ -251,7 +251,7 @@ function distanceGoals(a: Asked): LocalReply | null {
     : `• ${SPORT_EN[g.sport]} ${PERIOD_EN[g.period]}: ${num(p.km)} of ${num(g.km)} km${p.done ? ', reached' : `, ${num(p.left)} km to go${p.perDay ? ` (about ${num(p.perDay)} km a day)` : ''}, ${p.onPace ? 'on pace' : 'behind pace for now'}`}`; });
   return answer([say(lang, 'Your distance goals, from your own log:', 'Je afstandsdoelen, uit je eigen log:'), ...lines].join('\n'), CALLS);
 }
-const LOAD_NL: Record<string, string> = {none: 'Nog niets gelogd in de afgelopen vijf weken.', new: 'Dit is je eerste week hier, dus er is nog geen gewone week.', lighter: 'Lichter dan je gewone week.', usual: 'Ongeveer je gewone week.', more: 'Meer dan je gewone week.', 'much-more': 'Ruim boven je gewone week: een flinke stap. Rustig opbouwen is het gewone advies.'};
+const LOAD_NL: Record<string, string> = {none: 'Nog niets gelogd in de afgelopen vijf weken.', new: 'Dit is je eerste week hier, dus er is nog geen gewone week.', back: 'Welkom terug: niets in de vier weken ervoor, dus er is nog geen gewone week om mee te vergelijken.', lighter: 'Lichter dan je gewone week.', usual: 'Ongeveer je gewone week.', more: 'Meer dan je gewone week.', 'much-more': 'Ruim boven je gewone week: een flinke stap. Rustig opbouwen is het gewone advies.'};
 /** "what is my training load", "wat is mijn trainingsbelasting": the last 7 days beside the usual week (minutes). */
 function load(a: Asked): LocalReply | null {
   if (!/\btraining (?:load|volume per week)\b|\bworkload\b.*\b(?:training|workouts?)\b|\btrainingsbelasting\b|\btrainingslast\b|\bbelasting\b.*\btraining\b/.test(a.f)) return null;

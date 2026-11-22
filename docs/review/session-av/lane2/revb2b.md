@@ -88,7 +88,22 @@ there). One commit per finding. No stored format changes in any of them; no new 
   its dashes, and the component uses them with no raw day left).
 - Spec: `apps/web/tests/av2-habit-imports.spec.ts`, two lines changed deliberately (labelled) from "from 2026-10-01" to
   "from Oct 1, 2026" (and "Oct 2, 2026"): equally strict, the whole item text still pinned.
-- Seen, not changed: `lib/date-format-guard.test.ts` already fails on lane2/batch2 for two files outside this work
-  (components/notes/note-schedules.tsx "month or weekday names by hand", components/price-alerts/price-alerts.tsx "ISO
-  date shown"); neither is touched here.
+- Seen, not changed: `lib/date-format-guard.test.ts` fails at 23eaf493 (this branch's base) for two files outside this
+  work (components/notes/note-schedules.tsx, components/price-alerts/price-alerts.tsx); the newer lane2/batch2 tip
+  already fixes note-schedules.tsx (ca3c5ffe and after). Neither file is touched here; this change adds no finding.
+- Help / What's new: none needed.
+
+## B2B-8 Minor: training load said "your first week here" after a long break
+
+- Verdict: fixed.
+- Fix: `trainingLoad` (apps/web/lib/workouts/runs.ts) tells a first week from a return: with nothing in the four weeks
+  before but a finished workout older than the five-week window, the words are the new `'back'`: "Welcome back: nothing
+  in the four weeks before, so there is no usual to compare with yet." (NL in av2-body.ts's LOAD_NL: "Welkom terug: niets
+  in de vier weken ervoor, dus er is nog geen gewone week om mee te vergelijken."). "This is your first week here" stays
+  for a log with nothing older. Shown in Health → Workouts → "Distance goals and training load" and in NOVA's/ZIGi's
+  training-load answer. Not stored (`words` is computed).
+- Tests: `apps/web/lib/workouts/av2-runs.test.ts` → "the training load after a break (review b2b #8)" (first week, back
+  after five weeks off, a usual within four weeks, none); `lib/ai/local-answers/av2-body.test.ts` → "training load after
+  a break" (EN and NL answers, never "first week" / "eerste week").
+- Spec (lead runs): `apps/web/tests/av2-revb2b-load-break.spec.ts` (back after a break; a first week).
 - Help / What's new: none needed.
