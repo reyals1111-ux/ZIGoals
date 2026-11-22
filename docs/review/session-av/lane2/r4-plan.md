@@ -12,8 +12,9 @@ pieces, the blockers and the repeat windows together), so the code is one featur
 
 - **TIER 3 (stored formats)** — commit `3684078a`, all additive and optional, each dropped on read when it cannot be read; no
   new key. Listed under "Stored changes".
-- **TIER 3 (PWA)**: none. No notification-plan change: "Plan your day · N tasks overdue" still counts every overdue task,
-  a waiting one too (conservative: it is overdue, and a count that hides tasks would be the less calm surprise).
+- **TIER 3 (PWA)** — commit `58382c6d` (review B4D-2): "Plan your day · N tasks overdue" leaves out a repeat that floats in
+  its week until that week has passed (lib/tasks/engine.ts `lateCount`, read by lib/notify/sync.ts). Still a count, never a
+  name; every other task counts as before, a waiting one too.
 - **engine.ts wiring** (see "NOVA and ZIGi").
 - **Help + What's new** text per feature below (help-page.tsx is yours).
 - **CSS** (no theme-sheet source touched): components/tasks/tasks-r4.css (new, theme variables only),
@@ -69,7 +70,10 @@ day", and This week gains three parts below its objectives and planning choices.
 - A task's editor → "Planning — optional" → "After hours: plan it in my evening hours, not my working hours"; the row says
   "After hours".
 - Plan my day (Fit my day) places inside today's hours from now (an "after hours" task in the evening, past "My day ends
-  at"); "My day ends at" starts at the end of today's hours and changes this visit only. A day off places nothing.
+  at"); "My day ends at" starts at the end of today's hours and moves the end of today's last block, later or earlier, for
+  this visit only (review B4D-3): with the usual hours (none set) a typed 21:00 places tasks until 21:00, as before round 4;
+  with hours set, a later end extends the last block and an earlier one shortens it (an earlier block is cut at it, a block
+  that starts after it is left out). A day off places nothing.
 - Conservative: hours that run past midnight are not offered (a block ends on its own day).
 
 ### #303 Pieces of a long task — built
@@ -99,6 +103,19 @@ day", and This week gains three parts below its objectives and planning choices.
   "Plan for…" a day of its window (this time only). Plan my week places one with minutes inside its window, never after it.
 - Done (early, on time or late), it comes back in the next window that has not passed: a missed week is one overdue task,
   never a pile, and the next one keeps its own week.
+- Review B4D-2: a day and time kept from a plan (or "Plan for…") is for this time only. The next copy floats again — no time,
+  due by its window's last day — and Plan my week (and Plan my day) place it again inside its window, never on a day off.
+  Planned for a Wednesday and not done then, it is not late on Thursday: it is late only once its week (or month) has passed
+  (lib/tasks/engine.ts `onTimeUntil` / `isLate`, read by the Tasks lists and counts, the Agenda, the Day Timeline, Plan my
+  day's suggestions, NOVA's overdue answers and the notification count). A planned time that passed is planned again.
+- **Older builds (review B4D-9), said plainly:** this cannot be made fully safe for an older build without hiding the planned
+  day from every reader. An older build reads `due` as the repeat's anchor (every Sunday); once this build moves the day
+  inside the week (Plan my week, "Plan for…"), an older build that finishes it brings the next copy back on that same
+  week's Sunday — a second one in that week. Nothing is lost and nothing piles up past that one: this build reads that copy
+  as floating, not late before its week ends, and finishing it brings the next week's. The alternative — `due` kept on the
+  window's last day and the planned day in a new field — would make the Agenda, the Day Timeline, Today, Upcoming and the
+  reminders (and every older build) stop showing the day the person planned, so it is not done. A floating repeat that was
+  never planned inside its week (due on its Sunday) reads the same on both builds.
 - Conservative: the add line ("Call mum every Monday") does not read "once a week" yet — only the editor does — to keep the
   Tasks first chunk unchanged.
 
@@ -137,7 +154,8 @@ Help (EN):
   with minutes go into the free time inside your working hours over the next 7 days, the earliest deadline first, then
   priority. Untick what you don't want and press Keep: each task gets its day and time, with Undo. Nothing moves by itself."
 - Q "How do I set my working hours?" A "In Tasks → This week → Working hours, choose the days, the hours and an optional
-  break, or a day off. Plans place tasks only inside them. A task marked “after hours” goes in your evening hours instead."
+  break, or a day off. Plans place tasks only inside them. A task marked “after hours” goes in your evening hours instead.
+  In Tasks → Today, “My day ends at” moves the end of today's last hours, later or earlier, for that visit only."
 - Q "What does a deadline line in Upcoming mean?" A "When the tasks due by a deadline take more minutes than your free working
   hours before it, Upcoming says so in one quiet line, with the tasks. It is a fact to plan with, not a warning."
 - Q "Can a long task be done in pieces?" A "Yes. In its editor give it its minutes and choose “In pieces of”. Plans place it
@@ -148,3 +166,18 @@ Help (EN):
   This week until done, then comes back next week. A missed week is one overdue task, never a pile."
 What's new: "Tasks: Plan my week — your tasks placed in your working hours, as a proposal you keep with Undo; tasks in pieces,
 tasks that wait for others, repeats that float in their week, and a calm line when a deadline looks tight."
+
+## Review fixes (batch 4 review D: B4D-2, B4D-3, B4D-6, B4D-7, B4D-9)
+
+- **B4D-2 (Major), fixed** — `a40d2fc2`, plus `58382c6d` (TIER 3 (PWA)). A floating repeat's next copy drops the kept time
+  (finishTask, skipOccurrence); `taskSpan` limits it by its window's last day, not by a planned `due`; `planAgain` takes a
+  floating repeat whose planned time passed; it is late only after its window (`isLate`, `lateCount`). Test:
+  lib/tasks/r4-plan-b4d.test.ts (keep → finish → next week placed again on a working day; not late mid-week; the Agenda's and
+  the Day Timeline's words; the notification count; a fixed repeat keeps its time as before).
+- **B4D-3 (Major), fixed** — `e4f12101`. `hoursUntil` (lib/tasks/work-hours.ts): the typed end moves the day's last block,
+  later or earlier; the field says so under it. Help text updated above. Test: lib/tasks/r4-plan-b4d.test.ts.
+- **B4D-6 (Minor), fixed** — `bfb441fd` (TIER 3 (stored formats)). `readDayBlocks` leaves a weekday out (the usual hours)
+  when none of its stored blocks can be read; only a stored empty list is a day off. Test: lib/tasks/r4-plan-b4d.test.ts.
+- **B4D-7 (Minor), fixed** — `219c14ec`. "The usual (…)" and NOVA's English words for the usual hours go through formatClock
+  (`blockWords`, now in lib/tasks/work-hours.ts). Test: lib/tasks/r4-plan-b4d.test.ts.
+- **B4D-9 (Minor), said** — see #305 "Older builds" above: why it cannot be made fully safe, and what an older build does.
