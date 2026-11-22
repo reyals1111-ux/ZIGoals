@@ -45,6 +45,9 @@ const NoteLock = lazy(() => import('./note-lock'));
 const NoteSave = lazy(() => import('./note-save'));
 // Session AV lane 2 (r5-notes; LEDGER #363, Craft): change a table in the words being edited, loaded on the press.
 const NoteTableEdit = lazy(() => import('./note-table-edit'));
+// Session AV lane 2 (r5-notes; LEDGER #367, Craft): a note's look (cover and page colour), loaded when used.
+const NoteLook = lazy(() => import('./note-look'));
+const NoteCover = lazy(() => import('./note-look').then(m => ({default: m.NoteCover})));
 const shortWords = (w: string) => { const t = w.replace(/\s+/g, ' ').trim(); return t.length > 40 ? `${t.slice(0, 39).trimEnd()}…` : t; };
 
 /**
@@ -69,7 +72,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
   const [shown, setShown] = useState(false), covered = !!note?.locked && !shown;
   const doneWriting = useCallback(() => { setWriting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-write-button')?.focus()); }, []);
   const closeFind = useCallback(() => { setFinding(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-find-button')?.focus()); }, []);
-  const [tabling, setTabling] = useState(false);
+  const [tabling, setTabling] = useState(false), [lookOpen, setLookOpen] = useState(false);
   const closeTable = useCallback(() => { setTabling(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-table-button')?.focus()); }, []);
   const [versionsOpen, setVersionsOpen] = useState(false), [printing, setPrinting] = useState(false), [propsOpen, setPropsOpen] = useState(false);
   const donePrinting = useCallback(() => { setPrinting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-print-button')?.focus()); }, []);
@@ -134,7 +137,10 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {tabling && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteTableEdit value={body} onChange={setBody} onClose={closeTable}/></Suspense></LoadBoundary>}
       {finding && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteFind value={body} onChange={setBody} field={() => box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea') ?? null} onClose={closeFind}/></Suspense></LoadBoundary>}
     </> : <>
-      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} photos={note ? notePhotoIdsOf(note) : undefined} outline fold notes={record?.notes}/>
+      <div className="note-page" data-look={note?.look?.colour}>
+        {note?.look?.cover && notePhotoIdsOf(note).includes(note.look.cover) && <LoadBoundary quiet><Suspense fallback={null}><NoteCover id={note.look.cover} name={noteName(note)}/></Suspense></LoadBoundary>}
+        <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} photos={note ? notePhotoIdsOf(note) : undefined} outline fold notes={record?.notes}/>
+      </div>
       {note && fieldTags(note).length > 0 && <p className="note-tag-line"><span className="fine">Tags: </span>{fieldTags(note).map(t => onTag ? <button key={t} type="button" className="note-tag" aria-label={`#${t}: show the notes with this tag`} onClick={() => onTag(t)}>#{t}</button> : <span key={t} className="note-tag">#{t}</span>)}</p>}
       {note && /@remind|!remind|@herinner|⏰/i.test(note.body) && <LoadBoundary quiet><Suspense fallback={null}><NoteReminderChips note={note}/></Suspense></LoadBoundary>}
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button>
@@ -145,6 +151,9 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
     </>}
     {note && <NoteExtras note={note} change={change} onDeleted={onDeleted} onPlace={mode === 'edit' ? placePhoto : undefined} onUnplace={mode === 'edit' ? (id => setBody(b => withoutPhotoLines(b, id))) : undefined} onLocked={() => setShown(true)}/>}
     {note && note.body.trim() && mode === 'read' && <NoteInfo note={note}/>}
+    {note && note.kind !== 'inbox' && mode === 'read' && <details className="note-fold note-look-fold" onToggle={e => setLookOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Look <span className="fine">· {note.look?.colour || note.look?.cover ? [note.look.colour ? `${note.look.colour[0]!.toUpperCase()}${note.look.colour.slice(1)} page` : '', note.look.cover ? 'a cover' : ''].filter(Boolean).join(', with ') : 'a cover and a page colour'}</span></summary>
+      {lookOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteLook note={note} change={change}/></Suspense></LoadBoundary>}
+    </details>}
     {note && record && <details className="note-fold note-props-fold" onToggle={e => setPropsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Properties <span className="fine">· {propsFace(note.props) ?? 'your own fields, such as a status or a day'}</span></summary>
       {propsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteProps note={note} record={record} change={change}/></Suspense></LoadBoundary>}
     </details>}

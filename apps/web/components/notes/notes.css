@@ -402,3 +402,20 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-daily-range { margin: 12px 0 0; padding: 8px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); min-inline-size: 0; }
 .note-daily-range legend { font-weight: 600; padding: 0 4px; }
 .note-daily-range input[type="date"] { min-height: 44px; }
+/* Session AV lane 2 (r5-notes; LEDGER #367): a note's look — a light tint over the theme's own page, so the words keep
+   their contrast (the text colour is the theme's); a cover from the note's own photos. Reading view only. */
+.note-page { border-radius: 14px; }
+.note-page[data-look] { padding: 10px 14px; background: color-mix(in srgb, var(--look) 13%, transparent); border: 1px solid color-mix(in srgb, var(--look) 35%, transparent); }
+.note-page[data-look="sand"], .note-look-swatch[data-look="sand"] { --look: #d4ad6a; }
+.note-page[data-look="sage"], .note-look-swatch[data-look="sage"] { --look: #78a886; }
+.note-page[data-look="sky"], .note-look-swatch[data-look="sky"] { --look: #6aa3d8; }
+.note-page[data-look="lilac"], .note-look-swatch[data-look="lilac"] { --look: #a58bd6; }
+.note-page[data-look="rose"], .note-look-swatch[data-look="rose"] { --look: #d68aa0; }
+.note-page[data-look="stone"], .note-look-swatch[data-look="stone"] { --look: #999999; }
+.note-cover { display: block; inline-size: 100%; max-block-size: 220px; object-fit: cover; border-radius: 12px; margin: 0 0 10px; }
+.note-look-pick fieldset { border: 0; padding: 0; margin: 8px 0; min-inline-size: 0; }
+.note-look-pick legend { font-weight: 600; }
+.note-look-options { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.note-look-options label { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; cursor: pointer; }
+.note-look-swatch { inline-size: 18px; block-size: 18px; border-radius: 50%; background: var(--look); border: 1px solid color-mix(in srgb, currentColor 40%, transparent); }
+@media (forced-colors: active) { .note-page[data-look] { background: Canvas; border-color: CanvasText; } }
