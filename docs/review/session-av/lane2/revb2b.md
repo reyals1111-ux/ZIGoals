@@ -76,3 +76,19 @@ there). One commit per finding. No stored format changes in any of them; no new 
   length, kindness and word checks pass unchanged.
 - Spec: none needed (av2-challenge-write-out.spec reads the card, not a given line).
 - Help / What's new: none needed.
+
+## B2B-7 Minor: the HabitBull/Tickmate preview printed a raw ISO day
+
+- Verdict: fixed.
+- Fix: the preview's words come from a small pure module, `apps/web/lib/import/switch/preview-words.ts`
+  (`importedHabitLine`, `dayRangeWords`), with every day through the app's `formatDate` ("· 2 days from Oct 1, 2026" in
+  the suite's en-US, "1 Oct 2026" in en-GB). The Daylio preview's "from 2026-10-01 to …" line in the same file had the
+  same defect and is fixed the same way. components/import/switch-import-more.tsx now calls them.
+- Tests: `apps/web/lib/import/switch/preview-words.test.ts` (habit line, "with amounts", no days, the Daylio range and
+  its dashes, and the component uses them with no raw day left).
+- Spec: `apps/web/tests/av2-habit-imports.spec.ts`, two lines changed deliberately (labelled) from "from 2026-10-01" to
+  "from Oct 1, 2026" (and "Oct 2, 2026"): equally strict, the whole item text still pinned.
+- Seen, not changed: `lib/date-format-guard.test.ts` already fails on lane2/batch2 for two files outside this work
+  (components/notes/note-schedules.tsx "month or weekday names by hand", components/price-alerts/price-alerts.tsx "ISO
+  date shown"); neither is touched here.
+- Help / What's new: none needed.

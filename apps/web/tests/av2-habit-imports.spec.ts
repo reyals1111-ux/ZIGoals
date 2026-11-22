@@ -40,7 +40,8 @@ test('HabitBull: preview, import, undo', async ({page}) => {
   await section.getByLabel('Choose the HabitBull CSV').setInputFiles({name: 'habitbull.csv', mimeType: 'text/csv', buffer: Buffer.from(HABITBULL)});
   await expect(section.getByText('HabitBull: 2 habits (Fictional reading, Fictional push-ups).')).toBeVisible();
   const list = section.getByRole('list', {name: 'Habits from HabitBull'});
-  await expect(list.getByRole('listitem')).toHaveText(['Fictional reading · 2 days from 2026-10-01', 'Fictional push-ups · 1 day from 2026-10-02 · with amounts']);
+  // Session AV lane 2 (revb2b #7: the first day goes through the app's date formatter, en-US in the suite, deliberate)
+  await expect(list.getByRole('listitem')).toHaveText(['Fictional reading · 2 days from Oct 1, 2026', 'Fictional push-ups · 1 day from Oct 2, 2026 · with amounts']);
   await expect(section.getByText(/HabitBull keeps no schedule in this file/)).toBeVisible();
   const before = await habitTitles(page);
   expect(before).not.toContain('Fictional reading');
@@ -57,7 +58,8 @@ test('Tickmate: a database backup, previewed; Cancel writes nothing; a CSV chose
   await section.getByRole('radio', {name: 'Tickmate (tracks and ticks)'}).check();
   await section.getByLabel('Choose the Tickmate database backup').setInputFiles({name: 'tickmate.db', mimeType: 'application/octet-stream', buffer: tickmate()});
   await expect(section.getByText('Tickmate: 1 habit (Fictional stretch).')).toBeVisible();
-  await expect(section.getByRole('list', {name: 'Habits from Tickmate'}).getByRole('listitem')).toHaveText(['Fictional stretch · 3 days from 2026-10-01']);
+  // Session AV lane 2 (revb2b #7: the first day through the app's date formatter, deliberate)
+  await expect(section.getByRole('list', {name: 'Habits from Tickmate'}).getByRole('listitem')).toHaveText(['Fictional stretch · 3 days from Oct 1, 2026']);
   const before = await habitTitles(page);
   await section.getByRole('button', {name: 'Cancel'}).click();
   expect(await habitTitles(page)).toEqual(before);
