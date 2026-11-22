@@ -44,6 +44,14 @@ export const notifyPrefsSchema = z.looseObject({
    * build cannot read is dropped on read; an older build keeps it untouched.
    */
   weighIn: z.looseObject({time, repeat: z.enum(['daily', 'weekdays', 'monthly']), weekdays: z.number().int().min(1).max(127).optional().catch(undefined), day: z.number().int().min(1).max(28).optional().catch(undefined)}).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r5-body; LEDGER #369, Productive's reminders for each part of the day; TIER 3 (stored format) and
+   * TIER 3 (PWA)): one reminder at the start of the morning, the afternoon and the evening (times the person sets) saying
+   * how many of that part's habits are still open, in place of one per habit for the habits in a part. `on` false keeps
+   * the times. Optional and loose; a value this build cannot read is dropped on read; an older build keeps it untouched
+   * and sends one reminder per habit, as before.
+   */
+  habitParts: z.looseObject({on: z.boolean(), morning: time.optional().catch(undefined), afternoon: time.optional().catch(undefined), evening: time.optional().catch(undefined)}).optional().catch(undefined),
   /** Set while notifications are on on this device: a cheap hint so most pages never load the notification code. */
   here: z.boolean().optional(),
 });
