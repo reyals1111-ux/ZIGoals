@@ -51,7 +51,8 @@ export function tagRenamePreview(record: Pick<Notes, 'notes'>, from: string, to:
   const merge = key(to) !== key(from) && record.notes.some(n => noteTags(n).some(t => key(t) === key(to)));
   return {notes: hit.length, locked: hit.filter(n => n.locked).length, merge};
 }
-export type TagRenameResult = {record: Notes; undo: NotesUndo; changed: number; locked: number; merge: boolean; /** The old tag's template stayed because the new tag has its own. */ templateKept: boolean};
+export type TagRenameResult = {record: Notes; undo: NotesUndo; changed: number; locked: number; merge: boolean; /** The old tag's template stayed because the new tag has its own. */ templateKept: boolean;
+  /** Review b6n B6N-3: changed notes whose earlier words were not kept as a version, because Earlier versions is full and keeping them would push out other notes' versions. */ unversioned: number};
 export function renameTag(record: Notes, fromRaw: string, toRaw: string, now: string, zone: string = checklistZone()): TagRenameResult {
   const from = fromRaw.replace(/^#+/, '').trim(), to = newTagName(toRaw);
   if (!from) throw new Error('Choose the tag to rename first.');
@@ -78,7 +79,17 @@ export function renameTag(record: Notes, fromRaw: string, toRaw: string, now: st
   });
   if (!before.length) throw new Error(`No note carries #${from} any more.`);
   let next: Notes = {...record, notes};
-  if (versions.length) next.versions = capNoteVersions([...(record.versions ?? []), ...versions], keptNoteIds(next));
+  // Review b6n B6N-3: a rename never pushes out another note's earlier versions. Each changed note's earlier words are
+  // kept while Earlier versions has room for them (a note's own tenth version may give way to it, as on any save of that
+  // note); the rest are counted and said. Undo puts the versions back exactly as they were.
+  const ids = keptNoteIds(next), oldVersions = record.versions, oldIds = new Set((oldVersions ?? []).map(v => v.id)), added = new Set<string>();
+  let kept = [...(oldVersions ?? [])], unversioned = 0;
+  for (const v of versions) {
+    const tried = capNoteVersions([...kept, v], ids), here = new Set(tried.map(x => x.id));
+    if (!here.has(v.id) || kept.some(x => x.noteId !== v.noteId && !here.has(x.id))) { unversioned++; continue; }
+    kept = tried; added.add(v.id);
+  }
+  if (added.size) next.versions = kept;
   // The template of the old tag (and of the tags under it) follows it, unless the new tag has its own.
   let templateKept = false;
   const templates = record.tagTemplates;
@@ -91,12 +102,15 @@ export function renameTag(record: Notes, fromRaw: string, toRaw: string, now: st
   const {tagTemplates: oldTemplates, focusTag: oldFocus} = record;
   const also = (r: Notes): Notes => {
     const back: Notes = {...r};
+    // Review b6n B6N-3: the versions exactly as they were (any added since the rename by another save stay after them).
+    const later = (r.versions ?? []).filter(v => !added.has(v.id) && !oldIds.has(v.id)), versionsBack = [...(oldVersions ?? []), ...later];
+    if (versionsBack.length) back.versions = versionsBack; else delete back.versions;
     if (oldTemplates) back.tagTemplates = oldTemplates; else delete back.tagTemplates;
     if (oldFocus) back.focusTag = oldFocus; else delete back.focusTag;
     return notesSchema.parse(back);
   };
   next = checked(next);
   const n = before.length;
-  return {record: next, changed: n, locked, merge, templateKept,
+  return {record: next, changed: n, locked, merge, templateKept, unversioned,
     undo: {before, created: [], said: n === 1 ? `#${from} is back on its note.` : `#${from} is back on its ${n} notes.`, also}};
 }

@@ -24,11 +24,11 @@ export default function TagRename({record, change}: {record: Notes; change: Chan
   const typed = newTagName(name), preview = tag && typed ? tagRenamePreview(record, tag, typed) : null;
   if (!tree.length) return <p className="fine">No tags yet. Once a note has a #tag, you can rename it here or merge it into another tag.</p>;
   const run = (to: string, merging: boolean) => {
-    let out = {changed: 0, locked: 0, templateKept: false};
+    let out = {changed: 0, locked: 0, templateKept: false, unversioned: 0};
     const words = (n: number) => merging ? `#${tag} merged into #${to} on ${many(n)}.` : `#${tag} is #${to} now, on ${many(n)}.`;
     const ok = change(r => { const res = renameTag(r, tag, to, new Date().toISOString()); out = res; return {record: res.record, undo: res.undo}; }, words(tagRenamePreview(record, tag, to).notes));
     if (ok) {
-      setSaid([out.locked ? `${out.locked === 1 ? '1 of them is locked' : `${out.locked} of them are locked`}: changed, not shown.` : '', out.templateKept ? `#${to} has its own template, so the template of #${tag} stays as it was.` : '', 'The earlier words are under each note’s Earlier versions.'].filter(Boolean).join(' '));
+      setSaid([out.locked ? `${out.locked === 1 ? '1 of them is locked' : `${out.locked} of them are locked`}: changed, not shown.` : '', out.templateKept ? `#${to} has its own template, so the template of #${tag} stays as it was.` : '', out.unversioned ? `Earlier versions is full, so the earlier words of ${many(out.unversioned)} were not kept as a version (no other note’s versions were pushed out); Undo in the message still puts them back.` : 'The earlier words are under each note’s Earlier versions.'].filter(Boolean).join(' '));
       setName(''); setFrom(to);
     }
   };
