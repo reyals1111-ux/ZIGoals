@@ -12,7 +12,7 @@ All eight rows are **built**. Nothing is Carried.
 
 - **TIER 3 (stored formats)** — commit `461eeb0e`, all additive and optional on loose records, each dropped on read when it
   cannot be read; **no new key**. Listed under "Stored changes".
-- **TIER 3 (PWA)** — commit listed under "Commits": a task of a project on hold sends no reminder while the hold lasts
+- **TIER 3 (PWA)** — commit `be0d8c3f`: a task of a project on hold sends no reminder while the hold lasts
   (lib/tasks/reminders.ts `reminderInstants`, read by lib/notify/sync.ts), and is not counted in "Plan your day · N tasks
   overdue" (lib/tasks/engine.ts `lateCount`). The ledger's note says "no notification-plan change this round"; #392's own row
   asks for the reminders to leave, so this is the one change, in its own commit: only fewer wakes, never a new one, never a
@@ -49,8 +49,12 @@ All eight rows are **built**. Nothing is Carried.
 
 - `461eeb0e` TIER 3 (stored formats): a project's hold, in order and review, a task in order, repeats from the month's end,
   label groups and the focus.
-- (feature) Session AV lane 2 (planning): OmniFocus's projects and Capacities' repeat record — LEDGER #391–#398.
-- (PWA) TIER 3 (PWA): no reminder and no overdue count for a project on hold — LEDGER #392.
+- `7e1b7dee` Session AV lane 2 (planning): OmniFocus's projects and Capacities' repeat record — LEDGER #391–#398.
+- `be0d8c3f` TIER 3 (PWA): no reminder and no overdue count for a project on hold — LEDGER #392.
+
+Checks run: typecheck (whole app) green after each part; eslint of every changed file; unit tests lib/tasks, lib/notify and the
+r4–r6 plan answers (all green; lib/notify/ak-journey-fixes.test.ts hit its 5 s timeout once under the shared machine's load and
+passed when run again alone). Not run (lead's): next build, Playwright, the weight check, the theme sheets, frozen readers.
 
 ## Stored changes (TIER 3 (stored formats), commit `461eeb0e`)
 
