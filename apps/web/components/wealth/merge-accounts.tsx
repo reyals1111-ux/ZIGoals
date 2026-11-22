@@ -4,7 +4,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {ACCOUNTS, type Account} from '../../lib/accounts/schema';
 import {MONEY_LOG} from '../../lib/money-log/schema';
 import {MONEY_TAGS_RECORD} from '../../lib/money-tags/schema';
-import {bankNamesFor, defaultAsName, mergeAccountsRecord, mergeLog, mergeProblem, mergeTargets, planMerge, undoMergeAccounts, undoMergeLog, type MergeUndo} from '../../lib/money-log/merge-accounts';
+import {bankNamesFor, defaultAsName, mergeAccounts, mergeLog, mergeProblem, mergeTargets, planMerge, undoMergeAccounts, undoMergeLog, type MergeUndo} from '../../lib/money-log/merge-accounts';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import {showUndo} from '../ui/undo-toast';
 import {moneyCents} from './money-tools/format';
@@ -35,10 +35,11 @@ export default function MergeAccounts({list, title}: {list: readonly Account[]; 
   const merge = () => {
     if (!plan || !from || !into) { setSaid(problem ?? 'Choose the two accounts.'); return; }
     const at = new Date().toISOString(), fromBefore = from, intoBefore = into, shown = list.map(a => a.id);
-    try { accounts.update(current => mergeAccountsRecord(current, fromBefore.id, intoBefore.id, at)); } catch { setSaid('This could not be saved on this device. Nothing was changed.'); return; }
+    let added: MergeUndo['added'] = {snapshots: [], payments: []};
+    try { accounts.update(current => { const out = mergeAccounts(current, fromBefore.id, intoBefore.id, at); added = out.added; return out.accounts; }); } catch { setSaid('This could not be saved on this device. Nothing was changed.'); return; }
     let undo: MergeUndo | null = null;
-    try { log.update(current => { const out = mergeLog(current, plan, name, removing, shown); undo = {fromBefore, intoBefore, renamed: out.renamed, asName: name.trim().slice(0, 40), removed: out.removed, ...out.before}; return out.log; }); }
-    catch { try { accounts.update(current => undoMergeAccounts(current, {fromBefore, intoBefore})); } catch { /* the accounts change stays; said below */ } setSaid('Your money log could not be saved on this device, so nothing was merged.'); return; }
+    try { log.update(current => { const out = mergeLog(current, plan, name, removing, shown); undo = {fromBefore, intoBefore, at, added, renamed: out.renamed, asName: name.trim().slice(0, 40), removed: out.removed, ...out.before, after: out.after}; return out.log; }); }
+    catch { try { accounts.update(current => undoMergeAccounts(current, {fromBefore, intoBefore, added, at})); } catch { /* the accounts change stays; said below */ } setSaid('Your money log could not be saved on this device, so nothing was merged.'); return; }
     const done = undo as MergeUndo | null;
     const words = `${fromBefore.name} merged into ${intoBefore.name}: ${plural(plan.balances.moved, 'balance', 'balances')}${plan.payments ? `, ${plural(plan.payments, 'payment', 'payments')}` : ''} and ${plural(plan.entries.filter(x => !removing.has(x.id)).length, 'entry', 'entries')} moved${removing.size ? `, ${plural(removing.size, 'double', 'doubles')} removed` : ''}. ${fromBefore.name} is archived with its own history.`;
     reset(); setSaid(words); setFromId(''); requestAnimationFrame(() => heading.current?.focus());

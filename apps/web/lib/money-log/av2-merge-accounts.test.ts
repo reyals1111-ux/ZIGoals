@@ -3,7 +3,7 @@ import {accountsSchema, type Account, type Accounts} from '../accounts/schema';
 import {balanceOn} from '../accounts/net-worth';
 import {moneyLogSchema, type MoneyEntry, type MoneyLog} from './schema';
 import {totals} from './engine';
-import {bankNamesFor, defaultAsName, doubleOf, mergeAccountsRecord, mergeLog, mergeProblem, mergeTargets, planMerge, undoMergeAccounts, undoMergeLog, type MergeUndo} from './merge-accounts';
+import {bankNamesFor, defaultAsName, doubleOf, mergeAccounts, mergeAccountsRecord, mergeLog, mergeProblem, mergeTargets, planMerge, undoMergeAccounts, undoMergeLog, type MergeUndo} from './merge-accounts';
 
 /**
  * Session AV lane 2, round 5 (money; Tiller's Data Cleanup, LEDGER #387): merge two accounts — balances, payments, the
@@ -53,7 +53,9 @@ describe('the merge', () => {
     expect(into.snapshots.map(s => [s.date, s.value])).toEqual([['2026-01-31', '100000'], ['2026-02-28', '120000'], ['2026-03-31', '91000'], ['2026-04-30', '95000']]);
     expect(from.archivedAt).toBe(AT); expect(from.snapshots).toEqual(OLD.snapshots);
     expect(balanceOn(into, '2026-02-15')?.value).toBe(100000n);
-    expect(undoMergeAccounts(next, {fromBefore: OLD, intoBefore: NEW})).toEqual(ACCOUNTS);
+    const {added} = mergeAccounts(ACCOUNTS, OLD.id, NEW.id, AT);
+    expect(added.snapshots).toEqual([id(9001), id(9002)]);
+    expect(undoMergeAccounts(next, {fromBefore: OLD, intoBefore: NEW, added, at: AT})).toEqual(ACCOUNTS);
   });
   it('a debt’s payments go with it', () => {
     const next = mergeAccountsRecord(ACCOUNTS, CARD2.id, CARD.id, AT);
@@ -72,7 +74,7 @@ describe('the merge', () => {
     const before = totals(LOG.entries, '2026-01-01', '2026-12-31'), after = totals(out.log.entries, '2026-01-01', '2026-12-31');
     expect(before.find(t => t.currency === 'EUR')!.expenses - after.find(t => t.currency === 'EUR')!.expenses).toBe(2000);
     expect(moneyLogSchema.parse(out.log)).toEqual(out.log);
-    const undo: MergeUndo = {fromBefore: OLD, intoBefore: NEW, renamed: out.renamed, asName: 'ING Betaalrekening', removed: out.removed, ...out.before};
+    const undo: MergeUndo = {fromBefore: OLD, intoBefore: NEW, at: AT, added: {snapshots: [], payments: []}, renamed: out.renamed, asName: 'ING Betaalrekening', removed: out.removed, ...out.before, after: out.after};
     expect(undoMergeLog(out.log, undo)).toEqual(LOG);
   });
   it('without a kept order, the order as shown is kept with the other first; an empty name is refused', () => {
@@ -80,7 +82,7 @@ describe('the merge', () => {
     const out = mergeLog(plain, planMerge(ACCOUNTS, plain, OLD.id, NEW.id, [], 'x'), 'x', new Set(), [OLD.id, NEW.id, USD.id]);
     expect(out.log.accounts?.order).toEqual([NEW.id, OLD.id, USD.id]);
     expect(out.log.entries).toEqual(plain.entries);
-    expect(undoMergeLog(out.log, {fromBefore: OLD, intoBefore: NEW, renamed: out.renamed, asName: 'x', removed: out.removed, ...out.before}).accounts).toEqual({notes: {}});
+    expect(undoMergeLog(out.log, {fromBefore: OLD, intoBefore: NEW, at: AT, added: {snapshots: [], payments: []}, renamed: out.renamed, asName: 'x', removed: out.removed, ...out.before, after: out.after}).accounts).toEqual({notes: {}});
     expect(() => mergeLog(plain, plan, '  ', new Set(), [])).toThrow('Type the name their entries take.');
   });
   it('review b5k #2: a copy that holds the person’s own edits is kept, the differences are said, and it is never offered ticked', () => {
@@ -103,5 +105,19 @@ describe('the merge', () => {
     // An edited copy on the other side stays the other side's; the merged one is offered, unticked when it differs.
     const other = doubleOf(e({ref: 'R9', note: 'Mine', history: [{at, by: 'you', field: 'note', to: 'Mine'}]}), e({ref: 'R9'}));
     expect(other.remove.note).toBeUndefined(); expect(other.edited).toBe(true); expect(other.differs).toEqual(['note', 'changes']);
+  });
+  it('review b5k #3: Undo reverses only the merge’s own changes; what was added since stays', () => {
+    const {accounts: merged, added} = mergeAccounts(ACCOUNTS, OLD.id, NEW.id, AT);
+    const later = accountsSchema.parse({...merged, items: merged.items.map(a => a.id === NEW.id ? {...a, snapshots: [...a.snapshots, snap(77, '2026-05-31', '99000')], updatedAt: '2026-11-21T10:00:00.000Z'} : a)});
+    const back = undoMergeAccounts(later, {fromBefore: OLD, intoBefore: NEW, added, at: AT});
+    expect(back.items.find(a => a.id === NEW.id)!.snapshots.map(x => x.date)).toEqual(['2026-03-31', '2026-04-30', '2026-05-31']);
+    expect(back.items.find(a => a.id === NEW.id)!.updatedAt).toBe('2026-11-21T10:00:00.000Z');
+    expect(back.items.find(a => a.id === OLD.id)).toEqual(OLD);
+    const plan3 = planMerge(ACCOUNTS, LOG, OLD.id, NEW.id, ['ING Current'], 'ING Betaalrekening'), out = mergeLog(LOG, plan3, 'ING Betaalrekening', new Set(), [OLD.id, NEW.id]);
+    const edited = {...out.log, accounts: {...out.log.accounts, notes: {...out.log.accounts?.notes, [NEW.id]: 'Rewritten after the merge'}}};
+    const undone = undoMergeLog(edited, {fromBefore: OLD, intoBefore: NEW, at: AT, added, renamed: out.renamed, asName: 'ING Betaalrekening', removed: out.removed, ...out.before, after: out.after});
+    expect(undone.accounts?.notes?.[NEW.id]).toBe('Rewritten after the merge');
+    expect(undone.accounts?.order).toEqual(LOG.accounts?.order);
+    expect(undone.accounts?.checked).toEqual(LOG.accounts?.checked);
   });
 });
