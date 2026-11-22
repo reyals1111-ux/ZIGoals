@@ -2482,6 +2482,17 @@
         background-color: #74d5e9;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%2304131f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     }
+    .agenda-hour-zone:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .agenda-hour-block:not(#\-) {
+        --agenda-accent: var(--block-colour, var(--line));
+        background-image: none;
+        background-color: color-mix(in srgb, var(--block-colour, transparent) 12%, transparent)
+    }
+    .agenda-hour-block[data-drop]:not(#\-) {
+        outline-color: var(--cyan, currentColor)
+    }
 }
 /*  components/agenda/agenda.css  */
 @scope (:root[data-theme=dark]) {
@@ -5914,6 +5925,43 @@
     }
     .agenda-cycle:not(#\-) {
         border-top-color: var(--line)
+    }
+    .cycle-history-list li:not(#\-), .cycle-words-list li:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .cycle-table-wrap:not(#\-), .cycle-glance-wrap:not(#\-) {
+        border-color: var(--line)
+    }
+    .cycle-table-wrap:focus-visible:not(#\-), .cycle-glance-wrap:focus-visible:not(#\-) {
+        outline-color: var(--accent, currentColor)
+    }
+    .cycle-table th:not(#\-), .cycle-table td:not(#\-) {
+        border-bottom-color: var(--line)
+    }
+    .cycle-cell:not(#\-) {
+        border-color: var(--line)
+    }
+    .cycle-cell[data-flow="light"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 18%, transparent)
+    }
+    .cycle-cell[data-flow="medium"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 34%, transparent)
+    }
+    .cycle-cell[data-flow="heavy"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 52%, transparent)
+    }
+    .cycle-choices:not(#\-) {
+        border-color: var(--line)
+    }
+    @media (forced-colors: active) {
+        .cycle-cell[data-flow]:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: HighlightText
+        }
     }
 }
 /*  components/dashboard/dashboard.css  */
@@ -11713,6 +11761,63 @@
         box-shadow: inset 0 0 0 1px var(--brand-cyan, #6fe6f6)
     }
 }
+/*  components/health/r5/gym-r5.css  */
+@scope (:root[data-theme=dark]) {
+    .r5-status-now:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r5-status-form fieldset:not(#\-), .r5-feel fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .r5-choice:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r5-choice:has(input:checked):not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+    .r5-choice:focus-within:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r5-easier:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, #8fb6ff14)
+    }
+    .r5-band-bar:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r5-band-bar .r5-band-range:not(#\-) {
+        background-image: none;
+        background-color: currentColor
+    }
+    .r5-band-bar .r5-band-fill:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r5-band-days li:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r5-band-days li[data-today="true"]:not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+    .r5-band-30 rect:not(#\-) {
+        fill: currentColor
+    }
+    .r5-band-30 rect.is-today:not(#\-) {
+        fill: var(--brand-cyan, #6fe6f6)
+    }
+    .r5-photo:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r5-star[aria-pressed="true"] .r5-star-mark:not(#\-) {
+        color: var(--amber, #ffc857)
+    }
+    .r5-filter button[aria-pressed="true"]:not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+    .workouts-past summary .r5-star-mark:not(#\-) {
+        color: var(--amber, #ffc857)
+    }
+}
 /*  components/health/sleep/av2-bodymind-sleep.css  */
 @scope (:root[data-theme=dark]) {
     .sleep-need:not(#\-) {
@@ -14613,6 +14718,75 @@
     .note-save:not(#\-) {
         border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent)
     }
+    .notes-select-bar:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .notes-select-item input:not(#\-) {
+        accent-color: var(--brand-violet, #826cff)
+    }
+    .note-embed-quote:not(#\-) {
+        border-inline-start-color: color-mix(in srgb, currentColor 30%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, currentColor 5%, transparent)
+    }
+    .note-embed-quote > blockquote:not(#\-) {
+        border-color: currentcolor
+    }
+    @media (forced-colors: active) {
+        .note-embed-quote:not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    .note-table-edit:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .note-daily-range:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .note-page[data-look]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--look) 13%, transparent);
+        border-color: color-mix(in srgb, var(--look) 35%, transparent)
+    }
+    .note-page[data-look="sand"]:not(#\-), .note-look-swatch[data-look="sand"]:not(#\-) {
+        --look: #d4ad6a
+    }
+    .note-page[data-look="sage"]:not(#\-), .note-look-swatch[data-look="sage"]:not(#\-) {
+        --look: #78a886
+    }
+    .note-page[data-look="sky"]:not(#\-), .note-look-swatch[data-look="sky"]:not(#\-) {
+        --look: #6aa3d8
+    }
+    .note-page[data-look="lilac"]:not(#\-), .note-look-swatch[data-look="lilac"]:not(#\-) {
+        --look: #a58bd6
+    }
+    .note-page[data-look="rose"]:not(#\-), .note-look-swatch[data-look="rose"]:not(#\-) {
+        --look: #d68aa0
+    }
+    .note-page[data-look="stone"]:not(#\-), .note-look-swatch[data-look="stone"]:not(#\-) {
+        --look: #999999
+    }
+    .note-look-pick fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .note-look-swatch:not(#\-) {
+        background-image: none;
+        background-color: var(--look);
+        border-color: color-mix(in srgb, currentColor 40%, transparent)
+    }
+    @media (forced-colors: active) {
+        .note-page[data-look]:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            border-color: CanvasText
+        }
+    }
+    .note-card:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .note-card-answer:not(#\-) {
+        border-top-color: color-mix(in srgb, currentColor 30%, transparent)
+    }
 }
 /*  components/notes/this-day-strip.css  */
 @scope (:root[data-theme=dark]) {
@@ -14649,6 +14823,9 @@
     }
     .notify-types .ai-switch-copy small:not(#\-) {
         color: var(--muted,#aab2d9)
+    }
+    .notify-parts:not(#\-) {
+        border-color: var(--line)
     }
 }
 /*  components/notify/notify-sync.css  */
@@ -28100,6 +28277,9 @@
     .task-waiting:not(#\-), .task-pieces:not(#\-), .task-after-hours:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task-travel:not(#\-), .task-place:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 /*  components/tasks/tasks-plan.css  */
 @scope (:root[data-theme=dark]) {
@@ -28342,6 +28522,36 @@
     }
     .task-plan-fields:not(#\-) {
         border-color: var(--line)
+    }
+}
+/*  components/tasks/tasks-r5.css  */
+@scope (:root[data-theme=dark]) {
+    .tasks-blocks:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-blocks > summary small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-blocks-list small:not(#\-), .tasks-block-tasks small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-block-swatch:not(#\-) {
+        background: var(--block-colour, var(--line))
+    }
+    .tasks-block-today:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-buckets h3 small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .task-r5-fields:not(#\-) {
+        border-color: var(--line)
+    }
+    .task-play:not(#\-) {
+        border-color: var(--line)
+    }
+    .task-play-steps [data-step=done]:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/tasks/tasks-when.css  */
@@ -28762,6 +28972,21 @@
     .today-timeline-skeleton:not(#\-) {
         background-image: none;
         background-color: #ffffff0d
+    }
+    .timeline-mark:not(#\-)::before {
+        background-image: none;
+        background-color: var(--item-colour, var(--violet));
+        border-color: var(--item-colour, var(--violet))
+    }
+    .timeline-mark-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--item-colour, var(--violet))
+    }
+    @media (forced-colors: active) {
+        .timeline-mark-dot:not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
     }
 }
 /*  components/today-orbits/today-orbits.css  */
@@ -29766,6 +29991,49 @@
     }
     .money-mark-checked:not(#\-) {
         color: var(--text-secondary,var(--muted))
+    }
+}
+/*  components/wealth/spending/money-r5.css  */
+@scope (:root[data-theme=dark]) {
+    .money-yesterday-choices:not(#\-) {
+        border-color: currentcolor
+    }
+    .money-ytd-table caption:not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .money-ytd-table th:not(#\-), .money-ytd-table td:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.25))
+    }
+    .bill-paid-early:not(#\-) {
+        border-left-color: var(--line,rgba(140,160,220,.35))
+    }
+    .money-merge:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.3))
+    }
+    .money-merge-names:not(#\-), .money-merge-doubles:not(#\-) {
+        border-color: currentcolor
+    }
+    .money-whatif:not(#\-) {
+        border-top-color: var(--line,rgba(140,160,220,.25))
+    }
+    .money-whatif-line:not(#\-) {
+        fill: none;
+        stroke: var(--violet,var(--accent,#a78bfa))
+    }
+    .money-whatif-key-forecast:not(#\-), .money-whatif-key-model:not(#\-) {
+        border-top-color: var(--cyan,#45d8ef)
+    }
+    .money-whatif-key-model:not(#\-) {
+        border-top-color: var(--violet,var(--accent,#a78bfa))
+    }
+    .money-sheet-scroll:focus-visible:not(#\-) {
+        outline-color: var(--focus,var(--cyan,#45d8ef))
+    }
+    .money-sheet-table caption:not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .money-sheet-table th:not(#\-), .money-sheet-table td:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.25))
     }
 }
 /*  components/wealth/spending/people-money.css  */

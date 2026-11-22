@@ -876,6 +876,10 @@
         background-color: #74d5e9;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%2304131f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     }
+    .agenda-hour-block:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--block-colour, transparent) 12%, transparent)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
     .agenda-cell:not(#\-):not(#\-) {
@@ -2265,6 +2269,26 @@
     .command-palette-row[aria-selected="true"]:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--brand-violet, #826cff) 22%, transparent)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
+    .cycle-cell[data-flow="light"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 18%, transparent)
+    }
+    .cycle-cell[data-flow="medium"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 34%, transparent)
+    }
+    .cycle-cell[data-flow="heavy"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 52%, transparent)
+    }
+    @media (forced-colors: active) {
+        .cycle-cell[data-flow]:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
@@ -4314,6 +4338,20 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .r5-easier:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, #8fb6ff14)
+    }
+    .r5-band-bar .r5-band-range:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: currentColor
+    }
+    .r5-band-bar .r5-band-fill:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .evening-ready:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent)
@@ -5254,6 +5292,24 @@
     .note-callout:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--co) 9%, transparent)
+    }
+    .note-embed-quote:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, currentColor 5%, transparent)
+    }
+    .note-page[data-look]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--look) 13%, transparent)
+    }
+    .note-look-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--look)
+    }
+    @media (forced-colors: active) {
+        .note-page[data-look]:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
@@ -9952,6 +10008,11 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .tasks-block-swatch:not(#\-):not(#\-) {
+        background: var(--block-colour, var(--line))
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .tasks-nav-item:not(#\-):not(#\-) {
         background-image: none;
         background-color: transparent
@@ -10074,6 +10135,20 @@
     .today-timeline-skeleton:not(#\-):not(#\-) {
         background-image: none;
         background-color: #ffffff0d
+    }
+    .timeline-mark:not(#\-):not(#\-)::before {
+        background-image: none;
+        background-color: var(--item-colour, var(--violet))
+    }
+    .timeline-mark-dot:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--item-colour, var(--violet))
+    }
+    @media (forced-colors: active) {
+        .timeline-mark-dot:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {

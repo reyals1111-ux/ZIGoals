@@ -2367,6 +2367,16 @@
         background-color: #044854;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%2304131f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     }
+    .agenda-hour-zone:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .agenda-hour-block:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--block-colour, transparent) 12%, transparent)
+    }
+    .agenda-hour-block[data-drop]:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan, currentColor) 40%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .agenda-views button[aria-pressed=true]:not(#\-):not(#\-) {
@@ -5681,6 +5691,43 @@
     }
     .agenda-cycle:not(#\-):not(#\-) {
         border-top-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .cycle-history-list li:not(#\-):not(#\-), .cycle-words-list li:not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .cycle-table-wrap:not(#\-):not(#\-), .cycle-glance-wrap:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .cycle-table-wrap:focus-visible:not(#\-):not(#\-), .cycle-glance-wrap:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--accent, currentColor) 40%, #fff)
+    }
+    .cycle-table th:not(#\-):not(#\-), .cycle-table td:not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .cycle-cell:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .cycle-cell[data-flow="light"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 18%, transparent)
+    }
+    .cycle-cell[data-flow="medium"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 34%, transparent)
+    }
+    .cycle-cell[data-flow="heavy"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 52%, transparent)
+    }
+    .cycle-choices:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    @media (forced-colors: active) {
+        .cycle-cell[data-flow]:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: HighlightText
+        }
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -11178,6 +11225,62 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .r5-status-now:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r5-status-form fieldset:not(#\-):not(#\-), .r5-feel fieldset:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .r5-choice:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r5-choice:has(input:checked):not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f680)
+    }
+    .r5-choice:focus-within:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--brand-cyan, #6fe6f6) 40%, #fff)
+    }
+    .r5-easier:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--surface-2, #8fb6ff14) 30%, #000)
+    }
+    .r5-band-bar:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r5-band-bar .r5-band-range:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: currentColor
+    }
+    .r5-band-bar .r5-band-fill:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #074951) 30%, #000)
+    }
+    .r5-band-days li:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r5-band-days li[data-today="true"]:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f680)
+    }
+    .r5-band-30 rect:not(#\-):not(#\-) {
+        fill: currentColor
+    }
+    .r5-band-30 rect.is-today:not(#\-):not(#\-) {
+        fill: color-mix(in srgb, var(--brand-cyan, #6fe6f6) 40%, #fff)
+    }
+    .r5-photo:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r5-star[aria-pressed="true"] .r5-star-mark:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--amber, #fcd58b) 25%, #fff)
+    }
+    .r5-filter button[aria-pressed="true"]:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f680)
+    }
+    .workouts-past summary .r5-star-mark:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--amber, #fcd58b) 25%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .sleep-need:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
@@ -13897,6 +14000,57 @@
     .note-save:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent)
     }
+    .notes-select-bar:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .notes-select-item input:not(#\-):not(#\-) {
+        accent-color: color-mix(in srgb, var(--brand-violet, #9287f9) 40%, #fff)
+    }
+    .note-embed-quote:not(#\-):not(#\-) {
+        border-inline-start-color: color-mix(in srgb, currentColor 30%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, currentColor 5%, transparent)
+    }
+    .note-embed-quote > blockquote:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    @media (forced-colors: active) {
+        .note-embed-quote:not(#\-):not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    .note-table-edit:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .note-daily-range:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .note-page[data-look]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--look) 13%, transparent);
+        border-color: color-mix(in srgb, var(--look) 35%, transparent)
+    }
+    .note-look-pick fieldset:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .note-look-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--look) 30%, #000);
+        border-color: color-mix(in srgb, currentColor 40%, transparent)
+    }
+    @media (forced-colors: active) {
+        .note-page[data-look]:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            border-color: CanvasText
+        }
+    }
+    .note-card:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent)
+    }
+    .note-card-answer:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, currentColor 30%, transparent)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .note-this-day:not(#\-):not(#\-) {
@@ -13931,6 +14085,9 @@
     }
     .notify-types .ai-switch-copy small:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--muted,#dbdbdb) 25%, #fff)
+    }
+    .notify-parts:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -26173,6 +26330,9 @@
     .task-waiting:not(#\-):not(#\-), .task-pieces:not(#\-):not(#\-), .task-after-hours:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task-travel:not(#\-):not(#\-), .task-place:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .tasks-plan-view h3 small:not(#\-):not(#\-) {
@@ -26410,6 +26570,35 @@
     }
     .task-plan-fields:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .tasks-blocks:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-blocks > summary small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-blocks-list small:not(#\-):not(#\-), .tasks-block-tasks small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-block-swatch:not(#\-):not(#\-) {
+        background: var(--block-colour, var(--line))
+    }
+    .tasks-block-today:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-buckets h3 small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .task-r5-fields:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .task-play:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .task-play-steps [data-step=done]:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -26798,6 +26987,21 @@
     .today-timeline-skeleton:not(#\-):not(#\-) {
         background-image: none;
         background-color: #ffffff0d
+    }
+    .timeline-mark:not(#\-):not(#\-)::before {
+        background-image: none;
+        background-color: var(--item-colour, var(--violet));
+        border-color: var(--item-colour, var(--violet))
+    }
+    .timeline-mark-dot:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--item-colour, var(--violet))
+    }
+    @media (forced-colors: active) {
+        .timeline-mark-dot:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -27772,6 +27976,48 @@
     }
     .money-mark-checked:not(#\-):not(#\-) {
         color: var(--text-secondary,var(--muted))
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .money-yesterday-choices:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .money-ytd-table caption:not(#\-):not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .money-ytd-table th:not(#\-):not(#\-), .money-ytd-table td:not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
+    }
+    .bill-paid-early:not(#\-):not(#\-) {
+        border-left-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
+    }
+    .money-merge:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
+    }
+    .money-merge-names:not(#\-):not(#\-), .money-merge-doubles:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .money-whatif:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
+    }
+    .money-whatif-line:not(#\-):not(#\-) {
+        fill: none;
+        stroke: var(--violet,var(--accent,#a78bfa))
+    }
+    .money-whatif-key-forecast:not(#\-):not(#\-), .money-whatif-key-model:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--cyan,#45d8ef) 40%, #fff)
+    }
+    .money-whatif-key-model:not(#\-):not(#\-) {
+        border-top-color: var(--violet,var(--accent,#a78bfa))
+    }
+    .money-sheet-scroll:focus-visible:not(#\-):not(#\-) {
+        outline-color: var(--focus,var(--cyan,#45d8ef))
+    }
+    .money-sheet-table caption:not(#\-):not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .money-sheet-table th:not(#\-):not(#\-), .money-sheet-table td:not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {

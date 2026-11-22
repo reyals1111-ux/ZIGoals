@@ -69,6 +69,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-more-health-goals.spec.ts',
     'av2-sleep-r4.spec.ts',
     'av2-notes-callouts.spec.ts',
+    'av2-money-merge-accounts.spec.ts',
+    'av2-notes-tag-templates.spec.ts',
   ],
   // Shard 2, 44.1 worker-min as packed (Session AU); Session AV's new specs were each added here as one worker-minute and
   // took it to 111.3 measured in CI 2002 (59 of the job's 60 min). Its AV specs moved to the other lists by that run's
@@ -116,6 +118,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-revb3c-markdown-import.spec.ts',
     'av2-notes-writing.spec.ts',
     'av2-polish-wealth.spec.ts',
+    'av2-notes-event.spec.ts',
+    'av2-r5-status.spec.ts',
   ],
   // Shard 3, 60.3 worker-min: about 30.3 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -162,6 +166,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-water-day.spec.ts',
     'av2-money-average-crossover.spec.ts',
     'av2-notes-find.spec.ts',
+    'av2-money-paid-early.spec.ts',
+    'av2-notes-trash.spec.ts',
   ],
   // Shard 4, 60.6 worker-min: about 33.9 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -196,6 +202,9 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-throwback.spec.ts',
     'av2-revb3c-notes-folds.spec.ts',
     'av2-revb3c-grid.spec.ts',
+    'av2-compare-late-meal.spec.ts',
+    'av2-notes-look.spec.ts',
+    'av2-task-files.spec.ts',
   ],
   // Shard 5, 64.2 worker-min: about 33.0 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -231,6 +240,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-weigh-in.spec.ts',
     'av2-money-calendar.spec.ts',
     'av2-notes-fold.spec.ts',
+    'av2-money-spreadsheet.spec.ts',
+    'av2-planned-day.spec.ts',
   ],
   // Shard 6, 64.7 worker-min: about 32.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -268,6 +279,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-categories.spec.ts',
     'av2-notes-imports.spec.ts',
     'av2-polish-folds.spec.ts',
+    'av2-money-try-a-change.spec.ts',
+    'av2-r5-everyday.spec.ts',
   ],
   // Shard 7, 65.5 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -307,6 +320,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-groups.spec.ts',
     'av2-notes-info.spec.ts',
     'av2-polish-forms.spec.ts',
+    'av2-money-year-budgets.spec.ts',
+    'av2-r5-feel.spec.ts',
   ],
   // Shard 8, 66.2 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -342,6 +357,9 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-habit-words-trend.spec.ts',
     'av2-noom-r4.spec.ts',
     'av2-revb3c-sealed.spec.ts',
+    'av2-cycle-r5.spec.ts',
+    'av2-notes-mentions.spec.ts',
+    'av2-timeline-moods.spec.ts',
   ],
   // Shard 9, 66.7 worker-min: about 33.7 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -378,6 +396,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-places.spec.ts',
     'av2-notes-lock.spec.ts',
     'av2-polish-habits.spec.ts',
+    'av2-money-yesterday.spec.ts',
+    'av2-r5-keep-weights.spec.ts',
   ],
   // Shard 10, 66.7 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -413,6 +433,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-reconcile.spec.ts',
     'av2-notes-photos.spec.ts',
     'av2-polish-health.spec.ts',
+    'av2-notes-cards.spec.ts',
+    'av2-r5-movement.spec.ts',
   ],
   // Shard 11, 66.8 worker-min: about 33.5 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -447,6 +469,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-saved-searches.spec.ts',
     'av2-notes-save.spec.ts',
     'av2-polish-tasks.spec.ts',
+    'av2-notes-daily-range.spec.ts',
+    'av2-r5-one-side.spec.ts',
   ],
   // Shard 12, 66.2 worker-min: about 33.2 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -482,6 +506,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-library-filters.spec.ts',
     'av2-planned-workouts.spec.ts',
     'av2-journal-ebook.spec.ts',
+    'av2-habit-parts.spec.ts',
+    'av2-notes-select.spec.ts',
   ],
   // Shard 13, 67.3 worker-min: about 33.9 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -519,6 +545,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-meal-readings.spec.ts',
     'av2-runna-r4.spec.ts',
     'av2-notes-archive.spec.ts',
+    'av2-money-category-file.spec.ts',
+    'av2-notes-table-edit.spec.ts',
   ],
   // Shard 14, 68.5 worker-min: about 34.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -552,11 +580,13 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-format.spec.ts',
     'av2-notes-tags.spec.ts',
     'av2-polish-today.spec.ts',
+    'av2-notes-embed.spec.ts',
+    'av2-r5-photos.spec.ts',
   ],
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [81, 81.2, 81, 80.7, 81, 81, 81, 80.7, 81, 81, 81, 80.7, 80.8, 81];
+export const MAIN_SHARD_MINUTES: readonly number[] = [83, 83.2, 83, 83.7, 83, 83, 83, 83.7, 83, 83, 83, 82.7, 82.8, 83];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {
