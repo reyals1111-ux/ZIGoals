@@ -76,6 +76,18 @@ describe('runs, distance goals and the training load (LEDGER #110, #111)', () =>
   });
 });
 
+describe('sleep: time to fall asleep and your usual (LEDGER #123, #124)', () => {
+  test('the Showcase\'s nights: the week, 30 days and the usual, in English and Dutch', () => {
+    expect(text(ask('how long do I take to fall asleep'))).toMatch(/^Time to fall asleep: \d+ min on average over the last 7 days \(\d nights\); \d+ min over the last 30 days; your usual \d+ min/);
+    expect(text(ask('wat is mijn inslaaptijd'))).toMatch(/^Inslaaptijd: gemiddeld \d+ min de afgelopen 7 dagen/);
+    const usual = text(ask('how did I sleep this week compared to usual'));
+    expect(usual).toMatch(/^The last 7 days \(\d nights\) beside your usual \(the middle of your own \d+ nights before this week\): asleep \d+ h \d\d min \(usual \d+ h \d\d min\)/);
+    expect(usual).toContain('No outside figures');
+    expect(text(ask('wat is mijn gewone slaap'))).toContain('Geen cijfers van buiten');
+    expect(text(ask('what is my usual sleep', freshAll()))).toContain('There is no usual yet');
+  });
+});
+
 describe('the calendar (LEDGER #118)', () => {
   test('the Showcase\'s weeks in a row and its days this year', () => {
     // The Showcase trains on days −13 … −1 before 17 Nov: the weeks of 2 Nov, 9 Nov and 16 Nov.

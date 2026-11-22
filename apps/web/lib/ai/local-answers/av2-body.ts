@@ -8,11 +8,14 @@ import {targetFor} from '../../workouts/progression';
 import {monthFigures, muscleWeeks, previousMonth} from '../../workouts/analytics';
 import {categoryLookup} from '../../workouts/depth';
 import {weekStreak, workoutYear} from '../../workouts/calendar';
+import {clockFromNoon} from '../../sleep/engine';
+import type {Sleep} from '../../sleep/schema';
+import {latencySeries, usualSleep, USUAL_MIN_NIGHTS, weekVsUsual} from '../../sleep/usual';
 import {goalProgress, LOAD_WORDS, paceText, runSummary, runWords, trainingLoad} from '../../workouts/runs';
 import type {Workouts} from '../../workouts/schema';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
-import {answer, asked, closed, dayIn, isQuestion, MIXED, monthIn, num, say, type Asked} from './av-words';
+import {answer, asked, clockIn, closed, dayIn, hm, isQuestion, MIXED, monthIn, num, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 import {fold} from './exact/text';
 
@@ -248,4 +251,31 @@ function lastRun(a: Asked): LocalReply | null {
   return answer(`${clean(last.name, 40)}, ${dayIn('nl', last.date, a.today)}: ${num(r.km)} km in ${paceText(r.pace)} per km. ${vs}${r.fastestKm !== null ? ` Snelste kilometer ${paceText(r.fastestKm)}.` : ''}`, CALLS);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun];
+// ── Sleep: time to fall asleep and your usual (LEDGER #123, #124) ───────────────────────────────────────────────────
+
+const sleepOf = (a: Asked): Sleep => a.env.health!.sleep ?? ({version: 1, nights: []} as unknown as Sleep);
+const SLEEP_CALLS = [{tool: 'sleep_summary', args: {}, label: 'Sleep summary'}];
+/** "how long do I take to fall asleep", "hoe lang duurt het voor ik in slaap val": the week's and the usual time. */
+function fallAsleep(a: Asked): LocalReply | null {
+  if (!/\bfall(?:ing)? asleep\b|\bsleep latency\b|\bin slaap (?:te )?(?:val|vallen)\b|\binslapen\b|\binslaaptijd\b/.test(a.f) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const s = sleepOf(a), lang = a.lang, week = latencySeries(s, a.env.healthDay, 7).filter(p => p.latency !== null), all = latencySeries(s, a.env.healthDay, 30).filter(p => p.latency !== null), usual = usualSleep(s, a.env.healthDay)?.latency ?? null;
+  if (!all.length) return answer(say(lang, 'No time to fall asleep is logged in the last 30 days. Add it when you log a night in Health → Sleep (or import it) and I can say.', 'De afgelopen 30 dagen is geen inslaaptijd gelogd. Vul hem in als je een nacht logt in Health → Sleep (of importeer hem), dan kan ik het zeggen.'), SLEEP_CALLS);
+  const avg = (v: {latency: number | null}[]) => Math.round(v.reduce((t, p) => t + p.latency!, 0) / v.length);
+  return answer(say(lang, `Time to fall asleep: ${week.length ? `${avg(week)} min on average over the last 7 days (${week.length} ${week.length === 1 ? 'night' : 'nights'})` : 'none logged in the last 7 days'}; ${avg(all)} min over the last 30 days${usual !== null ? `; your usual ${usual} min (the middle of your own nights before this week)` : ''}. Health → Sleep → Over time draws it.`,
+    `Inslaaptijd: ${week.length ? `gemiddeld ${avg(week)} min de afgelopen 7 dagen (${week.length} ${week.length === 1 ? 'nacht' : 'nachten'})` : 'de afgelopen 7 dagen niet gelogd'}; ${avg(all)} min de afgelopen 30 dagen${usual !== null ? `; je gewone ${usual} min (het midden van je eigen nachten vóór deze week)` : ''}. Health → Sleep → Over time tekent hem.`), SLEEP_CALLS);
+}
+/** "how was my sleep this week compared to usual", "hoe sliep ik deze week vergeleken met normaal": the week beside the usual. */
+function sleepVsUsual(a: Asked): LocalReply | null {
+  const en = /\b(?:sleep|slept)\b.*\b(?:usual|normal|typical)\b|\b(?:usual|normal|typical) (?:sleep|night|bedtime)\b/.test(a.f), nl = /\b(?:slaap|sliep|geslapen|nachtrust)\b.*\b(?:normaal|gewoonlijk|gewone|meestal)\b|\b(?:gewone|normale) (?:slaap|nacht|bedtijd)\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const s = sleepOf(a), lang = a.lang, usual = usualSleep(s, a.env.healthDay), v = weekVsUsual(s, a.env.healthDay);
+  if (!usual) return answer(say(lang, `There is no usual yet: it is the middle value of your own nights in the 90 days before this week, and it needs at least ${USUAL_MIN_NIGHTS} of them.`, `Er is nog geen gewone waarde: dat is het midden van je eigen nachten in de 90 dagen vóór deze week, en daarvoor zijn er minstens ${USUAL_MIN_NIGHTS} nodig.`), SLEEP_CALLS);
+  const m = (n: number | null) => n === null ? '—' : hm(Math.round(n)), bed = (n: number | null) => n === null ? '—' : clockIn(lang, clockFromNoon(Math.round(n)));
+  if (!v) return answer(say(lang, `No night logged in the last 7 days. Your usual: ${m(usual.asleep)} asleep, to bed at ${bed(usual.bed)} (from ${usual.nights} nights).`, `De afgelopen 7 dagen geen nacht gelogd. Je gewone: ${m(usual.asleep)} geslapen, naar bed om ${bed(usual.bed)} (uit ${usual.nights} nachten).`), SLEEP_CALLS);
+  return answer(say(lang, `The last 7 days (${v.nights} nights) beside your usual (the middle of your own ${usual.nights} nights before this week): asleep ${m(v.asleep)} (usual ${m(usual.asleep)}), to bed at ${bed(v.bed)} (usual ${bed(usual.bed)})${v.latency !== null && usual.latency !== null ? `, ${v.latency} min to fall asleep (usual ${usual.latency})` : ''}${v.quality !== null && usual.quality !== null ? `, quality ${v.quality} of 5 (usual ${usual.quality})` : ''}. No outside figures: only your own nights.`,
+    `De afgelopen 7 dagen (${v.nights} nachten) naast je gewone (het midden van je eigen ${usual.nights} nachten vóór deze week): geslapen ${m(v.asleep)} (gewoonlijk ${m(usual.asleep)}), naar bed om ${bed(v.bed)} (gewoonlijk ${bed(usual.bed)})${v.latency !== null && usual.latency !== null ? `, ${v.latency} min om in slaap te vallen (gewoonlijk ${usual.latency})` : ''}${v.quality !== null && usual.quality !== null ? `, kwaliteit ${v.quality} van 5 (gewoonlijk ${usual.quality})` : ''}. Geen cijfers van buiten: alleen je eigen nachten.`), SLEEP_CALLS);
+}
+
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle, trainingStreak, trainingDaysYear, distanceGoals, load, lastRun, fallAsleep, sleepVsUsual];

@@ -167,3 +167,32 @@ test `apps/web/lib/workouts/av2-stored.test.ts`.
 - What's new: "Workouts: distance goals, a training load beside your usual week, and a summary under each run."
 - Answers: "how is my running goal going" / "hoe gaat mijn hardloopdoel", "what is my training load" / "wat is mijn
   trainingsbelasting", "how did my last run compare" / "hoe was mijn laatste loop".
+
+## 7. Sleep: time to fall asleep and quality as charts, "your usual" from your own nights — LEDGER #123 built, #124 built (from the person's own nights, as the task names it: no outside data)
+
+- What: Health → Sleep gets "Your week beside your usual": the last 7 days' time asleep, bedtime, wake time, time to fall
+  asleep and quality beside "your usual" — the median of the person's own nights in the 90 days before this week (at
+  least 7), "a line to compare with, not a target and not anyone else's". Over time: the time-asleep chart draws the
+  usual as a dotted line (keyed "Your usual 7 h 50 min (your own nights)"); a new "Time to fall asleep" chart per night
+  (7 and 30 days) or by week / month (90 days, a year) with its usual and a table; at 90 days and a year, "Your quality
+  ratings" by week or month as a line. A night without a value stays empty. LEDGER #124 named "published population
+  averages"; this lane's task says "a benchmark line from your own nights (no outside data)", so no outside figure is used.
+- Files: `lib/sleep/usual.ts`, `components/health/sleep/sleep-usual.tsx` (its own chunk), `components/health/sleep/sleep-charts.tsx`
+  (an optional `usual` line), `components/health/sleep/sleep-view.tsx`, `components/health/sleep/av2-sleep.css` (new),
+  `components/health/sleep/sleep.css` (the usual line, key and latency bars).
+- Seen in passing (COMPETITORS.md): `sleep-view.tsx`'s header said "No score" while the page shows the score card;
+  corrected in this commit. The clinician report's header (`lib/clinician-report/build.ts`) was already corrected at
+  `fbeb3e54` (it names the symptoms and supplements sections); nothing left.
+- Tests: `lib/sleep/av2-usual.test.ts`, `lib/ai/local-answers/av2-body.test.ts`; spec `tests/av2-sleep-usual.spec.ts`.
+  Watch: `tests/sleep.spec.ts` lines 151 and 202 pin the time-asleep chart's key text exactly; their fixtures hold fewer
+  than 7 nights before the week, so no usual line is drawn there (if a run shows "Your usual" in that key, that is why).
+- Stored: nothing.
+- Help (EN): **What is "your usual" in Sleep?** The middle value of your own nights in the 90 days before this week —
+  time asleep, bedtime, wake time, time to fall asleep and your quality rating. It needs at least 7 logged nights. It is
+  a line to compare your week with, never a target and never anyone else's figures. **Can I see how long I take to fall
+  asleep?** Yes: add "time to fall asleep" when you log a night (or import it); Sleep → Over time draws it per night, by
+  week or by month.
+- What's new: "Sleep: time to fall asleep and quality over time, and your week beside your usual."
+- Answers: "how long do I take to fall asleep" / "hoe lang duurt het voor ik in slaap val", "how did I sleep this week
+  compared to usual" / "hoe sliep ik deze week vergeleken met normaal".
+- Showcase: its 30 nights (with time to fall asleep and ratings) fill the card and the charts; no new records.

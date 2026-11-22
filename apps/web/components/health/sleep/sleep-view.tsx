@@ -9,6 +9,7 @@ import {asleep, balanceWords, BALANCE_MIN_NIGHTS, clockFromMidnight, clockFromNo
 import {sleepInsights} from '../../../lib/sleep/insights';
 import type {SleepNight} from '../../../lib/sleep/schema';
 import {formatMinutes} from '../../../lib/zone-time';
+import {usualSleep} from '../../../lib/sleep/usual';
 import {NebulaFlow} from '../../nebula-flow';
 import {HeaderArtCorner, OrbitArt} from '../../header-art/orbit-art';
 import {SleepGlyph} from '../../header-art/glyphs/sleep';
@@ -42,6 +43,10 @@ function shortfall(sleep: Parameters<typeof energyCurve>[0], today: string): num
 const EnergyCurve = lazy(() => import('../../sleep/energy-curve'));
 // Session AV (owner follow-up 1, F-SLEEP-LONG): 90 days and a year, averaged; loaded when chosen.
 const SleepLongChart = lazy(() => import('./sleep-long-chart'));
+// Session AV lane 2 (body; LEDGER #123, #124): your week beside your usual, time to fall asleep, quality by week or month.
+const SleepUsual = lazy(() => import('./sleep-usual'));
+const SleepLatencyChart = lazy(() => import('./sleep-usual').then(m => ({default: m.SleepLatencyChart})));
+const SleepQualityTrend = lazy(() => import('./sleep-usual').then(m => ({default: m.SleepQualityTrend})));
 
 const nightLine = (n: SleepNight) => {
   const a = asleep(n)!;
@@ -50,8 +55,9 @@ const nightLine = (n: SleepNight) => {
 
 /**
  * Sleep, the full view (Session W Part 4; /app/health?view=sleep, a view of Health so its document and camera rule stay).
- * Tonight's one-tap night, your week against your own goal, the charts, patterns from your own log, logging and editing
- * nights and naps, and the goal. No score, no medical claim; a missing night is never counted as zero.
+ * Tonight's one-tap night, your week against your own goal, the sleep score (transparent, its formula on the card), the
+ * charts, patterns from your own log, logging and editing nights and naps, and the goal. No medical claim; a missing
+ * night is never counted as zero. (Session AV lane 2: this line said "No score" after the score card came; corrected.)
  */
 export default function SleepView() {
   const store = useSleep(), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [range, setRange] = useState<7 | 30 | 90 | 365>(7), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
@@ -99,16 +105,19 @@ export default function SleepView() {
       </dl> : <p>No night logged in the last 7 days yet.</p>}
     </section>
     <SleepScoreCard sleep={sleep} today={today}/>
+    <LoadBoundary quiet><Suspense fallback={null}><SleepUsual sleep={sleep} today={today}/></Suspense></LoadBoundary>
     {/* Session AL fourth pass (MO-022): the fold says its answer on its face (the focus window), not only its name. */}<OnDemandFold className="energy-curve-fold" summary={energyFace(sleep, today)} label="The energy curve"><EnergyCurve sleep={sleep} today={today} now={store.now} zone={store.zone}/></OnDemandFold>
     <section className="panel sleep-charts" aria-labelledby="sleep-charts-title">
       <div className="sleep-charts-head"><h2 id="sleep-charts-title">Over time</h2>
         <div className="sleep-range" role="group" aria-label="Range">{([7, 30, 90, 365] as const).map(r => <button key={r} type="button" className="secondary" aria-pressed={range === r} onClick={() => setRange(r)}>{r === 365 ? '1 year' : `${r} days`}</button>)}</div>
       </div>
       {/* Session AV (owner follow-up 1, F-SLEEP-LONG): 90 days by week and a year by month, as averages (its own chunk). */}
-      {range > 30 ? <LoadBoundary quiet><Suspense fallback={<p className="fine" role="status">Opening the longer view…</p>}><SleepLongChart points={points} goal={sleep.goal?.minutes ?? null} by={range === 365 ? 'month' : 'week'}/></Suspense></LoadBoundary> : <>
-      <SleepDurationChart points={points} goal={sleep.goal?.minutes ?? null}/>
+      {range > 30 ? <LoadBoundary quiet><Suspense fallback={<p className="fine" role="status">Opening the longer view…</p>}><SleepLongChart points={points} goal={sleep.goal?.minutes ?? null} by={range === 365 ? 'month' : 'week'}/>
+        <SleepQualityTrend points={points} by={range === 365 ? 'month' : 'week'}/><SleepLatencyChart sleep={sleep} today={today} days={range}/></Suspense></LoadBoundary> : <>
+      <SleepDurationChart points={points} goal={sleep.goal?.minutes ?? null} usual={usualSleep(sleep, today)?.asleep ?? null}/>
       <SleepTimesChart points={points} window={sleep.goal?.bedFrom && sleep.goal.bedTo ? {from: sleep.goal.bedFrom, to: sleep.goal.bedTo} : null}/>
-      <SleepQualityChart points={points}/></>}
+      <SleepQualityChart points={points}/>
+      <LoadBoundary quiet><Suspense fallback={null}><SleepLatencyChart sleep={sleep} today={today} days={range}/></Suspense></LoadBoundary></>}
     </section>
     <section className="panel sleep-patterns" aria-labelledby="sleep-patterns-title">
       <h2 id="sleep-patterns-title">Patterns in your log</h2>
