@@ -4,7 +4,8 @@ import {formatMinutes} from '../zone-time';
 import {emptySleep, type Sleep} from './schema';
 import {saveNight} from './engine';
 import {shiftWords, shiftWordsNl, sleepMiddle, sleepTiming} from './timing';
-import {beginNap, bellChoice, logNap, napClock, napEndsAt, napLeft} from './nap';
+import {beginNap, bellChoice, logNap, napClock, napEndsAt, napLeft, napOnReturn, napRunOf, withNapRun, withoutNapRun} from './nap';
+import {emptyHealthExtras} from '../health-extras';
 import {SLEEP_TIPS, sleepTipOf} from '../sleep-tips';
 import {WATER_TIPS} from '../water-tips';
 
@@ -97,6 +98,24 @@ describe('the nap timer wakes the audio on the tap (review B4E-3)', () => {
     expect(bellChoice(true, () => woke++)).toBe(true);
     expect(bellChoice(false, () => woke++)).toBe(false);
     expect(woke).toBe(2);
+  });
+});
+
+// Session AV lane 2 (review B4E-4): a running nap is kept on the device and picked up on return, never lost silently.
+describe('a running nap survives leaving Sleep (review B4E-4)', () => {
+  const run = {startedAt: Date.parse('2026-11-20T13:00:00Z'), minutes: 20};
+  test('kept in the health extras, read back, removed once logged or stopped', () => {
+    const kept = withNapRun({...emptyHealthExtras(), sleepTips: true}, run);
+    expect(kept.napRun).toEqual({startedAt: '2026-11-20T13:00:00.000Z', minutes: 20});
+    expect(napRunOf(kept)).toEqual(run);
+    expect(withoutNapRun(kept)).toEqual({version: 1, sleepTips: true});
+    expect(napRunOf(emptyHealthExtras())).toBeNull();
+  });
+  test('on return: still running before its end, ended after it (then logged up to its planned end)', () => {
+    expect(napOnReturn(run, run.startedAt + 5 * 60_000)).toBe('running');
+    expect(napOnReturn(run, napEndsAt(run))).toBe('ended');
+    const s = logNap(emptySleep(), run, napEndsAt(run), 'UTC', AT)!;
+    expect(s.nights[0]!.end).toBe('2026-11-20T13:20:00.000Z');
   });
 });
 

@@ -1,5 +1,6 @@
 import {saveNight, SHORTEST_SLEEP_MS} from './engine';
 import type {Sleep} from './schema';
+import {healthExtrasSchema, type HealthExtras} from '../health-extras';
 
 /**
  * Session AV lane 2, round 4 (health; LEDGER #335, Pillow's power nap, recovery and full-cycle naps): "Start a nap" — 20,
@@ -38,3 +39,17 @@ export function logNap(s: Sleep, run: NapRun, endMs: number, zone: string, at: D
   if (end - run.startedAt < SHORTEST_SLEEP_MS) return null;
   return saveNight(s, {kind: 'nap', start: run.startedAt, end, timeZone: zone}, at);
 }
+/**
+ * Review B4E-4: the running nap is kept in the health extras (`napRun`), so leaving Health → Sleep or a reload never loses
+ * it: on return it shows running, or, when it ended meanwhile, it is logged then (the bell could not ring while Sleep was
+ * closed, and the page says so). Removed once the nap is logged or stopped.
+ */
+export function napRunOf(extras: HealthExtras | null | undefined): NapRun | null {
+  const r = extras?.napRun, at = r ? Date.parse(r.startedAt) : NaN;
+  return r && Number.isFinite(at) ? {startedAt: at, minutes: r.minutes} : null;
+}
+export const withNapRun = (extras: HealthExtras, run: NapRun): HealthExtras => healthExtrasSchema.parse({...extras, napRun: {startedAt: new Date(run.startedAt).toISOString(), minutes: run.minutes}});
+export const withoutNapRun = (extras: HealthExtras): HealthExtras => { if (!extras.napRun) return extras; const rest: Record<string, unknown> = {...extras}; delete rest.napRun; return healthExtrasSchema.parse(rest); };
+/** On return: still running, or ended while away. */
+export const napOnReturn = (run: NapRun, now: number): 'running' | 'ended' => now >= napEndsAt(run) ? 'ended' : 'running';
+
