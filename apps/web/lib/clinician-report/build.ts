@@ -50,7 +50,9 @@ export type LabRow = {date: string; name: string; value: number; unit: string; r
 export type NumbersSection = {bp: BpRow[]; bpMore: number; labs: LabRow[]; labsMore: number};
 /** Session AV (F-REPORT-MORE): per symptom or factor, the days rated in the range, the days above None, the strong days and the average level. */
 export type SymptomRow = {name: string; kind: 'symptom' | 'factor'; rated: number; noted: number; strong: number; average: number | null; averageWord: string | null};
-export type SymptomsSection = {rows: SymptomRow[]};
+/** Session AV lane 2 (food; q3 #48 check 8, Bearable's report charts): each rated symptom's level day by day (null when not rated). */
+export type SymptomSeries = {name: string; levels: (number | null)[]};
+export type SymptomsSection = {rows: SymptomRow[]; days?: string[]; series?: SymptomSeries[]};
 /** Session AV (F-REPORT-MORE): per supplement or medication, the planned doses in the range and what was logged of them. */
 export type SupplementRow = {name: string; dose: string | null; kind: 'supplement' | 'medication'; planned: number | null; taken: number; skipped: number; notLogged: number | null};
 export type SupplementsSection = {rows: SupplementRow[]};
@@ -157,6 +159,9 @@ export function buildReport(input: ReportInput): Report {
       const levels = days.map(([, v]) => v[item.id]).filter((n): n is number => typeof n === 'number'), a = avg(levels), r1 = round1(a);
       return {name: item.name, kind: item.kind, rated: levels.length, noted: levels.filter(n => n > 0).length, strong: levels.filter(n => n === 3).length, average: r1, averageWord: a === null ? null : SEVERITY_WORDS[Math.round(a)] ?? null};
     }).filter(r => r.rated > 0)};
+    const all = daysOf(range), rated = (input.symptoms?.items ?? []).filter(item => days.some(([, v]) => typeof v[item.id] === 'number')).slice(0, 8);
+    out.symptoms.days = all;
+    out.symptoms.series = rated.map(item => ({name: item.name, levels: all.map(d => { const v = input.symptoms?.days[d]?.[item.id]; return typeof v === 'number' ? v : null; })}));
   }
   if (want.has('supplements')) {
     const marks = (input.supplements?.log ?? []).filter(m => inRange(m.date, range));

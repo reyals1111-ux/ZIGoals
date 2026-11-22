@@ -60,3 +60,7 @@ html.report-open { overflow: hidden; }
   html.report-open .report-sheet thead { display: table-header-group; }
   @page { margin: 14mm; }
 }
+/* Session AV lane 2 (food; q3 #48): a symptom's level over the range, small and printable. */
+.report-symptom-chart { margin: 8px 0 12px; max-width: 100%; }
+.report-symptom-chart svg { display: block; color: var(--text, #10213a); }
+.report-symptom-chart figcaption { font-size: 14px; }

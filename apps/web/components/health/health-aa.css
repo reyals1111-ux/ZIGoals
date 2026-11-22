@@ -350,3 +350,5 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .health-repeat-days .checkbox { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
 /* Session AV (F-NUTRIENT-RANGE): the nutrient report's own dates. */
 .nutrient-range { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+/* Session AV lane 2 (food; q3 #29): the days one "Repeat on" planned, as one group. */
+.health-plan-group summary { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; cursor: pointer; }

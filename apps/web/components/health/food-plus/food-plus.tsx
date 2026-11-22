@@ -19,7 +19,8 @@ export type FoodPlusProps =
   | {part: 'partial'; date: string; hasEntries: boolean}
   | {part: 'pack-photos' | 'pack-thumbs' | 'recipe-cook'; data: HealthData}
   | {part: 'recipe-book'; data: HealthData; perform: Perform}
-  | {part: 'fit-plan'; data: HealthData; date: string; today: string; perform: Perform};
+  | {part: 'fit-plan'; data: HealthData; date: string; today: string; perform: Perform}
+  | {part: 'day-plans'; data: HealthData; date: string; perform: Perform};
 const SaveMeal = lazy(() => import('./save-meal'));
 const EntryTimes = lazy(() => import('./entry-times'));
 const NutrientTiming = lazy(() => import('./nutrient-timing'));
@@ -30,6 +31,7 @@ const PackPhotos = lazy(() => import('./pack-photos'));
 const CookView = lazy(() => import('./cook-view'));
 const RecipeBook = lazy(() => import('./recipe-book'));
 const FitPlan = lazy(() => import('./fit-plan'));
+const DayPlans = lazy(() => import('./day-plans'));
 const PackThumbs = lazy(() => import('./pack-photos').then(m => ({default: m.PackThumbs})));
 const ChallengeLine = lazy(() => import('./challenge').then(m => ({default: m.ChallengeLine})));
 const ChallengeCard = lazy(() => import('./challenge').then(m => ({default: m.ChallengeCard})));
@@ -48,6 +50,7 @@ export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'pack-thumbs') return <PackThumbs data={props.data}/>;
   if (props.part === 'recipe-cook') return <CookView data={props.data}/>;
   if (props.part === 'recipe-book') return <RecipeBook data={props.data} perform={props.perform}/>;
+  if (props.part === 'day-plans') return <DayPlans data={props.data} date={props.date} perform={props.perform}/>;
   if (props.part === 'fit-plan') return <FitPlan data={props.data} date={props.date === props.today ? addLocalDays(props.today, 1) : props.date} perform={props.perform}/>;
   return null;
 }

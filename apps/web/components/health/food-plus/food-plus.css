@@ -50,3 +50,4 @@
 .food-plus-cook { display: grid; gap: 12px; margin: 8px 0 12px; padding: 16px; border: 1px solid var(--line, #6a9cc342); border-radius: 16px; min-width: 0; }
 .food-plus-cook-step { font-size: 20px; line-height: 1.45; margin: 0; overflow-wrap: anywhere; }
 .food-plus-cook textarea { min-height: 140px; font-size: 16px; width: 100%; }
+.food-plus-day-plans { margin-bottom: 12px; }

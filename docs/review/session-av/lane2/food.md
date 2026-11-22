@@ -371,3 +371,33 @@ Shared-file needs for the lead are collected at the end ("For the lead").
 - Answers: none new (Compare is a page of its own; the symptoms log is never read by the answers, by design).
 - Showcase: the Showcase's symptoms, supplements, diary and weights make the new options appear in Compare there.
 - Device keys: none. CSS touched: none. Always visible on Today: nothing.
+
+## F13 — q3's open food Minors (QUALITY.md "Not fixed")
+
+Checked one by one against the code at this branch's base: "Save this meal" in each meal's ⋯ menu (F1), quick add with
+macros (F1); the Dutch diary list, meal words (counts as grams, dishes kept whole, articles), the toast's count, the
+report's year and the Sources range, rounded averages, the 90-day iron answer, and the planned doses' local date were
+already fixed in `774b4e48` / `4606305e` (opened: `lib/ai/local-answers/av-life.ts` dutchDiary, `lib/meal-words/match.ts`
+DISHES/ARTICLE, `components/health/daily-tools.tsx` "fresh", `components/health/nutrient-report.tsx`,
+`lib/clinician-report/build.ts` addedDay). Built here:
+- **q3 #29 check 8** (grouped repeat plans; today's plan on the Diary): the plans one "Repeat on" made (same saved meal,
+  slot and moment) are one row in Meals & planning — "Morning bowl · Breakfast · 4 days, Nov 23 to Dec 3 · 0 logged" —
+  that opens to each day's own row (Log consumed, Remove). The Diary shows the day's open plans above its meals,
+  "Planned for this day: Breakfast · Morning bowl" with "Log it" (the plan's own log). Each day stays its own plan.
+- **q3 #48 check 8** (a symptom chart): the visit report's Symptoms section draws each rated symptom's level over the
+  range (a dot per rated day, a line between, none for a day not rated; at most eight), named for screen readers
+  ("Fictional headache: 2 days rated, highest Strong").
+- Files: `lib/food-plus/plan-groups.ts`, `components/health/daily-tools.tsx`, `components/health/food-plus/day-plans.tsx`
+  (part `day-plans`), `components/health/health-app.tsx`, `lib/clinician-report/build.ts` (`days`, `series` on the
+  symptoms section, additive), `components/report/report-document.tsx`, `components/report/report.css`,
+  `components/health/health-aa.css`.
+- Tests: `lib/food-plus/av2-minors.test.ts`. Spec: `tests/av2-food-minors.spec.ts`.
+- Stored changes: none.
+- Help (EN). Q: "Where do my planned meals show?" A: "In Health → Meals & planning, and on the day itself: the Diary shows
+  that day's open plans above the meals with Log it. A meal planned on several weekdays is one group you can open."
+- What's new: "Today's planned meals on the Diary; repeating plans grouped; a symptom chart in the visit report."
+- Answers: none new (plans are answered by av-life.ts `mealPlans`).
+- Showcase: the Showcase's two plans show in the Diary on their own days (a new section on Health's Diary on those
+  days only — the lead may want to check Health's phone length spec there).
+- Device keys: none. CSS touched: `components/report/report.css`, `components/health/health-aa.css`, `food-plus.css`.
+  Always visible on Today: nothing.

@@ -519,7 +519,7 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
   // phone) and the symptom tracker with the day's mood (folded on a phone), so neither lengthens the phone's Diary.
   const copyMeal = <LazyFold summary="Copy a meal to another day or meal">{() => <HealthPlus part="copy" data={data} date={date} today={today} perform={perform} />}</LazyFold>;
   const symptoms = <LazyFold summary="Symptoms and factors (optional)">{() => <HealthPlus part="symptoms" date={date} today={today} />}</LazyFold>;
-  return <div className="health-diary-layout"><div className="health-meals"><RepeatDay data={data} date={date} today={today} perform={perform} />{HEALTH_MEALS.map(mealName => {
+  return <div className="health-diary-layout"><div className="health-meals">{dailyData(data).plans.some(p => p.date === date && !p.loggedAt) && <LoadBoundary quiet><Suspense fallback={null}><FoodPlus part="day-plans" data={data} date={date} perform={perform} /></Suspense></LoadBoundary>}<RepeatDay data={data} date={date} today={today} perform={perform} />{HEALTH_MEALS.map(mealName => {
     const entries = data.diary.filter(e => e.date === date && e.meal === mealName);
     const mealSummary=dailyHealthSummary({...data,diary:entries},date);
     // Session AL third pass (GAP-045, C-MO-03): your own name and time for the meal, when you gave one (this device).
