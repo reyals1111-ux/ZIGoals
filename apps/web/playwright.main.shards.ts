@@ -73,6 +73,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run11-food-volume.spec.ts', 'run11-goal-history.spec.ts', 'settings-groups.spec.ts', 'theme-polish-ae.spec.ts',
     'themes.spec.ts', 'wallet-tracking.spec.ts', 'wealth.spec.ts', 'webkit-theme-parity.spec.ts',
     'zigi-memory-page.spec.ts', 'zigi-part-boundary.spec.ts',
+    // Session AV lane 2 (owner follow-up 4): new specs, about 1 worker-minute each.
+    'av2-erase-areas.spec.ts',
   ],
   // Shard 3, 60.3 worker-min: about 30.3 min of tests at two workers in file order, 36.1 in any order.
   [

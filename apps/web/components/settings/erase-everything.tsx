@@ -13,14 +13,15 @@ import './erase-everything.css';
  * (first-run defaults: the money and chain pages stay off until chosen again, as on a new device); the copy names every
  * area, and says the offline copy of the app (pages, no records) goes too and comes back when ZIGoals next opens.
  */
-type Found = {keys: number; databases: number | null};
+type Found = {keys: number; databases: number | null; areas: string[]};
 async function countHere(): Promise<Found> {
-  const {zigoalsKeys, KNOWN_DATABASES, ERASE_PREFIX} = await import('../../lib/erase-everything');
+  const [{zigoalsKeys, KNOWN_DATABASES, ERASE_PREFIX}, {areasOf}] = await Promise.all([import('../../lib/erase-everything'), import('../../lib/erase-areas')]);
   let keys = 0;
-  for (const area of ['localStorage', 'sessionStorage'] as const) { try { keys += zigoalsKeys(window[area]).length; } catch { /* refused */ } }
+  const names: string[] = [];
+  for (const area of ['localStorage', 'sessionStorage'] as const) { try { const here = zigoalsKeys(window[area]); keys += here.length; names.push(...here); } catch { /* refused */ } }
   let databases: number | null = null;
   try { const listed = await indexedDB.databases?.(); if (listed) databases = new Set(listed.map(d => d.name).filter((n): n is string => !!n && (n.startsWith(ERASE_PREFIX) || (KNOWN_DATABASES as readonly string[]).includes(n)))).size; } catch { /* the browser cannot list them */ }
-  return {keys, databases};
+  return {keys, databases, areas: areasOf(names)};
 }
 export function EraseEverything() {
   const showcase = useShowcase(), id = useId();
@@ -32,10 +33,13 @@ export function EraseEverything() {
     try {
       const {eraseEverythingOnThisDevice, ERASE_CONFIRM} = await import('../../lib/erase-everything');
       if (typed.trim() !== ERASE_CONFIRM) { setStatus('Type ERASE to confirm.'); return; }
+      // Session AV lane 2 (CR-19): the areas are read just before the erase, so the status names what this erase removed.
+      const before = await countHere().catch(() => null), {listAreas} = await import('../../lib/erase-areas');
       const result = await eraseEverythingOnThisDevice();
+      const named = before?.areas.length ? ` Erased areas: ${listAreas(before.areas)}.` : '';
       setOpen(false); setTyped('');
-      if (result.failed.length) { setStatus(`Erased ${result.keys} records. ${result.failed.length} stores are open in another ZIGoals tab: close it and erase again.`); return; }
-      setStatus(`Erased ${result.keys} records and ${result.databases} stores from this browser. Open ZIGoals fresh now: this page still shows what it had in memory.`); setErased(true);
+      if (result.failed.length) { setStatus(`Erased ${result.keys} records.${named} ${result.failed.length} stores are open in another ZIGoals tab: close it and erase again.`); return; }
+      setStatus(`Erased ${result.keys} records and ${result.databases} stores from this browser.${named} Open ZIGoals fresh now: this page still shows what it had in memory.`); setErased(true);
     } catch { setStatus('Nothing could be erased just now. Your records are as they were.'); }
     finally { setBusy(false); }
   };
@@ -47,6 +51,7 @@ export function EraseEverything() {
     {!open ? <button type="button" className="secondary" onClick={arm}>Erase everything…</button> :
       <form onSubmit={e => { e.preventDefault(); void erase(); }} aria-label="Confirm erasing everything on this device">
         <p>{found ? `This browser holds ${found.keys} ZIGoals ${found.keys === 1 ? 'record' : 'records'}${found.databases === null ? '' : ` and ${found.databases} ${found.databases === 1 ? 'store' : 'stores'}`}. All of them go, and it cannot be undone.` : 'Every ZIGoals record in this browser goes, and it cannot be undone.'} Afterwards ZIGoals opens fresh, with the first-run choices of a new device.</p>
+        {found && found.areas.length > 0 && <p className="fine">The areas they hold: {found.areas.join(', ')}.</p>}
         <label className="field">Type ERASE to confirm<input value={typed} onChange={e => setTyped(e.target.value)} autoComplete="off" autoCapitalize="characters" spellCheck={false}/></label>
         <div className="actions"><button type="submit" className={`danger${armed ? ' is-armed' : ''}`} disabled={busy || !armed}>{busy ? 'Erasing…' : 'Erase everything'}</button><button type="button" className="secondary" onClick={() => { setOpen(false); setTyped(''); }}>Cancel</button></div>
       </form>}
