@@ -31,7 +31,30 @@ export function setCycleDay(rec: Cycle, date: string, input: DayInput, today: st
     const keep = new Set(Object.keys(days).sort().slice(-MAX_CYCLE_DAYS));
     for (const d of Object.keys(days)) if (!keep.has(d)) delete days[d];
   }
-  return cycleSchema.parse({...rec, days});
+  // Session AV lane 2 (review B5H-6): a cycle left out stays left out when its period's first day moves.
+  const leftOut = rec.leftOut?.length ? carryLeftOut(rec, {days}) : undefined;
+  return cycleSchema.parse({...rec, days, ...(leftOut ? {leftOut} : {})});
+}
+/** Each logged period as its first and last flow day (a one-day gap inside it still counts), oldest first. */
+function periodRuns(rec: Pick<Cycle, 'days'>): {start: string; end: string}[] {
+  const runs: {start: string; end: string}[] = [];
+  for (const d of periodDays(rec)) { const last = runs.at(-1); if (last && between(last.end, d) <= 2) last.end = d; else runs.push({start: d, end: d}); }
+  return runs;
+}
+/**
+ * Session AV lane 2 (review B5H-6): the left-out starts after a change of days — a start that moved (an earlier flow day
+ * logged, or the first one cleared) follows its period to the new first day; a period cleared entirely takes its cycle
+ * with it. A start this build cannot place is kept as it was.
+ */
+export function carryLeftOut(before: Pick<Cycle, 'days' | 'leftOut'>, after: Pick<Cycle, 'days'>): string[] {
+  const old = periodRuns(before), now = periodRuns(after), starts = new Set(now.map(r => r.start));
+  return [...new Set((before.leftOut ?? []).flatMap(s => {
+    if (starts.has(s)) return [s];
+    const was = old.find(r => r.start === s);
+    if (!was) return [s];
+    const moved = now.find(r => r.start <= was.end && r.end >= was.start);
+    return moved ? [moved.start] : [];
+  }))].sort();
 }
 export const setCycleOn = (rec: Cycle, on: boolean): Cycle => cycleSchema.parse({...rec, on});
 /** Session AV lane 2 (r3-plan, LEDGER #262): show the cycle day and period days on the day plan, or not. */

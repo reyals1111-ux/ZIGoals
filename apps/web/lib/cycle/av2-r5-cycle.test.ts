@@ -59,6 +59,22 @@ describe('Leave a cycle out of the averages (#382)', () => {
   });
 });
 
+describe('a left-out cycle stays left out when its start moves (review B5H-6)', () => {
+  test('an earlier flow day logged, or the first one cleared: the entry follows its period; a period cleared goes with it', () => {
+    const out = setLeftOut(REC, '2026-08-30', true);
+    const earlier = setCycleDay(out, '2026-08-29', {flow: 'light'}, TODAY);
+    expect(earlier.leftOut).toEqual(['2026-08-29']);
+    expect(cycleHistory(earlier, TODAY).find(c => c.start === '2026-08-29')).toMatchObject({leftOut: true});
+    const later = setCycleDay(out, '2026-08-30', {flow: null}, TODAY);
+    expect(later.leftOut).toEqual(['2026-08-31']);
+    expect(cycleLengths(later)).toEqual([28, 33, 28, 25]); // the cycle from 31 Aug (27 days) stays out
+    let gone = out;
+    for (let i = 0; i < 6; i++) gone = setCycleDay(gone, addLocalDays('2026-08-30', i), {flow: null}, TODAY);
+    expect(gone.leftOut).toEqual([]);
+    expect(setCycleDay(out, '2026-11-01', {note: 'Fictional'}, TODAY).leftOut).toEqual(['2026-08-30']);
+  });
+});
+
 describe('A cycle at a glance (#381)', () => {
   test('the chosen cycle day by day, then the same days of up to five earlier cycles; days that happened only', () => {
     const rec = setCycleDay(REC, '2026-10-26', {symptoms: ['cramps'], note: 'Fictional'}, TODAY);
