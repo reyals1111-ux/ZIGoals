@@ -157,6 +157,55 @@ test('Session AM (ADR-038 D18, A6): the NOVA section is listed only when asked f
  }finally{await r.mf.dispose();}
 },60000);
 
+test('Session AV lane 2 (rest, LEDGER #41, #134, #209; TIER 3 (sync)): journal, money and workouts are listed only when named, written, read and deleted like NOVA; older requests answer as before; workouts follows a Health deletion, journal and money do not',async()=>{
+ const {r,vault,json,put}=await setup();
+ try{
+  const four={goals:EMPTY,life:EMPTY,habits:EMPTY,health:EMPTY};
+  // Every earlier request answers exactly as it did.
+  expect(await json('/v1/extras')).toEqual({status:200,body:{protocol:1,sections:four}});
+  expect(await json('/v1/extras?with=checklist')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY}}});
+  expect(await json('/v1/extras?with=checklist&with=nova')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY,nova:EMPTY}}});
+  // The app's request with the three chosen (lib/vault/extras-sync.ts, in that order), and any of them alone.
+  expect(await json('/v1/extras?with=checklist&with=nova&with=journal&with=money&with=workouts')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY,nova:EMPTY,journal:EMPTY,money:EMPTY,workouts:EMPTY}}});
+  expect(await json('/v1/extras?with=checklist&with=nova&with=money')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY,nova:EMPTY,money:EMPTY}}});
+  expect(await json('/v1/extras?with=checklist&with=nova&with=journal&with=money&with=workouts&with=later-section')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY,nova:EMPTY,journal:EMPTY,money:EMPTY,workouts:EMPTY}}});
+  for(const bad of ['with=checklist&with=Journal','with=checklist&with=journal&with=journal','with=goals&with=journal'])expect(await json('/v1/extras?'+bad),bad).toEqual({status:400,body:{error:'INVALID_EXTRAS_REQUEST'}});
+  // Written, listed, read back sealed to their own section, in their own keys.
+  for(const section of ['journal','money','workouts'])expect(await put(section,0),section).toEqual({status:200,body:{revision:1,generation:0}});
+  const one={revision:1,generation:0,epoch:vault.manifest.epoch,parts:1};
+  expect((await json('/v1/extras?with=checklist&with=nova&with=journal&with=money&with=workouts')).body.sections).toEqual({...four,checklist:EMPTY,nova:EMPTY,journal:one,money:one,workouts:one});
+  // An older client still sees none of them.
+  expect(await json('/v1/extras')).toEqual({status:200,body:{protocol:1,sections:four}});
+  expect(await json('/v1/extras?with=checklist&with=nova')).toEqual({status:200,body:{protocol:1,sections:{...four,checklist:EMPTY,nova:EMPTY}}});
+  for(const section of ['journal','money','workouts']){
+   const read=extrasSectionCloudSchema.parse((await json('/v1/extras?section='+section)).body);
+   expect(await openSection(vault.key,vault.manifest,read)).toBe(TEXT);
+   await expect(openSection(vault.key,vault.manifest,{...read,section:'nova'})).rejects.toThrow();
+   expect(await storedKeys(r.persist,`extras-part:${section}:`)).toEqual([`extras-part:${section}:0`]);
+  }
+  // The Health rule: the person deletes Health from the cloud; the workout log goes with it in the same transaction,
+  // the journal and the money records stay.
+  expect((await put('health',0)).status).toBe(200);
+  const vaultHead=await (await r.call('/v1/vault')).json();
+  expect((await r.call('/v1/domain',{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:vaultHead.revision,generation:0})).status).toBe(200);
+  expect(await storedKeys(r.persist,'extras-part:workouts:')).toEqual([]);
+  expect(await storedKeys(r.persist,'extras-part:health:')).toEqual([]);
+  expect(await storedKeys(r.persist,'extras-part:journal:')).toEqual(['extras-part:journal:0']);
+  expect(await storedKeys(r.persist,'extras-part:money:')).toEqual(['extras-part:money:0']);
+  expect((await json('/v1/extras?with=checklist&with=nova&with=journal&with=money&with=workouts')).body.sections.workouts).toEqual({revision:2,generation:1,epoch:null,parts:0});
+  // An upload written before the deletion, presented again at its old generation, is refused; a new one is kept.
+  expect((await put('workouts',1)).body).toEqual({error:'EXTRAS_DELETED',generation:1});
+  expect((await put('workouts',2,{generation:1})).body).toEqual({revision:3,generation:1});
+  // Kept under the new Health generation: listed as it is, until Health is deleted again.
+  expect((await json('/v1/extras?with=workouts')).body.sections.workouts.parts).toBe(1);
+  // Their own deletions count a generation; the account erase removes them with everything else.
+  expect((await json('/v1/extras',{protocol:1,action:'delete',vault:vault.manifest.vault,operation:crypto.randomUUID(),section:'money',base:1,generation:0})).body).toEqual({revision:2,generation:1});
+  expect(await storedKeys(r.persist,'extras-part:money:')).toEqual([]);
+  expect((await json('/v1/account',{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'})).status).toBe(200);
+  for(const section of ['journal','money','workouts'])expect(await storedKeys(r.persist,`extras-part:${section}:`)).toEqual([]);
+ }finally{await r.mf.dispose();}
+},60000);
+
 test('receipts are kept for the newest 64 writes across sections (FIX_PLAN B5 horizon)',async()=>{
  const {r,vault,json,put}=await setup();
  try{

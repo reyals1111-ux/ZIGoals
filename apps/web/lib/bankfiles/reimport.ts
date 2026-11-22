@@ -1,7 +1,7 @@
 import {withChange} from '../money-log/counted';
 import type {MoneyEntry, MoneyLog} from '../money-log/schema';
 import type {RuleChange} from '../money-rules/engine';
-import {noteOf} from './index';
+import {alreadyLogged, noteOf} from './index';
 import type {BankTransaction} from './types';
 
 /**
@@ -49,6 +49,50 @@ export function applyReimport(log: MoneyLog, changed: readonly Changed[], at: st
     if (c.note) next = withChange({...next, note: c.note}, {by: 'import', field: 'note', ...(e.note ? {from: e.note} : {}), to: c.note}, at);
     return next;
   })};
+}
+
+/**
+ * Session AV lane 2 (rest, LEDGER #142; Monarch's re-import): a CSV carries no bank reference, so a row the bank changed
+ * since the last import (a tip added, a pending amount settled, a payee renamed) is recognised by its shape: the same
+ * date, direction and currency as an entry already in the log, an amount within the tolerance (at most 2.00 or a fifth
+ * of the entry's, whichever is more), and a similar payee (the words of one inside the other, or half their words
+ * shared). An entry already matched exactly by a row of the file, a split entry or a transfer is never taken; each entry
+ * is taken once, by the closest amount. The person sees each in the preview and the import updates it (same id, its
+ * history kept) instead of adding a second one.
+ */
+export const CSV_TOLERANCE = {absolute: 2, share: 0.2} as const;
+const words = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(w => w.length >= 3);
+/** Whether two payee texts name the same payee (the bank's spelling can change between files). */
+export function similarPayee(a: string, b: string): boolean {
+  const x = words(a), y = words(b);
+  if (!x.length || !y.length) return false;
+  const sx = new Set(x), sy = new Set(y), shared = [...sx].filter(w => sy.has(w)).length;
+  return shared === sx.size || shared === sy.size || shared / Math.max(sx.size, sy.size) >= 0.5;
+}
+const within = (a: number, b: number) => Math.abs(a - b) <= Math.max(CSV_TOLERANCE.absolute, Math.abs(b) * CSV_TOLERANCE.share) + 1e-9;
+/** The rows of a CSV re-import that are an entry of the log, changed at the bank (`skip`: rows not to match, e.g. repeats in the file). */
+export function changedCsvRows(rows: readonly BankTransaction[], log: Pick<MoneyLog, 'entries'>, skip: ReadonlySet<number> = new Set()): Changed[] {
+  const exact = new Set<string>();
+  for (const t of rows) { const kind = t.direction === 'out' ? 'expense' : 'income', note = noteOf(t), amount = Number(t.amount); const e = log.entries.find(x => x.date === t.date && x.kind === kind && x.currency === t.currency && Number(x.amount) === amount && (x.note ?? '') === note); if (e) exact.add(e.id); }
+  // Every possible pairing, then the closest amounts first: each row and each entry is taken once.
+  const pairs: {t: BankTransaction; e: MoneyEntry; gap: number}[] = [];
+  for (const t of rows) {
+    if (skip.has(t.index) || t.duplicate || alreadyLogged(t, log) || !/^\d{1,10}(\.\d{1,2})?$/.test(t.amount) || Number(t.amount) <= 0) continue;
+    const kind = t.direction === 'out' ? 'expense' : 'income', note = noteOf(t), amount = Number(t.amount);
+    for (const e of log.entries) if (!exact.has(e.id) && !e.parts?.length && !e.transfer && e.date === t.date && e.kind === kind && e.currency === t.currency && within(amount, Number(e.amount)) && similarPayee(note, e.note ?? '')) pairs.push({t, e, gap: Math.abs(Number(e.amount) - amount)});
+  }
+  const rowsTaken = new Set<number>(), taken = new Set<string>(), out: Changed[] = [];
+  for (const {t, e} of pairs.sort((a, b) => a.gap - b.gap || a.t.index - b.t.index)) {
+    if (rowsTaken.has(t.index) || taken.has(e.id)) continue;
+    const note = noteOf(t), fixed = Number(t.amount).toFixed(2), diff: Changed = {t, entry: e, ...(fixed !== e.amount ? {amount: fixed} : {}), ...(note && note !== (e.note ?? '') ? {note} : {})};
+    if (diff.amount || diff.note) { rowsTaken.add(t.index); taken.add(e.id); out.push(diff); }
+  }
+  return out.sort((a, b) => a.t.index - b.t.index);
+}
+/** Undo of an update: the entries back exactly as they were before it (by id); anything else kept. */
+export function putBackEntries(log: MoneyLog, before: readonly MoneyEntry[]): MoneyLog {
+  const by = new Map(before.map(e => [e.id, e]));
+  return {...log, entries: log.entries.map(e => by.get(e.id) ?? e)};
 }
 
 /** A card payment or a move between accounts: the same amount leaving one account and arriving in another within 5 days. */

@@ -139,10 +139,22 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
   // C-LS-08: scope 'one' changes this occurrence of a repeating task only (a one-off on its day; the series moves on).
   const edit = useCallback((t: Task, patch: TaskPatch, scope?: 'one' | 'all') => scope === 'one'
     ? change(r => editOccurrence(r, t.id, patch, tasksToday(), {id: `task_${crypto.randomUUID()}`}), `Saved this time only: “${patch.title?.trim() || t.title}”. The repeat goes on as before.`, `“${t.title}” is as it was.`)
-    : change(r => editTask(r, t.id, patch, tasksToday(), {allowPast: true}), `Saved “${patch.title?.trim() || t.title}”${scope === 'all' ? ', this and every time after' : ''}.`, `“${t.title}” is as it was.`), [change]);
+    : change(r => keepingVersion(r, editTask(r, t.id, patch, tasksToday(), {allowPast: true}), t.id), `Saved “${patch.title?.trim() || t.title}”${scope === 'all' ? ', this and every time after' : ''}.`, `“${t.title}” is as it was.`), [change]);
   // Kept for the callers that still render an Undo next to their status line (now the toast carries it).
   const runUndo = useCallback(() => { const undo = status?.undo; setStatus(null); undo?.(); }, [status]);
   return {tasks, today, clock, status, error, setError, add, toggle, remove, removeIds, edit, change, quiet, runUndo, doneDay: deviceDay};
+}
+/**
+ * Session AV lane 2 (rest, LEDGER #33): a save that changed the task's title or notes keeps the replaced words as an
+ * earlier version (its own chunk, components/tasks/task-versions-keep.ts). Returns `after` unchanged.
+ */
+function keepingVersion(before: Tasks, after: Tasks, id: string): Tasks {
+  const was = before.tasks.find(x => x.id === id), now = after.tasks.find(x => x.id === id);
+  if (was && now && (was.title !== now.title || (was.notes ?? '') !== (now.notes ?? ''))) {
+    const live = new Set(after.tasks.map(x => x.id));
+    void import('./task-versions-keep').then(m => m.keepVersion(was, now, live)).catch(() => undefined);
+  }
+  return after;
 }
 /** Restores exactly these tasks (and drops `added`), for a caller with its own snapshot. */
 export const putBack = (before: readonly Task[], added: readonly string[] = []) => (r: Tasks) => restoreTasks(r, before, added);

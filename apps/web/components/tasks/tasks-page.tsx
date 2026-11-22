@@ -85,6 +85,15 @@ export function TasksPage() {
   const projectOf = useCallback((id?: string) => id ? record.projects?.find(p => p.id === id) : undefined, [record.projects]);
 
   useEffect(() => { if (tasks.loaded) queueMicrotask(() => setShowcase(isShowcase())); }, [tasks.loaded]);
+  // Session AV lane 2 (rest, LEDGER #17): repeating projects whose time has come are made on open (its own chunk).
+  const repeatsRan = useRef('');
+  useEffect(() => {
+    if (!tasks.loaded || tasks.unreadable || isShowcase() || repeatsRan.current === today) return;
+    repeatsRan.current = today;
+    void import('./repeat-projects-run').then(m => m.runDueRepeats({tasks: list.tasks.data, change: list.change, today})).catch(() => undefined);
+    // Once on arrival, and when the day changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks.loaded, today]);
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(t); }, [clock]);
   // The address: ?view=… (inbox, today, upcoming, all, overdue, completed, project:<id>, label:<name>, priority:<1-4>,
   // filter:<id>, board), ?task=<id> (from Search: shows and opens it), ?focus=<id> (the Agenda's Focus), ?add=1, ?q=.

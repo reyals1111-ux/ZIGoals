@@ -15,12 +15,24 @@ export const NUTRIENT_EXTRAS_KEY = 'zigoals:nutrient-extras:v1';
 export const NUTRIENT_EXTRAS = [
   ['magnesiumMg', 'Magnesium', 'mg'], ['zincMg', 'Zinc', 'mg'], ['b1Mg', 'Vitamin B1 (thiamin)', 'mg'], ['b2Mg', 'Vitamin B2 (riboflavin)', 'mg'],
   ['b3Mg', 'Vitamin B3 (niacin)', 'mg'], ['b6Mg', 'Vitamin B6', 'mg'], ['omega3Mg', 'Omega-3 fats', 'mg'],
+  // Session AV lane 2 (rest, LEDGER #93; Cronometer): the offline library's further nutrients (lib/food-generic/more.ts),
+  // kept the same way (thousandths of a mg: a µg is 1, a g is 1,000,000), additive keys in this loose record.
+  ['waterMg', 'Water', 'g'], ['starchMg', 'Starch', 'g'], ['alcoholMg', 'Alcohol', 'g'], ['glucoseMg', 'Glucose', 'g'], ['fructoseMg', 'Fructose', 'g'], ['sucroseMg', 'Sucrose', 'g'], ['lactoseMg', 'Lactose', 'g'],
+  ['monoFatMg', 'Monounsaturated fat', 'g'], ['polyFatMg', 'Polyunsaturated fat', 'g'], ['omega6Mg', 'Omega-6 fats', 'g'], ['transFatMg', 'Trans fat', 'g'], ['cholesterolMg', 'Cholesterol', 'mg'],
+  ['phosphorusMg', 'Phosphorus', 'mg'], ['copperMg', 'Copper', 'mg'], ['chlorideMg', 'Chloride', 'mg'], ['manganeseMg', 'Manganese', 'mg'], ['seleniumUg', 'Selenium', 'µg'], ['iodineUg', 'Iodine', 'µg'],
+  ['retinolUg', 'Retinol', 'µg'], ['caroteneUg', 'Carotene', 'µg'], ['pantothenateMg', 'Pantothenic acid (B5)', 'mg'], ['biotinUg', 'Biotin (B7)', 'µg'],
 ] as const;
 export type ExtraKey = (typeof NUTRIENT_EXTRAS)[number][0];
 export const EXTRA_KEYS = NUTRIENT_EXTRAS.map(([k]) => k) as ExtraKey[];
 export const EXTRA_SCALE = 1000;
 /** General guidance for adults, a day, in thousandths of a mg (the US Daily Values; omega-3: the adequate intake of ALA for men). Not advice. */
-export const EXTRA_REFERENCE: Record<ExtraKey, number> = {magnesiumMg: 420_000, zincMg: 11_000, b1Mg: 1_200, b2Mg: 1_300, b3Mg: 16_000, b6Mg: 1_700, omega3Mg: 1_600_000};
+export const EXTRA_REFERENCE: Partial<Record<ExtraKey, number>> = {magnesiumMg: 420_000, zincMg: 11_000, b1Mg: 1_200, b2Mg: 1_300, b3Mg: 16_000, b6Mg: 1_700, omega3Mg: 1_600_000,
+  // Session AV lane 2 (LEDGER #93): the US Daily Values for adults where there is one (cholesterol: the most a day); none for the rest.
+  phosphorusMg: 1_250_000, copperMg: 900, chlorideMg: 2_300_000, manganeseMg: 2_300, seleniumUg: 55, iodineUg: 150, pantothenateMg: 5_000, biotinUg: 30, cholesterolMg: 300_000};
+/** Session AV lane 2 (LEDGER #93): what is a limit, not a goal. */
+export const EXTRA_AT_MOST: ReadonlySet<ExtraKey> = new Set(['cholesterolMg', 'transFatMg']);
+/** Stored units (thousandths of a mg) per shown unit. */
+export const extraScale = (unit: string) => unit === 'g' ? 1_000_000 : unit === 'µg' ? 1 : EXTRA_SCALE;
 export const MAX_EXTRA = 1_000_000_000, MAX_EXTRA_FOODS = 2000, MAX_EXTRA_ENTRIES = 20_000;
 export type NutrientExtraValues = Partial<Record<ExtraKey, number>>;
 const amount = z.number().int().min(0).max(MAX_EXTRA);

@@ -57,7 +57,8 @@ describe('a day that fits the targets', () => {
     s.health = {...s.health!, foods: [...s.health!.foods, ...h.foods], recipes: [...s.health!.recipes, ...h.recipes]};
     const en = av2FoodAnswer('plan my meals for tomorrow to fit my targets', zigiEnv(s));
     expect(en && 'text' in en ? en.text : '').toMatch(/^A day from your recipes for .*, \d+ kcal against your 2,200:\n• Breakfast: /);
-    const nl = av2FoodAnswer('plan mijn maaltijden voor morgen', zigiEnv(s));
+    // Lead (batch 2, deliberate): the Dutch request names the targets, as "plan my meals for next week" alone is a plan for the person's own AI.
+    const nl = av2FoodAnswer('plan mijn maaltijden voor morgen binnen mijn doelen', zigiEnv(s));
     expect(nl && 'text' in nl ? nl.text : '').toMatch(/^Een dag uit je recepten voor .*\n• Ontbijt: /);
     for (const q of ['plan my day', 'what meals are planned this week']) expect(av2FoodAnswer(q, zigiEnv(s)), q).toBeNull();
   });

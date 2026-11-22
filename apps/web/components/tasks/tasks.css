@@ -246,6 +246,13 @@
 .task-comments { list-style: none; margin: 0; padding: 0; flex: 1 1 100%; display: grid; gap: 6px; font-size: 15px; overflow-wrap: anywhere; }
 .task-comments li { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
 .task-comments a { color: var(--accent, inherit); text-decoration: underline; }
+/* Session AV lane 2 (rest, LEDGER #33): a task's earlier versions, a fold in the editor. */
+.task-versions-fold { flex: 1 1 100%; min-width: 0; }
+.task-versions-fold > summary, .task-versions-list summary { min-height: 44px; display: list-item; padding: 10px 0; box-sizing: border-box; cursor: pointer; overflow-wrap: anywhere; font-size: 15px; }
+.task-versions-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.task-version-words { margin: 4px 0; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-versions-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.task-versions-actions button { min-height: 44px; }
 /* Session AV lane 2 (LEDGER #20, #28): projects under their area in the nav, and the area choice over the list. */
 .tasks-nav-area h4 { margin: 8px 0 2px; font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
 .tasks-area-pick { flex: 0 1 200px; min-width: 0; }

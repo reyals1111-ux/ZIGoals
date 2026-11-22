@@ -3,7 +3,7 @@ import type {DeviceRecordSpec} from '../device-record';
 import {addLocalDays} from '../local-date';
 import {completedLog} from './engine';
 import {TASK_PLAN_KEY, timerMinutes} from './plan-key';
-import type {Tasks} from './schema';
+import {TASK_NOTES_MAX, TASK_TITLE_MAX, type Tasks} from './schema';
 
 /**
  * Session AV lane 2 (tasks; TIER 3 (stored format), a new additive key `zigoals:task-plan:v1`): how this person plans
@@ -20,6 +20,10 @@ import type {Tasks} from './schema';
 export {TASK_PLAN_KEY};
 export const MAX_TIMERS = 10, MAX_LOG_DAYS = 800, DAY_LIMIT_CHOICES = [120, 180, 240, 300, 360, 420, 480, 540, 600] as const;
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/** An earlier version of a task's title and notes, kept on this device (newest last; capped in lib/tasks/versions.ts). */
+export const MAX_TASK_VERSIONS = 300, TASK_VERSIONS_PER_TASK = 10, MAX_TASK_VERSION_CHARS = 200_000;
+const taskVersionSchema = z.looseObject({id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), taskId: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), title: z.string().max(TASK_TITLE_MAX), notes: z.string().max(TASK_NOTES_MAX).optional().catch(undefined), savedAt: z.iso.datetime({offset: true})});
+export type TaskVersion = z.infer<typeof taskVersionSchema>;
 const timerSchema = z.looseObject({taskId: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), since: z.number().int().min(0)});
 export const taskPlanSchema = z.looseObject({
   version: z.literal(1),
@@ -31,6 +35,8 @@ export const taskPlanSchema = z.looseObject({
     through: day.optional().catch(undefined),
     days: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, n]) => /^\d{4}-\d{2}-\d{2}$/.test(k) && Number.isInteger(n) && (n as number) >= 0 && (n as number) <= 1000).sort(([a], [b]) => a.localeCompare(b)).slice(-MAX_LOG_DAYS)) : {}, z.record(z.string(), z.number())),
   }).optional().catch(undefined),
+  /** Session AV lane 2 (rest, LEDGER #33; TIER 3 (stored formats), additive): earlier versions of tasks' titles and notes (lib/tasks/versions.ts). */
+  versions: z.preprocess(v => Array.isArray(v) ? v.filter(x => taskVersionSchema.safeParse(x).success).slice(-MAX_TASK_VERSIONS) : undefined, z.array(taskVersionSchema).optional()).optional().catch(undefined),
 });
 export type TaskPlan = z.infer<typeof taskPlanSchema>;
 export const emptyTaskPlan = (): TaskPlan => ({version: 1});

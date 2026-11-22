@@ -18,6 +18,8 @@ const HabitLinkField = lazy(() => import('./habit-link-field'));
 const TaskAttachments = lazy(() => import('./task-attachments'));
 /** Review b1 #14: start or stop the task's timer from its editor (its own chunk). */
 const TaskTimer = lazy(() => import('./task-timer'));
+/** Session AV lane 2 (rest, LEDGER #33): the task's earlier titles and notes (its own chunk, loaded when the fold opens). */
+const TaskVersions = lazy(() => import('./task-versions'));
 /** Session AV (1c, q1 #1): the editor offers up to three reminders a task (the record keeps up to five). */
 const MAX_EDITOR_REMINDERS = 3;
 
@@ -45,6 +47,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   const pause = () => { try { const d = pausedDue(task, pauseUntil, today); setPauseError(''); onSave({due: d}, 'all'); } catch (e) { setPauseError(e instanceof Error ? e.message : PAUSE_PAST_MESSAGE); } };
   // Session AV (owner follow-up 1, F-TASK-MINUTES): how long it takes, in minutes.
   const [minutes, setMinutes] = useState(task.minutes ? String(task.minutes) : ''), minutesValue = minutes.trim() === '' ? null : /^\d{1,4}$/.test(minutes.trim()) && Number(minutes) >= 1 && Number(minutes) <= 1440 ? Number(minutes) : 'invalid' as const;
+  const [versionsOpen, setVersionsOpen] = useState(false);
   const [notes, setNotes] = useState(task.notes ?? ''), [repeat, setRepeat] = useState(task.recur?.text ?? (task.recur ? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase() : '')), [labels, setLabels] = useState((task.labels ?? []).map(l => `@${l}`).join(' '));
   const [projectId, setProjectId] = useState(task.projectId ?? ''), [sectionId, setSectionId] = useState(task.sectionId ?? ''), [reminders, setReminders] = useState<string[]>(() => (task.reminders ?? []).filter(r => !r.at).map(r => String(r.before)));
   // Session AV lane 2 (tasks, LEDGER #3, #17, #25, #27, #8, #23): a reminder at its own date and time, start-early days, a
@@ -137,6 +140,9 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <button type="button" className="secondary" disabled={!comment.trim() || comments.length >= COMMENTS_MAX} onClick={() => { setComments(cs => [...cs, {id: `c_${crypto.randomUUID().slice(0, 12)}`, at: new Date().toISOString(), text: comment.trim()}]); setComment(''); }}>Add comment</button>
       <small className="tasks-field-note">Comments are kept with the task when you Save, on this device only.</small>
     </div>
+    <details className="task-versions-fold" onToggle={e => setVersionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Earlier versions</summary>
+      {versionsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><TaskVersions task={task} onRestore={v => onSave({title: v.title, notes: v.notes ?? null}, task.recur ? 'all' : undefined)} /></Suspense>}
+    </details>
     <Suspense fallback={null}><TaskAttachments taskId={task.id} taskTitle={task.title} liveTaskIds={record?.tasks.map(t => t.id)}/></Suspense>
     <span className="task-editor-actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={onCancel}>Cancel</button></span>
   </form>;
