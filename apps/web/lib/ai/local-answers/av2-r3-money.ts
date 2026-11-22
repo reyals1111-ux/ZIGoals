@@ -151,7 +151,7 @@ function needsWants(a: Asked): LocalReply | null {
     const part = (lang: Lang, k: 'need' | 'want' | 'saving' | 'unmarked') => { const sh = shareOfIncome(r.parts[k].cents, r), label = k === 'unmarked' ? say(lang, 'not marked', 'niet gemarkeerd') : NEED_WANT_WORDS[k][lang].toLowerCase(); return `${label} ${moneyIn(lang, r.parts[k].cents, r.currency)}${sh === null ? '' : ` (${lang === 'nl' ? `${Math.round(sh * 100)}%` : formatPercent(sh * 100)})`}`; };
     const keys = (['need', 'want', 'saving', 'unmarked'] as const).filter(k => k !== 'unmarked' || r.parts.unmarked.cents > 0);
     return say(a.lang, `This month in ${r.currency}${r.income ? `, of ${moneyIn('en', r.income, r.currency)} income logged` : ' (no income logged, so no shares)'}: ${list(keys.map(k => part('en', k)), 'en')}.`,
-      `Deze maand in ${r.currency}${r.income ? `, van ${moneyIn('nl', r.income, r.currency)} gelogd inkomen` : ' (geen inkomen gelogd, dus geen aandelen)'}: ${list(keys.map(k => part('nl', k)), 'nl')}.`);
+      `Deze maand in ${r.currency}${r.income ? `, van ${moneyIn('nl', r.income, r.currency)} gelogd inkomen` : ' (geen inkomen gelogd, dus geen deel van je inkomen)'}: ${list(keys.map(k => part('nl', k)), 'nl')}.`);
   }).join(' ');
   return answer(`${text} ${say(a.lang, 'Your own marks and figures, not a target.', 'Je eigen markeringen en bedragen, geen doel.')}${rule}`, calls);
 }

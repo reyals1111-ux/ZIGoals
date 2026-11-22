@@ -96,6 +96,10 @@ describe('needs, wants and saving: the person’s own shares, never a target', (
     expect(text(zigi('how much went to needs and wants this month', s))).toBe('This month in EUR, of €2,000.00 income logged: needs €800.00 (40%), wants €200.00 (10%), saving €0.00 (0%) and not marked €40.00 (2%). Your own marks and figures, not a target.');
     expect(text(zigi('hoeveel ging er deze maand naar nodig en wensen', s))).toBe('Deze maand in EUR, van € 2.000,00 gelogd inkomen: nodig € 800,00 (40%), wensen € 200,00 (10%), sparen € 0,00 (0%) en niet gemarkeerd € 40,00 (2%). Je eigen markeringen en bedragen, geen doel.');
     expect(text(zigi('am I on track for 50/30/20', s))).toContain('never a split to aim for');
+    // Review b3a #9: without income the Dutch answer says there is no share of income (never "aandelen", stocks).
+    const noIncome = withLog(freshAll(), [mine({amount: '800.00', category: 'Home'})], {needWant: {Home: 'need'}});
+    expect(text(zigi('hoeveel ging er deze maand naar nodig en wensen', noIncome))).toBe('Deze maand in EUR (geen inkomen gelogd, dus geen deel van je inkomen): nodig € 800,00, wensen € 0,00 en sparen € 0,00. Je eigen markeringen en bedragen, geen doel.');
+    expect(text(zigi('hoeveel ging er deze maand naar nodig en wensen', noIncome))).not.toMatch(/aandelen/);
     expect(text(zigi('how much went to needs and wants this month', withLog(freshAll(), entries)))).toContain('No category is marked');
   });
 });
