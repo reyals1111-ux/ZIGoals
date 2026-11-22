@@ -8696,5 +8696,61 @@
   "widgets": [],
   "fresh": "Your file would hold 0 categories of your own, 0 subcategories and your rules — never an entry or an amount. In Wealth → Spending → Log spending → Your own categories, \"Save categories and rules\" makes it; \"Read categories and rules from a file\" reads one from another device or a friend, shows what is new, and adds only that, with Undo. Nothing you have is removed or changed.",
   "freshNl": "Je bestand zou 0 eigen categorieën, 0 subcategorieën en je regels bevatten — nooit invoer of bedragen. In Vermogen → Uitgaven → Log spending → Your own categories maakt \"Save categories and rules\" het; \"Read categories and rules from a file\" leest er een van een ander apparaat of een vriend, toont wat nieuw is en voegt alleen dat toe, met ongedaan maken. Niets wat je hebt wordt weggehaald of veranderd."
+ },
+ "av2r5-status": {
+  "en": "No status is set. When you are ill, injured, on a break or travelling, set one in Health → Workouts → Your status: planned workouts wait and your week streak is kept.",
+  "nl": "Er staat geen status aan. Ben je ziek, geblesseerd, even met pauze of op reis, zet er dan een in Health → Workouts → Your status: geplande workouts wachten en je weekreeks blijft staan.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No status is set. When you are ill, injured, on a break or travelling, set one in Health → Workouts → Your status: planned workouts wait and your week streak is kept.",
+  "freshNl": "Er staat geen status aan. Ben je ziek, geblesseerd, even met pauze of op reis, zet er dan een in Health → Workouts → Your status: geplande workouts wachten en je weekreeks blijft staan."
+ },
+ "av2r5-band": {
+  "en": "This week so far: 124 min (49 min of workouts, 75 min of other movement). Below your usual range (290–493 min a week) so far; the week runs to Sunday. From your own workouts and Health activity; never calories. Health → Workouts shows the band and the last 30 days.",
+  "nl": "Deze week tot nu toe: 124 min (49 min workouts, 75 min andere beweging). Onder je gewone bandbreedte (290–493 min per week) tot nu toe; de week loopt tot zondag. Uit je eigen workouts en Health-activiteit; nooit calorieën. Health → Workouts toont de band en de laatste 30 dagen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "This week so far: 0 min (0 min of workouts, 0 min of other movement). Your usual range needs three of your last six weeks with movement logged; 0 of those weeks can be counted so far. From your own workouts and Health activity; never calories. Health → Workouts shows the band and the last 30 days.",
+  "freshNl": "Deze week tot nu toe: 0 min (0 min workouts, 0 min andere beweging). Je gewone bandbreedte heeft drie van je laatste zes weken met beweging nodig; die zijn er nog niet. Uit je eigen workouts en Health-activiteit; nooit calorieën. Health → Workouts toont de band en de laatste 30 dagen."
+ },
+ "av2r5-everyday": {
+  "en": "No everyday movement logged this week yet. In Health → Activity, name it — gardening, housework, walking the dog, a wheelchair push, carrying a child, commuting by bike — with its minutes. It counts as active minutes, with no energy figure.",
+  "nl": "Deze week is er nog geen dagelijkse beweging gelogd. Geef het in Health → Activity een naam — tuinieren, huishouden, de hond uitlaten, rolstoel duwen, een kind dragen, op de fiets naar het werk — met de minuten. Het telt als actieve minuten, zonder energiecijfer.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No everyday movement logged this week yet. In Health → Activity, name it — gardening, housework, walking the dog, a wheelchair push, carrying a child, commuting by bike — with its minutes. It counts as active minutes, with no energy figure.",
+  "freshNl": "Deze week is er nog geen dagelijkse beweging gelogd. Geef het in Health → Activity een naam — tuinieren, huishouden, de hond uitlaten, rolstoel duwen, een kind dragen, op de fiets naar het werk — met de minuten. Het telt als actieve minuten, zonder energiecijfer."
+ },
+ "av2r5-favourites": {
+  "en": "Your favourite workouts: Leg day (Fri, Nov 13).",
+  "nl": "Je favoriete workouts: Leg day (vr 13 nov).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No favourite workouts yet. In Health → Workouts → Your workouts, open a workout and choose Favourite; \"Favourites\" above the list then shows only those.",
+  "freshNl": "Nog geen favoriete workouts. Open in Health → Workouts → Your workouts een workout en kies Favourite; \"Favourites\" boven de lijst toont dan alleen die."
+ },
+ "av2r5-keep-weights": {
+  "en": "Leg day keeps its last weights: finishing a workout from it writes the weights and reps you did back into the routine.",
+  "nl": "Leg day onthoudt de laatste gewichten: een workout ermee afronden schrijft je gewichten en herhalingen terug in de routine.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "None of your routines keeps its last weights yet. In Health → Workouts, choose Edit on a routine and tick \"Keep my last weights\": finishing a workout from it then writes your weights and reps back into it, with Undo.",
+  "freshNl": "Nog geen van je routines onthoudt de laatste gewichten. Kies in Health → Workouts bij een routine Edit en vink \"Keep my last weights\" aan: een workout ermee afronden schrijft je gewichten en herhalingen er dan in terug, met Ongedaan maken."
+ },
+ "av2r5-feel": {
+  "en": "Yes. In Health → Workouts → \"Suggest a workout for today\", choose how you feel. Tired: up to one exercise and one set fewer, with the weights you lifted last time (no increase today). Sore: up to three exercises, up to two sets each, about 10 % less weight. On those days you can start an easy walk instead. Your answer is used for that suggestion only and is not kept.",
+  "nl": "Ja. Kies bij het workoutvoorstel van vandaag in Health → Workouts hoe je je voelt. Moe: tot één oefening en één set minder, met de gewichten van de vorige keer (vandaag geen verhoging). Stijf: tot drie oefeningen, tot twee sets elk, ongeveer 10 % minder gewicht. Op die dagen kun je in plaats daarvan een rustige wandeling beginnen. Je antwoord geldt alleen voor dat voorstel en wordt niet bewaard.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. In Health → Workouts → \"Suggest a workout for today\", choose how you feel. Tired: up to one exercise and one set fewer, with the weights you lifted last time (no increase today). Sore: up to three exercises, up to two sets each, about 10 % less weight. On those days you can start an easy walk instead. Your answer is used for that suggestion only and is not kept.",
+  "freshNl": "Ja. Kies bij het workoutvoorstel van vandaag in Health → Workouts hoe je je voelt. Moe: tot één oefening en één set minder, met de gewichten van de vorige keer (vandaag geen verhoging). Stijf: tot drie oefeningen, tot twee sets elk, ongeveer 10 % minder gewicht. Op die dagen kun je in plaats daarvan een rustige wandeling beginnen. Je antwoord geldt alleen voor dat voorstel en wordt niet bewaard."
+ },
+ "av2r5-one-side": {
+  "en": "Under an exercise in a workout, open \"Warm-up and plates\", then \"Your bar and plates\", tick \"Loaded on one side\" and type the machine’s or sled’s own weight. The calculator then lists the plates for that one horn, using both plates of each pair, and the warm-up rounds to it.",
+  "nl": "Open onder een oefening in een workout \"Warm-up and plates\", dan \"Your bar and plates\", vink \"Loaded on one side\" aan en vul het eigen gewicht van de machine of slede in. De rekenhulp geeft dan de schijven voor die ene kant, met beide schijven van elk paar, en de warming-up rondt daarop af.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Under an exercise in a workout, open \"Warm-up and plates\", then \"Your bar and plates\", tick \"Loaded on one side\" and type the machine’s or sled’s own weight. The calculator then lists the plates for that one horn, using both plates of each pair, and the warm-up rounds to it.",
+  "freshNl": "Open onder een oefening in een workout \"Warm-up and plates\", dan \"Your bar and plates\", vink \"Loaded on one side\" aan en vul het eigen gewicht van de machine of slede in. De rekenhulp geeft dan de schijven voor die ene kant, met beide schijven van elk paar, en de warming-up rondt daarop af."
  }
 }
