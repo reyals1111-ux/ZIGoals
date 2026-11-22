@@ -60,7 +60,8 @@ function caffeineSleep(a: Asked): LocalReply | null {
   const r = compare(src, factor, 'sleep', 'same', today);
   const what = say(a.lang, factor === 'steps' ? 'steps' : 'caffeine', factor === 'steps' ? 'stappen' : 'cafeïne');
   if (!r) return answer(say(a.lang, `There is no ${what} in your log to compare with your nights yet. ${factor === 'steps' ? 'Log steps in Health → Activity.' : 'Type the caffeine of a drink in Health → Water.'} Then Health → Insights → Compare sets the days with it beside the days without, night by night.`, `Er staat nog geen ${what} in je log om met je nachten te vergelijken. ${factor === 'steps' ? 'Log stappen in Health → Activity.' : 'Vul de cafeïne van een drankje in bij Health → Water.'} Dan zet Health → Insights → Compare de dagen ermee naast de dagen zonder, nacht voor nacht.`), HEALTH_CALLS);
-  const amount = factor === 'steps' ? `${basis.steps ?? 8000}` : factor === 'caffeine' ? `${basis.caffeineMg ?? 200} mg` : `${basis.hour}:00`;
+  // Review B4E-15: the amounts in Dutch number format ("4.000 stappen").
+  const nlNum = (n: number) => n.toLocaleString('nl-NL'), amount = factor === 'steps' ? nlNum(basis.steps ?? 8000) : factor === 'caffeine' ? `${nlNum(basis.caffeineMg ?? 200)} mg` : `${basis.hour}:00`;
   const nl = factor === 'steps' ? `dagen met meer dan ${amount} stappen` : factor === 'caffeine' ? `dagen met meer dan ${amount} cafeïne` : `dagen met cafeïne na ${amount}`;
   if (r.state === 'pending') return answer(say(a.lang, `Not enough days yet: ${r.counts}, and a comparison needs ${r.need} on each side. Health → Insights → Compare shows it then. It says what happened together, never a cause.`, `Nog niet genoeg dagen: ${r.withDays} met, ${r.withoutDays} zonder (${nl}), en een vergelijking heeft er ${r.need} aan elke kant nodig. Health → Insights → Compare laat het dan zien: wat samen gebeurde, nooit een oorzaak.`), HEALTH_CALLS);
   const h = (m: number) => `${Math.floor(Math.round(m) / 60)} h ${String(Math.round(m) % 60).padStart(2, '0')} min`;
@@ -153,7 +154,7 @@ function racesAnswer(a: Asked): LocalReply | null {
   const nl = ahead.map(r => `${r.race.name} (${r.race.priority === 'main' ? 'hoofdwedstrijd' : 'B'}, ${distanceWords(r.race.distanceKm).replace('Half marathon', 'halve marathon')}, ${nlDay(r.race.date, today)}, over ${gapWords(r.daysFromToday, 'nl')})`);
   const last = done[0], res = last?.result;
   const enLast = last && res ? ` Last: ${last.race.name}, ${timeText(res.seconds)}${res.vsGoal !== null ? `, ${goalWords(res.vsGoal)}` : ''}.` : '';
-  const nlLast = last && res ? ` Laatste: ${last.race.name}, ${timeText(res.seconds)}${res.vsGoal !== null ? `, ${timeText(Math.abs(res.vsGoal))} ${res.vsGoal <= 0 ? 'onder' : 'boven'} je doel` : ''}.` : '';
+  const nlLast = last && res ? ` Laatste: ${last.race.name}, ${timeText(res.seconds)}${res.vsGoal !== null ? `, ${res.vsGoal === 0 ? 'precies op je doel' : `${timeText(Math.abs(res.vsGoal))} ${res.vsGoal < 0 ? 'onder' : 'boven'} je doel`}` : ''}.` : '';
   return answer(say(a.lang, `${ahead.length ? `Coming up: ${list(en, 'en')}.` : 'No race ahead.'}${enLast}`, `${ahead.length ? `Komend: ${list(nl, 'nl')}.` : 'Geen wedstrijd gepland.'}${nlLast}`), HEALTH_CALLS);
 }
 

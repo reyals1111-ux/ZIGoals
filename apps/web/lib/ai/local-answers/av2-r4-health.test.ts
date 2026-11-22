@@ -83,4 +83,14 @@ describe('the answers read the features’ own figures', () => {
     expect(r).toContain('Last: Fictional parkrun, 25:00, 1:00 under your goal.');
     expect(text(ask('wanneer is mijn volgende wedstrijd', wiredR4({races, workouts})))).toContain('over 3 weken');
   });
+  // Session AV lane 2 (review B4E-15): Dutch numbers and the Dutch words for a race run right on its goal.
+  test('Dutch amounts are in Dutch number format; a result right on the goal says so in Dutch', () => {
+    expect(text(ask('hoe gaan mijn stappen samen met mijn slaap', wiredR4()))).toContain('meer dan 4.000 stappen');
+    const run = {id: 'r1', name: 'Fictional run', date: addLocalDays(DAY, -3), type: 'cardio', startedAt: `${addLocalDays(DAY, -3)}T09:00:00.000Z`, endedAt: `${addLocalDays(DAY, -3)}T09:25:00.000Z`, exercises: [{id: 'e1', exerciseId: 'running', name: 'Running', measure: 'distance-time', sets: [{id: 's1', kind: 'normal', distanceKm: 5, seconds: 1500, done: true}]}]};
+    const out = saveRace(emptyRaces(), {name: 'Fictional parkrun', date: addLocalDays(DAY, -3), distanceKm: '5', goal: '25:00', priority: 'b'}, 'race-0', `${DAY}T08:00:00.000Z`); if (!out.ok) throw new Error('fixture');
+    const w = {...emptyWorkouts(), workouts: [run]} as unknown as Workouts;
+    expect(text(ask('wanneer is mijn volgende wedstrijd', wiredR4({races: out.value, workouts: w})))).toContain('25:00, precies op je doel.');
+    expect(text(ask('when is my next race', wiredR4({races: out.value, workouts: w})))).toContain('25:00, right on your goal.');
+  });
 });
+
