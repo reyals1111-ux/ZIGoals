@@ -33,3 +33,40 @@ Shared-file needs for the lead are collected at the end ("For the lead").
 - Device keys / catalogue / export / erase: none.
 - CSS touched: `components/health/food-plus/food-plus.css` (new; theme variables only).
 - Always visible on Today: nothing.
+
+## F2 — Diary times and nutrient timing
+
+- LEDGER rows: **#101** Cronometer Diary timestamps — built. **#108** MacroFactor Micronutrients and top contributors —
+  the remainder (nutrient timing, which needed entry times) built; the rest was built in `71bed717`.
+- What it does: every Diary entry shows when it was eaten, as a small button in its row: the clock time it was logged at
+  when logged on its own day (by the Health journal's zone), else "Add time". The button opens "Eaten at" (a time field)
+  with Save time, Use the logged time, No time and Cancel (Escape); focus returns to the time. Under the meals, the
+  day's eating window ("07:45 to 19:30 (11 h 45 min)"). Health → Insights → "When you eat": calories, protein, carbs, fat
+  or fiber by part of the day (early, morning, midday, afternoon, evening, late), today or over 7 or 30 days, as bars,
+  a table (entries, amount a day, share) and the entries left out for lack of a time. Nothing is estimated; a stamp of
+  exactly midnight (a day's stamp, as the Showcase's today) carries no clock.
+- Files: `lib/food-plus/schema.ts` (the record), `lib/food-plus/times.ts`, `lib/av2-food-keys.ts` (registry literals),
+  `components/health/food-plus/entry-times.tsx`, `components/health/food-plus/nutrient-timing.tsx`,
+  `components/health/food-plus/food-plus.tsx` (parts `times`, `timing`), `components/health/health-app.tsx` (an empty
+  `data-food-time` slot per entry row; the two FoodPlus parts), `food-plus.css`.
+- Tests: `lib/food-plus/av2-times.test.ts` (times, timing, the record's round trip export → erase → restore),
+  `lib/ai/local-answers/av2-food.test.ts`. Spec: `tests/av2-diary-times.spec.ts`.
+- Stored changes (TIER 3 stored formats, own commit): the new device key `zigoals:food-plus:v1` (loose, versioned; every
+  part optional and dropped alone when unreadable). This feature writes only its `times` part (entry id → "HH:MM" or
+  "none"; ids no longer in the diary are dropped on the next write).
+- Help (EN). Q: "Can I see when I ate something?" A: "Yes. Each entry in the Diary shows the time you logged it. Tap the
+  time to change it, go back to the logged time, or take it off. An entry logged for another day has no time until you
+  add one." Q: "What does “When you eat” show?" A: "Health → Insights → When you eat shows how your calories, protein,
+  carbs, fat or fiber spread over the parts of the day, today or over 7 or 30 days. Only entries with a time count; it
+  is information, not advice."
+- What's new: "Diary times: when you ate each food, your eating window, and When you eat in Insights."
+- Answers wiring (engine.ts, beside `avAnswer`, same wrapper): `const found = av2FoodAnswer(question, env, readFoodSources(getAppStorage()))`
+  (in node/tests pass `{}`); intents `av2-food-when-eaten`, `av2-food-eating-window`, `av2-food-timing`
+  (`lib/ai/evals/as/cases-av2-food.ts`, `AV2_FOOD`; add to `CORPUS` and record expected.json).
+- Showcase: earlier days' entries carry clock times already (`showcaseMoment`), so yesterday's timeline, the eating
+  window and "When you eat" over 7 days are filled; today's Showcase entries are stamped at midnight and read "Add time".
+- Device keys / catalogue / export / erase / restore: `lib/av2-food-keys.ts` — spread `AV2_FOOD_PERSONAL_KEYS` into the
+  personal keys, `AV2_FOOD_EXPORT_KEYS` into `DEVICE_KEYS`, `AV2_FOOD_CATALOG_LABELS` into the catalog (area Health),
+  `AV2_FOOD_RESTORE` as a `dev('foodPlus', …, FOOD_PLUS, true)` row with "Health", `AV2_FOOD_ERASE_KEYS` into the erase.
+- CSS touched: `components/health/food-plus/food-plus.css`.
+- Always visible on Today: nothing.

@@ -26,3 +26,6 @@
 .food-plus-mic { min-height: 44px; min-width: 44px; }
 .food-plus-mic[aria-pressed="true"] { outline: 2px solid var(--pillar-health, #ff74be); outline-offset: 2px; }
 .food-plus-photo { max-width: 160px; max-height: 160px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line, #6a9cc342); }
+.food-plus-choice { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 15px; }
+.food-plus-choice input { width: 20px; height: 20px; }
+.food-plus-window { margin: 0 0 12px; }
