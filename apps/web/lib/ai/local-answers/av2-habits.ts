@@ -1,8 +1,11 @@
 import {latestHabitRule, type Habit} from '../../habits';
 import {DIFFICULTY_WORDS, DIFFICULTY_XP, FOCUS_BONUS_XP, readHabitOptions, type HabitOptions} from '../../habit-options/rule';
+import {areaWeekRows} from '../../habit-areas/week';
+import {AREA_LABELS} from '../../habits-extras/areas-mirror';
+import {THEME_DAYS, themeMonthsReached, themeProgress} from '../../game/month-theme';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
-import {answer, asked, closed, count, isQuestion, list, MIXED, say, type Asked} from './av-words';
+import {answer, asked, closed, count, isQuestion, list, MIXED, monthIn, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -15,7 +18,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme]) {
       const r = one(a);
       if (r) return r;
     }
@@ -82,4 +85,36 @@ function habitOptionsOf(a: Asked): LocalReply | null {
   const o = readHabitOptions(extrasOf(a))[habit.id] ?? {}, lang = a.lang, d = o.difficulty ?? 'easy';
   const parts = [o.whenever ? say(lang, 'Whenever (no set days)', 'Whenever (geen vaste dagen)') : null, o.twoDay ? say(lang, 'never miss twice', 'nooit twee keer missen') : null, o.unloggedSkip ? say(lang, 'an unlogged day counts as skipped', 'een niet gelogde dag telt als overgeslagen') : null, say(lang, `${DIFFICULTY_WORDS[d].en} (${DIFFICULTY_XP[d]} XP a done day)`, `${DIFFICULTY_WORDS[d].nl} (${DIFFICULTY_XP[d]} XP per gedane dag)`)].filter((p): p is string => !!p);
   return answer(say(lang, `${clean(habit.title, 60)}: ${list(parts, 'en')}. Its Details → Habit options change them.`, `${clean(habit.title, 60)}: ${list(parts, 'nl')}. Details → Habit options van de gewoonte verandert ze.`), OPEN);
+}
+
+const AREA_NL: Record<string, string> = {health: 'Gezondheid', mind: 'Gewoontes & geest', wealth: 'Geld', relationships: 'Relaties', career: 'Werk', learning: 'Leren', fun: 'Plezier'};
+const areaName = (id: string, lang: 'en' | 'nl') => lang === 'nl' ? AREA_NL[id] ?? AREA_LABELS[id] ?? id : AREA_LABELS[id] ?? id;
+/** LEDGER #53: "how are my areas doing this week", "hoe gaan mijn levensgebieden deze week". */
+function areasWeek(a: Asked): LocalReply | null {
+  const en = /\b(?:life )?areas?\b/.test(a.f) && /\b(?:this week|weekly|milestones?)\b/.test(a.f) && !/\bspend|budget|money\b/.test(a.f);
+  const nl = /\b(?:levensgebieden|gebieden|levensgebied|gebied)\b/.test(a.f) && /\b(?:deze week|wekelijks|mijlpalen|mijlpaal)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'habits'); if (shut) return shut;
+  const lang = a.lang, extras = extrasOf(a), ids = new Set(Object.values((extras as {areas?: Record<string, unknown>} | null)?.areas ?? {}).filter((v): v is string => typeof v === 'string'));
+  const areas = [...Object.keys(AREA_LABELS), ...[...ids].filter(id => !(id in AREA_LABELS))].map(id => ({id, label: areaName(id, lang)}));
+  const rows = areaWeekRows(a.env.habits.habits, extras, areas, a.today);
+  if (!rows.length) return answer(say(lang, 'No habit has a life area yet. On Habits, a habit’s Details → “◈ Choose an area” gives it one; “Your areas this week” then shows each area’s week and milestone.', 'Nog geen gewoonte heeft een levensgebied. Op Habits geeft Details → “◈ Choose an area” van een gewoonte er een; “Your areas this week” toont dan de week en mijlpaal van elk gebied.'), OPEN);
+  const line = (r: typeof rows[number]) => say(lang, `${r.label}: ${r.done} of ${r.due} this week${r.goal > 0 ? `, milestone ${r.goal}${r.reached ? ' reached' : ''}` : ''}${r.weeksInRow > 1 ? `, ${r.weeksInRow} weeks in a row` : ''}`, `${r.label}: ${r.done} van ${r.due} deze week${r.goal > 0 ? `, mijlpaal ${r.goal}${r.reached ? ' gehaald' : ''}` : ''}${r.weeksInRow > 1 ? `, ${r.weeksInRow} weken op rij` : ''}`);
+  return answer([say(lang, 'Your areas this week (check-ins done of due, Monday to Sunday):', 'Je gebieden deze week (check-ins gedaan van gepland, maandag tot zondag):'), ...rows.slice(0, 10).map(r => `• ${line(r)}`)].join('\n'), OPEN);
+}
+/** LEDGER #55: "what is this month's theme", "wat is het thema van deze maand". */
+function monthTheme(a: Asked): LocalReply | null {
+  const en = /\b(?:this months?|monthly|months) theme\b|\btheme (?:of|for) (?:this|the) month\b|\btheme month\b/.test(a.f);
+  const nl = /\bthema (?:van|voor) (?:deze|de) maand\b|\bmaandthema\b|\bthema deze maand\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'habits'); if (shut) return shut;
+  const lang = a.lang;
+  if (a.env.game && !a.env.game.enabled) return answer(say(lang, 'The monthly theme is part of the game layer, which is off. Journey turns it on; nothing is stored but the switch.', 'Het maandthema hoort bij de spellaag, en die staat uit. Journey zet hem aan; er wordt alleen de schakelaar bewaard.'));
+  if (a.env.game?.monthTheme === false) return answer(say(lang, 'The monthly theme is hidden. Journey → This month’s theme shows it again.', 'Het maandthema is verborgen. Journey → This month’s theme toont het weer.'));
+  const month = a.today.slice(0, 7), p = themeProgress(a.env.habits.habits, extrasOf(a), month, a.today), t = p.theme, area = areaName(t.area, lang);
+  const reached = themeMonthsReached(a.env.habits.habits, extrasOf(a), a.today);
+  const where = p.inArea ? say(lang, `check-ins on your ${area} habits count`, `check-ins op je gewoontes in ${area} tellen`) : say(lang, `every habit counts, as none is in ${area} yet`, `elke gewoonte telt, want er staat er nog geen in ${area}`);
+  const done = Math.min(p.days, THEME_DAYS);
+  const past = reached.length ? say(lang, ` Months reached: ${list(reached.slice(-4).map(m => monthIn('en', m)), 'en')}.`, ` Gehaalde maanden: ${list(reached.slice(-4).map(m => monthIn('nl', m)), 'nl')}.`) : '';
+  return answer(say(lang, `${monthIn('en', month)}’s theme: ${t.en}. ${t.lineEn} ${done} of ${THEME_DAYS} days with a check-in so far (${where})${p.reached ? '; reached, the Theme month badge is yours' : ''}.${past}`, `Het thema van ${monthIn('nl', month)}: ${t.nl}. ${t.lineNl} Tot nu toe ${done} van ${THEME_DAYS} dagen met een check-in (${where})${p.reached ? '; gehaald, de badge Theme month is van jou' : ''}.${past}`), OPEN);
 }

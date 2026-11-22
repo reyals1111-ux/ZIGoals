@@ -50,3 +50,24 @@ describe('habit options', () => {
     expect(text(av2HabitsAnswer('which habits have no schedule', novaEnv(showcaseAll())))).toContain('Whenever');
   });
 });
+
+describe('areas this week and the monthly theme (LEDGER #53, #55)', () => {
+  test('the Showcase\'s areas: each with done of due this week, EN and NL', () => {
+    const en = text(zigi('how are my areas doing this week')), nl = text(zigi('hoe gaan mijn levensgebieden deze week'));
+    expect(en).toMatch(/^Your areas this week \(check-ins done of due, Monday to Sunday\):\n• Health: \d+ of \d+ this week/);
+    expect(nl).toMatch(/• Gezondheid: \d+ van \d+ deze week/);
+  });
+  test('no area given: the answer teaches where to choose one', () => {
+    const s = showcaseAll();
+    const bare = {...s, ak: {...s.ak, habitExtras: {version: 1}}};
+    expect(text(zigi('how are my areas doing this week', bare))).toContain('No habit has a life area yet');
+  });
+  test('this month\'s theme with the layer on; off, the layer is named; hidden, said so', () => {
+    const on = text(zigi('what is this month\'s theme')), nl = text(zigi('wat is het thema van deze maand'));
+    expect(on).toMatch(/^Nov 2026’s theme: Gratitude\. Notice what went well\. \d+ of 15 days with a check-in so far/);
+    expect(nl).toMatch(/^Het thema van november 2026: Dankbaarheid\. Zie wat goed ging\. Tot nu toe \d+ van 15 dagen/);
+    const s = showcaseAll();
+    expect(text(zigi('what is the theme of this month', {...s, game: {enabled: false, earnAcademy: null}}))).toContain('part of the game layer, which is off');
+    expect(text(zigi('what is the theme of this month', {...s, game: {enabled: true, earnAcademy: null, monthTheme: false}}))).toContain('The monthly theme is hidden');
+  });
+});

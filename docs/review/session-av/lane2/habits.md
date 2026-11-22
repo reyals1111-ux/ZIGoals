@@ -54,3 +54,36 @@ corpus, regenerates theme sheets, edits Help / What's new / search / shard lists
 - Device keys / catalogue / export / erase: nothing new (existing keys).
 - CSS touched: `components/habits/habit-options.css` (new; theme variables only).
 - Always visible on Today: nothing added.
+
+## Feature 2 — Areas' week with milestones, and the monthly theme (LEDGER #53, #55)
+
+**Verdict: built.**
+
+| row | what was built |
+|---|---|
+| #53 Finch Self-Care Areas and Weekly Milestones | Habits → "Your areas this week" (a fold, lazy): each life area that holds a habit — "Health: 9 of 12 this week", Monday to Sunday (skipped, unscheduled and whenever days add nothing due; an "N times a week" habit counts its N), a bar, the weekly milestone (every check-in due, or the person's own number 1–500, set by keyboard, Escape cancels, focus back on its button), "reached ✓" and "N weeks in a row". Empty state teaches "◈ Choose an area". |
+| #55 Finch Seasonal events | Journey → "This month's theme" (a fold, lazy): twelve calm themes (EN/NL), each tied to a built-in life area (November: Gratitude, Habits & Mind); 15 days with a check-in on a habit in that area (any habit while none is in it) earn the new "Theme month" badge (❋) in `lib/game/badges.ts`; the months reached are listed. "Hide the monthly theme" (no pet; the badge is not earned while hidden, one earned stays). |
+
+- Files: `lib/habit-areas/week.ts`, `lib/game/month-theme.ts`, `lib/game/{badges,schema,xp}.ts`,
+  `components/habits/{habit-areas-week.tsx,habits-workspace.tsx,habit-options.css}`,
+  `components/game/{month-theme-panel.tsx,av2-journey.css,journey.tsx,use-game.ts}`, `lib/ai/tools/env.ts`,
+  `components/ai/use-ai-context.ts` (`game.monthTheme`), `lib/ai/local-answers/av2-habits.ts`.
+- Tests: `lib/habit-areas/week.test.ts` (week counts, own milestone and weeks in a row, the twelve themes, the area
+  rule, the badge on/hidden/kept, the switch, export → erase → restore of both records), `av2-habits.test.ts`.
+- Spec: `tests/av2-areas-theme.spec.ts`.
+- **Stored changes (TIER 3 stored formats, additive, separate commit):** `zigoals:habit-extras:v1` gains optional
+  `areaGoals` ({areaId: 1…500}, ≤ 100, checked where read); `zigoals:game:v1` gains optional `monthTheme` (false =
+  hidden, `.catch(undefined)`). Existing keys; no registry change.
+- Badge cabinet: one more badge ("Theme month"), so the cabinet reads "N of 17". No test pins 16 (journey.spec reads
+  `\d+ of \d+`); the Showcase may earn it if its Mind habit has 15 November days — the lead's Showcase runs will show it.
+- Help (EN): **Q: How do I see how each part of my life is doing this week?** A: Give your habits a life area (a habit's
+  Details → ◈ Choose an area). Habits → Your areas this week then shows each area's check-ins done of those due,
+  Monday to Sunday, and its weekly milestone: every check-in due, or a number you set. **Q: What is the monthly
+  theme?** A: With the game layer on, each month has a calm theme tied to a life area. A check-in on 15 days of the
+  month on a habit in that area earns the Theme month badge. Journey → This month's theme shows it, or hides it.
+- What's new: "Your areas this week, with a weekly milestone per area." · "A calm theme each month, with its own badge."
+- Answers: `av2HabitsAnswer` now also answers "how are my areas doing this week" / "hoe gaan mijn levensgebieden
+  deze week" and "what is this month's theme" / "wat is het thema van deze maand" (cases in `AV2_HABITS`).
+- Showcase hook: the Showcase's habits already carry areas, so "Your areas this week" shows them with no new data.
+- CSS touched: `components/habits/habit-options.css`, `components/game/av2-journey.css` (new; theme variables only).
+- Always visible on Today: nothing added. Habits page first chunk: one fold row (`<details>` + lazy import).

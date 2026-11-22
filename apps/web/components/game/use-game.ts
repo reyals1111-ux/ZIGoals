@@ -25,11 +25,12 @@ export function useGame() {
   const enabled = game.loaded && !game.unreadable && game.data.enabled;
   const loaded = habits.loaded && health.loaded && game.loaded;
   const today = habits.today;
+  const themeOff = game.loaded && !game.unreadable && game.data.monthTheme === false;
   const reborn = game.loaded && !game.unreadable ? rebirthFrom(game.data) : null;
   // Session AF (L3): the Checklist's sealed days feed its XP, badges and celebrations (lib/game reads `checklist`).
   const stores = useMemo(() => ({habits: habits.data, health: health.data, platform: platform.data, weekly: weekly.data, dayGoal, ...(checklistDays.loaded && !checklistDays.unreadable ? {checklist: checklistDays.data} : {}), ...(earnAcademy.loaded && !earnAcademy.unreadable ? {earnAcademy: earnAcademy.data} : {}),
     // Session AV lane 2 (LEDGER #45, #52, #48): each habit's difficulty and the focus habit of each day; the rebirth day.
-    ...(habitExtras.loaded && !habitExtras.unreadable ? {habitExtras: habitExtras.data} : {}), rebirthFrom: reborn}), [habits.data, health.data, platform.data, weekly.data, checklistDays.loaded, checklistDays.unreadable, checklistDays.data, earnAcademy.loaded, earnAcademy.unreadable, earnAcademy.data, dayGoal, habitExtras.loaded, habitExtras.unreadable, habitExtras.data, reborn]);
+    ...(habitExtras.loaded && !habitExtras.unreadable ? {habitExtras: habitExtras.data} : {}), rebirthFrom: reborn, monthThemeOff: themeOff}), [habits.data, health.data, platform.data, weekly.data, checklistDays.loaded, checklistDays.unreadable, checklistDays.data, earnAcademy.loaded, earnAcademy.unreadable, earnAcademy.data, dayGoal, habitExtras.loaded, habitExtras.unreadable, habitExtras.data, reborn, themeOff]);
   const pages = useMemo(() => ['habits', 'health', 'goals', 'wealth', 'today'].filter(p => !view.hidden.includes(p as never)), [view.hidden]);
   const kept = game.loaded && !game.unreadable ? game.data.badgesSeen : undefined;
   const derived = useMemo(() => {

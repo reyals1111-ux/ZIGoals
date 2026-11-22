@@ -5,6 +5,7 @@ import {formatDate, formatNumber} from '../../lib/visual-format';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import {ConfirmInline} from '../ui/confirm-inline';
 import type {DeviceRecordState} from '../ai/use-device-record';
+import './av2-journey.css';
 
 /**
  * Session AV lane 2 (habits; LEDGER #48, Habitica's Orb of Rebirth): start again at level 1. XP from today on counts

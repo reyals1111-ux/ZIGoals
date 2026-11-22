@@ -33,8 +33,8 @@ export type ChecklistDaySummaryXp = {date: string; total: number; done: number; 
  *  without it earns no Academy XP, as before. */
 /** Session AV lane 2 (LEDGER #45, #52, #48): `habitExtras` is the loose habit extras record (each habit's difficulty, and
  *  the focus habit of each day); `rebirthFrom` the day the person started again at level 1 (the game record's
- *  `rebirth.from`). Both optional: without them every completed day earns the 10 XP it always did, and levels count all XP. */
-export type GameStores = {habits: HabitData; health: HealthData; platform?: Platform | null; weekly?: WeeklyReview | null; checklist?: ChecklistDays | null; dayGoal?: DayGoal | null; checklistToday?: ChecklistDaySummaryXp | null; earnAcademy?: EarnAcademy | null; habitExtras?: unknown; rebirthFrom?: string | null};
+ *  `rebirth.from`); `monthThemeOff` the monthly theme hidden (LEDGER #55). All optional: without them every completed day earns the 10 XP it always did, and levels count all XP. */
+export type GameStores = {habits: HabitData; health: HealthData; platform?: Platform | null; weekly?: WeeklyReview | null; checklist?: ChecklistDays | null; dayGoal?: DayGoal | null; checklistToday?: ChecklistDaySummaryXp | null; earnAcademy?: EarnAcademy | null; habitExtras?: unknown; rebirthFrom?: string | null; monthThemeOff?: boolean};
 export type XpEvent = {id: string; day: string; xp: number; kind: 'habit' | 'health' | 'goal' | 'review' | 'checklist' | 'earn'; title: string};
 /** Session AF chunk 2 (L1): the Academy lessons this build knows, passed on or before `today`, each once (by its first pass). */
 export function earnLessonsPassed(stores: Pick<GameStores, 'earnAcademy'>, today: string): {id: string; day: string}[] {
