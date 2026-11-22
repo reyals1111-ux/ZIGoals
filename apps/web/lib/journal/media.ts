@@ -63,6 +63,12 @@ export async function putJournalMedia(scope: string, mediaId: string, media: Jou
   await run('readwrite', s => s.put(value, mediaKey(scope, mediaId)));
 }
 export async function deleteJournalMedia(scope: string, mediaId: string): Promise<void> { await run('readwrite', s => s.delete(mediaKey(scope, mediaId))); }
+/** Review b1 #4: every photo and audio note of one scope (the Showcase's, when it starts or ends); other scopes stay. */
+export async function deleteAllJournalMedia(scope: string): Promise<number> {
+  const ids = await journalMediaIds(scope);
+  if (ids.length) await run('readwrite', s => { for (const id of ids) s.delete(mediaKey(scope, id)); });
+  return ids.length;
+}
 
 /** How long media no entry names is kept before the sweep deletes it (as the notes' photos: a Restore, then its Undo). */
 export const JOURNAL_MEDIA_GRACE_DAYS = 30;
