@@ -20,10 +20,20 @@ export const EXTRAS_SECTIONS = ['goals', 'life', 'habits', 'health'];
  * Session AK (8.10, AFL8; `TIER 3 (auth/sync)`): sections a newer client asks for by name. They are stored, written and
  * deleted like the four, but the default list of heads stays exactly the four, so an older client (which reads that list
  * strictly) never sees a section it does not know; a client that knows them asks with `?with=checklist`.
- * An optional section holds no Health-describing record, so only `health` follows the Health domain's deletions.
+ * An optional section holds no Health-describing record, so only `health` follows the Health domain's deletions
+ * (Session AV lane 2: but for `workouts`, which follows them as `health` does; EXTRAS_HEALTH_SECTIONS).
  */
-export const EXTRAS_SECTIONS_OPTIONAL = ['checklist', 'nova'];
+export const EXTRAS_SECTIONS_OPTIONAL = ['checklist', 'nova', 'journal', 'money', 'workouts'];
 const KNOWN_SECTIONS = [...EXTRAS_SECTIONS, ...EXTRAS_SECTIONS_OPTIONAL];
+/**
+ * Session AV lane 2 (rest, LEDGER #41, #134, #209; `TIER 3 (sync)`): the three sections the app sends when the person
+ * chooses them on a device (`journal`, `money`, `workouts`, asked after `nova`: `?with=checklist&with=nova&with=journal…`),
+ * stored, written and deleted like the other optional ones. A client that names none of them is answered byte for byte
+ * as before (the heads list only what is named), and the first `with` keeps its earlier check. `workouts` (the workout
+ * log and run splits) describes Health, so it follows the Health domain exactly as `health` does: written with the
+ * Health domain generation, and removed when the person deletes Health from the cloud.
+ */
+export const EXTRAS_HEALTH_SECTIONS = ['health', 'workouts'];
 /**
  * Session AM (ADR-038 D18, A6; `TIER 3 (sync)`): `nova` (NOVA's requests, made and pinned widgets and layout) is the
  * second optional section, and a client may now ask for several: one `with` per section (`?with=checklist&with=nova`).
@@ -49,13 +59,13 @@ const empty = () => /** @type {ExtrasHead} */ ({revision: 0, generation: 0, epoc
 const partKeys = (/** @type {string} */ section, /** @type {number} */ n) => Array.from({length: n}, (_, i) => `extras-part:${section}:${i}`);
 
 /**
- * A section's head, after the Health rule: a `health` snapshot written under an earlier Health domain generation than the
- * vault's now is removed (its parts deleted, a deletion counted) before anything reads or writes it.
+ * A section's head, after the Health rule: a `health` (or `workouts`) snapshot written under an earlier Health domain
+ * generation than the vault's now is removed (its parts deleted, a deletion counted) before anything reads or writes it.
  * @param {RecordTransaction} store @param {string} section @returns {Promise<ExtrasHead>}
  */
 async function head(store, section) {
   const current = /** @type {ExtrasHead|undefined} */ (await store.get(`extras:${section}`)) ?? empty();
-  if (section !== 'health' || !current.parts) return current;
+  if (!EXTRAS_HEALTH_SECTIONS.includes(section) || !current.parts) return current;
   const healthGeneration = (/** @type {Record<string,number>} */ (await store.get('domain-generations') ?? {})).health ?? 0;
   if ((current.healthGeneration ?? 0) >= healthGeneration) return current;
   await store.delete(partKeys(section, current.parts));
@@ -70,7 +80,7 @@ async function head(store, section) {
  * waiting for the next extras request. The same rule as `head`: written under an earlier Health generation → removed.
  * @param {RecordTransaction} store
  */
-export async function settleHealthExtras(store) { await head(store, 'health'); }
+export async function settleHealthExtras(store) { for (const section of EXTRAS_HEALTH_SECTIONS) await head(store, section); }
 
 /**
  * GET `?section=<name>`: that section's head and sealed parts. GET without a section: every section's head (no parts), so a
@@ -128,7 +138,7 @@ export async function extrasRequest(request, state, readJSON, validEnvelope, ses
     const bytes = put ? input.parts.reduce((/** @type {number} */ n, /** @type {unknown} */ part) => n + JSON.stringify(part).length, 0) : 0;
     if (bytes > EXTRAS_BYTES_MAX) return reply({error: 'EXTRAS_CAPACITY'}, 507);
     if (current.parts) await store.delete(partKeys(input.section, current.parts));
-    const healthGeneration = input.section === 'health' ? (/** @type {Record<string,number>} */ (await store.get('domain-generations') ?? {})).health ?? 0 : undefined;
+    const healthGeneration = EXTRAS_HEALTH_SECTIONS.includes(input.section) ? (/** @type {Record<string,number>} */ (await store.get('domain-generations') ?? {})).health ?? 0 : undefined;
     /** @type {ExtrasHead} */
     const next = put ? {revision: current.revision + 1, generation: current.generation, epoch: input.epoch, parts: input.parts.length, bytes, ...(healthGeneration !== undefined ? {healthGeneration} : {})}
       : {revision: current.revision + 1, generation: current.generation + 1, epoch: null, parts: 0, bytes: 0};

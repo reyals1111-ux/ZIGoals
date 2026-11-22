@@ -27,7 +27,9 @@ async function chain(which,vault){
  const input=d=>({transport:extrasTransport(ACCOUNT,()=>{}),key:vault.key,manifest:vault.manifest,storage:d.storage,bases:d.bases,fence:()=>{}});
  return {r,log,sync:(d,health=true)=>{vi.stubGlobal('fetch',browserFetch);return syncExtras({...input(d),health});},remove:d=>{vi.stubGlobal('fetch',browserFetch);return deleteExtrasCopies(input(d));}};
 }
-for(const which of ['deployed','current'])test(`a Worker that does not know the chosen sections (${which}): 200 throughout, the six sync, the three wait untouched, "Remove from the cloud" works`,async()=>{
+// Session AV lane 2 (rest, deliberate: this build's Worker now knows the three sections, so the "does not know" case is the
+// deployed Worker's only; the current Worker's case is the strict two-device test below).
+for(const which of ['deployed'])test(`a Worker that does not know the chosen sections (${which}): 200 throughout, the six sync, the three wait untouched, "Remove from the cloud" works`,async()=>{
  const vault=await createVault(),app=await chain(which,vault);
  try{
   const a={storage:memoryStorage(),bases:memoryBases()},b={storage:memoryStorage(),bases:memoryBases()};
@@ -47,5 +49,46 @@ for(const which of ['deployed','current'])test(`a Worker that does not know the 
   app.log.length=0;await app.remove(a);
   expect(app.log.every(entry=>entry.status===200)).toBe(true);
   expect(app.log.filter(entry=>entry.method==='POST').map(entry=>entry.section)).toEqual(['goals']);
+ }finally{await app.r.mf.dispose();}
+},120000);
+
+// Session AV lane 2 (rest, LEDGER #41, #134, #209; TIER 3 (sync)): the Worker of this build knows the three sections. The
+// same two devices through the real chain: the chosen journal and money records travel from A to B, every answer is 200,
+// the request is the same one, nothing travels for a device that chose none, and "Remove from the cloud" removes them.
+const OUT_A={goals:'unchanged',life:'unchanged',habits:'unchanged',health:'unchanged',checklist:'unchanged',nova:'unchanged',journal:'pushed',money:'pushed',workouts:'pushed'},OUT_B={goals:'unchanged',life:'unchanged',habits:'unchanged',health:'unchanged',checklist:'unchanged',nova:'unchanged',journal:'pulled',money:'pulled',workouts:'pulled'},REMOVED=['journal','money','workouts'];
+const WORKOUTS='zigoals:workouts:v1';
+test('this build\'s Worker: the chosen journal and money records travel between two devices; a device that chose none sends what it sent before',async()=>{
+ const vault=await createVault(),app=await chain('current',vault);
+ try{
+  const a={storage:memoryStorage(),bases:memoryBases()},b={storage:memoryStorage(),bases:memoryBases()},c={storage:memoryStorage(),bases:memoryBases()};
+  for(const d of [a,b])for(const name of ['journal','money','workouts'])writeExtrasSectionChoice(d.storage,name,true);
+  const journal={version:1,entries:[{id:'e1',date:'2026-11-20',text:'Fictional walk',createdAt:'2026-11-20T08:00:00.000Z'}],shareWithAi:false,followUps:true};
+  const money={version:1,entries:[],weekStartsOn:'monday'};
+  const workouts={version:1,workouts:[],templates:[],exercises:[],restSeconds:120};
+  a.storage.setItem(JOURNAL,JSON.stringify(journal));a.storage.setItem(MONEY,JSON.stringify(money));a.storage.setItem(WORKOUTS,JSON.stringify(workouts));
+  const first=await app.sync(a);
+  expect(states(first)).toEqual(OUT_A);
+  expect(states(await app.sync(b))).toEqual(OUT_B);
+  expect(JSON.parse(b.storage.getItem(JOURNAL)).entries).toEqual(journal.entries);
+  expect(JSON.parse(b.storage.getItem(MONEY))).toMatchObject({entries:[],weekStartsOn:'monday'});
+  expect(JSON.parse(b.storage.getItem(WORKOUTS))).toEqual(workouts);
+  expect(app.log.every(entry=>entry.status===200)).toBe(true);
+  expect(app.log.filter(entry=>entry.path.includes('with='))).toEqual(Array.from({length:2},()=>({method:'GET',path:'/v1/extras?with=checklist&with=nova&with=journal&with=money&with=workouts',section:null,status:200})));
+  // A device that chose none: the request it sent before, and nothing of the three read or written.
+  app.log.length=0;c.storage.setItem(JOURNAL,JSON.stringify({...journal,entries:[]}));
+  const none=await app.sync(c);
+  expect(none.map(o=>o.section)).toEqual(['goals','life','habits','health','checklist','nova']);
+  expect(app.log.filter(entry=>entry.path.includes('with=')).map(entry=>entry.path)).toEqual(['/v1/extras?with=checklist&with=nova']);
+  expect(app.log.filter(entry=>/journal|money|workouts/.test(entry.section??'')||/section=(journal|money|workouts)/.test(entry.path))).toEqual([]);
+  expect(JSON.parse(c.storage.getItem(JOURNAL)).entries).toEqual([]);
+  // Health sync off on a device that chose the workout log: the workout log is neither read nor written (Health consent).
+  const d={storage:memoryStorage(),bases:memoryBases()};writeExtrasSectionChoice(d.storage,'workouts',true);
+  app.log.length=0;await app.sync(d,false);
+  expect(app.log.filter(entry=>entry.section==='workouts'||entry.path.includes('section=workouts'))).toEqual([]);
+  expect(d.storage.getItem(WORKOUTS)).toBeNull();
+  // "Remove the extras from the cloud" on A also removes the chosen sections.
+  app.log.length=0;await app.remove(a);
+  expect(app.log.every(entry=>entry.status===200)).toBe(true);
+  expect(app.log.filter(entry=>entry.method==='POST').map(entry=>entry.section).sort()).toEqual(REMOVED);
  }finally{await app.r.mf.dispose();}
 },120000);

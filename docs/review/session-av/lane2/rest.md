@@ -10,6 +10,7 @@ Builder: the remainders builder, on `lane2/rest` (from `lane2/batch2`). Scope: t
 |---|---|---|
 | #17 Things repeating projects | **built** | R1 |
 | #33 Notion version history — tasks | **built** | R2 |
+| #41 Day One, #134 YNAB, #209 Strong — the sync service side | **built** in the repository (Worker and its tests); its deploy is the owner's (OWNER_STEPS line below) | R3 |
 
 ## Answers wiring line for engine.ts (one line, before AV's own answers)
 
@@ -77,3 +78,33 @@ Corpus: `AV2_REST` in `lib/ai/evals/as/cases-av2-rest.ts` (add to CORPUS and exp
 - Showcase hook: none (versions come from the person's own saves; a seeded version would add a planning record the
   Showcase does not have today).
 - CSS: `components/tasks/tasks.css` (`.task-versions-*`). Nothing new on Today.
+
+## R3 The sync Worker takes the journal, money and workouts sections — LEDGER #41, #134, #209 (TIER 3 (sync))
+
+- What: `workers/private-sync/extras.mjs` now lists the three sections the app sends when the person chooses them
+  (`EXTRAS_SECTIONS_OPTIONAL = ['checklist', 'nova', 'journal', 'money', 'workouts']`, the names of
+  `lib/vault/extras-sections.ts` `EXTRAS_CHOICE_SECTION_LIST`). They are stored, written, read and deleted like `nova`,
+  listed only when named (`?with=…`). `workouts` follows the Health domain as `health` does (`EXTRAS_HEALTH_SECTIONS`):
+  written with the Health domain generation, removed in the Health deletion's own transaction
+  (`settleHealthExtras`) and on the next read of a head written under an earlier generation, so the workout log never
+  outlives a Health deletion. `journal` and `money` are not touched by a Health deletion.
+- Unchanged: every existing section; every earlier request (`/v1/extras`, `?with=checklist`, `?with=checklist&with=nova`)
+  answers byte for byte as before (proven in the new test); the first-`with` check, `EXTRAS_WITH_MAX`, the frozen
+  deployed Worker fixture (`scripts/run11/fixtures/private-sync-c65882f3/`) and the client.
+- Tests: `scripts/run11/extras-keyspace.test.mjs` (new test: earlier requests unchanged, the three listed only when named,
+  written and read sealed to their own section, own keys, the Health rule for `workouts` only, a stale upload refused
+  after the deletion, own deletions, the account erase); `scripts/run11/av2-extras-choice.test.mjs` (the deployed
+  Worker's case unchanged; a new strict two-device test against this build's Worker: journal, money and workouts travel
+  A → B, every answer 200, the same request, a device that chose none sends `?with=checklist&with=nova` and nothing of the
+  three, Health off keeps the workout log off the wire, "Remove the extras from the cloud" removes the three);
+  `scripts/run11/extras-nova-a6.test.mjs` (the pinned list of this build's Worker, a labelled deliberate change, as strict).
+  Two tests changed deliberately, both labelled `// Session AV lane 2 (rest, deliberate: …)` with an equally strict
+  replacement; no assertion was weakened.
+- OWNER_STEPS line (the deploy is the owner's): "Deploy the private-sync Worker from `main` (workers/private-sync,
+  extras.mjs now takes the journal, money and workouts sections) so that a journal, money records or workout log chosen
+  under Settings → Account & sync → Also sync my extras travel between devices; until then they wait on each device with
+  the note “… sync once the sync service is updated.”"
+- Help, What's new, answers: none new (the app side, its Help and its NOVA answers are the sync builder's, sync.md F1;
+  their "once the sync service is updated" note stays right until the deploy).
+- Stored change: the Worker's own keyspace gains `extras:journal|money|workouts` and their parts (only when a client
+  that chose them writes); no app-stored format changes.
