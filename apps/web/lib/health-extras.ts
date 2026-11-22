@@ -33,6 +33,10 @@ export const healthExtrasSchema = z.looseObject({
   // fast" (lib/meal-reminders.ts fastStartDue). Present means on. Optional and loose; a value this build cannot read is
   // dropped on its own, never the whole record.
   fastAfterMeal: z.looseObject({meal: z.enum(HEALTH_MEALS), hours: z.number().int().min(1).max(18).optional().catch(undefined), dismissed: z.iso.date().optional().catch(undefined)}).optional().catch(undefined),
+  // Session AV lane 2 (LEDGER #184; TIER 3 (stored format)): the running meditation's bells from a timer preset,
+  // {startedAt, plan} keyed by the run's start (lib/meditation/presets.ts), because the run record is strict. Optional and
+  // loose; checked where read, and a value this build cannot read is dropped on its own, never the whole record.
+  meditationRun: z.looseObject({}).optional().catch(undefined),
 });
 export type HealthExtras = z.infer<typeof healthExtrasSchema>;
 export const emptyHealthExtras = (): HealthExtras => ({version: 1});

@@ -210,7 +210,15 @@ export function setHabitScheduleOverlay(next: HabitScheduleOverlay | null): void
  * but never due; `unloggedSkip`: a past scheduled day with nothing logged is skipped (neutral); `twoDay`: the day streak
  * keeps one missed day and ends on a second one in a row.
  */
-export type HabitDayOverlay = {options: (habitId: string) => {twoDay?: boolean; unloggedSkip?: boolean; whenever?: boolean} | undefined; version?: () => number};
+export type HabitDayOverlay = {options: (habitId: string) => {twoDay?: boolean; unloggedSkip?: boolean; whenever?: boolean; rolling?: HabitRolling} | undefined; version?: () => number};
+/**
+ * Session AV lane 2 (habits; LEDGER #185, Loop's "x times in y days"; TIER 3 stored format, additive): an every-day build
+ * habit asking for `times` done days in any `days` days in a row, from `from` on (lib/habit-options/rule.ts keeps it). A
+ * day not done is a rest day (not scheduled) while the `days`-day window ending on it holds `times` done days, and missed
+ * when it does not; a window that would begin before `from` (or the habit's start) judges nothing yet. Today is due only
+ * while the window still needs a done day. Done, skipped and failed days read as ever.
+ */
+export type HabitRolling = {times: number; days: number; from: string};
 let dayOverlay: HabitDayOverlay | null = null;
 export function setHabitDayOverlay(next: HabitDayOverlay | null): void { dayOverlay = next; }
 const optionsFor = (habitId: string) => dayOverlay?.options(habitId);
@@ -222,6 +230,26 @@ function recurrenceMatches(rule: HabitRule, date: string, habitId?: string): boo
   return schedule.days.includes(Number(date.slice(-2)));
 }
 function individualSuccess(rule: HabitRule, count: number): boolean { return rule.type === "build" ? count >= rule.target : count <= rule.target; }
+/** The rolling window that governs `date` for this rule (an every-day build habit counted per day), or undefined. */
+function rollingFor(habit: Habit, rule: HabitRule, date: string): HabitRolling | undefined {
+  const r = optionsFor(habit.id)?.rolling;
+  return r && !optionsFor(habit.id)?.whenever && rule.schedule.kind === "daily" && rule.type === "build" && rule.targetPeriod === "day" && date >= r.from ? r : undefined;
+}
+/** The days whose check-in met the day's target, in order (for counting a rolling window by halving). */
+function doneDates(habit: Habit): string[] {
+  return memoized(habit, "done-dates", () => habit.entries.filter((entry) => { const rule = habitRuleOn(habit, entry.date); return entry.disposition === "logged" && !!rule && rule.type === "build" && individualSuccess(rule, entry.count); }).map((entry) => entry.date).sort());
+}
+function doneBetween(habit: Habit, from: string, to: string): number {
+  if (to < from) return 0;
+  const dates = doneDates(habit), first = (d: string, after: boolean) => { let lo = 0, hi = dates.length; while (lo < hi) { const mid = (lo + hi) >> 1; if (after ? dates[mid]! <= d : dates[mid]! < d) lo = mid + 1; else hi = mid; } return lo; };
+  return first(to, true) - first(from, false);
+}
+/** An every-day habit on a rolling window: the done days in the window ending today, against what it asks. Null otherwise. */
+export function rollingProgress(habit: Habit, today: string): { done: number; times: number; days: number } | null {
+  const rule = habitRuleOn(habit, today); const r = rule ? rollingFor(habit, rule, today) : undefined;
+  if (!r) return null;
+  return { done: doneBetween(habit, addLocalDays(today, -(r.days - 1)), today), times: r.times, days: r.days };
+}
 function baseEndAllows(rule: HabitRule, date: string): boolean { return rule.endCondition.kind !== "date" || date <= rule.endCondition.date; }
 function periodBounds(date: string, period: "day" | "week" | "month" | "year") {
   if (period === "day") return { start: date, end: date };
@@ -355,6 +383,15 @@ function computeHabitDay(habit: Habit, date: string, today: string) {
   const period = aggregatePeriod(rule);
   // Session AV lane 2 (LEDGER #50, #57): a day with nothing done on a "whenever" habit, or a past day left unlogged on a
   // habit that counts it as skipped (a 0 an undone check-in leaves is nothing logged too).
+  // Session AV lane 2 (LEDGER #185): on a rolling window a day not done is a rest day while the window holds enough.
+  const rolling = period ? undefined : rollingFor(habit, rule, date);
+  if (rolling && !(entry?.disposition === "logged" && individualSuccess(rule, count))) {
+    const start = addLocalDays(date, -(rolling.days - 1)), judged = start >= rolling.from && start >= habit.startDate;
+    const before = doneBetween(habit, start, addLocalDays(date, -1)), enough = before >= rolling.times;
+    if (date === today) return { status: count > 0 ? "partial" as const : enough ? "not-scheduled" as const : "due" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: true };
+    if (judged && !enough) return { status: "failed" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled };
+    return { status: "not-scheduled" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
+  }
   const options = period ? undefined : optionsFor(habit.id);
   if (options && (!entry || (entry.disposition === "logged" && entry.count === 0 && rule.type === "build"))) {
     if (options.whenever) return { status: "not-scheduled" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: date === today };
@@ -580,6 +617,9 @@ export function scheduleLabel(schedule: HabitRule["schedule"], habitId?: string)
   if (own) return own;
   // Session AV lane 2 (LEDGER #50): a "whenever" habit has no set days.
   if (habitId && optionsFor(habitId)?.whenever) return "Whenever";
+  // Session AV lane 2 (LEDGER #185): an every-day habit on a rolling window says it.
+  const rolling = habitId && schedule.kind === "daily" ? optionsFor(habitId)?.rolling : undefined;
+  if (rolling) return `${rolling.times} ${rolling.times === 1 ? "time" : "times"} in any ${rolling.days} days`;
   if (schedule.kind === "daily") return "Every day";
   if (schedule.kind === "weekdays") return schedule.days.map((day) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day]).join(" · ");
   if (schedule.kind === "interval") return `Every ${schedule.every} days`;

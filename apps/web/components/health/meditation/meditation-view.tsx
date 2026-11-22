@@ -22,6 +22,7 @@ import './meditation.css';
 const TodayPractice = lazy(() => import('./today-practice'));
 const CalmChooser = lazy(() => import('./calm-chooser'));
 const DailyMove = lazy(() => import('./daily-move'));
+const TimerPresets = lazy(() => import('./timer-presets'));
 import {sourceName} from '../../../lib/health-sources';
 import {plainErrorMessage} from '../../../lib/plain-error';
 
@@ -37,7 +38,7 @@ const sessionLine = (s: Session) => {
  * minutes a week, mindful minutes from elsewhere, the bell, and recent sessions. No score; rest days are fine.
  */
 export default function MeditationView() {
-  const store = useMeditation(), [todayOpen, setTodayOpen] = useState(false), [calmOpen, setCalmOpen] = useState(false), [moveOpened, setMoveOpened] = useState(false), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
+  const store = useMeditation(), [todayOpen, setTodayOpen] = useState(false), [calmOpen, setCalmOpen] = useState(false), [moveOpened, setMoveOpened] = useState(false), [presetsOpen, setPresetsOpen] = useState(false), [presetsVersion, setPresetsVersion] = useState(0), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
   if (!store.loaded) return <section className="panel"><h1>Meditation</h1><p>Opening your meditation log…</p></section>;
   if (store.error) return <section className="panel"><h1>Meditation</h1><p role="alert">Meditation lives in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const {meditation, today} = store, run = store.run.data.run;
@@ -65,7 +66,9 @@ export default function MeditationView() {
     {store.runUnreadable && <p className="notice" role="alert">This device’s running session could not be read. It was not changed; a new session replaces it.</p>}
     {/* Session AV lane 2 (LEDGER #71, #77): today's written practice, loaded when its fold opens. */}
     <details className="panel meditation-today-fold" onToggle={e => setTodayOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Today’s practice, a short written guide</summary>{todayOpen && <Suspense fallback={<p className="fine">Opening…</p>}><TodayPractice store={store} today={today} onStarted={() => setNote('')}/></Suspense>}</details>
-    <section className="panel" aria-labelledby="meditation-begin-title"><h2 id="meditation-begin-title">Begin</h2><BeginForm key={`begin-${saves}`} store={store} onStarted={() => setNote('')}/></section>
+    <section className="panel" aria-labelledby="meditation-begin-title"><h2 id="meditation-begin-title">Begin</h2><BeginForm key={`begin-${saves}-${presetsVersion}`} store={store} onStarted={() => setNote('')}/></section>
+    {/* Session AV lane 2 (LEDGER #184): your timer presets (length, settling in, start and end bells, bells along the way), loaded when the fold opens. */}
+    <details className="panel meditation-today-fold" onToggle={e => setPresetsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Your timer presets: lengths and bells</summary>{presetsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><TimerPresets onChange={() => setPresetsVersion(n => n + 1)}/></Suspense>}</details>
     {/* Session AV lane 2 (LEDGER #79, #80): a calm visual behind the sitting; (LEDGER #81) Move gently, a guided stretch.
         Each loads when its fold opens; Move gently stays mounted once opened, so closing the fold keeps a sequence going. */}
     <details className="panel meditation-today-fold" onToggle={e => setCalmOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Behind your sitting: a calm visual</summary>{calmOpen && <Suspense fallback={<p className="fine">Opening…</p>}><CalmChooser/></Suspense>}</details>

@@ -339,9 +339,8 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 | #188 Activity and mood statistics | Health → Insights → What goes with your good days → "Each tag, month by month" (a fold, lazy): per tag (activities included), the days this month and last month, and the moods on its days over the last year as counts in words ("Great 2 · Good 1 — mostly great") with a small bar (numbers in the text). The 30 most used; "goes with, not a cause". |
 
 - Parts that keep ZIGoals' words, with cause: NOVA's mood heat card (`lib/nova/cards/ax/health-heat.ts`) — a protected area
-  (AR's NOVA composition), the lead's call; the Year in pixels key (`lib/year-pixels/grid.ts` `levelWord`) and the
-  Journal page's screen-reader day line (`components/journal/journal-page.tsx:113`) — the journal lane's files; one line
-  each for the lead (`useMoodLook().words` from `components/mood-look/use-mood-look.ts`).
+  (AR's NOVA composition), the lead's call. The Year in pixels key and the Journal page's screen-reader day line now
+  read your words (Feature 20).
 - Owner rule kept: tags and activities stay unread by ZIGi and NOVA (as `mood-tags` says); only the mood words are read.
 - Files: `lib/daylio/rule.ts`, `components/mood-look/{use-mood-look.ts,mood-look-editor.tsx,activities.tsx,tag-stats.tsx,mood-look.css}`,
   `components/health/{mood-chip.tsx,plus/mood-tags.tsx,plus/insights-plus.tsx,plus/evening-checkin.tsx}`,
@@ -488,6 +487,148 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
   (Habits gate; case `av2-habits-strength-year`). Showcase hook: the Showcase's habits fill it with no new data.
 - CSS touched: `components/habits/habit-longer-history.css` (new; theme variables only). Always visible on Today: nothing.
 
+## Feature 17 — Insight Timer's meditation timer: presets, settling in, bells along the way, no set length (LEDGER #184)
+
+Branch `lane2/habits3` (continues `lane2/habits2`). **Verdict: built.**
+
+- Health → Meditation → **Your timer presets: lengths and bells** (a fold, its own chunk): New preset → a name (≤ 40),
+  How long? (5–60 min, your own 1–240, or **No set length**), **Settle in before the first bell** (none, 10 s … 5 min),
+  a **Start bell** and an **End bell** of their own (bowl, chime, soft tone or no sound, each with Try), one volume, and
+  up to five **Bells along the way** (sound; every 5 s … 30 min; once … 99 times or until the end; counted from the start
+  or back from the end — "a chime 1 min before the end"). Edit, Delete with the app's Undo; at most 20. The field says
+  why (a name needed or taken, minutes out of range, a bell along the way longer than the session).
+- **Begin** → "Your presets" (shown once there is one): one choice starts the preset; How long? then hides. How long?
+  also gains **No set length** for a sitting (with "Your bell"'s bells).
+- The session: while settling in the eyebrow says SETTLING IN, the clock counts the seconds down ("00:14 to settle in"),
+  "The start bell rings in 00:14, then 10 min begin."; a pause there lengthens it. Then the preset's bells ring on the
+  audio clock (scheduled up to 400 ahead and topped up, so a background tab still rings them). No set length counts up
+  ("02:04 so far · no set length (at most 4 hours)"), no ring of progress, the end bell rings on End now, and the session
+  saves the time spent (at most 4 hours, where it ends by itself). The Checklist's Meditate corner timer says "so far"
+  for it. A session without a preset rings exactly what "Your bell" always rang (a unit test compares the two).
+  Deliberate change: a pause or End now cancels the bells still to come as before, but a bell already sounding now fades
+  out on its own instead of being cut off.
+- Files: `lib/meditation/{presets.ts,presets-write.ts,timer.ts}` (`OPEN_ENDED_SEC`, `isOpenEnded`),
+  `components/health/meditation/{timer-presets.tsx,timer-presets.css,meditation-forms.tsx,meditation-session.tsx,meditation-view.tsx,meditation.css}`,
+  `components/checklist/corner-timers.tsx` (one line), `lib/habits-extras/showcase.ts`, `lib/ai/local-answers/av2-habits.ts`,
+  `lib/ai/evals/as/cases-av2-habits.ts`.
+- Tests: `lib/meditation/presets.test.ts` (save/read/edit keeps a later field, odd entries, the reasons, 20 at most,
+  delete and Undo in place, words EN/NL, "Your bell" unchanged, settling in and a pause in it, bells from the start and
+  from the end with counts, one moment rings once, no set length, the run's bells keyed by its start, export → erase →
+  restore of both records, the answers EN and NL and the Health gate). Existing meditation, checklist, calm, daylio,
+  muted, showcase and vault tests unchanged and green. Spec: `tests/av2-timer-presets.spec.ts`.
+- **Stored changes (TIER 3 stored formats, additive, separate commit `e52ce016`):** the loose habit extras
+  (`zigoals:habit-extras:v1`, synced with the extras) gains optional `meditationTimer` ({presets: [{id, name, minutes |
+  open, warmup?, start, end, volume, intervals?: [{sound, every, times?, from?}]}]}, ≤ 20, each checked where read); the
+  loose, device-only Health extras (`zigoals:health-extras:v1`) gains optional `meditationRun` ({startedAt, plan},
+  `.catch(undefined)`), the running preset's bells keyed by the run's start, because `meditationRunSchema` is strict.
+  The strict run record is unchanged: a settling-in time is a start a little in the future (its time is 0 until then),
+  and no set length is `plannedSec` 14,399 (four hours less a second, which the minute timer never plans). An older
+  build reads a settling-in run as starting late and a no-set-length run as four hours, and keeps both extras fields.
+  No new key; both records are already exported, erased and restored (no registry change).
+- Help (EN): **Q: Can I save my own meditation timer settings?** A: Yes. Health → Meditation → Your timer presets: a
+  length or no set length, a moment to settle in, a start and an end bell, and bells along the way (every few minutes,
+  or the last minutes before the end). Each preset is then one choice under Begin. **Q: Can I meditate without a set
+  length?** A: Yes. Under Begin, choose No set length: the clock counts up until you end the session.
+- What's new: "Meditation timer presets: settling in, start and end bells, bells along the way, or no set length."
+- Answers: "which meditation timer presets do i have" / "welke timerpresets heb ik voor meditatie" (Health gate; case
+  `av2-habits-timer-presets`). Same wiring line as Feature 1 (`av2HabitsAnswer`).
+- Showcase hook: one labelled preset "Morning sit (Showcase)" in `showcaseHabitExtras` (lib/habits-extras/showcase.ts,
+  this pillar's own module; no count other tests pin moves: showcase, showcase-aa, vault and extras tests green).
+- CSS touched: `components/health/meditation/timer-presets.css` (new; theme variables only), `meditation.css` (two
+  lines). Always visible on Today: nothing new (the corner timer's words for a no-set-length run only).
+
+## Feature 18 — Loop's "x times in y days": a rolling window (LEDGER #185)
+
+**Verdict: built.**
+
+- A habit's Details → Habit options → **A few times in any few days** (every-day build habits; other repeats say to set
+  Every day first): 3 times in any 10 days by default, then **Times** (1 … days − 1) and **In any … days** (2 … 90).
+  Saved at once, said in the status line, the focus stays on the control. Counted from the day it is turned on.
+- The rule (lib/habits.ts, through the habit-options day overlay): a day done reads as ever; a day not done is a rest
+  day (not scheduled, neutral) while the window of the last M days ending on it holds N done days, and **missed** when
+  it does not; a window that would begin before the rule's start (or the habit's) judges nothing yet. Today is **due**
+  only while the window still needs a done day, otherwise "Not needed today" (never due, no reminder, no Today count);
+  part done today is Partial. Skipped and failed days read as ever; a measured habit counts the days that met its
+  target. Streaks, the week's consistency, trends, the strength, the year view, reminders, Today and NOVA/ZIGi all read
+  `habitDay`, so they follow it. Whenever and the rolling window exclude each other; "Never miss twice" and "A day I
+  don't log counts as skipped" are not offered beside it (the window decides).
+- The card: the schedule line says "3 times in any 10 days", and "3 of 3 in the last 10 days" under the count.
+- Files: `lib/habit-options/rule.ts` (`rolling`, `readRolling`, `rollingWords`), `lib/habits.ts` (`HabitRolling`,
+  `rollingProgress`, the day rule, the schedule label), `components/habits/{habit-options.tsx,habit-options.css,habit-completion.tsx}`,
+  `lib/ai/local-answers/av2-habits.ts`, `lib/ai/evals/as/cases-av2-habits.ts`.
+- Tests: `lib/habit-options/rolling.test.ts` (set/read/clear, the exclusions, odd values, a later field kept, words EN/NL,
+  export → erase → restore; without the overlay every day reads as before; rest days, missed days, nothing judged at the
+  start, streak and counts, today due or not needed, skipped, partial, a measured habit, only an every-day build habit
+  from its start; the answers EN and NL and the Habits gate). Existing habits, habits-v2, month-weekday, reminders,
+  routines, habit options and local-answers tests unchanged and green. Spec: `tests/av2-rolling-habit.spec.ts`.
+- **Stored change (TIER 3 stored formats, additive, separate commit `5e8b8f1e`):** a habit's entry in the `options` map of
+  the loose habit extras (`zigoals:habit-extras:v1`, synced with the extras) gains optional `rolling` ({times, days,
+  from}), checked where read. The strict synced habit record and `habitScheduleSchema` are unchanged (the habit stays
+  `daily`), so builds #37–#57 read the habit as every day, as before. No new key, no schema or registry change.
+- Help (EN): **Q: Can a habit be a few times in any few days?** A: Yes. In an every-day habit's Details → Habit options,
+  turn on "A few times in any few days" and choose, for example, 3 times in any 10 days. A day off is a rest day while
+  the days before it hold enough; it only counts as missed when they do not.
+- What's new: "Habits a few times in any few days, such as 3 in any 10."
+- Answers: "which habits are 3 times in any 10 days" / "welke gewoontes zijn 3 keer in elke 10 dagen" (Habits gate; case
+  `av2-habits-rolling`). Same wiring line as Feature 1.
+- Showcase hook: none (a window on a Showcase habit would change its streaks and Today's due count, which the weekly
+  review, insights and Today specs pin).
+- CSS touched: `components/habits/habit-options.css` (a few lines; theme variables only). Always visible on Today:
+  nothing new (a habit on a window that is not needed today simply leaves Today's due list, as a Whenever habit does).
+  Weight: `lib/habits.ts` (shared by Habits and Today) gains a few hundred bytes; the options UI stays lazy.
+
+## Feature 19 — Imports from HabitBull and Tickmate (LEDGER #194)
+
+**Verdict: built** (both layouts are open source: read to Loop Habit Tracker's own importers, uhabits v2.3.1
+`HabitBullCSVImporter.kt` and `TickmateDBImporter.kt`, read on 22 Nov 2026; Tickmate is open source too; sources in
+docs/product/IMPORT_FORMATS.md [L9], [L10]).
+
+- Settings → Switch to ZIGoals → "From Daylio, Habitica or YNAB" gains **HabitBull (habits and amounts)** and
+  **Tickmate (tracks and ticks)**. Each file is read on this device into a preview — the habits with their days ("Fictional
+  reading · 2 days from 2026-10-01", "· with amounts"), what is kept, what was left out and why — and nothing is written
+  until "Import N habits". "Undo this import" removes exactly what it added (the Habitica path: `previewHabits` /
+  `undoHabits`). The same file gives the same ids, so a second import adds nothing twice; ZIGoals never merges by name.
+- HabitBull: name, description, category (kept as the habit's category), each day's value (1 done, 0 not done, more an
+  amount: the habit then counts times) and its comment as the day's note; dates `2026-11-03` or `11/03/2026` (a row in
+  the phone's own short date is left out and counted in the preview). Tickmate: an SQLite backup with `tracks` and
+  `ticks` (month counted from 0), read by a small reader of the published SQLite file format
+  (`lib/import/switch/sqlite-read.ts`: table b-trees, overflow pages, records; no dependency, read-only, refuses loops,
+  pages outside the file and WITHOUT ROWID tables; a damaged file says so in plain words). Neither file keeps a
+  schedule, so every habit comes in as every day (as Loop does), said in the preview. Future days are left out.
+- Files: `lib/import/switch/{habit-apps.ts,sqlite-read.ts}`, `components/import/switch-import-more.tsx`,
+  `docs/product/IMPORT_FORMATS.md`.
+- Tests: `lib/import/switch/habit-apps.test.ts` (HabitBull: habits, notes, amounts, odd dates, the same ids twice, not
+  HabitBull's file, preview → import → undo; Tickmate built with Node's own SQLite in the test: tracks, ticks once a
+  day, the 0-based month, future/odd/orphan ticks, 3,000 rows over interior pages and a long description on overflow
+  pages at 512 and 4,096-byte pages, not a database, not Tickmate's, a cut file, 300 damaged files all said in plain
+  words; CREATE TABLE column names). Existing import tests unchanged and green. Spec: `tests/av2-habit-imports.spec.ts`.
+- Stored changes: none (imported habits are ordinary habit records; the Undo note stays in memory, as Habitica's, so
+  the strict import-batches record and its format list are unchanged).
+- Help (EN): **Q: Can I bring my habits from HabitBull or Tickmate?** A: Yes. Settings → Switch to ZIGoals → From
+  Daylio, Habitica or YNAB: choose HabitBull (its CSV export) or Tickmate (its database backup). You see the habits and
+  their days first; nothing changes until you import, and Undo this import takes it back.
+- What's new: "Bring your habits from HabitBull and Tickmate, with a preview and Undo."
+- For the lead: the fold's title "From Daylio, Habitica or YNAB" is pinned by tests/switch-more-ak.spec.ts (`hasText`),
+  so it is unchanged; "From other apps: Daylio, Habitica, HabitBull, Tickmate or YNAB" would need that spec's locator
+  changed together (a deliberate change). The search entry for "import" (lib/search/static.ts) could name the two apps.
+- Answers: none new (imported habits are read as habits already). Showcase hook: none (imports are off in Showcase).
+  CSS touched: none. Always visible on Today: nothing. Weight: the readers load only when a file is chosen.
+
+## Feature 20 — Your own mood words in the Year in pixels key and the Journal's week line (LEDGER #178 follow-ups)
+
+**Verdict: built** (NOVA's mood heat card keeps ZIGoals' words: a protected area, AR's NOVA composition).
+
+- The Year in pixels key ("4 Bright (1)") and the selected day's line ("Mood: Bright (4 of 5)") and the Journal page's
+  screen-reader line for each day of the week ("…: energy 3 of 5, mood Bright") read `useMoodLook().words`, so they say
+  the person's own words; with none set they read exactly as before (the same five words). The pixels' own titles and
+  the year's summary sentence (`lib/year-pixels/grid.ts` `pixelLabel`, `pixelYear`) and the PNG export keep ZIGoals'
+  words: they are worked out in the pure grid module, which takes no words today (a later one-line change each).
+- Files: `components/journal/{year-pixels.tsx,journal-page.tsx}`.
+- Tests: the words themselves are covered by `lib/daylio/daylio.test.ts`; `lib/year-pixels/grid.test.ts` and the
+  journal tests unchanged and green. Spec: `tests/av2-mood-words-journal.spec.ts`.
+- Stored changes: none. Help: the Feature 11 answer covers it. What's new: none (part of "Your own words and symbols for
+  the moods"). Answers: none new. CSS touched: none. Always visible on Today: nothing.
+
 ## q4 / QUALITY "Not fixed" Minors for habits and mood — where each stands
 
 - Skip and an amount per week-grid cell: built here (Feature 10).
@@ -499,17 +640,14 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 
 ## Not built yet (next for this pillar, in order)
 
-- **#184** Insight Timer's meditation timer (next row): saved presets (length, start and end bell, several interval
-  bells with a repeat count or "before the end", a warm-up, open-ended). Note for the next builder: `bellPrefsSchema` and
-  `meditationRunSchema` are strict (Health v4, synced, and the device run), so presets and the running session's extra
-  bells need a loose home — the habit extras (as `calm` is) for presets, and a loose device field keyed by the run's
-  `startedAt` for an open-ended run (the strict run keeps `plannedSec` at its 240-minute ceiling meanwhile).
-- **#185** Loop's rolling schedule, N times in any M days: `habitScheduleSchema` is a strict union in the synced
-  habit record, so a new kind there would make builds #37–#57 refuse the journal (against the named rule). The way is
-  the first builder's: a habit-extras entry read through `setHabitDayOverlay` (lib/habit-options), as `monthWeekday`
-  and the habit options are — separate TIER 3 (stored formats) commit; streaks, NOVA and ZIGi read it through the
-  overlay.
-- **#194** HabitBull and Tickmate imports: only where the layout is documented or open source
-  (`lib/import/switch/formats.ts`'s rule); check each file layout before building.
+- **#184** built (Feature 17).
+- **#185** built (Feature 18).
+- **#194** built (Feature 19).
+- The #178 follow-ups built (Feature 20); NOVA's mood heat card stays with ZIGoals' words (protected area).
+- Notes for a next builder (not rows, small follow-ons): Loop's own import (`loopSchedule` in lib/import/switch/loop.ts)
+  still writes an inexact "x times in y days" as a weekly frequency with a warning; it could now write every day plus
+  the rolling window (Feature 18), which needs the import to write the habit extras' `options` too (a TIER 3 note). The
+  Year in pixels' per-square titles, summary sentence and PNG could take the own mood words if `pixelYear`/`pixelLabel`
+  accept the five words.
 - Rows of the lead's other groups for this pillar (#191 pure-black Dark, #192 fonts, #193 automatic backups) are N6,
   not in this builder's scope.

@@ -14,6 +14,7 @@ import {ShowcaseTag} from '../ui/showcase-tag';
 import {downloadPixelsPng} from './year-pixels-export';
 import './year-pixels.css';
 import {wordsOf} from '../../lib/mood-words/schema';
+import {useMoodLook} from '../mood-look/use-mood-look';
 
 /**
  * Session AK (lane S, item 13): Journal → Year, a year of the person's days, one square each, by the day's mood (Health's
@@ -23,6 +24,8 @@ import {wordsOf} from '../../lib/mood-words/schema';
  */
 export default function YearPixels({today}: {today: string}) {
   const energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), health = useHealth(), healthShown = isShown(usePagesView(), 'health'), id = useId();
+  // Session AV lane 2 (LEDGER #178 follow-up): the key and the day's line say the moods in the person's own words.
+  const moodWords = useMoodLook().words, word = (metric: PixelMetric, v: number) => metric === 'mood' ? moodWords[v - 1] ?? levelWord(metric, v) : levelWord(metric, v);
   const moods = useMemo(() => healthShown && health.loaded && !health.error ? healthGroupIn(health.data, 'moods')?.days ?? {} : {}, [healthShown, health.loaded, health.error, health.data]);
   const src = useMemo(() => ({moods, energy: energy.data.days, words: wordsOf(energy.data), journalDates: journal.data.entries.map(e => e.date)}), [moods, energy.data, journal.data.entries]);
   const [metric, setMetric] = useState<PixelMetric>(healthShown ? 'mood' : 'energy'), years = useMemo(() => pixelYears(today, src), [today, src]);
@@ -79,10 +82,10 @@ export default function YearPixels({today}: {today: string}) {
         </div>)}
       </div>
     </div>
-    <ul className="year-pixels-legend" aria-label="Key">{[1, 2, 3, 4, 5].map(v => <li key={v}><i data-level={v} aria-hidden="true"/>{v} {levelWord(shownMetric, v)} ({grid.counts[v - 1]})</li>)}<li><i data-level="none" aria-hidden="true"/>Not rated</li><li><i data-level="none" data-entry="" aria-hidden="true"/>Dot: a journal entry</li></ul>
+    <ul className="year-pixels-legend" aria-label="Key">{[1, 2, 3, 4, 5].map(v => <li key={v}><i data-level={v} aria-hidden="true"/>{v} {word(shownMetric, v)} ({grid.counts[v - 1]})</li>)}<li><i data-level="none" aria-hidden="true"/>Not rated</li><li><i data-level="none" data-entry="" aria-hidden="true"/>Dot: a journal entry</li></ul>
     {day && <section className="year-pixels-day" aria-labelledby={`${id}-day`}>
       <h3 id={`${id}-day`}>{formatDate(day.date, {weekday: true})}</h3>
-      <p>{[mood !== null && healthShown ? `Mood: ${levelWord('mood', mood)} (${mood} of 5)` : null, en !== null ? `Energy: ${levelWord('energy', en)} (${en} of 5)` : null, day.word ? `Feeling: ${day.word}` : null].filter(Boolean).join(' · ') || 'No rating that day.'}</p>
+      <p>{[mood !== null && healthShown ? `Mood: ${word('mood', mood)} (${mood} of 5)` : null, en !== null ? `Energy: ${levelWord('energy', en)} (${en} of 5)` : null, day.word ? `Feeling: ${day.word}` : null].filter(Boolean).join(' · ') || 'No rating that day.'}</p>
       {entries.length ? <ul className="year-pixels-entries">{entries.map(e => <li key={e.id}><p>{e.text}</p></li>)}</ul> : <p className="fine">No journal entry that day.</p>}
       <p className="year-pixels-day-nav"><button type="button" className="secondary" onClick={() => step(-1)}>Previous day</button><button type="button" className="secondary" onClick={() => step(1)}>Next day</button></p>
     </section>}

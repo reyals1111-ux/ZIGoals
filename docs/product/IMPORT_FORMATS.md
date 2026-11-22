@@ -250,6 +250,15 @@ Loop Habit Tracker (tag v2.3.1 = commit 516bf394f85a5a3ab25f476da230ae2a93815a40
 - [L6] …/core/models/Habit.kt
 - [L7] …/core/utils/DateFormats.kt
 - [L8] dev branch HabitsCSVExporter.kt (7e993e17)
+- [L9] uhabits-core/src/jvmMain/java/org/isoron/uhabits/core/io/HabitBullCSVImporter.kt (v2.3.1; read 2026-11-22): HabitBull's
+  CSV, header `HabitName,HabitDescription,HabitCategory,CalendarDate,Value,CommentText`; dates `yyyy-MM-dd`, `MM/dd/yyyy`
+  or the phone's short date (ZIGoals reads the first two only); value 0 not done, 1 done, more an amount (numerical).
+  ZIGoals reader: lib/import/switch/habit-apps.ts `readHabitBull` (Session AV lane 2, LEDGER #194).
+- [L10] …/core/io/TickmateDBImporter.kt (v2.3.1; read 2026-11-22): Tickmate's SQLite backup, recognised by the tables
+  `tracks` and `track2groups`; `select _id, name, description from tracks`; `select distinct year, month, day from
+  ticks where _track_id=?`, the month set on a Java calendar (counted from 0). Tickmate itself is open source.
+  ZIGoals reader: `readTickmate`, with lib/import/switch/sqlite-read.ts (the SQLite file format,
+  https://www.sqlite.org/fileformat2.html; no dependency).
 
 Streaks
 - [K1] https://streaks.app/support/
