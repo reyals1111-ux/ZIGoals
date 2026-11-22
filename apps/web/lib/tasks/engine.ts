@@ -1,7 +1,7 @@
 import {addLocalDays, localDate} from '../local-date';
 import {nextOccurrence} from './recurrence';
 import {
-  DEFAULT_LEVEL, LABEL_PATTERN, MAX_COMPLETIONS, MAX_TASK_MINUTES, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
+  DEFAULT_LEVEL, LABEL_PATTERN, MAX_AFTER, MAX_COMPLETIONS, MAX_TASK_MINUTES, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
   levelFields, taskLevel, taskSchema, tasksSchema, type HealthLink, type Project, type Recur, type SavedFilter, type Section,
   type Task, type TaskColour, type TaskLevel, type TaskPriority, type TaskReminder, type Tasks,
 } from './schema';
@@ -138,6 +138,22 @@ export function taskState(task: Task, today: string, nowClock?: string): TaskSta
   if (task.due === today) return nowClock && task.time && task.time < nowClock ? 'overdue' : 'today';
   return task.due <= addLocalDays(today, 7) ? 'soon' : 'later';
 }
+/**
+ * Session AV lane 2 (r4-plan, LEDGER #304; Motion's blockers): the open tasks this task still waits for. A task no longer
+ * on the list, done, repeating (it never finishes for good), itself, or one waiting for this task in turn is not waited for.
+ * A waiting task is not in Today (nor Today's count) and is not placed; it joins its day once they are done.
+ */
+export function waitingFor(record: Pick<Tasks, 'tasks'>, task: Pick<Task, 'id' | 'after' | 'doneAt'>): Task[] {
+  if (!task.after?.length || task.doneAt) return [];
+  return task.after.flatMap(id => { const t = id !== task.id ? record.tasks.find(x => x.id === id) : undefined; return t && !t.doneAt && !t.recur && !t.after?.includes(task.id) ? [t] : []; });
+}
+export const WAIT_LOOP_MESSAGE = 'That task already waits for this one, so this one cannot wait for it.';
+/** Whether `from` waits for `target`, directly or through the tasks it waits for (bounded by the list). */
+function waitsThrough(record: Tasks, from: string, target: string): boolean {
+  const seen = new Set<string>(), todo = [from];
+  while (todo.length && seen.size <= record.tasks.length) { const at = todo.pop()!; if (at === target) return true; if (seen.has(at)) continue; seen.add(at); todo.push(...(record.tasks.find(t => t.id === at)?.after ?? [])); }
+  return false;
+}
 const STATE_ORDER: Record<TaskState, number> = {overdue: 0, today: 1, soon: 2, later: 3, someday: 4};
 /** Open tasks: overdue first, then due today, then by due day (and time), then by priority, then the oldest. */
 export function openTasks(record: Tasks, today: string): Task[] {
@@ -159,7 +175,9 @@ export type TaskPatch = {title?: string; priority?: TaskPriority; due?: string |
   /** Session AV lane 2 (tasks-r2, LEDGER #229): the values of the project's own fields (lib/tasks/custom-fields.ts checks them); null clears all. */
   fields?: NonNullable<Task['fields']> | null;
   /** Session AV lane 2 (r3-plan, LEDGER #257, #259): the task's symbol and colour, and how much it asks (null clears). */
-  look?: NonNullable<Task['look']> | null; energy?: NonNullable<Task['energy']> | null};
+  look?: NonNullable<Task['look']> | null; energy?: NonNullable<Task['energy']> | null;
+  /** Session AV lane 2 (r4-plan, LEDGER #303, #304, #301): the smallest piece, the tasks it waits for ([] clears), "after hours". */
+  chunk?: number | null; after?: string[]; afterHours?: true | null};
 /**
  * Changes a task's title, priority, day, time or goal. `null` clears an optional field; a field left out is kept. A day
  * may be moved earlier than today only when it already was (an overdue task keeps its day until the person moves it),
@@ -172,7 +190,7 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.title !== undefined) { const title = patch.title.trim(); if (!title) throw new Error('Give the task a few words.'); if (title.length > TASK_TITLE_MAX) throw new Error(`A task title can be at most ${TASK_TITLE_MAX} characters (this one has ${title.length}).`); next.title = title; }
   if (patch.priority !== undefined) { next.priority = patch.priority; delete next.level; }
   if (patch.level !== undefined) Object.assign(next, levelFields(patch.level));
-  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective', 'look', 'energy'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
+  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective', 'look', 'energy', 'chunk', 'afterHours'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
   if (patch.projectId !== undefined && patch.sectionId === undefined && next.sectionId) {
     const section = record.sections?.find(s => s.id === next.sectionId);
     if (!section || section.projectId !== next.projectId) delete next.sectionId;
@@ -182,6 +200,12 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.comments !== undefined) { if (patch.comments.length) next.comments = patch.comments; else delete next.comments; }
   if (patch.fields !== undefined) { if (patch.fields && Object.keys(patch.fields).length) next.fields = patch.fields; else delete next.fields; }
   if (patch.order !== undefined) next.order = patch.order;
+  // Session AV lane 2 (r4-plan, LEDGER #304): never itself, never one that already waits for it (directly or through others).
+  if (patch.after !== undefined) {
+    const ids = [...new Set(patch.after)].filter(x => x !== id).slice(0, MAX_AFTER);
+    if (ids.some(x => waitsThrough(record, x, id))) throw new Error(WAIT_LOOP_MESSAGE);
+    if (ids.length) next.after = ids; else delete next.after;
+  }
   if (typeof next.due === 'string' && next.due !== task.due && next.due < today && !allowPast) throw new Error(PAST_DAY_MESSAGE);
   if (next.time !== undefined && !next.due) throw new Error('Choose a day for the task before a time.');
   if (typeof next.time === 'string' && !TASK_CLOCK.test(next.time)) throw new Error('Choose a time such as 09:30.');
@@ -241,7 +265,8 @@ export function shownDoneOn(task: Task, doneDay: (iso: string) => string): strin
  */
 export function taskCounts(record: Tasks, today: string, nowClock: string | undefined): {open: number; overdue: number; today: number} {
   const open = record.tasks.filter(t => !t.doneAt);
-  return {open: open.length, overdue: open.filter(t => taskState(t, today, nowClock) === 'overdue').length, today: open.filter(t => taskState(t, today, nowClock) === 'today').length};
+  // Session AV lane 2 (r4-plan, LEDGER #304): a task that waits for another is not in Today's count.
+  return {open: open.length, overdue: open.filter(t => taskState(t, today, nowClock) === 'overdue').length, today: open.filter(t => taskState(t, today, nowClock) === 'today' && !waitingFor(record, t).length).length};
 }
 /** Recently finished tasks (kept 30 days), newest first. */
 export const doneTasks = (record: Tasks): Task[] => record.tasks.filter(t => t.doneAt).sort((a, b) => b.doneAt!.localeCompare(a.doneAt!));
@@ -384,7 +409,8 @@ export function viewTasks(record: Tasks, view: TaskView, today: string, nowClock
     case 'inbox': return byOrder(top(open.filter(t => !t.projectId)));
     // Session AV (F-DEADLINES): a task whose deadline is today or has passed is in Today too, whatever its planned day.
     // Session AV lane 2 (LEDGER #17; Things' start early): a task with `early` days shows from that many days before its day.
-    case 'today': return dated(open.filter(t => (t.due && (t.due <= today || (t.early && addLocalDays(t.due, -t.early) <= today))) || deadlineDue(t, today))).sort((a, b) => Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
+    // Session AV lane 2 (r4-plan, LEDGER #304): a task that waits for another joins Today once those are done.
+    case 'today': return dated(open.filter(t => !waitingFor(record, t).length && ((t.due && (t.due <= today || (t.early && addLocalDays(t.due, -t.early) <= today))) || deadlineDue(t, today)))).sort((a, b) => Number(taskState(b, today, nowClock) === 'overdue') - Number(taskState(a, today, nowClock) === 'overdue'));
     case 'upcoming': return dated(open.filter(t => t.due && t.due >= today));
     case 'overdue': return dated(open.filter(t => taskState(t, today, nowClock) === 'overdue'));
     case 'all': return dated(top(open));

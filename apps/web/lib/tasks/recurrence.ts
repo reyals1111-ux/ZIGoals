@@ -88,7 +88,13 @@ export function matches(rule: Recur, date: string): boolean {
 export function nextOccurrence(rule: Recur, due: string, finishedDay: string, today: string): {due: string; rule: Recur} | null {
   if (rule.left !== undefined && rule.left <= 1) return null;
   let next: string | null;
-  if (rule.afterDone) {
+  if (rule.flex) {
+    // Session AV lane 2 (r4-plan, LEDGER #305; Motion): once a week or a month, any day of it. The next one is the window
+    // after this one's (its last day is the task's day); windows wholly past are skipped, so a missed week is one overdue
+    // task, never a pile.
+    next = windowEnd(rule.flex, addLocalDays(windowEnd(rule.flex, due), 1));
+    for (let guard = 0; next < today && guard < 1000; guard++) next = windowEnd(rule.flex, addLocalDays(next, 1));
+  } else if (rule.afterDone) {
     next = rule.every === 'day' ? addLocalDays(finishedDay, rule.interval) : rule.every === 'week' ? addLocalDays(finishedDay, 7 * rule.interval) : rule.every === 'month' ? addMonths(finishedDay, rule.interval) : addMonths(finishedDay, 12 * rule.interval);
   } else {
     next = occurrenceAfter(rule, due, due);
@@ -100,6 +106,17 @@ export function nextOccurrence(rule: Recur, due: string, finishedDay: string, to
   return {due: next, rule: rule.left !== undefined ? {...rule, left: rule.left - 1} : rule};
 }
 
+/** Session AV lane 2 (r4-plan, LEDGER #305): the last day of the week (Sunday; weeks start on Monday) or month a day is in. */
+export function windowEnd(flex: 'week' | 'month', day: string): string {
+  if (flex === 'week') return addLocalDays(day, (7 - localWeekday(day)) % 7);
+  const {y, m} = parts(day);
+  return ymd(y, m, daysInMonth(y, m));
+}
+/** The first day of that window (Monday, or the 1st). */
+export const windowStart = (flex: 'week' | 'month', day: string) => flex === 'week' ? addLocalDays(windowEnd('week', day), -6) : `${day.slice(0, 7)}-01`;
+/** A floating repeat, as written for older builds too: every week on Sunday, or every month on its last day. */
+export const flexRule = (flex: 'week' | 'month', text?: string): Recur => ({...(flex === 'week' ? {every: 'week', weekdays: [0]} : {every: 'month', monthDay: -1}), interval: 1, flex, ...(text ? {text} : {})} as Recur);
+
 /** The next few due days of a series, for the editor's preview ("Next: Mon 3 Nov, Mon 10 Nov, …"). */
 export function upcoming(rule: Recur, due: string, count = 3): string[] {
   const out = [due];
@@ -110,6 +127,7 @@ export function upcoming(rule: Recur, due: string, count = 3): string[] {
 
 /** The rule in plain words: "Every 2 weeks on Mon, Wed", "Every month on the 1st", "Every 3 days after it's done". */
 export function describeRecur(rule: Recur): string {
+  if (rule.flex) return `Once a ${rule.flex}, any day${rule.until ? ` until ${rule.until}` : ''}${rule.left !== undefined ? ` (${rule.left} left)` : ''}`;
   const n = rule.interval, every = n === 1 ? 'Every' : `Every ${n}`;
   const unit = (one: string) => n === 1 ? one : `${one}s`;
   let text: string;
