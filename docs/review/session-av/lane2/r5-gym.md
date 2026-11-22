@@ -78,3 +78,49 @@ The splits record (`zigoals:workout-splits:v1`, strict) is not touched.
 - Showcase hook: none (a status would set aside the Showcase's planned workouts that the Agenda and Day Timeline draw).
 - Device keys / catalogue / export / erase: nothing new (in the registered planned-workouts record). CSS: `gym-r5.css`.
 
+## 2. How you feel today changes the suggestion — LEDGER #372 built
+
+- What: Health → Workouts → Start a workout → "Suggest a workout for today" asks "How do you feel today?" (Fresh, Normal,
+  Tired, Sore; one tap, a radio group of 44 px chips). Fresh and Normal keep the suggestion as it was. Tired makes it
+  shorter and easier: one exercise and one set fewer each (at least three exercises and two sets) and every weight held
+  at the heaviest you lifted last time ("An easier day: fewer sets and one exercise fewer, with the weights you lifted last
+  time (no increase today)."). Sore makes it shorter and lighter: three exercises, two sets each, about 10 % less weight,
+  rounded down to what plates make. On a tired or sore day "Or start an easy walk instead" starts an ordinary cardio
+  workout with Walking. Everyday words only (the ledger's owner note): no symptom list, no reading of the body, no advice.
+  The choice is kept for that suggestion only: nothing is stored (the spec checks no key is written).
+- Files: `lib/workouts/feel.ts` (new, pure), `components/health/workouts/suggest-workout.tsx`.
+- Tests: `lib/workouts/av2-r5-feel.test.ts`; spec `tests/av2-r5-feel.spec.ts`.
+- Stored: nothing.
+- Help (EN): **Can the suggested workout be easier on a tired day?** Yes. In Health → Workouts, open "Suggest a workout
+  for today" and choose how you feel. Tired gives fewer sets and one exercise fewer at last time's weights; Sore gives
+  three exercises of two sets, about 10 % lighter. On those days you can start an easy walk instead. Your answer is used
+  for that suggestion only and is not kept.
+- What's new: "Workouts: tell the suggestion how you feel — a tired or sore day gets a shorter, lighter workout or a walk."
+- Search (static.ts): "how I feel", "tired workout", "easier workout", "sore" → `/app/health?view=workouts`.
+- Showcase hook: none needed (the Showcase's log already makes a suggestion). Device keys: none. CSS: `gym-r5.css`.
+
+## 3. Everyday movement as activities — LEDGER #376 built (no energy figure; the existing MET estimate is the owner's decision)
+
+- What: Health → Activity's "Activity name" offers, beside the twelve types, everyday movement in English and Dutch:
+  Gardening / Tuinieren, Housework / Huishouden, Walking the dog / De hond uitlaten, Wheelchair push / Rolstoel duwen,
+  Carrying a child / Een kind dragen, Commuting by bike / Op de fiets naar het werk, Taking the stairs / De trap nemen,
+  Playing with the kids / Spelen met de kinderen. Their minutes count as active minutes everywhere activity minutes count
+  (the Activity view, Today, and the Workouts movement band, #375). They have no MET value, and no name starts with one of
+  the twelve types' words, so `activityTypeOf` finds none and no energy figure is ever shown for them (the bike commute is
+  named "Commuting by bike", not "Cycling to work", for that reason). The form's fine print says so. The person's own
+  words still work, as before.
+- Owner's decision: the existing MET estimate for the twelve types (`lib/health-activity-types.ts:12-25`, C-MO-39) is
+  neither extended nor reused here; whether it stays is for the owner.
+- Files: `lib/health-everyday-moves.ts` (new, constants only), `components/health/health-app.tsx` (the datalist and one
+  sentence of fine print; Health's first chunk: the list, about 300 bytes).
+- Tests: `lib/av2-r5-everyday.test.ts` (every name in both languages, no type found, no estimate); existing
+  `lib/health-al-l2-pass3.test.ts`, `pass4` green. Spec: `tests/av2-r5-everyday.spec.ts`.
+- Stored: nothing (the activity keeps the words typed).
+- Help (EN): **Does everyday movement count?** Yes. In Health → Activity, name it — gardening, housework, walking the dog,
+  a wheelchair push, carrying a child, commuting by bike — or type your own words, with its minutes. The minutes count as
+  active minutes. ZIGoals shows no energy figure for it.
+- What's new: "Activity: everyday movement — gardening, housework, walking the dog and more — in English and Dutch."
+- Search (static.ts): "gardening", "housework", "walking the dog", "wheelchair", "everyday movement" →
+  `/app/health?view=activity`.
+- Showcase hook: none (the Showcase's activity minutes are pinned by other specs). CSS: none.
+
