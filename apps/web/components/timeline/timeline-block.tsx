@@ -60,7 +60,7 @@ export function TimelineBlockRow({block, actions, busy}: {block: TimelineBlock; 
     <span className="timeline-time">{timed ? clockLabel(moving ? drag.pending! : block.start!) : 'Any time'}</span>
     <div className="timeline-block">
       <div className="timeline-block-main">
-        <p className="timeline-title"><strong>{block.title}</strong>{block.done && <span className="timeline-state">Done</span>}{block.skipped && <span className="timeline-state">Skipped</span>}</p>
+        <p className="timeline-title"><strong>{block.glyph && <span aria-hidden="true">{block.glyph} </span>}{block.title}</strong>{block.done && <span className="timeline-state">Done</span>}{block.skipped && <span className="timeline-state">Skipped</span>}</p>
         {meta && <p className="timeline-meta">{meta}</p>}
         {block.note && <p className="timeline-note">{block.note}</p>}
         {moving && <p className="timeline-moving" role="status">To {clockLabel(drag.pending!)}: let go (or press Enter) to save.</p>}

@@ -44,6 +44,8 @@ export type TimelineBlock = {
   note?: string;
   /** A habit that is also a dot on the Checklist. */
   onChecklist?: boolean;
+  /** Session AV lane 2 (r3-plan, LEDGER #257): a symbol shown before the title (a task's own), decoration only. */
+  glyph?: string;
 };
 export type DayTimeline = {date: string; nowMinute: number; blocks: TimelineBlock[]; anytime: TimelineBlock[]; leftovers: TimelineBlock[]; replanFrom: number; quiet: boolean};
 export type TimelineInput = {
@@ -172,7 +174,7 @@ export function buildDayTimeline(input: TimelineInput): DayTimeline {
   for (const item of input.extra ?? []) {
     if (item.habitId && habitBlocks.has(item.habitId)) { habitBlocks.get(item.habitId)!.onChecklist = true; continue; }
     const band: TimelineBand = item.band ?? 'anytime', time = item.time && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.time) ? item.time : band === 'anytime' ? null : PART_OF_DAY[band];
-    out.push({id: item.id, kind: 'checklist', title: item.title, start: time ? clockMinutes(time) : null, minutes: 0, pillar: item.pillar ?? null, ...(item.colour ? {colour: item.colour} : {}), href: item.href || '/app/checklist', done: item.done, movable: false, lockedReason: 'Its place is set on the Checklist.', timeFrom: 'the Checklist', action: 'open', note: item.label ?? 'Checklist'});
+    out.push({id: item.id, kind: 'checklist', title: item.title, start: time ? clockMinutes(time) : null, minutes: 0, pillar: item.pillar ?? null, ...(item.colour ? {colour: item.colour} : {}), ...(item.glyph ? {glyph: item.glyph} : {}), href: item.href || '/app/checklist', done: item.done, movable: false, lockedReason: 'Its place is set on the Checklist.', timeFrom: 'the Checklist', action: 'open', note: item.label ?? 'Checklist'});
   }
 
   const timed = out.filter(b => b.start !== null).map(b => ({...b, start: clampDay(b.start!)}))

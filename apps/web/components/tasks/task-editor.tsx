@@ -14,6 +14,8 @@ import {HEALTH_WORDS, TaskTitleInput, type EditScope} from './task-parts';
 import type {GoalOption} from './use-goal-options';
 import type {TaskPatch} from './use-task-list';
 import {TaskFieldInputs, useTaskFields} from './task-fields';
+import {TaskLookField} from './task-look-field';
+import {taskLook, type TaskLook} from '../../lib/tasks/look';
 
 const HabitLinkField = lazy(() => import('./habit-link-field'));
 /** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
@@ -68,6 +70,8 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   const sections = (record?.sections ?? []).filter(s => s.projectId === projectId);
   // Session AV lane 2 (tasks-r2, LEDGER #229): the values of the chosen project's own fields.
   const custom = useTaskFields(task, record, projectId);
+  // Session AV lane 2 (r3-plan, LEDGER #257): the task's symbol and colour.
+  const [look, setLook] = useState<TaskLook | null>(() => taskLook(task));
   const save = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) { setTitleError('A task needs a title.'); return; }
@@ -81,7 +85,8 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       labels: labels.split(/[\s,]+/).map(l => l.replace(/^@/, '')).filter(Boolean),
       ...(record ? {projectId: projectId || null, sectionId: sectionId || null} : {}),
       reminders: [...[...new Set(reminders.filter(r => r !== '').map(Number))].slice(0, MAX_EDITOR_REMINDERS).map(before => ({before})), ...(remindAt ? [{before: 0, at: remindAt}] : [])], habit: habit || null, health: (health || null) as HealthLink | null,
-      early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {})};
+      early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {}),
+      ...(look || task.look ? {look: look ?? null} : {})};
     // A change to the repeat itself is a change to the series; anything else on a repeating task asks which times.
     if (task.recur && task.due && !task.doneAt && unchangedRepeat) { setAsk(patch); requestAnimationFrame(() => askRef.current?.focus()); return; }
     onSave(patch);
@@ -97,6 +102,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   return <form className="task-editor tasks-add" aria-label={`Edit “${task.title}”`} onSubmit={save} noValidate onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onCancel(); } }}>
     {stale && <p className="notice task-editor-stale" role="status">This task was changed in another tab or by an assistant while you edited it. Save to keep your version, or Cancel and open it again to see theirs.</p>}
     <TaskTitleInput label="Title" value={title} error={titleError} onChange={v => { setTitle(v); if (v.trim()) setTitleError(''); }} />
+    <TaskLookField title={title} value={look} onChange={setLook} />
     <label className="field"><span>Priority</span><select value={level} onChange={e => setLevel(Number(e.target.value) as TaskLevel)}>{([1, 2, 3, 4] as const).map(p => <option key={p} value={p}>{LEVEL_WORDS[p]}</option>)}</select></label>
     <label className="field"><span>Due</span><input type="date" value={due} aria-describedby={due && due < today ? `${id}-past` : undefined} onChange={e => { setDue(e.target.value); if (!e.target.value) setTime(''); }} />{due && due < today && <small id={`${id}-past`} className="tasks-field-note">A past day: it shows as overdue.</small>}</label>
     <label className="field"><span>Time</span><input type="time" value={time} disabled={!due} onChange={e => setTime(e.target.value)} /></label>
