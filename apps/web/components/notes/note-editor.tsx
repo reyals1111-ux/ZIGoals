@@ -20,6 +20,9 @@ import {photoScope} from '../../lib/health-aa/photos';
 import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
 import {propsFace} from '../../lib/notes/prop-face'; // Session AV lane 2 (review B3C-13): days and numbers via the app's formatters
 import {countCharacters, countWords, readMinutes} from '../../lib/notes/table';
+import {templateForTags, templateWords} from '../../lib/notes/tag-templates';
+import {mayHoldTable} from '../../lib/notes/table-edit';
+import {localDate} from '../../lib/local-date';
 
 const NoteBacklinks = lazy(() => import('./note-backlinks'));
 // Session AV lane 2 (LEDGER #31): the "@remind" lines of this note, in their own chunk.
@@ -40,6 +43,11 @@ const NoteFocus = lazy(() => import('./note-focus'));
 const NoteLock = lazy(() => import('./note-lock'));
 // Session AV lane 2 (r4-notes; LEDGER #319): the note as an HTML page, plain text or a Word file, loaded on the press.
 const NoteSave = lazy(() => import('./note-save'));
+// Session AV lane 2 (r5-notes; LEDGER #363, Craft): change a table in the words being edited, loaded on the press.
+const NoteTableEdit = lazy(() => import('./note-table-edit'));
+// Session AV lane 2 (r5-notes; LEDGER #367, Craft): a note's look (cover and page colour), loaded when used.
+const NoteLook = lazy(() => import('./note-look'));
+const NoteCover = lazy(() => import('./note-look').then(m => ({default: m.NoteCover})));
 const shortWords = (w: string) => { const t = w.replace(/\s+/g, ' ').trim(); return t.length > 40 ? `${t.slice(0, 39).trimEnd()}…` : t; };
 
 /**
@@ -64,6 +72,8 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
   const [shown, setShown] = useState(false), covered = !!note?.locked && !shown;
   const doneWriting = useCallback(() => { setWriting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-write-button')?.focus()); }, []);
   const closeFind = useCallback(() => { setFinding(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-find-button')?.focus()); }, []);
+  const [tabling, setTabling] = useState(false), [lookOpen, setLookOpen] = useState(false);
+  const closeTable = useCallback(() => { setTabling(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-table-button')?.focus()); }, []);
   const [versionsOpen, setVersionsOpen] = useState(false), [printing, setPrinting] = useState(false), [propsOpen, setPropsOpen] = useState(false);
   const donePrinting = useCallback(() => { setPrinting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-print-button')?.focus()); }, []);
   const dirty = (note?.title ?? '') !== title || (note?.body ?? '') !== body || parseTagField(tagText).join(',') !== parseTagField(savedField).join(',');
@@ -76,6 +86,15 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
     // Session AV lane 2 (notes; LEDGER #33): a save keeps the words it replaces as an earlier version.
     if (!isDaily && !title.trim() && note.kind !== 'inbox') { setTitle(note.title); return change(r => updateNoteKeepingVersion(r, note.id, {body, tags}, now), 'Saved on this device. A note keeps its title.'); }
     return change(r => updateNoteKeepingVersion(r, note.id, isDaily ? {body, tags} : {title, body, tags}, now), 'Saved on this device.');
+  };
+  // Session AV lane 2 (r5-notes; LEDGER #362, Logseq): a new, still empty note given a tag with a template starts from
+  // its words, once (unsaved until Save).
+  const [startedFrom, setStartedFrom] = useState(''), started = useRef(false);
+  const startFromTag = (text: string) => {
+    if (started.current || !record || body.trim() || note?.body.trim()) return;
+    const t = templateForTags(record, parseTagField(text));
+    if (!t) return;
+    started.current = true; setStartedFrom(t.tag); setBody(templateWords(t, note?.day ?? day ?? localDate()));
   };
   const saveAndRead = () => { if (!dirty || save()) setMode('read'); };
   // Session AV lane 2 (r3-notes; LEDGER #264): while reading, the words follow the note (a tick, its Undo, a restore), so
@@ -99,8 +118,9 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {!isDaily && <SecretGuard text={title} onRemove={() => setTitle('')}/>}
       {/* Session AK G2 (RELEASE_REVIEW_2 R2-18): `[[` is explained here, in the field, where it is used. */}
       <LinkField label={isDaily ? 'This day’s note' : 'Note'} placeholder="Write here. Type [[ to link a goal, a habit or another note." value={body} onChange={setBody} index={index} exclude={note ? {kind: 'note', id: note.id} : undefined} maxLength={MAX_BODY} onSubmit={saveAndRead} rows={isDaily ? 6 : 10}/>
-      <label className="field note-tags-field"><span>Tags</span><input value={tagText} maxLength={400} onChange={e => setTagText(e.target.value)} placeholder="travel, work/meetings" aria-describedby={note ? `tags-help-${note.id}` : undefined}/></label>
+      <label className="field note-tags-field"><span>Tags</span><input value={tagText} maxLength={400} onChange={e => { setTagText(e.target.value); startFromTag(e.target.value); }} placeholder="travel, work/meetings" aria-describedby={note ? `tags-help-${note.id}` : undefined}/></label>
       <SecretGuard text={tagText} onRemove={() => setTagText('')}/>
+      {startedFrom && <p className="fine" role="status">Started from the #{startedFrom} template (Notes → Notes → Templates for tags). Save keeps it.</p>}
       <p className="fine" id={note ? `tags-help-${note.id}` : undefined}>Or write a #tag anywhere in the note; a / nests one under another (#work/meetings sits under #work).</p>
       <LoadBoundary quiet><Suspense fallback={null}><NoteMarks value={body} onChange={setBody} maxLength={MAX_BODY} field={() => box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea') ?? null}/></Suspense></LoadBoundary>
       <div className="note-actions">
@@ -108,14 +128,19 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
         {(note?.body.trim() || body.trim()) && <button type="button" className="quiet" onClick={() => { if (dirty) { setTitle(note?.title ?? ''); setBody(note?.body ?? ''); } setMode(note?.body.trim() ? 'read' : 'edit'); }}>{dirty ? 'Cancel changes' : 'Done'}</button>}
         <button type="button" className="quiet note-write-button" onPointerEnter={() => void import('./note-focus').catch(() => undefined)} onClick={() => setWriting(true)}>Write in full screen</button>
         <button type="button" className="quiet note-find-button" aria-expanded={finding} onPointerEnter={() => void import('./note-find').catch(() => undefined)} onClick={() => finding ? closeFind() : setFinding(true)}>Find and replace</button>
+        {(tabling || mayHoldTable(body)) && <button type="button" className="quiet note-table-button" aria-expanded={tabling} onPointerEnter={() => void import('./note-table-edit').catch(() => undefined)} onClick={() => tabling ? closeTable() : setTabling(true)}>Change a table</button>}
         <span className="fine">{body.length.toLocaleString('en-US')} / {MAX_BODY.toLocaleString('en-US')}</span>
       </div>
       {writing && <LoadBoundary quiet><Suspense fallback={null}><NoteFocus title={heading || (title.trim() || 'Your note')} value={body} onChange={setBody} maxLength={MAX_BODY}
         typewriter={!!record?.typewriter} onTypewriter={on => change(r => { const next = {...r}; if (on) next.typewriter = true; else delete next.typewriter; return next; }, on ? 'Typewriter on: the line you write stays in the middle.' : 'Typewriter off.')}
         canSave={dirty && !untouchedStart} onSave={() => { if (save()) doneWriting(); }} onDone={doneWriting}/></Suspense></LoadBoundary>}
+      {tabling && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteTableEdit value={body} onChange={setBody} onClose={closeTable}/></Suspense></LoadBoundary>}
       {finding && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteFind value={body} onChange={setBody} field={() => box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea') ?? null} onClose={closeFind}/></Suspense></LoadBoundary>}
     </> : <>
-      <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} photos={note ? notePhotoIdsOf(note) : undefined} outline fold/>
+      <div className="note-page" data-look={note?.look?.colour}>
+        {note?.look?.cover && notePhotoIdsOf(note).includes(note.look.cover) && <LoadBoundary quiet><Suspense fallback={null}><NoteCover id={note.look.cover} name={noteName(note)}/></Suspense></LoadBoundary>}
+        <NoteRender text={note?.body ?? ''} index={index} onCreate={onCreateLink} onTick={tick} onTag={onTag} photos={note ? notePhotoIdsOf(note) : undefined} outline fold notes={record?.notes}/>
+      </div>
       {note && fieldTags(note).length > 0 && <p className="note-tag-line"><span className="fine">Tags: </span>{fieldTags(note).map(t => onTag ? <button key={t} type="button" className="note-tag" aria-label={`#${t}: show the notes with this tag`} onClick={() => onTag(t)}>#{t}</button> : <span key={t} className="note-tag">#{t}</span>)}</p>}
       {note && /@remind|!remind|@herinner|⏰/i.test(note.body) && <LoadBoundary quiet><Suspense fallback={null}><NoteReminderChips note={note}/></Suspense></LoadBoundary>}
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button>
@@ -126,13 +151,16 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
     </>}
     {note && <NoteExtras note={note} change={change} onDeleted={onDeleted} onPlace={mode === 'edit' ? placePhoto : undefined} onUnplace={mode === 'edit' ? (id => setBody(b => withoutPhotoLines(b, id))) : undefined} onLocked={() => setShown(true)}/>}
     {note && note.body.trim() && mode === 'read' && <NoteInfo note={note}/>}
+    {note && note.kind !== 'inbox' && mode === 'read' && <details className="note-fold note-look-fold" onToggle={e => setLookOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Look <span className="fine">· {note.look?.colour || note.look?.cover ? [note.look.colour ? `${note.look.colour[0]!.toUpperCase()}${note.look.colour.slice(1)} page` : '', note.look.cover ? 'a cover' : ''].filter(Boolean).join(', with ') : 'a cover and a page colour'}</span></summary>
+      {lookOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteLook note={note} change={change}/></Suspense></LoadBoundary>}
+    </details>}
     {note && record && <details className="note-fold note-props-fold" onToggle={e => setPropsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Properties <span className="fine">· {propsFace(note.props) ?? 'your own fields, such as a status or a day'}</span></summary>
       {propsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteProps note={note} record={record} change={change}/></Suspense></LoadBoundary>}
     </details>}
     {note && record && <details className="note-fold note-versions-fold" onToggle={e => setVersionsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Earlier versions <span className="fine">· {(record.versions ?? []).filter(v => v.noteId === note.id).length || 'none yet'}</span></summary>
       {versionsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteVersions note={note} record={record} change={change} onRestored={v => { setBody(v.body); if (!isDaily && v.title) setTitle(v.title); setMode('read'); }}/></Suspense></LoadBoundary>}
     </details>}
-    {note && <LoadBoundary quiet><Suspense fallback={null}><NoteBacklinks kind="note" id={note.id} name={isDaily && note.day ? note.day : noteName(note)} teach={false}/></Suspense></LoadBoundary>}
+    {note && <LoadBoundary quiet><Suspense fallback={null}><NoteBacklinks kind="note" id={note.id} name={isDaily && note.day ? note.day : noteName(note)} teach={false} change={note.locked ? undefined : change}/></Suspense></LoadBoundary>}
   </article>;
 }
 
@@ -174,7 +202,7 @@ function NoteExtras({note, change, onDeleted, onPlace, onUnplace, onLocked}: {no
       {note.kind !== 'inbox' && (note.locked
         ? <button type="button" className="quiet" onClick={() => change(r => unlockNote(r, note.id, new Date().toISOString()), 'The lock is off: this note is in Search, the Graph and NOVA again.')}>Remove the lock</button>
         : <button type="button" className="quiet" onClick={() => { if (!readLock((() => { try { return window.localStorage; } catch { return null; } })())) { setSaid(LOCK_NEEDS_PIN); return; } if (change(r => lockNote(r, note.id, new Date().toISOString()), 'Locked: it shows after your screen-cover PIN, and stays out of Search, the Graph, NOVA and the Markdown export.')) { onLocked?.(); setSaid(''); } }}>Lock this note</button>)}
-      <button type="button" className="quiet" onClick={() => { if (change(r => removeNote(r, note.id), `“${shortNoteName(note)}” deleted.`)) onDeleted?.(); }}>Delete note</button>
+      <button type="button" className="quiet" onClick={() => { if (change(r => removeNote(r, note.id), `“${shortNoteName(note)}” deleted. It waits 30 days in Notes → Notes → Recently deleted.`)) onDeleted?.(); }}>Delete note</button>
     </div>
     {note.locked && <p className="fine">Locked: next time it shows after your screen-cover PIN. Its words are hidden, not encrypted; they stay in this browser and in Export everything.</p>}
     {full && <p className="fine">{PHOTOS_FULL}</p>}

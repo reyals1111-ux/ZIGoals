@@ -29,3 +29,16 @@ export function foldsHiding(levels: Levels, folded: ReadonlySet<number>, target:
 }
 /** Every heading with something under it (what Fold all folds). */
 export const foldable = (levels: Levels): number[] => levels.flatMap((l, i) => l !== null && sectionSize(levels, i) > 0 ? [i] : []);
+
+/**
+ * Session AV lane 2 (r5-notes; LEDGER #361): the section an `![[Note#Heading]]` line draws — the first heading whose
+ * words match (case and spacing aside) and the blocks under it, up to the next heading of its level or higher; the whole
+ * note with no heading; null when the heading is not there (any more). `words` reads a block's plain words.
+ */
+export function sectionOf<B extends {type: string; level?: number}>(blocks: readonly B[], heading: string | null, words: (b: B) => string): B[] | null {
+  if (!heading) return [...blocks];
+  const key = (t: string) => t.normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim();
+  const at = blocks.findIndex(b => b.type === 'heading' && key(words(b)) === key(heading));
+  if (at < 0) return null;
+  return blocks.slice(at, at + 1 + sectionSize(blocks.map(b => b.type === 'heading' ? b.level ?? null : null), at));
+}

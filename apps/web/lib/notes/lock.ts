@@ -19,7 +19,7 @@ export const isLocked = isLockedHidden;
  */
 export function shownOf<T extends Note>(note: T): T {
   if (!isLockedHidden(note)) return note;
-  const {photoId: _p, photos: _q, props: _r, tags: _t, ...rest} = note; void _p; void _q; void _r; void _t;
+  const {photoId: _p, photos: _q, props: _r, tags: _t, look: _l, ...rest} = note; void _p; void _q; void _r; void _t; void _l; // r5-notes (#367): no cover of a locked note
   return {...rest, body: ''} as T;
 }
 /** The notes whose words may be read beyond the note itself (search, graph, NOVA, export). */

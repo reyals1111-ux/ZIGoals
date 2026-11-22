@@ -152,3 +152,6 @@
 .agenda-deadline .text-link { display: inline-flex; align-items: center; min-height: 44px; }
 .agenda-deadline small { font-size: 14px; color: var(--text-secondary, var(--muted)); }
 .agenda-deadline[data-passed] .agenda-deadline-mark { color: var(--warning, #e8a33d); }
+/* Session AV lane 2 (r5-notes; LEDGER #364): a note for an imported event. */
+.agenda-event-note { margin: 2px 0 0; font-size: 15px; overflow-wrap: anywhere; }
+.agenda-event-note .text-link { min-height: 44px; display: inline-flex; align-items: center; text-align: start; }

@@ -2,7 +2,7 @@
 import {useRef, useState} from 'react';
 import {notePhotoIdsOf, type Note, type Notes} from '../../lib/notes/schema';
 import type {LinkSources} from '../../lib/notes/links';
-import {applyImport, notesExportEntries, notesExportName, planImport, type ImportPlan} from '../../lib/notes/markdown';
+import {applyImport, dailyExportName, dailyNotesBetween, notesExportEntries, notesExportName, planImport, type ImportPlan} from '../../lib/notes/markdown';
 import {ZipError} from '../../lib/notes/zip-read';
 import {readForeignFiles, readNoteFiles} from '../../lib/notes/read-files';
 import {foreignFiles, isBearArchive, isEnex, namePhotos, type ForeignImage} from '../../lib/notes/import-enex';
@@ -29,17 +29,22 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
   const [images, setImages] = useState<Map<string, ForeignImage[]>>(new Map()), cancelled = useRef(false);
   // Security review Z1B-5: one reading budget for all chosen files, and Stop while they are read.
   const reading = useRef<AbortController | null>(null);
-  const exportZip = async () => {
+  // Session AV lane 2 (r5-notes; LEDGER #366, Craft): the same export for the daily notes of a range of days.
+  const firstDay = record.notes.filter(n => n.kind === 'daily' && n.day).map(n => n.day!).sort()[0] ?? localDate();
+  const [from, setFrom] = useState(firstDay), [to, setTo] = useState(() => localDate());
+  const ranged = dailyNotesBetween(record, from || firstDay, to || localDate());
+  const exportZip = async (range?: {from: string; to: string}) => {
     setBusy(true); setSaid('');
     try {
-      const ids = record.notes.flatMap(n => notePhotoIdsOf(n)); // Session AV lane 2 (r4-notes; LEDGER #307): every photo
+      const source = range ? dailyNotesBetween(record, range.from, range.to) : record;
+      const ids = source.notes.flatMap(n => notePhotoIdsOf(n)); // Session AV lane 2 (r4-notes; LEDGER #307): every photo
       const photos = ids.length ? await notePhotosForExport(photoScope(), ids) : new Map();
-      const zip = buildStoredZip(notesExportEntries(record, targets, {photos}));
+      const zip = buildStoredZip(notesExportEntries(source, targets, {photos}));
       const url = URL.createObjectURL(new Blob([zip as BlobPart], {type: 'application/zip'})), link = document.createElement('a');
-      link.href = url; link.download = notesExportName(localDate(), isShowcase()); document.body.append(link); link.click(); link.remove();
+      link.href = url; link.download = range ? dailyExportName(range.from, range.to, isShowcase()) : notesExportName(localDate(), isShowcase()); document.body.append(link); link.click(); link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 2000);
-      const locked = record.notes.filter(n => n.locked).length, kept = record.notes.length - locked; // Session AV lane 2 (r4-notes; LEDGER #318)
-      setSaid(`${kept} ${kept === 1 ? 'note' : 'notes'} saved as Markdown in a ZIP, made on this device.${locked ? ` ${locked === 1 ? '1 locked note was' : `${locked} locked notes were`} left out (open one and use Save this note as… to take it out).` : ''}`);
+      const locked = source.notes.filter(n => n.locked).length, kept = source.notes.length - locked; // Session AV lane 2 (r4-notes; LEDGER #318)
+      setSaid(`${kept} ${range ? (kept === 1 ? 'daily note' : 'daily notes') : (kept === 1 ? 'note' : 'notes')} saved as Markdown in a ZIP, made on this device.${locked ? ` ${locked === 1 ? '1 locked note was' : `${locked} locked notes were`} left out (open one and use Save this note as… to take it out).` : ''}`);
     } catch (e) { setSaid(e instanceof Error ? e.message : 'The export could not be made.'); } finally { setBusy(false); }
   };
   const choose = async (list: FileList | null) => {
@@ -86,6 +91,15 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
       <p className="fine">A ZIP of .md files with front-matter: Daily/, Notes/ and Inbox/, links kept as [[…]], photos in attachments/. Open it as a vault in Obsidian or any Markdown app. Made on this device; nothing is uploaded.</p>
       <button type="button" className="secondary" disabled={busy || !record.notes.length} onClick={() => void exportZip()}>Export notes (.zip)</button>
       {!record.notes.length && <p className="fine">Nothing to export yet.</p>}
+      <fieldset className="note-daily-range">
+        <legend>Daily notes from … to …</legend>
+        <div className="note-actions">
+          <label className="field"><span>From</span><input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)}/></label>
+          <label className="field"><span>To</span><input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)}/></label>
+        </div>
+        <p className="fine" aria-live="polite">{ranged.notes.length ? `${ranged.notes.length} daily ${ranged.notes.length === 1 ? 'note' : 'notes'} in these days, with ${ranged.notes.length === 1 ? 'its' : 'their'} photos.` : 'No daily note in these days. Write one under Notes → Today, or choose other days.'}</p>
+        <button type="button" className="secondary" disabled={busy || !ranged.notes.length} onClick={() => void exportZip({from: from || firstDay, to: to || localDate()})}>Export these daily notes (.zip)</button>
+      </fieldset>
     </section>
     <section aria-labelledby="notes-import-title">
       <h3 id="notes-import-title">Import Markdown, Evernote or Bear</h3>

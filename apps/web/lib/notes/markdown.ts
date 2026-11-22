@@ -133,6 +133,19 @@ export function notesExportEntries(record: Notes, sources: Omit<LinkSources, 'no
   return entries;
 }
 
+/**
+ * Session AV lane 2 (r5-notes; LEDGER #366, Craft's daily notes for a range of days): the record holding only the daily
+ * notes from one day to another (both included, oldest first), for the same Markdown export with their photos. A locked
+ * note stays out, as in the whole export; no board goes with it.
+ */
+export function dailyNotesBetween(record: Notes, from: string, to: string): Notes {
+  const [a, b] = from <= to ? [from, to] : [to, from];
+  const notes = record.notes.filter(n => n.kind === 'daily' && !!n.day && n.day >= a && n.day <= b).sort((x, y) => x.day!.localeCompare(y.day!));
+  const {canvases: _c, trash: _t, versions: _v, ...rest} = record; void _c; void _t; void _v;
+  return {...rest, notes};
+}
+export const dailyExportName = (from: string, to: string, showcase: boolean) => `zigoals-${showcase ? 'example-' : ''}daily-notes-${from <= to ? from : to}-to-${from <= to ? to : from}.zip`;
+
 /* ---- Import ------------------------------------------------------------------------------------------------------ */
 export const IMPORT_MAX_FILES = 1000, IMPORT_MAX_FILE_BYTES = 512 * 1024;
 export const isNoteFile = (name: string) => /\.(?:md|markdown|txt)$/i.test(name);

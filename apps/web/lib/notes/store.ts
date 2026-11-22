@@ -1,6 +1,6 @@
 import {checklistZone, zonedDay} from '../checklist/zone';
 import {anchorReminders} from './reminder-anchors';
-import {MAX_BODY, MAX_NOTES, MAX_TITLE, MAX_TOTAL_CHARS, noteName, notesSchema, shortNoteName, totalChars, type Note, type NoteSource, type NoteVersion, type Notes} from './schema';
+import {MAX_BODY, MAX_NOTES, MAX_TITLE, MAX_TOTAL_CHARS, MAX_TRASH, MAX_TRASH_CHARS, noteName, notesSchema, shortNoteName, totalChars, type Note, type NoteSource, type NoteVersion, type Notes, type TrashedNote} from './schema';
 
 /**
  * Session AK (B1, B2): the pure changes behind notes — capture to the inbox, a day's daily note, edit, delete and file,
@@ -32,7 +32,8 @@ export function applyUndo(record: Notes, undo: NotesUndo): Notes {
   const missing = undo.before.filter(n => !kept.some(k => k.id === n.id));
   const notes = [...kept, ...missing].sort((a, b) => a.createdAt.localeCompare(b.createdAt)), here = new Set(notes.map(n => n.id));
   const have = new Set((record.versions ?? []).map(v => v.id)), back = (undo.versions ?? []).filter(v => here.has(v.noteId) && !have.has(v.id));
-  return checked({...record, notes, ...(back.length ? {versions: [...(record.versions ?? []), ...back].sort((a, b) => a.savedAt.localeCompare(b.savedAt))} : {})});
+  // Session AV lane 2 (r5-notes; LEDGER #360): a note put back is no longer in Recently deleted.
+  return checked(untrashBack({...record, notes, ...(back.length ? {versions: [...(record.versions ?? []), ...back].sort((a, b) => a.savedAt.localeCompare(b.savedAt))} : {})}));
 }
 
 export type CaptureInput = {text?: string; source?: NoteSource; photoId?: string; day: string; now: string; id?: string; title?: string; example?: boolean};
@@ -61,7 +62,7 @@ export function addTopic(record: Notes, {title, body = '', now, id}: {title: str
   const note: Note = {id: id ?? newNoteId(), kind: 'topic', title: name, body: body.slice(0, MAX_BODY), createdAt: now};
   return {record: checked({...record, notes: [...record.notes, note]}), note};
 }
-export type NotePatch = Partial<Pick<Note, 'title' | 'body' | 'tags' | 'pinned' | 'photoId' | 'props' | 'photos' | 'archived' | 'locked'>>;
+export type NotePatch = Partial<Pick<Note, 'title' | 'body' | 'tags' | 'pinned' | 'photoId' | 'props' | 'photos' | 'archived' | 'locked' | 'look'>>;
 /**
  * Changes one note's words (a daily note keeps its day as its title). Review b1 #1: a save of the words also notes the
  * day each "@remind" line was written (`remindFrom`, lib/notes/reminder-anchors.ts), in the person's zone.
@@ -79,18 +80,56 @@ export function updateNote(record: Notes, id: string, patch: NotePatch, now: str
   if ('photos' in patch && !patch.photos?.length) delete next.photos;
   if ('archived' in patch && !patch.archived) delete next.archived;
   if ('locked' in patch && !patch.locked) delete next.locked; // LEDGER #318
+  if ('look' in patch && !patch.look?.cover && !patch.look?.colour) delete next.look; // Session AV lane 2 (r5-notes; LEDGER #367)
   if (patch.body !== undefined) {
     const remindFrom = anchorReminders(old, patch.body, zonedDay(new Date(now), zone), zone);
     if (remindFrom) next.remindFrom = remindFrom; else delete next.remindFrom;
   }
   return checked({...record, notes: record.notes.map((n, i) => i === at ? next : n)});
 }
-/** Deletes a note; Undo puts it back. */
-export function removeNote(record: Notes, id: string): {record: Notes; undo: NotesUndo} {
+/**
+ * Deletes a note; Undo puts it back. Session AV lane 2 (r5-notes; LEDGER #360): it waits in Recently deleted for 30 days
+ * (lib/notes/trash.ts), with its photos and earlier versions, before it leaves for good.
+ */
+export function removeNote(record: Notes, id: string, now: string = new Date().toISOString()): {record: Notes; undo: NotesUndo} {
   const note = record.notes.find(n => n.id === id);
   if (!note) throw new Error('This note is no longer on this device.');
-  return {record: checked({...record, notes: record.notes.filter(n => n.id !== id)}), undo: {before: [note], created: [], said: `“${shortNoteName(note)}” is back.`}};
+  return {record: checked(toTrash(record, [note], now)), undo: {before: [note], created: [], said: `“${shortNoteName(note)}” is back.`}};
 }
+/* ---- Session AV lane 2 (r5-notes; LEDGER #360): Recently deleted, the parts every change needs ------------------- */
+/** The trash kept to its caps: the oldest leave first. */
+export function capTrash(trash: readonly TrashedNote[]): TrashedNote[] {
+  const kept: TrashedNote[] = [];
+  let chars = 0;
+  for (const n of [...trash].sort((a, b) => a.deletedAt.localeCompare(b.deletedAt)).reverse()) { // newest first, ties as listed
+    const size = n.title.length + n.body.length;
+    if (kept.length >= MAX_TRASH || chars + size > MAX_TRASH_CHARS) continue;
+    chars += size; kept.push(n);
+  }
+  return kept.reverse();
+}
+/** The ids of notes whose versions may stay (in the notes or in Recently deleted). */
+export const keptNoteIds = (record: Pick<Notes, 'notes' | 'trash'>): Set<string> => new Set([...record.notes.map(n => n.id), ...(record.trash ?? []).map(n => n.id)]);
+export const withTrash = (record: Notes, trash: TrashedNote[]): Notes => {
+  const next: Notes = {...record};
+  if (trash.length) next.trash = trash; else delete next.trash;
+  const ids = keptNoteIds(next);
+  if (next.versions?.some(v => !ids.has(v.noteId))) { const versions = next.versions.filter(v => ids.has(v.noteId)); if (versions.length) next.versions = versions; else delete next.versions; }
+  return next;
+};
+/** Moves notes into Recently deleted (newest last); a note already there is replaced. */
+export function toTrash(record: Notes, notes: readonly Note[], now: string): Notes {
+  const ids = new Set(notes.map(n => n.id));
+  const added = notes.map(n => ({...n, deletedAt: now}) as TrashedNote);
+  return {...record, notes: record.notes.filter(n => !ids.has(n.id)), trash: capTrash([...(record.trash ?? []).filter(n => !ids.has(n.id)), ...added])};
+}
+/** After an Undo: a note back in the notes is no longer in Recently deleted. */
+export function untrashBack(record: Notes): Notes {
+  if (!record.trash?.length) return record;
+  const here = new Set(record.notes.map(n => n.id));
+  return record.trash.some(n => here.has(n.id)) ? withTrash(record, record.trash.filter(n => !here.has(n.id))) : record;
+}
+
 
 /** Where an inbox note can go. */
 export type FileTarget = {kind: 'daily'; day: string} | {kind: 'note'; id: string} | {kind: 'goal'; name: string} | {kind: 'habit'; name: string} | {kind: 'topic'; title: string};

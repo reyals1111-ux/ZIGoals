@@ -39,6 +39,9 @@ export const notePropSchema = z.union([
 export type NoteProp = z.infer<typeof notePropSchema>;
 export const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const stamp = z.iso.datetime({offset: true});
+/** Session AV lane 2 (r5-notes; LEDGER #367): the calm page colours a note's look can take. */
+export const NOTE_LOOK_COLOURS = ['sand', 'sage', 'sky', 'lilac', 'rose', 'stone'] as const;
+export type NoteLookColour = (typeof NOTE_LOOK_COLOURS)[number];
 export const noteSchema = z.looseObject({
   id: noteIdSchema,
   kind: z.enum(NOTE_KINDS),
@@ -86,11 +89,21 @@ export const noteSchema = z.looseObject({
    * note as before (its words are plain) and keep the field untouched; nothing they write can overwrite other data.
    */
   locked: z.boolean().optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r5-notes; LEDGER #367, Craft's page look; TIER 3 (stored format), additive and optional): the
+   * note's look in the reading view — a cover (one of the note's own photos) and one of the calm page colours. A value
+   * this build cannot read is dropped (the note reads as before); older builds keep it untouched and never show it.
+   */
+  look: z.looseObject({cover: noteIdSchema.optional().catch(undefined), colour: z.enum(NOTE_LOOK_COLOURS).optional().catch(undefined)}).optional().catch(undefined),
   /** A fictional Showcase note. */
   example: z.boolean().optional(),
   createdAt: stamp,
   updatedAt: stamp.optional(),
 });
+/** Session AV lane 2 (r5-notes; LEDGER #360, #362): a note in Recently deleted (the whole note and when it was deleted). */
+export const MAX_TRASH = 200, MAX_TRASH_CHARS = 400_000, TRASH_DAYS = 30, MAX_TAG_TEMPLATES = 10;
+export const trashedNoteSchema = noteSchema.extend({deletedAt: stamp});
+export type TrashedNote = z.infer<typeof trashedNoteSchema>;
 /**
  * Session AV lane 2 (journal and notes; Notion's version history and repeating templates; TIER 3 (stored format),
  * additive and optional). Each reads on its own: an item or value this build cannot read is dropped on read and the rest
@@ -166,6 +179,20 @@ export const notesSchema = z.looseObject({
    */
   focusTag: z.string().trim().min(1).max(MAX_TAG).optional().catch(undefined),
   typewriter: z.boolean().optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r5-notes; LEDGER #360, Logseq's recycled pages; TIER 3 (stored format), additive and optional):
+   * notes deleted in the last 30 days, each the whole note with the moment it was deleted (`deletedAt`), newest last; at
+   * most 200 and 400,000 characters together (the oldest leave first). Kept apart from `notes`, so every reader of the
+   * notes (Search, the Graph, the lists, NOVA's notes, the Markdown export, backlinks) leaves them out by construction,
+   * and an older build never shows a deleted note again (it keeps the list untouched; the record is loose).
+   */
+  trash: readable(trashedNoteSchema, MAX_TRASH),
+  /**
+   * Session AV lane 2 (r5-notes; LEDGER #362, Logseq's templates for a tag; TIER 3 (stored format), additive and
+   * optional): words a new, still empty note starts from once it is given that tag (at most 10). An item this build
+   * cannot read is dropped (the rest kept); older builds keep the list untouched and never read it.
+   */
+  tagTemplates: readable(z.looseObject({tag: z.string().trim().min(1).max(MAX_TAG), body: z.string().max(MAX_TEMPLATE_BODY)}), MAX_TAG_TEMPLATES),
 });
 export type Note = z.infer<typeof noteSchema>;
 export type Notes = z.infer<typeof notesSchema>;
