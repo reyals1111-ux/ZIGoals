@@ -11,7 +11,7 @@ import type {Cycle} from './store';
  */
 export type CyclePlanDay = {date: string; cycleDay: number | null; period: 'logged' | 'estimated' | null};
 const between = (a: string, b: string) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
-export function cyclePlanDays(rec: Pick<Cycle, 'days'>, from: string, to: string, today: string): CyclePlanDay[] {
+export function cyclePlanDays(rec: Pick<Cycle, 'days' | 'leftOut' | 'noPeriod'>, from: string, to: string, today: string): CyclePlanDay[] {
   const starts = periodStarts(rec), estimate = nextPeriodEstimate(rec, today), out: CyclePlanDay[] = [];
   for (let d = from, i = 0; d <= to && i < 62; d = addLocalDays(d, 1), i++) {
     const last = starts.filter(s => s <= d).at(-1), n = last ? between(last, d) + 1 : null;

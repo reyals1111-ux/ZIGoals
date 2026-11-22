@@ -42,15 +42,21 @@ export function periodStarts(rec: Pick<Cycle, 'days'>): string[] {
   for (const d of days) { if (!last || between(last, d) > 2) starts.push(d); last = d; }
   return starts;
 }
-/** Complete cycle lengths in days (start to next start), oldest first; a pause in logging (over 90 days) is left out. */
-export const cycleLengths = (rec: Pick<Cycle, 'days'>): number[] => periodStarts(rec).flatMap((s, i, all) => i ? [between(all[i - 1]!, s)] : []).filter(n => n > 0 && n <= MAX_CYCLE_LENGTH);
+/**
+ * Complete cycle lengths in days (start to next start), oldest first; a pause in logging (over 90 days) is left out.
+ * Session AV lane 2 (r5-body, LEDGER #382): so is a cycle the person left out of the averages (by its first day).
+ */
+export const cycleLengths = (rec: Pick<Cycle, 'days'> & {leftOut?: readonly string[]}): number[] => periodStarts(rec).flatMap((s, i, all) => i && !rec.leftOut?.includes(all[i - 1]!) ? [between(all[i - 1]!, s)] : []).filter(n => n > 0 && n <= MAX_CYCLE_LENGTH);
 
 export type CycleEstimate =
+  /** Session AV lane 2 (r5-body, LEDGER #383): "No period" is chosen, so no next-period line is worked out. */
+  | {kind: 'off'; cycles: number}
   | {kind: 'not-yet'; cycles: number; need: number}
   | {kind: 'range'; from: string; to: string; cycles: number; shortest: number; longest: number; passed: boolean};
 /** The next-period estimate: a range from past cycles, only after three complete ones. */
-export function nextPeriodEstimate(rec: Pick<Cycle, 'days'>, today: string): CycleEstimate {
+export function nextPeriodEstimate(rec: Pick<Cycle, 'days'> & {leftOut?: readonly string[]; noPeriod?: true}, today: string): CycleEstimate {
   const lengths = cycleLengths(rec), starts = periodStarts(rec);
+  if (rec.noPeriod) return {kind: 'off', cycles: lengths.length};
   if (lengths.length < MIN_CYCLES) return {kind: 'not-yet', cycles: lengths.length, need: MIN_CYCLES};
   const recent = lengths.slice(-ESTIMATE_FROM), shortest = Math.min(...recent), longest = Math.max(...recent), last = starts.at(-1)!;
   const from = addLocalDays(last, shortest), to = addLocalDays(last, longest);
