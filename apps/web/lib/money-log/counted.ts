@@ -23,6 +23,12 @@ export const countedOnly = <T extends Marks>(entries: readonly T[]): T[] => entr
 export const inFigures = (e: Marks) => isCounted(e) || isRefund(e);
 /** The kind a figure counts an entry as: a refund is spending (below zero), every other entry its own kind. */
 export const countedKind = <K extends string>(e: Marks & {kind: K}): K | 'expense' => isRefund(e) ? 'expense' : e.kind;
+/**
+ * Review B6O-3, B6O-8: the kind of category an entry sits in. A refund (`refund: true` on income) sits in an expense
+ * category whatever its marks — left out or a transfer it counts nowhere, but its category is still a spending one, so
+ * a rule, a check or a repair never moves it into an income category. Every other entry: its own kind.
+ */
+export const categoryKind = <K extends string>(e: {kind: K; refund?: true}): K | 'expense' => e.kind === 'income' && e.refund === true ? 'expense' : e.kind;
 /** A counted expense or a refund: the entries every spending figure sums (a refund below zero). */
 export const isSpending = (e: Marks & {kind: string}) => e.kind === 'expense' ? isCounted(e) : isRefund(e);
 const signOf = (e: Marks) => isRefund(e) ? -1 : 1;
