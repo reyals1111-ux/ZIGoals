@@ -4,7 +4,6 @@ import {GROUNDING, GROUNDING_WORDS, GROUNDING_WORD_MAX, groundingLine, stepWords
 import {HELP_LINE} from '../../../lib/calm/help-line';
 import {addLowDayLine, LOW_DAY, LOW_DAY_LINE_MAX, LOW_DAY_MAX, LOW_DAY_NOTE_MAX, LOW_DAY_PARTS, LOW_DAY_WORDS, removeLowDayLine, restoreLowDayLine, setLowDayNote, type LowDayPart} from '../../../lib/calm/low-day';
 import {JOURNAL} from '../../../lib/journal/schema';
-import {localDate} from '../../../lib/local-date';
 import {saveGroundingLine} from '../../../lib/calm/grounding-save';
 import {getAppStorage} from '../../../lib/showcase-storage';
 import {ZIGI_STORE_EVENT} from '../../../lib/ai/store/keys';
@@ -20,11 +19,11 @@ import './body-r6.css';
  *   people they could message, things that can wait, a line of their own — with the help lines the app already shows.
  *   Only their own words; never sent to ZIGi's AI; kept on this device (`zigoals:low-day:v1`).
  */
-export default function CalmR6({part}: {part: 'grounding' | 'low-day'}) {
-  return part === 'grounding' ? <Grounding/> : <LowDayPage/>;
+export default function CalmR6({part, today}: {part: 'grounding' | 'low-day'; /** Review B6P-10: the Meditation view's day ("My day ends at", the Health zone), for the grounding journal line. */ today: string}) {
+  return part === 'grounding' ? <Grounding today={today}/> : <LowDayPage/>;
 }
 
-function Grounding() {
+function Grounding({today}: {today: string}) {
   const [lang, setLang] = useState<'en' | 'nl'>('en'), [step, setStep] = useState(0), [answers, setAnswers] = useState<string[][]>(() => GROUNDING.map(s => Array.from({length: s.count}, () => ''))), [status, setStatus] = useState('');
   const journal = useDeviceRecord(JOURNAL), heading = useRef<HTMLHeadingElement>(null), first = useRef(true), w = GROUNDING_WORDS[lang], id = useId();
   useEffect(() => { if (first.current) { first.current = false; return; } heading.current?.focus(); }, [step]);
@@ -34,7 +33,7 @@ function Grounding() {
     if (!line) { setStatus(w.nothing); return; }
     // Review B6P-1: an unreadable journal is never written over; the words stay on screen.
     try {
-      if (saveGroundingLine(getAppStorage(), line, localDate()) === 'unreadable') { setStatus(w.unreadable); return; }
+      if (saveGroundingLine(getAppStorage(), line, today) === 'unreadable') { setStatus(w.unreadable); return; }
       window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: JOURNAL.key})); setStatus(w.saved);
     } catch { setStatus(lang === 'nl' ? 'Dit kon niet op dit apparaat worden bewaard. Er is niets veranderd.' : 'This could not be saved on this device. Nothing was changed.'); }
   }

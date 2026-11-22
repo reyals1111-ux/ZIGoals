@@ -5,7 +5,6 @@ import {ALL_EXERCISES_KEY, defaultsWords, isFavouriteExercise, setBestsFrom, set
 import type {LibraryExercise} from '../../../lib/workouts/library';
 import type {Workouts} from '../../../lib/workouts/schema';
 import {formatDate, formatNumber} from '../../../lib/visual-format';
-import {localDate} from '../../../lib/local-date';
 import {clock, estimateShown, weightShown} from '../workouts/units';
 import './body-r6.css';
 
@@ -25,8 +24,8 @@ function valueText(key: BestKey, v: number, unit: 'kg' | 'lb'): string {
   return formatNumber(v);
 }
 const shown = (b: BestValues, measure: string) => ORDER.filter(k => b[k] !== null && !(k === 'mostReps' && measure === 'weight-reps'));
-export default function ExerciseOwn({exercise, w, unit, change}: {exercise: LibraryExercise; w: Workouts; unit: 'kg' | 'lb'; change: Change}) {
-  const h = useMemo(() => exerciseHistory(w, exercise.id), [w, exercise.id]), today = localDate(), id = useId(), star = isFavouriteExercise(w, exercise.id);
+export default function ExerciseOwn({exercise, w, unit, change, today}: {exercise: LibraryExercise; w: Workouts; unit: 'kg' | 'lb'; change: Change; /** Review B6P-10: the day workouts are logged on (the Workouts view's today, in the Health zone). */ today: string}) {
+  const h = useMemo(() => exerciseHistory(w, exercise.id), [w, exercise.id]), id = useId(), star = isFavouriteExercise(w, exercise.id);
   const own = w.exerciseDefaults?.[exercise.id], timed = exercise.measure === 'time';
   const [sets, setSets] = useState(own ? String(own.sets) : ''), [each, setEach] = useState(own ? String((timed ? own.seconds : own.reps) ?? '') : ''), [rest, setRest] = useState(own?.restSeconds !== undefined ? String(own.restSeconds) : ''), [problem, setProblem] = useState('');
   const fromOne = w.bestsFrom?.[exercise.id] ?? null, fromAll = w.bestsFrom?.[ALL_EXERCISES_KEY] ?? null;

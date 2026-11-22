@@ -370,7 +370,7 @@ export default function WorkoutsView() {
     {/* Session AV lane 2 (body; LEDGER #116, #119; Hevy's exercise library): every exercise's written how-to, its muscles, your best and a pinned note. */}
     <section className="panel workouts-library" aria-labelledby="workouts-library-title">
       <h2 id="workouts-library-title">Exercises and how-tos</h2>
-      <Fold className="av2-fold workouts-library-fold" summary="Open the exercise library" loading="Opening the exercise library…"><ExerciseLibrary w={w} unit={unit} library={library} change={change} place={place}/></Fold>
+      <Fold className="av2-fold workouts-library-fold" summary="Open the exercise library" loading="Opening the exercise library…"><ExerciseLibrary w={w} unit={unit} library={library} change={change} place={place} today={today}/></Fold>
     </section>
 
     <section className="panel workouts-settings" aria-labelledby="workouts-settings-title">
