@@ -237,6 +237,10 @@
 /* Session AV lane 2 (tasks, LEDGER #8, #27): the editor's background switch and its comments. */
 .task-editor-check { display: flex; align-items: center; gap: 8px; min-height: 44px; flex: 1 1 100%; font-size: 15px; }
 .task-editor-check input { width: 20px; height: 20px; flex: none; }
+/* Review b1 #14: the task's timer in its editor. */
+.task-timer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; flex: 1 1 100%; font-size: 15px; }
+.task-timer button { min-height: 44px; }
+.task-timer p { flex: 1 1 100%; margin: 0; }
 .task-editor-comments { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 100%; align-items: flex-end; }
 .task-editor-comments .field { flex: 1 1 240px; }
 .task-comments { list-style: none; margin: 0; padding: 0; flex: 1 1 100%; display: grid; gap: 6px; font-size: 15px; overflow-wrap: anywhere; }

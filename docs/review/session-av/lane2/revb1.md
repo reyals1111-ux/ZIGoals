@@ -183,3 +183,14 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
   components/health/plus/evening-checkin.tsx, components/health/plus/evening-checkin.css (theme variables; text 14 px;
   boxes still ≥ 44 px), lib/checkin-extras/strip-label.ts (new, pure).
 - Tests: apps/web/lib/checkin-extras/revb1-strip-label.test.ts. Spec (lead runs): apps/web/tests/revb1-checkin-strip.spec.ts.
+
+### #14 A timer could only be started from Tasks → Today's "Fit my day"
+- Verdict: fixed. Every task's editor (a row in any list, Upcoming, This week, and the Table, Calendar and Timeline since
+  #7) has "Start a timer" under "Time spent" (components/tasks/task-timer.tsx, its own chunk; the same timers as Today's).
+  While it runs it shows "Timing: 12 min" and the same button reads "Stop the timer" (focus stays on it); Stop adds the
+  minutes to the task's time spent at once and the editor's field follows (no "changed in another tab" notice). Ticking
+  Done stops it too (#2). Not added to the task row itself: the row is in Tasks' first chunk (route weight).
+- Files: components/tasks/task-timer.tsx (new), components/tasks/task-editor.tsx, components/tasks/tasks.css.
+- Tests: the timer's pure parts are in apps/web/lib/tasks/revb1-timers.test.ts and av2-planning.test.ts; this is a
+  browser behaviour: spec (lead runs) apps/web/tests/revb1-task-timer.spec.ts.
+- Help (EN), add to the timers answer: "Start a timer from any task's editor (Edit), under Time spent."
