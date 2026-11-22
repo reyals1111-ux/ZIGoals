@@ -7,4 +7,5 @@ import type {Intent} from './cases';
  */
 export const AV2_REST: readonly Intent[] = [
   {id: 'av2-repeating-projects', pillar: 'tasks', en: ['which projects repeat', 'what are my repeating projects'], nl: ['welke projecten herhalen zich', 'wat zijn mijn terugkerende projecten'], never: ['"add-task"']},
+  {id: 'av2-task-versions', pillar: 'tasks', en: ['which tasks have earlier versions', 'are earlier versions of my tasks kept'], nl: ['welke taken hebben eerdere versies', 'zijn er eerdere versies van mijn taken']},
 ];

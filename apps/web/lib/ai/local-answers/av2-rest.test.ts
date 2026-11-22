@@ -6,6 +6,8 @@ import {av2TasksAnswer} from './av2-tasks';
 import type {LocalReply} from './engine';
 import {addRepeat, pauseRepeat} from '../../tasks/repeat-projects';
 import {BUILT_IN_TEMPLATES, emptyTaskTemplates} from '../../tasks/templates';
+import {emptyTaskPlan} from '../../tasks/plan-record';
+import {keepTaskVersion} from '../../tasks/versions';
 
 /** Session AV lane 2 (rest): the on-device answers to the last remainders, English and Dutch, NOVA and ZIGi. */
 const text = (r: LocalReply | null) => r && 'text' in r ? r.text : '';
@@ -36,6 +38,13 @@ describe('answers read the features', () => {
     expect(nl).toMatch(/^2 projecten herhalen zich:\n• Weekly reset: elke week, volgende .*23.*\n• Fictional garden: elke 10 dagen \(gepauzeerd\)$/);
     expect(text(av2RestAnswer('what are my repeating projects', zigiEnv(freshAll())))).toMatch(/^No project repeats yet/);
     expect(text(av2RestAnswer('wat zijn mijn terugkerende projecten', zigiEnv(freshAll())))).toMatch(/^Er herhaalt zich nog geen project/);
+  });
+  test('task versions: which tasks have them, how many (EN and NL)', () => {
+    const s = showcaseAll(), first = s.nova!.tasks!.tasks[0]!;
+    const plan = keepTaskVersion(keepTaskVersion(emptyTaskPlan(), first, {title: 'Changed once'}, {id: 'v1'}), {...first, title: 'Changed once'}, {title: 'Changed twice'}, {id: 'v2'});
+    expect(text(av2RestAnswer('which tasks have earlier versions', zigiEnv(s), {plan}))).toBe(`1 task has earlier versions on this device (open a task and “Earlier versions” to read or restore one):\n• ${first.title}: 2 versions`);
+    expect(text(av2RestAnswer('welke taken hebben eerdere versies', zigiEnv(s), {plan}))).toBe(`1 taak heeft eerdere versies op dit apparaat (open een taak en “Earlier versions” om er een te lezen en terug te zetten):\n• ${first.title}: 2 versies`);
+    expect(text(av2RestAnswer('are earlier versions of my tasks kept', zigiEnv(freshAll())))).toMatch(/^No earlier versions of a task are kept yet/);
   });
   test('Today off: the switch is named', () => {
     const env = zigiEnv(showcaseAll());
