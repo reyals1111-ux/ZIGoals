@@ -4,7 +4,7 @@ import {useDeviceRecord} from '../../ai/use-device-record';
 import {changeWithUndo} from '../../ui/remove-with-undo';
 import {showStatus, showUndo} from '../../ui/undo-toast';
 import {moneyCents} from '../money-tools/format';
-import {addLocalDays} from '../../../lib/local-date';
+import {addLocalDays, localWeekday} from '../../../lib/local-date';
 import {formatDate, formatMonth, formatWeekdayLong} from '../../../lib/visual-format';
 import type {MoneyEntry} from '../../../lib/money-log/schema';
 import {fromCents} from '../../../lib/money-log/engine';
@@ -13,8 +13,8 @@ import {budgetsInOrder, clearOrder, hasOwnOrder, moveBudget, moveBudgetTo} from 
 import {aheadRows, setAside} from '../../../lib/budgets/set-aside';
 import {readyToAssign} from '../../../lib/budgets/ready-to-assign';
 import {shiftMonth} from '../../../lib/budgets/engine';
-import {BUDGET_PERIODS} from '../../../lib/budgets/periods';
-import {paycheckMonth, removePaycheck, savePaycheck, setLine, type Paycheck} from '../../../lib/budgets/paychecks';
+import {BUDGET_PERIODS, isDay} from '../../../lib/budgets/periods';
+import {nextFortnightPayday, paycheckMonth, removePaycheck, savePaycheck, setLine, type Paycheck} from '../../../lib/budgets/paychecks';
 import {BILLS} from '../../../lib/bills/schema';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import '../spending/money-r6.css';
@@ -79,15 +79,17 @@ export function SetAsideNext({record, entries, month, onChange}: {record: Budget
 
 const EVERY: Record<Paycheck['every'], string> = {month: 'Every month', week: 'Every week', fortnight: 'Every two weeks'};
 const weekdayName = (d: number) => formatWeekdayLong(addLocalDays('2024-01-07', d)); // 7 Jan 2024 was a Sunday
-const whenWords = (p: Paycheck) => p.every === 'month' ? `${EVERY.month}, day ${p.day}` : `${EVERY[p.every]}, ${weekdayName(p.day)}`;
+const whenWords = (p: Paycheck) => p.every === 'month' ? `${EVERY.month}, day ${p.day}` : `${EVERY[p.every]}, ${weekdayName(p.day)}${p.every === 'fortnight' && p.from ? ` (paid ${formatDate(p.from, {year: false})})` : ''}`;
 
 /** #426: each paycheck's own plan for the month shown: what it holds, what is set against it, what is left. */
 export function PaycheckPlan({record, month, today, currencies}: {record: BudgetsRecord; month: string; today: string; currencies: readonly string[]}) {
   const id = useId(), plan = useDeviceRecord(BUDGET_PERIODS), bills = useDeviceRecord(BILLS), head = useRef<HTMLHeadingElement>(null);
   const view = useMemo(() => paycheckMonth(record, bills.data, plan.data, month, today), [record, bills.data, plan.data, month, today]);
   const [name, setName] = useState(''), [every, setEvery] = useState<Paycheck['every']>('month'), [day, setDay] = useState(1), [amount, setAmount] = useState(''), [currency, setCurrency] = useState(currencies[0] ?? 'EUR'), [problem, setProblem] = useState('');
+  const [payday, setPayday] = useState(''); // Review B6O-7: a two-weekly paycheck's next payday, which says which week it is paid
   if (!plan.loaded) return null;
   const items = plan.data.paychecks?.items ?? [], lines = plan.data.paychecks?.lines ?? {};
+  const shownPayday = payday && isDay(payday) ? payday : nextFortnightPayday(5, today); // B6O-7: as paydays fell before, until chosen
   const write = (fn: Parameters<typeof plan.update>[0], said: string, undo = true) => {
     if (plan.unreadable) { showStatus('Your pay periods could not be read on this device, so nothing was written over them.', {tone: 'error'}); return false; }
     const before = plan.data;
@@ -97,7 +99,8 @@ export function PaycheckPlan({record, month, today, currencies}: {record: Budget
   };
   const add = (event: FormEvent) => {
     event.preventDefault(); setProblem('');
-    if (write(p => savePaycheck(p, {name, every, day, amount: readAmount(amount), currency}, `p_${crypto.randomUUID().slice(0, 12)}`), `Paycheck “${name.trim()}” added.`)) { setName(''); setAmount(''); }
+    const from = every === 'fortnight' ? shownPayday : undefined;
+    if (write(p => savePaycheck(p, {name, every, day, amount: readAmount(amount), currency, ...(from ? {from} : {})}, `p_${crypto.randomUUID().slice(0, 12)}`), `Paycheck “${name.trim()}” added.`)) { setName(''); setAmount(''); setPayday(''); }
   };
   const all = [...view.plans.flatMap(p => p.lines), ...view.unset];
   return <div className="money-r6" role="group" aria-labelledby={`${id}-t`}>
@@ -118,6 +121,7 @@ export function PaycheckPlan({record, month, today, currencies}: {record: Budget
       <label className="money-r6-field"><span>Name</span><input value={name} maxLength={40} autoComplete="off" placeholder="1st of the month" onChange={e => setName(e.target.value)}/></label>
       <label className="money-r6-field"><span>Comes in</span><select value={every} onChange={e => { const v = e.target.value as Paycheck['every']; setEvery(v); setDay(v === 'month' ? 1 : 5); }}>{(['month', 'week', 'fortnight'] as const).map(k => <option key={k} value={k}>{EVERY[k]}</option>)}</select></label>
       {every === 'month' ? <label className="money-r6-field"><span>Day of the month</span><select value={day} onChange={e => setDay(Number(e.target.value))}>{Array.from({length: 31}, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}</select></label>
+        : every === 'fortnight' ? <label className="money-r6-field"><span>Next payday</span><input type="date" value={shownPayday} min={addLocalDays(today, -366)} max={addLocalDays(today, 366)} aria-describedby={`${id}-payday`} onChange={e => setPayday(e.target.value)}/><span className="fine" id={`${id}-payday`}>Every other {weekdayName(localWeekday(shownPayday))} from this day, before and after it.</span></label>
         : <label className="money-r6-field"><span>Weekday</span><select value={day} onChange={e => setDay(Number(e.target.value))}>{[1, 2, 3, 4, 5, 6, 0].map(d => <option key={d} value={d}>{weekdayName(d)}</option>)}</select></label>}
       <label className="money-r6-field"><span>What it brings in</span><input inputMode="decimal" autoComplete="off" value={amount} placeholder={fromCents(125000)} onChange={e => setAmount(e.target.value)}/></label>
       <label className="money-r6-field"><span>Currency</span><select value={currency} onChange={e => setCurrency(e.target.value)}>{[...new Set([...currencies, 'EUR', 'USD', 'GBP', 'CHF'])].map(c => <option key={c} value={c}>{c}</option>)}</select></label>

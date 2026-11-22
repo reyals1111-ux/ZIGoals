@@ -5,7 +5,8 @@ import {emptyBudgets, type BudgetsRecord} from './schema';
 import {budgetsInOrder, clearOrder, hasOwnOrder, moveBudget, moveBudgetTo, setOrder} from './order';
 import {aheadRows, coveredIn, setAside, setAsideFrom} from './set-aside';
 import {emptyBudgetPeriods, periodRows} from './periods';
-import {monthLines, paycheckIssue, paycheckMonth, paydaysIn, removePaycheck, savePaycheck, setLine} from './paychecks';
+import {monthLines, nextFortnightPayday, paycheckIssue, paycheckMonth, paydaysIn, removePaycheck, savePaycheck, setLine} from './paychecks';
+import {budgetPeriodsSchema} from './periods';
 import {emptyBills, type BillsRecord} from '../bills/schema';
 import type {MoneyEntry} from '../money-log/schema';
 
@@ -109,5 +110,28 @@ describe('each paycheck’s plan (#426)', () => {
     for (let i = 0; i < 6; i++) plan = savePaycheck(plan, {name: `P${i}`, every: 'month', day: i + 1, amount: '10', currency: 'EUR'}, `p${i}`);
     expect(() => savePaycheck(plan, {name: 'P7', every: 'month', day: 7, amount: '10', currency: 'EUR'}, 'p7')).toThrow(/Up to 6/);
     expect(() => setLine(emptyBudgetPeriods(), 'b:food', 'p1')).toThrow(/Add a paycheck first/);
+  });
+});
+
+describe('review B6O-7: which week a two-weekly paycheck is paid', () => {
+  test('without a payday (every plan kept before) the weeks count as before; with one, every 14 days from it', () => {
+    expect(paydaysIn({every: 'fortnight', day: 5}, '2026-11')).toEqual(['2026-11-06', '2026-11-20']);
+    expect(paydaysIn({every: 'fortnight', day: 5}, '2026-10')).toEqual(['2026-10-09', '2026-10-23']);
+    // Paid on 30 Oct, 13 Nov and 27 Nov: the other week.
+    expect(paydaysIn({every: 'fortnight', day: 5, from: '2026-11-13'}, '2026-11')).toEqual(['2026-11-13', '2026-11-27']);
+    expect(paydaysIn({every: 'fortnight', day: 5, from: '2026-11-13'}, '2026-10')).toEqual(['2026-10-02', '2026-10-16', '2026-10-30']);
+    // A weekly or monthly paycheck ignores it.
+    expect(paydaysIn({every: 'week', day: 5, from: '2026-11-13'}, '2026-11')).toHaveLength(4);
+    expect(nextFortnightPayday(5, '2026-11-07')).toBe('2026-11-20');
+    expect(nextFortnightPayday(5, '2026-11-06')).toBe('2026-11-06');
+  });
+  test('kept on the paycheck (its weekday from the day), checked in words, read loosely; October holds three paydays', () => {
+    const plan = savePaycheck(emptyBudgetPeriods(), {name: 'Pay', every: 'fortnight', day: 1, amount: '800', currency: 'EUR', from: '2026-11-13'}, 'pp');
+    expect(plan.paychecks?.items[0]).toMatchObject({every: 'fortnight', day: 5, from: '2026-11-13'});
+    expect(paycheckMonth(RECORD, null, plan, '2026-10', TODAY).plans[0]).toMatchObject({dates: ['2026-10-02', '2026-10-16', '2026-10-30'], holds: 240000});
+    expect(savePaycheck(emptyBudgetPeriods(), {name: 'M', every: 'month', day: 1, amount: '800', currency: 'EUR', from: '2026-11-13'}, 'pm').paychecks?.items[0]).not.toHaveProperty('from');
+    expect(paycheckIssue({name: 'Pay', every: 'fortnight', day: 5, amount: '800', currency: 'EUR', from: '2026-02-30'})).toMatch(/date of a payday/);
+    const raw = {version: 1, paychecks: {items: [{id: 'a', name: 'A', every: 'fortnight', day: 5, amount: '800.00', currency: 'EUR', from: 'soon'}, {id: 'b', name: 'B', every: 'fortnight', day: 5, amount: '800.00', currency: 'EUR'}]}};
+    expect(budgetPeriodsSchema.parse(raw).paychecks?.items.map(p => [p.id, p.from])).toEqual([['a', undefined], ['b', undefined]]);
   });
 });
