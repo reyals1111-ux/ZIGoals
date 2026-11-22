@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {entry, moneyLog, noSideScroll, readRecord, seedDevice} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
+import {openDeskFold} from './ao/folds';
 import {ACCOUNTS_KEY, type Accounts} from '../lib/accounts/schema';
 import {MONEY_LOG_KEY, type MoneyLog} from '../lib/money-log/schema';
 
@@ -21,6 +22,8 @@ for (const theme of THEMES) test(`${theme}: merge two accounts, with Undo`, asyn
     [MONEY_LOG_KEY]: moneyLog([{...entry('2026-09-02', '20.00'), account: 'ING Current', ref: 'R1'}, {...entry('2026-09-03', '35.00'), account: 'ING Current', ref: 'R2'}, {...entry('2026-09-02', '20.00'), account: 'ING Betaalrekening', ref: 'R1'}]),
   });
   await page.goto('/app/wealth'); await hydrated(page);
+  // On a phone "Accounts, debts & net worth" starts folded (as tests/av2-money-sheet.spec.ts opens it).
+  if (isMobile) await openDeskFold(page, 'Accounts, debts & net worth');
   await page.getByRole('button', {name: 'Merge two accounts in What you own'}).click();
   const panel = page.locator('.money-merge');
   await expect(panel.getByRole('heading', {name: 'Merge two accounts · What you own'})).toBeVisible();

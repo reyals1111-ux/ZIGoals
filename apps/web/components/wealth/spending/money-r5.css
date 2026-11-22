@@ -44,3 +44,13 @@
 .money-whatif-keep{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:end}
 @media (max-width:480px){.money-whatif-keep{grid-template-columns:1fr}}
 .money-whatif-actions{display:inline-flex;gap:4px}
+.money-sheet{display:grid;gap:8px;min-width:0}
+.money-sheet-ranges,.money-sheet-files{display:flex;flex-wrap:wrap;gap:8px}
+.money-sheet-ranges button,.money-sheet-files button{min-height:44px}
+.money-sheet-scroll{max-width:100%;overflow-x:auto;border-radius:8px}
+.money-sheet-scroll:focus-visible{outline:2px solid var(--focus,var(--cyan,#45d8ef));outline-offset:2px}
+.money-sheet-table{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:100%}
+.money-sheet-table caption{text-align:left;font-size:14px;color:var(--text-secondary,var(--muted));padding-bottom:4px}
+.money-sheet-table th,.money-sheet-table td{padding:6px 10px 6px 0;text-align:left;vertical-align:baseline;border-bottom:1px solid var(--line,rgba(140,160,220,.25));white-space:nowrap}
+.money-sheet-table td:nth-child(4){white-space:normal;min-width:10em;overflow-wrap:anywhere}
+.money-sheet-sort{min-height:44px;font-weight:600}

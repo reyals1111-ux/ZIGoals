@@ -9,6 +9,7 @@ import {cashForecast, forecastDays, plannedContributions, type KnownForecast} fr
 import {plannedForForecast} from '../../cash-forecast/planned';
 import {withChanges} from '../../cash-forecast/what-if';
 import type {MoneyMore} from '../../money-more/schema';
+import {monthGrid, rangeOf, sheetRows} from '../../money-log/sheet';
 import type {NotifyPrefs} from '../../notify/prefs';
 import {typeOn} from '../../notify/prefs';
 import type {ToolEnv} from '../tools/env';
@@ -153,3 +154,20 @@ function whatIfs(a: Asked): LocalReply | null {
     `Bewaarde wijzigingen, de komende 12 maanden: ${list(kept.map(w => one('nl', w)), 'nl')}. Een model uit je eigen gegevens, geen plan; er wordt niets in je gegevens gezet.`), calls);
 }
 add(whatIfs);
+
+// ── Your money as a spreadsheet (#389) ─────────────────────────────────────────────────────────────────────────────
+/** "Can I get my money as a spreadsheet", "kan ik mijn uitgaven als spreadsheet krijgen". */
+function moneySheet(a: Asked): LocalReply | null {
+  const en = /\b(?:spreadsheet|excel|xlsx|google sheets)\b/.test(a.f) && /\b(?:money|spending|entries|transactions|expenses|budget)\b/.test(a.f);
+  const nl = /\b(?:spreadsheet|excel|xlsx|rekenblad)\b/.test(a.f) && /\b(?:geld|uitgaven|invoer|transacties|budget)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const entries = entriesOf(a.env), {from, to} = rangeOf('year', a.today, entries), rows = sheetRows(entries, from, to), grids = monthGrid(entries, from, to), calls = call('money_log', {sheet: a.today.slice(0, 4)}, 'Spending · your money as a spreadsheet');
+  const how = say(a.lang, `${PLACES.spending.en} → "Your money as a spreadsheet" shows your entries as a table you can sort, each category month by month, and makes a CSV or one .xlsx workbook for Excel, Numbers or Google Sheets — Entries, Categories, Accounts and Month by month with formulas — on this device, never sent.`,
+    `${PLACES.spending.nl} → "Your money as a spreadsheet" toont je invoer als tabel die je kunt sorteren, elke categorie per maand, en maakt een CSV of één .xlsx-werkmap voor Excel, Numbers of Google Spreadsheets — Entries, Categories, Accounts en Month by month met formules — op dit apparaat, nooit verstuurd.`);
+  if (!rows.length) return answer(say(a.lang, `Nothing is logged this year yet. ${how}`, `Dit jaar is nog niets gelogd. ${how}`), calls);
+  const totals = (lang: Lang) => grids.map(g => `${moneyIn(lang, g.spending.reduce((s, r) => s + r.cents.reduce((x, y) => x + y, 0), 0), g.currency)}`);
+  return answer(say(a.lang, `This year so far: ${rows.length} ${rows.length === 1 ? 'entry' : 'entries'}, ${list(totals('en'), 'en')} spent as your figures count it. ${how}`,
+    `Dit jaar tot nu toe: ${rows.length} ${rows.length === 1 ? 'invoer' : 'invoeren'}, ${list(totals('nl'), 'nl')} uitgegeven zoals je cijfers het tellen. ${how}`), calls);
+}
+add(moneySheet);

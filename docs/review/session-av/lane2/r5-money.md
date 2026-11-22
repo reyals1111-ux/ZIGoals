@@ -225,3 +225,48 @@ corpus (`CORPUS`) nor round 4's (`AV2_R4_MONEY`), and the answers that run befor
   month — to see your forecast beside it.").
 - Registries: none. CSS touched: `components/wealth/spending/money-r5.css`, `components/cash-forecast/cash-forecast.css`.
 - Today: nothing added. The forecast card gains one fold (one Tab stop).
+
+### R5-F6 (group V7). Your money as a spreadsheet
+
+- LEDGER row: #389 Tiller your money as a spreadsheet — **built** (Wealth → Spending → "Your money as a spreadsheet", a
+  fold that loads its own chunk: "This month", "Last 3 months", "This year" or "Everything"; the entries as a table —
+  date, in or out, category › subcategory, note, amount paid, "Counted" (what the figures count: the share of a shared
+  cost; "left out" or "a transfer" otherwise; "over N months" for a spread cost) and the bank-file account — sortable by
+  date, category and amount (`aria-sort`, buttons in the headers), the newest 200 shown with the count said; each
+  category month by month per currency with a total; each table a focusable scroll region on a phone. Two files made on
+  this device, never sent: "Download as CSV" (every cell through the export's guard `csvSafeCell`) and "Download for
+  Excel, Numbers or Sheets (.xlsx)" — one workbook with four sheets: Entries (amounts as numbers), Categories (kind, the
+  person's own, subcategories, archived), Accounts (latest balances, provider, note, and each bank-file name with its
+  number of entries) and Month by month (each category's months with a SUM formula for its total, and an "All spending"
+  row of SUM formulas per month), the header row bold and frozen. Hide amounts blurs the table's amounts).
+- Deviation, said here: the task asked for "a table view and a CSV export through the existing writers"; the ledger row
+  asked for the .xlsx. Both are built: the CSV goes through the export's own guard, the .xlsx through the repository's
+  own stored-ZIP writer (`lib/export/zip.ts`), no package. The everything export's own `money-log.csv` is unchanged.
+- Spending function used: `countedCents` (lib/money-log/counted.ts) for each entry's "Counted"; `countedByCategoryBetween`
+  per month for Month by month (`monthGrid` in lib/money-log/sheet.ts) — the unit test shows each month adds up to
+  `countedBetween`, so the sheet's months are the budgets' and "Your money over time"'s months. "Amount" is what was paid,
+  as the log keeps it.
+- Text cells: XML-escaped, and by the CSV guard's own rule (`CSV_FORMULA_START`) a text starting with = + - @ gets a
+  leading apostrophe, so it never becomes a formula (also when saved again as CSV); the only formulas are the writer's
+  own SUMs built from cell references.
+- Files: `lib/export/xlsx.ts` (new; a writer, not a registry — no export registry touched), `lib/money-log/sheet.ts` (new),
+  `components/wealth/spending/money-sheet.tsx` (new, lazy on its fold), `components/wealth/spending/spending-section.tsx`
+  (the fold), `components/wealth/spending/spending.css` (the fold summaries of R5-F1 and R5-F6),
+  `components/wealth/spending/money-r5.css` (`.money-sheet*`).
+- Tests: `lib/money-log/av2-sheet.test.ts` (rows, sort, ranges, the CSV guard, the month grid against `countedBetween`,
+  the workbook unzipped by an independent stored-ZIP reader with CRC checks, every part well-formed XML, formulas, no
+  formula from text), `lib/ai/local-answers/av2-r5-money.test.ts`.
+- Spec: `tests/av2-money-spreadsheet.spec.ts` (the two downloads read back).
+- Stored: nothing.
+- Help (EN): **Q: Can I have my money in Excel or Google Sheets?** A: Yes. Wealth → Spending → "Your money as a
+  spreadsheet" shows your entries as a table for this month, the last 3 months, this year or everything, and each
+  category month by month. "Download for Excel, Numbers or Sheets" makes one .xlsx file with your entries, categories,
+  accounts and the months with formulas; "Download as CSV" makes a plain CSV. Both are made on this device.
+- What's new: "Spending: your money as a spreadsheet — a table, a CSV and an Excel workbook with formulas."
+- Answers: `moneySheet` (corpus `av2r5-money-sheet`; reads `env.moneyLog`): this year's entries and counted spending, and
+  where the files are made.
+- Showcase hook: none written. The fold reads the Showcase's own money log, so the Showcase shows its table by itself;
+  its files say nothing about the Showcase being fictional beyond its own "(SHOWCASE DATA)" notes. Empty state teaches
+  ("No entries in this range. Log spending or income, or choose a longer range.").
+- Registries: none. CSS touched: `components/wealth/spending/money-r5.css`, `components/wealth/spending/spending.css`.
+- Today: nothing added. Spending gains one fold (one Tab stop).

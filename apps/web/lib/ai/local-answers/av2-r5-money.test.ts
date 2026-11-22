@@ -144,3 +144,14 @@ describe('try a change on the forecast (#388)', () => {
     expect(text(zigi('show my what if scenarios', freshAll()))).toMatch(/^No changes are kept\./);
   });
 });
+
+describe('your money as a spreadsheet (#389)', () => {
+  const s = withLog(freshAll(), [mine({amount: '42.10', date: '2026-11-03'}), mine({amount: '90.00', share: '30.00', date: '2026-10-03'}), mine({amount: '50.00', excluded: true, date: '2026-10-04'})]);
+  test('English: this year’s entries and counted spending, and where the files are made', () => {
+    expect(text(zigi('can I get my money as a spreadsheet', s))).toMatch(/^This year so far: 3 entries, €72\.10 spent as your figures count it\. Wealth → Spending → "Your money as a spreadsheet"/);
+  });
+  test('Dutch; nothing logged teaches', () => {
+    expect(text(zigi('kan ik mijn uitgaven als spreadsheet krijgen', s))).toContain('Dit jaar tot nu toe: 3 invoeren, € 72,10 uitgegeven');
+    expect(text(zigi('how do I open my spending in excel', freshAll()))).toMatch(/^Nothing is logged this year yet\./);
+  });
+});
