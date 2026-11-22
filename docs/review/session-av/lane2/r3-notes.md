@@ -28,6 +28,52 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #273 Obsidian Canvas | built (kept in the notes record, not a new key) | F11 |
 | #274 Obsidian Diagrams from text (Mermaid) | Carried: a new dependency (the Mermaid package) | — |
 
+## For the lead (shared files this branch does not edit)
+
+1. **Engine wiring** (`lib/ai/local-answers/engine.ts`, one line, beside the `avAnswer` call with the same `!subject`
+   guard and `groupUnits` / `novaWording` handling): `import {av2R3NotesAnswer} from './av2-r3-notes';` and try
+   `av2R3NotesAnswer(question, env)` before `avAnswer(question, env)`. Corpus: add `...AV2_R3_NOTES` from
+   `lib/ai/evals/as/cases-av2-r3-notes.ts` (12 intents, 48 questions, EN and NL) to `CORPUS` and record `expected.json`.
+   Unit test: `lib/ai/local-answers/av2-r3-notes.test.ts`. Checked here: none of the existing CORPUS's questions is
+   answered by `av2R3NotesAnswer` (a temporary test over every phrasing found none), so wiring it first moves nothing.
+2. **No new device key, database, catalogue, export, erase or restore entry.** Every new stored field lives in the
+   existing `zigoals:journal:v1` and `zigoals:notes:v1` records (including the canvas boards, which the LEDGER row first
+   placed in a new record); the round trips are unit-tested with the existing Export everything / Restore helpers
+   (`lib/journal/r3-stored.test.ts`, `lib/notes/r3-stored.test.ts`). Canvas photos use the notes' photo database
+   (`zigoals-notes-photos-v1`, already known to Erase).
+3. **Specs for the shard lists** (none run here): `tests/av2-notes-ticks.spec.ts`, `av2-notes-outline-print.spec.ts`,
+   `av2-journal-prompt-answers.spec.ts`, `av2-journal-grid.spec.ts`, `av2-journal-periods.spec.ts`,
+   `av2-journal-markdown.spec.ts`, `av2-journal-quote.spec.ts`, `av2-journal-dream.spec.ts`, `av2-journal-letter.spec.ts`,
+   `av2-notes-props.spec.ts`, `av2-notes-canvas.spec.ts`.
+4. **Help and What's new**: each feature's Q+A (EN) and label are below, for `help-page.tsx`.
+5. **Route weight**: every new UI part is a lazy chunk (note marks, open tick boxes, note print, note properties, the
+   notes views incl. the board, the canvas, prompt answers, the compose grid, the Mandala entry grid, Today's quote and
+   letter, the night's dreams). The first chunks gained: the notes-only parser marks and the tick-box and highlight
+   rendering in `note-render.tsx` (with the outline), `lib/notes/ticks.ts` (the fold's count), the notes schema's
+   `props`/`canvases`, and in the Journal's first chunk the period choice and letter fold in Write, `periods.ts`,
+   `letters.ts`, `dreams.ts` and the round-3 templates' words. Not measured (no build here): please check `/app/notes`,
+   `/app/journal` and `/app` (Today's journal card only gained two lazy imports).
+6. **TIER 3 commits**: `3c7c0bbe` (stored formats: journal `period`, `night`, `opensOn`, `quotes`), `7e1bfce4` (stored
+   formats: note `props`, notes `canvases`), `8feb4c73` (PWA: letters in the notification plan, `public/sw.js`'s line).
+7. **Seen in passing, not mine**: `lib/ai/evals/as/corpus.test.ts` fails here on two Tasks questions in Dutch
+   ("hoeveel taken heb ik deze week afgerond" says "ma 16 nov t/m di 17 nov" where `expected.json` has "Mon, Nov 16 t/m
+   Tue, Nov 17") — from the Tasks answers on the base branch, not from this branch's files.
+8. **Today**: nothing is always visible. Two lines appear on Today's journal card only when chosen or due: the Stoic
+   quote (only when switched on; off by default and in the Showcase) and a letter (only in the week it opens).
+
+## Stored changes (TIER 3 stored formats; all additive, optional, dropped when unreadable, on loose objects)
+
+| record | field | what |
+|---|---|---|
+| `zigoals:journal:v1` entry | `period` | the ISO week (`2026-W47`), month (`2026-11`) or year (`2026`) the entry is about (LEDGER #269) |
+| entry | `night` | the sleep log's night (the day it ended) a dream belongs to (LEDGER #278) |
+| entry | `opensOn` | the day a letter opens; folded away until then (LEDGER #279) |
+| journal | `quotes` | a Stoic quote of the day on Today, off unless switched on (LEDGER #277) |
+| `zigoals:notes:v1` note | `props` | up to 10 `{k, t: text/number/date/choice/tick, v}`, an item that cannot be read dropped (LEDGER #270) |
+| notes | `canvases` | up to 10 boards `{id: cv-…, name, nodes ≤ 200, edges ≤ 400, updatedAt}`, nodes `{id, type: text/note/photo/group, x, y, w, h, text?, note?, photo?, label?, color? "1"–"6"}`, edges `{id, from, to, label?}`; ≤ 200,000 characters of card text (LEDGER #273) |
+
+Older builds keep every field untouched (the records are loose) and show the entries and notes as before.
+
 ## Features
 
 ### F1 Tick boxes and highlights in notes — LEDGER #264, #267 (Obsidian)
@@ -328,3 +374,13 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 - Showcase: none (a Showcase board would add a Showcase record field that no pinned count covers; left out to keep the
   Showcase notes record as other tests read it — the lead may add one in `lib/notes/showcase.ts`).
 - CSS touched: new `components/notes/notes-canvas.css` (imported by its lazy chunk only). Today: nothing added.
+
+### NOVA's and ZIGi's answers (all features)
+
+- `lib/ai/local-answers/av2-r3-notes.ts` (`av2R3NotesAnswer`), EN and NL: the open tick boxes across notes (#264),
+  highlights with their colours (#267), how to print a note (#271), the notes' own properties and their choices (#270),
+  the canvas boards with their cards and lines (#273), the prompts written from (#265), the Mandala grid (#266), the
+  week / month / year entries (#269), the journal as Markdown (#272), today's Stoic quote (#277), the dreams written
+  down (#278, nights and counts only) and the letters to open later (#279, days only — never a letter's words). Notes
+  only under NOVA's Notes scope (ZIGi says it does not read notes); the journal only where it is shared.
+- Cases: `lib/ai/evals/as/cases-av2-r3-notes.ts` (`AV2_R3_NOTES`). Test: `lib/ai/local-answers/av2-r3-notes.test.ts`.
