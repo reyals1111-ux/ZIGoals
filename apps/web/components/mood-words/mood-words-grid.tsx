@@ -8,6 +8,8 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {useHabits} from '../habits/use-habits';
 import './mood-words.css';
 import {wordsOf} from '../../lib/mood-words/schema';
+// Session AV lane 2 (LEDGER #61, Bearable): the person's own feeling words, added to a corner and kept on this device.
+import {readCheckin, setOwnFeeling, setOwnWord, type QuadrantKey} from '../../lib/checkin-extras/rule';
 
 /**
  * Session AK (lane S, item 6): the grid itself. Two axes (energy up, pleasantness right) make four labelled quadrants; a
@@ -18,7 +20,19 @@ export default function MoodWordsGrid({day, onClose}: {day: string; onClose: () 
   const energy = useDeviceRecord(ENERGY), id = useId();
   const current = wordsOf(energy.data)[day]?.word ?? null;
   const [quadrant, setQuadrant] = useState<QuadrantId | null>(() => (current ? quadrantOfWord(current)?.id : null) ?? null), [status, setStatus] = useState('');
-  const words = useRef<HTMLDivElement>(null);
+  const words = useRef<HTMLDivElement>(null), [own, setOwn] = useState('');
+  const ownWords = readCheckin(energy.data).ownWords;
+  const pickOwn = (word: string, qid: QuadrantKey) => {
+    try { energy.update(r => setOwnFeeling(r, day, word, qid, new Date().toISOString())); setStatus(`Feeling today: ${word}. Kept on this device.`); }
+    catch { setStatus('This could not be saved on this device.'); }
+  };
+  const addOwn = (qid: QuadrantKey) => {
+    const w = own.trim();
+    if (!w) { setStatus('Type a word first.'); return; }
+    try { energy.update(r => setOwnFeeling(setOwnWord(r, qid, w, true), day, w, qid, new Date().toISOString())); setOwn(''); setStatus(`Your own word “${w}” is added and chosen for today.`); }
+    catch (cause) { setStatus(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); }
+  };
+  const dropOwn = (word: string, qid: QuadrantKey) => { try { energy.update(r => setOwnWord(r, qid, word, false)); setStatus(`“${word}” is no longer in your words. Days that used it keep it.`); requestAnimationFrame(() => words.current?.querySelector<HTMLInputElement>('input')?.focus()); } catch { setStatus('This could not be changed on this device.'); } };
   useEffect(() => { if (quadrant) words.current?.querySelector<HTMLButtonElement>('button')?.focus(); }, [quadrant]);
   const pick = (word: string) => {
     try { energy.update(r => setFeeling(r, day, word, new Date().toISOString())); setStatus(`Feeling today: ${word}. Kept on this device.`); }
@@ -39,6 +53,8 @@ export default function MoodWordsGrid({day, onClose}: {day: string; onClose: () 
     </div>
     {q && <div className="mood-words-list" ref={words} role="group" aria-label={`Words: ${q.title}`} data-quadrant={q.id}>
       {q.words.map(w => <button key={w} type="button" className="mood-words-word" aria-pressed={current === w} onClick={() => pick(w)}>{w}</button>)}
+      {ownWords[q.id].map(w => <span key={`own-${w}`} className="mood-words-own"><button type="button" className="mood-words-word" aria-pressed={current === w} onClick={() => pickOwn(w, q.id)}>{w}</button><button type="button" className="text-link" aria-label={`Remove your word “${w}”`} onClick={() => dropOwn(w, q.id)}>×</button></span>)}
+      {ownWords[q.id].length < 12 && <span className="mood-words-add"><label className="field"><span>Your own word</span><input type="text" value={own} maxLength={32} autoComplete="off" onChange={e => setOwn(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addOwn(q.id); } }}/></label><button type="button" className="secondary" onClick={() => addOwn(q.id)}>Add</button></span>}
     </div>}
     <p className="fine" role="status" aria-live="polite">{status}</p>
     {step && <NextStepLink step={step}/>}

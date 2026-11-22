@@ -130,6 +130,7 @@ import {plainErrorMessage} from '../../lib/plain-error';
 import { isShowcase } from "../../lib/showcase-storage";
 import {diaryDayIssue, journalDay, JOURNAL_MIN_DAY} from "../../lib/health-day";
 import {HealthDateBar, HealthDayProvider, LoggingFor} from "./health-day";
+import {DayLogged} from "./day-logged";
 import type {MealWordsProps} from "./meal-words";
 // Session AV Part 5 (ADR-045 D-WEIGHT): the fasting timer is its own chunk (Health had no room left under its budget).
 const FastingTimer = lazy(() => import("./fasting-timer").then((m) => ({ default: m.FastingTimer })));
@@ -366,7 +367,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   // water, then a weight); the order of the three stays the same (MO-084).
   const heroNext: "food" | "water" | "weight" = !summary.entries ? "food" : !waterOn(data, date).entries ? "water" : !data.weights.some(w => w.date === date) ? "weight" : "food";
   // Session AH Part 17 (owner addition): the date bar; on a past day every card logs to that day, the future cannot be chosen.
-  const dateControl = <div className="health-date-block"><HealthDateBar date={date} today={today} onChoose={next => chooseDate(journalDay(next, today))}/><LoggingFor date={date} today={today}/></div>;
+  const dateControl = <div className="health-date-block"><HealthDateBar date={date} today={today} onChoose={next => chooseDate(journalDay(next, today))}/><LoggingFor date={date} today={today}/><DayLogged date={date} today={today}/></div>;
   const feedbackLine = <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>;
   return <HealthFieldProvider value={fields} feedback={feedbackLine}><HealthDayProvider value={{date, today}}><LayoutPage page="health"><div className="health-page" onSubmitCapture={event => { lastForm.current = event.target instanceof HTMLFormElement ? event.target : null; if (lastForm.current) { setMessage(""); setError(""); setErrorForm(null); unmark(); } /* Session AL fourth pass: no stale "saved" line beside a refusal (MO-030) */ fields.onSubmit(event); }} onInput={/* Fix-up (MO-036): bubble, not capture. A state change in the capture phase re-rendered before the field's own onChange ran, so a controlled field (Water amount) was put back to its refused value and could no longer be changed. */fields.onInput} onClickCapture={event => { fields.onClick(event); const b = event.target instanceof Element ? event.target.closest("button") : null; if (b && b.type !== "submit") lastForm.current = null; }} onKeyDown={event => {
       // Session AL (P-MO-33, MO-154): Escape in an inline Edit form cancels it, as its own Cancel button does.
@@ -508,7 +509,7 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
   // Session AP (features 2 and 6; CI 1726 pillar-phone-length): "Copy a meal" sits with logging a meal (in its sheet on a
   // phone) and the symptom tracker with the day's mood (folded on a phone), so neither lengthens the phone's Diary.
   const copyMeal = <LazyFold summary="Copy a meal to another day or meal">{() => <HealthPlus part="copy" data={data} date={date} today={today} perform={perform} />}</LazyFold>;
-  const symptoms = <LazyFold summary="Symptoms and factors (optional)">{() => <HealthPlus part="symptoms" date={date} today={today} />}</LazyFold>;
+  const symptoms = <><LazyFold summary="Evening check-in (optional)">{() => <HealthPlus part="checkin" date={date} today={today} />}</LazyFold><LazyFold summary="Symptoms and factors (optional)">{() => <HealthPlus part="symptoms" date={date} today={today} />}</LazyFold></>;
   return <div className="health-diary-layout"><div className="health-meals"><RepeatDay data={data} date={date} today={today} perform={perform} />{HEALTH_MEALS.map(mealName => {
     const entries = data.diary.filter(e => e.date === date && e.meal === mealName);
     const mealSummary=dailyHealthSummary({...data,diary:entries},date);

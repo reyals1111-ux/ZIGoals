@@ -117,3 +117,43 @@ corpus, regenerates theme sheets, edits Help / What's new / search / shard lists
 - Showcase hook: none (the Showcase hides nothing; a hidden question would change the Showcase's question of the day).
 - CSS touched: `components/muted/muted-panel.css` (new). Always visible on Today: nothing (the compact journal card on
   Today shows no question).
+
+## Feature 4 — The evening check-in (LEDGER #60, #61, #62, #63, #68)
+
+**Verdict: built** (one part of #62 left as named below; #63's weather stays Carried: needs an outside service).
+
+| row | what was built |
+|---|---|
+| #60 Bearable daily check-in | Health → Diary → "Evening check-in (optional)" (a fold, loaded through the Health page's one lazy entry, `health-plus`): six steps, each skippable with Back / Skip / Next / Stop here — the day (mood, energy, and a mood per part of the day), a feeling word, symptoms and factors, last night (the logged night, or a link to log it), supplements and medication (Taken / Skipped per dose), a note (the mood's note). Every answer saves into its own record the moment it is given; focus moves to each step's heading. |
+| #61 own feeling words | In the feeling-word grid (also on Today's and the Journal's word fold): "Your own word" adds a word to the open corner (≤ 12 a corner) and chooses it for the day; × removes it from the list (days that used it keep it). |
+| #62 symptoms by part of the day | A level above None offers Morning / Afternoon / Evening / Night; items can have a group (shown grouped); the day's total ("1 noted, 1 strong · day total 5 of 9"); a mood per part of the day (step 1). |
+| #63 factor list | "Add from a ready list": 18 common factors and symptoms (EN/NL names) to pick or search; a "Why I track this" note per item. |
+| #68 Mark day complete | "Finish: day logged" marks the day; "✓ Day logged" under Health's date bar; the check-in shows the last 14 days as a strip, each gap a link to that day ("Not logged after all" unmarks). |
+
+- Stays as it was by the owner rule (not a gap): symptoms are still read by no ZIGi or NOVA path (`symptoms-panel.tsx`
+  "ZIGi and NOVA do not read it"); the check-in's answers read only the energy record's day-logged marks and own words.
+- Files: `lib/checkin-extras/rule.ts`, `components/health/plus/{evening-checkin.tsx,evening-checkin.css,health-plus.tsx}`,
+  `components/health/{day-logged.tsx,health-app.tsx,health-day.css}`, `components/mood-words/{mood-words-grid.tsx,mood-words.css}`,
+  `lib/energy/schema.ts` (bound only), `lib/ai/local-answers/av2-habits.ts`.
+- Tests: `lib/checkin-extras/checkin-extras.test.ts` (every field set/read/cleared, unknown fields kept, `rateEnergy`
+  keeps them, own words and their cap, odd values left out, the strip, the day total, the ready list EN/NL, export →
+  erase → restore of `zigoals:energy:v1`, the answers EN/NL and the Health gate). Spec: `tests/av2-checkin.spec.ts`.
+- **Stored change (TIER 3 stored formats, additive, separate commit):** `zigoals:energy:v1` (loose, device-only, never
+  synced) gains optional `checkin` ({logged?, ownWords?, times?, notes?, groups?, moments?}; a loose object checked
+  where read); a feeling-word day picked from an own word carries `own: true` (the `words` days are loose). No new key.
+- Help (EN): **Q: Is there one evening check-in for everything?** A: Health → Diary → Evening check-in goes through
+  the day in six short steps: mood and energy, a feeling word, symptoms and factors (with the part of the day), last
+  night, supplements and a note. Skip any step; each answer is saved at once. Finishing marks the day "Day logged", and
+  the last 14 days show which days still have a gap. **Q: Can I add my own feeling words?** A: Yes: open a corner of the
+  feeling-word grid and type "Your own word". It is kept on this device.
+- What's new: "An evening check-in in six skippable steps, with Day logged." · "Your own feeling words, symptoms by part
+  of the day and a ready list of factors."
+- Answers: "did i log today" / "welke dagen heb ik niet gelogd", "what are my own feeling words" / "welke eigen
+  gevoelswoorden heb ik" (Health gate; cases `av2-habits-day-logged`, `av2-habits-own-words`).
+- Showcase hook: none (the Showcase's energy record would change the Showcase's own answers; reported).
+- Left from #62 with its cause: "more than one mood a day" as Health's mood itself — Health v4 `moods` is a strict
+  record in every released build (lib/moods/schema.ts), so a second mood a day there would make builds #37–#57 refuse
+  Health: against the named rule "Readers of records written by releases #37–#57 must keep working". Built instead: a
+  mood per part of the day in the check-in's own field, beside the day's one mood.
+- CSS touched: `components/health/plus/evening-checkin.css` (new), `components/health/health-day.css` (one line),
+  `components/mood-words/mood-words.css` (own words). Always visible on Today: nothing.

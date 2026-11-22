@@ -4,12 +4,14 @@ import {areaWeekRows} from '../../habit-areas/week';
 import {AREA_LABELS} from '../../habits-extras/areas-mirror';
 import {THEME_DAYS, themeMonthsReached, themeProgress} from '../../game/month-theme';
 import {readMuted} from '../../muted/rule';
+import {loggedStrip, readCheckin, QUADRANT_IDS} from '../../checkin-extras/rule';
+import {addLocalDays} from '../../local-date';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
 import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
 import {PATTERNS, type BreathingPattern} from '../../meditation/breathing';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
-import {answer, asked, closed, count, isQuestion, list, MIXED, monthIn, say, type Asked} from './av-words';
+import {answer, asked, closed, count, dayIn, isQuestion, list, MIXED, monthIn, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -22,7 +24,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, ownWords]) {
       const r = one(a);
       if (r) return r;
     }
@@ -135,4 +137,28 @@ function hiddenPrompts(a: Asked): LocalReply | null {
   const parts = [qs.length ? say(lang, `${count(qs.length, 'en', ['daily question', 'daily questions'], ['', ''])} (${list(qs.slice(0, 5), 'en')})`, `${count(qs.length, 'nl', ['', ''], ['dagvraag', 'dagvragen'])} (${list(qs.slice(0, 5), 'nl')})`) : null,
     ts.length ? say(lang, `templates: ${list(ts, 'en')}`, `sjablonen: ${list(ts, 'nl')}`) : null, bs.length ? say(lang, `breathing patterns: ${list(bs, 'en')}`, `ademhalingspatronen: ${list(bs, 'nl')}`) : null].filter((p): p is string => !!p);
   return answer(say(lang, `Hidden on this device: ${parts.join('; ')}. Journal → Start from a prompt → Hidden prompts and exercises brings them back.`, `Verborgen op dit apparaat: ${parts.join('; ')}. Journal → Start from a prompt → Hidden prompts and exercises haalt ze terug.`));
+}
+/** LEDGER #60, #68: "did I log today", "which days did I not log", "heb ik vandaag ingecheckt". Under the Health gate. */
+function dayLogged(a: Asked): LocalReply | null {
+  const en = /\b(?:day logged|log(?:ged)? (?:my|the) day|evening check ?in|check ?in (?:done|finished))\b|\bdid i (?:check in|log) (?:today|yesterday)\b|\bwhich days (?:did i not|didnt i|have i not) (?:log|check in)\b|\bdays? (?:not|i didnt) logged\b/.test(a.f);
+  const nl = /\b(?:dag gelogd|avondcheck ?in|ingecheckt|dag afgerond)\b|\bwelke dagen (?:heb ik niet|niet) (?:gelogd|ingecheckt)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, c = readCheckin(a.env.energy ?? null), strip = loggedStrip(c, a.today, 14, addLocalDays);
+  const gaps = strip.filter(s => !s.logged).map(s => s.day), todayLogged = !!c.logged[a.today];
+  if (gaps.length === 14) return answer(say(lang, 'No day is marked logged in the last 14 days. Health → Diary → Evening check-in goes through the day in six skippable steps and marks it “Day logged” at the end.', 'In de laatste 14 dagen is geen dag als gelogd gemarkeerd. Health → Diary → Evening check-in loopt de dag door in zes stappen die je kunt overslaan en markeert hem aan het eind als “Day logged”.'));
+  const missing = gaps.slice(-5).map(d => dayIn(lang, d, a.today));
+  return answer(say(lang, `${todayLogged ? 'Today is logged.' : 'Today is not logged yet.'} Last 14 days: ${14 - gaps.length} logged${gaps.length ? `; not yet: ${list(missing, 'en')}${gaps.length > 5 ? ` and ${gaps.length - 5} more` : ''}` : ''}.`, `${todayLogged ? 'Vandaag is gelogd.' : 'Vandaag is nog niet gelogd.'} Laatste 14 dagen: ${14 - gaps.length} gelogd${gaps.length ? `; nog niet: ${list(missing, 'nl')}${gaps.length > 5 ? ` en nog ${gaps.length - 5}` : ''}` : ''}.`));
+}
+/** LEDGER #61: "what are my own feeling words", "welke eigen gevoelswoorden heb ik". Under the Health gate. */
+function ownWords(a: Asked): LocalReply | null {
+  const en = /\b(?:my )?own (?:feeling |mood )?words\b|\bfeeling words (?:i|did i) add(?:ed)?\b/.test(a.f);
+  const nl = /\beigen (?:gevoels)?woorden\b|\beigen gevoelswoord(?:en)?\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, c = readCheckin(a.env.energy ?? null);
+  const CORNER: Record<string, [string, string]> = {'high-unpleasant': ['high energy, unpleasant', 'veel energie, onprettig'], 'high-pleasant': ['high energy, pleasant', 'veel energie, prettig'], 'low-unpleasant': ['low energy, unpleasant', 'weinig energie, onprettig'], 'low-pleasant': ['low energy, pleasant', 'weinig energie, prettig']};
+  const rows = QUADRANT_IDS.filter(q => c.ownWords[q].length).map(q => `${CORNER[q]![lang === 'nl' ? 1 : 0]}: ${list(c.ownWords[q].map(w => clean(w, 32)), lang)}`);
+  if (!rows.length) return answer(say(lang, 'You have not added a feeling word of your own yet. In the feeling-word grid, open a corner and use “Your own word”.', 'Je hebt nog geen eigen gevoelswoord toegevoegd. Open in het raster met gevoelswoorden een hoek en gebruik “Your own word”.'));
+  return answer(say(lang, `Your own feeling words: ${rows.join('; ')}.`, `Je eigen gevoelswoorden: ${rows.join('; ')}.`));
 }

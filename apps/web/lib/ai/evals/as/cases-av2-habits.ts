@@ -16,4 +16,7 @@ export const AV2_HABITS: readonly Intent[] = [
   {id: 'av2-habits-month-theme', pillar: 'habits', en: ['what is this month\'s theme', 'what is the theme of this month'], nl: ['wat is het thema van deze maand', 'wat is het maandthema']},
   // Hidden prompts and exercises (LEDGER #56)
   {id: 'av2-habits-hidden', pillar: 'journal', en: ['which prompts have I hidden', 'what questions did I hide'], nl: ['welke vragen heb ik verborgen', 'welke oefeningen heb ik verborgen']},
+  // The evening check-in (LEDGER #60, #61, #68)
+  {id: 'av2-habits-day-logged', pillar: 'health', en: ['did i log today', 'which days did i not log'], nl: ['heb ik vandaag ingecheckt', 'welke dagen heb ik niet gelogd']},
+  {id: 'av2-habits-own-words', pillar: 'health', en: ['what are my own feeling words'], nl: ['welke eigen gevoelswoorden heb ik']},
 ];
