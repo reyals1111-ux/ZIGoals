@@ -15,6 +15,7 @@ Builder: the remainders builder, on `lane2/rest` (from `lane2/batch2`). Scope: t
 | #98 Cronometer custom charts — more nutrients as Compare series | **built** | R6 |
 | #124 Sleep Cycle benchmark line | left: **needs content made for ZIGoals** (no public population figure with its source is in the repository) | R7 |
 | #142 Monarch re-import — CSV | **built** | R8 |
+| #178 Daylio custom moods — the Year in pixels | **built** (NOVA's mood heat card stays carried: AR's NOVA composition, a protected area) | R9 |
 | #41 Day One, #134 YNAB, #209 Strong — the sync service side | **built** in the repository (Worker and its tests); its deploy is the owner's (OWNER_STEPS line below) | R3 |
 
 ## Answers wiring line for engine.ts (one line, before AV's own answers)
@@ -251,3 +252,34 @@ Corpus: `AV2_REST` in `lib/ai/evals/as/cases-av2-rest.ts` (add to CORPUS and exp
   “Update those entries” to add them as new ones, and “Undo this import” puts everything back.
 - What's new: "Importing a bank CSV again updates the rows your bank changed."
 - Showcase hook: none. CSS: none (existing `notice import-duplicates`). Nothing on Today.
+
+## R9 The Year in pixels in your own mood words — LEDGER #178 (Daylio)
+
+- What: the Journal's "Year: one square a day" now says the person's own mood words (`useMoodLook`) in its year
+  sentence ("2026: 41 days with a mood rating. Wrecked 2, …"), in every square's title ("mood Sunny, 5 of 5"), in its key
+  and in the saved PNG's key; a level without an own word keeps ZIGoals' word; energy keeps its own words.
+- Files: `lib/year-pixels/grid.ts` (`levelWord`, `pixelYear`, `pixelLabel` take the words; `pixelSummary`),
+  `components/journal/year-pixels.tsx`, `components/journal/year-pixels-export.ts`.
+- Tests: `lib/year-pixels/av2-own-words.test.ts`. Spec: `tests/av2-year-pixels-words.spec.ts`.
+- Stored change: none. Answers: none new (av2-habits already answers "what are my mood words").
+- Help: none new (the custom-moods Help already says they show wherever a mood is shown). What's new: "The Year in
+  pixels and its image now use your own mood words."
+- Carried part: NOVA's mood heat card (AR's NOVA composition, a protected area), as before.
+
+## For the lead (one list)
+
+- `engine.ts`: the one line under "Answers wiring line" above; corpus `AV2_REST` (`lib/ai/evals/as/cases-av2-rest.ts`,
+  8 intents, 16 questions) into CORPUS and expected.json. For R5's answer, pass `zigoals:nutrient-extras:v1` as
+  `nutrientExtras` once the env carries it.
+- Help Q+A and What's new: R1, R2, R4, R5, R6, R8, R9 above (texts in each section).
+- Specs for the shard lists: `av2-repeat-projects`, `av2-task-versions`, `av2-calm-sound`, `av2-food-more`,
+  `av2-compare-nutrients`, `av2-csv-reimport`, `av2-year-pixels-words` (none could be run here).
+- CSS touched (theme sheets to regenerate): `components/tasks/tasks.css`, `components/health/meditation/calm.css`.
+- Stored formats (each its own TIER 3 commit): `zigoals:task-templates:v1` `repeats`; `zigoals:task-plan:v1`
+  `versions`; `zigoals:habit-extras:v1` `calm.sound`; `zigoals:nutrient-extras:v1` 22 value keys. No new key anywhere:
+  no device-key, catalogue, export, erase or restore entry is needed.
+- New static file: `apps/web/public/food-generic/cofid-more-v1.json` (276,933 bytes; fetched only with the library).
+- OWNER_STEPS: the Worker deploy line in R3.
+- Nothing new is always visible on Today. No Showcase change (reasons in each section).
+- Pre-existing failure on `lane2/batch2`, not from this branch: `lib/food-plus/av2-fit-plan.test.ts` "NOVA and ZIGi say the
+  plan in English and Dutch".
