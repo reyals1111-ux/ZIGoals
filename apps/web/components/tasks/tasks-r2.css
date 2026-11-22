@@ -1,0 +1,5 @@
+/* Session AV lane 2 (tasks-r2, LEDGER #223–#229): My Day, reminders from notes, project fields and rules. Theme variables only. */
+.tasks-plan-day-sub { margin: 12px 0 4px; font-size: 16px; }
+.tasks-plan-day button { min-height: 44px; }
+.task-editor-myday { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0; }
+.task-editor-myday button { min-height: 44px; }

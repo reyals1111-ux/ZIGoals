@@ -13,6 +13,8 @@ import {PASTE_PARENT, SmartAdd} from './smart-add';
 import {ReminderRows} from './reminder-rows';
 import {TasksNav, viewKey, readView, viewTitle} from './tasks-nav';
 import {useTaskList} from './use-task-list';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {MY_DAY_VIEW, picksToday} from '../../lib/tasks/my-day';
 import {useGoalOptions} from './use-goal-options';
 import {
   addProject, addSection, addTask, childrenOf, clearDone, completedInWindow, dropOrder, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
@@ -117,12 +119,17 @@ export function TasksPage() {
   const [area, setArea] = useState(() => { try { return localStorage.getItem(AREA_KEY) ?? ''; } catch { return ''; } });
   const chooseArea = (v: string) => { setArea(v); try { if (v) localStorage.setItem(AREA_KEY, v); else localStorage.removeItem(AREA_KEY); } catch { /* this visit only */ } };
   const areaId = area && record.areas?.some(a => a.id === area) ? area : '';
+  // Session AV lane 2 (tasks-r2, LEDGER #223; Microsoft To Do's My Day): tasks picked for today show in Today, on their own day still.
+  const myDay = useDeviceRecord(MY_DAY_VIEW), picked = useMemo(() => new Set(picksToday(myDay.data, today)), [myDay.data, today]);
   const viewed = useMemo<Task[]>(() => {
     if (view.kind === 'filter') { const saved = record.filters?.find(f => f.id === view.id); return saved && matchTasks ? matchTasks(record, saved.query, {today, nowClock: clock}) : []; }
     // A typed filter searches every task (a project's view: that project's), whatever the view lists.
     if (query.trim() && matchTasks) return matchTasks({...record, tasks: view.kind === 'project' ? record.tasks.filter(t => t.projectId === view.id) : record.tasks}, query, {today, nowClock: clock});
-    return view.kind === 'completed' ? [] : viewTasks(record, view, today, clock);
-  }, [record, view, today, clock, query, matchTasks]);
+    const listed = view.kind === 'completed' ? [] : viewTasks(record, view, today, clock);
+    if (view.kind !== 'today' || !picked.size) return listed;
+    const has = new Set(listed.map(t => t.id));
+    return [...record.tasks.filter(t => picked.has(t.id) && !t.doneAt && !has.has(t.id)), ...listed];
+  }, [record, view, today, clock, query, matchTasks, picked]);
   const shown = useMemo(() => areaId ? viewed.filter(t => record.projects?.find(p => p.id === t.projectId)?.areaId === areaId) : viewed, [viewed, areaId, record.projects]);
   // A saved filter view waits for the search chunk (it would read as empty); a typed query keeps the view's list meanwhile.
   const ready = tasks.loaded && (view.kind !== 'filter' || !!matchTasks);
@@ -337,7 +344,8 @@ export function TasksPage() {
   } else if (view.kind === 'inbox' && !query) {
     body = group('inbox', null, shown);
   } else {
-    body = <>{STATE_GROUPS.map(g => group(g.state, g.title, shown.filter(t => taskState(t, today, clock) === g.state)))}</>;
+    const mine = view.kind === 'today' && !query ? shown.filter(t => picked.has(t.id)) : [], rest = mine.length ? shown.filter(t => !picked.has(t.id)) : shown;
+    body = <>{mine.length > 0 && group('myday', 'My Day', mine, <small className="fine tasks-day-load">picked for today; each keeps its own day</small>)}{STATE_GROUPS.map(g => group(g.state, g.title, rest.filter(t => taskState(t, today, clock) === g.state)))}</>;
   }
   const title = viewTitle(view, record);
   const empty = view.kind !== 'completed' && !own && shown.length === 0 && !tasks.unreadable;

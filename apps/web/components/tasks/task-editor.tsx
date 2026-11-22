@@ -16,6 +16,8 @@ import type {TaskPatch} from './use-task-list';
 const HabitLinkField = lazy(() => import('./habit-link-field'));
 /** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
 const TaskAttachments = lazy(() => import('./task-attachments'));
+/** Session AV lane 2 (tasks-r2, LEDGER #223): in or out of today's My Day (its own chunk). */
+const MyDayButton = lazy(() => import('./my-day-parts'));
 /** Session AV (1c, q1 #1): the editor offers up to three reminders a task (the record keeps up to five). */
 const MAX_EDITOR_REMINDERS = 3;
 
@@ -88,6 +90,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     <label className="field"><span>Priority</span><select value={level} onChange={e => setLevel(Number(e.target.value) as TaskLevel)}>{([1, 2, 3, 4] as const).map(p => <option key={p} value={p}>{LEVEL_WORDS[p]}</option>)}</select></label>
     <label className="field"><span>Due</span><input type="date" value={due} aria-describedby={due && due < today ? `${id}-past` : undefined} onChange={e => { setDue(e.target.value); if (!e.target.value) setTime(''); }} />{due && due < today && <small id={`${id}-past`} className="tasks-field-note">A past day: it shows as overdue.</small>}</label>
     <label className="field"><span>Time</span><input type="time" value={time} disabled={!due} onChange={e => setTime(e.target.value)} /></label>
+    <Suspense fallback={null}><MyDayButton task={task} today={today}/></Suspense>
     {/* Session AV (owner follow-up 1, F-DEADLINES): the day it must be done by, apart from the day it is planned for. */}
     {/* Session AV (1c, q1 #15): off while the task repeats, with the engine's own sentence. */}
     <label className="field"><span>Deadline — optional</span><input type="date" value={repeatsNow ? '' : deadline} disabled={repeatsNow} aria-describedby={`${id}-deadline`} onChange={e => setDeadline(e.target.value)} /></label>
