@@ -46,7 +46,10 @@
     if (bills.length) lines.push(named && bills.every(function (b) { return b.label; }) ? bills.slice(0, 2).map(function (b) { return b.label + (b.detail ? ' · ' + b.detail : ''); }).join(' · ') : plural(bills.length, 'bill due tomorrow', 'bills due tomorrow'));
     // Session AV (F-TASK-NOTIFY): task reminders, by name only where names are allowed.
     var taskItems = kinds.task || [];
-    if (taskItems.length) lines.push(named && taskItems.every(function (t) { return t.label; }) ? taskItems.slice(0, 2).map(function (t) { return t.label; }).join(' · ') + (taskItems.length > 2 ? ' and ' + (taskItems.length - 2) + ' more' : '') : plural(taskItems.length, 'task reminder', 'task reminders'));
+    // Session AV lane 2 (r5-plan, LEDGER #353; TIER 3 (PWA)): a "Leave by 8:40" item says its time to leave, also without names.
+    var leaving = taskItems.filter(function (t) { return t.detail && /^leave:/.test(String(t.id || '')); }), reminding = taskItems.filter(function (t) { return leaving.indexOf(t) < 0; });
+    if (leaving.length) lines.push(leaving.slice(0, 2).map(function (t) { return t.detail + (named && t.label ? ' · ' + t.label : ''); }).join(' · ') + (leaving.length > 2 ? ' and ' + (leaving.length - 2) + ' more' : ''));
+    if (reminding.length) lines.push(named && reminding.every(function (t) { return t.label; }) ? reminding.slice(0, 2).map(function (t) { return t.label; }).join(' · ') + (reminding.length > 2 ? ' and ' + (reminding.length - 2) + ' more' : '') : plural(reminding.length, 'task reminder', 'task reminders'));
     // Session AV (1c, q1 #44): countdown reminders, by name only where names are allowed.
     var countdowns = kinds.countdown || [];
     if (countdowns.length) lines.push(named && countdowns.every(function (c) { return c.label; }) ? countdowns.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(countdowns.length, 'countdown reminder', 'countdown reminders'));

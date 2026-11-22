@@ -11,7 +11,7 @@ import {readHealth} from '../sync-homes-store';
 import {waterSummary} from '../health-daily';
 import {getAppStorage, isShowcase} from '../showcase-storage';
 import {readLock} from '../device-lock';
-import {formatNumber} from '../visual-format';
+import {formatClock, formatNumber} from '../visual-format';
 import {habitWeekdays} from '../push/schedule';
 import {storedHabits} from '../push/device';
 import {namesOn} from '../push/labels-sync';
@@ -32,6 +32,8 @@ import {TASKS} from '../tasks/schema';
 import {lateCount} from '../tasks/engine';
 import {TASK_PLAN} from '../tasks/plan-record';
 import {reminderInstants} from '../tasks/reminders';
+import {leaveByWakes} from '../tasks/leave-by';
+import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
 import {noteReminders} from '../notes/reminders';
 import {COUNTDOWNS} from '../countdowns/schema';
@@ -130,6 +132,12 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   // Session AV (follow-up 1, F-TASK-NOTIFY): the reminders set on open tasks — the instant, the id, and a title for the
   // plan to show only where names are allowed.
   try { const tasks = reminderInstants(readDeviceRecord(storage, TASKS).data, zone).filter(r => r.at > now); if (tasks.length) input.tasks = tasks.slice(0, 60).map(r => ({id: r.task.id, title: r.task.title, at: r.at})); } catch { /* tasks unreadable: no task wakes */ }
+  // Session AV lane 2 (r5-plan, LEDGER #353; TIER 3 (PWA)): "Leave by 8:40" before a timed task or an imported event with
+  // travel minutes typed before it — under the tasks switch as task reminders are; a title only where names are allowed.
+  try {
+    const wakes = leaveByWakes({tasks: readDeviceRecord(storage, TASKS).data, plan: readDeviceRecord(storage, TASK_PLAN).data, calendars: readDeviceRecord(storage, CALENDAR_IMPORT).data, zone, now, today});
+    if (wakes.length) input.tasks = [...(input.tasks ?? []), ...wakes.map(w => ({id: w.id, title: w.title, at: w.at, leave: formatClock(w.leave), href: w.href}))];
+  } catch { /* unreadable: no leave-by wakes */ }
   // Session AV lane 2 (r3-plan, LEDGER #256): the "Plan your day" time set in Tasks, and how many open tasks are overdue on
   // each of the plan's days (a task due today is overdue tomorrow if still open) — a count, never a name.
   try {
