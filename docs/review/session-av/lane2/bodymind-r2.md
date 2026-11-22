@@ -133,3 +133,27 @@ Every stored change is listed under "Stored changes" for the lead's TIER 3 (stor
 - Device keys / catalogue / export / erase: nothing new (inside `zigoals:journal:v1`). Search (static.ts): "daily
   challenge", "write it out", "vent" → `/app/journal`.
 - CSS: `components/journal/today-affirmation.css`, `components/journal/write-it-out.css` (new).
+
+## 4. Feelings with a strength: up to three words a day — LEDGER #232 built
+
+- What: wherever the feeling word fold opens (the Journal's Write and ZIGi's check-in, after today's energy or mood), once
+  the day's word is chosen the grid shows "Today's words and how strong each feels": each word with "a little", "quite"
+  and "very" (one tap sets it, the same tap clears it), and "Add another word": the next word tapped (or an own word added)
+  joins the day instead of replacing it, up to three words, each removable. Changing the day's word keeps the others. The
+  fold's line reads "Feeling: calm (quite) · tired (a little)". The day's word stays in `word`, so every older reader
+  (the week line, the year in pixels, older builds) keeps reading it.
+- Files: `lib/mood-words/schema.ts` (stored commit), `lib/mood-words/more.ts` (new, pure),
+  `components/mood-words/mood-words-grid.tsx`, `components/mood-words/mood-words-fold.tsx`, `components/mood-words/mood-words.css`.
+- Tests: `lib/mood-words/av2-more.test.ts`, `lib/mood-words/av2-more-stored.test.ts` (round trip),
+  `lib/ai/local-answers/av2-bodymind-r2.test.ts`; existing mood-words and check-in tests unchanged and green. Spec:
+  `tests/av2-feelings-strength.spec.ts`.
+- Stored: `zigoals:energy:v1` `words` day `strength`, `more` (see Stored changes).
+- Help (EN): **Can I pick more than one feeling?** Yes. After choosing a feeling word, tap "Add another word" to add up to
+  three for the day, and set how strong each feels: a little, quite or very.
+- What's new: "Feelings: up to three words a day, each with how strong it feels."
+- Answers: "what feelings did I log today" / "welke gevoelens heb ik vandaag", "which feeling words do I have" / "welke
+  gevoelswoorden heb ik".
+- Showcase hook: none (the Showcase has no feeling words; adding some would change what the check-in shows on Today).
+- Device keys / catalogue / export / erase: nothing new (inside `zigoals:energy:v1`).
+- CSS: `components/mood-words/mood-words.css`. Nothing new always visible on Today (the strengths show only inside the open
+  grid).

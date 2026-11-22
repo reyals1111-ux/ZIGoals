@@ -11,4 +11,5 @@ export const AV2_BODYMIND_R2: readonly Intent[] = [
   {id: 'av2r2-morning-steps', pillar: 'health', en: ['what are my morning steps', 'when should I get daylight'], nl: ['wat zijn mijn ochtendstappen', 'wanneer moet ik daglicht pakken']},
   {id: 'av2r2-challenge', pillar: 'journal', en: ["what is today's challenge", 'what is my daily challenge'], nl: ['wat is de uitdaging van vandaag', 'wat is mijn dagelijkse uitdaging'], never: ['streak', 'reeks']},
   {id: 'av2r2-vent', pillar: 'journal', en: ['where can I vent', 'is there a place to vent'], nl: ['waar kan ik mijn hart luchten', 'is er een plek om stoom af te blazen']},
+  {id: 'av2r2-feelings', pillar: 'health', en: ['what feelings did I log today', 'which feeling words do I have'], nl: ['welke gevoelens heb ik vandaag', 'welke gevoelswoorden heb ik'], never: ['diagnos', 'disorder', 'stoornis']},
 ];

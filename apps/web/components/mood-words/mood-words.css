@@ -31,3 +31,13 @@
 .mood-words-add { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 8px; flex-basis: 100%; }
 .mood-words-add input { min-height: 44px; font-size: 1rem; max-width: 14rem; }
 .mood-words-add .secondary { min-height: 44px; }
+/* Session AV lane 2 (bodymind-r2; LEDGER #232): each of the day's words with its strength (theme tokens only; no motion). */
+.mood-words-strengths { display: grid; gap: 8px; margin-top: 8px; min-width: 0; }
+.mood-words-strength-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.mood-words-strength-word { font-weight: 650; font-size: 15px; min-width: 6ch; overflow-wrap: anywhere; }
+.mood-words-strength { min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
+.mood-words-strength[aria-pressed="true"] { border-color: var(--violet); background: color-mix(in srgb, var(--violet) 18%, transparent); font-weight: 650; }
+.mood-words-strength:focus-visible { outline: 2px solid var(--focus, var(--violet)); outline-offset: 2px; }
+.mood-words-another { margin: 0; }
+.mood-words-another .secondary { min-height: 44px; }
+.mood-words-extra { margin-left: 2px; }

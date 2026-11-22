@@ -71,3 +71,13 @@ describe('Reflectly: the daily challenge and Write it out (LEDGER #230, #231)', 
     expect(text(ask('waar kan ik mijn hart luchten'))).toContain('nooit wordt bewaard');
   });
 });
+
+describe('Moodnotes: feelings with a strength (LEDGER #232)', () => {
+  test('today\'s words with their strengths, in English and Dutch; none: how to add them', () => {
+    const s = showcase(), AT = `${DAY}T09:00:00.000Z`;
+    s.energy = {...(s.energy ?? {version: 1, days: {}}), words: {[DAY]: {energy: 'low', pleasantness: 'pleasant', word: 'calm', at: AT, strength: 'quite', more: [{energy: 'low', pleasantness: 'unpleasant', word: 'tired', strength: 'little'}]}}} as typeof s.energy;
+    expect(text(ask('what feelings did I log today', s))).toBe('Today: calm (quite) · tired (a little).');
+    expect(text(ask('welke gevoelens heb ik vandaag', s))).toBe('Vandaag: calm (best wel) · tired (een beetje).');
+    expect(text(ask('which feeling words do I have', freshAll()))).toContain('No feeling word in the last 7 days');
+  });
+});

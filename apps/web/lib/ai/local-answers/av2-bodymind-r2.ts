@@ -7,6 +7,8 @@ import type {EveningRecord} from '../../evening-plan/schema';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, hm, isQuestion, journalClosed, MIXED, say, type Asked} from './av-words';
 import {challengeDoneToday, challengeOfTheDay} from '../../journal/challenges';
+import {feelingsLine, feelingsOn} from '../../mood-words/more';
+import {addLocalDays} from '../../local-date';
 import type {LocalReply} from './engine';
 
 /**
@@ -101,4 +103,18 @@ function ventAnswer(a: Asked): LocalReply | null {
   return answer(say(a.lang, 'In Journal → Write, open “Write it out”: a page that is never saved — no draft, nothing on this device, nothing sent. “Let it go” clears it with a calm line; “Keep as an entry” is the only way it is kept.', 'Open in Journal → Write “Write it out”: een pagina die nooit wordt bewaard — geen concept, niets op dit apparaat, niets verstuurd. “Laat het gaan” wist hem met een rustige zin; alleen “Bewaar als dagboekstuk” bewaart hem.'));
 }
 
-const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer, morningAnswer, challengeAnswer, ventAnswer];
+// ── Moodnotes: feelings with a strength (LEDGER #232) ──────────────────────────────────────────────────────────────
+
+/** "what feelings did I log today", "welke gevoelens heb ik vandaag": the day's words with their strengths (Health's gate). */
+function feelingsAnswer(a: Asked): LocalReply | null {
+  const en = /\b(?:what|which) (?:feelings?|feeling words?|emotions?) (?:did i (?:log|pick|choose|note)|have i (?:logged|picked|noted)|do i have)\b|\bmy feeling words?\b/.test(a.f), nl = /\bwelke (?:gevoelens?|gevoelswoorden|emoties?) (?:heb ik|had ik)\b|\bmijn gevoelswoorden\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const energy = a.env.energy ?? {version: 1, days: {}}, lang = a.lang, calls = [{tool: 'energy', args: {}, label: 'Energy and feelings'}];
+  const today = feelingsOn(energy, a.today);
+  if (today.length) return answer(say(lang, `Today: ${feelingsLine(today, 'en')}.`, `Vandaag: ${feelingsLine(today, 'nl')}.`), calls);
+  for (let i = 1; i <= 6; i++) { const day = addLocalDays(a.today, -i), f = feelingsOn(energy, day); if (f.length) return answer(say(lang, `No feeling word today yet. The last one, ${i === 1 ? 'yesterday' : `${i} days ago`}: ${feelingsLine(f, 'en')}.`, `Vandaag nog geen gevoelswoord. Het laatste, ${i === 1 ? 'gisteren' : `${i} dagen geleden`}: ${feelingsLine(f, 'nl')}.`), calls); }
+  return answer(say(lang, 'No feeling word in the last 7 days. After today’s energy, “Add a feeling word” lets you pick up to three, each with how strong it feels (a little, quite, very).', 'De afgelopen 7 dagen geen gevoelswoord. Na je energie van vandaag kun je met “Add a feeling word” er tot drie kiezen, elk met hoe sterk het voelt (een beetje, best wel, heel erg).'), calls);
+}
+
+const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer, morningAnswer, challengeAnswer, ventAnswer, feelingsAnswer];
