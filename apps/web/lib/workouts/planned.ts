@@ -39,7 +39,26 @@ export const plannedSchema = z.looseObject({
 export type Planned = z.infer<typeof plannedSchema>;
 const itemsSchema = z.preprocess(v => Array.isArray(v) ? v.filter(x => plannedSchema.safeParse(x).success).slice(0, PLANNED_MAX) : v, z.array(plannedSchema).max(PLANNED_MAX));
 const awaySchema = z.looseObject({from: day, to: day}).refine(a => a.from <= a.to);
-export const plannedRecordSchema = z.looseObject({version: z.literal(1), items: itemsSchema.default([]), away: awaySchema.optional().catch(undefined)});
+/**
+ * Session AV lane 2, round 5 (gym; LEDGER #374, Gentler Streak's activity status; TIER 3 (stored format), additive): a status
+ * set in Workouts — ill, injured, a break or travelling — from a day until it is cleared (`to`, the last day it covered).
+ * Kept (up to 50) so the week streak keeps passing over the weeks it covered; the open one has no `to`. While a status
+ * covers a day its planned workouts are set aside, never missed. The reason stays on this device and never goes in a
+ * notification. An unreadable status is dropped, the others kept; older builds keep the list untouched (loose record).
+ */
+export const STATUS_KINDS = ['ill', 'injured', 'break', 'travel'] as const;
+export type StatusKind = (typeof STATUS_KINDS)[number];
+export const statusSchema = z.looseObject({
+  id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),
+  kind: z.enum(STATUS_KINDS),
+  from: day,
+  to: day.optional(),
+  createdAt: z.iso.datetime(),
+}).refine(s => !s.to || s.from <= s.to);
+export type WorkoutStatus = z.infer<typeof statusSchema>;
+export const STATUSES_MAX = 50;
+const statusesSchema = z.preprocess(v => Array.isArray(v) ? v.filter(x => statusSchema.safeParse(x).success).slice(-STATUSES_MAX) : v, z.array(statusSchema).max(STATUSES_MAX));
+export const plannedRecordSchema = z.looseObject({version: z.literal(1), items: itemsSchema.default([]), away: awaySchema.optional().catch(undefined), statuses: statusesSchema.optional().catch(undefined)});
 export type PlannedRecord = z.infer<typeof plannedRecordSchema>;
 export const emptyPlanned = (): PlannedRecord => ({version: 1, items: []});
 export const PLANNED_WORKOUTS: DeviceRecordSpec<PlannedRecord> = {key: PLANNED_KEY, schema: plannedRecordSchema, empty: emptyPlanned};

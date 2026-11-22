@@ -90,6 +90,14 @@ export const workoutSchema = z.looseObject({
     avgHr: z.number().int().min(20).max(250).optional(),
     durationSeconds: z.number().int().min(0).max(172_800).optional(),
   }).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 5 (gym; LEDGER #377, Gentler Streak's workout journal; TIER 3 (stored format), additive): up to
+   * four photos of a finished workout, by id — the photos themselves stay in this browser's IndexedDB
+   * (`zigoals-workout-photos-v1`, lib/workouts/photos.ts), never uploaded — and a star that puts it in Favourites. Both
+   * optional and tolerant on the loose workout: an unreadable value is dropped alone; older builds keep them untouched.
+   */
+  photos: z.array(z.string().regex(/^wph-[A-Za-z0-9-]{8,80}$/)).max(4).optional().catch(undefined),
+  star: z.boolean().optional().catch(undefined),
 });
 /**
  * Session AV lane 2 (body; TIER 3 (stored format), additive; Hevy's routine folders and notes, MacroFactor's progression):
@@ -116,6 +124,12 @@ export const templateSchema = z.looseObject({
   note: z.string().max(500).optional().catch(undefined),
   guideId: z.string().regex(/^[a-z0-9-]{1,60}$/).optional().catch(undefined),
   progression: progressionSchema.optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 5 (gym; LEDGER #373, Bevel's Auto Update Template; TIER 3 (stored format), additive): "Keep my
+   * last weights" — finishing a workout started from this routine writes its done sets' weights and reps back into it.
+   * Optional and tolerant on the loose routine; older builds keep it untouched and simply do not write back.
+   */
+  keepWeights: z.boolean().optional().catch(undefined),
 });
 /**
  * Session AV lane 2 (body; TIER 3 (stored format), additive; Strava's goals): a distance goal for a week, a month or a
@@ -148,6 +162,14 @@ export const workoutsSchema = z.looseObject({
     unit: z.enum(['kg', 'lb']),
     bar: z.number().finite().min(0).max(100),
     plates: z.array(z.looseObject({size: z.number().finite().min(0.1).max(100), pairs: z.number().int().min(0).max(20)})).max(12),
+    /**
+     * Session AV lane 2, round 5 (gym; LEDGER #378, Bevel's single-sided plate calculator; TIER 3 (stored format), additive):
+     * "Loaded on one side" — every plate goes on one horn of a machine or sled — and that machine's or sled's own weight,
+     * which takes the bar's place (0–500, in the setup's unit). Each optional and tolerant on its own: a bad value is
+     * dropped alone, never the bar and plates; older builds keep both untouched and count plates for each side as before.
+     */
+    oneSide: z.boolean().optional().catch(undefined),
+    start: z.number().finite().min(0).max(500).optional().catch(undefined),
   }).optional().catch(undefined),
   /**
    * Session AV lane 2 (body; TIER 3 (stored format), additive; Hevy's pinned exercise notes): one note per exercise that
