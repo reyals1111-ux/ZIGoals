@@ -36,7 +36,9 @@ for (const theme of THEMES) test(`${theme}: share a routine as a file, then add 
   await importer.getByRole('button', {name: 'Add to my routines'}).click();
   await expect(importer.getByRole('status')).toHaveText('Fictional legs is in your routines, in “Shared with me”.');
   await expect(start.locator('h4.av2-folder').filter({hasText: 'Shared with me'})).toBeVisible();
-  await expect(start.locator('.workouts-routines')).toContainText('Fictional legs (shared)');
+  // Session AV lane 2 (two folders now, so two routine lists: the "Shared with me" folder's own list, deliberate)
+  const shared = start.locator('.av2-routine-group').filter({has: page.locator('h4.av2-folder', {hasText: 'Shared with me'})});
+  await expect(shared.locator('.workouts-routines')).toContainText('Fictional legs (shared)');
   await importer.getByLabel('Workout routine file (.json)').setInputFiles({name: 'not.json', mimeType: 'application/json', buffer: Buffer.from('{"kind":"other"}')});
   await expect(importer.getByRole('alert')).toHaveText('This is not a workout routine file.');
   await page.setViewportSize({width: 320, height: 720});

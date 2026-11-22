@@ -21,9 +21,12 @@ for (const theme of THEMES) test(`${theme}: save a ready-made routine, note it, 
   await start.locator('details.workouts-guides-fold > summary').click();
   const fullBody = start.getByRole('article', {name: 'Full body A'});
   await expect(fullBody).toContainText('3 × 8 · rest 2:00');
-  await start.getByRole('button', {name: 'In het Nederlands'}).click();
+  // Session AV lane 2 (Start a workout also has the exercise library's own "In het Nederlands": the ready-made routines' own
+  // button, deliberate)
+  const library = start.locator('.av2-routines');
+  await library.getByRole('button', {name: 'In het Nederlands', exact: true}).click();
   await expect(start.getByRole('article', {name: 'Heel lichaam A'})).toContainText('rust 2:00');
-  await start.getByRole('button', {name: 'In English'}).click();
+  await library.getByRole('button', {name: 'In English', exact: true}).click();
   const findings = await axe(page, start);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await fullBody.getByRole('button', {name: 'Save to my routines: Full body A'}).click();
