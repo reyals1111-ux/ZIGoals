@@ -2,8 +2,10 @@ import {balanceWords, sleepBalance} from '../../sleep/engine';
 import {balanceWithNaps, napsOn, sleepNeed} from '../../sleep/naps-need';
 import {asleep} from '../../sleep/night';
 import type {Sleep} from '../../sleep/schema';
+import {morningClock, morningWake, remindedSteps, sortMorning} from '../../evening-plan/morning';
+import type {EveningRecord} from '../../evening-plan/schema';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, closed, hm, isQuestion, MIXED, say, type Asked} from './av-words';
+import {answer, asked, clockIn, closed, hm, isQuestion, MIXED, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -58,4 +60,24 @@ function napsAnswer(a: Asked): LocalReply | null {
     `Ja: ${with_.naps === 1 ? '1 dutje' : `${with_.naps} dutjes`} (${hm(with_.napMinutes)}) in de afgelopen 14 dagen tellen mee op de dag waarop ze eindigden, gemarkeerd als dutje. Alleen nachten: ${nlWords(base)}; met de dutjes: ${nlWords(with_)}.${todayLine}`), SLEEP_CALLS);
 }
 
-const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer];
+// ── Rise: morning steps and step reminders (LEDGER #236) ────────────────────────────────────────────────────────────
+
+/** The evening plan record, once the lead adds it to the AK tool sources (`eveningPlan`); undefined until then. */
+const planOf = (a: Asked): EveningRecord | null | undefined => (a.env.ak as {eveningPlan?: EveningRecord | null} | undefined)?.eveningPlan;
+const MORNING_NL: Record<string, string> = {'m-water': 'Een glas water', 'm-daylight': 'Daglicht buiten, of bij een licht raam', 'm-move': 'Een paar minuten bewegen', 'm-coffee': 'Eerste koffie of thee, als de sufheid voorbij is', 'm-plan': 'Het plan van vandaag bekijken'};
+/** "what are my morning steps", "when should I get daylight", "wat zijn mijn ochtendstappen": the steps at today's times. */
+function morningAnswer(a: Asked): LocalReply | null {
+  const en = /\bmorning (?:steps?|plan|habits?)\b|\bwhen should i (?:get|have) (?:some )?(?:daylight|sunlight|my (?:first )?coffee)\b/.test(a.f), nl = /\bochtend(?:stappen|plan|gewoontes?)\b|\bwanneer (?:moet|kan) ik (?:daglicht|zonlicht|mijn (?:eerste )?koffie)\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const r = planOf(a), lang = a.lang, calls = [{tool: 'evening_plan', args: {}, label: 'Evening plan'}];
+  if (r === undefined) return answer(say(lang, 'Your morning steps are in Health → Sleep → Tonight; I can’t read them here yet.', 'Je ochtendstappen staan in Health → Sleep → Tonight; die kan ik hier nog niet lezen.'), calls);
+  if (!r?.morning) return answer(say(lang, 'No morning steps yet. In Health → Sleep → Tonight, “Choose morning steps” times a few small steps from your wake time: daylight in the first hour, the first coffee once the grogginess has passed.', 'Nog geen ochtendstappen. In Health → Sleep → Tonight zet “Choose morning steps” een paar kleine stappen op tijd vanaf je wektijd: daglicht in het eerste uur, de eerste koffie als de sufheid voorbij is.'), calls);
+  const wake = morningWake(sleepOf(a), a.env.healthDay), reminded = new Set(remindedSteps(r)), ticked = new Set(r.mornings?.[a.env.healthDay] ?? []);
+  const when = (m: number) => wake ? clockIn(lang, morningClock(wake.minutes, m)) : say(lang, `${m} min after waking`, `${m} min na het wakker worden`);
+  const lines = sortMorning(r.morning.steps).map(s => `• ${when(s.minutesAfter)} ${lang === 'nl' ? MORNING_NL[s.id] ?? s.label : s.label}${ticked.has(s.id) ? say(lang, ' (done)', ' (gedaan)') : ''}${reminded.has(s.id) ? say(lang, ' · reminder on', ' · herinnering aan') : ''}`);
+  const head = wake ? wake.from === 'today' ? say(lang, `Timed from your wake time today, ${clockIn(lang, morningClock(wake.minutes, 0))}:`, `Vanaf je wektijd van vandaag, ${clockIn(lang, morningClock(wake.minutes, 0))}:`) : say(lang, `Timed from your usual wake time, ${clockIn(lang, morningClock(wake.minutes, 0))}:`, `Vanaf je gewone wektijd, ${clockIn(lang, morningClock(wake.minutes, 0))}:`) : say(lang, 'Your morning steps:', 'Je ochtendstappen:');
+  return answer([head, ...lines].join('\n'), calls);
+}
+
+const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer, morningAnswer];

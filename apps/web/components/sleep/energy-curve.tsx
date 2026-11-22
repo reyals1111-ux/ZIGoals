@@ -9,6 +9,8 @@ import {formatClock} from '../../lib/visual-format';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import './energy-curve.css';
 import {ArtNote} from '../illustrations/art-note';
+// Session AV lane 2 (bodymind-r2; LEDGER #235): reminders from the curve, in this fold's own chunk.
+import CurveReminders from './curve-reminders';
 
 /**
  * Session AK (lane S, item 9): Health → Sleep → "Your energy today", an estimated alertness curve from the person's sleep
@@ -52,5 +54,6 @@ export default function EnergyCurve({sleep, today, now, zone}: {sleep: Sleep; to
       {curve.naps.length > 0 && <div><dt>{curve.naps.length === 1 ? 'Your nap today' : 'Your naps today'}</dt>{curve.naps.map(n => <dd key={n.to}>{clock(n.from)}–{clock(n.to)} · {formatMinutes(n.minutes)}</dd>)}<dd className="dd-note"><small>The curve lifts a little after {curve.naps.length === 1 ? 'it' : 'them'} for a few hours{curve.naps.some(n => n.minutes > 40) ? ', after a short groggy spell' : ''}: an estimate.</small></dd></div>}
     </dl>
     <details className="energy-curve-why"><summary>Why?</summary><p className="fine">{curveWhy(curve, clock, formatMinutes)}</p></details>
+    <CurveReminders curve={curve} clock={clock}/>
   </div>;
 }

@@ -12,3 +12,8 @@
 .curve-reminders ul, .morning-steps ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .morning-steps time, .curve-reminders time { font-variant-numeric: tabular-nums; font-weight: 650; }
 .morning-step-remind { margin-left: 32px; }
+.morning-steps .evening-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.morning-steps .evening-actions button { min-height: 44px; }
+.morning-steps fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.morning-steps legend { font-size: 15px; font-weight: 650; margin-bottom: 6px; }
+.morning-step-reminders summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; }

@@ -8,4 +8,5 @@ import type {Intent} from './cases';
 export const AV2_BODYMIND_R2: readonly Intent[] = [
   {id: 'av2r2-sleep-need', pillar: 'health', en: ['what is my sleep need', 'how much sleep do I need'], nl: ['wat is mijn slaapbehoefte', 'hoeveel slaap heb ik nodig'], never: ['average adult', 'population', 'you should']},
   {id: 'av2r2-naps', pillar: 'health', en: ['do my naps count in my sleep balance', 'how do naps affect my energy'], nl: ['tellen mijn dutjes mee in de slaapbalans', 'wat is het effect van dutjes op mijn energie']},
+  {id: 'av2r2-morning-steps', pillar: 'health', en: ['what are my morning steps', 'when should I get daylight'], nl: ['wat zijn mijn ochtendstappen', 'wanneer moet ik daglicht pakken']},
 ];

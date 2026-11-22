@@ -8,6 +8,8 @@ Every stored change is listed under "Stored changes" for the lead's TIER 3 (stor
 
 | record | change | readers of #37–#57 |
 |---|---|---|
+| `zigoals:notify:v1` (existing, device-only, loose) | optional `energy` `{focus?, dip?, windDown?}` (booleans, each `.optional().catch(undefined)`, the object `.optional().catch(undefined)`), and the type name `energy` in `types` (the record already keeps any type name; off by default). Commit `5d44cc3e`. | Kept untouched; an older build has no energy type. |
+| `zigoals:evening-plan:v1` (existing, device-only, loose) | optional `morning` `{steps[1–6]: {id, label, minutesAfter 0–360}, updatedAt}`, `mornings` (date → ticked ids, ≤ 120 dates), `remind` (step ids, ≤ 14); each `.optional().catch(undefined)`. Commit `5d44cc3e`. | Kept untouched; older builds show the evening plan only. |
 
 ## Shared to-do for the lead (all features)
 
@@ -50,3 +52,49 @@ Every stored change is listed under "Stored changes" for the lead's TIER 3 (stor
   and the estimate show there; no pinned count reads them).
 - Device keys / catalogue / export / erase: nothing new. Search (static.ts): "sleep need", "naps" → `/app/health?view=sleep`.
 - CSS: `components/sleep/energy-curve.css`, `components/health/sleep/av2-bodymind-sleep.css` (new). Nothing on Today.
+
+## 2. Reminders from the energy curve; morning steps from the wake time and a reminder at each step — LEDGER #235 built (part Carried: the schedule on an outside calendar needs an outside service), #236 built
+
+- What: under the energy curve (Health → Sleep → the energy curve fold), "Remind me from my curve": when the good focus
+  window starts, 15 minutes before the likely dip, and when it is time to start winding down (45 minutes before the
+  curve's suggested bedtime window), each with today's time, each off until ticked; ticking one switches the new
+  "Energy curve and plan steps" notification type on. The times follow each day's curve (today's from today's wake,
+  tomorrow's from the usual wake), so they are one-off wakes for today and tomorrow, refused inside quiet hours and said on
+  the card as task reminders are. Health → Sleep → Tonight → "Your morning steps": "Choose morning steps" offers five
+  written steps (a glass of water, daylight in the first hour, a few minutes of movement, looking at today's plan, the
+  first coffee once the grogginess has passed), daylight and coffee ticked by default; each is timed from today's wake
+  time (or the usual one, said so), ticked each morning. "Reminders at your steps" lists every evening and morning step
+  with "Remind me" (an evening step at its clock time each evening, quiet once ticked; a morning step at its minutes after
+  the wake time). The cards say plainly when notifications are off on this device or the type is muted. The notification
+  says the app's own words ("Your good focus window starts now (an estimate from your sleep)", "Morning step: Daylight
+  outside…"); an own habit used as an evening step is named only where names are allowed; never a sleep figure. Opens
+  Health → Sleep.
+- Files: `lib/notify/prefs.ts`, `lib/evening-plan/schema.ts` (stored commit), `lib/evening-plan/morning.ts` (new, pure),
+  `lib/evening-plan/morning-showcase.ts` (new), `lib/notify/energy-items.ts` (new, pure), `lib/notify/plan.ts` (the
+  `energy` kind), `lib/notify/sync.ts` (gathers it when the type is on), `public/sw.js` (one composer line),
+  `components/sleep/curve-reminders.tsx` (new, in the energy-curve chunk), `components/sleep/energy-curve.tsx`,
+  `components/health/sleep/morning-steps.tsx` (new, its own chunk), `components/health/sleep/sleep-view.tsx`,
+  `components/health/sleep/av2-bodymind-sleep.css`.
+- Tests: `lib/notify/av2-energy-notify.test.ts`, `lib/notify/av2-bodymind-stored.test.ts` (the export carries the prefs —
+  they are exported, not restored, as every notification pref; the evening plan's round trip is `skipIf(!registered)`, as the body lane's, and
+  runs once the key is in `DEVICE_KEYS`), `lib/ai/local-answers/av2-bodymind-r2.test.ts`; existing notify, sw, push and
+  evening-plan tests unchanged and green. Spec: `tests/av2-curve-reminders.spec.ts`.
+- TIER 3 (PWA): the plan's new `energy` kind and the service worker's composer line (`public/sw.js`). Nothing new reaches
+  the push Worker beyond wake minutes.
+- Help (EN): **Can ZIGoals remind me from my energy curve?** Yes. Open the energy curve in Health → Sleep and tick what you
+  want under "Remind me from my curve": when your good focus window starts, 15 minutes before the likely dip, or when it is
+  time to wind down. The times move with your wake time each day. **Can I get reminders for morning steps?** Yes. Under
+  Tonight, "Choose morning steps" times a few small steps from your wake time — daylight in the first hour, the first
+  coffee once the grogginess has passed — and "Reminders at your steps" reminds you at any morning or evening step you
+  choose. Notifications must be on for this device (Settings → Notifications).
+- What's new: "Sleep: reminders from your energy curve, and morning steps timed from your wake time."
+- Answers: "what are my morning steps" / "wat zijn mijn ochtendstappen", "when should I get daylight" / "wanneer moet ik
+  daglicht pakken".
+- Showcase hook (one line in `lib/showcase-data.ts`, for the lead): change the evening plan line to
+  `records[EVENING_PLAN_KEY]=JSON.stringify(withShowcaseMorning(showcaseEvening(day), day));` with
+  `import {withShowcaseMorning} from './evening-plan/morning-showcase';` (daylight and coffee, daylight ticked today; no
+  reminder: the Showcase plans no notification). No pinned count reads it.
+- Settings → Notifications gains one switch ("Energy curve and plan steps", off by default) — the card lists every type.
+- Device keys / catalogue / export / erase: nothing new (both records are registered already). Search (static.ts):
+  "morning steps", "energy reminders" → `/app/health?view=sleep`.
+- CSS: `components/health/sleep/av2-bodymind-sleep.css`. Nothing on Today.
