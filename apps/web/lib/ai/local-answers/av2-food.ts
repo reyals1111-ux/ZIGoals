@@ -5,6 +5,7 @@ import {mealWakes} from '../../food-plus/meal-notify';
 import {HEALTH_EXTRAS, type HealthExtras} from '../../health-extras';
 import {mealRemindersOn} from '../../meal-reminders';
 import {coachCheckIn} from '../../health-aa/coach';
+import {coachOptionsOf} from '../../food-plus/checkin';
 import {weightChangeText, weightText} from '../../health-units';
 import {RECIPE_BOOK, type BookStyle} from '../../food-plus/recipe-book';
 import {fitCandidates, fitPlans} from '../../food-plus/fit-plan';
@@ -17,6 +18,7 @@ import {readDeviceRecord} from '../../device-record';
 import {FOOD_PLUS, type FoodPlus} from '../../food-plus/schema';
 import {DAY_PARTS, dayTimeline, eatingWindow, nutrientTiming, share, type DayPartKey, type TimingKey} from '../../food-plus/times';
 import {addLocalDays} from '../../local-date';
+import {extraMealsOf, sectionOf, slotOf, isExtraChoice, type ExtraMeals} from '../../food-plus/extra-meals-lite';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, count, dayIn, hm, list, MIXED, num, say, type Asked, type Lang} from './av-words';
@@ -55,6 +57,9 @@ const DIARY = [{tool: 'diary_entries', args: {}, label: 'Food diary'}];
 /** "today", "yesterday", "on Tue, Nov 17" / "vandaag", "gisteren", "op di 17 nov". */
 const onDay = (a: Asked, day: string) => day === a.env.healthDay ? say(a.lang, 'today', 'vandaag') : day === addLocalDays(a.env.healthDay, -1) ? say(a.lang, 'yesterday', 'gisteren') : `${say(a.lang, 'on', 'op')} ${dayIn(a.lang, day, a.today)}`;
 
+/** The person's extra meals (LEDGER #197) from this device's food-plus record, or none. */
+const extrasOf = (a: Ask): ExtraMeals => extraMealsOf(a.food ? JSON.stringify(a.food) : null);
+
 // ── Diary times (LEDGER #101) and nutrient timing (#108) ───────────────────────────────────────────────────────────
 
 /** "when did I eat today", "what time did I have lunch", "hoe laat heb ik geluncht", "wanneer at ik vandaag". */
@@ -67,7 +72,8 @@ function whenEaten(a: Ask): LocalReply | null {
   const rows = dayTimeline(a.env.health!, a.food, zone, day).filter(r => !meal || r.entry.meal === meal);
   const when = onDay(a, day);
   if (!rows.length) return answer(say(lang, `Nothing${meal ? ` for ${meal.toLowerCase()}` : ''} is in your food diary ${when}.`, `Er staat ${when} ${meal ? `voor ${mealWord(meal, 'nl').toLowerCase()} ` : ''}niets in je eetdagboek.`), DIARY);
-  const line = (r: (typeof rows)[number]) => `• ${r.at ? r.at.clock : say(lang, 'no time', 'geen tijd')}: ${clean(r.entry.snapshot.name, 60)} (${mealWord(r.entry.meal, lang)})`;
+  const x = extrasOf(a), shownMeal = (e: (typeof rows)[number]['entry']) => { const sec = sectionOf(e, x); const slot = isExtraChoice(sec) ? slotOf(x, sec) : null; return slot ? clean(slot.name, 24) : mealWord(e.meal, lang); };
+  const line = (r: (typeof rows)[number]) => `• ${r.at ? r.at.clock : say(lang, 'no time', 'geen tijd')}: ${clean(r.entry.snapshot.name, 60)} (${shownMeal(r.entry)})`;
   const timed = rows.filter(r => r.at).length;
   const head = say(lang, `What you ate ${when}, in order${timed < rows.length ? ` (${rows.length - timed} without a time)` : ''}:`, `Wat je ${when} at, op volgorde${timed < rows.length ? ` (${rows.length - timed} zonder tijd)` : ''}:`);
   const note = say(lang, 'Each time is when the entry was logged, or the time you set in Health → Diary (tap the time on an entry).', 'Elke tijd is wanneer het gelogd werd, of de tijd die je zelf zette in Health → Diary (tik op de tijd bij een item).');
@@ -215,12 +221,42 @@ function challengeAnswer(a: Ask): LocalReply | null {
     `Je logchallenge (${w.daysPerWeek} dagen per week): ${state}. ${w.weeksInRow} ${w.weeksInRow === 1 ? 'week' : 'weken'} op rij gehaald; ${w.weeksMet} van ${w.weeksTotal} sinds de start.`), calls);
 }
 
+// ── Meals of your own (LEDGER #197) ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * "which meals of my own do I have", "what is in my extra meals today", "what did I have as my afternoon snack" (a
+ * meal's own name), "welke eigen maaltijden heb ik". Each extra meal's entries and calories on the day asked; they are
+ * stored as Snacks, which is said.
+ */
+function extraMealsAnswer(a: Ask): LocalReply | null {
+  const x = extrasOf(a);
+  const generic = /\b(?:extra|own|custom|fifth|sixth)\b.*\bmeals?\b|\bmeals? of my own\b|\b(?:eigen|extra)\b.*\bmaaltijd(?:en)?\b/.test(a.f);
+  const named = x.slots.find(s => { const n = fold(s.name); return n.length >= 3 && !/^(?:snacks?|breakfast|lunch|dinner)$/.test(n) && new RegExp(`\\b${n.replace(/[-]/g, '\\-')}\\b`).test(a.f); });
+  if (!generic && !(named && /\b(?:what|which|how much|how many|did i|wat|welke|hoeveel|at ik|heb ik)\b/.test(a.f))) return null;
+  if (/\b(?:plan|should|recipe|recept|moet ik)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, where = say(lang, 'Health → Diary → “Name your meals and set their times” → Meals of your own.', 'Health → Diary → “Name your meals and set their times” → Meals of your own.');
+  if (!x.slots.length) return answer(say(lang, `You have no meals of your own yet: the Diary has its four meals. Up to two more, such as an afternoon snack or a second breakfast, can be added in ${where}`, `Je hebt nog geen eigen maaltijden: het eetdagboek heeft zijn vier maaltijden. Er kunnen er tot twee bij, zoals een middagsnack of een tweede ontbijt, in ${where}`), DIARY);
+  const day = dayAsked(a), when = onDay(a, day), slots = named ? [named] : x.slots;
+  const rows = slots.map(s => {
+    const entries = a.env.health!.diary.filter(e => e.date === day && sectionOf(e, x) === s.key);
+    const kcals = entries.map(e => scaleNutrition(e.snapshot.nutrients, e.quantityMilli).kcal), known = kcals.filter((k): k is number => k !== null), total = known.reduce((t, k) => t + k, 0);
+    const head = `${clean(s.name, 24)}${s.time ? ` (${s.time})` : ''}`;
+    if (!entries.length) return `• ${head}: ${say(lang, 'nothing logged', 'niets gelogd')}${s.kcal ? say(lang, ` (target ${num(s.kcal)} kcal)`, ` (doel ${num(s.kcal)} kcal)`) : ''}`;
+    const names = list(entries.slice(0, 6).map(e => clean(e.snapshot.name, 40)), lang);
+    const kcal = known.length ? `${num(total)} kcal${known.length < entries.length ? say(lang, ' known', ' bekend') : ''}` : say(lang, 'calories unknown', 'calorieën onbekend');
+    return `• ${head}: ${names} · ${kcal}${s.kcal ? say(lang, ` of ${num(s.kcal)} kcal`, ` van ${num(s.kcal)} kcal`) : ''}`;
+  });
+  const head = say(lang, `Your meal${slots.length === 1 ? '' : 's'} of your own ${when}:`, `Je eigen maaltijd${slots.length === 1 ? '' : 'en'} ${when}:`);
+  const note = say(lang, `Their entries also count as Snacks in every total. ${where}`, `Hun items tellen in elk totaal ook mee als Tussendoor. ${where}`);
+  return answer([head, ...rows, note].join('\n'), DIARY);
+}
+
 // ── The weekly check-in day, partly logged days and the goal date (LEDGER #106, #107) ──────────────────────────────
 
 const coachOf = (a: Ask) => {
   const health = a.env.health!, unit = dailyData(health).preferences.weightUnit;
-  const options = {checkInWeekday: a.food?.checkIn?.weekday ?? null, partialDays: new Set(a.food?.checkIn?.partial ?? []), paceKg: typeof a.food?.pace === 'number' ? a.food.pace : null};
-  return {c: coachCheckIn(health, a.env.coach ?? {version: 1}, a.env.healthDay, unit, options), unit};
+  return {c: coachCheckIn(health, a.env.coach ?? {version: 1}, a.env.healthDay, unit, coachOptionsOf(a.food ?? a.env.foodPlus)), unit};
 };
 /** "when will I reach my goal weight", "wanneer bereik ik mijn streefgewicht". */
 function goalDateAnswer(a: Ask): LocalReply | null {
@@ -327,5 +363,5 @@ function styleFoods(a: Ask): LocalReply | null {
   return answer(say(lang, `Of your ${foods.length} foods, ${fit.length} fit ${words} (${rule})${fit.length ? `: ${names}` : ''}. ${where}`, `Van je ${foods.length} voedingsmiddelen passen er ${fit.length} bij ${words} (${rule})${fit.length ? `: ${names}` : ''}. ${where}`), [{tool: 'search_foods', args: {}, label: 'Your foods'}]);
 }
 
-const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [styleFoods, fitPlanAnswer, recipeIdeas, recipeMethod, packPhotosAnswer, eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
+const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [extraMealsAnswer, styleFoods, fitPlanAnswer, recipeIdeas, recipeMethod, packPhotosAnswer, eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
 export const AV2_FOOD_HANDLER_COUNT = HANDLERS.length;

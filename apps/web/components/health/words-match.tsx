@@ -4,6 +4,10 @@ import {logHealthItem, newHealthId, saveFood, type HealthFood, type Nutrition} f
 import {libraryQueries, ownMatch, ownQuantityMilli, portionGrams, rankLibraryNames, splitMealWords, type WordsItem} from '../../lib/meal-words/match';
 import {undoWordsLog} from '../../lib/meal-words/undo';
 import {removeMealWords, addMealWords, MEAL_WORDS, type MealWordsEntry} from '../../lib/meal-words/schema';
+import {extraMealsOf, slotOf} from '../../lib/food-plus/extra-meals-lite';
+import {FOOD_PLUS_KEY} from '../../lib/food-plus/schema';
+import {tagEntries, writeExtraTags} from '../../lib/food-plus/extra-meals';
+import {getAppStorage} from '../../lib/showcase-storage';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useHealth} from './use-health';
 import {showUndo} from '../ui/undo-toast';
@@ -65,7 +69,10 @@ export default function WordsMatch({entry, onClose}: {entry: MealWordsEntry; onC
       }, s));
       const ids = {entryIds: made.map(m => m.entryId), foodIds: made.flatMap(m => m.foodId ? [m.foodId] : [])};
       words.update(current => removeMealWords(current, entry.id));
-      const message = `${formatNumber(chosen.length)} ${chosen.length === 1 ? 'food' : 'foods'} logged to ${entry.meal.toLowerCase()} instead of the words.`;
+      // Session AV lane 2 (food, LEDGER #197): words in an extra meal become foods in that same extra meal.
+      const x = (() => { try { return extraMealsOf(getAppStorage().getItem(FOOD_PLUS_KEY)); } catch { return null; } })(), tag = x?.tags[entry.id], slot = x && tag ? slotOf(x, tag) : null;
+      if (tag) writeExtraTags(r => tagEntries(r, ids.entryIds, tag));
+      const message = `${formatNumber(chosen.length)} ${chosen.length === 1 ? 'food' : 'foods'} logged to ${slot ? slot.name : entry.meal.toLowerCase()} instead of the words.`;
       setStatus(message);
       showUndo({message, undone: 'The words are back; the foods are taken off.', restore: () => { void health.update(latest => undoWordsLog(latest, ids)); words.update(current => addMealWords(current, entry)); }});
       onClose();

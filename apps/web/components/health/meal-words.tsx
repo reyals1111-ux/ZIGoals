@@ -4,7 +4,10 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {showUndo} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
 import {HEALTH_EXTRAS, mealHeading, mealLabel, type HealthExtras} from '../../lib/health-extras';
-import {MAX_WORDS_CHARS, MEAL_WORDS, MEAL_WORDS_MEALS, addMealWords, mealWordsFor, newMealWordsId, removeMealWords, wordsSchema, type MealWordsEntry, type MealWordsMeal} from '../../lib/meal-words/schema';
+import {MAX_WORDS_CHARS, MEAL_WORDS, addMealWords, mealWordsFor, newMealWordsId, removeMealWords, wordsSchema, type MealWordsEntry, type MealWordsMeal} from '../../lib/meal-words/schema';
+import {diarySections, isExtraChoice, sectionOf, slotOf, storedMealOf, type MealChoice} from '../../lib/food-plus/extra-meals-lite';
+import {tagEntries, writeExtraTags} from '../../lib/food-plus/extra-meals';
+import {useExtraMeals} from './food-plus/use-day-targets';
 import './meal-words.css';
 
 /**
@@ -15,24 +18,27 @@ import './meal-words.css';
  * chunk (plus/health-plus.tsx) in the Health page's three places (the form, a meal's list, a meal's "+ N in words"), so
  * /app/health's first scripts barely grow.
  */
+// Session AV lane 2 (food, LEDGER #197): the form offers the person's extra meals too (words for one are kept as Snacks
+// words, with the extra meal as this device's tag), and a list or count shows the words of one Diary section.
 export type MealWordsProps =
-  | {part: 'form'; date: string; meal: MealWordsMeal}
-  | {part: 'list'; date: string; meal: MealWordsMeal}
-  | {part: 'count'; date: string; meal: MealWordsMeal};
+  | {part: 'form'; date: string; meal: MealChoice}
+  | {part: 'list'; date: string; meal: MealWordsMeal; section?: MealChoice}
+  | {part: 'count'; date: string; meal: MealWordsMeal; section?: MealChoice};
 export default function MealWords(props: MealWordsProps) {
   if (props.part === 'form') return <WordsForm date={props.date} meal={props.meal}/>;
-  if (props.part === 'list') return <WordsList date={props.date} meal={props.meal}/>;
-  return <WordsCount date={props.date} meal={props.meal}/>;
+  if (props.part === 'list') return <WordsList date={props.date} meal={props.meal} section={props.section ?? props.meal}/>;
+  return <WordsCount date={props.date} meal={props.meal} section={props.section ?? props.meal}/>;
 }
 
-function WordsForm({date, meal: initialMeal}: {date: string; meal: MealWordsMeal}) {
+function WordsForm({date, meal: initialMeal}: {date: string; meal: MealChoice}) {
   // Session AU (route weight): the meal names are read from their record here, not through meal-names.tsx, so that module
   // stays in Health's first scripts only (sharing it with this lazy chunk moved code into Health's first load).
   const record = useDeviceRecord(MEAL_WORDS), extrasRecord = useDeviceRecord(HEALTH_EXTRAS), id = useId();
   const extras: HealthExtras | null = extrasRecord.loaded && !extrasRecord.unreadable ? extrasRecord.data : null;
-  const [words, setWords] = useState(''), [chosen, setChosen] = useState<MealWordsMeal | null>(null);
+  const [words, setWords] = useState(''), [chosen, setChosen] = useState<MealChoice | null>(null), x = useExtraMeals();
   const [said, setSaid] = useState<{error: boolean; text: string} | null>(null);
-  const meal = chosen ?? initialMeal;
+  const picked = chosen ?? initialMeal, slot = isExtraChoice(picked) ? slotOf(x, picked) : null;
+  const choice: MealChoice = isExtraChoice(picked) && !slot ? 'Snacks' : picked, meal: MealWordsMeal = storedMealOf(choice);
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const checked = wordsSchema.safeParse(words);
@@ -40,14 +46,15 @@ function WordsForm({date, meal: initialMeal}: {date: string; meal: MealWordsMeal
     const entry: MealWordsEntry = {id: newMealWordsId(), date, meal, words: checked.data, at: new Date().toISOString()};
     try { record.update(current => addMealWords(current, entry)); }
     catch { setSaid({error: true, text: 'This device did not save it. Nothing was logged; try again.'}); return; }
+    const kept = !slot || writeExtraTags(r => tagEntries(r, [entry.id], slot.key));
     setWords('');
-    setSaid({error: false, text: `Logged in words for ${mealLabel(extras, meal)}, ${formatDate(date)}: “${entry.words}”. Calories unknown.`});
+    setSaid({error: false, text: `Logged in words for ${slot && kept ? slot.name : mealLabel(extras, meal)}, ${formatDate(date)}: “${entry.words}”. Calories unknown.`});
   };
   return <form className="health-form meal-words-form" aria-label="Just describe it" onSubmit={submit} noValidate>
     <h3 className="meal-words-title">Just describe it</h3>
     <div className="meal-words-grid">
       <label className="field" htmlFor={`${id}-words`}><span>What did you eat?</span><input id={`${id}-words`} type="text" autoComplete="off" enterKeyHint="done" maxLength={MAX_WORDS_CHARS} placeholder="Porridge with a banana" value={words} aria-invalid={said?.error || undefined} aria-describedby={said?.error ? `${id}-said` : undefined} onChange={e => { setWords(e.target.value); if (said?.error) setSaid(null); }}/></label>
-      <label className="field" htmlFor={`${id}-meal`}><span>Meal</span><select id={`${id}-meal`} value={meal} onChange={e => setChosen(e.target.value as MealWordsMeal)}>{MEAL_WORDS_MEALS.map(m => <option key={m} value={m}>{mealHeading(extras, m)}</option>)}</select></label>
+      <label className="field" htmlFor={`${id}-meal`}><span>Meal</span><select id={`${id}-meal`} value={choice} onChange={e => setChosen(e.target.value as MealChoice)}>{diarySections(x).map(c => { const s = isExtraChoice(c) ? slotOf(x, c) : null; return <option key={c} value={c}>{s ? (s.time ? `${s.name} · ${s.time}` : s.name) : mealHeading(extras, storedMealOf(c))}</option>; })}</select></label>
     </div>
     {/* Session AV lane 2 (food, LEDGER #85): the browser's own speech recognition where it exists (else nothing shown). */}
     <Suspense fallback={null}><MealMic onText={text => { setWords(w => (w.trim() ? `${w.trim()} ${text}` : text).slice(0, MAX_WORDS_CHARS)); if (said?.error) setSaid(null); }}/></Suspense>
@@ -60,15 +67,15 @@ function WordsForm({date, meal: initialMeal}: {date: string; meal: MealWordsMeal
 
 const WordsMatch = lazy(() => import('./words-match'));
 const MealMic = lazy(() => import('./food-plus/meal-mic'));
-function WordsList({date, meal}: {date: string; meal: MealWordsMeal}) {
-  const record = useDeviceRecord(MEAL_WORDS), [matching, setMatching] = useState<string | null>(null);
-  const entries = mealWordsFor(record.data, date, meal);
+function WordsList({date, meal, section}: {date: string; meal: MealWordsMeal; section: MealChoice}) {
+  const record = useDeviceRecord(MEAL_WORDS), [matching, setMatching] = useState<string | null>(null), x = useExtraMeals();
+  const entries = mealWordsFor(record.data, date, meal).filter(e => sectionOf(e, x) === section);
   if (!entries.length) return null;
   const remove = (entry: MealWordsEntry) => {
     try { record.update(current => removeMealWords(current, entry.id)); } catch { return; }
     showUndo({message: `Removed “${entry.words}”.`, restore: () => record.update(current => addMealWords(current, entry)), undone: 'Put back.'});
   };
-  return <ul className="meal-words-list" aria-label={`${meal} in words`}>
+  return <ul className="meal-words-list" aria-label={`${isExtraChoice(section) ? slotOf(x, section)?.name ?? meal : meal} in words`}>
     {entries.map(entry => <li className="health-entry meal-words-entry" key={entry.id}>
       <div className="health-entry-main"><strong>{entry.words}</strong><small>In words · calories unknown</small></div>
       {/* Session AV (owner follow-up 1, F-WORDS-MATCH): the words matched to foods, with no model; its chunk loads on the press. */}
@@ -79,8 +86,8 @@ function WordsList({date, meal}: {date: string; meal: MealWordsMeal}) {
   </ul>;
 }
 
-function WordsCount({date, meal}: {date: string; meal: MealWordsMeal}) {
-  const record = useDeviceRecord(MEAL_WORDS);
-  const n = mealWordsFor(record.data, date, meal).length;
+function WordsCount({date, meal, section}: {date: string; meal: MealWordsMeal; section: MealChoice}) {
+  const record = useDeviceRecord(MEAL_WORDS), x = useExtraMeals();
+  const n = mealWordsFor(record.data, date, meal).filter(e => sectionOf(e, x) === section).length;
   return n ? <small className="meal-words-count"> + {n} in words</small> : null;
 }

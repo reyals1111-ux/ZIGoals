@@ -118,3 +118,34 @@ describe('diary times and nutrient timing', () => {
     for (const q of ['what did I eat today', 'how much water did I drink', 'when should I eat', 'log 2 eggs and then remind me']) expect(zigi(q), q).toBeNull();
   });
 });
+
+describe('meals of your own (LEDGER #197)', () => {
+  const tagged = (name: string) => {
+    const s = showcaseAll(), snack = s.health!.diary.find(e => e.date === DAY && e.meal === 'Snacks') ?? s.health!.diary.find(e => e.date === DAY)!;
+    const health = {...s.health!, diary: s.health!.diary.map(e => e.id === snack.id ? {...e, meal: 'Snacks' as const} : e)};
+    const food: FoodPlus = {...emptyFoodPlus(), extraMeals: {slots: {extra1: {name, time: '15:30', kcal: 200, after: 'Lunch'}}, entries: {[snack.id]: 'extra1'}}};
+    return {s: {...s, health}, snack, food};
+  };
+  test('no meal of your own yet: where to add one, in both languages', () => {
+    expect(text(zigi('which meals of my own do I have'))).toMatch(/^You have no meals of your own yet/);
+    expect(text(nova('welke eigen maaltijden heb ik'))).toMatch(/^Je hebt nog geen eigen maaltijden/);
+  });
+  test('an extra meal by its own name: its entries and calories on the day, and that they count as Snacks', () => {
+    const {s, snack, food} = tagged('Afternoon snack');
+    const en = text(zigi('what did I have as my afternoon snack today', s, food));
+    expect(en).toMatch(/^Your meal of your own today:\n• Afternoon snack \(15:30\): /);
+    expect(en).toContain(snack.snapshot.name.slice(0, 20));
+    expect(en).toMatch(/ of 200 kcal\n/);
+    expect(en).toContain('also count as Snacks');
+    const nl = text(nova('wat at ik vandaag als middagsnack', tagged('Middagsnack').s, tagged('Middagsnack').food));
+    expect(nl).toMatch(/^Je eigen maaltijd vandaag:\n• Middagsnack \(15:30\): /);
+    expect(nl).toContain('als Tussendoor');
+    expect(text(zigi('what is in my extra meals yesterday', s, food))).toContain('• Afternoon snack (15:30): nothing logged (target 200 kcal)');
+  });
+  test('the diary times say the extra meal by name; other questions are left alone', () => {
+    const {s, snack, food} = tagged('Afternoon snack');
+    expect(text(zigi('when did I eat today', s, food))).toContain(`${snack.snapshot.name.slice(0, 20)}`);
+    expect(text(zigi('when did I eat today', s, food))).toContain('(Afternoon snack)');
+    for (const q of ['what did I eat today', 'plan my meals for tomorrow', 'should I have an afternoon snack']) expect(text(av2FoodAnswer(q, zigiEnv(s), {food})), q).not.toMatch(/meal(?:s)? of your own/);
+  });
+});

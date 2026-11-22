@@ -113,6 +113,16 @@ describe('Health (N1–N7) and the game switch', () => {
     expect(refused({kind: 'coach-answer', answer: 'adjust'})).toMatch(/No suggested target/); // no diary: the estimate is not ready
     expect(refused({kind: 'coach-answer', answer: 'keep'}, env({...stores(), health: createEmptyHealth()}))).toMatch(/two weight readings/);
   });
+  test('coach-answer follows the person’s check-in day and chosen pace, as Health → Your coach does (Session AV lane 2, LEDGER #106, #107)', () => {
+    // Wednesday 7 Oct: with the check-in on Wednesday the week starts that day, so the answer is the one the card reads.
+    const wed = ok({kind: 'coach-answer', answer: 'keep'}, env(stores(), {foodPlus: {version: 1, checkIn: {weekday: 3}}}));
+    expect((wed.device!.patch as {answer: {weekStart: string}}).answer.weekStart).toBe('2026-10-07');
+    const fri = ok({kind: 'coach-answer', answer: 'keep'}, env(stores(), {foodPlus: {version: 1, checkIn: {weekday: 5}, pace: -0.25}}));
+    expect((fri.device!.patch as {answer: {weekStart: string}}).answer.weekStart).toBe('2026-10-02');
+    // No record: Monday, as before.
+    const mon = ok({kind: 'coach-answer', answer: 'keep'}, env(stores(), {foodPlus: null}));
+    expect((mon.device!.patch as {answer: {weekStart: string}}).answer.weekStart).toBe('2026-10-05');
+  });
   test('import-recipe reads pasted text into new foods (unknown nutrition) and a recipe, reusing a food by name, with Undo', () => {
     const s = stores(); s.health = healthSchema.parse({...s.health, foods: [{id: 'health_food-0001', name: 'Olive oil', brand: '', servingGrams: 15, nutrients: {kcal: 120, proteinMg: 0, carbsMg: 0, fatMg: 14000}, createdAt: '2026-09-01T06:00:00.000Z', updatedAt: '2026-09-01T06:00:00.000Z'}]});
     const {plan, after, back} = roundTrip({kind: 'import-recipe', text: 'Fictional soup\nServes 4\nIngredients\n200 g red lentils\n2 tbsp olive oil\n1 onion'}, env(s));
