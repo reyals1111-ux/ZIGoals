@@ -159,7 +159,8 @@ export function readBear(files: readonly ZipFile[], archive = 'Bear'): {notes: F
     let text = bearTags(decode(b.text).replace(/^﻿/, '').replace(/\r\n?/g, '\n'));
     // Photos: `![…](assets/x.jpg)` (Bear also writes `[assets/x.jpg]`), each on a line of its own, up to eight.
     text = text.replace(/!\[[^\]\n]*\]\((?:\.\/)?assets\/([^)\n]+)\)|\[(?:\.\/)?assets\/([^\]\n]+)\]/g, (all, a?: string, c?: string) => {
-      const name = decodeURIComponent((a ?? c ?? '').trim()), data = b.assets.get(name), type = imageType(name);
+      // Review b4g B4G-10: a malformed % in an asset's name is read as written, never stopping the import.
+      const raw = (a ?? c ?? '').trim(), name = (() => { try { return decodeURIComponent(raw); } catch { return raw; } })(), data = b.assets.get(name), type = imageType(name);
       if (!data || !type) return `(${name.split('/').pop()}, a file from Bear, left out)`;
       if (images.length >= MAX_NOTE_PHOTOS_EACH || data.length > FOREIGN_IMAGE_MAX) return '(a photo from Bear, left out)';
       images.push({key: `imp-${images.length + 1}`, data, type});
