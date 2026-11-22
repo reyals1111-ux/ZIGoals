@@ -89,9 +89,11 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
         <input inputMode="numeric" value={dayText ?? String(amount ?? '')} aria-invalid={amountError ? true : undefined} onChange={e => { setDayText(e.target.value); setAmountError(''); }} onBlur={() => { if (dayText === null) return; const v = parseNumberInput(dayText); if (v.ok && v.value >= 0) { setDayAmounts(a => ({...a, [dayKind]: Math.round(v.value)})); setDayText(null); } else setAmountError(v.ok ? 'Enter 0 or more.' : v.error); }}/>
         {amountError && <small role="alert">{amountError}</small>}<small className="fine">{dayKind === 'caffeine' ? `Your usual caffeine day: ${dayBasis.caffeineMg ?? '—'} mg, as you typed it. Days with no drink logged, or a coffee or tea without an amount, are left out.` : `Your usual day: ${dayBasis.steps ?? '—'} steps. Days with no steps logged are left out.`}</small>
       </label>}
-      {dayKind === 'caffeine-late' && <label className="field"><span>Caffeine after</span>
-        <select value={String(amount)} onChange={e => setDayAmounts(a => ({...a, 'caffeine-late': Number(e.target.value)}))}>{[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(h => <option key={h} value={h}>{`${String(h).padStart(2, '0')}:00`}</option>)}</select>
-        <small className="fine">The time a drink was logged. Drinks logged later for an earlier day have no time and leave that day out.</small>
+      {/* Session AV lane 2 (fixb4): the hour's name is its label alone; the line under it describes it (inside the label it
+          was read as part of the name: "Caffeine after 14:00 The time a drink was logged…"). */}
+      {dayKind === 'caffeine-late' && <label className="field"><span id={`${id}-late`}>Caffeine after</span>
+        <select aria-labelledby={`${id}-late`} aria-describedby={`${id}-late-about`} value={String(amount)} onChange={e => setDayAmounts(a => ({...a, 'caffeine-late': Number(e.target.value)}))}>{[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(h => <option key={h} value={h}>{`${String(h).padStart(2, '0')}:00`}</option>)}</select>
+        <small className="fine" id={`${id}-late-about`}>The time a drink was logged. Drinks logged later for an earlier day have no time and leave that day out.</small>
       </label>}
       <label className="field"><span>…what was</span>
         <select value={outcomeId ?? ''} onChange={e => { const v = e.target.value; if (shown.some(o => o.id === v)) choose({outcome: v}); }}>
