@@ -12,6 +12,7 @@ Builder: the remainders builder, on `lane2/rest` (from `lane2/batch2`). Scope: t
 | #33 Notion version history — tasks | **built** | R2 |
 | #79 Calm Shift — the slow left-right sound | **built** | R4 |
 | #93 Cronometer nutrients | **built** for CoFID (22 further nutrients, 25 → 47); CIQUAL's further nutrients left: **needs an outside service** (its source answered 503, URL below) | R5 |
+| #98 Cronometer custom charts — more nutrients as Compare series | **built** | R6 |
 | #41 Day One, #134 YNAB, #209 Strong — the sync service side | **built** in the repository (Worker and its tests); its deploy is the owner's (OWNER_STEPS line below) | R3 |
 
 ## Answers wiring line for engine.ts (one line, before AV's own answers)
@@ -192,3 +193,24 @@ Corpus: `AV2_REST` in `lib/ai/evals/as/cases-av2-rest.ts` (add to CORPUS and exp
 - CSS: none. Nothing on Today.
 - Note for the lead: `lib/food-plus/av2-fit-plan.test.ts` ("NOVA and ZIGi say the plan in English and Dutch") fails on
   `lane2/batch2` itself, before any change here (checked by running it on the branch's own files).
+
+## R6 Every nutrient as a Compare outcome — LEDGER #98 (Cronometer)
+
+- What: Health → Insights → Compare offers, beside calories and protein, every other nutrient of the nutrient report a
+  diary day carries: carbs, fat, fibre, sugars, saturated fat, sodium, potassium, calcium, iron, the vitamins and the
+  further nutrients (R5) — as "Fiber logged (g)", "Selenium logged (µg)"… (`nutrient:<report key>`). A day counts only
+  when every entry of that day carries the nutrient (a total that leaves an entry out would read low); today is still
+  open; a day with no entry is unknown, never "without". The meaningful gap is a tenth of the nutrient's own daily
+  average. Compare's rules are otherwise its own (90 days, 14 a side, probability of superiority). Nothing is stored.
+- Files: `lib/compare/engine.ts` (`NutrientOutcomeId`, `isNutrientOutcome`, `nutrientRecords` in the sources, labels,
+  values, gap, words), `components/insights/compare/compare-explorer.tsx` (reads the vitamins and nutrient extras
+  records; already lazy).
+- Tests: `lib/compare/av2-compare-nutrients.test.ts`. Spec: `tests/av2-compare-nutrients.spec.ts`.
+- Stored change: none (a chosen outcome is kept in the existing `zigoals:compare-pair:v1` `outcome` string, within its
+  40 characters; an older build reads an id it does not know as no choice).
+- Answers: none new (Compare holds no data of its own).
+- Help (EN): **Q: Can I compare fibre, sodium or a vitamin with how I feel?** A: Yes. In Health → Insights → Compare,
+  choose a factor and, as “what was”, any nutrient your diary carries — fibre, sugars, sodium, iron, the vitamins and
+  more. A day counts only when every food you logged that day gives that nutrient.
+- What's new: "Compare: fibre, sodium, vitamins and every other nutrient as outcomes."
+- Showcase hook: none needed (the Showcase's diary offers its own nutrients automatically). CSS: none. Nothing on Today.
