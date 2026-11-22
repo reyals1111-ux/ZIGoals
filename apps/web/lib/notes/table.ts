@@ -12,6 +12,14 @@ export type NoteRow = {id: string; name: string; tags: string[]; words: number; 
 export type SortKey = 'name' | 'tags' | 'words' | 'links' | 'changed' | 'made';
 export const SORT_LABELS: Record<SortKey, string> = {name: 'Note', tags: 'Tags', words: 'Words', links: 'Links', changed: 'Changed', made: 'Made'};
 const words = (text: string) => text.split(/\s+/u).filter(w => /[\p{L}\p{N}]/u.test(w)).length;
+/**
+ * Session AV lane 2 (r4-notes; LEDGER #311, Bear's info panel): a note's words (the table's count, the Showcase label
+ * left out), its characters, and the minutes it takes to read — an estimate at 230 words a minute, at least one.
+ */
+export const countWords = (body: string) => words(body.replace(/\(SHOWCASE DATA\)/g, ''));
+export const countCharacters = (body: string) => [...body.replace(/\s*\(SHOWCASE DATA\)\s*$/, '')].length;
+export const READ_WORDS_A_MINUTE = 230;
+export const readMinutes = (words: number) => Math.max(1, Math.round(words / READ_WORDS_A_MINUTE));
 export function noteRows(notes: readonly Note[]): NoteRow[] {
   // Session AV lane 2 (r4-notes; LEDGER #306): a note's tags include the #tags written in its words.
   return notes.map(n => ({id: n.id, name: noteName(n), tags: noteTags(n), words: words(n.body.replace(/\(SHOWCASE DATA\)/g, '')), links: new Set(parseLinks(n.body).map(l => l.target.toLowerCase())).size,

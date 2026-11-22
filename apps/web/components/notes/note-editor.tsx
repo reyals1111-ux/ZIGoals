@@ -15,7 +15,8 @@ import type {LinkIndex} from '../../lib/notes/links';
 import {deleteNotePhoto, getNotePhoto} from '../../lib/notes/photos';
 import {keepCapturePhoto} from '../../lib/notes/capture';
 import {photoScope} from '../../lib/health-aa/photos';
-import {formatDate} from '../../lib/visual-format';
+import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
+import {countCharacters, countWords, readMinutes} from '../../lib/notes/table';
 
 const NoteBacklinks = lazy(() => import('./note-backlinks'));
 // Session AV lane 2 (LEDGER #31): the "@remind" lines of this note, in their own chunk.
@@ -94,6 +95,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {note && printing && <LoadBoundary quiet><Suspense fallback={null}><NotePrint note={note} heading={heading || noteName(note)} index={index} onDone={donePrinting}/></Suspense></LoadBoundary>}
     </>}
     {note && <NoteExtras note={note} change={change} onDeleted={onDeleted} onPlace={mode === 'edit' ? placePhoto : undefined}/>}
+    {note && note.body.trim() && mode === 'read' && <NoteInfo note={note}/>}
     {note && record && <details className="note-fold note-props-fold" onToggle={e => setPropsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Properties <span className="fine">· {note.props?.length ? note.props.slice(0, 3).map(p => `${p.k}: ${p.t === 'tick' ? (p.v ? 'yes' : 'no') : String(p.v)}`).join(', ') : 'your own fields, such as a status or a day'}</span></summary>
       {propsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteProps note={note} record={record} change={change}/></Suspense></LoadBoundary>}
     </details>}
@@ -157,4 +159,20 @@ function NotePhotoUnder({id, name}: {id: string; name: string}) {
   if (url === undefined) return null;
   // eslint-disable-next-line @next/next/no-img-element -- a local blob of the person's own photo: next/image has nothing to optimise
   return url ? <img className="note-photo" src={url} alt={`Your photo with “${name}”`}/> : <p className="fine">The photo is not in this browser (photos stay on the device where they were taken).</p>;
+}
+/**
+ * Session AV lane 2 (r4-notes; LEDGER #311, Bear's info panel): the open note's words, characters, minutes to read (an
+ * estimate) and when it was made and last changed. Derived each time; nothing stored.
+ */
+function NoteInfo({note}: {note: Note}) {
+  const w = countWords(note.body), c = countCharacters(note.body), stamp = (iso: string) => formatDateTime(iso);
+  return <details className="note-fold note-info-fold"><summary>Note info <span className="fine">· {formatNumber(w)} {w === 1 ? 'word' : 'words'}</span></summary>
+    <dl className="note-info">
+      <div><dt>Words</dt><dd>{formatNumber(w)}</dd></div>
+      <div><dt>Characters</dt><dd>{formatNumber(c)}</dd></div>
+      <div><dt>Reading time</dt><dd>About {readMinutes(w)} {readMinutes(w) === 1 ? 'minute' : 'minutes'} <span className="fine">(an estimate at 230 words a minute)</span></dd></div>
+      <div><dt>Made</dt><dd>{stamp(note.createdAt)}</dd></div>
+      <div><dt>Last changed</dt><dd>{note.updatedAt ? stamp(note.updatedAt) : 'Not changed since it was made'}</dd></div>
+    </dl>
+  </details>;
 }

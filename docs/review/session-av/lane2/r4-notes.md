@@ -86,3 +86,18 @@ before (an archived note in its list; only the first photo).
 - What's new: "Notes: up to eight photos in a note, each placed in the words."
 - Showcase: none (Showcase notes keep no photos; the Showcase keeps no photos on purpose).
 - CSS touched: `components/notes/notes.css`. Today: nothing added.
+
+### F3 Note info — LEDGER #311 (Bear)
+
+- Verdict: **built**.
+- What: an open note with words shows "Note info · 500 words" (a fold, closed) while reading: its words (the table's
+  count, shared), characters, reading time ("About 2 minutes (an estimate at 230 words a minute)"), when it was made
+  and when it was last changed, in the app's date and time format. Derived each time; nothing stored.
+- Files: `lib/notes/table.ts` (`countWords`, `countCharacters`, `readMinutes`), `components/notes/note-editor.tsx`,
+  `components/notes/notes.css`.
+- Tests: `lib/notes/r4-info.test.ts`. Spec: `tests/av2-notes-info.spec.ts`.
+- Stored: nothing.
+- Help (EN). Q: "How long is a note?" A: "Open it and choose Note info: its words, characters, about how many minutes it
+  takes to read (an estimate at 230 words a minute), and when it was made and last changed."
+- What's new: "Notes: Note info — words, characters, reading time and dates."
+- Showcase: none needed (every Showcase note shows it). CSS touched: `components/notes/notes.css`. Today: nothing added.
