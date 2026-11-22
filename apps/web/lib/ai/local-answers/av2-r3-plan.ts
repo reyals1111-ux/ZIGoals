@@ -118,4 +118,24 @@ function dayEnergyAnswer(a: Ask): LocalReply | null {
   return answer(say(a.lang, `Today's tasks come to about ${e.total} of your ${e.amount}: ${words}.${left}`, `De taken van vandaag komen op ongeveer ${e.total} van je ${e.amount}: ${words}.${left}`), TASK_CALLS);
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow, dayEnergyAnswer];
+/**
+ * "what did I note in my focus sessions", "wat heb ik genoteerd in mijn focussessies" (LEDGER #260): the latest notes kept
+ * with focus sessions, newest first, with their day and the task they were for.
+ */
+function focusNotes(a: Ask): LocalReply | null {
+  const en = /\bnotes?\b.*\bfocus\b|\bfocus\b.*\bnotes?\b|\bnoted?\b.*\b(?:pomodoro|focus)/.test(a.f);
+  const nl = /\b(?:notitie|notities|genoteerd|opgeschreven)\b.*\bfocus|\bfocus\w*\b.*\b(?:notitie|notities|genoteerd)\b|\bpomodoro\b.*\b(?:notitie|notities|genoteerd)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'today', 'focus_sessions'); if (shut) return shut;
+  const focus = a.env.nova?.focus, calls = [{tool: 'focus_sessions', args: {}, label: 'Focus sessions'}];
+  if (focus === undefined) return null;
+  if (!focus) return answer(say(a.lang, 'Your focus sessions can’t be read on this device right now, so I can’t say.', 'Je focussessies kunnen nu niet gelezen worden op dit apparaat, dus dat kan ik niet zeggen.'), calls);
+  const noted = focus.sessions.filter(s => s.note?.trim()).sort((x, y) => y.endedAt.localeCompare(x.endedAt));
+  if (!noted.length) return answer(say(a.lang, 'No focus session has a note yet. While a Pomodoro runs, write in “Notes for this session”: it is kept with the session, and at the end you can add it to the task’s notes.',
+    'Nog geen focussessie heeft een notitie. Schrijf tijdens een Pomodoro in “Notes for this session”: dat blijft bij de sessie, en aan het eind kun je het bij de notities van de taak zetten.'), calls);
+  const titleOf = (id?: string) => id ? a.env.nova?.tasks?.tasks.find(t => t.id === id)?.title : undefined;
+  const lines = noted.slice(0, 5).map(s => { const t = titleOf(s.taskId); return `• ${dayIn(a.lang, s.day, a.today)}${t ? ` · ${clean(t, 60)}` : ''}: ${clean(s.note!.replace(/\s+/g, ' '), 140)}`; });
+  return answer([say(a.lang, `${count(noted.length, 'en', ['focus session has', 'focus sessions have'], ['', ''])} a note; the latest:`, `${count(noted.length, 'nl', ['', ''], ['focussessie heeft', 'focussessies hebben'])} een notitie; de laatste:`), ...lines].join('\n'), calls);
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow, dayEnergyAnswer, focusNotes];

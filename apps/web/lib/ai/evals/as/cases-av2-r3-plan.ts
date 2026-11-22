@@ -10,4 +10,5 @@ export const AV2_R3_PLAN: readonly Intent[] = [
   {id: 'av2r3-task-symbols', pillar: 'tasks', en: ['which tasks have a symbol', 'what icons do my tasks have'], nl: ['welke taken hebben een symbool', 'welke iconen hebben mijn taken']},
   {id: 'av2r3-timeline-tomorrow', pillar: 'agenda', en: ['what is on my timeline tomorrow', 'what is planned for tomorrow on my timeline'], nl: ['wat staat er morgen op mijn tijdlijn', 'wat is er gepland voor morgen op mijn tijdlijn']},
   {id: 'av2r3-day-energy', pillar: 'tasks', en: ['how much energy does my day take', 'is there room for more energy in my tasks today'], nl: ['hoeveel energie kost mijn dag', 'hoeveel energie vragen mijn taken vandaag']},
+  {id: 'av2r3-focus-notes', pillar: 'focus', en: ['what did I note in my focus sessions', 'show my focus session notes'], nl: ['wat heb ik genoteerd in mijn focussessies', 'toon mijn notities van focussessies']},
 ];

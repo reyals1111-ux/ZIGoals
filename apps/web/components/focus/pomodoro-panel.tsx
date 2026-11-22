@@ -5,7 +5,13 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {startSoundscape} from '../music/soundscape-start';
 import {FOCUS_SESSIONS} from '../../lib/focus-sessions/schema';
 import {POMODORO_DEFAULTS, cleanSettings, phaseShare, runMinutes, secondsLeft} from '../../lib/focus-sessions/pomodoro';
-import {dismissPomodoroResult, skipPomodoroBreak, startPomodoro, stopPomodoro, undoPomodoroTick} from '../../lib/focus-sessions/pomodoro-run';
+import {dismissPomodoroResult, keepPomodoroNote, setPomodoroNote, skipPomodoroBreak, startPomodoro, stopPomodoro, undoPomodoroTick} from '../../lib/focus-sessions/pomodoro-run';
+import {appendTaskNote, restoreTaskNotes} from '../../lib/focus-sessions/notes';
+import {FOCUS_NOTE_MAX} from '../../lib/focus-sessions/schema';
+import {readDeviceRecord, updateDeviceRecord} from '../../lib/device-record';
+import {getAppStorage} from '../../lib/showcase-storage';
+import {TASKS} from '../../lib/tasks/schema';
+import {showStatus} from '../ui/undo-toast';
 import {formatMinutes} from '../../lib/zone-time';
 import {formatNumber} from '../../lib/visual-format';
 import {PHASE_WORDS, clockOf, usePomodoro} from './use-pomodoro';
@@ -49,6 +55,17 @@ export function PomodoroPanel({task, goalId, onClose, heading = 'h3'}: {task?: {
   // The choice to tick is remembered with the lengths when the run starts (lib/focus-sessions/pomodoro-run.ts).
   const tickOnEnd = (r: {taskId?: string}) => !!r.taskId && !!saved?.tickTask;
   const finalBreak = !!run && !!phase && phase.kind === 'long-break' && phase.block === run.settings.cycles;
+  // Session AV lane 2 (r3-plan, LEDGER #260; Structured): the run's note goes under the task's own notes on the person's tap.
+  const [noteAdded, setNoteAdded] = useState('');
+  const addNote = (taskId: string, title: string, note: string) => {
+    const storage = getAppStorage();
+    try {
+      const before = readDeviceRecord(storage, TASKS).data.tasks.find(t => t.id === taskId)?.notes;
+      updateDeviceRecord(storage, TASKS, r => appendTaskNote(r, taskId, note));
+      setNoteAdded(last?.runId ?? 'x');
+      showUndo({message: `The note is under “${title}”’s notes.`, undone: `“${title}”’s notes are as they were.`, restore: () => { updateDeviceRecord(storage, TASKS, r => restoreTaskNotes(r, taskId, before)); setNoteAdded(''); }});
+    } catch (e) { showStatus(e instanceof Error ? e.message : 'The note could not be added on this device.', {tone: 'error'}); }
+  };
   return <section className="pomodoro" aria-labelledby={`${id}-t`} data-phase={phase?.kind ?? (last ? 'finished' : 'idle')}>
     <H id={`${id}-t`} className="pomodoro-title">Pomodoro{run?.taskTitle ? <small> · {run.taskTitle}</small> : !run && task ? <small> · {task.title}</small> : null}</H>
     {run && phase ? <>
@@ -72,10 +89,15 @@ export function PomodoroPanel({task, goalId, onClose, heading = 'h3'}: {task?: {
           : phase.kind !== 'work' && <button type="button" className="secondary" onClick={skipPomodoroBreak}>Skip the break</button>}
         <button type="button" className="secondary" onClick={stopPomodoro}>End the run</button>
       </div>
+      <label className="field pomodoro-note"><span>Notes for this session</span>
+        <textarea dir="auto" rows={3} maxLength={FOCUS_NOTE_MAX} value={snap.note ?? ''} placeholder="A thought, a next step, something to come back to" aria-describedby={`${id}-note`} onChange={e => setPomodoroNote(e.target.value)} onBlur={keepPomodoroNote} />
+        <small id={`${id}-note`} className="fine">Kept with this session in your garden{run.taskTitle ? `; at the end you can add it to “${run.taskTitle}”’s notes` : ''}.</small></label>
       {(run.grown + run.withered > 0) && <p className="fine">So far: {plural(run.grown, 'block')} grown{run.withered ? `, ${formatNumber(run.withered)} withered (kept)` : ''}.</p>}
     </> : last ? <div className="pomodoro-result" role="status">
       <p>{last.endedEarly ? 'Run ended.' : 'Run finished.'} {last.grown + last.withered === 0 ? (last.endedEarly ? 'No block reached a minute, so no focus time was kept.' : 'No block was kept.') : <>{plural(last.grown, 'block')} grown{last.withered ? `, ${formatNumber(last.withered)} withered and kept (the time you did focus counts)` : ''}, in your garden.</>}</p>
       {last.ticked && last.taskTitle && <p>Marked “{last.taskTitle}” done. Undo is in the message at the bottom of the screen.</p>}
+      {last.note && <div className="pomodoro-note-kept"><p className="fine">{last.noteKept ? 'Your note is kept with this session:' : 'No block reached a minute, so your note was not kept with a session:'}</p><p className="pomodoro-note-text" dir="auto">{last.note}</p>
+        {last.taskId && last.taskTitle && (noteAdded === last.runId ? <p className="fine">Added to “{last.taskTitle}”’s notes.</p> : <button type="button" className="secondary" onClick={() => addNote(last.taskId!, last.taskTitle!, last.note!)}>Add the note to “{last.taskTitle}”’s notes</button>)}</div>}
       {!last.ticked && last.taskTitle && last.endedEarly && <p className="fine">“{last.taskTitle}” stays open: a run ended early does not mark it done.</p>}
       <div className="pomodoro-actions"><button type="button" className="secondary" onClick={dismissPomodoroResult}>Start another</button>{onClose && <button type="button" className="quiet" onClick={() => { dismissPomodoroResult(); onClose(); }}>Close</button>}</div>
     </div> : <>

@@ -145,3 +145,24 @@ there is room for more. It is never a warning; a restful task gives a little bac
 What's new: "Tasks: energy per task and a calm day total."
 Showcase: none (pinned counts). Today (dashboard): nothing new. Weight: Tasks first chunk gains the row's chip (a few bytes);
 the line and its sleep read are their own chunk inside Plan my day.
+
+## Feature 5 — Notes during a focus session (LEDGER #260, Structured) — built
+
+- The Pomodoro (Tasks' Focus, Journey's Focus Sessions, wherever the panel opens): while a run goes on, "Notes for this
+  session". The note is kept with the run's latest saved block in `zigoals:focus-sessions:v1` (as blocks finish, when the
+  box is left, and at the end; one note per run). The result shows it ("Your note is kept with this session"; a run that
+  ended before a minute says it was not kept), and for a run started from a task offers "Add the note to “…”’s notes" — on
+  the person's tap, under the task's notes with a blank line, with Undo.
+- The task timer (a task's editor, "Start a timer"): "Note while timing", kept with the running timer on this device; after
+  Stop, "Add the timer’s note to the notes" puts it in the editor's Notes field (Save keeps it).
+Files: lib/focus-sessions/{notes.ts, pomodoro-run.ts, schema.ts}, lib/tasks/plan-record.ts (timer note helpers),
+components/focus/{pomodoro-panel.tsx, focus.css}, components/tasks/{task-timer.tsx, task-editor.tsx, tasks-r3.css}.
+Tests: lib/focus-sessions/r3-notes.test.ts. Spec: tests/av2-focus-notes.spec.ts.
+Stored: `note` on a focus session; `note` on a running timer (TIER 3 commit).
+Answers: "what did I note in my focus sessions" / "wat heb ik genoteerd in mijn focussessies".
+Help: Q "Can I take notes during a focus session?" A "Yes. While a Pomodoro runs, write in “Notes for this session”. The note
+is kept with the session; when the run ends you can add it to the task's own notes with one tap. A task's timer has a note
+box too."
+What's new: "Focus: notes during a session, added to the task when you like."
+Showcase: none. Today: nothing. Weight: the panel and the timer are lazy chunks already.
+CSS: components/focus/focus.css (five lines), components/tasks/tasks-r3.css.

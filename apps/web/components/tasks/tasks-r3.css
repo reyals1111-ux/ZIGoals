@@ -23,3 +23,4 @@
 .agenda-day-tools-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; margin: 8px 0; }
 .agenda-day-tools-row .field { flex: 0 1 200px; min-width: 0; }
 .agenda-day-tools button { min-height: 44px; }
+.task-timer-note-add button { min-height: 44px; }

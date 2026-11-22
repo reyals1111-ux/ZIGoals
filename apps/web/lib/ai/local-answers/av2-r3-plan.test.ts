@@ -63,3 +63,12 @@ describe('the day’s energy (LEDGER #259)', () => {
     expect(text(av2R3PlanAnswer('how much energy does my day take', zigiEnv(freshAll())))).toMatch(/^No task of today has an energy yet\./);
   });
 });
+describe('notes kept with focus sessions (LEDGER #260)', () => {
+  test('the latest notes with their day and task; none teaches where', () => {
+    const s = withTasks(r => addTask(r, {title: 'Fictional report'}, {id: 'fn1', at, today: DAY}), freshAll());
+    s.nova = {...s.nova, focus: {version: 1, sessions: [{id: 'focus_fictional-1', startedAt: `${DAY}T09:00:00.000Z`, endedAt: `${DAY}T09:25:00.000Z`, day: DAY, plannedMinutes: 25, focusedSeconds: 1500, awaySeconds: 0, outcome: 'grown', taskId: 'fn1', note: 'Ask Noor about the figures'}]}};
+    expect(text(av2R3PlanAnswer('what did I note in my focus sessions', zigiEnv(s)))).toMatch(/^1 focus session has a note; the latest:\n• .+ · Fictional report: Ask Noor about the figures$/);
+    expect(text(av2R3PlanAnswer('wat heb ik genoteerd in mijn focussessies', zigiEnv(s)))).toMatch(/^1 focussessie heeft een notitie; de laatste:\n• .+ · Fictional report: Ask Noor/);
+    expect(text(av2R3PlanAnswer('what did I note in my focus sessions', zigiEnv(freshAll())))).toMatch(/^No focus session has a note yet\./);
+  });
+});
