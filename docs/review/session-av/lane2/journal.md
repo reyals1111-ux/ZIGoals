@@ -3,6 +3,31 @@
 Builder: the Journal-and-notes builder. Scope: LEDGER group 7 (Day One: #32, #35, #38, #39, #40, #42, #43, #44), #33
 (version history, journal and notes parts), the notes parts of #29 and #30, then q4's open Journal Minors.
 
+## Summary
+
+| LEDGER row | verdict | feature |
+|---|---|---|
+| #32 Notion Repeating database templates | built | F7 |
+| #33 Notion Version history | built for journal entries (F4) and notes (F8); the task part is the Tasks builder's | F4, F8 |
+| #35 Day One Rich journal entries | built (photo, [[link]]) | F5 |
+| #38 Day One Prompt Packs | built | F3 |
+| #39 Day One Templates (save an entry as a template; QUALITY.md "Not fixed") | built | F4 |
+| #40 Day One Journaling reminders and streaks | built | F1 |
+| #42 Day One Audio recorder (Watch: native-only) | built; Watch Carried: native-only | F5 |
+| #43 Day One Journal Collections, Themes and search | built | F2 |
+| #44 Day One Imports and integrations | built; Strava, Zapier, IFTTT Carried: needs an outside service | F6 |
+| #29 Notion Database views — notes part (a table or gallery of notes) | built; tasks part the Tasks builder's | F9 |
+| #30 Notion Chart view — notes part (notes per tag) | built; tasks part the Tasks builder's | F9 |
+| #176 Fabulous Daily affirmations (N4) | built | F11 |
+| #177 Daylio PDF export — Journal section (N4) | built | F10 |
+| #31 Notion reminder inside a note | not mine (group 1, the Tasks builder) | — |
+
+q4's Journal Minors (`docs/review/session-av/quality/q4.md`), re-checked in the code at this branch: #4 summary marker,
+#5 tag focus and suggestions, #33 count answer, #34 That day marker and one row, #45 picker language, #45 edit, #45
+answers, F-PROMPT margin and answer — all fixed earlier (`6b194efb`, `4606305e`, `b67d1614`); #45's remaining "templates
+hold body text and tags, can be the default, can be saved from an entry" and QUALITY.md "Not fixed" "save this entry as
+a template" are built here (F4). No journal Minor is left open.
+
 ## For the lead, before merging (shared files this branch does not edit)
 
 1. **A new IndexedDB database `zigoals-journal-media-v1`** (`apps/web/lib/journal/media.ts`; journal photos and audio
@@ -16,6 +41,19 @@ Builder: the Journal-and-notes builder. Scope: LEDGER group 7 (Day One: #32, #35
      Today and Life, device only, not in Export everything (as the notes' photos).
 2. No new localStorage key: every other new field lives in the existing `zigoals:journal:v1` and `zigoals:notes:v1`
    records (restored with "Today and Life").
+
+3. New specs for the shard lists (none run here): `tests/av2-journal-reminder.spec.ts`, `av2-journal-books.spec.ts`,
+   `av2-journal-packs.spec.ts`, `av2-journal-versions.spec.ts`, `av2-journal-media.spec.ts` (Chromium only),
+   `av2-journal-import.spec.ts`, `av2-notes-repeating.spec.ts`, `av2-notes-versions.spec.ts`, `av2-notes-views.spec.ts`,
+   `av2-journal-report.spec.ts`, `av2-journal-affirmation.spec.ts`.
+4. The answers: `lib/ai/local-answers/av2-journal.ts` (`av2JournalAnswer`) and `lib/ai/evals/as/cases-av2-journal.ts`
+   (`AV2_JOURNAL`, 20 intents, EN and NL) — wiring line under "Engine wiring" below.
+5. Help and What's new: each feature's Q+A and label are below (for `help-page.tsx`).
+6. Route weight: every new part is a lazy chunk (folds, More, media, files, report journal, affirmation, notes views);
+   the first chunks gained only the fold markup, small pure helpers (books, search, reminder, entry-links, schedules)
+   and state. Not measured here (no build on this machine): please check `/app/journal` and `/app/notes`.
+7. TIER 3 commits on this branch: `673180c6` (stored formats: fields and the media database), `4c9b3aee` (PWA: the
+   `journal` notification kind), `3f0fc85d` (stored formats: `affirmations`).
 
 ## Stored changes (TIER 3 stored formats; all additive, optional, `.catch(undefined)` or item-filtered, loose objects)
 
