@@ -20,6 +20,8 @@ function exact(text: string, find: string, matchCase: boolean): number[] {
   for (let at = 0; at + find.length <= text.length && out.length < MAX_MATCHES; at++) if (fold(text.slice(at, at + find.length), matchCase) === needle) { out.push(at); at += find.length - 1; }
   return out;
 }
+/** Review b4g B4G-8: the index of the first match at or after `at` (the first match when none is). */
+export const nextAfter = (matches: readonly number[], at: number): number => { const i = matches.findIndex(m => m >= at); return i < 0 ? 0 : i; };
 export const replaceOne = (text: string, at: number, length: number, by: string) => `${text.slice(0, at)}${by}${text.slice(at + length)}`;
 export function replaceAll(text: string, find: string, by: string, matchCase = false): string {
   const hits = findMatches(text, find, matchCase);
