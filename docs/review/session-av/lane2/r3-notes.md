@@ -25,6 +25,8 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #278 Stoic Dream journal from the sleep log | built; Stoic's insomnia lessons Carried: needs content made for ZIGoals | F8 |
 | #279 Stoic A letter to open later | built | F9 |
 | #270 Obsidian Bases: your own properties, table and board | built (as the row names it) | F10 |
+| #273 Obsidian Canvas | built (kept in the notes record, not a new key) | F11 |
+| #274 Obsidian Diagrams from text (Mermaid) | Carried: a new dependency (the Mermaid package) | — |
 
 ## Features
 
@@ -291,3 +293,38 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 - Showcase: `lib/notes/showcase.ts` gives "Japan trip ideas" Status: Planning and Budget: 2400, and "Books to read"
   Status: Reading (no count changes; no note's words change).
 - CSS touched: `components/notes/notes.css`. Today: nothing added.
+
+### F11 Canvas: note cards, text cards and photos joined by labelled lines — LEDGER #273 (Obsidian)
+
+- Verdict: **built**.
+- Baseline: Notes gains a seventh view tab, "Canvas" (between Graph and Files); nothing protected by docs/STATUS.md
+  "Current accepted baseline" (PR #22's list) or the brief's protected areas is in Notes, and nothing of them changes.
+- What: Notes → Canvas. Make up to ten boards (name, rename, delete with Undo). Add text cards, note cards (a link to
+  the note and its first words), photos (kept on this device in the notes' photo store, like a note's photo) and named
+  groups (drawn behind; a card whose centre is inside one is "in" it). A card is placed in a free spot on a 10-point
+  grid; drag it by its handle (touch and mouse, pointer capture), or focus it and use the arrow keys (Shift: 50 points);
+  Delete removes it (and its lines) with Undo. The chosen card's panel: Left / Right / Up / Down, Bigger / Smaller, its
+  words or group name, a colour (the six JSON Canvas presets, named), "Join to" another card with an optional line
+  label, Remove. Lines are drawn as arrows on an SVG under the cards with their labels; "Lines on this board" lists
+  every line in words, each with Label and Remove (Undo). Each card's accessible name says what it is, its group and how
+  many lines it has. Export .canvas saves the board in the open JSON Canvas format (jsoncanvas.org, MIT): text, file and
+  group nodes, edges with labels; a note card names the note's file in the notes' Markdown export, a photo
+  `attachments/<id>.webp` — a ZIP with the photos when the board has any. Import a .canvas file reads it as a new board
+  without running anything (a note found by its file name; a photo, link or other file said in words). The notes'
+  Markdown ZIP (Notes → Files) also holds each board as `Canvas/<name>.canvas`. No motion.
+- Stored: kept in the notes record as `canvases` (TIER 3 commit `7e1bfce4`), not as a new device record as the LEDGER
+  row first said: so Export everything, the backup, Restore (Replace and Merge) and Erase carry the boards with the notes
+  with nothing new to register (round trip in `lib/notes/r3-stored.test.ts`). Caps: 10 boards, 200 cards and 400 lines
+  each, 200,000 characters of card text in all. The notes' photo sweep now counts a board's photos as named
+  (`notes-workspace.tsx`), so a photo on a board is never swept.
+- Files: `lib/notes/canvas.ts`, `lib/notes/schema.ts`, `lib/notes/markdown.ts`, `components/notes/notes-canvas.tsx` +
+  `notes-canvas.css` (lazy), `components/notes/notes-workspace.tsx`.
+- Tests: `lib/notes/r3-canvas.test.ts`. Spec: `tests/av2-notes-canvas.spec.ts`.
+- Help (EN). Q: "What is the Canvas in Notes?" A: "A board where you place cards by hand: your notes, a few words or a
+  photo. Gather them in named groups and join two cards with a line, with a label if you like. Drag a card by its
+  handle, or focus it and use the arrow keys. Export .canvas makes a file Obsidian and other apps open; Import reads one
+  back. Everything stays on this device."
+- What's new: "Notes: a canvas — note cards, text and photos placed by hand, in groups, joined by labelled lines."
+- Showcase: none (a Showcase board would add a Showcase record field that no pinned count covers; left out to keep the
+  Showcase notes record as other tests read it — the lead may add one in `lib/notes/showcase.ts`).
+- CSS touched: new `components/notes/notes-canvas.css` (imported by its lazy chunk only). Today: nothing added.

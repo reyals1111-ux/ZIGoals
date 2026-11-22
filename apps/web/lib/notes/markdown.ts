@@ -3,6 +3,7 @@ import {linkIndex, linkKey, outgoing, type LinkSources} from './links';
 import {MAX_BODY, MAX_TAG, MAX_TAGS, MAX_TITLE, NOTE_KINDS, noteName, type Note, type NoteKind, type Notes} from './schema';
 import {checked, newNoteId, type NotesUndo} from './store';
 import {propsFromFrontMatter, propsFrontMatter} from './props';
+import {toJsonCanvas} from './canvas';
 
 /**
  * Session AK (B5): notes as Markdown files, the way Obsidian keeps them — one .md per note with YAML front-matter,
@@ -109,6 +110,14 @@ export function notesExportEntries(record: Notes, sources: Omit<LinkSources, 'no
     if (usedStub.has(path.toLowerCase())) continue;
     usedStub.add(path.toLowerCase());
     entries.push({name: path, data: `---\ntitle: ${quoted(s.name)}\nzigoals-stub: ${s.kind}\n---\n\nA ${s.kind} in ZIGoals. Its progress stays in the app; notes that link here are about it.\n`, modified: now});
+  }
+  // Session AV lane 2 (r3-notes; LEDGER #273): each board as a .canvas file (JSON Canvas) naming these notes' files.
+  const usedCanvas = new Set<string>();
+  for (const c of record.canvases ?? []) {
+    let name = `Canvas/${safeFileBase(c.name)}.canvas`, i = 2;
+    while (usedCanvas.has(name.toLowerCase())) name = `Canvas/${safeFileBase(c.name)} ${i++}.canvas`;
+    usedCanvas.add(name.toLowerCase());
+    entries.push({name, data: JSON.stringify(toJsonCanvas(c, paths), null, 2), modified: now});
   }
   return entries;
 }

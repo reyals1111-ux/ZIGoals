@@ -36,6 +36,8 @@ const DailyTemplate = lazy(() => import('./daily-template'));
 const NotesViews = lazy(() => import('./notes-views'));
 // Session AV lane 2 (r3-notes; LEDGER #264): the open tick boxes of every note, loaded when the fold opens.
 const NotesTicks = lazy(() => import('./notes-ticks'));
+// Session AV lane 2 (r3-notes; LEDGER #273, Obsidian's Canvas): boards of cards placed by hand, loaded when Canvas opens.
+const NotesCanvas = lazy(() => import('./notes-canvas'));
 const LAYOUTS = [['list', 'List'], ['table', 'Table'], ['gallery', 'Gallery'], ['board', 'Board'], ['chart', 'Chart']] as const; // Session AV lane 2 (r3-notes; LEDGER #270): Board
 type Layout = (typeof LAYOUTS)[number][0];
 
@@ -46,7 +48,7 @@ type Layout = (typeof LAYOUTS)[number][0];
  * ?capture=1), so the palette, Quick add, NOVA and the PWA shortcut can open any of it. Every change says what happened;
  * delete and file have Undo.
  */
-const VIEWS = [['today', 'Today'], ['inbox', 'Inbox'], ['notes', 'Notes'], ['days', 'Days'], ['graph', 'Graph'], ['files', 'Files']] as const;
+const VIEWS = [['today', 'Today'], ['inbox', 'Inbox'], ['notes', 'Notes'], ['days', 'Days'], ['graph', 'Graph'], ['canvas', 'Canvas'], ['files', 'Files']] as const; // Session AV lane 2 (r3-notes; LEDGER #273): Canvas
 type View = (typeof VIEWS)[number][0];
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 export default function NotesWorkspace({showcase = false}: {showcase?: boolean}) {
@@ -75,7 +77,8 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
   // Z1B-7, AL Part 14: a Restore of an older copy, then its Undo, must find today's photos still here).
   useEffect(() => {
     if (!notes.loaded || notes.unreadable) return;
-    const named = record.notes.map(n => n.photoId);
+    // Session AV lane 2 (r3-notes; LEDGER #273): the photos on a board are named too, so the sweep keeps them.
+    const named = [...record.notes.map(n => n.photoId), ...(record.canvases ?? []).flatMap(c => c.nodes.map(n => n.photo))];
     void sweepNotePhotos(photoScope(), named).catch(() => undefined);
     // Only on arrival: a photo deleted with its note during this visit can still come back with Undo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -174,6 +177,11 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
     {!noteId && view === 'graph' && <section className="panel" aria-labelledby="note-graph-title">
       <h2 id="note-graph-title">Graph</h2>
       <LoadBoundary label="The graph"><Suspense fallback={<p className="fine">Drawing your notes…</p>}><GraphView notes={record.notes} index={index}/></Suspense></LoadBoundary>
+    </section>}
+
+    {!noteId && view === 'canvas' && <section className="panel" aria-labelledby="note-canvas-title">
+      <h2 id="note-canvas-title">Canvas</h2>
+      <LoadBoundary label="The canvas"><Suspense fallback={<p className="fine">Opening your boards…</p>}><NotesCanvas record={record} change={change}/></Suspense></LoadBoundary>
     </section>}
 
     {!noteId && view === 'files' && <section className="panel" aria-labelledby="note-files-title">
