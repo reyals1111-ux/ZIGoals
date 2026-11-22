@@ -19,7 +19,9 @@ export default function TaskAttachments({taskId, taskTitle, liveTaskIds}: {taskI
   const [confirming, setConfirming] = useState<string | null>(null), [recording, setRecording] = useState(false), [seconds, setSeconds] = useState(0);
   const photoInput = useRef<HTMLInputElement>(null), photoButton = useRef<HTMLButtonElement>(null), recordButton = useRef<HTMLButtonElement>(null), stopButton = useRef<HTMLButtonElement>(null);
   const recorder = useRef<MediaRecorder | null>(null), stream = useRef<MediaStream | null>(null), chunks = useRef<Blob[]>([]), started = useRef(0), timers = useRef<number[]>([]), keepIt = useRef(true);
-  const [canRecord] = useState(() => typeof window !== 'undefined' && typeof MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia && !!voiceRecorderType(t => MediaRecorder.isTypeSupported(t)));
+  // Read after mount, so a server render and the first client render agree.
+  const [canRecord, setCanRecord] = useState(false);
+  useEffect(() => { const can = typeof MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia && !!voiceRecorderType(t => MediaRecorder.isTypeSupported(t)); queueMicrotask(() => setCanRecord(can)); }, []);
   const refresh = useCallback(() => { void taskAttachmentsFor(photoScope(), taskId).then(setKept, () => { setKept([]); setNote('This browser cannot keep photos or voice notes here.'); }); }, [taskId]);
   const liveKey = liveTaskIds?.join(',');
   useEffect(() => {
