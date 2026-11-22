@@ -1,7 +1,8 @@
 'use client';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import type {HealthTargets} from '../../../lib/health';
 import {DEVICE_RECORD_EVENT, FOOD_PLUS_STORAGE_KEY, coachPrefsOf, dayTargets, sugarAlcoholsOf, weekdayTargetsOf, type CoachPrefs, type WeekdayTargets} from '../../../lib/food-plus/day-target';
+import {extraMealsOf, type ExtraMeals} from '../../../lib/food-plus/extra-meals-lite';
 import {getAppStorage} from '../../../lib/showcase-storage';
 
 /**
@@ -36,3 +37,5 @@ function useFoodPlusText(): string | null {
 }
 /** Session AV lane 2 (food, LEDGER #106, #107): the coach's choices (check-in day, partly logged days, pace). */
 export function useCoachPrefs(): CoachPrefs { return coachPrefsOf(useFoodPlusText()); }
+/** Session AV lane 2 (food, LEDGER #197): the person's extra diary meals and which entries are in them (none until read). */
+export function useExtraMeals(): ExtraMeals { const raw = useFoodPlusText(); return useMemo(() => extraMealsOf(raw), [raw]); }

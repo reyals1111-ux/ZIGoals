@@ -1,7 +1,7 @@
 "use client";
 import { removedItems, reinsertItems } from "../../lib/undo-removal";
 import { announceHealthRemoval, measuresOfPaths } from "../../lib/health-events";
-import { showUndo } from "../ui/undo-toast";
+import { showStatus, showUndo } from "../ui/undo-toast";
 import { ProgressSlot } from "../progress/slot";
 import { HealthTrends } from "../bottom-health-trends";
 import { useHealthToday } from "./use-health-today";
@@ -62,7 +62,7 @@ import { tabKeys } from "../ui/tab-keys";
 import { Checked, FeedbackSlot, HealthFieldProvider, useHealthFieldChecks } from "./health-field";
 import type { HealthCheck } from "../../lib/health-field-rules";
 import {
-  HEALTH_MEALS,foodSnapshot,recipeSnapshot,formatServingMeasure,formatNutrient,nutritionSummaryText, dailyHealthSummary, editDiaryEntry, formatHealthGrams,
+  foodSnapshot,recipeSnapshot,formatServingMeasure,formatNutrient,nutritionSummaryText, dailyHealthSummary, editDiaryEntry, formatHealthGrams,
   logHealthItem, newHealthId, parseHealthNumber, quickLogFood, recipeNutrition,
   removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, scaleNutrition,
   searchFoods, setHealthTargets, weightTrend, healthSchema, type HealthData, type HealthDiaryEntry,
@@ -120,7 +120,10 @@ import { HideFiguresToggle } from "../hide-figures";
 import { LoadBoundary } from "../load-boundary";
 import {Skeleton} from "../ui/skeleton";
 import {SlowReload} from "./slow-reload";
-import {useDayTargets} from "./food-plus/use-day-targets";
+import {useDayTargets, useExtraMeals} from "./food-plus/use-day-targets";
+import { defaultChoice, diarySections, isExtraChoice, sectionOf, slotOf, storedMealOf, type MealChoice } from "../../lib/food-plus/extra-meals-lite";
+import { wallClock } from "../../lib/zone-time";
+import { addLocalDays } from "../../lib/local-date";
 import {sugarAlcoholMg} from "../../lib/food-plus/day-target";
 // CI13 (weights): the Weight view's file import and the Insights view's week digest load with their views.
 const WeightCsvImport = lazy(() => import("./weight-csv-import").then((m) => ({ default: m.WeightCsvImport })));
@@ -196,10 +199,24 @@ function NumberField({ label, name, value, onChange, step = "1", required = true
   const auto = useId(), id = given ?? `hf${auto.replace(/[^a-zA-Z0-9]/g, "")}`;
   return <Checked of={id}><label className="field"><span>{label}</span><input id={id} type="text" inputMode={step === "1" ? "numeric" : "decimal"} autoComplete="off" name={name} value={value} onChange={onChange ? e => onChange(e.target.value) : undefined} required={required} data-check={check} data-unit={unit} /></label></Checked>;
 }
-function MealField({ name = "meal", value, onChange }: { name?: string; value?: string; onChange?: (value: HealthDiaryEntry["meal"]) => void }) {
+function MealField({ name = "meal", value, onChange }: { name?: string; value?: MealChoice; onChange?: (value: MealChoice) => void }) {
   // Session AL third pass (GAP-045): the option's value stays the stored meal; its words are your name for it.
-  const { extras } = useHealthExtras();
-  return <label className="field"><span>Meal</span><select aria-label="Meal" name={name} value={value} onChange={onChange ? e => onChange(e.target.value as HealthDiaryEntry["meal"]) : undefined}>{HEALTH_MEALS.map(meal => <option key={meal} value={meal}>{mealHeading(extras, meal)}</option>)}</select></label>;
+  // Session AV lane 2 (food, LEDGER #197): the person's extra meals too, each after the meal it follows (stored as Snacks).
+  const { extras } = useHealthExtras(), x = useExtraMeals();
+  const shown = value !== undefined && isExtraChoice(value) && !slotOf(x, value) ? "Snacks" : value;
+  return <label className="field"><span>Meal</span><select aria-label="Meal" name={name} value={shown} onChange={onChange ? e => onChange(e.target.value as MealChoice) : undefined}>{diarySections(x).map(choice => { const slot = isExtraChoice(choice) ? slotOf(x, choice) : null; return <option key={choice} value={choice}>{slot ? (slot.time ? `${slot.name} · ${slot.time}` : slot.name) : mealHeading(extras, storedMealOf(choice))}</option>; })}</select></label>;
+}
+/**
+ * Session AV lane 2 (food, LEDGER #197): an entry logged to an extra meal is an ordinary Snacks entry; this device keeps
+ * which extra meal it is in (`zigoals:food-plus:v1` extraMeals). Loaded on use, so the record's schema stays out of
+ * Health's first chunk. A choice of one of the four meals takes the entry out of any extra meal.
+ */
+function keepExtraMeal(ids: string[], choice: MealChoice) {
+  void import("../../lib/food-plus/extra-meals").then(m => { if (!m.writeExtraTags(r => m.tagEntries(r, ids, isExtraChoice(choice) ? choice : null))) showStatus("Kept in Snacks: this device did not keep the extra meal.", { tone: "error" }); }).catch(() => undefined);
+}
+/** After "Repeat yesterday" or "Copy yesterday's snacks": each copy of an entry in an extra meal is in that meal again. */
+function carryExtraMeals(before: HealthData, after: HealthData, date: string) {
+  void import("../../lib/food-plus/extra-meals").then(m => { m.writeExtraTags(r => m.tagEach(r, m.carriedTags(before, after, addLocalDays(date, -1), date, r.extraMeals?.entries ?? {}))); }).catch(() => undefined);
 }
 function NutrientLine({ nutrients, quick = false }: { nutrients: Nutrition; quick?: boolean }) {
   // Session AV (q3 #18): with no protein, carbs or fat given (a quick add), one plain line, never "P Unknown g" three times.
@@ -478,16 +495,17 @@ function HealthSummary({ data, date, today, onTargets, onDiary, compact = false,
 
 function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, phone, error, logging, setLogging }: { data: HealthData; date: string; today: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void; onLibrary: () => void; phone: boolean; error: string; logging: boolean; setLogging: (open: boolean) => void }) {
   const [editing, setEditing] = useState<string | null>(null);
-  const [savingMeal, setSavingMeal] = useState<HealthDiaryEntry["meal"] | null>(null);
+  const [savingMeal, setSavingMeal] = useState<MealChoice | null>(null);
   const [source, setSource] = useState("");
   const [servings, setServings] = useState("1");
   // Session AL (A10-2): until a meal is chosen, the form follows the time of day (and your usual meal times).
-  const [chosenMeal, setMeal] = useState<HealthDiaryEntry["meal"] | null>(null);
+  const [chosenMeal, setMeal] = useState<MealChoice | null>(null);
   const [entryUnit, setEntryUnit] = useState("servings");
   const [mealCheck, setMealCheck] = useState<{ key: string; text: string } | null>(null);
   const logOperation = useRef<string | null>(null);
-  const mealExtras = useHealthExtras();
-  const meal = chosenMeal ?? (() => { try { return defaultMeal(new Date(), healthZone(dailyData(data).preferences.timezone), mealExtras.extras); } catch { return "Breakfast" as const; } })();
+  const mealExtras = useHealthExtras(), x = useExtraMeals();
+  // Session AV lane 2 (food, LEDGER #197): an extra meal with its own usual time is the start when it is nearer now.
+  const meal: MealChoice = chosenMeal ?? (() => { try { const now = new Date(), zone = healthZone(dailyData(data).preferences.timezone), base = defaultMeal(now, zone, mealExtras.extras); return defaultChoice(base, mealTime(mealExtras.extras, base), wallClock(now.getTime(), zone).minutes, x); } catch { return "Breakfast" as const; } })();
   const sourceItems = [...data.foods.map(f => ({ ...f, kind: "food" as const })), ...data.recipes.map(r => ({ ...r, kind: "recipe" as const }))];
   const selected = data.foods.find(s=>s.id===source)??data.recipes.find(s=>s.id===source);
   let preview: Nutrition | null = null;
@@ -505,8 +523,8 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
       if (check && mealCheck?.key !== key) { setMealCheck({ key, text: check }); return; }
       setMealCheck(null);
       logOperation.current ??= newHealthId();
-      const draft = { id: logOperation.current, sourceId: selected.id, sourceKind: "ingredients" in selected ? "recipe" as const : "food" as const, date, meal, quantityMilli };
-      void perform(latest => logHealthItem(latest, draft, new Date().toISOString()), "Meal logged.", () => { setServings(entryUnit !== "servings" ? "" : "1"); logOperation.current = null; setLogging(false); zigiSignals.emitValidated('health_log_recorded'); });
+      const draft = { id: logOperation.current, sourceId: selected.id, sourceKind: "ingredients" in selected ? "recipe" as const : "food" as const, date, meal: storedMealOf(meal), quantityMilli };
+      void perform(latest => logHealthItem(latest, draft, new Date().toISOString()), "Meal logged.", () => { if (isExtraChoice(meal)) keepExtraMeal([draft.id], meal); setServings(entryUnit !== "servings" ? "" : "1"); logOperation.current = null; setLogging(false); zigiSignals.emitValidated('health_log_recorded'); });
     } catch (cause) { invalid(cause); }
   };
   const quickPicks = sourceItems.length > 0 && <HealthQuickPicks data={data} perform={perform} onChoose={(id, quantity, usualMeal) => { setSource(id); setServings(String(quantity / 1000)); setEntryUnit("servings"); if (usualMeal) setMeal(usualMeal); logOperation.current = null; }} />;
@@ -519,32 +537,38 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
   // phone) and the symptom tracker with the day's mood (folded on a phone), so neither lengthens the phone's Diary.
   const copyMeal = <LazyFold summary="Copy a meal to another day or meal">{() => <HealthPlus part="copy" data={data} date={date} today={today} perform={perform} />}</LazyFold>;
   const symptoms = <LazyFold summary="Symptoms and factors (optional)">{() => <HealthPlus part="symptoms" date={date} today={today} />}</LazyFold>;
-  return <div className="health-diary-layout"><div className="health-meals">{dailyData(data).plans.some(p => p.date === date && !p.loggedAt) && <LoadBoundary quiet><Suspense fallback={null}><FoodPlus part="day-plans" data={data} date={date} perform={perform} /></Suspense></LoadBoundary>}<RepeatDay data={data} date={date} today={today} perform={perform} />{HEALTH_MEALS.map(mealName => {
-    const entries = data.diary.filter(e => e.date === date && e.meal === mealName);
+  // Session AV lane 2 (food, LEDGER #197): a copy of yesterday keeps each entry's extra meal; "Log to …" starts the form there.
+  const carryPerform: Perform = (updater, message, after) => { const seen: { pair?: [HealthData, HealthData] } = {}; return perform(latest => { const next = updater(latest); seen.pair = [latest, next]; return next; }, message, () => { after?.(); if (seen.pair) carryExtraMeals(seen.pair[0], seen.pair[1], date); }); };
+  const logTo = (choice: MealChoice) => { setMeal(choice); if (phone) setLogging(true); else requestAnimationFrame(() => { const panel = document.getElementById("health-entry-action"); panel?.scrollIntoView?.({ block: "nearest" }); panel?.querySelector<HTMLElement>("#health-log-source, input")?.focus(); }); };
+  return <div className="health-diary-layout"><div className="health-meals">{dailyData(data).plans.some(p => p.date === date && !p.loggedAt) && <LoadBoundary quiet><Suspense fallback={null}><FoodPlus part="day-plans" data={data} date={date} perform={perform} /></Suspense></LoadBoundary>}<RepeatDay data={data} date={date} today={today} perform={carryPerform} />{diarySections(x).map(section => {
+    // Session AV lane 2 (food, LEDGER #197): an extra meal is its own section (its entries are Snacks entries it holds).
+    const slot = isExtraChoice(section) ? slotOf(x, section) : null, mealName = storedMealOf(section);
+    const entries = data.diary.filter(e => e.date === date && e.meal === mealName && sectionOf(e, x) === section);
     const mealSummary=dailyHealthSummary({...data,diary:entries},date);
     // Session AL third pass (GAP-045, C-MO-03): your own name and time for the meal, when you gave one (this device).
-    const shownName = mealLabel(mealExtras.extras, mealName), shownTime = mealTime(mealExtras.extras, mealName);
-    return <section className="panel health-meal" id={`diary-${mealName.toLowerCase()}`} aria-label={`${shownName} diary`} key={mealName}><div className="health-section-heading"><h2>{shownName}{shownTime && <small className="health-meal-time"> · {shownTime}</small>}</h2><span>{entries.length ? <span data-body-figure="">{nutritionSummaryText(mealSummary,"kcal","kcal")}</span> : <><span aria-hidden="true">—</span><span className="sr-only">No entry</span></>}{/* Session AL fourth pass (C-DVG-38): your own target for this meal */}{mealKcalTarget(mealExtras.extras, mealName) !== null && <small className="health-meal-target"> of {formatNumber(mealKcalTarget(mealExtras.extras, mealName)!)} kcal</small>}<Words part="count" date={date} meal={mealName} /></span><StarToggle item={{kind:"health",input:"meal",meal:mealName}} label={mealName==="Snacks"?"Log a snack":`Log ${mealName.toLowerCase()}`}/><PinToToday label={`${mealName} today`} menuName={date === today ? `${mealName} today` : `${mealName} on ${formatDate(date)}`} choices={[{kind:'meal',entity:mealName,metric:'kcal',label:`${mealName} today calories`},{kind:'meal',entity:mealName,metric:'macros',label:`${mealName} today macros`}]} extra={entries.length > 0 ? <button type="button" onClick={() => setSavingMeal(mealName)}>Save this meal</button> : undefined}/></div>{/* Session AV lane 2 (food; q3 #3): "Save this meal" from the meal's ⋯ menu */}{savingMeal === mealName && entries.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><FoodPlus part="save-meal" data={data} date={date} meal={mealName} label={shownName} dayWords={formatDate(date)} perform={perform} onClose={() => { setSavingMeal(null); document.querySelector<HTMLElement>(`#diary-${mealName.toLowerCase()} .health-section-heading .card-options-trigger`)?.focus(); }} /></Suspense></LoadBoundary>}{entries.length === 0 ? <p className="health-empty-inline">Nothing logged yet.</p> : entries.map(entry => <SwipeRow key={entry.id} className="health-entry" id={`entry-${entry.id}`} label={entry.snapshot.name} actions={[{label: "Edit", run: () => setEditing(editing === entry.id ? null : entry.id)}, {label: "Remove", danger: true, run: () => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}]}>
+    const shownName = slot ? slot.name : mealLabel(mealExtras.extras, mealName), shownTime = slot ? slot.time : mealTime(mealExtras.extras, mealName), kcalTarget = slot ? slot.kcal : mealKcalTarget(mealExtras.extras, mealName);
+    const sectionId = slot ? `diary-${section}` : `diary-${mealName.toLowerCase()}`, shownIds = slot || (mealName === "Snacks" && x.slots.length > 0) ? entries.map(e => e.id) : undefined;
+    return <section className="panel health-meal" id={sectionId} aria-label={`${shownName} diary`} key={section} data-extra-meal={slot ? section : undefined}><div className="health-section-heading"><h2>{shownName}{shownTime && <small className="health-meal-time"> · {shownTime}</small>}</h2><span>{entries.length ? <span data-body-figure="">{nutritionSummaryText(mealSummary,"kcal","kcal")}</span> : <><span aria-hidden="true">—</span><span className="sr-only">No entry</span></>}{/* Session AL fourth pass (C-DVG-38): your own target for this meal */}{kcalTarget !== null && <small className="health-meal-target"> of {formatNumber(kcalTarget)} kcal</small>}<Words part="count" date={date} meal={mealName} section={section} /></span>{slot ? entries.length > 0 && <button type="button" className="quiet health-extra-save" onClick={() => setSavingMeal(section)}>Save this meal</button> : <><StarToggle item={{kind:"health",input:"meal",meal:mealName}} label={mealName==="Snacks"?"Log a snack":`Log ${mealName.toLowerCase()}`}/><PinToToday label={`${mealName} today`} menuName={date === today ? `${mealName} today` : `${mealName} on ${formatDate(date)}`} choices={[{kind:'meal',entity:mealName,metric:'kcal',label:`${mealName} today calories`},{kind:'meal',entity:mealName,metric:'macros',label:`${mealName} today macros`}]} extra={entries.length > 0 ? <button type="button" onClick={() => setSavingMeal(mealName)}>Save this meal</button> : undefined}/></>}</div>{/* Session AV lane 2 (food; q3 #3): "Save this meal" from the meal's ⋯ menu */}{savingMeal === section && entries.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><FoodPlus part="save-meal" data={data} date={date} meal={mealName} entryIds={shownIds} label={shownName} dayWords={formatDate(date)} perform={perform} onClose={() => { setSavingMeal(null); document.querySelector<HTMLElement>(slot ? `#${sectionId} .health-extra-save` : `#${sectionId} .health-section-heading .card-options-trigger`)?.focus(); }} /></Suspense></LoadBoundary>}{entries.length === 0 ? (slot ? <div className="health-empty-inline health-extra-empty"><p>Nothing logged yet. Choose {slot.name} as the meal when you log, or start here.</p><button type="button" className="secondary" onClick={() => logTo(section)}>Log to {slot.name}</button></div> : <p className="health-empty-inline">Nothing logged yet.</p>) : entries.map(entry => <SwipeRow key={entry.id} className="health-entry" id={`entry-${entry.id}`} label={entry.snapshot.name} actions={[{label: "Edit", run: () => setEditing(editing === entry.id ? null : entry.id)}, {label: "Remove", danger: true, run: () => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}]}>
       <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{/* Session AV (q3 #18): a quick add (no measure, no macros) reads "Quick add", not "1 serving · Serving measure unknown" */ entry.snapshot.servingGrams===null&&entry.snapshot.servingMl===undefined&&entry.quantityMilli===1000&&(isQuickAdd(entry.sourceId)||(entry.snapshot.nutrients.proteinMg===null&&entry.snapshot.nutrients.carbsMg===null&&entry.snapshot.nutrients.fatMg===null))?(entry.snapshot.nutrients.proteinMg===null&&entry.snapshot.nutrients.carbsMg===null&&entry.snapshot.nutrients.fatMg===null?"Calories only":"Quick add"):<>{formatHealthGrams(entry.quantityMilli)}{` ${plural(entry.quantityMilli / 1000, "serving")} · `}{formatServingMeasure(entry.snapshot,entry.quantityMilli)}</>}{entry.snapshot.recipeVersion?` · Recipe version ${entry.snapshot.recipeVersion}`:""}<span data-food-time={entry.id} />{/* Session AV lane 2 (food, LEDGER #101): the eaten-at time, filled by FoodPlus "times" */}</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} quick={isQuickAdd(entry.sourceId)} /></div><div className="health-row-actions" style={{marginLeft:"auto"}}><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button><PinToToday label={`${entry.snapshot.name} diary entry`} choices={[{kind:'food-entry',entity:entry.id,metric:'kcal',label:`${entry.snapshot.name} calories`},{kind:'food-entry',entity:entry.id,metric:'macros',label:`${entry.snapshot.name} macros`}]}/></div>
-      {editing === entry.id && <DiaryEditor entry={entry} today={today} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
-    </SwipeRow>)}<Words part="list" date={date} meal={mealName} />{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}<MealQuick data={data} date={date} today={today} meal={mealName} perform={perform} /></section>;
-  })}<LoadBoundary quiet><Suspense fallback={null}><FoodPlus part="times" data={data} date={date} /><FoodPlus part="challenge-line" data={data} today={today} /><FoodPlus part="partial" date={date} hasEntries={data.diary.some(e => e.date === date)} /></Suspense></LoadBoundary><MealNamesEditor /></div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{phone ? <><button type="button" className="primary phone-form-trigger" onClick={() => setLogging(true)}>Log a meal</button>{logging && <PhoneFormSheet title="Log a meal" onClose={() => setLogging(false)}>{mealForm}{error && <p className="health-error" role="alert" id="health-page-error">{error}</p>}{quickPicks}{copyMeal}</PhoneFormSheet>}</> : <>{logForm}{copyMeal}</>}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /><MoodChip date={date} today={today}>{symptoms}</MoodChip></aside></div>;
+      {editing === entry.id && <DiaryEditor entry={entry} choice={section} today={today} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
+    </SwipeRow>)}<Words part="list" date={date} meal={mealName} section={section} />{entries.length>0&&<AdditionalNutrition entries={entries} label={`${slot ? slot.name : mealName} nutrient totals`}/>}{!slot && <MealQuick data={data} date={date} today={today} meal={mealName} perform={carryPerform} />}</section>;
+  })}<LoadBoundary quiet><Suspense fallback={null}><FoodPlus part="times" data={data} date={date} /><FoodPlus part="challenge-line" data={data} today={today} /><FoodPlus part="partial" date={date} hasEntries={data.diary.some(e => e.date === date)} /></Suspense></LoadBoundary><MealNamesEditor><LoadBoundary quiet><Suspense fallback={<p className="fine" role="status">Opening your extra meals…</p>}><FoodPlus part="extra-meal-names" /></Suspense></LoadBoundary></MealNamesEditor></div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{phone ? <><button type="button" className="primary phone-form-trigger" onClick={() => setLogging(true)}>Log a meal</button>{logging && <PhoneFormSheet title="Log a meal" onClose={() => setLogging(false)}>{mealForm}{error && <p className="health-error" role="alert" id="health-page-error">{error}</p>}{quickPicks}{copyMeal}</PhoneFormSheet>}</> : <>{logForm}{copyMeal}</>}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /><MoodChip date={date} today={today}>{symptoms}</MoodChip></aside></div>;
 }
 
 /** Session AH (C11, BUG-066): log a food that is not in the library yet: a name, its calories and one serving's size. */
-function JustCalories({ date, meal, perform, invalid }: { date: string; meal: HealthDiaryEntry["meal"]; perform: Perform; invalid: (cause?: unknown) => void }) {
+function JustCalories({ date, meal, perform, invalid }: { date: string; meal: MealChoice; perform: Perform; invalid: (cause?: unknown) => void }) {
   const [open, setOpen] = useState(false);
   return <details className="health-quick-add health-quick-kcal" onToggle={e => setOpen(e.currentTarget.open)}><summary>Just the calories</summary>
     {open && <LoadBoundary quiet><Suspense fallback={<p className="fine" role="status">Opening…</p>}><QuickCalories date={date} meal={meal} perform={perform} invalid={invalid} mealField={(value, onChange) => <MealField name="quick-kcal-meal" value={value} onChange={onChange} />} /></Suspense></LoadBoundary>}
   </details>;
 }
 
-function QuickAddFood({ date, meal: initialMeal, perform, invalid, words = true }: { date: string; meal: HealthDiaryEntry["meal"]; perform: Perform; invalid: (cause?: unknown) => void; words?: boolean }) {
+function QuickAddFood({ date, meal: initialMeal, perform, invalid, words = true }: { date: string; meal: MealChoice; perform: Perform; invalid: (cause?: unknown) => void; words?: boolean }) {
   const [name, setName] = useState("");
   const [kcal, setKcal] = useState("");
   const [size, setSize] = useState("");
   const [unit, setUnit] = useState<"g" | "ml">("g");
-  const [chosenMeal, setMeal] = useState<HealthDiaryEntry["meal"] | null>(null);
+  const [chosenMeal, setMeal] = useState<MealChoice | null>(null);
   const meal = chosenMeal ?? initialMeal;
   const [macros, setMacros] = useState({ proteinMg: "", carbsMg: "", fatMg: "" });
   const ids = useRef<{ foodId: string; logId: string } | null>(null);
@@ -554,20 +578,20 @@ function QuickAddFood({ date, meal: initialMeal, perform, invalid, words = true 
     const amount = parseHealthNumber(size, 1, 1, 100_000);
     within(foodIssue(nutrients, unit === "g" ? amount : null));
     ids.current ??= { foodId: newHealthId(), logId: newHealthId() };
-    const quick = { ...ids.current, name: healthName(name), servingGrams: unit === "g" ? amount : null, ...(unit === "ml" ? { servingMl: amount } : {}), nutrients, date, meal };
-    void perform(latest => quickLogFood(latest, quick, new Date().toISOString()), `${quick.name} logged and saved to your library.`, reset);
+    const quick = { ...ids.current, name: healthName(name), servingGrams: unit === "g" ? amount : null, ...(unit === "ml" ? { servingMl: amount } : {}), nutrients, date, meal: storedMealOf(meal) };
+    void perform(latest => quickLogFood(latest, quick, new Date().toISOString()), `${quick.name} logged and saved to your library.`, () => { if (isExtraChoice(meal)) keepExtraMeal([quick.logId], meal); reset(); });
   } catch (cause) { invalid(cause); } }}>
     <div className="health-form-grid"><Checked of="health-quick-name"><label className="field"><span>Food name</span><input id="health-quick-name" required data-check="name" value={name} onChange={e => { setName(e.target.value); ids.current = null; }} /></label></Checked><NumberField label="Calories (kcal)" check="kcal" value={kcal} onChange={v => { setKcal(v); ids.current = null; }} /><NumberField label={unit === "g" ? "Portion weight (g)" : "Portion volume (mL)"} check="portion" unit={unit} value={size} onChange={v => { setSize(v); ids.current = null; }} /><label className="field"><span>Portion unit</span><select value={unit} onChange={e => { setUnit(e.target.value as "g" | "ml"); ids.current = null; }}><option value="g">Grams</option><option value="ml">Millilitres</option></select></label><MealField value={meal} onChange={setMeal} />{(["proteinMg", "carbsMg", "fatMg"] as const).map(key => <NumberField key={key} required={false} check="macro" step="0.001" label={`${{ proteinMg: "Protein", carbsMg: "Carbs", fatMg: "Fat" }[key]} (g, optional)`} value={macros[key]} onChange={v => { setMacros(old => ({ ...old, [key]: v })); ids.current = null; }} />)}</div>
     <button className="secondary" type="submit">Log and save food</button><p className="fine">Logging for {formatDate(date)}. The food is saved to your library as one portion, so you can pick it again. Blank values stay unknown, never zero.</p>
   </FormBox></details>;
 }
 
-function DiaryEditor({ entry, today, perform, invalid, close }: { entry: HealthDiaryEntry; today: string; perform: Perform; invalid: (cause?: unknown) => void; close: () => void }) {
+function DiaryEditor({ entry, choice, today, perform, invalid, close }: { entry: HealthDiaryEntry; choice: MealChoice; today: string; perform: Perform; invalid: (cause?: unknown) => void; close: () => void }) {
   const [quantity, setQuantity] = useState(String(entry.quantityMilli / 1000));
   const [date, setDate] = useState(entry.date);
-  const [meal, setMeal] = useState(entry.meal);
+  const [meal, setMeal] = useState<MealChoice>(choice);
   // Session AL (P-MO-53, MO-010/MO-110): an entry moves only to a day the diary can open (1990 to today).
-  return <FormBox title="Edit diary entry" onSubmit={e => { e.preventDefault(); try { const dayIssue = diaryDayIssue(date, today); if (dayIssue) throw Error(dayIssue); const quantityMilli = parseHealthNumber(quantity, 1000, 1, 1_000_000); void perform(latest => editDiaryEntry(latest, entry.id, { date, meal, quantityMilli }, new Date().toISOString()), "Diary entry updated.", close); } catch (cause) { invalid(cause); } }}>
+  return <FormBox title="Edit diary entry" onSubmit={e => { e.preventDefault(); try { const dayIssue = diaryDayIssue(date, today); if (dayIssue) throw Error(dayIssue); const quantityMilli = parseHealthNumber(quantity, 1000, 1, 1_000_000); void perform(latest => editDiaryEntry(latest, entry.id, { date, meal: storedMealOf(meal), quantityMilli }, new Date().toISOString()), "Diary entry updated.", () => { if (meal !== choice) keepExtraMeal([entry.id], meal); close(); }); } catch (cause) { invalid(cause); } }}>
     <div className="health-form-grid"><label className="field"><span>Entry date</span><input id="health-entry-date" type="date" required min={JOURNAL_MIN_DAY} max={today} value={date} onChange={e => setDate(e.target.value)} /></label><MealField value={meal} onChange={setMeal} /><NumberField label="Servings" value={quantity} onChange={setQuantity} step="0.001" /></div><p className="fine">Corrections use the nutrition originally saved with this entry.</p><div className="actions"><button className="primary" type="submit">Save entry</button><button className="quiet" type="button" onClick={close}>Cancel</button></div>
   </FormBox>;
 }

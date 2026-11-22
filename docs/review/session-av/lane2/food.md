@@ -427,16 +427,74 @@ DISHES/ARTICLE, `components/health/daily-tools.tsx` "fresh", `components/health/
 - Showcase: none (off by default; the Showcase rows stay as other specs read them).
 - Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: nothing.
 
+## F15 — Meals of your own: two extra diary meals (N7) — second builder, branch `lane2/food2`
+
+- LEDGER rows: **#197** Lose It! Meal names, snacks and meal targets (N7) — built (a fifth and sixth diary meal, named by
+  the person, each with a usual time, a calorie target and the meal it shows after).
+- What it does: Health → Diary → "Name your meals and set their times" gains "Meals of your own (up to two)": Extra meal
+  1 and 2, each a name (placeholder "Afternoon snack" / "Late snack"; blank for none), a usual time, a calorie target and
+  "shows after" (Breakfast, Lunch, Dinner or Snacks, by the person's own meal names). Saving one adds its Diary section
+  right after that meal ("Afternoon snack · 15:30", its kcal "of 200 kcal"), with a teaching empty state ("Nothing logged
+  yet. Choose Afternoon snack as the meal when you log, or start here." and "Log to Afternoon snack", which opens the
+  form on that meal, in the sheet on a phone). Every meal choice (Log a meal, Just the calories, Quick add a food, an
+  entry's Edit) offers the extra meals in Diary order; an extra meal with a usual time is the form's starting meal when
+  it is nearer now than the usual one. An entry's Edit moves it in or out. "Repeat yesterday" and "Copy yesterday's
+  snacks" keep each copy in its extra meal (paired in order, same food and amount only). "Save this meal" saves the
+  entries the section shows (an extra meal's own button in its heading; Snacks without its extra meals). "Take … off"
+  removes the meal: its entries show in Snacks again, and come back when it is named again. NOVA/ZIGi: the diary times
+  answer names the extra meal.
+- Stored model: the strict diary keeps its four meals (`diarySchema.meal` unchanged): an entry in an extra meal is an
+  ordinary **Snacks** entry, so every total, Today, the answers, other devices and older builds count it there. The
+  extra meal is this device's tag: `zigoals:food-plus:v1` `extraMeals` (`slots`: `extra1`/`extra2` → name, time, kcal,
+  after; `entries`: entry id → slot). A tag counts only while its slot has a name.
+- Files: `lib/food-plus/extra-meals-lite.ts` (schema-free reader for Health's first chunk: sections, the section of an
+  entry, the default choice), `lib/food-plus/extra-meals.ts` (writes: `setExtraSlot`, `tagEntries`, `tagEach`,
+  `writeExtraTags`, `carriedTags`, `saveMealFromEntries`), `components/health/food-plus/extra-meals.tsx` (part
+  `extra-meal-names`), `components/health/food-plus/use-day-targets.ts` (`useExtraMeals`),
+  `components/health/health-app.tsx` (MealField, DiaryView sections, the log forms, DiaryEditor, `keepExtraMeal` and
+  `carryExtraMeals` as lazy imports), `components/health/meal-names.tsx` (children once open; one sentence more),
+  `components/health/quick-calories.tsx`, `components/health/food-plus/save-meal.tsx` (`entryIds`),
+  `components/health/food-plus/food-plus.tsx`, `components/health/meal-words.tsx`, `components/health/words-match.tsx`,
+  `components/health/plus/meal-copy.tsx`, `lib/ai/local-answers/av2-food.ts`, `lib/av2-food-keys.ts` (the catalog label
+  names extra meals).
+- Also built: "Just describe it" (meal words) offers the extra meals (the words entry stays a Snacks words entry in its
+  strict four-meal record; the extra meal is a `words_…` tag in the same `extraMeals.entries`), its list and "+ N in
+  words" show in the right section, and "Find these foods" logs the matched foods into the same extra meal. "Copy a meal
+  to another day or meal" lists every Diary section (copySection: only the entries that section shows; Snacks and an
+  extra meal on the same day may copy into each other); without extra meals it is exactly as before.
+- By design (not part of Lose It!'s feature, said for the lead): an extra meal's section has no "Pin to Today" and no
+  Checklist star; its food counts in the Snacks pin and star. A Today pin naming an extra meal is **against a named rule**
+  (stored data additive only; readers of releases #37–#57 must keep working): the pin's `entity` is checked against the
+  four meals (`lib/dashboard-settings.ts:46`), so an older build would refuse the whole dashboard record.
+- Tests: `lib/food-plus/av2-extra-meals.test.ts` (schema tolerance, export → erase → restore, naming rules, the light
+  reader, sections, tags, copies carried, Save this meal from a section, the default choice, Copy a meal between sections),
+  `lib/ai/local-answers/av2-food.test.ts` (EN + NL, no meal yet / by name / yesterday / diary times by name / left
+  alone). Spec: `tests/av2-extra-meals.spec.ts` (3 themes at 390 + 1440; keyboard; axe; 320 px; the meal choice order;
+  words to an extra meal).
+- Stored changes: TIER 3 stored formats commit `d4a4efae` (`extraMeals` part of `zigoals:food-plus:v1`). The strict
+  Health journal is unchanged.
+- Help (EN). Q: "Can I add a meal of my own, like an afternoon snack?" A: "Yes, up to two. In Health → Diary, open Name
+  your meals and set their times, and under Meals of your own give one a name, and if you like a usual time, a calorie
+  target and the meal it comes after. It gets its own place in the Diary and in the meal choice. Its food also counts
+  as Snacks, so your totals stay the same everywhere. Clear the name, or press Take it off, to remove it: its entries go
+  back to Snacks."
+- What's new: "Meals of your own: up to two extra meals in your Diary, such as an afternoon snack."
+- Answers: intent `av2-food-extra-meals` (`lib/ai/evals/as/cases-av2-food.ts`, now 16 intents; EN "which meals of my
+  own do I have", "what is in my extra meals today"; NL "welke eigen maaltijden heb ik", "wat zit er vandaag in mijn
+  extra maaltijden"); a meal's own name works too ("what did I have as my afternoon snack"). Same wiring as F2.
+- Showcase: none (a seeded extra meal would move a Showcase snack out of the Snacks section other specs read, and the
+  Diary's phone length).
+- Device keys / catalogue / export / erase: none new (the F2 key; its catalog label now says "extra meals").
+- CSS touched: `components/health/food-plus/food-plus.css`, `components/health/health-aa.css` (`.health-extra-save`,
+  `.health-extra-empty`).
+- Weight: Health's first chunk gains the schema-free reader `lib/food-plus/extra-meals-lite.ts` and a few lines in
+  health-app; the editor, the writes and the copy pairing load on use. Please measure `/app/health`.
+- Always visible on Today: nothing.
+
 ## Left, and the next row
 
-- **#197** Lose It! Meal names, snacks and meal targets (N7) — **not built yet; it is the next row.** Plan for a fresh
-  builder: the strict `diarySchema.meal` enum stays (an older build must not refuse a new meal, and a new field on the
-  strict entry would be refused too), so a fifth and sixth meal ("Afternoon snack", "Late meal") are a tag kept beside
-  the entry in `zigoals:food-plus:v1` (a new optional part, e.g. `extraMeals: {entryId: 'afternoon' | 'late'}`, TIER 3
-  stored formats in its own commit), with the entry stored as `Snacks`; the Diary shows the two extra sections (and their
-  names, times and kcal targets in "Name your meals"), the Log-a-meal meal choice offers them, every total keeps counting
-  them in Snacks for older readers. Files to touch: `components/health/health-app.tsx` DiaryView and MealField,
-  `components/health/meal-names.tsx`, `lib/health-extras.ts` (names/times for the two, loose), lib/food-plus.
+- **#197** — built in F15 (second builder). A Today pin for an extra meal is not offered (against a named rule, stored
+  data additive only; see F15).
 - Carried parts, each with its cause (named in its feature above): #84 branded foods (outside service); #89 grocery
   delivery (outside service); #93 the ~45 nutrients not in the shipped tables (outside service: the source datasets
   must be downloaded again); #95 sharing recipes (against a named rule: nothing shared between people); #103 reading
@@ -449,23 +507,23 @@ DISHES/ARTICLE, `components/health/daily-tools.tsx` "fresh", `components/health/
   (`lib/ai/local-answers/av2-food.ts`; in node pass `{}`). It reads `zigoals:food-plus:v1` and `zigoals:health-extras:v1`.
   Suggested order: before `avAnswer` is safe (every pattern is specific; tests check that task reminders, budget
   targets, Goals, "plan my day" and "what did I eat today" are left alone).
-- **Corpus**: add `AV2_FOOD` (`lib/ai/evals/as/cases-av2-food.ts`, 15 intents, EN + NL) to `CORPUS` in `cases.ts` and
+- **Corpus**: add `AV2_FOOD` (`lib/ai/evals/as/cases-av2-food.ts`, 16 intents with F15's `av2-food-extra-meals`, EN + NL) to `CORPUS` in `cases.ts` and
   record `expected.json`.
 - **Registries** (`lib/av2-food-keys.ts`): personal key, export (`foodPlus`), catalog (Health), restore (`dev('foodPlus',
   …, FOOD_PLUS, true)` with Health), erase; the IndexedDB database `zigoals-food-photos-v1` in the erased databases,
   `exportFoodPhotoEntries(scope)` in Export everything (`food-photos/…`), `deleteAllFoodPhotos('showcase')` in
   `clearShowcasePhotos`.
-- **Help and What's new** (`help-page.tsx`, `lib/search/static.ts`): one Q+A set and one label per feature above (F1–F14).
+- **Help and What's new** (`help-page.tsx`, `lib/search/static.ts`): one Q+A set and one label per feature above (F1–F15).
 - **Theme sheets**: CSS touched — `components/health/food-plus/food-plus.css` (new), `components/health/health-aa.css`,
   `components/report/report.css`.
 - **CI shards**: the new specs `tests/av2-*.spec.ts` (14 files: quick-macros, diary-times, weekday-targets, meal-mic,
   oracle, logging-challenge, coach-checkin, pack-photos, recipe-import-library, recipe-book, fit-plan,
-  compare-report, food-minors, food-marks).
+  compare-report, food-minors, food-marks; and from the second builder: extra-meals).
 - **Deliberate test changes** (labelled in the files, as strict): `lib/server/recipe-import.test.ts` (the exact object
   carries `instructions`), `lib/clinician-report/build.test.ts` (the fixture gains a diary entry), `tests/av-report-more.spec.ts`
   (nine section boxes).
 - **TIER 3 commits**: stored formats `69db6bb3` (the key), `1bdf0099` (`pace`), `e5c2a049` (`steps`), `a60b8521` (the photo
-  database), `da5125a6` (`marks`); PWA `ae356287` (meal reminders in the plan and `public/sw.js`).
+  database), `da5125a6` (`marks`), `d4a4efae` (`extraMeals`, second builder); PWA `ae356287` (meal reminders in the plan and `public/sw.js`).
 - **Weight**: Health's and Today's first chunks gain only the schema-free reader (`lib/food-plus/day-target.ts`,
   `components/health/food-plus/use-day-targets.ts`), one `lazy()` line, empty slots and the plan-group helper; every
   form, card and fold is in `components/health/food-plus/*` (lazy). Please measure `/app/health` and `/app`.

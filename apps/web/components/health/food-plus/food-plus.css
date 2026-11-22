@@ -53,3 +53,9 @@
 .food-plus-day-plans { margin-bottom: 12px; }
 .food-plus-marks { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin: 4px 0; font-size: 14px; }
 .food-plus-mark { padding: 2px 8px; border: 1px solid var(--line, #6a9cc342); border-radius: 999px; font-size: 14px; }
+/* Session AV lane 2 (food, LEDGER #197): the two meals of the person's own, in "Name your meals and set their times". */
+.food-plus-extra-meals { display: grid; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line, #6a9cc342); min-width: 0; }
+.food-plus-extra-meals h3 { margin: 0; font-size: 17px; }
+.food-plus-extra-meals .fine, .food-plus-extra-meals .notice { font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+.food-plus-extra-row .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.food-plus-extra-row .actions button { min-height: 44px; }

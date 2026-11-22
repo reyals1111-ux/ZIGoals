@@ -2,6 +2,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {newHealthId, type HealthData, type HealthDiaryEntry} from '../../../lib/health';
 import {saveMealFromDiary} from '../../../lib/health-daily';
+import {saveMealFromEntries} from '../../../lib/food-plus/extra-meals';
 import {isInvisibleName} from '../../../lib/visible-text';
 import {plural} from '../../../lib/plural';
 import './food-plus.css';
@@ -13,9 +14,10 @@ import './food-plus.css';
  * later food edit never changes it. Escape or Cancel closes it; focus goes back to the meal's ⋯ button.
  */
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
-export default function SaveMeal({data, date, meal, label, dayWords, perform, onClose}: {data: HealthData; date: string; meal: HealthDiaryEntry['meal']; label: string; dayWords: string; perform: Perform; onClose: () => void}) {
+export default function SaveMeal({data, date, meal, entryIds, label, dayWords, perform, onClose}: {data: HealthData; date: string; meal: HealthDiaryEntry['meal']; entryIds?: readonly string[]; label: string; dayWords: string; perform: Perform; onClose: () => void}) {
   const [name, setName] = useState(`${label}, ${dayWords}`), [error, setError] = useState(''), field = useRef<HTMLInputElement>(null), operation = useRef<string | null>(null);
-  const count = data.diary.filter(e => e.date === date && e.meal === meal).length;
+  // Session AV lane 2 (food, LEDGER #197): with extra meals, a section saves the entries it shows (`entryIds`).
+  const count = entryIds ? entryIds.length : data.diary.filter(e => e.date === date && e.meal === meal).length;
   useEffect(() => { field.current?.focus(); field.current?.select(); }, []);
   const close = () => { onClose(); };
   return <form className="food-plus-inline" aria-label={`Save ${label} as a meal`} noValidate onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } }} onSubmit={e => {
@@ -26,7 +28,7 @@ export default function SaveMeal({data, date, meal, label, dayWords, perform, on
     setError('');
     operation.current ??= newHealthId();
     const id = operation.current;
-    void perform(latest => saveMealFromDiary(latest, id, typed, date, meal, new Date().toISOString()), `“${typed}” saved: ${count} ${plural(count, 'item')}. Log it again from Health → Meals & planning.`, () => { operation.current = null; close(); });
+    void perform(latest => entryIds ? saveMealFromEntries(latest, id, typed, date, entryIds, new Date().toISOString()) : saveMealFromDiary(latest, id, typed, date, meal, new Date().toISOString()), `“${typed}” saved: ${count} ${plural(count, 'item')}. Log it again from Health → Meals & planning.`, () => { operation.current = null; close(); });
   }}>
     <label className="field"><span>Name for this saved meal</span><input ref={field} maxLength={120} autoComplete="off" value={name} aria-invalid={error ? true : undefined} aria-describedby={error ? `${meal}-save-meal-error` : undefined} onChange={e => { setName(e.target.value); operation.current = null; }}/></label>
     {error && <p className="field-error" role="alert" id={`${meal}-save-meal-error`}>{error}</p>}

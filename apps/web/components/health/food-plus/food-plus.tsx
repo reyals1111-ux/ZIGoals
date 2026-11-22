@@ -9,7 +9,8 @@ import {addLocalDays} from '../../../lib/local-date';
  */
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
 export type FoodPlusProps =
-  | {part: 'save-meal'; data: HealthData; date: string; meal: HealthDiaryEntry['meal']; label: string; dayWords: string; perform: Perform; onClose: () => void}
+  | {part: 'save-meal'; data: HealthData; date: string; meal: HealthDiaryEntry['meal']; entryIds?: readonly string[]; label: string; dayWords: string; perform: Perform; onClose: () => void}
+  | {part: 'extra-meal-names'}
   | {part: 'times'; data: HealthData; date: string}
   | {part: 'timing'; data: HealthData; today: string}
   | {part: 'weekdays'; targets: HealthTargets; today: string}
@@ -22,6 +23,7 @@ export type FoodPlusProps =
   | {part: 'fit-plan'; data: HealthData; date: string; today: string; perform: Perform}
   | {part: 'day-plans'; data: HealthData; date: string; perform: Perform};
 const SaveMeal = lazy(() => import('./save-meal'));
+const ExtraMealNames = lazy(() => import('./extra-meals'));
 const EntryTimes = lazy(() => import('./entry-times'));
 const NutrientTiming = lazy(() => import('./nutrient-timing'));
 const WeekdayTargets = lazy(() => import('./weekday-targets').then(m => ({default: m.WeekdayTargets})));
@@ -40,6 +42,7 @@ const ChallengeCard = lazy(() => import('./challenge').then(m => ({default: m.Ch
 const SugarAlcohols = lazy(() => import('./weekday-targets').then(m => ({default: m.SugarAlcohols})));
 export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'save-meal') return <SaveMeal {...props}/>;
+  if (props.part === 'extra-meal-names') return <ExtraMealNames/>;
   if (props.part === 'times') return <EntryTimes data={props.data} date={props.date}/>;
   if (props.part === 'timing') return <NutrientTiming data={props.data} today={props.today}/>;
   if (props.part === 'weekdays') return <WeekdayTargets targets={props.targets} today={props.today}/>;
