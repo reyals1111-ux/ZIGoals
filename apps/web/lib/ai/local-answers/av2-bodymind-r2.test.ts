@@ -57,3 +57,17 @@ describe('Rise: morning steps (LEDGER #236)', () => {
     expect(text(ask('what are my morning steps', fresh))).toContain('No morning steps yet');
   });
 });
+
+describe('Reflectly: the daily challenge and Write it out (LEDGER #230, #231)', () => {
+  test('off by default: today\'s challenge with where to switch it on; on and done: said so; in English and Dutch', () => {
+    const off = text(ask("what is today's challenge"));
+    expect(off).toMatch(/^Today's small challenge would be: “.+\.” It is off on Today/);
+    const s = showcase(); s.journal = {...s.journal!, challenges: true, challengeDone: DAY};
+    expect(text(ask('what is my daily challenge', s))).toContain('You marked it done today.');
+    expect(text(ask('wat is de uitdaging van vandaag', s))).toContain('Je hebt hem vandaag als gedaan gemarkeerd.');
+  });
+  test('Write it out is a page that is never saved', () => {
+    expect(text(ask('where can I vent'))).toContain('a page that is never saved');
+    expect(text(ask('waar kan ik mijn hart luchten'))).toContain('nooit wordt bewaard');
+  });
+});

@@ -5,7 +5,8 @@ import type {Sleep} from '../../sleep/schema';
 import {morningClock, morningWake, remindedSteps, sortMorning} from '../../evening-plan/morning';
 import type {EveningRecord} from '../../evening-plan/schema';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, clockIn, closed, hm, isQuestion, MIXED, say, type Asked} from './av-words';
+import {answer, asked, clockIn, closed, hm, isQuestion, journalClosed, MIXED, say, type Asked} from './av-words';
+import {challengeDoneToday, challengeOfTheDay} from '../../journal/challenges';
 import type {LocalReply} from './engine';
 
 /**
@@ -80,4 +81,24 @@ function morningAnswer(a: Asked): LocalReply | null {
   return answer([head, ...lines].join('\n'), calls);
 }
 
-const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer, morningAnswer];
+// ── Reflectly: the daily challenge and a page to write and let go (LEDGER #230, #231) ─────────────────────────────
+
+const JOURNAL_CALLS = [{tool: 'journal', args: {}, label: 'Journal'}];
+/** "what is today's challenge", "wat is de uitdaging van vandaag": today's small challenge, whether it is on, and Done. */
+function challengeAnswer(a: Asked): LocalReply | null {
+  const en = /\b(?:todays?|daily|small) challenge\b|\bchallenge (?:for|of) (?:today|the day)\b/.test(a.f), nl = /\buitdaging van (?:vandaag|de dag)\b|\b(?:dagelijkse|kleine) uitdaging\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a) || /\b(?:logging|goal|doel|spending|no spend)\b/.test(a.f)) return null;
+  const shut = journalClosed(a); if (shut) return shut;
+  const j = a.env.journal!, lang = a.lang, line = challengeOfTheDay(a.today, 0, lang);
+  if (j.challenges !== true) return answer(say(lang, `Today's small challenge would be: “${line}” It is off on Today; switch it on in Journal → Privacy → Show a small daily challenge on Today. Nothing is ever counted.`, `De kleine uitdaging van vandaag zou zijn: “${line}” Hij staat uit op Today; zet hem aan in Journal → Privacy → Show a small daily challenge on Today. Er wordt nooit iets geteld.`), JOURNAL_CALLS);
+  const done = challengeDoneToday(j, a.today);
+  return answer(say(lang, `Today's small challenge: “${line}”${done ? ' You marked it done today.' : ' On Today’s journal card, Done marks it and Another one gives a different one. Nothing is counted.'}`, `De kleine uitdaging van vandaag: “${line}”${done ? ' Je hebt hem vandaag als gedaan gemarkeerd.' : ' Op de dagboekkaart van Today markeert Gedaan hem en geeft Een andere een nieuwe. Er wordt niets geteld.'}`), JOURNAL_CALLS);
+}
+/** "where can I vent", "waar kan ik mijn hart luchten": the page that is never saved (no data read). */
+function ventAnswer(a: Asked): LocalReply | null {
+  const en = /\bwhere can i (?:vent|rant|let it out|get (?:something|it|this) off my chest)\b|\b(?:a )?(?:page|place|space) to (?:vent|rant|let go)\b|\bwrite (?:it )?out without (?:saving|keeping)\b/.test(a.f), nl = /\bwaar kan ik (?:mijn hart luchten|stoom afblazen|even razen|het kwijt)\b|\b(?:plek|pagina|ruimte) om (?:te )?(?:razen|stoom af te blazen|los te laten)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  return answer(say(a.lang, 'In Journal → Write, open “Write it out”: a page that is never saved — no draft, nothing on this device, nothing sent. “Let it go” clears it with a calm line; “Keep as an entry” is the only way it is kept.', 'Open in Journal → Write “Write it out”: een pagina die nooit wordt bewaard — geen concept, niets op dit apparaat, niets verstuurd. “Laat het gaan” wist hem met een rustige zin; alleen “Bewaar als dagboekstuk” bewaart hem.'));
+}
+
+const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer, morningAnswer, challengeAnswer, ventAnswer];

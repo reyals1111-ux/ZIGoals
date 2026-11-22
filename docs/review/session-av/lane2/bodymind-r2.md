@@ -9,6 +9,8 @@ Every stored change is listed under "Stored changes" for the lead's TIER 3 (stor
 | record | change | readers of #37–#57 |
 |---|---|---|
 | `zigoals:notify:v1` (existing, device-only, loose) | optional `energy` `{focus?, dip?, windDown?}` (booleans, each `.optional().catch(undefined)`, the object `.optional().catch(undefined)`), and the type name `energy` in `types` (the record already keeps any type name; off by default). Commit `5d44cc3e`. | Kept untouched; an older build has no energy type. |
+| `zigoals:journal:v1` (existing, device-only, loose) | optional `challenges` (boolean) and `challengeDone` (a date), each `.optional().catch(undefined)`. Commit `e3d0b78f`. | Kept untouched; older builds show no challenge. |
+| `zigoals:energy:v1` `words` day (existing, loose) | optional `strength` (`little` \| `quite` \| `very`) and `more` (up to two `{energy, pleasantness, word, strength?}`; unreadable items filtered on read). Commit `e3d0b78f`. | Older builds keep reading the one `word` and keep both fields. |
 | `zigoals:evening-plan:v1` (existing, device-only, loose) | optional `morning` `{steps[1–6]: {id, label, minutesAfter 0–360}, updatedAt}`, `mornings` (date → ticked ids, ≤ 120 dates), `remind` (step ids, ≤ 14); each `.optional().catch(undefined)`. Commit `5d44cc3e`. | Kept untouched; older builds show the evening plan only. |
 
 ## Shared to-do for the lead (all features)
@@ -98,3 +100,36 @@ Every stored change is listed under "Stored changes" for the lead's TIER 3 (stor
 - Device keys / catalogue / export / erase: nothing new (both records are registered already). Search (static.ts):
   "morning steps", "energy reminders" → `/app/health?view=sleep`.
 - CSS: `components/health/sleep/av2-bodymind-sleep.css`. Nothing on Today.
+
+## 3. A small daily challenge beside the affirmation; "Write it out", a page that is never saved — LEDGER #230 built, #231 built
+
+- What: Journal → Privacy → "Show a small daily challenge on Today, with Done and Another one (off by default; nothing is
+  counted)". When on, Today's journal card ("How was today?") shows under the affirmation one small challenge a day from
+  28 written in the repository in English and Dutch ("Send someone a kind message.", "Be outside for ten minutes."), in
+  the daily question's language, with "Done" (kept as today's own mark only: no count, streak or score; tapping again
+  unmarks it) and "Another one". Off, nothing renders (no Tab stop on Today). Journal → Write → "Write it out · a page that
+  is never saved" (a fold, its own chunk): a page whose words live only in the page's memory — no draft, no storage,
+  nothing sent; "Let it go" fades the words (only when motion is allowed: reduced motion and Motion Off are respected),
+  clears them and says one calm closing line ("It is out of your head now. Nothing was kept."), focus staying on the page;
+  "Keep as an entry" is the only way it is stored, as an ordinary journal entry (template id `write-it-out`). EN and NL.
+- Files: `lib/journal/schema.ts` (stored commit), `lib/journal/challenges.ts` (new), `lib/journal/write-it-out.ts` (new),
+  `components/journal/today-challenge.tsx` (new, lazy), `components/journal/today-journal-card.tsx` (one lazy line),
+  `components/journal/today-affirmation.css`, `components/journal/write-it-out.tsx` + `write-it-out.css` (new, lazy),
+  `components/journal/journal-page.tsx` (the switch, the fold).
+- Tests: `lib/journal/av2-challenges.test.ts`, `lib/journal/av2-challenge-stored.test.ts` (the fields' round trip),
+  `lib/ai/local-answers/av2-bodymind-r2.test.ts`. Spec: `tests/av2-challenge-write-out.spec.ts` (also checks the typed words
+  never reach localStorage or sessionStorage).
+- Stored: `journal.challenges`, `journal.challengeDone` (see Stored changes). Write it out stores nothing.
+- Help (EN): **Can Today give me a small challenge?** Yes, if you want one: Journal → Privacy → Show a small daily
+  challenge on Today. One small, kind thing a day beside the affirmation, with Done and Another one. Nothing is counted
+  and a day without one is fine. **Is there a page I can write on without saving it?** Yes: Journal → Write → Write it
+  out. What you type there is never saved. Let it go clears it; Keep as an entry saves it as a normal journal entry.
+- What's new: "Journal: a small daily challenge on Today, and Write it out, a page that is never saved."
+- Answers: "what is today's challenge" / "wat is de uitdaging van vandaag", "where can I vent" / "waar kan ik mijn hart
+  luchten".
+- Showcase: off (it would add Tab stops to Showcase Today, pinned at ≤ 90); Write it out holds nothing to show.
+- **Always visible on Today: nothing by default**; when switched on, one line and two buttons on the journal card (a For
+  you card), not in Today's top part.
+- Device keys / catalogue / export / erase: nothing new (inside `zigoals:journal:v1`). Search (static.ts): "daily
+  challenge", "write it out", "vent" → `/app/journal`.
+- CSS: `components/journal/today-affirmation.css`, `components/journal/write-it-out.css` (new).
