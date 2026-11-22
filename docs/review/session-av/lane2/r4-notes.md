@@ -390,3 +390,14 @@ before (an archived note in its list; only the first photo).
 - Cases: `lib/ai/evals/as/cases-av2-r4-notes.ts` (`AV2_R4_NOTES`, 12 intents, 48 questions). Test:
   `lib/ai/local-answers/av2-r4-notes.test.ts`. Checked here with a temporary test over every phrasing of today's CORPUS:
   none is answered by `av2R4NotesAnswer` (after narrowing the tags answer), so wiring it first moves nothing.
+
+## Review b4g fixes (`docs/review/.../scratchpad/review-b4g.md`, at `b0357054`)
+
+- **B4G-1, B4G-2 (Blockers): a locked note shows nothing of itself without the PIN.** One shared test,
+  `isLockedHidden(note)` (`lib/notes/schema.ts`; `lock.ts`'s `isLocked` is it), and one tag reader, `visibleTagsOf(note)`
+  (`lib/notes/tags.ts`: none for a locked note, since its kept tags came from its words too). `tagTree` (the Tags fold
+  and NOVA's tags answer), `hasTag` / `focused` (the focus), `noteRows` (the table's Tags, Words and Links columns and
+  the gallery's line: "Locked", no counts, no photo) and `notesPerTag` (the chart) read it. Every Notes layout (table,
+  gallery, board, chart) now draws `shownOf(note)` (`lib/notes/lock.ts`): a locked note keeps its name, kind, days and
+  the lock only — no words, tags, photos (B4G-1: the gallery's thumbnail) or properties (the table's property columns,
+  the board's columns and filters). Test: `lib/notes/b4g-locked-views.test.ts`.

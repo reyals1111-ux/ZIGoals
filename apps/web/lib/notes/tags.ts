@@ -1,4 +1,4 @@
-import {MAX_TAG, MAX_TAGS, type Note} from './schema';
+import {MAX_TAG, MAX_TAGS, isLockedHidden, type Note} from './schema';
 
 /**
  * Session AV lane 2 (r4-notes; LEDGER #306, Bear's tags): a note's tags are written in its text (`#travel`, nested with
@@ -33,6 +33,11 @@ export function textTags(body: string): string[] {
 }
 /** A note's tags: the ones it keeps, then any more in its text. */
 export const noteTags = (note: Pick<Note, 'tags' | 'body'>): string[] => unique([...(note.tags ?? []), ...textTags(note.body)]);
+/**
+ * Session AV lane 2 (review b4g B4G-2): the tags a view may show — none for a locked note (its kept tags were taken from
+ * its words too). The Tags fold, the focus, the table, the gallery and the chart all read this.
+ */
+export const visibleTagsOf = (note: Pick<Note, 'tags' | 'body' | 'locked'>): string[] => isLockedHidden(note) ? [] : noteTags(note);
 /** The kept tags that are not written in the text: what the editor's Tags field shows. */
 export function fieldTags(note: Pick<Note, 'tags' | 'body'>): string[] {
   const inText = new Set(textTags(note.body).map(key));
@@ -43,19 +48,19 @@ export const parseTagField = (text: string): string[] => unique(text.split(/[,\s
 /** What a save keeps as the note's tags: the ones in the text, then the field's; at most twelve. */
 export const tagsForSave = (field: readonly string[], body: string): string[] => unique([...textTags(body), ...field]).slice(0, MAX_TAGS);
 /** Whether a note carries this tag or one nested under it (`work` matches #work and #work/meetings). */
-export function hasTag(note: Pick<Note, 'tags' | 'body'>, tag: string): boolean {
+export function hasTag(note: Pick<Note, 'tags' | 'body' | 'locked'>, tag: string): boolean {
   const t = key(tidy(tag));
-  return noteTags(note).some(x => key(x) === t || key(x).startsWith(`${t}/`));
+  return visibleTagsOf(note).some(x => key(x) === t || key(x).startsWith(`${t}/`));
 }
 export type TagNode = {tag: string; name: string; depth: number; count: number};
 /**
  * Every tag and its parents as a tree in reading order (a parent before its children, A→Z), each with how many notes
  * carry it or a tag under it (a note counted once per tag). `#work/meetings` alone makes `work` (1) and `work/meetings` (1).
  */
-export function tagTree(notes: readonly Pick<Note, 'tags' | 'body'>[]): TagNode[] {
+export function tagTree(notes: readonly Pick<Note, 'tags' | 'body' | 'locked'>[]): TagNode[] {
   const by = new Map<string, {tag: string; notes: Set<number>}>();
   notes.forEach((n, i) => {
-    for (const t of noteTags(n)) {
+    for (const t of visibleTagsOf(n)) {
       const parts = t.split('/');
       for (let d = 1; d <= parts.length; d++) {
         const path = parts.slice(0, d).join('/'), k = key(path), hit = by.get(k);
@@ -67,7 +72,7 @@ export function tagTree(notes: readonly Pick<Note, 'tags' | 'body'>[]): TagNode[
     .map(x => ({tag: x.tag, name: x.tag.split('/').pop()!, depth: x.tag.split('/').length - 1, count: x.notes.size}));
 }
 /** The notes Notes shows under a focus tag (all of them when there is none). */
-export const focused = <T extends Pick<Note, 'tags' | 'body'>>(notes: readonly T[], tag: string | undefined): T[] => tag ? notes.filter(n => hasTag(n, tag)) : [...notes];
+export const focused = <T extends Pick<Note, 'tags' | 'body' | 'locked'>>(notes: readonly T[], tag: string | undefined): T[] => tag ? notes.filter(n => hasTag(n, tag)) : [...notes];
 /** Splits running text into words and the tags in it, for the reading view. */
 export function splitTags(text: string): (string | {tag: string})[] {
   const out: (string | {tag: string})[] = [];

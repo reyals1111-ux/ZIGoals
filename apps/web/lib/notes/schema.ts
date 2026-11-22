@@ -172,6 +172,11 @@ export type Notes = z.infer<typeof notesSchema>;
 export const emptyNotes = (): Notes => ({version: 1, notes: [], voice: false});
 export const NOTES: DeviceRecordSpec<Notes> = {key: NOTES_KEY, schema: notesSchema, empty: emptyNotes};
 
+/**
+ * Session AV lane 2 (review b4g B4G-1, B4G-2; LEDGER #318): whether a note shows nothing of itself (its words, tags,
+ * photos or properties) until the screen-cover PIN — the one test every view uses.
+ */
+export const isLockedHidden = (note: Pick<Note, 'locked'>): boolean => note.locked === true;
 /** Session AV lane 2 (r4-notes; LEDGER #307): every photo id a note names — the first (`photoId`), then the rest. */
 export const notePhotoIdsOf = (note: Pick<Note, 'photoId' | 'photos'>): string[] => [...(note.photoId ? [note.photoId] : []), ...(note.photos ?? []).filter(id => id !== note.photoId)];
 /** The characters a record holds (titles and bodies), for the total cap. */
