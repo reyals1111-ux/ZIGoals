@@ -76,6 +76,16 @@ for (const theme of THEMES) for (const width of [320, 390, 1440]) test(`${theme}
   await words.getByRole('button', {name: 'Move Migraine up'}).focus();
   await page.keyboard.press('Enter');
   await expect(words.getByRole('button', {name: 'Move Migraine up'})).toBeFocused();
+  // Session AV lane 2 (review B5H-3): at the bottom, focus moves to the word's other button; at the top, the same.
+  await words.getByRole('button', {name: 'Move Migraine down'}).focus();
+  await page.keyboard.press('Enter');
+  await expect(words.getByRole('button', {name: 'Move Migraine down'})).toBeDisabled();
+  await expect(words.getByRole('button', {name: 'Move Migraine up'})).toBeFocused();
+  await words.getByRole('button', {name: 'Move Headache up'}).focus();
+  await page.keyboard.press('Enter');
+  await expect(words.getByRole('button', {name: 'Move Headache up'})).toBeDisabled();
+  await expect(words.getByRole('button', {name: 'Move Headache down'})).toBeFocused();
+  await expect(words.getByRole('listitem').first()).toContainText('Headache');
   await words.getByRole('checkbox', {name: 'Perimenopause words'}).check();
   await expect(log.getByRole('checkbox', {name: 'Hot flushes'})).toBeVisible();
   await words.getByRole('checkbox', {name: 'No period'}).check();

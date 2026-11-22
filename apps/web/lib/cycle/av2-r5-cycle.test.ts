@@ -102,6 +102,11 @@ describe('Your own words, hidden and in your order (#380)', () => {
     const moved = moveWord(REC, 'tired', -1);
     expect(chipWords(moved).indexOf('tired')).toBe(chipWords(REC).indexOf('tired') - 1);
     expect(moveWord(REC, 'cramps', -1)).toBe(REC);
+    // Review B5H-3: a word moved to the top or the bottom lands there (its button for that direction is then disabled).
+    const ids = chipWords(REC), top = moveWord(REC, ids[1]!, -1), bottom = moveWord(REC, ids.at(-2)!, 1);
+    expect(chipWords(top)[0]).toBe(ids[1]);
+    expect(chipWords(bottom).at(-1)).toBe(ids.at(-2));
+    expect(moveWord(bottom, ids.at(-2)!, 1)).toBe(bottom);
   });
 });
 
