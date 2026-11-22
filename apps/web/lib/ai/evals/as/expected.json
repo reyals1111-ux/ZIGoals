@@ -8640,5 +8640,61 @@
   "widgets": [],
   "fresh": "You have not chosen a second time zone. On the Agenda’s hour grid, “Show a second time zone” puts its hours beside yours there and on the Day Timeline.",
   "freshNl": "Je hebt geen tweede tijdzone gekozen. Op het uurrooster van de Agenda zet “Show a second time zone” de uren ervan naast de jouwe, daar en op de Day Timeline."
+ },
+ "av2r5-money-yesterday": {
+  "en": "Mon, Nov 16: 2 entries, spent €51.40. Cash and savings: Everyday account $2,430.00 and Rainy-day savings $10,450.00. Counted as Spending counts it. Wealth → Spending → Yesterday’s money can send it each morning, or show it on Today.",
+  "nl": "ma 16 nov: 2 invoeren, € 51,40 uitgegeven. Contant en spaargeld: Everyday account US$ 2.430,00 en Rainy-day savings US$ 10.450,00. Geteld zoals Uitgaven telt. Vermogen → Uitgaven → Yesterday’s money kan het elke ochtend sturen, of op Vandaag tonen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing was logged for Mon, Nov 16. Wealth → Spending → Yesterday’s money can send it each morning, or show it on Today.",
+  "freshNl": "Voor ma 16 nov is niets gelogd. Vermogen → Uitgaven → Yesterday’s money kan het elke ochtend sturen, of op Vandaag tonen."
+ },
+ "av2r5-money-year-budgets": {
+  "en": "2026 so far: €260.20 spent against €430.00 budgeted, €169.80 under so far. By budget: Fun €36.00 under, Groceries €62.90 under and Food & drink €70.90 under. Each month's budget beside what was spent, counted as your budgets count it; it is in Wealth → Budgets → \"2026 so far against your budgets\".",
+  "nl": "2026 tot nu toe: € 260,20 uitgegeven tegenover € 430,00 gebudgetteerd, tot nu toe € 169,80 onder budget. Per budget: Fun € 36,00 onder budget, Groceries € 62,90 onder budget en Food & drink € 70,90 onder budget. Het budget van elke maand naast wat je uitgaf, geteld zoals je budgetten tellen; het staat in Vermogen → Budgetten → \"2026 so far against your budgets\".",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No budgets yet. Once you set one in Wealth → Budgets, each month of 2026 adds up beside what you spent, under \"2026 so far against your budgets\".",
+  "freshNl": "Nog geen budgetten. Zodra je er een instelt in Vermogen → Budgetten, telt elke maand van 2026 op naast wat je uitgaf, onder \"2026 so far against your budgets\"."
+ },
+ "av2r5-money-paid-early": {
+  "en": "No bill this month was paid more than 4 days early, as your money log shows it. 1 date has passed without a payment in your money log: \"Paid early?\" beside it in Wealth → Upcoming bills → Bill tracker lists the expenses of the days before.",
+  "nl": "Deze maand is geen rekening meer dan 4 dagen te vroeg betaald, volgens je uitgavenlog. 1 datum is voorbij zonder betaling in je uitgavenlog: \"Paid early?\" ernaast in Vermogen → Komende rekeningen → Bill tracker toont de uitgaven van de dagen ervoor.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No bills are tracked yet. Add one in Wealth → Upcoming bills; a date that passes without its payment then offers \"Paid early?\".",
+  "freshNl": "Er worden nog geen rekeningen bijgehouden. Voeg er een toe in Vermogen → Komende rekeningen; een datum die voorbijgaat zonder betaling biedt dan \"Paid early?\"."
+ },
+ "av2r5-money-merge-accounts": {
+  "en": "These could be merged: Everyday account and Rainy-day savings (USD), Everyday account and Workplace pension (USD), Rainy-day savings and Workplace pension (USD) and Car loan and Credit card (USD). In Wealth → Accounts, tap \"Merge two\" beside What you own or What you owe, choose the account to merge and the one it goes into, see what moves, then merge: its balances, a debt's payments, its note and its money-log entries go to the other, exact doubles are offered for removal, and the one merged is archived with its own history. Undo puts it all back.",
+  "nl": "Deze kun je samenvoegen: Everyday account en Rainy-day savings (USD), Everyday account en Workplace pension (USD), Rainy-day savings en Workplace pension (USD) en Car loan en Credit card (USD). In Vermogen → Rekeningen tik je op \"Merge two\" bij What you own of What you owe, kies je de rekening om samen te voegen en die waar hij in gaat, zie je wat er verhuist en voeg je samen: saldi, betalingen op een schuld, de notitie en de invoer in je uitgavenlog gaan naar de andere, exacte dubbelen kun je weghalen, en de samengevoegde wordt gearchiveerd met zijn eigen geschiedenis. Ongedaan maken zet alles terug.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No two of your accounts can be merged now: they need the same currency and both be owned or both owed. In Wealth → Accounts, tap \"Merge two\" beside What you own or What you owe, choose the account to merge and the one it goes into, see what moves, then merge: its balances, a debt's payments, its note and its money-log entries go to the other, exact doubles are offered for removal, and the one merged is archived with its own history. Undo puts it all back.",
+  "freshNl": "Er zijn nu geen twee rekeningen die je kunt samenvoegen: ze moeten dezelfde munt hebben en allebei bezit of allebei schuld zijn. In Vermogen → Rekeningen tik je op \"Merge two\" bij What you own of What you owe, kies je de rekening om samen te voegen en die waar hij in gaat, zie je wat er verhuist en voeg je samen: saldi, betalingen op een schuld, de notitie en de invoer in je uitgavenlog gaan naar de andere, exacte dubbelen kun je weghalen, en de samengevoegde wordt gearchiveerd met zijn eigen geschiedenis. Ongedaan maken zet alles terug."
+ },
+ "av2r5-money-what-if": {
+  "en": "No changes are kept. Under Wealth → Spending → Money tools → Next 60 days → \"Try a change — a model\", try up to three made-up changes (a higher rent, a trip, more pay each month) beside your forecast; they are never written as entries or bills, and you can keep them by name.",
+  "nl": "Er zijn geen wijzigingen bewaard. Onder Vermogen → Uitgaven → Money tools → Next 60 days → \"Try a change — a model\" probeer je tot drie verzonnen wijzigingen (een hogere huur, een reis, meer loon per maand) naast je prognose; ze worden nooit als invoer of rekening opgeslagen, en je kunt ze bewaren onder een naam.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No changes are kept. Under Wealth → Spending → Money tools → Next 60 days → \"Try a change — a model\", try up to three made-up changes (a higher rent, a trip, more pay each month) beside your forecast; they are never written as entries or bills, and you can keep them by name.",
+  "freshNl": "Er zijn geen wijzigingen bewaard. Onder Vermogen → Uitgaven → Money tools → Next 60 days → \"Try a change — a model\" probeer je tot drie verzonnen wijzigingen (een hogere huur, een reis, meer loon per maand) naast je prognose; ze worden nooit als invoer of rekening opgeslagen, en je kunt ze bewaren onder een naam."
+ },
+ "av2r5-money-sheet": {
+  "en": "This year so far: 25 entries, €666.95 spent as your figures count it. Wealth → Spending → \"Your money as a spreadsheet\" shows your entries as a table you can sort, each category month by month, and makes a CSV or one .xlsx workbook for Excel, Numbers or Google Sheets — Entries, Categories, Accounts and Month by month with formulas — on this device, never sent.",
+  "nl": "Dit jaar tot nu toe: 25 invoeren, € 666,95 uitgegeven zoals je cijfers het tellen. Vermogen → Uitgaven → \"Your money as a spreadsheet\" toont je invoer als tabel die je kunt sorteren, elke categorie per maand, en maakt een CSV of één .xlsx-werkmap voor Excel, Numbers of Google Spreadsheets — Entries, Categories, Accounts en Month by month met formules — op dit apparaat, nooit verstuurd.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged this year yet. Wealth → Spending → \"Your money as a spreadsheet\" shows your entries as a table you can sort, each category month by month, and makes a CSV or one .xlsx workbook for Excel, Numbers or Google Sheets — Entries, Categories, Accounts and Month by month with formulas — on this device, never sent.",
+  "freshNl": "Dit jaar is nog niets gelogd. Vermogen → Uitgaven → \"Your money as a spreadsheet\" toont je invoer als tabel die je kunt sorteren, elke categorie per maand, en maakt een CSV of één .xlsx-werkmap voor Excel, Numbers of Google Spreadsheets — Entries, Categories, Accounts en Month by month met formules — op dit apparaat, nooit verstuurd."
+ },
+ "av2r5-money-category-file": {
+  "en": "Your file would hold 0 categories of your own, 0 subcategories and your rules — never an entry or an amount. In Wealth → Spending → Log spending → Your own categories, \"Save categories and rules\" makes it; \"Read categories and rules from a file\" reads one from another device or a friend, shows what is new, and adds only that, with Undo. Nothing you have is removed or changed.",
+  "nl": "Je bestand zou 0 eigen categorieën, 0 subcategorieën en je regels bevatten — nooit invoer of bedragen. In Vermogen → Uitgaven → Log spending → Your own categories maakt \"Save categories and rules\" het; \"Read categories and rules from a file\" leest er een van een ander apparaat of een vriend, toont wat nieuw is en voegt alleen dat toe, met ongedaan maken. Niets wat je hebt wordt weggehaald of veranderd.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your file would hold 0 categories of your own, 0 subcategories and your rules — never an entry or an amount. In Wealth → Spending → Log spending → Your own categories, \"Save categories and rules\" makes it; \"Read categories and rules from a file\" reads one from another device or a friend, shows what is new, and adds only that, with Undo. Nothing you have is removed or changed.",
+  "freshNl": "Je bestand zou 0 eigen categorieën, 0 subcategorieën en je regels bevatten — nooit invoer of bedragen. In Vermogen → Uitgaven → Log spending → Your own categories maakt \"Save categories and rules\" het; \"Read categories and rules from a file\" leest er een van een ander apparaat of een vriend, toont wat nieuw is en voegt alleen dat toe, met ongedaan maken. Niets wat je hebt wordt weggehaald of veranderd."
  }
 }
