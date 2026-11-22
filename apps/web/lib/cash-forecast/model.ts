@@ -29,7 +29,7 @@ import {isMoneyCurrency} from '../visual-format';
  * Exact: cents as BigInt; the everyday part is a fraction rounded once per day. Pure: nothing stored, nothing sent.
  */
 export const FORECAST_DAYS = 60, HISTORY_DAYS = 90, MIN_HISTORY = 14, RANGE_HISTORY = 60, WINDOW = 30, MIN_CONFIDENCE = 0.5;
-export type ForecastEventKind = 'bill' | 'repeat-out' | 'repeat-in' | 'contribution';
+export type ForecastEventKind = 'bill' | 'repeat-out' | 'repeat-in' | 'contribution' | 'planned';
 export type ForecastEvent = {date: string; title: string; cents: bigint; kind: ForecastEventKind};
 export type ForecastPoint = {date: string; mid: bigint; low?: bigint; high?: bigint};
 export type Everyday = {source: 'log' | 'budgets' | 'none'; days: number; outCents: bigint; inCents: bigint};
@@ -41,9 +41,15 @@ export type KnownForecast = {
 export type UnknownForecast = {currency: string; known: false; reason: 'no-balance'; missingBalances: number};
 export type CurrencyForecast = KnownForecast | UnknownForecast;
 export type PlannedContribution = {goalName: string; amount: string; asset: string; decimals: number; cadence: 'weekly' | 'monthly' | 'yearly' | 'irregular'; nextDate: string; endDate?: string; active: boolean};
-export type ForecastInput = {accounts: Accounts; bills: BillsRecord; entries: readonly MoneyEntry[]; budgets?: BudgetsRecord; contributions?: readonly PlannedContribution[]; today: string; days?: number};
+/**
+ * Session AV lane 2, round 3 (money; Simplifi's planned spending): a planned one-off cost still open (no entry in the money
+ * log matches it and the person has not cleared it; lib/cash-forecast/planned.ts). Its day in the forecast is its own
+ * date, or tomorrow when that date has passed and it is still open.
+ */
+export type ForecastPlanned = {name: string; amount: string; currency: string; date: string};
+export type ForecastInput = {accounts: Accounts; bills: BillsRecord; entries: readonly MoneyEntry[]; budgets?: BudgetsRecord; contributions?: readonly PlannedContribution[]; planned?: readonly ForecastPlanned[]; today: string; days?: number};
 
-const toCents = (value: bigint, decimals: number) => decimals >= 2 ? value / 10n ** BigInt(decimals - 2) : value * 10n ** BigInt(2 - decimals);
+export const toCents = (value: bigint, decimals: number) => decimals >= 2 ? value / 10n ** BigInt(decimals - 2) : value * 10n ** BigInt(2 - decimals);
 const dayDiff = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 /** a × k ÷ d, rounded half away from zero. */
 const share = (a: bigint, k: number, d: number): bigint => { const n = a * BigInt(k), q = n / BigInt(d), r = n % BigInt(d), half = 2n * (r < 0n ? -r : r) >= BigInt(d); return half ? q + (n < 0n ? -1n : 1n) : q; };
@@ -91,6 +97,12 @@ function forCurrency(input: ForecastInput, currency: string, days: number): Curr
     const cents = toCents(BigInt(p.amount), p.decimals);
     if (cents <= 0n) continue;
     for (const day of contributionDates(p, from, to)) events.push({date: day, title: p.goalName, cents: -cents, kind: 'contribution'});
+  }
+  // Session AV lane 2, round 3 (money; Simplifi): planned one-off costs still open, on their day (a passed one tomorrow).
+  for (const p of input.planned ?? []) {
+    if (p.currency !== currency || !/^\d{1,10}(\.\d{1,2})?$/.test(p.amount)) continue;
+    const day = p.date < from ? from : p.date, cents = BigInt(minorUnits(p.amount));
+    if (day <= to && cents > 0n) events.push({date: day, title: p.name, cents: -cents, kind: 'planned'});
   }
   events.sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
   // The everyday part: the log's last 90 days without bills and repeats.
@@ -143,11 +155,38 @@ export function cashForecast(input: ForecastInput): {rows: CurrencyForecast[]; u
   const rows = currencies.map(c => forCurrency(input, c, days))
     .sort((a, b) => Number((b.known ? b.startCents : -1n) - (a.known ? a.startCents : -1n)) || a.currency.localeCompare(b.currency));
   const placed = new Set(currencies);
-  const unplaced = [...new Set([...input.bills.bills.map(b => b.currency), ...(input.contributions ?? []).filter(p => p.active && p.cadence !== 'irregular' && isMoneyCurrency(p.asset)).map(p => p.asset)])].filter(c => !placed.has(c)).sort();
+  const unplaced = [...new Set([...input.bills.bills.map(b => b.currency), ...(input.contributions ?? []).filter(p => p.active && p.cadence !== 'irregular' && isMoneyCurrency(p.asset)).map(p => p.asset), ...(input.planned ?? []).map(p => p.currency)])].filter(c => !placed.has(c)).sort();
   return {rows, unplaced};
 }
 
 /** The Goals' plans as the forecast reads them (active Goals only). */
 export function plannedContributions(goals: readonly {name: string; status: string; plan?: Omit<PlannedContribution, 'goalName'> & Record<string, unknown>}[]): PlannedContribution[] {
   return goals.flatMap(g => g.status === 'active' && g.plan ? [{goalName: g.name, amount: g.plan.amount, asset: g.plan.asset, decimals: g.plan.decimals, cadence: g.plan.cadence, nextDate: g.plan.nextDate, ...(g.plan.endDate ? {endDate: g.plan.endDate} : {}), active: g.plan.active}] : []);
+}
+
+/** Session AV lane 2, round 3: a Goal plan's amount in cents of its currency (0 when it is not a whole amount above zero). */
+export const contributionCents = (p: Pick<PlannedContribution, 'amount' | 'decimals'>): bigint => /^[1-9]\d{0,29}$/.test(p.amount) ? toCents(BigInt(p.amount), p.decimals) : 0n;
+
+/**
+ * Session AV lane 2, round 3 (money; Simplifi's projected cash flow up to 12 months): the forecast's lengths. 60 days, or
+ * 6 or 12 calendar months from today (at most 366 days, the model's own cap). One device preference
+ * (`zigoals:money-more:v1` `forecast`).
+ */
+export type ForecastLength = '60d' | '6m' | '12m';
+export const FORECAST_LENGTHS: readonly ForecastLength[] = ['60d', '6m', '12m'];
+export function forecastDays(length: ForecastLength, today: string): number {
+  if (length === '60d') return FORECAST_DAYS;
+  return Math.min(366, dayDiff(today, addMonths(today, length === '6m' ? 6 : 12)));
+}
+/** Each calendar month the forecast covers, with its lowest point on the middle line (and on the lean line, with a range). */
+export type MonthLow = {month: string; date: string; cents: bigint; lowDate?: string; lowCents?: bigint};
+export function monthLows(row: KnownForecast): MonthLow[] {
+  const out = new Map<string, MonthLow>();
+  for (const p of row.points) {
+    const month = p.date.slice(0, 7), m = out.get(month);
+    if (!m) { out.set(month, {month, date: p.date, cents: p.mid, ...(p.low !== undefined ? {lowDate: p.date, lowCents: p.low} : {})}); continue; }
+    if (p.mid < m.cents) { m.cents = p.mid; m.date = p.date; }
+    if (p.low !== undefined && (m.lowCents === undefined || p.low < m.lowCents)) { m.lowCents = p.low; m.lowDate = p.date; }
+  }
+  return [...out.values()];
 }

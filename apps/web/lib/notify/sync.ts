@@ -22,6 +22,7 @@ import {isRoutineHead} from '../routines/reminder-href';
 import {addDays, wallClock} from './zone';
 import {buildPlan, withSnoozes, type Plan, type PlanInput, type Snooze} from './plan';
 import {BILLS} from '../bills/schema';
+import {plannedForForecast} from '../cash-forecast/planned';
 import {upcomingBills} from '../bills/store';
 import {SUPPLEMENTS} from '../supplements/schema';
 import {supplementReminders} from '../supplements/log';
@@ -119,7 +120,7 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   try { const j = reminderPlanInput(readDeviceRecord(storage, JOURNAL).data, today); if (j) input.journal = j; } catch { /* unreadable: no journal wake */ }
   // Session AV lane 2 (money): budgets that crossed 80 % or their amount yesterday, payday tomorrow, the low-balance line ahead.
   try {
-    const log = readDeviceRecord(storage, MONEY_LOG).data, budgets = readDeviceRecord(storage, BUDGETS).data, rows = cashForecast({accounts: readDeviceRecord(storage, ACCOUNTS).data, bills: readDeviceRecord(storage, BILLS).data, entries: log.entries, budgets, today}).rows;
+    const log = readDeviceRecord(storage, MONEY_LOG).data, budgets = readDeviceRecord(storage, BUDGETS).data, rows = cashForecast({accounts: readDeviceRecord(storage, ACCOUNTS).data, bills: readDeviceRecord(storage, BILLS).data, entries: log.entries, budgets, planned: (() => { try { return plannedForForecast(readDeviceRecord(storage, MONEY_MORE).data, log.entries, today); } catch { return []; } })(), today}).rows; // Session AV lane 2, round 3: planned one-off costs count, as on the forecast card
     const wakes = [...moneyWakes({entries: log.entries, budgets, rows, line: log.lowBalance, today}), ...(() => { try { return loanWakes(readDeviceRecord(storage, MONEY_MORE).data, today); } catch { return []; } })()];
     if (wakes.length) input.money = wakes.map(w => ({id: w.id, date: w.date, title: w.title, ...(w.detail ? {detail: w.detail} : {})}));
   } catch { /* unreadable: no money wakes */ }

@@ -2,6 +2,9 @@ import {transferPairs} from '../../bankfiles/reimport';
 import {isCounted} from '../../money-log/counted';
 import {nextPayday} from '../../bills/month';
 import {cashForecast} from '../../cash-forecast/model';
+import {plannedForForecast} from '../../cash-forecast/planned';
+import type {MoneyMore} from '../../money-more/schema';
+const moreOf = (env: ToolEnv): MoneyMore | null => (env as ToolEnv & {moneyMore?: MoneyMore | null}).moneyMore ?? ((env.ak as {moneyMore?: MoneyMore | null} | null | undefined)?.moneyMore ?? null);
 import {challengeStates, lowBalanceCross, paydayCash, payeeRows, yearRecap} from '../../money-notices';
 import {signedMoney} from '../../money-log/selection';
 import {dayIn, monthIn} from './av-words';
@@ -98,7 +101,7 @@ addAnswers(leftOut, taxMarked, ownCategories, transfers);
 // ── Group 5: notices ─────────────────────────────────────────────────────────────────────────────────────────────
 
 const BUDGETS_PLACE = {en: 'Wealth → Budgets by category', nl: 'Vermogen → Budgets by category'} as const;
-const forecastOf = (a: Asked) => a.env.accounts && a.env.ak?.bills ? cashForecast({accounts: a.env.accounts, bills: a.env.ak.bills, entries: entriesOf(a.env), ...(a.env.nova?.budgets ? {budgets: a.env.nova.budgets} : {}), today: a.today}).rows : [];
+const forecastOf = (a: Asked) => a.env.accounts && a.env.ak?.bills ? cashForecast({accounts: a.env.accounts, bills: a.env.ak.bills, entries: entriesOf(a.env), ...(a.env.nova?.budgets ? {budgets: a.env.nova.budgets} : {}), planned: plannedForForecast(moreOf(a.env), entriesOf(a.env), a.today), today: a.today}).rows : []; // Session AV lane 2, round 3: planned costs count
 const about = (c: bigint, currency: string) => money(Number(c), currency);
 /** "Which payees am I watching", "welke winkels volg ik": each watched payee this month against last. */
 function payeesWatched(a: Asked): LocalReply | null {

@@ -1,0 +1,26 @@
+/* Session AV lane 2, round 3 (money; Simplifi, PocketGuard): planned one-off costs, Left this month, the forecast's
+   length and its months. Theme tokens only, no motion. */
+.planned-costs{display:grid;gap:8px;margin-top:10px;min-width:0}
+.planned-costs h5{margin:0;font-size:16px}
+.planned-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.planned-list li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line,#25334f);font-size:15px;overflow-wrap:anywhere}
+.planned-list li>span{min-width:0;flex:1 1 200px}
+.planned-list button{min-height:44px;min-width:44px}
+.planned-note{opacity:.85}
+.planned-seen li{opacity:.9}
+.planned-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px 12px;align-items:end}
+.planned-form input,.planned-form select,.planned-form button{min-height:44px;width:100%;box-sizing:border-box}
+.planned-form .field-error{grid-column:1/-1;margin:0}
+.planned-status{margin:0}
+.forecast-length{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0}
+.forecast-length button{min-height:44px}
+.forecast-months caption{text-align:left}
+.left-month{display:grid;gap:6px;margin:8px 0;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#25334f);background:color-mix(in srgb,var(--cyan,#45d8ef) 6%,transparent);min-width:0}
+.left-month h4{margin:0;font-size:16px}
+.left-month-figure{margin:0;font-size:18px}
+.left-month-parts{margin:0;padding:0;list-style:none;display:grid;gap:2px;font-size:15px;font-variant-numeric:tabular-nums}
+.left-month-parts li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;overflow-wrap:anywhere}
+.left-month-parts li>span:nth-child(2){white-space:nowrap}
+.left-month-parts .left-month-total{border-top:1px solid var(--line,#25334f);padding-top:4px;font-weight:600}
+.left-month details summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.left-month-items{margin:0;padding-left:18px;font-size:14px;flex-basis:100%}
