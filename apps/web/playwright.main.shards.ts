@@ -53,10 +53,16 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'phone-folds.spec.ts', 'pwa-ak.spec.ts', 'quick-log-ai.spec.ts', 'radio-shape.spec.ts', 'rewards-sweep.spec.ts',
     'run10-ecosystem.spec.ts', 'stories-af.spec.ts', 'theme-parity-af.spec.ts', 'today-screens.spec.ts',
     'zigi-composer-switch.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-a11y.spec.ts', 'av-rows.spec.ts', 'av-bills-year.spec.ts', 'av-factors.spec.ts', 'av-tasks-done.spec.ts',
+    'av-set-best.spec.ts', 'av-run-bests.spec.ts', 'av-bill-calendar.spec.ts', 'av-watch.spec.ts',
   ],
-  // Shard 2, 44.1 worker-min: about 31.5 min of tests at two workers in file order, 36.1 in any order.
+  // Shard 2, 44.1 worker-min as packed (Session AU); Session AV's new specs were each added here as one worker-minute and
+  // took it to 111.3 measured in CI 2002 (59 of the job's 60 min). Its AV specs moved to the other lists by that run's
+  // measured minutes (ADR-045 D-CI2002); 54.2 measured left, nova-stage-am2's 33.4 most of it. The minutes below are
+  // the packed figures plus each moved file's measured minutes.
   [
-    'ah-competitors.spec.ts', 'ah-undo-removals.spec.ts', 'ao/day-ends.spec.ts', 'ap/ap-health-food-days.spec.ts', 'av-a11y.spec.ts', 'av-rows.spec.ts', 'av-bill-calendar.spec.ts', 'av-bills-year.spec.ts', 'av-bills-month.spec.ts', 'av-budget-targets.spec.ts', 'av-budget-pace.spec.ts', 'av-category-suggest.spec.ts', 'av-countdown-yearly.spec.ts', 'av-debt-plan.spec.ts', 'av-deadlines.spec.ts', 'av-factors.spec.ts', 'av-focus-habit.spec.ts', 'av-good-things.spec.ts', 'av-habit-look.spec.ts', 'av-high-in.spec.ts', 'av-income-flow.spec.ts', 'av-journal-tags.spec.ts', 'av-journal-today.spec.ts', 'av-journal-day.spec.ts', 'av-keep-data.spec.ts', 'av-money-attention.spec.ts', 'av-move-alert.spec.ts', 'av-money-search.spec.ts', 'av-month-recap.spec.ts', 'av-companion-guarded.spec.ts', 'av-nl-tasks.spec.ts', 'av-nutrient-range.spec.ts', 'av-offline-later-parts.spec.ts', 'av-own-templates.spec.ts', 'av-paste-list.spec.ts', 'av-plan-day.spec.ts', 'av-matrix-pause.spec.ts', 'av-prompt-day.spec.ts', 'av-quick-calories.spec.ts', 'av-repeat-plan.spec.ts', 'av-report-more.spec.ts', 'av-review-tasks.spec.ts', 'av-run-bests.spec.ts', 'av-set-best.spec.ts', 'av-sleep-score.spec.ts', 'av-sleep-long.spec.ts', 'av-star-permissions.spec.ts', 'av-task-notify.spec.ts', 'av-task-minutes.spec.ts', 'av-two-day.spec.ts', 'av-tasks-done.spec.ts', 'av-update.spec.ts', 'av-vs-last.spec.ts', 'av-watch.spec.ts', 'av-week-grid.spec.ts', 'av-words-match.spec.ts', 'av-hide-figures.spec.ts', 'av-workout-weeks.spec.ts', 'av-workout-calendar.spec.ts', 'av-yesterday.spec.ts', 'webkit-av-keep.spec.ts',
+    'ah-competitors.spec.ts', 'ah-undo-removals.spec.ts', 'ao/day-ends.spec.ts', 'ap/ap-health-food-days.spec.ts', 'webkit-av-keep.spec.ts',
     'barcode-param-ak.spec.ts', 'checklist-view-writes-nothing-af.spec.ts', 'dashboard-visual.spec.ts',
     'diagnostics.spec.ts', 'g1a-health-numbers.spec.ts', 'g1a-scales.spec.ts', 'grok53/ai/p14b-held-gaze.spec.ts',
     'grok53/first-run/nb-011-locale-reload.spec.ts', 'grok53/goals/goal-notes-and-average.spec.ts',
@@ -97,6 +103,9 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'showcase-today-aa.spec.ts', 'storage-errors-health.spec.ts', 'timeline-af.spec.ts', 'webkit-celebration.spec.ts',
     'webkit-governance.spec.ts', 'webkit-timeline.spec.ts', 'zigi-a11y-pass.spec.ts', 'zigi-brief-af.spec.ts',
     'zigi-no-model-ab.spec.ts', 'zigi-on-device.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-yesterday.spec.ts', 'av-update.spec.ts', 'av-hide-figures.spec.ts', 'av-words-match.spec.ts',
+    'av-prompt-day.spec.ts', 'av-budget-pace.spec.ts', 'av-task-notify.spec.ts', 'av-star-permissions.spec.ts',
   ],
   // Shard 4, 60.6 worker-min: about 33.9 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -114,6 +123,9 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'staking-page.spec.ts', 'tasks-time.spec.ts', 'today-roles-af.spec.ts', 'zigi-aa.spec.ts',
     'zigi-accept-correct.spec.ts', 'zigi-act.spec.ts', 'zigi-history-undo.spec.ts', 'zigi-memory.spec.ts',
     'zigi-oneline-z.spec.ts', 'zigi-page-awareness-af.spec.ts', 'zigi-plans-af.spec.ts', 'zigi-tools.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-matrix-pause.spec.ts', 'av-habit-look.spec.ts', 'av-debt-plan.spec.ts', 'av-plan-day.spec.ts',
+    'av-workout-weeks.spec.ts', 'av-sleep-long.spec.ts', 'av-good-things.spec.ts',
   ],
   // Shard 5, 64.2 worker-min: about 33.0 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -133,6 +145,9 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'showcase-export-guard.spec.ts', 'staking-errors.spec.ts', 'today-folds-memory.spec.ts', 'vitamins-ab.spec.ts',
     'wallet-menu.spec.ts', 'webkit-staking.spec.ts', 'wiring-2-nova-cards.spec.ts', 'wiring-habits.spec.ts',
     'zigi-phone-rest.spec.ts', 'zigi-settings-reserve.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-focus-habit.spec.ts', 'av-workout-calendar.spec.ts', 'av-own-templates.spec.ts',
+    'av-category-suggest.spec.ts', 'av-money-attention.spec.ts',
   ],
   // Shard 6, 64.7 worker-min: about 32.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -153,6 +168,9 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'public-alpha.spec.ts', 'run11-food-unknown.spec.ts', 'trader-tools-aj.spec.ts', 'wealth-classes-af.spec.ts',
     'webkit-add-money.spec.ts', 'webkit-phone.spec.ts', 'wiring-2-g1-tools.spec.ts', 'xpub-watch-aj.spec.ts',
     'zigi-browser-agents.spec.ts', 'zigi-hosted.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-review-tasks.spec.ts', 'av-report-more.spec.ts', 'av-repeat-plan.spec.ts', 'av-month-recap.spec.ts',
+    'av-bills-month.spec.ts',
   ],
   // Shard 7, 65.5 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -176,6 +194,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'zigi-conversations.spec.ts', 'zigi-day-in-the-life.spec.ts', 'zigi-knock.spec.ts',
     'zigi-pages-conversations.spec.ts', 'zigi-photo.spec.ts', 'zigi-real-model.spec.ts', 'zigi-stress.spec.ts',
     'zigi-v2-captures.spec.ts', 'zigi-voice-dictation.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-week-grid.spec.ts', 'av-deadlines.spec.ts', 'av-budget-targets.spec.ts', 'av-paste-list.spec.ts',
   ],
   // Shard 8, 66.2 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -196,6 +216,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run9-2-product.spec.ts', 'send-feedback.spec.ts', 'small-features-y.spec.ts', 'switch-import.spec.ts',
     'today-earn-card-af.spec.ts', 'unified-goals.spec.ts', 'webkit-checklist.spec.ts', 'webkit-zigi-freeze.spec.ts',
     'wiring-2-nova-start.spec.ts', 'wiring-goals.spec.ts', 'wiring-wealth.spec.ts', 'zigi-checklist-af.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-countdown-yearly.spec.ts', 'av-high-in.spec.ts', 'av-sleep-score.spec.ts',
   ],
   // Shard 9, 66.7 worker-min: about 33.7 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -216,6 +238,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'session-ac.spec.ts', 'staking-tabs.spec.ts', 'today-phone-folds.spec.ts', 'transactions.spec.ts',
     'visual-v21.spec.ts', 'zigi-auto-accept.spec.ts', 'zigi-chat-backdrop.spec.ts', 'zigi-earn-coach-af.spec.ts',
     'zigi-mini-window.spec.ts', 'zigi-states.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-two-day.spec.ts', 'av-income-flow.spec.ts', 'av-vs-last.spec.ts',
   ],
   // Shard 10, 66.7 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -236,6 +260,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'pwa-aa.spec.ts', 'run11-layout-stability.spec.ts', 'run11-observation-groups.spec.ts',
     'storage-health-wording.spec.ts', 'today-empty-copy.spec.ts', 'wallet-reload.spec.ts', 'wiring-health.spec.ts',
     'workouts-import-aj.spec.ts', 'zigi-personality.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-quick-calories.spec.ts', 'av-nl-tasks.spec.ts', 'av-journal-day.spec.ts',
   ],
   // Shard 11, 66.8 worker-min: about 33.5 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -255,6 +281,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'timezone-phase4.spec.ts', 'ui-design-pass.spec.ts', 'universe-af.spec.ts', 'wealth-chips-af.spec.ts',
     'webkit-earn.spec.ts', 'zigi-chat-polish.spec.ts', 'zigi-local-answers.spec.ts', 'zigi-memory-af.spec.ts',
     'zigi-send-focus.spec.ts', 'zigi-voice-z.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-nutrient-range.spec.ts', 'av-journal-tags.spec.ts', 'av-offline-later-parts.spec.ts',
   ],
   // Shard 12, 66.2 worker-min: about 33.2 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -275,6 +303,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'trusted-types-trial.spec.ts', 'universe-guided-aj.spec.ts', 'wealth-v2.spec.ts', 'webkit-smoke.spec.ts',
     'weekly-review.spec.ts', 'whats-new.spec.ts', 'your-ai.spec.ts', 'zigi-emotions.spec.ts',
     'zigi-simulated-day.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-companion-guarded.spec.ts', 'av-journal-today.spec.ts', 'av-money-search.spec.ts',
   ],
   // Shard 13, 67.3 worker-min: about 33.9 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -297,6 +327,8 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run10-private-vault.spec.ts', 'run11-goal-draft.spec.ts', 'run9-2-life.spec.ts', 'run9-2-security.spec.ts',
     'safe-screenshot.spec.ts', 'sync-offer-card.spec.ts', 'today-v2.spec.ts', 'wiring-2-photo-send.spec.ts',
     'zigi-alive.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-move-alert.spec.ts', 'av-task-minutes.spec.ts',
   ],
   // Shard 14, 68.5 worker-min: about 34.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -316,11 +348,13 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'sign-out-others.spec.ts', 'staking-real-confirm.spec.ts', 'today-scene.spec.ts', 'ui-evidence.spec.ts',
     'wiring-review.spec.ts', 'zigi-face-z.spec.ts', 'zigi-help-settings.spec.ts', 'zigi-proactive.spec.ts',
     'zigi-question-context.spec.ts', 'zigi-robustness.spec.ts', 'zigi-safety.spec.ts',
+    // Session AV (ADR-045 D-CI2002): moved from shard 2 (111 worker-min, 59 of its 60 min in CI 2002).
+    'av-keep-data.spec.ts',
   ],
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [54.9, 44.1, 60.3, 60.6, 64.2, 64.7, 65.5, 66.2, 66.7, 66.7, 66.8, 66.2, 67.3, 68.5];
+export const MAIN_SHARD_MINUTES: readonly number[] = [69, 54.2, 69, 68.7, 69, 69, 69, 68.7, 69, 69, 69, 68.7, 68.8, 69];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {
