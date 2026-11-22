@@ -91,3 +91,34 @@ Showcase: none (pinned counts); a hook would be one `look` on a Showcase task, i
 Today: the mark shows in Today's task card beside a title only when a task has one; no new Tab stop.
 Weight: Tasks first chunk gains the reader and the mark (~0.3 kB); the picker and word list are in the editor's chunk.
 CSS: components/tasks/tasks-r3.css (new; theme variables only); task-parts.tsx now loads components/habits/habit-look.css.
+
+## Feature 3 — The Day Timeline for any day (LEDGER #258, Structured) — built
+
+Read first: docs/STATUS.md "Current accepted baseline" (PR #22's list; the Day Timeline is not in it). The timeline's layout is
+unchanged; it gains a day picker above it.
+- /app/timeline: "Day to show" — Today, Tomorrow, or Another day (a date field). The day stays in the address (`?day=`) for
+  Back and a reload; Today removes it. The eyebrow says "Tomorrow · Tue, Nov 24" (or the day).
+- Another day shows: the habits due that day (by its own schedule), its tasks with their minutes (the tasks source already
+  read any date), the meals planned for it, bedtime (today and later), the reminders of that weekday, the Checklist's dots,
+  and planned workouts (a new timeline source reading the Agenda's own planned workouts — the workout log keeps only finished
+  ones, so these are the Showcase's labelled examples until a feature keeps them).
+- On another day nothing is ticked or logged (each block opens its page), nothing under way is drawn (a night, a fast, a
+  meditation, a habit timer), there is no "Now" line and no Replan, and the quiet state says "Nothing is planned for this
+  day yet".
+- Moving a habit or a meal on another day keeps that time for that date only ("moved to 9:30 AM on Tue, Nov 24 only"),
+  with Undo; on today a move stays the everyday one, as before, unless today already has a move made ahead of time. A dated
+  move of a past day leaves at the next move.
+Files: lib/timeline/{build.ts (`today`, dated moves, `everydayMove`), store.ts (dated keys, in the TIER 3 commit),
+workout-source.ts}, components/timeline/{day-timeline.tsx, use-day-timeline.ts, timeline-day-picker.tsx, timeline-block.tsx,
+planned-workouts-source.tsx, timeline.css}, app/app/timeline/page.tsx (one more source registration).
+Tests: lib/timeline/r3-any-day.test.ts. Spec: tests/av2-timeline-any-day.spec.ts.
+Stored: dated keys on `zigoals:day-timeline:v1` (TIER 3 commit).
+Answers: "what is on my timeline tomorrow" / "wat staat er morgen op mijn tijdlijn".
+Help: Q "Can I plan tomorrow on the timeline?" A "Yes. Open the Day Timeline and choose Tomorrow, or any day with “Another
+day”. It shows that day's habits, tasks, planned meals and workouts. Move a habit or a meal there and it keeps that time for
+that day only; ticking off happens on the day itself."
+What's new: "Day Timeline: plan tomorrow or any day ahead."
+Showcase: the Showcase's planned workouts show on their days (no new record, no count moved).
+Today: Today's timeline card is unchanged (today only). Weight: /app/timeline gains the picker (~0.4 kB) and one source
+registration; the source's code is its own chunk.
+CSS: components/timeline/timeline.css (three lines).

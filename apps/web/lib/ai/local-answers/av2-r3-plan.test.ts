@@ -44,3 +44,14 @@ describe('task symbols (LEDGER #257)', () => {
     expect(av2R3PlanAnswer('which habits have a symbol', zigiEnv(s))).toBeNull();
   });
 });
+describe('the Day Timeline for tomorrow (LEDGER #258)', () => {
+  test('tomorrow’s tasks by their time and the habits due; nothing teaches how to plan it', () => {
+    const s = withTasks(r => addTask(r, {title: 'Fictional dentist', due: addLocalDays(DAY, 1), time: '10:00'}, {id: 'tm1', at, today: DAY}), freshAll());
+    const en = text(av2R3PlanAnswer('what is on my timeline tomorrow', zigiEnv(s)));
+    expect(en).toMatch(/^Tomorrow \(.+\): 1 task and 0 habits due\.\n• 10:00 AM Fictional dentist \(task\)\nThe Day Timeline/);
+    const nl = text(av2R3PlanAnswer('wat staat er morgen op mijn tijdlijn', zigiEnv(s)));
+    expect(nl).toMatch(/^Morgen \(.+\): 1 taak en 0 gewoontes\.\n• 10:00 Fictional dentist \(taak\)/);
+    expect(text(av2R3PlanAnswer('what is on my timeline tomorrow', zigiEnv(freshAll())))).toMatch(/^Nothing is planned for tomorrow/);
+    expect(text(av2R3PlanAnswer('what is on my timeline tomorrow', zigiEnv(showcaseAll())))).toMatch(/habits? due\.\n/);
+  });
+});

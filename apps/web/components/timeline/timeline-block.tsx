@@ -39,7 +39,7 @@ export function TimePicker({block, actions, onClose}: {block: TimelineBlock; act
     <div className="timeline-picker-actions">
       <button type="submit" className="primary">Save time</button>
       {block.timeFrom === 'its habit time' && actions.clearEveryDay && <button type="button" className="secondary" onClick={() => { actions.clearEveryDay!(block); onClose(); }}>Remove its everyday time</button>}
-      {block.timeFrom === 'moved here' && <button type="button" className="secondary" onClick={() => { actions.putBack(block); onClose(); }}>{own ? `Put it back at ${formatClock(own)}` : 'Put it back on Anytime'}</button>}
+      {block.timeFrom === 'moved here' && !block.everydayMove && <button type="button" className="secondary" onClick={() => { actions.putBack(block); onClose(); }}>{own ? `Put it back at ${formatClock(own)}` : 'Put it back on Anytime'}</button>}
       <button type="button" className="quiet" onClick={onClose}>Cancel</button>
     </div>
     {error && <p role="alert" className="fine">{error}</p>}
