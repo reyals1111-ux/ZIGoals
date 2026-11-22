@@ -21,6 +21,7 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #266 Grid Diary Grid layout and the Mandala | built | F4 |
 | #269 Grid Diary Entries for a week, a month or a year | built | F5 |
 | #272 Grid Diary Export as Markdown | built | F6 |
+| #277 Stoic Quotes from Stoic writers | built | F7 |
 
 ## Features
 
@@ -176,3 +177,32 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
   it). Put that folder in your vault. ZIGoals' own Import reads the same ZIP back without doubling anything."
 - What's new: "Journal: the export now holds every entry as a Markdown file too, for Obsidian and other apps."
 - Showcase: the Showcase journal exports the same way (its file name says example). CSS: none. Today: nothing added.
+
+### F7 A quote of the day from the Stoic writers — LEDGER #277 (Stoic)
+
+- Verdict: **built**. Written text, not content (the LEDGER's note on #71 and #81).
+- What: Journal → Privacy → "Show a quote of the day from the Stoic writers … on Today" (off by default). When on,
+  Today's journal card shows one quote a day (by the date alone) from Marcus Aurelius, Seneca or Epictetus, the writer and
+  the place named ("— Seneca, Letters to Lucilius letter 13"), with "Another one" and "Write about this" (the Journal
+  opens with an entry that starts with the quote as a Markdown quote and its writer). In the language of the Journal's
+  daily question; the Dutch caption says the Dutch words are written for ZIGoals. Off: nothing at all on Today.
+- The words: 33 lines, each quoted as printed in a public-domain translation and checked word for word against the
+  Wikisource transcriptions (George Long's Meditations, 1862; Richard Mott Gummere's Moral Letters to Lucilius, Loeb
+  1917–1925; George Long's Encheiridion, 1877). Excerpts end at a full stop, colon or semicolon of the original. Chosen
+  for calm words: nothing about death, illness or food (unit-tested). The Dutch lines are ZIGoals' own words.
+- Files: `lib/journal/quotes.ts`, `components/journal/today-quote.tsx` (lazy), `components/journal/today-journal-card.tsx`,
+  `components/journal/today-affirmation.css`, `components/journal/journal-page.tsx` (the switch),
+  `components/journal/journal-compose.tsx` (`?quote=`).
+- Tests: `lib/journal/r3-quotes.test.ts`; stored round trip in `lib/journal/r3-stored.test.ts`.
+- Spec: `tests/av2-journal-quote.spec.ts`.
+- Stored: journal `quotes` (TIER 3 commit `3c7c0bbe`). The LEDGER's stored list did not name #277; "the on/off choice
+  joins the affirmation's own setting" is read as a switch beside the affirmation's, in the same record.
+- Help (EN). Q: "Can Today show a Stoic quote?" A: "Yes, if you want one. Journal → Privacy → Show a quote of the day
+  from the Stoic writers. Today's journal card then shows a line from Marcus Aurelius, Seneca or Epictetus, with who
+  wrote it. Another one shows the next; Write about this starts a journal entry with the quote. The English lines are
+  old public-domain translations; the Dutch lines are written for ZIGoals."
+- What's new: "Journal: a quote of the day from Marcus Aurelius, Seneca and Epictetus, if you switch it on."
+- Showcase: none (off by default, as the affirmation).
+- Today: **visible only when switched on** (off by default; the Showcase has it off), on Today's journal card: two
+  buttons/links (Another one, Write about this). Nothing is added to Today's Tab stops or screen while it is off.
+- CSS touched: `components/journal/today-affirmation.css`.

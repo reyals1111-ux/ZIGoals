@@ -70,6 +70,19 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
     setText(startFrom('', defaultTemplate, qLang)); setPrompt({id: defaultTemplate.id, lang: qLang});
     if (defaultTemplate.tags?.length) setTagText(defaultTemplate.tags.join(', '));
   }, [compact, fillDefault, journal.loaded, defaultTemplate, text, qLang]);
+  // Session AV lane 2 (r3-notes; LEDGER #277): "Write about this" on Today's quote opens the Journal with ?quote=<id>; the
+  // entry starts with the quote and its writer (its words load on that visit only).
+  useEffect(() => {
+    if (compact || !journal.loaded) return;
+    let id: string | null = null;
+    try { id = new URLSearchParams(window.location.search).get('quote'); } catch { /* no address */ }
+    if (!id || !/^[a-z0-9-]{1,20}$/.test(id)) return;
+    let live = true;
+    void import('../../lib/journal/quotes').then(m => { const q = m.quoteById(id); if (!live || !q) return; setText(current => current.trim() && !onlyHeadings(current) ? current : `${m.quoteEntry(q, qLang)}${current}`); setStatus(`The quote is in your entry. Write what it brings up for you.`); }, () => undefined);
+    return () => { live = false; };
+    // On arrival only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compact, journal.loaded]);
   const [packsOpen, setPacksOpen] = useState(false), [packs, setPacks] = useState<PacksModule | null>(null), packIds = journal.data.packs;
   useEffect(() => { if (compact || packs || !(packIds ?? []).length) return; let live = true; void import('../../lib/journal-prompts/packs').then(m => { if (live) setPacks(m); }, () => undefined); return () => { live = false; }; }, [compact, packs, packIds]);
   const todayQ: {question: string; pack: PromptPack | null} = packs && (packIds ?? []).length ? packs.questionWithPacks(today, step, qLang, packIds) : {question: questionOfTheDay(today, step, qLang, mutedQ), pack: null};
