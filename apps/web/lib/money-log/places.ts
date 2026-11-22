@@ -55,3 +55,13 @@ export function payeesAt(more: Pick<MoneyMore, 'places'> | null | undefined, pla
     .sort((a, b) => b.times - a.times || a.i - b.i).slice(0, n)
     .map(({payee, times}) => ({payee, times, category: pastCategory(entries, kind, payee)?.category ?? null}));
 }
+/** Review b4f #9: Undo of "Remove" — the place, with its payees, back where it was (unless one of that name is there again). */
+export function restorePlace(more: MoneyMore, place: PayeePlace, at: number): MoneyMore {
+  const list = placesOf(more);
+  if (list.some(p => p.id === place.id || p.name.toLowerCase() === place.name.toLowerCase()) || list.length >= MAX_PLACES) return more;
+  return {...more, places: [...list.slice(0, at), place, ...list.slice(at)]};
+}
+/** Review b4f #9: Undo of "Forget" on one payee — the payee back in its place's list, where it was. */
+export function restorePayeeAt(more: MoneyMore, placeId: string, payee: string, at: number): MoneyMore {
+  return {...more, places: placesOf(more).map(p => p.id !== placeId || (p.payees ?? []).some(x => same(x, payee)) ? p : {...p, payees: [...(p.payees ?? []).slice(0, at), payee, ...(p.payees ?? []).slice(at)].slice(0, MAX_PLACE_PAYEES)})};
+}
