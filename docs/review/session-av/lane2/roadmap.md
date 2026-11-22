@@ -71,3 +71,56 @@ Help (EN): Q "Why did ZIGi wave this morning?" A "Once a day, the first time you
 stands. It does not play with Motion Off, reduced motion or ZIGi's animation Off."
 What's new: "ZIGi says hello in place once a day."
 Answers: none (it holds no data the person asks about). Showcase hook: none. CSS: none. Nothing new on Today (the launcher is not part of Today's Tab stops; no element added).
+
+## Feature 3 — Chess: ZIGoals' own engine in a Web Worker, three levels, games kept (BL-10, GAP-131) — built
+
+- lib/chess/engine/board.ts: the engine's own board and move generator (0x88 Int8Array, moves as integers, make and
+  unmake in place, Zobrist keys): castling, en passant, promotion, check, checkmate, stalemate, the fifty-move rule,
+  threefold repetition and bare material. It agrees move for move with lib/chess/rules.ts (the board's authority, unchanged).
+- lib/chess/engine/search.ts: iterative deepening alpha-beta (negamax) with a transposition table, best-move-first,
+  captures by most valuable victim, killer and history moves, a quiescence search, a check extension, repetition and
+  fifty-move draws inside the search; evaluation is material, piece-square tables (king middlegame→endgame) and a bishop pair.
+- lib/chess/engine/levels.ts (constants only): Easy (1 move, 0.4 s), Medium (up to 3, about 1 s), Hard (up to 8, up to 3 s).
+- lib/chess/engine/worker.ts + client.ts: the search runs in a Web Worker (`new Worker(new URL(…))`, as the importer's)
+  started on the first move asked of it — a game has begun — never before; closed on leaving or "Change side or level".
+  A browser without workers, a worker that errors or is silent 13 s gets the same search on the page.
+- Chess → Play → "Play the computer, on this device" (components/chess/board/computer-play.tsx, inside the Play panel's
+  lazy chunk; its client loads with a dynamic import on the first engine move): the three levels with what each does, the
+  depth its last move looked, the game kept after every move ("A game is waiting: … Continue the game"), and per level
+  "Against Medium: 1 won · 0 lost · 0 drawn". Focus goes to the board on Start and back to Start on leaving. Lichess
+  play and the daily puzzle are untouched.
+
+Files: lib/chess/engine/{board,search,levels,worker,client}.ts (new), lib/chess/computer-record.ts (new, TIER 3 own commit),
+components/chess/board/computer-play.tsx (rewired to the engine; lib/chess/computer.ts kept for `gameEnd` and its tests).
+Tests: lib/chess/engine/engine.test.ts (perft: start position to depth 4 = 197,281; Kiwipete 3; positions 3 (depth 4), 4
+and 5; agreement with rules.ts; the draws; mate in one at every level; a mate in two Medium and Hard find and Easy does
+not; time and node limits; determinism at a depth limit), lib/chess/av2-computer-record.test.ts (the record, its
+tolerant read, export → erase → restore, the client with a fake worker, the page fallback).
+Spec: tests/av2-chess-engine.spec.ts (three themes at 390/1440; 320 px; no worker before Start, one after; reload and continue; resign counted).
+Deliberate spec change: tests/grok53/chain/l6-fourth-chain.spec.ts (BN-182): "nothing about the game is stored" became
+the exact stored value after the resign (`{version: 1, tally: {easy: {won: 0, lost: 1, drawn: 0}}}`), labelled.
+
+Stored (TIER 3, own commit): NEW `zigoals:chess-computer:v1` — `{version: 1, game?: {side: 'w'|'b', level:
+'easy'|'medium'|'hard', moves: [uci] ≤ 600, startedAt}, tally?: {easy?|medium?|hard?: {won, lost, drawn}}}` (loose, each part
+dropped on read when unreadable). Lead, please register it as a personal device record (av-device-keys / Export
+everything / catalogue / erase / restore, area Today; catalogue label "Chess: your game against the computer and your
+results by level"); not synced.
+Weight: the Chess route's first load is unchanged (nothing new in chess-view.tsx); the engine is a worker file and the
+client a dynamic import; levels.ts and computer-record.ts are small and sit in the already-lazy Play panel chunk.
+Help (EN): Q "Can I play chess against the computer?" A "Yes. Chess → Play → Play the computer: ZIGoals' own small chess
+engine runs in this browser, with no account and nothing sent. Choose Easy, Medium or Hard. Your game is kept on this
+device, so you can continue it later, and each level counts your wins, losses and draws."
+Help, the lead's file: the Chess answer in help-page.tsx (and its copy in lib/ai/local-answers/al-final.ts `al-chess`,
+pinned to Help's words) still says "Playing a game happens on Lichess"; suggested: "You can play ZIGoals' own chess engine
+on this device (Play, three levels, no account), or play on Lichess after you sign in there."
+What's new: "Chess: play ZIGoals' own engine at three levels; your game is kept to continue later."
+CSS: none. Showcase hook: none (no Showcase games; counts untouched). Nothing on Today.
+
+## NOVA and ZIGi (EN + NL)
+
+`lib/ai/local-answers/av2-roadmap.ts` exports `av2RoadmapAnswer(question, env, extra?)`: results against the engine by
+level, a game waiting to be continued, and photos and voice notes on tasks (where they are; how many when the caller passes
+`{attachments: {photos, voice, tasks}}`). Cases: `lib/ai/evals/as/cases-av2-roadmap.ts` (`AV2_ROADMAP`, 3 intents, 12
+questions). Test: `lib/ai/local-answers/av2-roadmap.test.ts`.
+Wiring line for engine.ts (beside `avAnswer`, before it): `if (!subject) { const own = av2RoadmapAnswer(question, env); if (own) return own; }`
+— pass `{chess}` when the env carries it (`env.nova.chessComputer` is read when present; the lead adds it to NovaToolSources from `zigoals:chess-computer:v1`).
