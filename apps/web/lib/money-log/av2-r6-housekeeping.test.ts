@@ -110,3 +110,14 @@ describe('review B6O-6: the repairs that change no entry have their own Undo', (
     expect(undoAddBackSub(both, addBackSub(base, 'Groceries', 'Fruit'), 'Groceries', 'Milk').subs).toEqual({Groceries: ['Bread', 'Fruit']});
   });
 });
+
+test('review B6O-8: a refund left out or marked a transfer is still checked against the spending categories', () => {
+  const kept = e({id: 'rk', kind: 'income', refund: true, category: 'Groceries'});
+  for (const marks of [{}, {excluded: true as const}, {transfer: 'x'}]) {
+    const found = checkRecords(log([{...kept, ...marks}])).filter(i => i.kind === 'category');
+    expect(found).toEqual([]); // Groceries is a spending category: nothing lost
+  }
+  const own = log([{...e({id: 'ro', kind: 'income', refund: true, category: 'Pets'}), excluded: true}]);
+  expect(checkRecords(own).filter(i => i.kind === 'category').map(i => i.kind === 'category' ? [i.category, i.entryKind] : null)).toEqual([['Pets', 'expense']]);
+  expect(addBackCategory(own, 'expense', 'Pets').own).toEqual({expense: ['Pets']});
+});

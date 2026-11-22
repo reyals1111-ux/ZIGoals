@@ -1,7 +1,7 @@
 import {minorUnits} from '../money-split/parts';
 import type {BudgetsRecord} from '../budgets/schema';
 import {budgetsSchema} from '../budgets/schema';
-import {allCategories, categoryChoices, countedKind, withChange} from './counted';
+import {allCategories, categoryChoices, categoryKind, withChange} from './counted';
 import {MAX_SUBS, moneyLogSchema, type MoneyEntry, type MoneyLog} from './schema';
 
 /**
@@ -37,7 +37,7 @@ export function checkRecords(log: MoneyLog, {budgets = null, accountIds = null}:
   for (const [key, list] of twins) if (list.length > 1) out.push({kind: 'duplicate', key: `dup:${key}`, entries: [...list].sort((a, b) => a.createdAt.localeCompare(b.createdAt))});
   // A category that is no longer one of the person's (an own category removed since).
   const known = {expense: new Set(allCategories(log, 'expense').map(fold)), income: new Set(allCategories(log, 'income').map(fold))}, lost = new Map<string, MoneyEntry[]>();
-  for (const e of log.entries) { const k = countedKind(e); if (!known[k].has(fold(e.category))) lost.set(`${k}|${e.category}`, [...(lost.get(`${k}|${e.category}`) ?? []), e]); }
+  for (const e of log.entries) { const k = categoryKind(e); /* B6O-8: a refund's category is a spending one whatever its marks */ if (!known[k].has(fold(e.category))) lost.set(`${k}|${e.category}`, [...(lost.get(`${k}|${e.category}`) ?? []), e]); }
   for (const [k, list] of lost) { const [entryKind, ...rest] = k.split('|'); out.push({kind: 'category', key: `cat:${k}`, category: rest.join('|'), entryKind: entryKind as MoneyEntry['kind'], entries: list}); }
   // A subcategory its category's list no longer has.
   const subs = new Map<string, MoneyEntry[]>();
