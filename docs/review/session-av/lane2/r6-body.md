@@ -139,3 +139,42 @@ the energy, food-plus and workouts fields; the two new keys' round trips run onc
 - Showcase hook: none (the list is the person's own; a Showcase list would put words in their mouth).
 - Device keys / catalogue / export / erase: nothing new (the energy record is registered). Route weight: the feeling words'
   choices chunk gains one `lazy()` line; the rest is `r6/lifts`. /app/journal and /app/health are otherwise unchanged.
+
+## 4. Grounding, and your own page for a low day — LEDGER #414 built, #416 built (as the person's own written plan)
+
+- What:
+  - #414 Health → Meditation → "Five, four, three, two, one: a grounding exercise" (a fold beside the calm visual): five
+    things you can see, four you can touch, three you can hear, two you can smell, one you can taste — one sense at a time
+    (focus moves to each step's heading), a word in each field or "Skip this one", Back, and "In het Nederlands". At the
+    end: "You noticed what is around you, one sense at a time." and the words in one line; nothing is kept unless the
+    person chooses "Save these words as a journal line" (an ordinary journal entry). A fixed exercise: no reading of the
+    answers, no score, no clinical word (a unit test bans them).
+  - #416 Health → Meditation → "On a low day: your own page" (`#low-day`; one tap from an unpleasant check-in's "What lifts
+    you", feature 3, and from the Calm folds): "Small things that help me" (up to 12), "People I could message" (up to 8),
+    "Things that can wait for another day" (up to 12) and "A line for yourself" — the person's own words only, written on a
+    good day; Remove with Undo. Under it the help lines the app already shows (the same numbers as ZIGi's reply to
+    distress words; a unit test checks each number is in both). It says it stays on this device and is never sent to
+    ZIGi's AI (no AI source reads `zigoals:low-day:v1`; the on-device answer only says where the page is).
+- Owner notes: built only as the person's own written plan of small things that help them (LEDGER owner note under #416);
+  nothing suggested, no safety-plan steps, no clinician content. The app has no support contacts of its own, so there is
+  no pointer to them; the person's own "People I could message" stands in their place. If the owner reads this page as a
+  safety plan that needs a clinician's content, the remainder is Carried: needs content made for ZIGoals.
+- Files: `lib/calm/grounding.ts`, `lib/calm/help-line.ts` (new, pure), `lib/calm/low-day.ts` (stored commit),
+  `components/health/r6/calm-parts.tsx` (new), `components/health/meditation/meditation-view.tsx` (one `lazy()` line, two
+  folds, the `#low-day` opener), `body-r6.css`. `calm-chooser.tsx` is unchanged (the grounding sits beside it as its own
+  fold, not inside the calm-visual chooser).
+- Tests: `lib/calm/av2-r6-calm.test.ts`, `lib/av2-r6-body-stored.test.ts`. Spec: `tests/av2-r6-calm.spec.ts`.
+- Stored: `zigoals:low-day:v1` (new key, see the table and the shared to-do); grounding stores nothing (a saved line is an
+  ordinary journal entry).
+- Help (EN): **Is there a grounding exercise?** Yes. In Health → Meditation, open "Five, four, three, two, one": notice five
+  things you can see, four you can touch, three you can hear, two you can smell and one you can taste, a word each or
+  skip. Nothing is kept unless you save the words as a journal line. It is also in Dutch. **What is "On a low day"?** A
+  page of your own in Health → Meditation, written on a good day for a harder one: small things that help you, people you
+  could message, things that can wait, and a line for yourself. Only your words; it stays on this device and is never sent
+  to ZIGi's AI. The help lines are under it.
+- What's new: "Calm: a five-senses grounding exercise, and your own page for a low day."
+- Search (static.ts): "grounding", "5 4 3 2 1", "five senses" → `/app/health?view=meditation`; "low day", "bad day plan",
+  "things that help me" → `/app/health?view=meditation#low-day`.
+- Showcase hook: none (the low-day page is the person's own; a Showcase page would put words in their mouth).
+- Device keys / catalogue / export / erase: `zigoals:low-day:v1` via `lib/av2-r6-body-keys.ts` (shared to-do). Route weight:
+  the meditation view (lazy already) gains one `lazy()` line; the rest is `r6/calm-parts`.
