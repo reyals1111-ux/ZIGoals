@@ -520,6 +520,12 @@ DISHES/ARTICLE, `components/health/daily-tools.tsx` "fresh", `components/health/
   must be downloaded again); #95 sharing recipes (against a named rule: nothing shared between people); #103 reading
   the name from a package photo and #104 a cookbook photo (needs a model); #199 a letter for generic foods (the
   nutri-score.tsx choice, the owner's).
+- Second builder's re-read (every "Not built" / "left" line above, and q3.md's food rows #3, #18, #25, #28, #29, #47,
+  #48): each q3 food Minor is built (F1, F13) or was fixed before this lane (`774b4e48`, `4606305e`); q3 #36 (hide figures
+  in Settings and Export) is LEDGER #69, group 8 (the mood lane's). The carried parts keep their causes: none became
+  possible within the rules (no outside service, no model; the nutrient tables need the source datasets downloaded).
+- **Next row: none left in the food lane's list.** For the lead only: the F11 Showcase recipes (pinned counts) and the
+  optional `foodPlus` source in `use-ai-context.ts` (F16).
 
 ## For the lead (shared files and wiring)
 
