@@ -1,3 +1,5 @@
+import {checklistZone, zonedDay} from '../checklist/zone';
+import {anchorReminders} from './reminder-anchors';
 import {MAX_BODY, MAX_NOTES, MAX_TITLE, MAX_TOTAL_CHARS, noteName, notesSchema, shortNoteName, totalChars, type Note, type NoteSource, type Notes} from './schema';
 
 /**
@@ -55,14 +57,21 @@ export function addTopic(record: Notes, {title, body = '', now, id}: {title: str
   return {record: checked({...record, notes: [...record.notes, note]}), note};
 }
 export type NotePatch = Partial<Pick<Note, 'title' | 'body' | 'tags' | 'pinned' | 'photoId'>>;
-/** Changes one note's words (a daily note keeps its day as its title). */
-export function updateNote(record: Notes, id: string, patch: NotePatch, now: string): Notes {
+/**
+ * Changes one note's words (a daily note keeps its day as its title). Review b1 #1: a save of the words also notes the
+ * day each "@remind" line was written (`remindFrom`, lib/notes/reminder-anchors.ts), in the person's zone.
+ */
+export function updateNote(record: Notes, id: string, patch: NotePatch, now: string, zone: string = checklistZone()): Notes {
   const at = record.notes.findIndex(n => n.id === id);
   if (at < 0) throw new Error('This note is no longer on this device.');
   const old = record.notes[at]!;
   if (patch.body !== undefined && patch.body.length > MAX_BODY) throw new Error(`A note holds at most ${MAX_BODY.toLocaleString('en-US')} characters.`);
   const next: Note = {...old, ...patch, ...(patch.title !== undefined ? {title: old.kind === 'daily' ? old.title : clipTitle(patch.title)} : {}), updatedAt: now};
   if (patch.photoId === undefined && 'photoId' in patch) delete next.photoId;
+  if (patch.body !== undefined) {
+    const remindFrom = anchorReminders(old, patch.body, zonedDay(new Date(now), zone), zone);
+    if (remindFrom) next.remindFrom = remindFrom; else delete next.remindFrom;
+  }
   return checked({...record, notes: record.notes.map((n, i) => i === at ? next : n)});
 }
 /** Deletes a note; Undo puts it back. */
