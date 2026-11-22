@@ -37,6 +37,8 @@ const NoteFind = lazy(() => import('./note-find'));
 const NoteFocus = lazy(() => import('./note-focus'));
 // Session AV lane 2 (r4-notes; LEDGER #318): a locked note's cover (the screen-cover PIN), loaded with a locked note.
 const NoteLock = lazy(() => import('./note-lock'));
+// Session AV lane 2 (r4-notes; LEDGER #319): the note as an HTML page, plain text or a Word file, loaded on the press.
+const NoteSave = lazy(() => import('./note-save'));
 const shortWords = (w: string) => { const t = w.replace(/\s+/g, ' ').trim(); return t.length > 40 ? `${t.slice(0, 39).trimEnd()}…` : t; };
 
 /**
@@ -55,7 +57,8 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
   // Session AV lane 2 (r4-notes; LEDGER #306): the Tags field holds the kept tags not written in the text.
   const savedField = note ? fieldTags(note).join(', ') : '', [tagText, setTagText] = useState(savedField);
   const [mode, setMode] = useState<'read' | 'edit'>(note?.body.trim() ? 'read' : 'edit');
-  const [finding, setFinding] = useState(false), [writing, setWriting] = useState(false);
+  const [finding, setFinding] = useState(false), [writing, setWriting] = useState(false), [saving, setSaving] = useState(false);
+  const doneSaving = useCallback(() => { setSaving(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-save-button')?.focus()); }, []);
   // Session AV lane 2 (r4-notes; LEDGER #318): a locked note shows its words after the PIN, for this visit only.
   const [shown, setShown] = useState(false), covered = !!note?.locked && !shown;
   const doneWriting = useCallback(() => { setWriting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-write-button')?.focus()); }, []);
@@ -115,7 +118,9 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {note && fieldTags(note).length > 0 && <p className="note-tag-line"><span className="fine">Tags: </span>{fieldTags(note).map(t => onTag ? <button key={t} type="button" className="note-tag" aria-label={`#${t}: show the notes with this tag`} onClick={() => onTag(t)}>#{t}</button> : <span key={t} className="note-tag">#{t}</span>)}</p>}
       {note && /@remind|!remind|@herinner|⏰/i.test(note.body) && <LoadBoundary quiet><Suspense fallback={null}><NoteReminderChips note={note}/></Suspense></LoadBoundary>}
       <div className="note-actions"><button type="button" className="secondary" onClick={() => setMode('edit')}>Edit</button>
-        {note && <button type="button" className="quiet note-print-button" onPointerEnter={() => void import('./note-print').catch(() => undefined)} onClick={() => setPrinting(true)}>Print this note</button>}</div>
+        {note && <button type="button" className="quiet note-print-button" onPointerEnter={() => void import('./note-print').catch(() => undefined)} onClick={() => setPrinting(true)}>Print this note</button>}
+        {note && <button type="button" className="quiet note-save-button" aria-expanded={saving} onPointerEnter={() => void import('./note-save').catch(() => undefined)} onClick={() => saving ? doneSaving() : setSaving(true)}>Save this note as…</button>}</div>
+      {note && saving && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteSave note={note} onClose={doneSaving}/></Suspense></LoadBoundary>}
       {note && printing && <LoadBoundary quiet><Suspense fallback={null}><NotePrint note={note} heading={heading || noteName(note)} index={index} onDone={donePrinting}/></Suspense></LoadBoundary>}
     </>}
     {note && <NoteExtras note={note} change={change} onDeleted={onDeleted} onPlace={mode === 'edit' ? placePhoto : undefined} onLocked={() => setShown(true)}/>}

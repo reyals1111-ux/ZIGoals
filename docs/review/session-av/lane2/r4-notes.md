@@ -240,3 +240,28 @@ before (an archived note in its list; only the first photo).
   Export everything. Remove the lock takes it off."
 - What's new: "Notes: lock a note behind your screen-cover PIN, out of Search, the Graph and NOVA."
 - Showcase: none (the Showcase has no PIN). CSS touched: `components/notes/notes.css`. Today: nothing added.
+
+### F10 More ways to export a note: HTML, text and Word — LEDGER #319 (Bear)
+
+- Verdict: **built**.
+- What: reading an open note, "Save this note as…" (beside Print this note) opens a panel (focus on its first button;
+  Esc or Close back to the button): "A web page (.html)" — one page with the title, the day or made / changed days and
+  tags, the words as the reading view draws them (headings, lists, tick boxes ☐ ☑, highlights, quotes, callouts, tables,
+  code, https links) and the note's photos inside as data; "Plain text (.txt)" — the title, that line, then the words
+  as they read (marks gone, tick boxes ☐ ☑, CRLF line ends); "A Word file (.docx)" — Office Open XML written by hand
+  (WordprocessingML: Title, Subtitle, Heading 1–3, Quote, Code and List Paragraph styles, bullets and numbers that
+  restart per list, bold, italics, highlights, hyperlinks, tables, photos as inline pictures made JPEG on this device,
+  core properties) into a ZIP through `lib/export/zip.ts` — no package. Every word is escaped; a file is named after the
+  note. A photo not in this browser is left out and said.
+- A locked note (#318) offers it only after its PIN (the editor shows nothing of it before).
+- Files: new `lib/notes/note-files.ts` (the XHTML and Word writers, shared with #320), new `lib/notes/doc-image.ts`
+  (JPEG for Word, the download), new `components/notes/note-save.tsx` (lazy), `components/notes/note-editor.tsx`,
+  `components/notes/notes.css`.
+- Tests: `lib/notes/r4-note-files.test.ts` (escaping; every XML part well-formed with the repository's strict XML
+  reader; the parts, styles, numbering, hyperlink and picture sizes). Spec: `tests/av2-notes-save.spec.ts` (reads the three
+  downloads).
+- Stored: nothing.
+- Help (EN). Q: "Can I save a note as a Word file or a web page?" A: "Yes. Open the note and press Save this note as…:
+  a web page (.html, with its photos inside), plain text (.txt) or a Word file (.docx). Each is made on this device."
+- What's new: "Notes: save a note as a web page, plain text or a Word file."
+- Showcase: none needed. CSS touched: `components/notes/notes.css`. Today: nothing added.

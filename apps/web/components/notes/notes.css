@@ -362,3 +362,8 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-lock-form input { inline-size: 100%; box-sizing: border-box; }
 .note-lock-form button, .note-lock > button { min-height: 44px; justify-self: start; }
 .note-editor:focus { outline: none; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #319): Save this note as… */
+.note-save { display: grid; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent); }
+.note-save-title { margin: 0; font-size: 16px; }
+.note-save p { margin: 0; }
