@@ -1,9 +1,10 @@
-import {describe, expect, test} from 'vitest';
+import {afterEach, describe, expect, test, vi} from 'vitest';
 import {HEALTH_CLOSED} from '../tools/format';
 import {DAY, freshAll, showcaseAll, zigiEnv} from '../evals/as/harness';
 import {showcaseEvening} from '../../evening-plan/showcase';
 import {AV2_BODY} from '../evals/as/cases-av2-body';
 import {av2BodyAnswer} from './av2-body';
+import {hideBodyFigures, withHiddenFigures} from './av2-hide-figures';
 import type {LocalReply} from './engine';
 
 /**
@@ -174,3 +175,54 @@ describe('routines (LEDGER #112, #115, #119)', () => {
     expect(home).not.toContain('Duwdag');
   });
 });
+
+/** Review b2b #3: with "Hide calories and weight" on, the BMI answer says neither the BMI nor the height (together they give the weight back). */
+describe('BMI under hidden figures (review b2b #3)', () => {
+  afterEach(() => { vi.unstubAllGlobals(); });
+  const withBody = (bodyExtras: unknown) => { const s = showcaseAll(); s.ak = {...s.ak, bodyExtras} as typeof s.ak; return s; };
+  const hide = () => vi.stubGlobal('window', {localStorage: {getItem: (k: string) => k === 'zigoals:hide-body-figures' ? 'on' : null}});
+  test('English: no BMI, no height, no weight; one line on where to show it again', () => {
+    const shown = text(ask('what is my BMI', withBody({version: 1, heightCm: 180})));
+    expect(shown).toMatch(/Your BMI is \d/);
+    hide();
+    const r = ask('what is my BMI', withBody({version: 1, heightCm: 180}));
+    const en = text(withHiddenFigures(r!, true, 'en'));
+    expect(en).toBe('Your BMI is hidden with your weight figures on this device; Health → “Show calories and weight” brings it back.');
+    expect(en).not.toMatch(/\d/);
+  });
+  test('Dutch: no BMI, no height, no weight; one line on where to show it again', () => {
+    expect(text(ask('wat is mijn BMI', withBody({version: 1, heightCm: 180})))).toMatch(/Je BMI is \d/);
+    hide();
+    const nl = text(withHiddenFigures(ask('wat is mijn BMI', withBody({version: 1, heightCm: 180}))!, true, 'nl'));
+    expect(nl).toBe('Je BMI is verborgen, samen met je gewichtscijfers op dit apparaat; Health → “Show calories and weight” zet hem terug.');
+    expect(nl).not.toMatch(/\d/);
+  });
+  test('the switch off: the number as before; the height still asked for when missing, switch on or off', () => {
+    hide();
+    expect(text(ask('what is my BMI', withBody({version: 1})))).toContain('it needs your height');
+    vi.unstubAllGlobals();
+    expect(text(ask('what is my BMI', withBody({version: 1, heightCm: 180})))).toContain('(weight in kg ÷ height in metres, squared)');
+  });
+  test('any other answer that names a BMI figure has it hidden too, in English and Dutch', () => {
+    expect(hideBodyFigures('Your BMI is 24.3: 78.6 kg and 180 cm.').text).toBe('Your BMI is —: — kg and 180 cm.');
+    expect(hideBodyFigures('Je BMI is 24,3 vandaag.').text).toBe('Je BMI is — vandaag.');
+    expect(hideBodyFigures('BMI: 22.1').text).toBe('BMI: —');
+    expect(hideBodyFigures('3 sets of 8 reps; BMI 23').text).toBe('3 sets of 8 reps; BMI —');
+  });
+});
+
+/** Review b2b #8: the training-load answer after a long break, in English and Dutch. */
+describe('training load after a break (review b2b #8)', () => {
+  test('older history and nothing in the four weeks before: "welcome back", never "first week"', () => {
+    const s = showcaseAll(), all = s.ak!.workouts!.workouts, recent = all.filter(x => x.date > '2026-11-10' && x.date <= DAY && x.endedAt);
+    expect(recent.length).toBeGreaterThan(0);
+    const older = {...recent[0]!, id: `${recent[0]!.id}-older`, date: '2026-07-01'};
+    s.ak = {...s.ak, workouts: {...s.ak!.workouts!, workouts: [older, ...recent]}} as typeof s.ak;
+    const en = text(ask('what is my training load', s)), nl = text(ask('wat is mijn trainingsbelasting', s));
+    expect(en).toContain('Welcome back: nothing in the four weeks before, so there is no usual to compare with yet.');
+    expect(nl).toContain('Welkom terug: niets in de vier weken ervoor, dus er is nog geen gewone week om mee te vergelijken.');
+    expect(en).not.toContain('first week');
+    expect(nl).not.toContain('eerste week');
+  });
+});
+

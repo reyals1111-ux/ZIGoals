@@ -23,7 +23,8 @@ export type DayChoice = {kind: 'done'} | {kind: 'skip'} | {kind: 'amount'; value
 export function applyDayChoice(data: HabitData, habitId: string, date: string, choice: DayChoice, now = new Date()): HabitData {
   const habit = data.habits.find(h => h.id === habitId), rule = habit && habitRuleOn(habit, date);
   if (!habit || !rule) throw new Error('This habit could not be found.');
-  if (choice.kind === 'skip') return setHabitEntryStatus(data, habitId, date, 'skipped', 'Skipped from the week', now);
+  // Review b2b #5: the day's own note stays (as the History's skip keeps it); the skip words only on a day without one.
+  if (choice.kind === 'skip') return setHabitEntryStatus(data, habitId, date, 'skipped', habit.entries.find(e => e.date === date)?.note || 'Skipped from the week', now);
   if (choice.kind === 'clear') return restoreHabitEntry(data, habitId, date, undefined, now);
   // A skipped day logged again keeps no skip: the value replaces it, as a check-in in the History does.
   return logHabitValue(data, habitId, date, choice.kind === 'done' ? smartDoneValue(rule) : choice.value, {mode: 'set'}, now);

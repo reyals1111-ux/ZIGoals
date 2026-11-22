@@ -15,6 +15,7 @@ import type {HabitsPlan} from '../../lib/import/switch/loop';
 import type {DaylioPlan} from '../../lib/import/switch/daylio';
 import type {YnabPlan, DateOrder} from '../../lib/import/switch/ynab';
 import {n} from './switch-import-text';
+import {dayRangeWords, importedHabitLine} from '../../lib/import/switch/preview-words';
 
 /**
  * Session AK (A15): Daylio, Habitica and YNAB in "Switch to ZIGoals". Each export is read on this device into a preview;
@@ -115,7 +116,7 @@ export default function SwitchImportMore() {
       <input type="file" accept={APPS[app].accept} disabled={!ready || busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; void readFile(file); }} /></label>
 
     {daylio && <div className="switch-preview">
-      <p className="import-summary">Daylio: {n(daylio.entries.length)} {daylio.entries.length === 1 ? 'entry' : 'entries'} from {daylio.entries[0]?.date ?? '—'} to {daylio.entries.at(-1)?.date ?? '—'}.</p>
+      <p className="import-summary">Daylio: {n(daylio.entries.length)} {daylio.entries.length === 1 ? 'entry' : 'entries'} {dayRangeWords(daylio.entries)}.</p>
       {own.length > 0 && <div className="switch-moods"><p>Place your own mood words on the 1–5 scale (5 is best), or leave them out:</p>
         {own.map(m => <label key={m.label} className="field"><span>“{m.label}” ({n(m.count)})</span>
           <select value={moodMap[m.label] ?? ''} onChange={e => setMoodMap(map => ({...map, [m.label]: e.target.value ? Number(e.target.value) : null}))}><option value="">Leave out</option>{[5, 4, 3, 2, 1].map(v => <option key={v} value={v}>{v}</option>)}</select></label>)}
@@ -129,7 +130,7 @@ export default function SwitchImportMore() {
     {habitica && <div className="switch-preview">
       <p className="import-summary">{habitica.label}: {n(habitica.habits.length)} {habitica.habits.length === 1 ? 'habit' : 'habits'} ({habitica.habits.slice(0, 5).map(h => h.title).join(', ')}{habitica.habits.length > 5 ? '…' : ''}).</p>
       <p className="fine">{habitica.label === 'Habitica' ? 'Habits and dailies come in as habits with their schedule; to-dos and rewards stay in Habitica.' : 'Each habit comes in as a new habit with its days.'} ZIGoals never merges habits by name.</p>
-      {habitica.label !== 'Habitica' && <ul aria-label={`Habits from ${habitica.label}`}>{habitica.habits.slice(0, 12).map(h => <li key={h.id}>{h.title} · {n(h.entries.length)} {h.entries.length === 1 ? 'day' : 'days'}{h.entries[0] ? ` from ${h.entries[0].date}` : ''}{h.rules[0]?.measurement.kind === 'count' ? ' · with amounts' : ''}</li>)}{habitica.habits.length > 12 && <li>and {n(habitica.habits.length - 12)} more</li>}</ul>}
+      {habitica.label !== 'Habitica' && <ul aria-label={`Habits from ${habitica.label}`}>{habitica.habits.slice(0, 12).map(h => <li key={h.id}>{importedHabitLine(h)}</li>)}{habitica.habits.length > 12 && <li>and {n(habitica.habits.length - 12)} more</li>}</ul>}
       {[...habitica.summarised, ...habitica.warnings].map(w => <p key={w} className="notice">{w}</p>)}
       <div className="actions"><button type="button" className="primary" disabled={busy || !habitica.habits.length} onClick={() => void confirmHabitica(habitica)}>{busy ? 'Importing…' : `Import ${n(habitica.habits.length)} ${habitica.habits.length === 1 ? 'habit' : 'habits'}`}</button><button type="button" className="quiet" disabled={busy} onClick={reset}>Cancel</button></div>
     </div>}

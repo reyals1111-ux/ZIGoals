@@ -73,7 +73,7 @@ export const removeDistanceGoal = (w: Workouts, id: string) => workoutsSchema.pa
 
 // ── Training load ─────────────────────────────────────────────────────────────────────────────────────────────────
 export type LoadMetric = 'minutes' | 'km';
-export type TrainingLoad = {metric: LoadMetric; last7: number; usual: number | null; ratio: number | null; words: 'lighter' | 'usual' | 'more' | 'much-more' | 'new' | 'none';
+export type TrainingLoad = {metric: LoadMetric; last7: number; usual: number | null; ratio: number | null; words: 'lighter' | 'usual' | 'more' | 'much-more' | 'new' | 'back' | 'none';
   weeks: {start: string; value: number; average: number | null}[]};
 const valueOf = (x: Workout, metric: LoadMetric) => metric === 'minutes' ? durationMinutes(x) : distanceOf(x);
 const sumBetween = (w: Workouts, from: string, to: string, metric: LoadMetric) => finished(w).filter(x => x.date >= from && x.date <= to).reduce((t, x) => t + valueOf(x, metric), 0);
@@ -81,7 +81,10 @@ export function trainingLoad(w: Workouts, today: string, metric: LoadMetric = 'm
   const last7 = Math.round(sumBetween(w, addLocalDays(today, -6), today, metric) * 10) / 10;
   const before = [1, 2, 3, 4].map(k => sumBetween(w, addLocalDays(today, -6 - 7 * k), addLocalDays(today, -7 * k), metric)), any = before.some(v => v > 0);
   const usual = any ? Math.round(before.reduce((a, b) => a + b, 0) / 4 * 10) / 10 : null, ratio = usual ? Math.round(last7 / usual * 100) / 100 : null;
-  const words: TrainingLoad['words'] = !last7 && !usual ? 'none' : usual === null ? 'new' : ratio! < 0.8 ? 'lighter' : ratio! <= 1.3 ? 'usual' : ratio! <= 1.5 ? 'more' : 'much-more';
+  // Review b2b #8: "first week here" only when nothing was finished before these five weeks; someone back after a break
+  // with older history is told there is nothing in the four weeks before to compare with.
+  const older = usual === null && last7 > 0 && finished(w).some(x => x.date < addLocalDays(today, -34));
+  const words: TrainingLoad['words'] = !last7 && !usual ? 'none' : usual === null ? (older ? 'back' : 'new') : ratio! < 0.8 ? 'lighter' : ratio! <= 1.3 ? 'usual' : ratio! <= 1.5 ? 'more' : 'much-more';
   // The 12 weeks (Monday first) and each one's average of the 4 weeks before it.
   const monday = addLocalDays(today, -((new Date(`${today}T12:00:00Z`).getUTCDay() + 6) % 7));
   const starts = Array.from({length: 16}, (_, i) => addLocalDays(monday, -7 * (15 - i))), values = starts.map(s => Math.round(sumBetween(w, s, addLocalDays(s, 6) > today ? today : addLocalDays(s, 6), metric) * 10) / 10);
@@ -90,5 +93,6 @@ export function trainingLoad(w: Workouts, today: string, metric: LoadMetric = 'm
 }
 export const LOAD_WORDS: Record<TrainingLoad['words'], string> = {
   none: 'Nothing logged in the last five weeks yet.', new: 'This is your first week here, so there is no usual yet.',
+  back: 'Welcome back: nothing in the four weeks before, so there is no usual to compare with yet.',
   lighter: 'Lighter than your usual week.', usual: 'About your usual week.', more: 'More than your usual week.', 'much-more': 'Well above your usual week: a big step up. Building up gradually is the usual advice.',
 };
