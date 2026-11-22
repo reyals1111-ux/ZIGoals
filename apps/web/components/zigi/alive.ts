@@ -13,6 +13,7 @@ import {filesFor, gazeOf, reactionArtOf, skinOf, ZIGI_STATES, type Skin, type St
 import {BASE, pickVariant, poolForState, variantPools, type VariantPool} from './variants';
 import {motionAllowed, supportsAnimatedWebp, watchMotion, zigiAnimation} from './motion';
 import {gazeFor, heldGazes, watchGaze} from './gaze';
+import {startHelloInPlace} from './hello-in-place';
 
 /**
  * ZIGi alive (Session X-Local Parts 1, 3 and 4; ADR-017 S7): the small chunk the launcher loads lazily on every app page
@@ -194,6 +195,8 @@ export function startZigiAlive(options: {random?: () => number} = {}): () => voi
   publish();
   void supportsAnimatedWebp().then(ok => { apng = !ok; publish(); });
   const stopRotation = startRotation(skin, () => apng, options.random), stopVariants = startVariants(skin, () => apng, options.random);
-  started = () => { stopVariants(); republish = () => undefined; stopRotation(); stopController(); stopMachine(); stopMotion(); stopGaze(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); window.removeEventListener(AI_SETTINGS_EVENT, watchSetup); window.removeEventListener('storage', watchSetup); zigiFrames.set(null); started = null; };
+  // Session AV lane 2 (roadmap, PK-6): the delivered X001 "Hello, in place" over the resting state, once a day (hello-in-place.ts).
+  const stopHello = startHelloInPlace({skin, apng: () => apng, play: clip => setOverride({state: 'idle', frame: overrideFrame(clip.files, apng, skin()), ms: clip.durationMs > 0 ? clip.durationMs : 2500, reaction: true})});
+  started = () => { stopHello(); stopVariants(); republish = () => undefined; stopRotation(); stopController(); stopMachine(); stopMotion(); stopGaze(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); window.removeEventListener(AI_SETTINGS_EVENT, watchSetup); window.removeEventListener('storage', watchSetup); zigiFrames.set(null); started = null; };
   return started;
 }

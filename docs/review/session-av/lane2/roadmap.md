@@ -42,3 +42,32 @@ everything includes them as files and Erase everything removes them."
 What's new: "Tasks: add photos and short voice notes to a task, kept on this device."
 Showcase hook: none (the Showcase keeps no photos; it can take one, in its own scope, removed when the Showcase is left).
 CSS touched: components/tasks/task-attachments.css (new; theme variables only). Nothing new on Today.
+
+## Feature 2 — ZIGi's "Hello, in place" once a day (PK-6, owner decision, follow-up 3) — built
+
+- The delivered Studio-4 clip X001 ("Hello, in place", `transitions.greetingInPlace` in the manifest) plays over the
+  resting launcher figure, for its own 2.5 s, on the first open of the app on a new day while ZIGi is on screen and
+  resting. Never with reduced motion, Motion Off or ZIGi's animation Off (motion.ts `motionAllowed`), never on a sensitive
+  screen or a hidden tab, never on a phone (no floating figure below 901 px), never while ZIGi is busy. It waits for the
+  page's first idle, fetches the clip, checks again, then plays (the alive chunk's reaction override, so it gives way to
+  any state change). A reload, another page or tab that day does not play it again. The look is unchanged: only the
+  existing clip plays; no CSS, no art, no manifest change.
+- The very first open of all (no day kept) only keeps the day; the hello back starts the next day.
+- An automated browser (`navigator.webdriver`) gets it only when the tab's session storage holds
+  `zigoals:zigi:test-hello` = "1" (like alive.ts's `zigoals:zigi:test-random`), so no other spec sees a new key or clip.
+- Meet ZIGi: X001's "When" now reads "Once a day, the first time you open the app that day while ZIGi rests on screen,
+  under animation." (components/zigi/state-gallery.ts).
+
+Files: lib/zigi-hello-day.ts (new, TIER 3 own commit), components/zigi/hello-in-place.ts (new, in the alive chunk),
+components/zigi/alive.ts (one import, one start, one stop), components/zigi/state-gallery.ts (X001's line).
+Tests: lib/zigi-studio4/av2-hello-in-place.test.ts; lib/zigi-studio4/meet-moves.test.ts changed, labelled
+`// Session AV lane 2 (PK-6 …, deliberate)`: the unused list is now `[]` and X001's line is pinned exactly.
+Spec: tests/av2-zigi-hello.spec.ts (desktop project; plays once, not on the second open, never with Motion Off or reduced motion).
+
+Stored (TIER 3, own commit): NEW localStorage key `zigoals:zigi-hello-day` — a plain local "YYYY-MM-DD" (not JSON).
+Lead, please register it as a display / non-personal key (AH_DISPLAY_KEYS / NON_PERSONAL_KEYS or the ZIGi display list,
+lib/ai/store/keys.ts `ZIGI_DISPLAY_KEYS`): Erase removes it; not exported (it holds nothing personal); not synced.
+Help (EN): Q "Why did ZIGi wave this morning?" A "Once a day, the first time you open ZIGoals, ZIGi says hello where it
+stands. It does not play with Motion Off, reduced motion or ZIGi's animation Off."
+What's new: "ZIGi says hello in place once a day."
+Answers: none (it holds no data the person asks about). Showcase hook: none. CSS: none. Nothing new on Today (the launcher is not part of Today's Tab stops; no element added).

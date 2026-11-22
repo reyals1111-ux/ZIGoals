@@ -81,7 +81,7 @@ export const MOVE_TEXT: Readonly<Record<string, MoveText>> = {
   X053: {group: 'variations', label: 'Thinking, a second way', meaning: 'Another way of thinking it over.', when: 'Now and then in place of Thinking, under Full animation.'},
   X054: {group: 'variations', label: 'A small celebration', meaning: 'A little hop for a small success.', when: 'Now and then in place of Success, under Full animation.'},
   X030: {group: 'special', label: 'Cheer', meaning: 'Arms up: well done!', when: 'On the Checklist’s path, when a tick completes an orbit.'},
-  X001: {group: 'special', label: 'Hello, in place', meaning: 'Hello, without walking in.', when: 'Not used yet.'},
+  X001: {group: 'special', label: 'Hello, in place', meaning: 'Hello, without walking in.', when: 'Once a day, the first time you open the app that day while ZIGi rests on screen, under animation.'},
   X020: {group: 'special', label: 'A look at the chat box', meaning: 'Looking down at where you type.', when: 'While ZIGi’s chat box has the focus and ZIGi listens, under animation.'},
   X021: {group: 'special', label: 'A look at you', meaning: 'Looking out at you.', when: 'While ZIGi rests after asking which one you mean, until you choose, under animation.'},
   X022: {group: 'special', label: 'A look at something', meaning: 'Looking at something on the page.', when: 'While ZIGi rests and cards it proposed wait for you to add or dismiss them, under animation.'},
