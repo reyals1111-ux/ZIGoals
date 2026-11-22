@@ -42,6 +42,9 @@ export type HoursBlock = {from: string; to: string};
 export function readDayBlocks(v: unknown): HoursBlock[] | undefined {
   if (!Array.isArray(v)) return undefined;
   const ok = v.flatMap(x => { const r = hoursBlock.safeParse(x); return r.success ? [r.data] : []; }).sort((a, b) => a.from.localeCompare(b.from));
+  // Review B4D-6: a stored empty list is a day off; a list none of whose blocks can be read (a later build's shape, say a
+  // block past midnight) is not: the weekday is left out, so it keeps the usual hours.
+  if (v.length && !ok.length) return undefined;
   const out: HoursBlock[] = [];
   for (const b of ok) if (out.length < MAX_DAY_BLOCKS && (!out.length || b.from >= out.at(-1)!.to)) out.push(b);
   return out;

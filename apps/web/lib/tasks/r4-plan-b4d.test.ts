@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {addTask, finishTask, isLate, lateCount, skipOccurrence, taskState, viewTasks} from './engine';
-import {emptyTaskPlan} from './plan-record';
+import {emptyTaskPlan, taskPlanSchema} from './plan-record';
 import {fitWeek, keepPlacements, weekCandidates} from './plan-week';
 import {flexRule} from './recurrence';
 import {emptyTasks, type Tasks} from './schema';
@@ -15,6 +15,16 @@ const plants = (): Tasks => addTask(emptyTasks(), {title: 'Fictional plants', mi
 const p = (r: Tasks) => r.tasks.find(t => t.id === 'p')!;
 const day = (iso: string) => iso.slice(0, 10);
 const taskItems = (r: Tasks, today: string) => ({overdueSince: taskAgendaItems(r, today, today, today, day)[0]?.overdueSince, label: taskTimelineItems(r, today, today, day)[0]?.label});
+
+describe('B4D-6: a weekday whose blocks cannot be read keeps the usual hours', () => {
+  test('unreadable blocks: the usual 09:00–18:00; a stored empty list: a day off; readable ones beside unreadable ones are kept', () => {
+    const plan = taskPlanSchema.parse({version: 1, workHours: {days: {'1': [{from: '22:00', to: '02:00'}], '2': [], '3': [{from: '25:00', to: '26:00'}, {from: '10:00', to: '12:00'}]}}});
+    expect(plan.workHours?.days).toEqual({'2': [], '3': [{from: '10:00', to: '12:00'}]});
+    expect(hoursOn(plan, MON)).toEqual([{from: '09:00', to: '18:00'}]);
+    expect(hoursOn(plan, '2026-11-24')).toEqual([]);
+    expect(hoursOn(plan, WED)).toEqual([{from: '10:00', to: '12:00'}]);
+  });
+});
 
 describe('B4D-3: “My day ends at” moves the end of the day’s last hours, later or earlier', () => {
   test('with the usual hours (none set) a later end places tasks past 18:00, as before round 4', () => {
