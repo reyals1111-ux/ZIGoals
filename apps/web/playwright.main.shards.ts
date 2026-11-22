@@ -561,7 +561,6 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
 export const MAIN_SHARD_MINUTES: readonly number[] = [81, 81.2, 81, 80.7, 81, 81, 81, 80.7, 81, 81, 81, 80.7, 80.8, 81];
-export const MAIN_SHARD_MINUTES: readonly number[] = [79, 79.2, 79, 79.7, 79, 79, 79, 79.7, 79, 79, 79, 79.7, 79.8, 79];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {
