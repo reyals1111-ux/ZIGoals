@@ -5,6 +5,7 @@ import {text as clean} from '../tools/format';
 import {habitDay, habitRuleOn} from '../../habits';
 import {addLocalDays} from '../../local-date';
 import {taskTimelineItems} from '../../tasks/timeline-source';
+import {dayEnergy} from '../../tasks/energy-load';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, count, dayIn, isQuestion, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -56,7 +57,7 @@ function planDayReminder(a: Ask): LocalReply | null {
   if (!time) return answer(say(a.lang, `No “Plan your day” reminder is set. Choose its time in Tasks → This week (Your planning choices): it opens Plan my day and says how many tasks are overdue, never their names. With notifications on it reaches this device while ZIGoals is closed.${late}`,
     `Er staat geen herinnering “Plan your day” aan. Kies de tijd in Tasks → This week (Your planning choices): hij opent Plan my day en zegt hoeveel taken over tijd zijn, nooit hun namen. Met meldingen aan komt hij ook als ZIGoals dicht is.${late}`), TASK_CALLS);
   return answer(say(a.lang, `“Plan your day” comes every day at ${clockIn('en', time)} and opens Plan my day in Tasks → Today.${late} Change or remove it in Tasks → This week.`,
-    `“Plan your day” komt elke dag om ${clockIn('nl', time)} en opent Plan my day in Tasks → Today.${late} Wijzig of verwijder hem in Tasks → This week.`), TASK_CALLS);
+    `“Plan your day” komt elke dag om ${clockIn('nl', time)} en opent Plan my day in Tasks → Today.${late} Wijzigen en weghalen kan in Tasks → This week.`), TASK_CALLS);
 }
 
 /** The colour's word in the answer's language. */
@@ -89,7 +90,7 @@ function timelineTomorrow(a: Ask): LocalReply | null {
   const habits = closed(a.env, 'habits') ? [] : a.env.habits.habits.filter(h => h.title && habitRuleOn(h, day) && habitDay(h, day, day).scheduled);
   const when = dayIn(a.lang, day, a.today);
   if (!tasks.length && !habits.length) return answer(say(a.lang, `Nothing is planned for tomorrow (${when}) yet. Open the Day Timeline and choose Tomorrow to plan it: give a task that day, and move a habit or a meal to the time you want; a move there keeps that date only.`,
-    `Voor morgen (${when}) staat nog niets gepland. Open de Day Timeline en kies Tomorrow om hem te plannen: geef een taak die dag, en zet een gewoonte of maaltijd op de tijd die je wilt; zo'n verplaatsing geldt alleen voor die dag.`), [...TASK_CALLS, {tool: 'list_habits', args: {}, label: 'Habits'}]);
+    `Voor morgen (${when}) staat nog niets gepland. Open de Day Timeline en kies Tomorrow om hem te plannen: geef een taak die dag, en zet een gewoonte en een maaltijd op de tijd die je wilt; zo'n verplaatsing geldt alleen voor die dag.`), [...TASK_CALLS, {tool: 'list_habits', args: {}, label: 'Habits'}]);
   const lines = [
     ...tasks.sort((x, y) => (x.time ?? '99').localeCompare(y.time ?? '99')).slice(0, 10).map(t => `• ${t.time ? `${clockIn(a.lang, t.time)} ` : ''}${clean(t.title, 80)}${say(a.lang, ' (task)', ' (taak)')}`),
     ...habits.slice(0, 10).map(h => `• ${clean(h.title, 80)}${say(a.lang, ` (habit, ${PART_WORDS[h.timeOfDay]?.[0] ?? 'any time'})`, ` (gewoonte, ${PART_WORDS[h.timeOfDay]?.[1] ?? 'wanneer je wilt'})`)}`),
@@ -99,4 +100,22 @@ function timelineTomorrow(a: Ask): LocalReply | null {
   return answer([head, ...lines, tail].join('\n'), [...TASK_CALLS, {tool: 'list_habits', args: {}, label: 'Habits'}]);
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow];
+/**
+ * "how much energy does my day take", "hoeveel energie kost mijn dag" (LEDGER #259): today's open tasks' energy against the
+ * amount set in Tasks → This week, in calm words (never a warning).
+ */
+function dayEnergyAnswer(a: Ask): LocalReply | null {
+  const en = /\benergy\b.*\b(?:day|today|tasks?)\b/.test(a.f) && /\b(?:how much|how full|room|amount|monitor|take|takes|ask|asks)\b/.test(a.f);
+  const nl = /\benergie\b.*\b(?:dag|vandaag|taken?)\b/.test(a.f) && /\b(?:hoeveel|hoe vol|ruimte|kost|kosten|vraagt|vragen)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
+  const todays = got.record.tasks.filter(t => t.due && t.due <= a.today);
+  const e = dayEnergy(todays, a.plan?.energyAmount);
+  if (!e.rated) return answer(say(a.lang, `No task of today has an energy yet. In a task's editor choose restful, neutral, light, medium or heavy; Tasks → Today then adds up the day against your amount (${e.amount}), in calm words.`,
+    `Nog geen taak van vandaag heeft een energie. Kies in de editor van een taak een van deze: restful, neutral, light, medium, heavy; Tasks → Today telt dan de dag op tegen je hoeveelheid (${e.amount}), in rustige woorden.`), TASK_CALLS);
+  const words = e.state === 'room' ? say(a.lang, 'room for more', 'ruimte voor meer') : e.state === 'near' ? say(a.lang, 'near your amount', 'dicht bij je hoeveelheid') : say(a.lang, 'more than your amount; a restful task or moving one to another day gives some room', 'meer dan je hoeveelheid; een rustgevende taak geeft wat ruimte, net als een taak naar een andere dag zetten');
+  const left = e.unrated ? say(a.lang, ` ${count(e.unrated, 'en', ['task has', 'tasks have'], ['', ''])} no energy yet.`, ` ${count(e.unrated, 'nl', ['', ''], ['taak heeft', 'taken hebben'])} nog geen energie.`) : '';
+  return answer(say(a.lang, `Today's tasks come to about ${e.total} of your ${e.amount}: ${words}.${left}`, `De taken van vandaag komen op ongeveer ${e.total} van je ${e.amount}: ${words}.${left}`), TASK_CALLS);
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [planDayReminder, taskSymbols, timelineTomorrow, dayEnergyAnswer];

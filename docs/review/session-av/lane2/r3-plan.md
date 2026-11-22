@@ -122,3 +122,26 @@ Showcase: the Showcase's planned workouts show on their days (no new record, no 
 Today: Today's timeline card is unchanged (today only). Weight: /app/timeline gains the picker (~0.4 kB) and one source
 registration; the source's code is its own chunk.
 CSS: components/timeline/timeline.css (three lines).
+
+## Feature 4 — Energy per task and the day's total (LEDGER #259, Structured's Energy Monitor) — built
+
+- The task editor: "Energy — optional" (Restful, Neutral, Light, Medium, Heavy, with a plain hint for each). A row shows
+  "Energy · Heavy" (nothing for Neutral).
+- Tasks → This week → "Energy a day holds" (8–40; 20, the usual, is not stored).
+- Tasks → Today (the day planner): "Energy today: about 12 of your 20 — room for more." / "near your amount" / "more than
+  your amount: a restful task, or moving one to another day, gives some room." Points per half hour: light 1, medium 2,
+  heavy 3, restful −1 (gives some back); a task without minutes counts half an hour; background tasks and subtasks are left
+  out; never below zero. Never red, never an alert (a plain line), and it says how many tasks have no energy yet.
+- A heavy task with a time outside today's focus window (Health → Sleep's estimate, only where Health is shown) gets a quiet
+  line: "… at 4:00 PM is heavy and outside today's focus window (9:15 AM–11:15 AM); it may sit better inside it."
+Files: lib/tasks/{energy-load.ts, schema.ts (TASK_ENERGY), plan-record.ts}, components/tasks/{task-energy-line.tsx (own chunk),
+today-planner.tsx, task-editor.tsx, task-parts.tsx, task-plan-settings.tsx, tasks-r3.css}.
+Tests: lib/tasks/r3-energy.test.ts. Spec: tests/av2-task-energy.spec.ts.
+Stored: `energy` on the task, `energyAmount` on the planning record (TIER 3 commit).
+Answers: "how much energy does my day take" / "hoeveel energie kost mijn dag".
+Help: Q "What is a task's energy?" A "How much a task asks of you: restful, neutral, light, medium or heavy, chosen in its
+editor. Tasks → Today adds up the day against the amount you set in Tasks → This week (20 if you set none) and says whether
+there is room for more. It is never a warning; a restful task gives a little back."
+What's new: "Tasks: energy per task and a calm day total."
+Showcase: none (pinned counts). Today (dashboard): nothing new. Weight: Tasks first chunk gains the row's chip (a few bytes);
+the line and its sleep read are their own chunk inside Plan my day.

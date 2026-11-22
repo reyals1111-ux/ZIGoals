@@ -30,7 +30,7 @@ describe('Plan your day (LEDGER #256)', () => {
     const s = withTasks(r => addTask(r, {title: 'Fictional late letter', due: addLocalDays(DAY, -2)}, {id: 'od1', at, today: DAY, allowPast: true}), freshAll());
     const plan = setPlanPrefs(emptyTaskPlan(), {planTime: '07:30'});
     expect(text(av2R3PlanAnswer('do I get a plan your day reminder', zigiEnv(s), {plan}))).toBe('“Plan your day” comes every day at 7:30 AM and opens Plan my day in Tasks → Today. Today it would say 1 task is overdue. Change or remove it in Tasks → This week.');
-    expect(text(av2R3PlanAnswer('wanneer krijg ik een herinnering om mijn dag te plannen', zigiEnv(s), {plan}))).toBe('“Plan your day” komt elke dag om 07:30 en opent Plan my day in Tasks → Today. Vandaag zou hij zeggen dat 1 taak over tijd is. Wijzig of verwijder hem in Tasks → This week.');
+    expect(text(av2R3PlanAnswer('wanneer krijg ik een herinnering om mijn dag te plannen', zigiEnv(s), {plan}))).toBe('“Plan your day” komt elke dag om 07:30 en opent Plan my day in Tasks → Today. Vandaag zou hij zeggen dat 1 taak over tijd is. Wijzigen en weghalen kan in Tasks → This week.');
     expect(text(av2R3PlanAnswer('do I get a plan your day reminder', zigiEnv(freshAll())))).toMatch(/^No “Plan your day” reminder is set\. Choose its time in Tasks → This week/);
     expect(av2R3PlanAnswer('plan my day', zigiEnv(showcaseAll()))).toBeNull();
   });
@@ -53,5 +53,13 @@ describe('the Day Timeline for tomorrow (LEDGER #258)', () => {
     expect(nl).toMatch(/^Morgen \(.+\): 1 taak en 0 gewoontes\.\n• 10:00 Fictional dentist \(taak\)/);
     expect(text(av2R3PlanAnswer('what is on my timeline tomorrow', zigiEnv(freshAll())))).toMatch(/^Nothing is planned for tomorrow/);
     expect(text(av2R3PlanAnswer('what is on my timeline tomorrow', zigiEnv(showcaseAll())))).toMatch(/habits? due\.\n/);
+  });
+});
+describe('the day’s energy (LEDGER #259)', () => {
+  test('today’s tasks against the amount, in calm words; none rated teaches where', () => {
+    const s = withTasks(r => editTask(addTask(r, {title: 'Fictional move', due: DAY, minutes: 120}, {id: 'en1', at, today: DAY}), 'en1', {energy: 'heavy'}, DAY), freshAll());
+    expect(text(av2R3PlanAnswer('how much energy does my day take', zigiEnv(s)))).toBe('Today\'s tasks come to about 12 of your 20: room for more.');
+    expect(text(av2R3PlanAnswer('hoeveel energie kost mijn dag', zigiEnv(s), {plan: setPlanPrefs(emptyTaskPlan(), {energyAmount: 12})}))).toBe('De taken van vandaag komen op ongeveer 12 van je 12: dicht bij je hoeveelheid.');
+    expect(text(av2R3PlanAnswer('how much energy does my day take', zigiEnv(freshAll())))).toMatch(/^No task of today has an energy yet\./);
   });
 });

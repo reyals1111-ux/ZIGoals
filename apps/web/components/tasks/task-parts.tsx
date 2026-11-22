@@ -132,7 +132,8 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
     <span className="task-meta">
       {level !== 3 && <span className={`task-chip task-chip-p${level}`} title={LEVEL_WORDS[level]}>P{level} · {LEVEL_SHORT[level]}</span>}
       <span className="task-due">{done ? `Done ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
-      {!done && task.minutes ? <span className="task-minutes">{minutesWords(task.minutes)}</span> : null}{/* Session AV (F-TASK-MINUTES) */}
+      {!done && task.minutes ? <span className="task-minutes">{minutesWords(task.minutes)}</span> : null}
+      {!done && task.energy && task.energy !== 'neutral' ? <span className="task-energy">Energy · {task.energy[0]!.toUpperCase() + task.energy.slice(1)}</span> : null}{/* Session AV lane 2 (r3-plan, LEDGER #259) */}{/* Session AV (F-TASK-MINUTES) */}
       {!done && task.deadline && <span className={`task-deadline is-${deadlineState(task, today)}`}><span aria-hidden="true">⚑ </span>{deadlineText(task, today)}</span>}
       {task.recur && <span className="task-recur"><span aria-hidden="true">↻ </span>{describeRecur(task.recur)}{/* Session AV lane 2 (minors, q1 #43): a paused repeat says so on its row */}{!done && (() => { const p = pausedRepeat(task, today); return p ? ` · paused until ${formatDate(p.until, {weekday: true, year: p.until.slice(0, 4) !== today.slice(0, 4)})}` : ''; })()}</span>}
       {progress && progress.total > 0 && <span className="task-progress" aria-label={`${progress.done} of ${progress.total} subtasks done`}><span aria-hidden="true">☑ {progress.done}/{progress.total}</span></span>}
