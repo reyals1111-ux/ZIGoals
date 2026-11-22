@@ -7,6 +7,7 @@ import {MONEY_PHOTO_DB, MONEY_PHOTO_MAX_BYTES, moneyPhotoFileName, putMoneyPhoto
 import {MEAL_PHOTO_DB, MEAL_PHOTO_MAX_BYTES, mealPhotoFileName, putMealPhoto} from '../meal-estimates/photos';
 import {FOOD_PHOTO_DB, FOOD_PHOTO_MAX_BYTES, foodPhotoFileName, putFoodPhoto} from '../food-plus/photos';
 import {MAX_DOC_BYTES, WEALTH_DOCS_DB, docFileName, putDoc} from '../wealth-sheet/docs';
+import {WORKOUT_PHOTO_DB, WORKOUT_PHOTO_MAX_BYTES, putWorkoutPhoto, workoutPhotoFileName} from '../workouts/photos';
 import {mediaIds, type RestoreMediaDb} from './media-dbs';
 import {entryBytes, type OpenedBackup} from './read-backup';
 
@@ -14,7 +15,7 @@ import {entryBytes, type OpenedBackup} from './read-backup';
  * Session AV lane 2 (review b1 #18; TIER 3 (stored formats), additive): "Restore from a backup" puts the photos, voice
  * notes and documents of an Export everything ZIP back into the IndexedDB stores they came from — task attachments, the
  * journal's photos and audio notes, the notes' photos, receipt photos on spending entries, kept meal-estimate photos,
- * package photos on foods and the documents kept with accounts.
+ * package photos on foods, the documents kept with accounts and (round 5, LEDGER #377) the photos of finished workouts.
  *
  * - A file comes back under the id its record keeps, and only when that record is on this device after the parts were
  *   written (a task, entry, note, spending entry, estimated meal, food or account that names it). A file no record names
@@ -26,14 +27,14 @@ import {entryBytes, type OpenedBackup} from './read-backup';
  *   is skipped and counted. Nothing here ever throws for one file: only a stop or an account change ends the run.
  * - The ids it added are named per database in the restore's undo record (a `media` step), so Undo deletes exactly those.
  */
-export type MediaStore = 'tasks' | 'journal' | 'notes' | 'receipts' | 'meals' | 'foods' | 'wealth';
+export type MediaStore = 'tasks' | 'journal' | 'notes' | 'receipts' | 'meals' | 'foods' | 'wealth' | 'workouts';
 export const MEDIA_STORE_DB: Record<MediaStore, RestoreMediaDb> = {
   tasks: TASK_ATTACHMENT_DB as RestoreMediaDb, journal: JOURNAL_MEDIA_DB as RestoreMediaDb, notes: NOTE_PHOTO_DB as RestoreMediaDb, receipts: MONEY_PHOTO_DB as RestoreMediaDb,
-  meals: MEAL_PHOTO_DB as RestoreMediaDb, foods: FOOD_PHOTO_DB as RestoreMediaDb, wealth: WEALTH_DOCS_DB as RestoreMediaDb,
+  meals: MEAL_PHOTO_DB as RestoreMediaDb, foods: FOOD_PHOTO_DB as RestoreMediaDb, wealth: WEALTH_DOCS_DB as RestoreMediaDb, workouts: WORKOUT_PHOTO_DB as RestoreMediaDb,
 };
-export const MEDIA_STORES: readonly MediaStore[] = ['tasks', 'journal', 'notes', 'receipts', 'meals', 'foods', 'wealth'];
+export const MEDIA_STORES: readonly MediaStore[] = ['tasks', 'journal', 'notes', 'receipts', 'meals', 'foods', 'wealth', 'workouts'];
 /** The device records whose items name these files (Export everything's `device` names), and the Health module. */
-export const MEDIA_RECORD_NAMES = ['tasks', 'journal', 'notes', 'moneyLog', 'moneyLogBusiness', 'mealEstimates', 'accounts'] as const;
+export const MEDIA_RECORD_NAMES = ['tasks', 'journal', 'notes', 'moneyLog', 'moneyLogBusiness', 'mealEstimates', 'accounts', 'workouts'] as const;
 export type MediaRecords = Partial<Record<(typeof MEDIA_RECORD_NAMES)[number] | 'health', unknown>>;
 
 type Kind = 'photo' | 'audio' | 'pdf';
@@ -74,6 +75,8 @@ export function indexMedia(...sets: readonly MediaRecords[]): Index {
     const foods = isObject(r.mealEstimates) && isObject(r.mealEstimates.foods) ? Object.keys(r.mealEstimates.foods) : [];
     for (const id of foods) for (const type of IMAGE_TYPES) add(mealPhotoFileName(id, type), {store: 'meals', id, type, kind: 'photo', cap: MEAL_PHOTO_MAX_BYTES});
     for (const f of list(r.health, 'foods')) { const id = str(f.id); if (id) for (const type of IMAGE_TYPES) add(foodPhotoFileName(id, type), {store: 'foods', id, type, kind: 'photo', cap: FOOD_PHOTO_MAX_BYTES}); }
+    // Round 5 (r5-gym #377): each finished workout's photos, by the ids its `photos` keeps.
+    for (const x of list(r.workouts, 'workouts')) for (const raw of Array.isArray(x.photos) ? x.photos : []) { const id = str(raw); if (id && /^wph-[A-Za-z0-9-]{8,80}$/.test(id)) for (const type of IMAGE_TYPES) add(workoutPhotoFileName(id, type), {store: 'workouts', id, type, kind: 'photo', cap: WORKOUT_PHOTO_MAX_BYTES}); }
     for (const t of list(r.tasks, 'tasks')) {
       const id = str(t.id), title = str(t.title) ?? '';
       if (!id || tasks.some(x => x.id === id)) continue;
@@ -180,6 +183,7 @@ async function put(scope: string, t: MediaTarget, blob: Blob, bytes: number, at:
     case 'meals': return putMealPhoto(scope, t.id, {blob, type, bytes, at});
     case 'foods': return putFoodPhoto(scope, t.id, {blob, type, bytes, at});
     case 'wealth': return putDoc(scope, {accountId: t.accountId!, docId: t.docId!, name: t.name!, blob, type, bytes, addedAt: at});
+    case 'workouts': return putWorkoutPhoto(scope, t.id, {blob, type, bytes, at});
   }
 }
 

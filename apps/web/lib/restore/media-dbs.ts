@@ -12,6 +12,7 @@ export const RESTORE_MEDIA_STORES = {
   'zigoals-money-photos-v1': 'photos',
   'zigoals-meal-photos-v1': 'photos',
   'zigoals-food-photos-v1': 'photos',
+  'zigoals-workout-photos-v1': 'photos', // Session AV lane 2, round 5 (LEDGER #377)
   'zigoals-wealth-docs-v1': 'docs',
 } as const;
 export type RestoreMediaDb = keyof typeof RESTORE_MEDIA_STORES;
@@ -20,7 +21,7 @@ export const RESTORE_MEDIA_DBS = Object.keys(RESTORE_MEDIA_STORES) as [RestoreMe
  * The folders of an Export everything ZIP that hold these files (lib/export/make-everything.ts), and the names a file in
  * them may have. Anything else under them is not read.
  */
-export const MEDIA_ENTRY = /^(?:tasks\/attachments|journal\/(?:photos|audios)|notes\/photos|money-photos|meal-photos|food-photos|wealth-docs\/[0-9a-fA-F-]{8,40})\/[A-Za-z0-9_-]{1,240}\.(?:webp|jpe?g|webm|m4a|ogg|pdf)$/;
+export const MEDIA_ENTRY = /^(?:tasks\/attachments|journal\/(?:photos|audios)|notes\/photos|money-photos|meal-photos|food-photos|workout-photos|wealth-docs\/[0-9a-fA-F-]{8,40})\/[A-Za-z0-9_-]{1,240}\.(?:webp|jpe?g|webm|m4a|ogg|pdf)$/;
 /** The largest file any of these stores keeps (a journal audio note, 3 MB); a larger entry is never read. */
 export const MEDIA_MAX_BYTES = 3_000_000;
 

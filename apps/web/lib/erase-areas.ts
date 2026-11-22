@@ -38,7 +38,7 @@ export function listAreas(areas: readonly string[]): string {
 export const STORE_NAMES: Readonly<Record<string, string>> = {
   'zigoals-journal-media-v1': 'Journal photos and voice notes', 'zigoals-task-attachments-v1': 'Task photos and voice notes',
   'zigoals-notes-photos-v1': 'Photos in notes', 'zigoals-money-photos-v1': 'Receipt photos', 'zigoals-meal-photos-v1': 'Meal photos',
-  'zigoals-food-photos-v1': 'Photos of your foods', 'zigoals-wealth-docs-v1': 'Account photos and documents',
+  'zigoals-food-photos-v1': 'Photos of your foods', 'zigoals-workout-photos-v1': 'Workout photos', 'zigoals-wealth-docs-v1': 'Account photos and documents',
   'zigoals-progress-photos': 'Progress photos', 'zigoals-vision-v1': 'Vision photos', 'zigoals-ai-chats-v1': 'ZIGi’s conversations',
   'zigoals-notify-v1': 'Notifications', 'zigoals-notify-actions-v1': 'Notifications', 'zigoals-push-labels-v1': 'Notifications',
   'zigoals-food-generic-v1': 'Offline food library', 'zigoals-music-byo-v1': 'Your Spotify client id', 'zigoals-offline-queue-v1': 'Requests waiting for a connection',

@@ -11,7 +11,7 @@ import * as z from 'zod';
  * A photo no workout names (its workout was deleted, or a Restore brought back an older log) is first marked
  * (`orphanSince`) and deleted only after 30 days unnamed, as the note photos are (security review Z1B-7), so Undo of a
  * delete or of a Restore finds it again. In Export everything as files (`workout-photos/…`, `exportWorkoutPhotoEntries`);
- * Erase everything removes the database by name (the lead lists it: lib/av2-r5-gym-keys.ts). Pinning photos on a map
+ * Erase everything removes the database by name, and Restore puts the photos back by the ids the workouts keep. Pinning photos on a map
  * stays Carried: it needs map tiles from an outside service, and a route's points are never kept.
  */
 export const WORKOUT_PHOTO_DB = 'zigoals-workout-photos-v1', WORKOUT_PHOTO_STORE = 'photos';
