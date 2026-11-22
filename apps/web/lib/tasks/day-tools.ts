@@ -16,11 +16,23 @@ export function dayTasks(record: Tasks, day: string): Task[] {
   const onDay = record.tasks.filter(t => t.due === day), ids = new Set(onDay.map(t => t.id));
   return onDay.filter(t => !t.parentId || !ids.has(t.parentId));
 }
-export function copyDay(record: Tasks, from: string, to: string, {today, at = new Date(), newId}: {today: string; at?: Date; newId: () => string}): {record: Tasks; copied: number; repeating: number} {
+/**
+ * Session AV lane 2 (r3-plan, review B3A-7): how many tasks a copy of the day makes — its tasks and their subtasks, as copyDay
+ * walks them — and how many the 100-a-copy cap leaves out, so the button's count is the result's.
+ */
+export function copyPlan(record: Tasks, from: string): {copied: number; left: number} {
+  let total = 0;
+  const walk = (id: string, depth: number) => { if (depth > 8) return; total++; for (const kid of record.tasks.filter(k => k.parentId === id)) walk(kid.id, depth + 1); };
+  for (const t of dayTasks(record, from)) walk(t.id, 0);
+  return {copied: Math.min(total, COPY_MAX), left: Math.max(0, total - COPY_MAX)};
+}
+/** The open tasks "Clear this day" moves (a repeating one keeps its day), as clearDay counts them. */
+export const clearPlan = (record: Tasks, day: string) => { const open = record.tasks.filter(t => !t.doneAt && t.due === day); const cleared = open.filter(t => !t.recur).length; return {cleared, repeating: open.length - cleared}; };
+export function copyDay(record: Tasks, from: string, to: string, {today, at = new Date(), newId}: {today: string; at?: Date; newId: () => string}): {record: Tasks; copied: number; repeating: number; left: number} {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(to)) throw new Error('Choose the day to copy to.');
   if (to === from) throw new Error('Choose another day than this one.');
   const roots = dayTasks(record, from);
-  if (!roots.length) return {record, copied: 0, repeating: 0};
+  if (!roots.length) return {record, copied: 0, repeating: 0, left: 0};
   const stamp = at.toISOString(), made: Task[] = [], map = new Map<string, string>();
   const copy = (t: Task, parentId: string | undefined, depth: number) => {
     if (made.length >= COPY_MAX || depth > 8) return;
@@ -36,7 +48,7 @@ export function copyDay(record: Tasks, from: string, to: string, {today, at = ne
   for (const t of roots) copy(t, undefined, 0);
   const kept = prune(record, today);
   if (kept.tasks.length + made.length > MAX_TASKS) throw new Error(TASK_LIMIT_MESSAGE);
-  return {record: tasksSchema.parse({...kept, tasks: [...kept.tasks, ...made]}), copied: made.length, repeating: roots.filter(t => t.recur).length};
+  return {record: tasksSchema.parse({...kept, tasks: [...kept.tasks, ...made]}), copied: made.length, repeating: roots.filter(t => t.recur).length, left: copyPlan(record, from).left};
 }
 export function clearDay(record: Tasks, day: string, at = new Date()): {record: Tasks; cleared: number; repeating: number} {
   const open = record.tasks.filter(t => !t.doneAt && t.due === day), moving = new Set(open.filter(t => !t.recur).map(t => t.id)), stamp = at.toISOString();

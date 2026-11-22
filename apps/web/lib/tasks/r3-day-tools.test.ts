@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {addProject, addTask, editTask, finishTask} from './engine';
 import {emptyTasks, MAX_TASKS, type Tasks} from './schema';
-import {clearDay, copyDay, dayTasks} from './day-tools';
+import {COPY_MAX, clearDay, clearPlan, copyDay, copyPlan, dayTasks} from './day-tools';
 import {undoOfChange} from './undo';
 
 /** Session AV lane 2 (r3-plan, LEDGER #261; Structured's copy day and clear day). */
@@ -58,5 +58,19 @@ describe('clear this day', () => {
     expect(out.record.tasks).toHaveLength(r.tasks.length);
     expect(undoOfChange(r, out.record)(out.record).tasks.find(t => t.id === 'a')).toEqual(r.tasks.find(t => t.id === 'a'));
     expect(clearDay(r, '2026-12-25')).toMatchObject({cleared: 0, record: r});
+  });
+});
+describe('the buttons count what the change does (review B3A-7)', () => {
+  it('a copy counts subtasks, a clear leaves repeating tasks out, and the cap is said', () => {
+    const r = seed();
+    expect(copyPlan(r, today)).toEqual({copied: 4, left: 0});
+    expect(copyPlan(r, today).copied).toBe(copyDay(r, today, tomorrow, {today, newId}).copied);
+    expect(clearPlan(r, today)).toEqual({cleared: 1, repeating: 1});
+    const cleared = clearDay(r, today);
+    expect([cleared.cleared, cleared.repeating]).toEqual([clearPlan(r, today).cleared, clearPlan(r, today).repeating]);
+    let big = emptyTasks();
+    for (let i = 0; i < COPY_MAX + 7; i++) big = addTask(big, {title: `Fictional ${i}`, due: today}, {id: `big${i}`, at, today});
+    expect(copyPlan(big, today)).toEqual({copied: COPY_MAX, left: 7});
+    expect(copyDay(big, today, tomorrow, {today, newId})).toMatchObject({copied: COPY_MAX, left: 7});
   });
 });

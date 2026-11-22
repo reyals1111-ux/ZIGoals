@@ -246,3 +246,8 @@ Showcase: none. Today: nothing. CSS: app/customize.css (not a theme-sheet source
 - **B3A-6 (Minor), fixed.** The energy chip and its rule share one class, `.task-energy`, in a new
   components/tasks/task-row-r3.css that task-parts.tsx loads with every row (muted, theme variables). The unused
   `.task-energy-chip` rule is gone. Test: lib/tasks/r3-energy-chip.test.ts. CSS: components/tasks/task-row-r3.css (new).
+- **B3A-7 (Minor), fixed.** Copy or clear this day is keyed by its day, so "Copy to" starts at the next day again whenever
+  the Agenda moves. The buttons count what the change does: `copyPlan` counts subtasks the way `copyDay` copies them, and
+  `clearPlan` leaves out repeating tasks (they are said beside the button). Past 100 tasks the cap is said before and after
+  the copy ("…tasks were left out"). Files: lib/tasks/day-tools.ts, components/agenda/{agenda-day-tools.tsx, agenda-page.tsx}.
+  Test: lib/tasks/r3-day-tools.test.ts.
