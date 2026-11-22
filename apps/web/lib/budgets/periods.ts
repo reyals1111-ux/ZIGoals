@@ -7,6 +7,7 @@ import {fromCents} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import type {Account} from '../accounts/schema';
 import {budgetsSchema, type Budget, type BudgetsRecord} from './schema';
+import {budgetsInOrder} from './order';
 
 /**
  * Session AV lane 2 (Money group N11, LEDGER #212, #213, #216; Goodbudget; TIER 3 (stored format), a new additive key
@@ -70,7 +71,7 @@ export type PeriodRow = {budget: Budget; every: Every; start: string; end: strin
  * counted as the month budgets count them) and paid on its linked debts (same currency) in that period, and what is left. Never converted between currencies.
  */
 export function periodRows(entries: readonly MoneyEntry[], budgets: BudgetsRecord, plan: BudgetPeriods, today: string, {accounts = [], startsOn = 'monday'}: {accounts?: readonly Account[]; startsOn?: 'monday' | 'sunday'} = {}): PeriodRow[] {
-  return budgets.budgets.filter(b => b.since <= today.slice(0, 7)).map(budget => {
+  return budgetsInOrder(budgets.budgets).filter(b => b.since <= today.slice(0, 7)).map(budget => { // Round 6 (#429): the person's own order
     const every: Every = plan.every?.[budget.id] ?? 'month', {start, end} = every === 'month' ? payMonth(today, plan.payday ?? 1) : weekRange(today, every, startsOn), name = budget.category.toLowerCase();
     let spent = 0, debtPaid = 0;
     // Review b2a #2: as the month budgets count (lib/money-log/counted.ts): no entry left out or transfer, the person's

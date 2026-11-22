@@ -3,6 +3,7 @@ import {cents, monthOf} from '../money-log/engine';
 import {amountText, currencyCode, type MoneyEntry} from '../money-log/schema';
 import {budgetMonthParts, isSpending, reachesMonth} from '../money-log/counted';
 import {MAX_BUDGETS, MAX_ROLLOVER_MONTHS, budgetsSchema, type Budget, type BudgetsRecord} from './schema';
+import {hasOwnOrder, rankOf} from './order';
 
 /**
  * Session AK (7.7): a month of category budgets against the money log, pure, in cents per currency (never converted).
@@ -64,11 +65,12 @@ export function targetLine(target: {amount: string; by: string}, month: string, 
 }
 export type MonthView = {month: string; rows: BudgetRow[]; unbudgeted: {category: string; currency: string; spent: number}[]; totals: {currency: string; available: number; spent: number; left: number}[]; daysLeft: number | null};
 export function monthView(entries: readonly MoneyEntry[], record: BudgetsRecord, month: string, today: string): MonthView {
-  const active = record.budgets.filter(b => b.since <= month);
+  const active = record.budgets.filter(b => b.since <= month), own = hasOwnOrder(active), rank = rankOf(record.budgets);
   const rows = active.map(b => {
     const budgeted = budgetedIn(b, month) + movedIn(record, b.id, month), carried = carriedInto(b, entries, month, record), available = budgeted + carried, spent = spentIn(entries, month, b.category, b.currency);
     return {id: b.id, category: b.category, currency: b.currency, budgeted, carried, available, spent, left: available - spent, over: spent > available, rollover: b.rollover, share: available > 0 ? Math.min(1, spent / available) : spent > 0 ? 1 : 0, ...(b.target ? {target: targetLine(b.target, month, budgeted, available - spent)} : {})};
-  }).sort((a, b) => a.currency.localeCompare(b.currency) || b.spent - a.spent || a.category.localeCompare(b.category));
+  // Round 6 (#429): in the person's own order when they set one (each currency apart), else the most spent first.
+  }).sort((a, b) => a.currency.localeCompare(b.currency) || (own ? rank.get(a.id)! - rank.get(b.id)! : 0) || b.spent - a.spent || a.category.localeCompare(b.category));
   const budgeted = new Set(active.map(b => `${b.currency}|${b.category.toLowerCase()}`)), {start, end} = monthOf(`${month}-01`);
   const loose = new Map<string, {category: string; currency: string; spent: number}>();
   for (const e of entries) {
