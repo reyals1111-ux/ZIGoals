@@ -24,7 +24,7 @@ export const FULL_JOURNAL: Journal = journalSchema.parse({
   journals: [{id: 'j-travel', name: 'Fictional travel', theme: 'teal'}],
   packs: ['sleep', 'training'],
   reminder: {on: true, time: '21:15', days: 31},
-  defaultTemplate: 'own-abc123def4',
+  defaultTemplate: 'own-abc123def4', affirmations: true,
   versions: [{id: 'v-first001', entryId: 'e2', text: 'Fictional quiet evening.', savedAt: '2026-11-20T10:00:00.000Z'}],
 });
 export const FULL_NOTES: Notes = notesSchema.parse({
@@ -54,9 +54,14 @@ describe('the new journal fields read on their own', () => {
     expect(odd.packs).toBeUndefined(); expect(odd.reminder).toBeUndefined(); expect(odd.defaultTemplate).toBeUndefined();
     expect(odd.versions!.map(v => v.id)).toEqual(['v-ok000001']);
   });
+  test('the affirmation choice (LEDGER #176): kept when it reads, dropped when not, absent on an older record', () => {
+    expect(journalSchema.parse({...FULL_JOURNAL, affirmations: true}).affirmations).toBe(true);
+    expect(journalSchema.parse({...FULL_JOURNAL, affirmations: 'yes'}).affirmations).toBeUndefined();
+    expect(journalSchema.parse(emptyJournal()).affirmations).toBeUndefined();
+  });
   test('a record from an earlier release reads as before, with none of the new fields', () => {
     const old = journalSchema.parse({version: 1, entries: [{id: 'e1', date: '2026-11-01', text: 'Old.', createdAt: AT}], shareWithAi: false, followUps: true});
-    for (const k of ['journals', 'packs', 'reminder', 'defaultTemplate', 'versions'] as const) expect(old[k]).toBeUndefined();
+    for (const k of ['journals', 'packs', 'reminder', 'defaultTemplate', 'versions', 'affirmations'] as const) expect(old[k]).toBeUndefined();
     expect(journalSchema.parse(emptyJournal())).toEqual(emptyJournal());
   });
 });

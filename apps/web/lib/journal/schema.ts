@@ -109,6 +109,12 @@ export const journalSchema = z.looseObject({
   reminder: journalReminderSchema.optional().catch(undefined),
   defaultTemplate: z.string().regex(/^[a-z0-9-]{1,40}$/).optional().catch(undefined),
   versions: readable(entryVersionSchema, MAX_VERSIONS),
+  /**
+   * Session AV lane 2 (journal; LEDGER #176, Fabulous's daily affirmations; TIER 3 (stored format), additive and
+   * optional): the person chose to see one affirmation a day on Today (lib/journal/affirmations.ts). Off unless switched
+   * on; a value this build cannot read is dropped on read; older builds keep it untouched and show none.
+   */
+  affirmations: z.boolean().optional().catch(undefined),
 });
 export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type Journal = z.infer<typeof journalSchema>;
