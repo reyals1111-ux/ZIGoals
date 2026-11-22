@@ -1,6 +1,6 @@
 'use client';
 import {useRef, useState} from 'react';
-import {notePhotoIdsOf, type Notes} from '../../lib/notes/schema';
+import {notePhotoIdsOf, type Note, type Notes} from '../../lib/notes/schema';
 import type {LinkSources} from '../../lib/notes/links';
 import {applyImport, notesExportEntries, notesExportName, planImport, type ImportPlan} from '../../lib/notes/markdown';
 import {ZipError} from '../../lib/notes/zip-read';
@@ -63,7 +63,7 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
     setBusy(true);
     // Session AV lane 2 (r4-notes; LEDGER #321): an imported note's photos are kept on this device first (shrunk as a
     // captured photo is), then named in its words; a photo this browser cannot read is left out and counted.
-    const add = [];
+    const add: Note[] = [];
     for (const [i, note] of plan.add.entries()) {
       const imgs = images.get(plan.from?.[i] ?? '') ?? [];
       if (!imgs.length) { add.push(note); continue; }

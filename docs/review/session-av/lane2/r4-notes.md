@@ -10,6 +10,63 @@ Baseline check (#306, #307 and #316 change the Notes layout): docs/STATUS.md "Cu
 #22's changes and the brief's protected areas (Today hero and slogan, Checklist orbit path, footer finale, swan intro,
 shell navigation, AR's NOVA composition, the locked ZIGi look). Nothing of Notes is among them; none of them is touched.
 
+## Summary
+
+| LEDGER row | verdict | feature |
+|---|---|---|
+| #306 Bear Tags in the text, nested, and a tag as a workspace | built | F1 |
+| #307 Bear Several photos placed in a note | built (Export everything / Restore of the further photos' bytes needs the lead's two lines, below) | F2 |
+| #311 Bear Note info | built | F3 |
+| #312 Bear Find and replace in a note | built | F4 |
+| #313 Bear Fold a section | built | F5 |
+| #314 Bear Callouts | built | F6 |
+| #315 Bear Archive a note | built | F7 |
+| #316 Bear A writing view (typewriter mode) | built | F8 |
+| #318 Bear Lock a note | built in part: behind the screen-cover PIN, out of Search, the Graph, NOVA and the export; encryption with a passphrase of its own Carried: against a named rule (no key changes) | F9 |
+| #319 Bear More ways to export a note | built (HTML, plain text, Word) | F10 |
+| #320 Journey E-book and Word export | built | F11 |
+| #321 Bear Imports from Evernote and Bear | built (read with the repository's strict XML reader, not DOMParser: the CSP's Trusted Types refuse it) | F12 |
+
+## For the lead (shared files this branch does not edit)
+
+1. **Engine wiring** (`lib/ai/local-answers/engine.ts`, beside the `av2R3NotesAnswer` call, same guards):
+   `import {av2R4NotesAnswer} from './av2-r4-notes';` and try `av2R4NotesAnswer(question, env)` before `avAnswer`.
+   Corpus: add `...AV2_R4_NOTES` from `lib/ai/evals/as/cases-av2-r4-notes.ts` (12 intents, 48 questions, EN and NL) to
+   `CORPUS` and record `expected.json`. Checked here: no question of today's CORPUS is answered by `av2R4NotesAnswer`.
+   Please check that no earlier answer in the engine's order takes "can I export my journal as an ebook" first.
+2. **Export everything and Restore, the further photos' bytes (#307)** — two one-line changes:
+   - `lib/export/make-everything.ts:53`: `note.photoId ? [note.photoId] : []` → `sch.notePhotoIdsOf(note)`.
+   - `lib/restore/media.ts:63`: index every id of `[n.photoId, ...(Array.isArray(n.photos) ? n.photos : [])]` under
+     the `notes/photos/<id>.<ext>` name it indexes for `photoId` today.
+   The record itself (every new field) already round-trips (`lib/notes/r4-stored.test.ts`); Erase already removes the
+   notes' photo database by name.
+3. **No new device key, database, catalogue, export, erase or restore entry**: every new field lives in
+   `zigoals:notes:v1` (the two Notes choices beside its `voice`).
+4. **Specs for the shard lists** (none run here): `tests/av2-notes-tags.spec.ts`, `av2-notes-photos.spec.ts`,
+   `av2-notes-info.spec.ts`, `av2-notes-find.spec.ts`, `av2-notes-fold.spec.ts`, `av2-notes-callouts.spec.ts`,
+   `av2-notes-archive.spec.ts`, `av2-notes-writing.spec.ts`, `av2-notes-lock.spec.ts`, `av2-notes-save.spec.ts`,
+   `av2-journal-ebook.spec.ts`, `av2-notes-imports.spec.ts`.
+5. **Help and What's new**: each feature's Q+A (EN) and label are below, for `help-page.tsx`.
+6. **Route weight** (not measured; no build here; please check `/app/notes`, `/app/journal` and a route with ZIGi's
+   replies): lazy chunks — find and replace, the writing view (+ its CSS), the lock cover, Save this note as (+ the
+   HTML / Word writers and the JPEG step), the journal's E-book and Word (+ the EPUB writer), the Evernote / Bear reader
+   (inside the already-lazy Files chunk). First chunks gained: `lib/notes/tags.ts`, `fold.ts`, `note-photos.ts`,
+   `lock.ts` (small, pure), the reading view's tags, photo figures, fold buttons and callouts, the editor's Tags field,
+   Note info and the Archive / Lock buttons; and in `lib/ai/safe-render.ts` (also in ZIGi's reply chunk) the notes-only
+   `photo` and `callout` branches (a few hundred bytes).
+7. **TIER 3 commits**: `6d673503` (stored formats: note `photos`, `archived`; notes `focusTag`, `typewriter`),
+   `fac13a06` (stored formats, privacy: note `locked`).
+8. **Files outside Notes I edited** (none on the brief's shared list): `lib/ai/safe-render.ts` (notes-only blocks, as
+   round 3's), `lib/ai/tools/nova-sources.ts` and `components/nova/workflows/use-nova-sources.ts` (one line each: no
+   locked note reaches NOVA), `lib/search/notes.ts`, `components/journal/journal-files.tsx`, `components/journal/journal.css`.
+9. **A red test on three commits, fixed forward**: `lib/notes/fields.test.ts` (a secret guard beside every Notes text
+   field) failed on the F1, F4 and F8 commits (`80ac6c74`, `1c53576b`, `5976a3d9`) and is green from F9 (`3e3ced4f`),
+   which adds the guards. Typecheck was run on F2, F4, F8, F9 and the final head; lint and the unit tests on each. The
+   F12 commit (`87532291`) and the answers commit (`a766f8fb`) had two type errors (an untyped list in
+   `notes-files.tsx`, a narrowed map value in `import-enex.ts`), fixed in the last commit; the head typechecks clean.
+10. **Today**: nothing added, nothing always visible.
+11. **Not done in this round**: the area's open QUALITY Minors (the lead's task named the rows only).
+
 ## Stored changes (TIER 3 stored formats; all additive, optional, dropped when unreadable, on loose objects)
 
 | record | field | what |

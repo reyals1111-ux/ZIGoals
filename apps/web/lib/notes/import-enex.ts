@@ -140,10 +140,11 @@ const imageType = (name: string) => /\.png$/i.test(name) ? 'image/png' : /\.gif$
 export const bearTags = (text: string) => text.replace(/(^|[\s(])#([\p{L}\p{N}][^#\n]*?[\p{L}\p{N}])#(?=$|[\s.,;:!?)])/gmu, (all, lead: string, words: string) => /\s/.test(words) ? `${lead}#${words.trim().replace(/\s+/g, '-')}` : all);
 /** The notes in a Bear archive's files (bundles by folder; a .textbundle opened on its own has its files at the top). */
 export function readBear(files: readonly ZipFile[], archive = 'Bear'): {notes: ForeignNote[]; skipped: ZipSkip[]} {
-  const bundles = new Map<string, {text?: Uint8Array; info?: Uint8Array; assets: Map<string, Uint8Array>}>(), skipped: ZipSkip[] = [];
+  type Bundle = {text?: Uint8Array; info?: Uint8Array; assets: Map<string, Uint8Array>};
+  const bundles = new Map<string, Bundle>(), skipped: ZipSkip[] = [];
   for (const f of files) {
     const m = BUNDLE.exec(f.name), key = m ? f.name.slice(0, f.name.toLowerCase().lastIndexOf('.textbundle/') + 11) : archive, part = m ? m[2]! : f.name;
-    const b = bundles.get(key) ?? {assets: new Map()}; bundles.set(key, b);
+    const b: Bundle = bundles.get(key) ?? {assets: new Map<string, Uint8Array>()}; bundles.set(key, b);
     if (/^text\./i.test(part)) b.text = f.data; else if (/^info\.json$/i.test(part)) b.info = f.data; else b.assets.set(part.replace(/^assets\//i, ''), f.data);
   }
   const notes: ForeignNote[] = [], decode = (d: Uint8Array) => new TextDecoder('utf-8').decode(d);
