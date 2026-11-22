@@ -19,6 +19,25 @@ and one TIER 3 (CI) shard-list repack (`9c24050c`, ADR-045 D-CI2002; run 2003 on
 with a merge commit, edits the shared registries, builds once per batch and pushes. No PR until the owner merges #108.
 Lane 2's own state is kept in this file's "Lane 2 — state" section on that branch.
 
+## Lane 2 — state (owner follow-up 4; keep current at every batch)
+- Branch `feature/session-av-2` from #108's frozen head `807f247e`; first commit LEDGER.md (`fbeb3e54`). A push without a
+  PR starts no CI here (`ci.yml`: push to main, pull_request), so the lead pushes after every integrated batch, gated by
+  local checks. No PR until the owner merges #108; then merge main in (merge commit) and open Draft "Session AV (continued)".
+- Team (22 Nov, from 01:00 UTC). Builders, each in its own worktree on a sub-branch, one pillar each (brief: the
+  scratchpad's team-brief.md; registry files `docs/review/session-av/lane2/<slug>.md`):
+  - `lane2/tasks`: LEDGER groups 1, 2, 11; q1 Minors; M-9.
+  - `lane2/journal`: group 7; #33 version history; the notes rows; q4's journal Minors.
+  - `lane2/habits`: groups 3, 6, 14; q4's habit Minors.
+  - `lane2/food`: groups 4, 13, 16; q3's food Minors.
+  - `lane2/body`: groups 9, 12; the two "seen in passing" notes; q3's sleep, workout and body Minors.
+  - `lane2/money`: groups 5, 8, 10, 15; q2's Minors.
+  Research: 10 more apps (Daylio, Loop, Fabulous, Yazio, Lose It!, Strong, Nike Run Club, Insight Timer, Goodbudget,
+  Kubera) → the scratchpad's research/COMPETITORS-add.md and LEDGER-add.md. The reviewer slot opens with the first batch.
+- Lead: integration and the shared registries; the CI lane (A45-1 first, then D36, D-SYNC, `zigi-voice-z:199`); CR-19,
+  PK-6, PK-10; group 17 (sync and safety); BL-10 chess; UNFINISHED.md's carried rows.
+- Integration order per batch: merge commit → registries → theme sheets → typecheck → lint → full unit suite → frozen
+  readers → one production build → route budgets → the batch's specs and the touched areas' specs → push.
+
 ## Follow-ups 2 and 3 — state (keep current)
 - Done: FU2/FU3 recorded; 1a food Worker (`0dc926b5`); 1b fixes (habits-routines, o3, voice hint 44 px, sanne one
   button, oneline wider name; zigi-voice-z and account-browser Carried after two attempts, ADR-045 D-FU2-1b); L-9 and
