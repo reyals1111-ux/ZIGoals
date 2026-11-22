@@ -9,7 +9,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'meal';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -43,6 +43,11 @@ export type PlanInput = {
    * countdownWakes): the day, the countdown's id, how many days are left then; its title only where names are allowed.
    */
   countdowns?: {id: string; title?: string; date: string; days: number}[];
+  /**
+   * Session AV lane 2 (food, LEDGER #90; MyFitnessPal): the meal reminders the person switched on in Health, at each meal's
+   * usual time (lib/food-plus/meal-notify.ts mealWakes); the meal's own name only where names are allowed, never food.
+   */
+  meals?: {meal: string; label?: string; time: string; doneToday: boolean}[];
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -78,6 +83,7 @@ export function buildPlan(input: PlanInput): Plan {
   if (typeOn(prefs, 'review') && input.review) daily('review', 'review', input.review.time, weekdayBit(input.review.weekday), () => ({href: '/app/review', actionable: false}), () => false);
   if (typeOn(prefs, 'morning')) daily('morning', 'morning', morningTime(prefs), EVERY, () => ({href: '/app/checklist', actionable: false}), () => false);
   if (typeOn(prefs, 'evening')) daily('evening', 'evening', eveningTime(prefs), EVERY, () => ({href: '/app/review', actionable: false}), () => false);
+  if (typeOn(prefs, 'meals')) for (const m of input.meals ?? []) daily('meal', `meal:${m.meal}`, m.time, EVERY, () => ({label: label(m.label), href: '/app/health?view=diary', actionable: false}), date => date === today && m.doneToday);
   // One-off wakes: contributions on the days they are due (today, tomorrow), bills on the morning before they are due.
   if (typeOn(prefs, 'contributions')) for (const c of input.contributions) {
     if (c.done || inQuiet(c.time, quiet)) continue;
