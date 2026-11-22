@@ -2,6 +2,8 @@ import {describe, expect, test} from 'vitest';
 import {isSealed, unsealed} from './letters';
 import {journalLines, journalMemories, journalToday} from './today';
 import {answersTo, promptsUsed} from './prompt-answers';
+import {journalTool} from '../ai/tools/journal-ai';
+import type {ToolEnv} from '../ai/tools/env';
 import {journalSchema, type Journal} from './schema';
 
 /**
@@ -64,5 +66,34 @@ describe('B3C-3: Every answer to a prompt', () => {
     const used = promptsUsed(sealedJournal());
     expect(used).toEqual([{id: 'letter-future-you', title: 'A letter to future you', count: 4, own: false}]);
     expect(JSON.stringify(used)).not.toContain(SECRET);
+  });
+});
+describe('B3C-4: ZIGi’s and NOVA’s journal tool', () => {
+  const run = (journal: Journal, days = 30) => journalTool.run({days}, {journal, habitDay: TODAY, energy: null, showcase: false} as unknown as ToolEnv, 'Journal');
+  test('a sealed letter’s words, follow-up and answer never appear; it is counted', () => {
+    const out = run(sealedJournal());
+    expect(out.ok).toBe(true);
+    const data = (out as {data: {entries: {date: string; text: string}[]; lettersFoldedAway?: number; lettersNote?: string}}).data;
+    expect(JSON.stringify(out)).not.toContain(SECRET);
+    expect(JSON.stringify(out)).not.toContain('A fictional question?');
+    expect(data.entries.map(e => e.date)).toEqual([]); // the plain entry and the opened letter are older than 30 days
+    expect(data.lettersFoldedAway).toBe(1); // today's letter (the one of a month ago is 31 days back)
+    expect(data.lettersNote).toMatch(/^1 letter to open later is folded away until its day: never quote/);
+  });
+  test('an open letter and an ordinary entry are read as before; no note when nothing is folded', () => {
+    const j = sealedJournal({entries: [{id: 'week', date: '2026-11-20', text: 'A fictional week entry.', createdAt: '2026-11-20T20:00:00.000Z'}]});
+    const week = run({...j, entries: j.entries.filter(e => !e.opensOn || e.opensOn <= TODAY)}, 7) as {data: Record<string, unknown>};
+    expect(week.data.entries).toEqual([{date: '2026-11-20', text: 'A fictional week entry.'}]);
+    expect(week.data).not.toHaveProperty('lettersFoldedAway');
+    // On the day it opens, the letter written today a year before is read like any entry.
+    const later = journalTool.run({days: 7}, {journal: j, habitDay: '2027-11-22', energy: null, showcase: false} as unknown as ToolEnv, 'Journal');
+    expect(JSON.stringify(later)).not.toContain(SECRET); // older than the 7 days asked
+    const atDay = journalTool.run({days: 30}, {journal: {...j, entries: [...j.entries, {id: 'x', date: '2027-11-01', text: `${SECRET} opens`, createdAt: '2027-11-01T08:00:00.000Z', opensOn: '2027-11-22'}]}, habitDay: '2027-11-22', energy: null, showcase: false} as unknown as ToolEnv, 'Journal');
+    expect(JSON.stringify(atDay)).toContain(`${SECRET} opens`);
+  });
+  test('with sharing off, still only the count of entries', () => {
+    const out = run(sealedJournal({shareWithAi: false})) as {data: Record<string, unknown>};
+    expect(out.data).toMatchObject({private: true, entriesOnThisDevice: 5});
+    expect(JSON.stringify(out)).not.toContain(SECRET);
   });
 });

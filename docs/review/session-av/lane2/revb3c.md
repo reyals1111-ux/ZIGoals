@@ -47,3 +47,14 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
   counts without words.
 - **Help/corpus:** none. Help could add to the "Every answer to a prompt" answer: "A letter folded away is counted here
   and shows its words from its day."
+
+### B3C-4 (Major): ZIGi's and NOVA's journal tool
+
+- **Verdict:** confirmed and fixed.
+- **Fix:** `lib/ai/tools/journal-ai.ts` reads `unsealed(entries, habitDay)` for the entries it sends (text, follow-up
+  question and answer) and for the patterns. A sealed letter in the days asked is only counted:
+  `lettersFoldedAway: n` with `lettersNote` ("1 letter to open later is folded away until its day: never quote, guess or
+  ask about its words."). With sharing off, nothing changed (the count of entries only).
+- **Tests:** a sealed letter's words, follow-up question and answer never appear in the tool's output; it is counted;
+  an open letter is read like any entry on its day; sharing off unchanged.
+- **Help/corpus:** none (the tool output shape only gains two optional keys; the NOVA corpus is untouched).
