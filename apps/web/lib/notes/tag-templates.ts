@@ -21,6 +21,18 @@ export function templateForTags(record: Pick<Notes, 'tagTemplates'>, tags: reado
   return null;
 }
 export const templateWords = (t: TagTemplate, day: string) => t.body.replace(/\{date\}/g, day);
+/**
+ * Review b5i B5I-6: the words a note starts from once its tags are final (the Tags field left, or Save): only while the
+ * note has no words of its own — empty, or still exactly the template it started from (`started`), so a changed tag
+ * picks again. The first tag's own template wins over the one of a tag above it. Null when nothing changes.
+ */
+export function startWords(record: Pick<Notes, 'tagTemplates'>, tags: readonly string[], body: string, started: string | null, day: string): {tag: string; words: string} | null {
+  if (body.trim() && body !== started) return null;
+  const t = templateForTags(record, tags);
+  if (!t) return null;
+  const words = templateWords(t, day);
+  return words === body ? null : {tag: t.tag, words};
+}
 /** Sets (or replaces) a tag's template; empty words remove it. */
 export function setTagTemplate(record: Notes, tag: string, body: string): Notes {
   const name = cleanTag(tag);

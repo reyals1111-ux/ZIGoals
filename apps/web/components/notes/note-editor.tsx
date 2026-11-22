@@ -20,7 +20,7 @@ import {photoScope} from '../../lib/health-aa/photos';
 import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
 import {propsFace} from '../../lib/notes/prop-face'; // Session AV lane 2 (review B3C-13): days and numbers via the app's formatters
 import {countCharacters, countWords, readMinutes} from '../../lib/notes/table';
-import {templateForTags, templateWords} from '../../lib/notes/tag-templates';
+import {startWords} from '../../lib/notes/tag-templates';
 import {mayHoldTable} from '../../lib/notes/table-edit';
 import {localDate} from '../../lib/local-date';
 
@@ -79,22 +79,26 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
   const dirty = (note?.title ?? '') !== title || (note?.body ?? '') !== body || parseTagField(tagText).join(',') !== parseTagField(savedField).join(',');
   const untouchedStart = !note && !!start && body === start; // a template not written in yet is not saved as a note
   const isDaily = note ? note.kind === 'daily' : !!day;
+  // Session AV lane 2 (r5-notes; LEDGER #362, Logseq): a new, still empty note given a tag with a template starts from
+  // its words (unsaved until Save). Review b5i B5I-6: chosen once the tag is final — when the Tags field is left or the
+  // note is saved — so a nested tag's own template wins over its parent's; while the words are still that untouched
+  // template, a changed tag picks again. Returns the words it put in, or null.
+  const [startedFrom, setStartedFrom] = useState(''), startedWords = useRef<string | null>(null);
+  const startFromTag = (text: string): string | null => {
+    if (!record || note?.body.trim()) return null;
+    const got = startWords(record, parseTagField(text), body, startedWords.current, note?.day ?? day ?? localDate());
+    if (!got) return null;
+    startedWords.current = got.words; setStartedFrom(got.tag); setBody(got.words);
+    return got.words;
+  };
   const save = (): boolean => {
-    const now = new Date().toISOString(), tags = tagsForSave(parseTagField(tagText), body);
-    if (!note && day) return change(r => { const d = ensureDaily(r, day, now); return updateNote(d.record, d.note.id, {body, tags}, now); }, 'Saved on this device.');
+    const words = startFromTag(tagText) ?? body; // review b5i B5I-6: a template the final tags give is saved with the note
+    const now = new Date().toISOString(), tags = tagsForSave(parseTagField(tagText), words);
+    if (!note && day) return change(r => { const d = ensureDaily(r, day, now); return updateNote(d.record, d.note.id, {body: words, tags}, now); }, 'Saved on this device.');
     if (!note) return false;
     // Session AV lane 2 (notes; LEDGER #33): a save keeps the words it replaces as an earlier version.
-    if (!isDaily && !title.trim() && note.kind !== 'inbox') { setTitle(note.title); return change(r => updateNoteKeepingVersion(r, note.id, {body, tags}, now), 'Saved on this device. A note keeps its title.'); }
-    return change(r => updateNoteKeepingVersion(r, note.id, isDaily ? {body, tags} : {title, body, tags}, now), 'Saved on this device.');
-  };
-  // Session AV lane 2 (r5-notes; LEDGER #362, Logseq): a new, still empty note given a tag with a template starts from
-  // its words, once (unsaved until Save).
-  const [startedFrom, setStartedFrom] = useState(''), started = useRef(false);
-  const startFromTag = (text: string) => {
-    if (started.current || !record || body.trim() || note?.body.trim()) return;
-    const t = templateForTags(record, parseTagField(text));
-    if (!t) return;
-    started.current = true; setStartedFrom(t.tag); setBody(templateWords(t, note?.day ?? day ?? localDate()));
+    if (!isDaily && !title.trim() && note.kind !== 'inbox') { setTitle(note.title); return change(r => updateNoteKeepingVersion(r, note.id, {body: words, tags}, now), 'Saved on this device. A note keeps its title.'); }
+    return change(r => updateNoteKeepingVersion(r, note.id, isDaily ? {body: words, tags} : {title, body: words, tags}, now), 'Saved on this device.');
   };
   const saveAndRead = () => { if (!dirty || save()) setMode('read'); };
   // Session AV lane 2 (r3-notes; LEDGER #264): while reading, the words follow the note (a tick, its Undo, a restore), so
@@ -118,7 +122,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {!isDaily && <SecretGuard text={title} onRemove={() => setTitle('')}/>}
       {/* Session AK G2 (RELEASE_REVIEW_2 R2-18): `[[` is explained here, in the field, where it is used. */}
       <LinkField label={isDaily ? 'This day’s note' : 'Note'} placeholder="Write here. Type [[ to link a goal, a habit or another note." value={body} onChange={setBody} index={index} exclude={note ? {kind: 'note', id: note.id} : undefined} maxLength={MAX_BODY} onSubmit={saveAndRead} rows={isDaily ? 6 : 10}/>
-      <label className="field note-tags-field"><span>Tags</span><input value={tagText} maxLength={400} onChange={e => { setTagText(e.target.value); startFromTag(e.target.value); }} placeholder="travel, work/meetings" aria-describedby={note ? `tags-help-${note.id}` : undefined}/></label>
+      <label className="field note-tags-field"><span>Tags</span><input value={tagText} maxLength={400} onChange={e => setTagText(e.target.value)} onBlur={e => { startFromTag(e.currentTarget.value); }} placeholder="travel, work/meetings" aria-describedby={note ? `tags-help-${note.id}` : undefined}/></label>
       <SecretGuard text={tagText} onRemove={() => setTagText('')}/>
       {startedFrom && <p className="fine" role="status">Started from the #{startedFrom} template (Notes → Notes → Templates for tags). Save keeps it.</p>}
       <p className="fine" id={note ? `tags-help-${note.id}` : undefined}>Or write a #tag anywhere in the note; a / nests one under another (#work/meetings sits under #work).</p>
