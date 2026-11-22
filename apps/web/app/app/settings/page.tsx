@@ -56,6 +56,7 @@ import { AfSigningSection } from "../../../components/settings/af-signing-sectio
 import { AfExtrasSection } from "../../../components/settings/af-extras-section";
 import { useChainChoice } from "../../../components/chain/use-chain-choice";
 import { SettingsFoldAll, SettingsFoldGroup, SettingsFolds } from "../../../components/settings/settings-fold";
+import { HideFiguresToggle } from "../../../components/hide-figures";
 import type { SettingsGroupId } from "../../../lib/settings-folds";
 // Session AL (BN-112): its own chunk, loaded only once the chain is chosen and the wallet group shows.
 const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wallets"));
@@ -164,6 +165,8 @@ export default function Settings() {
           {/* Session AJ (A6): the last part, after Export everything: remove every ZIGoals record from this browser. */}
           <EraseEverything/>
         </section>
+        {/* Session AV lane 2 (LEDGER #69; QUALITY "Not fixed"): the hide switch offered in Settings too, the same device switch as Health's. */}
+        <section className="panel settings-hide-figures" aria-labelledby="settings-hide-figures-title"><h2 id="settings-hide-figures-title">Calories and weight on screen</h2><HideFiguresToggle/><p className="fine">ZIGi and NOVA leave these figures out of their answers too while they are hidden. Your records and exports keep them.</p></section>
         <div className="detail-grid">
           {/* Session AH Part 3 (DS6/A2, BUG-036, M-007): this older format holds local simulation Goal plans only; with
               none on this device it exported {"goals":{}}. It shows only when there is something in it; "Export

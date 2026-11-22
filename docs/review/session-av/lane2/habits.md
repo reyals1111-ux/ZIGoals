@@ -187,3 +187,31 @@ corpus, regenerates theme sheets, edits Help / What's new / search / shard lists
   mood-trend intent in engine.ts if one claims the same words.
 - Showcase hook: the Showcase's own moods fill it with no new data. CSS: `components/health/plus/feelings-card.css`.
   Always visible on Today: nothing.
+
+## Feature 6 — Hidden figures in NOVA and ZIGi, Settings and Export (LEDGER #69; QUALITY "Not fixed")
+
+**Verdict: built in part; one part left with its cause.**
+
+- NOVA's and ZIGi's on-device answers: `lib/ai/local-answers/av2-hide-figures.ts` — `withHiddenFigures(reply, on, lang)`
+  turns every calorie and body-weight figure into "—" (kcal, calories, calorieën, kg, lb, stone, "weight 72.4",
+  "gewicht 72,4") and adds one plain line (EN/NL) saying why and where to switch back; steps, minutes, sleep and other
+  numbers stay. `bodyFiguresHidden()` reads the device switch (false on the server).
+  **Wiring line for engine.ts (lead):** at the end of `localAnswer`, `return withHiddenFigures(reply, bodyFiguresHidden(),
+  questionLanguage(question) === 'nl' ? 'nl' : 'en');` (import both from './av2-hide-figures'). The same applies to the
+  no-model reply path (`noModelReply`) if it can say a calorie or weight figure.
+- Settings → Data & privacy → "Calories and weight on screen": the same `HideFiguresToggle` as Health (one device switch,
+  `zigoals:hide-body-figures`, unchanged). Export everything says, while it is on, that the file still holds the figures.
+- Left with its cause: the figures drawn inside NOVA's own widgets and cards (`components/nova/widgets/*`,
+  `components/nova/cards/ax/*`: calorie trend, nutrition gauges, the health HUD, food days, health compare) — a
+  protected area (AR's NOVA composition); marking them `data-body-figure` there is the lead's call. Every text answer is
+  covered.
+- Files: `lib/ai/local-answers/av2-hide-figures.ts`, `app/app/settings/page.tsx`, `components/export-everything.tsx`.
+- Tests: `lib/ai/local-answers/av2-hide-figures.test.ts` (EN and NL figures, other numbers kept, the note only when
+  something was hidden, the Showcase's own calorie answer). Spec: `tests/av2-hide-figures.spec.ts`.
+- Stored changes: none (the existing device switch).
+- Help (EN): **Q: Do ZIGi and NOVA show my calories and weight when I hid them?** A: No. While "Hide calories and
+  weight" is on (in Health or in Settings → Data & privacy), their answers show a dash instead of those figures. Your
+  records and your exports still hold them.
+- What's new: "Hidden calories and weight stay hidden in ZIGi's and NOVA's answers; the switch is in Settings too."
+- Device keys / catalogue: nothing new. CSS: none. Always visible on Today: nothing. Settings gains one panel in Data &
+  privacy (three Tab stops on Settings, none on Today).
