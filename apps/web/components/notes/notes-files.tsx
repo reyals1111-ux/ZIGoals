@@ -2,7 +2,7 @@
 import {useRef, useState} from 'react';
 import {notePhotoIdsOf, type Note, type Notes} from '../../lib/notes/schema';
 import type {LinkSources} from '../../lib/notes/links';
-import {applyImport, dailyExportName, dailyNotesBetween, notesExportEntries, notesExportName, planImport, type ImportPlan} from '../../lib/notes/markdown';
+import {applyImport, dailyExportName, dailyNotesBetween, dailyRangeWords, notesExportEntries, notesExportName, planImport, type ImportPlan} from '../../lib/notes/markdown';
 import {ZipError} from '../../lib/notes/zip-read';
 import {readForeignFiles, readNoteFiles} from '../../lib/notes/read-files';
 import {foreignFiles, isBearArchive, isEnex, namePhotos, type ForeignImage} from '../../lib/notes/import-enex';
@@ -32,7 +32,7 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
   // Session AV lane 2 (r5-notes; LEDGER #366, Craft): the same export for the daily notes of a range of days.
   const firstDay = record.notes.filter(n => n.kind === 'daily' && n.day).map(n => n.day!).sort()[0] ?? localDate();
   const [from, setFrom] = useState(firstDay), [to, setTo] = useState(() => localDate());
-  const ranged = dailyNotesBetween(record, from || firstDay, to || localDate());
+  const ranged = dailyNotesBetween(record, from || firstDay, to || localDate()), rangeSaid = dailyRangeWords(ranged.notes); // review b5i B5I-11
   const exportZip = async (range?: {from: string; to: string}) => {
     setBusy(true); setSaid('');
     try {
@@ -97,8 +97,8 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
           <label className="field"><span>From</span><input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)}/></label>
           <label className="field"><span>To</span><input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)}/></label>
         </div>
-        <p className="fine" aria-live="polite">{ranged.notes.length ? `${ranged.notes.length} daily ${ranged.notes.length === 1 ? 'note' : 'notes'} in these days, with ${ranged.notes.length === 1 ? 'its' : 'their'} photos.` : 'No daily note in these days. Write one under Notes → Today, or choose other days.'}</p>
-        <button type="button" className="secondary" disabled={busy || !ranged.notes.length} onClick={() => void exportZip({from: from || firstDay, to: to || localDate()})}>Export these daily notes (.zip)</button>
+        <p className="fine" aria-live="polite">{rangeSaid.words}</p>
+        <button type="button" className="secondary" disabled={busy || !rangeSaid.count} onClick={() => void exportZip({from: from || firstDay, to: to || localDate()})}>Export these daily notes (.zip)</button>
       </fieldset>
     </section>
     <section aria-labelledby="notes-import-title">
