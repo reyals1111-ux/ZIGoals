@@ -14,6 +14,8 @@ import type {GoalOption} from './use-goal-options';
 import type {TaskPatch} from './use-task-list';
 
 const HabitLinkField = lazy(() => import('./habit-link-field'));
+/** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
+const TaskAttachments = lazy(() => import('./task-attachments'));
 /** Session AV (1c, q1 #1): the editor offers up to three reminders a task (the record keeps up to five). */
 const MAX_EDITOR_REMINDERS = 3;
 
@@ -132,6 +134,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <button type="button" className="secondary" disabled={!comment.trim() || comments.length >= COMMENTS_MAX} onClick={() => { setComments(cs => [...cs, {id: `c_${crypto.randomUUID().slice(0, 12)}`, at: new Date().toISOString(), text: comment.trim()}]); setComment(''); }}>Add comment</button>
       <small className="tasks-field-note">Comments are kept with the task when you Save, on this device only.</small>
     </div>
+    <Suspense fallback={null}><TaskAttachments taskId={task.id} taskTitle={task.title} liveTaskIds={record?.tasks.map(t => t.id)}/></Suspense>
     <span className="task-editor-actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={onCancel}>Cancel</button></span>
   </form>;
 }
