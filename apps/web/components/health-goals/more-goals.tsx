@@ -40,7 +40,7 @@ export default function MoreGoals({health, today}: {health: HealthData; today: s
   const keep = (change: Parameters<typeof rec.update>[0], text: string) => { try { rec.update(change); setSaid(text); return true; } catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); return false; } };
   const active = rec.data.goals.filter(g => g.status === 'active'), closed = rec.data.goals.filter(g => g.status === 'closed');
   const row = (g: MoreGoal) => { const p = moreGoalProgress(g, health, numbers.loaded && !numbers.unreadable ? numbers.data : null, today), at = rec.data.goals.findIndex(x => x.id === g.id); return <li key={g.id} className="health-goal-row more-goal-row" data-status={g.status} data-met={p.met ? '' : undefined}>
-    <div><strong>{g.name}</strong> <small className="fine">{measureWord(g)} · {g.direction === 'at-least' ? 'at least' : 'at most'} {fmt(g.target)} {unitOf(g)} · last {g.windowDays} days</small></div>
+    <MoreGoalHead g={g}/>
     <p className="fine" data-body-figure="">{moreGoalLine(g, p, fmt)}</p>
     {p.percent !== null && <GlassBar identity={`more-goal:${g.id}`} className="health-goal-track" aria-hidden="true" value={p.percent / 100}/>}
     <div className="actions">{g.status === 'active' ? <button type="button" className="quiet" aria-label={`Close ${g.name}`} onClick={() => keep(r => setMoreGoalStatus(r, g.id, 'closed'), `${g.name} closed. It stays under Closed.`)}>Close</button> : <button type="button" className="quiet" aria-label={`Reopen ${g.name}`} onClick={() => keep(r => setMoreGoalStatus(r, g.id, 'active'), `${g.name} is active again.`)}>Reopen</button>}
@@ -71,4 +71,8 @@ export default function MoreGoals({health, today}: {health: HealthData; today: s
     </>}
     <p className="fine" role="status" aria-live="polite">{said}</p>
   </div>;
+}
+/** A goal's name and target; a calorie or body figure is hidden by "Hide calories and weight" (review B3B-4). */
+export function MoreGoalHead({g}: {g: MoreGoal}) {
+  return <div><strong data-body-figure={unitOf(g) === 'kcal' ? '' : undefined}>{g.name}</strong> <small className="fine">{measureWord(g)} · <span data-body-figure={g.source === 'body' || unitOf(g) === 'kcal' ? '' : undefined}>{g.direction === 'at-least' ? 'at least' : 'at most'} {fmt(g.target)} {unitOf(g)}</span> · last {g.windowDays} days</small></div>;
 }

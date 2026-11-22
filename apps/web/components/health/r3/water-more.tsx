@@ -25,7 +25,8 @@ type Perform = (updater: (latest: HealthData) => HealthData, message: string, af
 const now = () => new Date().toISOString();
 const BLANK: DrinkFormInput = {name: '', type: 'juice', sizeMl: '250', symbol: OWN_DRINK_SYMBOLS[4], colour: 'orange', caffeine: '', kcal: '', sugar: ''};
 const formOf = (d: OwnDrink): DrinkFormInput => ({name: d.name, type: d.type, sizeMl: String(d.sizeMl), symbol: d.symbol ?? OWN_DRINK_SYMBOLS[0], colour: d.colour ?? 'blue', caffeine: d.caffeineMg === undefined ? '' : String(d.caffeineMg), kcal: d.kcal === undefined ? '' : String(d.kcal), sugar: d.sugarG === undefined ? '' : String(d.sugarG)});
-const facts = (d: OwnDrink) => [`${formatNumber(d.sizeMl)} mL`, d.caffeineMg !== undefined ? `${d.caffeineMg} mg caffeine` : null, d.kcal !== undefined ? `${d.kcal} kcal` : null, d.sugarG !== undefined ? `${formatNumber(d.sugarG, {maximumFractionDigits: 1})} g sugar` : null].filter(Boolean).join(' · ');
+/** A drink's facts; its calories in a span "Hide calories and weight" hides, as Health's other calorie figures (review B3B-4). */
+export const facts = (d: OwnDrink) => <>{[`${formatNumber(d.sizeMl)} mL`, d.caffeineMg !== undefined ? `${d.caffeineMg} mg caffeine` : null].filter(Boolean).join(' · ')}{d.kcal !== undefined && <> · <span data-body-figure="">{d.kcal} kcal</span></>}{d.sugarG !== undefined ? ` · ${formatNumber(d.sugarG, {maximumFractionDigits: 1})} g sugar` : ''}</>;
 
 /**
  * Session AV lane 2 (health r3; LEDGER #280–#283, Waterllama), under the Water card's one-tap row: your own drinks as
@@ -52,8 +53,8 @@ export default function WaterMore({data, date, perform}: {data: HealthData; date
       <p lang={tipLang} aria-live="polite">{tip[tipLang]}</p>
       <div className="actions"><button type="button" className="quiet" lang={tipLang} onClick={() => setTipStep(n => n + 1)}>{tipLang === 'en' ? 'Another tip' : 'Nog een tip'}</button><button type="button" className="quiet" lang={tipLang === 'en' ? 'nl' : 'en'} onClick={() => setTipLang(tipLang === 'en' ? 'nl' : 'en')}>{tipLang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>
     </section>}
-    {drinks.length > 0 && <div className="actions r3-own-drinks" role="group" aria-label="Your drinks, one tap each">{drinks.map(d => <button type="button" className="secondary" key={d.id} data-drink-colour={d.colour ?? 'blue'} aria-label={`Log ${d.name}, ${facts(d)}`} onClick={e => tap(d, e.timeStamp)}><span aria-hidden="true" className="r3-drink-symbol">{d.symbol ?? '💧'}</span> {d.name} <small>{formatNumber(d.sizeMl)} mL</small></button>)}</div>}
-    {(energy.kcal !== null || energy.sugarG !== null) && <p className="fine">From today’s drinks, as you typed them: {[energy.kcal !== null ? `${formatNumber(energy.kcal)} kcal` : null, energy.sugarG !== null ? `${formatNumber(energy.sugarG, {maximumFractionDigits: 1})} g sugar` : null].filter(Boolean).join(' · ')}. It shows beside the day’s food too.</p>}
+    {drinks.length > 0 && <div className="actions r3-own-drinks" role="group" aria-label="Your drinks, one tap each">{drinks.map(d => <button type="button" className="secondary" key={d.id} data-drink-colour={d.colour ?? 'blue'} aria-label={`Log ${d.name}, ${formatNumber(d.sizeMl)} mL`} onClick={e => tap(d, e.timeStamp)}><span aria-hidden="true" className="r3-drink-symbol">{d.symbol ?? '💧'}</span> {d.name} <small>{formatNumber(d.sizeMl)} mL</small></button>)}</div>}
+    <DrinkDayEnergy energy={energy}/>
     <details className="r3-fold"><summary>Your drinks{drinks.length ? ` (${drinks.length} of ${OWN_DRINKS_MAX})` : ''}</summary>
       {unreadable ? <p className="fine" role="alert">Your drinks on this device could not be read, so they cannot be changed here now.</p> : <DrinksEditor extras={extras} drinks={drinks} update={update}/>}
     </details>
@@ -61,6 +62,12 @@ export default function WaterMore({data, date, perform}: {data: HealthData; date
     <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={!!extras?.waterTips} aria-describedby={`r3-tip-note-${date}`} disabled={!extras} onClick={() => setTips(!extras?.waterTips)}>Show a water tip each day</button><span className="fine" id={`r3-tip-note-${date}`}>Small habits that make a glass easier to reach for. Off unless you choose it.</span></div>
     <p className="fine" role="status" aria-live="polite">{said}</p>
   </div>;
+}
+
+/** The card's line of today's drink energy and sugar as typed; hidden by "Hide calories and weight" (review B3B-4). */
+export function DrinkDayEnergy({energy}: {energy: ReturnType<typeof drinkEnergyDay>}) {
+  if (energy.kcal === null && energy.sugarG === null) return null;
+  return <p className="fine" data-body-figure="">From today’s drinks, as you typed them: {[energy.kcal !== null ? `${formatNumber(energy.kcal)} kcal` : null, energy.sugarG !== null ? `${formatNumber(energy.sugarG, {maximumFractionDigits: 1})} g sugar` : null].filter(Boolean).join(' · ')}. It shows beside the day’s food too.</p>;
 }
 
 function DrinksEditor({extras, drinks, update}: {extras: HealthExtras | null; drinks: readonly OwnDrink[]; update: (change: (current: HealthExtras) => HealthExtras) => unknown}) {
