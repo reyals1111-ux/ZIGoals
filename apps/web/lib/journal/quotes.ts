@@ -18,7 +18,7 @@ export const WRITERS: Record<StoicWriter, {name: string; work: {en: string; nl: 
 };
 export const STOIC_QUOTES: readonly StoicQuote[] = [
   {id: 'ma-4-3', writer: 'marcus', where: 'IV.3', en: 'The universe is transformation: life is opinion.', nl: 'Alles verandert; het leven is wat je ervan denkt.'},
-  {id: 'se-1-a', writer: 'seneca', where: '1', en: 'Hold every hour in your grasp. Lay hold of to-day’s task, and you will not need to depend so much upon to-morrow’s.', nl: 'Houd elk uur vast. Pak de taak van vandaag op, dan hoef je minder op morgen te rekenen.'},
+  {id: 'se-1-a', writer: 'seneca', where: '1', en: 'Therefore, Lucilius, do as you write me that you are doing: hold every hour in your grasp. Lay hold of to-day’s task, and you will not need to depend so much upon to-morrow’s.', nl: 'Doe dus, Lucilius, wat je me schrijft dat je doet: houd elk uur vast. Pak de taak van vandaag op, dan hoef je minder op morgen te rekenen.'},
   {id: 'ep-1', writer: 'epictetus', where: '1', en: 'Of things some are in our power, and others are not.', nl: 'Sommige dingen liggen in onze macht, andere niet.'},
   {id: 'ma-4-18', writer: 'marcus', where: 'IV.18', en: 'How much trouble he avoids who does not look to see what his neighbor says or does or thinks, but only to what he does himself, that it may be just and pure.', nl: 'Hoeveel moeite bespaart wie niet kijkt wat een ander zegt, doet of denkt, maar alleen naar wat hij zelf doet: dat het eerlijk en zuiver is.'},
   {id: 'se-1-b', writer: 'seneca', where: '1', en: 'While we are postponing, life speeds by.', nl: 'Terwijl wij uitstellen, gaat het leven snel voorbij.'},
@@ -41,7 +41,7 @@ export const STOIC_QUOTES: readonly StoicQuote[] = [
   {id: 'ma-7-59', writer: 'marcus', where: 'VII.59', en: 'Look within. Within is the fountain of good, and it will ever bubble up, if thou wilt ever dig.', nl: 'Kijk naar binnen. Daar is de bron van het goede, en die blijft opborrelen als je blijft graven.'},
   {id: 'se-13', writer: 'seneca', where: '13', en: 'There are more things, Lucilius, likely to frighten us than there are to crush us; we suffer more often in imagination than in reality.', nl: 'Er is meer dat ons bang maakt dan wat ons echt kan breken, Lucilius; we lijden vaker in gedachten dan in werkelijkheid.'},
   {id: 'ep-22', writer: 'epictetus', where: '22', en: '…hold on to the things which seem to you best as one appointed by God to this station.', nl: '…houd vast aan wat jou het beste lijkt, als iemand die door God op deze plek is gezet.'},
-  {id: 'ma-7-67', writer: 'marcus', where: 'VII.67', en: 'Very little indeed is necessary for living a happy life.', nl: 'Er is maar heel weinig nodig voor een gelukkig leven.'},
+  {id: 'ma-7-67', writer: 'marcus', where: 'VII.67', en: '…very little indeed is necessary for living a happy life.', nl: '…er is maar heel weinig nodig voor een gelukkig leven.'},
   {id: 'se-28', writer: 'seneca', where: '28', en: 'You need a change of soul rather than a change of climate.', nl: 'Je hebt eerder een andere blik nodig dan een andere plek.'},
   {id: 'ep-33', writer: 'epictetus', where: '33', en: 'In company take care not to speak much and excessively about your own acts or dangers.', nl: 'Praat in gezelschap niet te veel en te lang over wat jij hebt gedaan of meegemaakt.'},
   {id: 'ma-8-36', writer: 'marcus', where: 'VIII.36', en: 'Do not disturb thyself by thinking of the whole of thy life.', nl: 'Maak je niet onrustig door aan je hele leven tegelijk te denken.'},

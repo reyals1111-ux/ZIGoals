@@ -119,3 +119,16 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
 - **Tests:** `lib/journal/revb3c-quotes.test.ts` pins the line word for word; every line ends at a full stop; an excerpt
   marked "…" in English is marked in Dutch.
 - **Help/corpus:** none (no corpus case or spec pins a quote's words).
+
+## B3C-8 (Minor): Seneca 1 and Meditations VII.67 start where the original does
+
+- **Verdict:** confirmed and fixed (checked on Wikisource: Gummere's letter 1, "Therefore, Lucilius, do as you write me
+  that you are doing: hold every hour in your grasp."; Long's VII.67, "Always bear this in mind; and another thing too,
+  that very little indeed is necessary for living a happy life.").
+- **Fix:** `se-1-a` starts at the sentence start: "Therefore, Lucilius, do as you write me that you are doing: hold every
+  hour in your grasp. Lay hold of to-day’s task, and you will not need to depend so much upon to-morrow’s." (Dutch:
+  "Doe dus, Lucilius, wat je me schrijft dat je doet: houd elk uur vast. …"). `ma-7-67` keeps the original's small
+  letter after "…": "…very little indeed is necessary for living a happy life." (Dutch with "…" too).
+- **Tests:** `lib/journal/revb3c-quotes.test.ts` pins both word for word and checks every line: a capital at a sentence
+  start, or "…" and a small letter inside one.
+- **Help/corpus:** none.
