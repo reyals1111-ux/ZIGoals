@@ -84,3 +84,8 @@
 .spending-history summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:14px;font-weight:600}
 .spending-history ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px;overflow-wrap:anywhere}
 .spending-transfer .text-link{min-height:44px}
+/* Session AV lane 2, round 2 (money): the unusual-entry line. Theme variables only. */
+.spending-unusual{list-style:none;margin:0 0 8px;padding:10px 12px;display:grid;gap:6px;border:1px solid var(--line,rgba(140,160,220,.35));border-radius:12px;font-size:15px}
+.spending-unusual li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;overflow-wrap:anywhere}
+.spending-unusual-actions{display:inline-flex;gap:8px}
+.spending-unusual-actions button{min-height:44px}

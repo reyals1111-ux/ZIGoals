@@ -33,6 +33,11 @@ export const wealthSheetSchema = z.looseObject({
   flows: bounded(z.array(flowSchema).max(MAX_FLOWS)).optional().catch(undefined),
   rates: z.array(rateSchema).max(MAX_RATES).optional().catch(undefined),
   total: currency.optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 2 (money; Wallet's balance-limit notifications), TIER 3 (stored format), additive: a limit
+   * per account — tell me when its latest balance is below `below` or above `above` (in the account's own currency).
+   */
+  limits: bounded(z.looseObject({below: amount.optional().catch(undefined), above: amount.optional().catch(undefined)})).optional().catch(undefined),
 });
 export type WealthSheet = z.infer<typeof wealthSheetSchema>;
 export const emptyWealthSheet = (): WealthSheet => ({version: 1});

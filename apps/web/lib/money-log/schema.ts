@@ -59,13 +59,28 @@ export const moneyEntrySchema = z.looseObject({
   account: z.string().trim().min(1).max(40).optional().catch(undefined),
   ref: z.string().trim().min(1).max(140).optional().catch(undefined),
   transfer: id.optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 2 (money; Wallet's payment types, Emma's subcategories, Emma's split, Emma's unusual-entry
+   * alert), TIER 3 (stored format), each additive and optional, dropped on read when this build cannot read it (older
+   * builds keep them untouched in the loose entry and count the entry whole in its main category, as before):
+   * - `paidWith`: how it was paid (cash, debit card, credit card, transfer, other), the person's own choice;
+   * - `sub`: the person's own subcategory under the entry's `category` (Food & drink › Coffee); totals and budgets roll
+   *   it up into the main category;
+   * - `share`: the person's own share of a cost paid for others too (at most the amount; checked where read); spending
+   *   figures and budgets count this share, the log keeps what was paid;
+   * - `fine`: "That's fine" on an entry the unusual-entry line named, so it is not named again.
+   */
+  paidWith: z.enum(['cash', 'debit', 'credit', 'transfer', 'other']).optional().catch(undefined),
+  sub: z.string().trim().min(1).max(40).optional().catch(undefined),
+  share: amountText.optional().catch(undefined),
+  fine: z.literal(true).optional().catch(undefined),
   history: z.array(z.looseObject({
     at: z.iso.datetime({offset: true}), by: z.enum(['you', 'rule', 'bulk', 'import']),
     field: z.enum(['category', 'amount', 'date', 'note', 'excluded', 'spread', 'transfer']), from: z.string().max(200).optional(), to: z.string().max(200).optional(),
   })).max(20).optional().catch(undefined),
 });
 /** Session AV lane 2 (money): at most this many of the person's own categories of each kind, each at most 40 characters. */
-export const MAX_OWN_CATEGORIES = 30, MAX_HISTORY = 20;
+export const MAX_OWN_CATEGORIES = 30, MAX_HISTORY = 20, MAX_SUBS = 20;
 const ownCategory = z.string().trim().min(1).max(40);
 export const moneyLogSchema = z.looseObject({
   version: z.literal(1),
@@ -87,8 +102,15 @@ export const moneyLogSchema = z.looseObject({
   own: z.looseObject({expense: z.array(ownCategory).max(MAX_OWN_CATEGORIES).optional(), income: z.array(ownCategory).max(MAX_OWN_CATEGORIES).optional()}).optional().catch(undefined),
   accounts: z.looseObject({notes: z.record(z.string().min(1).max(100), z.string().trim().min(1).max(300)).optional(), order: z.array(z.string().min(1).max(100)).max(200).optional()}).optional().catch(undefined),
   lowBalance: z.looseObject({amount: amountText, currency: currencyCode}).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 2 (money; Emma's subcategories), TIER 3 (stored format), additive and optional, dropped on
+   * read when unreadable: the person's own subcategories, by main category (at most 40 categories, 20 each).
+   */
+  subs: z.record(ownCategory, z.array(ownCategory).max(MAX_SUBS)).refine(r => Object.keys(r).length <= 40, 'At most 40 categories with subcategories.').optional().catch(undefined),
 });
 export type MoneyEntry = z.infer<typeof moneyEntrySchema>;
+export const PAID_WITH = ['cash', 'debit', 'credit', 'transfer', 'other'] as const;
+export type PaidWith = typeof PAID_WITH[number];
 export type MoneyLog = z.infer<typeof moneyLogSchema>;
 export const emptyMoneyLog = (): MoneyLog => ({version: 1, entries: [], weekStartsOn: 'monday'});
 export const MONEY_LOG: DeviceRecordSpec<MoneyLog> = {key: MONEY_LOG_KEY, schema: moneyLogSchema, empty: emptyMoneyLog};

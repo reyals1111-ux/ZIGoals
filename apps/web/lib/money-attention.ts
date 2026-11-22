@@ -33,8 +33,9 @@ export type LowCash = {date: string; currency: string; cents: bigint; line: bigi
 export type MoneyAttention = {review: number; over: {category: string; currency: string; words: string}[]; near: {category: string; currency: string}[]; fast: {category: string; currency: string}[]; watched: {category: string; currency: string}[]; bills: BillLine[]; count: number;
   notes?: NoteDue[]; payees?: {payee: string; currency: string}[]; challenges?: {category: string; currency: string; state: 'over' | 'close'}[]; low?: LowCash | null;
   /** Session AV lane 2 (money; Undebt.it): the kept debt plan, when what is owed is behind it (cents behind, its currency). */ debtsBehind?: {cents: bigint; currency: string} | null;
-  /** Session AV lane 2 (money; Kubera's mark as stale): accounts past the person's own "update every". */ stale?: {id: string; name: string}[]};
-export function moneyAttention({entries, review, budgets, bills, today, low = null, debtsBehind = null, stale = []}: {entries: readonly MoneyEntry[]; review?: MoneyReview | null; budgets?: BudgetsRecord | null; bills?: BillsRecord | null; today: string; low?: LowCash | null; debtsBehind?: {cents: bigint; currency: string} | null; stale?: readonly {id: string; name: string}[]}): MoneyAttention {
+  /** Session AV lane 2 (money; Kubera's mark as stale): accounts past the person's own "update every". */ stale?: {id: string; name: string}[];
+  /** Session AV lane 2, round 2 (money; Emma, Wallet): further pieces the caller worked out (lib/money-more/today.ts), each with its place. */ extra?: {text: string; href: string}[]};
+export function moneyAttention({entries, review, budgets, bills, today, low = null, debtsBehind = null, stale = [], extra = []}: {entries: readonly MoneyEntry[]; review?: MoneyReview | null; budgets?: BudgetsRecord | null; bills?: BillsRecord | null; today: string; low?: LowCash | null; debtsBehind?: {cents: bigint; currency: string} | null; stale?: readonly {id: string; name: string}[]; extra?: readonly {text: string; href: string}[]}): MoneyAttention {
   const pending = review ? toReview(review, entries).length : 0;
   const lines = budgets?.budgets.length ? budgetsCard(budgets, entries, today).lines : [];
   const over = lines.filter(l => l.over).map(l => ({category: l.category, currency: l.currency, words: l.words}));
@@ -45,7 +46,7 @@ export function moneyAttention({entries, review, budgets, bills, today, low = nu
   const soon = bills?.bills.length ? billsCard(bills, today).lines.filter(l => l.days <= BILLS_SOON_DAYS) : [];
   const notes = billNotesDue(bills, today, BILLS_SOON_DAYS), payees = budgets?.payees?.length ? payeesAbove(budgets, entries, today).map(p => ({payee: p.payee, currency: p.currency})) : [];
   const challenges = budgets?.challenges?.length ? challengeStates(budgets, entries, today).filter(c => c.month === today.slice(0, 7) && (c.state === 'over' || c.state === 'close')).map(c => ({category: c.category, currency: c.currency, state: c.state as 'over' | 'close'})) : [];
-  return {review: pending, over, near, fast, watched, bills: soon, notes, payees, challenges, low, debtsBehind, stale: stale.map(x => ({id: x.id, name: x.name})), count: stale.length + (debtsBehind ? 1 : 0) + (pending ? 1 : 0) + over.length + near.length + fast.length + watched.length + soon.length + notes.length + payees.length + challenges.length + (low ? 1 : 0)};
+  return {review: pending, over, near, fast, watched, bills: soon, notes, payees, challenges, low, debtsBehind, stale: stale.map(x => ({id: x.id, name: x.name})), ...(extra.length ? {extra: [...extra]} : {}), count: extra.length + stale.length + (debtsBehind ? 1 : 0) + (pending ? 1 : 0) + over.length + near.length + fast.length + watched.length + soon.length + notes.length + payees.length + challenges.length + (low ? 1 : 0)};
 }
 /** The line's pieces in plain words: "3 to review", "Groceries over budget", "Rent due tomorrow". */
 export function attentionPieces(a: MoneyAttention): string[] {
@@ -67,5 +68,6 @@ export function attentionLinks(a: MoneyAttention): {text: string; href: string}[
     ...(a.challenges ?? []).map(c => ({text: c.state === 'over' ? `${c.category} challenge: past last month` : `${c.category} challenge: close to last month`, href: ATTENTION_HREF.budgets})),
     ...(a.stale ?? []).map(x => ({text: `${x.name}: due for an update`, href: '/app/wealth'})),
     ...(a.debtsBehind ? [{text: `Debts: ${formatCurrencyAmount(fromCents(Number(a.debtsBehind.cents)), a.debtsBehind.currency)} behind your kept plan`, href: '/app/wealth/calculator'}] : []),
+    ...(a.extra ?? []),
     ...(a.low ? [{text: `Cash may go below ${formatCurrencyAmount(fromCents(Number(a.low.line)), a.low.currency)} on ${formatDate(a.low.date)}`, href: ATTENTION_HREF.review}] : [])];
 }

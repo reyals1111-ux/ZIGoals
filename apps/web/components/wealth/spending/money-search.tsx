@@ -10,6 +10,7 @@ import {parseNumberInput} from '../../../lib/numbers/parse';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {MONEY_TAGS_RECORD} from '../../../lib/money-tags/schema';
 import {allTags, normaliseTag, setEntryTags, tagsOf} from '../../../lib/money-tags/tags';
+import {PAID_WITH, PAID_WITH_WORDS, categoryPath} from '../../../lib/money-more/quick';
 
 /**
  * Session AV (owner follow-up 1, F-MONEY-SEARCH; Copilot, Monarch, YNAB): "Search all your entries" under Spending —
@@ -25,14 +26,15 @@ const SHOWN = 100, money = (cents: number, currency: string) => moneyCents(cents
 const toCents = (raw: string): number | undefined => { if (!raw.trim()) return undefined; const r = parseNumberInput(raw), n = Number(r.ok ? r.text : NaN); return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : undefined; };
 export type BulkAction = {kind: 'category'; category: string} | {kind: 'exclude'; out: boolean};
 export default function MoneySearch({entries, onEdit, onBulk, categories = [], initial}: {entries: readonly MoneyEntry[]; onEdit: (e: MoneyEntry) => void; onBulk?: (ids: ReadonlySet<string>, action: BulkAction) => void; categories?: readonly string[]; initial?: Partial<MoneyQuery>}) {
-  const id = useId(), [q, setQ] = useState<MoneyQuery>({text: '', kind: 'all', category: '', from: '', to: '', not: '', payee: '', counted: 'all', tax: false, ...initial}), [more, setMore] = useState(false);
+  const id = useId(), [q, setQ] = useState<MoneyQuery>({text: '', kind: 'all', category: '', from: '', to: '', not: '', payee: '', counted: 'all', tax: false, paidWith: '', sub: '', ...initial}), [more, setMore] = useState(false);
   const [range, setRange] = useState({min: '', max: ''}), minCents = toCents(range.min), maxCents = toCents(range.max);
   const tags = useDeviceRecord(MONEY_TAGS_RECORD), [tag, setTag] = useState('');
   const unreadable = (range.min.trim() && minCents === undefined) || (range.max.trim() && maxCents === undefined);
+  const subs = useMemo(() => [...new Set(entries.filter(e => e.sub && (!q.category || e.category === q.category)).map(e => e.sub!))].sort((a, b) => a.localeCompare(b)), [entries, q.category]);
   const cats = useMemo(() => usedCategories(entries), [entries]), payees = useMemo(() => usedPayees(entries), [entries]);
   const tagList = useMemo(() => tags.loaded ? allTags(tags.data, entries) : [], [tags.loaded, tags.data, entries]);
   const tagged = useMemo(() => tag && tags.loaded ? new Set(entries.filter(e => tagsOf(tags.data, e.id).includes(tag)).map(e => e.id)) : undefined, [tag, tags.loaded, tags.data, entries]);
-  const asked = !!(q.text?.trim() || q.category || q.from || q.to || (q.kind && q.kind !== 'all') || minCents !== undefined || maxCents !== undefined || q.not?.trim() || q.payee || tag || (q.counted && q.counted !== 'all') || q.tax);
+  const asked = !!(q.text?.trim() || q.category || q.from || q.to || (q.kind && q.kind !== 'all') || minCents !== undefined || maxCents !== undefined || q.not?.trim() || q.payee || tag || (q.counted && q.counted !== 'all') || q.tax || q.paidWith || q.sub);
   const found = useMemo(() => asked ? searchEntries(entries, {...q, minCents, maxCents, ...(tagged ? {tagged} : {})}) : [], [asked, entries, q, minCents, maxCents, tagged]);
   // The total counts what the figures count: an entry left out is found and listed, but not added in.
   const sum = useMemo(() => summarizeSelection(found, found.filter(isCounted).map(e => e.id)), [found]);
@@ -71,6 +73,8 @@ export default function MoneySearch({entries, onEdit, onBulk, categories = [], i
           <label className="field"><span>Payee</span><select value={q.payee} onChange={e => set({payee: e.target.value})}><option value="">Any payee</option>{payees.map(p => <option key={p} value={p}>{p}</option>)}</select></label>
           <label className="field"><span>Tag</span><select value={tag} onChange={e => { setTag(e.target.value); setMore(false); }}><option value="">Any tag</option>{tagList.map(t => <option key={t.tag} value={t.tag}>{t.tag}</option>)}</select></label>
           <label className="field"><span>Show</span><select value={q.counted} onChange={e => set({counted: e.target.value as MoneyQuery['counted']})}><option value="all">Counted and left out</option><option value="counted">Only what counts</option><option value="left-out">Only what is left out</option></select></label>
+          <label className="field"><span>Paid with</span><select value={q.paidWith} onChange={e => set({paidWith: e.target.value})}><option value="">Any way</option>{PAID_WITH.map(p => <option key={p} value={p}>{PAID_WITH_WORDS[p].en}</option>)}<option value="unmarked">Not said</option></select></label>
+          {subs.length > 0 && <label className="field"><span>Subcategory</span><select value={q.sub} onChange={e => set({sub: e.target.value})}><option value="">Any subcategory</option>{subs.map(x => <option key={x} value={x}>{x}</option>)}</select></label>}
           <label className="money-search-check"><input type="checkbox" checked={!!q.tax} onChange={e => set({tax: e.target.checked})}/><span>Only marked tax-deductible</span></label>
         </div>
       </details>
@@ -98,7 +102,7 @@ export default function MoneySearch({entries, onEdit, onBulk, categories = [], i
     </div>}
     {found.length > 0 && <ul className="spending-entries money-search-results" aria-label="Entries found">{found.slice(0, more ? found.length : SHOWN).map(e => <li key={e.id}>
       {selecting && <label className="money-select-check"><input type="checkbox" checked={pickedNow.has(e.id)} onChange={() => toggle(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
-      <span className="spending-entry-what"><strong>{e.category}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {formatDate(e.date)}</span>{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.taxDeductible && <span className="money-mark"> · Tax-deductible</span>}</span>
+      <span className="spending-entry-what"><strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {formatDate(e.date)}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.taxDeductible && <span className="money-mark"> · Tax-deductible</span>}</span>
       <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(Math.round(Number(e.amount) * 100), e.currency)}</span>
       <span className="spending-entry-actions"><button type="button" className="text-link spending-edit" aria-label={`Edit ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => onEdit(e)}>Edit</button></span>
     </li>)}</ul>}

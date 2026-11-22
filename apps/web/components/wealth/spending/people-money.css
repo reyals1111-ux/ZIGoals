@@ -1,0 +1,20 @@
+/* Session AV lane 2, round 2 (money): shared costs, owed to you, lent and borrowed. Theme variables only. */
+.people-share{font-size:15px}
+.people-share summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.people-share-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.people-share-list li,.people-share-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.people-share-list .field{flex:1 1 140px;min-width:0}
+.people-share button,.people-money button{min-height:44px}
+.people-money{display:grid;gap:8px;margin:16px 0;padding:12px;border:1px solid var(--line,rgba(140,160,220,.35));border-radius:14px;min-width:0}
+.people-money h3,.people-money h4,.people-money p{margin:0}
+.people-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.people-list li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.people-list li[data-state="closed"],.people-list li[data-state="forgiven"]{opacity:.78}
+.people-list li[data-state="overdue"] .people-what strong,.people-list li[data-state="due-soon"] .people-what strong{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.people-what{flex:1 1 220px;min-width:0}
+.people-actions,.people-repay{display:inline-flex;flex-wrap:wrap;align-items:flex-end;gap:6px}
+.people-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.people-form .field{flex:1 1 150px;min-width:0}
+.people-kind{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:4px 14px;flex-basis:100%}
+.people-kind legend{font-size:14px;margin-bottom:4px}
+.beside-worth{margin:6px 0;font-size:15px;overflow-wrap:anywhere}

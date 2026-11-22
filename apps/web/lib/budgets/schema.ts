@@ -73,7 +73,9 @@ export const budgetsSchema = z.looseObject({
    * - `onToday`: show what is left in each budget on Today (off unless the person turns it on).
    */
   moves: z.array(z.looseObject({id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), month, from: z.string().min(1).max(80), to: z.string().min(1).max(80), amount: amountText, at: z.iso.datetime({offset: true})})).max(MAX_MOVES).optional().catch(undefined),
-  payees: z.array(z.looseObject({payee: z.string().trim().min(1).max(60), currency: currencyCode})).max(MAX_WATCHED).optional().catch(undefined),
+  payees: z.array(z.looseObject({payee: z.string().trim().min(1).max(60), currency: currencyCode,
+    /** Session AV lane 2, round 2 (money; Emma's merchant budgets), TIER 3 (stored format), additive: an amount a month for this payee. */
+    amount: amountText.optional().catch(undefined)})).max(MAX_WATCHED).optional().catch(undefined),
   challenges: z.array(z.looseObject({id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), category: z.string().trim().min(1).max(40), currency: currencyCode, month})).max(MAX_CHALLENGES).optional().catch(undefined),
   onToday: z.literal(true).optional().catch(undefined),
 }).refine(r => new Set(r.budgets.map(b => `${b.currency}|${b.category.toLowerCase()}`)).size === r.budgets.length, 'One budget per category and currency.');

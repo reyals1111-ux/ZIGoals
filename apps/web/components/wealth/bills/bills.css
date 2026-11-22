@@ -79,3 +79,8 @@
   :root.zg-print-bills .bill-tracker{position:absolute;inset:0 auto auto 0;width:100%;background:#fff;color:#000}
   :root.zg-print-bills .bill-tracker button,:root.zg-print-bills .bill-tracker input,:root.zg-print-bills .bill-tracker select{display:none}
 }
+/* Session AV lane 2, round 2 (money): bills due now, one tap to record. Theme variables only. */
+.bills-to-record{display:grid;gap:6px;margin:8px 0 12px;padding:10px 12px;border:1px solid var(--line,rgba(140,160,220,.35));border-radius:12px}
+.bills-to-record h3{margin:0;font-size:16px}
+.bills-to-record .bills-actions{display:inline-flex;flex-wrap:wrap;gap:6px}
+.bills-to-record button{min-height:44px}

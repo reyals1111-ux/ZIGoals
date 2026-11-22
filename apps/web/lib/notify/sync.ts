@@ -40,6 +40,9 @@ import {BUDGETS} from '../budgets/schema';
 import {ACCOUNTS} from '../accounts/schema';
 import {cashForecast} from '../cash-forecast/model';
 import {moneyWakes} from '../money-notices';
+// Session AV lane 2, round 2 (money; Wallet's lent and borrowed): a reminded loan's due day, as a money notice.
+import {MONEY_MORE} from '../money-more/schema';
+import {loanWakes} from '../money-more/people';
 import {HEALTH_EXTRAS} from '../health-extras';
 import {mealWakes} from '../food-plus/meal-notify';
 
@@ -114,7 +117,7 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   // Session AV lane 2 (money): budgets that crossed 80 % or their amount yesterday, payday tomorrow, the low-balance line ahead.
   try {
     const log = readDeviceRecord(storage, MONEY_LOG).data, budgets = readDeviceRecord(storage, BUDGETS).data, rows = cashForecast({accounts: readDeviceRecord(storage, ACCOUNTS).data, bills: readDeviceRecord(storage, BILLS).data, entries: log.entries, budgets, today}).rows;
-    const wakes = moneyWakes({entries: log.entries, budgets, rows, line: log.lowBalance, today});
+    const wakes = [...moneyWakes({entries: log.entries, budgets, rows, line: log.lowBalance, today}), ...(() => { try { return loanWakes(readDeviceRecord(storage, MONEY_MORE).data, today); } catch { return []; } })()];
     if (wakes.length) input.money = wakes.map(w => ({id: w.id, date: w.date, title: w.title, ...(w.detail ? {detail: w.detail} : {})}));
   } catch { /* unreadable: no money wakes */ }
   // Session AV lane 2 (food, LEDGER #90): the meal reminders switched on in Health — each meal's time; its name for names-on only.

@@ -17,7 +17,9 @@ import {payeePart} from './suggest';
  * tax-deductible. The total of the results follows every filter.
  */
 export type MoneyQuery = {text?: string; kind?: 'all' | 'expense' | 'income'; category?: string; from?: string; to?: string; minCents?: number; maxCents?: number;
-  not?: string; payee?: string; tagged?: ReadonlySet<string>; counted?: 'all' | 'counted' | 'left-out'; tax?: boolean};
+  not?: string; payee?: string; tagged?: ReadonlySet<string>; counted?: 'all' | 'counted' | 'left-out'; tax?: boolean;
+  /** Session AV lane 2, round 2 (money; Wallet's payment types, Emma's subcategories): how it was paid ('unmarked': not said), one subcategory. */
+  paidWith?: string; sub?: string};
 const fold = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '');
 export function searchEntries(entries: readonly MoneyEntry[], q: MoneyQuery): MoneyEntry[] {
   const words = fold(q.text ?? '').split(/\s+/).filter(Boolean), cat = q.category ? fold(q.category) : '';
@@ -26,6 +28,8 @@ export function searchEntries(entries: readonly MoneyEntry[], q: MoneyQuery): Mo
     if (q.counted === 'counted' && !isCounted(e)) return false;
     if (q.counted === 'left-out' && isCounted(e)) return false;
     if (q.tax && !e.taxDeductible) return false;
+    if (q.paidWith && (q.paidWith === 'unmarked' ? !!e.paidWith : e.paidWith !== q.paidWith)) return false;
+    if (q.sub && fold(e.sub ?? '') !== fold(q.sub)) return false;
     if (q.tagged && !q.tagged.has(e.id)) return false;
     if (payee && fold(payeePart(e.note ?? '')).trim() !== payee) return false;
     if (q.kind && q.kind !== 'all' && e.kind !== q.kind) return false;
@@ -38,7 +42,7 @@ export function searchEntries(entries: readonly MoneyEntry[], q: MoneyQuery): Mo
     }
     const cats = [e.category, ...entryParts(e).map(p => p.category)].map(fold);
     if (cat && !cats.includes(cat)) return false;
-    const hay = `${cats.join(' ')} ${fold(e.note ?? '')} ${e.amount} ${e.amount.replace('.', ',')} ${e.currency.toLowerCase()}`;
+    const hay = `${cats.join(' ')} ${fold(e.sub ?? '')} ${fold(e.note ?? '')} ${e.amount} ${e.amount.replace('.', ',')} ${e.currency.toLowerCase()}`;
     if (nots.some(w => hay.includes(w))) return false;
     return words.every(w => hay.includes(w));
   }).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));

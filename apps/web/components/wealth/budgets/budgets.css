@@ -121,3 +121,15 @@
 .budgets-assign-form input,.budgets-assign-form select{min-height:44px;width:100%;box-sizing:border-box}
 .budgets-assign-form .fine{grid-column:1/-1}
 .budgets-move summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+/* Session AV lane 2, round 2 (money): the day's amount left, your own budgets, payee budgets. Theme variables only. */
+.budgets-per-day{display:block;margin-top:4px;font-size:14px;color:var(--text-secondary, var(--muted))}
+.budgets-own-list li{align-items:flex-start}
+.budgets-own-what{display:grid;gap:4px;flex:1 1 220px;min-width:0}
+.budgets-own-what .budgets-bar{max-width:320px}
+.budgets-own-by,.budgets-own-cats{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:4px 14px}
+.budgets-own-by legend,.budgets-own-cats legend{font-size:14px;margin-bottom:4px}
+.budgets-own-list li[data-over] .budgets-own-figures{color:inherit;font-weight:600}
+.budgets-payee-amount{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;flex-basis:100%}
+.budgets-payee-amount .text-link{min-height:44px}
+.budgets-payee-budget.is-over,.budgets-payee-budget.is-near{color:inherit;font-weight:600}
+.budgets-payee-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}

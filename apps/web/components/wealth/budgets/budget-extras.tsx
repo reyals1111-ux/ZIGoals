@@ -7,6 +7,9 @@ import {usedCategories, usedPayees} from '../../../lib/money-log/search';
 import {addChallenge, challengeStates, payeeRows, removeChallenge, withPayee, withoutPayee, type ChallengeState} from '../../../lib/money-notices';
 import {formatMonth} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
+// Session AV lane 2, round 2 (money; Emma's merchant budgets): an amount a month on a watched payee.
+import {payeeBudgets, withPayeeAmount} from '../../../lib/money-more/own-budgets';
+import {readMoneyAmount} from '../../../lib/money-log/form';
 
 /**
  * Session AV lane 2 (money; Rocket Money's watchlist and challenges, YNAB's home tab): under Budgets — payees watched
@@ -16,15 +19,16 @@ import {moneyCents} from '../money-tools/format';
  */
 const money = (cents: number, currency: string) => moneyCents(cents, currency);
 const STATE_WORDS: Record<ChallengeState['state'], string> = {'on-track': 'on track', close: 'close to last month', over: 'past last month', won: 'done: less than last month', lost: 'ended above last month', 'no-last': 'nothing spent last month to beat'};
-type Props = {record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; currencies: readonly string[]; onChange: (fn: (r: BudgetsRecord) => BudgetsRecord) => void};
+type Props = {record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; currencies: readonly string[]; onChange: (fn: (r: BudgetsRecord) => BudgetsRecord) => void; /** Session AV lane 2, round 2: Today reads the personal space only. */ space?: 'personal' | 'business'};
 export default function BudgetExtras(props: Props) {
   return <>
     <PayeeWatch {...props}/>
     <Challenges {...props}/>
-    <OnToday {...props}/>
+    {props.space !== 'business' && <OnToday {...props}/>}
   </>;
 }
 function PayeeWatch({record, entries, today, currencies, onChange}: Props) {
+  const budgets = useMemo(() => new Map(payeeBudgets(record, entries, today).map(b => [`${b.currency}|${b.payee}`, b])), [record, entries, today]);
   const id = useId(), rows = useMemo(() => payeeRows(record, entries, today), [record, entries, today]), payees = useMemo(() => usedPayees(entries.filter(e => e.kind === 'expense'), 100), [entries]);
   const input = useRef<HTMLInputElement>(null), [payee, setPayee] = useState(''), [currency, setCurrency] = useState(currencies[0] ?? 'EUR'), [problem, setProblem] = useState('');
   const add = (e: FormEvent) => { e.preventDefault(); try { onChange(r => withPayee(r, payee, currency)); setPayee(''); setProblem(''); } catch (cause) { setProblem(cause instanceof Error ? cause.message : 'Not saved on this device.'); } };
@@ -32,6 +36,7 @@ function PayeeWatch({record, entries, today, currencies, onChange}: Props) {
     <h4 id={`${id}-title`}>Watching payees</h4>
     {rows.length ? <ul className="budgets-watch-list">{rows.map(r => <li key={`${r.currency}-${r.payee}`}>
       <span><strong>{r.payee}</strong> <span className="fine">· {money(r.thisMonth, r.currency)} so far ({r.count} {r.count === 1 ? 'time' : 'times'}){r.lastBySameDay === null ? ' · nothing recorded last month to compare with' : ` · ${money(r.lastBySameDay, r.currency)} by this day last month (${signedMoney(r.difference!, r.currency, money)}) · ${money(r.lastMonth ?? 0, r.currency)} all of last month`}</span></span>
+      <PayeeAmount payee={r.payee} currency={r.currency} amount={record.payees?.find(p => p.payee === r.payee && p.currency === r.currency)?.amount} budget={budgets.get(`${r.currency}|${r.payee}`)} onChange={onChange}/>
       <button type="button" className="quiet" aria-label={`Stop watching ${r.payee} in ${r.currency}`} onClick={() => { onChange(x => withoutPayee(x, r.payee, r.currency)); input.current?.focus(); }}>Stop watching</button>
     </li>)}</ul> : <p className="fine">Follow one shop, café or service: what you spent there this month against last month by the same day. Today says so when it is well above.</p>}
     <form className="budgets-watch-form" onSubmit={add} aria-label="Watch a payee" noValidate>
@@ -42,6 +47,22 @@ function PayeeWatch({record, entries, today, currencies, onChange}: Props) {
       {problem && <p className="field-error" role="alert">{problem}</p>}
     </form>
   </section>;
+}
+/** Session AV lane 2, round 2 (money; Emma's merchant budgets): spent and left against the payee's own amount a month, and setting it. */
+function PayeeAmount({payee, currency, amount, budget, onChange}: {payee: string; currency: string; amount?: string; budget?: ReturnType<typeof payeeBudgets>[number]; onChange: Props['onChange']}) {
+  const [open, setOpen] = useState(false), [raw, setRaw] = useState(amount ?? ''), [problem, setProblem] = useState(''), button = useRef<HTMLButtonElement>(null);
+  const save = (value: string | null) => { try { onChange(r => withPayeeAmount(r, payee, currency, value)); setOpen(false); setProblem(''); requestAnimationFrame(() => button.current?.focus()); } catch (e) { setProblem(e instanceof Error ? e.message : 'Not saved on this device.'); } };
+  return <span className="budgets-payee-amount">
+    {budget && <span className={`fine budgets-payee-budget${budget.over ? ' is-over' : budget.near ? ' is-near' : ''}`}>Budget {money(budget.amount, currency)} a month · {budget.over ? `${money(-budget.left, currency)} over` : `${money(budget.left, currency)} left`}{budget.near ? ' · near the limit' : ''}{budget.perDay !== null ? ` · about ${money(budget.perDay, currency)} a day` : ''}</span>}
+    {!open ? <button ref={button} type="button" className="text-link" aria-expanded={false} aria-label={`${amount ? 'Change' : 'Set'} the amount a month for ${payee}`} onClick={() => setOpen(true)}>{amount ? 'Change amount' : 'Set an amount a month'}</button>
+    : <span className="budgets-payee-form" role="group" aria-label={`Amount a month for ${payee}`}>
+      <label className="field"><span>Each month ({currency})</span><input inputMode="decimal" autoComplete="off" autoFocus value={raw} placeholder="150" onChange={e => { setRaw(e.target.value); setProblem(''); }}/></label>
+      <button type="button" className="secondary" onClick={() => { const v = readMoneyAmount(raw); if (!v) { setProblem('Enter the amount a month above zero, with at most two decimals.'); return; } save(v); }}>Save amount</button>
+      {amount && <button type="button" className="quiet" onClick={() => save(null)}>No amount</button>}
+      <button type="button" className="quiet" onClick={() => { setOpen(false); setProblem(''); }}>Cancel</button>
+      {problem && <span className="field-error" role="alert">{problem}</span>}
+    </span>}
+  </span>;
 }
 function Challenges({record, entries, today, currencies, onChange}: Props) {
   const id = useId(), rows = useMemo(() => challengeStates(record, entries, today), [record, entries, today]), cats = useMemo(() => usedCategories(entries.filter(e => e.kind === 'expense')), [entries]);

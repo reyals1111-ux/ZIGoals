@@ -81,3 +81,6 @@
 .account-sheet-flows{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:14px}
 .account-sheet-flows li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px}
 .account-sheet-flows button,.account-sheet-fold>button{min-height:44px}
+/* Session AV lane 2, round 2 (money): balances past their own lines; the lines form. Theme variables only. */
+.account-limits{list-style:none;margin:8px 0;padding:10px 12px;display:grid;gap:4px;border:1px solid var(--line,rgba(140,160,220,.35));border-radius:12px;font-size:15px;overflow-wrap:anywhere}
+.account-limit-form{align-items:end}
