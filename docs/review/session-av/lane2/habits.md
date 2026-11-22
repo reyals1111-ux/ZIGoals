@@ -643,5 +643,11 @@ docs/product/IMPORT_FORMATS.md [L9], [L10]).
 - **#184** built (Feature 17).
 - **#185** built (Feature 18).
 - **#194** built (Feature 19).
+- The #178 follow-ups built (Feature 20); NOVA's mood heat card stays with ZIGoals' words (protected area).
+- Notes for a next builder (not rows, small follow-ons): Loop's own import (`loopSchedule` in lib/import/switch/loop.ts)
+  still writes an inexact "x times in y days" as a weekly frequency with a warning; it could now write every day plus
+  the rolling window (Feature 18), which needs the import to write the habit extras' `options` too (a TIER 3 note). The
+  Year in pixels' per-square titles, summary sentence and PNG could take the own mood words if `pixelYear`/`pixelLabel`
+  accept the five words.
 - Rows of the lead's other groups for this pillar (#191 pure-black Dark, #192 fonts, #193 automatic backups) are N6,
   not in this builder's scope.
