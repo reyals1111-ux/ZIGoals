@@ -83,10 +83,13 @@ const ON_DAY_EN = /\b(?:what|which|did) (?:did i write|have i written|i write|en
 const ON_DAY_NL = /\bwat (?:heb ik|schreef ik)\b.*?\b(?:op|in) (.+?)(?: (?:geschreven|in mijn dagboek))*$|\bdagboek(?:stukken)? (?:van|op) (.+)$/;
 /** LEDGER #43: "what did I write on 3 nov", "wat heb ik op 3 november geschreven" (lib/journal/search.ts dateQuery): the days and how many entries; the words stay on the Journal page. */
 function onDay(a: Asked): LocalReply | null {
-  // Read on the typed words (lower case), not the folded ones: folding drops the hyphens of "2026-11-14".
-  const typedLine = a.raw.toLowerCase().replace(/[?!.]+$/, '').replace(/\s+/g, ' ').trim(), m = ON_DAY_EN.exec(typedLine) ?? ON_DAY_NL.exec(typedLine);
-  const raw = m ? (m[1] ?? m[2] ?? '').replace(/\b(?:in my journal|in mijn dagboek|geschreven)\b/g, '').trim() : '';
-  const typed = raw === 'yesterday' || raw === 'gisteren' ? {from: addDay(a.today, -1), to: addDay(a.today, -1)} : raw === 'today' || raw === 'vandaag' ? {from: a.today, to: a.today} : raw ? dateQuery(raw, a.today) : null;
+  // Read on the typed words (lower case), not the folded ones: folding drops the hyphens of "2026-11-14". Review b1 #12:
+  // "in my journal" / "in mijn dagboek" go first (they held the "in" the day was read after), and a day may follow the
+  // words with no "on": "what did I write yesterday", "wat heb ik gisteren geschreven", "what did I write last tuesday".
+  const typedLine = a.raw.toLowerCase().replace(/[?!.]+$/, '').replace(/\b(?:in|from) my (?:journal|diary)\b|\bin mijn dagboek\b/g, ' ').replace(/\s+/g, ' ').trim();
+  const m = ON_DAY_EN.exec(typedLine) ?? ON_DAY_NL.exec(typedLine) ?? WROTE_EN.exec(typedLine) ?? WROTE_NL.exec(typedLine);
+  const raw = m ? (m[1] ?? m[2] ?? '').replace(/\bgeschreven\b/g, '').trim() : '';
+  const typed = raw === 'yesterday' || raw === 'gisteren' ? {from: addDay(a.today, -1), to: addDay(a.today, -1)} : raw === 'today' || raw === 'vandaag' ? {from: a.today, to: a.today} : raw ? dateQuery(raw, a.today) ?? weekdayQuery(raw, a.today) : null;
   if (!typed) return null;
   const shut = journalClosed(a); if (shut) return shut;
   const hits = journalOf(a).entries.filter(e => e.date >= typed.from && e.date <= typed.to), lang = a.lang, one = typed.from === typed.to;
@@ -95,6 +98,18 @@ function onDay(a: Asked): LocalReply | null {
   if (!hits.length) return answer(say(lang, `No journal entry on ${when}. The calendar under Journal → Search by date marks the days you wrote.`, `Geen dagboekstuk op ${when}. De kalender onder Journal → Search by date toont de dagen waarop je schreef.`), CALL);
   const days = new Set(hits.map(e => e.date)).size;
   return answer(say(lang, `${count(hits.length, 'en', ['journal entry', 'journal entries'], ['', ''])} on ${when}${!one && days > 1 ? ` (${count(days, 'en', ['day', 'days'], ['', ''])})` : ''}. Their words stay on the Journal page: ${where}.`, `${count(hits.length, 'nl', ['', ''], ['dagboekstuk', 'dagboekstukken'])} op ${when}${!one && days > 1 ? ` (${count(days, 'nl', ['', ''], ['dag', 'dagen'])})` : ''}. De woorden blijven op de Journal-pagina: ${where}.`), CALL);
+}
+const WROTE_EN = /\b(?:what did i write|what have i written|what i wrote)\b (.+)$/, WROTE_NL = /\bwat (?:heb ik|schreef ik) (.+?)(?: geschreven)?$/;
+const WEEKDAYS: Record<string, number> = {sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, zondag: 0, maandag: 1, dinsdag: 2, woensdag: 3, donderdag: 4, vrijdag: 5, zaterdag: 6};
+/** Review b1 #12: "tuesday" (the last one, today included), "last tuesday" / "afgelopen dinsdag" / "vorige dinsdag" (the last one before today). */
+function weekdayQuery(raw: string, today: string): {from: string; to: string} | null {
+  const m = /^(?:(last|past|previous|afgelopen|vorige) )?(?:on )?([a-z]+)$/.exec(raw.trim()), wd = m ? WEEKDAYS[m[2]!] : undefined;
+  if (!m || wd === undefined) return null;
+  const now = new Date(`${today}T12:00:00Z`).getUTCDay();
+  let back = (now - wd + 7) % 7;
+  if (m[1] && back === 0) back = 7;
+  const d = addDay(today, -back);
+  return {from: d, to: d};
 }
 const addDay = (day: string, by: number) => { const d = new Date(`${day}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + by); return d.toISOString().slice(0, 10); };
 

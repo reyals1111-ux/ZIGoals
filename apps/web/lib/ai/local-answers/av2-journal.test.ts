@@ -65,7 +65,9 @@ describe('several journals and what was written on a day (LEDGER #43)', () => {
     expect(text(zigi(`what did I write on ${day}`))).toBe(`1 journal entry on Sat, Nov 14. Their words stay on the Journal page: /app/journal?day=${day}.`);
     expect(text(zigi('wat heb ik op 14 nov geschreven'))).toContain('1 dagboekstuk op za 14 nov');
     expect(text(zigi('what did I write in my journal on 13 nov'))).toContain('No journal entry on');
-    expect(zigi('what did I write in my journal yesterday')).toBeNull(); // no "on": left to the other answers
+    // Session AV lane 2 (review b1 #12, deliberate): "yesterday" with no "on" is this answer's now (it was left to an older
+    // answer that only said whether you wrote); the exact words replace the null.
+    expect(text(zigi('what did I write in my journal yesterday'))).toBe(`1 journal entry on Mon, Nov 16. Their words stay on the Journal page: /app/journal?day=2026-11-16.`);
   });
 });
 

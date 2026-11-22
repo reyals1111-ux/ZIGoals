@@ -160,3 +160,15 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
   and more): …" before, and "Stores: …" in its status after (components/settings/erase-everything.tsx).
 - Tests: apps/web/lib/revb1-erase-stores.test.ts (every KNOWN_DATABASES entry has a name). Spec (lead runs):
   apps/web/tests/revb1-erase-stores.spec.ts. av2-erase-areas.spec.ts's status pattern still holds.
+
+### #12 Journal by day: "yesterday", weekdays, and NOVA with Journal off
+- Verdict: fixed. lib/ai/local-answers/av2-journal.ts `onDay` takes "in my journal" / "in mijn dagboek" out before it
+  reads the day, reads a day with no "on" ("what did I write yesterday", "wat heb ik gisteren geschreven"), and reads a
+  weekday ("on monday": the last one, today included; "last tuesday" / "afgelopen dinsdag" / "vorige dinsdag": the one
+  before today). lib/ai/local-answers/ai-session.ts `journalAnswer`: no journal record is not "empty" — NOVA with its
+  Journal permission off answers "Journal is off for NOVA, so it is not read here. Turn it on in NOVA → Permissions."
+  (refusal), an unreadable journal says it can't be read; only a journal with no entries is "empty".
+- Tests: apps/web/lib/ai/local-answers/revb1-journal-days.test.ts (through the whole engine, ZIGi and NOVA, EN and NL).
+  av2-journal.test.ts: `zigi('what did I write in my journal yesterday')` was asserted null ("left to the other
+  answers"); it is now this answer's, with its exact words — labelled `review b1 #12, deliberate`. lib/ai green;
+  the corpus (expected.json) unchanged.
