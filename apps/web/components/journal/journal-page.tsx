@@ -105,7 +105,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const showDay = (d: string) => { setFrom(d); setTo(d); setQuery(''); setTag(null); setBook('all'); try { window.history.pushState(null, '', `/app/journal?day=${d}`); } catch { /* the filter is enough */ } requestAnimationFrame(() => document.getElementById('journal-entries')?.scrollIntoView({block: 'start'})); };
   const linkedFrom = from && from === to ? entriesLinkingTo(journal.data.entries, from) : [];
   const books = booksOf(journal.data), shownBook: BookChoice = book === 'all' || book === 'main' || books.some(b => b.id === book) ? book : 'all';
-  const entries = useMemo(() => filterEntries(journal.data, {query, tag: shownTag, book: shownBook, from: from || null, to: to || null, period: periodPick}, today), [journal.data, query, shownTag, shownBook, from, to, today, periodPick]);
+  const entries = useMemo(() => filterEntries(journal.data, {query, tag: shownTag, book: shownBook, from: from || null, to: to || null, period: periodPick}, today, readEarly), [journal.data, query, shownTag, shownBook, from, to, today, periodPick, readEarly]);
   const typedDate = dateQuery(query, today), dated = !!(from || to || typedDate);
   const retag = (id: string, change: (e: JournalEntry) => JournalEntry, said: string) => { try { journal.update(c => changeEntry(c, id, change)); showStatus(said); } catch { showStatus('The tag could not be saved on this device.', {tone: 'error'}); } };
   // Session AL Part 14 (RELEASE_REVIEW R18): an entry's day in words ("Mon, Nov 2, 2026"), never "2026-11-02".

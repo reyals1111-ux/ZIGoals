@@ -4,6 +4,7 @@
  * tables, and nothing else. Angle brackets are
  * text. A link is a link only with an https address; anything else stays as the words it came in. No images.
  */
+import {FENCE_OPEN, closesFence} from '../markdown-fence';
 export type Inline = {type: 'text'; text: string} | {type: 'strong'; children: Inline[]} | {type: 'em'; children: Inline[]} | {type: 'code'; text: string} | {type: 'link'; href: string; children: Inline[]};
 export type Align = 'left' | 'center' | 'right' | null;
 /** Session V Part 10: a GitHub-style table, its cells inline marks only; at most 20 columns and 100 rows (`cut` says how many more). */
@@ -96,12 +97,13 @@ export function parseBlocks(text: string, options: ParseOptions = {}): NoteBlock
   const paragraph: string[] = [];
   const flushParagraph = () => { if (paragraph.length) { blocks.push({type: 'paragraph', children: inlineOf(paragraph.join(' ').replace(/\s+/g, ' ').trim())}); paragraph.length = 0; } };
   while (i < lines.length) {
-    const line = lines[i]!, fence = /^\s*(```+|~~~+)\s*([A-Za-z0-9_+-]*)\s*$/.exec(line);
+    // Session AV lane 2 (review B3C-9): the fence rule lives in lib/markdown-fence.ts, shared with the notes' tick boxes.
+    const line = lines[i]!, fence = FENCE_OPEN.exec(line);
     if (fence) {
       flushParagraph();
       const marker = fence[1]!, language = fence[2] || null, body: string[] = [];
       i++;
-      while (i < lines.length && !new RegExp(`^\\s*${marker[0]}{${marker.length},}\\s*$`).test(lines[i]!)) { body.push(lines[i]!); i++; }
+      while (i < lines.length && !closesFence(marker, lines[i]!)) { body.push(lines[i]!); i++; }
       i++; // the closing fence (or the end)
       blocks.push({type: 'code', text: body.join('\n'), language});
       continue;
@@ -134,9 +136,12 @@ export function parseBlocks(text: string, options: ParseOptions = {}): NoteBlock
         const item = /^\s{0,3}(?:[-*+•]|\d{1,3}[.)])\s+(.+)$/.exec(lines[i]!);
         if (!item || /^\s{0,3}\d/.test(lines[i]!) !== ordered) break;
         at.push(i);
+        const own = item[1]!.trim();
         let itemText = item[1]!; i++;
         while (i < lines.length && /^\s{2,}\S/.test(lines[i]!) && !/^\s{0,3}(?:[-*+•]|\d{1,3}[.)])\s+/.test(lines[i]!)) { itemText += ` ${lines[i]!.trim()}`; i++; }
-        const tick = notes ? TICK.exec(itemText.trim()) : null;
+        // Session AV lane 2 (review B3C-10): a tick box only with words after it on the item's own line, the line ticking
+        // rewrites (lib/notes/ticks.ts TICK_LINE); "- [ ]" with its words on the next line stays a plain item.
+        const tick = notes && TICK.test(own) ? TICK.exec(itemText.trim()) : null;
         ticks.push(tick ? tick[1] !== ' ' : null);
         items.push(inlineOf(tick ? tick[2]! : itemText.trim()));
       }

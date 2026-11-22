@@ -17,7 +17,9 @@ import {toJsonCanvas} from './canvas';
 /* ---- Front-matter ------------------------------------------------------------------------------------------------ */
 export type FrontMatter = Record<string, string | string[]>;
 const FM_MAX_CHARS = 8000, FM_MAX_KEYS = 60, FM_MAX_VALUE = 1000, FM_MAX_LIST = 50;
-const FM_KEY = /^[A-Za-z][A-Za-z0-9_-]{0,40}$/, BLOCKED = new Set(['__proto__', 'constructor', 'prototype']);
+// Session AV lane 2 (review B3C-6): a key may hold letters of any language, digits, spaces, - and _ (a note property's own
+// name, as Obsidian writes it: `Due date: 2026-12-01`); quotes, YAML tags and other marks still make a key that is dropped.
+const FM_KEY = /^[\p{L}\p{N}][\p{L}\p{N} _-]{0,40}$/u, BLOCKED = new Set(['__proto__', 'constructor', 'prototype']);
 /** A YAML double-quoted string written as JSON (valid YAML), so any title round-trips. */
 const quoted = (s: string) => JSON.stringify(s);
 function scalar(raw: string): string {
