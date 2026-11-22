@@ -41,7 +41,8 @@ describe('a project on hold (LEDGER #392)', () => {
     expect(titles(viewTasks(resumeProject(held, 'p_house'), {kind: 'today'}, TODAY))).toContain('Fictional gutters');
     expect(() => holdProject(r0, 'p_house', TODAY, TODAY)).toThrow(/after today/);
     expect(holdProject(r0, 'p_house', TODAY).projects![0]!.hold).toEqual({since: TODAY});
-    expect(matchTasks(held, 'hold', {today: TODAY}).map(t => t.id).sort()).toEqual(['a', 'b']);
+    // Session AV lane 2 (review B6M-9, deliberate): the word is now the prefixed is:hold, so a title with “hold” still matches.
+    expect(matchTasks(held, 'is:hold', {today: TODAY}).map(t => t.id).sort()).toEqual(['a', 'b']);
   });
   test('Plan my week leaves a held project’s tasks out', () => {
     const r = add(base(), 'x', {title: 'Fictional sort', projectId: 'p_house', minutes: 60});

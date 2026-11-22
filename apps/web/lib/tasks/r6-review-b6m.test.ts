@@ -5,6 +5,7 @@ import {holdProject, setProjectInOrder} from './project-states';
 import {inPlayRecord, isOutOfPlay, readFocus} from './focus';
 import {emptyTaskPlan, setFocus, startTimer} from './plan-record';
 import {bucketGroups, rollBuckets} from './plan-bucket';
+import {hasOperator, matchTasks} from './search';
 import {runRules} from './rules';
 import {setLabelGroup} from './label-groups';
 import {tasksSchema, type Tasks} from './schema';
@@ -67,6 +68,17 @@ describe('B6M-8: Focus and its Undo change the focus only', () => {
     expect(undone.focus).toBeUndefined();
     expect(undone.timers).toEqual([{taskId: 't', since: 1000}]);
     expect(setFocus(timed, {projects: [], areas: []}).focus).toBeUndefined();
+  });
+});
+describe('B6M-9: is:hold and is:waiting, so “hold” and “waiting” in a title still match', () => {
+  test('the words match titles; the prefixed ones the tasks on hold and waiting', () => {
+    let r = add(add(add(grouped(), 'm', {title: 'Fictional hold music'}), 'w', {title: 'Fictional waiting room'}), 'h', {title: 'Fictional gutters', projectId: 'p'});
+    r = holdProject(r, 'p', TODAY);
+    expect(matchTasks(r, 'hold', {today: TODAY}).map(t => t.id)).toEqual(['m']);
+    expect(matchTasks(r, 'waiting', {today: TODAY}).map(t => t.id)).toEqual(['w']);
+    expect(matchTasks(r, 'is:hold', {today: TODAY}).map(t => t.id)).toEqual(['h']);
+    expect(hasOperator('hold music')).toBe(false);
+    expect(hasOperator('is:waiting')).toBe(true);
   });
 });
 describe('B6M-2: in order with a wait for another task never blocks for good', () => {

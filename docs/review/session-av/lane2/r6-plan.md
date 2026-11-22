@@ -22,7 +22,7 @@ All eight rows are **built**. Nothing is Carried.
 - **CSS** (no theme-sheet source touched; please regenerate the sheets as usual): new components/tasks/tasks-r6.css (theme
   variables only); components/tasks/tasks.css (two rules: `.tasks-bulk-group`, for the Select bar's day and label groups).
 - **Shards**: please add `tests/av2-projects-r6.spec.ts` to the CI shard lists (not run by me: written against the markup).
-- **Search words** (lib/search/static.ts is yours, if it lists Tasks' words): `hold` and `waiting` are new filter words in
+- **Search words** (lib/search/static.ts is yours, if it lists Tasks' words): `is:hold` and `is:waiting` are new filter words (prefixed, review B6M-9, so the plain words still match titles) in
   Tasks (lib/tasks/search.ts); Tasks → Review is a new view (`?view=review`).
 - **Device keys / catalogue / export / erase / restore**: nothing new. Every new field is on `zigoals:tasks:v1` or
   `zigoals:task-plan:v1`, both already exported, erased and restored (test: lib/tasks/r6-plan-stored.test.ts).
@@ -106,7 +106,7 @@ and fields in the existing Select bar; Areas and templates gains "Label groups";
   the matrix, Plan my day's suggestions and its planner, Plan my week, Today's due line and To do card, the counts, the task
   reminders and the "Plan your day · N overdue" count (TIER 3 (PWA)); they stay listed in the project (and All open), with the
   line "On hold until Mon, Dec 7 · its tasks are listed here only … Resume now". On that day they come back by themselves; "Resume
-  now" brings them back at once (Undo). The nav says "on hold" in place of the project's count. Search: `hold`.
+  now" brings them back at once (Undo). The nav says "on hold" in place of the project's count. Search: `is:hold`.
 - Conservative: the Agenda and the Day Timeline still show them on their day (as round 4 kept waiting tasks there).
 
 ### #393 Projects in order — built
@@ -115,7 +115,7 @@ and fields in the existing Select bar; Areas and templates gains "Label groups";
   archived section's tasks are put away) is in Today, Upcoming, the matrix, Plan my day and Plan my week; the others show
   "After “Book the venue”" on their row and wait; finishing it brings the next forward. A repeating task never waits and never
   holds the others up. A subtask under a waiting task waits with it. Overdue still counts them (as round 4's waits). Search:
-  `waiting` (waiting its turn or for another task).
+  `is:waiting` (waiting its turn or for another task).
 
 ### #394 Focus on some projects — built
 - "Focus…" in the head of Today, Upcoming, All open, Overdue, a label, a priority, the matrix and the Calendar: areas and
