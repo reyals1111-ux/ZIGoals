@@ -16,7 +16,25 @@ import type {MoneyEntry, MoneyLog} from './schema';
  * spending figure, so nothing here counts spending. Pure.
  */
 export type MergeChoice = {fromId: string; intoId: string; names: readonly string[]; asName: string; removeDoubles: ReadonlySet<string>};
-export type Double = {keep: MoneyEntry; remove: MoneyEntry};
+/**
+ * Review b5k #2: two copies of one bank move. `differs` names what differs beyond the matched day, kind, amount, currency
+ * and reference (category, subcategory, note, split parts, tags, marks, history); the copy kept is the one holding more of
+ * the person's own edits, and `edited` says the copy offered for removal holds edits of its own, so it is never ticked by
+ * default.
+ */
+export type Double = {keep: MoneyEntry; remove: MoneyEntry; differs: string[]; edited: boolean};
+type Tags = Readonly<Record<string, readonly string[]>>;
+const EDIT_FIELDS: readonly [keyof MoneyEntry, string][] = [['category', 'category'], ['sub', 'subcategory'], ['note', 'note'], ['parts', 'split parts'], ['share', 'your share'], ['paidWith', 'paid with'],
+  ['excluded', 'left out'], ['taxDeductible', 'tax mark'], ['spread', 'spread over months'], ['checked', 'checked against the bank'], ['group', 'group'], ['fine', '“that’s fine”'], ['history', 'changes']];
+const MARKS: readonly (keyof MoneyEntry)[] = ['sub', 'parts', 'share', 'paidWith', 'excluded', 'taxDeductible', 'spread', 'checked', 'group', 'fine'];
+/** How much of the person's own work a copy holds: its changes, its marks and its tags. */
+export const editWeight = (e: MoneyEntry, tags: Tags = {}) => (e.history?.length ?? 0) * 2 + MARKS.filter(k => e[k] !== undefined).length + (tags[e.id]?.length ? 1 : 0);
+export function doubleOf(into: MoneyEntry, from: MoneyEntry, tags: Tags = {}): Double {
+  const differs = EDIT_FIELDS.filter(([k]) => JSON.stringify(into[k] ?? null) !== JSON.stringify(from[k] ?? null)).map(([, w]) => w);
+  if (JSON.stringify(tags[into.id] ?? []) !== JSON.stringify(tags[from.id] ?? [])) differs.push('tags');
+  const keepFrom = editWeight(from, tags) > editWeight(into, tags), keep = keepFrom ? from : into, remove = keepFrom ? into : from;
+  return {keep, remove, differs, edited: editWeight(remove, tags) > 0 || differs.length > 0};
+}
 export type MergePlan = {from: Account; into: Account; balances: {moved: number; kept: number}; payments: number; entries: MoneyEntry[]; doubles: Double[]; names: string[]; note: string | null};
 const fold = (s: string) => s.trim().toLowerCase();
 /** Why these two cannot be merged, in words, or null. */
@@ -36,7 +54,7 @@ export const bankNamesFor = (log: Pick<MoneyLog, 'entries'>, account: Account) =
 /** The name merged entries take: a bank-file name of the other account when the log has one, else its name (≤ 40). */
 export const defaultAsName = (log: Pick<MoneyLog, 'entries'>, into: Account) => bankNamesFor(log, into).find(n => n.own)?.name ?? into.name.slice(0, 40);
 const sameMove = (a: MoneyEntry, b: MoneyEntry) => !!a.ref && a.ref === b.ref && a.date === b.date && a.kind === b.kind && a.amount === b.amount && a.currency === b.currency;
-export function planMerge(accounts: Accounts, log: MoneyLog, fromId: string, intoId: string, names: readonly string[], asName: string): MergePlan {
+export function planMerge(accounts: Accounts, log: MoneyLog, fromId: string, intoId: string, names: readonly string[], asName: string, tags: Tags = {}): MergePlan {
   const problem = mergeProblem(accounts, fromId, intoId); if (problem) throw new Error(problem);
   const from = accounts.items.find(a => a.id === fromId)!, into = accounts.items.find(a => a.id === intoId)!;
   const days = new Set(into.snapshots.map(s => s.date)), kept = from.snapshots.filter(s => days.has(s.date)).length;
@@ -44,7 +62,7 @@ export function planMerge(accounts: Accounts, log: MoneyLog, fromId: string, int
   const entries = log.entries.filter(e => e.currency === from.currency && e.account && chosen.has(fold(e.account)) && fold(e.account) !== as);
   const already = log.entries.filter(e => e.currency === from.currency && e.account && fold(e.account) === as), doubles: Double[] = [];
   const taken = new Set<string>();
-  for (const e of entries) { const twin = already.find(x => !taken.has(x.id) && sameMove(x, e)); if (twin) { taken.add(twin.id); doubles.push({keep: twin, remove: e}); } }
+  for (const e of entries) { const twin = already.find(x => !taken.has(x.id) && sameMove(x, e)); if (twin) { taken.add(twin.id); doubles.push(doubleOf(twin, e, tags)); } }
   const notes = log.accounts?.notes ?? {};
   return {from, into, balances: {moved: from.snapshots.length - kept, kept}, payments: isDebtKind(into.kind) ? from.payments.length : 0, entries, doubles, names: [...names], note: notes[from.id] ?? null};
 }

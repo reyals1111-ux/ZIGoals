@@ -3,7 +3,7 @@ import {accountsSchema, type Account, type Accounts} from '../accounts/schema';
 import {balanceOn} from '../accounts/net-worth';
 import {moneyLogSchema, type MoneyEntry, type MoneyLog} from './schema';
 import {totals} from './engine';
-import {bankNamesFor, defaultAsName, mergeAccountsRecord, mergeLog, mergeProblem, mergeTargets, planMerge, undoMergeAccounts, undoMergeLog, type MergeUndo} from './merge-accounts';
+import {bankNamesFor, defaultAsName, doubleOf, mergeAccountsRecord, mergeLog, mergeProblem, mergeTargets, planMerge, undoMergeAccounts, undoMergeLog, type MergeUndo} from './merge-accounts';
 
 /**
  * Session AV lane 2, round 5 (money; Tiller's Data Cleanup, LEDGER #387): merge two accounts — balances, payments, the
@@ -82,5 +82,26 @@ describe('the merge', () => {
     expect(out.log.entries).toEqual(plain.entries);
     expect(undoMergeLog(out.log, {fromBefore: OLD, intoBefore: NEW, renamed: out.renamed, asName: 'x', removed: out.removed, ...out.before}).accounts).toEqual({notes: {}});
     expect(() => mergeLog(plain, plan, '  ', new Set(), [])).toThrow('Type the name their entries take.');
+  });
+  it('review b5k #2: a copy that holds the person’s own edits is kept, the differences are said, and it is never offered ticked', () => {
+    const at = '2026-03-03T10:00:00.000Z';
+    const edited = e({account: 'ING Current', ref: 'R7', category: 'Fun', sub: 'Cinema', note: 'Cinema · with Sam', parts: [{amount: '10.00', category: 'Fun'}, {amount: '10.00', category: 'Food & drink'}], history: [{at, by: 'you', field: 'category', from: 'Groceries', to: 'Fun'}]});
+    const fresh = e({account: 'ING Betaalrekening', ref: 'R7'});
+    const log = moneyLogSchema.parse({...LOG, entries: [edited, fresh]});
+    const plan2 = planMerge(ACCOUNTS, log, OLD.id, NEW.id, ['ING Current'], 'ING Betaalrekening', {[edited.id]: ['cinema']});
+    expect(plan2.doubles).toHaveLength(1);
+    const d = plan2.doubles[0]!;
+    expect(d.keep.id).toBe(edited.id); expect(d.remove.id).toBe(fresh.id);
+    expect(d.differs).toEqual(['category', 'subcategory', 'note', 'split parts', 'changes', 'tags']);
+    expect(d.edited).toBe(true);
+    // Removing the fresh copy keeps every edit, and the edited copy takes the account's name.
+    const out = mergeLog(log, plan2, 'ING Betaalrekening', new Set([fresh.id]), []);
+    expect(out.log.entries).toEqual([{...edited, account: 'ING Betaalrekening'}]);
+    // Two plain copies are a plain double: the merged account's copy goes, ticked.
+    const plain = doubleOf(e({ref: 'R8', account: 'B'}), e({ref: 'R8', account: 'A'}));
+    expect(plain.differs).toEqual([]); expect(plain.edited).toBe(false); expect(plain.remove.account).toBe('A');
+    // An edited copy on the other side stays the other side's; the merged one is offered, unticked when it differs.
+    const other = doubleOf(e({ref: 'R9', note: 'Mine', history: [{at, by: 'you', field: 'note', to: 'Mine'}]}), e({ref: 'R9'}));
+    expect(other.remove.note).toBeUndefined(); expect(other.edited).toBe(true); expect(other.differs).toEqual(['note', 'changes']);
   });
 });
