@@ -9,7 +9,7 @@ import {readFormNumber} from '../../lib/decimal-input';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {VitaminRows} from './vitamin-rows';
 import {HEALTH_VITAMINS} from '../../lib/health-vitamins/schema';
-import {EXTRA_SCALE, NUTRIENT_EXTRAS_RECORD} from '../../lib/health-vitamins/extras';
+import {NUTRIENT_EXTRAS_RECORD} from '../../lib/health-vitamins/extras';
 import {nutrientDay, type ReportContext} from '../../lib/health-aa/nutrient-report';
 import './health-aa.css';
 // Session AK (task 4.4): the full report (every nutrient, 7-day averages, top sources) loads only when opened.
@@ -65,10 +65,10 @@ function ExtraRows({data, date}: {data: HealthData; date: string}) {
   const shown = rows.filter(r => r.total !== null);
   return <section className="health-extra-micros" aria-label="More micronutrients">
     <h3>More from your foods</h3>
-    {shown.length ? <ul className="health-micro-list">{shown.map(r => { const value = r.total! / EXTRA_SCALE, reference = r.reference === null ? null : r.reference / EXTRA_SCALE; return <li key={r.key}>
-      <div><strong>{r.label}</strong> <small>{reference !== null ? `general reference ${formatNutrient(reference)} ${r.unit} a day` : 'no reference'}{r.known < r.entries ? <span className="health-micro-coverage"><span className="sr-only">. </span>from {r.known} of {r.entries} {r.entries === 1 ? 'entry' : 'entries'}</span> : ''}</small></div>
+    {shown.length ? <ul className="health-micro-list">{shown.map(r => { const value = r.total! / r.scale, reference = r.reference === null ? null : r.reference / r.scale; // Session AV lane 2 (LEDGER #93): each row's own unit return <li key={r.key}>
+      <div><strong>{r.label}</strong> <small>{reference !== null ? `general reference ${r.direction === 'at-most' ? 'at most ' : ''}${formatNutrient(reference)} ${r.unit} a day` : 'no reference'}{r.known < r.entries ? <span className="health-micro-coverage"><span className="sr-only">. </span>from {r.known} of {r.entries} {r.entries === 1 ? 'entry' : 'entries'}</span> : ''}</small></div>
       <div><span>{formatNutrient(value)} {r.unit}</span></div>
       {reference !== null && <GlassBar identity={`micro:${r.key}`} className="health-micro-bar" role="progressbar" aria-label={`${r.label}: ${formatNutrient(value)} of ${formatNutrient(reference)} ${r.unit}`} aria-valuenow={value} aria-valuemin={0} aria-valuemax={reference} value={Math.min(1, value / reference)} />}
-    </li>; })}</ul> : <p className="fine">Magnesium, zinc, B vitamins and omega-3 show here when a food you logged today carries them (a barcode or label that gives them). {rows[0]?.entries ? 'None of today’s entries does yet.' : 'Nothing logged today yet.'}</p>}
+    </li>; })}</ul> : <p className="fine">Magnesium, zinc, B vitamins, omega-3 and more (phosphorus, selenium, iodine, the sugars and fats one by one…) show here when a food you logged today carries them (a barcode, a label or the food library that gives them). {rows[0]?.entries ? 'None of today’s entries does yet.' : 'Nothing logged today yet.'}</p>}
   </section>;
 }

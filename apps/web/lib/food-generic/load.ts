@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import {GENERIC_FOOD_PATH, GENERIC_SOURCE_IDS, MAX_FOODS, STATIC_FETCH, boundedText, loadGenericCatalog, type GenericSourceEntry} from './catalog';
 import {readStoredSource, writeStoredSource} from './store';
+import {attachMore} from './more';
 
 /**
  * Session AK (Part 1c): one source of the offline generic-food library, loaded on first use. The kept copy in IndexedDB
@@ -53,7 +54,11 @@ export function loadGenericSource(entry: GenericSourceEntry, options: SourceLoad
     const file = checkSourceFile(JSON.parse(text), entry);
     if (persist) await writeStoredSource({version: 1, source: entry.source, datasetVersion: entry.datasetVersion, sha256: entry.sha256, savedAt: now(), data: file}).catch(() => {});
     return file;
-  })();
+  })().then(async file => {
+    // Session AV lane 2 (LEDGER #93): the source's further nutrients, when it has a side file (never a reason to fail).
+    await attachMore(file, entry, fetcher);
+    return file;
+  });
   memory.set(key, loading);
   loading.catch(() => { if (memory.get(key) === loading) memory.delete(key); });
   return loading;

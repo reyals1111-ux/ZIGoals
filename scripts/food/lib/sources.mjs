@@ -93,13 +93,24 @@ export const COFID_MAP = [
   ['1.5 Vitamins', 'RETEQU', 'vitAUg', 'µg'], ['1.5 Vitamins', 'VITC', 'vitCMg', 'mg'], ['1.5 Vitamins', 'VITD', 'vitDUg', 'µg'], ['1.5 Vitamins', 'VITE', 'vitEMg', 'mg'], ['1.5 Vitamins', 'VITK1', 'vitKUg', 'µg'],
   ['1.5 Vitamins', 'THIA', 'b1Mg', 'mg'], ['1.5 Vitamins', 'RIBO', 'b2Mg', 'mg'], ['1.5 Vitamins', 'NIAC', 'b3Mg', 'mg'], ['1.5 Vitamins', 'VITB6', 'b6Mg', 'mg'], ['1.5 Vitamins', 'VITB12', 'b12Ug', 'µg'], ['1.5 Vitamins', 'FOLT', 'folateUg', 'µg'],
 ];
+// Session AV lane 2 (rest, LEDGER #93; Cronometer's many nutrients): the further nutrients the same workbook carries, in
+// their own columns (pack.mjs MORE_COLUMNS, the side file <source>-more-v1.json). Optional: a workbook without one of
+// these columns builds as before; a column in another unit is refused, as above.
+/** @type {[string,string,import('./pack.mjs').MoreColumn,string][]} */
+export const COFID_MORE_MAP = [
+  ['1.3 Proximates', 'WATER', 'waterMg', 'g'], ['1.3 Proximates', 'STAR', 'starchMg', 'g'], ['1.3 Proximates', 'ALCO', 'alcoholMg', 'g'],
+  ['1.3 Proximates', 'GLUC', 'glucoseMg', 'g'], ['1.3 Proximates', 'FRUCT', 'fructoseMg', 'g'], ['1.3 Proximates', 'SUCR', 'sucroseMg', 'g'], ['1.3 Proximates', 'LACT', 'lactoseMg', 'g'],
+  ['1.3 Proximates', 'MONOFOD', 'monoFatMg', 'g'], ['1.3 Proximates', 'POLYFOD', 'polyFatMg', 'g'], ['1.3 Proximates', 'TOTn6PFOD', 'omega6Mg', 'g'], ['1.3 Proximates', 'FODTRANS', 'transFatMg', 'g'], ['1.3 Proximates', 'CHOL', 'cholesterolMg', 'mg'],
+  ['1.4 Inorganics', 'P', 'phosphorusMg', 'mg'], ['1.4 Inorganics', 'CU', 'copperMg', 'mg'], ['1.4 Inorganics', 'CL', 'chlorideMg', 'mg'], ['1.4 Inorganics', 'MN', 'manganeseMg', 'mg'], ['1.4 Inorganics', 'SE', 'seleniumUg', 'µg'], ['1.4 Inorganics', 'I', 'iodineUg', 'µg'],
+  ['1.5 Vitamins', 'RET', 'retinolUg', 'µg'], ['1.5 Vitamins', 'CAREQU', 'caroteneUg', 'µg'], ['1.5 Vitamins', 'PANTO', 'pantothenateMg', 'mg'], ['1.5 Vitamins', 'BIOT', 'biotinUg', 'µg'],
+];
 // Fibre: AOAC fibre where CoFID gives it, else unknown. CoFID's older non-starch polysaccharide (Englyst) figure measures
 // less than AOAC and is not used as a stand-in.
 const COFID_CODE = /^[0-9A-Z]{1,4}-[0-9A-Z]{1,5}$/;
 /** @param {Uint8Array} workbook @returns {Promise<SourceRows>} */
 export async function readCofid(workbook) {
   const wb = await openXlsx(workbook), sheets = [...new Set(COFID_MAP.map(([s]) => s))];
-  /** @type {Map<string,{name:string,group:string,values:Food['values']}>} */
+  /** @type {Map<string,{name:string,group:string,values:Food['values'],more:NonNullable<Food['more']>}>} */
   const foods = new Map();
   for (const sheet of sheets) {
     const rows = await wb.rows(sheet), header = rows[0] ?? [], codes = rows[1] ?? [];
@@ -111,18 +122,26 @@ export async function readCofid(workbook) {
       if (!label.endsWith(`(${unit})`)) throw Error(`CoFID: "${sheet}" ${code} "${label}" is not in ${unit}.`);
       return {at, column, scale: unit === 'g' ? 1000 : 1};
     });
+    const more = COFID_MORE_MAP.filter(([s]) => s === sheet).flatMap(([, code, column, unit]) => {
+      const at = codes.findIndex(c => c === code);
+      if (at < 0) return [];
+      const label = String(header[at] ?? '');
+      if (!label.endsWith(`(${unit})`)) throw Error(`CoFID: "${sheet}" ${code} "${label}" is not in ${unit}.`);
+      return [{at, column, scale: unit === 'g' ? 1000 : 1}];
+    });
     for (const row of rows.slice(3)) {
       const id = typeof row[0] === 'string' ? row[0].trim() : '';
       if (!COFID_CODE.test(id)) continue;
       let food = foods.get(id);
-      if (!food) foods.set(id, food = {name: String(row[1] ?? ''), group: String(row[3] ?? '').trim(), values: {}});
+      if (!food) foods.set(id, food = {name: String(row[1] ?? ''), group: String(row[3] ?? '').trim(), values: {}, more: {}});
       else if (food.name !== String(row[1] ?? '')) continue; // a repeated code naming another food: the first is kept
       for (const {at, column, scale} of columns) { const v = decimal(row[at]); food.values[column] ??= v === null ? null : v * scale; }
+      for (const {at, column, scale} of more) { const v = decimal(row[at]); food.more[column] ??= v === null ? null : v * scale; }
     }
   }
   // Alcoholic drinks (group Q…) are given per 100 ml, not per 100 g: left out rather than mislabelled.
   const kept = [...foods].filter(([, f]) => !f.group.startsWith('Q'));
-  return {foods: kept.map(([id, f]) => ({id, nameEn: f.name, aliases: [], values: f.values})), notes: [`${foods.size - kept.length} alcoholic drinks (per 100 ml) left out.`, 'Fibre is AOAC fibre; "Tr" and "N" are unknown.']};
+  return {foods: kept.map(([id, f]) => ({id, nameEn: f.name, aliases: [], values: f.values, ...(Object.values(f.more).some(v => v !== null) ? {more: f.more} : {})})), notes: [`${foods.size - kept.length} alcoholic drinks (per 100 ml) left out.`, 'Fibre is AOAC fibre; "Tr" and "N" are unknown.']};
 }
 
 // ── Fineli (THL): the open-data zip of semicolon-separated CSV files ─────────────────────────────────────────────────
