@@ -33,6 +33,7 @@ import {Skeleton} from '../../ui/skeleton';
 import {SlowReload} from '../slow-reload';
 import {pinnedNoteOf, setPinnedNote} from '../../../lib/workouts/notes';
 import {routineGroups, saveGuide} from '../../../lib/workouts/routines';
+import {exerciseSeries, type SeriesMetric} from '../../../lib/workouts/analytics';
 import {progressed, targetFor, type Target} from '../../../lib/workouts/progression';
 import {guideLine, guideOf, routineLang, type Guide, type Lang} from '../../../lib/workouts/routine-library';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
@@ -54,6 +55,8 @@ const ExerciseLibrary = lazy(() => import('./exercise-library'));
 // Session AV lane 2 (body; LEDGER #112, #115): the ready-made routines and an own routine's folder and note, one chunk.
 const RoutineLibrary = lazy(() => import('./routine-library-view'));
 const RoutineEdit = lazy(() => import('./routine-library-view').then(m => ({default: m.RoutineEdit})));
+// Session AV lane 2 (body; LEDGER #117): the month report and sets per muscle over 8 weeks, its own chunk.
+const WorkoutsProgress = lazy(() => import('./workouts-progress'));
 const ExerciseHowTo = lazy(() => import('./exercise-library').then(m => ({default: m.ExerciseDetail})));
 
 /**
@@ -253,6 +256,10 @@ export default function WorkoutsView() {
 
     <ExerciseProgress w={w} unit={unit} library={library} value={historyOf} onChange={setHistoryOf}/>
     {past.some(x => x.exercises.length) && <Suspense fallback={<section className="panel"><p className="fine">Opening muscle groups…</p></section>}><WorkoutsMuscles w={w} unit={unit} library={library} today={today}/></Suspense>}
+    {past.some(x => x.exercises.length) && <section className="panel workouts-progress-report" aria-labelledby="workouts-report-title">
+      <h2 id="workouts-report-title">Progress</h2>
+      <Fold className="av2-fold workouts-report-fold" summary="This month beside the last, and sets per muscle group" loading="Opening your progress…"><WorkoutsProgress w={w} unit={unit} library={library} today={today}/></Fold>
+    </section>}
     {/* Session AV lane 2 (body; LEDGER #116, #119; Hevy's exercise library): every exercise's written how-to, its muscles, your best and a pinned note. */}
     <section className="panel workouts-library" aria-labelledby="workouts-library-title">
       <h2 id="workouts-library-title">Exercises and how-tos</h2>
@@ -423,7 +430,19 @@ function SaveRoutine({workout, onSave, compact = false}: {workout: Workout; onSa
  * one-rep max for weighted lifts; reps, time or distance otherwise), with the first and latest values written beside it
  * and the whole line described in words. Derived from the saved workouts; nothing is stored.
  */
-function ProgressLine({h, unit}: {h: NonNullable<ReturnType<typeof exerciseHistory>>; unit: 'kg' | 'lb'}) {
+// Session AV lane 2 (body; LEDGER #117, Hevy's per-exercise graphs): the same line for the heaviest set or the volume.
+const METRIC_WORDS: Record<Exclude<SeriesMetric, 'reps'>, string> = {e1rm: 'Estimated 1-rep max', heaviest: 'Heaviest set', volume: 'Volume'};
+function ProgressLine({h, unit, metric = 'e1rm'}: {h: NonNullable<ReturnType<typeof exerciseHistory>>; unit: 'kg' | 'lb'; metric?: Exclude<SeriesMetric, 'reps'>}) {
+  if (h.measure === 'weight-reps' && metric !== 'e1rm') {
+    const pts = exerciseSeries(h, metric).slice(-20);
+    if (pts.length < 2) return <p className="fine">Two sessions with this exercise draw its line.</p>;
+    const W = 300, H = 72, lo = Math.min(...pts.map(p => p.v)), hi = Math.max(...pts.map(p => p.v)), span = hi - lo || 1, first = pts[0]!, last = pts.at(-1)!, label = METRIC_WORDS[metric].toLowerCase();
+    const d = pts.map((p, i) => `${i ? 'L' : 'M'}${(i / (pts.length - 1) * (W - 8) + 4).toFixed(1)} ${(H - 6 - (p.v - lo) / span * (H - 12)).toFixed(1)}`).join(' ');
+    return <figure className="workouts-progress-line">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${METRIC_WORDS[metric]} over ${pts.length} sessions: ${weightShown(first.v, unit)} on ${formatDate(first.date)}, ${weightShown(last.v, unit)} on ${formatDate(last.date)}; highest ${weightShown(hi, unit)}.`}><path d={d} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/></svg>
+      <figcaption className="fine">{`Progress, session by session (${label}): ${weightShown(first.v, unit)} on ${formatDate(first.date)} → ${weightShown(last.v, unit)} on ${formatDate(last.date)}`}</figcaption>
+    </figure>;
+  }
   const value = (s: (typeof h.sessions)[number]) => { const b = s.best; if (!b) return null; if (h.measure === 'weight-reps') return b.weightKg !== undefined && b.reps ? oneRepMax(b.weightKg, Math.min(b.reps, 12)) : null; if (h.measure === 'reps') return b.reps ?? null; if (h.measure === 'time') return b.seconds ?? null; return b.distanceKm ?? null; };
   const points = [...h.sessions].reverse().slice(-20).map(s => ({date: s.date, v: value(s)})).filter((p): p is {date: string; v: number} => typeof p.v === 'number' && p.v > 0);
   if (points.length < 2) return null;
@@ -438,6 +457,7 @@ function ProgressLine({h, unit}: {h: NonNullable<ReturnType<typeof exerciseHisto
 }
 function ExerciseProgress({w, unit, library, value, onChange}: {w: Workouts; unit: 'kg' | 'lb'; library: LibraryExercise[]; value: string; onChange: (v: string) => void}) {
   const done = useMemo(() => [...new Set(finished(w).flatMap(x => x.exercises.map(e => e.exerciseId)))], [w]);
+  const [metric, setMetric] = useState<Exclude<SeriesMetric, 'reps'>>('e1rm');
   if (!done.length) return null;
   const chosen = value && done.includes(value) ? value : done[0]!, h = exerciseHistory(w, chosen);
   const name = (id: string) => library.find(e => e.id === id)?.name ?? finished(w).flatMap(x => x.exercises).find(e => e.exerciseId === id)?.name ?? id;
@@ -452,7 +472,8 @@ function ExerciseProgress({w, unit, library, value, onChange}: {w: Workouts; uni
       {h.farthestKm !== null && <div><dt>Farthest</dt><dd>{formatNumber(h.farthestKm, {maximumFractionDigits: 2})} km</dd></div>}
       <div><dt>Sessions</dt><dd>{h.sessions.length}</dd><dd className="dd-note"><small>last {formatDate(h.sessions[0]!.date)}</small></dd></div>
     </dl>
-    <ProgressLine h={h} unit={unit}/>
+    {h.measure === 'weight-reps' && <div className="workouts-weeks-pick" role="group" aria-label="Line shows">{(Object.keys(METRIC_WORDS) as (keyof typeof METRIC_WORDS)[]).map(m => <button key={m} type="button" className="quiet" aria-pressed={metric === m} onClick={() => setMetric(m)}>{METRIC_WORDS[m]}</button>)}</div>}
+    <ProgressLine h={h} unit={unit} metric={metric}/>
     <table className="workouts-history-table"><caption className="sr-only">{h.name}, last sessions</caption><thead><tr><th scope="col">Date</th><th scope="col">Best set</th><th scope="col">Sets</th>{h.measure === 'weight-reps' && <th scope="col">Volume</th>}</tr></thead>
       <tbody>{h.sessions.slice(0, 10).map(s => <tr key={s.workoutId}><th scope="row">{formatDate(s.date)}</th><td>{s.best ? setText(h.measure, s.best, unit) : '—'}</td><td>{s.sets.length}</td>{h.measure === 'weight-reps' && <td>{weightShown(s.volumeKg, unit)}</td>}</tr>)}</tbody></table></>}
   </section>;

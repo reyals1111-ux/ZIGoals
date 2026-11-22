@@ -7,6 +7,8 @@ import {formatMonth, formatNumber} from '../visual-format';
 import {STORY_MIN_DAYS, factsByDay, pillarDays, type StoryPillar, type StoryRecords} from '../stories/days';
 import {shareSafe, storyStyle} from '../stories/build';
 import {wrappedWindow} from './door';
+import {trainingYear} from '../workouts/analytics';
+import type {Workouts} from '../workouts/schema';
 
 /**
  * ZIGoals Wrapped (Session AK, F5d): the year told back in a few cards, built on this device from the person's own
@@ -19,7 +21,7 @@ import {wrappedWindow} from './door';
  * and pass `shareSafe`; `numbers` hold the sensitive figures — money put in, average sleep and steps — shown and shared
  * only when the person turns "Include numbers" on (off by default, every time). Nothing here is a judgement or a score.
  */
-export type WrappedCardId = 'opener' | 'top-habits' | 'streaks' | 'goals-funded' | 'health' | 'focus' | 'best-month' | 'closing' | 'not-enough';
+export type WrappedCardId = 'opener' | 'top-habits' | 'streaks' | 'goals-funded' | 'health' | 'training' | 'focus' | 'best-month' | 'closing' | 'not-enough';
 export type WrappedCard = {id: WrappedCardId; pillar: StoryPillar | null; eyebrow: string; title: string; big?: string; lines: string[]; numbers: string[]};
 export type Wrapped = {year: number; key: string; start: string; end: string; complete: boolean; loggedDays: number; enough: boolean; example: boolean; cards: WrappedCard[]};
 
@@ -34,7 +36,7 @@ export function wrappedReviewWindow(year: number, today: string): Window {
   return {period: 'year', start, end, prevStart: `${last}-01-01`, prevEnd: md === '02-29' && !leap(last) ? `${last}-02-28` : `${last}-${md}`, key: `year:${year}`};
 }
 
-export function buildWrapped({year, today, records, review, focus, example = false}: {year: number; today: string; records: StoryRecords; review: LifeReview | null; focus: FocusSessions | null; example?: boolean}): Wrapped {
+export function buildWrapped({year, today, records, review, focus, workouts = null, example = false}: {year: number; today: string; records: StoryRecords; review: LifeReview | null; focus: FocusSessions | null; workouts?: Workouts | null; example?: boolean}): Wrapped {
   const {start, end, complete} = wrappedWindow(year, today), facts = factsByDay(records, start, end), logged = facts.size;
   const name = `ZIGoals Wrapped ${year}`, eyebrow = example ? `Example · ${name}` : name, span = complete ? `${year}` : `${year} so far`;
   const base = {year, key: `wrapped:${year}`, start, end, complete, loggedDays: logged, example};
@@ -68,6 +70,15 @@ export function buildWrapped({year, today, records, review, focus, example = fal
   const figures = [trend('Sleep a night'), trend('Steps a day')].flatMap(t => t ? [`${t.label}: ${t.now} on average${t.before ? ` (the year before: ${t.before})` : ''}`] : []);
   const healthDays = review?.counts.healthDays ?? 0;
   if (counted.length || figures.length || healthDays) cards.push({id: 'health', pillar: 'health', eyebrow: 'Health', title: healthDays ? `${plural(healthDays, 'day')} with Health records` : 'Your year in Health', big: healthDays ? formatNumber(healthDays) : undefined, lines: counted, numbers: figures});
+
+  // Session AV lane 2 (body; LEDGER #117, Hevy's Year in Review): the year in training, from the workout log. Counts and
+  // hours are lines; the weight lifted and the distance are numbers (shown only with "Include numbers").
+  if (workouts) {
+    const t = trainingYear(workouts, start, end);
+    if (t.workouts) cards.push({id: 'training', pillar: 'health', eyebrow: 'Training', title: `${plural(t.workouts, 'workout')}`, big: formatNumber(t.workouts),
+      lines: safe([`${formatNumber(t.hours, {maximumFractionDigits: 1})} ${t.hours === 1 ? 'hour' : 'hours'} on ${plural(t.days, 'day')}.`, t.topExercise ? `Done most often: ${t.topExercise}.` : null, t.bestMonth ? `Busiest month: ${formatMonth(t.bestMonth)}.` : null, t.bests ? `${plural(t.bests, 'new personal best')}.` : null]),
+      numbers: [...(t.volumeKg ? [`Weight lifted: ${formatNumber(t.volumeKg)} kg`] : []), ...(t.distanceKm ? [`Distance: ${formatNumber(t.distanceKm, {maximumFractionDigits: 1})} km`] : [])]});
+  }
 
   // Focus: hours focused in the year's sessions.
   if (focus) {

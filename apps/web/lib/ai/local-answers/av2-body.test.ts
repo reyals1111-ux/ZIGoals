@@ -57,6 +57,20 @@ describe('progression (LEDGER #109)', () => {
   });
 });
 
+describe('progress analytics (LEDGER #117)', () => {
+  test('the month beside the month before, in English and Dutch', () => {
+    const en = text(ask('how did my training go this month'));
+    expect(en).toMatch(/^Nov 2026 so far, beside the month before: \d+ workouts on \d+ days/);
+    expect(en).toContain('Health → Workouts → Progress');
+    expect(text(ask('hoe ging mijn training deze maand'))).toMatch(/^november 2026 tot nu toe, naast de maand ervoor: \d+ workouts op \d+ dagen/);
+  });
+  test('sets per muscle group: this week and the last 8 weeks', () => {
+    expect(text(ask('show my sets per muscle group'))).toMatch(/^Working sets per muscle group, this week \/ the last 8 weeks: chest \d+ \/ \d+/);
+    expect(text(ask('hoeveel sets per spiergroep heb ik gedaan'))).toContain('borst');
+    expect(text(ask('show my sets per muscle group', freshAll()))).toContain('No working set');
+  });
+});
+
 describe('routines (LEDGER #112, #115, #119)', () => {
   test('own routines by folder, with the Showcase\'s labelled note', () => {
     const en = text(ask('what routines do I have'));

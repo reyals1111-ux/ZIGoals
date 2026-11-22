@@ -40,3 +40,18 @@
 .av2-progression-row .field { flex: 1 1 120px; }
 .av2-problem { margin: 0; color: var(--danger-text, #ffb4c8); font-size: 15px; }
 :root[data-theme=light] .av2-problem { color: #a3123a; }
+/* Progress analytics (LEDGER #117). */
+.av2-progress { display: grid; gap: 14px; }
+.av2-progress h3 { margin: 0; font-size: 1.05rem; }
+.av2-month { display: grid; gap: 8px; }
+.av2-month-nav h3 { min-width: 10ch; text-align: center; }
+.av2-month-nav button { min-width: 44px; min-height: 44px; }
+.av2-scroll { overflow-x: auto; max-width: 100%; }
+.av2-scroll:focus-visible { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
+.av2-heat { border-collapse: separate; border-spacing: 3px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.av2-heat th { font-size: 14px; font-weight: 600; text-align: left; white-space: nowrap; padding: 2px 6px; color: var(--text-meta, #c2d0e5); }
+.av2-heat tbody th { color: inherit; }
+.av2-heat td { min-width: 40px; height: 36px; text-align: center; border-radius: 8px; background: color-mix(in srgb, var(--brand-cyan, #6fe6f6) calc(var(--heat, 0) * 38%), transparent); box-shadow: inset 0 0 0 1px var(--line, #8fb6ff26); }
+.av2-heat td[data-zero] { color: var(--text-secondary, #c9d6ea); }
+:root[data-theme=light] .av2-heat td { background: color-mix(in srgb, #0b6f84 calc(var(--heat, 0) * 45%), transparent); }
+@media (forced-colors: active) { .av2-heat td { forced-color-adjust: auto; } }

@@ -12,5 +12,7 @@ export const AV2_BODY: readonly Intent[] = [
   {id: 'av2-exercises-for', pillar: 'health', en: ['which exercises work my glutes', 'what exercises are good for my back'], nl: ['welke oefeningen trainen mijn billen', 'welke oefeningen zijn goed voor mijn rug']},
   {id: 'av2-my-routines', pillar: 'health', en: ['what routines do I have', 'show my routine folders'], nl: ['welke routines heb ik', 'laat mijn routinemappen zien']},
   {id: 'av2-next-target', pillar: 'health', en: ['what is my next target for bench press', 'what does my progression rule say for the bench press'], nl: ['wat is mijn volgende doel voor bankdrukken', 'wat zegt mijn opbouw voor bankdrukken'], never: ['examples']},
+  {id: 'av2-month-report', pillar: 'health', en: ['how did my training go this month', 'show my monthly workout report'], nl: ['hoe ging mijn training deze maand', 'mijn training vergeleken met vorige maand']},
+  {id: 'av2-sets-muscle', pillar: 'health', en: ['how many sets per muscle group did I do', 'show my sets per muscle group'], nl: ['hoeveel sets per spiergroep heb ik gedaan', 'laat mijn sets per spiergroep zien']},
   {id: 'av2-ready-routines', pillar: 'health', en: ['which ready-made routines are there', 'suggest a strength routine for at home'], nl: ['welke kant-en-klare routines zijn er', 'stel een routine voor thuis voor']},
 ];

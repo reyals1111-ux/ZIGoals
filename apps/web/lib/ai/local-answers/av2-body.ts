@@ -1,14 +1,16 @@
 import {finished} from '../../workouts/engine';
 import {HOW_TOS, howToOf, muscleList, type HowTo} from '../../workouts/howto';
-import {EXERCISES} from '../../workouts/library';
+import {allExercises, EXERCISES} from '../../workouts/library';
 import {pinnedNoteOf} from '../../workouts/notes';
 import {GUIDES} from '../../workouts/routine-library';
 import {routineGroups} from '../../workouts/routines';
 import {targetFor} from '../../workouts/progression';
+import {monthFigures, muscleWeeks, previousMonth} from '../../workouts/analytics';
+import {categoryLookup} from '../../workouts/depth';
 import type {Workouts} from '../../workouts/schema';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
-import {answer, asked, closed, dayIn, isQuestion, MIXED, num, say, type Asked} from './av-words';
+import {answer, asked, closed, dayIn, isQuestion, MIXED, monthIn, num, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 import {fold} from './exact/text';
 
@@ -153,4 +155,36 @@ function nextTarget(a: Asked): LocalReply | null {
   return answer([say(lang, 'Next session, from your progression rule and your last sets:', 'Volgende training, volgens je opbouwregel en je laatste sets:'), ...lines.slice(0, 10)].join('\n'), CALLS);
 }
 
-const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget];
+// ── Progress analytics (LEDGER #117) ───────────────────────────────────────────────────────────────────────────────
+
+const monthWord = (month: string, lang: 'en' | 'nl') => monthIn(lang, month);
+/** "how did my training go this month", "hoe ging mijn training deze maand": the month's report beside the month before. */
+function monthReport(a: Asked): LocalReply | null {
+  const en = /\b(?:monthly|month s|months) (?:workout|training) report\b|\bhow (?:did|was|is) my training (?:go(?:ing)? )?(?:this|last) month\b|\b(?:compare|how does) my training\b.*\blast month\b|\btraining report\b/.test(a.f);
+  const nl = /\bmaandrapport\b.*\btraining\b|\btrainingsrapport\b|\bhoe (?:ging|was|gaat) mijn training (?:deze|vorige) maand\b|\b(?:mijn )?training (?:vergeleken met|tegenover) vorige maand\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const w = logOf(a), lang = a.lang, last = /\blast month\b|\bvorige maand\b/.test(a.f) && !/\b(?:compare|vergeleken|tegenover|how does)\b/.test(a.f), month = last ? previousMonth(a.today.slice(0, 7)) : a.today.slice(0, 7);
+  const lookup = categoryLookup(allExercises(w.exercises)), now = monthFigures(w, month, lookup, a.today), before = monthFigures(w, previousMonth(month), lookup, a.today);
+  if (!now.workouts) return answer(say(lang, `No finished workout in ${monthWord(month, 'en')}${before.workouts ? ` (the month before: ${before.workouts})` : ''}.`, `Geen afgeronde workout in ${monthWord(month, 'nl')}${before.workouts ? ` (de maand ervoor: ${before.workouts})` : ''}.`), CALLS);
+  const vs = (n: number, b: number) => b === n ? say(lang, 'same as before', 'gelijk') : `${n > b ? '+' : '−'}${num(Math.abs(Math.round((n - b) * 10) / 10))}`;
+  const parts = [say(lang, `${now.workouts} workouts on ${now.days} days (${vs(now.workouts, before.workouts)})`, `${now.workouts} workouts op ${now.days} dagen (${vs(now.workouts, before.workouts)})`),
+    say(lang, `${num(Math.round(now.minutes / 6) / 10)} h (${vs(Math.round(now.minutes / 6) / 10, Math.round(before.minutes / 6) / 10)} h)`, `${num(Math.round(now.minutes / 6) / 10)} uur (${vs(Math.round(now.minutes / 6) / 10, Math.round(before.minutes / 6) / 10)} uur)`),
+    say(lang, `${now.sets} working sets`, `${now.sets} werksets`), ...(now.volumeKg ? [say(lang, `${num(now.volumeKg)} kg lifted (${vs(now.volumeKg, before.volumeKg)} kg)`, `${num(now.volumeKg)} kg getild (${vs(now.volumeKg, before.volumeKg)} kg)`)] : []),
+    ...(now.distanceKm ? [say(lang, `${num(now.distanceKm)} km`, `${num(now.distanceKm)} km`)] : []), say(lang, `${now.bests} new personal ${now.bests === 1 ? 'best' : 'bests'}`, `${now.bests} nieuwe persoonlijke ${now.bests === 1 ? 'record' : 'records'}`)];
+  const top = now.topMuscle ? say(lang, ` Most trained: ${now.topMuscle.toLowerCase()}${now.topExercise ? `; most sets: ${now.topExercise}` : ''}.`, ` Meest getraind: ${GROUP_NL[now.topMuscle] ?? now.topMuscle}${now.topExercise ? `; meeste sets: ${now.topExercise}` : ''}.`) : '';
+  return answer(say(lang, `${monthWord(month, 'en')}${month === a.today.slice(0, 7) ? ' so far' : ''}, beside the month before: ${parts.join(', ')}.${top} Health → Workouts → Progress shows it.`, `${monthWord(month, 'nl')}${month === a.today.slice(0, 7) ? ' tot nu toe' : ''}, naast de maand ervoor: ${parts.join(', ')}.${top} Health → Workouts → Progress toont het.`), CALLS);
+}
+const GROUP_NL: Record<string, string> = {Chest: 'borst', Back: 'rug', Legs: 'benen', Shoulders: 'schouders', Arms: 'armen', Core: 'romp'};
+/** "how many sets per muscle group this week", "hoeveel sets per spiergroep": the last 8 weeks, this week first. */
+function setsPerMuscle(a: Asked): LocalReply | null {
+  if (!/\bsets? (?:per|for each|by) muscle(?: group)?s?\b|\bmuscle groups? (?:sets|volume)\b|\bsets? per spiergroep\b|\bspiergroepen?\b.*\bsets\b/.test(a.f) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const w = logOf(a), lang = a.lang, m = muscleWeeks(w, categoryLookup(allExercises(w.exercises)), a.today), k = m.weeks.length - 1;
+  const rows = m.rows.filter(r => r.total > 0);
+  if (!rows.length) return answer(say(lang, 'No working set of a strength exercise is logged in the last 8 weeks.', 'De afgelopen 8 weken is geen werkset van een krachtoefening gelogd.'), CALLS);
+  const name = (g: string) => lang === 'nl' ? GROUP_NL[g] ?? g : g.toLowerCase();
+  return answer(say(lang, `Working sets per muscle group, this week / the last 8 weeks: ${rows.map(r => `${name(r.muscle)} ${r.sets[k]} / ${r.total}`).join(', ')}. Warm-ups are left out.`, `Werksets per spiergroep, deze week / de afgelopen 8 weken: ${rows.map(r => `${name(r.muscle)} ${r.sets[k]} / ${r.total}`).join(', ')}. Warming-ups tellen niet mee.`), CALLS);
+}
+
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor, myRoutines, readyRoutines, nextTarget, monthReport, setsPerMuscle];

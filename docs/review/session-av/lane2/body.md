@@ -103,3 +103,26 @@ test `apps/web/lib/workouts/av2-stored.test.ts`.
   session. When you start the routine, each set is filled with today's target from your last sets, and the exercise says why.
 - What's new: "Workouts: a progression rule on a routine fills in next time's weights and reps."
 - Answers: "what is my next target for bench press" / "wat is mijn volgende doel voor bankdrukken".
+
+## 4. Progress analytics: a month's report, sets per muscle across weeks, a line per metric, Wrapped's training card — LEDGER #117 built
+
+- What: Health → Workouts → "Progress" (a fold; its own chunk): a month's report beside the month before (workouts, days
+  trained, time, working sets, weight lifted, distance, new personal bests, the most trained muscle group and exercise),
+  earlier months by the arrows; and working sets per muscle group over the last 8 weeks as a table, each cell shaded by
+  its count (a focusable, named scroll region). Exercise history's line now shows the estimated one-rep max (as before,
+  the default), the heaviest set or the volume, session by session. ZIGoals Wrapped gets a "Training" card (workouts,
+  hours, days, the exercise done most, the busiest month and new bests as lines; weight lifted and distance only as
+  numbers, behind "Include numbers").
+- Files: `lib/workouts/analytics.ts`, `lib/workouts/depth.ts` (exports `CategoryLookup`), `components/health/workouts/workouts-progress.tsx`,
+  `components/health/workouts/workouts-view.tsx`, `components/health/workouts/av2-body.css`, `lib/wrapped/build.ts` (an
+  optional `workouts` input and the `training` card; without it every card is as before), `components/wrapped/use-wrapped.ts`.
+- Tests: `lib/workouts/av2-analytics.test.ts` (with the Wrapped card), `lib/ai/local-answers/av2-body.test.ts`; spec
+  `tests/av2-workout-progress.spec.ts`. The existing `lib/wrapped/wrapped.test.ts` passes unchanged.
+- Stored: nothing.
+- Help (EN): **How do I see my training month by month?** In Health → Workouts, open "Progress": this month beside the
+  last (workouts, time, sets, weight lifted, distance and new bests), earlier months by the arrows, and your working sets
+  per muscle group over the last 8 weeks. Exercise history draws each exercise's estimated one-rep max, heaviest set or volume.
+- What's new: "Workouts: a monthly report, sets per muscle group over 8 weeks, and a Training card in Wrapped."
+- Answers: "how did my training go this month" / "hoe ging mijn training deze maand", "show my sets per muscle group" /
+  "laat mijn sets per spiergroep zien". (Never "how many workouts this month": the corpus's `workouts-month` keeps it.)
+- Showcase: the Showcase's two weeks of training fill the report and the table (no new records).
