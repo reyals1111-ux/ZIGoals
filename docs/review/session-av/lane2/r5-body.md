@@ -95,7 +95,7 @@ Specs for the shard lists (none run here): `tests/av2-cycle-r5.spec.ts`, `tests/
   averages and the next-period range no longer count it. **Can I see one cycle at a glance?** Yes: "A cycle at a glance"
   shows a cycle as a row of its days, with the same days of earlier cycles below it. **Can I track my own words?** Yes:
   under "What you track", add up to 30 words of your own, hide the built-in ones you don't use, and put them in your
-  order. Removing a word keeps the days that have it. **Can I track without a period, or perimenopause?** Yes: "No period"
+  order. A day keeps up to 12 words. Removing a word keeps the days that have it. **Can I track without a period, or perimenopause?** Yes: "No period"
   hides the flow buttons and the next-period line and keeps everything else; "Perimenopause words" adds hot flushes, night
   sweats, joint aches and brain fog to log. They are words to note for yourself; nothing is read into them.
 - What's new: "Cycle log: your cycles with their averages, a cycle at a glance, your own words, and No period."
@@ -166,6 +166,20 @@ Specs for the shard lists (none run here): `tests/av2-cycle-r5.spec.ts`, `tests/
   Timeline as small marks at the time you gave them, in words as well as colour, while Health is shown.
 - What's new: "Day Timeline: your mood check-ins at their times."
 - Search (static.ts): "moods on the timeline" → `/app/timeline`.
+
+## 6. Review B5H fixes (one commit each)
+
+| id | fix | commit |
+|---|---|---|
+| B5H-1 (Major) | A day still keeps up to 12 words: the day's `symptoms` is `.max(12)` without a catch in every older build, so raising it would make their whole `zigoals:cycle:v1` unreadable. A 13th tick is now refused with "Choose up to 12 words for one day: untick one first." (`TOO_MANY_WORDS`, `setCycleDay` throws, nothing changes); the log says "A day keeps up to 12 words; untick one to choose another." once a day has 12. Never dropped silently. Unit test in `lib/cycle/av2-r5-cycle.test.ts`. | `9941b202` |
+| B5H-2 (Major) | The NOVA cycle card's visible readout reads `cycleReadout` (`lib/nova/cards/health-more.ts`): with No period, "Not shown · You chose No period in the cycle log." Only the text changed (`components/nova/widgets/cycle.tsx`, two spans); layout and look unchanged. Test `lib/nova/cards/av2-r5-cycle-card.test.ts`. | `868b2356` |
+| B5H-3 (Major) | After ↑/↓, once the list has its new order, focus goes to the moved word's button for that direction, or to its other button where that one is disabled (top or bottom). Spec `tests/av2-cycle-r5.spec.ts` now moves a word to the bottom and one to the top; unit test for the ends. | `cec48d56` |
+| B5H-4 (Minor) | The toggle says "Leave out" in both states (a tick when pressed, `aria-pressed`), with " the cycle from <date>" as an sr-only suffix; no aria-label over the words. Spec name updated to `/^Leave out the cycle from Jul 29/`. | `8d28cef2` |
+| B5H-5 (Minor) | `pause` only for a complete cycle; the open one reads "175 days so far (still going)" and shows at a glance (60 days). | `21753b64` |
+| B5H-6 (Minor) | `setCycleDay` carries a `leftOut` entry to the new first day of the same period (`carryLeftOut`); a period cleared entirely takes its cycle with it. | `e3dfe06d` |
+| B5H-7 (Minor) | Mood, energy and feeling marks open `/app/health?date=<their day>`; `?mood=ask` stays the reminder's. | `f3abc26a` |
+
+Help text change for #380: add "A day keeps up to 12 words." to the answer "Can I track my own words?".
 
 ## 5. NOVA's and ZIGi's answers (all features)
 
