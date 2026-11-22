@@ -1,10 +1,12 @@
 'use client';
-import {Suspense, lazy, useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore} from 'react';
 import {addSession, DEFAULT_BELLS, newSessionId} from '../../../lib/meditation/engine';
 import {timerRuleText, tooShortText, tooShortToSave} from '../../../lib/health-timer-rules';
 import {heartSnapshot, heartSummary, SERVER_HEART, subscribeHeart} from '../../../lib/bluetooth/heart-store';
-import {audioContext, audioReady, strike, type Strike} from '../../../lib/meditation/bells';
-import {bellTimes, clockText, elapsedMs, endedSession, isDone, isPaused, pauseRun, remainingMs, resumeRun, sessionFrom, type Run} from '../../../lib/meditation/timer';
+import {audioContext, audioReady, ring, strike, type Strike} from '../../../lib/meditation/bells';
+import {clockText, elapsedMs, endedSession, isDone, isOpenEnded, isPaused, MAX_MINUTES, pauseRun, remainingMs, resumeRun, sessionFrom, type Run} from '../../../lib/meditation/timer';
+// Session AV lane 2 (LEDGER #184): the run's bells from its preset (or from "Your bell"), a moment to settle in, no set length.
+import {planBellTimes, planFromBells, runPlanNow, settlingMs, signedElapsedMs} from '../../../lib/meditation/presets';
 import {emptyMeditationRun} from '../../../lib/meditation/schema';
 import {minutesText} from '../../../lib/meditation/stats';
 import {BreathingVisual} from './breathing-visual';
@@ -15,6 +17,7 @@ import {plainErrorMessage} from '../../../lib/plain-error';
 
 // Session AV lane 2 (LEDGER #79, #80): the calm visual chosen in "Behind your sitting", loaded with the session.
 const CalmLayer = lazy(() => import('./calm-layer'));
+const BELLS_AHEAD = 400;
 type WakeLockSentinel = {release(): Promise<void>};
 /** Keeps the screen on while `active`, where the browser offers it; asks again when the page comes back into view. */
 export function useWakeLock(active: boolean): boolean {
@@ -53,16 +56,25 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
   const {startedAt, pausedAt, pausedMs, plannedSec} = run;
   const elapsedAt = useCallback((now: number) => elapsedMs({startedAt, pausedAt, pausedMs}, now), [startedAt, pausedAt, pausedMs]);
   const keepsScreenOn = useWakeLock(!paused && !finished);
-  // The bells still to come, on the audio clock; anything that changes them (a pause, the end) cancels and reschedules.
-  const scheduled = useRef<Strike[]>([]);
+  // Session AV lane 2 (LEDGER #184): what this run rings — its preset's bells, kept beside the run under its start, or
+  // "Your bell" as always (start, every few minutes, end). No set length has no end bell until you end it.
+  const open = isOpenEnded(run), {sound: bellSound, volume: bellVolume, intervalMin} = bells;
+  const plan = useMemo(() => runPlanNow(startedAt) ?? planFromBells({sound: bellSound, volume: bellVolume, intervalMin}, open ? null : Math.max(1, Math.round(plannedSec / 60))), [startedAt, plannedSec, open, bellSound, bellVolume, intervalMin]);
+  const ringsAny = plan.start !== 'silent' || plan.end !== 'silent' || plan.intervals.length > 0;
+  // The bells still to come, on the audio clock (which keeps time in a background tab), up to 400 ahead and topped up
+  // before they run out; a pause or the end cancels the ones not yet rung and the resume schedules the rest again. A bell
+  // already sounding fades out on its own.
+  const scheduled = useRef<{strike: Strike; when: number}[]>([]), [refill, setRefill] = useState(0);
   useEffect(() => {
-    if (paused || finished || !sound || bells.sound === 'silent') return;
+    if (paused || finished || !sound || !ringsAny) return;
     const ctx = audioContext();
     if (!ctx) return;
-    const from = elapsedMs({startedAt, pausedAt, pausedMs}, Date.now()), times = bellTimes({plannedSec}, from, bells.intervalMin), base = ctx.currentTime - from / 1000;
-    scheduled.current = [...times.interval, ...(times.end !== null ? [times.end] : [])].map(ms => strike(ctx, bells.sound, bells.volume, base + ms / 1000)).filter((s): s is Strike => s !== null);
-    return () => { for (const s of scheduled.current) s.stop(); scheduled.current = []; };
-  }, [startedAt, pausedAt, pausedMs, plannedSec, paused, finished, sound, bells.sound, bells.volume, bells.intervalMin]);
+    const from = signedElapsedMs({startedAt, pausedAt, pausedMs}, Date.now()), base = ctx.currentTime - from / 1000;
+    const due = planBellTimes(plan, plannedSec, from).slice(0, BELLS_AHEAD);
+    scheduled.current = due.flatMap(b => { const when = base + b.at / 1000, s = strike(ctx, b.sound, plan.volume, when); return s ? [{strike: s, when}] : []; });
+    const last = due.at(-1), topUp = due.length === BELLS_AHEAD && last ? window.setTimeout(() => setRefill(n => n + 1), Math.max(1000, (last.at - from) * 0.8)) : undefined;
+    return () => { window.clearTimeout(topUp); const now = ctx.currentTime; for (const s of scheduled.current) if (s.when > now) s.strike.stop(); scheduled.current = []; };
+  }, [startedAt, pausedAt, pausedMs, plannedSec, paused, finished, sound, plan, ringsAny, refill]);
   const write = (change: Parameters<typeof store.run.update>[0]) => { try { store.run.update(change); setError(''); } catch { setError('This device could not save the session state. The session goes on.'); } };
   async function turnSoundOn() {
     try { await audioContext()?.resume?.(); } catch { /* stays silent */ }
@@ -103,24 +115,27 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
     </section>;
   }
   const left = remainingMs(run, store.now), total = run.plannedSec * 1000, progress = 1 - left / total;
+  const settle = settlingMs(run, store.now), sofar = elapsedMs(run, store.now);
+  const shown = settle ? settle : open ? sofar : left, spoken = settle ? `${clockText(settle)} to settle in` : open ? `${clockText(sofar)} so far` : `${clockText(left)} left`;
   return <section ref={panel} className="panel meditation-session" aria-labelledby="meditation-session-title">
-    <p className="eyebrow">{label.toUpperCase()} · {paused ? 'PAUSED' : 'IN PROGRESS'}</p>
+    <p className="eyebrow">{label.toUpperCase()} · {paused ? 'PAUSED' : settle ? 'SETTLING IN' : 'IN PROGRESS'}</p>
     <h2 id="meditation-session-title" className="sr-only" tabIndex={-1} ref={runningHeading}>{label} in progress</h2>
     <Suspense fallback={null}><CalmLayer elapsedAt={elapsedAt} paused={paused}/></Suspense>
-    {run.kind === 'breathing' && run.pattern ? <BreathingVisual pattern={run.pattern} elapsedAt={elapsedAt} paused={paused}/> : <div className="meditation-clock" role="timer" aria-label={`${clockText(left)} left`}>
-      <svg viewBox="0 0 120 120" aria-hidden="true"><circle className="meditation-ring-track" cx="60" cy="60" r="54"/><circle className="meditation-ring" cx="60" cy="60" r="54" pathLength="100" strokeDasharray={`${(progress * 100).toFixed(2)} 100`} transform="rotate(-90 60 60)"/></svg>
-      <strong aria-hidden="true">{clockText(left)}</strong>
+    {run.kind === 'breathing' && run.pattern ? <BreathingVisual pattern={run.pattern} elapsedAt={elapsedAt} paused={paused}/> : <div className="meditation-clock" role="timer" aria-label={spoken}>
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle className="meditation-ring-track" cx="60" cy="60" r="54"/>{!open && !settle && <circle className="meditation-ring" cx="60" cy="60" r="54" pathLength="100" strokeDasharray={`${(progress * 100).toFixed(2)} 100`} transform="rotate(-90 60 60)"/>}</svg>
+      <strong aria-hidden="true">{clockText(shown)}</strong>
     </div>}
     {heart.connected && heart.latest && <p className="meditation-heart"><span aria-hidden="true">♥</span> {heart.latest.bpm} bpm</p>}
-    <p className="meditation-left">{clockText(left)} left of {minutesText(run.plannedSec / 60)}</p>
-    {!sound && bells.sound !== 'silent' && <p className="fine">The bells are quiet until you tap “Turn on the bells” (browsers allow sound only after a tap). <button type="button" className="text-link" onClick={() => void turnSoundOn()}>Turn on the bells</button></p>}
+    {settle ? <p className="meditation-settling">Settling in. {plan.start !== 'silent' ? 'The start bell rings' : 'The session begins'} in {clockText(settle)}{open ? ', then the clock counts up.' : `, then ${minutesText(run.plannedSec / 60)} begin.`}</p>
+      : <p className="meditation-left">{open ? `${clockText(sofar)} so far · no set length (at most ${MAX_MINUTES / 60} hours)` : `${clockText(left)} left of ${minutesText(run.plannedSec / 60)}`}</p>}
+    {!sound && ringsAny && <p className="fine">The bells are quiet until you tap “Turn on the bells” (browsers allow sound only after a tap). <button type="button" className="text-link" onClick={() => void turnSoundOn()}>Turn on the bells</button></p>}
     {keepsScreenOn && !paused && <p className="fine">The screen stays on during the session.</p>}
     {/* Session AL fourth pass (PR-018): the one timer rule, said where a session is stopped, as on the fasting card */}
     <p className="fine">{timerRuleText}</p>
     {error && <p role="alert">{error}</p>}
     <div className="actions meditation-controls">
       {paused ? <button type="button" className="primary" onClick={() => write(r => resumeRun(r, new Date()))}>Resume</button> : <button type="button" className="secondary" onClick={() => write(r => pauseRun(r, new Date()))}>Pause</button>}
-      <button type="button" className="quiet" onClick={() => { write(r => pauseRun(r, new Date())); setEnding(true); }}>End now</button>
+      <button type="button" className="quiet" onClick={() => { write(r => pauseRun(r, new Date())); setEnding(true); if (open && settlingMs(run, Date.now()) === 0) void ring(plan.end, plan.volume); }}>End now</button>
     </div>
   </section>;
 }

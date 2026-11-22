@@ -12,6 +12,7 @@ import {CALM_WORDS, PACE_WORDS, readCalm} from '../../calm/visuals';
 import {STRETCH_PREFIX, STRETCHES} from '../../calm/stretches';
 import {moodLabel, readMoodLook} from '../../daylio/rule';
 import {meditationMilestones} from '../../meditation/milestones';
+import {intervalText, planSummary, readPresets} from '../../meditation/presets';
 import {strengthByWeek, totalsBy} from '../../habits-v2/history';
 import {healthGroupIn} from '../../vault/w-homes';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
@@ -32,7 +33,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual, meditationMilestonesOf, strengthOverYear]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual, meditationMilestonesOf, strengthOverYear, timerPresetsOf]) {
       const r = one(a);
       if (r) return r;
     }
@@ -259,4 +260,15 @@ function strengthOverYear(a: Asked): LocalReply | null {
   }).slice(0, 8);
   if (!rows.length) return answer(say(lang, 'No habit has seven scheduled days behind it yet, so there is no strength to follow. A habit’s Consistency & trends → More history shows it week by week once there is.', 'Nog geen gewoonte heeft zeven geplande dagen achter zich, dus er is nog geen sterkte te volgen. Consistency & trends → More history van een gewoonte toont die per week zodra die er is.'), OPEN);
   return answer(say(lang, `Strength (0 to 100) over the last year: ${rows.join('. ')}. A habit's Consistency & trends → More history has the weekly line, months, quarters and years.`, `Sterkte (0 tot 100) over het afgelopen jaar: ${rows.join('. ')}. Consistency & trends → More history van een gewoonte heeft de lijn per week, maanden, kwartalen en jaren.`), OPEN);
+}
+/** LEDGER #184: "which meditation timer presets do i have", "welke timerpresets heb ik voor meditatie" — the saved presets (Health gate). */
+function timerPresetsOf(a: Asked): LocalReply | null {
+  const en = /\b(?:timer )?presets?\b/.test(a.f) && /\b(?:meditation|meditate|timer|sitting|bells?)\b/.test(a.f);
+  const nl = /\b(?:timer)?presets?\b|\bvoorinstellingen?\b/.test(a.f) && /\b(?:meditatie|mediteren|timer|zitten|bel|bellen)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, presets = readPresets(a.env.ak?.habitExtras ?? null);
+  if (!presets.length) return answer(say(lang, 'No timer presets yet. Health → Meditation → Your timer presets keeps a length (or no set length), a moment to settle in, a start and an end bell and bells along the way; each one is then a single choice under Begin.', 'Nog geen timerpresets. Health → Meditation → Your timer presets bewaart een lengte (of geen vaste lengte), een moment om te landen, een begin- en eindbel en bellen onderweg; elke preset is dan één keuze onder Begin.'));
+  const rows = presets.slice(0, 8).map(p => `${clean(p.name, 40)} (${planSummary(p, lang)}${p.intervals.length ? `: ${p.intervals.map(i => intervalText(i, lang)).join('; ')}` : ''})`);
+  return answer(say(lang, `${count(presets.length, 'en', ['timer preset', 'timer presets'], ['', ''])}: ${rows.join('. ')}. Choose one under Begin on Health → Meditation.`, `${count(presets.length, 'nl', ['', ''], ['timerpreset', 'timerpresets'])}: ${rows.join('. ')}. Kies er een onder Begin op Health → Meditation.`));
 }

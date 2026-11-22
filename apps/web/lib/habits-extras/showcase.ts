@@ -60,5 +60,7 @@ export function showcaseHabitExtras(habits: HabitData): HabitExtras {
   // Today took Showcase Today past its 90 Tab stops, D-028, so the Showcase leaves the focus to the person.)
   const looks: Record<string, {glyph: string; colour: string}> = {};
   for (const [t, glyph, colour] of [['Read', '✎', 'violet'], ['Walk', '☀', 'green'], ['Meditate', '☾', 'blue']] as const) { const i = id(t); if (i) looks[i] = {glyph, colour}; }
-  return habitExtrasSchema.parse({version: 1, areas, quitCost: {[SHOWCASE_QUIT_ID]: {perDay: 3, currency: 'EUR'}}, bells, looks});
+  // Session AV lane 2 (LEDGER #184): one labelled timer preset, so Health → Meditation → Begin shows the choice.
+  const meditationTimer = {presets: [{id: 'tp-showcase-morning', name: 'Morning sit (Showcase)', minutes: 15, warmup: 15, start: 'bowl', end: 'chime', volume: 60, intervals: [{sound: 'soft', every: 300}, {sound: 'chime', every: 60, times: 1, from: 'end'}]}]};
+  return habitExtrasSchema.parse({version: 1, areas, quitCost: {[SHOWCASE_QUIT_ID]: {perDay: 3, currency: 'EUR'}}, bells, looks, meditationTimer});
 }

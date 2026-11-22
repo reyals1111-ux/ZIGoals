@@ -488,6 +488,56 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
   (Habits gate; case `av2-habits-strength-year`). Showcase hook: the Showcase's habits fill it with no new data.
 - CSS touched: `components/habits/habit-longer-history.css` (new; theme variables only). Always visible on Today: nothing.
 
+## Feature 17 — Insight Timer's meditation timer: presets, settling in, bells along the way, no set length (LEDGER #184)
+
+Branch `lane2/habits3` (continues `lane2/habits2`). **Verdict: built.**
+
+- Health → Meditation → **Your timer presets: lengths and bells** (a fold, its own chunk): New preset → a name (≤ 40),
+  How long? (5–60 min, your own 1–240, or **No set length**), **Settle in before the first bell** (none, 10 s … 5 min),
+  a **Start bell** and an **End bell** of their own (bowl, chime, soft tone or no sound, each with Try), one volume, and
+  up to five **Bells along the way** (sound; every 5 s … 30 min; once … 99 times or until the end; counted from the start
+  or back from the end — "a chime 1 min before the end"). Edit, Delete with the app's Undo; at most 20. The field says
+  why (a name needed or taken, minutes out of range, a bell along the way longer than the session).
+- **Begin** → "Your presets" (shown once there is one): one choice starts the preset; How long? then hides. How long?
+  also gains **No set length** for a sitting (with "Your bell"'s bells).
+- The session: while settling in the eyebrow says SETTLING IN, the clock counts the seconds down ("00:14 to settle in"),
+  "The start bell rings in 00:14, then 10 min begin."; a pause there lengthens it. Then the preset's bells ring on the
+  audio clock (scheduled up to 400 ahead and topped up, so a background tab still rings them). No set length counts up
+  ("02:04 so far · no set length (at most 4 hours)"), no ring of progress, the end bell rings on End now, and the session
+  saves the time spent (at most 4 hours, where it ends by itself). The Checklist's Meditate corner timer says "so far"
+  for it. A session without a preset rings exactly what "Your bell" always rang (a unit test compares the two).
+  Deliberate change: a pause or End now cancels the bells still to come as before, but a bell already sounding now fades
+  out on its own instead of being cut off.
+- Files: `lib/meditation/{presets.ts,presets-write.ts,timer.ts}` (`OPEN_ENDED_SEC`, `isOpenEnded`),
+  `components/health/meditation/{timer-presets.tsx,timer-presets.css,meditation-forms.tsx,meditation-session.tsx,meditation-view.tsx,meditation.css}`,
+  `components/checklist/corner-timers.tsx` (one line), `lib/habits-extras/showcase.ts`, `lib/ai/local-answers/av2-habits.ts`,
+  `lib/ai/evals/as/cases-av2-habits.ts`.
+- Tests: `lib/meditation/presets.test.ts` (save/read/edit keeps a later field, odd entries, the reasons, 20 at most,
+  delete and Undo in place, words EN/NL, "Your bell" unchanged, settling in and a pause in it, bells from the start and
+  from the end with counts, one moment rings once, no set length, the run's bells keyed by its start, export → erase →
+  restore of both records, the answers EN and NL and the Health gate). Existing meditation, checklist, calm, daylio,
+  muted, showcase and vault tests unchanged and green. Spec: `tests/av2-timer-presets.spec.ts`.
+- **Stored changes (TIER 3 stored formats, additive, separate commit `e52ce016`):** the loose habit extras
+  (`zigoals:habit-extras:v1`, synced with the extras) gains optional `meditationTimer` ({presets: [{id, name, minutes |
+  open, warmup?, start, end, volume, intervals?: [{sound, every, times?, from?}]}]}, ≤ 20, each checked where read); the
+  loose, device-only Health extras (`zigoals:health-extras:v1`) gains optional `meditationRun` ({startedAt, plan},
+  `.catch(undefined)`), the running preset's bells keyed by the run's start, because `meditationRunSchema` is strict.
+  The strict run record is unchanged: a settling-in time is a start a little in the future (its time is 0 until then),
+  and no set length is `plannedSec` 14,399 (four hours less a second, which the minute timer never plans). An older
+  build reads a settling-in run as starting late and a no-set-length run as four hours, and keeps both extras fields.
+  No new key; both records are already exported, erased and restored (no registry change).
+- Help (EN): **Q: Can I save my own meditation timer settings?** A: Yes. Health → Meditation → Your timer presets: a
+  length or no set length, a moment to settle in, a start and an end bell, and bells along the way (every few minutes,
+  or the last minutes before the end). Each preset is then one choice under Begin. **Q: Can I meditate without a set
+  length?** A: Yes. Under Begin, choose No set length: the clock counts up until you end the session.
+- What's new: "Meditation timer presets: settling in, start and end bells, bells along the way, or no set length."
+- Answers: "which meditation timer presets do i have" / "welke timerpresets heb ik voor meditatie" (Health gate; case
+  `av2-habits-timer-presets`). Same wiring line as Feature 1 (`av2HabitsAnswer`).
+- Showcase hook: one labelled preset "Morning sit (Showcase)" in `showcaseHabitExtras` (lib/habits-extras/showcase.ts,
+  this pillar's own module; no count other tests pin moves: showcase, showcase-aa, vault and extras tests green).
+- CSS touched: `components/health/meditation/timer-presets.css` (new; theme variables only), `meditation.css` (two
+  lines). Always visible on Today: nothing new (the corner timer's words for a no-set-length run only).
+
 ## q4 / QUALITY "Not fixed" Minors for habits and mood — where each stands
 
 - Skip and an amount per week-grid cell: built here (Feature 10).
@@ -499,11 +549,7 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 
 ## Not built yet (next for this pillar, in order)
 
-- **#184** Insight Timer's meditation timer (next row): saved presets (length, start and end bell, several interval
-  bells with a repeat count or "before the end", a warm-up, open-ended). Note for the next builder: `bellPrefsSchema` and
-  `meditationRunSchema` are strict (Health v4, synced, and the device run), so presets and the running session's extra
-  bells need a loose home — the habit extras (as `calm` is) for presets, and a loose device field keyed by the run's
-  `startedAt` for an open-ended run (the strict run keeps `plannedSec` at its 240-minute ceiling meanwhile).
+- **#184** built (Feature 17).
 - **#185** Loop's rolling schedule, N times in any M days: `habitScheduleSchema` is a strict union in the synced
   habit record, so a new kind there would make builds #37–#57 refuse the journal (against the named rule). The way is
   the first builder's: a habit-extras entry read through `setHabitDayOverlay` (lib/habit-options), as `monthWeekday`

@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useState, type CSSProperties} from 'react';
 import {runningNights, inBedMinutes} from '../../lib/sleep/engine';
-import {remainingMs, clockText} from '../../lib/meditation/timer';
+import {remainingMs, clockText, elapsedMs as meditationElapsed, isOpenEnded} from '../../lib/meditation/timer';
 import {runningSession, elapsedMs as fastElapsed, formatFast} from '../../lib/fasting/engine';
 import {habitTimerPreview} from '../../lib/habit-timer-actions';
 import {latestHabitRule} from '../../lib/habits';
@@ -50,7 +50,7 @@ export function CornerTimers({state}: {state: ChecklistState}) {
       sub: night ? run(span(inBedMinutes(night, now))) : sleepRecord.goal ? {value: span(sleepRecord.goal.minutes), label: 'Goal'} : lastNight ? {value: span((Date.parse(lastNight.end!) - Date.parse(lastNight.start)) / 60_000), label: 'Last night ·', before: true} : {value: '', label: 'No goal set · tap at bedtime'},
       spoken: night ? `in bed since ${formatTime(night.start, {timeZone: night.timeZone})}` : ''},
     {kind: 'meditate', label: 'Meditate', glyph: 'lotus', colour: 'teal', running: !!runSession,
-      sub: runSession ? run(`${clockText(remainingMs(runSession, now))} left`) : meditationRecord.goal ? {value: `${span(meditationRecord.goal.minutesPerWeek)} a week`, label: 'Goal'} : meditateDefault ? {value: span(meditateDefault), label: 'Usually', before: true} : {value: '10m', label: 'No goal set · starts', before: true},
+      sub: runSession ? run(isOpenEnded(runSession) ? `${clockText(meditationElapsed(runSession, now))} so far` : `${clockText(remainingMs(runSession, now))} left`) : meditationRecord.goal ? {value: `${span(meditationRecord.goal.minutesPerWeek)} a week`, label: 'Goal'} : meditateDefault ? {value: span(meditateDefault), label: 'Usually', before: true} : {value: '10m', label: 'No goal set · starts', before: true},
       spoken: ''},
     {kind: 'fast', label: 'Fast', glyph: 'clock', colour: 'purple', running: !!fast,
       sub: fast ? run(`${formatFast(fastElapsed(fast, new Date(now)).ms)} of ${hours(fast.targetHours)}`) : lastFast ? {value: hours(lastFast.targetHours), label: 'Last fast ·', before: true} : {value: '16h', label: 'No goal set · starts at', before: true},

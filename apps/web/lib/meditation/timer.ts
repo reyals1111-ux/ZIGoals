@@ -11,6 +11,13 @@ export type Run = NonNullable<MeditationRun['run']>;
 export const PRESET_MINUTES = [1, 3, 5, 10, 20, 30] as const;
 export const MIN_MINUTES = 1, MAX_MINUTES = 240;
 /**
+ * Session AV lane 2 (LEDGER #184): a session with no set length is planned at four hours less a second, a length the
+ * minute-based timer never plans, so every reader of the run can tell it apart; it counts up, and ends by itself at most
+ * there. An older build reads it as a four-hour session.
+ */
+export const OPEN_ENDED_SEC = MAX_MINUTES * 60 - 1;
+export const isOpenEnded = (run: Pick<Run, 'plannedSec'>) => run.plannedSec === OPEN_ENDED_SEC;
+/**
  * Session AO (PR-018): why a custom length is refused, said at the field. Under the one timer minimum (a minute) the
  * reason is that minimum, in the same words as the timer rule; otherwise the range.
  */
