@@ -22,6 +22,12 @@ export const gameSchema = z.looseObject({
    * (`switchGameLayer`) writes false, so badges start off and the person turns them on from the Journey page.
    */
   badges: z.boolean().optional(),
+  /**
+   * Session AV lane 2 (LEDGER #48, Habitica's Orb of Rebirth; `TIER 3 (stored format)`, additive and optional): the day the
+   * person started again at level 1 and how many times. XP before that day stays in the records but no longer counts
+   * toward the level (lib/game/xp.ts countedXp); badges, history and freezes are kept. A later build's fields survive.
+   */
+  rebirth: z.looseObject({from: day, times: z.number().int().min(1).max(999)}).optional().catch(undefined),
 });
 export type GameRecord = z.infer<typeof gameSchema>;
 export const emptyGame = (): GameRecord => ({version: 1, enabled: false});
@@ -41,3 +47,8 @@ export function setBadgesShown(g: GameRecord, on: boolean, earnedIds: readonly s
   for (const id of earnedIds) seen[id] ??= today;
   return gameSchema.parse({...g, badges: true, badgesSeen: seen});
 }
+/** Session AV lane 2 (LEDGER #48): start again at level 1 from `today`, keeping badges and every record; the level seen is 1. */
+export const startAgain = (g: GameRecord, today: string): GameRecord =>
+  gameSchema.parse({...g, levelSeen: 1, rebirth: {...(g.rebirth ?? {}), from: day.parse(today), times: Math.min(999, (g.rebirth?.times ?? 0) + 1)}});
+/** The day a rebirth started counting from, or null. */
+export const rebirthFrom = (g: GameRecord | null | undefined): string | null => g?.rebirth?.from ?? null;
