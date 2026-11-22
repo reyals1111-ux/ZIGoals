@@ -1,7 +1,8 @@
 import * as z from 'zod';
 import type {DeviceRecordSpec} from '../device-record';
 import {addLocalDays, localWeekday} from '../local-date';
-import {entryParts, minorUnits} from '../money-split/parts';
+import {minorUnits} from '../money-split/parts';
+import {budgetDayParts} from '../money-log/counted';
 import {fromCents} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import type {Account} from '../accounts/schema';
@@ -55,14 +56,16 @@ export const periodAmount = (monthlyCents: number, every: Every) => every === 'm
 const paymentCents = (p: Account['payments'][number]) => { const v = BigInt(p.value), d = p.decimals; return Number(d >= 2 ? v / 10n ** BigInt(d - 2) : v * 10n ** BigInt(2 - d)); };
 export type PeriodRow = {budget: Budget; every: Every; start: string; end: string; amount: number; spent: number; debtPaid: number; left: number; over: boolean};
 /**
- * Each budget in its own period holding `today`: its amount, what was spent in its category (split entries by their parts)
- * and paid on its linked debts (same currency) in that period, and what is left. Never converted between currencies.
+ * Each budget in its own period holding `today`: its amount, what was spent in its category (split entries by their parts,
+ * counted as the month budgets count them) and paid on its linked debts (same currency) in that period, and what is left. Never converted between currencies.
  */
 export function periodRows(entries: readonly MoneyEntry[], budgets: BudgetsRecord, plan: BudgetPeriods, today: string, {accounts = [], startsOn = 'monday'}: {accounts?: readonly Account[]; startsOn?: 'monday' | 'sunday'} = {}): PeriodRow[] {
   return budgets.budgets.filter(b => b.since <= today.slice(0, 7)).map(budget => {
     const every: Every = plan.every?.[budget.id] ?? 'month', {start, end} = every === 'month' ? payMonth(today, plan.payday ?? 1) : weekRange(today, every, startsOn), name = budget.category.toLowerCase();
     let spent = 0, debtPaid = 0;
-    for (const e of entries) if (e.kind === 'expense' && e.currency === budget.currency && e.date >= start && e.date <= end) for (const p of entryParts(e)) if (p.category.toLowerCase() === name) spent += p.cents;
+    // Review b2a #2: as the month budgets count (lib/money-log/counted.ts): no entry left out or transfer, the person's
+    // own share of a shared cost, and an entry spread over months by each month's share, on its day in that month.
+    for (const e of entries) if (e.kind === 'expense' && e.currency === budget.currency && e.date <= end) for (const piece of budgetDayParts(e)) if (piece.date >= start && piece.date <= end) for (const p of piece.parts) if (p.category.toLowerCase() === name) spent += p.cents;
     for (const a of accounts) if (plan.debts?.[a.id] === budget.id && a.currency === budget.currency) for (const p of a.payments) if (p.date >= start && p.date <= end) debtPaid += paymentCents(p);
     const amount = periodAmount(minorUnits(budget.monthly), every), left = amount - spent - debtPaid;
     return {budget, every, start, end, amount, spent, debtPaid, left, over: left < 0};

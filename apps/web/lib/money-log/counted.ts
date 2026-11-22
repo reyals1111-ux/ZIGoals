@@ -48,6 +48,24 @@ export function budgetMonthParts(e: MoneyEntry, month: string): EntryPart[] {
   if (n === 1) return mineParts(e);
   return mineParts(e).map(p => { const base = Math.floor(p.cents / n), rest = p.cents - base * n; return {...p, cents: base + (k < rest ? 1 : 0)}; });
 }
+/**
+ * Review b2a #2: what an expense counts in budgets, by day, for a budget period that is not a calendar month (a payday
+ * month, a week, two weeks): its parts on its own day, or — spread over `spread` months — each month's share
+ * (`budgetMonthParts`) on the same day of that month (the month's last day when it is shorter). So every pay period
+ * counts an entry exactly as the month budgets do, and the shares still add up to the person's own share of the cost.
+ * Nothing for an entry left out of the figures or a transfer.
+ */
+export function budgetDayParts(e: MoneyEntry): {date: string; parts: EntryPart[]}[] {
+  if (!isCounted(e)) return [];
+  const n = e.spread ?? 1;
+  if (n === 1) return [{date: e.date, parts: mineParts(e)}];
+  const [y, m, d] = e.date.split('-').map(Number) as [number, number, number];
+  return Array.from({length: n}, (_, k) => {
+    const at = new Date(Date.UTC(y, m - 1 + k, 1)), last = new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth() + 1, 0)).getUTCDate();
+    const month = at.toISOString().slice(0, 7);
+    return {date: `${month}-${String(Math.min(d, last)).padStart(2, '0')}`, parts: budgetMonthParts(e, month)};
+  });
+}
 /** Whether an entry can reach a month's budgets (its own month, or a later one it is spread into). */
 export const reachesMonth = (e: MoneyEntry, month: string) => { const k = monthIndex(month) - monthIndex(e.date.slice(0, 7)); return k >= 0 && k < (e.spread ?? 1); };
 

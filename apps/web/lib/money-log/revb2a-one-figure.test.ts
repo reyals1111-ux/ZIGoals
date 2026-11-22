@@ -2,7 +2,12 @@ import {describe, expect, test} from 'vitest';
 import {ledger} from '../ai/local-answers/exact/money';
 import {resolvePeriod} from '../ai/local-answers/exact/period';
 import {cashRiver, categoryRanks, savingsRate, spendTrack, spendingCompare, spendingHeat} from '../nova/cards/ax/money-spend';
-import {countedCents} from './counted';
+import {budgetDayParts, countedCents} from './counted';
+import {periodRows, setPeriods, emptyBudgetPeriods} from '../budgets/periods';
+import {monthView} from '../budgets/engine';
+import {emptyBudgets, type BudgetsRecord} from '../budgets/schema';
+import {av2TasksAnswer} from '../ai/local-answers/av2-tasks';
+import {novaEnv, showcaseAll} from '../ai/evals/as/harness';
 import {totals} from './engine';
 import type {MoneyEntry} from './schema';
 
@@ -48,5 +53,41 @@ describe('B2A-1: NOVA and ZIGi exact money answers and NOVA’s spending widgets
     expect(days.map(d => [d.date, d.value, d.state])).toEqual([['2026-11-10', 2000, 'done'], ['2026-11-12', null, 'none'], ['2026-11-14', null, 'none']]);
     expect(spendingHeat(PROBE, TODAY)).toMatchObject({totalCents: 2000, daysWith: 1, peak: {date: '2026-11-10', cents: 2000}});
     expect(cashRiver(PROBE, month)).toMatchObject({incomeCents: 100000, spendingCents: 2000, netCents: 98000});
+  });
+});
+
+const budgets: BudgetsRecord = {...emptyBudgets(), budgets: [
+  {id: 'food', category: 'Groceries', currency: 'EUR', monthly: '100.00', rollover: false, since: '2026-01'},
+  {id: 'bills', category: 'Bills', currency: 'EUR', monthly: '50.00', rollover: false, since: '2026-01'},
+], payees: [{payee: 'Albert Heijn', currency: 'EUR', amount: '100.00'}]};
+/** A yearly bill of €120 paid on 31 January, spread over twelve months: €10 a month, on the month's last day. */
+const yearly = e('y', '120.00', {category: 'Bills', note: 'Insurance', date: '2026-01-31', spread: 12});
+describe('B2A-2: pay-period budgets and ZIGi’s pay-period answer', () => {
+  test('a calendar-month period spends what the month budgets spend: €20.00 of Groceries, nothing of a transfer', () => {
+    const rows = periodRows(PROBE, budgets, emptyBudgetPeriods(), TODAY);
+    expect(rows.map(r => [r.budget.id, r.spent, r.left])).toEqual([['food', 2000, 8000], ['bills', 0, 5000]]);
+    expect(monthView(PROBE, budgets, '2026-11', TODAY).rows.map(r => [r.id, r.spent])).toEqual([['food', 2000], ['bills', 0]]);
+  });
+  test('a spread entry counts each month’s share on its day in that month, in payday months and weeks too', () => {
+    expect(budgetDayParts(yearly).map(p => p.date).slice(0, 3)).toEqual(['2026-01-31', '2026-02-28', '2026-03-31']);
+    expect(budgetDayParts(yearly).reduce((s, p) => s + p.parts.reduce((t, x) => t + x.cents, 0), 0)).toBe(12000);
+    expect(budgetDayParts(PROBE[1]!)).toEqual([]);
+    const all = [...PROBE, yearly], month = periodRows(all, budgets, emptyBudgetPeriods(), TODAY).find(r => r.budget.id === 'bills')!;
+    expect(month.spent).toBe(1000);
+    expect(monthView(all, budgets, '2026-11', TODAY).rows.find(r => r.id === 'bills')!.spent).toBe(1000);
+    // Payday the 25th: 25 Oct – 24 Nov holds October's share (31 Oct), not November's (30 Nov).
+    const payday = periodRows(all, budgets, setPeriods(emptyBudgetPeriods(), {payday: 25}), TODAY);
+    expect(payday.map(r => [r.budget.id, r.start, r.spent])).toEqual([['food', '2026-10-25', 2000], ['bills', '2026-10-25', 1000]]);
+    const weekly = periodRows(all, budgets, setPeriods(emptyBudgetPeriods(), {every: {budgetId: 'bills', every: 'week'}}), '2026-11-30');
+    expect(weekly.find(r => r.budget.id === 'bills')).toMatchObject({start: '2026-11-30', spent: 1000});
+  });
+  test('ZIGi’s pay-period answer says the same €20.00 (€80.00 left of €100.00) and reads the payday', () => {
+    const base = novaEnv(showcaseAll()), env = {...base, moneyLog: {...base.moneyLog!, entries: PROBE}, nova: {...base.nova!, budgets}};
+    expect(base.habitDay).toBe('2026-11-17');
+    const say = (q: string, periods = emptyBudgetPeriods()) => { const r = av2TasksAnswer(q, env, {periods}); return r && 'text' in r ? r.text : ''; };
+    expect(say('how much is left in my budgets this pay period')).toMatch(/• Groceries: €80\.00 of €100\.00 \(/);
+    expect(say('hoeveel heb ik nog over in mijn budgetten deze periode')).toMatch(/• Groceries: €\s80,00 van €\s100,00 \(/);
+    const viaNova = av2TasksAnswer('how much is left in my budgets this pay period', {...env, nova: {...env.nova, budgetPeriods: setPeriods(emptyBudgetPeriods(), {payday: 25})}});
+    expect(viaNova && 'text' in viaNova ? viaNova.text : '').toMatch(/Groceries: €80\.00 of €100\.00 \(\w+, Oct 25 – \w+, Nov 24\)/);
   });
 });
