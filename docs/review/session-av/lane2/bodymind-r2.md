@@ -14,13 +14,46 @@ Every stored change is listed under "Stored changes" for the lead's TIER 3 (stor
 | `zigoals:energy:v1` `words` day (existing, loose) | optional `strength` (`little` \| `quite` \| `very`) and `more` (up to two `{energy, pleasantness, word, strength?}`; unreadable items filtered on read). Commit `e3d0b78f`. | Older builds keep reading the one `word` and keep both fields. |
 | `zigoals:evening-plan:v1` (existing, device-only, loose) | optional `morning` `{steps[1–6]: {id, label, minutesAfter 0–360}, updatedAt}`, `mornings` (date → ticked ids, ≤ 120 dates), `remind` (step ids, ≤ 14); each `.optional().catch(undefined)`. Commit `5d44cc3e`. | Kept untouched; older builds show the evening plan only. |
 
+## Summary: rows and verdicts
+
+| LEDGER row | verdict | feature |
+|---|---|---|
+| #235 Rise: energy schedule and its reminders | built; part Carried: the schedule on an outside calendar needs an outside service | 2 |
+| #236 Rise: habits at suggested times | built | 2 |
+| #237 Rise: naps and their effect | built | 1 |
+| #238 Rise: sleep need from your own nights | built | 1 |
+| #230 Reflectly: morning motivation and a daily challenge | built | 3 |
+| #231 Reflectly: a space to vent | built | 3 |
+| #232 Moodnotes: feelings with a strength | built | 4 |
+| #233 Moodnotes: thinking traps and the thought checker | built (self-reflection, never treatment) | 5 |
+| #234 Moodnotes: self-awareness articles | Carried (the ledger's verdict): needs content made for ZIGoals | — |
+| #239 Fitbod: gym profiles and equipment | built | 6 |
+| #240 Fitbod: a workout made for today | built (no programme written; only the 48 written exercises; never calories) | 6 |
+| #241 Fitbod: replace an exercise | built | 6 |
+
+Specs for the shard lists (none run here): `tests/av2-naps-need.spec.ts`, `tests/av2-curve-reminders.spec.ts`,
+`tests/av2-challenge-write-out.spec.ts`, `tests/av2-feelings-strength.spec.ts`, `tests/av2-thought-check.spec.ts`,
+`tests/av2-places-suggest-replace.spec.ts`.
+
+TIER 3 commits on this branch: `5d44cc3e` (stored formats: notify `energy`, evening-plan morning steps and reminders),
+`e3d0b78f` (stored formats: journal challenge, feeling-word strength and more words), `53db4101` (stored formats: the new
+`zigoals:workout-places:v1` key); `0f642e0e` carries TIER 3 (PWA): the notification plan's `energy` kind and one
+service-worker composer line.
+
+Seen while testing, not from this branch: `lib/illustrations/pillar-art.test.ts` ("components/journal/journal.css: the
+richer cards name theme tokens only") fails at `lane2/batch2` HEAD already (a `#…` in journal.css's header comment matches
+its hex check); this branch does not touch `journal.css`.
+
 ## Shared to-do for the lead (all features)
 
-- engine.ts wiring (one line, after `av2BodyAnswer`, same shape):
+- engine.ts wiring (one line, after `av2BodyAnswer`, same shape; av2-body's "suggest a workout" and its other questions
+  keep theirs — this file never claims a question av2-body answers):
   `if (!subject) { const own = av2BodymindR2Answer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }`
   with `import {av2BodymindR2Answer} from './av2-bodymind-r2';`.
 - Corpus: add `AV2_BODYMIND_R2` (`lib/ai/evals/as/cases-av2-bodymind-r2.ts`) to `CORPUS` in `cases.ts` and record `expected.json`.
-- New specs for the shard lists: see each feature.
+- New specs for the shard lists: see the summary above.
+- AK tool sources: `workoutPlaces: one(WORKOUT_PLACES)` (feature 6). `eveningPlan` is already there (the body lane's).
+- Registries for the new key `zigoals:workout-places:v1`: see feature 6.
 - CSS files touched (for the theme sheets): see each feature.
 
 ## 1. Naps in the sleep balance and on the energy curve; a sleep need from your own nights — LEDGER #237 built, #238 built
