@@ -1,0 +1,28 @@
+/* Session AV lane 2 (food): the food-logging parts that load on demand (quick-add macros, saving a meal from its menu,
+   eaten-at times, weekday macros, the mic, reminders and the rest). Theme variables only; copy 14 px and up, inputs
+   16 px, targets 44 px; nothing moves, so Motion Off and reduced motion need nothing more. */
+.health-quick-macros { border: 1px solid var(--line, #6a9cc342); border-radius: 14px; padding: 8px 12px 12px; margin: 12px 0; min-width: 0; }
+.health-quick-macros legend { font-size: 15px; padding: 0 4px; }
+.food-plus-inline { display: grid; gap: 10px; margin: 8px 0 12px; padding: 12px; border: 1px solid var(--line, #6a9cc342); border-radius: 14px; min-width: 0; }
+.food-plus-inline .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.food-plus-inline .actions button, .food-plus-row button { min-height: 44px; }
+.food-plus-inline p, .food-plus-card p, .food-plus-card li { font-size: 15px; margin: 0; overflow-wrap: anywhere; }
+.food-plus-card { display: grid; gap: 12px; min-width: 0; }
+.food-plus-card h2, .food-plus-card h3 { margin: 0; }
+.food-plus-card .fine, .food-plus-inline .fine { font-size: 14px; }
+.food-plus-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.food-plus-row > .field { flex: 1 1 120px; min-width: 0; }
+.food-plus-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.food-plus-list li { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line, #6a9cc342); }
+.food-plus-table-frame { overflow-x: auto; max-width: 100%; }
+.food-plus-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.food-plus-table th, .food-plus-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line, #6a9cc342); white-space: nowrap; }
+.food-plus-table th[scope="row"] { font-weight: 600; }
+.food-plus-bars { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.food-plus-bars li { display: grid; grid-template-columns: minmax(84px, auto) 1fr auto; gap: 8px; align-items: center; font-size: 15px; }
+.food-plus-bar { height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--pillar-health, #ff74be) 18%, transparent); overflow: hidden; }
+.food-plus-bar > i { display: block; height: 100%; border-radius: 6px; background: var(--pillar-health, #ff74be); }
+.food-plus-time { font-variant-numeric: tabular-nums; }
+.food-plus-mic { min-height: 44px; min-width: 44px; }
+.food-plus-mic[aria-pressed="true"] { outline: 2px solid var(--pillar-health, #ff74be); outline-offset: 2px; }
+.food-plus-photo { max-width: 160px; max-height: 160px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line, #6a9cc342); }
