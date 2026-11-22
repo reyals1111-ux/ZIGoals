@@ -160,7 +160,7 @@ task-parts.tsx, task-editor.tsx, task-r6-parts.tsx, project-states.tsx, project-
 tasks-organise.tsx, tasks-plan-views.tsx (the Calendar's focus), plan-day.tsx, tasks-body.tsx, today-tasks-due.tsx, tasks.css,
 tasks-r6.css}, components/weekly-review/weekly-review-dialog.tsx; lib/ai/local-answers/av2-r6-plan.ts,
 lib/ai/evals/as/cases-av2-r6-plan.ts.
-Tests: lib/tasks/r6-plan.test.ts, lib/tasks/r6-plan-stored.test.ts, lib/notify/r6-hold-notify.test.ts,
+Tests: lib/tasks/r6-plan.test.ts, lib/tasks/r6-review-b6m.test.ts, lib/tasks/r6-plan-stored.test.ts, lib/notify/r6-hold-notify.test.ts,
 lib/ai/local-answers/av2-r6-plan.test.ts. Spec: tests/av2-projects-r6.spec.ts (not run by me).
 
 Help (EN):
@@ -186,6 +186,25 @@ Help (EN):
   the task or as its repeat. Working days are Monday to Friday."
 What's new: "Tasks: change several at once (any day, labels), a project on hold or in order, Focus on some projects, project
 reviews, a repeat's record, label groups, and the second-to-last weekday as a repeat."
+
+## Review fixes (batch 6 review M: B6M-1 to B6M-12)
+
+All twelve fixed, one commit each, with unit tests in `apps/web/lib/tasks/r6-review-b6m.test.ts` (and the answers test for
+B6M-11; the spec for B6M-5, as no unit test renders these components). No stored format changed; no notification change.
+
+| id | commit | fix |
+|---|---|---|
+| B6M-1 | `c7558e60` | `withLabel(labels, label, groups)` (lib/tasks/engine.ts) is the one way a label is given: the Select bar, project rules and a rename. The editor and quick add give a whole list, read by the same `oneOfEachGroup`. A rule "add @office" on a task with @home leaves @office only. |
+| B6M-2 | `725d33b3` | The task now up in an in-order line is the first open one that waits for no other task, so in order plus "waits for" can never block for good. A task waiting for another keeps that as its reason. |
+| B6M-3, B6M-4 | `40a664ca` | One shared `isOutOfPlay(record, task, today, focus?)` and `inPlayRecord` (lib/tasks/focus.ts): held project, waiting its turn, or out of focus where focus applies. Read by My Day's picks in Today, Plan my day's "From yesterday", the day planner's busy times, Upcoming's week and month lists, its deadline line and its at-risk line. `rollBuckets` never rewrites a held task. |
+| B6M-5 | `de4c8f2f` | Focus lands on a control that is there afterwards: Put on hold → the panel's Resume now; Resume now → Put on hold (or the fold's toggle); Reviewed → the toggle; a group added, saved or cancelled → New label group; a group removed → the Label groups heading. |
+| B6M-6 | `52bd79d1` | `renameLabel` renames the label inside its group (one write, one Undo) and gives the new name through `withLabel`. A rename that would put a label in two groups is refused in words. |
+| B6M-7 | `5ce54f18` | A task waiting its turn may be ticked done early, as OmniFocus allows. This is said under "Do the tasks one at a time" and in the Help answer; the line goes on from the task now up. |
+| B6M-8 | `20938ac8` | `setFocus` (lib/tasks/plan-record.ts) changes the focus alone. Focus's Undo puts back the earlier focus only, so other planning writes made meanwhile stay. |
+| B6M-9 | `c9684f39` | The filter words are now `is:hold` and `is:waiting`, so "hold music" or "waiting room" still match titles. |
+| B6M-10 | `2743d02f` | The evening wrap-up ("What's moving to tomorrow") and NOVA's Tasks queue leave out what the counts leave out (`isOutOfPlay`). |
+| B6M-11 | `ce6958f9` | `focusName(focus, record, lang)` builds the Dutch form itself ("Werk en nog 2") and never changes a project's name. |
+| B6M-12 | `ba739ea2` | `labelPlan` gives the Select bar's label toast its counts: the tasks that really changed, how many had the label already, and the full ones by name. Only the changed tasks are written. |
 
 ## Left (allowed causes only)
 
