@@ -9,6 +9,13 @@ import {answer, asked, clockIn, closed, hm, isQuestion, journalClosed, MIXED, sa
 import {challengeDoneToday, challengeOfTheDay} from '../../journal/challenges';
 import {feelingsLine, feelingsOn} from '../../mood-words/more';
 import {thoughtCheckStats, TRAPS, trapById} from '../../journal/thinking-traps';
+import {exerciseIn, logOf} from './av2-body';
+import {EXERCISES} from '../../workouts/library';
+import {EQUIPMENT_WORDS, needsWords} from '../../workouts/equipment';
+import {alternatives} from '../../workouts/replace';
+import {suggestWorkout} from '../../workouts/suggest';
+import {currentPlace} from '../../workouts/places';
+import type {WorkoutPlaces} from '../../workouts/places-schema';
 import {addLocalDays} from '../../local-date';
 import type {LocalReply} from './engine';
 
@@ -134,4 +141,49 @@ function trapsAnswer(a: Asked): LocalReply | null {
   return answer(`${base} ${say(lang, `You have done ${st.checks} thought ${st.checks === 1 ? 'check' : 'checks'}${top ? `; the traps you noticed most: ${top}` : ''}.`, `Je deed ${st.checks} ${st.checks === 1 ? 'gedachtecheck' : 'gedachtechecks'}${top ? `; de valkuilen die je het vaakst zag: ${top}` : ''}.`)}`, JOURNAL_CALLS);
 }
 
-const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer, morningAnswer, challengeAnswer, ventAnswer, feelingsAnswer, trapsAnswer];
+// ── Fitbod: places and equipment, a workout for today, replace an exercise (LEDGER #239–#241) ───────────────────────
+
+const WORKOUT_CALLS = [{tool: 'workouts', args: {}, label: 'Workouts'}];
+/** The places record, once the lead adds it to the AK tool sources (`workoutPlaces`); null until then (any place). */
+const placesOf = (a: Asked): WorkoutPlaces | null => (a.env.ak as {workoutPlaces?: WorkoutPlaces | null} | undefined)?.workoutPlaces ?? null;
+const MUSCLE_NL: Record<string, string> = {Chest: 'borst', Back: 'rug', Legs: 'benen', Shoulders: 'schouders', Arms: 'armen', Core: 'romp'};
+/** "what should I train today", "wat zal ik vandaag trainen": the suggestion from the person's own log (a suggestion, not a plan). */
+function todayWorkoutAnswer(a: Asked): LocalReply | null {
+  const en = /\bwhat (?:should|shall|could) i (?:train|work out|lift|do at the gym)(?: today)?\b|\b(?:workout|training) (?:for|made for) today\b|\bwhich muscles (?:are fresh|should i train)\b/.test(a.f), nl = /\bwat (?:zal|moet|kan) ik vandaag (?:trainen|doen in de sportschool)\b|\bwat (?:zal|moet|kan) ik trainen\b|\bworkout voor vandaag\b|\bwelke spieren zijn (?:fris|uitgerust)\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const w = logOf(a), lang = a.lang, place = currentPlace(placesOf(a));
+  const s = suggestWorkout({w, library: EXERCISES, now: new Date(a.env.now), today: a.env.healthDay, place, minutes: 45});
+  if (!s.exercises.length) return answer(say(lang, 'Nothing in the library fits the equipment of your place for now. Add equipment under Health → Workouts → Places and equipment, or choose Any place.', 'Niets in de bibliotheek past bij het materiaal van je huidige plek. Voeg materiaal toe onder Health → Workouts → Places and equipment, of kies Any place.'), WORKOUT_CALLS);
+  const groups = s.groups.map(g => lang === 'nl' ? MUSCLE_NL[g.muscle] ?? g.muscle : g.muscle.toLowerCase()).join(', ');
+  const list = s.exercises.map(x => `• ${x.name}: ${x.sets.length} × ${x.sets[0]?.weightKg !== undefined ? `${x.sets[0].weightKg} kg × ${x.sets[0].reps}` : x.sets[0]?.reps !== undefined ? `${x.sets[0].reps} ${say(lang, 'reps', 'herhalingen')}` : x.sets[0]?.seconds !== undefined ? `${x.sets[0].seconds} s` : '—'}${x.from === 'new' ? say(lang, ' (new to your log)', ' (nieuw in je logboek)') : ''}`);
+  const head = say(lang, `A suggestion for about 45 minutes, for your freshest groups (${groups})${s.place ? ` at ${s.place}` : ''}, from your own last sets:`, `Een voorstel voor ongeveer 45 minuten, voor je frisste spiergroepen (${groups})${s.place ? ` in ${s.place}` : ''}, op basis van je eigen laatste sets:`);
+  const tail = say(lang, `${s.tired ? 'Everything is still recovering, so keep it light. ' : ''}Change it or start it in Health → Workouts → Suggest a workout for today. A suggestion, not a programme.`, `${s.tired ? 'Alles is nog aan het herstellen, dus houd het licht. ' : ''}Pas het aan of start het in Health → Workouts → Suggest a workout for today. Een voorstel, geen programma.`);
+  return answer([head, ...list, tail].join('\n'), WORKOUT_CALLS);
+}
+/** "what equipment does the bench press need", "welk materiaal heb ik nodig voor bankdrukken". */
+function equipmentAnswer(a: Asked): LocalReply | null {
+  const en = /\b(?:what|which) (?:equipment|gear|kit)\b.*\b(?:need|needs|for|use)\b|\bequipment (?:for|of)\b/.test(a.f), nl = /\b(?:welk|wat voor) (?:materiaal|apparatuur|spullen)\b|\bmateriaal (?:voor|bij)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const e = exerciseIn(a.f);
+  if (!e) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, words = needsWords(e.id, lang), place = currentPlace(placesOf(a));
+  if (!words) return null;
+  const here = place ? say(lang, ` Your place for now, ${place.name}, has: ${place.equipment.filter(x => x in EQUIPMENT_WORDS).map(x => EQUIPMENT_WORDS[x as keyof typeof EQUIPMENT_WORDS].en).join(', ') || 'body weight only'}.`, ` Je huidige plek, ${place.name}, heeft: ${place.equipment.filter(x => x in EQUIPMENT_WORDS).map(x => EQUIPMENT_WORDS[x as keyof typeof EQUIPMENT_WORDS].nl).join(', ') || 'alleen lichaamsgewicht'}.`) : '';
+  return answer(say(lang, `${e.name} needs: ${words}.${here}`, `${e.name} vraagt: ${words}.${here}`), WORKOUT_CALLS);
+}
+/** "what can I do instead of the bench press", "wat kan ik doen in plaats van bankdrukken": similar exercises. */
+function insteadAnswer(a: Asked): LocalReply | null {
+  const en = /\binstead of\b|\b(?:replace|swap|substitute|alternative (?:to|for))\b/.test(a.f), nl = /\bin plaats van\b|\b(?:vervangen|vervanger|alternatief voor)\b/.test(a.f);
+  if (!(en || nl) || !isQuestion(a)) return null;
+  const e = exerciseIn(a.f);
+  if (!e) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, place = currentPlace(placesOf(a)), ex = EXERCISES.find(x => x.id === e.id)!;
+  const list = alternatives(ex, logOf(a), place ? place.equipment : null, [], 6, false);
+  if (!list.length) return answer(say(lang, `No similar built-in exercise fits${place ? ` ${place.name}'s equipment` : ''} for ${e.name}.`, `Geen vergelijkbare oefening past${place ? ` bij het materiaal van ${place.name}` : ''} voor ${e.name}.`), WORKOUT_CALLS);
+  return answer(say(lang, `Instead of ${e.name} (the same main muscle${place ? `, with what ${place.name} has` : ''}): ${list.map(x => x.name).join(', ')}. While you train, Replace on the exercise swaps it and keeps your sets.`, `In plaats van ${e.name} (dezelfde hoofdspier${place ? `, met wat ${place.name} heeft` : ''}): ${list.map(x => x.name).join(', ')}. Tijdens het trainen wisselt Replace bij de oefening hem om en houdt je sets.`), WORKOUT_CALLS);
+}
+
+const ANSWERS: ((a: Asked) => LocalReply | null)[] = [needAnswer, napsAnswer, morningAnswer, challengeAnswer, ventAnswer, feelingsAnswer, trapsAnswer, todayWorkoutAnswer, equipmentAnswer, insteadAnswer];

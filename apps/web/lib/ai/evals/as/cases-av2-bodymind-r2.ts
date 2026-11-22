@@ -13,4 +13,7 @@ export const AV2_BODYMIND_R2: readonly Intent[] = [
   {id: 'av2r2-vent', pillar: 'journal', en: ['where can I vent', 'is there a place to vent'], nl: ['waar kan ik mijn hart luchten', 'is er een plek om stoom af te blazen']},
   {id: 'av2r2-feelings', pillar: 'health', en: ['what feelings did I log today', 'which feeling words do I have'], nl: ['welke gevoelens heb ik vandaag', 'welke gevoelswoorden heb ik'], never: ['diagnos', 'disorder', 'stoornis']},
   {id: 'av2r2-thinking-traps', pillar: 'journal', en: ['what are thinking traps', 'what is a thinking trap'], nl: ['wat zijn denkvalkuilen', 'wat is een denkvalkuil'], never: ['disorder', 'stoornis']},
+  {id: 'av2r2-today-workout', pillar: 'health', en: ['what should I train today', 'which muscles are fresh'], nl: ['wat zal ik vandaag trainen', 'welke spieren zijn uitgerust'], never: ['kcal', 'calorie']},
+  {id: 'av2r2-equipment', pillar: 'health', en: ['what equipment does the bench press need', 'which equipment do I need for a lat pulldown'], nl: ['welk materiaal heb ik nodig voor bankdrukken', 'welk materiaal is nodig voor de deadlift']},
+  {id: 'av2r2-instead', pillar: 'health', en: ['what can I do instead of the bench press', 'what is an alternative to pull-ups'], nl: ['wat kan ik doen in plaats van bankdrukken', 'wat is een alternatief voor optrekken']},
 ];

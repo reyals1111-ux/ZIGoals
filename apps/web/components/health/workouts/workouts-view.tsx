@@ -14,6 +14,7 @@ import {newHealthId, removeHealthItem, saveActivity} from '../../../lib/health';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {formatDate, formatNumber, formatTime} from '../../../lib/visual-format';
 import {plural} from '../../../lib/plural';
+import {replaceInWorkout} from '../../../lib/workouts/replace-entry';
 import {addCustomExercise, addExercise, addSet, discardWorkout, doneSets, durationMinutes, exerciseHistory, finished, oneRepMax, finishWorkout, inProgress, lastEntryFor, moveExercise, removeExercise, removeSet, removeTemplate, removeWorkout, renameWorkout, saveTemplate, setExerciseNote, setReady, setRest, startWorkout, updateSet, volumeKg, weekSummary, withActivity, type PersonalBest} from '../../../lib/workouts/engine';
 import {allExercises, searchExercises, type LibraryExercise} from '../../../lib/workouts/library';
 import {leaveSuperset, restAfter, restFor, RPE_VALUES, RPE_WORDS, setExerciseRest, setRpe, supersetLabels, supersetWithNext} from '../../../lib/workouts/depth';
@@ -40,6 +41,9 @@ import {goalProgress, runSummary, runWords} from '../../../lib/workouts/runs';
 import {seedSeen, setRunShoe, withUsualShoe} from '../../../lib/workouts/shoes';
 import {progressed, targetFor, type Target} from '../../../lib/workouts/progression';
 import {guideLine, guideOf, routineLang, type Guide, type Lang} from '../../../lib/workouts/routine-library';
+// Session AV lane 2 (bodymind-r2; LEDGER #239–#241, Fitbod): the place for now filters what is offered (constants only here).
+import {WORKOUT_PLACES, type Place, type WorkoutPlaces} from '../../../lib/workouts/places-schema';
+import {availableWith} from '../../../lib/workouts/equipment';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
 const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
@@ -67,6 +71,11 @@ const DistanceGoals = lazy(() => import('./distance-goals'));
 const Shoes = lazy(() => import('./shoes'));
 const RunTip = lazy(() => import('./run-tip'));
 const ExerciseHowTo = lazy(() => import('./exercise-library').then(m => ({default: m.ExerciseDetail})));
+// Session AV lane 2 (bodymind-r2; LEDGER #239, #240, #241): places and equipment, a suggested workout, Replace — each its own chunk.
+const Places = lazy(() => import('./places'));
+const SuggestWorkout = lazy(() => import('./suggest-workout'));
+const ReplaceExercise = lazy(() => import('./replace-exercise'));
+const placeNow = (r: WorkoutPlaces | null): Place | null => r?.places.find(p => p.id === r.current) ?? null;
 
 /**
  * Workouts, the full view (Session AH Part 6, DE8; /app/health?view=workouts, a view of Health like Sleep and Meditation).
@@ -84,6 +93,8 @@ export default function WorkoutsView() {
   const record = useWorkouts(), health = useHealth();
   // Session AP (feature 5): a run's pace and per-km splits, kept at import by workout id (never back-filled).
   const splitsRecord = useDeviceRecord(WORKOUT_SPLITS);
+  // Session AV lane 2 (bodymind-r2; LEDGER #239): the places and the one chosen now.
+  const placesRecord = useDeviceRecord(WORKOUT_PLACES), places = placesRecord.loaded && !placesRecord.unreadable ? placesRecord.data : null, place = placeNow(places);
   const [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now()), [restUntil, setRestUntil] = useState<number | null>(null);
   const [tookMinutes, setTookMinutes] = useState('');
   const [asking, setAsking] = useState<null | 'finish' | 'discard' | {remove: string}>(null), [summary, setSummary] = useState<{workout: Workout; bests: PersonalBest[]} | null>(null);
@@ -207,7 +218,7 @@ export default function WorkoutsView() {
     {note && <p className="workouts-note" role="status">{note}</p>}
     {record.unreadable && <p className="notice" role="alert">The workout log on this device could not be read. Its bytes are kept; nothing was changed. Starting a workout writes a new log.</p>}
 
-    {current ? <><CurrentWorkout workout={current} w={w} unit={unit} now={now} library={library} restUntil={restUntil} change={change}
+    {current ? <><CurrentWorkout workout={current} w={w} unit={unit} now={now} library={library} restUntil={restUntil} change={change} places={places}
         onRest={startRest} onSkipRest={() => setRestUntil(null)}
         onFinish={() => { const open = current.exercises.reduce((n, e) => n + e.sets.filter(s => !s.done && setReady(e.measure, s)).length, 0); if (open) setAsking('finish'); else void finish(); }}
         onDiscard={() => setAsking('discard')}/>
@@ -221,6 +232,9 @@ export default function WorkoutsView() {
         {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null} onNoted={fn => change(fn)}/></Suspense>}
         <Suspense fallback={null}><RunTip today={today}/></Suspense>
         {past.length > 0 && <CalendarFold w={w} today={today}/>}
+        {/* Session AV lane 2 (bodymind-r2; LEDGER #240, Fitbod): a workout for today from your own history, freshness and place. */}
+        <Fold className="av2-fold workouts-suggest-fold" summary="Suggest a workout for today, from your own sets" loading="Working out a suggestion…"><SuggestWorkout w={w} library={library} today={today} unit={unit} places={places} onStart={x => begin({date: logDay, now: new Date(), repeat: x})}/></Fold>
+        <Fold className="av2-fold workouts-places-fold" summary={place ? `Places and equipment · now: ${place.name}` : 'Places and equipment · where you train and what is there'} loading="Opening your places…"><Places/></Fold>
         <div className="workouts-start-actions">
           <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
           {last && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: last})}>Repeat {last.name}</button>}
@@ -292,7 +306,7 @@ export default function WorkoutsView() {
     {/* Session AV lane 2 (body; LEDGER #116, #119; Hevy's exercise library): every exercise's written how-to, its muscles, your best and a pinned note. */}
     <section className="panel workouts-library" aria-labelledby="workouts-library-title">
       <h2 id="workouts-library-title">Exercises and how-tos</h2>
-      <Fold className="av2-fold workouts-library-fold" summary="Open the exercise library" loading="Opening the exercise library…"><ExerciseLibrary w={w} unit={unit} library={library} change={change}/></Fold>
+      <Fold className="av2-fold workouts-library-fold" summary="Open the exercise library" loading="Opening the exercise library…"><ExerciseLibrary w={w} unit={unit} library={library} change={change} place={place}/></Fold>
     </section>
 
     <section className="panel workouts-settings" aria-labelledby="workouts-settings-title">
@@ -307,7 +321,7 @@ export default function WorkoutsView() {
   </div>;
 }
 
-function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRest, onSkipRest, onFinish, onDiscard}: {workout: Workout; w: Workouts; unit: 'kg' | 'lb'; now: number; library: LibraryExercise[]; restUntil: number | null;
+function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRest, onSkipRest, onFinish, onDiscard, places}: {workout: Workout; w: Workouts; unit: 'kg' | 'lb'; now: number; library: LibraryExercise[]; restUntil: number | null; places: WorkoutPlaces | null;
   change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: (entryId: string) => void; onSkipRest: () => void; onFinish: () => void; onDiscard: () => void}) {
   const [picking, setPicking] = useState(workout.exercises.length === 0);
   const letters = supersetLabels(workout.exercises);
@@ -323,8 +337,8 @@ function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRe
     {restUntil !== null && <p className="workouts-rest" role="timer" aria-live="off">Rest <strong>{clock(Math.max(0, Math.ceil((restUntil - now) / 1000)))}</strong> <button className="text-link" type="button" onClick={onSkipRest}>Skip rest</button></p>}
     {workout.exercises.map((e, i) => <ExerciseBlock key={e.id} entry={e} index={i} count={workout.exercises.length} previous={lastEntryFor(w, e.exerciseId, workout.startedAt)} unit={unit} change={change} onRest={() => onRest(e.id)}
       w={w} letter={letters.get(e.id)} nextLetter={letters.get(workout.exercises[i + 1]?.id ?? '')} cue={(() => { const x = guide?.exercises.find(g => g.exerciseId === e.exerciseId); return x ? {line: guideLine(x, cueLang), cue: x.cue[cueLang], lang: cueLang} : undefined; })()}
-      target={routine?.progression ? targetFor(w, routine, e.exerciseId, workout.startedAt) : null}/>)}
-    {picking ? <ExercisePicker library={library} onPick={x => { if (change(y => addExercise(y, x))) setPicking(false); }} onCreate={input => { let made: LibraryExercise | undefined; if (change(y => { const r = addCustomExercise(y, input); made = r.exercise; return addExercise(r.workouts, r.exercise); })) { setPicking(false); void made; } }} onClose={workout.exercises.length ? () => setPicking(false) : undefined}/>
+      target={routine?.progression ? targetFor(w, routine, e.exerciseId, workout.startedAt) : null} library={library} place={placeNow(places)} inWorkout={workout.exercises.map(x => x.exerciseId)}/>)}
+    {picking ? <ExercisePicker library={library} places={places} onPick={x => { if (change(y => addExercise(y, x))) setPicking(false); }} onCreate={input => { let made: LibraryExercise | undefined; if (change(y => { const r = addCustomExercise(y, input); made = r.exercise; return addExercise(r.workouts, r.exercise); })) { setPicking(false); void made; } }} onClose={workout.exercises.length ? () => setPicking(false) : undefined}/>
       : <button className="secondary workouts-add" type="button" onClick={() => setPicking(true)}>+ Add an exercise</button>}
     <div className="workouts-now-actions"><button className="primary" type="button" onClick={onFinish}>Finish workout</button><button className="quiet" type="button" onClick={onDiscard}>Discard</button></div>
   </section>;
@@ -348,9 +362,11 @@ function CalendarFold({w, today}: {w: Workouts; today: string}) {
   const [open, setOpen] = useState(false);
   return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today}/></Suspense>}</details>;
 }
-function ExerciseBlock({entry, index, count, previous, unit: pageUnit, change, onRest, w, letter, nextLetter, cue, target}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
-  w: Workouts; letter?: string; nextLetter?: string; cue?: {line: string; cue: string; lang: Lang}; target?: Target | null}) {
+function ExerciseBlock({entry, index, count, previous, unit: pageUnit, change, onRest, w, letter, nextLetter, cue, target, library, place, inWorkout}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
+  w: Workouts; letter?: string; nextLetter?: string; cue?: {line: string; cue: string; lang: Lang}; target?: Target | null; library: LibraryExercise[]; place: Place | null; inWorkout: string[]}) {
   const headId = `ex-${entry.id}`, [tools, setTools] = useState(false), rpe = entry.measure === 'weight-reps' || entry.measure === 'reps';
+  // Session AV lane 2 (bodymind-r2; LEDGER #241, Fitbod): Replace with a similar exercise (same main muscle, this place's equipment).
+  const [replacing, setReplacing] = useState(false);
   // Session AV lane 2 (body; LEDGER #201): this exercise's own unit (the sets stay in kg), else the Health weight unit.
   const unit = unitFor(w, entry.exerciseId, pageUnit);
   // Session AV (owner follow-up 1, F-SET-BEST): the bests of every finished workout, for the badge on a ticked set.
@@ -359,7 +375,11 @@ function ExerciseBlock({entry, index, count, previous, unit: pageUnit, change, o
     <header><h3 id={headId}>{letter && <span className="workouts-superset-tag">Superset {letter}<span className="sr-only">:</span></span>} {entry.name}</h3><div className="workouts-row-actions">
       <button className="quiet" type="button" disabled={index === 0} aria-label={`Move ${entry.name} up`} onClick={() => change(x => moveExercise(x, entry.id, -1))}>↑</button>
       <button className="quiet" type="button" disabled={index === count - 1} aria-label={`Move ${entry.name} down`} onClick={() => change(x => moveExercise(x, entry.id, 1))}>↓</button>
+      <button className="quiet" type="button" data-replace-for={entry.id} aria-expanded={replacing} aria-label={`Replace ${entry.name}`} onClick={() => setReplacing(v => !v)}>Replace</button>
       <button className="quiet" type="button" aria-label={`Remove ${entry.name}`} onClick={() => change(x => removeExercise(x, entry.id), `${entry.name} removed from this workout.`, `${entry.name} is back in this workout.`)}>Remove</button></div></header>
+    {replacing && <Suspense fallback={<p className="fine" role="status">Finding similar exercises…</p>}><ReplaceExercise exercise={{id: entry.exerciseId, name: entry.name, measure: entry.measure}} w={w} library={library} place={place} exclude={inWorkout} headId={headId}
+      onPick={x => { const was = {id: entry.exerciseId, name: entry.name, measure: entry.measure}, said = `${entry.name} is replaced by ${x.name}; the sets you typed are kept.`;
+        if (change(y => replaceInWorkout(y, entry.id, x), said)) { showUndo({message: said, undone: `${was.name} is back.`, restore: () => { change(y => replaceInWorkout(y, entry.id, was)); }}); setReplacing(false); requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-replace-for="${entry.id}"]`)?.focus()); } }} onClose={() => { setReplacing(false); requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-replace-for="${entry.id}"]`)?.focus()); }}/></Suspense>}
     <table className="workouts-sets"><caption className="sr-only">{entry.name}: sets</caption>
       <thead><tr><th scope="col">Set</th><th scope="col">Last time</th>{entry.measure === 'weight-reps' && <th scope="col">{unit}</th>}{entry.measure === 'reps' && entry.load && <th scope="col">{entry.load === 'weighted' ? `Added ${unit}` : `Help ${unit}`}</th>}{entry.measure === 'distance-time' && <th scope="col">km</th>}{(entry.measure === 'weight-reps' || entry.measure === 'reps') && <th scope="col">Reps</th>}{(entry.measure === 'time' || entry.measure === 'distance-time') && <th scope="col">Time</th>}{rpe && <th scope="col"><abbr title="Rate of perceived exertion: 10 is nothing left, 8 is about two reps left">RPE</abbr></th>}<th scope="col"><span className="sr-only">Done</span></th><th scope="col"><span className="sr-only">Remove</span></th></tr></thead>
       <tbody>{entry.sets.map((s, i) => <SetRow key={s.id} entry={entry} set={s} n={i + 1} previous={previous?.sets[i]} unit={unit} change={change} onDone={onRest} rpe={rpe} best={setBest(entry.measure, s, withEarlier(bests, entry.sets.slice(0, i)))}/* Session AV (q3 #40): one star per best */ />)}</tbody>
@@ -442,15 +462,19 @@ function SetRow({entry, set, n, previous, unit, change, onDone, rpe, best}: {ent
   </tr>{problem && <tr className="workouts-problem"><td colSpan={8}><p role="alert">{problem}</p></td></tr>}</>;
 }
 
-function ExercisePicker({library, onPick, onCreate, onClose}: {library: LibraryExercise[]; onPick: (x: LibraryExercise) => void; onCreate: (input: {name: string; category: typeof CATEGORIES[number]; measure: Measure}) => void; onClose?: () => void}) {
+function ExercisePicker({library, places, onPick, onCreate, onClose}: {library: LibraryExercise[]; places: WorkoutPlaces | null; onPick: (x: LibraryExercise) => void; onCreate: (input: {name: string; category: typeof CATEGORIES[number]; measure: Measure}) => void; onClose?: () => void}) {
   const [query, setQuery] = useState(''), [category, setCategory] = useState<'' | typeof CATEGORIES[number]>(''), [measure, setMeasure] = useState<Measure>('weight-reps'), [newCategory, setNewCategory] = useState<typeof CATEGORIES[number]>('Full body');
-  const found = useMemo(() => searchExercises(library, query).filter(e => !category || e.category === category).slice(0, 40), [library, query, category]);
+  // Session AV lane 2 (bodymind-r2; LEDGER #239): only what the chosen place has (the place for now unless changed here).
+  const [placeId, setPlaceId] = useState(places?.current ?? ''), at = places?.places.find(p => p.id === placeId) ?? null;
+  const found = useMemo(() => searchExercises(library, query).filter(e => (!category || e.category === category) && availableWith(e.id, at ? at.equipment : null)).slice(0, 40), [library, query, category, at]);
   const exact = library.some(e => e.name.toLowerCase() === query.trim().toLowerCase());
   return <div className="workouts-picker" role="group" aria-label="Add an exercise">
     <div className="workouts-picker-filters">
       <label className="field"><span>Find an exercise</span><input type="search" value={query} maxLength={80} onChange={e => setQuery(e.target.value)} placeholder="Bench, squat, run…" autoFocus/></label>
       <label className="field"><span>Muscle group</span><select value={category} onChange={e => setCategory(e.target.value as typeof category)}><option value="">All</option>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></label>
+      {places && places.places.length > 0 && <label className="field"><span>Place</span><select value={placeId} onChange={e => setPlaceId(e.target.value)}><option value="">Any place</option>{places.places.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
     </div>
+    {at && <p className="fine">Showing what {at.name} has, and your own exercises.</p>}
     <ul className="workouts-picker-list">{found.map(x => <li key={x.id}><button type="button" className="secondary" onClick={() => onPick(x)}><strong>{x.name}</strong><span>{x.category} · {MEASURE_WORDS[x.measure]}</span></button></li>)}</ul>
     {query.trim() && !exact && <div className="workouts-picker-new"><p>Not in the list? Add “{query.trim()}”.</p>
       <label className="field"><span>Muscle group</span><select value={newCategory} onChange={e => setNewCategory(e.target.value as typeof newCategory)}>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></label>

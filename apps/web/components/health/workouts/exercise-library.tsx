@@ -8,6 +8,8 @@ import {CATEGORIES, type Workouts} from '../../../lib/workouts/schema';
 import {formatDate, formatNumber} from '../../../lib/visual-format';
 import {clock, estimateShown, weightShown} from './units';
 import './av2-body.css';
+import {availableWith, needsWords} from '../../../lib/workouts/equipment';
+import type {Place} from '../../../lib/workouts/places-schema';
 
 /**
  * Session AV lane 2 (body; LEDGER #116 and #119, Hevy's exercise library and pinned notes): Health → Workouts →
@@ -17,9 +19,9 @@ import './av2-body.css';
  * exercise has no written steps: its pinned note is its how-to. Its own chunk, loaded when the fold opens.
  */
 type Change = (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean;
-export default function ExerciseLibrary({w, unit, library, change, initial}: {w: Workouts; unit: 'kg' | 'lb'; library: LibraryExercise[]; change: Change; initial?: string}) {
-  const [query, setQuery] = useState(''), [category, setCategory] = useState<'' | typeof CATEGORIES[number]>(''), [picked, setPicked] = useState(initial ?? '');
-  const found = useMemo(() => searchExercises(library, query).filter(e => !category || e.category === category), [library, query, category]);
+export default function ExerciseLibrary({w, unit, library, change, initial, place = null}: {w: Workouts; unit: 'kg' | 'lb'; library: LibraryExercise[]; change: Change; initial?: string; /** Session AV lane 2 (bodymind-r2; LEDGER #239): the place for now. */ place?: Place | null}) {
+  const [query, setQuery] = useState(''), [category, setCategory] = useState<'' | typeof CATEGORIES[number]>(''), [picked, setPicked] = useState(initial ?? ''), [onlyHere, setOnlyHere] = useState(true);
+  const found = useMemo(() => searchExercises(library, query).filter(e => (!category || e.category === category) && availableWith(e.id, place && onlyHere ? place.equipment : null)), [library, query, category, place, onlyHere]);
   const chosen = library.find(e => e.id === picked) ?? null, id = useId();
   return <div className="av2-library">
     <p className="fine">{library.length} exercises: how to do each one, the muscles it works, and your own best. Videos are not needed: every step is written out.</p>
@@ -27,7 +29,8 @@ export default function ExerciseLibrary({w, unit, library, change, initial}: {w:
       <label className="field"><span>Find an exercise</span><input type="search" value={query} maxLength={80} onChange={e => setQuery(e.target.value)} placeholder="Squat, row, plank…"/></label>
       <label className="field"><span>Muscle group</span><select value={category} onChange={e => setCategory(e.target.value as typeof category)}><option value="">All</option>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></label>
     </div>
-    {found.length ? <ul className="av2-library-list" aria-label="Exercises">{found.slice(0, 60).map(x => <li key={x.id}><button type="button" className="secondary" aria-pressed={x.id === picked} aria-controls={`${id}-detail`} onClick={() => setPicked(x.id)}><strong>{x.name}</strong>{' '}<span>{x.category}{pinnedNoteOf(w, x.id) ? ' · pinned note' : ''}</span></button></li>)}</ul>
+    {place && <label className="switch-row"><input type="checkbox" checked={onlyHere} onChange={e => setOnlyHere(e.target.checked)}/> <span>Only what {place.name} has</span></label>}
+    {found.length ? <ul className="av2-library-list" aria-label="Exercises">{found.slice(0, 60).map(x => <li key={x.id}><button type="button" className="secondary" aria-pressed={x.id === picked} aria-controls={`${id}-detail`} onClick={() => setPicked(x.id)}><strong>{x.name}</strong>{' '}<span>{x.category}{pinnedNoteOf(w, x.id) ? ' · pinned note' : ''}{needsWords(x.id) ? ` · ${needsWords(x.id)}` : ''}</span></button></li>)}</ul>
       : <p className="fine" role="status">No exercise matches “{query.trim()}”. Add it as your own while you train (+ Add an exercise).</p>}
     <div id={`${id}-detail`} aria-live="polite">{chosen ? <ExerciseDetail key={chosen.id} exercise={chosen} w={w} unit={unit} change={change}/> : <p className="fine">Choose an exercise to see how it is done.</p>}</div>
   </div>;

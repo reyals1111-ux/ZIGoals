@@ -9,6 +9,7 @@ Every stored change is listed under "Stored changes" for the lead's TIER 3 (stor
 | record | change | readers of #37–#57 |
 |---|---|---|
 | `zigoals:notify:v1` (existing, device-only, loose) | optional `energy` `{focus?, dip?, windDown?}` (booleans, each `.optional().catch(undefined)`, the object `.optional().catch(undefined)`), and the type name `energy` in `types` (the record already keeps any type name; off by default). Commit `5d44cc3e`. | Kept untouched; an older build has no energy type. |
+| `zigoals:workout-places:v1` (NEW, device-only, loose, versioned) | `{version: 1, places[≤ 5]: {id, name (1–40), equipment: string[] (≤ 40), createdAt}, current?}`; an unreadable place is dropped, the others kept; a later build's equipment tag is kept as written. Commit `53db4101`. | New key; older builds never read it. |
 | `zigoals:journal:v1` (existing, device-only, loose) | optional `challenges` (boolean) and `challengeDone` (a date), each `.optional().catch(undefined)`. Commit `e3d0b78f`. | Kept untouched; older builds show no challenge. |
 | `zigoals:energy:v1` `words` day (existing, loose) | optional `strength` (`little` \| `quite` \| `very`) and `more` (up to two `{energy, pleasantness, word, strength?}`; unreadable items filtered on read). Commit `e3d0b78f`. | Older builds keep reading the one `word` and keep both fields. |
 | `zigoals:evening-plan:v1` (existing, device-only, loose) | optional `morning` `{steps[1–6]: {id, label, minutesAfter 0–360}, updatedAt}`, `mornings` (date → ticked ids, ≤ 120 dates), `remind` (step ids, ≤ 14); each `.optional().catch(undefined)`. Commit `5d44cc3e`. | Kept untouched; older builds show the evening plan only. |
@@ -187,3 +188,58 @@ Every stored change is listed under "Stored changes" for the lead's TIER 3 (stor
 - Device keys / catalogue / export / erase: nothing new. Search (static.ts): "thinking traps", "thought check",
   "denkvalkuilen" → `/app/journal`.
 - CSS: `components/journal/thought-check.css` (new). Nothing on Today.
+
+## 6. Fitbod gym days: places and equipment, a workout made for today, replace an exercise — LEDGER #239 built, #240 built, #241 built
+
+- What (#239): every built-in exercise has an equipment tag — one or more ways to do it from fifteen pieces (barbell,
+  dumbbells, kettlebell, bench, cable, machines, pull-up bar, dip bars, bands, bike, rower, elliptical or treadmill, pool,
+  jump rope, foam roller; the floor and body weight are always there; own exercises have no tag and show everywhere).
+  Health → Workouts → Start a workout → "Places and equipment" (a fold, its own chunk): up to five places, from a
+  ready-made set (Full gym, Home with dumbbells, Body weight only) or empty, each with ticked equipment, renamed or removed
+  (with Undo), and one "Place for now". The exercise picker has a "Place" choice (the place for now unless changed) and says
+  "Showing what Home has, and your own exercises."; the library has "Only what Home has" and lists what each exercise needs.
+- What (#240): "Suggest a workout for today, from your own sets" (a fold, its own chunk): choose where and how long (30, 45
+  or 60 minutes); four to six built-in exercises for the freshest muscle groups (the freshness estimate with the person's
+  own recovery days), only what the place allows, preferring exercises already in the log; each with sets from the
+  person's own last sessions through a progression rule — the routine's own rule where the exercise is in one, else 8 to
+  12 reps then +2.5 kg — and why ("One more rep than on Nov 16 (8 to 12 reps, then +2.5 kg)."); an exercise new to the log
+  gets reps only ("choose a weight you could lift a few more times"). Labelled "Suggestion … not a programme"; says when
+  everything is still recovering. Leave out or Replace any exercise, then "Start this workout" (an ordinary workout,
+  still editable). No programme is written and nothing is invented (only the 48 written exercises); never calories.
+- What (#241): "Replace" on each exercise of a running workout (and on each suggested one): similar built-in exercises —
+  the same main muscle, the same kind of sets (in a running workout, so the typed sets fit), what the place for now has,
+  not already in the workout — ranked by shared muscles and the person's own log, each saying what it works and "in your
+  log". Choosing one swaps it in keeping the sets typed so far, the note and the rest time, with Undo; focus returns to
+  the exercise's Replace button.
+- Files: `lib/workouts/places-schema.ts` (stored commit), `lib/workouts/equipment.ts`, `lib/workouts/places.ts`,
+  `lib/workouts/suggest.ts`, `lib/workouts/replace.ts`, `lib/workouts/replace-entry.ts` (new, pure),
+  `components/health/workouts/places.tsx`, `suggest-workout.tsx`, `replace-exercise.tsx` (new, each lazy),
+  `components/health/workouts/av2-bodymind-workouts.css` (new), `components/health/workouts/workouts-view.tsx` (the folds,
+  the picker's place, Replace), `components/health/workouts/exercise-library.tsx` (the place filter, what it needs).
+- Tests: `lib/workouts/av2-fitbod.test.ts`, `lib/workouts/av2-places-stored.test.ts`, `lib/ai/local-answers/av2-bodymind-r2.test.ts`;
+  existing workouts tests unchanged and green. Spec: `tests/av2-places-suggest-replace.spec.ts`.
+- Stored: `zigoals:workout-places:v1` (NEW key; see Stored changes). The suggestion stores nothing until started (an
+  ordinary workout in `zigoals:workouts:v1`).
+- **Registries the lead needs for `zigoals:workout-places:v1`** (personal, Health, "Workout places and equipment"):
+  device-key list (`lib/av-device-keys.ts`), data catalogue (`lib/data-health/catalog.ts`, area Health), Export everything
+  `DEVICE_KEYS` (`workoutPlaces`), the restore plan (`dev('workoutPlaces', 'Workout places and equipment', 'Health',
+  WORKOUT_PLACES)`), erase (`lib/erase-everything.ts`). Until then `lib/erase-coverage.test.ts` ("every key is in Export
+  everything and the data catalog") names the key, by design; once placed, the skipped round trip in
+  `lib/workouts/av2-places-stored.test.ts` runs. AK tool sources: `workoutPlaces: one(WORKOUT_PLACES)` in
+  `lib/ai/tools/ak-sources.ts` and `AkToolSources`, so the answers filter by the place (they read any place until then).
+- Route weight: the workouts view's first chunk gains only `lib/workouts/equipment.ts` (constants), the places schema, the
+  small write `replace-entry.ts` and the fold markup; the written how-tos load only with Replace. Not measured here.
+- Help (EN): **Can ZIGoals show only exercises I can do where I am?** Yes. In Health → Workouts, open "Places and
+  equipment", add a place (home, the gym, a hotel) and tick what it has. Choose it as your place for now: the exercise
+  list and the library then show only what you can do there. **Can ZIGoals suggest a workout?** Yes. "Suggest a workout
+  for today" picks four to six exercises for your freshest muscle groups, with the equipment where you are and a length
+  you choose, and fills in sets from your own last sessions. It is a suggestion: leave out or replace anything, then
+  start it. **Can I swap an exercise?** Yes. Replace on an exercise offers similar ones for the same muscles with your
+  equipment, and keeps the sets you already typed.
+- What's new: "Workouts: places with their equipment, a suggested workout for today, and Replace an exercise."
+- Answers: "what should I train today" / "wat zal ik vandaag trainen", "what equipment does the bench press need" / "welk
+  materiaal heb ik nodig voor bankdrukken", "what can I do instead of the bench press" / "wat kan ik doen in plaats van
+  bankdrukken".
+- Showcase hook: none needed (the Showcase's log makes a suggestion; a Showcase place is not needed and would add a
+  record no pinned count reads — offered if wanted).
+- CSS: `components/health/workouts/av2-bodymind-workouts.css` (new). Nothing on Today.

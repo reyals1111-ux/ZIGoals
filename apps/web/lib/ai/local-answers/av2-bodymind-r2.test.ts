@@ -92,3 +92,23 @@ describe('Moodnotes: thinking traps (LEDGER #233)', () => {
     expect(text(ask('what are thinking traps', s))).toContain('You have done 1 thought check; the traps you noticed most: Shoulds and musts (1).');
   });
 });
+
+describe('Fitbod: a workout for today, equipment, instead of (LEDGER #239–#241)', () => {
+  test('a suggestion from the Showcase\'s own sets, labelled a suggestion, never calories; in English and Dutch', () => {
+    const en = text(ask('what should I train today')), nl = text(ask('wat zal ik vandaag trainen'));
+    expect(en).toMatch(/^A suggestion for about 45 minutes, for your freshest groups \(/);
+    expect(en).toContain('A suggestion, not a programme.');
+    expect(en.split('\n').filter(l => l.startsWith('• '))).toHaveLength(5);
+    expect(nl).toContain('Een voorstel, geen programma.');
+    expect(en).not.toMatch(/kcal|calorie/i);
+  });
+  test('the equipment an exercise needs; similar exercises instead of one', () => {
+    expect(text(ask('what equipment does the bench press need'))).toBe('Bench press needs: Barbell and plates + Bench.');
+    expect(text(ask('welk materiaal heb ik nodig voor bankdrukken'))).toBe('Bench press vraagt: Halterstang en schijven + Bank.');
+    const instead = text(ask('what can I do instead of the bench press'));
+    expect(instead).toMatch(/^Instead of Bench press \(the same main muscle\): .+\. While you train, Replace/);
+    expect(instead).not.toContain(': Bench press,');
+    const s = showcase(); s.ak = {...s.ak, workoutPlaces: {version: 1, places: [{id: 'place-trip-1', name: 'Hotel', equipment: [], createdAt: `${DAY}T08:00:00.000Z`}], current: 'place-trip-1'}} as typeof s.ak;
+    expect(text(ask('what can I do instead of the bench press', s))).toMatch(/with what Hotel has\): .*Push-up/);
+  });
+});
