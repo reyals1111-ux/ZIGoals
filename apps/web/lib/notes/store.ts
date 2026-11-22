@@ -1,6 +1,6 @@
 import {checklistZone, zonedDay} from '../checklist/zone';
 import {anchorReminders} from './reminder-anchors';
-import {MAX_BODY, MAX_NOTES, MAX_TITLE, MAX_TOTAL_CHARS, noteName, notesSchema, shortNoteName, totalChars, type Note, type NoteSource, type Notes} from './schema';
+import {MAX_BODY, MAX_NOTES, MAX_TITLE, MAX_TOTAL_CHARS, noteName, notesSchema, shortNoteName, totalChars, type Note, type NoteSource, type NoteVersion, type Notes} from './schema';
 
 /**
  * Session AK (B1, B2): the pure changes behind notes — capture to the inbox, a day's daily note, edit, delete and file,
@@ -20,14 +20,19 @@ export function checked(record: Notes): Notes {
 }
 const clipTitle = (s: string) => s.replace(/[\r\n]+/g, ' ').trim().slice(0, MAX_TITLE);
 
-/** What Undo puts back: the notes as they were (by id) and the ids a change created. */
-export type NotesUndo = {before: Note[]; created: string[]; said: string};
+/**
+ * What Undo puts back: the notes as they were (by id) and the ids a change created; `versions` (review b1 #5): earlier
+ * versions a change deleted, put back when their note is still here.
+ */
+export type NotesUndo = {before: Note[]; created: string[]; said: string; versions?: NoteVersion[]};
 /** Applies an Undo: created notes go, earlier versions come back (a deleted note returns in its place by date). */
 export function applyUndo(record: Notes, undo: NotesUndo): Notes {
   const created = new Set(undo.created), before = new Map(undo.before.map(n => [n.id, n]));
   const kept = record.notes.filter(n => !created.has(n.id)).map(n => before.get(n.id) ?? n);
   const missing = undo.before.filter(n => !kept.some(k => k.id === n.id));
-  return checked({...record, notes: [...kept, ...missing].sort((a, b) => a.createdAt.localeCompare(b.createdAt))});
+  const notes = [...kept, ...missing].sort((a, b) => a.createdAt.localeCompare(b.createdAt)), here = new Set(notes.map(n => n.id));
+  const have = new Set((record.versions ?? []).map(v => v.id)), back = (undo.versions ?? []).filter(v => here.has(v.noteId) && !have.has(v.id));
+  return checked({...record, notes, ...(back.length ? {versions: [...(record.versions ?? []), ...back].sort((a, b) => a.savedAt.localeCompare(b.savedAt))} : {})});
 }
 
 export type CaptureInput = {text?: string; source?: NoteSource; photoId?: string; day: string; now: string; id?: string; title?: string; example?: boolean};

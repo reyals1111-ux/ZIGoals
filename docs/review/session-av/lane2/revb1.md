@@ -70,3 +70,23 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
 - Stored changes: none (the export file gains entries; everything.json unchanged).
 - Help (EN), add to the Export everything answer: "The journal’s photos and voice notes are in the file’s journal folder."
 - What's new: "Export everything now holds the journal’s photos and voice notes."
+
+## #5 Major (privacy): earlier versions of journal entries and notes could not be deleted
+
+- Verdict: fixed.
+- Fix: each earlier version (Journal → an entry's More → Earlier versions; a note's Earlier versions) has "Delete this
+  version", and the list has "Delete all earlier versions"; each asks first in place (ConfirmInline: "Its words leave
+  this device and every export or backup you make from now on."), then offers Undo in the app's toast; focus goes to the
+  versions heading. The Edit fold now says "kept as an earlier version, on this device, until you delete it".
+  Pure parts: `deleteVersions` (lib/journal/versions.ts), `deleteNoteVersions` (lib/notes/versions.ts); a notes Undo can
+  now carry `versions` to put back (in-memory `NotesUndo` only, lib/notes/store.ts `applyUndo`).
+- Exports and sync: the versions live only in the journal and notes device records, so a deleted version is in no later
+  Export everything, journal ZIP or backup (unit test). Neither record syncs (journal: ADR-034 N18; notes: device-only by
+  their schema), so there is no synced copy to clear — the reviewer's "synced with the journal" does not hold. A Merge
+  restore of an older backup made before the deletion brings its versions back, as Merge does for any record.
+- Tests: apps/web/lib/journal/revb1-delete-versions.test.ts. Spec (lead runs): apps/web/tests/revb1-delete-versions.spec.ts.
+- Stored changes: none.
+- Help (EN): Q "Can I delete an earlier version?" A "Yes. Open the earlier versions of an entry (More) or of a note, and
+  choose Delete this version, or Delete all earlier versions. You are asked first, and Undo puts them back for a moment.
+  Their words then leave this device and every export you make."
+- What's new: "Delete earlier versions of journal entries and notes."
