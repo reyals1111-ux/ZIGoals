@@ -123,8 +123,28 @@ The goal creator's step 1 has one primary button, "Continue →"; "Create goal" 
 length count shows only from 60 characters: a field may carry `data-count-from` (components/ui/length-counter.tsx
 `countShown`), and the goal name carries 60. Unit: components/ui/av2-length-counter.test.ts. Spec: tests/av2-goal-creator.spec.ts.
 
+## Money N11 (lead's addition; Goodbudget, LEDGER #212, #213, #216) — built
+
+- #212 Budgets → "Pay periods and fills": "My budget month starts on day" (1–28, payday), and per budget "Each month / Each
+  week / Every two weeks" (its amount the month's × 12 / 52 or / 26); each budget shows its own period, amount, spent, left.
+- #213 a paycheck fill: amounts per budget, saved; when income is logged (last 14 days, a currency the fill holds) the panel
+  offers "Use the fill" (sets those budgets' amounts; one Undo puts the budgets and the record back) or "Not for this one".
+- #216 a debt linked to a budget: payments recorded on the debt count against that budget in its period.
+Stored (TIER 3, own commit): NEW `zigoals:budget-periods:v1` (lib/budgets/periods.ts) `{version, payday?, every?{budgetId:
+week|fortnight}, fill?{items[{budgetId, amount}]}, filled?[incomeId], debts?{accountId: budgetId}}` — lead, please register it
+(personal, Wealth area; label "Budgets: pay periods, the paycheck fill and debts paid from a budget"); the budgets record is untouched.
+Files: lib/budgets/periods.ts, components/wealth/budgets/{budget-periods.tsx, budgets-month.tsx (one lazy mount), budgets.css}.
+Answers: `payPeriod` in av2-tasks.ts ("how much is left in my budgets this pay period" / "hoeveel heb ik nog over in mijn
+budgetten deze periode"; pass `{periods}` in extra, or `env.nova.budgetPeriods` once added). Unit: lib/budgets/av2-periods.test.ts.
+Spec: tests/av2-budget-periods.spec.ts. Help: Q "Can my budgets run from payday, or by the week?" A "Yes. Budgets → Pay
+periods and fills: choose the day your budget month starts, and set a budget to each week or every two weeks. Save a
+paycheck fill, and it is offered when you log income." What's new: "Budgets: pay periods, weekly budgets and a paycheck fill."
+
 ## Left (allowed causes only)
 
 - Showcase examples above: against a named rule (pinned counts). Writing to an outside calendar (#24) and a live calendar
   subscription (#13): needs an outside service (as the ledger carries them). Nothing else in groups 1, 2 and 11 is left.
-- Next: the lead's added groups N11 (Goodbudget) and N12 (Kubera), Money.
+- Money N12 (Kubera, LEDGER #214, #215, #217–#222) — **not started; next row is #218/#219** (a new device record keyed by
+  account id: `share`, `linkedTo` mortgage→property, then #215 groups, #217 stale every month/quarter, #220 cash flows and
+  IRR, #214 typed rates, #221 documents in IndexedDB, #222 today's money in lib/fi-model). No allowed cause applies; it is
+  left only because this builder's run ended (context), for a fresh builder from this branch.

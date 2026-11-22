@@ -14,5 +14,6 @@ export const AV2_TASKS: readonly Intent[] = [
   {id: 'av2-start-early', pillar: 'tasks', en: ['which tasks start early'], nl: ['welke taken beginnen eerder']},
   {id: 'av2-areas', pillar: 'tasks', en: ['what are my areas', 'which task areas do I have'], nl: ['welke gebieden heb ik', 'wat zijn mijn gebieden']},
   {id: 'av2-templates', pillar: 'tasks', en: ['which task templates do I have', 'what project templates are there'], nl: ['welke sjablonen heb ik voor taken', 'welke sjablonen zijn er voor projecten']},
+  {id: 'av2-pay-period', pillar: 'wealth', en: ['how much is left in my budgets this pay period', 'what is left in my budgets until payday'], nl: ['hoeveel heb ik nog over in mijn budgetten deze periode', 'wat is er over in mijn budgetten tot mijn salaris']},
   {id: 'av2-note-reminders', pillar: 'notes', en: ['which reminders are in my notes', 'what reminders did I write in my notes'], nl: ['welke herinneringen staan in mijn notities', 'welke herinneringen heb ik in mijn notities gezet']},
 ];

@@ -6,9 +6,10 @@ import {objectiveProgress, plannedVsActual, weekObjectives, weekStart} from '../
 import {finishesByDay, goalStreak, type TaskPlan} from '../../tasks/plan-record';
 import {BUILT_IN_TEMPLATES, type TaskTemplates} from '../../tasks/templates';
 import type {Tasks} from '../../tasks/schema';
+import {periodRows, type BudgetPeriods} from '../../budgets/periods';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, clockIn, closed, count, dayIn, isQuestion, list, say, type Asked, type Lang} from './av-words';
+import {answer, asked, clockIn, closed, count, dayIn, isQuestion, list, money, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -19,7 +20,7 @@ import type {LocalReply} from './engine';
  * Notes scope shares them. The planning record and the templates come in `extra` (or the env's `nova.taskPlan` /
  * `nova.taskTemplates` once the lead adds them); without them the answer says where the choice lives.
  */
-export type Av2TasksExtra = {plan?: TaskPlan | null; templates?: TaskTemplates | null};
+export type Av2TasksExtra = {plan?: TaskPlan | null; templates?: TaskTemplates | null; /** Money N11: `zigoals:budget-periods:v1`. */ periods?: BudgetPeriods | null};
 type Ask = Asked & {extra: Av2TasksExtra};
 const doneDay = (zone: string) => (iso: string) => wallClock(Date.parse(iso), zone).date;
 const min = (m: number, lang: Lang) => { const h = Math.floor(m / 60), r = m % 60; return lang === 'nl' ? (h ? `${h} uur${r ? ` ${r} min` : ''}` : `${r} min`) : (h ? `${h} h${r ? ` ${r} min` : ''}` : `${r} min`); };
@@ -30,7 +31,7 @@ export function av2TasksAnswer(question: string, env: ToolEnv, extra: Av2TasksEx
   if (!a || !isQuestion(a)) return null;
   const nova = env.nova as (typeof env.nova & {taskPlan?: TaskPlan | null; taskTemplates?: TaskTemplates | null}) | null | undefined;
   const ask: Ask = {...a, extra: {plan: extra.plan ?? nova?.taskPlan ?? null, templates: extra.templates ?? nova?.taskTemplates ?? null}};
-  for (const one of [noteReminderAnswer, objectives, dailyGoal, spentTime, timers, dayLimit, startEarly, areas, templates]) {
+  for (const one of [payPeriod, noteReminderAnswer, objectives, dailyGoal, spentTime, timers, dayLimit, startEarly, areas, templates]) {
     const r = one(ask);
     if (r) return r;
   }
@@ -134,6 +135,20 @@ function templates(a: Ask): LocalReply | null {
   const own = a.extra.templates?.items ?? [], names = [...BUILT_IN_TEMPLATES.map(t => t.name), ...own.map(t => clean(t.name, 60))];
   return answer(say(a.lang, `${names.length} templates for a new project: ${list(names, 'en')}${own.length ? ` (${own.length} your own)` : ''}. Use one in Tasks → Areas and templates; save a project as one there too.`,
     `${names.length} sjablonen voor een nieuw project: ${list(names, 'nl')}${own.length ? ` (${own.length} van jezelf)` : ''}. Gebruik er een in Tasks → Areas and templates; daar bewaar je ook een project als sjabloon.`), CALLS);
+}
+
+/** Money N11 (Goodbudget): "how much is left in my budgets this pay period", "hoeveel heb ik nog over deze periode". */
+function payPeriod(a: Ask): LocalReply | null {
+  const en = /\b(?:pay ?period|this period|until payday|till payday|before payday)\b/.test(a.f) && /\bbudgets?\b|\bleft\b/.test(a.f);
+  const nl = /\b(?:deze periode|tot (?:mijn )?salaris|tot de salarisdag|loonperiode)\b/.test(a.f) && /\bbudget(?:ten)?\b|\bover\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth', 'budgets'); if (shut) return shut;
+  const budgets = a.env.nova?.budgets, calls = [{tool: 'budgets', args: {}, label: 'Budgets'}];
+  if (budgets === undefined) return null;
+  if (!budgets?.budgets.length) return answer(say(a.lang, 'No budgets yet. Add one in Wealth → Budgets; under “Pay periods and fills” choose the day your budget month starts.', 'Nog geen budgetten. Voeg er een toe in Wealth → Budgets; kies onder “Pay periods and fills” de dag waarop je budgetmaand begint.'), calls);
+  const rows = periodRows(a.env.moneyLog?.entries ?? [], budgets, a.extra.periods ?? {version: 1}, a.today);
+  const cash = (cents: number, currency: string) => money(cents, currency);
+  return answer([say(a.lang, 'Left in each budget, in its own period:', 'Over in elk budget, in zijn eigen periode:'), ...rows.slice(0, 10).map(r => `• ${clean(r.budget.category, 40)}: ${r.left >= 0 ? cash(r.left, r.budget.currency) : `-${cash(-r.left, r.budget.currency)}`} ${say(a.lang, 'of', 'van')} ${cash(r.amount, r.budget.currency)} (${dayIn(a.lang, r.start, a.today)} – ${dayIn(a.lang, r.end, a.today)})`)].join('\n'), calls);
 }
 
 /** "which reminders are in my notes", "welke herinneringen staan in mijn notities" (Notion's @remind), under NOVA's Notes scope. */
