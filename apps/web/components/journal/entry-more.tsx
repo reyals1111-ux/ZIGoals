@@ -1,5 +1,5 @@
 'use client';
-import {useId, useRef, useState, type FormEvent, type KeyboardEvent} from 'react';
+import {Suspense, lazy, useId, useRef, useState, type FormEvent, type KeyboardEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL, MAX_TEXT, OWN_TITLE_MAX, type JournalEntry} from '../../lib/journal/schema';
 import {bookOf, booksOf, moveEntry} from '../../lib/journal/books';
@@ -9,6 +9,8 @@ import {formatClock, formatDate, formatNumber} from '../../lib/visual-format';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import {ConfirmInline} from '../ui/confirm-inline';
 import {showStatus, showUndo} from '../ui/undo-toast';
+// Session AV lane 2 (r4-mind; LEDGER #308): the format bar while the words are edited, its own chunk.
+const JournalFormat = lazy(() => import('./journal-format'));
 
 /**
  * Session AV lane 2 (journal): an entry's "More" — the things done less often than tagging, so each row stays light
@@ -27,6 +29,7 @@ export default function EntryMore({entry, day}: {entry: JournalEntry; day: strin
   const [text, setText] = useState(entry.text), [title, setTitle] = useState(() => suggestedTitle(entry.text)), [problem, setProblem] = useState('');
   // Review b1 #5: the version (its id) or 'all' whose deletion is being confirmed.
   const [deleting, setDeleting] = useState<string | null>(null);
+  const words = useRef<HTMLTextAreaElement>(null);
   if (!journal.loaded) return <p className="fine">Loading…</p>;
   const versions = versionsOf(journal.data, entry.id);
   const back = (selector: string) => requestAnimationFrame(() => box.current?.querySelector<HTMLElement>(selector)?.focus());
@@ -75,7 +78,8 @@ export default function EntryMore({entry, day}: {entry: JournalEntry; day: strin
       {entry.template && <button type="button" className="quiet" onClick={() => { try { window.history.pushState(null, '', `/app/journal?prompt=${entry.template}`); } catch { /* the event is enough */ } window.dispatchEvent(new PopStateEvent('popstate')); }}>Every answer to this prompt</button>}
     </div>
     {part === 'edit' && <form className="journal-entry-edit" aria-label={`Edit the entry of ${day}`} onSubmit={save} onKeyDown={escape('[data-part="edit"]')}>
-      <label className="field"><span>The entry&rsquo;s words</span><textarea autoFocus rows={6} maxLength={MAX_TEXT} value={text} onChange={e => { setText(e.target.value); setProblem(''); }}/></label>
+      <label className="field"><span>The entry&rsquo;s words</span><textarea ref={words} autoFocus rows={6} maxLength={MAX_TEXT} value={text} onChange={e => { setText(e.target.value); setProblem(''); }}/></label>
+      <Suspense fallback={null}><JournalFormat value={text} onChange={t => { setText(t); setProblem(''); }} maxLength={MAX_TEXT} field={() => words.current}/></Suspense>
       <SecretGuard text={text} onRemove={() => setText(entry.text)}/>
       <p className="fine">{formatNumber(text.length)} / {formatNumber(MAX_TEXT)}. The words you change are kept as an earlier version, on this device, until you delete it under Earlier versions.</p>
       <div className="journal-actions"><button type="submit" className="primary" disabled={!text.trim() || text.trim() === entry.text}>Save the change</button><button type="button" className="quiet" onClick={() => close('[data-part="edit"]')}>Cancel</button></div>

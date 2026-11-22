@@ -1,0 +1,34 @@
+/* Session AV lane 2 (r4-mind; LEDGER #308, Journey's formatting and checklists): an entry's Markdown, as Notes draw theirs.
+   Loaded only with the entry's rich text and the format bar (their own chunks). Theme variables only. */
+.journal-entry-md { white-space: normal; line-height: 1.55; }
+.journal-entry-md > :first-child { margin-top: 0; }
+.journal-entry-md p { margin: 4px 0; white-space: pre-wrap; }
+.journal-entry-md :is(h3, h4, h5) { margin: 10px 0 4px; line-height: 1.3; font-size: 1.05rem; }
+.journal-entry-md h3 { font-size: 1.15rem; }
+.journal-entry-md h5 { font-size: 1rem; }
+.journal-entry-md :is(ul, ol) { margin: 4px 0; padding-inline-start: 22px; }
+.journal-entry-md blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent); color: var(--text-secondary, inherit); }
+.journal-entry-md pre { overflow-x: auto; max-width: 100%; white-space: pre; }
+.journal-md-table { overflow-x: auto; max-width: 100%; }
+.journal-md-table table { border-collapse: collapse; }
+.journal-md-table :is(th, td) { padding: 4px 8px; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); text-align: start; }
+.journal-entry-md ul.journal-ticks, .journal-entry-md ol.journal-ticks { list-style: none; padding-inline-start: 0; }
+.journal-tick { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; }
+.journal-tick-box { flex: none; width: 22px; height: 22px; margin: 11px 0 0; accent-color: var(--brand-violet, #826cff); cursor: pointer; }
+.journal-tick > span { padding: 10px 0; overflow-wrap: anywhere; }
+.journal-tick[data-ticked] > span { text-decoration: line-through; color: var(--text-secondary, inherit); }
+.journal-tick-count { margin: 2px 0 0; }
+.journal-hl { --hl: #e2b93b; color: inherit; background: color-mix(in srgb, var(--hl) 34%, transparent); border-bottom: 2px solid color-mix(in srgb, var(--hl) 80%, transparent); border-radius: 3px; padding: 0 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.journal-hl[data-hl=yellow], .journal-format [data-hl=yellow] { --hl: #e2b93b; } .journal-hl[data-hl=green], .journal-format [data-hl=green] { --hl: #46a758; }
+.journal-hl[data-hl=blue], .journal-format [data-hl=blue] { --hl: #3e8bf0; } .journal-hl[data-hl=purple], .journal-format [data-hl=purple] { --hl: #8e6cf0; }
+.journal-hl[data-hl=red], .journal-format [data-hl=red] { --hl: #e5484d; } .journal-hl[data-hl=orange], .journal-format [data-hl=orange] { --hl: #f08c38; }
+:root[data-theme=light] .journal-hl { background: color-mix(in srgb, var(--hl) 28%, #fff); }
+@media (forced-colors: active) { .journal-hl { background: Mark; color: MarkText; } }
+
+/* The format bar under the entry's words: wraps at 320 px, every button 44 px tall. */
+.journal-format { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 8px; }
+.journal-format button, .journal-format select { min-height: 44px; min-width: 44px; font-size: 0.95rem; }
+.journal-format-hl { display: inline-flex; gap: 4px; align-items: center; }
+.journal-format-swatch { display: inline-block; width: 14px; height: 14px; margin-inline-end: 6px; border-radius: 4px; vertical-align: -2px; background: var(--hl); }
+.journal-format-b { font-weight: 700; }
+.journal-format-i { font-style: italic; }
