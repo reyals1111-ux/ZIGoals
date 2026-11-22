@@ -13,13 +13,17 @@ export const MIN_CYCLES = 3, ESTIMATE_FROM = 6, MAX_CYCLE_LENGTH = 90;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const between = (a: string, b: string) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
 
+/** Session AV lane 2 (review B5H-1): the words said when a day already has its 12 words. */
+export const TOO_MANY_WORDS = `Choose up to ${MAX_SYMPTOMS} words for one day: untick one first.`;
 export type DayInput = {flow?: Flow | null; symptoms?: readonly string[]; note?: string};
 /** Changes one day (a field left out is kept; `flow: null` clears it). A day left with nothing is removed. */
 export function setCycleDay(rec: Cycle, date: string, input: DayInput, today: string): Cycle {
   if (!DAY.test(date) || date > today) throw new Error('Choose today or an earlier day.');
   const current = {...(rec.days[date] ?? {})};
   if (input.flow !== undefined) { if (input.flow === null) delete current.flow; else current.flow = input.flow; }
-  if (input.symptoms !== undefined) { const list = [...new Set(input.symptoms)].slice(0, MAX_SYMPTOMS); if (list.length) current.symptoms = list; else delete current.symptoms; }
+  // Session AV lane 2 (review B5H-1): a day keeps up to 12 words (the day's `symptoms` is capped at 12 without a catch in
+  // every older build, so a longer list would make their whole record unreadable): a 13th is refused, never dropped.
+  if (input.symptoms !== undefined) { const list = [...new Set(input.symptoms)]; if (list.length > MAX_SYMPTOMS) throw new Error(TOO_MANY_WORDS); if (list.length) current.symptoms = list; else delete current.symptoms; }
   if (input.note !== undefined) { const note = input.note.replace(/\s+/g, ' ').trim().slice(0, CYCLE_NOTE_MAX); if (note) current.note = note; else delete current.note; }
   const days = {...rec.days};
   if (current.flow || current.symptoms?.length || current.note) days[date] = current; else delete days[date];

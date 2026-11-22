@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {addLocalDays} from '../local-date';
-import {CYCLE_LINE, cycleLengths, nextPeriodEstimate, setCycleDay, setCycleOn} from './engine';
+import {CYCLE_LINE, TOO_MANY_WORDS, cycleLengths, nextPeriodEstimate, setCycleDay, setCycleOn} from './engine';
+import {MAX_SYMPTOMS} from './store';
 import {emptyCycle, type Cycle} from './store';
 import {cycleGlance, cycleHistory, cycleStats, setLeftOut} from './history';
 import {addOwnWord, allWords, chipWords, moveWord, removeOwnWord, setCycleChoice, setWordHidden, wordIdOf, wordLabel} from './words';
@@ -101,6 +102,18 @@ describe('Your own words, hidden and in your order (#380)', () => {
     const moved = moveWord(REC, 'tired', -1);
     expect(chipWords(moved).indexOf('tired')).toBe(chipWords(REC).indexOf('tired') - 1);
     expect(moveWord(REC, 'cramps', -1)).toBe(REC);
+  });
+});
+
+describe('a day keeps up to 12 words, and a 13th is refused in words (review B5H-1)', () => {
+  test('12 kept; the 13th throws its own sentence and changes nothing; never dropped silently', () => {
+    const words = chipWords(setCycleChoice(REC, 'peri', true));
+    expect(words.length).toBeGreaterThan(MAX_SYMPTOMS);
+    const twelve = setCycleDay(REC, TODAY, {symptoms: words.slice(0, MAX_SYMPTOMS)}, TODAY);
+    expect(twelve.days[TODAY]!.symptoms).toHaveLength(MAX_SYMPTOMS);
+    expect(() => setCycleDay(twelve, TODAY, {symptoms: words.slice(0, MAX_SYMPTOMS + 1)}, TODAY)).toThrow(TOO_MANY_WORDS);
+    expect(TOO_MANY_WORDS).toBe('Choose up to 12 words for one day: untick one first.');
+    expect(setCycleDay(twelve, TODAY, {symptoms: words.slice(1, MAX_SYMPTOMS)}, TODAY).days[TODAY]!.symptoms).toHaveLength(MAX_SYMPTOMS - 1);
   });
 });
 
