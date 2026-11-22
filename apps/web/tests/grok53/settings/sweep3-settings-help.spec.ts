@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {emptyDevice, open} from '../l3-helpers';
+import {chooseChain} from '../../chain-choice';
 
 /**
  * Session AL sweep 3 (lane SW3): BUG-039 (Settings links 19 px tall at 375 px) and TK-146 (a Help line on Reward goals),
@@ -20,6 +21,9 @@ test('BUG-039: at 375 px the Settings module links are 44 px tall targets', asyn
 });
 
 test('TK-146: Help answers "Where are Reward goals?" among the goal questions', async ({page}) => {
+  // Session AV lane 2 (PK-10: chain answers wait for the chain choice, deliberate): this test pins the chain answer “Where are Reward goals?”, so the person
+  // chooses the chain first, the way Settings does; every check below is unchanged. A fresh profile is av2-pk10-chain-help.spec.ts.
+  await chooseChain(page);
   await page.setViewportSize({width: 1280, height: 800});
   await emptyDevice(page, {theme: 'nebula'});
   await open(page, '/app/help');

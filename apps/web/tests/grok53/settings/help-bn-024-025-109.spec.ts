@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../../ah-helpers';
+import {chooseChain} from '../../chain-choice';
 
 // Session AL (lane L6): Help matching the app (Berlin BN-024, BN-025, BN-109, BN-163, BN-165, BN-166). Desktop 1280,
 // a fresh profile on an installation without accounts (the API answers 503, as Berlin's build did).
@@ -7,6 +8,9 @@ test.use({viewport: {width: 1280, height: 900}});
 test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(page); });
 
 test('BN-025: the topic index has Earn, Staking, Ecosystem and Chess, and the section answers each', async ({page}) => {
+  // Session AV lane 2 (PK-10: chain answers wait for the chain choice, deliberate): this test pins the chain topic, its section title and three chain answers, so the person
+  // chooses the chain first, the way Settings does; every check below is unchanged. A fresh profile is av2-pk10-chain-help.spec.ts.
+  await chooseChain(page);
   await page.goto('/app/help'); await hydrated(page);
   const topic = page.getByRole('navigation', {name: 'Help topics'}).getByRole('link', {name: 'Earn, Staking, Ecosystem and Chess', exact: true});
   await expect(topic).toHaveAttribute('href', '#more-pages');
