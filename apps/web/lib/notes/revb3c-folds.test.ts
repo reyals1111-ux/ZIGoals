@@ -21,3 +21,20 @@ describe('B3C-12: Open tick boxes', () => {
     expect(workspace.match(/openTicks\(/g)).toHaveLength(1);
   });
 });
+describe('B3C-13: the Properties fold’s face', () => {
+  test('a day and a number through the app’s formatters, like the table and the board', async () => {
+    const {propFaceValue, propsFace} = await import('./prop-face');
+    const {formatDate, formatNumber} = await import('../visual-format');
+    expect(propFaceValue({k: 'Due', t: 'date', v: '2026-12-01'})).toBe(formatDate('2026-12-01'));
+    expect(propFaceValue({k: 'Due', t: 'date', v: '2026-12-01'})).not.toBe('2026-12-01');
+    expect(propFaceValue({k: 'Budget', t: 'number', v: 1200.5})).toBe(formatNumber(1200.5));
+    expect(propsFace([{k: 'Due', t: 'date', v: '2026-12-01'}, {k: 'Budget', t: 'number', v: 1200.5}, {k: 'Booked', t: 'tick', v: true}, {k: 'Status', t: 'choice', v: 'Planning'}]))
+      .toBe(`Due: ${formatDate('2026-12-01')}, Budget: ${formatNumber(1200.5)}, Booked: yes`);
+    expect(propsFace([])).toBeNull();
+    expect(propsFace(undefined)).toBeNull();
+  });
+  test('the editor uses it', () => {
+    const editor = readFileSync(join(__dirname, '..', '..', 'components', 'notes', 'note-editor.tsx'), 'utf8');
+    expect(editor).toMatch(/\{propsFace\(note\.props\) \?\? 'your own fields, such as a status or a day'\}/);
+  });
+});

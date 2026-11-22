@@ -176,3 +176,27 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
   count unchanged while searching).
 - **Route weight:** lower on arrival (one chunk fewer).
 - **Help/corpus:** none.
+
+## B3C-13 (Minor): the Properties fold uses the app's date and number formatters
+
+- **Verdict:** confirmed and fixed.
+- **Fix:** new pure `lib/notes/prop-face.ts` (`propFaceValue`, `propsFace`): a day through `formatDate`, a number
+  through `formatNumber`, a tick as yes/no, as the table and the board show them; `note-editor.tsx` uses it for the
+  fold's face ("Due: Dec 1, 2026, Budget: 1,200.5").
+- **Tests:** `lib/notes/revb3c-folds.test.ts` (the face's values equal the formatters' output, not the ISO day; the
+  editor uses it).
+- **Spec:** `tests/av2-revb3c-notes-folds.spec.ts`, second test.
+- **Help/corpus:** none.
+
+## For the lead
+
+- **Shard lists:** `tests/av2-revb3c-grid.spec.ts`, `av2-revb3c-sealed.spec.ts`, `av2-revb3c-markdown-import.spec.ts`,
+  `av2-revb3c-notes-folds.spec.ts` (none run here).
+- **No shared file edited**; no Help, What's new, corpus, device-key, catalogue, export/erase/restore change.
+- **Stored formats:** none changed. Two export-file forms changed (not device records): the journal's Markdown files
+  gain `follow-up: quote` and quote every line of the answer (B3C-5); a note's Markdown front matter writes each
+  property once with `zigoals-props` holding names and types only (B3C-6). Both still read the round-3 forms.
+- **Front-matter reader widened (B3C-6):** keys with letters of any language, digits and spaces are now read (the
+  notes and the journal import share `parseFrontMatter`); the safety test's odd keys are still dropped.
+- **Seen in passing, not mine:** `lib/vault-sync-rules-y.test.ts` "B4: a Health restore completes but leaves Health sync
+  off…" fails here with and without this branch's files (checked by putting the base files back).
