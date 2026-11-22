@@ -1,6 +1,7 @@
 import {expect, test} from '@playwright/test';
-import {go, noSideways, start} from './av2-polish-helpers';
+import {foldMarker, go, noSideways, start} from './av2-polish-helpers';
 import {THEMES} from './p6-helpers';
+import {openWealthSection} from './ap/ap-money-fixtures';
 
 /**
  * Session AV lane 2 (polish), Wealth:
@@ -10,6 +11,7 @@ import {THEMES} from './p6-helpers';
  * - P-36: inside its fold, "Budgets by category" is not said twice on screen (the title stays for screen readers).
  * - P-37: the budget table's headers are 14 px.
  * - P-40: a fresh device with "All" chosen reads "Build your wealth picture", not "No assets in this category yet".
+ * - P-34 (polish 2): Money tools in three labelled pairs, counts of 0 not shown; a fresh Budgets folds its extra tools.
  */
 test.use({timezoneId: 'Europe/Amsterdam'});
 
@@ -47,6 +49,75 @@ test('Budgets: the Plan buttons share one column; headers 14 px', async ({page})
   expect((await title.boundingBox())!.width).toBeLessThanOrEqual(1);
   await expect(page.getByRole('region', {name: 'Budgets by category'})).toBeVisible();
   await expect(page.locator('#budgets .wealth-section-heading .eyebrow')).toBeVisible();
+});
+
+/**
+ * P-34 (polish 2): Money tools in three labelled pairs (Review · Your entries · Plan ahead), each pair one even row of two
+ * (they had wrapped raggedly, six widths mixing purposes).
+ */
+for (const theme of THEMES) for (const width of [390, 1440])
+  test(`P-34 ${theme} ${width}: Money tools in three labelled pairs, each an even row`, async ({page}) => {
+    await start(page, {theme, width});
+    await go(page, '/app/wealth#spending');
+    const tools = page.getByRole('group', {name: 'Money tools'});
+    await expect(tools.getByRole('button', {name: /^To review \(\d+\)$/})).toBeVisible({timeout: 20_000});
+    await tools.scrollIntoViewIfNeeded();
+    const pairs = {Review: [/^To review \(\d+\)$/, /^Rules \(\d+\)$/], 'Your entries': [/^Split an entry$/, /^Receipt photos$/], 'Plan ahead': [/^Next 60 days$/, /^If something happens to me$/]};
+    for (const [name, buttons] of Object.entries(pairs)) {
+      const group = tools.getByRole('group', {name, exact: true});
+      await expect(group).toBeVisible();
+      await expect(group.getByText(name, {exact: true})).toBeVisible();
+      await expect(group.getByRole('button')).toHaveCount(2);
+      for (const [i, button] of buttons.entries()) await expect(group.getByRole('button').nth(i)).toHaveAccessibleName(button);
+      const boxes = await group.getByRole('button').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return {top: r.top, width: r.width, height: r.height}; }));
+      expect(Math.abs(boxes[0]!.top - boxes[1]!.top), name).toBeLessThanOrEqual(1);
+      expect(Math.abs(boxes[0]!.width - boxes[1]!.width), name).toBeLessThanOrEqual(1);
+      for (const b of boxes) expect(b.height).toBeGreaterThanOrEqual(44);
+    }
+    // The Showcase has entries to review: the count shows.
+    await expect(tools.getByRole('button', {name: /^To review \(\d+\)$/})).toHaveText(/^To review \([1-9]\d*\)$/);
+    await noSideways(page);
+  });
+
+test('P-34 a fresh device: counts of 0 are read aloud, not shown; Budgets shows one first step', async ({page}) => {
+  await start(page, {width: 390, showcase: false});
+  await go(page, '/app/wealth#spending');
+  const tools = page.getByRole('group', {name: 'Money tools'});
+  for (const name of ['To review (0)', 'Rules (0)']) {
+    const button = tools.getByRole('button', {name, exact: true});
+    await expect(button).toBeVisible({timeout: 20_000});
+    const zero = button.locator('.visually-hidden');
+    await expect(zero).toHaveText(' (0)');
+    expect(await zero.evaluate(e => { const r = e.getBoundingClientRect(); return r.width <= 1 && r.height <= 1; })).toBe(true);
+  }
+  const budgets = await openWealthSection(page, 'budgets', 'Budgets by category');
+  const add = budgets.getByRole('button', {name: '+ Set a monthly budget'});
+  await expect(add).toBeVisible({timeout: 20_000});
+  const more = budgets.locator('details.budgets-more-tools');
+  const summary = more.locator(':scope > summary');
+  await expect(summary).toBeVisible();
+  await expect(summary).toContainText('More budget tools');
+  await expect(more).not.toHaveAttribute('open');
+  await foldMarker(summary);
+  // None of the extra forms stands open before a first budget; the fold comes after the first step.
+  for (const form of ['Watch a category', 'Watch a payee', 'Start a challenge']) await expect(budgets.getByRole('form', {name: form})).toBeHidden();
+  await expect(budgets.getByRole('button', {name: '+ Add your own budget'})).toBeHidden();
+  expect((await summary.boundingBox())!.y).toBeGreaterThan((await add.boundingBox())!.y);
+  expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await summary.click();
+  await expect(more).toHaveAttribute('open', '');
+  await foldMarker(summary, true);
+  await expect(budgets.getByRole('form', {name: 'Watch a category'})).toBeVisible();
+  await expect(budgets.getByRole('form', {name: 'Watch a payee'})).toBeVisible();
+  await expect(budgets.getByRole('button', {name: '+ Add your own budget'})).toBeVisible();
+  await noSideways(page);
+});
+
+test('P-34 the Showcase (budgets set up): Budgets\' tools stand open, no extra fold', async ({page}) => {
+  await start(page, {width: 390});
+  await go(page, '/app/wealth?view=budgets');
+  await expect(page.locator('#budgets').getByRole('form', {name: 'Watch a payee'})).toBeVisible({timeout: 20_000});
+  await expect(page.locator('#budgets details.budgets-more-tools')).toHaveCount(0);
 });
 
 test('a fresh device: "All" chosen is the whole picture', async ({page}) => {

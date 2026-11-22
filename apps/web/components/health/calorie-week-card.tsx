@@ -1,5 +1,7 @@
 'use client';
-import {useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
+// Session AV lane 2, round 4 (health; Noom, LEDGER #328): a planned free day, its own chunk.
+const FreeDayPlanner = lazy(() => import('./r4/noom-parts').then(m => ({default: m.FreeDayPlanner})));
 import {GlassBar} from '../progress/glass-progress';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {CALORIE_WEEK, MAX_ROLLOVER, resetShifts, setRollover, shiftCalories, weekBudget, type CalorieWeek} from '../../lib/health-aa/calorie-week';
@@ -28,7 +30,7 @@ export function CalorieWeekCard({data, date, today}: {data: HealthData; date: st
     <h3 id="calorie-week-title" className="sr-only">Weekly calorie budget</h3>{/* Session AT (AP D22 minor 1): said once, by the fold above */}
     <p className="fine">{formatNumber(week.weeklyBudget)} kcal this week ({week.base < KCAL_FLOOR ? `your target ${formatNumber(week.base)} a day is below ${formatNumber(KCAL_FLOOR)}, so each day counts ${formatNumber(KCAL_FLOOR)}` : `${formatNumber(week.base)} a day × 7`}) · {formatNumber(week.eaten)} kcal logged so far. <span className="health-estimate-tag">your own target, spread over the week; not advice</span></p>
     <ul className="health-micro-list">{week.days.map((d, i) => <li key={d.date}>
-      <div><strong>{formatWeekday(d.date)} {Number(d.date.slice(8))}{d.date === today ? ' · today' : ''}</strong> <small>{formatNumber(d.budget)} kcal{d.shift ? ` (${d.shift > 0 ? '+' : '−'}${formatNumber(Math.abs(d.shift))} shifted)` : ''}{d.carried ? ` (+${formatNumber(d.carried)} rolled over)` : ''}</small></div>
+      <div><strong>{formatWeekday(d.date)} {Number(d.date.slice(8))}{d.date === today ? ' · today' : ''}</strong> <small>{formatNumber(d.budget)} kcal{d.shift ? ` (${d.shift > 0 ? '+' : '−'}${formatNumber(Math.abs(d.shift))} shifted)` : ''}{d.carried ? ` (+${formatNumber(d.carried)} rolled over)` : ''}{d.free ? ` (+${formatNumber(d.free)} free day)` : ''}{d.gave ? ` (−${formatNumber(d.gave)} for the free day)` : ''}</small></div>
       <div><small>{d.eaten === null ? (d.past ? 'nothing logged' : '') : d.partial ? `${formatNumber(d.eaten)}+ logged · some entries have no calories` : d.remaining! >= 0 ? `${formatNumber(d.eaten)} logged · ${formatNumber(d.remaining!)} left` : `${formatNumber(d.eaten)} logged · ${formatNumber(-d.remaining!)} over`}</small></div>
       <GlassBar identity={`calorie-week:${i}`} className="health-micro-bar" role="progressbar" aria-label={`${WEEKDAYS[i]}: ${d.eaten === null ? 'nothing logged' : `${formatNumber(d.eaten)}${d.partial ? ' or more' : ''} of ${formatNumber(d.budget)} kcal`}`} aria-valuenow={d.eaten ?? 0} aria-valuemin={0} aria-valuemax={d.budget} value={d.eaten === null ? 0 : Math.min(1, d.eaten / d.budget)} />
     </li>)}</ul>
@@ -42,5 +44,6 @@ export function CalorieWeekCard({data, date, today}: {data: HealthData; date: st
       <label className="field"><span>At most (kcal)</span><input type="text" inputMode="numeric" value={maxText} onChange={e => setMaxText(e.target.value)} onBlur={() => { const n = Math.round(Number(maxText)); if (r.rollover && Number.isFinite(n)) change(c => setRollover(c, c.rollover?.on ?? false, n), `Roll over keeps at most ${formatNumber(Math.max(0, Math.min(MAX_ROLLOVER, n)))} kcal.`); }} /></label></div>
     {note && <p className="fine" aria-live="polite">{note}</p>}
     <p className="fine">No day goes below {formatNumber(KCAL_FLOOR)} kcal. A day with nothing logged is unknown: nothing rolls over from it.</p>
+    <Suspense fallback={null}><FreeDayPlanner data={data} today={today}/></Suspense>
   </div>;
 }

@@ -35,8 +35,9 @@ export function rankRecent(entries: readonly MoneyEntry[], kind: 'expense' | 'in
  * The chips in the order to show: the top three recent ones, then the fixed list in its usual order (a recent one is
  * not shown twice). `recent` says how many lead the list, so the page can say "your most used first".
  */
-export function categoriesRecentFirst(entries: readonly MoneyEntry[], kind: 'expense' | 'income', fixed: readonly string[], today: string, count = RECENT_COUNT): {chips: string[]; recent: number} {
-  const top = rankRecent(entries, kind, today, fixed).slice(0, Math.max(0, count)).map(r => r.category);
+/** Session AV lane 2, round 4 (money, LEDGER #342): `hidden` (archived categories, lower case) never lead the chips. */
+export function categoriesRecentFirst(entries: readonly MoneyEntry[], kind: 'expense' | 'income', fixed: readonly string[], today: string, count = RECENT_COUNT, hidden?: ReadonlySet<string>): {chips: string[]; recent: number} {
+  const top = rankRecent(entries, kind, today, fixed).filter(r => !hidden?.has(r.category.toLowerCase())).slice(0, Math.max(0, count)).map(r => r.category);
   const lead = new Set(top);
   return {chips: [...top, ...fixed.filter(c => !lead.has(c))], recent: top.length};
 }

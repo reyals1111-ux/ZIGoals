@@ -1,0 +1,30 @@
+/* Session AV lane 2 (r4-plan, LEDGER #300–#305; Motion): working hours, Plan my week, pieces of a long task, waiting tasks,
+   floating repeats and a deadline at risk. Theme variables only; never red; no motion of its own. */
+.tasks-hours, .tasks-plan-week { border: 1px solid var(--line); border-radius: var(--radius); padding: 0 12px 10px; margin: 12px 0; min-width: 0; }
+.tasks-hours > summary, .tasks-plan-week > summary { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; cursor: pointer; font-weight: 600; }
+.tasks-hours > summary small, .tasks-plan-week > summary small { font-weight: 400; color: var(--text-secondary, var(--muted)); font-size: 14px; }
+.tasks-hours-week { margin: 8px 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: 15px; }
+.tasks-hours-week li { display: flex; flex-wrap: wrap; gap: 0 8px; }
+.tasks-hours-week strong { min-width: 7.5em; }
+.tasks-hours-form { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; margin: 8px 0; }
+.tasks-hours-form .field { flex: 1 1 140px; min-width: 0; }
+.tasks-hours-form fieldset { flex: 1 1 100%; border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.tasks-hours-form legend { font-size: 15px; padding: 0; margin-bottom: 4px; }
+.tasks-hours-form label.tasks-hours-choice { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-size: 15px; }
+.tasks-hours button, .tasks-plan-week button { min-height: 44px; }
+.tasks-plan-week-day { margin: 12px 0 4px; font-size: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.tasks-plan-week-day small { font-weight: 400; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.tasks-plan-week-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.tasks-plan-week-list label { min-height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; min-width: 0; overflow-wrap: anywhere; }
+.tasks-plan-week-list small { color: var(--text-secondary, var(--muted)); font-size: 14px; }
+.tasks-plan-week-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; margin: 10px 0 0; }
+.tasks-plan-week-left { margin: 8px 0 0; padding-left: 1.2em; font-size: 15px; }
+.tasks-floating { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.tasks-floating li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 15px; }
+.tasks-floating .field { flex: 0 1 200px; min-width: 0; }
+.tasks-at-risk { margin: 8px 0 12px; font-size: 15px; border-left: 3px solid var(--line); padding: 4px 0 4px 10px; overflow-wrap: anywhere; }
+.tasks-waiting-line { margin: 4px 0; font-size: 15px; overflow-wrap: anywhere; }
+.task-plan-fields { flex: 1 1 100%; border: 1px solid var(--line); border-radius: var(--radius); margin: 0; padding: 8px 12px 10px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; min-width: 0; }
+.task-plan-fields legend { font-size: 15px; padding: 0 4px; }
+.task-plan-fields .field { flex: 1 1 200px; min-width: 0; }
+.task-plan-fields .task-editor-check { flex: 1 1 100%; min-height: 44px; }

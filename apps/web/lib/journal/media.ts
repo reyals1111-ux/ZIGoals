@@ -92,4 +92,6 @@ export async function sweepJournalMedia(scope: string, named: readonly string[],
   return out;
 }
 /** Every media id the entries name (photos and audio). */
-export const namedMedia = (entries: readonly {photos?: readonly string[]; audio?: readonly {id: string}[]}[]) => entries.flatMap(e => [...(e.photos ?? []), ...(e.audio ?? []).map(a => a.id)]);
+// Session AV lane 2 (r4-mind; LEDGER #317): photos five to twelve (`morePhotos`) are named too, so the sweep keeps them
+// and Export everything carries them.
+export const namedMedia = (entries: readonly {photos?: readonly string[]; morePhotos?: readonly string[]; audio?: readonly {id: string}[]}[]) => entries.flatMap(e => [...(e.photos ?? []), ...(e.morePhotos ?? []), ...(e.audio ?? []).map(a => a.id)]);

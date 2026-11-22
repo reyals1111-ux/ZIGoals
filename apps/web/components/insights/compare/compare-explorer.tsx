@@ -3,7 +3,8 @@ import {useEffect, useId, useMemo, useState} from 'react';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import type {HealthData} from '../../../lib/health';
 import {COMPARE_PAIR} from '../../../lib/compare/schema';
-import {compare, factorOptions, isScaleOutcome, isSpendOutcome, outcomeOptions, outcomeText, spendBasis, type CompareResult, type CompareSources, type Lag, type OutcomeId} from '../../../lib/compare/engine';
+import {compare, dayFactorBasis, factorOptions, isScaleOutcome, isSpendOutcome, outcomeOptions, outcomeText, spendBasis, type CompareResult, type CompareSources, type Lag, type OutcomeId} from '../../../lib/compare/engine';
+import {HEALTH_EXTRAS} from '../../../lib/health-extras';
 // Session AK (BUILD list 2 #12 and #16, lane G1a): the person's own scales, and the opt-in cycle log's period days.
 import {SCALES} from '../../../lib/scales/store';
 import {CYCLE, cycleOn, periodDays} from '../../../lib/cycle/store';
@@ -38,23 +39,30 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
   const symptoms = useDeviceRecord(SYMPTOMS), supplements = useDeviceRecord(SUPPLEMENTS), numbers = useDeviceRecord(HEALTH_NUMBERS);
   // Session AV lane 2 (rest, LEDGER #98): the vitamins and further nutrients beside the diary, so every nutrient can be an outcome.
   const vitamins = useDeviceRecord(HEALTH_VITAMINS), extras = useDeviceRecord(NUTRIENT_EXTRAS_RECORD);
+  // Session AV lane 2, round 4 (health; Pillow, LEDGER #332): what each drink was and its caffeine, for the caffeine factors.
+  const healthExtras = useDeviceRecord(HEALTH_EXTRAS);
+  // The caffeine, hour and steps amounts are this visit's choices only (nothing more is stored): each starts at the usual day.
+  const [dayAmounts, setDayAmounts] = useState<Partial<Record<'caffeine' | 'caffeine-late' | 'steps', number>>>({}), [dayText, setDayText] = useState<string | null>(null);
   const [fasting, setFasting] = useState<CompareSources['fasting']>(null), [note, setNote] = useState(''), id = useId();
   useEffect(() => { queueMicrotask(() => { try { const r = readFasting(getAppStorage()); setFasting(r.unreadable ? null : r.data); } catch { setFasting(null); } }); }, []);
   const ok = <T,>(r: {loaded: boolean; unreadable: boolean; data: T}) => r.loaded && !r.unreadable ? r.data : null;
-  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting, scales: ok(scales), cycle: ok(cycle) && cycleOn(ok(cycle)!) ? {periodDays: periodDays(ok(cycle)!)} : null, symptoms: ok(symptoms), supplements: ok(supplements), numbers: ok(numbers), nutrientRecords: {vitamins: ok(vitamins), extras: ok(extras)}}),
-    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting, scales, cycle, symptoms, supplements, numbers, vitamins, extras]);
+  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting, scales: ok(scales), cycle: ok(cycle) && cycleOn(ok(cycle)!) ? {periodDays: periodDays(ok(cycle)!)} : null, symptoms: ok(symptoms), supplements: ok(supplements), numbers: ok(numbers), nutrientRecords: {vitamins: ok(vitamins), extras: ok(extras)}, drinks: ok(healthExtras)?.drinks ?? null}),
+    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting, scales, cycle, symptoms, supplements, numbers, vitamins, extras, healthExtras]);
   const factors = useMemo(() => factorOptions(src, today), [src, today]), outcomes = useMemo(() => outcomeOptions(src), [src]);
   const basis = useMemo(() => spendBasis(src, today), [src, today]);
   const saved = pair.data;
   const factorId = factors.find(f => f.id === saved.factor)?.id ?? factors[0]?.id ?? null;
   // Session AV lane 2, round 3 (money, LEDGER #296): spending above an amount is never set beside spending itself.
-  const shown = factorId === 'spend' ? outcomes.filter(o => !isSpendOutcome(o.id)) : outcomes;
+  const shown = factorId === 'spend' ? outcomes.filter(o => !isSpendOutcome(o.id)) : factorId === 'steps' ? outcomes.filter(o => o.id !== 'steps') : outcomes;
+  const dayBasis = useMemo(() => dayFactorBasis(src, today), [src, today]);
+  const dayKind = factorId === 'caffeine' || factorId === 'caffeine-late' || factorId === 'steps' ? factorId : null;
+  const dayDefault = dayKind === 'caffeine' ? dayBasis.caffeineMg ?? 200 : dayKind === 'steps' ? dayBasis.steps ?? 8000 : dayBasis.hour;
   const outcomeId = (shown.find(o => o.id === saved.outcome)?.id ?? shown[0]?.id ?? null) as OutcomeId | null;
   const lag: Lag = saved.lag ?? 'same';
   const [amountText, setAmountText] = useState<string | null>(null);
   // Session AL (PRIMITIVES 3f): the amount is read like every other number field (decimal comma, grouping), and a refusal is said.
   const [amountError, setAmountError] = useState('');
-  const amount = saved.amount ?? basis?.usual;
+  const amount = dayKind ? dayAmounts[dayKind] ?? dayDefault : saved.amount ?? basis?.usual;
   const result = useMemo(() => factorId && outcomeId ? compare(src, factorId, outcomeId, lag, today, amount) : null, [src, factorId, outcomeId, lag, today, amount]);
   const choose = (change: Partial<{factor: string; outcome: string; lag: Lag; amount: number}>) => {
     try { pair.update(c => ({...c, factor: factorId ?? undefined, outcome: outcomeId ?? undefined, lag, ...change})); setNote(''); }
@@ -69,13 +77,23 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
     {isShowcase() && <p className="fine"><ShowcaseTag/> Fictional example records.</p>}
     <div className="compare-form">
       <label className="field"><span>On days with…</span>
-        <select value={factorId ?? ''} onChange={e => choose({factor: e.target.value})}>
+        <select value={factorId ?? ''} onChange={e => { setDayText(null); setAmountError(''); choose({factor: e.target.value}); }}>
           {groups.map(g => <optgroup key={g} label={g}>{factors.filter(f => f.group === g).map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</optgroup>)}
         </select>
       </label>
       {factorId === 'spend' && basis && <label className="field"><span>Spending above ({basis.currency})</span>
         <input inputMode="decimal" value={amountText ?? String(amount ?? '')} aria-invalid={amountError ? true : undefined} onChange={e => { setAmountText(e.target.value); setAmountError(''); }} onBlur={() => { if (amountText === null) return; const v = parseNumberInput(amountText); if (v.ok) { choose({amount: Math.round(v.value * 100) / 100}); setAmountText(null); } else setAmountError(v.error); }}/>
         {amountError && <small role="alert">{amountError}</small>}<small className="fine">Your usual day: {basis.usual} {basis.currency}. Days with nothing in your money log are left out.</small>
+      </label>}
+      {(dayKind === 'caffeine' || dayKind === 'steps') && <label className="field"><span>{dayKind === 'caffeine' ? 'Caffeine above (mg)' : 'Steps above'}</span>
+        <input inputMode="numeric" value={dayText ?? String(amount ?? '')} aria-invalid={amountError ? true : undefined} onChange={e => { setDayText(e.target.value); setAmountError(''); }} onBlur={() => { if (dayText === null) return; const v = parseNumberInput(dayText); if (v.ok && v.value >= 0) { setDayAmounts(a => ({...a, [dayKind]: Math.round(v.value)})); setDayText(null); } else setAmountError(v.ok ? 'Enter 0 or more.' : v.error); }}/>
+        {amountError && <small role="alert">{amountError}</small>}<small className="fine">{dayKind === 'caffeine' ? `Your usual caffeine day: ${dayBasis.caffeineMg ?? '—'} mg, as you typed it. Days with no drink logged, or a coffee or tea without an amount, are left out.` : `Your usual day: ${dayBasis.steps ?? '—'} steps. Days with no steps logged are left out.`}</small>
+      </label>}
+      {/* Session AV lane 2 (fixb4): the hour's name is its label alone; the line under it describes it (inside the label it
+          was read as part of the name: "Caffeine after 14:00 The time a drink was logged…"). */}
+      {dayKind === 'caffeine-late' && <label className="field"><span id={`${id}-late`}>Caffeine after</span>
+        <select aria-labelledby={`${id}-late`} aria-describedby={`${id}-late-about`} value={String(amount)} onChange={e => setDayAmounts(a => ({...a, 'caffeine-late': Number(e.target.value)}))}>{[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(h => <option key={h} value={h}>{`${String(h).padStart(2, '0')}:00`}</option>)}</select>
+        <small className="fine" id={`${id}-late-about`}>The time a drink was logged. Drinks logged later for an earlier day have no time and leave that day out.</small>
       </label>}
       <label className="field"><span>…what was</span>
         <select value={outcomeId ?? ''} onChange={e => { const v = e.target.value; if (shown.some(o => o.id === v)) choose({outcome: v}); }}>

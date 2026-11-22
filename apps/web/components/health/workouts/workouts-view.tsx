@@ -44,6 +44,7 @@ import {guideLine, guideOf, routineLang, type Guide, type Lang} from '../../../l
 // Session AV lane 2 (bodymind-r2; LEDGER #239–#241, Fitbod): the place for now filters what is offered (constants only here).
 import {WORKOUT_PLACES, type Place, type WorkoutPlaces} from '../../../lib/workouts/places-schema';
 import {availableWith} from '../../../lib/workouts/equipment';
+import {WORKOUT_HR, withHr, withoutHr} from '../../../lib/workouts/hr-zones';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
 const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
@@ -77,6 +78,11 @@ const ExerciseHowTo = lazy(() => import('./exercise-library').then(m => ({defaul
 const Places = lazy(() => import('./places'));
 const SuggestWorkout = lazy(() => import('./suggest-workout'));
 const ReplaceExercise = lazy(() => import('./replace-exercise'));
+// Session AV lane 2, round 4 (health; Runna, LEDGER #330): your plan — planned workouts on a calendar, moved and realigned.
+const PlannedWorkouts = lazy(() => import('../r4/planned-workouts'));
+// Session AV lane 2, round 4 (health; Runna, LEDGER #336, #337): a run's heart-rate zones, and races ahead.
+const HrZones = lazy(() => import('../r4/runna-parts').then(m => ({default: m.HrZones})));
+const RacesAhead = lazy(() => import('../r4/runna-parts').then(m => ({default: m.RacesAhead})));
 const placeNow = (r: WorkoutPlaces | null): Place | null => r?.places.find(p => p.id === r.current) ?? null;
 
 /**
@@ -95,6 +101,8 @@ export default function WorkoutsView() {
   const record = useWorkouts(), health = useHealth();
   // Session AP (feature 5): a run's pace and per-km splits, kept at import by workout id (never back-filled).
   const splitsRecord = useDeviceRecord(WORKOUT_SPLITS);
+  // Session AV lane 2, round 4 (LEDGER #336): the seconds at each heart rate of an imported run, for its zones.
+  const hrRecord = useDeviceRecord(WORKOUT_HR);
   // Session AV lane 2 (bodymind-r2; LEDGER #239): the places and the one chosen now.
   const placesRecord = useDeviceRecord(WORKOUT_PLACES), places = placesRecord.loaded && !placesRecord.unreadable ? placesRecord.data : null, place = placeNow(places);
   const [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now()), [restUntil, setRestUntil] = useState<number | null>(null);
@@ -175,6 +183,9 @@ export default function WorkoutsView() {
       return workout ? withUsualShoe(next, workout.id) : next;
     }, x), splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null); });
     const paced = made.flatMap(x => { const s = list.find(c => c.summary.importId === importInfo(x)?.importId)?.summary.splits; return s ? [[x.id, s] as const] : []; });
+    // Session AV lane 2, round 4 (LEDGER #336): the seconds at each heart rate, for the zones (its own record; the splits record is strict).
+    const hearts = made.flatMap(x => { const h = list.find(c => c.summary.importId === importInfo(x)?.importId)?.summary.hrSeconds; return h ? [[x.id, h] as const] : []; });
+    if (hearts.length) { try { hrRecord.update(r => hearts.reduce((acc, [id, h]) => withHr(acc, id, h), r)); } catch { /* the runs are added; their zones are not kept on this device */ } }
     let splitsMissed = false;
     if (paced.length) { try { splitsRecord.update(r => paced.reduce((acc, [id, s]) => withSplits(acc, id, s), r)); } catch { splitsMissed = true; } }
     return `${addedWords(made.map(x => x.name), await keepMinutes(made))}${splitsMissed ? ' Their pace and splits could not be saved on this device.' : ''}`;
@@ -203,11 +214,13 @@ export default function WorkoutsView() {
     if (!change(x => { const next = removeWorkout(x, id); wBefore = x; wAfter = next; return next; })) return;
     const splitsBack: WorkoutSplits | undefined = splitsRecord.data.workouts[id];
     if (splitsBack) { try { splitsRecord.update(r => withoutSplits(r, id)); } catch { /* the workout is gone; its splits stay until the next delete */ } }
+    const hrBack = hrRecord.data.runs[id];
+    if (hrBack) { try { hrRecord.update(r => withoutHr(r, id)); } catch { /* its zones stay until the next delete */ } }
     let healthBack: Removed[] | null = null;
     if (target.activityId) { try { await health.update(h => { if (!h.activity.some(a => a.id === target.activityId)) return h; const next = removeHealthItem(h, 'activity', target.activityId!); healthBack = removedItems(h, next); return next; }); } catch { /* the workout is gone; its minutes stay in Health */ } }
     const said = `${target.name} on ${formatDate(target.date)} is deleted, with its minutes in Health.`, workoutBack = wBefore && wAfter ? removedItems(wBefore, wAfter) : null, healthItems = healthBack as Removed[] | null;
     setNote(said);
-    if (workoutBack) showUndo({message: said, undone: `${target.name} is back${healthItems ? ', with its minutes in Health' : ''}.`, restore: async () => { record.update(latest => reinsertItems(latest, workoutBack)); if (splitsBack) { try { splitsRecord.update(r => withSplits(r, id, splitsBack)); } catch { /* the workout is back without its splits */ } } if (healthItems) await health.update(latest => reinsertItems(latest, healthItems)); }});
+    if (workoutBack) showUndo({message: said, undone: `${target.name} is back${healthItems ? ', with its minutes in Health' : ''}.`, restore: async () => { record.update(latest => reinsertItems(latest, workoutBack)); if (splitsBack) { try { splitsRecord.update(r => withSplits(r, id, splitsBack)); } catch { /* the workout is back without its splits */ } } if (hrBack) { try { hrRecord.update(r => withHr(r, id, hrBack)); } catch { /* the workout is back without its zones */ } } if (healthItems) await health.update(latest => reinsertItems(latest, healthItems)); }});
   }
 
   return <div className="workouts-view">{today && <LoggingFor date={logDay} today={today}/>}
@@ -233,6 +246,7 @@ export default function WorkoutsView() {
           : /* Session AV (q3 #11): the weekly chart's teaching line before the first workout, so a fresh device knows it is coming */ <p className="fine workouts-weeks-teach">Finish a workout and the last 12 weeks show here: time, distance and weight lifted per week.</p>}
         {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null} onNoted={fn => change(fn)}/></Suspense>}
         <Suspense fallback={null}><RunTip today={today}/></Suspense>
+        <PlanFold w={w} today={today}/>
         {past.length > 0 && <CalendarFold w={w} today={today}/>}
         {/* Session AV lane 2 (bodymind-r2; LEDGER #240, Fitbod): a workout for today from your own history, freshness and place. */}
         <Fold className="av2-fold workouts-suggest-fold" summary="Suggest a workout for today, from your own sets" loading="Working out a suggestion…"><SuggestWorkout w={w} library={library} today={today} unit={unit} places={places} onStart={x => begin({date: logDay, now: new Date(), repeat: x})}/></Fold>
@@ -276,6 +290,7 @@ export default function WorkoutsView() {
           {(w.shoes ?? []).length > 0 && runSummary(w, null, x.id) && <label className="field workouts-run-shoe"><span>Shoes for {x.name}</span><select value={x.shoeId ?? ''} onChange={e => change(y => setRunShoe(y, x.id, e.target.value || null), e.target.value ? `${(w.shoes ?? []).find(s => s.id === e.target.value)?.name ?? 'Shoes'} picked for ${x.name}.` : `No shoes for ${x.name}.`)}>
             <option value="">No shoes picked</option>{(w.shoes ?? []).filter(s => !s.retiredAt || s.id === x.shoeId).map(s => <option key={s.id} value={s.id}>{s.name}{s.retiredAt ? ' (retired)' : ''}</option>)}</select></label>}
           {splitsRecord.data.workouts[x.id] && <WorkoutSplitsTable s={splitsRecord.data.workouts[x.id]!} name={x.name}/>}
+          {hrRecord.loaded && hrRecord.data.runs[x.id] && <Suspense fallback={null}><HrZones workoutId={x.id} name={x.name}/></Suspense>}
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unitFor(w, e.exerciseId, unit))}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
             {!current && x.exercises.length > 0 && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
@@ -294,6 +309,11 @@ export default function WorkoutsView() {
       <h2 id="workouts-shoes-title">Shoes</h2>
       {(w.shoes ?? []).filter(s => !s.retiredAt).length > 0 && <p className="fine workouts-shoes-line">{(w.shoes ?? []).filter(s => !s.retiredAt).length} {(w.shoes ?? []).filter(s => !s.retiredAt).length === 1 ? 'pair' : 'pairs'} in use.</p>}
       <Fold className="av2-fold workouts-shoes-fold" summary={(w.shoes ?? []).length ? 'Your shoes and their distance' : 'Add your running shoes and count their distance'} loading="Opening your shoes…"><Shoes w={w} change={change}/></Fold>
+    </section>
+    {/* Session AV lane 2, round 4 (health; Runna, LEDGER #337): races ahead, the weeks between, the result beside the goal. */}
+    <section className="panel workouts-races" aria-labelledby="workouts-races-title">
+      <h2 id="workouts-races-title">Races ahead</h2>
+      <Fold className="av2-fold workouts-races-fold" summary="Your races this year, the weeks between them, and results" loading="Opening your races…"><RacesAhead w={w} today={today}/></Fold>
     </section>
     {/* Session AV lane 2 (body; LEDGER #111): distance goals (their line on the fold's face) and the training load. */}
     <section className="panel workouts-goals" aria-labelledby="workouts-goals-title">
@@ -358,6 +378,12 @@ const progressionWords = (p: NonNullable<Workouts['templates'][number]['progress
 function Fold({className, summary, loading, children}: {className: string; summary: string; loading: string; children: ReactNode}) {
   const [open, setOpen] = useState(false);
   return <details className={className} onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{summary}</summary>{open && <Suspense fallback={<p className="fine" role="status">{loading}</p>}>{children}</Suspense>}</details>;
+}
+/** Session AV lane 2, round 4 (LEDGER #330): the plan's fold, opened by itself when the address asks for it (the Agenda's link). */
+function PlanFold({w, today}: {w: Workouts; today: string}) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => { if (typeof location !== 'undefined' && location.hash === '#workouts-plan') queueMicrotask(() => setOpen(true)); }, []);
+  return <details className="av2-fold workouts-plan-fold" open={open || undefined} onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Your plan: planned workouts on a calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening your plan…</p>}><PlannedWorkouts w={w} today={today}/></Suspense>}</details>;
 }
 /** Session AV (F-WORKOUT-CALENDAR): the fold whose content loads when opened. */
 function CalendarFold({w, today}: {w: Workouts; today: string}) {

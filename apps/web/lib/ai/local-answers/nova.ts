@@ -6,7 +6,7 @@ import type {ToolEnv} from '../tools/env';
 import {HEALTH_CLOSED} from '../tools/format';
 import {runTool} from '../tools/registry';
 import type {LocalReply} from './engine';
-import {openTasks} from '../../tasks/engine';
+import {isLate, openTasks} from '../../tasks/engine';
 import type {Task, TaskPriority} from '../../tasks/schema';
 
 /**
@@ -58,7 +58,7 @@ function taskSubAnswer(q: string, env: ToolEnv): LocalReply | null {
     return {kind: 'answer', text: list.length ? [`${plural(list.length, 'open task')} with a deadline:`, ...list.slice(0, 8).map(t => `• ${t.title} — ${by(t)}`)].join('\n') : `No open task has a deadline.${open.length ? ` ${plural(open.length, 'task')} open.` : ''}`, calls};
   }
   if (overdue) {
-    const list = open.filter(t => t.due && t.due < today);
+    const list = open.filter(t => t.due && isLate(t, today)); // Session AV lane 2 (r4-plan, review B4D-2): a floating repeat is late only after its window
     return {kind: 'answer', text: list.length ? [`${plural(list.length, 'task')} overdue:`, ...list.slice(0, 8).map(t => `• ${t.title} — ${when(t)}`)].join('\n') : 'No task is overdue.', calls};
   }
   const nowClock = new Date(env.now).toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit', hour12: false, timeZone: env.habitZone});

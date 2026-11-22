@@ -1,3 +1,5 @@
 /* Session AV lane 2 (r3-plan, LEDGER #259; review B3A-6): the task row's energy chip, loaded with the row itself (task-parts.tsx)
    wherever a row is drawn (Tasks, Today, the Agenda, a goal, NOVA). Theme variables only. */
 .task-energy { color: var(--text-secondary, var(--muted)); }
+/* Session AV lane 2 (r4-plan, LEDGER #301, #303, #304): waiting, in pieces, after hours — muted, never red. */
+.task-waiting, .task-pieces, .task-after-hours { color: var(--text-secondary, var(--muted)); }

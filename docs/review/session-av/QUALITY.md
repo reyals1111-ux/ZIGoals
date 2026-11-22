@@ -54,7 +54,8 @@ Their tables, unedited: [q1 Tasks](quality/q1.md), [q2 Money](quality/q2.md), [q
 |---|---|---|---|---|---|---|
 | 1 (Tasks, Habits and mind part 1, Journal and notes, roadmap: task attachments, ZIGi's hello, chess; CR-19, A45-1) | about 40 | [lane2-b1](quality/lane2-b1.md) | 1 | 6 | 11 | Blocker and Majors fixed (`lane2/revb1`, merged `988f59db`); three Minors left with causes, #18 on `lane2/restore-media` |
 | 2 (Money, Body, Food, Habits and mind part 2, sync, ledger remainders, round 2: Tasks, Money, Body-mind) | about 60 | [lane2-b2](quality/lane2-b2.md) | 2 | 7 | 9 | all fixed: B2B-1, B2B-2 by the lead, the rest on `lane2/revb2a`, `lane2/revb2b` (merged) |
-| 3 (round 3: planned day, money views, water/habits/body, notes and journal) | 41 | [lane2-b3](quality/lane2-b3.md) | 2 | 14 | 22 | A and B fixed by their builders (merged); C on `lane2/revb3c` before batch 3 joins |
+| 3 (round 3: planned day, money views, water/habits/body, notes and journal) | 41 | [lane2-b3](quality/lane2-b3.md) | 2 | 14 | 22 | all fixed (A and B by their builders, C on `lane2/revb3c`, merged) |
+| 4 (round 4: planned week, journal and habits, sleep and training, money, notes and files) | 47 | [lane2-b4](quality/lane2-b4.md) | 5 | 14 | 35 | all fixed by their builders (merged; B4D-1 by the lead) |
 
 Passed everywhere in batch 1: no sideways scroll and nothing cut on the Tasks views, Notes, Journal, Habits and Journey;
 axe 0 serious/critical on those routes and the chess game, the evening check-in and the journal calendar; keyboard play

@@ -8806,6 +8806,24 @@
         box-shadow: none
     }
 }
+/*  components/habits/habit-mind.css  */
+@scope (:root[data-theme=dark]) {
+    .habit-identity-list > li:not(#\-) {
+        border-color: var(--line, color-mix(in srgb, currentColor 16%, transparent))
+    }
+    .habit-identity-habits:not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-step-up:not(#\-) {
+        border-top-color: var(--line, color-mix(in srgb, currentColor 16%, transparent))
+    }
+    .habit-step-up-sizes:not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-step-card:not(#\-) {
+        border-left-color: color-mix(in srgb, var(--pillar-habits, var(--brand-violet, #826cff)) 70%, transparent)
+    }
+}
 /*  components/habits/habit-options.css  */
 @scope (:root[data-theme=dark]) {
     .habit-options-set:not(#\-) {
@@ -11640,6 +11658,61 @@
         background-color: var(--brand-cyan, #6fe6f6)
     }
 }
+/*  components/health/r4/health-r4.css  */
+@scope (:root[data-theme=dark]) {
+    .r4-facts dt:not(#\-) {
+        color: var(--muted, inherit)
+    }
+    .r4-nap:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r4-list > li:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r4-state:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r4-state[data-state="done"]:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--brand-cyan, #6fe6f6)
+    }
+    .r4-day:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .r4-day[data-today="true"]:not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+    .r4-day[data-over="true"]:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, #8fb6ff22)
+    }
+    .r4-zone-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--line, #8fb6ff33)
+    }
+    .r4-zone-bar i[data-zone="1"]:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r4-zone-bar i[data-zone="2"]:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r4-zone-bar i[data-zone="3"]:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r4-zone-bar i[data-zone="4"]:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-violet, #a98bff)
+    }
+    .r4-zone-bar i[data-zone="5"]:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-violet, #a98bff)
+    }
+    .r4-note:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--brand-cyan, #6fe6f6)
+    }
+}
 /*  components/health/sleep/av2-bodymind-sleep.css  */
 @scope (:root[data-theme=dark]) {
     .sleep-need:not(#\-) {
@@ -11868,6 +11941,9 @@
         .sleep-bar.latency:not(#\-) {
             fill: CanvasText
         }
+    }
+    :scope .sleep-stats dd.sleep-stat-how:not(#\-) {
+        color: var(--muted, #bccae0)
     }
 }
 /*  components/health/supplements.css  */
@@ -12563,6 +12639,58 @@
         outline-color: currentColor
     }
 }
+/*  components/journal/entry-format.css  */
+@scope (:root[data-theme=dark]) {
+    .journal-entry-md blockquote:not(#\-) {
+        border-left-color: color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent);
+        color: var(--text-secondary, inherit)
+    }
+    .journal-md-table :is(th, td):not(#\-) {
+        border-bottom-color: color-mix(in srgb, currentColor 18%, transparent)
+    }
+    .journal-tick-box:not(#\-) {
+        accent-color: var(--brand-violet, #826cff)
+    }
+    .journal-tick[data-ticked] > span:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .journal-hl:not(#\-) {
+        --hl: #e2b93b;
+        color: inherit;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--hl) 34%, transparent);
+        border-bottom-color: color-mix(in srgb, var(--hl) 80%, transparent)
+    }
+    .journal-hl[data-hl=yellow]:not(#\-), .journal-format [data-hl=yellow]:not(#\-) {
+        --hl: #e2b93b
+    }
+    .journal-hl[data-hl=green]:not(#\-), .journal-format [data-hl=green]:not(#\-) {
+        --hl: #46a758
+    }
+    .journal-hl[data-hl=blue]:not(#\-), .journal-format [data-hl=blue]:not(#\-) {
+        --hl: #3e8bf0
+    }
+    .journal-hl[data-hl=purple]:not(#\-), .journal-format [data-hl=purple]:not(#\-) {
+        --hl: #8e6cf0
+    }
+    .journal-hl[data-hl=red]:not(#\-), .journal-format [data-hl=red]:not(#\-) {
+        --hl: #e5484d
+    }
+    .journal-hl[data-hl=orange]:not(#\-), .journal-format [data-hl=orange]:not(#\-) {
+        --hl: #f08c38
+    }
+    @media (forced-colors: active) {
+        .journal-hl:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: MarkText
+        }
+    }
+    .journal-format-swatch:not(#\-) {
+        background-image: none;
+        background-color: var(--hl)
+    }
+}
 /*  components/journal/journal.css  */
 @scope (:root[data-theme=dark]) {
     .journal-energy:not(#\-) {
@@ -12758,6 +12886,9 @@
     }
     .journal-entry-sealed:not(#\-) {
         border-color: color-mix(in srgb, var(--brand-violet) 60%, transparent)
+    }
+    .journal-entry-star[aria-pressed=true]>span:first-child:not(#\-), .journal-list-star[aria-pressed=true]>span:first-child:not(#\-) {
+        color: var(--pillar-wealth, var(--brand-magenta))
     }
 }
 /*  components/journal/on-this-day.css  */
@@ -13528,6 +13659,9 @@
     .mood-words-strength:focus-visible:not(#\-) {
         outline-color: var(--focus, var(--violet))
     }
+    .mood-words-meaning:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
 }
 /*  components/motion/motion-2026.css  */
 @scope (:root[data-theme=dark]) {
@@ -14003,6 +14137,27 @@
         background-color: var(--pink)
     }
 }
+/*  components/notes/note-focus.css  */
+@scope (:root[data-theme=dark]) {
+    .note-focus:not(#\-) {
+        border-color: currentcolor;
+        background: var(--surface, var(--bg, #0f1116));
+        color: var(--text, inherit)
+    }
+    .note-focus:not(#\-)::backdrop {
+        background-image: none;
+        background-color: var(--bg, #0f1116)
+    }
+    .note-focus-field:not(#\-) {
+        color: inherit;
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in srgb, currentColor 18%, transparent)
+    }
+    .note-focus-field:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+}
 /*  components/notes/note-print.css  */
 @scope (:root[data-theme=dark]) {
     @media print {
@@ -14374,6 +14529,89 @@
     }
     .notes-board-card:not(#\-) {
         border-color: var(--line)
+    }
+    .note-tag:not(#\-) {
+        border-color: currentcolor;
+        color: inherit;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 16%, transparent)
+    }
+    button.note-tag:not(#\-) {
+        text-decoration-color: color-mix(in srgb, currentColor 40%, transparent)
+    }
+    button.note-tag:focus-visible:not(#\-), .note-tag-pick:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .note-tag-pick:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 20%, transparent);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .note-tag-pick[aria-pressed="true"]:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 75%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 18%, transparent)
+    }
+    .note-focus-line:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent)
+    }
+    .note-find:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent)
+    }
+    .note-find-context mark:not(#\-) {
+        color: inherit;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 34%, transparent)
+    }
+    .note-fold-toggle:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .note-fold-toggle:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, currentColor 10%, transparent)
+    }
+    .note-fold-toggle:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .note-callout:not(#\-) {
+        --co: var(--brand-cyan, #63e7ff);
+        border-color: color-mix(in srgb, var(--co) 40%, transparent);
+        border-inline-start-color: var(--co);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--co) 9%, transparent)
+    }
+    .note-callout[data-callout="tip"]:not(#\-) {
+        --co: #4fbf7a
+    }
+    .note-callout[data-callout="important"]:not(#\-) {
+        --co: var(--brand-violet, #826cff)
+    }
+    .note-callout[data-callout="warning"]:not(#\-) {
+        --co: #d9a53a
+    }
+    .note-callout[data-callout="caution"]:not(#\-) {
+        --co: #e0706b
+    }
+    @media (forced-colors: active) {
+        .note-callout:not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    .note-archived-line:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 35%, transparent)
+    }
+    .note-lock:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent)
+    }
+    .note-editor:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .note-save:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent)
     }
 }
 /*  components/notes/this-day-strip.css  */
@@ -27859,6 +28097,9 @@
     .task-energy:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task-waiting:not(#\-), .task-pieces:not(#\-), .task-after-hours:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 /*  components/tasks/tasks-plan.css  */
 @scope (:root[data-theme=dark]) {
@@ -28076,6 +28317,30 @@
         color: var(--text-secondary, var(--muted))
     }
     .agenda-day-tools:not(#\-) {
+        border-color: var(--line)
+    }
+}
+/*  components/tasks/tasks-r4.css  */
+@scope (:root[data-theme=dark]) {
+    .tasks-hours:not(#\-), .tasks-plan-week:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-hours > summary small:not(#\-), .tasks-plan-week > summary small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-hours-form fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .tasks-plan-week-day small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-plan-week-list small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-at-risk:not(#\-) {
+        border-left-color: var(--line)
+    }
+    .task-plan-fields:not(#\-) {
         border-color: var(--line)
     }
 }
@@ -29083,6 +29348,12 @@
     .budgets-payee-budget.is-over:not(#\-), .budgets-payee-budget.is-near:not(#\-) {
         color: inherit
     }
+    .budgets-more-tools:not(#\-) {
+        border-top-color: var(--line,rgba(140,160,220,.18))
+    }
+    .budgets-more-tools>summary small:not(#\-) {
+        color: var(--muted,#a9b6cc)
+    }
 }
 /*  components/wealth/debt-planner.css  */
 @scope (:root[data-theme=dark]) {
@@ -29234,6 +29505,9 @@
     }
     .fi-hint:not(#\-) {
         color: var(--text-meta,var(--muted))
+    }
+    .money-tools-group-name:not(#\-) {
+        color: var(--muted,#a9b6cc)
     }
 }
 /*  components/wealth/networth-history.css  */
@@ -29428,6 +29702,70 @@
     .waterfall-key-down:not(#\-) {
         background-image: none;
         background-color: var(--cyan,#45d8ef)
+    }
+    .money-cal-grid th:not(#\-) {
+        color: var(--text-secondary,var(--muted))
+    }
+    .money-cal-grid td:not(#\-) {
+        border-color: var(--line,rgba(128,128,160,.3))
+    }
+    .money-cal-grid td.is-out:not(#\-) {
+        border-color: currentcolor
+    }
+    .money-cal-grid td.is-today:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .money-cal-grid td.level-1:not(#\-), .money-cal-key.level-1:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 10%,transparent)
+    }
+    .money-cal-grid td.level-2:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 18%,transparent)
+    }
+    .money-cal-grid td.level-3:not(#\-), .money-cal-key.level-3:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 28%,transparent)
+    }
+    .money-cal-cell:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .money-cal-cell:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .money-cal-in:not(#\-) {
+        color: var(--cyan,#6fd3ff)
+    }
+    .money-cal-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--text,#e8eefc)
+    }
+    .money-cal-key:not(#\-) {
+        border-color: var(--line,rgba(128,128,160,.4))
+    }
+    .money-saved-average:not(#\-), .money-insights-spark .avg:not(#\-) {
+        stroke: color-mix(in srgb,var(--text,#e8eefc) 70%,transparent);
+        fill: none
+    }
+    .money-insights-legend i.money-saved-key:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-top-color: color-mix(in srgb,var(--text,#e8eefc) 70%,transparent)
+    }
+    .money-cross-marks:not(#\-) {
+        border-color: currentcolor
+    }
+}
+/*  components/wealth/spending/money-r4.css  */
+@scope (:root[data-theme=dark]) {
+    .money-group-entries:not(#\-) {
+        border-left-color: var(--line,rgba(140,160,220,.35))
+    }
+    .money-mark-checked:not(#\-) {
+        color: var(--text-secondary,var(--muted))
     }
 }
 /*  components/wealth/spending/people-money.css  */

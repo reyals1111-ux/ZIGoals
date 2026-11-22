@@ -4,7 +4,8 @@ import {addLocalDays} from '../../lib/local-date';
 import {minutesWords} from '../../lib/tasks/minutes';
 import {Suspense, lazy, useId, useRef, useState, type FormEvent} from 'react';
 import {HEALTH_LINKS, LEVEL_WORDS, TASK_NOTES_MAX, taskLevel, type HealthLink, type Recur, type Task, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
-import {describeRecur} from '../../lib/tasks/recurrence';
+import {describeRecur, flexRule, windowEnd} from '../../lib/tasks/recurrence';
+import type {PlanFields} from './task-plan-fields';
 import {pausedRepeat} from '../../lib/tasks/paused';
 import {parseTaskLine} from '../../lib/tasks/parse';
 import {REMINDER_CHOICES} from '../../lib/tasks/reminders';
@@ -28,6 +29,10 @@ const TaskTimer = lazy(() => import('./task-timer'));
 const TaskVersions = lazy(() => import('./task-versions'));
 /** Session AV lane 2 (tasks-r2, LEDGER #223): in or out of today's My Day (its own chunk). */
 const MyDayButton = lazy(() => import('./my-day-parts'));
+/** Session AV lane 2 (r4-plan, LEDGER #301, #303, #304): pieces, waiting for other tasks and "after hours" (its own chunk). */
+const TaskPlanFields = lazy(() => import('./task-plan-fields'));
+/** Session AV lane 2 (r4-plan, LEDGER #305; Motion): a repeat that floats in its week or month, typed in words. */
+const FLOATING = /^(?:once (?:a|per|this|each|every) (week|month)(?:,? any day)?|any day (?:this|a|each|every|of the) (week|month)|(?:een keer|eens|1x) per (week|maand))$/i;
 /** Session AV (1c, q1 #1): the editor offers up to three reminders a task (the record keeps up to five). */
 const MAX_EDITOR_REMINDERS = 3;
 
@@ -36,6 +41,8 @@ const MAX_EDITOR_REMINDERS = 3;
 export function readRepeat(text: string, day: string): Recur | null | 'invalid' {
   const clean = text.trim();
   if (!clean) return null;
+  const floating = FLOATING.exec(clean.replace(/\s+/g, ' '));
+  if (floating) { const unit = (floating[1] ?? floating[2] ?? floating[3])!.toLowerCase(); return flexRule(unit === 'week' ? 'week' : 'month'); }
   const read = parseTaskLine(/^(every|each|daily|weekly|monthly|yearly|annually)/i.test(clean) ? clean : `every ${clean}`, day);
   return read.recur && !read.title ? read.recur : 'invalid';
 }
@@ -76,6 +83,8 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   const [look, setLook] = useState<TaskLook | null>(() => taskLook(task));
   // Session AV lane 2 (r3-plan, LEDGER #259): how much the task asks, for the day's energy.
   const [energy, setEnergy] = useState<TaskEnergy | ''>(task.energy ?? '');
+  // Session AV lane 2 (r4-plan, LEDGER #301, #303, #304): how Plan my day and Plan my week treat it.
+  const [planFields, setPlanFields] = useState<PlanFields>(() => ({chunk: task.chunk ? String(task.chunk) : '', after: (task.after ?? []).filter(x => !record || record.tasks.some(t => t.id === x)) /* a task no longer here drops out on save */, afterHours: !!task.afterHours}));
   const save = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) { setTitleError('A task needs a title.'); return; }
@@ -84,13 +93,16 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     // Session AV (1c, q1 #15): a repeating task has no separate deadline (the engine refuses one); the field said so.
     const repeating = !!recur;
     const unchangedRepeat = task.recur && repeat === (task.recur.text ?? describeRecur(task.recur).replace(/ \(\d+ left\)$/, '').toLowerCase());
-    const patch: TaskPatch = {title, level, due: due || null, time: due && time ? time : null, goal: goal || null, notes: notes.trim() ? notes : null, deadline: deadline && !repeating ? deadline : null, minutes: minutesValue,
+    // Session AV lane 2 (r4-plan, LEDGER #305): a new floating repeat's day is the last day of its week or month.
+    const floatDue = recur && recur.flex && !unchangedRepeat ? windowEnd(recur.flex, due || today) : null;
+    const patch: TaskPatch = {title, level, due: floatDue ?? (due || null), time: due && time ? time : null, goal: goal || null, notes: notes.trim() ? notes : null, deadline: deadline && !repeating ? deadline : null, minutes: minutesValue,
       ...(unchangedRepeat ? {} : {recur: recur ? {...recur, text: repeat.trim().slice(0, 120)} : null}),
       labels: labels.split(/[\s,]+/).map(l => l.replace(/^@/, '')).filter(Boolean),
       ...(record ? {projectId: projectId || null, sectionId: sectionId || null} : {}),
       reminders: [...[...new Set(reminders.filter(r => r !== '').map(Number))].slice(0, MAX_EDITOR_REMINDERS).map(before => ({before})), ...(remindAt ? [{before: 0, at: remindAt}] : [])], habit: habit || null, health: (health || null) as HealthLink | null,
       early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {}),
-      ...(look || task.look ? {look: look ?? null} : {}), ...(energy || task.energy ? {energy: energy || null} : {})};
+      ...(look || task.look ? {look: look ?? null} : {}), ...(energy || task.energy ? {energy: energy || null} : {}),
+      ...(planFields.chunk || task.chunk ? {chunk: planFields.chunk ? Number(planFields.chunk) : null} : {}), ...(planFields.after.length || task.after ? {after: planFields.after} : {}), ...(planFields.afterHours || task.afterHours ? {afterHours: planFields.afterHours ? true : null} : {})};
     // A change to the repeat itself is a change to the series; anything else on a repeating task asks which times.
     if (task.recur && task.due && !task.doneAt && unchangedRepeat) { setAsk(patch); requestAnimationFrame(() => askRef.current?.focus()); return; }
     onSave(patch);
@@ -118,7 +130,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     <label className="field"><span>Takes (minutes) — optional</span><input inputMode="numeric" autoComplete="off" value={minutes} placeholder="30" aria-describedby={`${id}-minutes`} aria-invalid={minutesValue === 'invalid' || undefined} onChange={e => setMinutes(e.target.value)} />
       <small id={`${id}-minutes`} className={minutesValue === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={minutesValue === 'invalid' ? 'alert' : undefined}>{minutesValue === 'invalid' ? 'Enter whole minutes from 1 to 1,440, for example 30 or 90.' : minutesValue ? `About ${minutesWords(minutesValue)}; Today adds up the minutes of the day.` : 'How long it takes. Today adds up the minutes of its tasks.'}</small></label>
     <label className="field"><span>Repeat</span><input value={repeat} maxLength={120} placeholder="every Monday" aria-describedby={`${id}-repeat`} aria-invalid={recur === 'invalid' || undefined} onChange={e => setRepeat(e.target.value)} />
-      <small id={`${id}-repeat`} className={recur === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={recur === 'invalid' ? 'alert' : undefined}>{recur === 'invalid' ? 'Try “every Monday”, “every 2 weeks”, “every month on the 1st” or “every! 3 days”.' : recur ? `${describeRecur(recur)}${due ? '' : ' · starts today'}` : 'Empty: it does not repeat.'}</small></label>
+      <small id={`${id}-repeat`} className={recur === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={recur === 'invalid' ? 'alert' : undefined}>{recur === 'invalid' ? 'Try “every Monday”, “every 2 weeks”, “every month on the 1st”, “once a week” or “every! 3 days”.' : recur ? recur.flex ? `${describeRecur(recur)}: it stays in This week until done, due by ${formatDate(windowEnd(recur.flex, due || today), {weekday: true, year: false})}, then comes back.` : `${describeRecur(recur)}${due ? '' : ' · starts today'}` : 'Empty: it does not repeat. “once a week” or “once a month” floats: any day of it.'}</small></label>
     {task.recur && !task.doneAt && <div className="task-editor-pause" role="group" aria-labelledby={`${id}-pause`}>
       <span id={`${id}-pause`} className="task-editor-pause-title">Pause the repeat</span>
       {/* Session AV lane 2 (q1 #43 Minor): a paused repeat says so, with Resume (its next day from today). */}
@@ -140,6 +152,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <small id={`${id}-spent`} className={spentValue === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={spentValue === 'invalid' ? 'alert' : undefined}>{spentValue === 'invalid' ? 'Enter whole minutes, for example 25.' : typeof minutesValue === 'number' && typeof spentValue === 'number' ? `Planned ${minutesWords(minutesValue)}, spent ${minutesWords(spentValue)}.` : 'The timer in Tasks → Today adds to this; you can also type it.'}</small></label>
     <label className="field"><span>Energy — optional</span><select value={energy} aria-describedby={`${id}-energy`} onChange={e => setEnergy(e.target.value as TaskEnergy | '')}><option value="">Not set</option>{TASK_ENERGY.map(v => <option key={v} value={v}>{ENERGY_WORDS[v]}</option>)}</select>
       <small id={`${id}-energy`} className="tasks-field-note">{energy ? `${ENERGY_WORDS[energy]}: ${ENERGY_HINTS[energy]}. Tasks → Today adds up the day’s energy against your amount.` : 'How much it asks of you. Tasks → Today adds up the day’s energy, in calm words.'}</small></label>
+    <Suspense fallback={null}><TaskPlanFields task={task} record={record} minutes={typeof minutesValue === 'number' ? minutesValue : null} value={planFields} onChange={setPlanFields} /></Suspense>
     <Suspense fallback={null}><TaskTimer task={task} onNote={n => setNotes(v => v.trim() ? `${v.trimEnd()}\n\n${n}` : n)} onStopped={(m, at) => { if (at) base.current = at; setSpent(s => String((/^\d{1,5}$/.test(s.trim()) ? Number(s) : task.spent ?? 0) + m)); }} /></Suspense>
     {objectives.length > 0 && <label className="field"><span>Week objective</span><select value={objective} onChange={e => setObjective(e.target.value)}><option value="">None</option>{objectives.map(o => <option key={o.id} value={o.id}>{o.title}{o.week !== weekNow ? ` (week of ${formatDate(o.week, {year: false})})` : ''}</option>)}</select></label>}
     {due && reminders.length > 0 && reminders.length < MAX_EDITOR_REMINDERS && reminders.every(r => r !== '') && <p className="task-editor-more-reminders"><button type="button" className="text-link" onClick={() => setReminders(rs => [...rs, ''])}>+ Add another reminder</button></p>}

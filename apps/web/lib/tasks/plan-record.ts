@@ -31,6 +31,28 @@ const timerSchema = z.looseObject({taskId: z.string().regex(/^[A-Za-z0-9_-]{1,80
 const clock = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 /** Session AV lane 2 (r3-plan, LEDGER #259): the day's energy amount the person sets (Structured's default is 20). */
 export const ENERGY_AMOUNT_DEFAULT = 20, ENERGY_AMOUNT_CHOICES = [8, 12, 16, 20, 24, 28, 32, 40] as const;
+/**
+ * Session AV lane 2 (r4-plan, LEDGER #301; Motion's schedules): a block of hours ("09:00"–"12:30"), and a weekday's blocks
+ * (two at most, for a lunch break; none is a day off). A block that cannot be read, or that overlaps the one before, is
+ * dropped on read; a weekday that cannot be read is left out (it takes the usual hours).
+ */
+export const MAX_DAY_BLOCKS = 2;
+const hoursBlock = z.looseObject({from: clock, to: clock}).refine(b => b.from < b.to);
+export type HoursBlock = {from: string; to: string};
+export function readDayBlocks(v: unknown): HoursBlock[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const ok = v.flatMap(x => { const r = hoursBlock.safeParse(x); return r.success ? [r.data] : []; }).sort((a, b) => a.from.localeCompare(b.from));
+  // Review B4D-6: a stored empty list is a day off; a list none of whose blocks can be read (a later build's shape, say a
+  // block past midnight) is not: the weekday is left out, so it keeps the usual hours.
+  if (v.length && !ok.length) return undefined;
+  const out: HoursBlock[] = [];
+  for (const b of ok) if (out.length < MAX_DAY_BLOCKS && (!out.length || b.from >= out.at(-1)!.to)) out.push(b);
+  return out;
+}
+const workHoursSchema = z.looseObject({
+  days: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).flatMap(([k, x]) => { const blocks = /^[0-6]$/.test(k) ? readDayBlocks(x) : undefined; return blocks ? [[k, blocks]] : []; })) : undefined, z.record(z.string(), z.array(hoursBlock)).optional()),
+  after: hoursBlock.optional().catch(undefined),
+});
 export const taskPlanSchema = z.looseObject({
   version: z.literal(1),
   defaultReminder: z.number().int().min(0).max(10_080).optional().catch(undefined),
@@ -58,6 +80,13 @@ export const taskPlanSchema = z.looseObject({
    */
   planReminder: z.looseObject({time: clock}).optional().catch(undefined),
   energyAmount: z.number().int().min(1).max(100).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r4-plan, LEDGER #301; Motion's schedules; TIER 3 (stored format), additive and optional): the hours
+   * tasks may be placed in, per weekday (`days`, "0" Sunday to "6" Saturday; a weekday not set keeps 09:00–18:00), and the
+   * evening hours (`after`, 20:00–23:00 when not set) for a task marked "after hours" (lib/tasks/work-hours.ts). A value this
+   * build cannot read is dropped on read; older builds keep it untouched (the record is loose) and plan from 09:00 as before.
+   */
+  workHours: workHoursSchema.optional().catch(undefined),
 });
 export type TaskPlan = z.infer<typeof taskPlanSchema>;
 export const emptyTaskPlan = (): TaskPlan => ({version: 1});

@@ -1,0 +1,18 @@
+/* Session AV lane 2 (r4-mind; LEDGER #323, #327, Atoms): who you are becoming, a habit's sizes and the step-up card.
+   Loaded by their own chunks only. Theme variables only; every control 44 px; wraps at 320 px. */
+.habit-identity-list { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 10px; }
+.habit-identity-list > li { padding: 10px 12px; border: 1px solid var(--line, color-mix(in srgb, currentColor 16%, transparent)); border-radius: 12px; min-width: 0; }
+.habit-identity-line { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.habit-identity-count, .habit-identity-joined { margin: 4px 0 0; overflow-wrap: anywhere; }
+.habit-identity .actions, .habit-step-up .actions, .habit-step-card .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.habit-identity button, .habit-step-up button, .habit-step-card button { min-height: 44px; }
+.habit-identity-habits { border: 0; margin: 8px 0; padding: 0; display: grid; gap: 2px; }
+.habit-identity-habits legend { font-weight: 600; margin-bottom: 4px; }
+.habit-identity-habits .switch-row, .habit-step-up .switch-row { min-height: 44px; align-items: center; }
+.habit-identity-form input[type="text"], .habit-step-up-form input[type="text"] { width: 100%; max-width: 32rem; min-height: 44px; }
+.habit-step-up { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line, color-mix(in srgb, currentColor 16%, transparent)); }
+.habit-step-up-title { margin: 0 0 4px; }
+.habit-step-up-sizes { border: 0; margin: 4px 0; padding: 0; display: grid; gap: 2px; }
+.habit-step-card { border-left: 3px solid color-mix(in srgb, var(--pillar-habits, var(--brand-violet, #826cff)) 70%, transparent); }
+.habit-step-card .eyebrow { margin: 0 0 4px; }
+.habit-step-card p { overflow-wrap: anywhere; }

@@ -8048,5 +8048,373 @@
   "widgets": [],
   "fresh": "Ready-made routines of 30 minutes or less: Body weight at home, Core in ten minutes, Strength for runners and Easy mobility. Health → Workouts → Ready-made routines → Find a routine filters by muscle group and place too.",
   "freshNl": "Kant-en-klare routines van 30 minuten of minder: Lichaamsgewicht thuis, Buik in tien minuten, Kracht voor hardlopers en Rustig bewegen. Health → Workouts → Ready-made routines → Find a routine filtert ook op spiergroep en plek."
+ },
+ "av2r4-plan-week": {
+  "en": "Nothing to place this week: Plan my week places open tasks that have minutes and no time yet. Give a task its length (“Takes” in its editor), and it finds the task a day inside your working hours, the earliest deadline first.",
+  "nl": "Deze week valt er niets in te plannen: Plan my week plant open taken met minuten en nog zonder tijd. Geef een taak zijn duur (“Takes” in de editor), dan zoekt het een dag binnen je werkuren, de vroegste deadline eerst.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing to place this week: Plan my week places open tasks that have minutes and no time yet. Give a task its length (“Takes” in its editor), and it finds the task a day inside your working hours, the earliest deadline first.",
+  "freshNl": "Deze week valt er niets in te plannen: Plan my week plant open taken met minuten en nog zonder tijd. Geef een taak zijn duur (“Takes” in de editor), dan zoekt het een dag binnen je werkuren, de vroegste deadline eerst."
+ },
+ "av2r4-working-hours": {
+  "en": "You have not set working hours yet, so tasks are placed in the usual 9:00 AM–6:00 PM every day:\n• Monday: 9:00 AM–6:00 PM\n• Tuesday: 9:00 AM–6:00 PM\n• Wednesday: 9:00 AM–6:00 PM\n• Thursday: 9:00 AM–6:00 PM\n• Friday: 9:00 AM–6:00 PM\n• Saturday: 9:00 AM–6:00 PM\n• Sunday: 9:00 AM–6:00 PM\nEvening hours for “after hours” tasks: 8:00 PM–11:00 PM. Change them in Tasks → This week → Working hours.",
+  "nl": "Je hebt nog geen werkuren ingesteld, dus taken komen elke dag in de gewone uren 09:00–18:00:\n• maandag: 09:00–18:00\n• dinsdag: 09:00–18:00\n• woensdag: 09:00–18:00\n• donderdag: 09:00–18:00\n• vrijdag: 09:00–18:00\n• zaterdag: 09:00–18:00\n• zondag: 09:00–18:00\nAvonduren voor taken “after hours”: 20:00–23:00. Wijzigen kan in Tasks → This week → Working hours.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have not set working hours yet, so tasks are placed in the usual 9:00 AM–6:00 PM every day:\n• Monday: 9:00 AM–6:00 PM\n• Tuesday: 9:00 AM–6:00 PM\n• Wednesday: 9:00 AM–6:00 PM\n• Thursday: 9:00 AM–6:00 PM\n• Friday: 9:00 AM–6:00 PM\n• Saturday: 9:00 AM–6:00 PM\n• Sunday: 9:00 AM–6:00 PM\nEvening hours for “after hours” tasks: 8:00 PM–11:00 PM. Change them in Tasks → This week → Working hours.",
+  "freshNl": "Je hebt nog geen werkuren ingesteld, dus taken komen elke dag in de gewone uren 09:00–18:00:\n• maandag: 09:00–18:00\n• dinsdag: 09:00–18:00\n• woensdag: 09:00–18:00\n• donderdag: 09:00–18:00\n• vrijdag: 09:00–18:00\n• zaterdag: 09:00–18:00\n• zondag: 09:00–18:00\nAvonduren voor taken “after hours”: 20:00–23:00. Wijzigen kan in Tasks → This week → Working hours."
+ },
+ "av2r4-deadline-risk": {
+  "en": "Your 1 task with a deadline in the next two weeks fit in your free working hours before it (counting the tasks that have minutes).",
+  "nl": "Je 1 taak met een deadline in de komende twee weken past in je vrije werkuren ervoor (de taken met minuten meegeteld).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task has a deadline ahead. Give a task a deadline (and its minutes) in its editor, and Upcoming says it quietly when the free hours before it look short.",
+  "freshNl": "Geen open taak heeft een deadline in het verschiet. Geef een taak een deadline (en zijn minuten) in de editor; Upcoming zegt het rustig als de vrije uren ervoor krap lijken."
+ },
+ "av2r4-waiting": {
+  "en": "No task is waiting for another. In a task’s editor, “Waits for” names up to three tasks: until they are done it stays out of Today and out of a plan, then it joins its day.",
+  "nl": "Geen taak wacht op een andere. In de editor van een taak noemt “Waits for” tot drie taken: tot die af zijn blijft hij uit Today en uit een plan, daarna komt hij op zijn dag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is waiting for another. In a task’s editor, “Waits for” names up to three tasks: until they are done it stays out of Today and out of a plan, then it joins its day.",
+  "freshNl": "Geen taak wacht op een andere. In de editor van een taak noemt “Waits for” tot drie taken: tot die af zijn blijft hij uit Today en uit een plan, daarna komt hij op zijn dag."
+ },
+ "av2r4-pieces": {
+  "en": "No task is in pieces yet. In a task’s editor, give it its minutes (“Takes”) and a piece length under “In pieces of”: Plan my day and Plan my week then place it piece by piece (“part 2 of 4”), and time spent counts against the whole.",
+  "nl": "Nog geen taak is in stukken verdeeld. Geef een taak in de editor zijn minuten (“Takes”) en een stuklengte bij “In pieces of”: Plan my day en Plan my week plaatsen hem dan stuk voor stuk (“part 2 of 4”), en bestede tijd telt mee voor het geheel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is in pieces yet. In a task’s editor, give it its minutes (“Takes”) and a piece length under “In pieces of”: Plan my day and Plan my week then place it piece by piece (“part 2 of 4”), and time spent counts against the whole.",
+  "freshNl": "Nog geen taak is in stukken verdeeld. Geef een taak in de editor zijn minuten (“Takes”) en een stuklengte bij “In pieces of”: Plan my day en Plan my week plaatsen hem dan stuk voor stuk (“part 2 of 4”), en bestede tijd telt mee voor het geheel."
+ },
+ "av2r4-floating": {
+  "en": "No task repeats once a week or a month, any day. Type “once a week” or “once a month” as a task’s repeat: it stays in Tasks → This week until done, then comes back; a missed week is one overdue task, never a pile.",
+  "nl": "Geen taak herhaalt een keer per week of maand op een willekeurige dag. Typ “once a week” of “once a month” als herhaling: de taak blijft in Tasks → This week tot hij af is en komt dan terug; een gemiste week is één taak over tijd, nooit een stapel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task repeats once a week or a month, any day. Type “once a week” or “once a month” as a task’s repeat: it stays in Tasks → This week until done, then comes back; a missed week is one overdue task, never a pile.",
+  "freshNl": "Geen taak herhaalt een keer per week of maand op een willekeurige dag. Typ “once a week” of “once a month” als herhaling: de taak blijft in Tasks → This week tot hij af is en komt dan terug; een gemiste week is één taak over tijd, nooit een stapel."
+ },
+ "av2r4-journal-ticks": {
+  "en": "No open tick box in your journal. Under the entry’s words the format bar makes words bold, italic or highlighted, and a line a heading, a list item, a quote or a tick box; typing the marks works too (**bold**, ## a heading, - [ ] a tick box).",
+  "nl": "Geen open vinkje in je dagboek. Onder de woorden van een stuk maakt de opmaakbalk woorden vet, cursief of gemarkeerd, en een regel een kop, een opsommingsteken, een citaat of een vinkje; de tekens zelf typen kan ook (**vet**, ## een kop, - [ ] een vinkje).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open tick box in your journal. Under the entry’s words the format bar makes words bold, italic or highlighted, and a line a heading, a list item, a quote or a tick box; typing the marks works too (**bold**, ## a heading, - [ ] a tick box).",
+  "freshNl": "Geen open vinkje in je dagboek. Onder de woorden van een stuk maakt de opmaakbalk woorden vet, cursief of gemarkeerd, en een regel een kop, een opsommingsteken, een citaat of een vinkje; de tekens zelf typen kan ook (**vet**, ## een kop, - [ ] een vinkje)."
+ },
+ "av2r4-journal-format": {
+  "en": "Yes. Under the entry’s words the format bar makes words bold, italic or highlighted, and a line a heading, a list item, a quote or a tick box; typing the marks works too (**bold**, ## a heading, - [ ] a tick box). Your entry keeps its words as written.",
+  "nl": "Ja. Onder de woorden van een stuk maakt de opmaakbalk woorden vet, cursief of gemarkeerd, en een regel een kop, een opsommingsteken, een citaat of een vinkje; de tekens zelf typen kan ook (**vet**, ## een kop, - [ ] een vinkje). Je stuk houdt de woorden zoals je ze schreef.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. Under the entry’s words the format bar makes words bold, italic or highlighted, and a line a heading, a list item, a quote or a tick box; typing the marks works too (**bold**, ## a heading, - [ ] a tick box). Your entry keeps its words as written.",
+  "freshNl": "Ja. Onder de woorden van een stuk maakt de opmaakbalk woorden vet, cursief of gemarkeerd, en een regel een kop, een opsommingsteken, een citaat of een vinkje; de tekens zelf typen kan ook (**vet**, ## een kop, - [ ] een vinkje). Je stuk houdt de woorden zoals je ze schreef."
+ },
+ "av2r4-favourites": {
+  "en": "No favourite entry yet. Press ☆ Favourite on an entry in the Journal; Favourites above the list then shows only those.",
+  "nl": "Nog geen favoriet stuk. Druk in het dagboek op ☆ Favourite bij een stuk; Favourites boven de lijst toont dan alleen die.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No favourite entry yet. Press ☆ Favourite on an entry in the Journal; Favourites above the list then shows only those.",
+  "freshNl": "Nog geen favoriet stuk. Druk in het dagboek op ☆ Favourite bij een stuk; Favourites boven de lijst toont dan alleen die."
+ },
+ "av2r4-throwback": {
+  "en": "On this day: 1 year ago (Mon, Nov 17, 2025) and 2 years ago (Sun, Nov 17, 2024). Open the Journal to read them; I don’t repeat your words here.",
+  "nl": "Op deze dag: 1 jaar geleden (ma 17 nov 2025) en 2 jaar geleden (zo 17 nov 2024). Open het dagboek om ze te lezen; ik herhaal je woorden hier niet.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing from a week, a month or a year ago today. On days with one, On this day at the top of the Journal shows it; Journal → Privacy can tell you in the morning.",
+  "freshNl": "Vandaag niets van een week, een maand of een jaar geleden. Op dagen dat er iets is, toont On this day bovenaan het dagboek het; Journal → Privacy kan het je ’s ochtends laten weten."
+ },
+ "av2r4-photos": {
+  "en": "Up to 12 photos an entry, kept on this device only. Before they are kept ZIGoals checks there is room; older versions of ZIGoals show the first four.",
+  "nl": "Tot 12 foto’s per stuk, alleen op dit apparaat bewaard. Voordat ze bewaard worden kijkt ZIGoals of er ruimte is; oudere versies van ZIGoals tonen de eerste vier.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Up to 12 photos an entry, kept on this device only. Before they are kept ZIGoals checks there is room; older versions of ZIGoals show the first four.",
+  "freshNl": "Tot 12 foto’s per stuk, alleen op dit apparaat bewaard. Voordat ze bewaard worden kijkt ZIGoals of er ruimte is; oudere versies van ZIGoals tonen de eerste vier."
+ },
+ "av2r4-identity": {
+  "en": "No line yet. On Habits, Who you are becoming → Write your first line: who you want to be, in your own words (“I am someone who reads every evening”), joined to the habits that serve it; their ticks count toward it.",
+  "nl": "Nog geen zin. Op Habits: Who you are becoming → Write your first line: wie je wilt zijn, in je eigen woorden (“Ik ben iemand die elke avond leest”), gekoppeld aan de gewoontes die erbij horen; hun vinkjes tellen mee.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No line yet. On Habits, Who you are becoming → Write your first line: who you want to be, in your own words (“I am someone who reads every evening”), joined to the habits that serve it; their ticks count toward it.",
+  "freshNl": "Nog geen zin. Op Habits: Who you are becoming → Write your first line: wie je wilt zijn, in je eigen woorden (“Ik ben iemand die elke avond leest”), gekoppeld aan de gewoontes die erbij horen; hun vinkjes tellen mee."
+ },
+ "av2r4-step-up": {
+  "en": "No habit has a small version yet. In a habit’s Details, Start small, then step up: write a small version (“one page”) and a next step (“two pages”); switch on the card, and after four steady weeks it offers the next size. You decide each time.",
+  "nl": "Nog geen gewoonte heeft een kleine versie. In Details van een gewoonte, Start small, then step up: schrijf een kleine versie (“één bladzijde”) en een volgende stap (“twee bladzijdes”); zet de kaart aan, en na vier vaste weken biedt hij de volgende maat aan. Jij beslist elke keer.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No habit has a small version yet. In a habit’s Details, Start small, then step up: write a small version (“one page”) and a next step (“two pages”); switch on the card, and after four steady weeks it offers the next size. You decide each time.",
+  "freshNl": "Nog geen gewoonte heeft een kleine versie. In Details van een gewoonte, Start small, then step up: schrijf een kleine versie (“één bladzijde”) en een volgende stap (“twee bladzijdes”); zet de kaart aan, en na vier vaste weken biedt hij de volgende maat aan. Jij beslist elke keer."
+ },
+ "av2r4-word-meaning": {
+  "en": "“restless”: can’t settle; the body wants to move. It is in high energy, unpleasant.",
+  "nl": "“restless”: can’t settle; the body wants to move. (Het staat bij High energy, unpleasant; de gevoelswoorden zijn Engels.)",
+  "facts": null,
+  "widgets": [],
+  "fresh": "“restless”: can’t settle; the body wants to move. It is in high energy, unpleasant.",
+  "freshNl": "“restless”: can’t settle; the body wants to move. (Het staat bij High energy, unpleasant; de gevoelswoorden zijn Engels.)"
+ },
+ "av2r4-feeling-choices": {
+  "en": "For “stressed”, the feeling words offer, if you like: Breathe for a minute, Check a thought and Step outside for a few minutes. Pick one or none; it is your choice, not advice.",
+  "nl": "Bij “stressed” bieden de gevoelswoorden, als je wilt: Breathe for a minute, Check a thought en Step outside for a few minutes (in het Engels in de app). Kies er een of geen; het is jouw keuze, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "For “stressed”, the feeling words offer, if you like: Breathe for a minute, Check a thought and Step outside for a few minutes. Pick one or none; it is your choice, not advice.",
+  "freshNl": "Bij “stressed” bieden de gevoelswoorden, als je wilt: Breathe for a minute, Check a thought en Step outside for a few minutes (in het Engels in de app). Kies er een of geen; het is jouw keuze, geen advies."
+ },
+ "av2r4-where-felt": {
+  "en": "Nothing noted yet. After a feeling word, “Where do you feel it?” keeps up to three places, each with a word for how it feels there; the most common show as counts.",
+  "nl": "Nog niets genoteerd. Na een gevoelswoord bewaart “Where do you feel it?” tot drie plekken, elk met een woord voor hoe het daar voelt; de meest voorkomende staan er als tellingen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing noted yet. After a feeling word, “Where do you feel it?” keeps up to three places, each with a word for how it feels there; the most common show as counts.",
+  "freshNl": "Nog niets genoteerd. Na een gevoelswoord bewaart “Where do you feel it?” tot drie plekken, elk met een woord voor hoe het daar voelt; de meest voorkomende staan er als tellingen."
+ },
+ "av2r4-caffeine-sleep": {
+  "en": "There is no caffeine in your log to compare with your nights yet. Type the caffeine of a drink in Health → Water. Then Health → Insights → Compare sets the days with it beside the days without, night by night.",
+  "nl": "Er staat nog geen cafeïne in je log om met je nachten te vergelijken. Vul de cafeïne van een drankje in bij Health → Water. Dan zet Health → Insights → Compare de dagen ermee naast de dagen zonder, nacht voor nacht.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "I can’t read what your drinks were here yet, so I can’t say. It is in Health on this device.",
+  "freshNl": "Ik kan wat je drankjes waren hier nog niet lezen, dus dat kan ik niet zeggen. Het staat in Health op dit apparaat."
+ },
+ "av2r4-steps-sleep": {
+  "en": "On days you walked over 7,500 steps, you slept 8 h 11 min that night on average; on other days, 7 h 16 min. (24 days with, 31 without, your last 90 days.) Something else could explain it: active days are often different days too, such as weekends, trips or days off. It is what happened together, never a cause.",
+  "nl": "Op dagen met meer dan 7.500 stappen sliep je die nacht gemiddeld 8 h 11 min; na andere dagen 7 h 16 min (24 met, 31 zonder, je laatste 90 dagen). Iets anders kan het verklaren, zoals drukke dagen of weekenden. Het is wat samen gebeurde, nooit een oorzaak.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "There is no steps in your log to compare with your nights yet. Log steps in Health → Activity. Then Health → Insights → Compare sets the days with it beside the days without, night by night.",
+  "freshNl": "Er staat nog geen stappen in je log om met je nachten te vergelijken. Log stappen in Health → Activity. Dan zet Health → Insights → Compare de dagen ermee naast de dagen zonder, nacht voor nacht."
+ },
+ "av2r4-sleep-timing": {
+  "en": "The middle of your sleep: 3:08 AM on weekend nights, 3:12 AM on weekday nights. On weekends you sleep at about the same time as on weekdays. That reads as in the middle: an estimate from your own nights, not a type to change and not medical advice.",
+  "nl": "Het midden van je slaap: 03:08 in weekendnachten, 03:12 door de week. In het weekend slaap je op ongeveer dezelfde tijd als door de week. Dat lijkt op ertussenin: een schatting uit je eigen nachten, geen type om te veranderen en geen medisch advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Not enough nights yet: your timing needs 4 weekend nights and 4 weekday nights in the last 30 days. Log your nights in Health → Sleep.",
+  "freshNl": "Nog niet genoeg nachten: je timing heeft 4 weekendnachten en 4 doordeweekse nachten nodig in de laatste 30 dagen. Log je nachten in Health → Sleep."
+ },
+ "av2r4-sleep-tip": {
+  "en": "Today’s sleep tip: Keep a paper book on the nightstand for the last half hour of the day. (Health’s Sleep card shows one a day once you choose “Show a sleep tip each day”.)",
+  "nl": "De slaaptip van vandaag: Leg een papieren boek op het nachtkastje voor het laatste halfuur van de dag. (De slaapkaart in Health laat er elke dag een zien als je “Show a sleep tip each day” kiest.)",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Today’s sleep tip: Keep a paper book on the nightstand for the last half hour of the day. (Health’s Sleep card shows one a day once you choose “Show a sleep tip each day”.)",
+  "freshNl": "De slaaptip van vandaag: Leg een papieren boek op het nachtkastje voor het laatste halfuur van de dag. (De slaapkaart in Health laat er elke dag een zien als je “Show a sleep tip each day” kiest.)"
+ },
+ "av2r4-planned": {
+  "en": "Planned: Upper body session (Showcase) (Wed, Nov 18 7:30 AM) and Easy 5 km run (Showcase) (Fri, Nov 20 6:00 PM).",
+  "nl": "Gepland: Upper body session (Showcase) (wo 18 nov 07:30) en Easy 5 km run (Showcase) (vr 20 nov 18:00).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "I can’t read your planned workouts here yet, so I can’t say. It is in Health on this device.",
+  "freshNl": "Ik kan je geplande workouts hier nog niet lezen, dus dat kan ik niet zeggen. Het staat in Health op dit apparaat."
+ },
+ "av2r4-weight-band": {
+  "en": "No weight band is set. Goals → Health goals → “Keep my weight between …” sets one: a lower and an upper weight of your own, shaded on the weight trend.",
+  "nl": "Er staat geen gewichtsband. Goals → Health goals → “Keep my weight between …” zet er een: een eigen onder- en bovengrens, gearceerd op de gewichtstrend.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "I can’t read your weight band here yet, so I can’t say. It is in Health on this device.",
+  "freshNl": "Ik kan je gewichtsband hier nog niet lezen, dus dat kan ik niet zeggen. Het staat in Health op dit apparaat."
+ },
+ "av2r4-free-day": {
+  "en": "No free day is planned. Health → Targets → Weekly calorie budget plans one: a day with the extra you choose, taken evenly from that week’s other days, never below the floor.",
+  "nl": "Er staat geen vrije dag gepland. Health → Targets → Weekly calorie budget plant er een: een dag met de extra die je kiest, gelijk verdeeld over de andere dagen van die week, nooit onder de ondergrens.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "I can’t read your weekly calorie budget here yet, so I can’t say. It is in Health on this device.",
+  "freshNl": "Ik kan je weekbudget voor calorieën hier nog niet lezen, dus dat kan ik niet zeggen. Het staat in Health op dit apparaat."
+ },
+ "av2r4-hr-zones": {
+  "en": "Zones need your maximum heart rate, typed by you (from a test or your watch): open a run in Health → Workouts and type it under its heart-rate zones. ZIGoals never works it out from your age.",
+  "nl": "Zones hebben je maximale hartslag nodig, door jou ingevuld (uit een test of van je horloge): open een loop in Health → Workouts en vul hem in bij de hartslagzones. ZIGoals rekent hem nooit uit je leeftijd.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "I can’t read your heart-rate zones here yet, so I can’t say. It is in Health on this device.",
+  "freshNl": "Ik kan je hartslagzones hier nog niet lezen, dus dat kan ik niet zeggen. Het staat in Health op dit apparaat."
+ },
+ "av2r4-races": {
+  "en": "Coming up: City 10K (Showcase) (main, 10 km, Fri, Dec 11, in 3 weeks).",
+  "nl": "Komend: City 10K (Showcase) (hoofdwedstrijd, 10 km, vr 11 dec, over 3 weken).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "I can’t read your races here yet, so I can’t say. It is in Health on this device.",
+  "freshNl": "Ik kan je wedstrijden hier nog niet lezen, dus dat kan ik niet zeggen. Het staat in Health op dit apparaat."
+ },
+ "av2r4-money-calendar": {
+  "en": "This month in EUR: €435.59 spent on 13 days, €2,550.00 received; the largest days: Sun, Nov 8 €120.00, Thu, Nov 12 €61.30 and Mon, Nov 16 €51.40. Each day is on Wealth → Spending → Your money over time → A calendar of the month; a cost spread over months counts its share each month, as your budgets do.",
+  "nl": "Deze maand in EUR: € 435,59 uitgegeven op 13 dagen, € 2.550,00 ontvangen; de grootste dagen: zo 8 nov € 120,00, do 12 nov € 61,30 en ma 16 nov € 51,40. Elke dag staat op Vermogen → Uitgaven → Your money over time → A calendar of the month; een kost verspreid over maanden telt elke maand zijn deel, zoals je budgetten.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing logged this month yet. Each day you log spending or income shows on Wealth → Spending → Your money over time → A calendar of the month.",
+  "freshNl": "Deze maand is nog niets gelogd. Elke dag dat je uitgaven of inkomsten logt, staat op Vermogen → Uitgaven → Your money over time → A calendar of the month."
+ },
+ "av2r4-money-archived": {
+  "en": "No category is archived. In Wealth → Spending → Log spending → Your own categories, \"Archive a category\" takes one out of the pickers; its entries keep it.",
+  "nl": "Er is geen categorie gearchiveerd. In Vermogen → Uitgaven → Log spending → Your own categories haalt \"Archive a category\" er een uit de keuzelijsten; je invoer houdt hem.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No category is archived. In Wealth → Spending → Log spending → Your own categories, \"Archive a category\" takes one out of the pickers; its entries keep it.",
+  "freshNl": "Er is geen categorie gearchiveerd. In Vermogen → Uitgaven → Log spending → Your own categories haalt \"Archive a category\" er een uit de keuzelijsten; je invoer houdt hem."
+ },
+ "av2r4-money-starter-sets": {
+  "en": "Four written starter sets: a student (study costs, a room and a side job), a household (a home, children and pets, the bills that come each month), a freelancer (work costs kept apart from your own, and income by client) and a traveller (trips as their own categories: getting there, staying and doing). In Wealth → Spending → Log spending → Your own categories → Start from a set, see what each adds (in English or Dutch), then add it in one tap; nothing already there is changed.",
+  "nl": "Vier geschreven startsets: een student (studiekosten, een kamer en een bijbaan), een huishouden (een huis, kinderen en huisdieren, de vaste lasten van elke maand), een zzp’er (werkkosten apart van je eigen uitgaven, en inkomsten per opdracht) en een reiziger (reizen als eigen categorieën: erheen, verblijven en doen). In Vermogen → Uitgaven → Log spending → Your own categories → Start from a set zie je wat elke set toevoegt (in het Engels of Nederlands) en voeg je hem in één tik toe; wat er al is, blijft zoals het is.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Four written starter sets: a student (study costs, a room and a side job), a household (a home, children and pets, the bills that come each month), a freelancer (work costs kept apart from your own, and income by client) and a traveller (trips as their own categories: getting there, staying and doing). In Wealth → Spending → Log spending → Your own categories → Start from a set, see what each adds (in English or Dutch), then add it in one tap; nothing already there is changed.",
+  "freshNl": "Vier geschreven startsets: een student (studiekosten, een kamer en een bijbaan), een huishouden (een huis, kinderen en huisdieren, de vaste lasten van elke maand), een zzp’er (werkkosten apart van je eigen uitgaven, en inkomsten per opdracht) en een reiziger (reizen als eigen categorieën: erheen, verblijven en doen). In Vermogen → Uitgaven → Log spending → Your own categories → Start from a set zie je wat elke set toevoegt (in het Engels of Nederlands) en voeg je hem in één tik toe; wat er al is, blijft zoals het is."
+ },
+ "av2r4-money-groups": {
+  "en": "You have no groups yet. In Wealth → Spending → Search all your entries, Select two or more entries and \"Group\" them under a name; they show as one line, and each still counts on its own.",
+  "nl": "Je hebt nog geen groepen. In Vermogen → Uitgaven → Search all your entries kies je met Select twee of meer invoeren en zet je ze met \"Group\" onder een naam; ze staan dan als één regel, en elke telt nog apart mee.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no groups yet. In Wealth → Spending → Search all your entries, Select two or more entries and \"Group\" them under a name; they show as one line, and each still counts on its own.",
+  "freshNl": "Je hebt nog geen groepen. In Vermogen → Uitgaven → Search all your entries kies je met Select twee of meer invoeren en zet je ze met \"Group\" onder een naam; ze staan dan als één regel, en elke telt nog apart mee."
+ },
+ "av2r4-money-places": {
+  "en": "You have no places yet. In Wealth → Spending → Log spending → \"Where are you?\", add the places you often pay at (Work, The market); choosing one later lists the payees you logged there first. Typed names only: ZIGoals never reads where you are.",
+  "nl": "Je hebt nog geen plekken. In Vermogen → Uitgaven → Log spending → \"Where are you?\" voeg je de plekken toe waar je vaak betaalt (werk, de markt); kies je er later een, dan komen de ontvangers die je daar logde eerst. Alleen namen die je typt: ZIGoals leest nooit waar je bent.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no places yet. In Wealth → Spending → Log spending → \"Where are you?\", add the places you often pay at (Work, The market); choosing one later lists the payees you logged there first. Typed names only: ZIGoals never reads where you are.",
+  "freshNl": "Je hebt nog geen plekken. In Vermogen → Uitgaven → Log spending → \"Where are you?\" voeg je de plekken toe waar je vaak betaalt (werk, de markt); kies je er later een, dan komen de ontvangers die je daar logde eerst. Alleen namen die je typt: ZIGoals leest nooit waar je bent."
+ },
+ "av2r4-money-reconcile": {
+  "en": "Nothing is checked against your bank yet. In Wealth → Accounts, \"Check against my bank\" on an account takes your statement's balances; tick the entries it shows until the difference is zero, then mark them checked.",
+  "nl": "Er is nog niets met je bank gecontroleerd. In Vermogen → Rekeningen neemt \"Check against my bank\" bij een rekening de saldi van je afschrift; vink de invoer aan die erop staat tot het verschil nul is, en markeer ze als gecontroleerd.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is checked against your bank yet. In Wealth → Accounts, \"Check against my bank\" on an account takes your statement's balances; tick the entries it shows until the difference is zero, then mark them checked.",
+  "freshNl": "Er is nog niets met je bank gecontroleerd. In Vermogen → Rekeningen neemt \"Check against my bank\" bij een rekening de saldi van je afschrift; vink de invoer aan die erop staat tot het verschil nul is, en markeer ze als gecontroleerd."
+ },
+ "av2r4-money-saved-searches": {
+  "en": "You have no saved searches yet. In Wealth → Spending → Search all your entries, set your filters and tap \"Save this search\"; Wealth → Spending → Your money over time → Saved searches then draws it as a chart, with its total and monthly average.",
+  "nl": "Je hebt nog geen opgeslagen zoekopdrachten. In Vermogen → Uitgaven → Search all your entries kies je je filters en tik je op \"Save this search\"; Vermogen → Uitgaven → Your money over time → Saved searches tekent hem dan als grafiek, met het totaal en het maandgemiddelde.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no saved searches yet. In Wealth → Spending → Search all your entries, set your filters and tap \"Save this search\"; Wealth → Spending → Your money over time → Saved searches then draws it as a chart, with its total and monthly average.",
+  "freshNl": "Je hebt nog geen opgeslagen zoekopdrachten. In Vermogen → Uitgaven → Search all your entries kies je je filters en tik je op \"Save this search\"; Vermogen → Uitgaven → Your money over time → Saved searches tekent hem dan als grafiek, met het totaal en het maandgemiddelde."
+ },
+ "av2r4-money-average": {
+  "en": "In EUR, Nov 2026 so far: €435.59, €377.75 above your 6-month average of €57.84 (over the 4 months with records). A figure from your own entries, not a target.",
+  "nl": "In EUR, november 2026 tot nu toe: € 435,59, € 377,75 boven je gemiddelde over 6 maanden van € 57,84 (over de 4 maanden met gegevens). Een bedrag uit je eigen invoer, geen doel.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No 6-month average yet: the months before this one have no spending logged. Wealth → Spending → Your money over time → Categories over a year shows the average once they do.",
+  "freshNl": "Nog geen gemiddelde over 6 maanden: de maanden hiervoor hebben geen gelogde uitgaven. Vermogen → Uitgaven → Your money over time → Categories over a year toont het gemiddelde zodra dat zo is."
+ },
+ "av2r4-money-invest-cover": {
+  "en": "No income category is marked as investment income yet. In Wealth → Spending → Your money over time → Month by month → Investment income beside spending, mark the categories that are (interest, dividends, staking rewards); each month is then set beside your spending.",
+  "nl": "Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In Vermogen → Uitgaven → Your money over time → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No income category is marked as investment income yet. In Wealth → Spending → Your money over time → Month by month → Investment income beside spending, mark the categories that are (interest, dividends, staking rewards); each month is then set beside your spending.",
+  "freshNl": "Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In Vermogen → Uitgaven → Your money over time → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven."
+ },
+ "av2r4-tags": {
+  "en": "Notes per tag: #reading 1 and #travel 1; 6 notes have no tag. Notes → Chart draws them.",
+  "nl": "Notities per tag: #reading 1 en #travel 1; 6 notities hebben geen tag. Notes → Chart tekent ze.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note has a tag yet. Notes imported with tags (Notes → Files → Import) show under Notes → Chart.",
+  "freshNl": "Nog geen notitie heeft een tag. Notities die met tags zijn geïmporteerd (Notes → Files → Import) staan onder Notes → Chart."
+ },
+ "av2r4-note-photos": {
+  "en": "No note has a photo yet. Open a note and press Add a photo; a note holds up to eight, each placed in the words where you add it.",
+  "nl": "Nog geen notitie heeft een foto. Open een notitie en druk op Add a photo; een notitie houdt er tot acht, elk op de plek in de tekst waar je hem toevoegt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note has a photo yet. Open a note and press Add a photo; a note holds up to eight, each placed in the words where you add it.",
+  "freshNl": "Nog geen notitie heeft een foto. Open een notitie en druk op Add a photo; een notitie houdt er tot acht, elk op de plek in de tekst waar je hem toevoegt."
+ },
+ "av2r4-note-words": {
+  "en": "Your notes hold 139 words in 8 notes, about 1 min to read (an estimate at 230 words a minute). The longest is “Japan trip ideas” (32 words). An open note’s Note info says its own.",
+  "nl": "Je notities hebben 139 woorden in 8 notities, ongeveer 1 min lezen (een schatting bij 230 woorden per minuut). De langste is “Japan trip ideas” (32 woorden). Note info bij een open notitie zegt het per notitie.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your notes hold no words yet. An open note’s Note info says its words, characters and minutes to read.",
+  "freshNl": "Je notities hebben nog geen woorden. Note info bij een open notitie zegt de woorden, tekens en leesminuten."
+ },
+ "av2r4-find-replace": {
+  "en": "Open the note, press Edit, then Find and replace: type the words, step through each match with Next (Enter) and Previous, and press Replace or Replace all. Save keeps the earlier words under Earlier versions.",
+  "nl": "Open de notitie, druk op Edit en dan op Find and replace: typ de woorden, loop door elke vondst met Next (Enter) en Previous, en druk op Replace of Replace all. Save bewaart de eerdere woorden onder Earlier versions.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open the note, press Edit, then Find and replace: type the words, step through each match with Next (Enter) and Previous, and press Replace or Replace all. Save keeps the earlier words under Earlier versions.",
+  "freshNl": "Open de notitie, druk op Edit en dan op Find and replace: typ de woorden, loop door elke vondst met Next (Enter) en Previous, en druk op Replace of Replace all. Save bewaart de eerdere woorden onder Earlier versions."
+ },
+ "av2r4-fold": {
+  "en": "When you read a note, each heading has a fold button before it: it folds the words under it, up to the next heading of its level. Fold all and Open all do every heading at once. Folds last for this visit; nothing changes in the note.",
+  "nl": "Als je een notitie leest, staat er voor elke kop een vouwknop: die vouwt de woorden eronder in, tot de volgende kop van zijn niveau. Fold all en Open all doen alle koppen tegelijk. Het vouwen geldt voor dit bezoek; de notitie verandert niet.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "When you read a note, each heading has a fold button before it: it folds the words under it, up to the next heading of its level. Fold all and Open all do every heading at once. Folds last for this visit; nothing changes in the note.",
+  "freshNl": "Als je een notitie leest, staat er voor elke kop een vouwknop: die vouwt de woorden eronder in, tot de volgende kop van zijn niveau. Fold all en Open all doen alle koppen tegelijk. Het vouwen geldt voor dit bezoek; de notitie verandert niet."
+ },
+ "av2r4-callouts": {
+  "en": "Start a quote with a marker: > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING] or > [!CAUTION], with words after it on the next > lines. Notes draws it as a calm box with its word. The Markdown export keeps it as written, so Obsidian and GitHub show it too.",
+  "nl": "Begin een citaat met een teken: > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING] of > [!CAUTION], met woorden op de volgende > regels. Notes tekent het als een rustig kader met zijn woord. De Markdown-export houdt het zoals geschreven, dus Obsidian en GitHub tonen het ook.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Start a quote with a marker: > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING] or > [!CAUTION], with words after it on the next > lines. Notes draws it as a calm box with its word. The Markdown export keeps it as written, so Obsidian and GitHub show it too.",
+  "freshNl": "Begin een citaat met een teken: > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING] of > [!CAUTION], met woorden op de volgende > regels. Notes tekent het als een rustig kader met zijn woord. De Markdown-export houdt het zoals geschreven, dus Obsidian en GitHub tonen het ook."
+ },
+ "av2r4-writing-view": {
+  "en": "Open a note, press Edit, then Write in full screen: only the note shows until Esc or Done, and your words go back to the note. Typewriter keeps the line you write in the middle of the screen; the choice stays on this device.",
+  "nl": "Open een notitie, druk op Edit en dan op Write in full screen: alleen de notitie staat er tot Esc of Done, en je woorden gaan terug naar de notitie. Typewriter houdt de regel waarin je schrijft midden in beeld; die keuze blijft op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open a note, press Edit, then Write in full screen: only the note shows until Esc or Done, and your words go back to the note. Typewriter keeps the line you write in the middle of the screen; the choice stays on this device.",
+  "freshNl": "Open een notitie, druk op Edit en dan op Write in full screen: alleen de notitie staat er tot Esc of Done, en je woorden gaan terug naar de notitie. Typewriter houdt de regel waarin je schrijft midden in beeld; die keuze blijft op dit apparaat."
+ },
+ "av2r4-archive": {
+  "en": "No note is archived. Archive (on an open note) takes a note out of the list and the graph; it stays in Search and the export, and Back to the list brings it back.",
+  "nl": "Geen notitie is gearchiveerd. Archive (bij een open notitie) haalt een notitie uit de lijst en de grafiek; ze blijft in Search en de export, en Back to the list zet haar terug.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note is archived. Archive (on an open note) takes a note out of the list and the graph; it stays in Search and the export, and Back to the list brings it back.",
+  "freshNl": "Geen notitie is gearchiveerd. Archive (bij een open notitie) haalt een notitie uit de lijst en de grafiek; ze blijft in Search en de export, en Back to the list zet haar terug."
+ },
+ "av2r4-lock": {
+  "en": "Open the note and press Lock this note. It then shows only after this device’s screen-cover PIN (Settings → Account & devices), and stays out of Search, the Graph, NOVA and the Markdown export — so I never read a locked note. Its words are hidden, not encrypted: they stay in this browser and in Export everything.",
+  "nl": "Open de notitie en druk op Lock this note. Ze toont dan pas na de pincode van de schermafdekking van dit apparaat (Settings → Account & devices), en blijft uit Search, de grafiek, NOVA en de Markdown-export — ik lees een vergrendelde notitie dus nooit. De woorden zijn verborgen, niet versleuteld: ze blijven in deze browser en in Export everything.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Open the note and press Lock this note. It then shows only after this device’s screen-cover PIN (Settings → Account & devices), and stays out of Search, the Graph, NOVA and the Markdown export — so I never read a locked note. Its words are hidden, not encrypted: they stay in this browser and in Export everything.",
+  "freshNl": "Open de notitie en druk op Lock this note. Ze toont dan pas na de pincode van de schermafdekking van dit apparaat (Settings → Account & devices), en blijft uit Search, de grafiek, NOVA en de Markdown-export — ik lees een vergrendelde notitie dus nooit. De woorden zijn verborgen, niet versleuteld: ze blijven in deze browser en in Export everything."
+ },
+ "av2r4-save-note": {
+  "en": "Yes. Open the note and press Save this note as…: an HTML page (its photos inside), plain text, or a Word file (.docx). Each is made on this device and saved where you choose.",
+  "nl": "Ja. Open de notitie en druk op Save this note as…: een HTML-pagina (met de foto’s erin), platte tekst of een Word-bestand (.docx). Elk wordt op dit apparaat gemaakt en bewaard waar jij kiest.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. Open the note and press Save this note as…: an HTML page (its photos inside), plain text, or a Word file (.docx). Each is made on this device and saved where you choose.",
+  "freshNl": "Ja. Open de notitie en druk op Save this note as…: een HTML-pagina (met de foto’s erin), platte tekst of een Word-bestand (.docx). Elk wordt op dit apparaat gemaakt en bewaard waar jij kiest."
+ },
+ "av2r4-journal-book": {
+  "en": "Yes. Journal → Import and export → E-book and Word: choose a journal and the days from and to, then Save as e-book (.epub, a chapter per month with a contents page and your photos) or Save as Word (.docx). Letters that have not opened yet stay out. You have 12 entries.",
+  "nl": "Ja. Journal → Import and export → E-book and Word: kies een dagboek en de dagen van en tot, dan Save as e-book (.epub, een hoofdstuk per maand met een inhoud en je foto’s) of Save as Word (.docx). Brieven die nog niet open zijn blijven eruit. Je hebt 12 stukken.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. Journal → Import and export → E-book and Word: choose a journal and the days from and to, then Save as e-book (.epub, a chapter per month with a contents page and your photos) or Save as Word (.docx). Letters that have not opened yet stay out. You have 0 entries.",
+  "freshNl": "Ja. Journal → Import and export → E-book and Word: kies een dagboek en de dagen van en tot, dan Save as e-book (.epub, een hoofdstuk per maand met een inhoud en je foto’s) of Save as Word (.docx). Brieven die nog niet open zijn blijven eruit. Je hebt 0 stukken."
+ },
+ "av2r4-imports": {
+  "en": "Yes. Notes → Files → Choose files to import takes Evernote’s export (.enex) and Bear’s (.bear2bk backups, .textbundle and .textpack): titles, days, tags, the words with their lists and to-dos, and up to eight photos a note. You see what would come in before anything is saved, and Undo takes it back.",
+  "nl": "Ja. Notes → Files → Choose files to import neemt de export van Evernote (.enex) en van Bear (.bear2bk-back-ups, .textbundle en .textpack): titels, dagen, tags, de woorden met lijsten en taken, en tot acht foto’s per notitie. Je ziet eerst wat er binnenkomt, en Undo draait het terug.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. Notes → Files → Choose files to import takes Evernote’s export (.enex) and Bear’s (.bear2bk backups, .textbundle and .textpack): titles, days, tags, the words with their lists and to-dos, and up to eight photos a note. You see what would come in before anything is saved, and Undo takes it back.",
+  "freshNl": "Ja. Notes → Files → Choose files to import neemt de export van Evernote (.enex) en van Bear (.bear2bk-back-ups, .textbundle en .textpack): titels, dagen, tags, de woorden met lijsten en taken, en tot acht foto’s per notitie. Je ziet eerst wat er binnenkomt, en Undo draait het terug."
  }
 }

@@ -66,20 +66,75 @@ export function budgetDayParts(e: MoneyEntry): {date: string; parts: EntryPart[]
     return {date: `${month}-${String(Math.min(d, last)).padStart(2, '0')}`, parts: budgetMonthParts(e, month)};
   });
 }
+/**
+ * Review b4f #2 (the lead's decision: every figure that shows a month or a day spreads a cost over its months exactly as
+ * the budgets do): what one entry counts on which day. An expense goes through `budgetDayParts` (the person's share, a
+ * spread cost by its share on its day in each month); income counts whole on its own day, as `totals` counts it (split
+ * parts by their categories). Nothing for an entry left out of the figures, a Settle-up refund or a transfer. Over a
+ * period that holds every month of a spread, the shares add up to what `totals` counts.
+ */
+export function countedDayParts(e: MoneyEntry): {date: string; parts: EntryPart[]}[] {
+  if (!isCounted(e)) return [];
+  return e.kind === 'expense' ? budgetDayParts(e) : [{date: e.date, parts: entryParts(e)}];
+}
+export type CountedFilter = {kind?: MoneyEntry['kind']; currency?: string; category?: string;
+  /** Review b4f #1: only the parts this keeps count (a saved search on a subcategory: the parts in the entry's own category). */
+  only?: (e: MoneyEntry, part: EntryPart) => boolean};
+export const foldName = (s: string) => s.toLowerCase().normalize('NFKD').replace(/\p{M}+/gu, '').trim();
+/**
+ * Spending (or income) from `from` to `to` (both included), per currency, by `countedDayParts`. With `category`, only the
+ * parts in that category count (a split entry adds just its part there, as This month by category does).
+ */
+export function countedBetween(entries: readonly MoneyEntry[], from: string, to: string, {kind = 'expense', currency, category, only}: CountedFilter = {}): Map<string, number> {
+  const out = new Map<string, number>(), cat = category ? foldName(category) : '';
+  for (const e of entries) {
+    if (e.kind !== kind || (currency && e.currency !== currency)) continue;
+    for (const d of countedDayParts(e)) {
+      if (d.date < from || d.date > to) continue;
+      const cents = d.parts.reduce((sum, p) => (!cat || foldName(p.category) === cat) && (!only || only(e, p)) ? sum + p.cents : sum, 0);
+      if (cents) out.set(e.currency, (out.get(e.currency) ?? 0) + cents);
+    }
+  }
+  return out;
+}
+/** As `byCategory` (lib/money-log/engine.ts), by `countedDayParts`: each part in its category, biggest first. */
+export function countedByCategoryBetween(entries: readonly MoneyEntry[], from: string, to: string, kind: MoneyEntry['kind'] = 'expense', only?: (e: MoneyEntry, part: EntryPart) => boolean): {category: string; currency: string; total: number; count: number}[] {
+  const by = new Map<string, {category: string; currency: string; total: number; count: number}>();
+  for (const e of entries) {
+    if (e.kind !== kind) continue;
+    for (const d of countedDayParts(e)) {
+      if (d.date < from || d.date > to) continue;
+      for (const p of d.parts) { if (!p.cents || (only && !only(e, p))) continue; const k = `${e.currency}\u0000${p.category}`, row = by.get(k) ?? {category: p.category, currency: e.currency, total: 0, count: 0}; row.total += p.cents; row.count++; by.set(k, row); }
+    }
+  }
+  return [...by.values()].sort((a, b) => b.total - a.total || a.category.localeCompare(b.category));
+}
+/** Whether a currency has a counted figure from `from` to `to`: a counted entry of its own, or a spread share placed there. */
+export const countedIn = (entries: readonly MoneyEntry[], currency: string, from: string, to: string) => entries.some(e => e.currency === currency && countedDayParts(e).some(d => d.date >= from && d.date <= to));
 /** Whether an entry can reach a month's budgets (its own month, or a later one it is spread into). */
 export const reachesMonth = (e: MoneyEntry, month: string) => { const k = monthIndex(month) - monthIndex(e.date.slice(0, 7)); return k >= 0 && k < (e.spread ?? 1); };
 
-/** The categories offered for a kind: the usual ones, then the person's own (A to Z as they typed them). */
-export function categoryChoices(log: Pick<MoneyLog, 'own'>, kind: MoneyEntry['kind']): readonly string[] {
+/** Every category of a kind, archived ones included: the usual ones, then the person's own (as they typed them). */
+export function allCategories(log: Pick<MoneyLog, 'own'>, kind: MoneyEntry['kind']): readonly string[] {
   const base: readonly string[] = kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES, own = (kind === 'expense' ? log.own?.expense : log.own?.income) ?? [];
   return [...base, ...own.filter(c => !base.some(b => b.toLowerCase() === c.toLowerCase()))];
+}
+/**
+ * The categories offered for a kind: the usual ones, then the person's own (A to Z as they typed them). Session AV lane 2,
+ * round 4 (money; Lunch Money's archive, LEDGER #342): an archived category is not offered (lib/money-log/category.ts);
+ * its entries keep it, and reports and search still show it.
+ */
+export function categoryChoices(log: Pick<MoneyLog, 'own'> & Partial<Pick<MoneyLog, 'archived'>>, kind: MoneyEntry['kind']): readonly string[] {
+  const hidden = new Set(((kind === 'expense' ? log.archived?.expense : log.archived?.income) ?? []).map(c => c.toLowerCase()));
+  return allCategories(log, kind).filter(c => !hidden.has(c.toLowerCase()));
 }
 /** Adds one of the person's own categories (trimmed, at most 40 characters, once, at most 30 of a kind). */
 export function addOwnCategory(log: MoneyLog, kind: MoneyEntry['kind'], name: string): MoneyLog {
   const clean = name.trim().replace(/\s+/g, ' ');
   if (!clean) throw new Error('Type a name for the category.');
   if (clean.length > 40) throw new Error('A category has at most 40 characters.');
-  const twin = categoryChoices(log, kind).find(c => c.toLowerCase() === clean.toLowerCase());
+  const twin = allCategories(log, kind).find(c => c.toLowerCase() === clean.toLowerCase());
+  if (twin && ((kind === 'expense' ? log.archived?.expense : log.archived?.income) ?? []).some(c => c.toLowerCase() === twin.toLowerCase())) throw new Error(`${twin} is archived: bring it back under Archived categories.`);
   if (twin) throw new Error(`${twin} is already a category.`);
   const list = (kind === 'expense' ? log.own?.expense : log.own?.income) ?? [];
   if (list.length >= MAX_OWN_CATEGORIES) throw new Error(`Up to ${MAX_OWN_CATEGORIES} of your own categories.`);

@@ -10,7 +10,16 @@ import {weightChangeText, weightReadingText, weightReadingsText, weightText, typ
 import {formatDate} from '../../lib/visual-format';
 import './health-aa.css';
 import {ArtNote} from '../illustrations/art-note';
+// Session AV lane 2, round 4 (health; Noom, LEDGER #331): the person's own band, shaded on the trend.
+import {useDeviceRecord} from '../ai/use-device-record';
+import {MORE_GOALS} from '../../lib/health-goals/more';
+import {bandDays} from '../../lib/health-goals/band';
 
+/**
+ * Session AV lane 2, round 4 (review B4E-11): the band's key is a shaded swatch like the band itself (the same 12 %
+ * fill), never the trend line's key.
+ */
+export const BAND_LEGEND = {label: 'Your band', swatch: <svg className="chart-key r4-band-key" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><rect width="16" height="10" rx="2" fill="currentColor" opacity={0.12}/><rect x="0.5" y="0.5" width="15" height="9" rx="2" fill="none" stroke="currentColor" strokeOpacity={0.35}/></svg>};
 const H = 200, PAD = {top: 16, right: 12, bottom: 28, left: 52};
 // A trend reads to one decimal in the shown unit (Session AL fourth pass, PR-074: rounded once there, not in kg first).
 /**
@@ -20,8 +29,9 @@ const H = 200, PAD = {top: 16, right: 12, bottom: 28, left: 52};
  */
 export function WeightTrendCard({data, today, unit}: {data: HealthData; today: string; unit: WeightUnit}) {
   const t = weightTrend(data, today, 42), [plot, width] = useChartWidth(360), look = useChartLook(), [tip, setTip] = useState<string | null>(null);
+  const bandRec = useDeviceRecord(MORE_GOALS), band = bandRec.loaded && !bandRec.unreadable ? bandRec.data.weightBand ?? null : null;
   const values = t.points.flatMap(p => [p.grams, p.trend].filter((v): v is number => v !== null)), goal = t.goalGrams;
-  const all = goal !== null ? [...values, goal] : values;
+  const all = [...(goal !== null ? [...values, goal] : values), ...(band && values.length ? [band.lowGrams, band.highGrams] : [])];
   const lo = all.length ? Math.min(...all) - 300 : 0, hi = all.length ? Math.max(...all) + 300 : 1;
   const x = (i: number) => PAD.left + (i / (t.points.length - 1)) * (width - PAD.left - PAD.right), y = (g: number) => PAD.top + (1 - (g - lo) / (hi - lo)) * (H - PAD.top - PAD.bottom);
   const line = t.points.map((p, i) => p.trend === null ? null : `${i === 0 || t.points[i - 1]!.trend === null ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.trend).toFixed(1)}`).filter(Boolean).join(' ');
@@ -29,7 +39,8 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
   // Session AL fifth pass (N-MO-14, N-NB-10): the trend at the readings' own precision (one 70.55 kg reading read "70.6 kg
   // trend today" beside "Latest reading 70.55 kg"); readings as entered.
   const readingGrams = t.points.flatMap(p => p.grams === null ? [] : [p.grams]), shown = (g: number) => weightReadingsText(g, readingGrams, unit);
-  const summary = t.latestTrend === null ? 'No readings in the last six weeks.' : `Trend ${shown(t.latestTrend)}${rate ? `, ${rate} a week` : ''}${goal !== null ? `, goal ${weightText(goal, unit)}` : ''}; ${t.readings} ${t.readings === 1 ? "reading" : "readings"} in 42 days.`;
+  const inBand = band ? bandDays(data, band, today) : null;
+  const summary = t.latestTrend === null ? 'No readings in the last six weeks.' : `Trend ${shown(t.latestTrend)}${rate ? `, ${rate} a week` : ''}${goal !== null ? `, goal ${weightText(goal, unit)}` : ''}${band ? `, your band ${weightText(band.lowGrams, unit)} to ${weightText(band.highGrams, unit)}` : ''}; ${t.readings} ${t.readings === 1 ? "reading" : "readings"} in 42 days.`;
   return <section id="health-weight-trend" className="panel health-aa-card health-trend-card" aria-labelledby="weight-trend-title">
     <p className="eyebrow">Six weeks</p><h2 id="weight-trend-title"><NebulaFlow identity="weight-trend-title">Weight trend</NebulaFlow></h2>
     {t.latestTrend === null ? <ArtNote pillar="health"><p className="health-empty-inline">Two or three readings a week draw the line; the first one starts it. <span className="health-estimate-tag">an estimate</span></p></ArtNote> : <>
@@ -41,14 +52,16 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
           {/* Session AK (G3): the one chart look — the trend line in its gradient with one soft glow (none by day). */}
           <ChartLookDefs id={look.id} width={width} height={H}/>
           <ChartGrid ticks={[0, 0.5, 1].map(f => { const g = lo + f * (hi - lo); return {y: y(g), label: weightText(Math.round(g / 100) * 100, unit).replace(/\s.*$/, '')}; })} left={PAD.left} right={width - PAD.right}/>
+          {band && <rect className="r4-band-shade" x={PAD.left} width={Math.max(0, width - PAD.left - PAD.right)} y={y(band.highGrams)} height={Math.max(1, y(band.lowGrams) - y(band.highGrams))} fill="currentColor" opacity={0.12} aria-hidden="true"/>}
           {goal !== null && <line className="chart-guide" x1={PAD.left} x2={width - PAD.right} y1={y(goal)} y2={y(goal)} />}
           <path className="chart-ink zgc-line" d={line} style={{stroke: look.stroke('a')}} filter={look.glow} />
           {t.points.map((p, i) => p.grams === null ? null : <circle key={p.date} className="chart-dot" cx={x(i)} cy={y(p.grams)} r="4" fill="#8ab9ff" onMouseEnter={() => setTip(`${formatDate(p.date, {year: false})}: ${weightReadingText(p.grams!, unit)} (trend ${shown(p.trend!)})`)} />)}
           <ChartXAxis ticks={t.points.flatMap((p, i) => i % 7 === 0 || i === t.points.length - 1 ? [{x: x(i), label: p.date.slice(5)}] : [])} y={H - 8} edge={false}/>
         </svg>
         {tip && <ChartTip>{tip}</ChartTip>}
-        <ChartLegend className="health-trend-key" items={[{label: 'Trend (smoothed)'}, {label: 'A reading', kind: 'dot'}, ...(goal !== null ? [{label: 'Goal', kind: 'dash' as const}] : [])]}/>
+        <ChartLegend className="health-trend-key" items={[{label: 'Trend (smoothed)'}, {label: 'A reading', kind: 'dot'}, ...(goal !== null ? [{label: 'Goal', kind: 'dash' as const}] : []), ...(band ? [BAND_LEGEND] : [])]}/>
       </div>
+      {band && inBand && <p className="fine health-trend-band" data-body-figure="">Your band: {weightText(band.lowGrams, unit)} to {weightText(band.highGrams, unit)}. {inBand.days ? `The trend was inside it on ${inBand.inside} of the last ${inBand.days} ${inBand.days === 1 ? 'day' : 'days'}.` : ''}</p>}
       <details className="health-trend-table"><summary>Show as a table</summary><table data-body-figure=""><thead><tr><th>Day</th><th>Reading</th><th>Trend</th></tr></thead><tbody>{t.points.filter(p => p.grams !== null).map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{weightReadingText(p.grams!, unit)}</td><td>{p.trend === null ? '—' : shown(p.trend)}</td></tr>)}</tbody></table></details>
       <p className="fine">The line moves a tenth of the way to each new reading, so one unusual morning barely bends it. <span className="health-estimate-tag">an estimate, not medical advice</span></p>
     </>}

@@ -1,19 +1,30 @@
 import {addLocalDays} from '../local-date';
 import {parseLinks} from './links';
 import {noteName, type Note} from './schema';
+import {visibleTagsOf} from './tags';
+import {isLockedHidden} from './schema';
 
 /**
  * Session AV lane 2 (notes; LEDGER #29 "a table or gallery of notes", #30 "a chart from your own lists: notes per tag"):
  * the rows a sortable table of notes shows (name, tags, words, links, changed, made), and the counts its chart draws —
  * notes per tag and notes changed per week. Derived each time; nothing stored. Pure.
  */
-export type NoteRow = {id: string; name: string; tags: string[]; words: number; links: number; changed: string; made: string; pinned: boolean; example: boolean; photo: boolean};
+export type NoteRow = {id: string; name: string; tags: string[]; words: number; links: number; changed: string; made: string; pinned: boolean; example: boolean; photo: boolean; /** Session AV lane 2 (review b4g B4G-2): a locked note shows no tags, counts or photo. */ locked?: boolean};
 export type SortKey = 'name' | 'tags' | 'words' | 'links' | 'changed' | 'made';
 export const SORT_LABELS: Record<SortKey, string> = {name: 'Note', tags: 'Tags', words: 'Words', links: 'Links', changed: 'Changed', made: 'Made'};
 const words = (text: string) => text.split(/\s+/u).filter(w => /[\p{L}\p{N}]/u.test(w)).length;
+/**
+ * Session AV lane 2 (r4-notes; LEDGER #311, Bear's info panel): a note's words (the table's count, the Showcase label
+ * left out), its characters, and the minutes it takes to read — an estimate at 230 words a minute, at least one.
+ */
+export const countWords = (body: string) => words(body.replace(/\(SHOWCASE DATA\)/g, ''));
+export const countCharacters = (body: string) => [...body.replace(/\s*\(SHOWCASE DATA\)\s*$/, '')].length;
+export const READ_WORDS_A_MINUTE = 230;
+export const readMinutes = (words: number) => Math.max(1, Math.round(words / READ_WORDS_A_MINUTE));
 export function noteRows(notes: readonly Note[]): NoteRow[] {
-  return notes.map(n => ({id: n.id, name: noteName(n), tags: n.tags ?? [], words: words(n.body.replace(/\(SHOWCASE DATA\)/g, '')), links: new Set(parseLinks(n.body).map(l => l.target.toLowerCase())).size,
-    changed: (n.updatedAt ?? n.createdAt).slice(0, 10), made: n.createdAt.slice(0, 10), pinned: !!n.pinned, example: !!n.example, photo: !!n.photoId}));
+  // Session AV lane 2 (r4-notes; LEDGER #306): a note's tags include the #tags written in its words.
+  return notes.map(n => { const hidden = isLockedHidden(n); return {id: n.id, name: noteName(n), tags: visibleTagsOf(n), words: hidden ? 0 : words(n.body.replace(/\(SHOWCASE DATA\)/g, '')), links: hidden ? 0 : new Set(parseLinks(n.body).map(l => l.target.toLowerCase())).size,
+    changed: (n.updatedAt ?? n.createdAt).slice(0, 10), made: n.createdAt.slice(0, 10), pinned: !!n.pinned, example: !!n.example, photo: !hidden && !!n.photoId, ...(hidden ? {locked: true} : {})}; });
 }
 /** Rows sorted by a column; ties by name. Text columns A→Z first, numbers and days the most first. */
 export function sortRows(rows: readonly NoteRow[], key: SortKey, dir: 'ascending' | 'descending'): NoteRow[] {
@@ -27,12 +38,13 @@ export function sortRows(rows: readonly NoteRow[], key: SortKey, dir: 'ascending
 /** The direction a column starts in when first chosen. */
 export const firstDirection = (key: SortKey): 'ascending' | 'descending' => key === 'name' || key === 'tags' ? 'ascending' : 'descending';
 /** Notes per tag, the most used first (a tag compared without case); notes with no tag counted apart. */
-export function notesPerTag(notes: readonly Pick<Note, 'tags'>[]): {tags: {tag: string; count: number}[]; untagged: number} {
+export function notesPerTag(notes: readonly Pick<Note, 'tags' | 'body' | 'locked'>[]): {tags: {tag: string; count: number}[]; untagged: number} {
   const by = new Map<string, {tag: string; count: number}>();
   let untagged = 0;
   for (const n of notes) {
-    if (!n.tags?.length) { untagged++; continue; }
-    for (const t of new Set(n.tags.map(x => x.trim()).filter(Boolean))) { const k = t.toLowerCase(), hit = by.get(k); if (hit) hit.count++; else by.set(k, {tag: t, count: 1}); }
+    const tags = visibleTagsOf(n);
+    if (!tags.length) { untagged++; continue; }
+    for (const t of tags) { const k = t.toLowerCase(), hit = by.get(k); if (hit) hit.count++; else by.set(k, {tag: t, count: 1}); }
   }
   return {tags: [...by.values()].sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag)), untagged};
 }

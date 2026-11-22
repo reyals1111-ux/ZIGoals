@@ -242,3 +242,16 @@
 .journal-letter-open { min-height: 44px; justify-self: start; }
 .journal-entry-sealed { margin: 4px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 10px 12px; border-radius: 12px; border: 1px dashed color-mix(in srgb, var(--brand-violet) 60%, transparent); }
 .journal-entry-sealed .text-link { min-height: 44px; }
+/* Session AV lane 2 (r4-mind; LEDGER #310, Journey): the star on an entry, and Favourites, a mood and the order of the list. */
+.journal-entry-star{min-height:44px;min-width:44px;padding:0 10px}
+.journal-entry-star[aria-pressed=true]>span:first-child,.journal-list-star[aria-pressed=true]>span:first-child{color:var(--pillar-wealth, var(--brand-magenta))}
+.journal-list-options{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px;margin:8px 0}
+.journal-list-options .field{margin:0;min-width:0}
+.journal-list-options select{min-height:44px;max-width:100%}
+.journal-list-star{min-height:44px}
+.journal-list-hint{flex-basis:100%;margin:0}
+
+/* Session AV lane 2 (r4-notes; LEDGER #320): the journal as an e-book or Word file. */
+.journal-ebook-fields { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.journal-ebook-fields .field { min-inline-size: min(100%, 12rem); }
+.journal-ebook-fields select, .journal-ebook-fields input { inline-size: 100%; box-sizing: border-box; min-height: 44px; }

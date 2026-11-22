@@ -4284,6 +4284,36 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .r4-day[data-over="true"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, #8fb6ff22)
+    }
+    .r4-zone-bar:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--line, #8fb6ff33)
+    }
+    .r4-zone-bar i[data-zone="1"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r4-zone-bar i[data-zone="2"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r4-zone-bar i[data-zone="3"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r4-zone-bar i[data-zone="4"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-violet, #a98bff)
+    }
+    .r4-zone-bar i[data-zone="5"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-violet, #a98bff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .evening-ready:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent)
@@ -4510,6 +4540,22 @@
     .prompt-picker-card:not(#\-):not(#\-) {
         background-image: none;
         background-color: transparent
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
+    .journal-hl:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--hl) 34%, transparent)
+    }
+    @media (forced-colors: active) {
+        .journal-hl:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+    .journal-format-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--hl)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
@@ -5052,6 +5098,19 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .note-focus:not(#\-):not(#\-) {
+        background: var(--surface, var(--bg, #020202))
+    }
+    .note-focus:not(#\-):not(#\-)::backdrop {
+        background-image: none;
+        background-color: var(--bg, #020202)
+    }
+    .note-focus-field:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     @media print {
         :scope.zg-print-note:not(#\-):not(#\-), :scope.zg-print-note body:not(#\-):not(#\-) {
             background-image: none !important;
@@ -5167,6 +5226,34 @@
     .notes-board-col:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--brand-violet, #826cff) 7%, transparent)
+    }
+    .note-tag:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 16%, transparent)
+    }
+    .note-tag-pick:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .note-tag-pick[aria-pressed="true"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 18%, transparent)
+    }
+    .note-find-context mark:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 34%, transparent)
+    }
+    .note-fold-toggle:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .note-fold-toggle:hover:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, currentColor 10%, transparent)
+    }
+    .note-callout:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--co) 9%, transparent)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
@@ -10260,6 +10347,30 @@
     .waterfall-key-down:not(#\-):not(#\-) {
         background-image: none;
         background-color: var(--cyan,#45d8ef)
+    }
+    .money-cal-grid td.level-1:not(#\-):not(#\-), .money-cal-key.level-1:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 10%,transparent)
+    }
+    .money-cal-grid td.level-2:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 18%,transparent)
+    }
+    .money-cal-grid td.level-3:not(#\-):not(#\-), .money-cal-key.level-3:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--pink,#ed79d4) 28%,transparent)
+    }
+    .money-cal-cell:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .money-cal-dot:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--text,#e8eefc)
+    }
+    .money-insights-legend i.money-saved-key:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {

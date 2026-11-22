@@ -14,6 +14,8 @@ import type {DeviceRecordSpec} from '../device-record';
  */
 export const NOTES_KEY = 'zigoals:notes:v1';
 export const MAX_NOTES = 2000, MAX_BODY = 20_000, MAX_TITLE = 120, MAX_TAGS = 12, MAX_TAG = 32;
+/** Session AV lane 2 (r4-notes; LEDGER #307): a note's photos — `photoId` and up to seven more. */
+export const MAX_EXTRA_PHOTOS = 7, MAX_NOTE_PHOTOS_EACH = MAX_EXTRA_PHOTOS + 1;
 /** All notes' text together (titles and bodies): keeps the record well inside this browser's storage. */
 export const MAX_TOTAL_CHARS = 1_500_000;
 export const NOTE_KINDS = ['inbox', 'daily', 'topic'] as const;
@@ -65,6 +67,25 @@ export const noteSchema = z.looseObject({
    * untouched (the note is loose) and never show it.
    */
   props: z.preprocess(v => Array.isArray(v) ? v.filter(x => notePropSchema.safeParse(x).success).slice(0, MAX_PROPS) : undefined, z.array(notePropSchema).max(MAX_PROPS).optional()),
+  /**
+   * Session AV lane 2 (r4-notes; LEDGER #307, Bear's photos in a note; TIER 3 (stored format), additive and optional): the
+   * note's further photos after `photoId` (the first, which older builds keep showing), at most seven, so a note holds
+   * eight. Each is placed in the words by a written `![photo](<id>)` line the reading view draws. An id this build cannot
+   * read is dropped on read (the rest kept); older builds keep the list untouched (the note is loose) and never show it.
+   */
+  photos: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter(x => noteIdSchema.safeParse(x).success))].slice(0, MAX_EXTRA_PHOTOS) : undefined, z.array(noteIdSchema).max(MAX_EXTRA_PHOTOS).optional()),
+  /**
+   * Session AV lane 2 (r4-notes; LEDGER #315, Bear's archive; TIER 3 (stored format), additive and optional): an archived
+   * note leaves the lists and the graph, and stays in Search and in the exports. Older builds show it as before.
+   */
+  archived: z.boolean().optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r4-notes; LEDGER #318, Bear's locked notes, in its conservative form; TIER 3 (stored format),
+   * additive and optional): the note's words show only after this device's screen-cover PIN, and are left out of Search,
+   * the Graph, NOVA and the Markdown export (lib/notes/lock.ts). They are hidden, not encrypted. Older builds read the
+   * note as before (its words are plain) and keep the field untouched; nothing they write can overwrite other data.
+   */
+  locked: z.boolean().optional().catch(undefined),
   /** A fictional Showcase note. */
   example: z.boolean().optional(),
   createdAt: stamp,
@@ -137,12 +158,27 @@ export const notesSchema = z.looseObject({
    * cannot read is dropped on read (the rest kept); older builds keep the field untouched and never show it.
    */
   canvases: readable(canvasSchema, MAX_CANVASES),
+  /**
+   * Session AV lane 2 (r4-notes; LEDGER #306 Bear's tag as a workspace, #316 its typewriter mode; TIER 3 (stored format),
+   * additive and optional): this device's two Notes choices, kept beside `voice` in the device-only notes record (so no
+   * new key): the one tag Notes is focused on (its list, search and graph) until cleared, and whether the writing view
+   * keeps the line being written in the middle. A value this build cannot read is dropped; older builds never read them.
+   */
+  focusTag: z.string().trim().min(1).max(MAX_TAG).optional().catch(undefined),
+  typewriter: z.boolean().optional().catch(undefined),
 });
 export type Note = z.infer<typeof noteSchema>;
 export type Notes = z.infer<typeof notesSchema>;
 export const emptyNotes = (): Notes => ({version: 1, notes: [], voice: false});
 export const NOTES: DeviceRecordSpec<Notes> = {key: NOTES_KEY, schema: notesSchema, empty: emptyNotes};
 
+/**
+ * Session AV lane 2 (review b4g B4G-1, B4G-2; LEDGER #318): whether a note shows nothing of itself (its words, tags,
+ * photos or properties) until the screen-cover PIN — the one test every view uses.
+ */
+export const isLockedHidden = (note: Pick<Note, 'locked'>): boolean => note.locked === true;
+/** Session AV lane 2 (r4-notes; LEDGER #307): every photo id a note names — the first (`photoId`), then the rest. */
+export const notePhotoIdsOf = (note: Pick<Note, 'photoId' | 'photos'>): string[] => [...(note.photoId ? [note.photoId] : []), ...(note.photos ?? []).filter(id => id !== note.photoId)];
 /** The characters a record holds (titles and bodies), for the total cap. */
 export const totalChars = (notes: readonly Pick<Note, 'title' | 'body'>[]) => notes.reduce((n, x) => n + x.title.length + x.body.length, 0);
 /** A note's name on screen and in links: its title, else its first line, else "Untitled note". */

@@ -87,6 +87,17 @@ export const habitExtrasSchema = z.looseObject({
    * this build cannot read is dropped on read. The times apply on a device where the habit has its reminder time.
    */
   reminderMore: z.record(habitId, z.unknown()).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r4-mind; TIER 3 (stored format), additive and optional; checked where read, so one odd item never
+   * makes the record unreadable, and an item this build cannot read is kept on every write; it syncs with the habit extras
+   * section as `intentions` does):
+   * - `identities` (LEDGER #323, Atoms' person behind the habits): up to five lines in the person's own words, each
+   *   `{id: id-…, text (80), habits: [habitId…]}` (lib/habit-intentions/identity.ts);
+   * - `stepUp` (LEDGER #327, Atoms' start small): per habit `{small?, next? (60 each), now?: small/next, since?, card?,
+   *   later?}` (lib/habits-v2/step-up.ts).
+   */
+  identities: z.unknown().optional(),
+  stepUp: z.record(habitId, z.unknown()).optional().catch(undefined),
 }).refine(r => Object.keys(r.options ?? {}).length <= 400 && Object.keys(r.focusDays ?? {}).length <= 400 && Object.keys(r.areaGoals ?? {}).length <= 100 && Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400 && Object.keys(r.intentions ?? {}).length <= 400 && Object.keys(r.monthWeekday ?? {}).length <= 400 && Object.keys(r.checklists ?? {}).length <= 400, 'Too many habits remembered.');
 export type HabitExtras = z.infer<typeof habitExtrasSchema>;
 export const emptyHabitExtras = (): HabitExtras => ({version: 1});

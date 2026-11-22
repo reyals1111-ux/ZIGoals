@@ -32,6 +32,12 @@ export const moodWordDaySchema = z.looseObject({
   at: z.iso.datetime({offset: true}),
   strength: z.enum(STRENGTHS).optional().catch(undefined),
   more: moreWords,
+  /**
+   * Session AV lane 2 (r4-mind; LEDGER #326, How We Feel's "where you feel it"; TIER 3 (stored format), additive and
+   * optional): up to three body areas, each with a sensation word, `[{area, feel}]` (lib/mood-words/body.ts). Checked where
+   * read (an item this build cannot read is left out there); older builds keep the field untouched (the day is loose).
+   */
+  body: z.array(z.unknown()).max(8).optional().catch(undefined),
 });
 export type MoodWordDay = z.infer<typeof moodWordDaySchema>;
 export const moodWordsSchema = z.record(z.iso.date(), moodWordDaySchema).refine(days => Object.keys(days).length <= MAX_MOOD_WORD_DAYS, `Up to ${MAX_MOOD_WORD_DAYS} days of feeling words.`);

@@ -17,10 +17,11 @@ export const journalExportName = (day: string, showcase: boolean) => `zigoals-${
 export function journalExportFiles(journal: Journal, media: ReadonlyMap<string, MediaFile>, {now = new Date()}: {now?: Date} = {}): {name: string; data: Uint8Array | string; modified: Date}[] {
   const files: {name: string; data: Uint8Array | string; modified: Date}[] = [];
   const entries = journal.entries.map(e => {
-    const photos = (e.photos ?? []).flatMap(id => { const m = media.get(id), ext = m ? PHOTO_EXT[m.type] : undefined; if (!m || !ext) return []; files.push({name: `photos/${id}.${ext}`, data: m.data, modified: now}); return [{identifier: id, md5: id, type: ext}]; });
+    // Session AV lane 2 (r4-mind; LEDGER #317): photos five to twelve follow the first four (Day One keeps one list).
+    const photos = [...(e.photos ?? []), ...(e.morePhotos ?? [])].flatMap(id => { const m = media.get(id), ext = m ? PHOTO_EXT[m.type] : undefined; if (!m || !ext) return []; files.push({name: `photos/${id}.${ext}`, data: m.data, modified: now}); return [{identifier: id, md5: id, type: ext}]; });
     const audios = (e.audio ?? []).flatMap(a => { const m = media.get(a.id), ext = m ? AUDIO_EXT[m.type] : undefined; if (!m || !ext) return []; files.push({name: `audios/${a.id}.${ext}`, data: m.data, modified: now}); return [{identifier: a.id, md5: a.id, format: ext, duration: a.seconds}]; });
     const book = bookOf(journal, e);
-    return {uuid: e.id, creationDate: e.createdAt, ...(e.updatedAt ? {modifiedDate: e.updatedAt} : {}), text: e.text, ...(e.tags?.length ? {tags: e.tags} : {}), ...(photos.length ? {photos} : {}), ...(audios.length ? {audios} : {}),
+    return {uuid: e.id, creationDate: e.createdAt, ...(e.updatedAt ? {modifiedDate: e.updatedAt} : {}), text: e.text, ...(e.tags?.length ? {tags: e.tags} : {}), ...(e.star ? {starred: true} : {}), ...(photos.length ? {photos} : {}), ...(audios.length ? {audios} : {}),
       zigoals: {date: e.date, ...(book ? {journal: book.name} : {}), ...(e.template ? {template: e.template} : {}), ...(e.followUp ? {question: e.followUp.question, ...(e.followUp.answer ? {answer: e.followUp.answer} : {})} : {}), ...(e.period ? {period: e.period} : {}), ...(e.night ? {night: e.night} : {}), ...(e.opensOn ? {opensOn: e.opensOn} : {})}};
   });
   // Session AV lane 2 (r3-notes; LEDGER #272, Grid Diary's Markdown export): one .md file per entry in Markdown/, for
@@ -35,7 +36,7 @@ export function journalExportFiles(journal: Journal, media: ReadonlyMap<string, 
     files.push({name, data: entryMarkdown(journal, e, new Set(files.map(f => f.name))), modified: now});
   }
   const json = JSON.stringify({metadata: {version: '1.0', app: 'ZIGoals', exported: now.toISOString()}, entries}, null, 2);
-  const photosLeft = journal.entries.reduce((n, e) => n + (e.photos?.length ?? 0) + (e.audio?.length ?? 0), 0) - files.filter(f => /^(?:photos|audios)\//.test(f.name)).length;
+  const photosLeft = journal.entries.reduce((n, e) => n + (e.photos?.length ?? 0) + (e.morePhotos?.length ?? 0) + (e.audio?.length ?? 0), 0) - files.filter(f => /^(?:photos|audios)\//.test(f.name)).length;
   const readme = [
     'Your ZIGoals journal, exported on this device.',
     '',
@@ -73,8 +74,8 @@ export function entryMarkdown(journal: Pick<Journal, 'journals'>, e: JournalEntr
   const q = (v: string) => JSON.stringify(v), book = bookOf(journal, e);
   const lines = ['---', `date: ${e.date}`, `created: ${e.createdAt}`, ...(e.updatedAt ? [`updated: ${e.updatedAt}`] : []), `journal: ${q(book?.name ?? 'Journal')}`,
     ...(e.tags?.length ? [`tags: [${e.tags.map(q).join(', ')}]`] : []), ...(e.template ? [`template: ${e.template}`] : []), ...(e.period ? [`period: ${q(e.period)}`] : []),
-    ...(e.night ? [`night: ${e.night}`] : []), ...(e.opensOn ? [`opens-on: ${e.opensOn}`] : []), ...(e.followUp ? [`follow-up: ${FOLLOW_UP_MARK}`] : []), `zigoals-id: ${q(e.id)}`, 'app: ZIGoals', '---', ''];
-  const media = (e.photos ?? []).flatMap(id => { const f = [...present].find(n => n.startsWith(`photos/${id}.`)); return f ? [`![Photo](../${f})`] : []; });
+    ...(e.night ? [`night: ${e.night}`] : []), ...(e.opensOn ? [`opens-on: ${e.opensOn}`] : []), ...(e.star ? ['starred: true'] : []), ...(e.followUp ? [`follow-up: ${FOLLOW_UP_MARK}`] : []), `zigoals-id: ${q(e.id)}`, 'app: ZIGoals', '---', ''];
+  const media = [...(e.photos ?? []), ...(e.morePhotos ?? [])].flatMap(id => { const f = [...present].find(n => n.startsWith(`photos/${id}.`)); return f ? [`![Photo](../${f})`] : []; });
   const answer = e.followUp ? `\n\n${followUpQuote(e.followUp)}` : '';
   return `${lines.join('\n')}${e.text.replace(/\r\n?/g, '\n')}${answer}${media.length ? `\n\n${media.join('\n')}` : ''}\n`;
 }

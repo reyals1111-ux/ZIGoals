@@ -3,7 +3,7 @@ import {showToast} from '../../ui/undo-toast';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import {announceHealthRemoval} from '../../../lib/health-events';
 import Link from 'next/link';
-import {Suspense, lazy, useState} from 'react';
+import {Suspense, lazy, useState, type ReactNode} from 'react';
 import {LoadBoundary} from '../../load-boundary';
 import {asleep, balanceWords, BALANCE_MIN_NIGHTS, clockFromMidnight, clockFromNoon, consistency, dailySeries, deleteNight, inBedMinutes, nightDay, shortNights, sleepBalance, sleepDebt, summary, wakeConsistency} from '../../../lib/sleep/engine';
 import {sleepInsights} from '../../../lib/sleep/insights';
@@ -31,6 +31,13 @@ import {energyCurve} from '../../../lib/energy-curve/curve';
 // Session AV lane 2 (bodymind-r2; LEDGER #237, #238): naps in the balance, and a sleep need from your own nights.
 import {balanceWithNaps} from '../../../lib/sleep/naps-need';
 /** The energy fold's face: its name, then the focus window and tonight's bedtime it estimates (C-MO-23), or what it needs. */
+/**
+ * Session AV lane 2 (polish 2, P-22): a tile's explanation of how its figure is worked out, folded behind "What is this?"
+ * (the shared fold marker, a 44 px row); the figure and any short fact stay on the tile. Its name says which tile.
+ */
+function StatHow({of, children}: {of: string; children: ReactNode}) {
+  return <dd className="dd-note sleep-stat-how"><details><summary className="fold-summary">What is this?<span className="sr-only"> ({of})</span></summary><small>{children}</small></details></dd>;
+}
 function energyFace(sleep: Parameters<typeof energyCurve>[0], today: string): string {
   const curve = energyCurve(sleep, today), at = (m: number) => formatClock(clockFromMidnight(Math.round(m)));
   return `Your energy today: an estimate from your sleep · ${curve ? `good focus ${at(curve.focus.from)}–${at(curve.focus.to)} · bedtime tonight ${at(curve.bedtime.from)}–${at(curve.bedtime.to)}` : 'log a night to see it'}`;
@@ -56,6 +63,8 @@ const MorningSteps = lazy(() => import('./morning-steps'));
 const SleepQualityTrend = lazy(() => import('./sleep-usual').then(m => ({default: m.SleepQualityTrend})));
 // Session AV lane 2 (r3-notes; LEDGER #278, Stoic): "Write down a dream" on the latest night, and each night's dreams.
 const NightDreams = lazy(() => import('./night-dreams'));
+// Session AV lane 2, round 4 (health; Pillow, LEDGER #333, #335): your timing on free days, and the nap timer.
+const HealthR4 = lazy(() => import('../r4/health-r4'));
 
 const nightLine = (n: SleepNight) => {
   const a = asleep(n)!;
@@ -97,7 +106,7 @@ export default function SleepView() {
     {note && <p className="sleep-note">{note}</p>}
     <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><LoadBoundary quiet><Suspense fallback={null}><EveningPlan zone={store.zone} now={store.now}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><MorningSteps sleep={store.sleep} today={store.today}/></Suspense></LoadBoundary><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
     {/* Session AH (HE3, D-199): the log form sits near the top, full width, not squeezed beside the goal at the bottom. */}
-    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
+    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="nap-timer" store={store}/></Suspense></LoadBoundary><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}
     <section className="panel sleep-week" aria-labelledby="sleep-week-title">
       <h2 id="sleep-week-title">Your last 7 days</h2>
@@ -106,16 +115,17 @@ export default function SleepView() {
         <div><dt>In bed, on average</dt><dd>{formatMinutes(week.inBed)}</dd></div>
         <div><dt>Bedtime · wake time</dt><dd>{formatClock(clockFromNoon(week.bed))} · {formatClock(clockFromMidnight(week.wake))}</dd><dd className="dd-note"><small>averages</small></dd></div>
         <div><dt>Your quality rating</dt><dd>{week.quality !== null ? `${week.quality} of 5` : 'Not rated'}</dd></div>
-        <div className="sleep-stat-wide"><dt>Sleep debt</dt><dd>{debt ? debt.minutes > 0 ? formatMinutes(debt.minutes) : `${formatMinutes(-debt.minutes)} ahead` : 'Set a goal'}</dd><dd className="dd-note"><small>{debt ? `Your goal (${formatMinutes(debt.goal)}) minus time asleep, added up over the ${debt.nights} ${debt.nights === 1 ? 'night' : 'nights'} you logged in the last 7 days: a long night makes up for a short one. Nights only: naps are counted in the balance below, marked as naps.` : 'Needs your own sleep goal (below).'}</small></dd>{/* Session AL fourth pass (C-X3-13): the same nights counted the other way, short nights only (a long night does not cancel one) */}{debt && <dd className="dd-note"><small>Short nights only: {formatMinutes(shortfall(sleep, today))} under your goal (long nights not netted against them).</small></dd>}</div>
+        <div className="sleep-stat-wide"><dt>Sleep debt</dt><dd>{debt ? debt.minutes > 0 ? formatMinutes(debt.minutes) : `${formatMinutes(-debt.minutes)} ahead` : 'Set a goal'}</dd>{!debt && <dd className="dd-note"><small>Needs your own sleep goal (below).</small></dd>}{/* Session AL fourth pass (C-X3-13): the same nights counted the other way, short nights only (a long night does not cancel one) */}{debt && <dd className="dd-note"><small>Short nights only: {formatMinutes(shortfall(sleep, today))} under your goal (long nights not netted against them).</small></dd>}{debt && <StatHow of="Sleep debt">Your goal ({formatMinutes(debt.goal)}) minus time asleep, added up over the {debt.nights} {debt.nights === 1 ? 'night' : 'nights'} you logged in the last 7 days: a long night makes up for a short one. Nights only: naps are counted in the balance below, marked as naps.</StatHow>}</div>
         {/* Session AJ (item 26): the 14-night balance against the person's own goal, in kind words. */}
-        <div className="sleep-stat-wide"><dt>Sleep balance, last 14 days</dt><dd>{balance ? balanceWords(balance, formatMinutes) : sleep.goal ? 'Not yet' : 'Set a goal'}</dd><dd className="dd-note"><small>{balance ? `Your time asleep against your goal (${formatMinutes(balance.goal)}), on average over the ${balance.nights} nights you logged. Every night is a fresh start.` : sleep.goal ? `Needs at least ${BALANCE_MIN_NIGHTS} logged nights in the last 14 days.` : 'Needs your own sleep goal (below).'}</small></dd>{(() => { const n = balanceWithNaps(sleep, today); return n ? <dd className="dd-note sleep-balance-naps"><small>With your {n.naps === 1 ? 'nap' : `${n.naps} naps`} counted ({formatMinutes(n.napMinutes)}, each on the day it ended, marked as {n.naps === 1 ? 'a nap' : 'naps'}): {balanceWords(n, formatMinutes).toLowerCase()}.</small></dd> : null; })()}</div>
-        <div className="sleep-stat-wide"><dt>Bedtime consistency</dt><dd>{steady ? `± ${formatMinutes(steady.minutes)}` : 'Not yet'}</dd><dd className="dd-note"><small>{steady ? `How much your bedtimes vary: the standard deviation of ${steady.nights} bedtimes in the last 14 days.` : 'Needs at least 4 logged nights in 14 days.'}</small></dd></div>
+        <div className="sleep-stat-wide"><dt>Sleep balance, last 14 days</dt><dd>{balance ? balanceWords(balance, formatMinutes) : sleep.goal ? 'Not yet' : 'Set a goal'}</dd>{!balance && <dd className="dd-note"><small>{sleep.goal ? `Needs at least ${BALANCE_MIN_NIGHTS} logged nights in the last 14 days.` : 'Needs your own sleep goal (below).'}</small></dd>}{(() => { const n = balanceWithNaps(sleep, today); return n ? <dd className="dd-note sleep-balance-naps"><small>With your {n.naps === 1 ? 'nap' : `${n.naps} naps`} counted ({formatMinutes(n.napMinutes)}, each on the day it ended, marked as {n.naps === 1 ? 'a nap' : 'naps'}): {balanceWords(n, formatMinutes).toLowerCase()}.</small></dd> : null; })()}{balance && <StatHow of="Sleep balance">Your time asleep against your goal ({formatMinutes(balance.goal)}), on average over the {balance.nights} nights you logged. Every night is a fresh start.</StatHow>}</div>
+        <div className="sleep-stat-wide"><dt>Bedtime consistency</dt><dd>{steady ? `± ${formatMinutes(steady.minutes)}` : 'Not yet'}</dd>{steady ? <StatHow of="Bedtime consistency">How much your bedtimes vary: the standard deviation of {steady.nights} bedtimes in the last 14 days.</StatHow> : <dd className="dd-note"><small>Needs at least 4 logged nights in 14 days.</small></dd>}</div>
         {/* Session AK (4.9): wake-time consistency beside the bedtime one; a steady wake time is the usual first step. */}
-        <div className="sleep-stat-wide"><dt>Wake-time consistency</dt><dd>{steadyWake ? `± ${formatMinutes(steadyWake.minutes)}` : 'Not yet'}</dd><dd className="dd-note"><small>{steadyWake ? `How much your wake times vary: the standard deviation of ${steadyWake.nights} wake times in the last 14 days.` : 'Needs at least 4 logged nights in 14 days.'}</small></dd></div>
+        <div className="sleep-stat-wide"><dt>Wake-time consistency</dt><dd>{steadyWake ? `± ${formatMinutes(steadyWake.minutes)}` : 'Not yet'}</dd>{steadyWake ? <StatHow of="Wake-time consistency">How much your wake times vary: the standard deviation of {steadyWake.nights} wake times in the last 14 days.</StatHow> : <dd className="dd-note"><small>Needs at least 4 logged nights in 14 days.</small></dd>}</div>
       </dl> : <p>No night logged in the last 7 days yet.</p>}
     </section>
     <SleepScoreCard sleep={sleep} today={today}/>
     <LoadBoundary quiet><Suspense fallback={null}><SleepUsual sleep={sleep} today={today}/></Suspense></LoadBoundary>
+    <LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="sleep-timing" sleep={sleep} today={today}/></Suspense></LoadBoundary>
     {/* Session AL fourth pass (MO-022): the fold says its answer on its face (the focus window), not only its name. */}<OnDemandFold className="energy-curve-fold" summary={energyFace(sleep, today)} label="The energy curve"><EnergyCurve sleep={sleep} today={today} now={store.now} zone={store.zone}/></OnDemandFold>
     <section className="panel sleep-charts" aria-labelledby="sleep-charts-title">
       <div className="sleep-charts-head"><h2 id="sleep-charts-title">Over time</h2>

@@ -52,16 +52,20 @@ export function indexMedia(...sets: readonly MediaRecords[]): Index {
   const byName = new Map<string, MediaTarget>(), tasks: Index['tasks'] = [], accounts = new Set<string>();
   const add = (name: string | null, t: MediaTarget) => { if (name && !byName.has(name)) byName.set(name, t); };
   for (const r of sets) {
+    // Round 4 (r4-mind #317): photos 5–12 of an entry are in `morePhotos`; they come back with the first four.
     for (const e of list(r.journal, 'entries')) {
-      for (const id of Array.isArray(e.photos) ? e.photos : []) if (str(id)) for (const type of PHOTO_TYPES) add(journalMediaFileName(id as string, 'photo', type), {store: 'journal', id: id as string, type, kind: 'photo', cap: JOURNAL_PHOTO_MAX_BYTES});
+      for (const id of [...(Array.isArray(e.photos) ? e.photos : []), ...(Array.isArray(e.morePhotos) ? e.morePhotos : [])]) if (str(id)) for (const type of PHOTO_TYPES) add(journalMediaFileName(id as string, 'photo', type), {store: 'journal', id: id as string, type, kind: 'photo', cap: JOURNAL_PHOTO_MAX_BYTES});
       for (const a of Array.isArray(e.audio) ? e.audio.filter(isObject) : []) {
         const id = str(a.id), seconds = typeof a.seconds === 'number' && Number.isInteger(a.seconds) ? a.seconds : 0;
         if (id) for (const type of AUDIO_TYPES) add(journalMediaFileName(id, 'audio', type), {store: 'journal', id, type, kind: 'audio', cap: JOURNAL_AUDIO_MAX_BYTES, seconds});
       }
     }
     for (const n of list(r.notes, 'notes')) {
-      const id = str(n.photoId), safe = id?.replace(/[^A-Za-z0-9_-]/g, '');
-      if (id && safe) for (const type of IMAGE_TYPES) add(`notes/photos/${safe}.${type === 'image/webp' ? 'webp' : 'jpg'}`, {store: 'notes', id, type, kind: 'photo', cap: NOTE_PHOTO_MAX_BYTES});
+      // Round 4 (r4-notes #307): a note's first photo (`photoId`) and the others (`photos`) come back alike.
+      for (const raw of [n.photoId, ...(Array.isArray(n.photos) ? n.photos : [])]) {
+        const id = str(raw), safe = id?.replace(/[^A-Za-z0-9_-]/g, '');
+        if (id && safe) for (const type of IMAGE_TYPES) add(`notes/photos/${safe}.${type === 'image/webp' ? 'webp' : 'jpg'}`, {store: 'notes', id, type, kind: 'photo', cap: NOTE_PHOTO_MAX_BYTES});
+      }
     }
     for (const e of [...list(r.moneyLog, 'entries'), ...list(r.moneyLogBusiness, 'entries')]) {
       const id = str(e.id), date = str(e.date) ?? undefined;

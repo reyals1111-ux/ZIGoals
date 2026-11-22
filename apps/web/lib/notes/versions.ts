@@ -1,5 +1,6 @@
 import {MAX_NOTE_VERSIONS, MAX_NOTE_VERSION_CHARS, NOTE_VERSIONS_PER_NOTE, type NoteVersion, type Notes} from './schema';
 import {checked, updateNote, type NotePatch, type NotesUndo} from './store';
+import {fieldTags, tagsForSave} from './tags';
 
 /**
  * Session AV lane 2 (notes; LEDGER #33, Notion's version history): each save that changes a note's title or words keeps
@@ -37,7 +38,8 @@ export function restoreNoteVersion(record: Notes, noteId: string, versionId: str
   const note = record.notes.find(n => n.id === noteId), v = (record.versions ?? []).find(x => x.id === versionId && x.noteId === noteId);
   if (!note || !v) throw new Error('That version is no longer on this device.');
   const kept = withVersion(record, {id: newId, noteId, title: note.title, body: note.body, savedAt: note.updatedAt ?? note.createdAt});
-  const next = updateNote(kept, noteId, {...(note.kind === 'daily' ? {} : {title: v.title || note.title}), body: v.body}, now);
+  // Review b4g B4G-15: the kept tags follow the restored words (the note's own field tags stay; a #tag gone from the words goes).
+  const next = updateNote(kept, noteId, {...(note.kind === 'daily' ? {} : {title: v.title || note.title}), body: v.body, tags: tagsForSave(fieldTags(note), v.body)}, now);
   return {record: checked(next), undo: {before: [note], created: [], said: 'The note is back as it was.'}};
 }
 /**

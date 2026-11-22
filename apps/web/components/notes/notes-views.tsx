@@ -1,4 +1,5 @@
 'use client';
+import {shownOf, snippetOf} from '../../lib/notes/lock';
 import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
 import type {Note, Notes} from '../../lib/notes/schema';
@@ -66,7 +67,7 @@ export function NotesTable({notes}: {notes: readonly Note[]}) {
       <tbody>{rows.map(r => <tr key={r.id}>
         <th scope="row"><Link className="text-link" href={noteHref(r.id)}>{r.name}</Link>{r.pinned && <span className="fine"> · pinned</span>}{r.example && <span className="fine"> · example</span>}</th>
         <td>{r.tags.length ? r.tags.map(t => `#${t}`).join(' ') : <span className="fine">—</span>}</td>
-        <td className="num">{formatNumber(r.words)}</td><td className="num">{formatNumber(r.links)}</td>
+        <td className="num">{r.locked ? <span className="fine">Locked</span> : formatNumber(r.words)}</td><td className="num">{r.locked ? <span className="fine">—</span> : formatNumber(r.links)}</td>
         <td>{formatDate(r.changed, {year: false})}</td><td>{formatDate(r.made, {year: false})}</td>
         {pcols.map(p => { const v = propOf(notesById.get(r.id)!, p.name); return <td key={p.name} className={v?.t === 'number' ? 'num' : undefined}>{v ? (v.t === 'date' ? formatDate(v.v) : v.t === 'number' ? formatNumber(v.v) : valueWords(v)) : <span className="fine">—</span>}</td>; })}
       </tr>)}</tbody>
@@ -111,10 +112,10 @@ function Thumb({note}: {note: Note}) {
 export function NotesGallery({notes}: {notes: readonly Note[]}) {
   const rows = useMemo(() => new Map(noteRows(notes).map(r => [r.id, r])), [notes]);
   return <ul className="notes-gallery" aria-label="Notes as a gallery">{notes.map(n => { const r = rows.get(n.id)!; return <li key={n.id} className="notes-card">
-    {n.photoId && <Thumb note={n}/>}
+    {n.photoId && !n.locked && <Thumb note={n}/>}
     <Link className="notes-card-link" href={noteHref(n.id)}><strong>{r.name}</strong></Link>
-    <p className="fine notes-card-text">{n.body.replace(/\(SHOWCASE DATA\)/g, '').replace(/\s+/g, ' ').trim().slice(0, 140) || 'No words yet.'}</p>
-    <p className="fine">{[r.tags.map(t => `#${t}`).join(' '), `${formatNumber(r.words)} words`, `changed ${formatDate(r.changed, {year: false})}`].filter(Boolean).join(' · ')}{n.example ? ' · example' : ''}</p>
+    <p className="fine notes-card-text">{snippetOf({...n, body: n.body.replace(/\(SHOWCASE DATA\)/g, '').trim()}, 140) || 'No words yet.'}</p>
+    <p className="fine">{[r.tags.map(t => `#${t}`).join(' '), r.locked ? 'locked' : `${formatNumber(r.words)} words`, `changed ${formatDate(r.changed, {year: false})}`].filter(Boolean).join(' · ')}{n.example ? ' · example' : ''}</p>
   </li>; })}</ul>;
 }
 export function NotesChart({notes, today}: {notes: readonly Note[]; today: string}) {
@@ -126,7 +127,7 @@ export function NotesChart({notes, today}: {notes: readonly Note[]; today: strin
         <span className="notes-bar-label">{t.tag ? `#${t.tag}` : 'No tag'}</span>
         <span className="notes-bar" aria-hidden="true"><span style={{width: `${(t.count / top) * 100}%`}} data-none={t.tag ? undefined : ''}/></span>
         <span className="notes-bar-value">{t.count === 1 ? '1 note' : `${formatNumber(t.count)} notes`}</span>
-      </li>)}</ul> : <p className="fine">No note has a tag yet. A note imported with tags in its front matter (Files → Import), or a Showcase note, shows here.</p>}
+      </li>)}</ul> : <p className="fine">No note has a tag yet. Write a #tag in a note, or type it in the note’s Tags field (a / nests one: #work/meetings).</p>}
     </section>
     <section aria-labelledby="notes-chart-weeks"><h3 id="notes-chart-weeks">Written or changed, per week</h3>
       <ul className="notes-bars">{weeks.map(w => <li key={w.start}>
@@ -138,6 +139,8 @@ export function NotesChart({notes, today}: {notes: readonly Note[]; today: strin
     <p className="fine">Counted from your own notes on this device.</p>
   </div>;
 }
-export default function NotesViews({notes, layout, today, record, change}: {notes: readonly Note[]; layout: 'table' | 'gallery' | 'chart' | 'board'; today: string; record?: Notes; change?: Change}) {
+export default function NotesViews({notes: all, layout, today, record, change}: {notes: readonly Note[]; layout: 'table' | 'gallery' | 'chart' | 'board'; today: string; record?: Notes; change?: Change}) {
+  // Session AV lane 2 (review b4g B4G-1, B4G-2): a locked note is drawn by its name only — no words, tags, photo or properties.
+  const notes = useMemo(() => all.map(shownOf), [all]);
   return layout === 'table' ? <NotesTable notes={notes}/> : layout === 'gallery' ? <NotesGallery notes={notes}/> : layout === 'board' ? <NotesBoard notes={notes} record={record} change={change}/> : <NotesChart notes={notes} today={today}/>;
 }

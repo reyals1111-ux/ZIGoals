@@ -14,6 +14,12 @@ export const journalDisplaySchema = z.looseObject({
   onThisDay: z.boolean().optional(),
   /** Journal entry ids the person chose not to see in "On this day" again (the entries themselves stay). */
   hidden: z.array(z.string().regex(/^[A-Za-z0-9_-]{1,80}$/)).max(MAX_HIDDEN_MEMORIES).optional(),
+  /**
+   * Session AV lane 2 (r4-mind; LEDGER #309, Journey's throwback notifications; TIER 3 (stored format), additive and
+   * optional): the person asked to be told in the morning, on a day with a memory, "A memory from a year ago" (never a
+   * word of it). Off unless switched on; a value this build cannot read is dropped on read; older builds keep it untouched.
+   */
+  memoryNotify: z.boolean().optional().catch(undefined),
 });
 export type JournalDisplay = z.infer<typeof journalDisplaySchema>;
 export const emptyJournalDisplay = (): JournalDisplay => ({version: 1});

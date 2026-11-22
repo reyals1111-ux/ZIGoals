@@ -1,3 +1,7 @@
+import {CALORIE_WEEK} from '../../health-aa/calorie-week';
+import {PLANNED_WORKOUTS} from '../../workouts/planned';
+import {RACES} from '../../workouts/races';
+import {WORKOUT_HR} from '../../workouts/hr-zones';
 import {HEALTH_EXTRAS} from '../../health-extras';
 import {NOTIFY_PREFS} from '../../notify/prefs';
 import {MORE_GOALS} from '../../health-goals/more';
@@ -42,5 +46,7 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Session AV lane 2, batch 2 (body, money).
     eveningPlan: one(EVENING_PLAN), bodyExtras: one(BODY_EXTRAS), wealthSheet: one(WEALTH_SHEET), nutrientExtras: one(NUTRIENT_EXTRAS_RECORD), moneyMore: one(MONEY_MORE), storeCards: one(STORE_CARDS), moneyLogBusiness: one(MONEY_LOG_BUSINESS), workoutPlaces: one(WORKOUT_PLACES),
     // Session AV lane 2, round 3 (health; each answer checks the Health gate first, as the batch 2 Health records do).
-    healthExtras: one(HEALTH_EXTRAS), notifyPrefs: one(NOTIFY_PREFS), healthGoalsMore: one(MORE_GOALS), workoutCircuits: one(CIRCUITS)};
+    healthExtras: one(HEALTH_EXTRAS), notifyPrefs: one(NOTIFY_PREFS), healthGoalsMore: one(MORE_GOALS), workoutCircuits: one(CIRCUITS),
+    // Round 4 (health).
+    plannedWorkouts: one(PLANNED_WORKOUTS), races: one(RACES), workoutHr: one(WORKOUT_HR), calorieWeek: one(CALORIE_WEEK)};
 }

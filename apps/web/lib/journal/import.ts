@@ -1,5 +1,5 @@
 import {parseFrontMatter} from '../notes/markdown';
-import {IMPORT_SOURCES, PERIOD, MAX_AUDIO_SECONDS, MAX_ENTRIES, MAX_ENTRY_AUDIO, MAX_ENTRY_PHOTOS, MAX_JOURNALS, MAX_TEXT, journalSchema, type Journal, type JournalEntry} from './schema';
+import {IMPORT_SOURCES, PERIOD, MAX_AUDIO_SECONDS, MAX_ENTRIES, MAX_ENTRY_AUDIO, MAX_ENTRY_PHOTOS, MAX_ENTRY_PHOTOS_ALL, MAX_JOURNALS, MAX_TEXT, journalSchema, type Journal, type JournalEntry} from './schema';
 import {MAIN_JOURNAL, booksOf, newJournalId} from './books';
 import {readTags} from './tags';
 import {FOLLOW_UP_MARK, followUpOfQuote} from './export';
@@ -19,13 +19,13 @@ import {FOLLOW_UP_MARK, followUpOfQuote} from './export';
  */
 export type ImportSource = (typeof IMPORT_SOURCES)[number];
 export type PlannedEntry = {date: string; text: string; createdAt: string; updatedAt?: string; tags?: string[]; book?: string; template?: string; source: ImportSource; photos: string[]; audio: {file: string; seconds: number}[]; followUp?: {question: string; answer?: string};
-  /** Session AV lane 2 (r3-notes; LEDGER #269, #278, #279, #272): an entry's period, night and opening day, read back from ZIGoals' own exports. */ extra?: {period?: string; night?: string; opensOn?: string};
+  /** Session AV lane 2 (r3-notes; LEDGER #269, #278, #279, #272): an entry's period, night and opening day, read back from ZIGoals' own exports. */ extra?: {period?: string; night?: string; opensOn?: string; /** Session AV lane 2 (r4-mind; LEDGER #310): a starred entry (Day One's `starred`). */ star?: true};
   /** Session AV lane 2 (review B3C-5): read from ZIGoals' own Markdown file, its `createdAt` the entry's own (a day and creation time already in the journal is that entry). */ own?: true};
 /** Session AV lane 2 (r3-notes): the round-3 fields of an entry, from a ZIGoals export's `zigoals` block or Markdown front matter. */
-function extraOf(z: {period?: unknown; night?: unknown; opensOn?: unknown; 'opens-on'?: unknown} | null | undefined): PlannedEntry['extra'] | undefined {
+function extraOf(z: {period?: unknown; night?: unknown; opensOn?: unknown; 'opens-on'?: unknown; starred?: unknown} | null | undefined): PlannedEntry['extra'] | undefined {
   if (!z) return undefined;
   const opens = z.opensOn ?? z['opens-on'];
-  const out = {...(typeof z.period === 'string' && PERIOD.test(z.period) ? {period: z.period} : {}), ...(typeof z.night === 'string' && validDay(z.night) ? {night: z.night} : {}), ...(typeof opens === 'string' && validDay(opens) ? {opensOn: opens} : {})};
+  const out = {...(typeof z.period === 'string' && PERIOD.test(z.period) ? {period: z.period} : {}), ...(typeof z.night === 'string' && validDay(z.night) ? {night: z.night} : {}), ...(typeof opens === 'string' && validDay(opens) ? {opensOn: opens} : {}), ...(z.starred === true || z.starred === 'true' ? {star: true as const} : {})};
   return Object.keys(out).length ? out : undefined;
 }
 export type ImportSkip = {name: string; reason: string};
@@ -60,7 +60,7 @@ export function dayOneWords(text: string): string {
 }
 const clip = (text: string): {text: string; cut: boolean} => text.length > MAX_TEXT ? {text: `${text.slice(0, MAX_TEXT - 1).trimEnd()}…`, cut: true} : {text, cut: false};
 const baseName = (name: string) => name.split('/').pop()!.replace(/\.[a-z0-9]+$/i, '');
-type DayOneEntry = {uuid?: unknown; creationDate?: unknown; modifiedDate?: unknown; timeZone?: unknown; text?: unknown; tags?: unknown; photos?: unknown; audios?: unknown; zigoals?: unknown};
+type DayOneEntry = {uuid?: unknown; creationDate?: unknown; modifiedDate?: unknown; timeZone?: unknown; text?: unknown; tags?: unknown; photos?: unknown; audios?: unknown; zigoals?: unknown; starred?: unknown};
 /** One Day One (or ZIGoals) JSON export file's entries; its journal is named by the file (Day One writes one per journal). */
 export function readDayOneJson(file: InFile, zone?: string): {entries: PlannedEntry[]; skipped: ImportSkip[]; book: string | null; cut: number} {
   let data: unknown;
@@ -78,7 +78,7 @@ export function readDayOneJson(file: InFile, zone?: string): {entries: PlannedEn
     const z = e.zigoals && typeof e.zigoals === 'object' ? e.zigoals as {date?: unknown; journal?: unknown; template?: unknown; question?: unknown; answer?: unknown; period?: unknown; night?: unknown; opensOn?: unknown} : null;
     const date = typeof z?.date === 'string' && validDay(z.date) ? z.date : created ? dayIn(created, typeof e.timeZone === 'string' ? e.timeZone : zone) : null;
     const words = typeof e.text === 'string' ? dayOneWords(e.text) : '';
-    const photos = Array.isArray(e.photos) ? e.photos.flatMap(p => p && typeof p === 'object' && typeof (p as {md5?: unknown}).md5 === 'string' ? [`photos/${(p as {md5: string}).md5}.${String((p as {type?: unknown}).type ?? 'jpeg')}`] : []).slice(0, MAX_ENTRY_PHOTOS) : [];
+    const photos = Array.isArray(e.photos) ? e.photos.flatMap(p => p && typeof p === 'object' && typeof (p as {md5?: unknown}).md5 === 'string' ? [`photos/${(p as {md5: string}).md5}.${String((p as {type?: unknown}).type ?? 'jpeg')}`] : []).slice(0, MAX_ENTRY_PHOTOS_ALL) : [];
     const audio = Array.isArray(e.audios) ? e.audios.flatMap(p => p && typeof p === 'object' && typeof (p as {md5?: unknown}).md5 === 'string' ? [{file: `audios/${(p as {md5: string}).md5}.${String((p as {format?: unknown}).format ?? 'm4a')}`, seconds: Math.max(0, Math.min(MAX_AUDIO_SECONDS, Math.round(Number((p as {duration?: unknown}).duration) || 0)))}] : []).slice(0, MAX_ENTRY_AUDIO) : [];
     if (!date || !created) { skipped.push({name: label, reason: 'it has no date ZIGoals can read'}); continue; }
     if (!words && !photos.length && !audio.length) { skipped.push({name: label, reason: 'it has no words, photo or audio'}); continue; }
@@ -86,7 +86,7 @@ export function readDayOneJson(file: InFile, zone?: string): {entries: PlannedEn
     const tags = Array.isArray(e.tags) ? readTags(e.tags.filter((t): t is string => typeof t === 'string').join(',')) : [];
     const modified = typeof e.modifiedDate === 'string' && Number.isFinite(Date.parse(e.modifiedDate)) ? new Date(Date.parse(e.modifiedDate)).toISOString() : undefined;
     const ownBook = ours && typeof z?.journal === 'string' && z.journal.trim() ? z.journal.trim().slice(0, 40) : book ?? undefined;
-    entries.push({date, text: c.text, createdAt: created, ...(modified && modified !== created ? {updatedAt: modified} : {}), ...(tags.length ? {tags} : {}), ...(ownBook ? {book: ownBook} : {}), ...(ours && typeof z?.template === 'string' && /^[a-z0-9-]{1,40}$/.test(z.template) ? {template: z.template} : {}), ...(ours && typeof z?.question === 'string' && z.question.trim() ? {followUp: {question: z.question.trim().slice(0, 300), ...(typeof z.answer === 'string' && z.answer.trim() ? {answer: z.answer.trim().slice(0, 2000)} : {})}} : {}), ...(ours && extraOf(z) ? {extra: extraOf(z)} : {}), source: 'dayone', photos, audio});
+    entries.push({date, text: c.text, createdAt: created, ...(modified && modified !== created ? {updatedAt: modified} : {}), ...(tags.length ? {tags} : {}), ...(ownBook ? {book: ownBook} : {}), ...(ours && typeof z?.template === 'string' && /^[a-z0-9-]{1,40}$/.test(z.template) ? {template: z.template} : {}), ...(ours && typeof z?.question === 'string' && z.question.trim() ? {followUp: {question: z.question.trim().slice(0, 300), ...(typeof z.answer === 'string' && z.answer.trim() ? {answer: z.answer.trim().slice(0, 2000)} : {})}} : {}), ...(() => { const extra = {...(ours ? extraOf(z) : undefined), ...(e.starred === true ? {star: true as const} : {})}; return Object.keys(extra).length ? {extra} : {}; })(), source: 'dayone', photos, audio});
   }
   return {entries, skipped, book, cut};
 }
@@ -178,10 +178,10 @@ export function applyJournalImport(journal: Journal, plan: JournalImportPlan, me
   }
   const added: JournalEntry[] = [], used: string[] = [];
   for (const e of plan.entries) {
-    const photos = e.photos.flatMap(f => media.get(f) ? [media.get(f)!] : []), audio = e.audio.flatMap(a => media.get(a.file) ? [{id: media.get(a.file)!, seconds: a.seconds}] : []);
-    used.push(...photos, ...audio.map(a => a.id));
+    const all = e.photos.flatMap(f => media.get(f) ? [media.get(f)!] : []), photos = all.slice(0, MAX_ENTRY_PHOTOS), morePhotos = all.slice(MAX_ENTRY_PHOTOS, MAX_ENTRY_PHOTOS_ALL), audio = e.audio.flatMap(a => media.get(a.file) ? [{id: media.get(a.file)!, seconds: a.seconds}] : []);
+    used.push(...photos, ...morePhotos, ...audio.map(a => a.id));
     const book = e.book ? byName.get(e.book.toLowerCase()) : undefined;
-    added.push({...(e.extra ?? {}), id: newId(), date: e.date, text: e.text, createdAt: e.createdAt, ...(e.updatedAt ? {updatedAt: e.updatedAt} : {}), ...(e.tags?.length ? {tags: e.tags} : {}), ...(book ? {journal: book} : {}), ...(e.template ? {template: e.template} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {}), ...(e.followUp ? {followUp: {question: e.followUp.question, from: 'device' as const, ...(e.followUp.answer ? {answer: e.followUp.answer} : {})}} : {}), imported: e.source});
+    added.push({...(e.extra ?? {}), id: newId(), date: e.date, text: e.text, createdAt: e.createdAt, ...(e.updatedAt ? {updatedAt: e.updatedAt} : {}), ...(e.tags?.length ? {tags: e.tags} : {}), ...(book ? {journal: book} : {}), ...(e.template ? {template: e.template} : {}), ...(photos.length ? {photos} : {}), ...(morePhotos.length ? {morePhotos} : {}), ...(audio.length ? {audio} : {}), ...(e.followUp ? {followUp: {question: e.followUp.question, from: 'device' as const, ...(e.followUp.answer ? {answer: e.followUp.answer} : {})}} : {}), imported: e.source});
   }
   const entries = [...journal.entries, ...added].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   return {journal: journalSchema.parse({...journal, entries, journals: books}), undo: {entries: added.map(e => e.id), books: made, media: used}};

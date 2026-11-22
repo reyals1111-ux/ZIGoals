@@ -1,5 +1,5 @@
 import type {TimelineBand, TimelineSource, TimelineSourceItem} from '../timeline/sources';
-import {tasksOnDay} from './engine';
+import {isLate, tasksOnDay} from './engine';
 import {deviceDay, readTasks, tasksToday} from './device';
 import type {Tasks} from './schema';
 import {LOOK_HEX, taskLook} from './look';
@@ -17,7 +17,7 @@ export function taskTimelineItems(record: Tasks | null, date: string, today: str
     // Session AV lane 2 (r3-plan, LEDGER #257): the task's own symbol and colour.
     ...((l => l ? {glyph: l.glyph, colour: LOOK_HEX[l.colour]} : {})(taskLook(t))),
     id: t.id, title: t.title, done: !!t.doneAt, href: `/app/tasks?task=${encodeURIComponent(t.id)}`, band: bandOf(t.time), ...(t.time ? {time: t.time} : {}),
-    pillar: t.goal ? 'goals' : null, label: t.due && t.due < date && !t.doneAt ? 'Task · overdue' : 'Task',
+    pillar: t.goal ? 'goals' : null, label: t.due && isLate(t, date) && !t.doneAt ? 'Task · overdue' : 'Task',
   }));
 }
 export const tasksTimelineSource: TimelineSource = ({date, now}) => taskTimelineItems(readTasks(), date, tasksToday(now), deviceDay);

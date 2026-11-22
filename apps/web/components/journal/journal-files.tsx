@@ -1,5 +1,6 @@
 'use client';
-import {useRef, useState} from 'react';
+import {Suspense, lazy, useRef, useState} from 'react';
+import {LoadBoundary} from '../load-boundary';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL} from '../../lib/journal/schema';
 import {applyJournalImport, planJournalImport, undoJournalImport, type ImportSkip, type InFile, type JournalImportPlan} from '../../lib/journal/import';
@@ -21,6 +22,8 @@ import {showStatus, showUndo} from '../ui/undo-toast';
  * left out and why), then adds them with one Undo. Export makes a ZIP of the whole journal with its photos and voice
  * notes, in Day One's shape. Everything is read and written on this device. Loaded when its fold opens.
  */
+// Session AV lane 2 (r4-notes; LEDGER #320): the journal as an e-book or a Word file, in its own chunk.
+const JournalEbook = lazy(() => import('./journal-ebook'));
 const CAPS: ZipCaps = {maxArchive: 80 * 1024 * 1024, maxEntries: 4000, maxFile: 10 * 1024 * 1024, maxTotal: 120 * 1024 * 1024, maxRatio: 100};
 const TEXT_FILE = /\.(?:json|md|markdown|txt|html?)$/i, MEDIA_FILE = /^(?:.*\/)?(?:photos|audios)\/[^/]+$/i;
 const decode = (data: Uint8Array) => new TextDecoder('utf-8', {fatal: false}).decode(data);
@@ -88,7 +91,7 @@ export default function JournalFiles() {
     setProblem(''); setBusy('Making the file on this device…');
     try {
       const scope = photoScope(), found = new Map<string, MediaFile>();
-      for (const e of journal.data.entries) for (const id of [...(e.photos ?? []), ...(e.audio ?? []).map(a => a.id)]) { try { const m = await getJournalMedia(scope, id); if (m) found.set(id, {data: new Uint8Array(await m.blob.arrayBuffer()), type: m.type}); } catch { /* left out, said in README */ } }
+      for (const e of journal.data.entries) for (const id of [...(e.photos ?? []), ...(e.morePhotos ?? []), ...(e.audio ?? []).map(a => a.id)]) { try { const m = await getJournalMedia(scope, id); if (m) found.set(id, {data: new Uint8Array(await m.blob.arrayBuffer()), type: m.type}); } catch { /* left out, said in README */ } }
       const zip = buildStoredZip(journalExportFiles(journal.data, found));
       const url = URL.createObjectURL(new Blob([zip as Uint8Array<ArrayBuffer>], {type: 'application/zip'})), a = document.createElement('a');
       a.href = url; a.download = journalExportName(localDate(), isShowcase()); document.body.append(a); a.click(); a.remove();
@@ -115,6 +118,7 @@ export default function JournalFiles() {
         </div>
       </div>}
     </section>
+    {journal.data.entries.length > 0 && <LoadBoundary quiet><Suspense fallback={<p className="fine">Loading…</p>}><JournalEbook journal={journal.data}/></Suspense></LoadBoundary>}
     <section aria-labelledby="journal-export-title" className="journal-files-part">
       <h3 id="journal-export-title">Export</h3>
       <p className="fine">Your whole journal as one ZIP: every entry in Day One&rsquo;s shape, with its photos and voice notes, and each entry as its own Markdown file (Markdown/, its day, journal and tags at the top) for Obsidian and other apps. ZIGoals&rsquo; Import reads it back; Day One can import the JSON. Made on this device; keep it private.</p>

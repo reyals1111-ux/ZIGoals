@@ -23,6 +23,10 @@ import TasksOrganise from './tasks-organise';
 import './tasks-plan.css';
 // Review b1 #7: the task editor the list uses, opened from the Table, Calendar and Timeline (its own chunk, as on a row).
 const TaskEditor = lazy(() => import('./task-editor'));
+// Session AV lane 2 (r4-plan, LEDGER #300, #301, #305): Plan my week, the floating repeats and the working hours, their own chunks.
+const PlanWeek = lazy(() => import('./plan-week'));
+const FloatingRepeats = lazy(() => import('./plan-week').then(m => ({default: m.FloatingRepeats})));
+const TaskHoursSettings = lazy(() => import('./task-hours-settings'));
 
 /**
  * Session AV lane 2 (tasks; Sunsama, Todoist, TickTick, Notion), one chunk loaded when one of these Tasks views opens:
@@ -100,12 +104,16 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
       {error && <p className="tasks-field-error" role="alert">{error}</p>}
     </form>
     {openObjectives > 0 && <p><button type="button" className="quiet" onClick={() => list.change(r => carryObjectives(r, week, () => `objective_${crypto.randomUUID()}`), `${n(openObjectives)} open ${openObjectives === 1 ? 'objective' : 'objectives'} carried to the next week.`, 'Taken back.')}>Carry {n(openObjectives)} open to next week</button></p>}
+    {week <= weekStart(today) && <Suspense fallback={null}><PlanWeek record={record} today={today} clock={list.clock} change={list.change} /></Suspense>}
+    <h4>Once this week, any day</h4>
+    <Suspense fallback={null}><FloatingRepeats record={record} today={today} week={week} change={list.change} /></Suspense>
     <h4>Plan into the week</h4>
     {unplanned.length ? <ul className="tasks-week-unplanned" aria-label="Open tasks with no day">{unplanned.map(t => <li key={t.id}><span dir="auto">{t.title}</span>
       <label className="field"><span className="sr-only">Plan “{t.title}” for</span><select value="" onChange={e => { const d = e.target.value; if (d) list.change(r => editMany(r, [t.id], () => ({due: d}), today, {allowPast: true}), `“${t.title}” is planned for ${day(d, today)}.`, 'It has no day again.'); }}><option value="">Plan for…</option>{days.filter(d => d >= today).map(d => <option key={d} value={d}>{day(d, today)}</option>)}</select></label></li>)}</ul>
       : <p className="fine">Every open task has a day.</p>}
     <WeekTable list={list} record={record} days={days} today={today} />
     <TaskPlanSettings />
+    <Suspense fallback={null}><TaskHoursSettings /></Suspense>
   </section>;
 }
 function WeekTable({list, record, days, today}: {list: List; record: Tasks; days: string[]; today: string}) {

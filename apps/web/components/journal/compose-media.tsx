@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {MAX_AUDIO_SECONDS, MAX_ENTRY_PHOTOS} from '../../lib/journal/schema';
+// Session AV lane 2 (r4-mind; LEDGER #317, Journey): up to 12 photos an entry (photos five to twelve in morePhotos).
+import {MAX_AUDIO_SECONDS, MAX_ENTRY_PHOTOS_ALL as MAX_ENTRY_PHOTOS} from '../../lib/journal/schema';
 import {clipLength} from '../../lib/journal/keep-media';
 
 /**
@@ -64,7 +65,7 @@ export default function ComposeMedia({value, onChange}: {value: PendingMedia; on
   return <div className="journal-compose-media">
     <div className="journal-compose-media-actions">
       <input ref={file} type="file" accept="image/*" multiple hidden tabIndex={-1} aria-hidden="true" onChange={e => { addPhotos(e.target.files); e.target.value = ''; }}/>
-      <button type="button" className="secondary" disabled={value.photos.length >= MAX_ENTRY_PHOTOS} onClick={() => file.current?.click()}>Add a photo</button>
+      <button type="button" className="secondary" disabled={value.photos.length >= MAX_ENTRY_PHOTOS} onClick={() => file.current?.click()}>Add a photo</button>{value.photos.length > 0 && <span className="fine journal-photo-count">{value.photos.length} of {MAX_ENTRY_PHOTOS} photos</span>}
       {canRecord ? (recording
         ? <button type="button" className="primary journal-record-stop" onClick={stop}>Stop recording · {clipLength(elapsed)}</button>
         : <button type="button" className="secondary" disabled={!!value.audio} onClick={() => void start()}>{value.audio ? 'One voice note per entry' : 'Record a voice note'}</button>)

@@ -29,6 +29,7 @@ import {supplementReminders} from '../supplements/log';
 import {GOV_REMINDERS, governanceEvents} from '../zigchain-eco/governance';
 import {stakingItems} from './staking-items';
 import {TASKS} from '../tasks/schema';
+import {lateCount} from '../tasks/engine';
 import {TASK_PLAN} from '../tasks/plan-record';
 import {reminderInstants} from '../tasks/reminders';
 import {NOTES} from '../notes/schema';
@@ -38,6 +39,8 @@ import {COUNTDOWN_EXTRAS, countdownWakes} from '../countdowns/extras';
 import {JOURNAL} from '../journal/schema';
 import {reminderPlanInput} from '../journal/reminder';
 import {letterWakes} from '../journal/letters';
+import {memoryWakes} from '../on-this-day/throwback';
+import {JOURNAL_DISPLAY} from '../on-this-day/store';
 import {MONEY_LOG} from '../money-log/schema';
 import {BUDGETS} from '../budgets/schema';
 import {ACCOUNTS} from '../accounts/schema';
@@ -130,9 +133,10 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   // Session AV lane 2 (r3-plan, LEDGER #256): the "Plan your day" time set in Tasks, and how many open tasks are overdue on
   // each of the plan's days (a task due today is overdue tomorrow if still open) — a count, never a name.
   try {
-    const tasks = readDeviceRecord(storage, TASKS).data.tasks.filter(t => !t.doneAt && t.due), plan = readDeviceRecord(storage, TASK_PLAN).data;
+    const tasks = readDeviceRecord(storage, TASKS).data, plan = readDeviceRecord(storage, TASK_PLAN).data;
     if (plan.planReminder) input.planDay = {time: plan.planReminder.time};
-    input.overdue = [today, addDays(today, 1), addDays(today, 2)].map(date => ({date, count: tasks.filter(t => t.due! < date).length}));
+    // Session AV lane 2 (r4-plan, review B4D-2; TIER 3 (PWA)): a repeat that floats in its week is late only after its week.
+    input.overdue = [today, addDays(today, 1), addDays(today, 2)].map(date => ({date, count: lateCount(tasks, date)}));
   } catch { /* tasks unreadable: no overdue line */ }
   // Session AV lane 2 (LEDGER #31; Notion): reminders written inside notes ("@remind tomorrow 9:00 …") wake the device as
   // task reminders do, under the same switch; each opens its note (no Done). A title only where names are allowed.
@@ -143,6 +147,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   try { const j = reminderPlanInput(readDeviceRecord(storage, JOURNAL).data, today); if (j) input.journal = j; } catch { /* unreadable: no journal wake */ }
   // Session AV lane 2 (r3-notes; LEDGER #279): the days letters to open later open (an id and a day; never their words).
   try { const letters = letterWakes(readDeviceRecord(storage, JOURNAL).data, today); if (letters.length) input.letters = letters; } catch { /* unreadable: no letter wakes */ }
+  // Session AV lane 2 (r4-mind; LEDGER #309): the mornings with a memory, when the person asked (how long ago only; never its words).
+  try { const memories = memoryWakes(readDeviceRecord(storage, JOURNAL).data.entries, readDeviceRecord(storage, JOURNAL_DISPLAY).data, today); if (memories.length) input.memories = memories; } catch { /* unreadable: no memory wakes */ }
   // Session AV lane 2 (money): budgets that crossed 80 % or their amount yesterday, payday tomorrow, the low-balance line ahead.
   try {
     const log = readDeviceRecord(storage, MONEY_LOG).data, budgets = readDeviceRecord(storage, BUDGETS).data, rows = cashForecast({accounts: readDeviceRecord(storage, ACCOUNTS).data, bills: readDeviceRecord(storage, BILLS).data, entries: log.entries, budgets, planned: (() => { try { return plannedForForecast(readDeviceRecord(storage, MONEY_MORE).data, log.entries, today); } catch { return []; } })(), today}).rows; // Session AV lane 2, round 3: planned one-off costs count, as on the forecast card

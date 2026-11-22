@@ -41,3 +41,24 @@
 .mood-words-another { margin: 0; }
 .mood-words-another .secondary { min-height: 44px; }
 .mood-words-extra { margin-left: 2px; }
+
+/* Session AV lane 2 (r4-mind; LEDGER #324, #325, #326, How We Feel): what a word means, choices that may help, where you feel it. */
+.mood-words-meanings-toggle { flex-basis: 100%; margin: 0 0 4px; }
+.mood-words-meanings-toggle button { min-height: 44px; }
+.mood-words-item { display: inline-flex; flex-direction: column; align-items: flex-start; max-width: 100%; }
+.mood-words-item.is-open { flex-basis: 100%; }
+.mood-words-meaning { font-size: 0.9rem; color: var(--text-secondary, inherit); margin: 0 0 6px 4px; overflow-wrap: anywhere; }
+.mood-words-chosen-meaning { overflow-wrap: anywhere; }
+.mood-words-chosen-meaning button, .mood-words-own-meaning button { min-height: 44px; }
+.mood-words-own-meaning { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; }
+.mood-words-own-meaning .field { flex: 1 1 14rem; min-width: 0; }
+.mood-words-own-meaning-actions { display: inline-flex; gap: 6px; }
+.mood-words-choices ul { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.mood-words-choices a { min-height: 44px; display: inline-flex; align-items: center; }
+.mood-words-choice-line { margin: 0; padding: 10px 0; overflow-wrap: anywhere; }
+.mood-words-body-fold > summary { min-height: 44px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.mood-body-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 6px 10px; }
+.mood-body-area { margin: 0; min-width: 0; }
+.mood-body-area select { min-height: 44px; width: 100%; }
+.mood-body-counts h4 { margin: 10px 0 4px; font-size: 1rem; }
+.mood-body-counts ul { margin: 0; padding-inline-start: 20px; }

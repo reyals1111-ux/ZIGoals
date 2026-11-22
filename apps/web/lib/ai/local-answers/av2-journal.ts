@@ -234,8 +234,8 @@ function media(a: Asked): LocalReply | null {
   const nl = /\b(?:foto s?|fotos|foto|spraakmemo s?|spraakmemos|spraakberichten|opnames?|geluidsopnames?)\b/.test(a.f) && /\b(?:dagboek\w*|stukken)\b/.test(a.f);
   if (!en && !nl) return null;
   const shut = journalClosed(a); if (shut) return shut;
-  const entries = journalOf(a).entries, photos = entries.reduce((n, e) => n + (e.photos?.length ?? 0), 0), voice = entries.reduce((n, e) => n + (e.audio?.length ?? 0), 0);
-  const seconds = entries.reduce((n, e) => n + (e.audio ?? []).reduce((m, x) => m + x.seconds, 0), 0), withMedia = entries.filter(e => e.photos?.length || e.audio?.length), lang = a.lang;
+  const entries = journalOf(a).entries, photos = entries.reduce((n, e) => n + (e.photos?.length ?? 0) + (e.morePhotos?.length ?? 0), 0) /* Session AV lane 2 (r4-mind; LEDGER #317): photos five to twelve count too */, voice = entries.reduce((n, e) => n + (e.audio?.length ?? 0), 0);
+  const seconds = entries.reduce((n, e) => n + (e.audio ?? []).reduce((m, x) => m + x.seconds, 0), 0), withMedia = entries.filter(e => e.photos?.length || e.morePhotos?.length || e.audio?.length), lang = a.lang;
   if (!photos && !voice) return answer(say(lang, 'No photo or voice note in your journal yet. Under Write, “Photos and a voice note” adds them; they stay on this device.', 'Nog geen foto of spraakmemo in je dagboek. Onder Write voegt “Photos and a voice note” ze toe; ze blijven op dit apparaat.'), CALL);
   const minutes = Math.round(seconds / 60);
   return answer(say(lang, `${count(photos, 'en', ['photo', 'photos'], ['', ''])} and ${count(voice, 'en', ['voice note', 'voice notes'], ['', ''])}${voice ? ` (about ${count(minutes, 'en', ['minute', 'minutes'], ['', ''])})` : ''} in ${count(withMedia.length, 'en', ['entry', 'entries'], ['', ''])}, kept on this device only.`, `${count(photos, 'nl', ['', ''], ['foto', 'foto’s'])} en ${count(voice, 'nl', ['', ''], ['spraakmemo', 'spraakmemo’s'])}${voice ? ` (ongeveer ${count(minutes, 'nl', ['', ''], ['minuut', 'minuten'])})` : ''} in ${count(withMedia.length, 'nl', ['', ''], ['stuk', 'stukken'])}, alleen op dit apparaat bewaard.`), CALL);
