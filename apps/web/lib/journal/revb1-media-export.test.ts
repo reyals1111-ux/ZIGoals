@@ -8,8 +8,8 @@ import {openBackup} from '../restore/read-backup';
 import {notRestoredNote} from '../../components/restore/restore-backup';
 
 /**
- * Session AV lane 2 (review b1 #3): the journal's photos and voice notes go into Export everything as files, and the
- * Restore preview says they are not put back yet, and where they are.
+ * Session AV lane 2 (review b1 #3): the journal's photos and voice notes go into Export everything as files; since review
+ * b1 #18 the Restore preview lists them among the files it puts back (lib/restore/av2-restore-media.test.ts).
  */
 const AT = '2026-11-20T09:00:00.000Z';
 const wipe = () => new Promise<void>((resolve, reject) => { const r = indexedDB.deleteDatabase(JOURNAL_MEDIA_DB); r.onsuccess = () => resolve(); r.onerror = () => reject(r.error); });
@@ -30,11 +30,14 @@ describe('journal media in Export everything', () => {
     expect(out.files.every(f => JOURNAL_MEDIA_FILE.test(f.name))).toBe(true);
     expect(journalMediaFileName('m-x/../y', 'audio', 'audio/mp4')).toBe('journal/audios/m-xy.m4a');
     expect(journalMediaFileName('m-x', 'photo', 'image/gif')).toBeNull();
-    // In the ZIP beside everything.json; the Restore preview counts them as not put back, and says so.
+    // In the ZIP beside everything.json.
+    // Session AV lane 2 (review b1 #18, deliberate: Restore now puts these files back, lib/restore/media.ts): the preview
+    // lists both among the files it restores (`media`), none as not put back, and the not-read note names only other folders.
     const NOW = new Date(AT), zip = buildEverythingZip(collectEverything({[JOURNAL_KEY]: JSON.stringify(journal)}, {now: NOW, version: '0.0.0-test', commit: 'abc1234', localSimulation: null}), {date: '2026-11-20', showcase: false, now: NOW}, out.files);
     const opened = await openBackup(new Blob([zip.bytes as Uint8Array<ArrayBuffer>]));
-    expect(opened.notRestored).toBe(2);
+    expect(opened.media?.map(e => e.name)).toEqual(['journal/photos/m-photo0001.webp', 'journal/audios/m-audio0001.webm']);
+    expect(opened.notRestored).toBe(0);
     expect(opened.photos).toEqual([]);
-    expect(notRestoredNote(2)).toContain('Restore does not put them back yet');
+    expect(notRestoredNote(2)).toBe('This file also holds 2 photos and recordings in folders Restore does not read, so they stay in the ZIP to open yourself.');
   });
 });

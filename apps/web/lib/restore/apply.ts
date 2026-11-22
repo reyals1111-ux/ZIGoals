@@ -14,6 +14,7 @@ import {imageSize, tooLarge} from '../image-header';
 import {DEVICE_PARTS, MODULE_PARTS, nextValue, type PlannedPart, type RestoreMode} from './plan';
 import {entryBytes, RESTORE_LIMITS, type OpenedBackup} from './read-backup';
 import {RESTORE_MEDIA_DBS, anyMediaLeft, removeMedia, type RestoreMediaDb} from './media-dbs';
+import type {MediaOutcome, MediaPlan, MediaRecords} from './media';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): writes the parts the person chose, each through the
@@ -35,9 +36,13 @@ import {RESTORE_MEDIA_DBS, anyMediaLeft, removeMedia, type RestoreMediaDb} from 
  * - Photos come back to this device only (owner decision): the missing ones are added, an existing one is never
  *   overwritten, and each is checked by its header size before it is stored.
  * - Every write is fenced: if the account, its lock or the Showcase changes during the restore, it stops.
+ * - Session AV lane 2 (review b1 #18): the tasks', journal's, notes', receipts', meals', foods' and accounts' files come
+ *   back the same way, by the ids the records on this device keep after the parts were written (lib/restore/media.ts),
+ *   each a `media` step of the undo record naming exactly the ids it added.
  */
 export type RestoreChoice = {part: PlannedPart; mode: Exclude<RestoreMode, 'leave'>};
-export type PhotoChoice = {vision: boolean; progress: boolean};
+/** `media` (review b1 #18; absent = no): add the missing photos, voice notes and documents of tasks, the journal, notes, receipts, meals, foods and accounts. */
+export type PhotoChoice = {vision: boolean; progress: boolean; media?: boolean};
 /** What one write replaced. `before`/`after` of a module and `after` of the others are SHA-256 digests in the stored record; `text` is the module's replaced bytes, kept in memory only. */
 type UndoStep =
   | {kind: 'module'; key: string; label: string; before: string | null; after: string; text?: string | null}
@@ -45,8 +50,8 @@ type UndoStep =
   | {kind: 'vision'; scope: string; ids: string[]}
   | {kind: 'photos'; scope: string; ids: string[]; before: string | null; after: string}
   | {kind: 'media'; db: RestoreMediaDb; scope: string; ids: string[]};
-/** `undoAfterReload`: the undo record was kept, so Undo also works after a reload. `stopped`: the person stopped it midway. `health`: a Health part was restored. */
-export type RestoreOutcome = {restored: string[]; failed: {label: string; error: string}[]; photos: {added: number; skipped: number}; undoable: boolean; undoAfterReload: boolean; stopped: boolean; health: boolean};
+/** `undoAfterReload`: the undo record was kept, so Undo also works after a reload. `stopped`: the person stopped it midway. `health`: a Health part was restored. `media`: when they were chosen, what came back of the tasks', journal's and other stores' files, and why the rest did not. */
+export type RestoreOutcome = {restored: string[]; failed: {label: string; error: string}[]; photos: {added: number; skipped: number}; undoable: boolean; undoAfterReload: boolean; stopped: boolean; health: boolean; media?: MediaOutcome};
 /** `erase`: the session is an "Erase one area" (erase-area.ts), whose copies of what it erased go when its Undo ends. */
 type Session = {generation: number; storage: Storage; steps: UndoStep[]; at: string; persisted: boolean; erase?: boolean};
 let last: Session | null = null;
@@ -194,6 +199,7 @@ export async function applyRestore(opened: OpenedBackup, choices: readonly Resto
     }
     if (photos.vision) await restoreVision(opened, session, outcome, fence);
     if (photos.progress) await restoreProgress(opened, session, outcome, fence);
+    if (photos.media) await restoreMedia(opened, session, outcome, fence);
   } catch (error) { if (!(error instanceof Stopped)) throw error; outcome.stopped = true; }
   finally {
     // SB-1: an erase whose Undo cannot outlive this tab (its record was not kept) keeps no copy at all: Undo here uses the
@@ -296,6 +302,35 @@ async function restoreProgress(opened: OpenedBackup, session: Session, outcome: 
     announceDevice(PROGRESS_PHOTOS_KEY);
   }
   if (stopped) throw stopped;
+}
+
+/** The records on this device that name the tasks', journal's and other stores' files, each read as its part reads it (one that does not read names nothing). */
+export async function deviceMediaRecords(storage: Storage): Promise<MediaRecords> {
+  const {MEDIA_RECORD_NAMES} = await import('./media'), out: MediaRecords = {};
+  for (const name of [...MEDIA_RECORD_NAMES, 'health' as const]) {
+    const part = name === 'health' ? MODULE_PARTS.find(p => p.name === 'health') : DEVICE_PARTS.find(p => p.name === name);
+    if (part) try { out[name] = await currentValue(storage, {...part, summary: null}); } catch { /* does not read: names nothing */ }
+  }
+  return out;
+}
+/** For the preview (nothing is written or opened): what of the file's photos, voice notes and documents a record in the file or on this device names. */
+export async function mediaPreview(opened: OpenedBackup, storage: Storage): Promise<MediaPlan> {
+  const m = await import('./media');
+  const read = (name: string, value: unknown) => { const part = name === 'health' ? MODULE_PARTS.find(p => p.name === 'health') : DEVICE_PARTS.find(p => p.name === name); const r = part?.schema.safeParse(value); return r?.success ? r.data : undefined; };
+  let here: MediaRecords = {};
+  try { here = await deviceMediaRecords(storage); } catch { /* this device's records do not read: the file's still count */ }
+  return m.planMedia(opened, m.backupMediaRecords(opened.json, read), here);
+}
+/** Review b1 #18: the files come back after the parts, by the records now on this device (lib/restore/media.ts). */
+async function restoreMedia(opened: OpenedBackup, session: Session, outcome: RestoreOutcome, fence: () => void) {
+  const m = await import('./media'), scope = photoScope(), added = new Map<RestoreMediaDb, string[]>();
+  outcome.media = m.emptyMediaOutcome();
+  try { await m.putBackMedia(opened, await deviceMediaRecords(session.storage), scope, added, outcome.media, {fence}); }
+  finally {
+    // What was added before an interruption is still recorded, so Undo removes it too.
+    for (const [db, ids] of added) if (ids.length) session.steps.push({kind: 'media', db, scope, ids});
+    if (added.size) persist(session);
+  }
 }
 
 /** Whether a restore can be undone here: this tab's last one (same account, same storage), or a stored one that has not expired. */
