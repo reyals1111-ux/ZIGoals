@@ -30,7 +30,7 @@ import './whole-rows.css';
  * (the opening ended late, lazy parts and answers arrived seconds late). So the fitter keeps what its last measure read
  * (the same lists, the same row elements, each box's size and overflow, each list's own size) and its answer: a render or
  * a resize that changed none of it reads those few numbers and leaves the page alone. A change of content (the
- * MutationObserver) and the fonts always measure. The fit's own writes (`hidden`, the last line's words) are not content,
+ * MutationObserver) and the fonts' arrival after the last measure always measure. The fit's own writes (`hidden`, the last line's words) are not content,
  * nor is an attribute written again with the value it had. (Measured on the Showcase at 1440 x 900: the browser lays the
  * whole page out for each step, about 40 ms on a processor-drawn page, so the steps a real change still takes are the
  * cost that is left: about 25 steps while NOVA opens.)
@@ -67,7 +67,9 @@ type Fitter = {members: Set<Member>;
    * the box's short mark, the last line's words), an attribute written again with the value it had (React writes a
    * field's `name` and `type` again on every render), or a field's `name` (it never changes a size).
    */
-  own: (record: MutationRecord) => boolean};
+  own: (record: MutationRecord) => boolean;
+  /** Whether the last measure ran before the page's fonts were all in (or none ran yet): their arrival must measure again. */
+  fontsPending: () => boolean};
 /** What a measure read and answered: while none of it has changed, the answer stands. */
 type Fitted = {lists: readonly Member[]; rows: readonly (readonly HTMLElement[])[]; boxes: readonly HTMLElement[]; sizes: readonly number[]};
 const sameItems = <T,>(a: readonly T[], b: readonly T[]) => a.length === b.length && a.every((x, i) => x === b[i]);
@@ -81,12 +83,14 @@ const over = (el: HTMLElement) => el.scrollHeight - el.clientHeight;
 
 function createFitter(): Fitter {
   const members = new Set<Member>();
-  let busy = false, fitted: Fitted | null = null;
+  let busy = false, fitted: Fitted | null = null, fontsIn = false;
   const measure = (force = false) => {
     if (busy) return;
     const lists = [...members].filter(m => m.wrap.isConnected).sort((a, b) => a.wrap.compareDocumentPosition(b.wrap) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
     const first = lists[0];
     if (!first) { fitted = null; return; }
+    // Session AV lane 2 (ADR-045 D36): whether this measure reads the page with its fonts all in.
+    fontsIn = typeof document !== 'undefined' && document.fonts?.status === 'loaded';
     busy = true;
     try {
       const rows = lists.map(m => rowsOf(m.list)), all = rows.map(r => r.length);
@@ -174,7 +178,7 @@ function createFitter(): Fitter {
     if (typeof requestAnimationFrame !== 'function') return run();
     if (!frame) frame = requestAnimationFrame(run);
   };
-  return {members, measure, soon, own};
+  return {members, measure, soon, own, fontsPending: () => !fontsIn};
 }
 
 const GroupContext = createContext<Fitter | null>(null);
@@ -211,7 +215,11 @@ function useFitting(fitter: Fitter, anchor: {current: HTMLElement | null}, on: b
     const change = typeof MutationObserver === 'undefined' ? null : new MutationObserver(changed);
     resize?.observe(body);
     change?.observe(body, {childList: true, subtree: true, characterData: true, attributes: true, attributeOldValue: true});
-    void document.fonts?.ready.then(() => { if (live) fitter.soon(true); });
+    // Session AV lane 2 (ADR-045 D36): the fonts' arrival measures only when the last measure came before it. `ready` is
+    // already settled when the fonts were in before the panel was (the usual case: NOVA's own fonts load with the app), and
+    // that forced a whole new search of a list just fitted with the same fonts (on the Showcase's opening, the Habits panel
+    // again: two more full-page layouts of about 180 ms each at 4x CPU).
+    void document.fonts?.ready.then(() => { if (live && fitter.fontsPending()) fitter.soon(true); });
     return () => { live = false; cancelAnimationFrame(frame); resize?.disconnect(); change?.disconnect(); };
   }, [fitter, anchor, on]);
 }

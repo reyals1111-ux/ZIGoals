@@ -229,3 +229,29 @@ test('Session AV lane 2 (ADR-045 D36): one measure asks each count once (each qu
   expect(rows().map(r => r.hidden)).toEqual([false, false, true, true]);
   expect(line().textContent).toBe('+2 more on the Tasks page');
 });
+
+test('Session AV lane 2 (ADR-045 D36): fonts that were in before the measure do not measure again; fonts that arrive after it do', async () => {
+  const doc = document as unknown as {fonts?: unknown};
+  let arrive = () => {};
+  try {
+    height = 150;
+    doc.fonts = {status: 'loaded', ready: Promise.resolve()};
+    let start = reads;
+    await act(async () => { root.render(panel(list(4))); });
+    await act(async () => { await frame(); await frame(); });
+    // One search and the frame's check, as above: the settled `ready` asks for nothing more (it forced a new search).
+    expect(reads - start).toBe(7);
+    await act(async () => root.unmount());
+    root = createRoot(host);
+    // The fonts are still loading when the panel is measured: their arrival measures it again, whole.
+    const loading = {status: 'loading', ready: new Promise<void>(done => { arrive = done; })};
+    doc.fonts = loading;
+    await act(async () => { root.render(panel(list(4))); });
+    await act(async () => { await frame(); await frame(); });
+    start = reads;
+    loading.status = 'loaded';
+    await act(async () => { arrive(); await loading.ready; await frame(); await frame(); });
+    expect(reads - start).toBeGreaterThan(1);
+    expect(rows().map(r => r.hidden)).toEqual([false, false, true, true]);
+  } finally { arrive(); delete doc.fonts; }
+});
