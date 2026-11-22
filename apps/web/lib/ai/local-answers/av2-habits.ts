@@ -12,6 +12,7 @@ import {CALM_WORDS, PACE_WORDS, readCalm} from '../../calm/visuals';
 import {STRETCH_PREFIX, STRETCHES} from '../../calm/stretches';
 import {moodLabel, readMoodLook} from '../../daylio/rule';
 import {meditationMilestones} from '../../meditation/milestones';
+import {strengthByWeek, totalsBy} from '../../habits-v2/history';
 import {healthGroupIn} from '../../vault/w-homes';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
 import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
@@ -31,7 +32,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual, meditationMilestonesOf]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual, meditationMilestonesOf, strengthOverYear]) {
       const r = one(a);
       if (r) return r;
     }
@@ -243,4 +244,19 @@ function meditationMilestonesOf(a: Asked): LocalReply | null {
   const nextLine = next ? say(lang, ` Next: ${next.title}, ${Math.min(next.have, next.need)} of ${next.need}${next.kind === 'row' ? ' days in a row (your longest run)' : ' days'}.`, ` Volgende: ${name(next.id, next.title)}, ${Math.min(next.have, next.need)} van ${next.need}${next.kind === 'row' ? ' dagen op rij (je langste reeks)' : ' dagen'}.`) : '';
   if (!reached.length) return answer(say(lang, `No meditation milestone yet.${nextLine} A rest day never takes one away.`, `Nog geen meditatiemijlpaal.${nextLine} Een rustdag neemt er nooit een af.`));
   return answer(say(lang, `Meditation milestones reached: ${list(reached, 'en')}.${nextLine || ' All three are reached.'}`, `Meditatiemijlpalen bereikt: ${list(reached, 'nl')}.${nextLine || ' Alle drie zijn bereikt.'}`));
+}
+/** LEDGER #187, #190: "how has my habit strength changed this year", "hoe is de sterkte van mijn gewoontes dit jaar veranderd". */
+function strengthOverYear(a: Asked): LocalReply | null {
+  const en = /\bhabits?\b/.test(a.f) && /\b(?:strength|score)\b/.test(a.f) && /\b(?:year|this year|over time|changed|trend|weeks)\b/.test(a.f);
+  const nl = /\bgewoontes?\b/.test(a.f) && /\b(?:sterkte|score)\b/.test(a.f) && /\b(?:jaar|dit jaar|in de tijd|veranderd|trend|weken)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'habits'); if (shut) return shut;
+  const lang = a.lang, rows = live(a).flatMap(h => {
+    const known = strengthByWeek(h, a.today).filter(w => w.score !== null);
+    if (!known.length) return [];
+    const first = known[0]!, last = known.at(-1)!, month = totalsBy(h, a.today, 'month')[0];
+    return [say(lang, `${clean(h.title, 50)}: ${last.score} now, ${first.score} in the week to ${dayIn('en', first.weekEnd, a.today)}${month ? `; this month ${month.done} of ${month.scheduled} days` : ''}`, `${clean(h.title, 50)}: nu ${last.score}, ${first.score} in de week tot ${dayIn('nl', first.weekEnd, a.today)}${month ? `; deze maand ${month.done} van ${month.scheduled} dagen` : ''}`)];
+  }).slice(0, 8);
+  if (!rows.length) return answer(say(lang, 'No habit has seven scheduled days behind it yet, so there is no strength to follow. A habit’s Consistency & trends → More history shows it week by week once there is.', 'Nog geen gewoonte heeft zeven geplande dagen achter zich, dus er is nog geen sterkte te volgen. Consistency & trends → More history van een gewoonte toont die per week zodra die er is.'), OPEN);
+  return answer(say(lang, `Strength (0 to 100) over the last year: ${rows.join('. ')}. A habit's Consistency & trends → More history has the weekly line, months, quarters and years.`, `Sterkte (0 tot 100) over het afgelopen jaar: ${rows.join('. ')}. Consistency & trends → More history van een gewoonte heeft de lijn per week, maanden, kwartalen en jaren.`), OPEN);
 }

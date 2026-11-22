@@ -30,4 +30,6 @@ export const AV2_HABITS: readonly Intent[] = [
   {id: 'av2-habits-mood-words', pillar: 'health', en: ['what are my mood words', 'what are my own mood words'], nl: ['wat zijn mijn stemmingswoorden', 'wat zijn mijn woorden voor de stemmingen']},
   // Meditation milestones (LEDGER #186)
   {id: 'av2-habits-meditation-milestones', pillar: 'health', en: ['which meditation milestones have i reached', 'what are my meditation milestones'], nl: ['welke meditatiemijlpalen heb ik bereikt', 'wat zijn mijn mijlpalen bij het mediteren']},
+  // A habit's strength over the year, months and quarters (LEDGER #187, #190)
+  {id: 'av2-habits-strength-year', pillar: 'habits', en: ['how has my habit strength changed this year', 'what is the strength of my habits over the year'], nl: ['hoe is de sterkte van mijn gewoontes dit jaar veranderd', 'wat is de sterkte van mijn gewoontes over het jaar']},
 ];

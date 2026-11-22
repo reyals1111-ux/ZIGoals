@@ -464,6 +464,30 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 - Answers: "which meditation milestones have i reached" / "welke meditatiemijlpalen heb ik bereikt" (Health gate; case
   `av2-habits-meditation-milestones`). CSS touched: `meditation.css` (a few lines). Always visible on Today: nothing.
 
+## Feature 16 — A habit's longer history: the strength line, months, quarters, years and weekdays (LEDGER #187, #190)
+
+**Verdict: built.**
+
+- A habit's Details → Consistency & trends → "More history: strength over the year, months and weekdays" (a fold, its
+  own chunk): the strength (the existing figure, unchanged) at the end of each of the last 52 weeks as a line on one
+  0–100 axis (each point titled, the chart named with its first, last, highest and lowest, "As a table"); days done of
+  days scheduled by month, quarter or year since the habit began (a choice of three, newest first, with the share); and
+  the days done on each weekday, month by month for the last twelve months (a number in every cell, a light tint for
+  the share, in its own focusable frame on a phone). Beside the 12-week weekday and week views, unchanged.
+- Files: `lib/habits-v2/history.ts`, `components/habits/{habit-longer-history.tsx,habit-longer-history.css,habit-patterns.tsx}`,
+  `lib/ai/local-answers/av2-habits.ts`, `lib/ai/evals/as/cases-av2-habits.ts`.
+- Tests: `lib/habits-v2/history.test.ts` (the weekly strength against the existing figure, none before the habit
+  began, months/quarters/year, today open not counted, weekdays by month, the answers EN and NL). Spec:
+  `tests/av2-habit-history.spec.ts`.
+- Stored changes: none (derived).
+- Help (EN): **Q: Can I see how a habit went over a longer time?** A: Yes. In a habit's Consistency & trends, open More
+  history: its strength week by week over the past year, days done by month, quarter or year, and which weekdays you
+  did it each month.
+- What's new: "A habit's strength week by week over the year, with months, quarters, years and weekdays."
+- Answers: "how has my habit strength changed this year" / "hoe is de sterkte van mijn gewoontes dit jaar veranderd"
+  (Habits gate; case `av2-habits-strength-year`). Showcase hook: the Showcase's habits fill it with no new data.
+- CSS touched: `components/habits/habit-longer-history.css` (new; theme variables only). Always visible on Today: nothing.
+
 ## Not built yet (next for this pillar, in order)
 
 - Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm
