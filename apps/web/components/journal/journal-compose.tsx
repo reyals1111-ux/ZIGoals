@@ -15,7 +15,7 @@ import {MoodWordsFold} from '../mood-words/mood-words-fold';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import type {PendingMedia} from './compose-media';
 // Session AK (BUILD list 2 #13, lane G1a): "Start from a prompt" (its list loads when the fold opens).
-import {onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
+import {ALL_TEMPLATES, onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
 import {questionIndexOfTheDay, questionOfTheDay, withQuestion} from '../../lib/journal-prompts/daily';
 // Session AV lane 2 (LEDGER #56): questions the person hid are passed over; hiding one loads its writer on the tap.
 import {mutedNow} from '../../lib/muted/rule';
@@ -23,6 +23,7 @@ import {mutedNow} from '../../lib/muted/rule';
 import type {PromptPack} from '../../lib/journal-prompts/packs';
 type PacksModule = typeof import('../../lib/journal-prompts/packs');
 import {readTags, tagCounts} from '../../lib/journal/tags';
+import {periodChoices, periodWords} from '../../lib/journal/periods';
 import {setQuestionLang, useQuestionLang} from './question-lang';
 import {addOwnTemplate, asJournalTemplate, editOwnTemplate, removeOwnTemplate, withDefault} from '../../lib/journal-prompts/own';
 const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
@@ -53,7 +54,9 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   // Session AV lane 2 (journal; LEDGER #43, Day One): the journal this entry goes in (null: the main Journal).
   const [chosenBook, setChosenBook] = useState<string | null | undefined>(undefined);
   const books = journal.data.journals ?? [], target = (chosenBook === undefined ? book : chosenBook) ?? null, inBook = target && books.some(b => b.id === target) ? target : null;
-  const [gridOn, setGridOn] = useState<boolean | null>(null); // null: the template's own way (the Mandala is a grid)
+  const [gridOn, setGridOn] = useState<boolean | null>(null);
+  // Session AV lane 2 (r3-notes; LEDGER #269, Grid Diary): the week, month or year this entry is about ('' for the day).
+  const [period, setPeriod] = useState(''); // null: the template's own way (the Mandala is a grid)
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
   // Session AV lane 2 (journal; LEDGER #39, Day One's default template): a new entry starts from the chosen template, on
@@ -99,11 +102,11 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       setSaving(false);
     }
     const fallback = audio.length && photos.length ? 'Photos and a voice note.' : audio.length ? 'A voice note.' : photos.length > 1 ? 'Photos.' : 'A photo.';
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: (words || fallback).slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {})};
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: (words || fallback).slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {}), ...(photos.length ? {photos} : {}), ...(audio.length ? {audio} : {}), ...(period && !compact ? {period} : {})};
     const question = words && journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     try { journal.update(current => ({...current, entries: [...current.entries, {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}].slice(-5000)})); }
     catch { if (photos.length || audio.length) void import('../../lib/journal/keep-media').then(k => k.forgetJournalMedia([...photos, ...audio.map(a => a.id)])); return setProblem('This could not be saved on this device. Nothing was changed.'); }
-    setText(''); setTagText(''); setPrompt(null); setGridOn(null); setFillDefault(true); setMedia(NO_MEDIA); setMediaOpen(false); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
+    setText(''); setTagText(''); setPrompt(null); setGridOn(null); setPeriod(''); setFillDefault(true); setMedia(NO_MEDIA); setMediaOpen(false); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
     if (question) zigiSignals.emit('journal_reflecting'); // Session AK Part 12: ZIGi asks its one question (a Studio-4 reaction once its art lands)
   };
   const pending = asked ? journal.data.entries.find(e => e.id === asked) : null;
@@ -142,6 +145,12 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       <SecretGuard text={text} onRemove={() => setText('')}/>
       {/* Session AV (1c, q4 #5; Day One suggests tags): the tags already in use, offered after what is typed so far. */}
       {!compact && <label className="field journal-compose-tags"><span>Tags — optional</span><input maxLength={200} autoComplete="off" list={tagOffers.length ? `${id}-known-tags` : undefined} value={tagText} onChange={e => setTagText(e.target.value)} placeholder="work, family" aria-describedby={`${id}-tags-hint`}/><small id={`${id}-tags-hint`} className="fine">Separate tags with commas; up to 8.</small></label>}
+      {!compact && (() => { const choices = periodChoices(today), lookBack = period ? ALL_TEMPLATES.find(t => t.period === (period.includes('-W') ? 'week' : period.length === 7 ? 'month' : 'year')) : null;
+        const word = (c: (typeof choices)[number]) => !c.kind ? 'This day' : `${c.which === 'this' ? 'This' : 'Last'} ${c.kind} · ${periodWords(c.value)}`;
+        return <div className="journal-compose-period">
+          <label className="field"><span>This entry is about</span><select value={period} onChange={e => setPeriod(e.target.value)}>{choices.map(c => <option key={c.value || 'day'} value={c.value}>{word(c)}</option>)}</select></label>
+          {lookBack && prompt?.id !== lookBack.id && onlyHeadings(text) && <button type="button" className="quiet" onClick={() => { setText(current => startFrom(current, lookBack, qLang)); setPrompt({id: lookBack.id, lang: qLang}); setGridOn(null); setStatus(`Started from “${lookBack.title[qLang]}”. Write under each heading, or change anything.`); }}>Start from the {lookBack.title.en.toLowerCase()}</button>}
+        </div>; })()}
       {!compact && books.length > 0 && <label className="field journal-compose-book"><span>Journal</span><select value={inBook ?? ''} onChange={e => setChosenBook(e.target.value || null)}><option value="">Journal (main)</option>{books.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>}
       {!compact && tagOffers.length > 0 && <datalist id={`${id}-known-tags`}>{tagOffers.map(o => <option key={o} value={o}/>)}</datalist>}
       {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>

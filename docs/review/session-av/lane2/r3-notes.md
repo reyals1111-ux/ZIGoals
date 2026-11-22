@@ -19,6 +19,7 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #271 Obsidian Print a note or save it as PDF | built | F2 |
 | #265 Grid Diary Every answer to one prompt | built | F3 |
 | #266 Grid Diary Grid layout and the Mandala | built | F4 |
+| #269 Grid Diary Entries for a week, a month or a year | built | F5 |
 
 ## Features
 
@@ -130,3 +131,26 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 - What's new: "Journal: write an entry as a grid of cards, and the 3 × 3 Mandala."
 - Showcase: none (a Showcase entry would change the pinned entry count of 10).
 - CSS touched: `components/journal/journal.css`, `components/journal-prompts/prompt-picker.css`. Today: nothing added.
+
+### F5 Entries about a week, a month or a year — LEDGER #269 (Grid Diary)
+
+- Verdict: **built**.
+- What: Journal → Write → "This entry is about": this day (the default), this or last week (ISO weeks, Monday first,
+  "Week 47 (Nov 16 – Nov 22, 2026)"), this or last month, this or last year. Choosing a period offers "Start from the
+  week / month / year look-back" (the week look-back existed; the month and year look-backs are new, English and Dutch,
+  F4's second list). The entry keeps its own day and an optional `period`; the list says "· about Week 47 (…)". Journal →
+  Search by date: under the month, a row lists the entries about its year, the month and each week touching it, each a
+  button that shows them ("Entries about Week 47 … Show every entry"). Older builds show the entry on its day, as before.
+- Files: `lib/journal/periods.ts`, `lib/journal/search.ts` (`period` in the filter), `components/journal/journal-compose.tsx`,
+  `components/journal/journal-calendar.tsx` (lazy), `components/journal/journal-page.tsx`, `lib/journal-prompts/templates.ts`,
+  `components/journal/journal.css`.
+- Tests: `lib/journal/r3-periods.test.ts`; stored round trip in `lib/journal/r3-stored.test.ts`.
+- Spec: `tests/av2-journal-periods.spec.ts`.
+- Stored: entry `period` (TIER 3 commit `3c7c0bbe`; see "Stored changes").
+- Help (EN). Q: "Can an entry be about a whole week, month or year?" A: "Yes. When you write, choose what it is about
+  under This entry is about: this or last week, month or year. A look-back template is offered for each. The entry keeps
+  the day you wrote it, and Search by date lists it under its week, month or year."
+- What's new: "Journal: entries about a week, a month or a year, with look-back templates."
+- Showcase: none (a Showcase entry would change the pinned entry count of 10; a `period` on an existing Showcase entry
+  would move what the pinned Journal specs show on its row).
+- CSS touched: `components/journal/journal.css`. Today: nothing added.

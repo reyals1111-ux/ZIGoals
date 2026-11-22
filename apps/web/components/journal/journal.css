@@ -223,3 +223,11 @@
 .entry-grid strong { display: block; font-size: 14px; }
 .entry-grid p { margin: 2px 0 0; white-space: pre-wrap; }
 @media (min-width: 560px) { .entry-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .entry-grid > li { grid-row: var(--row); grid-column: var(--col); } }
+/* Session AV lane 2 (r3-notes; LEDGER #269): what an entry is about (a week, a month, a year), and the calendar's periods. */
+.journal-compose-period { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; }
+.journal-compose-period .field { flex: 1 1 220px; min-width: 0; }
+.journal-compose-period select, .journal-compose-period button { min-height: 44px; font-size: 16px; max-width: 100%; }
+.journal-calendar-periods { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.journal-calendar-periods button { min-height: 44px; text-align: start; overflow-wrap: anywhere; }
+.journal-period-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.journal-period-line .text-link { min-height: 44px; }
