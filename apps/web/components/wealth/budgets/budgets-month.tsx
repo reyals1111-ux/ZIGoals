@@ -1,7 +1,7 @@
 'use client';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import {ShowcaseTag} from '../../ui/showcase-tag';
-import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatMonth} from '../../../lib/visual-format';
@@ -10,6 +10,7 @@ import {EXPENSE_CATEGORIES, MONEY_LOG, type MoneyEntry} from '../../../lib/money
 import {budgetIssue, carriesInto, monthKey, monthView, removeBudget, setBudget, shiftMonth, startFresh, type BudgetRow} from '../../../lib/budgets/engine';
 import {showUndo} from '../../ui/undo-toast';
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
+import {MONEY_MORE} from '../../../lib/money-more/schema';
 import {budgetPace, paceWords} from '../../../lib/budgets/pace';
 import './budgets.css';
 // Session AK (BUILD list 2 #19): a sum in the amount field ("300+45,50") is worked out and that amount is saved.
@@ -172,13 +173,31 @@ export function BudgetsView({space = 'personal', record, entries, today, showcas
     {(view.rows.length > 0 || entries.length > 0) && <details className="budgets-recap-fold" onToggle={e => setRecapOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{formatMonth(`${recapMonth}-01`)} in short</summary>{recapOpen && <Suspense fallback={<p className="fine">Opening…</p>}><MonthRecapView entries={entries} record={record} month={recapMonth} today={today}/></Suspense>}</details>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
-    {!unreadable && space === 'personal' && <Suspense fallback={null}><BudgetPeriodsPanel record={record} entries={entries} today={today} startsOn="monday" onChange={onChange}/></Suspense>}
-    {view.rows.length > 0 && month >= thisMonth && <Suspense fallback={null}><AssignPanel record={record} entries={entries} month={month} today={today} update={safeChange}/></Suspense>}
-    <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange}/></Suspense>
-    <Suspense fallback={null}><OwnBudgets entries={entries} today={today} currencies={usedCurrencies} categories={categories} space={space}/></Suspense>
-    <Suspense fallback={null}><BudgetExtras record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange} space={space}/></Suspense>
+    <MoreBudgetTools record={record} space={space}>
+      {!unreadable && space === 'personal' && <Suspense fallback={null}><BudgetPeriodsPanel record={record} entries={entries} today={today} startsOn="monday" onChange={onChange}/></Suspense>}
+      {view.rows.length > 0 && month >= thisMonth && <Suspense fallback={null}><AssignPanel record={record} entries={entries} month={month} today={today} update={safeChange}/></Suspense>}
+      <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange}/></Suspense>
+      <Suspense fallback={null}><OwnBudgets entries={entries} today={today} currencies={usedCurrencies} categories={categories} space={space}/></Suspense>
+      <Suspense fallback={null}><BudgetExtras record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange} space={space}/></Suspense>
+    </MoreBudgetTools>
     <p className="fine">From your own money log, in each currency apart. An overspend is never carried into the next month. Not financial advice.</p>
   </div>;
+}
+/**
+ * Session AV lane 2 (polish 2, P-34): on a device with nothing set up yet — no budget, nothing watched, no payee, no
+ * challenge, no budget of its own — the extra tools (pay periods, watching, your own budgets, payees, challenges) wait in
+ * one fold, "More budget tools", so "+ Set a monthly budget" is the one first step (four empty forms had stood open at
+ * once). Decided once, when the tools first show: what a person starts inside the fold never folds it away under them, and
+ * a device with anything set up shows the tools as before.
+ */
+function MoreBudgetTools({record, space, children}: {record: BudgetsRecord; space: 'personal' | 'business'; children: ReactNode}) {
+  const more = useDeviceRecord(MONEY_MORE), [folded, setFolded] = useState<boolean | null>(null);
+  const started = record.budgets.length > 0 || Object.entries(record).some(([key, value]) => key !== 'version' && key !== 'budgets' && value !== undefined && value !== null && !(Array.isArray(value) && value.length === 0))
+    || (space === 'personal' && !!more.data.budgets?.length);
+  useEffect(() => { if (folded === null && more.loaded) setFolded(!started); }, [folded, more.loaded, started]);
+  if (folded === null) return null;
+  if (!folded) return <>{children}</>;
+  return <details className="budgets-more-tools"><summary className="fold-summary"><span>More budget tools <small className="fine">{space === 'personal' ? 'Pay periods · watching · your own budgets · payees · challenges' : 'Watching · payees · challenges'}</small></span></summary><div className="budgets-more-tools-body">{children}</div></details>;
 }
 export default function BudgetsMonth({showcase = false}: {showcase?: boolean}) {
   const {space, ready} = useMoneySpace(), shown = showcase ? 'personal' : space;

@@ -121,3 +121,12 @@
 /* Session AV lane 2 (r3-notes; LEDGER #278): a night's dreams and "Write down a dream". */
 .night-dreams { display: flex; flex-wrap: wrap; gap: 0 16px; }
 .night-dreams .text-link { min-height: 44px; display: inline-flex; align-items: center; font-size: 15px; }
+/* Session AV lane 2 (polish 2, P-22): a night's card has no empty band above Edit and Delete — the page's `.fine` margins
+   (12 px above, 20 px below its quality line) and the actions' own 20 px had added about 40 px. The card's 10 px gap
+   is the one space between its lines and its buttons. */
+:root .sleep-nights > li > div:first-child > * { margin: 0; }
+:root .sleep-nights > li > .actions { margin: 0; }
+/* …and in "Your last 7 days" how a figure is worked out waits behind "What is this?" under it. */
+:root .sleep-stats dd.sleep-stat-how { font-size: 14px; font-weight: 600; color: var(--muted, #bccae0); }
+.sleep-stat-how > details > summary.fold-summary { gap: 6px; }
+.sleep-stat-how > details > small { display: block; font-weight: 400; padding-bottom: 4px; }
