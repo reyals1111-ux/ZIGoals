@@ -218,3 +218,16 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
   state with the days counted (Mood 12 of 20, Energy 14 of 20), which is true. The other empty Showcase parts the
   reviewer lists (week objectives, areas, timers, chess results, prompt packs, habit options, journal photos) are
   teaching empty states by the same rule.
+
+### #18 Restore brings no photo or voice note back (tasks, journal, notes, receipts, meals)
+- Verdict: said honestly (in #3's commit); putting the files back is left — against a named rule: the restore plan
+  and its apply/undo records are the lead's (team brief, "Shared files you must NOT edit": restore plan), and a file
+  restore needs new undo steps in its strict undo record (lib/restore/apply.ts). The Restore preview now counts every
+  photo or recording in the file it does not put back and says, before anything changes: "This file also holds N
+  photos and voice notes from notes, receipts, meals, tasks or the journal. Restore does not put them back yet: the
+  records that name them come back, and they stay in the ZIP to open yourself. Journal → Import and export moves a
+  journal with its photos and voice notes." Export everything says the same for the journal's.
+- For the lead, if wanted: in lib/restore/read-backup.ts the entries are counted by `MEDIA_FILE` (`notRestored`); an
+  apply step per store (put when the id is missing, a `{kind: 'media', db, scope, ids}` undo step that deletes them)
+  would restore them by the ids the records keep (journal/photos|audios/<id>.<ext>, tasks/attachments/…-<id>.<ext>,
+  notes/photos/<id>.<ext>).
