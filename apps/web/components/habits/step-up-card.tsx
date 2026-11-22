@@ -1,7 +1,7 @@
 'use client';
 import {useMemo, useRef} from 'react';
 import type {Habit} from '../../lib/habits';
-import {restUntil, setStepUp, stepOffers} from '../../lib/habits-v2/step-up';
+import {restUntil, restoreStepUpEntry, setStepUp, stepOffers, stepUpEntry} from '../../lib/habits-v2/step-up';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import type {HabitExtrasState} from './use-habit-extras';
@@ -19,11 +19,12 @@ export default function StepUpCard({habits, extras, today}: {habits: readonly Ha
   const offers = useMemo(() => extras.loaded && !extras.unreadable ? stepOffers(habits, extras.data, today) : [], [habits, extras.loaded, extras.unreadable, extras.data, today]);
   const first = offers[0];
   if (!first) return null;
-  const {habit, offer, step} = first;
+  const {habit, offer} = first;
   const yes = () => {
-    const to = offer.kind === 'down' ? 'small' as const : offer.to, before = step.now, since = step.since;
+    // Review B4D-5: Undo puts the habit's whole entry back (its size, the four-week clock and a resting card exactly).
+    const to = offer.kind === 'down' ? 'small' as const : offer.to, before = stepUpEntry(extras.data, habit.id);
     try { extras.update(r => setStepUp(r, habit.id, {now: to, since: today, later: null})); } catch (e) { showStatus(`Not changed. ${deviceSettingFailureMessage(e)}`, {tone: 'error'}); return; }
-    showUndo({message: `${habit.title}: now ${offer.words}. The habit itself stays as it is.`, undone: `${habit.title} is back as it was.`, restore: () => extras.update(r => setStepUp(r, habit.id, {now: before, ...(since ? {since} : {})}))});
+    showUndo({message: `${habit.title}: now ${offer.words}. The habit itself stays as it is.`, undone: `${habit.title} is back as it was.`, restore: () => extras.update(r => restoreStepUpEntry(r, habit.id, before))});
   };
   const later = () => {
     try { extras.update(r => setStepUp(r, habit.id, {later: restUntil(today)})); } catch (e) { showStatus(`Not changed. ${deviceSettingFailureMessage(e)}`, {tone: 'error'}); return; }

@@ -43,6 +43,22 @@ export function setStepUp<T extends object>(extras: T, habitId: string, change: 
   const {stepUp: _drop, ...rest} = extras as T & {stepUp?: unknown}; void _drop;
   return (Object.keys(all).length ? {...rest, stepUp: all} : rest) as T;
 }
+/**
+ * Review B4D-5: a habit's stored entry exactly as it is (null when there is none), and putting it back, so an Undo returns
+ * `now`, `since` and `later` as they were (the four-week clock and a resting card included), and any field a later
+ * build wrote. The other habits' entries are left as they are now.
+ */
+export function stepUpEntry(extras: unknown, habitId: string): Record<string, unknown> | null {
+  const all = isObj(extras) && isObj(extras.stepUp) ? extras.stepUp : {};
+  return Object.hasOwn(all, habitId) && isObj(all[habitId]) ? {...all[habitId] as Record<string, unknown>} : null;
+}
+export function restoreStepUpEntry<T extends object>(extras: T, habitId: string, entry: Record<string, unknown> | null): T {
+  if (!habitId || habitId === '__proto__') throw new Error('This habit could not be found.');
+  const all = isObj((extras as {stepUp?: unknown}).stepUp) ? {...(extras as {stepUp: Record<string, unknown>}).stepUp} : {};
+  if (entry) all[habitId] = {...entry}; else delete all[habitId];
+  const {stepUp: _drop, ...rest} = extras as T & {stepUp?: unknown}; void _drop;
+  return (Object.keys(all).length ? {...rest, stepUp: all} : rest) as T;
+}
 /** What the habit is now, in words: the small version, the habit itself, or the next step. */
 export const sizeWords = (habit: Pick<Habit, 'title'>, s: StepUp, size: Size = s.now) => size === 'small' ? s.small ?? habit.title : size === 'next' ? s.next ?? habit.title : habit.title;
 
