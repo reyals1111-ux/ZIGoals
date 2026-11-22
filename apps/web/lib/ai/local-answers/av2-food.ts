@@ -11,8 +11,8 @@ import {RECIPE_BOOK, type BookStyle} from '../../food-plus/recipe-book';
 import {fitCandidates, fitPlans} from '../../food-plus/fit-plan';
 import {fitsStyle, STYLE_WORDS as EATING_WORDS, type EatingStyle} from '../../food-plus/marks';
 import {fold} from './exact/text';
-import {dayTargets, sugarAlcoholMg, weekdayOfDay} from '../../food-plus/day-target';
-import {netCarbs} from '../../health-aa/macro-mode';
+import {dayTargets, weekdayOfDay} from '../../food-plus/day-target';
+import {netCarbsOfDay, netCarbsWords} from '../../health-aa/net-carbs-day';
 import {healthZone, dailyData} from '../../health-daily';
 import {readDeviceRecord} from '../../device-record';
 import {FOOD_PLUS, type FoodPlus} from '../../food-plus/schema';
@@ -159,12 +159,12 @@ function netCarbsAnswer(a: Ask): LocalReply | null {
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const lang = a.lang, day = dayAsked(a), entries = a.env.health!.diary.filter(e => e.date === day), when = onDay(a, day), calls = [{tool: 'nutrient_totals', args: {}, label: 'Nutrients'}];
   if (!entries.length) return answer(say(lang, `Nothing is logged ${when}, so there are no net carbs to count.`, `Er is ${when} niets gelogd, dus er zijn geen netto koolhydraten te tellen.`), calls);
-  const sa = sugarAlcoholMg(entries, a.food?.sugarAlcohols ?? {}), n = netCarbs(entries.map(e => scaleNutrition(e.snapshot.nutrients, e.quantityMilli)), sa);
+  // Review b2b #4: the one rule the Carbs tile and Targets → Macro mode use too (lib/health-aa/net-carbs-day.ts).
+  const n = netCarbsOfDay(entries, day, a.food?.sugarAlcohols ?? {});
   if (n.grams === null) return answer(say(lang, `None of ${when}’s entries carries carbs, so net carbs are unknown (never 0).`, `Geen van de items van ${when} heeft koolhydraten, dus netto koolhydraten zijn onbekend (nooit 0).`), calls);
-  const minus = [n.net ? say(lang, 'fiber', 'vezels') : null, sa ? say(lang, `${num(sa / 1000)} g sugar alcohols`, `${num(sa / 1000)} g suikeralcoholen`) : null].filter(Boolean) as string[];
-  const fiberNote = n.net ? '' : say(lang, ` Fiber is not taken off: ${n.fiberKnownOf} of ${entries.length} entries carry it.`, ` Vezels zijn er niet af gehaald: ${n.fiberKnownOf} van ${entries.length} items hebben ze.`);
-  return answer(say(lang, `Net carbs ${when}: ${n.grams} g${minus.length ? ` (carbs minus ${list(minus, 'en')})` : ' (plain carbs)'}.${fiberNote} Sugar alcohols per food: Health → Targets → “Sugar alcohols for net carbs”.`,
-    `Netto koolhydraten ${when}: ${n.grams} g${minus.length ? ` (koolhydraten min ${list(minus, 'nl')})` : ' (gewone koolhydraten)'}.${fiberNote} Suikeralcoholen per voedingsmiddel: Health → Targets → “Sugar alcohols for net carbs”.`), calls);
+  const w = netCarbsWords(n, lang), fiberNote = w.fiberNote ? ` ${w.fiberNote}` : '';
+  return answer(say(lang, `Net carbs ${when}: ${n.grams} g (${w.how}).${fiberNote} Sugar alcohols per food: Health → Targets → “Sugar alcohols for net carbs”.`,
+    `Netto koolhydraten ${when}: ${n.grams} g (${w.how}).${fiberNote} Suikeralcoholen per voedingsmiddel: Health → Targets → “Sugar alcohols for net carbs”.`), calls);
 }
 
 // ── The Oracle: protein and the vitamins (LEDGER #100) ─────────────────────────────────────────────────────────────

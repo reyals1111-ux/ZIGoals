@@ -20,3 +20,29 @@ there). One commit per finding. No stored format changes in any of them; no new 
 - Help (EN), one sentence for the hide-figures answer (av-hide-figures): "With them hidden, NOVA and ZIGi do not say
   your BMI either."
 - What's new: none needed (a fix).
+
+## B2B-4 Major: net carbs disagreed between the Carbs tile, Targets → Macro mode and ZIGi
+
+- Verdict: fixed.
+- The one rule (new pure module `apps/web/lib/health-aa/net-carbs-day.ts`: `netCarbsOfDay(diary, date, sugarAlcohols)`
+  and `netCarbsWords(n, lang)`): fiber is taken off only when every entry of the day carries a fiber value (a part-known
+  fiber total would be a guess); the sugar alcohols set per library food are always taken off, scaled by the servings
+  eaten; the words name what was taken off ("carbs minus fiber and 10 g sugar alcohols", "after fiber and 10 g sugar
+  alcohols", "plain carbs" when nothing was), and when fiber was not taken off they say so: "Fiber is not taken off: 2 of
+  3 entries carry it." (NL: "Vezels zijn er niet af gehaald: 2 van 3 items hebben ze."). `netCarbs` in macro-mode.ts is
+  unchanged (the new module builds on it).
+- Used by: the Carbs tile (`HealthSummary` in components/health/health-app.tsx: the net line shows whenever something
+  was taken off, worded by what was; the fiber note shows beside it instead of the old silent switch), Targets → Macro
+  mode (components/health/macro-mode-panel.tsx, lazy: now reads the sugar alcohols through `useDayTargets`), and
+  NOVA/ZIGi (`netCarbsAnswer` in lib/ai/local-answers/av2-food.ts, same sentences as before, now from the shared words).
+- Health's first chunk: the tile now imports the small pure module in place of `netCarbs` + `sugarAlcoholMg` (both
+  already in that chunk through it); nothing new is lazy-loaded into it.
+- Tests: `apps/web/lib/health-aa/net-carbs-day.test.ts` (the review's day, servings scaling and recipes, fiber missing on
+  one entry, plain carbs and unknown, EN and NL words, ZIGi's answer from the function in EN and NL, and both components
+  reading the one rule). health-aa, av2-weekdays and av2-food tests pass unchanged.
+- Spec (lead runs): `apps/web/tests/av2-revb2b-net-carbs.spec.ts` (tile and Macro mode give 94 g naming fiber and 10 g
+  sugar alcohols, three themes, 390/1440, axe, 320; then an entry without fiber: both say so and still take off the
+  sugar alcohols). health-aa.spec's "Net carbs today: 222 g" is unchanged (no sugar alcohols there).
+- Help (EN), to add to "How are net carbs counted?" (av2-food-how-are-net-carbs-counted): "The Carbs tile, Targets and
+  ZIGi count them the same way, and say so when fiber could not be taken off."
+- What's new: none needed (a fix).
