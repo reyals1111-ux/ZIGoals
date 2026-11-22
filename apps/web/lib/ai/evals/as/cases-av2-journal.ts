@@ -18,4 +18,5 @@ export const AV2_JOURNAL: readonly Intent[] = [
   {id: 'av2-notes-repeating', pillar: 'notes', en: ['which repeating notes do I have', 'what are my note templates'], nl: ['welke terugkerende notities heb ik', 'wat zijn mijn notitiesjablonen']},
   {id: 'av2-notes-versions', pillar: 'notes', en: ['which notes have earlier versions', 'show the version history of my notes'], nl: ['welke notities hebben eerdere versies', 'toon de versiegeschiedenis van mijn notities']},
   {id: 'av2-notes-per-tag', pillar: 'notes', en: ['how many notes do I have per tag', 'which tags do my notes have'], nl: ['hoeveel notities heb ik per tag', 'welke tags hebben mijn notities']},
+  {id: 'av2-journal-report', pillar: 'journal', en: ['can I put my journal in the report', 'is my journal in the printable report'], nl: ['kan ik mijn dagboek in het rapport zetten', 'staat mijn dagboek in het rapport']},
 ];

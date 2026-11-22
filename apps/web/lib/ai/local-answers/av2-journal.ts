@@ -25,7 +25,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, media, imported, repeatingNotes, noteVersions, notesPerTagAnswer, changedEntries]) {
+    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, media, imported, repeatingNotes, noteVersions, notesPerTagAnswer, journalInReport, changedEntries]) {
       const r = one(a);
       if (r) return r;
     }
@@ -176,6 +176,14 @@ function notesPerTagAnswer(a: Asked): LocalReply | null {
 const NL_WEEKDAY = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
 const nlEvery = (s: {every: 'day' | 'week' | 'month'; weekday?: number; monthDay?: number}) => s.every === 'day' ? 'elke dag' : s.every === 'week' ? `elke ${NL_WEEKDAY[s.weekday ?? 1]}` : `op de ${s.monthDay ?? 1}e van elke maand`;
 
+/** LEDGER #177: "can I put my journal in the report", "is my journal in the visit report" (lib/journal/report.ts). */
+function journalInReport(a: Asked): LocalReply | null {
+  const en = /\b(?:journal|diary)\b/.test(a.f) && /\b(?:report|pdf|print|printable)\b/.test(a.f), nl = /\b(?:dagboek\w*)\b/.test(a.f) && /\b(?:rapport|verslag|pdf|afdrukken|printen)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = journalClosed(a); if (shut) return shut;
+  const from = addDay(a.today, -29), n = journalOf(a).entries.filter(e => e.date >= from && e.date <= a.today).length, lang = a.lang;
+  return answer(say(lang, `Your journal is in a report only when you choose it: Settings → Your data → Make a report → Private → “Journal entries, as written” (off each time you open it). The last 30 days hold ${count(n, 'en', ['entry', 'entries'], ['', ''])}.`, `Je dagboek staat alleen in een rapport als je dat kiest: Settings → Your data → Make a report → Private → “Journal entries, as written” (elke keer uit als je het opent). De laatste 30 dagen bevatten ${count(n, 'nl', ['', ''], ['stuk', 'stukken'])}.`), CALL);
+}
 /** LEDGER #44: "how many journal entries did I import" (each imported entry is marked with where it came from). */
 function imported(a: Asked): LocalReply | null {
   const en = /\bimport(?:ed)?\b/.test(a.f) && /\b(?:journal|entries|entry|day one|diary)\b/.test(a.f), nl = /\b(?:geimporteerd|ingelezen|importeerde|importeren)\b/.test(a.f) && /\b(?:dagboek\w*|stukken|day one)\b/.test(a.f);

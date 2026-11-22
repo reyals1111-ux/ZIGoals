@@ -122,6 +122,13 @@ describe('notes per tag (LEDGER #30)', () => {
   });
 });
 
+describe('the journal in the printable report (LEDGER #177)', () => {
+  test('where to include it, private by default, and how many entries the last 30 days hold', () => {
+    expect(text(zigi('can I put my journal in the report'))).toMatch(/^Your journal is in a report only when you choose it: .+ The last 30 days hold \d+ entries\.$/);
+    expect(text(zigi('staat mijn dagboek in het rapport'))).toMatch(/^Je dagboek staat alleen in een rapport als je dat kiest: .+ De laatste 30 dagen bevatten \d+ stukken\.$/);
+  });
+});
+
 describe('imported entries (LEDGER #44)', () => {
   test('none yet: where to import; imported: how many and from when', () => {
     expect(text(zigi('how many journal entries did I import'))).toContain('No journal entry was imported yet.');

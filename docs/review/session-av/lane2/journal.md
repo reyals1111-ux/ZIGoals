@@ -267,3 +267,25 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
 - What's new: "Notes: a sortable table, a gallery and a chart of your notes."
 - Showcase: the Showcase's notes already carry tags (travel, reading), so the chart shows them; nothing added.
 - CSS: `components/notes/notes.css`. Today: nothing added.
+
+### F10 The Journal in the printable report — LEDGER #177 (Daylio: PDF export; group N4)
+
+- Verdict: **built**.
+- What: Settings → Your data → Make a report has a new part "Private" with "Journal entries, as written", **off on every
+  open** (never ticked with the others, never stored). Ticked, the report ends with a Journal section: the entries in
+  the report's dates, oldest first, as written (each kept whole on a printed page), with the day, its journal (when
+  not the main one), its tags, and that day's feeling word and energy (1–5) from the person's own check-in; at most
+  120, the rest counted. "Show the report" works with only the journal ticked. The eight existing sections and their
+  "Include" group are unchanged (specs count them).
+- Files: `lib/journal/report.ts`, `components/report/report-journal.tsx`, `components/report/report-builder.tsx`,
+  `components/report/report-document.tsx` (one optional prop), `components/report/report.css`.
+- Tests: `lib/journal/av2-report.test.ts`; `lib/clinician-report/*` unchanged and green; answers ("can I put my journal
+  in the report", EN and NL).
+- Spec: `tests/av2-journal-report.spec.ts`.
+- Stored: nothing.
+- Help (EN). Q: "Can my journal go in the report for a visit?" A: "Only if you choose it. Settings → Your data → Make a
+  report → Private → Journal entries, as written. It is off each time you open the report, so nothing private goes in
+  by accident."
+- What's new: "Report for a visit: your journal entries, only if you include them."
+- Showcase: none needed (the Showcase's journal fills it when ticked).
+- CSS: `components/report/report.css`. Today: nothing added.
