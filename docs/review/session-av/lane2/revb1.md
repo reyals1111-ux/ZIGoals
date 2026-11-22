@@ -137,3 +137,12 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
 - Verdict: fixed. The Done box sits in a 44 × 44 px label (`.tasks-table-box`, as task rows do); the sort buttons have
   `min-width: 44px`. Files: components/tasks/tasks-plan-views.tsx, components/tasks/tasks-plan.css.
 - Spec (lead runs): apps/web/tests/revb1-table-targets.spec.ts. (No unit test: a size is a browser behaviour.)
+
+### #10 Hidden figures took more than calories and body weight
+- Verdict: fixed (lib/ai/local-answers/av2-hide-figures.ts). A number no longer spans ", " (so "In 2026, 72 kg" keeps
+  the year); "pounds"/"ponden" are no longer a weight unit (money), "st" counts only after a space ("Nov 21st" stays);
+  a line about lifting (lift, sets, reps, volume, getild…) keeps its kilograms — training volume is not a body figure —
+  while its calories and any "weight is …" still hide. The Showcase's "how much weight did I lift" answer is unchanged
+  with the switch on.
+- Tests: apps/web/lib/ai/local-answers/revb1-hide-figures.test.ts (and av2-hide-figures.test.ts still green).
+  Spec: none new (av2-hide-figures.spec.ts covers the switch).
