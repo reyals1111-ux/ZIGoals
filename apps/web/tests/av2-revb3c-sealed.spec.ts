@@ -17,13 +17,19 @@ const records = {[JOURNAL_KEY]: {version: 1, todayLines: true, entries: [
   {id: 'journal_fictional-plain-0001', date: '2026-11-13', text: 'A fictional plain entry.', createdAt: '2026-11-13T09:00:00.000Z', template: 'letter-future-you'},
 ]}};
 
-test('Journal: no On this day from a folded letter', async ({page}) => {
+test('Journal: no On this day and no answers from a folded letter', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
   await seedDevice(page, records);
   await page.goto('/app/journal'); await hydrated(page);
   await expect(page.locator('ol.journal-entries > li').first()).toBeVisible();
   await expect(page.locator('details.on-this-day')).toHaveCount(0);
   await expect(page.locator('main')).not.toContainText(SECRET);
+  // B3C-3: Every answer to a prompt counts the letters with their day, never their words.
+  const fold = page.locator('details.journal-prompt-answers-fold');
+  await fold.locator('summary').click();
+  await expect(fold.locator('.prompt-answers-sealed')).toHaveText('3 letters are folded away, the next until Apr 14, 2027; each letter’s words show here from its day.');
+  await expect(fold).toContainText('A fictional plain entry.');
+  await expect(fold).not.toContainText(SECRET);
 });
 
 test('Today: the letter written today is counted, its first line not shown', async ({page}) => {

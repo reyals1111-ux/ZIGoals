@@ -1,6 +1,8 @@
 import {JOURNAL_TEMPLATES, templateById, type JournalTemplate, type PromptLang} from '../journal-prompts/templates';
 import {asJournalTemplate} from '../journal-prompts/own';
 import type {Journal, JournalEntry} from './schema';
+import {isSealed, unsealed} from './letters';
+import {localDate} from '../local-date';
 
 /**
  * Session AV lane 2 (r3-notes; LEDGER #265, Grid Diary's "what you wrote under one prompt across days", Stoic's Journey
@@ -50,18 +52,23 @@ export function splitAtHeadings(text: string, headings: readonly (readonly strin
   }
   return out.map(o => ({at: o.at, words: o.words.join('\n').trim()}));
 }
-export type PromptAnswers = {template: JournalTemplate; lang: PromptLang; entries: number; headings: {heading: string; answers: {entryId: string; date: string; words: string}[]}[]; unsplit: JournalEntry[]};
-/** Every answer to one template's headings, oldest first; entries whose headings were changed are listed whole in `unsplit`. */
-export function answersTo(journal: Pick<Journal, 'entries' | 'templates'>, templateId: string, lang: PromptLang = 'en'): PromptAnswers | null {
+export type PromptAnswers = {template: JournalTemplate; lang: PromptLang; entries: number; headings: {heading: string; answers: {entryId: string; date: string; words: string}[]}[]; unsplit: JournalEntry[];
+  /** Session AV lane 2 (review B3C-3): the letters from this template still folded away: their day to open, never their words. */ sealed: string[]};
+/**
+ * Every answer to one template's headings, oldest first; entries whose headings were changed are listed whole in `unsplit`.
+ * A letter still folded away (`isSealed`) gives no words: only its opening day, in `sealed` (review B3C-3).
+ */
+export function answersTo(journal: Pick<Journal, 'entries' | 'templates'>, templateId: string, lang: PromptLang = 'en', today: string = localDate()): PromptAnswers | null {
   const t = templateOf(journal, templateId);
   if (!t) return null;
   const alts = t.headings.en.map((h, i) => [h, t.headings.nl[i] ?? h]);
-  const entries = journal.entries.filter(e => e.template === templateId).sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt));
+  const all = journal.entries.filter(e => e.template === templateId).sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt));
+  const entries = unsealed(all, today), sealed = all.filter(e => isSealed(e, today)).map(e => e.opensOn!).sort();
   const headings = t.headings[lang].map(heading => ({heading, answers: [] as {entryId: string; date: string; words: string}[]})), unsplit: JournalEntry[] = [];
   for (const e of entries) {
     const parts = splitAtHeadings(e.text, alts);
     if (!parts.length) { unsplit.push(e); continue; }
     for (const p of parts) if (p.words) headings[p.at]!.answers.push({entryId: e.id, date: e.date, words: p.words});
   }
-  return {template: t, lang, entries: entries.length, headings, unsplit};
+  return {template: t, lang, entries: entries.length, headings, unsplit, sealed};
 }

@@ -35,3 +35,15 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
 - **Tests:** a letter written a month ago and one a year ago, both sealed, are no memory; on its opening day the letter
   is a memory again; Today's lines carry no sealed words.
 - **Help/corpus:** none.
+
+### B3C-3 (Major): Every answer to a prompt
+
+- **Verdict:** confirmed and fixed.
+- **Fix:** `answersTo(journal, template, lang, today)` splits only `unsealed` entries; the letters still folded away
+  come back as `sealed` (their opening days only). The fold says "1 letter is folded away until Nov 22, 2027; its words
+  show here from that day." (or the count and the next day). `promptsUsed` still counts them in the picker (a count,
+  no words). An entry's More → Every answer to this prompt opens the same view.
+- **Tests:** no sealed words in the result; the opening days listed; on the opening day the words are there; the picker
+  counts without words.
+- **Help/corpus:** none. Help could add to the "Every answer to a prompt" answer: "A letter folded away is counted here
+  and shows its words from its day."

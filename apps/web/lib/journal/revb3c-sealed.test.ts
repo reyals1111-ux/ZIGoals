@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {isSealed, unsealed} from './letters';
 import {journalLines, journalMemories, journalToday} from './today';
+import {answersTo, promptsUsed} from './prompt-answers';
 import {journalSchema, type Journal} from './schema';
 
 /**
@@ -46,5 +47,22 @@ describe('B3C-2: On this day and Today’s line', () => {
     const lines = journalLines(day, TODAY);
     expect(lines.map(l => l.id)).toEqual(['plain', 'opened']);
     expect(JSON.stringify(lines)).not.toContain(SECRET);
+  });
+});
+describe('B3C-3: Every answer to a prompt', () => {
+  test('a sealed letter gives no words, only its day to open; on that day its words are there', () => {
+    const got = answersTo(sealedJournal(), 'letter-future-you', 'en', TODAY)!;
+    expect(JSON.stringify(got)).not.toContain(SECRET);
+    expect(got.entries).toBe(1); // the letter that opened today
+    expect(got.sealed).toEqual(['2027-04-22', '2027-11-22', '2027-11-22']);
+    expect(got.headings[0]!.answers.map(a => a.entryId)).toEqual(['opened']);
+    const later = answersTo(sealedJournal(), 'letter-future-you', 'en', '2027-11-22')!;
+    expect(later.sealed).toEqual([]);
+    expect(JSON.stringify(later)).toContain(SECRET);
+  });
+  test('the list of prompts counts the letters but holds no words', () => {
+    const used = promptsUsed(sealedJournal());
+    expect(used).toEqual([{id: 'letter-future-you', title: 'A letter to future you', count: 4, own: false}]);
+    expect(JSON.stringify(used)).not.toContain(SECRET);
   });
 });
