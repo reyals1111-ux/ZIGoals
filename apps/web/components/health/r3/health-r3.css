@@ -37,3 +37,5 @@
 .r3-weigh-in { display: grid; gap: 8px; }
 .r3-weigh-in h2, .r3-weigh-in p { margin: 0; }
 .r3-meal-readings { margin: 6px 0 0; overflow-wrap: anywhere; }
+.r3-library-filters { border: 0; padding: 10px 12px; margin: 0; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); display: grid; gap: 8px; min-width: 0; }
+.r3-library-filters > legend { font-weight: 600; font-size: 15px; padding: 0 4px; }

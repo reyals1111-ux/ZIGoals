@@ -9,6 +9,8 @@ import {fromUnit} from './units';
 import {exportRoutine, MAX_WORKOUT_SHARE_BYTES, readRoutineFile, workoutShareFileName, workoutShareText, type WorkoutShare} from '../../../lib/workouts/share';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import type {Workouts, WorkoutTemplate} from '../../../lib/workouts/schema';
+import {LibraryFilters} from './library-filters';
+import {filterGuides, mainMuscles, MUSCLE_NL, NO_FILTER, type LibraryFilter} from '../../../lib/workouts/library-filter';
 import './av2-body.css';
 
 /**
@@ -21,19 +23,22 @@ import './av2-body.css';
 const LEVEL = {start: {en: 'A good start', nl: 'Goed om mee te beginnen'}, steady: {en: 'For steady training', nl: 'Voor wie al traint'}};
 const nameOf = (id: string) => EXERCISES.find(x => x.id === id)?.name ?? id;
 export default function RoutineLibrary({w, onSave, onStart, onImport}: {w: Workouts; onSave: (g: Guide, lang: Lang) => void; onStart: (g: Guide, lang: Lang) => void; onImport?: (s: WorkoutShare) => boolean}) {
-  const [lang, setLang] = useState<Lang>('en');
+  const [lang, setLang] = useState<Lang>('en'), [filter, setFilter] = useState<LibraryFilter>(NO_FILTER), shown = filterGuides(GUIDES, filter);
   return <div className="av2-routines" lang={lang}>
     {onImport && <RoutineImport onImport={onImport}/>}
     <div className="av2-exercise-head"><p className="fine">{lang === 'en' ? 'Written routines to start from. Saved, a routine is yours: change it as you like. Weights are your own; the first session sets them.' : 'Uitgeschreven routines om mee te beginnen. Opgeslagen is een routine van jou: pas hem aan zoals je wilt. Gewichten kies je zelf; de eerste sessie legt ze vast.'}</p>
       <button type="button" className="quiet" lang={lang === 'en' ? 'nl' : 'en'} onClick={() => setLang(lang === 'en' ? 'nl' : 'en')}>{lang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>
-    <ul className="av2-guide-list">{GUIDES.map(g => <li key={g.id}><GuideCard g={g} lang={lang} saved={w.templates.some(t => t.guideId === g.id && t.name === g.name[lang])} onSave={() => onSave(g, lang)} onStart={() => onStart(g, lang)}/></li>)}</ul>
+    {/* Session AV lane 2 (health r3; LEDGER #288): find a routine by length, main muscle group, level and place. */}
+    <LibraryFilters lang={lang} filter={filter} onChange={setFilter} shown={shown.length}/>
+    {shown.length ? <ul className="av2-guide-list">{shown.map(g => <li key={g.id}><GuideCard g={g} lang={lang} saved={w.templates.some(t => t.guideId === g.id && t.name === g.name[lang])} onSave={() => onSave(g, lang)} onStart={() => onStart(g, lang)}/></li>)}</ul>
+      : <p className="health-empty-inline">{lang === 'en' ? 'No routine fits all of these. Try a longer time, another muscle group or Any place.' : 'Geen routine past bij dit alles. Probeer een langere tijd, een andere spiergroep of Elke plek.'}</p>}
   </div>;
 }
 function GuideCard({g, lang, saved, onSave, onStart}: {g: Guide; lang: Lang; saved: boolean; onSave: () => void; onStart: () => void}) {
   const id = useId();
   return <article className="av2-guide" aria-labelledby={id}>
     <h4 id={id}>{g.name[lang]}</h4>
-    <p className="av2-guide-meta">{g.folder[lang]} · {lang === 'en' ? `about ${g.minutes} min` : `ongeveer ${g.minutes} min`} · {LEVEL[g.level][lang]}</p>
+    <p className="av2-guide-meta">{g.folder[lang]} · {lang === 'en' ? `about ${g.minutes} min` : `ongeveer ${g.minutes} min`} · {LEVEL[g.level][lang]} · {mainMuscles(g).map(m => lang === 'en' ? m : MUSCLE_NL[m]).join(', ')}</p>
     <p>{g.about[lang]}</p>
     <ol className="av2-guide-exercises">{g.exercises.map(x => <li key={x.exerciseId}><strong>{nameOf(x.exerciseId)}</strong> <span>{guideLine(x, lang)}</span> <small>{x.cue[lang]}</small></li>)}</ol>
     {g.progression && <p className="fine">{g.progression.kind === 'double' ? (lang === 'en' ? `Progression: when every set reaches ${g.progression.maxReps} reps, add ${g.progression.stepKg} kg and start again at ${g.progression.minReps}.` : `Opbouw: haal je bij elke set ${g.progression.maxReps} herhalingen, doe er dan ${g.progression.stepKg} kg bij en begin weer bij ${g.progression.minReps}.`) : ''}</p>}

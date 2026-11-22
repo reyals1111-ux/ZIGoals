@@ -192,3 +192,24 @@ chunk carries only those lines, two small props and the water form's two-line ha
   device keys. AK tool sources: `healthGoalsMore: one(MORE_GOALS)` behind the Health gate (for the answers, below).
 - Showcase hook: see "Showcase" at the end (one protein goal).
 - CSS: `components/health-goals/health-goals.css`.
+
+## 6. Find a ready-made routine by length, muscle group, level and place — LEDGER #288 built
+
+- What: Health → Workouts → Start a workout → Ready-made routines gains "Find a routine" (in the library's chunk): How
+  long (Any length, Up to 30, 45 or 60 min), Main muscle group (the groups with a quarter of a routine's sets or more),
+  Level (A good start, For steady training), and Place (one of your places: every exercise of the routine can be done with
+  what it has; disabled, with a line on how to add one, while there is none). "n of 12 routines" is said as a status;
+  "Clear the filters"; with nothing left, a line says what to try. Each routine card now names its main muscle groups.
+  English and Dutch with the library's own language switch. Choices last while the page is open; nothing is stored (the
+  ledger allowed a device preference; it is not needed).
+- Files: `lib/workouts/library-filter.ts` (new, pure), `components/health/workouts/library-filters.tsx` (new),
+  `components/health/workouts/routine-library-view.tsx`, `components/health/r3/health-r3.css`.
+- Tests: `lib/workouts/av2-r3-library-filter.test.ts`; existing workouts tests green. Spec: `tests/av2-library-filters.spec.ts`;
+  `tests/av2-routine-library.spec.ts` still reads (no new button shares its names).
+- Help (EN): **Can I find a workout by length or muscle?** Yes. In Health → Workouts, open Ready-made routines and use
+  "Find a routine": how long, the main muscle group, the level and one of your places. Only routines whose every exercise
+  can be done with that place's equipment are shown.
+- What's new: "Workouts: find a ready-made routine by length, muscle group, level and place."
+- Search (static.ts): "find a workout", "workout by muscle" → `/app/health?view=workouts`.
+- Showcase hook: none needed. Device keys / catalogue / export / erase: nothing new.
+- CSS: `components/health/r3/health-r3.css`.
