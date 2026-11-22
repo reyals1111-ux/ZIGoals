@@ -1,0 +1,107 @@
+import {finished} from '../../workouts/engine';
+import {HOW_TOS, howToOf, muscleList, type HowTo} from '../../workouts/howto';
+import {EXERCISES} from '../../workouts/library';
+import {pinnedNoteOf} from '../../workouts/notes';
+import type {Workouts} from '../../workouts/schema';
+import type {ToolEnv} from '../tools/env';
+import {text as clean} from '../tools/format';
+import {answer, asked, closed, isQuestion, MIXED, say, type Asked} from './av-words';
+import type {LocalReply} from './engine';
+import {fold} from './exact/text';
+
+/**
+ * Session AV lane 2 (body): NOVA's and ZIGi's on-device answers to the sleep, workouts and body features of lane 2, in
+ * English and Dutch, each read from the feature's own pure function (the same figures the page shows) and only under the
+ * Health switch (its three-part gate, `closed(env, 'health')`). Every pattern reads the whole question, so nothing else is
+ * claimed; a question with an action in it is left to the model or a card. Wired into engine.ts by the lead, beside
+ * `avAnswer`.
+ */
+export function av2BodyAnswer(question: string, env: ToolEnv): LocalReply | null {
+  try {
+    const a = asked(question, env);
+    if (!a || MIXED.test(a.f)) return null;
+    for (const one of BODY_ANSWERS) {
+      const r = one(a);
+      if (r) return r;
+    }
+    return null;
+  } catch { return null; }
+}
+
+const CALLS = [{tool: 'workouts', args: {}, label: 'Workouts'}];
+const emptyLog = (): Workouts => ({version: 1, workouts: [], templates: [], exercises: [], restSeconds: 90});
+/** The workout log the answer may read (Health's gate first), or an empty one. */
+export const logOf = (a: Asked): Workouts => a.env.ak?.workouts ?? emptyLog();
+
+// ── The exercise library (LEDGER #116, #119) ───────────────────────────────────────────────────────────────────────
+
+/** Dutch and casual names for the built-in exercises, folded. */
+const EXERCISE_WORDS: Record<string, string> = {
+  bankdrukken: 'bench-press', bankdruk: 'bench-press', 'bench press': 'bench-press', bench: 'bench-press', squat: 'squat', squats: 'squat', kniebuiging: 'squat', kniebuigingen: 'squat', 'front squat': 'front-squat',
+  deadlift: 'deadlift', deadlifts: 'deadlift', 'romanian deadlift': 'romanian-deadlift', rdl: 'romanian-deadlift', 'overhead press': 'overhead-press', schouderdrukken: 'overhead-press', 'military press': 'overhead-press',
+  'barbell row': 'barbell-row', roeien: 'rowing', 'pull up': 'pull-up', 'pull ups': 'pull-up', pullup: 'pull-up', pullups: 'pull-up', optrekken: 'pull-up', 'chin up': 'chin-up', 'chin ups': 'chin-up',
+  'push up': 'push-up', 'push ups': 'push-up', pushup: 'push-up', pushups: 'push-up', opdrukken: 'push-up', opdruk: 'push-up', plank: 'plank', planken: 'plank', 'side plank': 'side-plank',
+  lunge: 'lunge', lunges: 'lunge', uitvalspas: 'lunge', uitvalspassen: 'lunge', 'hip thrust': 'hip-thrust', 'hip thrusts': 'hip-thrust', 'calf raise': 'calf-raise', kuitheffen: 'calf-raise', 'leg press': 'leg-press', beenpers: 'leg-press',
+  'bicep curl': 'bicep-curl', 'biceps curl': 'bicep-curl', bicepscurl: 'bicep-curl', 'kettlebell swing': 'kettlebell-swing', 'kettlebell swings': 'kettlebell-swing', burpee: 'burpee', burpees: 'burpee', dip: 'dip', dips: 'dip',
+  'lat pulldown': 'lat-pulldown', 'face pull': 'face-pull', 'face pulls': 'face-pull', 'lateral raise': 'lateral-raise', 'lateral raises': 'lateral-raise', crunch: 'crunch', crunches: 'crunch', 'sit up': 'sit-up', 'sit ups': 'sit-up',
+  'wall sit': 'wall-sit', 'hanging leg raise': 'hanging-leg-raise', 'skull crusher': 'skull-crusher', 'triceps pushdown': 'triceps-pushdown', 'hammer curl': 'hammer-curl', 'chest fly': 'chest-fly', 'leg curl': 'leg-curl', 'leg extension': 'leg-extension',
+  'power clean': 'clean', clean: 'clean', shrug: 'shrug', shrugs: 'shrug', 'foam rolling': 'foam-rolling', foamrollen: 'foam-rolling', 'jump rope': 'jump-rope', touwtjespringen: 'jump-rope',
+};
+/** The built-in exercise a question names (the longest name wins: "front squat" over "squat"), or null. */
+export function exerciseIn(f: string): {id: string; name: string} | null {
+  const names: [string, string][] = [...Object.entries(EXERCISE_WORDS), ...EXERCISES.map(e => [fold(e.name), e.id] as [string, string])];
+  const hit = names.filter(([n]) => new RegExp(`(?:^|\\s)${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\s|$)`).test(f)).sort((x, y) => y[0].length - x[0].length)[0];
+  if (!hit) return null;
+  const e = EXERCISES.find(x => x.id === hit[1]);
+  return e ? {id: e.id, name: e.name} : null;
+}
+const HOW_EN = /\bhow (?:do|should|can) i (?:do|perform|make|train)\b|\bhow (?:to|do you) (?:do|perform)\b|\bform (?:tips?|cues?)\b|\bproper form\b|\bgood form\b|\btechnique (?:for|of)\b/;
+const HOW_NL = /\bhoe (?:doe|moet|kan) ik\b|\bhoe (?:doe|voer) (?:je|ik)\b|\b(?:uitvoering|techniek) (?:van|bij)\b|\bgoede (?:houding|uitvoering|techniek)\b/;
+const MUSCLE_EN = /\b(?:what|which) muscles?\b|\bmuscles? (?:does|do|is|are)\b|\bwhat does (?:a |the )?.+ (?:work|train|target)\b/;
+const MUSCLE_NL = /\bwelke spier(?:en|groepen)?\b|\bwat traint\b|\bwelke spiergroep\b/;
+const howWords = (h: HowTo, lang: 'en' | 'nl') => `${h.steps[lang].map((s, i) => `${i + 1}. ${s}`).join('\n')}\n${say(lang, 'Form tip', 'Tip voor de uitvoering')}: ${h.tip[lang]}`;
+/** "how do I do a squat", "hoe doe ik een squat": the written how-to (lib/workouts/howto.ts), with the exercise's pinned note. */
+function howTo(a: Asked): LocalReply | null {
+  if (!(HOW_EN.test(a.f) || HOW_NL.test(a.f))) return null;
+  const e = exerciseIn(a.f);
+  if (!e) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const h = howToOf(e.id)!, lang = a.lang, pinned = pinnedNoteOf(logOf(a), e.id);
+  const head = say(lang, `${e.name} (works most: ${muscleList(h.primary, 'en')}; you need: ${h.needs.en}):`, `${e.name} (werkt vooral op: ${muscleList(h.primary, 'nl')}; je hebt nodig: ${h.needs.nl}):`);
+  const note = pinned ? say(lang, `\nYour pinned note: “${clean(pinned, 200)}”.`, `\nJe vastgezette notitie: “${clean(pinned, 200)}”.`) : '';
+  return answer(`${head}\n${howWords(h, lang)}${note}\n${say(lang, 'It is in Health → Workouts → Exercises and how-tos.', 'Het staat in Health → Workouts → Exercises and how-tos.')}`, CALLS);
+}
+/** "what muscles does the deadlift work", "welke spieren traint de deadlift". */
+function musclesOf(a: Asked): LocalReply | null {
+  if (!(MUSCLE_EN.test(a.f) || MUSCLE_NL.test(a.f)) || !isQuestion(a)) return null;
+  const e = exerciseIn(a.f);
+  if (!e) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const h = howToOf(e.id)!, lang = a.lang;
+  return answer(say(lang, `${e.name} works most: ${muscleList(h.primary, 'en')}.${h.secondary.length ? ` Also: ${muscleList(h.secondary, 'en')}.` : ''} The steps are in Health → Workouts → Exercises and how-tos.`,
+    `${e.name} werkt vooral op: ${muscleList(h.primary, 'nl')}.${h.secondary.length ? ` Ook op: ${muscleList(h.secondary, 'nl')}.` : ''} De stappen staan in Health → Workouts → Exercises and how-tos.`), CALLS);
+}
+/** "what are my pinned notes", "welke notities heb ik vastgezet": the notes pinned to exercises. */
+function pinnedNotes(a: Asked): LocalReply | null {
+  if (!/\bpinned (?:exercise )?notes?\b|\bnotes? (?:i |are |is )?pinned\b|\bvastgezette notities?\b|\bnotities?\b.*\bvastgezet\b|\bgepinde notities?\b/.test(a.f) || !isQuestion(a)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const w = logOf(a), notes = Object.entries(w.pinnedNotes ?? {}), lang = a.lang;
+  if (!notes.length) return answer(say(lang, 'No note is pinned to an exercise yet. In Health → Workouts → Exercises and how-tos, choose an exercise and pin a note (seat height, grip): it shows every time you do it.', 'Er is nog geen notitie aan een oefening vastgezet. Kies in Health → Workouts → Exercises and how-tos een oefening en zet een notitie vast (zithoogte, grip): die verschijnt elke keer dat je hem doet.'), CALLS);
+  const name = (id: string) => EXERCISES.find(e => e.id === id)?.name ?? w.exercises.find(e => e.id === id)?.name ?? finished(w).flatMap(x => x.exercises).find(e => e.exerciseId === id)?.name ?? id;
+  return answer([say(lang, `${notes.length} pinned ${notes.length === 1 ? 'note' : 'notes'}:`, `${notes.length} vastgezette ${notes.length === 1 ? 'notitie' : 'notities'}:`), ...notes.slice(0, 12).map(([id, n]) => `• ${clean(name(id), 40)}: “${clean(n, 160)}”`)].join('\n'), CALLS);
+}
+/** "which exercises work my glutes", "welke oefeningen voor mijn billen": the library's exercises with that muscle first. */
+const MUSCLE_ASK: [RegExp, HowTo['primary'][number]][] = [[/\b(?:glutes?|billen|bilspieren)\b/, 'glutes'], [/\b(?:hamstrings?)\b/, 'hamstrings'], [/\b(?:quads?|quadriceps|bovenbenen)\b/, 'quads'], [/\b(?:chest|borst|borstspieren)\b/, 'chest'],
+  [/\b(?:back|rug|rugspieren|lats)\b/, 'lats'], [/\b(?:shoulders?|schouders?)\b/, 'side-delts'], [/\b(?:biceps)\b/, 'biceps'], [/\b(?:triceps)\b/, 'triceps'], [/\b(?:abs|core|buik|buikspieren)\b/, 'abs'], [/\b(?:calves|kuiten)\b/, 'calves']];
+function exercisesFor(a: Asked): LocalReply | null {
+  const en = /\b(?:which|what) exercises?\b.*\b(?:for|work|train|target|hit)\b/.test(a.f), nl = /\bwelke oefening(?:en)?\b.*\b(?:voor|trainen|traint|werken)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const m = MUSCLE_ASK.find(([re]) => re.test(a.f))?.[1];
+  if (!m) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, back = m === 'lats' ? ['lats', 'upper-back'] : m === 'side-delts' ? ['side-delts', 'front-delts', 'rear-delts'] : [m];
+  const list = HOW_TOS.filter(h => h.primary.some(p => back.includes(p))).map(h => EXERCISES.find(e => e.id === h.id)!.name);
+  return answer(say(lang, `Exercises that work it most: ${list.slice(0, 10).join(', ')}. Each has written steps in Health → Workouts → Exercises and how-tos.`, `Oefeningen die er vooral op werken: ${list.slice(0, 10).join(', ')}. Elk heeft uitgeschreven stappen in Health → Workouts → Exercises and how-tos.`), CALLS);
+}
+
+const BODY_ANSWERS: ((a: Asked) => LocalReply | null)[] = [howTo, musclesOf, pinnedNotes, exercisesFor];

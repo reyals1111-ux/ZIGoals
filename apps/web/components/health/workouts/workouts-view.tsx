@@ -2,7 +2,7 @@
 import {setBest, SET_BEST_WORDS, withEarlier, type SetBest} from '../../../lib/workouts/set-best';
 import Link from 'next/link';
 import {LoggingFor, useLinkedDay} from '../health-day';
-import {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import {lazy, Suspense, useEffect, useMemo, useState, type ReactNode} from 'react';
 import {NebulaFlow} from '../../nebula-flow';
 import {ConfirmInline} from '../../ui/confirm-inline';
 import {showStatus, showUndo} from '../../ui/undo-toast';
@@ -31,6 +31,7 @@ import './workouts.css';
 import {ArtNote} from '../../illustrations/art-note';
 import {Skeleton} from '../../ui/skeleton';
 import {SlowReload} from '../slow-reload';
+import {pinnedNoteOf, setPinnedNote} from '../../../lib/workouts/notes';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
 const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
@@ -45,6 +46,9 @@ const WorkoutCalendar = lazy(() => import('./workout-calendar'));
 const WorkoutsMuscles = lazy(() => import('./workouts-muscles'));
 // Session AK (item 8): "Fresh today: legs, back" on the start sheet, its own small chunk.
 const MuscleFreshToday = lazy(() => import('./muscle-freshness-today'));
+// Session AV lane 2 (body; LEDGER #116, #119): the exercise library with written how-tos and pinned notes, its own chunk.
+const ExerciseLibrary = lazy(() => import('./exercise-library'));
+const ExerciseHowTo = lazy(() => import('./exercise-library').then(m => ({default: m.ExerciseDetail})));
 
 /**
  * Workouts, the full view (Session AH Part 6, DE8; /app/health?view=workouts, a view of Health like Sleep and Meditation).
@@ -230,6 +234,11 @@ export default function WorkoutsView() {
 
     <ExerciseProgress w={w} unit={unit} library={library} value={historyOf} onChange={setHistoryOf}/>
     {past.some(x => x.exercises.length) && <Suspense fallback={<section className="panel"><p className="fine">Opening muscle groups…</p></section>}><WorkoutsMuscles w={w} unit={unit} library={library} today={today}/></Suspense>}
+    {/* Session AV lane 2 (body; LEDGER #116, #119; Hevy's exercise library): every exercise's written how-to, its muscles, your best and a pinned note. */}
+    <section className="panel workouts-library" aria-labelledby="workouts-library-title">
+      <h2 id="workouts-library-title">Exercises and how-tos</h2>
+      <Fold className="av2-fold workouts-library-fold" summary="Open the exercise library" loading="Opening the exercise library…"><ExerciseLibrary w={w} unit={unit} library={library} change={change}/></Fold>
+    </section>
 
     <section className="panel workouts-settings" aria-labelledby="workouts-settings-title">
       <h2 id="workouts-settings-title">Rest timer</h2>
@@ -262,6 +271,11 @@ function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRe
   </section>;
 }
 
+/** Session AV lane 2 (body): a fold whose lazy content loads when it is first opened. */
+function Fold({className, summary, loading, children}: {className: string; summary: string; loading: string; children: ReactNode}) {
+  const [open, setOpen] = useState(false);
+  return <details className={className} onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{summary}</summary>{open && <Suspense fallback={<p className="fine" role="status">{loading}</p>}>{children}</Suspense>}</details>;
+}
 /** Session AV (F-WORKOUT-CALENDAR): the fold whose content loads when opened. */
 function CalendarFold({w, today}: {w: Workouts; today: string}) {
   const [open, setOpen] = useState(false);
@@ -284,6 +298,10 @@ function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, 
     <div className="workouts-exercise-foot"><button className="secondary" type="button" onClick={() => change(x => addSet(x, entry.id))}>+ Add set</button>
       <label className="field workouts-ex-note"><span className="sr-only">Note for {entry.name}</span><input key={entry.note ?? ''} placeholder="Note (seat height, grip…)" maxLength={500} defaultValue={entry.note ?? ''} onBlur={e => { if ((entry.note ?? '') !== e.target.value) change(x => setExerciseNote(x, entry.id, e.target.value)); }}/></label></div>
     {/* Session AV (owner follow-up 1, F-SET-BEST; Hevy's pinned note): last time's note, carried over on a tap. */}
+    {/* Session AV lane 2 (body; LEDGER #119, Hevy's pinned note): the exercise's pinned note, every time; the session note can be pinned. */}
+    {pinnedNoteOf(w, entry.exerciseId) && <p className="av2-pinned workouts-pinned-note"><span>Pinned note: <q dir="auto">{pinnedNoteOf(w, entry.exerciseId)}</q></span></p>}
+    {entry.note?.trim() && entry.note.trim() !== pinnedNoteOf(w, entry.exerciseId) && <p className="av2-pinned"><button type="button" className="text-link" aria-label={`Pin this note to ${entry.name}`} onClick={() => change(x => setPinnedNote(x, entry.exerciseId, entry.note!), `Note pinned to ${entry.name}: it shows every time you do it.`)}>Pin this note to {entry.name}</button></p>}
+    <Fold className="av2-howto" summary={`How to do ${entry.name}`} loading="Opening the how-to…"><ExerciseHowTo exercise={{id: entry.exerciseId, name: entry.name, category: 'Full body', measure: entry.measure}} w={w} unit={unit} change={change} compact/></Fold>
     {previous?.note && !entry.note && <p className="fine workouts-last-note"><span>Last time&rsquo;s note: <q dir="auto">{previous.note}</q></span> <button type="button" className="text-link" aria-label={`Keep last time’s note for ${entry.name}`} onClick={() => change(x => setExerciseNote(x, entry.id, previous.note!), `Last time’s note kept for ${entry.name}.`)}>Keep it</button></p>}
     {/* Session AK (4.9): supersets and this exercise's own rest time. */}
     <div className="workouts-exercise-foot">

@@ -1,0 +1,25 @@
+/* Session AV lane 2 (body): the exercise library, routine library, progression, analytics, year calendar, run summary,
+   distance goals and training load. Theme tokens only, 14 px or more, 44 px targets, nothing moves with Motion Off. */
+.av2-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.av2-library { display: grid; gap: 10px; }
+.av2-library-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.av2-library-list button { width: 100%; min-height: 52px; display: grid; justify-items: start; gap: 2px; text-align: left; }
+.av2-library-list button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6); }
+.av2-library-list span { color: var(--text-secondary, #c9d6ea); font-size: 14px; }
+.av2-exercise { display: grid; gap: 8px; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); min-width: 0; }
+.av2-exercise-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.av2-exercise-head h3, .av2-exercise-head h4 { margin: 0; font-size: 1.1rem; overflow-wrap: anywhere; }
+.av2-exercise-head button { min-height: 44px; }
+.av2-exercise-facts { display: grid; gap: 6px; margin: 0; }
+.av2-exercise-facts div { display: grid; gap: 0; }
+.av2-exercise-facts dt { font-size: 14px; color: var(--text-meta, #c2d0e5); }
+.av2-exercise-facts dd { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.av2-steps { margin: 4px 0; padding-inline-start: 1.4em; display: grid; gap: 4px; font-size: 15px; }
+.av2-tip { margin: 0; font-size: 15px; }
+.av2-exercise-own h4 { margin: 4px 0; font-size: 1rem; }
+.av2-exercise-own p { margin: 0; font-size: 15px; }
+.av2-pin { display: grid; gap: 8px; }
+.av2-pin textarea { min-height: 44px; width: 100%; }
+.av2-pinned { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 15px; overflow-wrap: anywhere; }
+.av2-pinned .text-link, .av2-howto > summary { min-height: 44px; }
+.av2-howto > summary { display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 600; }

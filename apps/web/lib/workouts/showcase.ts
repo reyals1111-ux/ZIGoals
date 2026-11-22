@@ -21,5 +21,7 @@ export function showcaseWorkouts(day: string): Workouts {
   const workouts = [session(-13, 'Push day', PUSH, 0, 52), session(-12, 'Pull day', PULL, 0, 48), session(-11, 'Leg day', LEGS, 0, 55), run(-9, 5, 1680),
     session(-6, 'Push day', PUSH, 2.5, 50), session(-5, 'Pull day', PULL, 5, 47), session(-4, 'Leg day', LEGS, 5, 57), run(-2, 6, 2040), session(-1, 'Push day', PUSH, 2.5, 49)];
   const template = (id: string, name: string, plan: Plan[]) => ({id, name, type: 'strength' as const, createdAt: at(-13, 9), exercises: plan.map(([exerciseId, n, sets]) => ({exerciseId, name: n, measure: 'weight-reps' as const, sets: sets.map(([kg, reps], j) => ({kind: j === 0 ? 'warmup' as const : 'normal' as const, weightKg: kg, reps}))}))});
-  return workoutsSchema.parse({version: 1, workouts, templates: [template('showcase-routine-push', 'Push day', PUSH), template('showcase-routine-legs', 'Leg day', LEGS)], exercises: [], restSeconds: 90});
+  // Session AV lane 2 (body; LEDGER #119): a note pinned to the squat, labelled, so the library and the workout show one.
+  return workoutsSchema.parse({version: 1, workouts, templates: [template('showcase-routine-push', 'Push day', PUSH), template('showcase-routine-legs', 'Leg day', LEGS)], exercises: [], restSeconds: 90,
+    pinnedNotes: {squat: 'Example · safety bars at hole 6'}});
 }
