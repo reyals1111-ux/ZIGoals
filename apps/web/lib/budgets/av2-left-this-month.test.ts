@@ -2,6 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {leftThisMonth} from './left-this-month';
 import {totals} from '../money-log/engine';
 import {plannedForForecast} from '../cash-forecast/planned';
+import {monthView} from './engine';
 import type {MoneyEntry} from '../money-log/schema';
 import type {BudgetsRecord} from './schema';
 import type {BillsRecord} from '../bills/schema';
@@ -71,5 +72,14 @@ describe('Left this month', () => {
   test('review b3a #1: the planned cost keeps its category on its way from the record', () => {
     const states = plannedForForecast({version: 1, planned: [{id: 'p', name: 'Present', amount: '60.00', currency: 'EUR', date: '2026-11-28', category: 'Gifts'}]}, [], TODAY);
     expect(states).toEqual([{name: 'Present', amount: '60.00', currency: 'EUR', date: '2026-11-28', category: 'Gifts'}]);
+  });
+  test('review b3a #2: a spread entry counts one month\'s share in what its budget still holds, as the Budgets rows do', () => {
+    const bills: BudgetsRecord = {version: 1, budgets: [{id: 'bi', category: 'Bills', currency: 'EUR', monthly: '50.00', rollover: false, since: '2026-10'}]};
+    const insurance = e({amount: '120.00', category: 'Bills', date: '2026-10-15', spread: 12});
+    const [r] = leftThisMonth({entries: [insurance], budgets: bills, today: TODAY});
+    const row = monthView([insurance], bills, '2026-11', TODAY).rows[0]!;
+    expect(row.spent).toBe(1000);
+    expect(r!.budgets.items).toEqual([{name: 'Bills', cents: row.budgeted - row.spent}]);
+    expect(r!.budgets.cents).toBe(4000);
   });
 });
