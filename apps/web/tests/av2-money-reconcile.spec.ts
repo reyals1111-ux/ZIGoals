@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {entry, moneyLog, noSideScroll, readRecord, seedDevice, spending} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
+import {openDeskFold} from './ao/folds';
 import {ACCOUNTS_KEY} from '../lib/accounts/schema';
 import {MONEY_LOG_KEY, type MoneyLog} from '../lib/money-log/schema';
 
@@ -20,6 +21,9 @@ for (const theme of THEMES) test(`${theme}: check an account against the bank's 
     [MONEY_LOG_KEY]: moneyLog([entry('2026-11-10', '42.10', 'Groceries', 'expense', 'Market'), entry('2026-11-11', '7.90', 'Food & drink', 'expense', 'Café'), entry('2026-11-12', '3.00', 'Fun', 'expense', 'Arcade')]),
   });
   await page.goto('/app/wealth'); await hydrated(page);
+  // Session AV lane 2 (fixb4; deliberate): on a phone "Accounts, debts & net worth" starts folded, so it is opened first,
+  // as tests/av2-money-notices.spec.ts does; the same steps follow.
+  if (isMobile) await openDeskFold(page, 'Accounts, debts & net worth');
   await page.getByRole('button', {name: 'Check Current account against my bank'}).click();
   const panel = page.locator('.money-reconcile');
   await expect(panel.getByRole('heading', {name: 'Check Current account against your bank'})).toBeVisible();
@@ -31,7 +35,11 @@ for (const theme of THEMES) test(`${theme}: check an account against the bank's 
   await list.getByRole('checkbox', {name: /Market/}).check();
   await expect(panel.locator('.money-select-total')).toHaveText('1 ticked · −€42.10 · difference −€7.90');
   const mark = panel.getByRole('button', {name: 'Mark 1 as checked'});
-  await mark.click();
+  // Session AV lane 2 (fixb4; deliberate): while a difference is left the button is aria-disabled (focusable, it says
+  // why), and Playwright's click waits for an enabled button, so it never clicked. As strict: it is aria-disabled, and
+  // pressed from the keyboard it says the difference.
+  await expect(mark).toHaveAttribute('aria-disabled', 'true');
+  await mark.press('Enter');
   await expect(panel.getByRole('status')).toContainText('There is still a difference of −€7.90.');
   await list.getByRole('checkbox', {name: /Café/}).check();
   await expect(panel.locator('.money-select-total')).toHaveText('2 ticked · −€50.00 · it matches your statement');

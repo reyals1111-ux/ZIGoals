@@ -41,7 +41,10 @@ for (const theme of THEMES) test(`${theme}: what a word means, choices, and wher
   await body.getByLabel('Shoulders').selectOption('tight');
   await body.getByLabel('Jaw').selectOption('tight');
   await expect.poll(async () => (await day(page))?.body).toEqual([{area: 'shoulders', feel: 'tight'}, {area: 'jaw', feel: 'tight'}]);
-  await expect(grid.locator('.mood-body-counts')).toContainText('High energy, unpleasant: shoulders most often (1 of 1 day), most often tight.');
+  // Session AV lane 2 (fixb4; deliberate): shoulders and jaw are tied at one day each, and a tie goes to the area listed
+  // first, head to foot (lib/mood-words/body.ts bodyCounts, the list's own order: jaw before shoulders). The same exact
+  // line with that area.
+  await expect(grid.locator('.mood-body-counts')).toContainText('High energy, unpleasant: jaw most often (1 of 1 day), most often tight.');
   findings = await axe(page, grid);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   // A new word for the day keeps where it is felt.
