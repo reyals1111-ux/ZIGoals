@@ -10,6 +10,7 @@ import {undoOfChange} from '../../lib/tasks/undo';
 import {withDeviceDefault} from '../../lib/tasks/plan-key';
 import {showStatus, showUndo, shownToasts} from '../ui/undo-toast';
 import {changeWithUndo} from '../ui/remove-with-undo';
+import {hasRules, rulesSaid, runRules} from '../../lib/tasks/rules';
 
 /**
  * Session AK (T1): the tasks record with its actions, each answered by one status line and, where it can be taken
@@ -28,6 +29,17 @@ import {changeWithUndo} from '../ui/remove-with-undo';
 export type TaskStatus = {text: string; undo?: () => void} | null;
 export type TaskPatch = EnginePatch;
 const plural = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
+/**
+ * Session AV lane 2 (tasks-r2, LEDGER #228): a project's rules run inside the change that sets them off, so one write (and
+ * one Undo) holds both; `rulesNote` says what they did, read from a dry run on the current record (only when rules exist).
+ */
+const ruleOptions = () => ({today: tasksToday(), at: new Date(), newId: () => `task_${crypto.randomUUID()}`});
+const withRules = (fn: (r: Tasks) => Tasks) => (r: Tasks): Tasks => { const next = fn(r); return hasRules(next) ? runRules(r, next, ruleOptions()).record : next; };
+function rulesNote(current: Tasks, fn: (r: Tasks) => Tasks): string {
+  if (!hasRules(current)) return '';
+  try { const out = runRules(current, fn(current), ruleOptions()); return rulesSaid(out.ran, out.record); } catch { return ''; }
+}
+const withNote = (text: string, note: string) => note ? `${text} ${note}` : text;
 /** The open removal toast that a next removal joins (one per page). */
 let removal: {toast: number; before: Task[]; count: number} | null = null;
 
@@ -69,18 +81,20 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
   }, []);
   const fail = (cause: unknown) => { setError(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); return false; };
   /** A change with the toast's Undo (changeWithUndo reverses exactly the tasks it changed, in the latest record). */
-  const change = useCallback((fn: (r: Tasks) => Tasks, text: string, undone = 'Undone.'): boolean => {
+  const change = useCallback((fn: (r: Tasks) => Tasks, said: string, undone = 'Undone.'): boolean => {
     if (!guard()) return false;
+    const note = rulesNote(latest.current.data, fn), ruled = withRules(fn);
+    const text = withNote(said, note);
     if (!toast) {
       // The surface's own line: the Undo puts back exactly the tasks this change touched (the latest record otherwise kept).
       try {
-        const before = latest.current.data, after = latest.current.update(fn), reverse = undoOfChange(before, after);
+        const before = latest.current.data, after = latest.current.update(ruled), reverse = undoOfChange(before, after);
         setStatus({text, undo: () => { try { latest.current.update(reverse); setStatus({text: undone}); } catch (cause) { fail(cause); } }}); setError(''); return true;
       } catch (cause) { return fail(cause); }
     }
     try {
       let thrown: unknown = null;
-      void changeWithUndo<Tasks>(updater => { try { return latest.current.update(updater); } catch (e) { thrown = e; throw e; } }, fn, text, {undone}).catch(() => undefined);
+      void changeWithUndo<Tasks>(updater => { try { return latest.current.update(updater); } catch (e) { thrown = e; throw e; } }, ruled, text, {undone}).catch(() => undefined);
       if (thrown) throw thrown;
       setStatus({text}); setError(''); return true;
     } catch (cause) { return fail(cause); }
@@ -88,7 +102,7 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
   /** A change that says what happened, with no Undo. */
   const quiet = useCallback((fn: (r: Tasks) => Tasks, text: string): boolean => {
     if (!guard()) return false;
-    try { latest.current.update(fn); setStatus({text}); setError(''); if (text && toast) showStatus(text); return true; } catch (cause) { return fail(cause); }
+    try { const said = withNote(text, rulesNote(latest.current.data, fn)); latest.current.update(withRules(fn)); setStatus({text: said}); setError(''); if (said && toast) showStatus(said); return true; } catch (cause) { return fail(cause); }
   }, [guard, toast]);
   const add = useCallback((input: TaskInput): boolean => {
     if (!guard()) return false;
@@ -96,8 +110,9 @@ export function useTaskList({toast = false}: {toast?: boolean} = {}) {
       // Session AL (DV-164): the Tasks page takes a past day; it shows as overdue.
       const id = `task_${crypto.randomUUID()}`;
       // Session AV lane 2 (LEDGER #11): a task with a day and no reminder takes the default reminder chosen on this device.
-      latest.current.update(r => addTask(r, withDeviceDefault(input), {id, at: new Date(), today: tasksToday(), allowPast: true}));
-      const text = `Added “${input.title.trim()}”.`;
+      const made = (r: Tasks) => addTask(r, withDeviceDefault(input), {id, at: new Date(), today: tasksToday(), allowPast: true}), note = rulesNote(latest.current.data, made);
+      latest.current.update(withRules(made));
+      const text = withNote(`Added “${input.title.trim()}”.`, note);
       // Session AV (M-12a): the toast keeps clear of the row just added.
       setStatus({text}); setError(''); if (toast) showStatus(text, {clearOf: `#task-${id}`}); return true;
     } catch (cause) { return fail(cause); }

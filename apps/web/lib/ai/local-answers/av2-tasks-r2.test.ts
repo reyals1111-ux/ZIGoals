@@ -5,7 +5,8 @@ import {AV2_TASKS_R2} from '../evals/as/cases-av2-tasks-r2';
 import {av2TasksR2Answer} from './av2-tasks-r2';
 import type {LocalReply} from './engine';
 import {addLocalDays} from '../../local-date';
-import {addTask} from '../../tasks/engine';
+import {addProject, addSection, addTask} from '../../tasks/engine';
+import {setProjectRule} from '../../tasks/rules';
 import {emptyTaskPlan} from '../../tasks/plan-record';
 import {pickForToday} from '../../tasks/my-day';
 import type {Tasks} from '../../tasks/schema';
@@ -54,6 +55,12 @@ describe('My Day (LEDGER #223)', () => {
     expect(text(av2TasksR2Answer('which templates are there for home', zigiEnv(showcaseAll())))).toMatch(/\n• Home: Cleaning week, A party, A packing list and Spring clean\n/);
     expect(text(av2TasksR2Answer('welke sjablonen heb je voor het gezin', zigiEnv(showcaseAll())))).toContain('• Gezin: Start van het schooljaar, Een kinderverjaardag, Gezinsvakantie en Een weekmenu');
     expect(av2TasksR2Answer('which task templates do I have', zigiEnv(showcaseAll()))).toBeNull();
+  });
+  test('project rules (LEDGER #228)', () => {
+    const s = withTasks(r => { const x = addSection(addProject(r, {name: 'Fictional garden'}, 'pg'), 'pg', 'Done', 'sd'); return setProjectRule(setProjectRule(x, 'pg', {id: 'r1', when: 'section', section: 'sd', then: 'done'}), 'pg', {id: 'r2', when: 'done', then: 'next', days: 7}); });
+    expect(text(av2TasksR2Answer('which rules do my projects have', zigiEnv(s)))).toMatch(/^2 rules in 1 project:\n• Fictional garden: in “Done” → mark done; when done → make the next one in 7 days/);
+    expect(text(av2TasksR2Answer('welke regels hebben mijn projecten', zigiEnv(s)))).toMatch(/^2 regels in 1 project:\n• Fictional garden: in “Done” → afvinken; als klaar → maak de volgende over 7 dagen/);
+    expect(text(av2TasksR2Answer('which rules do my projects have', zigiEnv(freshAll())))).toMatch(/^No project has rules yet/);
   });
   test('the Today switch off refuses', () => {
     const env = zigiEnv(showcaseAll());

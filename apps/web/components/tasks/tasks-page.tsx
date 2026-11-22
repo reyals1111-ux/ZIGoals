@@ -66,6 +66,8 @@ const PlanViews = lazy(() => import('./tasks-plan-views'));
 const NoteReminders = lazy(() => import('./note-reminders-in-tasks'));
 // Session AV lane 2 (tasks-r2, LEDGER #225): "Print this list", the print sheet in its own chunk.
 const TasksPrint = lazy(() => import('./tasks-print'));
+// Session AV lane 2 (tasks-r2, LEDGER #228, #229): a project's rules and custom fields, their own chunk.
+const ProjectSetup = lazy(() => import('./project-setup'));
 const AREA_KEY = 'zigoals:task-area';
 const PLAN_KINDS = new Set<TaskView['kind']>(['week', 'table', 'days', 'timeline', 'insights', 'organise']);
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
@@ -87,6 +89,7 @@ export function TasksPage() {
   const [focus, setFocus] = useState<Task | null>(null), [showcase, setShowcase] = useState(false), [help, setHelp] = useState(false), [io, setIo] = useState(false);
   const [printing, setPrinting] = useState(false);
   const donePrinting = useCallback(() => setPrinting(false), []);
+  const [setupFor, setSetupFor] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set()), [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set()), [now, setNow] = useState(() => Date.now());
   const focusBox = useRef<HTMLDivElement>(null), addField = useRef<HTMLInputElement>(null), filterField = useRef<HTMLInputElement>(null), asked = useRef(false), lastPick = useRef<string | null>(null), gPressed = useRef(0);
   const projects = useMemo(() => byOrderProjects(record), [record]);
@@ -383,13 +386,14 @@ export function TasksPage() {
           <header className="tasks-view-head">
             <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' || own ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
             {!!record.areas?.length && view.kind !== 'project' && <label className="field tasks-area-pick"><span>Area</span><select value={areaId} onChange={e => chooseArea(e.target.value)}><option value="">All areas</option>{record.areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>}
-            {project && <ProjectTools project={project} board={board} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
+            {project && <ProjectTools project={project} board={board} setup={setupFor === project.id} onSetup={() => setSetupFor(setupFor === project.id ? null : project.id)} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
             {view.kind !== 'completed' && !own && visibleIds.length > 0 && <button type="button" className="secondary tasks-select-mode" aria-pressed={selectMode} onClick={() => { if (selectMode) { setSelected(new Set()); setSelecting(false); } else setSelecting(true); }}>Select</button>}
             {/* Session AV (AT D20): the filter comes once there is a task to filter (it stood before "New task" on an empty list) */}
             {(record.tasks.length > 0 || query !== '') && <label className="field tasks-filter"><span>Filter</span><input ref={filterField} type="search" value={query} placeholder="e.g. #Home p1 today" aria-describedby="tasks-filter-help" onChange={e => setQuery(e.target.value)} /></label>}
             {query.trim() && <LoadBoundary quiet><Suspense fallback={null}><FilterSave onSave={name => list.change(r => saveFilter(r, name, query), `Saved the filter “${name}”.`)} /></Suspense></LoadBoundary>}
             <p id="tasks-filter-help" className="sr-only">Words match titles and notes. Also #project, @label, p1 to p4, today, tomorrow, overdue, no date, due:2026-12-05, recurring; join with & or |; ! before a word leaves it out.</p>
           </header>
+          {project && setupFor === project.id && <LoadBoundary label="Rules and fields"><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><ProjectSetup list={list} record={record} project={project} /></Suspense></LoadBoundary>}
           {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} onAddMany={addManyFromLines} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
           {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : addLocalDays(today, 1))} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => { setSelected(new Set()); setSelecting(false); }} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
           {selectMode && !selected.size && <p className="fine tasks-select-hint" role="status">Tick the tasks to act on together; Escape ends selecting.</p>}
@@ -462,13 +466,14 @@ function SectionTools({name, onRename, onRemove}: {name: string; onRename: (n: s
   if (renaming) return <form className="tasks-inline-form" noValidate onSubmit={e => { e.preventDefault(); if (value.trim() && onRename(value.trim())) setRenaming(false); }}><label className="field"><span className="sr-only">Section name</span><input autoFocus value={value} maxLength={TEXT_LIMITS.taskListName} onChange={e => setValue(e.target.value)} /></label><button type="submit" className="quiet">Save</button><button type="button" className="quiet" onClick={() => setRenaming(false)}>Cancel</button></form>;
   return <span className="tasks-section-tools"><button type="button" className="text-link" aria-label={`Rename the section “${name}”`} onClick={() => setRenaming(true)}>Rename</button><button type="button" className="text-link" aria-label={`Remove the section “${name}”`} onClick={onRemove}>Remove</button></span>;
 }
-function ProjectTools({project, board, onBoard, onEdit, onRemove}: {project: NonNullable<Tasks['projects']>[number]; board: boolean; onBoard: (b: boolean) => void; onEdit: (patch: {name?: string; colour?: TaskColour; archived?: boolean}) => boolean; onRemove: () => void}) {
+function ProjectTools({project, board, setup, onSetup, onBoard, onEdit, onRemove}: {project: NonNullable<Tasks['projects']>[number]; board: boolean; setup: boolean; onSetup: () => void; onBoard: (b: boolean) => void; onEdit: (patch: {name?: string; colour?: TaskColour; archived?: boolean}) => boolean; onRemove: () => void}) {
   const [renaming, setRenaming] = useState(false), [name, setName] = useState(project.name);
   return <div className="tasks-project-tools">
     <span role="group" aria-label="Layout" className="tasks-toggle"><button type="button" aria-pressed={!board} onClick={() => onBoard(false)}>List</button><button type="button" aria-pressed={board} onClick={() => onBoard(true)}>Board</button></span>
     {renaming ? <form className="tasks-inline-form" noValidate onSubmit={e => { e.preventDefault(); if (onEdit({name})) setRenaming(false); }}><label className="field"><span>Project name</span><input autoFocus value={name} maxLength={TEXT_LIMITS.taskListName} onChange={e => setName(e.target.value)} /></label><button type="submit" className="quiet">Save</button><button type="button" className="quiet" onClick={() => setRenaming(false)}>Cancel</button></form>
       : <button type="button" className="text-link" onClick={() => setRenaming(true)}>Rename</button>}
     <label className="field tasks-colour"><span>Colour</span><select value={project.colour} onChange={e => onEdit({colour: e.target.value as TaskColour})}>{TASK_COLOURS.map(c => <option key={c} value={c}>{c[0]!.toUpperCase() + c.slice(1)}</option>)}</select></label>
+    <button type="button" className="text-link" aria-expanded={setup} onPointerEnter={() => void import('./project-setup').catch(() => undefined)} onClick={onSetup}>Rules and fields</button>
     <button type="button" className="text-link" onClick={() => onEdit({archived: !project.archived})}>{project.archived ? 'Bring back from the archive' : 'Archive'}</button>
     <button type="button" className="text-link" onClick={onRemove}>Remove project</button>
   </div>;

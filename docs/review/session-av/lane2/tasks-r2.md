@@ -129,3 +129,35 @@ CSV, then Tasks → Import / export and choose the file. You see what comes in f
 were assigned to are left out."
 What's new: "Tasks: import from Trello and Asana."
 Showcase / Today: nothing.
+
+## Feature 6 — project rules (automations) (LEDGER #228, Any.do) — built; assigning people: Carried, against a named rule
+
+- A project's tools gain "Rules and fields" (a lazy panel under the view's head). Rules in plain words: When "a task is added
+  to this project" / "a task enters a section" (choose it) / "a task here is done", Then "set its priority" / "add a label" /
+  "plan it for today" / "mark it done" / "move it to a section" / "create the next one" (its own title or the same, due N
+  days later). Up to 10 a project; Remove each. Nonsense pairs are refused in words ("A finished task is already done:
+  choose another step.", "Choose the section the rule watches.").
+- They run on this device inside the change that sets them off — the Tasks page, Today's card, the Agenda, a goal's next
+  actions, ZIGi's widget all go through use-task-list — so one write and one Undo hold both, and the toast says what they
+  did ("A rule in “Garden” marked “Prune the roses” done."). One pass: what a rule changes does not set off other rules (no
+  loops). A rule whose section was removed is skipped. A repeating task finished sets off "done" rules each time; "mark it
+  done" never ends a repeat. Archived projects' rules rest.
+- Left: rules that assign people — Carried, against a named rule: nothing in ZIGoals is shared between people (the panel
+  says so).
+
+Files: lib/tasks/rules.ts (pure runner, words, setProjectRule; no schema beyond the task list's), lib/tasks/schema.ts
+(ruleSchema on the project), components/tasks/{project-setup.tsx (lazy), use-task-list.ts (the three write paths run the
+rules; a dry run on the current record words the toast, only when a project has rules), tasks-page.tsx (the button and one
+lazy mount), tasks-r2.css}.
+Tests: lib/tasks/r2-rules.test.ts (each trigger and action, one pass, refusals, the cap, the one Undo, export → erase →
+restore, a rule that cannot be read is dropped). Spec: tests/av2-project-rules.spec.ts.
+Stored (TIER 3, own commit 5cbe2d69): `zigoals:tasks:v1` project gains optional `rules` ([{id, when: added|section|done,
+section?, then: level|label|today|done|move|next, level?, label?, to?, title?, days?}] ≤ 10); each field `.catch(undefined)`,
+a rule that cannot be read is dropped (never the project); older builds keep it untouched (loose) and run nothing.
+Answers: "which rules do my projects have" / "welke regels hebben mijn projecten" (also "automations" / "automatiseringen").
+Help: Q "Can Tasks do routine steps for me?" A "Yes. Open a project, then Rules and fields. Add a rule such as “When a task
+enters Done, mark it done” or “When a task is done, create the next one a week later”. Rules run on this device as you
+change tasks, and Undo takes back the change and what the rule did."
+What's new: "Tasks: rules on a project — when a task is added, moved or done, Tasks does the next step."
+Showcase / Today: nothing new on Today. Weight: the Tasks first chunk gains rules.ts (no zod of its own; it is in use-task-list,
+which every task surface loads) and one button; the panel is lazy.

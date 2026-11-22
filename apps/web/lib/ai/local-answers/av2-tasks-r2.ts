@@ -1,6 +1,7 @@
 import {addLocalDays} from '../../local-date';
 import {carriedPicks, picksToday, readMyDay} from '../../tasks/my-day';
 import {noteRemindersBetween} from '../../tasks/note-reminder-days';
+import {projectRules, type ProjectRule} from '../../tasks/rules';
 import {galleryByGroup, type GalleryGroup} from '../../tasks/template-gallery';
 import type {TaskPlan} from '../../tasks/plan-record';
 import type {Tasks} from '../../tasks/schema';
@@ -115,4 +116,24 @@ function importFrom(a: Ask): LocalReply | null {
       'Ja. In Asana: menu van het project → Export/Print → CSV. Daarna Tasks → Import / export en kies het bestand: secties, taken met hun datum, tags, notities en subtaken komen binnen, na een voorbeeld; Undo draait het terug. Wie een taak toegewezen kreeg, blijft weg.'), CALLS);
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn, printList, gallery, importFrom];
+/** "which rules do my projects have", "welke automatiseringen heb ik in mijn projecten" (LEDGER #228). */
+function projectRulesAnswer(a: Ask): LocalReply | null {
+  if (!(/\bautomations?\b|\bautomate\b|\brules?\b.*\b(?:projects?|tasks?)\b|\b(?:projects?|tasks?)\b.*\brules?\b/.test(a.f) || /\bautomatiser|\bregels?\b.*\b(?:project(?:en)?|taken)\b|\b(?:project(?:en)?|taken)\b.*\bregels?\b/.test(a.f))) return null;
+  if (/\bhabit|gewoonte|budget|money|geld\b/.test(a.f)) return null;
+  const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
+  const withRules = (got.record.projects ?? []).filter(p => !p.archived && projectRules(got.record, p.id).length);
+  if (!withRules.length) return answer(say(a.lang, 'No project has rules yet. Open a project in Tasks, then Rules and fields: for example, when a task enters “Done”, mark it done.', 'Nog geen project heeft regels. Open een project in Tasks en dan Rules and fields: bijvoorbeeld, als een taak in “Klaar” komt, vink hem af.'), CALLS);
+  const lines = withRules.slice(0, 6).map(p => `• ${clean(p.name, 60)}: ${projectRules(got.record, p.id).slice(0, 4).map(r => ruleLine(r, got.record, a.lang)).join('; ')}`);
+  const total = withRules.reduce((n, p) => n + projectRules(got.record, p.id).length, 0);
+  return answer([say(a.lang, `${count(total, 'en', ['rule', 'rules'], ['', ''])} in ${count(withRules.length, 'en', ['project', 'projects'], ['', ''])}:`, `${count(total, 'nl', ['', ''], ['regel', 'regels'])} in ${count(withRules.length, 'nl', ['', ''], ['project', 'projecten'])}:`), ...lines,
+    say(a.lang, 'They run on this device as tasks change, in the same Undo.', 'Ze draaien op dit apparaat zodra taken veranderen, in dezelfde Undo.')].join('\n'), CALLS);
+}
+function ruleLine(r: ProjectRule, record: Tasks, lang: 'en' | 'nl'): string {
+  const sec = (id?: string) => clean(record.sections?.find(s => s.id === id)?.name ?? '?', 40);
+  const when = r.when === 'added' ? say(lang, 'when added', 'bij toevoegen') : r.when === 'section' ? say(lang, `in “${sec(r.section)}”`, `in “${sec(r.section)}”`) : say(lang, 'when done', 'als klaar');
+  const then = r.then === 'level' ? `P${r.level}` : r.then === 'label' ? `@${r.label}` : r.then === 'today' ? say(lang, 'plan for today', 'plannen voor vandaag') : r.then === 'done' ? say(lang, 'mark done', 'afvinken')
+    : r.then === 'move' ? say(lang, `move to “${sec(r.to)}”`, `naar “${sec(r.to)}”`) : say(lang, `make the next one${r.days !== undefined ? ` in ${r.days} days` : ''}`, `maak de volgende${r.days !== undefined ? ` over ${r.days} dagen` : ''}`);
+  return `${when} → ${then}`;
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn, printList, gallery, importFrom, projectRulesAnswer];
