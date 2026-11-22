@@ -20,6 +20,8 @@ import type {DeviceRecordSpec} from '../device-record';
  * - `notify` (LEDGER #90): meal reminders as device notifications too (the in-app cards stay as they are).
  * - `pace` (LEDGER #107, MacroFactor's goal pace): the weekly change in kg chosen on the maintenance-estimate card
  *   (−0.5, −0.25, 0 or +0.25), which the weekly coach and the goal date then use.
+ * - `steps` (LEDGER #200, Yazio's recipes with a cooking mode): a recipe's method, one line per step, by recipe id — its
+ *   own part, so the strict recipe record (`recipeSchema`) is unchanged. A recipe removed later leaves its steps unread.
  * - `photos` (LEDGER #103): which library foods have a front-of-pack photo on this device (the photo itself is in
  *   IndexedDB, lib/food-plus/photos.ts), with when it was taken.
  */
@@ -41,7 +43,9 @@ export const foodPlusSchema = z.looseObject({
   notify: z.boolean().optional().catch(undefined),
   photos: z.record(healthId, z.looseObject({takenAt: z.iso.datetime()})).optional().catch(undefined),
   pace: z.number().min(-1).max(1).optional().catch(undefined),
+  steps: z.record(healthId, z.array(z.string().trim().min(1).max(600)).min(1).max(60)).optional().catch(undefined),
 });
+export const MAX_RECIPE_STEPS = 60, MAX_STEP_CHARS = 600;
 export type FoodPlus = z.infer<typeof foodPlusSchema>;
 export const emptyFoodPlus = (): FoodPlus => ({version: 1});
 export const FOOD_PLUS: DeviceRecordSpec<FoodPlus> = {key: FOOD_PLUS_KEY, schema: foodPlusSchema, empty: emptyFoodPlus};
