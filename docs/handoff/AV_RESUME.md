@@ -20,23 +20,25 @@ with a merge commit, edits the shared registries, builds once per batch and push
 Lane 2's own state is kept in this file's "Lane 2 — state" section on that branch.
 
 ## Lane 2 — state (owner follow-up 4; keep current at every batch)
-- Branch `feature/session-av-2` from #108's frozen head `807f247e`; first commit LEDGER.md (`fbeb3e54`). A push without a
-  PR starts no CI here (`ci.yml`: push to main, pull_request), so the lead pushes after every integrated batch, gated by
-  local checks. No PR until the owner merges #108; then merge main in (merge commit) and open Draft "Session AV (continued)".
-- Team (22 Nov, from 01:00 UTC). Builders, each in its own worktree on a sub-branch, one pillar each (brief: the
-  scratchpad's team-brief.md; registry files `docs/review/session-av/lane2/<slug>.md`):
-  - `lane2/tasks`: LEDGER groups 1, 2, 11; q1 Minors; M-9.
-  - `lane2/journal`: group 7; #33 version history; the notes rows; q4's journal Minors.
-  - `lane2/habits`: groups 3, 6, 14; q4's habit Minors.
-  - `lane2/food`: groups 4, 13, 16; q3's food Minors.
-  - `lane2/body`: groups 9, 12; the two "seen in passing" notes; q3's sleep, workout and body Minors.
-  - `lane2/money`: groups 5, 8, 10, 15; q2's Minors.
-  Research: 10 more apps (Daylio, Loop, Fabulous, Yazio, Lose It!, Strong, Nike Run Club, Insight Timer, Goodbudget,
-  Kubera) → the scratchpad's research/COMPETITORS-add.md and LEDGER-add.md. The reviewer slot opens with the first batch.
-- Lead: integration and the shared registries; the CI lane (A45-1 first, then D36, D-SYNC, `zigi-voice-z:199`); CR-19,
-  PK-6, PK-10; group 17 (sync and safety); BL-10 chess; UNFINISHED.md's carried rows.
-- Integration order per batch: merge commit → registries → theme sheets → typecheck → lint → full unit suite → frozen
-  readers → one production build → route budgets → the batch's specs and the touched areas' specs → push.
+- Branch `feature/session-av-2` from #108's frozen head `807f247e`; LEDGER.md first (`fbeb3e54`). No PR until #108 merges.
+  A push here starts no CI (`ci.yml`: push to main, pull_request): push after every integrated batch, local checks first.
+- Done (lead): A45-1 (the account-sync engine out of every page's first scripts, TIER 3 sync `a88abeb8`…`2d270bd9`:
+  every page but Settings 13–36 kB lighter; all 16 sync browser files green except `sign-in-codes-browser`, 2 of 2 alone,
+  1 red in a full loaded run — watch it); CR-19 (`8a23eab9`); ten more competitors in COMPETITORS.md and LEDGER.md
+  #176–#222 (`6926408c`).
+- Batch 1 integrated (merge commits, registries, corpus, Help, shards, theme sheets): lane2/tasks, lane2/habits,
+  lane2/journal, lane2/roadmap. Build of `115b134f` green; weights all inside (least: Settings 7.8 kB); unit suite green
+  but for the local-only pre-run11-setup. In progress: the batch's specs, then the fresh-agent review (scratchpad
+  review-b1/findings.md → QUALITY.md), then push.
+- Finished builders waiting to merge (batch 2): lane2/money (groups 5, 8, 10, 15, N12), lane2/body (groups 9, 12, N8,
+  N9), lane2/food (groups 4, 13, 16, N7 but #197). Their registries: `docs/review/session-av/lane2/<slug>.md` on their
+  branches (money: lib/av2-money-device-keys.ts; food: lib/av2-food-keys.ts; body: two keys evening-plan, body-extras).
+- Running builders: lane2/habits2 (#79–#81, q4 minors, N1, N2, N3, N5), lane2/food2 (#197, coach wiring), lane2/ci
+  (D36, D-SYNC, zigi-voice-z; may use the browser lock against :3101), lane2/sync (group 17, N6, N10).
+- Lead next: batch 1 specs → fixes → push; merge money/body/food with their registries (batch 2); PK-10; the group
+  answers' new parts for Journal; QUALITY.md lane 2 section.
+- Scripts (scratchpad): batch.sh (typecheck + build of HEAD in zg-wt; then start :3101 as its own background task),
+  add_help.py (Help + static.ts), extract_help.py (Q/A from a registry), add_shards.sh (new specs to the suggested shard).
 
 ## Follow-ups 2 and 3 — state (keep current)
 - Done: FU2/FU3 recorded; 1a food Worker (`0dc926b5`); 1b fixes (habits-routines, o3, voice hint 44 px, sanne one
