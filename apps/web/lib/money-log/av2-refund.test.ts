@@ -33,6 +33,7 @@ import {addLocalDays} from '../local-date';
 import {av2MoneyAnswer} from '../ai/local-answers/av2-money';
 import {novaEnv, showcaseAll} from '../ai/evals/as/harness';
 import {mineParts} from './counted';
+import {barWidths} from './bars';
 import {yourDays} from '../life-review/your-days';
 
 /**
@@ -151,6 +152,15 @@ describe('Life review', () => {
     const marked = [e('g', '100.00', {share: '40.00'}), e('x', '9.00', {excluded: true}), e('t', '50.00', {transfer: 'p'}), refund('rx', '5.00', {excluded: true}), e('i', '20.00', {kind: 'income', category: 'Gifts received', transfer: 'p'})];
     expect(yourDays({start: '2026-11-01', end: '2026-11-30', money: {entries: marked}}).money).toEqual([{currency: 'EUR', spent: 40, received: 0, entries: 1}]);
   });
+});
+
+test('review B6O-5: This month’s bars never draw a category at or below zero, and are never NaN', () => {
+  // €50 of clothing on 28 Oct and its €50 refund on 2 Nov: November's only EUR row is −€50.00.
+  const nov = byCategory([e('c', '50.00', {category: 'Shopping', date: '2026-10-28'}), refund('rc', '50.00', {category: 'Shopping', date: '2026-11-02'})], '2026-11-01', '2026-11-30');
+  expect(nov).toEqual([{category: 'Shopping', currency: 'EUR', total: -5000, count: 1}]);
+  expect(barWidths(nov)).toEqual([null]);
+  expect(barWidths([{currency: 'EUR', total: 0}])).toEqual([null]);
+  expect(barWidths([{currency: 'EUR', total: 8000}, {currency: 'EUR', total: 100}, {currency: 'EUR', total: -5000}, {currency: 'USD', total: -10}, {currency: 'USD', total: 2000}])).toEqual([100, 4, null, null, 100]);
 });
 
 describe('Compare', () => {

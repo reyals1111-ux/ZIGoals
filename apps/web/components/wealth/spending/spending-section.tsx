@@ -31,6 +31,7 @@ const MoneyTools = lazy(() => import('../money-tools/money-tools'));
 import {categoriesRecentFirst} from '../../../lib/recent-categories/recent';
 import {pastCategory} from '../../../lib/money-log/suggest';
 import {withRefundShare} from '../../../lib/money-log/refunds';
+import {barWidths} from '../../../lib/money-log/bars';
 import {selectionLine, summarizeSelection} from '../../../lib/money-log/selection';
 import {amountProblem} from '../../../lib/money-calc/expression';
 // PR-052: one form check for a new entry and an edit, and the edit itself (in place, the same id).
@@ -113,6 +114,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
   const week = weekOf(today, log.data.weekStartsOn), month = monthOf(today);
   const weekEntries = useMemo(() => log.data.entries.filter(e => e.date >= week.start && e.date <= today).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)), [log.data.entries, week.start, today]);
   const monthCats = useMemo(() => byCategory(log.data.entries, month.start, month.end), [log.data.entries, month.start, month.end]);
+  const monthWidths = useMemo(() => barWidths(monthCats.slice(0, 8)), [monthCats]);
   const monthTotals = useMemo(() => totals(log.data.entries, month.start, month.end), [log.data.entries, month.start, month.end]);
   // PR-052: an entry being edited in the same form (its amount, category, note and date), or null for a new one.
   const [editing, setEditing] = useState<MoneyEntry | null>(null);
@@ -300,8 +302,8 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
             <button type="button" className="quiet" aria-pressed={monthView === 'map'} onClick={() => setMonthView('map')}>Map</button>
           </span>}
         </div>
-        {monthView === 'map' && monthCats.length > 0 ? <Suspense fallback={<p className="fine" aria-busy="true">Drawing the map…</p>}><SpendingMap entries={log.data.entries} from={month.start} to={month.end}/></Suspense> : monthCats.length ? <ul className="spending-bars">{monthCats.slice(0, 8).map(c => { const max = monthCats.filter(x => x.currency === c.currency)[0]!.total; return <li key={`${c.currency}-${c.category}`}>
-          <span className="spending-bar-label"><button type="button" className="text-link spending-drill" aria-label={`See this month's ${c.category} entries`} onClick={() => openDrill(c.category)}>{c.category}</button></span><span className="spending-bar" aria-hidden="true"><span style={{width: `${Math.max(4, Math.round(100 * c.total / max))}%`}}/></span><span className="spending-amount">{money(c.total, c.currency)}</span></li>; })}</ul>
+        {monthView === 'map' && monthCats.length > 0 ? <Suspense fallback={<p className="fine" aria-busy="true">Drawing the map…</p>}><SpendingMap entries={log.data.entries} from={month.start} to={month.end}/></Suspense> : monthCats.length ? <ul className="spending-bars">{monthCats.slice(0, 8).map((c, i) => { const width = monthWidths[i]; /* Review B6O-5: no bar at or below zero */ return <li key={`${c.currency}-${c.category}`}>
+          <span className="spending-bar-label"><button type="button" className="text-link spending-drill" aria-label={`See this month's ${c.category} entries`} onClick={() => openDrill(c.category)}>{c.category}</button></span><span className="spending-bar" aria-hidden="true">{width != null && <span style={{width: `${width}%`}}/>}</span><span className="spending-amount">{money(c.total, c.currency)}</span></li>; })}</ul>
           : <p className="fine">No spending logged this month.</p>}
         <Suspense fallback={null}><MonthExtras entries={log.data.entries} from={month.start} to={month.end}/></Suspense>
         {monthTotals.map(t => <p key={t.currency} className="fine">This month in {t.currency}: spent {money(t.expenses, t.currency)}, received {money(t.income, t.currency)}.</p>)}
