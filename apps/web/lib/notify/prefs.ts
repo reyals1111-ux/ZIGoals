@@ -30,6 +30,20 @@ export const notifyPrefsSchema = z.looseObject({
    * keeps it untouched and simply has no energy type. Step reminders are the evening plan's own (`remind`).
    */
   energy: z.looseObject({focus: z.boolean().optional().catch(undefined), dip: z.boolean().optional().catch(undefined), windDown: z.boolean().optional().catch(undefined)}).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (health r3; LEDGER #280, Waterllama's reminders through the day; TIER 3 (stored format) and TIER 3
+   * (PWA)): water reminders every 1, 2 or 3 hours between a start and an end time, each skipped when the day is on pace.
+   * `on` false keeps the choice. Optional and loose; a value this build cannot read is dropped on read; an older build keeps
+   * it untouched and keeps its one water time.
+   */
+  waterSpread: z.looseObject({on: z.boolean(), from: time, to: time, every: z.union([z.literal(60), z.literal(120), z.literal(180)])}).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (health r3; LEDGER #286, Carb Manager's weigh-in reminders; TIER 3 (stored format) and TIER 3 (PWA)):
+   * an opt-in weigh-in reminder at a time, every day, on chosen weekdays (Monday = 1 … Sunday = 64, as the push Workers
+   * count) or on one day of the month (1–28), skipped once a weight is logged that day. Optional and loose; a value this
+   * build cannot read is dropped on read; an older build keeps it untouched.
+   */
+  weighIn: z.looseObject({time, repeat: z.enum(['daily', 'weekdays', 'monthly']), weekdays: z.number().int().min(1).max(127).optional().catch(undefined), day: z.number().int().min(1).max(28).optional().catch(undefined)}).optional().catch(undefined),
   /** Set while notifications are on on this device: a cheap hint so most pages never load the notification code. */
   here: z.boolean().optional(),
 });
