@@ -30,12 +30,28 @@ export const eveningPlanSchema = z.looseObject({
   steps: z.array(eveningStepSchema).min(1).max(MAX_EVENING_STEPS),
   updatedAt: z.iso.datetime({offset: true}),
 });
+/**
+ * Session AV lane 2 (bodymind-r2; LEDGER #236, Rise's habits at suggested times; TIER 3 (stored format), additive and
+ * optional): morning steps timed from the wake time (minutes after waking), one to six.
+ */
+export const MAX_MORNING_STEPS = 6, MAX_REMINDED = 14;
+export const morningStepSchema = z.looseObject({id: stepId, label: z.string().trim().min(1).max(60), minutesAfter: z.number().int().min(0).max(360)});
+export const morningPlanSchema = z.looseObject({steps: z.array(morningStepSchema).min(1).max(MAX_MORNING_STEPS), updatedAt: z.iso.datetime({offset: true})});
 export const eveningRecordSchema = z.looseObject({
   version: z.literal(1),
   plan: eveningPlanSchema.optional().catch(undefined),
   /** Each evening (the date the evening began) with the ids of the steps ticked. */
   days: z.record(day, z.array(stepId).max(MAX_EVENING_STEPS)).refine(r => Object.keys(r).length <= MAX_EVENING_DAYS, `Up to ${MAX_EVENING_DAYS} evenings.`).catch({}),
+  /**
+   * Session AV lane 2 (bodymind-r2; LEDGER #236; TIER 3 (stored format), additive and optional, each dropped on read when
+   * this build cannot read it; older builds keep them untouched, the record being loose): the morning steps, the mornings
+   * with the steps ticked (the last 120), and the steps (evening or morning) with a reminder at their time.
+   */
+  morning: morningPlanSchema.optional().catch(undefined),
+  mornings: z.record(day, z.array(stepId).max(MAX_MORNING_STEPS)).refine(r => Object.keys(r).length <= MAX_EVENING_DAYS, `Up to ${MAX_EVENING_DAYS} mornings.`).optional().catch(undefined),
+  remind: z.array(stepId).max(MAX_REMINDED).optional().catch(undefined),
 });
+export type MorningStep = z.infer<typeof morningStepSchema>;
 export type EveningStep = z.infer<typeof eveningStepSchema>;
 export type EveningPlan = z.infer<typeof eveningPlanSchema>;
 export type EveningRecord = z.infer<typeof eveningRecordSchema>;

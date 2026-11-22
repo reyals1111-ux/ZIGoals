@@ -1,5 +1,6 @@
 import {addDays, inQuiet, toMinutes, wallClock, weekdayBit, weekdayOf, zonedInstant} from './zone';
 import {eveningTime, moodTimes, morningTime, typeOn, type NotifyPrefs} from './prefs';
+import type {EnergyInput} from './energy-items';
 
 /**
  * Session AK Part 2 (ADR-036 Q3, A1, A2): the notification plan of this device, pure. From what the page already knows
@@ -9,7 +10,7 @@ import {eveningTime, moodTimes, morningTime, typeOn, type NotifyPrefs} from './p
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -61,6 +62,12 @@ export type PlanInput = {
   meals?: {meal: string; label?: string; time: string; doneToday: boolean}[];
   /** Session AV lane 2 (LEDGER #180): whether today's mood is already answered (the first check-in then stays quiet). */
   mood?: {doneToday: boolean};
+  /**
+   * Session AV lane 2 (bodymind-r2; LEDGER #235, #236, Rise): the energy curve's reminders and the plan steps with a
+   * reminder (lib/notify/energy-items.ts energyItems): one-off instants and recurring clock times, each with the app's own
+   * line; an own habit's name only as a label, shown where names are allowed. Never a sleep figure.
+   */
+  energy?: EnergyInput;
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -103,6 +110,19 @@ export function buildPlan(input: PlanInput): Plan {
   // Session AV lane 2 (LEDGER #180, Daylio): the mood check-in opens the mood question (Health's mood card); never a mood
   // or a name. The first stays quiet once today's mood is answered; a second time asks again (the newer answer wins).
   if (typeOn(prefs, 'mood')) moodTimes(prefs).forEach((time, i) => daily('mood', i ? 'mood-2' : 'mood', time, EVERY, () => ({href: '/app/health?mood=ask', actionable: false}), date => i === 0 && date === today && !!input.mood?.doneToday));
+  // Session AV lane 2 (bodymind-r2; LEDGER #235, #236): the energy curve's reminders and the plan steps' reminders. An
+  // evening step is a recurring wake at its clock time (quiet once ticked that evening); the curve's and a morning step's
+  // times follow the wake time, so each is a one-off wake, refused inside quiet hours as a task reminder is.
+  if (typeOn(prefs, 'energy') && input.energy) {
+    for (const d of input.energy.daily) daily('energy', d.id, d.time, EVERY, () => ({detail: d.detail, label: label(d.label), href: '/app/health?view=sleep', actionable: false}), date => d.done.includes(date));
+    for (const o of input.energy.once) {
+      if (o.at <= now || o.at > until) continue;
+      const time = wallClock(o.at, zone).time;
+      if (inQuiet(time, quiet)) { refused.push({kind: 'energy', time}); continue; }
+      once.set(Math.floor(o.at / 60000), 'energy');
+      push({at: o.at, kind: 'energy', id: o.id, detail: o.detail, label: label(o.label), href: '/app/health?view=sleep', actionable: false});
+    }
+  }
   // One-off wakes: contributions on the days they are due (today, tomorrow), bills on the morning before they are due.
   if (typeOn(prefs, 'contributions')) for (const c of input.contributions) {
     if (c.done || inQuiet(c.time, quiet)) continue;

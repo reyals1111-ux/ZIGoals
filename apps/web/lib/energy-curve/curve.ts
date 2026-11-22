@@ -1,6 +1,7 @@
 import {dailySeries, sleepBalance, type Balance} from '../sleep/engine';
 import {focusWindow, WINDOW_FROM, WINDOW_TO} from '../sleep/focus-window';
 import type {Sleep} from '../sleep/schema';
+import {napsForCurve} from '../sleep/naps-need';
 
 /**
  * Session AK (lane S, item 9; COMPETITORS.md (b) 9, Rise's energy schedule [17]): a simple curve of how alert a person
@@ -22,6 +23,11 @@ export type EnergyCurve = {
   points: CurvePoint[];
   focus: {from: number; to: number}; dip: {from: number; to: number}; bedtime: {from: number; to: number};
   need: number; needFrom: 'goal' | 'default'; balance: Balance | null; short: boolean; nights: number;
+  /**
+   * Session AV lane 2 (bodymind-r2; LEDGER #237, Rise's naps): today's naps on the curve's scale (minutes after midnight,
+   * past 1440 the next day), each with its length; the curve after each carries its estimated lift (napLiftAt).
+   */
+  naps: {from: number; to: number; minutes: number}[];
 };
 const gauss = (t: number, centre: number, width: number) => Math.exp(-((t - centre) ** 2) / (2 * width ** 2));
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -42,14 +48,30 @@ export function levelAt(t: number, perNight: number, short: boolean): number {
   const pressure = -(0.012 + 0.006 * debt) * h, night = -0.3 / (1 + Math.exp(-(h - 15.5) / 0.8));
   return clamp(0.82 + inertia + morning + dip + evening + pressure + night - 0.04 * debt, 0.05, 1);
 }
+/**
+ * Session AV lane 2 (bodymind-r2; LEDGER #237): a nap's estimated lift `at` (curve minutes), from the naps' ends and
+ * lengths. A short nap gives a small lift that builds over a quarter of an hour and fades over about three hours; a nap
+ * past 40 minutes first adds a short groggy dip after waking from it. A plain shape, never a measurement.
+ */
+export function napLiftAt(at: number, naps: readonly {to: number; minutes: number}[]): number {
+  let lift = 0;
+  for (const n of naps) {
+    const d = at - n.to;
+    if (d < 0) continue;
+    const size = 0.08 * Math.min(n.minutes, 30) / 30 + (n.minutes > 60 ? 0.02 : 0);
+    lift += size * (1 - Math.exp(-d / 15)) * Math.exp(-d / 180) - (n.minutes > 40 ? 0.08 * Math.exp(-d / 20) : 0);
+  }
+  return lift;
+}
 /** The day's curve, or null without a single night to read a wake time from. */
 export function energyCurve(sleep: Sleep, today: string): EnergyCurve | null {
   const fw = focusWindow(sleep, today), usual = usualWake(sleep, today);
   const wake = fw?.wake ?? usual?.minutes ?? null;
   if (wake === null) return null;
   const balance = sleepBalance(sleep, today), short = fw?.short ?? false, perNight = balance?.perNight ?? 0;
+  const naps = napsForCurve(sleep, today).map(n => { const to = n.end < wake ? n.end + 1440 : n.end; return {from: to - n.minutes, to, minutes: n.minutes}; }).filter(n => n.to <= wake + SPAN);
   const points: CurvePoint[] = [];
-  for (let t = 0; t <= SPAN; t += STEP) points.push({at: wake + t, level: Math.round(levelAt(t, perNight, short) * 1000) / 1000});
+  for (let t = 0; t <= SPAN; t += STEP) points.push({at: wake + t, level: Math.round(clamp(levelAt(t, perNight, short) + napLiftAt(wake + t, naps), 0.05, 1) * 1000) / 1000});
   const need = sleep.goal?.minutes ?? DEFAULT_NEED, nextWake = (usual?.minutes ?? wake) + 1440;
   const asleepBy = nextWake - need - FALL_ASLEEP;
   return {
@@ -57,7 +79,7 @@ export function energyCurve(sleep: Sleep, today: string): EnergyCurve | null {
     focus: fw ? {from: fw.from, to: fw.to} : {from: wake + WINDOW_FROM, to: wake + WINDOW_TO},
     dip: {from: wake + DIP_FROM, to: wake + DIP_TO},
     bedtime: {from: asleepBy - BED_WINDOW, to: asleepBy},
-    need, needFrom: sleep.goal ? 'goal' : 'default', balance, short, nights: usual?.nights ?? 0,
+    need, needFrom: sleep.goal ? 'goal' : 'default', balance, short, nights: usual?.nights ?? 0, naps,
   };
 }
 /** "Now" on the curve (minutes after midnight of `nowMinutes`, moved past midnight when the curve is), or null outside it. */
@@ -67,11 +89,12 @@ export function nowOn(curve: EnergyCurve, nowMinutes: number): number | null {
 }
 /** The summary a screen reader hears, and the "Why?" text (`clock` formats minutes after midnight as the page does). */
 export function curveSummary(c: EnergyCurve, clock: (m: number) => string): string {
-  return `An estimate from your sleep times: a good focus window ${clock(c.focus.from)} to ${clock(c.focus.to)}, a likely dip ${clock(c.dip.from)} to ${clock(c.dip.to)}, and a suggested bedtime between ${clock(c.bedtime.from)} and ${clock(c.bedtime.to)}.`;
+  return `An estimate from your sleep times: a good focus window ${clock(c.focus.from)} to ${clock(c.focus.to)}, a likely dip ${clock(c.dip.from)} to ${clock(c.dip.to)}, and a suggested bedtime between ${clock(c.bedtime.from)} and ${clock(c.bedtime.to)}.${c.naps.length ? ` A small lift after today's ${c.naps.length === 1 ? 'nap' : 'naps'}, ending ${c.naps.map(n => clock(n.to)).join(' and ')}.` : ''}`;
 }
 export function curveWhy(c: EnergyCurve, clock: (m: number) => string, minutes: (m: number) => string): string {
   const wake = c.wakeFrom === 'today' ? `You woke at ${clock(c.wake)} today.` : `No night ending today is logged yet, so this starts from your usual wake time, ${clock(c.wake)} (${c.nights} ${c.nights === 1 ? 'night' : 'nights'} in the last 14 days).`;
   const balance = c.balance ? c.balance.perNight < -10 ? ` Over the last 14 days you slept about ${minutes(-c.balance.perNight)} under your goal a night, so the whole curve sits a little lower.` : ' Over the last 14 days you slept around your goal.' : '';
   const need = c.needFrom === 'goal' ? `your goal of ${minutes(c.need)}` : `8 hours, a common figure (set your own goal to change it)`;
-  return `${wake}${balance} Many people feel most alert two to four hours after waking and notice a dip about seven to nine hours after waking. The bedtime window leaves ${need} of sleep before your usual wake time, with a little time to fall asleep. It is an estimate from your sleep times, not a measurement and not medical advice; you know your day best.`;
+  const napped = c.naps.length ? ` After your ${c.naps.length === 1 ? 'nap' : `${c.naps.length} naps`} today (${c.naps.map(n => `${minutes(n.minutes)}, until ${clock(n.to)}`).join('; ')}) the curve lifts a little for a few hours${c.naps.some(n => n.minutes > 40) ? ', after a short groggy spell from the longer nap' : ''}.` : '';
+  return `${wake}${balance}${napped} Many people feel most alert two to four hours after waking and notice a dip about seven to nine hours after waking. The bedtime window leaves ${need} of sleep before your usual wake time, with a little time to fall asleep. It is an estimate from your sleep times, not a measurement and not medical advice; you know your day best.`;
 }

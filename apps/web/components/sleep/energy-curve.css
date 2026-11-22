@@ -24,3 +24,5 @@
 .energy-curve-list dd { margin: 0; font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
 .energy-curve-list small { font-size: 14px; color: var(--muted); }
 .energy-curve-why summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; }
+/* Session AV lane 2 (bodymind-r2; LEDGER #237): a nap on the curve (theme tokens only). */
+.energy-curve-key i.is-nap, .energy-curve-band.is-nap rect { background: color-mix(in srgb, var(--teal, var(--cyan)) 30%, transparent); fill: color-mix(in srgb, var(--teal, var(--cyan)) 26%, transparent); }

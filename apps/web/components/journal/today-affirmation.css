@@ -3,3 +3,6 @@
 .today-affirmation-label { margin-right: 4px; }
 .today-affirmation-text { font-style: italic; color: var(--text-strong, var(--text)); }
 .today-affirmation-next { min-height: 44px; display: inline-flex; align-items: center; }
+/* Session AV lane 2 (bodymind-r2; LEDGER #230): the small daily challenge beside it. */
+.today-challenge-actions { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; font-size: 15px; }
+.today-challenge-actions .fine { font-size: 14px; }

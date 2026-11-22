@@ -9,6 +9,8 @@ import {formatClock} from '../../lib/visual-format';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import './energy-curve.css';
 import {ArtNote} from '../illustrations/art-note';
+// Session AV lane 2 (bodymind-r2; LEDGER #235): reminders from the curve, in this fold's own chunk.
+import CurveReminders from './curve-reminders';
 
 /**
  * Session AK (lane S, item 9): Health → Sleep → "Your energy today", an estimated alertness curve from the person's sleep
@@ -25,18 +27,18 @@ export default function EnergyCurve({sleep, today, now, zone}: {sleep: Sleep; to
   const line = curve.points.map((p, i) => `${i ? 'L' : 'M'}${x(p.at).toFixed(1)},${y(p.level).toFixed(1)}`).join('');
   const area = `${line}L${x(start + SPAN).toFixed(1)},${PAD.top + plotH}L${x(start).toFixed(1)},${PAD.top + plotH}Z`;
   const here = nowOn(curve, wallClock(now, zone).minutes);
-  const bands = [{kind: 'focus', label: 'Focus', ...curve.focus}, {kind: 'dip', label: 'Dip', ...curve.dip}, {kind: 'bed', label: 'Bedtime', ...curve.bedtime}].filter(b => b.to > start && b.from < start + SPAN);
+  const bands = [{kind: 'focus', label: 'Focus', ...curve.focus}, {kind: 'dip', label: 'Dip', ...curve.dip}, {kind: 'bed', label: 'Bedtime', ...curve.bedtime}, ...curve.naps.map(n => ({kind: 'nap', label: 'Nap', from: n.from, to: n.to}))].filter(b => b.to > start && b.from < start + SPAN);
   const ticks = Array.from({length: 7}, (_, i) => start + i * 180);
   const summary = curveSummary(curve, clock);
   return <div className="energy-curve">
     <p className="energy-curve-lead"><span className="eyebrow">A good focus window</span><strong>{clock(curve.focus.from)}–{clock(curve.focus.to)}</strong></p>
     <p className="energy-curve-meaning">An estimate from your sleep times, not a measurement.{curve.short ? ' After a shorter night the window is an hour shorter.' : ''}</p>
-    <ul className="energy-curve-key" aria-hidden="true"><li><i className="is-focus"/>Good focus window</li><li><i className="is-dip"/>Likely dip</li><li><i className="is-bed"/>Suggested bedtime</li>{here !== null && <li><i className="is-now"/>Now</li>}</ul>
+    <ul className="energy-curve-key" aria-hidden="true"><li><i className="is-focus"/>Good focus window</li><li><i className="is-dip"/>Likely dip</li><li><i className="is-bed"/>Suggested bedtime</li>{curve.naps.length > 0 && <li><i className="is-nap"/>Nap</li>}{here !== null && <li><i className="is-now"/>Now</li>}</ul>
     <div className="energy-curve-plot" ref={plot}>
       <svg className="zg-chart" data-pillar="health" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={summary}>
         {/* Session AK (G3): the one chart look — the curve in its gradient with one soft glow (none by day). */}
         <ChartLookDefs id={look.id} width={W} height={H}/>
-        {bands.map(b => <g key={b.kind} className={`energy-curve-band is-${b.kind}`}><rect x={x(b.from)} y={PAD.top} width={Math.max(2, x(b.to) - x(b.from))} height={plotH} rx={6}/><text x={x(b.from) + 4} y={PAD.top - 6}>{b.label}</text></g>)}
+        {bands.map(b => <g key={`${b.kind}-${b.from}`} className={`energy-curve-band is-${b.kind}`}><rect x={x(b.from)} y={PAD.top} width={Math.max(2, x(b.to) - x(b.from))} height={plotH} rx={6}/><text x={x(b.from) + 4} y={PAD.top - 6}>{b.label}</text></g>)}
         <path className="energy-curve-area" d={area}/>
         <path className="energy-curve-line zgc-line" d={line} style={{stroke: look.stroke('a')}} filter={look.glow}/>
         {here !== null && <line className="energy-curve-now" x1={x(here)} x2={x(here)} y1={PAD.top} y2={PAD.top + plotH}/>}
@@ -48,7 +50,10 @@ export default function EnergyCurve({sleep, today, now, zone}: {sleep: Sleep; to
       <div><dt>Good focus window</dt><dd>{clock(curve.focus.from)}–{clock(curve.focus.to)}</dd></div>
       <div><dt>Likely dip</dt><dd>{clock(curve.dip.from)}–{clock(curve.dip.to)}</dd></div>
       <div><dt>Suggested bedtime</dt><dd>{clock(curve.bedtime.from)}–{clock(curve.bedtime.to)}</dd><dd className="dd-note"><small>For {formatMinutes(curve.need)} of sleep{curve.needFrom === 'default' ? ' (a common figure; set your own goal below)' : ', your goal'} before your usual wake time.</small></dd></div>
+      {/* Session AV lane 2 (bodymind-r2; LEDGER #237, Rise): today's naps and their estimated lift on the curve. */}
+      {curve.naps.length > 0 && <div><dt>{curve.naps.length === 1 ? 'Your nap today' : 'Your naps today'}</dt>{curve.naps.map(n => <dd key={n.to}>{clock(n.from)}–{clock(n.to)} · {formatMinutes(n.minutes)}</dd>)}<dd className="dd-note"><small>The curve lifts a little after {curve.naps.length === 1 ? 'it' : 'them'} for a few hours{curve.naps.some(n => n.minutes > 40) ? ', after a short groggy spell' : ''}: an estimate.</small></dd></div>}
     </dl>
     <details className="energy-curve-why"><summary>Why?</summary><p className="fine">{curveWhy(curve, clock, formatMinutes)}</p></details>
+    <CurveReminders curve={curve} clock={clock}/>
   </div>;
 }
