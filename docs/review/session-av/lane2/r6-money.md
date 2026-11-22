@@ -53,8 +53,9 @@ purchases only; the reconcile counts what the bank moved (a refund is money in).
 NOVA/ZIGi answers and Compare: `apps/web/lib/money-log/av2-refund.test.ts` (15 tests); every earlier money test is green
 unchanged (`lib/money-log`, `lib/budgets`, `lib/money-insights`, `lib/money-more`, `lib/compare`, `lib/nova`,
 `lib/ai/local-answers`, `lib/insights`; 3,566 tests). Two failures in that run are not this branch's and touch no money
-code: `av2-r4-mind.test.ts` and `av2-r5-notes.test.ts` (journal questions claimed by the mind and notes answers; they fail
-the same way without these changes' money files, which they do not import).
+code: `av2-r4-mind.test.ts` and `av2-r5-notes.test.ts` (their own corpus intents, now in `CORPUS`, counted as claimed); they
+fail at this branch's base `fb449c2c` too, and `lane2/batch5` has since fixed them (`9d773011`, "round 5 notes' corpus test
+leaves its own intents out"), so they pass once the lead merges.
 
 Money goes through the app's formatter (`moneyCents` / `formatCurrencyAmount`), dates and months through
 `lib/visual-format.ts`; the Dutch answers write "€ 12,50" and Dutch month words. No money advice anywhere: no suggested
