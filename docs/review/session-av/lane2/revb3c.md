@@ -155,3 +155,11 @@ whose `opensOn` is after today). Shared unit tests: `lib/journal/revb3c-sealed.t
 - **Tests:** `lib/notes/revb3c-ticks.test.ts`: such an item is plain; every box the reading view draws can be ticked and
   matches Open tick boxes.
 - **Help/corpus:** none.
+
+## B3C-11 (Minor): the Tick box button at caret 0
+
+- **Verdict:** confirmed and fixed.
+- **Fix:** `insertTick` (`lib/notes/marks.ts`) takes the line start as 0 when the caret is at 0.
+- **Tests:** `lib/notes/revb3c-marks.test.ts`: caret 0 on an empty first line of a text that starts with a newline marks
+  the first line; caret 0 with words; caret after the newline; two leading newlines. The round-3 tests pass unchanged.
+- **Help/corpus:** none.
