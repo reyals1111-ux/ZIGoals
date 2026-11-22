@@ -75,7 +75,7 @@ export function RacesAhead({w, today}: {w: Workouts; today: string}) {
   </div>;
 }
 
-function RaceForm({initial, edit = false, onSave, onCancel}: {initial: RaceDraft; edit?: boolean; onSave: (d: RaceDraft, countdown: boolean) => RaceIssue | null; onCancel: () => void}) {
+export function RaceForm({initial, edit = false, onSave, onCancel}: {initial: RaceDraft; edit?: boolean; onSave: (d: RaceDraft, countdown: boolean) => RaceIssue | null; onCancel: () => void}) {
   const id = useId(), [d, setD] = useState(initial), [countdown, setCountdown] = useState(false), [issue, setIssue] = useState<RaceIssue | null>(null);
   // Review B4E-6: "Another distance" is a choice of its own, so the typed distance never flips the list (or drops focus).
   const [own, setOwn] = useState(() => distanceChoice(false, initial.distanceKm) === 'own');
@@ -90,7 +90,7 @@ function RaceForm({initial, edit = false, onSave, onCancel}: {initial: RaceDraft
       {field('date', 'Race day', <input id={`${id}-date`} type="date" value={d.date} onChange={e => set({date: e.target.value})} {...err('date')}/>)}
       <label className="field"><span>Distance</span><select value={String(choice)} onChange={e => { const v = e.target.value; setOwn(v === 'own'); set({distanceKm: v === 'own' ? '' : v}); }}>{RACE_DISTANCES.map(x => <option key={x.km} value={String(x.km)}>{x.en}</option>)}<option value="own">Another distance</option></select></label>
       {choice === 'own' && field('distance', 'Distance (km)', <input id={`${id}-distance`} type="text" inputMode="decimal" value={d.distanceKm} onChange={e => set({distanceKm: e.target.value})} {...err('distance')}/>)}
-      {field('goal', 'Goal time (optional, like 1:55:00)', <input id={`${id}-goal`} type="text" inputMode="numeric" value={d.goal} onChange={e => set({goal: e.target.value})} {...err('goal')}/>)}
+      {/* Review B4E-7: a text keypad, so the ":" of "1:55:00" can be typed on a phone */}{field('goal', 'Goal time (optional, like 1:55:00)', <input id={`${id}-goal`} type="text" inputMode="text" autoComplete="off" value={d.goal} onChange={e => set({goal: e.target.value})} {...err('goal')}/>)}
       <label className="field"><span>Which race</span><select value={d.priority} onChange={e => set({priority: e.target.value as RaceDraft['priority']})}><option value="main">Main race</option><option value="b">B race (on the way)</option></select></label>
     </div>
     {!edit && <label className="r3-toggle"><input type="checkbox" checked={countdown} onChange={e => setCountdown(e.target.checked)}/> <span>Also make a countdown for it</span></label>}
