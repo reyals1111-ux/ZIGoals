@@ -264,3 +264,33 @@ locale ("€ 12,50"); the tests compare it with the no-break space shown as a sp
 - Showcase hook: none (an import in the Showcase writes to its own tab, as before).
 - Registries: none. CSS touched: none.
 - Today: nothing added.
+
+## For the lead (everything in one list)
+
+1. **engine.ts**: `av2R3MoneyAnswer(question, env) ?? av2MoneyR2Answer(question, env) ?? …` (import from
+   `./av2-r3-money`). Corpus: `AV2_R3_MONEY` (`lib/ai/evals/as/cases-av2-r3-money.ts`, 9 intents, 36 questions) into
+   `cases.ts`; record expected.json.
+2. **Tool sources** (optional, the answers work without them): `networthHistory: one(NETWORTH_HISTORY)` beside `accounts`,
+   gated with Wealth, for `netWorthMovers` (without it, accounts only). `moneyMore`, `wealthSheet`, `moneyTags` as round 1
+   and 2 already asked.
+3. **Help + What's new** (`help-page.tsx`): the Q+A and labels under R3-F1 … R3-F6 above.
+4. **Registries**: no new key, no new record; only, if wanted, the `moneyMore` catalogue label (Stored changes, above).
+5. **Stored-format commit** to label TIER 3 (stored formats): `f72ac706` (money extras `planned`, `forecast`; wealth sheet
+   `cards`; money log `needWant`).
+6. **Specs to run** (shard lists): `tests/av2-money-left-month.spec.ts`, `tests/av2-money-credit-card.spec.ts`,
+   `tests/av2-money-needs-waterfall.spec.ts`, `tests/av2-money-beside-habits.spec.ts`,
+   `tests/av2-money-networth-movers.spec.ts`, `tests/av2-money-import-tags.spec.ts`.
+7. **Theme sheets**: CSS touched — `components/cash-forecast/planned.css` (new), `components/wealth/accounts.css`,
+   `components/wealth/spending/insights/insights.css`, `components/wealth/networth-history.css`.
+8. **Screens and counts to check**: Wealth → Spending → "Your money over time" has 11 view buttons (was 8;
+   `lib/money-insights/views.test.ts` changed deliberately, labelled); Budgets gains "Left this month" (one fold) for the
+   month still running; Net worth by source gains "What moved your net worth" (Showcase too, from its example history);
+   the forecast card gains three length buttons and a month table. Today: nothing always visible (the "Left this month"
+   line is opt-in, never in the Showcase).
+9. **Weights**: every new UI part is a lazy chunk (Left this month, planned costs, credit-card line, the three insight
+   views, net-worth movers); the first chunks gained only `lazy()` lines, and `today-money-attention.tsx` (itself lazy)
+   imports `left-this-month` and `planned` (pure, small). Check Wealth's and Today's weight budgets in the build.
+10. **Not mine, noted**: Compare's existing "Spending above an amount" factor sums every expense whole (left-out entries
+    and the full amount of a shared cost included), unlike Wealth → Spending — for lane2/revb2a's shared rule. The
+    tags record's `tagTotals` also counts an entry whole, not the person's share (same rule).
+11. **QUALITY Minors**: not taken in this branch (the task named rows #291–#299 only).
