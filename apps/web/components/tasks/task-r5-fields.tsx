@@ -37,7 +37,8 @@ export default function TaskR5Fields({task, today, due, time, value, onChange}: 
       {task.plan && current && <option value="keep">{name(current)} (as now)</option>}
       <option value="week">This week, any day</option><option value="next-week">Next week, any day</option><option value="month">This month, any day</option><option value="next-month">Next month, any day</option></select>
       <small id={`${id}-bucket`} className="tasks-field-note">It shows in Upcoming under its week or month until it is done or given a day. If the week passes, it moves to the next week’s list.</small></label>}
-    {due && (blocks.length > 0 || value.block) && <label className="field"><span>Time block</span><select value={value.block} aria-describedby={`${id}-block`} onChange={e => onChange({...value, block: e.target.value})}>
+    {/* Review B5L-9: not for a repeating task (it moves on when ticked) */}
+    {due && !task.recur && (blocks.length > 0 || value.block) && <label className="field"><span>Time block</span><select value={value.block} aria-describedby={`${id}-block`} onChange={e => onChange({...value, block: e.target.value})}>
       <option value="">Not in a block</option>
       {value.block && !blocks.some(b => b.id === value.block) && <option value={value.block}>A block not on this day</option>}
       {blocks.map(b => <option key={b.id} value={b.id}>{b.name} · {formatClock(b.from)}–{formatClock(b.to)}</option>)}</select>

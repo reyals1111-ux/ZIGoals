@@ -29,7 +29,7 @@ export function useHourR5(date: string, items: readonly DayItem[]) {
   const blocks = plan.loaded ? blocksOn(plan.data, date) : [];
   const travel: Travel[] = [];
   for (const i of items) {
-    if (!i.time || i.state === 'done') continue;
+    if (!i.time || i.state !== 'open') continue; // review B5L-3: nothing to leave for once closed (done or cancelled)
     const minutes = i.source === 'task' ? tasks.data.tasks.find(t => t.id === i.taskId)?.travel ?? 0 : i.source === 'event' ? eventTravel(plan.data, i.id) : 0;
     const leave = minutes ? leaveBy(i.time, minutes) : null;
     if (leave) travel.push({id: i.id, title: i.title, leave, minutes});
@@ -45,8 +45,9 @@ export function useHourR5(date: string, items: readonly DayItem[]) {
   const setZone = (z: string | null) => { try { prefs.update(p => { const next = {...p}; if (z) next.secondZone = z; else delete next.secondZone; return next; }); showStatus(z ? `Second time zone: ${zoneName(z)}, beside the hours.` : 'One time zone again.'); } catch { showStatus('That choice could not be kept on this device.', {tone: 'error'}); } };
   const setTravel = (itemId: string, title: string, minutes: number | null) => {
     const eventId = eventIdOf(itemId); if (!eventId || plan.unreadable) return;
-    const before = plan.data;
-    try { plan.update(p => setEventTravel(p, eventId, minutes)); showUndo({message: minutes ? `${minutesWords(minutes)} of travel before “${title}”.` : `No travel before “${title}”.`, undone: 'As it was.', restore: () => plan.update(() => before)}); }
+    // Review B5L-7: Undo puts back only this event's minutes, never the rest of the planning record.
+    const was = plan.data.eventTravel?.[eventId] ?? null;
+    try { plan.update(p => setEventTravel(p, eventId, minutes)); showUndo({message: minutes ? `${minutesWords(minutes)} of travel before “${title}”.` : `No travel before “${title}”.`, undone: 'As it was.', restore: () => plan.update(p => setEventTravel(p, eventId, was))}); }
     catch (e) { showStatus(e instanceof Error ? e.message : 'That could not be kept on this device.', {tone: 'error'}); }
   };
   const progress = (b: TimeBlock) => blockProgress(blockTasks(tasks.data, b, date));

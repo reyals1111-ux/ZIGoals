@@ -32,6 +32,7 @@ import {chunk} from '../use-chunk';
 import {isTypingTarget, isUndoShortcut} from '../../lib/tasks/undo-shortcut';
 import './tasks.css';
 import {TEXT_LIMITS} from '../../lib/limits/text'; // Session AO (M-011): the one limits table
+import {isFinished} from '../../lib/tasks/finished';
 
 /**
  * /app/tasks (Session AK, T1; Session AL Part 8: Tasks at Todoist/TickTick level, owner decision O6). Your to-do list:
@@ -331,7 +332,8 @@ export function TasksPage() {
     const {log, older} = completedInWindow(record, today, list.doneDay), recent = recentlyDone(record, today, list.doneDay);
     // Session AV (1c, q1 #6, fresh-agent review): the view's title already says "Completed"; this part says only the count.
     body = <section className="tasks-completed" aria-labelledby="tasks-done-title">
-      <p id="tasks-done-title" className="tasks-done-count">{log.length ? `${plural(log.length, 'finish', 'finishes')} in the last 30 days` : 'Finished in the last 30 days'}</p>
+      {/* Session AV lane 2 (r5-plan, review B5L-3): finishes only; cancelled ones are said apart. */}
+      {(() => { const cancelled = log.filter(e => e.cancelled).length, finishes = log.length - cancelled; return <p id="tasks-done-title" className="tasks-done-count">{finishes ? `${plural(finishes, 'finish', 'finishes')} in the last 30 days` : 'Finished in the last 30 days'}{cancelled ? ` · ${formatNumber(cancelled)} cancelled` : ''}</p>; })()}
       {log.length > 0 ? <LoadBoundary quiet><Suspense fallback={null}><DoneChart log={log.filter(e => !e.cancelled) /* Session AV lane 2 (r5-plan, LEDGER #350): a cancelled task is not a finish */} today={today} doneDay={list.doneDay}/></Suspense></LoadBoundary> : <p className="fine">When you finish tasks, this view shows how many per day and per week, from the last 30 days.</p>}
       {recent.length > 0 && <p className="tasks-bulk-inline"><button type="button" className="secondary" onClick={() => list.change(clearDone, `Cleared ${plural(record.tasks.filter(t => t.doneAt).length, 'finished task')}.`, 'Finished tasks put back.')}>Clear done ({formatNumber(record.tasks.filter(t => t.doneAt).length)})</button></p>}
       {log.length ? <ul className="tasks-list" aria-label="Completed">{log.slice(0, 200).map(e => e.occurrence
@@ -423,7 +425,7 @@ export function TasksPage() {
           {/* Session AV (D-CI1987): below the list, so Today's first task starts where it did (A10-11). */}
           {view.kind === 'today' && !query && (() => { const w = dayLoadWords(viewLoad(shown)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (1c, q1 #39): every task in Today's list, overdue ones too */}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
           {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} clock={clock} shown={shown} change={list.change} doneDay={list.doneDay} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}
-          {view.kind === 'today' && !query && record.tasks.some(t => t.doneAt && list.doneDay(t.doneAt) === today) && <p className="fine"><button type="button" className="text-link" onClick={() => go({kind: 'completed'})}>Done today: {formatNumber(record.tasks.filter(t => t.doneAt && list.doneDay(t.doneAt) === today).length)} →</button></p>}
+          {view.kind === 'today' && !query && record.tasks.some(t => isFinished(t) && list.doneDay(t.doneAt!) === today) && /* review B5L-3: finishes only */ <p className="fine"><button type="button" className="text-link" onClick={() => go({kind: 'completed'})}>Done today: {formatNumber(record.tasks.filter(t => isFinished(t) && list.doneDay(t.doneAt!) === today).length)} →</button></p>}
           {/* Session AV lane 2 (tasks-r2, LEDGER #225): below the list, so the list starts where it did (A10-11). */}
           {view.kind !== 'completed' && !own && visibleIds.length > 0 && <p className="tasks-print-line"><button type="button" className="text-link" onPointerEnter={() => void import('./tasks-print').catch(() => undefined)} onClick={() => setPrinting(true)}>Print this list</button></p>}
         </section>

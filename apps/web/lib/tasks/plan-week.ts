@@ -6,6 +6,7 @@ import type {TaskPlan} from './plan-record';
 import {windowEnd, windowStart} from './recurrence';
 import {taskLevel, type Task, type Tasks} from './schema';
 import {closedBusy, taskHoursOn} from './work-hours';
+import {blocksOn} from './time-blocks-read';
 
 /**
  * Session AV lane 2 (r4-plan, LEDGER #300; Motion's auto-scheduling, made a proposal): "Plan my week". The open top-level
@@ -49,25 +50,30 @@ export function weekCandidates(record: Tasks, today: string, clock: string, days
     .sort((a, b) => (a.deadline ?? '9999-12-31').localeCompare(b.deadline ?? '9999-12-31') || taskLevel(a) - taskLevel(b) || (a.due ?? '9999-12-31').localeCompare(b.due ?? '9999-12-31') || a.createdAt.localeCompare(b.createdAt));
 }
 /** Plan my week: where each task (or piece) would go, and what found no room. */
-export function fitWeek({record, plan, today, clock, extra = none, days = WEEK_DAYS}: {record: Tasks; plan: Pick<TaskPlan, 'workHours'>; today: string; clock: string; extra?: ExtraBusy; days?: number}): {days: string[]; placed: WeekPlacement[]; left: WeekLeft[]} {
+export function fitWeek({record, plan, today, clock, extra = none, days = WEEK_DAYS}: {record: Tasks; plan: Pick<TaskPlan, 'workHours' | 'blocks'>; today: string; clock: string; extra?: ExtraBusy; days?: number}): {days: string[]; placed: WeekPlacement[]; left: WeekLeft[]} {
   const dayList = Array.from({length: days}, (_, i) => addLocalDays(today, i)), last = dayList.at(-1)!;
   const tasks = weekCandidates(record, today, clock, days), again = new Set(tasks.filter(t => t.time).map(t => t.id));
-  const taken = new Map(dayList.map(d => [d, [...taskBusy(record, d, again), ...extra(d)].filter(b => b.end > b.start).map(b => ({start: b.start, end: b.end}))]));
+  // Session AV lane 2 (r5-plan, review B5L-4): a day's time blocks are kept for their own tasks, as Plan my day keeps them.
+  const blocked = (d: string) => blocksOn(plan, d).map(b => ({start: toMin(b.from), end: toMin(b.to), title: b.name}));
+  const taken = new Map(dayList.map(d => [d, [...taskBusy(record, d, again), ...extra(d), ...blocked(d)].filter(b => b.end > b.start).map(b => ({start: b.start, end: b.end}))]));
   const now = Math.ceil(toMin(clock) / 15) * 15, placed: WeekPlacement[] = [], left: WeekLeft[] = [];
   for (const t of tasks) {
     const span = taskSpan(t, today, last)!, {pieces, done} = piecesOf(t), split = pieces.length > 1 || done > 0;
     let day = span.from, from = 0, kept = 0;
     for (const piece of pieces) {
+      // Session AV lane 2 (r5-plan, review B5L-5): the travel minutes before the task are kept free before its first piece.
+      const travel = kept === 0 ? t.travel ?? 0 : 0;
       let found = -1;
       for (; day <= span.to; day = addLocalDays(day, 1), from = 0) {
         const start = Math.max(from, day === today ? now : 0);
-        found = firstFit(piece, [...taken.get(day)!, ...closedBusy(taskHoursOn(plan, day, t))], start, 24 * 60);
+        found = firstFit(piece + travel, [...taken.get(day)!, ...closedBusy(taskHoursOn(plan, day, t))], start, 24 * 60);
         if (found >= 0) break;
       }
       if (found < 0) break;
-      taken.get(day)!.push({start: found, end: found + piece});
-      placed.push({key: `${t.id}:${done + kept + 1}`, task: t, day, start: toClock(found), end: toClock(found + piece), minutes: piece, ...(split ? {part: done + kept + 1, of: done + pieces.length} : {})});
-      kept++; from = found + piece;
+      const at = found + travel;
+      taken.get(day)!.push({start: found, end: at + piece});
+      placed.push({key: `${t.id}:${done + kept + 1}`, task: t, day, start: toClock(at), end: toClock(at + piece), minutes: piece, ...(split ? {part: done + kept + 1, of: done + pieces.length} : {})});
+      kept++; from = at + piece;
     }
     if (kept < pieces.length) left.push({task: t, why: span.byDeadline ? 'deadline' : 'room', placed: kept, of: pieces.length, ...(span.byDeadline ? {by: span.to} : {})});
   }

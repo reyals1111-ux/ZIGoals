@@ -13,7 +13,7 @@ import {tasksSchema, type Task, type Tasks} from './schema';
  */
 export const CANCEL_REPEAT_MESSAGE = 'A repeating task is not cancelled: skip this time instead, or remove the repeat first.';
 export const isDoing = (t: Pick<Task, 'doneAt' | 'state'>): boolean => !t.doneAt && t.state?.kind === 'doing';
-export const isCancelled = (t: Pick<Task, 'doneAt' | 'state'>): boolean => !!t.doneAt && t.state?.kind === 'cancelled';
+export {isCancelled, isFinished} from './finished';
 const strip = (t: Task): Task => { const out = {...t}; delete out.state; return out; };
 const find = (record: Tasks, id: string) => { const t = record.tasks.find(x => x.id === id); if (!t) throw new Error('That task is no longer on this device.'); return t; };
 

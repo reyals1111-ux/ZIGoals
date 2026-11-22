@@ -74,7 +74,9 @@ for (const theme of THEMES) test(`${theme}: a time block, Doing and Cancelled, a
   let form = await openEditor(page, 'Fictional tickets');
   await form.getByRole('button', {name: 'Doing now'}).click();
   await expect.poll(async () => (await storedTask(page, 'task_fictional-tickets'))?.state?.kind).toBe('doing');
-  await expect(form.getByRole('button', {name: 'Not doing it now'})).toHaveAttribute('aria-pressed', 'true');
+  // Session AV lane 2 (review B5L-12: the button's words carry its state, aria-pressed dropped, deliberate): the label itself says it.
+  await expect(form.getByRole('button', {name: 'Not doing it now'})).toBeVisible();
+  await expect(form.getByRole('button', {name: 'Not doing it now'})).not.toHaveAttribute('aria-pressed', /.*/);
   // Copy link (LEDGER #356): copied, or shown to select when the clipboard is not allowed.
   await form.getByRole('button', {name: 'Copy link'}).click();
   await expect(page.getByText('Link copied.', {exact: false}).or(form.getByLabel('The task’s link (select it and copy)'))).toBeVisible();

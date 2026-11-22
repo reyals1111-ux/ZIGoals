@@ -8,6 +8,7 @@ import {runTool} from '../tools/registry';
 import type {LocalReply} from './engine';
 import {isLate, openTasks} from '../../tasks/engine';
 import type {Task, TaskPriority} from '../../tasks/schema';
+import {isFinished} from '../../tasks/finished';
 
 /**
  * Owner follow-up 2 (N2 "works from minute one", N4): the plain questions about tasks, focus, workouts and budgets answered
@@ -41,7 +42,7 @@ function taskSubAnswer(q: string, env: ToolEnv): LocalReply | null {
   if (!record) return answer('tasks', {}, env, d => d.note ?? 'No task is kept on this device yet.');
   const today = env.habitDay, open = openTasks(record, today), when = (t: Task) => `${t.due ? `${t.due < today ? 'overdue since' : 'due'} ${formatDate(t.due)}` : 'no day'}${t.time ? ` at ${formatClock(t.time)}` : ''}`;
   if (done) {
-    const list = record.tasks.filter(t => t.doneAt && dayIn(t.doneAt, env.habitZone) === today);
+    const list = record.tasks.filter(t => isFinished(t) /* review B5L-3: a cancelled task is not done */ && dayIn(t.doneAt!, env.habitZone) === today);
     return {kind: 'answer', text: list.length ? [`${plural(list.length, 'task')} done today:`, ...list.slice(0, 8).map(t => `• ${t.title}`)].join('\n') : 'No task is ticked off today yet.', calls};
   }
   if (prio) {

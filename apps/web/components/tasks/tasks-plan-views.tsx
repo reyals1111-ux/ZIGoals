@@ -22,6 +22,7 @@ import {fieldText, projectFields, sortByField} from '../../lib/tasks/custom-fiel
 const WEEK_HEADS = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'] as const;
 import TasksOrganise from './tasks-organise';
 import './tasks-plan.css';
+import {isCancelled, isFinished} from '../../lib/tasks/finished';
 // Review b1 #7: the task editor the list uses, opened from the Table, Calendar and Timeline (its own chunk, as on a row).
 const TaskEditor = lazy(() => import('./task-editor'));
 // Session AV lane 2 (r4-plan, LEDGER #300, #301, #305): Plan my week, the floating repeats and the working hours, their own chunks.
@@ -92,8 +93,8 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
       const progress = objectiveProgress(record, o.id), linkable = openTasks(record, today).filter(t => !t.parentId && t.objective !== o.id).slice(0, 50);
       return <li key={o.id} data-done={o.doneAt ? true : undefined}>
         <label className="tasks-objective-check"><input type="checkbox" checked={!!o.doneAt} onChange={e => list.change(r => finishObjective(r, o.id, e.target.checked, new Date()), e.target.checked ? `Objective reached: “${o.title}”.` : `“${o.title}” is open again.`)} /> <span dir="auto">{o.title}</span></label>
-        <small>{progress.tasks.length ? `${n(progress.done)} of ${n(progress.tasks.length)} tasks done` : 'No tasks linked yet'}{o.goal ? ` · goal: ${goals.byKey.get(o.goal)?.name ?? 'a goal no longer here'}` : ''}</small>
-        {progress.tasks.length > 0 && <ul className="tasks-objective-tasks">{progress.tasks.map(t => <li key={t.id}><span aria-hidden="true">{t.doneAt ? '✓ ' : '○ '}</span><span dir="auto">{t.title}</span>{t.due ? ` · ${day(t.due, today)}` : ''}
+        <small>{progress.tasks.length ? `${n(progress.done)} of ${n(progress.of)} tasks done` : 'No tasks linked yet'}{o.goal ? ` · goal: ${goals.byKey.get(o.goal)?.name ?? 'a goal no longer here'}` : ''}</small>
+        {progress.tasks.length > 0 && <ul className="tasks-objective-tasks">{progress.tasks.map(t => <li key={t.id}><span aria-hidden="true">{isCancelled(t) ? '– ' : t.doneAt ? '✓ ' : '○ '}</span>{isCancelled(t) && <span className="sr-only">(cancelled) </span>}<span dir="auto">{t.title}</span>{t.due ? ` · ${day(t.due, today)}` : ''}
           <button type="button" className="text-link" aria-label={`Unlink “${t.title}” from “${o.title}”`} onClick={() => list.change(r => linkObjective(r, t.id, null), `“${t.title}” no longer serves “${o.title}”.`)}>Unlink</button></li>)}</ul>}
         <span className="tasks-objective-actions">
           {linkable.length > 0 && <label className="field"><span>Link a task</span><select value="" onChange={e => { const tid = e.target.value; const t = record.tasks.find(x => x.id === tid); if (t) list.change(r => linkObjective(r, tid, o.id), `“${t.title}” serves “${o.title}”.`, 'Unlinked again.'); }}><option value="">Choose…</option>{linkable.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</select></label>}
@@ -125,7 +126,7 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
 }
 function WeekTable({list, record, days, today}: {list: List; record: Tasks; days: string[]; today: string}) {
   const plan = useDeviceRecord(TASK_PLAN), byDay = useMemo(() => finishesByDay(plan.data, record, list.doneDay), [plan.data, record, list.doneDay]);
-  const rows = days.map(d => { const tasks = record.tasks.filter(t => !t.parentId && (t.doneAt ? list.doneDay(t.doneAt) === d : t.due === d)); return {d, tasks, pva: plannedVsActual(tasks), done: byDay.get(d) ?? 0}; });
+  const rows = days.map(d => { const tasks = record.tasks.filter(t => !t.parentId && !isCancelled(t) /* review B5L-3 */ && (t.doneAt ? list.doneDay(t.doneAt) === d : t.due === d)); return {d, tasks, pva: plannedVsActual(tasks), done: byDay.get(d) ?? 0}; });
   const goal = plan.data.dailyGoal, streak = goal ? goalStreak(byDay, goal, today) : null, edges = useScrollEdges<HTMLDivElement>();
   return <>
     <h4>Planned and spent</h4>
@@ -247,7 +248,7 @@ function DaysView({list, goals, record, today}: {list: List; goals: Goals; recor
           <tbody>{weeks.map(w => <tr key={w[0]!.day}>{w.map(c => { const all = more.has(c.day), shown = all ? c.tasks : c.tasks.slice(0, 3); return <td key={c.day} data-out={!c.inMonth || undefined} data-today={c.day === today || undefined} data-drop={dragging ? true : undefined} aria-label={`${day(c.day, today)}: ${c.tasks.length ? `${c.tasks.length} ${c.tasks.length === 1 ? 'task' : 'tasks'}` : 'nothing'}`} {...dropOn(c.day)}>
             {moving ? <button type="button" className="tasks-month-day tasks-plan-here" aria-label={`Move “${moving.title}” to ${day(c.day, today)}`} onClick={() => moveTo(moving, c.day)}>{Number(c.day.slice(8))}</button>
               : <span className="tasks-month-day" aria-hidden="true">{Number(c.day.slice(8))}</span>}
-            {shown.map(t => <span key={t.id} className="tasks-month-task" data-done={t.doneAt ? true : undefined} {...dragOf(t)}><TitleButton task={t} edit={edit} />{moveButton(t)}</span>)}
+            {shown.map(t => <span key={t.id} className="tasks-month-task" data-done={isFinished(t) || undefined} data-cancelled={isCancelled(t) || undefined} {...dragOf(t)}><TitleButton task={t} edit={edit} />{moveButton(t)}</span>)}
             {c.tasks.length > 3 && <button type="button" className="text-link tasks-month-more" aria-expanded={all} aria-label={all ? `Show fewer on ${day(c.day, today)}` : `Show ${c.tasks.length - 3} more on ${day(c.day, today)}`} onClick={() => setMore(s => { const next = new Set(s); if (next.has(c.day)) next.delete(c.day); else next.add(c.day); return next; })}>{all ? 'Show fewer' : `+${c.tasks.length - 3} more`}</button>}</td>; })}</tr>)}</tbody></table>
       </div>
     </>}

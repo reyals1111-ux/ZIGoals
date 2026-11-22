@@ -62,16 +62,17 @@ function ItemRow({item}: {item: AgendaItem}) {
 
 /** Session AK (T1): a task on the Agenda — tick it here (the page's status line has the Undo), open it, or focus on it. */
 function TaskItemRow({item, goals, onTick, onMove, today}: {item: TaskAgendaItem; goals: ReadonlyMap<string, GoalOption>; onTick: (item: TaskAgendaItem, done: boolean) => void; onMove: RowProps['onMove']; today: string}) {
-  const goal = item.goal ? goals.get(item.goal) : undefined, done = item.state === 'done';
+  // Session AV lane 2 (r5-plan, review B5L-3): a cancelled task is closed (no Focus, no Move) but never drawn ticked; its box opens it again.
+  const goal = item.goal ? goals.get(item.goal) : undefined, cancelled = !!item.cancelled, done = item.state === 'done' || cancelled;
   const [moving, setMoving] = useState(false), [day, setDay] = useState(item.date), [time, setTime] = useState(item.time ?? '');
   return <li className="agenda-item agenda-task" data-source="task" data-pillar={item.pillar} data-state={item.state} draggable={!done}
     onDragStart={e => { e.dataTransfer.setData(DRAG_TYPE, item.taskId); e.dataTransfer.setData('text/plain', item.title); e.dataTransfer.effectAllowed = 'move'; }}>
     <span className="agenda-time">{item.time ? formatClock(item.time) : 'Any time'}</span>
     <div className="agenda-item-main agenda-task-main">
-      <label className="agenda-task-tick"><input type="checkbox" checked={done} onChange={e => onTick(item, e.target.checked)} /><span className="sr-only">{done ? `Mark “${item.title}” not done` : `Mark “${item.title}” done`}</span></label>
+      <label className="agenda-task-tick"><input type="checkbox" checked={done && !cancelled} onChange={e => onTick(item, cancelled ? false : e.target.checked)} /><span className="sr-only">{cancelled ? `Open “${item.title}” again (cancelled)` : done ? `Mark “${item.title}” not done` : `Mark “${item.title}” done`}</span></label>
       <div className="agenda-task-text">
         <Link prefetch={false} className="agenda-item-title" href={item.href}>{item.title}</Link>
-        <p className="agenda-item-meta"><span>Task</span>{item.priority !== 'normal' && <span> · {PRIORITY_WORDS[item.priority]} priority</span>}{item.overdueSince && <span className="agenda-overdue"> · Overdue since {formatDate(item.overdueSince, {year: false})}</span>}{goal && <span> · {goal.name}</span>}{done && <span className="agenda-badge"> Done</span>}</p>
+        <p className="agenda-item-meta"><span>Task</span>{item.priority !== 'normal' && <span> · {PRIORITY_WORDS[item.priority]} priority</span>}{item.overdueSince && <span className="agenda-overdue"> · Overdue since {formatDate(item.overdueSince, {year: false})}</span>}{goal && <span> · {goal.name}</span>}{done && <span className="agenda-badge">{cancelled ? ' Cancelled' : ' Done'}</span>}</p>
       </div>
       {!done && <Link prefetch={false} className="text-link agenda-task-focus" href={`/app/tasks?focus=${encodeURIComponent(item.taskId)}`} aria-label={`Focus on “${item.title}”`}>Focus</Link>}
       {!done && <button type="button" className="text-link agenda-task-focus" aria-expanded={moving} aria-label={`Move “${item.title}” to another day or time`} onClick={() => setMoving(m => !m)}>Move</button>}

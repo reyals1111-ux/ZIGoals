@@ -8,6 +8,7 @@ import {getAppStorage} from '../showcase-storage';
 import {TASK_PLAN, type TaskPlan} from './plan-record';
 import {blockProgress, blockTasks, blocksOn, leaveBy} from './time-blocks-read';
 import {formatClock} from '../visual-format';
+import {isCancelled, isFinished} from './finished';
 
 /**
  * Session AL (PR-103, N-PR-08, P-PR-41): tasks on the Day Timeline — the day's tasks as the Agenda shows them (due that
@@ -21,8 +22,8 @@ export function taskTimelineItems(record: Tasks | null, date: string, today: str
   return tasksOnDay(record, date, today, doneDay).map(t => ({
     // Session AV lane 2 (r3-plan, LEDGER #257): the task's own symbol and colour.
     ...((l => l ? {glyph: l.glyph, colour: LOOK_HEX[l.colour]} : {})(taskLook(t))),
-    id: t.id, title: t.title, done: !!t.doneAt, href: `/app/tasks?task=${encodeURIComponent(t.id)}`, band: bandOf(t.time), ...(t.time ? {time: t.time} : {}),
-    pillar: t.goal ? 'goals' : null, label: t.due && isLate(t, date) && !t.doneAt ? 'Task · overdue' : 'Task',
+    id: t.id, title: t.title, done: isFinished(t), ...(isCancelled(t) ? {cancelled: true as const} : {}), /* review B5L-3 */ href: `/app/tasks?task=${encodeURIComponent(t.id)}`, band: bandOf(t.time), ...(t.time ? {time: t.time} : {}),
+    pillar: t.goal ? 'goals' : null, label: isCancelled(t) ? 'Task · cancelled' : t.due && isLate(t, date) && !t.doneAt ? 'Task · overdue' : 'Task', lockedReason: 'Its day and time are set in Tasks.',
   }));
 }
 /**
@@ -33,14 +34,14 @@ export function blockTimelineItems(record: Tasks | null, plan: Pick<TaskPlan, 'b
   return blocksOn(plan, date).map(b => {
     const p = record ? blockProgress(blockTasks(record, b, date)) : {done: 0, total: 0};
     return {id: `block:${b.id}:${date}`, title: b.name, done: false, href: '/app/tasks?view=today', band: bandOf(b.from), time: b.from, minutes: (Number(b.to.slice(0, 2)) * 60 + Number(b.to.slice(3))) - (Number(b.from.slice(0, 2)) * 60 + Number(b.from.slice(3))), colour: LOOK_HEX[b.colour], pillar: null,
-      label: `Time block · until ${formatClock(b.to)}${p.total ? ` · ${p.done} of ${p.total} done` : ''}`};
+      label: `Time block · until ${formatClock(b.to)}${p.total ? ` · ${p.done} of ${p.total} done` : ''}`, lockedReason: 'Set in Tasks → This week → Time blocks.'};
   });
 }
 export function travelTimelineItems(record: Tasks | null, date: string): TimelineSourceItem[] {
   if (!record) return [];
   return record.tasks.filter(t => !t.doneAt && t.travel && t.time && t.due === date).flatMap(t => {
     const leave = leaveBy(t.time!, t.travel!);
-    return leave ? [{id: `travel:${t.id}`, title: `Travel to “${t.title}”`, done: false, href: `/app/tasks?task=${encodeURIComponent(t.id)}`, band: bandOf(leave), time: leave, minutes: t.travel!, pillar: null, label: `Travel · leave by ${formatClock(leave)}`}] : [];
+    return leave ? [{id: `travel:${t.id}`, title: `Travel to “${t.title}”`, done: false, href: `/app/tasks?task=${encodeURIComponent(t.id)}`, band: bandOf(leave), time: leave, minutes: t.travel!, pillar: null, label: `Travel · leave by ${formatClock(leave)}`, lockedReason: 'Its travel minutes are set in the task’s editor.'}] : [];
   });
 }
 export const tasksTimelineSource: TimelineSource = ({date, now}) => {

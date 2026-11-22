@@ -181,7 +181,7 @@ describe('travel minutes (LEDGER #353)', () => {
     const r = editTask(add(empty(), 'd', {title: 'Fictional dentist', due: MON, time: '09:00', minutes: 30}), 'd', {travel: 20}, MON);
     expect(taskBusy(r, MON)).toEqual([{start: 520, end: 570, title: 'Fictional dentist'}]);
     expect(leaveBy('09:00', 20)).toBe('08:40'); expect(leaveBy('00:10', 20)).toBeNull();
-    expect(travelTimelineItems(r, MON)).toEqual([{id: 'travel:d', title: 'Travel to “Fictional dentist”', done: false, href: '/app/tasks?task=d', band: 'morning', time: '08:40', minutes: 20, pillar: null, label: 'Travel · leave by 8:40 AM'}]);
+    expect(travelTimelineItems(r, MON)).toEqual([{id: 'travel:d', title: 'Travel to “Fictional dentist”', done: false, href: '/app/tasks?task=d', band: 'morning', time: '08:40', minutes: 20, pillar: null, label: 'Travel · leave by 8:40 AM', lockedReason: 'Its travel minutes are set in the task’s editor.'}]); // Session AV lane 2 (review B5L-12: a span says where it is set, deliberate)
     const item = {id: 'event:cal_abcdefgh:0123456789abcdef:2026-11-23', time: '14:00', minutes: 60, title: 'Fictional meeting'};
     expect(eventIdOf(item.id)).toBe('0123456789abcdef');
     const p = setEventTravel(emptyTaskPlan(), '0123456789abcdef', 25);

@@ -18,6 +18,7 @@ export {blockProgress, blockTasks, blocksOn, eventIdOf, eventTravel, leaveBy};
  */
 export type BlockInput = {name: string; colour: BlockColour; from: string; to: string; days?: number[]; on?: string};
 export const BLOCK_LOOK_AHEAD = 60;
+export const REPEAT_BLOCK_MESSAGE = 'A repeating task moves to its next day when ticked, so it is not put in a time block.';
 const CLOCK = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 function checkBlock(input: BlockInput): void {
   const name = input.name.trim();
@@ -60,6 +61,8 @@ export function dropIntoBlock(record: Tasks, taskId: string, block: TimeBlock, d
   const task = record.tasks.find(t => t.id === taskId);
   if (!task) throw new Error('That task is no longer on this device.');
   if (task.doneAt) throw new Error('That task is already closed.');
+  // Review B5L-9: a repeating task moves on when ticked, so it would leave the block's count; it keeps its own day.
+  if (task.recur) throw new Error(REPEAT_BLOCK_MESSAGE);
   if (block.on && block.on !== day) throw new Error('That block is on another day.');
   const stamp = at.toISOString();
   return tasksSchema.parse({...record, tasks: record.tasks.map(t => { if (t.id !== taskId) return t; const out: Record<string, unknown> = {...t, due: day, block: block.id, updatedAt: stamp}; delete out.plan; if (t.time && (t.time < block.from || t.time >= block.to)) delete out.time; return out; })});

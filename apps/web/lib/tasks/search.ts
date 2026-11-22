@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {taskLevel, type Task, type TaskLevel, type Tasks} from './schema';
 import {taskState} from './engine';
+import {isFinished} from './finished';
 
 /**
  * Session AL (Part 8, P-LS-05 / LS-005, LS-047, LS-H47): finding tasks by words and simple operators, for the Tasks
@@ -48,7 +49,7 @@ function term(raw: string, ctx: TaskSearchContext, record: Tasks): Pred | null {
     const a = /^due(?:_|-)?after:(\d{4}-\d{2}-\d{2})$/.exec(low); if (a) return t => !!t.due && t.due > a[1]!;
     if (low === 'recurring' || low === 'repeating') return t => !!t.recur;
     if (low === 'subtask' || low === 'subtasks') return t => !!t.parentId;
-    if (low === 'done' || low === 'completed') return t => !!t.doneAt;
+    if (low === 'done' || low === 'completed') return t => isFinished(t); // review B5L-3: a cancelled one is `cancelled`
     if (low === 'open') return t => !t.doneAt;
     // Session AV lane 2 (r5-plan, LEDGER #350, #349): Doing, Cancelled, and a week or a month without a day.
     if (low === 'doing') return t => !t.doneAt && t.state?.kind === 'doing';
@@ -95,7 +96,7 @@ export async function searchTasks(query: string, {today, limit = 20, storage}: {
   const names = new Map((record.projects ?? []).map(p => [p.id, p.name]));
   return matchTasks(record, query, {today: day}).slice(0, limit).map(t => ({
     id: t.id, title: t.title,
-    detail: ['Task', t.doneAt ? 'done' : t.due ? (t.due < day ? `overdue · ${t.due}` : t.due === day ? 'today' : t.due) : 'no date', t.projectId ? `#${names.get(t.projectId) ?? 'project'}` : 'Inbox', ...(t.labels ?? []).map(l => `@${l}`)].join(' · '),
+    detail: ['Task', t.doneAt ? (isFinished(t) ? 'done' : 'cancelled') : t.due ? (t.due < day ? `overdue · ${t.due}` : t.due === day ? 'today' : t.due) : 'no date', t.projectId ? `#${names.get(t.projectId) ?? 'project'}` : 'Inbox', ...(t.labels ?? []).map(l => `@${l}`)].join(' · '),
     href: `/app/tasks?task=${encodeURIComponent(t.id)}`,
   }));
 }
