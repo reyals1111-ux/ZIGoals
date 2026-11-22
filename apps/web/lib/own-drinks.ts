@@ -78,7 +78,9 @@ export function moveOwnDrink(extras: HealthExtras, id: string, by: -1 | 1): Heal
 /** What one tap of a drink notes on its water entry: its type, caffeine, energy and sugar, copied from the drink. */
 export const tapNote = (d: OwnDrink) => ({type: d.type, caffeineMg: d.caffeineMg, more: {own: d.id, ...(d.kcal !== undefined ? {kcal: d.kcal} : {}), ...(d.sugarG !== undefined ? {sugarG: d.sugarG} : {})}});
 
-export type DrinkEnergyDay = {kcal: number | null; sugarG: number | null; withKcal: number; withSugar: number; drinks: number; lines: {name: string; kcal?: number; sugarG?: number; ml: number}[]};
+export type DrinkEnergyDay = {kcal: number | null; sugarG: number | null; withKcal: number; withSugar: number; drinks: number;
+  /** Review B3B-6: the drinks with an energy or a sugar typed, and those (not water) with neither. */
+  counted: number; uncounted: number; lines: {name: string; kcal?: number; sugarG?: number; ml: number}[]};
 const entryMl = (w: Pick<WaterEntry, 'amountMilli' | 'unit'>) => w.unit === 'ml' ? w.amountMilli / 1000 : w.amountMilli / 1000 * ML_PER_US_FL_OZ;
 /**
  * The energy and sugar of a day's drinks, from what was typed (each entry's own value, as logged: a drink's energy is per
@@ -96,5 +98,5 @@ export function drinkEnergyDay(extras: HealthExtras | null | undefined, water: r
     if (d.sugarG !== undefined) { sugar += d.sugarG; withSugar++; }
     if (d.kcal !== undefined || d.sugarG !== undefined) lines.push({name: ownDrinkOf(extras, d.own)?.name ?? (d.type === 'soft drink' ? 'Soft drink' : d.type[0]!.toUpperCase() + d.type.slice(1)), ml: Math.round(entryMl(w)), ...(d.kcal !== undefined ? {kcal: d.kcal} : {}), ...(d.sugarG !== undefined ? {sugarG: d.sugarG} : {})});
   }
-  return {kcal: withKcal ? kcal : null, sugarG: withSugar ? Math.round(sugar * 10) / 10 : null, withKcal, withSugar, drinks, lines};
+  return {kcal: withKcal ? kcal : null, sugarG: withSugar ? Math.round(sugar * 10) / 10 : null, withKcal, withSugar, drinks, counted: lines.length, uncounted: drinks - lines.length, lines};
 }

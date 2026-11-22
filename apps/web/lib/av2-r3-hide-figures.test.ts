@@ -13,9 +13,9 @@ import {addMoreGoal, emptyMoreGoals} from './health-goals/more';
 const hidden = (html: string, figure: string) => new RegExp(`data-body-figure=""[^>]*>[^<]*(?:<[^>]+>[^<]*)*${figure}`).test(html);
 describe('hide calories and weight', () => {
   test('the water card’s line of today’s drink energy', () => {
-    const html = renderToStaticMarkup(createElement(DrinkDayEnergy, {energy: {kcal: 250, sugarG: 21.5, withKcal: 2, withSugar: 1, drinks: 2, lines: []}}));
+    const html = renderToStaticMarkup(createElement(DrinkDayEnergy, {energy: {kcal: 250, sugarG: 21.5, withKcal: 2, withSugar: 1, drinks: 2, counted: 2, uncounted: 0, lines: []}}));
     expect(html).toMatch(/^<p class="fine" data-body-figure="">From today’s drinks/);
-    expect(renderToStaticMarkup(createElement(DrinkDayEnergy, {energy: {kcal: null, sugarG: null, withKcal: 0, withSugar: 0, drinks: 1, lines: []}}))).toBe('');
+    expect(renderToStaticMarkup(createElement(DrinkDayEnergy, {energy: {kcal: null, sugarG: null, withKcal: 0, withSugar: 0, drinks: 1, counted: 0, uncounted: 1, lines: []}}))).toBe('');
   });
   test('an own drink’s kcal sits in its own hidden span; the size and caffeine stay', () => {
     const html = renderToStaticMarkup(facts({id: 'oat-latte', name: 'Oat latte', type: 'coffee', sizeMl: 300, caffeineMg: 80, kcal: 130, sugarG: 7.5}));

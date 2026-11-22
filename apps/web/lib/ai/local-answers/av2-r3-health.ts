@@ -49,7 +49,7 @@ function drinkEnergy(a: Asked): LocalReply | null {
   const day = drinkEnergyDay(extras, dailyData(a.env.health!).water, a.env.healthDay);
   if (day.kcal === null && day.sugarG === null) return answer(say(a.lang, 'No drink today has calories or sugar typed for it, so nothing is counted. Type them in the water form, or make one of your drinks with them in Health → Water → Your drinks. Nothing is guessed.', 'Geen drankje van vandaag heeft calorieën of suiker ingevuld, dus er telt niets. Vul ze in bij water, of maak er een eigen drankje mee in Health → Water → Your drinks. Er wordt niets geschat.'), HEALTH_CALLS);
   const parts = [day.kcal !== null ? `${num(day.kcal)} kcal` : null, day.sugarG !== null ? say(a.lang, `${num(day.sugarG)} g sugar`, `${num(day.sugarG)} g suiker`) : null].filter(Boolean).join(' · ');
-  const n = Math.max(day.withKcal, day.withSugar);
+  const n = day.counted; // review B3B-6: drinks with an energy or a sugar typed
   return answer(say(a.lang, `From today’s drinks, as you typed them: ${parts}, from ${n} ${n === 1 ? 'drink' : 'drinks'} (${list(day.lines.map(l => l.name), 'en')}). Nothing is guessed.`, `Uit de drankjes van vandaag, zoals je ze invulde: ${parts}, van ${n} ${n === 1 ? 'drankje' : 'drankjes'} (${list(day.lines.map(l => l.name), 'nl')}). Er wordt niets geschat.`), HEALTH_CALLS);
 }
 /** "when are my water reminders", "wanneer zijn mijn waterherinneringen" (LEDGER #280): the times and today's pace. */

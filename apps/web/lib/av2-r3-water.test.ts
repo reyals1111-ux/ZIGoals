@@ -124,9 +124,19 @@ describe('energy and sugar from drinks, only as typed (LEDGER #282)', () => {
     x = setDrink(x, 'w-2', 'coffee', 95);
     x = setDrink(x, 'w-3', 'soft drink', undefined, {kcal: 140});
     const day = drinkEnergyDay(x, [entry('w-1', 250), entry('w-2', 200), entry('w-3', 330), entry('w-4', 500), entry('w-5', 250, '2026-11-19')], TODAY);
-    expect(day).toMatchObject({kcal: 250, sugarG: 21, withKcal: 2, withSugar: 1, drinks: 3});
+    expect(day).toMatchObject({kcal: 250, sugarG: 21, withKcal: 2, withSugar: 1, drinks: 3, counted: 2, uncounted: 1});
     expect(day.lines.map(l => l.name)).toEqual(['Orange juice', 'Soft drink']);
     expect(drinkEnergyDay(x, [entry('w-2', 200), entry('w-4', 500)], TODAY)).toMatchObject({kcal: null, sugarG: null});
+  });
+});
+
+// Session AV lane 2 (review B3B-6): a drink with only kcal and one with only sugar are both counted.
+describe('counting the drinks with an amount', () => {
+  it('counts a drink with an energy or a sugar typed, and only the others as without an amount', () => {
+    let x: HealthExtras = setDrink(emptyHealthExtras(), 'w-1', 'juice', undefined, {kcal: 110});
+    x = setDrink(x, 'w-2', 'milk', undefined, {sugarG: 12});
+    x = setDrink(x, 'w-3', 'tea', 20);
+    expect(drinkEnergyDay(x, [entry('w-1', 250), entry('w-2', 200), entry('w-3', 250)], TODAY)).toMatchObject({counted: 2, uncounted: 1, kcal: 110, sugarG: 12});
   });
 });
 

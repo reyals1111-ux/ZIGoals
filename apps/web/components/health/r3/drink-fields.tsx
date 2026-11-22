@@ -44,10 +44,11 @@ export function DrinkEnergyLine({data, date, foodKcal}: {data: HealthData; date:
   const {extras} = useHealthExtras();
   const day = drinkEnergyDay(extras, dailyData(data).water, date);
   if (day.kcal === null && day.sugarG === null) return null;
-  const counted = Math.max(day.withKcal, day.withSugar);
+  // Review B3B-6: the drinks with an energy or a sugar typed (one with only sugar counts too).
+  const counted = day.counted;
   return <p className="fine r3-drink-line" data-body-figure="">
     <strong>Drinks</strong>: {[day.kcal !== null ? `${formatNumber(day.kcal)} kcal` : null, day.sugarG !== null ? `${formatNumber(day.sugarG, {maximumFractionDigits: 1})} g sugar` : null].filter(Boolean).join(' · ')} from {counted} {plural(counted, 'drink')} as you typed them
-    {day.drinks > counted ? ` (${day.drinks - counted} more without an amount, not counted)` : ''}.
+    {day.uncounted ? ` (${day.uncounted} more without an amount, not counted)` : ''}.
     {foodKcal !== null && day.kcal !== null ? ` Food and drinks together: ${formatNumber(foodKcal + day.kcal)} kcal.` : ''}
   </p>;
 }
