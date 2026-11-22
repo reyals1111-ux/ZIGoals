@@ -47,7 +47,9 @@ for (const theme of THEMES) test(`${theme}: 10% down from today's 70,000, and th
   const value = page.locator('details.portfolio-value-alert').first();
   await value.locator('summary').click();
   const vform = value.getByRole('form', {name: 'Value alert for Fictional coins'});
-  await vform.getByLabel('Worth').selectOption('above');
+  // Session AV lane 2 (the radio labels "worth above or below…" share the word, deliberate): the Worth select, whose name
+  // starts with a capital W (the radios' start lower case; a label round a select also names its options).
+  await vform.getByRole('combobox', {name: /^Worth/}).selectOption('above');
   await vform.getByLabel('Value (USD)').fill('30000');
   await vform.getByRole('button', {name: 'Set alert'}).click();
   // Session AV lane 2 (loose ends: the value alert's amounts through the app's money formatter, deliberate)

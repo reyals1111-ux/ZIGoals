@@ -56,7 +56,8 @@ for (const theme of THEMES) test(`${theme}: a 24 h move alert, a portfolio perce
   await vform.getByRole('combobox', {name: /^Moves/}).selectOption('down');
   await vform.getByLabel('By at least (%)').fill('10');
   await vform.getByRole('button', {name: 'Set alert'}).click();
-  await expect(vform.getByRole('status')).toContainText('Alert set: Fictional coins worth 10% down from 42000 USD.');
+  // Session AV lane 2 (loose-ends #3: the value alert writes money with the app's formatter, deliberate): the exact new words.
+  await expect(vform.getByRole('status')).toContainText('Alert set: Fictional coins worth 10% down from $42,000.00.');
   // Count in results: the gift left out; its coins still count in the value.
   // Session AV lane 2 (the portfolio's third tab is named "Transactions" since Session AL: its own name, exactly, deliberate)
   await page.getByRole('tab', {name: 'Transactions', exact: true}).first().click();

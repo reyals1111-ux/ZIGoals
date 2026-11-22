@@ -16,7 +16,7 @@ test('the Remove button of money in names the amount as money', async ({page}) =
   const joint = page.getByRole('group', {name: 'SHEET · Joint savings'});
   await joint.locator('summary', {hasText: 'Money in and out'}).click();
   await joint.getByLabel(/^Amount \(EUR\)/).fill('9000');
-  await joint.getByLabel('On').fill('2025-11-14');
+  await joint.getByRole('textbox', {name: 'On', exact: true}).fill('2025-11-14');
   await joint.getByRole('button', {name: 'Add', exact: true}).click();
   await expect(joint.getByRole('button', {name: 'Remove money in of €9,000.00 on Nov 14, 2025'})).toBeVisible();
   await expect(joint.getByRole('button', {name: /of 9000\.00 on/})).toHaveCount(0);
