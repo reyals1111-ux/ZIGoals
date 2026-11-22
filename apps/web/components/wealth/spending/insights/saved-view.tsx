@@ -24,7 +24,7 @@ function Bars({chart}: {chart: QuestionChart}) {
   return <svg className="money-insights-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${chart.currency}: ${chart.figure} ${chart.by === 'category' ? 'by category' : `each ${chart.by}`}, as bars; the table lists the same figures`}>
     <line className="axis" x1={PAD} x2={W - PAD} y1={H - PAD} y2={H - PAD}/>
     {chart.by !== 'category' && chart.monthly > 0 && chart.by === 'month' && <line className="money-saved-average" x1={PAD} x2={W - PAD} y1={H - PAD - (chart.monthly / max) * (H - PAD * 2)} y2={H - PAD - (chart.monthly / max) * (H - PAD * 2)}/>}
-    {chart.bars.map((b, i) => { const h = (b.cents / max) * (H - PAD * 2); return b.cents > 0 && <rect key={b.key} className="bar-out" x={PAD + i * step + (step - bar) / 2} y={H - PAD - h} width={bar} height={h} rx={Math.min(4, bar / 2)}><title>{barLabel(chart, b.key)}: {money(b.cents, chart.currency)}</title></rect>; })}
+    {chart.bars.map((b, i) => { const h = (b.cents / max) * (H - PAD * 2); return b.cents > 0 && <rect key={b.key} className="bar-out" x={PAD + i * step + (step - bar) / 2} y={H - PAD - h} width={bar} height={h} rx={Math.min(4, bar / 2)}><title>{barLabel(chart, b.key)}</title>{/* Review b4f #10: no amount in the tooltip, so Hide amounts hides every amount; the table has them. */}</rect>; })}
   </svg>;
 }
 export default function SavedView({entries, today, weekStartsOn = 'monday'}: InsightProps) {
