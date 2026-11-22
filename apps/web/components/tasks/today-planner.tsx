@@ -9,7 +9,7 @@ import {DEFAULT_BLOCK, addSpent, fitDay, overLimit, plannedVsActual, taskBusy, t
 import {TASK_PLAN, finishesByDay, goalStreak, harvestDoneLog, runningTimer, settleTimers, startTimer, stopTimer, timerMinutes} from '../../lib/tasks/plan-record';
 import {editMany, waitingFor} from '../../lib/tasks/engine';
 import {planAgain} from '../../lib/tasks/pieces';
-import {afterHours, hoursOn} from '../../lib/tasks/work-hours';
+import {afterHours, hoursOn, hoursUntil} from '../../lib/tasks/work-hours';
 import './tasks-r4.css';
 import {minutesWords} from '../../lib/tasks/minutes';
 import type {Task, Tasks} from '../../lib/tasks/schema';
@@ -56,7 +56,7 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
   // Session AV lane 2 (r4-plan, LEDGER #301, #304): inside the working hours ("after hours" tasks in the evening); a waiting task is not placed.
   const fit = useMemo(() => {
     const first = hours[0]?.from ?? '09:00', ready = open.filter(t => !waitingFor(record, t).length).map(t => planAgain(t, today, clock) ? {...t, time: undefined} : t);
-    return fitDay(ready, busy, {from: clock < first ? first : clock, until, windows: untilTyped ? hours.map(b => ({from: b.from, to: b.to < until ? b.to : until})).filter(b => b.from < b.to) : hours, after: [evening]});
+    return fitDay(ready, busy, {from: clock < first ? first : clock, until, windows: untilTyped ? hoursUntil(hours, until) : hours, after: [evening]});
   }, [open, busy, clock, until, untilTyped, hours, evening, record, today]);
   const waiting = record.tasks.filter(t => !t.doneAt && !t.parentId && t.due && t.due <= today).map(t => ({t, on: waitingFor(record, t)})).filter(w => w.on.length);
   const pva = plannedVsActual(open.concat(record.tasks.filter(t => t.doneAt && doneDay(t.doneAt) === today && !t.parentId)));
@@ -93,7 +93,8 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
     <details className="tasks-fit-day">
       <summary>Fit my day around the Agenda</summary>
       <p className="fine">Tasks without a time go into the free time inside your working hours ({hours.length ? hours.map(b => `${formatClock(b.from)}–${formatClock(b.to)}`).join(' and ') : 'today is a day off'}; set them in Tasks → This week), between your timed tasks and calendar events, each for its minutes (30 when it has none). An “after hours” task goes in the evening; a long task with pieces goes piece by piece. Background tasks take no slot.</p>
-      <label className="field"><span>My day ends at</span><input type="time" value={until} onChange={e => setUntil(e.target.value || null)} /></label>
+      <label className="field"><span>My day ends at</span><input type="time" value={until} aria-describedby={`${id}-until`} onChange={e => setUntil(e.target.value || null)} />
+        <small id={`${id}-until`} className="tasks-field-note">{hours.length ? 'Moves the end of today’s last hours, later or earlier, for this visit only.' : 'Today is a day off in your working hours, so nothing is placed.'}</small></label>
       {busy.length > 0 && <p className="fine">Fixed today: {[...busy].sort((a, b) => a.start - b.start).map(b => `${formatClock(toClock(b.start))} ${b.title}`).join(' · ')}</p>}
       {fit.placed.length ? <><ol className="tasks-fit-list" aria-label="A plan for today">{fit.placed.map(p => <li key={`${p.task.id}:${p.part ?? 1}`}>
         <span><strong>{formatClock(p.start)}–{formatClock(p.end)}</strong> <span dir="auto">{p.task.title}</span>{p.part ? <small> · part {formatNumber(p.part)} of {formatNumber(p.of!)}</small> : null}{p.task.minutes ? '' : <small> · 30 min, it has no length</small>}</span>

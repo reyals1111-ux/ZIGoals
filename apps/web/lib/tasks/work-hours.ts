@@ -28,6 +28,15 @@ export const taskHoursOn = (plan: Pick<TaskPlan, 'workHours'>, day: string, task
 /** Whether the person has set any hours of their own. */
 export const hoursSet = (plan: Pick<TaskPlan, 'workHours'>) => !!plan.workHours && (Object.keys(plan.workHours.days ?? {}).length > 0 || !!plan.workHours.after);
 
+/**
+ * Session AV lane 2 (r4-plan, review B4D-3): the day's hours with "My day ends at" typed for this visit. The day's last block
+ * ends then, later or earlier (so with the usual hours, as before round 4, a typed 21:00 places tasks until 21:00); an
+ * earlier block is cut at it; a block that starts at or after it is left out. A day off stays a day off. Pure.
+ */
+export function hoursUntil(blocks: readonly HoursBlock[], until: string): HoursBlock[] {
+  const last = blocks.length - 1;
+  return blocks.map((b, i) => ({from: b.from, to: i === last ? until : b.to < until ? b.to : until})).filter(b => b.from < b.to);
+}
 /** The times outside the blocks, as busy blocks of the day (so the day's first-fit never places a task there). */
 export function closedBusy(blocks: readonly HoursBlock[]): Busy[] {
   const out: Busy[] = [];

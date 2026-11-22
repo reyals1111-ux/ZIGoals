@@ -4,7 +4,8 @@ import {emptyTaskPlan} from './plan-record';
 import {fitWeek, keepPlacements, weekCandidates} from './plan-week';
 import {flexRule} from './recurrence';
 import {emptyTasks, type Tasks} from './schema';
-import {setWeekdayHours} from './work-hours';
+import {hoursOn, hoursUntil, setWeekdayHours} from './work-hours';
+import {fitDay} from './layouts';
 import {taskAgendaItems} from '../agenda/time-items';
 import {taskTimelineItems} from './timeline-source';
 
@@ -14,6 +15,25 @@ const plants = (): Tasks => addTask(emptyTasks(), {title: 'Fictional plants', mi
 const p = (r: Tasks) => r.tasks.find(t => t.id === 'p')!;
 const day = (iso: string) => iso.slice(0, 10);
 const taskItems = (r: Tasks, today: string) => ({overdueSince: taskAgendaItems(r, today, today, today, day)[0]?.overdueSince, label: taskTimelineItems(r, today, today, day)[0]?.label});
+
+describe('B4D-3: “My day ends at” moves the end of the day’s last hours, later or earlier', () => {
+  test('with the usual hours (none set) a later end places tasks past 18:00, as before round 4', () => {
+    const r = addTask(addTask(emptyTasks(), {title: 'Fictional A', due: MON, minutes: 480}, {id: 'a', at, today: MON}), {title: 'Fictional B', due: MON, minutes: 120}, {id: 'b', at, today: MON});
+    const hours = hoursOn(emptyTaskPlan(), MON);
+    expect(hoursUntil(hours, '21:00')).toEqual([{from: '09:00', to: '21:00'}]);
+    const fit = fitDay(r.tasks, [], {from: '09:00', until: '21:00', windows: hoursUntil(hours, '21:00')});
+    expect(fit.placed.map(x => [x.task.id, x.start, x.end])).toEqual([['a', '09:00', '17:00'], ['b', '17:00', '19:00']]);
+    expect(fitDay(r.tasks, [], {from: '09:00', until: '16:00', windows: hoursUntil(hours, '16:00')}).placed.map(x => [x.task.id, x.start, x.end])).toEqual([['b', '09:00', '11:00']]);
+  });
+  test('with working hours set: the last block is extended or shortened; an earlier block is cut; a later one is left out; a day off stays off', () => {
+    const two = [{from: '09:00', to: '12:30'}, {from: '13:30', to: '17:00'}];
+    expect(hoursUntil(two, '19:00')).toEqual([{from: '09:00', to: '12:30'}, {from: '13:30', to: '19:00'}]);
+    expect(hoursUntil(two, '15:00')).toEqual([{from: '09:00', to: '12:30'}, {from: '13:30', to: '15:00'}]);
+    expect(hoursUntil(two, '13:00')).toEqual([{from: '09:00', to: '12:30'}]);
+    expect(hoursUntil(two, '11:00')).toEqual([{from: '09:00', to: '11:00'}]);
+    expect(hoursUntil([], '21:00')).toEqual([]);
+  });
+});
 
 describe('B4D-2: a floating repeat keeps floating after a Keep', () => {
   const weekdays = setWeekdayHours(setWeekdayHours(emptyTaskPlan(), [1, 2, 3, 4, 5], [{from: '09:00', to: '17:00'}]), [0, 6], []);
