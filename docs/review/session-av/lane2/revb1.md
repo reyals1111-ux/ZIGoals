@@ -107,3 +107,26 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
   unchanged and green.
 - Spec (lead runs): apps/web/tests/revb1-zigi-notes.spec.ts.
 - Answers wiring: none new (av2JournalAnswer is already wired). Stored changes: none.
+
+## #7 Major (depth): the Tasks Table, Calendar and Timeline were read-only
+
+- Verdict: fixed (drag on the Timeline's bars is not built: the Calendar takes drags and the keyboard move; the Timeline
+  opens each task's editor, where its day and deadline change — the reviewer's "dragging can come later").
+- Fix (components/tasks/tasks-plan-views.tsx, its own chunk): in the Table, both Calendar layouts and the Timeline each
+  task's title is a button (`.tasks-plan-task`, `aria-expanded`) that opens the list's own task editor (lazy, the same
+  chunk a row uses) under the view; Save is the list's edit with its Undo; Cancel or Escape closes it and focus goes back
+  to the title. In the Calendar an open task can be dragged to another day (3 days: a day column; month: a day cell) or
+  moved with the keyboard: "Move" on the task (`Move “…” to another day`), then "Move here" on a day (3 days) or the
+  day's number (month), named `Move “…” to Wed, Nov 25`; a status line says what is moving, with "Cancel the move".
+  A move is the list's change (`editMany` → `due`, the time kept), with Undo ("… is back on …"), and focus goes to the
+  moved task. A month day's "+N more" is a button (`Show N more on …`, `aria-expanded`) that shows the rest; "Show
+  fewer" folds it again. A teaching line under each layout says what a title does.
+- CSS: components/tasks/tasks-plan.css (theme variables only; 44 px targets; no new animation).
+- Tests: apps/web/lib/tasks/revb1-plan-views.test.ts (server render of the three layouts, and the move's change).
+  Spec (lead runs): apps/web/tests/revb1-plan-views-edit.spec.ts (Table edit + focus back, keyboard move and drag in
+  3 days, month "+1 more", Timeline edit, axe, 320 px).
+- Stored changes: none. Showcase: nothing new (the Showcase's tasks show in these layouts already).
+- Help (EN): Q "Can I change a task from the Table, Calendar or Timeline?" A "Yes. Choose a task’s name to open its
+  editor. In the Calendar, drag a task to another day, or choose Move and then Move here on the day (in a month, the
+  day’s number). A day’s “+2 more” shows the rest."
+- What's new: "Open, edit and move tasks from the Table, Calendar and Timeline."

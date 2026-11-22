@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type DragEvent, type ReactNode} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus} from '../ui/undo-toast';
 import TaskPlanSettings from './task-plan-settings';
@@ -19,6 +19,8 @@ import {formatClock, formatDate, formatMonth, formatNumber, formatWeekday} from 
 const WEEK_HEADS = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'] as const;
 import TasksOrganise from './tasks-organise';
 import './tasks-plan.css';
+// Review b1 #7: the task editor the list uses, opened from the Table, Calendar and Timeline (its own chunk, as on a row).
+const TaskEditor = lazy(() => import('./task-editor'));
 
 /**
  * Session AV lane 2 (tasks; Sunsama, Todoist, TickTick, Notion), one chunk loaded when one of these Tasks views opens:
@@ -30,6 +32,11 @@ import './tasks-plan.css';
  * - "Insights" (LEDGER #13, #30, #9): a year of finished tasks as a heatmap, and a chart built from your lists.
  * - "Areas and templates" (LEDGER #10, #12, #17, #20, #28): tasks-organise.tsx.
  * Every write is the list's own change, with its Undo.
+ * Review b1 #7 (Todoist's table and calendar, TickTick's timeline are where you reschedule): in the Table, the Calendar
+ * and the Timeline a task's title is a button that opens the list's own editor under the view (Escape or Cancel closes
+ * it and gives focus back to the title); in the Calendar an open task can be dragged to another day, or moved with the
+ * keyboard — "Move" on the task, then "Move here" on a day (in the month, the day's number) — and a month day's "+N
+ * more" shows the rest of that day.
  */
 export type PlanKind = 'week' | 'table' | 'days' | 'timeline' | 'insights' | 'organise';
 type List = ReturnType<typeof useTaskList>;
@@ -39,9 +46,9 @@ const day = (d: string, today: string, weekday = true) => formatDate(d, {weekday
 export default function TasksPlanViews({kind, list, goals}: {kind: PlanKind; list: List; goals: Goals}) {
   const record = list.tasks.data, today = list.today;
   if (kind === 'week') return <WeekView list={list} goals={goals} record={record} today={today} />;
-  if (kind === 'table') return <TableView list={list} record={record} today={today} />;
-  if (kind === 'days') return <DaysView list={list} record={record} today={today} />;
-  if (kind === 'timeline') return <TimelineView record={record} today={today} />;
+  if (kind === 'table') return <TableView list={list} goals={goals} record={record} today={today} />;
+  if (kind === 'days') return <DaysView list={list} goals={goals} record={record} today={today} />;
+  if (kind === 'timeline') return <TimelineView list={list} goals={goals} record={record} today={today} />;
   if (kind === 'insights') return <InsightsView list={list} record={record} today={today} />;
   return <TasksOrganise list={list} record={record} today={today} />;
 }
@@ -111,16 +118,42 @@ function WeekTable({list, record, days, today}: {list: List; record: Tasks; days
   </>;
 }
 
+/* ---- Opening a task's editor from a layout (review b1 #7) -------------------------------------------------------- */
+
+/** Focuses the first field inside `box` once the editor's chunk is there (up to a second). */
+const focusWhenThere = (box: () => HTMLElement | null, selector: string) => { let tries = 0; const find = () => { const el = box()?.querySelector<HTMLElement>(selector); if (el) el.focus(); else if (tries++ < 60) requestAnimationFrame(find); }; requestAnimationFrame(find); };
+function usePlanEditor(list: List, goals: Goals, today: string) {
+  const [editing, setEditing] = useState<string | null>(null), opener = useRef<HTMLElement | null>(null), box = useRef<HTMLDivElement>(null);
+  const open = (t: Task, from: HTMLElement) => {
+    if (editing === t.id) { setEditing(null); return; }
+    opener.current = from; setEditing(t.id);
+    requestAnimationFrame(() => box.current?.scrollIntoView({block: 'nearest'}));
+    focusWhenThere(() => box.current, '.task-editor input');
+  };
+  const close = () => { setEditing(null); const back = opener.current; requestAnimationFrame(() => { if (back?.isConnected) back.focus(); }); };
+  const task = editing ? list.tasks.data.tasks.find(t => t.id === editing) : undefined;
+  const editor: ReactNode = task ? <div className="tasks-plan-editor" ref={box}>
+    <Suspense fallback={<p className="fine" role="status">Opening the editor…</p>}><TaskEditor task={task} today={today} goals={goals.open} linked={task.goal ? goals.byKey.get(task.goal) : undefined} record={list.tasks.data}
+      onSave={(patch, scope) => { if (list.edit(task, patch, scope)) close(); }} onCancel={close} /></Suspense>
+  </div> : null;
+  return {open, editor, editing};
+}
+/** A task's title as the button that opens its editor. */
+function TitleButton({task, edit, className = ''}: {task: Task; edit: ReturnType<typeof usePlanEditor>; className?: string}) {
+  return <button type="button" className={`tasks-plan-task ${className}`.trim()} data-plan-task={task.id} aria-expanded={edit.editing === task.id} onClick={e => edit.open(task, e.currentTarget)} dir="auto">{task.doneAt ? '✓ ' : ''}{task.title}</button>;
+}
+
 /* ---- Table ------------------------------------------------------------------------------------------------------- */
 
 const COLUMN_WORDS: Record<TableColumn, string> = {title: 'Task', project: 'Project', priority: 'Priority', due: 'Day', deadline: 'Deadline', minutes: 'Planned', spent: 'Spent', labels: 'Labels', created: 'Added', changed: 'Changed'};
-function TableView({list, record, today}: {list: List; record: Tasks; today: string}) {
+function TableView({list, goals, record, today}: {list: List; goals: Goals; record: Tasks; today: string}) {
+  const edit = usePlanEditor(list, goals, today);
   const id = useId(), [sort, setSort] = useState<TableColumn>('due'), [dir, setDir] = useState<'asc' | 'desc'>('asc'), [project, setProject] = useState('');
   const rows = useMemo(() => tableRows(record, today, sort, dir, project || undefined), [record, today, sort, dir, project]);
   const by = (c: TableColumn) => { if (c === sort) setDir(dir === 'asc' ? 'desc' : 'asc'); else { setSort(c); setDir(c === 'created' || c === 'changed' ? 'desc' : 'asc'); } };
   const cell = (t: Task, c: TableColumn) => {
     switch (c) {
-      case 'title': return <span dir="auto">{t.title}</span>;
+      case 'title': return <TitleButton task={t} edit={edit} />;
       case 'project': return record.projects?.find(p => p.id === t.projectId)?.name ?? 'Inbox';
       case 'priority': return `P${taskLevel(t)} · ${LEVEL_SHORT[taskLevel(t)]}`;
       case 'due': return t.due ? `${day(t.due, today)}${t.time ? `, ${formatClock(t.time)}` : ''}` : '—';
@@ -139,12 +172,29 @@ function TableView({list, record, today}: {list: List; record: Tasks; today: str
         <button type="button" className="tasks-sort" onClick={() => by(c)}>{COLUMN_WORDS[c]}<span aria-hidden="true">{c === sort ? (dir === 'asc' ? ' ▲' : ' ▼') : ''}</span></button></th>)}</tr></thead>
         <tbody>{rows.map(t => <tr key={t.id}><td><input type="checkbox" aria-label={`Done: ${t.title}`} checked={false} onChange={() => list.toggle(t, true)} /></td>{TABLE_COLUMNS.map(c => c === 'title' ? <th key={c} scope="row">{cell(t, c)}</th> : <td key={c}>{cell(t, c)}</td>)}</tr>)}</tbody></table>
     </div> : <p className="fine">No open tasks{project ? ' in this project' : ''}. Add some, and sort them here by day, deadline, priority, length, or when they were added or changed.</p>}
+    {rows.length > 0 && !edit.editor && <p className="fine">Choose a task’s name to change it.</p>}
+    {edit.editor}
   </section>;
 }
 
 /* ---- Calendar: 3 days or a month, all tasks or one project ------------------------------------------------------- */
 
-function DaysView({list, record, today}: {list: List; record: Tasks; today: string}) {
+function DaysView({list, goals, record, today}: {list: List; goals: Goals; record: Tasks; today: string}) {
+  const edit = usePlanEditor(list, goals, today), heading = useRef<HTMLHeadingElement>(null);
+  // Review b1 #7: the task being moved (by "Move" or a drag), and the month days whose "+N more" is open.
+  const [moving, setMoving] = useState<Task | null>(null), [dragging, setDragging] = useState<string | null>(null), [more, setMore] = useState<ReadonlySet<string>>(new Set());
+  const moveTo = (t: Task, d: string) => {
+    setMoving(null); setDragging(null);
+    if (t.due === d) return;
+    if (list.change(r => editMany(r, [t.id], () => ({due: d}), today, {allowPast: true}), `“${t.title}” moved to ${day(d, today)}.`, t.due ? `“${t.title}” is back on ${day(t.due, today)}.` : `“${t.title}” has no day again.`))
+      requestAnimationFrame(() => (document.querySelector<HTMLElement>(`[data-plan-task="${CSS.escape(t.id)}"]`) ?? heading.current)?.focus());
+  };
+  const dropOn = (d: string) => ({
+    onDragOver: (e: DragEvent<HTMLElement>) => { if (dragging) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } },
+    onDrop: (e: DragEvent<HTMLElement>) => { e.preventDefault(); const t = record.tasks.find(x => x.id === dragging); if (t && !t.doneAt) moveTo(t, d); else setDragging(null); },
+  });
+  const dragOf = (t: Task) => t.doneAt ? {} : {draggable: true, onDragStart: (e: DragEvent<HTMLElement>) => { e.dataTransfer.setData('text/plain', t.title); e.dataTransfer.effectAllowed = 'move'; setDragging(t.id); }, onDragEnd: () => setDragging(null)};
+  const moveButton = (t: Task) => t.doneAt ? null : <button type="button" className="quiet tasks-plan-move" aria-pressed={moving?.id === t.id} aria-label={moving?.id === t.id ? `Stop moving “${t.title}”` : `Move “${t.title}” to another day`} onClick={() => setMoving(moving?.id === t.id ? null : t)}>Move</button>;
   const id = useId(), [mode, setMode] = useState<'three' | 'month'>('three'), [from, setFrom] = useState(today), [month, setMonth] = useState(today.slice(0, 7)), [project, setProject] = useState('');
   const columns = useMemo(() => dayColumns(record, from, today, 3, project || undefined), [record, from, today, project]);
   const weeks = useMemo(() => monthGrid(record, month, list.doneDay, project || undefined), [record, month, list.doneDay, project]);
@@ -152,36 +202,42 @@ function DaysView({list, record, today}: {list: List; record: Tasks; today: stri
   const monthName = formatMonth(`${month}-01T12:00:00Z`, {timeZone: 'UTC'});
   return <section className="tasks-plan-view" aria-labelledby={`${id}-title`}>
     <div className="tasks-plan-head">
-      <h3 id={`${id}-title`}>Calendar</h3>
+      <h3 id={`${id}-title`} ref={heading} tabIndex={-1}>Calendar</h3>
       <span className="tasks-plan-switch" role="group" aria-label="Show"><button type="button" className="quiet" aria-pressed={mode === 'three'} onClick={() => setMode('three')}>3 days</button><button type="button" className="quiet" aria-pressed={mode === 'month'} onClick={() => setMode('month')}>Month</button></span>
       <ProjectPick record={record} value={project} onChange={setProject} />
     </div>
+    {moving ? <p className="tasks-plan-moving" role="status">Moving “<span dir="auto">{moving.title}</span>”: choose {mode === 'three' ? '“Move here” on a day' : 'a day’s number'}. <button type="button" className="text-link" onClick={() => { const t = moving; setMoving(null); requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-plan-task="${CSS.escape(t.id)}"]`)?.focus()); }}>Cancel the move</button></p>
+      : <p className="fine">Choose a task to change it. Drag it to another day, or use Move.</p>}
     {mode === 'three' ? <>
       <div className="tasks-plan-head"><button type="button" className="quiet" aria-label="Three days earlier" onClick={() => setFrom(addLocalDays(from, -3))}>←</button><span>{day(from, today)} – {day(addLocalDays(from, 2), today)}</span><button type="button" className="quiet" aria-label="Three days later" onClick={() => setFrom(addLocalDays(from, 3))}>→</button>{from !== today && <button type="button" className="text-link" onClick={() => setFrom(today)}>Today</button>}</div>
-      <div className="tasks-three-days">{columns.map(c => <section key={c.day} className="tasks-day-column" aria-label={day(c.day, today)} data-today={c.day === today || undefined}>
+      <div className="tasks-three-days">{columns.map(c => <section key={c.day} className="tasks-day-column" aria-label={day(c.day, today)} data-today={c.day === today || undefined} data-drop={dragging ? true : undefined} {...dropOn(c.day)}>
         <h4>{c.day === today ? 'Today · ' : ''}{day(c.day, today)}</h4>
+        {moving && <button type="button" className="secondary tasks-plan-here" aria-label={`Move “${moving.title}” to ${day(c.day, today)}`} onClick={() => moveTo(moving, c.day)}>Move here</button>}
         {c.timed.length + c.allDay.length === 0 ? <p className="fine">Nothing planned.</p> : <ul>
-          {c.timed.map(t => <li key={t.id}><strong>{formatClock(t.time!)}{t.minutes ? `–${formatClock(endOf(t.time!, t.minutes))}` : ''}</strong> <span dir="auto">{t.title}</span></li>)}
-          {c.allDay.map(t => <li key={t.id}><span dir="auto">{t.title}</span>{t.due && t.due < today ? <small> · from {day(t.due, today)}</small> : null}{t.minutes ? <small> · {minutesWords(t.minutes)}</small> : null}</li>)}
+          {c.timed.map(t => <li key={t.id} {...dragOf(t)}><strong>{formatClock(t.time!)}{t.minutes ? `–${formatClock(endOf(t.time!, t.minutes))}` : ''}</strong> <TitleButton task={t} edit={edit} />{moveButton(t)}</li>)}
+          {c.allDay.map(t => <li key={t.id} {...dragOf(t)}><TitleButton task={t} edit={edit} />{t.due && t.due < today ? <small> · from {day(t.due, today)}</small> : null}{t.minutes ? <small> · {minutesWords(t.minutes)}</small> : null}{moveButton(t)}</li>)}
         </ul>}
       </section>)}</div>
     </> : <>
       <div className="tasks-plan-head"><button type="button" className="quiet" aria-label="The month before" onClick={() => shiftMonth(-1)}>←</button><span>{monthName}</span><button type="button" className="quiet" aria-label="The month after" onClick={() => shiftMonth(1)}>→</button>{month !== today.slice(0, 7) && <button type="button" className="text-link" onClick={() => setMonth(today.slice(0, 7))}>This month</button>}</div>
       <div className="tasks-table-frame" role="region" aria-label={monthName} tabIndex={0}>
         <table className="tasks-month"><thead><tr>{WEEK_HEADS.map(w => <th key={w} scope="col">{formatWeekday(`${w}T12:00:00Z`, {timeZone: 'UTC'})}</th>)}</tr></thead>
-          <tbody>{weeks.map(w => <tr key={w[0]!.day}>{w.map(c => <td key={c.day} data-out={!c.inMonth || undefined} data-today={c.day === today || undefined} aria-label={`${day(c.day, today)}: ${c.tasks.length ? `${c.tasks.length} ${c.tasks.length === 1 ? 'task' : 'tasks'}` : 'nothing'}`}>
-            <span className="tasks-month-day" aria-hidden="true">{Number(c.day.slice(8))}</span>
-            {c.tasks.slice(0, 3).map(t => <span key={t.id} className="tasks-month-task" data-done={t.doneAt ? true : undefined} dir="auto">{t.doneAt ? '✓ ' : ''}{t.title}</span>)}
-            {c.tasks.length > 3 && <span className="tasks-month-more">+{c.tasks.length - 3} more</span>}</td>)}</tr>)}</tbody></table>
+          <tbody>{weeks.map(w => <tr key={w[0]!.day}>{w.map(c => { const all = more.has(c.day), shown = all ? c.tasks : c.tasks.slice(0, 3); return <td key={c.day} data-out={!c.inMonth || undefined} data-today={c.day === today || undefined} data-drop={dragging ? true : undefined} aria-label={`${day(c.day, today)}: ${c.tasks.length ? `${c.tasks.length} ${c.tasks.length === 1 ? 'task' : 'tasks'}` : 'nothing'}`} {...dropOn(c.day)}>
+            {moving ? <button type="button" className="tasks-month-day tasks-plan-here" aria-label={`Move “${moving.title}” to ${day(c.day, today)}`} onClick={() => moveTo(moving, c.day)}>{Number(c.day.slice(8))}</button>
+              : <span className="tasks-month-day" aria-hidden="true">{Number(c.day.slice(8))}</span>}
+            {shown.map(t => <span key={t.id} className="tasks-month-task" data-done={t.doneAt ? true : undefined} {...dragOf(t)}><TitleButton task={t} edit={edit} />{moveButton(t)}</span>)}
+            {c.tasks.length > 3 && <button type="button" className="text-link tasks-month-more" aria-expanded={all} aria-label={all ? `Show fewer on ${day(c.day, today)}` : `Show ${c.tasks.length - 3} more on ${day(c.day, today)}`} onClick={() => setMore(s => { const next = new Set(s); if (next.has(c.day)) next.delete(c.day); else next.add(c.day); return next; })}>{all ? 'Show fewer' : `+${c.tasks.length - 3} more`}</button>}</td>; })}</tr>)}</tbody></table>
       </div>
     </>}
+    {edit.editor}
   </section>;
 }
 const endOf = (clock: string, minutes: number) => { const m = (Number(clock.slice(0, 2)) * 60 + Number(clock.slice(3, 5)) + minutes) % 1440; return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
 
 /* ---- Timeline (Gantt) ---------------------------------------------------------------------------------------------- */
 
-function TimelineView({record, today}: {record: Tasks; today: string}) {
+function TimelineView({list, goals, record, today}: {list: List; goals: Goals; record: Tasks; today: string}) {
+  const edit = usePlanEditor(list, goals, today);
   const id = useId(), firstProject = (record.projects ?? []).find(p => !p.archived)?.id ?? '', [project, setProject] = useState(firstProject);
   const {bars, undated, from, to} = useMemo(() => timelineBars(record, today, project || undefined), [record, today, project]);
   const span = Math.max(1, Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000) + 1);
@@ -190,9 +246,9 @@ function TimelineView({record, today}: {record: Tasks; today: string}) {
   return <section className="tasks-plan-view" aria-labelledby={`${id}-title`}>
     <div className="tasks-plan-head"><h3 id={`${id}-title`}>Timeline</h3><ProjectPick record={record} value={project} onChange={setProject} /></div>
     {bars.length ? <>
-      <p className="fine">{day(from, today)} – {day(to, today)}. Each bar runs from the task’s day to its deadline.{undated ? ` ${n(undated)} ${undated === 1 ? 'task has' : 'tasks have'} no day yet and ${undated === 1 ? 'is' : 'are'} not shown.` : ''}</p>
+      <p className="fine">{day(from, today)} – {day(to, today)}. Each bar runs from the task’s day to its deadline; choose a task to change its day or deadline.{undated ? ` ${n(undated)} ${undated === 1 ? 'task has' : 'tasks have'} no day yet and ${undated === 1 ? 'is' : 'are'} not shown.` : ''}</p>
       <ol className="tasks-timeline" aria-label="Tasks on the timeline">{bars.map(b => <li key={b.task.id} data-late={b.late || undefined}>
-        <span className="tasks-timeline-title" dir="auto">{b.task.title}</span>
+        <span className="tasks-timeline-title"><TitleButton task={b.task} edit={edit} /></span>
         <span className="tasks-timeline-track" aria-hidden="true">
           {todayAt >= 0 && todayAt < span && <span className="tasks-timeline-today" style={{insetInlineStart: `${(todayAt / span) * 100}%`}} />}
           <span className="tasks-timeline-bar" style={{insetInlineStart: `${(at(b.start) / span) * 100}%`, width: `${Math.max(1.5, ((at(b.end) - at(b.start) + 1) / span) * 100)}%`}} />
@@ -200,6 +256,7 @@ function TimelineView({record, today}: {record: Tasks; today: string}) {
         <small>{b.start === b.end ? day(b.start, today) : `${day(b.start, today)} → ${day(b.end, today)}`}{b.late ? ' · late' : ''}</small>
       </li>)}</ol>
     </> : <p className="fine">Nothing to draw yet{undated ? `: ${n(undated)} ${undated === 1 ? 'task has' : 'tasks have'} no day` : ''}. Give tasks a day and a deadline, and they show here as bars from one to the other.</p>}
+    {edit.editor}
   </section>;
 }
 

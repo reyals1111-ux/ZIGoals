@@ -40,6 +40,7 @@
 .tasks-month td[data-today] .tasks-month-day { color: var(--accent, inherit); font-weight: 700; }
 .tasks-month-day { display: block; font-size: 14px; }
 .tasks-month-task, .tasks-month-more { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px; }
+.tasks-month-task { display: flex; align-items: center; gap: 2px; }
 .tasks-month-task[data-done] { color: var(--text-secondary, var(--muted)); }
 .tasks-timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .tasks-timeline li { display: grid; grid-template-columns: minmax(0, 14rem) minmax(0, 1fr); gap: 2px 12px; align-items: center; font-size: 15px; }
@@ -67,4 +68,22 @@
 .tasks-chart-bar { display: block; height: 100%; background: var(--accent, currentColor); border-radius: 7px; }
 .tasks-chart-value { font-variant-numeric: tabular-nums; }
 @media (max-width: 479.98px) { .tasks-chart li { grid-template-columns: minmax(0, 1fr) auto; } .tasks-chart-track { grid-column: 1 / -1; grid-row: 2; } }
+/* Review b1 #7: a task's title opens its editor; a Calendar task can be moved (drag, or Move then Move here). */
+.tasks-plan-task { background: none; border: 0; padding: 0 2px; font: inherit; font-weight: inherit; color: inherit; text-align: start; cursor: pointer; min-height: 44px; min-width: 44px; overflow-wrap: anywhere; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-underline-offset: 3px; }
+.tasks-plan-task:hover { text-decoration-color: currentColor; }
+.tasks-plan-task:focus-visible, .tasks-plan-here:focus-visible { outline: 3px solid var(--accent, currentColor); outline-offset: 2px; }
+.tasks-plan-task[aria-expanded="true"] { font-weight: 700; }
+.tasks-plan-move { margin-inline-start: 4px; min-width: 44px; }
+.tasks-plan-move[aria-pressed="true"] { outline: 2px solid var(--accent, currentColor); outline-offset: -2px; }
+.tasks-plan-moving { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.tasks-plan-editor { border-top: 1px solid var(--line); padding-top: 12px; }
+.tasks-day-column[data-drop], .tasks-month td[data-drop] { outline: 2px dashed var(--line); outline-offset: -3px; }
+.tasks-day-column li[draggable="true"], .tasks-month-task[draggable="true"] { cursor: grab; }
+.tasks-day-column .tasks-plan-here { width: 100%; margin-bottom: 6px; }
+button.tasks-month-day { background: none; border: 1px solid var(--accent, var(--line)); border-radius: var(--radius); font: inherit; color: inherit; min-width: 44px; min-height: 44px; cursor: pointer; }
+.tasks-month-task .tasks-plan-task { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tasks-month-task .tasks-plan-move { display: none; }
+.tasks-month-task:focus-within .tasks-plan-move, .tasks-month-task:hover .tasks-plan-move { display: inline-flex; }
+button.tasks-month-more { min-height: 44px; padding: 0; max-width: none; }
+.tasks-timeline-title .tasks-plan-task { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .tasks-plan-view * { transition: none !important; animation: none !important; } }
