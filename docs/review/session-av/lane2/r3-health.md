@@ -34,6 +34,34 @@ chunk carries only those lines, two small props and the water form's two-line ha
   a one-off on a monthly reminder's day; quiet once a weight is logged that day; the service worker's one new line "Time to
   weigh in" (never a weight). Settings → Notifications gains one switch, "Weigh-in". Feature 3.
 
+## Summary: rows and verdicts
+
+| LEDGER row | verdict | feature |
+|---|---|---|
+| #280 Waterllama: reminders through the day | built | 1 |
+| #281 Waterllama: your own drinks | built | 1 |
+| #282 Waterllama: calories from drinks | built (only as typed; never guessed) | 1 |
+| #283 Waterllama: hydration tips | built (opt-in; no health claims) | 1 |
+| #275 Way of Life: reminders in your own words | built | 2 |
+| #276 Way of Life: trend per habit | built | 2 |
+| #286 Carb Manager: weigh-in reminders | built | 3 |
+| #284 Carb Manager: glucose and ketones beside meals | built; part Carried: the glucose-ketone index (against the no-medical-advice rule) | 4 |
+| #287 Carb Manager: goals on any health number | built; part Carried: ketone (and glucose, insulin, HbA1c) targets and a BMI goal (against the no-medical-advice rule) | 5 |
+| #288 Nike Training Club: find a workout by length, muscle and place | built | 6 |
+| #289 Nike Training Club: timed circuit workouts | built (never calories) | 7 |
+
+Specs for the shard lists (none run here): `tests/av2-water-day.spec.ts`, `tests/av2-habit-words-trend.spec.ts`,
+`tests/av2-weigh-in.spec.ts`, `tests/av2-meal-readings.spec.ts`, `tests/av2-more-health-goals.spec.ts`,
+`tests/av2-library-filters.spec.ts`, `tests/av2-circuits.spec.ts`.
+
+QUALITY Minors: none were in this task's list (rows T2, T4, T7 only); none were taken up.
+
+Seen in passing, not changed (for the lead): Health → Activity already shows "About N kcal used — an estimate" for a
+manual activity of a known type (`components/health/health-app.tsx`, `lib/health-activity-types.ts activityKcalEstimate`,
+Session AL fourth pass, C-MO-39). It is an energy-expenditure estimate, which this lane's brief says is never made. Nothing
+in this branch adds one (a logged circuit's activity is named "Timed circuit: …", which matches no activity type); whether
+the existing one stays is the owner's call.
+
 ## Shared to-do for the lead (all features)
 
 - engine.ts wiring: see "Answers" at the end.
@@ -245,3 +273,32 @@ chunk carries only those lines, two small props and the water form's two-line ha
   `workoutCircuits: one(CIRCUITS)` (for the answers, below).
 - Showcase hook: see "Showcase" at the end (one circuit).
 - CSS: `components/health/r3/health-r3.css`.
+
+## Answers (NOVA and ZIGi, on the device)
+
+- File: `lib/ai/local-answers/av2-r3-health.ts` exporting `av2R3HealthAnswer(question, env)`; cases
+  `lib/ai/evals/as/cases-av2-r3-health.ts` (`AV2_R3_HEALTH`, 9 intents, 18 English and 18 Dutch questions); test
+  `lib/ai/local-answers/av2-r3-health.test.ts` (every phrasing answered on the Showcase, wired and fresh; Health closed →
+  the Health refusal; an action in the question → left alone; the figures from the features' own functions).
+- Questions: calories and sugar from drinks today (only as typed); the water reminders and today's pace; today's water
+  tip; the weigh-in reminder (never a weight); which habits are done more or less often; readings marked with a meal today
+  (the numbers only, no verdict); a goal on protein, fibre, waist…; the saved circuits; routines that fit in N minutes.
+- engine.ts wiring (one line, after `av2BodymindR2Answer`, same shape):
+  `if (!subject) { const own = av2R3HealthAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }`
+  with `import {av2R3HealthAnswer} from './av2-r3-health';`.
+- Corpus: add `AV2_R3_HEALTH` to `CORPUS` in `cases.ts` and record `expected.json`.
+- AK tool sources (`lib/ai/tools/ak-sources.ts` and `AkToolSources`): `healthExtras: one(HEALTH_EXTRAS)`,
+  `notifyPrefs: one(NOTIFY_PREFS)`, `healthGoalsMore: one(MORE_GOALS)`, `workoutCircuits: one(CIRCUITS)` — the Health ones
+  read only behind the Health gate (each answer calls `closed(env, 'health')` first). Until they are wired, those answers
+  say "I can't read … here yet" (still an answer). Your numbers come from NOVA's sources (`nova.healthNumbers`), habits from
+  the habits env.
+
+## Showcase
+
+- One line in `lib/showcase-data.ts`, after the Health records are written (e.g. after line 278's health numbers):
+  `withR3HealthShowcase(records, day);` with `import {withR3HealthShowcase} from './r3-health-showcase';`.
+- It writes two own drinks "Oat latte (Showcase)" and "Juice (Showcase)" into the health extras (no entry logged with
+  them, so no water, caffeine or food total moves), the goal "Protein at least 90 g (Showcase)"
+  (`zigoals:health-goals-more:v1`) and the circuit "Twenty-minute legs (Showcase)" (`zigoals:workout-circuits:v1`). No
+  pinned count reads them. Test: `lib/r3-health-showcase.test.ts`. The Showcase plans no notification, so the reminders
+  (water, weigh-in, habit words) have no Showcase example; the habit trend shows on the Showcase's own history.
