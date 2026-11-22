@@ -32,3 +32,23 @@ counts whole (`countedCents`).
   12.00 with an out-of-range share count 42.00; a left-out cost, a transfer pair and a Settle-up refund add nothing).
 - Corpus: no case changes (the Showcase money log has no shared cost).
 - Help text: none needed.
+
+## 3. The portfolio value alert wrote "10000 EUR"
+
+- Verdict: fixed, as review b2a #7 (B2A-7, commit 4dab95f0) did for the portfolio move alert.
+- Fix: apps/web/lib/price-alerts/engine.ts `portfolioAlertLine` and `checkPortfolioAlerts` write the alert's value and
+  the value now with `formatCurrencyAmount` (lib/visual-format.ts, the display locale): "Mine is worth above
+  €10,000.00: €10,250.45 now." The value now is still cut to two decimals first, never rounded up. The value alert's
+  "already passed" status line (apps/web/components/price-alerts/portfolio-value-alert.tsx) says the same amounts the same
+  way. A line already in the fired log (written by an older build) is shown as it was stored. The coin price alert's
+  line ("Bitcoin below 63000 USD") was not part of this item and is unchanged.
+- Tests: apps/web/lib/price-alerts/av-move.test.ts — two pins changed deliberately (labelled; new exact text
+  "Mine is worth above €10,000.00: €10,250.45 now." and "Fictional coins worth below $20,000.00"), and a new test
+  "writes the value and the value now with the money formatter, in English and Dutch" ("Mine worth below €2,500.50";
+  nl-NL "€ 2.500,50" with a no-break space).
+- Spec (the lead runs it): apps/web/tests/av-move-alert.spec.ts — four pins changed deliberately (labelled):
+  "Value alert: Fictional coins is worth above $30,000.00: $35,000.00 now.", the status "Fictional coins is already
+  above $30,000.00 (worth $35,000.00 now), so this alert is reached at once.", the list item "Fictional coins worth above
+  $30,000.00 · reached", and Today's card "Fictional coins is worth above $30,000.00: $35,000.00 now.".
+- Corpus: no case changes (no on-device answer reads the value alert's words).
+- Help text: none needed.
