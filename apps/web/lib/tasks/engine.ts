@@ -181,12 +181,19 @@ export function heldProject(record: Lookup, task: Pick<Task, 'projectId' | 'pare
 const AHEAD = new WeakMap<object, Map<string, Task>>();
 /**
  * In-order projects and tasks with subtasks: each open task that waits its turn, with the one now up (the first open one,
- * in the order the project lists them: no section first, then each section; an archived section's tasks are put away). A
+ * in the order the project lists them, that waits for no other task: no section first, then each section; an archived
+ * section's tasks are put away). A
  * repeating task never waits and never holds the others up (it never finishes for good).
  */
 export function orderAhead(record: Lookup): Map<string, Task> {
   const cached = AHEAD.get(record); if (cached) return cached;
-  const out = new Map<string, Task>(), line = (list: Task[]) => { const open = list.filter(t => !t.doneAt && !t.recur); for (const t of open.slice(1)) out.set(t.id, open[0]!); };
+  // Review B6M-2: the task now up is the first open one that does not wait for another task (`after`), so a line can never
+  // block for good (a head waiting for a later task of its own line lets that task go first). A task that waits for another
+  // keeps that wait as its reason; every other open task of the line waits its turn after the one now up.
+  const out = new Map<string, Task>(), line = (list: Task[]) => {
+    const open = list.filter(t => !t.doneAt && !t.recur), free = open.filter(t => !waitingFor(record, t).length), head = free[0];
+    if (head) for (const t of free.slice(1)) out.set(t.id, head);
+  };
   for (const p of record.projects ?? []) {
     if (!p.inOrder) continue;
     const sections = (record.sections ?? []).filter(s => s.projectId === p.id).sort((a, b) => a.order - b.order), at = new Map(sections.map((s, i) => [s.id, i])), away = new Set(sections.filter(s => s.archived).map(s => s.id));

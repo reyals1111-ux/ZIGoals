@@ -53,5 +53,5 @@ export function projectTasks(record: Tasks, projectId: string, today: string): {
 export function nextInOrder(record: Tasks, projectId: string): Task | null {
   const ahead = orderAhead(record), waiting = record.tasks.find(t => t.projectId === projectId && !t.parentId && ahead.has(t.id));
   if (waiting) return ahead.get(waiting.id)!;
-  return byOrder(record.tasks.filter(t => t.projectId === projectId && !t.parentId && !t.doneAt && !t.recur))[0] ?? null;
+  return byOrder(record.tasks.filter(t => t.projectId === projectId && !t.parentId && !t.doneAt && !t.recur && !waitingFor(record, t).length))[0] ?? null;
 }
