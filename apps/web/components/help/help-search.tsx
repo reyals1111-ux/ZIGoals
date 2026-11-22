@@ -30,7 +30,10 @@ export function HelpSearch() {
   const short = query.trim() !== '' && helpWords(query).length === 0;
   useEffect(() => {
     const words = helpWords(query);
-    setChain(chosen ? [] : chainHelpMatches(words, chainId => document.getElementById(`help-${chainId}`) !== null));
+    // Session AV lane 2 (fixb1b): the answer the address names counts as shown even before it is on the page. A browser
+    // runs each hashchange listener with its own React update, and this one subscribed before ChainHelp's, so this effect
+    // ran before ChainHelp put the linked answer on the page and kept it listed twice.
+    setChain(chosen ? [] : chainHelpMatches(words, chainId => hash === `#help-${chainId}` || document.getElementById(`help-${chainId}`) !== null));
   }, [query, chosen, hash]);
   useEffect(() => {
     const items = [...document.querySelectorAll<HTMLDetailsElement>('.help-page details[id^="help-"]')];
