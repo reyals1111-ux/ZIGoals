@@ -143,7 +143,8 @@ describe('review B6O-3: a refund is money out to the rules', () => {
     expect(subjectOf(refund).kind).toBe('expense');
     expect(ruleMatches(rule('in', {text: 'tikkie', direction: 'in', category: 'Gifts received'}), subjectOf(refund))).toBe(false);
     expect(ruleMatches(rule('out', {text: 'tikkie', direction: 'out', category: 'Food & drink'}), subjectOf(refund))).toBe(true);
-    expect(subjectOf({...refund, excluded: true}).kind).toBe('expense');
+    const leftOut: MoneyEntry = {...refund, excluded: true};
+    expect(subjectOf(leftOut).kind).toBe('expense');
   });
   test('an either-way rule naming an income category leaves its category alone; a spending one moves it', () => {
     const toGifts = rule('g', {text: 'tikkie', category: 'Gifts received'});

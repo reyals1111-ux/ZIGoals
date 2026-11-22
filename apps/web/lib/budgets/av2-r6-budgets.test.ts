@@ -75,7 +75,7 @@ test('review B6O-2: next month’s amount lowered after setting aside — the ex
   const nov = readyToAssign([pay('2026-11')], lowered, '2026-11')[0]!, dec = readyToAssign([pay('2026-12')], lowered, '2026-12')[0]!;
   expect(nov).toMatchObject({held: 50000, ready: 50000, setAside: 10000});
   expect(dec).toMatchObject({held: 0, ready: 100000, covered: 10000});
-  expect(nov.ready + dec.ready).toBe(150000); // €2,000 in, €400 + €100 budgeted: €1,500 ready, nothing gone
+  expect(nov.status === 'ok' && dec.status === 'ok' ? nov.ready + dec.ready : null).toBe(150000); // €2,000 in, €400 + €100 budgeted: €1,500 ready, nothing gone
   expect(setAsideFrom(lowered, '2026-11')).toEqual(new Map([['EUR', 10000]]));
   expect([...coveredIn(lowered, '2026-12')]).toEqual([['food', 10000]]);
   // Setting it again counts only what was held: up to the €500 ready, plus the €100 held now.
