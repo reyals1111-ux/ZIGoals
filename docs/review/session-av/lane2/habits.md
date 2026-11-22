@@ -215,3 +215,31 @@ corpus, regenerates theme sheets, edits Help / What's new / search / shard lists
 - What's new: "Hidden calories and weight stay hidden in ZIGi's and NOVA's answers; the switch is in Settings too."
 - Device keys / catalogue: nothing new. CSS: none. Always visible on Today: nothing. Settings gains one panel in Data &
   privacy (three Tab stops on Settings, none on Today).
+
+## Feature 7 — Experiments with several outcomes, and symptoms in them (LEDGER #64)
+
+**Verdict: built.**
+
+- Health → Insights → Experiments: under each experiment, "Follow more outcomes (up to 8)" adds outcomes beside its
+  first; each is worked out exactly as the first (Compare's day test, the same 14 days a side, the same labels), one
+  line each under the card. A followed symptom or factor (Symptoms and factors) is now a change to try ("“Pollen”
+  noted" against "answered None"; an unanswered day is neither) and an outcome ("Headache (0–3)", its level), in
+  Compare and in Experiments.
+- Files: `lib/compare/engine.ts` (`symptoms` source, `symptom` factor kind and its confounder line, `symptom:<id>`
+  outcomes with their gap 0.5, label, words), `lib/experiments/engine.ts` (`MAX_OUTCOMES`, `outcomesOf`,
+  `experimentResults`, `setMoreOutcomes`; `symptom` in `EXPERIMENT_FACTOR_KINDS`), `components/insights/experiments.tsx`,
+  `components/insights/experiments.css`. Compare's explorer (`components/insights/compare/compare-explorer.tsx`) does
+  not pass `symptoms` yet: one line for the lead or the body lane (`symptoms: ok(useDeviceRecord(SYMPTOMS))`), then
+  symptoms show in Compare too.
+- Tests: `lib/experiments/av2-outcomes.test.ts` (symptom factor and outcome words, several outcomes each worked out, a
+  symptom as the change, the cap of eight, export → erase → restore of `zigoals:experiments:v1`). Existing compare,
+  experiments and insights tests unchanged and green. Spec: `tests/av2-experiment-outcomes.spec.ts`.
+- **Stored change (TIER 3 stored formats, additive):** an experiment in the loose `zigoals:experiments:v1` may carry
+  `more` (up to seven more outcome ids); an older build reads its first outcome and keeps the rest (loose object). The
+  schema file is unchanged, so there is no separate schema commit; the lead labels this commit TIER 3 stored formats.
+- Help (EN): **Q: Can one experiment follow more than one result?** A: Yes. Under an experiment, "Follow more
+  outcomes" adds up to eight in all, such as mood, sleep or a symptom you follow; each is worked out the same way. A
+  symptom or factor can also be the change you try.
+- What's new: "Experiments follow up to eight outcomes, and symptoms can be the change or the result."
+- Answers: none new (Experiments are not read by NOVA or ZIGi today; symptoms stay unread by them, owner rule).
+- Showcase hook: the Showcase's example experiment shows "Follow more outcomes" with no new data.
