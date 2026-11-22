@@ -5,7 +5,7 @@
  * these into the registries (lib/av-device-keys.ts lists, lib/export/everything.ts DEVICE_KEYS, lib/data-health/catalog.ts,
  * lib/restore/plan.ts with "Health", lib/aa-device-forget.ts); lib/av2-food-keys.test.ts proves each literal equals its
  * owner's constant. Every record is device only, versioned, exported, restored, erased with the account, never synced.
- * - `zigoals:food-plus:v1` (lib/food-plus/schema.ts): eaten-at times, calories and macros per weekday, sugar alcohols per
+ * - `zigoals:food-plus:v1` (lib/food-plus/schema.ts): eaten-at times, extra meals, calories and macros per weekday, sugar alcohols per
  *   food, the check-in day and partly logged days, the logging challenge, meal notifications, which foods have a photo.
  */
 export const FOOD_PLUS_KEY_LITERAL = 'zigoals:food-plus:v1';
@@ -15,7 +15,7 @@ export const AV2_FOOD_PERSONAL_KEYS: readonly string[] = [FOOD_PLUS_KEY_LITERAL]
 export const AV2_FOOD_EXPORT_KEYS = {foodPlus: FOOD_PLUS_KEY_LITERAL} as const;
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AV2_FOOD_CATALOG_LABELS = {
-  foodPlus: ['Food diary extras: when each entry was eaten, macros per weekday, check-in day, logging challenge, food photos (which foods)', 'Health'],
+  foodPlus: ['Food diary extras: when each entry was eaten, macros per weekday, check-in day, logging challenge, extra meals and their entries, food photos (which foods)', 'Health'],
 } as const;
 /** Restore (`lib/restore/plan.ts` `dev(...)`): [name, label, area]. */
 export const AV2_FOOD_RESTORE = {foodPlus: ['Food diary extras (times, weekday macros, check-in)', 'Health']} as const;

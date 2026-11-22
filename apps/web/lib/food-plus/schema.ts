@@ -25,6 +25,11 @@ import type {DeviceRecordSpec} from '../device-record';
  * - `marks` (LEDGER #198, #199; Lose It!'s diet plans that flag foods, Yazio's food ratings): the eating style whose
  *   "fits" mark the Foods list shows (low carb, high protein, high fibre), and whether it shows the label levels (low,
  *   medium or high fat, saturated fat, sugars and salt per 100 g, the UK front-of-pack rule).
+ * - `extraMeals` (LEDGER #197, Lose It!'s own meals and snacks): up to two extra diary meals named by the person
+ *   (`slots`: `extra1`, `extra2` → name, usual time, calorie target, the meal it shows after) and which diary entries belong
+ *   to one (`entries`: entry id → slot). The strict diary keeps its four meals (`diarySchema.meal`): an entry in an
+ *   extra meal is stored as Snacks, so every older reader and every total counts it there; only this device's Diary shows
+ *   it in its own section, while its slot has a name. A slot or tag this build cannot read is left out on its own.
  * - `photos` (LEDGER #103): which library foods have a front-of-pack photo on this device (the photo itself is in
  *   IndexedDB, lib/food-plus/photos.ts), with when it was taken.
  */
@@ -37,6 +42,8 @@ const gramsTarget = z.number().int().min(0).max(5_000);
 const dayTargetSchema = z.looseObject({kcal: z.number().int().min(1).max(100_000).optional(), proteinG: gramsTarget.optional(), carbsG: gramsTarget.optional(), fatG: gramsTarget.optional()});
 export type DayTarget = z.infer<typeof dayTargetSchema>;
 const day = z.iso.date();
+const extraKey = z.string().regex(/^[a-z0-9-]{1,20}$/);
+const extraSlotSchema = z.looseObject({name: z.string().trim().min(1).max(24), time: clock.optional().catch(undefined), kcal: z.number().int().min(1).max(10_000).optional().catch(undefined), after: z.enum(['Breakfast', 'Lunch', 'Dinner', 'Snacks']).optional().catch(undefined)});
 export const foodPlusSchema = z.looseObject({
   version: z.literal(1),
   times: z.record(healthId, z.union([clock, z.literal('none')])).optional().catch(undefined),
@@ -48,6 +55,7 @@ export const foodPlusSchema = z.looseObject({
   photos: z.record(healthId, z.looseObject({takenAt: z.iso.datetime()})).optional().catch(undefined),
   pace: z.number().min(-1).max(1).optional().catch(undefined),
   steps: z.record(healthId, z.array(z.string().trim().min(1).max(600)).min(1).max(60)).optional().catch(undefined),
+  extraMeals: z.looseObject({slots: z.record(extraKey, extraSlotSchema).optional().catch(undefined), entries: z.record(z.string().regex(/^(?:health|words)_[A-Za-z0-9-]{1,100}$/), extraKey).optional().catch(undefined)}).optional().catch(undefined),
   marks: z.looseObject({style: z.enum(EATING_STYLES).optional().catch(undefined), levels: z.boolean().optional().catch(undefined)}).optional().catch(undefined),
 });
 export const MAX_RECIPE_STEPS = 60, MAX_STEP_CHARS = 600;
