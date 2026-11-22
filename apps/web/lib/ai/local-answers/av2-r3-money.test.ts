@@ -10,6 +10,8 @@ import {av2MoneyR2Answer} from './av2-money-r2';
 import type {LocalReply} from './engine';
 import type {MoneyMore} from '../../money-more/schema';
 import type {MoneyEntry} from '../../money-log/schema';
+import {createHabit, emptyHabitData, logHabitCount, type HabitData} from '../../habits';
+import {addLocalDays} from '../../local-date';
 
 /**
  * Session AV lane 2, round 3 (money): round 3's answers, read straight from `av2R3MoneyAnswer` (the lead wires it into
@@ -104,5 +106,18 @@ describe('what changed in my spending since last month', () => {
     expect(text(zigi('what changed in my spending since last month', s))).toMatch(/^In EUR: €100\.00 last month to .+17.*, €170\.00 this month so far \(\+€70\.00\); most moved by Groceries \+€50\.00 and Fun \+€20\.00\. From your own entries; a comparison, not a forecast\.$/);
     expect(text(zigi('wat is er veranderd in mijn uitgaven sinds vorige maand', s))).toMatch(/^In EUR: € 100,00 vorige maand t\/m .*17 okt.*, € 170,00 deze maand tot nu toe \(\+€ 70,00\); het meest door Groceries \+€ 50,00 en Fun \+€ 20,00\. Uit je eigen invoer; een vergelijking, geen voorspelling\.$/);
     expect(text(zigi('show my spending waterfall', freshAll()))).toContain('nothing to compare yet');
+  });
+});
+
+describe('spending beside a done habit, under Compare’s rules', () => {
+  const HABIT = '92000000-0000-4000-8000-000000000701', start = addLocalDays(DAY, -40);
+  let habits: HabitData = createHabit(emptyHabitData(), {title: 'Walk', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, new Date(`${addLocalDays(start, -1)}T08:00:00Z`), HABIT);
+  const entries: MoneyEntry[] = [];
+  for (let i = 0; i < 40; i++) { const day = addLocalDays(start, i), even = i % 2 === 0; if (even) habits = logHabitCount(habits, HABIT, day, 1, '', new Date(`${day}T20:00:00Z`)); entries.push(mine({amount: even ? '10.00' : '30.00', date: day})); }
+  const s: ToolSources = {...withLog(freshAll(), entries), habits};
+  test('EN and NL, never a cause', () => {
+    expect(text(zigi('do I spend less on days I do my habits', s))).toMatch(/^On days you completed “Walk”, you spent €10\.00 that day on average; on other days, €30\.00 \(.+\)\. From the last 90 days of your own records; days that happened together are not proof that one brings the other\.$/);
+    expect(text(zigi('geef ik minder uit op dagen dat ik mijn gewoontes doe', s))).toBe('Op dagen dat je “Walk” deed, gaf je die dag gemiddeld € 10,00 uit; op andere dagen € 30,00. Uit de laatste 90 dagen van je eigen gegevens; dagen die samen vielen bewijzen niet dat het een het ander brengt.');
+    expect(text(zigi('do I spend less on days I do my habits', freshAll()))).toContain('This needs habits you tick');
   });
 });

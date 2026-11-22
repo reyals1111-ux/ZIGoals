@@ -27,11 +27,11 @@ const text = (s: string) => s.replace(/<[^>]+>/g, ' ').replace(/&#x27;|&rsquo;/g
 
 describe('Your money over time', () => {
   // Session AV (follow-up 1, F-VS-LAST and F-INCOME-FLOW, deliberate): "This month vs last" and "Where income went" first.
-  // Session AV lane 2 (round 3 money adds "Needs, wants and saving" and "What changed", LEDGER #295, #297; deliberate): every view named, the count exact.
-  test('the container lists ten views and opens none until asked (each view is its own chunk)', () => {
+  // Session AV lane 2 (round 3 money adds "Needs, wants and saving", "What changed" and "Beside your habits", LEDGER #295, #297, #296; deliberate): every view named, the count exact.
+  test('the container lists eleven views and opens none until asked (each view is its own chunk)', () => {
     const out = html(createElement(SpendingInsights, {entries: [], today: TODAY}));
-    for (const label of ['This month vs last', 'Where income went', 'Month by month', 'Categories over a year', 'Top payees', 'Your usual pace', 'Age of money', 'Tags', 'Needs, wants and saving', 'What changed']) expect(out).toContain(`>${label}</button>`);
-    expect(out.match(/aria-pressed="false"/g)).toHaveLength(10);
+    for (const label of ['This month vs last', 'Where income went', 'Month by month', 'Categories over a year', 'Top payees', 'Your usual pace', 'Age of money', 'Tags', 'Needs, wants and saving', 'What changed', 'Beside your habits']) expect(out).toContain(`>${label}</button>`);
+    expect(out.match(/aria-pressed="false"/g)).toHaveLength(11);
   });
   test('month by month: a table beside the chart, a gap row, per currency', () => {
     const entries = [e('2026-08-01', '100.00', 'Salary', 'income'), e('2026-08-02', '40.00'), e('2026-11-02', '10.00'), e('2026-11-03', '3.00', 'Fun', 'expense', undefined, 'USD')];

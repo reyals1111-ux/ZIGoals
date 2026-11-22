@@ -163,3 +163,43 @@ locale ("€ 12,50"); the tests compare it with the no-break space shown as a sp
 - Registries: none new. CSS touched: `components/wealth/spending/insights/insights.css` (theme variables only).
 - Today: nothing added. Wealth → Spending gets two more buttons in "Your money over time" (10 instead of 8); the lead
   checks any Wealth Tab-stop or 390 px ceiling that pins that row.
+
+### R3-F4 (group T8). The day's spending as a Compare outcome
+
+- LEDGER row: #296 PocketGuard Financial Wellness — **built** (the day's spending — all of it, or one category — as an
+  outcome in Compare (`spend:<currency>` and `spend:<currency>:<category>`), the same day or the next, under Compare's
+  own rules unchanged (the last 90 days, 14 days a side before any number, a clear gap and the confidence label before a
+  finding, the confounder line, "never a cause"); unknown is not zero: only a day with something in the money log counts
+  (nothing in a category that day reads 0), today is still open. Reachable in two places: Health → Insights → Compare
+  (every factor, under the Health gate; "Spending above an amount" is never set beside spending itself), and for people
+  without Health, Wealth → Spending → Your money over time → "Beside your habits" (habits are the only factors there, so
+  sleep and workout factors stay under the Health gate; the choice there is not stored)).
+- Spending function used: `totals` (all spending) and `byCategory` (one category) from `lib/money-log/engine.ts`, over
+  each day's entries (`spendDays` in `lib/compare/engine.ts`).
+- Files: `lib/compare/engine.ts` (`SpendOutcomeId`, `isSpendOutcome`, `spendOutcomes`, the outcome's value, gap — a tenth
+  of the average logged day, at least one unit — label, text through the money formatter, and sentence; the `money`
+  source now carries the entries' category and marks, optional, so every caller still fits),
+  `components/insights/compare/compare-explorer.tsx` (the spend factor is not paired with a spend outcome),
+  `components/wealth/spending/insights/spend-compare-view.tsx` (new, lazy),
+  `components/wealth/spending/insights/spending-insights.tsx`, `tests/ap/ap-money-fixtures.ts` (the view's name).
+- Tests: `lib/compare/av2-spend-outcome.test.ts`, `lib/ai/local-answers/av2-r3-money.test.ts`; the existing
+  `lib/compare`, `lib/experiments`, `lib/scales` and `lib/nova/workflows` tests green unchanged. **Deliberate test change**:
+  `lib/money-insights/views.test.ts` now names all eleven views and counts 11 (labelled).
+- Spec: `tests/av2-money-beside-habits.spec.ts`.
+- Stored: nothing new. The Health Compare's last pair (`zigoals:compare-pair:v1` `outcome`, at most 40 characters)
+  can now hold a spend outcome id (at most 40 characters by construction); an older build reads an id it does not know as
+  no choice, as the record's own note says.
+- Help (EN): **Q: Do I spend differently on days I do my habits?** A: Wealth → Spending → Your money over time → "Beside
+  your habits" sets the days you did a habit beside what you spent that day or the next — all spending or one category.
+  With Health on, Health → Insights → Compare offers the same beside sleep, workouts and the rest. It needs 14 days on
+  each side before it shows a number, and it says what happened together, never why.
+- What's new: "Compare: what you spent that day, beside your habits (and, with Health, your sleep and workouts)."
+- Answers: `spendBesideHabits` (corpus `av2r3-money-beside-habits`; needs Habits shared as well as Wealth; the finding's
+  words in English come from Compare's own sentence; the Dutch one is written from the same two averages).
+- Showcase hook: none written. The Showcase's own habits and money log feed both places; whether the Showcase shows a
+  finding depends on its pinned records (nothing there changes).
+- Registries: none. CSS touched: none new (the view reuses `components/insights/compare/compare.css`).
+- Today: nothing added. Wealth → Spending's "Your money over time" now has 11 view buttons.
+- Noted for the lead (not changed): Compare's existing factor "Spending above an amount" (`spendBasis`, `factorTest`)
+  still sums `Number(e.amount)` of every expense, left-out entries and the full amount of a shared cost included — not
+  Wealth → Spending's rule. It is outside these rows; lane2/revb2a's shared rule should cover it.

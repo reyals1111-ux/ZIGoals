@@ -9,6 +9,8 @@ import type {WealthSheet} from '../../wealth-sheet/schema';
 import {cardStates} from '../../wealth-sheet/cards';
 import {NEED_WANT_WORDS, needWantMonth, shareOfIncome} from '../../money-insights/needs-wants';
 import {monthWaterfall} from '../../money-insights/month-compare';
+import {compare, factorOptions, spendOutcomes} from '../../compare/engine';
+import {LABEL_WORDS} from '../../insights/cross-pillar';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, dayIn, isQuestion, list, MIXED, monthIn, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -172,3 +174,30 @@ function spendingWaterfall(a: Asked): LocalReply | null {
   return answer(`${text} ${say(a.lang, 'From your own entries; a comparison, not a forecast.', 'Uit je eigen invoer; een vergelijking, geen voorspelling.')}`, calls);
 }
 add(spendingWaterfall);
+
+// ── The day's spending beside a done habit, under Compare's own rules (#296) ────────────────────────────────────────
+/** "Do I spend less on days I do my habits", "geef ik minder uit op dagen dat ik mijn gewoontes doe". Never a cause. */
+function spendBesideHabits(a: Asked): LocalReply | null {
+  const en = /\b(?:spend|spent|spending)\b/.test(a.f) && /\bon days\b|\bdays (?:when |that )?i\b/.test(a.f) && /\bhabits?\b/.test(a.f);
+  const nl = /\b(?:uitgeven|uitgaven|uitgegeven|geef)\b/.test(a.f) && /\bdagen\b/.test(a.f) && /\bgewoontes?\b|\bgewoonten\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  if (!a.env.areas.habits) return answer(say(a.lang, 'Setting spending beside your habits needs Habits shared as well.', 'Uitgaven naast je gewoontes zetten vraagt dat Gewoontes ook gedeeld is.'), []);
+  const src = {habits: a.env.habits, money: {entries: entriesOf(a.env)}}, out = spendOutcomes(src)[0], calls = call('compare', {factor: 'habit', outcome: 'spending'}, 'Compare · spending beside habits');
+  const factors = factorOptions(src, a.today).filter(f => f.kind === 'habit').slice(0, 20);
+  if (!out || !factors.length) return answer(say(a.lang, `This needs habits you tick and a few weeks of spending in your money log. Then ${PLACES.spending.en} → Your money over time → Beside your habits sets the days you did a habit beside what you spent.`,
+    `Hiervoor zijn gewoontes die je afvinkt en een paar weken uitgaven in je geldlog nodig. Daarna zet ${PLACES.spending.nl} → Your money over time → Beside your habits de dagen dat je een gewoonte deed naast wat je uitgaf.`), calls);
+  const results = factors.map(f => compare(src, f.id, out.id, 'same', a.today)).filter((r): r is NonNullable<typeof r> => !!r);
+  const ready = results.filter(r => r.state === 'ready'), cur = out.id.split(':')[1]!;
+  const name = (label: string) => label.replace(/^Did /, '');
+  if (!ready.length) {
+    const best = [...results].sort((x, y) => Math.min(y.withDays, y.withoutDays) - Math.min(x.withDays, x.withoutDays))[0];
+    return answer(best ? say(a.lang, `No finding yet. For ${name(best.factor.label)}: ${best.withDays} days with, ${best.withoutDays} without; a comparison shows once each side has ${best.need} days and the two differ clearly. What happened together, never a cause.`,
+      `Nog geen bevinding. Voor ${name(best.factor.label)}: ${best.withDays} dagen met, ${best.withoutDays} zonder; een vergelijking verschijnt zodra elke kant ${best.need} dagen heeft en ze duidelijk verschillen. Wat samen gebeurde, nooit een oorzaak.`) : say(a.lang, 'No finding yet.', 'Nog geen bevinding.'), calls);
+  }
+  const line = (lang: Lang, r: typeof ready[number]) => say(lang, `On days you completed ${name(r.factor.label)}, you spent ${moneyIn('en', Math.round(r.withValue! * 100), cur)} that day on average; on other days, ${moneyIn('en', Math.round(r.withoutValue! * 100), cur)} (${LABEL_WORDS[r.label!].label.toLowerCase()})`,
+    `Op dagen dat je ${name(r.factor.label)} deed, gaf je die dag gemiddeld ${moneyIn('nl', Math.round(r.withValue! * 100), cur)} uit; op andere dagen ${moneyIn('nl', Math.round(r.withoutValue! * 100), cur)}`);
+  return answer(say(a.lang, `${ready.slice(0, 3).map(r => line('en', r)).join('. ')}. From the last 90 days of your own records; days that happened together are not proof that one brings the other.`,
+    `${ready.slice(0, 3).map(r => line('nl', r)).join('. ')}. Uit de laatste 90 dagen van je eigen gegevens; dagen die samen vielen bewijzen niet dat het een het ander brengt.`), calls);
+}
+add(spendBesideHabits);

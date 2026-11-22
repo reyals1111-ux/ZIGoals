@@ -26,6 +26,8 @@ const VIEWS = {
   needs: {label: 'Needs, wants and saving', load: lazy(() => import('./needs-wants-view'))},
   // Session AV lane 2, round 3 (money; Simplifi, LEDGER #297): a waterfall from last month's spending total to this month's.
   changed: {label: 'What changed', load: lazy(() => import('./month-waterfall'))},
+  // Session AV lane 2, round 3 (money; PocketGuard, LEDGER #296): a done habit beside what was spent, under Compare's rules.
+  habits: {label: 'Beside your habits', load: lazy(() => import('./spend-compare-view'))},
 } as const;
 type View = keyof typeof VIEWS;
 export type InsightProps = {entries: readonly MoneyEntry[]; today: string; showcase?: boolean};
