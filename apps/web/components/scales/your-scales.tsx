@@ -1,12 +1,13 @@
 'use client';
 import Link from 'next/link';
-import {useId, useState, type FormEvent} from 'react';
+import {lazy, Suspense, useId, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {SCALES, MAX_SCALES, SCALE_END_MAX, SCALE_NAME_MAX, type Scale} from '../../lib/scales/store';
 import {SUGGESTED, addScale, editScale, rateScale, removeScale, valueWords} from '../../lib/scales/engine';
 import {isShowcase} from '../../lib/showcase-storage';
 import '../journal/journal.css';
 import './your-scales.css';
+const ScaleStats = lazy(() => import('./scale-stats')); // Session AV lane 2 (LEDGER #189)
 
 /**
  * Session AK (BUILD list 2 #12, lane G1a): "Your own scales" — up to five 1–5 ratings of the person's own (stress, pain,
@@ -18,7 +19,7 @@ import './your-scales.css';
  */
 export default function YourScales({day, compact = false, onStatus}: {day: string; compact?: boolean; onStatus?: (said: string) => void}) {
   const rec = useDeviceRecord(SCALES), id = useId();
-  const [ownStatus, setOwnStatus] = useState(''), [managing, setManaging] = useState(false);
+  const [ownStatus, setOwnStatus] = useState(''), [managing, setManaging] = useState(false), [statsOpen, setStatsOpen] = useState(false);
   const setStatus = onStatus ?? setOwnStatus;
   if (!rec.loaded) return null;
   const write = (fn: Parameters<typeof rec.update>[0], said: string) => { try { rec.update(fn); setStatus(said); return true; } catch (e) { setStatus(e instanceof Error && e.message && !/^\[/.test(e.message) ? e.message : 'This could not be saved on this device.'); return false; } };
@@ -34,6 +35,8 @@ export default function YourScales({day, compact = false, onStatus}: {day: strin
     {(!compact || managing) ? <ManageScales scales={scales} onAdd={input => write(r => addScale(r, input), `Added “${input.name.trim()}”.`)} onEdit={(sid, input) => write(r => editScale(r, sid, input), 'Saved.')}
       onRemove={s => write(r => removeScale(r, s.id), `“${s.name}” is off the check-in. Its ratings stay, and adding it again by name brings them back.`)}/>
       : <button type="button" className="text-link" onClick={() => setManaging(true)}>Change your scales</button>}
+    {/* Session AV lane 2 (LEDGER #189): each scale's statistics over 30, 90 or 365 days, on the Journal page (not the check-in). */}
+    {!compact && scales.length > 0 && <details className="scale-stats-fold" onToggle={e => setStatsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>How your scales went</summary>{statsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><ScaleStats rec={rec.data} scales={scales} today={day}/></Suspense>}</details>}
   </div>;
 }
 

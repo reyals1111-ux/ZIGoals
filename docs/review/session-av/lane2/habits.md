@@ -367,6 +367,26 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 - CSS touched: `components/mood-look/mood-look.css` (new; theme variables only). Always visible on Today: nothing new
   (the wrap-up card shows the same five buttons, with your words).
 
+## Feature 12 — Each scale's statistics (LEDGER #189)
+
+**Verdict: built.**
+
+- Journal → Your own scales → "How your scales went" (a fold, lazy; not in ZIGi's compact check-in): choose the scale
+  and the last 30, 90 or 365 days; the days rated of the span, the average, the lowest and highest, the level most
+  often (in your own end words), how often each level came (a count per level with a bar), and a dot per rated day on one
+  1–5 axis (each dot titled; the chart named with the latest twelve ratings). An unrated day is a gap, never a level.
+  This is the first reader of `scaleSeries` in the UI.
+- Files: `lib/scales/stats.ts`, `components/scales/{scale-stats.tsx,your-scales.tsx,your-scales.css}`.
+- Tests: `lib/scales/stats.test.ts`. Spec: `tests/av2-scale-stats.spec.ts`.
+- Stored changes: none (derived from `zigoals:scales:v1`).
+- Help (EN): **Q: How do I see how a scale went?** A: Journal → Your own scales → How your scales went: pick a scale
+  and 30, 90 or 365 days to see the days rated, the average and how often each level came.
+- What's new: "Statistics for each of your own scales: 30, 90 or 365 days."
+- Answers: none (scales are not read by ZIGi or NOVA today; giving them that would widen what they read, the owner's
+  call).
+- Showcase hook: the Showcase's own scales (`lib/scales/showcase.ts`) show it with no new data.
+- CSS touched: `components/scales/your-scales.css`. Always visible on Today: nothing.
+
 ## Not built yet (next for this pillar, in order)
 
 - Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm
