@@ -112,3 +112,32 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
   record, another task's stays; Undo brings it back).
 - Help (EN), for the task versions answer, add: "Removing a task removes its earlier versions too; Undo brings both back."
 - What's new: "Removing a task removes its earlier versions too."
+
+## B2A-6 Minor: Dutch money answers wrote English-style money
+
+- Verdict: fixed, as review b1 #16 fixed the pay-period answer (ce63d737).
+- Fix: apps/web/lib/ai/local-answers/av-words.ts `moneyIn(lang, cents, currency)`: Dutch writes "€ 40,00" (`nl-NL`),
+  English the app's display format (as every English answer and the screens; unchanged). The Money round 1 and round 2
+  answers (apps/web/lib/ai/local-answers/av2-money.ts, av2-money-r2.ts) write all their money through it, in the
+  language of the answer being given (set for the answer's one synchronous pass in `av2MoneyAnswer` /
+  `av2MoneyR2Answer`; every money figure of those files goes through the one local `money`).
+- Tests: apps/web/lib/ai/local-answers/revb2a-money-lang.test.ts (every Money r1/r2 corpus question: no English-style
+  money in Dutch, no Dutch-style money in English; the reviewer's "contant betaald" example "Creditcard € 40,00 en
+  Contant € 3,00"). Deliberate, stricter test changes (labelled in the files): the Dutch assertions of
+  apps/web/lib/ai/local-answers/av2-money.test.ts (3) and av2-money-r2.test.ts (8) accepted "€40.00" or "€40,00"; each
+  now matches only the Dutch form "€ 40,00".
+- NOVA corpus — five Dutch answers change (English, facts and widgets unchanged). The lead re-records expected.json:
+  - `av2-money-year` nl: "2026 tot nu toe in EUR: €666.95 uitgegeven, €2,550.00 binnengekomen; het meest aan Groceries
+    €268.00, Bills €120.00 en Food & drink €71.60; de grootste uitgave Energy €120.00." → "… € 666,95 uitgegeven,
+    € 2.550,00 binnengekomen; het meest aan Groceries € 268,00, Bills € 120,00 en Food & drink € 71,60; de grootste
+    uitgave Energy € 120,00."
+  - `av2-money-suggested-budget` nl: "Groceries: €27.00 (… nu: €250.00)" → "Groceries: € 27,00 (… nu: € 250,00)".
+  - `av2-money-paid-down` nl: "USD: nu $7,551.00 schuld; dit jaar afgelost $3,159.00." → "USD: nu US$ 7.551,00 schuld;
+    dit jaar afgelost US$ 3.159,00."
+  - `av2-money-one-total` nl: "Eén totaal in USD: $29,229.00." → "Eén totaal in USD: US$ 29.229,00."
+  - `av2r2-money-day-left` nl: "Groceries €4.49, Food & drink €5.06 en Fun €2.57" → "Groceries € 4,49, Food & drink
+    € 5,06 en Fun € 2,57".
+  Why each is right: the same figures (cents unchanged), written as Dutch writes money (`nl-NL`: "€ 1.234,56", "US$"
+  for dollars so it is not read as another dollar), as the Dutch dates in the same answers already are.
+- Spec: none (answer text; unit-tested on every corpus question).
+- Help: none needed. What's new: "Dutch money answers write amounts the Dutch way."

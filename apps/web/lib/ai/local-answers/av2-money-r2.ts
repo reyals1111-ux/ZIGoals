@@ -11,7 +11,7 @@ import type {WealthSheet} from '../../wealth-sheet/schema';
 import {besideWorth, loanRows, owedTotals} from '../../money-more/people';
 import type {StoreCards} from '../../store-cards/schema';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, closed, count, dayIn, isQuestion, list, MIXED, money, say, type Asked} from './av-words';
+import {answer, asked, closed, count, dayIn, isQuestion, list, MIXED, moneyIn, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -25,11 +25,18 @@ import type {LocalReply} from './engine';
 export function av2MoneyR2Answer(question: string, env: ToolEnv): LocalReply | null {
   try {
     const a = asked(question, env);
+    answerLang = a?.lang ?? 'en';
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:who|wie|aan wie)\b/.test(a.f))) return null;
     for (const one of ANSWERS) { const r = one(a); if (r) return r; }
     return null;
-  } catch { return null; }
+  } catch { return null; } finally { answerLang = 'en'; }
 }
+/**
+ * Review b2a #6: the language of the answer being written, for its money (`moneyIn`): set for the one synchronous pass
+ * above, so a Dutch answer writes "€ 40,00" and an English one the display format.
+ */
+let answerLang: 'en' | 'nl' = 'en';
+const money = (amountCents: number, currency: string) => moneyIn(answerLang, amountCents, currency);
 type Answer = (a: Asked) => LocalReply | null;
 const ANSWERS: Answer[] = [];
 export const addR2Answers = (...more: Answer[]) => { ANSWERS.push(...more); };
