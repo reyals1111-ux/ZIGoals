@@ -29,6 +29,16 @@ export const budgetPeriodsSchema = z.looseObject({
   fill: z.looseObject({items: z.array(z.looseObject({budgetId: id, amount: amountText})).max(100)}).optional().catch(undefined),
   filled: z.preprocess(v => Array.isArray(v) ? v.filter(x => typeof x === 'string' && x.length <= 80).slice(-50) : undefined, z.array(z.string()).optional()),
   debts: record(id, 50),
+  /**
+   * Session AV lane 2, round 6 (money; EveryDollar's paycheck planning, LEDGER #426), TIER 3 (stored format), additive and
+   * optional, dropped on read when unreadable: two or more paychecks a month (`items`, at most 6: a name, every month on a
+   * day, or every week or two weeks on a weekday, and the person's own amount), and which paycheck covers each budget
+   * (`b:<budget id>`) and bill (`bill:<bill id>`) in `lines`. Older builds keep it (loose object) and ignore it.
+   */
+  paychecks: z.looseObject({
+    items: z.array(z.looseObject({id, name: z.string().trim().min(1).max(40), every: z.enum(['month', 'week', 'fortnight']), day: z.number().int().min(0).max(31), amount: amountText, currency: z.string().regex(/^[A-Z]{3}$/)})).max(6),
+    lines: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, x]) => /^(?:b|bill):[A-Za-z0-9_-]{1,80}$/.test(k) && id.safeParse(x).success).slice(0, 200)) : undefined, z.record(z.string(), z.string()).optional()),
+  }).optional().catch(undefined),
 });
 export type BudgetPeriods = z.infer<typeof budgetPeriodsSchema>;
 export const emptyBudgetPeriods = (): BudgetPeriods => ({version: 1});

@@ -53,13 +53,19 @@ export const budgetSchema = z.looseObject({
   period: z.looseObject({every: z.union([z.literal(3), z.literal(6), z.literal(12)]), amount: amountText}).optional().catch(undefined),
   start: amountText.optional().catch(undefined),
   group: z.string().trim().min(1).max(40).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 6 (money; EveryDollar's reorder, LEDGER #429), TIER 3 (stored format), additive and optional,
+   * dropped on read when unreadable: the budget's place in the person's own order (0 first), used on Budgets, the month
+   * view and the fill. Older builds keep it untouched (loose object) and sort as before.
+   */
+  order: z.number().int().min(0).max(999).optional().catch(undefined),
 });
 /**
  * Session AV (owner follow-up 1, F-WATCH; Rocket Money's Watchlist), TIER 3 (stored format), additive and optional: up
  * to 20 categories watched without a budget, each in one currency — this month so far against last month by the same
  * day. A list this build cannot read is dropped on read, never failing the record; older builds keep it (loose object).
  */
-export const MAX_WATCHED = 20, MAX_MOVES = 200, MAX_CHALLENGES = 12;
+export const MAX_WATCHED = 20, MAX_MOVES = 200, MAX_CHALLENGES = 12, MAX_AHEAD = 200;
 export const watchedSchema = z.looseObject({category: z.string().trim().min(1).max(40), currency: z.string().regex(/^[A-Z]{3}$/)});
 export const budgetsSchema = z.looseObject({
   version: z.literal(1),
@@ -78,6 +84,13 @@ export const budgetsSchema = z.looseObject({
     amount: amountText.optional().catch(undefined)})).max(MAX_WATCHED).optional().catch(undefined),
   challenges: z.array(z.looseObject({id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), category: z.string().trim().min(1).max(40), currency: currencyCode, month})).max(MAX_CHALLENGES).optional().catch(undefined),
   onToday: z.literal(true).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 6 (money; Banktivity's budget a month ahead, LEDGER #428), TIER 3 (stored format), additive and
+   * optional, dropped on read when unreadable: money of month `from`'s ready to assign set aside for a budget's amount in
+   * the month after (at most 200). It is held in `from` (Ready to assign there is lower by it) and covers that budget in
+   * the next month (Ready to assign there is not asked for it again). Older builds keep it (loose object) and ignore it.
+   */
+  ahead: z.array(z.looseObject({id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), from: month, budgetId: z.string().min(1).max(80), amount: amountText, at: z.iso.datetime({offset: true})})).max(MAX_AHEAD).optional().catch(undefined),
 }).refine(r => new Set(r.budgets.map(b => `${b.currency}|${b.category.toLowerCase()}`)).size === r.budgets.length, 'One budget per category and currency.');
 export type Budget = z.infer<typeof budgetSchema>;
 export type BudgetsRecord = z.infer<typeof budgetsSchema>;
