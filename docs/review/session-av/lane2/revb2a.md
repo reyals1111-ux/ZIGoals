@@ -75,3 +75,21 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
 - Help (EN): the existing answer ("Your spending and budgets count your share") is now true everywhere; add "Payee
   budgets, challenges and the recaps count your share too."
 - What's new: "Payee budgets and challenges count your share of a shared cost."
+
+## B2A-4 Major: account documents added in the Showcase stayed on the device
+
+- Verdict: fixed (apps/web/lib/showcase-storage.ts edited with the lead's permission for this one fix).
+- Fix: apps/web/lib/wealth-sheet/docs.ts `deleteWealthDocs(scope)` deletes every document whose key starts with
+  `<scope>:` and returns how many; `clearShowcasePhotos` (apps/web/lib/showcase-storage.ts) calls it for the Showcase
+  scope beside the other photo stores, so a statement or deed added while trying the Showcase is deleted when a Showcase
+  starts (load or reset) and when it ends (Return to my data, exit). Only the `showcase` scope; the person's own and an
+  account's documents stay. Modelled on batch 1 #4 (journal media, 81514ee4).
+- Tests: apps/web/lib/wealth-sheet/revb2a-showcase-docs.test.ts (a scope delete takes only that scope;
+  `clearShowcasePhotos`, `activateShowcase` and `exitShowcase` each delete the Showcase's documents and keep local and
+  an account's).
+- Spec (lead runs): apps/web/tests/av2-revb2a-showcase-docs.spec.ts (a Showcase document is gone after Load Showcase
+  Demo and after Return to my data; a local one stays).
+- Stored change: none (no new key, no new field; the database is already in every registry).
+- Help (EN), for the Showcase answer, add: "Documents you add to an account while trying the Showcase are deleted
+  when it ends, like its photos."
+- What's new: "Documents added in the Showcase are deleted when it ends."
