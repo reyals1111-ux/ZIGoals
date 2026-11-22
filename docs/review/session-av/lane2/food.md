@@ -344,8 +344,9 @@ Shared-file needs for the lead are collected at the end ("For the lead").
   (`scripts/food/build-generic-db.mjs` fetches them; the raw files are not in the repository) and widening the strict
   file format. **#98** Cronometer Custom Charts and Reports — built: calories, protein and weight as Compare outcomes;
   a "Nutrition (from the food diary)" section in the visit report (days logged; average a day over the days whose every
-  entry gives the value, for eleven nutrients). Blood pressure and lab values are already their own report section
-  ("Your numbers"); as Compare outcomes they are **not built** — left as the next row (see "Next"). **#92** MyFitnessPal
+  entry gives the value, for eleven nutrients). Blood pressure (upper, mmHg) and each lab value by its marker
+  name (its gap a twentieth of its own average) from "Your numbers" are Compare outcomes too (follow-up commit); they were
+  already their own report section. **#92** MyFitnessPal
   GLP-1 support — built: a dose taken (supplements and medication log: taken against skipped, no mark unknown) and a
   symptom logged are Compare factors, and each symptom's level 0–3 is an outcome — "On days you took “X”, your
   “nausea” level that day averaged 0.0 of 3; on other days, 2.0 of 3", under Compare's own rules (14 days a side).

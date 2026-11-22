@@ -33,6 +33,20 @@ describe('Compare with food, weight, symptoms and doses', () => {
     expect(r.sentence).toBe('On days you took “Fictional dose”, your “Fictional nausea” level that day averaged 0.0 of 3; on other days, 2.0 of 3.');
     expect(r.confounder).toContain('dose');
   });
+  it('blood pressure and a lab value from "Your numbers" as outcomes (LEDGER #98)', () => {
+    const d = days(40), src = sources();
+    const numbers = {entries: [...d.map((date, i) => ({date, kind: 'bp', systolic: i % 2 ? 132 : 122})), ...d.map((date, i) => ({date, kind: 'lab', name: 'Fictional Glucose', value: i % 2 ? 6.2 : 5.1, unit: 'mmol/L'}))]};
+    const s = {...src, numbers};
+    const ids = outcomeOptions(s).map(o => o.id);
+    expect(ids).toEqual(expect.arrayContaining(['bp', 'lab:fictional glucose']));
+    expect(outcomeLabel('lab:fictional glucose', s)).toBe('Fictional Glucose (mmol/L)');
+    expect(gapOf('lab:fictional glucose', s)).toBeCloseTo(((6.2 + 5.1) / 2) * 0.05, 5);
+    const bp = compare(s, 'dose:supp_fictional-dose', 'bp', 'same', TODAY)!;
+    expect([bp.withValue, bp.withoutValue, bp.state]).toEqual([122, 132, 'ready']);
+    expect(bp.sentence).toContain('your upper blood pressure that day averaged 122 mmHg');
+    const lab = compare(s, 'dose:supp_fictional-dose', 'lab:fictional glucose', 'same', TODAY)!;
+    expect(lab.sentence).toContain('your Fictional Glucose (mmol/L) that day averaged 5.1');
+  });
   it('calories logged against a symptom; a day with nothing logged is unknown, never without', () => {
     const src = sources();
     const r = compare(src, 'symptom:nausea', 'kcal', 'same', TODAY)!;

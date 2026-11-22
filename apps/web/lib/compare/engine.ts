@@ -29,14 +29,18 @@ export type ScaleOutcomeId = `scale:${string}`;
  * calories and protein from the food diary (a day with no entry, or no value, is unknown), the weight on a weigh-in day,
  * and a symptom's level 0–3 on a day it was logged (`symptom:<id>`).
  */
-export type FoodOutcomeId = 'kcal' | 'protein' | 'weight';
+export type FoodOutcomeId = 'kcal' | 'protein' | 'weight' | 'bp';
 export type SymptomOutcomeId = `symptom:${string}`;
-export type OutcomeId = BaseOutcomeId | ScaleOutcomeId | FoodOutcomeId | SymptomOutcomeId;
+/** A lab value by its marker's name as typed, folded (`lab:ferritin`), from "Your numbers". */
+export type LabOutcomeId = `lab:${string}`;
+export type OutcomeId = BaseOutcomeId | ScaleOutcomeId | FoodOutcomeId | SymptomOutcomeId | LabOutcomeId;
+export const isLabOutcome = (id: string): id is LabOutcomeId => /^lab:[a-z0-9 -]{1,60}$/.test(id);
+export const labKey = (name: string) => name.trim().toLowerCase().replace(/[^a-z0-9 -]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
 export const isScaleOutcome = (id: string): id is ScaleOutcomeId => /^scale:[a-z0-9-]{1,24}$/.test(id);
 export const isSymptomOutcome = (id: string): id is SymptomOutcomeId => /^symptom:[a-z0-9-]{1,40}$/.test(id);
-export const FOOD_OUTCOMES: readonly FoodOutcomeId[] = ['kcal', 'protein', 'weight'];
-const FOOD_GAP: Readonly<Record<FoodOutcomeId, number>> = {kcal: 150, protein: 10, weight: 0.3};
-const FOOD_LABELS: Readonly<Record<FoodOutcomeId, string>> = {kcal: 'Calories logged', protein: 'Protein logged (g)', weight: 'Weight (kg)'};
+export const FOOD_OUTCOMES: readonly FoodOutcomeId[] = ['kcal', 'protein', 'weight', 'bp'];
+const FOOD_GAP: Readonly<Record<FoodOutcomeId, number>> = {kcal: 150, protein: 10, weight: 0.3, bp: 5};
+const FOOD_LABELS: Readonly<Record<FoodOutcomeId, string>> = {kcal: 'Calories logged', protein: 'Protein logged (g)', weight: 'Weight (kg)', bp: 'Blood pressure, upper (mmHg)'};
 const isFoodOutcome = (id: string): id is FoodOutcomeId => (FOOD_OUTCOMES as readonly string[]).includes(id);
 export type Lag = 'same' | 'next';
 export type FactorKind = 'habit' | 'sleep-tag' | 'journal-tag' | 'workout' | 'fasting' | 'spend' | 'scale' | 'cycle' | 'dose' | 'symptom';
@@ -61,17 +65,22 @@ export type CompareSources = {
   /** Session AV lane 2 (food, LEDGER #92, #98): the symptoms log (zigoals:symptoms:v1) and the supplements and medication log. */
   symptoms?: {items: readonly {id: string; name: string; kind: string}[]; days: Readonly<Record<string, Readonly<Record<string, number>>>>} | null;
   supplements?: {items?: readonly {id: string; name: string; kind?: string}[]; log?: readonly {itemId: string; date: string; status: string}[]} | null;
+  /** Session AV lane 2 (food, LEDGER #98): "Your numbers" (zigoals:health-numbers): blood pressure and lab values by day. */
+  numbers?: {entries: readonly {date: string; kind: string; systolic?: number; name?: string; value?: number; unit?: string}[]} | null;
 };
 
 /** Each outcome's meaningful gap (as the cross-pillar pairings: 0.4 points, 20 minutes, 10 percentage points). */
 export const GAP: Readonly<Record<BaseOutcomeId, number>> = {mood: 0.4, energy: 0.4, sleep: 20, habits: 0.1, steps: 1000, feeling: 0.1};
 export const OUTCOME_LABELS: Readonly<Record<BaseOutcomeId, string>> = {mood: 'Mood (1–5)', energy: 'Energy (1–5)', sleep: 'Time asleep', habits: 'Habit completion', steps: 'Steps', feeling: 'Pleasant feeling words'};
 /** An outcome's meaningful gap; a person's own 1–5 scale uses mood's 0.4 points. */
-export const gapOf = (outcome: OutcomeId): number => isScaleOutcome(outcome) ? 0.4 : isSymptomOutcome(outcome) ? 0.5 : isFoodOutcome(outcome) ? FOOD_GAP[outcome] : GAP[outcome];
+/** A lab value's meaningful gap: a twentieth of its own average (a marker's units differ), or none with no readings. */
+const labGap = (src: CompareSources | undefined, outcome: LabOutcomeId) => { const v = labReadings(src, outcome).map(r => r.value); return v.length ? Math.abs(v.reduce((a, b) => a + b, 0) / v.length) * 0.05 : 1; };
+const labReadings = (src: CompareSources | undefined, outcome: LabOutcomeId) => (src?.numbers?.entries ?? []).filter((e): e is {date: string; kind: string; name: string; value: number; unit?: string} => e.kind === 'lab' && typeof e.name === 'string' && typeof e.value === 'number' && labKey(e.name) === outcome.slice(4));
+export const gapOf = (outcome: OutcomeId, src?: CompareSources): number => isScaleOutcome(outcome) ? 0.4 : isSymptomOutcome(outcome) ? 0.5 : isLabOutcome(outcome) ? labGap(src, outcome) : isFoodOutcome(outcome) ? FOOD_GAP[outcome] : GAP[outcome];
 const scaleOf = (src: CompareSources | undefined, id: string) => src?.scales?.scales.find(s => s.id === id) ?? src?.scales?.retired?.find(s => s.id === id) ?? null;
 /** An outcome's label; a scale by its own name ("Stress (1–5)"), or a plain fallback when it is gone. */
 const symptomOf = (src: CompareSources | undefined, id: string) => src?.symptoms?.items.find(s => s.id === id) ?? null;
-export const outcomeLabel = (outcome: OutcomeId, src?: CompareSources): string => isScaleOutcome(outcome) ? `${scaleOf(src, outcome.slice(6))?.name ?? 'Your scale'} (1–5)` : isSymptomOutcome(outcome) ? `${symptomOf(src, outcome.slice(8))?.name ?? 'A symptom'} (0–3)` : isFoodOutcome(outcome) ? FOOD_LABELS[outcome] : OUTCOME_LABELS[outcome];
+export const outcomeLabel = (outcome: OutcomeId, src?: CompareSources): string => isScaleOutcome(outcome) ? `${scaleOf(src, outcome.slice(6))?.name ?? 'Your scale'} (1–5)` : isSymptomOutcome(outcome) ? `${symptomOf(src, outcome.slice(8))?.name ?? 'A symptom'} (0–3)` : isLabOutcome(outcome) ? (() => { const r = labReadings(src, outcome)[0]; return r ? `${r.name}${r.unit ? ` (${r.unit})` : ''}` : 'A lab value'; })() : isFoodOutcome(outcome) ? FOOD_LABELS[outcome] : OUTCOME_LABELS[outcome];
 export const CONFOUNDERS: Readonly<Record<FactorKind, string>> = {
   habit: 'a calm or a busy stretch can shape both the habit and the rest of the day',
   'sleep-tag': 'the evenings you tag may differ in other ways too, such as the day of the week',
@@ -148,9 +157,10 @@ export function outcomeOptions(src: CompareSources): OutcomeOption[] {
   };
   const own = (src.scales?.scales ?? []).filter(sc => Object.values(src.scales!.days).some(d => d[sc.id] !== undefined)).map(sc => ({id: `scale:${sc.id}` as ScaleOutcomeId, label: `${sc.name} (1–5)`}));
   // Session AV lane 2 (food, LEDGER #98, #92): the diary's calories and protein, the weight, and each symptom's level.
-  const food: OutcomeOption[] = [...((src.health?.diary.length ?? 0) > 0 ? (['kcal', 'protein'] as const) : []), ...((src.health?.weights.length ?? 0) > 0 ? (['weight'] as const) : [])].map(id => ({id, label: FOOD_LABELS[id]}));
+  const food: OutcomeOption[] = [...((src.health?.diary.length ?? 0) > 0 ? (['kcal', 'protein'] as const) : []), ...((src.health?.weights.length ?? 0) > 0 ? (['weight'] as const) : []), ...((src.numbers?.entries ?? []).some(e => e.kind === 'bp' && typeof e.systolic === 'number') ? (['bp'] as const) : [])].map(id => ({id, label: FOOD_LABELS[id]}));
+  const labs = [...new Set((src.numbers?.entries ?? []).flatMap(e => e.kind === 'lab' && e.name && typeof e.value === 'number' ? [labKey(e.name)] : []))].filter(Boolean).slice(0, MAX_TAGS).map(k => { const id = `lab:${k}` as LabOutcomeId; return {id, label: outcomeLabel(id, src)}; });
   const symptoms = (src.symptoms?.items ?? []).filter(i => Object.values(src.symptoms!.days).some(l => l[i.id] !== undefined)).map(i => ({id: `symptom:${i.id}` as SymptomOutcomeId, label: `${i.name} (0–3)`}));
-  return [...OUTCOMES.filter(id => has[id]).map(id => ({id, label: OUTCOME_LABELS[id]})), ...own, ...food, ...symptoms];
+  return [...OUTCOMES.filter(id => has[id]).map(id => ({id, label: OUTCOME_LABELS[id]})), ...own, ...food, ...labs, ...symptoms];
 }
 
 type DayTest = (d: string) => boolean | null;
@@ -226,6 +236,12 @@ function outcomeValue(src: CompareSources, outcome: OutcomeId, today: string, sp
   if (isSymptomOutcome(outcome)) { const id = outcome.slice(8); return d => src.symptoms?.days[d]?.[id] ?? null; }
   if (outcome === 'kcal' || outcome === 'protein') return d => { if (!src.health || d >= today) return null; const s = dailyHealthSummary(src.health, d); if (!s.entries) return null; const v = outcome === 'kcal' ? s.nutrients.kcal : s.nutrients.proteinMg; return v === null ? null : outcome === 'kcal' ? v : v / 1000; };
   if (outcome === 'weight') { const byDay = new Map<string, number>(); for (const w of src.health?.weights ?? []) byDay.set(w.date, w.grams / 1000); return d => byDay.get(d) ?? null; }
+  // A day with two readings counts their average; a day without one is unknown.
+  if (outcome === 'bp' || isLabOutcome(outcome)) {
+    const byDay = new Map<string, number[]>();
+    for (const e of src.numbers?.entries ?? []) { const v = outcome === 'bp' ? (e.kind === 'bp' ? e.systolic : undefined) : (e.kind === 'lab' && e.name && labKey(e.name) === outcome.slice(4) ? e.value : undefined); if (typeof v === 'number') byDay.set(e.date, [...(byDay.get(e.date) ?? []), v]); }
+    return d => { const v = byDay.get(d); return v ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  }
   if (outcome === 'mood') { const moods = src.health ? healthGroupIn(src.health, 'moods')?.days ?? {} : {}; return d => moods[d]?.mood ?? null; }
   if (outcome === 'energy') return d => src.energy?.days[d]?.energy ?? null;
   if (outcome === 'feeling') return d => { const w = src.energy?.words?.[d]; return w ? (w.pleasantness === 'pleasant' ? 1 : 0) : null; };
@@ -264,6 +280,8 @@ export function outcomeText(outcome: OutcomeId, v: number): string {
   if (outcome === 'kcal') return `${formatNumber(Math.round(v))} kcal`;
   if (outcome === 'protein') return `${formatNumber(Math.round(v))} g`;
   if (outcome === 'weight') return `${formatNumber(v, {minimumFractionDigits: 1, maximumFractionDigits: 1})} kg`;
+  if (outcome === 'bp') return `${formatNumber(Math.round(v))} mmHg`;
+  if (isLabOutcome(outcome)) return formatNumber(v, {maximumFractionDigits: 2});
   if (outcome === 'sleep') return hoursMinutes(v);
   if (outcome === 'habits' || outcome === 'feeling') return pct(v);
   return formatNumber(Math.round(v));
@@ -275,6 +293,8 @@ function outcomeSay(outcome: OutcomeId, lag: Lag, v: string, src?: CompareSource
   if (outcome === 'kcal') return `you logged ${v} ${when} on average`;
   if (outcome === 'protein') return `you logged ${v} of protein ${when} on average`;
   if (outcome === 'weight') return `your weight ${when} averaged ${v}`;
+  if (outcome === 'bp') return `your upper blood pressure ${when} averaged ${v}`;
+  if (isLabOutcome(outcome)) return `your ${outcomeLabel(outcome, src)} ${when} averaged ${v}`;
   switch (outcome) {
     case 'mood': return `your mood ${when} averaged ${v}`;
     case 'energy': return `your energy ${when} averaged ${v}`;
@@ -322,7 +342,7 @@ export function compare(src: CompareSources, factorId: string, outcome: OutcomeI
   const caution = `Days that happened together are not proof that one brings the other; ${confounder}. It is not advice, and only you decide what to do with it.`;
   if (withV.length < CROSS_MIN_PER_SIDE || withoutV.length < CROSS_MIN_PER_SIDE)
     return {...base, state: 'pending', withValue: null, withoutValue: null, label: null, ps: null, sentence: null, why: `${paired} A comparison shows once each side has ${CROSS_MIN_PER_SIDE} days. ${caution}`};
-  const withValue = mean(withV), withoutValue = mean(withoutV), {label, ps} = confidenceOf(sample, gapOf(outcome), mid);
+  const withValue = mean(withV), withoutValue = mean(withoutV), {label, ps} = confidenceOf(sample, gapOf(outcome, src), mid);
   if (!label) return {...base, state: 'unclear', withValue, withoutValue, label: null, ps, sentence: null, why: `${paired} The two sides are close, so this is not a finding. ${caution}`};
   const sentence = `${made.phrase}, ${outcomeSay(outcome, lag, outcomeText(outcome, withValue), src)}; on other days, ${outcomeText(outcome, withoutValue)}.`;
   return {...base, state: 'ready', withValue, withoutValue, label, ps, sentence, why: `${paired} Label: ${LABEL_WORDS[label].label}. ${LABEL_WORDS[label].line} ${caution}`};

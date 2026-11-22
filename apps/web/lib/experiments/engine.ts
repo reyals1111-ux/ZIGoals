@@ -74,7 +74,7 @@ export function experimentResult(src: CompareSources, x: Experiment, today: stri
   if (withV.length < CROSS_MIN_PER_SIDE || withoutV.length < CROSS_MIN_PER_SIDE)
     return {...out, state: 'pending', why: `${span} A result shows once each side has ${CROSS_MIN_PER_SIDE} days, as in Compare${dates.phase === 'finished' ? '; this one ended with fewer, so there is not enough to say' : ''}. ${caution}`};
   const mean = (v: readonly number[]) => v.reduce((a, b) => a + b, 0) / v.length;
-  const withValue = mean(withV), withoutValue = mean(withoutV), {label, ps} = confidenceOf(rows, gapOf(outcome), x.start);
+  const withValue = mean(withV), withoutValue = mean(withoutV), {label, ps} = confidenceOf(rows, gapOf(outcome, src), x.start);
   if (!label) return {...out, state: 'unclear', withValue, withoutValue, ps, why: `${span} The two sides are close, so this is not a finding. ${caution}`};
   const sentence = `On the days you tried it, ${say(outcome, withValue, src)}${lag === 'next' ? ' (measured the next day)' : ''}; on the days before, without it, ${outcomeText(outcome, withoutValue)}.`;
   return {...out, state: 'ready', withValue, withoutValue, label, ps, sentence, why: `${span} Label: ${LABEL_WORDS[label].label}. ${LABEL_WORDS[label].line} ${caution}`};
