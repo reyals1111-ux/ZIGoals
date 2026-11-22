@@ -41,8 +41,21 @@ before: the loose objects keep the new fields untouched and the old readers coun
 | `zigoals:price-alerts:v1` | `moves`, `portfolioMoves` | a rolling 24 h ±% move per coin; a portfolio's ±% from its value when set | #173, #174 |
 | `zigoals:portfolio-receipts:v1` | `uncounted` (transaction ids) | "count in results" off for a transaction (the Portfolio record is strict, so it lives here, as the receipt kinds do) | #172 |
 
+| `zigoals:fi-model:v1` inputs | `inflationPct` | figures in the money of each year beside today's | #222 |
+| `zigoals:fi-model:v1` event | `taxPct` | the tax rate on an income stream | #222 |
+| **NEW** `zigoals:wealth-sheet:v1` | `secures`, `share`, `group`, `every`, `flows` (by account id); `rates`, `total` | Kubera's sheet: mortgage → property, ownership share, own groups, update reminders, money in and out (IRR), typed exchange rates for one total | #214, #215, #217–#220 |
+| **NEW** IndexedDB `zigoals-wealth-docs-v1` | a photo or PDF per account (`{accountId, blob, type, bytes, name, addedAt}`) | documents kept with an account | #221 |
+
 Round trip: `apps/web/lib/av2-money/round-trip.test.ts` (export → erase → restore, replace).
-Device keys / catalogue / export / erase entries needed: none (existing keys only).
+
+**Registry entries the lead adds for the new record and database** (all from `apps/web/lib/av2-money-device-keys.ts`,
+the `au-device-keys.ts` pattern): `AV2_MONEY_PERSONAL_KEYS` into onboarding `DEVICE_RECORD_KEYS`; `AV2_MONEY_EXPORT_KEYS`
+into Export everything `DEVICE_KEYS`; `AV2_MONEY_CATALOG_LABELS` into the data catalog (Goals and Wealth, device);
+`AV2_MONEY_ERASE_KEYS` into the account erase (`lib/aa-device-forget.ts`); a restore part
+`dev('wealthSheet', 'Your net-worth sheet', 'Goals and Wealth', spec(WEALTH_SHEET_KEY, wealthSheetSchema, emptyWealthSheet))`
+in `lib/restore/plan.ts`; `AV2_MONEY_DATABASES` into Erase everything's `KNOWN_DATABASES`, and the documents as files in
+Export everything (`exportWealthDocEntries(scope)` in `lib/wealth-sheet/docs.ts`, beside the money photos). Never synced.
+Once `DEVICE_KEYS` holds the key, the skipped round-trip test in `round-trip.test.ts` runs by itself.
 
 ## Features
 

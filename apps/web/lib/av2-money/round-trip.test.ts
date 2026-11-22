@@ -13,6 +13,8 @@ import {DEBT_PLANNER_KEY, debtPlannerSchema} from '../debt-planner/store';
 import {FI_MODEL_KEY, fiModelSchema} from '../fi-model/store';
 import {PRICE_ALERTS_KEY, priceAlertsSchema} from '../price-alerts/schema';
 import {RECEIPTS_KEY, receiptsSchema} from '../portfolio/receipts';
+import {WEALTH_SHEET_KEY, wealthSheetSchema} from '../wealth-sheet/schema';
+import {DEVICE_KEYS} from '../export/everything';
 
 /**
  * Session AV lane 2 (money): every new optional stored field of the money pillar survives Export everything → Erase
@@ -52,7 +54,7 @@ const BUDGETS = budgetsSchema.parse({version: 1, budgets: [
 const BILLS = billsSchema.parse({version: 1, dismissed: [], bills: [{id: 'bill1', title: 'Gym', amount: '30.00', currency: 'EUR', cadence: 'monthly', nextDue: '2026-12-03', origin: 'manual', createdAt: at, autopay: true}]});
 const DEBTS = debtPlannerSchema.parse({version: 1, currency: 'EUR', extra: '50.00', debts: {d1: {minimum: '40.00', promoRate: '0', promoUntil: '2027-03', note: 'Store card, 0 % until March', payoffBy: '2027-12'}}, order: ['d1'], shown: 'custom', method: 'cfi', stepUp: {amount: '10.00', every: 3},
   tracked: {on: '2026-11-01', strategy: 'custom', currency: 'EUR', debts: [{id: 'd1', name: 'Card', balance: '900.00', ratePercent: '19.9', minimum: '40.00'}], order: ['d1'], method: 'cfi', stepUp: {amount: '10.00', every: 3}}});
-const FI = fiModelSchema.parse({version: 1, inputs: {invested: 10000}, events: [{id: 'ev1', title: 'New car', year: 3, amount: 15000, kind: 'out', every: 'once'}], scenarios: [{id: 's1', name: 'Part time', inputs: {monthlyContribution: 300}, events: [{id: 'ev2', title: 'Pension', year: 20, amount: 9000, kind: 'in', every: 'yearly'}]}]});
+const FI = fiModelSchema.parse({version: 1, inputs: {invested: 10000, inflationPct: 2}, events: [{id: 'ev1', title: 'New car', year: 3, amount: 15000, kind: 'out', every: 'once'}, {id: 'ev3', title: 'Pension', year: 25, amount: 12000, kind: 'in', every: 'yearly', taxPct: 30}], scenarios: [{id: 's1', name: 'Part time', inputs: {monthlyContribution: 300}, events: [{id: 'ev2', title: 'Pension', year: 20, amount: 9000, kind: 'in', every: 'yearly'}]}]});
 const ALERTS = priceAlertsSchema.parse({version: 1, alerts: [], fired: [], moves: [{id: 'alert_move-0001', coin: 'bitcoin', coinName: 'Bitcoin', currency: 'EUR', percent: 5, direction: 'either', createdAt: at, active: true}],
   portfolioMoves: [{id: 'alert_pmove-0001', portfolioId: 'p1', portfolioName: 'Long term', currency: 'EUR', percent: 10, direction: 'down', base: '12000.50', createdAt: at, active: true}]});
 const RECEIPTS = receiptsSchema.parse({version: 1, kinds: {t1: 'reward'}, uncounted: ['t2', 't3']});
@@ -84,5 +86,24 @@ describe('Session AV lane 2 (money): new stored fields survive export → erase 
     expect(odd.entries[0]!.spread).toBeUndefined();
     expect(odd.entries[0]!.excluded).toBeUndefined();
     expect(odd.entries[0]!.history).toBeUndefined();
+  });
+});
+
+// Session AV lane 2 (money; Kubera): the new record round-trips once the lead has wired it into the shared registries
+// (lib/av2-money-device-keys.ts lists every entry); until then this one test is skipped, and the next always runs.
+const SHEET = wealthSheetSchema.parse({version: 1, secures: {'00000000-0000-4000-8000-000000000002': '00000000-0000-4000-8000-000000000001'}, share: {'00000000-0000-4000-8000-000000000001': 50},
+  group: {'00000000-0000-4000-8000-000000000001': 'Home'}, every: {'00000000-0000-4000-8000-000000000001': 'quarter'}, flows: {'00000000-0000-4000-8000-000000000003': [{date: '2026-01-05', amount: '1000.00', kind: 'in'}]},
+  rates: [{from: 'USD', to: 'EUR', rate: '0.92', on: '2026-11-20'}], total: 'EUR'});
+const wired = Object.values(DEVICE_KEYS as Record<string, string>).includes(WEALTH_SHEET_KEY);
+describe('Session AV lane 2 (money): the wealth sheet record', () => {
+  test.skipIf(!wired)('survives export → erase → restore', async () => {
+    const back = await roundTrip({[WEALTH_SHEET_KEY]: SHEET});
+    expect(wealthSheetSchema.parse(back[WEALTH_SHEET_KEY])).toEqual(SHEET);
+  });
+  test('reads every field, and drops one it cannot read without failing the record', () => {
+    expect(SHEET.share).toEqual({'00000000-0000-4000-8000-000000000001': 50});
+    const odd = wealthSheetSchema.parse({...SHEET, share: {x: 500}, rates: 'none', future: {kept: true}});
+    expect(odd.share).toBeUndefined(); expect(odd.rates).toBeUndefined(); expect(odd.group).toEqual(SHEET.group);
+    expect((odd as Record<string, unknown>).future).toEqual({kept: true});
   });
 });
