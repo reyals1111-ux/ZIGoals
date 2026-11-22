@@ -14,6 +14,16 @@ export const NAP_CHOICES = [
   {minutes: 90, en: 'A long nap', nl: 'Een lang dutje'},
 ] as const;
 export type NapRun = {startedAt: number; minutes: number};
+/**
+ * Review B4E-3: a nap starts on the person's tap, and that tap wakes the audio (browsers such as iOS Safari allow sound only
+ * after a gesture), so the bell 20 to 90 minutes later can sound; the meditation timer does the same on its start.
+ */
+export function beginNap(minutes: number, bell: boolean, now: number, wake: () => unknown): NapRun {
+  if (bell) wake();
+  return {startedAt: now, minutes};
+}
+/** Turning the bell on during a nap is a tap too: it wakes the audio. */
+export function bellChoice(on: boolean, wake: () => unknown): boolean { if (on) wake(); return on; }
 export const napEndsAt = (run: NapRun) => run.startedAt + run.minutes * 60_000;
 /** Seconds left, never below zero. */
 export const napLeft = (run: NapRun, now: number) => Math.max(0, Math.ceil((napEndsAt(run) - now) / 1000));

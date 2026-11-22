@@ -4,7 +4,7 @@ import {formatMinutes} from '../zone-time';
 import {emptySleep, type Sleep} from './schema';
 import {saveNight} from './engine';
 import {shiftWords, shiftWordsNl, sleepMiddle, sleepTiming} from './timing';
-import {logNap, napClock, napEndsAt, napLeft} from './nap';
+import {beginNap, bellChoice, logNap, napClock, napEndsAt, napLeft} from './nap';
 import {SLEEP_TIPS, sleepTipOf} from '../sleep-tips';
 import {WATER_TIPS} from '../water-tips';
 
@@ -85,3 +85,18 @@ describe('the nap timer (LEDGER #335)', () => {
     expect(() => logNap(s, run, napEndsAt(run), 'UTC', AT)).toThrow(/overlaps the nap/);
   });
 });
+
+// Session AV lane 2 (review B4E-3): the start tap wakes the audio so the end bell can sound where a gesture is needed.
+describe('the nap timer wakes the audio on the tap (review B4E-3)', () => {
+  test('with the bell on, the start tap wakes the audio once; with it off, never', () => {
+    let woke = 0;
+    expect(beginNap(20, true, 1000, () => woke++)).toEqual({startedAt: 1000, minutes: 20});
+    expect(woke).toBe(1);
+    beginNap(30, false, 1000, () => woke++);
+    expect(woke).toBe(1);
+    expect(bellChoice(true, () => woke++)).toBe(true);
+    expect(bellChoice(false, () => woke++)).toBe(false);
+    expect(woke).toBe(2);
+  });
+});
+

@@ -6,9 +6,9 @@ import {clockFromMidnight, deleteNight} from '../../../lib/sleep/engine';
 import type {Sleep} from '../../../lib/sleep/schema';
 import {EARLIER_BEFORE, LATER_AFTER, shiftWords, sleepTiming, TIMING_DAYS, TIMING_MIN_NIGHTS, TIMING_WORDS} from '../../../lib/sleep/timing';
 import {sleepTipOf} from '../../../lib/sleep-tips';
-import {logNap, NAP_CHOICES, napClock, napEndsAt, napLeft, type NapRun} from '../../../lib/sleep/nap';
+import {beginNap, bellChoice, logNap, NAP_CHOICES, napClock, napEndsAt, napLeft, type NapRun} from '../../../lib/sleep/nap';
 import {HEALTH_EXTRAS, healthExtrasSchema} from '../../../lib/health-extras';
-import {ring} from '../../../lib/meditation/bells';
+import {ring, wakeAudio} from '../../../lib/meditation/bells';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {showUndo} from '../../ui/undo-toast';
@@ -89,7 +89,7 @@ export function NapTimer({store}: {store: SleepStore}) {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once when the countdown reaches zero
   }, [left, run]);
   async function start(minutes: number) {
-    const r = {startedAt: new Date().getTime(), minutes}; // an event handler: the tap that starts the nap
+    const r = beginNap(minutes, bell, new Date().getTime(), () => void wakeAudio()); // the tap that starts the nap wakes the audio (review B4E-3)
     setRun(r); setNow(r.startedAt); setSaid('');
     if (canWake) { try { lock.current = await (navigator as unknown as {wakeLock: {request: (type: 'screen') => Promise<WakeLock>}}).wakeLock.request('screen'); } catch { lock.current = null; } }
     requestAnimationFrame(() => heading.current?.focus());
@@ -99,7 +99,7 @@ export function NapTimer({store}: {store: SleepStore}) {
     {!run ? <>
       <p className="fine">A soft bell rings at the end while this page stays open, and the nap is logged. {canWake ? 'The screen stays on while it runs.' : 'Keep the screen on: this browser may let it sleep.'} With the screen locked or the app closed it cannot ring.</p>
       <div className="actions" role="group" aria-label="Nap length">{NAP_CHOICES.map((c, i) => <button key={c.minutes} id={i === 0 ? `${id}-start` : undefined} type="button" className="secondary" onClick={() => void start(c.minutes)}>{c.en}: {c.minutes} min</button>)}</div>
-      <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={bell} onClick={() => setBell(b => !b)}>Bell at the end</button></div>
+      <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={bell} onClick={() => setBell(bellChoice(!bell, () => void wakeAudio()))}>Bell at the end</button></div>
     </> : <>
       <p className="r4-nap-count" role="timer" aria-live="off" aria-label={`${napClock(left)} left`}>{napClock(left)}</p>
       <div className="r3-player-bar" role="progressbar" aria-label="The nap so far" aria-valuemin={0} aria-valuemax={run.minutes * 60} aria-valuenow={run.minutes * 60 - left}><i style={{width: `${(1 - left / (run.minutes * 60)) * 100}%`}}/></div>
