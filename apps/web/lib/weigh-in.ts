@@ -1,5 +1,5 @@
 import {notifyPrefsSchema, type NotifyPrefs} from './notify/prefs';
-import {addDays} from './notify/zone';
+import {addDays, weekdayBit, weekdayOf} from './notify/zone';
 import type {HealthData} from './health';
 import {measurementHistory, readingDay} from './body-measurements';
 
@@ -22,6 +22,8 @@ export function withWeighIn(p: NotifyPrefs, w: WeighIn | null): NotifyPrefs {
 }
 /** The weekday mask it wakes on (daily: every day; monthly: none, its days are dated). */
 export const weighInMask = (w: WeighIn): number => w.repeat === 'daily' ? EVERY_DAY : w.repeat === 'weekdays' ? (w.weekdays ?? 0) & EVERY_DAY : 0;
+/** Whether `day` is one of the reminder's days (review B3B-9: the card says today's is quiet only on such a day). */
+export const weighInDueOn = (w: WeighIn, day: string): boolean => w.repeat === 'monthly' ? Number(day.slice(8, 10)) === (w.day ?? 1) : !!(weighInMask(w) & weekdayBit(weekdayOf(day)));
 /** A monthly reminder's dates from today through the next 31 days. */
 export function monthlyDates(w: WeighIn, today: string): string[] {
   if (w.repeat !== 'monthly') return [];

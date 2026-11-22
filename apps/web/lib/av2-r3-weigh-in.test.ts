@@ -4,7 +4,7 @@ import {describe, expect, test} from 'vitest';
 import {buildPlan, type PlanInput} from './notify/plan';
 import {DEFAULT_ON, emptyNotifyPrefs, NOTIFY_LABELS, NOTIFY_TYPES, setType, typeOn} from './notify/prefs';
 import {zonedInstant} from './notify/zone';
-import {monthlyDates, weighedInOn, weighInMask, weighInPlanInput, weighInWords, withWeighIn} from './weigh-in';
+import {monthlyDates, weighedInOn, weighInDueOn, weighInMask, weighInPlanInput, weighInWords, withWeighIn} from './weigh-in';
 import {createEmptyHealth} from './health';
 import {saveMeasurement} from './body-measurements';
 
@@ -71,5 +71,13 @@ describe('the weigh-in reminder (LEDGER #286)', () => {
     expect(weighedInOn(timed, TODAY)).toBe(true);
     expect(weighedInOn(timed, '2026-11-22')).toBe(false);
     expect(weighedInOn(null, TODAY)).toBe(false);
+  });
+  // Session AV lane 2 (review B3B-9): the card's "today's reminder stays quiet" only on a reminder day.
+  test('a reminder day: its weekdays, or its day of the month', () => {
+    expect(weighInDueOn({time: '07:00', repeat: 'weekdays', weekdays: 1}, TODAY)).toBe(true); // Monday
+    expect(weighInDueOn({time: '07:00', repeat: 'weekdays', weekdays: 8}, TODAY)).toBe(false);
+    expect(weighInDueOn({time: '07:00', repeat: 'daily'}, TODAY)).toBe(true);
+    expect(weighInDueOn({time: '07:00', repeat: 'monthly', day: 1}, TODAY)).toBe(false);
+    expect(weighInDueOn({time: '07:00', repeat: 'monthly', day: 23}, TODAY)).toBe(true);
   });
 });
