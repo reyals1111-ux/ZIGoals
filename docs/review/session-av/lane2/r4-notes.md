@@ -101,3 +101,21 @@ before (an archived note in its list; only the first photo).
   takes to read (an estimate at 230 words a minute), and when it was made and last changed."
 - What's new: "Notes: Note info — words, characters, reading time and dates."
 - Showcase: none needed (every Showcase note shows it). CSS touched: `components/notes/notes.css`. Today: nothing added.
+
+### F4 Find and replace in a note — LEDGER #312 (Bear)
+
+- Verdict: **built**.
+- What: while editing a note, "Find and replace" (beside Save) opens a panel: Find (focus goes there) says "2 of 5" or
+  "No match in this note." as you type; Next and Previous (Enter and Shift+Enter in the field) step through the
+  matches, each shown in its place below ("…Buy **tea**. Tea for…") and chosen in the text; Match case; Replace with,
+  then Replace (the current one) or "Replace all 5". A replace changes the words being edited; Save keeps the earlier
+  words under Earlier versions, as every save does (the panel says so). Esc or Close shuts it, focus back on its button.
+- Files: new `lib/notes/find.ts`, new `components/notes/note-find.tsx` (lazy), `components/notes/note-editor.tsx`,
+  `components/notes/notes.css`.
+- Tests: `lib/notes/r4-find.test.ts`. Spec: `tests/av2-notes-find.spec.ts`.
+- Stored: nothing new (a save writes the note and its earlier version, as before).
+- Help (EN). Q: "Can I find and replace words in a note?" A: "Yes. Edit the note and press Find and replace. Type the
+  words: it counts them, Next and Previous go through them, and Replace or Replace all changes them. Save keeps the
+  earlier words under Earlier versions."
+- What's new: "Notes: find and replace inside a note."
+- Showcase: none needed. CSS touched: `components/notes/notes.css`. Today: nothing added.

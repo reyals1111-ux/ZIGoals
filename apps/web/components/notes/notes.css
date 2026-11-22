@@ -319,3 +319,12 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-info > div { display: flex; flex-wrap: wrap; gap: 2px 12px; }
 .note-info dt { font-weight: 600; min-inline-size: 8.5rem; }
 .note-info dd { margin: 0; overflow-wrap: anywhere; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #312): find and replace in a note. */
+.note-find { display: grid; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent); }
+.note-find-title { margin: 0; font-size: 16px; }
+.note-find-row { display: grid; gap: 6px; }
+.note-find-row .field input { inline-size: 100%; box-sizing: border-box; }
+.note-find-count, .note-find-context { margin: 0; overflow-wrap: anywhere; }
+.note-find-context mark { color: inherit; background: color-mix(in srgb, var(--brand-cyan, #63e7ff) 34%, transparent); border-radius: 3px; padding: 0 2px; }
+.note-find .switch-row { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
