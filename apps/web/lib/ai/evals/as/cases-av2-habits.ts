@@ -19,4 +19,6 @@ export const AV2_HABITS: readonly Intent[] = [
   // The evening check-in (LEDGER #60, #61, #68)
   {id: 'av2-habits-day-logged', pillar: 'health', en: ['did i log today', 'which days did i not log'], nl: ['heb ik vandaag ingecheckt', 'welke dagen heb ik niet gelogd']},
   {id: 'av2-habits-own-words', pillar: 'health', en: ['what are my own feeling words'], nl: ['welke eigen gevoelswoorden heb ik']},
+  // Trends against your usual (LEDGER #66)
+  {id: 'av2-habits-usual-mood', pillar: 'health', en: ['how is my mood compared to usual', 'how is my energy compared to normal'], nl: ['hoe is mijn stemming vergeleken met normaal', 'hoe is mijn energie vergeleken met normaal']},
 ];

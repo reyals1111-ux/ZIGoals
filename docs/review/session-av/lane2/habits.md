@@ -157,3 +157,33 @@ corpus, regenerates theme sheets, edits Help / What's new / search / shard lists
   mood per part of the day in the check-in's own field, beside the day's one mood.
 - CSS touched: `components/health/plus/evening-checkin.css` (new), `components/health/health-day.css` (one line),
   `components/mood-words/mood-words.css` (own words). Always visible on Today: nothing.
+
+## Feature 5 — Your usual, and week by week (LEDGER #66, #67)
+
+**Verdict: built.**
+
+- #66: Health → Activity → "How you felt, and week by week" (a fold, lazy): mood, energy and each symptom or factor,
+  the last 90 days against "your usual" (the last 365), with the days answered on each side, an arrow and a word (Up,
+  Down, About the same), "not enough days yet" with the counts needed (20 recent, 60 a year). An unanswered day is never
+  none. Beside the existing Trends card (steps, sleep, weight, resting heart rate), unchanged.
+- #67: "Week by week": up to four measures the person chooses — mood, energy, sleep, steps, any symptom or factor, any
+  habit's share of due days done — over the same twelve Monday-to-Sunday weeks, drawn as small multiples (one row each
+  with its own scale on a shared week axis: one axis per chart, never two scales on one), each point named on hover
+  (`<title>`), each row's whole series in its accessible name, and "As a table" with the same numbers. The choice is
+  kept on this device. (Bearable overlays lines on one chart; small multiples keep the one-scale rule.)
+- Files: `lib/feeling-trends/trends.ts`, `lib/checkin-extras/rule.ts` (`graph`, `setGraph`),
+  `components/health/plus/{feelings-card.tsx,feelings-card.css,activity-plus.tsx}`, `lib/ai/local-answers/av2-habits.ts`.
+- Tests: `lib/feeling-trends/trends.test.ts` (usual against recent, pending counts, symptoms, weekly values and gaps, a
+  habit's share without today's open day, the graph choice and its limits, the answers EN and NL). The energy record's
+  export → erase → restore is proven in `lib/checkin-extras/checkin-extras.test.ts`. Spec: `tests/av2-feelings-graph.spec.ts`.
+- **Stored change (TIER 3 stored formats, additive, separate commit):** the energy record's loose `checkin` gains
+  `graph` (≤ 4 measure ids, checked where read).
+- Help (EN): **Q: How do I see whether my mood is lower than usual?** A: Health → Activity → How you felt, and week by
+  week. It sets the last 90 days beside your usual over the year, for mood, energy and anything you follow in Symptoms
+  and factors, with the days counted. "Week by week" puts up to four measures you choose over the same twelve weeks.
+- What's new: "Mood, energy and symptoms against your usual, and a week-by-week graph you choose."
+- Answers: "how is my mood compared to usual" / "hoe is mijn stemming vergeleken met normaal" (mood and energy only,
+  Health gate; symptoms stay unread by ZIGi and NOVA). Case `av2-habits-usual-mood`. Lead: put it after any existing
+  mood-trend intent in engine.ts if one claims the same words.
+- Showcase hook: the Showcase's own moods fill it with no new data. CSS: `components/health/plus/feelings-card.css`.
+  Always visible on Today: nothing.

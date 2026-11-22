@@ -6,6 +6,7 @@ import {THEME_DAYS, themeMonthsReached, themeProgress} from '../../game/month-th
 import {readMuted} from '../../muted/rule';
 import {loggedStrip, readCheckin, QUADRANT_IDS} from '../../checkin-extras/rule';
 import {addLocalDays} from '../../local-date';
+import {feelingTrends} from '../../feeling-trends/trends';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
 import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
 import {PATTERNS, type BreathingPattern} from '../../meditation/breathing';
@@ -24,7 +25,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, ownWords]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, ownWords, usualFeeling]) {
       const r = one(a);
       if (r) return r;
     }
@@ -161,4 +162,21 @@ function ownWords(a: Asked): LocalReply | null {
   const rows = QUADRANT_IDS.filter(q => c.ownWords[q].length).map(q => `${CORNER[q]![lang === 'nl' ? 1 : 0]}: ${list(c.ownWords[q].map(w => clean(w, 32)), lang)}`);
   if (!rows.length) return answer(say(lang, 'You have not added a feeling word of your own yet. In the feeling-word grid, open a corner and use “Your own word”.', 'Je hebt nog geen eigen gevoelswoord toegevoegd. Open in het raster met gevoelswoorden een hoek en gebruik “Your own word”.'));
   return answer(say(lang, `Your own feeling words: ${rows.join('; ')}.`, `Je eigen gevoelswoorden: ${rows.join('; ')}.`));
+}
+/** LEDGER #66: "how is my mood compared to usual", "hoe is mijn energie vergeleken met normaal". Mood and energy only (symptoms stay unread here). */
+function usualFeeling(a: Asked): LocalReply | null {
+  const enM = /\b(?:mood|energy|moods)\b/.test(a.f) && /\b(?:usual|normal|normally|baseline|trend|trends|last 90 days|compared)\b/.test(a.f);
+  const nlM = /\b(?:stemming|humeur|energie)\b/.test(a.f) && /\b(?:normaal|gewoonlijk|meestal|trend|vergeleken|laatste 90 dagen)\b/.test(a.f);
+  if (!enM && !nlM) return null;
+  const shut = closed(a.env, 'health'); if (shut || !a.env.health) return shut;
+  const lang = a.lang, {ready, pending} = feelingTrends({health: a.env.health, energy: a.env.energy ?? null}, a.today);
+  const DIR = {up: ['up', 'hoger'], down: ['down', 'lager'], same: ['about the same', 'ongeveer gelijk']} as const;
+  const NAME: Record<string, [string, string]> = {mood: ['Mood', 'Stemming'], energy: ['Energy', 'Energie']};
+  const n = (v: number) => (Math.round(v * 10) / 10).toLocaleString(lang === 'nl' ? 'nl-NL' : 'en-US');
+  const rows = ready.filter(t => t.id === 'mood' || t.id === 'energy').map(t => say(lang, `${NAME[t.id]![0]}: ${DIR[t.direction][0]} — last 90 days ${n(t.recent.value)} of 5 (${t.recent.days} days), your usual ${n(t.usual.value)} (${t.usual.days} days)`, `${NAME[t.id]![1]}: ${DIR[t.direction][1]} — laatste 90 dagen ${n(t.recent.value)} van 5 (${t.recent.days} dagen), je gewoonlijke ${n(t.usual.value)} (${t.usual.days} dagen)`));
+  const waiting = pending.filter(p => p.id === 'mood' || p.id === 'energy').map(p => say(lang, `${NAME[p.id]![0]}: ${p.recentDays} of ${p.needRecent} days in the last 90, ${p.yearDays} of ${p.needYear} in the year`, `${NAME[p.id]![1]}: ${p.recentDays} van ${p.needRecent} dagen in de laatste 90, ${p.yearDays} van ${p.needYear} in het jaar`));
+  if (!rows.length && !waiting.length) return answer(say(lang, 'No mood or energy is answered yet, so there is no usual to compare with. The day’s mood in Health → Diary and the energy rating fill it in.', 'Er is nog geen stemming of energie ingevuld, dus er is geen gewoonlijke waarde om mee te vergelijken. De stemming van de dag in Health → Diary en de energiescore vullen het in.'));
+  const head = rows.length ? `${rows.join('. ')}.` : '';
+  const tail = waiting.length ? say(lang, ` Not enough days yet: ${waiting.join('; ')}.`, ` Nog niet genoeg dagen: ${waiting.join('; ')}.`) : '';
+  return answer(`${head}${tail}`.trim() + say(lang, ' Up or down describes your own answers, not whether that is good.', ' Hoger of lager beschrijft je eigen antwoorden, niet of dat goed is.'));
 }
