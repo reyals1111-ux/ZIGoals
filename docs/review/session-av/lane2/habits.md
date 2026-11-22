@@ -538,6 +538,46 @@ Branch `lane2/habits3` (continues `lane2/habits2`). **Verdict: built.**
 - CSS touched: `components/health/meditation/timer-presets.css` (new; theme variables only), `meditation.css` (two
   lines). Always visible on Today: nothing new (the corner timer's words for a no-set-length run only).
 
+## Feature 18 — Loop's "x times in y days": a rolling window (LEDGER #185)
+
+**Verdict: built.**
+
+- A habit's Details → Habit options → **A few times in any few days** (every-day build habits; other repeats say to set
+  Every day first): 3 times in any 10 days by default, then **Times** (1 … days − 1) and **In any … days** (2 … 90).
+  Saved at once, said in the status line, the focus stays on the control. Counted from the day it is turned on.
+- The rule (lib/habits.ts, through the habit-options day overlay): a day done reads as ever; a day not done is a rest
+  day (not scheduled, neutral) while the window of the last M days ending on it holds N done days, and **missed** when
+  it does not; a window that would begin before the rule's start (or the habit's) judges nothing yet. Today is **due**
+  only while the window still needs a done day, otherwise "Not needed today" (never due, no reminder, no Today count);
+  part done today is Partial. Skipped and failed days read as ever; a measured habit counts the days that met its
+  target. Streaks, the week's consistency, trends, the strength, the year view, reminders, Today and NOVA/ZIGi all read
+  `habitDay`, so they follow it. Whenever and the rolling window exclude each other; "Never miss twice" and "A day I
+  don't log counts as skipped" are not offered beside it (the window decides).
+- The card: the schedule line says "3 times in any 10 days", and "3 of 3 in the last 10 days" under the count.
+- Files: `lib/habit-options/rule.ts` (`rolling`, `readRolling`, `rollingWords`), `lib/habits.ts` (`HabitRolling`,
+  `rollingProgress`, the day rule, the schedule label), `components/habits/{habit-options.tsx,habit-options.css,habit-completion.tsx}`,
+  `lib/ai/local-answers/av2-habits.ts`, `lib/ai/evals/as/cases-av2-habits.ts`.
+- Tests: `lib/habit-options/rolling.test.ts` (set/read/clear, the exclusions, odd values, a later field kept, words EN/NL,
+  export → erase → restore; without the overlay every day reads as before; rest days, missed days, nothing judged at the
+  start, streak and counts, today due or not needed, skipped, partial, a measured habit, only an every-day build habit
+  from its start; the answers EN and NL and the Habits gate). Existing habits, habits-v2, month-weekday, reminders,
+  routines, habit options and local-answers tests unchanged and green. Spec: `tests/av2-rolling-habit.spec.ts`.
+- **Stored change (TIER 3 stored formats, additive, separate commit `5e8b8f1e`):** a habit's entry in the `options` map of
+  the loose habit extras (`zigoals:habit-extras:v1`, synced with the extras) gains optional `rolling` ({times, days,
+  from}), checked where read. The strict synced habit record and `habitScheduleSchema` are unchanged (the habit stays
+  `daily`), so builds #37–#57 read the habit as every day, as before. No new key, no schema or registry change.
+- Help (EN): **Q: Can a habit be a few times in any few days?** A: Yes. In an every-day habit's Details → Habit options,
+  turn on "A few times in any few days" and choose, for example, 3 times in any 10 days. A day off is a rest day while
+  the days before it hold enough; it only counts as missed when they do not.
+- What's new: "Habits a few times in any few days, such as 3 in any 10."
+- Answers: "which habits are 3 times in any 10 days" / "welke gewoontes zijn 3 keer in elke 10 dagen" (Habits gate; case
+  `av2-habits-rolling`). Same wiring line as Feature 1.
+- Showcase hook: none (a window on a Showcase habit would change its streaks and Today's due count, which the weekly
+  review, insights and Today specs pin).
+- CSS touched: `components/habits/habit-options.css` (a few lines; theme variables only). Always visible on Today:
+  nothing new (a habit on a window that is not needed today simply leaves Today's due list, as a Whenever habit does).
+  Weight: `lib/habits.ts` (shared by Habits and Today) gains a few hundred bytes; the options UI stays lazy.
+
 ## q4 / QUALITY "Not fixed" Minors for habits and mood — where each stands
 
 - Skip and an amount per week-grid cell: built here (Feature 10).
@@ -550,11 +590,7 @@ Branch `lane2/habits3` (continues `lane2/habits2`). **Verdict: built.**
 ## Not built yet (next for this pillar, in order)
 
 - **#184** built (Feature 17).
-- **#185** Loop's rolling schedule, N times in any M days: `habitScheduleSchema` is a strict union in the synced
-  habit record, so a new kind there would make builds #37–#57 refuse the journal (against the named rule). The way is
-  the first builder's: a habit-extras entry read through `setHabitDayOverlay` (lib/habit-options), as `monthWeekday`
-  and the habit options are — separate TIER 3 (stored formats) commit; streaks, NOVA and ZIGi read it through the
-  overlay.
+- **#185** built (Feature 18).
 - **#194** HabitBull and Tickmate imports: only where the layout is documented or open source
   (`lib/import/switch/formats.ts`'s rule); check each file layout before building.
 - Rows of the lead's other groups for this pillar (#191 pure-black Dark, #192 fonts, #193 automatic backups) are N6,

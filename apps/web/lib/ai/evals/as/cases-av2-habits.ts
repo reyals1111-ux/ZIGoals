@@ -34,4 +34,6 @@ export const AV2_HABITS: readonly Intent[] = [
   {id: 'av2-habits-strength-year', pillar: 'habits', en: ['how has my habit strength changed this year', 'what is the strength of my habits over the year'], nl: ['hoe is de sterkte van mijn gewoontes dit jaar veranderd', 'wat is de sterkte van mijn gewoontes over het jaar']},
   // Meditation timer presets (LEDGER #184)
   {id: 'av2-habits-timer-presets', pillar: 'health', en: ['which meditation timer presets do i have', 'what are my meditation presets'], nl: ['welke timerpresets heb ik voor meditatie', 'wat zijn mijn meditatie presets']},
+  // A rolling window, a few times in any few days (LEDGER #185)
+  {id: 'av2-habits-rolling', pillar: 'habits', en: ['which habits are 3 times in any 10 days', 'how are my habits with a rolling window doing'], nl: ['welke gewoontes zijn 3 keer in elke 10 dagen', 'hoe gaan mijn gewoontes met een schuivend venster']},
 ];

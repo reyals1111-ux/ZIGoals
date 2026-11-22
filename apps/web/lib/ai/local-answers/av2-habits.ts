@@ -1,5 +1,5 @@
-import {latestHabitRule, type Habit} from '../../habits';
-import {DIFFICULTY_WORDS, DIFFICULTY_XP, FOCUS_BONUS_XP, readHabitOptions, type HabitOptions} from '../../habit-options/rule';
+import {habitRuleOn, latestHabitRule, type Habit} from '../../habits';
+import {DIFFICULTY_WORDS, DIFFICULTY_XP, FOCUS_BONUS_XP, readHabitOptions, rollingWords, type HabitOptions} from '../../habit-options/rule';
 import {areaWeekRows} from '../../habit-areas/week';
 import {AREA_LABELS} from '../../habits-extras/areas-mirror';
 import {THEME_DAYS, themeMonthsReached, themeProgress} from '../../game/month-theme';
@@ -33,7 +33,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual, meditationMilestonesOf, strengthOverYear, timerPresetsOf]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual, meditationMilestonesOf, strengthOverYear, timerPresetsOf, rollingHabits]) {
       const r = one(a);
       if (r) return r;
     }
@@ -271,4 +271,19 @@ function timerPresetsOf(a: Asked): LocalReply | null {
   if (!presets.length) return answer(say(lang, 'No timer presets yet. Health → Meditation → Your timer presets keeps a length (or no set length), a moment to settle in, a start and an end bell and bells along the way; each one is then a single choice under Begin.', 'Nog geen timerpresets. Health → Meditation → Your timer presets bewaart een lengte (of geen vaste lengte), een moment om te landen, een begin- en eindbel en bellen onderweg; elke preset is dan één keuze onder Begin.'));
   const rows = presets.slice(0, 8).map(p => `${clean(p.name, 40)} (${planSummary(p, lang)}${p.intervals.length ? `: ${p.intervals.map(i => intervalText(i, lang)).join('; ')}` : ''})`);
   return answer(say(lang, `${count(presets.length, 'en', ['timer preset', 'timer presets'], ['', ''])}: ${rows.join('. ')}. Choose one under Begin on Health → Meditation.`, `${count(presets.length, 'nl', ['', ''], ['timerpreset', 'timerpresets'])}: ${rows.join('. ')}. Kies er een onder Begin op Health → Meditation.`));
+}
+/** LEDGER #185: "which habits are 3 times in any 10 days", "welke gewoontes zijn 3 keer in elke 10 dagen" — each rolling window and how it stands today. */
+function rollingHabits(a: Asked): LocalReply | null {
+  const en = /\bhabits?\b/.test(a.f) && /\b(?:\d+|a few|few|x) times? in any (?:\d+ |few |y )?days\b|\brolling (?:window|schedule|frequency)\b|\btimes in any days\b/.test(a.f);
+  const nl = /\bgewoontes?\b/.test(a.f) && /\b(?:\d+|een paar|paar|x) keer in elke (?:\d+ |paar |y )?dagen\b|\bschuivend(?:e)? (?:venster|schema)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'habits'); if (shut) return shut;
+  const lang = a.lang, o = readHabitOptions(extrasOf(a)), hs = live(a).filter(h => o[h.id]?.rolling && latestHabitRule(h).schedule.kind === 'daily');
+  if (!hs.length) return answer(say(lang, 'No habit asks for a few times in any few days. On Habits, an every-day habit’s Details → Habit options → “A few times in any few days” sets one, such as 3 times in any 10 days.', 'Geen gewoonte vraagt een paar keer in elke paar dagen. Op Habits stelt Details → Habit options → “A few times in any few days” van een dagelijkse gewoonte er een in, zoals 3 keer in elke 10 dagen.'), OPEN);
+  const rows = hs.slice(0, 12).map(h => {
+    const r = o[h.id]!.rolling!, start = addLocalDays(a.today, -(r.days - 1));
+    const done = h.entries.filter(e => e.date >= start && e.date <= a.today && e.disposition === 'logged' && e.count > 0 && e.count >= (habitRuleOn(h, e.date)?.target ?? 1)).length;
+    return say(lang, `${clean(h.title, 50)}: ${rollingWords(r)}, ${done} done in the last ${r.days} days${done >= r.times ? ' (enough: today can be a rest day)' : ` (${r.times - done} more needed)`}`, `${clean(h.title, 50)}: ${rollingWords(r, 'nl')}, ${done} gedaan in de laatste ${r.days} dagen${done >= r.times ? ' (genoeg: vandaag mag een rustdag zijn)' : ` (nog ${r.times - done} nodig)`}`);
+  });
+  return answer(say(lang, `${rows.join('. ')}. A day off is a rest day while the window holds enough; it is missed only when it does not.`, `${rows.join('. ')}. Een vrije dag is een rustdag zolang het venster genoeg heeft; hij is pas gemist als dat niet zo is.`), OPEN);
 }
