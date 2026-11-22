@@ -342,7 +342,6 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-habit-words-trend.spec.ts',
     'av2-noom-r4.spec.ts',
     'av2-revb3c-sealed.spec.ts',
-    'av2-revb3c-markdown-import.spec.ts',
   ],
   // Shard 9, 66.7 worker-min: about 33.7 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -483,7 +482,6 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-library-filters.spec.ts',
     'av2-planned-workouts.spec.ts',
     'av2-journal-ebook.spec.ts',
-    'av2-revb3c-notes-folds.spec.ts',
   ],
   // Shard 13, 67.3 worker-min: about 33.9 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -521,7 +519,6 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-meal-readings.spec.ts',
     'av2-runna-r4.spec.ts',
     'av2-notes-archive.spec.ts',
-    'av2-revb3c-sealed.spec.ts',
   ],
   // Shard 14, 68.5 worker-min: about 34.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -553,7 +550,6 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-journal-quote.spec.ts',
     'av2-task-look.spec.ts',
     'av2-journal-format.spec.ts',
-    'av2-revb3c-grid.spec.ts',
     'av2-notes-tags.spec.ts',
     'av2-polish-today.spec.ts',
   ],
