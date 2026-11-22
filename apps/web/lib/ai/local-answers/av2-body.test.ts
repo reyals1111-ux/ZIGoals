@@ -100,8 +100,8 @@ describe('the evening plan (LEDGER #83)', () => {
     expect(nl).toContain('Klaar voor bed: 2 van 5 stappen vanavond; licht uit om 23:00.');
     expect(nl).toContain('• 22:00 Write down what is on your mind (gedaan)');
     expect(text(ask('what is my evening plan', withPlan(null)))).toContain('No evening plan yet');
-    // Before the lead adds the record to the sources: where it lives, never a guess.
-    expect(text(ask('what is my evening plan'))).toContain('Health → Sleep → Tonight');
+    // Lead (batch 2, deliberate): the record is now in the AK sources, so the Showcase answers with its own plan, not where it lives.
+    expect(text(ask('what is my evening plan'))).toContain('Ready for bed');
   });
 });
 

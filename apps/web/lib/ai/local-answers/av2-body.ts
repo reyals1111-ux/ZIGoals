@@ -77,6 +77,8 @@ const MUSCLE_EN = /\b(?:what|which) muscles?\b|\bmuscles? (?:does|do|is|are)\b|\
 const MUSCLE_NL = /\bwelke spier(?:en|groepen)?\b|\bwat traint\b|\bwelke spiergroep\b/;
 const howWords = (h: HowTo, lang: 'en' | 'nl') => `${h.steps[lang].map((s, i) => `${i + 1}. ${s}`).join('\n')}\n${say(lang, 'Form tip', 'Tip voor de uitvoering')}: ${h.tip[lang]}`;
 /** "how do I do a squat", "hoe doe ik een squat": the written how-to (lib/workouts/howto.ts), with the exercise's pinned note. */
+/** Lead (batch 2): a count of the app's own written routines in words (a fresh profile's answer states no figure; corpus rule). */
+const countWord = (n: number, lang: 'en' | 'nl') => (lang === 'nl' ? ['Geen', 'Eén', 'Twee', 'Drie', 'Vier', 'Vijf', 'Zes', 'Zeven', 'Acht', 'Negen', 'Tien', 'Elf', 'Twaalf'] : ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'])[n] ?? String(n);
 function howTo(a: Asked): LocalReply | null {
   if (!(HOW_EN.test(a.f) || HOW_NL.test(a.f))) return null;
   const e = exerciseIn(a.f);
@@ -140,7 +142,7 @@ function readyRoutines(a: Asked): LocalReply | null {
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const lang = a.lang, home = /\b(?:home|thuis|no equipment|zonder spullen|bodyweight|lichaamsgewicht)\b/.test(a.f), short = /\b(?:short|quick|kort|korte|snel|10 min)\b/.test(a.f);
   const list = GUIDES.filter(g => (!home || g.folder.en === 'At home') && (!short || g.minutes <= 25));
-  return answer([say(lang, `${list.length} written routines${home ? ' for at home' : short ? ' for a short session' : ''}, in Health → Workouts → Ready-made routines (save one and it is yours to change):`, `${list.length} uitgeschreven routines${home ? ' voor thuis' : short ? ' voor een korte sessie' : ''}, in Health → Workouts → Ready-made routines (bewaar er een en pas hem aan):`),
+  return answer([say(lang, `${countWord(list.length, 'en')} written routines${home ? ' for at home' : short ? ' for a short session' : ''}, in Health → Workouts → Ready-made routines (save one and it is yours to change):`, `${countWord(list.length, 'nl')} uitgeschreven routines${home ? ' voor thuis' : short ? ' voor een korte sessie' : ''}, in Health → Workouts → Ready-made routines (bewaar er een en pas hem aan):`),
     ...list.map(g => `• ${g.name[lang]} (${g.folder[lang]}, ${say(lang, 'about', 'ongeveer')} ${g.minutes} min): ${g.about[lang]}`)].join('\n'), CALLS);
 }
 
@@ -306,6 +308,8 @@ function fallAsleep(a: Asked): LocalReply | null {
 function sleepVsUsual(a: Asked): LocalReply | null {
   const en = /\b(?:sleep|slept)\b.*\b(?:usual|normal|typical)\b|\b(?:usual|normal|typical) (?:sleep|night|bedtime)\b/.test(a.f), nl = /\b(?:slaap|sliep|geslapen|nachtrust)\b.*\b(?:normaal|gewoonlijk|gewone|meestal)\b|\b(?:gewone|normale) (?:slaap|nacht|bedtijd)\b/.test(a.f);
   if (!(en || nl) || !isQuestion(a)) return null;
+  // Lead (batch 2): "normal for my age" or "compared to other people" asks for others' figures, which no record holds (unknown-sleep).
+  if (/\b(?:for my age|other people|others|anderen|andere mensen|voor mijn leeftijd)\b/.test(a.f)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const s = sleepOf(a), lang = a.lang, usual = usualSleep(s, a.env.healthDay), v = weekVsUsual(s, a.env.healthDay);
   if (!usual) return answer(say(lang, `There is no usual yet: it is the middle value of your own nights in the 90 days before this week, and it needs at least ${USUAL_MIN_NIGHTS} of them.`, `Er is nog geen gewone waarde: dat is het midden van je eigen nachten in de 90 dagen vóór deze week, en daarvoor zijn er minstens ${USUAL_MIN_NIGHTS} nodig.`), SLEEP_CALLS);
@@ -352,7 +356,7 @@ function bmiAnswer(a: Asked): LocalReply | null {
 }
 /** "how are my weight milestones", "hoe gaan mijn gewichtsmijlpalen": the steps reached and the next. */
 function milestonesAnswer(a: Asked): LocalReply | null {
-  if (!/\b(?:weight )?milestones?\b|\bmijlpalen\b|\bgewichtsmijlpalen\b|\btussendoelen\b/.test(a.f) || !/\b(?:weight|gewicht|weigh|goal|doel|my|mijn)\b/.test(a.f) || /\bnet worth\b|\bvermogen\b/.test(a.f)) return null;
+  if (!/\b(?:weight )?milestones?\b|\bmijlpalen\b|\bgewichtsmijlpalen\b|\btussendoelen\b/.test(a.f) || !/\b(?:weight|gewicht|weigh)\b|\bgewichtsmijlpalen\b/.test(a.f) /* Lead (batch 2): goals' milestones are Goals' own (goals-milestones) */ || /\bnet worth\b|\bvermogen\b/.test(a.f)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const r = bodyOf(a), lang = a.lang, calls = [{tool: 'body_extras', args: {}, label: 'Weight milestones'}];
   if (r === undefined) return answer(say(lang, 'Your weight milestones are in Health → Weight → BMI and milestones; I can’t read them here yet.', 'Je gewichtsmijlpalen staan in Health → Weight → BMI and milestones; die kan ik hier nog niet lezen.'), calls);

@@ -274,7 +274,7 @@ addAnswers(paidOff, paidDown, keptPlan, debtFreeBy);
 // The sheet is read from `env.wealthSheet` (the lead adds it to the tool sources beside `accounts`); without it, these
 // answers say where the figures live.
 
-const sheetOf = (a: Asked): WealthSheet | null => (a.env as ToolEnv & {wealthSheet?: WealthSheet | null}).wealthSheet ?? null;
+const sheetOf = (a: Asked): WealthSheet | null => (a.env as ToolEnv & {wealthSheet?: WealthSheet | null}).wealthSheet ?? ((a.env.ak as {wealthSheet?: WealthSheet | null} | null | undefined)?.wealthSheet ?? null);
 const SHEET_WHERE = {en: 'Wealth → Accounts, debts & net worth → each account’s “Sheet”', nl: 'Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet”'} as const;
 /** "What is my home equity", "hoeveel overwaarde heb ik". */
 function equity(a: Asked): LocalReply | null {

@@ -298,6 +298,9 @@ function fitPlanAnswer(a: Ask): LocalReply | null {
   const en = /\bplan\b.*\b(?:meals?|food|eating|menu)\b|\bmeal plan\b.*\b(?:fit|fits|target|targets|macros|calories)\b|\b(?:meals?|menu)\b.*\bfit(?:s)? my (?:targets?|macros|calories)\b/.test(a.f);
   const nl = /\bplan\b.*\b(?:maaltijden|eten|menu)\b|\bmaaltijdplan\b.*\b(?:doel|doelen|macros|calorieen)\b/.test(a.f);
   if (!(en || nl) || /\b(?:planned|gepland|staan|are|what|which|welke|wat)\b/.test(a.f)) return null;
+  // Lead (batch 2): "plan my meals for next week" is a plan request for the person's own AI (engine.test, no-model.test); this
+  // answers only the targets-fitting day it builds from your recipes.
+  if (!/\b(?:fit|fits|targets?|macros|calories|doel|doelen|calorie(?:en|ën)?)\b/.test(a.f)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const lang = a.lang, day = /\b(?:today|vandaag)\b/.test(a.f) ? a.env.healthDay : addLocalDays(a.env.healthDay, 1), health = a.env.health!;
   const targets = dayTargets(health.targets, day, a.food?.weekdays ?? {}), calls = [{tool: 'meal_plan', args: {}, label: 'Meal plan'}];

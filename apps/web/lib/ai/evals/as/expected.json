@@ -6896,5 +6896,485 @@
   "widgets": [],
   "fresh": "Open a task and use Photos and voice notes: add a photo, or record a voice note of up to a minute. They stay in this browser only, never uploaded or synced; Export everything includes them as files.",
   "freshNl": "Open een taak en gebruik Photos and voice notes: voeg een foto toe, neem een spraakmemo op van hooguit een minuut. Ze blijven alleen in deze browser, nooit geüpload en nooit gesynchroniseerd; Export everything neemt ze mee als bestanden."
+ },
+ "av2-money-left-out": {
+  "en": "Nothing is left out: every entry counts in your totals and budgets. To leave one out (card interest, a refund you passed on), edit it in Wealth → Spending and tick “Not part of my spending”.",
+  "nl": "Er is niets weggelaten: elke post telt mee in je totalen en budgetten. Wil je er een weglaten (rente op je creditcard, een terugbetaling die je doorgaf), bewerk hem dan in Vermogen → Uitgaven en vink “Not part of my spending” aan.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is left out: every entry counts in your totals and budgets. To leave one out (card interest, a refund you passed on), edit it in Wealth → Spending and tick “Not part of my spending”.",
+  "freshNl": "Er is niets weggelaten: elke post telt mee in je totalen en budgetten. Wil je er een weglaten (rente op je creditcard, een terugbetaling die je doorgaf), bewerk hem dan in Vermogen → Uitgaven en vink “Not part of my spending” aan."
+ },
+ "av2-money-tax": {
+  "en": "Nothing is marked tax-deductible in 2026. Mark an entry when you edit it in Wealth → Spending; the search there finds them all (More filters → Only marked tax-deductible). This is your own mark, not tax advice.",
+  "nl": "Niets is als aftrekbaar gemarkeerd in 2026. Markeer een post als je hem bewerkt in Vermogen → Uitgaven; het zoeken daar vindt ze allemaal (More filters → Only marked tax-deductible). Dit is je eigen markering, geen belastingadvies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is marked tax-deductible in 2026. Mark an entry when you edit it in Wealth → Spending; the search there finds them all (More filters → Only marked tax-deductible). This is your own mark, not tax advice.",
+  "freshNl": "Niets is als aftrekbaar gemarkeerd in 2026. Markeer een post als je hem bewerkt in Vermogen → Uitgaven; het zoeken daar vindt ze allemaal (More filters → Only marked tax-deductible). Dit is je eigen markering, geen belastingadvies."
+ },
+ "av2-money-own-categories": {
+  "en": "You have no categories of your own yet. In Wealth → Spending → Log spending → “Your own categories” you can add one; it is then offered in the forms, budgets and To review.",
+  "nl": "Je hebt nog geen eigen categorieën. In Vermogen → Uitgaven → Log spending → “Your own categories” voeg je er een toe; die wordt dan aangeboden in de formulieren, budgetten en To review.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no categories of your own yet. In Wealth → Spending → Log spending → “Your own categories” you can add one; it is then offered in the forms, budgets and To review.",
+  "freshNl": "Je hebt nog geen eigen categorieën. In Vermogen → Uitgaven → Log spending → “Your own categories” voeg je er een toe; die wordt dan aangeboden in de formulieren, budgetten en To review."
+ },
+ "av2-money-transfers": {
+  "en": "No entry is marked as a transfer yet. Card payments are matched when you import the files of both accounts.",
+  "nl": "Nog geen post is als overboeking gemarkeerd. Creditcardbetalingen worden gekoppeld als je de bestanden van beide rekeningen importeert.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No entry is marked as a transfer yet. Card payments are matched when you import the files of both accounts.",
+  "freshNl": "Nog geen post is als overboeking gemarkeerd. Creditcardbetalingen worden gekoppeld als je de bestanden van beide rekeningen importeert."
+ },
+ "av2-money-payees": {
+  "en": "You are not watching a payee yet. Wealth → Budgets by category → “Watching payees” follows one shop or service this month against last.",
+  "nl": "Je volgt nog geen winkel of dienst. Vermogen → Budgets by category → “Watching payees” volgt er een deze maand tegen vorige maand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You are not watching a payee yet. Wealth → Budgets by category → “Watching payees” follows one shop or service this month against last.",
+  "freshNl": "Je volgt nog geen winkel of dienst. Vermogen → Budgets by category → “Watching payees” volgt er een deze maand tegen vorige maand."
+ },
+ "av2-money-challenges": {
+  "en": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
+  "nl": "Er loopt geen uitgavenuitdaging. Vermogen → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
+  "freshNl": "Er loopt geen uitgavenuitdaging. Vermogen → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand."
+ },
+ "av2-money-until-payday": {
+  "en": "Your money log shows no regular monthly income yet, so there is no payday to count to.",
+  "nl": "Je geldlog toont nog geen vast maandinkomen, dus er is geen salarisdag om naartoe te tellen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your money log shows no regular monthly income yet, so there is no payday to count to.",
+  "freshNl": "Je geldlog toont nog geen vast maandinkomen, dus er is geen salarisdag om naartoe te tellen."
+ },
+ "av2-money-low-line": {
+  "en": "You have not set a low-balance line. Wealth → Spending → Money tools → Next 60 days → “Low-balance line” sets one; Today then names the day the forecast crosses it.",
+  "nl": "Je hebt nog geen ondergrens ingesteld. Vermogen → Uitgaven → Money tools → Next 60 days → “Low-balance line” stelt er een in; Vandaag noemt dan de dag dat de prognose eronder komt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have not set a low-balance line. Wealth → Spending → Money tools → Next 60 days → “Low-balance line” sets one; Today then names the day the forecast crosses it.",
+  "freshNl": "Je hebt nog geen ondergrens ingesteld. Vermogen → Uitgaven → Money tools → Next 60 days → “Low-balance line” stelt er een in; Vandaag noemt dan de dag dat de prognose eronder komt."
+ },
+ "av2-money-year": {
+  "en": "2026 so far in EUR: €666.95 spent, €2,550.00 came in; most on Groceries €268.00, Bills €120.00 and Food & drink €71.60; the largest expense Energy €120.00.",
+  "nl": "2026 tot nu toe in EUR: €666.95 uitgegeven, €2,550.00 binnengekomen; het meest aan Groceries €268.00, Bills €120.00 en Food & drink €71.60; de grootste uitgave Energy €120.00.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged in 2026 yet.",
+  "freshNl": "Er is nog niets gelogd in 2026."
+ },
+ "av2-money-account-notes": {
+  "en": "None of your accounts has a note. Edit an account in What you have → Accounts to add one.",
+  "nl": "Geen van je rekeningen heeft een notitie. Bewerk een rekening in What you have → Accounts om er een toe te voegen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "None of your accounts has a note. Edit an account in What you have → Accounts to add one.",
+  "freshNl": "Geen van je rekeningen heeft een notitie. Bewerk een rekening in What you have → Accounts om er een toe te voegen."
+ },
+ "av2-money-move-alerts": {
+  "en": "No move alert is set. On a coin’s page, Price alert → “moves a percent within 24 hours”; on a portfolio, Value alert → “a percent more or less than now”.",
+  "nl": "Er staat geen bewegingsalarm. Op de pagina van een munt: Price alert → “moves a percent within 24 hours”; bij een portefeuille: Value alert → “a percent more or less than now”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No move alert is set. On a coin’s page, Price alert → “moves a percent within 24 hours”; on a portfolio, Value alert → “a percent more or less than now”.",
+  "freshNl": "Er staat geen bewegingsalarm. Op de pagina van een munt: Price alert → “moves a percent within 24 hours”; bij een portefeuille: Value alert → “a percent more or less than now”."
+ },
+ "av2-money-time-machine": {
+  "en": "Portfolio → your portfolio → Analysis → “On a past day” shows what it held at the end of any day in the last year and what that was worth then, from your transactions and the market history the value chart reads. Past prices are not on this device for me to read, so I cannot say the figure here.",
+  "nl": "Portfolio → je portefeuille → Analysis → “On a past day” toont wat je op elke dag van het afgelopen jaar bezat en wat dat toen waard was, uit je transacties en de koersgeschiedenis die de waardegrafiek leest. Oude koersen staan niet op dit apparaat voor mij, dus het bedrag kan ik hier niet noemen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Portfolio → your portfolio → Analysis → “On a past day” shows what it held at the end of any day in the last year and what that was worth then, from your transactions and the market history the value chart reads. Past prices are not on this device for me to read, so I cannot say the figure here.",
+  "freshNl": "Portfolio → je portefeuille → Analysis → “On a past day” toont wat je op elke dag van het afgelopen jaar bezat en wat dat toen waard was, uit je transacties en de koersgeschiedenis die de waardegrafiek leest. Oude koersen staan niet op dit apparaat voor mij, dus het bedrag kan ik hier niet noemen."
+ },
+ "av2-money-underfunded": {
+  "en": "Nothing is underfunded in Nov 2026: every budget with a target has at least what it needs.",
+  "nl": "Niets komt tekort in november 2026: elk budget met een doel heeft minstens wat het nodig heeft.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No budget is set yet. Wealth → Budgets sets them.",
+  "freshNl": "Je hebt nog geen budgetten. Wealth → Budgets stelt ze in."
+ },
+ "av2-money-flexible": {
+  "en": "None of your budgets is marked flexible. Budgets → Plan → Bucket: Flexible puts it in the one “flexible left” figure.",
+  "nl": "Geen van je budgetten staat op flexibel. Budgets → Plan → Bucket: Flexible zet het in het ene bedrag “flexible left”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "None of your budgets is marked flexible. Budgets → Plan → Bucket: Flexible puts it in the one “flexible left” figure.",
+  "freshNl": "Geen van je budgetten staat op flexibel. Budgets → Plan → Bucket: Flexible zet het in het ene bedrag “flexible left”."
+ },
+ "av2-money-suggested-budget": {
+  "en": "Suggested from your own spending: Groceries: €27.00 (your average over 3 months; set now: €250.00). Budgets → Plan → “Use it” sets it for this month.",
+  "nl": "Voorgesteld uit je eigen uitgaven: Groceries: €27.00 (je gemiddelde over 3 maanden; nu: €250.00). Budgets → Plan → “Use it” zet het voor deze maand.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "There is not enough spending in the last three months to suggest an amount yet.",
+  "freshNl": "Er zijn nog te weinig uitgaven in de afgelopen drie maanden om een bedrag voor te stellen."
+ },
+ "av2-money-paid-off": {
+  "en": "No debt is paid off yet: a debt counts as paid off once its balance (or its balance less your payments) reaches zero.",
+  "nl": "Nog geen schuld is afgelost: een schuld telt als afgelost zodra het saldo (of het saldo min je betalingen) op nul staat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No debt is paid off yet: a debt counts as paid off once its balance (or its balance less your payments) reaches zero.",
+  "freshNl": "Nog geen schuld is afgelost: een schuld telt als afgelost zodra het saldo (of het saldo min je betalingen) op nul staat."
+ },
+ "av2-money-paid-down": {
+  "en": "USD: $7,551.00 owed now; paid down $3,159.00 this year.",
+  "nl": "USD: nu $7,551.00 schuld; dit jaar afgelost $3,159.00.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no debts with a balance in Wealth → What you owe.",
+  "freshNl": "Je hebt geen schulden met een saldo in Vermogen → Wat je schuldig bent."
+ },
+ "av2-money-kept-plan": {
+  "en": "No plan is kept yet. In the debt planner, “Track this plan” keeps one to compare with what you record.",
+  "nl": "Er is nog geen plan bewaard. In de aflosplanner bewaart “Track this plan” er een om te vergelijken met wat je vastlegt.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No plan is kept yet. In the debt planner, “Track this plan” keeps one to compare with what you record.",
+  "freshNl": "Er is nog geen plan bewaard. In de aflosplanner bewaart “Track this plan” er een om te vergelijken met wat je vastlegt."
+ },
+ "av2-money-debt-free-by": {
+  "en": "Your payments as they are already make you debt-free by December 2030 (avalanche order). A model, not advice.",
+  "nl": "Met je huidige betalingen ben je al schuldenvrij in december 2030 (lawinevolgorde). Een model, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The debt planner needs each debt’s rate and minimum first (Wealth → What you owe → Plan paying off your debts).",
+  "freshNl": "De aflosplanner heeft eerst per schuld de rente en het minimum nodig (Vermogen → Wat je schuldig bent → Plan je aflossing)."
+ },
+ "av2-money-equity": {
+  "en": "No mortgage is linked to a property yet. In Wealth → Accounts, debts & net worth → each account’s “Sheet” of the mortgage, “Secured on” links it; the property then shows its equity.",
+  "nl": "Er is nog geen hypotheek aan een woning gekoppeld. In Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet” van de hypotheek koppelt “Secured on” hem; de woning toont dan de overwaarde.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No mortgage is linked to a property yet. In Wealth → Accounts, debts & net worth → each account’s “Sheet” of the mortgage, “Secured on” links it; the property then shows its equity.",
+  "freshNl": "Er is nog geen hypotheek aan een woning gekoppeld. In Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet” van de hypotheek koppelt “Secured on” hem; de woning toont dan de overwaarde."
+ },
+ "av2-money-stale": {
+  "en": "Nothing is due for an update by your own reminders. Set “Remind me to update it” in Wealth → Accounts, debts & net worth → each account’s “Sheet”.",
+  "nl": "Niets hoeft bijgewerkt te worden volgens je eigen herinneringen. Zet “Remind me to update it” in Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is due for an update by your own reminders. Set “Remind me to update it” in Wealth → Accounts, debts & net worth → each account’s “Sheet”.",
+  "freshNl": "Niets hoeft bijgewerkt te worden volgens je eigen herinneringen. Zet “Remind me to update it” in Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet”."
+ },
+ "av2-money-one-total": {
+  "en": "One total in USD: $29,229.00.",
+  "nl": "Eén totaal in USD: $29,229.00.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no accounts yet (Wealth → Accounts, debts & net worth).",
+  "freshNl": "Je hebt nog geen rekeningen (Vermogen → Accounts, debts & net worth)."
+ },
+ "av2-money-irr": {
+  "en": "No account has money in and out recorded yet. In Wealth → Accounts, debts & net worth → each account’s “Sheet” → “Money in and out”, add what you put in with the days; with today’s balance it gives the annual return.",
+  "nl": "Nog geen rekening heeft geld erin en eruit vastgelegd. In Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet” → “Money in and out” voeg je toe wat je erin stopte, met de dagen; met het saldo van vandaag geeft dat het jaarrendement.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No account has money in and out recorded yet. In Wealth → Accounts, debts & net worth → each account’s “Sheet” → “Money in and out”, add what you put in with the days; with today’s balance it gives the annual return.",
+  "freshNl": "Nog geen rekening heeft geld erin en eruit vastgelegd. In Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet” → “Money in and out” voeg je toe wat je erin stopte, met de dagen; met het saldo van vandaag geeft dat het jaarrendement."
+ },
+ "av2-food-when-eaten": {
+  "en": "What you ate today, in order (4 without a time):\n• no time: Berry overnight oats (Breakfast)\n• no time: Chicken and quinoa bowl (Lunch)\n• no time: Salmon, rice and greens (Dinner)\n• no time: Yogurt and almonds (Snacks)\nEach time is when the entry was logged, or the time you set in Health → Diary (tap the time on an entry).",
+  "nl": "Wat je vandaag at, op volgorde (4 zonder tijd):\n• geen tijd: Berry overnight oats (Ontbijt)\n• geen tijd: Chicken and quinoa bowl (Lunch)\n• geen tijd: Salmon, rice and greens (Avondeten)\n• geen tijd: Yogurt and almonds (Tussendoor)\nElke tijd is wanneer het gelogd werd, of de tijd die je zelf zette in Health → Diary (tik op de tijd bij een item).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is in your food diary today.",
+  "freshNl": "Er staat vandaag niets in je eetdagboek."
+ },
+ "av2-food-eating-window": {
+  "en": "No entry today has a time yet, so there is no eating window. Entries take the time they were logged on their own day; you can set one in Health → Diary.",
+  "nl": "Nog geen item van vandaag heeft een tijd, dus er is geen eetvenster. Items krijgen de tijd waarop ze die dag gelogd werden; je kunt er een zetten in Health → Diary.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No entry today has a time yet, so there is no eating window. Entries take the time they were logged on their own day; you can set one in Health → Diary.",
+  "freshNl": "Nog geen item van vandaag heeft een tijd, dus er is geen eetvenster. Items krijgen de tijd waarop ze die dag gelogd werden; je kunt er een zetten in Health → Diary."
+ },
+ "av2-food-weekday-targets": {
+  "en": "No weekday has its own targets, so every day uses your Targets: 2,200 kcal, protein 120 g, carbs 260 g and fat 73 g. Health → Targets → “Targets by weekday” sets them; a blank field keeps your Targets.",
+  "nl": "Geen weekdag heeft eigen doelen, dus elke dag gebruikt je gewone doelen: 2,200 kcal, eiwit 120 g, koolhydraten 260 g en vet 73 g. Health → Targets → “Targets by weekday” stelt ze in; een leeg veld houdt je gewone doelen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No weekday has its own targets, so every day uses your Targets: no target. Health → Targets → “Targets by weekday” sets them; a blank field keeps your Targets.",
+  "freshNl": "Geen weekdag heeft eigen doelen, dus elke dag gebruikt je gewone doelen: geen doel. Health → Targets → “Targets by weekday” stelt ze in; een leeg veld houdt je gewone doelen."
+ },
+ "av2-food-net-carbs": {
+  "en": "Net carbs today: 217 g (plain carbs). Fiber is not taken off: 0 of 4 entries carry it. Sugar alcohols per food: Health → Targets → “Sugar alcohols for net carbs”.",
+  "nl": "Netto koolhydraten vandaag: 217 g (gewone koolhydraten). Vezels zijn er niet af gehaald: 0 van 4 items hebben ze. Suikeralcoholen per voedingsmiddel: Health → Targets → “Sugar alcohols for net carbs”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is logged today, so there are no net carbs to count.",
+  "freshNl": "Er is vandaag niets gelogd, dus er zijn geen netto koolhydraten te tellen."
+ },
+ "av2-food-timing": {
+  "en": "In the morning you ate 22.2 g of protein a day on average (17 % of the timed protein), over the 6 days with times in the last 7. By part of the day: afternoon (14:00–17:00) 36 %, late (21:00–24:00) 25 %, morning (5:00–11:00) 17 %, evening (17:00–21:00) 12 % and midday (11:00–14:00) 10 %. 6 entries without a time are left out. Health → Insights → “When you eat”.",
+  "nl": "In de ochtend at je gemiddeld 22.2 g eiwit per dag (17 % van de eiwit met een tijd), over de 6 dagen met tijden in de afgelopen 7. Per deel van de dag: namiddag (14:00–17:00) 36 %, laat (21:00–24:00) 25 %, ochtend (5:00–11:00) 17 %, avond (17:00–21:00) 12 % en middag (11:00–14:00) 10 %. 6 items zonder tijd tellen niet mee. Health → Insights → “When you eat”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No entry with a time in the last 7 days carries protein, so I can’t say when you eat it. Health → Insights → “When you eat” fills in as you log.",
+  "freshNl": "Geen item met een tijd in de afgelopen 7 dagen heeft eiwit, dus ik kan niet zeggen wanneer je het eet. Health → Insights → “When you eat” vult zich terwijl je logt."
+ },
+ "av2-food-oracle-protein": {
+  "en": "Your own foods highest in protein: Salmon, rice and greens 48 g per serving, Chicken and quinoa bowl 44 g per serving, Showcase split peas 25 g per serving, Berry overnight oats 22 g per serving, Yogurt and almonds 17 g per serving and Showcase pea soup 15 g per serving. The offline food library’s richest foods in protein, by a usual portion or per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. From public food tables; information, not advice.",
+  "nl": "Je eigen voedingsmiddelen met het meeste eiwit: Salmon, rice and greens 48 g per portie, Chicken and quinoa bowl 44 g per portie, Showcase split peas 25 g per portie, Berry overnight oats 22 g per portie, Yogurt and almonds 17 g per portie en Showcase pea soup 15 g per portie. De rijkste voedingsmiddelen uit de offline bibliotheek voor eiwit, per gewone portie of per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. Uit openbare voedingstabellen; informatie, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "None of your own foods carries protein yet. The offline food library’s richest foods in protein, by a usual portion or per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. From public food tables; information, not advice.",
+  "freshNl": "Nog geen van je eigen voedingsmiddelen heeft eiwit. De rijkste voedingsmiddelen uit de offline bibliotheek voor eiwit, per gewone portie of per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. Uit openbare voedingstabellen; informatie, geen advies."
+ },
+ "av2-food-oracle-vitamin": {
+  "en": "The offline food library’s richest foods in vitamin C, by a usual portion or per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. From public food tables; information, not advice.",
+  "nl": "De rijkste voedingsmiddelen uit de offline bibliotheek voor vitamine C, per gewone portie of per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. Uit openbare voedingstabellen; informatie, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "The offline food library’s richest foods in vitamin C, by a usual portion or per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. From public food tables; information, not advice.",
+  "freshNl": "De rijkste voedingsmiddelen uit de offline bibliotheek voor vitamine C, per gewone portie of per 100 kcal: Health → Insights → “Foods high in a nutrient (the Oracle)”. Uit openbare voedingstabellen; informatie, geen advies."
+ },
+ "av2-food-meal-reminders": {
+  "en": "Meal reminders are off. Health → Diary → “Name your meals and set their times” switches them on; Settings → Notifications → “Meal reminders” sends them to this device too.",
+  "nl": "Maaltijdherinneringen staan uit. Health → Diary → “Name your meals and set their times” zet ze aan; Settings → Notifications → “Meal reminders” stuurt ze ook naar dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Meal reminders are off. Health → Diary → “Name your meals and set their times” switches them on; Settings → Notifications → “Meal reminders” sends them to this device too.",
+  "freshNl": "Maaltijdherinneringen staan uit. Health → Diary → “Name your meals and set their times” zet ze aan; Settings → Notifications → “Meal reminders” stuurt ze ook naar dit apparaat."
+ },
+ "av2-food-challenge": {
+  "en": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
+  "nl": "Er loopt geen logchallenge. Health → Insights → “Weekly logging challenge” zet er een: je eten loggen op een aantal dagen per week, maandag tot zondag.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
+  "freshNl": "Er loopt geen logchallenge. Health → Insights → “Weekly logging challenge” zet er een: je eten loggen op een aantal dagen per week, maandag tot zondag."
+ },
+ "av2-food-goal-date": {
+  "en": "Goal 72 kg: at your trend (−0.28 kg/week) about Sat, Dec 26. A date from the trend so far, not a promise; Health → Weight → Your coach.",
+  "nl": "Doel 72 kg: bij je trend (−0.28 kg/week) rond za 26 dec. Een datum uit de trend tot nu, geen belofte; Health → Weight → Your coach.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No goal weight is set, or there is no trend weight yet, so there is no goal date. Health → Targets sets a weight goal; a few weigh-ins give the trend.",
+  "freshNl": "Er is geen streefgewicht ingesteld, of nog geen trendgewicht, dus er is geen doeldatum. Health → Targets zet een gewichtsdoel; een paar wegingen geven de trend."
+ },
+ "av2-food-check-in": {
+  "en": "Your weekly check-in day is Monday. Change it in Health → Weight → Your coach → Check-in day.",
+  "nl": "Je wekelijkse check-in is op maandag. Verander het in Health → Weight → Your coach → Check-in day.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your weekly check-in day is Monday. Change it in Health → Weight → Your coach → Check-in day.",
+  "freshNl": "Je wekelijkse check-in is op maandag. Verander het in Health → Weight → Your coach → Check-in day."
+ },
+ "av2-food-pack-photos": {
+  "en": "Package photos are kept with your own foods: Health → Foods & recipes → “Package photos (optional)”. Choose the food, then take or choose a photo of its front; it shows beside the food’s name. The photos stay in this browser only and nothing reads them (not me either), so the name and numbers stay what you typed.",
+  "nl": "Verpakkingsfoto’s bewaar je bij je eigen voedingsmiddelen: Health → Foods & recipes → “Package photos (optional)”. Kies het voedingsmiddel en maak of kies een foto van de voorkant; die staat naast de naam. De foto’s blijven alleen in deze browser en niets leest ze (ik ook niet), dus naam en getallen blijven wat je typte.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Package photos are kept with your own foods: Health → Foods & recipes → “Package photos (optional)”. Choose the food, then take or choose a photo of its front; it shows beside the food’s name. The photos stay in this browser only and nothing reads them (not me either), so the name and numbers stay what you typed.",
+  "freshNl": "Verpakkingsfoto’s bewaar je bij je eigen voedingsmiddelen: Health → Foods & recipes → “Package photos (optional)”. Kies het voedingsmiddel en maak of kies een foto van de voorkant; die staat naast de naam. De foto’s blijven alleen in deze browser en niets leest ze (ik ook niet), dus naam en getallen blijven wat je typte."
+ },
+ "av2-food-recipe-ideas": {
+  "en": "Some vegan recipes to start from: Lentil and tomato soup (35 min), Bean chilli (40 min), Tofu and vegetable stir-fry with brown rice (25 min), Hummus plate with vegetables (5 min) and Apple with almonds (2 min). Health → Foods & recipes → “Recipes to start from” shows each one’s nutrition from the offline food library, its ingredients and method, and saves it to your recipes in a tap. Information, not advice.",
+  "nl": "Een paar vegetarische recepten om mee te beginnen: Overnight oats met blauwe bessen (5 min), Griekse yoghurt met aardbeien en walnoten (5 min), Omelet met spinazie en feta (10 min), Roerei met champignons en spinazie (10 min), Linzen-tomatensoep (35 min), Kikkererwtensalade met feta (15 min), Bonenchili (40 min) en Roerbak van tofu en groente met zilvervliesrijst (25 min). Health → Foods & recipes → “Recipes to start from” toont van elk de voedingswaarde uit de offline bibliotheek, de ingrediënten en de bereiding, en bewaart het met één tik bij je recepten. Informatie, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Some vegan recipes to start from: Lentil and tomato soup (35 min), Bean chilli (40 min), Tofu and vegetable stir-fry with brown rice (25 min), Hummus plate with vegetables (5 min) and Apple with almonds (2 min). Health → Foods & recipes → “Recipes to start from” shows each one’s nutrition from the offline food library, its ingredients and method, and saves it to your recipes in a tap. Information, not advice.",
+  "freshNl": "Een paar vegetarische recepten om mee te beginnen: Overnight oats met blauwe bessen (5 min), Griekse yoghurt met aardbeien en walnoten (5 min), Omelet met spinazie en feta (10 min), Roerei met champignons en spinazie (10 min), Linzen-tomatensoep (35 min), Kikkererwtensalade met feta (15 min), Bonenchili (40 min) en Roerbak van tofu en groente met zilvervliesrijst (25 min). Health → Foods & recipes → “Recipes to start from” toont van elk de voedingswaarde uit de offline bibliotheek, de ingrediënten en de bereiding, en bewaart het met één tik bij je recepten. Informatie, geen advies."
+ },
+ "av2-food-fit-plan": {
+  "en": "A plan needs at least three of your recipes with known calories (1 so far). Health → Planner → “Plan a day that fits my targets” shows it and plans it in a tap (logged only when you eat it).",
+  "nl": "Een plan heeft minstens drie van je recepten met bekende calorieën nodig (nu 1). Health → Planner → “Plan a day that fits my targets” toont het en plant het met één tik (pas gelogd als je het eet).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "There is no calorie target to plan toward. Set one in Health → Targets. Health → Planner → “Plan a day that fits my targets” shows it and plans it in a tap (logged only when you eat it).",
+  "freshNl": "Er is geen caloriedoel om naartoe te plannen. Zet er een in Health → Targets. Health → Planner → “Plan a day that fits my targets” toont het en plant het met één tik (pas gelogd als je het eet)."
+ },
+ "av2-food-style-foods": {
+  "en": "Of your 9 foods, 0 fit low carb (carbs give 10 % of the calories or less). Health → Foods & recipes → “Eating style and food marks” marks them in your list. From each food’s own nutrients; not advice.",
+  "nl": "Van je 9 voedingsmiddelen passen er 4 bij eiwitrijk (eiwit levert 25 % van de calorieën of meer): Chicken and quinoa bowl, Salmon, rice and greens, Yogurt and almonds en Showcase split peas. Health → Foods & recipes → “Eating style and food marks” markeert ze in je lijst. Uit de eigen voedingswaarden van elk; geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Of your 0 foods, 0 fit low carb (carbs give 10 % of the calories or less). Health → Foods & recipes → “Eating style and food marks” marks them in your list. From each food’s own nutrients; not advice.",
+  "freshNl": "Van je 0 voedingsmiddelen passen er 0 bij eiwitrijk (eiwit levert 25 % van de calorieën of meer). Health → Foods & recipes → “Eating style and food marks” markeert ze in je lijst. Uit de eigen voedingswaarden van elk; geen advies."
+ },
+ "av2-howto": {
+  "en": "Squat (works most: Quads (front thigh) · Glutes; you need: A barbell in a rack with safety bars):\n1. Bar on your upper back, feet about shoulder width, toes turned out a little.\n2. Breathe in, brace, and sit down between your heels, knees following your toes.\n3. Go as deep as you can with a flat back, then stand up by pushing the floor away.\nForm tip: Set the safety bars just below your lowest point, so a missed rep is simply put down.\nYour pinned note: “Example · safety bars at hole 6”.\nIt is in Health → Workouts → Exercises and how-tos.",
+  "nl": "Squat (werkt vooral op: Voorkant bovenbeen · Bilspieren; je hebt nodig: Een halterstang in een rek met veiligheidssteunen):\n1. Stang op je bovenrug, voeten ongeveer op schouderbreedte, tenen iets naar buiten.\n2. Adem in, zet je romp vast en zak tussen je hielen, knieën in de richting van je tenen.\n3. Ga zo diep als lukt met een rechte rug en kom omhoog door de vloer weg te duwen.\nTip voor de uitvoering: Zet de veiligheidssteunen net onder je laagste punt, zodat je een mislukte herhaling gewoon neerzet.\nJe vastgezette notitie: “Example · safety bars at hole 6”.\nHet staat in Health → Workouts → Exercises and how-tos.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Squat (works most: Quads (front thigh) · Glutes; you need: A barbell in a rack with safety bars):\n1. Bar on your upper back, feet about shoulder width, toes turned out a little.\n2. Breathe in, brace, and sit down between your heels, knees following your toes.\n3. Go as deep as you can with a flat back, then stand up by pushing the floor away.\nForm tip: Set the safety bars just below your lowest point, so a missed rep is simply put down.\nIt is in Health → Workouts → Exercises and how-tos.",
+  "freshNl": "Squat (werkt vooral op: Voorkant bovenbeen · Bilspieren; je hebt nodig: Een halterstang in een rek met veiligheidssteunen):\n1. Stang op je bovenrug, voeten ongeveer op schouderbreedte, tenen iets naar buiten.\n2. Adem in, zet je romp vast en zak tussen je hielen, knieën in de richting van je tenen.\n3. Ga zo diep als lukt met een rechte rug en kom omhoog door de vloer weg te duwen.\nTip voor de uitvoering: Zet de veiligheidssteunen net onder je laagste punt, zodat je een mislukte herhaling gewoon neerzet.\nHet staat in Health → Workouts → Exercises and how-tos."
+ },
+ "av2-muscles": {
+  "en": "Deadlift works most: Glutes · Hamstrings (back thigh) · Lower back. Also: Upper back · Forearms and grip · Quads (front thigh). The steps are in Health → Workouts → Exercises and how-tos.",
+  "nl": "Deadlift werkt vooral op: Bilspieren · Achterkant bovenbeen · Onderrug. Ook op: Bovenrug · Onderarmen en grip · Voorkant bovenbeen. De stappen staan in Health → Workouts → Exercises and how-tos.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Deadlift works most: Glutes · Hamstrings (back thigh) · Lower back. Also: Upper back · Forearms and grip · Quads (front thigh). The steps are in Health → Workouts → Exercises and how-tos.",
+  "freshNl": "Deadlift werkt vooral op: Bilspieren · Achterkant bovenbeen · Onderrug. Ook op: Bovenrug · Onderarmen en grip · Voorkant bovenbeen. De stappen staan in Health → Workouts → Exercises and how-tos."
+ },
+ "av2-pinned": {
+  "en": "1 pinned note:\n• Squat: “Example · safety bars at hole 6”",
+  "nl": "1 vastgezette notitie:\n• Squat: “Example · safety bars at hole 6”",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No note is pinned to an exercise yet. In Health → Workouts → Exercises and how-tos, choose an exercise and pin a note (seat height, grip): it shows every time you do it.",
+  "freshNl": "Er is nog geen notitie aan een oefening vastgezet. Kies in Health → Workouts → Exercises and how-tos een oefening en zet een notitie vast (zithoogte, grip): die verschijnt elke keer dat je hem doet."
+ },
+ "av2-exercises-for": {
+  "en": "Exercises that work it most: Deadlift, Squat, Romanian deadlift, Leg press, Lunge, Hip thrust, Bodyweight squat, Kettlebell swing, Power clean. Each has written steps in Health → Workouts → Exercises and how-tos.",
+  "nl": "Oefeningen die er vooral op werken: Deadlift, Squat, Romanian deadlift, Leg press, Lunge, Hip thrust, Bodyweight squat, Kettlebell swing, Power clean. Elk heeft uitgeschreven stappen in Health → Workouts → Exercises and how-tos.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Exercises that work it most: Deadlift, Squat, Romanian deadlift, Leg press, Lunge, Hip thrust, Bodyweight squat, Kettlebell swing, Power clean. Each has written steps in Health → Workouts → Exercises and how-tos.",
+  "freshNl": "Oefeningen die er vooral op werken: Deadlift, Squat, Romanian deadlift, Leg press, Lunge, Hip thrust, Bodyweight squat, Kettlebell swing, Power clean. Elk heeft uitgeschreven stappen in Health → Workouts → Exercises and how-tos."
+ },
+ "av2-my-routines": {
+  "en": "2 routines:\n• Gym: Push day (note: Example · 90 s rest between sets), Leg day",
+  "nl": "2 routines:\n• Gym: Push day (notitie: Example · 90 s rest between sets), Leg day",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No routine is saved yet. In Health → Workouts, open “Ready-made routines” to save one, or save a finished workout as a routine.",
+  "freshNl": "Er is nog geen routine opgeslagen. Open in Health → Workouts “Ready-made routines” om er een te bewaren, of bewaar een afgeronde workout als routine."
+ },
+ "av2-next-target": {
+  "en": "Next session, from your progression rule and your last sets:\n• Push day (6–10 reps, then +2.5 kg), Bench press: 62.5 kg × 9/9/8: one more rep than on Mon, Nov 16",
+  "nl": "Volgende training, volgens je opbouwregel en je laatste sets:\n• Push day (6–10 herhalingen, dan +2.5 kg), Bench press: 62.5 kg × 9/9/8: één herhaling meer dan op ma 16 nov",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No routine has a progression rule yet. In Health → Workouts, Edit a routine and choose one: a rep range (add weight when every set reaches the top) or a step every session.",
+  "freshNl": "Nog geen routine heeft een opbouwregel. Kies in Health → Workouts bij Edit van een routine een regel: een herhalingsbereik (meer gewicht als elke set de bovenkant haalt) of een stap per training."
+ },
+ "av2-month-report": {
+  "en": "Nov 2026 so far, beside the month before: 9 workouts on 9 days (+9), 7 h (+7 h), 49 working sets, 19,890 kg lifted (+19,890 kg), 11 km, 19 new personal bests. Most trained: legs; most sets: Bench press. Health → Workouts → Progress shows it.",
+  "nl": "november 2026 tot nu toe, naast de maand ervoor: 9 workouts op 9 dagen (+9), 7 uur (+7 uur), 49 werksets, 19,890 kg getild (+19,890 kg), 11 km, 19 nieuwe persoonlijke records. Meest getraind: benen; meeste sets: Bench press. Health → Workouts → Progress toont het.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No finished workout in Nov 2026.",
+  "freshNl": "Geen afgeronde workout in november 2026."
+ },
+ "av2-sets-muscle": {
+  "en": "Working sets per muscle group, this week / the last 8 weeks: chest 3 / 9, back 0 / 8, legs 0 / 14, shoulders 2 / 6, arms 2 / 10. Warm-ups are left out.",
+  "nl": "Werksets per spiergroep, deze week / de afgelopen 8 weken: borst 3 / 9, rug 0 / 8, benen 0 / 14, schouders 2 / 6, armen 2 / 10. Warming-ups tellen niet mee.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No working set of a strength exercise is logged in the last 8 weeks.",
+  "freshNl": "De afgelopen 8 weken is geen werkset van een krachtoefening gelogd."
+ },
+ "av2-week-streak": {
+  "en": "3 weeks in a row with at least one workout, this week included; your longest run is 3 weeks. Health → Workouts → Calendar shows the month and the year.",
+  "nl": "3 weken op rij met minstens één workout, deze week meegeteld; je langste reeks is 3 weken. Health → Workouts → Calendar toont de maand en het jaar.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No week in a row yet: a workout this week starts one.",
+  "freshNl": "Nog geen week op rij: een workout deze week begint er een."
+ },
+ "av2-days-year": {
+  "en": "9 days with a workout in 2026. Health → Workouts → Calendar → Year shows each one.",
+  "nl": "9 dagen met een workout in 2026. Health → Workouts → Calendar → Year toont ze.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "0 days with a workout in 2026. Health → Workouts → Calendar → Year shows each one.",
+  "freshNl": "0 dagen met een workout in 2026. Health → Workouts → Calendar → Year toont ze."
+ },
+ "av2-distance-goal": {
+  "en": "Your distance goals, from your own log:\n• running this month: 11 of 30 km, 19 km to go (about 1.5 km a day), behind pace for now",
+  "nl": "Je afstandsdoelen, uit je eigen log:\n• hardlopen deze maand: 11 van 30 km, nog 19 km (ongeveer 1.5 km per dag), nu achter op schema",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No distance goal is set yet. In Health → Workouts → Distance goals and training load, set one for a week, a month or a year.",
+  "freshNl": "Er is nog geen afstandsdoel. Stel in Health → Workouts → Distance goals and training load een doel in voor een week, een maand of een jaar."
+ },
+ "av2-training-load": {
+  "en": "Training load, the last 7 days: 237 min; your usual week (the 4 weeks before): 46 min. Well above your usual week: a big step up. Building up gradually is the usual advice. Counted from your own minutes; never calories.",
+  "nl": "Trainingsbelasting, de afgelopen 7 dagen: 237 min; je gewone week (de 4 weken ervoor): 46 min. Ruim boven je gewone week: een flinke stap. Rustig opbouwen is het gewone advies. Geteld uit je eigen minuten; nooit calorieën.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Training load, the last 7 days: 0 min. Nothing logged in the last five weeks yet. Counted from your own minutes; never calories.",
+  "freshNl": "Trainingsbelasting, de afgelopen 7 dagen: 0 min. Nog niets gelogd in de afgelopen vijf weken. Geteld uit je eigen minuten; nooit calorieën."
+ },
+ "av2-last-run": {
+  "en": "Easy run, Sun, Nov 15: 6 km at 5:40 a km. Against your last run: 4 s a km slower, 1 km longer. Fastest kilometre 5:34. A running best: longest run.",
+  "nl": "Easy run, zo 15 nov: 6 km in 5:40 per km. Tegenover je laatste loop: 4 s per km langzamer, 1 km langer. Snelste kilometer 5:34.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No run with a distance is logged yet.",
+  "freshNl": "Er is nog geen loop met een afstand gelogd."
+ },
+ "av2-fall-asleep": {
+  "en": "Time to fall asleep: 22 min on average over the last 7 days (6 nights); 19 min over the last 30 days; your usual 12 min (the middle of your own nights before this week). Health → Sleep → Over time draws it.",
+  "nl": "Inslaaptijd: gemiddeld 22 min de afgelopen 7 dagen (6 nachten); 19 min de afgelopen 30 dagen; je gewone 12 min (het midden van je eigen nachten vóór deze week). Health → Sleep → Over time tekent hem.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No time to fall asleep is logged in the last 30 days. Add it when you log a night in Health → Sleep (or import it) and I can say.",
+  "freshNl": "De afgelopen 30 dagen is geen inslaaptijd gelogd. Vul hem in als je een nacht logt in Health → Sleep (of importeer hem), dan kan ik het zeggen."
+ },
+ "av2-sleep-usual": {
+  "en": "The last 7 days (6 nights) beside your usual (the middle of your own 50 nights before this week): asleep 6 h 44 min (usual 7 h 34 min), to bed at 11:35 PM (usual 11:05 PM), 22 min to fall asleep (usual 12), quality 3.5 of 5 (usual 4). No outside figures: only your own nights.",
+  "nl": "De afgelopen 7 dagen (6 nachten) naast je gewone (het midden van je eigen 50 nachten vóór deze week): geslapen 6 h 44 min (gewoonlijk 7 h 34 min), naar bed om 23:35 (gewoonlijk 23:05), 22 min om in slaap te vallen (gewoonlijk 12), kwaliteit 3.5 van 5 (gewoonlijk 4). Geen cijfers van buiten: alleen je eigen nachten.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "There is no usual yet: it is the middle value of your own nights in the 90 days before this week, and it needs at least 7 of them.",
+  "freshNl": "Er is nog geen gewone waarde: dat is het midden van je eigen nachten in de 90 dagen vóór deze week, en daarvoor zijn er minstens 7 nodig."
+ },
+ "av2-evening-plan": {
+  "en": "Ready for bed: 2 of 5 steps tonight; lights out at 11:00 PM.\n• 10:00 PM Write down what is on your mind (done)\n• 10:15 PM Lights low\n• 10:15 PM Screens away (done)\n• 10:45 PM A wind-down sound or a few slow breaths\n• 11:00 PM Lights out",
+  "nl": "Klaar voor bed: 2 van 5 stappen vanavond; licht uit om 23:00.\n• 22:00 Write down what is on your mind (gedaan)\n• 22:15 Lights low\n• 22:15 Screens away (gedaan)\n• 22:45 A wind-down sound or a few slow breaths\n• 23:00 Lights out",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your evening plan is in Health → Sleep → Tonight; I can’t read it here yet.",
+  "freshNl": "Je avondplan staat in Health → Sleep → Tonight; dat kan ik hier nog niet lezen."
+ },
+ "av2-bodyweight": {
+  "en": "No assisted or weighted pull-up is logged yet. While you train, choose “With added weight” or “Assisted” under the exercise.",
+  "nl": "Er is nog geen pull-up met hulp of extra gewicht gelogd. Kies tijdens je training onder de oefening “With added weight” of “Assisted”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No assisted or weighted pull-up is logged yet. While you train, choose “With added weight” or “Assisted” under the exercise.",
+  "freshNl": "Er is nog geen pull-up met hulp of extra gewicht gelogd. Kies tijdens je training onder de oefening “With added weight” of “Assisted”."
+ },
+ "av2-shoes": {
+  "en": "Your shoes in use:\n• Example · blue trainers: 631 of 700 km, near its limit (69 km to go)",
+  "nl": "Je schoenen in gebruik:\n• Example · blue trainers: 631 van 700 km, bijna op (nog 69 km)",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No shoes are added yet. In Health → Workouts → Shoes, add a pair with the distance it has and the distance to retire it at; pick it on a run and its distance adds up.",
+  "freshNl": "Er zijn nog geen schoenen toegevoegd. Voeg in Health → Workouts → Shoes een paar toe met de afstand die het al heeft en de afstand waarop je het vervangt; kies het bij een loop en de afstand telt op."
+ },
+ "av2-run-tip": {
+  "en": "A running tip for today: On a hard day, aim only to get out the door. Ten easy minutes still count. (Health → Workouts has one each day.)",
+  "nl": "Een looptip voor vandaag: Op een zware dag: richt je alleen op de deur uit gaan. Tien rustige minuten tellen ook. (Health → Workouts heeft er elke dag een.)",
+  "facts": null,
+  "widgets": [],
+  "fresh": "A running tip for today: On a hard day, aim only to get out the door. Ten easy minutes still count. (Health → Workouts has one each day.)",
+  "freshNl": "Een looptip voor vandaag: Op een zware dag: richt je alleen op de deur uit gaan. Tien rustige minuten tellen ook. (Health → Workouts heeft er elke dag een.)"
+ },
+ "av2-bmi": {
+  "en": "There is no BMI yet: it needs your height. Type it in Health → Weight → BMI and milestones; it stays on this device.",
+  "nl": "Er is nog geen BMI: daarvoor is je lengte nodig. Vul hem in bij Health → Weight → BMI and milestones; hij blijft op dit apparaat.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your BMI is in Health → Weight → BMI and milestones; I can’t read it here yet.",
+  "freshNl": "Je BMI staat in Health → Weight → BMI and milestones; dat kan ik hier nog niet lezen."
+ },
+ "av2-milestones": {
+  "en": "Weight milestones are off. With a weight goal set, turn them on in Health → Weight → BMI and milestones: every 2 kg, or every 10 % of the way.",
+  "nl": "Gewichtsmijlpalen staan uit. Met een gewichtsdoel kun je ze aanzetten in Health → Weight → BMI and milestones: elke 2 kg, of elke 10 % van de weg.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your weight milestones are in Health → Weight → BMI and milestones; I can’t read them here yet.",
+  "freshNl": "Je gewichtsmijlpalen staan in Health → Weight → BMI and milestones; die kan ik hier nog niet lezen."
+ },
+ "av2-ready-routines": {
+  "en": "Twelve written routines, in Health → Workouts → Ready-made routines (save one and it is yours to change):\n• Full body A (Gym, about 45 min): Three big lifts and a plank: the whole body in one session. Alternate with Full body B, two or three times a week.\n• Full body B (Gym, about 45 min): A hinge, a press, a pull and a single-leg move. Alternate with Full body A.\n• Push day (Push, pull, legs, about 55 min): Chest, shoulders and triceps. With Pull day and Leg day it makes a three-day split.\n• Pull day (Push, pull, legs, about 55 min): Back and biceps, with the deadlift first while you are fresh.\n• Leg day (Push, pull, legs, about 60 min): Squat, hinge and the smaller leg muscles.\n• Upper body (Upper and lower, about 55 min): Presses and pulls in balance. With Lower body: four days a week, or two.\n• Lower body (Upper and lower, about 55 min): Legs and glutes, and the abs at the end.\n• Body weight at home (At home, about 30 min): No equipment: a full session in a living room. Add reps as it gets easier.\n• Dumbbells only (At home, about 40 min): One pair of dumbbells and a bench or a sturdy chair.\n• Core in ten minutes (Short sessions, about 10 min): A short core session for a busy day.\n• Strength for runners (Short sessions, about 25 min): Legs, hips and core that carry a run. Once or twice a week, on an easy day.\n• Easy mobility (Short sessions, about 20 min): Gentle stretching and rolling for a rest day or after a run.",
+  "nl": "Twaalf uitgeschreven routines, in Health → Workouts → Ready-made routines (bewaar er een en pas hem aan):\n• Heel lichaam A (Sportschool, ongeveer 45 min): Drie grote oefeningen en een plank: je hele lichaam in één sessie. Wissel af met Heel lichaam B, twee of drie keer per week.\n• Heel lichaam B (Sportschool, ongeveer 45 min): Een heupbeweging, drukken, trekken en een oefening op één been. Wissel af met Heel lichaam A.\n• Duwdag (Duwen, trekken, benen, ongeveer 55 min): Borst, schouders en triceps. Met Trekdag en Beendag vormt het een driedaagse indeling.\n• Trekdag (Duwen, trekken, benen, ongeveer 55 min): Rug en biceps, met de deadlift als eerste nu je nog fris bent.\n• Beendag (Duwen, trekken, benen, ongeveer 60 min): Squat, heupbeweging en de kleinere beenspieren.\n• Bovenlichaam (Boven en onder, ongeveer 55 min): Drukken en trekken in balans. Met Onderlichaam: vier dagen per week, of twee.\n• Onderlichaam (Boven en onder, ongeveer 55 min): Benen en billen, en aan het eind je buik.\n• Lichaamsgewicht thuis (Thuis, ongeveer 30 min): Zonder spullen: een hele sessie in je woonkamer. Doe meer herhalingen als het makkelijker wordt.\n• Alleen dumbbells (Thuis, ongeveer 40 min): Eén paar dumbbells en een bank of een stevige stoel.\n• Buik in tien minuten (Korte sessies, ongeveer 10 min): Een korte buiksessie voor een drukke dag.\n• Kracht voor hardlopers (Korte sessies, ongeveer 25 min): Benen, heupen en romp die een loop dragen. Een of twee keer per week, op een rustige dag.\n• Rustig bewegen (Korte sessies, ongeveer 20 min): Rustig rekken en rollen voor een rustdag of na een loop.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Twelve written routines, in Health → Workouts → Ready-made routines (save one and it is yours to change):\n• Full body A (Gym, about 45 min): Three big lifts and a plank: the whole body in one session. Alternate with Full body B, two or three times a week.\n• Full body B (Gym, about 45 min): A hinge, a press, a pull and a single-leg move. Alternate with Full body A.\n• Push day (Push, pull, legs, about 55 min): Chest, shoulders and triceps. With Pull day and Leg day it makes a three-day split.\n• Pull day (Push, pull, legs, about 55 min): Back and biceps, with the deadlift first while you are fresh.\n• Leg day (Push, pull, legs, about 60 min): Squat, hinge and the smaller leg muscles.\n• Upper body (Upper and lower, about 55 min): Presses and pulls in balance. With Lower body: four days a week, or two.\n• Lower body (Upper and lower, about 55 min): Legs and glutes, and the abs at the end.\n• Body weight at home (At home, about 30 min): No equipment: a full session in a living room. Add reps as it gets easier.\n• Dumbbells only (At home, about 40 min): One pair of dumbbells and a bench or a sturdy chair.\n• Core in ten minutes (Short sessions, about 10 min): A short core session for a busy day.\n• Strength for runners (Short sessions, about 25 min): Legs, hips and core that carry a run. Once or twice a week, on an easy day.\n• Easy mobility (Short sessions, about 20 min): Gentle stretching and rolling for a rest day or after a run.",
+  "freshNl": "Twaalf uitgeschreven routines, in Health → Workouts → Ready-made routines (bewaar er een en pas hem aan):\n• Heel lichaam A (Sportschool, ongeveer 45 min): Drie grote oefeningen en een plank: je hele lichaam in één sessie. Wissel af met Heel lichaam B, twee of drie keer per week.\n• Heel lichaam B (Sportschool, ongeveer 45 min): Een heupbeweging, drukken, trekken en een oefening op één been. Wissel af met Heel lichaam A.\n• Duwdag (Duwen, trekken, benen, ongeveer 55 min): Borst, schouders en triceps. Met Trekdag en Beendag vormt het een driedaagse indeling.\n• Trekdag (Duwen, trekken, benen, ongeveer 55 min): Rug en biceps, met de deadlift als eerste nu je nog fris bent.\n• Beendag (Duwen, trekken, benen, ongeveer 60 min): Squat, heupbeweging en de kleinere beenspieren.\n• Bovenlichaam (Boven en onder, ongeveer 55 min): Drukken en trekken in balans. Met Onderlichaam: vier dagen per week, of twee.\n• Onderlichaam (Boven en onder, ongeveer 55 min): Benen en billen, en aan het eind je buik.\n• Lichaamsgewicht thuis (Thuis, ongeveer 30 min): Zonder spullen: een hele sessie in je woonkamer. Doe meer herhalingen als het makkelijker wordt.\n• Alleen dumbbells (Thuis, ongeveer 40 min): Eén paar dumbbells en een bank of een stevige stoel.\n• Buik in tien minuten (Korte sessies, ongeveer 10 min): Een korte buiksessie voor een drukke dag.\n• Kracht voor hardlopers (Korte sessies, ongeveer 25 min): Benen, heupen en romp die een loop dragen. Een of twee keer per week, op een rustige dag.\n• Rustig bewegen (Korte sessies, ongeveer 20 min): Rustig rekken en rollen voor een rustdag of na een loop."
  }
 }

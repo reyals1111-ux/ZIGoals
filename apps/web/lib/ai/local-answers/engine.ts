@@ -33,6 +33,10 @@ import {av2TasksAnswer} from './av2-tasks';
 import {av2HabitsAnswer} from './av2-habits';
 import {av2JournalAnswer} from './av2-journal';
 import {av2RoadmapAnswer} from './av2-roadmap';
+import {av2MoneyAnswer} from './av2-money';
+import {av2FoodAnswer, readFoodSources} from './av2-food';
+import {av2BodyAnswer} from './av2-body';
+import {getAppStorage} from '../../showcase-storage';
 import {bodyFiguresHidden, withHiddenFigures} from './av2-hide-figures';
 import {neverTwice} from '../../habit-two-day';
 import {answerQuery, exactQuery, fixedWords, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
@@ -229,6 +233,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV (owner follow-up 2, item 1c; the fresh reviewers' check 5): the AV features' own questions (task reminders,
   // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
   // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).
+  // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
+  if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
   if (!subject) { const own = av2JournalAnswer(question, env) ?? av2RoadmapAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Habits and mind): its own answers, before AV's (lib/ai/local-answers/av2-habits.ts).
@@ -236,6 +242,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV lane 2 (Tasks and planning; Money N11): its own answers, before AV's (lib/ai/local-answers/av2-tasks.ts).
   if (!subject) { const own = av2TasksAnswer(question, env, {plan: env.nova?.taskPlan, templates: env.nova?.taskTemplates, periods: env.nova?.budgetPeriods}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const found = avAnswer(question, env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AV lane 2, batch 2 (Body: sleep and workouts), after AV's own answers.
+  if (!subject) { const own = av2BodyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;
   // A misspelt question the exact layer reads once its slips are fixed is asked of the layers below in the fixed words.
