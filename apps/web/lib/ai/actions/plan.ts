@@ -8,6 +8,7 @@ import {clearVacation, createHabit, editHabit, habitDataSchema, habitInputSchema
 import {recipeRef} from './refs';
 import {looksLikeInjection} from '../safety-guard';
 import {editDiaryEntry, foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, setHealthTargets, type HealthData, type HealthFood} from '../../health';
+import type {FoodPlus} from '../../food-plus/schema';
 import {addWater, dailyData, logMealPlan, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, saveMealPlan, setFavorite} from '../../health-daily';
 import {addCounter, changeCount, countOn, deleteCounter, editCounter, exerciseData} from '../../health-counters';
 import {addLocalDays} from '../../local-date';
@@ -118,7 +119,9 @@ export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitD
   /** Owner follow-up 2 (N7): the card is planned on NOVA's surface (a memory is then kept as proposed by NOVA). */
   surface?: 'nova';
   /** Owner follow-up 2 (N7): Health is shared with ZIGi and NOVA at this moment (absent: not, so health-like memories are held). */
-  healthShared?: boolean};
+  healthShared?: boolean;
+  /** Session AV lane 2 (food, LEDGER #106, #107): this device's food-plus record when the caller read it (else plan-aa.ts reads it). */
+  foodPlus?: FoodPlus | null};
 export type ChecklistEnv = {record: Checklist; days: ChecklistDays; date: string; unreadable: boolean};
 /** ZIGi's current look and the looks this build has, when the runner knows them (a change to the same value is then refused). */
 export type ZigiLookEnv = {prefs: ZigiPrefs; skins: readonly string[]};

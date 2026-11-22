@@ -26,6 +26,7 @@ import type {MoneyLog} from '../../money-log/schema';
 import type {Journal} from '../../journal/schema';
 import type {Energy} from '../../energy/schema';
 import type {HealthCoach} from '../../health-aa/coach-schema';
+import type {FoodPlus} from '../../food-plus/schema';
 import type {AkToolSources} from './ak-tools';
 import type {NovaToolSources} from './nova-tools';
 
@@ -63,6 +64,12 @@ export type ToolSources = {
   energy?: Energy | null;
   /** Session AJ (item 9): the weekly coach check-in's answers on this device (the Health gate), for coach_checkin. */
   coach?: HealthCoach | null;
+  /**
+   * Session AV lane 2 (food, LEDGER #106, #107): this device's food-plus record (the Health gate; null with Health closed),
+   * so the coach tool reads the person's check-in day, partly logged days and chosen pace as Health → Your coach does.
+   * Absent: the tool reads this device's record when it runs (lib/food-plus/checkin.ts foodPlusFor).
+   */
+  foodPlus?: FoodPlus | null;
   milestoneDates?: MilestoneDates | null;
   chess?: {settings: ChessSettings | null; cache: ChessCache} | null;
   linksCount?: number | null;
@@ -124,5 +131,5 @@ export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' 
   // Session AI: the daily energy is about how a person feels, so it follows the Health gate like the mood.
   // Owner follow-up 2 (G8): your numbers and the cycle log describe health too, so they are not even in the environment with the gate closed.
   const nova = !health && sources.nova ? {...sources.nova, healthNumbers: undefined, cycle: undefined} : sources.nova;
-  return {...sources, nova, healthGoals: health ? sources.healthGoals ?? null : null, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits, purpose};
+  return {...sources, nova, healthGoals: health ? sources.healthGoals ?? null : null, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, foodPlus: health ? sources.foodPlus : null, notes, areas: {...areas, health}, handles, limits, purpose};
 }

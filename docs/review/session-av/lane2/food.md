@@ -205,9 +205,8 @@ Shared-file needs for the lead are collected at the end ("For the lead").
 - Tests: `lib/food-plus/av2-checkin.test.ts`, `lib/ai/local-answers/av2-food.test.ts`. Spec: `tests/av2-coach-checkin.spec.ts`.
 - Stored changes: `checkIn.weekday`, `checkIn.partial` (in `69db6bb3`) and `pace` (TIER 3 commit `1bdf0099`) of
   `zigoals:food-plus:v1`. The coach's answers record is unchanged (still keyed by the week's start day).
-- Not changed (named for the lead): NOVA's coach tool (`lib/ai/tools/coach-ai.ts`) and `lib/ai/actions/plan-aa.ts` call
-  `coachCheckIn` without the options, so they keep Monday and the fixed pace; pass `readFoodSources`' record to them to
-  follow the person's choices.
+- Built later in F16 (second builder): NOVA's coach tool (`lib/ai/tools/coach-ai.ts`) and the coach-answer card
+  (`lib/ai/actions/plan-aa.ts`) follow the person's check-in day and chosen pace.
 - Help (EN). Q: "Can I choose my check-in day?" A: "Yes. Health → Weight → Your coach → Check-in day. The coach asks once
   a week from that day." Q: "What if I didn't log everything one day?" A: "Under the Diary's meals, tick This day is only
   partly logged. The maintenance estimate then leaves that day out; its food still counts everywhere else." Q: "When will
@@ -491,6 +490,27 @@ DISHES/ARTICLE, `components/health/daily-tools.tsx` "fresh", `components/health/
   health-app; the editor, the writes and the copy pairing load on use. Please measure `/app/health`.
 - Always visible on Today: nothing.
 
+## F16 — The coach's other callers follow the check-in day and the chosen pace (F7's named remainder)
+
+- LEDGER rows: **#106**, **#107** — the remainder F7 named ("Not changed (named for the lead)") built: NOVA's coach tool
+  and NOVA's/ZIGi's "keep / adjust my calorie target" card now read the person's check-in weekday, partly logged days
+  and chosen pace, as Health → Your coach does. Before, the card recorded its answer under Monday's week, so with a
+  Friday check-in the coach card never saw an answer given to NOVA.
+- What it does: `coach_checkin` (lib/ai/tools/coach-ai.ts) and the `coach-answer` card (lib/ai/actions/plan-aa.ts)
+  pass `coachOptionsOf(record)` to `coachCheckIn`; the record is the caller's (`ToolEnv.foodPlus`, `Env.foodPlus`,
+  optional) or, when none was passed, this device's `zigoals:food-plus:v1` read when the tool runs (`foodPlusFor`, the
+  plan-ak.ts pattern). With Health closed, `toolEnv` sets it to null. The av2 answers use the same `coachOptionsOf`.
+- Files: `lib/food-plus/checkin.ts` (`coachOptionsOf`, `deviceFoodPlus`, `foodPlusFor`), `lib/ai/tools/coach-ai.ts`,
+  `lib/ai/tools/env.ts` (optional `foodPlus`, Health-gated), `lib/ai/actions/plan.ts` (optional `Env.foodPlus`),
+  `lib/ai/actions/plan-aa.ts`, `lib/ai/local-answers/av2-food.ts`.
+- Tests: `lib/ai/tools/coach-ai.test.ts` (new test: the chosen week, pace and partial days; null with Health closed),
+  `lib/ai/actions/plan-aa.test.ts` (new test: the answer's week on a Wednesday or Friday check-in, Monday without a
+  record). No assertion changed. Spec: none (no page changes; the cards' words are unchanged).
+- Stored changes: none. Help / What's new: none (the coach already said it follows the check-in day).
+- For the lead (optional): `components/ai/use-ai-context.ts` may pass `foodPlus` in the sources (not done here, to keep
+  another schema out of that shared module's chunk); without it the tool reads the device at run time.
+- Always visible on Today: nothing.
+
 ## Left, and the next row
 
 - **#197** — built in F15 (second builder). A Today pin for an extra meal is not offered (against a named rule, stored
@@ -529,5 +549,4 @@ DISHES/ARTICLE, `components/health/daily-tools.tsx` "fresh", `components/health/
   form, card and fold is in `components/health/food-plus/*` (lazy). Please measure `/app/health` and `/app`.
 - **Watch in the browser run**: the Diary's "Planned for this day" section on Showcase days with a plan (Health phone
   length); Settings' Notifications card has one more switch ("Meal reminders").
-- Not wired (named): NOVA's coach tool (`lib/ai/tools/coach-ai.ts`) and `lib/ai/actions/plan-aa.ts` call `coachCheckIn`
-  without the person's check-in day and pace; pass `readFoodSources(...).food` there to follow them.
+- Wired in F16 (second builder): NOVA's coach tool and the coach-answer card follow the check-in day and pace.

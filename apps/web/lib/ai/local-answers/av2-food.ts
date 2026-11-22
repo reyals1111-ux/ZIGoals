@@ -5,6 +5,7 @@ import {mealWakes} from '../../food-plus/meal-notify';
 import {HEALTH_EXTRAS, type HealthExtras} from '../../health-extras';
 import {mealRemindersOn} from '../../meal-reminders';
 import {coachCheckIn} from '../../health-aa/coach';
+import {coachOptionsOf} from '../../food-plus/checkin';
 import {weightChangeText, weightText} from '../../health-units';
 import {RECIPE_BOOK, type BookStyle} from '../../food-plus/recipe-book';
 import {fitCandidates, fitPlans} from '../../food-plus/fit-plan';
@@ -255,8 +256,7 @@ function extraMealsAnswer(a: Ask): LocalReply | null {
 
 const coachOf = (a: Ask) => {
   const health = a.env.health!, unit = dailyData(health).preferences.weightUnit;
-  const options = {checkInWeekday: a.food?.checkIn?.weekday ?? null, partialDays: new Set(a.food?.checkIn?.partial ?? []), paceKg: typeof a.food?.pace === 'number' ? a.food.pace : null};
-  return {c: coachCheckIn(health, a.env.coach ?? {version: 1}, a.env.healthDay, unit, options), unit};
+  return {c: coachCheckIn(health, a.env.coach ?? {version: 1}, a.env.healthDay, unit, coachOptionsOf(a.food ?? a.env.foodPlus)), unit};
 };
 /** "when will I reach my goal weight", "wanneer bereik ik mijn streefgewicht". */
 function goalDateAnswer(a: Ask): LocalReply | null {
