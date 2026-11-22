@@ -1,6 +1,6 @@
 import type {ZipEntry} from '../export/zip';
 import {buildStoredZip} from '../export/zip';
-import {parseBlocks} from '../ai/safe-render';
+import {parseBlocks, type NoteBlock} from '../ai/safe-render';
 import {bookOf, inBook, type BookChoice} from './books';
 import {isSealed} from './letters';
 import type {Journal, JournalEntry} from './schema';
@@ -35,7 +35,8 @@ export function pickName(journal: Journal, book: BookChoice): string {
 }
 const byMonth = (entries: readonly JournalEntry[]) => { const m = new Map<string, JournalEntry[]>(); for (const e of entries) { const k = e.date.slice(0, 7); m.set(k, [...(m.get(k) ?? []), e]); } return m; };
 const entryTitle = (e: JournalEntry) => { const first = e.text.replace(SHOWCASE, '').split('\n').map(l => l.replace(/^#+\s*/, '').trim()).find(Boolean) ?? ''; return first.length > 60 ? `${first.slice(0, 59)}…` : first; };
-const entryBlocks = (e: JournalEntry) => parseBlocks(`${e.text.replace(SHOWCASE, '\n\n(Showcase example)')}${e.followUp ? `\n\n> ${e.followUp.question}${e.followUp.answer ? ` ${e.followUp.answer}` : ''}` : ''}`, {notes: true});
+// Review b4g B4G-16: a journal has no note photos, so a `![words](id)` line stays its words (never a photo block left out).
+const entryBlocks = (e: JournalEntry): NoteBlock[] => parseBlocks(`${e.text.replace(SHOWCASE, '\n\n(Showcase example)')}${e.followUp ? `\n\n> ${e.followUp.question}${e.followUp.answer ? ` ${e.followUp.answer}` : ''}` : ''}`, {notes: true}).map(b => b.type === 'photo' ? {type: 'paragraph', children: [{type: 'text', text: `![${b.alt}](${b.id})`}]} : b);
 const PHOTO_EXT: Record<string, string> = {'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/png': 'png'};
 const xhtml = (title: string, body: string, lang: string) => `<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${lang}" lang="${lang}"><head><meta charset="utf-8"/><title>${xml(title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body>${body}</body></html>\n`;
 /** The e-book's files (mimetype first); `id` names the book (a UUID made by the caller). */
