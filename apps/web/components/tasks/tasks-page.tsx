@@ -19,7 +19,7 @@ import {FOCUS_VIEW, focusedRecord, inFocus, inPlayRecord, isOutOfPlay, liveFocus
 import {useGoalOptions} from './use-goal-options';
 import {
   addProject, addSection, addTask, childrenOf, clearDone, completedInWindow, dropOrder, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
-  removeProject, removeSection, renameSection, saveFilter, setOrder, skipOccurrence, taskCounts, taskState, viewTasks, withLabel, type TaskInput, type TaskView,
+  removeProject, removeSection, renameSection, saveFilter, setOrder, skipOccurrence, taskCounts, taskState, viewTasks, withLabel, labelPlan, type TaskInput, type TaskView,
 } from '../../lib/tasks/engine';
 import {dueReminders} from '../../lib/tasks/reminders';
 import {salvageTasks, keepSalvaged} from '../../lib/tasks/device';
@@ -195,7 +195,12 @@ export function TasksPage() {
   // Session AV lane 2 (r6-plan, LEDGER #391; OmniFocus's batch editing): any day, or no day (a repeating task keeps its day: it needs one).
   const setDue = (due: string | null, one?: string) => { const all = ids(one), list_ = due ? all : all.filter(id => !record.tasks.find(t => t.id === id)?.recur), kept = all.length - list_.length; if (!list_.length) { if (kept) showStatus('A repeating task needs its day, so the selected repeats keep theirs.'); return; } list.change(r => editMany(r, list_, () => due ? {due} : {due: null, time: null}, today, {allowPast: true}), `${list_.length > 1 ? plural(list_.length, 'task') : 'Task'} ${due ? `due ${due === today ? 'today' : formatDate(due, {weekday: true})}` : 'with no day'}.${kept ? ` ${plural(kept, 'repeating task')} kept ${kept === 1 ? 'its' : 'their'} day.` : ''}`); };
   /** LEDGER #391: a label added to or taken off every selected task, in one change (one Undo). A label of a group takes the group's other label away. */
-  const labelSelected = (label: string, on: boolean) => { const list_ = ids().filter(id => on || record.tasks.find(t => t.id === id)?.labels?.includes(label)); if (!list_.length) return; list.change(r => editMany(r, list_, t => ({labels: on ? withLabel(t.labels, label, r.labelGroups) : (t.labels ?? []).filter(l => l !== label)}), today, {allowPast: true}), on ? `Added @${label} to ${plural(list_.length, 'task')}.` : `Took @${label} off ${plural(list_.length, 'task')}.`); };
+  // Review B6M-12: the toast counts the tasks that really changed, says how many had it already, and names the full ones.
+  const labelSelected = (label: string, on: boolean) => {
+    const plan = labelPlan(record, ids(), label, on), full = plan.full.length ? ` ${plan.full.slice(0, 3).map(t => `“${t.title}”`).join(', ')}${plan.full.length > 3 ? ` and ${plural(plan.full.length - 3, 'more task')}` : ''} ${plan.full.length === 1 ? 'carries' : 'carry'} the most labels a task keeps, so it was not added there.` : '', had = on && plan.had ? ` ${plural(plan.had, 'task')} had it already.` : '';
+    if (!plan.changed.length) { showStatus(on ? `Nothing changed:${had}${full}` : `None of the selected tasks carries @${label}.`); return; }
+    list.change(r => editMany(r, plan.changed, t => ({labels: on ? withLabel(t.labels, label, r.labelGroups) : (t.labels ?? []).filter(l => l !== label)}), today, {allowPast: true}), `${on ? `Added @${label} to` : `Took @${label} off`} ${plural(plan.changed.length, 'task')}.${had}${full}`);
+  };
   const finishSelected = (one?: string) => { const list_ = ids(one).filter(id => record.tasks.some(t => t.id === id && !t.doneAt)); if (list_.length) { list.change(r => finishMany(r, list_, new Date(), {today, doneDay: today}), list_.length > 1 ? `Done: ${plural(list_.length, 'task')}.` : `Done: “${record.tasks.find(t => t.id === list_[0])?.title}”.`); setSelected(new Set()); setSelecting(false); } };
   const removeSelected = (one?: string) => { const list_ = ids(one); if (list_.length) { list.removeIds(list_, record.tasks.find(t => t.id === list_[0])?.title ?? 'task'); setSelected(new Set()); setSelecting(false); } };
   const moveSelected = (projectId: string | null, sectionId: string | null = null, one?: string) => { const list_ = ids(one); if (!list_.length) return; list.change(r => moveTasks(r, list_, {projectId, sectionId}), `Moved ${list_.length > 1 ? plural(list_.length, 'task') : `“${record.tasks.find(t => t.id === list_[0])?.title}”`} to ${projectId ? projectOf(projectId)?.name ?? 'the project' : 'the Inbox'}.`); setSelected(new Set()); setSelecting(false); };

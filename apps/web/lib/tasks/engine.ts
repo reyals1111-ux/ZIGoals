@@ -238,6 +238,21 @@ export function withLabel(labels: readonly string[] | undefined, label: string, 
   const next = oneOfEachGroup([...now, label], now, groups);
   return next.length > TASK_LABELS_MAX ? now : next;
 }
+/**
+ * Review B6M-12: what giving (`on`) or taking off a label does to each of these tasks — the ones it changes, how many had it
+ * already (or, taking it off, did not carry it), and the ones already carrying the most labels a task keeps (named).
+ */
+export function labelPlan(record: Pick<Tasks, 'tasks' | 'labelGroups'>, ids: readonly string[], label: string, on: boolean): {changed: string[]; had: number; full: Task[]} {
+  const out = {changed: [] as string[], had: 0, full: [] as Task[]};
+  for (const id of ids) {
+    const t = record.tasks.find(x => x.id === id); if (!t) continue;
+    const now = t.labels ?? [];
+    if (on ? now.includes(label) : !now.includes(label)) out.had++;
+    else if (on && !withLabel(now, label, record.labelGroups).includes(label)) out.full.push(t);
+    else out.changed.push(id);
+  }
+  return out;
+}
 /** Whether `from` waits for `target`, directly or through the tasks it waits for (bounded by the list). */
 function waitsThrough(record: Tasks, from: string, target: string): boolean {
   const seen = new Set<string>(), todo = [from];

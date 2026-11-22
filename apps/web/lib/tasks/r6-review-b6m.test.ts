@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {addTask, editTask, finishTask, orderAhead, renameLabel, viewTasks, waitsTurn, withLabel} from './engine';
+import {addTask, editTask, finishTask, labelPlan, orderAhead, renameLabel, viewTasks, waitsTurn, withLabel} from './engine';
 import {undoOfChange} from './undo';
 import {holdProject, setProjectInOrder} from './project-states';
 import {inPlayRecord, isOutOfPlay, readFocus} from './focus';
@@ -93,6 +93,18 @@ describe('B6M-10: the evening wrap-up and NOVA’s Tasks queue leave a held proj
     expect(hud.queue.map(t => t.id)).toEqual(['i']);
     expect(hud.overdue).toBe(0);
     expect(tasksHud(r, TODAY, iso => iso.slice(0, 10)).queue.map(t => t.id)).toEqual(['h', 'i']);
+  });
+});
+describe('B6M-12: the Select bar counts what really changed', () => {
+  test('the tasks it changes, those that had it already, and the full ones by name', () => {
+    const full = Array.from({length: 20}, (_, i) => `l${i}`);
+    const r = add(add(add(grouped(), 'a', {title: 'Fictional one'}), 'b', {title: 'Fictional two', labels: ['errand']}), 'c', {title: 'Fictional full', labels: full});
+    const on = labelPlan(r, ['a', 'b', 'c', 'gone'], 'errand', true);
+    expect(on).toMatchObject({changed: ['a'], had: 1});
+    expect(on.full.map(t => t.title)).toEqual(['Fictional full']);
+    expect(labelPlan(r, ['a', 'b'], 'errand', false)).toMatchObject({changed: ['b'], had: 1, full: []});
+    const swap = add(grouped(), 'd', {title: 'Fictional at the cap', labels: [...full.slice(0, 19), 'home']});
+    expect(labelPlan(swap, ['d'], 'office', true)).toMatchObject({changed: ['d'], had: 0, full: []});
   });
 });
 describe('B6M-2: in order with a wait for another task never blocks for good', () => {
