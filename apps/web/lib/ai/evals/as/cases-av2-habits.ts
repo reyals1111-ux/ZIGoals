@@ -28,4 +28,6 @@ export const AV2_HABITS: readonly Intent[] = [
   {id: 'av2-habits-stretch-minutes', pillar: 'health', en: ['how many minutes did i stretch this week', 'did i stretch this week'], nl: ['hoeveel minuten heb ik deze week gerekt', 'heb ik deze week gerekt'], never: ['kcal', 'calories burned']},
   // Your own mood words and symbols (LEDGER #178)
   {id: 'av2-habits-mood-words', pillar: 'health', en: ['what are my mood words', 'what are my own mood words'], nl: ['wat zijn mijn stemmingswoorden', 'wat zijn mijn woorden voor de stemmingen']},
+  // Meditation milestones (LEDGER #186)
+  {id: 'av2-habits-meditation-milestones', pillar: 'health', en: ['which meditation milestones have i reached', 'what are my meditation milestones'], nl: ['welke meditatiemijlpalen heb ik bereikt', 'wat zijn mijn mijlpalen bij het mediteren']},
 ];

@@ -11,6 +11,8 @@ import {guideOfTheDay} from '../../meditation/guides';
 import {CALM_WORDS, PACE_WORDS, readCalm} from '../../calm/visuals';
 import {STRETCH_PREFIX, STRETCHES} from '../../calm/stretches';
 import {moodLabel, readMoodLook} from '../../daylio/rule';
+import {meditationMilestones} from '../../meditation/milestones';
+import {healthGroupIn} from '../../vault/w-homes';
 import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
 import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
 import {PATTERNS, type BreathingPattern} from '../../meditation/breathing';
@@ -29,7 +31,7 @@ export function av2HabitsAnswer(question: string, env: ToolEnv): LocalReply | nu
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !(isQuestion(a) || /^(?:bij|voor|met|in|for|on) (?:welke|which)\b/.test(a.f))) return null;
-    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual]) {
+    for (const one of [wheneverHabits, neverTwiceOn, unloggedSkipped, habitDifficulty, habitOptionsOf, areasWeek, monthTheme, hiddenPrompts, dayLogged, moodWordsOf, ownWords, usualFeeling, todaysPractice, stretchedMinutes, calmVisual, meditationMilestonesOf]) {
       const r = one(a);
       if (r) return r;
     }
@@ -227,4 +229,18 @@ function moodWordsOf(a: Asked): LocalReply | null {
   const lang = a.lang, look = readMoodLook(a.env.energy ?? null), all = [5, 4, 3, 2, 1].map(l => `${l} ${moodLabel(look, l)}`).join(', ');
   if (!look.custom) return answer(say(lang, `Your moods use ZIGoals’ words: ${all}. Health → Diary → How does today feel? → Your own words for the moods lets you name them your way, with a symbol.`, `Je stemmingen gebruiken de woorden van ZIGoals: ${all}. Health → Diary → How does today feel? → Your own words for the moods laat je ze zelf benoemen, met een symbool.`));
   return answer(say(lang, `Your own mood words, from best to hardest: ${all}. The mood kept is still 1 to 5.`, `Je eigen stemmingswoorden, van best tot zwaarst: ${all}. De bewaarde stemming blijft 1 tot 5.`));
+}
+/** LEDGER #186: "which meditation milestones have i reached", "welke meditatiemijlpalen heb ik bereikt" — days, never a score. */
+function meditationMilestonesOf(a: Asked): LocalReply | null {
+  const en = /\bmeditation (?:milestones?|badges?)\b|\bmilestones? (?:for|in) meditation\b/.test(a.f);
+  const nl = /\bmeditatie ?(?:mijlpalen|mijlpaal|badges?)\b|\bmijlpalen (?:voor|bij) (?:het )?mediteren\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = closed(a.env, 'health'); if (shut || !a.env.health) return shut;
+  const lang = a.lang, ms = meditationMilestones(healthGroupIn(a.env.health, 'meditation'), a.today);
+  const NL: Record<string, string> = {'meditate-7': 'Zeven dagen op rij', 'meditate-50': 'Vijftig dagen', 'meditate-100': 'Honderd dagen'};
+  const name = (id: string, title: string) => lang === 'nl' ? NL[id] ?? title : title;
+  const reached = ms.filter(m => m.reached).map(m => name(m.id, m.title)), next = ms.find(m => !m.reached);
+  const nextLine = next ? say(lang, ` Next: ${next.title}, ${Math.min(next.have, next.need)} of ${next.need}${next.kind === 'row' ? ' days in a row (your longest run)' : ' days'}.`, ` Volgende: ${name(next.id, next.title)}, ${Math.min(next.have, next.need)} van ${next.need}${next.kind === 'row' ? ' dagen op rij (je langste reeks)' : ' dagen'}.`) : '';
+  if (!reached.length) return answer(say(lang, `No meditation milestone yet.${nextLine} A rest day never takes one away.`, `Nog geen meditatiemijlpaal.${nextLine} Een rustdag neemt er nooit een af.`));
+  return answer(say(lang, `Meditation milestones reached: ${list(reached, 'en')}.${nextLine || ' All three are reached.'}`, `Meditatiemijlpalen bereikt: ${list(reached, 'nl')}.${nextLine || ' Alle drie zijn bereikt.'}`));
 }

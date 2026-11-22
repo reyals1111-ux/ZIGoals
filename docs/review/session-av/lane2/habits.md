@@ -442,6 +442,28 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 - Always visible on Today: nothing (Today's reminder card only gets a different link for a routine's first habit).
   Habits page: each routine card gains its steps' checkboxes and one time field (Tab stops on Habits, none on Today).
 
+## Feature 15 — Meditation milestones (LEDGER #186)
+
+**Verdict: built.**
+
+- Health → Meditation → Your practice: "Milestones" — Seven days in a row (your longest run ever, so a rest day later
+  takes nothing away), Fifty days and A hundred days with a meditation, each "reached" or "N of 50 days"; days, never
+  minutes or a score. With the game layer on they are also three calm, once-only badges in Journey's cabinet (❂ ❁ ✺),
+  celebrated once like every badge.
+- Files: `lib/meditation/milestones.ts`, `lib/game/badges.ts`, `components/health/meditation/{meditation-view.tsx,meditation.css}`,
+  `lib/ai/local-answers/av2-habits.ts`, `lib/ai/evals/as/cases-av2-habits.ts`.
+- Tests: `lib/meditation/milestones.test.ts` (the longest run, days in all, a later rest day, a future session, the
+  three badges, the answers EN and NL). Existing game and badge tests unchanged and green. Spec:
+  `tests/av2-meditation-milestones.spec.ts`.
+- Stored changes: none (derived from Health's meditation sessions; a badge's first-seen day uses the existing record).
+- Badge cabinet: three more badges ("N of 20"); no test pins the total (journey.spec reads `\d+ of \d+`). The
+  Showcase may earn "Seven days in a row" if its sessions hold seven days in a row — the lead's Showcase runs will show.
+- Help (EN): **Q: Are there meditation milestones?** A: Yes: seven days in a row, and 50 and 100 days with a meditation.
+  Health → Meditation shows them; with the game layer on they are badges too. A rest day never takes one away.
+- What's new: "Calm meditation milestones: seven days in a row, 50 and 100 days."
+- Answers: "which meditation milestones have i reached" / "welke meditatiemijlpalen heb ik bereikt" (Health gate; case
+  `av2-habits-meditation-milestones`). CSS touched: `meditation.css` (a few lines). Always visible on Today: nothing.
+
 ## Not built yet (next for this pillar, in order)
 
 - Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm

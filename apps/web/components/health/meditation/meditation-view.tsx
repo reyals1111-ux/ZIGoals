@@ -5,6 +5,7 @@ import {Suspense, lazy, useState} from 'react';
 import {deleteSession} from '../../../lib/meditation/engine';
 import {PATTERNS} from '../../../lib/meditation/breathing';
 import {meditationSummary, minutesText, sessionDay, weeklyBars} from '../../../lib/meditation/stats';
+import {meditationMilestones} from '../../../lib/meditation/milestones';
 import type {MeditationSession as Session} from '../../../lib/meditation/schema';
 import {formatDate, formatTime} from '../../../lib/visual-format';
 import {NebulaFlow} from '../../nebula-flow';
@@ -77,6 +78,8 @@ export default function MeditationView() {
         <div><dt>All sessions</dt><dd>{summary.sessions}</dd><dd className="dd-note"><small>{minutesText(summary.totalMinutes)} in all</small></dd></div>
         <div><dt>Longest</dt><dd>{summary.sessions ? minutesText(summary.longestMinutes) : 'Not yet'}</dd></div>
       </dl>
+      {/* Session AV lane 2 (LEDGER #186): calm, once-only milestones, in days; a rest day takes nothing away. */}
+      <ul className="meditation-milestones" aria-label="Milestones">{meditationMilestones(meditation, today).map(m => <li key={m.id} data-reached={m.reached || undefined}><span aria-hidden="true">{m.reached ? m.symbol : '○'}</span> {m.title}<small> · {m.reached ? 'reached' : `${Math.min(m.have, m.need)} of ${m.need} ${m.kind === 'row' ? 'in a row so far (your longest)' : 'days'}`}</small></li>)}</ul>
     </section>
     <section className="panel" aria-labelledby="meditation-weeks-title"><h2 id="meditation-weeks-title" className="sr-only">Over time</h2><MeditationWeeksChart weeks={weeks} goal={summary.goal}/></section>
     <div className="sleep-columns">
