@@ -14,6 +14,8 @@ import {fieldTags, parseTagField, tagsForSave} from '../../lib/notes/tags';
 import type {LinkIndex} from '../../lib/notes/links';
 import {deleteNotePhoto, getNotePhoto} from '../../lib/notes/photos';
 import {keepCapturePhoto} from '../../lib/notes/capture';
+import {LOCK_NEEDS_PIN, lockNote, unlockNote} from '../../lib/notes/lock';
+import {readLock} from '../../lib/device-lock';
 import {photoScope} from '../../lib/health-aa/photos';
 import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
 import {countCharacters, countWords, readMinutes} from '../../lib/notes/table';
@@ -33,6 +35,8 @@ const NoteProps = lazy(() => import('./note-props'));
 const NoteFind = lazy(() => import('./note-find'));
 // Session AV lane 2 (r4-notes; LEDGER #316): the writing view (the note alone, typewriter), loaded on the press.
 const NoteFocus = lazy(() => import('./note-focus'));
+// Session AV lane 2 (r4-notes; LEDGER #318): a locked note's cover (the screen-cover PIN), loaded with a locked note.
+const NoteLock = lazy(() => import('./note-lock'));
 const shortWords = (w: string) => { const t = w.replace(/\s+/g, ' ').trim(); return t.length > 40 ? `${t.slice(0, 39).trimEnd()}…` : t; };
 
 /**
@@ -52,6 +56,8 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
   const savedField = note ? fieldTags(note).join(', ') : '', [tagText, setTagText] = useState(savedField);
   const [mode, setMode] = useState<'read' | 'edit'>(note?.body.trim() ? 'read' : 'edit');
   const [finding, setFinding] = useState(false), [writing, setWriting] = useState(false);
+  // Session AV lane 2 (r4-notes; LEDGER #318): a locked note shows its words after the PIN, for this visit only.
+  const [shown, setShown] = useState(false), covered = !!note?.locked && !shown;
   const doneWriting = useCallback(() => { setWriting(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-write-button')?.focus()); }, []);
   const closeFind = useCallback(() => { setFinding(false); requestAnimationFrame(() => box.current?.querySelector<HTMLElement>('.note-find-button')?.focus()); }, []);
   const [versionsOpen, setVersionsOpen] = useState(false), [printing, setPrinting] = useState(false), [propsOpen, setPropsOpen] = useState(false);
@@ -79,7 +85,10 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
   // Session AV lane 2 (r4-notes; LEDGER #307): while editing, a new photo's line goes where the caret is (saved with the words).
   const placePhoto = (id: string) => { const field = box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea'); setBody(b => insertPhotoLine(b, field ? field.selectionStart : b.length, id)); };
   const heading = note ? (note.kind === 'daily' && note.day ? formatDate(note.day, {weekday: true}) : noteName(note)) : day ? formatDate(day, {weekday: true}) : '';
-  return <article className="note-editor" aria-label={heading || 'Note'} ref={box}>
+  if (note && covered) return <article className="note-editor" aria-label={heading || 'Note'} ref={box}>
+    <LoadBoundary label="The lock"><Suspense fallback={<p className="fine">Opening…</p>}><NoteLock onOpen={() => { setShown(true); requestAnimationFrame(() => box.current?.focus()); }}/></Suspense></LoadBoundary>
+  </article>;
+  return <article className="note-editor" aria-label={heading || 'Note'} ref={box} tabIndex={-1}>
     {note?.archived && <p className="note-archived-line">Archived: this note is out of the list and the graph, and still in Search and the export. <button type="button" className="text-link" onClick={() => change(r => updateNote(r, note.id, {archived: false}, new Date().toISOString()), `“${shortNoteName(note)}” is back in the list.`)}>Back to the list</button></p>}
     {mode === 'edit' ? <>
       {!isDaily && <label className="field"><span>Title</span><input value={title} maxLength={MAX_TITLE} onChange={e => setTitle(e.target.value)} placeholder={note?.kind === 'inbox' ? 'Optional' : 'A title'}/></label>}
@@ -87,6 +96,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {/* Session AK G2 (RELEASE_REVIEW_2 R2-18): `[[` is explained here, in the field, where it is used. */}
       <LinkField label={isDaily ? 'This day’s note' : 'Note'} placeholder="Write here. Type [[ to link a goal, a habit or another note." value={body} onChange={setBody} index={index} exclude={note ? {kind: 'note', id: note.id} : undefined} maxLength={MAX_BODY} onSubmit={saveAndRead} rows={isDaily ? 6 : 10}/>
       <label className="field note-tags-field"><span>Tags</span><input value={tagText} maxLength={400} onChange={e => setTagText(e.target.value)} placeholder="travel, work/meetings" aria-describedby={note ? `tags-help-${note.id}` : undefined}/></label>
+      <SecretGuard text={tagText} onRemove={() => setTagText('')}/>
       <p className="fine" id={note ? `tags-help-${note.id}` : undefined}>Or write a #tag anywhere in the note; a / nests one under another (#work/meetings sits under #work).</p>
       <LoadBoundary quiet><Suspense fallback={null}><NoteMarks value={body} onChange={setBody} maxLength={MAX_BODY} field={() => box.current?.querySelector<HTMLTextAreaElement>('.note-field textarea') ?? null}/></Suspense></LoadBoundary>
       <div className="note-actions">
@@ -108,7 +118,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
         {note && <button type="button" className="quiet note-print-button" onPointerEnter={() => void import('./note-print').catch(() => undefined)} onClick={() => setPrinting(true)}>Print this note</button>}</div>
       {note && printing && <LoadBoundary quiet><Suspense fallback={null}><NotePrint note={note} heading={heading || noteName(note)} index={index} onDone={donePrinting}/></Suspense></LoadBoundary>}
     </>}
-    {note && <NoteExtras note={note} change={change} onDeleted={onDeleted} onPlace={mode === 'edit' ? placePhoto : undefined}/>}
+    {note && <NoteExtras note={note} change={change} onDeleted={onDeleted} onPlace={mode === 'edit' ? placePhoto : undefined} onLocked={() => setShown(true)}/>}
     {note && note.body.trim() && mode === 'read' && <NoteInfo note={note}/>}
     {note && record && <details className="note-fold note-props-fold" onToggle={e => setPropsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Properties <span className="fine">· {note.props?.length ? note.props.slice(0, 3).map(p => `${p.k}: ${p.t === 'tick' ? (p.v ? 'yes' : 'no') : String(p.v)}`).join(', ') : 'your own fields, such as a status or a day'}</span></summary>
       {propsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteProps note={note} record={record} change={change}/></Suspense></LoadBoundary>}
@@ -125,7 +135,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
  * holds up to eight photos — the first under the words, as before; each one after it placed in the words where it was
  * added (at the caret while editing, else at the end). An inbox capture keeps one photo (filing moves it).
  */
-function NoteExtras({note, change, onDeleted, onPlace}: {note: Note; change: Change; onDeleted?: () => void; /** While editing: put the new photo's line at the caret (unsaved words). */ onPlace?: (id: string) => void}) {
+function NoteExtras({note, change, onDeleted, onPlace, onLocked}: {note: Note; change: Change; onDeleted?: () => void; /** While editing: put the new photo's line at the caret (unsaved words). */ onPlace?: (id: string) => void; /** LEDGER #318: the note was locked on this visit (it stays shown until left). */ onLocked?: () => void}) {
   const [confirmPhoto, setConfirmPhoto] = useState<string | null>(null), [busy, setBusy] = useState(false), [said, setSaid] = useState('');
   const input = useRef<HTMLInputElement>(null);
   const multi = note.kind !== 'inbox', ids = notePhotoIdsOf(note), unplaced = unplacedPhotoIds(note), full = multi && photoRoom(note) <= 0;
@@ -153,8 +163,13 @@ function NoteExtras({note, change, onDeleted, onPlace}: {note: Note; change: Cha
       {/* Session AV lane 2 (r4-notes; LEDGER #315, Bear): out of the lists and the graph, kept in Search and the exports. */}
       {note.kind !== 'inbox' && !note.archived && <button type="button" className="quiet" onClick={() => change(r => ({record: updateNote(r, note.id, {archived: true}, new Date().toISOString()), undo: {before: [note], created: [], said: `“${shortNoteName(note)}” is back in the list.`}}), `“${shortNoteName(note)}” archived: out of the list and the graph, still in Search.`)}>Archive</button>}
       {note.kind === 'topic' && <button type="button" className="quiet" aria-pressed={!!note.pinned} onClick={() => change(r => updateNote(r, note.id, {pinned: !note.pinned}, new Date().toISOString()), note.pinned ? 'Unpinned.' : 'Pinned to the top of your notes.')}>{note.pinned ? 'Unpin' : 'Pin'}</button>}
+      {/* Session AV lane 2 (r4-notes; LEDGER #318): behind this device's screen-cover PIN; hidden, not encrypted. */}
+      {note.kind !== 'inbox' && (note.locked
+        ? <button type="button" className="quiet" onClick={() => change(r => unlockNote(r, note.id, new Date().toISOString()), 'The lock is off: this note is in Search, the Graph and NOVA again.')}>Remove the lock</button>
+        : <button type="button" className="quiet" onClick={() => { if (!readLock((() => { try { return window.localStorage; } catch { return null; } })())) { setSaid(LOCK_NEEDS_PIN); return; } if (change(r => lockNote(r, note.id, new Date().toISOString()), 'Locked: it shows after your screen-cover PIN, and stays out of Search, the Graph, NOVA and the Markdown export.')) { onLocked?.(); setSaid(''); } }}>Lock this note</button>)}
       <button type="button" className="quiet" onClick={() => { if (change(r => removeNote(r, note.id), `“${shortNoteName(note)}” deleted.`)) onDeleted?.(); }}>Delete note</button>
     </div>
+    {note.locked && <p className="fine">Locked: next time it shows after your screen-cover PIN. Its words are hidden, not encrypted; they stay in this browser and in Export everything.</p>}
     {full && <p className="fine">{PHOTOS_FULL}</p>}
     {ids.length > 1 && <details className="note-fold note-photos-fold"><summary>Photos <span className="fine">· {ids.length} of {MAX_NOTE_PHOTOS_EACH}</span></summary>
       <ul className="note-photo-list">{ids.map((id, i) => <li key={id}><span>Photo {i + 1} <span className="fine">· {unplaced.includes(id) ? 'under the words' : 'in the words'}</span></span>

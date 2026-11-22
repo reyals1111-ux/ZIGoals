@@ -13,7 +13,8 @@ export const NOTE_KEYWORD_CHARS = 1200;
 const KIND_WORD = {inbox: 'Inbox', daily: 'Daily note', topic: 'Note'} as const;
 /** The palette's items for these notes (the words are cut to their start so typing stays quick with many notes). */
 export function noteSearchItems(notes: readonly Note[]): SearchItem[] {
-  return notes.map(n => ({id: `note:${n.id}`, kind: 'note', title: n.kind === 'daily' && n.day ? `Daily note ${n.day}` : noteName(n), subtitle: `${KIND_WORD[n.kind]}${n.archived ? ' · archived' : ''}${n.example ? ' · Showcase example' : ''}`, href: noteHref(n.id), keywords: [n.body.slice(0, NOTE_KEYWORD_CHARS), ...(n.tags ?? [])]}));
+  // Session AV lane 2 (r4-notes; LEDGER #318): a locked note is left out of Search (its name and words).
+  return notes.filter(n => !n.locked).map(n => ({id: `note:${n.id}`, kind: 'note', title: n.kind === 'daily' && n.day ? `Daily note ${n.day}` : noteName(n), subtitle: `${KIND_WORD[n.kind]}${n.archived ? ' · archived' : ''}${n.example ? ' · Showcase example' : ''}`, href: noteHref(n.id), keywords: [n.body.slice(0, NOTE_KEYWORD_CHARS), ...(n.tags ?? [])]}));
 }
 export const NOTE_ACTIONS: readonly PaletteAction[] = [
   {id: 'action:capture-note', title: 'Capture a note', subtitle: 'Notes · type, speak or add a photo; file it later', keywords: ['note', 'capture', 'inbox', 'jot', 'write', 'idea', 'remember', 'memo', 'add'], href: '/app/notes?capture=1', effect: 'confirm'},
@@ -38,6 +39,7 @@ export function searchNotes(notes: readonly Note[], query: string, limit = 20): 
   if (!q.length) return [];
   const hits: NoteHit[] = [];
   for (const n of notes) {
+    if (n.locked) continue; // Session AV lane 2 (r4-notes; LEDGER #318)
     const title = normalize(n.kind === 'daily' && n.day ? `${n.day} ${noteName(n)}` : noteName(n)), body = normalize(`${n.body} ${(n.tags ?? []).join(' ')}`);
     let score = 0;
     for (const w of q) { if (title.split(' ').some(t => t.startsWith(w))) score += 6; else if (title.includes(w)) score += 4; else if (body.includes(w)) score += 1; else { score = -1; break; } }

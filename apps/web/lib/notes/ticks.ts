@@ -41,7 +41,7 @@ export function tickNote(record: Notes, noteId: string, line: number, checked: b
 export type OpenTick = {noteId: string; name: string; kind: Note['kind']; day?: string; line: number; text: string; example: boolean};
 /** The unticked tick boxes of every note: the most recently changed note first, then in the note's own order. */
 export function openTicks(notes: readonly Note[]): OpenTick[] {
-  return [...notes].sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))
+  return notes.filter(n => !n.locked).sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))
     .flatMap(n => tickLines(n.body).filter(t => !t.checked).map(t => ({noteId: n.id, name: n.kind === 'daily' && n.day ? n.day : noteName(n), kind: n.kind, ...(n.day ? {day: n.day} : {}), line: t.line, text: t.text, example: !!n.example})));
 }
 /** How many tick boxes a note has, and how many are ticked ("2 of 5 ticked"). */

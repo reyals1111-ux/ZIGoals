@@ -1,5 +1,6 @@
 'use client';
 import {useCallback, useEffect, useId, useRef} from 'react';
+import {SecretGuard} from '../secret-guard/secret-guard';
 import './note-focus.css';
 
 /**
@@ -49,6 +50,7 @@ export default function NoteFocus({title, value, onChange, typewriter, onTypewri
     </div>
     <label className="sr-only" htmlFor={`${id}-f`}>The words of {title}</label>
     <textarea id={`${id}-f`} ref={field} className="note-focus-field" value={value} maxLength={maxLength} spellCheck onChange={e => onChange(e.target.value)} onKeyUp={centre} onClick={centre} onSelect={centre}/>
+    <SecretGuard text={value} onRemove={() => onChange('')}/>
     <p className="fine note-focus-foot">{typewriter ? 'Typewriter: the line you write stays in the middle.' : 'Typewriter is off.'} Esc or Done goes back to the note; your words stay there until you save.</p>
   </dialog>;
 }

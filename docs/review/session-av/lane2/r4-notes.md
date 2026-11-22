@@ -201,3 +201,42 @@ before (an archived note in its list; only the first photo).
 - What's new: "Notes: write in full screen, with a typewriter line."
 - Showcase: none needed. CSS touched: new `components/notes/note-focus.css` (imported by its lazy chunk only).
   Today: nothing added.
+
+### F9 Lock a note — LEDGER #318 (Bear), in its conservative form
+
+- Verdict: **built in part**. Built: "Lock this note" behind this device's own screen-cover PIN, and every leaving-out the
+  row names. Left: encrypting the note's words with a passphrase of its own (AES-GCM from PBKDF2) — **against a named
+  rule (no key changes)**: the brief and the lead allow no new key handling or crypto beyond what the screen cover
+  already uses (a salted PBKDF2-SHA-256 check of the PIN, `lib/device-lock.ts`, untouched); deriving and using an
+  encryption key would be new key handling.
+- Owner note checked: "an older build that sees the empty body of a locked note must not overwrite its ciphertext".
+  With no ciphertext, the risk is gone: the body stays the note's plain words, so an older build shows and saves them as
+  it always did (it keeps `locked` untouched on the loose note).
+- What: an open daily or topic note has "Lock this note". With no screen-cover PIN on this device it says what it needs
+  ("Set one first in Settings → Account & devices → Screen cover with a PIN") and locks nothing. Locked, the note opens
+  to "This note is locked": "Your screen-cover PIN" and "Show this note" (the screen cover's own check and its waits
+  after wrong tries); the words then show for this visit; "Remove the lock" takes it off. If the screen cover is later
+  turned off, a locked note opens with a tap and says why (the screen cover, too, never locks records away). The cover
+  says plainly that the words are hidden, not encrypted, and stay in this browser and in Export everything (so a backup
+  is whole). Left out while locked: Search (Notes, the palette, Search everything), the Graph, NOVA (its sources —
+  `readNovaToolSources` and NOVA's workflows — its answers and the notes it packs), Open tick boxes, backlinks, the
+  lists' and gallery's and canvas cards' snippets ("Locked note: its words show after your PIN."), a reminder's words
+  ("A reminder in a locked note"), and the Markdown export ("1 locked note was left out (open one and use Save this note
+  as… to take it out)"). Its title still shows in lists, as Bear's does.
+- Files: new `lib/notes/lock.ts`, new `components/notes/note-lock.tsx` (lazy); `components/notes/note-editor.tsx`,
+  `lib/ai/tools/nova-sources.ts`, `components/nova/workflows/use-nova-sources.ts` (one line each), `lib/notes/pack.ts`,
+  `lib/search/notes.ts`, `lib/notes/ticks.ts`, `lib/notes/links.ts`, `lib/notes/reminders.ts`, `lib/notes/markdown.ts`,
+  `components/notes/notes-files.tsx`, `components/notes/notes-workspace.tsx`, `components/notes/notes-views.tsx`,
+  `components/notes/notes-canvas.tsx`, `components/notes/notes.css`.
+- Also in this commit: the secret guard beside the new free-text fields of F1 (Tags), F4 (Replace with) and F8 (the
+  writing view), which `lib/notes/fields.test.ts` asks for (that test was red on the F1, F4 and F8 commits; green from
+  here).
+- Tests: `lib/notes/r4-lock.test.ts`; stored round trip in `lib/notes/r4-stored.test.ts`. Spec: `tests/av2-notes-lock.spec.ts`
+  (sets the PIN through the real Settings form).
+- Stored: note `locked` (its own TIER 3 commit, see "Stored changes"). No device key, no key material, no crypto added.
+- Help (EN). Q: "Can I lock a note?" A: "Yes, behind this device's screen-cover PIN (Settings → Account & devices →
+  Screen cover with a PIN). Open the note and press Lock this note. It then shows only after the PIN, and stays out of
+  Search, the Graph, NOVA and the Markdown export. Its words are hidden, not encrypted: they stay in this browser and in
+  Export everything. Remove the lock takes it off."
+- What's new: "Notes: lock a note behind your screen-cover PIN, out of Search, the Graph and NOVA."
+- Showcase: none (the Showcase has no PIN). CSS touched: `components/notes/notes.css`. Today: nothing added.

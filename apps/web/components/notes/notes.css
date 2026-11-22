@@ -354,3 +354,11 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-archived-line { margin: 0 0 8px; padding: 8px 12px; border-radius: 12px; border: 1px dashed color-mix(in srgb, currentColor 35%, transparent); font-size: 15px; overflow-wrap: anywhere; }
 .note-archived-line .text-link, .note-archived-fold .text-link { min-height: 44px; }
 .note-archived-fold .note-list li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+
+/* Session AV lane 2 (r4-notes; LEDGER #318): a locked note's cover. */
+.note-lock { display: grid; gap: 8px; padding: 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--brand-violet, #826cff) 45%, transparent); }
+.note-lock-title { margin: 0; font-size: 17px; }
+.note-lock-form { display: grid; gap: 8px; max-inline-size: 22rem; }
+.note-lock-form input { inline-size: 100%; box-sizing: border-box; }
+.note-lock-form button, .note-lock > button { min-height: 44px; justify-self: start; }
+.note-editor:focus { outline: none; }

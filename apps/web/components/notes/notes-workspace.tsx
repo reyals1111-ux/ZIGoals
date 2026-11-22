@@ -20,6 +20,7 @@ import {dailyStart, dueSchedules, everyWords, runSchedules, schedulesOf} from '.
 import {photoScope} from '../../lib/health-aa/photos';
 import {openTicks} from '../../lib/notes/ticks';
 import {focused, tagTree} from '../../lib/notes/tags';
+import {snippetOf} from '../../lib/notes/lock';
 import './notes.css';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
 
@@ -169,7 +170,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       </details>; })()}
       {topics.length > 0 && !searching && <div className="note-layouts" role="group" aria-label="Show notes as">{LAYOUTS.map(([l, label]) => <button key={l} type="button" className="quiet" aria-pressed={layout === l} onClick={() => setLayout(l)}>{label}</button>)}</div>}
       {/* Session AL (PR-105, P-PR-43): while a search is typed, its results are the list (the full list no longer stays below "No note has those words.") */}
-      {searching ? null : topics.length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? focused(record.notes.filter(n => !n.archived), focus) : topics} layout={layout} today={today} record={record} change={change}/></Suspense></LoadBoundary> : topics.length ? <ul className="note-list">{topics.map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
+      {searching ? null : topics.length && layout !== 'list' ? <LoadBoundary label="This layout"><Suspense fallback={<p className="fine">Laying out your notes…</p>}><NotesViews notes={layout === 'chart' ? focused(record.notes.filter(n => !n.archived), focus) : topics} layout={layout} today={today} record={record} change={change}/></Suspense></LoadBoundary> : topics.length ? <ul className="note-list">{topics.map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{snippetOf(n)}</p></li>)}</ul>
         : focus ? <p className="fine">No note is tagged #{focus} yet. <button type="button" className="text-link" onClick={() => setFocus()}>Clear the focus</button> to see every note.</p>
         : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. A note that links a goal or a habit shows on its page.</p>}
       {/* Session AV lane 2 (r4-notes; LEDGER #315): archived notes wait here, out of the list and the graph. */}
@@ -184,14 +185,14 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       <details className="note-fold note-daily-template-fold"><summary>Daily note template <span className="fine">· {record.dailyTemplate ? 'a new daily note starts from it' : 'a new daily note starts empty'}</span></summary>
         <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><DailyTemplate record={record} change={change}/></Suspense></LoadBoundary>
       </details>
-      {dailiesOf(record).some(n => !n.archived) ? <ul className="note-list">{dailiesOf(record).filter(n => !n.archived).map(n => <li key={n.id}><Link href={`/app/notes?day=${n.day}`}><strong>{formatDate(n.day!, {weekday: true})}</strong></Link><p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120) || 'No words yet.'}</p></li>)}</ul>
+      {dailiesOf(record).some(n => !n.archived) ? <ul className="note-list">{dailiesOf(record).filter(n => !n.archived).map(n => <li key={n.id}><Link href={`/app/notes?day=${n.day}`}><strong>{formatDate(n.day!, {weekday: true})}</strong></Link><p className="fine">{snippetOf(n) || 'No words yet.'}</p></li>)}</ul>
         : <p className="fine">No daily notes yet. <button type="button" className="text-link" onClick={() => go({})}>Write today&rsquo;s</button>: what you did shows beside it, from your habits, Health, money and goals.</p>}
     </section>}
 
     {!noteId && view === 'graph' && <section className="panel" aria-labelledby="note-graph-title">
       <h2 id="note-graph-title">Graph</h2>
       {focus && <FocusLine focus={focus} onClear={() => setFocus()}/>}
-      <LoadBoundary label="The graph"><Suspense fallback={<p className="fine">Drawing your notes…</p>}><GraphView notes={focused(record.notes.filter(n => !n.archived), focus)} index={index}/></Suspense></LoadBoundary>
+      <LoadBoundary label="The graph"><Suspense fallback={<p className="fine">Drawing your notes…</p>}><GraphView notes={focused(record.notes.filter(n => !n.archived && !n.locked), focus)} index={index}/></Suspense></LoadBoundary>
     </section>}
 
     {!noteId && view === 'canvas' && <section className="panel" aria-labelledby="note-canvas-title">

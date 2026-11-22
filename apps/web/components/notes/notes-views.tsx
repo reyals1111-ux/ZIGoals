@@ -1,4 +1,5 @@
 'use client';
+import {snippetOf} from '../../lib/notes/lock';
 import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
 import type {Note, Notes} from '../../lib/notes/schema';
@@ -113,7 +114,7 @@ export function NotesGallery({notes}: {notes: readonly Note[]}) {
   return <ul className="notes-gallery" aria-label="Notes as a gallery">{notes.map(n => { const r = rows.get(n.id)!; return <li key={n.id} className="notes-card">
     {n.photoId && <Thumb note={n}/>}
     <Link className="notes-card-link" href={noteHref(n.id)}><strong>{r.name}</strong></Link>
-    <p className="fine notes-card-text">{n.body.replace(/\(SHOWCASE DATA\)/g, '').replace(/\s+/g, ' ').trim().slice(0, 140) || 'No words yet.'}</p>
+    <p className="fine notes-card-text">{snippetOf({...n, body: n.body.replace(/\(SHOWCASE DATA\)/g, '').trim()}, 140) || 'No words yet.'}</p>
     <p className="fine">{[r.tags.map(t => `#${t}`).join(' '), `${formatNumber(r.words)} words`, `changed ${formatDate(r.changed, {year: false})}`].filter(Boolean).join(' · ')}{n.example ? ' · example' : ''}</p>
   </li>; })}</ul>;
 }

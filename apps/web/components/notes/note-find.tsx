@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useId, useMemo, useRef, useState, type KeyboardEvent} from 'react';
 import {findMatches, replaceAll, replaceOne} from '../../lib/notes/find';
+import {SecretGuard} from '../secret-guard/secret-guard';
 
 /**
  * Session AV lane 2 (r4-notes; LEDGER #312, Bear's find and replace): find words in the note being edited — every match
@@ -43,6 +44,7 @@ export default function NoteFind({value, onChange, field, onClose}: {value: stri
     {hit !== null && <p className="fine note-find-context">{hit > 40 ? '…' : ''}{before}<mark>{value.slice(hit, hit + find.length)}</mark>{after}{hit + find.length + 40 < value.length ? '…' : ''}</p>}
     <div className="note-find-row">
       <label className="field"><span>Replace with</span><input value={replace} onChange={e => setReplace(e.target.value)}/></label>
+      <SecretGuard text={replace} onRemove={() => setReplace('')}/>
       <div className="note-actions">
         <button type="button" className="secondary" disabled={hit === null} onClick={one}>Replace</button>
         <button type="button" className="secondary" disabled={!matches.length} onClick={all}>{matches.length > 1 ? `Replace all ${matches.length}` : 'Replace all'}</button>

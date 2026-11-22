@@ -33,7 +33,8 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
       const url = URL.createObjectURL(new Blob([zip as BlobPart], {type: 'application/zip'})), link = document.createElement('a');
       link.href = url; link.download = notesExportName(localDate(), isShowcase()); document.body.append(link); link.click(); link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 2000);
-      setSaid(`${record.notes.length} ${record.notes.length === 1 ? 'note' : 'notes'} saved as Markdown in a ZIP, made on this device.`);
+      const locked = record.notes.filter(n => n.locked).length, kept = record.notes.length - locked; // Session AV lane 2 (r4-notes; LEDGER #318)
+      setSaid(`${kept} ${kept === 1 ? 'note' : 'notes'} saved as Markdown in a ZIP, made on this device.${locked ? ` ${locked === 1 ? '1 locked note was' : `${locked} locked notes were`} left out (open one and use Save this note as… to take it out).` : ''}`);
     } catch (e) { setSaid(e instanceof Error ? e.message : 'The export could not be made.'); } finally { setBusy(false); }
   };
   const choose = async (list: FileList | null) => {

@@ -27,7 +27,7 @@ export function remindersInNote(note: Note, today: string, zone: string): NoteRe
     const read = parseTaskLine(m[1]!.trim(), from);
     if (!read.due && !read.time) return;
     const day = read.due ?? from, time = read.time ?? NOTE_REMIND_CLOCK;
-    out.push({note, line, day, time, at: instantAt(day, time, zone), what: read.title || noteName(note), key: `${note.id}:${line}:${day}T${time}`});
+    out.push({note, line, day, time, at: instantAt(day, time, zone), what: note.locked ? 'A reminder in a locked note' : read.title || noteName(note), key: `${note.id}:${line}:${day}T${time}`});
   });
   return out;
 }

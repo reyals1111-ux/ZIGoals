@@ -101,7 +101,8 @@ export type ExportPhoto = {data: Uint8Array; type: string};
  * note links to (front-matter `zigoals-stub`, so an import skips it).
  */
 export function notesExportEntries(record: Notes, sources: Omit<LinkSources, 'notes'>, {now = new Date(), photos = new Map<string, ExportPhoto>()}: {now?: Date; photos?: ReadonlyMap<string, ExportPhoto>} = {}): ZipEntry[] {
-  const notes = record.notes, paths = exportPaths(notes), entries: ZipEntry[] = [];
+  // Session AV lane 2 (r4-notes; LEDGER #318): a locked note stays out of the Markdown export (Export everything keeps it).
+  const notes = record.notes.filter(n => !n.locked), paths = exportPaths(notes), entries: ZipEntry[] = [];
   for (const n of notes) {
     const photo = n.photoId ? photos.get(n.photoId) : undefined;
     const photoFile = photo ? `${safeFileBase(n.photoId!)}.${photo.type === 'image/jpeg' ? 'jpg' : 'webp'}` : undefined;
