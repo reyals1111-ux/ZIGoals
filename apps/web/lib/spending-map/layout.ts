@@ -56,6 +56,7 @@ export type CurrencyMap = {currency: string; total: number; rows: {category: str
 export function spendingMaps(entries: readonly MoneyEntry[], from: string, to: string): CurrencyMap[] {
   const by = new Map<string, CurrencyMap>();
   for (const r of byCategory(entries, from, to)) {
+    if (r.total <= 0) continue; // Round 6 (#425): a category its refunds took to zero or below has no area to draw
     const m = by.get(r.currency) ?? {currency: r.currency, total: 0, rows: []};
     m.total += r.total; m.rows.push({category: r.category, total: r.total, count: r.count, share: 0}); by.set(r.currency, m);
   }

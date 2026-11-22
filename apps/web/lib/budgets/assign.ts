@@ -1,5 +1,5 @@
 import {csvSafeCell} from '../export/csv-safe';
-import {isCounted, mineParts} from '../money-log/counted';
+import {isSpending, mineParts} from '../money-log/counted';
 import {cents, fromCents} from '../money-log/engine';
 import {formatCurrencyAmount, formatMonth} from '../visual-format';
 import type {MoneyEntry} from '../money-log/schema';
@@ -61,7 +61,7 @@ export function averageSpent(entries: readonly MoneyEntry[], category: string, c
   let total = 0;
   for (const e of entries) {
     const m = e.date.slice(0, 7);
-    if (e.kind !== 'expense' || e.currency !== currency || !isCounted(e) || m < from || m >= month) continue;
+    if (!isSpending(e) || e.currency !== currency || m < from || m >= month) continue; // Round 6 (#425): a refund lowers its category
     seen.add(m);
     for (const p of mineParts(e)) if (p.category.toLowerCase() === name) total += p.cents; // Review b2a #3: own share
   }

@@ -1,8 +1,9 @@
 import {addMonths} from '../bills/cadence';
 import {cents, monthOf} from '../money-log/engine';
 import {amountText, currencyCode, type MoneyEntry} from '../money-log/schema';
-import {budgetMonthParts, reachesMonth} from '../money-log/counted';
+import {budgetMonthParts, isSpending, reachesMonth} from '../money-log/counted';
 import {MAX_BUDGETS, MAX_ROLLOVER_MONTHS, budgetsSchema, type Budget, type BudgetsRecord} from './schema';
+import {hasOwnOrder, rankOf} from './order';
 
 /**
  * Session AK (7.7): a month of category budgets against the money log, pure, in cents per currency (never converted).
@@ -17,7 +18,7 @@ const spentIn = (entries: readonly MoneyEntry[], month: string, category: string
   let total = 0;
   // Session AK (lane M, item 22): a split entry counts by its parts (the whole entry otherwise), in exact cents.
   // Session AV lane 2 (money): an entry left out or a transfer counts nothing; one spread over months counts its share.
-  for (const e of entries) if (e.kind === 'expense' && e.currency === currency && reachesMonth(e, month)) for (const p of budgetMonthParts(e, month)) if (p.category.toLowerCase() === name) total += p.cents;
+  for (const e of entries) if (isSpending(e) && e.currency === currency && reachesMonth(e, month)) for (const p of budgetMonthParts(e, month)) if (p.category.toLowerCase() === name) total += p.cents;
   return total;
 };
 /**
@@ -64,15 +65,16 @@ export function targetLine(target: {amount: string; by: string}, month: string, 
 }
 export type MonthView = {month: string; rows: BudgetRow[]; unbudgeted: {category: string; currency: string; spent: number}[]; totals: {currency: string; available: number; spent: number; left: number}[]; daysLeft: number | null};
 export function monthView(entries: readonly MoneyEntry[], record: BudgetsRecord, month: string, today: string): MonthView {
-  const active = record.budgets.filter(b => b.since <= month);
+  const active = record.budgets.filter(b => b.since <= month), own = hasOwnOrder(active), rank = rankOf(record.budgets);
   const rows = active.map(b => {
     const budgeted = budgetedIn(b, month) + movedIn(record, b.id, month), carried = carriedInto(b, entries, month, record), available = budgeted + carried, spent = spentIn(entries, month, b.category, b.currency);
     return {id: b.id, category: b.category, currency: b.currency, budgeted, carried, available, spent, left: available - spent, over: spent > available, rollover: b.rollover, share: available > 0 ? Math.min(1, spent / available) : spent > 0 ? 1 : 0, ...(b.target ? {target: targetLine(b.target, month, budgeted, available - spent)} : {})};
-  }).sort((a, b) => a.currency.localeCompare(b.currency) || b.spent - a.spent || a.category.localeCompare(b.category));
+  // Round 6 (#429): in the person's own order when they set one (each currency apart), else the most spent first.
+  }).sort((a, b) => a.currency.localeCompare(b.currency) || (own ? rank.get(a.id)! - rank.get(b.id)! : 0) || b.spent - a.spent || a.category.localeCompare(b.category));
   const budgeted = new Set(active.map(b => `${b.currency}|${b.category.toLowerCase()}`)), {start, end} = monthOf(`${month}-01`);
   const loose = new Map<string, {category: string; currency: string; spent: number}>();
   for (const e of entries) {
-    if (e.kind !== 'expense' || !reachesMonth(e, month)) continue;
+    if (!isSpending(e) || !reachesMonth(e, month)) continue; // Round 6 (#425): a refund lowers its category
     for (const p of budgetMonthParts(e, month)) {
       if (budgeted.has(`${e.currency}|${p.category.toLowerCase()}`)) continue;
       const k = `${e.currency}|${p.category}`, row = loose.get(k) ?? {category: p.category, currency: e.currency, spent: 0};

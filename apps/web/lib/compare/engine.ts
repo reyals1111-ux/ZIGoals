@@ -6,7 +6,7 @@ import {formatCurrencyAmount, formatDate, formatNumber} from '../visual-format';
 // Session AV lane 2, round 3 (money; PocketGuard's Financial Wellness, LEDGER #296): the day's spending as an outcome, by Wealth → Spending's own sums.
 import {byCategory, totals} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
-import {isCounted, mineCents} from '../money-log/counted';
+import {isSpending, mineCents} from '../money-log/counted';
 import {healthGroupIn} from '../vault/w-homes';
 import {wallClock} from '../zone-time';
 import {entryNutrients, reportNutrients, type ReportNutrient} from '../health-aa/nutrient-report';
@@ -222,7 +222,8 @@ function fastingEnds(src: CompareSources): string[] {
  * does — an entry left out of the figures and either side of a transfer add nothing, and a shared cost counts the
  * person's own share (lib/money-log/counted.ts). In cents.
  */
-const expenses = (src: CompareSources, from: string, to: string) => (src.money?.entries ?? []).filter(e => e.kind === 'expense' && e.date >= from && e.date <= to && isCounted(e));
+// Round 6 (#425): a refund lowers its day (spending below zero), as Wealth → Spending's `totals` counts it.
+const expenses = (src: CompareSources, from: string, to: string) => (src.money?.entries ?? []).filter(e => isSpending(e) && e.date >= from && e.date <= to);
 const spentByDay = (entries: ReturnType<typeof expenses>, currency: string) => { const totals = new Map<string, number>(); for (const e of entries) if (e.currency === currency) totals.set(e.date, (totals.get(e.date) ?? 0) + mineCents(e)); return totals; };
 /** The spending factor's currency (the most used expense currency in the window) and a usual amount (the median day). */
 export function spendBasis(src: CompareSources, today: string): {currency: string; usual: number} | null {

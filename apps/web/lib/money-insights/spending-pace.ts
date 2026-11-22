@@ -1,8 +1,7 @@
 import {monthKey, shiftMonth} from '../budgets/engine';
 import {monthOf} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
-import {minorUnits} from '../money-split/parts';
-import {isCounted} from '../money-log/counted';
+import {spendingDayParts} from '../money-log/counted';
 
 /**
  * Session AP (owner-approved): spending pace beside your usual month, pure, one currency at a time. "By the 14th you
@@ -22,14 +21,18 @@ export function spendingPace(entries: readonly MoneyEntry[], currency: string, t
   const sums = new Map<string, number>();
   let thisMonth = 0;
   for (const e of entries) {
-    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
-    if (e.kind !== 'expense' || e.currency !== currency || e.date > today) continue;
-    const m = monthKey(e.date);
-    if (m === current) { thisMonth += minorUnits(e.amount); continue; }
-    if (m < earliest || m > current) continue;
-    // The same day of that month, or its last day when the month is shorter (the 31st → 30 April).
-    const cut = Math.min(day, Number(monthOf(`${m}-01`).end.slice(8, 10)));
-    sums.set(m, (sums.get(m) ?? 0) + (Number(e.date.slice(8, 10)) <= cut ? minorUnits(e.amount) : 0));
+    if (e.currency !== currency) continue;
+    // Round 6 (#425): the shared rule (lib/money-log/counted.ts `spendingDayParts`): left out and transfers not counted,
+    // the person's share, a spread cost by its share on its day of each month, a refund below zero.
+    for (const d of spendingDayParts(e)) {
+      if (d.date > today) continue;
+      const m = monthKey(d.date), c = d.parts.reduce((s, p) => s + p.cents, 0);
+      if (m === current) { thisMonth += c; continue; }
+      if (m < earliest || m > current) continue;
+      // The same day of that month, or its last day when the month is shorter (the 31st → 30 April).
+      const cut = Math.min(day, Number(monthOf(`${m}-01`).end.slice(8, 10)));
+      sums.set(m, (sums.get(m) ?? 0) + (Number(d.date.slice(8, 10)) <= cut ? c : 0));
+    }
   }
   const months = sums.size;
   if (months < PACE_MIN_MONTHS) return {currency, status: 'not-enough', day, months};

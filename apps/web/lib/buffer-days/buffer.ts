@@ -3,7 +3,7 @@ import {balanceOn} from '../accounts/net-worth';
 import type {Accounts, AccountKind} from '../accounts/schema';
 import type {MoneyEntry} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
-import {isCounted} from '../money-log/counted';
+import {inFigures, isCounted, isRefund} from '../money-log/counted';
 
 /**
  * Session AK (lane M, item 11, COMPETITORS M4): buffer days — how many days the person's cash would cover their usual
@@ -27,14 +27,14 @@ function measure(accounts: Accounts, entries: readonly MoneyEntry[], currency: s
     if (b) { cash += toCents(b.value, b.decimals); withBalance++; } else missing++;
   }
   if (!withBalance) return {currency, known: false, reason: 'no-cash', missingBalances: missing};
-  const mine = entries.filter(e => isCounted(e) && e.currency === currency && e.date <= day);
+  const mine = entries.filter(e => inFigures(e) && e.currency === currency && e.date <= day);
   const first = mine.reduce<string | null>((m, e) => m === null || e.date < m ? e.date : m, null);
   const from = addLocalDays(day, -(WINDOW_DAYS - 1)), start = first && first > from ? first : from;
   const windowDays = first ? dayDiff(start, day) + 1 : 0;
   if (windowDays < MIN_HISTORY_DAYS) return {currency, known: false, reason: 'short-history', missingBalances: missing};
   let spent = 0;
   const spendingDays = new Set<string>();
-  for (const e of mine) if (e.kind === 'expense' && e.date >= start) { spent += minorUnits(e.amount); spendingDays.add(e.date); }
+  for (const e of mine) if (e.kind === 'expense' && e.date >= start) { spent += minorUnits(e.amount); spendingDays.add(e.date); } else if (isRefund(e) && e.date >= start) spent -= minorUnits(e.amount); // Round 6 (#425): a refund lowers spending
   if (spent <= 0) return {currency, known: false, reason: 'no-spending', missingBalances: missing};
   // Session AK Q1 (WIRING_AUDIT #11): "usual spending" needs spending logged on at least MIN_HISTORY_DAYS different days in
   // the window, as the copy says; one imported purchase in an otherwise empty month is not a usual day (it read "9178 days").

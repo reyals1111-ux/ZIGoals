@@ -12,6 +12,8 @@ import {plainErrorMessage} from '../../../lib/plain-error';
 import {money} from './format';
 // Session AK (BUILD list 2 #9): "One at a time", its own chunk, loaded when the person turns it on.
 const ReviewCardMode = lazy(() => import('../../review-cards/review-card-mode'));
+// Session AV lane 2, round 6 (money; Banktivity, LEDGER #425): money back from a payee paid before, offered as a refund (own chunk).
+const RefundOffers = lazy(() => import('./refund-offers'));
 
 /**
  * Session AK (lane M, item 10): "To review", the entries an import added that the person has not looked at yet. ✓
@@ -25,6 +27,7 @@ export default function ReviewInbox({log, review, onMakeRule}: {log: DeviceRecor
   const suggestions = useMemo(() => { const waiting = new Set(pending.map(e => e.id)), known = log.data.entries.filter(e => !waiting.has(e.id)); return new Map(pending.slice(0, 100).map(e => [e.id, e.note ? pastCategory(known, e.kind, e.note) : null])); }, [pending, log.data.entries]);
   // Session AV lane 2 (money; YNAB's credit-card payment match): an amount leaving one imported account and arriving in another.
   const pairs = useMemo(() => transferPairs(log.data.entries, new Set(pending.map(e => e.id))), [log.data.entries, pending]);
+  const incoming = useMemo(() => new Set(pending.filter(e => e.kind === 'income' && e.account && !e.refund).map(e => e.id)), [pending]);
   const markTransfer = (outId: string, inId: string, words: string) => { setError(''); try { log.update(current => setTransfer(current, outId, inId, true, new Date().toISOString())); setStatus(words); } catch (cause) { setError(plainErrorMessage(cause, 'This could not be saved on this device.')); } };
   const accept = (ids: string[], words: string) => {
     setError('');
@@ -50,6 +53,7 @@ export default function ReviewInbox({log, review, onMakeRule}: {log: DeviceRecor
         <span className="money-row-actions"><button type="button" className="secondary" aria-label={`Mark ${words} as a transfer`} onClick={() => { markTransfer(p.out.id, p.in.id, `${words} marked as a transfer; both are left out of spending and income.`); accept([p.out.id, p.in.id], `${words} marked as a transfer and reviewed.`); }}>Mark as a transfer</button></span>
       </li>; })}</ul>
     </section>}
+    {incoming.size > 0 && !cards && <Suspense fallback={null}><RefundOffers log={log} among={incoming} onSaid={setError}/></Suspense>}
     {cards ? <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><ReviewCardMode log={log} review={review} pending={pending} accept={accept} recategorise={recategorise} onMakeRule={onMakeRule} onExit={() => setCards(false)}/></Suspense>
     : pending.length ? <>
       <p className="fine">Entries from your last imports, as their category was set. They already count in your totals.</p>

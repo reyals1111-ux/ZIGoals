@@ -1,5 +1,5 @@
 import {transferPairs} from '../../bankfiles/reimport';
-import {isCounted} from '../../money-log/counted';
+import {inFigures} from '../../money-log/counted';
 import {nextPayday} from '../../bills/month';
 import {cashForecast} from '../../cash-forecast/model';
 import {plannedForForecast} from '../../cash-forecast/planned';
@@ -59,7 +59,7 @@ function leftOut(a: Asked): LocalReply | null {
   const nl = /\b(?:telt|tellen) niet mee\b|\b(?:weggelaten|uitgesloten|genegeerd)\b/.test(a.f) && /\b(?:uitgaven|geld|posten|boekingen|transacties|totalen?)\b/.test(a.f);
   if (!(en || nl)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
-  const out = entriesOf(a.env).filter(e => !isCounted(e)), lang = a.lang, calls = [{tool: 'money_log', args: {counted: 'left-out'}, label: 'Money log · left out'}];
+  const out = entriesOf(a.env).filter(e => !inFigures(e)), lang = a.lang, calls = [{tool: 'money_log', args: {counted: 'left-out'}, label: 'Money log · left out'}];
   if (!out.length) return answer(say(lang, `Nothing is left out: every entry counts in your totals and budgets. To leave one out (card interest, a refund you passed on), edit it in ${SPENDING_PLACE.en} and tick “Not part of my spending”.`, `Er is niets weggelaten: elke post telt mee in je totalen en budgetten. Wil je er een weglaten (rente op je creditcard, een terugbetaling die je doorgaf), bewerk hem dan in ${SPENDING_PLACE.nl} en vink “Not part of my spending” aan.`), calls);
   const transfers = out.filter(e => e.transfer).length, marked = out.length - transfers;
   const parts = [marked ? count(marked, lang, ['entry left out', 'entries left out'], ['post weggelaten', 'posten weggelaten']) : '', transfers ? count(transfers, lang, ['side of a transfer', 'sides of transfers'], ['kant van een overboeking', 'kanten van overboekingen']) : ''].filter(Boolean);

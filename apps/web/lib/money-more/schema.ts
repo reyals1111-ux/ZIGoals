@@ -83,7 +83,7 @@ export const placeSchema = z.looseObject({
  * amount on a day, or an amount each month from a day, optionally until a day), money out or in. A model only: never an
  * entry, a bill or a plan. Each part optional and dropped on read when unreadable.
  */
-export const MAX_WHAT_IFS = 5, MAX_WHAT_IF_CHANGES = 3;
+export const MAX_WHAT_IFS = 5, MAX_WHAT_IF_CHANGES = 3, MAX_LOOKED = 400;
 export const whatIfChangeSchema = z.looseObject({
   kind: z.enum(['once', 'monthly']), dir: z.enum(['out', 'in']), amount: amountText, from: day,
   until: day.optional().catch(undefined), label: z.string().trim().min(1).max(60).optional().catch(undefined),
@@ -117,6 +117,13 @@ export const moneyMoreSchema = z.looseObject({
    * unreadable: up to five named "Try a change" sets for the cash forecast (a model, never written as entries or bills).
    */
   whatIfs: z.array(whatIfSchema).max(MAX_WHAT_IFS).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 6 (money; EveryDollar's streaks, LEDGER #427), TIER 3 (stored format), additive and optional,
+   * dropped on read when unreadable: the money streak — `on` (off unless the person turns it on) and `looked`, the days
+   * (at most the last 400) the person said "I looked at my money today". Entries logged and bank files read count by
+   * themselves (their own times). Older builds keep it (loose object) and ignore it.
+   */
+  streak: z.looseObject({on: z.literal(true).optional().catch(undefined), looked: z.array(day).max(MAX_LOOKED).optional().catch(undefined)}).optional().catch(undefined),
 });
 export type SavedEntry = z.infer<typeof savedEntrySchema>;
 export type OwnBudget = z.infer<typeof ownBudgetSchema>;

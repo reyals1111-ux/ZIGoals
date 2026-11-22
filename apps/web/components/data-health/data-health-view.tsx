@@ -92,6 +92,8 @@ export function DataHealthView() {
       </dl>
       <p className="fine">Export everything writes nothing on this device, by design, so it keeps no date; your browser&apos;s downloads list shows when you last exported. Restore from a backup, below, reads that ZIP back.</p>
       <div className="dh-actions"><Link className="primary" href="/app/settings#privacy">Export everything or keep a protected copy</Link></div>
+      {/* Session AV lane 2, round 6 (money; Banktivity, LEDGER #430): the check of the money records lives with the money. */}
+      <p className="fine"><Link className="text-link" href="/app/wealth#money-check">Check and tidy your money records on Wealth →</Link></p>
       <Suspense fallback={null}><BackupReminder/></Suspense>
     </section>
     <section className="panel" aria-labelledby="dh-restore" id="restore">

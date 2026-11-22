@@ -1,5 +1,5 @@
 import {MAX_SUBS, PAID_WITH, type MoneyEntry, type MoneyLog, type PaidWith} from '../money-log/schema';
-import {isCounted, mineCents} from '../money-log/counted';
+import {isSpending, mineCents} from '../money-log/counted';
 import {MAX_SAVED, type MoneyMore, type SavedEntry} from './schema';
 
 /**
@@ -51,7 +51,7 @@ export type MethodTotal = {method: PaidWith | 'unmarked'; currency: string; cent
 export function byPaidWith(entries: readonly MoneyEntry[], from: string, to: string): MethodTotal[] {
   const by = new Map<string, MethodTotal>();
   for (const e of entries) {
-    if (e.kind !== 'expense' || e.date < from || e.date > to || !isCounted(e)) continue;
+    if (!isSpending(e) || e.date < from || e.date > to) continue; // Round 6 (#425): a refund lowers its method
     const method = e.paidWith ?? 'unmarked', k = `${e.currency}|${method}`, row = by.get(k) ?? {method, currency: e.currency, cents: 0, count: 0};
     row.cents += mineCents(e); row.count++; by.set(k, row);
   }
@@ -92,7 +92,7 @@ export type SubTotal = {sub: string | null; currency: string; cents: number; cou
 export function bySub(entries: readonly MoneyEntry[], category: string, from: string, to: string, partsOf: (e: MoneyEntry) => {cents: number; category: string}[]): SubTotal[] {
   const by = new Map<string, SubTotal>();
   for (const e of entries) {
-    if (e.kind !== 'expense' || e.date < from || e.date > to || !isCounted(e)) continue;
+    if (!isSpending(e) || e.date < from || e.date > to) continue; // Round 6 (#425): a refund lowers its category
     for (const p of partsOf(e)) {
       if (!sameName(p.category, category)) continue;
       const sub = e.sub && sameName(e.category, category) ? e.sub : null, k = `${e.currency}|${sub ?? ''}`, row = by.get(k) ?? {sub, currency: e.currency, cents: 0, count: 0};

@@ -264,7 +264,7 @@ function incomeWent(a: Asked): LocalReply | null {
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const calls = [{tool: 'spending', args: {}, label: 'Spending'}], lang = a.lang, entries = entriesOf(a.env);
   const month = /\blast month\b|\bvorige maand\b/.test(a.f) ? shiftMonth(monthKey(a.today), -1) : monthKey(a.today), name = monthIn(lang, month);
-  const cur = leading(entries.filter(e => e.kind === 'income' && e.date.startsWith(month)), 'income');
+  const cur = leading(entries.filter(e => e.kind === 'income' && !e.refund && e.date.startsWith(month)), 'income'); // Round 6 (#425): a refund is not income
   if (!cur) return answer(say(lang, `No income is logged in ${name}, so there is nothing to follow.`, `Er staat geen inkomen gelogd in ${name}, dus er is niets te volgen.`), calls);
   const flow = incomeFlow(entries, cur, month, 4), cats = flow.parts.filter(p => p.kind === 'category').map(p => `${p.label === 'Other categories' ? say(lang, 'other categories', 'andere categorieën') : p.label} ${money(p.cents, cur)}`);
   const left = flow.parts.find(p => p.kind === 'left'), beyond = flow.spent - flow.income;
