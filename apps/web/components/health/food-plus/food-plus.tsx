@@ -15,13 +15,16 @@ export type FoodPlusProps =
   | {part: 'sugar-alcohols'; data: HealthData}
   | {part: 'oracle'; data: HealthData; today: string}
   | {part: 'challenge-line' | 'challenge'; data: HealthData; today: string}
-  | {part: 'partial'; date: string; hasEntries: boolean};
+  | {part: 'partial'; date: string; hasEntries: boolean}
+  | {part: 'pack-photos' | 'pack-thumbs'; data: HealthData};
 const SaveMeal = lazy(() => import('./save-meal'));
 const EntryTimes = lazy(() => import('./entry-times'));
 const NutrientTiming = lazy(() => import('./nutrient-timing'));
 const WeekdayTargets = lazy(() => import('./weekday-targets').then(m => ({default: m.WeekdayTargets})));
 const Oracle = lazy(() => import('./oracle'));
 const PartialDay = lazy(() => import('./partial-day'));
+const PackPhotos = lazy(() => import('./pack-photos'));
+const PackThumbs = lazy(() => import('./pack-photos').then(m => ({default: m.PackThumbs})));
 const ChallengeLine = lazy(() => import('./challenge').then(m => ({default: m.ChallengeLine})));
 const ChallengeCard = lazy(() => import('./challenge').then(m => ({default: m.ChallengeCard})));
 const SugarAlcohols = lazy(() => import('./weekday-targets').then(m => ({default: m.SugarAlcohols})));
@@ -35,5 +38,7 @@ export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'challenge-line') return <ChallengeLine data={props.data} today={props.today}/>;
   if (props.part === 'challenge') return <ChallengeCard data={props.data} today={props.today}/>;
   if (props.part === 'partial') return <PartialDay date={props.date} hasEntries={props.hasEntries}/>;
+  if (props.part === 'pack-photos') return <PackPhotos data={props.data}/>;
+  if (props.part === 'pack-thumbs') return <PackThumbs data={props.data}/>;
   return null;
 }

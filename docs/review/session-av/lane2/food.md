@@ -218,3 +218,31 @@ Shared-file needs for the lead are collected at the end ("For the lead").
 - Showcase: the Showcase's goal weight and trend already give a goal date (Health's coach shows it); no seed.
 - Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: nothing (the goal date and the check-in
   day are on Health's coach card only; Today's compact coach is unchanged, for its 390 px ceilings).
+
+## F8 — A front-of-pack photo kept with a food
+
+- LEDGER rows: **#103** MacroFactor Custom food from product photos — built (a front-of-pack photo kept with the custom
+  food). Part Carried, as the LEDGER says: **needs a model** — reading the name and brand (or the label) from the photo.
+  No model reads the photo.
+- What it does: Health → Foods & recipes → "Package photos (optional)": choose a library food, take or choose a photo
+  (`capture="environment"` on phones); it is shrunk on the device to 200 kB and kept in IndexedDB (at most 500), shown as
+  a 72 px thumbnail beside the food's name in the Foods list with "Remove photo" (focus goes to the row's Edit). Photos
+  of removed foods are listed and deleted on request. Empty state: "Add a food to your library first…". Never in
+  localStorage, never synced or uploaded.
+- Files: `lib/food-plus/photos.ts`, `components/health/food-plus/pack-photos.tsx` (parts `pack-photos`, `pack-thumbs`),
+  `components/health/health-app.tsx` (an empty `data-food-photo` slot per library row; the parts), `lib/av2-food-keys.ts`
+  (`FOOD_PHOTO_DB_LITERAL`, `AV2_FOOD_DATABASES`).
+- Tests: `lib/food-plus/av2-photos.test.ts` (fake IndexedDB). Spec: `tests/av2-pack-photos.spec.ts`.
+- Stored changes: a new IndexedDB database `zigoals-food-photos-v1` (one store `photos`, `<scope>:<foodId>` →
+  `{blob, type, bytes, at}`). The food-plus `photos` part stays unwritten (IndexedDB holds the list).
+- For the lead (registries): add `zigoals-food-photos-v1` to the erased databases (Erase everything and the account
+  erase), `exportFoodPhotoEntries(scope)` beside the meal photos in Export everything (`food-photos/…`), and
+  `deleteAllFoodPhotos('showcase')` to `clearShowcasePhotos` (lib/showcase-storage.ts). Restore does not read photos back
+  (as the meal photos; Help says so).
+- Help (EN). Q: "Can I keep a photo of a food's package?" A: "Yes. Health → Foods & recipes → Package photos: choose the
+  food and take or choose a photo of its front. It shows beside the food in your list. It stays in this browser only,
+  is never uploaded, and nothing reads it: the food's name and numbers stay what you typed."
+- What's new: "Keep a photo of a food's package with it."
+- Answers: intent `av2-food-pack-photos` (where they are; the photos are not read).
+- Showcase: none (no photo fixture is shipped for foods; the Showcase photo stores are cleared on entry and exit).
+- CSS touched: `food-plus.css`. Always visible on Today: nothing.

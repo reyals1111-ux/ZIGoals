@@ -17,4 +17,5 @@ export const AV2_FOOD: readonly Intent[] = [
   {id: 'av2-food-challenge', pillar: 'health', en: ['how is my logging challenge going', 'how am I doing on my food logging challenge'], nl: ['hoe gaat mijn logchallenge', 'hoe sta ik ervoor met mijn eetuitdaging']},
   {id: 'av2-food-goal-date', pillar: 'health', en: ['when will I reach my goal weight', 'what is my goal weight date'], nl: ['wanneer bereik ik mijn streefgewicht', 'wanneer haal ik mijn doelgewicht']},
   {id: 'av2-food-check-in', pillar: 'health', en: ['when is my check-in day', 'which days are partly logged'], nl: ['wanneer is mijn weekcheck', 'welke dagen zijn gedeeltelijk gelogd']},
+  {id: 'av2-food-pack-photos', pillar: 'health', en: ['where are my package photos', 'can I keep a photo of the package with a food'], nl: ['waar zijn mijn verpakkingsfoto\'s', 'kan ik een foto van de verpakking bewaren']},
 ];

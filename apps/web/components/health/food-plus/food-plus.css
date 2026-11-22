@@ -40,3 +40,6 @@
 .food-plus-partial { margin: 0 0 12px; }
 .food-plus-partial .checkbox { min-height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
 .food-plus-partial .fine:empty { display: none; }
+.food-plus-photo-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+.food-plus-photo-row .food-plus-photo { width: 72px; height: 72px; }
+.food-plus-photo-row button { min-height: 44px; }

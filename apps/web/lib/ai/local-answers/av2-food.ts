@@ -251,5 +251,13 @@ function checkInAnswer(a: Ask): LocalReply | null {
   return answer(day && partial ? `${dayLine} ${partLine}` : day ? dayLine : partLine, calls);
 }
 
-const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
+/** "where are my package photos", "kan ik een foto van de verpakking bewaren": the place; the photos stay unread here. */
+function packPhotosAnswer(a: Ask): LocalReply | null {
+  if (!/\b(?:package|packaging|pack|label|product) (?:photos?|pictures?)\b|\bphotos? of (?:the |a |my )?(?:package|packaging|pack)\b|\bverpakkingsfoto'?s?\b|\bfoto'?s? van (?:de |een )?verpakking\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  return answer(say(a.lang, 'Package photos are kept with your own foods: Health → Foods & recipes → “Package photos (optional)”. Choose the food, then take or choose a photo of its front; it shows beside the food’s name. The photos stay in this browser only and nothing reads them (not me either), so the name and numbers stay what you typed.',
+    'Verpakkingsfoto’s bewaar je bij je eigen voedingsmiddelen: Health → Foods & recipes → “Package photos (optional)”. Kies het voedingsmiddel en maak of kies een foto van de voorkant; die staat naast de naam. De foto’s blijven alleen in deze browser en niets leest ze (ik ook niet), dus naam en getallen blijven wat je typte.'), [{tool: 'search_foods', args: {}, label: 'Your foods'}]);
+}
+
+const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [packPhotosAnswer, eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
 export const AV2_FOOD_HANDLER_COUNT = HANDLERS.length;
