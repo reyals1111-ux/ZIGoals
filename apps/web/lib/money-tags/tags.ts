@@ -1,6 +1,7 @@
 import type {MoneyEntry} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
 import {MAX_TAGGED_ENTRIES, MAX_TAGS_PER_ENTRY, MAX_TAG_LENGTH, moneyTagsSchema, tagText, type MoneyTags} from './schema';
+import {isCounted} from '../money-log/counted';
 
 /**
  * Session AP (owner-approved): tags on money entries, pure (lib/money-tags/schema.ts holds the record). Every reader goes
@@ -52,6 +53,7 @@ export type TagTotal = {tag: string; currency: string; spent: number; received: 
 export function tagTotals(entries: readonly MoneyEntry[], record: MoneyTags, from: string, to: string): TagTotal[] {
   const by = new Map<string, TagTotal>();
   for (const e of entries) {
+    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.date < from || e.date > to) continue;
     for (const tag of tagsOf(record, e.id)) {
       const k = `${tag}\u0000${e.currency}`, row = by.get(k) ?? {tag, currency: e.currency, spent: 0, received: 0, entries: 0};

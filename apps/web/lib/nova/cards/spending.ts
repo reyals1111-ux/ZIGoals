@@ -4,6 +4,7 @@ import type {MoneyEntry, MoneyLog} from '../../money-log/schema';
 import {formatCurrencyAmount, formatDate, formatPercent} from '../../visual-format';
 import {splitWealthTotals} from '../../wealth-total';
 import {RANGE_DAYS, RANGE_WORDS, type WidgetRange} from '../stage/record';
+import {isCounted} from '../../money-log/counted';
 
 /**
  * Session AM (ADR-038; art direction §4, Wealth): the "Spending" widget's figures, pure, from the person's own money log
@@ -46,7 +47,7 @@ export type SpendingCard = {
 };
 
 export function spendingCard(log: Pick<MoneyLog, 'entries'>, today: string, range?: WidgetRange): SpendingCard {
-  const window = spendingWindow(today, range), expenses = log.entries.filter(e => e.kind === 'expense');
+  const window = spendingWindow(today, range), expenses = log.entries.filter(e => e.kind === 'expense' && isCounted(e));
   const inRange = expenses.filter(e => e.date >= window.from && e.date <= window.to);
   const blank = {window, currency: null, totalCents: 0, total: '—', entries: 0, categories: [], largest: null, others: [], lastDate: null};
   if (!expenses.length) return {state: 'empty', ...blank};

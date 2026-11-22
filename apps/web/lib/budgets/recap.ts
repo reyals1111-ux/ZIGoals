@@ -3,6 +3,7 @@ import type {MoneyEntry} from '../money-log/schema';
 import {entryParts} from '../money-split/parts';
 import {monthView, shiftMonth} from './engine';
 import type {BudgetsRecord} from './schema';
+import {isCounted} from '../money-log/counted';
 
 /**
  * Session AV (owner follow-up 1, F-MONTH-RECAP; Copilot's monthly review): a month in short, per currency (never
@@ -16,6 +17,7 @@ export function monthRecap(entries: readonly MoneyEntry[], record: BudgetsRecord
   const get = (currency: string) => { const r = out.get(currency) ?? {currency, spent: 0, income: 0, previousSpent: 0, top: [], largest: null, budgets: {kept: 0, of: 0}}; out.set(currency, r); return r; };
   const byCat = new Map<string, Map<string, number>>();
   for (const e of entries) {
+    if (!isCounted(e)) continue; // Session AV lane 2 (money)
     const inMonth = e.date >= start && e.date <= end, inPrev = e.date >= prev.start && e.date <= prev.end;
     if (!inMonth && !inPrev) continue;
     const c = cents(e.amount);

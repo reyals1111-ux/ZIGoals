@@ -1,7 +1,7 @@
 import {addMonths} from '../bills/cadence';
 import {cents, monthOf} from '../money-log/engine';
 import {amountText, currencyCode, type MoneyEntry} from '../money-log/schema';
-import {entryParts} from '../money-split/parts';
+import {budgetMonthParts, reachesMonth} from '../money-log/counted';
 import {MAX_BUDGETS, MAX_ROLLOVER_MONTHS, budgetsSchema, type Budget, type BudgetsRecord} from './schema';
 
 /**
@@ -13,10 +13,11 @@ import {MAX_BUDGETS, MAX_ROLLOVER_MONTHS, budgetsSchema, type Budget, type Budge
 export const monthKey = (day: string) => day.slice(0, 7);
 export const shiftMonth = (month: string, n: number) => addMonths(`${month}-01`, n).slice(0, 7);
 const spentIn = (entries: readonly MoneyEntry[], month: string, category: string, currency: string) => {
-  const {start, end} = monthOf(`${month}-01`), name = category.toLowerCase();
+  const name = category.toLowerCase();
   let total = 0;
   // Session AK (lane M, item 22): a split entry counts by its parts (the whole entry otherwise), in exact cents.
-  for (const e of entries) if (e.kind === 'expense' && e.currency === currency && e.date >= start && e.date <= end) for (const p of entryParts(e)) if (p.category.toLowerCase() === name) total += p.cents;
+  // Session AV lane 2 (money): an entry left out or a transfer counts nothing; one spread over months counts its share.
+  for (const e of entries) if (e.kind === 'expense' && e.currency === currency && reachesMonth(e, month)) for (const p of budgetMonthParts(e, month)) if (p.category.toLowerCase() === name) total += p.cents;
   return total;
 };
 /** What earlier months left unspent and carried into `month` (0 without rollover). */
@@ -58,8 +59,8 @@ export function monthView(entries: readonly MoneyEntry[], record: BudgetsRecord,
   const budgeted = new Set(active.map(b => `${b.currency}|${b.category.toLowerCase()}`)), {start, end} = monthOf(`${month}-01`);
   const loose = new Map<string, {category: string; currency: string; spent: number}>();
   for (const e of entries) {
-    if (e.kind !== 'expense' || e.date < start || e.date > end) continue;
-    for (const p of entryParts(e)) {
+    if (e.kind !== 'expense' || !reachesMonth(e, month)) continue;
+    for (const p of budgetMonthParts(e, month)) {
       if (budgeted.has(`${e.currency}|${p.category.toLowerCase()}`)) continue;
       const k = `${e.currency}|${p.category}`, row = loose.get(k) ?? {category: p.category, currency: e.currency, spent: 0};
       row.spent += p.cents; loose.set(k, row);

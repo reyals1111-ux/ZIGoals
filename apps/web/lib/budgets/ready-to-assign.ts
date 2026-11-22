@@ -2,6 +2,7 @@ import {monthOf} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import {minorUnits} from '../money-split/parts';
 import type {BudgetsRecord} from './schema';
+import {isCounted} from '../money-log/counted';
 
 /**
  * Session AP (owner-approved): "Ready to assign" on Budgets, pure, one currency at a time (never converted). It is the
@@ -16,7 +17,7 @@ export type ReadyToAssign =
 export function readyToAssign(entries: readonly MoneyEntry[], record: BudgetsRecord, month: string): ReadyToAssign[] {
   const {start, end} = monthOf(`${month}-01`), income = new Map<string, {cents: number; count: number}>(), held = new Map<string, number>();
   for (const e of entries) {
-    if (e.kind !== 'income' || e.date < start || e.date > end) continue;
+    if (e.kind !== 'income' || e.date < start || e.date > end || !isCounted(e)) continue;
     const row = income.get(e.currency) ?? {cents: 0, count: 0};
     row.cents += minorUnits(e.amount); row.count++; income.set(e.currency, row);
   }

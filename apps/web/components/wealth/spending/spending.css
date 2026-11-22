@@ -57,3 +57,27 @@
 .spending-suggest { margin: 0; }
 .spending-suggest .text-link { min-height: 44px; }
 .money-search-range-note { grid-column: 1 / -1; margin: 0; }
+/* Session AV lane 2 (money): own categories, an entry's marks, the drill-down, more filters and changing several at once. */
+.spending-own summary,.money-search-more summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:14px;font-weight:600}
+.spending-own-row,.money-bulk-row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end}
+.spending-own-row .field,.money-bulk-row .field{flex:1 1 180px;min-width:0}
+.spending-own-row input,.money-bulk-row input,.money-bulk-row select,.spending-spread select{min-height:44px;width:100%;box-sizing:border-box}
+.spending-own-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 14px}
+.spending-own-list li{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.spending-own-list .text-link,.spending-drill{min-height:44px;font-size:14px}
+.spending-marks{display:grid;gap:4px;border:0;margin:0;padding:0;min-width:0}
+.spending-check,.money-search-check{display:flex;align-items:flex-start;gap:10px;min-height:44px;font-size:14px;cursor:pointer}
+.spending-check input,.money-search-check input{width:20px;height:20px;margin:12px 0 0;flex:none}
+.spending-check span,.money-search-check span{padding-top:10px;overflow-wrap:anywhere}
+.spending-check .fine{display:inline}
+.money-search-check{align-self:end}
+.money-mark{font-size:14px;color:var(--amber,#f5b65b);white-space:nowrap}
+.spending-drill{padding:0;text-align:left;color:inherit;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.money-search-more{grid-column:1/-1}
+.money-search-more-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px 12px;align-items:end}
+.money-search-more-body input,.money-search-more-body select{min-height:44px;width:100%;box-sizing:border-box}
+.money-bulk{display:grid;gap:8px;padding:12px;border-radius:14px;border:1px solid var(--line,rgba(140,160,220,.25));min-width:0}
+.money-search-select{display:flex;gap:8px;flex-wrap:wrap}
+.money-drill-note{margin:0 0 8px}
+.money-review-suggest{flex-basis:100%;margin:4px 0 0}
+.money-review-suggest .text-link{min-height:44px}

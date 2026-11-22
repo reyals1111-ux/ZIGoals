@@ -2,7 +2,10 @@
 import {Suspense, lazy, useId, useMemo, useState} from 'react';
 import type {DeviceRecordState} from '../../ai/use-device-record';
 import {formatDate} from '../../../lib/visual-format';
-import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, type MoneyEntry, type MoneyLog} from '../../../lib/money-log/schema';
+import type {MoneyEntry, MoneyLog} from '../../../lib/money-log/schema';
+// Session AV lane 2 (money; YNAB and Copilot suggest on imports): the category this payee had before, own categories, history.
+import {categoryChoices, withChange} from '../../../lib/money-log/counted';
+import {pastCategory} from '../../../lib/money-log/suggest';
 import {acceptReview, pruneReview, toReview, type MoneyReview} from '../../../lib/money-review/review';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {money} from './format';
@@ -17,6 +20,8 @@ const ReviewCardMode = lazy(() => import('../../review-cards/review-card-mode'))
 export default function ReviewInbox({log, review, onMakeRule}: {log: DeviceRecordState<MoneyLog>; review: DeviceRecordState<MoneyReview>; onMakeRule: (entry: MoneyEntry) => void}) {
   const id = useId(), [status, setStatus] = useState(''), [error, setError] = useState(''), [cards, setCards] = useState(false);
   const pending = useMemo(() => toReview(review.data, log.data.entries), [review.data, log.data.entries]);
+  // Only entries already looked at teach a suggestion (an import never suggests from itself).
+  const suggestions = useMemo(() => { const waiting = new Set(pending.map(e => e.id)), known = log.data.entries.filter(e => !waiting.has(e.id)); return new Map(pending.slice(0, 100).map(e => [e.id, e.note ? pastCategory(known, e.kind, e.note) : null])); }, [pending, log.data.entries]);
   const accept = (ids: string[], words: string) => {
     setError('');
     try { review.update(r => acceptReview(pruneReview(r, log.data.entries), ids)); setStatus(words); return true; }
@@ -24,7 +29,8 @@ export default function ReviewInbox({log, review, onMakeRule}: {log: DeviceRecor
   };
   const recategorise = (entry: MoneyEntry, category: string) => {
     setError('');
-    try { log.update(current => ({...current, entries: current.entries.map(e => e.id === entry.id ? {...e, category} : e)})); setStatus(`Category changed to ${category}.`); }
+    const at = new Date().toISOString();
+    try { log.update(current => ({...current, entries: current.entries.map(e => e.id === entry.id && e.category !== category ? withChange({...e, category}, {by: 'you', field: 'category', from: e.category, to: category}, at) : e)})); setStatus(`Category changed to ${category}.`); }
     catch (cause) { setError(plainErrorMessage(cause, 'The category could not be changed on this device.')); }
   };
   if (!review.loaded || !log.loaded) return <p className="fine">Loading…</p>;
@@ -39,13 +45,15 @@ export default function ReviewInbox({log, review, onMakeRule}: {log: DeviceRecor
         <span className="money-review-what"><strong>{e.note || e.category}</strong><span className="fine"> · {formatDate(e.date)}</span></span>
         <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(e.amount, e.currency)}</span>
         <label className="field money-review-cat"><span>Category</span>
-          <select value={e.category} onChange={ev => recategorise(e, ev.target.value)}>{[...new Set([e.category, ...(e.kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)])].map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+          <select value={e.category} onChange={ev => recategorise(e, ev.target.value)}>{[...new Set([e.category, ...categoryChoices(log.data, e.kind)])].map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        {(() => { const s = suggestions.get(e.id); return s && s.category !== e.category ? <p className="fine money-review-suggest">Before, “{s.payee ?? (e.note ?? '').split(' · ')[0]}” was {s.category}{s.times > 1 ? ` (${s.times} times)` : ''}. <button type="button" className="text-link" aria-label={`Use ${s.category} for ${e.note || e.category} on ${formatDate(e.date)}`} onClick={() => recategorise(e, s.category)}>Use {s.category}</button></p> : null; })()}
         <span className="money-row-actions">
           <button type="button" className="secondary" onClick={() => accept([e.id], 'Marked as reviewed.')} aria-label={`Mark ${e.note || e.category} on ${formatDate(e.date)} as reviewed`}>✓ Looks right</button>
           <button type="button" className="quiet" onClick={() => onMakeRule(e)}>Make a rule</button>
         </span>
       </li>)}</ul>
       {pending.length > 100 && <p className="fine">The first 100 are shown.</p>}
+      {[...suggestions.values()].some((s, i) => s && s.category !== pending[i]?.category) && <button type="button" className="secondary" onClick={() => { const at = new Date().toISOString(); try { let n = 0; log.update(current => ({...current, entries: current.entries.map(x => { const s = suggestions.get(x.id); if (!s || s.category === x.category) return x; n++; return withChange({...x, category: s.category}, {by: 'you', field: 'category', from: x.category, to: s.category}, at); })})); setStatus(`${n} ${n === 1 ? 'category' : 'categories'} set from your past choices. Check them, then mark them reviewed.`); } catch (cause) { setError(plainErrorMessage(cause, 'This could not be saved on this device.')); } }}>Use every suggestion</button>}
       <button type="button" className="secondary" onClick={() => accept(pending.map(e => e.id), `${pending.length} marked as reviewed.`)}>Mark all {pending.length} as reviewed</button>
     </> : <p className="fine">Nothing to review. Entries you import from a bank file or a CSV land here first, so you can check their categories.</p>}
     <p className="money-status" role="status" aria-live="polite">{status}</p>
