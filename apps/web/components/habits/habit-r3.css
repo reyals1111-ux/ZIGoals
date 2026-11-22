@@ -7,7 +7,14 @@
 .habit-reminder-times { border: 0; padding: 0; margin: 6px 0; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
 .habit-reminder-times legend { font-weight: 600; margin-bottom: 4px; font-size: 15px; }
 .habit-reminder-times input { min-height: 44px; }
-.habit-trend-list { display: grid; gap: 10px; }
+/* Session AV lane 2 (fixb3): the card is its hidden sentences' containing block, so a phone's swipe row (overflow-x: auto)
+   clips them; positioned from the page instead, they widened the whole page by the row's width. */
+.habit-trend-list { display: grid; gap: 10px; position: relative; }
+/* Session AV lane 2 (fixb3): on a phone it is the swipe row's third card, as wide as the month and the week beside it (it
+   was squeezed to its narrowest, about 34 px). */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .habits-workspace .habit-consistency > .habit-trend-list { flex: 0 0 88%; scroll-snap-align: start; min-width: 0; margin: 0; padding: 16px; }
+}
 .habit-trend-list h2 { margin: 0; }
 .habit-trend-list h3 { margin: 6px 0 4px; font-size: 1rem; }
 .habit-trend-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
