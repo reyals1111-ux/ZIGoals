@@ -1,8 +1,9 @@
 import {monthKey, shiftMonth} from '../budgets/engine';
 import {normalisePayee} from '../bills/detect';
 import type {MoneyEntry} from '../money-log/schema';
-import {entryParts, minorUnits} from '../money-split/parts';
+import {minorUnits} from '../money-split/parts';
 import {isCounted} from '../money-log/counted';
+import {byCategory, monthOf, totals} from '../money-log/engine';
 
 /**
  * Session AP (Wealth → Spending, owner-approved): the money log month by month, pure. Every figure is the person's own
@@ -66,22 +67,54 @@ export const monthsBetween = (a: string, b: string) => (Number(b.slice(0, 4)) * 
 
 export type CategoryTrend = {category: string; values: (number | null)[]; total: number};
 export type TrendView = {currency: string; months: string[]; recorded: boolean[]; categories: CategoryTrend[]};
-/** Each spending category over the 12 calendar months to today's, oldest first, biggest total first. */
+/**
+ * Each spending category over the 12 calendar months to today's, oldest first, biggest total first. Session AV lane 2,
+ * round 4 (money, LEDGER #343): each month's figure is Wealth → Spending's own `byCategory` for that month (to today in
+ * the month still running), so a shared cost counts the person's share there too and the line and its average agree
+ * with This month by category; a split entry still counts in each part's category.
+ */
 export function categoryTrend(entries: readonly MoneyEntry[], currency: string, today: string, span = TREND_MONTHS): TrendView {
-  const last = monthKey(today), months = Array.from({length: span}, (_, i) => shiftMonth(last, i - span + 1)), index = new Map(months.map((m, i) => [m, i]));
-  const recorded = months.map(() => false), by = new Map<string, number[]>();
-  for (const e of entries) {
-    if (!isCounted(e)) continue; // Session AV lane 2 (money): left out and transfers
-    if (e.currency !== currency || e.date > today) continue;
-    const i = index.get(monthKey(e.date)); if (i === undefined) continue;
-    recorded[i] = true;
-    if (e.kind !== 'expense') continue;
-    // A split entry counts in each of its parts' categories (lib/money-split/parts.ts), as This month by category does.
-    for (const p of entryParts(e)) { const row = by.get(p.category) ?? months.map(() => 0); row[i]! += p.cents; by.set(p.category, row); }
-  }
+  const last = monthKey(today), months = Array.from({length: span}, (_, i) => shiftMonth(last, i - span + 1));
+  const mine = entries.filter(e => e.currency === currency && e.date <= today), recorded = months.map(() => false), by = new Map<string, number[]>();
+  months.forEach((m, i) => {
+    const {start, end} = monthOf(`${m}-01`), to = end > today ? today : end;
+    recorded[i] = mine.some(e => isCounted(e) && e.date >= start && e.date <= to); // Session AV lane 2 (money): left out and transfers
+    for (const r of byCategory(mine, start, to)) { const row = by.get(r.category) ?? months.map(() => 0); row[i]! += r.total; by.set(r.category, row); }
+  });
   const categories = [...by.entries()].map(([category, sums]) => ({category, values: sums.map((v, i) => recorded[i] ? v : null), total: sums.reduce((a, b) => a + b, 0)}))
     .sort((a, b) => b.total - a.total || a.category.localeCompare(b.category));
   return {currency, months, recorded, categories};
+}
+
+/**
+ * Session AV lane 2, round 4 (money; Actual's average ranges, LEDGER #343): the 3-, 6- or 12-month average before this
+ * month — for all spending (`totals`) and for each category (`byCategory`) — beside this month so far, as facts ("€40.00
+ * above your 6-month average"), never a target or a warning. A month without any record in the currency is unknown, so
+ * the average is over the months with records (said with how many); none: no average.
+ */
+export const AVERAGE_SPANS = [3, 6, 12] as const;
+export type AverageSpan = typeof AVERAGE_SPANS[number];
+export type AverageLine = {average: number | null; thisMonth: number; diff: number | null};
+export type MonthAverage = {currency: string; span: AverageSpan; month: string; recorded: number; total: AverageLine; categories: Map<string, AverageLine>};
+export function monthlyAverage(entries: readonly MoneyEntry[], currency: string, today: string, span: AverageSpan = 6): MonthAverage {
+  const month = monthKey(today), mine = entries.filter(e => e.currency === currency && e.date <= today), sums = new Map<string, number>();
+  let recorded = 0, all = 0;
+  for (let i = 1; i <= span; i++) {
+    const {start, end} = monthOf(`${shiftMonth(month, -i)}-01`);
+    if (!mine.some(e => isCounted(e) && e.date >= start && e.date <= end)) continue;
+    recorded++;
+    all += totals(mine, start, end).find(t => t.currency === currency)?.expenses ?? 0;
+    for (const r of byCategory(mine, start, end)) sums.set(r.category, (sums.get(r.category) ?? 0) + r.total);
+  }
+  const now = byCategory(mine, `${month}-01`, today), nowAll = totals(mine, `${month}-01`, today).find(t => t.currency === currency)?.expenses ?? 0;
+  const line = (sum: number, thisMonth: number): AverageLine => { const average = recorded ? Math.round(sum / recorded) : null; return {average, thisMonth, diff: average === null ? null : thisMonth - average}; };
+  const categories = new Map<string, AverageLine>();
+  for (const c of new Set([...sums.keys(), ...now.map(r => r.category)])) categories.set(c, line(sums.get(c) ?? 0, now.find(r => r.category === c)?.total ?? 0));
+  return {currency, span, month, recorded, total: line(all, nowAll), categories};
+}
+/** All spending each month of the trend (`totals`), null for a month without records. */
+export function totalTrend(entries: readonly MoneyEntry[], view: TrendView, today: string): (number | null)[] {
+  return view.months.map((m, i) => { if (!view.recorded[i]) return null; const {start, end} = monthOf(`${m}-01`); return totals(entries.filter(e => e.currency === view.currency), start, end > today ? today : end).find(t => t.currency === view.currency)?.expenses ?? 0; });
 }
 
 export type Payee = {key: string; name: string; thisMonth: number; lastMonth: number | null; count: number};

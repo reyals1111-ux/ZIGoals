@@ -1,8 +1,10 @@
 'use client';
-import {useMemo} from 'react';
+import {Suspense, lazy, useMemo} from 'react';
 import {cashFlow, currenciesOf, type CashFlow} from '../../../../lib/money-insights/cash-flow';
 import type {InsightProps} from './spending-insights';
 import {money, monthName, signed} from './format';
+// Session AV lane 2, round 4 (money; Actual's crossover report, LEDGER #345): investment income beside spending (own chunk).
+const Crossover = lazy(() => import('./crossover-view'));
 
 /**
  * Session AP (feature 1): income, spending and net for the last 12 months with a record, one currency at a time. The
@@ -26,7 +28,7 @@ function Chart({flow}: {flow: CashFlow}) {
     })}
   </svg>;
 }
-export default function CashFlowView({entries, today}: InsightProps) {
+export default function CashFlowView({entries, today, space = 'personal'}: InsightProps) {
   const flows = useMemo(() => currenciesOf(entries, today).map(c => cashFlow(entries, c, today)).filter(f => f.months.length), [entries, today]);
   if (!flows.length) return <p className="fine">Nothing logged yet. Months appear here once you log spending or income.</p>;
   return <>{flows.map(flow => <section key={flow.currency} className="money-insights-currency" aria-label={`Month by month in ${flow.currency}`}>
@@ -41,5 +43,6 @@ export default function CashFlowView({entries, today}: InsightProps) {
         : <tr key={r.month}><th scope="row">{monthName(r.month)}</th><td>{money(r.income, flow.currency)}</td><td>{money(r.spending, flow.currency)}</td><td>{signed(r.net, flow.currency)}</td></tr>)}</tbody>
     </table>
   </section>)}
-  <p className="fine">Net is what you logged as received minus what you logged as spent that month. Your records, not your bank balance.</p></>;
+  <p className="fine">Net is what you logged as received minus what you logged as spent that month. Your records, not your bank balance.</p>
+  <Suspense fallback={null}><Crossover entries={entries} today={today} space={space}/></Suspense></>;
 }

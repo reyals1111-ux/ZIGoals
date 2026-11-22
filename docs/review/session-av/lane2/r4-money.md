@@ -261,3 +261,81 @@ none of round 4's questions. Corpus: `AV2_R4_MONEY` from `apps/web/lib/ai/evals/
   state teaches ("No saved searches yet. Under “Search all your entries”, choose your filters and tap “Save this search”…").
 - Registries: none. CSS touched: `components/wealth/spending/insights/insights.css` (`.money-saved-*`).
 - Today: nothing added. "Your money over time" now has 13 view buttons.
+
+### R4-F7 (group U8). The monthly average; investment income beside spending
+
+- LEDGER rows: #343 Actual monthly spending with an average and a trend — **built** (Your money over time →
+  "Categories over a year": "3-month / 6-month / 12-month average" buttons (6 at first); a dashed average line on each
+  category's small line and on a new first row, "All spending", with a key; the words beside this month so far as a fact
+  ("Nov 2026 so far €120.00, €30.00 below your 6-month average of €150.00 (over the 4 months with records)"); each
+  category's average a month; the chosen category's table ends with its average; a month without records is unknown, so
+  the average is over the months with records and says how many; "Figures, not a target"). #345 Actual investment income
+  against spending — **built** ("Month by month" → "Investment income beside spending": the person marks which income
+  categories are investment income (interest, dividends, staking rewards; their own choice, kept on the space's own money
+  log); the last 24 months per currency: that income beside the month's spending, the share it covers in words ("covers
+  2.1% of spending"; the last whole month apart) and a table with a gap row for a month without records; no projection,
+  no "years to freedom" — the FI model in Money tools stays the place for a model, and the view says so).
+- Spending function used: #343 — `byCategory` per month for each category and `totals` per month for all spending
+  (`monthlyAverage`, `totalTrend` in lib/money-insights/cash-flow.ts). The category lines themselves (`categoryTrend`)
+  now sum each month through `byCategory` too (they summed every entry whole before), so a shared cost counts the
+  person's share in the line, its average and This month by category alike; no existing test changed. #345 — the marked
+  income through `byCategory(…, 'income')` and spending through `totals` (`crossover` in lib/money-insights/crossover.ts).
+- Files: `lib/money-insights/cash-flow.ts` (`categoryTrend` by `byCategory`; `monthlyAverage`, `totalTrend`,
+  `AVERAGE_SPANS`), `components/wealth/spending/insights/category-trend-view.tsx`, `lib/money-insights/crossover.ts` (new),
+  `components/wealth/spending/insights/crossover-view.tsx` (new, its own lazy chunk under Month by month),
+  `components/wealth/spending/insights/cash-flow-view.tsx` (the lazy part; `space`), `components/wealth/spending/insights/insights.css`.
+- Tests: `lib/money-insights/av2-average-crossover.test.ts` (pure, the trend view's words and dashed line, the crossover
+  view in jsdom); `lib/money-insights/views.test.ts` and `insights.test.ts` green unchanged; `lib/ai/local-answers/av2-r4-money.test.ts`.
+- Spec: `tests/av2-money-average-crossover.spec.ts`.
+- Stored: `zigoals:money-log:v1` `investIncome` (commit `0c11c3aa`); the average span is not stored.
+- Help (EN): **Q: How does this month compare with my usual spending?** A: Wealth → Spending → Your money over time →
+  "Categories over a year" shows your 3-, 6- or 12-month average as a dashed line on each category and on all spending,
+  and says how this month so far compares, in euros. It is a figure from your own entries, not a target. **Q: How much of
+  my spending does my investment income cover?** A: Under Month by month → "Investment income beside spending", mark the
+  income categories that are investment income, such as interest, dividends or staking rewards. Each of the last 24
+  months then sets that income beside your spending, with the share it covers. It is your own record, not a forecast.
+- What's new: "Spending: your 3-, 6- or 12-month average beside this month, and investment income beside spending."
+- Answers: `monthAverage`, `investCover` (corpus `av2r4-money-average`, `av2r4-money-invest-cover`).
+- Showcase hook: none written. The average reads the Showcase's own money log by itself; the crossover shows nothing
+  until the person marks a category (kept in the Showcase tab only). Empty states teach ("Log interest, dividends or
+  staking rewards as money received…", "Mark the categories that are investment income…").
+- Registries: none. CSS touched: `components/wealth/spending/insights/insights.css` (`.money-avg-*`, `.money-cross-*`, `.avg`).
+- Today: nothing added.
+
+## For the lead (everything in one list)
+
+1. **engine.ts**: `av2R4MoneyAnswer(question, env) ?? av2R3MoneyAnswer(question, env) ?? av2MoneyR2Answer(question, env) ?? …`
+   (import from `./av2-r4-money`). Corpus: `AV2_R4_MONEY` (`lib/ai/evals/as/cases-av2-r4-money.ts`, 9 intents, 36
+   questions) into `cases.ts`; record expected.json. The test proves no earlier corpus question is claimed and that
+   `rehearsalAnswer`, `av2RestAnswer`, `av2SyncAnswer` and the earlier money answers claim none of round 4's.
+2. **Tool sources**: none new. The answers read `env.moneyLog` (its new `archived`, `investIncome` and the entries'
+   `checked` / `group`), `env.moneyMore` (`questions`, `places`) and `env.moneyTags`, which rounds 2 and 3 already asked for.
+3. **Help + What's new** (`help-page.tsx`): the Q+A and labels under R4-F1 … R4-F7 above (10 answers, 7 labels).
+4. **Registries**: no new key, no new record (see Stored changes; #344 and #346 use the money extras record instead of a
+   new one). Optionally, the `moneyMore` catalogue label: add "saved searches, your places".
+5. **Stored-format commit** to label TIER 3 (stored formats): `0c11c3aa`.
+6. **Specs to run** (shard lists): `tests/av2-money-calendar.spec.ts`, `tests/av2-money-categories.spec.ts`,
+   `tests/av2-money-groups.spec.ts`, `tests/av2-money-places.spec.ts`, `tests/av2-money-reconcile.spec.ts`,
+   `tests/av2-money-saved-searches.spec.ts`, `tests/av2-money-average-crossover.spec.ts`.
+7. **Theme sheets**: CSS touched — `components/wealth/spending/insights/insights.css`,
+   `components/wealth/spending/money-r4.css` (new).
+8. **Screens and counts to check**: Wealth → Spending → "Your money over time" has 13 view buttons (was 11;
+   `lib/money-insights/views.test.ts` changed deliberately, labelled); Categories over a year gains three span buttons
+   and an "All spending" row; Month by month gains the investment-income part; Search all your entries gains "Save this
+   search as" (and "Open a saved search" once one is kept) and, in Select mode, "Group them as one"; the money form gains
+   "Where are you? — optional" (a fold until a place exists) and, in Your own categories, Archive and Start from a set;
+   each cash, savings and credit-card account row gains "Check against my bank" (one Tab stop each). Today: nothing.
+9. **Weights**: every new view and panel is its own lazy chunk (calendar, saved searches, crossover, reconcile, category
+   settings; places in the form extras' chunk). Spending's own chunk gains `GroupItem` (a small row component with
+   `money-r4.css`), `lib/money-log/groups.ts` and `uncheck` from `lib/money-log/reconcile.ts` (pure, small), plus the
+   lazy lines; the lead checks Wealth's budget in the build.
+10. **One behaviour aligned** (noted): "Categories over a year" now sums each month through `byCategory`, so a shared
+    cost counts the person's share in its lines (it counted the whole amount before), as This month by category does.
+    `cashFlow` ("Month by month") still sums every counted entry whole (not the share) — outside these rows, left as it
+    was; it is the same note as round 3's for Compare's spending factor.
+11. **#346, by the owner's note**: typed place names only — no location is read, no coordinates are kept, no map or
+    outside service; the ledger's "within about 200 m" part is not built (against a named rule: no location data).
+12. **#339**: already built by Session AK (lib/money-calc/expression.ts, `CalcHint`) in the money form, budgets and the
+    other money amounts; LEDGER's evidence missed it. Round 4 added the split parts. The lead may mark the row "already
+    have" with the extension.
+13. **QUALITY Minors**: not taken in this branch (the task named rows #338–#347 only).

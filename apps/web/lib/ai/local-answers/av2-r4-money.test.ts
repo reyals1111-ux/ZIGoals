@@ -123,3 +123,19 @@ describe('saved searches with a chart (#344)', () => {
     expect(text(zigi('show my saved money searches', freshAll(), {version: 1}))).toContain('You have no saved searches yet.');
   });
 });
+
+describe('the monthly average and investment income beside spending (#343, #345)', () => {
+  const entries = [mine({date: '2026-09-05', amount: '150.00'}), mine({date: '2026-10-05', amount: '150.00'}), mine({date: `${month}-02`, amount: '120.00'}),
+    mine({kind: 'income', amount: '9.00', category: 'Interest', date: '2026-10-01'}), mine({kind: 'income', amount: '6.00', category: 'Dividends', date: `${month}-01`})];
+  test('this month beside the average, as a fact, EN and NL', () => {
+    const s = withLog(freshAll(), entries);
+    expect(text(zigi('how does this month compare to my 6 month average spending', s))).toBe('In EUR, Nov 2026 so far: €120.00, €30.00 below your 6-month average of €150.00 (over the 2 months with records). A figure from your own entries, not a target.');
+    expect(text(zigi('wat is mijn maandgemiddelde aan uitgaven', s))).toContain('€ 30,00 onder je gemiddelde over 6 maanden van € 150,00');
+  });
+  test('the marked income beside spending as a share, EN and NL', () => {
+    const s = withLog(freshAll(), entries, {investIncome: ['Interest', 'Dividends']});
+    expect(text(zigi('how much of my spending does my investment income cover', s))).toBe('In EUR, the last 24 months: €15.00 investment income beside €420.00 spending, so it covers 3.6% of spending; in Oct 2026, 6%. From your own records and marks; not a forecast.');
+    expect(text(zigi('welk deel van mijn uitgaven dekken mijn beleggingsinkomsten', s))).toContain('dus het dekt 3,6% van je uitgaven; in oktober 2026 6%');
+    expect(text(zigi('show my investment income beside spending', withLog(freshAll(), entries)))).toContain('No income category is marked as investment income yet.');
+  });
+});

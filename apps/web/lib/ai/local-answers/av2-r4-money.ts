@@ -1,7 +1,7 @@
 import type {MoneyEntry, MoneyLog} from '../../money-log/schema';
 import {fromCents} from '../../money-log/engine';
 import type {MoneyMore} from '../../money-more/schema';
-import {formatCurrencyAmount} from '../../visual-format';
+import {formatCurrencyAmount, formatPercent} from '../../visual-format';
 import {busiestDays, calendarCurrencies, monthCalendar} from '../../money-insights/month-days';
 import {archivedOf, entriesIn} from '../../money-log/category';
 import {STARTER_SETS} from '../../money-log/starter-sets';
@@ -11,8 +11,10 @@ import {lastChecked} from '../../money-log/reconcile';
 import {questionChart, questionEntries, questionsOf} from '../../money-log/saved-searches';
 import {tagsOf} from '../../money-tags/tags';
 import type {MoneyTags} from '../../money-tags/schema';
+import {monthlyAverage, type AverageSpan} from '../../money-insights/cash-flow';
+import {crossover, CROSSOVER_MONTHS} from '../../money-insights/crossover';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, closed, dayIn, isQuestion, list, MIXED, say, type Asked, type Lang} from './av-words';
+import {answer, asked, closed, dayIn, isQuestion, list, MIXED, monthIn, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -173,3 +175,39 @@ function savedSearches(a: Asked): LocalReply | null {
     `${list.map(q => one('nl', q)).join('. ')}. Geteld zoals Vermogen → Uitgaven telt; elke staat als grafiek in ${PLACES.insights.nl} → Saved searches.`), calls);
 }
 add(savedSearches);
+
+// ── The monthly average and investment income beside spending (#343, #345) ─────────────────────────────────────────
+/** "How does this month's spending compare to my 6-month average", "hoe verhouden mijn uitgaven zich tot mijn gemiddelde". A fact. */
+function monthAverage(a: Asked): LocalReply | null {
+  const en = /\b(?:3|6|12|three|six|twelve) ?months? average\b|\bmonthly average\b|\baverage month\b/.test(a.f) && /\b(?:spend|spent|spending)\b/.test(a.f);
+  const nl = /\b(?:3|6|12|drie|zes|twaalf) ?maands? ?gemiddelde\b|\bmaandgemiddelde\b|\bgemiddelde maand\b/.test(a.f) && /\b(?:uitgaven|uitgegeven|uitgeven)\b/.test(a.f);
+  if (!(en || nl) || /\b(?:per day|a day|per dag|saved search|zoekopdracht)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const span: AverageSpan = /\b(?:3|three|drie)\b/.test(a.f) ? 3 : /\b(?:12|twelve|twaalf)\b/.test(a.f) ? 12 : 6, entries = entriesOf(a.env), calls = call('money_log', {average: span}, `Spending · ${span}-month average`);
+  const rows = [...new Set(entries.map(e => e.currency))].sort().map(c => monthlyAverage(entries, c, a.today, span)).filter(r => r.total.average !== null);
+  if (!rows.length) return answer(say(a.lang, `No ${span}-month average yet: the months before this one have no spending logged. ${PLACES.insights.en} → Categories over a year shows the average once they do.`,
+    `Nog geen gemiddelde over ${span} maanden: de maanden hiervoor hebben geen gelogde uitgaven. ${PLACES.insights.nl} → Categories over a year toont het gemiddelde zodra dat zo is.`), calls);
+  const one = (lang: Lang, r: typeof rows[number]) => {
+    const m = (c: number) => moneyIn(lang, c, r.currency), d = r.total.diff!, over = r.recorded < span ? say(lang, ` (over the ${r.recorded} ${r.recorded === 1 ? 'month' : 'months'} with records)`, ` (over de ${r.recorded} ${r.recorded === 1 ? 'maand' : 'maanden'} met gegevens)`) : '';
+    return say(lang, `In ${r.currency}, ${monthIn('en', r.month)} so far: ${m(r.total.thisMonth)}, ${d === 0 ? 'the same as' : `${m(Math.abs(d))} ${d > 0 ? 'above' : 'below'}`} your ${span}-month average of ${m(r.total.average!)}${over}.`,
+      `In ${r.currency}, ${monthIn('nl', r.month)} tot nu toe: ${m(r.total.thisMonth)}, ${d === 0 ? 'gelijk aan' : `${m(Math.abs(d))} ${d > 0 ? 'boven' : 'onder'}`} je gemiddelde over ${span} maanden van ${m(r.total.average!)}${over}.`);
+  };
+  return answer(`${rows.map(r => one(a.lang, r)).join(' ')} ${say(a.lang, 'A figure from your own entries, not a target.', 'Een bedrag uit je eigen invoer, geen doel.')}`, calls);
+}
+const pctIn = (lang: Lang, share: number) => { const v = Math.round(share * (share < 0.1 ? 1000 : 100)) / (share < 0.1 ? 10 : 1); return lang === 'nl' ? `${String(v).replace('.', ',')}%` : formatPercent(share * 100, {decimals: share < 0.1 && share > 0 ? 1 : 0}); };
+/** "How much of my spending does my investment income cover", "welk deel van mijn uitgaven dekken mijn beleggingsinkomsten". */
+function investCover(a: Asked): LocalReply | null {
+  const en = /\b(?:investment|passive|dividend|interest|staking) (?:income|rewards?)\b/.test(a.f) && /\b(?:cover|covers|spending|expenses|beside|against|share)\b/.test(a.f);
+  const nl = /\b(?:beleggingsinkomsten|beleggingsinkomen|passief inkomen|dividend|rente|stakingbeloningen)\b/.test(a.f) && /\b(?:dekt|dekken|uitgaven|naast|deel)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const marks = a.env.moneyLog?.investIncome, entries = entriesOf(a.env), calls = call('money_log', {investIncome: true}, 'Spending · investment income beside spending');
+  if (!marks?.length) return answer(say(a.lang, `No income category is marked as investment income yet. In ${PLACES.insights.en} → Month by month → Investment income beside spending, mark the categories that are (interest, dividends, staking rewards); each month is then set beside your spending.`,
+    `Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In ${PLACES.insights.nl} → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven.`), calls);
+  const rows = [...new Set(entries.map(e => e.currency))].sort().map(c => crossover(entries, marks, c, a.today)).filter(r => r.recordedMonths > 0 && r.spending > 0);
+  if (!rows.length) return answer(say(a.lang, `Nothing to set side by side yet: no spending logged in the last ${CROSSOVER_MONTHS} months.`, `Nog niets naast elkaar te zetten: geen uitgaven gelogd in de laatste ${CROSSOVER_MONTHS} maanden.`), calls);
+  const one = (lang: Lang, r: typeof rows[number]) => say(lang, `In ${r.currency}, the last ${CROSSOVER_MONTHS} months: ${moneyIn('en', r.invest, r.currency)} investment income beside ${moneyIn('en', r.spending, r.currency)} spending, so it covers ${pctIn('en', r.share ?? 0)} of spending${r.latest && r.latest.share !== null ? `; in ${monthIn('en', r.latest.month)}, ${pctIn('en', r.latest.share)}` : ''}.`,
+    `In ${r.currency}, de laatste ${CROSSOVER_MONTHS} maanden: ${moneyIn('nl', r.invest, r.currency)} beleggingsinkomen naast ${moneyIn('nl', r.spending, r.currency)} uitgaven, dus het dekt ${pctIn('nl', r.share ?? 0)} van je uitgaven${r.latest && r.latest.share !== null ? `; in ${monthIn('nl', r.latest.month)} ${pctIn('nl', r.latest.share)}` : ''}.`);
+  return answer(`${rows.map(r => one(a.lang, r)).join(' ')} ${say(a.lang, 'From your own records and marks; not a forecast.', 'Uit je eigen gegevens en markeringen; geen voorspelling.')}`, calls);
+}
+add(monthAverage, investCover);
