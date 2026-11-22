@@ -9,4 +9,5 @@ export const AV2_TASKS_R2: readonly Intent[] = [
   {id: 'av2r2-my-day', pillar: 'tasks', en: ['what is in my day', 'which tasks are in my day today'], nl: ['wat staat er in mijn dag', 'welke taken staan in mijn dag'], never: ['"add-task"']},
   {id: 'av2r2-note-reminders-today', pillar: 'notes', en: ['which reminders from my notes are today', 'what note reminders do I have tomorrow'], nl: ['welke herinneringen uit mijn notities zijn er vandaag', 'welke herinneringen uit notities heb ik morgen']},
   {id: 'av2r2-print', pillar: 'tasks', en: ['how do I print my tasks', 'can I print a project list'], nl: ['hoe print ik mijn taken', 'kan ik mijn takenlijst printen']},
+  {id: 'av2r2-template-gallery', pillar: 'tasks', en: ['which templates are there for home', 'what templates are in the gallery for family'], nl: ['welke sjablonen zijn er voor thuis', 'welke sjablonen heb je voor het gezin']},
 ];

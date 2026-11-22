@@ -77,3 +77,27 @@ Help: Q "Can I print my tasks?" A "Yes. Open the list (a project, Today, Upcomin
 under it. The sheet has tick boxes, days, priorities and subtasks; choose Save as PDF in the print window to keep a file."
 What's new: "Tasks: print any list, with tick boxes and subtasks."
 Showcase: none needed (works on any list). Today: nothing. CSS: components/tasks/tasks-print.css (new), tasks.css (2 lines).
+
+## Feature 4 — a larger template gallery, English and Dutch (LEDGER #226, Any.do) — built
+
+- Sixteen written templates in four groups, each in English and Dutch: Home (Cleaning week, A party, A packing list, Spring
+  clean), Work (Project kick-off, Weekly review, Meeting prep, A job application, Quarter planning), Family (School year
+  start, A child's birthday, Family holiday, A week of meals), Personal (Tax return papers, A digital tidy-up, Settling into
+  a new home). Each is a project with sections, subtasks, priorities, minutes and days counted from the start day (the
+  party on day 21, the first school day on day 14 …), made by the existing `applyTemplate` (one change, one Undo).
+- Tasks → Areas and templates: the Template choice groups them (Built in, Home, Work, Family, Personal, Yours); a "Template
+  gallery" fold lists them by group with what each holds and "Use" (chooses it, focus to the project name), with English /
+  Nederlands (the device's language first).
+- Written text in the repository, nothing fetched (the ledger's note on #71 and #81).
+
+Files: lib/tasks/template-gallery.ts (pure, the written gallery), components/tasks/tasks-organise.tsx (in the planning
+views' lazy chunk), tasks-r2.css. Tests: lib/tasks/r2-template-gallery.test.ts (both languages make the same project; days
+from the start day). Spec: tests/av2-template-gallery.spec.ts.
+Stored: nothing new (a project made from a template is an ordinary project).
+Answers: "which templates are there for home" / "welke sjablonen zijn er voor thuis" (also work, family, personal, the
+gallery). "which task templates do I have" stays av2-tasks' answer.
+Help: Q "Are there ready-made project templates?" A "Yes. Tasks → Areas and templates → Template gallery: sixteen for home,
+work, family and you, in English or Dutch. Use one, give the project a name and a start day, and Make the project."
+What's new: "Tasks: a template gallery for home, work and family, in English and Dutch."
+Search (lead's static.ts): "Template gallery" → `/app/tasks?view=organise`.
+Showcase / Today: nothing. Weight: the gallery is in the planning views' lazy chunk only.

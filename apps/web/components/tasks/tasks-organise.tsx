@@ -1,12 +1,14 @@
 'use client';
-import {useId, useState} from 'react';
+import {useId, useMemo, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import type {useTaskList} from './use-task-list';
 import {addArea, archiveSection, removeArea, renameArea, setProjectArea} from '../../lib/tasks/layouts';
 import {BUILT_IN_TEMPLATES, MAX_TEMPLATES, TASK_TEMPLATES, applyTemplate, removeTemplate, saveTemplate, templateFromProject, type TaskTemplate} from '../../lib/tasks/templates';
 import type {Tasks} from '../../lib/tasks/schema';
+import {TEMPLATE_GALLERY, galleryByGroup, type GalleryLang} from '../../lib/tasks/template-gallery';
 import {formatNumber} from '../../lib/visual-format';
+import './tasks-r2.css';
 
 /**
  * Session AV lane 2 (tasks; Things' Areas, TickTick's folders, Sunsama's contexts, Todoist's templates), in the Tasks
@@ -53,7 +55,12 @@ export default function TasksOrganise({list, record, today}: {list: List; record
 
 function Templates({list, record, today}: {list: List; record: Tasks; today: string}) {
   const own = useDeviceRecord(TASK_TEMPLATES), [chosen, setChosen] = useState(''), [start, setStart] = useState(today), [projectName, setProjectName] = useState(''), [from, setFrom] = useState('');
-  const all: {id: string; name: string; about: string; items: TaskTemplate['items']; own: boolean}[] = [...BUILT_IN_TEMPLATES.map(t => ({...t, own: false})), ...own.data.items.map(t => ({id: t.id, name: t.name, about: `${t.items.length} tasks, saved from a project`, items: t.items, own: true}))];
+  // Session AV lane 2 (tasks-r2, LEDGER #226; Any.do's gallery): the written gallery in English or Dutch, by group.
+  const galleryId = useId(), nameField = useRef<HTMLInputElement>(null);
+  const [lang, setLang] = useState<GalleryLang>(() => typeof navigator !== 'undefined' && /^nl\b/i.test(navigator.language) ? 'nl' : 'en');
+  const gallery = useMemo(() => galleryByGroup(lang), [lang]);
+  const all: {id: string; name: string; about: string; items: TaskTemplate['items']; own: boolean}[] = [...BUILT_IN_TEMPLATES.map(t => ({...t, own: false})), ...gallery.flatMap(g => g.items.map(t => ({...t, own: false}))), ...own.data.items.map(t => ({id: t.id, name: t.name, about: `${t.items.length} tasks, saved from a project`, items: t.items, own: true}))];
+  const pick = (id: string) => { setChosen(id); setProjectName(''); requestAnimationFrame(() => nameField.current?.focus()); };
   const template = all.find(t => t.id === chosen), projects = (record.projects ?? []).filter(p => !p.archived);
   const use = () => {
     if (!template) return;
@@ -76,13 +83,30 @@ function Templates({list, record, today}: {list: List; record: Tasks; today: str
     <h4>Templates</h4>
     <p className="fine">Start a project from a list made earlier: its tasks, sections, priorities and lengths, with days counted from the start day. Use one again whenever the project comes round.</p>
     <div className="tasks-plan-settings-fields">
-      <label className="field"><span>Template</span><select value={chosen} onChange={e => { setChosen(e.target.value); setProjectName(''); }}><option value="">Choose…</option>{all.map(t => <option key={t.id} value={t.id}>{t.name}{t.own ? ' (yours)' : ''}</option>)}</select></label>
-      {template && <label className="field"><span>Project name</span><input dir="auto" value={projectName} maxLength={60} placeholder={template.name} onChange={e => setProjectName(e.target.value)} /></label>}
+      <label className="field"><span>Template</span><select value={chosen} onChange={e => { setChosen(e.target.value); setProjectName(''); }}><option value="">Choose…</option>
+        <optgroup label="Built in">{BUILT_IN_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</optgroup>
+        {gallery.map(g => <optgroup key={g.group} label={g.title}>{g.items.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</optgroup>)}
+        {own.data.items.length > 0 && <optgroup label="Yours">{own.data.items.map(t => <option key={t.id} value={t.id}>{t.name} (yours)</option>)}</optgroup>}</select></label>
+      {template && <label className="field"><span>Project name</span><input ref={nameField} dir="auto" value={projectName} maxLength={60} placeholder={template.name} onChange={e => setProjectName(e.target.value)} /></label>}
       {template && <label className="field"><span>Start day</span><input type="date" value={start} onChange={e => setStart(e.target.value)} /></label>}
     </div>
     {template && <><p className="fine">{template.about} {template.items.filter(i => i.parent === undefined).slice(0, 6).map(i => i.title).join(' · ')}{template.items.length > 6 ? ' …' : ''}</p>
       <p className="tasks-io-actions"><button type="button" className="secondary" onClick={use}>Make the project</button>
         {template.own && <button type="button" className="quiet" onClick={() => { const t = own.data.items.find(x => x.id === template.id); if (!t) return; own.update(x => removeTemplate(x, t.id)); setChosen(''); showUndo({message: `Removed the template “${t.name}”.`, undone: 'The template is back.', restore: () => own.update(x => saveTemplate(x, t))}); }}>Remove this template</button>}</p></>}
+    <details className="tasks-gallery">
+      <summary>Template gallery <small>{TEMPLATE_GALLERY.length} templates for home, work, family and you</small></summary>
+      <fieldset className="tasks-gallery-lang"><legend>Language of the template</legend>
+        <label lang="en"><input type="radio" name={`${galleryId}-lang`} checked={lang === 'en'} onChange={() => setLang('en')} /> English</label>
+        <label lang="nl"><input type="radio" name={`${galleryId}-lang`} checked={lang === 'nl'} onChange={() => setLang('nl')} /> Nederlands</label>
+      </fieldset>
+      {gallery.map(g => <section key={g.group} className="tasks-gallery-group" aria-labelledby={`${galleryId}-${g.group}`}>
+        <h5 id={`${galleryId}-${g.group}`}>{g.title}</h5>
+        <ul className="tasks-gallery-list" lang={lang}>{g.items.map(t => <li key={t.id}>
+          <span className="tasks-gallery-what"><strong dir="auto">{t.name}</strong><small>{t.about} {t.items.length} {lang === 'nl' ? 'taken' : 'tasks'}.</small></span>
+          <button type="button" className="secondary" aria-label={`Use the template “${t.name}”`} onClick={() => pick(t.id)}>Use</button>
+        </li>)}</ul>
+      </section>)}
+    </details>
     {projects.length > 0 && <div className="tasks-plan-settings-fields">
       <label className="field"><span>Save a project as a template</span><select value={from} onChange={e => setFrom(e.target.value)}><option value="">Choose a project…</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
       <button type="button" className="secondary" disabled={!from || own.data.items.length >= MAX_TEMPLATES} onClick={save}>Save as template</button>

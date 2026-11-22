@@ -50,6 +50,11 @@ describe('My Day (LEDGER #223)', () => {
     expect(text(av2TasksR2Answer('welke herinneringen uit notities heb ik morgen', zigiEnv(s)))).toMatch(/^1 herinnering uit je notities morgen:\n• call the fictional plumber: om 09:30/);
     expect(text(av2TasksR2Answer('which reminders from my notes are today', zigiEnv(s)))).toMatch(/^No reminder from your notes today/);
   });
+  test('the template gallery by group (LEDGER #226), and the older templates question stays the other answer', () => {
+    expect(text(av2TasksR2Answer('which templates are there for home', zigiEnv(showcaseAll())))).toMatch(/\n• Home: Cleaning week, A party, A packing list and Spring clean\n/);
+    expect(text(av2TasksR2Answer('welke sjablonen heb je voor het gezin', zigiEnv(showcaseAll())))).toContain('• Gezin: Start van het schooljaar, Een kinderverjaardag, Gezinsvakantie en Een weekmenu');
+    expect(av2TasksR2Answer('which task templates do I have', zigiEnv(showcaseAll()))).toBeNull();
+  });
   test('the Today switch off refuses', () => {
     const env = zigiEnv(showcaseAll());
     expect(av2TasksR2Answer('what is in my day', {...env, areas: {...env.areas, today: false}})!.kind).toBe('refusal');

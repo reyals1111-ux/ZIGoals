@@ -1,11 +1,12 @@
 import {addLocalDays} from '../../local-date';
 import {carriedPicks, picksToday, readMyDay} from '../../tasks/my-day';
 import {noteRemindersBetween} from '../../tasks/note-reminder-days';
+import {galleryByGroup, type GalleryGroup} from '../../tasks/template-gallery';
 import type {TaskPlan} from '../../tasks/plan-record';
 import type {Tasks} from '../../tasks/schema';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, clockIn, closed, count, dayIn, isQuestion, say, type Asked} from './av-words';
+import {answer, asked, clockIn, closed, count, dayIn, isQuestion, list, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -86,4 +87,18 @@ function printList(a: Ask): LocalReply | null {
     'Open de lijst in Tasks (een project, Today, Upcoming, elke weergave) en druk eronder op “Print this list”. Het blad heeft de titel, de secties en dagen, een vakje per taak, de dag en prioriteit, en subtaken ingesprongen; kies Opslaan als pdf in het printvenster voor een bestand.'), CALLS);
 }
 
-const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn, printList];
+/** "which templates are there for home", "welke sjablonen zijn er voor het gezin" (LEDGER #226, the gallery by group). */
+const GROUP_ASKED: [RegExp, GalleryGroup][] = [[/\bhome\b|\bhouse\b|\bthuis\b|\bhuis\b|\bclean|\bschoonma|\bparty\b|\bfeest|\bpack|\bpaklijst/, 'home'], [/\bwork\b|\bjob\b|\bwerk\b|\bmeeting\b|\bvergader|\bproject (?:start|kick)/, 'work'], [/\bfamily\b|\bkids?\b|\bchild(?:ren)?\b|\bschool\b|\bgezin\b|\bkinder|\bkind\b/, 'family'], [/\bpersonal\b|\btax\b|\bpersoonlijk\b|\bbelasting/, 'personal']];
+function gallery(a: Ask): LocalReply | null {
+  if (!(/\btemplates?\b|\bgallery\b/.test(a.f) || /\bsjablon(?:en)?\b|\bgalerij\b/.test(a.f))) return null;
+  if (/\bjournal|dagboek\b|\bnote|notitie/.test(a.f)) return null;
+  const groups = GROUP_ASKED.filter(([re]) => re.test(a.f)).map(([, g]) => g), all = /\bgallery\b|\bgalerij\b/.test(a.f);
+  if (!groups.length && !all) return null;
+  const shut = closed(a.env, 'today'); if (shut) return shut;
+  const lang = a.lang, show = galleryByGroup(lang).filter(g => all && !groups.length ? true : groups.includes(g.group));
+  const lines = show.map(g => `• ${g.title}: ${list(g.items.map(t => t.name), lang)}`);
+  return answer([say(lang, `In the template gallery (Tasks → Areas and templates), in English and Dutch:`, `In de sjablonengalerij (Tasks → Areas and templates), in het Nederlands en Engels:`), ...lines,
+    say(lang, 'Choose one, a name and a start day, and Make the project: its sections and days come with it.', 'Kies er een, een naam en een startdag, en maak het project: de secties en dagen komen mee.')].join('\n'), CALLS);
+}
+
+const ANSWERS: readonly ((a: Ask) => LocalReply | null)[] = [myDay, noteRemindersOn, printList, gallery];
