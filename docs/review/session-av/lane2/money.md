@@ -22,6 +22,24 @@ before: the loose objects keep the new fields untouched and the old readers coun
 | `zigoals:money-log:v1` | `own: {expense?, income?}` | the person's own categories (≤ 30 each) | #156 |
 | `zigoals:money-log:v1` | `accounts: {notes?, order?}` | a note per account id, the accounts list order (the accounts record is strict, so these live here) | #143 |
 | `zigoals:money-log:v1` | `lowBalance: {amount, currency}` | the cash line the forecast should not cross | #155 |
+| `zigoals:budgets:v1` budget | `need: {kind: weekly/monthly/yearly, amount, month?}` | YNAB's "needed for spending" target types | #126 |
+| `zigoals:budgets:v1` budget | `snoozed: month` | the target snoozed that month (left out of Underfunded) | #126 |
+| `zigoals:budgets:v1` budget | `months: {month: amount}` (≤ 36) | a different amount for one month | #127, #145 |
+| `zigoals:budgets:v1` budget | `bucket: fixed/flexible/non-monthly` | Monarch's flex budgeting | #135 |
+| `zigoals:budgets:v1` budget | `period: {every: 3/6/12, amount}` | a non-monthly budget set aside monthly | #136 |
+| `zigoals:budgets:v1` budget | `start: amount` | a starting balance | #136 |
+| `zigoals:budgets:v1` budget | `group` | the person's own budget group | #136 |
+| `zigoals:budgets:v1` | `moves` (≤ 200) | money moved between two budgets in a month | #127 |
+| `zigoals:budgets:v1` | `payees` (≤ 20) | watched payees | #152 |
+| `zigoals:budgets:v1` | `challenges` (≤ 12) | "spend less than last month in <category>" | #153 |
+| `zigoals:budgets:v1` | `onToday: true` | what is left in each budget, on Today (opt-in) | #129 |
+| `zigoals:bills:v1` bill | `autopay: true` | the person's "paid automatically" mark | #168 |
+| `zigoals:debt-planner:v1` debt | `promoRate`, `promoUntil`, `note`, `payoffBy` | an introductory rate to a month, a note, a paid-off-by month | #164, #169 |
+| `zigoals:debt-planner:v1` | `method` (interest / payment / cfi / targets) | a further order; its plan is also kept as `order` + `shown: custom`, so older builds read the same plan | #157 |
+| `zigoals:debt-planner:v1` | `stepUp: {amount, every}`; `tracked.method`, `tracked.stepUp` | Debt Blaster | #167 |
+| `zigoals:fi-model:v1` | `events` (≤ 12), `scenarios` (≤ 4) | life events in the long model, saved scenarios | #138 |
+| `zigoals:price-alerts:v1` | `moves`, `portfolioMoves` | a rolling 24 h ±% move per coin; a portfolio's ±% from its value when set | #173, #174 |
+| `zigoals:portfolio-receipts:v1` | `uncounted` (transaction ids) | "count in results" off for a transaction (the Portfolio record is strict, so it lives here, as the receipt kinds do) | #172 |
 
 Round trip: `apps/web/lib/av2-money/round-trip.test.ts` (export → erase → restore, replace).
 Device keys / catalogue / export / erase entries needed: none (existing keys only).
