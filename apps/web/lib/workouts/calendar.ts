@@ -43,12 +43,21 @@ export function workoutYear(w: Workouts, year: number, today: string): WorkoutYe
 }
 const mondayOf = (d: string) => addLocalDays(d, -((new Date(`${d}T12:00:00Z`).getUTCDay() + 6) % 7));
 export type WeekStreak = {current: number; best: number; thisWeek: boolean};
-export function weekStreak(w: Workouts, today: string): WeekStreak {
+/**
+ * Session AV lane 2, round 5 (LEDGER #374, Gentler Streak's status): `pauses` are the days a workout status covered
+ * (lib/workouts/status.ts `pausesOf`). A week a pause touches and that has no workout is passed over: it neither counts
+ * nor breaks the streak. Without pauses the streak is exactly as before.
+ */
+export function weekStreak(w: Workouts, today: string, pauses: readonly {from: string; to: string}[] = []): WeekStreak {
   const weeks = new Set(finished(w).filter(x => x.date <= today).map(x => mondayOf(x.date))), now = mondayOf(today), thisWeek = weeks.has(now);
+  const paused = (monday: string) => pauses.some(p => p.from <= addLocalDays(monday, 6) && p.to >= monday);
   let current = 0;
-  for (let at = thisWeek ? now : addLocalDays(now, -7); weeks.has(at); at = addLocalDays(at, -7)) current++;
+  for (let at = thisWeek ? now : addLocalDays(now, -7), i = 0; i < 1100; at = addLocalDays(at, -7), i++) {
+    if (weeks.has(at)) current++; else if (!paused(at)) break;
+  }
   const sorted = [...weeks].sort();
+  const bridged = (prev: string, k: string) => { for (let at = addLocalDays(prev, 7); at < k; at = addLocalDays(at, 7)) if (!paused(at)) return false; return true; };
   let best = 0, run = 0, prev = '';
-  for (const k of sorted) { run = prev && addLocalDays(prev, 7) === k ? run + 1 : 1; best = Math.max(best, run); prev = k; }
+  for (const k of sorted) { run = prev && (addLocalDays(prev, 7) === k || (pauses.length > 0 && bridged(prev, k))) ? run + 1 : 1; best = Math.max(best, run); prev = k; }
   return {current, best, thisWeek};
 }

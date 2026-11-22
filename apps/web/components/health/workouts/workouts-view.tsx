@@ -45,6 +45,13 @@ import {guideLine, guideOf, routineLang, type Guide, type Lang} from '../../../l
 import {WORKOUT_PLACES, type Place, type WorkoutPlaces} from '../../../lib/workouts/places-schema';
 import {availableWith} from '../../../lib/workouts/equipment';
 import {WORKOUT_HR, withHr, withoutHr} from '../../../lib/workouts/hr-zones';
+// Session AV lane 2, round 5 (gym; LEDGER #374): a workout status (kept in the plan's record) and the days it covered.
+import {PLANNED_WORKOUTS} from '../../../lib/workouts/planned';
+import {currentStatus, pausesOf, STATUS_WORDS} from '../../../lib/workouts/status';
+// Session AV lane 2, round 5 (gym; LEDGER #373): a routine that keeps its last weights.
+import {keepLastWeights, restoreRoutine} from '../../../lib/workouts/keep-weights';
+// Session AV lane 2, round 5 (gym; LEDGER #377): a workout's star (Favourites); its photos load in their own chunk.
+import {setStar} from '../../../lib/workouts/journal';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
 const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
@@ -70,6 +77,8 @@ const RoutineEdit = lazy(() => import('./routine-library-view').then(m => ({defa
 const WorkoutsProgress = lazy(() => import('./workouts-progress'));
 // Session AV lane 2 (body; LEDGER #111): distance goals and the training load, its own chunk.
 const DistanceGoals = lazy(() => import('./distance-goals'));
+// Session AV lane 2, round 5 (gym; LEDGER #375, Gentler Streak's Activity Path): the movement band, its own chunk.
+const MovementBand = lazy(() => import('./movement-band'));
 // Session AV lane 2 (body; LEDGER #203, #208): shoes and the running tip, each its own chunk.
 const Shoes = lazy(() => import('./shoes'));
 const RunTip = lazy(() => import('./run-tip'));
@@ -83,6 +92,10 @@ const PlannedWorkouts = lazy(() => import('../r4/planned-workouts'));
 // Session AV lane 2, round 4 (health; Runna, LEDGER #336, #337): a run's heart-rate zones, and races ahead.
 const HrZones = lazy(() => import('../r4/runna-parts').then(m => ({default: m.HrZones})));
 const RacesAhead = lazy(() => import('../r4/runna-parts').then(m => ({default: m.RacesAhead})));
+// Session AV lane 2, round 5 (gym; Gentler Streak, Bevel; LEDGER #374): your status, its own chunk.
+const WorkoutStatus = lazy(() => import('../r5/workout-status'));
+const WorkoutPhotos = lazy(() => import('../r5/workout-photos'));
+const PhotoSweep = lazy(() => import('../r5/workout-photos').then(m => ({default: m.PhotoSweep})));
 const placeNow = (r: WorkoutPlaces | null): Place | null => r?.places.find(p => p.id === r.current) ?? null;
 
 /**
@@ -104,11 +117,15 @@ export default function WorkoutsView() {
   // Session AV lane 2, round 4 (LEDGER #336): the seconds at each heart rate of an imported run, for its zones.
   const hrRecord = useDeviceRecord(WORKOUT_HR);
   // Session AV lane 2 (bodymind-r2; LEDGER #239): the places and the one chosen now.
+  // Session AV lane 2, round 5 (LEDGER #374): the plan's record, for the status and the days it covered.
+  const plannedRecord = useDeviceRecord(PLANNED_WORKOUTS), plan = plannedRecord.loaded && !plannedRecord.unreadable ? plannedRecord.data : null;
   const placesRecord = useDeviceRecord(WORKOUT_PLACES), places = placesRecord.loaded && !placesRecord.unreadable ? placesRecord.data : null, place = placeNow(places);
   const [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now()), [restUntil, setRestUntil] = useState<number | null>(null);
   const [tookMinutes, setTookMinutes] = useState('');
   const [asking, setAsking] = useState<null | 'finish' | 'discard' | {remove: string}>(null), [summary, setSummary] = useState<{workout: Workout; bests: PersonalBest[]} | null>(null);
   const [historyOf, setHistoryOf] = useState(''), [editing, setEditing] = useState<string | null>(null);
+  // Session AV lane 2, round 5 (LEDGER #377): the history shows every workout, or only the favourites.
+  const [onlyFavs, setOnlyFavs] = useState(false);
   const ready = record.loaded && health.loaded && !health.error;
   const unit = ready ? dailyData(health.data).preferences.weightUnit : 'kg';
   const today = ready ? healthDay(dailyData(health.data).preferences.timezone) : '';
@@ -132,6 +149,7 @@ export default function WorkoutsView() {
   if (!record.loaded || !health.loaded) return <section className="panel"><h1>Workouts</h1><p>Opening your workout log…</p><Skeleton label="Opening your workout log" lines={4}/><SlowReload/></section>;
   if (health.error) return <section className="panel"><h1>Workouts</h1><p role="alert">Workouts keep their minutes in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const w = record.data, past = finished(w), last = past[0], week = weekSummary(w, today), library = allExercises(w.exercises);
+  const status = currentStatus(plan, today), pauses = pausesOf(plan, today);
 
   // Session AV lane 2 (body; LEDGER #112, #115): a ready-made routine is copied into the person's routines, then (Start it now) started.
   function saveFromLibrary(g: Guide, lang: Lang, start: boolean) {
@@ -149,7 +167,8 @@ export default function WorkoutsView() {
       const typed = tookMinutes.trim(), took = typed ? Number(typed) : undefined;
       if (took !== undefined && (!/^\d{1,4}$/.test(typed) || took < 1 || took > 1440)) { setNote('Enter whole minutes from 1 to 1,440, or leave “Took” empty to end it now.'); return; }
       // Session AV lane 2 (body; LEDGER #204): the first run added keeps the bests before it as seen (only a new one is marked).
-      record.update(x => { result = finishWorkout(x, new Date(), took); return seedSeen(x, withUsualShoe(result.workouts, result.workout.id), splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null); });
+      let kept: ReturnType<typeof keepLastWeights> = null;
+      record.update(x => { result = finishWorkout(x, new Date(), took); const next = seedSeen(x, withUsualShoe(result.workouts, result.workout.id), splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null); kept = keepLastWeights(next, result.workout); return kept ? kept.workouts : next; });
       setTookMinutes(''); setNote(''); // the "Workout started…" line no longer stays above the finished workout (MO-137)
       const {workout, bests} = result!, minutes = Math.min(1440, Math.max(1, durationMinutes(workout)));
       // The minutes go to Health's activity log, so Today, the weekly review and a linked exercise habit count them.
@@ -158,7 +177,11 @@ export default function WorkoutsView() {
       catch { setNote('The workout is saved; its minutes could not be added to Health.'); }
       setRestUntil(null); setSummary({workout, bests});
       // Session AL (P-MO-82, MO-137): a workout under a minute reads "under 1 min" (it read "0 min" in places).
-      showStatus(`${workout.name} saved · ${durationMinutes(workout) < 1 ? 'under 1 min' : `${minutes} min`}${bests.length ? ` · ${bests.length} new ${plural(bests.length, 'personal best')}` : ''}.`);
+      const savedWords = `${workout.name} saved · ${durationMinutes(workout) < 1 ? 'under 1 min' : `${minutes} min`}${bests.length ? ` · ${bests.length} new ${plural(bests.length, 'personal best')}` : ''}.`;
+      // Session AV lane 2, round 5 (LEDGER #373): the routine took this workout's weights; Undo puts its own back.
+      const k = kept as ReturnType<typeof keepLastWeights>;
+      if (k) showUndo({message: `${savedWords} ${k.before.name} keeps these weights for next time.`, undone: `${k.before.name} has its weights from before.`, restore: () => record.update(x => restoreRoutine(x, k.before))});
+      else showStatus(savedWords);
     } catch (e) { setNote(plainErrorMessage(e, 'The workout could not be finished.')); }
   }
   // Session AJ (item 27, D12): an imported workout is saved like a finished one, minutes in Health included. Session AK
@@ -247,7 +270,9 @@ export default function WorkoutsView() {
         {past.length > 0 && <Suspense fallback={null}><RunBests w={w} splits={splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null} onNoted={fn => change(fn)}/></Suspense>}
         <Suspense fallback={null}><RunTip today={today}/></Suspense>
         <PlanFold w={w} today={today}/>
-        {past.length > 0 && <CalendarFold w={w} today={today}/>}
+        {/* Session AV lane 2, round 5 (gym; LEDGER #374, Gentler Streak): ill, injured, a break or travelling, until cleared. */}
+        <Fold className="av2-fold workouts-status-fold" summary={status ? `Your status: ${STATUS_WORDS[status.kind].since} since ${formatDate(status.from, {weekday: true, year: false})}` : 'Your status: ill, injured, a break or travelling'} loading="Opening your status…"><WorkoutStatus today={today}/></Fold>
+        {past.length > 0 && <CalendarFold w={w} today={today} pauses={pauses}/>}
         {/* Session AV lane 2 (bodymind-r2; LEDGER #240, Fitbod): a workout for today from your own history, freshness and place. */}
         <Fold className="av2-fold workouts-suggest-fold" summary="Suggest a workout for today, from your own sets" loading="Working out a suggestion…"><SuggestWorkout w={w} library={library} today={today} unit={unit} places={places} onStart={x => begin({date: logDay, now: new Date(), repeat: x})}/></Fold>
         <Fold className="av2-fold workouts-places-fold" summary={place ? `Places and equipment · now: ${place.name}` : 'Places and equipment · where you train and what is there'} loading="Opening your places…"><Places/></Fold>
@@ -259,7 +284,7 @@ export default function WorkoutsView() {
         {w.templates.length > 0 && <><h3>Your routines</h3>{routineGroups(w).map(g => <div key={g.folder ?? ''} className="av2-routine-group">
           {(g.folder || routineGroups(w).length > 1) && <h4 className="av2-folder">{g.folder ?? 'No folder'} <span className="fine">({g.routines.length})</span></h4>}
           <ul className="workouts-routines">{g.routines.map(t => <li key={t.id}>
-          <div><strong>{t.name}</strong><span>{t.exercises.map(e => e.name).join(' · ')}</span>{t.note && <span className="av2-routine-note">Note: {t.note}</span>}{t.progression && <span className="av2-routine-note">{progressionWords(t.progression)}</span>}</div>
+          <div><strong>{t.name}</strong><span>{t.exercises.map(e => e.name).join(' · ')}</span>{t.note && <span className="av2-routine-note">Note: {t.note}</span>}{t.progression && <span className="av2-routine-note">{progressionWords(t.progression)}</span>}{t.keepWeights && <span className="av2-routine-note">Keeps your last weights</span>}</div>
           <div className="workouts-row-actions"><button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), template: t})} aria-label={`Start ${t.name}`}>Start</button>
             <button className="quiet" type="button" aria-expanded={editing === t.id} aria-label={`Edit routine ${t.name}`} onClick={() => setEditing(editing === t.id ? null : t.id)}>Edit</button>
             <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`, `Routine ${t.name} is back.`)}>Remove</button></div>
@@ -281,8 +306,15 @@ export default function WorkoutsView() {
     <section className="panel workouts-history" aria-labelledby="workouts-history-title">
       <h2 id="workouts-history-title">Your workouts</h2>
       <WorkoutsImport w={w} dayOf={iso => healthDay(dailyData(health.data).preferences.timezone, new Date(iso))} zone={healthZone(dailyData(health.data).preferences.timezone)} unit={unit} onAdd={addImported} onAddLifts={addLifts}/>
-      {past.length ? <ul className="workouts-past">{past.slice(0, 30).map(x => <li key={x.id}>
-        <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
+      {/* Session AV lane 2, round 5 (gym; LEDGER #377, Gentler Streak): All or Favourites; the arrival sweep of unnamed photos. */}
+      {!record.unreadable && <Suspense fallback={null}><PhotoSweep w={w}/></Suspense>}
+      {past.length > 0 && <div className="r5-filter" role="group" aria-label="Show workouts">
+        <button type="button" className="quiet" aria-pressed={!onlyFavs} onClick={() => setOnlyFavs(false)}>All</button>
+        <button type="button" className="quiet" aria-pressed={onlyFavs} onClick={() => setOnlyFavs(true)}>Favourites ({past.filter(x => x.star).length})</button>
+      </div>}
+      {past.length > 0 && onlyFavs && !past.some(x => x.star) && <p className="health-empty-inline">No favourites yet. Under All, open a workout and choose Favourite to keep it here.</p>}
+      {past.length ? <ul className="workouts-past">{(onlyFavs ? past.filter(x => x.star) : past).slice(0, 30).map(x => <li key={x.id}>
+        <details><summary><strong>{x.name}</strong>{x.star && <><span className="r5-star-mark" aria-hidden="true"> ★</span><span className="sr-only">, a favourite</span></>}{(x.photos ?? []).length > 0 && <span className="sr-only">, {(x.photos ?? []).length} {plural((x.photos ?? []).length, 'photo')}</span>} <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
           {importInfo(x) && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
           {/* Session AV lane 2 (body; LEDGER #110, Strava's per-activity summary, no model): the run beside the runs before it. */}
           {(() => { const r = runSummary(w, splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null, x.id); return r ? <p className="fine workouts-run-summary">{runWords(r)}</p> : null; })()}
@@ -291,10 +323,12 @@ export default function WorkoutsView() {
             <option value="">No shoes picked</option>{(w.shoes ?? []).filter(s => !s.retiredAt || s.id === x.shoeId).map(s => <option key={s.id} value={s.id}>{s.name}{s.retiredAt ? ' (retired)' : ''}</option>)}</select></label>}
           {splitsRecord.data.workouts[x.id] && <WorkoutSplitsTable s={splitsRecord.data.workouts[x.id]!} name={x.name}/>}
           {hrRecord.loaded && hrRecord.data.runs[x.id] && <Suspense fallback={null}><HrZones workoutId={x.id} name={x.name}/></Suspense>}
+          <Suspense fallback={null}><WorkoutPhotos workout={x} change={change}/></Suspense>
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unitFor(w, e.exerciseId, unit))}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
             {!current && x.exercises.length > 0 && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
             {x.exercises.length > 0 && <SaveRoutine compact workout={x} onSave={name => change(y => saveTemplate(y, x, name, new Date()), `Routine ${name || x.name} saved.`)}/>}
+            <button className="quiet r5-star" type="button" aria-pressed={x.star === true} aria-label={`Favourite: ${x.name} on ${formatDate(x.date)}`} onClick={() => change(y => setStar(y, x.id, !x.star), x.star ? `${x.name} is no longer a favourite.` : `${x.name} is in your favourites.`)}><span className="r5-star-mark" aria-hidden="true">{x.star ? '★' : '☆'}</span> Favourite</button>
             <button className="quiet" type="button" onClick={() => setAsking({remove: x.id})} aria-label={`Delete ${x.name} on ${formatDate(x.date)}`}>Delete</button>
           </div>
           {typeof asking === 'object' && asking?.remove === x.id && <ConfirmInline title={`Delete ${x.name}?`} confirmLabel="Delete workout" cancelLabel="Keep it" onConfirm={() => void remove(x.id)} onCancel={() => setAsking(null)}><p>Its sets and the minutes it added to Health are removed.</p></ConfirmInline>}
@@ -319,7 +353,8 @@ export default function WorkoutsView() {
     <section className="panel workouts-goals" aria-labelledby="workouts-goals-title">
       <h2 id="workouts-goals-title">Distance goals and training load</h2>
       {(w.distanceGoals ?? []).slice(0, 2).map(g => { const p = goalProgress(w, g, today); return <p key={g.id} className="fine workouts-goal-line">{`${({run: 'Running', ride: 'Cycling', swim: 'Swimming', walk: 'Walking', any: 'All sports'} as const)[g.sport]} ${g.period === 'week' ? 'this week' : g.period === 'month' ? 'this month' : 'this year'}: ${formatNumber(p.km, {maximumFractionDigits: 1})} of ${formatNumber(g.km, {maximumFractionDigits: 1})} km${p.done ? ', reached' : p.onPace ? ', on pace' : ''}.`}</p>; })}
-      <Fold className="av2-fold workouts-goals-fold" summary={(w.distanceGoals ?? []).length ? 'Your goals and the last 7 days beside your usual week' : 'Set a distance goal; see the last 7 days beside your usual week'} loading="Opening goals and load…"><DistanceGoals w={w} today={today} change={change}/></Fold>
+      <Fold className="av2-fold workouts-goals-fold" summary={(w.distanceGoals ?? []).length ? 'Your goals and the last 7 days beside your usual week' : 'Set a distance goal; see the last 7 days beside your usual week'} loading="Opening goals and load…"><DistanceGoals w={w} today={today} change={change} pauses={pauses}/></Fold>
+      <Fold className="av2-fold workouts-band-fold" summary="Your movement band: this week beside your usual range" loading="Opening your movement band…"><MovementBand w={w} activity={health.data.activity} today={today} pauses={pauses}/></Fold>
     </section>
     {past.some(x => x.exercises.length) && <section className="panel workouts-progress-report" aria-labelledby="workouts-report-title">
       <h2 id="workouts-report-title">Progress</h2>
@@ -386,9 +421,9 @@ function PlanFold({w, today}: {w: Workouts; today: string}) {
   return <details className="av2-fold workouts-plan-fold" open={open || undefined} onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Your plan: planned workouts on a calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening your plan…</p>}><PlannedWorkouts w={w} today={today}/></Suspense>}</details>;
 }
 /** Session AV (F-WORKOUT-CALENDAR): the fold whose content loads when opened. */
-function CalendarFold({w, today}: {w: Workouts; today: string}) {
+function CalendarFold({w, today, pauses}: {w: Workouts; today: string; pauses: readonly {from: string; to: string}[]}) {
   const [open, setOpen] = useState(false);
-  return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today}/></Suspense>}</details>;
+  return <details className="workouts-calendar-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Calendar</summary>{open && <Suspense fallback={<p className="fine" role="status">Opening the calendar…</p>}><WorkoutCalendar w={w} today={today} pauses={pauses}/></Suspense>}</details>;
 }
 function ExerciseBlock({entry, index, count, previous, unit: pageUnit, change, onRest, w, letter, nextLetter, cue, target, library, place, inWorkout}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean; onRest: () => void;
   w: Workouts; letter?: string; nextLetter?: string; cue?: {line: string; cue: string; lang: Lang}; target?: Target | null; library: LibraryExercise[]; place: Place | null; inWorkout: string[]}) {

@@ -100,7 +100,9 @@ export function savePlates(w: Workouts, setup: PlateSetup): Workouts {
   const plates = setup.plates.filter(p => p.size > 0 && p.pairs > 0);
   if (plates.length > 12) throw Error('Up to 12 plate sizes fit.');
   if (plates.some(p => !(p.size <= 100) || !Number.isInteger(p.pairs) || p.pairs > 20)) throw Error('Plates go from 0.1 to 100, with up to 20 pairs of each.');
-  return parse({...w, plates: {unit: setup.unit, bar: setup.bar, plates: [...plates].sort((a, b) => b.size - a.size)}});
+  // Session AV lane 2, round 5 (LEDGER #378): "Loaded on one side" and the machine's or sled's own weight are kept with the set.
+  if (setup.start !== undefined && !(Number.isFinite(setup.start) && setup.start >= 0 && setup.start <= 500)) throw Error('Enter the machine’s own weight from 0 to 500.');
+  return parse({...w, plates: {unit: setup.unit, bar: setup.bar, plates: [...plates].sort((a, b) => b.size - a.size), ...(setup.oneSide ? {oneSide: true} : {}), ...(setup.start !== undefined ? {start: setup.start} : {})}});
 }
 export type PlateLoad = {perSide: number[]; total: number; exact: boolean; belowBar: boolean};
 const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
