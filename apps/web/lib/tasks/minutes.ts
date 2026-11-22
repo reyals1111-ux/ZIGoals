@@ -20,7 +20,8 @@ export function dayLoad(record: Tasks, day: string): DayLoad {
   for (const t of record.tasks) {
     if (t.doneAt || t.parentId || t.due !== day) continue;
     tasks++;
-    if (t.minutes) { timed++; minutes += t.minutes; }
+    // Session AV lane 2 (LEDGER #27; Sunsama's background tasks): a task that runs beside others adds no minutes.
+    if (t.minutes && !t.parallel) { timed++; minutes += t.minutes; }
   }
   return {tasks, timed, minutes};
 }
@@ -31,7 +32,7 @@ export function dayLoad(record: Tasks, day: string): DayLoad {
 export function viewLoad(tasks: readonly Task[]): DayLoad {
   let count = 0, timed = 0, minutes = 0;
   const seen = new Set<string>();
-  for (const t of tasks) { if (t.doneAt || t.parentId || seen.has(t.id)) continue; seen.add(t.id); count++; if (t.minutes) { timed++; minutes += t.minutes; } }
+  for (const t of tasks) { if (t.doneAt || t.parentId || seen.has(t.id)) continue; seen.add(t.id); count++; if (t.minutes && !t.parallel) { timed++; minutes += t.minutes; } }
   return {tasks: count, timed, minutes};
 }
 /** "About 1 h 45 min planned for 3 tasks; 1 more without a length" — null when no task of the day says its minutes. */

@@ -9,3 +9,15 @@
 .tasks-plan-day-what small { color: var(--text-secondary, var(--muted)); }
 .tasks-plan-day-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .tasks-plan-day-actions button { min-height: 44px; }
+/* Session AV lane 2 (tasks, LEDGER #9, #21, #24-#27): the day planner under Tasks -> Today. */
+.tasks-today-planner { margin: 0 0 12px; display: grid; gap: 8px; }
+.tasks-today-planner p { margin: 0; }
+.tasks-over-limit { font-size: 15px; }
+.tasks-timers, .tasks-fit-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tasks-timers li, .tasks-fit-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 44px; font-size: 15px; overflow-wrap: anywhere; }
+.tasks-timers li > span:not([aria-hidden]), .tasks-fit-list li > span { flex: 1 1 200px; min-width: 0; }
+.tasks-fit-day { border: 1px solid var(--line); border-radius: var(--radius); padding: 0 16px 12px; }
+.tasks-fit-day > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.tasks-fit-day > * + * { margin-top: 8px; }
+.tasks-fit-timers { display: flex; flex-wrap: wrap; gap: 6px; }
+.tasks-fit-day button, .tasks-timers button { min-height: 44px; }

@@ -24,7 +24,7 @@ export function viewKey(view: TaskView, board = false): string {
 export function readView(raw: string | null, record: Tasks): {view: TaskView; board: boolean} | null {
   if (!raw) return null;
   const v = raw.trim();
-  const simple = ['inbox', 'today', 'upcoming', 'all', 'overdue', 'completed', 'evening', 'someday', 'matrix'] as const;
+  const simple = ['inbox', 'today', 'upcoming', 'all', 'overdue', 'completed', 'evening', 'someday', 'matrix', 'week', 'table', 'days', 'timeline', 'insights', 'organise'] as const;
   if ((simple as readonly string[]).includes(v)) return {view: {kind: v as (typeof simple)[number]}, board: false};
   if (v === 'done') return {view: {kind: 'completed'}, board: false};
   if (v === 'calendar') return {view: {kind: 'upcoming'}, board: false};
@@ -47,6 +47,12 @@ export function viewTitle(view: TaskView, record: Tasks): string {
     case 'evening': return 'This evening';
     case 'someday': return 'Someday';
     case 'matrix': return 'Priority matrix';
+    case 'week': return 'This week';
+    case 'table': return 'Table';
+    case 'days': return 'Calendar';
+    case 'timeline': return 'Timeline';
+    case 'insights': return 'Insights';
+    case 'organise': return 'Areas and templates';
     case 'project': return record.projects?.find(p => p.id === view.id)?.name ?? 'Project';
     case 'label': return `@${view.name}`;
     case 'priority': return LEVEL_WORDS[view.level];
@@ -75,8 +81,13 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
       {item({kind: 'matrix'}, 'Priority matrix')}
       {item({kind: 'completed'}, 'Completed')}
     </ul>
+    {/* Session AV lane 2 (tasks): planning and layouts (Sunsama, Todoist, TickTick, Notion), drawn by their own chunk. */}
+    <h3>Plan and views</h3>
+    <ul>{([['week', 'This week'], ['table', 'Table'], ['days', 'Calendar'], ['timeline', 'Timeline'], ['insights', 'Insights'], ['organise', 'Areas and templates']] as const).map(([kind, label]) => item({kind}, label))}</ul>
     <h3>Projects</h3>
-    <ul>{live.map(p => item({kind: 'project', id: p.id}, p.name, count({kind: 'project', id: p.id}), dropOn(p.id), p.colour))}</ul>
+    {/* Session AV lane 2 (LEDGER #20, #12): projects under their area (Things' Areas, TickTick's folders). */}
+    {(record.areas?.length ? [...record.areas.map(a => ({key: a.id, name: a.name as string | null, items: live.filter(p => p.areaId === a.id)})), {key: '', name: null, items: live.filter(p => !p.areaId || !record.areas!.some(a => a.id === p.areaId))}] : [{key: '', name: null, items: live}])
+      .filter(g => g.items.length || g.name).map(g => <div key={g.key || 'none'} className="tasks-nav-area">{g.name && <h4 dir="auto">{g.name}</h4>}<ul>{g.items.map(p => item({kind: 'project', id: p.id}, p.name, count({kind: 'project', id: p.id}), dropOn(p.id), p.colour))}</ul></div>)}
     {old.length > 0 && <><button type="button" className="text-link" aria-expanded={archived} onClick={() => setArchived(!archived)}>Archived projects ({formatNumber(old.length)})</button>
       {archived && <ul>{old.map(p => item({kind: 'project', id: p.id}, p.name, undefined, undefined, p.colour))}</ul>}</>}
     {adding ? <form className="tasks-nav-add" noValidate onSubmit={e => { e.preventDefault(); if (name.trim() && onAddProject(name, colour)) { setName(''); setAdding(false); } }}>

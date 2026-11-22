@@ -58,6 +58,10 @@ const WhenViews = lazy(() => import('./tasks-when-views'));
 const DoneChart = lazy(() => import('./done-chart'));
 // Session AV (owner follow-up 1, F-PLAN-DAY): suggested tasks for today, its own chunk.
 const PlanDay = lazy(() => import('./plan-day'));
+// Session AV lane 2 (tasks): This week, Table, Calendar, Timeline, Insights, Areas and templates, in one chunk.
+const PlanViews = lazy(() => import('./tasks-plan-views'));
+const AREA_KEY = 'zigoals:task-area';
+const PLAN_KINDS = new Set<TaskView['kind']>(['week', 'table', 'days', 'timeline', 'insights', 'organise']);
 const STATE_GROUPS = [{state: 'overdue', title: 'Overdue'}, {state: 'today', title: 'Today'}, {state: 'soon', title: 'Next 7 days'}, {state: 'later', title: 'Later'}, {state: 'someday', title: 'No day'}] as const;
 /** Session AL (P-LS-40, LS-030): a long group shows its first 50 rows; the rest one tap away. */
 const SHOWN_PER_GROUP = 50;
@@ -109,12 +113,17 @@ export function TasksPage() {
 
   // What the view lists: a filter typed in the field narrows any view (and "Search" is the filter on every task).
   const search = useSearch(), matchTasks = search.mod?.matchTasks;
-  const shown = useMemo<Task[]>(() => {
+  // Session AV lane 2 (LEDGER #28; Sunsama's channels, one filter across views): an area chosen here narrows every list view.
+  const [area, setArea] = useState(() => { try { return localStorage.getItem(AREA_KEY) ?? ''; } catch { return ''; } });
+  const chooseArea = (v: string) => { setArea(v); try { if (v) localStorage.setItem(AREA_KEY, v); else localStorage.removeItem(AREA_KEY); } catch { /* this visit only */ } };
+  const areaId = area && record.areas?.some(a => a.id === area) ? area : '';
+  const viewed = useMemo<Task[]>(() => {
     if (view.kind === 'filter') { const saved = record.filters?.find(f => f.id === view.id); return saved && matchTasks ? matchTasks(record, saved.query, {today, nowClock: clock}) : []; }
     // A typed filter searches every task (a project's view: that project's), whatever the view lists.
     if (query.trim() && matchTasks) return matchTasks({...record, tasks: view.kind === 'project' ? record.tasks.filter(t => t.projectId === view.id) : record.tasks}, query, {today, nowClock: clock});
     return view.kind === 'completed' ? [] : viewTasks(record, view, today, clock);
   }, [record, view, today, clock, query, matchTasks]);
+  const shown = useMemo(() => areaId ? viewed.filter(t => record.projects?.find(p => p.id === t.projectId)?.areaId === areaId) : viewed, [viewed, areaId, record.projects]);
   // A saved filter view waits for the search chunk (it would read as empty); a typed query keeps the view's list meanwhile.
   const ready = tasks.loaded && (view.kind !== 'filter' || !!matchTasks);
   const counts = useMemo(() => taskCounts(record, today, clock), [record, today, clock]); // RR-8: the list's own clock
@@ -282,9 +291,11 @@ export function TasksPage() {
   const group = (key: string, title: ReactNode, items: Task[], extra?: ReactNode, drop?: object) => <GroupList key={key} id={key} title={title} items={items} row={row} extra={extra} drop={drop} />;
 
   let body: ReactNode;
-  const own = view.kind === 'evening' || view.kind === 'someday' || view.kind === 'matrix';
-  if (own) {
-    body = <LoadBoundary label={viewTitle(view, record)}><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><WhenViews kind={view.kind} list={list} goals={goals} shown={shown} /></Suspense></LoadBoundary>;
+  const own = view.kind === 'evening' || view.kind === 'someday' || view.kind === 'matrix' || PLAN_KINDS.has(view.kind);
+  if (PLAN_KINDS.has(view.kind)) {
+    body = <LoadBoundary label={viewTitle(view, record)}><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><PlanViews kind={view.kind as 'week'} list={list} goals={goals} /></Suspense></LoadBoundary>;
+  } else if (own) {
+    body = <LoadBoundary label={viewTitle(view, record)}><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><WhenViews kind={view.kind as 'matrix'} list={list} goals={goals} shown={shown} /></Suspense></LoadBoundary>;
   } else if (view.kind === 'completed') {
     // LS-037: the view's window — finished in the last 30 days of this device's days; older ones are only counted.
     const {log, older} = completedInWindow(record, today, list.doneDay), recent = recentlyDone(record, today, list.doneDay);
@@ -300,7 +311,7 @@ export function TasksPage() {
       <p className="fine">Finished tasks are kept 30 days, then they leave this device’s list (export them as CSV first to keep a copy). Tick one again to open it.</p>
     </section>;
   } else if (view.kind === 'project' && board) {
-    const sections = byOrderSections(record, view.id);
+    const sections = byOrderSections(record, view.id).filter(s => !s.archived);
     const column = (sectionId: string | null, name: string) => {
       const items = shown.filter(t => (t.sectionId ?? null) === sectionId);
       return <section key={sectionId ?? 'none'} className="tasks-column" aria-label={`${name}, ${plural(items.length, 'task')}`} {...dropOnProject(view.id, sectionId)}>
@@ -311,7 +322,7 @@ export function TasksPage() {
     };
     body = <div className="tasks-board" role="region" aria-label="Board">{column(null, 'No section')}{sections.map(s => column(s.id, s.name))}<AddSectionForm onAdd={n => list.change(r => addSection(r, view.id, n), `Added the section “${n}”.`)} /></div>;
   } else if (view.kind === 'project') {
-    const sections = byOrderSections(record, view.id);
+    const sections = byOrderSections(record, view.id).filter(s => !s.archived); // Session AV lane 2 (LEDGER #20): an archived section is put away as a block
     body = <>{group('none', null, shown.filter(t => !t.sectionId))}
       {sections.map(s => group(s.id, s.name, shown.filter(t => t.sectionId === s.id), <SectionTools name={s.name} onRename={n => list.change(r => renameSection(r, s.id, n), `Renamed the section to “${n}”.`)} onRemove={() => list.change(r => removeSection(r, s.id), `Removed the section “${s.name}”; its tasks stay in the project.`)} />, dropOnProject(view.id, s.id)))}
       <AddSectionForm onAdd={n => list.change(r => addSection(r, view.id, n), `Added the section “${n}”.`)} /></>;
@@ -343,7 +354,7 @@ export function TasksPage() {
       {reminders.length > 0 && <section className="panel tasks-reminders" aria-label="Reminders">
         <h2>Reminders</h2>
         {/* Session AV (1c, q1 #1): Done, Snooze (15 min, 1 h, tomorrow) and Dismiss on every reminder. */}
-        <ReminderRows reminders={reminders} className="tasks-reminder-list" label="Reminders that have gone off" change={list.change} onDone={t => list.toggle(t, true)} onDismiss={key => setDismissed(s => new Set(s).add(key))} fallback={() => addField.current}
+        <ReminderRows reminders={reminders} className="tasks-reminder-list" label="Reminders that have gone off" change={list.change} onDone={t => list.toggle(t, true)} onDismiss={key => setDismissed(s => new Set(s).add(key))} onFocus={setFocus} fallback={() => addField.current}
           line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}</span>} />
         <p className="fine">Reminders show here and on Today while the app is open. On your device’s notifications only when notifications are switched on in Settings.</p>
       </section>}
@@ -356,6 +367,7 @@ export function TasksPage() {
         <section className="panel tasks-main" aria-labelledby="tasks-view-title">
           <header className="tasks-view-head">
             <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' || own ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
+            {!!record.areas?.length && view.kind !== 'project' && <label className="field tasks-area-pick"><span>Area</span><select value={areaId} onChange={e => chooseArea(e.target.value)}><option value="">All areas</option>{record.areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>}
             {project && <ProjectTools project={project} board={board} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
             {view.kind !== 'completed' && !own && visibleIds.length > 0 && <button type="button" className="secondary tasks-select-mode" aria-pressed={selectMode} onClick={() => { if (selectMode) { setSelected(new Set()); setSelecting(false); } else setSelecting(true); }}>Select</button>}
             {/* Session AV (AT D20): the filter comes once there is a task to filter (it stood before "New task" on an empty list) */}
@@ -373,7 +385,7 @@ export function TasksPage() {
           </EmptyState>}
           {/* Session AV (D-CI1987): below the list, so Today's first task starts where it did (A10-11). */}
           {view.kind === 'today' && !query && (() => { const w = dayLoadWords(viewLoad(shown)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (1c, q1 #39): every task in Today's list, overdue ones too */}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
-          {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}
+          {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} clock={clock} shown={shown} change={list.change} doneDay={list.doneDay} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}
           {view.kind === 'today' && !query && record.tasks.some(t => t.doneAt && list.doneDay(t.doneAt) === today) && <p className="fine"><button type="button" className="text-link" onClick={() => go({kind: 'completed'})}>Done today: {formatNumber(record.tasks.filter(t => t.doneAt && list.doneDay(t.doneAt) === today).length)} →</button></p>}
         </section>
       </div>

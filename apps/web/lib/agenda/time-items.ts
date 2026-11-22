@@ -31,8 +31,9 @@ const ORDER: Record<DaySource, number> = {review: 0, habit: 1, task: 2, meal: 3,
 export const compareDayItems = (a: DayItem, b: DayItem) => (a.time === null ? -1 : 0) - (b.time === null ? -1 : 0) || (a.time ?? '').localeCompare(b.time ?? '') || ORDER[a.source] - ORDER[b.source] || a.title.localeCompare(b.title);
 
 function taskItem(t: Task, date: string, today: string): TaskAgendaItem {
+  // Session AV lane 2 (LEDGER #24; Sunsama's timeboxing): a timed task's block ends after its own minutes (30 when it has none).
   const time = t.time && t.due === date ? t.time : null;
-  return {id: `task:${t.id}:${date}`, source: 'task', pillar: t.goal ? 'goals' : 'life', date, time, minutes: time ? TASK_MINUTES : 0, title: t.title, href: `/app/tasks#task-${t.id}`,
+  return {id: `task:${t.id}:${date}`, source: 'task', pillar: t.goal ? 'goals' : 'life', date, time, minutes: time ? t.minutes ?? TASK_MINUTES : 0, title: t.title, href: `/app/tasks#task-${t.id}`,
     state: t.doneAt ? 'done' : 'open', taskId: t.id, priority: t.priority, ...(t.goal ? {goal: t.goal} : {}), ...(!t.doneAt && t.due && t.due < today ? {overdueSince: t.due} : {})};
 }
 /** The tasks between two days (`doneDay` gives the local day of a finish time). */
