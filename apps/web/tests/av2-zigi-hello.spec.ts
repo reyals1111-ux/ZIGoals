@@ -16,8 +16,13 @@ async function seed(page: Page, extra: Record<string, string> = {}) {
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/app/settings'); await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
   const values = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [ZIGI_HELLO_DAY_KEY]: '2026-11-21', ...extra};
-  await page.evaluate(([v, k]) => { localStorage.clear(); sessionStorage.clear(); for (const [key, x] of Object.entries(v)) localStorage.setItem(key, x); sessionStorage.setItem(k, '1'); }, [values, TEST_HELLO_KEY] as const);
+  // Session AV lane 2 (fixb1; the seed page's own ZIGi starts its alive chunk on idle, up to 2 s after the page, so with
+  // the test's session key set here it could say the day's hello on Settings, after the seed, and keep the day there: the
+  // first-open test then saw no hello on Today and Motion Off found the day already moved on. The key now arrives with the
+  // next page, so the seed page never says hello; every assertion below is unchanged; deliberate.)
+  await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [key, x] of Object.entries(v)) localStorage.setItem(key, x); }, values);
   await page.waitForLoadState('networkidle');
+  await page.addInitScript(k => { try { sessionStorage.setItem(k, '1'); } catch { /* the spec then fails on the hello it expects */ } }, TEST_HELLO_KEY);
 }
 // Every file the launcher's figure shows, as it shows it (poster or clip), from the first paint.
 async function watchFigure(page: Page) {

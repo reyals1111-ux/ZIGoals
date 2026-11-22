@@ -37,7 +37,9 @@ for (const theme of THEMES) test(`${theme}: several journals, a colour each, and
   const filter = entries.getByRole('group', {name: 'Show a journal'});
   await expect(filter.getByRole('button', {name: /Fictional travel/})).toHaveAttribute('aria-pressed', 'true');
   const write = page.getByRole('form', {name: 'Write in your journal'});
-  await expect(write.getByLabel('Journal', {exact: true})).toHaveValue(/^j-/);
+  // Session AV lane 2 (a <select> inside its <label> gives the label its options' words too, so the label text is never
+  // just "Journal"; the combobox's own name is, deliberate)
+  await expect(write.getByRole('combobox', {name: 'Journal', exact: true})).toHaveValue(/^j-/);
   await write.getByLabel('Today’s entry').fill('A fictional train to the coast.');
   await write.getByRole('button', {name: 'Save entry'}).click();
   await expect(rows).toHaveCount(1);
@@ -47,7 +49,7 @@ for (const theme of THEMES) test(`${theme}: several journals, a colour each, and
   await expect(rows).toHaveCount(3);
   const walk = rows.filter({hasText: 'walk by the sea'});
   await walk.locator('details.journal-entry-more > summary').click();
-  await walk.getByLabel('Journal', {exact: true}).selectOption({label: 'Fictional travel'});
+  await walk.getByRole('combobox', {name: 'Journal', exact: true}).selectOption({label: 'Fictional travel'}); // Session AV lane 2 (the combobox's own name, as above; deliberate)
   await walk.getByRole('button', {name: 'Move', exact: true}).click();
   await expect.poll(async () => (await read(page)).entries.find(e => e.id === 'e1')?.journal).toMatch(/^j-/);
   await filter.getByRole('button', {name: /Fictional travel/}).click();

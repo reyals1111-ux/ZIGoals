@@ -78,7 +78,8 @@ for (const theme of THEMES) test(`${theme}: the day planner, This week, the layo
   await page.getByRole('combobox', {name: 'Fictional move'}).selectOption({label: 'Home'});
   await expect.poll(async () => !!(await tasks(page)).projects?.find(p => p.name === 'Fictional move')?.areaId).toBe(true);
   await expect(page.getByRole('navigation', {name: 'Task views'}).getByRole('heading', {name: 'Home'})).toBeVisible();
-  await page.getByRole('combobox', {name: 'Template'}).selectOption({label: 'A trip'});
+  // Session AV lane 2 ("Template" alone also matched "Save a project as a template"; deliberate)
+  await page.getByRole('combobox', {name: 'Template', exact: true}).selectOption({label: 'A trip'});
   await page.getByRole('button', {name: 'Make the project'}).click();
   await expect.poll(async () => (await tasks(page)).projects?.map(p => p.name)).toContain('A trip');
   await clean(page);

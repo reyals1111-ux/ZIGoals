@@ -38,7 +38,8 @@ for (const theme of THEMES) test(`${theme}: an evening check-in, step by step, t
   await page.getByRole('button', {name: 'Low energy, pleasant'}).click();
   await page.getByLabel('Your own word').fill('Fictional snug');
   await page.getByLabel('Your own word').press('Enter');
-  await expect(page.getByRole('button', {name: 'Fictional snug'})).toHaveAttribute('aria-pressed', 'true');
+  // Session AV lane 2 (the word's own button, not its "Remove your word “Fictional snug”" ×, which also contains the name; deliberate)
+  await expect(page.getByRole('button', {name: 'Fictional snug', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', {name: 'Next', exact: true}).click();
 
   // 3 · a factor from the ready list, its level and part of the day

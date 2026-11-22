@@ -30,7 +30,7 @@ for (const theme of THEMES) test(`${theme}: a reminder to write, and the streak 
   await expect(on).not.toBeChecked();
   await on.check();
   await expect.poll(() => read(page)).toEqual({on: true, time: '21:00', days: 127});
-  await fold.getByLabel('At').fill('20:30');
+  await fold.getByLabel('At', {exact: true}).fill('20:30'); // Session AV lane 2 ("At" alone also matched "Saturday"; deliberate)
   const days = fold.getByRole('group', {name: 'On these days'});
   await days.getByRole('button', {name: 'Saturday'}).click();
   await expect(days.getByRole('button', {name: 'Saturday'})).toHaveAttribute('aria-pressed', 'false');
