@@ -172,3 +172,7 @@ The findings: the lead's review of batch 1 (feature/session-av-2 @ 115b134f), nu
   av2-journal.test.ts: `zigi('what did I write in my journal yesterday')` was asserted null ("left to the other
   answers"); it is now this answer's, with its exact words — labelled `review b1 #12, deliberate`. lib/ai green;
   the corpus (expected.json) unchanged.
+
+### #16 The pay-period answer wrote Dutch dates with English money
+- Verdict: fixed. lib/ai/local-answers/av2-tasks.ts `payPeriod` formats money with nl-NL in a Dutch answer ("€ 62,90
+  van € 250,00"); English is unchanged. Test: apps/web/lib/ai/local-answers/revb1-pay-period.test.ts.
