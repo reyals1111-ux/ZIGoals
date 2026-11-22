@@ -57,6 +57,12 @@ export async function putWorkoutPhoto(scope: string, photoId: string, photo: Wor
   await run('readwrite', s => s.put(value, workoutPhotoKey(scope, photoId)));
 }
 export async function deleteWorkoutPhoto(scope: string, photoId: string): Promise<void> { await run('readwrite', s => s.delete(workoutPhotoKey(scope, photoId))); }
+/** Removes every workout photo of this scope (a Showcase's, when it starts or ends; Erase uses the database name). */
+export async function deleteAllWorkoutPhotos(scope: string): Promise<number> {
+  const ids = await workoutPhotoIds(scope);
+  if (ids.length) await run('readwrite', s => { for (const id of ids) s.delete(workoutPhotoKey(scope, id)); });
+  return ids.length;
+}
 const DAY_MS = 86_400_000;
 /**
  * The arrival sweep (as the note photos'): a photo no workout names is marked, and deleted once it stayed unnamed for

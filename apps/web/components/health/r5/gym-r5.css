@@ -37,3 +37,4 @@
 .r5-plates-side { display: grid; gap: 8px; }
 @media (prefers-reduced-motion: reduce) { .r5-band-fill { transition: none !important; } }
 :root[data-app-motion="off"] .r5-band-fill { transition: none !important; }
+.workouts-past summary .r5-star-mark { color: var(--amber, #ffc857); }

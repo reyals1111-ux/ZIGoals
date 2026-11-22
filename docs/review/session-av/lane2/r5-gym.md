@@ -171,3 +171,32 @@ The splits record (`zigoals:workout-splits:v1`, strict) is not touched.
 - Search (static.ts): "single sided", "one side", "sled", "plate loaded machine" → `/app/health?view=workouts`.
 - Showcase hook: none (the Showcase keeps no plate set). Device keys: none. CSS: `gym-r5.css` (`.r5-plates-side`).
 
+## 6. Photos and favourites in the workout journal — LEDGER #377 built; part Carried: photos pinned on a map (needs an outside service: map tiles; a route's points are never kept, `lib/workouts/import-file.ts:9`)
+
+- What: Health → Workouts → Your workouts. Above the list, "All" and "Favourites (n)" (a pressed-button group; with none
+  yet: "No favourites yet. Under All, open a workout and choose Favourite to keep it here."). Each finished workout,
+  opened, has "☆ Favourite" (pressed when starred; its name says which workout) and its summary carries a ★ (read as ", a
+  favourite"). Under it, "Add a photo (0 of 4)" takes or chooses a photo: shrunk on the device to at most 200 kB and kept
+  only in this browser (IndexedDB `zigoals-workout-photos-v1`), never uploaded or synced, and nothing reads it; up to four
+  thumbnails ("Photo 1 of Fictional legs on Nov 18") each with Remove (Undo in the toast; focus goes to the add field). A
+  photo another browser kept shows "This photo is not in this browser." Deleting a workout keeps its photos until the
+  arrival sweep has found no workout naming them for 30 days (as the note photos'), so Undo of a delete or of a Restore
+  finds them again. A Showcase's workout photos are cleared when it starts and ends (`lib/showcase-storage.ts`).
+- Files: `lib/workouts/journal.ts` (new, pure: star, photo ids), `lib/workouts/photos.ts` (the store, stored commit;
+  `deleteAllWorkoutPhotos` here), `components/health/r5/workout-photos.tsx` (new), `components/health/workouts/workouts-view.tsx`
+  (filter, star, the lazy photos part, the sweep), `lib/showcase-storage.ts` (one line), `lib/workouts/showcase.ts` (the
+  star, in commit `3c724539`).
+- Tests: `lib/workouts/av2-r5-journal.test.ts` (fake IndexedDB: scopes, cap, sweep, export files), `lib/workouts/av2-r5-stored.test.ts`
+  (export → erase → restore of `photos` and `star`), `lib/av2-r5-gym-keys.test.ts`; `lib/showcase-photos.test.ts` green.
+  Spec: `tests/av2-r5-photos.spec.ts` (sets a small PNG on the file field).
+- Stored: `photos` and `star` on the workout; the new photo database (see the table).
+- Export everything / Restore / Erase of the photo bytes: the lead's lines, listed in the shared to-do above
+  (`lib/av2-r5-gym-keys.ts`). Until then the ids travel in the workout log and the photos stay in this browser only.
+- Help (EN): **Can I add photos to a workout?** Yes. In Health → Workouts → Your workouts, open a finished workout and
+  choose "Add a photo": up to four. They stay in this browser, are never uploaded or synced, and nothing reads them.
+  **Can I keep favourite workouts?** Yes. Open a workout and choose Favourite; "Favourites" above the list shows only those.
+- What's new: "Workouts: up to four photos on a workout, kept in this browser, and Favourites."
+- Search (static.ts): "workout photos", "favourite workouts", "starred workouts" → `/app/health?view=workouts`.
+- Showcase hook: the last Showcase leg day is starred (no photo: photos are the person's own). No pinned count reads it.
+- CSS: `gym-r5.css` (photos, star, filter).
+

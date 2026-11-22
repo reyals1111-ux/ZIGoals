@@ -50,6 +50,8 @@ import {PLANNED_WORKOUTS} from '../../../lib/workouts/planned';
 import {currentStatus, pausesOf, STATUS_WORDS} from '../../../lib/workouts/status';
 // Session AV lane 2, round 5 (gym; LEDGER #373): a routine that keeps its last weights.
 import {keepLastWeights, restoreRoutine} from '../../../lib/workouts/keep-weights';
+// Session AV lane 2, round 5 (gym; LEDGER #377): a workout's star (Favourites); its photos load in their own chunk.
+import {setStar} from '../../../lib/workouts/journal';
 /** Session AL (P-MO-82, MO-137): "under 1 min" rather than "0 min" for a workout of seconds. */
 const minText = (m: number) => m < 1 ? 'under 1 min' : `${m} min`;
 
@@ -90,6 +92,8 @@ const HrZones = lazy(() => import('../r4/runna-parts').then(m => ({default: m.Hr
 const RacesAhead = lazy(() => import('../r4/runna-parts').then(m => ({default: m.RacesAhead})));
 // Session AV lane 2, round 5 (gym; Gentler Streak, Bevel; LEDGER #374): your status, its own chunk.
 const WorkoutStatus = lazy(() => import('../r5/workout-status'));
+const WorkoutPhotos = lazy(() => import('../r5/workout-photos'));
+const PhotoSweep = lazy(() => import('../r5/workout-photos').then(m => ({default: m.PhotoSweep})));
 const placeNow = (r: WorkoutPlaces | null): Place | null => r?.places.find(p => p.id === r.current) ?? null;
 
 /**
@@ -118,6 +122,8 @@ export default function WorkoutsView() {
   const [tookMinutes, setTookMinutes] = useState('');
   const [asking, setAsking] = useState<null | 'finish' | 'discard' | {remove: string}>(null), [summary, setSummary] = useState<{workout: Workout; bests: PersonalBest[]} | null>(null);
   const [historyOf, setHistoryOf] = useState(''), [editing, setEditing] = useState<string | null>(null);
+  // Session AV lane 2, round 5 (LEDGER #377): the history shows every workout, or only the favourites.
+  const [onlyFavs, setOnlyFavs] = useState(false);
   const ready = record.loaded && health.loaded && !health.error;
   const unit = ready ? dailyData(health.data).preferences.weightUnit : 'kg';
   const today = ready ? healthDay(dailyData(health.data).preferences.timezone) : '';
@@ -298,8 +304,15 @@ export default function WorkoutsView() {
     <section className="panel workouts-history" aria-labelledby="workouts-history-title">
       <h2 id="workouts-history-title">Your workouts</h2>
       <WorkoutsImport w={w} dayOf={iso => healthDay(dailyData(health.data).preferences.timezone, new Date(iso))} zone={healthZone(dailyData(health.data).preferences.timezone)} unit={unit} onAdd={addImported} onAddLifts={addLifts}/>
-      {past.length ? <ul className="workouts-past">{past.slice(0, 30).map(x => <li key={x.id}>
-        <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
+      {/* Session AV lane 2, round 5 (gym; LEDGER #377, Gentler Streak): All or Favourites; the arrival sweep of unnamed photos. */}
+      {!record.unreadable && <Suspense fallback={null}><PhotoSweep w={w}/></Suspense>}
+      {past.length > 0 && <div className="r5-filter" role="group" aria-label="Show workouts">
+        <button type="button" className="quiet" aria-pressed={!onlyFavs} onClick={() => setOnlyFavs(false)}>All</button>
+        <button type="button" className="quiet" aria-pressed={onlyFavs} onClick={() => setOnlyFavs(true)}>Favourites ({past.filter(x => x.star).length})</button>
+      </div>}
+      {past.length > 0 && onlyFavs && !past.some(x => x.star) && <p className="health-empty-inline">No favourites yet. Under All, open a workout and choose Favourite to keep it here.</p>}
+      {past.length ? <ul className="workouts-past">{(onlyFavs ? past.filter(x => x.star) : past).slice(0, 30).map(x => <li key={x.id}>
+        <details><summary><strong>{x.name}</strong>{x.star && <><span className="r5-star-mark" aria-hidden="true"> ★</span><span className="sr-only">, a favourite</span></>}{(x.photos ?? []).length > 0 && <span className="sr-only">, {(x.photos ?? []).length} {plural((x.photos ?? []).length, 'photo')}</span>} <span>{formatDate(x.date)} · {minText(durationMinutes(x))} · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
           {importInfo(x) && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
           {/* Session AV lane 2 (body; LEDGER #110, Strava's per-activity summary, no model): the run beside the runs before it. */}
           {(() => { const r = runSummary(w, splitsRecord.loaded && !splitsRecord.unreadable ? splitsRecord.data : null, x.id); return r ? <p className="fine workouts-run-summary">{runWords(r)}</p> : null; })()}
@@ -308,10 +321,12 @@ export default function WorkoutsView() {
             <option value="">No shoes picked</option>{(w.shoes ?? []).filter(s => !s.retiredAt || s.id === x.shoeId).map(s => <option key={s.id} value={s.id}>{s.name}{s.retiredAt ? ' (retired)' : ''}</option>)}</select></label>}
           {splitsRecord.data.workouts[x.id] && <WorkoutSplitsTable s={splitsRecord.data.workouts[x.id]!} name={x.name}/>}
           {hrRecord.loaded && hrRecord.data.runs[x.id] && <Suspense fallback={null}><HrZones workoutId={x.id} name={x.name}/></Suspense>}
+          <Suspense fallback={null}><WorkoutPhotos workout={x} change={change}/></Suspense>
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unitFor(w, e.exerciseId, unit))}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
             {!current && x.exercises.length > 0 && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
             {x.exercises.length > 0 && <SaveRoutine compact workout={x} onSave={name => change(y => saveTemplate(y, x, name, new Date()), `Routine ${name || x.name} saved.`)}/>}
+            <button className="quiet r5-star" type="button" aria-pressed={x.star === true} aria-label={`Favourite: ${x.name} on ${formatDate(x.date)}`} onClick={() => change(y => setStar(y, x.id, !x.star), x.star ? `${x.name} is no longer a favourite.` : `${x.name} is in your favourites.`)}><span className="r5-star-mark" aria-hidden="true">{x.star ? '★' : '☆'}</span> Favourite</button>
             <button className="quiet" type="button" onClick={() => setAsking({remove: x.id})} aria-label={`Delete ${x.name} on ${formatDate(x.date)}`}>Delete</button>
           </div>
           {typeof asking === 'object' && asking?.remove === x.id && <ConfirmInline title={`Delete ${x.name}?`} confirmLabel="Delete workout" cancelLabel="Keep it" onConfirm={() => void remove(x.id)} onCancel={() => setAsking(null)}><p>Its sets and the minutes it added to Health are removed.</p></ConfirmInline>}
