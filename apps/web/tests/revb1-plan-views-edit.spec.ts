@@ -48,12 +48,22 @@ test('open, edit and move tasks from the Table, the Calendar and the Timeline', 
   await page.getByRole('button', {name: 'Move “Fictional standup” to Wed, Nov 25'}).press('Enter');
   await expect.poll(async () => (await due(page, 'task_standup'))?.due).toBe('2026-11-25');
   expect((await due(page, 'task_standup'))?.time).toBe('10:00');
-  await expect(page.getByRole('region', {name: /Wed, Nov 25/}).getByRole('button', {name: 'Fictional standup'})).toBeFocused();
+  // Session AV lane 2 (fixb1b: the title named exactly; "Fictional standup" alone also matched the day's Move button,
+  // "Move “Fictional standup” to another day"; deliberate, as strict)
+  await expect(page.getByRole('region', {name: /Wed, Nov 25/}).getByRole('button', {name: 'Fictional standup', exact: true})).toBeFocused();
   // …and drag it back to Tuesday.
-  await page.getByRole('region', {name: /Wed, Nov 25/}).getByRole('listitem').filter({hasText: 'Fictional standup'}).dragTo(page.getByRole('region', {name: /Tue, Nov 24/}));
+  // Session AV lane 2 (fixb1b, deliberate, as strict): a real drag, held by the task's time and moved in steps as a hand
+  // does. dragTo's single jump from the row's centre (its Move button) started no drag in about half the runs on :3101.
+  const from = (await page.getByRole('region', {name: /Wed, Nov 25/}).getByRole('listitem').filter({hasText: 'Fictional standup'}).locator('strong').boundingBox())!;
+  const to = (await page.getByRole('region', {name: /Tue, Nov 24/}).boundingBox())!;
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(from.x + from.width / 2 + 12, from.y + from.height / 2, {steps: 4});
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, {steps: 10});
+  await page.mouse.up();
   await expect.poll(async () => (await due(page, 'task_standup'))?.due).toBe('2026-11-24');
   // The title opens the editor here too.
-  await page.getByRole('region', {name: /Tue, Nov 24/}).getByRole('button', {name: 'Fictional standup'}).click();
+  await page.getByRole('region', {name: /Tue, Nov 24/}).getByRole('button', {name: 'Fictional standup', exact: true}).click(); // exact, as above (deliberate)
   await expect(page.getByRole('form', {name: 'Edit “Fictional standup”'})).toBeVisible();
   await page.keyboard.press('Escape');
 
@@ -63,7 +73,7 @@ test('open, edit and move tasks from the Table, the Calendar and the Timeline', 
   await expect(more).toHaveAttribute('aria-expanded', 'false');
   await more.click();
   await expect(page.getByRole('button', {name: /^Show fewer on Fri, Nov 27/})).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.getByRole('table').getByRole('button', {name: 'Fictional errand 4'})).toBeVisible();
+  await expect(page.getByRole('table').getByRole('button', {name: 'Fictional errand 4', exact: true})).toBeVisible(); // exact: "Move “Fictional errand 4” …" also matched (fixb1b, deliberate)
   await clean(page);
 
   // Timeline: the bar's title opens the editor.

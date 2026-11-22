@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../../ah-helpers';
+import {chooseChain} from '../../chain-choice';
 
 // Session AL third pass (lane L6): Professor PR-032 / PR-034 / X3-27 (AL-HELP-006, P-PR-30), Lisbon N-LA-07 (P-LA-31) and
 // the Help part of Denver C-DVG-87 (GAP-165). Fresh profile (the notice shows), desktop 1280. Fails on main, passes on the branch.
@@ -43,9 +44,14 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   for (const [id, starts, parts] of groups) {
     await expect(list.getByRole('link', {name: new RegExp(`^${starts}`)})).toHaveAttribute('href', `#help-${id}`);
     await expect(page.locator(`#help-${id}`)).toHaveCount(1);
-    for (const part of parts) await expect(page.locator(`#help-av-${part}`), part).toHaveCount(1);
+    // Session AV lane 2 (fixb1b; PK-10, owner decision 21 Nov: chain answers wait for the chain choice, deliberate): on
+    // this fresh profile the coin-move and portfolio-value alerts (a chain answer, lib/help/chain-help.ts) are not on the
+    // page and the Money group does not name them; every other part is, as before. The end of this test chooses the chain
+    // and checks that answer is there and named, so all 53 are still checked.
+    for (const part of parts) await expect(page.locator(`#help-av-${part}`), part).toHaveCount(part === 'move-alert' ? 0 : 1);
   }
   expect(groups.flatMap(g => g[2])).toHaveLength(53);
+  await expect(page.locator('#help-av-new-money')).not.toContainText('alerts on a percent move');
   await list.getByRole('link', {name: /^Money: /}).click();
   await expect(page).toHaveURL(/#help-av-new-money$/);
   await expect(page.locator('#help-av-new-money')).toHaveAttribute('open', '');
@@ -58,6 +64,12 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   await list.getByRole('link', {name: /^Tasks with a calendar import/}).click();
   await expect(page).toHaveURL(/#help-tasks-what$/);
   await expect(page.locator('#help-tasks-what')).toHaveAttribute('open', '');
+  // Once the chain is chosen (as Settings → Your pages & buttons does), the alerts answer is on the page and the Money
+  // group names it (Session AV lane 2, fixb1b, deliberate).
+  await chooseChain(page);
+  await page.goto('/app/help'); await hydrated(page);
+  await expect(page.locator('#help-av-move-alert')).toHaveCount(1);
+  await expect(page.locator('#help-av-new-money')).toContainText('alerts on a percent move and on a portfolio’s value; a month in short');
 });
 
 test('N-LA-07: Help lists the private screens that pause ZIGi, and why', async ({page}) => {

@@ -12,6 +12,9 @@
  */
 export const CHAIN_HELP: readonly (readonly [id: string, question: string])[] = [
   ['av-move-alert', 'Can I be told when a coin moves by a percent, or my portfolio reaches a value?'],
+  ['av2-money-can-an-alert-follow-a-day-s-move-rather', 'Can an alert follow a day’s move rather than a fixed price?'],
+  ['av2-money-can-i-leave-a-transaction-out-of-my-prof', 'Can I leave a transaction out of my profit and loss?'],
+  ['av2-money-what-was-my-portfolio-worth-on-a-past-da', 'What was my portfolio worth on a past day?'],
   ['al-more-pages', 'Where are Earn, Staking, Governance and Ecosystem?'],
   ['al-wallets', 'Can I rename or remove a wallet I track?'],
   ['al-ledger', 'Can I stake with a Ledger, or from a multisig account?'],
