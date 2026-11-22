@@ -74,9 +74,11 @@ export function ExtrasSyncChoice({opened, busy, health, status, onEnable, onRemo
     try { const {writeExtrasChoice} = await import('../../lib/vault/extras-sync'); writeExtrasChoice(getAppStorage(), {enabled: choice.enabled, explained: true}); setChoice({...choice, explained: true}); }
     catch { setNote('This could not be saved on this device.'); }
   }
+  // Session AV lane 2 (fixb2): while a sync runs the boxes say they are unavailable (aria-disabled) and take no change, but
+  // stay focusable: a ticked box that turned `disabled` as the sync it started ran dropped the keyboard's focus to the page.
   const said = line(status, health);
   return <div className="extras-sync-choice" data-region="extras-sync">
-    <label className="checkbox" htmlFor={id + 'extras'}><input id={id + 'extras'} type="checkbox" checked={choice.enabled} disabled={busy} aria-describedby={id + 'extras-note'} onChange={e => void choose(e.target.checked)} />Also sync my extras</label>
+    <label className="checkbox" htmlFor={id + 'extras'}><input id={id + 'extras'} type="checkbox" checked={choice.enabled} aria-disabled={busy || undefined} aria-describedby={id + 'extras-note'} onChange={e => { if (!busy) void choose(e.target.checked); }} />Also sync my extras</label>
     <p className="fine" id={id + 'extras-note'}>Encrypted like your account records, in their own sections that older versions of ZIGoals leave alone. Turning this off stops extras transfers on this device; it does not delete the copy.</p>
     {!choice.explained && <div className="notice" role="note" aria-labelledby={id + 'extras-new'}>
       <p id={id + 'extras-new'}><strong>New:</strong> {EXTRAS_EXPLAINED}</p>
@@ -87,7 +89,7 @@ export function ExtrasSyncChoice({opened, busy, health, status, onEnable, onRemo
     {choice.enabled && <div className="extras-sync-sections" role="group" aria-labelledby={id + 'sections'}>
       <p id={id + 'sections'}><strong>Also, if you choose</strong> — these stayed on this device until now, so each travels only once you tick it here:</p>
       {SECTION_CHOICES.map(c => <div key={c.name} className="extras-sync-section">
-        <label className="checkbox" htmlFor={id + c.name}><input id={id + c.name} type="checkbox" checked={sections[c.name]} disabled={busy} aria-describedby={id + c.name + '-note'} onChange={e => void chooseSection(c.name, e.target.checked)} />{c.label}</label>
+        <label className="checkbox" htmlFor={id + c.name}><input id={id + c.name} type="checkbox" checked={sections[c.name]} aria-disabled={busy || undefined} aria-describedby={id + c.name + '-note'} onChange={e => { if (!busy) void chooseSection(c.name, e.target.checked); }} />{c.label}</label>
         <p className="fine" id={id + c.name + '-note'}>{c.note}{c.name === 'workouts' && sections.workouts && !health ? ' Health sync is off in this tab, so it waits on this device.' : ''}</p>
         {opened && sections[c.name] && (removing === c.name
           ? <div className="actions"><p className="fine">Every device then stops syncing it, and each keeps its own.</p><button type="button" className="secondary" disabled={busy} onClick={() => { setRemoving(null); refocus(id + c.name); void onRemove(c.name); }}>{c.removeLabel}</button><button type="button" className="quiet" onClick={() => { setRemoving(null); refocus(id + c.name + '-remove'); }}>Keep it</button></div>
