@@ -449,7 +449,7 @@ DISHES/ARTICLE, `components/health/daily-tools.tsx` "fresh", `components/health/
   (`lib/ai/local-answers/av2-food.ts`; in node pass `{}`). It reads `zigoals:food-plus:v1` and `zigoals:health-extras:v1`.
   Suggested order: before `avAnswer` is safe (every pattern is specific; tests check that task reminders, budget
   targets, Goals, "plan my day" and "what did I eat today" are left alone).
-- **Corpus**: add `AV2_FOOD` (`lib/ai/evals/as/cases-av2-food.ts`, 17 intents, EN + NL) to `CORPUS` in `cases.ts` and
+- **Corpus**: add `AV2_FOOD` (`lib/ai/evals/as/cases-av2-food.ts`, 15 intents, EN + NL) to `CORPUS` in `cases.ts` and
   record `expected.json`.
 - **Registries** (`lib/av2-food-keys.ts`): personal key, export (`foodPlus`), catalog (Health), restore (`dev('foodPlus',
   …, FOOD_PLUS, true)` with Health), erase; the IndexedDB database `zigoals-food-photos-v1` in the erased databases,
