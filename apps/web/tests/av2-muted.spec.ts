@@ -28,7 +28,9 @@ for (const theme of THEMES) test(`${theme}: hide a question, a template and a br
   await expect(hide).toBeFocused();
   expect((await read(page))?.questions).toHaveLength(1);
 
-  await form.getByText('Start from a prompt').click();
+  // Session AV lane 2 (the fold's own summary: the "Hidden: …" status names "Start from a prompt" too; deliberate)
+  const prompts = form.locator('details.prompt-fold > summary').getByText('Start from a prompt', {exact: true});
+  await prompts.click();
   await expect(form.getByRole('list', {name: 'Prompts'}).getByRole('button', {name: /Gratitude/})).toBeVisible();
   await form.getByText('Hidden prompts and exercises').click();
   const hidden = form.getByRole('group', {name: 'Hidden daily questions (untick to ask again)'});
@@ -45,8 +47,8 @@ for (const theme of THEMES) test(`${theme}: hide a question, a template and a br
   const findings = await axe(page, form);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   // Closing and opening the prompts again: Gratitude is no longer offered.
-  await form.getByText('Start from a prompt').click();
-  await form.getByText('Start from a prompt').click();
+  await prompts.click();
+  await prompts.click();
   await expect(form.getByRole('list', {name: 'Prompts'}).getByRole('button', {name: /Gratitude/})).toHaveCount(0);
 
   // Health → Meditation: hide 4-7-8.
