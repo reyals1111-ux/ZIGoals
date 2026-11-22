@@ -76,3 +76,39 @@ the energy, food-plus and workouts fields; the two new keys' round trips run onc
 - Showcase hook: none needed (the Showcase's sessions already fill "Your consistency"; no pinned count reads it).
 - Device keys / catalogue / export / erase: nothing new. Route weight: the meditation view (lazy already) gains one
   `lazy()` line; `lib/meditation/stats.ts` gains `day-boundary-core` (already in the shell).
+
+## 2. Tonight's bedtime, and time asleep of time in bed — LEDGER #419, #423 built
+
+- What:
+  - #419 Health → Sleep → Tonight: "Tonight's bedtime — Bed by 23:00 for your 7 h 30 min before your usual 06:45 wake, with
+    your usual 15 min to fall asleep." From the goal's hours, the middle wake time of the last 14 nights (at least 4) and
+    the middle of the times to fall asleep typed in those nights (at least 3; else left out, and a line says so). "Waking
+    at another time tomorrow? (tonight only)" takes a wake time for tomorrow, kept on the page for that night only
+    (nothing stored; the ledger's "kept for that night only" without a stored field, as its "Derived; nothing stored"
+    asks), with "Use my usual wake time". The bedtime window the person typed in their goal wins when set ("Your bedtime
+    window: 22:30–23:30, for your 7 h 30 min."). Empty states teach (no goal; too few nights). "How this is worked out"
+    says it is a fact from the person's own log, not advice. The Health page's Sleep card says "Tonight: Bed by …" from
+    17:00 in the person's zone while no night is running (one line, no tab stop).
+  - #423 each night in Recent nights and naps: "Asleep 6 h 50 min of 7 h 40 min in bed (89 %)", ", an estimate" when the
+    time to fall asleep or the time awake was not typed; under Your last 7 days: "Asleep of time in bed, a night on
+    average: … (n %)" with the same estimate words. Never a judgement of the number.
+- Today: not added to Today's wind-down card. That card (components/reminders/reminder-cards.tsx) is shown without the
+  Health gate, and the bedtime is derived from the Health sleep record, so it stays inside Health (the ledger listed "the
+  Today sleep card"; there is no Today sleep card other than this reminder).
+- Files: `lib/sleep/tonight.ts` (new, pure), `lib/sleep/night.ts` (`efficiency`), `lib/sleep/longer.ts` (`efficiencyOf`),
+  `components/health/r6/sleep-parts.tsx` (new), `components/health/sleep/sleep-view.tsx` (one `lazy()` line, three places;
+  the night's efficiency inline), `components/health/sleep/sleep-card.tsx` (one `lazy()` line), `body-r6.css`.
+- Tests: `lib/sleep/av2-r6-sleep.test.ts`; existing sleep tests green (the night line is unchanged; the efficiency is its
+  own line, so `tests/sleep.spec.ts` reads as before). Spec: `tests/av2-r6-sleep.spec.ts`.
+- Stored: nothing.
+- Help (EN): **What time should I go to bed for my sleep goal?** Health → Sleep → Tonight works it out from your own log:
+  your sleep goal back from your usual wake time (the middle one of your last 14 nights), with your usual time to fall
+  asleep when you have typed it. Waking at another time tomorrow? Type it there; it is used for tonight only. If you set a
+  bedtime window in your goal, that is shown instead. **What is "asleep of time in bed"?** Each night shows how much of your
+  time in bed you were asleep ("Asleep 6 h 50 min of 7 h 40 min in bed (89 %)"), and the last 7 days their average. It is
+  an estimate when you did not type the time to fall asleep or the time awake.
+- What's new: "Sleep: tonight's bedtime from your goal and usual wake time, and time asleep of time in bed."
+- Search (static.ts): "bedtime tonight", "what time to go to bed", "sleep efficiency", "time in bed" → `/app/health?view=sleep`.
+- Showcase hook: none needed (the Showcase's nights and goal fill both; no pinned count reads them).
+- Device keys / catalogue / export / erase: nothing new. Route weight: /app/health's first chunk gains one `lazy()` line
+  on the Sleep card and `wallClock` (zone-time, already there); the rest is in the Sleep view's chunk and `r6/sleep-parts`.
