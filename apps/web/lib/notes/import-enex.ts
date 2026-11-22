@@ -179,7 +179,9 @@ export function foreignFiles(notes: readonly ForeignNote[]): {files: ImportFile[
     let name = n.name, k = 2;
     while (used.has(name.toLowerCase())) name = n.name.replace(/\.md$/, ` ${k++}.md`);
     used.add(name.toLowerCase());
-    const fm = ['---', `title: ${JSON.stringify(n.title)}`, ...(n.created ? [`created: ${n.created}`] : []), ...(n.tags.length ? [`tags: [${n.tags.map(t => JSON.stringify(t.replace(/\s+/g, '-'))).join(', ')}]`] : []), '---', ''];
+    // Review b4g B4G-3: always its own topic note — a title that is a day ("2026-11-01") must never append to that day's
+    // note, where its photos would be lost and their placeholders left in the words.
+    const fm = ['---', `title: ${JSON.stringify(n.title)}`, 'type: topic', ...(n.created ? [`created: ${n.created}`] : []), ...(n.tags.length ? [`tags: [${n.tags.map(t => JSON.stringify(t.replace(/\s+/g, '-'))).join(', ')}]`] : []), '---', ''];
     files.push({name, data: enc.encode(`${fm.join('\n')}${n.body}\n`)});
     if (n.images.length) images.set(name, n.images);
   }

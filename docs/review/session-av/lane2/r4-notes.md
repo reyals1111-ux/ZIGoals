@@ -401,3 +401,7 @@ before (an archived note in its list; only the first photo).
   gallery, board, chart) now draws `shownOf(note)` (`lib/notes/lock.ts`): a locked note keeps its name, kind, days and
   the lock only — no words, tags, photos (B4G-1: the gallery's thumbnail) or properties (the table's property columns,
   the board's columns and filters). Test: `lib/notes/b4g-locked-views.test.ts`.
+- **B4G-3 (Major): a foreign note titled with a day.** Evernote and Bear notes are written for the plan with
+  `type: topic`, so a title such as "2026-11-01" makes its own note (its photos kept, its lines named) and never appends
+  to that day's note; and words appended to a day's note never keep an import's `![photo](imp-…)` placeholder lines.
+  Test: `lib/notes/b4g-import-days.test.ts`.
