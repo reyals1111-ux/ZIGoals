@@ -47,7 +47,10 @@ describe('every corpus question gets its own answer, in its language, from NOVA 
   });
   test('no question of today’s corpus is answered here (wiring it first moves nothing)', () => {
     const taken: string[] = [], n = novaEnv(showcaseAll()), z = zigiEnv(showcaseAll());
-    for (const c of CORPUS) for (const q of [...c.en, ...c.nl]) if (av2R5NotesAnswer(q, n) || av2R5NotesAnswer(q, z)) taken.push(`${c.id}: ${q}`);
+    // Session AV lane 2 (the lead added AV2_R5_NOTES to CORPUS, deliberate): its own intents are its to answer; every other
+    // intent of the corpus must still be left alone.
+    const own = new Set(AV2_R5_NOTES.map(c => c.id));
+    for (const c of CORPUS.filter(x => !own.has(x.id))) for (const q of [...c.en, ...c.nl]) if (av2R5NotesAnswer(q, n) || av2R5NotesAnswer(q, z)) taken.push(`${c.id}: ${q}`);
     expect(taken).toEqual([]);
   }, 120_000);
 });
