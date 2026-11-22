@@ -1,0 +1,34 @@
+# Lane 2 batch 2: fresh review A fixes (slug `revb2a`, branch `lane2/revb2a`)
+
+The findings: fresh review A of batch 2's money, tasks and sync work (lane2/batch2 @ 23eaf493), numbered as there
+(B2A-1 … B2A-10). One commit per finding, Blockers first. No stored format changes in any of them.
+
+The reference for every money figure is Wealth → Spending (`totals` and `byCategory` in apps/web/lib/money-log/engine.ts):
+an entry marked "Not part of my spending" is not counted, both sides of a transfer are not counted, a Settle-up refund
+(kept as a left-out income entry, lib/money-more/people.ts `settle`) is not income, and a shared cost counts the person's
+own share. Budgets add one rule: an entry spread over months counts each month's share (`budgetMonthParts`). The rule is
+pure and lives in apps/web/lib/money-log/counted.ts (`isCounted`, `mineCents`, `mineParts`, `budgetMonthParts`, and,
+new here, `countedCents` and `budgetDayParts`). The shared unit test is apps/web/lib/money-log/revb2a-one-figure.test.ts:
+the reviewer's probe month (€10 counted, €50 left out, €30 shared with share €10) plus a transfer pair, a Settle-up refund
+and a salary is €20.00 spent and €1,000.00 in, in every place.
+
+## B2A-1 Blocker: NOVA's and ZIGi's money answers counted every entry
+
+- Verdict: fixed.
+- Fix: the exact layer's `ledger` (apps/web/lib/ai/local-answers/exact/money.ts, used by `spendingAnswer` and by every
+  NOVA money widget) keeps counted entries only and sums `countedCents` (an expense by the person's share, income whole).
+  NOVA's spending widgets (apps/web/lib/nova/cards/ax/money-spend.ts) sum the same way where they did not go through
+  `ledger`: the days with spending (`spendTrack`), the thirteen-week heat (`spendingHeat`) and the income and spending
+  river (`cashRiver`); the ranked bars' "last entry" day is the newest counted entry. Only the figures changed: no layout,
+  wording or look of any card (AR's NOVA composition untouched). The "largest expense" line still names what that entry
+  paid (as NOVA's Spending card does), now chosen among counted entries only.
+- Tests: apps/web/lib/money-log/revb2a-one-figure.test.ts ("B2A-1": `ledger` €20.00 in two entries, €1,000.00 came in,
+  a transfer's category has nothing; ranks, twins and savings gauge; days, heat and river). The existing
+  apps/web/lib/nova/cards/ax/money-spend.test.ts stays green unchanged.
+- NOVA corpus (`pnpm exec vitest run apps/web/lib/ai/evals/as/corpus.test.ts`): passes unchanged; no case's answer
+  changes. The Showcase money log holds no entry left out, no transfer and no shared cost, so its figures are the same by
+  both rules. expected.json was not re-recorded.
+- Spec: none (the answers' figures are unit-tested; the Showcase cannot show the difference).
+- Help (EN), for the NOVA / ZIGi money answer: "What NOVA and ZIGi say you spent is what Wealth → Spending shows:
+  entries left out, transfers and money paid back are not counted, and a shared cost counts your share."
+- What's new: "NOVA and ZIGi count your spending as Wealth → Spending does."

@@ -28,6 +28,13 @@ export function mineParts(e: MoneyEntry): EntryPart[] {
   for (let i = 0; rest > 0 && scaled.length; i = (i + 1) % scaled.length, rest--) scaled[i]!.cents++;
   return scaled;
 }
+/**
+ * Review b2a #1 (one month's spending is one figure everywhere): what one entry adds to a spending or income figure, in
+ * cents, by Wealth → Spending's rule (lib/money-log/engine.ts `totals`): nothing for an entry left out of the figures, a
+ * Settle-up refund (kept as a left-out income entry) or either side of a transfer; an expense counts the person's own
+ * share; income counts whole. NOVA's and ZIGi's money answers and widgets sum through this.
+ */
+export const countedCents = (e: Pick<MoneyEntry, 'kind' | 'amount' | 'share' | 'excluded' | 'transfer'>): number => !isCounted(e) ? 0 : e.kind === 'expense' ? mineCents(e) : minorUnits(e.amount);
 const monthIndex = (m: string) => Number(m.slice(0, 4)) * 12 + Number(m.slice(5, 7)) - 1;
 /**
  * What an expense counts in a month's budgets: its parts in its own month, or — spread over `spread` months from its own
