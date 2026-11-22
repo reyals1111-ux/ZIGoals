@@ -98,3 +98,23 @@ describe('this year so far against the budgets (#385)', () => {
     expect(text(zigi('show my budgets year to date', freshAll()))).toContain('No budgets yet.');
   });
 });
+
+describe('a bill paid early (#386)', () => {
+  const bills = {version: 1 as const, dismissed: [], bills: [
+    {id: 'rent', title: 'Rent', amount: '800.00', currency: 'EUR', cadence: 'monthly' as const, nextDue: '2026-12-15', origin: 'manual' as const, matchKey: 'EUR|Home|landlord|monthly', createdAt: AT},
+    {id: 'gym', title: 'Gym', amount: '30.00', currency: 'EUR', cadence: 'monthly' as const, nextDue: '2026-12-10', origin: 'manual' as const, createdAt: AT},
+  ]};
+  const entries = [mine({category: 'Home', amount: '800.00', note: 'Landlord', date: '2026-11-03'})];
+  const s = withAk(withLog(freshAll(), entries), {bills});
+  test('English: the bill, its due day, the day it was paid; a passed date points to Paid early?', () => {
+    expect(text(zigi('did I pay any bill early', s))).toBe('Paid early this month: Rent (due Sun, Nov 15, paid Tue, Nov 3, €800.00). 1 date has passed without a payment in your money log: "Paid early?" beside it in Wealth → Upcoming bills → Bill tracker lists the expenses of the days before.');
+  });
+  test('Dutch', () => {
+    const nl = text(zigi('welke rekeningen zijn te vroeg afgeschreven', s));
+    expect(nl).toContain('Deze maand vroeg betaald: Rent (vervaldag');
+    expect(nl).toContain('€ 800,00');
+  });
+  test('no bills teaches where to add one', () => {
+    expect(text(zigi('which bill did I pay ahead of its due date', freshAll()))).toContain('No bills are tracked yet.');
+  });
+});

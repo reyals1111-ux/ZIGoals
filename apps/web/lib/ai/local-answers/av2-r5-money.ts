@@ -3,6 +3,7 @@ import type {Accounts} from '../../accounts/schema';
 import {yesterdayMoney} from '../../money-log/yesterday';
 import {yearSoFar} from '../../budgets/year-so-far';
 import type {BudgetsRecord} from '../../budgets/schema';
+import {MATCH_DAYS, monthMatches} from '../../bills/month';
 import type {NotifyPrefs} from '../../notify/prefs';
 import {typeOn} from '../../notify/prefs';
 import type {ToolEnv} from '../tools/env';
@@ -84,3 +85,24 @@ function yearBudgets(a: Asked): LocalReply | null {
     `${data.year} tot nu toe: ${list(totals('nl'), 'nl')}. Per budget: ${list(rows('nl'), 'nl')}${data.rows.length > 5 ? ` en nog ${data.rows.length - 5}` : ''}. Het budget van elke maand naast wat je uitgaf, geteld zoals je budgetten tellen; het staat in ${PLACES.budgets.nl} → "${data.year} so far against your budgets".`), calls);
 }
 add(yearBudgets);
+
+// ── A bill paid early (#386) ───────────────────────────────────────────────────────────────────────────────────────
+/** "Did I pay any bill early", "welke rekeningen zijn te vroeg afgeschreven". */
+function paidEarly(a: Asked): LocalReply | null {
+  const en = /\bbills?\b/.test(a.f) && /\bpa(?:y|id)\b/.test(a.f) && /\bearly\b|\bahead of (?:its|the|their) (?:date|due date|day)s?\b/.test(a.f);
+  const nl = /\brekening(?:en)?\b/.test(a.f) && /\b(?:vroeg|eerder)\b/.test(a.f) && /\bafgeschreven\b|\bging(?:en)?\b.*\baf\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const record = akOf(a.env).bills, calls = call('bills', {month: a.today.slice(0, 7), early: true}, 'Bills · paid early');
+  if (!record?.bills.length) return answer(say(a.lang, `No bills are tracked yet. Add one in ${PLACES.bills.en.replace(' → Bill tracker', '')}; a date that passes without its payment then offers "Paid early?".`,
+    `Er worden nog geen rekeningen bijgehouden. Voeg er een toe in ${PLACES.bills.nl.replace(' → Bill tracker', '')}; een datum die voorbijgaat zonder betaling biedt dan "Paid early?".`), calls);
+  const entries = entriesOf(a.env), byId = new Map(entries.map(e => [e.id, e])), {lines, matched} = monthMatches(record, entries, a.today);
+  const early = lines.flatMap(l => { const e = byId.get(matched.get(`${l.billId}|${l.due}`) ?? ''); return e && Math.round((Date.parse(`${l.due}T12:00:00Z`) - Date.parse(`${e.date}T12:00:00Z`)) / 86_400_000) > MATCH_DAYS ? [{l, e}] : []; });
+  const passed = lines.filter(l => l.state === 'passed');
+  const item = (lang: Lang, x: typeof early[number]) => say(lang, `${x.l.title} (due ${dayIn('en', x.l.due, a.today)}, paid ${dayIn('en', x.e.date, a.today)}, ${moneyIn('en', x.l.cents, x.l.currency)})`, `${x.l.title} (vervaldag ${dayIn('nl', x.l.due, a.today)}, betaald ${dayIn('nl', x.e.date, a.today)}, ${moneyIn('nl', x.l.cents, x.l.currency)})`);
+  const rest = (lang: Lang) => passed.length ? say(lang, ` ${passed.length} ${passed.length === 1 ? 'date has' : 'dates have'} passed without a payment in your money log: "Paid early?" beside ${passed.length === 1 ? 'it' : 'each'} in ${PLACES.bills.en} lists the expenses of the days before.`,
+    ` ${passed.length} ${passed.length === 1 ? 'datum is' : 'data zijn'} voorbij zonder betaling in je uitgavenlog: "Paid early?" ernaast in ${PLACES.bills.nl} toont de uitgaven van de dagen ervoor.`) : '';
+  if (!early.length) return answer(say(a.lang, `No bill this month was paid more than ${MATCH_DAYS} days early, as your money log shows it.${rest('en')}`, `Deze maand is geen rekening meer dan ${MATCH_DAYS} dagen te vroeg betaald, volgens je uitgavenlog.${rest('nl')}`), calls);
+  return answer(say(a.lang, `Paid early this month: ${list(early.map(x => item('en', x)), 'en')}.${rest('en')}`, `Deze maand vroeg betaald: ${list(early.map(x => item('nl', x)), 'nl')}.${rest('nl')}`), calls);
+}
+add(paidEarly);

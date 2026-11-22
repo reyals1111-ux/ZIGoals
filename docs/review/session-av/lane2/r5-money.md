@@ -115,3 +115,36 @@ corpus (`CORPUS`) nor round 4's (`AV2_R4_MONEY`), and the answers that run befor
   Budgets. Empty state teaches ("No budgets yet. Once you set a budget, each month of 2026 adds up here…").
 - Registries: none. CSS touched: `components/wealth/spending/money-r5.css`.
 - Today: nothing added.
+
+### R5-F3 (group V6). A bill paid early
+
+- LEDGER row: #386 PocketSmith an overdue bill paid early — **built** (Wealth → Upcoming bills → Bill tracker → a due date
+  shown as "date passed, not in your money log" → "Paid early?": the expenses of the 14 days before it (6 for a weekly
+  bill) in the bill's currency, within 5 % of its amount and not already counted for another bill date, closest amount
+  first, each with its payee, category, day and how many days before; "This was it" counts one as that payment — the
+  bill's match words learn that entry's payee and category, so the date shows "paid: in your money log", and later dates
+  find the same payee even when paid early; Undo puts the match words back; focus moves to "To pay this month". When the
+  bill was a confirmed candidate whose words change, its old candidate key goes to the dismissed list, so it is never
+  offered again as a new bill (Undo takes it off again). None found: it says so and points to Mark paid.)
+- Spending function used: none (no spending figure). The bill matching itself (lib/bills/month.ts `monthMatches`, which
+  `billsThisMonth` now uses) gains one rule: an expense of the bill's own match words (`matchKey`) counts as its payment
+  from up to 14 days (weekly: 6) before the due date, as well as within 4 days of it as before. Every other rule is
+  unchanged; the existing bills, cash-forecast, budgets and money-extras tests are green unchanged.
+- Files: `lib/bills/month.ts` (`monthMatches`, `entryMatchKey`, `EARLY_DAYS`, `earlyDays`), `lib/bills/paid-early.ts`
+  (new), `components/wealth/bills/paid-early.tsx` (new, in the tracker's lazy chunk),
+  `components/wealth/bills/bill-tracker.tsx` (the button and the panel), `components/wealth/spending/money-r5.css`
+  (`.bill-paid-early*`).
+- Tests: `lib/bills/av2-paid-early.test.ts`, `lib/ai/local-answers/av2-r5-money.test.ts`.
+- Spec: `tests/av2-money-paid-early.spec.ts`.
+- Stored: nothing new. Writes the bill's existing `matchKey` and, for a confirmed candidate, the existing `dismissed` list
+  of `zigoals:bills:v1`. The money log is never changed.
+- Help (EN): **Q: I paid a bill before its date and ZIGoals says it has not been paid. What do I do?** A: In Wealth →
+  Upcoming bills → Bill tracker, tap "Paid early?" beside that date. It lists your expenses of the two weeks before it
+  with about the bill's amount; tap "This was it" on the right one. The bill then knows that payee, so it finds the
+  payment next time too. Undo puts it back.
+- What's new: "Bills: a bill paid early is found — tap Paid early? and choose the payment."
+- Answers: `paidEarly` (corpus `av2r5-money-paid-early`; reads `env.ak.bills` and `env.moneyLog`).
+- Showcase hook: none (the Showcase's bills and money log are pinned; a choice made in the Showcase stays in its tab). The
+  empty state teaches ("No expense of about €800.00 in those days. Log it in Spending, or use Mark paid.").
+- Registries: none. CSS touched: `components/wealth/spending/money-r5.css` (imported by the tracker's chunk).
+- Today: nothing added. A passed date in the Bill tracker gains one button ("Paid early?").
