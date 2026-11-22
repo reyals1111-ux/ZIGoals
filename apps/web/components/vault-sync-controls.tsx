@@ -87,11 +87,16 @@ export function VaultSyncEngine(){
  // which check identity on load themselves; `verified` is the account that panel last verified.
  const [remembered,setRemembered]=useState(false),[deviceNote,setDeviceNote]=useState(''),[accessEpoch,setAccessEpoch]=useState(0);
  const manualLock=useRef(false),reopening=useRef(false),retryAt=useRef(0),access=useRef(0),verified=useRef<string|null>(null),reopenRef=useRef<(reason:'load'|'focus'|'expiry')=>Promise<void>>(async()=>{});
+ // Session AV lane 2 (TIER 3 sync): the Health choice this tab had when another tab's sign-in (or a token expiry) locked it.
+ // Health consent is each tab's own ("Turning this off stops Health transfers on this tab"); the remembered record holds the
+ // choice of whichever tab set it last, so a reopen in this tab never turns on Health that was off here. In memory only: a
+ // reload or a new tab starts from the remembered choice, as before. Cleared when this tab opens a vault or signs out.
+ const lockedHealth=useRef<{account:string;health:boolean}|null>(null);
  // A local edit during a running sync is not in that sync's snapshot: remember it and schedule one follow-up sync when the sync finishes.
  const syncing=useRef(false),followUp=useRef(false),scheduleRef=useRef<()=>void>(()=>{});
  // The automatic sync that is running now (if any), and whether a person's action is waiting for it to end.
  const automaticRun=useRef<Promise<void>|null>(null),waiting=useRef(false);
- function forget(){setHealthAsk(false);setVaultGone(null);running.current=null;followUp.current=false;setBusy(false);setPortfolio(null);setExtras(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setMessage('Account sync is locked.');setLast('');setSections({});setPortfolioAt('');setError('');
+ function forget(){lockedHealth.current=null;setHealthAsk(false);setVaultGone(null);running.current=null;followUp.current=false;setBusy(false);setPortfolio(null);setExtras(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setMessage('Account sync is locked.');setLast('');setSections({});setPortfolioAt('');setError('');
   // Sign-out forgets every remembered device on this browser; its server session is revoked too, so nothing it held can open again.
   verified.current=null;setRemembered(false);setDeviceNote('');void forgetDevices().catch(()=>setDeviceNote(NOT_FORGOTTEN));}
  function selectionFence(id:string,generation:number){if(isShowcase()||getAccountScope()!==id||getAccountGeneration()!==generation)throw Error('Account selection changed. No result was applied.');}
@@ -146,10 +151,12 @@ export function VaultSyncEngine(){
   else{try{key=await openDeviceRoot(record.key,record.sealed,id,m);}catch{await drop();fence();return false;}fence();binding=await migrateDevice(record,key);}
   fence();
   // The remembered Health choice (M1 e) passes the same check as ticking the box: not while Health is held after deletion.
-  const consent=record.health&&!await healthHeld(id);fence();
+  // A tab that had Health off when another tab locked it keeps it off (lockedHealth above); the record is left as it is.
+  const held=record.health&&await healthHeld(id);fence();
+  const kept=lockedHealth.current,own=kept?.account!==id.toLowerCase()||kept.health,consent=record.health&&!held&&own;
   if(!await stillRemembered(binding).catch(()=>false)){fence();setRemembered(false);return false;}fence();
   open(id,key,m,consent,binding);setDeviceNote('');
-  if(record.health&&!consent)void rememberHealth(binding,false).catch(()=>{});
+  if(held)void rememberHealth(binding,false).catch(()=>{});
   return true;
  }
  /**
@@ -168,7 +175,7 @@ export function VaultSyncEngine(){
   return bindingOf(record);
  }
  async function healthHeld(id:string){try{return !!(await new SyncJournal(id).read()).heldDomains?.includes('health');}catch{return true;}}
- function open(id:string,key:CryptoKey,m:VaultManifest,consent:boolean,device:DeviceBinding|null=null){unlockAccount();const generation=getAccountGeneration();session.current={account:id,generation,key,manifest:m,health:consent,device};auto.current=true;idle.current=Date.now();manualLock.current=false;setOpened(true);setAccount(id);setManifest(m);setHealthState(consent);setGenerated(null);setRemembered(!!device);setMessage('Vault unlocked. Preparing account sync…');}
+ function open(id:string,key:CryptoKey,m:VaultManifest,consent:boolean,device:DeviceBinding|null=null){unlockAccount();lockedHealth.current=null;const generation=getAccountGeneration();session.current={account:id,generation,key,manifest:m,health:consent,device};auto.current=true;idle.current=Date.now();manualLock.current=false;setOpened(true);setAccount(id);setManifest(m);setHealthState(consent);setGenerated(null);setRemembered(!!device);setMessage('Vault unlocked. Preparing account sync…');}
  /** One decryption with the recovery secret that also seals the root for this device (before it is wiped). */
  async function sealForDevice(m:VaultManifest,secret:string,id:string):Promise<Sealed>{const forgets=await forgetCount().catch(()=>null),deviceKey=await createDeviceKey(),{key,sealed}=await unlockVaultForDevice(m,secret,id,deviceKey);return {key,sealed,deviceKey,forgets};}
  /** Remembers this device for the vault just opened. The vault is open either way: a failure only means the secret is asked for next time. */
@@ -413,6 +420,7 @@ export function VaultSyncEngine(){
    // the device then reopens at once, refreshing the token as Settings does.
    const device=session.current?.device??null,code=accessChanged?takeAccessDenial(detail!.account):null,expired=accessChanged&&!!device&&code==='SIGN_IN_REQUIRED';
    if(device&&deniesDevice(code)){setRemembered(false);void dropDevice(device).catch(()=>{});}
+   if(session.current)lockedHealth.current={account:session.current.account.toLowerCase(),health:session.current.health};
    setHealthAsk(false);setVaultGone(null);running.current=null;setBusy(false);session.current=null;auto.current=false;setPortfolio(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setError(accessChanged&&!expired?'Account access changed. Sign in and unlock again.':'');setLast('');setSections({});setPortfolioAt('');setMessage('Account sync is locked.');if(expired)void reopenRef.current('expiry');}};
   const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden&&auto.current&&session.current)void syncRef.current();},1000);};
   scheduleRef.current=schedule;
