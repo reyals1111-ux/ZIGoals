@@ -228,3 +228,21 @@ The splits record (`zigoals:workout-splits:v1`, strict) is not touched.
 - Showcase hook: none needed (the Showcase's workouts and walks already make a band; no pinned count reads it).
 - Device keys: none. CSS: `gym-r5.css` (`.r5-band*`).
 
+## Answers (NOVA and ZIGi, on the device)
+
+- File: `lib/ai/local-answers/av2-r5-gym.ts` exporting `av2R5GymAnswer(question, env)`; cases
+  `lib/ai/evals/as/cases-av2-r5-gym.ts` (`AV2_R5_GYM`, 7 intents, 14 English and 14 Dutch questions); test
+  `lib/ai/local-answers/av2-r5-gym.test.ts`: every phrasing answered on the Showcase and fresh; Health closed → the Health
+  refusal; an action in the question → left alone; the figures from the features' own functions. Checked here: no
+  question of the existing corpus (`CORPUS`) is claimed by these answers.
+- Questions: your workout status (open, ended — "back after a break" — or none); the movement band this week (workouts
+  and other movement, inside, below or above the usual range; never calories); everyday movement this week by name; your
+  favourite workouts (with their photo counts); the routines that keep their last weights; how a tired or sore day changes
+  the suggestion (how it works; nothing stored); plates on one side (how, and the kept set-up).
+- engine.ts wiring (one line, after `av2R4HealthAnswer`, same shape):
+  `if (!subject) { const own = av2R5GymAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }`
+  with `import {av2R5GymAnswer} from './av2-r5-gym';`.
+- Corpus: add `AV2_R5_GYM` to `CORPUS` in `cases.ts` and record `expected.json`.
+- AK tool sources: nothing new (`workouts` and `plannedWorkouts` are wired). `lib/ai/local-answers/av2-body.ts`'s streak
+  and load answers now pass the status's days (#374), as the page does.
+
