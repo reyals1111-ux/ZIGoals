@@ -8,7 +8,7 @@ import {wealthOverview} from './wealth';
 import {formatGoalAmount,progressText,type GoalSummary} from './goal-summary';
 import {habitCalendarDay,habitDay,habitRuleOn,habitStats,measurementUnit,type HabitData} from './habits';
 import {HEALTH_MEALS,scaleNutrition,summarizeNutrition,nutritionSummaryText,dailyHealthSummary,type HealthData} from './health';
-import {dailyData,waterSummary} from './health-daily';
+import {dailyData,healthZone,waterSummary} from './health-daily';
 import {NO_WATER_TODAY,waterText} from './health-units';
 import type {MarketQuote} from './market-quotes';
 import {formatDate,formatDateTime,formatExactNumber,formatNumber} from './visual-format';
@@ -21,7 +21,7 @@ import {splitWealthTotals} from './wealth-total';
 import {healthGroupIn} from './vault/w-homes';
 import {asleep as sleepAsleep, dailySeries as sleepDailySeries, nightDay as sleepNightDay, summary as sleepSummary} from './sleep/engine';
 import {formatMinutes} from './zone-time';
-import {meditationSummary, minutesOn as meditationMinutesOn, minutesText as meditationMinutesText} from './meditation/stats';
+import {meditationDayAt, meditationSummary, minutesOn as meditationMinutesOn, minutesText as meditationMinutesText} from './meditation/stats';
 import {CONTROL_NAME, SITE_NAME, currentRatings} from './skills/chess/engine';
 import type {ChessCache} from './skills/chess/schema';
 import {goalCounts,habitsOnDay} from './numbers/counts';
@@ -55,12 +55,14 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
  // Session W Part 5: Meditation from Health v4's own sessions; a day without one says so, never zero.
  if(widget.kind==='meditation'){
   const m=healthGroupIn(s.health,'meditation'),title=widget.title||'Meditation',href='/app/health?view=meditation';
+  // Review B6P-2: the meditation day ("My day ends at"), as the Meditation view and its sessions count it.
+  const day=meditationDayAt(s.healthDate,new Date(s.now),healthZone(dailyData(s.health).preferences.timezone));
   if(widget.metric==='today'){
-   const today=m?meditationMinutesOn(m,s.healthDate):null;
+   const today=m?meditationMinutesOn(m,day):null;
    if(today===null)return {...defaults,title,value:'No session today',detail:'Begin one in Meditation, or log minutes you did elsewhere.',href};
-   return {...defaults,title,value:`${meditationMinutesText(today)} today`,detail:s.healthDate,href};
+   return {...defaults,title,value:`${meditationMinutesText(today)} today`,detail:day,href};
   }
-  const summary=m?meditationSummary(m,s.healthDate):null;
+  const summary=m?meditationSummary(m,day):null;
   if(!summary||!summary.sessions)return {...defaults,title,value:'No sessions yet',detail:'Begin one in Meditation, or log minutes you did elsewhere.',href};
   return {...defaults,title,value:`${meditationMinutesText(summary.thisWeek)} this week`,detail:`${summary.goal?`Your goal: ${meditationMinutesText(summary.goal)} a week · `:''}Monday to Sunday`,href};
  }
