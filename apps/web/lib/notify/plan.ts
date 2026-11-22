@@ -20,7 +20,7 @@ export type PlanInput = {
    * A habit with a reminder time: its weekday mask for the coming week and whether today is already done. `title` only for
    * a habit not linked to Health (ADR-010's rule, security review F4): a Health-linked habit never shows its name.
    */
-  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean}[];
+  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean; routine?: boolean}[];
   water?: {time: string; toGo: string | null; done: boolean};
   windDown?: {time: string; doneToday: boolean};
   review?: {time: string; weekday: number};
@@ -72,7 +72,7 @@ export function buildPlan(input: PlanInput): Plan {
     }
   };
   const EVERY = 127;
-  if (typeOn(prefs, 'habits')) for (const h of input.habits) daily('habit', h.id, h.time, h.weekdays, () => ({label: label(h.title), href: '/app/habits', actionable: true}), date => date === today && h.doneToday);
+  if (typeOn(prefs, 'habits')) for (const h of input.habits) daily('habit', h.id, h.time, h.weekdays, () => ({label: label(h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
   // Session AK (F5): never labelled, whatever the names switch says (a supplement or medicine's name is health data).
   if (typeOn(prefs, 'supplements')) for (const s of input.supplements ?? []) daily('supplement', s.id, s.time, s.weekdays, () => ({href: '/app/health', actionable: false}), date => date === today && s.doneToday);
   if (typeOn(prefs, 'water') && input.water) { const w = input.water; daily('water', 'water', w.time, EVERY, () => ({...(w.toGo ? {detail: `${w.toGo} to go`} : {}), href: '/app/health', actionable: false}), date => date === today && w.done); }

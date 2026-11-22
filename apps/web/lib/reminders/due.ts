@@ -3,6 +3,7 @@ import {healthDay, healthZone, dailyData, waterSummary} from '../health-daily';
 import {journalTimeZone} from '../journal-zone';
 import type {HealthData} from '../health';
 import {WATER_REMINDER, type Reminders} from './schema';
+import {reminderHref} from '../routines/reminder-href';
 
 export type DueReminder = {id: string; kind: 'habit' | 'water'; title: string; time: string; day: string; href: string};
 /** The device's own clock, as "HH:MM": reminders follow local device time (the time zone this device is set to). */
@@ -34,7 +35,7 @@ export function dueReminders({reminders, habits, health, now}: {reminders: Remin
       const reminder = reminders.habits[habit.id];
       if (!reminder || reminder.time > clock || reminders.dismissed[habit.id] === day) continue;
       const status = habitDay(habit, day, day).status;
-      if (status === 'due' || status === 'partial') due.push({id: habit.id, kind: 'habit', title: habit.title, time: reminder.time, day, href: `/app/habits#habit-${habit.id}`});
+      if (status === 'due' || status === 'partial') due.push({id: habit.id, kind: 'habit', title: habit.title, time: reminder.time, day, href: reminderHref(habits, habit.id)}); // Session AV lane 2 (LEDGER #181): a routine's head opens its player
     }
   }
   const healthTz = health ? dailyData(health).preferences.timezone : null;

@@ -33,6 +33,16 @@ export function routineSteps(routine: Routine, run: RoutineRun | null, today: st
 export function startRun(headId: string, day: string, at: Date): RoutineRun {
   return routineRunSchema.parse({version: 1, headId, day, step: 0, startedAt: at.toISOString(), stepStartedAt: at.toISOString(), done: [], skipped: []});
 }
+/**
+ * Session AV lane 2 (habits; LEDGER #181, Fabulous's routine reminder): a run that starts at the first step still open
+ * today; the steps before it, already complete today, count as done. With every step complete it starts at the first
+ * (Play again). Opened from a routine's reminder.
+ */
+export function startRunAtOpen(routine: Routine, day: string, at: Date): RoutineRun {
+  const open = routine.habits.findIndex(h => habitDay(h, day, day).status !== 'complete');
+  if (open <= 0) return startRun(routine.headId, day, at);
+  return routineRunSchema.parse({...startRun(routine.headId, day, at), step: open, done: routine.habits.slice(0, open).map(h => h.id)});
+}
 /** Moves past the current step as done or skipped; the step index points at the next habit, or past the end when finished. */
 export function advanceRun(run: RoutineRun, habitId: string, outcome: 'done' | 'skipped', at: Date): RoutineRun {
   return routineRunSchema.parse({...run, step: run.step + 1, stepStartedAt: at.toISOString(), done: outcome === 'done' ? [...run.done, habitId] : run.done, skipped: outcome === 'skipped' ? [...run.skipped, habitId] : run.skipped});

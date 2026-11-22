@@ -413,6 +413,35 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
   (`zigoals:notify:v1` is already exported, erased and restored).
 - CSS touched: none. Always visible on Today: nothing. Settings gains one switch (two more fields while it is on).
 
+## Feature 14 — Fabulous's routine card: a tick per step, the routine's reminder, the small window (LEDGER #181, #182, #183)
+
+**Verdict: built** (#183's Lock Screen Live Activity and Dynamic Island stay Carried: native-only).
+
+| row | what was built |
+|---|---|
+| #181 Routine reminder | On each routine's card: "Remind me to start" (a time; Off keeps the focus on the time) — the reminder of the routine's first habit, on this device as every habit reminder. Its Today reminder card and its notification now open `/app/habits#routine=<id>&open`: the player starts at the first step still open today (earlier steps already done count as done; all done, it starts at the first). Any other habit's reminder leads to its card, as before. |
+| #182 Complete a habit from the routine card | Each step of the routine as a checkbox for today on the card, without starting the player: the compact list's write (done fills the step to its target, unticking takes it back) through the journal's own mutator, with the toast and Undo; a quit/limit step or one not due today shows its state ("not due today", "skipped") with no tick. |
+| #183 Picture-in-Picture progress | In the player, "Small window" (only where the browser has Document Picture-in-Picture: Chrome and Edge on computers) opens a small always-on-top window with the routine, the step, its timer, Done · next, Skip and "Back to the tab", the same actions as the player (`lib/ai/pip.ts`, as ZIGi's mini window). |
+
+- Files: `lib/routines/{engine.ts,reminder-href.ts}` (`startRunAtOpen`; `isRoutineHead`/`reminderHref` kept free of the
+  stacks module so Today's reminder cards stay light), `lib/reminders/due.ts`, `lib/notify/{plan,sync}.ts` (a habit
+  item may carry `routine`), `components/habits/{routine-card-extras.tsx,routine-pip.tsx,routine-card.css,routines-panel.tsx,routine-player.tsx,habits-workspace.tsx}`.
+- Tests: `lib/routines/av2-routine-card.test.ts` (the first open step, Play again, the head rule against `routines`, the
+  Today reminder's link, the notification's link). Existing routines, reminders and notify tests unchanged and green.
+  Spec: `tests/av2-routine-card.spec.ts`.
+- Stored changes: none (the habit reminder is the existing per-habit reminder; the run is the existing run record).
+  TIER 3 (PWA) note for the lead: the notification snapshot's habit `href` for a routine's head changes from
+  `/app/habits` to `/app/habits#routine=<id>&open` (the service worker already follows an item's own in-app link).
+- Help (EN): **Q: Can a routine remind me and start where I left off?** A: Yes. On a routine's card in Habits, set
+  "Remind me to start". Its reminder opens the routine at the first step not done yet today. You can also tick each
+  step on the card without starting the routine, and in the routine "Small window" keeps the step and its timer on top
+  while you use other apps (on computers, in Chrome and Edge).
+- What's new: "Routines: tick a step from the card, a reminder that opens the next open step, and a small window."
+- Answers: none new (routines are read as habits already). Showcase hook: the Showcase's routine shows the ticks with
+  no new data. CSS touched: `components/habits/routine-card.css` (new; theme variables only).
+- Always visible on Today: nothing (Today's reminder card only gets a different link for a routine's first habit).
+  Habits page: each routine card gains its steps' checkboxes and one time field (Tab stops on Habits, none on Today).
+
 ## Not built yet (next for this pillar, in order)
 
 - Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm
