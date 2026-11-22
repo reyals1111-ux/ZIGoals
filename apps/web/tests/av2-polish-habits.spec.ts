@@ -5,6 +5,7 @@ import {go, noSideways, start} from './av2-polish-helpers';
  * Session AV lane 2 (polish), Habits:
  * - P-28: every area chip is outlined (only the chosen one looked like a button).
  * - P-29: a step with its unit ("+1,000 steps") is set like Done beside it (14 px), not at 22 px.
+ * - P-30: Routines' "Share or add" (and "Templates") read as buttons: outlined.
  * - P-31: a fresh device's "Today's rhythm" says "No habits yet", not "0 / 0 scheduled habits complete".
  */
 test.use({timezoneId: 'Europe/Amsterdam'});
@@ -18,6 +19,9 @@ test('Showcase: outlined chips, one type size in a completion row', async ({page
   const amounts = page.locator('.habit-check-actions .habit-step-amount');
   await expect(amounts.first()).toBeAttached();
   for (const size of await amounts.evaluateAll(els => els.map(e => parseFloat(getComputedStyle(e).fontSize)))) expect(size).toBe(14);
+  const share = page.locator('.habit-routines').getByRole('button', {name: 'Share or add'});
+  await expect(share).toBeAttached();
+  expect(await share.evaluate(e => parseFloat(getComputedStyle(e).borderTopWidth))).toBeGreaterThanOrEqual(1);
   await noSideways(page);
 });
 

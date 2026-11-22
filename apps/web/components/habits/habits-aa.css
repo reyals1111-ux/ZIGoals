@@ -218,6 +218,8 @@
 .habit-auto-rules { margin-top: 16px; }
 .habit-auto-rules .habit-section-heading > button { min-height: 44px; flex-shrink: 0; }
 .habit-routines .habit-section-heading .actions { display: flex; flex-wrap: wrap; gap: 4px; }
+/* Session AV lane 2 (P-30): "Templates" and "Share or add" read as buttons (outlined), not stray words under the title. */
+:root .habit-routines .habit-section-heading .actions .quiet { border: 1px solid var(--line); border-radius: 12px; padding-inline: 14px; }
 .habit-routine-share { display: grid; gap: 12px; margin: 12px 0; }
 .habit-routine-share h3 { margin: 0; }
 .habit-routine-share fieldset { display: grid; gap: 8px; margin: 0; border: 1px solid var(--line); border-radius: 14px; padding: 12px; }

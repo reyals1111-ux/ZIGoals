@@ -7,6 +7,7 @@ import {THEMES} from './p6-helpers';
  * - P-5: on a phone Spending's heading keeps the width; "Import from your bank" goes under it.
  * - P-32: an entry's day reads "Sun, Nov 22", never the stored "2026-11-22".
  * - P-35: each Plan line keeps its button in one right-hand column.
+ * - P-36: inside its fold, "Budgets by category" is not said twice on screen (the title stays for screen readers).
  * - P-37: the budget table's headers are 14 px.
  * - P-40: a fresh device with "All" chosen reads "Build your wealth picture", not "No assets in this category yet".
  */
@@ -41,6 +42,11 @@ test('Budgets: the Plan buttons share one column; headers 14 px', async ({page})
   for (const gap of tops) expect(Math.abs(gap), 'Plan beside its line, not under it').toBeLessThanOrEqual(12);
   for (const size of await page.locator('.budgets-table thead th').evaluateAll(els => els.map(e => parseFloat(getComputedStyle(e).fontSize)))) expect(size).toBeGreaterThanOrEqual(14);
   await expect(page.locator('.budgets-assign')).not.toContainText(/\d{4}-\d{2}\)/);
+  const title = page.locator('#budgets-title');
+  await expect(title).toHaveText('Budgets by category');
+  expect((await title.boundingBox())!.width).toBeLessThanOrEqual(1);
+  await expect(page.getByRole('region', {name: 'Budgets by category'})).toBeVisible();
+  await expect(page.locator('#budgets .wealth-section-heading .eyebrow')).toBeVisible();
 });
 
 test('a fresh device: "All" chosen is the whole picture', async ({page}) => {
