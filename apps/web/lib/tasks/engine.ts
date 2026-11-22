@@ -144,7 +144,8 @@ export function prune(record: Tasks, today: string, doneDay: (iso: string) => st
 export const onTimeUntil = (t: Pick<Task, 'due' | 'recur'>): string | undefined => t.due && t.recur?.flex ? windowEnd(t.recur.flex, t.due) : t.due;
 export const isLate = (t: Pick<Task, 'due' | 'recur'>, today: string): boolean => !!t.due && onTimeUntil(t)! < today;
 /** How many open tasks are late on `date` (the "Plan your day" notification's count, lib/notify/sync.ts). */
-export const lateCount = (record: Pick<Tasks, 'tasks'>, date: string): number => record.tasks.filter(t => !t.doneAt && isLate(t, date)).length;
+/** Session AV lane 2 (r6-plan, LEDGER #392): a task of a project on hold is not counted. */
+export const lateCount = (record: Pick<Tasks, 'tasks'> & Partial<Pick<Tasks, 'projects'>>, date: string): number => record.tasks.filter(t => !t.doneAt && isLate(t, date) && !heldProject(record, t, date)).length;
 export type TaskState = 'overdue' | 'today' | 'soon' | 'later' | 'someday';
 export function taskState(task: Task, today: string, nowClock?: string): TaskState {
   if (!task.due) return 'someday';

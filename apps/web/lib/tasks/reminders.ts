@@ -1,5 +1,6 @@
 import {instantAt, wallClock} from '../zone-time';
 import type {Task, TaskReminder, Tasks} from './schema';
+import {heldProject} from './engine';
 
 /**
  * Session AL (Part 8, P-LS-68, C-LS-09): task reminders. A reminder is an offset before the task's due time (a task with a
@@ -30,6 +31,8 @@ export function reminderInstants(record: Tasks, zone: string): {task: Task; at: 
       if (!r.at && !t.due) continue;
       const of = r.at ? instantAt(r.at.slice(0, 10), r.at.slice(11, 16), zone) : base - r.before * 60_000;
       if (seen.has(of)) continue; seen.add(of);
+      // Session AV lane 2 (r6-plan, LEDGER #392; TIER 3 (PWA)): no reminder while its project is on hold (from its resume day, as before).
+      if (record.projects?.some(p => p.hold) && heldProject(record, t, wallClock(of, zone).date)) continue;
       out.push({task: t, at: t.snooze && t.snooze.of === of && (t.snooze.before === undefined || t.snooze.before === r.before) ? t.snooze.until : of, before: r.before, of});
     }
   }
