@@ -61,3 +61,13 @@ describe('zigoals:calorie-week:v1 — freeDay (LEDGER #328)', () => {
   });
   test('Export everything → erase → Restore keeps it', () => { expect(roundTrip(CALORIE_WEEK_KEY, NEW)).toEqual(NEW); });
 });
+
+describe('zigoals:health-extras:v1 — napRun (LEDGER #335, review B4E-4)', () => {
+  const NEW = {version: 1, sleepTips: true, napRun: {startedAt: '2026-11-20T13:00:00.000Z', minutes: 20}};
+  test('reads; a bad one is dropped alone', () => {
+    expect(healthExtrasSchema.parse(NEW)).toEqual(NEW);
+    expect(healthExtrasSchema.parse({...NEW, napRun: {startedAt: 'soon', minutes: 20}})).toEqual({version: 1, sleepTips: true, napRun: undefined});
+  });
+  test('Export everything → erase → Restore keeps it', () => { expect(roundTrip(HEALTH_EXTRAS_KEY, NEW)).toEqual(NEW); });
+});
+
