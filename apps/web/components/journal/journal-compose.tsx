@@ -21,7 +21,7 @@ import type {PromptPack} from '../../lib/journal-prompts/packs';
 type PacksModule = typeof import('../../lib/journal-prompts/packs');
 import {readTags, tagCounts} from '../../lib/journal/tags';
 import {setQuestionLang, useQuestionLang} from './question-lang';
-import {addOwnTemplate, editOwnTemplate, removeOwnTemplate} from '../../lib/journal-prompts/own';
+import {addOwnTemplate, asJournalTemplate, editOwnTemplate, removeOwnTemplate, withDefault} from '../../lib/journal-prompts/own';
 const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
 // Session AV lane 2 (journal; LEDGER #38, Day One's Prompt Packs): the packs, their list loaded when the fold opens.
 const PromptPacks = lazy(() => import('../journal-prompts/prompt-packs'));
@@ -44,6 +44,17 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   const books = journal.data.journals ?? [], target = (chosenBook === undefined ? book : chosenBook) ?? null, inBook = target && books.some(b => b.id === target) ? target : null;
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
+  // Session AV lane 2 (journal; LEDGER #39, Day One's default template): a new entry starts from the chosen template, on
+  // opening and after each save (clearing the words leaves it empty until the next entry).
+  const [fillDefault, setFillDefault] = useState(true);
+  const defaultTemplate = useMemo(() => { const d = journal.data.defaultTemplate; if (!d) return null; const own = (journal.data.templates ?? []).find(t => t.id === d); return own ? asJournalTemplate(own) : templateById(d); }, [journal.data.defaultTemplate, journal.data.templates]);
+  useEffect(() => {
+    if (compact || !fillDefault || !journal.loaded) return;
+    setFillDefault(false);
+    if (!defaultTemplate || text.trim()) return;
+    setText(startFrom('', defaultTemplate, qLang)); setPrompt({id: defaultTemplate.id, lang: qLang});
+    if (defaultTemplate.tags?.length) setTagText(defaultTemplate.tags.join(', '));
+  }, [compact, fillDefault, journal.loaded, defaultTemplate, text, qLang]);
   const [packsOpen, setPacksOpen] = useState(false), [packs, setPacks] = useState<PacksModule | null>(null), packIds = journal.data.packs;
   useEffect(() => { if (compact || packs || !(packIds ?? []).length) return; let live = true; void import('../../lib/journal-prompts/packs').then(m => { if (live) setPacks(m); }, () => undefined); return () => { live = false; }; }, [compact, packs, packIds]);
   const todayQ: {question: string; pack: PromptPack | null} = packs && (packIds ?? []).length ? packs.questionWithPacks(today, step, qLang, packIds) : {question: questionOfTheDay(today, step, qLang), pack: null};
@@ -59,11 +70,12 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
     const words = text.trim();
     if (!words) return setProblem('Write a few words first.');
     if (prompt && onlyHeadings(words)) return setProblem('Write a few words under the headings first.');
+    { const own = prompt ? (journal.data.templates ?? []).find(t => t.id === prompt.id) : null; if (own?.body && words === own.body.trim()) return setProblem('Change the template’s words to today’s first.'); }
     const tags = compact ? [] : readTags(tagText);
     const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {}), ...(tags.length ? {tags} : {}), ...(inBook && !compact ? {journal: inBook} : {})};
     const question = journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     try { journal.update(current => ({...current, entries: [...current.entries, {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}].slice(-5000)})); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
-    setText(''); setTagText(''); setPrompt(null); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
+    setText(''); setTagText(''); setPrompt(null); setFillDefault(true); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
     if (question) zigiSignals.emit('journal_reflecting'); // Session AK Part 12: ZIGi asks its one question (a Studio-4 reaction once its art lands)
   };
   const pending = asked ? journal.data.entries.find(e => e.id === asked) : null;
@@ -94,7 +106,7 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       {!compact && books.length > 0 && <label className="field journal-compose-book"><span>Journal</span><select value={inBook ?? ''} onChange={e => setChosenBook(e.target.value || null)}><option value="">Journal (main)</option>{books.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>}
       {!compact && tagOffers.length > 0 && <datalist id={`${id}-known-tags`}>{tagOffers.map(o => <option key={o} value={o}/>)}</datalist>}
       {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>
-        {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker startLang={qLang} own={journal.data.templates ?? []} onEditOwn={(ownId, title, headingsText) => { journal.update(current => editOwnTemplate(current, ownId, {title, headingsText})); setStatus(`Your template “${title}” is saved.`); }} onAddOwn={(title, headingsText, newId) => journal.update(current => addOwnTemplate(current, {title, headingsText}, newId))} onRemoveOwn={ownId => journal.update(current => removeOwnTemplate(current, ownId))} onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setPrompts(false); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
+        {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker startLang={qLang} own={journal.data.templates ?? []} onEditOwn={(ownId, title, headingsText) => { journal.update(current => editOwnTemplate(current, ownId, {title, headingsText})); setStatus(`Your template “${title}” is saved.`); }} onAddOwn={(title, headingsText, newId) => journal.update(current => addOwnTemplate(current, {title, headingsText}, newId))} onRemoveOwn={ownId => journal.update(current => removeOwnTemplate(current, ownId))} defaultId={journal.data.defaultTemplate ?? null} onDefault={(templateId, title) => { try { journal.update(c => withDefault(c, templateId)); setStatus(templateId ? `A new entry starts from “${title}”.` : 'A new entry starts empty.'); } catch { setStatus('This choice could not be kept on this device.'); } }} onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setPrompts(false); if (t.tags?.length) setTagText(current => current.trim() ? current : t.tags!.join(', ')); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
       </details>}
       {!compact && <details className="prompt-fold prompt-packs-fold" open={packsOpen || undefined} onToggle={e => setPacksOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Prompt packs <span className="fine">· {(journal.data.packs ?? []).length ? `${(journal.data.packs ?? []).length} on` : 'sleep, training and more'}</span></summary>
         {packsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPacks on={journal.data.packs ?? []} lang={qLang} onToggle={(packId, on) => { void import('../../lib/journal-prompts/packs').then(m => { setPacks(m); try { journal.update(c => ({...c, packs: m.withPack(c.packs, packId, on)})); setStatus(on ? 'Pack on: its questions join today’s question.' : 'Pack off.'); } catch { setStatus('This choice could not be kept on this device.'); } }, () => setStatus('The packs could not be opened. Try again.')); }} onUse={q => { setText(current => withQuestion(current, q)); setStatus('The question is in your entry. Write under it, or change anything.'); }}/></Suspense>}

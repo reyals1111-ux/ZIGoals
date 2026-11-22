@@ -22,10 +22,13 @@ export function showcaseJournal(day: string): Journal {
   const TAGS: Record<number, string[]> = {0: ['outdoors', 'gratitude'], 3: ['work'], 7: ['work'], 8: ['running', 'proud']};
   const tagged = entries.map(e => { const i = Number(e.id.slice('showcase-journal-'.length)); return TAGS[i] ? {...e, tags: TAGS[i]} : e; })
     // Session AV lane 2 (journal; LEDGER #43): the two run entries sit in a second journal, labelled as an example.
-    .map(e => e.id === 'showcase-journal-8' || e.id === 'showcase-journal-3' ? {...e, journal: 'j-showcaseruns'} : e);
+    .map(e => e.id === 'showcase-journal-8' || e.id === 'showcase-journal-3' ? {...e, journal: 'j-showcaseruns'} : e)
+    // Session AV lane 2 (journal; LEDGER #33): one entry was changed after it was written, so it has an earlier version.
+    .map(e => e.id === 'showcase-journal-2' ? {...e, updatedAt: `${addLocalDays(day, -2)}T21:30:00.000Z`} : e);
+  const versions = [{id: 'v-showcase0001', entryId: 'showcase-journal-2', text: 'Good progress on the Japan fund. (SHOWCASE DATA)', savedAt: `${addLocalDays(day, -2)}T21:00:00.000Z`}];
   // Session AV (F-OWN-TEMPLATES): one template of the Showcase's own, labelled as an example.
   return journalSchema.parse({version: 1, entries: tagged, shareWithAi: false, followUps: true, templates: [{id: 'own-showcase01', title: 'Example · Run diary', headings: ['How the run went:', 'What I noticed on the way:']}],
     // Session AV lane 2 (journal; LEDGER #40): the reminder to write, on at 21:00 every day (the Showcase sends no notification).
     reminder: {on: true, time: '21:00', days: 127},
-    journals: [{id: 'j-showcaseruns', name: 'Example · Runs', theme: 'teal'}]});
+    journals: [{id: 'j-showcaseruns', name: 'Example · Runs', theme: 'teal'}], versions});
 }

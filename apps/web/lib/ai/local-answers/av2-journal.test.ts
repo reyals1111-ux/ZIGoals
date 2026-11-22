@@ -78,3 +78,17 @@ describe('prompt packs (LEDGER #38)', () => {
     expect(zigi('what is today\'s journal question')).toBeNull();
   });
 });
+
+describe('the default template and the earlier versions (LEDGER #39, #33)', () => {
+  test('new entries start empty, or from the chosen template', () => {
+    expect(text(zigi('what is my default journal template'))).toContain('New journal entries start empty.');
+    const s = withJournal(showcaseAll(), j => ({...j, defaultTemplate: 'own-showcase01'}));
+    expect(text(zigi('which template do new entries start from', s))).toBe('New journal entries start from “Example · Run diary”. Journal → Start from a prompt changes it.');
+    expect(text(zigi('welk sjabloon krijgen nieuwe stukken', withJournal(showcaseAll(), j => ({...j, defaultTemplate: 'gratitude'}))))).toContain('“Dankbaarheid”');
+  });
+  test('the Showcase’s changed entry and its earlier version; a fresh profile has none', () => {
+    expect(text(zigi('which journal entries have I changed'))).toBe('1 journal entry has been changed (Sun, Nov 15), with 1 earlier version kept on this device. Each entry’s More lists them, to read or restore.');
+    expect(text(zigi('welke dagboekstukken heb ik veranderd'))).toBe('1 dagboekstuk is veranderd (zo 15 nov), met 1 eerdere versie bewaard op dit apparaat. More bij elk stuk toont ze, om te lezen of terug te zetten.');
+    expect(text(zigi('do I have earlier versions of my journal entries', freshAll()))).toContain('No journal entry has been changed');
+  });
+});

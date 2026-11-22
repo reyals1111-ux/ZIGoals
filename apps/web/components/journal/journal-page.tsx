@@ -5,7 +5,8 @@ import {formatDate, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {ENERGY, ENERGY_WORDS} from '../../lib/energy/schema';
-import {JOURNAL, removeJournalEntry, restoreJournalEntry, type JournalEntry} from '../../lib/journal/schema';
+import {JOURNAL, restoreJournalEntry, type EntryVersion, type JournalEntry} from '../../lib/journal/schema';
+import {putBackVersions, removeWithVersions} from '../../lib/journal/versions';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import {patternLine, patterns} from '../../lib/journal/reflect';
 import {wordCount, wordsThisYear, writingStreak} from '../../lib/journal/stats';
@@ -77,6 +78,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const found = useMemo(() => patterns(journal.data, energy.data), [journal.data, energy.data]);
   // Session AP: words per entry, the writing streak and the words this year, derived from the entries (nothing stored).
   const words = useMemo(() => new Map(journal.data.entries.map(e => [e.id, wordCount(e.text)])), [journal.data.entries]);
+  const versionCount = useMemo(() => { const m = new Map<string, number>(); for (const v of journal.data.versions ?? []) m.set(v.entryId, (m.get(v.entryId) ?? 0) + 1); return m; }, [journal.data.versions]);
   const streak = useMemo(() => writingStreak(journal.data.entries, today), [journal.data.entries, today]), year = useMemo(() => wordsThisYear(journal.data.entries, today), [journal.data.entries, today]);
   // Session AL Part 14 (R18): each day with its words ("Mon, Nov 2") for the bars' tooltip and screen-reader text.
   const days = useMemo(() => Array.from({length: 14}, (_, i) => { const d = addLocalDays(today, i - 13); return {d, words: dayWords(d)}; }), [today]);
@@ -86,8 +88,10 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   const week = useMemo(() => weekPattern({energy: Object.fromEntries(Object.entries(energy.data.days).map(([d, v]) => [d, v.energy])), mood: moodDays, today}), [energy.data.days, moodDays, today]);
   // Session AL (A7, PRIMITIVES 3e): the one Undo toast; its restore puts the entry back into the latest record.
   const remove = (e: JournalEntry) => {
-    try { journal.update(c => removeJournalEntry(c, e.id)); } catch { showStatus('This entry could not be removed on this device.', {tone: 'error'}); return; }
-    showUndo({message: `Entry of ${formatDate(e.date)} removed.`, undone: 'The entry is back.', restore: () => journal.update(c => restoreJournalEntry(c, e))});
+    // Session AV lane 2 (LEDGER #33): the entry's earlier versions go with it, and come back with its Undo.
+    let kept: EntryVersion[] = [];
+    try { journal.update(c => { const out = removeWithVersions(c, e.id); kept = out.versions; return out.journal; }); } catch { showStatus('This entry could not be removed on this device.', {tone: 'error'}); return; }
+    showUndo({message: `Entry of ${formatDate(e.date)} removed.`, undone: 'The entry is back.', restore: () => journal.update(c => putBackVersions(restoreJournalEntry(c, e), kept))});
   };
   if (!journal.loaded) return <p className="fine">Loading your journal…</p>;
   return <div className="journal-page">
@@ -126,7 +130,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
       </div>}
       {entries.length ? <ol className="journal-entries">{entries.map(e => { const inBook = bookOf(journal.data, e); return <li key={e.id} data-tone={inBook?.theme}>
         <p className="journal-entry-date"><time dateTime={e.date}>{entryDays.get(e.date)?.long ?? e.date}</time>{inBook && <span className="journal-entry-book"> · <span className="journal-book-dot" data-tone={inBook.theme} aria-hidden="true"/>{inBook.name}</span>}</p><p className="journal-entry-text">{e.text}</p>
-        <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}</p>
+        <p className="fine journal-entry-words">{words.get(e.id) === 1 ? '1 word' : `${formatNumber(words.get(e.id) ?? 0)} words`}{e.updatedAt ? ' · changed' : ''}{versionCount.get(e.id) ? ` · ${versionCount.get(e.id) === 1 ? '1 earlier version' : `${versionCount.get(e.id)} earlier versions`} under More` : ''}</p>
         {e.followUp && <p className="fine journal-entry-followup">{/* Session AL (DV-190b): a question made on this device, not a chat with an AI */}Question for later: {e.followUp.question}{e.followUp.answer ? <> — <span>{e.followUp.answer}</span></> : null}</p>}
         {/* Session AV (1c, q4 #34): the entry's three controls (tags, That day, Remove) share one row. */}
         <div className="journal-entry-controls">

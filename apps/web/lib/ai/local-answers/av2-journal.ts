@@ -5,6 +5,7 @@ import {daysWords, reminderOf} from '../../journal/reminder';
 import {bookCounts} from '../../journal/books';
 import {dateQuery} from '../../journal/search';
 import {PROMPT_PACKS, packsOn, questionWithPacks} from '../../journal-prompts/packs';
+import {templateById} from '../../journal-prompts/templates';
 import {answer, asked, count, dayIn, isQuestion, journalClosed, list, MIXED, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
 
@@ -20,7 +21,7 @@ export function av2JournalAnswer(question: string, env: ToolEnv): LocalReply | n
   try {
     const a = asked(question, env);
     if (!a || MIXED.test(a.f) || !isQuestion(a)) return null;
-    for (const one of [reminder, streak, journals, onDay, packs, packQuestion]) {
+    for (const one of [reminder, streak, journals, onDay, packs, packQuestion, defaultTemplate, changedEntries]) {
       const r = one(a);
       if (r) return r;
     }
@@ -103,4 +104,26 @@ function packQuestion(a: Asked): LocalReply | null {
   if (!a.env.journal || !packsOn(a.env.journal.packs).length) return null;
   const q = questionWithPacks(a.today, 0, a.lang, a.env.journal.packs);
   return answer(say(a.lang, `Today’s journal question${q.pack ? ` (${q.pack.title.en} pack)` : ''}: “${q.question}” Journal → Another question shows the next one.`, `De dagboekvraag van vandaag${q.pack ? ` (pakket ${q.pack.title.nl})` : ''}: “${q.question}” Journal → Another question toont de volgende.`), CALL);
+}
+
+/** LEDGER #39: "which template do my journal entries start from" (the default template, Journal → Start from a prompt). */
+function defaultTemplate(a: Asked): LocalReply | null {
+  const en = /\bdefault (?:journal )?template\b|\btemplate\b.*\b(?:new )?entries start\b|\bentries start from\b/.test(a.f), nl = /\bstandaard ?sjabloon\b|\bsjabloon\b.*\bnieuwe (?:stukken|dagboekstukken)\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = journalClosed(a); if (shut) return shut;
+  const j = journalOf(a), id = j.defaultTemplate, lang = a.lang;
+  const name = id ? (j.templates ?? []).find(t => t.id === id)?.title ?? templateById(id)?.title[lang] ?? null : null;
+  if (!name) return answer(say(lang, 'New journal entries start empty. Under Journal → Start from a prompt, “Start new entries here” on a template makes it the one they start from.', 'Nieuwe dagboekstukken beginnen leeg. Onder Journal → Start from a prompt maakt “Start new entries here” bij een sjabloon dat het beginpunt.'), CALL);
+  return answer(say(lang, `New journal entries start from “${name}”. Journal → Start from a prompt changes it.`, `Nieuwe dagboekstukken beginnen met “${name}”. Journal → Start from a prompt verandert dat.`), CALL);
+}
+/** LEDGER #33: "which journal entries have I changed", "earlier versions" (lib/journal/versions.ts, as each entry's More lists them). */
+function changedEntries(a: Asked): LocalReply | null {
+  const en = /\b(?:changed|edited)\b.*\b(?:journal )?entr(?:y|ies)\b|\bentr(?:y|ies)\b.*\b(?:changed|edited)\b|\b(?:earlier|older|previous) versions?\b|\bversion history\b/.test(a.f) && /\b(?:journal|entry|entries|diary|versions?)\b/.test(a.f);
+  const nl = /\b(?:veranderd|gewijzigd|aangepast|bewerkt)\b.*\b(?:dagboek\w*|stukken)\b|\b(?:dagboek\w*|stukken)\b.*\b(?:veranderd|gewijzigd|aangepast|bewerkt)\b|\b(?:eerdere|oudere|vorige) versies\b|\bversiegeschiedenis\b/.test(a.f);
+  if (!en && !nl) return null;
+  const shut = journalClosed(a); if (shut) return shut;
+  const j = journalOf(a), changed = j.entries.filter(e => e.updatedAt), versions = j.versions ?? [], lang = a.lang;
+  if (!changed.length && !versions.length) return answer(say(lang, 'No journal entry has been changed, so there are no earlier versions. An entry’s More → Edit the words keeps the words it had, up to ten versions.', 'Geen dagboekstuk is veranderd, dus er zijn geen eerdere versies. More → Edit the words bij een stuk bewaart de woorden die het had, tot tien versies.'), CALL);
+  const days = [...new Set(changed.map(e => e.date))].sort().slice(-5).map(d => dayIn(lang, d, a.today));
+  return answer(say(lang, `${count(changed.length, 'en', ['journal entry has', 'journal entries have'], ['', ''])} been changed (${list(days, 'en')}), with ${count(versions.length, 'en', ['earlier version', 'earlier versions'], ['', ''])} kept on this device. Each entry’s More lists them, to read or restore.`, `${count(changed.length, 'nl', ['', ''], ['dagboekstuk is', 'dagboekstukken zijn'])} veranderd (${list(days, 'nl')}), met ${count(versions.length, 'nl', ['', ''], ['eerdere versie', 'eerdere versies'])} bewaard op dit apparaat. More bij elk stuk toont ze, om te lezen of terug te zetten.`), CALL);
 }

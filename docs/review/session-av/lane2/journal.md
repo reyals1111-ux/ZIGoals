@@ -114,3 +114,29 @@ In `apps/web/lib/ai/local-answers/engine.ts`, beside the `avAnswer` call (line ~
 - What's new: "Journal: prompt packs — sleep, training and more, in English and Dutch."
 - Showcase: none on purpose (a pack on would change the Showcase's question of the day, which the corpus pins).
 - CSS: `components/journal-prompts/prompt-packs.css` (new). Today: nothing added (the compact Today card shows no question).
+
+### F4 Edit an entry with its earlier versions; save an entry as a template; the default template — LEDGER #33 (journal part), #39
+
+- Verdict: **built**. #39's remainder ("save this entry as a template", QUALITY.md "Not fixed"; q4 #45's "templates hold
+  body text and tags, can be the default, can be saved from an entry") and #33 for journal entries (the notes part is F8).
+- What: an entry's More → "Edit the words" (the words it replaced are kept as an earlier version: up to 10 per entry,
+  200 and 200,000 characters in all; Undo); "Earlier versions" to read and "Restore this version" (the replaced words are
+  kept too; Undo); the entry line says "· changed · N earlier versions under More"; removing an entry takes its versions,
+  and its Undo brings them back. "Save as a template" keeps the entry's whole words and tags (headings for older builds:
+  its lines ending in ":" or "?"); such a template is edited as its words. "Start new entries here" on any template
+  (built-in or own) makes it the default: a new entry starts from it (on opening and after each save), tags included.
+- Files: `lib/journal/versions.ts`, `lib/journal-prompts/own.ts`, `lib/journal-prompts/templates.ts` (optional `body`,
+  `tags` on a template), `components/journal/entry-more.tsx` (lazy), `components/journal/journal-page.tsx`,
+  `components/journal/journal-compose.tsx`, `components/journal-prompts/prompt-picker.tsx` + `.css`, `journal.css`.
+- Tests: `lib/journal/av2-versions.test.ts`; answers ("what is my default journal template", "which journal entries have
+  I changed", EN and NL).
+- Spec: `tests/av2-journal-versions.spec.ts`.
+- Stored: `versions`, `defaultTemplate`, own template `body` and `tags` (F0 table).
+- Help (EN). Q: "Can I change an entry after saving it?" A: "Yes: More → Edit the words. The words it had are kept as an
+  earlier version on this device (up to ten per entry); More → Earlier versions shows them, and Restore this version puts
+  one back. Nothing leaves your device." Q: "Can I save an entry as a template?" A: "Yes: More → Save as a template keeps
+  its words and tags. Under Start from a prompt, Start new entries here makes any template the one new entries start from."
+- What's new: "Journal: edit an entry with its earlier versions kept, and save an entry as a template."
+- Showcase: `lib/journal/showcase.ts` marks one entry changed with one earlier version (no count changes); no default
+  template (it would fill Write in Showcase specs).
+- CSS: `components/journal/journal.css`, `components/journal-prompts/prompt-picker.css`. Today: nothing added.

@@ -5,7 +5,9 @@
  * advice; "Another way to see it" says plainly that it is a reflection, not therapy. Nothing is stored here.
  */
 export type PromptLang = 'en' | 'nl';
-export type JournalTemplate = {id: string; title: Record<PromptLang, string>; headings: Record<PromptLang, readonly string[]>; note?: Record<PromptLang, string>};
+export type JournalTemplate = {id: string; title: Record<PromptLang, string>; headings: Record<PromptLang, readonly string[]>; note?: Record<PromptLang, string>;
+  /** Session AV lane 2 (journal; LEDGER #39): a template saved from an entry starts from its whole text and its tags. */
+  body?: string; tags?: readonly string[]};
 export const JOURNAL_TEMPLATES: readonly JournalTemplate[] = [
   {id: 'morning-intention', title: {en: 'Morning intention', nl: 'Ochtendintentie'},
     headings: {en: ['What matters most today?', 'One small step I can take:', 'How I want to feel tonight:'], nl: ['Wat is vandaag het belangrijkst?', 'Eén kleine stap die ik kan zetten:', 'Hoe ik me vanavond wil voelen:']}},
@@ -28,7 +30,7 @@ export const JOURNAL_TEMPLATES: readonly JournalTemplate[] = [
 export const TEMPLATE_IDS = JOURNAL_TEMPLATES.map(t => t.id);
 export const templateById = (id: string | undefined): JournalTemplate | null => JOURNAL_TEMPLATES.find(t => t.id === id) ?? null;
 /** The entry text a template starts from: each heading on its own line with a blank line under it to write in. */
-export const templateText = (t: JournalTemplate, lang: PromptLang): string => t.headings[lang].map(h => `${h}\n`).join('\n');
+export const templateText = (t: JournalTemplate, lang: PromptLang): string => t.body ? `${t.body.replace(/\s+$/, '')}\n` : t.headings[lang].map(h => `${h}\n`).join('\n');
 /**
  * What the entry becomes when a template is picked: the headings alone when the entry is empty (or holds only another
  * template's untouched headings), else the person's words kept with the headings added after a blank line.
