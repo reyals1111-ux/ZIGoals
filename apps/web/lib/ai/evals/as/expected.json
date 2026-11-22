@@ -1,7 +1,7 @@
 {
  "hab-missed-week": {
   "en": "You missed no habit this week (Mon, Nov 16 to Tue, Nov 17): 11 of 11 due check-ins done. Still open today: Exercise, Meditate and Drink water.",
-  "nl": "Je hebt geen gewoonte gemist deze week (Mon, Nov 16 t/m Tue, Nov 17): 11 van 11 geplande check-ins gedaan. Vandaag nog open: Exercise, Meditate en Drink water.",
+  "nl": "Je hebt geen gewoonte gemist deze week (ma 16 nov t/m di 17 nov): 11 van 11 geplande check-ins gedaan. Vandaag nog open: Exercise, Meditate en Drink water.",
   "facts": {
    "about": "habits",
    "ask": "missed",
@@ -108,7 +108,7 @@
  },
  "med-notdone-month": {
   "en": "Meditate: not done on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Tue, Nov 3 and Thu, Nov 12. Both were marked as skipped. Today is still open.",
-  "nl": "Meditate: niet gedaan op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Tue, Nov 3 en Thu, Nov 12. Beide waren als overgeslagen gemarkeerd. Vandaag staat nog open.",
+  "nl": "Meditate: niet gedaan op 2 dagen deze maand (zo 1 nov t/m di 17 nov): di 3 nov en do 12 nov. Beide waren als overgeslagen gemarkeerd. Vandaag staat nog open.",
   "facts": {
    "about": "Meditate",
    "subject": "92000000-0000-4000-8000-000000000004",
@@ -164,7 +164,7 @@
  },
  "hab-missed-month": {
   "en": "You missed 1 of 7 habits this month (Sun, Nov 1 to Tue, Nov 17): Late-night snacks (2 days). Skipped (not counted as missed): Read (2 days), Exercise (2 days), Walk (2 days), Meditate (2 days), Contribute (2 days), Drink water (2 days) and Late-night snacks (3 days). Still open today: Exercise, Meditate and Drink water.",
-  "nl": "Je hebt 1 van je 7 gewoontes gemist deze maand (Sun, Nov 1 t/m Tue, Nov 17): Late-night snacks (2 dagen). Overgeslagen (telt niet als gemist): Read (2 dagen), Exercise (2 dagen), Walk (2 dagen), Meditate (2 dagen), Contribute (2 dagen), Drink water (2 dagen) en Late-night snacks (3 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
+  "nl": "Je hebt 1 van je 7 gewoontes gemist deze maand (zo 1 nov t/m di 17 nov): Late-night snacks (2 dagen). Overgeslagen (telt niet als gemist): Read (2 dagen), Exercise (2 dagen), Walk (2 dagen), Meditate (2 dagen), Contribute (2 dagen), Drink water (2 dagen) en Late-night snacks (3 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
   "facts": {
    "about": "habits",
    "ask": "missed",
@@ -313,7 +313,7 @@
  },
  "hab-missed-yesterday": {
   "en": "You missed no habit yesterday (Mon, Nov 16): 7 of 7 due check-ins done.",
-  "nl": "Je hebt geen gewoonte gemist gisteren (Mon, Nov 16): 7 van 7 geplande check-ins gedaan.",
+  "nl": "Je hebt geen gewoonte gemist gisteren (ma 16 nov): 7 van 7 geplande check-ins gedaan.",
   "facts": {
    "about": "habits",
    "ask": "missed",
@@ -420,7 +420,7 @@
  },
  "hab-skipped-month": {
   "en": "You skipped 7 of 7 habits this month (Sun, Nov 1 to Tue, Nov 17): Late-night snacks (3 days), Contribute (2 days), Drink water (2 days), Exercise (2 days), Meditate (2 days), Read (2 days) and Walk (2 days). Still open today: Exercise, Meditate and Drink water.",
-  "nl": "Je hebt 7 van je 7 gewoontes overgeslagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Late-night snacks (3 dagen), Contribute (2 dagen), Drink water (2 dagen), Exercise (2 dagen), Meditate (2 dagen), Read (2 dagen) en Walk (2 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
+  "nl": "Je hebt 7 van je 7 gewoontes overgeslagen deze maand (zo 1 nov t/m di 17 nov): Late-night snacks (3 dagen), Contribute (2 dagen), Drink water (2 dagen), Exercise (2 dagen), Meditate (2 dagen), Read (2 dagen) en Walk (2 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
   "facts": {
    "about": "habits",
    "ask": "skipped",
@@ -641,7 +641,7 @@
  },
  "hab-notdone-lastweek": {
   "en": "7 of 7 habits were not done on some day last week (Mon, Nov 9 to Sun, Nov 15): Late-night snacks (3 days, 1 missed and 2 skipped), Contribute (1 day, skipped), Drink water (1 day, skipped), Exercise (1 day, skipped), Meditate (1 day, skipped), Read (1 day, skipped) and Walk (1 day, skipped).",
-  "nl": "7 van je 7 gewoontes zijn op een dag niet gedaan vorige week (Mon, Nov 9 t/m Sun, Nov 15): Late-night snacks (3 dagen, 1 gemist en 2 overgeslagen), Contribute (1 dag, overgeslagen), Drink water (1 dag, overgeslagen), Exercise (1 dag, overgeslagen), Meditate (1 dag, overgeslagen), Read (1 dag, overgeslagen) en Walk (1 dag, overgeslagen).",
+  "nl": "7 van je 7 gewoontes zijn op een dag niet gedaan vorige week (ma 9 nov t/m zo 15 nov): Late-night snacks (3 dagen, 1 gemist en 2 overgeslagen), Contribute (1 dag, overgeslagen), Drink water (1 dag, overgeslagen), Exercise (1 dag, overgeslagen), Meditate (1 dag, overgeslagen), Read (1 dag, overgeslagen) en Walk (1 dag, overgeslagen).",
   "facts": {
    "about": "habits",
    "ask": "not-done",
@@ -846,7 +846,7 @@
  },
  "hab-missed-days-month": {
   "en": "A habit was missed on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 8 (Late-night snacks) and Fri, Nov 13 (Late-night snacks). Still open today: Exercise, Meditate and Drink water.",
-  "nl": "Op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17) was een gewoonte gemist: Sun, Nov 8 (Late-night snacks) en Fri, Nov 13 (Late-night snacks). Vandaag nog open: Exercise, Meditate en Drink water.",
+  "nl": "Op 2 dagen deze maand (zo 1 nov t/m di 17 nov) was een gewoonte gemist: zo 8 nov (Late-night snacks) en vr 13 nov (Late-night snacks). Vandaag nog open: Exercise, Meditate en Drink water.",
   "facts": {
    "about": "habits",
    "ask": "missed",
@@ -999,7 +999,7 @@
  },
  "med-missed-month": {
   "en": "Meditate: no missed day this month (Sun, Nov 1 to Tue, Nov 17). Skipped (not counted as missed): Tue, Nov 3 and Thu, Nov 12. Today is still open.",
-  "nl": "Meditate: geen gemiste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Tue, Nov 3 en Thu, Nov 12. Vandaag staat nog open.",
+  "nl": "Meditate: geen gemiste dag deze maand (zo 1 nov t/m di 17 nov). Overgeslagen (telt niet als gemist): di 3 nov en do 12 nov. Vandaag staat nog open.",
   "facts": {
    "about": "Meditate",
    "subject": "92000000-0000-4000-8000-000000000004",
@@ -1052,7 +1052,7 @@
  },
  "med-skipped-month": {
   "en": "Meditate: skipped on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Tue, Nov 3 and Thu, Nov 12. Today is still open.",
-  "nl": "Meditate: overgeslagen op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Tue, Nov 3 en Thu, Nov 12. Vandaag staat nog open.",
+  "nl": "Meditate: overgeslagen op 2 dagen deze maand (zo 1 nov t/m di 17 nov): di 3 nov en do 12 nov. Vandaag staat nog open.",
   "facts": {
    "about": "Meditate",
    "subject": "92000000-0000-4000-8000-000000000004",
@@ -1108,7 +1108,7 @@
  },
  "snacks-missed-month": {
   "en": "Late-night snacks: missed on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 8 and Fri, Nov 13. Skipped (not counted as missed): Mon, Nov 2, Mon, Nov 9 and Sat, Nov 14.",
-  "nl": "Late-night snacks: gemist op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 8 en Fri, Nov 13. Overgeslagen (telt niet als gemist): Mon, Nov 2, Mon, Nov 9 en Sat, Nov 14.",
+  "nl": "Late-night snacks: gemist op 2 dagen deze maand (zo 1 nov t/m di 17 nov): zo 8 nov en vr 13 nov. Overgeslagen (telt niet als gemist): ma 2 nov, ma 9 nov en za 14 nov.",
   "facts": {
    "about": "Late-night snacks",
    "subject": "92000000-0000-4000-8000-000000000007",
@@ -1166,7 +1166,7 @@
  },
  "read-notdone-lastweek": {
   "en": "Read: not done on 1 day last week (Mon, Nov 9 to Sun, Nov 15): Sun, Nov 15. It was marked as skipped.",
-  "nl": "Read: niet gedaan op 1 dag vorige week (Mon, Nov 9 t/m Sun, Nov 15): Sun, Nov 15. Die was als overgeslagen gemarkeerd.",
+  "nl": "Read: niet gedaan op 1 dag vorige week (ma 9 nov t/m zo 15 nov): zo 15 nov. Die was als overgeslagen gemarkeerd.",
   "facts": {
    "about": "Read",
    "subject": "92000000-0000-4000-8000-000000000001",
@@ -1212,7 +1212,7 @@
  },
  "exercise-notdone-month": {
   "en": "Exercise: not done on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Thu, Nov 5 and Sat, Nov 14. Both were marked as skipped. Today is still open.",
-  "nl": "Exercise: niet gedaan op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Thu, Nov 5 en Sat, Nov 14. Beide waren als overgeslagen gemarkeerd. Vandaag staat nog open.",
+  "nl": "Exercise: niet gedaan op 2 dagen deze maand (zo 1 nov t/m di 17 nov): do 5 nov en za 14 nov. Beide waren als overgeslagen gemarkeerd. Vandaag staat nog open.",
   "facts": {
    "about": "Exercise",
    "subject": "92000000-0000-4000-8000-000000000002",
@@ -1268,7 +1268,7 @@
  },
  "read-done-dates-week": {
   "en": "Read: done on 2 of 2 due days this week (Mon, Nov 16 to Tue, Nov 17): Mon, Nov 16 and Tue, Nov 17. 60 minutes in total.",
-  "nl": "Read: gedaan op 2 van 2 geplande dagen deze week (Mon, Nov 16 t/m Tue, Nov 17): Mon, Nov 16 en Tue, Nov 17. 60 minutes in totaal.",
+  "nl": "Read: gedaan op 2 van 2 geplande dagen deze week (ma 16 nov t/m di 17 nov): ma 16 nov en di 17 nov. 60 minutes in totaal.",
   "facts": {
    "about": "Read",
    "subject": "92000000-0000-4000-8000-000000000001",
@@ -1311,7 +1311,7 @@
  },
  "walk-done-count-lastweek": {
   "en": "Walk: done on 6 of 7 due days last week (Mon, Nov 9 to Sun, Nov 15). 48,000 steps in total.",
-  "nl": "Walk: gedaan op 6 van 7 geplande dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15). 48,000 steps in totaal.",
+  "nl": "Walk: gedaan op 6 van 7 geplande dagen vorige week (ma 9 nov t/m zo 15 nov). 48,000 steps in totaal.",
   "facts": {
    "about": "Walk",
    "subject": "92000000-0000-4000-8000-000000000003",
@@ -1406,7 +1406,7 @@
  },
  "hab-missed-days-lastweek": {
   "en": "A habit was missed on 1 day last week (Mon, Nov 9 to Sun, Nov 15): Fri, Nov 13 (Late-night snacks).",
-  "nl": "Op 1 dag vorige week (Mon, Nov 9 t/m Sun, Nov 15) was een gewoonte gemist: Fri, Nov 13 (Late-night snacks).",
+  "nl": "Op 1 dag vorige week (ma 9 nov t/m zo 15 nov) was een gewoonte gemist: vr 13 nov (Late-night snacks).",
   "facts": {
    "about": "habits",
    "ask": "missed",
@@ -1548,7 +1548,7 @@
  },
  "hab-most-missed": {
   "en": "You missed 1 of 7 habits in the last 30 days (Mon, Oct 19 to Tue, Nov 17): Late-night snacks (4 days). Skipped (not counted as missed): Read (4 days), Exercise (3 days), Walk (3 days), Meditate (3 days), Contribute (3 days), Drink water (3 days) and Late-night snacks (4 days). Still open today: Exercise, Meditate and Drink water.",
-  "nl": "Je hebt 1 van je 7 gewoontes gemist in de afgelopen 30 dagen (Mon, Oct 19 t/m Tue, Nov 17): Late-night snacks (4 dagen). Overgeslagen (telt niet als gemist): Read (4 dagen), Exercise (3 dagen), Walk (3 dagen), Meditate (3 dagen), Contribute (3 dagen), Drink water (3 dagen) en Late-night snacks (4 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
+  "nl": "Je hebt 1 van je 7 gewoontes gemist in de afgelopen 30 dagen (ma 19 okt t/m di 17 nov): Late-night snacks (4 dagen). Overgeslagen (telt niet als gemist): Read (4 dagen), Exercise (3 dagen), Walk (3 dagen), Meditate (3 dagen), Contribute (3 dagen), Drink water (3 dagen) en Late-night snacks (4 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
   "facts": {
    "about": "habits",
    "ask": "missed",
@@ -1710,7 +1710,7 @@
  },
  "hab-skipped-lastweek": {
   "en": "You skipped 7 of 7 habits last week (Mon, Nov 9 to Sun, Nov 15): Late-night snacks (2 days), Contribute (1 day), Drink water (1 day), Exercise (1 day), Meditate (1 day), Read (1 day) and Walk (1 day).",
-  "nl": "Je hebt 7 van je 7 gewoontes overgeslagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Late-night snacks (2 dagen), Contribute (1 dag), Drink water (1 dag), Exercise (1 dag), Meditate (1 dag), Read (1 dag) en Walk (1 dag).",
+  "nl": "Je hebt 7 van je 7 gewoontes overgeslagen vorige week (ma 9 nov t/m zo 15 nov): Late-night snacks (2 dagen), Contribute (1 dag), Drink water (1 dag), Exercise (1 dag), Meditate (1 dag), Read (1 dag) en Walk (1 dag).",
   "facts": {
    "about": "habits",
    "ask": "skipped",
@@ -1915,7 +1915,7 @@
  },
  "read-mondays": {
   "en": "Read: no missed day on Mondays in the last 90 days (Thu, Aug 20 to Tue, Nov 17). Skipped (not counted as missed): Mon, Oct 19.",
-  "nl": "Read: geen gemiste dag op maandag in de afgelopen 90 dagen (Thu, Aug 20 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Mon, Oct 19.",
+  "nl": "Read: geen gemiste dag op maandag in de afgelopen 90 dagen (do 20 aug t/m di 17 nov). Overgeslagen (telt niet als gemist): ma 19 okt.",
   "facts": {
    "about": "Read",
    "subject": "92000000-0000-4000-8000-000000000001",
@@ -1957,7 +1957,7 @@
  },
  "water-habit-skipped-month": {
   "en": "Drink water: skipped on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 1 and Tue, Nov 10. Today is still open.",
-  "nl": "Drink water: overgeslagen op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.",
+  "nl": "Drink water: overgeslagen op 2 dagen deze maand (zo 1 nov t/m di 17 nov): zo 1 nov en di 10 nov. Vandaag staat nog open.",
   "facts": {
    "about": "Drink water",
    "subject": "92000000-0000-4000-8000-000000000006",
@@ -2013,7 +2013,7 @@
  },
  "contribute-notdone-month": {
   "en": "Contribute: not done on 2 days this month (Sun, Nov 1 to Tue, Nov 17): Mon, Nov 2 and Wed, Nov 11. Both were marked as skipped.",
-  "nl": "Contribute: niet gedaan op 2 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Mon, Nov 2 en Wed, Nov 11. Beide waren als overgeslagen gemarkeerd.",
+  "nl": "Contribute: niet gedaan op 2 dagen deze maand (zo 1 nov t/m di 17 nov): ma 2 nov en wo 11 nov. Beide waren als overgeslagen gemarkeerd.",
   "facts": {
    "about": "Contribute",
    "subject": "92000000-0000-4000-8000-000000000005",
@@ -2070,7 +2070,7 @@
  },
  "walk-missed-since": {
   "en": "Walk: no missed day since Sun, Nov 1. Skipped (not counted as missed): Wed, Nov 4 and Fri, Nov 13.",
-  "nl": "Walk: geen gemiste dag sinds Sun, Nov 1. Overgeslagen (telt niet als gemist): Wed, Nov 4 en Fri, Nov 13.",
+  "nl": "Walk: geen gemiste dag sinds zo 1 nov. Overgeslagen (telt niet als gemist): wo 4 nov en vr 13 nov.",
   "facts": {
    "about": "Walk",
    "subject": "92000000-0000-4000-8000-000000000003",
@@ -2186,7 +2186,7 @@
  },
  "hab-perfect-days": {
   "en": "14 days this month (Sun, Nov 1 to Tue, Nov 17) had every due habit done. Still open today: Exercise, Meditate and Drink water.",
-  "nl": "Op 14 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17) is elke geplande gewoonte gedaan. Vandaag nog open: Exercise, Meditate en Drink water.",
+  "nl": "Op 14 dagen deze maand (zo 1 nov t/m di 17 nov) is elke geplande gewoonte gedaan. Vandaag nog open: Exercise, Meditate en Drink water.",
   "facts": {
    "about": "habits",
    "ask": "done",
@@ -2221,11 +2221,11 @@
  },
  "hab-done-today-nl": {
   "en": "4 of 7 habits done today, 3 partly.\n- Done: Read, Walk, Contribute, Late-night snacks (Showcase)\n- Partly: Exercise, Meditate, Drink water",
-  "nl": "Vandaag (Tue, Nov 17) 3 van 7 geplande gewoontes zijn nog niet voltooid:\n• Exercise (15 of 30)\n• Meditate (5 of 10)\n• Drink water (1 of 2)\nVoltooid: Read, Walk, Contribute, Late-night snacks (Showcase).\nUit je gewoontegegevens op dit apparaat.",
+  "nl": "Vandaag (di 17 nov) 3 van 7 geplande gewoontes zijn nog niet voltooid:\n• Exercise (15 of 30)\n• Meditate (5 of 10)\n• Drink water (1 of 2)\nVoltooid: Read, Walk, Contribute, Late-night snacks (Showcase).\nUit je gewoontegegevens op dit apparaat.",
   "facts": null,
   "widgets": [],
   "fresh": "No habit yet: Habits → New habit, or ask me to create one.",
-  "freshNl": "Vandaag (Tue, Nov 17) stond er geen gewoonte gepland."
+  "freshNl": "Vandaag (di 17 nov) stond er geen gewoonte gepland."
  },
  "hab-streaks-nl": {
   "en": "Your longest streak ever is 27 days, shared by 2 habits: Walk (current 27 days), Contribute (current 27 days).\n- Read: longest 26 days, current 26 days\n- Exercise: longest 26 days, current 26 days",
@@ -2237,7 +2237,7 @@
  },
  "hab-week-nl": {
   "en": "This week: 12 check-ins over 7 habits.\n• Read: 2 of 2 planned days done\n• Exercise: 1 of 2 planned days done\n• Walk: 2 of 2 planned days done\n• Meditate: 1 of 2 planned days done\n• Contribute: 2 of 2 planned days done\n• Drink water: 1 of 2 planned days done\n• Late-night snacks (Showcase): 2 of 2 planned days done",
-  "nl": "Gewoontes deze week (Mon, Nov 16 t/m Tue, Nov 17): 11 van 11 geplande check-ins gedaan (100%); 0 gemist, 0 overgeslagen. Vandaag nog open: Exercise, Meditate en Drink water.",
+  "nl": "Gewoontes deze week (ma 16 nov t/m di 17 nov): 11 van 11 geplande check-ins gedaan (100%); 0 gemist, 0 overgeslagen. Vandaag nog open: Exercise, Meditate en Drink water.",
   "facts": null,
   "widgets": [],
   "fresh": "No habit is kept yet: Habits → New habit, or say “Create a habit called Walk”.",
@@ -2245,7 +2245,7 @@
  },
  "med-count-lastweek-nl": {
   "en": "You checked in Meditate 6 times last week (Mon, Nov 9 to Sun, Nov 15).\n- 7 scheduled days in this period",
-  "nl": "Meditate: gedaan op 6 van 7 geplande dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15). 60 minutes in totaal.",
+  "nl": "Meditate: gedaan op 6 van 7 geplande dagen vorige week (ma 9 nov t/m zo 15 nov). 60 minutes in totaal.",
   "facts": null,
   "widgets": [],
   "fresh": "No meditation session is logged last week (Mon, Nov 9 to Sun, Nov 15).",
@@ -2261,7 +2261,7 @@
  },
  "au-r12-habit-missed": {
   "en": "Drink water: no missed day this month (Sun, Nov 1 to Tue, Nov 17). Skipped (not counted as missed): Sun, Nov 1 and Tue, Nov 10. Today is still open.",
-  "nl": "Drink water: geen gemiste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.",
+  "nl": "Drink water: geen gemiste dag deze maand (zo 1 nov t/m di 17 nov). Overgeslagen (telt niet als gemist): zo 1 nov en di 10 nov. Vandaag staat nog open.",
   "facts": {
    "about": "Drink water",
    "subject": "92000000-0000-4000-8000-000000000006",
@@ -2330,7 +2330,7 @@
  },
  "water-notreached-month": {
   "en": "Water: no day below your target this month (Sun, Nov 1 to Tue, Nov 17). Nothing logged on 2 days: Sun, Nov 1 and Tue, Nov 10. Today is still open.",
-  "nl": "Water: geen dag onder je doel deze maand (Sun, Nov 1 t/m Tue, Nov 17). Niets gelogd op 2 dagen: Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.",
+  "nl": "Water: geen dag onder je doel deze maand (zo 1 nov t/m di 17 nov). Niets gelogd op 2 dagen: zo 1 nov en di 10 nov. Vandaag staat nog open.",
   "facts": {
    "about": "Water",
    "ask": "not-done",
@@ -2382,7 +2382,7 @@
  },
  "water-notreached-lastweek": {
   "en": "Water: no day below your target last week (Mon, Nov 9 to Sun, Nov 15). Nothing logged on 1 day: Tue, Nov 10.",
-  "nl": "Water: geen dag onder je doel vorige week (Mon, Nov 9 t/m Sun, Nov 15). Niets gelogd op 1 dag: Tue, Nov 10.",
+  "nl": "Water: geen dag onder je doel vorige week (ma 9 nov t/m zo 15 nov). Niets gelogd op 1 dag: di 10 nov.",
   "facts": {
    "about": "Water",
    "ask": "missed",
@@ -2425,7 +2425,7 @@
  },
  "water-average-week": {
   "en": "You logged 14,500 mL of water the last 7 days (Wed, Nov 11 to Tue, Nov 17).\n- On average 2,071 mL on the 7 days with water logged",
-  "nl": "Water: gemiddeld 2,071 mL per dag in de afgelopen 7 dagen (Wed, Nov 11 t/m Tue, Nov 17) (7 dagen gelogd).",
+  "nl": "Water: gemiddeld 2,071 mL per dag in de afgelopen 7 dagen (wo 11 nov t/m di 17 nov) (7 dagen gelogd).",
   "facts": null,
   "widgets": [],
   "fresh": "You logged 0 mL of water the last 7 days (Wed, Nov 11 to Tue, Nov 17).\n- 7 days without water logged (not counted as 0)",
@@ -2457,7 +2457,7 @@
  },
  "steps-missed-days-month": {
   "en": "Steps: below your target on 9 days this month (Sun, Nov 1 to Tue, Nov 17): Tue, Nov 3, Wed, Nov 4, Thu, Nov 5, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Fri, Nov 13, Sat, Nov 14 and Sun, Nov 15.",
-  "nl": "Stappen: onder je doel op 9 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Tue, Nov 3, Wed, Nov 4, Thu, Nov 5, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Fri, Nov 13, Sat, Nov 14 en Sun, Nov 15.",
+  "nl": "Stappen: onder je doel op 9 dagen deze maand (zo 1 nov t/m di 17 nov): di 3 nov, wo 4 nov, do 5 nov, zo 8 nov, ma 9 nov, di 10 nov, vr 13 nov, za 14 nov en zo 15 nov.",
   "facts": {
    "about": "Steps",
    "ask": "missed",
@@ -2520,7 +2520,7 @@
  },
  "steps-missed-lastweek": {
   "en": "Steps: below your target on 5 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Fri, Nov 13, Sat, Nov 14 and Sun, Nov 15.",
-  "nl": "Stappen: onder je doel op 5 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Fri, Nov 13, Sat, Nov 14 en Sun, Nov 15.",
+  "nl": "Stappen: onder je doel op 5 dagen vorige week (ma 9 nov t/m zo 15 nov): ma 9 nov, di 10 nov, vr 13 nov, za 14 nov en zo 15 nov.",
   "facts": {
    "about": "Steps",
    "ask": "missed",
@@ -2620,7 +2620,7 @@
  },
  "steps-average-month": {
   "en": "You averaged 7,524 steps a day this month (Sun, Nov 1 to Tue, Nov 17), over the 17 days with steps recorded.\n- Total: 127,900 steps",
-  "nl": "Stappen: gemiddeld 7,524 stappen per dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) (17 dagen gelogd).",
+  "nl": "Stappen: gemiddeld 7,524 stappen per dag deze maand (zo 1 nov t/m di 17 nov) (17 dagen gelogd).",
   "facts": null,
   "widgets": [],
   "fresh": "No steps are recorded this month (Sun, Nov 1 to Tue, Nov 17).",
@@ -2628,7 +2628,7 @@
  },
  "steps-best-month": {
   "en": "Your best day for steps this month (Sun, Nov 1 to Tue, Nov 17) was Mon, Nov 2 with 8,800 steps.",
-  "nl": "Stappen: je beste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) was Mon, Nov 2 (8,800 stappen).",
+  "nl": "Stappen: je beste dag deze maand (zo 1 nov t/m di 17 nov) was ma 2 nov (8,800 stappen).",
   "facts": null,
   "widgets": [],
   "fresh": "No steps are recorded this month (Sun, Nov 1 to Tue, Nov 17).",
@@ -2644,7 +2644,7 @@
  },
  "sleep-under-goal-month": {
   "en": "Sleep: under your sleep goal on 13 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 1, Mon, Nov 2, Tue, Nov 3, Wed, Nov 4, Thu, Nov 5, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Thu, Nov 12, Sat, Nov 14, Sun, Nov 15 and 1 more. Nothing logged on 2 days: Fri, Nov 6 and Fri, Nov 13.",
-  "nl": "Slaap: onder je slaapdoel op 13 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 1, Mon, Nov 2, Tue, Nov 3, Wed, Nov 4, Thu, Nov 5, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Thu, Nov 12, Sat, Nov 14, Sun, Nov 15 en nog 1. Niets gelogd op 2 dagen: Fri, Nov 6 en Fri, Nov 13.",
+  "nl": "Slaap: onder je slaapdoel op 13 dagen deze maand (zo 1 nov t/m di 17 nov): zo 1 nov, ma 2 nov, di 3 nov, wo 4 nov, do 5 nov, zo 8 nov, ma 9 nov, di 10 nov, wo 11 nov, do 12 nov, za 14 nov, zo 15 nov en nog 1. Niets gelogd op 2 dagen: vr 6 nov en vr 13 nov.",
   "facts": {
    "about": "Sleep",
    "ask": "not-done",
@@ -2712,7 +2712,7 @@
  },
  "sleep-under-goal-lastweek": {
   "en": "Sleep: under your sleep goal on 6 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Thu, Nov 12, Sat, Nov 14 and Sun, Nov 15. Nothing logged on 1 day: Fri, Nov 13.",
-  "nl": "Slaap: onder je slaapdoel op 6 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Thu, Nov 12, Sat, Nov 14 en Sun, Nov 15. Niets gelogd op 1 dag: Fri, Nov 13.",
+  "nl": "Slaap: onder je slaapdoel op 6 dagen vorige week (ma 9 nov t/m zo 15 nov): ma 9 nov, di 10 nov, wo 11 nov, do 12 nov, za 14 nov en zo 15 nov. Niets gelogd op 1 dag: vr 13 nov.",
   "facts": {
    "about": "Sleep",
    "ask": "not-done",
@@ -2762,7 +2762,7 @@
  },
  "sleep-average-week": {
   "en": "Sleep: 6 h 57 min a day on average this week (Mon, Nov 16 to Tue, Nov 17) (2 days logged).",
-  "nl": "Slaap: gemiddeld 6 h 57 min per dag deze week (Mon, Nov 16 t/m Tue, Nov 17) (2 dagen gelogd).",
+  "nl": "Slaap: gemiddeld 6 h 57 min per dag deze week (ma 16 nov t/m di 17 nov) (2 dagen gelogd).",
   "facts": {
    "about": "Sleep",
    "ask": "average",
@@ -2799,7 +2799,7 @@
  },
  "sleep-average-lastweek": {
   "en": "Sleep: 6 h 51 min a day on average last week (Mon, Nov 9 to Sun, Nov 15) (6 days logged).",
-  "nl": "Slaap: gemiddeld 6 h 51 min per dag vorige week (Mon, Nov 9 t/m Sun, Nov 15) (6 dagen gelogd).",
+  "nl": "Slaap: gemiddeld 6 h 51 min per dag vorige week (ma 9 nov t/m zo 15 nov) (6 dagen gelogd).",
   "facts": {
    "about": "Sleep",
    "ask": "average",
@@ -2842,7 +2842,7 @@
  },
  "sleep-best-month": {
   "en": "Sleep: your best day this month (Sun, Nov 1 to Tue, Nov 17) was Sat, Nov 7 (8 h 5 min).",
-  "nl": "Slaap: je beste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) was Sat, Nov 7 (8 h 5 min).",
+  "nl": "Slaap: je beste dag deze maand (zo 1 nov t/m di 17 nov) was za 7 nov (8 h 5 min).",
   "facts": {
    "about": "Sleep",
    "ask": "best",
@@ -2896,7 +2896,7 @@
  },
  "sleep-worst-month": {
   "en": "Sleep: your lowest day this month (Sun, Nov 1 to Tue, Nov 17) was Thu, Nov 12 (6 h 18 min), of 15 days logged.",
-  "nl": "Slaap: je laagste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) was Thu, Nov 12 (6 h 18 min), van 15 dagen gelogd.",
+  "nl": "Slaap: je laagste dag deze maand (zo 1 nov t/m di 17 nov) was do 12 nov (6 h 18 min), van 15 dagen gelogd.",
   "facts": {
    "about": "Sleep",
    "ask": "worst",
@@ -3001,7 +3001,7 @@
  },
  "weight-now": {
   "en": "Your latest weight is 73.5 kg, on Mon, Nov 16.\n- Change from Mon, Oct 19 to Mon, Nov 16: -1.1 kg\n- 8 readings the last 30 days (Mon, Oct 19 to Tue, Nov 17)",
-  "nl": "Gewicht: 73.48 kg (Mon, Nov 16), 1.12 kg lager dan op Oct 19. Je doel is 72 kg.",
+  "nl": "Gewicht: 73.48 kg (ma 16 nov), 1.12 kg lager dan op 19 okt. Je doel is 72 kg.",
   "facts": null,
   "widgets": [],
   "fresh": "No weight is recorded the last 30 days (Mon, Oct 19 to Tue, Nov 17).",
@@ -3009,7 +3009,7 @@
  },
  "weight-last-weighin": {
   "en": "Your latest weight is 73.5 kg, on Mon, Nov 16.\n- Change from Mon, Oct 19 to Mon, Nov 16: -1.1 kg\n- 8 readings the last 30 days (Mon, Oct 19 to Tue, Nov 17)",
-  "nl": "Gewicht: voor het laatst gewogen op Mon, Nov 16 (gisteren), 73.48 kg.",
+  "nl": "Gewicht: voor het laatst gewogen op ma 16 nov (gisteren), 73.48 kg.",
   "facts": null,
   "widgets": [],
   "fresh": "No weight is recorded the last 30 days (Mon, Oct 19 to Tue, Nov 17).",
@@ -3017,7 +3017,7 @@
  },
  "weight-days-month": {
   "en": "Weight: weighed in on 4 days this month (Sun, Nov 1 to Tue, Nov 17): Wed, Nov 4, Sun, Nov 8, Thu, Nov 12 and Mon, Nov 16.",
-  "nl": "Gewicht: gewogen op 4 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Wed, Nov 4, Sun, Nov 8, Thu, Nov 12 en Mon, Nov 16.",
+  "nl": "Gewicht: gewogen op 4 dagen deze maand (zo 1 nov t/m di 17 nov): wo 4 nov, zo 8 nov, do 12 nov en ma 16 nov.",
   "facts": {
    "about": "Weight",
    "ask": "done",
@@ -3076,7 +3076,7 @@
  },
  "weight-notlogged-lastweek": {
   "en": "Weight: no weigh-in on 6 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Fri, Nov 13, Sat, Nov 14 and Sun, Nov 15.",
-  "nl": "Gewicht: geen weging op 6 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Wed, Nov 11, Fri, Nov 13, Sat, Nov 14 en Sun, Nov 15.",
+  "nl": "Gewicht: geen weging op 6 dagen vorige week (ma 9 nov t/m zo 15 nov): ma 9 nov, di 10 nov, wo 11 nov, vr 13 nov, za 14 nov en zo 15 nov.",
   "facts": {
    "about": "Weight",
    "ask": "not-done",
@@ -3126,7 +3126,7 @@
  },
  "workouts-month": {
   "en": "Workouts: 9 workouts on 9 days this month (Sun, Nov 1 to Tue, Nov 17). 420 minutes in total.",
-  "nl": "Workouts: 9 workouts op 9 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17). 420 minuten in totaal.",
+  "nl": "Workouts: 9 workouts op 9 dagen deze maand (zo 1 nov t/m di 17 nov). 420 minuten in totaal.",
   "facts": {
    "about": "Workouts",
    "ask": "done",
@@ -3191,7 +3191,7 @@
  },
  "workouts-lastweek": {
   "en": "Workouts: 4 workouts on 4 days last week (Mon, Nov 9 to Sun, Nov 15). 188 minutes in total.",
-  "nl": "Workouts: 4 workouts op 4 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15). 188 minuten in totaal.",
+  "nl": "Workouts: 4 workouts op 4 dagen vorige week (ma 9 nov t/m zo 15 nov). 188 minuten in totaal.",
   "facts": {
    "about": "Workouts",
    "ask": "done",
@@ -3280,7 +3280,7 @@
  },
  "workouts-none-lastweek": {
   "en": "Workouts: no workout on 3 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10 and Sat, Nov 14.",
-  "nl": "Workouts: geen workout op 3 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10 en Sat, Nov 14.",
+  "nl": "Workouts: geen workout op 3 dagen vorige week (ma 9 nov t/m zo 15 nov): ma 9 nov, di 10 nov en za 14 nov.",
   "facts": {
    "about": "Workouts",
    "ask": "not-done",
@@ -3327,7 +3327,7 @@
  },
  "workouts-days-month": {
   "en": "Workouts: a workout logged on 9 days this month (Sun, Nov 1 to Tue, Nov 17): Wed, Nov 4, Thu, Nov 5, Fri, Nov 6, Sun, Nov 8, Wed, Nov 11, Thu, Nov 12, Fri, Nov 13, Sun, Nov 15 and Mon, Nov 16. 420 minutes in total.",
-  "nl": "Workouts: een workout gelogd op 9 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Wed, Nov 4, Thu, Nov 5, Fri, Nov 6, Sun, Nov 8, Wed, Nov 11, Thu, Nov 12, Fri, Nov 13, Sun, Nov 15 en Mon, Nov 16. 420 minuten in totaal.",
+  "nl": "Workouts: een workout gelogd op 9 dagen deze maand (zo 1 nov t/m di 17 nov): wo 4 nov, do 5 nov, vr 6 nov, zo 8 nov, wo 11 nov, do 12 nov, vr 13 nov, zo 15 nov en ma 16 nov. 420 minuten in totaal.",
   "facts": {
    "about": "Workouts",
    "ask": "done",
@@ -3408,7 +3408,7 @@
  },
  "protein-missed-lastweek": {
   "en": "Protein: below your target on 1 day last week (Mon, Nov 9 to Sun, Nov 15): Fri, Nov 13.",
-  "nl": "Eiwit: onder je doel op 1 dag vorige week (Mon, Nov 9 t/m Sun, Nov 15): Fri, Nov 13.",
+  "nl": "Eiwit: onder je doel op 1 dag vorige week (ma 9 nov t/m zo 15 nov): vr 13 nov.",
   "facts": {
    "about": "Protein",
    "ask": "missed",
@@ -3453,7 +3453,7 @@
  },
  "food-notlogged-month": {
   "en": "Calories: logged on every due day this month (Sun, Nov 1 to Tue, Nov 17) (17 of 17).",
-  "nl": "Calorieën: gelogd op elke geplande dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) (17 van 17).",
+  "nl": "Calorieën: gelogd op elke geplande dag deze maand (zo 1 nov t/m di 17 nov) (17 van 17).",
   "facts": {
    "about": "Calories",
    "ask": "not-done",
@@ -3513,7 +3513,7 @@
  },
  "calories-week": {
   "en": "Calories: 4,039 kcal this week (Mon, Nov 16 to Tue, Nov 17), 2,020 kcal a day on 2 days.",
-  "nl": "Calorieën: 4,039 kcal deze week (Mon, Nov 16 t/m Tue, Nov 17), 2,020 kcal per dag op 2 dagen.",
+  "nl": "Calorieën: 4,039 kcal deze week (ma 16 nov t/m di 17 nov), 2,020 kcal per dag op 2 dagen.",
   "facts": {
    "about": "Calories",
    "ask": "total",
@@ -3551,7 +3551,7 @@
  },
  "protein-week": {
   "en": "Protein: 269 g this week (Mon, Nov 16 to Tue, Nov 17), 134 g a day on 2 days; target reached on 2 of 2 days logged.",
-  "nl": "Eiwit: 269 g deze week (Mon, Nov 16 t/m Tue, Nov 17), 134 g per dag op 2 dagen; doel gehaald op 2 van 2 dagen gelogd.",
+  "nl": "Eiwit: 269 g deze week (ma 16 nov t/m di 17 nov), 134 g per dag op 2 dagen; doel gehaald op 2 van 2 dagen gelogd.",
   "facts": {
    "about": "Protein",
    "ask": "total",
@@ -3589,7 +3589,7 @@
  },
  "health-overall": {
   "en": "Your health, from what is recorded: sleep 7 h 17 min of 8 h; steps today 8,800 of 8,000 steps; water today 1,000 of 2,000 mL; weight 73.48 kg (Mon, Nov 16); 1 workout this week. Nothing recorded for: resting heart rate.",
-  "nl": "Je gezondheid, uit wat er is vastgelegd: slaap 7 h 17 min van 8 h; stappen vandaag 8,800 van 8,000 stappen; water vandaag 1,000 van 2,000 mL; gewicht 73.48 kg (Mon, Nov 16); 1 workout deze week. Niets vastgelegd voor: rusthartslag.",
+  "nl": "Je gezondheid, uit wat er is vastgelegd: slaap 7 h 17 min van 8 h; stappen vandaag 8,800 van 8,000 stappen; water vandaag 1,000 van 2,000 mL; gewicht 73.48 kg (ma 16 nov); 1 workout deze week. Niets vastgelegd voor: rusthartslag.",
   "facts": {
    "about": "health",
    "ask": "status",
@@ -3624,7 +3624,7 @@
  },
  "au-r2-lift-today": {
   "en": "Nothing lifted is logged today (Tue, Nov 17). Your last lifting day was Mon, Nov 16: Push day — Bench press 3 sets, top 62.5 kg × 8; Overhead press 2 sets, top 37.5 kg × 8; Triceps pushdown 2 sets, top 27.5 kg × 12.",
-  "nl": "Er is vandaag (Tue, Nov 17) niets getild gelogd. Je laatste keer was Mon, Nov 16: Push day — Bench press 3 sets, zwaarst 62.5 kg × 8; Overhead press 2 sets, zwaarst 37.5 kg × 8; Triceps pushdown 2 sets, zwaarst 27.5 kg × 12.",
+  "nl": "Er is vandaag (di 17 nov) niets getild gelogd. Je laatste keer was ma 16 nov: Push day — Bench press 3 sets, zwaarst 62.5 kg × 8; Overhead press 2 sets, zwaarst 37.5 kg × 8; Triceps pushdown 2 sets, zwaarst 27.5 kg × 12.",
   "facts": {
    "about": "workouts",
    "ask": "done",
@@ -3639,11 +3639,11 @@
    "workouts"
   ],
   "fresh": "Nothing lifted is logged today (Tue, Nov 17). No strength workout is logged yet.",
-  "freshNl": "Er is vandaag (Tue, Nov 17) niets getild gelogd. Er is nog geen krachttraining gelogd."
+  "freshNl": "Er is vandaag (di 17 nov) niets getild gelogd. Er is nog geen krachttraining gelogd."
  },
  "au-r2-lift-yesterday": {
   "en": "Lifted yesterday (Mon, Nov 16): Push day — Bench press 3 sets, top 62.5 kg × 8; Overhead press 2 sets, top 37.5 kg × 8; Triceps pushdown 2 sets, top 27.5 kg × 12.",
-  "nl": "Getild gisteren (Mon, Nov 16): Push day — Bench press 3 sets, zwaarst 62.5 kg × 8; Overhead press 2 sets, zwaarst 37.5 kg × 8; Triceps pushdown 2 sets, zwaarst 27.5 kg × 12.",
+  "nl": "Getild gisteren (ma 16 nov): Push day — Bench press 3 sets, zwaarst 62.5 kg × 8; Overhead press 2 sets, zwaarst 37.5 kg × 8; Triceps pushdown 2 sets, zwaarst 27.5 kg × 12.",
   "facts": {
    "about": "workouts",
    "ask": "done",
@@ -3683,11 +3683,11 @@
    "workouts"
   ],
   "fresh": "Nothing lifted is logged yesterday (Mon, Nov 16). No strength workout is logged yet.",
-  "freshNl": "Er is gisteren (Mon, Nov 16) niets getild gelogd. Er is nog geen krachttraining gelogd."
+  "freshNl": "Er is gisteren (ma 16 nov) niets getild gelogd. Er is nog geen krachttraining gelogd."
  },
  "au-r3-run-week": {
   "en": "No run is logged this week (Mon, Nov 16 to Tue, Nov 17). The last one: Sun, Nov 15, 6 km.",
-  "nl": "Er is deze week (Mon, Nov 16 t/m Tue, Nov 17) geen loop gelogd. De laatste: Sun, Nov 15, 6 km.",
+  "nl": "Er is deze week (ma 16 nov t/m di 17 nov) geen loop gelogd. De laatste: zo 15 nov, 6 km.",
   "facts": {
    "about": "workouts",
    "ask": "done",
@@ -3704,11 +3704,11 @@
    "workout-days"
   ],
   "fresh": "No run is logged this week (Mon, Nov 16 to Tue, Nov 17).",
-  "freshNl": "Er is deze week (Mon, Nov 16 t/m Tue, Nov 17) geen loop gelogd."
+  "freshNl": "Er is deze week (ma 16 nov t/m di 17 nov) geen loop gelogd."
  },
  "au-r3-run-lastweek": {
   "en": "You ran 6 km last week (Mon, Nov 9 to Sun, Nov 15), in 1 run: 6 km on Sun, Nov 15.",
-  "nl": "Je liep 6 km vorige week (Mon, Nov 9 t/m Sun, Nov 15), in 1 loop: 6 km op Sun, Nov 15.",
+  "nl": "Je liep 6 km vorige week (ma 9 nov t/m zo 15 nov), in 1 loop: 6 km op zo 15 nov.",
   "facts": {
    "about": "workouts",
    "ask": "done",
@@ -3732,7 +3732,7 @@
    "workout-days"
   ],
   "fresh": "No run is logged last week (Mon, Nov 9 to Sun, Nov 15).",
-  "freshNl": "Er is vorige week (Mon, Nov 9 t/m Sun, Nov 15) geen loop gelogd."
+  "freshNl": "Er is vorige week (ma 9 nov t/m zo 15 nov) geen loop gelogd."
  },
  "spend-month": {
   "en": "You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
@@ -3760,7 +3760,7 @@
  },
  "spend-yesterday": {
   "en": "€51.40 spent yesterday (Mon, Nov 16); most on Groceries (76%), in 2 entries.",
-  "nl": "€51.40 uitgegeven gisteren (Mon, Nov 16); het meest aan Groceries (76%), in 2 boekingen.",
+  "nl": "€51.40 uitgegeven gisteren (ma 16 nov); het meest aan Groceries (76%), in 2 boekingen.",
   "facts": {
    "about": "spending",
    "ask": "done",
@@ -3792,7 +3792,7 @@
  },
  "spend-top-month": {
   "en": "€435.59 spent this month (Sun, Nov 1 to Tue, Nov 17); most on Groceries €187.10 (43%), Bills €120.00 (28%), Food & drink €49.10 (11%) and Shopping €35.00 (8%).",
-  "nl": "€435.59 uitgegeven deze maand (Sun, Nov 1 t/m Tue, Nov 17); het meest aan Groceries €187.10 (43%), Bills €120.00 (28%), Food & drink €49.10 (11%) en Shopping €35.00 (8%).",
+  "nl": "€435.59 uitgegeven deze maand (zo 1 nov t/m di 17 nov); het meest aan Groceries €187.10 (43%), Bills €120.00 (28%), Food & drink €49.10 (11%) en Shopping €35.00 (8%).",
   "facts": {
    "about": "spending",
    "ask": "best",
@@ -3844,7 +3844,7 @@
  },
  "spend-top-lastmonth": {
   "en": "€190.39 spent last month (Thu, Oct 1 to Sat, Oct 31); most on Groceries €80.90 (42%), Gifts €58.00 (30%), Food & drink €22.50 (12%) and Health €15.00 (8%).",
-  "nl": "€190.39 uitgegeven vorige maand (Thu, Oct 1 t/m Sat, Oct 31); het meest aan Groceries €80.90 (42%), Gifts €58.00 (30%), Food & drink €22.50 (12%) en Health €15.00 (8%).",
+  "nl": "€190.39 uitgegeven vorige maand (do 1 okt t/m za 31 okt); het meest aan Groceries €80.90 (42%), Gifts €58.00 (30%), Food & drink €22.50 (12%) en Health €15.00 (8%).",
   "facts": {
    "about": "spending",
    "ask": "best",
@@ -3888,7 +3888,7 @@
  },
  "spend-groceries-month": {
   "en": "You spent 187.10 EUR on groceries this month. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Groceries: €187.10 uitgegeven deze maand (Sun, Nov 1 t/m Tue, Nov 17), in 4 boekingen.",
+  "nl": "Groceries: €187.10 uitgegeven deze maand (zo 1 nov t/m di 17 nov), in 4 boekingen.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
@@ -3896,7 +3896,7 @@
  },
  "spend-biggest-expense": {
   "en": "Your largest expense this month (Sun, Nov 1 to Tue, Nov 17): €120.00 on Sun, Nov 8 (Energy).",
-  "nl": "Je grootste uitgave deze maand (Sun, Nov 1 t/m Tue, Nov 17): €120.00 op Sun, Nov 8 (Energy).",
+  "nl": "Je grootste uitgave deze maand (zo 1 nov t/m di 17 nov): €120.00 op zo 8 nov (Energy).",
   "facts": {
    "about": "spending",
    "ask": "best",
@@ -4016,7 +4016,7 @@
  },
  "spend-days-month": {
   "en": "€435.59 spent on 13 days this month (Sun, Nov 1 to Tue, Nov 17): Mon, Nov 2, Tue, Nov 3, Thu, Nov 5, Sat, Nov 7, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Thu, Nov 12, Fri, Nov 13, Sat, Nov 14, Sun, Nov 15, Mon, Nov 16 and 1 more.",
-  "nl": "€435.59 uitgegeven op 13 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Mon, Nov 2, Tue, Nov 3, Thu, Nov 5, Sat, Nov 7, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Thu, Nov 12, Fri, Nov 13, Sat, Nov 14, Sun, Nov 15, Mon, Nov 16 en nog 1.",
+  "nl": "€435.59 uitgegeven op 13 dagen deze maand (zo 1 nov t/m di 17 nov): ma 2 nov, di 3 nov, do 5 nov, za 7 nov, zo 8 nov, ma 9 nov, di 10 nov, do 12 nov, vr 13 nov, za 14 nov, zo 15 nov, ma 16 nov en nog 1.",
   "facts": {
    "about": "spending",
    "ask": "done",
@@ -4082,7 +4082,7 @@
  },
  "spend-none-days-lastweek": {
   "en": "No spending logged on 1 day last week (Mon, Nov 9 to Sun, Nov 15): Wed, Nov 11.",
-  "nl": "Geen uitgaven gelogd op 1 dag vorige week (Mon, Nov 9 t/m Sun, Nov 15): Wed, Nov 11.",
+  "nl": "Geen uitgaven gelogd op 1 dag vorige week (ma 9 nov t/m zo 15 nov): wo 11 nov.",
   "facts": {
    "about": "spending",
    "ask": "not-done",
@@ -4128,7 +4128,7 @@
  },
  "spend-average-month": {
   "en": "€25.62 a day on average this month (Sun, Nov 1 to Tue, Nov 17) (€435.59 over 17 days).",
-  "nl": "Gemiddeld €25.62 per dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) (€435.59 over 17 dagen).",
+  "nl": "Gemiddeld €25.62 per dag deze maand (zo 1 nov t/m di 17 nov) (€435.59 over 17 dagen).",
   "facts": {
    "about": "spending",
    "ask": "average",
@@ -4181,7 +4181,7 @@
  },
  "income-month": {
   "en": "€2,550.00 came in this month (Sun, Nov 1 to Tue, Nov 17), in 2 entries.",
-  "nl": "€2,550.00 binnengekomen deze maand (Sun, Nov 1 t/m Tue, Nov 17), in 2 boekingen.",
+  "nl": "€2,550.00 binnengekomen deze maand (zo 1 nov t/m di 17 nov), in 2 boekingen.",
   "facts": {
    "about": "income",
    "ask": "done",
@@ -4212,7 +4212,7 @@
  },
  "income-lastmonth": {
   "en": "No income logged last month (Thu, Oct 1 to Sat, Oct 31).",
-  "nl": "Geen inkomsten gelogd vorige maand (Thu, Oct 1 t/m Sat, Oct 31).",
+  "nl": "Geen inkomsten gelogd vorige maand (do 1 okt t/m za 31 okt).",
   "facts": {
    "about": "income",
    "ask": "done",
@@ -4256,7 +4256,7 @@
  },
  "bills-next": {
   "en": "Next bill: Rent €950.00, in 14 days (Tue, Dec 1); 3 more after it.",
-  "nl": "Volgende rekening: Rent €950.00, over 14 dagen (Tue, Dec 1); daarna nog 3.",
+  "nl": "Volgende rekening: Rent €950.00, over 14 dagen (di 1 dec); daarna nog 3.",
   "facts": {
    "about": "bills",
    "ask": "next",
@@ -4302,7 +4302,7 @@
  },
  "bills-overdue": {
   "en": "No bill is overdue. Next: Rent €950.00, in 14 days (Tue, Dec 1).",
-  "nl": "Geen rekening is te laat. De volgende: Rent €950.00, over 14 dagen (Tue, Dec 1).",
+  "nl": "Geen rekening is te laat. De volgende: Rent €950.00, over 14 dagen (di 1 dec).",
   "facts": {
    "about": "bills",
    "ask": "late",
@@ -4347,7 +4347,7 @@
  },
  "bills-week": {
   "en": "No bill falls due in the next 7 days. Next: Rent €950.00, in 14 days (Tue, Dec 1).",
-  "nl": "Geen rekening vervalt in de komende 7 dagen. De volgende: Rent €950.00, over 14 dagen (Tue, Dec 1).",
+  "nl": "Geen rekening vervalt in de komende 7 dagen. De volgende: Rent €950.00, over 14 dagen (di 1 dec).",
   "facts": {
    "about": "bills",
    "ask": "open",
@@ -4393,7 +4393,7 @@
  },
  "bills-list": {
   "en": "4 bill reminders; next due:\n• Rent · SHOWCASE DATA: 2026-12-01, 950.00 EUR (monthly)\n• Energy · SHOWCASE DATA: 2026-12-08, 120.00 EUR (monthly)\n• Music · SHOWCASE DATA: 2026-12-14, 9.99 EUR (monthly)\nReminders only; nothing is paid. Per currency, never converted.",
-  "nl": "3 rekeningen vervallen in de komende 30 dagen: Rent €950.00, over 14 dagen (Tue, Dec 1), Energy €120.00, over 21 dagen (Tue, Dec 8) en Music €9.99, over 27 dagen (Mon, Dec 14).",
+  "nl": "3 rekeningen vervallen in de komende 30 dagen: Rent €950.00, over 14 dagen (di 1 dec), Energy €120.00, over 21 dagen (di 8 dec) en Music €9.99, over 27 dagen (ma 14 dec).",
   "facts": null,
   "widgets": [],
   "fresh": "No bill reminder is kept. Wealth → Bills adds one (a reminder only; nothing is paid).\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"wealth\"}\n```",
@@ -4483,7 +4483,7 @@
  },
  "goals-status": {
   "en": "7 active goals, from your own records:\n• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20\n• First home deposit: 65% — $52,000 of $80,000, $28,000 to go; next planned Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 of $6,000, $3,500 to go; next planned Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones of 4 milestones, 2 milestones to go\n• Reward income reserve: 50% — 10,000 ZIG of 20,000 ZIG, 10,000 ZIG to go; next planned Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day of at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night of at least 8 h a night\n3 goals completed.\nAsk about one goal by its name for its plan and pace. Your own figures; not financial advice.",
-  "nl": "7 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — $9,000 van $20,000, nog $11,000 te gaan; volgende geplande stap Fri, Nov 20\n• First home deposit: 65% — $52,000 van $80,000, nog $28,000 te gaan; volgende geplande stap Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 van $6,000, nog $3,500 te gaan; volgende geplande stap Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones van 4 milestones, nog 2 milestones te gaan\n• Reward income reserve: 50% — 10,000 ZIG van 20,000 ZIG, nog 10,000 ZIG te gaan; volgende geplande stap Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day van at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night van at least 8 h a night\n3 doelen afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
+  "nl": "7 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — $9,000 van $20,000, nog $11,000 te gaan; volgende geplande stap vr 20 nov\n• First home deposit: 65% — $52,000 van $80,000, nog $28,000 te gaan; volgende geplande stap vr 20 nov\n• Japan adventure: 41.66% — $2,500 van $6,000, nog $3,500 te gaan; volgende geplande stap vr 20 nov\n• Launch my creative studio: 50% — 2 milestones van 4 milestones, nog 2 milestones te gaan\n• Reward income reserve: 50% — 10,000 ZIG van 20,000 ZIG, nog 10,000 ZIG te gaan; volgende geplande stap vr 20 nov\n• Create 2 hours a day: 94.64% — 1.9 h a day van at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night van at least 8 h a night\n3 doelen afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no active goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
@@ -4789,7 +4789,7 @@
  },
  "goals-next-date": {
   "en": "The next target date is Fri, Apr 16, 2027: Japan adventure 42% (behind plan).",
-  "nl": "De eerstvolgende streefdatum is Fri, Apr 16, 2027: Japan adventure 42% (achter op schema).",
+  "nl": "De eerstvolgende streefdatum is vr 16 apr 2027: Japan adventure 42% (achter op schema).",
   "facts": {
    "about": "goals",
    "ask": "next",
@@ -4892,7 +4892,7 @@
  },
  "goal-japan": {
   "en": "Japan adventure: 41.66% of the target — $2,500 of $6,000.\n- $3,500 to go\n- Target date: Fri, Apr 16, 2027\n- Next planned contribution: Fri, Nov 20\n- Contributed so far: $100; planned through today: $500",
-  "nl": "Japan adventure: $2,500.00 van $6,000.00 (42%), achter op schema; nog $3,500.00 te gaan; streefdatum Fri, Apr 16, 2027.",
+  "nl": "Japan adventure: $2,500.00 van $6,000.00 (42%), achter op schema; nog $3,500.00 te gaan; streefdatum vr 16 apr 2027.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
@@ -4933,7 +4933,7 @@
  },
  "goal-emergency": {
   "en": "Emergency fund: 45% of the target — $9,000 of $20,000.\n- $11,000 to go\n- Target date: Thu, Nov 16, 2028\n- Next planned contribution: Fri, Nov 20\n- Contributed so far: $750; planned through today: $500",
-  "nl": "Emergency fund: $9,000.00 van $20,000.00 (45%), voor op schema; nog $11,000.00 te gaan; streefdatum Thu, Nov 16, 2028.",
+  "nl": "Emergency fund: $9,000.00 van $20,000.00 (45%), voor op schema; nog $11,000.00 te gaan; streefdatum do 16 nov 2028.",
   "facts": null,
   "widgets": [],
   "fresh": "No goal is called “emergency fund”. You have no goals yet; Goals → Create a goal starts one.",
@@ -4941,7 +4941,7 @@
  },
  "goal-emergency-eta": {
   "en": "At your current pace, you reach Emergency fund about Jan 31, 2028 — an estimate from your pace so far, not a promise. Target date Thu, Nov 16, 2028; $11,000.00 still to go.",
-  "nl": "In je huidige tempo haal je Emergency fund rond Jan 31, 2028 — een schatting op basis van je tempo tot nu toe, geen belofte. Streefdatum Thu, Nov 16, 2028; nog $11,000.00 te gaan.",
+  "nl": "In je huidige tempo haal je Emergency fund rond 31 jan 2028 — een schatting op basis van je tempo tot nu toe, geen belofte. Streefdatum do 16 nov 2028; nog $11,000.00 te gaan.",
   "facts": {
    "about": "goals",
    "ask": "done",
@@ -4960,7 +4960,7 @@
  },
  "goal-japan-eta": {
   "en": "No pace yet for Japan adventure: there is not enough recorded progress yet (a pace needs at least 3 recorded steps over 14 days or more). Target date Fri, Apr 16, 2027; $3,500.00 still to go.",
-  "nl": "Nog geen tempo voor Japan adventure: er is nog te weinig vastgelegde voortgang (een tempo vraagt minstens 3 vastgelegde stappen over 14 dagen of meer). Streefdatum Fri, Apr 16, 2027; nog $3,500.00 te gaan.",
+  "nl": "Nog geen tempo voor Japan adventure: er is nog te weinig vastgelegde voortgang (een tempo vraagt minstens 3 vastgelegde stappen over 14 dagen of meer). Streefdatum vr 16 apr 2027; nog $3,500.00 te gaan.",
   "facts": {
    "about": "goals",
    "ask": "done",
@@ -4979,7 +4979,7 @@
  },
  "au-r6-bill-price": {
   "en": "Streaming went up from €12.99 to €13.99 since Jul 2026. From their payments in your money log, as Bills → Price changes shows them.",
-  "nl": "Streaming ging omhoog van €12.99 naar €13.99 sinds Jul 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.",
+  "nl": "Streaming ging omhoog van €12.99 naar €13.99 sinds juli 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.",
   "facts": {
    "about": "bills",
    "ask": "done",
@@ -5028,7 +5028,7 @@
  },
  "au-r11-next-bill": {
   "en": "Next bill: Rent €950.00, in 14 days (Tue, Dec 1); 3 more after it.",
-  "nl": "Volgende rekening: Rent €950.00, over 14 dagen (Tue, Dec 1); daarna nog 3.",
+  "nl": "Volgende rekening: Rent €950.00, over 14 dagen (di 1 dec); daarna nog 3.",
   "facts": {
    "about": "bills",
    "ask": "next",
@@ -5074,7 +5074,7 @@
  },
  "av-debt-free": {
   "en": "From your own figures (Wealth → What you owe → Plan paying off your debts):\n• USD (2 debts, $100.00 extra a month): debt-free in Apr 2028 (in 1 year and 5 months, $316.87 interest) with avalanche; Apr 2028 (in 1 year and 5 months, $316.87 interest) with snowball; minimums only: Oct 2029 (in 2 years and 11 months, $672.30 interest). Both orders come out the same here: debt-free after 17 months, with the same interest.\nA model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed. Nothing is paid or moved.",
-  "nl": "USD: schuldenvrij in Apr 2028 (over 1 jaar en 5 maanden, $316.87 rente) met lawine, Apr 2028 (over 1 jaar en 5 maanden, $316.87 rente) met sneeuwbal; alleen de minimumbedragen: Oct 2029 (over 2 jaar en 11 maanden, $672.30 rente). Uit je eigen bedragen in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts); een model, geen advies: er wordt niets betaald of verplaatst.",
+  "nl": "USD: schuldenvrij in april 2028 (over 1 jaar en 5 maanden, $316.87 rente) met lawine, april 2028 (over 1 jaar en 5 maanden, $316.87 rente) met sneeuwbal; alleen de minimumbedragen: oktober 2029 (over 2 jaar en 11 maanden, $672.30 rente). Uit je eigen bedragen in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts); een model, geen advies: er wordt niets betaald of verplaatst.",
   "facts": null,
   "widgets": [],
   "fresh": "No debt with a balance is recorded on this device, so there is no debt-free month to work out. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth, with what you owe and your yearly rate.",
@@ -5267,7 +5267,7 @@
  },
  "journal-notdone-month": {
   "en": "Journal: no entry on 7 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 1, Mon, Nov 2, Tue, Nov 3, Wed, Nov 4, Sat, Nov 7, Tue, Nov 10 and Fri, Nov 13.",
-  "nl": "Dagboek: niets geschreven op 7 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 1, Mon, Nov 2, Tue, Nov 3, Wed, Nov 4, Sat, Nov 7, Tue, Nov 10 en Fri, Nov 13.",
+  "nl": "Dagboek: niets geschreven op 7 dagen deze maand (zo 1 nov t/m di 17 nov): zo 1 nov, ma 2 nov, di 3 nov, wo 4 nov, za 7 nov, di 10 nov en vr 13 nov.",
   "facts": {
    "about": "Journal",
    "ask": "not-done",
@@ -5328,7 +5328,7 @@
  },
  "journal-days-month": {
   "en": "Journal: written on 10 days this month (Sun, Nov 1 to Tue, Nov 17).",
-  "nl": "Dagboek: geschreven op 10 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17).",
+  "nl": "Dagboek: geschreven op 10 dagen deze maand (zo 1 nov t/m di 17 nov).",
   "facts": {
    "about": "Journal",
    "ask": "done",
@@ -5393,7 +5393,7 @@
  },
  "journal-lastweek": {
   "en": "Journal: written on 5 days last week (Mon, Nov 9 to Sun, Nov 15).",
-  "nl": "Dagboek: geschreven op 5 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15).",
+  "nl": "Dagboek: geschreven op 5 dagen vorige week (ma 9 nov t/m zo 15 nov).",
   "facts": {
    "about": "Journal",
    "ask": "done",
@@ -5499,7 +5499,7 @@
  },
  "journal-last": {
   "en": "Journal: last written on Tue, Nov 17 (today).",
-  "nl": "Dagboek: voor het laatst geschreven op Tue, Nov 17 (vandaag).",
+  "nl": "Dagboek: voor het laatst geschreven op di 17 nov (vandaag).",
   "facts": {
    "about": "Journal",
    "ask": "last",
@@ -5552,7 +5552,7 @@
  },
  "notes-count": {
   "en": "8 notes in all; 2 wait in your inbox. The newest is from Tue, Nov 17.",
-  "nl": "8 notities in totaal; 2 wachten in je inbox. De nieuwste is van Tue, Nov 17.",
+  "nl": "8 notities in totaal; 2 wachten in je inbox. De nieuwste is van di 17 nov.",
   "facts": {
    "about": "notes",
    "ask": "status",
@@ -5568,11 +5568,11 @@
  },
  "agenda-today": {
   "en": "On your agenda today:\n• Contribute (done), Drink water, Example · Sketch the garden bed, 8:00 AM Exercise, 8:00 AM Read (done), 10:30 AM Example · Book the dentist, 2:00 PM Walk (done), 7:00 PM Late-night snacks (Showcase) (done), 7:00 PM Meditate\nNo amounts here; each item opens where it lives on the agenda.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
-  "nl": "Vandaag (Tue, Nov 17), uit je eigen gegevens:\n• Gewoontes nog open: Exercise (15 van 30 minuten), Meditate (5 van 10 minuten), Drink water (1 van 2 liters)\n• Taken voor vandaag: Example · Book the dentist om 10:30 AM (hoog, te laat)\n• Nog open van eerder: Example · Sketch the garden bed (sinds Mon, Nov 16)\nTitels, tijden en gewoontedoelen, geen geldbedragen; elk item opent waar het staat.",
+  "nl": "Vandaag (di 17 nov), uit je eigen gegevens:\n• Gewoontes nog open: Exercise (15 van 30 minuten), Meditate (5 van 10 minuten), Drink water (1 van 2 liters)\n• Taken voor vandaag: Example · Book the dentist om 10:30 AM (hoog, te laat)\n• Nog open van eerder: Example · Sketch the garden bed (sinds ma 16 nov)\nTitels, tijden en gewoontedoelen, geen geldbedragen; elk item opent waar het staat.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is planned today in your records. The agenda gathers habits, tasks, planned contributions, bills, meals and reviews.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
-  "freshNl": "Vandaag (Tue, Nov 17), uit je eigen gegevens:\n• Gewoontes: nog geen.\n• Taken: niets voor vandaag.\nVerder staat er vandaag niets in je gegevens."
+  "freshNl": "Vandaag (di 17 nov), uit je eigen gegevens:\n• Gewoontes: nog geen.\n• Taken: niets voor vandaag.\nVerder staat er vandaag niets in je gegevens."
  },
  "agenda-tomorrow": {
   "en": "On your agenda tomorrow:\n• Contribute, Drink water, 7:30 AM Example · Upper body session, 8:00 AM Exercise, 8:00 AM Read, 2:00 PM Walk, 7:00 PM Late-night snacks (Showcase), 7:00 PM Meditate\nNo amounts here; each item opens where it lives on the agenda.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
@@ -5612,7 +5612,7 @@
  },
  "focus-week": {
   "en": "Focus: 150 minutes this week (Mon, Nov 16 to Tue, Nov 17), all on Mon, Nov 16.",
-  "nl": "Focus: 150 minuten deze week (Mon, Nov 16 t/m Tue, Nov 17), alles op Mon, Nov 16.",
+  "nl": "Focus: 150 minuten deze week (ma 16 nov t/m di 17 nov), alles op ma 16 nov.",
   "facts": {
    "about": "Focus",
    "ask": "total",
@@ -5685,7 +5685,7 @@
  },
  "focus-month": {
   "en": "Focus: 16 focus sessions on 5 days this month (Sun, Nov 1 to Tue, Nov 17). 397 minutes in total.",
-  "nl": "Focus: 16 focussessies op 5 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17). 397 minuten in totaal.",
+  "nl": "Focus: 16 focussessies op 5 dagen deze maand (zo 1 nov t/m di 17 nov). 397 minuten in totaal.",
   "facts": {
    "about": "Focus",
    "ask": "done",
@@ -5746,7 +5746,7 @@
  },
  "focus-none-days-lastweek": {
   "en": "Focus: no focus session on 5 days last week (Mon, Nov 9 to Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Thu, Nov 12, Fri, Nov 13 and Sun, Nov 15.",
-  "nl": "Focus: geen focussessie op 5 dagen vorige week (Mon, Nov 9 t/m Sun, Nov 15): Mon, Nov 9, Tue, Nov 10, Thu, Nov 12, Fri, Nov 13 en Sun, Nov 15.",
+  "nl": "Focus: geen focussessie op 5 dagen vorige week (ma 9 nov t/m zo 15 nov): ma 9 nov, di 10 nov, do 12 nov, vr 13 nov en zo 15 nov.",
   "facts": {
    "about": "Focus",
    "ask": "not-done",
@@ -5795,7 +5795,7 @@
  },
  "focus-days-month": {
   "en": "Focus: a focus session on 5 days this month (Sun, Nov 1 to Tue, Nov 17): Sun, Nov 1, Fri, Nov 6, Wed, Nov 11, Sat, Nov 14 and Mon, Nov 16. 397 minutes in total.",
-  "nl": "Focus: een focussessie op 5 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Sun, Nov 1, Fri, Nov 6, Wed, Nov 11, Sat, Nov 14 en Mon, Nov 16. 397 minuten in totaal.",
+  "nl": "Focus: een focussessie op 5 dagen deze maand (zo 1 nov t/m di 17 nov): zo 1 nov, vr 6 nov, wo 11 nov, za 14 nov en ma 16 nov. 397 minuten in totaal.",
   "facts": {
    "about": "Focus",
    "ask": "done",
@@ -5856,7 +5856,7 @@
  },
  "focus-best-month": {
   "en": "Focus: your best day this month (Sun, Nov 1 to Tue, Nov 17) was Mon, Nov 16 (150 minutes).",
-  "nl": "Focus: je beste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17) was Mon, Nov 16 (150 minuten).",
+  "nl": "Focus: je beste dag deze maand (zo 1 nov t/m di 17 nov) was ma 16 nov (150 minuten).",
   "facts": {
    "about": "Focus",
    "ask": "best",
@@ -6001,7 +6001,7 @@
  },
  "life-doing": {
   "en": "Your day so far (Tue, Nov 17): habits 4 of 7 done, 3 still open; 5 open tasks, 2 overdue; steps 8,800 steps; water 1,000 mL; sleep 7 h 17 min.",
-  "nl": "Je dag tot nu toe (Tue, Nov 17): gewoontes 4 van 7 gedaan, 3 nog open; 5 open taken, 2 te laat; stappen 8,800 stappen; water 1,000 mL; slaap 7 h 17 min.",
+  "nl": "Je dag tot nu toe (di 17 nov): gewoontes 4 van 7 gedaan, 3 nog open; 5 open taken, 2 te laat; stappen 8,800 stappen; water 1,000 mL; slaap 7 h 17 min.",
   "facts": {
    "about": "life",
    "ask": "status",
@@ -6056,7 +6056,7 @@
  },
  "why-sleep": {
   "en": "Your records do not say why. What they do show: Sleep: 6 h 51 min a day on average last week (Mon, Nov 9 to Sun, Nov 15) (6 days logged).",
-  "nl": "Waarom staat niet in je gegevens. Wat er wel staat: Slaap: gemiddeld 6 h 51 min per dag vorige week (Mon, Nov 9 t/m Sun, Nov 15) (6 dagen gelogd).",
+  "nl": "Waarom staat niet in je gegevens. Wat er wel staat: Slaap: gemiddeld 6 h 51 min per dag vorige week (ma 9 nov t/m zo 15 nov) (6 dagen gelogd).",
   "facts": {
    "about": "Sleep",
    "ask": "average",
@@ -6099,7 +6099,7 @@
  },
  "why-habits": {
   "en": "Your records do not say why. What they do show: Habits this week (Mon, Nov 16 to Tue, Nov 17): 11 of 11 due check-ins done (100%); 0 missed, 0 skipped. Still open today: Exercise, Meditate and Drink water.",
-  "nl": "Waarom staat niet in je gegevens. Wat er wel staat: Gewoontes deze week (Mon, Nov 16 t/m Tue, Nov 17): 11 van 11 geplande check-ins gedaan (100%); 0 gemist, 0 overgeslagen. Vandaag nog open: Exercise, Meditate en Drink water.",
+  "nl": "Waarom staat niet in je gegevens. Wat er wel staat: Gewoontes deze week (ma 16 nov t/m di 17 nov): 11 van 11 geplande check-ins gedaan (100%); 0 gemist, 0 overgeslagen. Vandaag nog open: Exercise, Meditate en Drink water.",
   "facts": {
    "about": "habits",
    "ask": "status",
@@ -6259,11 +6259,11 @@
  },
  "au-r4-date": {
   "en": "It's Tuesday, Nov 17.",
-  "nl": "Het is dinsdag, Nov 17.",
+  "nl": "Het is dinsdag 17 nov.",
   "facts": null,
   "widgets": [],
   "fresh": "It's Tuesday, Nov 17.",
-  "freshNl": "Het is dinsdag, Nov 17."
+  "freshNl": "Het is dinsdag 17 nov."
  },
  "av-task-reminders": {
   "en": "No open task has a reminder yet. In Tasks, open a task with a day and choose a Reminder (at the time, or a while before).",
@@ -6331,7 +6331,7 @@
  },
  "av-budget-targets": {
   "en": "Groceries: target €300.00 by Dec 2026: €62.90 set aside, €237.10 a month from next month, on track.",
-  "nl": "Groceries: doel €300.00 uiterlijk Dec 2026: €62.90 opzij, €237.10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel.",
+  "nl": "Groceries: doel €300.00 uiterlijk december 2026: €62.90 opzij, €237.10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no goals yet.",
