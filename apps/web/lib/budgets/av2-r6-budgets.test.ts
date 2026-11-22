@@ -67,6 +67,21 @@ describe('set aside for next month (#428)', () => {
   });
 });
 
+test('review B6O-2: next month’s amount lowered after setting aside — the excess is ready again where it came from, none lost', () => {
+  const b: BudgetsRecord = {...emptyBudgets(), budgets: [{id: 'food', category: 'Groceries', currency: 'EUR', monthly: '400.00', rollover: false, since: '2026-01'}]};
+  const pay = (m: string) => e(`s${m}`, '1000.00', {kind: 'income', category: 'Salary', date: `${m}-01`});
+  const set = setAside(b, '2026-11', {food: '300'}, new Map([['EUR', 60000]]), AT, () => 'a1');
+  const lowered: BudgetsRecord = {...set, budgets: [{...set.budgets[0]!, months: {'2026-12': '100.00'}}]};
+  const nov = readyToAssign([pay('2026-11')], lowered, '2026-11')[0]!, dec = readyToAssign([pay('2026-12')], lowered, '2026-12')[0]!;
+  expect(nov).toMatchObject({held: 50000, ready: 50000, setAside: 10000});
+  expect(dec).toMatchObject({held: 0, ready: 100000, covered: 10000});
+  expect(nov.ready + dec.ready).toBe(150000); // €2,000 in, €400 + €100 budgeted: €1,500 ready, nothing gone
+  expect(setAsideFrom(lowered, '2026-11')).toEqual(new Map([['EUR', 10000]]));
+  expect([...coveredIn(lowered, '2026-12')]).toEqual([['food', 10000]]);
+  // Setting it again counts only what was held: up to the €500 ready, plus the €100 held now.
+  expect(setAsideFrom(setAside(lowered, '2026-11', {food: '100'}, new Map([['EUR', 50000]]), AT, () => 'a2'), '2026-11')).toEqual(new Map([['EUR', 10000]]));
+});
+
 describe('each paycheck’s plan (#426)', () => {
   const bills: BillsRecord = {...emptyBills(), bills: [{id: 'phone', title: 'Phone', amount: '25.00', currency: 'EUR', cadence: 'monthly', nextDue: '2026-12-08', origin: 'manual', createdAt: '2026-01-01T00:00:00.000Z'}]};
   test('the days a paycheck comes: a day of the month (clamped), each Friday, every other Friday', () => {
