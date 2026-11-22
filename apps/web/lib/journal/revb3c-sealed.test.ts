@@ -73,7 +73,7 @@ describe('B3C-4: ZIGi’s and NOVA’s journal tool', () => {
   test('a sealed letter’s words, follow-up and answer never appear; it is counted', () => {
     const out = run(sealedJournal());
     expect(out.ok).toBe(true);
-    const data = (out as {data: {entries: {date: string; text: string}[]; lettersFoldedAway?: number; lettersNote?: string}}).data;
+    const data = (out as unknown as {data: {entries: {date: string; text: string}[]; lettersFoldedAway?: number; lettersNote?: string}}).data;
     expect(JSON.stringify(out)).not.toContain(SECRET);
     expect(JSON.stringify(out)).not.toContain('A fictional question?');
     expect(data.entries.map(e => e.date)).toEqual([]); // the plain entry and the opened letter are older than 30 days
