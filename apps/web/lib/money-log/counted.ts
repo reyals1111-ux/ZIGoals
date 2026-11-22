@@ -1,5 +1,5 @@
 import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, MAX_HISTORY, MAX_OWN_CATEGORIES, type MoneyEntry, type MoneyLog} from './schema';
-import {entryParts, type EntryPart} from '../money-split/parts';
+import {entryParts, minorUnits, type EntryPart} from '../money-split/parts';
 
 /**
  * Session AV lane 2 (money; YNAB's credit-card interest, Rocket Money's "ignore", Monarch's exclude, Copilot's spread):
@@ -10,6 +10,24 @@ import {entryParts, type EntryPart} from '../money-split/parts';
 export const isCounted = (e: Pick<MoneyEntry, 'excluded' | 'transfer'>) => !e.excluded && !e.transfer;
 export const countedOnly = <T extends Pick<MoneyEntry, 'excluded' | 'transfer'>>(entries: readonly T[]): T[] => entries.filter(isCounted);
 
+/**
+ * Session AV lane 2, round 2 (money; Emma's custom split): the person's own share of a cost paid for others too. The log
+ * keeps what was paid (`amount`); spending figures and budgets count `share` (when it is above zero and at most the
+ * amount; otherwise the whole amount, as older builds do). Each part is scaled to the share in exact cents (the first
+ * parts take the leftover cents, so the parts add up to the share).
+ */
+export function mineCents(e: Pick<MoneyEntry, 'amount' | 'share'>): number {
+  const whole = minorUnits(e.amount), mine = e.share ? minorUnits(e.share) : whole;
+  return mine > 0 && mine <= whole ? mine : whole;
+}
+export function mineParts(e: MoneyEntry): EntryPart[] {
+  const parts = entryParts(e), whole = minorUnits(e.amount), mine = mineCents(e);
+  if (mine === whole) return parts;
+  const scaled = parts.map(p => ({...p, cents: Math.floor(p.cents * mine / whole)}));
+  let rest = mine - scaled.reduce((sum, p) => sum + p.cents, 0);
+  for (let i = 0; rest > 0 && scaled.length; i = (i + 1) % scaled.length, rest--) scaled[i]!.cents++;
+  return scaled;
+}
 const monthIndex = (m: string) => Number(m.slice(0, 4)) * 12 + Number(m.slice(5, 7)) - 1;
 /**
  * What an expense counts in a month's budgets: its parts in its own month, or — spread over `spread` months from its own
@@ -20,8 +38,8 @@ export function budgetMonthParts(e: MoneyEntry, month: string): EntryPart[] {
   if (!isCounted(e)) return [];
   const own = e.date.slice(0, 7), n = e.spread ?? 1, k = monthIndex(month) - monthIndex(own);
   if (k < 0 || k >= n) return [];
-  if (n === 1) return entryParts(e);
-  return entryParts(e).map(p => { const base = Math.floor(p.cents / n), rest = p.cents - base * n; return {...p, cents: base + (k < rest ? 1 : 0)}; });
+  if (n === 1) return mineParts(e);
+  return mineParts(e).map(p => { const base = Math.floor(p.cents / n), rest = p.cents - base * n; return {...p, cents: base + (k < rest ? 1 : 0)}; });
 }
 /** Whether an entry can reach a month's budgets (its own month, or a later one it is spread into). */
 export const reachesMonth = (e: MoneyEntry, month: string) => { const k = monthIndex(month) - monthIndex(e.date.slice(0, 7)); return k >= 0 && k < (e.spread ?? 1); };
