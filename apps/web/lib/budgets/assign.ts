@@ -1,8 +1,7 @@
 import {csvSafeCell} from '../export/csv-safe';
-import {isCounted} from '../money-log/counted';
+import {isCounted, mineParts} from '../money-log/counted';
 import {cents, fromCents} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
-import {entryParts} from '../money-split/parts';
 import {budgetedIn, monthView, shiftMonth, type BudgetRow} from './engine';
 import {MAX_MOVES, budgetsSchema, type Budget, type BudgetsRecord} from './schema';
 
@@ -62,7 +61,7 @@ export function averageSpent(entries: readonly MoneyEntry[], category: string, c
     const m = e.date.slice(0, 7);
     if (e.kind !== 'expense' || e.currency !== currency || !isCounted(e) || m < from || m >= month) continue;
     seen.add(m);
-    for (const p of entryParts(e)) if (p.category.toLowerCase() === name) total += p.cents;
+    for (const p of mineParts(e)) if (p.category.toLowerCase() === name) total += p.cents; // Review b2a #3: own share
   }
   const logged = [...seen].length;
   if (!logged) return null;

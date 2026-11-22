@@ -1,9 +1,8 @@
 import {cents, monthOf} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
-import {entryParts} from '../money-split/parts';
 import {monthView, shiftMonth} from './engine';
 import type {BudgetsRecord} from './schema';
-import {isCounted} from '../money-log/counted';
+import {isCounted, mineCents, mineParts} from '../money-log/counted';
 
 /**
  * Session AV (owner follow-up 1, F-MONTH-RECAP; Copilot's monthly review): a month in short, per currency (never
@@ -20,7 +19,7 @@ export function monthRecap(entries: readonly MoneyEntry[], record: BudgetsRecord
     if (!isCounted(e)) continue; // Session AV lane 2 (money)
     const inMonth = e.date >= start && e.date <= end, inPrev = e.date >= prev.start && e.date <= prev.end;
     if (!inMonth && !inPrev) continue;
-    const c = cents(e.amount);
+    const c = e.kind === 'expense' ? mineCents(e) : cents(e.amount); // Review b2a #3: the person's own share of a shared cost
     if (inPrev) { if (e.kind === 'expense') get(e.currency).previousSpent += c; continue; }
     const r = get(e.currency);
     if (e.kind === 'income') { r.income += c; continue; }
@@ -28,7 +27,7 @@ export function monthRecap(entries: readonly MoneyEntry[], record: BudgetsRecord
     r.spent += c;
     if (!r.largest || c > r.largest.cents) r.largest = {note: (e.note?.split(' · ')[0]?.trim() || e.category).slice(0, 80), cents: c, date: e.date};
     const cats = byCat.get(e.currency) ?? new Map<string, number>();
-    for (const p of entryParts(e)) cats.set(p.category, (cats.get(p.category) ?? 0) + p.cents);
+    for (const p of mineParts(e)) cats.set(p.category, (cats.get(p.category) ?? 0) + p.cents);
     byCat.set(e.currency, cats);
   }
   for (const row of view.rows) { const r = get(row.currency); r.budgets.of++; if (!row.over) r.budgets.kept++; }

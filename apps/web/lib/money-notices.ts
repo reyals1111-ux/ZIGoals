@@ -5,11 +5,10 @@ import {monthKey, monthView, shiftMonth} from './budgets/engine';
 import {MAX_CHALLENGES, MAX_WATCHED, type BudgetsRecord} from './budgets/schema';
 import {WATCH_ABOVE_MIN, WATCH_ABOVE_SHARE} from './budgets/watch';
 import type {CurrencyForecast} from './cash-forecast/model';
-import {isCounted} from './money-log/counted';
+import {isCounted, mineCents, mineParts} from './money-log/counted';
 import {cents, monthOf} from './money-log/engine';
 import type {MoneyEntry} from './money-log/schema';
 import {noteKey, payeePart} from './money-log/suggest';
-import {entryParts} from './money-split/parts';
 
 /**
  * Session AV lane 2 (money; YNAB's Spotlight, Rocket Money's watchlist, challenges, payday view and low-balance alert,
@@ -53,7 +52,7 @@ export function payeeRows(record: BudgetsRecord, entries: readonly MoneyEntry[],
       if (e.currency !== w.currency || !isCounted(e)) continue;
       if (e.date >= prev.start && e.date <= today) any = true;
       if (e.kind !== 'expense' || payeeOf(e) !== key) continue;
-      const c = cents(e.amount);
+      const c = mineCents(e); // Review b2a #3: the person's own share of a shared cost, as Wealth → Spending counts it
       if (e.date >= month.start && e.date <= today) { thisMonth += c; count++; }
       else if (e.date >= prev.start && e.date <= prev.end) { lastMonth += c; if (e.date <= sameDay) lastBySameDay += c; }
     }
@@ -68,7 +67,7 @@ export const payeesAbove = (record: BudgetsRecord, entries: readonly MoneyEntry[
 export type ChallengeState = {id: string; category: string; currency: string; month: string; lastMonth: number; spent: number; left: number; state: 'on-track' | 'close' | 'over' | 'won' | 'lost' | 'no-last'; daysLeft: number};
 const spentInCategory = (entries: readonly MoneyEntry[], category: string, currency: string, from: string, to: string) => {
   let total = 0;
-  for (const e of entries) if (e.kind === 'expense' && e.currency === currency && isCounted(e) && e.date >= from && e.date <= to) for (const p of entryParts(e)) if (same(p.category, category)) total += p.cents;
+  for (const e of entries) if (e.kind === 'expense' && e.currency === currency && isCounted(e) && e.date >= from && e.date <= to) for (const p of mineParts(e)) if (same(p.category, category)) total += p.cents; // Review b2a #3: own share
   return total;
 };
 export function addChallenge(record: BudgetsRecord, category: string, currency: string, month: string, id: string): BudgetsRecord {
@@ -129,13 +128,14 @@ export function yearRecap(entries: readonly MoneyEntry[], bills: BillsRecord | n
   const prev = String(Number(year) - 1);
   for (const e of entries) {
     if (!isCounted(e)) continue;
-    if (e.date.startsWith(prev) && e.kind === 'expense' && e.date.slice(5) <= end.slice(5)) { get(e.currency).previousSpent += cents(e.amount); continue; }
+    // Review b2a #3: an expense counts the person's own share of a shared cost, as Wealth → Spending counts it.
+    if (e.date.startsWith(prev) && e.kind === 'expense' && e.date.slice(5) <= end.slice(5)) { get(e.currency).previousSpent += mineCents(e); continue; }
     if (!e.date.startsWith(year) || e.date > end) continue;
-    const r = get(e.currency), c = cents(e.amount), m = r.months[Number(e.date.slice(5, 7)) - 1]!;
+    const r = get(e.currency), c = e.kind === 'expense' ? mineCents(e) : cents(e.amount), m = r.months[Number(e.date.slice(5, 7)) - 1]!;
     if (e.kind === 'income') { r.income += c; m.income += c; continue; }
     r.spent += c; m.spent += c;
     if (!r.largest || c > r.largest.cents) r.largest = {note: (payeePart(e.note ?? '') || e.category).slice(0, 80), cents: c, date: e.date};
-    for (const p of entryParts(e)) r.cats.set(p.category, (r.cats.get(p.category) ?? 0) + p.cents);
+    for (const p of mineParts(e)) r.cats.set(p.category, (r.cats.get(p.category) ?? 0) + p.cents);
   }
   for (const b of bills?.bills ?? []) {
     const since = b.createdAt.slice(0, 10) > `${year}-01-01` ? b.createdAt.slice(0, 10) : `${year}-01-01`, dates = since > end ? [] : monthDueDates(b.nextDue, b.cadence, since, end, addLocalDays(end, 1));

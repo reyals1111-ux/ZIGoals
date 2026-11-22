@@ -8,6 +8,10 @@ import {monthView} from '../budgets/engine';
 import {emptyBudgets, type BudgetsRecord} from '../budgets/schema';
 import {av2TasksAnswer} from '../ai/local-answers/av2-tasks';
 import {novaEnv, showcaseAll} from '../ai/evals/as/harness';
+import {challengeStates, payeeRows, yearRecap} from '../money-notices';
+import {payeeBudgets} from '../money-more/own-budgets';
+import {monthRecap} from '../budgets/recap';
+import {averageSpent} from '../budgets/assign';
 import {totals} from './engine';
 import type {MoneyEntry} from './schema';
 
@@ -89,5 +93,19 @@ describe('B2A-2: pay-period budgets and ZIGi’s pay-period answer', () => {
     expect(say('hoeveel heb ik nog over in mijn budgetten deze periode')).toMatch(/• Groceries: €\s80,00 van €\s100,00 \(/);
     const viaNova = av2TasksAnswer('how much is left in my budgets this pay period', {...env, nova: {...env.nova, budgetPeriods: setPeriods(emptyBudgetPeriods(), {payday: 25})}});
     expect(viaNova && 'text' in viaNova ? viaNova.text : '').toMatch(/Groceries: €80\.00 of €100\.00 \(\w+, Oct 25 – \w+, Nov 24\)/);
+  });
+});
+
+describe('B2A-3: payee budgets, the payee watch, challenges and the recaps count the person’s share', () => {
+  test('the payee watch and the payee budget: €20.00 of €100.00 at the payee, as Wealth → Spending says', () => {
+    expect(payeeRows(budgets, PROBE, TODAY)).toMatchObject([{payee: 'Albert Heijn', thisMonth: 2000, count: 2}]);
+    expect(payeeBudgets(budgets, PROBE, TODAY)).toMatchObject([{thisMonth: 2000, amount: 10000, left: 8000, over: false, near: false}]);
+  });
+  test('a challenge, the month recap, the year recap and the three-month average spend €20.00', () => {
+    const record = {...budgets, challenges: [{id: 'c1', category: 'Groceries', currency: 'EUR', month: '2026-11'}]};
+    expect(challengeStates(record, PROBE, TODAY)).toMatchObject([{spent: 2000}]);
+    expect(monthRecap(PROBE, budgets, '2026-11', TODAY)).toMatchObject([{spent: 2000, income: 100000, top: [{category: 'Groceries', cents: 2000}], largest: {cents: 1000}}]);
+    expect(yearRecap(PROBE, null, '2026', TODAY)).toMatchObject([{spent: 2000, income: 100000, top: [{category: 'Groceries', cents: 2000}]}]);
+    expect(averageSpent(PROBE, 'Groceries', 'EUR', '2026-12')).toEqual({cents: 2000, months: 1});
   });
 });

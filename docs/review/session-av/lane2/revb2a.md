@@ -56,3 +56,22 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
   budgets do: entries left out and transfers are not counted, a shared cost counts your share, and a cost spread over
   months counts its share on its day in each month."
 - What's new: "Pay periods count spending as your month budgets do."
+
+## B2A-3 Major: payee budgets, the payee watch and challenges counted a shared cost whole
+
+- Verdict: fixed (the code now does what money-r2.md R2-F4 and Help say: "your share is what spending and budgets count").
+- Fix: apps/web/lib/money-notices.ts — the payee watch (`payeeRows`, and so the payee budgets built on it in
+  apps/web/lib/money-more/own-budgets.ts `payeeBudgets`, Today's "near its budget" line and the device notice) counts
+  `mineCents`; the challenges (`spentInCategory`) count `mineParts`; the year in review (`yearRecap`: spent, months,
+  top categories, the year before) counts the share too. Found in the same sweep and fixed the same way: the month
+  recap (apps/web/lib/budgets/recap.ts `monthRecap`) and the three-month average that suggests a budget's amount
+  (apps/web/lib/budgets/assign.ts `averageSpent`) counted shared costs whole. Entries left out were already skipped.
+- Tests: apps/web/lib/money-log/revb2a-one-figure.test.ts ("B2A-3": the probe at a €100 payee budget is €20.00 of
+  €100.00, €80.00 left, not near; a Groceries challenge, the month recap, the year recap and the average all €20.00).
+  Existing apps/web/lib/av2-money-notices.test.ts, money-more and budgets tests green unchanged.
+- NOVA corpus: passes unchanged (no case's answer changes; the Showcase has no shared costs).
+- Spec (lead runs): apps/web/tests/av2-revb2a-payee.spec.ts (Budgets: "Budget €100.00 a month · €80.00 left", not
+  "near the limit").
+- Help (EN): the existing answer ("Your spending and budgets count your share") is now true everywhere; add "Payee
+  budgets, challenges and the recaps count your share too."
+- What's new: "Payee budgets and challenges count your share of a shared cost."
