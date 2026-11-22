@@ -187,3 +187,16 @@ and a salary is €20.00 spent and €1,000.00 in, in every place.
 - Help (EN), for the balance lines answer, add: "For a card or a loan the line is checked against what it owes after
   the payments you logged since its balance."
 - What's new: "A paid-down card no longer reads past its line."
+
+## B2A-9 Minor: a loan reminder opened Budgets
+
+- Verdict: fixed.
+- Fix: apps/web/lib/notify/plan.ts `moneyHref(id)` chooses where a money notice opens by its kind: a budget over or near
+  its amount (`money:over:`, `money:near:`) opens Budgets as before; a reminded loan (`money:loan:`) opens Spending
+  (`/app/wealth#spending`, where "Between you and others" lives), as Today's line for the same loan does; payday and the
+  low-balance line (`money:payday:`, `money:low:`) open Spending too, where the 60-day forecast is (Today's low line
+  links there). The service worker keeps the hash (public/sw.js `appPath`). No stored change.
+- Tests: apps/web/lib/notify/revb2a-money-href.test.ts (each kind; a reminded loan's two notices in the plan open
+  Spending). Existing apps/web/lib/av2-money-notices.test.ts green.
+- Spec: none (a device notice's tap is not driven in the browser suite; unit-tested in the plan).
+- Help: none. What's new: "A loan reminder opens your loans."
