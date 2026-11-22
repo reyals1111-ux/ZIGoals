@@ -53,6 +53,24 @@ describe('diary times and nutrient timing', () => {
     expect(en).toContain('By part of the day:');
     expect(text(zigi('hoeveel eiwit eet ik in de ochtend'))).toMatch(/In de ochtend at je gemiddeld [\d.,]+ g eiwit per dag/);
   });
+  test('targets by weekday: a weekday\'s own targets are said as its own; the others use the Targets', () => {
+    const food = {...emptyFoodPlus(), weekdays: {'6': {kcal: 2600, proteinG: 150}}};
+    expect(text(zigi('what is my calorie target on saturday', showcaseAll(), food))).toContain('Your targets for Saturday: 2,600 kcal, protein 150 g');
+    expect(text(zigi('wat is mijn caloriedoel voor zaterdag', showcaseAll(), food))).toContain('die van zaterdag zelf');
+    const all = text(zigi('what are my targets by weekday', showcaseAll(), food));
+    expect(all).toContain('• Saturday: 2,600 kcal');
+    expect(all).toContain('• Monday: 2,200 kcal, protein 120 g, carbs 260 g and fat 73 g (your Targets)');
+    // Not a food question: the money targets and Goals keep their answers.
+    for (const q of ['what are my budget targets', 'what are my goals for saturday', 'am I on track for my groceries target']) expect(zigi(q, showcaseAll(), food), q).toBeNull();
+  });
+  test('net carbs take off the sugar alcohols set per food', () => {
+    const s = showcaseAll(), first = s.health!.diary.find(e => e.date === DAY && e.sourceKind === 'food')!;
+    const food = {...emptyFoodPlus(), sugarAlcohols: {[first.sourceId]: 5000}};
+    const plain = text(zigi('what are my net carbs today', s)), less = text(zigi('what are my net carbs today', s, food));
+    const grams = (t: string) => Number(/Net carbs today: (\d+) g/.exec(t)![1]);
+    expect(grams(plain) - grams(less)).toBe(Math.round(5 * first.quantityMilli / 1000));
+    expect(less).toContain('g sugar alcohols');
+  });
   test('questions that are not about times are left to the other layers', () => {
     for (const q of ['what did I eat today', 'how much water did I drink', 'when should I eat', 'log 2 eggs and then remind me']) expect(zigi(q), q).toBeNull();
   });

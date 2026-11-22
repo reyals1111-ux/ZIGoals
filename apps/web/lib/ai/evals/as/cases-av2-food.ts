@@ -8,5 +8,7 @@ import type {Intent} from './cases';
 export const AV2_FOOD: readonly Intent[] = [
   {id: 'av2-food-when-eaten', pillar: 'health', en: ['when did I eat today', 'what time did I have lunch today'], nl: ['wanneer heb ik vandaag gegeten', 'hoe laat at ik vandaag mijn lunch'], never: ['examples']},
   {id: 'av2-food-eating-window', pillar: 'health', en: ['what is my eating window today', 'what was my eating window yesterday'], nl: ['wat is mijn eetvenster vandaag', 'wat was mijn eetvenster gisteren']},
+  {id: 'av2-food-weekday-targets', pillar: 'health', en: ['what are my targets by weekday', 'what is my calorie target on saturday'], nl: ['wat zijn mijn doelen per weekdag', 'wat is mijn caloriedoel voor zaterdag']},
+  {id: 'av2-food-net-carbs', pillar: 'health', en: ['what are my net carbs today', 'how many net carbs did I eat yesterday'], nl: ['hoeveel netto koolhydraten heb ik vandaag', 'wat waren mijn netto koolhydraten gisteren']},
   {id: 'av2-food-timing', pillar: 'health', en: ['how much protein do I eat in the morning', 'when do I eat most of my carbs'], nl: ['hoeveel eiwit eet ik in de ochtend', 'wanneer eet ik de meeste koolhydraten']},
 ];

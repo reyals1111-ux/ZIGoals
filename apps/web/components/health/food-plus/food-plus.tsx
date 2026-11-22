@@ -1,6 +1,6 @@
 'use client';
 import {lazy} from 'react';
-import type {HealthData, HealthDiaryEntry} from '../../../lib/health';
+import type {HealthData, HealthDiaryEntry, HealthTargets} from '../../../lib/health';
 
 /**
  * Session AV lane 2 (food): one lazy entry for the food-logging parts, so /app/health carries a single small import for
@@ -10,13 +10,19 @@ type Perform = (updater: (latest: HealthData) => HealthData, message: string, af
 export type FoodPlusProps =
   | {part: 'save-meal'; data: HealthData; date: string; meal: HealthDiaryEntry['meal']; label: string; dayWords: string; perform: Perform; onClose: () => void}
   | {part: 'times'; data: HealthData; date: string}
-  | {part: 'timing'; data: HealthData; today: string};
+  | {part: 'timing'; data: HealthData; today: string}
+  | {part: 'weekdays'; targets: HealthTargets; today: string}
+  | {part: 'sugar-alcohols'; data: HealthData};
 const SaveMeal = lazy(() => import('./save-meal'));
 const EntryTimes = lazy(() => import('./entry-times'));
 const NutrientTiming = lazy(() => import('./nutrient-timing'));
+const WeekdayTargets = lazy(() => import('./weekday-targets').then(m => ({default: m.WeekdayTargets})));
+const SugarAlcohols = lazy(() => import('./weekday-targets').then(m => ({default: m.SugarAlcohols})));
 export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'save-meal') return <SaveMeal {...props}/>;
   if (props.part === 'times') return <EntryTimes data={props.data} date={props.date}/>;
   if (props.part === 'timing') return <NutrientTiming data={props.data} today={props.today}/>;
+  if (props.part === 'weekdays') return <WeekdayTargets targets={props.targets} today={props.today}/>;
+  if (props.part === 'sugar-alcohols') return <SugarAlcohols data={props.data}/>;
   return null;
 }

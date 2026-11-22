@@ -1,4 +1,6 @@
-import {formatNutrient} from '../../health';
+import {formatNutrient, scaleNutrition} from '../../health';
+import {dayTargets, sugarAlcoholMg, weekdayOfDay} from '../../food-plus/day-target';
+import {netCarbs} from '../../health-aa/macro-mode';
 import {healthZone, dailyData} from '../../health-daily';
 import {readDeviceRecord} from '../../device-record';
 import {FOOD_PLUS, type FoodPlus} from '../../food-plus/schema';
@@ -6,7 +8,7 @@ import {DAY_PARTS, dayTimeline, eatingWindow, nutrientTiming, share, type DayPar
 import {addLocalDays} from '../../local-date';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
-import {answer, asked, closed, count, dayIn, hm, list, MIXED, say, type Asked, type Lang} from './av-words';
+import {answer, asked, closed, count, dayIn, hm, list, MIXED, num, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
 
 /**
@@ -96,5 +98,56 @@ function timingAnswer(a: Ask): LocalReply | null {
   return answer(`${lead} ${tail}`, calls);
 }
 
-const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [eatingWindowAnswer, timingAnswer, whenEaten];
+// ── Targets by weekday (LEDGER #88, #97, #107) and net carbs ────────────────────────────────────────────────────────
+
+const WEEKDAY_EN = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'], WEEKDAY_NL = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+const WEEKDAY_SHOW_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const targetLine = (t: {kcal: number | null; proteinMg: number | null; carbsMg: number | null; fatMg: number | null}, lang: Lang) => {
+  const parts = [t.kcal !== null ? `${num(t.kcal)} kcal` : null, t.proteinMg !== null ? `${say(lang, 'protein', 'eiwit')} ${num(t.proteinMg / 1000)} g` : null, t.carbsMg !== null ? `${say(lang, 'carbs', 'koolhydraten')} ${num(t.carbsMg / 1000)} g` : null, t.fatMg !== null ? `${say(lang, 'fat', 'vet')} ${num(t.fatMg / 1000)} g` : null].filter(Boolean) as string[];
+  return parts.length ? list(parts, lang) : say(lang, 'no target', 'geen doel');
+};
+/** "what is my calorie target on saturday", "what are my targets by weekday", "wat is mijn doel voor zaterdag". */
+function weekdayTargets(a: Ask): LocalReply | null {
+  const food = /\b(?:kcal|calories?|macros?|protein|carbs?|fat|nutrition|food|eat|eiwit|koolhydraten|vet|voeding|eten|calorieen|calorie)\b/.test(a.f);
+  const perDay = /\b(?:by|per|each|every) (?:weekday|day of the week)\b|\bper weekdag\b|\bper dag van de week\b|\belke weekdag\b/.test(a.f);
+  const target = /\btargets?\b|\bstreefwaarden?\b|\bcaloriedoel\b|\bweekdagdoelen\b/.test(a.f) || ((food || perDay) && /\b(?:goals?|budget|doel(?:en)?)\b/.test(a.f));
+  if (!target) return null;
+  const en = WEEKDAY_EN.findIndex(d => new RegExp(`\\b${d}s?\\b`).test(a.f)), nl = WEEKDAY_NL.findIndex(d => new RegExp(`\\b${d}\\b`).test(a.f));
+  const named = en >= 0 ? en : nl;
+  const all = /\b(?:by|per|each|every) (?:weekday|day of the week)\b|\bweekday targets?\b|\bper weekdag\b|\bweekdagdoelen\b|\bper dag van de week\b|\belke weekdag\b/.test(a.f);
+  const own = a.food?.weekdays ?? {}, has = Object.keys(own).length > 0;
+  const todayAsked = /\b(?:today|todays|vandaag)\b/.test(a.f) && has;
+  if (named < 0 && !all && !todayAsked) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, base = a.env.health!.targets, calls = [{tool: 'nutrient_totals', args: {}, label: 'Targets'}];
+  const dayName = (i: number) => lang === 'nl' ? WEEKDAY_NL[i]! : WEEKDAY_SHOW_EN[i]!;
+  const where = say(lang, 'Health → Targets → “Targets by weekday” sets them; a blank field keeps your Targets.', 'Health → Targets → “Targets by weekday” stelt ze in; een leeg veld houdt je gewone doelen.');
+  if (all || (!has && named < 0)) {
+    if (!has) return answer(say(lang, `No weekday has its own targets, so every day uses your Targets: ${targetLine(base, 'en')}. ${where}`, `Geen weekdag heeft eigen doelen, dus elke dag gebruikt je gewone doelen: ${targetLine(base, 'nl')}. ${where}`), calls);
+    const rows = [1, 2, 3, 4, 5, 6, 0].map(i => { const d = dayTargets(base, sampleDay(i), own); return `• ${dayName(i)}: ${targetLine(d, lang)}${d.byWeekday.length ? '' : say(lang, ' (your Targets)', ' (je gewone doelen)')}`; });
+    return answer([say(lang, 'Your targets by weekday:', 'Je doelen per weekdag:'), ...rows, where].join('\n'), calls);
+  }
+  const i = named >= 0 ? named : weekdayOfDay(a.env.healthDay), d = dayTargets(base, sampleDay(i), own);
+  const which = named >= 0 ? dayName(i) : say(lang, `today (${WEEKDAY_SHOW_EN[i]})`, `vandaag (${WEEKDAY_NL[i]})`);
+  return answer(d.byWeekday.length
+    ? say(lang, `Your targets for ${which}: ${targetLine(d, 'en')} — ${WEEKDAY_SHOW_EN[i]}’s own. ${where}`, `Je doelen voor ${which}: ${targetLine(d, 'nl')} — die van ${WEEKDAY_NL[i]} zelf. ${where}`)
+    : say(lang, `${which.charAt(0).toUpperCase()}${which.slice(1)} has no targets of its own, so it uses your Targets: ${targetLine(d, 'en')}. ${where}`, `${which.charAt(0).toUpperCase()}${which.slice(1)} heeft geen eigen doelen, dus gebruikt je gewone doelen: ${targetLine(d, 'nl')}. ${where}`), calls);
+}
+/** A date that falls on weekday `i` (0 Sunday), for dayTargets. */
+const sampleDay = (i: number) => addLocalDays('2026-11-22', i);
+/** "what are my net carbs today", "hoeveel netto koolhydraten heb ik vandaag": carbs minus fiber and sugar alcohols. */
+function netCarbsAnswer(a: Ask): LocalReply | null {
+  if (!/\bnet carbs?\b|\bnetto(?:[ -]?koolhydraten)?\b|\bnetto koolhydraten\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, day = dayAsked(a), entries = a.env.health!.diary.filter(e => e.date === day), when = onDay(a, day), calls = [{tool: 'nutrient_totals', args: {}, label: 'Nutrients'}];
+  if (!entries.length) return answer(say(lang, `Nothing is logged ${when}, so there are no net carbs to count.`, `Er is ${when} niets gelogd, dus er zijn geen netto koolhydraten te tellen.`), calls);
+  const sa = sugarAlcoholMg(entries, a.food?.sugarAlcohols ?? {}), n = netCarbs(entries.map(e => scaleNutrition(e.snapshot.nutrients, e.quantityMilli)), sa);
+  if (n.grams === null) return answer(say(lang, `None of ${when}’s entries carries carbs, so net carbs are unknown (never 0).`, `Geen van de items van ${when} heeft koolhydraten, dus netto koolhydraten zijn onbekend (nooit 0).`), calls);
+  const minus = [n.net ? say(lang, 'fiber', 'vezels') : null, sa ? say(lang, `${num(sa / 1000)} g sugar alcohols`, `${num(sa / 1000)} g suikeralcoholen`) : null].filter(Boolean) as string[];
+  const fiberNote = n.net ? '' : say(lang, ` Fiber is not taken off: ${n.fiberKnownOf} of ${entries.length} entries carry it.`, ` Vezels zijn er niet af gehaald: ${n.fiberKnownOf} van ${entries.length} items hebben ze.`);
+  return answer(say(lang, `Net carbs ${when}: ${n.grams} g${minus.length ? ` (carbs minus ${list(minus, 'en')})` : ' (plain carbs)'}.${fiberNote} Sugar alcohols per food: Health → Targets → “Sugar alcohols for net carbs”.`,
+    `Netto koolhydraten ${when}: ${n.grams} g${minus.length ? ` (koolhydraten min ${list(minus, 'nl')})` : ' (gewone koolhydraten)'}.${fiberNote} Suikeralcoholen per voedingsmiddel: Health → Targets → “Sugar alcohols for net carbs”.`), calls);
+}
+
+const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets];
 export const AV2_FOOD_HANDLER_COUNT = HANDLERS.length;

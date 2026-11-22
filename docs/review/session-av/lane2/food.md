@@ -70,3 +70,38 @@ Shared-file needs for the lead are collected at the end ("For the lead").
   `AV2_FOOD_RESTORE` as a `dev('foodPlus', …, FOOD_PLUS, true)` row with "Health", `AV2_FOOD_ERASE_KEYS` into the erase.
 - CSS touched: `components/health/food-plus/food-plus.css`.
 - Always visible on Today: nothing.
+
+## F3 — Targets by weekday; sugar alcohols in net carbs
+
+- LEDGER rows: **#88** MyFitnessPal Custom macro goals by day and Net Carbs mode — built (macro grams per weekday; a
+  sugar-alcohols field for net carbs). **#97** Cronometer Macro Scheduler — built (same build). **#107** MacroFactor
+  Per-day targets — the per-day part built here; its goal ETA and the coach's chosen pace are F4. Fasting days stay
+  under the 1,200 kcal floor by design (LEDGER: not asked).
+- What it does: Health → Targets → "Targets by weekday (optional)": calories, protein, carbs and fat for each weekday
+  (Monday first), blank keeps the Targets' value (shown as the placeholder); "Same as Monday for Tuesday to Friday",
+  "Clear weekday targets", the week's calories by these targets. The Diary's summary (ring, remaining, macro tiles) and
+  Today's Health module use the day's own targets and say "(Saturday’s)". Health → Targets → "Sugar alcohols for net
+  carbs (optional)": grams per serving of each library food with carbs; in macro mode "Net carbs" or "Keto" they are
+  taken off the day's carbs (as fiber is).
+- Files: `lib/food-plus/day-target.ts` (a schema-free reader for the first chunks, `dayTargets`, `sugarAlcoholMg`),
+  `lib/food-plus/weekdays.ts`, `components/health/food-plus/use-day-targets.ts`,
+  `components/health/food-plus/weekday-targets.tsx` (parts `weekdays`, `sugar-alcohols`),
+  `components/health/health-app.tsx` (HealthSummary reads the day's targets; two LazyFolds in Targets),
+  `components/health/health-today.tsx` (Today's module reads the day's calorie target), `lib/health-aa/macro-mode.ts`
+  (`netCarbs(nutrients, sugarAlcoholMg = 0)`, additive).
+- Tests: `lib/food-plus/av2-weekdays.test.ts`, `lib/ai/local-answers/av2-food.test.ts`. Spec: `tests/av2-weekday-targets.spec.ts`.
+- Stored changes: the `weekdays` and `sugarAlcohols` parts of `zigoals:food-plus:v1` (in the TIER 3 commit `69db6bb3`).
+- Weight: Health's and Today's first chunks gain the small reader (`day-target.ts` + `use-day-targets.ts`, no schema
+  library); every form is lazy.
+- Help (EN). Q: "Can I have different targets on different days?" A: "Yes. Health → Targets → Targets by weekday gives a
+  weekday its own calories, protein, carbs or fat. A blank field keeps your usual target. The Diary and Today then show
+  each day against its own targets." Q: "How are net carbs counted?" A: "In the Net carbs and Keto modes, carbs minus
+  fiber (when every entry has it) and minus the sugar alcohols you gave for a food in Targets → Sugar alcohols for net
+  carbs. Nothing is guessed."
+- What's new: "Targets by weekday, and sugar alcohols in net carbs."
+- Answers: intents `av2-food-weekday-targets`, `av2-food-net-carbs` (same wiring as F2).
+- Showcase: none (Showcase targets are pinned by other answers' corpus figures, "2,200 kcal"; a weekday target would
+  move Today's and the corpus's target lines).
+- Device keys: none new (the F2 key).
+- CSS touched: none new.
+- Always visible on Today: nothing new (Today's Health module's existing target line reads the day's target).
