@@ -63,7 +63,16 @@ for (const theme of THEMES) {
   });
   test(`${theme}: On this day for another day, the sun and the moon, and a CSV import`, async ({page, isMobile}) => {
     await open(page, theme, isMobile);
-    // #403: today has no memory, so the card waits; a day chosen on the calendar brings it, then the arrows move it.
+    // #403 (review b6n B6N-4): today has no memory, so no empty panel; "On this day for another date" opens it with its arrows.
+    await expect(page.locator('details.on-this-day')).toHaveCount(0);
+    await page.getByRole('button', {name: 'On this day for another date'}).click();
+    await expect(page.locator('details.on-this-day')).toContainText('Nothing written on Nov 22 in the years before.');
+    await expect(page.locator('details.on-this-day').getByRole('button', {name: /^The day before/})).toBeFocused();
+    await page.locator('details.on-this-day').getByRole('button', {name: /^The day after/}).click();
+    await expect(page.locator('details.on-this-day')).toContainText('A fictional autumn walk, a year before.');
+    await page.locator('details.on-this-day').getByRole('button', {name: 'Back to today'}).click();
+    await expect(page.locator('details.on-this-day')).toContainText('Nothing written on Nov 22 in the years before.');
+    // A day chosen on the calendar brings it too, then the arrows move it.
     await page.locator('.journal-date-fold > summary').click();
     await page.getByRole('button', {name: /Nov 21, 2026: 1 entry/}).click();
     const otd = page.locator('details.on-this-day');

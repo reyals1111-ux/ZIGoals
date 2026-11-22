@@ -55,3 +55,9 @@ export function onDate<E extends Letter>(entries: readonly E[], day: string, tod
   }
   return out.sort((a, b) => a.years! - b.years! || a.entry.date.localeCompare(b.entry.date) || a.entry.id.localeCompare(b.entry.id)).slice(0, max);
 }
+/**
+ * Review b6n B6N-4 (LEDGER #403): what the Journal's On this day shows — the panel when there are memories, when another
+ * day is shown, or once the person chose to browse; otherwise only the way in ("On this day for another date"), so any
+ * day is reachable while a day with no memory keeps the page as calm as before (no empty panel).
+ */
+export const onThisDayView = (items: number, other: boolean, browsing: boolean): 'panel' | 'entry' => items > 0 || other || browsing ? 'panel' : 'entry';

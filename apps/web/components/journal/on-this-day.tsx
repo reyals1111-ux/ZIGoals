@@ -5,7 +5,7 @@ import {ENERGY_WORDS} from '../../lib/energy/schema';
 import {formatDate} from '../../lib/visual-format';
 import {preview} from '../../lib/on-this-day/on-this-day';
 // Session AV lane 2 (r4-mind; LEDGER #309, Journey): a week ago and a month ago beside the years (sealed letters left out).
-import {onDate, throwbacks} from '../../lib/on-this-day/throwback';
+import {onDate, onThisDayView, throwbacks} from '../../lib/on-this-day/throwback';
 import {addLocalDays} from '../../lib/local-date';
 import {HIDE_FULL_NOTE, JOURNAL_DISPLAY, hideMemory, hideMemoryFull, onThisDayShown, setOnThisDay} from '../../lib/on-this-day/store';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -27,12 +27,19 @@ export default function OnThisDay({entries, today, energy, moods, picked = null}
   // Session AV lane 2 (r6-notes; LEDGER #403, Diarium): any day's date in earlier years — the arrows move a day, and a day
   // chosen on the journal calendar opens here too. Today keeps its week and month ago as before.
   const [day, setDay] = useState(today), other = day !== today;
+  // Review b6n B6N-4: on a day with no memory, "On this day for another date" opens the panel with its arrows, so any
+  // day is reachable; it stays open (Back to today included) until the page is left.
+  const [browsing, setBrowsing] = useState(false);
   useEffect(() => { setDay(picked && picked !== today ? picked : today); }, [picked, today]);
   const items = useMemo(() => other ? onDate(entries, day, today, {hidden: display.data.hidden ?? []}) : throwbacks(entries, today, {hidden: display.data.hidden ?? []}), [entries, day, other, today, display.data.hidden]);
   const change = (fn: Parameters<typeof display.update>[0], said: string) => { try { display.update(fn); setNote(said); } catch { setNote('This choice could not be kept on this device.'); } };
   if (!display.loaded) return null;
   if (!onThisDayShown(display.data)) return note ? <p className="fine on-this-day-note" role="status">{note}</p> : null;
-  if (!items.length && !other) return note ? <p className="fine on-this-day-note" role="status">{note}</p> : null;
+  const view = onThisDayView(items.length, other, browsing);
+  if (view === 'entry') return <>
+    {note && <p className="fine on-this-day-note" role="status">{note}</p>}
+    <p className="on-this-day-another"><button type="button" className="text-link" onClick={() => { setBrowsing(true); requestAnimationFrame(() => document.querySelector<HTMLElement>('.on-this-day-days button')?.focus()); }}>On this day for another date</button> <span className="fine">· nothing from earlier years today</span></p>
+  </>;
   const move = (by: number) => setDay(d => addLocalDays(d, by));
   return <details className="panel on-this-day" open>
     <summary><span className="on-this-day-title">{other ? `On ${formatDate(day, {year: false})}` : 'On this day'}</span> <span className="fine">· {items.length ? `${items[0]!.label.toLowerCase()}${items.length > 1 ? ` and ${items.length - 1} more` : ''}` : 'nothing in earlier years'}</span></summary>

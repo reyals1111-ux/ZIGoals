@@ -26,3 +26,5 @@
 .on-this-day-days { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 6px 0 0; }
 .on-this-day-days button { min-height: 44px; min-width: 44px; }
 .on-this-day-days p { margin: 0; flex: 1 1 10rem; }
+.on-this-day-another { margin: 0 0 8px; }
+.on-this-day-another button { min-height: 44px; }
