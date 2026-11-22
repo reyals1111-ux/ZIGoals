@@ -1,10 +1,11 @@
 'use client';
+import {useMoodLook} from '../mood-look/use-mood-look';
 import {Suspense, lazy, useState} from 'react';
 import {habitCalendarDay, habitDay, type HabitData} from '../../lib/habits';
 import {HEALTH_MEALS, type HealthData} from '../../lib/health';
 import {dailyData, healthDay, waterSummary} from '../../lib/health-daily';
 import {waterText} from '../../lib/health-units';
-import {MOOD_WORDS, moodOn, setMood} from '../../lib/wrap-up/engine';
+import {moodOn, setMood} from '../../lib/wrap-up/engine';
 import {useHealth} from '../health/use-health';
 import {zigiSignals} from '../zigi/bus';
 // Session AK (BUILD list 2 #14, lane G1a): today's open tasks, to move to tomorrow or let go (loaded with the card).
@@ -17,6 +18,7 @@ const WrapUpTasks = lazy(() => import('../wrap-up-tasks/wrap-up-tasks'));
  * never lists what was not done and never scores the day.
  */
 export function WrapUpCard({habits, health, now, showHabits, showHealth, onWrap}: {habits: HabitData; health: HealthData; now: number; showHabits: boolean; showHealth: boolean; onWrap: (intention: string | null) => Promise<boolean>}) {
+  const moodLook = useMoodLook(); // Session AV lane 2 (LEDGER #178): your own mood words, else ZIGoals'
   const store = useHealth(), [intention, setIntention] = useState(''), [note, setNote] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false);
   const clock = new Date(now), habitToday = habitCalendarDay(habits, clock), healthToday = healthDay(dailyData(health).preferences.timezone, clock);
   const days = showHabits ? habits.habits.map(h => habitDay(h, habitToday, habitToday).status) : [];
@@ -27,7 +29,7 @@ export function WrapUpCard({habits, health, now, showHabits, showHealth, onWrap}
   const mood = showHealth && store.loaded && !store.error ? moodOn(store.data, healthToday) : undefined;
   async function feel(value: number) {
     setError('');
-    try { await store.update(h => setMood(h, healthToday, value, new Date().toISOString())); setNote(`Saved for today: ${MOOD_WORDS[value - 1]}.`); }
+    try { await store.update(h => setMood(h, healthToday, value, new Date().toISOString())); setNote(`Saved for today: ${moodLook.words[value - 1]}.`); }
     catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'Not saved. Your Health journal is unchanged.'); }
   }
   async function wrap(text: string | null) { setBusy(true); setError(''); try { if (!await onWrap(text)) setError('Not saved on this device. Try again.'); else if (text !== null) zigiSignals.emitValidated('wrapup_finished'); /* Session AK Part 12: saved, a Studio-4 reaction once its art lands */ } finally { setBusy(false); } }
@@ -37,7 +39,7 @@ export function WrapUpCard({habits, health, now, showHabits, showHealth, onWrap}
     {facts.length ? <ul className="wrap-up-facts">{facts.map(f => <li key={f}>{f}</li>)}</ul> : <p>Nothing recorded today. That is fine.</p>}
     <Suspense fallback={null}><WrapUpTasks/></Suspense>
     {showHealth && store.loaded && !store.error && <fieldset className="wrap-up-mood"><legend>How did today feel? (optional)</legend>
-      <div className="wrap-up-mood-choices">{MOOD_WORDS.map((word, i) => <button key={word} type="button" className="secondary" aria-pressed={mood?.mood === i + 1} onClick={() => void feel(i + 1)}>{word}</button>)}</div>
+      <div className="wrap-up-mood-choices">{moodLook.words.map((word, i) => <button key={i} type="button" className="secondary" aria-pressed={mood?.mood === i + 1} onClick={() => void feel(i + 1)}>{moodLook.symbols[i] && <span aria-hidden="true">{moodLook.symbols[i]} </span>}{word}</button>)}</div>
     </fieldset>}
     <form className="wrap-up-form" onSubmit={e => { e.preventDefault(); void wrap(intention); }}>
       <label className="field">One intention for tomorrow (optional)<input value={intention} maxLength={280} onChange={e => setIntention(e.target.value)} /></label>

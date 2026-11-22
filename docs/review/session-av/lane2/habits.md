@@ -328,6 +328,45 @@ Second builder (branch `lane2/habits2`, from `lane2/habits`).
 - CSS touched: `components/habits/habit-week-grid.css`. Always visible on Today: nothing. Habits first chunk: unchanged
   (the grid is already lazy; the panel is its own chunk).
 
+## Feature 11 — Daylio's check-in: own mood words, activities in groups, each tag month by month (LEDGER #178, #179, #188)
+
+**Verdict: built** (#178's "wherever the mood is" has the parts named below that keep ZIGoals' words, each with its cause).
+
+| row | what was built |
+|---|---|
+| #178 Custom moods | Health → Diary → How does today feel? → "Your own words for the moods" (a fold, lazy): your own word (≤ 16 characters) and a symbol from a fixed set of twelve for each of the five moods; a blank word keeps ZIGoals' word; "Use ZIGoals' words again". Shown on Health's mood card (buttons and the folded row), the evening wrap-up card, ZIGi's check-in, the evening check-in (step 1 and the parts of the day), the Journal's On this day, Insights' tag statistics, and NOVA's and ZIGi's answer "what are my mood words". The stored mood stays 1–5 (Health v4 `moods` untouched). |
+| #179 Activities with icons and groups | Under "What went with it?" on the day's mood: your activities in your own groups, each with one of 24 symbols, one tap adds it as that day's mood tag (pressed state; again takes it off); "Edit your activities" adds (name, group with a list of your groups, symbol) and removes (days that had it keep it). At most 60. |
+| #188 Activity and mood statistics | Health → Insights → What goes with your good days → "Each tag, month by month" (a fold, lazy): per tag (activities included), the days this month and last month, and the moods on its days over the last year as counts in words ("Great 2 · Good 1 — mostly great") with a small bar (numbers in the text). The 30 most used; "goes with, not a cause". |
+
+- Parts that keep ZIGoals' words, with cause: NOVA's mood heat card (`lib/nova/cards/ax/health-heat.ts`) — a protected area
+  (AR's NOVA composition), the lead's call; the Year in pixels key (`lib/year-pixels/grid.ts` `levelWord`) and the
+  Journal page's screen-reader day line (`components/journal/journal-page.tsx:113`) — the journal lane's files; one line
+  each for the lead (`useMoodLook().words` from `components/mood-look/use-mood-look.ts`).
+- Owner rule kept: tags and activities stay unread by ZIGi and NOVA (as `mood-tags` says); only the mood words are read.
+- Files: `lib/daylio/rule.ts`, `components/mood-look/{use-mood-look.ts,mood-look-editor.tsx,activities.tsx,tag-stats.tsx,mood-look.css}`,
+  `components/health/{mood-chip.tsx,plus/mood-tags.tsx,plus/insights-plus.tsx,plus/evening-checkin.tsx}`,
+  `components/for-you/wrap-up-card.tsx`, `components/ai/zigi-checkin.tsx`, `components/journal/on-this-day.tsx`,
+  `lib/ai/local-answers/av2-habits.ts`, `lib/ai/evals/as/cases-av2-habits.ts`.
+- Tests: `lib/daylio/daylio.test.ts` (words and symbols set/read/reset, the stored mood untouched, other check-in fields
+  kept, odd values; activities add/group/remove/cap/odd entries; export → erase → restore of `zigoals:energy:v1` with
+  both; the tag statistics; the answers EN and NL and the Health gate). Spec: `tests/av2-mood-look.spec.ts`.
+- **Stored change (TIER 3 stored formats, additive):** the loose `checkin` of `zigoals:energy:v1` (device-only, never
+  synced) gains `moodLook` ({"1"…"5": {word?, symbol?}}) and `activities` ([{id, name, symbol, group}], ≤ 60), both
+  checked where read. The schema file is unchanged (`checkin` is already a loose object), so this commit is labelled
+  TIER 3 stored formats itself; no new key, no registry change.
+- Help (EN): **Q: Can I name the moods my own way?** A: Yes. Health → Diary → How does today feel? → Your own words for
+  the moods: a word and a symbol for each of the five. Your mood is still kept as 1 to 5, so charts and history read the
+  same. **Q: Can I tap my usual activities?** A: Under "What went with it?" on a day's mood, Edit your activities adds
+  them in your own groups with a symbol; one tap puts one on the day. Health → Insights → Each tag, month by month shows
+  how often each came this month and last, and the moods on its days.
+- What's new: "Your own words and symbols for the moods." · "Activities in your own groups, one tap on the day's mood." ·
+  "Each tag, month by month, with the moods on its days."
+- Answers: "what are my mood words" / "wat zijn mijn stemmingswoorden" (case `av2-habits-mood-words`, Health gate).
+- Showcase hook: none (the Showcase's moods and tags show the statistics with no new data; own words would change the
+  Showcase's mood buttons that other specs read).
+- CSS touched: `components/mood-look/mood-look.css` (new; theme variables only). Always visible on Today: nothing new
+  (the wrap-up card shows the same five buttons, with your words).
+
 ## Not built yet (next for this pillar, in order)
 
 - Group 14 rest: **#79** Calm Shift (the slow left-right layer as a visual, no audio content), **#80** Scenes (calm

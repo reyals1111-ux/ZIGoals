@@ -1,10 +1,11 @@
 'use client';
-import {useId, useState, type FormEvent} from 'react';
+import {lazy, Suspense, useId, useState, type FormEvent} from 'react';
 import {MAX_TAG_CHARS, MAX_TAGS_PER_ENTRY, MOOD_TAGS} from '../../../lib/mood-tags/schema';
 import {addTag, cleanTag, recentTags, removeTag, tagsOn} from '../../../lib/mood-tags/tags';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import './plus.css';
+const Activities = lazy(() => import('../../mood-look/activities')); // Session AV lane 2 (LEDGER #179)
 
 /**
  * Session AP (feature 1): what the day went with, as a few short tags on its mood check-in ("walk", "friends"). Kept in
@@ -27,6 +28,7 @@ export default function MoodTags({day}: {day: string}) {
   }
   return <div className="ap-mood-tags">
     <h3>What went with it? <small>(optional)</small></h3>
+    <Suspense fallback={null}><Activities day={day}/></Suspense>
     {tags.length > 0 && <ul className="ap-chips" aria-label="This day’s tags">{tags.map(t => <li key={t}><button type="button" className="secondary" aria-label={`Remove the tag ${t}`} onClick={() => write(r => removeTag(r, day, t), `“${t}” removed.`)}>{t} <span aria-hidden="true">×</span></button></li>)}</ul>}
     {!full && offers.length > 0 && <ul className="ap-chips" aria-label="Your tags">{offers.map(t => <li key={t}><button type="button" className="quiet" aria-label={`Add the tag ${t}`} onClick={() => write(r => addTag(r, day, t), `Tagged “${t}”.`)}><span aria-hidden="true">+ </span>{t}</button></li>)}</ul>}
     {!full && <form className="ap-plus-form" aria-label="Add a tag" onSubmit={submit} noValidate>
