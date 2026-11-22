@@ -17,7 +17,7 @@ export type FoodPlusProps =
   | {part: 'oracle'; data: HealthData; today: string}
   | {part: 'challenge-line' | 'challenge'; data: HealthData; today: string}
   | {part: 'partial'; date: string; hasEntries: boolean}
-  | {part: 'pack-photos' | 'pack-thumbs' | 'recipe-cook'; data: HealthData}
+  | {part: 'pack-photos' | 'pack-thumbs' | 'recipe-cook' | 'food-marks' | 'marks-settings'; data: HealthData}
   | {part: 'recipe-book'; data: HealthData; perform: Perform}
   | {part: 'fit-plan'; data: HealthData; date: string; today: string; perform: Perform}
   | {part: 'day-plans'; data: HealthData; date: string; perform: Perform};
@@ -32,6 +32,8 @@ const CookView = lazy(() => import('./cook-view'));
 const RecipeBook = lazy(() => import('./recipe-book'));
 const FitPlan = lazy(() => import('./fit-plan'));
 const DayPlans = lazy(() => import('./day-plans'));
+const FoodMarks = lazy(() => import('./food-marks').then(m => ({default: m.FoodMarks})));
+const MarksSettings = lazy(() => import('./food-marks'));
 const PackThumbs = lazy(() => import('./pack-photos').then(m => ({default: m.PackThumbs})));
 const ChallengeLine = lazy(() => import('./challenge').then(m => ({default: m.ChallengeLine})));
 const ChallengeCard = lazy(() => import('./challenge').then(m => ({default: m.ChallengeCard})));
@@ -50,6 +52,8 @@ export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'pack-thumbs') return <PackThumbs data={props.data}/>;
   if (props.part === 'recipe-cook') return <CookView data={props.data}/>;
   if (props.part === 'recipe-book') return <RecipeBook data={props.data} perform={props.perform}/>;
+  if (props.part === 'food-marks') return <FoodMarks data={props.data}/>;
+  if (props.part === 'marks-settings') return <MarksSettings data={props.data}/>;
   if (props.part === 'day-plans') return <DayPlans data={props.data} date={props.date} perform={props.perform}/>;
   if (props.part === 'fit-plan') return <FitPlan data={props.data} date={props.date === props.today ? addLocalDays(props.today, 1) : props.date} perform={props.perform}/>;
   return null;

@@ -51,3 +51,5 @@
 .food-plus-cook-step { font-size: 20px; line-height: 1.45; margin: 0; overflow-wrap: anywhere; }
 .food-plus-cook textarea { min-height: 140px; font-size: 16px; width: 100%; }
 .food-plus-day-plans { margin-bottom: 12px; }
+.food-plus-marks { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin: 4px 0; font-size: 14px; }
+.food-plus-mark { padding: 2px 8px; border: 1px solid var(--line, #6a9cc342); border-radius: 999px; font-size: 14px; }

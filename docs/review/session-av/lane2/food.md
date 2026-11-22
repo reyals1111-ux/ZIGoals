@@ -401,3 +401,28 @@ DISHES/ARTICLE, `components/health/daily-tools.tsx` "fresh", `components/health/
   days only — the lead may want to check Health's phone length spec there).
 - Device keys: none. CSS touched: `components/report/report.css`, `components/health/health-aa.css`, `food-plus.css`.
   Always visible on Today: nothing.
+
+## F14 — An eating style that marks foods, and label levels for every food (N7)
+
+- LEDGER rows (Ten more apps, group N7): **#198** Lose It! Diet plans that flag foods — built. **#199** Yazio Food ratings
+  — built in the honest form the lead asked for: label levels from a food's own nutrients by a public rule, written out,
+  never called Nutri-Score and never a letter. The owner's question (LEDGER notes) stays open: a Nutri-Score-like letter
+  for generic foods is **not built**, by the choice written in `components/health/nutri-score.tsx` ("generic foods never
+  get one"), which the lead confirmed (an invented letter); if the owner wants a letter, that is a separate decision.
+- What it does: Health → Foods & recipes → "Eating style and food marks (optional)": "Mark the foods that fit" (no
+  style, low carb, high protein, high fibre; the rule said under it: carbs ≤ 10 % of the calories, protein ≥ 25 %, fibre
+  ≥ 3 g per 100 kcal; "N of your M foods fit") and "Show label levels" (fat, saturated fat, sugars, salt per 100 g: low,
+  medium or high by the UK front-of-pack thresholds; foods measured in grams only). Each Foods row then shows "Fits high
+  protein" and "Fat: low · Sugars: medium" in words. Never "good" or "bad"; off until chosen.
+- Files: `lib/food-plus/marks.ts`, `components/health/food-plus/food-marks.tsx` (parts `food-marks`, `marks-settings`),
+  `components/health/health-app.tsx` (an empty `data-food-marks` slot per library row; the fold), `food-plus.css`.
+- Tests: `lib/food-plus/av2-marks.test.ts`. Spec: `tests/av2-food-marks.spec.ts`.
+- Stored changes: the `marks` part of `zigoals:food-plus:v1` (TIER 3 commit `da5125a6`).
+- Help (EN). Q: "Can ZIGoals show which foods fit my eating style?" A: "Yes. Health → Foods & recipes → Eating style and
+  food marks: choose low carb, high protein or high fibre, and each food that fits by its own nutrients is marked. You
+  can also show each food's label levels (low, medium or high fat, saturated fat, sugars and salt per 100 g). It is
+  information, not advice."
+- What's new: "Mark the foods that fit your eating style, and see their label levels."
+- Answers: intent `av2-food-style-foods` (the foods that fit, with the rule).
+- Showcase: none (off by default; the Showcase rows stay as other specs read them).
+- Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: nothing.

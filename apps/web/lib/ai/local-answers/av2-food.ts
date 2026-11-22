@@ -8,6 +8,7 @@ import {coachCheckIn} from '../../health-aa/coach';
 import {weightChangeText, weightText} from '../../health-units';
 import {RECIPE_BOOK, type BookStyle} from '../../food-plus/recipe-book';
 import {fitCandidates, fitPlans} from '../../food-plus/fit-plan';
+import {fitsStyle, STYLE_WORDS as EATING_WORDS, type EatingStyle} from '../../food-plus/marks';
 import {fold} from './exact/text';
 import {dayTargets, sugarAlcoholMg, weekdayOfDay} from '../../food-plus/day-target';
 import {netCarbs} from '../../health-aa/macro-mode';
@@ -308,5 +309,20 @@ function fitPlanAnswer(a: Ask): LocalReply | null {
   return answer([say(lang, `A day from your recipes for ${dayIn('en', day, a.today)}, ${plan.kcal} kcal against your ${num(targets.kcal)}:`, `Een dag uit je recepten voor ${dayIn('nl', day, a.today)}, ${plan.kcal} kcal tegenover je ${num(targets.kcal)}:`), ...rows.map(r => `• ${r}`), where].join('\n'), calls);
 }
 
-const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [fitPlanAnswer, recipeIdeas, recipeMethod, packPhotosAnswer, eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
+// ── Eating style marks (LEDGER #198) ───────────────────────────────────────────────────────────────────────────────
+
+const STYLE_ASKED: [RegExp, EatingStyle][] = [[/\blow ?carb\b|\bkoolhydraatarm\w*\b/, 'low-carb'], [/\bhigh ?protein\b|\beiwitrijk\w*\b/, 'high-protein'], [/\bhigh ?fib(?:re|er)\b|\bvezelrijk\w*\b/, 'high-fibre']];
+/** "which of my foods are low carb", "welke van mijn voedingsmiddelen zijn eiwitrijk": the foods that fit, by their own nutrients. */
+function styleFoods(a: Ask): LocalReply | null {
+  const style = STYLE_ASKED.find(([re]) => re.test(a.f))?.[1];
+  if (!style || !/\b(?:my foods?|of my|mijn (?:eten|voedingsmiddelen)|van mijn|which foods|welke voedingsmiddelen|welk eten)\b/.test(a.f) || /\brecipes?\b|\brecept/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, foods = a.env.health!.foods, fit = foods.filter(f => fitsStyle(f, style) === true), words = EATING_WORDS[style][lang];
+  const rule = say(lang, {'low-carb': 'carbs give 10 % of the calories or less', 'high-protein': 'protein gives 25 % of the calories or more', 'high-fibre': '3 g of fibre or more per 100 kcal'}[style], {'low-carb': 'koolhydraten leveren 10 % van de calorieën of minder', 'high-protein': 'eiwit levert 25 % van de calorieën of meer', 'high-fibre': '3 g vezels of meer per 100 kcal'}[style]);
+  const where = say(lang, 'Health → Foods & recipes → “Eating style and food marks” marks them in your list. From each food’s own nutrients; not advice.', 'Health → Foods & recipes → “Eating style and food marks” markeert ze in je lijst. Uit de eigen voedingswaarden van elk; geen advies.');
+  const names = list(fit.slice(0, 8).map(f => clean(f.name, 50)), lang);
+  return answer(say(lang, `Of your ${foods.length} foods, ${fit.length} fit ${words} (${rule})${fit.length ? `: ${names}` : ''}. ${where}`, `Van je ${foods.length} voedingsmiddelen passen er ${fit.length} bij ${words} (${rule})${fit.length ? `: ${names}` : ''}. ${where}`), [{tool: 'search_foods', args: {}, label: 'Your foods'}]);
+}
+
+const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [styleFoods, fitPlanAnswer, recipeIdeas, recipeMethod, packPhotosAnswer, eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
 export const AV2_FOOD_HANDLER_COUNT = HANDLERS.length;

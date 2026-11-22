@@ -20,4 +20,5 @@ export const AV2_FOOD: readonly Intent[] = [
   {id: 'av2-food-pack-photos', pillar: 'health', en: ['where are my package photos', 'can I keep a photo of the package with a food'], nl: ['waar zijn mijn verpakkingsfoto\'s', 'kan ik een foto van de verpakking bewaren']},
   {id: 'av2-food-recipe-ideas', pillar: 'health', en: ['give me some vegan recipe ideas', 'show me some recipes to start from'], nl: ['geef me een paar vegetarische recepten', 'heb je recept ideeen']},
   {id: 'av2-food-fit-plan', pillar: 'health', en: ['plan my meals for tomorrow to fit my targets', 'make a meal plan that fits my macros'], nl: ['plan mijn maaltijden voor morgen', 'plan mijn eten voor morgen']},
+  {id: 'av2-food-style-foods', pillar: 'health', en: ['which of my foods are low carb', 'which of my foods are high protein'], nl: ['welke van mijn voedingsmiddelen zijn eiwitrijk', 'welke van mijn voedingsmiddelen zijn koolhydraatarm']},
 ];
