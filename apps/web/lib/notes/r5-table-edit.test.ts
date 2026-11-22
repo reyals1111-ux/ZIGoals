@@ -7,9 +7,12 @@ const TEXT = 'Shopping\n\n| Item | Price |\n| :--- | ---: |\n| Tea | 4 |\n| appl
 
 describe('tables in a note', () => {
   test('found as the reading view draws them, never inside code', () => {
+    // Session AV lane 2 (review b5i B5I-5, deliberate): a table now also carries its lines as written and why it may not
+    // be edited; the same fields are checked as before, plus those.
     const [t, ...more] = findTables(TEXT);
     expect(more).toEqual([]);
-    expect(t).toEqual({first: 2, last: 7, head: ['Item', 'Price'], align: ['left', 'right'], rows: [['Tea', '4'], ['apples', '12'], ['Bread', ''], ['a|b', '3.5']]});
+    expect(t).toMatchObject({first: 2, last: 7, head: ['Item', 'Price'], align: ['left', 'right'], rows: [['Tea', '4'], ['apples', '12'], ['Bread', ''], ['a|b', '3.5']], blocked: null});
+    expect(t!.src).toEqual({head: '| Item | Price |', delim: '| :--- | ---: |', rows: ['| Tea | 4 |', '| apples | 12 |', '| Bread |  |', '| a\\|b | 3.5 |']});
     expect(mayHoldTable(TEXT)).toBe(true); expect(mayHoldTable('a | b\nno')).toBe(false);
   });
   test('rows and columns added, moved and removed; cells changed; written back in place', () => {
@@ -21,14 +24,14 @@ describe('tables in a note', () => {
     const drawn = parseBlocks(text, {notes: true}).find(b => b.type === 'table')!;
     expect(plainText([drawn])).toContain('a|b | 3.5');
     expect(removeColumn(next, 2).head).toEqual(['Item', 'Price']);
-    expect(() => removeColumn({...t, head: ['One'], align: [null], rows: [['x']]}, 0)).toThrow(/one column/);
-    expect(() => addRow({...t, rows: Array.from({length: 100}, () => ['', ''])})).toThrow(TABLE_FULL_ROWS);
+    expect(() => removeColumn({...t, head: ['One'], align: [null], rows: [['x']], src: {head: '| One |', delim: '| --- |', rows: ['| x |']}}, 0)).toThrow(/one column/);
+    expect(() => addRow({...t, rows: Array.from({length: 100}, () => ['', '']), src: {...t.src, rows: Array.from({length: 100}, () => null)}})).toThrow(TABLE_FULL_ROWS);
   });
   test('sort: numbers as numbers, words in order, empty cells last', () => {
     const t = findTables(TEXT)[0]!;
     expect(sortBy(t, 1, 'up').rows.map(r => r[0])).toEqual(['a|b', 'Tea', 'apples', 'Bread']);
     expect(sortBy(t, 1, 'down').rows.map(r => r[0])).toEqual(['apples', 'Tea', 'a|b', 'Bread']);
     expect(sortBy(t, 0, 'up').rows.map(r => r[0])).toEqual(['a|b', 'apples', 'Bread', 'Tea']);
-    expect(sortBy({...t, rows: [['x2', ''], ['x10', ''], ['x1', '']]}, 0, 'up').rows.map(r => r[0])).toEqual(['x1', 'x2', 'x10']);
+    expect(sortBy({...t, rows: [['x2', ''], ['x10', ''], ['x1', '']], src: {...t.src, rows: [null, null, null]}}, 0, 'up').rows.map(r => r[0])).toEqual(['x1', 'x2', 'x10']);
   });
 });
